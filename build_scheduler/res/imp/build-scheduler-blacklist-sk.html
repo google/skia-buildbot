@@ -75,6 +75,9 @@
     paper-fab {
       background-color: #d23f31;
       margin: 25px;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
     }
     .table {
       border-collapse: collapse;
@@ -135,10 +138,7 @@
       </template>
     </div>
     <paper-spinner active$="{{_loading}}"></paper-spinner>
-    <div class="layout horizontal">
-      <div class="flex"></div>
-      <paper-fab icon="add" on-click="_add_rule_popup"></paper-fab>
-    </div>
+    <paper-fab icon="add" on-click="_add_rule_popup"></paper-fab>
     <paper-dialog id="add_dialog">
       <h2>Add a blacklist rule</h2>
       <div class="layout horizontal">
