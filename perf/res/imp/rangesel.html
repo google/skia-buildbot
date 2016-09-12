@@ -1,0 +1,95 @@
+<!-- The <range-sel-sk> custom element declaration.
+
+Allows selecting a sub-range. The full range is from [0, 100].
+
+  [......(=====)........]
+
+  Attributes:
+    begin - Number - The start of the selected range.
+    end   - Number - The end of the selected range.
+
+  Events:
+    range-change
+
+  Methods:
+
+-->
+
+<dom-module id="range-sel-sk">
+  <style>
+    :host {
+      display: block;
+    }
+
+    :host,
+    div {
+      user-select: none;
+    }
+
+    #begin,
+    #end {
+      width: 10px;
+      height: 20px;
+      background: blue;
+      display: inline-block;
+      position: relative;
+    }
+
+    #end {
+      background: red;
+    }
+
+    #range {
+      width: 100%;
+    }
+  </style>
+  <template>
+    <div id=range>
+      <div id=begin on-track="_handleTrack"></div>
+      <div id=end on-track="_handleTrack"></div>
+    </div>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "range-sel-sk",
+
+    properties: {
+      begin: {
+        type: Number,
+        value: 15,
+        reflectToAttribute: true,
+      },
+      end: {
+        type: Number,
+        value: 47,
+        reflectToAttribute: true,
+      },
+    },
+
+    ready: function() {
+      this._setSliderPos(this.$.begin, 0);
+      this._setSliderPos(this.$.end, 0);
+    },
+
+    _setSliderPos: function(ele, dx) {
+      ele.style.left = this[ele.id] + "%";
+      ele.style.transform = "translateX(" + dx + "px)";
+    },
+
+    _handleTrack: function(e) {
+      switch(e.detail.state) {
+        case 'track':
+          this._setSliderPos(e.srcElement, e.detail.dx);
+          break;
+        case 'end':
+          this.set(e.srcElement.id, 100*(e.srcElement.offsetLeft+e.detail.dx)/this.clientWidth);
+          this._setSliderPos(e.srcElement, 0);
+          break;
+      }
+    },
+
+  });
+</script>
+
