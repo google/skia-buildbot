@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 )
 
@@ -62,7 +63,8 @@ var (
 
 	// Flags.
 	host           = flag.String("host", "localhost", "HTTP service host")
-	port           = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
+	port           = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
+	dbPort         = flag.String("db_port", ":8008", "HTTP service port for the database RPC server (e.g., ':8008')")
 	local          = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
 	scoreDecay24Hr = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
@@ -262,6 +264,18 @@ func runServer(serverURL string) {
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }
 
+// runDbServer listens on dbPort and responds to HTTP requests at path /db with
+// RPC calls to taskDb. Does not return.
+func runDbServer(taskDb db.RemoteDB) {
+	r := mux.NewRouter()
+	dbserver, err := remote_db.NewServer(taskDb, r.PathPrefix("/db").Subrouter())
+	if err != nil {
+		glog.Fatal(err)
+	}
+	defer util.Close(dbserver)
+	glog.Fatal(http.ListenAndServe(*dbPort, httputils.LoggingGzipRequestResponse(r)))
+}
+
 func main() {
 	defer common.LogPanic()
 
@@ -355,5 +369,9 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	runServer(serverURL)
+	go runServer(serverURL)
+	go runDbServer(d)
+
+	// Run indefinitely, responding to HTTP requests.
+	select {}
 }
