@@ -426,13 +426,13 @@ func TestLocalDB(t *testing.T) {
 func TestLocalDBTooManyUsers(t *testing.T) {
 	d, tmpdir := makeDB(t, "TestLocalDBTooManyUsers")
 	defer util.RemoveAll(tmpdir)
-	db.TestTooManyUsers(t, d)
+	db.TestTaskDBTooManyUsers(t, d)
 }
 
 func TestLocalDBConcurrentUpdate(t *testing.T) {
 	d, tmpdir := makeDB(t, "TestLocalDBConcurrentUpdate")
 	defer util.RemoveAll(tmpdir)
-	db.TestConcurrentUpdate(t, d)
+	db.TestTaskDBConcurrentUpdate(t, d)
 }
 
 func TestLocalDBUpdateTasksWithRetries(t *testing.T) {

@@ -1,6 +1,7 @@
 package db
 
 import (
+	"sort"
 	"testing"
 	"time"
 
@@ -24,7 +25,7 @@ func testGetTasksForCommits(t *testing.T, c TaskCache, b *Task) {
 	}
 }
 
-func TestDBCache(t *testing.T) {
+func TestTaskCache(t *testing.T) {
 	db := NewInMemoryTaskDB()
 	defer testutils.AssertCloses(t, db)
 
@@ -63,7 +64,7 @@ func TestDBCache(t *testing.T) {
 	}, tasks)
 }
 
-func TestDBCacheMultiRepo(t *testing.T) {
+func TestTaskCacheMultiRepo(t *testing.T) {
 	db := NewInMemoryTaskDB()
 	defer testutils.AssertCloses(t, db)
 
@@ -124,7 +125,7 @@ func TestDBCacheMultiRepo(t *testing.T) {
 	}
 }
 
-func TestDBCacheReset(t *testing.T) {
+func TestTaskCacheReset(t *testing.T) {
 	db := NewInMemoryTaskDB()
 	defer testutils.AssertCloses(t, db)
 
@@ -152,7 +153,7 @@ func TestDBCacheReset(t *testing.T) {
 	testGetTasksForCommits(t, c, t2)
 }
 
-func TestCacheUnfinished(t *testing.T) {
+func TestTaskCacheUnfinished(t *testing.T) {
 	db := NewInMemoryTaskDB()
 	defer testutils.AssertCloses(t, db)
 
@@ -205,4 +206,144 @@ func TestCacheUnfinished(t *testing.T) {
 	tasks, err = c.UnfinishedTasks()
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, []*Task{t3}, tasks)
+}
+
+func TestJobCache(t *testing.T) {
+	db := NewInMemoryJobDB()
+	defer testutils.AssertCloses(t, db)
+
+	// Pre-load a job into the DB.
+	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
+	j1 := makeJob(startTime)
+	assert.NoError(t, db.PutJob(j1))
+
+	// Create the cache. Ensure that the existing job is present.
+	c, err := NewJobCache(db, time.Hour)
+	assert.NoError(t, err)
+	test, err := c.GetJob(j1.Id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, j1, test)
+
+	// Create another job. Ensure that it gets picked up.
+	j2 := makeJob(startTime.Add(time.Nanosecond))
+	assert.NoError(t, db.PutJob(j2))
+	test, err = c.GetJob(j2.Id)
+	assert.Error(t, err)
+	assert.NoError(t, c.Update())
+	test, err = c.GetJob(j2.Id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, j2, test)
+}
+
+func TestJobCacheTriggeredForCommit(t *testing.T) {
+	db := NewInMemoryJobDB()
+	defer testutils.AssertCloses(t, db)
+
+	// Insert several jobs with different repos.
+	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
+	j1 := makeJob(startTime)                       // Default Repo.
+	j1.Revision = "a"
+	j2 := makeJob(startTime)
+	j2.Repo = "thats-what-you.git"
+	j2.Revision = "b"
+	j3 := makeJob(startTime)
+	j3.Repo = "never-for.git"
+	j3.Revision = "c"
+	assert.NoError(t, db.PutJobs([]*Job{j1, j2, j3}))
+
+	// Create the cache.
+	cache, err := NewJobCache(db, time.Hour)
+	assert.NoError(t, err)
+	b, err := cache.ScheduledJobsForCommit(j1.Repo, j1.Revision)
+	assert.NoError(t, err)
+	assert.True(t, b)
+	b, err = cache.ScheduledJobsForCommit(j2.Repo, j2.Revision)
+	assert.NoError(t, err)
+	assert.True(t, b)
+	b, err = cache.ScheduledJobsForCommit(j3.Repo, j3.Revision)
+	assert.NoError(t, err)
+	assert.True(t, b)
+	b, err = cache.ScheduledJobsForCommit(j2.Repo, j3.Revision)
+	assert.NoError(t, err)
+	assert.False(t, b)
+}
+
+func testGetUnfinished(t *testing.T, expect []*Job, cache JobCache) {
+	jobs, err := cache.UnfinishedJobs()
+	assert.NoError(t, err)
+	sort.Sort(JobSlice(jobs))
+	sort.Sort(JobSlice(expect))
+	testutils.AssertDeepEqual(t, expect, jobs)
+}
+
+func TestJobCacheReset(t *testing.T) {
+	db := NewInMemoryJobDB()
+	defer testutils.AssertCloses(t, db)
+
+	// Pre-load a job into the DB.
+	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
+	j1 := makeJob(startTime)
+	assert.NoError(t, db.PutJob(j1))
+
+	// Create the cache. Ensure that the existing job is present.
+	c, err := NewJobCache(db, time.Hour)
+	assert.NoError(t, err)
+	testGetUnfinished(t, []*Job{j1}, c)
+
+	// Pretend the DB connection is lost.
+	db.StopTrackingModifiedJobs(c.(*jobCache).queryId)
+
+	// Make an update.
+	j2 := makeJob(startTime.Add(time.Minute))
+	j1.Dependencies = []string{"someTask"}
+	assert.NoError(t, db.PutJobs([]*Job{j2, j1}))
+
+	// Ensure cache gets reset.
+	assert.NoError(t, c.Update())
+	testGetUnfinished(t, []*Job{j1, j2}, c)
+}
+
+func TestJobCacheUnfinished(t *testing.T) {
+	db := NewInMemoryJobDB()
+	defer testutils.AssertCloses(t, db)
+
+	// Insert a job.
+	startTime := time.Now().Add(-30 * time.Minute)
+	j1 := makeJob(startTime)
+	assert.False(t, j1.Done())
+	assert.NoError(t, db.PutJob(j1))
+
+	// Create the cache. Ensure that the existing job is present.
+	c, err := NewJobCache(db, time.Hour)
+	assert.NoError(t, err)
+	testGetUnfinished(t, []*Job{j1}, c)
+
+	// Finish the job. Insert it, ensure that it's not unfinished.
+	j1.Status = JOB_STATUS_SUCCESS
+	assert.True(t, j1.Done())
+	assert.NoError(t, db.PutJob(j1))
+	assert.NoError(t, c.Update())
+	testGetUnfinished(t, []*Job{}, c)
+
+	// Already-finished job.
+	j2 := makeJob(time.Now())
+	j2.Status = JOB_STATUS_MISHAP
+	assert.True(t, j2.Done())
+	assert.NoError(t, db.PutJob(j2))
+	assert.NoError(t, c.Update())
+	testGetUnfinished(t, []*Job{}, c)
+
+	// An unfinished job, created after the cache was created.
+	j3 := makeJob(time.Now())
+	assert.False(t, j3.Done())
+	assert.NoError(t, db.PutJob(j3))
+	assert.NoError(t, c.Update())
+	testGetUnfinished(t, []*Job{j3}, c)
+
+	// Update the job.
+	j3.Dependencies = []string{"a", "b", "c"}
+	assert.False(t, j3.Done())
+	assert.NoError(t, db.PutJob(j3))
+	assert.NoError(t, c.Update())
+	testGetUnfinished(t, []*Job{j3}, c)
 }

@@ -419,7 +419,7 @@ func TestUpdateDBFromSwarmingTask(t *testing.T) {
 }
 
 // Test that sort.Sort(TaskSlice(...)) works correctly.
-func TestSort(t *testing.T) {
+func TestTaskSort(t *testing.T) {
 	tasks := []*Task{}
 	addTask := func(ts time.Time) {
 		task := &Task{

@@ -160,3 +160,55 @@ func (m *ModifiedTasks) StartTrackingModifiedTasks() (string, error) {
 func (m *ModifiedTasks) StopTrackingModifiedTasks(id string) {
 	m.m.StopTrackingModifiedEntries(id)
 }
+
+type ModifiedJobs struct {
+	m modifiedData
+}
+
+// See docs for JobDB interface.
+func (m *ModifiedJobs) GetModifiedJobs(id string) ([]*Job, error) {
+	jobs, err := m.m.GetModifiedEntries(id)
+	if err != nil {
+		return nil, err
+	}
+	d := JobDecoder{}
+	for _, g := range jobs {
+		if !d.Process(g) {
+			break
+		}
+	}
+	rv, err := d.Result()
+	if err != nil {
+		return nil, err
+	}
+	sort.Sort(JobSlice(rv))
+	return rv, nil
+}
+
+// TrackModifiedJob indicates the given Job should be returned from the next
+// call to GetModifiedJobs from each subscriber.
+func (m *ModifiedJobs) TrackModifiedJob(j *Job) {
+	var buf bytes.Buffer
+	if err := gob.NewEncoder(&buf).Encode(j); err != nil {
+		glog.Fatal(err)
+	}
+	m.m.TrackModifiedEntries(map[string][]byte{j.Id: buf.Bytes()})
+}
+
+// TrackModifiedJobsGOB is a batch, GOB version of TrackModifiedJob. Given a
+// map from Job.Id to GOB-encoded task, it is equivalent to GOB-decoding each
+// value of gobs as a Job and calling TrackModifiedJob on each one. Values of
+// gobs must not be modified after this call.
+func (m *ModifiedJobs) TrackModifiedJobsGOB(gobs map[string][]byte) {
+	m.m.TrackModifiedEntries(gobs)
+}
+
+// See docs for JobDB interface.
+func (m *ModifiedJobs) StartTrackingModifiedJobs() (string, error) {
+	return m.m.StartTrackingModifiedEntries()
+}
+
+// See docs for JobDB interface.
+func (m *ModifiedJobs) StopTrackingModifiedJobs(id string) {
+	m.m.StopTrackingModifiedEntries(id)
+}

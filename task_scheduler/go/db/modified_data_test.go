@@ -54,7 +54,7 @@ func TestModifiedTasks(t *testing.T) {
 
 // Test that if a Task is modified multiple times, it only appears once in the
 // result of GetModifiedTasks.
-func TestMultipleModifications(t *testing.T) {
+func TestMultipleTaskModifications(t *testing.T) {
 	m := ModifiedTasks{}
 
 	id, err := m.StartTrackingModifiedTasks()
@@ -93,5 +93,90 @@ func TestModifiedTasksTooManyUsers(t *testing.T) {
 
 	m.StopTrackingModifiedTasks(oneId)
 	_, err = m.StartTrackingModifiedTasks()
+	assert.NoError(t, err)
+}
+
+func TestModifiedJobs(t *testing.T) {
+	m := ModifiedJobs{}
+
+	_, err := m.GetModifiedJobs("dummy-id")
+	assert.True(t, IsUnknownId(err))
+
+	id, err := m.StartTrackingModifiedJobs()
+	assert.NoError(t, err)
+
+	jobs, err := m.GetModifiedJobs(id)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(jobs))
+
+	j1 := makeJob(time.Unix(0, 1470674132000000))
+	j1.Id = "1"
+
+	// Insert the job.
+	m.TrackModifiedJob(j1)
+
+	// Ensure that the job shows up in the modified list.
+	jobs, err = m.GetModifiedJobs(id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{j1}, jobs)
+
+	// Insert two more jobs.
+	j2 := makeJob(time.Unix(0, 1470674376000000))
+	j2.Id = "2"
+	m.TrackModifiedJob(j2)
+	j3 := makeJob(time.Unix(0, 1470674884000000))
+	j3.Id = "3"
+	m.TrackModifiedJob(j3)
+
+	// Ensure that both jobs show up in the modified list.
+	jobs, err = m.GetModifiedJobs(id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{j2, j3}, jobs)
+
+	// Check StopTrackingModifiedJobs.
+	m.StopTrackingModifiedJobs(id)
+	_, err = m.GetModifiedJobs(id)
+	assert.True(t, IsUnknownId(err))
+}
+
+func TestMultipleJobModifications(t *testing.T) {
+	m := ModifiedJobs{}
+
+	id, err := m.StartTrackingModifiedJobs()
+	assert.NoError(t, err)
+
+	j1 := makeJob(time.Unix(0, 1470674132000000))
+	j1.Id = "1"
+
+	// Insert the job.
+	m.TrackModifiedJob(j1)
+
+	// Make several more modifications.
+	j1.Status = JOB_STATUS_IN_PROGRESS
+	m.TrackModifiedJob(j1)
+	j1.Status = JOB_STATUS_SUCCESS
+	m.TrackModifiedJob(j1)
+
+	// Ensure that the task shows up only once in the modified list.
+	jobs, err := m.GetModifiedJobs(id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{j1}, jobs)
+}
+
+func TestModifiedJobsTooManyUsers(t *testing.T) {
+	m := ModifiedJobs{}
+
+	var oneId string
+	// Max out the number of modified-tasks users; ensure that we error out.
+	for i := 0; i < MAX_MODIFIED_DATA_USERS; i++ {
+		id, err := m.StartTrackingModifiedJobs()
+		assert.NoError(t, err)
+		oneId = id
+	}
+	_, err := m.StartTrackingModifiedJobs()
+	assert.True(t, IsTooManyUsers(err))
+
+	m.StopTrackingModifiedJobs(oneId)
+	_, err = m.StartTrackingModifiedJobs()
 	assert.NoError(t, err)
 }

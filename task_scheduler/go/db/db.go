@@ -22,7 +22,7 @@ const (
 var (
 	ErrAlreadyExists    = errors.New("Object already exists and modification not allowed.")
 	ErrConcurrentUpdate = errors.New("Concurrent update")
-	ErrNotFound         = errors.New("Task with given ID does not exist")
+	ErrNotFound         = errors.New("Task/Job with given ID does not exist")
 	ErrTooManyUsers     = errors.New("Too many users")
 	ErrUnknownId        = errors.New("Unknown ID")
 )
@@ -152,8 +152,112 @@ func UpdateTaskWithRetries(db TaskDB, id string, f func(*Task) error) (*Task, er
 	}
 }
 
-// RemoteDB allows retrieving tasks and full access to comments.
+// JobReader is a read-only view of a JobDB.
+type JobReader interface {
+	io.Closer
+
+	// GetModifiedJobs returns all jobs modified since the last time
+	// GetModifiedJobs was run with the given id.
+	GetModifiedJobs(string) ([]*Job, error)
+
+	// GetJobById returns the job with the given Id field. Returns nil, nil if
+	// job is not found.
+	GetJobById(string) (*Job, error)
+
+	// GetJobsFromDateRange retrieves all jobs which started in the given date range.
+	GetJobsFromDateRange(time.Time, time.Time) ([]*Job, error)
+
+	// StartTrackingModifiedJobs initiates tracking of modified jobs for
+	// the current caller. Returns a unique ID which can be used by the caller
+	// to retrieve jobs which have been modified since the last query. The ID
+	// expires after a period of inactivity.
+	StartTrackingModifiedJobs() (string, error)
+
+	// StopTrackingModifiedJobs cancels tracking of modified jobs for the
+	// provided ID.
+	StopTrackingModifiedJobs(string)
+}
+
+// JobDB is used by the task scheduler to store Jobs.
+type JobDB interface {
+	JobReader
+
+	// PutJob inserts or updates the Job in the database. Job's Id field
+	// must be empty if it is a new Job. PutJob will set Job.DbModified.
+	PutJob(*Job) error
+
+	// PutJobs inserts or updates the Jobs in the database. Each Jobs' Id
+	// field must be empty if it is a new Job. Each Jobs' DbModified field
+	// will be set.
+	PutJobs([]*Job) error
+}
+
+// UpdateJobsWithRetries wraps a call to db.PutJobs with retries. It calls
+// db.PutJobs(f()) repeatedly until one of the following happen:
+//  - f or db.PutJobs returns an error, which is then returned from
+//    UpdateJobsWithRetries;
+//  - PutJobs succeeds, in which case UpdateJobsWithRetries returns the updated
+//    Jobs returned by f;
+//  - retries are exhausted, in which case UpdateJobsWithRetries returns
+//    ErrConcurrentUpdate.
+//
+// Within f, jobs should be refreshed from the DB, e.g. with
+// db.GetModifiedJobs or db.GetJobById.
+// TODO(borenet): We probably don't need this; consider removing.
+func UpdateJobsWithRetries(db JobDB, f func() ([]*Job, error)) ([]*Job, error) {
+	var lastErr error
+	for i := 0; i < NUM_RETRIES; i++ {
+		t, err := f()
+		if err != nil {
+			return nil, err
+		}
+		lastErr = db.PutJobs(t)
+		if lastErr == nil {
+			return t, nil
+		} else if !IsConcurrentUpdate(lastErr) {
+			return nil, lastErr
+		}
+	}
+	glog.Warningf("UpdateWithRetries: %d consecutive ErrConcurrentUpdate.", NUM_RETRIES)
+	return nil, lastErr
+}
+
+// UpdateJobWithRetries reads, updates, and writes a single Job in the DB. It:
+//  1. reads the job with the given id,
+//  2. calls f on that job, and
+//  3. calls db.PutJob() on the updated job
+//  4. repeats from step 1 as long as PutJobs returns ErrConcurrentUpdate and
+//     retries have not been exhausted.
+// Returns the updated job if it was successfully updated in the DB.
+// Immediately returns ErrNotFound if db.GetJobById(id) returns nil.
+// Immediately returns any error returned from f or from PutJobs (except
+// ErrConcurrentUpdate). Returns ErrConcurrentUpdate if retries are exhausted.
+// TODO(borenet): We probably don't need this; consider removing.
+func UpdateJobWithRetries(db JobDB, id string, f func(*Job) error) (*Job, error) {
+	jobs, err := UpdateJobsWithRetries(db, func() ([]*Job, error) {
+		t, err := db.GetJobById(id)
+		if err != nil {
+			return nil, err
+		}
+		if t == nil {
+			return nil, ErrNotFound
+		}
+		err = f(t)
+		if err != nil {
+			return nil, err
+		}
+		return []*Job{t}, nil
+	})
+	if err != nil {
+		return nil, err
+	} else {
+		return jobs[0], nil
+	}
+}
+
+// RemoteDB allows retrieving tasks and jobs and full access to comments.
 type RemoteDB interface {
+	//JobReader
 	TaskReader
 	CommentDB
 }
