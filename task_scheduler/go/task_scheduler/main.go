@@ -61,13 +61,14 @@ var (
 	triggerTemplate   *template.Template = nil
 
 	// Flags.
-	host           = flag.String("host", "localhost", "HTTP service host")
-	port           = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
-	local          = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
-	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
-	scoreDecay24Hr = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
-	timePeriod     = flag.String("timePeriod", "4d", "Time period to use.")
-	workdir        = flag.String("workdir", "workdir", "Working directory to use.")
+	host            = flag.String("host", "localhost", "HTTP service host")
+	port            = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
+	local           = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
+	updateMockTasks = flag.Bool("update_mock_tasks", false, "Ignored if local is false. When true, sets up mock swarming bots and updates mock swarming tasks to simulate tasks being run.")
+	resourcesDir    = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
+	scoreDecay24Hr  = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
+	timePeriod      = flag.String("timePeriod", "4d", "Time period to use.")
+	workdir         = flag.String("workdir", "workdir", "Working directory to use.")
 
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
@@ -289,20 +290,6 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	// Initialize Swarming client.
-	var swarm swarming.ApiClient
-	if *local {
-		swarm = swarming.NewTestClient()
-		if err != nil {
-			glog.Fatal(err)
-		}
-	} else {
-		swarm, err = swarming.NewApiClient(httpClient)
-		if err != nil {
-			glog.Fatal(err)
-		}
-	}
-
 	// Initialize Isolate client.
 	isolateClient, err := isolate.NewClient(*workdir)
 	if err != nil {
@@ -330,6 +317,22 @@ func main() {
 	repos = gitinfo.NewRepoMap(*workdir)
 	for _, r := range REPOS {
 		if _, err := repos.Repo(r); err != nil {
+			glog.Fatal(err)
+		}
+	}
+
+	// Initialize Swarming client.
+	var swarm swarming.ApiClient
+	if *local {
+		swarmTestClient := swarming.NewTestClientWithAutoAddTasks()
+		if *updateMockTasks {
+			swarmTestClient.MockBots(mockSwarmingBotsForAllTasksForTesting(repos))
+			go periodicallyUpdateMockTasksForTesting(swarmTestClient)
+		}
+		swarm = swarmTestClient
+	} else {
+		swarm, err = swarming.NewApiClient(httpClient)
+		if err != nil {
 			glog.Fatal(err)
 		}
 	}
