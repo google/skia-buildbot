@@ -33,28 +33,33 @@
 
     paramset-sk  {
       margin: 1em;
+      overflow-y: auto;
+      height: 480px;
     }
 
   </style>
   <template>
     <div class="layout horizontal">
       <div class="layout vertical">
-        <plot-simple-sk width=640 height=480 id=plot></plot-simple-sk>
+        <div class="layout horizontal">
+          <plot-simple-sk width=640 height=480 id=plot></plot-simple-sk>
+          <paramset-sk id=paramset clickable-values></paramset-sk>
+        </div>
         <div class="layout horizontal wrap">
           <query2-sk id=query></query2-sk>
           <div class="layout vertical" id=selections>
             <h3>Selections</h3>
             <query-summary-sk id=summary></query-summary-sk>
+
+            <div>
+              Matches: <span id=matches></span>
+            </div>
           </div>
           <div class="layout vertical">
-            <button on-tap="_add">Add</button>
+            <button on-tap="_add">Plot</button>
           </div>
         </div>
-        <div class="layout vertical">
-          <button on-tap="_add">Add</button>
-        </div>
       </div>
-      <paramset-sk id=paramset clickable-values></paramset-sk>
     </div>
   </template>
 </dom-module>
@@ -72,6 +77,9 @@
     },
 
     ready: function() {
+      // Keep track of whether a request is inflight to count the number of traces that match the current query.
+      this._countInProgress = false;
+
       // Populate the query element.
       sk.get("/_/paramset/").then(JSON.parse).then(function(json) {
         this.$.query.paramset = json;
@@ -80,6 +88,7 @@
       // Reflect the current query to the query summary.
       this.$.query.addEventListener('query-change', function(e){
         this.$.summary.selection = e.detail.q;
+        this._updateCount();
       }.bind(this));
 
       // Highlight trace when a paramset value is clicked.
@@ -96,6 +105,21 @@
         }
         this.$.plot.setHighlight(keys);
       }.bind(this));
+
+      this._updateCount();
+    },
+
+    _updateCount: function() {
+      if (this._countInProgress === true) {
+        return
+      }
+      this._countInProgress = true;
+      sk.post("/_/count/", this.$.query.current_query, "application/x-www-form-urlencoded").then(JSON.parse).then(function(json) {
+        this._countInProgress = false;
+        this.$.matches.textContent = json.count;
+      }.bind(this)).catch(function() {
+        this._countInProgress = false;
+      });
     },
 
     _add: function() {
@@ -112,6 +136,7 @@
           lines[key] = values;
         });
         this._lines = lines;
+        this.$.plot.removeAll();
         this.$.plot.addLines(lines);
 
         // Populate the paramset element.
