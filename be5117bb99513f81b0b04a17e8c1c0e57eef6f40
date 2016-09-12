@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "8bc2da6f_1a90fd41",
+        "filename": "golden/frontend/res/imp/search-page-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-09-12T17:06:19Z",
+      "side": 1,
+      "message": "Maybe, let\u0027s iterate on this and see how useful it is in practice. IMO it\u0027s only marginally faster than iterating through the images via the keyboard shortcuts.",
+      "parentUuid": "eb7ef69b_78319df7",
+      "revId": "be5117bb99513f81b0b04a17e8c1c0e57eef6f40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb7ef69b_3814854a",
         "filename": "golden/frontend/res/imp/search-page-sk.html",
         "patchSetId": 6
@@ -42,6 +60,24 @@
         "endLine": 145,
         "endChar": 44
       },
+      "revId": "be5117bb99513f81b0b04a17e8c1c0e57eef6f40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_fa9b0966",
+        "filename": "golden/frontend/res/imp/search-page-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-09-12T17:06:19Z",
+      "side": 1,
+      "message": "It\u0027s all about the visuals ;-)",
+      "parentUuid": "eb7ef69b_3814854a",
       "revId": "be5117bb99513f81b0b04a17e8c1c0e57eef6f40",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "8bc2da6f_da796523",
+        "filename": "golden/frontend/res/js/gold.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-09-12T17:06:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eb7ef69b_b8fc1505",
+      "revId": "be5117bb99513f81b0b04a17e8c1c0e57eef6f40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb7ef69b_5805c11a",
         "filename": "golden/go/skiacorrectness/handlers.go",
         "patchSetId": 6
@@ -88,6 +142,24 @@
         "endLine": 450,
         "endChar": 46
       },
+      "revId": "be5117bb99513f81b0b04a17e8c1c0e57eef6f40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_3a93c152",
+        "filename": "golden/go/skiacorrectness/handlers.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 450,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-09-12T17:06:19Z",
+      "side": 1,
+      "message": "Good point done.",
+      "parentUuid": "eb7ef69b_5805c11a",
       "revId": "be5117bb99513f81b0b04a17e8c1c0e57eef6f40",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
