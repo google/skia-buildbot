@@ -27,6 +27,8 @@ const (
 	TAG_INGESTION_METRIC  = "metric"
 	TAG_INGESTER_ID       = "ingester"
 	TAG_INGESTER_SOURCE   = "source"
+
+	POLL_CHUNK_SIZE = 100
 )
 
 var (
@@ -221,7 +223,11 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 
 				// Indicate that the polling was successful.
 				srcMetrics.pollError.Update(0)
-				pollChan <- resultFiles
+				for len(resultFiles) > 0 {
+					chunkSize := util.MinInt(POLL_CHUNK_SIZE, len(resultFiles))
+					pollChan <- resultFiles[:chunkSize]
+					resultFiles = resultFiles[chunkSize:]
+				}
 				srcMetrics.liveness.Reset()
 				srcMetrics.pollTimer.Stop()
 			})
