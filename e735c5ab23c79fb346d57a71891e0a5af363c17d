@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "8bc2da6f_40aa0275",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-09-12T19:22:36Z",
+      "side": 1,
+      "message": "Right that\u0027s what I meant. It\u0027s a nit. Just to make clear that we want to init it to 0.",
+      "parentUuid": "8bc2da6f_bdfc6bd1",
+      "revId": "e735c5ab23c79fb346d57a71891e0a5af363c17d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8bc2da6f_1d37d7e8",
         "filename": "go/ingestion/ingestion.go",
         "patchSetId": 3
@@ -72,6 +90,24 @@
       "side": 1,
       "message": "Yeah, that\u0027s the intent of this change. When ingesting a large number of files, like I am doing on Perf right now ingesting the past year, then the number of files ingested per-poll is not very useful (i.e. it is always 100), so I changed this to be monotonic. This allows using the derivative in InfluxDB to get the files/minute rate.",
       "parentUuid": "8bc2da6f_1d37d7e8",
+      "revId": "e735c5ab23c79fb346d57a71891e0a5af363c17d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_a0d55ee0",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-09-12T19:22:36Z",
+      "side": 1,
+      "message": "SGTM",
+      "parentUuid": "8bc2da6f_5de42f36",
       "revId": "e735c5ab23c79fb346d57a71891e0a5af363c17d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
