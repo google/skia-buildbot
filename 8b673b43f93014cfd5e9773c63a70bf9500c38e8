@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "8bc2da6f_4061e234",
+        "filename": "go/swarming/testutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-12T20:31:51Z",
+      "side": 1,
+      "message": "I just assumed it would, but apparently not.",
+      "parentUuid": "8bc2da6f_80e25ac3",
+      "revId": "8b673b43f93014cfd5e9773c63a70bf9500c38e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8bc2da6f_60df46f7",
         "filename": "task_scheduler/go/task_scheduler/main.go",
         "patchSetId": 1
@@ -48,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "8bc2da6f_205eee70",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-12T20:31:51Z",
+      "side": 1,
+      "message": "I thought it might be annoying if you\u0027re testing something where you need more control, but in that case you\u0027d probably just comment this out and do something completely different here.\n\nNote that it doesn\u0027t work that well across restarts -- you basically need to delete the DB and start from clean.",
+      "parentUuid": "8bc2da6f_60df46f7",
+      "revId": "8b673b43f93014cfd5e9773c63a70bf9500c38e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8bc2da6f_40dc4200",
         "filename": "task_scheduler/go/task_scheduler/testutil.go",
         "patchSetId": 1
@@ -65,6 +101,24 @@
         "endLine": 50,
         "endChar": 42
       },
+      "revId": "8b673b43f93014cfd5e9773c63a70bf9500c38e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_004acaad",
+        "filename": "task_scheduler/go/task_scheduler/testutil.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-12T20:31:51Z",
+      "side": 1,
+      "message": "Maybe like this?",
+      "parentUuid": "8bc2da6f_40dc4200",
       "revId": "8b673b43f93014cfd5e9773c63a70bf9500c38e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
