@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8bc2da6f_80e25ac3",
+        "filename": "go/swarming/testutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T19:43:33Z",
+      "side": 1,
+      "message": "Did it cause test failures to make autoAddTasks the default?",
+      "range": {
+        "startLine": 25,
+        "startChar": 9,
+        "endLine": 25,
+        "endChar": 19
+      },
+      "revId": "8b673b43f93014cfd5e9773c63a70bf9500c38e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_60df46f7",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T19:43:33Z",
+      "side": 1,
+      "message": "Why wouldn\u0027t we always want this?",
+      "range": {
+        "startLine": 328,
+        "startChar": 6,
+        "endLine": 328,
+        "endChar": 21
+      },
+      "revId": "8b673b43f93014cfd5e9773c63a70bf9500c38e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_40dc4200",
+        "filename": "task_scheduler/go/task_scheduler/testutil.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T19:43:33Z",
+      "side": 1,
+      "message": "Nit: make this a constant?",
+      "range": {
+        "startLine": 50,
+        "startChar": 39,
+        "endLine": 50,
+        "endChar": 42
+      },
+      "revId": "8b673b43f93014cfd5e9773c63a70bf9500c38e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
