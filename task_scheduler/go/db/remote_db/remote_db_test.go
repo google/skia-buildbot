@@ -74,12 +74,12 @@ func TestRemoteDB(t *testing.T) {
 
 func TestRemoteDBTooManyUsers(t *testing.T) {
 	d := makeDB(t)
-	db.TestTooManyUsers(t, d)
+	db.TestTaskDBTooManyUsers(t, d)
 }
 
 func TestRemoteDBConcurrentUpdate(t *testing.T) {
 	d := makeDB(t)
-	db.TestConcurrentUpdate(t, d)
+	db.TestTaskDBConcurrentUpdate(t, d)
 }
 
 func TestRemoteDBUpdateTasksWithRetries(t *testing.T) {
