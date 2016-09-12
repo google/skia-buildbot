@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "8bc2da6f_5ddf8ff6",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T13:57:15Z",
+      "side": 1,
+      "message": "Changed to \"ScheduledJobsForCommit\".  I agree about adding some kind of Source field; we\u0027re also going to need some kind of metadata, eg. for try jobs we\u0027ll need CL ID and patchset.  I fully expect to add to the Job struct to get trybots working.",
+      "parentUuid": "8bc2da6f_bad35154",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8bc2da6f_5acb159d",
         "filename": "task_scheduler/go/db/cache.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2016-09-11T20:42:26Z",
       "side": 1,
       "message": "Should add a TODO to flush Jobs (and commits) that are older than timePeriod so that the cache size isn\u0027t unbounded. (Can you also check that taskCache has this TODO?)",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_3ddcdbff",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T13:57:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bc2da6f_5acb159d",
       "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "8bc2da6f_fd10a3bb",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T13:57:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bc2da6f_9a5bedf4",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8bc2da6f_9ad88d71",
         "filename": "task_scheduler/go/db/cache.go",
         "patchSetId": 1
@@ -64,6 +118,24 @@
       "writtenOn": "2016-09-11T20:42:26Z",
       "side": 1,
       "message": "nit:\nif j.Done() {\n  delete(c.unfinished, j.Id)\n} else {\n  c.unfinished[j.Id] \u003d cpy\n}",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_dd15dfa9",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T13:57:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bc2da6f_9ad88d71",
       "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "8bc2da6f_bd1a2bd8",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T13:57:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bc2da6f_7aced9ae",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8bc2da6f_3ac8619e",
         "filename": "task_scheduler/go/db/cache_test.go",
         "patchSetId": 1
@@ -98,6 +188,24 @@
       "writtenOn": "2016-09-11T20:42:26Z",
       "side": 1,
       "message": "Ironically, jobCache can\u0027t handle changing Job.Repo. Maybe we should document that either on JobCache or Job?",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_ddf27f95",
+        "filename": "task_scheduler/go/db/cache_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T13:57:15Z",
+      "side": 1,
+      "message": "Good catch. I added comments on the Job struct for all of the fields which shouldn\u0027t change.  We\u0027ll break those rules in the tests, but that\u0027s okay except for Repo.",
+      "parentUuid": "8bc2da6f_3ac8619e",
       "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -121,6 +229,24 @@
     },
     {
       "key": {
+        "uuid": "8bc2da6f_9d1f67c8",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T13:57:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bc2da6f_5ae43536",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8bc2da6f_3af181f4",
         "filename": "task_scheduler/go/db/db.go",
         "patchSetId": 1
@@ -132,6 +258,24 @@
       "writtenOn": "2016-09-11T20:42:26Z",
       "side": 1,
       "message": "s/task/job/g",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_7d25b31a",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T13:57:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bc2da6f_3af181f4",
       "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -155,6 +299,24 @@
     },
     {
       "key": {
+        "uuid": "8bc2da6f_5d22ef14",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T13:57:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bc2da6f_1aeebd16",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8bc2da6f_fad9c977",
         "filename": "task_scheduler/go/db/db.go",
         "patchSetId": 1
@@ -166,6 +328,24 @@
       "writtenOn": "2016-09-11T20:42:26Z",
       "side": 1,
       "message": "nit s/Job\u0027s/Jobs\u0027/",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_3d2f3bfd",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T13:57:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bc2da6f_fad9c977",
       "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -189,6 +369,24 @@
     },
     {
       "key": {
+        "uuid": "8bc2da6f_1d2c7704",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T13:57:15Z",
+      "side": 1,
+      "message": "Ok, the functions (and extensive tests) are written; let\u0027s leave them and consider removing them later?",
+      "parentUuid": "8bc2da6f_dade055e",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8bc2da6f_daf725ec",
         "filename": "task_scheduler/go/db/job.go",
         "patchSetId": 1
@@ -200,6 +398,24 @@
       "writtenOn": "2016-09-11T20:42:26Z",
       "side": 1,
       "message": "If the job depends on multiple tasks, will the job status be IN_PROGRESS until all tasks are done?",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_fdf78374",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T13:57:15Z",
+      "side": 1,
+      "message": "Yeah, that\u0027s the idea.  The Job is IN_PROGRESS from the moment it\u0027s triggered (RUNNING is meaningless because the Job consists of a set of Tasks which may be untriggered, pending, running, finished, failed, etc) until all of its Tasks have finished or failed.",
+      "parentUuid": "8bc2da6f_daf725ec",
       "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -223,6 +439,24 @@
     },
     {
       "key": {
+        "uuid": "8bc2da6f_9df64776",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T13:57:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bc2da6f_7ae7f93c",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8bc2da6f_fa4c2942",
         "filename": "task_scheduler/go/db/memory.go",
         "patchSetId": 1
@@ -234,6 +468,24 @@
       "writtenOn": "2016-09-11T20:42:26Z",
       "side": 1,
       "message": "nit: s/t/j/g",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_bd6c6b33",
+        "filename": "task_scheduler/go/db/memory.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T13:57:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bc2da6f_fa4c2942",
       "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -257,6 +509,24 @@
     },
     {
       "key": {
+        "uuid": "8bc2da6f_5d542f50",
+        "filename": "task_scheduler/go/db/modified_data_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T13:57:15Z",
+      "side": 1,
+      "message": "Agreed, it\u0027s basically just testing that ModifiedJobs also uses modifiedData. Should I remove them?",
+      "parentUuid": "8bc2da6f_da5165d6",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8bc2da6f_ba56b1ca",
         "filename": "task_scheduler/go/db/testutil.go",
         "patchSetId": 1
@@ -268,6 +538,24 @@
       "writtenOn": "2016-09-11T20:42:26Z",
       "side": 1,
       "message": "nit: These four lines are irrelevant, since there\u0027s no Job version of AssignId.",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_3d617b36",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 635,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T13:57:15Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "8bc2da6f_ba56b1ca",
       "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
