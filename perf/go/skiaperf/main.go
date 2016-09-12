@@ -1182,6 +1182,36 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// countHandler takes the POST'd query and runs that against the current
+// dataframe and returns how many traces match the query.
+func countHandler(w http.ResponseWriter, r *http.Request) {
+	if *local {
+		loadTemplates()
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := r.ParseForm(); err != nil {
+		httputils.ReportError(w, r, err, "Invalid URL query.")
+		return
+	}
+	var err error
+	var q *query.Query
+	if q, err = query.New(r.Form); err != nil {
+		httputils.ReportError(w, r, err, "Invalid query.")
+		return
+	}
+	count := 0
+	for key, _ := range df.TraceSet {
+		if q.Matches(key) {
+			count += 1
+		}
+	}
+	if err := json.NewEncoder(w).Encode(struct {
+		Count int `json:"count"`
+	}{Count: count}); err != nil {
+		glog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -1253,6 +1283,7 @@ func main() {
 	router.HandleFunc("/new/", templateHandler("newindex.html"))
 	router.HandleFunc("/_/paramset/", paramsetHandler)
 	router.HandleFunc("/_/search/", searchHandler)
+	router.HandleFunc("/_/count/", countHandler)
 
 	router.HandleFunc("/frame/", templateHandler("frame.html"))
 	router.HandleFunc("/shortcuts/", shortcutHandler)
