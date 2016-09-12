@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8bc2da6f_5d3d4fc8",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-09-12T16:56:05Z",
+      "side": 1,
+      "message": "I know they are are automatically set to 0, but IMO it\u0027s preferable to explicitly set them to 0, to make it obvious they are initialized and the 0 is the desired value.",
+      "revId": "e735c5ab23c79fb346d57a71891e0a5af363c17d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_1d37d7e8",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-09-12T16:56:05Z",
+      "side": 1,
+      "message": "Won\u0027t this will monotonically increase the counter, unless I am missing something. \nThe original intention was to keep track of the files ingested in each run.",
+      "range": {
+        "startLine": 356,
+        "startChar": 1,
+        "endLine": 356,
+        "endChar": 100
+      },
+      "revId": "e735c5ab23c79fb346d57a71891e0a5af363c17d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
