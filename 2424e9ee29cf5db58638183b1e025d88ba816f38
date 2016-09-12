@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8bc2da6f_9d108760",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1189,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-12T16:08:39Z",
+      "side": 1,
+      "message": "nit: unneeded (same for paramsetHandler and searchHandler)",
+      "revId": "2424e9ee29cf5db58638183b1e025d88ba816f38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_7d06d32d",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-12T16:08:39Z",
+      "side": 1,
+      "message": "Need to bind(this)?",
+      "revId": "2424e9ee29cf5db58638183b1e025d88ba816f38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
