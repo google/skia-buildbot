@@ -317,6 +317,24 @@
     },
     {
       "key": {
+        "uuid": "8bc2da6f_ddba7f76",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-12T14:33:00Z",
+      "side": 1,
+      "message": "nit: Sorry, same for PutJobs.",
+      "parentUuid": "8bc2da6f_5d22ef14",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8bc2da6f_fad9c977",
         "filename": "task_scheduler/go/db/db.go",
         "patchSetId": 1
@@ -387,6 +405,24 @@
     },
     {
       "key": {
+        "uuid": "8bc2da6f_bdafcb36",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-12T14:33:00Z",
+      "side": 1,
+      "message": "sgtm",
+      "parentUuid": "8bc2da6f_1d2c7704",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8bc2da6f_daf725ec",
         "filename": "task_scheduler/go/db/job.go",
         "patchSetId": 1
@@ -416,6 +452,24 @@
       "side": 1,
       "message": "Yeah, that\u0027s the idea.  The Job is IN_PROGRESS from the moment it\u0027s triggered (RUNNING is meaningless because the Job consists of a set of Tasks which may be untriggered, pending, running, finished, failed, etc) until all of its Tasks have finished or failed.",
       "parentUuid": "8bc2da6f_daf725ec",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_9db40788",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-12T14:33:00Z",
+      "side": 1,
+      "message": "sg",
+      "parentUuid": "8bc2da6f_fdf78374",
       "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
