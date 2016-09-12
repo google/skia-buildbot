@@ -118,6 +118,11 @@ type Task struct {
 	// Status is the current task status, default TASK_STATUS_PENDING.
 	Status TaskStatus
 
+	// SwarmingBotId is the ID of the Swarming slave that ran this task. This
+	// field will not be set if the Task does not correspond to a Swarming task or
+	// if the task is still pending.
+	SwarmingBotId string
+
 	// SwarmingTaskId is the Swarming task ID. This field will not be set if the
 	// Task does not correspond to a Swarming task.
 	SwarmingTaskId string
@@ -228,6 +233,9 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 		copy.IsolatedOutput = s.OutputsRef.Isolated
 	}
 
+	// Bot.
+	copy.SwarmingBotId = s.BotId
+
 	// Timestamps.
 	maybeUpdateTime := func(newTimeStr string, field *time.Time, name string) error {
 		if newTimeStr == "" {
@@ -326,6 +334,7 @@ func (t *Task) Copy() *Task {
 		Revision:       t.Revision,
 		Started:        t.Started,
 		Status:         t.Status,
+		SwarmingBotId:  t.SwarmingBotId,
 		SwarmingTaskId: t.SwarmingTaskId,
 	}
 }

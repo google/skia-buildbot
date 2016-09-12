@@ -154,6 +154,7 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 		OutputsRef: &swarming_api.SwarmingRpcsFilesRef{
 			Isolated: "F",
 		},
+		BotId: "G",
 	}
 	changed1, err1 := task1.UpdateFromSwarming(s)
 	assert.NoError(t, err1)
@@ -170,6 +171,7 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 		Status:         TASK_STATUS_SUCCESS,
 		SwarmingTaskId: "E",
 		IsolatedOutput: "F",
+		SwarmingBotId:  "G",
 	})
 
 	// Repeat to get Finished from AbandonedTs.
@@ -191,6 +193,7 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 		Status:         TASK_STATUS_MISHAP,
 		SwarmingTaskId: "E",
 		IsolatedOutput: "F",
+		SwarmingBotId:  "G",
 	})
 }
 
@@ -210,6 +213,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		Status:         TASK_STATUS_SUCCESS,
 		SwarmingTaskId: "E",
 		IsolatedOutput: "F",
+		SwarmingBotId:  "H",
 	}
 	s := &swarming_api.SwarmingRpcsTaskResult{
 		TaskId: "E",
@@ -230,6 +234,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		OutputsRef: &swarming_api.SwarmingRpcsFilesRef{
 			Isolated: "G",
 		},
+		BotId: "I",
 	}
 	changed, err := task.UpdateFromSwarming(s)
 	assert.NoError(t, err)
@@ -246,6 +251,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		Status:         TASK_STATUS_FAILURE,
 		SwarmingTaskId: "E",
 		IsolatedOutput: "G",
+		SwarmingBotId:  "I",
 	})
 
 	// Make an unrelated change, no change to Task.
@@ -265,6 +271,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		Status:         TASK_STATUS_FAILURE,
 		SwarmingTaskId: "E",
 		IsolatedOutput: "G",
+		SwarmingBotId:  "I",
 	})
 
 	// Modify so that we get Finished from AbandonedTs.
@@ -285,6 +292,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		Status:         TASK_STATUS_MISHAP,
 		SwarmingTaskId: "E",
 		IsolatedOutput: "G",
+		SwarmingBotId:  "I",
 	})
 }
 
@@ -386,6 +394,7 @@ func TestUpdateDBFromSwarmingTask(t *testing.T) {
 	s.OutputsRef = &swarming_api.SwarmingRpcsFilesRef{
 		Isolated: "G",
 	}
+	s.BotId = "H"
 
 	assert.NoError(t, UpdateDBFromSwarmingTask(db, s))
 
@@ -403,6 +412,7 @@ func TestUpdateDBFromSwarmingTask(t *testing.T) {
 		Status:         TASK_STATUS_FAILURE,
 		SwarmingTaskId: "E",
 		IsolatedOutput: "G",
+		SwarmingBotId:  "H",
 		// Use value from updatedTask so they are deep-equal.
 		DbModified: updatedTask.DbModified,
 	})
