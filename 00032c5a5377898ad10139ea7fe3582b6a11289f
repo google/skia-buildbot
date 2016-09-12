@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8bc2da6f_1d7477c1",
+        "filename": "alertserver/alerts.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-12T14:56:47Z",
+      "side": 1,
+      "message": "Why is this \"%(child-path)s\", when the query is \\\"child-path\\\"\u003d\u0027src/third_party/catapult\u0027?",
+      "range": {
+        "startLine": 310,
+        "startChar": 40,
+        "endLine": 310,
+        "endChar": 54
+      },
+      "revId": "00032c5a5377898ad10139ea7fe3582b6a11289f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
