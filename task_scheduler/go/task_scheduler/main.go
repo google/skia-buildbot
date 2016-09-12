@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 )
 
@@ -62,7 +63,8 @@ var (
 
 	// Flags.
 	host            = flag.String("host", "localhost", "HTTP service host")
-	port            = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
+	port            = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
+	dbPort          = flag.String("db_port", ":8008", "HTTP service port for the database RPC server (e.g., ':8008')")
 	local           = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
 	updateMockTasks = flag.Bool("update_mock_tasks", false, "Ignored if local is false. When true, sets up mock swarming bots and updates mock swarming tasks to simulate tasks being run.")
 	resourcesDir    = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
@@ -263,6 +265,18 @@ func runServer(serverURL string) {
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }
 
+// runDbServer listens on dbPort and responds to HTTP requests at path /db with
+// RPC calls to taskDb. Does not return.
+func runDbServer(taskDb db.RemoteDB) {
+	r := mux.NewRouter()
+	dbserver, err := remote_db.NewServer(taskDb, r.PathPrefix("/db").Subrouter())
+	if err != nil {
+		glog.Fatal(err)
+	}
+	defer util.Close(dbserver)
+	glog.Fatal(http.ListenAndServe(*dbPort, httputils.LoggingGzipRequestResponse(r)))
+}
+
 func main() {
 	defer common.LogPanic()
 
@@ -358,5 +372,9 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	runServer(serverURL)
+	go runServer(serverURL)
+	go runDbServer(d)
+
+	// Run indefinitely, responding to HTTP requests.
+	select {}
 }
