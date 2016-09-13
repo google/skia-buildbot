@@ -52,14 +52,16 @@ type TaskReader interface {
 	io.Closer
 
 	// GetModifiedTasks returns all tasks modified since the last time
-	// GetModifiedTasks was run with the given id.
+	// GetModifiedTasks was run with the given id. The returned tasks are sorted
+	// by Created timestamp.
 	GetModifiedTasks(string) ([]*Task, error)
 
 	// GetTaskById returns the task with the given Id field. Returns nil, nil if
 	// task is not found.
 	GetTaskById(string) (*Task, error)
 
-	// GetTasksFromDateRange retrieves all tasks which started in the given date range.
+	// GetTasksFromDateRange retrieves all tasks with Created in the given range.
+	// The returned tasks are sorted by Created timestamp.
 	GetTasksFromDateRange(time.Time, time.Time) ([]*Task, error)
 
 	// StartTrackingModifiedTasks initiates tracking of modified tasks for
@@ -157,14 +159,16 @@ type JobReader interface {
 	io.Closer
 
 	// GetModifiedJobs returns all jobs modified since the last time
-	// GetModifiedJobs was run with the given id.
+	// GetModifiedJobs was run with the given id. The returned jobs are sorted by
+	// Created timestamp.
 	GetModifiedJobs(string) ([]*Job, error)
 
 	// GetJobById returns the job with the given Id field. Returns nil, nil if
 	// job is not found.
 	GetJobById(string) (*Job, error)
 
-	// GetJobsFromDateRange retrieves all jobs which started in the given date range.
+	// GetJobsFromDateRange retrieves all jobs with Created in the given range.
+	// The returned jobs are sorted by Created timestamp.
 	GetJobsFromDateRange(time.Time, time.Time) ([]*Job, error)
 
 	// StartTrackingModifiedJobs initiates tracking of modified jobs for
