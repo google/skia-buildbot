@@ -3,46 +3,55 @@ package rtcache
 import (
 	"container/heap"
 	"sync"
+	"time"
 
 	"github.com/golang/groupcache/lru"
+	ttlcache "github.com/robfig/go-cache"
 )
 
 // TODO(stephana): Add the ability to purge items from the cache and
 // expunge item from the error cache. Remove DEFAULT_CACHESIZE when
 // we have a way to expung items from the cache.
 
-// DEFAULT_CACHESIZE is the maximum number of elements in the cache.
-const DEFAULT_CACHESIZE = 50000
+const (
+	// Duration to cache an error response.
+	DEFAULT_ERRCACHE_EXPIRATION_TIME = time.Hour * 12
+
+	// Interval at which the errcache is cleared of expired entries.
+	ERRCACHE_CLEANUP_TIME = time.Minute * 30
+)
 
 // MemReadThroughCache implements the ReadThroughCache interface.
 type MemReadThroughCache struct {
-	workerFn     ReadThroughFunc      // worker function to create the items.
-	cache        *lru.Cache           // caches the items in RAM.
-	errCache     *lru.Cache           // caches errors for a limited time.
-	pQ           *priorityQueue       // priority queue to order item generation.
-	pqItemLookup map[string]*workItem // lookup items by id in pQ.
-	inProgress   map[string]*workItem // items that are currently being generated.
-	mutex        sync.Mutex           // protecs all members of this instance.
-	emptyCond    *sync.Cond           // used to synchronize workers when the queue is empty.
-	finishedCh   chan bool            // closing this signals go-routines to shut down.
-	wg           sync.WaitGroup       // allows to synchronize go-routines during shutdown.
+	workerFn       ReadThroughFunc      // worker function to create the items.
+	cache          *lru.Cache           // caches the items in RAM.
+	errCache       *ttlcache.Cache      // caches errors for a limited time.
+	pQ             *priorityQueue       // priority queue to order item generation.
+	pqItemLookup   map[string]*workItem // lookup items by id in pQ.
+	inProgress     map[string]*workItem // items that are currently being generated.
+	mutex          sync.Mutex           // protecs all members of this instance.
+	emptyCond      *sync.Cond           // used to synchronize workers when the queue is empty.
+	finishedCh     chan bool            // closing this signals go-routines to shut down.
+	wg             sync.WaitGroup       // allows to synchronize go-routines during shutdown.
+	activeWorkerCh chan bool            // records the workers that are currently running.
 }
 
 // New returns a new instance of ReadThroughCache that is stored in RAM.
 // nWorkers defines the number of concurrent workers that call wokerFn when
 // requested items are not in RAM.
-func New(workerFn ReadThroughFunc, nWorkers int) ReadThroughCache {
+func New(workerFn ReadThroughFunc, maxSize int, nWorkers int) ReadThroughCache {
 	ret := &MemReadThroughCache{
-		workerFn:     workerFn,
-		cache:        lru.New(DEFAULT_CACHESIZE),
-		errCache:     lru.New(DEFAULT_CACHESIZE),
-		pQ:           &priorityQueue{},
-		inProgress:   map[string]*workItem{},
-		pqItemLookup: map[string]*workItem{},
-		finishedCh:   make(chan bool),
+		workerFn:       workerFn,
+		cache:          lru.New(maxSize),
+		errCache:       ttlcache.New(DEFAULT_ERRCACHE_EXPIRATION_TIME, ERRCACHE_CLEANUP_TIME),
+		pQ:             &priorityQueue{},
+		inProgress:     map[string]*workItem{},
+		pqItemLookup:   map[string]*workItem{},
+		finishedCh:     make(chan bool),
+		activeWorkerCh: make(chan bool, nWorkers),
 	}
 	ret.emptyCond = sync.NewCond(&ret.mutex)
-	ret.startWorkers(nWorkers)
+	ret.startWorker()
 	return ret
 }
 
@@ -136,7 +145,7 @@ func (m *MemReadThroughCache) saveResult(wi *workItem, result interface{}, err e
 	m.mutex.Lock()
 
 	if err != nil {
-		m.errCache.Add(wi.id, err)
+		m.errCache.Set(wi.id, err, DEFAULT_ERRCACHE_EXPIRATION_TIME)
 		result = err
 	} else {
 		m.cache.Add(wi.id, result)
@@ -168,26 +177,33 @@ func (m *MemReadThroughCache) shutdown() {
 	m.wg.Wait()
 }
 
-// startWorkers starts the given number of worker go-routines.
-func (m *MemReadThroughCache) startWorkers(nWorkers int) {
-	m.wg.Add(nWorkers)
-	for i := 0; i < nWorkers; i++ {
-		go func() {
-			defer m.wg.Done()
-			for {
-				// If we are finished terminate the go routine.
-				if m.finished() {
-					break
-				}
-
-				workItem := m.dequeue()
-				if workItem != nil {
-					ret, err := m.workerFn(workItem.priority, workItem.id)
-					m.saveResult(workItem, ret, err)
-				}
+// startWorker starts a background process that calculates cache values when
+// requested while not exceeding the configured number of workers.
+func (m *MemReadThroughCache) startWorker() {
+	m.wg.Add(1)
+	go func() {
+		defer m.wg.Done()
+		for {
+			// Allocate a slot int he active workers channel.
+			select {
+			case <-m.finishedCh:
+				return
+			case m.activeWorkerCh <- true:
 			}
-		}()
-	}
+
+			wi := m.dequeue()
+			if wi != nil {
+				// Start a go-routine to calculate the task.
+				m.wg.Add(1)
+				go func(wi *workItem) {
+					defer m.wg.Done()
+					ret, err := m.workerFn(wi.priority, wi.id)
+					m.saveResult(wi, ret, err)
+					<-m.activeWorkerCh
+				}(wi)
+			}
+		}
+	}()
 }
 
 // Warm implements the ReadThroughCache interface.

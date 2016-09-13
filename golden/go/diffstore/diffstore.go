@@ -35,6 +35,12 @@ const (
 
 	// METRICS_BUCKET is the name of the bucket in the metrics DB.
 	METRICS_BUCKET = "metrics"
+
+	// MAX_DIFFMETRICS_CACHE is the maximum number of diff metrics to cache.
+	MAX_DIFFMETRICS_CACHE = 1000000
+
+	// MAX_IMAGE_CACHE is the maximum number of images to cache.
+	MAX_IMAGE_CACHE = 30000
 )
 
 const (
@@ -87,7 +93,7 @@ type MemDiffStore struct {
 func New(client *http.Client, baseDir, gsBucketName, gsImageBaseDir string) (*MemDiffStore, error) {
 	// Set up image retrieval, caching and serving.
 	imgDir := fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME)))
-	imgLoader, err := newImgLoader(client, imgDir, gsBucketName, gsImageBaseDir)
+	imgLoader, err := newImgLoader(client, imgDir, gsBucketName, gsImageBaseDir, MAX_IMAGE_CACHE)
 	if err != err {
 		return nil, err
 	}
@@ -104,7 +110,7 @@ func New(client *http.Client, baseDir, gsBucketName, gsImageBaseDir string) (*Me
 		diffMetricsCodec: util.JSONCodec(&DiffRecord{}),
 	}
 
-	ret.diffMetricsCache = rtcache.New(ret.diffMetricsWorker, runtime.NumCPU())
+	ret.diffMetricsCache = rtcache.New(ret.diffMetricsWorker, MAX_DIFFMETRICS_CACHE, runtime.NumCPU())
 	return ret, nil
 }
 

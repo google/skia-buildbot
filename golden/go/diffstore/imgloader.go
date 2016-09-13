@@ -52,7 +52,7 @@ type ImageLoader struct {
 }
 
 // Creates a new instance of ImageLoader.
-func newImgLoader(client *http.Client, imgDir, gsBucketName, gsImageBaseDir string) (*ImageLoader, error) {
+func newImgLoader(client *http.Client, imgDir, gsBucketName, gsImageBaseDir string, maxCacheSize int) (*ImageLoader, error) {
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func newImgLoader(client *http.Client, imgDir, gsBucketName, gsImageBaseDir stri
 	}
 
 	// Set up the work queues that balance the load.
-	ret.imageCache = rtcache.New(ret.imageLoadWorker, N_IMG_WORKERS)
+	ret.imageCache = rtcache.New(ret.imageLoadWorker, maxCacheSize, N_IMG_WORKERS)
 	return ret, nil
 }
 

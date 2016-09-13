@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"sync"
 	"testing"
+	"time"
 
 	assert "github.com/stretchr/testify/require"
 
@@ -58,7 +59,7 @@ func TestReadThroughCache(t *testing.T) {
 	}
 
 	// create a worker queue for a given type
-	q := New(worker, runtime.NumCPU()-2)
+	q := New(worker, 10000, runtime.NumCPU()-2)
 
 	// make sure all results arrive.
 	var allDone sync.WaitGroup
@@ -118,4 +119,25 @@ func TestReadThroughCache(t *testing.T) {
 	assert.True(t, q.Contains("id-0000000"))
 	assert.False(t, q.Contains("some-random-never-before-seen-key"))
 	q.(*MemReadThroughCache).shutdown()
+}
+
+func TestErrHandling(t *testing.T) {
+	errWorker := func(priority int64, id string) (interface{}, error) {
+		return nil, fmt.Errorf("id: %v", time.Now())
+	}
+
+	testID := "id-1"
+	q := New(errWorker, 10000, runtime.NumCPU())
+	_, err := q.Get(1, testID)
+	assert.Error(t, err)
+	time.Sleep(time.Millisecond)
+	_, err = q.Get(1, testID)
+	_, errTwo := q.Get(1, testID)
+	assert.Error(t, errTwo)
+	assert.Equal(t, err, errTwo)
+	q.(*MemReadThroughCache).errCache.Flush()
+	time.Sleep(time.Millisecond)
+	_, errThree := q.Get(1, testID)
+	assert.Error(t, errThree)
+	assert.NotEqual(t, err, errThree)
 }
