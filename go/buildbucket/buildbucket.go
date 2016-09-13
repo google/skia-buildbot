@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/util"
@@ -264,7 +265,12 @@ func (c *Client) Search(url string) ([]*Build, error) {
 }
 
 // GetTrybotsForCL retrieves trybot results for the given CL.
-func (c *Client) GetTrybotsForCL(issueID int64, patchsetID int64) ([]*Build, error) {
-	url := fmt.Sprintf("%s/search?tag=buildset%%3Apatch%%2Frietveld%%2Fcodereview.chromium.org%%2F%d%%2F%d", apiUrl, issueID, patchsetID)
+func (c *Client) GetTrybotsForCL(issueID int64, patchsetID int64, patchStorage, crUrl string) ([]*Build, error) {
+	fmt.Println("BUILDBUCKET!!!!!!!")
+	// Make sure crUrl does not include the protocol.
+	crUrl = strings.TrimPrefix(crUrl, "http://")
+	crUrl = strings.TrimPrefix(crUrl, "https://")
+	url := fmt.Sprintf("%s/search?tag=buildset%%3Apatch%%2F%s%%2F%s%%2F%d%%2F%d", apiUrl, patchStorage, crUrl, issueID, patchsetID)
+	fmt.Println(url)
 	return c.Search(url)
 }
