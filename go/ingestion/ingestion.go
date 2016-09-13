@@ -27,6 +27,8 @@ const (
 	TAG_INGESTION_METRIC  = "metric"
 	TAG_INGESTER_ID       = "ingester"
 	TAG_INGESTER_SOURCE   = "source"
+
+	POLL_CHUNK_SIZE = 100
 )
 
 var (
@@ -221,7 +223,11 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 
 				// Indicate that the polling was successful.
 				srcMetrics.pollError.Update(0)
-				pollChan <- resultFiles
+				for len(resultFiles) > 0 {
+					chunkSize := util.MinInt(POLL_CHUNK_SIZE, len(resultFiles))
+					pollChan <- resultFiles[:chunkSize]
+					resultFiles = resultFiles[chunkSize:]
+				}
 				srcMetrics.liveness.Reset()
 				srcMetrics.pollTimer.Stop()
 			})
@@ -306,7 +312,10 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 	glog.Infof("Start ingester: %s", i.id)
 
 	processedMD5s := make([]string, 0, len(resultFiles))
-	processedCounter, ignoredCounter, errorCounter := 0, 0, 0
+
+	var processedCounter int64 = 0
+	var ignoredCounter int64 = 0
+	var errorCounter int64 = 0
 
 	// time how long the overall process takes.
 	i.processTimer.Start()
@@ -344,10 +353,10 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 	// Update the timer and the gauges that measure how the ingestion works
 	// for the input type.
 	i.processTimer.Stop()
-	targetMetrics.totalFilesGauge.Update(int64(len(resultFiles)))
-	targetMetrics.processedGauge.Update(int64(processedCounter))
-	targetMetrics.ignoredGauge.Update(int64(ignoredCounter))
-	targetMetrics.errorGauge.Update(int64(errorCounter))
+	targetMetrics.totalFilesGauge.Update(int64(len(resultFiles)) + targetMetrics.totalFilesGauge.Get())
+	targetMetrics.processedGauge.Update(processedCounter + targetMetrics.processedGauge.Get())
+	targetMetrics.ignoredGauge.Update(ignoredCounter + targetMetrics.ignoredGauge.Get())
+	targetMetrics.errorGauge.Update(errorCounter + targetMetrics.errorGauge.Get())
 
 	// Notify the ingester that the batch has finished and cause it to reset its
 	// state and do any pending ingestion.
