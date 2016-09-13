@@ -247,6 +247,7 @@ func (g *gsResultFileLocation) Open() (io.ReadCloser, error) {
 			}
 
 			glog.Infof("GSFILE READ %s/%s", g.bucket, g.name)
+			break
 		}
 		if err != nil {
 			return nil, fmt.Errorf("Failed fetching %s/%s after %d attempts", g.bucket, g.name, MAX_URI_GET_TRIES)
