@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8bc2da6f_032c14a3",
+        "filename": "perf/res/imp/rangesel.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-13T20:11:19Z",
+      "side": 1,
+      "message": "This seems a little misleading. When the event is fired, the attributes begin and end will not have changed yet.",
+      "revId": "2969b24bbf9b3d31b3caf1822abb26e66cdddaf5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_e33000f7",
+        "filename": "perf/res/imp/rangesel.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-13T20:11:19Z",
+      "side": 1,
+      "message": "I\u0027m not able to find documentation for on-track on the Internet.",
+      "revId": "2969b24bbf9b3d31b3caf1822abb26e66cdddaf5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_43232cb7",
+        "filename": "perf/res/imp/rangesel.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-13T20:11:19Z",
+      "side": 1,
+      "message": "Does this need to look at ele.clientWidth?",
+      "revId": "2969b24bbf9b3d31b3caf1822abb26e66cdddaf5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
