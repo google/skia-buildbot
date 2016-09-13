@@ -24,6 +24,7 @@ type taskCandidate struct {
 	Commits        []string
 	IsolatedInput  string
 	IsolatedHashes []string
+	JobIds         []string
 	Name           string
 	ParentTaskIds  []string
 	Repo           string
@@ -41,11 +42,17 @@ func (c *taskCandidate) Copy() *taskCandidate {
 	isolatedHashes := make([]string, len(c.IsolatedHashes))
 	copy(isolatedHashes, c.IsolatedHashes)
 	parentTaskIds := make([]string, len(c.ParentTaskIds))
+	var jobIds []string
+	if c.JobIds != nil {
+		jobIds = make([]string, len(c.JobIds))
+		copy(jobIds, c.JobIds)
+	}
 	copy(parentTaskIds, c.ParentTaskIds)
 	return &taskCandidate{
 		Commits:        commits,
 		IsolatedInput:  c.IsolatedInput,
 		IsolatedHashes: isolatedHashes,
+		JobIds:         jobIds,
 		Name:           c.Name,
 		ParentTaskIds:  parentTaskIds,
 		Repo:           c.Repo,
@@ -83,11 +90,14 @@ func parseId(id string) (string, string, string, error) {
 func (c *taskCandidate) MakeTask() *db.Task {
 	commits := make([]string, len(c.Commits))
 	copy(commits, c.Commits)
+	jobIds := make([]string, len(c.JobIds))
+	copy(jobIds, c.JobIds)
 	parentTaskIds := make([]string, len(c.ParentTaskIds))
 	copy(parentTaskIds, c.ParentTaskIds)
 	return &db.Task{
 		Commits:       commits,
 		Id:            "", // Filled in when the task is inserted into the DB.
+		JobIds:        jobIds,
 		Name:          c.Name,
 		ParentTaskIds: parentTaskIds,
 		Repo:          c.Repo,
@@ -182,7 +192,7 @@ func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNew
 			},
 			IoTimeoutSecs: int64(swarming.RECOMMENDED_IO_TIMEOUT.Seconds()),
 		},
-		Tags: db.TagsForTask(c.Name, id, c.TaskSpec.Priority, c.Repo, c.RetryOf, c.Revision, dimsMap, c.ParentTaskIds),
+		Tags: db.TagsForTask(c.Name, id, c.TaskSpec.Priority, c.Repo, c.RetryOf, c.Revision, dimsMap, c.JobIds, c.ParentTaskIds),
 		User: "skia-task-scheduler",
 	}
 }

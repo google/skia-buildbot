@@ -93,6 +93,9 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task) *swarming_
 	for _, p := range task.ParentTaskIds {
 		tags = append(tags, tag(db.SWARMING_TAG_PARENT_TASK_ID, p))
 	}
+	for _, id := range task.JobIds {
+		tags = append(tags, tag(db.SWARMING_TAG_JOB_ID, id))
+	}
 
 	return &swarming_api.SwarmingRpcsTaskRequestMetadata{
 		Request: &swarming_api.SwarmingRpcsTaskRequest{
