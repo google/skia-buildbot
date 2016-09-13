@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8bc2da6f_c3fcdcd2",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-09-13T21:06:10Z",
+      "side": 1,
+      "message": "Great catch - thanks.",
+      "range": {
+        "startLine": 249,
+        "startChar": 3,
+        "endLine": 249,
+        "endChar": 52
+      },
+      "revId": "5aaf7c8c01d84a766667b8d0531f87c67077e862",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
