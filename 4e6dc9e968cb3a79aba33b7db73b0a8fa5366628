@@ -494,6 +494,24 @@
     },
     {
       "key": {
+        "uuid": "8bc2da6f_60486658",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-13T01:17:13Z",
+      "side": 1,
+      "message": "I remember why I asked this now. If all of a Job\u0027s tasks finish but one is a failure or mishap, the status would presumably become FAILURE or MISHAP. Is it possible that we would retry the failed task? If it then succeeds, would the job status change? (Maybe that\u0027s not what \"final\" means in this context?)",
+      "parentUuid": "8bc2da6f_fdf78374",
+      "revId": "4e6dc9e968cb3a79aba33b7db73b0a8fa5366628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8bc2da6f_7ae7f93c",
         "filename": "task_scheduler/go/db/job.go",
         "patchSetId": 1
