@@ -69,6 +69,24 @@
       "revId": "25134c173790316992a049707bca0f79659923b1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_007e4a73",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-13T01:26:40Z",
+      "side": 1,
+      "message": "At one point I said it wouldn\u0027t be a good idea to store Job IDs in Task, but now I think I was wrong. My reasoning was that if a new Job is manually triggered, the existing Tasks wouldn\u0027t point to that Job; however, I think that\u0027s actually a feature, not a bug, since we want to trigger new Tasks for a manually-triggered Job. We can talk more if that doesn\u0027t make sense.",
+      "parentUuid": "16e1b3e4_61777098",
+      "revId": "25134c173790316992a049707bca0f79659923b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
