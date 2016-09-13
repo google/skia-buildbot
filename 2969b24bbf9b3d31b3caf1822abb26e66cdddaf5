@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "8bc2da6f_23527804",
+        "filename": "perf/res/imp/rangesel.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-13T20:36:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bc2da6f_032c14a3",
+      "revId": "2969b24bbf9b3d31b3caf1822abb26e66cdddaf5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8bc2da6f_e33000f7",
         "filename": "perf/res/imp/rangesel.html",
         "patchSetId": 8
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "8bc2da6f_a36568e6",
+        "filename": "perf/res/imp/rangesel.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-13T20:36:25Z",
+      "side": 1,
+      "message": "Part of Polymer gesture handling:\n\nhttps://www.polymer-project.org/1.0/docs/devguide/gesture-events",
+      "parentUuid": "8bc2da6f_e33000f7",
+      "revId": "2969b24bbf9b3d31b3caf1822abb26e66cdddaf5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8bc2da6f_43232cb7",
         "filename": "perf/res/imp/rangesel.html",
         "patchSetId": 8
@@ -47,6 +83,24 @@
       "writtenOn": "2016-09-13T20:11:19Z",
       "side": 1,
       "message": "Does this need to look at ele.clientWidth?",
+      "revId": "2969b24bbf9b3d31b3caf1822abb26e66cdddaf5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_834b8455",
+        "filename": "perf/res/imp/rangesel.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-13T20:36:25Z",
+      "side": 1,
+      "message": "It looks at this.$.wrapper.clientWidth.\n\nele.clientWidth is the width of the slider, which isn\u0027t part of the calculation. There\u0027s CSS above that shifts #range and #fullrange over 1/2 the width of the slider so everything looks nice.",
+      "parentUuid": "8bc2da6f_43232cb7",
       "revId": "2969b24bbf9b3d31b3caf1822abb26e66cdddaf5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
