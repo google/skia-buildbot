@@ -87,6 +87,24 @@
       "revId": "25134c173790316992a049707bca0f79659923b1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_e0bfd6cc",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-13T14:09:00Z",
+      "side": 1,
+      "message": "The problem with that is we\u0027d need to potentially store multiple Job IDs in a given Task, since multiple Jobs may depend on the same Task.",
+      "parentUuid": "8bc2da6f_007e4a73",
+      "revId": "25134c173790316992a049707bca0f79659923b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
