@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6bb4c647_f16008d8",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-14T14:19:47Z",
+      "side": 1,
+      "message": "nit: Maybe say \"in arbitrary order.\"",
+      "revId": "2785306e56d09a7834e74cfed50ff7e3b03163c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_113dccc9",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-14T14:19:47Z",
+      "side": 1,
+      "message": "Are there any caveats? Seems like in some cases a new (manually triggered) Job might re-use Tasks from other Jobs. Would those be added to Task.JobIds? If so, I think they would be overwritten by Task.UpdateFromSwarming. If not, GetTasksForJobs isn\u0027t very useful because we would need to find the Tasks the long way just to make sure we didn\u0027t miss one.\n\n(\"The long way\" \u003d\u003d enumerate the DAG of TaskSpecs that a Job depends on, and GetTaskForCommit for each TaskSpec at the Job\u0027s revision.)\n\n(It might also be useful to think about this in the case where we restore the DB from backup and need to recreate Jobs for commits. I\u0027ll need to plan that out in more detail before we turn on task scheduler for tryjobs.)",
+      "revId": "2785306e56d09a7834e74cfed50ff7e3b03163c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_d12a2486",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-14T14:19:47Z",
+      "side": 1,
+      "message": "Is this comment leftover from a previous edit?",
+      "revId": "2785306e56d09a7834e74cfed50ff7e3b03163c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
