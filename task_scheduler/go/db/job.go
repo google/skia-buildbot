@@ -110,13 +110,8 @@ type Job struct {
 	// Priority is an indicator of the relative priority of this Job.
 	Priority float64
 
-	// Repo is the repository of the commit at which this Job ran. This
-	// property should never change for a given Job instance.
-	Repo string
-
-	// Revision is the commit at which this Job ran. This property should
-	// never change for a given Job instance.
-	Revision string
+	// RepoState is the current state of the repository for this Job.
+	RepoState
 
 	// Status is the current Job status, default JOB_STATUS_IN_PROGRESS.
 	Status JobStatus
@@ -137,8 +132,7 @@ func (j *Job) Copy() *Job {
 		Id:           j.Id,
 		Name:         j.Name,
 		Priority:     j.Priority,
-		Repo:         j.Repo,
-		Revision:     j.Revision,
+		RepoState:    j.RepoState.Copy(),
 		Status:       j.Status,
 	}
 }
