@@ -109,14 +109,11 @@ type Task struct {
 	// ParentTaskIds are IDs of tasks which satisfied this task's dependencies.
 	ParentTaskIds []string
 
-	// Repo is the repository of the commit at which this task ran.
-	Repo string
+	// RepoState is the current state of the repository for this Task.
+	RepoState
 
 	// RetryOf is the ID of the task which this task is a retry of, if any.
 	RetryOf string
-
-	// Revision is the commit at which this task ran.
-	Revision string
 
 	// Started is the time the task started running, or zero if the task is
 	// pending, or the same as Finished if the task never ran.
@@ -338,9 +335,8 @@ func (t *Task) Copy() *Task {
 		IsolatedOutput: t.IsolatedOutput,
 		Name:           t.Name,
 		ParentTaskIds:  parentTaskIds,
-		Repo:           t.Repo,
+		RepoState:      t.RepoState.Copy(),
 		RetryOf:        t.RetryOf,
-		Revision:       t.Revision,
 		Started:        t.Started,
 		Status:         t.Status,
 		SwarmingBotId:  t.SwarmingBotId,
