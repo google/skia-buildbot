@@ -260,32 +260,31 @@ func (c *BuildCache) GetBuildersComments() map[string][]*buildbot.BuilderComment
 
 // AddBuilderComment adds a comment for the given builder.
 func (c *BuildCache) AddBuilderComment(builder string, comment *buildbot.BuilderComment) error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 	if err := c.db.PutBuilderComment(comment); err != nil {
 		return err
 	}
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-	c.builderComments[builder] = append(c.builderComments[builder], comment)
+	newComments, err := c.db.GetBuilderComments(builder)
+	if err != nil {
+		return err
+	}
+	c.builderComments[builder] = newComments
 	return nil
 }
 
 // DeleteBuilderComment deletes the given comment.
 func (c *BuildCache) DeleteBuilderComment(builder string, commentId int64) error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 	if err := c.db.DeleteBuilderComment(commentId); err != nil {
 		return err
 	}
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-	idx := -1
-	for i, comment := range c.builderComments[builder] {
-		if comment.Id == commentId {
-			idx = i
-		}
+	newComments, err := c.db.GetBuilderComments(builder)
+	if err != nil {
+		return err
 	}
-	if idx == -1 {
-		return fmt.Errorf("No such comment")
-	}
-	c.builderComments[builder] = append(c.builderComments[builder][:idx], c.builderComments[builder][idx+1:]...)
+	c.builderComments[builder] = newComments
 	return nil
 }
 
