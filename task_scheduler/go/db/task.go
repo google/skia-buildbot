@@ -30,6 +30,7 @@ const (
 	// Swarming tags added by Build Scheduler.
 	SWARMING_TAG_ALLOW_MILO     = "allow_milo"
 	SWARMING_TAG_ID             = "sk_id"
+	SWARMING_TAG_JOB_ID         = "sk_job_id"
 	SWARMING_TAG_NAME           = "sk_name"
 	SWARMING_TAG_PARENT_TASK_ID = "sk_parent_task_id"
 	SWARMING_TAG_PRIORITY       = "sk_priority"
@@ -87,6 +88,10 @@ type Task struct {
 	// Id is a generated unique identifier for this Task instance. Must be
 	// URL-safe.
 	Id string
+
+	// JobIds are the IDs of all of the Jobs with which this Task is
+	// associated.
+	JobIds []string
 
 	// IsolatedOutput is the isolated hash of any outputs produced by this Task.
 	// Filled in when the task is completed. We assume the isolate server is
@@ -155,10 +160,13 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 	// "Identity" fields stored in tags.
 	checkOrSetFromTag := func(tagName string, field *string, fieldName string) error {
 		if tagValue, ok := tags[tagName]; ok {
+			if len(tagValue) != 1 {
+				return fmt.Errorf("Expected a single value for tag key %q", tagName)
+			}
 			if *field == "" {
-				*field = tagValue
-			} else if *field != tagValue {
-				return fmt.Errorf("%s does not match for task %s. Was %s, now %s. %v %v", fieldName, orig.Id, *field, tagValue, orig, s)
+				*field = tagValue[0]
+			} else if *field != tagValue[0] {
+				return fmt.Errorf("%s does not match for task %s. Was %s, now %s. %v %v", fieldName, orig.Id, *field, tagValue[0], orig, s)
 			}
 		}
 		return nil
@@ -179,13 +187,11 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 		return false, err
 	}
 
-	// Set ParentTaskIds.
-	var parentTaskIds []string
-	for k, v := range tags {
-		if k == SWARMING_TAG_PARENT_TASK_ID {
-			parentTaskIds = append(parentTaskIds, v)
-		}
-	}
+	// Set JobIds, ParentTaskIds.
+	jobIds := tags[SWARMING_TAG_JOB_ID]
+	parentTaskIds := tags[SWARMING_TAG_PARENT_TASK_ID]
+	sort.Strings(jobIds)
+	copy.JobIds = jobIds
 	sort.Strings(parentTaskIds)
 	copy.ParentTaskIds = parentTaskIds
 
@@ -315,6 +321,11 @@ func (t *Task) Copy() *Task {
 		commits = make([]string, len(t.Commits))
 		copy(commits, t.Commits)
 	}
+	var jobIds []string
+	if t.JobIds != nil {
+		jobIds = make([]string, len(t.JobIds))
+		copy(jobIds, t.JobIds)
+	}
 	var parentTaskIds []string
 	if t.ParentTaskIds != nil {
 		parentTaskIds = make([]string, len(t.ParentTaskIds))
@@ -327,6 +338,7 @@ func (t *Task) Copy() *Task {
 		Finished:       t.Finished,
 		Id:             t.Id,
 		IsolatedOutput: t.IsolatedOutput,
+		JobIds:         jobIds,
 		Name:           t.Name,
 		ParentTaskIds:  parentTaskIds,
 		Repo:           t.Repo,
@@ -501,7 +513,7 @@ func (d *TaskDecoder) Result() ([]*Task, error) {
 }
 
 // TagsForTask returns the tags which should be set for a Task.
-func TagsForTask(name, id string, priority float64, repo, retryOf, revision string, dimensions map[string]string, parentTaskIds []string) []string {
+func TagsForTask(name, id string, priority float64, repo, retryOf, revision string, dimensions map[string]string, jobIds, parentTaskIds []string) []string {
 	tags := map[string]string{
 		SWARMING_TAG_ALLOW_MILO: "1",
 		SWARMING_TAG_NAME:       name,
@@ -527,6 +539,9 @@ func TagsForTask(name, id string, priority float64, repo, retryOf, revision stri
 	}
 	for _, id := range parentTaskIds {
 		tagsList = append(tagsList, fmt.Sprintf("%s:%s", SWARMING_TAG_PARENT_TASK_ID, id))
+	}
+	for _, id := range jobIds {
+		tagsList = append(tagsList, fmt.Sprintf("%s:%s", SWARMING_TAG_JOB_ID, id))
 	}
 	return tagsList
 }
