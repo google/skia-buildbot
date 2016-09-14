@@ -46,6 +46,11 @@ func (c *cacheWrapper) GetTasksForCommits(string, []string) (map[string]map[stri
 }
 
 // See documentation for TaskCache interface.
+func (c *cacheWrapper) GetTasksForJobs([]string) (map[string][]*db.Task, error) {
+	return nil, fmt.Errorf("cacheWrapper.GetTasksForJobs not implemented.")
+}
+
+// See documentation for TaskCache interface.
 func (c *cacheWrapper) KnownTaskName(repo, name string) bool {
 	if c.known {
 		return true

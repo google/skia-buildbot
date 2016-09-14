@@ -208,6 +208,68 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	testutils.AssertDeepEqual(t, []*Task{t3}, tasks)
 }
 
+func TestTaskCacheByJobId(t *testing.T) {
+	db := NewInMemoryTaskDB()
+	defer testutils.AssertCloses(t, db)
+
+	// Create the cache. Ensure that we can't find any Tasks by JobId.
+	c, err := NewTaskCache(db, time.Hour)
+	assert.NoError(t, err)
+	jobIds := []string{"a", "b", "c", "d"}
+	tasks, err := c.GetTasksForJobs(jobIds)
+	assert.NoError(t, err)
+	for _, id := range jobIds {
+		assert.Equal(t, 0, len(tasks[id]))
+	}
+
+	// Insert a Task with no JobIds, ensure that it doesn't show up.
+	startTime := time.Now()
+	t1 := makeTask(startTime, nil)
+	assert.NoError(t, db.PutTask(t1))
+	assert.NoError(t, c.Update())
+	tasks, err = c.GetTasksForJobs(jobIds)
+	assert.NoError(t, err)
+	for _, id := range jobIds {
+		assert.Equal(t, 0, len(tasks[id]))
+	}
+
+	// Update the Task to include one Job ID.
+	t1.JobIds = []string{"a"}
+	assert.NoError(t, db.PutTask(t1))
+	assert.NoError(t, c.Update())
+	tasks, err = c.GetTasksForJobs(jobIds)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Task{t1}, tasks["a"])
+	for _, id := range jobIds {
+		if id != "a" {
+			assert.Equal(t, 0, len(tasks[id]))
+		}
+	}
+
+	// Add a new task with two Job IDs.
+	t2 := makeTask(startTime, nil)
+	t2.JobIds = []string{"b", "a"}
+	assert.NoError(t, db.PutTask(t2))
+	assert.NoError(t, c.Update())
+	tasks, err = c.GetTasksForJobs(jobIds)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(tasks["a"]))
+	assert.Equal(t, 1, len(tasks["b"]))
+
+	// Re-associate t1 with job "c".
+	t1.JobIds = []string{"c"}
+	assert.NoError(t, db.PutTask(t1))
+	assert.NoError(t, c.Update())
+	tasks, err = c.GetTasksForJobs(jobIds)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(tasks["a"]))
+	testutils.AssertDeepEqual(t, t2, tasks["a"][0])
+	assert.Equal(t, 1, len(tasks["b"]))
+	testutils.AssertDeepEqual(t, t2, tasks["b"][0])
+	assert.Equal(t, 1, len(tasks["c"]))
+	testutils.AssertDeepEqual(t, t1, tasks["c"][0])
+}
+
 func TestJobCache(t *testing.T) {
 	db := NewInMemoryJobDB()
 	defer testutils.AssertCloses(t, db)
