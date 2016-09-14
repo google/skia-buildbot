@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "6bb4c647_518d9434",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-14T19:31:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6bb4c647_d1a064a7",
+      "revId": "e1c48ad551be79915ba94e2ad2ac09c9f9a6d4d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bb4c647_3196104b",
         "filename": "task_scheduler/go/scheduling/task_candidate.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2016-09-14T19:11:24Z",
       "side": 1,
       "message": "Does taskCandidate.ForcedJobId exist?",
+      "revId": "e1c48ad551be79915ba94e2ad2ac09c9f9a6d4d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_f47e3608",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-14T19:31:15Z",
+      "side": 1,
+      "message": "Whoops, added.",
+      "parentUuid": "6bb4c647_3196104b",
       "revId": "e1c48ad551be79915ba94e2ad2ac09c9f9a6d4d2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
