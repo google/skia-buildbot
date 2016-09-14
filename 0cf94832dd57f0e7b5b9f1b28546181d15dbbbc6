@@ -66,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "6bb4c647_f462b60d",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-14T23:15:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6bb4c647_512634d6",
+      "revId": "0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bb4c647_7129b8a6",
         "filename": "task_scheduler/go/db/cache.go",
         "patchSetId": 1
@@ -130,6 +148,24 @@
     },
     {
       "key": {
+        "uuid": "6bb4c647_945d2a4c",
+        "filename": "task_scheduler/go/db/cache_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-14T23:15:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6bb4c647_d13984f9",
+      "revId": "0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bb4c647_311f3079",
         "filename": "task_scheduler/go/db/cache_test.go",
         "patchSetId": 1
@@ -147,6 +183,24 @@
         "endLine": 346,
         "endChar": 43
       },
+      "revId": "0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_b4582e5c",
+        "filename": "task_scheduler/go/db/cache_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-14T23:15:43Z",
+      "side": 1,
+      "message": "Doesn\u0027t compile; \"invalid operation: mins * time.Minute (mismatched types int and time.Duration)\"",
+      "parentUuid": "6bb4c647_311f3079",
       "revId": "0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
