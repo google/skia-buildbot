@@ -150,6 +150,10 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
 			fmt.Sprintf("%s:C", SWARMING_TAG_REPO),
 			fmt.Sprintf("%s:D", SWARMING_TAG_REVISION),
+			fmt.Sprintf("%s:E", SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:F", SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:G", SWARMING_TAG_JOB_ID),
+			fmt.Sprintf("%s:H", SWARMING_TAG_JOB_ID),
 		},
 		OutputsRef: &swarming_api.SwarmingRpcsFilesRef{
 			Isolated: "F",
@@ -172,6 +176,8 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 		SwarmingTaskId: "E",
 		IsolatedOutput: "F",
 		SwarmingBotId:  "G",
+		ParentTaskIds:  []string{"E", "F"},
+		JobIds:         []string{"G", "H"},
 	})
 
 	// Repeat to get Finished from AbandonedTs.
@@ -194,6 +200,8 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 		SwarmingTaskId: "E",
 		IsolatedOutput: "F",
 		SwarmingBotId:  "G",
+		ParentTaskIds:  []string{"E", "F"},
+		JobIds:         []string{"G", "H"},
 	})
 }
 
@@ -214,6 +222,8 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		SwarmingTaskId: "E",
 		IsolatedOutput: "F",
 		SwarmingBotId:  "H",
+		ParentTaskIds:  []string{"E", "F"},
+		JobIds:         []string{"G", "H"},
 	}
 	s := &swarming_api.SwarmingRpcsTaskResult{
 		TaskId: "E",
@@ -230,6 +240,10 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
 			fmt.Sprintf("%s:C", SWARMING_TAG_REPO),
 			fmt.Sprintf("%s:D", SWARMING_TAG_REVISION),
+			fmt.Sprintf("%s:E", SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:F", SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:G", SWARMING_TAG_JOB_ID),
+			fmt.Sprintf("%s:H", SWARMING_TAG_JOB_ID),
 		},
 		OutputsRef: &swarming_api.SwarmingRpcsFilesRef{
 			Isolated: "G",
@@ -252,6 +266,8 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		SwarmingTaskId: "E",
 		IsolatedOutput: "G",
 		SwarmingBotId:  "I",
+		ParentTaskIds:  []string{"E", "F"},
+		JobIds:         []string{"G", "H"},
 	})
 
 	// Make an unrelated change, no change to Task.
@@ -272,6 +288,8 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		SwarmingTaskId: "E",
 		IsolatedOutput: "G",
 		SwarmingBotId:  "I",
+		ParentTaskIds:  []string{"E", "F"},
+		JobIds:         []string{"G", "H"},
 	})
 
 	// Modify so that we get Finished from AbandonedTs.
@@ -293,6 +311,8 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		SwarmingTaskId: "E",
 		IsolatedOutput: "G",
 		SwarmingBotId:  "I",
+		ParentTaskIds:  []string{"E", "F"},
+		JobIds:         []string{"G", "H"},
 	})
 }
 
@@ -310,6 +330,8 @@ func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
 			Commits:        []string{"D", "Z"},
 			Status:         TASK_STATUS_SUCCESS,
 			SwarmingTaskId: "E",
+			ParentTaskIds:  []string{"E", "F"},
+			JobIds:         []string{"G", "H"},
 		}
 		changed, err := task.UpdateFromSwarming(s)
 		assert.NoError(t, err)
@@ -323,6 +345,8 @@ func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
 			Commits:        []string{"D", "Z"},
 			Status:         newStatus,
 			SwarmingTaskId: "E",
+			ParentTaskIds:  []string{"E", "F"},
+			JobIds:         []string{"G", "H"},
 		})
 	}
 
@@ -336,6 +360,10 @@ func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
 			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
 			fmt.Sprintf("%s:C", SWARMING_TAG_REPO),
 			fmt.Sprintf("%s:D", SWARMING_TAG_REVISION),
+			fmt.Sprintf("%s:E", SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:F", SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:G", SWARMING_TAG_JOB_ID),
+			fmt.Sprintf("%s:H", SWARMING_TAG_JOB_ID),
 		},
 		OutputsRef: nil,
 	}
@@ -362,11 +390,13 @@ func TestUpdateDBFromSwarmingTask(t *testing.T) {
 	// Create task, initialize from swarming, and save.
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &Task{
-		Name:     "B",
-		Repo:     "C",
-		Revision: "D",
-		Commits:  []string{"D", "Z"},
-		Status:   TASK_STATUS_PENDING,
+		Name:          "B",
+		Repo:          "C",
+		Revision:      "D",
+		Commits:       []string{"D", "Z"},
+		Status:        TASK_STATUS_PENDING,
+		ParentTaskIds: []string{"E", "F"},
+		JobIds:        []string{"G", "H"},
 	}
 	assert.NoError(t, db.AssignId(task))
 
@@ -379,6 +409,10 @@ func TestUpdateDBFromSwarmingTask(t *testing.T) {
 			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
 			fmt.Sprintf("%s:C", SWARMING_TAG_REPO),
 			fmt.Sprintf("%s:D", SWARMING_TAG_REVISION),
+			fmt.Sprintf("%s:E", SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:F", SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:G", SWARMING_TAG_JOB_ID),
+			fmt.Sprintf("%s:H", SWARMING_TAG_JOB_ID),
 		},
 	}
 	modified, err := task.UpdateFromSwarming(s)
@@ -413,6 +447,8 @@ func TestUpdateDBFromSwarmingTask(t *testing.T) {
 		SwarmingTaskId: "E",
 		IsolatedOutput: "G",
 		SwarmingBotId:  "H",
+		ParentTaskIds:  []string{"E", "F"},
+		JobIds:         []string{"G", "H"},
 		// Use value from updatedTask so they are deep-equal.
 		DbModified: updatedTask.DbModified,
 	})
@@ -492,6 +528,8 @@ func TestTaskDecoder(t *testing.T) {
 		task.Id = fmt.Sprintf("Id-%d", i)
 		task.Name = "Bingo-was-his-name-o"
 		task.Commits = []string{fmt.Sprintf("a%d", i), fmt.Sprintf("b%d", i+1)}
+		task.JobIds = []string{fmt.Sprintf("Job-%d", i), fmt.Sprintf("Other-Job-%d", i)}
+		task.ParentTaskIds = []string{fmt.Sprintf("Id-%d", i-1)}
 		var buf bytes.Buffer
 		err := gob.NewEncoder(&buf).Encode(task)
 		assert.NoError(t, err)
