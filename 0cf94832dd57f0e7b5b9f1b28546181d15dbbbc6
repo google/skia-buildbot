@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6bb4c647_111cac80",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-14T11:55:31Z",
+      "side": 1,
+      "message": "Any reason not to use tasks[i].Created.After(ts) ?  Seems easier to read.",
+      "range": {
+        "startLine": 116,
+        "startChar": 10,
+        "endLine": 116,
+        "endChar": 15
+      },
+      "revId": "0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_512634d6",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-14T11:55:31Z",
+      "side": 1,
+      "message": "Maybe it\u0027s because I haven\u0027t finished my coffee yet, but I find the new update flow to be very confusing.  Is it significantly better than just scanning through all the tasks-by-time at the beginning, deleting all the expired tasks, and then carrying on as usual?",
+      "range": {
+        "startLine": 170,
+        "startChar": 3,
+        "endLine": 170,
+        "endChar": 26
+      },
+      "revId": "0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_7129b8a6",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-14T11:55:31Z",
+      "side": 1,
+      "message": "Why don\u0027t we write a deleteTask function like this one which deletes an expired task?  Then the update flow could just be:\n\nfor t in tasks:\n  if expired(t):\n    deleteTask(t)\nfor t in newTasks:\n  if !expired(t):\n    insertTask(t)",
+      "range": {
+        "startLine": 217,
+        "startChar": 20,
+        "endLine": 217,
+        "endChar": 30
+      },
+      "revId": "0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_d13984f9",
+        "filename": "task_scheduler/go/db/cache_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-14T11:55:31Z",
+      "side": 1,
+      "message": "Should this be: assert.FailNow(t, \"...\") ?",
+      "range": {
+        "startLine": 301,
+        "startChar": 3,
+        "endLine": 301,
+        "endChar": 9
+      },
+      "revId": "0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_311f3079",
+        "filename": "task_scheduler/go/db/cache_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-14T11:55:31Z",
+      "side": 1,
+      "message": "I don\u0027t think this cast is necessary.",
+      "range": {
+        "startLine": 346,
+        "startChar": 35,
+        "endLine": 346,
+        "endChar": 43
+      },
+      "revId": "0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
