@@ -22,6 +22,7 @@ const (
 // taskCandidate is a struct used for determining which tasks to schedule.
 type taskCandidate struct {
 	Commits        []string
+	ForcedJobId    string
 	IsolatedInput  string
 	IsolatedHashes []string
 	Name           string
@@ -44,6 +45,7 @@ func (c *taskCandidate) Copy() *taskCandidate {
 	copy(parentTaskIds, c.ParentTaskIds)
 	return &taskCandidate{
 		Commits:        commits,
+		ForcedJobId:    c.ForcedJobId,
 		IsolatedInput:  c.IsolatedInput,
 		IsolatedHashes: isolatedHashes,
 		Name:           c.Name,
@@ -59,24 +61,24 @@ func (c *taskCandidate) Copy() *taskCandidate {
 
 // MakeId generates a string ID for the taskCandidate.
 func (c *taskCandidate) MakeId() string {
-	return fmt.Sprintf("taskCandidate|%s|%s|%s", c.Repo, c.Name, c.Revision)
+	return fmt.Sprintf("taskCandidate|%s|%s|%s|%s", c.Repo, c.Name, c.Revision, c.ForcedJobId)
 }
 
-// ParseId generates taskCandidate information from the ID.
-func parseId(id string) (string, string, string, error) {
+// parseId generates taskCandidate information from the ID.
+func parseId(id string) (string, string, string, string, error) {
 	split := strings.Split(id, "|")
-	if len(split) != 4 {
-		return "", "", "", fmt.Errorf("Invalid ID: %q", id)
+	if len(split) != 5 {
+		return "", "", "", "", fmt.Errorf("Invalid ID, not enough parts: %q", id)
 	}
 	if split[0] != "taskCandidate" {
-		return "", "", "", fmt.Errorf("Invalid ID: %q", id)
+		return "", "", "", "", fmt.Errorf("Invalid ID, no 'taskCandidate' prefix: %q", id)
 	}
-	for _, s := range split[1:] {
+	for i, s := range split[1:4] {
 		if s == "" {
-			return "", "", "", fmt.Errorf("Invalid ID: %q", id)
+			return "", "", "", "", fmt.Errorf("Invalid ID, empty string not allowed for part %d: %q", i, id)
 		}
 	}
-	return split[1], split[2], split[3], nil
+	return split[1], split[2], split[3], split[4], nil
 }
 
 // MakeTask instantiates a db.Task from the taskCandidate.
@@ -87,6 +89,7 @@ func (c *taskCandidate) MakeTask() *db.Task {
 	copy(parentTaskIds, c.ParentTaskIds)
 	return &db.Task{
 		Commits:       commits,
+		ForcedJobId:   c.ForcedJobId,
 		Id:            "", // Filled in when the task is inserted into the DB.
 		Name:          c.Name,
 		ParentTaskIds: parentTaskIds,
@@ -182,7 +185,7 @@ func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNew
 			},
 			IoTimeoutSecs: int64(swarming.RECOMMENDED_IO_TIMEOUT.Seconds()),
 		},
-		Tags: db.TagsForTask(c.Name, id, c.TaskSpec.Priority, c.Repo, c.RetryOf, c.Revision, dimsMap, c.ParentTaskIds),
+		Tags: db.TagsForTask(c.Name, id, c.TaskSpec.Priority, c.Repo, c.RetryOf, c.Revision, dimsMap, c.ForcedJobId, c.ParentTaskIds),
 		User: "skia-task-scheduler",
 	}
 }

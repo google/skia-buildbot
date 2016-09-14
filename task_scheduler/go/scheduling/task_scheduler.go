@@ -709,7 +709,7 @@ func (s *TaskScheduler) scheduleTasks() error {
 		// changed since the cache was last updated. We need to handle that.
 		if candidate.StealingFromId != "" {
 			var stealingFrom *db.Task
-			if _, _, _, err := parseId(candidate.StealingFromId); err == nil {
+			if _, _, _, _, err := parseId(candidate.StealingFromId); err == nil {
 				stealingFrom = byCandidateId[candidate.StealingFromId]
 				if stealingFrom == nil {
 					return fmt.Errorf("Attempting to backfill a just-triggered candidate but can't find it: %q", candidate.StealingFromId)
