@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6bb4c647_54c2a226",
+        "filename": "task_scheduler/go/db/repo_state.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-14T20:08:16Z",
+      "side": 1,
+      "message": "I\u0027m not in love with the names of these fields. Any suggestions?",
+      "range": {
+        "startLine": 4,
+        "startChar": 11,
+        "endLine": 4,
+        "endChar": 17
+      },
+      "revId": "91d70ed78e30eb0fec79b46b4844bfc00be76638",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
