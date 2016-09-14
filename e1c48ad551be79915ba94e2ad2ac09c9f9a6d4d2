@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6bb4c647_d1a064a7",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-14T19:11:24Z",
+      "side": 1,
+      "message": "string doesn\u0027t match field name",
+      "revId": "e1c48ad551be79915ba94e2ad2ac09c9f9a6d4d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_3196104b",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-14T19:11:24Z",
+      "side": 1,
+      "message": "Does taskCandidate.ForcedJobId exist?",
+      "revId": "e1c48ad551be79915ba94e2ad2ac09c9f9a6d4d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
