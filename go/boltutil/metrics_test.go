@@ -45,15 +45,6 @@ func TestDbMetric(t *testing.T) {
 		return nil
 	}))
 
-	// Perform a read transaction just to ensure TxCount > 0.
-	assert.NoError(t, boltdb.View(func(tx *bolt.Tx) error {
-		bucketA := tx.Bucket([]byte("A"))
-		assert.NotNil(t, bucketA)
-		v := bucketA.Get([]byte("Akey1"))
-		assert.Equal(t, "Avalue1", string(v))
-		return nil
-	}))
-
 	appname := "TestDbMetricABC"
 	database := "TestDbMetricDEF"
 
@@ -73,34 +64,13 @@ func TestDbMetric(t *testing.T) {
 			metricName := tags["metric"]
 			assert.NotEqual(t, "", metricName)
 			localSeenMetrics = append(localSeenMetrics, metricName)
-			var value int64
-			for k, v := range p.Fields() {
-				assert.Equal(t, "value", k)
-				_, ok := v.(int64)
-				assert.True(t, ok)
-				value = v.(int64)
-			}
-			// Assert on a sampling of metrics.
-			switch metricName {
-			case "TxCount":
-				assert.True(t, value > 0)
-			case "WriteCount":
-				assert.True(t, value > 0)
-			case "WriteNs":
-				assert.True(t, value > 0)
-			case "KeyCount":
+			if metricName == "KeyCount" {
 				bucket, ok := tags["bucket-path"]
 				assert.True(t, ok)
 				localSeenMetrics = append(localSeenMetrics, metricName+bucket)
-				switch bucket {
-				case "A":
-					assert.Equal(t, int64(2), value)
-				case "B":
-					assert.Equal(t, int64(1), value)
-				default:
-					assert.Fail(t, "Unexpected bucket metric %q", bucket)
-				}
+				assert.True(t, bucket == "A" || bucket == "B")
 			}
+			// BoldDB updates Stats asynchronously, so we can't assert on the values of the metrics.
 		}
 		mtx.Lock()
 		defer mtx.Unlock()
