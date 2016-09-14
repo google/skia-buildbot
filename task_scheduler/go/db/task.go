@@ -29,6 +29,7 @@ const (
 
 	// Swarming tags added by Build Scheduler.
 	SWARMING_TAG_ALLOW_MILO     = "allow_milo"
+	SWARMING_TAG_FORCED_JOB_ID  = "sk_forced_job_id"
 	SWARMING_TAG_ID             = "sk_id"
 	SWARMING_TAG_NAME           = "sk_name"
 	SWARMING_TAG_PARENT_TASK_ID = "sk_parent_task_id"
@@ -83,6 +84,12 @@ type Task struct {
 	// Finished is the time the task stopped running or expired from the queue, or
 	//  zero if the task is pending or running.
 	Finished time.Time
+
+	// ForcedJobId is the ID of a Job for which this Task was specifically
+	// run. Most Tasks may be shared between any number of Jobs; if
+	// ForcedJobId is set, it implies that the Task is associated ONLY with
+	// the Job with the given ID.
+	ForcedJobId string
 
 	// Id is a generated unique identifier for this Task instance. Must be
 	// URL-safe.
@@ -155,13 +162,19 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 	// "Identity" fields stored in tags.
 	checkOrSetFromTag := func(tagName string, field *string, fieldName string) error {
 		if tagValue, ok := tags[tagName]; ok {
+			if len(tagValue) != 1 {
+				return fmt.Errorf("Expected a single value for tag key %q", tagName)
+			}
 			if *field == "" {
-				*field = tagValue
-			} else if *field != tagValue {
+				*field = tagValue[0]
+			} else if *field != tagValue[0] {
 				return fmt.Errorf("%s does not match for task %s. Was %s, now %s. %v %v", fieldName, orig.Id, *field, tagValue, orig, s)
 			}
 		}
 		return nil
+	}
+	if err := checkOrSetFromTag(SWARMING_TAG_FORCED_JOB_ID, &copy.ForcedJobId, "ForcedJobId"); err != nil {
+		return false, err
 	}
 	if err := checkOrSetFromTag(SWARMING_TAG_ID, &copy.Id, "Id"); err != nil {
 		return false, err
@@ -180,12 +193,7 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 	}
 
 	// Set ParentTaskIds.
-	var parentTaskIds []string
-	for k, v := range tags {
-		if k == SWARMING_TAG_PARENT_TASK_ID {
-			parentTaskIds = append(parentTaskIds, v)
-		}
-	}
+	parentTaskIds := tags[SWARMING_TAG_PARENT_TASK_ID]
 	sort.Strings(parentTaskIds)
 	copy.ParentTaskIds = parentTaskIds
 
@@ -325,6 +333,7 @@ func (t *Task) Copy() *Task {
 		Created:        t.Created,
 		DbModified:     t.DbModified,
 		Finished:       t.Finished,
+		ForcedJobId:    t.ForcedJobId,
 		Id:             t.Id,
 		IsolatedOutput: t.IsolatedOutput,
 		Name:           t.Name,
@@ -501,15 +510,16 @@ func (d *TaskDecoder) Result() ([]*Task, error) {
 }
 
 // TagsForTask returns the tags which should be set for a Task.
-func TagsForTask(name, id string, priority float64, repo, retryOf, revision string, dimensions map[string]string, parentTaskIds []string) []string {
+func TagsForTask(name, id string, priority float64, repo, retryOf, revision string, dimensions map[string]string, forcedJobId string, parentTaskIds []string) []string {
 	tags := map[string]string{
-		SWARMING_TAG_ALLOW_MILO: "1",
-		SWARMING_TAG_NAME:       name,
-		SWARMING_TAG_ID:         id,
-		SWARMING_TAG_PRIORITY:   fmt.Sprintf("%f", priority),
-		SWARMING_TAG_REPO:       repo,
-		SWARMING_TAG_RETRY_OF:   retryOf,
-		SWARMING_TAG_REVISION:   revision,
+		SWARMING_TAG_ALLOW_MILO:    "1",
+		SWARMING_TAG_FORCED_JOB_ID: forcedJobId,
+		SWARMING_TAG_NAME:          name,
+		SWARMING_TAG_ID:            id,
+		SWARMING_TAG_PRIORITY:      fmt.Sprintf("%f", priority),
+		SWARMING_TAG_REPO:          repo,
+		SWARMING_TAG_RETRY_OF:      retryOf,
+		SWARMING_TAG_REVISION:      revision,
 	}
 
 	for k, v := range dimensions {

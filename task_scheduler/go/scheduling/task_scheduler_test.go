@@ -86,6 +86,7 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task) *swarming_
 	}
 	tags := []string{
 		tag(db.SWARMING_TAG_ID, task.Id),
+		tag(db.SWARMING_TAG_FORCED_JOB_ID, task.ForcedJobId),
 		tag(db.SWARMING_TAG_NAME, task.Name),
 		tag(db.SWARMING_TAG_REPO, task.Repo),
 		tag(db.SWARMING_TAG_REVISION, task.Revision),
