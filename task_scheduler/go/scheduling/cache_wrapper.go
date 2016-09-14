@@ -2,6 +2,7 @@ package scheduling
 
 import (
 	"fmt"
+	"time"
 
 	"go.skia.org/infra/task_scheduler/go/db"
 )
@@ -43,6 +44,11 @@ func (c *cacheWrapper) GetTaskForCommit(repo, commit, name string) (*db.Task, er
 // See documentation for TaskCache interface.
 func (c *cacheWrapper) GetTasksForCommits(string, []string) (map[string]map[string]*db.Task, error) {
 	return nil, fmt.Errorf("cacheWrapper.GetTasksForCommits not implemented.")
+}
+
+// See documentation for TaskCache interface.
+func (c *cacheWrapper) GetTasksFromDateRange(time.Time, time.Time) ([]*db.Task, error) {
+	return nil, fmt.Errorf("cacheWrapper.GetTasksFromDateRange not implemented.")
 }
 
 // See documentation for TaskCache interface.
