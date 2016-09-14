@@ -2,10 +2,16 @@ package db
 
 import (
 	"fmt"
+	"sort"
 	"sync"
 	"time"
 
 	"github.com/skia-dev/glog"
+)
+
+const (
+	// Allocate enough space for this many tasks.
+	TASKS_INIT_CAPACITY = 60000
 )
 
 type TaskCache interface {
@@ -41,6 +47,10 @@ type TaskCache interface {
 	//          the previous task's blamelist and into the newer task's blamelist.
 	GetTasksForCommits(string, []string) (map[string]map[string]*Task, error)
 
+	// GetTasksFromDateRange retrieves all tasks which were created in the given
+	// date range.
+	GetTasksFromDateRange(time.Time, time.Time) ([]*Task, error)
+
 	// KnownTaskName returns true iff the given task name has been seen before.
 	KnownTaskName(string, string) bool
 
@@ -53,16 +63,18 @@ type TaskCache interface {
 }
 
 type taskCache struct {
-	db TaskDB
-	// map[repo_name][task_spec_name]bool
-	knownTaskNames map[string]map[string]bool
+	db TaskReader
+	// map[repo_name][task_spec_name]Task.Created for most recent Task.
+	knownTaskNames map[string]map[string]time.Time
 	mtx            sync.RWMutex
 	queryId        string
 	tasks          map[string]*Task
 	// map[repo_name][commit_hash][task_spec_name]*Task
 	tasksByCommit map[string]map[string]map[string]*Task
-	timePeriod    time.Duration
-	unfinished    map[string]*Task
+	// tasksByTime is sorted by Task.Created.
+	tasksByTime []*Task
+	timePeriod  time.Duration
+	unfinished  map[string]*Task
 }
 
 // See documentation for TaskCache interface.
@@ -73,7 +85,7 @@ func (c *taskCache) GetTask(id string) (*Task, error) {
 	if t, ok := c.tasks[id]; ok {
 		return t.Copy(), nil
 	}
-	return nil, fmt.Errorf("No such task!")
+	return nil, ErrNotFound
 }
 
 // See documentation for TaskCache interface.
@@ -92,6 +104,27 @@ func (c *taskCache) GetTasksForCommits(repo string, commits []string) (map[strin
 		} else {
 			rv[commit] = map[string]*Task{}
 		}
+	}
+	return rv, nil
+}
+
+// searchTaskSlice returns the index in tasks of the first Task whose Created
+// time is >= ts.
+func searchTaskSlice(tasks []*Task, ts time.Time) int {
+	return sort.Search(len(tasks), func(i int) bool {
+		return !tasks[i].Created.Before(ts)
+	})
+}
+
+// See documentation for TaskCache interface.
+func (c *taskCache) GetTasksFromDateRange(from time.Time, to time.Time) ([]*Task, error) {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+	fromIdx := searchTaskSlice(c.tasksByTime, from)
+	toIdx := searchTaskSlice(c.tasksByTime, to)
+	rv := make([]*Task, toIdx-fromIdx)
+	for i, task := range c.tasksByTime[fromIdx:toIdx] {
+		rv[i] = task.Copy()
 	}
 	return rv, nil
 }
@@ -133,58 +166,143 @@ func (c *taskCache) UnfinishedTasks() ([]*Task, error) {
 	return rv, nil
 }
 
-// update inserts the new/updated tasks into the cache. Assumes the caller
-// holds a lock.
-func (c *taskCache) update(tasks []*Task) error {
-	for _, t := range tasks {
-		repo := t.Repo
-		commitMap, ok := c.tasksByCommit[repo]
-		if !ok {
-			commitMap = map[string]map[string]*Task{}
-			c.tasksByCommit[repo] = commitMap
-		}
-
-		// If we already know about this task, the blamelist might,
-		// have changed, so we need to remove it from tasksByCommit
-		// and re-insert where needed.
-		if old, ok := c.tasks[t.Id]; ok {
-			for _, commit := range old.Commits {
-				delete(commitMap[commit], t.Name)
+// removeFromTasksByCommit removes task (which must be a previously-inserted
+// Task, not a new Task) from c.tasksByCommit for all of task.Commits. Assumes
+// the caller holds a lock.
+func (c *taskCache) removeFromTasksByCommit(task *Task) {
+	if commitMap, ok := c.tasksByCommit[task.Repo]; ok {
+		for _, commit := range task.Commits {
+			// Shouldn't be necessary to check other.Id == task.Id, but being paranoid.
+			if other, ok := commitMap[commit][task.Name]; ok && other.Id == task.Id {
+				delete(commitMap[commit], task.Name)
+				if len(commitMap[commit]) == 0 {
+					delete(commitMap, commit)
+				}
 			}
-		}
-
-		// Insert the new task into the main map.
-		cpy := t.Copy()
-		c.tasks[t.Id] = cpy
-
-		// Insert the task into tasksByCommits.
-		for _, commit := range t.Commits {
-			if _, ok := commitMap[commit]; !ok {
-				commitMap[commit] = map[string]*Task{}
-			}
-			commitMap[commit][t.Name] = cpy
-		}
-
-		// Unfinished tasks.
-		if _, ok := c.unfinished[t.Id]; ok {
-			delete(c.unfinished, t.Id)
-		}
-		if !t.Done() {
-			c.unfinished[t.Id] = cpy
-		}
-
-		// Known task names.
-		if nameMap, ok := c.knownTaskNames[repo]; ok {
-			nameMap[t.Name] = true
-		} else {
-			c.knownTaskNames[repo] = map[string]bool{t.Name: true}
 		}
 	}
-	return nil
+
+}
+
+// expireTasks removes data from c whose Created time is before start. Assumes
+// the caller holds a lock. This is a helper for expireAndUpdate.
+func (c *taskCache) expireTasks(start time.Time) {
+	for _, nameMap := range c.knownTaskNames {
+		for name, ts := range nameMap {
+			if ts.Before(start) {
+				delete(nameMap, name)
+			}
+		}
+	}
+	for i, task := range c.tasksByTime {
+		if !task.Created.Before(start) {
+			c.tasksByTime = c.tasksByTime[i:]
+			return
+		}
+		delete(c.tasks, task.Id)
+		c.removeFromTasksByCommit(task)
+		c.tasksByTime[i] = nil // Allow GC.
+		if _, ok := c.unfinished[task.Id]; ok {
+			glog.Warningf("Found unfinished task that is so old it is being expired. %#v", task)
+			delete(c.unfinished, task.Id)
+		}
+	}
+	if len(c.tasksByTime) > 0 {
+		glog.Warningf("All tasks expired because they are older than %s.", start)
+		c.tasksByTime = nil
+	}
+}
+
+// insertOrUpdateTask inserts task into the cache if it is a new task, or
+// updates the existing entries if not. Assumes the caller holds a lock. This is
+// a helper for expireAndUpdate.
+func (c *taskCache) insertOrUpdateTask(task *Task) {
+	old, isUpdate := c.tasks[task.Id]
+
+	// Insert the new task into the main map.
+	c.tasks[task.Id] = task
+
+	if isUpdate {
+		// If we already know about this task, the blamelist might have changed, so
+		// we need to remove it from tasksByCommit and re-insert where needed.
+		c.removeFromTasksByCommit(old)
+	}
+	// Insert the task into tasksByCommits.
+	commitMap, ok := c.tasksByCommit[task.Repo]
+	if !ok {
+		commitMap = map[string]map[string]*Task{}
+		c.tasksByCommit[task.Repo] = commitMap
+	}
+	for _, commit := range task.Commits {
+		if _, ok := commitMap[commit]; !ok {
+			commitMap[commit] = map[string]*Task{}
+		}
+		commitMap[commit][task.Name] = task
+	}
+
+	if isUpdate {
+		// Loop in case there are multiple tasks with the same Created time.
+		for i := searchTaskSlice(c.tasksByTime, task.Created); i < len(c.tasksByTime); i++ {
+			other := c.tasksByTime[i]
+			if other.Id == task.Id {
+				c.tasksByTime[i] = task
+				break
+			}
+			if !other.Created.Equal(task.Created) {
+				panic(fmt.Sprintf("taskCache inconsistent; c.tasks contains task not in c.tasksByTime. old: %v, task: %v", old, task))
+			}
+		}
+	} else {
+		// If profiling indicates this code is slow or GCs too much, see
+		// https://skia.googlesource.com/buildbot/+/0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6
+		// for a different implementation.
+		// Most common case is that the new task should be inserted at the end.
+		if len(c.tasksByTime) == 0 {
+			c.tasksByTime = append(make([]*Task, 0, TASKS_INIT_CAPACITY), task)
+		} else if lastTask := c.tasksByTime[len(c.tasksByTime)-1]; !task.Created.Before(lastTask.Created) {
+			c.tasksByTime = append(c.tasksByTime, task)
+		} else {
+			insertIdx := searchTaskSlice(c.tasksByTime, task.Created)
+			// Extend size by one:
+			c.tasksByTime = append(c.tasksByTime, nil)
+			// Move later elements out of the way:
+			copy(c.tasksByTime[insertIdx+1:], c.tasksByTime[insertIdx:])
+			// Assign at the correct index:
+			c.tasksByTime[insertIdx] = task
+		}
+	}
+
+	// Unfinished tasks.
+	if !task.Done() {
+		c.unfinished[task.Id] = task
+	} else if isUpdate {
+		delete(c.unfinished, task.Id)
+	}
+
+	// Known task names.
+	if nameMap, ok := c.knownTaskNames[task.Repo]; ok {
+		if ts, ok := nameMap[task.Name]; !ok || ts.Before(task.Created) {
+			nameMap[task.Name] = task.Created
+		}
+	} else {
+		c.knownTaskNames[task.Repo] = map[string]time.Time{task.Name: task.Created}
+	}
+}
+
+// expireAndUpdate removes Tasks before start from the cache and inserts the
+// new/updated tasks into the cache. Assumes the caller holds a lock. Assumes
+// tasks are sorted by Created timestamp.
+func (c *taskCache) expireAndUpdate(start time.Time, tasks []*Task) {
+	c.expireTasks(start)
+	for _, t := range tasks {
+		if !t.Created.Before(start) {
+			c.insertOrUpdateTask(t.Copy())
+		}
+	}
 }
 
 // reset re-initializes c. Assumes the caller holds a lock.
-func (c *taskCache) reset() error {
+func (c *taskCache) reset(now time.Time) error {
 	if c.queryId != "" {
 		c.db.StopTrackingModifiedTasks(c.queryId)
 	}
@@ -192,7 +310,6 @@ func (c *taskCache) reset() error {
 	if err != nil {
 		return err
 	}
-	now := time.Now()
 	start := now.Add(-c.timePeriod)
 	glog.Infof("Reading Tasks from %s to %s.", start, now)
 	tasks, err := c.db.GetTasksFromDateRange(start, now)
@@ -200,48 +317,47 @@ func (c *taskCache) reset() error {
 		c.db.StopTrackingModifiedTasks(queryId)
 		return err
 	}
-	c.knownTaskNames = map[string]map[string]bool{}
+	c.knownTaskNames = map[string]map[string]time.Time{}
 	c.queryId = queryId
 	c.tasks = map[string]*Task{}
 	c.tasksByCommit = map[string]map[string]map[string]*Task{}
 	c.unfinished = map[string]*Task{}
-	if err := c.update(tasks); err != nil {
-		return err
-	}
+	c.expireAndUpdate(start, tasks)
 	return nil
 }
 
-// See documentation for TaskCache interface.
-func (c *taskCache) Update() error {
-	// TODO(borenet): We need to flush old jobs/commits which are outside
-	// of our timePeriod so that the cache size is not unbounded.
+// update implements Update with the given current time for testing.
+func (c *taskCache) update(now time.Time) error {
 	newTasks, err := c.db.GetModifiedTasks(c.queryId)
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	if IsUnknownId(err) {
 		glog.Warningf("Connection to db lost; re-initializing cache from scratch.")
-		if err := c.reset(); err != nil {
+		if err := c.reset(now); err != nil {
 			return err
 		}
 		return nil
 	} else if err != nil {
 		return err
 	}
-	if err := c.update(newTasks); err == nil {
-		return nil
-	} else {
-		return err
-	}
+	start := now.Add(-c.timePeriod)
+	c.expireAndUpdate(start, newTasks)
+	return nil
+}
+
+// See documentation for TaskCache interface.
+func (c *taskCache) Update() error {
+	return c.update(time.Now())
 }
 
 // NewTaskCache returns a local cache which provides more convenient views of
 // task data than the database can provide.
-func NewTaskCache(db TaskDB, timePeriod time.Duration) (TaskCache, error) {
+func NewTaskCache(db TaskReader, timePeriod time.Duration) (TaskCache, error) {
 	tc := &taskCache{
 		db:         db,
 		timePeriod: timePeriod,
 	}
-	if err := tc.reset(); err != nil {
+	if err := tc.reset(time.Now()); err != nil {
 		return nil, err
 	}
 	return tc, nil
