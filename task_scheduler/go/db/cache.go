@@ -41,6 +41,10 @@ type TaskCache interface {
 	//          the previous task's blamelist and into the newer task's blamelist.
 	GetTasksForCommits(string, []string) (map[string]map[string]*Task, error)
 
+	// GetTasksForJobs returns all of the Tasks which are associated with
+	// each of the given Job IDs.
+	GetTasksForJobs([]string) (map[string][]*Task, error)
+
 	// KnownTaskName returns true iff the given task name has been seen before.
 	KnownTaskName(string, string) bool
 
@@ -61,8 +65,10 @@ type taskCache struct {
 	tasks          map[string]*Task
 	// map[repo_name][commit_hash][task_spec_name]*Task
 	tasksByCommit map[string]map[string]map[string]*Task
-	timePeriod    time.Duration
-	unfinished    map[string]*Task
+	// map[job_id][task_id]*Task
+	tasksByJob map[string]map[string]*Task
+	timePeriod time.Duration
+	unfinished map[string]*Task
 }
 
 // See documentation for TaskCache interface.
@@ -92,6 +98,22 @@ func (c *taskCache) GetTasksForCommits(repo string, commits []string) (map[strin
 		} else {
 			rv[commit] = map[string]*Task{}
 		}
+	}
+	return rv, nil
+}
+
+// See documentation for TaskCache interface.
+func (c *taskCache) GetTasksForJobs(jobIds []string) (map[string][]*Task, error) {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+	rv := make(map[string][]*Task, len(jobIds))
+	for _, id := range jobIds {
+		tasksForJob := c.tasksByJob[id]
+		tasks := make([]*Task, 0, len(tasksForJob))
+		for _, t := range tasksForJob {
+			tasks = append(tasks, t.Copy())
+		}
+		rv[id] = tasks
 	}
 	return rv, nil
 }
@@ -151,6 +173,12 @@ func (c *taskCache) update(tasks []*Task) error {
 			for _, commit := range old.Commits {
 				delete(commitMap[commit], t.Name)
 			}
+
+			// It's unlikely, but we might also have changed which
+			// Jobs the Task is associated with.
+			for _, jobId := range old.JobIds {
+				delete(c.tasksByJob[jobId], t.Id)
+			}
 		}
 
 		// Insert the new task into the main map.
@@ -163,6 +191,16 @@ func (c *taskCache) update(tasks []*Task) error {
 				commitMap[commit] = map[string]*Task{}
 			}
 			commitMap[commit][t.Name] = cpy
+		}
+
+		// tasksByJob.
+		// NB: We're assuming that t.JobIds does not change or is only
+		// added to; we don't delete existing entries for t.
+		for _, jobId := range t.JobIds {
+			if _, ok := c.tasksByJob[jobId]; !ok {
+				c.tasksByJob[jobId] = map[string]*Task{}
+			}
+			c.tasksByJob[jobId][t.Id] = t
 		}
 
 		// Unfinished tasks.
@@ -204,6 +242,7 @@ func (c *taskCache) reset() error {
 	c.queryId = queryId
 	c.tasks = map[string]*Task{}
 	c.tasksByCommit = map[string]map[string]map[string]*Task{}
+	c.tasksByJob = map[string]map[string]*Task{}
 	c.unfinished = map[string]*Task{}
 	if err := c.update(tasks); err != nil {
 		return err
