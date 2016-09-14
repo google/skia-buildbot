@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "6bb4c647_b104c020",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-14T13:21:23Z",
+      "side": 1,
+      "message": "Before and After are \u003c and \u003e, but I need \u003e\u003d. I could do tasks[i].Created.Equal(ts) || tasks[i].Created.After(ts) if that\u0027s better.",
+      "parentUuid": "6bb4c647_111cac80",
+      "revId": "0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bb4c647_512634d6",
         "filename": "task_scheduler/go/db/cache.go",
         "patchSetId": 1
@@ -65,6 +83,24 @@
         "endLine": 217,
         "endChar": 30
       },
+      "revId": "0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_9109bc3a",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-14T13:21:23Z",
+      "side": 1,
+      "message": "Yeah, since this doesn\u0027t happen that frequently, it\u0027s probably better to do the simple thing and revisit if it ends up taking too much memory or being too slow.\n\nI will stash this somewhere and reimplement.",
+      "parentUuid": "6bb4c647_7129b8a6",
       "revId": "0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
