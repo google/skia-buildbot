@@ -364,29 +364,32 @@ func (c *apiClient) GetTaskMetadata(id string) (*swarming.SwarmingRpcsTaskReques
 }
 
 // TagValues returns map[tag_key]tag_value for all tags from the given Swarming task.
-func TagValues(t *swarming.SwarmingRpcsTaskResult) (map[string][]string, error) {
-	rv := make(map[string][]string, len(t.Tags))
+func TagValues(t *swarming.SwarmingRpcsTaskResult) (map[string]string, error) {
+	rv := make(map[string]string, len(t.Tags))
 	for _, tag := range t.Tags {
 		split := strings.SplitN(tag, ":", 2)
 		if len(split) != 2 {
 			return nil, fmt.Errorf("Invalid Swarming task tag: %q %v", tag, t)
 		}
-		rv[split[0]] = append(rv[split[0]], split[1])
+		rv[split[0]] = split[1]
 	}
 	return rv, nil
 }
 
 // GetTagValue returns the value for the given tag key from the given Swarming task.
 func GetTagValue(t *swarming.SwarmingRpcsTaskResult, tagKey string) (string, error) {
-	tagValues, err := TagValues(t)
-	if err != nil {
-		return "", err
+	val := ""
+	for _, tag := range t.Tags {
+		split := strings.SplitN(tag, ":", 2)
+		if len(split) != 2 {
+			return "", fmt.Errorf("Invalid Swarming task tag: %q", tag)
+		}
+		if split[0] == tagKey {
+			val = split[1]
+			break
+		}
 	}
-	val := tagValues[tagKey]
-	if len(val) != 1 {
-		return "", fmt.Errorf("Expected a single value for tag key %q", tagKey)
-	}
-	return val[0], nil
+	return val, nil
 }
 
 // ParseTimestamp returns a UTC time.Time for the given timestamp.
