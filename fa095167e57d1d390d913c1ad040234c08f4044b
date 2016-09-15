@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6bb4c647_d77cd479",
+        "filename": "task_scheduler/go/db/repo_state.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-15T16:40:11Z",
+      "side": 1,
+      "message": "uber-nit: I liked it better before. It\u0027s really not that important since these are in the same file, but not using s.Patch.Copy() here means that if we do end up changing Patch.Copy, this method will be incorrect.",
+      "revId": "fa095167e57d1d390d913c1ad040234c08f4044b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
