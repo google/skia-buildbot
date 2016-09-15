@@ -12,6 +12,22 @@ func (p Patch) Copy() Patch {
 	return p
 }
 
+// Valid indicates whether or not the given Patch is valid; a valid Patch
+// has either none or all of its fields set.
+func (p Patch) Valid() bool {
+	return p.Empty() || p.Full()
+}
+
+// Empty returns true iff all of the Patch's fields are empty.
+func (p Patch) Empty() bool {
+	return p.Issue == "" && p.Patchset == "" && p.Server == ""
+}
+
+// Full returns true iff all of the Patch's fields are filled in.
+func (p Patch) Full() bool {
+	return p.Issue != "" && p.Patchset != "" && p.Server != ""
+}
+
 // RepoState encapsulates all of the parameters which define the state of a
 // repo.
 type RepoState struct {
@@ -27,4 +43,14 @@ func (s *RepoState) Copy() RepoState {
 		Repo:     s.Repo,
 		Revision: s.Revision,
 	}
+}
+
+// Valid indicates whether or not the given RepoState is valid.
+func (s RepoState) Valid() bool {
+	return s.Patch.Valid() && s.Repo != "" && s.Revision != ""
+}
+
+// IsTryJob returns true iff the RepoState includes a patch.
+func (s RepoState) IsTryJob() bool {
+	return s.Patch.Full()
 }

@@ -22,16 +22,14 @@ const (
 // taskCandidate is a struct used for determining which tasks to schedule.
 type taskCandidate struct {
 	Commits        []string
-	ForcedJobId    string
 	IsolatedInput  string
 	IsolatedHashes []string
-	Name           string
 	ParentTaskIds  []string
-	db.RepoState
 	RetryOf        string
 	Score          float64
 	StealingFromId string
-	TaskSpec       *TaskSpec
+	db.TaskCacheKey
+	TaskSpec *TaskSpec
 }
 
 // Copy returns a copy of the taskCandidate.
@@ -44,17 +42,26 @@ func (c *taskCandidate) Copy() *taskCandidate {
 	copy(parentTaskIds, c.ParentTaskIds)
 	return &taskCandidate{
 		Commits:        commits,
-		ForcedJobId:    c.ForcedJobId,
 		IsolatedInput:  c.IsolatedInput,
 		IsolatedHashes: isolatedHashes,
-		Name:           c.Name,
 		ParentTaskIds:  parentTaskIds,
-		RepoState:      c.RepoState.Copy(),
 		RetryOf:        c.RetryOf,
 		Score:          c.Score,
 		StealingFromId: c.StealingFromId,
+		TaskCacheKey:   c.TaskCacheKey.Copy(),
 		TaskSpec:       c.TaskSpec.Copy(),
 	}
+}
+
+// IsTryJob indicates whether this taskCandidate is for a try run.
+func (c *taskCandidate) IsTryJob() bool {
+	return c.RepoState.IsTryJob()
+}
+
+// IsForceRun indicates whether this taskCandidate is for a forced run, which
+// indicates that it shouldn't be de-duplicated.
+func (c *taskCandidate) IsForceRun() bool {
+	return c.ForcedJobId != ""
 }
 
 // MakeId generates a string ID for the taskCandidate.
@@ -87,12 +94,10 @@ func (c *taskCandidate) MakeTask() *db.Task {
 	copy(parentTaskIds, c.ParentTaskIds)
 	return &db.Task{
 		Commits:       commits,
-		ForcedJobId:   c.ForcedJobId,
 		Id:            "", // Filled in when the task is inserted into the DB.
-		Name:          c.Name,
 		ParentTaskIds: parentTaskIds,
-		RepoState:     c.RepoState.Copy(),
 		RetryOf:       c.RetryOf,
+		TaskCacheKey:  c.TaskCacheKey.Copy(),
 	}
 }
 

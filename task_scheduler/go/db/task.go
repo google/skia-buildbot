@@ -85,12 +85,6 @@ type Task struct {
 	//  zero if the task is pending or running.
 	Finished time.Time
 
-	// ForcedJobId is the ID of a Job for which this Task was specifically
-	// run. Most Tasks may be shared between any number of Jobs; if
-	// ForcedJobId is set, it implies that the Task is associated ONLY with
-	// the Job with the given ID.
-	ForcedJobId string
-
 	// Id is a generated unique identifier for this Task instance. Must be
 	// URL-safe.
 	Id string
@@ -102,15 +96,8 @@ type Task struct {
 	// task.
 	IsolatedOutput string
 
-	// Name is a human-friendly descriptive name for this Task. All Tasks
-	// generated from the same TaskSpec have the same name.
-	Name string
-
 	// ParentTaskIds are IDs of tasks which satisfied this task's dependencies.
 	ParentTaskIds []string
-
-	// RepoState is the current state of the repository for this Task.
-	RepoState
 
 	// RetryOf is the ID of the task which this task is a retry of, if any.
 	RetryOf string
@@ -130,6 +117,11 @@ type Task struct {
 	// SwarmingTaskId is the Swarming task ID. This field will not be set if the
 	// Task does not correspond to a Swarming task.
 	SwarmingTaskId string
+
+	// TaskCacheKey is a struct which describes aspects of the Task related
+	// to the current state of the repo when it ran, and about the Task
+	// itself.
+	TaskCacheKey
 }
 
 // UpdateFromSwarming sets or initializes t from data in s. If any changes were
@@ -330,17 +322,15 @@ func (t *Task) Copy() *Task {
 		Created:        t.Created,
 		DbModified:     t.DbModified,
 		Finished:       t.Finished,
-		ForcedJobId:    t.ForcedJobId,
 		Id:             t.Id,
 		IsolatedOutput: t.IsolatedOutput,
-		Name:           t.Name,
 		ParentTaskIds:  parentTaskIds,
-		RepoState:      t.RepoState.Copy(),
 		RetryOf:        t.RetryOf,
 		Started:        t.Started,
 		Status:         t.Status,
 		SwarmingBotId:  t.SwarmingBotId,
 		SwarmingTaskId: t.SwarmingTaskId,
+		TaskCacheKey:   t.TaskCacheKey.Copy(),
 	}
 }
 

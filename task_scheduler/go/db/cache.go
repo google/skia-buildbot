@@ -14,6 +14,28 @@ const (
 	TASKS_INIT_CAPACITY = 60000
 )
 
+// TaskCacheKey is a struct used for identifying a Task instance. Note that more
+// than one Task may have the same TaskCacheKey, eg. in the case of retries.
+type TaskCacheKey struct {
+	RepoState
+	Name        string
+	ForcedJobId string
+}
+
+// Copy returns a copy of the TaskCacheKey.
+func (k TaskCacheKey) Copy() TaskCacheKey {
+	return TaskCacheKey{
+		RepoState:   k.RepoState.Copy(),
+		Name:        k.Name,
+		ForcedJobId: k.ForcedJobId,
+	}
+}
+
+// Valid indicates whether or not the TaskCacheKey is valid.
+func (k TaskCacheKey) Valid() bool {
+	return k.RepoState.Valid() && k.Name != ""
+}
+
 type TaskCache interface {
 
 	// GetTask returns the task with the given ID, or an error if no such task exists.
@@ -22,6 +44,10 @@ type TaskCache interface {
 	// GetTaskForCommit retrieves the task with the given name which ran at the
 	// given commit, or nil if no such task exists.
 	GetTaskForCommit(string, string, string) (*Task, error)
+
+	// GetTasksByKey returns the tasks with the given TaskCacheKey, sorted
+	// by creation time.
+	GetTasksByKey(*TaskCacheKey) ([]*Task, error)
 
 	// GetTasksForCommits retrieves all tasks which included[1] each of the
 	// given commits. Returns a map whose keys are commit hashes and values are
@@ -71,6 +97,8 @@ type taskCache struct {
 	tasks          map[string]*Task
 	// map[repo_name][commit_hash][task_spec_name]*Task
 	tasksByCommit map[string]map[string]map[string]*Task
+	// map[TaskCacheKey]map[task_id]*Task
+	tasksByKey map[TaskCacheKey]map[string]*Task
 	// tasksByTime is sorted by Task.Created.
 	tasksByTime []*Task
 	timePeriod  time.Duration
@@ -86,6 +114,20 @@ func (c *taskCache) GetTask(id string) (*Task, error) {
 		return t.Copy(), nil
 	}
 	return nil, ErrNotFound
+}
+
+// See documentation for TaskCache interface.
+func (c *taskCache) GetTasksByKey(k *TaskCacheKey) ([]*Task, error) {
+	if !k.Valid() {
+		return nil, fmt.Errorf("TaskCacheKey is invalid: %v", k)
+	}
+	tasks := c.tasksByKey[*k]
+	rv := make([]*Task, 0, len(tasks))
+	for _, t := range tasks {
+		rv = append(rv, t.Copy())
+	}
+	sort.Sort(TaskSlice(rv))
+	return rv, nil
 }
 
 // See documentation for TaskCache interface.
@@ -184,6 +226,19 @@ func (c *taskCache) removeFromTasksByCommit(task *Task) {
 
 }
 
+// removeFromTasksByKey removes task (which must be a previously-inserted
+// Task, not a new Task) from c.tasksByKey. Assumes the caller holds a lock.
+func (c *taskCache) removeFromTasksByKey(task *Task) {
+	tasks, ok := c.tasksByKey[task.TaskCacheKey]
+	if !ok {
+		return
+	}
+	delete(tasks, task.Id)
+	if len(tasks) == 0 {
+		delete(c.tasksByKey, task.TaskCacheKey)
+	}
+}
+
 // expireTasks removes data from c whose Created time is before start. Assumes
 // the caller holds a lock. This is a helper for expireAndUpdate.
 func (c *taskCache) expireTasks(start time.Time) {
@@ -201,6 +256,7 @@ func (c *taskCache) expireTasks(start time.Time) {
 		}
 		delete(c.tasks, task.Id)
 		c.removeFromTasksByCommit(task)
+		c.removeFromTasksByKey(task)
 		c.tasksByTime[i] = nil // Allow GC.
 		if _, ok := c.unfinished[task.Id]; ok {
 			glog.Warningf("Found unfinished task that is so old it is being expired. %#v", task)
@@ -221,6 +277,14 @@ func (c *taskCache) insertOrUpdateTask(task *Task) {
 
 	// Insert the new task into the main map.
 	c.tasks[task.Id] = task
+
+	// Insert into tasksByKey.
+	byKey, ok := c.tasksByKey[task.TaskCacheKey]
+	if !ok {
+		byKey = map[string]*Task{}
+		c.tasksByKey[task.TaskCacheKey] = byKey
+	}
+	byKey[task.Id] = task
 
 	if isUpdate {
 		// If we already know about this task, the blamelist might have changed, so
@@ -321,6 +385,7 @@ func (c *taskCache) reset(now time.Time) error {
 	c.queryId = queryId
 	c.tasks = map[string]*Task{}
 	c.tasksByCommit = map[string]map[string]map[string]*Task{}
+	c.tasksByKey = map[TaskCacheKey]map[string]*Task{}
 	c.unfinished = map[string]*Task{}
 	c.expireAndUpdate(start, tasks)
 	return nil
