@@ -80,7 +80,7 @@ const (
 
 	// CHUNK_SIZE is the maximum number of values that are added to the datastore
 	// in any one gRPC call.
-	CHUNK_SIZE = 10000
+	CHUNK_SIZE = 5000
 )
 
 // TsDB is an implementation of DB that stores traces in traceservice.
@@ -200,6 +200,10 @@ func (ts *TsDB) addChunk(ctx context.Context, cid *traceservice.CommitID, chunk 
 		})
 	}
 	if len(addParamsRequest.Params) > 0 {
+		// TODO(stephana): We need to fix the call to AddParams. If it fails the
+		// the DB ends up in an inconsistent state and traceService.GetParams
+		// for the failing traceID will cause a panic.
+
 		if _, err := ts.traceService.AddParams(ctx, addParamsRequest); err != nil {
 			return fmt.Errorf("Failed to add params: %s", err)
 		}
