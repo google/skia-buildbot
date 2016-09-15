@@ -172,10 +172,6 @@ func (c *CommitCache) update() (rv error) {
 	}
 	newCommitHashes := c.repo.From(from)
 	glog.Infof("Processing %d new commits.", len(newCommitHashes))
-	newComments, err := c.db.GetCommitsComments(newCommitHashes)
-	if err != nil {
-		return fmt.Errorf("Failed to retrieve commit comments: %s", err)
-	}
 	newCommits := make([]*vcsinfo.LongCommit, len(newCommitHashes))
 	if len(newCommitHashes) > 0 {
 		for i, h := range newCommitHashes {
@@ -191,7 +187,20 @@ func (c *CommitCache) update() (rv error) {
 		return fmt.Errorf("Failed to read branch information from the repo: %v", err)
 	}
 
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	allCommits := append(c.Commits, newCommits...)
+
+	commitStrs := make([]string, 0, len(allCommits))
+	for _, c := range allCommits {
+		commitStrs = append(commitStrs, c.Hash)
+	}
+	comments, err := c.db.GetCommitsComments(commitStrs)
+	if err != nil {
+		return fmt.Errorf("Failed to retrieve commit comments: %s", err)
+	}
+
 	// Update the cached values all at once at at the end.
 	glog.Infof("Updating the cache.")
 	// Write the cache to disk *after* unlocking it.
@@ -199,16 +208,9 @@ func (c *CommitCache) update() (rv error) {
 		rv = c.toFile()
 	}()
 	defer timer.New("  CommitCache locked").Stop()
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
 	c.BranchHeads = branchHeads
 	c.Commits = allCommits
-	if c.Comments == nil {
-		c.Comments = map[string][]*buildbot.CommitComment{}
-	}
-	for k, v := range newComments {
-		c.Comments[k] = v
-	}
+	c.Comments = comments
 	glog.Infof("Finished updating the cache.")
 	return nil
 }
@@ -254,4 +256,47 @@ func (c *CommitCache) GetLastN(n int) (*CommitData, error) {
 		start = 0
 	}
 	return c.getRange(start, end)
+}
+
+// AddCommitComment adds a CommitComment to the CommitCache (and the database).
+func (c *CommitCache) AddCommitComment(comment *buildbot.CommitComment) error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	if err := c.db.PutCommitComment(comment); err != nil {
+		return err
+	}
+
+	commitStrs := make([]string, 0, len(c.Commits))
+	for _, c := range c.Commits {
+		commitStrs = append(commitStrs, c.Hash)
+	}
+	comments, err := c.db.GetCommitsComments(commitStrs)
+	if err != nil {
+		return fmt.Errorf("Failed to retrieve commit comments: %s", err)
+	}
+	c.Comments = comments
+	return nil
+}
+
+// DeleteCommitComment deletes a CommitComment from the CommitCache (and the
+// database).
+func (c *CommitCache) DeleteCommitComment(id int64) error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	if err := c.db.DeleteCommitComment(id); err != nil {
+		return err
+	}
+
+	commitStrs := make([]string, 0, len(c.Commits))
+	for _, c := range c.Commits {
+		commitStrs = append(commitStrs, c.Hash)
+	}
+	comments, err := c.db.GetCommitsComments(commitStrs)
+	if err != nil {
+		return fmt.Errorf("Failed to retrieve commit comments: %s", err)
+	}
+	c.Comments = comments
+	return nil
 }

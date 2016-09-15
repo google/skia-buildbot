@@ -360,6 +360,10 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
+	cache, err := getCommitCache(w, r)
+	if err != nil {
+		return
+	}
 	commit := mux.Vars(r)["commit"]
 	comment := struct {
 		Comment string `json:"comment"`
@@ -376,8 +380,8 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Timestamp: time.Now().UTC(),
 		Message:   comment.Comment,
 	}
-	if err := db.PutCommitComment(&c); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add commit comment: %v", err))
+	if err := cache.AddCommitComment(&c); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add commit comment: %s", err))
 		return
 	}
 }
@@ -389,13 +393,17 @@ func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
+	cache, err := getCommitCache(w, r)
+	if err != nil {
+		return
+	}
 	commentId, err := strconv.ParseInt(mux.Vars(r)["commentId"], 10, 32)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
-	if err := db.DeleteCommitComment(commentId); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete commit comment: %v", err))
+	if err := cache.DeleteCommitComment(commentId); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete commit comment: %s", err))
 		return
 	}
 }
