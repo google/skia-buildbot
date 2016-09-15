@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6bb4c647_3783a0b6",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-15T16:21:59Z",
+      "side": 1,
+      "message": "Just want to note that appending this suffix will result in invalid builder names. I don\u0027t think anyone is parsing them after this point, so it probably doesn\u0027t matter, but might be worth considering changing to \"_NoBuildbot\".  It\u0027s also worth noting that we only need this because we currently have duplicate TaskSpec/Builder names.  If we transition intelligently, we could avoid that.",
+      "range": {
+        "startLine": 25,
+        "startChar": 25,
+        "endLine": 25,
+        "endChar": 35
+      },
+      "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_17801ca6",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-15T16:21:59Z",
+      "side": 1,
+      "message": "Let\u0027s make this different from the internal \"bots\", maybe just \"fake-master\"?",
+      "range": {
+        "startLine": 29,
+        "startChar": 23,
+        "endLine": 29,
+        "endChar": 27
+      },
+      "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_37aa8026",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-15T16:21:59Z",
+      "side": 1,
+      "message": "This assumes that somebody has already run info.Details(commit).  Can we rely on that?  Generally the safer (and slower) method is to do info.FullHash(commit), which may have been renamed to info.RevParse?",
+      "range": {
+        "startLine": 228,
+        "startChar": 27,
+        "endLine": 228,
+        "endChar": 36
+      },
+      "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_376d60fd",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-15T16:21:59Z",
+      "side": 1,
+      "message": "Put this at the top of the file?",
+      "range": {
+        "startLine": 272,
+        "startChar": 29,
+        "endLine": 272,
+        "endChar": 30
+      },
+      "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_176adce4",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-15T16:21:59Z",
+      "side": 1,
+      "message": "This and taskRetryURL should be constants at the top as well.",
+      "range": {
+        "startLine": 274,
+        "startChar": 52,
+        "endLine": 274,
+        "endChar": 53
+      },
+      "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_7777e8c8",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-15T16:21:59Z",
+      "side": 1,
+      "message": "Constant...",
+      "range": {
+        "startLine": 282,
+        "startChar": 33,
+        "endLine": 282,
+        "endChar": 38
+      },
+      "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_774ec88c",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 773,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-15T16:21:59Z",
+      "side": 1,
+      "message": "No longer needed.",
+      "range": {
+        "startLine": 773,
+        "startChar": 14,
+        "endLine": 773,
+        "endChar": 25
+      },
+      "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_17513c29",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 776,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-15T16:21:59Z",
+      "side": 1,
+      "message": "Both of these should be constants somewhere.",
+      "range": {
+        "startLine": 776,
+        "startChar": 16,
+        "endLine": 776,
+        "endChar": 28
+      },
+      "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
