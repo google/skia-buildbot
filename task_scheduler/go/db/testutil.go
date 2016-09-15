@@ -17,7 +17,10 @@ const DEFAULT_TEST_REPO = "go-on-now.git"
 func makeTask(ts time.Time, commits []string) *Task {
 	return &Task{
 		Created: ts,
-		Repo:    DEFAULT_TEST_REPO,
+		RepoState: RepoState{
+			Repo:     DEFAULT_TEST_REPO,
+			Revision: commits[0],
+		},
 		Commits: commits,
 		Name:    "Test-Task",
 	}
@@ -26,8 +29,10 @@ func makeTask(ts time.Time, commits []string) *Task {
 func makeJob(ts time.Time) *Job {
 	return &Job{
 		Created: ts,
-		Repo:    DEFAULT_TEST_REPO,
-		Name:    "Test-Job",
+		RepoState: RepoState{
+			Repo: DEFAULT_TEST_REPO,
+		},
+		Name: "Test-Job",
 	}
 }
 

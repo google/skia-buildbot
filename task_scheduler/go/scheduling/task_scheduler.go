@@ -292,10 +292,12 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) (m
 				c := &taskCandidate{
 					IsolatedHashes: nil,
 					Name:           name,
-					Repo:           repo,
-					Revision:       commit,
-					Score:          0.0,
-					TaskSpec:       task,
+					RepoState: db.RepoState{
+						Repo:     repo,
+						Revision: commit,
+					},
+					Score:    0.0,
+					TaskSpec: task,
 				}
 				// We shouldn't duplicate pending, in-progress,
 				// or successfully completed tasks.
