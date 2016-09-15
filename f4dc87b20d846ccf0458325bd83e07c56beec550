@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "10261bad_b62d2804",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-15T18:25:36Z",
+      "side": 1,
+      "message": "missing Lock",
+      "revId": "f4dc87b20d846ccf0458325bd83e07c56beec550",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_76f9d068",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-15T18:25:36Z",
+      "side": 1,
+      "message": "FWIW, the reason removeFromTasksByCommit is a separate function is that it\u0027s used in two places. Seems ok to inline this.",
+      "revId": "f4dc87b20d846ccf0458325bd83e07c56beec550",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_965c6c78",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-15T18:25:36Z",
+      "side": 1,
+      "message": "nit: if we\u0027re using this within Task, maybe it should be TaskKey rather than TaskCacheKey.",
+      "revId": "f4dc87b20d846ccf0458325bd83e07c56beec550",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_764b10b1",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-15T18:25:36Z",
+      "side": 1,
+      "message": "Doesn\u0027t taskCandidate \"inherit\" this from TaskCacheKey (which inherits it from RepoState)?",
+      "revId": "f4dc87b20d846ccf0458325bd83e07c56beec550",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
