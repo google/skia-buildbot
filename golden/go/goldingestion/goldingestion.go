@@ -1,6 +1,7 @@
 package goldingestion
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/skia-dev/glog"
@@ -77,7 +78,14 @@ func (g *goldProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 	}
 
 	// Write the result to the tracedb.
-	err = g.traceDB.Add(cid, dmResults.getTraceDBEntries())
+	tdbEntry := dmResults.getTraceDBEntries()
+	for _, entry := range tdbEntry {
+		if len(entry.Params) == 0 {
+			panic(fmt.Sprintf("ERROR: Empty parameters in file %s", resultsFile.Name()))
+			return fmt.Errorf("ERROR: Empty parameters in file %s", resultsFile.Name())
+		}
+	}
+	err = g.traceDB.Add(cid, tdbEntry)
 
 	// If there was no problem and we have an ingestion store that record that we have processed that file.
 	if (err == nil) && (g.ingestionStore != nil) {

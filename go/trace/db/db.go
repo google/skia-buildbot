@@ -80,7 +80,7 @@ const (
 
 	// CHUNK_SIZE is the maximum number of values that are added to the datastore
 	// in any one gRPC call.
-	CHUNK_SIZE = 10000
+	CHUNK_SIZE = 5000
 )
 
 // TsDB is an implementation of DB that stores traces in traceservice.

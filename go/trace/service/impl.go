@@ -12,7 +12,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/skia-dev/glog"
+
 	"github.com/boltdb/bolt"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/golang/groupcache/lru"
 	"github.com/golang/protobuf/proto"
 	"go.skia.org/infra/go/metrics2"
@@ -373,6 +376,10 @@ func (ts *TraceServiceImpl) AddParams(ctx context.Context, in *AddParamsRequest)
 	params := map[string][]byte{}
 	var err error
 	for _, p := range in.Params {
+		if len(p.Params) == 0 {
+			return nil, fmt.Errorf("Provided empty params in AddParams")
+		}
+
 		ti := &StoredEntry{
 			Params: &Params{
 				Params: p.Params,
@@ -644,6 +651,13 @@ func (ts *TraceServiceImpl) GetParams(ctx context.Context, getParamsRequest *Get
 			entry := &StoredEntry{}
 			if err := proto.Unmarshal(t.Get([]byte(traceid)), entry); err != nil {
 				return fmt.Errorf("Failed to unmarshal StoredEntry proto for %s: %s", traceid, err)
+			}
+
+			glog.Infof("PARAMS : %s\n", spew.Sprint(entry))
+			glog.Infof("TRACEID: %s\n", traceid)
+			glog.Infof("POINTER: %p\n", entry.Params)
+			if entry.Params == nil {
+				return fmt.Errorf("Got empty params for %s", traceid)
 			}
 
 			ret.Params = append(ret.Params, &ParamsPair{

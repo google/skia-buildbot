@@ -85,13 +85,13 @@ func TestTrybotGoldProcessor(t *testing.T) {
 	traces := tile.Traces
 	assert.Equal(t, len(TEST_ENTRIES), len(traces))
 
-	for _, testEntry := range TEST_ENTRIES {
-		found, ok := traces[testEntry.key]
+	for key, value := range TEST_ENTRIES {
+		found, ok := traces[key]
 		assert.True(t, ok)
 		goldTrace, ok := found.(*types.GoldenTrace)
 		assert.True(t, ok)
 		assert.Equal(t, 1, len(goldTrace.Values))
-		assert.Equal(t, testEntry.value, goldTrace.Values[0])
+		assert.Equal(t, value, goldTrace.Values[0])
 		assert.Equal(t, "no", goldTrace.Params()["gamma_correct"])
 	}
 

@@ -23,14 +23,21 @@ const (
 	TRACE_DB_FILENAME = "./test_trace.db"
 )
 
+var LIVE_ERR_FILES = []struct {
+	fileName string
+	gitHash  string
+}{
+	{"testdata/live_err/Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Debug-SK_USE_DISCARDABLE_SCALEDIMAGECACHE-dm.json", "1a1aa9303484106a955e5549bf8ae24950f54e7a"},
+}
+
+type TestEntry struct {
+}
+
 var (
 	// trace ids and values that are contained in the test file.
-	TEST_ENTRIES = []struct {
-		key   string
-		value string
-	}{
-		{key: "x86_64:MSVC:pipe-8888:Debug:CPU:AVX2:ShuttleB:aaclip:Win8:gm", value: "fa3c371d201d6f88f7a47b41862e2e85"},
-		{key: "x86_64:MSVC:pipe-8888:Debug:CPU:AVX2:ShuttleB:clipcubic:Win8:gm", value: "64e446d96bebba035887dd7dda6db6c4"},
+	TEST_ENTRIES = map[string]string{
+		"x86_64:MSVC:pipe-8888:Debug:CPU:AVX2:ShuttleB:aaclip:Win8:gm":    "fa3c371d201d6f88f7a47b41862e2e85",
+		"x86_64:MSVC:pipe-8888:Debug:CPU:AVX2:ShuttleB:clipcubic:Win8:gm": "64e446d96bebba035887dd7dda6db6c4",
 	}
 
 	// Fix the current point as reference. We remove the nano seconds from
@@ -62,18 +69,39 @@ func TestDMResults(t *testing.T) {
 	entries := dmResults.getTraceDBEntries()
 	assert.Equal(t, len(TEST_ENTRIES), len(entries))
 
-	for _, testEntry := range TEST_ENTRIES {
-		found, ok := entries[testEntry.key]
+	for key, value := range TEST_ENTRIES {
+		found, ok := entries[key]
 		assert.True(t, ok)
-		assert.Equal(t, testEntry.value, string(found.Value))
+		assert.Equal(t, value, string(found.Value))
 	}
 }
 
 // Tests the processor in conjunction with the vcs.
 func TestGoldProcessor(t *testing.T) {
+	testGoldProcessor(t, TEST_INGESTION_FILE, TEST_COMMITS, TEST_ENTRIES)
+}
 
+func TestLiveFiles(t *testing.T) {
+	testCommits := generateTestCommits(LIVE_ERR_FILES[0].gitHash)
+	testGoldProcessor(t, LIVE_ERR_FILES[0].fileName, testCommits, nil)
+}
+
+func generateTestCommits(gitHash string) []*vcsinfo.LongCommit {
+	return []*vcsinfo.LongCommit{
+		&vcsinfo.LongCommit{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash:    gitHash,
+				Subject: "Really big code change",
+			},
+			Timestamp: now.Add(-time.Second * 10).Add(-time.Nanosecond * time.Duration(now.Nanosecond())),
+			Branches:  map[string]bool{"master": true},
+		},
+	}
+}
+
+func testGoldProcessor(t *testing.T, testIngestionFile string, testCommits []*vcsinfo.LongCommit, testEntries map[string]string) {
 	// Set up mock VCS and run a servcer with the given data directory.
-	vcs := ingestion.MockVCS(TEST_COMMITS)
+	vcs := ingestion.MockVCS(testCommits)
 	server, serverAddr := ingestion.StartTraceDBTestServer(t, TRACE_DB_FILENAME, "")
 	defer server.Stop()
 	defer testutils.Remove(t, TRACE_DB_FILENAME)
@@ -90,7 +118,7 @@ func TestGoldProcessor(t *testing.T) {
 	defer util.Close(processor.(*goldProcessor).traceDB)
 
 	// Load the example file and process it.
-	fsResult, err := ingestion.FileSystemResult(TEST_INGESTION_FILE, "./")
+	fsResult, err := ingestion.FileSystemResult(testIngestionFile, "./")
 	assert.NoError(t, err)
 	err = processor.Process(fsResult)
 	assert.NoError(t, err)
@@ -107,8 +135,8 @@ func TestGoldProcessor(t *testing.T) {
 
 	assert.Equal(t, 1, len(commitIDs))
 	assert.Equal(t, &tracedb.CommitID{
-		Timestamp: TEST_COMMITS[0].Timestamp.Unix(),
-		ID:        TEST_COMMITS[0].Hash,
+		Timestamp: testCommits[0].Timestamp.Unix(),
+		ID:        testCommits[0].Hash,
 		Source:    "master",
 	}, commitIDs[0])
 
@@ -116,16 +144,18 @@ func TestGoldProcessor(t *testing.T) {
 	tile, _, err := traceDB.TileFromCommits(commitIDs)
 	assert.NoError(t, err)
 
-	traces := tile.Traces
-	assert.Equal(t, len(TEST_ENTRIES), len(traces))
+	if testEntries != nil {
+		traces := tile.Traces
+		assert.Equal(t, len(TEST_ENTRIES), len(traces))
 
-	for _, testEntry := range TEST_ENTRIES {
-		found, ok := traces[testEntry.key]
-		assert.True(t, ok)
-		goldTrace, ok := found.(*types.GoldenTrace)
-		assert.True(t, ok)
-		assert.Equal(t, 1, len(goldTrace.Values))
-		assert.Equal(t, testEntry.value, goldTrace.Values[0])
+		for key, value := range TEST_ENTRIES {
+			found, ok := traces[key]
+			assert.True(t, ok)
+			goldTrace, ok := found.(*types.GoldenTrace)
+			assert.True(t, ok)
+			assert.Equal(t, 1, len(goldTrace.Values))
+			assert.Equal(t, value, goldTrace.Values[0])
+		}
 	}
 
 	assert.Equal(t, "master", commitIDs[0].Source)
