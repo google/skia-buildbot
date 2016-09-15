@@ -646,6 +646,14 @@ func (ts *TraceServiceImpl) GetParams(ctx context.Context, getParamsRequest *Get
 				return fmt.Errorf("Failed to unmarshal StoredEntry proto for %s: %s", traceid, err)
 			}
 
+			// TODO(stephana): Find a way to ensure that no inconsitent data are
+			// written to the database which cause entry.Params to be nil.
+			// Returning an error below will cause certain higher level operations
+			// to fail, but it will not crash the server.
+			if entry.Params == nil {
+				return fmt.Errorf("Got empty params for %s", traceid)
+			}
+
 			ret.Params = append(ret.Params, &ParamsPair{
 				Key:    traceid,
 				Params: entry.Params.Params,
