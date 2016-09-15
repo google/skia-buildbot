@@ -156,6 +156,7 @@ func (r *Rietveld) GetIssueProperties(issue int64, messages bool) (*Issue, error
 		url += "?messages=true"
 	}
 	fullIssue := &Issue{}
+	fmt.Printf("About to GET %s", url)
 	if err := r.get(url, fullIssue); err != nil {
 		return nil, fmt.Errorf("Failed to load details for issue %d: %v", issue, err)
 	}
@@ -233,6 +234,7 @@ func (r *Rietveld) refreshXSRFTokenIfNeeded() error {
 }
 
 func (r *Rietveld) get(suburl string, rv interface{}) error {
+	fmt.Printf("Exact URL: %s", r.url+suburl)
 	resp, err := r.client.Get(r.url + suburl)
 	if err != nil {
 		return fmt.Errorf("Failed to GET %s: %s", r.url+suburl, err)
