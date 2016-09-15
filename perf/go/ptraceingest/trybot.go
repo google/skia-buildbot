@@ -60,13 +60,34 @@ func (p *perfTrybotProcessor) Process(resultsFile ingestion.ResultFileLocation) 
 		glog.Infof("Ignoring Gerrit issue %s/%s for now.", benchData.Issue, benchData.PatchSet)
 		return ingestion.IgnoreResultsFileErr
 	}
-	patchset, err := strconv.Atoi(benchData.PatchSet)
+	patchset, err := strconv.ParseInt(benchData.PatchSet, 10, 64)
 	if err != nil {
 		return fmt.Errorf("Failed to parse trybot patch id: %s", err)
 	}
+	issueID, err := strconv.ParseInt(benchData.Issue, 10, 64)
+	if err != nil {
+		return fmt.Errorf("Failed to parse trybot issue id: %s", err)
+	}
+
+	issue, err := p.review.GetIssueProperties(issueID, false)
+	if err != nil {
+		return fmt.Errorf("Failed to get issue details %d: %s", issueID, err)
+	}
+	// Look through the Patchsets and find a matching one.
+	var offset int = -1
+	for i, pid := range issue.Patchsets {
+		if pid == patchset {
+			offset = i
+			break
+		}
+	}
+	if offset == -1 {
+		return fmt.Errorf("Failed to find patchset %d in review %d", patchset, issueID)
+	}
+
 	source := fmt.Sprintf("%s/%s", CODE_REVIEW_URL, benchData.Issue)
 	cid := &ptracestore.CommitID{
-		Offset: patchset,
+		Offset: offset,
 		Source: source,
 	}
 
