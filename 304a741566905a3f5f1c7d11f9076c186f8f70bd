@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "10261bad_36623810",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-15T19:45:33Z",
+      "side": 1,
+      "message": "nit: maybe move to task.go",
+      "revId": "304a741566905a3f5f1c7d11f9076c186f8f70bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
