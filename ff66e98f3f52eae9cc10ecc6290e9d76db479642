@@ -22,6 +22,24 @@
       "revId": "ff66e98f3f52eae9cc10ecc6290e9d76db479642",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_94a6cac1",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-15T12:59:42Z",
+      "side": 1,
+      "message": "Wasn\u0027t this your estimate of the number of tasks in a 4-day window?",
+      "parentUuid": "6bb4c647_d4f7b2b9",
+      "revId": "ff66e98f3f52eae9cc10ecc6290e9d76db479642",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
