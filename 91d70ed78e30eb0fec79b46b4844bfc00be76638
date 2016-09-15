@@ -79,6 +79,24 @@
     },
     {
       "key": {
+        "uuid": "6bb4c647_57ef447a",
+        "filename": "task_scheduler/go/db/repo_state.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-15T14:28:06Z",
+      "side": 1,
+      "message": "Changed to Server.",
+      "parentUuid": "6bb4c647_7761a835",
+      "revId": "91d70ed78e30eb0fec79b46b4844bfc00be76638",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bb4c647_77936851",
         "filename": "task_scheduler/go/db/repo_state.go",
         "patchSetId": 2
@@ -126,6 +144,24 @@
       "side": 1,
       "message": "I wrote a note about that, but then deleted it.\n\nI like having the Copy method in case we add slices, pointers, or maps as fields in the future. Otherwise we would need to go find all the places we made assumptions about how to copy the struct and fix them. But yeah, as-is, t.RepoState.Copy() isn\u0027t any different from t.RepoState.",
       "parentUuid": "6bb4c647_d7717408",
+      "revId": "91d70ed78e30eb0fec79b46b4844bfc00be76638",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_77f24862",
+        "filename": "task_scheduler/go/db/repo_state.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-15T14:28:06Z",
+      "side": 1,
+      "message": "SG, leaving it.",
+      "parentUuid": "6bb4c647_575e2471",
       "revId": "91d70ed78e30eb0fec79b46b4844bfc00be76638",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
