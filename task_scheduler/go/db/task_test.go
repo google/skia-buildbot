@@ -20,10 +20,12 @@ import (
 func TestUpdateFromSwarmingInvalid(t *testing.T) {
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &Task{
-		Id:          "A",
-		Name:        "A",
-		Repo:        "A",
-		Revision:    "A",
+		Id:   "A",
+		Name: "A",
+		RepoState: RepoState{
+			Repo:     "A",
+			Revision: "A",
+		},
 		Created:     now,
 		Commits:     []string{"A", "B"},
 		ForcedJobId: "A",
@@ -77,10 +79,12 @@ func TestUpdateFromSwarmingInvalid(t *testing.T) {
 func TestUpdateFromSwarmingMismatched(t *testing.T) {
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &Task{
-		Id:             "A",
-		Name:           "A",
-		Repo:           "A",
-		Revision:       "A",
+		Id:   "A",
+		Name: "A",
+		RepoState: RepoState{
+			Repo:     "A",
+			Revision: "A",
+		},
 		Created:        now,
 		Commits:        []string{"A", "B"},
 		SwarmingTaskId: "A",
@@ -165,10 +169,12 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 	assert.NoError(t, err1)
 	assert.True(t, changed1)
 	testutils.AssertDeepEqual(t, task1, &Task{
-		Id:             "A",
-		Name:           "B",
-		Repo:           "C",
-		Revision:       "D",
+		Id:   "A",
+		Name: "B",
+		RepoState: RepoState{
+			Repo:     "C",
+			Revision: "D",
+		},
 		Created:        now.Add(-3 * time.Hour),
 		Commits:        nil,
 		Started:        now.Add(-time.Hour),
@@ -189,10 +195,12 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 	assert.NoError(t, err2)
 	assert.True(t, changed2)
 	testutils.AssertDeepEqual(t, task2, &Task{
-		Id:             "A",
-		Name:           "B",
-		Repo:           "C",
-		Revision:       "D",
+		Id:   "A",
+		Name: "B",
+		RepoState: RepoState{
+			Repo:     "C",
+			Revision: "D",
+		},
 		Created:        now.Add(-3 * time.Hour),
 		Commits:        nil,
 		Started:        now.Add(-time.Hour),
@@ -211,10 +219,12 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 func TestUpdateFromSwarmingUpdate(t *testing.T) {
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &Task{
-		Id:             "A",
-		Name:           "B",
-		Repo:           "C",
-		Revision:       "D",
+		Id:   "A",
+		Name: "B",
+		RepoState: RepoState{
+			Repo:     "C",
+			Revision: "D",
+		},
 		Created:        now.Add(-3 * time.Hour),
 		Commits:        []string{"D", "Z"},
 		Started:        now.Add(-2 * time.Hour),
@@ -254,10 +264,12 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, changed)
 	testutils.AssertDeepEqual(t, task, &Task{
-		Id:             "A",
-		Name:           "B",
-		Repo:           "C",
-		Revision:       "D",
+		Id:   "A",
+		Name: "B",
+		RepoState: RepoState{
+			Repo:     "C",
+			Revision: "D",
+		},
 		Created:        now.Add(-3 * time.Hour),
 		Commits:        []string{"D", "Z"},
 		Started:        now.Add(-2 * time.Minute),
@@ -276,10 +288,12 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, changed)
 	testutils.AssertDeepEqual(t, task, &Task{
-		Id:             "A",
-		Name:           "B",
-		Repo:           "C",
-		Revision:       "D",
+		Id:   "A",
+		Name: "B",
+		RepoState: RepoState{
+			Repo:     "C",
+			Revision: "D",
+		},
 		Created:        now.Add(-3 * time.Hour),
 		Commits:        []string{"D", "Z"},
 		Started:        now.Add(-2 * time.Minute),
@@ -299,10 +313,12 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, changed)
 	testutils.AssertDeepEqual(t, task, &Task{
-		Id:             "A",
-		Name:           "B",
-		Repo:           "C",
-		Revision:       "D",
+		Id:   "A",
+		Name: "B",
+		RepoState: RepoState{
+			Repo:     "C",
+			Revision: "D",
+		},
 		Created:        now.Add(-3 * time.Hour),
 		Commits:        []string{"D", "Z"},
 		Started:        now.Add(-2 * time.Minute),
@@ -322,10 +338,12 @@ func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
 
 	testUpdateStatus := func(s *swarming_api.SwarmingRpcsTaskResult, newStatus TaskStatus) {
 		task := &Task{
-			Id:             "A",
-			Name:           "B",
-			Repo:           "C",
-			Revision:       "D",
+			Id:   "A",
+			Name: "B",
+			RepoState: RepoState{
+				Repo:     "C",
+				Revision: "D",
+			},
 			Created:        now.Add(-3 * time.Hour),
 			Commits:        []string{"D", "Z"},
 			Status:         TASK_STATUS_SUCCESS,
@@ -337,10 +355,12 @@ func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, changed)
 		testutils.AssertDeepEqual(t, task, &Task{
-			Id:             "A",
-			Name:           "B",
-			Repo:           "C",
-			Revision:       "D",
+			Id:   "A",
+			Name: "B",
+			RepoState: RepoState{
+				Repo:     "C",
+				Revision: "D",
+			},
 			Created:        now.Add(-3 * time.Hour),
 			Commits:        []string{"D", "Z"},
 			Status:         newStatus,
@@ -389,9 +409,11 @@ func TestUpdateDBFromSwarmingTask(t *testing.T) {
 	// Create task, initialize from swarming, and save.
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &Task{
-		Name:          "B",
-		Repo:          "C",
-		Revision:      "D",
+		Name: "B",
+		RepoState: RepoState{
+			Repo:     "C",
+			Revision: "D",
+		},
 		Commits:       []string{"D", "Z"},
 		Status:        TASK_STATUS_PENDING,
 		ParentTaskIds: []string{"E", "F"},
@@ -433,10 +455,12 @@ func TestUpdateDBFromSwarmingTask(t *testing.T) {
 	updatedTask, err := db.GetTaskById(task.Id)
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, updatedTask, &Task{
-		Id:             task.Id,
-		Name:           "B",
-		Repo:           "C",
-		Revision:       "D",
+		Id:   task.Id,
+		Name: "B",
+		RepoState: RepoState{
+			Repo:     "C",
+			Revision: "D",
+		},
 		Created:        now.Add(time.Second),
 		Commits:        []string{"D", "Z"},
 		Started:        now.Add(time.Minute),

@@ -27,9 +27,8 @@ type taskCandidate struct {
 	IsolatedHashes []string
 	Name           string
 	ParentTaskIds  []string
-	Repo           string
+	db.RepoState
 	RetryOf        string
-	Revision       string
 	Score          float64
 	StealingFromId string
 	TaskSpec       *TaskSpec
@@ -50,9 +49,8 @@ func (c *taskCandidate) Copy() *taskCandidate {
 		IsolatedHashes: isolatedHashes,
 		Name:           c.Name,
 		ParentTaskIds:  parentTaskIds,
-		Repo:           c.Repo,
+		RepoState:      c.RepoState.Copy(),
 		RetryOf:        c.RetryOf,
-		Revision:       c.Revision,
 		Score:          c.Score,
 		StealingFromId: c.StealingFromId,
 		TaskSpec:       c.TaskSpec.Copy(),
@@ -93,9 +91,8 @@ func (c *taskCandidate) MakeTask() *db.Task {
 		Id:            "", // Filled in when the task is inserted into the DB.
 		Name:          c.Name,
 		ParentTaskIds: parentTaskIds,
-		Repo:          c.Repo,
+		RepoState:     c.RepoState.Copy(),
 		RetryOf:       c.RetryOf,
-		Revision:      c.Revision,
 	}
 }
 
