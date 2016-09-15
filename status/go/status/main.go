@@ -17,14 +17,9 @@ import (
 	"text/template"
 	"time"
 	"unicode"
-)
 
-import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
-)
-
-import (
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
@@ -38,9 +33,10 @@ import (
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/status/go/build_cache"
 	"go.skia.org/infra/status/go/commit_cache"
 	"go.skia.org/infra/status/go/device_cfg"
+	"go.skia.org/infra/status/go/franken"
+	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 )
 
 const (
@@ -58,7 +54,7 @@ const (
 )
 
 var (
-	buildCache           *build_cache.BuildCache              = nil
+	buildCache           *franken.BTCache                     = nil
 	commitCaches         map[string]*commit_cache.CommitCache = nil
 	buildbotDashTemplate *template.Template                   = nil
 	commitsTemplate      *template.Template                   = nil
@@ -77,13 +73,14 @@ var (
 
 // flags
 var (
-	host           = flag.String("host", "localhost", "HTTP service host")
-	port           = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
-	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
-	testing        = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
-	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
-	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	buildbotDbHost = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
+	host               = flag.String("host", "localhost", "HTTP service host")
+	port               = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
+	useMetadata        = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
+	testing            = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
+	workdir            = flag.String("workdir", ".", "Directory to use for scratch work.")
+	resourcesDir       = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	buildbotDbHost     = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
+	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
 
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
@@ -735,6 +732,11 @@ func main() {
 		glog.Fatal(err)
 	}
 
+	taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl)
+	if err != nil {
+		glog.Fatal(err)
+	}
+
 	// Setup InfluxDB client.
 	dbClient, err = influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
 	if err != nil {
@@ -768,7 +770,12 @@ func main() {
 	glog.Info("CloneOrUpdate complete")
 
 	// Create the build cache.
-	bc, err := build_cache.NewBuildCache(db)
+	//bc, err := build_cache.NewBuildCache(db)
+	repos := map[string]*gitinfo.GitInfo{
+		"https://skia.googlesource.com/skia.git":     skiaRepo,
+		"https://skia.googlesource.com/buildbot.git": infraRepo,
+	}
+	bc, err := franken.NewBTCache(repos, db, taskDb)
 	if err != nil {
 		glog.Fatalf("Failed to create build cache: %s", err)
 	}

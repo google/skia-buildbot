@@ -94,7 +94,11 @@
       },
 
       _makeBuilderURL: function(buildbotUrlPrefix, builder) {
-        return buildbotUrlPrefix + "builders/"+builder.builder;
+        if (builder.url) {
+          return builder.url;
+        } else {
+          return buildbotUrlPrefix + "builders/"+builder.builder;
+        }
       },
 
       _makeDashboardURL: function(builder) {

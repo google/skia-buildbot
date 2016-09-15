@@ -78,8 +78,8 @@ func formatId(t time.Time, seq uint64) string {
 	return fmt.Sprintf("%s_"+SEQUENCE_NUMBER_FORMAT, t.Format(TIMESTAMP_FORMAT), seq)
 }
 
-// parseId returns the timestamp and sequence number stored in a Task ID.
-func parseId(id string) (time.Time, uint64, error) {
+// ParseId returns the timestamp and sequence number stored in a Task ID.
+func ParseId(id string) (time.Time, uint64, error) {
 	parts := strings.Split(id, "_")
 	if len(parts) != 2 {
 		return time.Time{}, 0, fmt.Errorf("Unparsable ID: %q", id)
@@ -362,7 +362,7 @@ func (d *localDB) GetTaskById(id string) (*db.Task, error) {
 	}
 	if rv == nil {
 		// Return an error if id is invalid.
-		if _, _, err := parseId(id); err != nil {
+		if _, _, err := ParseId(id); err != nil {
 			return nil, err
 		}
 	}
@@ -423,7 +423,7 @@ func (d *localDB) validate(t *db.Task) error {
 		return fmt.Errorf("Created not set. Task %s created time is %s. %v", t.Id, t.Created, t)
 	}
 	if t.Id != "" {
-		idTs, _, err := parseId(t.Id)
+		idTs, _, err := ParseId(t.Id)
 		if err != nil {
 			return err
 		}
