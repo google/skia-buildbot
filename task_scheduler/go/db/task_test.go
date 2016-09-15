@@ -20,15 +20,17 @@ import (
 func TestUpdateFromSwarmingInvalid(t *testing.T) {
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &Task{
-		Id:   "A",
-		Name: "A",
-		RepoState: RepoState{
-			Repo:     "A",
-			Revision: "A",
+		Id: "A",
+		TaskKey: TaskKey{
+			RepoState: RepoState{
+				Repo:     "A",
+				Revision: "A",
+			},
+			Name:        "A",
+			ForcedJobId: "A",
 		},
-		Created:     now,
-		Commits:     []string{"A", "B"},
-		ForcedJobId: "A",
+		Created: now,
+		Commits: []string{"A", "B"},
 	}
 	copy := task.Copy()
 
@@ -79,16 +81,18 @@ func TestUpdateFromSwarmingInvalid(t *testing.T) {
 func TestUpdateFromSwarmingMismatched(t *testing.T) {
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &Task{
-		Id:   "A",
-		Name: "A",
-		RepoState: RepoState{
-			Repo:     "A",
-			Revision: "A",
+		Id: "A",
+		TaskKey: TaskKey{
+			RepoState: RepoState{
+				Repo:     "A",
+				Revision: "A",
+			},
+			Name:        "A",
+			ForcedJobId: "A",
 		},
 		Created:        now,
 		Commits:        []string{"A", "B"},
 		SwarmingTaskId: "A",
-		ForcedJobId:    "A",
 	}
 	copy := task.Copy()
 
@@ -169,11 +173,14 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 	assert.NoError(t, err1)
 	assert.True(t, changed1)
 	testutils.AssertDeepEqual(t, task1, &Task{
-		Id:   "A",
-		Name: "B",
-		RepoState: RepoState{
-			Repo:     "C",
-			Revision: "D",
+		Id: "A",
+		TaskKey: TaskKey{
+			RepoState: RepoState{
+				Repo:     "C",
+				Revision: "D",
+			},
+			Name:        "B",
+			ForcedJobId: "G",
 		},
 		Created:        now.Add(-3 * time.Hour),
 		Commits:        nil,
@@ -184,7 +191,6 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 		IsolatedOutput: "F",
 		SwarmingBotId:  "G",
 		ParentTaskIds:  []string{"E", "F"},
-		ForcedJobId:    "G",
 	})
 
 	// Repeat to get Finished from AbandonedTs.
@@ -195,11 +201,14 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 	assert.NoError(t, err2)
 	assert.True(t, changed2)
 	testutils.AssertDeepEqual(t, task2, &Task{
-		Id:   "A",
-		Name: "B",
-		RepoState: RepoState{
-			Repo:     "C",
-			Revision: "D",
+		Id: "A",
+		TaskKey: TaskKey{
+			RepoState: RepoState{
+				Repo:     "C",
+				Revision: "D",
+			},
+			Name:        "B",
+			ForcedJobId: "G",
 		},
 		Created:        now.Add(-3 * time.Hour),
 		Commits:        nil,
@@ -210,7 +219,6 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 		IsolatedOutput: "F",
 		SwarmingBotId:  "G",
 		ParentTaskIds:  []string{"E", "F"},
-		ForcedJobId:    "G",
 	})
 }
 
@@ -219,11 +227,14 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 func TestUpdateFromSwarmingUpdate(t *testing.T) {
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &Task{
-		Id:   "A",
-		Name: "B",
-		RepoState: RepoState{
-			Repo:     "C",
-			Revision: "D",
+		Id: "A",
+		TaskKey: TaskKey{
+			RepoState: RepoState{
+				Repo:     "C",
+				Revision: "D",
+			},
+			Name:        "B",
+			ForcedJobId: "G",
 		},
 		Created:        now.Add(-3 * time.Hour),
 		Commits:        []string{"D", "Z"},
@@ -234,7 +245,6 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		IsolatedOutput: "F",
 		SwarmingBotId:  "H",
 		ParentTaskIds:  []string{"E", "F"},
-		ForcedJobId:    "G",
 	}
 	s := &swarming_api.SwarmingRpcsTaskResult{
 		TaskId: "E",
@@ -264,11 +274,14 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, changed)
 	testutils.AssertDeepEqual(t, task, &Task{
-		Id:   "A",
-		Name: "B",
-		RepoState: RepoState{
-			Repo:     "C",
-			Revision: "D",
+		Id: "A",
+		TaskKey: TaskKey{
+			RepoState: RepoState{
+				Repo:     "C",
+				Revision: "D",
+			},
+			Name:        "B",
+			ForcedJobId: "G",
 		},
 		Created:        now.Add(-3 * time.Hour),
 		Commits:        []string{"D", "Z"},
@@ -279,7 +292,6 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		IsolatedOutput: "G",
 		SwarmingBotId:  "I",
 		ParentTaskIds:  []string{"E", "F"},
-		ForcedJobId:    "G",
 	})
 
 	// Make an unrelated change, no change to Task.
@@ -288,11 +300,14 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, changed)
 	testutils.AssertDeepEqual(t, task, &Task{
-		Id:   "A",
-		Name: "B",
-		RepoState: RepoState{
-			Repo:     "C",
-			Revision: "D",
+		Id: "A",
+		TaskKey: TaskKey{
+			RepoState: RepoState{
+				Repo:     "C",
+				Revision: "D",
+			},
+			Name:        "B",
+			ForcedJobId: "G",
 		},
 		Created:        now.Add(-3 * time.Hour),
 		Commits:        []string{"D", "Z"},
@@ -303,7 +318,6 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		IsolatedOutput: "G",
 		SwarmingBotId:  "I",
 		ParentTaskIds:  []string{"E", "F"},
-		ForcedJobId:    "G",
 	})
 
 	// Modify so that we get Finished from AbandonedTs.
@@ -313,11 +327,14 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, changed)
 	testutils.AssertDeepEqual(t, task, &Task{
-		Id:   "A",
-		Name: "B",
-		RepoState: RepoState{
-			Repo:     "C",
-			Revision: "D",
+		Id: "A",
+		TaskKey: TaskKey{
+			RepoState: RepoState{
+				Repo:     "C",
+				Revision: "D",
+			},
+			Name:        "B",
+			ForcedJobId: "G",
 		},
 		Created:        now.Add(-3 * time.Hour),
 		Commits:        []string{"D", "Z"},
@@ -328,7 +345,6 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		IsolatedOutput: "G",
 		SwarmingBotId:  "I",
 		ParentTaskIds:  []string{"E", "F"},
-		ForcedJobId:    "G",
 	})
 }
 
@@ -338,35 +354,39 @@ func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
 
 	testUpdateStatus := func(s *swarming_api.SwarmingRpcsTaskResult, newStatus TaskStatus) {
 		task := &Task{
-			Id:   "A",
-			Name: "B",
-			RepoState: RepoState{
-				Repo:     "C",
-				Revision: "D",
+			Id: "A",
+			TaskKey: TaskKey{
+				RepoState: RepoState{
+					Repo:     "C",
+					Revision: "D",
+				},
+				Name:        "B",
+				ForcedJobId: "G",
 			},
 			Created:        now.Add(-3 * time.Hour),
 			Commits:        []string{"D", "Z"},
 			Status:         TASK_STATUS_SUCCESS,
 			SwarmingTaskId: "E",
 			ParentTaskIds:  []string{"E", "F"},
-			ForcedJobId:    "G",
 		}
 		changed, err := task.UpdateFromSwarming(s)
 		assert.NoError(t, err)
 		assert.True(t, changed)
 		testutils.AssertDeepEqual(t, task, &Task{
-			Id:   "A",
-			Name: "B",
-			RepoState: RepoState{
-				Repo:     "C",
-				Revision: "D",
+			Id: "A",
+			TaskKey: TaskKey{
+				RepoState: RepoState{
+					Repo:     "C",
+					Revision: "D",
+				},
+				Name:        "B",
+				ForcedJobId: "G",
 			},
 			Created:        now.Add(-3 * time.Hour),
 			Commits:        []string{"D", "Z"},
 			Status:         newStatus,
 			SwarmingTaskId: "E",
 			ParentTaskIds:  []string{"E", "F"},
-			ForcedJobId:    "G",
 		})
 	}
 
@@ -409,15 +429,17 @@ func TestUpdateDBFromSwarmingTask(t *testing.T) {
 	// Create task, initialize from swarming, and save.
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &Task{
-		Name: "B",
-		RepoState: RepoState{
-			Repo:     "C",
-			Revision: "D",
+		TaskKey: TaskKey{
+			RepoState: RepoState{
+				Repo:     "C",
+				Revision: "D",
+			},
+			Name:        "B",
+			ForcedJobId: "G",
 		},
 		Commits:       []string{"D", "Z"},
 		Status:        TASK_STATUS_PENDING,
 		ParentTaskIds: []string{"E", "F"},
-		ForcedJobId:   "G",
 	}
 	assert.NoError(t, db.AssignId(task))
 
@@ -455,11 +477,14 @@ func TestUpdateDBFromSwarmingTask(t *testing.T) {
 	updatedTask, err := db.GetTaskById(task.Id)
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, updatedTask, &Task{
-		Id:   task.Id,
-		Name: "B",
-		RepoState: RepoState{
-			Repo:     "C",
-			Revision: "D",
+		Id: task.Id,
+		TaskKey: TaskKey{
+			RepoState: RepoState{
+				Repo:     "C",
+				Revision: "D",
+			},
+			Name:        "B",
+			ForcedJobId: "G",
 		},
 		Created:        now.Add(time.Second),
 		Commits:        []string{"D", "Z"},
@@ -471,8 +496,7 @@ func TestUpdateDBFromSwarmingTask(t *testing.T) {
 		SwarmingBotId:  "H",
 		ParentTaskIds:  []string{"E", "F"},
 		// Use value from updatedTask so they are deep-equal.
-		DbModified:  updatedTask.DbModified,
-		ForcedJobId: "G",
+		DbModified: updatedTask.DbModified,
 	})
 
 	lastDbModified := updatedTask.DbModified

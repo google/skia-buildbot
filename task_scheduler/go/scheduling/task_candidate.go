@@ -22,16 +22,14 @@ const (
 // taskCandidate is a struct used for determining which tasks to schedule.
 type taskCandidate struct {
 	Commits        []string
-	ForcedJobId    string
 	IsolatedInput  string
 	IsolatedHashes []string
-	Name           string
 	ParentTaskIds  []string
-	db.RepoState
 	RetryOf        string
 	Score          float64
 	StealingFromId string
-	TaskSpec       *TaskSpec
+	db.TaskKey
+	TaskSpec *TaskSpec
 }
 
 // Copy returns a copy of the taskCandidate.
@@ -44,15 +42,13 @@ func (c *taskCandidate) Copy() *taskCandidate {
 	copy(parentTaskIds, c.ParentTaskIds)
 	return &taskCandidate{
 		Commits:        commits,
-		ForcedJobId:    c.ForcedJobId,
 		IsolatedInput:  c.IsolatedInput,
 		IsolatedHashes: isolatedHashes,
-		Name:           c.Name,
 		ParentTaskIds:  parentTaskIds,
-		RepoState:      c.RepoState.Copy(),
 		RetryOf:        c.RetryOf,
 		Score:          c.Score,
 		StealingFromId: c.StealingFromId,
+		TaskKey:        c.TaskKey.Copy(),
 		TaskSpec:       c.TaskSpec.Copy(),
 	}
 }
@@ -87,12 +83,10 @@ func (c *taskCandidate) MakeTask() *db.Task {
 	copy(parentTaskIds, c.ParentTaskIds)
 	return &db.Task{
 		Commits:       commits,
-		ForcedJobId:   c.ForcedJobId,
 		Id:            "", // Filled in when the task is inserted into the DB.
-		Name:          c.Name,
 		ParentTaskIds: parentTaskIds,
-		RepoState:     c.RepoState.Copy(),
 		RetryOf:       c.RetryOf,
+		TaskKey:       c.TaskKey.Copy(),
 	}
 }
 

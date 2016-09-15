@@ -42,6 +42,11 @@ func (c *cacheWrapper) GetTaskForCommit(repo, commit, name string) (*db.Task, er
 }
 
 // See documentation for TaskCache interface.
+func (c *cacheWrapper) GetTasksByKey(*db.TaskKey) ([]*db.Task, error) {
+	return nil, fmt.Errorf("cacheWrapper.GetTasksByKey not implemented.")
+}
+
+// See documentation for TaskCache interface.
 func (c *cacheWrapper) GetTasksForCommits(string, []string) (map[string]map[string]*db.Task, error) {
 	return nil, fmt.Errorf("cacheWrapper.GetTasksForCommits not implemented.")
 }

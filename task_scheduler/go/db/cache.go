@@ -23,6 +23,10 @@ type TaskCache interface {
 	// given commit, or nil if no such task exists.
 	GetTaskForCommit(string, string, string) (*Task, error)
 
+	// GetTasksByKey returns the tasks with the given TaskKey, sorted
+	// by creation time.
+	GetTasksByKey(*TaskKey) ([]*Task, error)
+
 	// GetTasksForCommits retrieves all tasks which included[1] each of the
 	// given commits. Returns a map whose keys are commit hashes and values are
 	// sub-maps whose keys are task spec names and values are tasks.
@@ -71,6 +75,8 @@ type taskCache struct {
 	tasks          map[string]*Task
 	// map[repo_name][commit_hash][task_spec_name]*Task
 	tasksByCommit map[string]map[string]map[string]*Task
+	// map[TaskKey]map[task_id]*Task
+	tasksByKey map[TaskKey]map[string]*Task
 	// tasksByTime is sorted by Task.Created.
 	tasksByTime []*Task
 	timePeriod  time.Duration
@@ -86,6 +92,24 @@ func (c *taskCache) GetTask(id string) (*Task, error) {
 		return t.Copy(), nil
 	}
 	return nil, ErrNotFound
+}
+
+// See documentation for TaskCache interface.
+func (c *taskCache) GetTasksByKey(k *TaskKey) ([]*Task, error) {
+	if !k.Valid() {
+		return nil, fmt.Errorf("TaskKey is invalid: %v", k)
+	}
+
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+
+	tasks := c.tasksByKey[*k]
+	rv := make([]*Task, 0, len(tasks))
+	for _, t := range tasks {
+		rv = append(rv, t.Copy())
+	}
+	sort.Sort(TaskSlice(rv))
+	return rv, nil
 }
 
 // See documentation for TaskCache interface.
@@ -199,9 +223,26 @@ func (c *taskCache) expireTasks(start time.Time) {
 			c.tasksByTime = c.tasksByTime[i:]
 			return
 		}
+
+		// Tasks by ID.
 		delete(c.tasks, task.Id)
+
+		// Tasks by commit.
 		c.removeFromTasksByCommit(task)
+
+		// Tasks by key.
+		byKey, ok := c.tasksByKey[task.TaskKey]
+		if ok {
+			delete(byKey, task.Id)
+			if len(byKey) == 0 {
+				delete(c.tasksByKey, task.TaskKey)
+			}
+		}
+
+		// Tasks by time.
 		c.tasksByTime[i] = nil // Allow GC.
+
+		// Unfinished tasks.
 		if _, ok := c.unfinished[task.Id]; ok {
 			glog.Warningf("Found unfinished task that is so old it is being expired. %#v", task)
 			delete(c.unfinished, task.Id)
@@ -221,6 +262,14 @@ func (c *taskCache) insertOrUpdateTask(task *Task) {
 
 	// Insert the new task into the main map.
 	c.tasks[task.Id] = task
+
+	// Insert into tasksByKey.
+	byKey, ok := c.tasksByKey[task.TaskKey]
+	if !ok {
+		byKey = map[string]*Task{}
+		c.tasksByKey[task.TaskKey] = byKey
+	}
+	byKey[task.Id] = task
 
 	if isUpdate {
 		// If we already know about this task, the blamelist might have changed, so
@@ -321,6 +370,7 @@ func (c *taskCache) reset(now time.Time) error {
 	c.queryId = queryId
 	c.tasks = map[string]*Task{}
 	c.tasksByCommit = map[string]map[string]map[string]*Task{}
+	c.tasksByKey = map[TaskKey]map[string]*Task{}
 	c.unfinished = map[string]*Task{}
 	c.expireAndUpdate(start, tasks)
 	return nil
