@@ -84,10 +84,12 @@ func htoi(h string) int {
 // be picked randomly from a range starting at recentCommitsBegin.
 func makeTask(recentCommitsBegin int) *db.Task {
 	return &db.Task{
-		Name: fmt.Sprintf("Task-%d", rand.Intn(kNumTaskNames)),
-		RepoState: db.RepoState{
-			Repo:     fmt.Sprintf("Repo-%d", rand.Intn(kNumRepos)),
-			Revision: itoh(recentCommitsBegin + rand.Intn(kRecentCommitRange)),
+		TaskKey: db.TaskKey{
+			RepoState: db.RepoState{
+				Repo:     fmt.Sprintf("Repo-%d", rand.Intn(kNumRepos)),
+				Revision: itoh(recentCommitsBegin + rand.Intn(kRecentCommitRange)),
+			},
+			Name: fmt.Sprintf("Task-%d", rand.Intn(kNumTaskNames)),
 		},
 	}
 }

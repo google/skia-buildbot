@@ -17,12 +17,14 @@ const DEFAULT_TEST_REPO = "go-on-now.git"
 func makeTask(ts time.Time, commits []string) *Task {
 	return &Task{
 		Created: ts,
-		RepoState: RepoState{
-			Repo:     DEFAULT_TEST_REPO,
-			Revision: commits[0],
+		TaskKey: TaskKey{
+			RepoState: RepoState{
+				Repo:     DEFAULT_TEST_REPO,
+				Revision: commits[0],
+			},
+			Name: "Test-Task",
 		},
 		Commits: commits,
-		Name:    "Test-Task",
 	}
 }
 

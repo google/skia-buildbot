@@ -49,10 +49,12 @@ func makeTask(name, repo, revision string) *db.Task {
 	return &db.Task{
 		Commits: []string{revision},
 		Created: time.Now(),
-		Name:    name,
-		RepoState: db.RepoState{
-			Repo:     repo,
-			Revision: revision,
+		TaskKey: db.TaskKey{
+			RepoState: db.RepoState{
+				Repo:     repo,
+				Revision: revision,
+			},
+			Name: name,
 		},
 	}
 }
@@ -502,10 +504,12 @@ func TestComputeBlamelist(t *testing.T) {
 
 		// Insert the task into the DB.
 		c := &taskCandidate{
-			Name: name,
-			RepoState: db.RepoState{
-				Repo:     repoName,
-				Revision: tc.Revision,
+			TaskKey: db.TaskKey{
+				RepoState: db.RepoState{
+					Repo:     repoName,
+					Revision: tc.Revision,
+				},
+				Name: name,
 			},
 		}
 		task := c.MakeTask()
@@ -702,7 +706,9 @@ func TestRegenerateTaskQueue(t *testing.T) {
 
 func makeTaskCandidate(name string, dims []string) *taskCandidate {
 	return &taskCandidate{
-		Name: name,
+		TaskKey: db.TaskKey{
+			Name: name,
+		},
 		TaskSpec: &TaskSpec{
 			Dimensions: dims,
 		},
