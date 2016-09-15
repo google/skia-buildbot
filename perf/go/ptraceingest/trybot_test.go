@@ -47,7 +47,8 @@ func TestPerfTrybotProcessor(t *testing.T) {
 	b, err := ioutil.ReadFile(filepath.Join("testdata", "rietveld_response.txt"))
 	assert.NoError(t, err)
 	m := mockhttpclient.NewURLMock()
-	m.Mock("https://codereview.chromium.org/api/1467533002/1", mockhttpclient.MockGetDialogue(b))
+	m.Mock("https://codereview.chromium.org/api/1467533002", mockhttpclient.MockGetDialogue(b))
+	m.Mock("https://chromium-cq-status.appspot.com/v2/patch-summary/codereview.chromium.org/2320153002/840001", mockhttpclient.MockGetDialogue([]byte("{}")))
 
 	ingesterConf := &sharedconfig.IngesterConfig{}
 	processor, err := newPerfTrybotProcessor(nil, ingesterConf, nil)
@@ -64,7 +65,7 @@ func TestPerfTrybotProcessor(t *testing.T) {
 	expectedValue := float32(7.122931e-06)
 	cid := &ptracestore.CommitID{
 		Source: "https://codereview.chromium.org/1467533002",
-		Offset: 1,
+		Offset: 2,
 	}
 	source, value, err := ptracestore.Default.Details(cid, traceId)
 	assert.NoError(t, err)
