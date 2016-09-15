@@ -291,10 +291,12 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) (m
 				}
 				c := &taskCandidate{
 					IsolatedHashes: nil,
-					Name:           name,
-					RepoState: db.RepoState{
-						Repo:     repo,
-						Revision: commit,
+					TaskKey: db.TaskKey{
+						RepoState: db.RepoState{
+							Repo:     repo,
+							Revision: commit,
+						},
+						Name: name,
 					},
 					Score:    0.0,
 					TaskSpec: task,
