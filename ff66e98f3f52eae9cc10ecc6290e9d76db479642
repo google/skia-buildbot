@@ -40,6 +40,24 @@
       "revId": "ff66e98f3f52eae9cc10ecc6290e9d76db479642",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb4c647_3496fe4a",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-15T13:05:37Z",
+      "side": 1,
+      "message": "That\u0027s the number from my toy test: 200 commits x 300 bots.  It might be a good estimate.  ::shrug::",
+      "parentUuid": "6bb4c647_94a6cac1",
+      "revId": "ff66e98f3f52eae9cc10ecc6290e9d76db479642",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
