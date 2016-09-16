@@ -12,30 +12,34 @@ func TestTaskCandidateId(t *testing.T) {
 	t1.Revision = "abc123"
 	t1.ForcedJobId = "someID"
 	id1 := t1.MakeId()
-	repo1, name1, rev1, forcedJobId1, err := parseId(id1)
+	k1, err := parseId(id1)
 	assert.NoError(t, err)
-	assert.Equal(t, t1.Repo, repo1)
-	assert.Equal(t, t1.Name, name1)
-	assert.Equal(t, t1.Revision, rev1)
-	assert.Equal(t, t1.ForcedJobId, forcedJobId1)
+	assert.Equal(t, t1.TaskKey, k1)
 
-	t1.ForcedJobId = "" // Allowed to be empty.
+	// ForcedJobId is allowed to be empty.
+	t1.ForcedJobId = ""
 	id1 = t1.MakeId()
-	repo1, name1, rev1, forcedJobId1, err = parseId(id1)
+	k1, err = parseId(id1)
 	assert.NoError(t, err)
-	assert.Equal(t, t1.Repo, repo1)
-	assert.Equal(t, t1.Name, name1)
-	assert.Equal(t, t1.Revision, rev1)
-	assert.Equal(t, t1.ForcedJobId, forcedJobId1)
+	assert.Equal(t, t1.TaskKey, k1)
+
+	// Test a try job.
+	t1.Server = "https://my-patch.com"
+	t1.Issue = "10101"
+	t1.Patchset = "42"
+	id1 = t1.MakeId()
+	k1, err = parseId(id1)
+	assert.NoError(t, err)
+	assert.Equal(t, t1.TaskKey, k1)
 
 	badIds := []string{
 		"",
-		"taskCandidate|a|b|",
+		"taskCandidate|a",
 		"taskCandidate|a|b||ab",
 		"20160831T000018.497703717Z_000000000000015b",
 	}
 	for _, id := range badIds {
-		_, _, _, _, err := parseId(id)
+		_, err := parseId(id)
 		assert.Error(t, err)
 	}
 }
