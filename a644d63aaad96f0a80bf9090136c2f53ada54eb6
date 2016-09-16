@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "10261bad_bcc8699e",
+        "filename": "res/imp/query2-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-16T17:37:18Z",
+      "side": 1,
+      "message": "So, if I\u0027ve already selected a key and I just want to filter the values, this means I have to select the key again, right?",
+      "revId": "a644d63aaad96f0a80bf9090136c2f53ada54eb6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
