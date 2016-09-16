@@ -49,8 +49,6 @@ func IsUnknownId(e error) bool {
 
 // TaskReader is a read-only view of a TaskDB.
 type TaskReader interface {
-	io.Closer
-
 	// GetModifiedTasks returns all tasks modified since the last time
 	// GetModifiedTasks was run with the given id. The returned tasks are sorted
 	// by Created timestamp.
@@ -91,6 +89,12 @@ type TaskDB interface {
 	// must be empty or set with AssignId. Each Task's DbModified field will be
 	// set.
 	PutTasks([]*Task) error
+}
+
+// TaskDBCloser is a TaskDB that must be closed when no longer in use.
+type TaskDBCloser interface {
+	io.Closer
+	TaskDB
 }
 
 // UpdateTasksWithRetries wraps a call to db.PutTasks with retries. It calls
@@ -156,8 +160,6 @@ func UpdateTaskWithRetries(db TaskDB, id string, f func(*Task) error) (*Task, er
 
 // JobReader is a read-only view of a JobDB.
 type JobReader interface {
-	io.Closer
-
 	// GetModifiedJobs returns all jobs modified since the last time
 	// GetModifiedJobs was run with the given id. The returned jobs are sorted by
 	// Created timestamp.
@@ -194,6 +196,12 @@ type JobDB interface {
 	// field must be empty if it is a new Job. Each Jobs' DbModified field
 	// will be set.
 	PutJobs([]*Job) error
+}
+
+// JobDBCloser is a JobDB that must be closed when no longer in use.
+type JobDBCloser interface {
+	io.Closer
+	JobDB
 }
 
 // UpdateJobsWithRetries wraps a call to db.PutJobs with retries. It calls
@@ -266,8 +274,50 @@ type RemoteDB interface {
 	CommentDB
 }
 
-// TaskAndCommentDB implements both TaskDB and CommentDB.
-type TaskAndCommentDB interface {
+// There is no RemoteDBCloser because it's unclear if it's closing the local end
+// or the remote end.
+
+// UnifiedDB implements TaskDB, JobDB, and CommentDB.
+type UnifiedDB interface {
 	TaskDB
+	JobDB
 	CommentDB
+}
+
+// UnifiedDBCloser is a UnifiedDB that must be closed when no longer in use.
+type UnifiedDBCloser interface {
+	io.Closer
+	UnifiedDB
+}
+
+// federatedDB joins an independent TaskDB, JobDB, and CommentDB into a
+// UnifiedDB.
+type federatedDB struct {
+	TaskDB
+	JobDB
+	CommentDB
+}
+
+// Allow federatedDB to be used as UnifiedDBCloser. Closes any of the DBs that
+// implement io.Closer.
+func (d *federatedDB) Close() error {
+	for _, sub := range []interface{}{d.TaskDB, d.JobDB, d.CommentDB} {
+		if closer, ok := sub.(io.Closer); ok {
+			if err := closer.Close(); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// NewFederatedDB returns a UnifiedDB that delegates to independent TaskDB,
+// JobDB, and CommentDB. The return value can be cast to UnifiedDBCloser if
+// needed -- see federatedDB.Close.
+func NewFederatedDB(tdb TaskDB, jdb JobDB, cdb CommentDB) UnifiedDB {
+	return &federatedDB{
+		TaskDB:    tdb,
+		JobDB:     jdb,
+		CommentDB: cdb,
+	}
 }
