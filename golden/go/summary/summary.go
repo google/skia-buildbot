@@ -351,7 +351,7 @@ func diameter(digests []string, diffStore diff.DiffStore) int {
 		wg.Add(1)
 		go func(d1 string, d2 []string) {
 			defer wg.Done()
-			dms, err := diffStore.Get(d1, d2)
+			dms, err := diffStore.Get(diff.PRIORITY_NOW, d1, d2)
 			if err != nil {
 				glog.Errorf("Unable to get diff: %s", err)
 				return

@@ -1,8 +1,8 @@
 package mocks
 
 import (
-	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"sort"
 	"strings"
@@ -27,31 +27,24 @@ func MockUrlGenerator(path string) string {
 // Mock the diffstore.
 type MockDiffStore struct{}
 
-func (m MockDiffStore) Get(dMain string, dRest []string) (map[string]*diff.DiffMetrics, error) {
+func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[string]*diff.DiffMetrics, error) {
 	result := map[string]*diff.DiffMetrics{}
 	for _, d := range dRest {
 		result[d] = &diff.DiffMetrics{
-			NumDiffPixels:     10,
-			PixelDiffPercent:  1.0,
-			PixelDiffFilePath: fmt.Sprintf("diffpath/%s-%s", dMain, d),
-			MaxRGBADiffs:      []int{5, 3, 4, 0},
-			DimDiffer:         false,
+			NumDiffPixels:    10,
+			PixelDiffPercent: 1.0,
+			MaxRGBADiffs:     []int{5, 3, 4, 0},
+			DimDiffer:        false,
 		}
 	}
 	return result, nil
 }
 
-func (m MockDiffStore) AbsPath(digest []string) map[string]string {
-	result := map[string]string{}
-	for _, d := range digest {
-		result[d] = "abspath/" + d
-	}
-	return result
-}
-
-func (m MockDiffStore) UnavailableDigests() map[string]*diff.DigestFailure       { return nil }
-func (m MockDiffStore) PurgeDigests(digests []string, purgeGS bool) error        { return nil }
-func (m MockDiffStore) SetDigestSets(namedDigestSets map[string]map[string]bool) {}
+func (m MockDiffStore) UnavailableDigests() map[string]*diff.DigestFailure                    { return nil }
+func (m MockDiffStore) PurgeDigests(digests []string, purgeGS bool) error                     { return nil }
+func (m MockDiffStore) ImageHandler(urlPrefix string) (http.Handler, error)                   { return nil, nil }
+func (m MockDiffStore) WarmDigests(priority int64, digests []string)                          {}
+func (m MockDiffStore) WarmDiffs(priority int64, leftDigests []string, rightDigests []string) {}
 
 func NewMockDiffStore() diff.DiffStore {
 	return MockDiffStore{}
