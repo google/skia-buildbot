@@ -124,6 +124,14 @@ func TestSerializeParamSets(t *testing.T) {
 	}
 }
 
+func TestIntsToBytes(t *testing.T) {
+	data := []int{20266, 20266, 20266, 20266}
+	testBytes := intsToBytes(data)
+	found, err := bytesToInts(testBytes)
+	assert.NoError(t, err)
+	assert.Equal(t, data, found)
+}
+
 func TestSerializeTile(t *testing.T) {
 	testDataDir := TEST_DATA_DIR
 	testutils.RemoveAll(t, testDataDir)

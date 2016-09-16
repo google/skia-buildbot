@@ -70,7 +70,6 @@ func (w *Warmer) Run(tile *tiling.Tile, summaries *summary.Summaries, tallies *t
 
 	digests := traceDigests.Keys()
 	glog.Infof("FOUND %d digests to fetch.", len(digests))
-	w.storages.DiffStore.AbsPath(digests)
 
 	// TODO(stephana): Re-enable this once we have figured out crashes.
 
@@ -115,6 +114,5 @@ func warmTrybotDigests(storages *storage.Storage, traceDigests map[string]bool) 
 	wg.Wait()
 	digests := trybotDigests.Keys()
 	glog.Infof("FOUND %d trybot digests to fetch.", len(digests))
-	storages.DiffStore.AbsPath(digests)
 	return nil
 }
