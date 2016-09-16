@@ -14,18 +14,11 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-// func (d *MemDiffStore) WarmDigests(priority int64, digests []string) {
-// func (d *MemDiffStore) Warm(priority int64, leftDigests []string, rightDigests []string) {
-// func (d *MemDiffStore) KeepDigests(Digests []string) {}
-// func (d *MemDiffStore) Get(priority int64, leftDigests, rightDigests []string) (map[string]map[string]*DiffRecord, error) {
-// func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}, error) {
-// func (d *MemDiffStore) saveDiffInfoAsync(diffID, leftDigest, rightDigest string, dr *DiffRecord, imgBytes []byte) {
-// func (d *MemDiffStore) loadDiffMetric(id string) (*DiffRecord, error) {
-// func (d *MemDiffStore) saveDiffMetric(id string, dr *DiffRecord) error {
-
 const TEST_N_DIGESTS = 20
 
 func TestDiffStore(t *testing.T) {
+	testutils.SkipIfShort(t)
+
 	// Get a small tile and get them cached.
 	baseDir := TEST_DATA_BASE_DIR + "-diffstore"
 	client, tile := getSetupAndTile(t, baseDir)
