@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "10261bad_5f670751",
+        "filename": "task_scheduler/go/scheduling/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-16T19:12:37Z",
+      "side": 0,
+      "message": "I think it would be useful to keep this around for now. Neither the milestone branches nor the infra repo has task configs right now.",
+      "revId": "7821d834c250b34d1d3223cb6c19c56ca6389bf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
