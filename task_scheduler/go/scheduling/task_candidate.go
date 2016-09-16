@@ -1,6 +1,9 @@
 package scheduling
 
 import (
+	"bytes"
+	"encoding/base64"
+	"encoding/gob"
 	"fmt"
 	"path"
 	"strings"
@@ -55,24 +58,32 @@ func (c *taskCandidate) Copy() *taskCandidate {
 
 // MakeId generates a string ID for the taskCandidate.
 func (c *taskCandidate) MakeId() string {
-	return fmt.Sprintf("taskCandidate|%s|%s|%s|%s", c.Repo, c.Name, c.Revision, c.ForcedJobId)
+	var buf bytes.Buffer
+	if err := gob.NewEncoder(&buf).Encode(&c.TaskKey); err != nil {
+		panic(fmt.Sprintf("Failed to GOB encode TaskKey: %s", err))
+	}
+	b64 := base64.StdEncoding.EncodeToString(buf.Bytes())
+	return fmt.Sprintf("taskCandidate|%s", b64)
 }
 
 // parseId generates taskCandidate information from the ID.
-func parseId(id string) (string, string, string, string, error) {
+func parseId(id string) (db.TaskKey, error) {
+	var rv db.TaskKey
 	split := strings.Split(id, "|")
-	if len(split) != 5 {
-		return "", "", "", "", fmt.Errorf("Invalid ID, not enough parts: %q", id)
+	if len(split) != 2 {
+		return rv, fmt.Errorf("Invalid ID, not enough parts: %q", id)
 	}
 	if split[0] != "taskCandidate" {
-		return "", "", "", "", fmt.Errorf("Invalid ID, no 'taskCandidate' prefix: %q", id)
+		return rv, fmt.Errorf("Invalid ID, no 'taskCandidate' prefix: %q", id)
 	}
-	for i, s := range split[1:4] {
-		if s == "" {
-			return "", "", "", "", fmt.Errorf("Invalid ID, empty string not allowed for part %d: %q", i, id)
-		}
+	b, err := base64.StdEncoding.DecodeString(split[1])
+	if err != nil {
+		return rv, fmt.Errorf("Failed to base64 decode ID: %s", err)
 	}
-	return split[1], split[2], split[3], split[4], nil
+	if err := gob.NewDecoder(bytes.NewBuffer(b)).Decode(&rv); err != nil {
+		return rv, fmt.Errorf("Failed to GOB decode ID: %s", err)
+	}
+	return rv, nil
 }
 
 // MakeTask instantiates a db.Task from the taskCandidate.

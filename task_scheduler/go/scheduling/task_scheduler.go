@@ -303,11 +303,17 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) (m
 				}
 				// We shouldn't duplicate pending, in-progress,
 				// or successfully completed tasks.
-				previous, err := s.tCache.GetTaskForCommit(c.Repo, c.Revision, c.Name)
+				prevTasks, err := s.tCache.GetTasksByKey(&c.TaskKey)
 				if err != nil {
 					return nil, err
 				}
-				if previous != nil && previous.Revision == c.Revision {
+				var previous *db.Task
+				if len(prevTasks) > 0 {
+					// Just choose the last (most recently created) previous
+					// Task.
+					previous = prevTasks[len(prevTasks)-1]
+				}
+				if previous != nil {
 					if previous.Status == db.TASK_STATUS_PENDING || previous.Status == db.TASK_STATUS_RUNNING {
 						continue
 					}
@@ -378,7 +384,7 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 		c.StealingFromId = stealingFrom.Id
 	}
 
-	// Score the candidates.
+	// Score the candidate.
 	// The score for a candidate is based on the "testedness" increase
 	// provided by running the task.
 	stoleFromCommits := 0
@@ -713,7 +719,7 @@ func (s *TaskScheduler) scheduleTasks() error {
 		// changed since the cache was last updated. We need to handle that.
 		if candidate.StealingFromId != "" {
 			var stealingFrom *db.Task
-			if _, _, _, _, err := parseId(candidate.StealingFromId); err == nil {
+			if _, err := parseId(candidate.StealingFromId); err == nil {
 				stealingFrom = byCandidateId[candidate.StealingFromId]
 				if stealingFrom == nil {
 					return fmt.Errorf("Attempting to backfill a just-triggered candidate but can't find it: %q", candidate.StealingFromId)
