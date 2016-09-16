@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "10261bad_fc0ca19d",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-16T15:14:14Z",
+      "side": 1,
+      "message": "I\u0027d be just as happy if this were just called \"DB\".",
+      "range": {
+        "startLine": 266,
+        "startChar": 5,
+        "endLine": 266,
+        "endChar": 14
+      },
+      "revId": "1175d29028cebc68fa92b0cc073831246cf22fe1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_bc06297a",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-16T15:14:14Z",
+      "side": 1,
+      "message": "Not sure why we need to distinguish unified from federated.",
+      "range": {
+        "startLine": 288,
+        "startChar": 5,
+        "endLine": 288,
+        "endChar": 19
+      },
+      "revId": "1175d29028cebc68fa92b0cc073831246cf22fe1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_fc55c14f",
+        "filename": "task_scheduler/go/db/remote_db/remote_db_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-16T15:14:14Z",
+      "side": 1,
+      "message": "nit: UnifiedDB?",
+      "range": {
+        "startLine": 14,
+        "startChar": 6,
+        "endLine": 14,
+        "endChar": 22
+      },
+      "revId": "1175d29028cebc68fa92b0cc073831246cf22fe1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_9cd6cdb7",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1154,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-16T15:14:14Z",
+      "side": 1,
+      "message": "Do we need to reset j1.Id after this?",
+      "range": {
+        "startLine": 1154,
+        "startChar": 17,
+        "endLine": 1154,
+        "endChar": 19
+      },
+      "revId": "1175d29028cebc68fa92b0cc073831246cf22fe1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
