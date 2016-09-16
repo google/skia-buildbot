@@ -3,6 +3,7 @@ package scheduling
 import (
 	"encoding/json"
 	"path"
+	"strings"
 	"testing"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 func TestTaskSpecs(t *testing.T) {
@@ -24,17 +26,46 @@ func TestTaskSpecs(t *testing.T) {
 	c1 := "81add9e329cde292667a1ce427007b5ff701fad1"
 	c2 := "4595a2a2662d6cef863870ca68f64824c4b5ef2d"
 	repo := "skia.git"
-	specs, err := cache.GetTaskSpecsForCommits(map[string][]string{
-		repo: []string{c1, c2},
-	})
+	rs1 := db.RepoState{
+		Repo:     repo,
+		Revision: c1,
+	}
+	rs2 := db.RepoState{
+		Repo:     repo,
+		Revision: c2,
+	}
+	specs, err := cache.GetTaskSpecsForRepoStates([]db.RepoState{rs1, rs2})
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(specs[repo]))
 
-	// c1 has a Build and Test task.
-	assert.Equal(t, 2, len(specs[repo][c1]))
-
-	// c2 adds a Perf task.
-	assert.Equal(t, 3, len(specs[repo][c2]))
+	// c1 has a Build and Test task, c2 has a Build, Test, and Perf task.
+	total, countC1, countC2, countBuild, countTest, countPerf := 0, 0, 0, 0, 0, 0
+	for rs, byName := range specs {
+		for name, _ := range byName {
+			total++
+			if rs.Revision == c1 {
+				countC1++
+			} else if rs.Revision == c2 {
+				countC2++
+			} else {
+				t.Fatalf("Unknown commit: %q", rs.Revision)
+			}
+			if strings.HasPrefix(name, "Build") {
+				countBuild++
+			} else if strings.HasPrefix(name, "Test") {
+				countTest++
+			} else if strings.HasPrefix(name, "Perf") {
+				countPerf++
+			} else {
+				t.Fatalf("Unknown task spec name: %q", name)
+			}
+		}
+	}
+	assert.Equal(t, 2, countC1)
+	assert.Equal(t, 3, countC2)
+	assert.Equal(t, 2, countBuild)
+	assert.Equal(t, 2, countTest)
+	assert.Equal(t, 1, countPerf)
+	assert.Equal(t, 5, total)
 }
 
 func TestTaskCfgCacheCleanup(t *testing.T) {
@@ -50,11 +81,17 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	c1 := "81add9e329cde292667a1ce427007b5ff701fad1"
 	c2 := "4595a2a2662d6cef863870ca68f64824c4b5ef2d"
 	repo := "skia.git"
-	_, err := cache.GetTaskSpecsForCommits(map[string][]string{
-		repo: []string{c1, c2},
-	})
+	rs1 := db.RepoState{
+		Repo:     repo,
+		Revision: c1,
+	}
+	rs2 := db.RepoState{
+		Repo:     repo,
+		Revision: c2,
+	}
+	_, err := cache.GetTaskSpecsForRepoStates([]db.RepoState{rs1, rs2})
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(cache.cache[repo]))
+	assert.Equal(t, 2, len(cache.cache))
 
 	// Cleanup, with a period intentionally designed to remove c1 but not c2.
 	r, err := gitinfo.NewGitInfo(path.Join(tr.Dir, repo), false, false)
@@ -64,7 +101,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	// c1 and c2 are about 5 seconds apart.
 	period := time.Now().Sub(d1.Timestamp) - 2*time.Second
 	assert.NoError(t, cache.Cleanup(period))
-	assert.Equal(t, 1, len(cache.cache[repo]))
+	assert.Equal(t, 1, len(cache.cache))
 }
 
 func TestTasksCircularDependency(t *testing.T) {
