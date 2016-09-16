@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "10261bad_7c4c1140",
+        "filename": "task_scheduler/go/scheduling/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-16T17:44:44Z",
+      "side": 1,
+      "message": "nit s/TaskKey/RepoState/",
+      "revId": "719c78af24d6967c2655f052f57ae05cbcf611ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
