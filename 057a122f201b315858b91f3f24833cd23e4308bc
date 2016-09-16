@@ -2,6 +2,57 @@
   "comments": [
     {
       "key": {
+        "uuid": "10261bad_7c62d142",
+        "filename": "task_scheduler/go/scheduling/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-16T15:19:55Z",
+      "side": 1,
+      "message": "Any reason not to move this after the cache lookup?",
+      "revId": "057a122f201b315858b91f3f24833cd23e4308bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_1c719d07",
+        "filename": "task_scheduler/go/scheduling/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-16T15:19:55Z",
+      "side": 1,
+      "message": "nit: I\u0027m probably being too nitpicky, but it seems by using db.TaskKey as the map key, the caller is going to need special logic to deal with ForcedJobId!\u003d\"\", so maybe map[RepoState][task_name] would remove the special case so that both forced and non-forced tasks/jobs use the same lookup.",
+      "revId": "057a122f201b315858b91f3f24833cd23e4308bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_5c671551",
+        "filename": "task_scheduler/go/scheduling/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-16T15:19:55Z",
+      "side": 1,
+      "message": "nit: might be good to add a String() method to RepoState",
+      "revId": "057a122f201b315858b91f3f24833cd23e4308bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10261bad_bcdce900",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
