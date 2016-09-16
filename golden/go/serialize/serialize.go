@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
@@ -412,10 +413,11 @@ func bytesToParams(keyTable map[int]string, valTable map[int]string, arr []byte)
 // intsToBytes convers the given array of ints to a byte slice.
 func intsToBytes(arr []int) []byte {
 	var buf bytes.Buffer
-	itemBuf := make([]byte, BYTES_PER_INT)
 	for _, i := range arr {
-		_ = binary.PutUvarint(itemBuf, uint64(i))
-		_, _ = buf.Write(itemBuf)
+		for j := 0; j < BYTES_PER_INT; j++ {
+			_ = buf.WriteByte(byte(i))
+			i >>= 8
+		}
 	}
 	return buf.Bytes()
 }
@@ -425,12 +427,17 @@ func bytesToInts(arr []byte) ([]int, error) {
 	if len(arr)%BYTES_PER_INT != 0 {
 		return nil, fmt.Errorf("Size of byte slice is not a multiple of underlying type. Expected %d for type size %d", len(arr), BYTES_PER_INT)
 	}
-	arrLen := len(arr)
 	retLen := len(arr) / BYTES_PER_INT
-	ret := make([]int, 0, retLen)
-	for i := 0; i < arrLen; i += BYTES_PER_INT {
-		val, _ := binary.Uvarint(arr[i : i+BYTES_PER_INT])
-		ret = append(ret, int(val))
+	ret := make([]int, retLen)
+	j := 0
+	for i := 0; i < retLen; i++ {
+		val := 0
+		for k := BYTES_PER_INT - 1; k > 0; k-- {
+			val |= int(arr[j+k])
+			val <<= 8
+		}
+		ret[i] = val | int(arr[j])
+		j += BYTES_PER_INT
 	}
 	return ret, nil
 }
@@ -444,6 +451,10 @@ func writeDigests(w io.Writer, traces map[string]tiling.Trace) (map[string]int, 
 	}
 
 	digests := digestSet.Keys()
+	if len(digests) > int(math.Pow(2, BYTES_PER_INT*8)) {
+		return nil, fmt.Errorf("Not enough bytes to encode digests. %d > %d", len(digests), int(math.Pow(2, BYTES_PER_INT*8)))
+	}
+
 	if err := writeStringArr(w, digests); err != nil {
 		return nil, err
 	}

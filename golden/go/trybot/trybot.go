@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	cache "github.com/patrickmn/go-cache"
+	cache "github.com/robfig/go-cache"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/tiling"

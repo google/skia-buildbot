@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -26,6 +27,7 @@ func TestDiffStore(t *testing.T) {
 
 	diffStore, err := New(client, baseDir, TEST_GS_BUCKET_NAME, TEST_GS_IMAGE_DIR)
 	assert.NoError(t, err)
+	memDiffStore := diffStore.(*MemDiffStore)
 
 	// Pick the test with highest number of digests.
 	byName := map[string]util.StringSet{}
@@ -46,15 +48,15 @@ func TestDiffStore(t *testing.T) {
 
 	// Warm the digests and make sure they are in the cache.
 	digests := testDigests[0][:TEST_N_DIGESTS]
-	diffStore.WarmDigests(PRIORITY_NOW, digests)
-	diffStore.imgLoader.sync()
+	diffStore.WarmDigests(diff.PRIORITY_NOW, digests)
+	memDiffStore.imgLoader.sync()
 	for _, d := range digests {
-		assert.True(t, diffStore.imgLoader.imageCache.Contains(d), fmt.Sprintf("Coult nof find '%s'", d))
+		assert.True(t, memDiffStore.imgLoader.imageCache.Contains(d), fmt.Sprintf("Coult nof find '%s'", d))
 	}
 
 	// Warm the diffs and make sure they are in the cache.
-	diffStore.Warm(PRIORITY_NOW, digests, digests)
-	diffStore.sync()
+	diffStore.WarmDiffs(diff.PRIORITY_NOW, digests, digests)
+	memDiffStore.sync()
 
 	diffIDs := make([]string, 0, len(digests)*len(digests))
 	for _, d1 := range digests {
@@ -62,45 +64,45 @@ func TestDiffStore(t *testing.T) {
 			if d1 != d2 {
 				id := combineDigests(d1, d2)
 				diffIDs = append(diffIDs, id)
-				assert.True(t, diffStore.diffMetricsCache.Contains(id))
+				assert.True(t, memDiffStore.diffMetricsCache.Contains(id))
 			}
 		}
 	}
 
 	// Get the results and make sure they are correct.
-	foundDiffs := make(map[string]map[string]*DiffRecord, len(digests))
+	foundDiffs := make(map[string]map[string]*diff.DiffMetrics, len(digests))
 	ti := timer.New("Get warmed diffs.")
 	for _, oneDigest := range digests {
-		found, err := diffStore.Get(PRIORITY_NOW, oneDigest, digests)
+		found, err := diffStore.Get(diff.PRIORITY_NOW, oneDigest, digests)
 		assert.NoError(t, err)
 		foundDiffs[oneDigest] = found
 
 		// Load the diff from disk and compare.
 		for twoDigest, dr := range found {
 			id := combineDigests(oneDigest, twoDigest)
-			loadedDr, err := diffStore.loadDiffMetric(id)
+			loadedDr, err := memDiffStore.loadDiffMetric(id)
 			assert.NoError(t, err)
 			assert.Equal(t, dr, loadedDr, "Comparing: %s", id)
 		}
 	}
 	ti.Stop()
-	testDiffs(t, baseDir, diffStore, digests, digests, foundDiffs)
+	testDiffs(t, baseDir, memDiffStore, digests, digests, foundDiffs)
 
 	// Get the results directly and make sure they are correct.
 	digests = testDigests[1][:TEST_N_DIGESTS]
 	ti = timer.New("Get cold diffs")
-	foundDiffs = make(map[string]map[string]*DiffRecord, len(digests))
+	foundDiffs = make(map[string]map[string]*diff.DiffMetrics, len(digests))
 	for _, oneDigest := range digests {
-		found, err := diffStore.Get(PRIORITY_NOW, oneDigest, digests)
+		found, err := diffStore.Get(diff.PRIORITY_NOW, oneDigest, digests)
 		assert.NoError(t, err)
 		foundDiffs[oneDigest] = found
 	}
 	ti.Stop()
-	diffStore.sync()
-	testDiffs(t, baseDir, diffStore, digests, digests, foundDiffs)
+	memDiffStore.sync()
+	testDiffs(t, baseDir, memDiffStore, digests, digests, foundDiffs)
 }
 
-func testDiffs(t *testing.T, baseDir string, diffStore *MemDiffStore, leftDigests, rightDigests []string, result map[string]map[string]*DiffRecord) {
+func testDiffs(t *testing.T, baseDir string, diffStore *MemDiffStore, leftDigests, rightDigests []string, result map[string]map[string]*diff.DiffMetrics) {
 	for _, left := range leftDigests {
 		for _, right := range rightDigests {
 			if left != right {

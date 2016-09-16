@@ -15,10 +15,10 @@ import (
 
 const (
 	// Duration to cache an error response.
-	DEFAULT_ERRCACHE_EXPIRATION_TIME = time.Hour * 12
+	DEFAULT_ERRCACHE_EXPIRATION_TIME = time.Minute * 30
 
 	// Interval at which the errcache is cleared of expired entries.
-	ERRCACHE_CLEANUP_TIME = time.Minute * 30
+	ERRCACHE_CLEANUP_TIME = time.Minute * 5
 )
 
 // MemReadThroughCache implements the ReadThroughCache interface.
