@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "10261bad_dc856541",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-16T17:52:49Z",
+      "side": 1,
+      "message": "I\u0027d prefer if this were \"NewDB\"",
+      "range": {
+        "startLine": 287,
+        "startChar": 5,
+        "endLine": 287,
+        "endChar": 19
+      },
+      "revId": "c22c714b9b904217a3389923197a0c875b965891",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
