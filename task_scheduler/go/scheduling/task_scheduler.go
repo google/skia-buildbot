@@ -271,8 +271,23 @@ func ComputeBlamelist(cache db.TaskCache, repo *gitrepo.Repo, taskName, repoName
 // be closed.
 func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) (map[string][]*taskCandidate, error) {
 	defer timer.New("TaskScheduler.findTaskCandidates").Stop()
+	// Create a RepoState for each commit.
+	numRepoStates := 0
+	for _, commits := range commitsByRepo {
+		numRepoStates += len(commits)
+	}
+	repoStates := make([]db.RepoState, 0, numRepoStates)
+	for repo, commits := range commitsByRepo {
+		for _, commit := range commits {
+			repoStates = append(repoStates, db.RepoState{
+				Repo:     repo,
+				Revision: commit,
+			})
+		}
+	}
+
 	// Obtain all possible tasks.
-	specs, err := s.taskCfgCache.GetTaskSpecsForCommits(commitsByRepo)
+	specs, err := s.taskCfgCache.GetTaskSpecsForRepoStates(repoStates)
 	if err != nil {
 		return nil, err
 	}
@@ -280,73 +295,64 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) (m
 	total := 0
 	recentCommits := []string{}
 	recentTaskSpecsMap := map[string]bool{}
-	for repo, commits := range specs {
-		for commit, tasks := range commits {
-			recentCommits = append(recentCommits, commit)
-			for name, task := range tasks {
-				recentTaskSpecsMap[name] = true
-				if rule := s.bl.MatchRule(name, commit); rule != "" {
-					glog.Warningf("Skipping blacklisted task candidate: %s @ %s due to rule %q", name, commit, rule)
-					continue
-				}
-				c := &taskCandidate{
-					IsolatedHashes: nil,
-					TaskKey: db.TaskKey{
-						RepoState: db.RepoState{
-							Repo:     repo,
-							Revision: commit,
-						},
-						Name: name,
-					},
-					Score:    0.0,
-					TaskSpec: task,
-				}
-				// We shouldn't duplicate pending, in-progress,
-				// or successfully completed tasks.
-				previous, err := s.tCache.GetTaskForCommit(c.Repo, c.Revision, c.Name)
-				if err != nil {
-					return nil, err
-				}
-				if previous != nil && previous.Revision == c.Revision {
-					if previous.Status == db.TASK_STATUS_PENDING || previous.Status == db.TASK_STATUS_RUNNING {
-						continue
-					}
-					if previous.Success() {
-						continue
-					}
-					// Only retry a task once.
-					if previous.RetryOf != "" {
-						continue
-					}
-					c.RetryOf = previous.Id
-				}
-
-				// Don't consider candidates whose dependencies are not met.
-				depsMet, idsToHashes, err := c.allDepsMet(s.tCache)
-				if err != nil {
-					return nil, err
-				}
-				if !depsMet {
-					continue
-				}
-				hashes := make([]string, 0, len(idsToHashes))
-				parentTaskIds := make([]string, 0, len(idsToHashes))
-				for id, hash := range idsToHashes {
-					hashes = append(hashes, hash)
-					parentTaskIds = append(parentTaskIds, id)
-				}
-				c.IsolatedHashes = hashes
-				sort.Strings(parentTaskIds)
-				c.ParentTaskIds = parentTaskIds
-
-				key := fmt.Sprintf("%s|%s", c.Repo, c.Name)
-				candidates, ok := bySpec[key]
-				if !ok {
-					candidates = make([]*taskCandidate, 0, len(commits))
-				}
-				bySpec[key] = append(candidates, c)
-				total++
+	for rs, specsByName := range specs {
+		recentCommits = append(recentCommits, rs.Revision)
+		for name, spec := range specsByName {
+			recentTaskSpecsMap[name] = true
+			if rule := s.bl.MatchRule(name, rs.Revision); rule != "" {
+				glog.Warningf("Skipping blacklisted task candidate: %s @ %s due to rule %q", name, rs.Revision, rule)
+				continue
 			}
+			c := &taskCandidate{
+				IsolatedHashes: nil,
+				TaskKey: db.TaskKey{
+					RepoState: rs.Copy(),
+					Name:      name,
+				},
+				Score:    0.0,
+				TaskSpec: spec,
+			}
+			// We shouldn't duplicate pending, in-progress,
+			// or successfully completed tasks.
+			previous, err := s.tCache.GetTaskForCommit(c.Repo, c.Revision, c.Name)
+			if err != nil {
+				return nil, err
+			}
+			if previous != nil && previous.Revision == c.Revision {
+				if previous.Status == db.TASK_STATUS_PENDING || previous.Status == db.TASK_STATUS_RUNNING {
+					continue
+				}
+				if previous.Success() {
+					continue
+				}
+				// Only retry a task once.
+				if previous.RetryOf != "" {
+					continue
+				}
+				c.RetryOf = previous.Id
+			}
+
+			// Don't consider candidates whose dependencies are not met.
+			depsMet, idsToHashes, err := c.allDepsMet(s.tCache)
+			if err != nil {
+				return nil, err
+			}
+			if !depsMet {
+				continue
+			}
+			hashes := make([]string, 0, len(idsToHashes))
+			parentTaskIds := make([]string, 0, len(idsToHashes))
+			for id, hash := range idsToHashes {
+				hashes = append(hashes, hash)
+				parentTaskIds = append(parentTaskIds, id)
+			}
+			c.IsolatedHashes = hashes
+			sort.Strings(parentTaskIds)
+			c.ParentTaskIds = parentTaskIds
+
+			key := fmt.Sprintf("%s|%s", c.Repo, c.Name)
+			bySpec[key] = append(bySpec[key], c)
+			total++
 		}
 	}
 	glog.Infof("Found %d candidates in %d specs", total, len(bySpec))
