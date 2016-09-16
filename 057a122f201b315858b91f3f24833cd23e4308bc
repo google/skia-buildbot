@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "10261bad_bcdce900",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-16T14:53:35Z",
+      "side": 1,
+      "message": "This won\u0027t be here for long: we\u0027ll soon be changing this to findTaskCandidatesForJobs, and we\u0027ll search for the RepoState of each Job.",
+      "range": {
+        "startLine": 287,
+        "startChar": 0,
+        "endLine": 287,
+        "endChar": 1
+      },
+      "revId": "057a122f201b315858b91f3f24833cd23e4308bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
