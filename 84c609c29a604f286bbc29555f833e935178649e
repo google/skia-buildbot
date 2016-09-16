@@ -16,6 +16,24 @@
       "revId": "84c609c29a604f286bbc29555f833e935178649e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_3c345900",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-16T15:26:59Z",
+      "side": 1,
+      "message": "No, only one can have the focus, but more than one can be highlighted, which is coming in another CL.",
+      "parentUuid": "10261bad_dc09e58b",
+      "revId": "84c609c29a604f286bbc29555f833e935178649e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
