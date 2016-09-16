@@ -126,7 +126,7 @@
         <paper-material elevation="1">
           <div id=status class$="{{hiddenClassDisabled(summary.ID)}}">
             <p class="disabledMessage">You must be logged in to change the status.</p>
-            <paper-radio-group id=choices selected="layout vertical {{cachedStatus}}">
+            <paper-radio-group id=choices class="layout horizontal" selected="{{cachedStatus}}">
               <b class="status">Status:</b>
               <paper-radio-button name="New" label="New">New</paper-radio-button>
               <paper-radio-button name="Ignore" label="Ignore">Ignore</paper-radio-button>
