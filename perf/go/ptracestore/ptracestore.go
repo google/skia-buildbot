@@ -37,8 +37,8 @@ var (
 // CommitID represents the time of a particular commit, where a commit could either be
 // a real commit into the repo, or an event like running a trybot.
 type CommitID struct {
-	Offset int    // The index number of the commit from beginning of time, or patch number in Reitveld.
-	Source string // The branch name, e.g. "master", or the Reitveld issue id.
+	Offset int    `json:"offset"` // The index number of the commit from beginning of time, or patch number in Reitveld.
+	Source string `json:"source"` // The branch name, e.g. "master", or the Reitveld issue id.
 }
 
 // Filename returns a safe filename to be used as part of the underlying BoltDB tile name.

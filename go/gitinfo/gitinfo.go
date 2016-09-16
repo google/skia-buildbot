@@ -105,6 +105,7 @@ func (g *GitInfo) Update(pull, allBranches bool) error {
 // Details returns more information than ShortCommit about a given commit.
 // See the vcsinfo.VCS interface for details.
 func (g *GitInfo) Details(hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
+	glog.Infof("Details for hash: %q", hash)
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 	if c, ok := g.detailsCache[hash]; ok {
@@ -278,6 +279,17 @@ func (g *GitInfo) IndexOf(hash string) (int, error) {
 		return 0, fmt.Errorf("Didn't get a number: %s", err)
 	}
 	return n, nil
+}
+
+func (g *GitInfo) ByIndex(N int) (*vcsinfo.LongCommit, error) {
+	g.mutex.Lock()
+	numHashes := len(g.hashes)
+	glog.Infof("%d > %d ?", numHashes, N)
+	g.mutex.Unlock()
+	if N < 0 || N >= numHashes {
+		return nil, fmt.Errorf("Hash index not found: %d", N)
+	}
+	return g.Details(g.hashes[N], false)
 }
 
 // LastN returns the last N commits.
