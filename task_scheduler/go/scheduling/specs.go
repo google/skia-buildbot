@@ -10,6 +10,7 @@ import (
 	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 const (
@@ -145,7 +146,7 @@ type CipdPackage struct {
 // taskCfgCache is a struct used for caching tasks cfg files. The user should
 // periodically call Cleanup() to remove old entries.
 type taskCfgCache struct {
-	cache map[string]map[string]*TasksCfg
+	cache map[db.RepoState]*TasksCfg
 	mtx   sync.Mutex
 	repos *gitinfo.RepoMap
 }
@@ -153,7 +154,7 @@ type taskCfgCache struct {
 // newTaskCfgCache returns a taskCfgCache instance.
 func newTaskCfgCache(repos *gitinfo.RepoMap) *taskCfgCache {
 	return &taskCfgCache{
-		cache: map[string]map[string]*TasksCfg{},
+		cache: map[db.RepoState]*TasksCfg{},
 		mtx:   sync.Mutex{},
 		repos: repos,
 	}
@@ -162,60 +163,55 @@ func newTaskCfgCache(repos *gitinfo.RepoMap) *taskCfgCache {
 // readTasksCfg reads the task cfg file from the given repo and returns it.
 // Stores a cache of already-read task cfg files. Syncs the repo and reads the
 // file if needed. Assumes the caller holds a lock.
-func (c *taskCfgCache) readTasksCfg(repo, commit string) (*TasksCfg, error) {
-	r, err := c.repos.Repo(repo)
+// TODO(borenet): Make readTasksCfg apply patches as needed.
+func (c *taskCfgCache) readTasksCfg(rs db.RepoState) (*TasksCfg, error) {
+	rv, ok := c.cache[rs]
+	if ok {
+		return rv, nil
+	}
+
+	// We haven't seen this RepoState before, or it's scrolled our of our
+	// window. Read it.
+	r, err := c.repos.Repo(rs.Repo)
 	if err != nil {
 		return nil, fmt.Errorf("Could not read task cfg; failed to check out repo: %s", err)
 	}
-
-	if _, ok := c.cache[repo]; !ok {
-		c.cache[repo] = map[string]*TasksCfg{}
-	}
-	if _, ok := c.cache[repo][commit]; !ok {
-		cfg, err := ReadTasksCfg(r, commit)
-		if err != nil {
-			// The tasks.cfg file may not exist for a particular commit.
-			if strings.Contains(err.Error(), "does not exist in") || strings.Contains(err.Error(), "exists on disk, but not in") {
-				// In this case, use an empty config.
-				cfg = &TasksCfg{
-					Tasks: map[string]*TaskSpec{},
-				}
-			} else {
-				return nil, err
+	cfg, err := ReadTasksCfg(r, rs.Revision)
+	if err != nil {
+		// The tasks.cfg file may not exist for a particular commit.
+		if strings.Contains(err.Error(), "does not exist in") || strings.Contains(err.Error(), "exists on disk, but not in") {
+			// In this case, use an empty config.
+			cfg = &TasksCfg{
+				Tasks: map[string]*TaskSpec{},
 			}
+		} else {
+			return nil, err
 		}
-		c.cache[repo][commit] = cfg
 	}
-	return c.cache[repo][commit], nil
+	c.cache[rs] = cfg
+	return cfg, nil
 }
 
-// GetTaskSpecsForCommits returns a set of TaskSpecs for each of the
-// given set of commits, in the form of nested maps:
-//
-// map[repo_name][commit_hash][task_name]*TaskSpec
-//
-func (c *taskCfgCache) GetTaskSpecsForCommits(commitsByRepo map[string][]string) (map[string]map[string]map[string]*TaskSpec, error) {
+// GetTaskSpecsForRepoStates returns a set of TaskSpecs for each of the
+// given set of RepoStates, keyed by RepoState and TaskSpec name.
+func (c *taskCfgCache) GetTaskSpecsForRepoStates(rs []db.RepoState) (map[db.RepoState]map[string]*TaskSpec, error) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	rv := make(map[string]map[string]map[string]*TaskSpec, len(commitsByRepo))
-	for repo, commits := range commitsByRepo {
-		tasksByCommit := make(map[string]map[string]*TaskSpec, len(commits))
-		for _, commit := range commits {
-			cfg, err := c.readTasksCfg(repo, commit)
-			if err != nil {
-				// We may have changed the task config format. Just log an error.
-				// TODO(borenet): Remove this? Blacklist commits with bad tasks cfg instead?
-				glog.Errorf("Failed to obtain tasks cfg at %s: %s", commit, err)
-				continue
-			}
-			// Make a copy of the task specs.
-			tasks := make(map[string]*TaskSpec, len(cfg.Tasks))
-			for name, task := range cfg.Tasks {
-				tasks[name] = task.Copy()
-			}
-			tasksByCommit[commit] = tasks
+	rv := map[db.RepoState]map[string]*TaskSpec{}
+	for _, s := range rs {
+		cfg, err := c.readTasksCfg(s)
+		if err != nil {
+			// We may have changed the task config format. Just log an error.
+			// TODO(borenet): Remove this? Blacklist commits with bad tasks cfg instead?
+			glog.Errorf("Failed to obtain tasks cfg at %s: %s", s, err)
+			continue
 		}
-		rv[repo] = tasksByCommit
+		// Make a copy of the task specs.
+		subMap := make(map[string]*TaskSpec, len(cfg.Tasks))
+		for name, task := range cfg.Tasks {
+			subMap[name] = task.Copy()
+		}
+		rv[s] = subMap
 	}
 	return rv, nil
 }
@@ -225,23 +221,17 @@ func (c *taskCfgCache) Cleanup(period time.Duration) error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	periodStart := time.Now().Add(-period)
-	for repoName, taskCfgsByCommit := range c.cache {
-		repo, err := c.repos.Repo(repoName)
+	for repoState, _ := range c.cache {
+		repo, err := c.repos.Repo(repoState.Repo)
 		if err != nil {
 			return err
 		}
-		remove := []string{}
-		for commit, _ := range taskCfgsByCommit {
-			details, err := repo.Details(commit, false)
-			if err != nil {
-				return err
-			}
-			if details.Timestamp.Before(periodStart) {
-				remove = append(remove, commit)
-			}
+		details, err := repo.Details(repoState.Revision, false)
+		if err != nil {
+			return err
 		}
-		for _, commit := range remove {
-			delete(c.cache[repoName], commit)
+		if details.Timestamp.Before(periodStart) {
+			delete(c.cache, repoState)
 		}
 	}
 	return nil
