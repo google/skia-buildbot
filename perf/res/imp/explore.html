@@ -82,7 +82,7 @@
 
       // Populate the query element.
       sk.get("/_/paramset/").then(JSON.parse).then(function(json) {
-        this.$.query.paramset = json;
+        this.$.query.setParamset(json);
       }.bind(this)).catch(sk.errorMessage);
 
       // Reflect the current query to the query summary.

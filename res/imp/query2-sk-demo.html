@@ -41,7 +41,7 @@
           "GLVec4ScalarBench_scalar_2_stage",
                                     ],
       };
-    $$$('#basic').paramset = paramset;
+    $$$('#basic').setParamset(paramset);
     setTimeout(function() {
       $$$('#basic').setCurrentQuery("config=565&type=GPU");
       $$$('#q').selection = $$$('#basic').current_query;
