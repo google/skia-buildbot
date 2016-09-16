@@ -6,6 +6,7 @@ import (
 	"image/draw"
 	"image/png"
 	"math"
+	"net/http"
 	"os"
 	"unsafe"
 
@@ -56,14 +57,22 @@ func deltaOffset(n int) int {
 	return ret - 1
 }
 
+// DiffMetrics contains the diff information between two images.
 type DiffMetrics struct {
-	NumDiffPixels     int
-	PixelDiffPercent  float32
-	PixelDiffFilePath string
-	// Contains the maximum difference between the images for each R/G/B channel.
+	// NumDiffPixels is the absolute number of pixels that are different.
+	NumDiffPixels int
+
+	// PixelDiffPercent is the percentage of pixels that are different.
+	PixelDiffPercent float32
+
+	// MaxRGBADiffs contains the maximum difference of each channel.
 	MaxRGBADiffs []int
-	// True if the dimensions of the compared images are different.
+
+	// DimDiffer is true if the dimensions between the two images are different.
 	DimDiffer bool
+
+	// Diffs contains different diff metrics for the to images.
+	Diffs map[string]float32
 }
 
 // Diff error to indicate different error conditions during diffing.
@@ -95,14 +104,36 @@ func (d DigestFailureSlice) Len() int           { return len(d) }
 func (d DigestFailureSlice) Less(i, j int) bool { return d[i].TS < d[j].TS }
 func (d DigestFailureSlice) Swap(i, j int)      { d[i], d[j] = d[j], d[i] }
 
+const (
+	// PRIORITY_NOW is the highest priority intended for in request calls.
+	PRIORITY_NOW = iota
+
+	// PRIORITY_BACKGROUND is the priority to use for background tasks.
+	// i.e. Use to calculate diffs of ignored digests.
+	PRIORITY_BACKGROUND
+
+	// PRIORITY_IDLE is the priority to use for background tasks that have
+	// very low priority.
+	PRIORITY_IDLE
+)
+
 type DiffStore interface {
 	// Get returns the DiffMetrics of the provided dMain digest vs all digests
 	// specified in dRest.
-	Get(dMain string, dRest []string) (map[string]*DiffMetrics, error)
+	Get(priority int64, mainDigest string, rightDigests []string) (map[string]*DiffMetrics, error)
 
-	// AbsPath returns the paths of the images that correspond to the given
-	// image digests.
-	AbsPath(digest []string) map[string]string
+	// ImageHandler returns a http.Handler for the given path prefix. The caller
+	// can then serve images of the format:
+	//        <urlPrefix>/images/<digests>.png
+	//        <irlPrefix>/diffs/<digest1>-<digests2>.png
+	ImageHandler(urlPrefix string) (http.Handler, error)
+
+	// WarmDigest will fetche the given digests.
+	WarmDigests(priority int64, digests []string)
+
+	// WarmDiffs will calculate the difference between every digests in
+	// leftDigests and every in digests in rightDigests.
+	WarmDiffs(priority int64, leftDigests []string, rightDigests []string)
 
 	// UnavailableDigests returns map[digest]*DigestFailure which can be used
 	// to check whether a digest could not be processed and to provide details
@@ -114,12 +145,6 @@ type DiffStore interface {
 	// purge the digests image from Google storage, forcing that the digest
 	// be re-uploaded by the build bots.
 	PurgeDigests(digests []string, purgeGS bool) error
-
-	// SetDigestSets sets the sets of digests we want to compare grouped by
-	// names (usually test names). This sets the digests we are currently
-	// interested in and removes digests (and their diffs) that we are no
-	// longer interested in.
-	SetDigestSets(namedDigestSets map[string]map[string]bool)
 }
 
 // OpenImage is a utility function that opens the specified file and returns an

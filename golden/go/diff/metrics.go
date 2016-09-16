@@ -1,10 +1,8 @@
-package diffstore
+package diff
 
 import (
 	"image"
 	"math"
-
-	"go.skia.org/infra/golden/go/diff"
 )
 
 const (
@@ -13,7 +11,7 @@ const (
 )
 
 // MetricsFn is the signature a custom diff metric has to implmente.
-type MetricFn func(*DiffRecord, *image.NRGBA, *image.NRGBA) float32
+type MetricFn func(*DiffMetrics, *image.NRGBA, *image.NRGBA) float32
 
 // metrics contains the custom diff metrics.
 var metrics = map[string]MetricFn{
@@ -21,9 +19,11 @@ var metrics = map[string]MetricFn{
 	METRIC_PERCENT:  percentDiffMetric,
 }
 
+// diffMetricIds contains the ids of all diff metrics.
 var diffMetricIds []string
 
 func init() {
+	// Extract the ids of the diffmetrics once.
 	diffMetricIds = make([]string, 0, len(metrics))
 	for k := range metrics {
 		diffMetricIds = append(diffMetricIds, k)
@@ -35,26 +35,9 @@ func GetDiffMetricIDs() []string {
 	return diffMetricIds
 }
 
-// TODO(stephana): Consolidate with diff.DiffMetrics.
-type DiffRecord struct {
-	NumDiffPixels    int
-	PixelDiffPercent float32
-	MaxRGBADiffs     []int
-	DimDiffer        bool
-
-	// Diffs contains the diff metrics defined in 'metrics'.
-	Diffs map[string]float32
-}
-
 // CalcDiff calculates the basic difference and then then custom diff metrics.
-func CalcDiff(leftImg *image.NRGBA, rightImg *image.NRGBA) (*DiffRecord, *image.NRGBA) {
-	basicDiff, diffImg := diff.Diff(leftImg, rightImg)
-	ret := &DiffRecord{
-		NumDiffPixels:    basicDiff.NumDiffPixels,
-		PixelDiffPercent: basicDiff.PixelDiffPercent,
-		MaxRGBADiffs:     basicDiff.MaxRGBADiffs,
-		DimDiffer:        basicDiff.DimDiffer,
-	}
+func CalcDiff(leftImg *image.NRGBA, rightImg *image.NRGBA) (*DiffMetrics, *image.NRGBA) {
+	ret, diffImg := Diff(leftImg, rightImg)
 
 	// Calcluate the metrics.
 	diffs := make(map[string]float32, len(diffMetricIds))
@@ -67,7 +50,7 @@ func CalcDiff(leftImg *image.NRGBA, rightImg *image.NRGBA) (*DiffRecord, *image.
 
 // combinedDiffMetric returns a value in [0, 1] that represents how large
 // the diff is between two images. Implements the MetricFn signature.
-func combinedDiffMetric(basic *DiffRecord, one *image.NRGBA, two *image.NRGBA) float32 {
+func combinedDiffMetric(basic *DiffMetrics, one *image.NRGBA, two *image.NRGBA) float32 {
 	//
 	// pixelDiffPercent float32, maxRGBA []int) float32 {
 	if len(basic.MaxRGBADiffs) == 0 {
@@ -87,6 +70,6 @@ func combinedDiffMetric(basic *DiffRecord, one *image.NRGBA, two *image.NRGBA) f
 }
 
 // percentDiffMetric returns pixel percent as the metric. Implements the MetricFn signature.
-func percentDiffMetric(basic *DiffRecord, one *image.NRGBA, two *image.NRGBA) float32 {
+func percentDiffMetric(basic *DiffMetrics, one *image.NRGBA, two *image.NRGBA) float32 {
 	return basic.PixelDiffPercent
 }

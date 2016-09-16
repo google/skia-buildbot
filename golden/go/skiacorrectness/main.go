@@ -18,23 +18,21 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
-	"go.skia.org/infra/go/redisutil"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/timer"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/db"
+	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/filediffstore"
 	"go.skia.org/infra/golden/go/goldingestion"
 	"go.skia.org/infra/golden/go/history"
 	"go.skia.org/infra/golden/go/ignore"
@@ -99,15 +97,12 @@ type ResponseEnvelope struct {
 	Pagination *httputils.ResponsePagination `json:"pagination"`
 }
 
-type PathToURLConverter func(string) string
-
 var (
-	// Module level variables that need to be accessible to main2.go.
-	storages           *storage.Storage
-	pathToURLConverter PathToURLConverter
-	statusWatcher      *status.StatusWatcher
-	ixr                *indexer.Indexer
-	issueTracker       issues.IssueTracker
+	// Module level variables that need to be accessible to handler.go.
+	storages      *storage.Storage
+	statusWatcher *status.StatusWatcher
+	ixr           *indexer.Indexer
+	issueTracker  issues.IssueTracker
 )
 
 // sendResponse wraps the data of a succesful response in a response envelope
@@ -134,64 +129,6 @@ func parseJson(r *http.Request, v interface{}) error {
 	defer util.Close(r.Body)
 	decoder := json.NewDecoder(r.Body)
 	return decoder.Decode(v)
-}
-
-// URLAwareFileServer wraps around a standard file server and allows to generate
-// URLs for a given path that is contained in the root.
-type URLAwareFileServer struct {
-	// baseDir is the root directory for all content served. All paths have to
-	// be contained somewhere in the directory tree below this.
-	baseDir string
-
-	// baseUrl is the URL prefix that maps to baseDir.
-	baseUrl string
-
-	// Handler is a standard FileServer handler.
-	Handler http.Handler
-}
-
-func NewURLAwareFileServer(baseDir, baseUrl string) *URLAwareFileServer {
-	absPath, err := filepath.Abs(baseDir)
-	if err != nil {
-		glog.Fatalf("Unable to get abs path of %s. Got error: %s", baseDir, err)
-	}
-
-	fileHandler := http.StripPrefix(baseUrl, http.FileServer(http.Dir(absPath)))
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		// TODO(stephana): Expose a handler in the diff store so we don't have
-		// to mangle the URL from the outside.
-		r.URL.Path = fileutil.TwoLevelRadixPath(r.URL.Path)
-
-		// Cache images for 12 hours.
-		w.Header().Set("Cache-control", "public, max-age=43200")
-		fileHandler.ServeHTTP(w, r)
-	})
-
-	return &URLAwareFileServer{
-		baseDir: absPath,
-		baseUrl: baseUrl,
-		Handler: handler,
-	}
-}
-
-// converToUrl returns the path component of a URL given the path
-// contained within baseDir.
-func (ug *URLAwareFileServer) GetURL(path string) string {
-	absPath, err := filepath.Abs(path)
-	if err != nil {
-		glog.Errorf("Unable to get absolute path of %s. Got error: %s", path, err)
-		return ""
-	}
-
-	relPath, err := filepath.Rel(ug.baseDir, absPath)
-	if err != nil {
-		glog.Errorf("Unable to find subpath got error %s", err)
-		return ""
-	}
-
-	ret := ug.baseUrl + relPath
-	return ret
 }
 
 func main() {
@@ -277,17 +214,8 @@ func main() {
 		glog.Fatalf("Failed to authenticate service account: %s", err)
 	}
 
-	// Set up the cache implementation to use.
-	cacheFactory := filediffstore.MemCacheFactory
-	if *redisHost != "" {
-		cacheFactory = func(uniqueId string, codec util.LRUCodec) util.LRUCache {
-			// This RedisLRUCache never gets closed, but there is only one that is created and used until the program exits.
-			return redisutil.NewRedisLRUCache(*redisHost, *redisDB, uniqueId, codec)
-		}
-	}
-
 	// Get the expecations storage, the filediff storage and the tilestore.
-	diffStore, err := filediffstore.NewFileDiffStore(client, *imageDir, *gsBucketName, filediffstore.DEFAULT_GS_IMG_DIR_NAME, cacheFactory, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)
+	diffStore, err := diffstore.New(client, *imageDir, *gsBucketName, diffstore.DEFAULT_GS_IMG_DIR_NAME)
 	if err != nil {
 		glog.Fatalf("Allocating DiffStore failed: %s", err)
 	}
@@ -375,26 +303,19 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to initialize status watcher: %s", err)
 	}
-
-	imgFS := NewURLAwareFileServer(*imageDir, IMAGE_URL_PREFIX)
-	pathToURLConverter = imgFS.GetURL
 	mainTimer.Stop()
 
 	router := mux.NewRouter()
 
 	// Set up the resource to serve the image files.
-	router.PathPrefix(IMAGE_URL_PREFIX).Handler(imgFS.Handler)
+	imgHandler, err := diffStore.ImageHandler(IMAGE_URL_PREFIX)
+	if err != nil {
+		glog.Fatalf("Unable to get image handler: %s", err)
+	}
+	router.PathPrefix(IMAGE_URL_PREFIX).Handler(imgHandler)
 
 	// New Polymer based UI endpoints.
 	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler(*resourcesDir))
-
-	// TODO(stephana): Remove the 'poly' prefix from all the handlers and clean
-	// up main2.go by either merging it it into main.go or making it clearer that
-	// it contains all the handlers. Make it clearer what variables are shared
-	// between the different file.
-
-	// All the handlers will be prefixed with poly to differentiate it from the
-	// angular code until the angular code is removed.
 	router.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 
 	// /_/hashes is used by the bots to find hashes it does not need to upload.

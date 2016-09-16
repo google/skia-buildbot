@@ -312,8 +312,9 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 		ret = append(ret, digestEntry)
 		allDigests = append(allDigests, digestEntry.Digest)
 	}
-
-	loadDigests(storages.DiffStore, allDigests)
+	// This has priority PRIORITY_NOW because this is used in a HTTP request where
+	// the requester expects the images to be be available.
+	storages.DiffStore.WarmDigests(diff.PRIORITY_NOW, allDigests)
 
 	issueResponse := &IssueResponse{
 		IssueDetails:   issue,
@@ -578,7 +579,7 @@ type DigestDiff struct {
 // an instance of DigestDiff.
 func CompareDigests(test, left, right string, storages *storage.Storage, idx *indexer.SearchIndex) (*DigestDiff, error) {
 	// Get the diff between the two digests
-	diff, err := storages.DiffStore.Get(left, []string{right})
+	diff, err := storages.DiffStore.Get(diff.PRIORITY_NOW, left, []string{right})
 	if err != nil {
 		return nil, err
 	}
@@ -644,13 +645,4 @@ func GetDigestDetails(test, digest string, storages *storage.Storage, idx *index
 		},
 		Commits: tile.Commits,
 	}, nil
-}
-
-// TODO(stephana): Remove this stop gap when a better diff store is in place.
-
-// loadDigests makes sure the digests are loaded.
-func loadDigests(diffStore diff.DiffStore, digests []string) {
-	go func() {
-		diffStore.AbsPath(digests)
-	}()
 }

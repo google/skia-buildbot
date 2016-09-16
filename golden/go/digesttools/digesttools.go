@@ -49,7 +49,7 @@ func ClosestDigest(test string, digest string, exp *expstorage.Expectations, tal
 		return ret
 	}
 
-	if diffMetrics, err := diffStore.Get(digest, selected); err != nil {
+	if diffMetrics, err := diffStore.Get(diff.PRIORITY_NOW, digest, selected); err != nil {
 		glog.Errorf("ClosestDigest: Failed to get diff: %s", err)
 		return ret
 	} else {

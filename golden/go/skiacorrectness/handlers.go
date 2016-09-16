@@ -636,7 +636,7 @@ func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 			Status: d.Status,
 		})
 		remaining := digests[i:len(digests)]
-		diffs, err := storages.DiffStore.Get(d.Digest, remaining)
+		diffs, err := storages.DiffStore.Get(diff.PRIORITY_NOW, d.Digest, remaining)
 		if err != nil {
 			glog.Errorf("Failed to calculate differences: %s", err)
 			continue

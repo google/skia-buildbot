@@ -32,7 +32,7 @@ type ReadThroughFunc func(priority int64, id string) (interface{}, error)
 // the less significant digits. i.e. it allows to process elements of the
 // same priority in order of their timestamps, but ahead of items with
 // less priority.
-func PriorityTimeCombined(priority int) int64 {
+func PriorityTimeCombined(priority int64) int64 {
 	ts := util.TimeStampMs()
 	exp := int(math.Ceil(math.Log10(float64(ts)))) + 1
 	return ts + int64(float64(priority)*math.Pow10(exp))

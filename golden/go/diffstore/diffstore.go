@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/rtcache"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/diff"
 )
 
 const (
@@ -22,7 +23,7 @@ const (
 	DEFAULT_IMG_DIR_NAME = "images"
 
 	// DEFAULT_DIFFIMG_DIR_NAME is the directory where the diff images are stored.
-	DEFAULT_DIFFIMG_DIR_NAME = "diff-images"
+	DEFAULT_DIFFIMG_DIR_NAME = "diffs"
 
 	// DEFAULT_GS_IMG_DIR_NAME is the default image directory in GS.
 	DEFAULT_GS_IMG_DIR_NAME = "dm-images-v1"
@@ -31,7 +32,7 @@ const (
 	DEFAULT_TEMPFILE_DIR_NAME = "__temp"
 
 	// METRICSDB_NAME is the name of the boltdb caching diff metrics.
-	METRICSDB_NAME = "diffrecords.db"
+	METRICSDB_NAME = "diff.DiffMetricss.db"
 
 	// METRICS_BUCKET is the name of the bucket in the metrics DB.
 	METRICS_BUCKET = "metrics"
@@ -43,33 +44,11 @@ const (
 	MAX_IMAGE_CACHE = 30000
 )
 
-const (
-	// PRIORITY_NOW is the highest priority intended for in request calls.
-	PRIORITY_NOW = iota
-
-	// PRIORITY_BACKGROUND is the priority to use for background tasks.
-	// i.e. Use to calculate diffs of ignored digests.
-	PRIORITY_BACKGROUND
-
-	// PRIORITY_IDLE is the priority to use for background tasks that have
-	// very low priority.
-	PRIORITY_IDLE
-)
-
-// TODO(stephana): Modify the diff.DiffStore interface to use DiffRecord instead
-// of DiffMetrics, implement missing functions from DiffStore interface and
-// add some/all of these functions (TBD) to the DiffStore interface:
-//       ServeImageHandler(w http.ResponseWriter, r *http.Request)
-//       ServeDiffImageHandler(w http.ResponseWriter, r *http.Request)
-//       WarmDigests(priority int64, digests []string)
-//       Warm(priority int64, leftDigests []string, rightDigests []string)
-//       KeepDigests(Digests []string)
-//       UnavailableDigests() map[string]bool
-//       PurgeDigests(digests []string, purgeGS bool) error
-//
-
 // MemDiffStore implements the diff.DiffStore interface.
 type MemDiffStore struct {
+	// baseDir contains the root directory of where all data are stored.
+	baseDir string
+
 	// localDiffDir is the directory where diff images are written to.
 	localDiffDir string
 
@@ -82,7 +61,7 @@ type MemDiffStore struct {
 	// metricDB stores the diff metrics in a boltdb databasel.
 	metricsDB *bolt.DB
 
-	// diffMetricsCodec encodes/decodes DiffRecord instances to JSON.
+	// diffMetricsCodec encodes/decodes diff.DiffMetrics instances to JSON.
 	diffMetricsCodec util.LRUCodec
 
 	// wg is used to synchronize background operations like saving files. Used for testing.
@@ -90,7 +69,7 @@ type MemDiffStore struct {
 }
 
 // New returns a new instance of MemDiffStore.
-func New(client *http.Client, baseDir, gsBucketName, gsImageBaseDir string) (*MemDiffStore, error) {
+func New(client *http.Client, baseDir, gsBucketName, gsImageBaseDir string) (diff.DiffStore, error) {
 	// Set up image retrieval, caching and serving.
 	imgDir := fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME)))
 	imgLoader, err := newImgLoader(client, imgDir, gsBucketName, gsImageBaseDir, MAX_IMAGE_CACHE)
@@ -104,10 +83,11 @@ func New(client *http.Client, baseDir, gsBucketName, gsImageBaseDir string) (*Me
 	}
 
 	ret := &MemDiffStore{
+		baseDir:          baseDir,
 		localDiffDir:     fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFFIMG_DIR_NAME))),
 		imgLoader:        imgLoader,
 		metricsDB:        metricsDB,
-		diffMetricsCodec: util.JSONCodec(&DiffRecord{}),
+		diffMetricsCodec: util.JSONCodec(&diff.DiffMetrics{}),
 	}
 
 	ret.diffMetricsCache = rtcache.New(ret.diffMetricsWorker, MAX_DIFFMETRICS_CACHE, runtime.NumCPU())
@@ -116,13 +96,14 @@ func New(client *http.Client, baseDir, gsBucketName, gsImageBaseDir string) (*Me
 
 // WarmDigests prefetches images based on the given list of digests.
 func (d *MemDiffStore) WarmDigests(priority int64, digests []string) {
-	d.imgLoader.Warm(priority, digests)
+	d.imgLoader.Warm(rtcache.PriorityTimeCombined(priority), digests)
 }
 
-// Warm puts the diff metrics for the cross product of leftDigests x rightDigests into the cache for the
+// WarmDiffs puts the diff metrics for the cross product of leftDigests x rightDigests into the cache for the
 // given diff metric and with the given priority. This means if there are multiple subsets of the digests
 // with varying priority (ignored vs "regular") we can call this multiple times.
-func (d *MemDiffStore) Warm(priority int64, leftDigests []string, rightDigests []string) {
+func (d *MemDiffStore) WarmDiffs(priority int64, leftDigests []string, rightDigests []string) {
+	priority = rtcache.PriorityTimeCombined(priority)
 	diffIDs := getDiffIds(leftDigests, rightDigests)
 	glog.Infof("Warming %d diffs", len(diffIDs))
 	d.wg.Add(len(diffIDs))
@@ -141,7 +122,7 @@ func (d *MemDiffStore) sync() {
 }
 
 // See DiffStore interface.
-func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []string) (map[string]*DiffRecord, error) {
+func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []string) (map[string]*diff.DiffMetrics, error) {
 	if mainDigest == "" {
 		return nil, fmt.Errorf("Received empty dMain digest.")
 	}
@@ -151,7 +132,7 @@ func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []str
 		return nil, fmt.Errorf("Unable to retrieve main digest %s. Got error: %s", mainDigest, err)
 	}
 
-	diffMap := make(map[string]*DiffRecord, len(rightDigests))
+	diffMap := make(map[string]*diff.DiffMetrics, len(rightDigests))
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 	for _, right := range rightDigests {
@@ -168,12 +149,60 @@ func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []str
 				}
 				mutex.Lock()
 				defer mutex.Unlock()
-				diffMap[right] = ret.(*DiffRecord)
+				diffMap[right] = ret.(*diff.DiffMetrics)
 			}(right)
 		}
 	}
 	wg.Wait()
 	return diffMap, nil
+}
+
+// TODO(stephana): Implement UnavailableDigests and PurgeDigests when/if we
+// re-add the endpoints to deal with image errors.
+
+// UnavailableDigests implements the DiffStore interface.
+func (m *MemDiffStore) UnavailableDigests() map[string]*diff.DigestFailure {
+	return nil
+}
+
+// PurgeDigests implements the DiffStore interface.
+func (m *MemDiffStore) PurgeDigests(digests []string, purgeGS bool) error {
+	return nil
+}
+
+// ImageHandler implements the DiffStore interface.
+func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
+	absPath, err := filepath.Abs(m.baseDir)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to get abs path of %s. Got error: %s", m.baseDir, err)
+	}
+
+	// Setup the file server and define the handler function.
+	fileServer := http.FileServer(http.Dir(absPath))
+	handlerFunc := func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		idx := strings.Index(path, "/")
+		if idx == -1 {
+			http.NotFound(w, r)
+			return
+		}
+
+		// Limit the requests to directories with the images and diff images.
+		if dir := path[:idx]; (dir != DEFAULT_DIFFIMG_DIR_NAME) && (dir != DEFAULT_IMG_DIR_NAME) {
+			http.NotFound(w, r)
+			return
+		}
+
+		// rewrite the paths to include the radix prefix.
+		r.URL.Path = fileutil.TwoLevelRadixPath(path)
+
+		// Cache images for 12 hours.
+		w.Header().Set("Cache-control", "public, max-age=43200")
+		fileServer.ServeHTTP(w, r)
+	}
+
+	// The above function relies on the URL prefix being stripped.
+	return http.StripPrefix(urlPrefix, http.HandlerFunc(handlerFunc)), nil
 }
 
 // diffMetricsWorker calculates the diff if it's not in the cache.
@@ -194,7 +223,7 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 	}
 
 	// We are guaranteed to have two images at this point.
-	diffRec, diffImg := CalcDiff(imgs[0], imgs[1])
+	diffRec, diffImg := diff.CalcDiff(imgs[0], imgs[1])
 
 	// encode the result image and save it to disk. If encoding causes an error
 	// we return an error.
@@ -203,13 +232,13 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 		return nil, err
 	}
 
-	// save the diffRecord and the diffImage.
+	// save the diff.DiffMetrics and the diffImage.
 	d.saveDiffInfoAsync(id, leftDigest, rightDigest, diffRec, buf.Bytes())
 	return diffRec, nil
 }
 
 // saveDiffInfoAsync saves the given diff information to disk asynchronously.
-func (d *MemDiffStore) saveDiffInfoAsync(diffID, leftDigest, rightDigest string, dr *DiffRecord, imgBytes []byte) {
+func (d *MemDiffStore) saveDiffInfoAsync(diffID, leftDigest, rightDigest string, dr *diff.DiffMetrics, imgBytes []byte) {
 	d.wg.Add(2)
 	go func() {
 		defer d.wg.Done()
@@ -228,7 +257,7 @@ func (d *MemDiffStore) saveDiffInfoAsync(diffID, leftDigest, rightDigest string,
 }
 
 // loadDiffMetric loads a diffMetric from disk.
-func (d *MemDiffStore) loadDiffMetric(id string) (*DiffRecord, error) {
+func (d *MemDiffStore) loadDiffMetric(id string) (*diff.DiffMetrics, error) {
 	var jsonData []byte = nil
 	viewFn := func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(METRICS_BUCKET))
@@ -252,11 +281,11 @@ func (d *MemDiffStore) loadDiffMetric(id string) (*DiffRecord, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ret.(*DiffRecord), nil
+	return ret.(*diff.DiffMetrics), nil
 }
 
 // saveDiffMetric stores a diffmetric on disk.
-func (d *MemDiffStore) saveDiffMetric(id string, dr *DiffRecord) error {
+func (d *MemDiffStore) saveDiffMetric(id string, dr *diff.DiffMetrics) error {
 	jsonData, err := d.diffMetricsCodec.Encode(dr)
 	if err != nil {
 		return err
@@ -318,10 +347,10 @@ func splitDigests(d1d2 string) (string, string) {
 // makeDiffMap creates a map[string]map[string]*DiffRecor map that is big
 // enough to store the difference between all digests in leftKeys and
 // 'rightLen' items.
-func makeDiffMap(leftKeys []string, rightLen int) map[string]map[string]*DiffRecord {
-	ret := make(map[string]map[string]*DiffRecord, len(leftKeys))
+func makeDiffMap(leftKeys []string, rightLen int) map[string]map[string]*diff.DiffMetrics {
+	ret := make(map[string]map[string]*diff.DiffMetrics, len(leftKeys))
 	for _, k := range leftKeys {
-		ret[k] = make(map[string]*DiffRecord, rightLen)
+		ret[k] = make(map[string]*diff.DiffMetrics, rightLen)
 	}
 	return ret
 }
