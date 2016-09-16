@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "10261bad_5c2f15b0",
+        "filename": "task_scheduler/go/scheduling/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-16T16:10:22Z",
+      "side": 1,
+      "message": "Facepalm. Done.",
+      "parentUuid": "10261bad_7c62d142",
+      "revId": "057a122f201b315858b91f3f24833cd23e4308bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10261bad_1c719d07",
         "filename": "task_scheduler/go/scheduling/specs.go",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "10261bad_1c7e3d70",
+        "filename": "task_scheduler/go/scheduling/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-16T16:10:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "10261bad_1c719d07",
+      "revId": "057a122f201b315858b91f3f24833cd23e4308bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10261bad_5c671551",
         "filename": "task_scheduler/go/scheduling/specs.go",
         "patchSetId": 1
@@ -47,6 +83,24 @@
       "writtenOn": "2016-09-16T15:19:55Z",
       "side": 1,
       "message": "nit: might be good to add a String() method to RepoState",
+      "revId": "057a122f201b315858b91f3f24833cd23e4308bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_7c7f716f",
+        "filename": "task_scheduler/go/scheduling/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-16T16:10:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "10261bad_5c671551",
       "revId": "057a122f201b315858b91f3f24833cd23e4308bc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
