@@ -268,11 +268,10 @@ func runServer(serverURL string) {
 // RPC calls to taskDb. Does not return.
 func runDbServer(taskDb db.RemoteDB) {
 	r := mux.NewRouter()
-	dbserver, err := remote_db.NewServer(taskDb, r.PathPrefix("/db").Subrouter())
+	err := remote_db.RegisterServer(taskDb, r.PathPrefix("/db").Subrouter())
 	if err != nil {
 		glog.Fatal(err)
 	}
-	defer util.Close(dbserver)
 	glog.Fatal(http.ListenAndServe(*dbPort, httputils.LoggingGzipRequestResponse(r)))
 }
 
