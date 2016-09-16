@@ -31,7 +31,7 @@
       margin: 0 1em;
     }
 
-    paramset-sk  {
+    #paramset {
       margin: 1em;
       overflow-y: auto;
       height: 480px;
@@ -104,6 +104,12 @@
           this.$.plot.clearHighlight();
         }
         this.$.plot.setHighlight(keys);
+      }.bind(this));
+
+      // Reflect the focused trace in the paramset.
+      this.$.plot.addEventListener("trace_focused", function(e) {
+        this.$.paramset.clearHighlight();
+        this.$.paramset.setHighlight(sk.key.toObject(e.detail.id));
       }.bind(this));
 
       this._updateCount();
