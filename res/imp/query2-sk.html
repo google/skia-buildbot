@@ -6,9 +6,6 @@
   Attributes:
     current_query - The current query formatted as a URL formatted query string.
 
-    paramset - A serialized paramtools.ParamSet, that is the source
-      of the options for the query.
-
   Events:
     'query-change'
       The 'query2-sk' element will produce 'query-change' events when the query
@@ -18,11 +15,16 @@
   Methods:
     setCurrentQuery(s) - Sets the query selections of the control, where 's'
       is a URL formatted query string, as returned from current_query.
+
+    setParamset(p) -  A serialized paramtools.ParamSet, that is the source
+      of the options for the query.
+
 -->
 
 <link rel="stylesheet" href="/res/common/css/md.css">
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <dom-module id="query2-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
     input,
@@ -46,6 +48,10 @@
   <template>
     <div class="horizontal layout">
       <div class="vertical layout">
+        <div class="horizontal layout">
+          <paper-input id="fast" label="Filter" on-input="_fastFilter"></paper-input>
+          <button on-tap="_clearFilter">Clear</button>
+        </div>
         <select id=keys size=12 on-change="_keyChange">
           <template is="dom-repeat" items="[[_keys]]" >
             <option value="[[item]]">[[item]]</option>
@@ -55,14 +61,17 @@
       </div>
       <div class="vertical layout">
         <paper-checkbox
+          disabled
           id=invert
           on-change="_valueChange"
           title="Match items that aren't selected below.">Invert</paper-checkbox>
         <paper-checkbox
+          disabled
           id=regex
           on-tap="_regexTap"
           title="Match items via regular expression.">Regex</paper-checkbox>
         <input
+          disabled
           type="text"
           id="regexValue"
           value="[[_regexDisplayValue(_selectedValue)]]"
@@ -84,18 +93,25 @@
     is: "query2-sk",
 
     properties: {
-      // A serialized paramtools.ParamSet, which we are building a query around.
-      paramset: {
-        type: Object,
-        value: function() { return {}; },
-        observer: "_paramsetChange",
-      },
-
       // The serialized form of _query.
       current_query: {
         type: String,
         value: "",
         reflectToAttribute: true,
+      },
+
+      // A serialized paramtools.ParamSet, which we are building a query around.
+      //
+      // Might contain a subset of _originalParamset if filtering has been applied.
+      _paramset: {
+        type: Object,
+        value: function() { return {}; },
+      },
+
+      // A serialized paramtools.ParamSet, which we are building a query around.
+      _originalParamset: {
+        type: Object,
+        value: function() { return {}; },
       },
 
       // The keys of paramset.
@@ -134,10 +150,67 @@
       this._queryChanged();
     },
 
-    _paramsetChange: function() {
-      var keys = Object.keys(this.paramset);
+    setParamset: function(paramset) {
+      // Keep a backup, for when we do filtering.
+      this._originalParamset = paramset;
+      this._paramset = paramset;
+      this._recalcKeys();
+    },
+
+    _recalcKeys: function() {
+      var keys = Object.keys(this._paramset);
       keys.sort();
       this.set("_keys", keys);
+      this.$.keys.selectedIndex = -1;
+      this.set("_values", []);
+      this.$.invert.disabled = true;
+      this.$.regex.disabled = true;
+      this.$.regexValue.disabled = true;
+    },
+
+    _fastFilter: function() {
+      var filters = this.$.fast.value.trim().toLowerCase().split(/\s+/);
+
+      // Create a closure that returns true if the given label
+      // matches the filter.
+      var matches = function(s) {
+        s = s.toLowerCase();
+        for (var i = 0; i < filters.length; i++) {
+          if (s.indexOf(filters[i]) >= 0) {
+            return true;
+          }
+        }
+        return false;
+      };
+
+      // Loop over this._originalParamset.
+      var filtered = {};
+      Object.keys(this._originalParamset).forEach(function(paramkey) {
+        // If the param key matches, then all the values go over.
+        if (matches(paramkey)) {
+          filtered[paramkey] = this._originalParamset[paramkey];
+        } else {
+          // Look for matches in the param values.
+          var valueMatches = [];
+          this._originalParamset[paramkey].forEach(function(paramvalue) {
+            if (matches(paramvalue)) {
+              valueMatches.push(paramvalue);
+            }
+          }.bind(this));
+          if (valueMatches.length > 0) {
+            filtered[paramkey] = valueMatches;
+          }
+        }
+      }.bind(this));
+
+      this._paramset = filtered;
+      this._recalcKeys();
+    },
+
+    _clearFilter: function() {
+      this._paramset = this._originalParamset;
+      this._recalcKeys();
+      this.$.fast.value = "";
     },
 
     // Returns the prefixed value, for example, "!" if it is an inverted search.
@@ -165,11 +238,16 @@
       this._valueChange();
     },
 
-    _keyChange: function(e) {
+    _keyChange: function() {
       var key = this.$.keys.selectedOptions[0].value;
-      this.set("_values", this.paramset[key]);
+      this.set("_values", this._paramset[key]);
       this.set("_selectedValue", this._query[key] || []);
       this.set("_selectedKey", key);
+
+      this.$.invert.disabled = false;
+      this.$.regex.disabled = false;
+      this.$.regexValue.disabled = false;
+
       // Use !! to force a boolean value, to work around: https://github.com/PolymerElements/paper-checkbox/issues/140
       this.$.regex.checked = !!(this._query[key] && this._query[key].length == 1 && this._query[key][0][0] === "~");
       this.$.invert.checked = !!(this._query[key] && this._query[key].length >= 1 && this._query[key][0][0] === "!");
@@ -199,7 +277,6 @@
     _clear: function() {
       this._query = {};
       this._queryChanged();
-      this._keyChange();
     },
 
     _isSelected: function(paramValue, selectedValues) {
