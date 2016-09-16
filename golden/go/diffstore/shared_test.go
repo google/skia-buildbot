@@ -39,9 +39,12 @@ func getSetupAndTile(t assert.TestingT, baseDir string) (*http.Client, *tiling.T
 
 	tile := mocks.NewMockTileBuilderFromJson(t, testDataPath).GetTile()
 
+	return getClient(t), tile
+}
+
+func getClient(t assert.TestingT) *http.Client {
 	// Get the service account client from meta data or a local config file.
 	client, err := auth.NewJWTServiceAccountClient("", auth.DEFAULT_JWT_FILENAME, nil, storage.ScopeFullControl)
 	assert.NoError(t, err)
-
-	return client, tile
+	return client
 }
