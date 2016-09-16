@@ -16,6 +16,24 @@
       "revId": "a644d63aaad96f0a80bf9090136c2f53ada54eb6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_5c5155d4",
+        "filename": "res/imp/query2-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-16T17:40:09Z",
+      "side": 1,
+      "message": "Yes. If I get complaints I can change the behavior.",
+      "parentUuid": "10261bad_bcc8699e",
+      "revId": "a644d63aaad96f0a80bf9090136c2f53ada54eb6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
