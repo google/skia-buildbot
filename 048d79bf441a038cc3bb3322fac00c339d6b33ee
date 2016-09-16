@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "10261bad_d951f72a",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-16T13:46:10Z",
+      "side": 1,
+      "message": "If federated vs. unified is confusing, I can change to unified everywhere.",
+      "revId": "048d79bf441a038cc3bb3322fac00c339d6b33ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
