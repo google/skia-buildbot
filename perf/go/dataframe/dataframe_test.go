@@ -96,13 +96,13 @@ func TestRangeImpl(t *testing.T) {
 	expected_headers := []*ColumnHeader{
 		&ColumnHeader{
 			Source:    "master",
-			ID:        "0",
+			ID:        0,
 			Desc:      "",
 			Timestamp: ts0.Unix(),
 		},
 		&ColumnHeader{
 			Source:    "master",
-			ID:        "1",
+			ID:        1,
 			Desc:      "",
 			Timestamp: ts1.Unix(),
 		},
@@ -133,13 +133,13 @@ func TestNew(t *testing.T) {
 	colHeaders := []*ColumnHeader{
 		&ColumnHeader{
 			Source:    "master",
-			ID:        "0",
+			ID:        0,
 			Desc:      "",
 			Timestamp: ts0.Unix(),
 		},
 		&ColumnHeader{
 			Source:    "master",
-			ID:        "1",
+			ID:        1,
 			Desc:      "",
 			Timestamp: ts1.Unix(),
 		},

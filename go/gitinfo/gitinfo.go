@@ -280,6 +280,15 @@ func (g *GitInfo) IndexOf(hash string) (int, error) {
 	return n, nil
 }
 
+func (g *GitInfo) ByIndex(N int) (*vcsinfo.LongCommit, error) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+	if N < 0 || N >= len(g.hashes) {
+		return nil, fmt.Errorf("Hash index not found: %d", N)
+	}
+	return g.Details(g.hashes[N], false)
+}
+
 // LastN returns the last N commits.
 func (g *GitInfo) LastN(N int) []string {
 	g.mutex.Lock()

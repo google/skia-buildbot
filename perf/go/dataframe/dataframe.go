@@ -23,7 +23,7 @@ const (
 // ColumnHeader describes each column in a DataFrame.
 type ColumnHeader struct {
 	Source    string `json:"source"`
-	ID        string `json:"id"`
+	ID        int64  `json:"id"`
 	Desc      string `json:"desc"`
 	Timestamp int64  `json:"timestamp"` // In seconds from the Unix epoch.
 }
@@ -52,7 +52,7 @@ func rangeImpl(resp []*vcsinfo.IndexCommit) ([]*ColumnHeader, []*ptracestore.Com
 		})
 		headers = append(headers, &ColumnHeader{
 			Source:    "master",
-			ID:        fmt.Sprintf("%d", r.Index),
+			ID:        int64(r.Index),
 			Timestamp: r.Timestamp.Unix(),
 		})
 	}
