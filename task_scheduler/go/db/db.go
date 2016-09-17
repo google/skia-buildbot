@@ -49,8 +49,6 @@ func IsUnknownId(e error) bool {
 
 // TaskReader is a read-only view of a TaskDB.
 type TaskReader interface {
-	io.Closer
-
 	// GetModifiedTasks returns all tasks modified since the last time
 	// GetModifiedTasks was run with the given id. The returned tasks are sorted
 	// by Created timestamp.
@@ -156,8 +154,6 @@ func UpdateTaskWithRetries(db TaskDB, id string, f func(*Task) error) (*Task, er
 
 // JobReader is a read-only view of a JobDB.
 type JobReader interface {
-	io.Closer
-
 	// GetModifiedJobs returns all jobs modified since the last time
 	// GetModifiedJobs was run with the given id. The returned jobs are sorted by
 	// Created timestamp.
@@ -266,8 +262,32 @@ type RemoteDB interface {
 	CommentDB
 }
 
-// TaskAndCommentDB implements both TaskDB and CommentDB.
-type TaskAndCommentDB interface {
+// DB implements TaskDB, JobDB, and CommentDB.
+type DB interface {
 	TaskDB
+	JobDB
 	CommentDB
+}
+
+// DBCloser is a DB that must be closed when no longer in use.
+type DBCloser interface {
+	io.Closer
+	DB
+}
+
+// federatedDB joins an independent TaskDB, JobDB, and CommentDB into a DB.
+type federatedDB struct {
+	TaskDB
+	JobDB
+	CommentDB
+}
+
+// NewDB returns a DB that delegates to independent TaskDB, JobDB, and
+// CommentDB.
+func NewDB(tdb TaskDB, jdb JobDB, cdb CommentDB) DB {
+	return &federatedDB{
+		TaskDB:    tdb,
+		JobDB:     jdb,
+		CommentDB: cdb,
+	}
 }
