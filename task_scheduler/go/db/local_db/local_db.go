@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"net/http"
+	"path"
 	"sort"
 	"strconv"
 	"strings"
@@ -39,6 +40,22 @@ const (
 	//     big endian; v[9:] is the GOB of the Task.
 	BUCKET_TASKS_VERSION = 1
 
+	// BUCKET_JOBS is the name of the Jobs bucket. Key is Job.Id, which is set to
+	// (creation time, sequence number) (see formatId for detail), value is
+	// described in docs for BUCKET_JOBS_VERSION. Jobs will be updated in place.
+	// All repos share the same bucket.
+	BUCKET_JOBS = "jobs"
+	// BUCKET_JOBS_FILL_PERCENT is the value to set for bolt.Bucket.FillPercent
+	// for BUCKET_JOBS. BUCKET_JOBS will be append-mostly, so use a high fill
+	// percent.
+	BUCKET_JOBS_FILL_PERCENT = 0.9
+	// BUCKET_JOBS_VERSION indicates the format of the value of BUCKET_JOBS
+	// written by PutJobs. Retrieving Jobs from the DB must support all previous
+	// versions. For all versions, the first byte is the version number.
+	//   Version 1: v[0] = 1; v[1:9] is the modified time as UnixNano encoded as
+	//     big endian; v[9:] is the GOB of the Job.
+	BUCKET_JOBS_VERSION = 1
+
 	// BUCKET_COMMENTS is the name of the comments bucket. Key is KEY_COMMENT_MAP,
 	// value is the GOB of the map provided by db.CommentBox. The comment map will
 	// be updated in place. All repos share the same bucket.
@@ -69,16 +86,16 @@ const (
 	MAX_CREATED_TIME_SKEW = 6 * time.Minute
 )
 
-// formatId returns the timestamp and sequence number formatted for a Task ID.
-// Format is "<timestamp>_<sequence_num>", where the timestamp is formatted
-// using TIMESTAMP_FORMAT and sequence_num is formatted using
+// formatId returns the timestamp and sequence number formatted for a Task or
+// Job ID. Format is "<timestamp>_<sequence_num>", where the timestamp is
+// formatted using TIMESTAMP_FORMAT and sequence_num is formatted using
 // SEQUENCE_NUMBER_FORMAT.
 func formatId(t time.Time, seq uint64) string {
 	t = t.UTC()
 	return fmt.Sprintf("%s_"+SEQUENCE_NUMBER_FORMAT, t.Format(TIMESTAMP_FORMAT), seq)
 }
 
-// parseId returns the timestamp and sequence number stored in a Task ID.
+// parseId returns the timestamp and sequence number stored in a Task or Job ID.
 func parseId(id string) (time.Time, uint64, error) {
 	parts := strings.Split(id, "_")
 	if len(parts) != 2 {
@@ -101,8 +118,9 @@ func parseId(id string) (time.Time, uint64, error) {
 	return t, seq, nil
 }
 
-// packV1 creates a value as described for BUCKET_TASKS_VERSION = 1. t is the
-// modified time and serialized is the GOB of the Task.
+// packV1 creates a value as described for BUCKET_TASKS_VERSION = 1 or
+// BUCKET_JOBS_VERSION = 1. t is the modified time and serialized is the GOB of
+// the Task or Job.
 func packV1(t time.Time, serialized []byte) []byte {
 	rv := make([]byte, len(serialized)+9)
 	rv[0] = 1
@@ -111,8 +129,9 @@ func packV1(t time.Time, serialized []byte) []byte {
 	return rv
 }
 
-// unpackV1 gets the modified time and GOB of the Task from a value as described
-// by BUCKET_TASKS_VERSION = 1. The returned GOB shares structure with value.
+// unpackV1 gets the modified time and GOB of the Task/Job from a value as
+// described by BUCKET_TASKS_VERSION = 1 or BUCKET_JOBS_VERSION = 1. The
+// returned GOB shares structure with value.
 func unpackV1(value []byte) (time.Time, []byte, error) {
 	if len(value) < 9 {
 		return time.Time{}, nil, fmt.Errorf("unpackV1 value is too short (%d bytes)", len(value))
@@ -124,10 +143,57 @@ func unpackV1(value []byte) (time.Time, []byte, error) {
 	return t, value[9:], nil
 }
 
-// localDB accesses a local BoltDB database containing tasks.
+// packTask creates a value for the current value of BUCKET_TASKS_VERSION. t is
+// the modified time and serialized is the GOB of the Task.
+func packTask(t time.Time, serialized []byte) []byte {
+	if BUCKET_TASKS_VERSION != 1 {
+		panic(BUCKET_TASKS_VERSION)
+	}
+	return packV1(t, serialized)
+}
+
+// unpackTask gets the modified time and GOB of the Task from a value for any
+// supported version. The returned GOB shares structure with value.
+func unpackTask(value []byte) (time.Time, []byte, error) {
+	if len(value) < 1 {
+		return time.Time{}, nil, fmt.Errorf("unpackTask value is empty")
+	}
+	// Only one version currently supported.
+	if value[0] != 1 {
+		return time.Time{}, nil, fmt.Errorf("unpackTask unrecognized version %d", value[0])
+	}
+	return unpackV1(value)
+}
+
+// packJob creates a value for the current value of BUCKET_JOBS_VERSION. t is
+// the modified time and serialized is the GOB of the Job.
+func packJob(t time.Time, serialized []byte) []byte {
+	if BUCKET_JOBS_VERSION != 1 {
+		panic(BUCKET_JOBS_VERSION)
+	}
+	return packV1(t, serialized)
+}
+
+// unpackJob gets the modified time and GOB of the Job from a value for any
+// supported version. The returned GOB shares structure with value.
+func unpackJob(value []byte) (time.Time, []byte, error) {
+	if len(value) < 1 {
+		return time.Time{}, nil, fmt.Errorf("unpackJob value is empty")
+	}
+	// Only one version currently supported.
+	if value[0] != 1 {
+		return time.Time{}, nil, fmt.Errorf("unpackJob unrecognized version %d", value[0])
+	}
+	return unpackV1(value)
+}
+
+// localDB accesses a local BoltDB database containing tasks, jobs, and
+// comments.
 type localDB struct {
 	// name is used in logging and metrics to identify this DB.
 	name string
+	// filename is used when serving the database backup file.
+	filename string
 
 	// db is the underlying BoltDB.
 	db *bolt.DB
@@ -142,6 +208,7 @@ type localDB struct {
 	dbMetric *boltutil.DbMetric
 
 	modTasks db.ModifiedTasks
+	modJobs  db.ModifiedJobs
 
 	// CommentBox is embedded in order to implement db.CommentDB. CommentBox uses
 	// this localDB to persist the comments.
@@ -218,15 +285,23 @@ func tasksBucket(tx *bolt.Tx) *bolt.Bucket {
 	return b
 }
 
+// Returns the jobs bucket with FillPercent set.
+func jobsBucket(tx *bolt.Tx) *bolt.Bucket {
+	b := tx.Bucket([]byte(BUCKET_JOBS))
+	b.FillPercent = BUCKET_JOBS_FILL_PERCENT
+	return b
+}
+
 // NewDB returns a local DB instance.
-func NewDB(name, filename string) (db.TaskAndCommentDB, error) {
+func NewDB(name, filename string) (db.DBCloser, error) {
 	boltdb, err := bolt.Open(filename, 0600, nil)
 	if err != nil {
 		return nil, err
 	}
 	d := &localDB{
-		name: name,
-		db:   boltdb,
+		name:     name,
+		filename: path.Base(filename),
+		db:       boltdb,
 		txCount: metrics2.GetCounter("db-active-tx", map[string]string{
 			"database": name,
 		}),
@@ -255,6 +330,9 @@ func NewDB(name, filename string) (db.TaskAndCommentDB, error) {
 		if _, err := tx.CreateBucketIfNotExists([]byte(BUCKET_TASKS)); err != nil {
 			return err
 		}
+		if _, err := tx.CreateBucketIfNotExists([]byte(BUCKET_JOBS)); err != nil {
+			return err
+		}
 		commentsBucket, err := tx.CreateBucketIfNotExists([]byte(BUCKET_COMMENTS))
 		if err != nil {
 			return err
@@ -274,7 +352,7 @@ func NewDB(name, filename string) (db.TaskAndCommentDB, error) {
 
 	d.CommentBox = db.NewCommentBoxWithPersistence(comments, d.writeCommentsMap)
 
-	if dbMetric, err := boltutil.NewDbMetric(boltdb, []string{BUCKET_TASKS, BUCKET_COMMENTS}, map[string]string{"database": name}); err != nil {
+	if dbMetric, err := boltutil.NewDbMetric(boltdb, []string{BUCKET_TASKS, BUCKET_JOBS, BUCKET_COMMENTS}, map[string]string{"database": name}); err != nil {
 		return nil, err
 	} else {
 		d.dbMetric = dbMetric
@@ -283,7 +361,7 @@ func NewDB(name, filename string) (db.TaskAndCommentDB, error) {
 	return d, nil
 }
 
-// See docs for DB interface.
+// See docs for io.Closer interface.
 func (d *localDB) Close() error {
 	d.txMutex.Lock()
 	defer d.txMutex.Unlock()
@@ -306,7 +384,7 @@ func (d *localDB) Close() error {
 }
 
 // Sets t.Id either based on t.Created or now. tx must be an update transaction.
-func (d *localDB) assignId(tx *bolt.Tx, t *db.Task, now time.Time) error {
+func (d *localDB) assignTaskId(tx *bolt.Tx, t *db.Task, now time.Time) error {
 	if t.Id != "" {
 		return fmt.Errorf("Task Id already assigned: %v", t.Id)
 	}
@@ -324,11 +402,11 @@ func (d *localDB) assignId(tx *bolt.Tx, t *db.Task, now time.Time) error {
 	return nil
 }
 
-// See docs for DB interface.
+// See docs for TaskDB interface.
 func (d *localDB) AssignId(t *db.Task) error {
 	oldId := t.Id
 	err := d.update("AssignId", func(tx *bolt.Tx) error {
-		return d.assignId(tx, t, time.Now())
+		return d.assignTaskId(tx, t, time.Now())
 	})
 	if err != nil {
 		t.Id = oldId
@@ -336,7 +414,7 @@ func (d *localDB) AssignId(t *db.Task) error {
 	return err
 }
 
-// See docs for DB interface.
+// See docs for TaskDB interface.
 func (d *localDB) GetTaskById(id string) (*db.Task, error) {
 	var rv *db.Task
 	if err := d.view("GetTaskById", func(tx *bolt.Tx) error {
@@ -344,10 +422,7 @@ func (d *localDB) GetTaskById(id string) (*db.Task, error) {
 		if value == nil {
 			return nil
 		}
-		// Only BUCKET_TASKS_VERSION = 1 is implemented right now.
-		// TODO(benjaminwagner): Add functions "pack" and "unpack" that determine
-		// which version to use.
-		_, serialized, err := unpackV1(value)
+		_, serialized, err := unpackTask(value)
 		if err != nil {
 			return err
 		}
@@ -369,7 +444,7 @@ func (d *localDB) GetTaskById(id string) (*db.Task, error) {
 	return rv, nil
 }
 
-// See docs for DB interface.
+// See docs for TaskDB interface.
 func (d *localDB) GetTasksFromDateRange(start, end time.Time) ([]*db.Task, error) {
 	min := []byte(start.Add(-MAX_CREATED_TIME_SKEW).UTC().Format(TIMESTAMP_FORMAT))
 	max := []byte(end.UTC().Format(TIMESTAMP_FORMAT))
@@ -377,8 +452,7 @@ func (d *localDB) GetTasksFromDateRange(start, end time.Time) ([]*db.Task, error
 	if err := d.view("GetTasksFromDateRange", func(tx *bolt.Tx) error {
 		c := tasksBucket(tx).Cursor()
 		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
-			// Only BUCKET_TASKS_VERSION = 1 is implemented right now.
-			_, serialized, err := unpackV1(v)
+			_, serialized, err := unpackTask(v)
 			if err != nil {
 				return err
 			}
@@ -411,33 +485,33 @@ func (d *localDB) GetTasksFromDateRange(start, end time.Time) ([]*db.Task, error
 	return result[startIdx:endIdx], nil
 }
 
-// See documentation for DB interface.
+// See documentation for TaskDB interface.
 func (d *localDB) PutTask(t *db.Task) error {
 	return d.PutTasks([]*db.Task{t})
 }
 
-// validate returns an error if the task can not be inserted into the DB. Does
-// not modify t.
-func (d *localDB) validate(t *db.Task) error {
-	if util.TimeIsZero(t.Created) {
-		return fmt.Errorf("Created not set. Task %s created time is %s. %v", t.Id, t.Created, t)
+// validateTask returns an error if the task can not be inserted into the DB.
+// Does not modify task.
+func (d *localDB) validateTask(task *db.Task) error {
+	if util.TimeIsZero(task.Created) {
+		return fmt.Errorf("Created not set. Task %s created time is %s. %v", task.Id, task.Created, task)
 	}
-	if t.Id != "" {
-		idTs, _, err := parseId(t.Id)
+	if task.Id != "" {
+		idTs, _, err := parseId(task.Id)
 		if err != nil {
 			return err
 		}
-		if t.Created.Sub(idTs) > MAX_CREATED_TIME_SKEW {
-			return fmt.Errorf("Created too late. Task %s was assigned Id at %s which is %s before Created time %s, more than MAX_CREATED_TIME_SKEW = %s.", t.Id, idTs, t.Created.Sub(idTs), t.Created, MAX_CREATED_TIME_SKEW)
+		if task.Created.Sub(idTs) > MAX_CREATED_TIME_SKEW {
+			return fmt.Errorf("Created too late. Task %s was assigned Id at %s which is %s before Created time %s, more than MAX_CREATED_TIME_SKEW = %s.", task.Id, idTs, task.Created.Sub(idTs), task.Created, MAX_CREATED_TIME_SKEW)
 		}
-		if t.Created.Before(idTs) {
-			return fmt.Errorf("Created too early. Task %s Created time was changed or set to %s after Id assigned at %s.", t.Id, t.Created, idTs)
+		if task.Created.Before(idTs) {
+			return fmt.Errorf("Created too early. Task %s Created time was changed or set to %s after Id assigned at %s.", task.Id, task.Created, idTs)
 		}
 	}
 	return nil
 }
 
-// See documentation for DB interface.
+// See documentation for TaskDB interface.
 func (d *localDB) PutTasks(tasks []*db.Task) error {
 	// If there is an error during the transaction, we should leave the tasks
 	// unchanged. Save the old Ids and DbModified times since we set them below.
@@ -448,7 +522,7 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 	oldData := make([]savedData, 0, len(tasks))
 	// Validate and save current data.
 	for _, t := range tasks {
-		if err := d.validate(t); err != nil {
+		if err := d.validateTask(t); err != nil {
 			return err
 		}
 		oldData = append(oldData, savedData{
@@ -470,12 +544,12 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 		now := time.Now().UTC()
 		for _, t := range tasks {
 			if t.Id == "" {
-				if err := d.assignId(tx, t, now); err != nil {
+				if err := d.assignTaskId(tx, t, now); err != nil {
 					return err
 				}
 			} else {
 				if value := bucket.Get([]byte(t.Id)); value != nil {
-					modTs, serialized, err := unpackV1(value)
+					modTs, serialized, err := unpackTask(value)
 					if err != nil {
 						return err
 					}
@@ -502,8 +576,7 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 				break
 			}
 			gobs[t.Id] = serialized
-			// BUCKET_TASKS_VERSION = 1
-			value := packV1(now, serialized)
+			value := packTask(t.DbModified, serialized)
 			if err := bucket.Put([]byte(t.Id), value); err != nil {
 				return err
 			}
@@ -519,19 +592,213 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 	return nil
 }
 
-// See docs for DB interface.
+// See docs for TaskDB interface.
 func (d *localDB) GetModifiedTasks(id string) ([]*db.Task, error) {
 	return d.modTasks.GetModifiedTasks(id)
 }
 
-// See docs for DB interface.
+// See docs for TaskDB interface.
 func (d *localDB) StartTrackingModifiedTasks() (string, error) {
 	return d.modTasks.StartTrackingModifiedTasks()
 }
 
-// See docs for DB interface.
+// See docs for TaskDB interface.
 func (d *localDB) StopTrackingModifiedTasks(id string) {
 	d.modTasks.StopTrackingModifiedTasks(id)
+}
+
+// Sets job.Id based on job.Created. tx must be an update transaction.
+func (d *localDB) assignJobId(tx *bolt.Tx, job *db.Job) error {
+	if job.Id != "" {
+		return fmt.Errorf("Job Id already assigned: %v", job.Id)
+	}
+	if util.TimeIsZero(job.Created) {
+		// TODO(benjaminwagner): Ensure job.Created is > any ID ts in the DB.
+		return fmt.Errorf("Job Created time is not set: %s", job.Created)
+	}
+	seq, err := jobsBucket(tx).NextSequence()
+	if err != nil {
+		return err
+	}
+	job.Id = formatId(job.Created, seq)
+	return nil
+}
+
+// See docs for JobDB interface.
+func (d *localDB) GetJobById(id string) (*db.Job, error) {
+	var rv *db.Job
+	if err := d.view("GetJobById", func(tx *bolt.Tx) error {
+		value := jobsBucket(tx).Get([]byte(id))
+		if value == nil {
+			return nil
+		}
+		_, serialized, err := unpackJob(value)
+		if err != nil {
+			return err
+		}
+		var job db.Job
+		if err := gob.NewDecoder(bytes.NewReader(serialized)).Decode(&job); err != nil {
+			return err
+		}
+		rv = &job
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	if rv == nil {
+		// Return an error if id is invalid.
+		if _, _, err := parseId(id); err != nil {
+			return nil, err
+		}
+	}
+	return rv, nil
+}
+
+// See docs for JobDB interface.
+func (d *localDB) GetJobsFromDateRange(start, end time.Time) ([]*db.Job, error) {
+	min := []byte(start.UTC().Format(TIMESTAMP_FORMAT))
+	max := []byte(end.UTC().Format(TIMESTAMP_FORMAT))
+	decoder := db.JobDecoder{}
+	if err := d.view("GetJobsFromDateRange", func(tx *bolt.Tx) error {
+		c := jobsBucket(tx).Cursor()
+		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
+			_, serialized, err := unpackJob(v)
+			if err != nil {
+				return err
+			}
+			cpy := make([]byte, len(serialized))
+			copy(cpy, serialized)
+			if !decoder.Process(cpy) {
+				return nil
+			}
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	result, err := decoder.Result()
+	if err != nil {
+		return nil, err
+	}
+	sort.Sort(db.JobSlice(result))
+	return result, nil
+}
+
+// See documentation for JobDB interface.
+func (d *localDB) PutJob(job *db.Job) error {
+	return d.PutJobs([]*db.Job{job})
+}
+
+// validateJob returns an error if the job can not be inserted into the DB. Does not
+// modify job.
+func (d *localDB) validateJob(job *db.Job) error {
+	if util.TimeIsZero(job.Created) {
+		return fmt.Errorf("Created not set. Job %s created time is %s. %v", job.Id, job.Created, job)
+	}
+	if job.Id != "" {
+		idTs, _, err := parseId(job.Id)
+		if err != nil {
+			return err
+		}
+		if !idTs.Equal(job.Created) {
+			return fmt.Errorf("Created time has changed since Job ID assigned. Job %s was assigned Id for Created time %s but Created time is now %s.", job.Id, idTs, job.Created)
+		}
+	}
+	return nil
+}
+
+// See documentation for JobDB interface.
+func (d *localDB) PutJobs(jobs []*db.Job) error {
+	// If there is an error during the transaction, we should leave the jobs
+	// unchanged. Save the old Ids and DbModified times since we set them below.
+	type savedData struct {
+		Id         string
+		DbModified time.Time
+	}
+	oldData := make([]savedData, len(jobs))
+	// Validate and save current data.
+	for i, job := range jobs {
+		if err := d.validateJob(job); err != nil {
+			return err
+		}
+		oldData[i].Id = job.Id
+		oldData[i].DbModified = job.DbModified
+	}
+	revertChanges := func() {
+		for i, data := range oldData {
+			jobs[i].Id = data.Id
+			jobs[i].DbModified = data.DbModified
+		}
+	}
+	gobs := make(map[string][]byte, len(jobs))
+	err := d.update("PutJobs", func(tx *bolt.Tx) error {
+		bucket := jobsBucket(tx)
+		// Assign Ids and encode.
+		e := db.JobEncoder{}
+		now := time.Now().UTC()
+		for _, job := range jobs {
+			if job.Id == "" {
+				if err := d.assignJobId(tx, job); err != nil {
+					return err
+				}
+			} else {
+				if value := bucket.Get([]byte(job.Id)); value != nil {
+					modTs, serialized, err := unpackJob(value)
+					if err != nil {
+						return err
+					}
+					if !modTs.Equal(job.DbModified) {
+						var existing db.Job
+						if err := gob.NewDecoder(bytes.NewReader(serialized)).Decode(&existing); err != nil {
+							return err
+						}
+						glog.Warningf("Cached Job has been modified in the DB. Current:\n%#v\nCached:\n%#v", existing, job)
+						return db.ErrConcurrentUpdate
+					}
+				}
+			}
+			job.DbModified = now
+			e.Process(job)
+		}
+		// Insert/update.
+		for {
+			job, serialized, err := e.Next()
+			if err != nil {
+				return err
+			}
+			if job == nil {
+				break
+			}
+			gobs[job.Id] = serialized
+			value := packJob(job.DbModified, serialized)
+			if err := bucket.Put([]byte(job.Id), value); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		revertChanges()
+		return err
+	} else {
+		d.modJobs.TrackModifiedJobsGOB(gobs)
+	}
+	return nil
+}
+
+// See docs for JobDB interface.
+func (d *localDB) GetModifiedJobs(id string) ([]*db.Job, error) {
+	return d.modJobs.GetModifiedJobs(id)
+}
+
+// See docs for JobDB interface.
+func (d *localDB) StartTrackingModifiedJobs() (string, error) {
+	return d.modJobs.StartTrackingModifiedJobs()
+}
+
+// See docs for JobDB interface.
+func (d *localDB) StopTrackingModifiedJobs(id string) {
+	d.modJobs.StopTrackingModifiedJobs(id)
 }
 
 // writeCommentsMap is passed to db.NewCommentBoxWithPersistence to persist
@@ -553,7 +820,7 @@ func (d *localDB) RunBackupServer(port string) error {
 	r.HandleFunc("/backup", func(w http.ResponseWriter, r *http.Request) {
 		if err := d.view("Backup", func(tx *bolt.Tx) error {
 			w.Header().Set("Content-Type", "application/octet-stream")
-			w.Header().Set("Content-Disposition", "attachment; filename=\"tasks.db\"")
+			w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", d.filename))
 			w.Header().Set("Content-Length", strconv.Itoa(int(tx.Size())))
 			_, err := tx.WriteTo(w)
 			return err

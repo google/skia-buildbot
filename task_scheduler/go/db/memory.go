@@ -13,7 +13,6 @@ import (
 )
 
 type inMemoryTaskDB struct {
-	CommentBox
 	tasks    map[string]*Task
 	tasksMtx sync.RWMutex
 	modTasks ModifiedTasks
@@ -25,11 +24,6 @@ func (db *inMemoryTaskDB) AssignId(t *Task) error {
 		return fmt.Errorf("Task Id already assigned: %v", t.Id)
 	}
 	t.Id = uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
-	return nil
-}
-
-// See docs for TaskDB interface.
-func (db *inMemoryTaskDB) Close() error {
 	return nil
 }
 
@@ -113,7 +107,7 @@ func (db *inMemoryTaskDB) StopTrackingModifiedTasks(id string) {
 
 // NewInMemoryTaskDB returns an extremely simple, inefficient, in-memory TaskDB
 // implementation.
-func NewInMemoryTaskDB() TaskAndCommentDB {
+func NewInMemoryTaskDB() TaskDB {
 	db := &inMemoryTaskDB{
 		tasks: map[string]*Task{},
 	}
@@ -131,11 +125,6 @@ func (db *inMemoryJobDB) assignId(j *Job) error {
 		return fmt.Errorf("Job Id already assigned: %v", j.Id)
 	}
 	j.Id = uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
-	return nil
-}
-
-// See docs for JobDB interface.
-func (db *inMemoryJobDB) Close() error {
 	return nil
 }
 
@@ -224,4 +213,10 @@ func NewInMemoryJobDB() JobDB {
 		jobs: map[string]*Job{},
 	}
 	return db
+}
+
+// NewInMemoryDB returns an extremely simple, inefficient, in-memory DB
+// implementation.
+func NewInMemoryDB() DB {
+	return NewDB(NewInMemoryTaskDB(), NewInMemoryJobDB(), &CommentBox{})
 }

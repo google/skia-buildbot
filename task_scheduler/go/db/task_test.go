@@ -424,7 +424,6 @@ func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
 
 func TestUpdateDBFromSwarmingTask(t *testing.T) {
 	db := NewInMemoryTaskDB()
-	defer testutils.AssertCloses(t, db)
 
 	// Create task, initialize from swarming, and save.
 	now := time.Now().UTC().Round(time.Microsecond)

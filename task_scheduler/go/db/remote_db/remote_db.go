@@ -45,17 +45,17 @@ type server struct {
 	d db.RemoteDB
 }
 
-// NewServer adds handlers to r that handle requests from a client created via
-// NewClient.
+// RegisterServer adds handlers to r that handle requests from a client created
+// via NewClient.
 //
 // Currently no authentication is required, so r should not be exposed on a
 // public port.
-func NewServer(d db.RemoteDB, r *mux.Router) (io.Closer, error) {
+func RegisterServer(d db.RemoteDB, r *mux.Router) error {
 	s := &server{
 		d: d,
 	}
 	s.registerHandlers(r)
-	return s, nil
+	return nil
 }
 
 // registerHandlers adds GET, POST, and DELETE handlers to r on various paths.
@@ -86,16 +86,6 @@ func NewClient(serverRoot string) (db.RemoteDB, error) {
 		serverRoot: serverRoot,
 		client:     httputils.NewTimeoutClient(),
 	}, nil
-}
-
-// Close has no effect. Does not close the RemoteDB provided to NewServer.
-func (s *server) Close() error {
-	return nil
-}
-
-// Close has no effect. Does not close the remote DB.
-func (c *client) Close() error {
-	return nil
 }
 
 // flush allows the client to begin reading the response before the entire

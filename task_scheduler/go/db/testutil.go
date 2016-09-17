@@ -40,8 +40,6 @@ func makeJob(ts time.Time) *Job {
 
 // TestTaskDB performs basic tests for an implementation of TaskDB.
 func TestTaskDB(t *testing.T, db TaskDB) {
-	defer testutils.AssertCloses(t, db)
-
 	_, err := db.GetModifiedTasks("dummy-id")
 	assert.True(t, IsUnknownId(err))
 
@@ -198,8 +196,6 @@ func TestTaskDB(t *testing.T, db TaskDB) {
 
 // Test that a TaskDB properly tracks its maximum number of users.
 func TestTaskDBTooManyUsers(t *testing.T, db TaskDB) {
-	defer testutils.AssertCloses(t, db)
-
 	// Max out the number of modified-tasks users; ensure that we error out.
 	for i := 0; i < MAX_MODIFIED_DATA_USERS; i++ {
 		_, err := db.StartTrackingModifiedTasks()
@@ -212,8 +208,6 @@ func TestTaskDBTooManyUsers(t *testing.T, db TaskDB) {
 // Test that PutTask and PutTasks return ErrConcurrentUpdate when a cached Task
 // has been updated in the DB.
 func TestTaskDBConcurrentUpdate(t *testing.T, db TaskDB) {
-	defer testutils.AssertCloses(t, db)
-
 	// Insert a task.
 	t1 := makeTask(time.Now(), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
@@ -625,8 +619,6 @@ func TestUpdateTasksWithRetries(t *testing.T, db TaskDB) {
 
 // TestJobDB performs basic tests on an implementation of JobDB.
 func TestJobDB(t *testing.T, db JobDB) {
-	defer testutils.AssertCloses(t, db)
-
 	_, err := db.GetModifiedJobs("dummy-id")
 	assert.True(t, IsUnknownId(err))
 
@@ -771,8 +763,6 @@ func TestJobDB(t *testing.T, db JobDB) {
 
 // Test that a JobDB properly tracks its maximum number of users.
 func TestJobDBTooManyUsers(t *testing.T, db JobDB) {
-	defer testutils.AssertCloses(t, db)
-
 	// Max out the number of modified-jobs users; ensure that we error out.
 	for i := 0; i < MAX_MODIFIED_DATA_USERS; i++ {
 		_, err := db.StartTrackingModifiedJobs()
@@ -785,8 +775,6 @@ func TestJobDBTooManyUsers(t *testing.T, db JobDB) {
 // Test that PutJob and PutJobs return ErrConcurrentUpdate when a cached Job
 // has been updated in the DB.
 func TestJobDBConcurrentUpdate(t *testing.T, db JobDB) {
-	defer testutils.AssertCloses(t, db)
-
 	// Insert a job.
 	j1 := makeJob(time.Now())
 	assert.NoError(t, db.PutJob(j1))
@@ -1160,12 +1148,14 @@ func testUpdateJobWithRetriesExhausted(t *testing.T, db JobDB) {
 func testUpdateJobWithRetriesJobNotFound(t *testing.T, db JobDB) {
 	begin := time.Now()
 
-	// Assign ID for a job, but don't put it in the DB.
+	// Generate a fake Job ID.
 	j1 := makeJob(begin.Add(time.Nanosecond))
+	assert.NoError(t, db.PutJob(j1))
+	fakeId := "3" + j1.Id[1:]
 
 	// Attempt to update non-existent job. Function shouldn't be called.
 	callCount := 0
-	noJob, err := UpdateJobWithRetries(db, j1.Id, func(job *Job) error {
+	noJob, err := UpdateJobWithRetries(db, fakeId, func(job *Job) error {
 		callCount++
 		job.Status = JOB_STATUS_IN_PROGRESS
 		return nil
@@ -1174,10 +1164,11 @@ func testUpdateJobWithRetriesJobNotFound(t *testing.T, db JobDB) {
 	assert.Nil(t, noJob)
 	assert.Equal(t, 0, callCount)
 
-	// Check no jobs in the DB.
+	// Check no new jobs in the DB.
 	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
 	assert.NoError(t, err)
-	assert.Equal(t, 0, len(jobs))
+	assert.Equal(t, 1, len(jobs))
+	assert.Equal(t, j1.Id, jobs[0].Id)
 }
 
 // Test UpdateJobsWithRetries and UpdateJobWithRetries.

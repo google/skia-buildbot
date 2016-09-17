@@ -23,7 +23,6 @@ func testGetTasksForCommits(t *testing.T, c TaskCache, b *Task) {
 
 func TestTaskCache(t *testing.T) {
 	db := NewInMemoryTaskDB()
-	defer testutils.AssertCloses(t, db)
 
 	// Pre-load a task into the DB.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
@@ -62,7 +61,6 @@ func TestTaskCache(t *testing.T) {
 
 func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 	db := NewInMemoryTaskDB()
-	defer testutils.AssertCloses(t, db)
 
 	// Pre-load a task into the DB.
 	timeStart := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
@@ -147,7 +145,6 @@ func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 
 func TestTaskCacheMultiRepo(t *testing.T) {
 	db := NewInMemoryTaskDB()
-	defer testutils.AssertCloses(t, db)
 
 	// Insert several tasks with different repos.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
@@ -208,7 +205,6 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 
 func TestTaskCacheReset(t *testing.T) {
 	db := NewInMemoryTaskDB()
-	defer testutils.AssertCloses(t, db)
 
 	// Pre-load a task into the DB.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
@@ -236,7 +232,6 @@ func TestTaskCacheReset(t *testing.T) {
 
 func TestTaskCacheUnfinished(t *testing.T) {
 	db := NewInMemoryTaskDB()
-	defer testutils.AssertCloses(t, db)
 
 	// Insert a task.
 	startTime := time.Now().Add(-30 * time.Minute)
@@ -336,7 +331,6 @@ func assertTasksNotCached(t *testing.T, c TaskCache, tasks []*Task) {
 
 func TestTaskCacheExpiration(t *testing.T) {
 	db := NewInMemoryTaskDB()
-	defer testutils.AssertCloses(t, db)
 
 	period := 10 * time.Minute
 	timeStart := time.Now().Add(-period)
@@ -469,7 +463,6 @@ func TestTaskCacheExpiration(t *testing.T) {
 
 func TestJobCache(t *testing.T) {
 	db := NewInMemoryJobDB()
-	defer testutils.AssertCloses(t, db)
 
 	// Pre-load a job into the DB.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
@@ -496,7 +489,6 @@ func TestJobCache(t *testing.T) {
 
 func TestJobCacheTriggeredForCommit(t *testing.T) {
 	db := NewInMemoryJobDB()
-	defer testutils.AssertCloses(t, db)
 
 	// Insert several jobs with different repos.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
@@ -537,7 +529,6 @@ func testGetUnfinished(t *testing.T, expect []*Job, cache JobCache) {
 
 func TestJobCacheReset(t *testing.T) {
 	db := NewInMemoryJobDB()
-	defer testutils.AssertCloses(t, db)
 
 	// Pre-load a job into the DB.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
@@ -564,7 +555,6 @@ func TestJobCacheReset(t *testing.T) {
 
 func TestJobCacheUnfinished(t *testing.T) {
 	db := NewInMemoryJobDB()
-	defer testutils.AssertCloses(t, db)
 
 	// Insert a job.
 	startTime := time.Now().Add(-30 * time.Minute)
