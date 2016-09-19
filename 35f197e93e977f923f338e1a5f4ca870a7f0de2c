@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "10261bad_4598541f",
+        "filename": "go/gitrepo/gitrepo.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-19T16:59:43Z",
+      "side": 1,
+      "message": "recurse always calls f on the current commit. Is it possible that a branch head has already been visited because it is the parent of a different branch?",
+      "revId": "35f197e93e977f923f338e1a5f4ca870a7f0de2c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_05825cb1",
+        "filename": "go/gitrepo/gitrepo_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-19T16:59:43Z",
+      "side": 1,
+      "message": "maybe test returning false",
+      "revId": "35f197e93e977f923f338e1a5f4ca870a7f0de2c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
