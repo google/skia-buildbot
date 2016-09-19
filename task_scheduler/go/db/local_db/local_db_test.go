@@ -13,7 +13,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 )
 
-// Check that formatId and parseId are inverse operations and produce the
+// Check that formatId and ParseId are inverse operations and produce the
 // expected result.
 func TestFormatParseId(t *testing.T) {
 	testCases := []struct {
@@ -55,7 +55,7 @@ func TestFormatParseId(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		assert.Equal(t, testCase.id, formatId(testCase.ts, testCase.seq))
-		ts, seq, err := parseId(testCase.id)
+		ts, seq, err := ParseId(testCase.id)
 		assert.NoError(t, err)
 		assert.True(t, testCase.ts.Equal(ts))
 		assert.Equal(t, testCase.seq, seq)
@@ -85,7 +85,7 @@ func TestFormatParseId(t *testing.T) {
 		// Sequence num overflows.
 		"20010101T010101.100000000Z_1ffffffffffffffff",
 	} {
-		_, _, err := parseId(invalidId)
+		_, _, err := ParseId(invalidId)
 		assert.Error(t, err, "No error for Id: %q", invalidId)
 	}
 }
@@ -205,7 +205,7 @@ func TestAssignIdsFromCreatedTs(t *testing.T) {
 	for i := 0; i < len(tasks); i++ {
 		assert.Equal(t, ids[i], tasks[i].Id)
 		assert.NotEqual(t, prevId, ids[i])
-		ts, _, err := parseId(ids[i])
+		ts, _, err := ParseId(ids[i])
 		assert.NoError(t, err)
 		assert.True(t, ts.Equal(tasks[i].Created))
 		prevId = ids[i]
@@ -266,7 +266,7 @@ func TestAssignIdsFromCurrentTime(t *testing.T) {
 	for i := 0; i < len(tasks); i++ {
 		assert.Equal(t, ids[i], tasks[i].Id)
 		assert.NotEqual(t, prevId, ids[i])
-		ts, _, err := parseId(ids[i])
+		ts, _, err := ParseId(ids[i])
 		assert.NoError(t, err)
 		assert.True(t, begin.Before(ts) || begin.Equal(ts))
 		assert.True(t, ts.Before(end) || ts.Equal(end))
@@ -468,7 +468,7 @@ func TestJobIdsFromCreatedTs(t *testing.T) {
 	for i := 0; i < len(jobs); i++ {
 		assert.Equal(t, ids[i], jobs[i].Id)
 		assert.NotEqual(t, prevId, ids[i])
-		ts, _, err := parseId(ids[i])
+		ts, _, err := ParseId(ids[i])
 		assert.NoError(t, err)
 		assert.True(t, ts.Equal(jobs[i].Created))
 		prevId = ids[i]

@@ -175,7 +175,11 @@
         window.location.href = window.location.href;
       },
       _makeBuildURL: function (build, buildbot_url_prefix) {
-        return buildbot_url_prefix + 'builders/' + build.builder + '/builds/' + build.number;
+        if (build.url) {
+          return build.url;
+        } else {
+          return buildbot_url_prefix + 'builders/' + build.builder + '/builds/' + build.number;
+        }
       },
       _buildResultStyle: function (build) {
         return 'color: ' + build.color;
@@ -184,13 +188,25 @@
         return build.failedSteps && build.failedSteps.length > 0;
       },
       _makeDashboardBuilderURL: function (build) {
-        return '/buildbots?botGrouping=builder&filterBy=builder&include=%5E' + build.builder + '%24&tab=builds';
+        if (build.dashboardBuilderUrl) {
+          return build.dashboardBuilderUrl;
+        } else {
+          return '/buildbots?botGrouping=builder&filterBy=builder&include=%5E' + build.builder + '%24&tab=builds';
+        }
       },
       _makeDashboardSlaveURL: function (build) {
-        return '/buildbots?botGrouping=buildslave&filterBy=buildslave&include=%5E' + build.buildslave + '%24&tab=builds';
+        if (build.dashboardSlaveUrl) {
+          return build.dashboardSlaveUrl;
+        } else {
+          return '/buildbots?botGrouping=buildslave&filterBy=buildslave&include=%5E' + build.buildslave + '%24&tab=builds';
+        }
       },
       _makeSlaveHostURL: function (build) {
-        return '/hosts?filter=%5E' + build.buildslave + '%24';
+        if (build.slaveHostUrl) {
+          return build.slaveHostUrl;
+        } else {
+          return '/hosts?filter=%5E' + build.buildslave + '%24';
+        }
       },
       _makeAddCommentURL: function (build, repo) {
         return '/json/' + repo + '/builds/' + build.master + '/' + build.builder + '/' + build.number + '/comments';
@@ -202,7 +218,11 @@
         return 'https://skia.googlesource.com/' + repo + '/+/' + c;
       },
       _makeRetryURL: function(build){
-        return "https://build-scheduler.skia.org/trigger?submit=true&builder="+ build.builder +"&commit=" + build.got_revision;
+        if (build.retryUrl) {
+          return build.retryUrl;
+        } else {
+          return "https://build-scheduler.skia.org/trigger?submit=true&builder="+ build.builder +"&commit=" + build.got_revision;
+        }
       },
       _buildResultString: function (build) {
         return build.finished ? build.results == 0 ? 'success' : build.results == 1 ? 'success' : build.results == 3 ? 'success' : build.results == 2 ? 'failed' : build.results == 4 ? 'exception' : 'exception' : 'running';

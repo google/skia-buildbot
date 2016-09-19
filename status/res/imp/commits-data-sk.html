@@ -184,6 +184,26 @@
       return COLOR_BUILD_PENDING;
     }
 
+    function maybeSetBuildUrls(build) {
+      for (var i = 0; i < build.properties.length; i++) {
+        if (build.properties[i][0] == "taskURL") {
+          build.url = build.properties[i][1];
+        }
+        if (build.properties[i][0] == "taskRetryURL") {
+          build.retryUrl = build.properties[i][1];
+        }
+        if (build.properties[i][0] == "taskSpecTasklistURL") {
+          build.dashboardBuilderUrl = build.properties[i][1];
+        }
+        if (build.properties[i][0] == "botTasklistURL") {
+          build.dashboardSlaveUrl = build.properties[i][1];
+        }
+        if (build.properties[i][0] == "botDetailURL") {
+          build.slaveHostUrl = build.properties[i][1];
+        }
+      }
+    }
+
     Polymer({
       is: "commits-data-sk",
       properties: {
@@ -394,6 +414,7 @@
           for (var builder in build_details[commit.hash]) {
             var build = build_details[commit.hash][builder];
             build.color = getBuildColor(build);
+            maybeSetBuildUrls(build);
 
             if (!builds[builder]) {
               // This is the first time we've seen this builder.
@@ -408,6 +429,9 @@
                   "flaky": false,
                   "ignoreFailure": false,
               };
+              if (build.dashboardBuilderUrl) {
+                builderDetails.url = build.dashboardBuilderUrl
+              }
               var split = builder.split("-");
               if (split.length > 2 && VALID_BUILDER_CATEGORIES.indexOf(split[0]) != -1) {
                   builderDetails.category = split[0];
