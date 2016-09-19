@@ -90,6 +90,24 @@
     },
     {
       "key": {
+        "uuid": "10261bad_6ae0bf1f",
+        "filename": "task_scheduler/go/scheduling/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-19T14:21:55Z",
+      "side": 1,
+      "message": "Okay, turns out that this won\u0027t work due to the necessary flow. I changed GetTaskSpec to perform the lock itself and removed the cache\u0027s Lock and Unlock methods. I\u0027ll worry about the locking being slow later if it\u0027s necessary.",
+      "parentUuid": "10261bad_ca535308",
+      "revId": "c3af601e376c250db0d19a7b86a877ef111689e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10261bad_ff55b34f",
         "filename": "task_scheduler/go/scheduling/specs_test.go",
         "patchSetId": 1
