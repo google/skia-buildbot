@@ -155,3 +155,36 @@ func TestRecurse(t *testing.T) {
 		assert.True(t, gotCommits[c])
 	}
 }
+
+func TestRecurseAllBranches(t *testing.T) {
+	tmp, repo, commits := gitSetup(t)
+	defer testutils.RemoveAll(t, tmp)
+
+	test := func() {
+		gotCommits := map[*Commit]bool{}
+		assert.NoError(t, repo.RecurseAllBranches(func(c *Commit) (bool, error) {
+			assert.False(t, gotCommits[c])
+			gotCommits[c] = true
+			return true, nil
+		}))
+		assert.Equal(t, len(commits), len(gotCommits))
+		for _, c := range commits {
+			assert.True(t, gotCommits[c])
+		}
+	}
+
+	// Get the list of commits using head.RecurseAllBranches(). Ensure that
+	// we get all of the commits but don't get any duplicates.
+	test()
+
+	// The above used only one branch. Add a branch and ensure that we see
+	// its commits too.
+	run(t, tmp, "git", "checkout", "-b", "mybranch", "-t", "origin/master")
+	commit(t, tmp, "anotherfile.txt")
+	run(t, tmp, "git", "push", "origin", "mybranch")
+	assert.NoError(t, repo.Update())
+	c := repo.Get("mybranch")
+	assert.NotNil(t, c)
+	commits = append(commits, c)
+	test()
+}
