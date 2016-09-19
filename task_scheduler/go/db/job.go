@@ -5,6 +5,8 @@ import (
 	"encoding/gob"
 	"sync"
 	"time"
+
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -119,11 +121,7 @@ type Job struct {
 
 // Copy returns a copy of the Job.
 func (j *Job) Copy() *Job {
-	var deps []string
-	if j.Dependencies != nil {
-		deps = make([]string, len(j.Dependencies))
-		copy(deps, j.Dependencies)
-	}
+	deps := util.CopyStringSlice(j.Dependencies)
 	return &Job{
 		Created:      j.Created,
 		DbModified:   j.DbModified,
