@@ -43,6 +43,24 @@
     },
     {
       "key": {
+        "uuid": "10261bad_c5c8e49f",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-19T18:50:26Z",
+      "side": 1,
+      "message": "Yes, definitely. Maybe instead of adding the suffix here, we should add it to all of the actual Task Spec names at first. That will prevent us from having conflicting perf/gold results getting uploaded.",
+      "parentUuid": "10261bad_a593a8a7",
+      "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bb4c647_17801ca6",
         "filename": "status/go/franken/cache.go",
         "patchSetId": 1
