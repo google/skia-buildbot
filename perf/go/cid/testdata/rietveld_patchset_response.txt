@@ -1,0 +1,68 @@
+{
+   "message" : "again",
+   "files" : {
+      "mywhitespace.txt" : {
+         "num_added" : 1,
+         "num_chunks" : 1,
+         "no_base_file" : false,
+         "is_binary" : false,
+         "status" : "A",
+         "num_removed" : 0,
+         "property_changes" : "",
+         "id" : 50001
+      }
+   },
+   "num_comments" : 0,
+   "created" : "2015-12-01 16:40:12.862450",
+   "current_datetime" : "2016-09-19 17:06:36.992370",
+   "depends_on_patchset" : null,
+   "owner_email" : "jcgregorio@google.com",
+   "try_job_results" : [
+      {
+         "category" : null,
+         "slave" : "skiabot-macmini-10_8-bench",
+         "builder" : "Perf-Mac10.8-Clang-MacMini4.1-GPU-GeForce320M-x86_64-Release-Trybot",
+         "result" : 0,
+         "build_id" : "9027619610036679472",
+         "revision" : "",
+         "tests" : [],
+         "project" : "skia",
+         "reason" : null,
+         "clobber" : null,
+         "buildnumber" : 12,
+         "build_properties" : "{\"blamelist\": [\"jcgregorio@google.com\"], \"branch\": null, \"build_revision\": \"d6b650e3405e8eaab023a69100de7b63bc03bb16\", \"build_scm\": \"git\", \"buildbotURL\": \"http://build.chromium.org/p/client.skia/\", \"buildername\": \"Perf-Mac10.8-Clang-MacMini4.1-GPU-GeForce320M-x86_64-Release-Trybot\", \"buildnumber\": 12, \"got_revision\": \"9323dc6a72de301f23e1187adc2365395b4b23d8\", \"issue\": 1467533002, \"master\": \"client.skia\", \"mastername\": \"client.skia\", \"patch_project\": \"skia\", \"patch_storage\": \"rietveld\", \"patchset\": 40001, \"project\": \"\", \"recipe\": \"skia/skia\", \"repository\": \"\", \"requestedAt\": 1448988063, \"requester\": \"jcgregorio@google.com\", \"revision\": \"\", \"rietveld\": \"https://codereview.chromium.org\", \"slavename\": \"skiabot-macmini-10_8-bench\", \"workdir\": \"/Users/chrome-bot/buildbot/skiabot-macmini-10_8-bench/build/slave/workdir\"}",
+         "url" : "http://build.chromium.org/p/client.skia/builders/Perf-Mac10.8-Clang-MacMini4.1-GPU-GeForce320M-x86_64-Release-Trybot/builds/12",
+         "master" : "client.skia",
+         "requester" : "jcgregorio@google.com",
+         "key" : "ahdzfmNocm9taXVtY29kZXJldmlldy1ocnIwCxIXQnVpbGRidWNrZXRUcnlKb2JSZXN1bHQiEzkwMjc2MTk2MTAwMzY2Nzk0NzIM",
+         "parent_name" : null,
+         "timestamp" : "2015-12-01 17:01:15.033030"
+      },
+      {
+         "buildnumber" : 13,
+         "build_properties" : "{\"blamelist\": [\"jcgregorio@google.com\"], \"branch\": null, \"build_revision\": \"d6b650e3405e8eaab023a69100de7b63bc03bb16\", \"build_scm\": \"git\", \"buildbotURL\": \"http://build.chromium.org/p/client.skia/\", \"buildername\": \"Perf-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-Trybot\", \"buildnumber\": 13, \"got_revision\": \"9323dc6a72de301f23e1187adc2365395b4b23d8\", \"issue\": 1467533002, \"master\": \"client.skia\", \"mastername\": \"client.skia\", \"patch_project\": \"skia\", \"patch_storage\": \"rietveld\", \"patchset\": 40001, \"project\": \"\", \"recipe\": \"skia/skia\", \"repository\": \"\", \"requestedAt\": 1448988063, \"requester\": \"jcgregorio@google.com\", \"revision\": \"\", \"rietveld\": \"https://codereview.chromium.org\", \"slavename\": \"skiabot-linux-tester-003\", \"workdir\": \"/home/default/storage/skia-repo/buildbot/skiabot-linux-tester-003/build/slave/workdir\"}",
+         "url" : "http://build.chromium.org/p/client.skia/builders/Perf-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-Trybot/builds/13",
+         "master" : "client.skia",
+         "requester" : "jcgregorio@google.com",
+         "key" : "ahdzfmNocm9taXVtY29kZXJldmlldy1ocnIwCxIXQnVpbGRidWNrZXRUcnlKb2JSZXN1bHQiEzkwMjc2MTk2MTAwMzcyMjE0NzIM",
+         "parent_name" : null,
+         "timestamp" : "2015-12-01 16:57:29.855230",
+         "category" : null,
+         "slave" : "skiabot-linux-tester-003",
+         "builder" : "Perf-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-Trybot",
+         "result" : 0,
+         "build_id" : "9027619610037221472",
+         "revision" : "",
+         "project" : "skia",
+         "tests" : [],
+         "reason" : null,
+         "clobber" : null
+      }
+   ],
+   "issue" : 1467533002,
+   "owner" : "jcgregorio",
+   "dependent_patchsets" : [],
+   "patchset" : 40001,
+   "url" : null,
+   "modified" : "2015-12-01 16:40:12.862460"
+}
