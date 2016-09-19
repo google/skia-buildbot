@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/testutils"
@@ -23,24 +24,21 @@ func TestTaskSpecs(t *testing.T) {
 	repos := gitinfo.NewRepoMap(tr.Dir)
 	cache := newTaskCfgCache(repos)
 
-	c1 := "81add9e329cde292667a1ce427007b5ff701fad1"
-	c2 := "4595a2a2662d6cef863870ca68f64824c4b5ef2d"
-	repo := "skia.git"
 	rs1 := db.RepoState{
-		Repo:     repo,
+		Repo:     repoName,
 		Revision: c1,
 	}
 	rs2 := db.RepoState{
-		Repo:     repo,
+		Repo:     repoName,
 		Revision: c2,
 	}
 	specs, err := cache.GetTaskSpecsForRepoStates([]db.RepoState{rs1, rs2})
 	assert.NoError(t, err)
-
 	// c1 has a Build and Test task, c2 has a Build, Test, and Perf task.
 	total, countC1, countC2, countBuild, countTest, countPerf := 0, 0, 0, 0, 0, 0
 	for rs, byName := range specs {
 		for name, _ := range byName {
+			glog.Infof("%s %s", rs, name)
 			total++
 			if rs.Revision == c1 {
 				countC1++
@@ -78,15 +76,12 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	cache := newTaskCfgCache(repos)
 
 	// Load configs into the cache.
-	c1 := "81add9e329cde292667a1ce427007b5ff701fad1"
-	c2 := "4595a2a2662d6cef863870ca68f64824c4b5ef2d"
-	repo := "skia.git"
 	rs1 := db.RepoState{
-		Repo:     repo,
+		Repo:     repoName,
 		Revision: c1,
 	}
 	rs2 := db.RepoState{
-		Repo:     repo,
+		Repo:     repoName,
 		Revision: c2,
 	}
 	_, err := cache.GetTaskSpecsForRepoStates([]db.RepoState{rs1, rs2})
@@ -94,7 +89,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	assert.Equal(t, 2, len(cache.cache))
 
 	// Cleanup, with a period intentionally designed to remove c1 but not c2.
-	r, err := gitinfo.NewGitInfo(path.Join(tr.Dir, repo), false, false)
+	r, err := gitinfo.NewGitInfo(path.Join(tr.Dir, repoName), false, false)
 	assert.NoError(t, err)
 	d1, err := r.Details(c1, false)
 	assert.NoError(t, err)
@@ -105,10 +100,11 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 }
 
 func TestTasksCircularDependency(t *testing.T) {
-	makeTasksCfg := func(tasks map[string][]string) string {
-		specs := make(map[string]*TaskSpec, len(tasks))
+	// tasks is a map[task_spec_name][]dependency_name
+	makeTasksCfg := func(tasks, jobs map[string][]string) string {
+		taskSpecs := make(map[string]*TaskSpec, len(tasks))
 		for name, deps := range tasks {
-			specs[name] = &TaskSpec{
+			taskSpecs[name] = &TaskSpec{
 				CipdPackages: []*CipdPackage{},
 				Dependencies: deps,
 				Dimensions:   []string{},
@@ -116,8 +112,15 @@ func TestTasksCircularDependency(t *testing.T) {
 				Priority:     0.0,
 			}
 		}
+		jobSpecs := make(map[string]*JobSpec, len(jobs))
+		for name, deps := range jobs {
+			jobSpecs[name] = &JobSpec{
+				TaskSpecs: deps,
+			}
+		}
 		cfg := TasksCfg{
-			Tasks: specs,
+			Tasks: taskSpecs,
+			Jobs:  jobSpecs,
 		}
 		c, err := json.Marshal(&cfg)
 		assert.NoError(t, err)
@@ -127,16 +130,20 @@ func TestTasksCircularDependency(t *testing.T) {
 	// Bonus: Unknown dependency.
 	_, err := ParseTasksCfg(makeTasksCfg(map[string][]string{
 		"a": []string{"b"},
+	}, map[string][]string{
+		"j": []string{"a"},
 	}))
 	assert.EqualError(t, err, "Task \"a\" has unknown task \"b\" as a dependency.")
 
-	// No tasks.
-	_, err = ParseTasksCfg(makeTasksCfg(map[string][]string{}))
+	// No tasks or jobs.
+	_, err = ParseTasksCfg(makeTasksCfg(map[string][]string{}, map[string][]string{}))
 	assert.NoError(t, err)
 
 	// Single-node cycle.
 	_, err = ParseTasksCfg(makeTasksCfg(map[string][]string{
 		"a": []string{"a"},
+	}, map[string][]string{
+		"j": []string{"a"},
 	}))
 	assert.EqualError(t, err, "Found a circular dependency involving \"a\" and \"a\"")
 
@@ -144,9 +151,10 @@ func TestTasksCircularDependency(t *testing.T) {
 	_, err = ParseTasksCfg(makeTasksCfg(map[string][]string{
 		"a": []string{"b"},
 		"b": []string{"a"},
+	}, map[string][]string{
+		"j": []string{"a"},
 	}))
-	// Can't use a specific error message because map iteration order is non-deterministic.
-	assert.Error(t, err)
+	assert.EqualError(t, err, "Found a circular dependency involving \"b\" and \"a\"")
 
 	// Longer cycle.
 	_, err = ParseTasksCfg(makeTasksCfg(map[string][]string{
@@ -160,8 +168,10 @@ func TestTasksCircularDependency(t *testing.T) {
 		"h": []string{"i"},
 		"i": []string{"j"},
 		"j": []string{"a"},
+	}, map[string][]string{
+		"j": []string{"a"},
 	}))
-	assert.Error(t, err)
+	assert.EqualError(t, err, "Found a circular dependency involving \"j\" and \"a\"")
 
 	// No false positive on a complex-ish graph.
 	_, err = ParseTasksCfg(makeTasksCfg(map[string][]string{
@@ -172,6 +182,36 @@ func TestTasksCircularDependency(t *testing.T) {
 		"e": []string{"b"},
 		"f": []string{"c"},
 		"g": []string{"d", "e", "f"},
+	}, map[string][]string{
+		"j": []string{"a", "g"},
 	}))
 	assert.NoError(t, err)
+
+	// Unreachable task (d)
+	_, err = ParseTasksCfg(makeTasksCfg(map[string][]string{
+		"a": []string{},
+		"b": []string{"a"},
+		"c": []string{"a"},
+		"d": []string{"b"},
+		"e": []string{"b"},
+		"f": []string{"c"},
+		"g": []string{"e", "f"},
+	}, map[string][]string{
+		"j": []string{"g"},
+	}))
+	assert.EqualError(t, err, "Task \"d\" is not reachable by any Job!")
+
+	// Dependency on unknown task.
+	_, err = ParseTasksCfg(makeTasksCfg(map[string][]string{
+		"a": []string{},
+		"b": []string{"a"},
+		"c": []string{"a"},
+		"d": []string{"b"},
+		"e": []string{"b"},
+		"f": []string{"c"},
+		"g": []string{"e", "f"},
+	}, map[string][]string{
+		"j": []string{"q"},
+	}))
+	assert.EqualError(t, err, "Job \"j\" has unknown task \"q\" as a dependency.")
 }

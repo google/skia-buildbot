@@ -355,6 +355,18 @@ func CopyStringMap(m map[string]string) map[string]string {
 	return ret
 }
 
+// CopyStringSlice copies the given []string such that reflect.DeepEqual returns
+// true for the given slice and the returned slice. In particular, preservces
+// nil slice input.
+func CopyStringSlice(s []string) []string {
+	if s == nil {
+		return nil
+	}
+	rv := make([]string, len(s))
+	copy(rv, s)
+	return rv
+}
+
 // KeysOfParamSet returns the keys of a param set.
 func KeysOfParamSet(set map[string][]string) []string {
 	ret := make([]string, 0, len(set))

@@ -37,8 +37,8 @@ const (
 	//
 	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
 	//
-	c1        = "81add9e329cde292667a1ce427007b5ff701fad1"
-	c2        = "4595a2a2662d6cef863870ca68f64824c4b5ef2d"
+	c1        = "10ca3b86bac8991967ebe15cc89c22fd5396a77b"
+	c2        = "d4fa60ab35c99c886220c4629c36b9785cc89c8b"
 	buildTask = "Build-Ubuntu-GCC-Arm7-Release-Android"
 	testTask  = "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
 	perfTask  = "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
@@ -1209,6 +1209,11 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 				Dimensions:   []string{"pool:Skia"},
 				Isolate:      "dummy.isolate",
 				Priority:     1.0,
+			},
+		},
+		Jobs: map[string]*JobSpec{
+			"j1": &JobSpec{
+				TaskSpecs: []string{taskName},
 			},
 		},
 	}

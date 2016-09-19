@@ -199,6 +199,7 @@ func main() {
 		},
 	}
 	moarTasks := map[string]*scheduling.TaskSpec{}
+	jobs := map[string]*scheduling.JobSpec{}
 	for name, task := range tasks {
 		for i := 0; i < 100; i++ {
 			newName := fmt.Sprintf("%s%d", name, i)
@@ -214,10 +215,15 @@ func main() {
 				Priority:     task.Priority,
 			}
 			moarTasks[newName] = newTask
+			jobs[newName] = &scheduling.JobSpec{
+				Priority:  task.Priority,
+				TaskSpecs: []string{newName},
+			}
 		}
 	}
 	cfg := scheduling.TasksCfg{
 		Tasks: moarTasks,
+		Jobs:  jobs,
 	}
 	f, err := os.Create(path.Join(repoDir, scheduling.TASKS_CFG_FILE))
 	assertNoError(err)

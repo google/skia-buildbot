@@ -7,9 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
-
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
 
@@ -30,7 +29,7 @@ func ParseTasksCfg(contents string) (*TasksCfg, error) {
 		}
 	}
 
-	if err := findCycles(rv.Tasks); err != nil {
+	if err := findCycles(rv.Tasks, rv.Jobs); err != nil {
 		return nil, err
 	}
 
@@ -49,8 +48,12 @@ func ReadTasksCfg(repo *gitinfo.GitInfo, commit string) (*TasksCfg, error) {
 // TasksCfg is a struct which describes all Swarming tasks for a repo at a
 // particular commit.
 type TasksCfg struct {
+	// Jobs is a map whose keys are JobSpec names and values are JobSpecs
+	// which describe sets of tasks to run.
+	Jobs map[string]*JobSpec `json:"jobs"`
+
 	// Tasks is a map whose keys are TaskSpec names and values are TaskSpecs
-	// detailing the Swarming tasks to run at each commit.
+	// detailing the Swarming tasks which may be run.
 	Tasks map[string]*TaskSpec `json:"tasks"`
 }
 
@@ -108,22 +111,19 @@ func (t *TaskSpec) Validate(cfg *TasksCfg) error {
 
 // Copy returns a copy of the TaskSpec.
 func (t *TaskSpec) Copy() *TaskSpec {
-	cipdPackages := make([]*CipdPackage, 0, len(t.CipdPackages))
-	pkgs := make([]CipdPackage, len(t.CipdPackages))
-	for i, p := range t.CipdPackages {
-		pkgs[i] = *p
-		cipdPackages = append(cipdPackages, &pkgs[i])
+	var cipdPackages []*CipdPackage
+	if len(t.CipdPackages) > 0 {
+		cipdPackages = make([]*CipdPackage, 0, len(t.CipdPackages))
+		pkgs := make([]CipdPackage, len(t.CipdPackages))
+		for i, p := range t.CipdPackages {
+			pkgs[i] = *p
+			cipdPackages = append(cipdPackages, &pkgs[i])
+		}
 	}
-	deps := make([]string, len(t.Dependencies))
-	copy(deps, t.Dependencies)
-	dims := make([]string, len(t.Dimensions))
-	copy(dims, t.Dimensions)
-	environment := make(map[string]string, len(t.Environment))
-	for k, v := range t.Environment {
-		environment[k] = v
-	}
-	extraArgs := make([]string, len(t.ExtraArgs))
-	copy(extraArgs, t.ExtraArgs)
+	deps := util.CopyStringSlice(t.Dependencies)
+	dims := util.CopyStringSlice(t.Dimensions)
+	environment := util.CopyStringMap(t.Environment)
+	extraArgs := util.CopyStringSlice(t.ExtraArgs)
 	return &TaskSpec{
 		CipdPackages: cipdPackages,
 		Dependencies: deps,
@@ -141,6 +141,25 @@ type CipdPackage struct {
 	Name    string `json:"name"`
 	Path    string `json:"path"`
 	Version string `json:"version"`
+}
+
+// JobSpec is a struct which describes a set of TaskSpecs to run as part of a
+// larger effort.
+type JobSpec struct {
+	Priority  float64  `json:"priority"`
+	TaskSpecs []string `json:"tasks"`
+}
+
+// Copy returns a copy of the JobSpec.
+func (j *JobSpec) Copy() *JobSpec {
+	var taskSpecs []string
+	if j.TaskSpecs != nil {
+		taskSpecs = make([]string, len(j.TaskSpecs))
+		copy(taskSpecs, j.TaskSpecs)
+	}
+	return &JobSpec{
+		TaskSpecs: taskSpecs,
+	}
 }
 
 // taskCfgCache is a struct used for caching tasks cfg files. The user should
@@ -192,6 +211,15 @@ func (c *taskCfgCache) readTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 	return cfg, nil
 }
 
+// ReadTasksCfg reads the task cfg file from the given RepoState and returns it.
+// Stores a cache of already-read task cfg files. Syncs the repo and reads the
+// file if needed.
+func (c *taskCfgCache) ReadTasksCfg(rs db.RepoState) (*TasksCfg, error) {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	return c.readTasksCfg(rs)
+}
+
 // GetTaskSpecsForRepoStates returns a set of TaskSpecs for each of the
 // given set of RepoStates, keyed by RepoState and TaskSpec name.
 func (c *taskCfgCache) GetTaskSpecsForRepoStates(rs []db.RepoState) (map[db.RepoState]map[string]*TaskSpec, error) {
@@ -201,10 +229,7 @@ func (c *taskCfgCache) GetTaskSpecsForRepoStates(rs []db.RepoState) (map[db.Repo
 	for _, s := range rs {
 		cfg, err := c.readTasksCfg(s)
 		if err != nil {
-			// We may have changed the task config format. Just log an error.
-			// TODO(borenet): Remove this? Blacklist commits with bad tasks cfg instead?
-			glog.Errorf("Failed to obtain tasks cfg at %s: %s", s, err)
-			continue
+			return nil, err
 		}
 		// Make a copy of the task specs.
 		subMap := make(map[string]*TaskSpec, len(cfg.Tasks))
@@ -214,6 +239,23 @@ func (c *taskCfgCache) GetTaskSpecsForRepoStates(rs []db.RepoState) (map[db.Repo
 		rv[s] = subMap
 	}
 	return rv, nil
+}
+
+// GetTaskSpec returns the TaskSpec at the given RepoState, or an error if no
+// such TaskSpec exists. Assumes the caller holds a lock.
+func (c *taskCfgCache) GetTaskSpec(rs db.RepoState, name string) (*TaskSpec, error) {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+
+	cfg, err := c.readTasksCfg(rs)
+	if err != nil {
+		return nil, err
+	}
+	t, ok := cfg.Tasks[name]
+	if !ok {
+		return nil, fmt.Errorf("No such task spec: %s @ %s", name, rs)
+	}
+	return t.Copy(), nil
 }
 
 // Cleanup removes cache entries which are outside of our scheduling window.
@@ -238,8 +280,9 @@ func (c *taskCfgCache) Cleanup(period time.Duration) error {
 }
 
 // findCycles searches for cyclical dependencies in the task specs and returns
-// an error if any are found.
-func findCycles(tasks map[string]*TaskSpec) error {
+// an error if any are found. Also ensures that all task specs are reachable
+// from at least one job spec and that all jobs specs' dependencies are valid.
+func findCycles(tasks map[string]*TaskSpec, jobs map[string]*JobSpec) error {
 	// Create vertex objects with metadata for the depth-first search.
 	type vertex struct {
 		active  bool
@@ -257,7 +300,7 @@ func findCycles(tasks map[string]*TaskSpec) error {
 		}
 	}
 
-	// Perform a depth-first search of the graph.
+	// visit performs a depth-first search of the graph, starting at v.
 	var visit func(*vertex) error
 	visit = func(v *vertex) error {
 		v.active = true
@@ -279,11 +322,26 @@ func findCycles(tasks map[string]*TaskSpec) error {
 		return nil
 	}
 
+	// Perform a DFS, starting at each of the jobs' dependencies.
+	for jobName, j := range jobs {
+		for _, d := range j.TaskSpecs {
+			v, ok := vertices[d]
+			if !ok {
+				return fmt.Errorf("Job %q has unknown task %q as a dependency.", jobName, d)
+			}
+			if !v.visited {
+				if err := visit(v); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	// If any vertices have not been visited, then there are tasks which
+	// no job has as a dependency. Report an error.
 	for _, v := range vertices {
 		if !v.visited {
-			if err := visit(v); err != nil {
-				return err
-			}
+			return fmt.Errorf("Task %q is not reachable by any Job!", v.name)
 		}
 	}
 	return nil
