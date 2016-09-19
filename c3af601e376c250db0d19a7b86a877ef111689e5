@@ -108,6 +108,24 @@
     },
     {
       "key": {
+        "uuid": "10261bad_0afcab9c",
+        "filename": "task_scheduler/go/scheduling/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-19T14:40:57Z",
+      "side": 1,
+      "message": "Ok, sorry to be a pain. Internal locking is convenient when it works, but I definitely prefer external locking rather than a hybrid approach. It just gets too confusing.\n\nAnother possible approach is copy-on-write.",
+      "parentUuid": "10261bad_6ae0bf1f",
+      "revId": "c3af601e376c250db0d19a7b86a877ef111689e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10261bad_ff55b34f",
         "filename": "task_scheduler/go/scheduling/specs_test.go",
         "patchSetId": 1
