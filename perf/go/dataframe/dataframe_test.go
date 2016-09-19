@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/ptracestore"
 )
 
@@ -50,15 +51,15 @@ type mockPTraceStore struct {
 	matchFail bool
 }
 
-func (m mockPTraceStore) Add(commitID *ptracestore.CommitID, values map[string]float32, sourceFile string) error {
+func (m mockPTraceStore) Add(commitID *cid.CommitID, values map[string]float32, sourceFile string) error {
 	return nil
 }
 
-func (m mockPTraceStore) Details(commitID *ptracestore.CommitID, traceID string) (string, float32, error) {
+func (m mockPTraceStore) Details(commitID *cid.CommitID, traceID string) (string, float32, error) {
 	return "", 0, nil
 }
 
-func (m mockPTraceStore) Match(commitIDs []*ptracestore.CommitID, q *query.Query) (ptracestore.TraceSet, error) {
+func (m mockPTraceStore) Match(commitIDs []*cid.CommitID, q *query.Query) (ptracestore.TraceSet, error) {
 	if m.matchFail {
 		return nil, fmt.Errorf("Failed to retrieve traces.")
 	}
@@ -96,23 +97,23 @@ func TestRangeImpl(t *testing.T) {
 	expected_headers := []*ColumnHeader{
 		&ColumnHeader{
 			Source:    "master",
-			ID:        "0",
+			Offset:    0,
 			Desc:      "",
 			Timestamp: ts0.Unix(),
 		},
 		&ColumnHeader{
 			Source:    "master",
-			ID:        "1",
+			Offset:    1,
 			Desc:      "",
 			Timestamp: ts1.Unix(),
 		},
 	}
-	expected_pcommits := []*ptracestore.CommitID{
-		&ptracestore.CommitID{
+	expected_pcommits := []*cid.CommitID{
+		&cid.CommitID{
 			Offset: 0,
 			Source: "master",
 		},
-		&ptracestore.CommitID{
+		&cid.CommitID{
 			Offset: 1,
 			Source: "master",
 		},
@@ -133,23 +134,23 @@ func TestNew(t *testing.T) {
 	colHeaders := []*ColumnHeader{
 		&ColumnHeader{
 			Source:    "master",
-			ID:        "0",
+			Offset:    0,
 			Desc:      "",
 			Timestamp: ts0.Unix(),
 		},
 		&ColumnHeader{
 			Source:    "master",
-			ID:        "1",
+			Offset:    1,
 			Desc:      "",
 			Timestamp: ts1.Unix(),
 		},
 	}
-	pcommits := []*ptracestore.CommitID{
-		&ptracestore.CommitID{
+	pcommits := []*cid.CommitID{
+		&cid.CommitID{
 			Offset: 0,
 			Source: "master",
 		},
-		&ptracestore.CommitID{
+		&cid.CommitID{
 			Offset: 1,
 			Source: "master",
 		},
