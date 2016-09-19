@@ -257,8 +257,8 @@ func UpdateJobWithRetries(db JobDB, id string, f func(*Job) error) (*Job, error)
 
 // RemoteDB allows retrieving tasks and jobs and full access to comments.
 type RemoteDB interface {
-	//JobReader
 	TaskReader
+	JobReader
 	CommentDB
 }
 
