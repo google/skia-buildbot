@@ -1,0 +1,65 @@
+<html>
+<head>
+  <title>commit-detail-panel-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/common/js/common.js"></script>
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel=import href="/res/imp/bower_components/polymer/polymer.html">
+  <link rel=import href="commit-detail-panel.html">
+  <link rel=import href="/res/common/imp/error-toast-sk.html">
+  <style type="text/css" media="screen">
+    body {
+      font-family:Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+    }
+
+    commits-detail-panel-sk {
+      margin-top: 1em;
+      display: block;
+    }
+
+    a {
+      color: #FF7F00;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Commits</h1>
+
+  <commit-detail-panel-sk id=panel></commit-detail-panel-sk>
+
+  <script type="text/javascript" charset="utf-8">
+    var commitinfo = [
+      {
+        ts: 1439649751,
+        author: "foo (foo@example.org)",
+        url: "skia.googlesource.com/bar",
+        message: "Commit from foo.",
+      },
+      {
+        ts: 1439648914,
+        author: "bar (bar@example.org)",
+        url: "skia.googlesource.com/foo",
+        message: "Commit from bar",
+      },
+      {
+        ts: 1439649951,
+        author: "foo (foo@example.org)",
+        url: "https://codereview.chromium.org/1490543002",
+        message: "Whitespace change",
+      },
+      {
+        ts: 1439699951,
+        author: "foo (foo@example.org)",
+        url: "https://codereview.chromium.org/1490543002",
+        message: "Another whitespace change",
+      },
+    ];
+    $$$('#panel').setCommitDetail(commitinfo);
+  </script>
+
+  <error-toast-sk></error-toast-sk>
+</body>
+</html>
