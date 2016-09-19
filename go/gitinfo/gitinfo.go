@@ -280,6 +280,21 @@ func (g *GitInfo) IndexOf(hash string) (int, error) {
 	return n, nil
 }
 
+// ByIndex returns a LongCommit describing the commit
+// at position N, as ordered in the current branch.
+//
+// Does not make sense if readCommitsFromGitAllBranches has been
+// called.
+func (g *GitInfo) ByIndex(N int) (*vcsinfo.LongCommit, error) {
+	g.mutex.Lock()
+	numHashes := len(g.hashes)
+	g.mutex.Unlock()
+	if N < 0 || N >= numHashes {
+		return nil, fmt.Errorf("Hash index not found: %d", N)
+	}
+	return g.Details(g.hashes[N], false)
+}
+
 // LastN returns the last N commits.
 func (g *GitInfo) LastN(N int) []string {
 	g.mutex.Lock()
