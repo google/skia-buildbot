@@ -335,16 +335,8 @@ func (t *Task) Success() bool {
 }
 
 func (t *Task) Copy() *Task {
-	var commits []string
-	if t.Commits != nil {
-		commits = make([]string, len(t.Commits))
-		copy(commits, t.Commits)
-	}
-	var parentTaskIds []string
-	if t.ParentTaskIds != nil {
-		parentTaskIds = make([]string, len(t.ParentTaskIds))
-		copy(parentTaskIds, t.ParentTaskIds)
-	}
+	commits := util.CopyStringSlice(t.Commits)
+	parentTaskIds := util.CopyStringSlice(t.ParentTaskIds)
 	return &Task{
 		Commits:        commits,
 		Created:        t.Created,
