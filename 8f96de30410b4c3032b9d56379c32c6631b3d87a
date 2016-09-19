@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "10261bad_0acf0baa",
+        "filename": "golden/go/serialize/serialize.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 418,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-19T14:31:15Z",
+      "side": 1,
+      "message": "Why stopping the use of putvarint? It should take up less space than writing each byte.",
+      "revId": "8f96de30410b4c3032b9d56379c32c6631b3d87a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
