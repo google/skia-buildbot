@@ -16,6 +16,24 @@
       "revId": "8f96de30410b4c3032b9d56379c32c6631b3d87a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_2ad08716",
+        "filename": "golden/go/serialize/serialize.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 418,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-09-19T14:49:17Z",
+      "side": 1,
+      "message": "Putvarint doesn\u0027t just encode bytes it encodes them in a way that allows to detect the end of the bytes that make up a single number.\nSee https://golang.org/src/encoding/binary/varint.go#L7\n\nI have lots of integers with fixed number of bytes, this was the easiest way without changing the overall interface.  Settling on a fixed  type (i.e. uint16, unint32 etc.) \nThe TestIntsToBytes would fail with the old scheme because the given number did not fit into two bytes when encoded with Putvarint.",
+      "parentUuid": "10261bad_0acf0baa",
+      "revId": "8f96de30410b4c3032b9d56379c32c6631b3d87a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
