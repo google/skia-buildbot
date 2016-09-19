@@ -1,0 +1,84 @@
+<!-- The <commit-detail-panel-sk> custom element declaration.
+
+  Displays an Array of serialized cid.CommitDetails in a table.
+
+  Attributes:
+    None.
+
+  Events:
+    None.
+
+  Methods:
+    setCommitDetail(d) - Where d is an Array of serialized
+      cid.CommitDetail, i.e. they look like:
+
+      {
+        author: "foo (foo@example.org)",
+        url: "skia.googlesource.com/bar",
+        message: "Commit from foo.",
+        ts: 1439649751,
+      },
+-->
+
+<dom-module id="commit-detail-panel-sk">
+  <style>
+    pre,
+    span {
+      margin: 0;
+    }
+
+    a {
+      color: #FF7F00;
+      font-weight: bold;
+    }
+  </style>
+  <template>
+    <template is="dom-repeat" items="{{_details}}">
+      <table>
+        <tr>
+          <td>[[_trim(item.author)]]</td>
+          <td>[[_humanize(item.ts)]]</td>
+          <td><a href$="[[item.url]]">[[_trimNewline(item.message)]]</a></td>
+        </tr>
+      </table>
+    </template>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "commit-detail-panel-sk",
+
+    properties: {
+      _details: {
+        type: Array,
+        value: function() { return []; },
+        reflectToAttribute: false,
+      },
+    },
+
+    setCommitDetail: function(details) {
+      this.set('_details', details);
+    },
+
+    _humanize: function (s) {
+      return sk.human.diffDate(s * 1000);
+    },
+
+    _trim: function(s) {
+      s = s.slice(0, 30);
+      while (s.length < 30) {
+        s = s + " ";
+      }
+      return s;
+    },
+
+    _trimNewline: function(s) {
+      if (!s) {
+        return "";
+      }
+      return this._trim(s.split("\n")[0]);
+    },
+
+  });
+</script>
