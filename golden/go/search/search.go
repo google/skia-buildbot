@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
@@ -312,8 +313,9 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 		ret = append(ret, digestEntry)
 		allDigests = append(allDigests, digestEntry.Digest)
 	}
-
-	loadDigests(storages.DiffStore, allDigests)
+	// This has priority PRIORITY_NOW because this is used in a HTTP request where
+	// the requester expects the images to be be available.
+	storages.DiffStore.WarmDigests(diff.PRIORITY_NOW, allDigests)
 
 	issueResponse := &IssueResponse{
 		IssueDetails:   issue,
@@ -578,7 +580,7 @@ type DigestDiff struct {
 // an instance of DigestDiff.
 func CompareDigests(test, left, right string, storages *storage.Storage, idx *indexer.SearchIndex) (*DigestDiff, error) {
 	// Get the diff between the two digests
-	diff, err := storages.DiffStore.Get(left, []string{right})
+	diff, err := storages.DiffStore.Get(diff.PRIORITY_NOW, left, []string{right})
 	if err != nil {
 		return nil, err
 	}
@@ -646,11 +648,100 @@ func GetDigestDetails(test, digest string, storages *storage.Storage, idx *index
 	}, nil
 }
 
-// TODO(stephana): Remove this stop gap when a better diff store is in place.
+type CTQuery struct {
+	Test        string   `json:"test"`
+	RowQuery    *Query   `json:"rowQuery"`
+	ColumnQuery *Query   `json:"columnQuery"`
+	Match       []string `json:"match"`
+	RowN        int      `json:"rowN"`
+	ColumnN     int      `json:"columnN"`
+	SortRows    string   `json:"sortRows"`
+	SortColumns string   `json:"sortColumns"`
+	RowsDir     string   `json:"rowsDir"`
+	ColumnsDir  string   `json:"columnsDir"`
+}
+type CTResponse struct {
+	Grid      *CTGrid `json:"grid"`
+	Name      string  `json:"name"`
+	Corpus    string  `json:"source_type"`
+	Positive  int     `json:"pos"`
+	Negative  int     `json:"neg"`
+	Untriaged int     `json:"unt"`
+}
 
-// loadDigests makes sure the digests are loaded.
-func loadDigests(diffStore diff.DiffStore, digests []string) {
-	go func() {
-		diffStore.AbsPath(digests)
-	}()
+type CTGrid struct {
+	Cells        [][]*CTDiffMetrics `json:"cells"`
+	Rows         []*CTRow           `json:"rows"`
+	RowsTotal    int                `json:"rowTotal"`
+	Columns      []string           `json:"columns"` // Contains the column types.
+	ColumnsTotal int                `json:"columnsTotal"`
+}
+
+type CTRow struct {
+	Digest string `json:"digest"`
+	N      int    `json:"n"`
+}
+
+type CTDiffMetrics struct {
+	diff.DiffMetrics
+	CTRow
+}
+
+func CompareTest(ctQuery *CTQuery, storages *storage.Storage, idx *indexer.SearchIndex) (*CTResponse, error) {
+	// Make sure the test is set right.
+	ctQuery.ColumnQuery.Query.Set(types.PRIMARY_KEY_FIELD, ctQuery.Test)
+	ctQuery.RowQuery.Query.Set(types.PRIMARY_KEY_FIELD, ctQuery.Test)
+
+	rowDigests, err := filterTile(ctQuery.RowQuery, ctQuery.Test, storages, idx)
+	if err != nil {
+		return nil, err
+	}
+
+	// filterTile is a trimmed down replacement for searchTile.
+	// Find all the row digests
+
+	// Find the column digests.
+
+	// Compare them
+
+	// Sort the results.
+
+	// Loop over the tile and pull out all the digests that match
+	// the query, collecting the matching traces as you go. Build
+	// up a set of intermediate's that can then be used to calculate
+	// Digest's.
+
+	return nil, nil
+}
+
+func filterTile(query *Query, testName string, storages *storage.Storage, idx *indexer.SearchIndex) (map[string]paramtools.ParamSet, error) {
+	tile := idx.GetTile(query.IncludeIgnores)
+	exp, err := storages.ExpectationsStore.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	traceTally := idx.TalliesByTrace()
+	lastCommitIndex := tile.LastCommitIndex()
+	talliesByTest := idx.TalliesByTest()
+
+	ret := make(map[string]paramtools.ParamSet, len(talliesByTest[testName]))
+	for id, tr := range tile.Traces {
+		if tiling.Matches(tr, query.Query) {
+			test := tr.Params()[types.PRIMARY_KEY_FIELD]
+			digests := digestsFromTrace(id, tr, query.Head, lastCommitIndex, traceTally)
+			for _, digest := range digests {
+				cl := exp.Classification(test, digest)
+				if query.excludeClassification(cl) {
+					continue
+				}
+				if found, ok := ret[digest]; ok {
+					found.AddParams(tr.Params())
+				} else {
+					ret[digest] = paramtools.NewParamSet(tr.Params())
+				}
+			}
+		}
+	}
+	return ret, nil
 }

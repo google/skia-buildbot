@@ -2,6 +2,7 @@ package digesttools
 
 import (
 	"math"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,13 +14,14 @@ import (
 
 type MockDiffStore struct{}
 
-func (m MockDiffStore) AbsPath(digest []string) map[string]string                { return nil }
-func (m MockDiffStore) UnavailableDigests() map[string]*diff.DigestFailure       { return nil }
-func (m MockDiffStore) PurgeDigests(digests []string, purgeGS bool) error        { return nil }
-func (m MockDiffStore) SetDigestSets(namedDigestSets map[string]map[string]bool) {}
+func (m MockDiffStore) ImageHandler(urlPrefix string) (http.Handler, error)                   { return nil, nil }
+func (m MockDiffStore) WarmDigests(priority int64, digests []string)                          {}
+func (m MockDiffStore) WarmDiffs(priority int64, leftDigests []string, rightDigests []string) {}
+func (m MockDiffStore) UnavailableDigests() map[string]*diff.DigestFailure                    { return nil }
+func (m MockDiffStore) PurgeDigests(digests []string, purgeGS bool) error                     { return nil }
 
 // Get always finds that digest "eee" is closest to dMain.
-func (m MockDiffStore) Get(dMain string, dRest []string) (map[string]*diff.DiffMetrics, error) {
+func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[string]*diff.DiffMetrics, error) {
 	result := map[string]*diff.DiffMetrics{}
 	for i, d := range dRest {
 		diffPercent := float32(i + 2)

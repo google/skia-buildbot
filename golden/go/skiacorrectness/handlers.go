@@ -636,7 +636,7 @@ func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 			Status: d.Status,
 		})
 		remaining := digests[i:len(digests)]
-		diffs, err := storages.DiffStore.Get(d.Digest, remaining)
+		diffs, err := storages.DiffStore.Get(diff.PRIORITY_NOW, d.Digest, remaining)
 		if err != nil {
 			glog.Errorf("Failed to calculate differences: %s", err)
 			continue
@@ -1024,4 +1024,32 @@ func textAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+}
+
+// jsonCompareTestHandler returns a JSON descripiton for the given test.
+// The result is intended to be displayed in a grid-like fashion.
+//
+// Input format of a POST request:
+//
+// Output format in JSON:
+//
+//
+func jsonCompareTestHandler(w http.ResponseWriter, r *http.Request) {
+	var ctQuery search.CTQuery
+	if err := parseCTQuery(r, &ctQuery); err != nil {
+		httputils.ReportError(w, r, err, "Search to compare tests failed.")
+		return
+	}
+
+	compareResult, err := search.CompareTest(&ctQuery, storages, ixr.GetIndex())
+	if err != nil {
+		httputils.ReportError(w, r, err, "Search for digests failed.")
+		return
+	}
+	sendJsonResponse(w, compareResult)
+}
+
+func parseCTQuery(r *http.Request, ctQuery *search.CTQuery) error {
+
+	return nil
 }
