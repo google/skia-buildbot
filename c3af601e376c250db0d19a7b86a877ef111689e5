@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "10261bad_ea3defc9",
+        "filename": "task_scheduler/go/scheduling/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-19T12:25:28Z",
+      "side": 1,
+      "message": "Added to util.",
+      "parentUuid": "10261bad_ff237317",
+      "revId": "c3af601e376c250db0d19a7b86a877ef111689e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10261bad_3f6c4b31",
         "filename": "task_scheduler/go/scheduling/specs.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2016-09-16T19:12:37Z",
       "side": 1,
       "message": "My preference would be to remove the internal locking and instead require the client to synchronize access. Similar to maps and most other Go data structures.",
+      "revId": "c3af601e376c250db0d19a7b86a877ef111689e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_0a414b3c",
+        "filename": "task_scheduler/go/scheduling/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-19T12:25:28Z",
+      "side": 1,
+      "message": "I really prefer to have the struct be thread-safe, given that it\u0027s used in several places throughout the flow. I realize that this pattern is awkward; I guess I could change the call site from this:\n\ntcc.Lock()\ndefer tcc.Unlock()\n\nrv :\u003d []\nfor rs, name :\u003d complicated_recursive_thing {\n  rv \u003d append(rv, tcc.GetTaskSpec_Locked(rs, name)\n}\n\nTo this:\n\nts :\u003d []\nfor rs, name :\u003d complicated_recursive_thing {\n  ts \u003d append(ts, (rs, name))\n}\nrv :\u003d tcc.GetTaskSpecs(ts)\n\n?",
+      "parentUuid": "10261bad_3f6c4b31",
       "revId": "c3af601e376c250db0d19a7b86a877ef111689e5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "10261bad_ca3a33d0",
+        "filename": "task_scheduler/go/scheduling/specs_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-19T12:25:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "10261bad_ff55b34f",
+      "revId": "c3af601e376c250db0d19a7b86a877ef111689e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10261bad_5f502759",
         "filename": "task_scheduler/go/scheduling/specs_test.go",
         "patchSetId": 1
@@ -64,6 +118,24 @@
       "writtenOn": "2016-09-16T19:12:37Z",
       "side": 1,
       "message": "FWIW, I think this no longer applies.",
+      "revId": "c3af601e376c250db0d19a7b86a877ef111689e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_aa37f7e7",
+        "filename": "task_scheduler/go/scheduling/specs_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-19T12:25:28Z",
+      "side": 1,
+      "message": "Good point: now that we have a known starting point (the Job), the iteration order is deterministic for a given Job.",
+      "parentUuid": "10261bad_5f502759",
       "revId": "c3af601e376c250db0d19a7b86a877ef111689e5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
