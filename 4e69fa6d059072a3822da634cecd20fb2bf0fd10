@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "10261bad_655110d5",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 760,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-19T18:50:26Z",
+      "side": 1,
+      "message": "Nit: We\u0027ve got to have the skia and infra repo URLs as constants somewhere...",
+      "range": {
+        "startLine": 760,
+        "startChar": 56,
+        "endLine": 760,
+        "endChar": 59
+      },
+      "revId": "4e69fa6d059072a3822da634cecd20fb2bf0fd10",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
