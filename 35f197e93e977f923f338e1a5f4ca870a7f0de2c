@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "10261bad_c58b44c9",
+        "filename": "go/gitrepo/gitrepo.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-19T17:28:02Z",
+      "side": 1,
+      "message": "Good catch. Added a test, verified that it fails, then fixed this.",
+      "parentUuid": "10261bad_4598541f",
+      "revId": "35f197e93e977f923f338e1a5f4ca870a7f0de2c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10261bad_05825cb1",
         "filename": "go/gitrepo/gitrepo_test.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2016-09-19T16:59:43Z",
       "side": 1,
       "message": "maybe test returning false",
+      "revId": "35f197e93e977f923f338e1a5f4ca870a7f0de2c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_2539d8f6",
+        "filename": "go/gitrepo/gitrepo_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-19T17:28:02Z",
+      "side": 1,
+      "message": "Added tests for that and the error case both here and in TestRecurse.",
+      "parentUuid": "10261bad_05825cb1",
       "revId": "35f197e93e977f923f338e1a5f4ca870a7f0de2c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
