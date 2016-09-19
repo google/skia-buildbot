@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "10261bad_a593a8a7",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-19T18:34:54Z",
+      "side": 1,
+      "message": "Changed.\n\nI think if it\u0027s possible, it would be a good idea to run both buildbot builds and task scheduler tasks side-by-side for a while to make sure they agree.",
+      "parentUuid": "6bb4c647_3783a0b6",
+      "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bb4c647_17801ca6",
         "filename": "status/go/franken/cache.go",
         "patchSetId": 1
@@ -42,6 +60,24 @@
         "endLine": 29,
         "endChar": 27
       },
+      "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_85f2ecfd",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-19T18:34:54Z",
+      "side": 1,
+      "message": "Made it fake-master.task_scheduler to make it clear where the value is coming from.",
+      "parentUuid": "6bb4c647_17801ca6",
       "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "10261bad_05e6dc41",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-19T18:34:54Z",
+      "side": 1,
+      "message": "Good catch! I realized that RepoForCommit already exists.",
+      "parentUuid": "6bb4c647_37aa8026",
+      "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bb4c647_376d60fd",
         "filename": "status/go/franken/cache.go",
         "patchSetId": 1
@@ -88,6 +142,24 @@
         "endLine": 272,
         "endChar": 30
       },
+      "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_e5e2c02b",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-19T18:34:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6bb4c647_376d60fd",
       "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -117,6 +189,24 @@
     },
     {
       "key": {
+        "uuid": "10261bad_c5efc411",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-19T18:34:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6bb4c647_176adce4",
+      "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bb4c647_7777e8c8",
         "filename": "status/go/franken/cache.go",
         "patchSetId": 1
@@ -134,6 +224,24 @@
         "endLine": 282,
         "endChar": 38
       },
+      "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_a5ecc81d",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-19T18:34:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6bb4c647_7777e8c8",
       "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -163,6 +271,24 @@
     },
     {
       "key": {
+        "uuid": "10261bad_65e0f01f",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 773,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-19T18:34:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6bb4c647_774ec88c",
+      "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bb4c647_17513c29",
         "filename": "status/go/status/main.go",
         "patchSetId": 1
@@ -180,6 +306,24 @@
         "endLine": 776,
         "endChar": 28
       },
+      "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_45d5f437",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 776,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-19T18:34:54Z",
+      "side": 1,
+      "message": "Gone.",
+      "parentUuid": "6bb4c647_17513c29",
       "revId": "7f0acdb95f379022f7f6168ae87246212dfbbb50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
