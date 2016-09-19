@@ -299,3 +299,34 @@ func (r *Repo) Get(ref string) *Commit {
 	}
 	return nil
 }
+
+// RecurseAllBranches runs the given function recursively over the entire commit
+// history, starting at each of the known branch heads. The function accepts the
+// current Commit as a parameter. Returning false from the function indicates
+// that recursion should stop for the current branch, however, recursion will
+// continue for any other branches until they are similarly terminated.
+// Returning an error causes recursion to stop without properly terminating
+// other branchces. The error will bubble to the top and be returned. Here's an
+// example of printing out all of the commits in the repo:
+//
+// repo.RecurseAllBranches(func(c *Commit) (bool, error) {
+//      glog.Info(c.Hash)
+//      return true, nil
+// })
+func (r *Repo) RecurseAllBranches(f func(*Commit) (bool, error)) error {
+	r.mtx.RLock()
+	defer r.mtx.RUnlock()
+	visited := make(map[*Commit]bool, len(r.commitsData))
+	for _, b := range r.branches {
+		c, ok := r.commits[b.Head]
+		if !ok {
+			return fmt.Errorf("Branch %s points to unknown commit %s", b.Name, b.Head)
+		}
+		if _, ok := visited[r.commitsData[c]]; !ok {
+			if err := r.commitsData[c].recurse(f, visited); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
