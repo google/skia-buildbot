@@ -399,7 +399,7 @@ func (r *Rietveld) GetPatchset(issueID int64, patchsetID int64) (*Patchset, erro
 
 // GetTrybotResults returns trybot results for the given Issue and Patchset.
 func (r *Rietveld) GetTrybotResults(issueID int64, patchsetID int64) ([]*buildbucket.Build, error) {
-	return buildbucket.NewClient(r.client).GetTrybotsForCL(issueID, patchsetID)
+	return buildbucket.NewClient(r.client).GetTrybotsForCL(issueID, patchsetID, "rietveld", RIETVELD_SKIA_URL)
 }
 
 // CodeReviewCache is an LRU cache for Rietveld Issues that polls in the background to determine if
