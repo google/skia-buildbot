@@ -1,6 +1,7 @@
 package gitrepo
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -140,6 +141,12 @@ func TestRecurse(t *testing.T) {
 	tmp, repo, commits := gitSetup(t)
 	defer testutils.RemoveAll(t, tmp)
 
+	c1 := commits[0]
+	c2 := commits[1]
+	c3 := commits[2]
+	c4 := commits[3]
+	c5 := commits[4]
+
 	// Get the list of commits using head.Recurse(). Ensure that we get all
 	// of the commits but don't get any duplicates.
 	head := repo.Get("master")
@@ -154,4 +161,106 @@ func TestRecurse(t *testing.T) {
 	for _, c := range commits {
 		assert.True(t, gotCommits[c])
 	}
+
+	// Verify that we properly return early when the passed-in function
+	// return false.
+	gotCommits = map[*Commit]bool{}
+	assert.NoError(t, head.Recurse(func(c *Commit) (bool, error) {
+		gotCommits[c] = true
+		if c == c3 || c == c4 {
+			return false, nil
+		}
+		return true, nil
+	}))
+	assert.False(t, gotCommits[c1])
+	assert.False(t, gotCommits[c2])
+
+	// Verify that we properly exit immediately when the passed-in function
+	// returns an error.
+	gotCommits = map[*Commit]bool{}
+	assert.Error(t, head.Recurse(func(c *Commit) (bool, error) {
+		gotCommits[c] = true
+		if c == c4 {
+			return false, fmt.Errorf("STOP!")
+		}
+		return true, nil
+	}))
+	assert.False(t, gotCommits[c1])
+	assert.False(t, gotCommits[c2])
+	assert.False(t, gotCommits[c3])
+	assert.True(t, gotCommits[c4])
+	assert.True(t, gotCommits[c5])
+}
+
+func TestRecurseAllBranches(t *testing.T) {
+	tmp, repo, commits := gitSetup(t)
+	defer testutils.RemoveAll(t, tmp)
+
+	c1 := commits[0]
+	c2 := commits[1]
+	c3 := commits[2]
+	c4 := commits[3]
+
+	test := func() {
+		gotCommits := map[*Commit]bool{}
+		assert.NoError(t, repo.RecurseAllBranches(func(c *Commit) (bool, error) {
+			assert.False(t, gotCommits[c])
+			gotCommits[c] = true
+			return true, nil
+		}))
+		assert.Equal(t, len(commits), len(gotCommits))
+		for _, c := range commits {
+			assert.True(t, gotCommits[c])
+		}
+	}
+
+	// Get the list of commits using head.RecurseAllBranches(). Ensure that
+	// we get all of the commits but don't get any duplicates.
+	test()
+
+	// The above used only one branch. Add a branch and ensure that we see
+	// its commits too.
+	run(t, tmp, "git", "checkout", "-b", "mybranch", "-t", "origin/master")
+	commit(t, tmp, "anotherfile.txt")
+	run(t, tmp, "git", "push", "origin", "mybranch")
+	assert.NoError(t, repo.Update())
+	c := repo.Get("mybranch")
+	assert.NotNil(t, c)
+	commits = append(commits, c)
+	test()
+
+	// Verify that we don't revisit a branch whose HEAD is an ancestor of
+	// a different branch HEAD.
+	run(t, tmp, "git", "checkout", "-b", "ancestorbranch")
+	run(t, tmp, "git", "reset", "--hard", c3.Hash)
+	run(t, tmp, "git", "push", "origin", "ancestorbranch")
+	assert.NoError(t, repo.Update())
+	test()
+
+	// Verify that we still stop recursion when requested.
+	gotCommits := map[*Commit]bool{}
+	assert.NoError(t, repo.RecurseAllBranches(func(c *Commit) (bool, error) {
+		gotCommits[c] = true
+		if c == c3 || c == c4 {
+			return false, nil
+		}
+		return true, nil
+	}))
+	assert.False(t, gotCommits[c1])
+	assert.False(t, gotCommits[c2])
+
+	// Verify that we error out properly.
+	gotCommits = map[*Commit]bool{}
+	assert.Error(t, repo.RecurseAllBranches(func(c *Commit) (bool, error) {
+		gotCommits[c] = true
+		// Because of nondeterministic map iteration and the added
+		// branches, we have to halt way back at c2 in order to have
+		// a sane, deterministic test case.
+		if c == c2 {
+			return false, fmt.Errorf("STOP!")
+		}
+		return true, nil
+	}))
+	assert.False(t, gotCommits[c1])
+	assert.True(t, gotCommits[c2])
 }
