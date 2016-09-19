@@ -21,9 +21,6 @@ type clientWithBackdoor struct {
 	backdoor db.DB
 	// The test HTTP server listening on the loopback address.
 	httpserver *httptest.Server
-	// TODO(benjaminwagner): Adding this to get things to compile until RemoteDB
-	// implements JobReader.
-	db.JobReader
 }
 
 func (b *clientWithBackdoor) Close() error {
@@ -63,28 +60,52 @@ func makeDB(t *testing.T) db.DBCloser {
 	}
 }
 
-func TestRemoteDB(t *testing.T) {
+func TestRemoteDBTaskDB(t *testing.T) {
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
 	db.TestTaskDB(t, d)
 }
 
-func TestRemoteDBTooManyUsers(t *testing.T) {
+func TestRemoteDBTaskDBTooManyUsers(t *testing.T) {
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
 	db.TestTaskDBTooManyUsers(t, d)
 }
 
-func TestRemoteDBConcurrentUpdate(t *testing.T) {
+func TestRemoteDBTaskDBConcurrentUpdate(t *testing.T) {
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
 	db.TestTaskDBConcurrentUpdate(t, d)
 }
 
-func TestRemoteDBUpdateTasksWithRetries(t *testing.T) {
+func TestRemoteDBTaskDBUpdateTasksWithRetries(t *testing.T) {
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
 	db.TestUpdateTasksWithRetries(t, d)
+}
+
+func TestRemoteDBJobDB(t *testing.T) {
+	d := makeDB(t)
+	defer testutils.AssertCloses(t, d)
+	db.TestJobDB(t, d)
+}
+
+func TestRemoteDBJobDBTooManyUsers(t *testing.T) {
+	d := makeDB(t)
+	defer testutils.AssertCloses(t, d)
+	db.TestJobDBTooManyUsers(t, d)
+}
+
+func TestRemoteDBJobDBConcurrentUpdate(t *testing.T) {
+	d := makeDB(t)
+	defer testutils.AssertCloses(t, d)
+	db.TestJobDBConcurrentUpdate(t, d)
+}
+
+func TestRemoteDBUpdateJobsWithRetries(t *testing.T) {
+	d := makeDB(t)
+	defer testutils.AssertCloses(t, d)
+	db.TestUpdateJobsWithRetries(t, d)
 }
 
 func TestRemoteDBCommentDB(t *testing.T) {
