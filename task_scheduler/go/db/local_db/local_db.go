@@ -95,8 +95,8 @@ func formatId(t time.Time, seq uint64) string {
 	return fmt.Sprintf("%s_"+SEQUENCE_NUMBER_FORMAT, t.Format(TIMESTAMP_FORMAT), seq)
 }
 
-// parseId returns the timestamp and sequence number stored in a Task or Job ID.
-func parseId(id string) (time.Time, uint64, error) {
+// ParseId returns the timestamp and sequence number stored in a Task or Job ID.
+func ParseId(id string) (time.Time, uint64, error) {
 	parts := strings.Split(id, "_")
 	if len(parts) != 2 {
 		return time.Time{}, 0, fmt.Errorf("Unparsable ID: %q", id)
@@ -437,7 +437,7 @@ func (d *localDB) GetTaskById(id string) (*db.Task, error) {
 	}
 	if rv == nil {
 		// Return an error if id is invalid.
-		if _, _, err := parseId(id); err != nil {
+		if _, _, err := ParseId(id); err != nil {
 			return nil, err
 		}
 	}
@@ -497,7 +497,7 @@ func (d *localDB) validateTask(task *db.Task) error {
 		return fmt.Errorf("Created not set. Task %s created time is %s. %v", task.Id, task.Created, task)
 	}
 	if task.Id != "" {
-		idTs, _, err := parseId(task.Id)
+		idTs, _, err := ParseId(task.Id)
 		if err != nil {
 			return err
 		}
@@ -647,7 +647,7 @@ func (d *localDB) GetJobById(id string) (*db.Job, error) {
 	}
 	if rv == nil {
 		// Return an error if id is invalid.
-		if _, _, err := parseId(id); err != nil {
+		if _, _, err := ParseId(id); err != nil {
 			return nil, err
 		}
 	}
@@ -696,7 +696,7 @@ func (d *localDB) validateJob(job *db.Job) error {
 		return fmt.Errorf("Created not set. Job %s created time is %s. %v", job.Id, job.Created, job)
 	}
 	if job.Id != "" {
-		idTs, _, err := parseId(job.Id)
+		idTs, _, err := ParseId(job.Id)
 		if err != nil {
 			return err
 		}
