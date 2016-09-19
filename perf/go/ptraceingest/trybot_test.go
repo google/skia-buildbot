@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/ingestcommon"
 	"go.skia.org/infra/perf/go/ptracestore"
 )
@@ -63,7 +64,7 @@ func TestPerfTrybotProcessor(t *testing.T) {
 
 	traceId := ",arch=x86_64,compiler=Clang,config=gpu,cpu_or_gpu=GPU,cpu_or_gpu_value=GeForce320M,model=MacMini4.1,os=Mac10.8,sub_result=min_ms,test=GLInstancedArraysBench_one_0_640_480,"
 	expectedValue := float32(7.122931e-06)
-	cid := &ptracestore.CommitID{
+	cid := &cid.CommitID{
 		Source: "https://codereview.chromium.org/1467533002",
 		Offset: 2,
 	}
