@@ -6,7 +6,7 @@ GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the re
 	### Nano bench ingester ############################################################
 	[Ingesters.nano]
 	RunEvery       = "5m"
-	NCommits       = 10
+	NCommits       = 50
 	MinDays        = 2
 	StatusDir      = "/tmp/ingest_status"
 	MetricName     = "nano-ingest"
@@ -22,7 +22,7 @@ GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the re
 	### Nanobench Trybot ingester ############################################################
 	[Ingesters.nano-trybot]
 	RunEvery       = "5m"
-	NCommits       = 10
+	NCommits       = 50
 	MinDays        = 2
 	StatusDir      = "/tmp/trybot_ingest_status"
 	MetricName     = "nano-trybot-ingest"

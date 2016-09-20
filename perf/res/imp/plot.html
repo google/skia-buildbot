@@ -107,7 +107,7 @@
 
         var beginIndex = t.data[e.detail.index][0];
         var endIndex = undefined;
-        if (beginIndex > 0) {
+        if (beginIndex >= 0) {
           endIndex = beginIndex;
           beginIndex = t.data[e.detail.index-1][0];
         }
