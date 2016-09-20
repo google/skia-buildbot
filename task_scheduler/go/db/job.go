@@ -104,6 +104,10 @@ type Job struct {
 	// DB.
 	Id string
 
+	// IsForce indicates whether this is a manually-triggered Job, as
+	// opposed to a normally scheduled one, or a try job.
+	IsForce bool
+
 	// Name is a human-friendly descriptive name for the Job. All Jobs
 	// generated from the same JobSpec have the same name. This property
 	// should never change for a given Job instance.
@@ -137,6 +141,18 @@ func (j *Job) Copy() *Job {
 
 func (j *Job) Done() bool {
 	return j.Status != JOB_STATUS_IN_PROGRESS
+}
+
+// MakeTaskKey returns a TaskKey for the given Task name.
+func (j *Job) MakeTaskKey(taskName string) TaskKey {
+	rv := TaskKey{
+		RepoState: j.RepoState.Copy(),
+		Name:      taskName,
+	}
+	if j.IsForce {
+		rv.ForcedJobId = j.Id
+	}
+	return rv
 }
 
 // JobSlice implements sort.Interface. To sort jobs []*Job, use

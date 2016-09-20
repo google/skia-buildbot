@@ -1472,3 +1472,108 @@ func TestBlacklist(t *testing.T) {
 	assert.Equal(t, 1, len(tasks))
 	assert.NotEqual(t, c1, tasks[0].Revision)
 }
+
+func TestGetWorstJobStatus(t *testing.T) {
+	tr, d, _, _, _, _, s := setup(t)
+	defer tr.Cleanup()
+
+	test := func(j *db.Job, expect db.JobStatus) {
+		res, err := getWorstJobStatus(j, s.tCache, s.taskCfgCache)
+		assert.NoError(t, err)
+		assert.Equal(t, expect, res)
+	}
+
+	// No tasks for the Job: in progress.
+	j1 := &db.Job{
+		Dependencies: []string{testTask},
+		Name:         "j1",
+		RepoState: db.RepoState{
+			Repo:     repoName,
+			Revision: c2,
+		},
+	}
+	test(j1, db.JOB_STATUS_IN_PROGRESS)
+
+	// Add a task for the job. It's still in progress.
+	t1 := makeTask(buildTask, repoName, c2)
+	assert.NoError(t, d.PutTask(t1))
+	assert.NoError(t, s.tCache.Update())
+	test(j1, db.JOB_STATUS_IN_PROGRESS)
+
+	// The first task finished, but the Job is still in progress.
+	t1.Status = db.TASK_STATUS_SUCCESS
+	t1.Finished = time.Now()
+	t1.IsolatedOutput = "abc123"
+	assert.NoError(t, d.PutTask(t1))
+	assert.NoError(t, s.tCache.Update())
+	test(j1, db.JOB_STATUS_IN_PROGRESS)
+
+	// Or, maybe the first task failed, but we still have a retry.
+	t1.Status = db.TASK_STATUS_FAILURE
+	assert.NoError(t, d.PutTask(t1))
+	assert.NoError(t, s.tCache.Update())
+	test(j1, db.JOB_STATUS_IN_PROGRESS)
+
+	// There aren't any retries left!
+	t1.RetryOf = "abc123"
+	assert.NoError(t, d.PutTask(t1))
+	assert.NoError(t, s.tCache.Update())
+	test(j1, db.JOB_STATUS_FAILURE)
+
+	// Or maybe it was a mishap.
+	t1.Status = db.TASK_STATUS_MISHAP
+	assert.NoError(t, d.PutTask(t1))
+	assert.NoError(t, s.tCache.Update())
+	test(j1, db.JOB_STATUS_MISHAP)
+
+	// Okay, it succeeded.
+	t1.Status = db.TASK_STATUS_SUCCESS
+	assert.NoError(t, d.PutTask(t1))
+	assert.NoError(t, s.tCache.Update())
+	test(j1, db.JOB_STATUS_IN_PROGRESS)
+
+	// Now the second task has been triggered.
+	t2 := makeTask(testTask, repoName, c2)
+	t2.Status = db.TASK_STATUS_PENDING
+	assert.NoError(t, d.PutTask(t2))
+	assert.NoError(t, s.tCache.Update())
+	test(j1, db.JOB_STATUS_IN_PROGRESS)
+
+	// Now it's running.
+	t2.Status = db.TASK_STATUS_RUNNING
+	assert.NoError(t, d.PutTask(t2))
+	assert.NoError(t, s.tCache.Update())
+	test(j1, db.JOB_STATUS_IN_PROGRESS)
+
+	// It was a mishap, but we have a retry.
+	t2.Status = db.TASK_STATUS_MISHAP
+	assert.NoError(t, d.PutTask(t2))
+	assert.NoError(t, s.tCache.Update())
+	test(j1, db.JOB_STATUS_IN_PROGRESS)
+
+	// Add *another* task for the retry.
+	t3 := makeTask(testTask, repoName, c2)
+	t3.RetryOf = t2.Id
+	t3.Status = db.TASK_STATUS_RUNNING
+	assert.NoError(t, d.PutTask(t3))
+	assert.NoError(t, s.tCache.Update())
+	test(j1, db.JOB_STATUS_IN_PROGRESS)
+
+	// It failed.
+	t3.Status = db.TASK_STATUS_FAILURE
+	assert.NoError(t, d.PutTask(t3))
+	assert.NoError(t, s.tCache.Update())
+	test(j1, db.JOB_STATUS_FAILURE)
+
+	// Or it was a mishap.
+	t3.Status = db.TASK_STATUS_MISHAP
+	assert.NoError(t, d.PutTask(t3))
+	assert.NoError(t, s.tCache.Update())
+	test(j1, db.JOB_STATUS_MISHAP)
+
+	// No, it succeeded!
+	t3.Status = db.TASK_STATUS_SUCCESS
+	assert.NoError(t, d.PutTask(t3))
+	assert.NoError(t, s.tCache.Update())
+	test(j1, db.JOB_STATUS_SUCCESS)
+}
