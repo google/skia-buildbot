@@ -12,6 +12,8 @@ import (
 	"runtime"
 	"testing"
 
+	"go.skia.org/infra/go/exec"
+
 	"github.com/davecgh/go-spew/spew"
 	assert "github.com/stretchr/testify/require"
 )
@@ -121,4 +123,10 @@ func Remove(t assert.TestingT, fp string) {
 // RemoveAll attempts to remove the given directory and asserts that no error is returned.
 func RemoveAll(t assert.TestingT, fp string) {
 	assert.NoError(t, os.RemoveAll(fp))
+}
+
+// Run runs the given command in the given dir and asserts that it succeeds.
+func Run(t assert.TestingT, dir string, cmd ...string) {
+	_, err := exec.RunCwd(dir, cmd...)
+	assert.NoError(t, err)
 }
