@@ -47,6 +47,7 @@ import (
 // Command line flags.
 var (
 	authWhiteList      = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
+	cacheSize          = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
 	cpuProfile         = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
 	doOauth            = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
 	forceLogin         = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
@@ -215,7 +216,7 @@ func main() {
 	}
 
 	// Get the expecations storage, the filediff storage and the tilestore.
-	diffStore, err := diffstore.New(client, *imageDir, *gsBucketName, diffstore.DEFAULT_GS_IMG_DIR_NAME)
+	diffStore, err := diffstore.New(client, *imageDir, *gsBucketName, diffstore.DEFAULT_GS_IMG_DIR_NAME, *cacheSize)
 	if err != nil {
 		glog.Fatalf("Allocating DiffStore failed: %s", err)
 	}

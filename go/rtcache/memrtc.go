@@ -40,6 +40,12 @@ type MemReadThroughCache struct {
 // nWorkers defines the number of concurrent workers that call wokerFn when
 // requested items are not in RAM.
 func New(workerFn ReadThroughFunc, maxSize int, nWorkers int) ReadThroughCache {
+	// if maxSize is <= 0 then we don't cache at all. But lru.Cache will not
+	// limit the cache if the size is 0. So we cache 1 element.
+	if maxSize <= 0 {
+		maxSize = 1
+	}
+
 	ret := &MemReadThroughCache{
 		workerFn:       workerFn,
 		cache:          lru.New(maxSize),
