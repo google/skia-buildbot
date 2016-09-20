@@ -12,11 +12,13 @@
   Events:
     trace_selected - Event produced when the user clicks on a line.
       The e.detail contains the id of the line and the index of the
-      point in the line closest to the mouse.
+      point in the line closest to the mouse, and the [x, y] value
+      of the point in 'pt'.
 
         e.detail = {
           id: "id of trace",
           index: 3,
+          pt: [2, 34.5],
         }
 
     trace_focused - Event produced when the user moves the mouse close
@@ -294,6 +296,7 @@ work, so we just prefix every rule with plot-simple-sk.
           id: this._lineData[this._closest.trace]._id,
           index: this._closest.index,
           value: this._closest.value,
+          pt: this._closest.pt,
         }
         this.dispatchEvent(new CustomEvent(name, {detail: detail, bubbles: true}));
       },
@@ -348,6 +351,7 @@ work, so we just prefix every rule with plot-simple-sk.
               this._closest.d = d;
               this._closest.trace = i;
               this._closest.index= j;
+              this._closest.pt = pt;
               this._closest.value= atrace[j][1];
             }
           }
@@ -541,7 +545,6 @@ work, so we just prefix every rule with plot-simple-sk.
             width : 0,
             height: 0,
           });
-        this._click();
       },
 
       _mouseMove: function() {

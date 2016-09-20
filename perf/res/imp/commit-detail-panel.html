@@ -1,7 +1,5 @@
 <!-- The <commit-detail-panel-sk> custom element declaration.
 
-  Displays an Array of serialized cid.CommitDetails in a table.
-
   Attributes:
     None.
 
@@ -9,15 +7,7 @@
     None.
 
   Methods:
-    setCommitDetail(d) - Where d is an Array of serialized
-      cid.CommitDetail, i.e. they look like:
-
-      {
-        author: "foo (foo@example.org)",
-        url: "skia.googlesource.com/bar",
-        message: "Commit from foo.",
-        ts: 1439649751,
-      },
+    setCommitDetail(d) - Where d is an Array of serialized cid.CommitDetail.
 -->
 
 <dom-module id="commit-detail-panel-sk">
@@ -35,11 +25,13 @@
   <template>
     <template is="dom-repeat" items="{{_details}}">
       <table>
-        <tr>
-          <td>[[_trim(item.author)]]</td>
-          <td>[[_humanize(item.ts)]]</td>
-          <td><a href$="[[item.url]]">[[_trimNewline(item.message)]]</a></td>
-        </tr>
+        <tbody>
+          <tr>
+            <td>[[_trim(item.author)]]</td>
+            <td>[[_humanize(item.ts)]]</td>
+            <td><a href$="[[item.url]]">[[_trimNewline(item.message)]]</a></td>
+          </tr>
+        </tbody>
       </table>
     </template>
   </template>
