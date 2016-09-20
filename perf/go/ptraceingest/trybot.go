@@ -1,9 +1,7 @@
 package ptraceingest
 
 import (
-	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/skia-dev/glog"
 
@@ -11,6 +9,7 @@ import (
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/ingestcommon"
 	"go.skia.org/infra/perf/go/ptracestore"
@@ -18,8 +17,6 @@ import (
 
 const (
 	TIMESTAMP_LRU_CACHE_SIZE = 1000
-
-	CODE_REVIEW_URL = "https://codereview.chromium.org"
 )
 
 // Register the processor with the ingestion framework.
@@ -40,7 +37,7 @@ type perfTrybotProcessor struct {
 func newPerfTrybotProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
 	return &perfTrybotProcessor{
 		store:  ptracestore.Default,
-		review: rietveld.New(CODE_REVIEW_URL, client),
+		review: rietveld.New(cid.CODE_REVIEW_URL, client),
 	}, nil
 }
 
@@ -60,38 +57,13 @@ func (p *perfTrybotProcessor) Process(resultsFile ingestion.ResultFileLocation) 
 		glog.Infof("Ignoring Gerrit issue %s/%s for now.", benchData.Issue, benchData.PatchSet)
 		return ingestion.IgnoreResultsFileErr
 	}
-	patchset, err := strconv.ParseInt(benchData.PatchSet, 10, 64)
+
+	commitID, err := cid.FromIssue(p.review, benchData.Issue, benchData.PatchSet)
 	if err != nil {
-		return fmt.Errorf("Failed to parse trybot patch id: %s", err)
-	}
-	issueID, err := strconv.ParseInt(benchData.Issue, 10, 64)
-	if err != nil {
-		return fmt.Errorf("Failed to parse trybot issue id: %s", err)
+		return err
 	}
 
-	issue, err := p.review.GetIssueProperties(issueID, false)
-	if err != nil {
-		return fmt.Errorf("Failed to get issue details %d: %s", issueID, err)
-	}
-	// Look through the Patchsets and find a matching one.
-	var offset int = -1
-	for i, pid := range issue.Patchsets {
-		if pid == patchset {
-			offset = i
-			break
-		}
-	}
-	if offset == -1 {
-		return fmt.Errorf("Failed to find patchset %d in review %d", patchset, issueID)
-	}
-
-	source := fmt.Sprintf("%s/%s", CODE_REVIEW_URL, benchData.Issue)
-	cid := &ptracestore.CommitID{
-		Offset: offset,
-		Source: source,
-	}
-
-	return p.store.Add(cid, getValueMap(benchData), resultsFile.Name())
+	return p.store.Add(commitID, getValueMap(benchData), resultsFile.Name())
 }
 
 // See ingestion.Processor interface.
