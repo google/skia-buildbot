@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "303cfff1_1fa263a0",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1059,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-20T20:05:24Z",
+      "side": 1,
+      "message": "nit: Maybe add a comment explaining that len(tasks) \u003d\u003d 0 implies the job is still in progress.",
+      "revId": "21f952243f784812e7b82ce5aa9b53b16b3d8955",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_9fadd38d",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1077,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-20T20:05:24Z",
+      "side": 1,
+      "message": "nit: Maybe note we currently limit to 1 retry.",
+      "revId": "21f952243f784812e7b82ce5aa9b53b16b3d8955",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_1fcb8348",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1574,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-20T20:05:24Z",
+      "side": 1,
+      "message": "What a relief! I love Hollywood endings!",
+      "revId": "21f952243f784812e7b82ce5aa9b53b16b3d8955",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
