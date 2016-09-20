@@ -3,6 +3,7 @@ package diffstore
 import (
 	"bytes"
 	"fmt"
+	"math"
 	"net/http"
 	"path/filepath"
 	"runtime"
@@ -37,13 +38,12 @@ const (
 	// METRICS_BUCKET is the name of the bucket in the metrics DB.
 	METRICS_BUCKET = "metrics"
 
-	// MAX_DIFFMETRICS_CACHE is the maximum number of diff metrics to cache.
-	MAX_DIFFMETRICS_CACHE = 1000000
-
-	// MAX_IMAGE_CACHE is the maximum number of images to cache.
-	MAX_IMAGE_CACHE = 30000
-)
-
+	// BYTES_PER_IMAGE is the estimated number of bytes an uncompressed images consumes.
+	// Used to conservatively estimate the maximum number of items in the cache.
+	BYTES_PER_IMAGE = 1024 * 1024
+	// BYTES_PER_DIFF_METRIC is the estimated number of bytes per diff metric.
+	// Used to conservatively estimate the maximum number of items in the cache.
+	BYTES_PER_DIFF_METRIC = 100
 // MemDiffStore implements the diff.DiffStore interface.
 type MemDiffStore struct {
 	// baseDir contains the root directory of where all data are stored.
@@ -68,11 +68,14 @@ type MemDiffStore struct {
 	wg sync.WaitGroup
 }
 
-// New returns a new instance of MemDiffStore.
-func New(client *http.Client, baseDir, gsBucketName, gsImageBaseDir string) (diff.DiffStore, error) {
+// New returns a new instance of MemDiffStore. 'gigs' is the approximate number
+// of gigs to use for caching.
+func New(client *http.Client, baseDir, gsBucketName, gsImageBaseDir string, gigs int) (diff.DiffStore, error) {
+	imageCacheCount, diffCacheCount := getCacheCounts(gigs)
+
 	// Set up image retrieval, caching and serving.
 	imgDir := fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME)))
-	imgLoader, err := newImgLoader(client, imgDir, gsBucketName, gsImageBaseDir, MAX_IMAGE_CACHE)
+	imgLoader, err := newImgLoader(client, imgDir, gsBucketName, gsImageBaseDir, imageCacheCount)
 	if err != err {
 		return nil, err
 	}
@@ -90,13 +93,25 @@ func New(client *http.Client, baseDir, gsBucketName, gsImageBaseDir string) (dif
 		diffMetricsCodec: util.JSONCodec(&diff.DiffMetrics{}),
 	}
 
-	ret.diffMetricsCache = rtcache.New(ret.diffMetricsWorker, MAX_DIFFMETRICS_CACHE, runtime.NumCPU())
+	ret.diffMetricsCache = rtcache.New(ret.diffMetricsWorker, diffCacheCount, runtime.NumCPU())
 	return ret, nil
 }
 
 // WarmDigests prefetches images based on the given list of digests.
 func (d *MemDiffStore) WarmDigests(priority int64, digests []string) {
-	d.imgLoader.Warm(rtcache.PriorityTimeCombined(priority), digests)
+	return
+	go func() {
+		missingDigests := make([]string, 0, len(digests))
+		for _, digest := range digests {
+			if !d.imgLoader.IsOnDisk(digest) {
+				missingDigests = append(missingDigests, digest)
+			}
+		}
+		glog.Infof("WARMING: %d", len(missingDigests))
+		if len(missingDigests) > 0 {
+			d.imgLoader.Warm(rtcache.PriorityTimeCombined(priority), missingDigests)
+		}
+	}()
 }
 
 // WarmDiffs puts the diff metrics for the cross product of leftDigests x rightDigests into the cache for the
@@ -127,10 +142,10 @@ func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []str
 		return nil, fmt.Errorf("Received empty dMain digest.")
 	}
 
-	// Get the left main digest to make sure we can compare something.
-	if _, err := d.imgLoader.Get(priority, []string{mainDigest}); err != nil {
-		return nil, fmt.Errorf("Unable to retrieve main digest %s. Got error: %s", mainDigest, err)
-	}
+	// // Get the left main digest to make sure we can compare something.
+	// if _, err := d.imgLoader.Get(priority, []string{mainDigest}); err != nil {
+	// 	return nil, fmt.Errorf("Unable to retrieve main digest %s. Got error: %s", mainDigest, err)
+	// }
 
 	diffMap := make(map[string]*diff.DiffMetrics, len(rightDigests))
 	var wg sync.WaitGroup
@@ -186,11 +201,30 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 			http.NotFound(w, r)
 			return
 		}
+		dir := path[:idx]
 
 		// Limit the requests to directories with the images and diff images.
-		if dir := path[:idx]; (dir != DEFAULT_DIFFIMG_DIR_NAME) && (dir != DEFAULT_IMG_DIR_NAME) {
+		if (dir != DEFAULT_DIFFIMG_DIR_NAME) && (dir != DEFAULT_IMG_DIR_NAME) {
 			http.NotFound(w, r)
 			return
+		}
+
+		if dir == DEFAULT_IMG_DIR_NAME {
+			// Make sure the file exists. If not fetch it.Should be the exception.
+			_, fName := filepath.Split(path)
+			digest := strings.TrimRight(fName, "."+IMG_EXTENSION)
+			if digest == "" {
+				http.NotFound(w, r)
+				return
+			}
+
+			if !m.imgLoader.IsOnDisk(digest) {
+				if _, err = m.imgLoader.Get(diff.PRIORITY_NOW, []string{digest}); err != nil {
+					glog.Errorf("Errorf retrieving digests: %s", digest)
+					http.NotFound(w, r)
+					return
+				}
+			}
 		}
 
 		// rewrite the paths to include the radix prefix.
@@ -353,4 +387,20 @@ func makeDiffMap(leftKeys []string, rightLen int) map[string]map[string]*diff.Di
 		ret[k] = make(map[string]*diff.DiffMetrics, rightLen)
 	}
 	return ret
+}
+
+// getCacheCounts returns the number of images and diff metrics to cache
+// based on the number of GiB provided.
+// We are assume that we want to store x images and x^2 diffmetrics and
+// solve the corresponding quadratic equation.
+func getCacheCounts(gigs int) (int, int) {
+	if gigs <= 0 {
+		return 0, 0
+	}
+
+	imgSize := float64(BYTES_PER_IMAGE)
+	diffSize := float64(BYTES_PER_DIFF_METRIC)
+	bytesGig := float64(uint64(gigs) * 1024 * 1024 * 1024)
+	imgCount := int((-imgSize + math.Sqrt(imgSize*imgSize+4*diffSize*bytesGig)) / (2 * diffSize))
+	return imgCount, imgCount * imgCount
 }
