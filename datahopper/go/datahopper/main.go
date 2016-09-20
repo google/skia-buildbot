@@ -411,6 +411,7 @@ func main() {
 					}
 
 					tags := map[string]string{
+						"bot-id":    task.TaskResult.BotId,
 						"task-id":   task.TaskId,
 						"task-name": name,
 					}
