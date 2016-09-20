@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/ptracestore"
 )
 
@@ -23,8 +24,7 @@ const (
 // ColumnHeader describes each column in a DataFrame.
 type ColumnHeader struct {
 	Source    string `json:"source"`
-	ID        string `json:"id"`
-	Desc      string `json:"desc"`
+	Offset    int64  `json:"offset"`
 	Timestamp int64  `json:"timestamp"` // In seconds from the Unix epoch.
 }
 
@@ -39,47 +39,47 @@ type DataFrame struct {
 	ParamSet paramtools.ParamSet  `json:"paramset"`
 }
 
-// rangeImpl returns the slices of ColumnHeader and ptracestore.CommitID that
+// rangeImpl returns the slices of ColumnHeader and cid.CommitID that
 // are needed by DataFrame and ptracestore.PTraceStore, respectively. The
 // slices are populated from the given vcsinfo.IndexCommits.
-func rangeImpl(resp []*vcsinfo.IndexCommit) ([]*ColumnHeader, []*ptracestore.CommitID) {
+func rangeImpl(resp []*vcsinfo.IndexCommit) ([]*ColumnHeader, []*cid.CommitID) {
 	headers := []*ColumnHeader{}
-	commits := []*ptracestore.CommitID{}
+	commits := []*cid.CommitID{}
 	for _, r := range resp {
-		commits = append(commits, &ptracestore.CommitID{
+		commits = append(commits, &cid.CommitID{
 			Offset: r.Index,
 			Source: "master",
 		})
 		headers = append(headers, &ColumnHeader{
 			Source:    "master",
-			ID:        fmt.Sprintf("%d", r.Index),
+			Offset:    int64(r.Index),
 			Timestamp: r.Timestamp.Unix(),
 		})
 	}
 	return headers, commits
 }
 
-// lastN returns the slices of ColumnHeader and ptracestore.CommitID that are
+// lastN returns the slices of ColumnHeader and cid.CommitID that are
 // needed by DataFrame and ptracestore.PTraceStore, respectively. The slices
 // are for the last 50 commits in the repo.
-func lastN(vcs vcsinfo.VCS) ([]*ColumnHeader, []*ptracestore.CommitID) {
+func lastN(vcs vcsinfo.VCS) ([]*ColumnHeader, []*cid.CommitID) {
 	if err := vcs.Update(true, false); err != nil {
 		glog.Errorf("Failed to update repo: %s", err)
 	}
 	return rangeImpl(vcs.LastNIndex(DEFAULT_NUM_COMMITS))
 }
 
-// getRange returns the slices of ColumnHeader and ptracestore.CommitID that are
+// getRange returns the slices of ColumnHeader and cid.CommitID that are
 // needed by DataFrame and ptracestore.PTraceStore, respectively. The slices
 // are for the commits that fall in the given time range [begin, end).
-func getRange(vcs vcsinfo.VCS, begin, end time.Time) ([]*ColumnHeader, []*ptracestore.CommitID) {
+func getRange(vcs vcsinfo.VCS, begin, end time.Time) ([]*ColumnHeader, []*cid.CommitID) {
 	if err := vcs.Update(true, false); err != nil {
 		glog.Errorf("Failed to update repo: %s", err)
 	}
 	return rangeImpl(vcs.Range(begin, end))
 }
 
-func _new(colHeaders []*ColumnHeader, commitIDs []*ptracestore.CommitID, q *query.Query, store ptracestore.PTraceStore) (*DataFrame, error) {
+func _new(colHeaders []*ColumnHeader, commitIDs []*cid.CommitID, q *query.Query, store ptracestore.PTraceStore) (*DataFrame, error) {
 	traceSet, err := store.Match(commitIDs, q)
 	if err != nil {
 		return nil, fmt.Errorf("DataFrame failed to query for all traces: %s", err)

@@ -38,6 +38,7 @@ import (
 	"go.skia.org/infra/perf/go/activitylog"
 	"go.skia.org/infra/perf/go/alerting"
 	"go.skia.org/infra/perf/go/annotate"
+	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -94,6 +95,8 @@ var (
 	activityHandlerPath = regexp.MustCompile(`/activitylog/([0-9]*)$`)
 
 	git *gitinfo.GitInfo = nil
+
+	cidl *cid.CommitIDLookup = nil
 
 	commitLinkifyRe = regexp.MustCompile("(?m)^commit (.*)$")
 )
@@ -200,6 +203,7 @@ func Init() {
 
 	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
 	branchTileBuilder = tracedb.NewBranchTileBuilder(db, git, rietveldAPI, evt)
+	cidl = cid.New(git, rietveldAPI)
 }
 
 // showcutHandler handles the POST requests of the shortcut page.
@@ -1212,6 +1216,26 @@ func countHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// cidHandler takes the POST'd list of dataframe.ColumnHeaders,
+// and returns a serialized slice of vcsinfo.ShortCommit's.
+func cidHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	cids := []*cid.CommitID{}
+	if err := json.NewDecoder(r.Body).Decode(&cids); err != nil {
+		httputils.ReportError(w, r, err, "Could not decode POST body.")
+		return
+	}
+	resp, err := cidl.Lookup(cids)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to lookup all commit ids")
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		glog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -1284,6 +1308,7 @@ func main() {
 	router.HandleFunc("/_/paramset/", paramsetHandler)
 	router.HandleFunc("/_/search/", searchHandler)
 	router.HandleFunc("/_/count/", countHandler)
+	router.HandleFunc("/_/cid/", cidHandler)
 
 	router.HandleFunc("/frame/", templateHandler("frame.html"))
 	router.HandleFunc("/shortcuts/", shortcutHandler)
