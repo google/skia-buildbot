@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+# Uploads all the JSON files under ./downloads to the Skia Perf bucket for
+# ingestion.
+
+gsutil.py \
+  -m cp -r \
+  downloads/ \
+  gs://skia-perf/nano-json-v1/$(date +%Y/%m/%d/%H)
