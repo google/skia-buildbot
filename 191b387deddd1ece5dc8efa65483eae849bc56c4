@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "303cfff1_9f09538d",
+        "filename": "perf/scripts/download_from_isolates.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-20T20:29:58Z",
+      "side": 1,
+      "message": "Assumes swarming.py is in PATH. Not sure if that\u0027s generally true.",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 8
+      },
+      "revId": "191b387deddd1ece5dc8efa65483eae849bc56c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_bf0c179d",
+        "filename": "perf/scripts/download_from_isolates.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-20T20:29:58Z",
+      "side": 1,
+      "message": "Nit: Might be nice to make the target dir configurable.",
+      "range": {
+        "startLine": 15,
+        "startChar": 15,
+        "endLine": 15,
+        "endChar": 24
+      },
+      "revId": "191b387deddd1ece5dc8efa65483eae849bc56c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
