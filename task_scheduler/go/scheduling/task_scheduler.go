@@ -1024,3 +1024,75 @@ func updateUnfinishedTasks(cache db.TaskCache, d db.TaskDB, s swarming.ApiClient
 	}
 	return nil
 }
+
+// getWorstJobStatus finds the worst status for any Task throughout a Job's
+// dependency tree.
+func getWorstJobStatus(j *db.Job, tCache db.TaskCache, taskCfgCache *taskCfgCache) (db.JobStatus, error) {
+	worstStatus := db.JOB_STATUS_SUCCESS
+	for _, d := range j.Dependencies {
+		status, err := getWorstJobStatusHelper(j, d, tCache, taskCfgCache)
+		if err != nil {
+			return db.JOB_STATUS_IN_PROGRESS, err
+		}
+		worstStatus = db.WorseJobStatus(worstStatus, status)
+	}
+	return worstStatus, nil
+}
+
+func getWorstJobStatusHelper(j *db.Job, taskName string, tCache db.TaskCache, taskCfgCache *taskCfgCache) (db.JobStatus, error) {
+	key := j.MakeTaskKey(taskName)
+	tasks, err := tCache.GetTasksByKey(&key)
+	if err != nil {
+		return db.JOB_STATUS_IN_PROGRESS, err
+	}
+
+	if len(tasks) == 0 {
+		// Follow the Task's dependencies; one or more might have failed.
+		cfg, err := taskCfgCache.ReadTasksCfg(j.RepoState)
+		if err != nil {
+			return db.JOB_STATUS_IN_PROGRESS, err
+		}
+		ts, ok := cfg.Tasks[taskName]
+		if !ok {
+			return db.JOB_STATUS_IN_PROGRESS, fmt.Errorf("Unknown task spec %q, %s @ %s", taskName, j.Repo, j.Revision)
+		}
+		// If there are no tasks for this job, it's considered to be
+		// in progress.
+		worstStatus := db.JOB_STATUS_IN_PROGRESS
+		for _, dep := range ts.Dependencies {
+			status, err := getWorstJobStatusHelper(j, dep, tCache, taskCfgCache)
+			if err != nil {
+				return db.JOB_STATUS_IN_PROGRESS, err
+			}
+			worstStatus = db.WorseJobStatus(worstStatus, status)
+		}
+		return worstStatus, nil
+	} else {
+		// We may have more than one Task for this spec, due to
+		// retrying of failed Tasks. We should not return a "failed"
+		// result if we still have retry attempts remaining or if we've
+		// already retried and succeeded.
+		canRetry := true
+		bestStatus := db.JOB_STATUS_MISHAP
+		for _, t := range tasks {
+			// We only allow one retry, so if this task is a retry
+			// of a previous one, we can't retry again. If we change
+			// that policy in the future, this will have to be
+			// something like, if t.AttemptNum >= MAX_ATTEMPTS.
+			if t.RetryOf != "" {
+				canRetry = false
+			}
+			status := db.JobStatusFromTaskStatus(t.Status)
+			if bestStatus.WorseThan(status) {
+				bestStatus = status
+			}
+		}
+		if bestStatus == db.JOB_STATUS_SUCCESS || bestStatus == db.JOB_STATUS_IN_PROGRESS {
+			return bestStatus, nil
+		} else if canRetry {
+			return db.JOB_STATUS_IN_PROGRESS, nil
+		} else {
+			return bestStatus, nil
+		}
+	}
+}
