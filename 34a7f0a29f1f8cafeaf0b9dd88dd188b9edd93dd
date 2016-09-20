@@ -22,6 +22,24 @@
       "revId": "34a7f0a29f1f8cafeaf0b9dd88dd188b9edd93dd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_302c78a0",
+        "filename": "go/gitinfo/gitinfo.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-20T12:24:14Z",
+      "side": 1,
+      "message": "I went with the latter.",
+      "parentUuid": "10261bad_f014c04b",
+      "revId": "34a7f0a29f1f8cafeaf0b9dd88dd188b9edd93dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
