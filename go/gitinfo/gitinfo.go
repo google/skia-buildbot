@@ -107,6 +107,14 @@ func (g *GitInfo) Update(pull, allBranches bool) error {
 func (g *GitInfo) Details(hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
+	return g.details(hash, includeBranchInfo)
+}
+
+// details returns more information than ShortCommit about a given commit.
+// See the vcsinfo.VCS interface for details.
+//
+// Caller is responsible for locking the mutex.
+func (g *GitInfo) details(hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
 	if c, ok := g.detailsCache[hash]; ok {
 		return c, nil
 	}
@@ -278,6 +286,21 @@ func (g *GitInfo) IndexOf(hash string) (int, error) {
 		return 0, fmt.Errorf("Didn't get a number: %s", err)
 	}
 	return n, nil
+}
+
+// ByIndex returns a LongCommit describing the commit
+// at position N, as ordered in the current branch.
+//
+// Does not make sense if readCommitsFromGitAllBranches has been
+// called.
+func (g *GitInfo) ByIndex(N int) (*vcsinfo.LongCommit, error) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+	numHashes := len(g.hashes)
+	if N < 0 || N >= numHashes {
+		return nil, fmt.Errorf("Hash index not found: %d", N)
+	}
+	return g.details(g.hashes[N], false)
 }
 
 // LastN returns the last N commits.
