@@ -11,6 +11,7 @@ import (
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
 
@@ -37,17 +38,11 @@ type taskCandidate struct {
 
 // Copy returns a copy of the taskCandidate.
 func (c *taskCandidate) Copy() *taskCandidate {
-	commits := make([]string, len(c.Commits))
-	copy(commits, c.Commits)
-	isolatedHashes := make([]string, len(c.IsolatedHashes))
-	copy(isolatedHashes, c.IsolatedHashes)
-	parentTaskIds := make([]string, len(c.ParentTaskIds))
-	copy(parentTaskIds, c.ParentTaskIds)
 	return &taskCandidate{
-		Commits:        commits,
+		Commits:        util.CopyStringSlice(c.Commits),
 		IsolatedInput:  c.IsolatedInput,
-		IsolatedHashes: isolatedHashes,
-		ParentTaskIds:  parentTaskIds,
+		IsolatedHashes: util.CopyStringSlice(c.IsolatedHashes),
+		ParentTaskIds:  util.CopyStringSlice(c.ParentTaskIds),
 		RetryOf:        c.RetryOf,
 		Score:          c.Score,
 		StealingFromId: c.StealingFromId,
