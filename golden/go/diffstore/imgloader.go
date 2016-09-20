@@ -134,6 +134,11 @@ func (il *ImageLoader) Get(priority int64, digests []string) ([]*image.NRGBA, er
 	return result, nil
 }
 
+// IsOnDisk returns true if the image that corresponds to the given digest is in the disk cache.
+func (il *ImageLoader) IsOnDisk(digest string) bool {
+	return fileutil.FileExists(fileutil.TwoLevelRadixPath(il.localImgDir, getDigestImageFileName(digest)))
+}
+
 // imageLoadWorker implements the rtcache.ReadThroughFunc signature.
 // It loads an image file either from disk or from Google storage.
 func (il *ImageLoader) imageLoadWorker(priority int64, digest string) (interface{}, error) {
