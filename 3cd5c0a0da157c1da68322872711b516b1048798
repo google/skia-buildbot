@@ -1,0 +1,146 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "10261bad_d0530408",
+        "filename": "go/buildbucket/buildbucket.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-20T13:48:06Z",
+      "side": 1,
+      "message": "The %%2F in there makes it hard to read and reason about. Use url.Values to do the encoding:\n\nq :\u003d url.Values{\"tag\": []string{fmt.Sprintf(\"buildset:patch/%s/%s/%d/%d\", patchStorage, host, issueID, patchsetID)}}.Encode()\nurl :\u003d apiUrl + \"/search?\" + q",
+      "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_307eb870",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-20T13:48:06Z",
+      "side": 1,
+      "message": "The client should be passed in, and http.DefaultClient should never be used since it has no timeouts set.",
+      "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_50793486",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-20T13:48:06Z",
+      "side": 1,
+      "message": "// GetIssueProperties",
+      "range": {
+        "startLine": 137,
+        "startChar": 3,
+        "endLine": 137,
+        "endChar": 21
+      },
+      "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_b069a8b6",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-20T13:48:06Z",
+      "side": 1,
+      "message": "use url.Values and have it do the encoding. This will save you the steps of doing the encoding in SearchModifiedAfter.\n\nActually this should just return a url.Values that you can then add \u0027queryLimit\u0027 and \u0027skip\u0027 values to in Search.",
+      "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_90a0ec01",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 395,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-20T13:48:06Z",
+      "side": 1,
+      "message": "glog?",
+      "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_70a5500f",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 416,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-20T13:48:06Z",
+      "side": 1,
+      "message": "glog?",
+      "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_b05088fc",
+        "filename": "go/util/util_test.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-20T13:48:06Z",
+      "side": 1,
+      "message": "testCases :\u003d\n\nTo keep it consistent with the rest of the file.",
+      "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10261bad_907fcc6e",
+        "filename": "go/util/util_test.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 449,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-20T13:48:06Z",
+      "side": 1,
+      "message": "for _, tc :\u003d range tests {\n\nTo keep it consistent with the rest of the file.",
+      "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
