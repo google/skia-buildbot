@@ -56,7 +56,8 @@ func getImageLoaderAndTile(t assert.TestingT) (string, string, *tiling.Tile, *Im
 	workingDir := filepath.Join(baseDir, "images")
 	assert.Nil(t, os.Mkdir(workingDir, 0777))
 
-	imgLoader, err := newImgLoader(client, workingDir, TEST_GS_BUCKET_NAME, TEST_GS_IMAGE_DIR, MAX_IMAGE_CACHE)
+	imgCacheCount, _ := getCacheCounts(10)
+	imgLoader, err := newImgLoader(client, workingDir, TEST_GS_BUCKET_NAME, TEST_GS_IMAGE_DIR, imgCacheCount)
 	assert.NoError(t, err)
 	return baseDir, workingDir, tile, imgLoader
 }

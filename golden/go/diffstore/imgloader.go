@@ -76,8 +76,8 @@ func newImgLoader(client *http.Client, imgDir, gsBucketName, gsImageBaseDir stri
 // It workes in sync with Get, any image that is scheduled be retrieved by get
 // will not be fetched again.
 func (il *ImageLoader) Warm(priority int64, digests []string) {
+	il.wg.Add(len(digests))
 	for _, digest := range digests {
-		il.wg.Add(1)
 		go func(digest string) {
 			defer il.wg.Done()
 			if err := il.imageCache.Warm(priority, digest); err != nil {
@@ -132,6 +132,11 @@ func (il *ImageLoader) Get(priority int64, digests []string) ([]*image.NRGBA, er
 	}
 
 	return result, nil
+}
+
+// IsOnDisk returns true if the image that corresponds to the given digest is in the disk cache.
+func (il *ImageLoader) IsOnDisk(digest string) bool {
+	return fileutil.FileExists(fileutil.TwoLevelRadixPath(il.localImgDir, getDigestImageFileName(digest)))
 }
 
 // imageLoadWorker implements the rtcache.ReadThroughFunc signature.

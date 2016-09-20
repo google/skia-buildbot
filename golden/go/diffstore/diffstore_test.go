@@ -25,7 +25,7 @@ func TestDiffStore(t *testing.T) {
 	client, tile := getSetupAndTile(t, baseDir)
 	defer testutils.RemoveAll(t, baseDir)
 
-	diffStore, err := New(client, baseDir, TEST_GS_BUCKET_NAME, TEST_GS_IMAGE_DIR)
+	diffStore, err := New(client, baseDir, TEST_GS_BUCKET_NAME, TEST_GS_IMAGE_DIR, 10)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
@@ -51,7 +51,7 @@ func TestDiffStore(t *testing.T) {
 	diffStore.WarmDigests(diff.PRIORITY_NOW, digests)
 	memDiffStore.imgLoader.sync()
 	for _, d := range digests {
-		assert.True(t, memDiffStore.imgLoader.imageCache.Contains(d), fmt.Sprintf("Coult nof find '%s'", d))
+		assert.True(t, memDiffStore.imgLoader.IsOnDisk(d), fmt.Sprintf("Coult nof find '%s'", d))
 	}
 
 	// Warm the diffs and make sure they are in the cache.
