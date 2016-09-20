@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "303cfff1_9fb673d5",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1059,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-20T20:11:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "303cfff1_1fa263a0",
+      "revId": "21f952243f784812e7b82ce5aa9b53b16b3d8955",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "303cfff1_9fadd38d",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2016-09-20T20:05:24Z",
       "side": 1,
       "message": "nit: Maybe note we currently limit to 1 retry.",
+      "revId": "21f952243f784812e7b82ce5aa9b53b16b3d8955",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_dfc0fb1f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1077,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-20T20:11:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "303cfff1_9fadd38d",
       "revId": "21f952243f784812e7b82ce5aa9b53b16b3d8955",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
