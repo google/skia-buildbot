@@ -1,0 +1,193 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "303cfff1_7f6c4f32",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-20T21:38:07Z",
+      "side": 1,
+      "message": "Don\u0027t we need to check if candidates[j.MakeTaskKey(tsName)] exists?",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_df5c7b79",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-20T21:38:07Z",
+      "side": 1,
+      "message": "nit: seems like the names \"candidates\" and \"bySpec\" are reversed",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_df359b31",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 841,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-20T21:38:07Z",
+      "side": 1,
+      "message": "I think we also want to return false if c\u0027s commit time is before the scheduling period.",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_bff89742",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 927,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-20T21:38:07Z",
+      "side": 1,
+      "message": "I should add expiration to jobCache. We ought to expire jobs (i.e. s.jCache.Update()) before calling updateUnfinishedJobs(); if not, the job\u0027s dependent tasks may have already expired, causing us to set an erroneous job status. (This is pretty unlikely, since the only way this would happen is if a task completed *just* before expiring from the cache.)",
+      "range": {
+        "startLine": 927,
+        "startChar": 11,
+        "endLine": 927,
+        "endChar": 35
+      },
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_dfef5b78",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 931,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-20T21:38:07Z",
+      "side": 1,
+      "message": "nit: updateUnfinishedJobs() does this",
+      "range": {
+        "startLine": 931,
+        "startChar": 11,
+        "endLine": 931,
+        "endChar": 28
+      },
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_bfcff71f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 954,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-20T21:38:07Z",
+      "side": 1,
+      "message": "nit: Seems a bit cleaner to do this at the beginning of the loop.",
+      "range": {
+        "startLine": 954,
+        "startChar": 11,
+        "endLine": 954,
+        "endChar": 28
+      },
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_9fccb32c",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 957,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-20T21:38:07Z",
+      "side": 1,
+      "message": "nit: Should be a no-op, since gatherNewJobs does this.",
+      "range": {
+        "startLine": 957,
+        "startChar": 11,
+        "endLine": 957,
+        "endChar": 28
+      },
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_7f98cf1f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1197,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-20T21:38:07Z",
+      "side": 1,
+      "message": "Do you mind adding a glog.Warningf if t.Created.Before(j.Created)? If that happens, it\u0027s possible that we\u0027ll set the wrong status when the task scrolls out of the TaskCache window before the job scrolls out of the JobCache window. (Probably being too paranoid, but I can imagine future changes may violate this assumption.)",
+      "range": {
+        "startLine": 1197,
+        "startChar": 2,
+        "endLine": 1197,
+        "endChar": 25
+      },
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_fff21f60",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1233,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-20T21:38:07Z",
+      "side": 1,
+      "message": "nit: We probably want to call PutJobs only for jobs whose status has changed. Otherwise it\u0027s a lot of unnecessary load on the DB.",
+      "range": {
+        "startLine": 1233,
+        "startChar": 2,
+        "endLine": 1233,
+        "endChar": 19
+      },
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
