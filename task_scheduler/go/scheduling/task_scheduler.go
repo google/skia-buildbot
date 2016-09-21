@@ -1,7 +1,6 @@
 package scheduling
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -29,6 +28,13 @@ import (
 )
 
 const (
+	// Manually-forced jobs have high priority.
+	CANDIDATE_SCORE_FORCE_RUN = 100.0
+
+	// Try jobs have high priority, equal to building at HEAD when we're
+	// 5 commits behind.
+	CANDIDATE_SCORE_TRY_JOB = 10.0
+
 	NUM_TOP_CANDIDATES = 50
 )
 
@@ -39,7 +45,9 @@ var (
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
 	bl               *blacklist.Blacklist
+	db               db.DB
 	isolate          *isolate.Client
+	jCache           db.JobCache
 	lastScheduled    time.Time // protected by queueMtx.
 	period           time.Duration
 	queue            []*taskCandidate // protected by queueMtx.
@@ -51,16 +59,26 @@ type TaskScheduler struct {
 	repos            map[string]*gitrepo.Repo
 	swarming         swarming.ApiClient
 	taskCfgCache     *taskCfgCache
-	taskDB           db.TaskDB
 	tCache           db.TaskCache
 	timeDecayAmt24Hr float64
 	workdir          string
 }
 
-func NewTaskScheduler(taskDB db.TaskDB, tCache db.TaskCache, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, timeDecayAmt24Hr float64) (*TaskScheduler, error) {
+func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, timeDecayAmt24Hr float64) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		return nil, err
+	}
+
+	// Create caches.
+	tCache, err := db.NewTaskCache(d, period)
+	if err != nil {
+		glog.Fatal(err)
+	}
+
+	jCache, err := db.NewJobCache(d, period)
+	if err != nil {
+		glog.Fatal(err)
 	}
 
 	repos := make(map[string]*gitrepo.Repo, len(repoNames))
@@ -77,7 +95,9 @@ func NewTaskScheduler(taskDB db.TaskDB, tCache db.TaskCache, period time.Duratio
 	}
 	s := &TaskScheduler{
 		bl:               bl,
+		db:               d,
 		isolate:          isolateClient,
+		jCache:           jCache,
 		period:           period,
 		queue:            []*taskCandidate{},
 		queueMtx:         sync.RWMutex{},
@@ -85,7 +105,6 @@ func NewTaskScheduler(taskDB db.TaskDB, tCache db.TaskCache, period time.Duratio
 		repos:            repos,
 		swarming:         swarmingClient,
 		taskCfgCache:     newTaskCfgCache(rm),
-		taskDB:           taskDB,
 		tCache:           tCache,
 		timeDecayAmt24Hr: timeDecayAmt24Hr,
 		workdir:          workdir,
@@ -263,105 +282,121 @@ func ComputeBlamelist(cache db.TaskCache, repo *gitrepo.Repo, taskName, repoName
 	return rv, stealFrom, nil
 }
 
-// findTaskCandidates goes through the given commits-by-repos, loads task specs
-// from each repo/commit pair and passes them onto the out channel, filtering
-// candidates which we don't want to run. The out channel will be closed when
-// all task specs have been considered, or when an error occurs. If an error
-// occurs, it will be passed onto the errs channel, but that channel will not
-// be closed.
-func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) (map[string][]*taskCandidate, error) {
-	defer timer.New("TaskScheduler.findTaskCandidates").Stop()
-	// Create a RepoState for each commit.
-	numRepoStates := 0
-	for _, commits := range commitsByRepo {
-		numRepoStates += len(commits)
-	}
-	repoStates := make([]db.RepoState, 0, numRepoStates)
-	for repo, commits := range commitsByRepo {
-		for _, commit := range commits {
-			repoStates = append(repoStates, db.RepoState{
-				Repo:     repo,
-				Revision: commit,
-			})
+// findTaskCandidatesForJobs returns the set of all taskCandidates needed by all
+// currently-unfinished jobs.
+func (s *TaskScheduler) findTaskCandidatesForJobs(unfinishedJobs []*db.Job) (map[db.TaskKey]*taskCandidate, error) {
+	defer timer.New("TaskScheduler.findTaskCandidatesForJobs").Stop()
+
+	// Get the repo+commit+taskspecs for each job.
+	candidates := map[db.TaskKey]*taskCandidate{}
+	var gatherDeps func(*db.Job, string) error
+	gatherDeps = func(j *db.Job, tsName string) error {
+		key := j.MakeTaskKey(tsName)
+		if _, ok := candidates[key]; ok {
+			return nil
 		}
+		spec, err := s.taskCfgCache.GetTaskSpec(j.RepoState, tsName)
+		if err != nil {
+			return err
+		}
+		c := &taskCandidate{
+			JobCreated: j.Created,
+			TaskKey:    key,
+			TaskSpec:   spec,
+		}
+		candidates[key] = c
+		for _, d := range spec.Dependencies {
+			if err := gatherDeps(j, d); err != nil {
+				return err
+			}
+		}
+		return nil
 	}
 
-	// Obtain all possible tasks.
-	specs, err := s.taskCfgCache.GetTaskSpecsForRepoStates(repoStates)
-	if err != nil {
-		return nil, err
+	for _, j := range unfinishedJobs {
+		for _, tsName := range j.Dependencies {
+			// Gather the dependencies recursively.
+			if err := gatherDeps(j, tsName); err != nil {
+				return nil, err
+			}
+		}
 	}
-	bySpec := map[string][]*taskCandidate{}
+	glog.Infof("Found %d task specs for %d unfinished jobs.", len(candidates), len(unfinishedJobs))
+	return candidates, nil
+}
+
+// filterTaskCandidates reduces the set of taskCandidates to the ones we might
+// actually want to run and organizes them by repo and TaskSpec name.
+func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]*taskCandidate) (map[string]map[string][]*taskCandidate, error) {
+	defer timer.New("TaskScheduler.filterTaskCandidates").Stop()
+
+	candidatesBySpec := map[string]map[string][]*taskCandidate{}
 	total := 0
+	// TODO(borenet): Recent commits and task specs are not correct here,
+	// now that we've pre-filtered out all commits and task specs for jobs
+	// we've already finished.
 	recentCommits := []string{}
 	recentTaskSpecsMap := map[string]bool{}
-	for rs, specsByName := range specs {
-		recentCommits = append(recentCommits, rs.Revision)
-		for name, spec := range specsByName {
-			recentTaskSpecsMap[name] = true
-			if rule := s.bl.MatchRule(name, rs.Revision); rule != "" {
-				glog.Warningf("Skipping blacklisted task candidate: %s @ %s due to rule %q", name, rs.Revision, rule)
-				continue
-			}
-			c := &taskCandidate{
-				IsolatedHashes: nil,
-				TaskKey: db.TaskKey{
-					RepoState: rs.Copy(),
-					Name:      name,
-				},
-				Score:    0.0,
-				TaskSpec: spec,
-			}
-			// We shouldn't duplicate pending, in-progress,
-			// or successfully completed tasks.
-			prevTasks, err := s.tCache.GetTasksByKey(&c.TaskKey)
-			if err != nil {
-				return nil, err
-			}
-			var previous *db.Task
-			if len(prevTasks) > 0 {
-				// Just choose the last (most recently created) previous
-				// Task.
-				previous = prevTasks[len(prevTasks)-1]
-			}
-			if previous != nil {
-				if previous.Status == db.TASK_STATUS_PENDING || previous.Status == db.TASK_STATUS_RUNNING {
-					continue
-				}
-				if previous.Success() {
-					continue
-				}
-				// Only retry a task once.
-				if previous.RetryOf != "" {
-					continue
-				}
-				c.RetryOf = previous.Id
-			}
-
-			// Don't consider candidates whose dependencies are not met.
-			depsMet, idsToHashes, err := c.allDepsMet(s.tCache)
-			if err != nil {
-				return nil, err
-			}
-			if !depsMet {
-				continue
-			}
-			hashes := make([]string, 0, len(idsToHashes))
-			parentTaskIds := make([]string, 0, len(idsToHashes))
-			for id, hash := range idsToHashes {
-				hashes = append(hashes, hash)
-				parentTaskIds = append(parentTaskIds, id)
-			}
-			c.IsolatedHashes = hashes
-			sort.Strings(parentTaskIds)
-			c.ParentTaskIds = parentTaskIds
-
-			key := fmt.Sprintf("%s|%s", c.Repo, c.Name)
-			bySpec[key] = append(bySpec[key], c)
-			total++
+	for _, c := range preFilterCandidates {
+		recentTaskSpecsMap[c.Name] = true
+		if rule := s.bl.MatchRule(c.Name, c.Revision); rule != "" {
+			glog.Warningf("Skipping blacklisted task candidate: %s @ %s due to rule %q", c.Name, c.Revision, rule)
+			continue
 		}
+
+		// We shouldn't duplicate pending, in-progress,
+		// or successfully completed tasks.
+		prevTasks, err := s.tCache.GetTasksByKey(&c.TaskKey)
+		if err != nil {
+			return nil, err
+		}
+		var previous *db.Task
+		if len(prevTasks) > 0 {
+			// Just choose the last (most recently created) previous
+			// Task.
+			previous = prevTasks[len(prevTasks)-1]
+		}
+		if previous != nil {
+			if previous.Status == db.TASK_STATUS_PENDING || previous.Status == db.TASK_STATUS_RUNNING {
+				continue
+			}
+			if previous.Success() {
+				continue
+			}
+			// Only retry a task once.
+			if previous.RetryOf != "" {
+				continue
+			}
+			c.RetryOf = previous.Id
+		}
+
+		// Don't consider candidates whose dependencies are not met.
+		depsMet, idsToHashes, err := c.allDepsMet(s.tCache)
+		if err != nil {
+			return nil, err
+		}
+		if !depsMet {
+			continue
+		}
+		hashes := make([]string, 0, len(idsToHashes))
+		parentTaskIds := make([]string, 0, len(idsToHashes))
+		for id, hash := range idsToHashes {
+			hashes = append(hashes, hash)
+			parentTaskIds = append(parentTaskIds, id)
+		}
+		c.IsolatedHashes = hashes
+		sort.Strings(parentTaskIds)
+		c.ParentTaskIds = parentTaskIds
+
+		candidates, ok := candidatesBySpec[c.Repo]
+		if !ok {
+			candidates = map[string][]*taskCandidate{}
+			candidatesBySpec[c.Repo] = candidates
+		}
+		candidates[c.Name] = append(candidates[c.Name], c)
+		total++
 	}
-	glog.Infof("Found %d candidates in %d specs", total, len(bySpec))
+	glog.Infof("Found %d candidates in %d spec categories.", total, len(recentTaskSpecsMap))
 	recentTaskSpecs := make([]string, 0, len(recentTaskSpecsMap))
 	for spec, _ := range recentTaskSpecsMap {
 		recentTaskSpecs = append(recentTaskSpecs, spec)
@@ -370,12 +405,17 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) (m
 	defer s.recentMtx.Unlock()
 	s.recentCommits = recentCommits
 	s.recentTaskSpecs = recentTaskSpecs
-	return bySpec, nil
+	return candidatesBySpec, nil
 }
 
 // processTaskCandidate computes the remaining information about the task
 // candidate, eg. blamelists and scoring.
 func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*gitrepo.Commit) error {
+	if c.IsTryJob() {
+		c.Score = CANDIDATE_SCORE_TRY_JOB + now.Sub(c.JobCreated).Hours()
+		return nil
+	}
+
 	// Compute blamelist.
 	repo, ok := s.repos[c.Repo]
 	if !ok {
@@ -390,7 +430,12 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 		c.StealingFromId = stealingFrom.Id
 	}
 
-	// Score the candidates.
+	if c.IsForceRun() {
+		c.Score = CANDIDATE_SCORE_FORCE_RUN + now.Sub(c.JobCreated).Hours()
+		return nil
+	}
+
+	// Score the candidate.
 	// The score for a candidate is based on the "testedness" increase
 	// provided by running the task.
 	stoleFromCommits := 0
@@ -410,94 +455,62 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 	return nil
 }
 
-// regenerateTaskQueue obtains the set of all eligible task candidates, scores
-// them, and prepares them to be triggered.
-func (s *TaskScheduler) regenerateTaskQueue() error {
-	defer timer.New("TaskScheduler.regenerateTaskQueue").Stop()
-
-	// Find the recent commits to use.
-	for _, repoName := range s.repoMap.Repos() {
-		r, err := s.repoMap.Repo(repoName)
-		if err != nil {
-			return err
-		}
-		if err := r.Reset("HEAD"); err != nil {
-			return err
-		}
-		if err := r.Checkout("master"); err != nil {
-			return err
-		}
-	}
-	if err := s.repoMap.Update(); err != nil {
-		return err
-	}
-	from := time.Now().Add(-s.period)
-	commits := map[string][]string{}
-	for _, repoName := range s.repoMap.Repos() {
-		repo, err := s.repoMap.Repo(repoName)
-		if err != nil {
-			return err
-		}
-		commits[repoName] = repo.From(from)
-	}
-
-	// Find and process task candidates.
-	candidates, err := s.findTaskCandidates(commits)
-	if err != nil {
-		return err
-	}
+// Process the task candidates.
+func (s *TaskScheduler) processTaskCandidates(candidates map[string]map[string][]*taskCandidate) ([]*taskCandidate, error) {
 	defer timer.New("process task candidates").Stop()
 	now := time.Now()
 	processed := make(chan *taskCandidate)
 	errs := make(chan error)
 	wg := sync.WaitGroup{}
-	for _, c := range candidates {
-		wg.Add(1)
-		go func(candidates []*taskCandidate) {
-			defer wg.Done()
-			cache := newCacheWrapper(s.tCache)
-			commitsBuf := make([]*gitrepo.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
-			for {
-				// Find the best candidate.
-				idx := -1
-				var best *taskCandidate
-				for i, candidate := range candidates {
-					c := candidate.Copy()
-					if err := s.processTaskCandidate(c, now, cache, commitsBuf); err != nil {
-						errs <- err
+	for _, cs := range candidates {
+		for _, c := range cs {
+			wg.Add(1)
+			go func(candidates []*taskCandidate) {
+				defer wg.Done()
+				cache := newCacheWrapper(s.tCache)
+				commitsBuf := make([]*gitrepo.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
+				for {
+					// Find the best candidate.
+					idx := -1
+					var best *taskCandidate
+					for i, candidate := range candidates {
+						c := candidate.Copy()
+						if err := s.processTaskCandidate(c, now, cache, commitsBuf); err != nil {
+							errs <- err
+							return
+						}
+						if best == nil || c.Score > best.Score {
+							best = c
+							idx = i
+						}
+					}
+					if best == nil {
 						return
 					}
-					if best == nil || c.Score > best.Score {
-						best = c
-						idx = i
+					processed <- best
+					t := best.MakeTask()
+					t.Id = best.MakeId()
+					cache.insert(t)
+					if best.StealingFromId != "" {
+						stoleFrom, err := cache.GetTask(best.StealingFromId)
+						if err != nil {
+							errs <- err
+							return
+						}
+						stole := util.NewStringSet(best.Commits)
+						oldC := util.NewStringSet(stoleFrom.Commits)
+						newC := oldC.Complement(stole)
+						commits := make([]string, 0, len(newC))
+						for c, _ := range newC {
+							commits = append(commits, c)
+						}
+						stoleFrom.Commits = commits
+						cache.insert(stoleFrom)
 					}
+					candidates = append(candidates[:idx], candidates[idx+1:]...)
 				}
-				if best == nil {
-					return
-				}
-				processed <- best
-				t := best.MakeTask()
-				t.Id = best.MakeId()
-				cache.insert(t)
-				if best.StealingFromId != "" {
-					stoleFrom, err := cache.GetTask(best.StealingFromId)
-					if err != nil {
-						errs <- err
-						return
-					}
-					stole := util.NewStringSet(best.Commits)
-					oldC := util.NewStringSet(stoleFrom.Commits)
-					newC := oldC.Complement(stole)
-					commits := make([]string, 0, len(newC))
-					for c, _ := range newC {
-						commits = append(commits, c)
-					}
-					stoleFrom.Commits = commits
-					cache.insert(stoleFrom)
-				}
-				candidates = append(candidates[:idx], candidates[idx+1:]...)
-			}
-		}(c)
+			}(c)
+		}
 	}
 	go func() {
 		wg.Wait()
@@ -527,14 +540,46 @@ func (s *TaskScheduler) regenerateTaskQueue() error {
 	}
 
 	if len(rvErrs) != 0 {
-		return rvErrs[0]
+		return nil, rvErrs[0]
 	}
 	sort.Sort(taskCandidateSlice(rvCandidates))
+	return rvCandidates, nil
+}
 
+// regenerateTaskQueue obtains the set of all eligible task candidates, scores
+// them, and prepares them to be triggered.
+func (s *TaskScheduler) regenerateTaskQueue() error {
+	defer timer.New("TaskScheduler.regenerateTaskQueue").Stop()
+
+	// Find the unfinished Jobs.
+	unfinishedJobs, err := s.jCache.UnfinishedJobs()
+	if err != nil {
+		return err
+	}
+
+	// Find TaskSpecs for all unfinished Jobs.
+	preFilterCandidates, err := s.findTaskCandidatesForJobs(unfinishedJobs)
+	if err != nil {
+		return err
+	}
+
+	// Filter task candidates.
+	candidates, err := s.filterTaskCandidates(preFilterCandidates)
+	if err != nil {
+		return err
+	}
+
+	// Process the remaining task candidates.
+	queue, err := s.processTaskCandidates(candidates)
+	if err != nil {
+		return err
+	}
+
+	// Save the queue.
 	s.queueMtx.Lock()
 	defer s.queueMtx.Unlock()
 	s.lastScheduled = time.Now()
-	s.queue = rvCandidates
+	s.queue = queue
 	return nil
 }
 
@@ -697,16 +742,16 @@ func (s *TaskScheduler) scheduleTasks() error {
 	tasksToInsert := make(map[string]*db.Task, len(schedule)*2)
 	for _, candidate := range schedule {
 		t := candidate.MakeTask()
-		if err := s.taskDB.AssignId(t); err != nil {
+		if err := s.db.AssignId(t); err != nil {
 			return err
 		}
 		req := candidate.MakeTaskRequest(t.Id)
-		j, err := json.MarshalIndent(req, "", "    ")
+		/*j, err := json.MarshalIndent(req, "", "    ")
 		if err != nil {
 			glog.Errorf("Failed to marshal JSON: %s", err)
 		} else {
 			glog.Infof("Requesting Swarming Task:\n\n%s\n\n", string(j))
-		}
+		}*/
 		resp, err := s.swarming.TriggerTask(req)
 		if err != nil {
 			return err
@@ -752,7 +797,7 @@ func (s *TaskScheduler) scheduleTasks() error {
 	}
 
 	// Insert the tasks into the database.
-	if err := s.taskDB.PutTasks(tasks); err != nil {
+	if err := s.db.PutTasks(tasks); err != nil {
 		return err
 	}
 
@@ -784,11 +829,70 @@ func (s *TaskScheduler) scheduleTasks() error {
 	return nil
 }
 
+// gatherNewJobs finds and inserts Jobs for all new commits.
+func (s *TaskScheduler) gatherNewJobs() error {
+	defer timer.New("TaskScheduler.gatherNewJobs").Stop()
+
+	// Find all new Jobs for all new commits.
+	now := time.Now()
+	newJobs := []*db.Job{}
+	for repoUrl, r := range s.repos {
+		if err := r.RecurseAllBranches(func(c *gitrepo.Commit) (bool, error) {
+			if now.Add(-s.period).After(c.Timestamp) {
+				return false, nil
+			}
+			scheduled, err := s.jCache.ScheduledJobsForCommit(repoUrl, c.Hash)
+			if err != nil {
+				return false, err
+			}
+			if scheduled {
+				return false, nil
+			}
+			cfg, err := s.taskCfgCache.ReadTasksCfg(db.RepoState{
+				Repo:     repoUrl,
+				Revision: c.Hash,
+			})
+			if err != nil {
+				return false, err
+			}
+			for name, jobSpec := range cfg.Jobs {
+				newJobs = append(newJobs, &db.Job{
+					Created:      now,
+					Dependencies: jobSpec.TaskSpecs,
+					Name:         name,
+					Priority:     jobSpec.Priority,
+					RepoState: db.RepoState{
+						Repo:     repoUrl,
+						Revision: c.Hash,
+					},
+				})
+			}
+			return true, nil
+		}); err != nil {
+			return err
+		}
+	}
+
+	if err := s.db.PutJobs(newJobs); err != nil {
+		return err
+	}
+	return s.jCache.Update()
+}
+
 // MainLoop runs a single end-to-end task scheduling loop.
 func (s *TaskScheduler) MainLoop() error {
 	defer timer.New("TaskSchedulder.MainLoop").Stop()
 
 	glog.Infof("Task Scheduler updating...")
+
+	// TODO(borenet): This is only needed for the perftest because it no
+	// longer has access to the TaskCache used by TaskScheduler. Since it
+	// pushes tasks into the DB between executions of MainLoop, we need to
+	// update the cache here so that we see those changes.
+	if err := s.tCache.Update(); err != nil {
+		return err
+	}
+
 	var e1, e2 error
 	var wg sync.WaitGroup
 
@@ -806,7 +910,7 @@ func (s *TaskScheduler) MainLoop() error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := updateUnfinishedTasks(s.tCache, s.taskDB, s.swarming); err != nil {
+		if err := updateUnfinishedTasks(s.tCache, s.db, s.swarming); err != nil {
 			e2 = err
 		}
 	}()
@@ -819,8 +923,21 @@ func (s *TaskScheduler) MainLoop() error {
 		return e2
 	}
 
-	// Update the task cache.
+	// Update the caches.
 	if err := s.tCache.Update(); err != nil {
+		return err
+	}
+
+	if err := s.jCache.Update(); err != nil {
+		return err
+	}
+
+	if err := s.updateUnfinishedJobs(); err != nil {
+		return err
+	}
+
+	// Add Jobs for new commits.
+	if err := s.gatherNewJobs(); err != nil {
 		return err
 	}
 
@@ -836,9 +953,7 @@ func (s *TaskScheduler) MainLoop() error {
 	if err := s.scheduleTasks(); err != nil {
 		return err
 	}
-
-	// Update the cache again to include the newly-inserted tasks.
-	return s.tCache.Update()
+	return nil
 }
 
 // cleanupRepos cleans up the scheduler's repos. It logs errors rather than
@@ -968,6 +1083,7 @@ func testednessIncrease(blamelistLength, stoleFromBlamelistLength int) float64 {
 
 // getFreeSwarmingBots returns a slice of free swarming bots.
 func getFreeSwarmingBots(s swarming.ApiClient) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
+	defer timer.New("getFreeSwarmingBots").Stop()
 	bots, err := s.ListSkiaBots()
 	if err != nil {
 		return nil, err
@@ -1084,6 +1200,9 @@ func getWorstJobStatusHelper(j *db.Job, taskName string, tCache db.TaskCache, ta
 			}
 			status := db.JobStatusFromTaskStatus(t.Status)
 			if bestStatus.WorseThan(status) {
+				if t.Created.Before(j.Created) {
+					glog.Warningf("Job %s is using task %s which was created before it! (%s vs %s)", j.Id, t.Id, j.Created, t.Created)
+				}
 				bestStatus = status
 			}
 		}
@@ -1095,4 +1214,32 @@ func getWorstJobStatusHelper(j *db.Job, taskName string, tCache db.TaskCache, ta
 			return bestStatus, nil
 		}
 	}
+}
+
+// updateUnfinishedJobs updates all not-yet-finished Jobs to determine if their
+// state has changed.
+func (s *TaskScheduler) updateUnfinishedJobs() error {
+	jobs, err := s.jCache.UnfinishedJobs()
+	if err != nil {
+		return err
+	}
+
+	modified := make([]*db.Job, 0, len(jobs))
+	for _, j := range jobs {
+		status, err := getWorstJobStatus(j, s.tCache, s.taskCfgCache)
+		if err != nil {
+			return err
+		}
+		if status != j.Status {
+			j.Status = status
+			modified = append(modified, j)
+		}
+	}
+	if len(modified) == 0 {
+		return nil
+	}
+	if err := s.db.PutJobs(jobs); err != nil {
+		return err
+	}
+	return s.jCache.Update()
 }
