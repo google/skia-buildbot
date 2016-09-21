@@ -424,6 +424,24 @@
     },
     {
       "key": {
+        "uuid": "d06d6344_67a22cb0",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1197,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-21T18:58:48Z",
+      "side": 1,
+      "message": "Sure, but it\u0027d be hard to guarantee that we never hit this case. Even if we imposed the limitation I suggested we could end up with using a task whose creation time is after the job creation time but with some ancestor whose creation time is before.  Added a warning, but as I pointed out, it won\u0027t necessarily catch all cases of this.",
+      "parentUuid": "303cfff1_e2dba835",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "303cfff1_fff21f60",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
