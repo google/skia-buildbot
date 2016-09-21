@@ -22,6 +22,7 @@
 
 <link rel="import" href="/res/imp/plot-simple.html" />
 <link rel="import" href="/res/imp/commit-detail-panel.html" />
+<link rel="import" href="/res/imp/highlight.html" />
 
 <dom-module id="explore-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
@@ -69,7 +70,10 @@
   <template>
     <div>
       <div class="layout horizontal">
-        <plot-simple-sk width=640 height=480 id=plot></plot-simple-sk>
+        <div>
+          <highlightbar-sk id=highlight></highlightbar-sk>
+          <plot-simple-sk width=640 height=480 id=plot></plot-simple-sk>
+        </div>
         <div id=tabs class="flex">
           <paper-tabs selected=0 id=detailtab no-bar on-iron-select="_tabSelect">
             <paper-tab>Params</paper-tab>
@@ -145,6 +149,8 @@
       this.$.plot.addEventListener("trace_focused", function(e) {
         this.$.paramset.clearHighlight();
         this.$.paramset.setHighlight(sk.key.toObject(e.detail.id));
+        this.$.highlight.key = e.detail.id;
+        this.$.highlight.value = e.detail.pt[1];
       }.bind(this));
 
       // Highlight a trace when it is clicked on.
