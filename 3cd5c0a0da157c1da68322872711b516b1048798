@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "303cfff1_5fa22baf",
+        "filename": "go/buildbucket/buildbucket.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-09-21T13:16:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "10261bad_d0530408",
+      "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10261bad_307eb870",
         "filename": "go/gerrit/gerrit.go",
         "patchSetId": 26
@@ -30,6 +48,24 @@
       "writtenOn": "2016-09-20T13:48:06Z",
       "side": 1,
       "message": "The client should be passed in, and http.DefaultClient should never be used since it has no timeouts set.",
+      "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_df8d9b36",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-09-21T13:16:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "10261bad_307eb870",
       "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -59,6 +95,24 @@
     },
     {
       "key": {
+        "uuid": "303cfff1_ff905f4e",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-09-21T13:16:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "10261bad_50793486",
+      "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10261bad_b069a8b6",
         "filename": "go/gerrit/gerrit.go",
         "patchSetId": 26
@@ -70,6 +124,24 @@
       "writtenOn": "2016-09-20T13:48:06Z",
       "side": 1,
       "message": "use url.Values and have it do the encoding. This will save you the steps of doing the encoding in SearchModifiedAfter.\n\nActually this should just return a url.Values that you can then add \u0027queryLimit\u0027 and \u0027skip\u0027 values to in Search.",
+      "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_c28144ae",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-09-21T13:16:10Z",
+      "side": 1,
+      "message": "I tried this out and did:\nq :\u003d url.Values{}\nq.Add(\"q\", queryString(terms))\nq.Add(\"n\", strconv.Itoa(queryLimit))\nq.Add(\"S\", strconv.Itoa(skip))\nsearchUrl :\u003d \"/changes/?\" + q.Encode()\n\nIt created:\nhttps://skia-review.googlesource.com/changes/?S\u003d0\u0026n\u003d1\u0026q\u003dafter%3A%222016-09-11+12%3A43%3A09.814202463%22%40owner%3Armistry@google.com\n\nThis did not work because Gerrit apparently requires the + to not be encoded into %2B.\nIt works when I replace the + :\nhttps://skia-review.googlesource.com/changes/?S\u003d0\u0026n\u003d1\u0026q\u003dafter%3A%222016-09-11+12%3A43%3A09.814202463%22+owner%3Armistry@google.com\n\nI do not know how to stop the + from being encoded when using url.Values{}",
+      "parentUuid": "10261bad_b069a8b6",
       "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -93,6 +165,24 @@
     },
     {
       "key": {
+        "uuid": "303cfff1_bf96d749",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 395,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-09-21T13:16:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "10261bad_90a0ec01",
+      "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10261bad_70a5500f",
         "filename": "go/gerrit/gerrit.go",
         "patchSetId": 26
@@ -104,6 +194,24 @@
       "writtenOn": "2016-09-20T13:48:06Z",
       "side": 1,
       "message": "glog?",
+      "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_9f93135a",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 416,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-09-21T13:16:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "10261bad_70a5500f",
       "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -127,6 +235,24 @@
     },
     {
       "key": {
+        "uuid": "303cfff1_82629c0d",
+        "filename": "go/util/util_test.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-09-21T13:16:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "10261bad_b05088fc",
+      "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10261bad_907fcc6e",
         "filename": "go/util/util_test.go",
         "patchSetId": 26
@@ -138,6 +264,24 @@
       "writtenOn": "2016-09-20T13:48:06Z",
       "side": 1,
       "message": "for _, tc :\u003d range tests {\n\nTo keep it consistent with the rest of the file.",
+      "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_6267981f",
+        "filename": "go/util/util_test.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 449,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-09-21T13:16:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "10261bad_907fcc6e",
       "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
