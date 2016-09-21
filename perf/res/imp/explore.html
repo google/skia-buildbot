@@ -13,6 +13,7 @@
 
 -->
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/paper-tabs/paper-tabs.html">
 
 <link rel="import" href="/res/common/imp/query2-sk.html" />
 <link rel="import" href="/res/common/imp/paramset.html" />
@@ -20,6 +21,7 @@
 <link rel="stylesheet" href="/res/common/css/md.css">
 
 <link rel="import" href="/res/imp/plot-simple.html" />
+<link rel="import" href="/res/imp/commit-detail-panel.html" />
 
 <dom-module id="explore-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
@@ -31,33 +33,66 @@
       margin: 0 1em;
     }
 
+    #commits,
     #paramset {
-      margin: 1em;
+      display: inline-block;
+      margin: 0.5em;
       overflow-y: auto;
       height: 480px;
     }
 
+    #commits.hidden,
+    #paramset.hidden {
+      display: none;
+    }
+
+    paper-tabs {
+      background: #A6CEE3;
+      color: #555;
+    }
+
+    paper-tab.iron-selected {
+      background: #1F78B4;
+      color: white;
+    }
+
+    #tabs {
+      margin: 1em 0 0 1em;
+    }
+
+    #detail {
+      border: #1F78B4 2px solid;
+      margin: 0;
+    }
+
   </style>
   <template>
-    <div class="layout horizontal">
-      <div class="layout vertical">
-        <div class="layout horizontal">
-          <plot-simple-sk width=640 height=480 id=plot></plot-simple-sk>
-          <paramset-sk id=paramset clickable-values></paramset-sk>
+    <div>
+      <div class="layout horizontal">
+        <plot-simple-sk width=640 height=480 id=plot></plot-simple-sk>
+        <div id=tabs class="flex">
+          <paper-tabs selected=0 id=detailtab no-bar on-iron-select="_tabSelect">
+            <paper-tab>Params</paper-tab>
+            <paper-tab id=commitsTab disabled>Commits</paper-tab>
+          </paper-tabs>
+          <div id=detail>
+            <paramset-sk id=paramset clickable-values></paramset-sk>
+            <commit-detail-panel-sk class=hidden id=commits></commit-detail-panel-sk>
+          </div>
         </div>
-        <div class="layout horizontal wrap">
-          <query2-sk id=query></query2-sk>
-          <div class="layout vertical" id=selections>
-            <h3>Selections</h3>
-            <query-summary-sk id=summary></query-summary-sk>
+      </div>
+      <div class="layout horizontal wrap">
+        <query2-sk id=query></query2-sk>
+        <div class="layout vertical" id=selections>
+          <h3>Selections</h3>
+          <query-summary-sk id=summary></query-summary-sk>
 
-            <div>
-              Matches: <span id=matches></span>
-            </div>
+          <div>
+            Matches: <span id=matches></span>
           </div>
-          <div class="layout vertical">
-            <button on-tap="_add">Plot</button>
-          </div>
+        </div>
+        <div class="layout vertical">
+          <button on-tap="_add">Plot</button>
         </div>
       </div>
     </div>
@@ -86,13 +121,13 @@
       }.bind(this)).catch(sk.errorMessage);
 
       // Reflect the current query to the query summary.
-      this.$.query.addEventListener('query-change', function(e){
+      this.$.query.addEventListener("query-change", function(e){
         this.$.summary.selection = e.detail.q;
         this._updateCount();
       }.bind(this));
 
       // Highlight trace when a paramset value is clicked.
-      this.$.paramset.addEventListener('paramset-key-value-click', function(e){
+      this.$.paramset.addEventListener("paramset-key-value-click", function(e){
         var keys = [];
         Object.keys(this._lines).forEach(function(key) {
           if (sk.key.matches(key, e.detail.key, e.detail.value)) {
@@ -110,6 +145,31 @@
       this.$.plot.addEventListener("trace_focused", function(e) {
         this.$.paramset.clearHighlight();
         this.$.paramset.setHighlight(sk.key.toObject(e.detail.id));
+      }.bind(this));
+
+      // Highlight a trace when it is clicked on.
+      this.$.plot.addEventListener("trace_selected", function(e) {
+        this.$.plot.clearHighlight();
+        this.$.plot.setHighlight(e.detail.id);
+        this.$.commits.setCommitDetail([]);
+
+        var x = e.detail.pt[0]|0;
+        // loop backwards from x until you get the next
+        // non 1e32 point.
+        var commits = [this._dataframe.header[x]];
+        var trace = this._dataframe.traceset[e.detail.id];
+        for (var i = x-1; i >= 0; i--) {
+          if (trace[i] != 1e32) {
+            break;
+          }
+          commits.push(this._dataframe.header[i]);
+        }
+        // Request populated commits from the server.
+        sk.post("/_/cid/", JSON.stringify(commits)).then(JSON.parse).then(function(json){
+          this.$.commits.setCommitDetail(json);
+          this.$.commitsTab.disabled = false;
+          this.$.detailtab.selected = 1;
+        }.bind(this)).catch(sk.errorMessage);
       }.bind(this));
 
       this._updateCount();
@@ -142,12 +202,19 @@
           lines[key] = values;
         });
         this._lines = lines;
+        this._dataframe = dataframe;
         this.$.plot.removeAll();
         this.$.plot.addLines(lines);
 
         // Populate the paramset element.
         this.$.paramset.setParamSets([dataframe.paramset]);
       }.bind(this)).catch(sk.errorMessage);
+    },
+
+    _tabSelect: function() {
+      var params_selected = (this.$.detailtab.selected == 0);
+      this.$.paramset.classList.toggle('hidden', !params_selected);
+      this.$.commits.classList.toggle('hidden', params_selected);
     },
 
   });
