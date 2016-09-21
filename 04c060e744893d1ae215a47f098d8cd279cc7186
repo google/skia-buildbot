@@ -142,6 +142,24 @@
     },
     {
       "key": {
+        "uuid": "303cfff1_c2e4a403",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 841,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-21T18:36:12Z",
+      "side": 1,
+      "message": "I was mostly thinking about old branches.",
+      "parentUuid": "303cfff1_623958f6",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "303cfff1_3fa3e7b6",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
@@ -388,6 +406,24 @@
     },
     {
       "key": {
+        "uuid": "303cfff1_e2dba835",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1197,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-21T18:36:12Z",
+      "side": 1,
+      "message": "It would also be easy enough to make task cache expiration period longer than job cache expiration period.",
+      "parentUuid": "303cfff1_627e7871",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "303cfff1_fff21f60",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
@@ -528,6 +564,24 @@
       "side": 1,
       "message": "No, we can\u0027t use the passed-in candidates, since processTaskCandidates performs copies and modifies the copies. Added a check to verify that all of the passed-in candidates are in the result.",
       "parentUuid": "303cfff1_e2c0c81f",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_42ba54df",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 650,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-21T18:36:12Z",
+      "side": 1,
+      "message": "Ah, ok. SG.",
+      "parentUuid": "303cfff1_224c7026",
       "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
