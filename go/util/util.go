@@ -670,3 +670,29 @@ func IsDirEmpty(dir string) (bool, error) {
 	}
 	return false, err
 }
+
+// CookieDomainMatch returns True if domainA domain-matches domainB, according to RFC 2965.
+// domainA and domainB may only be host domain names. IP addresses are currently not supported.
+//
+// RFC 2965, section 1:
+//   Host names can be specified either as an IP address or a HDN string.
+//   Sometimes we compare one host name with another.  (Such comparisons SHALL
+//   be case-insensitive.)  Host A's name domain-matches host B's if
+//   * their host name strings string-compare equal; or
+//   * A is a HDN string and has the form NB, where N is a non-empty
+//     name string, B has the form .B', and B' is a HDN string.  (So,
+//     x.y.com domain-matches .Y.com but not Y.com.)
+//   Note that domain-match is not a commutative operation: a.b.c.com
+//   domain-matches .c.com, but not the reverse.
+func CookieDomainMatch(domainA, domainB string) bool {
+	a := strings.ToLower(domainA)
+	b := strings.ToLower(domainB)
+	initialDot := strings.HasPrefix(b, ".")
+	if initialDot && strings.HasSuffix(a, b) {
+		return true
+	}
+	if !initialDot && a == b {
+		return true
+	}
+	return false
+}

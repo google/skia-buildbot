@@ -411,3 +411,42 @@ func TestIsDirEmpty(t *testing.T) {
 	empty, err = IsDirEmpty(path.Join(d, "nonexistent_dir"))
 	assert.NotNil(t, err)
 }
+
+type DomainTestCase struct {
+	DomainA string
+	DomainB string
+	Match   bool
+}
+
+func TestCookieDomainMatch(t *testing.T) {
+	// Test cases borrowed from test_domain_match in
+	// https://svn.python.org/projects/python/trunk/Lib/test/test_cookielib.py
+	testCases := []DomainTestCase{
+		DomainTestCase{DomainA: "x.y.com", DomainB: "x.Y.com", Match: true},
+		DomainTestCase{DomainA: "x.y.com", DomainB: ".Y.com", Match: true},
+		DomainTestCase{DomainA: "x.y.com", DomainB: "Y.com", Match: false},
+		DomainTestCase{DomainA: "a.b.c.com", DomainB: ".c.com", Match: true},
+		DomainTestCase{DomainA: ".c.com", DomainB: "a.b.c.com", Match: false},
+		DomainTestCase{DomainA: "example.local", DomainB: ".local", Match: true},
+		DomainTestCase{DomainA: "blah.blah", DomainB: "", Match: false},
+		DomainTestCase{DomainA: "", DomainB: ".rhubarb.rhubarb", Match: false},
+		DomainTestCase{DomainA: "", DomainB: "", Match: true},
+
+		DomainTestCase{DomainA: "acme.com", DomainB: "acme.com", Match: true},
+		DomainTestCase{DomainA: "acme.com", DomainB: ".acme.com", Match: false},
+		DomainTestCase{DomainA: "rhubarb.acme.com", DomainB: ".acme.com", Match: true},
+		DomainTestCase{DomainA: "www.rhubarb.acme.com", DomainB: ".acme.com", Match: true},
+		DomainTestCase{DomainA: "y.com", DomainB: "Y.com", Match: true},
+		DomainTestCase{DomainA: ".y.com", DomainB: "Y.com", Match: false},
+		DomainTestCase{DomainA: ".y.com", DomainB: ".Y.com", Match: true},
+		DomainTestCase{DomainA: "x.y.com", DomainB: ".com", Match: true},
+		DomainTestCase{DomainA: "x.y.com", DomainB: "com", Match: false},
+		DomainTestCase{DomainA: "x.y.com", DomainB: "m", Match: false},
+		DomainTestCase{DomainA: "x.y.com", DomainB: ".m", Match: false},
+		DomainTestCase{DomainA: "x.y.com", DomainB: "", Match: false},
+		DomainTestCase{DomainA: "x.y.com", DomainB: ".", Match: false},
+	}
+	for _, tc := range testCases {
+		assert.Equal(t, tc.Match, CookieDomainMatch(tc.DomainA, tc.DomainB))
+	}
+}
