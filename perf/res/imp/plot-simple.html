@@ -418,6 +418,10 @@ work, so we just prefix every rule with plot-simple-sk.
           .orient("left")
           .tickSubdivide(true);
 
+        if (this._hhair) {
+          this._hhair.attr('x2', this._width);
+        }
+
         this.setTicks(this._ticks);
 
         this.resetAxes();
