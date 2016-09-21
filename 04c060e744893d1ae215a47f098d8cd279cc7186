@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "50d9730c_82673c1e",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-21T17:42:47Z",
+      "side": 1,
+      "message": "Sure, I guess that could save us a mutex lock/unlock and a heap alloc.",
+      "parentUuid": "303cfff1_7f6c4f32",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "303cfff1_df5c7b79",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2016-09-20T21:38:07Z",
       "side": 1,
       "message": "nit: seems like the names \"candidates\" and \"bySpec\" are reversed",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "50d9730c_e275e8c1",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-21T17:42:47Z",
+      "side": 1,
+      "message": "Changed some names:\n- \"candidates\" parameter to \"preFilterCandidates\"\n- \"bySpec\" to \"candidatesBySpec\"\n\nIs that clearer?",
+      "parentUuid": "303cfff1_df5c7b79",
       "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "303cfff1_22f750f0",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 410,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-21T17:42:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "303cfff1_dfb47bee",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "303cfff1_df359b31",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
@@ -64,6 +118,24 @@
       "writtenOn": "2016-09-20T21:38:07Z",
       "side": 1,
       "message": "I think we also want to return false if c\u0027s commit time is before the scheduling period.",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_623958f6",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 841,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-21T17:42:47Z",
+      "side": 1,
+      "message": "Good catch, although it makes me sad to imagine that we\u0027d not see a commit until after it scrolled out of our window. I had to add a Timestamp to gitrepo.Commit in order to do this.",
+      "parentUuid": "303cfff1_df359b31",
       "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -93,6 +165,24 @@
     },
     {
       "key": {
+        "uuid": "303cfff1_c21dc47f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 870,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-21T17:42:47Z",
+      "side": 1,
+      "message": "Agreed.",
+      "parentUuid": "303cfff1_3fa3e7b6",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "303cfff1_bff89742",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
@@ -110,6 +200,24 @@
         "endLine": 927,
         "endChar": 35
       },
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "50d9730c_22121010",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 927,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-21T17:42:47Z",
+      "side": 1,
+      "message": "Moved the below update to here.",
+      "parentUuid": "303cfff1_bff89742",
       "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -139,6 +247,24 @@
     },
     {
       "key": {
+        "uuid": "50d9730c_822dfc56",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 931,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-21T17:42:47Z",
+      "side": 1,
+      "message": "Moved to before updateUnfinishedJobs.",
+      "parentUuid": "303cfff1_dfef5b78",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "303cfff1_bfcff71f",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
@@ -156,6 +282,24 @@
         "endLine": 954,
         "endChar": 28
       },
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "50d9730c_c24c6429",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 954,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-21T17:42:47Z",
+      "side": 1,
+      "message": "Removed. Now that the TaskCache isn\u0027t passed in, we don\u0027t need to worry about keeping it up to date for the sake of other users.",
+      "parentUuid": "303cfff1_bfcff71f",
       "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -185,6 +329,24 @@
     },
     {
       "key": {
+        "uuid": "50d9730c_6241f8ed",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 957,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-21T17:42:47Z",
+      "side": 1,
+      "message": "removed.",
+      "parentUuid": "303cfff1_9fccb32c",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "303cfff1_7f98cf1f",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
@@ -202,6 +364,24 @@
         "endLine": 1197,
         "endChar": 25
       },
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_627e7871",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1197,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-21T17:42:47Z",
+      "side": 1,
+      "message": "So we have three ways jobs are created:\n- normal commits: all jobs for the same commit get the same Created timestamp, so even if they share tasks, the task\u0027s Created timestamp should be after the jobs\u0027 timestamps.\n- forced jobs: they don\u0027t share tasks with other jobs, so the associated task timestamp should be after the job\u0027s timestamp\n- try jobs: I think this is the only way we\u0027ll hit this case: someone manually triggers a try job and then another try job later which shares a task with the first. Maybe in this case we just don\u0027t reuse the task for the second job?  We\u0027d lose some de-duplication but only when we explicitly trigger single try jobs with enough time in between so that a task has started. In cases like the commit queue this is not a concern.",
+      "parentUuid": "303cfff1_7f98cf1f",
       "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -231,6 +411,24 @@
     },
     {
       "key": {
+        "uuid": "303cfff1_c272e4a2",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1233,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-21T17:42:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "303cfff1_fff21f60",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "303cfff1_4274142b",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 1
@@ -242,6 +440,24 @@
       "writtenOn": "2016-09-21T12:30:05Z",
       "side": 1,
       "message": "nit: Any reason not to do \n\t\ttc1.TaskKey: tc1,\n\t\ttc2.TaskKey: tc2,\n\t\t...\nlike above?",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "50d9730c_05f03656",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-21T17:42:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "303cfff1_4274142b",
       "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -265,6 +481,24 @@
     },
     {
       "key": {
+        "uuid": "50d9730c_05a2764a",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 599,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-21T17:42:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "303cfff1_c2b944c7",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "303cfff1_e2c0c81f",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 1
@@ -276,6 +510,24 @@
       "writtenOn": "2016-09-21T12:30:05Z",
       "side": 1,
       "message": "I think you meant to iterate over candidates.",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_224c7026",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 650,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-21T17:42:47Z",
+      "side": 1,
+      "message": "No, we can\u0027t use the passed-in candidates, since processTaskCandidates performs copies and modifies the copies. Added a check to verify that all of the passed-in candidates are in the result.",
+      "parentUuid": "303cfff1_e2c0c81f",
       "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
