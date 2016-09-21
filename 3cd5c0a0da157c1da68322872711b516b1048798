@@ -148,6 +148,24 @@
     },
     {
       "key": {
+        "uuid": "303cfff1_e24ba877",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-21T13:52:29Z",
+      "side": 1,
+      "message": "Both of those URLs work and return the same exact response when I used them via curl.",
+      "parentUuid": "303cfff1_c28144ae",
+      "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10261bad_90a0ec01",
         "filename": "go/gerrit/gerrit.go",
         "patchSetId": 26
