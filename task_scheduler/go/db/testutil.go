@@ -1144,33 +1144,6 @@ func testUpdateJobWithRetriesExhausted(t *testing.T, db JobDB) {
 	assert.Equal(t, j1.Id, jobs[0].Id)
 }
 
-// Test UpdateJobWithRetries when the given ID is not found in the DB.
-func testUpdateJobWithRetriesJobNotFound(t *testing.T, db JobDB) {
-	begin := time.Now()
-
-	// Generate a fake Job ID.
-	j1 := makeJob(begin.Add(time.Nanosecond))
-	assert.NoError(t, db.PutJob(j1))
-	fakeId := "3" + j1.Id[1:]
-
-	// Attempt to update non-existent job. Function shouldn't be called.
-	callCount := 0
-	noJob, err := UpdateJobWithRetries(db, fakeId, func(job *Job) error {
-		callCount++
-		job.Status = JOB_STATUS_IN_PROGRESS
-		return nil
-	})
-	assert.True(t, IsNotFound(err))
-	assert.Nil(t, noJob)
-	assert.Equal(t, 0, callCount)
-
-	// Check no new jobs in the DB.
-	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(jobs))
-	assert.Equal(t, j1.Id, jobs[0].Id)
-}
-
 // Test UpdateJobsWithRetries and UpdateJobWithRetries.
 func TestUpdateJobsWithRetries(t *testing.T, db JobDB) {
 	testUpdateJobsWithRetriesSimple(t, db)
@@ -1182,7 +1155,6 @@ func TestUpdateJobsWithRetries(t *testing.T, db JobDB) {
 	testUpdateJobWithRetriesSuccess(t, db)
 	testUpdateJobWithRetriesErrorInFunc(t, db)
 	testUpdateJobWithRetriesExhausted(t, db)
-	testUpdateJobWithRetriesJobNotFound(t, db)
 }
 
 // makeTaskComment creates a comment with its ID fields based on the given repo,
