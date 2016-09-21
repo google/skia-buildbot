@@ -147,7 +147,7 @@ func makeDB(t *testing.T, name string) (db.DBCloser, string) {
 
 // Test that AssignId returns an error if Id is set.
 func TestAssignIdAlreadyAssigned(t *testing.T) {
-	d, tmpdir := makeDB(t, "TestAssignIdsFromCreatedTs")
+	d, tmpdir := makeDB(t, "TestAssignIdAlreadyAssigned")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
 
@@ -159,6 +159,8 @@ func TestAssignIdAlreadyAssigned(t *testing.T) {
 // Test that AssignId uses created timestamp when set, and generates unique IDs
 // for the same timestamp.
 func TestAssignIdsFromCreatedTs(t *testing.T) {
+	testutils.SkipIfShort(t) // Creates a lot of tasks.
+
 	d, tmpdir := makeDB(t, "TestAssignIdsFromCreatedTs")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
@@ -417,8 +419,11 @@ func TestPutTaskLeavesTasksUnchanged(t *testing.T) {
 	}
 }
 
-// Test that PutJob uses Created timestamp, and generates unique IDs for the same timestamp.
+// Test that PutJob uses Created timestamp, and generates unique IDs for the
+// same timestamp.
 func TestJobIdsFromCreatedTs(t *testing.T) {
+	testutils.SkipIfShort(t) // Creates a lot of jobs.
+
 	d, tmpdir := makeDB(t, "TestJobIdsFromCreatedTs")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
