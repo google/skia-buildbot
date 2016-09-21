@@ -12,6 +12,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 )
 
 func run(t *testing.T, dir string, cmd ...string) {
@@ -56,6 +57,7 @@ func gitSetup(t *testing.T) (string, *Repo, []*Commit) {
 	c1 := repo.Get("master")
 	assert.NotNil(t, c1)
 	assert.Equal(t, 0, len(c1.GetParents()))
+	assert.False(t, util.TimeIsZero(c1.Timestamp))
 
 	commit(t, tmp, "myfile.txt")
 	run(t, tmp, "git", "push", "origin", "master")
@@ -65,6 +67,7 @@ func gitSetup(t *testing.T) (string, *Repo, []*Commit) {
 	assert.Equal(t, 1, len(c2.GetParents()))
 	assert.Equal(t, c1, c2.GetParents()[0])
 	assert.Equal(t, []string{"master"}, repo.Branches())
+	assert.False(t, util.TimeIsZero(c2.Timestamp))
 
 	// Create a second branch.
 	run(t, tmp, "git", "checkout", "-b", "branch2", "-t", "origin/master")
@@ -75,6 +78,7 @@ func gitSetup(t *testing.T) (string, *Repo, []*Commit) {
 	assert.NotNil(t, c3)
 	assert.Equal(t, c2, repo.Get("master"))
 	assert.Equal(t, []string{"branch2", "master"}, repo.Branches())
+	assert.False(t, util.TimeIsZero(c3.Timestamp))
 
 	// Commit again to master.
 	run(t, tmp, "git", "checkout", "master")
@@ -83,6 +87,7 @@ func gitSetup(t *testing.T) (string, *Repo, []*Commit) {
 	assert.Equal(t, c3, repo.Get("branch2"))
 	c4 := repo.Get("master")
 	assert.NotNil(t, c4)
+	assert.False(t, util.TimeIsZero(c4.Timestamp))
 
 	// Merge branch1 into master.
 	run(t, tmp, "git", "merge", "branch2")
@@ -91,6 +96,7 @@ func gitSetup(t *testing.T) (string, *Repo, []*Commit) {
 	c5 := repo.Get("master")
 	assert.NotNil(t, c5)
 	assert.Equal(t, c3, repo.Get("branch2"))
+	assert.False(t, util.TimeIsZero(c5.Timestamp))
 
 	return tmp, repo, []*Commit{c1, c2, c3, c4, c5}
 }

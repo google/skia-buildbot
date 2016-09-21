@@ -9,8 +9,10 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/skia-dev/glog"
 
@@ -30,9 +32,10 @@ const (
 
 // Commit represents a commit in a Git repo.
 type Commit struct {
-	Hash    string
-	Parents []int
-	repo    *Repo
+	Hash      string
+	Parents   []int
+	repo      *Repo
+	Timestamp time.Time
 }
 
 // Parents returns the parents of this commit.
@@ -164,15 +167,19 @@ func NewRepo(repoUrl, workdir string) (*Repo, error) {
 }
 
 func (r *Repo) addCommit(hash string) error {
-	output, err := exec.RunCwd(r.workdir, "git", "log", "-n", "1", "--format=format:%P", hash)
+	output, err := exec.RunCwd(r.workdir, "git", "log", "-n", "1", "--format=format:%P%n%ct", hash)
 	if err != nil {
 		return fmt.Errorf("gitrepo.Repo: Failed to obtain Git commit details: %s", err)
 	}
-	split := strings.Split(strings.Trim(output, "\n"), " ")
+	split := strings.Split(output, "\n")
+	if len(split) != 2 {
+		return fmt.Errorf("git log returned incorrect format: %s", output)
+	}
+	parentLine := strings.Split(split[0], " ")
 	var parents []int
-	if len(split) > 0 {
-		parentHashes := make([]int, 0, len(split))
-		for _, h := range split {
+	if len(parentLine) > 0 {
+		parentHashes := make([]int, 0, len(parentLine))
+		for _, h := range parentLine {
 			if h == "" {
 				continue
 			}
@@ -186,10 +193,15 @@ func (r *Repo) addCommit(hash string) error {
 			parents = parentHashes
 		}
 	}
+	ts, err := strconv.ParseInt(split[1], 10, 64)
+	if err != nil {
+		return err
+	}
 	c := &Commit{
-		Hash:    hash,
-		Parents: parents,
-		repo:    r,
+		Hash:      hash,
+		Parents:   parents,
+		repo:      r,
+		Timestamp: time.Unix(ts, 0),
 	}
 	r.commits[hash] = len(r.commitsData)
 	r.commitsData = append(r.commitsData, c)

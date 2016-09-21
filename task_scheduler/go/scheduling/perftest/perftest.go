@@ -114,7 +114,9 @@ func main() {
 	}()
 	d, err := local_db.NewDB("testdb", path.Join(workdir, "tasks.db"))
 	assertNoError(err)
-	cache, err := db.NewTaskCache(d, time.Hour)
+	tCache, err := db.NewTaskCache(d, time.Hour)
+	assertNoError(err)
+	jCache, err := db.NewJobCache(d, time.Hour)
 	assertNoError(err)
 
 	repoName := "skia.git"
@@ -263,14 +265,14 @@ func main() {
 	assertNoError(err)
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
-	s, err := scheduling.NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), workdir, []string{"skia.git"}, isolateClient, swarmingClient, 0.9)
+	s, err := scheduling.NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, []string{"skia.git"}, isolateClient, swarmingClient, 0.9)
 	assertNoError(err)
 
 	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {
 		swarmingClient.MockBots(bots)
 		assertNoError(s.MainLoop())
-		assertNoError(cache.Update())
-		tasks, err := cache.GetTasksForCommits(repoName, commits)
+		assertNoError(tCache.Update())
+		tasks, err := tCache.GetTasksForCommits(repoName, commits)
 		assertNoError(err)
 		newTasks := map[string]*db.Task{}
 		for _, v := range tasks {
@@ -290,15 +292,20 @@ func main() {
 			insert = append(insert, task)
 		}
 		assertNoError(d.PutTasks(insert))
-		assertNoError(cache.Update())
+		assertNoError(tCache.Update())
+		assertNoError(jCache.Update())
 	}
 
 	// Consume all tasks.
 	for {
 		runTasks(bots)
-		tasks, err := cache.GetTasksForCommits(repoName, commits)
+		unfinished, err := jCache.UnfinishedJobs()
 		assertNoError(err)
-		if s.QueueLen() == 0 {
+		glog.Infof("Found %d unfinished jobs.", len(unfinished))
+		if len(unfinished) == 0 {
+			tasks, err := tCache.GetTasksForCommits(repoName, commits)
+			assertNoError(err)
+			assertEqual(s.QueueLen(), 0)
 			assertEqual(len(moarTasks), len(tasks[head]))
 			break
 		}
