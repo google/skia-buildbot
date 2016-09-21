@@ -12,6 +12,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -317,7 +318,7 @@ func SearchOwner(name string) *SearchTerm {
 func SearchModifiedAfter(after time.Time) *SearchTerm {
 	return &SearchTerm{
 		Key:   "after",
-		Value: url.QueryEscape("\"" + strings.Trim(strings.Split(after.UTC().String(), "+")[0], " ") + "\""),
+		Value: "\"" + strings.Trim(strings.Split(after.UTC().String(), "+")[0], " ") + "\"",
 	}
 }
 
@@ -328,7 +329,7 @@ func queryString(terms []*SearchTerm) string {
 	for _, t := range terms {
 		q = append(q, fmt.Sprintf("%s:%s", t.Key, t.Value))
 	}
-	return strings.Join(q, "+")
+	return strings.Join(q, " ")
 }
 
 // Search returns a slice of Issues which fit the given criteria.
@@ -338,7 +339,12 @@ func (g *Gerrit) Search(limit int, terms ...*SearchTerm) ([]*ChangeInfo, error) 
 		data := make([]*ChangeInfo, 0)
 		queryLimit := util.MinInt(limit-len(issues), MAX_GERRIT_LIMIT)
 		skip := len(issues)
-		searchUrl := fmt.Sprintf("/changes/?q=%s&n=%d&S=%d", queryString(terms), queryLimit, skip)
+
+		q := url.Values{}
+		q.Add("q", queryString(terms))
+		q.Add("n", strconv.Itoa(queryLimit))
+		q.Add("S", strconv.Itoa(skip))
+		searchUrl := "/changes/?" + q.Encode()
 		err := g.get(searchUrl, &data)
 		if err != nil {
 			return nil, fmt.Errorf("Gerrit search failed: %v", err)
