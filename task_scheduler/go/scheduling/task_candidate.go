@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"path"
 	"strings"
+	"time"
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/isolate"
@@ -28,6 +29,7 @@ type taskCandidate struct {
 	Commits        []string
 	IsolatedInput  string
 	IsolatedHashes []string
+	JobCreated     time.Time
 	ParentTaskIds  []string
 	RetryOf        string
 	Score          float64
@@ -42,6 +44,7 @@ func (c *taskCandidate) Copy() *taskCandidate {
 		Commits:        util.CopyStringSlice(c.Commits),
 		IsolatedInput:  c.IsolatedInput,
 		IsolatedHashes: util.CopyStringSlice(c.IsolatedHashes),
+		JobCreated:     c.JobCreated,
 		ParentTaskIds:  util.CopyStringSlice(c.ParentTaskIds),
 		RetryOf:        c.RetryOf,
 		Score:          c.Score,

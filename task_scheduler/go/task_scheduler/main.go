@@ -319,12 +319,6 @@ func main() {
 	}
 	defer util.Close(d)
 
-	// ... and database cache.
-	cache, err := db.NewTaskCache(d, period)
-	if err != nil {
-		glog.Fatal(err)
-	}
-
 	// Git repos.
 	repos = gitinfo.NewRepoMap(*workdir)
 	for _, r := range REPOS {
@@ -349,7 +343,7 @@ func main() {
 
 	// Create and start the task scheduler.
 	glog.Infof("Creating task scheduler.")
-	ts, err = scheduling.NewTaskScheduler(d, cache, period, *workdir, REPOS, isolateClient, swarm, *scoreDecay24Hr)
+	ts, err = scheduling.NewTaskScheduler(d, period, *workdir, REPOS, isolateClient, swarm, *scoreDecay24Hr)
 	if err != nil {
 		glog.Fatal(err)
 	}
