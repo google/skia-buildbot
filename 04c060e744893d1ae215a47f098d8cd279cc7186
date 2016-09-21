@@ -36,6 +36,23 @@
     },
     {
       "key": {
+        "uuid": "303cfff1_dfb47bee",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 410,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-21T12:30:05Z",
+      "side": 1,
+      "message": "We should probably do something like:\nc.Score \u003d CANDIDATE_SCORE_TRY_JOB + now.Sub(c.Job.Created).Hours()\nThis ensures that try jobs that have been waiting longer are scheduled first.\n\nProbably should do the same for IsForceRun().\n\nMight be easier to add a JobBaseScore field to taskCandidate so we can set it in findTaskCandidatesForJobs.",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "303cfff1_df359b31",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
@@ -47,6 +64,29 @@
       "writtenOn": "2016-09-20T21:38:07Z",
       "side": 1,
       "message": "I think we also want to return false if c\u0027s commit time is before the scheduling period.",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_3fa3e7b6",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 870,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-21T12:30:05Z",
+      "side": 1,
+      "message": "I\u0027m thinking it will be more fault-tolerant to add new Jobs to the DB immediately when manually triggered, and just change JobCache.ScheduledJobsForCommit to return false if the jobs weren\u0027t auto-generated for a commit.\n\nIt might be easiest for try jobs to work the same way.",
+      "range": {
+        "startLine": 868,
+        "startChar": 0,
+        "endLine": 870,
+        "endChar": 52
+      },
       "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -185,6 +225,57 @@
         "endLine": 1233,
         "endChar": 19
       },
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_4274142b",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-21T12:30:05Z",
+      "side": 1,
+      "message": "nit: Any reason not to do \n\t\ttc1.TaskKey: tc1,\n\t\ttc2.TaskKey: tc2,\n\t\t...\nlike above?",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_c2b944c7",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 599,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-21T12:30:05Z",
+      "side": 1,
+      "message": "Maybe test the case where we have both forced and non-forced for the same task \u0026 repostate.",
+      "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_e2c0c81f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 650,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-21T12:30:05Z",
+      "side": 1,
+      "message": "I think you meant to iterate over candidates.",
       "revId": "04c060e744893d1ae215a47f098d8cd279cc7186",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
