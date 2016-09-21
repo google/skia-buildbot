@@ -45,6 +45,24 @@
       "revId": "191b387deddd1ece5dc8efa65483eae849bc56c4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "303cfff1_2232b0fe",
+        "filename": "perf/scripts/download_from_isolates.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-21T14:44:11Z",
+      "side": 1,
+      "message": "Using this should hopefully be rare. If wrong, I can start adding features like a configurable target dir.",
+      "parentUuid": "303cfff1_bf0c179d",
+      "revId": "191b387deddd1ece5dc8efa65483eae849bc56c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
