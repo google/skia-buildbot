@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/perf/go/cid"
+	"go.skia.org/infra/perf/go/constants"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -28,28 +30,14 @@ func cleanup() {
 	}
 }
 
-func TestCommitID(t *testing.T) {
-	c := &CommitID{
-		Offset: 51,
-		Source: "master",
-	}
-	assert.Equal(t, "master-000001.bdb", c.Filename())
-
-	c = &CommitID{
-		Offset: 0,
-		Source: "https://codereview.chromium.org/2251213006",
-	}
-	assert.Equal(t, "https___codereview_chromium_org_2251213006-000000.bdb", c.Filename())
-}
-
 func TestAdd(t *testing.T) {
 	setupStoreDir(t)
 	defer cleanup()
 
 	d, err := New(tmpDir)
 	assert.NoError(t, err)
-	commitID := &CommitID{
-		Offset: COMMITS_PER_TILE + 1,
+	commitID := &cid.CommitID{
+		Offset: constants.COMMITS_PER_TILE + 1,
 		Source: "master",
 	}
 	values := map[string]float32{
@@ -75,8 +63,8 @@ func TestAdd(t *testing.T) {
 	assert.Equal(t, 1, d.cache.Len())
 
 	// Add new values that would go into a different tile.
-	commitID2 := &CommitID{
-		Offset: 2*COMMITS_PER_TILE + 1,
+	commitID2 := &cid.CommitID{
+		Offset: 2*constants.COMMITS_PER_TILE + 1,
 		Source: "master",
 	}
 	values2 := map[string]float32{
@@ -112,16 +100,16 @@ func TestAdd(t *testing.T) {
 }
 
 func TestBuildMapper(t *testing.T) {
-	commitIDs := []*CommitID{
-		&CommitID{
+	commitIDs := []*cid.CommitID{
+		&cid.CommitID{
 			Source: "master",
 			Offset: 49,
 		},
-		&CommitID{
+		&cid.CommitID{
 			Source: "master",
 			Offset: 50,
 		},
-		&CommitID{
+		&cid.CommitID{
 			Source: "master",
 			Offset: 51,
 		},
@@ -129,7 +117,7 @@ func TestBuildMapper(t *testing.T) {
 
 	want := map[string]*tileMap{
 		"master-000000.bdb": &tileMap{
-			commitID: &CommitID{
+			commitID: &cid.CommitID{
 				Source: "master",
 				Offset: 49,
 			},
@@ -138,7 +126,7 @@ func TestBuildMapper(t *testing.T) {
 			},
 		},
 		"master-000001.bdb": &tileMap{
-			commitID: &CommitID{
+			commitID: &cid.CommitID{
 				Source: "master",
 				Offset: 50,
 			},
@@ -151,7 +139,7 @@ func TestBuildMapper(t *testing.T) {
 	got := buildMapper(commitIDs)
 	assert.Equal(t, got, want)
 
-	commitIDs = []*CommitID{}
+	commitIDs = []*cid.CommitID{}
 	want = map[string]*tileMap{}
 	got = buildMapper(commitIDs)
 	assert.Equal(t, got, want)
@@ -163,7 +151,7 @@ func TestMatch(t *testing.T) {
 
 	d, err := New(tmpDir)
 	assert.NoError(t, err)
-	commitID1 := &CommitID{
+	commitID1 := &cid.CommitID{
 		Offset: 1,
 		Source: "master",
 	}
@@ -175,7 +163,7 @@ func TestMatch(t *testing.T) {
 	err = d.Add(commitID1, values, "gs://foo")
 	assert.NoError(t, err)
 
-	commitID2 := &CommitID{
+	commitID2 := &cid.CommitID{
 		Offset: 2,
 		Source: "master",
 	}
@@ -187,8 +175,8 @@ func TestMatch(t *testing.T) {
 	err = d.Add(commitID2, values, "gs://foo")
 	assert.NoError(t, err)
 
-	commitID3 := &CommitID{
-		Offset: COMMITS_PER_TILE + 3,
+	commitID3 := &cid.CommitID{
+		Offset: constants.COMMITS_PER_TILE + 3,
 		Source: "master",
 	}
 	values = map[string]float32{
@@ -200,8 +188,8 @@ func TestMatch(t *testing.T) {
 	assert.NoError(t, err)
 
 	// A commit with no data.
-	commitID4 := &CommitID{
-		Offset: COMMITS_PER_TILE + 5,
+	commitID4 := &cid.CommitID{
+		Offset: constants.COMMITS_PER_TILE + 5,
 		Source: "master",
 	}
 
@@ -214,7 +202,7 @@ func TestMatch(t *testing.T) {
 		"config": []string{"565"},
 	})
 	assert.NoError(t, err)
-	commits := []*CommitID{commitID1, commitID2, commitID3, commitID4}
+	commits := []*cid.CommitID{commitID1, commitID2, commitID3, commitID4}
 	traces, err := d.Match(commits, q)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(traces))
@@ -234,11 +222,11 @@ func TestMatch(t *testing.T) {
 	assert.Equal(t, Trace{3.21, 5.43, 9.10, MISSING_VALUE}, traces[",config=8888,test=foo,"])
 
 	// Query that returns only missing values, including a tile that doesn't exist.
-	commitID5 := &CommitID{
-		Offset: 2*COMMITS_PER_TILE + 6,
+	commitID5 := &cid.CommitID{
+		Offset: 2*constants.COMMITS_PER_TILE + 6,
 		Source: "master",
 	}
-	commits = []*CommitID{commitID4, commitID5}
+	commits = []*cid.CommitID{commitID4, commitID5}
 	traces, err = d.Match(commits, q)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(traces))
@@ -249,7 +237,7 @@ func TestMatch(t *testing.T) {
 	// Match all traces with an empty query.
 	q, err = query.New(url.Values{})
 	assert.NoError(t, err)
-	commits = []*CommitID{commitID1, commitID2, commitID3, commitID4}
+	commits = []*cid.CommitID{commitID1, commitID2, commitID3, commitID4}
 	traces, err = d.Match(commits, q)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(traces))
@@ -261,7 +249,7 @@ func TestMatch(t *testing.T) {
 	// Match none of the traces.
 	q, err = query.New(url.Values{"bar": []string{"baz"}})
 	assert.NoError(t, err)
-	commits = []*CommitID{commitID1, commitID2, commitID3, commitID4}
+	commits = []*cid.CommitID{commitID1, commitID2, commitID3, commitID4}
 	traces, err = d.Match(commits, q)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(traces))
