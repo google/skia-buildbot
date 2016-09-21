@@ -166,6 +166,24 @@
     },
     {
       "key": {
+        "uuid": "303cfff1_222f50b1",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-09-21T14:11:34Z",
+      "side": 1,
+      "message": "I get a diff between the two responses:\n\n\u003c     },\n\u003c     \"_more_changes\": true\n---\n\u003e     }\n\nI think it does not know how to handle %40owner like it does +owner.\nThese urls show the difference more (they have n\u003d10):\n\nhttps://skia-review.googlesource.com/changes/?S\u003d0\u0026n\u003d10\u0026q\u003dafter%3A%222016-09-11+12%3A43%3A09.814202463%22+owner%3Armistry@google.com\n\nhttps://skia-review.googlesource.com/changes/?S\u003d0\u0026n\u003d1\u0026q\u003dafter%3A%222016-09-11+12%3A43%3A09.814202463%22%40owner%3Armistry@google.com",
+      "parentUuid": "303cfff1_e24ba877",
+      "revId": "3cd5c0a0da157c1da68322872711b516b1048798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10261bad_90a0ec01",
         "filename": "go/gerrit/gerrit.go",
         "patchSetId": 26
