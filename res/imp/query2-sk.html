@@ -53,7 +53,7 @@
           <button on-tap="_clearFilter">Clear</button>
         </div>
         <select id=keys size=12 on-change="_keyChange">
-          <template is="dom-repeat" items="[[_keys]]" >
+          <template is="dom-repeat" items="[[_keys]]">
             <option value="[[item]]">[[item]]</option>
           </template>
         </select>
@@ -79,7 +79,7 @@
           on-input="_valueChange"
         />
         <select id=values size=10 on-change="_valueChange" multiple>
-          <template is="dom-repeat" items="[[_values]]" >
+          <template is="dom-repeat" items="[[_values]]"  initial-count=100>
             <option value="[[item]]" selected="[[_isSelected(item, _selectedValue)]]">[[item]]</option>
           </template>
         </select>
