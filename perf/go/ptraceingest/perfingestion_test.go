@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/ingestcommon"
 	"go.skia.org/infra/perf/go/ptracestore"
 )
@@ -98,7 +99,7 @@ func TestPerfProcessor(t *testing.T) {
 
 	traceId := ",arch=x86,config=nonrendering,gpu=GTX660,model=ShuttleA,os=Ubuntu12,sub_result=min_ms,test=ChunkAlloc_Push_640_480,"
 	expectedValue := float32(0.009535795)
-	cid := &ptracestore.CommitID{
+	cid := &cid.CommitID{
 		Source: "master",
 		Offset: 0,
 	}
