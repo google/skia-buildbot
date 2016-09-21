@@ -9,8 +9,8 @@
     None.
 
   Methods:
-    setCommitDetail(d) - Where d is an Array of serialized
-      cid.CommitDetail, i.e. they look like:
+    setCommitDetail(d) - Where d is an Array of serialized cid.CommitDetail,
+    i.e. they look like:
 
       {
         author: "foo (foo@example.org)",
@@ -33,15 +33,15 @@
     }
   </style>
   <template>
-    <template is="dom-repeat" items="{{_details}}">
-      <table>
+    <table>
+      <template is="dom-repeat" items="{{_details}}">
         <tr>
           <td>[[_trim(item.author)]]</td>
           <td>[[_humanize(item.ts)]]</td>
           <td><a href$="[[item.url]]">[[_trimNewline(item.message)]]</a></td>
         </tr>
-      </table>
-    </template>
+      </template>
+    </table>
   </template>
 </dom-module>
 
