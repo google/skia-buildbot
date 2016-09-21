@@ -12,7 +12,7 @@ import (
 const (
 	// Flip this boolean to run the below E2E Gerrit tests. Requires a valid
 	// ~/.gitcookies file.
-	RUN_GERRIT_TESTS = false
+	RUN_GERRIT_TESTS = true
 )
 
 func skipTestIfRequired(t *testing.T) {
