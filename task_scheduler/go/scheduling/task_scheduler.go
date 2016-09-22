@@ -867,6 +867,12 @@ func (s *TaskScheduler) gatherNewJobs() error {
 					},
 				})
 			}
+			if c.Hash == "50537e46e4f0999df0a4707b227000cfa8c800ff" {
+				// Stop recursing here, since Jobs were added
+				// in this commit and previous commits won't be
+				// valid.
+				return false, nil
+			}
 			return true, nil
 		}); err != nil {
 			return err
