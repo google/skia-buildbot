@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1049bb01_a16bf819",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-22T18:12:52Z",
+      "side": 1,
+      "message": "X-( Sometimes I\u0027m annoyed when Golang puts ranged-over slice values in the second variable, but giving map entries in value, key order is just brain-dead.",
+      "revId": "29bfac1b68776b25252d3cf01ea5cb6f9bcea2eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1049bb01_817fdcb0",
+        "filename": "perf/res/imp/plot-simple.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 532,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-22T18:12:52Z",
+      "side": 1,
+      "message": "Should this be _xbarx?",
+      "range": {
+        "startLine": 532,
+        "startChar": 31,
+        "endLine": 532,
+        "endChar": 36
+      },
+      "revId": "29bfac1b68776b25252d3cf01ea5cb6f9bcea2eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
