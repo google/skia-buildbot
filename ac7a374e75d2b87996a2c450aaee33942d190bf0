@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1049bb01_c13884f5",
+        "filename": "go/query/query.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-22T18:22:41Z",
+      "side": 1,
+      "message": "nit: make(map[string]string, len(m))",
+      "revId": "ac7a374e75d2b87996a2c450aaee33942d190bf0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
