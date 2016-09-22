@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1049bb01_415d5471",
+        "filename": "perf/go/cid/cid.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-22T18:15:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1049bb01_be731978",
+      "revId": "8ae1f52b6e0299eaa36e36e2e2c89d7bae166ac0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1049bb01_5e89b55a",
         "filename": "perf/go/cid/cid.go",
         "patchSetId": 2
@@ -65,6 +83,42 @@
     },
     {
       "key": {
+        "uuid": "1049bb01_e1bb4091",
+        "filename": "perf/go/cid/cid.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-22T18:15:40Z",
+      "side": 1,
+      "message": "Truncates to that many chars. %6s doesn\u0027t do that.\n\n  https://play.golang.org/p/EqoFTmtImU",
+      "parentUuid": "1049bb01_5e89b55a",
+      "revId": "8ae1f52b6e0299eaa36e36e2e2c89d7bae166ac0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1049bb01_0150ac58",
+        "filename": "perf/go/cid/cid.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-22T18:15:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1049bb01_1e832d3d",
+      "revId": "8ae1f52b6e0299eaa36e36e2e2c89d7bae166ac0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1049bb01_fe220168",
         "filename": "perf/go/cid/cid_test.go",
         "patchSetId": 2
@@ -88,6 +142,24 @@
     },
     {
       "key": {
+        "uuid": "1049bb01_a1c53804",
+        "filename": "perf/go/cid/cid_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-22T18:15:40Z",
+      "side": 1,
+      "message": "Was only used on line 32, so I just called time.Now() there directly.",
+      "parentUuid": "1049bb01_fe220168",
+      "revId": "8ae1f52b6e0299eaa36e36e2e2c89d7bae166ac0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1049bb01_7e94b141",
         "filename": "perf/go/cid/cid_test.go",
         "patchSetId": 2
@@ -99,6 +171,24 @@
       "writtenOn": "2016-09-22T17:44:49Z",
       "side": 1,
       "message": "FWIW, Eric has become increasingly frustrated with TempRepo. He has some utility functions that make it fairly easy to create a repo for testing within the test rather than checking in the zip file. Maybe ask him to put those functions in a shared location?",
+      "revId": "8ae1f52b6e0299eaa36e36e2e2c89d7bae166ac0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1049bb01_61f97045",
+        "filename": "perf/go/cid/cid_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-22T18:15:40Z",
+      "side": 1,
+      "message": "Sure, but I\u0027m not sure how helpful that would be, I know many tests where I am working with the commit timestamp, which I presume would be different if the repo was created on the fly.",
+      "parentUuid": "1049bb01_7e94b141",
       "revId": "8ae1f52b6e0299eaa36e36e2e2c89d7bae166ac0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
