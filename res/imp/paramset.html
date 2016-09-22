@@ -82,7 +82,10 @@
       }
 
       .clickable-values div.highlight {
-        color: var(--paramset-highlight-color, #E7298A);
+        color: var(--paramset-highlight-color, #FF7F00);
+        animation-duration: 100ms;
+        animation-name: flash;
+        animation-timing-function: linear;
       }
 
       .clickable-values div:hover {
@@ -95,7 +98,19 @@
 
       .clickable .highlight,
       .highlight {
-        color: var(--paramset-highlight-color, #E7298A);
+        color: var(--paramset-highlight-color, #FF7F00);
+        animation-duration: 200ms;
+        animation-name: flash;
+        animation-timing-function: ease-in-out;
+      }
+
+      @keyframes flash {
+        from {
+          background-color: white;
+        }
+        to {
+          background-color: #FDBF6F;
+        }
       }
 
       tr:nth-child(even) {
