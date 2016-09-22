@@ -418,6 +418,10 @@ work, so we just prefix every rule with plot-simple-sk.
           .orient("left")
           .tickSubdivide(true);
 
+        if (this._hhair) {
+          this._hhair.attr('x2', this._width);
+        }
+
         this.setTicks(this._ticks);
 
         this.resetAxes();
@@ -525,9 +529,11 @@ work, so we just prefix every rule with plot-simple-sk.
           .attr("width", function(d) { return this._xRange(d[1]) - this._xRange(d[0]); }.bind(this))
           .attr("height", function() { return this._height; }.bind(this))
 
-        this._xbar
-          .attr('x1', this._xRange(this._xbarx))
-          .attr('x2', this._xRange(this._xbarx))
+        if (this._xbar && this._xbarx && this._xRange(this._xbarx) ) {
+          this._xbar
+            .attr('x1', this._xRange(this._xbarx))
+            .attr('x2', this._xRange(this._xbarx))
+        }
 
         this._svg.select(".x.axis").call(this._xAxis);
         this._svg.select(".y.axis").call(this._yAxis);
