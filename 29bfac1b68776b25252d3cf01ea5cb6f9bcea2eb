@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1049bb01_616c1000",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-22T18:16:58Z",
+      "side": 1,
+      "message": "Ah, this isn\u0027t a map :-)\nIt\u0027s an Array, and index is passed as the second value, which just happens to be the value we want to use as \u0027x\u0027.",
+      "parentUuid": "1049bb01_a16bf819",
+      "revId": "29bfac1b68776b25252d3cf01ea5cb6f9bcea2eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1049bb01_817fdcb0",
         "filename": "perf/res/imp/plot-simple.html",
         "patchSetId": 6
@@ -36,6 +54,24 @@
         "endLine": 532,
         "endChar": 36
       },
+      "revId": "29bfac1b68776b25252d3cf01ea5cb6f9bcea2eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1049bb01_01466c78",
+        "filename": "perf/res/imp/plot-simple.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 532,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-22T18:16:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1049bb01_817fdcb0",
       "revId": "29bfac1b68776b25252d3cf01ea5cb6f9bcea2eb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
