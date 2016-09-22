@@ -32,9 +32,24 @@ import (
 )
 
 var (
-	keyRe   = regexp.MustCompile("^,([a-zA-Z0-9._\\-]+=[a-zA-Z0-9._\\-]+,)+$")
-	paramRe = regexp.MustCompile("^[a-zA-Z0-9._\\-]+$")
+	invalidChar = regexp.MustCompile("([^a-zA-Z0-9._\\-])")
+	keyRe       = regexp.MustCompile("^,([a-zA-Z0-9._\\-]+=[a-zA-Z0-9._\\-]+,)+$")
+	paramRe     = regexp.MustCompile("^[a-zA-Z0-9._\\-]+$")
 )
+
+func clean(s string) string {
+	return invalidChar.ReplaceAllLiteralString(s, "_")
+}
+
+// ForceValid ensures that the resulting map will make a valid structured key.
+func ForceValid(m map[string]string) map[string]string {
+	ret := make(map[string]string, len(m))
+	for key, value := range m {
+		ret[clean(key)] = clean(value)
+	}
+
+	return ret
+}
 
 // ValidateKey returns true if a key is valid, i.e. if the parameter names are
 // in alphabetical order and if the param names and values are restricted to
