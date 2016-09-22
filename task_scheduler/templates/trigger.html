@@ -1,22 +1,21 @@
 {{template "header.html"}}
 
-<h2>Trigger Tasks</h2>
-<task-trigger-sk id="trigger_sk"></task-trigger-sk>
+<h2>Trigger Jobs</h2>
+<job-trigger-sk id="trigger_sk"></job-trigger-sk>
 
 <script>
 // Add task_spec and commit lists from the server to the task-trigger-sk.
-var bt = document.getElementById("trigger_sk");
-bt.task_specs = [
-  {{range .TaskSpecs}}
+var t = document.getElementById("trigger_sk");
+t.job_specs = [
+  {{range .JobSpecs}}
   "{{.}}",
   {{end}}
 ];
-bt.commits = [
+t.commits = [
   {{range .Commits}}
   "{{.}}",
   {{end}}
 ];
-
 </script>
 
 {{template "footer.html"}}

@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>task-trigger-sk demo</title>
+  <title>job-trigger-sk demo</title>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
@@ -12,31 +12,35 @@
       return new Promise(function (resolve, reject) {
         var data = JSON.parse(body);
         setTimeout(function() {
-          if (!data["task_specs"] || data["task_specs"].length < 1) {
-            reject("No task_specs specified!");
+          if (!data["jobs"] || data["jobs"].length < 1) {
+            reject("No job_specs specified!");
           } else if (!data["commit"] || data["commit"].length != 40) {
             reject("No valid commit specified!");
           } else {
-            resolve();
+            var jobs = [];
+            for (var i = 0; i < data["jobs"].length; i++) {
+              jobs.push("id" + i);
+            }
+            resolve(JSON.stringify(jobs));
           }
         }, 3000);
       });
     }
   </script>
-  <link rel="import" href="task-trigger-sk.html">
+  <link rel="import" href="job-trigger-sk.html">
   <link rel="import" href="/res/common/imp/error-toast-sk.html">
 </head>
 <body>
-<dom-module id="task-trigger-demo">
+<dom-module id="job-trigger-demo">
   <template>
-    <task-trigger-sk task_specs="[[task_specs]]" commits="[[commits]]"></task-trigger-sk>
+    <job-trigger-sk job_specs="[[job_specs]]" commits="[[commits]]"></job-trigger-sk>
   </template>
   <script>
   Polymer({
-    is: 'task-trigger-demo',
+    is: 'job-trigger-demo',
 
     properties: {
-      task_specs: {
+      job_specs: {
         type: Array,
         value: function() {
           return [
@@ -72,11 +76,11 @@
   });
   </script>
 </dom-module>
-  <h1>task-trigger-sk demo</h1>
-  <task-trigger-demo></task-trigger-demo>
+  <h1>job-trigger-sk demo</h1>
+  <job-trigger-demo></job-trigger-demo>
   <error-toast-sk></error-toast-sk>
 
   <h1>immediate trigger demo</h1>
-  <a href="/task-trigger-sk-demo.html?task_spec=Build-Mac-Clang-Arm7-Debug-Android&commit=1d20258360a7fc0fac86a8a1ec8ad5016100f7d6&submit=true" target="_blank">Click here to trigger a task</a>
+  <a href="/job-trigger-sk-demo.html?job=Build-Mac-Clang-Arm7-Debug-Android&commit=1d20258360a7fc0fac86a8a1ec8ad5016100f7d6&submit=true" target="_blank">Click here to trigger a job</a>
 </body>
 </html>

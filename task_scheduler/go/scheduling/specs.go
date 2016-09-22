@@ -165,23 +165,31 @@ func (j *JobSpec) Copy() *JobSpec {
 // taskCfgCache is a struct used for caching tasks cfg files. The user should
 // periodically call Cleanup() to remove old entries.
 type taskCfgCache struct {
-	cache map[db.RepoState]*TasksCfg
-	mtx   sync.Mutex
-	repos *gitinfo.RepoMap
+	cache           map[db.RepoState]*TasksCfg
+	mtx             sync.Mutex
+	recentCommits   map[string]time.Time
+	recentJobSpecs  map[string]time.Time
+	recentMtx       sync.RWMutex
+	recentTaskSpecs map[string]time.Time
+	repos           *gitinfo.RepoMap
 }
 
 // newTaskCfgCache returns a taskCfgCache instance.
 func newTaskCfgCache(repos *gitinfo.RepoMap) *taskCfgCache {
 	return &taskCfgCache{
-		cache: map[db.RepoState]*TasksCfg{},
-		mtx:   sync.Mutex{},
-		repos: repos,
+		cache:           map[db.RepoState]*TasksCfg{},
+		mtx:             sync.Mutex{},
+		recentCommits:   map[string]time.Time{},
+		recentJobSpecs:  map[string]time.Time{},
+		recentMtx:       sync.RWMutex{},
+		recentTaskSpecs: map[string]time.Time{},
+		repos:           repos,
 	}
 }
 
 // readTasksCfg reads the task cfg file from the given repo and returns it.
 // Stores a cache of already-read task cfg files. Syncs the repo and reads the
-// file if needed. Assumes the caller holds a lock.
+// file if needed. Assumes the caller holds c.mtx.
 // TODO(borenet): Make readTasksCfg apply patches as needed.
 func (c *taskCfgCache) readTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 	rv, ok := c.cache[rs]
@@ -207,7 +215,27 @@ func (c *taskCfgCache) readTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 			return nil, err
 		}
 	}
+	c.recentMtx.Lock()
+	defer c.recentMtx.Unlock()
 	c.cache[rs] = cfg
+	d, err := r.Details(rs.Revision, false)
+	if err != nil {
+		return nil, err
+	}
+	ts := d.Timestamp
+	if ts.After(c.recentCommits[rs.Revision]) {
+		c.recentCommits[rs.Revision] = ts
+	}
+	for name, _ := range cfg.Tasks {
+		if ts.After(c.recentTaskSpecs[name]) {
+			c.recentTaskSpecs[name] = ts
+		}
+	}
+	for name, _ := range cfg.Jobs {
+		if ts.After(c.recentJobSpecs[name]) {
+			c.recentJobSpecs[name] = ts
+		}
+	}
 	return cfg, nil
 }
 
@@ -242,7 +270,7 @@ func (c *taskCfgCache) GetTaskSpecsForRepoStates(rs []db.RepoState) (map[db.Repo
 }
 
 // GetTaskSpec returns the TaskSpec at the given RepoState, or an error if no
-// such TaskSpec exists. Assumes the caller holds a lock.
+// such TaskSpec exists.
 func (c *taskCfgCache) GetTaskSpec(rs db.RepoState, name string) (*TaskSpec, error) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
@@ -256,6 +284,23 @@ func (c *taskCfgCache) GetTaskSpec(rs db.RepoState, name string) (*TaskSpec, err
 		return nil, fmt.Errorf("No such task spec: %s @ %s", name, rs)
 	}
 	return t.Copy(), nil
+}
+
+// GetJobSpec returns the JobSpec at the given RepoState, or an error if no such
+// JobSpec exists.
+func (c *taskCfgCache) GetJobSpec(rs db.RepoState, name string) (*JobSpec, error) {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+
+	cfg, err := c.readTasksCfg(rs)
+	if err != nil {
+		return nil, err
+	}
+	j, ok := cfg.Jobs[name]
+	if !ok {
+		return nil, fmt.Errorf("No such job spec: %s @ %s", name, rs)
+	}
+	return j.Copy(), nil
 }
 
 // Cleanup removes cache entries which are outside of our scheduling window.
@@ -276,7 +321,40 @@ func (c *taskCfgCache) Cleanup(period time.Duration) error {
 			delete(c.cache, repoState)
 		}
 	}
+	c.recentMtx.Lock()
+	defer c.recentMtx.Unlock()
+	for k, ts := range c.recentCommits {
+		if ts.Before(periodStart) {
+			delete(c.recentCommits, k)
+		}
+	}
+	for k, ts := range c.recentTaskSpecs {
+		if ts.Before(periodStart) {
+			delete(c.recentTaskSpecs, k)
+		}
+	}
+	for k, ts := range c.recentJobSpecs {
+		if ts.Before(periodStart) {
+			delete(c.recentJobSpecs, k)
+		}
+	}
 	return nil
+}
+
+func stringMapKeys(m map[string]time.Time) []string {
+	rv := make([]string, 0, len(m))
+	for k, _ := range m {
+		rv = append(rv, k)
+	}
+	return rv
+}
+
+// RecentSpecsAndCommits returns lists of recent job and task spec names and
+// commit hashes.
+func (c *taskCfgCache) RecentSpecsAndCommits() ([]string, []string, []string) {
+	c.recentMtx.RLock()
+	defer c.recentMtx.RUnlock()
+	return stringMapKeys(c.recentJobSpecs), stringMapKeys(c.recentTaskSpecs), stringMapKeys(c.recentCommits)
 }
 
 // findCycles searches for cyclical dependencies in the task specs and returns

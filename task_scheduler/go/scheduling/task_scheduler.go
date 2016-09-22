@@ -52,9 +52,6 @@ type TaskScheduler struct {
 	period           time.Duration
 	queue            []*taskCandidate // protected by queueMtx.
 	queueMtx         sync.RWMutex
-	recentCommits    []string // protected by recentMtx.
-	recentMtx        sync.RWMutex
-	recentTaskSpecs  []string // protected by recentMtx.
 	repoMap          *gitinfo.RepoMap
 	repos            map[string]*gitrepo.Repo
 	swarming         swarming.ApiClient
@@ -151,21 +148,37 @@ func (s *TaskScheduler) Status() *TaskSchedulerStatus {
 	}
 }
 
-// RecentTaskSpecsAndCommits returns the lists of recent TaskSpec names and
-// commit hashes.
-func (s *TaskScheduler) RecentTaskSpecsAndCommits() ([]string, []string) {
-	s.recentMtx.RLock()
-	defer s.recentMtx.RUnlock()
-	c := make([]string, len(s.recentCommits))
-	copy(c, s.recentCommits)
-	t := make([]string, len(s.recentTaskSpecs))
-	copy(t, s.recentTaskSpecs)
-	return t, c
+// RecentSpecsAndCommits returns the lists of recent JobSpec names, TaskSpec
+// names and commit hashes.
+func (s *TaskScheduler) RecentSpecsAndCommits() ([]string, []string, []string) {
+	return s.taskCfgCache.RecentSpecsAndCommits()
 }
 
-// Trigger adds the given task request to the queue.
-func (s *TaskScheduler) Trigger(repo, commit, taskSpec string) error {
-	return fmt.Errorf("TaskScheduler.Trigger not implemented.")
+// Trigger adds the given Job to the database and returns its ID.
+func (s *TaskScheduler) Trigger(repo, commit, jobName string) (string, error) {
+	rs := db.RepoState{
+		Repo:     repo,
+		Revision: commit,
+	}
+	spec, err := s.taskCfgCache.GetJobSpec(rs, jobName)
+	if err != nil {
+		return "", err
+	}
+
+	j := &db.Job{
+		Created:      time.Now(),
+		Dependencies: spec.TaskSpecs,
+		IsForce:      true,
+		Name:         jobName,
+		Priority:     spec.Priority,
+		RepoState:    rs,
+	}
+
+	if err := s.db.PutJob(j); err != nil {
+		return "", err
+	}
+	glog.Infof("Created manually-triggered Job %q", j.Id)
+	return j.Id, nil
 }
 
 // ComputeBlamelist computes the blamelist for a new task, specified by name,
@@ -332,13 +345,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 
 	candidatesBySpec := map[string]map[string][]*taskCandidate{}
 	total := 0
-	// TODO(borenet): Recent commits and task specs are not correct here,
-	// now that we've pre-filtered out all commits and task specs for jobs
-	// we've already finished.
-	recentCommits := []string{}
-	recentTaskSpecsMap := map[string]bool{}
 	for _, c := range preFilterCandidates {
-		recentTaskSpecsMap[c.Name] = true
 		if rule := s.bl.MatchRule(c.Name, c.Revision); rule != "" {
 			glog.Warningf("Skipping blacklisted task candidate: %s @ %s due to rule %q", c.Name, c.Revision, rule)
 			continue
@@ -396,15 +403,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 		candidates[c.Name] = append(candidates[c.Name], c)
 		total++
 	}
-	glog.Infof("Found %d candidates in %d spec categories.", total, len(recentTaskSpecsMap))
-	recentTaskSpecs := make([]string, 0, len(recentTaskSpecsMap))
-	for spec, _ := range recentTaskSpecsMap {
-		recentTaskSpecs = append(recentTaskSpecs, spec)
-	}
-	s.recentMtx.Lock()
-	defer s.recentMtx.Unlock()
-	s.recentCommits = recentCommits
-	s.recentTaskSpecs = recentTaskSpecs
+	glog.Infof("Found %d candidates in %d spec categories.", total, len(candidatesBySpec))
 	return candidatesBySpec, nil
 }
 
