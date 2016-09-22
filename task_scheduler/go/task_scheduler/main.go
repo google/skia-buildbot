@@ -121,7 +121,7 @@ func blacklistHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		reloadTemplates()
 	}
-	t, c := ts.RecentTaskSpecsAndCommits()
+	_, t, c := ts.RecentSpecsAndCommits()
 	rulesMap := ts.GetBlacklist().Rules
 	rules := make([]*blacklist.Rule, 0, len(rulesMap))
 	for _, r := range rulesMap {
@@ -157,13 +157,13 @@ func triggerHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		reloadTemplates()
 	}
-	t, c := ts.RecentTaskSpecsAndCommits()
+	j, _, c := ts.RecentSpecsAndCommits()
 	page := struct {
-		TaskSpecs []string
-		Commits   []string
+		JobSpecs []string
+		Commits  []string
 	}{
-		TaskSpecs: t,
-		Commits:   c,
+		JobSpecs: j,
+		Commits:  c,
 	}
 	if err := triggerTemplate.Execute(w, page); err != nil {
 		httputils.ReportError(w, r, err, "Failed to execute template.")
@@ -228,20 +228,31 @@ func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var msg struct {
-		Repo      string   `json:"repo"`
-		TaskSpecs []string `json:"task_specs"`
-		Commit    string   `json:"commit"`
+		Jobs   []string `json:"jobs"`
+		Commit string   `json:"commit"`
 	}
+	defer util.Close(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
 		return
 	}
-	defer util.Close(r.Body)
-	for _, t := range msg.TaskSpecs {
-		if err := ts.Trigger(t, msg.Repo, msg.Commit); err != nil {
-			httputils.ReportError(w, r, err, "Failed to trigger tasks.")
+	repo, err := repos.RepoForCommit(msg.Commit)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to trigger jobs.")
+		return
+	}
+	ids := make([]string, 0, len(msg.Jobs))
+	for _, j := range msg.Jobs {
+		id, err := ts.Trigger(repo, msg.Commit, j)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to trigger jobs.")
 			return
 		}
+		ids = append(ids, id)
+	}
+	if err := json.NewEncoder(w).Encode(ids); err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode response.")
+		return
 	}
 }
 
@@ -295,15 +306,21 @@ func main() {
 		glog.Fatal(err)
 	}
 
+	// Get the absolute workdir.
+	wdAbs, err := filepath.Abs(*workdir)
+	if err != nil {
+		glog.Fatal(err)
+	}
+
 	// Authenticated HTTP client.
-	oauthCacheFile := path.Join(*workdir, "google_storage_token.data")
+	oauthCacheFile := path.Join(wdAbs, "google_storage_token.data")
 	httpClient, err := auth.NewClient(*local, oauthCacheFile, swarming.AUTH_SCOPE)
 	if err != nil {
 		glog.Fatal(err)
 	}
 
 	// Initialize Isolate client.
-	isolateClient, err := isolate.NewClient(*workdir)
+	isolateClient, err := isolate.NewClient(wdAbs)
 	if err != nil {
 		glog.Fatal(err)
 	}
@@ -313,14 +330,14 @@ func main() {
 
 	// Initialize the database.
 	// TODO(benjaminwagner): Create a signal handler which closes the DB.
-	d, err := local_db.NewDB(DB_NAME, path.Join(*workdir, DB_FILENAME))
+	d, err := local_db.NewDB(DB_NAME, path.Join(wdAbs, DB_FILENAME))
 	if err != nil {
 		glog.Fatal(err)
 	}
 	defer util.Close(d)
 
 	// Git repos.
-	repos = gitinfo.NewRepoMap(*workdir)
+	repos = gitinfo.NewRepoMap(wdAbs)
 	for _, r := range REPOS {
 		if _, err := repos.Repo(r); err != nil {
 			glog.Fatal(err)
@@ -343,7 +360,7 @@ func main() {
 
 	// Create and start the task scheduler.
 	glog.Infof("Creating task scheduler.")
-	ts, err = scheduling.NewTaskScheduler(d, period, *workdir, REPOS, isolateClient, swarm, *scoreDecay24Hr)
+	ts, err = scheduling.NewTaskScheduler(d, period, wdAbs, REPOS, isolateClient, swarm, *scoreDecay24Hr)
 	if err != nil {
 		glog.Fatal(err)
 	}
