@@ -7,44 +7,25 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sync"
 	"time"
-
-	"go.skia.org/infra/go/query"
-	"go.skia.org/infra/go/util"
 
 	"github.com/boltdb/bolt"
 	"github.com/golang/groupcache/lru"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/cid"
+	"go.skia.org/infra/perf/go/constants"
 )
 
 const (
-	COMMITS_PER_TILE = 50
-
 	MAX_CACHED_TILES = 5
 
 	TRACE_VALUES_BUCKET_NAME  = "traces"
 	TRACE_SOURCES_BUCKET_NAME = "sources"
 	SOURCE_LIST_BUCKET_NAME   = "sourceList"
 )
-
-var (
-	// safeRe is used in CommitID.Filename() to replace unsafe chars in a filename.
-	safeRe = regexp.MustCompile("[^a-zA-Z0-9]")
-)
-
-// CommitID represents the time of a particular commit, where a commit could either be
-// a real commit into the repo, or an event like running a trybot.
-type CommitID struct {
-	Offset int    // The index number of the commit from beginning of time, or patch number in Reitveld.
-	Source string // The branch name, e.g. "master", or the Reitveld issue id.
-}
-
-// Filename returns a safe filename to be used as part of the underlying BoltDB tile name.
-func (c CommitID) Filename() string {
-	return fmt.Sprintf("%s-%06d.bdb", safeRe.ReplaceAllLiteralString(c.Source, "_"), c.Offset/COMMITS_PER_TILE)
-}
 
 // MISSING_VALUE signifies a missing sample value.
 //
@@ -79,17 +60,17 @@ type PTraceStore interface {
 	// values - A map from the trace id to a float32 value.
 	// sourceFile - The full path of the file where this information came from,
 	//   usually the Google Storage URL.
-	Add(commitID *CommitID, values map[string]float32, sourceFile string) error
+	Add(commitID *cid.CommitID, values map[string]float32, sourceFile string) error
 
 	// Retrieve the source and value for a given measurement in a given trace,
 	// and a non-nil error if no such point was found.
-	Details(commitID *CommitID, traceID string) (string, float32, error)
+	Details(commitID *cid.CommitID, traceID string) (string, float32, error)
 
-	// Match returns TraceSet that match the given Query and slice of CommitIDs.
+	// Match returns TraceSet that match the given Query and slice of cid.CommitIDs.
 	//
 	// The returned TraceSet will contain a slice of Trace, and that list will be
 	// empty if there are no matches.
-	Match(commitIDs []*CommitID, q *query.Query) (TraceSet, error)
+	Match(commitIDs []*cid.CommitID, q *query.Query) (TraceSet, error)
 }
 
 // BoltTraceStore is an implementation of PTraceStore that uses BoltDB.
@@ -142,7 +123,7 @@ type sourceValue struct {
 }
 
 // getBoltDB returns a new/existing bolt.DB. Already opened db's are cached.
-func (b *BoltTraceStore) getBoltDB(commitID *CommitID) (*bolt.DB, error) {
+func (b *BoltTraceStore) getBoltDB(commitID *cid.CommitID) (*bolt.DB, error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 	name := commitID.Filename()
@@ -175,8 +156,8 @@ func serialize(i interface{}) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (b *BoltTraceStore) Add(commitID *CommitID, values map[string]float32, sourceFile string) error {
-	index := commitID.Offset % COMMITS_PER_TILE
+func (b *BoltTraceStore) Add(commitID *cid.CommitID, values map[string]float32, sourceFile string) error {
+	index := commitID.Offset % constants.COMMITS_PER_TILE
 	db, err := b.getBoltDB(commitID)
 	if err != nil {
 		return fmt.Errorf("Unable to open datastore: %s", err)
@@ -254,13 +235,13 @@ func (b *BoltTraceStore) Add(commitID *CommitID, values map[string]float32, sour
 	return nil
 }
 
-func (b *BoltTraceStore) Details(commitID *CommitID, traceID string) (string, float32, error) {
+func (b *BoltTraceStore) Details(commitID *cid.CommitID, traceID string) (string, float32, error) {
 	db, err := b.getBoltDB(commitID)
 	if err != nil {
 		return "", 0, fmt.Errorf("Unable to open datastore: %s", err)
 	}
 
-	localIndex := int64(commitID.Offset % COMMITS_PER_TILE)
+	localIndex := int64(commitID.Offset % constants.COMMITS_PER_TILE)
 	var sourceRet string
 	var valueRet float32
 
@@ -331,7 +312,7 @@ func (b *BoltTraceStore) Details(commitID *CommitID, traceID string) (string, fl
 }
 
 type tileMap struct {
-	commitID *CommitID
+	commitID *cid.CommitID
 	idxmap   map[int]int
 }
 
@@ -343,16 +324,16 @@ type tileMap struct {
 //
 // For example, if given:
 //
-//	commitIDs := []*CommitID{
-//		&CommitID{
+//	commitIDs := []*cid.CommitID{
+//		&cid.CommitID{
 //			Source: "master",
 //			Offset: 49,
 //		},
-//		&CommitID{
+//		&cid.CommitID{
 //			Source: "master",
 //			Offset: 50,
 //		},
-//		&CommitID{
+//		&cid.CommitID{
 //			Source: "master",
 //			Offset: 51,
 //		},
@@ -362,7 +343,7 @@ type tileMap struct {
 //
 //	map[string]*tileMap{
 //		"master-000000.bdb": &tileMap{
-//			commitID: &CommitID{
+//			commitID: &cid.CommitID{
 //				Source: "master",
 //				Offset: 49,
 //			},
@@ -371,7 +352,7 @@ type tileMap struct {
 //			},
 //		},
 //		"master-000001.bdb": &tileMap{
-//			commitID: &CommitID{
+//			commitID: &cid.CommitID{
 //				Source: "master",
 //				Offset: 50,
 //			},
@@ -383,16 +364,16 @@ type tileMap struct {
 //	}
 //
 // The returned map is used when loading traces out of tiles.
-func buildMapper(commitIDs []*CommitID) map[string]*tileMap {
+func buildMapper(commitIDs []*cid.CommitID) map[string]*tileMap {
 	mapper := map[string]*tileMap{}
 	for targetIndex, commitID := range commitIDs {
 		if tm, ok := mapper[commitID.Filename()]; !ok {
 			mapper[commitID.Filename()] = &tileMap{
 				commitID: commitID,
-				idxmap:   map[int]int{commitID.Offset % COMMITS_PER_TILE: targetIndex},
+				idxmap:   map[int]int{commitID.Offset % constants.COMMITS_PER_TILE: targetIndex},
 			}
 		} else {
-			tm.idxmap[commitID.Offset%COMMITS_PER_TILE] = targetIndex
+			tm.idxmap[commitID.Offset%constants.COMMITS_PER_TILE] = targetIndex
 		}
 	}
 	return mapper
@@ -456,7 +437,7 @@ func loadMatches(db *bolt.DB, idxmap map[int]int, q *query.Query, traceSet Trace
 	return db.View(get)
 }
 
-func (b *BoltTraceStore) Match(commitIDs []*CommitID, q *query.Query) (TraceSet, error) {
+func (b *BoltTraceStore) Match(commitIDs []*cid.CommitID, q *query.Query) (TraceSet, error) {
 	ret := TraceSet{}
 	mapper := buildMapper(commitIDs)
 	for _, tm := range mapper {

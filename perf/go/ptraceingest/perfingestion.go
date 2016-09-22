@@ -1,13 +1,12 @@
 package ptraceingest
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/ingestcommon"
 	"go.skia.org/infra/perf/go/ptracestore"
@@ -45,24 +44,12 @@ func (p *perfProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 	if err != nil {
 		return err
 	}
-	commit, err := p.vcs.Details(benchData.Hash, true)
+	commitID, err := cid.FromHash(p.vcs, benchData.Hash)
 	if err != nil {
 		return err
 	}
-	if !commit.Branches["master"] {
-		glog.Warningf("Commit %s is not in master branch.", commit.Hash)
-		return ingestion.IgnoreResultsFileErr
-	}
-	offset, err := p.vcs.IndexOf(commit.Hash)
-	if err != nil {
-		return fmt.Errorf("Could not ingest, hash not found %q: %s", commit.Hash, err)
-	}
-	cid := &ptracestore.CommitID{
-		Offset: offset,
-		Source: "master",
-	}
 
-	return p.store.Add(cid, getValueMap(benchData), resultsFile.Name())
+	return p.store.Add(commitID, getValueMap(benchData), resultsFile.Name())
 }
 
 // See ingestion.Processor interface.
