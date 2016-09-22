@@ -478,10 +478,12 @@ func (c *jobCache) update(jobs []*Job) error {
 		c.jobs[j.Id] = cpy
 
 		// ScheduledJobsForCommit.
-		if _, ok := c.triggeredForCommit[j.Repo]; !ok {
-			c.triggeredForCommit[j.Repo] = map[string]bool{}
+		if !j.IsForce && !j.IsTryJob() {
+			if _, ok := c.triggeredForCommit[j.Repo]; !ok {
+				c.triggeredForCommit[j.Repo] = map[string]bool{}
+			}
+			c.triggeredForCommit[j.Repo][j.Revision] = true
 		}
-		c.triggeredForCommit[j.Repo][j.Revision] = true
 
 		// Unfinished jobs.
 		if j.Done() {
