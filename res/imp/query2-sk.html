@@ -79,7 +79,7 @@
           on-input="_valueChange"
         />
         <select id=values size=10 on-change="_valueChange" multiple>
-          <template is="dom-repeat" items="[[_values]]"  initial-count=100>
+          <template is="dom-repeat" items="[[_values]]">
             <option value="[[item]]" selected="[[_isSelected(item, _selectedValue)]]">[[item]]</option>
           </template>
         </select>
@@ -276,6 +276,7 @@
 
     _clear: function() {
       this._query = {};
+      this._recalcKeys();
       this._queryChanged();
     },
 
