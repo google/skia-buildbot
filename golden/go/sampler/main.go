@@ -30,6 +30,7 @@ var (
 	nCommits     = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
 	gitRepoDir   = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	gitRepoURL   = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
+	nTests       = flag.Int("n_tests", 0, "Set number of tests to pick randomly.")
 	traceservice = flag.String("trace_service", "localhost:9001", "The address of the traceservice endpoint.")
 	outputFile   = flag.String("output_file", "sample.tile", "Path to the output file for the sample.")
 	sampleSize   = flag.Int("sample_size", 0, "Number of random traces to pick. 0 returns the entire tile.")
@@ -57,7 +58,28 @@ func writeSample(outputFileName string, tile *tiling.Tile, expectations *expstor
 		glog.Fatalf("Error retrieving ignore rules: %s", err)
 	}
 
-	if sampleSize > 0 {
+	// Fixed number of tests selected.
+	if *nTests > 0 {
+		byTest := map[string][]string{}
+		for traceID, trace := range tile.Traces {
+			name := trace.Params()[types.PRIMARY_KEY_FIELD]
+			byTest[name] = append(byTest[name], traceID)
+		}
+
+		newTraces := map[string]tiling.Trace{}
+		idx := 0
+		for _, traceIDs := range byTest {
+			for _, traceID := range traceIDs {
+				newTraces[traceID] = tile.Traces[traceID]
+			}
+			idx++
+			if idx >= *nTests {
+				break
+			}
+		}
+		tile.Traces = newTraces
+	} else if sampleSize > 0 {
+		// Sample a given number of traces.
 		traceIDs := make([]string, 0, len(tile.Traces))
 		for id := range tile.Traces {
 			traceIDs = append(traceIDs, id)
