@@ -2,21 +2,21 @@
   This in an HTML Import-able file that contains the definition
   of the following elements:
 
-    <task-trigger-sk>
+    <job-trigger-sk>
 
-  A ui for selecting task_specs and commits for triggering tasks.
+  A ui for selecting job_specs and commits for triggering jobs.
 
   To use this file import it:
 
-    <link href="/res/imp/task-trigger-sk.html" rel="import" />
+    <link href="/res/imp/job-trigger-sk.html" rel="import" />
 
   Usage:
 
-    <task-trigger-sk></task-trigger-sk>
+    <job-trigger-sk></job-trigger-sk>
 
   Properties:
     // input
-    task_specs: Array<String> the names of the available task_specs.
+    job_specs: Array<String> the names of the available job_specs.
     commits: Array<String> commit hashes.
 
   Methods:
@@ -33,7 +33,7 @@
 <link rel="import" href="/res/common/imp/input-list-sk.html">
 <link rel="import" href="/res/common/imp/url-params-sk.html">
 
-<dom-module id="task-trigger-sk">
+<dom-module id="job-trigger-sk">
   <template>
     <style>
     .container {
@@ -46,14 +46,14 @@
       font-size: 16px;
     }
     </style>
-    <url-param-sk name="task_spec" value="{{_selected_task_specs}}" default="[]" multi></url-param-sk>
+    <url-param-sk name="job" value="{{_selected_job_specs}}" default="[]" multi></url-param-sk>
     <url-param-sk name="commit" value="{{_selected_commit}}" default=""></url-param-sk>
     <div hidden$="{{_loading}}">
       <input-list-sk
-          autocomplete="[[task_specs]]"
-          id="task_specs_input"
-          heading="TaskSpecs"
-          values="{{_selected_task_specs}}"></input-list-sk>
+          autocomplete="[[job_specs]]"
+          id="job_specs_input"
+          heading="jobs"
+          values="{{_selected_job_specs}}"></input-list-sk>
       <div class="container">
         <h2>Commit</h2>
         <autocomplete-input-sk
@@ -61,12 +61,12 @@
             id="commit_input"
             value="{{_selected_commit}}"></autocomplete-input-sk>
       </div>
-      <paper-button on-click="_trigger_tasks" raised>Trigger Tasks</paper-button>
+      <paper-button on-click="_trigger_jobs" raised>Trigger Jobs</paper-button>
       <div id="triggered_container" hidden$="{{_hide_triggered_container(_triggered.*)}}" class="container">
-        <h2>Triggered Tasks</h2>
+        <h2>Triggered Jobs</h2>
         <template is="dom-repeat" items="[[_triggered]]">
-          <div class="triggered_task">
-            <a href="{{item.url}}">{{item.id}}</a>
+          <div class="triggered_job">
+            <a href="/job/{{item}}">{{item}}</a>
           </div>
         </template>
       </div>
@@ -76,10 +76,10 @@
   <script>
   (function(){
     Polymer({
-      is: "task-trigger-sk",
+      is: "job-trigger-sk",
 
       properties: {
-        task_specs: {
+        job_specs: {
           type: Array,
         },
         commits: {
@@ -93,7 +93,7 @@
           type: Boolean,
           value: false,
         },
-        _selected_task_specs: {
+        _selected_job_specs: {
           type: Array,
         },
         _selected_commit: {
@@ -109,11 +109,11 @@
 
       ready: function() {
         // If "submit=true" is in the URL params, immediately attempt to trigger
-        // the tasks, and, on success, close the window.
+        // the jobs, and, on success, close the window.
         var params = sk.query.toParamSet(window.location.search.substring(1));
         if (params["submit"] && params["submit"].length > 0 && params["submit"][0] == "true") {
           this._immediate = true;
-          this._trigger_tasks();
+          this._trigger_jobs();
         }
       },
 
@@ -121,17 +121,17 @@
         return !(this._triggered && this._triggered.length > 0);
       },
 
-      _trigger_tasks: function() {
+      _trigger_jobs: function() {
         var data = {
-          "task_specs": this._selected_task_specs,
+          "jobs": this._selected_job_specs,
           "commit": this._selected_commit,
         };
         var str = JSON.stringify(data);
         this._loading = true;
         sk.post("/json/trigger", str).then(function(resp) {
-          this._selected_task_specs = [];
+          this._selected_job_specs = [];
           this._selected_commit = [];
-          //this._triggered = JSON.parse(resp);
+          this._triggered = JSON.parse(resp);
           this._loading = false;
           if (this._immediate) {
             window.close();
