@@ -359,5 +359,29 @@ func TestParseKey(t *testing.T) {
 			t.Errorf("Failed matching parsed values. Got %v Want %v. %s", got, want, tc.reason)
 		}
 	}
+}
 
+func TestForceValue(t *testing.T) {
+	testCases := []struct {
+		input map[string]string
+		want  map[string]string
+	}{
+		{
+			input: map[string]string{"arch": "x86", "config": "565"},
+			want:  map[string]string{"arch": "x86", "config": "565"},
+		},
+		{
+			input: map[string]string{"arch::this": "x!~@#$%^&*()86"},
+			want:  map[string]string{"arch__this": "x___________86"},
+		},
+		{
+			input: map[string]string{},
+			want:  map[string]string{},
+		},
+	}
+	for _, tc := range testCases {
+		if got, want := ForceValid(tc.input), tc.want; !reflect.DeepEqual(got, want) {
+			t.Errorf("Failed to force a map to be valid: Got %#v Want %#v", got, want)
+		}
+	}
 }

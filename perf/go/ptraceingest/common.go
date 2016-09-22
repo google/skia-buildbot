@@ -28,7 +28,7 @@ func getValueMap(b *ingestcommon.BenchData) map[string]float32 {
 					glog.Errorf("Found a non-float64 in %v", result)
 					continue
 				}
-				keyString, err := query.MakeKey(key)
+				keyString, err := query.MakeKey(query.ForceValid(key))
 				if err != nil {
 					glog.Errorf("Invalid structured key %v: %s", key, err)
 					continue
