@@ -236,7 +236,9 @@
       sk.post("/_/search/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(dataframe) {
         // Convert the dataframe into a form suitable for the plot element.
         var lines = {};
-        Object.keys(dataframe.traceset).forEach(function(key) {
+        var keys = Object.keys(dataframe.traceset);
+        keys.forEach(function(key) {
+          length = dataframe.traceset[key].length;
           var values = [];
           dataframe.traceset[key].forEach(function(y, x) {
             if (y != 1e32) {
@@ -245,6 +247,16 @@
           });
           lines[key] = values;
         });
+
+        if (keys.length > 0) {
+          // Add in the zero line special trace.
+          var traceLength = dataframe.traceset[keys[0]].length;
+          var values = [];
+          for (var i = 0; i < traceLength; i++) {
+            values.push([i, 0]);
+          }
+          lines["special_zero"] = values;
+        }
         this._lines = lines;
         this._dataframe = dataframe;
         this.$.plot.removeAll();
