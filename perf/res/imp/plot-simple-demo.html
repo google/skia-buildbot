@@ -27,6 +27,7 @@
     <button class=action id=clearxbar>Clear X Bar</button>
     <button class=action id=bands>Bands</button>
     <button class=action id=ticks>Ticks</button>
+    <button class=action id=special>Add Special</button>
   </div>
 
   <plot-simple-sk width=800 height=600 id=plot></plot-simple-sk>
@@ -39,7 +40,6 @@
   <script type="text/javascript" charset="utf-8">
     (function () {
       var ele = $$$('#plot');
-      var ids = [];
       var n = 0;
 
       function add() {
@@ -51,7 +51,6 @@
           }
           var id = "trace" + (10-j+n);
           traces[id] = trace;
-          ids.push(id);
         }
         n += 10;
         ele.addLines(traces);
@@ -88,11 +87,11 @@
       });
 
       $$$('#plot').addEventListener('trace_selected', function(e) {
-        $$$('#selected').textContent = JSON.stringify(e);
+        $$$('#selected').textContent = JSON.stringify(e.detail);
       });
 
       $$$('#plot').addEventListener('trace_focused', function(e) {
-        $$$('#focused').textContent = JSON.stringify(e);
+        $$$('#focused').textContent = JSON.stringify(e.detail);
       });
 
       $$$('#bands').addEventListener('click', function(e) {
@@ -105,6 +104,15 @@
           10: "6th",
           25: "7th"
         });
+      });
+
+      $$$('#special').addEventListener('click', function(e) {
+        var trace = [];
+        for (var i = 0; i < 50; i++) {
+          trace.push([i, 0]);
+        }
+        n += 1;
+        ele.addLines({"specialZero": trace});
       });
 
     })();
