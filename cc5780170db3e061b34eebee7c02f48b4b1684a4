@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "703917b8_8988997d",
+        "filename": "task_scheduler/go/db/local_db/local_db_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-23T11:42:01Z",
+      "side": 1,
+      "message": "Should we just move the call to testutils.SkipIfShort into makeDB?",
+      "range": {
+        "startLine": 164,
+        "startChar": 14,
+        "endLine": 164,
+        "endChar": 20
+      },
+      "revId": "cc5780170db3e061b34eebee7c02f48b4b1684a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
