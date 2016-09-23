@@ -36,8 +36,8 @@ type ImageLoader struct {
 	// localImgDir is the local directory where images should be written to.
 	localImgDir string
 
-	// gsBucketName is the GS bucket where images are stored.
-	gsBucketName string
+	// gsBucketNames is the list of GS bucket where images are stored.
+	gsBucketNames []string
 
 	// gsImageBaseDir is the GS directory (prefix) where images are stored.
 	gsImageBaseDir string
@@ -52,7 +52,7 @@ type ImageLoader struct {
 }
 
 // Creates a new instance of ImageLoader.
-func newImgLoader(client *http.Client, imgDir, gsBucketName, gsImageBaseDir string, maxCacheSize int) (*ImageLoader, error) {
+func newImgLoader(client *http.Client, imgDir string, gsBucketNames []string, gsImageBaseDir string, maxCacheSize int) (*ImageLoader, error) {
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func newImgLoader(client *http.Client, imgDir, gsBucketName, gsImageBaseDir stri
 	ret := &ImageLoader{
 		storageClient:  storageClient,
 		localImgDir:    imgDir,
-		gsBucketName:   gsBucketName,
+		gsBucketNames:  gsBucketNames,
 		gsImageBaseDir: gsImageBaseDir,
 	}
 
@@ -177,21 +177,35 @@ func (il *ImageLoader) saveImgInfoAsync(imageFileName string, imgBytes []byte) {
 // downloadImg retrieves the given image from Google storage.
 func (il *ImageLoader) downloadImg(digest string) ([]byte, error) {
 	glog.Infof("Starting download for for: %s", digest)
+	var err error
+	var imgData []byte
+	for _, bucketName := range il.gsBucketNames {
+		imgData, err = il.downloadImgFromBucket(digest, bucketName)
+		if err == nil {
+			return imgData, nil
+		}
+	}
+	return nil, fmt.Errorf("Failed finding image %s in buckets %v. Last error: %s", digest, il.gsBucketNames, err)
+}
+
+// downloadImgFromBucket retrieves the given image from the given Google storage bucket.
+// It returns storage.ErrObjectNotExist if the given image does not exist in the bucket.
+func (il *ImageLoader) downloadImgFromBucket(digest, bucketName string) ([]byte, error) {
 	objLocation := filepath.Join(il.gsImageBaseDir, getDigestImageFileName(digest))
 	ctx := context.Background()
 
 	// Retrieve the attributes.
-	attrs, err := il.storageClient.Bucket(il.gsBucketName).Object(objLocation).Attrs(ctx)
+	attrs, err := il.storageClient.Bucket(bucketName).Object(objLocation).Attrs(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to retrieve attributes for %s/%s: %s", il.gsBucketName, objLocation, err)
+		return nil, fmt.Errorf("Unable to retrieve attributes for %s/%s: %s", bucketName, objLocation, err)
 	}
 
 	var buf *bytes.Buffer
 	for i := 0; i < MAX_URI_GET_TRIES; i++ {
 		err = func() error {
-			reader, err := il.storageClient.Bucket(il.gsBucketName).Object(objLocation).NewReader(ctx)
+			reader, err := il.storageClient.Bucket(bucketName).Object(objLocation).NewReader(ctx)
 			if err != nil {
-				return fmt.Errorf("New reader failed for %s/%s: %s", il.gsBucketName, objLocation, err)
+				return fmt.Errorf("New reader failed for %s/%s: %s", bucketName, objLocation, err)
 			}
 			defer util.Close(reader)
 

@@ -75,12 +75,12 @@ type MemDiffStore struct {
 // 'gigs' is the approximate number of gigs to use for caching. This is not the
 // exact amount memory that will be used, but a tuning parameter to increase
 // or decrease memory used. If 'gigs' is 0 nothing will be cached in memory.
-func New(client *http.Client, baseDir, gsBucketName, gsImageBaseDir string, gigs int) (diff.DiffStore, error) {
+func New(client *http.Client, baseDir string, gsBucketNames []string, gsImageBaseDir string, gigs int) (diff.DiffStore, error) {
 	imageCacheCount, diffCacheCount := getCacheCounts(gigs)
 
 	// Set up image retrieval, caching and serving.
 	imgDir := fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME)))
-	imgLoader, err := newImgLoader(client, imgDir, gsBucketName, gsImageBaseDir, imageCacheCount)
+	imgLoader, err := newImgLoader(client, imgDir, gsBucketNames, gsImageBaseDir, imageCacheCount)
 	if err != err {
 		return nil, err
 	}

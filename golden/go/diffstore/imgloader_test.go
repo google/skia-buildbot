@@ -15,6 +15,9 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
+// TEST_IMG_DIGEST needs to be stored in the secondary bucket.
+const TEST_IMG_DIGEST = "abc-test-image-digest-xyz"
+
 func TestImageLoader(t *testing.T) {
 	testutils.SkipIfShort(t)
 
@@ -47,6 +50,12 @@ func TestImageLoader(t *testing.T) {
 	_, err := imageLoader.Get(1, digests)
 	assert.NoError(t, err)
 	ti.Stop()
+
+	// Fetch images from the secondary bucket.
+	_, err = imageLoader.Get(1, []string{TEST_IMG_DIGEST})
+	assert.NoError(t, err)
+	_, err = imageLoader.Get(1, []string{"some-image-that-does-not-exist-at-all-in-any-bucket"})
+	assert.Error(t, err)
 }
 
 func getImageLoaderAndTile(t assert.TestingT) (string, string, *tiling.Tile, *ImageLoader) {
@@ -57,7 +66,8 @@ func getImageLoaderAndTile(t assert.TestingT) (string, string, *tiling.Tile, *Im
 	assert.Nil(t, os.Mkdir(workingDir, 0777))
 
 	imgCacheCount, _ := getCacheCounts(10)
-	imgLoader, err := newImgLoader(client, workingDir, TEST_GS_BUCKET_NAME, TEST_GS_IMAGE_DIR, imgCacheCount)
+	gsBuckets := []string{TEST_GS_BUCKET_NAME, TEST_GS_SECONDARY_BUCKET}
+	imgLoader, err := newImgLoader(client, workingDir, gsBuckets, TEST_GS_IMAGE_DIR, imgCacheCount)
 	assert.NoError(t, err)
 	return baseDir, workingDir, tile, imgLoader
 }

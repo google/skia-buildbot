@@ -29,8 +29,9 @@ var (
 	TEST_DATA_STORAGE_PATH   = "gold-testdata/goldentile.json.gz"
 
 	// GS locations wher images are stored.
-	TEST_GS_BUCKET_NAME = "chromium-skia-gm"
-	TEST_GS_IMAGE_DIR   = "dm-images-v1"
+	TEST_GS_BUCKET_NAME      = "chromium-skia-gm"
+	TEST_GS_SECONDARY_BUCKET = "skia-infra-testdata"
+	TEST_GS_IMAGE_DIR        = "dm-images-v1"
 )
 
 func getSetupAndTile(t assert.TestingT, baseDir string) (*http.Client, *tiling.Tile) {
