@@ -13,9 +13,10 @@
 
 -->
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
-<link rel="import" href="/res/imp/bower_components/paper-tabs/paper-tabs.html">
-<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="/res/imp/bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+<link rel="import" href="/res/imp/bower_components/paper-tabs/paper-tabs.html">
 
 <link rel="import" href="/res/common/imp/query2-sk.html" />
 <link rel="import" href="/res/common/imp/paramset.html" />
@@ -25,6 +26,7 @@
 <link rel="import" href="/res/imp/plot-simple.html" />
 <link rel="import" href="/res/imp/commit-detail-panel.html" />
 <link rel="import" href="/res/imp/highlight.html" />
+<link rel="import" href="/res/imp/rangesel.html" />
 
 <dom-module id="explore-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
@@ -114,10 +116,10 @@
               <div class="layout vertical" id=selections>
                 <h3>Selections</h3>
                 <query-summary-sk id=summary></query-summary-sk>
-
                 <div>
                   Matches: <span id=matches></span>
                 </div>
+               <paper-input value="{{_lastn}}" id=lastn label="Number of Commits"></paper-input>
               <button on-tap="_add">Plot</button>
               </div>
             </div>
@@ -139,6 +141,10 @@
       _lines: {
         type: Object,
         value: function() { return {}; },
+      },
+      _lastn: {
+        type: Number,
+        value: 50,
       },
     },
 
@@ -223,7 +229,11 @@
     },
 
     _add: function() {
-      sk.post("/_/search/", this.$.query.current_query, "application/x-www-form-urlencoded").then(JSON.parse).then(function(dataframe) {
+      var body = {
+        lastn: +this._lastn,
+        q: this.$.query.current_query,
+      };
+      sk.post("/_/search/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(dataframe) {
         // Convert the dataframe into a form suitable for the plot element.
         var lines = {};
         Object.keys(dataframe.traceset).forEach(function(key) {
