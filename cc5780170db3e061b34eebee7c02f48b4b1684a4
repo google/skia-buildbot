@@ -22,6 +22,24 @@
       "revId": "cc5780170db3e061b34eebee7c02f48b4b1684a4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "703917b8_c982915b",
+        "filename": "task_scheduler/go/db/local_db/local_db_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-23T11:50:54Z",
+      "side": 1,
+      "message": "If there\u0027s someone other than me that doesn\u0027t always use --bypass-hooks, sure. :-)",
+      "parentUuid": "703917b8_8988997d",
+      "revId": "cc5780170db3e061b34eebee7c02f48b4b1684a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
