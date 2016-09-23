@@ -49,6 +49,11 @@
         };
         plot.addLines(lines);
 
+      Any line id that begins with "special" will be treated specially,
+      i.e. it will be presented as a dashed black line that doesn't
+      generate events. This may be useful for adding an x-axis 0 line,
+      or a reference trace.
+
     deleteLine(id) - Removes the line with the given id from the plot.
       If no line with that id exists then the function returns without
       any action.
@@ -119,7 +124,10 @@ work, so we just prefix every rule with plot-simple-sk.
 
 <script>
   (function () {
+    var SPECIAL = "special";
+
     var colors = [
+      "#000000",
       "#1B9E77",
       "#D95F02",
       "#7570B3",
@@ -199,7 +207,10 @@ work, so we just prefix every rule with plot-simple-sk.
         Object.keys(lines).forEach(function(id) {
           var line = lines[id];
           line._id = id;
-          line._hash = sk.hashString(id);
+          line._hash = (sk.hashString(id) % 8) + 1;
+          if (id.startsWith(SPECIAL)) {
+            line._hash = 0;
+          }
           this._lineData.push(line);
         }.bind(this));
         this.resetAxes();
@@ -293,8 +304,12 @@ work, so we just prefix every rule with plot-simple-sk.
 
       // Create an event from this._closest of the given name.
       _eventFromClosest: function(name) {
+        var id = this._lineData[this._closest.trace]._id;
+        if (id.startsWith(SPECIAL)) {
+          return
+        }
         var detail = {
-          id: this._lineData[this._closest.trace]._id,
+          id: id,
           index: this._closest.index,
           value: this._closest.value,
           pt: this._closest.pt,
@@ -487,9 +502,15 @@ work, so we just prefix every rule with plot-simple-sk.
           .data(this._lineData);
 
         trace.enter().append("g")
-          .attr("class", "trace")
+          .attr("class", function(d) {
+            var ret = "trace";
+            if (d._id && d._id.startsWith(SPECIAL)) {
+              ret += " special";
+            }
+            return ret
+          })
           .attr("clip-path", "url(#clip)")
-          .attr("stroke", function(d) { return colors[d._hash % 8]; })
+          .attr("stroke", function(d) { return colors[d._hash]; })
           .attr("id", function(d, i) { return "trace_" + i; })
           .attr("data-id", function(d) { return d._id; })
           .append("path")
@@ -505,7 +526,7 @@ work, so we just prefix every rule with plot-simple-sk.
           .data(function(d) { return d; });
 
         dots.enter().append("circle")
-          .attr("class", function(d, i) { return "c" + i + " dot"; } )
+          .attr("class", function(d, i) { return "c" + i + " dot"; })
           .attr("r", 3.5);
 
         dots.exit().remove();

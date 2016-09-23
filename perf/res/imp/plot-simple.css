@@ -43,6 +43,11 @@ plot-simple-sk .trace path {
   stroke-width: 1px;
 }
 
+plot-simple-sk .trace.special path {
+  stroke-width: 1px;
+  stroke-dasharray: 1, 2;
+}
+
 plot-simple-sk .trace.highlight path {
   stroke-width: 5px;
 }
