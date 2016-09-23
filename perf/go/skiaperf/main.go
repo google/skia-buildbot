@@ -129,7 +129,7 @@ var (
 
 	tileStats *tilestats.TileStats
 
-	df *dataframe.DataFrame
+	freshDataFrame *dataframe.Refresher
 )
 
 func loadTemplates() {
@@ -182,12 +182,12 @@ func Init() {
 	tileStats = tilestats.New(evt)
 
 	ptracestore.Init(*ptraceStoreDir)
-	// TODO(jcgregorio) Fix this, should be updated regularly from fresh data,
-	// protected with a mutex, etc.
-	df, err = dataframe.New(git, ptracestore.Default)
+
+	freshDataFrame, err = dataframe.NewRefresher(git, ptracestore.Default, time.Minute)
 	if err != nil {
-		glog.Fatalf("Failed to build normal dataframe: %s", err)
+		glog.Fatalf("Failed to build the dataframe Refresher: %s", err)
 	}
+
 	initIngestion()
 
 	// Connect to traceDB and create the builders.
@@ -1154,7 +1154,7 @@ func paramsetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(df.ParamSet); err != nil {
+		if err := json.NewEncoder(w).Encode(freshDataFrame.Get().ParamSet); err != nil {
 			glog.Errorf("Failed to encode paramset: %s", err)
 		}
 	}
@@ -1204,7 +1204,7 @@ func countHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	count := 0
-	for key, _ := range df.TraceSet {
+	for key, _ := range freshDataFrame.Get().TraceSet {
 		if q.Matches(key) {
 			count += 1
 		}
