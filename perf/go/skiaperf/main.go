@@ -1160,24 +1160,36 @@ func paramsetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// searchHandler takes the POST'd query and runs that against the last 50
-// commits and returns a serialized DataFrame of the results.
+// SearchRequest is used to deserialize JSON search requests in searchHandler().
+type SearchRequest struct {
+	LastN int    `json:"lastn"`
+	Query string `json:"q"` // The query encoded as a URL query.
+}
+
+// searchHandler takes the POST'd query and returns a serialized DataFrame of
+// the results.
 func searchHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		loadTemplates()
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if err := r.ParseForm(); err != nil {
-		httputils.ReportError(w, r, err, "Invalid URL query.")
+	sr := &SearchRequest{}
+	defer util.Close(r.Body)
+	if err := json.NewDecoder(r.Body).Decode(sr); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode JSON.")
 		return
 	}
-	var err error
-	var q *query.Query
-	if q, err = query.New(r.Form); err != nil {
+	urlValues, err := url.ParseQuery(sr.Query)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse query.")
+		return
+	}
+	q, err := query.New(urlValues)
+	if err != nil {
 		httputils.ReportError(w, r, err, "Invalid query.")
 		return
 	}
-	begin := git.LastNIndex(dataframe.DEFAULT_NUM_COMMITS)[0].Timestamp
+	begin := git.LastNIndex(sr.LastN)[0].Timestamp
 	end := time.Now()
 	df, err := dataframe.NewFromQueryAndRange(git, ptracestore.Default, begin, end, q)
 	// TODO(jcgregorio) Limit the results if there are too many?
