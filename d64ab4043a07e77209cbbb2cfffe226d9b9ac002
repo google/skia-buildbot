@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "703917b8_4ff30166",
+        "filename": "perf/res/imp/plot-simple-demo.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-24T13:09:38Z",
+      "side": 1,
+      "message": "Doesn\u0027t seem correct, since \"trace\" + n will not be a valid trace id.",
+      "range": {
+        "startLine": 114,
+        "startChar": 8,
+        "endLine": 114,
+        "endChar": 15
+      },
+      "revId": "d64ab4043a07e77209cbbb2cfffe226d9b9ac002",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "703917b8_2ff6cd56",
+        "filename": "perf/res/imp/plot-simple.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-24T13:09:38Z",
+      "side": 1,
+      "message": "Should this be \"y-axis 0\"?",
+      "range": {
+        "startLine": 54,
+        "startChar": 56,
+        "endLine": 54,
+        "endChar": 64
+      },
+      "revId": "d64ab4043a07e77209cbbb2cfffe226d9b9ac002",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
