@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "703917b8_8f8df9e5",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-24T13:13:01Z",
+      "side": 1,
+      "message": "Unused?",
+      "range": {
+        "startLine": 241,
+        "startChar": 10,
+        "endLine": 241,
+        "endChar": 50
+      },
+      "revId": "58e090ac1d22edde1a791c112dac8997eb6cbaa0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
