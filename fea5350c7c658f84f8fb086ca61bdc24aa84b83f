@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25b03fbe_661caedc",
+        "filename": "golden/frontend/res/imp/search-page-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-09-26T19:44:06Z",
+      "side": 1,
+      "message": "alos -\u003e also",
+      "revId": "fea5350c7c658f84f8fb086ca61bdc24aa84b83f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "25b03fbe_06213a0b",
+        "filename": "golden/frontend/res/js/gold.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-09-26T19:44:06Z",
+      "side": 1,
+      "message": "var targetPath \u003d newTargetPath || window.location.pathname;\n\nis slightly shorter.",
+      "revId": "fea5350c7c658f84f8fb086ca61bdc24aa84b83f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
