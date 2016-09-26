@@ -255,13 +255,12 @@ var gold = gold || {};
 
     // _redirectToState updates the current state with 'updates'. After it
     // saves the current URL to history it redirects (via history.replaceState)
-    // to the same path page with a query string that represents the
-    // updated state.
-    _redirectToState: function(updates) {
+    // to newTargetPath, if provided, otherwise it will use the current path.
+    _redirectToState: function(updates, newTargetPath) {
       // Save the current history entry before the redirect.
       this._ctx.pushState();
       var newState = sk.object.applyDelta(updates, this._state);
-      var targetPath = window.location.pathname;
+      var targetPath = newTargetPath ||  window.location.pathname;
 
       // TODO(stephana): Remove below if we can ever assign blame across corpora.
       // Account for the special case when the corpus changes and there is a

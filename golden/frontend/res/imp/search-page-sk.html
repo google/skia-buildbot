@@ -31,6 +31,7 @@
 <link rel="import" href="bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/paper-menu-button/paper-menu-button.html">
 
 <link rel="import" href="activity-sk.html">
 <link rel=import href="detail-list-sk.html">
@@ -85,11 +86,14 @@
         background: #eee;
       }
 
-
-      #openBulkDialog {
+      .actionMenu {
         max-width: 10em;
         margin-left: 10em;
       }
+
+      .actionButton {
+        color: green;
+      };
 
       #closestButton[raised] > iron-icon {
         color: #bbb;
@@ -112,8 +116,16 @@
           <div>
             <paper-button id="triggerSearchButton" raised disabled="{{_hideAll}}">Search</paper-button>
           </div>
-          <div class="helpIconContainer"> <a on-tap="_openHelpDialog"><iron-icon icon="help"></iron-icon></a></div>
-          <paper-button class="flex self-end" id="openBulkDialog" raised on-tap="_handleBulkButton" disabled="{{_hideAll}}">Bulk Triage</paper-button>
+
+          <paper-menu-button close-on-activate no-animations class="actionMenu">
+            <paper-button class="dropdown-trigger actionButton" raised>Actions</paper-button>
+            <paper-menu class="dropdown-content">
+              <paper-item on-tap="_handleSwitchToByTest">Switch To Test View</paper-item>
+              <paper-item on-tap="_handleBulkButton">Bulk Triage</paper-item>
+              <paper-item on-tap="_openHelpDialog">Help</paper-item>
+            </paper-menu>
+          </paper-menu-button>
+
       </div>
       <trybot-controls-sk id="trybotControls"></trybot-controls-sk>
 
@@ -179,16 +191,13 @@
 
       pageSelected: function(ctx) {
         this.$.detailList.startUse();
-        this._loadParamset();
 
         // Initialize the state and set values of the controls.
         this._initState(ctx, this._getDefaultStateWithCorpus());
         this.$.searchControls.setState(this._state);
 
-        // Only load the page if there were parameters given.
-        if (ctx.querystring !== '') {
-          this._load();
-        }
+        // _loadParamset will also trigger loading the data.
+        this._loadParamset();
       },
 
       pageDeselected: function() {
@@ -203,6 +212,10 @@
       _handleStateChange: function(ev) {
         // Reload the page with the new  state in the query parameters.
         this._redirectToState(ev.detail);
+      },
+
+      _handleSwitchToByTest: function() {
+        this._redirectToState({}, "/list");
       },
 
       _openHelpDialog: function(ev) {
@@ -269,8 +282,21 @@
       },
 
       _loadParamset: function() {
+        // If we already have a paramset then trigger load right away.
+        // TODO(stephana): Improve this so that we load the paramset with the
+        // data.
+        var loadTriggered = false;
+        if (this._paramSet) {
+          this._load();
+          loadTriggered = true;
+        }
+
         sk.get("/json/paramset").then(JSON.parse).then(function (json) {
           this.$.searchControls.setParamSet(json);
+          this._paramSet = json;
+          if (!loadTriggered) {
+            this._load();
+          }
         }.bind(this)).catch(sk.errorMessage);
       },
 
