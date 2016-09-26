@@ -52,7 +52,7 @@ var (
 	cpuProfile         = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
 	doOauth            = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
 	forceLogin         = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
-	gsBucketName       = flag.String("gs_buckets", "chromium-skia-gm", "Comma-separated list of google storage bucket that hold uploaded images.")
+	gsBucketNames      = flag.String("gs_buckets", "skia-infra-gm,chromium-skia-gm", "Comma-separated list of google storage bucket that hold uploaded images.")
 	imageDir           = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
 	issueTrackerKey    = flag.String("issue_tracker_key", "", "API Key for accessing the project hosting API.")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
@@ -217,7 +217,7 @@ func main() {
 	}
 
 	// Get the expecations storage, the filediff storage and the tilestore.
-	diffStore, err := diffstore.New(client, *imageDir, strings.Split(*gsBucketName, ","), diffstore.DEFAULT_GS_IMG_DIR_NAME, *cacheSize)
+	diffStore, err := diffstore.New(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GS_IMG_DIR_NAME, *cacheSize)
 	if err != nil {
 		glog.Fatalf("Allocating DiffStore failed: %s", err)
 	}

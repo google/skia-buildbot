@@ -4,12 +4,16 @@ GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the re
 [Ingesters]
 	### Gold ingester ############################################################
 	[Ingesters.gold]
-	RunEvery       = "5m"                          
-	NCommits       = 75                            
-	MinDays        = 3                             
-	StatusDir      = "/mnt/pd0/gold/ingest_status" 
-	MetricName     = "gold-ingest"                 
+	RunEvery       = "5m"
+	NCommits       = 75
+	MinDays        = 3
+	StatusDir      = "/mnt/pd0/gold/ingest_status"
+	MetricName     = "gold-ingest"
   LocalCache     = true
+
+    [[Ingesters.gold.Sources]]
+    Bucket         = "skia-infra-gm"
+    Dir            = "dm-json-v1"
 
 		[[Ingesters.gold.Sources]]
 		Bucket         = "chromium-skia-gm"
@@ -26,15 +30,19 @@ GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the re
 	### Gold trybot ingester #####################################################
 	[Ingesters.gold-trybot]
 	RunEvery       = "5m"
-	NCommits       = 10 
-	MinDays        = 3 
-	StatusDir      = "/mnt/pd0/gold/ingest_status" 
+	NCommits       = 10
+	MinDays        = 3
+	StatusDir      = "/mnt/pd0/gold/ingest_status"
 	MetricName     = "gold-ingest-trybot"
   LocalCache     = true
 
-		[[Ingesters.gold-trybot.Sources]]
-		Bucket         = "chromium-skia-gm"
-		Dir            = "trybot/dm-json-v1"
+    [[Ingesters.gold-trybot.Sources]]
+    Bucket         = "skia-infra-gm"
+    Dir            = "trybot/dm-json-v1"
+
+    [[Ingesters.gold-trybot.Sources]]
+    Bucket         = "chromium-skia-gm"
+    Dir            = "trybot/dm-json-v1"
 
 		[Ingesters.gold-trybot.ExtraParams]
 		TraceService   = "localhost:10000"
