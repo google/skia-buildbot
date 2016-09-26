@@ -1,4 +1,4 @@
-package scheduling
+package specs
 
 import (
 	"encoding/json"
@@ -162,9 +162,9 @@ func (j *JobSpec) Copy() *JobSpec {
 	}
 }
 
-// taskCfgCache is a struct used for caching tasks cfg files. The user should
+// TaskCfgCache is a struct used for caching tasks cfg files. The user should
 // periodically call Cleanup() to remove old entries.
-type taskCfgCache struct {
+type TaskCfgCache struct {
 	cache           map[db.RepoState]*TasksCfg
 	mtx             sync.Mutex
 	recentCommits   map[string]time.Time
@@ -174,9 +174,9 @@ type taskCfgCache struct {
 	repos           *gitinfo.RepoMap
 }
 
-// newTaskCfgCache returns a taskCfgCache instance.
-func newTaskCfgCache(repos *gitinfo.RepoMap) *taskCfgCache {
-	return &taskCfgCache{
+// NewTaskCfgCache returns a TaskCfgCache instance.
+func NewTaskCfgCache(repos *gitinfo.RepoMap) *TaskCfgCache {
+	return &TaskCfgCache{
 		cache:           map[db.RepoState]*TasksCfg{},
 		mtx:             sync.Mutex{},
 		recentCommits:   map[string]time.Time{},
@@ -191,7 +191,7 @@ func newTaskCfgCache(repos *gitinfo.RepoMap) *taskCfgCache {
 // Stores a cache of already-read task cfg files. Syncs the repo and reads the
 // file if needed. Assumes the caller holds c.mtx.
 // TODO(borenet): Make readTasksCfg apply patches as needed.
-func (c *taskCfgCache) readTasksCfg(rs db.RepoState) (*TasksCfg, error) {
+func (c *TaskCfgCache) readTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 	rv, ok := c.cache[rs]
 	if ok {
 		return rv, nil
@@ -242,7 +242,7 @@ func (c *taskCfgCache) readTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 // ReadTasksCfg reads the task cfg file from the given RepoState and returns it.
 // Stores a cache of already-read task cfg files. Syncs the repo and reads the
 // file if needed.
-func (c *taskCfgCache) ReadTasksCfg(rs db.RepoState) (*TasksCfg, error) {
+func (c *TaskCfgCache) ReadTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	return c.readTasksCfg(rs)
@@ -250,7 +250,7 @@ func (c *taskCfgCache) ReadTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 
 // GetTaskSpecsForRepoStates returns a set of TaskSpecs for each of the
 // given set of RepoStates, keyed by RepoState and TaskSpec name.
-func (c *taskCfgCache) GetTaskSpecsForRepoStates(rs []db.RepoState) (map[db.RepoState]map[string]*TaskSpec, error) {
+func (c *TaskCfgCache) GetTaskSpecsForRepoStates(rs []db.RepoState) (map[db.RepoState]map[string]*TaskSpec, error) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	rv := map[db.RepoState]map[string]*TaskSpec{}
@@ -271,7 +271,7 @@ func (c *taskCfgCache) GetTaskSpecsForRepoStates(rs []db.RepoState) (map[db.Repo
 
 // GetTaskSpec returns the TaskSpec at the given RepoState, or an error if no
 // such TaskSpec exists.
-func (c *taskCfgCache) GetTaskSpec(rs db.RepoState, name string) (*TaskSpec, error) {
+func (c *TaskCfgCache) GetTaskSpec(rs db.RepoState, name string) (*TaskSpec, error) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
@@ -288,7 +288,7 @@ func (c *taskCfgCache) GetTaskSpec(rs db.RepoState, name string) (*TaskSpec, err
 
 // GetJobSpec returns the JobSpec at the given RepoState, or an error if no such
 // JobSpec exists.
-func (c *taskCfgCache) GetJobSpec(rs db.RepoState, name string) (*JobSpec, error) {
+func (c *TaskCfgCache) GetJobSpec(rs db.RepoState, name string) (*JobSpec, error) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
@@ -304,7 +304,7 @@ func (c *taskCfgCache) GetJobSpec(rs db.RepoState, name string) (*JobSpec, error
 }
 
 // Cleanup removes cache entries which are outside of our scheduling window.
-func (c *taskCfgCache) Cleanup(period time.Duration) error {
+func (c *TaskCfgCache) Cleanup(period time.Duration) error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	periodStart := time.Now().Add(-period)
@@ -351,7 +351,7 @@ func stringMapKeys(m map[string]time.Time) []string {
 
 // RecentSpecsAndCommits returns lists of recent job and task spec names and
 // commit hashes.
-func (c *taskCfgCache) RecentSpecsAndCommits() ([]string, []string, []string) {
+func (c *TaskCfgCache) RecentSpecsAndCommits() ([]string, []string, []string) {
 	c.recentMtx.RLock()
 	defer c.recentMtx.RUnlock()
 	return stringMapKeys(c.recentJobSpecs), stringMapKeys(c.recentTaskSpecs), stringMapKeys(c.recentCommits)

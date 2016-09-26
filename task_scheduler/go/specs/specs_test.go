@@ -1,4 +1,4 @@
-package scheduling
+package specs
 
 import (
 	"encoding/json"
@@ -15,6 +15,23 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 )
 
+const (
+	// The test repo has two commits. The first commit adds a tasks.cfg file
+	// with two task specs: a build task and a test task, the test task
+	// depending on the build task. The second commit adds a perf task spec,
+	// which also depends on the build task. Therefore, there are five total
+	// possible tasks we could run:
+	//
+	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
+	//
+	c1        = "10ca3b86bac8991967ebe15cc89c22fd5396a77b"
+	c2        = "d4fa60ab35c99c886220c4629c36b9785cc89c8b"
+	buildTask = "Build-Ubuntu-GCC-Arm7-Release-Android"
+	testTask  = "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
+	perfTask  = "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
+	repoName  = "skia.git"
+)
+
 func TestTaskSpecs(t *testing.T) {
 	testutils.SkipIfShort(t)
 
@@ -22,7 +39,7 @@ func TestTaskSpecs(t *testing.T) {
 	defer tr.Cleanup()
 
 	repos := gitinfo.NewRepoMap(tr.Dir)
-	cache := newTaskCfgCache(repos)
+	cache := NewTaskCfgCache(repos)
 
 	rs1 := db.RepoState{
 		Repo:     repoName,
@@ -73,7 +90,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	defer tr.Cleanup()
 
 	repos := gitinfo.NewRepoMap(tr.Dir)
-	cache := newTaskCfgCache(repos)
+	cache := NewTaskCfgCache(repos)
 
 	// Load configs into the cache.
 	rs1 := db.RepoState{

@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
+	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
 func assertNoError(err error) {
@@ -177,31 +178,31 @@ func main() {
 }`)
 
 	// Add tasks to the repo.
-	var tasks = map[string]*scheduling.TaskSpec{
-		"Build-Ubuntu-GCC-Arm7-Release-Android": &scheduling.TaskSpec{
-			CipdPackages: []*scheduling.CipdPackage{},
+	var tasks = map[string]*specs.TaskSpec{
+		"Build-Ubuntu-GCC-Arm7-Release-Android": &specs.TaskSpec{
+			CipdPackages: []*specs.CipdPackage{},
 			Dependencies: []string{},
 			Dimensions:   []string{"pool:Skia", "os:Ubuntu"},
 			Isolate:      "compile_skia.isolate",
 			Priority:     0.9,
 		},
-		"Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": &scheduling.TaskSpec{
-			CipdPackages: []*scheduling.CipdPackage{},
+		"Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": &specs.TaskSpec{
+			CipdPackages: []*specs.CipdPackage{},
 			Dependencies: []string{"Build-Ubuntu-GCC-Arm7-Release-Android"},
 			Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
 			Isolate:      "test_skia.isolate",
 			Priority:     0.9,
 		},
-		"Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": &scheduling.TaskSpec{
-			CipdPackages: []*scheduling.CipdPackage{},
+		"Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": &specs.TaskSpec{
+			CipdPackages: []*specs.CipdPackage{},
 			Dependencies: []string{"Build-Ubuntu-GCC-Arm7-Release-Android"},
 			Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
 			Isolate:      "perf_skia.isolate",
 			Priority:     0.9,
 		},
 	}
-	moarTasks := map[string]*scheduling.TaskSpec{}
-	jobs := map[string]*scheduling.JobSpec{}
+	moarTasks := map[string]*specs.TaskSpec{}
+	jobs := map[string]*specs.JobSpec{}
 	for name, task := range tasks {
 		for i := 0; i < 100; i++ {
 			newName := fmt.Sprintf("%s%d", name, i)
@@ -209,7 +210,7 @@ func main() {
 			for _, d := range task.Dependencies {
 				deps = append(deps, fmt.Sprintf("%s%d", d, i))
 			}
-			newTask := &scheduling.TaskSpec{
+			newTask := &specs.TaskSpec{
 				CipdPackages: task.CipdPackages,
 				Dependencies: deps,
 				Dimensions:   task.Dimensions,
@@ -217,21 +218,21 @@ func main() {
 				Priority:     task.Priority,
 			}
 			moarTasks[newName] = newTask
-			jobs[newName] = &scheduling.JobSpec{
+			jobs[newName] = &specs.JobSpec{
 				Priority:  task.Priority,
 				TaskSpecs: []string{newName},
 			}
 		}
 	}
-	cfg := scheduling.TasksCfg{
+	cfg := specs.TasksCfg{
 		Tasks: moarTasks,
 		Jobs:  jobs,
 	}
-	f, err := os.Create(path.Join(repoDir, scheduling.TASKS_CFG_FILE))
+	f, err := os.Create(path.Join(repoDir, specs.TASKS_CFG_FILE))
 	assertNoError(err)
 	assertNoError(json.NewEncoder(f).Encode(&cfg))
 	assertNoError(f.Close())
-	run(repoDir, "git", "add", scheduling.TASKS_CFG_FILE)
+	run(repoDir, "git", "add", specs.TASKS_CFG_FILE)
 	commit(repoDir, "Add more tasks!")
 	run(repoDir, "git", "push", "origin", "master")
 	run(repoDir, "git", "branch", "-u", "origin/master")

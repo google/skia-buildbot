@@ -10,7 +10,7 @@ import (
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/task_scheduler/go/db"
-	"go.skia.org/infra/task_scheduler/go/scheduling"
+	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
 const (
@@ -37,7 +37,7 @@ func mockSwarmingBotsForAllTasksForTesting(repos *gitinfo.RepoMap) []*swarming_a
 			if branch.Name != "origin/master" {
 				continue
 			}
-			cfg, err := scheduling.ReadTasksCfg(repo, branch.Head)
+			cfg, err := specs.ReadTasksCfg(repo, branch.Head)
 			if err != nil {
 				glog.Error(err)
 				continue

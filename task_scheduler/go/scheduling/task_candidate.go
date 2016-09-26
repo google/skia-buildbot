@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
 const (
@@ -35,7 +36,7 @@ type taskCandidate struct {
 	Score          float64
 	StealingFromId string
 	db.TaskKey
-	TaskSpec *TaskSpec
+	TaskSpec *specs.TaskSpec
 }
 
 // Copy returns a copy of the taskCandidate.
