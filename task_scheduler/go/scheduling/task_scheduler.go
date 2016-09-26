@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
 const (
@@ -55,7 +56,7 @@ type TaskScheduler struct {
 	repoMap          *gitinfo.RepoMap
 	repos            map[string]*gitrepo.Repo
 	swarming         swarming.ApiClient
-	taskCfgCache     *taskCfgCache
+	taskCfgCache     *specs.TaskCfgCache
 	tCache           db.TaskCache
 	timeDecayAmt24Hr float64
 	workdir          string
@@ -101,7 +102,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames [
 		repoMap:          rm,
 		repos:            repos,
 		swarming:         swarmingClient,
-		taskCfgCache:     newTaskCfgCache(rm),
+		taskCfgCache:     specs.NewTaskCfgCache(rm),
 		tCache:           tCache,
 		timeDecayAmt24Hr: timeDecayAmt24Hr,
 		workdir:          workdir,
@@ -1148,7 +1149,7 @@ func updateUnfinishedTasks(cache db.TaskCache, d db.TaskDB, s swarming.ApiClient
 
 // getWorstJobStatus finds the worst status for any Task throughout a Job's
 // dependency tree.
-func getWorstJobStatus(j *db.Job, tCache db.TaskCache, taskCfgCache *taskCfgCache) (db.JobStatus, error) {
+func getWorstJobStatus(j *db.Job, tCache db.TaskCache, taskCfgCache *specs.TaskCfgCache) (db.JobStatus, error) {
 	worstStatus := db.JOB_STATUS_SUCCESS
 	for _, d := range j.Dependencies {
 		status, err := getWorstJobStatusHelper(j, d, tCache, taskCfgCache)
@@ -1160,7 +1161,7 @@ func getWorstJobStatus(j *db.Job, tCache db.TaskCache, taskCfgCache *taskCfgCach
 	return worstStatus, nil
 }
 
-func getWorstJobStatusHelper(j *db.Job, taskName string, tCache db.TaskCache, taskCfgCache *taskCfgCache) (db.JobStatus, error) {
+func getWorstJobStatusHelper(j *db.Job, taskName string, tCache db.TaskCache, taskCfgCache *specs.TaskCfgCache) (db.JobStatus, error) {
 	key := j.MakeTaskKey(taskName)
 	tasks, err := tCache.GetTasksByKey(&key)
 	if err != nil {

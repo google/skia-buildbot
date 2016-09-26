@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
 const (
@@ -329,27 +330,27 @@ func TestFilterTaskCandidates(t *testing.T) {
 	candidates := map[db.TaskKey]*taskCandidate{
 		k1: &taskCandidate{
 			TaskKey:  k1,
-			TaskSpec: &TaskSpec{},
+			TaskSpec: &specs.TaskSpec{},
 		},
 		k2: &taskCandidate{
 			TaskKey: k2,
-			TaskSpec: &TaskSpec{
+			TaskSpec: &specs.TaskSpec{
 				Dependencies: []string{buildTask},
 			},
 		},
 		k3: &taskCandidate{
 			TaskKey:  k3,
-			TaskSpec: &TaskSpec{},
+			TaskSpec: &specs.TaskSpec{},
 		},
 		k4: &taskCandidate{
 			TaskKey: k4,
-			TaskSpec: &TaskSpec{
+			TaskSpec: &specs.TaskSpec{
 				Dependencies: []string{buildTask},
 			},
 		},
 		k5: &taskCandidate{
 			TaskKey: k5,
-			TaskSpec: &TaskSpec{
+			TaskSpec: &specs.TaskSpec{
 				Dependencies: []string{buildTask},
 			},
 		},
@@ -562,7 +563,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 						RepoState: rs1,
 						Name:      buildTask,
 					},
-					TaskSpec: &TaskSpec{},
+					TaskSpec: &specs.TaskSpec{},
 				},
 				&taskCandidate{
 					JobCreated: ts,
@@ -570,7 +571,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 						RepoState: rs2,
 						Name:      buildTask,
 					},
-					TaskSpec: &TaskSpec{},
+					TaskSpec: &specs.TaskSpec{},
 				},
 				&taskCandidate{
 					JobCreated: ts,
@@ -579,7 +580,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 						Name:        buildTask,
 						ForcedJobId: "my-job",
 					},
-					TaskSpec: &TaskSpec{},
+					TaskSpec: &specs.TaskSpec{},
 				},
 			},
 			testTask: []*taskCandidate{
@@ -589,7 +590,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 						RepoState: rs1,
 						Name:      testTask,
 					},
-					TaskSpec: &TaskSpec{},
+					TaskSpec: &specs.TaskSpec{},
 				},
 				&taskCandidate{
 					JobCreated: ts,
@@ -597,7 +598,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 						RepoState: rs2,
 						Name:      testTask,
 					},
-					TaskSpec: &TaskSpec{},
+					TaskSpec: &specs.TaskSpec{},
 				},
 			},
 			perfTask: []*taskCandidate{
@@ -607,7 +608,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 						RepoState: rs2,
 						Name:      perfTask,
 					},
-					TaskSpec: &TaskSpec{},
+					TaskSpec: &specs.TaskSpec{},
 				},
 				&taskCandidate{
 					JobCreated: ts,
@@ -623,7 +624,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 						},
 						Name: perfTask,
 					},
-					TaskSpec: &TaskSpec{},
+					TaskSpec: &specs.TaskSpec{},
 				},
 			},
 		},
@@ -1137,7 +1138,7 @@ func makeTaskCandidate(name string, dims []string) *taskCandidate {
 		TaskKey: db.TaskKey{
 			Name: name,
 		},
-		TaskSpec: &TaskSpec{
+		TaskSpec: &specs.TaskSpec{
 			Dimensions: dims,
 		},
 	}
@@ -1632,27 +1633,27 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 
 	// Create a single task in the config.
 	taskName := "dummytask"
-	cfg := &TasksCfg{
-		Tasks: map[string]*TaskSpec{
-			taskName: &TaskSpec{
-				CipdPackages: []*CipdPackage{},
+	cfg := &specs.TasksCfg{
+		Tasks: map[string]*specs.TaskSpec{
+			taskName: &specs.TaskSpec{
+				CipdPackages: []*specs.CipdPackage{},
 				Dependencies: []string{},
 				Dimensions:   []string{"pool:Skia"},
 				Isolate:      "dummy.isolate",
 				Priority:     1.0,
 			},
 		},
-		Jobs: map[string]*JobSpec{
-			"j1": &JobSpec{
+		Jobs: map[string]*specs.JobSpec{
+			"j1": &specs.JobSpec{
 				TaskSpecs: []string{taskName},
 			},
 		},
 	}
-	f, err := os.Create(path.Join(repoDir, TASKS_CFG_FILE))
+	f, err := os.Create(path.Join(repoDir, specs.TASKS_CFG_FILE))
 	assert.NoError(t, err)
 	assert.NoError(t, json.NewEncoder(f).Encode(&cfg))
 	assert.NoError(t, f.Close())
-	run(repoDir, "git", "add", TASKS_CFG_FILE)
+	run(repoDir, "git", "add", specs.TASKS_CFG_FILE)
 	run(repoDir, "git", "commit", "-m", "Add more tasks!")
 	run(repoDir, "git", "push", "origin", "master")
 	run(repoDir, "git", "branch", "-u", "origin/master")

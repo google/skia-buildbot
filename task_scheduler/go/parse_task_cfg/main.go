@@ -10,7 +10,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/task_scheduler/go/scheduling"
+	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
 var (
@@ -25,7 +25,7 @@ func main() {
 	if err != nil {
 		glog.Fatal(err)
 	}
-	cfg, err := scheduling.ParseTasksCfg(string(b))
+	cfg, err := specs.ParseTasksCfg(string(b))
 	if err != nil {
 		glog.Fatal(err)
 	}
