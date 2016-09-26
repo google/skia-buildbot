@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a5ffcf6a_d2a464a1",
+        "filename": "tracedb/gold.toml",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-26T19:52:29Z",
+      "side": 1,
+      "message": "Missing tab-indent?",
+      "range": {
+        "startLine": 16,
+        "startChar": 22,
+        "endLine": 16,
+        "endChar": 24
+      },
+      "revId": "ffc7c3dbe81e4a477cfb5f31a3c16064548df8ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a5ffcf6a_12c6ec41",
+        "filename": "tracedb/gold.toml",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-26T19:52:29Z",
+      "side": 1,
+      "message": "Same here and below?",
+      "range": {
+        "startLine": 37,
+        "startChar": 2,
+        "endLine": 37,
+        "endChar": 12
+      },
+      "revId": "ffc7c3dbe81e4a477cfb5f31a3c16064548df8ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
