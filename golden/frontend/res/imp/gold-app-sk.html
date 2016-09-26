@@ -141,6 +141,10 @@
           page.redirect("/search" + window.location.search);
         });
 
+        page("/newsearch", function(ctx) {
+          page.redirect("/search");
+        });
+
         // All other route go to 'notfound' and byblame is the default view.
         this._setRoute('*', 'notfound');
         this.route = "byblame";
