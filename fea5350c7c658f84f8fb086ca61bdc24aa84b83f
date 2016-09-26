@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "a5ffcf6a_526eb4f5",
+        "filename": "golden/frontend/res/imp/search-page-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-09-26T20:59:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "25b03fbe_661caedc",
+      "revId": "fea5350c7c658f84f8fb086ca61bdc24aa84b83f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "25b03fbe_06213a0b",
         "filename": "golden/frontend/res/js/gold.js",
         "patchSetId": 3
@@ -30,6 +48,24 @@
       "writtenOn": "2016-09-26T19:44:06Z",
       "side": 1,
       "message": "var targetPath \u003d newTargetPath || window.location.pathname;\n\nis slightly shorter.",
+      "revId": "fea5350c7c658f84f8fb086ca61bdc24aa84b83f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a5ffcf6a_f27c08ad",
+        "filename": "golden/frontend/res/js/gold.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-09-26T20:59:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "25b03fbe_06213a0b",
       "revId": "fea5350c7c658f84f8fb086ca61bdc24aa84b83f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
