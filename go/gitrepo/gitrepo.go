@@ -216,7 +216,12 @@ func (r *Repo) Update() error {
 
 	// Update the local copy.
 	glog.Infof("Updating %s...", r.repoUrl)
-	if _, err := exec.RunCwd(r.workdir, "git", "fetch", "origin"); err != nil {
+	if err := exec.Run(&exec.Command{
+		Name:    "git",
+		Args:    []string{"fetch", "origin"},
+		Dir:     r.workdir,
+		Timeout: 4 * time.Minute,
+	}); err != nil {
 		return fmt.Errorf("Failed to update gitrepo.Repo: %s", err)
 	}
 
