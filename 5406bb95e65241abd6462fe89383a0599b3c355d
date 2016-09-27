@@ -22,6 +22,24 @@
       "revId": "5406bb95e65241abd6462fe89383a0599b3c355d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2504bf97_66eacec9",
+        "filename": "task_scheduler/go/db/repo_state.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-27T11:32:43Z",
+      "side": 0,
+      "message": "SGTM, I found that annoying as well.",
+      "parentUuid": "2504bf97_e677de92",
+      "revId": "5406bb95e65241abd6462fe89383a0599b3c355d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
