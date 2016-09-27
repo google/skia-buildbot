@@ -20,7 +20,7 @@ ExecStart=/usr/local/bin/skiacorrectness  \
     --db_host=<<REPLACE_DATABASE_HOST>>  \
     --db_name=<<REPLACE_DATABASE_NAME>>  \
     --redirect_url=<<REPLACE_REDIRECT_URL>>  \
-    --gs_bucket=<<REPLACE_GS_BUCKET>>   \
+    --gs_buckets=<<REPLACE_GS_BUCKETS>>   \
     --n_commits=<<REPLACE_N_COMMITS>>   \
     --cache_size=50 \
     <<REPLACE_ADD_FLAGS>>
