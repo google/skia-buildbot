@@ -76,7 +76,7 @@ func TestPythonLogParsing(t *testing.T) {
 
 	payload = lp.ReadLine(2)
 	expected = sklog.LogPayload{
-		Payload:  "Writing in /home/chrome-bot/.config/autostart/swarming.desktop:\n[Desktop Entry]\nType=Application\nName=swarming\nExec=/usr/bin/python /b/swarm_slave/swarming_bot.zip start_bot\nHidden=false\nNoDisplay=false\nComment=Created by os_utilities.py in swarming_bot.zip\nX-GNOME-Autostart-enabled=true",
+		Payload:  "Writing in /home/chrome-bot/.config/autostart/swarming.desktop:\n[Desktop Entry]\nType=Application\nName=swarming\nExec=/usr/bin/python /b/s/swarming_bot.zip start_bot\nHidden=false\nNoDisplay=false\nComment=Created by os_utilities.py in swarming_bot.zip\nX-GNOME-Autostart-enabled=true",
 		Time:     time.Date(time.Now().Year(), 5, 10, 20, 01, 12, 573000000, time.UTC),
 		Severity: sklog.INFO,
 	}
