@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2504bf97_e677de92",
+        "filename": "task_scheduler/go/db/repo_state.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-27T02:53:23Z",
+      "side": 0,
+      "message": "This method is inherited by Job, which made debugging tests very difficult. (I think it\u0027s also inherited by Task and others, but I didn\u0027t notice that.) I could add String methods for the inherited types, but I\u0027m not sure that would add much over the default formatting.",
+      "range": {
+        "startLine": 66,
+        "startChar": 5,
+        "endLine": 66,
+        "endChar": 27
+      },
+      "revId": "5406bb95e65241abd6462fe89383a0599b3c355d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
