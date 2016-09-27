@@ -32,6 +32,35 @@ const (
 	repoName  = "skia.git"
 )
 
+func TestCopyTaskSpec(t *testing.T) {
+	v := &TaskSpec{
+		CipdPackages: []*CipdPackage{
+			&CipdPackage{
+				Name:    "pkg",
+				Path:    "/home/chrome-bot",
+				Version: "23",
+			},
+		},
+		Dependencies: []string{"coffee", "chocolate"},
+		Dimensions:   []string{"width:13", "height:17"},
+		Environment: map[string]string{
+			"Polluted": "true",
+		},
+		ExtraArgs: []string{"--do-really-awesome-stuff"},
+		Isolate:   "abc123",
+		Priority:  19.0,
+	}
+	testutils.AssertCopy(t, v, v.Copy())
+}
+
+func TestCopyJobSpec(t *testing.T) {
+	v := &JobSpec{
+		TaskSpecs: []string{"Build", "Test"},
+		Priority:  753,
+	}
+	testutils.AssertCopy(t, v, v.Copy())
+}
+
 func TestTaskSpecs(t *testing.T) {
 	testutils.SkipIfShort(t)
 

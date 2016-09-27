@@ -158,6 +158,7 @@ func (j *JobSpec) Copy() *JobSpec {
 		copy(taskSpecs, j.TaskSpecs)
 	}
 	return &JobSpec{
+		Priority:  j.Priority,
 		TaskSpecs: taskSpecs,
 	}
 }

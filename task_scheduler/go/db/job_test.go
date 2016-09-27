@@ -13,6 +13,25 @@ import (
 	"go.skia.org/infra/go/testutils"
 )
 
+func TestJobCopy(t *testing.T) {
+	now := time.Now()
+	v := &Job{
+		Created:      now.Add(time.Nanosecond),
+		DbModified:   now.Add(time.Millisecond),
+		Dependencies: []string{"A", "B"},
+		Finished:     now.Add(time.Second),
+		Id:           "abc123",
+		IsForce:      true,
+		Name:         "C",
+		Priority:     1.2,
+		RepoState: RepoState{
+			Repo: DEFAULT_TEST_REPO,
+		},
+		Status: JOB_STATUS_SUCCESS,
+	}
+	testutils.AssertCopy(t, v, v.Copy())
+}
+
 // Test that sort.Sort(JobSlice(...)) works correctly.
 func TestJobSort(t *testing.T) {
 	jobs := []*Job{}

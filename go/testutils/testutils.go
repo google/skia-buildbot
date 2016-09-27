@@ -32,6 +32,37 @@ func AssertDeepEqual(t *testing.T, a, b interface{}) {
 	}
 }
 
+// AssertCopy is AssertDeepEqual but also checks that none of the direct fields
+// have a zero value and none of the direct fields point to the same object.
+// This catches regressions where a new field is added without adding that field
+// to the Copy method. Arguments must be structs.
+func AssertCopy(t *testing.T, a, b interface{}) {
+	AssertDeepEqual(t, a, b)
+
+	// Check that all fields are non-zero.
+	va := reflect.ValueOf(a)
+	vb := reflect.ValueOf(b)
+	assert.Equal(t, va.Type(), vb.Type(), "Arguments are different types.")
+	for va.Kind() == reflect.Ptr {
+		assert.Equal(t, reflect.Ptr, vb.Kind(), "Arguments are different types (pointer vs. non-pointer)")
+		va = va.Elem()
+		vb = vb.Elem()
+	}
+	assert.Equal(t, reflect.Struct, va.Kind(), "Not a struct or pointer to struct.")
+	assert.Equal(t, reflect.Struct, vb.Kind(), "Arguments are different types (pointer vs. non-pointer)")
+	for i := 0; i < va.NumField(); i++ {
+		fa := va.Field(i)
+		z := reflect.Zero(fa.Type())
+		if reflect.DeepEqual(fa.Interface(), z.Interface()) {
+			assert.FailNow(t, fmt.Sprintf("Missing field %q (or set to zero value).", va.Type().Field(i).Name))
+		}
+		if fa.Kind() == reflect.Map || fa.Kind() == reflect.Ptr || fa.Kind() == reflect.Slice {
+			fb := vb.Field(i)
+			assert.NotEqual(t, fa.Pointer(), fb.Pointer(), "Field %q not deep-copied.", va.Type().Field(i).Name)
+		}
+	}
+}
+
 // TestDataDir returns the path to the caller's testdata directory, which
 // is assumed to be "<path to caller dir>/testdata".
 func TestDataDir() (string, error) {

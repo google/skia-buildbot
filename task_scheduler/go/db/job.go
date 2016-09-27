@@ -132,6 +132,7 @@ func (j *Job) Copy() *Job {
 		Dependencies: deps,
 		Finished:     j.Finished,
 		Id:           j.Id,
+		IsForce:      j.IsForce,
 		Name:         j.Name,
 		Priority:     j.Priority,
 		RepoState:    j.RepoState.Copy(),

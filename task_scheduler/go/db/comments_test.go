@@ -10,6 +10,41 @@ import (
 	"go.skia.org/infra/go/testutils"
 )
 
+func TestCopyTaskComment(t *testing.T) {
+	v := makeTaskComment(1, 1, 1, 1, time.Now())
+	testutils.AssertCopy(t, v, v.Copy())
+}
+
+func TestCopyTaskSpecComment(t *testing.T) {
+	v := makeTaskSpecComment(1, 1, 1, time.Now())
+	v.Flaky = true
+	v.IgnoreFailure = true
+	testutils.AssertCopy(t, v, v.Copy())
+}
+
+func TestCopyCommitComment(t *testing.T) {
+	v := makeCommitComment(1, 1, 1, time.Now())
+	testutils.AssertCopy(t, v, v.Copy())
+}
+
+func TestCopyRepoComments(t *testing.T) {
+	v := &RepoComments{
+		Repo: "r1",
+		TaskComments: map[string]map[string][]*TaskComment{
+			"c1": {
+				"n1": {makeTaskComment(1, 1, 1, 1, time.Now())},
+			},
+		},
+		TaskSpecComments: map[string][]*TaskSpecComment{
+			"n1": {makeTaskSpecComment(1, 1, 1, time.Now())},
+		},
+		CommitComments: map[string][]*CommitComment{
+			"c1": {makeCommitComment(1, 1, 1, time.Now())},
+		},
+	}
+	testutils.AssertCopy(t, v, v.Copy())
+}
+
 // TestCommentBox checks that CommentBox correctly implements CommentDB.
 func TestCommentBox(t *testing.T) {
 	TestCommentDB(t, &CommentBox{})
