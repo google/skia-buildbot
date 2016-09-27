@@ -15,6 +15,18 @@ import (
 	"go.skia.org/infra/go/testutils"
 )
 
+func TestCopyTaskKey(t *testing.T) {
+	v := TaskKey{
+		RepoState: RepoState{
+			Repo:     "nou.git",
+			Revision: "1",
+		},
+		Name:        "Build",
+		ForcedJobId: "123",
+	}
+	testutils.AssertCopy(t, v, v.Copy())
+}
+
 // Test that Task.UpdateFromSwarming returns an error when the input data is
 // invalid.
 func TestUpdateFromSwarmingInvalid(t *testing.T) {
@@ -507,6 +519,32 @@ func TestUpdateDBFromSwarmingTask(t *testing.T) {
 	updatedTask, err = db.GetTaskById(task.Id)
 	assert.NoError(t, err)
 	assert.True(t, lastDbModified.Equal(updatedTask.DbModified))
+}
+
+func TestCopyTask(t *testing.T) {
+	now := time.Now()
+	v := &Task{
+		Commits:        []string{"a", "b"},
+		Created:        now.Add(time.Nanosecond),
+		DbModified:     now.Add(time.Millisecond),
+		Finished:       now.Add(time.Second),
+		Id:             "42",
+		IsolatedOutput: "lonely-result",
+		ParentTaskIds:  []string{"38", "39", "40"},
+		RetryOf:        "41",
+		Started:        now.Add(time.Minute),
+		Status:         TASK_STATUS_MISHAP,
+		SwarmingBotId:  "ENIAC",
+		SwarmingTaskId: "abc123",
+		TaskKey: TaskKey{
+			RepoState: RepoState{
+				Repo:     "nou.git",
+				Revision: "1",
+			},
+			Name: "Build",
+		},
+	}
+	testutils.AssertCopy(t, v, v.Copy())
 }
 
 // Test that sort.Sort(TaskSlice(...)) works correctly.

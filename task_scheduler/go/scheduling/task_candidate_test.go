@@ -2,9 +2,38 @@ package scheduling
 
 import (
 	"testing"
+	"time"
+
+	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/specs"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestCopyTaskCandidate(t *testing.T) {
+	v := &taskCandidate{
+		Commits:        []string{"a", "b"},
+		IsolatedInput:  "lonely-parameter",
+		IsolatedHashes: []string{"browns"},
+		JobCreated:     time.Now(),
+		ParentTaskIds:  []string{"38", "39", "40"},
+		RetryOf:        "41",
+		Score:          99,
+		StealingFromId: "rich",
+		TaskKey: db.TaskKey{
+			RepoState: db.RepoState{
+				Repo:     "nou.git",
+				Revision: "1",
+			},
+			Name: "Build",
+		},
+		TaskSpec: &specs.TaskSpec{
+			Isolate: "confine",
+		},
+	}
+	testutils.AssertCopy(t, v, v.Copy())
+}
 
 func TestTaskCandidateId(t *testing.T) {
 	t1 := makeTaskCandidate("task1", []string{"k:v"})
