@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"net/http"
 	"os"
 	"path"
 	"sort"
@@ -26,6 +27,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/trybots"
 )
 
 const (
@@ -37,6 +39,9 @@ const (
 	CANDIDATE_SCORE_TRY_JOB = 10.0
 
 	NUM_TOP_CANDIDATES = 50
+
+	// Buildbucket bucket used for try jobs.
+	TRY_JOB_BUCKET = "skia.testing"
 )
 
 var (
@@ -59,10 +64,11 @@ type TaskScheduler struct {
 	taskCfgCache     *specs.TaskCfgCache
 	tCache           db.TaskCache
 	timeDecayAmt24Hr float64
+	trybots          *trybots.TryJobIntegrator
 	workdir          string
 }
 
-func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, timeDecayAmt24Hr float64) (*TaskScheduler, error) {
+func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		return nil, err
@@ -91,6 +97,12 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames [
 			return nil, err
 		}
 	}
+	taskCfgCache := specs.NewTaskCfgCache(rm)
+	trybots, err := trybots.NewTrybotIntegrator(TRY_JOB_BUCKET, c, d, jCache, rm, taskCfgCache)
+	if err != nil {
+		return nil, err
+	}
+
 	s := &TaskScheduler{
 		bl:               bl,
 		db:               d,
@@ -102,9 +114,10 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames [
 		repoMap:          rm,
 		repos:            repos,
 		swarming:         swarmingClient,
-		taskCfgCache:     specs.NewTaskCfgCache(rm),
+		taskCfgCache:     taskCfgCache,
 		tCache:           tCache,
 		timeDecayAmt24Hr: timeDecayAmt24Hr,
+		trybots:          trybots,
 		workdir:          workdir,
 	}
 	return s, nil
@@ -112,6 +125,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames [
 
 // Start initiates the TaskScheduler's goroutines for scheduling tasks.
 func (s *TaskScheduler) Start() {
+	s.trybots.Start()
 	go func() {
 		lv := metrics2.NewLiveness("last-successful-task-scheduling")
 		for _ = range time.Tick(time.Minute) {
@@ -155,11 +169,10 @@ func (s *TaskScheduler) RecentSpecsAndCommits() ([]string, []string, []string) {
 	return s.taskCfgCache.RecentSpecsAndCommits()
 }
 
-// Trigger adds the given Job to the database and returns its ID.
-func (s *TaskScheduler) Trigger(repo, commit, jobName string) (string, error) {
-	rs := db.RepoState{
-		Repo:     repo,
-		Revision: commit,
+// trigger adds the given Job to the database and returns its ID.
+func (s *TaskScheduler) trigger(rs db.RepoState, jobName string, isForce bool) (string, error) {
+	if !rs.Valid() {
+		return "", fmt.Errorf("Invalid RepoState: %s", rs)
 	}
 	spec, err := s.taskCfgCache.GetJobSpec(rs, jobName)
 	if err != nil {
@@ -169,7 +182,7 @@ func (s *TaskScheduler) Trigger(repo, commit, jobName string) (string, error) {
 	j := &db.Job{
 		Created:      time.Now(),
 		Dependencies: spec.TaskSpecs,
-		IsForce:      true,
+		IsForce:      isForce,
 		Name:         jobName,
 		Priority:     spec.Priority,
 		RepoState:    rs,
@@ -180,6 +193,33 @@ func (s *TaskScheduler) Trigger(repo, commit, jobName string) (string, error) {
 	}
 	glog.Infof("Created manually-triggered Job %q", j.Id)
 	return j.Id, nil
+}
+
+// TriggerForce adds the given manually-triggered Job to the database and
+// returns its ID.
+func (s *TaskScheduler) TriggerForce(repo, commit, jobName string) (string, error) {
+	rs := db.RepoState{
+		Repo:     repo,
+		Revision: commit,
+	}
+	return s.trigger(rs, jobName, true)
+}
+
+// TriggerTryJob adds the given try job to the database and returns its ID.
+func (s *TaskScheduler) TriggerTryJob(repo, commit, server, issue, patchset, jobName string) (string, error) {
+	rs := db.RepoState{
+		Patch: db.Patch{
+			Server:   server,
+			Issue:    issue,
+			Patchset: patchset,
+		},
+		Repo:     repo,
+		Revision: commit,
+	}
+	if rs.Patch.Empty() {
+		return "", fmt.Errorf("TriggerTryJob requires a server, issue, and patchset.")
+	}
+	return s.trigger(rs, jobName, false)
 }
 
 // ComputeBlamelist computes the blamelist for a new task, specified by name,
@@ -1244,8 +1284,24 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 	if len(modified) == 0 {
 		return nil
 	}
-	if err := s.db.PutJobs(jobs); err != nil {
+	if err := s.db.PutJobs(modified); err != nil {
 		return err
 	}
-	return s.jCache.Update()
+	if err := s.jCache.Update(); err != nil {
+		return err
+	}
+
+	// Update results for any newly-finished Try Jobs.
+	errs := []error{}
+	for _, j := range modified {
+		if j.IsTryJob() && !util.TimeIsZero(j.Finished) {
+			if err := s.trybots.JobFinished(j); err != nil {
+				errs = append(errs, err)
+			}
+		}
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("Failed to update one or more finished try jobs: %v", errs)
+	}
+	return nil
 }

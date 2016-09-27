@@ -243,7 +243,7 @@ func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	ids := make([]string, 0, len(msg.Jobs))
 	for _, j := range msg.Jobs {
-		id, err := ts.Trigger(repo, msg.Commit, j)
+		id, err := ts.TriggerForce(repo, msg.Commit, j)
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to trigger jobs.")
 			return
@@ -360,7 +360,7 @@ func main() {
 
 	// Create and start the task scheduler.
 	glog.Infof("Creating task scheduler.")
-	ts, err = scheduling.NewTaskScheduler(d, period, wdAbs, REPOS, isolateClient, swarm, *scoreDecay24Hr)
+	ts, err = scheduling.NewTaskScheduler(d, period, wdAbs, REPOS, isolateClient, swarm, httpClient, *scoreDecay24Hr)
 	if err != nil {
 		glog.Fatal(err)
 	}

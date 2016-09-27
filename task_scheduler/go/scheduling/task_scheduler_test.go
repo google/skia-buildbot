@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -144,7 +145,7 @@ func setup(t *testing.T) (*util.TempRepo, db.DB, *gitinfo.RepoMap, *gitinfo.GitI
 	assert.NoError(t, err)
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
-	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), tr.Dir, []string{repoName}, isolateClient, swarmingClient, 1.0)
+	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), tr.Dir, []string{repoName}, isolateClient, swarmingClient, http.DefaultClient, 1.0)
 	assert.NoError(t, err)
 	return tr, d, repos, repo, swarmingClient, s
 }
@@ -1667,7 +1668,7 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	assert.NoError(t, err)
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
-	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, []string{repoName}, isolateClient, swarmingClient, 1.0)
+	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, []string{repoName}, isolateClient, swarmingClient, http.DefaultClient, 1.0)
 	assert.NoError(t, err)
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
