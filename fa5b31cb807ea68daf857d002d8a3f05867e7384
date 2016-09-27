@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c5af63ab_50177a02",
+        "filename": "skolo/raspberry-pi/swarming",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-09-27T17:48:46Z",
+      "side": 1,
+      "message": "Good catch.  In prod we use /b/s/ anyway, I must have forgotten to update this.",
+      "revId": "fa5b31cb807ea68daf857d002d8a3f05867e7384",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
