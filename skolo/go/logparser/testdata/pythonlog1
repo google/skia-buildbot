@@ -4,7 +4,7 @@
 [Desktop Entry]
 Type=Application
 Name=swarming
-Exec=/usr/bin/python /b/swarm_slave/swarming_bot.zip start_bot
+Exec=/usr/bin/python /b/s/swarming_bot.zip start_bot
 Hidden=false
 NoDisplay=false
 Comment=Created by os_utilities.py in swarming_bot.zip

@@ -4,4 +4,4 @@
   tasks:
 
      - name: making sure there is about 16 GB free in cache
-       command: python /b/swarm_slave/swarming_bot.1.zip run_isolated --clean --log-file /b/swarm_slave/logs/run_isolated.log --cache /b/swarm_slave/cache --min-free-space 10737418240
+       command: python /b/s/swarming_bot.1.zip run_isolated --clean --log-file /b/s/logs/run_isolated.log --cache /b/s/cache --min-free-space 10737418240

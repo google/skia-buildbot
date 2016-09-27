@@ -19,7 +19,7 @@ case "$1" in
     ;;
   stop)
     echo "Stopping swarming"
-    /usr/bin/python /b/swarm_slave/swarming_bot.zip stop_bot
+    /usr/bin/python /b/s/swarming_bot.zip stop_bot
     ;;
   *)
     echo "Usage: /etc/init.d/start start-swarming {start|stop}"
