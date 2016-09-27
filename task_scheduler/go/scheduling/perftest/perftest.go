@@ -113,13 +113,6 @@ func main() {
 			glog.Fatal(err)
 		}
 	}()
-	d, err := local_db.NewDB("testdb", path.Join(workdir, "tasks.db"))
-	assertNoError(err)
-	tCache, err := db.NewTaskCache(d, time.Hour)
-	assertNoError(err)
-	jCache, err := db.NewJobCache(d, time.Hour)
-	assertNoError(err)
-
 	repoName := "skia.git"
 	repoDir := path.Join(workdir, repoName)
 	assertNoError(os.Mkdir(path.Join(workdir, repoName), os.ModePerm))
@@ -261,6 +254,13 @@ func main() {
 	commits, err := repo.RevList(head)
 	assertNoError(err)
 	assertDeepEqual([]string{head}, commits)
+
+	d, err := local_db.NewDB("testdb", path.Join(workdir, "tasks.db"))
+	assertNoError(err)
+	tCache, err := db.NewTaskCache(d, time.Hour)
+	assertNoError(err)
+	jCache, err := db.NewJobCache(d, time.Hour, db.RepoMapGetRevisionTimestamp(repos))
+	assertNoError(err)
 
 	isolateClient, err := isolate.NewClient(workdir)
 	assertNoError(err)
