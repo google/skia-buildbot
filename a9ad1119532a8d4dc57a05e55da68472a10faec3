@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2504bf97_89fddd9b",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 623,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-27T19:28:35Z",
+      "side": 1,
+      "message": "I\u0027d prefer to use gitrepo here if possible.  In fact, it\u0027d be great to standardize on just one of the two eventually.",
+      "range": {
+        "startLine": 623,
+        "startChar": 40,
+        "endLine": 623,
+        "endChar": 47
+      },
+      "revId": "a9ad1119532a8d4dc57a05e55da68472a10faec3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c5af63ab_245f134b",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-27T19:28:35Z",
+      "side": 1,
+      "message": "Just curious, why did the caches need to be created later?",
+      "range": {
+        "startLine": 85,
+        "startChar": 16,
+        "endLine": 85,
+        "endChar": 18
+      },
+      "revId": "a9ad1119532a8d4dc57a05e55da68472a10faec3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
