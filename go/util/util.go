@@ -346,8 +346,13 @@ func AddParams(a map[string]string, b ...map[string]string) map[string]string {
 	return a
 }
 
-// CopyStringMap returns a copy of the provided map[string]string.
+// CopyStringMap returns a copy of the provided map[string]string such that
+// reflect.DeepEqual returns true for the given map and the returned map. In
+// particular, preservces nil slice input.
 func CopyStringMap(m map[string]string) map[string]string {
+	if m == nil {
+		return nil
+	}
 	ret := make(map[string]string, len(m))
 	for k, v := range m {
 		ret[k] = v

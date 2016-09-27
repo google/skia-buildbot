@@ -1,7 +1,5 @@
 package db
 
-import "fmt"
-
 // Patch describes a patch which may be applied to a code checkout.
 type Patch struct {
 	Issue    string
@@ -30,11 +28,6 @@ func (p Patch) Full() bool {
 	return p.Issue != "" && p.Patchset != "" && p.Server != ""
 }
 
-// String returns a string representation of the Patch.
-func (p Patch) String() string {
-	return fmt.Sprintf("Patch{Server: %s, Issue: %s, Patchset: %s}", p.Server, p.Issue, p.Patchset)
-}
-
 // RepoState encapsulates all of the parameters which define the state of a
 // repo.
 type RepoState struct {
@@ -60,9 +53,4 @@ func (s RepoState) Valid() bool {
 // IsTryJob returns true iff the RepoState includes a patch.
 func (s RepoState) IsTryJob() bool {
 	return s.Patch.Full()
-}
-
-// String returns a string representation of the RepoState.
-func (s RepoState) String() string {
-	return fmt.Sprintf("RepoState{Repo: %s, Revision: %s, Patch: %s", s.Repo, s.Revision, s.Patch.String())
 }
