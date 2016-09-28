@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/gitrepo"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -62,7 +63,7 @@ func makeBot(id string, dims map[string]string) *swarming_api.SwarmingRpcsBotInf
 	}
 }
 
-var commitDate = time.Unix(1472647568, 0)
+var commitDate = time.Now()
 
 func commit(repoDir, message string) {
 	assertNoError(exec.SimpleRun(&exec.Command{
@@ -113,13 +114,6 @@ func main() {
 			glog.Fatal(err)
 		}
 	}()
-	d, err := local_db.NewDB("testdb", path.Join(workdir, "tasks.db"))
-	assertNoError(err)
-	tCache, err := db.NewTaskCache(d, time.Hour)
-	assertNoError(err)
-	jCache, err := db.NewJobCache(d, time.Hour)
-	assertNoError(err)
-
 	repoName := "skia.git"
 	repoDir := path.Join(workdir, repoName)
 	assertNoError(os.Mkdir(path.Join(workdir, repoName), os.ModePerm))
@@ -262,6 +256,18 @@ func main() {
 	assertNoError(err)
 	assertDeepEqual([]string{head}, commits)
 
+	d, err := local_db.NewDB("testdb", path.Join(workdir, "tasks.db"))
+	assertNoError(err)
+	tCache, err := db.NewTaskCache(d, time.Hour)
+	assertNoError(err)
+	gitrepoRepo, err := gitrepo.NewRepo(repoDir, repoDir)
+	assertNoError(err)
+	repoMap := map[string]*gitrepo.Repo{
+		repoName: gitrepoRepo,
+	}
+	jCache, err := db.NewJobCache(d, time.Hour, db.GitRepoGetRevisionTimestamp(repoMap))
+	assertNoError(err)
+
 	isolateClient, err := isolate.NewClient(workdir)
 	assertNoError(err)
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
@@ -294,6 +300,7 @@ func main() {
 		}
 		assertNoError(d.PutTasks(insert))
 		assertNoError(tCache.Update())
+		assertNoError(gitrepoRepo.Update())
 		assertNoError(jCache.Update())
 	}
 
@@ -319,7 +326,7 @@ func main() {
 
 	// Start the profiler.
 	go func() {
-		glog.Fatal(http.ListenAndServe("localhost:6060", nil))
+		glog.Fatal(http.ListenAndServe("localhost:6061", nil))
 	}()
 
 	// Actually run the test.
