@@ -1,0 +1,400 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a566efce_5a91f54c",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-28T01:58:45Z",
+      "side": 1,
+      "message": "IMO, we should be able to restart task scheduler at any time, and we don\u0027t want to lose the lease when that happens.",
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_ba693120",
+        "filename": "task_scheduler/go/scheduling/perftest/perftest.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-28T01:58:45Z",
+      "side": 1,
+      "message": "Before committing, you should replace all DefaultClient with a mock client or a timeout client.",
+      "range": {
+        "startLine": 269,
+        "startChar": 134,
+        "endLine": 269,
+        "endChar": 152
+      },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_9a99cd77",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-28T01:58:45Z",
+      "side": 1,
+      "message": "nit: Should be a flag.",
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_7aa5d999",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-28T01:58:45Z",
+      "side": 1,
+      "message": "nit: This might be misleading for a tryjob.",
+      "range": {
+        "startLine": 194,
+        "startChar": 21,
+        "endLine": 194,
+        "endChar": 39
+      },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_1a2bfdec",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-28T01:58:45Z",
+      "side": 1,
+      "message": "This method seems to be unused and I\u0027m unsure how it could be used, since it doesn\u0027t create a Job with BuildBucket fields.",
+      "range": {
+        "startLine": 209,
+        "startChar": 24,
+        "endLine": 209,
+        "endChar": 37
+      },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_9a646d47",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1294,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-28T01:58:45Z",
+      "side": 1,
+      "message": "This seems fragile -- a crash or SIGTERM at this point means the Job is updated in the DB and forgotten. Eventually the lease will time out and the job will be rerun, so it\u0027s not too bad, but it means the tryjob has to wait an extra hour or more.",
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_7aedd97a",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1297,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-28T01:58:45Z",
+      "side": 1,
+      "message": "nit: j.Done()",
+      "range": {
+        "startLine": 1297,
+        "startChar": 21,
+        "endLine": 1297,
+        "endChar": 49
+      },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_fa73a90b",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-28T01:58:45Z",
+      "side": 1,
+      "message": "Does it make sense to use a client with swarming auth scope for Build Bucket?",
+      "range": {
+        "startLine": 317,
+        "startChar": 1,
+        "endLine": 317,
+        "endChar": 79
+      },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_1a593d91",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-28T01:58:45Z",
+      "side": 1,
+      "message": "Is this what Buildbot and SwarmBucket do? Seems like if LEASE_DURATION is 1h, heartbeat interval could be much longer than 1m.",
+      "range": {
+        "startLine": 25,
+        "startChar": 22,
+        "endLine": 25,
+        "endChar": 33
+      },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_ba1bf1e3",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-28T01:58:45Z",
+      "side": 1,
+      "message": "nit: UnixNanos()?\n\nOne more below.",
+      "range": {
+        "startLine": 95,
+        "startChar": 46,
+        "endLine": 95,
+        "endChar": 62
+      },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_5a63b538",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-28T01:58:45Z",
+      "side": 1,
+      "message": "Presumably this means we have lost the lease or the user canceled. We ought to have a way to mark a Job as canceled (or maybe delete it?), but probably fine for v0.1 to just finish the Job.",
+      "range": {
+        "startLine": 116,
+        "startChar": 4,
+        "endLine": 117,
+        "endChar": 48
+      },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_fa4ac9ab",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-28T01:58:45Z",
+      "side": 1,
+      "message": "Are tryjobs always for the master branch?",
+      "range": {
+        "startLine": 161,
+        "startChar": 14,
+        "endLine": 161,
+        "endChar": 27
+      },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_9a4b8db3",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-28T01:58:45Z",
+      "side": 1,
+      "message": "IMO, we should use a shorter lease duration for the initial lease so that a crash or SIGTERM between leasing and PutJobs allows the build to be made available sooner than 1h. Long enough for sendHeartbeats to run (or send heartbeats at the end of poll).",
+      "range": {
+        "startLine": 181,
+        "startChar": 30,
+        "endLine": 181,
+        "endChar": 44
+      },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_ba505160",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-28T01:58:45Z",
+      "side": 1,
+      "message": "That seems odd to me... It\u0027s sort of like a 3-year-old saying, \"If I can\u0027t have it, nobody can have it!\"",
+      "range": {
+        "startLine": 200,
+        "startChar": 20,
+        "endLine": 200,
+        "endChar": 60
+      },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_3a3d2118",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-28T01:58:45Z",
+      "side": 1,
+      "message": "nit: RepoState?",
+      "range": {
+        "startLine": 241,
+        "startChar": 55,
+        "endLine": 241,
+        "endChar": 63
+      },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_dadb45e2",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-28T01:58:45Z",
+      "side": 1,
+      "message": "nit: I don\u0027t like that we could lease some jobs, then encounter an error processing a different job, and never call PutJobs on the leased jobs.",
+      "range": {
+        "startLine": 266,
+        "startChar": 1,
+        "endLine": 266,
+        "endChar": 5
+      },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_fae00989",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-28T01:58:45Z",
+      "side": 1,
+      "message": "What happens if we don\u0027t call this? (Again, thinking about a crash or SIGTERM after PutJobs but before onJobStarted.)",
+      "range": {
+        "startLine": 301,
+        "startChar": 14,
+        "endLine": 301,
+        "endChar": 29
+      },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_9a88edd8",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-28T01:58:45Z",
+      "side": 1,
+      "message": "nit: !j.Done()",
+      "range": {
+        "startLine": 330,
+        "startChar": 4,
+        "endLine": 330,
+        "endChar": 31
+      },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
