@@ -22,14 +22,7 @@ func ParseTasksCfg(contents string) (*TasksCfg, error) {
 	if err := json.Unmarshal([]byte(contents), &rv); err != nil {
 		return nil, fmt.Errorf("Failed to read tasks cfg: could not parse file: %s", err)
 	}
-
-	for _, t := range rv.Tasks {
-		if err := t.Validate(&rv); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := findCycles(rv.Tasks, rv.Jobs); err != nil {
+	if err := rv.Validate(); err != nil {
 		return nil, err
 	}
 
@@ -55,6 +48,21 @@ type TasksCfg struct {
 	// Tasks is a map whose keys are TaskSpec names and values are TaskSpecs
 	// detailing the Swarming tasks which may be run.
 	Tasks map[string]*TaskSpec `json:"tasks"`
+}
+
+// Validate returns an error if the TasksCfg is not valid.
+func (c *TasksCfg) Validate() error {
+	for _, t := range c.Tasks {
+		if err := t.Validate(c); err != nil {
+			return err
+		}
+	}
+
+	if err := findCycles(c.Tasks, c.Jobs); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // TaskSpec is a struct which describes a Swarming task to run.
