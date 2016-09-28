@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"math/rand"
+	"net/url"
 	"os"
 	"reflect"
 	"time"
@@ -31,6 +32,7 @@ var (
 	gitRepoDir   = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	gitRepoURL   = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 	nTests       = flag.Int("n_tests", 0, "Set number of tests to pick randomly.")
+	query        = flag.String("query", "", "Query to filter which traces are considered.")
 	traceservice = flag.String("trace_service", "localhost:9001", "The address of the traceservice endpoint.")
 	outputFile   = flag.String("output_file", "sample.tile", "Path to the output file for the sample.")
 	sampleSize   = flag.Int("sample_size", 0, "Number of random traces to pick. 0 returns the entire tile.")
@@ -39,27 +41,30 @@ var (
 func main() {
 	// Load the data that make up the state of the system.
 	tile, expectations, ignoreStore := load()
-
-	glog.Infof("Loaded data. Starting to write sample.")
-	writeSample(*outputFile, tile, expectations, ignoreStore, *sampleSize)
+	tile = sampleTile(tile, *sampleSize, *query, *nTests)
+	writeSample(*outputFile, tile, expectations, ignoreStore)
 	glog.Infof("Finished.")
 }
 
-// writeSample writes sample to disk.
-func writeSample(outputFileName string, tile *tiling.Tile, expectations *expstorage.Expectations, ignoreStore ignore.IgnoreStore, sampleSize int) {
-	sample := &serialize.Sample{
-		Tile:         tile,
-		Expectations: expectations,
-	}
+func sampleTile(tile *tiling.Tile, sampleSize int, queryStr string, nTests int) *tiling.Tile {
+	// Filter the traces if there was a query defined.
+	if queryStr != "" {
+		query, err := url.ParseQuery(queryStr)
+		if err != nil {
+			glog.Fatalf("Unable to parse querye '%s'. Got error: %s", queryStr, err)
+		}
 
-	// Get the ignore rules.
-	var err error
-	if sample.IgnoreRules, err = ignoreStore.List(false); err != nil {
-		glog.Fatalf("Error retrieving ignore rules: %s", err)
+		newTraces := map[string]tiling.Trace{}
+		for traceID, trace := range tile.Traces {
+			if tiling.Matches(trace, query) {
+				newTraces[traceID] = trace
+			}
+		}
+		tile.Traces = newTraces
 	}
 
 	// Fixed number of tests selected.
-	if *nTests > 0 {
+	if nTests > 0 {
 		byTest := map[string][]string{}
 		for traceID, trace := range tile.Traces {
 			name := trace.Params()[types.PRIMARY_KEY_FIELD]
@@ -68,12 +73,13 @@ func writeSample(outputFileName string, tile *tiling.Tile, expectations *expstor
 
 		newTraces := map[string]tiling.Trace{}
 		idx := 0
-		for _, traceIDs := range byTest {
+		for testName, traceIDs := range byTest {
 			for _, traceID := range traceIDs {
 				newTraces[traceID] = tile.Traces[traceID]
 			}
+			glog.Infof("Included test/traces: %s/%d", testName, len(traceIDs))
 			idx++
-			if idx >= *nTests {
+			if idx >= nTests {
 				break
 			}
 		}
@@ -91,6 +97,22 @@ func writeSample(outputFileName string, tile *tiling.Tile, expectations *expstor
 			newTraces[traceIDs[idx]] = tile.Traces[traceIDs[idx]]
 		}
 		tile.Traces = newTraces
+	}
+
+	return tile
+}
+
+// writeSample writes sample to disk.
+func writeSample(outputFileName string, tile *tiling.Tile, expectations *expstorage.Expectations, ignoreStore ignore.IgnoreStore) {
+	sample := &serialize.Sample{
+		Tile:         tile,
+		Expectations: expectations,
+	}
+
+	// Get the ignore rules.
+	var err error
+	if sample.IgnoreRules, err = ignoreStore.List(false); err != nil {
+		glog.Fatalf("Error retrieving ignore rules: %s", err)
 	}
 
 	// Write the sample to disk.
