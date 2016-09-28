@@ -15,6 +15,12 @@ var gold = gold || {};
   gold.NEGATIVE = 'negative';
   gold.UNTRIAGED = 'untriage';
 
+  // Costants for sort order in the compare view.
+  gold.SORT_ASC = "asc";
+  gold.SORT_DESC = "desc";
+  gold.SORT_FIELD_N = "count";
+  gold.SORT_FIELD_DIFF = "diff";
+
   // Default values for the search controls.
   gold.defaultSearchState = {
      query:   "",

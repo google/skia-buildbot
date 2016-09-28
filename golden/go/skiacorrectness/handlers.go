@@ -1025,3 +1025,50 @@ func textAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
+// jsonCompareTestHandler returns a JSON descripiton for the given test.
+// The result is intended to be displayed in a grid-like fashion.
+//
+// Input format of a POST request:
+//
+// Output format in JSON:
+//
+//
+func jsonCompareTestHandler(w http.ResponseWriter, r *http.Request) {
+	var ctQuery search.CTQuery
+	if err := parseCTQuery(r, &ctQuery); err != nil {
+		httputils.ReportError(w, r, err, err.String())
+		return
+	}
+
+	compareResult, err := search.CompareTest(&ctQuery, storages, ixr.GetIndex())
+	if err != nil {
+		httputils.ReportError(w, r, err, "Search for digests failed.")
+		return
+	}
+	sendJsonResponse(w, compareResult)
+}
+
+func parseCTQuery(r *http.Request, ctQuery *search.CTQuery) error {
+	// TODO: fix
+	// parse the JSON.
+	if err := parseJson(r, ctQuery); err != nil {
+		return err
+	}
+
+	rowCorpus := ctQuery.RowQuery.Query.Get(types.CORPUS_FIELD)
+	colCorpus := ctQuery.ColQuery.Query.Get(types.CORPUS_FIELD)
+	if (rowCorpus != colCorpus) || (rowCorpus == "") {
+		return fmt.Errorf("Corpus for row and column query need to match and be non-empty.")
+	}
+
+	if ctQuery.Test == "" {
+		return fmt.Errrof("Test in compare query cannot be empty.")
+	}
+
+	// Make sure the test is set right.
+	ctQuery.ColumnQuery.Query.Set(types.PRIMARY_KEY_FIELD, ctQuery.Test)
+	ctQuery.RowQuery.Query.Set(types.PRIMARY_KEY_FIELD, ctQuery.Test)
+
+	return nil
+}

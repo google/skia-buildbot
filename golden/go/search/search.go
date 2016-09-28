@@ -7,7 +7,11 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"sync"
 
+	"github.com/skia-dev/glog"
+
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
@@ -645,4 +649,254 @@ func GetDigestDetails(test, digest string, storages *storage.Storage, idx *index
 		},
 		Commits: tile.Commits,
 	}, nil
+}
+
+type CTQuery struct {
+	Test        string   `json:"test"`
+	RowQuery    *Query   `json:"rowQuery"`
+	ColumnQuery *Query   `json:"columnQuery"`
+	Match       []string `json:"match"`
+	SortRows    string   `json:"sortRows"`
+	SortColumns string   `json:"sortColumns"`
+	RowsDir     string   `json:"rowsDir"`
+	ColumnsDir  string   `json:"columnsDir"`
+}
+type CTResponse struct {
+	Grid      *CTGrid `json:"grid"`
+	Name      string  `json:"name"`
+	Corpus    string  `json:"source_type"`
+	Positive  int     `json:"pos"`
+	Negative  int     `json:"neg"`
+	Untriaged int     `json:"unt"`
+}
+
+type CTGrid struct {
+	Cells        [][]*CTDiffMetrics `json:"cells"`
+	Rows         []*CTRow           `json:"rows"`
+	RowsTotal    int                `json:"rowTotal"`
+	Columns      []string           `json:"columns"` // Contains the column types.
+	ColumnsTotal int                `json:"columnsTotal"`
+}
+
+type CTRow struct {
+	Digest string `json:"digest"`
+	N      int    `json:"n"`
+}
+
+type CTDiffMetrics struct {
+	*diff.DiffMetrics
+	CTRow
+}
+
+// TODO: Assumes that the test name and the corpus is the identical in both queries.
+func CompareTest(ctq *CTQuery, storages *storage.Storage, idx *indexer.SearchIndex) (*CTResponse, error) {
+	rowDigests, err := filterTile(ctq.RowQuery, ctq.Test, storages, idx)
+	if err != nil {
+		return nil, err
+	}
+
+	rowLimit := ctq.RowQuery.Limit
+	columnLimit := ctq.ColumnQuery.Limit
+
+	// Build the rows, sort them and trim them.
+	rows := getSortedRows(rowDigests, ctq.SortRows, ctq.RowsDir, rowLimit, idx)
+
+	// Get the column digests conditioned on the result of the row digests.
+	columnDigests, err := filterTileWithMatch(ctq.ColumnQuery, ctq.Test, ctq.Match, rowDigests, storages, idx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Compare the rows in parallel.
+	cells := make([][]*CTDiffMetrics, len(rows))
+	var wg sync.WaitGroup
+	wg.Add(len(rows))
+	for idx, rowElement := range rows {
+		go func(idx int, digest string, paramSet paramtools.ParamSet) {
+			defer wg.Done()
+			cells[idx], err = getDiffRow(storages.DiffStore, digest, columnDigests[digest].Keys(), ctq.SortColumns, ctq.ColumnsDir)
+			if err != nil {
+				glog.Errorf("Unable to calculage diff of row for digest %s. Got error: %s", digest, err)
+			}
+		}(idx, rowElement.Digest, rowDigests[rowElement.Digest])
+	}
+	wg.Wait()
+
+	// Find the max length of rows and trim them if necessary.
+	columns := []string{}
+	columnsTotal := len(columns)
+	limit := columnLimit
+	for idx, row := range cells {
+		columnsTotal = util.MinInt(columnsTotal, len(row))
+		cells[idx] = row[0:util.MinInt(limit, len(row))]
+	}
+
+	ret := &CTResponse{
+		Grid: &CTGrid{
+			Cells:        cells,
+			Rows:         rows,
+			RowsTotal:    len(rowDigests),
+			Columns:      columns,
+			ColumnsTotal: columnsTotal,
+		},
+		Name:      ctq.Test,
+		Corpus:    ctq.RowQuery.Query.Get(types.CORPUS_FIELD),
+		Positive:  0,
+		Negative:  0,
+		Untriaged: 0,
+	}
+
+	return ret, nil
+}
+
+func filterTile(query *Query, testName string, storages *storage.Storage, idx *indexer.SearchIndex) (map[string]paramtools.ParamSet, error) {
+	ret := make(map[string]paramtools.ParamSet, len(idx.TalliesByTest()[testName]))
+
+	// Add digest/trace to the result.
+	addFn := func(digest string, trace tiling.Trace, accptRet interface{}) {
+		if found, ok := ret[digest]; ok {
+			found.AddParams(trace.Params())
+		} else {
+			ret[digest] = paramtools.NewParamSet(trace.Params())
+		}
+	}
+	return ret, iterTile(query, addFn, nil, storages, idx)
+}
+
+// Returns true if all the parameters listed in matchFields have matching values
+// in condParamSets and params.
+func paramsMatch(matchFields []string, condParamSets paramtools.ParamSet, params paramtools.Params) bool {
+	for _, field := range matchFields {
+		val, valOk := params[field]
+		condVals, condValsOk := condParamSets[field]
+		if !(valOk && condValsOk && util.In(val, condVals)) {
+			return false
+		}
+	}
+	return true
+}
+
+func filterTileWithMatch(query *Query, testName string, matchFields []string, condDigests map[string]paramtools.ParamSet, storages *storage.Storage, idx *indexer.SearchIndex) (map[string]util.StringSet, error) {
+	if len(condDigests) == 0 {
+		return map[string]util.StringSet{}, nil
+	}
+
+	ret := make(map[string]util.StringSet, len(condDigests))
+	for d := range condDigests {
+		ret[d] = util.StringSet{}
+	}
+
+	// Define the acceptFn and addFn.
+	var acceptFn AcceptFn = nil
+	var addFn AddFn = nil
+	if len(matchFields) >= 0 {
+		matching := make(util.StringSet, len(condDigests))
+		acceptFn = func(trace tiling.Trace) (bool, interface{}) {
+			params := trace.Params()
+			found := false
+			for digest, paramSet := range condDigests {
+				matching[digest] = paramsMatch(matchFields, paramSet, params)
+				found = found || matching[digest]
+			}
+			return found, matching
+		}
+		addFn = func(digest string, trace tiling.Trace, acceptRet interface{}) {
+			for d := range acceptRet.(util.StringSet) {
+				ret[d][digest] = true
+			}
+		}
+	} else {
+		addFn = func(digest string, trace tiling.Trace, acceptRet interface{}) {
+			for d := range condDigests {
+				ret[d][digest] = true
+			}
+		}
+	}
+
+	return ret, iterTile(query, addFn, acceptFn, storages, idx)
+}
+
+// Iter tile
+type AcceptFn func(trace tiling.Trace) (bool, interface{})
+type AddFn func(digest string, trace tiling.Trace, acceptResult interface{})
+
+// filterTile returns the digests that match the given query.
+func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, storages *storage.Storage, idx *indexer.SearchIndex) error {
+	tile := idx.GetTile(query.IncludeIgnores)
+	exp, err := storages.ExpectationsStore.Get()
+	if err != nil {
+		return err
+	}
+
+	if acceptFn == nil {
+		acceptFn = func(tr tiling.Trace) (bool, interface{}) { return true, nil }
+	}
+
+	traceTally := idx.TalliesByTrace()
+	lastCommitIndex := tile.LastCommitIndex()
+
+	// Iterate through the tile.
+	for id, tr := range tile.Traces {
+		// Check if the query matches.
+		if tiling.Matches(tr, query.Query) {
+			// Check if we should accept this trace.
+			if ok, acceptRet := acceptFn(tr); ok {
+				test := tr.Params()[types.PRIMARY_KEY_FIELD]
+				digests := digestsFromTrace(id, tr, query.Head, lastCommitIndex, traceTally)
+				for _, digest := range digests {
+					cl := exp.Classification(test, digest)
+					if query.excludeClassification(cl) {
+						continue
+					}
+					// Add the digest to the results.
+					addFn(digest, tr, acceptRet)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func getSortedRows(entries map[string]paramtools.ParamSet, sortField, sortDir string, limit int, idx *indexer.SearchIndex) []*CTRow {
+	tallies := idx.TalliesByTest()["something"]
+	ret := make([]*CTRow, 0, len(entries))
+	for digest := range entries {
+		ret = append(ret, &CTRow{
+			Digest: digest,
+			N:      tallies[digest],
+		})
+	}
+	sort.Sort(CTRowSlice(ret))
+	return ret[:util.MinInt(limit, len(ret))]
+}
+
+// Sort rows descending by N
+type CTRowSlice []*CTRow
+
+func (c CTRowSlice) Len() int           { return len(c) }
+func (c CTRowSlice) Less(i, j int) bool { return c[i].N > c[j].N }
+func (c CTRowSlice) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
+
+func filterTileCols(q *Query, testName string, storages *storage.Storage, idx *indexer.SearchIndex) ([][]string, error) {
+	return nil, nil
+}
+
+// getDiffRow gets the sorted and limited comparison of one digest against the list of candidate digests.
+func getDiffRow(diffStore diff.DiffStore, digest string, colDigests []string, sortField, sortDir string) ([]*CTDiffMetrics, error) {
+	diffMap, err := diffStore.Get(diff.PRIORITY_NOW, digest, colDigests)
+	if err != nil {
+		return nil, err
+	}
+
+	ret := make([]*CTDiffMetrics, 0, len(diffMap))
+	for colDigest, diffMetrics := range diffMap {
+		ret = append(ret, &CTDiffMetrics{
+			DiffMetrics: diffMetrics,
+			CTRow:       CTRow{Digest: colDigest, N: 0},
+		})
+	}
+
+	// TODO: add the reference points,  sort the row and trimm it to the desired length.
+
+	return ret, nil
 }
