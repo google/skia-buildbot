@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c541232d_6b32815f",
+        "filename": "scripts/chromebot-schtask.ps1",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-28T17:16:39Z",
+      "side": 1,
+      "message": "Just let the initial run of \"gclient\" fail, along with \"update_depot_tools\", then, once we have Git, attempt to actually fix the depot_tools checkout.",
+      "range": {
+        "startLine": 78,
+        "startChar": 3,
+        "endLine": 78,
+        "endChar": 4
+      },
+      "revId": "1455fef289ccfbc7b572733d2818a82a7babb741",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

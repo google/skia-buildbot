@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c541232d_4b35c544",
+        "filename": "scripts/chromebot-schtask.ps1",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-28T17:16:39Z",
+      "side": 0,
+      "message": "This wasn\u0027t helping us at all.",
+      "range": {
+        "startLine": 60,
+        "startChar": 5,
+        "endLine": 60,
+        "endChar": 0
+      },
+      "revId": "2024370def100e88d9784ec8ec3534186dd3f1ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
