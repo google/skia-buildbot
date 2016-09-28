@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"net/http"
 	"os"
 	"path"
 	"sort"
@@ -26,6 +27,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/trybots"
 )
 
 const (
@@ -59,10 +61,11 @@ type TaskScheduler struct {
 	taskCfgCache     *specs.TaskCfgCache
 	tCache           db.TaskCache
 	timeDecayAmt24Hr float64
+	trybots          *trybots.TryJobIntegrator
 	workdir          string
 }
 
-func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, timeDecayAmt24Hr float64) (*TaskScheduler, error) {
+func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, trybotBucket string) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		return nil, err
@@ -91,6 +94,12 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames [
 			return nil, err
 		}
 	}
+	taskCfgCache := specs.NewTaskCfgCache(rm)
+	trybots, err := trybots.NewTrybotIntegrator(trybotBucket, c, d, jCache, rm, taskCfgCache)
+	if err != nil {
+		return nil, err
+	}
+
 	s := &TaskScheduler{
 		bl:               bl,
 		db:               d,
@@ -102,9 +111,10 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames [
 		repoMap:          rm,
 		repos:            repos,
 		swarming:         swarmingClient,
-		taskCfgCache:     specs.NewTaskCfgCache(rm),
+		taskCfgCache:     taskCfgCache,
 		tCache:           tCache,
 		timeDecayAmt24Hr: timeDecayAmt24Hr,
+		trybots:          trybots,
 		workdir:          workdir,
 	}
 	return s, nil
@@ -112,6 +122,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames [
 
 // Start initiates the TaskScheduler's goroutines for scheduling tasks.
 func (s *TaskScheduler) Start() {
+	s.trybots.Start()
 	go func() {
 		lv := metrics2.NewLiveness("last-successful-task-scheduling")
 		for _ = range time.Tick(time.Minute) {
@@ -1238,14 +1249,29 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 		}
 		if status != j.Status {
 			j.Status = status
+
+			if j.IsTryJob() && j.Done() {
+				// Report the try job status to Buildbucket. If
+				// we fail to do so, don't insert the updated
+				// Job into the DB - we'll come back to it on
+				// the next loop.
+				if err := s.trybots.JobFinished(j); err != nil {
+					glog.Errorf("Failed to send update for try job: %s", err)
+					continue
+				}
+			}
+
 			modified = append(modified, j)
 		}
 	}
 	if len(modified) == 0 {
 		return nil
 	}
-	if err := s.db.PutJobs(jobs); err != nil {
+	if err := s.db.PutJobs(modified); err != nil {
 		return err
 	}
-	return s.jCache.Update()
+	if err := s.jCache.Update(); err != nil {
+		return err
+	}
+	return nil
 }

@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
+	"go.skia.org/infra/task_scheduler/go/trybots"
 )
 
 const (
@@ -360,7 +361,7 @@ func main() {
 
 	// Create and start the task scheduler.
 	glog.Infof("Creating task scheduler.")
-	ts, err = scheduling.NewTaskScheduler(d, period, wdAbs, REPOS, isolateClient, swarm, *scoreDecay24Hr)
+	ts, err = scheduling.NewTaskScheduler(d, period, wdAbs, REPOS, isolateClient, swarm, httpClient, *scoreDecay24Hr, trybots.BUCKET_PRIMARY)
 	if err != nil {
 		glog.Fatal(err)
 	}
