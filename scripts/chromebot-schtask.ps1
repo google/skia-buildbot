@@ -55,10 +55,6 @@ Function banner($title) {
   log ""
 }
 
-# TODO(borenet): This top-level try/catch is really stupid, but I don't know
-# how to get errors logged to a file.
-Try {
-
 # Create temp directory.
 $tmp = "$userDir\tmp"
 if (!(Test-Path ($tmp))) {
@@ -79,7 +75,6 @@ if (!(Test-Path ($depotToolsPath))) {
   unzip $fileName $depotToolsPath
 }
 addToPath $depotToolsPath
-$ENV:DEPOT_TOOLS_UPDATE = "0"
 Try {
   $gclient_output = (cmd /c "gclient.bat") 2>&1 | Out-String
   log $gclient_output
@@ -87,9 +82,17 @@ Try {
   log "gclient failed:"
   log $_.Exception.Message
 }
+Try {
+  cmd /c "update_depot_tools.bat"
+} Catch {
+  log "update_depot_tools.bat failed:"
+  log $_.Exception.Message
+}
 
 banner "Manual depot_tools update"
 Set-Location -Path $depotToolsPath
+$git = (cmd /c "where git") | Out-String
+log "git: $git"
 log "git fetch"
 cmd /c "git.bat fetch"
 log "git reset"
@@ -124,10 +127,3 @@ if (!(Test-Path ($swarm_slave_dir))) {
 }
 
 banner "The Task ended"
-
-} Catch {
-  log "ERROR:"
-  log $_.Exception.Message
-  log $error[0]
-}
-
