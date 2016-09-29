@@ -357,20 +357,19 @@ There are three images that it deals with, called left, top, and diff.
 
       _handleZoomPixels: function(ev) {
         ev.stopPropagation();
-        if (ev.target.id !== 'zoomMiddle') {
-          this.set('_centerPixel.' + ev.target.id, ev.detail.rgb + ' ' + ev.detail.hex);
-        } else {
-          var lc = this.$.zoomLeft.getPixelColor(ev.detail.x, ev.detail.y);
-          var rc = this.$.zoomRight.getPixelColor(ev.detail.x, ev.detail.y);
-          var color = [
-            Math.abs(lc[0]-rc[0]),
-            Math.abs(lc[1]-rc[1]),
-            Math.abs(lc[2]-rc[2]),
-            Math.abs(lc[3]-rc[3])
-          ];
-          var diffStr = sk.colorRGB(color, 0) + ' ' + sk.colorHex(color, 0);
-          this.set("_centerPixel.zoomMiddle", diffStr);
-        }
+        this.set('_centerPixel.' + ev.target.id, ev.detail.rgb + ' ' + ev.detail.hex);
+
+        // Always calculate the middle value.
+        var lc = this.$.zoomLeft.getPixelColor(ev.detail.x, ev.detail.y);
+        var rc = this.$.zoomRight.getPixelColor(ev.detail.x, ev.detail.y);
+        var color = [
+          Math.abs(lc[0]-rc[0]),
+          Math.abs(lc[1]-rc[1]),
+          Math.abs(lc[2]-rc[2]),
+          Math.abs(lc[3]-rc[3])
+        ];
+        var diffStr = sk.colorRGB(color, 0, true) + ' ' + sk.colorHex(color, 0);
+        this.set("_centerPixel.zoomMiddle", diffStr);
       },
 
       _handleKeyDown: function(e) {

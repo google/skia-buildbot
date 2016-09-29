@@ -29,9 +29,9 @@
         updating the zoomed view after an image load.
 
   Methods:
-    getImageData() - Returns the image data of the image wrapped by this zoom-sk element. 
+    getImageData() - Returns the image data of the image wrapped by this zoom-sk element.
 
-    getPixelColor(x,y) - Returns the color of the pixel as an array in RGBA format. 
+    getPixelColor(x,y) - Returns the color of the pixel as an array in RGBA format.
 
 -->
 
@@ -163,8 +163,9 @@
           for (var y = 0; y < this.pixels; y++) {
             var offset = (y * this.pixels + x) * 4;
             // Offset into the colors array.
-            var colorRGB = sk.colorRGB(colors, offset);
-            this.set("ctx.fillStyle", colorRGB);
+            var colorRGB = sk.colorRGB(colors, offset, true);
+            var colorRGBStyle = sk.colorRGB(colors, offset, false);
+            this.set("ctx.fillStyle", colorRGBStyle);
             this.ctx.fillRect(x * dx, y * dy, dx - 1, dy - 1);
             // Box one selected pixel with its rgba values.
             if (x == this.pixels / 2 && y == this.pixels / 2) {
