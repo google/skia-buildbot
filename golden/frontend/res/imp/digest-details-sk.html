@@ -201,9 +201,16 @@
                   <div class="preview">
                     <img src$="{{_digestHref(details.digest)}}">
                   </div>
-                  <a target="_blank" href$="{{_digestHref(details.digest)}}">
-                    <iron-icon icon="open-in-new"></iron-icon>
-                  </a>
+                  <div class="vertical layout justified">
+                    <a target="_blank" href$="{{_digestHref(details.digest)}}" rel="noopener">
+                      <iron-icon icon="open-in-new"></iron-icon>
+                    </a>
+
+                    <a target="_blank" href$="{{_imageInfoHref(details.digest)}}" rel="noopener">
+                      <iron-icon icon="icons:info-outline"></iron-icon>
+                    </a>
+
+                  </div>
                 </div>
                 <div>
                   <span hidden$="{{_hideDotsBlame(details)}}">
@@ -515,6 +522,8 @@
       },
 
       _digestHref: gold.imgHref,
+
+      _imageInfoHref: gold.imageInfoHref,
 
       _fixedPercent: function (i) {
         return (i) ? i.toFixed(2) : '';

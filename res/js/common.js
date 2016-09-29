@@ -846,11 +846,14 @@ this.sk = this.sk || function() {
   // colorRGB returns the given RGBA pixel as a 4-tupel of decimal numbers.
   // 'colors' is an array of bytes that contain pixesl in  RGBA format.
   // 'offset' is the offset of the pixel of interest.
-  sk.colorRGB = function(colors, offset) {
+  // 'rawAlpha' will return the alpha value directly if true. Otherwise it will
+  //            be normalized to [0...1].
+  sk.colorRGB = function(colors, offset, rawAlpha) {
+    var scaleAlpha = (rawAlpha) ? 1 : 255;
     return "rgba(" + colors[offset] + ", " +
               colors[offset + 1] + ", " +
               colors[offset + 2] + ", " +
-              colors[offset + 3] / 255 + ")";
+              colors[offset + 3] / scaleAlpha + ")";
   };
 
   // Polyfill for String.startsWith from
