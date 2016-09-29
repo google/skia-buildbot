@@ -432,8 +432,16 @@ func main() {
 					if task.TaskResult.PerformanceStats != nil {
 						// Overhead stats, in milliseconds.
 						metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_BOT, tags, int64(task.TaskResult.PerformanceStats.BotOverhead*float64(1000.0)), createdTime)
-						metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_DOWNLOAD, tags, int64(task.TaskResult.PerformanceStats.IsolatedDownload.Duration*float64(1000.0)), createdTime)
-						metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_UPLOAD, tags, int64(task.TaskResult.PerformanceStats.IsolatedUpload.Duration*float64(1000.0)), createdTime)
+						if task.TaskResult.PerformanceStats.IsolatedDownload != nil {
+							metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_DOWNLOAD, tags, int64(task.TaskResult.PerformanceStats.IsolatedDownload.Duration*float64(1000.0)), createdTime)
+						} else {
+							glog.Errorf("Swarming task is missing its IsolatedDownload section: %v", task.TaskResult)
+						}
+						if task.TaskResult.PerformanceStats.IsolatedUpload != nil {
+							metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_UPLOAD, tags, int64(task.TaskResult.PerformanceStats.IsolatedUpload.Duration*float64(1000.0)), createdTime)
+						} else {
+							glog.Errorf("Swarming task is missing its IsolatedUpload section: %v", task.TaskResult)
+						}
 					}
 
 					// Pending time in milliseconds.
