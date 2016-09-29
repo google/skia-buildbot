@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a566efce_e3394090",
+        "filename": "go/testutils/gitsetup.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-29T18:47:29Z",
+      "side": 1,
+      "message": "I think this name is confusing, since the only user of GitDir actually wants to track origin/master, not local master. That\u0027s an important distinction for normal repos.",
+      "range": {
+        "startLine": 84,
+        "startChar": 17,
+        "endLine": 84,
+        "endChar": 41
+      },
+      "revId": "cec3beb379d4c99d491f408f01649ca72b156e7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
