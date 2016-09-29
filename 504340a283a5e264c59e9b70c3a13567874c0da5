@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "a566efce_da87c56a",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-29T18:39:53Z",
+      "side": 1,
+      "message": "Agreed.",
+      "parentUuid": "a566efce_5a91f54c",
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a566efce_ba693120",
         "filename": "task_scheduler/go/scheduling/perftest/perftest.go",
         "patchSetId": 1
@@ -42,6 +60,24 @@
     },
     {
       "key": {
+        "uuid": "a566efce_1aa21df7",
+        "filename": "task_scheduler/go/scheduling/perftest/perftest.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-29T18:39:53Z",
+      "side": 1,
+      "message": "Yep, this was just to get everything compiling so that I could see it run. I\u0027ll use mockhttpclient in the future.",
+      "parentUuid": "a566efce_ba693120",
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a566efce_9a99cd77",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
@@ -53,6 +89,24 @@
       "writtenOn": "2016-09-28T01:58:45Z",
       "side": 1,
       "message": "nit: Should be a flag.",
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_dad5053f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-29T18:39:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a566efce_9a99cd77",
       "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -105,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "a566efce_5a9c95be",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-29T18:39:53Z",
+      "side": 1,
+      "message": "I accidentally left this here, from before I had more of the TryJobIntegrator working. Removed.",
+      "parentUuid": "a566efce_1a2bfdec",
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a566efce_9a646d47",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
@@ -116,6 +188,24 @@
       "writtenOn": "2016-09-28T01:58:45Z",
       "side": 1,
       "message": "This seems fragile -- a crash or SIGTERM at this point means the Job is updated in the DB and forgotten. Eventually the lease will time out and the job will be rerun, so it\u0027s not too bad, but it means the tryjob has to wait an extra hour or more.",
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_5af3b5fa",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1294,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-29T18:39:53Z",
+      "side": 1,
+      "message": "Moved this up into the above loop so that we won\u0027t mark the job as finished in the DB unless we\u0027ve already notified Buildbucket. This could result in other problems if our communication with Buildbucket consistently fails, but it\u0027s better than the alternative.",
+      "parentUuid": "a566efce_9a646d47",
       "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -145,6 +235,24 @@
     },
     {
       "key": {
+        "uuid": "a566efce_7a9959cd",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1297,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-29T18:39:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a566efce_7aedd97a",
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a566efce_fa73a90b",
         "filename": "task_scheduler/go/task_scheduler/main.go",
         "patchSetId": 1
@@ -168,6 +276,24 @@
     },
     {
       "key": {
+        "uuid": "a566efce_fadac96d",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-29T18:39:53Z",
+      "side": 1,
+      "message": "Yeah, so we\u0027re taking advantage of the fact that these APIs just use the userinfo.email scope. I guess it\u0027d be cleaner to create a separate client for each API?",
+      "parentUuid": "a566efce_fa73a90b",
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a566efce_1a593d91",
         "filename": "task_scheduler/go/trybots/trybots.go",
         "patchSetId": 1
@@ -185,6 +311,24 @@
         "endLine": 25,
         "endChar": 33
       },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_1ad05d4b",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-29T18:39:53Z",
+      "side": 1,
+      "message": "Changed to 5 minutes to match buildbot.",
+      "parentUuid": "a566efce_1a593d91",
       "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -237,6 +381,24 @@
     },
     {
       "key": {
+        "uuid": "a566efce_3acd21b2",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-29T18:39:53Z",
+      "side": 1,
+      "message": "We do have JOB_STATUS_CANCELED, which is the right status to use if the build was canceled on the Buildbucket side. Thinking through the flow as it currently is, if the build has been canceled on the Buildbucket side we\u0027d end up finishing it anyway, which is wrong. If we\u0027ve lost the lease, the build will show up when we peek() and we\u0027ll trigger another Job for it, keeping the first Job as well.  I\u0027ll change this to cancel the Job.",
+      "parentUuid": "a566efce_5a63b538",
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a566efce_fa4ac9ab",
         "filename": "task_scheduler/go/trybots/trybots.go",
         "patchSetId": 1
@@ -254,6 +416,24 @@
         "endLine": 161,
         "endChar": 27
       },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_5acad59a",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-29T18:39:53Z",
+      "side": 1,
+      "message": "I think it\u0027s a good default when not specified. My understanding is that try jobs for other branches will have the desired branch specified.",
+      "parentUuid": "a566efce_fa4ac9ab",
       "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -306,6 +486,24 @@
     },
     {
       "key": {
+        "uuid": "a566efce_9a4aad26",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-29T18:39:53Z",
+      "side": 1,
+      "message": "Agreed.",
+      "parentUuid": "a566efce_ba505160",
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a566efce_3a3d2118",
         "filename": "task_scheduler/go/trybots/trybots.go",
         "patchSetId": 1
@@ -323,6 +521,24 @@
         "endLine": 241,
         "endChar": 63
       },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_ba4f7135",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-29T18:39:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a566efce_3a3d2118",
       "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -352,6 +568,24 @@
     },
     {
       "key": {
+        "uuid": "a566efce_fa59e902",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-29T18:39:53Z",
+      "side": 1,
+      "message": "Changed so that we collect all errors and insert any jobs we were able to create before erroring out.",
+      "parentUuid": "a566efce_dadb45e2",
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a566efce_fae00989",
         "filename": "task_scheduler/go/trybots/trybots.go",
         "patchSetId": 1
@@ -375,6 +609,24 @@
     },
     {
       "key": {
+        "uuid": "a566efce_da5425cc",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-29T18:39:53Z",
+      "side": 1,
+      "message": "Moved this call into getJobToSchedule. This way, we\u0027ll never insert the Job if we weren\u0027t able to start() it.",
+      "parentUuid": "a566efce_fae00989",
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a566efce_9a88edd8",
         "filename": "task_scheduler/go/trybots/trybots.go",
         "patchSetId": 1
@@ -392,6 +644,24 @@
         "endLine": 330,
         "endChar": 31
       },
+      "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_1a5f7de6",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-29T18:39:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a566efce_9a88edd8",
       "revId": "504340a283a5e264c59e9b70c3a13567874c0da5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
