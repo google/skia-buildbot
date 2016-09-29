@@ -53,7 +53,8 @@ elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
                  --metadata_from_file=sysprep-oobe-script-ps1:$MODIFIED_SYSPREP_SCRIPT \
                  --metadata_from_file=windows-startup-script-ps1:$MODIFIED_STARTUP_SCRIPT \
                  --metadata_from_file=chromebot-schtask-ps1:$MODIFIED_SCHTASK_SCRIPT"
-  DISK_ARGS="--boot_disk_size_gb=$VM_PERSISTENT_DISK_SIZE_GB"
+  DISK_ARGS="--boot_disk_size_gb=$VM_PERSISTENT_DISK_SIZE_GB \
+             --boot_disk_type=pd-ssd"
   REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_WIN_BOTS[@]}
 else
   echo "$VM_INSTANCE_OS is not recognized!"
