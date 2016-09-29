@@ -37,12 +37,12 @@ func TestPerfTrace(t *testing.T) {
 	vcs := ingestion.MockVCS(vcsCommits)
 
 	builder := &tileBuilder{
-		db:         nil,
-		vcs:        vcs,
-		review:     review,
-		reviewURL:  "https://codereview.chromium.org",
-		tcache:     lru.New(2),
-		issueCache: rietveld.NewCodeReviewCache(review, time.Minute, 2),
+		db:                 nil,
+		vcs:                vcs,
+		rietveldReview:     review,
+		rietveldReviewURL:  "https://codereview.chromium.org",
+		tcache:             lru.New(2),
+		rietveldIssueCache: rietveld.NewCodeReviewCache(review, time.Minute, 2),
 	}
 
 	now := time.Unix(100, 0)
@@ -153,10 +153,10 @@ func TestTileFromCommits(t *testing.T) {
 	// Now test tileBuilder.
 	review := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
 	builder := &tileBuilder{
-		db:         ts,
-		vcs:        vcs,
-		tcache:     lru.New(2),
-		issueCache: rietveld.NewCodeReviewCache(review, time.Minute, 2),
+		db:                 ts,
+		vcs:                vcs,
+		tcache:             lru.New(2),
+		rietveldIssueCache: rietveld.NewCodeReviewCache(review, time.Minute, 2),
 	}
 	tile, err := builder.CachedTileFromCommits(commitIDs)
 	assert.NoError(t, err)
