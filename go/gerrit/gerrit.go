@@ -35,22 +35,28 @@ const (
 
 // ChangeInfo contains information about a Gerrit issue.
 type ChangeInfo struct {
-	Created         time.Time
-	CreatedString   string `json:"created"`
-	Updated         time.Time
-	UpdatedString   string `json:"updated"`
-	Submitted       time.Time
-	SubmittedString string `json:"submitted"`
-	Project         string
-	ChangeId        string `json:"change_id"`
-	Subject         string
-	Branch          string
-	Committed       bool
-	Revisions       map[string]Revision
-	Patchsets       []*PatchSet
-	MoreChanges     bool  `json:"_more_changes"`
-	Issue           int64 `json:"_number"`
-	Labels          map[string]*LabelEntry
+	Created         time.Time              `json:"-"`
+	CreatedString   string                 `json:"created"`
+	Updated         time.Time              `json:"-"`
+	UpdatedString   string                 `json:"updated"`
+	Submitted       time.Time              `json:"-"`
+	SubmittedString string                 `json:"submitted"`
+	Project         string                 `json:"project"`
+	ChangeId        string                 `json:"change_id"`
+	Subject         string                 `json:"subject"`
+	Branch          string                 `json:"branch"`
+	Committed       bool                   `json:committed"`
+	Revisions       map[string]Revision    `json:"revisions"`
+	Patchsets       []*PatchSet            `json:"patchsets"`
+	MoreChanges     bool                   `json:"_more_changes"`
+	Issue           int64                  `json:"_number"`
+	Labels          map[string]*LabelEntry `json:"labels"`
+	Owner           *Owner                 `json:"owner"`
+}
+
+// Owner gathers the owner information of a ChangeInfo instance. Some fields ommitted.
+type Owner struct {
+	Email string `json:"email"`
 }
 
 type LabelEntry struct {
@@ -138,6 +144,11 @@ func getCredentials(gitCookiesPath string) (map[string]string, error) {
 func parseTime(t string) time.Time {
 	parsed, _ := time.Parse(TIME_FORMAT, t)
 	return parsed
+}
+
+// Url returns the url of the Gerrit instance targeted by this instance.
+func (g *Gerrit) Url() string {
+	return g.url
 }
 
 // GetIssueProperties returns a fully filled-in ChangeInfo object, as opposed to

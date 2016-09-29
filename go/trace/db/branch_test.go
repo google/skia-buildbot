@@ -16,12 +16,22 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
+const (
+	GERRIT_TEST_FILE = "testdata/gerrit_response.txt"
+	GERRIT_TEST_URL  = "https://skia-review.googlesource.com/c/2781/"
+)
+
 func TestPerfTrace(t *testing.T) {
 	b, err := ioutil.ReadFile(filepath.Join("testdata", "rietveld_response.txt"))
 	assert.NoError(t, err)
+
+	gerritResp, err := ioutil.ReadFile(GERRIT_TEST_FILE)
+	assert.NoError(t, err)
+
 	m := mockhttpclient.NewURLMock()
 	// Mock this only once to confirm that caching works.
 	m.MockOnce("https://codereview.chromium.org/api/1490543002", mockhttpclient.MockGetDialogue(b))
+	m.MockOnce(GERRIT_TEST_URL, mockhttpclient.MockGetDialogue(gerritResp))
 
 	review := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
 
@@ -37,12 +47,12 @@ func TestPerfTrace(t *testing.T) {
 	vcs := ingestion.MockVCS(vcsCommits)
 
 	builder := &tileBuilder{
-		db:         nil,
-		vcs:        vcs,
-		review:     review,
-		reviewURL:  "https://codereview.chromium.org",
-		tcache:     lru.New(2),
-		issueCache: rietveld.NewCodeReviewCache(review, time.Minute, 2),
+		db:                 nil,
+		vcs:                vcs,
+		rietveldReview:     review,
+		rietveldReviewURL:  "https://codereview.chromium.org",
+		tcache:             lru.New(2),
+		rietveldIssueCache: rietveld.NewCodeReviewCache(review, time.Minute, 2),
 	}
 
 	now := time.Unix(100, 0)
@@ -153,10 +163,10 @@ func TestTileFromCommits(t *testing.T) {
 	// Now test tileBuilder.
 	review := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
 	builder := &tileBuilder{
-		db:         ts,
-		vcs:        vcs,
-		tcache:     lru.New(2),
-		issueCache: rietveld.NewCodeReviewCache(review, time.Minute, 2),
+		db:                 ts,
+		vcs:                vcs,
+		tcache:             lru.New(2),
+		rietveldIssueCache: rietveld.NewCodeReviewCache(review, time.Minute, 2),
 	}
 	tile, err := builder.CachedTileFromCommits(commitIDs)
 	assert.NoError(t, err)
