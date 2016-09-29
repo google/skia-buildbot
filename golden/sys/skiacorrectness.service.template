@@ -22,7 +22,7 @@ ExecStart=/usr/local/bin/skiacorrectness  \
     --redirect_url=<<REPLACE_REDIRECT_URL>>  \
     --gs_buckets=<<REPLACE_GS_BUCKETS>>   \
     --n_commits=<<REPLACE_N_COMMITS>>   \
-    --cache_size=50 \
+    --cache_size=20 \
     <<REPLACE_ADD_FLAGS>>
 
 Restart=always
