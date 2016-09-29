@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
+	"go.skia.org/infra/task_scheduler/go/trybots"
 )
 
 const (
@@ -48,6 +49,12 @@ var (
 	REPOS = []string{
 		common.REPO_SKIA,
 		common.REPO_SKIA_INFRA,
+	}
+
+	// PROJECT_REPO_MAPPING is a mapping of project names to repo URLs.
+	PROJECT_REPO_MAPPING = map[string]string{
+		"skia":     common.REPO_SKIA,
+		"buildbot": common.REPO_SKIA_INFRA,
 	}
 
 	// Task Scheduler instance.
@@ -360,7 +367,7 @@ func main() {
 
 	// Create and start the task scheduler.
 	glog.Infof("Creating task scheduler.")
-	ts, err = scheduling.NewTaskScheduler(d, period, wdAbs, REPOS, isolateClient, swarm, *scoreDecay24Hr)
+	ts, err = scheduling.NewTaskScheduler(d, period, wdAbs, REPOS, isolateClient, swarm, httpClient, *scoreDecay24Hr, trybots.API_URL_PROD, trybots.BUCKET_PRIMARY, PROJECT_REPO_MAPPING)
 	if err != nil {
 		glog.Fatal(err)
 	}

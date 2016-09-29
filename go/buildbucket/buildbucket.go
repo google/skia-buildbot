@@ -24,26 +24,42 @@ var (
 	}
 )
 
-type buildBucketAuthor struct {
+type BuildBucketAuthor struct {
 	Email string `json:"email"`
 }
 
-type buildBucketChange struct {
-	Author     *buildBucketAuthor `json:"author"`
+type BuildBucketChange struct {
+	Author     *BuildBucketAuthor `json:"author"`
 	Repository string             `json:"repo_url"`
 	Revision   string             `json:"revision"`
 }
 
-type buildBucketError struct {
+type BuildBucketError struct {
 	Message string `json:"message"`
 	Reason  string `json:"reason"`
 }
 
-type buildBucketParameters struct {
-	BuilderName string               `json:"builder_name"`
-	Changes     []*buildBucketChange `json:"changes"`
-	Properties  map[string]string    `json:"properties"`
-	Swarming    *swarming            `json:"swarming,omitempty"`
+type BuildBucketProperties struct {
+	AttemptStartTs   int64  `json:"attempt_start_ts"`
+	Category         string `json:"category"`
+	Gerrit           string `json:"gerrit"`
+	GerritIssue      string `json:"event.change.number"`
+	GerritPatchset   string `json:"event.patchSet.ref"`
+	Master           string `json:"master"`
+	PatchProject     string `json:"patch_project"`
+	PatchStorage     string `json:"patch_storage"`
+	Reason           string `json:"reason"`
+	Revision         string `json:"revision,omitempty"`
+	Rietveld         string `json:"rietveld"`
+	RietveldIssue    int64  `json:"issue"`
+	RietveldPatchset int64  `json:"patchset"`
+}
+
+type BuildBucketParameters struct {
+	BuilderName string                `json:"builder_name"`
+	Changes     []*BuildBucketChange  `json:"changes"`
+	Properties  BuildBucketProperties `json:"properties"`
+	Swarming    *swarming             `json:"swarming,omitempty"`
 }
 
 type swarming struct {
@@ -61,7 +77,7 @@ type buildBucketRequest struct {
 
 type buildBucketResponse struct {
 	Build *Build            `json:"build"`
-	Error *buildBucketError `json:"error"`
+	Error *BuildBucketError `json:"error"`
 	Kind  string            `json:"kind"`
 	Etag  string            `json:"etag"`
 }
@@ -132,19 +148,19 @@ func NewClient(c *http.Client) *Client {
 // RequestBuild adds a request for the given build. The swarmingBotId parameter
 // may be the empty string, in which case the build may run on any bot.
 func (c *Client) RequestBuild(builder, master, commit, repo, author, swarmingBotId string) (*Build, error) {
-	p := buildBucketParameters{
+	p := BuildBucketParameters{
 		BuilderName: builder,
-		Changes: []*buildBucketChange{
-			&buildBucketChange{
-				Author: &buildBucketAuthor{
+		Changes: []*BuildBucketChange{
+			&BuildBucketChange{
+				Author: &BuildBucketAuthor{
 					Email: author,
 				},
 				Repository: repo,
 				Revision:   commit,
 			},
 		},
-		Properties: map[string]string{
-			"reason": "Triggered by SkiaScheduler",
+		Properties: BuildBucketProperties{
+			Reason: "Triggered by SkiaScheduler",
 		},
 	}
 	if swarmingBotId != "" {
