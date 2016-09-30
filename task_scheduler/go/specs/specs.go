@@ -14,6 +14,19 @@ import (
 
 const (
 	TASKS_CFG_FILE = "infra/bots/tasks.json"
+
+	VARIABLE_SYNTAX = "<(%s)"
+
+	VARIABLE_REPO      = "REPO"
+	VARIABLE_REVISION  = "REVISION"
+	VARIABLE_TASK_NAME = "TASK_NAME"
+)
+
+var (
+	PLACEHOLDER_REPO            = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_REPO)
+	PLACEHOLDER_REVISION        = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_REVISION)
+	PLACEHOLDER_TASK_NAME       = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_TASK_NAME)
+	PLACEHOLDER_ISOLATED_OUTDIR = "${ISOLATED_OUTDIR}"
 )
 
 // ParseTasksCfg parses the given task cfg file contents and returns the config.
@@ -69,21 +82,21 @@ func (c *TasksCfg) Validate() error {
 // Be sure to add any new fields to the Copy() method.
 type TaskSpec struct {
 	// CipdPackages are CIPD packages which should be installed for the task.
-	CipdPackages []*CipdPackage `json:"cipd_packages"`
+	CipdPackages []*CipdPackage `json:"cipd_packages,omitempty"`
 
 	// Dependencies are names of other TaskSpecs for tasks which need to run
 	// before this task.
-	Dependencies []string `json:"dependencies"`
+	Dependencies []string `json:"dependencies,omitempty"`
 
 	// Dimensions are Swarming bot dimensions which describe the type of bot
 	// which may run this task.
 	Dimensions []string `json:"dimensions"`
 
 	// Environment is a set of environment variables needed by the task.
-	Environment map[string]string `json:"environment"`
+	Environment map[string]string `json:"environment,omitempty"`
 
 	// ExtraArgs are extra command-line arguments to pass to the task.
-	ExtraArgs []string `json:"extra_args"`
+	ExtraArgs []string `json:"extra_args,omitempty"`
 
 	// Isolate is the name of the isolate file used by this task.
 	Isolate string `json:"isolate"`
