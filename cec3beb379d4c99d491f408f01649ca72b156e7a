@@ -22,6 +22,24 @@
       "revId": "cec3beb379d4c99d491f408f01649ca72b156e7a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_61cf9054",
+        "filename": "go/testutils/gitsetup.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-30T18:40:19Z",
+      "side": 1,
+      "message": "Renamed this; renamed to GitBuilder; added documentation.",
+      "parentUuid": "a566efce_e3394090",
+      "revId": "cec3beb379d4c99d491f408f01649ca72b156e7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
