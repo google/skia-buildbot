@@ -3,35 +3,15 @@ package gitrepo
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
-	"path"
 	"testing"
 
-	"github.com/satori/go.uuid"
 	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )
 
-func run(t *testing.T, dir string, cmd ...string) {
-	_, err := exec.RunCwd(dir, cmd...)
-	assert.NoError(t, err)
-}
-
-func write(t *testing.T, dir, filepath, contents string) {
-	assert.NoError(t, ioutil.WriteFile(path.Join(dir, filepath), []byte(contents), os.ModePerm))
-}
-
-func commit(t *testing.T, workdir, file string) {
-	contents := uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
-	write(t, workdir, file, contents)
-	run(t, workdir, "git", "add", file)
-	run(t, workdir, "git", "commit", "-m", contents)
-}
-
-// gitRepo initializes a Git repo in a temporary directory with some commits.
+// gitSetup initializes a Git repo in a temporary directory with some commits.
 // Returns the path of the temporary directory, the Repo object associated with
 // the repo, and a slice of the commits which were added.
 //
@@ -39,19 +19,13 @@ func commit(t *testing.T, workdir, file string) {
 //
 // c1--c2------c4--c5--
 //       \-c3-----/
-func gitSetup(t *testing.T) (string, *Repo, []*Commit) {
+func gitSetup(t *testing.T) (*testutils.GitBuilder, *Repo, []*Commit) {
 	testutils.SkipIfShort(t)
 
-	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	g := testutils.GitInit(t)
+	g.CommitGen("myfile.txt")
 
-	// Set up a git repo.
-	run(t, tmp, "git", "init")
-	run(t, tmp, "git", "remote", "add", "origin", ".")
-	commit(t, tmp, "myfile.txt")
-	run(t, tmp, "git", "push", "origin", "master")
-
-	repo, err := NewRepo(".", tmp)
+	repo, err := NewRepo(".", g.Dir())
 	assert.NoError(t, err)
 
 	c1 := repo.Get("master")
@@ -59,8 +33,7 @@ func gitSetup(t *testing.T) (string, *Repo, []*Commit) {
 	assert.Equal(t, 0, len(c1.GetParents()))
 	assert.False(t, util.TimeIsZero(c1.Timestamp))
 
-	commit(t, tmp, "myfile.txt")
-	run(t, tmp, "git", "push", "origin", "master")
+	g.CommitGen("myfile.txt")
 	assert.NoError(t, repo.Update())
 	c2 := repo.Get("master")
 	assert.NotNil(t, c2)
@@ -70,9 +43,8 @@ func gitSetup(t *testing.T) (string, *Repo, []*Commit) {
 	assert.False(t, util.TimeIsZero(c2.Timestamp))
 
 	// Create a second branch.
-	run(t, tmp, "git", "checkout", "-b", "branch2", "-t", "origin/master")
-	commit(t, tmp, "anotherfile.txt")
-	run(t, tmp, "git", "push", "origin", "branch2")
+	g.CreateBranchTrackBranch("branch2", "origin/master")
+	g.CommitGen("anotherfile.txt")
 	assert.NoError(t, repo.Update())
 	c3 := repo.Get("branch2")
 	assert.NotNil(t, c3)
@@ -81,8 +53,8 @@ func gitSetup(t *testing.T) (string, *Repo, []*Commit) {
 	assert.False(t, util.TimeIsZero(c3.Timestamp))
 
 	// Commit again to master.
-	run(t, tmp, "git", "checkout", "master")
-	commit(t, tmp, "myfile.txt")
+	g.CheckoutBranch("master")
+	g.CommitGen("myfile.txt")
 	assert.NoError(t, repo.Update())
 	assert.Equal(t, c3, repo.Get("branch2"))
 	c4 := repo.Get("master")
@@ -90,7 +62,7 @@ func gitSetup(t *testing.T) (string, *Repo, []*Commit) {
 	assert.False(t, util.TimeIsZero(c4.Timestamp))
 
 	// Merge branch1 into master.
-	run(t, tmp, "git", "merge", "branch2")
+	g.MergeBranch("branch2")
 	assert.NoError(t, repo.Update())
 	assert.Equal(t, []string{"branch2", "master"}, repo.Branches())
 	c5 := repo.Get("master")
@@ -98,12 +70,12 @@ func gitSetup(t *testing.T) (string, *Repo, []*Commit) {
 	assert.Equal(t, c3, repo.Get("branch2"))
 	assert.False(t, util.TimeIsZero(c5.Timestamp))
 
-	return tmp, repo, []*Commit{c1, c2, c3, c4, c5}
+	return g, repo, []*Commit{c1, c2, c3, c4, c5}
 }
 
 func TestGitRepo(t *testing.T) {
-	tmp, repo, commits := gitSetup(t)
-	defer testutils.RemoveAll(t, tmp)
+	g, repo, commits := gitSetup(t)
+	defer g.Cleanup()
 
 	c1 := commits[0]
 	c2 := commits[1]
@@ -122,7 +94,7 @@ func TestGitRepo(t *testing.T) {
 	tmp2, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp2)
-	repo2, err := NewRepo(tmp, tmp2)
+	repo2, err := NewRepo(g.Dir(), tmp2)
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, repo.Branches(), repo2.Branches())
 	m1 := repo.Get("master")
@@ -134,18 +106,18 @@ func TestGitRepo(t *testing.T) {
 }
 
 func TestSerialize(t *testing.T) {
-	tmp, repo, _ := gitSetup(t)
-	defer testutils.RemoveAll(t, tmp)
+	g, repo, _ := gitSetup(t)
+	defer g.Cleanup()
 
 	glog.Infof("New repo.")
-	repo2, err := NewRepo(".", tmp)
+	repo2, err := NewRepo(".", g.Dir())
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, repo, repo2)
 }
 
 func TestRecurse(t *testing.T) {
-	tmp, repo, commits := gitSetup(t)
-	defer testutils.RemoveAll(t, tmp)
+	g, repo, commits := gitSetup(t)
+	defer g.Cleanup()
 
 	c1 := commits[0]
 	c2 := commits[1]
@@ -199,8 +171,8 @@ func TestRecurse(t *testing.T) {
 }
 
 func TestRecurseAllBranches(t *testing.T) {
-	tmp, repo, commits := gitSetup(t)
-	defer testutils.RemoveAll(t, tmp)
+	g, repo, commits := gitSetup(t)
+	defer g.Cleanup()
 
 	c1 := commits[0]
 	c2 := commits[1]
@@ -226,9 +198,8 @@ func TestRecurseAllBranches(t *testing.T) {
 
 	// The above used only one branch. Add a branch and ensure that we see
 	// its commits too.
-	run(t, tmp, "git", "checkout", "-b", "mybranch", "-t", "origin/master")
-	commit(t, tmp, "anotherfile.txt")
-	run(t, tmp, "git", "push", "origin", "mybranch")
+	g.CreateBranchTrackBranch("mybranch", "origin/master")
+	g.CommitGen("anotherfile.txt")
 	assert.NoError(t, repo.Update())
 	c := repo.Get("mybranch")
 	assert.NotNil(t, c)
@@ -237,9 +208,7 @@ func TestRecurseAllBranches(t *testing.T) {
 
 	// Verify that we don't revisit a branch whose HEAD is an ancestor of
 	// a different branch HEAD.
-	run(t, tmp, "git", "checkout", "-b", "ancestorbranch")
-	run(t, tmp, "git", "reset", "--hard", c3.Hash)
-	run(t, tmp, "git", "push", "origin", "ancestorbranch")
+	g.CreateBranchAtCommit("ancestorbranch", c3.Hash)
 	assert.NoError(t, repo.Update())
 	test()
 
