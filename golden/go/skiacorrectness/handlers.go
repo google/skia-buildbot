@@ -960,7 +960,7 @@ func jsonListTrybotsHandler(w http.ResponseWriter, r *http.Request) {
 // setJSONHeaders sets secure headers for JSON responses.
 func setJSONHeaders(w http.ResponseWriter) {
 	h := w.Header()
-	h.Set("Content-Type", "application/javascript; charset=utf-8")
+	h.Set("Content-Type", "application/json")
 	h.Set("X-Content-Type-Options", "nosniff")
 }
 
