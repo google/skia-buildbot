@@ -17,14 +17,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
-const (
-	VARIABLE_SYNTAX = "<(%s)"
-
-	VARIABLE_REPO      = "REPO"
-	VARIABLE_REVISION  = "REVISION"
-	VARIABLE_TASK_NAME = "TASK_NAME"
-)
-
 // taskCandidate is a struct used for determining which tasks to schedule.
 type taskCandidate struct {
 	Commits        []string
@@ -114,12 +106,12 @@ func (c *taskCandidate) MakeIsolateTask(infraBotsDir, baseDir string) *isolate.T
 // replaceVars replaces variable names with their values in a given string.
 func replaceVars(c *taskCandidate, s string) string {
 	replacements := map[string]string{
-		VARIABLE_REPO:      c.Repo,
-		VARIABLE_REVISION:  c.Revision,
-		VARIABLE_TASK_NAME: c.Name,
+		specs.VARIABLE_REPO:      c.Repo,
+		specs.VARIABLE_REVISION:  c.Revision,
+		specs.VARIABLE_TASK_NAME: c.Name,
 	}
 	for k, v := range replacements {
-		s = strings.Replace(s, fmt.Sprintf(VARIABLE_SYNTAX, k), v, -1)
+		s = strings.Replace(s, fmt.Sprintf(specs.VARIABLE_SYNTAX, k), v, -1)
 	}
 	return s
 }
