@@ -11,7 +11,7 @@ import (
 	"github.com/golang/groupcache/lru"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/vcsinfo"
@@ -30,8 +30,8 @@ type CommitIDLong struct {
 	Author string `json:"author"`
 	Desc   string `json:"desc"`
 
-	// Details contains the related information either from git or rietveld.
-	// A nil value means Rietveld failed to respond or the issue was not available.
+	// Details contains the related information either from git or a codereview system..
+	// A nil value means the codereview system failed to respond or the issue was not available.
 	Details interface{} `json:"-"`
 }
 
@@ -57,14 +57,15 @@ type cachedTile struct {
 
 // tileBuilder implements BranchTileBuilder.
 type tileBuilder struct {
-	db        DB
-	vcs       vcsinfo.VCS
-	review    *rietveld.Rietveld
-	reviewURL string
+	db                 DB
+	vcs                vcsinfo.VCS
+	rietveldReview     *rietveld.Rietveld
+	rietveldReviewURL  string
+	rietveldIssueCache *rietveld.CodeReviewCache
 
-	// cache is a cache for rietveld.Issue's. Note that gitinfo has its own cache
-	// for Details(), so we don't need to cache the results.
-	issueCache *rietveld.CodeReviewCache
+	gerritReview          *gerrit.Gerrit
+	gerritReviewURL       string
+	gerritChangeInfoCache *gerrit.CodeReviewCache
 
 	// tcache is a cache for tiles built from CachedTileFromCommits, it stores 'cachedTile's.
 	tcache *lru.Cache
@@ -78,14 +79,18 @@ type tileBuilder struct {
 // querying db.
 //
 // TODO(stephana): The EventBus is used to update the internal cache as commits are updated.
-func NewBranchTileBuilder(db DB, git *gitinfo.GitInfo, review *rietveld.Rietveld, evt *eventbus.EventBus) BranchTileBuilder {
+func NewBranchTileBuilder(db DB, vcs vcsinfo.VCS, rietveldReview *rietveld.Rietveld, gerritReview *gerrit.Gerrit, evt *eventbus.EventBus) BranchTileBuilder {
 	return &tileBuilder{
-		db:         db,
-		vcs:        git,
-		review:     review,
-		reviewURL:  review.Url(),
-		issueCache: rietveld.NewCodeReviewCache(review, time.Minute, MAX_ISSUE_CACHE_SIZE),
-		tcache:     lru.New(MAX_TILE_CACHE_SIZE),
+		db:                 db,
+		vcs:                vcs,
+		rietveldReview:     rietveldReview,
+		rietveldReviewURL:  rietveldReview.Url(),
+		rietveldIssueCache: rietveld.NewCodeReviewCache(rietveldReview, time.Minute, MAX_ISSUE_CACHE_SIZE),
+
+		gerritReview:          gerritReview,
+		gerritReviewURL:       gerritReview.Url(),
+		gerritChangeInfoCache: gerrit.NewCodeReviewCache(gerritReview, time.Minute, MAX_ISSUE_CACHE_SIZE),
+		tcache:                lru.New(MAX_TILE_CACHE_SIZE),
 	}
 }
 
@@ -184,12 +189,12 @@ func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string)
 		})
 	}
 
-	// Populate Author and Desc from gitinfo or rietveld as appropriate.
+	// Populate Author and Desc from gitinfo or code review systems as appropriate.
 	// Caching Rietveld info as needed.
 	for _, c := range results {
-		if strings.HasPrefix(c.Source, b.reviewURL) {
+		if strings.HasPrefix(c.Source, b.rietveldReviewURL) {
 			// Rietveld
-			issueInfo, err := b.getIssue(c.Source)
+			issueInfo, err := b.getRietveldIssue(c.Source)
 			if err != nil {
 				// Only a warning since users can delete Rietveld issues.
 				glog.Warningf("Failed to get details for commit from Rietveld %s: %s", c.ID, err)
@@ -198,6 +203,17 @@ func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string)
 			c.Author = issueInfo.Owner
 			c.Desc = issueInfo.Subject
 			c.Details = issueInfo
+		} else if strings.HasPrefix(c.Source, b.gerritReviewURL) {
+			changeInfo, err := b.getGerritIssue(c.Source)
+			if err != nil {
+				// Only a warning since users can delete Gerrit issues.
+				glog.Warningf("Failed to get details for commit from Gerrit %s: %s", c.ID, err)
+				continue
+			}
+
+			c.Author = changeInfo.Owner.Email
+			c.Desc = changeInfo.Subject
+			c.Details = changeInfo
 		} else {
 			// vcsinfo
 			details, err := b.vcs.Details(c.ID, true)
@@ -214,10 +230,10 @@ func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string)
 	return results
 }
 
-// getIssue parses the source, which looks like
+// getRietveldIssue parses the source, which looks like
 // "https://chromium.codereview.org/1232143243" and returns information about
 // the issue from Rietveld.
-func (b *tileBuilder) getIssue(source string) (*rietveld.Issue, error) {
+func (b *tileBuilder) getRietveldIssue(source string) (*rietveld.Issue, error) {
 	u, err := url.Parse(source)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse trybot source: %s", err)
@@ -231,12 +247,42 @@ func (b *tileBuilder) getIssue(source string) (*rietveld.Issue, error) {
 
 	var issue *rietveld.Issue
 	var ok bool
-	if issue, ok = b.issueCache.Get(issueInt); !ok {
-		issue, err = b.review.GetIssueProperties(int64(issueInt), false)
+	if issue, ok = b.rietveldIssueCache.Get(issueInt); !ok {
+		issue, err = b.rietveldReview.GetIssueProperties(int64(issueInt), false)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to get details for review %s: %s", source, err)
 		}
-		b.issueCache.Add(issueInt, issue)
+		b.rietveldIssueCache.Add(issueInt, issue)
 	}
 	return issue, nil
+}
+
+// getGerritIssue parses the source, which should look like
+// https://skia-review.googlesource.com/c/2781/ and returns information about
+// the issue from Gerrit.
+func (b *tileBuilder) getGerritIssue(source string) (*gerrit.ChangeInfo, error) {
+	u, err := url.Parse(source)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to parse trybot source: %s", err)
+	}
+
+	splitPath := strings.Split(strings.Trim(u.Path, "/"), "/")
+	if (len(splitPath) != 2) || (splitPath[0] != "c") {
+		return nil, fmt.Errorf("Error parsing Gerrit URL. Path format should be /c/<id>. Got %s", u.Path)
+	}
+	changeInfoID, err := strconv.ParseInt(splitPath[1], 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to convert Gerrit issue id: %s. Got error: %s", splitPath[1], err)
+	}
+
+	var changeInfo *gerrit.ChangeInfo
+	var ok bool
+	if changeInfo, ok = b.gerritChangeInfoCache.Get(changeInfoID); !ok {
+		changeInfo, err = b.gerritReview.GetIssueProperties(changeInfoID)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to get details for Gerrit CL %s: %s", source, err)
+		}
+		b.gerritChangeInfoCache.Add(changeInfoID, changeInfo)
+	}
+	return changeInfo, nil
 }

@@ -6,6 +6,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/testutils"
@@ -31,6 +32,9 @@ func TestTrybotResults(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	rietveldAPI := rietveld.New(TEST_CODE_REVIEW_URL, nil)
+	gerritAPI, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", nil)
+	assert.NoError(t, err)
+
 	server, serverAddress := goldingestion.RunGoldTrybotProcessor(t, TEST_TRACE_DB_FILE, TEST_SHAREDB_DIR, TEST_INGESTION_FILE, TEST_DATA_DIR, TEST_CODE_REVIEW_URL)
 	defer util.RemoveAll(TEST_SHAREDB_DIR)
 	defer testutils.Remove(t, TEST_TRACE_DB_FILE)
@@ -44,7 +48,7 @@ func TestTrybotResults(t *testing.T) {
 	assert.NoError(t, err)
 	defer func() { assert.NoError(t, ingestionStore.Close()) }()
 
-	tileBuilder := tracedb.NewBranchTileBuilder(db, nil, rietveldAPI, eventbus.New(nil))
+	tileBuilder := tracedb.NewBranchTileBuilder(db, nil, rietveldAPI, gerritAPI, eventbus.New(nil))
 	tr := NewTrybotResults(tileBuilder, rietveldAPI, ingestionStore)
 	tr.timeFrame = time.Now().Sub(BEGINNING_OF_TIME)
 

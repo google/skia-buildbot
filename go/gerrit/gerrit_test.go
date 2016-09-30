@@ -25,7 +25,7 @@ func skipTestIfRequired(t *testing.T) {
 func TestGerritSearch(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerrit(GERRIT_SKIA_URL, "", nil)
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
 	assert.NoError(t, err)
 
 	t_delta := time.Now().Add(-10 * 24 * time.Hour)
@@ -38,6 +38,7 @@ func TestGerritSearch(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, details.Updated.After(t_delta))
 		assert.True(t, len(details.Patchsets) > 0)
+		assert.Equal(t, "rmistry@google.com", details.Owner.Email)
 	}
 
 	issues, err = api.Search(2, SearchModifiedAfter(time.Now().Add(-time.Hour)))
@@ -49,7 +50,7 @@ func TestGerritSearch(t *testing.T) {
 func GerritPollerTest(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerrit(GERRIT_SKIA_URL, "", nil)
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
 	assert.NoError(t, err)
 
 	cache := NewCodeReviewCache(api, 10*time.Second, 3)
@@ -65,7 +66,7 @@ func GerritPollerTest(t *testing.T) {
 func TestGetTrybotResults(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerrit(GERRIT_SKIA_URL, "", nil)
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
 	assert.NoError(t, err)
 
 	tries, err := api.GetTrybotResults(2347, 7)
@@ -76,7 +77,7 @@ func TestGetTrybotResults(t *testing.T) {
 func TestAddComment(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerrit(GERRIT_SKIA_URL, "", nil)
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
 	assert.NoError(t, err)
 
 	changeInfo, err := api.GetIssueProperties(2370)
@@ -88,7 +89,7 @@ func TestAddComment(t *testing.T) {
 func TestSendToDryRun(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerrit(GERRIT_SKIA_URL, "", nil)
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
 	assert.NoError(t, err)
 
 	// Send to dry run.
@@ -119,7 +120,7 @@ func TestSendToDryRun(t *testing.T) {
 func TestSendToCQ(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerrit(GERRIT_SKIA_URL, "", nil)
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
 	assert.NoError(t, err)
 
 	// Send to CQ.
@@ -150,7 +151,7 @@ func TestSendToCQ(t *testing.T) {
 func TestApprove(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerrit(GERRIT_SKIA_URL, "", nil)
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
 	assert.NoError(t, err)
 
 	// Approve.
@@ -178,10 +179,23 @@ func TestApprove(t *testing.T) {
 	assert.Equal(t, defaultLabelValue, changeInfo.Labels[CODEREVIEW_LABEL].All[0].Value)
 }
 
-func TestDisApprove(t *testing.T) {
+func TestReadOnlyFailure(t *testing.T) {
 	skipTestIfRequired(t)
 
 	api, err := NewGerrit(GERRIT_SKIA_URL, "", nil)
+	assert.NoError(t, err)
+
+	// Approve.
+	changeInfo, err := api.GetIssueProperties(2370)
+	assert.NoError(t, err)
+	err = api.Approve(changeInfo, "LGTM")
+	assert.Error(t, err)
+}
+
+func TestDisApprove(t *testing.T) {
+	skipTestIfRequired(t)
+
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
 	assert.NoError(t, err)
 
 	// DisApprove.

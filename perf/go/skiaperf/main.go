@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
@@ -202,7 +203,14 @@ func Init() {
 	}
 
 	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
-	branchTileBuilder = tracedb.NewBranchTileBuilder(db, git, rietveldAPI, evt)
+
+	// TODO(stephana): Add gerrit url as a flag and pick correct cookie configs.
+	gerritAPI, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", httputils.NewTimeoutClient())
+	if err != nil {
+		glog.Fatalf("Failed to create Gerrit client: %s", err)
+	}
+
+	branchTileBuilder = tracedb.NewBranchTileBuilder(db, git, rietveldAPI, gerritAPI, evt)
 	cidl = cid.New(git, rietveldAPI)
 }
 

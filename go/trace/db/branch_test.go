@@ -1,13 +1,15 @@
 package db
 
 import (
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/golang/groupcache/lru"
-	"github.com/stretchr/testify/assert"
+	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/mockhttpclient"
@@ -16,14 +18,29 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
+const (
+	GERRIT_TEST_FILE = "testdata/gerrit_response.txt"
+	GERRIT_URL       = "https://skia-review.googlesource.com"
+	GERRIT_ISSUE_URL = GERRIT_URL + "/c/2781/"
+)
+
 func TestPerfTrace(t *testing.T) {
 	b, err := ioutil.ReadFile(filepath.Join("testdata", "rietveld_response.txt"))
 	assert.NoError(t, err)
+
+	gerritResp, err := ioutil.ReadFile(GERRIT_TEST_FILE)
+	assert.NoError(t, err)
+
 	m := mockhttpclient.NewURLMock()
 	// Mock this only once to confirm that caching works.
 	m.MockOnce("https://codereview.chromium.org/api/1490543002", mockhttpclient.MockGetDialogue(b))
 
-	review := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
+	issueAPIUrl := fmt.Sprintf("%s/changes/%d/detail?o=ALL_REVISIONS", GERRIT_URL, 2781)
+	m.MockOnce(issueAPIUrl, mockhttpclient.MockGetDialogue(gerritResp))
+
+	rietveldReview := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
+	gerritReview, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", m.Client())
+	assert.NoError(t, err)
 
 	vcsCommits := []*vcsinfo.LongCommit{
 		&vcsinfo.LongCommit{
@@ -36,14 +53,7 @@ func TestPerfTrace(t *testing.T) {
 	}
 	vcs := ingestion.MockVCS(vcsCommits)
 
-	builder := &tileBuilder{
-		db:         nil,
-		vcs:        vcs,
-		review:     review,
-		reviewURL:  "https://codereview.chromium.org",
-		tcache:     lru.New(2),
-		issueCache: rietveld.NewCodeReviewCache(review, time.Minute, 2),
-	}
+	builder := NewBranchTileBuilder(nil, vcs, rietveldReview, gerritReview, nil).(*tileBuilder)
 
 	now := time.Unix(100, 0)
 	commits := []*CommitID{
@@ -51,6 +61,11 @@ func TestPerfTrace(t *testing.T) {
 			Timestamp: time.Now().Unix(),
 			ID:        "1",
 			Source:    "https://codereview.chromium.org/1490543002",
+		},
+		&CommitID{
+			Timestamp: time.Now().Unix(),
+			ID:        "2",
+			Source:    GERRIT_ISSUE_URL,
 		},
 		&CommitID{
 			Timestamp: time.Now().Unix(),
@@ -71,14 +86,25 @@ func TestPerfTrace(t *testing.T) {
 	assert.Equal(t, "no merge conflicts here.", long[0].Desc)
 	assert.Equal(t, "jcgregorio", long[0].Author)
 
+	long = builder.convertToLongCommits(commits, GERRIT_URL)
+	assert.Equal(t, 1, len(long), "Only one commit should match the Gerrit trybot.")
+	assert.Equal(t, "2", long[0].ID)
+	assert.Equal(t, "Some Test subject", long[0].Desc)
+	assert.Equal(t, "jdoe@example.com", long[0].Author)
+
 	long = builder.convertToLongCommits(commits, "")
-	assert.Equal(t, 2, len(long), "Both commits should now appear.")
+	assert.Equal(t, 3, len(long), "All commits should now appear.")
 	assert.Equal(t, "1", long[0].ID)
 	assert.Equal(t, "no merge conflicts here.", long[0].Desc)
 	assert.Equal(t, "jcgregorio", long[0].Author)
-	assert.Equal(t, "foofoofoo", long[1].ID)
-	assert.Equal(t, "some commit", long[1].Desc)
-	assert.Equal(t, "bar@example.com", long[1].Author)
+
+	assert.Equal(t, "2", long[1].ID)
+	assert.Equal(t, "Some Test subject", long[1].Desc)
+	assert.Equal(t, "jdoe@example.com", long[1].Author)
+
+	assert.Equal(t, "foofoofoo", long[2].ID)
+	assert.Equal(t, "some commit", long[2].Desc)
+	assert.Equal(t, "bar@example.com", long[2].Author)
 
 	badCommits := []*CommitID{
 		&CommitID{
@@ -153,10 +179,10 @@ func TestTileFromCommits(t *testing.T) {
 	// Now test tileBuilder.
 	review := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
 	builder := &tileBuilder{
-		db:         ts,
-		vcs:        vcs,
-		tcache:     lru.New(2),
-		issueCache: rietveld.NewCodeReviewCache(review, time.Minute, 2),
+		db:                 ts,
+		vcs:                vcs,
+		tcache:             lru.New(2),
+		rietveldIssueCache: rietveld.NewCodeReviewCache(review, time.Minute, 2),
 	}
 	tile, err := builder.CachedTileFromCommits(commitIDs)
 	assert.NoError(t, err)
