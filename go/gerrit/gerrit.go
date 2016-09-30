@@ -35,22 +35,28 @@ const (
 
 // ChangeInfo contains information about a Gerrit issue.
 type ChangeInfo struct {
-	Created         time.Time
-	CreatedString   string `json:"created"`
-	Updated         time.Time
-	UpdatedString   string `json:"updated"`
-	Submitted       time.Time
-	SubmittedString string `json:"submitted"`
-	Project         string
-	ChangeId        string `json:"change_id"`
-	Subject         string
-	Branch          string
-	Committed       bool
-	Revisions       map[string]Revision
-	Patchsets       []*PatchSet
-	MoreChanges     bool  `json:"_more_changes"`
-	Issue           int64 `json:"_number"`
-	Labels          map[string]*LabelEntry
+	Created         time.Time              `json:"-"`
+	CreatedString   string                 `json:"created"`
+	Updated         time.Time              `json:"-"`
+	UpdatedString   string                 `json:"updated"`
+	Submitted       time.Time              `json:"-"`
+	SubmittedString string                 `json:"submitted"`
+	Project         string                 `json:"project"`
+	ChangeId        string                 `json:"change_id"`
+	Subject         string                 `json:"subject"`
+	Branch          string                 `json:"branch"`
+	Committed       bool                   `json:"committed"`
+	Revisions       map[string]Revision    `json:"revisions"`
+	Patchsets       []*PatchSet            `json:"patchsets"`
+	MoreChanges     bool                   `json:"_more_changes"`
+	Issue           int64                  `json:"_number"`
+	Labels          map[string]*LabelEntry `json:"labels"`
+	Owner           *Owner                 `json:"owner"`
+}
+
+// Owner gathers the owner information of a ChangeInfo instance. Some fields ommitted.
+type Owner struct {
+	Email string `json:"email"`
 }
 
 type LabelEntry struct {
@@ -82,18 +88,11 @@ type Gerrit struct {
 	cookies map[string]string
 }
 
-// NewGerrit returns a new Gerrit instance. If gitCookiesPath is empty then the
-// .gitcookies in the users's home directory will be used for authenticated
-// post calls like modifying issues.
+// NewGerrit returns a new Gerrit instance. If gitCookiesPath is empty the
+// instance will be in read-only mode and only return information available to
+// anonymous users.
 func NewGerrit(url, gitCookiesPath string, client *http.Client) (*Gerrit, error) {
 	url = strings.TrimRight(url, "/")
-	if gitCookiesPath == "" {
-		usr, err := user.Current()
-		if err != nil {
-			return nil, err
-		}
-		gitCookiesPath = filepath.Join(usr.HomeDir, ".gitcookies")
-	}
 	cookies, err := getCredentials(gitCookiesPath)
 	if err != nil {
 		return nil, err
@@ -110,10 +109,28 @@ func NewGerrit(url, gitCookiesPath string, client *http.Client) (*Gerrit, error)
 	}, nil
 }
 
+// DefaultGitCookiesPath returns the default cookie file. The return value
+// can be used as the input to NewGerrit. If it cannot be retrieved an
+// error will be logged and the empty string is returned.
+func DefaultGitCookiesPath() string {
+	usr, err := user.Current()
+	if err != nil {
+		glog.Errorf("Unable to retrieve default git cookies path")
+		return ""
+	}
+	return filepath.Join(usr.HomeDir, ".gitcookies")
+}
+
 // getCredentials returns the parsed contents of .gitCookies.
 // This logic has been borrowed from
 // https://cs.chromium.org/chromium/tools/depot_tools/gerrit_util.py?l=143
 func getCredentials(gitCookiesPath string) (map[string]string, error) {
+	// Set empty cookies if no path was given and issue a warning.
+	if gitCookiesPath == "" {
+		glog.Infof("Gerrit client initialized in read-only mode. ")
+		return map[string]string{}, nil
+	}
+
 	gitCookies := map[string]string{}
 
 	dat, err := ioutil.ReadFile(gitCookiesPath)
@@ -138,6 +155,11 @@ func getCredentials(gitCookiesPath string) (map[string]string, error) {
 func parseTime(t string) time.Time {
 	parsed, _ := time.Parse(TIME_FORMAT, t)
 	return parsed
+}
+
+// Url returns the url of the Gerrit instance targeted by this instance.
+func (g *Gerrit) Url() string {
+	return g.url
 }
 
 // GetIssueProperties returns a fully filled-in ChangeInfo object, as opposed to
