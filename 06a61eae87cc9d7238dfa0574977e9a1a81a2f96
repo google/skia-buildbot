@@ -1,0 +1,260 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a566efce_fd70036b",
+        "filename": "go/paramtools/params.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-09-30T19:01:12Z",
+      "side": 1,
+      "message": "initialize -\u003e initialized\ngivent -\u003e given",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_010dec97",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 728,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-09-30T19:01:12Z",
+      "side": 1,
+      "message": "CTQuery",
+      "range": {
+        "startLine": 728,
+        "startChar": 28,
+        "endLine": 728,
+        "endChar": 34
+      },
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_a10fd890",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 759,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-09-30T19:01:12Z",
+      "side": 1,
+      "message": "calculate",
+      "range": {
+        "startLine": 759,
+        "startChar": 27,
+        "endLine": 759,
+        "endChar": 36
+      },
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_e109e08b",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 788,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-09-30T19:01:12Z",
+      "side": 1,
+      "message": "I take it in a future CL you\u0027ll make these values correct?",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_41e9b4a4",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 797,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-09-30T19:01:12Z",
+      "side": 1,
+      "message": "Sentence trailed off.",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_c12944f3",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 809,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-09-30T19:01:12Z",
+      "side": 1,
+      "message": "Why is this nil?  Shouldn\u0027t it be something that compares to ghe given query?",
+      "range": {
+        "startLine": 809,
+        "startChar": 36,
+        "endLine": 809,
+        "endChar": 39
+      },
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_61e8309f",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 882,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-09-30T19:01:12Z",
+      "side": 1,
+      "message": "add a digests and it\u0027s trace -\u003e add a digest and its trace",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_0134cc49",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 922,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-09-30T19:01:12Z",
+      "side": 1,
+      "message": "Why is \"something\" hardcoded?  If it isn\u0027t supposed to be, could you add a TODO explaining what would go here in the future?",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_7d7dd33c",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-09-30T19:01:12Z",
+      "side": 1,
+      "message": "Any reason this is commented out?",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_01a96c77",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-09-30T19:01:12Z",
+      "side": 1,
+      "message": "This eventbus uses an external thing, NSQ, right?  Would it make sense for us to mock the bus to avoid any flakiness based on the event bus?  Or is it solid enough to use?",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_e1a5609d",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-09-30T19:01:12Z",
+      "side": 1,
+      "message": "Do we want to introduce mock times instead of actually using the system clock?",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_c112e4bc",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-09-30T19:01:12Z",
+      "side": 1,
+      "message": "Could you explain what this query is doing?  It seems to be a select all where name \u003d testName, for all testNames, i.e. everything in the sample data?",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_a1b078d8",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-09-30T19:01:12Z",
+      "side": 1,
+      "message": "Can you expand a bit more on why the expectations are what they are.  It is not obvious to me why, for example, the assertions on line 130-132, 137 are correct.",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_01be8caa",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-09-30T19:01:12Z",
+      "side": 1,
+      "message": "Row digest %s found int result -\u003e Row digest %s found in result\n????",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
