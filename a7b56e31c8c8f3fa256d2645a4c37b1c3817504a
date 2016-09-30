@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "22459584_414d34c5",
+        "filename": "go/gitrepo/gitrepo_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-30T19:25:19Z",
+      "side": 1,
+      "message": "I\u0027d prefer this be \"origin/master\"",
+      "range": {
+        "startLine": 46,
+        "startChar": 38,
+        "endLine": 46,
+        "endChar": 39
+      },
+      "revId": "a7b56e31c8c8f3fa256d2645a4c37b1c3817504a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_2152a868",
+        "filename": "go/gitrepo/gitrepo_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-30T19:25:19Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 201,
+        "startChar": 40,
+        "endLine": 201,
+        "endChar": 46
+      },
+      "revId": "a7b56e31c8c8f3fa256d2645a4c37b1c3817504a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
