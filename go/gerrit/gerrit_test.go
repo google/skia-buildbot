@@ -38,6 +38,7 @@ func TestGerritSearch(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, details.Updated.After(t_delta))
 		assert.True(t, len(details.Patchsets) > 0)
+		assert.Equal(t, "rmistry@google.com", details.Owner.Email)
 	}
 
 	issues, err = api.Search(2, SearchModifiedAfter(time.Now().Add(-time.Hour)))
