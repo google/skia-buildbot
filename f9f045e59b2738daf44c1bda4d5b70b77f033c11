@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "22459584_1ef9cdde",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-09-30T16:21:21Z",
+      "side": 1,
+      "message": "nit: errot - \u003e error",
+      "range": {
+        "startLine": 114,
+        "startChar": 3,
+        "endLine": 114,
+        "endChar": 8
+      },
+      "revId": "f9f045e59b2738daf44c1bda4d5b70b77f033c11",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_7efe11c8",
+        "filename": "go/gerrit/gerrit_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-09-30T16:21:21Z",
+      "side": 1,
+      "message": "Nittiest of Nits: Remove newline here (to keep it consistent with the other test cases).",
+      "revId": "f9f045e59b2738daf44c1bda4d5b70b77f033c11",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_5e0355e8",
+        "filename": "go/trace/db/branch.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-09-30T16:21:21Z",
+      "side": 1,
+      "message": "Update this comment.",
+      "revId": "f9f045e59b2738daf44c1bda4d5b70b77f033c11",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
