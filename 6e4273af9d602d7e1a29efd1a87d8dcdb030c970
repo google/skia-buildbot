@@ -1,0 +1,251 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c541232d_cbb0d54c",
+        "filename": "task_scheduler/go/scheduling/perftest/perftest.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-30T02:20:05Z",
+      "side": 1,
+      "message": "uber-nitpick: would \"tryjobs\" be more accurate?",
+      "range": {
+        "startLine": 31,
+        "startChar": 38,
+        "endLine": 31,
+        "endChar": 45
+      },
+      "revId": "6e4273af9d602d7e1a29efd1a87d8dcdb030c970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c541232d_cb71b59f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2051,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-30T02:20:05Z",
+      "side": 1,
+      "message": "nit: maybe limit the loop iterations in case a bug causes an infinite loop\n\nsame below",
+      "range": {
+        "startLine": 2051,
+        "startChar": 1,
+        "endLine": 2051,
+        "endChar": 6
+      },
+      "revId": "6e4273af9d602d7e1a29efd1a87d8dcdb030c970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c541232d_abab89dd",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-30T02:20:05Z",
+      "side": 1,
+      "message": "Maybe assert.True(t, mock.Empty()) at the end to test this is done?",
+      "range": {
+        "startLine": 2101,
+        "startChar": 1,
+        "endLine": 2101,
+        "endChar": 47
+      },
+      "revId": "6e4273af9d602d7e1a29efd1a87d8dcdb030c970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c541232d_ebb59139",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-30T02:20:05Z",
+      "side": 1,
+      "message": "nit: \"Build Bucket project names\" (unless these are more general)",
+      "range": {
+        "startLine": 54,
+        "startChar": 41,
+        "endLine": 54,
+        "endChar": 54
+      },
+      "revId": "6e4273af9d602d7e1a29efd1a87d8dcdb030c970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_43002ca9",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-30T02:20:05Z",
+      "side": 1,
+      "message": "Can be removed?",
+      "range": {
+        "startLine": 73,
+        "startChar": 1,
+        "endLine": 73,
+        "endChar": 32
+      },
+      "revId": "6e4273af9d602d7e1a29efd1a87d8dcdb030c970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a566efce_8e326b5c",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-30T02:20:05Z",
+      "side": 1,
+      "message": "Do we need to Update first?\n\nDo we need to worry about ordering with JobFinished? E.g.\n1. goroutine 1 calls sendHeartbeats, gets Job A from UnfinishedJobs\n2. goroutine 2 calls TaskScheduler.updateUnfinishedJobs, gets Job A from UnfinishedJobs\n3. goroutine 2 calls JobFinished on Job A; we tell Build Bucket that the job is finished\n4. goroutine 1 sends a heartbeat for Job A; Build Bucket returns an error\n5. goroutine 1 calls localCancelJobs and gets ErrConcurrentUpdate",
+      "range": {
+        "startLine": 109,
+        "startChar": 24,
+        "endLine": 109,
+        "endChar": 49
+      },
+      "revId": "6e4273af9d602d7e1a29efd1a87d8dcdb030c970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c541232d_2bb8792f",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-30T02:20:05Z",
+      "side": 1,
+      "message": "Can be removed?",
+      "range": {
+        "startLine": 187,
+        "startChar": 1,
+        "endLine": 187,
+        "endChar": 55
+      },
+      "revId": "6e4273af9d602d7e1a29efd1a87d8dcdb030c970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c541232d_8bf40de9",
+        "filename": "task_scheduler/go/trybots/trybots.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-30T02:20:05Z",
+      "side": 1,
+      "message": "FWIW, rather than adding JobDB.AssignJobId, I somewhat prefer splitting JOB_STATUS_IN_PROGRESS into JOB_STATUS_PENDING and JOB_STATUS_STARTED (or RUNNING to match Task); or adding a BuildbucketStatus field.",
+      "range": {
+        "startLine": 356,
+        "startChar": 4,
+        "endLine": 356,
+        "endChar": 22
+      },
+      "revId": "6e4273af9d602d7e1a29efd1a87d8dcdb030c970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e230ddea_26e8ca9d",
+        "filename": "task_scheduler/go/trybots/trybots_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-30T02:20:05Z",
+      "side": 1,
+      "message": "Nice tests!",
+      "revId": "6e4273af9d602d7e1a29efd1a87d8dcdb030c970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e230ddea_0686ee17",
+        "filename": "task_scheduler/go/trybots/trybots_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-30T02:20:05Z",
+      "side": 1,
+      "message": "maybe also test failure to cancel",
+      "range": {
+        "startLine": 347,
+        "startChar": 1,
+        "endLine": 347,
+        "endChar": 34
+      },
+      "revId": "6e4273af9d602d7e1a29efd1a87d8dcdb030c970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e230ddea_c6a8e675",
+        "filename": "task_scheduler/go/trybots/trybots_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-30T02:20:05Z",
+      "side": 1,
+      "message": "nit: Current code doesn\u0027t cancel when jobStarted fails. (And IMO, we shouldn\u0027t, but it would be good to follow up with Build Bucket czars to find out for sure.)",
+      "range": {
+        "startLine": 432,
+        "startChar": 42,
+        "endLine": 433,
+        "endChar": 12
+      },
+      "revId": "6e4273af9d602d7e1a29efd1a87d8dcdb030c970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
