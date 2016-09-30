@@ -130,12 +130,18 @@
       return sk.truncate(subject, 72);
     }
 
+    // rmistry: Fix me...
     function findIssueNumber(commit) {
       // If there are multiple Review URLs in a CL then it selects the last one.
-      var re = /(.|[\r\n])*Review-Url: https:\/\/codereview.chromium.org\/([0-9]*)/g;
-      var tokens = re.exec(commit.body);
-      if (tokens) {
-        return tokens[tokens.length - 1];
+      var rietveldRE = /(.|[\r\n])*Review-Url: https:\/\/codereview.chromium.org\/([0-9]*)/g;
+      var rietveldTokens = rietveldRE.exec(commit.body);
+      if (rietveldTokens) {
+        return rietveldTokens[rietveldTokens.length - 1];
+      }
+      var gerritRE = /(.|[\r\n])*Reviewed-on: https:\/\/skia-review.googlesource.com\/([0-9]*)/g;
+      var gerritTokens = gerritRE.exec(commit.body);                        
+      if (gerritTokens) {                                                     
+        return gerritTokens[gerritTokens.length - 1];                       
       }
     }
 
@@ -143,9 +149,23 @@
     function isRevert(commit) {
       // Check to see if this is a revert CL. The subject of the CL needs to start with
       // "Revert " or "Reland " (relands are reverts of the original revert).
-      return (/^Revert /g.test(commit.subject) || /^Reland /g.test(commit.subject))
+     
+      // rmistry this is only for Gerrit!
+      var m;
+      var times = 0;
+      var s = commit.subject;
+      while ((m = /^Revert "(.*)/g.exec(s)) != null) {
+        s = m[1];
+        times++;
+      }
+      if (times === 0) {
+        // It's not a Gerrit revert. See if it is a Rietveld revert.
+        return (/^Revert /g.test(commit.subject) || /^Reland /g.test(commit.subject))
+      }
+      return (times % 2 !== 0)
     }
 
+    // rmistry: Fix me similarly!!!
     // Return whether this commit relanded another commit.
     function isReland(commit) {
       // Check to see if this is a reland CL. The subject of the CL needs to start with
@@ -155,12 +175,15 @@
 
     // Find and return the hash of the reverted commit that is the specified number of levels
     // deep.
+    // rmistry:Chagne this from hash to the issue number
+    // TODO(rmistry): Make sure that if rietveld is used then r is chosed. Gerrit then g is used.
     function findRevertedHash(commit, levelsDeep) {
       var levelsDeepStr = "";
       for (i=0; i<levelsDeep; i++) {
         levelsDeepStr += "\\> ";
       }
-      var patt = new RegExp("(.|[\\r\\n])*" + levelsDeepStr + "Committed\\: https://skia\.googlesource\.com/skia/\\+/([a-z0-9]*)", "g");
+      var patt = new RegExp("(.|[\\r\\n])*" + levelsDeepStr + "Reviewed-on\\: https://skia-review\.googlesource\.com/([0-9]*)", "g");
+      // var patt = new RegExp("(.|[\\r\\n])*" + levelsDeepStr + "Committed\\: https://skia\.googlesource\.com/skia/\\+/([a-z0-9]*)", "g");
       var tokens = patt.exec(commit.body);
       if (tokens) {
         return tokens[tokens.length - 1];
@@ -382,13 +405,16 @@
           commit.shortHash = shortCommit(commit.hash);
           commit.shortSubject = shortSubject(commit.subject);
           commit.issue = findIssueNumber(commit);
+          // rmistry: Fix me!
           commit.isRevert = isRevert(commit);
           if (commit.isRevert) {
-              this.reverted_map[findRevertedHash(commit, 1)] = commit.hash;
+              console.log("I AM A REVERT: " + commit.subject);
+              this.reverted_map[findRevertedHash(commit, 1)] = commit.issue;
           }
           commit.isReland = isReland(commit);
           if (commit.isReland) {
-              this.relanded_map[findRevertedHash(commit, 2)] = commit.hash;
+              // rmistry: Test me as well like you do the above!
+              this.relanded_map[findRevertedHash(commit, 2)] = commit.issue;
           }
           commit.displayClass = {};
           for (var builder in build_details[commit.hash]) {

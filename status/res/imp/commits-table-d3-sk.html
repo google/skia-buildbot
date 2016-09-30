@@ -206,14 +206,15 @@
             commit.index = i;
             return commit.hash;
           });
-        // Create a commit div for each commit with id "h + hash" element selectors choke
+        // Create a commit div for each commit with id "h + codereview_number" element selectors choke
         // if an id starts with a number, thus the h prefix.
         var newCommits = data
           .enter()
           .append("div")
           .classed("commit",true)
+          // rmistry:
           .attr("id", function(commit){
-            return "h"+commit.hash;
+            return "h"+commit.issue;
           })
           .on("tap", function(commit) {
             // Stop the propogation so we don't immediately hide the popup we show.
@@ -279,6 +280,7 @@
             return commit.shortSubject || "[no subject]";
         });
 
+        // rmistry: use issues instead
         newCommits
           .insert("div")
           .classed("flex", true);
@@ -287,20 +289,20 @@
           return commit.comments && commit.comments.length > 0;
         });
         var reverts = this._addIronIcon(newCommits, "icons:undo", "tiny revert", function(commit){
-          return reverted_map[commit.hash] !== undefined;
+          return reverted_map[commit.issue] !== undefined;
         });
         reverts.on("mouseover", function(commit){
-          var reverterHash = reverted_map[commit.hash];
+          var reverterHash = reverted_map[commit.issue];
           d3.select("#h"+reverterHash).classed("revert", true);
         })
         reverts.on("mouseleave", function(commit){
           d3.selectAll(".commit.revert").classed("revert", false);
         })
         var relands = this._addIronIcon(newCommits, "icons:redo","tiny reland", function(commit){
-          return relanded_map[commit.hash] !== undefined;
+          return relanded_map[commit.issue] !== undefined;
         });
         relands.on("mouseover", function(commit){
-          var relanderHash = relanded_map[commit.hash];
+          var relanderHash = relanded_map[commit.issue];
           d3.select("#h"+relanderHash).classed("reland", true);
         })
         relands.on("mouseleave", function(commit){
