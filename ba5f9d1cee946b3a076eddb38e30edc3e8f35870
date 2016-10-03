@@ -172,6 +172,24 @@
     },
     {
       "key": {
+        "uuid": "22459584_670320e9",
+        "filename": "go/util/util.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 625,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-03T19:00:57Z",
+      "side": 1,
+      "message": "Oh, right.",
+      "parentUuid": "e2e61dfe_258814d5",
+      "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22459584_e74a904e",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 6
