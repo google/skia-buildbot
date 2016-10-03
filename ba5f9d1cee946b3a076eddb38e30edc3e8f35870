@@ -82,6 +82,24 @@
     },
     {
       "key": {
+        "uuid": "e2e61dfe_258814d5",
+        "filename": "go/util/util.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 625,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2016-10-03T18:55:13Z",
+      "side": 1,
+      "message": "order of cases does not matter for çode execution https://golang.org/ref/spec#Select_statements",
+      "parentUuid": "22459584_074e9c64",
+      "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22459584_e74a904e",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 6
@@ -110,6 +128,24 @@
       "writtenOn": "2016-10-03T18:47:45Z",
       "side": 1,
       "message": "Missing go. x2",
+      "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e2e61dfe_e5854cba",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2016-10-03T18:55:13Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "22459584_277e3870",
       "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
