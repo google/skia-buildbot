@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"net/http"
 	"os"
 	"path"
 	"sort"
 	"strings"
 	"sync"
 	"time"
+
+	"golang.org/x/net/context"
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/skia-dev/glog"
@@ -26,6 +29,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/tryjobs"
 )
 
 const (
@@ -59,10 +63,11 @@ type TaskScheduler struct {
 	taskCfgCache     *specs.TaskCfgCache
 	tCache           db.TaskCache
 	timeDecayAmt24Hr float64
+	tryjobs          *tryjobs.TryJobIntegrator
 	workdir          string
 }
 
-func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, timeDecayAmt24Hr float64) (*TaskScheduler, error) {
+func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		return nil, err
@@ -91,6 +96,12 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames [
 			return nil, err
 		}
 	}
+	taskCfgCache := specs.NewTaskCfgCache(rm)
+	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, c, d, jCache, projectRepoMapping, rm, taskCfgCache)
+	if err != nil {
+		return nil, err
+	}
+
 	s := &TaskScheduler{
 		bl:               bl,
 		db:               d,
@@ -102,17 +113,19 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames [
 		repoMap:          rm,
 		repos:            repos,
 		swarming:         swarmingClient,
-		taskCfgCache:     specs.NewTaskCfgCache(rm),
+		taskCfgCache:     taskCfgCache,
 		tCache:           tCache,
 		timeDecayAmt24Hr: timeDecayAmt24Hr,
+		tryjobs:          tryjobs,
 		workdir:          workdir,
 	}
 	return s, nil
 }
 
 // Start initiates the TaskScheduler's goroutines for scheduling tasks.
-func (s *TaskScheduler) Start() {
-	go func() {
+func (s *TaskScheduler) Start(ctx context.Context) {
+	s.tryjobs.Start(ctx)
+	go util.RepeatCtx(time.Minute, ctx, func() {
 		lv := metrics2.NewLiveness("last-successful-task-scheduling")
 		for _ = range time.Tick(time.Minute) {
 			if err := s.MainLoop(); err != nil {
@@ -121,7 +134,7 @@ func (s *TaskScheduler) Start() {
 				lv.Reset()
 			}
 		}
-	}()
+	})
 }
 
 // TaskSchedulerStatus is a struct which provides status information about the
@@ -335,7 +348,7 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(unfinishedJobs []*db.Job) (map
 			}
 		}
 	}
-	glog.Infof("Found %d task specs for %d unfinished jobs.", len(candidates), len(unfinishedJobs))
+	glog.Infof("Found %d task candidates for %d unfinished jobs.", len(candidates), len(unfinishedJobs))
 	return candidates, nil
 }
 
@@ -404,7 +417,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 		candidates[c.Name] = append(candidates[c.Name], c)
 		total++
 	}
-	glog.Infof("Found %d candidates in %d spec categories.", total, len(candidatesBySpec))
+	glog.Infof("Filtered to %d candidates in %d spec categories.", total, len(candidatesBySpec))
 	return candidatesBySpec, nil
 }
 
@@ -1231,6 +1244,7 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 	}
 
 	modified := make([]*db.Job, 0, len(jobs))
+	errs := []error{}
 	for _, j := range jobs {
 		status, err := getWorstJobStatus(j, s.tCache, s.taskCfgCache)
 		if err != nil {
@@ -1238,14 +1252,30 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 		}
 		if status != j.Status {
 			j.Status = status
+
+			if j.IsTryJob() && j.Done() {
+				// Report the try job status to Buildbucket. If
+				// we fail to do so, don't insert the updated
+				// Job into the DB - we'll come back to it on
+				// the next loop.
+				if err := s.tryjobs.JobFinished(j); err != nil {
+					errs = append(errs, fmt.Errorf("Failed to send update for try job: %s", err))
+					continue
+				}
+			}
+
 			modified = append(modified, j)
 		}
 	}
-	if len(modified) == 0 {
-		return nil
+	if len(modified) > 0 {
+		if err := s.db.PutJobs(modified); err != nil {
+			errs = append(errs, err)
+		} else if err := s.jCache.Update(); err != nil {
+			errs = append(errs, err)
+		}
 	}
-	if err := s.db.PutJobs(jobs); err != nil {
-		return err
+	if len(errs) > 0 {
+		return fmt.Errorf("Got errors updating unfinished jobs: %v", errs)
 	}
-	return s.jCache.Update()
+	return nil
 }

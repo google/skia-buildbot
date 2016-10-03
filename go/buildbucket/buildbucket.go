@@ -8,13 +8,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"time"
 
+	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/util"
 )
 
 const (
-	apiUrl = "https://cr-buildbucket.appspot.com/_ah/api/buildbucket/v1"
+	apiUrl = "https://cr-buildbucket.appspot.com/api/buildbucket/v1"
 )
 
 var (
@@ -24,26 +24,42 @@ var (
 	}
 )
 
-type buildBucketAuthor struct {
+type Author struct {
 	Email string `json:"email"`
 }
 
-type buildBucketChange struct {
-	Author     *buildBucketAuthor `json:"author"`
-	Repository string             `json:"repo_url"`
-	Revision   string             `json:"revision"`
+type Change struct {
+	Author     *Author `json:"author"`
+	Repository string  `json:"repo_url"`
+	Revision   string  `json:"revision"`
 }
 
-type buildBucketError struct {
+type Error struct {
 	Message string `json:"message"`
 	Reason  string `json:"reason"`
 }
 
-type buildBucketParameters struct {
-	BuilderName string               `json:"builder_name"`
-	Changes     []*buildBucketChange `json:"changes"`
-	Properties  map[string]string    `json:"properties"`
-	Swarming    *swarming            `json:"swarming,omitempty"`
+type Properties struct {
+	AttemptStartTs   int64            `json:"attempt_start_ts"`
+	Category         string           `json:"category"`
+	Gerrit           string           `json:"gerrit"`
+	GerritIssue      string           `json:"event.change.number"`
+	GerritPatchset   string           `json:"event.patchSet.ref"`
+	Master           string           `json:"master"`
+	PatchProject     string           `json:"patch_project"`
+	PatchStorage     string           `json:"patch_storage"`
+	Reason           string           `json:"reason"`
+	Revision         string           `json:"revision,omitempty"`
+	Rietveld         string           `json:"rietveld"`
+	RietveldIssue    jsonutils.Number `json:"issue"`
+	RietveldPatchset jsonutils.Number `json:"patchset"`
+}
+
+type Parameters struct {
+	BuilderName string     `json:"builder_name"`
+	Changes     []*Change  `json:"changes"`
+	Properties  Properties `json:"properties"`
+	Swarming    *swarming  `json:"swarming,omitempty"`
 }
 
 type swarming struct {
@@ -60,63 +76,28 @@ type buildBucketRequest struct {
 }
 
 type buildBucketResponse struct {
-	Build *Build            `json:"build"`
-	Error *buildBucketError `json:"error"`
-	Kind  string            `json:"kind"`
-	Etag  string            `json:"etag"`
+	Build *Build `json:"build"`
+	Error *Error `json:"error"`
+	Kind  string `json:"kind"`
+	Etag  string `json:"etag"`
 }
 
 // Build is a struct containing information about a build in BuildBucket.
 type Build struct {
-	Bucket                 string `json:"bucket"`
-	CompletedTimestamp     string `json:"completed_ts"`
-	CreatedBy              string `json:"created_by"`
-	CreatedTimestamp       string `json:"created_ts"`
-	FailureReason          string `json:"failure_reason"`
-	Id                     string `json:"id"`
-	Url                    string `json:"url"`
-	ParametersJson         string `json:"parameters_json"`
-	Result                 string `json:"result"`
-	ResultDetailsJson      string `json:"result_details_json"`
-	Status                 string `json:"status"`
-	StatusChangedTimestamp string `json:"status_changed_ts"`
-	UpdatedTimestamp       string `json:"updated_ts"`
-	UtcNowTimestamp        string `json:"utcnow_ts"`
-}
-
-func (b *Build) Copy() *Build {
-	return &Build{
-		Bucket:                 b.Bucket,
-		CompletedTimestamp:     b.CompletedTimestamp,
-		CreatedBy:              b.CreatedBy,
-		CreatedTimestamp:       b.CreatedTimestamp,
-		FailureReason:          b.FailureReason,
-		Id:                     b.Id,
-		Url:                    b.Url,
-		ParametersJson:         b.ParametersJson,
-		Result:                 b.Result,
-		ResultDetailsJson:      b.ResultDetailsJson,
-		Status:                 b.Status,
-		StatusChangedTimestamp: b.StatusChangedTimestamp,
-		UpdatedTimestamp:       b.UpdatedTimestamp,
-		UtcNowTimestamp:        b.UtcNowTimestamp,
-	}
-}
-
-func (b *Build) Created() (time.Time, error) {
-	return util.ParseTimeNs(b.CreatedTimestamp)
-}
-
-func (b *Build) Completed() (time.Time, error) {
-	return util.ParseTimeNs(b.CompletedTimestamp)
-}
-
-func (b *Build) StatusChanged() (time.Time, error) {
-	return util.ParseTimeNs(b.StatusChangedTimestamp)
-}
-
-func (b *Build) Updated() (time.Time, error) {
-	return util.ParseTimeNs(b.UpdatedTimestamp)
+	Bucket            string         `json:"bucket"`
+	Completed         jsonutils.Time `json:"completed_ts"`
+	CreatedBy         string         `json:"created_by"`
+	Created           jsonutils.Time `json:"created_ts"`
+	FailureReason     string         `json:"failure_reason"`
+	Id                string         `json:"id"`
+	Url               string         `json:"url"`
+	ParametersJson    string         `json:"parameters_json"`
+	Result            string         `json:"result"`
+	ResultDetailsJson string         `json:"result_details_json"`
+	Status            string         `json:"status"`
+	StatusChanged     jsonutils.Time `json:"status_changed_ts"`
+	Updated           jsonutils.Time `json:"updated_ts"`
+	UtcNow            jsonutils.Time `json:"utcnow_ts"`
 }
 
 // Client is used for interacting with the BuildBucket API.
@@ -132,19 +113,19 @@ func NewClient(c *http.Client) *Client {
 // RequestBuild adds a request for the given build. The swarmingBotId parameter
 // may be the empty string, in which case the build may run on any bot.
 func (c *Client) RequestBuild(builder, master, commit, repo, author, swarmingBotId string) (*Build, error) {
-	p := buildBucketParameters{
+	p := Parameters{
 		BuilderName: builder,
-		Changes: []*buildBucketChange{
-			&buildBucketChange{
-				Author: &buildBucketAuthor{
+		Changes: []*Change{
+			{
+				Author: &Author{
 					Email: author,
 				},
 				Repository: repo,
 				Revision:   commit,
 			},
 		},
-		Properties: map[string]string{
-			"reason": "Triggered by SkiaScheduler",
+		Properties: Properties{
+			Reason: "Triggered by SkiaScheduler",
 		},
 	}
 	if swarmingBotId != "" {
@@ -178,15 +159,14 @@ func (c *Client) RequestBuild(builder, master, commit, repo, author, swarmingBot
 	if err != nil {
 		return nil, err
 	}
+	defer util.Close(resp.Body)
 	if resp.StatusCode != http.StatusOK {
-		defer util.Close(resp.Body)
 		b, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to schedule build (code %s); couldn't read response body: %v", resp.Status, err)
 		}
 		return nil, fmt.Errorf("Response code is %s. Response body:\n%s", resp.Status, string(b))
 	}
-	defer util.Close(resp.Body)
 	var res buildBucketResponse
 	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return nil, fmt.Errorf("Failed to decode response body: %v", err)
@@ -204,15 +184,13 @@ func (c *Client) GetBuild(buildId string) (*Build, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer util.Close(resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("Request got response %s", resp.Status)
 	}
 	var result struct {
 		Build *Build `json:"build"`
-		Etag  string `json:"etag"`
-		Kind  string `json:"kind"`
 	}
-	defer util.Close(resp.Body)
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, err
 	}
@@ -225,16 +203,14 @@ func (c *Client) getOnePage(url string) ([]*Build, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
+	defer util.Close(resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		return nil, "", fmt.Errorf("Request got response %s", resp.Status)
 	}
 	var result struct {
 		Builds     []*Build `json:"builds"`
-		Etag       string   `json:"etag"`
-		Kind       string   `json:"kind"`
 		NextCursor string   `json:"next_cursor"`
 	}
-	defer util.Close(resp.Body)
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, "", err
 	}
@@ -265,7 +241,7 @@ func (c *Client) Search(url string) ([]*Build, error) {
 }
 
 // GetTrybotsForCL retrieves trybot results for the given CL.
-func (c *Client) GetTrybotsForCL(issueID int64, patchsetID int64, patchStorage, crUrl string) ([]*Build, error) {
+func (c *Client) GetTrybotsForCL(issueID, patchsetID int64, patchStorage, crUrl string) ([]*Build, error) {
 	u, err := url.Parse(crUrl)
 	if err != nil {
 		return nil, err

@@ -1,12 +1,12 @@
 package autoroll
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/jsonutils"
 )
 
 func TestTrybotResults(t *testing.T) {
@@ -31,9 +31,9 @@ func TestTrybotResults(t *testing.T) {
 	roll.RollingTo = to
 
 	trybot := &buildbucket.Build{
-		CreatedTimestamp: fmt.Sprintf("%d", time.Now().UTC().UnixNano()/1000000),
-		Status:           TRYBOT_STATUS_STARTED,
-		ParametersJson:   "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
+		Created:        jsonutils.Time(time.Now().UTC()),
+		Status:         TRYBOT_STATUS_STARTED,
+		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
 	}
 	tryResult, err := TryResultFromBuildbucket(trybot)
 	assert.NoError(t, err)
@@ -48,9 +48,9 @@ func TestTrybotResults(t *testing.T) {
 	assert.False(t, roll.AllTrybotsSucceeded())
 
 	retry := &buildbucket.Build{
-		CreatedTimestamp: fmt.Sprintf("%d", time.Now().UTC().UnixNano()/1000000+25),
-		Status:           TRYBOT_STATUS_STARTED,
-		ParametersJson:   "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
+		Created:        jsonutils.Time(time.Now().UTC()),
+		Status:         TRYBOT_STATUS_STARTED,
+		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
 	}
 	tryResult, err = TryResultFromBuildbucket(retry)
 	assert.NoError(t, err)
@@ -71,10 +71,10 @@ func TestTrybotResults(t *testing.T) {
 
 	// Verify that an "experimental" trybot doesn't count against us.
 	exp := &buildbucket.Build{
-		CreatedTimestamp: fmt.Sprintf("%d", time.Now().UTC().UnixNano()/1000000+25),
-		Result:           TRYBOT_RESULT_SUCCESS,
-		Status:           TRYBOT_STATUS_COMPLETED,
-		ParametersJson:   "{\"builder_name\":\"fake-builder\",\"category\":\"cq-experimental\"}",
+		Created:        jsonutils.Time(time.Now().UTC()),
+		Result:         TRYBOT_RESULT_SUCCESS,
+		Status:         TRYBOT_STATUS_COMPLETED,
+		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq-experimental\"}",
 	}
 	tryResult, err = TryResultFromBuildbucket(exp)
 	assert.NoError(t, err)
