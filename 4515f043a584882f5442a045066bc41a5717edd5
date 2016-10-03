@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "e2e61dfe_02d4eedc",
+        "filename": "go/buildbucket/buildbucket.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-03T18:02:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e2e61dfe_3f1d8327",
+      "revId": "4515f043a584882f5442a045066bc41a5717edd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e2e61dfe_df157ffc",
         "filename": "task_scheduler/go/tryjobs/tryjobs.go",
         "patchSetId": 5
@@ -30,6 +48,24 @@
       "writtenOn": "2016-10-03T16:56:59Z",
       "side": 1,
       "message": "will hang if t is not started, just saying.\n\nTypically, gophers use https://godoc.org/context#Context for cancellation. You could pass context to Start and the caller can cancel it when needs to. In this case this method and the new fields are not needed.",
+      "revId": "4515f043a584882f5442a045066bc41a5717edd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e2e61dfe_a21fba7b",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-03T18:02:03Z",
+      "side": 1,
+      "message": "Added util.RepeatCtx which uses a context.Context instead of a chan bool.",
+      "parentUuid": "e2e61dfe_df157ffc",
       "revId": "4515f043a584882f5442a045066bc41a5717edd5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
