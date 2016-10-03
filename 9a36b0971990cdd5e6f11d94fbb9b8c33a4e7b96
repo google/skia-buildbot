@@ -16,6 +16,23 @@
       "revId": "9a36b0971990cdd5e6f11d94fbb9b8c33a4e7b96",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_84c62a60",
+        "filename": "go/gs/gs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-03T15:30:18Z",
+      "side": 1,
+      "message": "I\u0027m not sure if we want to log this for every single file",
+      "revId": "9a36b0971990cdd5e6f11d94fbb9b8c33a4e7b96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
