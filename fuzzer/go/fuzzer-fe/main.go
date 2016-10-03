@@ -520,7 +520,7 @@ func getCommitInfo(revision string) (*vcsinfo.LongCommit, error) {
 	repoLock.Lock()
 	defer repoLock.Unlock()
 	var err error
-	repo, err = gitinfo.NewGitInfo(config.Common.SkiaRoot, true, false)
+	repo, err = gitinfo.NewGitInfo(filepath.Join(config.Common.SkiaRoot, "skia"), true, false)
 	if err != nil {
 		return nil, fmt.Errorf("Could not fetch Skia before check: %s", err)
 	}
