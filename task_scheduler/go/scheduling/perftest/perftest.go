@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/tryjobs"
 )
 
 func assertNoError(err error) {
@@ -266,7 +267,7 @@ func main() {
 	assertNoError(err)
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
-	s, err := scheduling.NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, []string{"skia.git"}, isolateClient, swarmingClient, 0.9)
+	s, err := scheduling.NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, []string{"skia.git"}, isolateClient, swarmingClient, http.DefaultClient, 0.9, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, map[string]string{"skia": repoName})
 	assertNoError(err)
 
 	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {

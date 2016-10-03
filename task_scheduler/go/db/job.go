@@ -3,6 +3,7 @@ package db
 import (
 	"bytes"
 	"encoding/gob"
+	"fmt"
 	"sync"
 	"time"
 
@@ -30,6 +31,9 @@ const (
 
 	// JOB_STATUS_CANCELED indicates that the Job has been canceled.
 	JOB_STATUS_CANCELED JobStatus = "CANCELED"
+
+	// JOB_URL_TMPL is a template for Job URLs.
+	JOB_URL_TMPL = "https://task-scheduler.skia.org/job/%s"
 )
 
 var (
@@ -83,6 +87,14 @@ func JobStatusFromTaskStatus(s TaskStatus) JobStatus {
 //     reused.
 //   - Add any new fields to the Copy() method.
 type Job struct {
+	// BuildbucketBuildId is the ID of the Buildbucket build with which this
+	// Job is associated, if one exists.
+	BuildbucketBuildId int64
+
+	// BuildbucketLeaseKey is the lease key for running a Buildbucket build.
+	// TODO(borenet): Maybe this doesn't belong in the DB.
+	BuildbucketLeaseKey int64
+
 	// Created is the creation timestamp. This property should never change
 	// for a given Job instance.
 	Created time.Time
@@ -127,16 +139,18 @@ type Job struct {
 func (j *Job) Copy() *Job {
 	deps := util.CopyStringSlice(j.Dependencies)
 	return &Job{
-		Created:      j.Created,
-		DbModified:   j.DbModified,
-		Dependencies: deps,
-		Finished:     j.Finished,
-		Id:           j.Id,
-		IsForce:      j.IsForce,
-		Name:         j.Name,
-		Priority:     j.Priority,
-		RepoState:    j.RepoState.Copy(),
-		Status:       j.Status,
+		BuildbucketBuildId:  j.BuildbucketBuildId,
+		BuildbucketLeaseKey: j.BuildbucketLeaseKey,
+		Created:             j.Created,
+		DbModified:          j.DbModified,
+		Dependencies:        deps,
+		Finished:            j.Finished,
+		Id:                  j.Id,
+		IsForce:             j.IsForce,
+		Name:                j.Name,
+		Priority:            j.Priority,
+		RepoState:           j.RepoState.Copy(),
+		Status:              j.Status,
 	}
 }
 
@@ -154,6 +168,11 @@ func (j *Job) MakeTaskKey(taskName string) TaskKey {
 		rv.ForcedJobId = j.Id
 	}
 	return rv
+}
+
+// URL returns a URL for the Job.
+func (j *Job) URL() string {
+	return fmt.Sprintf(JOB_URL_TMPL, j.Id)
 }
 
 // JobSlice implements sort.Interface. To sort jobs []*Job, use

@@ -134,6 +134,12 @@ func MustReadJsonFile(filename string, dest interface{}) {
 	}
 }
 
+// WriteFile writes the given contents to the given file path, reporting any
+// error.
+func WriteFile(t assert.TestingT, filename, contents string) {
+	assert.NoError(t, ioutil.WriteFile(filename, []byte(contents), os.ModePerm))
+}
+
 // CloseInTest takes an ioutil.Closer and Closes it, reporting any error.
 func CloseInTest(t assert.TestingT, c io.Closer) {
 	if err := c.Close(); err != nil {
@@ -157,7 +163,15 @@ func RemoveAll(t assert.TestingT, fp string) {
 }
 
 // Run runs the given command in the given dir and asserts that it succeeds.
-func Run(t assert.TestingT, dir string, cmd ...string) {
-	_, err := exec.RunCwd(dir, cmd...)
+func Run(t assert.TestingT, dir string, cmd ...string) string {
+	out, err := exec.RunCwd(dir, cmd...)
 	assert.NoError(t, err)
+	return out
+}
+
+// MarshalJSON encodes the given interface to a JSON string.
+func MarshalJSON(t *testing.T, i interface{}) string {
+	b, err := json.Marshal(i)
+	assert.NoError(t, err)
+	return string(b)
 }

@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"golang.org/x/net/context"
+
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
@@ -28,6 +30,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
+	"go.skia.org/infra/task_scheduler/go/tryjobs"
 )
 
 const (
@@ -48,6 +51,12 @@ var (
 	REPOS = []string{
 		common.REPO_SKIA,
 		common.REPO_SKIA_INFRA,
+	}
+
+	// PROJECT_REPO_MAPPING is a mapping of project names to repo URLs.
+	PROJECT_REPO_MAPPING = map[string]string{
+		"skia":     common.REPO_SKIA,
+		"buildbot": common.REPO_SKIA_INFRA,
 	}
 
 	// Task Scheduler instance.
@@ -360,13 +369,17 @@ func main() {
 
 	// Create and start the task scheduler.
 	glog.Infof("Creating task scheduler.")
-	ts, err = scheduling.NewTaskScheduler(d, period, wdAbs, REPOS, isolateClient, swarm, *scoreDecay24Hr)
+	ts, err = scheduling.NewTaskScheduler(d, period, wdAbs, REPOS, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, tryjobs.BUCKET_PRIMARY, PROJECT_REPO_MAPPING)
 	if err != nil {
 		glog.Fatal(err)
 	}
 
 	glog.Infof("Created task scheduler. Starting loop.")
-	ts.Start()
+	ctx, cancelFn := context.WithCancel(context.Background())
+	defer func() {
+		cancelFn()
+	}()
+	ts.Start(ctx)
 
 	// Start up the web server.
 	serverURL := "https://" + *host
