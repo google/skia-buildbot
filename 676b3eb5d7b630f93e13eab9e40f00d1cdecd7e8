@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "22459584_92caec42",
+        "filename": "compute_engine_scripts/fuzzer/install.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5010
+      },
+      "writtenOn": "2016-10-03T20:09:35Z",
+      "side": 1,
+      "message": "You may want to pull our clang_linux bot asset, which contains Clang 3.9.",
+      "revId": "676b3eb5d7b630f93e13eab9e40f00d1cdecd7e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
