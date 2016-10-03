@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/testutils"
@@ -214,7 +215,7 @@ func (r *mockRietveld) assertMocksEmpty() {
 
 // mockTrybotResults sets up a fake response to a request for trybot results.
 func (r *mockRietveld) mockTrybotResults(issue *rietveld.Issue, results []*buildbucket.Build) {
-	url := fmt.Sprintf("https://cr-buildbucket.appspot.com/_ah/api/buildbucket/v1/search?tag=buildset%%3Apatch%%2Frietveld%%2Fcodereview.chromium.org%%2F%d%%2F1", issue.Issue)
+	url := fmt.Sprintf("https://cr-buildbucket.appspot.com/api/buildbucket/v1/search?tag=buildset%%3Apatch%%2Frietveld%%2Fcodereview.chromium.org%%2F%d%%2F1", issue.Issue)
 	serialized, err := json.Marshal(struct {
 		Builds []*buildbucket.Build
 	}{
@@ -505,9 +506,9 @@ func TestAutoRollDryRun(t *testing.T) {
 	// roll to a dry run. There is one unfinished trybot.
 	u := "test@google.com"
 	trybot := &buildbucket.Build{
-		CreatedTimestamp: fmt.Sprintf("%d", time.Now().UTC().UnixNano()/1000000),
-		Status:           autoroll.TRYBOT_STATUS_STARTED,
-		ParametersJson:   "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
+		Created:        jsonutils.Time(time.Now().UTC().Round(time.Millisecond)),
+		Status:         autoroll.TRYBOT_STATUS_STARTED,
+		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
 	}
 	trybots := []*buildbucket.Build{trybot}
 	rv.rollerWillSwitchDryRun(roll1, trybots, true)
@@ -526,10 +527,10 @@ func TestAutoRollDryRun(t *testing.T) {
 
 	// Add an experimental trybot. Ensure that its failure is ignored.
 	trybots = append(trybots, &buildbucket.Build{
-		CreatedTimestamp: fmt.Sprintf("%d", time.Now().UTC().UnixNano()/1000000),
-		Result:           autoroll.TRYBOT_RESULT_FAILURE,
-		Status:           autoroll.TRYBOT_STATUS_COMPLETED,
-		ParametersJson:   "{\"builder_name\":\"fake-builder\",\"category\":\"cq-experimental\"}",
+		Created:        jsonutils.Time(time.Now().UTC().Round(time.Millisecond)),
+		Result:         autoroll.TRYBOT_RESULT_FAILURE,
+		Status:         autoroll.TRYBOT_STATUS_COMPLETED,
+		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq-experimental\"}",
 	})
 	rv.updateIssue(roll1, trybots)
 	assert.NoError(t, roller.doAutoRoll())
@@ -540,9 +541,9 @@ func TestAutoRollDryRun(t *testing.T) {
 	rv.updateIssue(roll1, trybots)
 	rv.rollerWillCloseIssue(roll1)
 	trybot2 := &buildbucket.Build{
-		CreatedTimestamp: fmt.Sprintf("%d", time.Now().UTC().UnixNano()/1000000),
-		Status:           autoroll.TRYBOT_STATUS_STARTED,
-		ParametersJson:   "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
+		Created:        jsonutils.Time(time.Now().UTC().Round(time.Millisecond)),
+		Status:         autoroll.TRYBOT_STATUS_STARTED,
+		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
 	}
 	trybots2 := []*buildbucket.Build{trybot2}
 	roll2 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), trybots2, true)
@@ -555,9 +556,9 @@ func TestAutoRollDryRun(t *testing.T) {
 	// as in non-dry-run mode.
 	rv.pretendDryRunFinished(roll2, trybots2, false)
 	trybot3 := &buildbucket.Build{
-		CreatedTimestamp: fmt.Sprintf("%d", time.Now().UTC().UnixNano()/1000000),
-		Status:           autoroll.TRYBOT_STATUS_STARTED,
-		ParametersJson:   "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
+		Created:        jsonutils.Time(time.Now().UTC().Round(time.Millisecond)),
+		Status:         autoroll.TRYBOT_STATUS_STARTED,
+		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
 	}
 	trybots3 := []*buildbucket.Build{trybot3}
 	roll3 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), trybots3, true)
@@ -601,10 +602,10 @@ func TestAutoRollCommitDescRace(t *testing.T) {
 	}()
 
 	trybot := &buildbucket.Build{
-		CreatedTimestamp: fmt.Sprintf("%d", time.Now().UTC().UnixNano()/1000000),
-		Status:           autoroll.TRYBOT_STATUS_COMPLETED,
-		Result:           autoroll.TRYBOT_RESULT_SUCCESS,
-		ParametersJson:   "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
+		Created:        jsonutils.Time(time.Now().UTC().Round(time.Millisecond)),
+		Status:         autoroll.TRYBOT_STATUS_COMPLETED,
+		Result:         autoroll.TRYBOT_RESULT_SUCCESS,
+		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
 	}
 	trybots := []*buildbucket.Build{trybot}
 
@@ -658,10 +659,10 @@ func TestAutoRollCommitLandRace(t *testing.T) {
 
 	// Pretend the roll landed but has not yet showed up in the repo.
 	trybot := &buildbucket.Build{
-		CreatedTimestamp: fmt.Sprintf("%d", time.Now().UTC().UnixNano()/1000000),
-		Status:           autoroll.TRYBOT_STATUS_COMPLETED,
-		Result:           autoroll.TRYBOT_RESULT_SUCCESS,
-		ParametersJson:   "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
+		Created:        jsonutils.Time(time.Now().UTC().Round(time.Millisecond)),
+		Status:         autoroll.TRYBOT_STATUS_COMPLETED,
+		Result:         autoroll.TRYBOT_RESULT_SUCCESS,
+		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
 	}
 	trybots := []*buildbucket.Build{trybot}
 
