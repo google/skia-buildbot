@@ -2,6 +2,46 @@
   "comments": [
     {
       "key": {
+        "uuid": "22459584_c715d44e",
+        "filename": "go/jsonutils/jsonutils.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-03T18:47:45Z",
+      "side": 1,
+      "message": "remove debugging? x3",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 12
+      },
+      "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_4750a408",
+        "filename": "go/jsonutils/jsonutils_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-03T18:47:45Z",
+      "side": 1,
+      "message": "nit: use t.Log or remove",
+      "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e2e61dfe_a26c1ac3",
         "filename": "go/util/util.go",
         "patchSetId": 6
@@ -19,6 +59,57 @@
         "endLine": 624,
         "endChar": 7
       },
+      "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_074e9c64",
+        "filename": "go/util/util.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 625,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-03T18:47:45Z",
+      "side": 1,
+      "message": "I think \"case \u003c-done\" needs to come before \"case \u003c-ticker.C\" in case fn consistently takes longer than interval.\n\n(Repeat seems to be broken in the same way.)",
+      "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_e74a904e",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-03T18:47:45Z",
+      "side": 1,
+      "message": "Missing go.",
+      "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_277e3870",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-03T18:47:45Z",
+      "side": 1,
+      "message": "Missing go. x2",
       "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
