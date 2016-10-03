@@ -17,6 +17,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/skia-dev/glog"
 	"github.com/zeebo/bencode"
 )
@@ -35,6 +37,7 @@ const (
 
 	SECONDS_TO_MILLIS = int64(time.Second / time.Millisecond)
 	MILLIS_TO_NANOS   = int64(time.Millisecond / time.Nanosecond)
+	MICROS_TO_NANOS   = int64(time.Microsecond / time.Nanosecond)
 
 	// time.RFC3339Nano only uses as many sub-second digits are required to
 	// represent the time, which makes it unsuitable for sorting. This
@@ -590,7 +593,7 @@ func ParseTimeNs(t string) (time.Time, error) {
 }
 
 // Repeat calls the provided function 'fn' immediately and then in intervals
-// defined by 'interval'. If anything it sent on the provided stop channel,
+// defined by 'interval'. If anything is sent on the provided stop channel,
 // the iteration stops.
 func Repeat(interval time.Duration, stopCh <-chan bool, fn func()) {
 	ticker := time.NewTicker(interval)
@@ -602,6 +605,24 @@ MainLoop:
 		case <-ticker.C:
 			fn()
 		case <-stopCh:
+			break MainLoop
+		}
+	}
+}
+
+// RepeatCtx calls the provided function 'fn' immediately and then in intervals
+// defined by 'interval'. If the given context is canceled, the iteration stops.
+func RepeatCtx(interval time.Duration, ctx context.Context, fn func()) {
+	ticker := time.NewTicker(interval)
+	done := ctx.Done()
+	defer ticker.Stop()
+	fn()
+MainLoop:
+	for {
+		select {
+		case <-ticker.C:
+			fn()
+		case <-done:
 			break MainLoop
 		}
 	}

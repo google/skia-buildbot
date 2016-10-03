@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
-	"strconv"
 	"time"
 
 	"go.skia.org/infra/go/buildbucket"
@@ -260,14 +259,10 @@ func TryResultFromBuildbucket(b *buildbucket.Build) (*TryResult, error) {
 	if err := json.Unmarshal([]byte(b.ParametersJson), &params); err != nil {
 		return nil, err
 	}
-	created, err := strconv.ParseInt(b.CreatedTimestamp, 10, 64)
-	if err != nil {
-		return nil, err
-	}
 	return &TryResult{
 		Builder:  params.Builder,
 		Category: params.Category,
-		Created:  util.UnixMillisToTime(created),
+		Created:  time.Time(b.Created),
 		Result:   b.Result,
 		Status:   b.Status,
 		Url:      b.Url,

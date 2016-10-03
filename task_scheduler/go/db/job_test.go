@@ -16,14 +16,16 @@ import (
 func TestJobCopy(t *testing.T) {
 	now := time.Now()
 	v := &Job{
-		Created:      now.Add(time.Nanosecond),
-		DbModified:   now.Add(time.Millisecond),
-		Dependencies: []string{"A", "B"},
-		Finished:     now.Add(time.Second),
-		Id:           "abc123",
-		IsForce:      true,
-		Name:         "C",
-		Priority:     1.2,
+		BuildbucketBuildId:  12345,
+		BuildbucketLeaseKey: 987,
+		Created:             now.Add(time.Nanosecond),
+		DbModified:          now.Add(time.Millisecond),
+		Dependencies:        []string{"A", "B"},
+		Finished:            now.Add(time.Second),
+		Id:                  "abc123",
+		IsForce:             true,
+		Name:                "C",
+		Priority:            1.2,
 		RepoState: RepoState{
 			Repo: DEFAULT_TEST_REPO,
 		},
