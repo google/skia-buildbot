@@ -105,6 +105,7 @@
         }
       },
       _makeRevertURL: function(commit){
+        // TODO(rmistry): Use different URL for Gerrit here.
         return "https://codereview.chromium.org/"+ commit.issue +"/revert";
       },
       _makeCommentUrl: function(repo, commit){
