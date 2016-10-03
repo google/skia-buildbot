@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "22459584_5216a4be",
+        "filename": "go/paramtools/params.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-03T21:06:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a566efce_fd70036b",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22459584_010dec97",
         "filename": "golden/go/search/search.go",
         "patchSetId": 5
@@ -36,6 +54,24 @@
         "endLine": 728,
         "endChar": 34
       },
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_7225a017",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 728,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-03T21:06:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "22459584_010dec97",
       "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -65,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "22459584_f2309057",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 759,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-03T21:06:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "22459584_a10fd890",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22459584_e109e08b",
         "filename": "golden/go/search/search.go",
         "patchSetId": 5
@@ -82,6 +136,24 @@
     },
     {
       "key": {
+        "uuid": "22459584_52ffc44c",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 788,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-03T21:06:28Z",
+      "side": 1,
+      "message": "Yes. Added TODO.",
+      "parentUuid": "22459584_e109e08b",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22459584_41e9b4a4",
         "filename": "golden/go/search/search.go",
         "patchSetId": 5
@@ -93,6 +165,24 @@
       "writtenOn": "2016-09-30T19:01:12Z",
       "side": 1,
       "message": "Sentence trailed off.",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_3204b879",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 797,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-03T21:06:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "22459584_41e9b4a4",
       "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -122,6 +212,24 @@
     },
     {
       "key": {
+        "uuid": "22459584_92f94c68",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 809,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-03T21:06:28Z",
+      "side": 1,
+      "message": "the nil value for the accept function indicates that we accept unconditionally.\nIt\u0027s the same as passing a function like this:\n\naccptFn :\u003d func(trace tiling.Trace) (bool, interface{}) {\n   return true, nil\n}",
+      "parentUuid": "22459584_c12944f3",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22459584_61e8309f",
         "filename": "golden/go/search/search.go",
         "patchSetId": 5
@@ -133,6 +241,24 @@
       "writtenOn": "2016-09-30T19:01:12Z",
       "side": 1,
       "message": "add a digests and it\u0027s trace -\u003e add a digest and its trace",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_72fe404f",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 882,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-03T21:06:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "22459584_61e8309f",
       "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -156,6 +282,24 @@
     },
     {
       "key": {
+        "uuid": "22459584_d212b4bc",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 922,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-03T21:06:28Z",
+      "side": 1,
+      "message": "That was an oversight. The testName is now passed as an argument and used instead of \"something\".",
+      "parentUuid": "22459584_0134cc49",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a566efce_7d7dd33c",
         "filename": "golden/go/search/search_test.go",
         "patchSetId": 5
@@ -167,6 +311,24 @@
       "writtenOn": "2016-09-30T19:01:12Z",
       "side": 1,
       "message": "Any reason this is commented out?",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_120d3c98",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-03T21:06:28Z",
+      "side": 1,
+      "message": "For testing. Thanks. Removed.",
+      "parentUuid": "a566efce_7d7dd33c",
       "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -190,6 +352,24 @@
     },
     {
       "key": {
+        "uuid": "22459584_f209b08b",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-03T21:06:28Z",
+      "side": 1,
+      "message": "Eventbus does not use NSQ. It\u0027s an in-app eventbus and it\u0027s not flaky. The argument is a link to a global eventbus (currently based on NSQ) that would be used to distribute messages. \n\u0027nil\u0027 means there is no global eventbus.",
+      "parentUuid": "22459584_01a96c77",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22459584_e1a5609d",
         "filename": "golden/go/search/search_test.go",
         "patchSetId": 5
@@ -201,6 +381,24 @@
       "writtenOn": "2016-09-30T19:01:12Z",
       "side": 1,
       "message": "Do we want to introduce mock times instead of actually using the system clock?",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_5264e446",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-03T21:06:28Z",
+      "side": 1,
+      "message": "The time here is not relevant. Also DigestStore is something that will go away (it belongs into the ingester). I am only adding it because it will fail otherwise, but digeststore is essentially a noop from the perspective of this test.",
+      "parentUuid": "22459584_e1a5609d",
       "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -224,6 +422,24 @@
     },
     {
       "key": {
+        "uuid": "22459584_3252f868",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-03T21:06:28Z",
+      "side": 1,
+      "message": "Above I establish what the query should return, by sifting through the sample data directly (for every test). And here I search for that test to make sure I get the result I expect.\nAdded comments to make that clearer.",
+      "parentUuid": "22459584_c112e4bc",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22459584_a1b078d8",
         "filename": "golden/go/search/search_test.go",
         "patchSetId": 5
@@ -241,6 +457,24 @@
     },
     {
       "key": {
+        "uuid": "22459584_123b7c23",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-03T21:06:28Z",
+      "side": 1,
+      "message": "Added more comments to make that clearer.",
+      "parentUuid": "22459584_a1b078d8",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22459584_01be8caa",
         "filename": "golden/go/search/search_test.go",
         "patchSetId": 5
@@ -252,6 +486,24 @@
       "writtenOn": "2016-09-30T19:01:12Z",
       "side": 1,
       "message": "Row digest %s found int result -\u003e Row digest %s found in result\n????",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_b2ca880f",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-03T21:06:28Z",
+      "side": 1,
+      "message": "Removed the error message. \n\nThe result contains a 2-dimensional matrix where each row compares one digest (the \u0027row\u0027 digest) against a set of \u0027column\u0027 digests. The \u0027row\u0027 digest should not compare against itself.",
+      "parentUuid": "22459584_01be8caa",
       "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
