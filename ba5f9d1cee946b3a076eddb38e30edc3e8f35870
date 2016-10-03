@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "e2e61dfe_25e3b498",
+        "filename": "go/jsonutils/jsonutils.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-03T18:55:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "22459584_c715d44e",
+      "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22459584_4750a408",
         "filename": "go/jsonutils/jsonutils_test.go",
         "patchSetId": 6
@@ -36,6 +54,24 @@
       "writtenOn": "2016-10-03T18:47:45Z",
       "side": 1,
       "message": "nit: use t.Log or remove",
+      "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e2e61dfe_45e8c070",
+        "filename": "go/jsonutils/jsonutils_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-03T18:55:39Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "22459584_4750a408",
       "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -59,6 +95,24 @@
         "endLine": 624,
         "endChar": 7
       },
+      "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e2e61dfe_62f852aa",
+        "filename": "go/util/util.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 624,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-03T18:55:39Z",
+      "side": 1,
+      "message": "I don\u0027t mind being really explicit about when the function is called here.",
+      "parentUuid": "e2e61dfe_a26c1ac3",
       "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -100,6 +154,24 @@
     },
     {
       "key": {
+        "uuid": "e2e61dfe_c5f3f062",
+        "filename": "go/util/util.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 625,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-03T18:55:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "22459584_074e9c64",
+      "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22459584_e74a904e",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 6
@@ -111,6 +183,24 @@
       "writtenOn": "2016-10-03T18:47:45Z",
       "side": 1,
       "message": "Missing go.",
+      "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e2e61dfe_859728f6",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-03T18:55:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "22459584_e74a904e",
       "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -145,6 +235,24 @@
       "writtenOn": "2016-10-03T18:55:13Z",
       "side": 1,
       "message": "+1",
+      "parentUuid": "22459584_277e3870",
+      "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e2e61dfe_a57b44c3",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-03T18:55:39Z",
+      "side": 1,
+      "message": "Done",
       "parentUuid": "22459584_277e3870",
       "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
