@@ -40,16 +40,16 @@ const (
 
 	// TASK_URL_FMT is a format string for the Swarming task URL. Parameter is
 	// task ID.
-	TASK_URL_FMT = "https://luci-milo.appspot.com/swarming/task/%s"
+	TASK_URL_FMT = "https://chromium-swarm.appspot.com/newui/task?id=%s"
 	// TASK_TRIGGER_URL_FMT is a format string for triggering a Task with task
 	// scheduler. Parameters are task spec name and commit hash.
 	TASK_TRIGGER_URL_FMT = "https://task-scheduler.skia.org/trigger?submit=true&task_spec=%s&commit=%s"
 	// TASKLIST_URL_FMT is a format string for the Swarming tasklist URL.
 	// Parameters are a single tag key and value.
-	TASKLIST_URL_FMT = "https://chromium-swarm.appspot.com/newui/tasklist?columns=name&columns=state&columns=created_ts&columns=pool&filters=pool%%3ASkia&filters=%s%%3A%s&limit=20&sort=created_ts%%3Adesc"
+	TASKLIST_URL_FMT = "https://chromium-swarm.appspot.com/newui/tasklist?c=name&c=state&c=created_ts&c=duration&c=completed_ts&c=sk_revision&f=%s%%3A%s&l=50&s=created_ts%%3Adesc"
 	// BOT_DETAIL_URL_FMT is a format string for the Swarming bot detail URL.
 	// Parameter is bot name.
-	BOT_DETAIL_URL_FMT = "https://chromium-swarm.appspot.com/restricted/bot/%s"
+	BOT_DETAIL_URL_FMT = "https://chromium-swarm.appspot.com/newui/bot?id=%s"
 )
 
 // BTCache is API-compatible with BuildCache, but also includes Tasks.
