@@ -365,6 +365,24 @@
     },
     {
       "key": {
+        "uuid": "22459584_07c4dca3",
+        "filename": "task_scheduler/go/trybots/trybots_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-03T18:47:45Z",
+      "side": 1,
+      "message": "The tests are well-organized and easy to follow. I agree it\u0027s a little silly asserting on the exact requests sent, but unfortunately that seems to be how mockhttpclient works.",
+      "parentUuid": "22459584_3ed7691b",
+      "revId": "6e4273af9d602d7e1a29efd1a87d8dcdb030c970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e230ddea_0686ee17",
         "filename": "task_scheduler/go/trybots/trybots_test.go",
         "patchSetId": 3
