@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/gitrepo"
+
 	"github.com/skia-dev/glog"
 )
 
@@ -429,14 +431,31 @@ type JobCache interface {
 	Update() error
 }
 
+// GetRevisionTimestamp is a function signature that retrieves the timestamp of
+// a revision. NewJobCache accepts this type rather than gitinfo.RepoMap to aide
+// testing.
+type GetRevisionTimestamp func(repo, revision string) (time.Time, error)
+
 type jobCache struct {
-	db                 JobDB
-	mtx                sync.RWMutex
-	queryId            string
-	jobs               map[string]*Job
-	timePeriod         time.Duration
-	triggeredForCommit map[string]map[string]bool
-	unfinished         map[string]*Job
+	db                   JobDB
+	getRevisionTimestamp GetRevisionTimestamp
+	mtx                  sync.RWMutex
+	queryId              string
+	jobs                 map[string]*Job
+	timePeriod           time.Duration
+	triggeredForCommit   map[string]map[string]bool
+	unfinished           map[string]*Job
+}
+
+// getJobTimestamp returns the timestamp of a Job for purposes of cache
+// expiration.
+func (c *jobCache) getJobTimestamp(job *Job) time.Time {
+	commitTs, err := c.getRevisionTimestamp(job.Repo, job.Revision)
+	if err != nil {
+		glog.Error(err)
+		return job.Created
+	}
+	return commitTs
 }
 
 // See documentation for JobCache interface.
@@ -469,30 +488,71 @@ func (c *jobCache) UnfinishedJobs() ([]*Job, error) {
 	return rv, nil
 }
 
-// update inserts the new/updated jobs into the cache. Assumes the caller
-// holds a lock.
-func (c *jobCache) update(jobs []*Job) error {
-	for _, j := range jobs {
-		// Insert the new job into the main map.
-		cpy := j.Copy()
-		c.jobs[j.Id] = cpy
-
-		// ScheduledJobsForCommit.
-		if !j.IsForce && !j.IsTryJob() {
-			if _, ok := c.triggeredForCommit[j.Repo]; !ok {
-				c.triggeredForCommit[j.Repo] = map[string]bool{}
+// expireJobs removes data from c where getJobTimestamp or getRevisionTimestamp
+// is before start. Assumes the caller holds a lock. This is a helper for
+// expireAndUpdate.
+func (c *jobCache) expireJobs(start time.Time) {
+	expiredUnfinishedCount := 0
+	for _, job := range c.jobs {
+		if c.getJobTimestamp(job).Before(start) {
+			delete(c.jobs, job.Id)
+			delete(c.unfinished, job.Id)
+			if !job.Done() {
+				expiredUnfinishedCount++
 			}
-			c.triggeredForCommit[j.Repo][j.Revision] = true
-		}
-
-		// Unfinished jobs.
-		if j.Done() {
-			delete(c.unfinished, j.Id)
-		} else {
-			c.unfinished[j.Id] = cpy
 		}
 	}
-	return nil
+	if expiredUnfinishedCount > 0 {
+		glog.Infof("Expired %d unfinished jobs for revisions before %s.", expiredUnfinishedCount, start)
+	}
+	for repo, revMap := range c.triggeredForCommit {
+		for rev, _ := range revMap {
+			ts, err := c.getRevisionTimestamp(repo, rev)
+			if err != nil {
+				glog.Error(err)
+				continue
+			}
+			if ts.Before(start) {
+				delete(revMap, rev)
+			}
+		}
+	}
+}
+
+// insertOrUpdateJob inserts the new/updated job into the cache. Assumes the
+// caller holds a lock. This is a helper for expireAndUpdate.
+func (c *jobCache) insertOrUpdateJob(job *Job) {
+	// Insert the new job into the main map.
+	c.jobs[job.Id] = job
+
+	// ScheduledJobsForCommit.
+	if !job.IsForce && !job.IsTryJob() {
+		if _, ok := c.triggeredForCommit[job.Repo]; !ok {
+			c.triggeredForCommit[job.Repo] = map[string]bool{}
+		}
+		c.triggeredForCommit[job.Repo][job.Revision] = true
+	}
+
+	// Unfinished jobs.
+	if job.Done() {
+		delete(c.unfinished, job.Id)
+	} else {
+		c.unfinished[job.Id] = job
+	}
+}
+
+// expireAndUpdate removes Jobs before start from the cache and inserts the
+// new/updated jobs into the cache. Assumes the caller holds a lock.
+func (c *jobCache) expireAndUpdate(start time.Time, jobs []*Job) {
+	c.expireJobs(start)
+	for _, job := range jobs {
+		ts := c.getJobTimestamp(job)
+		if ts.Before(start) {
+			glog.Warningf("Updated job %s after expired. getJobTimestamp returned %s. %#v", job.Id, ts, job)
+		} else {
+			c.insertOrUpdateJob(job.Copy())
+		}
+	}
 }
 
 // reset re-initializes c. Assumes the caller holds a lock.
@@ -516,16 +576,12 @@ func (c *jobCache) reset() error {
 	c.jobs = map[string]*Job{}
 	c.triggeredForCommit = map[string]map[string]bool{}
 	c.unfinished = map[string]*Job{}
-	if err := c.update(jobs); err != nil {
-		return err
-	}
+	c.expireAndUpdate(start, jobs)
 	return nil
 }
 
-// See documentation for JobCache interface.
-func (c *jobCache) Update() error {
-	// TODO(borenet): We need to flush old jobs/commits which are outside
-	// of our timePeriod so that the cache size is not unbounded.
+// update implements Update with the given current time for testing.
+func (c *jobCache) update(now time.Time) error {
 	newJobs, err := c.db.GetModifiedJobs(c.queryId)
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
@@ -538,22 +594,42 @@ func (c *jobCache) Update() error {
 	} else if err != nil {
 		return err
 	}
-	if err := c.update(newJobs); err == nil {
-		return nil
-	} else {
-		return err
-	}
+	start := now.Add(-c.timePeriod)
+	c.expireAndUpdate(start, newJobs)
+	return nil
+}
+
+// See documentation for JobCache interface.
+func (c *jobCache) Update() error {
+	return c.update(time.Now())
 }
 
 // NewJobCache returns a local cache which provides more convenient views of
 // job data than the database can provide.
-func NewJobCache(db JobDB, timePeriod time.Duration) (JobCache, error) {
+func NewJobCache(db JobDB, timePeriod time.Duration, getRevisionTimestamp GetRevisionTimestamp) (JobCache, error) {
 	tc := &jobCache{
-		db:         db,
-		timePeriod: timePeriod,
+		db:                   db,
+		getRevisionTimestamp: getRevisionTimestamp,
+		timePeriod:           timePeriod,
 	}
 	if err := tc.reset(); err != nil {
 		return nil, err
 	}
 	return tc, nil
+}
+
+// GitRepoGetRevisionTimestamp returns a GetRevisionTimestamp function that gets
+// the revision timestamp from repos, which maps repo name to *gitrepo.Repo.
+func GitRepoGetRevisionTimestamp(repos map[string]*gitrepo.Repo) GetRevisionTimestamp {
+	return func(repo, revision string) (time.Time, error) {
+		r, ok := repos[repo]
+		if !ok {
+			return time.Time{}, fmt.Errorf("Unknown repo %s", repo)
+		}
+		c := r.Get(revision)
+		if c == nil {
+			return time.Time{}, fmt.Errorf("Unknown commit %s@%s", repo, revision)
+		}
+		return c.Timestamp, nil
+	}
 }

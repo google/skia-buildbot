@@ -241,7 +241,7 @@ func RunIndefinitely(command *Command) (Process, <-chan error, error) {
 	return cmd.Process, done, nil
 }
 
-// SimpleRun runs the command and doesn't return until the command finishes.
+// SimpleRun runs the command and doesn't return until the command finishes. Ignores Timeout.
 func SimpleRun(command *Command) error {
 	return createCmd(command).Run()
 }
@@ -263,6 +263,7 @@ func (command *Command) Run() error {
 
 // runSimpleCommand executes the given command.  Returns the combined stdout and stderr. May also
 // return an error if the command exited with a non-zero status or there is any other error.
+// Ignores Timeout.
 func runSimpleCommand(command *Command) (string, error) {
 	output := bytes.Buffer{}
 	command.CombinedOutput = &output
@@ -283,7 +284,8 @@ func RunSimple(commandLine string) (string, error) {
 }
 
 // RunCommand executes the given command and returns the combined stdout and stderr. May also
-// return an error if the command exited with a non-zero status or there is any other error.
+// return an error if the command exited with a non-zero status or there is any other error. Ignores
+// Timeout.
 func RunCommand(command *Command) (string, error) {
 	return runSimpleCommand(command)
 }
