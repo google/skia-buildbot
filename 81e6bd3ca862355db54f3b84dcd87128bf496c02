@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "22e115e5_1831bd59",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-03T19:52:49Z",
+      "side": 1,
+      "message": "Is this true? AFAICT SimpleRun calls Command.Run which calls DefaultRun, which calls wait(), which seems to respect command.Timeout?",
+      "range": {
+        "startLine": 244,
+        "startChar": 85,
+        "endLine": 244,
+        "endChar": 92
+      },
+      "revId": "81e6bd3ca862355db54f3b84dcd87128bf496c02",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
