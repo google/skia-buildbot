@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a228a5c6_2a88dfd4",
+        "filename": "go/gs/gs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-03T15:23:57Z",
+      "side": 1,
+      "message": "for obj, err :\u003d it.Next() {\n\t\tif err \u003d\u003d iterator.Done {\n\t\t\tbreak\n\t\t}",
+      "revId": "9a36b0971990cdd5e6f11d94fbb9b8c33a4e7b96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
