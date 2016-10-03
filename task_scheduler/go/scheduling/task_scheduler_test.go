@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/buildbot"
@@ -21,12 +22,14 @@ import (
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/gitrepo"
 	"go.skia.org/infra/go/isolate"
+	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/tryjobs"
 )
 
 const (
@@ -54,6 +57,10 @@ var (
 	rs2 = db.RepoState{
 		Repo:     repoName,
 		Revision: c2,
+	}
+
+	projectRepoMapping = map[string]string{
+		"skia": repoName,
 	}
 )
 
@@ -133,7 +140,7 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task) *swarming_
 }
 
 // Common setup for TaskScheduler tests.
-func setup(t *testing.T) (*util.TempRepo, db.DB, *gitinfo.RepoMap, *gitinfo.GitInfo, *swarming.TestClient, *TaskScheduler) {
+func setup(t *testing.T) (*util.TempRepo, db.DB, *gitinfo.RepoMap, *gitinfo.GitInfo, *swarming.TestClient, *TaskScheduler, *mockhttpclient.URLMock) {
 	testutils.SkipIfShort(t)
 	tr := util.NewTempRepo()
 	d := db.NewInMemoryDB()
@@ -144,13 +151,14 @@ func setup(t *testing.T) (*util.TempRepo, db.DB, *gitinfo.RepoMap, *gitinfo.GitI
 	assert.NoError(t, err)
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
-	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), tr.Dir, []string{repoName}, isolateClient, swarmingClient, 1.0)
+	urlMock := mockhttpclient.NewURLMock()
+	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), tr.Dir, []string{repoName}, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping)
 	assert.NoError(t, err)
-	return tr, d, repos, repo, swarmingClient, s
+	return tr, d, repos, repo, swarmingClient, s, urlMock
 }
 
 func TestGatherNewJobs(t *testing.T) {
-	tr, _, _, _, _, s := setup(t)
+	tr, _, _, _, _, s, _ := setup(t)
 	defer tr.Cleanup()
 
 	testGatherNewJobs := func(expectedJobs int) {
@@ -209,7 +217,7 @@ func TestGatherNewJobs(t *testing.T) {
 }
 
 func TestFindTaskCandidatesForJobs(t *testing.T) {
-	tr, _, _, _, _, s := setup(t)
+	tr, _, _, _, _, s, _ := setup(t)
 	defer tr.Cleanup()
 
 	test := func(jobs []*db.Job, expect map[db.TaskKey]*taskCandidate) {
@@ -303,7 +311,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 }
 
 func TestFilterTaskCandidates(t *testing.T) {
-	tr, d, _, _, _, s := setup(t)
+	tr, d, _, _, _, s, _ := setup(t)
 	defer tr.Cleanup()
 
 	// Fake out the initial candidates.
@@ -478,7 +486,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 }
 
 func TestProcessTaskCandidate(t *testing.T) {
-	tr, _, _, _, _, s := setup(t)
+	tr, _, _, _, _, s, _ := setup(t)
 	defer tr.Cleanup()
 
 	cache := newCacheWrapper(s.tCache)
@@ -534,7 +542,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 }
 
 func TestProcessTaskCandidates(t *testing.T) {
-	tr, _, _, _, _, s := setup(t)
+	tr, _, _, _, _, s, _ := setup(t)
 	defer tr.Cleanup()
 
 	ts := time.Now()
@@ -975,7 +983,7 @@ func TestTimeDecay24Hr(t *testing.T) {
 }
 
 func TestRegenerateTaskQueue(t *testing.T) {
-	tr, d, _, _, _, s := setup(t)
+	tr, d, _, _, _, s, _ := setup(t)
 	defer tr.Cleanup()
 
 	// Ensure that the queue is initially empty.
@@ -1262,7 +1270,7 @@ func makeBot(id string, dims map[string]string) *swarming_api.SwarmingRpcsBotInf
 }
 
 func TestSchedulingE2E(t *testing.T) {
-	tr, d, _, _, swarmingClient, s := setup(t)
+	tr, d, _, _, swarmingClient, s, _ := setup(t)
 	defer tr.Cleanup()
 
 	// Start testing. No free bots, so we get a full queue with nothing
@@ -1467,7 +1475,7 @@ func makeDummyCommits(t *testing.T, repoDir string, numCommits int, branch strin
 }
 
 func TestSchedulerStealingFrom(t *testing.T) {
-	tr, d, _, repo, swarmingClient, s := setup(t)
+	tr, d, _, repo, swarmingClient, s, _ := setup(t)
 	defer tr.Cleanup()
 
 	// Run both available compile tasks.
@@ -1667,7 +1675,7 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	assert.NoError(t, err)
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
-	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, []string{repoName}, isolateClient, swarmingClient, 1.0)
+	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, []string{repoName}, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping)
 	assert.NoError(t, err)
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
@@ -1780,7 +1788,7 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 }
 
 func TestSchedulingRetry(t *testing.T) {
-	tr, d, _, _, swarmingClient, s := setup(t)
+	tr, d, _, _, swarmingClient, s, _ := setup(t)
 	defer tr.Cleanup()
 
 	// Run both available compile tasks.
@@ -1830,7 +1838,7 @@ func TestSchedulingRetry(t *testing.T) {
 }
 
 func TestParentTaskId(t *testing.T) {
-	tr, d, _, _, swarmingClient, s := setup(t)
+	tr, d, _, _, swarmingClient, s, _ := setup(t)
 	defer tr.Cleanup()
 
 	// Run both available compile tasks.
@@ -1890,7 +1898,7 @@ func TestParentTaskId(t *testing.T) {
 func TestBlacklist(t *testing.T) {
 	// The blacklist has its own tests, so this test just verifies that it's
 	// actually integrated into the scheduler.
-	tr, _, repos, _, swarmingClient, s := setup(t)
+	tr, _, repos, _, swarmingClient, s, _ := setup(t)
 	defer tr.Cleanup()
 
 	// Mock some bots, add one of the build tasks to the blacklist.
@@ -1914,7 +1922,7 @@ func TestBlacklist(t *testing.T) {
 }
 
 func TestGetWorstJobStatus(t *testing.T) {
-	tr, d, _, _, _, s := setup(t)
+	tr, d, _, _, _, s, _ := setup(t)
 	defer tr.Cleanup()
 
 	test := func(j *db.Job, expect db.JobStatus) {
@@ -2016,4 +2024,108 @@ func TestGetWorstJobStatus(t *testing.T) {
 	assert.NoError(t, d.PutTask(t3))
 	assert.NoError(t, s.tCache.Update())
 	test(j1, db.JOB_STATUS_SUCCESS)
+}
+
+func TestTrybots(t *testing.T) {
+	tr, d, _, _, swarmingClient, s, mock := setup(t)
+	defer tr.Cleanup()
+
+	// The trybot integrator has its own tests, so just verify that we can
+	// receive a try request, execute the necessary tasks, and report its
+	// results back.
+
+	// Run ourselves out of tasks.
+	bot1 := makeBot("bot1", map[string]string{
+		"pool": "Skia",
+		"os":   "Ubuntu",
+	})
+	bot2 := makeBot("bot2", map[string]string{
+		"pool":        "Skia",
+		"os":          "Android",
+		"device_type": "grouper",
+	})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
+	now := time.Now()
+
+	n := 0
+	for i := 0; i < 10; i++ {
+		assert.NoError(t, s.MainLoop())
+		assert.NoError(t, s.tCache.Update())
+		tasks, err := s.tCache.UnfinishedTasks()
+		assert.NoError(t, err)
+		if len(tasks) == 0 {
+			break
+		}
+		for _, t := range tasks {
+			t.Status = db.TASK_STATUS_SUCCESS
+			t.Finished = now
+			t.IsolatedOutput = "abc123"
+			n++
+		}
+		assert.NoError(t, d.PutTasks(tasks))
+		assert.NoError(t, s.tCache.Update())
+	}
+	assert.Equal(t, 5, n)
+	jobs, err := s.jCache.UnfinishedJobs()
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(jobs))
+
+	// Create a try job.
+	b := tryjobs.Build(t, now)
+	rs := db.RepoState{
+		Patch: db.Patch{
+			Server:   "https://codereview.chromium.org/",
+			Issue:    "10001",
+			Patchset: "20002",
+		},
+		Repo:     rs1.Repo,
+		Revision: rs1.Revision,
+	}
+	b.ParametersJson = testutils.MarshalJSON(t, tryjobs.Params(t, testTask, "skia", rs.Revision, rs.Server, rs.Issue, rs.Patchset))
+	tryjobs.MockPeek(mock, []*buildbucket_api.ApiBuildMessage{b}, now, "", "", nil)
+	tryjobs.MockTryLeaseBuild(mock, b.Id, now, nil)
+	tryjobs.MockJobStarted(mock, b.Id, now, nil)
+	assert.NoError(t, s.tryjobs.Poll(now))
+	assert.True(t, mock.Empty())
+
+	// Ensure that we added a Job.
+	assert.NoError(t, s.jCache.Update())
+	jobs, err = s.jCache.UnfinishedJobs()
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(jobs))
+	tryJob := jobs[0]
+	assert.True(t, tryJob.IsTryJob())
+	assert.False(t, tryJob.Done())
+
+	// Mock out the JobFinished call.
+	tryjobs.MockJobSuccess(mock, tryJob, now, nil)
+
+	// Run through the try job's tasks.
+	for i := 0; i < 10; i++ {
+		assert.NoError(t, s.MainLoop())
+		assert.NoError(t, s.tCache.Update())
+		tasks, err := s.tCache.UnfinishedTasks()
+		assert.NoError(t, err)
+		if len(tasks) == 0 {
+			break
+		}
+		for _, task := range tasks {
+			assert.Equal(t, rs, task.RepoState)
+			task.Status = db.TASK_STATUS_SUCCESS
+			task.Finished = now
+			task.IsolatedOutput = "abc123"
+			n++
+		}
+		assert.NoError(t, d.PutTasks(tasks))
+		assert.NoError(t, s.tCache.Update())
+	}
+	assert.True(t, mock.Empty())
+
+	// Some final checks.
+	assert.NoError(t, s.jCache.Update())
+	assert.Equal(t, 7, n)
+	tryJob, err = s.jCache.GetJob(tryJob.Id)
+	assert.NoError(t, err)
+	assert.True(t, tryJob.IsTryJob())
+	assert.True(t, tryJob.Done())
 }

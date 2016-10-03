@@ -35,6 +35,7 @@ const (
 
 	SECONDS_TO_MILLIS = int64(time.Second / time.Millisecond)
 	MILLIS_TO_NANOS   = int64(time.Millisecond / time.Nanosecond)
+	MICROS_TO_NANOS   = int64(time.Microsecond / time.Nanosecond)
 
 	// time.RFC3339Nano only uses as many sub-second digits are required to
 	// represent the time, which makes it unsuitable for sorting. This
