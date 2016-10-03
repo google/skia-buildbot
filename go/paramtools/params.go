@@ -73,6 +73,15 @@ func (p Params) Keys() []string {
 	return ret
 }
 
+// NewParamSet returns a new ParamSet initialized with the given maps of parameters.
+func NewParamSet(ps ...Params) ParamSet {
+	ret := ParamSet{}
+	for _, onePS := range ps {
+		ret.AddParams(onePS)
+	}
+	return ret
+}
+
 // Add the Params to this ParamSet.
 func (p ParamSet) AddParams(ps Params) {
 	for k, v := range ps {
