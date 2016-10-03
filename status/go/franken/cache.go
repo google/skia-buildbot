@@ -172,6 +172,13 @@ func (c *BTCache) update() error {
 	if err := c.tasks.Update(); err != nil {
 		return err
 	}
+	return c.updateComments()
+}
+
+// updateComments reads updated comments from the task scheduler DB. This method
+// is separate from update to avoid calling c.repos.Update when adding/deleting
+// comments.
+func (c *BTCache) updateComments() error {
 	repos := c.repos.Repos()
 	comments, err := c.commentDb.GetCommentsForRepos(repos, time.Now().Add(-build_cache.BUILD_LOADING_PERIOD))
 	if err != nil {
@@ -431,7 +438,7 @@ func (c *BTCache) AddBuilderComment(builder string, comment *buildbot.BuilderCom
 		if err := c.commentDb.PutTaskSpecComment(taskSpecComment); err != nil {
 			return err
 		}
-		return c.update()
+		return c.updateComments()
 	} else {
 		return c.builds.AddBuilderComment(builder, comment)
 	}
@@ -450,7 +457,7 @@ func (c *BTCache) DeleteBuilderComment(builder string, commentId int64) error {
 		if err := c.commentDb.DeleteTaskSpecComment(taskSpecComment); err != nil {
 			return err
 		}
-		return c.update()
+		return c.updateComments()
 	} else {
 		return c.builds.DeleteBuilderComment(builder, commentId)
 	}
@@ -483,7 +490,7 @@ func (c *BTCache) AddBuildComment(master, builder string, number int, comment *b
 		if err := c.commentDb.PutTaskComment(taskComment); err != nil {
 			return err
 		}
-		return c.update()
+		return c.updateComments()
 	} else {
 		return c.builds.AddBuildComment(master, builder, number, comment)
 	}
@@ -501,7 +508,7 @@ func (c *BTCache) DeleteBuildComment(master, builder string, number int, comment
 		if err := c.commentDb.DeleteTaskComment(taskComment); err != nil {
 			return err
 		}
-		return c.update()
+		return c.updateComments()
 	} else {
 		return c.builds.DeleteBuildComment(master, builder, number, commentId)
 	}
