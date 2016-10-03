@@ -14,6 +14,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/status/go/build_cache"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -166,17 +167,28 @@ func (c *BTCache) taskSpecCommentForId(id int64) (*db.TaskSpecComment, error) {
 // update reads updated tasks and comments from the task scheduler DB. (Builds
 // are updated automatically by BuildCache.)
 func (c *BTCache) update() error {
+	defer timer.New("BTCache.update").Stop()
+	reposTimer := timer.New("BTCache.update/repos.Update")
 	if err := c.repos.Update(); err != nil {
+		reposTimer.Stop()
 		return err
 	}
+	reposTimer.Stop()
+	tasksTimer := timer.New("BTCache.update/tasks.Update")
 	if err := c.tasks.Update(); err != nil {
+		tasksTimer.Stop()
 		return err
 	}
+	tasksTimer.Stop()
+	commentsTimer := timer.New("BTCache.update/GetCommentsForRepos")
 	repos := c.repos.Repos()
 	comments, err := c.commentDb.GetCommentsForRepos(repos, time.Now().Add(-build_cache.BUILD_LOADING_PERIOD))
 	if err != nil {
+		commentsTimer.Stop()
 		return err
 	}
+	commentsTimer.Stop()
+	generateTimer := timer.New("BTCache.update/generateComments")
 	taskComments := make(map[string]map[string]map[string][]*buildbot.BuildComment, len(repos))
 	taskSpecComments := map[string][]*buildbot.BuilderComment{}
 	for _, rc := range comments {
@@ -224,6 +236,7 @@ func (c *BTCache) update() error {
 			taskSpecComments[builderName] = builderComments
 		}
 	}
+	generateTimer.Stop()
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.cachedTaskComments = taskComments
@@ -407,6 +420,7 @@ func (c *BTCache) GetBuildersComments() map[string][]*buildbot.BuilderComment {
 // AddBuilderComment adds a comment for either the given builder or a TaskSpec
 // if builder represents a Task name. See also BuildCache.AddBuilderComment.
 func (c *BTCache) AddBuilderComment(builder string, comment *buildbot.BuilderComment) error {
+	defer timer.New("BTCache.AddBuilderComment").Stop()
 	name, isTask := builderNameToTaskName(builder)
 	if isTask {
 		repo := ""
@@ -428,9 +442,12 @@ func (c *BTCache) AddBuilderComment(builder string, comment *buildbot.BuilderCom
 			IgnoreFailure: comment.IgnoreFailure,
 			Message:       comment.Message,
 		}
+		putTimer := timer.New("BTCache.AddBuilderComment/PutTaskSpecComment")
 		if err := c.commentDb.PutTaskSpecComment(taskSpecComment); err != nil {
+			putTimer.Stop()
 			return err
 		}
+		putTimer.Stop()
 		return c.update()
 	} else {
 		return c.builds.AddBuilderComment(builder, comment)
@@ -441,15 +458,19 @@ func (c *BTCache) AddBuilderComment(builder string, comment *buildbot.BuilderCom
 // a BuilderComment or a TaskSpecComment. See also
 // BuildCache.DeleteBuilderComment.
 func (c *BTCache) DeleteBuilderComment(builder string, commentId int64) error {
+	defer timer.New("BTCache.DeleteBuilderComment").Stop()
 	_, isTask := builderNameToTaskName(builder)
 	if isTask {
 		taskSpecComment, err := c.taskSpecCommentForId(commentId)
 		if err != nil {
 			return err
 		}
+		deleteTimer := timer.New("BTCache.DeleteBuilderComment/DeleteTaskSpecComment")
 		if err := c.commentDb.DeleteTaskSpecComment(taskSpecComment); err != nil {
+			deleteTimer.Stop()
 			return err
 		}
+		deleteTimer.Stop()
 		return c.update()
 	} else {
 		return c.builds.DeleteBuilderComment(builder, commentId)
@@ -459,6 +480,7 @@ func (c *BTCache) DeleteBuilderComment(builder string, commentId int64) error {
 // AddBuildComment adds the given comment as a TaskComment if builder represents
 // a Task name, or as a BuildComment. See also BuildCache.AddBuildComment.
 func (c *BTCache) AddBuildComment(master, builder string, number int, comment *buildbot.BuildComment) error {
+	defer timer.New("BTCache.AddBuildComment").Stop()
 	name, isTask := builderNameToTaskName(builder)
 	if isTask {
 		taskId, err := c.buildNumberToTaskId(number)
@@ -480,9 +502,12 @@ func (c *BTCache) AddBuildComment(master, builder string, number int, comment *b
 			User:      comment.User,
 			Message:   comment.Message,
 		}
+		putTimer := timer.New("BTCache.AddBuildComment/PutTaskComment")
 		if err := c.commentDb.PutTaskComment(taskComment); err != nil {
+			putTimer.Stop()
 			return err
 		}
+		putTimer.Stop()
 		return c.update()
 	} else {
 		return c.builds.AddBuildComment(master, builder, number, comment)
@@ -492,15 +517,19 @@ func (c *BTCache) AddBuildComment(master, builder string, number int, comment *b
 // DeleteBuildComment deletes the given comment, which could represent either a
 // BuildComment or a TaskComment. See also BuildCache.DeleteBuildComment.
 func (c *BTCache) DeleteBuildComment(master, builder string, number int, commentId int64) error {
+	defer timer.New("BTCache.DeleteBuildComment").Stop()
 	_, isTask := builderNameToTaskName(builder)
 	if isTask {
 		taskComment, err := c.taskCommentForId(commentId)
 		if err != nil {
 			return err
 		}
+		deleteTimer := timer.New("BTCache.DeleteBuildComment/DeleteTaskComment")
 		if err := c.commentDb.DeleteTaskComment(taskComment); err != nil {
+			deleteTimer.Stop()
 			return err
 		}
+		deleteTimer.Stop()
 		return c.update()
 	} else {
 		return c.builds.DeleteBuildComment(master, builder, number, commentId)
