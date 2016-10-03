@@ -1395,3 +1395,7 @@ func TestCommentDB(t *testing.T, db CommentDB) {
 		}
 	}
 }
+
+func DummyGetRevisionTimestamp(ts time.Time) GetRevisionTimestamp {
+	return func(string, string) (time.Time, error) { return ts, nil }
+}

@@ -73,17 +73,6 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames [
 		return nil, err
 	}
 
-	// Create caches.
-	tCache, err := db.NewTaskCache(d, period)
-	if err != nil {
-		glog.Fatal(err)
-	}
-
-	jCache, err := db.NewJobCache(d, period)
-	if err != nil {
-		glog.Fatal(err)
-	}
-
 	repos := make(map[string]*gitrepo.Repo, len(repoNames))
 	rm := gitinfo.NewRepoMap(workdir)
 	for _, r := range repoNames {
@@ -96,6 +85,18 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames [
 			return nil, err
 		}
 	}
+
+	// Create caches.
+	tCache, err := db.NewTaskCache(d, period)
+	if err != nil {
+		glog.Fatal(err)
+	}
+
+	jCache, err := db.NewJobCache(d, period, db.GitRepoGetRevisionTimestamp(repos))
+	if err != nil {
+		glog.Fatal(err)
+	}
+
 	taskCfgCache := specs.NewTaskCfgCache(rm)
 	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, c, d, jCache, projectRepoMapping, rm, taskCfgCache)
 	if err != nil {
