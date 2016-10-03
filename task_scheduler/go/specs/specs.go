@@ -3,10 +3,16 @@ package specs
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/skia-dev/glog"
+
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -43,12 +49,12 @@ func ParseTasksCfg(contents string) (*TasksCfg, error) {
 }
 
 // ReadTasksCfg reads the task cfg file from the given repo and returns it.
-func ReadTasksCfg(repo *gitinfo.GitInfo, commit string) (*TasksCfg, error) {
-	contents, err := repo.GetFile(TASKS_CFG_FILE, commit)
+func ReadTasksCfg(repoDir string) (*TasksCfg, error) {
+	contents, err := ioutil.ReadFile(path.Join(repoDir, TASKS_CFG_FILE))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read tasks cfg: could not read file: %s", err)
 	}
-	return ParseTasksCfg(contents)
+	return ParseTasksCfg(string(contents))
 }
 
 // TasksCfg is a struct which describes all Swarming tasks for a repo at a
@@ -212,7 +218,6 @@ func NewTaskCfgCache(repos *gitinfo.RepoMap) *TaskCfgCache {
 // readTasksCfg reads the task cfg file from the given repo and returns it.
 // Stores a cache of already-read task cfg files. Syncs the repo and reads the
 // file if needed. Assumes the caller holds c.mtx.
-// TODO(borenet): Make readTasksCfg apply patches as needed.
 func (c *TaskCfgCache) readTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 	rv, ok := c.cache[rs]
 	if ok {
@@ -221,11 +226,17 @@ func (c *TaskCfgCache) readTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 
 	// We haven't seen this RepoState before, or it's scrolled our of our
 	// window. Read it.
-	r, err := c.repos.Repo(rs.Repo)
+	// Point the upstream to a local source of truth to eliminate network
+	// latency.
+	rsCpy := rs.Copy()
+	altUpstream := path.Join(c.repos.Workdir(), path.Base(rs.Repo))
+	rsCpy.Repo = altUpstream
+	repoDir, err := TempGitRepo(rsCpy)
 	if err != nil {
-		return nil, fmt.Errorf("Could not read task cfg; failed to check out repo: %s", err)
+		return nil, fmt.Errorf("Could not read task cfg; failed to check out RepoState %q: %s", rs, err)
 	}
-	cfg, err := ReadTasksCfg(r, rs.Revision)
+	defer util.RemoveAll(repoDir)
+	cfg, err := ReadTasksCfg(repoDir)
 	if err != nil {
 		// The tasks.cfg file may not exist for a particular commit.
 		if strings.Contains(err.Error(), "does not exist in") || strings.Contains(err.Error(), "exists on disk, but not in") {
@@ -237,9 +248,15 @@ func (c *TaskCfgCache) readTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 			return nil, err
 		}
 	}
+	c.cache[rs] = cfg
+
+	// Write the commit and task specs into the recent lists.
+	r, err := c.repos.Repo(rs.Repo)
+	if err != nil {
+		return nil, err
+	}
 	c.recentMtx.Lock()
 	defer c.recentMtx.Unlock()
-	c.cache[rs] = cfg
 	d, err := r.Details(rs.Revision, false)
 	if err != nil {
 		return nil, err
@@ -445,4 +462,52 @@ func findCycles(tasks map[string]*TaskSpec, jobs map[string]*JobSpec) error {
 		}
 	}
 	return nil
+}
+
+// tempGitRepo creates a git repository in a temporary directory, gets it into
+// the given RepoState, and returns its location.
+func TempGitRepo(rs db.RepoState) (rv string, rvErr error) {
+	// Create a temporary dir for the git checkout.
+	tmp, err := ioutil.TempDir("", fmt.Sprintf("tmp_%s", path.Base(rs.Repo)))
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		if rvErr != nil {
+			if err := os.RemoveAll(tmp); err != nil {
+				glog.Errorf("Failed to remove %s: %s", tmp, err)
+			}
+		}
+	}()
+
+	subdir := strings.TrimSuffix(path.Base(rs.Repo), ".git")
+	d := path.Join(tmp, subdir)
+	if err := os.MkdirAll(d, os.ModePerm); err != nil {
+		if !os.IsExist(err) {
+			return "", err
+		}
+	}
+
+	// Obtain the git checkout.
+	if _, err := exec.RunCwd(d, "git", "clone", rs.Repo, "."); err != nil {
+		return "", err
+	}
+
+	// Check out the correct commit.
+	glog.Infof("Checking out %s", rs.Revision)
+	if _, err := exec.RunCwd(d, "git", "checkout", rs.Revision); err != nil {
+		return "", err
+	}
+
+	// Write a dummy .gclient file in the parent of the checkout.
+	if err := ioutil.WriteFile(path.Join(d, "..", ".gclient"), []byte(""), os.ModePerm); err != nil {
+		return "", err
+	}
+
+	// Apply a patch if necessary.
+	if rs.IsTryJob() {
+		// TODO(borenet)
+	}
+
+	return d, nil
 }

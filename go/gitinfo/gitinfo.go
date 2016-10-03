@@ -625,6 +625,11 @@ func NewRepoMap(workdir string) *RepoMap {
 	}
 }
 
+// Workdir returns the workdir of the RepoMap.
+func (m *RepoMap) Workdir() string {
+	return m.workdir
+}
+
 // Repo retrieves a pointer to a GitInfo for the requested repo URL. If the
 // repo does not yet exist in the repoMap, it is cloned and added before it is
 // returned.

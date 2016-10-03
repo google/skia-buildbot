@@ -37,7 +37,12 @@ func mockSwarmingBotsForAllTasksForTesting(repos *gitinfo.RepoMap) []*swarming_a
 			if branch.Name != "origin/master" {
 				continue
 			}
-			cfg, err := specs.ReadTasksCfg(repo, branch.Head)
+			contents, err := repo.GetFile(branch.Head, specs.TASKS_CFG_FILE)
+			if err != nil {
+				glog.Error(err)
+				continue
+			}
+			cfg, err := specs.ParseTasksCfg(contents)
 			if err != nil {
 				glog.Error(err)
 				continue
