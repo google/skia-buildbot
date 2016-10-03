@@ -8,7 +8,6 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/go/buildskia"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gitinfo"
 )
@@ -19,8 +18,8 @@ import (
 func BuildClangHarness(buildType buildskia.ReleaseType, isClean bool) (string, error) {
 	glog.Infof("Building %s clang harness, or fetching from cache", buildType)
 	buildVars := []string{
-		fmt.Sprintf("CC=%s", config.Common.ClangPath),
-		fmt.Sprintf("CXX=%s", config.Common.ClangPlusPlusPath),
+		fmt.Sprintf("cc=%q", config.Common.ClangPath),
+		fmt.Sprintf("cxx=%q", config.Common.ClangPlusPlusPath),
 	}
 	return buildOrGetCachedHarness("clang", buildType, isClean, buildVars)
 }
@@ -31,11 +30,9 @@ func BuildClangHarness(buildType buildskia.ReleaseType, isClean bool) (string, e
 func BuildASANHarness(buildType buildskia.ReleaseType, isClean bool) (string, error) {
 	glog.Infof("Building %s ASAN harness, or fetching from cache", buildType)
 	buildVars := []string{
-		fmt.Sprintf("CC=%s", config.Common.ClangPath),
-		fmt.Sprintf("CXX=%s", config.Common.ClangPlusPlusPath),
-		"CXXFLAGS=-O1 -g -fsanitize=address -fno-omit-frame-pointer",
-		"LDFLAGS=-g -fsanitize=address",
-		ASAN_OPTIONS,
+		fmt.Sprintf("cc=%q", config.Common.ClangPath),
+		fmt.Sprintf("cxx=%q", config.Common.ClangPlusPlusPath),
+		`sanitize="ASAN"`,
 	}
 	return buildOrGetCachedHarness("asan", buildType, isClean, buildVars)
 }
@@ -46,8 +43,8 @@ func BuildASANHarness(buildType buildskia.ReleaseType, isClean bool) (string, er
 func BuildFuzzingHarness(buildType buildskia.ReleaseType, isClean bool) (string, error) {
 	glog.Infof("Building %s fuzzing harness, or fetching from cache", buildType)
 	buildVars := []string{
-		fmt.Sprintf("CC=%s", filepath.Join(config.Generator.AflRoot, "afl-clang")),
-		fmt.Sprintf("CXX=%s", filepath.Join(config.Generator.AflRoot, "afl-clang++")),
+		fmt.Sprintf("cc=%q", filepath.Join(config.Generator.AflRoot, "afl-clang-fast")),
+		fmt.Sprintf("cxx=%q", filepath.Join(config.Generator.AflRoot, "afl-clang-fast++")),
 	}
 
 	return buildOrGetCachedHarness("afl-instrumented", buildType, isClean, buildVars)
@@ -63,9 +60,10 @@ func BuildFuzzingHarness(buildType buildskia.ReleaseType, isClean bool) (string,
 // build.  BuildVars are the environment variables that should be set during the build.
 func buildOrGetCachedHarness(buildName string, buildType buildskia.ReleaseType, isClean bool, buildVars []string) (string, error) {
 
-	gi, err := gitinfo.NewGitInfo(config.Common.SkiaRoot, false, false)
+	d := filepath.Join(config.Common.SkiaRoot, "skia")
+	gi, err := gitinfo.NewGitInfo(d, false, false)
 	if err != nil {
-		return "", fmt.Errorf("Could not locate git info about Skia Root %s: %s", config.Common.SkiaRoot, err)
+		return "", fmt.Errorf("Could not locate git info about Skia Root %s: %s", d, err)
 	}
 	hashes := gi.LastN(1)
 	if len(hashes) != 1 {
@@ -98,33 +96,27 @@ func buildOrGetCachedHarness(buildName string, buildType buildskia.ReleaseType, 
 	}
 }
 
-// buildHarness builds the test harness for fuzzing. It activates Skia's gyp command, which creates
-// the build (ninja) files for a Clang build. Then, it uses buildskia.NinjaBuild to execute the
+// buildHarnesGNs builds the test harness for fuzzing. It activates Skia's GN command, which creates
+// the build (ninja) files for a Clang build. Then, it uses buildskia.GNNinjaBuild to execute the
 // build. It returns the path to the executable (which should be copied somewhere else) and
 // any error. buildType is Release, Debug, etc, isClean is whether the build output directory should
-// be cleared before making a new build.  BuildVars are the environment variables that should be
-// set during the build.
-func buildHarness(buildType buildskia.ReleaseType, isClean bool, buildVars []string) (string, error) {
+// be cleared before making a new build. buildArgs are the arguments that should be passed into GN.
+func buildHarness(buildType buildskia.ReleaseType, isClean bool, buildArgs []string) (string, error) {
 	// clean previous build if specified
-	buildLocation := filepath.Join(config.Common.SkiaRoot, "out", string(buildType))
+
+	buildLocation := filepath.Join(config.Common.SkiaRoot, "skia", "out", string(buildType))
 	if isClean {
 		if err := os.RemoveAll(buildLocation); err != nil {
 			return "", fmt.Errorf("Could not clear out %s before building: %s", buildLocation, err)
 		}
 	}
 
-	gypCmd := &exec.Command{
-		Name:      "./gyp_skia",
-		Dir:       config.Common.SkiaRoot,
-		LogStdout: config.Common.VerboseBuilds,
-		LogStderr: config.Common.VerboseBuilds,
-		Env:       append(buildVars, "GYP_DEFINES=skia_clang_build=1"),
+	if err := buildskia.GNGen(config.Common.SkiaRoot, config.Common.DepotToolsPath, string(buildType), buildArgs); err != nil {
+		return "", fmt.Errorf("Failed GN: %s", err)
 	}
 
-	if err := exec.Run(gypCmd); err != nil {
-		return "", fmt.Errorf("Failed gyp: %s", err)
-	}
 	builtExe := filepath.Join(buildLocation, TEST_HARNESS_NAME)
 
-	return builtExe, buildskia.NinjaBuild(config.Common.SkiaRoot, config.Common.DepotToolsPath, buildVars, buildType, "fuzz", 16, config.Common.VerboseBuilds)
+	_, err := buildskia.GNNinjaBuild(config.Common.SkiaRoot, config.Common.DepotToolsPath, string(buildType), TEST_HARNESS_NAME, config.Common.VerboseBuilds)
+	return builtExe, err
 }
