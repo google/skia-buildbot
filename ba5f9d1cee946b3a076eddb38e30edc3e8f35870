@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e2e61dfe_a26c1ac3",
+        "filename": "go/util/util.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 624,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2016-10-03T18:06:57Z",
+      "side": 1,
+      "message": "i think instead of having two fn calls you can have one fn call as a first statement of the for loop body and that would be the same thing",
+      "range": {
+        "startLine": 624,
+        "startChar": 3,
+        "endLine": 624,
+        "endChar": 7
+      },
+      "revId": "ba5f9d1cee946b3a076eddb38e30edc3e8f35870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
