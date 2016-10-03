@@ -40,6 +40,24 @@
       "revId": "81e6bd3ca862355db54f3b84dcd87128bf496c02",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_12909c49",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-03T19:59:53Z",
+      "side": 1,
+      "message": "Actually, using SimpleRun makes using this package a bit silly, since the only things this package provides are unit testing support (via SetRunForTesting) and timeouts.\n\nI\u0027ll follow up with another CL to change this, if possible.",
+      "parentUuid": "22459584_d285940c",
+      "revId": "81e6bd3ca862355db54f3b84dcd87128bf496c02",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
