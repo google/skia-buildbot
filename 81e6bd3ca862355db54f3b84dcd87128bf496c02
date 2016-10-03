@@ -22,6 +22,24 @@
       "revId": "81e6bd3ca862355db54f3b84dcd87128bf496c02",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_d285940c",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-03T19:54:30Z",
+      "side": 1,
+      "message": "SimpleRun calls osexec.Cmd.Run(), which does not support timeouts.",
+      "parentUuid": "22e115e5_1831bd59",
+      "revId": "81e6bd3ca862355db54f3b84dcd87128bf496c02",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
