@@ -9,6 +9,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -260,4 +261,42 @@ func TestTasksCircularDependency(t *testing.T) {
 		"j": []string{"q"},
 	}))
 	assert.EqualError(t, err, "Job \"j\" has unknown task \"q\" as a dependency.")
+}
+
+func TestTempGitRepo(t *testing.T) {
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+
+	localRepoUrl := path.Join(tr.Dir, repoName)
+	cases := map[db.RepoState]error{
+		{
+			Repo:     localRepoUrl,
+			Revision: c1,
+		}: nil,
+		{
+			Repo:     localRepoUrl,
+			Revision: c2,
+		}: nil,
+	}
+	for rs, expectErr := range cases {
+		d, err := TempGitRepo(rs)
+		if expectErr != nil {
+			assert.EqualError(t, err, expectErr.Error())
+		} else {
+			defer testutils.RemoveAll(t, d)
+			gotRepo := strings.TrimSpace(testutils.Run(t, d, "git", "remote", "get-url", "origin"))
+			assert.Equal(t, rs.Repo, gotRepo)
+			gotRevision := strings.TrimSpace(testutils.Run(t, d, "git", "rev-parse", "HEAD"))
+			assert.Equal(t, rs.Revision, gotRevision)
+			// If not a try job, we expect a clean checkout,
+			// otherwise we expect a dirty checkout, from the
+			// applied patch.
+			_, err := exec.RunCwd(d, "git", "diff", "--exit-code", "--no-patch", rs.Revision)
+			if rs.IsTryJob() {
+				assert.EqualError(t, err, "")
+			} else {
+				assert.NoError(t, err)
+			}
+		}
+	}
 }
