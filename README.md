@@ -23,19 +23,6 @@ Go dependencies.
 Note: go.skia.org is a custom import path and will only work if used like the examples
 [here](http://golang.org/cmd/go/#hdr-Remote_import_paths).
 
-Install [depot_tools](http://www.chromium.org/developers/how-tos/install-depot-tools). You can learn
-more about using depot_tools from the
-[tutorial](http://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html).
-Then run:
-
-```
-$ cd $GOPATH/src/go.skia.org/
-$ gclient config --name infra --unmanaged https://skia.googlesource.com/buildbot
-$ gclient sync
-```
-
-This fetches additional dependencies specified by the DEPS file.
-
 Install [Node.js](https://nodejs.org/en/download/) (not as root) and add the bin dir to your
 path. Optionally run `npm install npm -g`, as suggested by the
 [npm getting started doc](https://docs.npmjs.com/getting-started/installing-node#updating-npm).
