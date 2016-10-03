@@ -238,7 +238,6 @@
         var lines = {};
         var keys = Object.keys(dataframe.traceset);
         keys.forEach(function(key) {
-          length = dataframe.traceset[key].length;
           var values = [];
           dataframe.traceset[key].forEach(function(y, x) {
             if (y != 1e32) {
