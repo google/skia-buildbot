@@ -370,6 +370,24 @@
     },
     {
       "key": {
+        "uuid": "e227fd48_34bbb0bb",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-04T11:58:12Z",
+      "side": 1,
+      "message": "Thank you for clarifying.",
+      "parentUuid": "22459584_f209b08b",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22459584_e1a5609d",
         "filename": "golden/go/search/search_test.go",
         "patchSetId": 5
@@ -405,6 +423,24 @@
     },
     {
       "key": {
+        "uuid": "e227fd48_f4ed38b1",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-04T11:58:12Z",
+      "side": 1,
+      "message": "Acknowledged.",
+      "parentUuid": "22459584_5264e446",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22459584_c112e4bc",
         "filename": "golden/go/search/search_test.go",
         "patchSetId": 5
@@ -434,6 +470,24 @@
       "side": 1,
       "message": "Above I establish what the query should return, by sifting through the sample data directly (for every test). And here I search for that test to make sure I get the result I expect.\nAdded comments to make that clearer.",
       "parentUuid": "22459584_c112e4bc",
+      "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e227fd48_b4e7c0cf",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-04T11:58:12Z",
+      "side": 1,
+      "message": "Thanks.",
+      "parentUuid": "22459584_3252f868",
       "revId": "06a61eae87cc9d7238dfa0574977e9a1a81a2f96",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
