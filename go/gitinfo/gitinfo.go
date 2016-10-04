@@ -102,6 +102,11 @@ func (g *GitInfo) Update(pull, allBranches bool) error {
 	return nil
 }
 
+// Dir returns the checkout dir of the GitInfo..
+func (g *GitInfo) Dir() string {
+	return g.dir
+}
+
 // Details returns more information than ShortCommit about a given commit.
 // See the vcsinfo.VCS interface for details.
 func (g *GitInfo) Details(hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
