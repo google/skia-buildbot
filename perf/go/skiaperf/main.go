@@ -1174,6 +1174,12 @@ type SearchRequest struct {
 	Query string `json:"q"` // The query encoded as a URL query.
 }
 
+// SearchResponse is serialized to JSON as the response to search requests.
+type SearchResponse struct {
+	DataFrame *dataframe.DataFrame `json:"dataframe"`
+	Ticks     []interface{}        `json:"ticks"`
+}
+
 // searchHandler takes the POST'd query and returns a serialized DataFrame of
 // the results.
 func searchHandler(w http.ResponseWriter, r *http.Request) {
@@ -1200,8 +1206,21 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	begin := git.LastNIndex(sr.LastN)[0].Timestamp
 	end := time.Now()
 	df, err := dataframe.NewFromQueryAndRange(git, ptracestore.Default, begin, end, q)
+
+	// Calculate the human ticks based on the column headers.
+	ts := []int64{}
+	for _, c := range df.Header {
+		ts = append(ts, c.Timestamp)
+	}
+	ticks := human.FlotTickMarks(ts)
+
+	resp := &SearchResponse{
+		DataFrame: df,
+		Ticks:     ticks,
+	}
+
 	// TODO(jcgregorio) Limit the results if there are too many?
-	if err := json.NewEncoder(w).Encode(df); err != nil {
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		glog.Errorf("Failed to encode paramset: %s", err)
 	}
 }
