@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "e227fd48_7427e81e",
+        "filename": "go/gitinfo/gitinfo.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 629,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-04T13:14:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "22459584_52a6a418",
+      "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22459584_3294b89b",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 3
@@ -71,6 +89,42 @@
     },
     {
       "key": {
+        "uuid": "e227fd48_94f88463",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 671,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-04T13:14:45Z",
+      "side": 1,
+      "message": "Agreed. Let\u0027s see how this performs and then we can optimize it later. My guess is that we\u0027ll want to isolate in parallel, but maybe we\u0027ll need to take the riskier approach of just having N checkouts and doing our best to clean them up after applying patches.",
+      "parentUuid": "22459584_b29f28b3",
+      "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e227fd48_f403f870",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 671,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-04T13:14:45Z",
+      "side": 1,
+      "message": "That\u0027s what we\u0027re doing here. All chosen candidates which have the same RepoState are isolated together. If the tasks are triggered in different cycles, we\u0027ll have to re-clone the repo, but I think that cloning from a local upstream shouldn\u0027t be too bad.",
+      "parentUuid": "22459584_3294b89b",
+      "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22459584_92730ca7",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 3
@@ -88,6 +142,24 @@
         "endLine": 51,
         "endChar": 59
       },
+      "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e227fd48_741048b4",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-04T13:14:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "22459584_92730ca7",
       "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -117,6 +189,24 @@
     },
     {
       "key": {
+        "uuid": "e227fd48_140d5497",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-04T13:14:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "22459584_d2b91435",
+      "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22459584_b2b60843",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 3
@@ -134,6 +224,24 @@
         "endLine": 471,
         "endChar": 30
       },
+      "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e227fd48_d44cbccb",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-04T13:14:45Z",
+      "side": 1,
+      "message": "Added workdir argument.",
+      "parentUuid": "22459584_b2b60843",
       "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -163,6 +271,24 @@
     },
     {
       "key": {
+        "uuid": "e227fd48_d4635c3e",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 489,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-04T13:14:45Z",
+      "side": 1,
+      "message": "It\u0027s required for isolation, where we need the \"skia\" dir with a \".gclient\" file next to it.",
+      "parentUuid": "22459584_12c41ca4",
+      "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22459584_f2c09091",
         "filename": "task_scheduler/go/specs/specs_test.go",
         "patchSetId": 3
@@ -180,6 +306,24 @@
         "endLine": 281,
         "endChar": 18
       },
+      "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e227fd48_b44b40af",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-04T13:14:45Z",
+      "side": 1,
+      "message": "Added a couple",
+      "parentUuid": "22459584_f2c09091",
       "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
