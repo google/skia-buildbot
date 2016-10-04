@@ -77,7 +77,7 @@ func revisionHelper(storageClient *storage.Client, prefix string) (string, time.
 // dependencies needed to compile Skia have been installed (e.g. the latest revision of gyp).
 // It returns an error on failure.
 func DownloadSkia(revision, path string, v config.VersionSetter, clean bool) error {
-	if lc, err := buildskia.DownloadSkia("master", revision, path, config.Common.DepotToolsPath, clean, false); err != nil {
+	if lc, err := buildskia.GNDownloadSkia("master", revision, path, config.Common.DepotToolsPath, clean, false); err != nil {
 		return fmt.Errorf("Could not get git details for skia revision %s: %s", revision, err)
 	} else {
 		v.SetSkiaVersion(lc)

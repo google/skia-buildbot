@@ -357,7 +357,7 @@ func findBadFuzzPaths(category string, alreadyFoundFuzzes *SortedStringSlice) ([
 	return badFuzzPaths, nil
 }
 
-var aflMetrics = []string{"start_time", "last_update", "cycles_done", "execs_done", "execs_per_sec", "paths_total", "paths_found", "paths_imported"}
+var aflMetrics = []string{"start_time", "last_update", "cycles_done", "execs_done", "execs_per_sec", "paths_total", "paths_found", "paths_imported", "stability"}
 
 var aflRegexps = make([]*regexp.Regexp, 0, len(aflMetrics))
 

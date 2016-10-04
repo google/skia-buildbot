@@ -10,7 +10,7 @@ source vm_config.sh
 gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME \
   --zone $ZONE \
   --source-snapshot $FUZZER_SOURCE_SNAPSHOT \
-  --type "pd-standard"
+  --type "pd-ssd"
 
 # local-ssd is 375 GB
 gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
