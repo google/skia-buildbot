@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "02741142_cdbf49ab",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-04T17:54:07Z",
+      "side": 1,
+      "message": "I have no idea how to test this.  Ideally, I\u0027d like to actually apply a patch, but in order to do so, I\u0027d need a valid, active issue which would apply every time, which seems unlikely. Thoughts?",
+      "range": {
+        "startLine": 300,
+        "startChar": 15,
+        "endLine": 300,
+        "endChar": 16
+      },
+      "revId": "683c321c300874913b073bb4d9ebe6712cd6ea36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
