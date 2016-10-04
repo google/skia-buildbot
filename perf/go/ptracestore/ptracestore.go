@@ -137,6 +137,7 @@ func (b *BoltTraceStore) getBoltDB(commitID *cid.CommitID) (*bolt.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open %q: %s", filename, err)
 	}
+	glog.Infof("db: %v", db)
 	b.cache.Add(name, db)
 	return db, nil
 }
