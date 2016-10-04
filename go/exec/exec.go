@@ -79,6 +79,8 @@ type Command struct {
 	Env []string
 	// If Env is non-nil, adds the current process's PATH to Env.
 	InheritPath bool
+	// If Env is non-nil, adds the current process's entire environment to Env, excluding variables that are set in Env.
+	InheritEnv bool
 	// The working directory of the command. If nil, runs in the current process's current
 	// directory.
 	Dir string
@@ -155,7 +157,17 @@ func createCmd(command *Command) *osexec.Cmd {
 	cmd := osexec.Command(command.Name, command.Args...)
 	if len(command.Env) != 0 {
 		cmd.Env = command.Env
-		if command.InheritPath {
+		if command.InheritEnv {
+			existing := make(map[string]bool, len(command.Env))
+			for _, s := range command.Env {
+				existing[strings.SplitN(s, "=", 2)[0]] = true
+			}
+			for _, s := range os.Environ() {
+				if !existing[strings.SplitN(s, "=", 2)[0]] {
+					cmd.Env = append(cmd.Env, s)
+				}
+			}
+		} else if command.InheritPath {
 			cmd.Env = append(cmd.Env, "PATH="+os.Getenv("PATH"))
 		}
 	}
