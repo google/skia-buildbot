@@ -145,6 +145,42 @@ func TestInheritPath(t *testing.T) {
 	expect.Equal(t, os.Getenv("PATH"), strings.TrimSpace(string(contents)))
 }
 
+// Add x before variable to ensure no blank lines.
+const EnvScript = `#!/bin/bash
+echo "x${PATH}" > "${EXEC_TEST_FILE}"
+echo "x${USER}" >> "${EXEC_TEST_FILE}"
+echo "x${PWD}" >> "${EXEC_TEST_FILE}"
+echo "${HOME}" >> "${EXEC_TEST_FILE}"
+echo "x${GOPATH}" >> "${EXEC_TEST_FILE}"
+`
+
+func TestInheritEnv(t *testing.T) {
+	dir, err := ioutil.TempDir("", "exec_test")
+	assert.NoError(t, err)
+	defer RemoveAll(dir)
+	script := filepath.Join(dir, "path_script.sh")
+	assert.NoError(t, WriteScript(script, EnvScript))
+	file := filepath.Join(dir, "ran")
+	assert.NoError(t, Run(&Command{
+		Name: script,
+		Env: []string{
+			fmt.Sprintf("EXEC_TEST_FILE=%s", file),
+			fmt.Sprintf("HOME=%s", dir),
+		},
+		InheritPath: false,
+		InheritEnv:  true,
+	}))
+	contents, err := ioutil.ReadFile(file)
+	assert.NoError(t, err)
+	lines := strings.Split(strings.TrimSpace(string(contents)), "\n")
+	assert.Equal(t, 5, len(lines))
+	expect.Equal(t, "x"+os.Getenv("PATH"), lines[0])
+	expect.Equal(t, "x"+os.Getenv("USER"), lines[1])
+	expect.Equal(t, "x"+os.Getenv("PWD"), lines[2])
+	expect.Equal(t, dir, lines[3])
+	expect.Equal(t, "x"+os.Getenv("GOPATH"), lines[4])
+}
+
 const HelloScript = `#!/bin/bash
 echo "Hello World!" > output.txt
 `
