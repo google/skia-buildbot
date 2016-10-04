@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "22459584_52a6a418",
+        "filename": "go/gitinfo/gitinfo.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 629,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-04T01:12:25Z",
+      "side": 1,
+      "message": "nit: The contents of Workdir are an implementation detail. It seems that you really just want a LocalURL or Dir method on GitInfo.",
+      "range": {
+        "startLine": 629,
+        "startChar": 18,
+        "endLine": 629,
+        "endChar": 27
+      },
+      "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_3294b89b",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 671,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-04T01:12:25Z",
+      "side": 1,
+      "message": "IWBN if we could clone the repo and download and apply the patch just once. As written, we\u0027ll need to do that ~8 times (assuming all builds happen at once) for each Skia dry run or CQ.",
+      "range": {
+        "startLine": 671,
+        "startChar": 17,
+        "endLine": 671,
+        "endChar": 38
+      },
+      "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_b29f28b3",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 671,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-04T01:12:25Z",
+      "side": 1,
+      "message": "Are you planning to isolate in parallel? If not, it seems like overkill to create a new temp repo when there is no patch.",
+      "range": {
+        "startLine": 671,
+        "startChar": 17,
+        "endLine": 671,
+        "endChar": 38
+      },
+      "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_92730ca7",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-04T01:12:25Z",
+      "side": 1,
+      "message": "nit: s/repo/dir/",
+      "range": {
+        "startLine": 51,
+        "startChar": 55,
+        "endLine": 51,
+        "endChar": 59
+      },
+      "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_d2b91435",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-04T01:12:25Z",
+      "side": 1,
+      "message": "s/temp/Temp/",
+      "range": {
+        "startLine": 467,
+        "startChar": 3,
+        "endLine": 467,
+        "endChar": 14
+      },
+      "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_b2b60843",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-04T01:12:25Z",
+      "side": 1,
+      "message": "We should probably do one of the following:\n - bind-mount /tmp on pd0\n - make /tmp a tmpfs\n - specify workdir for the first argument (possibly pointing to a tmpfs)",
+      "range": {
+        "startLine": 471,
+        "startChar": 13,
+        "endLine": 471,
+        "endChar": 30
+      },
+      "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_12c41ca4",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 489,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-04T01:12:25Z",
+      "side": 1,
+      "message": "nit: seems unnecessary",
+      "range": {
+        "startLine": 483,
+        "startChar": 0,
+        "endLine": 489,
+        "endChar": 2
+      },
+      "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22459584_f2c09091",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-04T01:12:25Z",
+      "side": 1,
+      "message": "no error cases?",
+      "range": {
+        "startLine": 281,
+        "startChar": 9,
+        "endLine": 281,
+        "endChar": 18
+      },
+      "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
