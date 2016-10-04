@@ -40,6 +40,24 @@
       "revId": "683c321c300874913b073bb4d9ebe6712cd6ea36",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e227fd48_57418e8d",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-04T19:49:35Z",
+      "side": 1,
+      "message": "Sigh. We use the server to determine whether we\u0027re patching from Gerrit or Rietveld, so pointing to a local server would complicate things. Not to mention having to implement all of the endpoints which git-cl expects. I guess another option is to actually upload CLs from a temporary checkout to Gerrit and Rietveld and then patch them in.  I can think of lots of reasons that\u0027s a bad solution. Would it be terrible if I left this untested for now?",
+      "parentUuid": "e227fd48_77acca88",
+      "revId": "683c321c300874913b073bb4d9ebe6712cd6ea36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
