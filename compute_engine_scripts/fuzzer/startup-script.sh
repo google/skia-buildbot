@@ -1,6 +1,6 @@
 #! /bin/bash
 
-AFL_VERSION="2.19b"
+AFL_VERSION="2.35b"
 # We need clang set as our c++ builder to build afl-clang
 export CC=/usr/bin/clang CXX=/usr/bin/clang++
 
@@ -11,6 +11,9 @@ sudo chmod 777 /mnt/ssd0/afl
 wget 'https://storage.googleapis.com/skia-fuzzer/afl-mirror/afl-'$AFL_VERSION'.tgz' -O /tmp/afl.tgz
 tar -C /mnt/ssd0/afl/ -zxf /tmp/afl.tgz --strip=1 "afl-"$AFL_VERSION
 cd /mnt/ssd0/afl/
+make
+# build afl-clang-fast
+cd /mnt/ssd0/afl/llvm_mode/
 make
 
 # Download and install depot_tools to /mnt/ssd0/depot_tools
