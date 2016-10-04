@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 	"testing"
 	"time"
 
@@ -49,16 +50,18 @@ func (g *GitBuilder) Dir() string {
 	return g.dir
 }
 
-func (g *GitBuilder) run(cmd ...string) {
-	_, err := exec.RunCwd(g.dir, cmd...)
+func (g *GitBuilder) run(cmd ...string) string {
+	output, err := exec.RunCwd(g.dir, cmd...)
 	assert.NoError(g.t, err)
+	return output
 }
 
-func (g *GitBuilder) runCommand(cmd *exec.Command) {
+func (g *GitBuilder) runCommand(cmd *exec.Command) string {
 	cmd.InheritEnv = true
 	cmd.Dir = g.dir
-	_, err := exec.RunCommand(cmd)
+	output, err := exec.RunCommand(cmd)
 	assert.NoError(g.t, err)
+	return output
 }
 
 func (g *GitBuilder) write(filepath, contents string) {
@@ -85,40 +88,42 @@ func (g *GitBuilder) AddGen(file string) {
 	g.Add(file, genString())
 }
 
+func (g *GitBuilder) lastCommitHash() string {
+	return strings.TrimSpace(g.run("git", "rev-parse", "HEAD"))
+}
+
 // CommitMsg commits files in the index with the given commit message using the
 // given time as the commit time. The current branch is then pushed.
-// Note that the nanosecond component of time will be dropped.
-// TODO(benjaminwagner): Return commit hash.
-func (g *GitBuilder) CommitMsgAt(msg string, time time.Time) {
+// Note that the nanosecond component of time will be dropped. Returns the hash
+// of the new commit.
+func (g *GitBuilder) CommitMsgAt(msg string, time time.Time) string {
 	g.runCommand(&exec.Command{
 		Name: "git",
 		Args: []string{"commit", "-m", msg},
 		Env:  []string{fmt.Sprintf("GIT_AUTHOR_DATE=%d +0000", time.Unix()), fmt.Sprintf("GIT_COMMITTER_DATE=%d +0000", time.Unix())},
 	})
 	g.push()
+	return g.lastCommitHash()
 }
 
 // CommitMsg commits files in the index with the given commit message. The
-// current branch is then pushed.
-// TODO(benjaminwagner): Return commit hash.
-func (g *GitBuilder) CommitMsg(msg string) {
-	g.CommitMsgAt(msg, time.Now())
+// current branch is then pushed. Returns the hash of the new commit.
+func (g *GitBuilder) CommitMsg(msg string) string {
+	return g.CommitMsgAt(msg, time.Now())
 }
 
 // Commit commits files in the index. The current branch is then pushed. Uses an
-// arbitrary commit message.
-// TODO(benjaminwagner): Return commit hash.
-func (g *GitBuilder) Commit() {
-	g.CommitMsg(genString())
+// arbitrary commit message. Returns the hash of the new commit.
+func (g *GitBuilder) Commit() string {
+	return g.CommitMsg(genString())
 }
 
 // CommitGen commits arbitrary content to the given file. The current branch is
-// then pushed.
-// TODO(benjaminwagner): Return commit hash.
-func (g *GitBuilder) CommitGen(file string) {
+// then pushed. Returns the hash of the new commit.
+func (g *GitBuilder) CommitGen(file string) string {
 	s := genString()
 	g.Add(file, s)
-	g.CommitMsg(s)
+	return g.CommitMsg(s)
 }
 
 // CreateBranchTrackBranch creates a new branch tracking an existing branch,
@@ -144,12 +149,12 @@ func (g *GitBuilder) CheckoutBranch(name string) {
 }
 
 // MergeBranch merges the given branch into the current branch and pushes the
-// current branch.
-// TODO(benjaminwagner): Return commit hash.
-func (g *GitBuilder) MergeBranch(name string) {
+// current branch. Returns the hash of the new commit.
+func (g *GitBuilder) MergeBranch(name string) string {
 	assert.NotEqual(g.t, g.branch, name, "Can't merge a branch into itself.")
 	g.run("git", "merge", name)
 	g.push()
+	return g.lastCommitHash()
 }
 
 // GitSetup adds commits to the Git repo managed by g.
@@ -158,17 +163,15 @@ func (g *GitBuilder) MergeBranch(name string) {
 //
 // c1--c2------c4--c5--
 //       \-c3-----/
-func GitSetup(g *GitBuilder) {
-	// c1
-	g.CommitGen("myfile.txt")
-	// c2
-	g.CommitGen("myfile.txt")
-	// c3
+//
+// Returns the commit hashes in order from c1-c5.
+func GitSetup(g *GitBuilder) []string {
+	c1 := g.CommitGen("myfile.txt")
+	c2 := g.CommitGen("myfile.txt")
 	g.CreateBranchTrackBranch("branch2", "origin/master")
-	g.CommitGen("anotherfile.txt")
-	// c4
+	c3 := g.CommitGen("anotherfile.txt")
 	g.CheckoutBranch("master")
-	g.CommitGen("myfile.txt")
-	// c5
-	g.MergeBranch("branch2")
+	c4 := g.CommitGen("myfile.txt")
+	c5 := g.MergeBranch("branch2")
+	return []string{c1, c2, c3, c4, c5}
 }
