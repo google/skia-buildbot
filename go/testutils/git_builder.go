@@ -1,10 +1,12 @@
 package testutils
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/satori/go.uuid"
 	assert "github.com/stretchr/testify/require"
@@ -52,6 +54,13 @@ func (g *GitBuilder) run(cmd ...string) {
 	assert.NoError(g.t, err)
 }
 
+func (g *GitBuilder) runCommand(cmd *exec.Command) {
+	cmd.InheritEnv = true
+	cmd.Dir = g.dir
+	_, err := exec.RunCommand(cmd)
+	assert.NoError(g.t, err)
+}
+
 func (g *GitBuilder) write(filepath, contents string) {
 	assert.NoError(g.t, ioutil.WriteFile(path.Join(g.dir, filepath), []byte(contents), os.ModePerm))
 }
@@ -76,12 +85,24 @@ func (g *GitBuilder) AddGen(file string) {
 	g.Add(file, genString())
 }
 
+// CommitMsg commits files in the index with the given commit message using the
+// given time as the commit time. The current branch is then pushed.
+// Note that the nanosecond component of time will be dropped.
+// TODO(benjaminwagner): Return commit hash.
+func (g *GitBuilder) CommitMsgAt(msg string, time time.Time) {
+	g.runCommand(&exec.Command{
+		Name: "git",
+		Args: []string{"commit", "-m", msg},
+		Env:  []string{fmt.Sprintf("GIT_AUTHOR_DATE=%d +0000", time.Unix()), fmt.Sprintf("GIT_COMMITTER_DATE=%d +0000", time.Unix())},
+	})
+	g.push()
+}
+
 // CommitMsg commits files in the index with the given commit message. The
 // current branch is then pushed.
 // TODO(benjaminwagner): Return commit hash.
 func (g *GitBuilder) CommitMsg(msg string) {
-	g.run("git", "commit", "-m", msg)
-	g.push()
+	g.CommitMsgAt(msg, time.Now())
 }
 
 // Commit commits files in the index. The current branch is then pushed. Uses an
