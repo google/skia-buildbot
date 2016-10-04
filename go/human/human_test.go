@@ -138,7 +138,7 @@ func TestTickMarks(t *testing.T) {
 ]`
 
 	if got != want {
-		t.Errorf(": Got %v Want %v", got, want)
+		t.Errorf("ToFlot failed: Got %v Want %v", got, want)
 	}
 }
 
