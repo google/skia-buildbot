@@ -30,13 +30,11 @@ type MockDiffStore struct{}
 func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[string]*diff.DiffMetrics, error) {
 	result := map[string]*diff.DiffMetrics{}
 	for _, d := range dRest {
-		if dMain != d {
-			result[d] = &diff.DiffMetrics{
-				NumDiffPixels:    10,
-				PixelDiffPercent: 1.0,
-				MaxRGBADiffs:     []int{5, 3, 4, 0},
-				DimDiffer:        false,
-			}
+		result[d] = &diff.DiffMetrics{
+			NumDiffPixels:    10,
+			PixelDiffPercent: 1.0,
+			MaxRGBADiffs:     []int{5, 3, 4, 0},
+			DimDiffer:        false,
 		}
 	}
 	return result, nil
