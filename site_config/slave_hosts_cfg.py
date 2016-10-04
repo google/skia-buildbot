@@ -91,7 +91,7 @@ _slave_host_dicts = {
       ('skiabot-linux-swarm-137', '137', False),
       ('skiabot-linux-swarm-138', '138', False),
       ('skiabot-linux-swarm-139', '139', False),
-      #('skiabot-linux-swarm-140', '140', False),
+      ('skiabot-linux-swarm-140', '140', False),
       #('skiabot-linux-swarm-141', '141', False),
       #('skiabot-linux-swarm-142', '142', False),
       #('skiabot-linux-swarm-143', '143', False),
