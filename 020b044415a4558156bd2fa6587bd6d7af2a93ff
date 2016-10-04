@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "e26d3d44_8a5d6fee",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 670,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-04T15:04:04Z",
+      "side": 1,
+      "message": "I didn\u0027t copy here because rs isn\u0027t used after the call to TempGitRepo.",
+      "parentUuid": "e227fd48_f4b53884",
+      "revId": "020b044415a4558156bd2fa6587bd6d7af2a93ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0246d1f1_fdc4473b",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 4
@@ -42,6 +60,24 @@
         "endLine": 238,
         "endChar": 23
       },
+      "revId": "020b044415a4558156bd2fa6587bd6d7af2a93ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e26d3d44_aa5a2bf1",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-04T15:04:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0246d1f1_fdc4473b",
       "revId": "020b044415a4558156bd2fa6587bd6d7af2a93ff",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
