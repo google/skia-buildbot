@@ -125,6 +125,24 @@
     },
     {
       "key": {
+        "uuid": "0246d1f1_ddbf0bab",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 671,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-04T13:45:43Z",
+      "side": 1,
+      "message": "In perf, Joe used github.com/golang/groupcache/lru, which has an OnEvicted option you could use to clean up checkouts that are no longer needed.",
+      "parentUuid": "e227fd48_94f88463",
+      "revId": "ea5ad691cdab0c0bdfd8b9a289983ad7f63d6fbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22459584_92730ca7",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 3
