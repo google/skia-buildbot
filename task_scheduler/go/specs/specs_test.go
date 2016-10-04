@@ -265,17 +265,20 @@ func TestTasksCircularDependency(t *testing.T) {
 }
 
 func TestTempGitRepo(t *testing.T) {
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
-
-	localRepoUrl := path.Join(tr.Dir, repoName)
+	gb := testutils.GitInit(t)
+	defer gb.Cleanup()
+	gb.Add("codereview.settings", `CODE_REVIEW_SERVER: codereview.chromium.org`)
+	gb.CommitMsg("initial commit")
+	c1 := strings.TrimSpace(testutils.Run(t, gb.Dir(), "git", "rev-parse", "HEAD"))
+	gb.CommitGen("somefile")
+	c2 := strings.TrimSpace(testutils.Run(t, gb.Dir(), "git", "rev-parse", "HEAD"))
 	cases := map[db.RepoState]error{
 		{
-			Repo:     localRepoUrl,
+			Repo:     gb.Dir(),
 			Revision: c1,
 		}: nil,
 		{
-			Repo:     localRepoUrl,
+			Repo:     gb.Dir(),
 			Revision: c2,
 		}: nil,
 		{
@@ -283,16 +286,35 @@ func TestTempGitRepo(t *testing.T) {
 			Revision: c1,
 		}: fmt.Errorf("exit status 128; Stdout+Stderr:\nfatal: repository 'bogus.git' does not exist\n"),
 		{
-			Repo:     localRepoUrl,
+			Repo:     gb.Dir(),
 			Revision: "bogusRev",
 		}: fmt.Errorf("exit status 1; Stdout+Stderr:\nerror: pathspec 'bogusRev' did not match any file(s) known to git.\n"),
+		{
+			Patch: db.Patch{
+				Server:   "https://codereview.chromium.org",
+				Issue:    "999",
+				Patchset: "999",
+			},
+			Repo:     gb.Dir(),
+			Revision: c2,
+		}: fmt.Errorf(""),
+		{
+			Patch: db.Patch{
+				Server:   "https://skia-review.googlesource.com",
+				Issue:    "999",
+				Patchset: "999",
+			},
+			Repo:     gb.Dir(),
+			Revision: c2,
+		}: fmt.Errorf("???"),
 	}
 	for rs, expectErr := range cases {
-		d, err := TempGitRepo(tr.Dir, rs)
+		d, err := TempGitRepo(gb.Dir(), rs)
 		if expectErr != nil {
 			assert.EqualError(t, err, expectErr.Error())
 		} else {
 			defer testutils.RemoveAll(t, d)
+			assert.NoError(t, err)
 			gotRepo := strings.TrimSpace(testutils.Run(t, d, "git", "remote", "get-url", "origin"))
 			assert.Equal(t, rs.Repo, gotRepo)
 			gotRevision := strings.TrimSpace(testutils.Run(t, d, "git", "rev-parse", "HEAD"))
