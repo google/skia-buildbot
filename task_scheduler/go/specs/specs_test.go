@@ -2,6 +2,7 @@ package specs
 
 import (
 	"encoding/json"
+	"fmt"
 	"path"
 	"strings"
 	"testing"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -68,7 +70,7 @@ func TestTaskSpecs(t *testing.T) {
 	defer tr.Cleanup()
 
 	repos := gitinfo.NewRepoMap(tr.Dir)
-	cache := NewTaskCfgCache(repos)
+	cache := NewTaskCfgCache(tr.Dir, repos)
 
 	rs1 := db.RepoState{
 		Repo:     repoName,
@@ -119,7 +121,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	defer tr.Cleanup()
 
 	repos := gitinfo.NewRepoMap(tr.Dir)
-	cache := NewTaskCfgCache(repos)
+	cache := NewTaskCfgCache(tr.Dir, repos)
 
 	// Load configs into the cache.
 	rs1 := db.RepoState{
@@ -260,4 +262,50 @@ func TestTasksCircularDependency(t *testing.T) {
 		"j": []string{"q"},
 	}))
 	assert.EqualError(t, err, "Job \"j\" has unknown task \"q\" as a dependency.")
+}
+
+func TestTempGitRepo(t *testing.T) {
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+
+	localRepoUrl := path.Join(tr.Dir, repoName)
+	cases := map[db.RepoState]error{
+		{
+			Repo:     localRepoUrl,
+			Revision: c1,
+		}: nil,
+		{
+			Repo:     localRepoUrl,
+			Revision: c2,
+		}: nil,
+		{
+			Repo:     "bogus.git",
+			Revision: c1,
+		}: fmt.Errorf("exit status 128; Stdout+Stderr:\nfatal: repository 'bogus.git' does not exist\n"),
+		{
+			Repo:     localRepoUrl,
+			Revision: "bogusRev",
+		}: fmt.Errorf("exit status 1; Stdout+Stderr:\nerror: pathspec 'bogusRev' did not match any file(s) known to git.\n"),
+	}
+	for rs, expectErr := range cases {
+		d, err := TempGitRepo(tr.Dir, rs)
+		if expectErr != nil {
+			assert.EqualError(t, err, expectErr.Error())
+		} else {
+			defer testutils.RemoveAll(t, d)
+			gotRepo := strings.TrimSpace(testutils.Run(t, d, "git", "remote", "get-url", "origin"))
+			assert.Equal(t, rs.Repo, gotRepo)
+			gotRevision := strings.TrimSpace(testutils.Run(t, d, "git", "rev-parse", "HEAD"))
+			assert.Equal(t, rs.Revision, gotRevision)
+			// If not a try job, we expect a clean checkout,
+			// otherwise we expect a dirty checkout, from the
+			// applied patch.
+			_, err := exec.RunCwd(d, "git", "diff", "--exit-code", "--no-patch", rs.Revision)
+			if rs.IsTryJob() {
+				assert.EqualError(t, err, "")
+			} else {
+				assert.NoError(t, err)
+			}
+		}
+	}
 }
