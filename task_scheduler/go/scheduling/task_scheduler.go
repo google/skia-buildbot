@@ -3,13 +3,10 @@ package scheduling
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"math"
 	"net/http"
-	"os"
 	"path"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 
@@ -18,7 +15,6 @@ import (
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/gitrepo"
 	"go.skia.org/infra/go/isolate"
@@ -96,7 +92,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames [
 			return nil, err
 		}
 	}
-	taskCfgCache := specs.NewTaskCfgCache(rm)
+	taskCfgCache := specs.NewTaskCfgCache(path.Join(workdir, "cfg_cache"), rm)
 	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, c, d, jCache, projectRepoMapping, rm, taskCfgCache)
 	if err != nil {
 		return nil, err
@@ -664,34 +660,37 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 	return rv
 }
 
-// tempGitRepo creates a git repository in a temporary directory and returns its
-// location.
-func (s *TaskScheduler) tempGitRepo(repoUrl, subdir string) (string, error) {
-	tmpRepoDir := path.Join(s.workdir, "tmp_git_repos")
-	if err := os.Mkdir(tmpRepoDir, os.ModePerm); err != nil && !os.IsExist(err) {
-		return "", err
-	}
-	tmp, err := ioutil.TempDir(tmpRepoDir, fmt.Sprintf("tmp_%s", path.Base(repoUrl)))
+// isolateTasks sets up the given RepoState and isolates the given
+// taskCandidates.
+func (s *TaskScheduler) isolateTasks(rs db.RepoState, candidates []*taskCandidate) error {
+	// Create and check out a temporary repo.
+	// Point the upstream to a local source of truth to eliminate network
+	// latency.
+	altUpstream := path.Join(s.workdir, path.Base(rs.Repo))
+	rs.Repo = altUpstream
+	repoDir, err := specs.TempGitRepo(path.Join(s.workdir, "temp_repos"), rs)
 	if err != nil {
-		return "", err
+		return err
 	}
-	d := path.Join(tmp, subdir)
-	if err := os.MkdirAll(d, os.ModePerm); err != nil {
-		if !os.IsExist(err) {
-			return "", err
-		}
+	defer util.RemoveAll(repoDir)
+
+	// Isolate the tasks.
+	infraBotsDir := path.Join(repoDir, "infra", "bots")
+	tasks := make([]*isolate.Task, 0, len(candidates))
+	for _, c := range candidates {
+		tasks = append(tasks, c.MakeIsolateTask(infraBotsDir, s.workdir))
 	}
-	if _, err := exec.RunCwd(d, "git", "clone", repoUrl, "."); err != nil {
-		return "", err
+	hashes, err := s.isolate.IsolateTasks(tasks)
+	if err != nil {
+		return err
 	}
-	if _, err := exec.RunCwd(d, "git", "checkout", "master"); err != nil {
-		return "", err
+	if len(hashes) != len(candidates) {
+		return fmt.Errorf("IsolateTasks returned incorrect number of hashes.")
 	}
-	// Write a dummy .gclient file in the parent of the checkout.
-	if err := ioutil.WriteFile(path.Join(d, "..", ".gclient"), []byte(""), os.ModePerm); err != nil {
-		return "", err
+	for i, c := range candidates {
+		c.IsolatedInput = hashes[i]
 	}
-	return d, nil
+	return nil
 }
 
 // scheduleTasks queries for free Swarming bots and triggers tasks according
@@ -709,44 +708,18 @@ func (s *TaskScheduler) scheduleTasks() error {
 
 	// First, group by commit hash since we have to isolate the code at
 	// a particular revision for each task.
-	byRepoCommit := map[string]map[string][]*taskCandidate{}
+	byRepoState := map[db.RepoState][]*taskCandidate{}
 	for _, c := range schedule {
-		if mRepo, ok := byRepoCommit[c.Repo]; !ok {
-			byRepoCommit[c.Repo] = map[string][]*taskCandidate{c.Revision: []*taskCandidate{c}}
-		} else {
-			mRepo[c.Revision] = append(mRepo[c.Revision], c)
-		}
+		byRepoState[c.RepoState] = append(byRepoState[c.RepoState], c)
 	}
 
 	// Cleanup.
 	defer s.cleanupRepos()
 
 	// Isolate the tasks by commit.
-	for repoName, commits := range byRepoCommit {
-		repoDir, err := s.tempGitRepo(path.Join(s.workdir, path.Base(repoName)), strings.TrimSuffix(path.Base(repoName), ".git"))
-		if err != nil {
+	for rs, candidates := range byRepoState {
+		if err := s.isolateTasks(rs, candidates); err != nil {
 			return err
-		}
-		defer util.RemoveAll(repoDir)
-		infraBotsDir := path.Join(repoDir, "infra", "bots")
-		for commit, candidates := range commits {
-			if _, err := exec.RunCwd(repoDir, "git", "checkout", commit); err != nil {
-				return err
-			}
-			tasks := make([]*isolate.Task, 0, len(candidates))
-			for _, c := range candidates {
-				tasks = append(tasks, c.MakeIsolateTask(infraBotsDir, s.workdir))
-			}
-			hashes, err := s.isolate.IsolateTasks(tasks)
-			if err != nil {
-				return err
-			}
-			if len(hashes) != len(candidates) {
-				return fmt.Errorf("IsolateTasks returned incorrect number of hashes.")
-			}
-			for i, c := range candidates {
-				c.IsolatedInput = hashes[i]
-			}
 		}
 	}
 
