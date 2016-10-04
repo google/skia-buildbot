@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e227fd48_f4aa18d9",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-04T16:59:41Z",
+      "side": 0,
+      "message": "I think the fact that this was a variable caused people to avoid using it.",
+      "range": {
+        "startLine": 251,
+        "startChar": 0,
+        "endLine": 251,
+        "endChar": 49
+      },
+      "revId": "65b1b095d207f37e0db34cb1e08ee9a6229ca8c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

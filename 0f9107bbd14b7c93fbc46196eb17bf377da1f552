@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e227fd48_146794de",
+        "filename": "go/buildskia/buildskia_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-04T16:59:41Z",
+      "side": 1,
+      "message": "These might be overspecifying. Please suggest which of these are important to test.",
+      "range": {
+        "startLine": 200,
+        "startChar": 0,
+        "endLine": 205,
+        "endChar": 75
+      },
+      "revId": "0f9107bbd14b7c93fbc46196eb17bf377da1f552",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
