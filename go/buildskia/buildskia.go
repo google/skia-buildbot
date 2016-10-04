@@ -370,7 +370,7 @@ func GNGen(path, depotTools, outSubDir string, args []string) error {
 //   target - The specific target to build. Pass in the empty string to build all targets.
 //   verbose - If the build's std out should be logged (usally quite long)
 //
-// Returns an error on failure.
+// Returns the build logs and any errors on failure.
 func GNNinjaBuild(path, depotToolsPath, outSubDir, target string, verbose bool) (string, error) {
 	args := []string{"-C", filepath.Join("out", outSubDir)}
 	if target != "" {
