@@ -22,6 +22,24 @@
       "revId": "683c321c300874913b073bb4d9ebe6712cd6ea36",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e227fd48_77acca88",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-04T19:09:45Z",
+      "side": 1,
+      "message": "Well, this is a lot of hoops, but maybe:\n- Start an http server that will handle the requests from git cl patch\n- Specify the local server as db.Patch.Server\n\nJoe did something somewhat similar here: https://skia.googlesource.com/buildbot/+/171abfd25f11a15daa947dc72130bf14b2b23cd2/perf/go/cid/cid_test.go#48 \nIt\u0027s definitely more complicated when the HTTP requests are coming from git cl patch rather than go code.",
+      "parentUuid": "02741142_cdbf49ab",
+      "revId": "683c321c300874913b073bb4d9ebe6712cd6ea36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
