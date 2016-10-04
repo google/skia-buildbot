@@ -52,6 +52,13 @@ import (
 	"github.com/skia-dev/glog"
 )
 
+var (
+	runFn func(command *Command) error = DefaultRun
+
+	WriteInfoLog  = WriteLog{LogFunc: glog.Infof}
+	WriteErrorLog = WriteLog{LogFunc: glog.Errorf}
+)
+
 // WriteLog implements the io.Writer interface and writes to the given log function.
 type WriteLog struct {
 	LogFunc func(format string, args ...interface{})
@@ -61,11 +68,6 @@ func (wl WriteLog) Write(p []byte) (n int, err error) {
 	wl.LogFunc("%s", string(p))
 	return len(p), nil
 }
-
-var (
-	WriteInfoLog  = WriteLog{LogFunc: glog.Infof}
-	WriteErrorLog = WriteLog{LogFunc: glog.Errorf}
-)
 
 type Command struct {
 	// Name of the command, as passed to osexec.Command. Can be the path to a binary or the
@@ -96,9 +98,10 @@ type Command struct {
 	// and Stdout and Stderr are nil. Otherwise, the stdout and stderr of the command could be
 	// arbitrarily reordered when written to CombinedOutput.
 	CombinedOutput io.Writer
-	// Time limit to wait for the command to finish. (Starts when Wait is called.) No limit if
-	// not specified.
+	// Time limit to wait for the command to finish. No limit if not specified.
 	Timeout time.Duration
+	// Whether to log when the command starts.
+	Quiet bool
 }
 
 type Process interface {
@@ -172,11 +175,13 @@ func createCmd(command *Command) *osexec.Cmd {
 }
 
 func start(command *Command, cmd *osexec.Cmd) error {
-	dirMsg := ""
-	if cmd.Dir != "" {
-		dirMsg = " with CWD " + cmd.Dir
+	if !command.Quiet {
+		dirMsg := ""
+		if cmd.Dir != "" {
+			dirMsg = " with CWD " + cmd.Dir
+		}
+		glog.Infof("Executing '%s' (where %s is %s)%s", DebugString(command), command.Name, cmd.Path, dirMsg)
 	}
-	glog.Infof("Executing '%s' (where %s is %s)%s", DebugString(command), command.Name, cmd.Path, dirMsg)
 	err := cmd.Start()
 	if err != nil {
 		return fmt.Errorf("Unable to start command %s: %s", DebugString(command), err)
@@ -215,7 +220,7 @@ func wait(command *Command, cmd *osexec.Cmd) error {
 	}
 }
 
-// Default value of Run.
+// DefaultRun can be passed to SetRunForTesting to go back to running commands as normal.
 func DefaultRun(command *Command) error {
 	cmd := createCmd(command)
 	if err := start(command, cmd); err != nil {
@@ -224,36 +229,16 @@ func DefaultRun(command *Command) error {
 	return wait(command, cmd)
 }
 
-// RunIndefinitely starts the command and then returns. Clients can listen for
-// the command to end on the returned channel or kill the process manually
-// using the Process handle. The timeout param is ignored if it is set.  If
-// starting the command returns an error, that error is returned.
-func RunIndefinitely(command *Command) (Process, <-chan error, error) {
-	cmd := createCmd(command)
-	done := make(chan error)
-	if err := start(command, cmd); err != nil {
-		close(done)
-		return nil, done, err
-	}
-	go func() {
-		done <- cmd.Wait()
-	}()
-	return cmd.Process, done, nil
-}
-
-// SimpleRun runs the command and doesn't return until the command finishes.
-func SimpleRun(command *Command) error {
-	return createCmd(command).Run()
-}
-
 // Run runs command and waits for it to finish. If any failure, returns non-nil. If a timeout was
 // specified, returns an error once the command has exceeded that timeout.
-var Run func(command *Command) error = DefaultRun
+func Run(command *Command) error {
+	return runFn(command)
+}
 
 // SetRunForTesting replaces the Run function with a test version so that commands don't actually
 // run.
 func SetRunForTesting(testRun func(command *Command) error) {
-	Run = testRun
+	runFn = testRun
 }
 
 // Run method is convenience for Run(command).
@@ -266,7 +251,9 @@ func (command *Command) Run() error {
 func runSimpleCommand(command *Command) (string, error) {
 	output := bytes.Buffer{}
 	command.CombinedOutput = &output
-	err := SimpleRun(command)
+	// Setting Quiet to maintain previous behavior.
+	command.Quiet = true
+	err := Run(command)
 	result := string(output.Bytes())
 	if err != nil {
 		return result, fmt.Errorf("%s; Stdout+Stderr:\n%s", err.Error(), result)
@@ -298,4 +285,21 @@ func RunCwd(cwd string, args ...string) (string, error) {
 		Dir:  cwd,
 	}
 	return runSimpleCommand(command)
+}
+
+// RunIndefinitely starts the command and then returns. Clients can listen for
+// the command to end on the returned channel or kill the process manually
+// using the Process handle. The timeout param is ignored if it is set.  If
+// starting the command returns an error, that error is returned.
+func RunIndefinitely(command *Command) (Process, <-chan error, error) {
+	cmd := createCmd(command)
+	done := make(chan error)
+	if err := start(command, cmd); err != nil {
+		close(done)
+		return nil, done, err
+	}
+	go func() {
+		done <- cmd.Wait()
+	}()
+	return cmd.Process, done, nil
 }

@@ -66,12 +66,13 @@ func makeBot(id string, dims map[string]string) *swarming_api.SwarmingRpcsBotInf
 var commitDate = time.Unix(1472647568, 0)
 
 func commit(repoDir, message string) {
-	assertNoError(exec.SimpleRun(&exec.Command{
+	assertNoError(exec.Run(&exec.Command{
 		Name:        "git",
 		Args:        []string{"commit", "-m", message},
 		Env:         []string{fmt.Sprintf("GIT_AUTHOR_DATE=%d +0000", commitDate.Unix()), fmt.Sprintf("GIT_COMMITTER_DATE=%d +0000", commitDate.Unix())},
 		InheritPath: true,
 		Dir:         repoDir,
+		Quiet:       true,
 	}))
 	commitDate = commitDate.Add(10 * time.Second)
 }

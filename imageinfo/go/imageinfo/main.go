@@ -248,9 +248,10 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 		InheritPath:    true,
 		LogStderr:      true,
 		LogStdout:      *verbose,
+		Quiet:          !*verbose,
 	}
 	glog.Infof("About to run: %#v", *visCmd)
-	if err := exec.SimpleRun(visCmd); err != nil {
+	if err := exec.Run(visCmd); err != nil {
 		glog.Infof("Combined Output %s", buf.String())
 		httputils.ReportError(w, r, err, "Failed to execute visualize_color_gamut.")
 		return
