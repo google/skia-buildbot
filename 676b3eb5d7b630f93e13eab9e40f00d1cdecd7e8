@@ -16,6 +16,24 @@
       "revId": "676b3eb5d7b630f93e13eab9e40f00d1cdecd7e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e227fd48_9472c4a2",
+        "filename": "compute_engine_scripts/fuzzer/install.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-04T16:54:31Z",
+      "side": 1,
+      "message": "I tried that, but the asset doesn\u0027t have llvm-config, which I need to build afl\u0027s clang-fast",
+      "parentUuid": "22459584_92caec42",
+      "revId": "676b3eb5d7b630f93e13eab9e40f00d1cdecd7e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
