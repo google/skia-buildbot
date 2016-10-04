@@ -233,7 +233,8 @@
         lastn: +this._lastn,
         q: this.$.query.current_query,
       };
-      sk.post("/_/search/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(dataframe) {
+      sk.post("/_/search/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json) {
+        var dataframe = json.dataframe;
         // Convert the dataframe into a form suitable for the plot element.
         var lines = {};
         var keys = Object.keys(dataframe.traceset);
@@ -260,6 +261,18 @@
         this._dataframe = dataframe;
         this.$.plot.removeAll();
         this.$.plot.addLines(lines);
+
+        // Ticks are serialized as a slice of slices, ala [[0, "foo"], [1.5, "bar"], ..]
+        // because the structure we actually need, a map[float64]string, isn't able
+        // to be serialized as JSON, so we transform the representations here.
+        //
+        // TODO(jcgregorio) Once we are the only customer of plot-simple-sk, then change
+        //   signature of setTicks().
+        var tickmap = {};
+        json.ticks.forEach(function(t) {
+          tickmap[t[0]] = t[1];
+        });
+        this.$.plot.setTicks(tickmap);
 
         // Populate the paramset element.
         this.$.paramset.setParamSets([dataframe.paramset]);
