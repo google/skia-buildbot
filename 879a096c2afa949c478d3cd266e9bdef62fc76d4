@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "825001f1_f4e1f68c",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-05T19:46:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "825001f1_14583a8b",
+      "revId": "879a096c2afa949c478d3cd266e9bdef62fc76d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "825001f1_34553e54",
         "filename": "go/ingestion/ingestion.go",
         "patchSetId": 3
@@ -42,6 +60,24 @@
         "endLine": 322,
         "endChar": 19
       },
+      "revId": "879a096c2afa949c478d3cd266e9bdef62fc76d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "825001f1_b4e76ea1",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-05T19:46:40Z",
+      "side": 1,
+      "message": "Not true, as ignoredCounter may also be modified in the go routine if Process returns IngoreResultsFileErr.",
+      "parentUuid": "825001f1_34553e54",
       "revId": "879a096c2afa949c478d3cd266e9bdef62fc76d4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
