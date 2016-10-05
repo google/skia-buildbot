@@ -45,6 +45,24 @@
       "revId": "a25d0931b26593af98b0d03d4dfba7ca1aa9fece",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f6930e5_97a564a0",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 528,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-05T23:44:17Z",
+      "side": 1,
+      "message": "I think the problem is that .bashrc is irrelevant for systemd services. Search for $PATH on this page: https://www.freedesktop.org/software/systemd/man/systemd.exec.html#\n\nYou can set PATH this way: https://coreos.com/os/docs/latest/using-environment-variables-in-systemd-units.html",
+      "parentUuid": "9f121c46_e33e4012",
+      "revId": "a25d0931b26593af98b0d03d4dfba7ca1aa9fece",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
