@@ -28,7 +28,7 @@ const (
 	TAG_INGESTER_ID       = "ingester"
 	TAG_INGESTER_SOURCE   = "source"
 
-	POLL_CHUNK_SIZE = 100
+	POLL_CHUNK_SIZE = 50
 )
 
 var (
@@ -114,9 +114,6 @@ type Ingester struct {
 	// processTimer measure the overall time it takes to process a set of files.
 	processTimer *metrics2.Timer
 
-	// processFileTimer measures how long it takes to process an individual file.
-	processFileTimer *metrics2.Timer
-
 	// fileWriterWg allows to synchronize file writes - testing only.
 	fileWriterWg sync.WaitGroup
 }
@@ -154,7 +151,6 @@ func (i *Ingester) setupMetrics() {
 	i.eventProcessMetrics = newProcessMetrics(i.id, "event")
 	i.srcMetrics = newSourceMetrics(i.id, i.sources)
 	i.processTimer = metrics2.NewTimer("ingestion.process", map[string]string{"id": i.id})
-	i.processFileTimer = metrics2.NewTimer("ingestion.process-file", map[string]string{"id": i.id})
 }
 
 // Start starts the ingester in a new goroutine.
@@ -319,35 +315,40 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 
 	// time how long the overall process takes.
 	i.processTimer.Start()
+	wg := sync.WaitGroup{}
 	for _, resultLocation := range resultFiles {
-		if !i.inProcessedFiles(resultLocation.MD5()) {
-			// time how long it takes to process a file.
-			i.processFileTimer.Start()
-			err := i.processor.Process(resultLocation)
-			i.processFileTimer.Stop()
+		wg.Add(1)
+		go func(resultLocation ResultFileLocation) {
+			defer wg.Done()
+			if !i.inProcessedFiles(resultLocation.MD5()) {
+				defer metrics2.NewTimer("ingestion.process-file", map[string]string{"id": i.id}).Stop()
+				// time how long it takes to process a file.
+				err := i.processor.Process(resultLocation)
 
-			if err != nil {
-				if err == IgnoreResultsFileErr {
-					ignoredCounter++
-				} else {
-					errorCounter++
-					glog.Errorf("Failed to ingest %s: %s", resultLocation.Name(), err)
+				if err != nil {
+					if err == IgnoreResultsFileErr {
+						ignoredCounter++
+					} else {
+						errorCounter++
+						glog.Errorf("Failed to ingest %s: %s", resultLocation.Name(), err)
+					}
+					return
 				}
-				continue
-			}
 
-			if i.localCache {
-				// Write the process file to disk.
-				i.saveFileAsync(resultLocation)
-			}
+				if i.localCache {
+					// Write the process file to disk.
+					i.saveFileAsync(resultLocation)
+				}
 
-			// Gather all successfully processed MD5s
-			processedCounter++
-			processedMD5s = append(processedMD5s, resultLocation.MD5())
-		} else {
-			ignoredCounter++
-		}
+				// Gather all successfully processed MD5s
+				processedCounter++
+				processedMD5s = append(processedMD5s, resultLocation.MD5())
+			} else {
+				ignoredCounter++
+			}
+		}(resultLocation)
 	}
+	wg.Wait()
 	targetMetrics.liveness.Reset()
 
 	// Update the timer and the gauges that measure how the ingestion works
