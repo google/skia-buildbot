@@ -211,6 +211,7 @@ func (c *Client) getOnePage(url string) ([]*Build, string, error) {
 		Builds     []*Build `json:"builds"`
 		NextCursor string   `json:"next_cursor"`
 	}
+
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, "", err
 	}

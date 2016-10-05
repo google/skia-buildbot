@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"strconv"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/util"
@@ -34,7 +35,9 @@ func (t *Time) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON parses a time.Time from a JSON number of microseconds.
 func (t *Time) UnmarshalJSON(data []byte) error {
-	num, err := strconv.ParseInt(string(data), 10, 64)
+	// This makes it work whether the time is encoded as a number or a string.
+	strData := strings.Trim(string(data), "\"")
+	num, err := strconv.ParseInt(strData, 10, 64)
 	if err == nil {
 		*t = Time(time.Unix(0, num*util.MICROS_TO_NANOS).UTC())
 	}
