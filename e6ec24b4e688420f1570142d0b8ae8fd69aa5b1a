@@ -16,6 +16,24 @@
       "revId": "e6ec24b4e688420f1570142d0b8ae8fd69aa5b1a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "02f25118_720a3e81",
+        "filename": "compute_engine_scripts/buildbots/vm_setup_utils.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-05T17:06:47Z",
+      "side": 1,
+      "message": "Whoops, fixed.",
+      "parentUuid": "825001f1_f18d888b",
+      "revId": "e6ec24b4e688420f1570142d0b8ae8fd69aa5b1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
