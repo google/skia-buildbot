@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -1178,6 +1179,62 @@ type SearchRequest struct {
 type SearchResponse struct {
 	DataFrame *dataframe.DataFrame `json:"dataframe"`
 	Ticks     []interface{}        `json:"ticks"`
+	Skps      []int                `json:"skps"`
+}
+
+// getSkps returns the indices where the SKPs have been updated given
+// the ColumnHeaders.
+func getSkps(headers []*dataframe.ColumnHeader) ([]int, error) {
+	// We have Offsets, which need to be converted to git hashes.
+	ci, err := git.ByIndex(int(headers[0].Offset))
+	if err != nil {
+		return nil, fmt.Errorf("Could not find commit for index %d: %s", headers[0].Offset, err)
+	}
+	begin := ci.Hash
+	ci, err = git.ByIndex(int(headers[len(headers)-1].Offset))
+	if err != nil {
+		return nil, fmt.Errorf("Could not find commit for index %d: %s", headers[len(headers)-1].Offset, err)
+	}
+	end := ci.Hash
+
+	// Now query for all the changes to the skp version over the given range of commits.
+	log, err := git.LogFine(begin, end, "--format=format:%ct", "infra/bots/assets/skp/VERSION")
+	if err != nil {
+		return nil, fmt.Errorf("Could not get skp log for %s...%s: %s", begin, end, err)
+	}
+
+	// Parse.
+	ts := []int64{}
+	for _, s := range strings.Split(log, "\n") {
+		i, err := strconv.Atoi(s)
+		if err != nil {
+			continue
+		}
+		ts = append(ts, int64(i))
+	}
+
+	// Sort because they are in reverse order.
+	sort.Sort(util.Int64Slice(ts))
+
+	// Now flag all the columns where the skp changes.
+	ret := []int{}
+	for i, h := range headers {
+		if len(ts) == 0 {
+			break
+		}
+		if h.Timestamp >= ts[0] {
+			ret = append(ret, i)
+			ts = ts[1:]
+			if len(ts) == 0 {
+				break
+			}
+			// Coalesce all skp updates for a col into a single index.
+			for len(ts) > 0 && h.Timestamp >= ts[0] {
+				ts = ts[1:]
+			}
+		}
+	}
+	return ret, nil
 }
 
 // searchHandler takes the POST'd query and returns a serialized DataFrame of
@@ -1206,6 +1263,10 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	begin := git.LastNIndex(sr.LastN)[0].Timestamp
 	end := time.Now()
 	df, err := dataframe.NewFromQueryAndRange(git, ptracestore.Default, begin, end, q)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to load data.")
+		return
+	}
 
 	// Calculate the human ticks based on the column headers.
 	ts := []int64{}
@@ -1214,9 +1275,17 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	ticks := human.FlotTickMarks(ts)
 
+	// Determine where SKP changes occurred.
+	skps, err := getSkps(df.Header)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to load skps.")
+		return
+	}
+
 	resp := &SearchResponse{
 		DataFrame: df,
 		Ticks:     ticks,
+		Skps:      skps,
 	}
 
 	// TODO(jcgregorio) Limit the results if there are too many?
