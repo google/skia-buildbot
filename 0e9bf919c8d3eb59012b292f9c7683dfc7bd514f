@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "9f121c46_1d97573d",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-05T18:15:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "825001f1_5181f433",
+      "revId": "0e9bf919c8d3eb59012b292f9c7683dfc7bd514f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "825001f1_3109d0e5",
         "filename": "task_scheduler/go/specs/specs_test.go",
         "patchSetId": 2
@@ -36,6 +54,24 @@
       "writtenOn": "2016-10-05T18:07:10Z",
       "side": 1,
       "message": "IWBN to test that the file contents are as expected, although maybe we should just trust that git cl patch will return a nonzero exit code if it didn\u0027t do it.",
+      "revId": "0e9bf919c8d3eb59012b292f9c7683dfc7bd514f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9f121c46_9da24794",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 362,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-05T18:15:10Z",
+      "side": 1,
+      "message": "Yeah, I guess we could compare the contents of the dir we uploaded from, but in my experience weird things like upload/download not preserving file modes will make that harder than it\u0027s worth.",
+      "parentUuid": "825001f1_3109d0e5",
       "revId": "0e9bf919c8d3eb59012b292f9c7683dfc7bd514f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
