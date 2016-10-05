@@ -105,7 +105,12 @@
         }
       },
       _makeRevertURL: function(commit){
-        return "https://codereview.chromium.org/"+ commit.issue +"/revert";
+        if (commit.patchStorage === 'gerrit') {
+          // TODO(rmistry): Update this link once skbug/5815 is resolved.
+          return "https://skia-review.googlesource.com/c/" + commit.issue;
+        } else {
+          return "https://codereview.chromium.org/" + commit.issue + "/revert";
+        }
       },
       _makeCommentUrl: function(repo, commit){
         return "/json/"+repo+"/commits/"+commit.hash+"/comments";

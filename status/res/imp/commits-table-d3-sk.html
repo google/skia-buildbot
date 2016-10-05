@@ -33,9 +33,9 @@
     highlighted_commit_hashes: Array<String>, the commit hashes which should be highlighted.
     logged_in: Boolean, if the links should be for internal or external buildbot pages.
     num_builders: Number, the number of builders with data, after filtering.
-    relanded_map: Object, a map of a commit hash that was relanded to the commit hash that relands it.
+    relanded_map: Object, a map of an issue number that was relanded to the commit that relands it.
     repo: String, the current repo, used to make links.
-    reverted_map: Object, a map of a commit hash that was relanded to the commit hash that relands it.
+    reverted_map: Object, a map of an issue number that was reverted to the commit that reverts it.
 
   Methods:
     None.
@@ -206,14 +206,16 @@
             commit.index = i;
             return commit.hash;
           });
-        // Create a commit div for each commit with id "h + hash" element selectors choke
-        // if an id starts with a number, thus the h prefix.
+        // Create a commit div for each commit with id "patch_storage + codereview_number".
+        // Eg: "rietveld12345" for Rietveld and "gerrit12345" for Gerrit.
+        // For posterity: Element selectors choke if an id starts with a number, thus the
+        // patch_storage prefix helps with that.
         var newCommits = data
           .enter()
           .append("div")
           .classed("commit",true)
           .attr("id", function(commit){
-            return "h"+commit.hash;
+            return commit.patchStorage + commit.issue;
           })
           .on("tap", function(commit) {
             // Stop the propogation so we don't immediately hide the popup we show.
@@ -287,21 +289,23 @@
           return commit.comments && commit.comments.length > 0;
         });
         var reverts = this._addIronIcon(newCommits, "icons:undo", "tiny revert", function(commit){
-          return reverted_map[commit.hash] !== undefined;
+          var reverterCommit = reverted_map[commit.issue];
+          return (reverterCommit !== undefined && reverterCommit.timestamp > commit.timestamp);
         });
         reverts.on("mouseover", function(commit){
-          var reverterHash = reverted_map[commit.hash];
-          d3.select("#h"+reverterHash).classed("revert", true);
+          var reverterIssue = reverted_map[commit.issue].issue;
+          d3.select("#"+commit.patchStorage+reverterIssue).classed("revert", true);
         })
         reverts.on("mouseleave", function(commit){
           d3.selectAll(".commit.revert").classed("revert", false);
         })
         var relands = this._addIronIcon(newCommits, "icons:redo","tiny reland", function(commit){
-          return relanded_map[commit.hash] !== undefined;
+          var relanderCommit = relanded_map[commit.issue];
+          return (relanderCommit !== undefined && relanderCommit.timestamp > commit.timestamp);
         });
         relands.on("mouseover", function(commit){
-          var relanderHash = relanded_map[commit.hash];
-          d3.select("#h"+relanderHash).classed("reland", true);
+          var relanderIssue = relanded_map[commit.issue].issue;
+          d3.select("#"+commit.patchStorage+relanderIssue).classed("reland", true);
         })
         relands.on("mouseleave", function(commit){
           d3.selectAll(".commit.reland").classed("reland", false);
