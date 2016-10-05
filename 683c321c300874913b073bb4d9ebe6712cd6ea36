@@ -76,6 +76,24 @@
       "revId": "683c321c300874913b073bb4d9ebe6712cd6ea36",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "825001f1_31a0f0ed",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-05T17:04:04Z",
+      "side": 1,
+      "message": "I sometimes like to write e2e tests that are turned off. They will not run on the bot but at least they are there in the future to test against locally. You can upload CLs from a temporary checkout to Gerrit and Rietveld and patch them in such tests.",
+      "parentUuid": "e227fd48_37d5f2b1",
+      "revId": "683c321c300874913b073bb4d9ebe6712cd6ea36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
