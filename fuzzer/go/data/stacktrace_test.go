@@ -467,3 +467,43 @@ func TestParseGCSPackage_SKBoring(t *testing.T) {
 		t.Errorf("Should have had empty release stacktrace")
 	}
 }
+
+func TestParseGCSPackage_ClangDumpedNoSymbols(t *testing.T) {
+	// Release dumped for Clang only, and there were no symbols. Also, only Clang hit the assert.
+	g := GCSPackage{
+		Debug: OutputFiles{
+			Asan:   testutils.MustReadFile(stacktrace("9bad_debug.asan")),
+			Dump:   "",
+			StdErr: testutils.MustReadFile(stacktrace("9bad_debug.err")),
+		},
+		Release: OutputFiles{
+			Asan:   testutils.MustReadFile(stacktrace("9bad_release.asan")),
+			Dump:   testutils.MustReadFile(stacktrace("9bad_release.dump")),
+			StdErr: testutils.MustReadFile(stacktrace("9bad_release.err")),
+		},
+		FuzzCategory: "api_gradient",
+	}
+
+	result := ParseGCSPackage(g)
+	expectedDebugFlags := ASANCrashed | SKAbortHit
+	expectedReleaseFlags := ClangCrashed
+	if result.Debug.Flags != expectedDebugFlags {
+		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
+	}
+	if result.Release.Flags != expectedReleaseFlags {
+		t.Errorf("Parsed Release flags were wrong.  Expected %s, but was %s", expectedReleaseFlags.String(), result.Release.Flags.String())
+	}
+	if result.Debug.StackTrace.IsEmpty() {
+		t.Errorf("Should not have had empty debug stacktrace")
+	}
+	if result.Release.StackTrace.IsEmpty() {
+		t.Errorf("Should not have had empty release stacktrace")
+	}
+	frame := result.Release.StackTrace.Frames[0]
+	if frame.FunctionName != "LinearGradientContext::shade4_dx_clamp" {
+		t.Errorf("Should have parsed unsymbolized stacktrace: \n%s", frame.String())
+	}
+	if frame.PackageName != common.UNSYMBOLIZED_RESULT {
+		t.Errorf("Should have parsed unsymbolized stacktrace: \n%s", frame.String())
+	}
+}

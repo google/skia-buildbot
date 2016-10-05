@@ -11,9 +11,10 @@ import (
 const (
 	TEST_HARNESS_NAME = "fuzz"
 
-	UNKNOWN_FUNCTION = "UNKNOWN"
-	UNKNOWN_FILE     = "UNKNOWN"
-	UNKNOWN_LINE     = -1
+	UNKNOWN_FUNCTION    = "UNKNOWN"
+	UNKNOWN_FILE        = "UNKNOWN"
+	UNSYMBOLIZED_RESULT = "UNSYMBOLIZED"
+	UNKNOWN_LINE        = -1
 
 	ASAN_OPTIONS        = "ASAN_OPTIONS=detect_leaks=0 symbolize=1 allocator_may_return_null=1"
 	STABLE_FUZZER       = "stable"

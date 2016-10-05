@@ -25,6 +25,9 @@ type StackTraceFrame struct {
 // \1 is the "package", \2 is the file name, \3 is the line number, \4 is the function symbol string
 var segvStackTraceLine = regexp.MustCompile(`(?:\.\./)+(?P<package>(?:\w+/)+)(?P<file>.+):(?P<line>\d+).*\(_(?P<symbol>.*)\)`)
 
+// Occasionally, unsymbolized outputs sneak through.  We give it a best effort to parse.
+var segvStackTraceLineUnsymbolized = regexp.MustCompile(`\(_(?P<symbol>Z.*)\)`)
+
 // parseCatchsegvStackTrace takes the contents of a dump file of a catchsegv run, and returns the
 // parsed stacktrace
 func parseCatchsegvStackTrace(contents string) StackTrace {
@@ -46,11 +49,13 @@ func parseCatchsegvStackTrace(contents string) StackTrace {
 		if !hasBegun {
 			continue
 		}
-
 		if match := segvStackTraceLine.FindStringSubmatch(line); match != nil {
 			// match[0] is the entire matched portion, [1] is the "package", [2] is the file name,
 			// [3] is the line number and [4] is the encoded function symbol string.
 			newFrame := FullStackFrame(match[1], match[2], catchsegvFunctionName(match[4]), common.SafeAtoi(match[3]))
+			frames = append(frames, newFrame)
+		} else if match := segvStackTraceLineUnsymbolized.FindStringSubmatch(line); match != nil {
+			newFrame := FullStackFrame(common.UNSYMBOLIZED_RESULT, common.UNSYMBOLIZED_RESULT, catchsegvFunctionName(match[1]), -1)
 			frames = append(frames, newFrame)
 		}
 	}

@@ -158,7 +158,7 @@ func parseAll(category string, data *BuildData) FuzzFlag {
 		f |= ASANCrashed
 		f |= SKAbortHit
 		if data.StackTrace.IsEmpty() {
-			data.StackTrace = extractSkAbortTrace(data.StdErr)
+			data.StackTrace = extractSkAbortTrace(data.Asan)
 		}
 	}
 	if strings.Contains(data.StdErr, "fatal error") {
