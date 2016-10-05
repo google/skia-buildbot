@@ -4,6 +4,7 @@ package ptracestore
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -25,6 +26,12 @@ const (
 	TRACE_VALUES_BUCKET_NAME  = "traces"
 	TRACE_SOURCES_BUCKET_NAME = "sources"
 	SOURCE_LIST_BUCKET_NAME   = "sourceList"
+)
+
+var (
+	// tileNotExist is returned from getBoltDB only if 'onlyIfExists' is true and
+	// the tile doesn't exist.
+	tileNotExist = errors.New("Tile does not exist.")
 )
 
 // MISSING_VALUE signifies a missing sample value.
@@ -123,7 +130,10 @@ type sourceValue struct {
 }
 
 // getBoltDB returns a new/existing bolt.DB. Already opened db's are cached.
-func (b *BoltTraceStore) getBoltDB(commitID *cid.CommitID) (*bolt.DB, error) {
+//
+// If 'onlyIfExists' is true then getBoltDB will fail with a tileNotExist error
+// instead of creating a new DB at that location.
+func (b *BoltTraceStore) getBoltDB(commitID *cid.CommitID, onlyIfExists bool) (*bolt.DB, error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 	name := commitID.Filename()
@@ -133,6 +143,9 @@ func (b *BoltTraceStore) getBoltDB(commitID *cid.CommitID) (*bolt.DB, error) {
 		}
 	}
 	filename := filepath.Join(b.dir, commitID.Filename())
+	if _, err := os.Stat(filename); os.IsNotExist(err) && onlyIfExists {
+		return nil, tileNotExist
+	}
 	db, err := bolt.Open(filename, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open %q: %s", filename, err)
@@ -158,7 +171,7 @@ func serialize(i interface{}) ([]byte, error) {
 
 func (b *BoltTraceStore) Add(commitID *cid.CommitID, values map[string]float32, sourceFile string) error {
 	index := commitID.Offset % constants.COMMITS_PER_TILE
-	db, err := b.getBoltDB(commitID)
+	db, err := b.getBoltDB(commitID, false)
 	if err != nil {
 		return fmt.Errorf("Unable to open datastore: %s", err)
 	}
@@ -236,7 +249,7 @@ func (b *BoltTraceStore) Add(commitID *cid.CommitID, values map[string]float32, 
 }
 
 func (b *BoltTraceStore) Details(commitID *cid.CommitID, traceID string) (string, float32, error) {
-	db, err := b.getBoltDB(commitID)
+	db, err := b.getBoltDB(commitID, false)
 	if err != nil {
 		return "", 0, fmt.Errorf("Unable to open datastore: %s", err)
 	}
@@ -441,9 +454,12 @@ func (b *BoltTraceStore) Match(commitIDs []*cid.CommitID, q *query.Query) (Trace
 	ret := TraceSet{}
 	mapper := buildMapper(commitIDs)
 	for _, tm := range mapper {
-		db, err := b.getBoltDB(tm.commitID)
+		db, err := b.getBoltDB(tm.commitID, true)
+		if err == tileNotExist {
+			continue
+		}
 		if err != nil {
-			return nil, fmt.Errorf("Unable to open datastore: %s", err)
+			return nil, fmt.Errorf("Failed to open tile from %s: %s", tm.commitID.Filename(), err)
 		}
 		if err := loadMatches(db, tm.idxmap, q, ret, len(commitIDs)); err != nil {
 			return nil, fmt.Errorf("Failed to load traces from %s: %s", tm.commitID.Filename(), err)
