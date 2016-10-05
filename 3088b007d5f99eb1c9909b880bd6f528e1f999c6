@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "3f6930e5_978ec42e",
+        "filename": "go/gitinfo/gitinfo.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-05T23:25:49Z",
+      "side": 1,
+      "message": "s/%h/%H/",
+      "parentUuid": "825001f1_74318659",
+      "revId": "3088b007d5f99eb1c9909b880bd6f528e1f999c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "825001f1_f1b4a83f",
         "filename": "perf/go/skiaperf/main.go",
         "patchSetId": 4
@@ -101,6 +119,24 @@
       "side": 1,
       "message": "Done",
       "parentUuid": "825001f1_f1b4a83f",
+      "revId": "3088b007d5f99eb1c9909b880bd6f528e1f999c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f6930e5_b78bc81d",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1227,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-05T23:25:49Z",
+      "side": 1,
+      "message": "nit: lines 1227-1230 are not necessary\n\n(sorry for not being clear)",
+      "parentUuid": "825001f1_740a6681",
       "revId": "3088b007d5f99eb1c9909b880bd6f528e1f999c6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
