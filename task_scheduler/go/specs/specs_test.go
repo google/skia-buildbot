@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -264,35 +265,25 @@ func TestTasksCircularDependency(t *testing.T) {
 	assert.EqualError(t, err, "Job \"j\" has unknown task \"q\" as a dependency.")
 }
 
-func TestTempGitRepo(t *testing.T) {
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+func tempGitRepoSetup(t *testing.T) (*testutils.GitBuilder, string, string) {
+	testutils.SkipIfShort(t)
 
-	localRepoUrl := path.Join(tr.Dir, repoName)
-	cases := map[db.RepoState]error{
-		{
-			Repo:     localRepoUrl,
-			Revision: c1,
-		}: nil,
-		{
-			Repo:     localRepoUrl,
-			Revision: c2,
-		}: nil,
-		{
-			Repo:     "bogus.git",
-			Revision: c1,
-		}: fmt.Errorf("exit status 128; Stdout+Stderr:\nfatal: repository 'bogus.git' does not exist\n"),
-		{
-			Repo:     localRepoUrl,
-			Revision: "bogusRev",
-		}: fmt.Errorf("exit status 1; Stdout+Stderr:\nerror: pathspec 'bogusRev' did not match any file(s) known to git.\n"),
-	}
+	gb := testutils.GitInit(t)
+	gb.Add("codereview.settings", `CODE_REVIEW_SERVER: codereview.chromium.org
+PROJECT: skia`)
+	c1 := gb.CommitMsg("initial commit")
+	c2 := gb.CommitGen("somefile")
+	return gb, c1, c2
+}
+
+func tempGitRepoTests(t *testing.T, dir string, cases map[db.RepoState]error) {
 	for rs, expectErr := range cases {
-		d, err := TempGitRepo(tr.Dir, rs)
+		d, err := TempGitRepo(dir, rs)
 		if expectErr != nil {
 			assert.EqualError(t, err, expectErr.Error())
 		} else {
 			defer testutils.RemoveAll(t, d)
+			assert.NoError(t, err)
 			gotRepo := strings.TrimSpace(testutils.Run(t, d, "git", "remote", "get-url", "origin"))
 			assert.Equal(t, rs.Repo, gotRepo)
 			gotRevision := strings.TrimSpace(testutils.Run(t, d, "git", "rev-parse", "HEAD"))
@@ -302,10 +293,69 @@ func TestTempGitRepo(t *testing.T) {
 			// applied patch.
 			_, err := exec.RunCwd(d, "git", "diff", "--exit-code", "--no-patch", rs.Revision)
 			if rs.IsTryJob() {
-				assert.EqualError(t, err, "")
+				assert.NotNil(t, err)
 			} else {
 				assert.NoError(t, err)
 			}
 		}
 	}
+}
+
+func TestTempGitRepo(t *testing.T) {
+	gb, c1, c2 := tempGitRepoSetup(t)
+	defer gb.Cleanup()
+
+	cases := map[db.RepoState]error{
+		{
+			Repo:     gb.Dir(),
+			Revision: c1,
+		}: nil,
+		{
+			Repo:     gb.Dir(),
+			Revision: c2,
+		}: nil,
+		{
+			Repo:     "bogus.git",
+			Revision: c1,
+		}: fmt.Errorf("Command exited with exit status 128: git clone bogus.git .; Stdout+Stderr:\nfatal: repository 'bogus.git' does not exist\n"),
+		{
+			Repo:     gb.Dir(),
+			Revision: "bogusRev",
+		}: fmt.Errorf("Command exited with exit status 1: git checkout bogusRev; Stdout+Stderr:\nerror: pathspec 'bogusRev' did not match any file(s) known to git.\n"),
+	}
+	tempGitRepoTests(t, gb.Dir(), cases)
+}
+
+func TestTempGitRepoPatch(t *testing.T) {
+	t.Skip("This test uploads to production servers. Don't run it by default.")
+
+	gb, _, c2 := tempGitRepoSetup(t)
+	defer gb.Cleanup()
+
+	gb.AddGen("somefile")
+	testutils.Run(t, gb.Dir(), "git", "commit", "-m", "commit")
+
+	testutils.Run(t, gb.Dir(), "git", "cl", "upload", "--bypass-hooks", "--rietveld", "-m", "test", "-f")
+	output := testutils.Run(t, gb.Dir(), "git", "cl", "issue")
+	m := regexp.MustCompile(`Issue number: (\d+)`).FindStringSubmatch(output)
+	assert.Equal(t, 2, len(m))
+	rvIssue := m[1]
+
+	// TODO(borenet): Also upload to Gerrit and verify that we can apply
+	// those patches successfully as well. This is difficult because it's
+	// hard to trick git-cl into uploading to a particular Gerrit instance
+	// from a dummy repo.
+
+	cases := map[db.RepoState]error{
+		{
+			Patch: db.Patch{
+				Server:   "https://codereview.chromium.org",
+				Issue:    rvIssue,
+				Patchset: "1",
+			},
+			Repo:     gb.Dir(),
+			Revision: c2,
+		}: nil,
+	}
+	tempGitRepoTests(t, gb.Dir(), cases)
 }

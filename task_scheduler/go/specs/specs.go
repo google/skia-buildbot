@@ -513,7 +513,25 @@ func TempGitRepo(workdir string, rs db.RepoState) (rv string, rvErr error) {
 
 	// Apply a patch if necessary.
 	if rs.IsTryJob() {
-		// TODO(borenet)
+		if _, err := exec.RunCwd(d, "git", "checkout", "-b", "patch"); err != nil {
+			return "", err
+		}
+		server := strings.TrimRight(rs.Server, "/")
+		if strings.Contains(rs.Server, "codereview.chromium") {
+			patchUrl := fmt.Sprintf("%s/%s/#ps%s", server, rs.Issue, rs.Patchset)
+			if _, err := exec.RunCwd(d, "git", "cl", "patch", "--rietveld", "--no-commit", patchUrl); err != nil {
+				return "", err
+			}
+		} else {
+			patchUrl := fmt.Sprintf("%s/c/%s/%s", server, rs.Issue, rs.Patchset)
+			if _, err := exec.RunCwd(d, "git", "cl", "patch", "--gerrit", patchUrl); err != nil {
+				return "", err
+			}
+			// Un-commit the applied patch.
+			if _, err := exec.RunCwd(d, "git", "reset", "HEAD^"); err != nil {
+				return "", err
+			}
+		}
 	}
 
 	return d, nil
