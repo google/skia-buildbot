@@ -119,6 +119,7 @@ func sendResponse(w http.ResponseWriter, data interface{}, status int, paginatio
 // sendJson serializes the response envelope and sends ito the client.
 func sendJson(w http.ResponseWriter, resp *ResponseEnvelope, status int) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
