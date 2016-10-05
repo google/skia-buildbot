@@ -1,6 +1,7 @@
 package specs
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -26,6 +27,8 @@ const (
 	VARIABLE_REPO      = "REPO"
 	VARIABLE_REVISION  = "REVISION"
 	VARIABLE_TASK_NAME = "TASK_NAME"
+
+	depotToolsPath = "/mnt/pd0/depot_tools"
 )
 
 var (
@@ -517,15 +520,24 @@ func TempGitRepo(workdir string, rs db.RepoState) (rv string, rvErr error) {
 			return "", err
 		}
 		server := strings.TrimRight(rs.Server, "/")
+		output := bytes.Buffer{}
+		cmd := &exec.Command{
+			CombinedOutput: &output,
+			Name:           "git",
+			Dir:            d,
+			Env:            []string{fmt.Sprintf("PATH=%s:/usr/bin:/usr/local/bin:/bin", depotToolsPath)},
+		}
 		if strings.Contains(rs.Server, "codereview.chromium") {
 			patchUrl := fmt.Sprintf("%s/%s/#ps%s", server, rs.Issue, rs.Patchset)
-			if _, err := exec.RunCwd(d, "git", "cl", "patch", "--rietveld", "--no-commit", patchUrl); err != nil {
-				return "", err
+			cmd.Args = []string{"cl", "patch", "--rietveld", "--no-commit", patchUrl}
+			if err := exec.Run(cmd); err != nil {
+				return "", fmt.Errorf("%s:\n%s\n%v", err, string(output.Bytes()), cmd.Env)
 			}
 		} else {
 			patchUrl := fmt.Sprintf("%s/c/%s/%s", server, rs.Issue, rs.Patchset)
-			if _, err := exec.RunCwd(d, "git", "cl", "patch", "--gerrit", patchUrl); err != nil {
-				return "", err
+			cmd.Args = []string{"cl", "patch", "--gerrit", patchUrl}
+			if out, err := exec.RunCommand(cmd); err != nil {
+				return "", fmt.Errorf("%s:\n%s", err, out)
 			}
 			// Un-commit the applied patch.
 			if _, err := exec.RunCwd(d, "git", "reset", "HEAD^"); err != nil {
