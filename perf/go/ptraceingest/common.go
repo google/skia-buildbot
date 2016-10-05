@@ -1,6 +1,8 @@
 package ptraceingest
 
 import (
+	"strings"
+
 	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/query"
@@ -12,11 +14,28 @@ import (
 // from the given BenchData.
 func getValueMap(b *ingestcommon.BenchData) map[string]float32 {
 	ret := make(map[string]float32, len(b.Results))
-	key := util.CopyStringMap(b.Key)
 	for testName, allConfigs := range b.Results {
 		for configName, result := range allConfigs {
+			key := util.CopyStringMap(b.Key)
 			key["test"] = testName
 			key["config"] = configName
+			util.AddParams(key, b.Options)
+
+			// If there is an options map inside the result add it to the params.
+			if resultOptions, ok := result["options"]; ok {
+				if opts, ok := resultOptions.(map[string]interface{}); ok {
+					for k, vi := range opts {
+						// Ignore the very long and not useful GL_ values, we can retrieve
+						// them later via ptracestore.Details.
+						if strings.HasPrefix(k, "GL_") {
+							continue
+						}
+						if s, ok := vi.(string); ok {
+							key[k] = s
+						}
+					}
+				}
+			}
 
 			for k, vi := range result {
 				if k == "options" {

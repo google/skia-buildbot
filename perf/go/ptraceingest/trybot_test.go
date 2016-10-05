@@ -27,9 +27,8 @@ func TestTrybotBenchData(t *testing.T) {
 	assert.NoError(t, err)
 	traceSet := getValueMap(benchData)
 	expected := map[string]float32{
-		",arch=x86_64,compiler=Clang,config=gpu,cpu_or_gpu=GPU,cpu_or_gpu_value=GeForce320M,model=MacMini4.1,os=Mac10.8,sub_result=min_ms,test=GLInstancedArraysBench_instance_640_480,": 0.0052282223,
-		",arch=x86_64,compiler=Clang,config=gpu,cpu_or_gpu=GPU,cpu_or_gpu_value=GeForce320M,model=MacMini4.1,os=Mac10.8,sub_result=min_ms,test=GLInstancedArraysBench_one_0_640_480,":    7.122931e-06,
-	}
+		",arch=x86_64,bench_type=micro,compiler=Clang,config=gpu,cpu_or_gpu=GPU,cpu_or_gpu_value=GeForce320M,model=MacMini4.1,name=GLInstancedArraysBench_instance,os=Mac10.8,source_type=bench,sub_result=min_ms,test=GLInstancedArraysBench_instance_640_480,": 0.0052282223,
+		",arch=x86_64,bench_type=micro,compiler=Clang,config=gpu,cpu_or_gpu=GPU,cpu_or_gpu_value=GeForce320M,model=MacMini4.1,name=GLInstancedArraysBench_one_0,os=Mac10.8,source_type=bench,sub_result=min_ms,test=GLInstancedArraysBench_one_0_640_480,":       7.122931e-06}
 	testutils.AssertDeepEqual(t, expected, traceSet)
 }
 
@@ -62,7 +61,7 @@ func TestPerfTrybotProcessor(t *testing.T) {
 	err = processor.Process(fsResult)
 	assert.NoError(t, err)
 
-	traceId := ",arch=x86_64,compiler=Clang,config=gpu,cpu_or_gpu=GPU,cpu_or_gpu_value=GeForce320M,model=MacMini4.1,os=Mac10.8,sub_result=min_ms,test=GLInstancedArraysBench_one_0_640_480,"
+	traceId := ",arch=x86_64,bench_type=micro,compiler=Clang,config=gpu,cpu_or_gpu=GPU,cpu_or_gpu_value=GeForce320M,model=MacMini4.1,name=GLInstancedArraysBench_one_0,os=Mac10.8,source_type=bench,sub_result=min_ms,test=GLInstancedArraysBench_one_0_640_480,"
 	expectedValue := float32(7.122931e-06)
 	cid := &cid.CommitID{
 		Source: "https://codereview.chromium.org/1467533002",
