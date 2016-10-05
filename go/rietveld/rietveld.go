@@ -87,9 +87,13 @@ func New(url string, client *http.Client) *Rietveld {
 	}
 }
 
-// Url returns the URL of the server for this Rietveld instance.
-func (r *Rietveld) Url() string {
-	return r.url
+// Url returns the url of the Rietveld issue identified by issueID or the
+// base URL of the Rietveld instance if issueID is 0.
+func (r *Rietveld) Url(issueID int64) string {
+	if issueID == 0 {
+		return r.url
+	}
+	return fmt.Sprintf("%s/%d", r.url, issueID)
 }
 
 // Patchset contains the information about one patchset. Currently we omit
@@ -125,6 +129,7 @@ func (r *Rietveld) isCommitted(i *Issue) (bool, error) {
 	committed, err := regexp.MatchString(COMMITTED_ISSUE_REGEXP, i.Description)
 	if err != nil {
 		return false, err
+
 	}
 	if committed {
 		return true, nil

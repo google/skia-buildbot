@@ -157,9 +157,13 @@ func parseTime(t string) time.Time {
 	return parsed
 }
 
-// Url returns the url of the Gerrit instance targeted by this instance.
-func (g *Gerrit) Url() string {
-	return g.url
+// Url returns the url of the Gerrit issue identified by issueID or the
+// base URL of the Gerrit instance if issueID is 0.
+func (g *Gerrit) Url(issueID int64) string {
+	if issueID == 0 {
+		return g.url
+	}
+	return fmt.Sprintf("%s/c/%d", g.url, issueID)
 }
 
 // GetIssueProperties returns a fully filled-in ChangeInfo object, as opposed to
