@@ -244,7 +244,7 @@ func (c *TaskCfgCache) readTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 	cfg, err := ReadTasksCfg(repoDir)
 	if err != nil {
 		// The tasks.cfg file may not exist for a particular commit.
-		if strings.Contains(err.Error(), "does not exist in") || strings.Contains(err.Error(), "exists on disk, but not in") {
+		if strings.Contains(err.Error(), "does not exist in") || strings.Contains(err.Error(), "exists on disk, but not in") || strings.Contains(err.Error(), "no such file or directory") {
 			// In this case, use an empty config.
 			cfg = &TasksCfg{
 				Tasks: map[string]*TaskSpec{},
