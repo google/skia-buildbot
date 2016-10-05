@@ -28,7 +28,7 @@ const (
 	TAG_INGESTER_ID       = "ingester"
 	TAG_INGESTER_SOURCE   = "source"
 
-	POLL_CHUNK_SIZE = 100
+	POLL_CHUNK_SIZE = 50
 )
 
 var (
@@ -114,9 +114,6 @@ type Ingester struct {
 	// processTimer measure the overall time it takes to process a set of files.
 	processTimer *metrics2.Timer
 
-	// processFileTimer measures how long it takes to process an individual file.
-	processFileTimer *metrics2.Timer
-
 	// fileWriterWg allows to synchronize file writes - testing only.
 	fileWriterWg sync.WaitGroup
 }
@@ -154,7 +151,6 @@ func (i *Ingester) setupMetrics() {
 	i.eventProcessMetrics = newProcessMetrics(i.id, "event")
 	i.srcMetrics = newSourceMetrics(i.id, i.sources)
 	i.processTimer = metrics2.NewTimer("ingestion.process", map[string]string{"id": i.id})
-	i.processFileTimer = metrics2.NewTimer("ingestion.process-file", map[string]string{"id": i.id})
 }
 
 // Start starts the ingester in a new goroutine.
@@ -311,20 +307,30 @@ func (i *Ingester) addToProcessedFiles(md5s []string) {
 func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetrics *processMetrics) {
 	glog.Infof("Start ingester: %s", i.id)
 
+	var mutex sync.Mutex // Protects access to the following vars.
 	processedMD5s := make([]string, 0, len(resultFiles))
-
 	var processedCounter int64 = 0
 	var ignoredCounter int64 = 0
 	var errorCounter int64 = 0
 
 	// time how long the overall process takes.
 	i.processTimer.Start()
+	var wg sync.WaitGroup
 	for _, resultLocation := range resultFiles {
-		if !i.inProcessedFiles(resultLocation.MD5()) {
-			// time how long it takes to process a file.
-			i.processFileTimer.Start()
+		if i.inProcessedFiles(resultLocation.MD5()) {
+			mutex.Lock()
+			ignoredCounter++
+			mutex.Unlock()
+			continue
+		}
+		wg.Add(1)
+		go func(resultLocation ResultFileLocation) {
+			defer wg.Done()
+			defer metrics2.NewTimer("ingestion.process-file", map[string]string{"id": i.id}).Stop()
 			err := i.processor.Process(resultLocation)
-			i.processFileTimer.Stop()
+
+			mutex.Lock()
+			defer mutex.Unlock()
 
 			if err != nil {
 				if err == IgnoreResultsFileErr {
@@ -333,7 +339,7 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 					errorCounter++
 					glog.Errorf("Failed to ingest %s: %s", resultLocation.Name(), err)
 				}
-				continue
+				return
 			}
 
 			if i.localCache {
@@ -344,10 +350,9 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 			// Gather all successfully processed MD5s
 			processedCounter++
 			processedMD5s = append(processedMD5s, resultLocation.MD5())
-		} else {
-			ignoredCounter++
-		}
+		}(resultLocation)
 	}
+	wg.Wait()
 	targetMetrics.liveness.Reset()
 
 	// Update the timer and the gauges that measure how the ingestion works
