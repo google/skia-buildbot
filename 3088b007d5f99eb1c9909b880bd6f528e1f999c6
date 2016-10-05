@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "825001f1_f129088c",
+        "filename": "go/gitinfo/gitinfo.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 550,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-05T16:55:06Z",
+      "side": 1,
+      "message": "nit: move below Log()",
+      "revId": "3088b007d5f99eb1c9909b880bd6f528e1f999c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "825001f1_d12404b7",
+        "filename": "go/gitinfo/gitinfo.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-05T16:55:06Z",
+      "side": 1,
+      "message": "Unintentional change?",
+      "revId": "3088b007d5f99eb1c9909b880bd6f528e1f999c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "825001f1_f1b4a83f",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1227,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-05T16:55:06Z",
+      "side": 1,
+      "message": "nit:\nfor len(ts) \u003e 0 \u0026\u0026 h.Timestamp \u003e\u003d ts[0] {\n  ts \u003d ts[1:]\n}",
+      "revId": "3088b007d5f99eb1c9909b880bd6f528e1f999c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "825001f1_514e5465",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1240,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-05T16:55:06Z",
+      "side": 1,
+      "message": "nit: seems like this belongs in the JS",
+      "revId": "3088b007d5f99eb1c9909b880bd6f528e1f999c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "825001f1_11ba0c29",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1287,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-05T16:55:06Z",
+      "side": 1,
+      "message": "nit: might be better to log and continue with skps \u003d nil",
+      "revId": "3088b007d5f99eb1c9909b880bd6f528e1f999c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
