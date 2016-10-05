@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "825001f1_14583a8b",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-05T19:29:48Z",
+      "side": 1,
+      "message": "nit: IMO \nvar wg WaitGroup \nis more idiomatic. It also has the advantage that it doesn\u0027t make any assumptions whether sync.WaitGroup is a struct or not.",
+      "range": {
+        "startLine": 318,
+        "startChar": 1,
+        "endLine": 318,
+        "endChar": 23
+      },
+      "revId": "879a096c2afa949c478d3cd266e9bdef62fc76d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "825001f1_34553e54",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-05T19:29:48Z",
+      "side": 1,
+      "message": "Doesn\u0027t need to be protected by mutex since it\u0027s not in the go-rountine and therefore not executed in parallel.",
+      "range": {
+        "startLine": 322,
+        "startChar": 3,
+        "endLine": 322,
+        "endChar": 19
+      },
+      "revId": "879a096c2afa949c478d3cd266e9bdef62fc76d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
