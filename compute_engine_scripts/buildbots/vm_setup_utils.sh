@@ -21,7 +21,8 @@ function install_packages {
     "wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && " \
     "mkdir -p ~/.config/google-chrome && touch ~/.config/google-chrome/First\ Run && " \
     "(sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get -f -y install) && " \
-    "rm google-chrome-stable_current_amd64.deb " \
+    "rm google-chrome-stable_current_amd64.deb && " \
+    "sudo pip install coverage" \
     || FAILED="$FAILED InstallPackages"
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
     "sudo apt-get -y --purge remove apache2* && " \
