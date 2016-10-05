@@ -547,11 +547,34 @@ func readCommitsFromGitAllBranches(dir string) ([]string, map[string]time.Time, 
 	return hashes, timestamps, nil
 }
 
+// LogFine is the same as Log() but appends all the 'args' to the Log
+// request to allow finer control of the log output. I.e. you could call:
+//
+//   LogFine(begin, end, "--format=format:%ct", "infra/bots/assets/skp/VERSION")
+
+func (g *GitInfo) LogFine(begin, end string, args ...string) (string, error) {
+	command := []string{"git", "log"}
+	hashrange := begin
+	if end != "" {
+		hashrange += ".." + end
+		command = append(command, hashrange)
+	} else {
+		command = append(command, "-n", "1", hashrange)
+	}
+	command = append(command, args...)
+	glog.Infof("command: %#v", command)
+	output, err := exec.RunCwd(g.dir, command...)
+	if err != nil {
+		return "", err
+	}
+	return output, nil
+}
+
 // SkpCommits returns the indices for all the commits that contain SKP updates.
 func (g *GitInfo) SkpCommits(tile *tiling.Tile) ([]int, error) {
 	// Executes a git log command that looks like:
 	//
-	//   git log --format=format:%H  32956400b4d8f33394e2cdef9b66e8369ba2a0f3..e7416bfc9858bde8fc6eb5f3bfc942bc3350953a SKP_VERSION
+	//   git log --format=format:%h  32956400b4d8f33394e2cdef9b66e8369ba2a0f3..e7416bfc9858bde8fc6eb5f3bfc942bc3350953a skp_version
 	//
 	// The output should be a \n separated list of hashes that match.
 	first, last := tile.CommitRange()
