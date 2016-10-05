@@ -274,6 +274,16 @@
         });
         this.$.plot.setTicks(tickmap);
 
+        // Always add in the last index so we draw a band if there's an odd
+        // number of skp updates.
+        json.skps.push(json.dataframe.header.length-1);
+
+        var bands = [];
+        for (var i = 1; i < json.skps.length; i+=2) {
+          bands.push([json.skps[i-1], json.skps[i]]);
+        }
+        this.$.plot.setBanding(bands);
+
         // Populate the paramset element.
         this.$.paramset.setParamSets([dataframe.paramset]);
         this.$.detailtab.selected = 1;
