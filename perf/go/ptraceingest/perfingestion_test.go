@@ -54,21 +54,21 @@ func TestBenchData(t *testing.T) {
 	assert.NoError(t, err)
 
 	traceSet := getValueMap(benchData)
-	expected :=
-		map[string]float32{
-			",arch=x86,config=565,gpu=GTX660,model=ShuttleA,os=Ubuntu12,sub_result=min_ms,test=DeferredSurfaceCopy_discardable_640_480,":     2.215988,
-			",arch=x86,config=8888,gpu=GTX660,model=ShuttleA,os=Ubuntu12,sub_result=min_ms,test=DeferredSurfaceCopy_discardable_640_480,":    2.223606,
-			",arch=x86,config=565,gpu=GTX660,model=ShuttleA,os=Ubuntu12,sub_result=min_ms,test=DeferredSurfaceCopy_nonDiscardable_640_480,":  2.865907,
-			",arch=x86,config=8888,gpu=GTX660,model=ShuttleA,os=Ubuntu12,sub_result=min_ms,test=DeferredSurfaceCopy_nonDiscardable_640_480,": 2.855735,
-			",arch=x86,config=8888,gpu=GTX660,model=ShuttleA,os=Ubuntu12,sub_result=ops,test=DeferredSurfaceCopy_nonDiscardable_640_480,":    3333,
-			",arch=x86,config=8888,gpu=GTX660,model=ShuttleA,os=Ubuntu12,sub_result=bytes,test=DeferredSurfaceCopy_nonDiscardable_640_480,":  298888,
-			",arch=x86,config=gpu,gpu=GTX660,model=ShuttleA,os=Ubuntu12,sub_result=min_ms,test=DeferredSurfaceCopy_nonDiscardable_640_480,":  0.36989987,
-			",arch=x86,config=nonrendering,gpu=GTX660,model=ShuttleA,os=Ubuntu12,sub_result=min_ms,test=ChunkAlloc_PushPop_640_480,":         0.014854667,
-			",arch=x86,config=gpu,gpu=GTX660,model=ShuttleA,os=Ubuntu12,sub_result=min_ms,test=DeferredSurfaceCopy_discardable_640_480,":     0.115713276,
-			",arch=x86,config=nonrendering,gpu=GTX660,model=ShuttleA,os=Ubuntu12,sub_result=min_ms,test=Deque_PushAllPopAll_640_480,":        0.019646378,
-			",arch=x86,config=meta,gpu=GTX660,model=ShuttleA,os=Ubuntu12,sub_result=max_rss_mb,test=memory_usage_0_0,":                       858,
-			",arch=x86,config=memory,gpu=GTX660,model=ShuttleA,os=Ubuntu12,sub_result=bytes,test=src_pipe_global_weak_symbol,":               158,
-			",arch=x86,config=nonrendering,gpu=GTX660,model=ShuttleA,os=Ubuntu12,sub_result=min_ms,test=ChunkAlloc_Push_640_480,":            0.009535795}
+	expected := map[string]float32{
+		",arch=x86,config=565,gpu=GTX660,model=ShuttleA,os=Ubuntu12,source_type=bench,sub_result=min_ms,system=UNIX,test=DeferredSurfaceCopy_discardable_640_480,":             2.215988,
+		",arch=x86,config=gpu,gpu=GTX660,model=ShuttleA,os=Ubuntu12,source_type=bench,sub_result=min_ms,system=UNIX,test=DeferredSurfaceCopy_discardable_640_480,":             0.115713276,
+		",arch=x86,config=565,gpu=GTX660,model=ShuttleA,os=Ubuntu12,source_type=bench,sub_result=min_ms,system=UNIX,test=DeferredSurfaceCopy_nonDiscardable_640_480,":          2.865907,
+		",arch=x86,config=gpu,gpu=GTX660,model=ShuttleA,os=Ubuntu12,source_type=bench,sub_result=min_ms,system=UNIX,test=DeferredSurfaceCopy_nonDiscardable_640_480,":          0.36989987,
+		",arch=x86,config=nonrendering,gpu=GTX660,model=ShuttleA,os=Ubuntu12,source_type=bench,sub_result=min_ms,system=UNIX,test=ChunkAlloc_Push_640_480,":                    0.009535795,
+		",arch=x86,config=nonrendering,gpu=GTX660,model=ShuttleA,os=Ubuntu12,source_type=bench,sub_result=min_ms,system=UNIX,test=Deque_PushAllPopAll_640_480,":                0.019646378,
+		",arch=x86,config=nonrendering,gpu=GTX660,model=ShuttleA,os=Ubuntu12,source_type=bench,sub_result=min_ms,system=UNIX,test=ChunkAlloc_PushPop_640_480,":                 0.014854667,
+		",arch=x86,config=8888,gpu=GTX660,model=ShuttleA,os=Ubuntu12,source_type=bench,sub_result=min_ms,system=UNIX,test=DeferredSurfaceCopy_discardable_640_480,":            2.223606,
+		",arch=x86,config=8888,gpu=GTX660,model=ShuttleA,os=Ubuntu12,source_type=bench,sub_result=min_ms,system=UNIX,test=DeferredSurfaceCopy_nonDiscardable_640_480,":         2.855735,
+		",arch=x86,config=8888,gpu=GTX660,model=ShuttleA,os=Ubuntu12,source_type=bench,sub_result=bytes,system=UNIX,test=DeferredSurfaceCopy_nonDiscardable_640_480,":          298888,
+		",arch=x86,config=8888,gpu=GTX660,model=ShuttleA,os=Ubuntu12,source_type=bench,sub_result=ops,system=UNIX,test=DeferredSurfaceCopy_nonDiscardable_640_480,":            3333,
+		",arch=x86,config=memory,gpu=GTX660,model=ShuttleA,os=Ubuntu12,path=src_pipe,sub_result=bytes,symbol=global_weak_symbol,system=UNIX,test=src_pipe_global_weak_symbol,": 158,
+		",arch=x86,config=meta,gpu=GTX660,model=ShuttleA,os=Ubuntu12,sub_result=max_rss_mb,system=UNIX,test=memory_usage_0_0,":                                                 858}
+
 	testutils.AssertDeepEqual(t, expected, traceSet)
 }
 
@@ -97,7 +97,7 @@ func TestPerfProcessor(t *testing.T) {
 	err = processor.Process(fsResult)
 	assert.NoError(t, err)
 
-	traceId := ",arch=x86,config=nonrendering,gpu=GTX660,model=ShuttleA,os=Ubuntu12,sub_result=min_ms,test=ChunkAlloc_Push_640_480,"
+	traceId := ",arch=x86,config=nonrendering,gpu=GTX660,model=ShuttleA,os=Ubuntu12,source_type=bench,sub_result=min_ms,system=UNIX,test=ChunkAlloc_Push_640_480,"
 	expectedValue := float32(0.009535795)
 	cid := &cid.CommitID{
 		Source: "master",
