@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9f121c46_a3384824",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-05T20:30:46Z",
+      "side": 1,
+      "message": "If we have to go with this \"solution\", this should be passed in.",
+      "range": {
+        "startLine": 31,
+        "startChar": 20,
+        "endLine": 31,
+        "endChar": 23
+      },
+      "revId": "a25d0931b26593af98b0d03d4dfba7ca1aa9fece",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9f121c46_e33e4012",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 528,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-05T20:30:46Z",
+      "side": 1,
+      "message": "This shouldn\u0027t be necessary. I wanted to just set inheritEnv\u003dtrue but that doesn\u0027t seem to do anything. I\u0027ve triple-checked and depot_tools IS in the PATH on the machine.",
+      "range": {
+        "startLine": 528,
+        "startChar": 31,
+        "endLine": 528,
+        "endChar": 32
+      },
+      "revId": "a25d0931b26593af98b0d03d4dfba7ca1aa9fece",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
