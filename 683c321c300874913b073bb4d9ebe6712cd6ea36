@@ -94,6 +94,24 @@
       "revId": "683c321c300874913b073bb4d9ebe6712cd6ea36",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9f121c46_7aa5390b",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-05T17:52:32Z",
+      "side": 1,
+      "message": "Okay, split the test into two, one which tests the no-patch cases, and another which uploads a CL and then patches it in. I was unable to upload to Gerrit from the dummy repo.",
+      "parentUuid": "825001f1_31a0f0ed",
+      "revId": "683c321c300874913b073bb4d9ebe6712cd6ea36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
