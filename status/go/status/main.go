@@ -791,14 +791,15 @@ func main() {
 	glog.Info("commit_cache complete")
 
 	// Load Perf and Gold data in a loop.
-	perfStatus = dbClient.Int64PollingStatus("skmetrics", PERF_STATUS_QUERY, time.Minute)
-	goldGMStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), time.Minute)
-	goldImageStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), time.Minute)
+	//perfStatus = dbClient.Int64PollingStatus("skmetrics", PERF_STATUS_QUERY, time.Minute)
+	//goldGMStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), time.Minute)
+	//goldImageStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), time.Minute)
 
 	// Load slave_hosts_cfg and device cfgs in a loop.
 	slaveHosts = buildbot.SlaveHostsCfgPoller(path.Join(*workdir, "repos", "buildbot.git"))
 	androidDevices = device_cfg.AndroidDeviceCfgPoller(*workdir)
 	sshDevices = device_cfg.SSHDeviceCfgPoller(*workdir)
 
+	glog.Info("RUNNING THE SERVER!!!!!!!!!!!!!!!!")
 	runServer(serverURL)
 }

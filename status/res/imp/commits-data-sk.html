@@ -39,8 +39,8 @@
     commits_map: Object, a map of commit hash to commit objects.
     loading: Boolean, if the data is being fetched from the server or parsed.
     num_builders: Number, the number of builders with data, after filtering.
-    relanded_map: Object, a map of a commit hash that was relanded to the commit hash that relands it
-    reverted_map: Object, a map of a commit hash that was reverted to the commit hash that reverts it
+    relanded_map: Object, a map of an issue number that was relanded to the commit that relands it
+    reverted_map: Object, a map of an issue number that was reverted to the commit that reverts it
 
   Methods:
     None.
@@ -130,41 +130,114 @@
       return sk.truncate(subject, 72);
     }
 
-    function findIssueNumber(commit) {
-      // If there are multiple Review URLs in a CL then it selects the last one.
-      var re = /(.|[\r\n])*Review-Url: https:\/\/codereview.chromium.org\/([0-9]*)/g;
-      var tokens = re.exec(commit.body);
-      if (tokens) {
-        return tokens[tokens.length - 1];
+    // findIssueAndReviewTool returns an object literal of the form
+    // {issue, patchStorage}. patchStorage will be either Gerrit or Rietveld and
+    // issue will be the CL number.
+    // If an issue cannot be determined then an empty string is returned for
+    // both issue and patchStorage.
+    function findIssueAndReviewTool(commit) {
+      // See if it is a Gerrit CL.
+      var gerritRE = /(.|[\r\n])*Reviewed-on: https:\/\/skia-review.googlesource.com\/([0-9]*)/g;
+      var gerritTokens = gerritRE.exec(commit.body);
+      if (gerritTokens) {
+        return {
+            issue: gerritTokens[gerritTokens.length - 1],
+            patchStorage: 'gerrit'
+        };
       }
+       // See if it is a Rietveld CL.
+      var rietveldRE = /(.|[\r\n])*Review-Url: https:\/\/codereview.chromium.org\/([0-9]*)/g;
+      var rietveldTokens = rietveldRE.exec(commit.body);
+      if (rietveldTokens) {
+        return {
+            issue: rietveldTokens[rietveldTokens.length - 1],
+            patchStorage: 'rietveld'
+        };
+      }
+      // Could not find a CL number return an empty string.
+      return {
+          issue: '',
+          patchStorage: ''
+      };
+    }
+
+    function isGerritIssue(commit) {
+      return commit.patchStorage === 'gerrit';
+    }
+
+    function isRietveldIssue(commit) {
+      return commit.patchStorage === 'rietveld';
     }
 
     // Return whether this commit reverted another commit.
     function isRevert(commit) {
-      // Check to see if this is a revert CL. The subject of the CL needs to start with
-      // "Revert " or "Reland " (relands are reverts of the original revert).
-      return (/^Revert /g.test(commit.subject) || /^Reland /g.test(commit.subject))
+      if (isGerritIssue(commit)) {
+        // The subject of the CL needs to start with 'Revert "' for Gerrit
+        // issues.
+        return /^Revert "/g.test(commit.subject);
+      } else if (isRietveldIssue(commit)) {
+        // The subject of the CL needs to start with 'Revert ' or 'Reland ' for
+        // Rietveld issues.
+        return (/^Revert /g.test(commit.subject) || /^Reland /g.test(commit.subject));
+      }
+      return false;
     }
 
     // Return whether this commit relanded another commit.
     function isReland(commit) {
-      // Check to see if this is a reland CL. The subject of the CL needs to start with
-      // "Reland ".
-      return /^Reland /g.test(commit.subject)
+      if (isGerritIssue(commit)) {
+        // The subject of the CL needs to start with 'Revert "' for Gerrit
+        // issues. Reland issues look like this: 'Revert "Revert "...'
+        var numRevertBlocks = 0;
+        var tmpSubject = commit.subject;
+        var m;
+        while ((m = /^Revert "(.*)/g.exec(tmpSubject)) != null) {
+          tmpSubject = m[1];  // Move on to the next block.
+          numRevertBlocks++;
+        }
+        if (numRevertBlocks == 0) {
+          return false;
+        } else if (numRevertBlocks >= 2) {
+          // There are an even number of Revert blocks. This means that it is
+          // a reland.
+          return true;
+        }
+      } else if (isRietveldIssue(commit)) {
+        // For Rietveld issues the subject of the CL needs to start with
+        // 'Reland '.
+        return /^Reland /g.test(commit.subject);
+      }
+      return false;
     }
 
-    // Find and return the hash of the reverted commit that is the specified number of levels
-    // deep.
-    function findRevertedHash(commit, levelsDeep) {
+    // Find and return the issue number of the reverted commit that is the specified number of
+    // levels deep.
+    function findRevertedIssue(commit, levelsDeep) {
       var levelsDeepStr = "";
-      for (i=0; i<levelsDeep; i++) {
-        levelsDeepStr += "\\> ";
+      var patt;
+      if (isGerritIssue(commit)) {
+        for (i=0; i<levelsDeep; i++) {
+          levelsDeepStr += "\\> ";
+        }
+        patt = new RegExp("(.|[\\r\\n])*" + levelsDeepStr + "Reviewed-on\\: https://skia-review\.googlesource\.com/([0-9]*)", "g");
+        var tokens = patt.exec(commit.body);
+        if (tokens) {
+          return tokens[tokens.length - 1];
+        }
+      } else if (isRietveldIssue(commit)) {
+        var contents = commit.subject;
+        for (i=1; i<levelsDeep; i++) {
+          // Search in the body of a commit if the level is deeper than 1.
+          contents = commit.body;
+          levelsDeepStr += "\\> ";
+        }
+        patt = new RegExp("(.|[\\r\\n])*" + levelsDeepStr + "(Revert of |Reland of ).*https://codereview\.chromium\.org/([0-9]*)/ \\)");
+        var tokens = patt.exec(contents);
+        if (tokens) {
+          return tokens[tokens.length - 1];
+        }
       }
-      var patt = new RegExp("(.|[\\r\\n])*" + levelsDeepStr + "Committed\\: https://skia\.googlesource\.com/skia/\\+/([a-z0-9]*)", "g");
-      var tokens = patt.exec(commit.body);
-      if (tokens) {
-        return tokens[tokens.length - 1];
-      }
+      return '';
     }
 
     function getBuildColor(build) {
@@ -401,15 +474,19 @@
           commit.shortAuthor = shortAuthor(commit.author);
           commit.shortHash = shortCommit(commit.hash);
           commit.shortSubject = shortSubject(commit.subject);
-          commit.issue = findIssueNumber(commit);
+
+          var c = findIssueAndReviewTool(commit);
+          commit.issue = c.issue;
+          commit.patchStorage = c.patchStorage;
           commit.isRevert = isRevert(commit);
-          if (commit.isRevert) {
-              this.reverted_map[findRevertedHash(commit, 1)] = commit.hash;
+          if (commit.isRevert && findRevertedIssue(commit, 1)) {
+              this.reverted_map[findRevertedIssue(commit, 1)] = commit;
           }
           commit.isReland = isReland(commit);
-          if (commit.isReland) {
-              this.relanded_map[findRevertedHash(commit, 2)] = commit.hash;
+          if (commit.isReland && findRevertedIssue(commit, 2)) {
+              this.relanded_map[findRevertedIssue(commit, 2)] = commit;
           }
+
           commit.displayClass = {};
           for (var builder in build_details[commit.hash]) {
             var build = build_details[commit.hash][builder];
