@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "825001f1_b403ee71",
+        "filename": "go/gitinfo/gitinfo.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 550,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-05T19:41:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "825001f1_f129088c",
+      "revId": "3088b007d5f99eb1c9909b880bd6f528e1f999c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "825001f1_d12404b7",
         "filename": "go/gitinfo/gitinfo.go",
         "patchSetId": 4
@@ -30,6 +48,24 @@
       "writtenOn": "2016-10-05T16:55:06Z",
       "side": 1,
       "message": "Unintentional change?",
+      "revId": "3088b007d5f99eb1c9909b880bd6f528e1f999c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "825001f1_74318659",
+        "filename": "go/gitinfo/gitinfo.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-05T19:41:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "825001f1_d12404b7",
       "revId": "3088b007d5f99eb1c9909b880bd6f528e1f999c6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "825001f1_740a6681",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1227,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-05T19:41:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "825001f1_f1b4a83f",
+      "revId": "3088b007d5f99eb1c9909b880bd6f528e1f999c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "825001f1_514e5465",
         "filename": "perf/go/skiaperf/main.go",
         "patchSetId": 4
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "825001f1_94b98a9a",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1240,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-05T19:41:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "825001f1_514e5465",
+      "revId": "3088b007d5f99eb1c9909b880bd6f528e1f999c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "825001f1_11ba0c29",
         "filename": "perf/go/skiaperf/main.go",
         "patchSetId": 4
@@ -81,6 +153,24 @@
       "writtenOn": "2016-10-05T16:55:06Z",
       "side": 1,
       "message": "nit: might be better to log and continue with skps \u003d nil",
+      "revId": "3088b007d5f99eb1c9909b880bd6f528e1f999c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "825001f1_d4c31200",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1287,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-05T19:41:25Z",
+      "side": 1,
+      "message": "I thought about that, but it should happen so rarely I\u0027d like to surface the failure.",
+      "parentUuid": "825001f1_11ba0c29",
       "revId": "3088b007d5f99eb1c9909b880bd6f528e1f999c6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
