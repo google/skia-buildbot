@@ -34,9 +34,10 @@ func (t *Time) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON parses a time.Time from a JSON number of microseconds.
 func (t *Time) UnmarshalJSON(data []byte) error {
-	num, err := strconv.ParseInt(string(data), 10, 64)
-	if err == nil {
-		*t = Time(time.Unix(0, num*util.MICROS_TO_NANOS).UTC())
+	var timeN Number
+	if err := timeN.UnmarshalJSON(data); err != nil {
+		return err
 	}
-	return err
+	*t = Time(time.Unix(0, int64(timeN)*util.MICROS_TO_NANOS).UTC())
+	return nil
 }
