@@ -25,6 +25,23 @@
     },
     {
       "key": {
+        "uuid": "3f6930e5_7706902d",
+        "filename": "go/buildbucket/buildbucket_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-06T12:34:22Z",
+      "side": 1,
+      "message": "I am not a fan of relying on the existence of issues on Gerrit or Rietveld and being dependent on their uptime for tests run on our bots. This is why I was skipping the test in the old location. But maybe ok for now, lets revisit this if the test ends up being flaky.",
+      "revId": "06259b8d583fa1ffa051d89718a0a9be0dd695fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ff95d8fb_b12c28b4",
         "filename": "go/jsonutils/jsonutils.go",
         "patchSetId": 3
