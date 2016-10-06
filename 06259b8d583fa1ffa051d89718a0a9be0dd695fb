@@ -152,6 +152,24 @@
       "revId": "06259b8d583fa1ffa051d89718a0a9be0dd695fb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f6930e5_d7b8bc30",
+        "filename": "go/jsonutils/jsonutils.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-06T14:39:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ff95d8fb_b12c28b4",
+      "revId": "06259b8d583fa1ffa051d89718a0a9be0dd695fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
