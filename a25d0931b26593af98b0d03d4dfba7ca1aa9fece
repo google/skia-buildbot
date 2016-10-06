@@ -63,6 +63,24 @@
       "revId": "a25d0931b26593af98b0d03d4dfba7ca1aa9fece",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f6930e5_f7b380df",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 528,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-06T00:06:08Z",
+      "side": 1,
+      "message": "BTW, you are right that InheritEnv doesn\u0027t do anything if Env is not set, because the default is to inherit. Setting Env overrides the default, and InheritEnv overcomes the override.",
+      "parentUuid": "3f6930e5_97a564a0",
+      "revId": "a25d0931b26593af98b0d03d4dfba7ca1aa9fece",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
