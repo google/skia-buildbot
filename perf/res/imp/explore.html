@@ -417,7 +417,7 @@
         lastn: +this._lastn,
         formula: this.$.formula.value,
       };
-      sk.post("/_/ncalc/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json){
+      sk.post("/_/calc/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json){
         // TODO(jcgregorio) This only works if the time range doesn't change.
         this._addTraces(json, true);
       }).catch(sk.errorMessage);
