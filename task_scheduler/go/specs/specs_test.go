@@ -71,7 +71,7 @@ func TestTaskSpecs(t *testing.T) {
 	defer tr.Cleanup()
 
 	repos := gitinfo.NewRepoMap(tr.Dir)
-	cache := NewTaskCfgCache(tr.Dir, repos)
+	cache := NewTaskCfgCache(tr.Dir, "", repos)
 
 	rs1 := db.RepoState{
 		Repo:     repoName,
@@ -122,7 +122,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	defer tr.Cleanup()
 
 	repos := gitinfo.NewRepoMap(tr.Dir)
-	cache := NewTaskCfgCache(tr.Dir, repos)
+	cache := NewTaskCfgCache(tr.Dir, "", repos)
 
 	// Load configs into the cache.
 	rs1 := db.RepoState{
@@ -278,7 +278,7 @@ PROJECT: skia`)
 
 func tempGitRepoTests(t *testing.T, dir string, cases map[db.RepoState]error) {
 	for rs, expectErr := range cases {
-		d, err := TempGitRepo(dir, rs)
+		d, err := TempGitRepo(dir, rs, "")
 		if expectErr != nil {
 			assert.EqualError(t, err, expectErr.Error())
 		} else {

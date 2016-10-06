@@ -74,6 +74,7 @@ var (
 	host           = flag.String("host", "localhost", "HTTP service host")
 	port           = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
 	dbPort         = flag.String("db_port", ":8008", "HTTP service port for the database RPC server (e.g., ':8008')")
+	depotToolsPath = flag.String("depot_tools_path", "", "Path to depot_tools checkout.")
 	local          = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
 	scoreDecay24Hr = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
@@ -369,7 +370,7 @@ func main() {
 
 	// Create and start the task scheduler.
 	glog.Infof("Creating task scheduler.")
-	ts, err = scheduling.NewTaskScheduler(d, period, wdAbs, REPOS, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, tryjobs.BUCKET_PRIMARY, PROJECT_REPO_MAPPING)
+	ts, err = scheduling.NewTaskScheduler(d, period, wdAbs, *depotToolsPath, REPOS, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, tryjobs.BUCKET_PRIMARY, PROJECT_REPO_MAPPING)
 	if err != nil {
 		glog.Fatal(err)
 	}
