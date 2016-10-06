@@ -1560,7 +1560,7 @@
         1417616750.4192
       ],
       "urls": {
-        "gsutil.upload": "https:\/\/storage.cloud.google.com\/chromium-skia-gm\/skimage\/output"
+        "gsutil.upload": "https:\/\/storage.cloud.google.com\/dummy-bucket\/skimage\/output"
       }
     },
     {
@@ -1596,7 +1596,7 @@
         1417616750.4233
       ],
       "urls": {
-        "gsutil.upload": "https:\/\/storage.cloud.google.com\/chromium-skia-gm\/skimage\/actuals\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/actual-results.json"
+        "gsutil.upload": "https:\/\/storage.cloud.google.com\/dummy-bucket\/skimage\/actuals\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/actual-results.json"
       }
     },
     {
