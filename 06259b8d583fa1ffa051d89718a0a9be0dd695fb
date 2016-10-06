@@ -114,6 +114,24 @@
     },
     {
       "key": {
+        "uuid": "3f6930e5_578cac94",
+        "filename": "go/buildbucket/buildbucket_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-06T14:03:19Z",
+      "side": 1,
+      "message": "\"If we rely on buildbucket in production we should be able to test against it\"\nMakes sense to me but integration tests should be in the different tier.\n\n\"If it\u0027s not reliable enough to sustain the occasional ping from a test we should not use it IMO\"\nI agree with this but not for small and medium tests. This is documented nicely in the test cerification documentation here: https://g3doc.corp.google.com/testing/test_certified/g3doc/wiki/criteria.md?cl\u003dhead#ClassifyTestSizes\nSmall/medium tests should be mocking things out or replying on apps on a single machine. Large/Enormous tests deal with external subsystems, these tests are expected to be occasionally flaky which happens when there are dependencies on anything we do not control.\n\nWe should make the same distinction for our tests.",
+      "parentUuid": "3f6930e5_777f706b",
+      "revId": "06259b8d583fa1ffa051d89718a0a9be0dd695fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ff95d8fb_b12c28b4",
         "filename": "go/jsonutils/jsonutils.go",
         "patchSetId": 3
