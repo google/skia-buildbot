@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3f6930e5_1722b4aa",
+        "filename": "scripts/win_setup.ps1",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-06T12:48:29Z",
+      "side": 0,
+      "message": "vm_create_setup_instances.sh has references to GS_ACCESS_KEY_ID and GS_SECRET_ACCESS_KEY.\n\nWhen they are removed might want to create a Win instance to make sure we did not overlook something.",
+      "revId": "0dec15bc3873df39de276710d6882f5efde36b0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
