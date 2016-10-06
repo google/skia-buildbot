@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ff95d8fb_d129b4a2",
+        "filename": "go/buildbucket/buildbucket_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-06T12:28:10Z",
+      "side": 1,
+      "message": "We should use testutils.SkipIfShort here.",
+      "range": {
+        "startLine": 11,
+        "startChar": 5,
+        "endLine": 11,
+        "endChar": 24
+      },
+      "revId": "06259b8d583fa1ffa051d89718a0a9be0dd695fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff95d8fb_b12c28b4",
+        "filename": "go/jsonutils/jsonutils.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-06T12:28:10Z",
+      "side": 1,
+      "message": "Seems like we should be able to reuse *Number.UnmarshalJSON here:\n\nvar n Number\nif err :\u003d n.UnmarshalJSON(data); err !\u003d nil {\n    return err\n}\n*t \u003d ...",
+      "range": {
+        "startLine": 40,
+        "startChar": 20,
+        "endLine": 40,
+        "endChar": 21
+      },
+      "revId": "06259b8d583fa1ffa051d89718a0a9be0dd695fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
