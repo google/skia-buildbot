@@ -31,12 +31,15 @@ const (
 	SWARMING_TAG_ALLOW_MILO     = "allow_milo"
 	SWARMING_TAG_FORCED_JOB_ID  = "sk_forced_job_id"
 	SWARMING_TAG_ID             = "sk_id"
+	SWARMING_TAG_ISSUE          = "sk_issue"
 	SWARMING_TAG_NAME           = "sk_name"
 	SWARMING_TAG_PARENT_TASK_ID = "sk_parent_task_id"
+	SWARMING_TAG_PATCHSET       = "sk_patchset"
 	SWARMING_TAG_PRIORITY       = "sk_priority"
 	SWARMING_TAG_REPO           = "sk_repo"
 	SWARMING_TAG_RETRY_OF       = "sk_retry_of"
 	SWARMING_TAG_REVISION       = "sk_revision"
+	SWARMING_TAG_SERVER         = "sk_issue_server"
 )
 
 type TaskStatus string
@@ -206,6 +209,17 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 		return false, err
 	}
 	if err := checkOrSetFromTag(SWARMING_TAG_REVISION, &copy.Revision, "Revision"); err != nil {
+		return false, err
+	}
+
+	// Optional try job tags.
+	if err := checkOrSetFromTag(SWARMING_TAG_ISSUE, &copy.Issue, "Issue"); err != nil {
+		return false, err
+	}
+	if err := checkOrSetFromTag(SWARMING_TAG_PATCHSET, &copy.Patchset, "Patchset"); err != nil {
+		return false, err
+	}
+	if err := checkOrSetFromTag(SWARMING_TAG_SERVER, &copy.Server, "Server"); err != nil {
 		return false, err
 	}
 
@@ -516,16 +530,21 @@ func (d *TaskDecoder) Result() ([]*Task, error) {
 }
 
 // TagsForTask returns the tags which should be set for a Task.
-func TagsForTask(name, id string, priority float64, repo, retryOf, revision string, dimensions map[string]string, forcedJobId string, parentTaskIds []string) []string {
+func TagsForTask(name, id string, priority float64, rs RepoState, retryOf string, dimensions map[string]string, forcedJobId string, parentTaskIds []string) []string {
 	tags := map[string]string{
 		SWARMING_TAG_ALLOW_MILO:    "1",
 		SWARMING_TAG_FORCED_JOB_ID: forcedJobId,
 		SWARMING_TAG_NAME:          name,
 		SWARMING_TAG_ID:            id,
 		SWARMING_TAG_PRIORITY:      fmt.Sprintf("%f", priority),
-		SWARMING_TAG_REPO:          repo,
+		SWARMING_TAG_REPO:          rs.Repo,
 		SWARMING_TAG_RETRY_OF:      retryOf,
-		SWARMING_TAG_REVISION:      revision,
+		SWARMING_TAG_REVISION:      rs.Revision,
+	}
+	if rs.IsTryJob() {
+		tags[SWARMING_TAG_SERVER] = rs.Server
+		tags[SWARMING_TAG_ISSUE] = rs.Issue
+		tags[SWARMING_TAG_PATCHSET] = rs.Patchset
 	}
 
 	for k, v := range dimensions {
