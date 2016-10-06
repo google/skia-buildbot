@@ -110,7 +110,7 @@ func setup(t *testing.T) (string, *TryJobIntegrator, *mockhttpclient.URLMock) {
 	assert.NoError(t, err)
 
 	// Set up other TryJobIntegrator inputs.
-	taskCfgCache := specs.NewTaskCfgCache(path.Join(tmpDir, "cfg_cache"), rm)
+	taskCfgCache := specs.NewTaskCfgCache(path.Join(tmpDir, "cfg_cache"), "", rm)
 	d := db.NewInMemoryDB()
 	cache, err := db.NewJobCache(d, time.Hour, db.DummyGetRevisionTimestamp(time.Now()))
 	assert.NoError(t, err)

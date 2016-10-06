@@ -47,6 +47,7 @@ var (
 type TaskScheduler struct {
 	bl               *blacklist.Blacklist
 	db               db.DB
+	depotToolsPath   string
 	isolate          *isolate.Client
 	jCache           db.JobCache
 	lastScheduled    time.Time // protected by queueMtx.
@@ -63,7 +64,7 @@ type TaskScheduler struct {
 	workdir          string
 }
 
-func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string) (*TaskScheduler, error) {
+func NewTaskScheduler(d db.DB, period time.Duration, workdir, depotToolsPath string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		return nil, err
@@ -93,7 +94,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames [
 		glog.Fatal(err)
 	}
 
-	taskCfgCache := specs.NewTaskCfgCache(path.Join(workdir, "cfg_cache"), rm)
+	taskCfgCache := specs.NewTaskCfgCache(path.Join(workdir, "cfg_cache"), depotToolsPath, rm)
 	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, c, d, jCache, projectRepoMapping, rm, taskCfgCache)
 	if err != nil {
 		return nil, err
@@ -669,7 +670,7 @@ func (s *TaskScheduler) isolateTasks(rs db.RepoState, candidates []*taskCandidat
 	// latency.
 	altUpstream := path.Join(s.workdir, path.Base(rs.Repo))
 	rs.Repo = altUpstream
-	repoDir, err := specs.TempGitRepo(path.Join(s.workdir, "temp_repos"), rs)
+	repoDir, err := specs.TempGitRepo(path.Join(s.workdir, "temp_repos"), rs, s.depotToolsPath)
 	if err != nil {
 		return err
 	}

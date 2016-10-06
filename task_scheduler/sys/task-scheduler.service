@@ -6,6 +6,7 @@ After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/task_scheduler \
+    --depot_tools_path=/mnt/pd0/depot_tools \
     --host=task-scheduler.skia.org \
     --log_dir=/var/log/logserver \
     --log_max_size=10485760 \

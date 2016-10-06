@@ -1,6 +1,7 @@
 package specs
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -194,6 +195,7 @@ func (j *JobSpec) Copy() *JobSpec {
 // periodically call Cleanup() to remove old entries.
 type TaskCfgCache struct {
 	cache           map[db.RepoState]*TasksCfg
+	depotToolsPath  string
 	mtx             sync.Mutex
 	recentCommits   map[string]time.Time
 	recentJobSpecs  map[string]time.Time
@@ -204,9 +206,10 @@ type TaskCfgCache struct {
 }
 
 // NewTaskCfgCache returns a TaskCfgCache instance.
-func NewTaskCfgCache(workdir string, repos *gitinfo.RepoMap) *TaskCfgCache {
+func NewTaskCfgCache(workdir, depotToolsPath string, repos *gitinfo.RepoMap) *TaskCfgCache {
 	return &TaskCfgCache{
 		cache:           map[db.RepoState]*TasksCfg{},
+		depotToolsPath:  depotToolsPath,
 		mtx:             sync.Mutex{},
 		recentCommits:   map[string]time.Time{},
 		recentJobSpecs:  map[string]time.Time{},
@@ -236,7 +239,7 @@ func (c *TaskCfgCache) readTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 	}
 	rsCpy := rs.Copy()
 	rsCpy.Repo = r.Dir()
-	repoDir, err := TempGitRepo(c.workdir, rsCpy)
+	repoDir, err := TempGitRepo(c.workdir, rsCpy, c.depotToolsPath)
 	if err != nil {
 		return nil, fmt.Errorf("Could not read task cfg; failed to check out RepoState %q: %s", rs, err)
 	}
@@ -467,7 +470,7 @@ func findCycles(tasks map[string]*TaskSpec, jobs map[string]*JobSpec) error {
 
 // TempGitRepo creates a git repository in a temporary directory, gets it into
 // the given RepoState, and returns its location.
-func TempGitRepo(workdir string, rs db.RepoState) (rv string, rvErr error) {
+func TempGitRepo(workdir string, rs db.RepoState, depotToolsPath string) (rv string, rvErr error) {
 	// Create a temporary dir for the git checkout.
 	if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
 		if !os.IsExist(err) {
@@ -517,15 +520,24 @@ func TempGitRepo(workdir string, rs db.RepoState) (rv string, rvErr error) {
 			return "", err
 		}
 		server := strings.TrimRight(rs.Server, "/")
+		output := bytes.Buffer{}
+		cmd := &exec.Command{
+			CombinedOutput: &output,
+			Name:           "git",
+			Dir:            d,
+			Env:            []string{fmt.Sprintf("PATH=%s:%s", os.Getenv("PATH"), depotToolsPath)},
+		}
 		if strings.Contains(rs.Server, "codereview.chromium") {
 			patchUrl := fmt.Sprintf("%s/%s/#ps%s", server, rs.Issue, rs.Patchset)
-			if _, err := exec.RunCwd(d, "git", "cl", "patch", "--rietveld", "--no-commit", patchUrl); err != nil {
-				return "", err
+			cmd.Args = []string{"cl", "patch", "--rietveld", "--no-commit", patchUrl}
+			if err := exec.Run(cmd); err != nil {
+				return "", fmt.Errorf("%s:\n%s\n%v", err, string(output.Bytes()), cmd.Env)
 			}
 		} else {
 			patchUrl := fmt.Sprintf("%s/c/%s/%s", server, rs.Issue, rs.Patchset)
-			if _, err := exec.RunCwd(d, "git", "cl", "patch", "--gerrit", patchUrl); err != nil {
-				return "", err
+			cmd.Args = []string{"cl", "patch", "--gerrit", patchUrl}
+			if out, err := exec.RunCommand(cmd); err != nil {
+				return "", fmt.Errorf("%s:\n%s", err, out)
 			}
 			// Un-commit the applied patch.
 			if _, err := exec.RunCwd(d, "git", "reset", "HEAD^"); err != nil {

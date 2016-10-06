@@ -152,7 +152,7 @@ func setup(t *testing.T) (*util.TempRepo, db.DB, *gitinfo.RepoMap, *gitinfo.GitI
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
 	urlMock := mockhttpclient.NewURLMock()
-	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), tr.Dir, []string{repoName}, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping)
+	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), tr.Dir, "", []string{repoName}, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping)
 	assert.NoError(t, err)
 	return tr, d, repos, repo, swarmingClient, s, urlMock
 }
@@ -1675,7 +1675,7 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	assert.NoError(t, err)
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
-	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, []string{repoName}, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping)
+	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, "", []string{repoName}, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping)
 	assert.NoError(t, err)
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
