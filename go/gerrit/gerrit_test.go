@@ -63,17 +63,6 @@ func GerritPollerTest(t *testing.T) {
 	time.Sleep(time.Hour)
 }
 
-func TestGetTrybotResults(t *testing.T) {
-	skipTestIfRequired(t)
-
-	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
-	assert.NoError(t, err)
-
-	tries, err := api.GetTrybotResults(2347, 7)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(tries))
-}
-
 func TestAddComment(t *testing.T) {
 	skipTestIfRequired(t)
 
