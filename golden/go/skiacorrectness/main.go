@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -86,55 +85,6 @@ const (
 	// OAUTH2_CALLBACK_PATH is callback endpoint used for the Oauth2 flow.
 	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
 )
-
-// TODO(stephana): Simplify
-// the ResponseEnvelope and use it solely to wrap JSON arrays.
-// Remove sendResponse and sendErrorResponse in favor of sendJsonResponse
-// and httputils.ReportError.
-
-// ResponseEnvelope wraps all responses. Some fields might be empty depending
-// on context or whether there was an error or not.
-type ResponseEnvelope struct {
-	Data       *interface{}                  `json:"data"`
-	Err        *string                       `json:"err"`
-	Status     int                           `json:"status"`
-	Pagination *httputils.ResponsePagination `json:"pagination"`
-}
-
-var (
-	// Module level variables that need to be accessible to handler.go.
-	storages      *storage.Storage
-	statusWatcher *status.StatusWatcher
-	ixr           *indexer.Indexer
-	issueTracker  issues.IssueTracker
-)
-
-// sendResponse wraps the data of a succesful response in a response envelope
-// and sends it to the client.
-func sendResponse(w http.ResponseWriter, data interface{}, status int, pagination *httputils.ResponsePagination) {
-	resp := ResponseEnvelope{&data, nil, status, pagination}
-	sendJson(w, &resp, status)
-}
-
-// sendJson serializes the response envelope and sends ito the client.
-func sendJson(w http.ResponseWriter, resp *ResponseEnvelope, status int) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.WriteHeader(status)
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-// parseJson extracts the body from the request and parses it into the
-// provided interface.
-func parseJson(r *http.Request, v interface{}) error {
-	// TODO (stephana): validate the JSON against a schema. Might not be necessary !
-	defer util.Close(r.Body)
-	decoder := json.NewDecoder(r.Body)
-	return decoder.Decode(v)
-}
 
 func main() {
 	defer common.LogPanic()
