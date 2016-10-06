@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "3f6930e5_577a6c7c",
+        "filename": "go/buildbucket/buildbucket_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-06T13:39:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ff95d8fb_d129b4a2",
+      "revId": "06259b8d583fa1ffa051d89718a0a9be0dd695fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3f6930e5_7706902d",
         "filename": "go/buildbucket/buildbucket_test.go",
         "patchSetId": 3
@@ -72,6 +90,24 @@
       "side": 1,
       "message": "Right. I very briefly tried to look into \"only run in manual mode\" but could not figure it out and had to rely on not optimal solutions like this: https://skia.googlesource.com/buildbot/+/master/go/gerrit/gerrit_test.go#15",
       "parentUuid": "ff95d8fb_f114f04f",
+      "revId": "06259b8d583fa1ffa051d89718a0a9be0dd695fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f6930e5_777f706b",
+        "filename": "go/buildbucket/buildbucket_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-06T13:39:42Z",
+      "side": 1,
+      "message": "This test (when it was in the gerrit package) started failing, because the format returned by buildbucket had slightly changed afaict. I didn\u0027t know until I ran it locally. That\u0027s why we have the bots to run out tests continuously. \nIf we rely on buildbucket in production we should be able to test against it. If it\u0027s not reliable enough to sustain the occasional ping from a test we should not use it IMO. \n\nI verified with nodir@ that buildbucket will retain results forever so this should be fine until they change buildbucket in some way, in which case we want to know about it asap.",
+      "parentUuid": "3f6930e5_97500401",
       "revId": "06259b8d583fa1ffa051d89718a0a9be0dd695fb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
