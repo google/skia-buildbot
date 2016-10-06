@@ -50,14 +50,14 @@
       <div class="vertical layout">
         <div class="horizontal layout">
           <paper-input id="fast" label="Filter" on-input="_fastFilter"></paper-input>
-          <button on-tap="_clearFilter">Clear</button>
+          <button on-tap="_clearFilter">Clear Filter</button>
         </div>
         <select id=keys size=12 on-change="_keyChange">
           <template is="dom-repeat" items="[[_keys]]">
             <option value="[[item]]">[[item]]</option>
           </template>
         </select>
-        <button on-tap="_clear">Clear</button>
+        <button on-tap="_clear">Clear Selections</button>
       </div>
       <div class="vertical layout">
         <paper-checkbox
