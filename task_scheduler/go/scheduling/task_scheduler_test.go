@@ -2071,6 +2071,7 @@ func TestTrybots(t *testing.T) {
 	assert.Equal(t, 0, len(jobs))
 
 	// Create a try job.
+	tryjobs.MockOutExec()
 	b := tryjobs.Build(t, now)
 	rs := db.RepoState{
 		Patch: db.Patch{
