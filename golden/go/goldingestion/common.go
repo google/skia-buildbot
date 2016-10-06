@@ -195,19 +195,3 @@ func ParseDMResultsFromReader(r io.ReadCloser) (*DMResults, error) {
 	}
 	return dmResults, nil
 }
-
-// FilterCommitIDs returns all commitIDs that have the given prefix. If the
-// prefix is an empty string it will return the input slice.
-func FilterCommitIDs(commitIDs []*tracedb.CommitID, prefix string) []*tracedb.CommitID {
-	if prefix == "" {
-		return commitIDs
-	}
-
-	ret := make([]*tracedb.CommitID, 0, len(commitIDs))
-	for _, cid := range commitIDs {
-		if strings.HasPrefix(cid.Source, prefix) {
-			ret = append(ret, cid)
-		}
-	}
-	return ret
-}

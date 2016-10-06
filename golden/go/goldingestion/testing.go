@@ -17,7 +17,7 @@ import (
 // After the successful ingestion it returns the instance of running GRPC server and the server address.
 // When all tests are done it's the responsibility of the caller to call server.Stop() and remove all
 // data directories.
-func RunGoldTrybotProcessor(t assert.TestingT, traceDBFile, shareDBDir, ingestionFile, rootDir, reviewURL string) (*grpc.Server, string) {
+func RunGoldTrybotProcessor(t assert.TestingT, traceDBFile, shareDBDir, ingestionFile, rootDir, rietveldReviewURL string, gerritReviewURL string) (*grpc.Server, string, *goldTrybotProcessor) {
 	shareDBDir, err := fileutil.EnsureDirExists(shareDBDir)
 	assert.NoError(t, err)
 
@@ -48,8 +48,9 @@ func RunGoldTrybotProcessor(t assert.TestingT, traceDBFile, shareDBDir, ingestio
 
 	ingesterConf := &sharedconfig.IngesterConfig{
 		ExtraParams: map[string]string{
-			CONFIG_TRACESERVICE:    serverAddr,
-			CONFIG_CODE_REVIEW_URL: reviewURL,
+			CONFIG_TRACESERVICE:             serverAddr,
+			CONFIG_RIETVELD_CODE_REVIEW_URL: rietveldReviewURL,
+			CONFIG_GERRIT_CODE_REVIEW_URL:   gerritReviewURL,
 		},
 	}
 
@@ -77,5 +78,5 @@ func RunGoldTrybotProcessor(t assert.TestingT, traceDBFile, shareDBDir, ingestio
 	// Make sure we get false for arbitrary build information.
 	assert.False(t, ingestionStore.IsIngested(config.CONSTRUCTOR_GOLD, "client.skia", "Test-Win8-MSVC-ShuttleB-CPU-AVX2-x86-Debug", 9944))
 
-	return server, serverAddr
+	return server, serverAddr, processor.(*goldTrybotProcessor)
 }

@@ -87,9 +87,28 @@ func New(url string, client *http.Client) *Rietveld {
 	}
 }
 
-// Url returns the URL of the server for this Rietveld instance.
-func (r *Rietveld) Url() string {
-	return r.url
+// Url returns the url of the Rietveld issue identified by issueID or the
+// base URL of the Rietveld instance if issueID is 0.
+func (r *Rietveld) Url(issueID int64) string {
+	if issueID == 0 {
+		return r.url
+	}
+	return fmt.Sprintf("%s/%d", r.url, issueID)
+}
+
+// extractReg is the regular expression used by ExtractIssue.
+var extractReg = regexp.MustCompile("^/([0-9]+)$")
+
+func (r *Rietveld) ExtractIssue(issueURL string) (string, bool) {
+	if !strings.HasPrefix(issueURL, r.url) {
+		return "", false
+	}
+
+	match := extractReg.FindStringSubmatch(strings.TrimRight(issueURL[len(r.url):], "/"))
+	if len(match) != 2 {
+		return "", false
+	}
+	return match[1], true
 }
 
 // Patchset contains the information about one patchset. Currently we omit
@@ -125,6 +144,7 @@ func (r *Rietveld) isCommitted(i *Issue) (bool, error) {
 	committed, err := regexp.MatchString(COMMITTED_ISSUE_REGEXP, i.Description)
 	if err != nil {
 		return false, err
+
 	}
 	if committed {
 		return true, nil

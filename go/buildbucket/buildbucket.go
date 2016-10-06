@@ -211,9 +211,19 @@ func (c *Client) getOnePage(url string) ([]*Build, string, error) {
 		Builds     []*Build `json:"builds"`
 		NextCursor string   `json:"next_cursor"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	content, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
 		return nil, "", err
 	}
+	fmt.Printf("\n\nRET: %s\n\n", string(content))
+
+	if err := json.Unmarshal(content, &result); err != nil {
+		return nil, "", err
+	}
+
+	// if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	// 	return nil, "", err
+	// }
 	return result.Builds, result.NextCursor, nil
 }
 
