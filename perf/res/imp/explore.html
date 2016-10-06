@@ -120,7 +120,7 @@
                   Matches: <span id=matches></span>
                 </div>
                <paper-input value="{{_lastn}}" id=lastn label="Number of Commits"></paper-input>
-              <button on-tap="_add">Plot</button>
+              <button on-tap="_add" class=action>Plot</button>
               </div>
             </div>
             <paramset-sk id=paramset class=hidden clickable-values></paramset-sk>
@@ -237,6 +237,8 @@
         var dataframe = json.dataframe;
         // Convert the dataframe into a form suitable for the plot element.
         var lines = {};
+
+        dataframe.traceset["special_zero"] = Array(dataframe.header.length).fill(0);
         var keys = Object.keys(dataframe.traceset);
         keys.forEach(function(key) {
           var values = [];
@@ -248,15 +250,6 @@
           lines[key] = values;
         });
 
-        if (keys.length > 0) {
-          // Add in the zero line special trace.
-          var traceLength = dataframe.traceset[keys[0]].length;
-          var values = [];
-          for (var i = 0; i < traceLength; i++) {
-            values.push([i, 0]);
-          }
-          lines["special_zero"] = values;
-        }
         this._lines = lines;
         this._dataframe = dataframe;
         this.$.plot.removeAll();
@@ -346,7 +339,7 @@
       var toadd = [];
 
       Object.keys(this._dataframe.traceset).forEach(function(key) {
-        if (ids.indexOf(key) == -1) {
+        if (ids.indexOf(key) == -1 && !key.startsWith("special")) {
           return
         }
         var values = [];
