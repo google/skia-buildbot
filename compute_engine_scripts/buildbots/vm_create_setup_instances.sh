@@ -29,8 +29,6 @@ elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
   cp $ORIG_SYSPREP_SCRIPT $MODIFIED_SYSPREP_SCRIPT
   WIN_CHROME_BOT_PWD=$(echo $(cat /tmp/win-chrome-bot.txt) | sed -e 's/[\/&]/\\&/g')
   sed -i "s/CHROME_BOT_PASSWORD/${WIN_CHROME_BOT_PWD}/g" $MODIFIED_SYSPREP_SCRIPT
-  sed -i "s/GS_ACCESS_KEY_ID/$(echo $(cat /tmp/chromium-skia-gm.boto | sed -n 2p) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_SYSPREP_SCRIPT
-  sed -i "s/GS_SECRET_ACCESS_KEY/$(echo $(cat /tmp/chromium-skia-gm.boto | sed -n 3p) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_SYSPREP_SCRIPT
   python ../../scripts/insert_file.py $MODIFIED_SYSPREP_SCRIPT $MODIFIED_SYSPREP_SCRIPT
 
   # Fix line endings in $MODIFIED_SYSPREP_SCRIPT. 'todos' is in the 'tofrodos'
