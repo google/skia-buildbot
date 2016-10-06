@@ -34,6 +34,24 @@
       "revId": "0dec15bc3873df39de276710d6882f5efde36b0a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff95d8fb_310b3835",
+        "filename": "scripts/win_setup.ps1",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-06T13:12:26Z",
+      "side": 0,
+      "message": "Instance came up and looks good. Deleted the instance again.",
+      "parentUuid": "ff95d8fb_d100d412",
+      "revId": "0dec15bc3873df39de276710d6882f5efde36b0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
