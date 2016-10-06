@@ -16,6 +16,24 @@
       "revId": "0dec15bc3873df39de276710d6882f5efde36b0a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff95d8fb_d100d412",
+        "filename": "scripts/win_setup.ps1",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-06T13:03:09Z",
+      "side": 0,
+      "message": "Removed. I\u0027m creating an instance now.",
+      "parentUuid": "3f6930e5_1722b4aa",
+      "revId": "0dec15bc3873df39de276710d6882f5efde36b0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
