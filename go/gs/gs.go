@@ -19,6 +19,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
+	"google.golang.org/api/iterator"
 )
 
 var (
@@ -136,18 +137,16 @@ func FileContentsFromGS(s *storage.Client, bucketName, fileName string) ([]byte,
 func AllFilesInDir(s *storage.Client, bucket, folder string, callback func(item *storage.ObjectAttrs)) error {
 	total := 0
 	q := &storage.Query{Prefix: folder, Versions: false}
-	for q != nil {
-		list, err := s.Bucket(bucket).List(context.Background(), q)
+	it := s.Bucket(bucket).Objects(context.Background(), q)
+	for obj, err := it.Next(); err != iterator.Done; obj, err = it.Next() {
 		if err != nil {
+			glog.Infof("Downloaded %d files from gs://%s/%s", total, bucket, folder)
 			return fmt.Errorf("Problem reading from Google Storage: %v", err)
 		}
-		total += len(list.Results)
-		glog.Infof("Loading %d more files from gs://%s/%s  Total: %d", len(list.Results), bucket, folder, total)
-		for _, item := range list.Results {
-			callback(item)
-		}
-		q = list.Next
+		total++
+		callback(obj)
 	}
+	glog.Infof("Downloaded %d files from gs://%s/%s", total, bucket, folder)
 	return nil
 }
 
