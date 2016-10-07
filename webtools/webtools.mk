@@ -27,7 +27,7 @@
 #     and uses the new command line flags. This can be removed once all projects
 #     have moved to vulcanize 1.x.
 
-# Get the directory of this makefile to refer to common resources relative to this. 
+# Get the directory of this makefile to refer to common resources relative to this.
 WEBTOOLS_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
 ##### core_js ####
@@ -71,11 +71,7 @@ debug_elements_html:
 
 res/vul/elements.html: res/imp/*.html elements.html ./node_modules/.bin/vulcanize
 	-mkdir res/vul
-ifdef VULCANIZE1
-	  ./node_modules/.bin/vulcanize --inline-css=true  --inline-scripts=true --strip-comments=true --abspath=./ elements.html > res/vul/elements.html
-else
-	  ./node_modules/.bin/vulcanize --inline=true --strip=true --abspath=./ elements.html -o res/vul/elements.html
-endif
+	./node_modules/.bin/vulcanize --inline-css --inline-scripts --strip-comments --abspath=./ elements.html | ./node_modules/.bin/html-minifier -o res/vul/elements.html --minify-css --minify-js --remove-comments --collapse-whitespace --conservative-collapse
 
 #### clean_webtools ####
 
