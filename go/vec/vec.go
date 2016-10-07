@@ -63,9 +63,9 @@ func Norm(a []float64, minStdDev float64) {
 // non sentinel.
 //
 // So
-//    [1e100, 1e100, 2, 3, 1e100, 5]
+//    [1e32, 1e32,   2, 3, 1e32, 5]
 // becomes
-//    [2    , 2    , 2, 3, 5    , 5]
+//    [2,    2,      2, 3, 5,    5]
 //
 //
 // Note that a vector filled with all sentinels will be filled with 0s.
