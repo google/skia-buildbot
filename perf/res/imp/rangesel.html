@@ -20,6 +20,13 @@ Allows selecting a sub-range. The full range is from [0, 100].
       Note that the element properties 'begin' and 'end' don't change
       until the sliders stop moving.
 
+    range-change-end - Fired when the slider is done moving.
+
+         {
+           begin: 15.0,
+           end:   50.0,
+         }
+
   Methods:
     None.
 
@@ -59,7 +66,7 @@ Allows selecting a sub-range. The full range is from [0, 100].
 
     #begin:hover,
     #end:hover {
-      border: solid 1px #1F78B4;
+      border: solid 1px black;
     }
 
     #fullrange,
@@ -117,12 +124,12 @@ Allows selecting a sub-range. The full range is from [0, 100].
 
     _beginChange: function() {
       this._setSliderPos(this.$.begin, 0);
-      this._fireMsg(this.$.begin, 0);
+      this._fireMsg(this.$.begin, 0, "range-change");
     },
 
     _endChange: function() {
       this._setSliderPos(this.$.end, 0);
-      this._fireMsg(this.$.end, 0);
+      this._fireMsg(this.$.end, 0, "range-change");
     },
 
     // Clamps the dx so that the sliders don't move beyond
@@ -150,7 +157,7 @@ Allows selecting a sub-range. The full range is from [0, 100].
     // contains the new begin and end range.
     //
     // Returns the message detail that was sent.
-    _fireMsg: function(ele, dx) {
+    _fireMsg: function(ele, dx, eventName) {
       var msg = {
         begin: this.begin,
         end: this.end,
@@ -162,7 +169,7 @@ Allows selecting a sub-range. The full range is from [0, 100].
         msg.begin = msg.end;
         msg.end = tmp;
       }
-      this.fire("range-change", msg);
+      this.fire(eventName, msg);
       return msg;
     },
 
@@ -170,10 +177,11 @@ Allows selecting a sub-range. The full range is from [0, 100].
       switch(e.detail.state) {
         case 'track':
           this._setSliderPos(e.target, e.detail.dx);
-          this._fireMsg(e.target, e.detail.dx);
+          this._fireMsg(e.target, e.detail.dx, "range-change");
           break;
         case 'end':
-          var msg = this._fireMsg(e.target, e.detail.dx);
+          var msg = this._fireMsg(e.target, e.detail.dx, "range-change");
+          this._fireMsg(e.target, e.detail.dx, "range-change-end");
           this.begin = msg.begin;
           this.end = msg.end;
           this._setSliderPos(this.$.begin, 0);
