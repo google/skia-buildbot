@@ -26,6 +26,7 @@
 <link rel="import" href="/res/imp/plot-simple.html" />
 <link rel="import" href="/res/imp/commit-detail-panel.html" />
 <link rel="import" href="/res/imp/highlight.html" />
+<link rel="import" href="/res/imp/day-range.html" />
 
 <dom-module id="explore-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
@@ -91,6 +92,9 @@
       color: #1F78B4;
     }
 
+    day-range-sk {
+      display: block;
+    }
   </style>
   <template>
     <div>
@@ -99,6 +103,9 @@
           <div id=plotDiv class="layout flex">
             <highlightbar-sk id=highlight></highlightbar-sk>
             <plot-simple-sk width=1024 height=480 id=plot></plot-simple-sk>
+            <div class="layout horizontal center-justified">
+              <day-range-sk id=range></day-range-sk>
+            </div>
           </div>
           <div class="layout vertical" id=buttons>
             <button title="Create shortcut.">
@@ -179,6 +186,9 @@
     ready: function() {
       // Populate the query element.
       sk.get("/_/initpage/").then(JSON.parse).then(function(json) {
+        var header = json.dataframe.header;
+        this.$.range.begin = header[0].timestamp;
+        this.$.range.end = header[header.length-1].timestamp;
         this.$.query.setParamset(json.dataframe.paramset);
 
         // Remove the paramset so it doesn't get displayed in the Params tab.
