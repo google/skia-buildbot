@@ -41,6 +41,7 @@ var (
 	clangPlusPlusPath      = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
 	depotToolsPath         = flag.String("depot_tools_path", "", "The absolute path to depot_tools.  Can be empty if they are on your path.")
 	aflRoot                = flag.String("afl_root", "", "[REQUIRED] The install directory of afl-fuzz (v1.94b or later).")
+	architecture           = flag.String("architecture", "", "[REQUIRED] The name of the architecture this machine is fuzzing (v1.94b or later).")
 	numBinaryFuzzProcesses = flag.Int("binary_fuzz_processes", 0, `The number of processes to run binary fuzzes per fuzz category.  This should be fewer than the number of logical cores.  Defaults to 0, which means "Make an intelligent guess"`)
 	numAPIFuzzProcesses    = flag.Int("api_fuzz_processes", 0, `The number of processes to run api fuzzes per fuzz category.  This should be fewer than the number of logical cores.  Defaults to 0, which means "Make an intelligent guess"`)
 	versionCheckPeriod     = flag.Duration("version_check_period", 20*time.Second, `The period used to check the version of Skia that needs fuzzing.`)
@@ -70,7 +71,7 @@ var (
 )
 
 var (
-	requiredFlags                       = []string{"afl_output_path", "skia_root", "clang_path", "clang_p_p_path", "afl_root", "generator_working_dir", "fuzz_to_run", "executable_cache_path"}
+	requiredFlags                       = []string{"afl_output_path", "skia_root", "clang_path", "clang_p_p_path", "afl_root", "generator_working_dir", "fuzz_to_run", "executable_cache_path", "architecture"}
 	storageClient *storage.Client       = nil
 	issueManager  *issues.IssuesManager = nil
 )
@@ -86,7 +87,7 @@ func main() {
 	if err := setupOAuth(); err != nil {
 		glog.Fatalf("Problem with OAuth: %s", err)
 	}
-	if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Common.SkiaRoot, &config.Common, *local); err != nil {
+	if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Common.SkiaRoot, &config.Common, false); err != nil {
 		glog.Fatalf("Problem downloading Skia: %s", err)
 	}
 
@@ -124,7 +125,7 @@ func main() {
 				glog.Fatalf("Problem starting generator: %s", err)
 			}
 			glog.Infof("Downloading all bad %s fuzzes @%s to setup duplication detection", category, config.Common.SkiaVersion.Hash)
-			baseFolder := fmt.Sprintf("%s/%s/bad", category, config.Common.SkiaVersion.Hash)
+			baseFolder := fmt.Sprintf("%s/%s/%s/bad", category, config.Common.SkiaVersion.Hash, config.Generator.Architecture)
 			if startingReports[category], err = fstorage.GetReportsFromGS(storageClient, baseFolder, category, nil, config.Generator.NumDownloadProcesses); err != nil {
 				glog.Fatalf("Could not download previously found %s fuzzes for deduplication: %s", category, err)
 			}
@@ -189,6 +190,7 @@ func writeFlagsToConfig() error {
 	config.Common.DepotToolsPath = *depotToolsPath
 	config.Common.VersionCheckPeriod = *versionCheckPeriod
 
+	config.Generator.Architecture = *architecture
 	config.Generator.NumBinaryFuzzProcesses = *numBinaryFuzzProcesses
 	config.Generator.NumAPIFuzzProcesses = *numAPIFuzzProcesses
 	config.Generator.WatchAFL = *watchAFL
