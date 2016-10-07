@@ -47,7 +47,7 @@ func (v *VersionUpdater) UpdateToNewSkiaVersion(newHash string) error {
 	}
 
 	// sync skia to version, which sets config.Common.SkiaVersion
-	if err := common.DownloadSkia(newHash, config.Common.SkiaRoot, &config.Common, true); err != nil {
+	if err := common.DownloadSkia(newHash, config.Common.SkiaRoot, &config.Common, false); err != nil {
 		return fmt.Errorf("Could not sync skia to %s: %s", newHash, err)
 	}
 
@@ -102,7 +102,7 @@ func (v *VersionUpdater) reanalyze(oldRevision string) error {
 
 		if config.Common.ForceReanalysis {
 			glog.Infof("Deleting previous %s fuzz results", category)
-			if err := gs.DeleteAllFilesInDir(v.storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/", category, oldRevision), config.Aggregator.NumUploadProcesses); err != nil {
+			if err := gs.DeleteAllFilesInDir(v.storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/%s", category, oldRevision, config.Generator.Architecture), config.Aggregator.NumUploadProcesses); err != nil {
 				return fmt.Errorf("Could not delete previous fuzzes: %s", err)
 			}
 		}
@@ -114,6 +114,7 @@ func (v *VersionUpdater) reanalyze(oldRevision string) error {
 		}
 		// Reanalyze and reupload the fuzzes, making a bug on regressions.
 		glog.Infof("Reanalyzing bad %s fuzzes", category)
+		v.aggregator.WatchForRegressions = false
 		v.aggregator.MakeBugOnBadFuzz = false
 		v.aggregator.UploadGreyFuzzes = true
 		v.aggregator.ClearUploadedFuzzNames()
@@ -123,16 +124,18 @@ func (v *VersionUpdater) reanalyze(oldRevision string) error {
 		v.aggregator.WaitForEmptyQueues()
 		glog.Infof("Reanalyzing grey %s fuzzes", category)
 		v.aggregator.MakeBugOnBadFuzz = true
+		v.aggregator.WatchForRegressions = true
 		for _, name := range greyFuzzPaths {
 			v.aggregator.ForceAnalysis(name, category)
 		}
 		v.aggregator.WaitForEmptyQueues()
+		v.aggregator.WatchForRegressions = false
 		v.aggregator.MakeBugOnBadFuzz = true
 		v.aggregator.UploadGreyFuzzes = false
-		bad, grey := v.aggregator.UploadedFuzzNames()
-		glog.Infof("Done reanalyzing %s.  Uploaded %d bad and %d grey fuzzes", category, len(bad), len(grey))
-		metrics2.GetInt64Metric("fuzzer.fuzzes.status", map[string]string{"category": category, "status": "bad"}).Update(int64(len(bad)))
-		metrics2.GetInt64Metric("fuzzer.fuzzes.status", map[string]string{"category": category, "status": "grey"}).Update(int64(len(grey)))
+		bad, grey, deduped := v.aggregator.UploadedFuzzNames()
+		glog.Infof("Done reanalyzing %s.  Uploaded %d bad and %d grey fuzzes.  There were %d duplicate bad fuzzes that were skipped.", category, len(bad), len(grey), len(deduped))
+		metrics2.GetInt64Metric("fuzzer.fuzzes.status", map[string]string{"category": category, "architecture": config.Generator.Architecture, "status": "bad"}).Update(int64(len(bad)))
+		metrics2.GetInt64Metric("fuzzer.fuzzes.status", map[string]string{"category": category, "architecture": config.Generator.Architecture, "status": "grey"}).Update(int64(len(grey)))
 
 		if config.Common.ForceReanalysis {
 			uploadFuzzNames(v.storageClient, oldRevision, category, bad, grey)
@@ -147,11 +150,11 @@ func (v *VersionUpdater) reanalyze(oldRevision string) error {
 // processes to do so and puts them in config.Aggregator.FuzzPath/[category].
 func downloadAllBadAndGreyFuzzes(commitHash, category string, storageClient *storage.Client) (badFuzzPaths []string, greyFuzzPaths []string, err error) {
 
-	bad, err := common.DownloadAllFuzzes(storageClient, config.Aggregator.FuzzPath, category, commitHash, "bad", config.Generator.NumDownloadProcesses)
+	bad, err := common.DownloadAllFuzzes(storageClient, config.Aggregator.FuzzPath, category, commitHash, config.Generator.Architecture, "bad", config.Generator.NumDownloadProcesses)
 	if err != nil {
 		return nil, nil, err
 	}
-	grey, err := common.DownloadAllFuzzes(storageClient, config.Aggregator.FuzzPath, category, commitHash, "grey", config.Generator.NumDownloadProcesses)
+	grey, err := common.DownloadAllFuzzes(storageClient, config.Aggregator.FuzzPath, category, commitHash, config.Generator.Architecture, "grey", config.Generator.NumDownloadProcesses)
 	return bad, grey, err
 }
 
@@ -180,10 +183,11 @@ func (v *VersionUpdater) touch(file string) error {
 	return nil
 }
 
-// uploadFuzzNames creates two files in the /category/revision/ folder that contain all of the bad fuzz names and the grey fuzz names that are in this folder
+// uploadFuzzNames creates two files in the /category/revision/architecture folder that contain all
+// of the bad fuzz names and the grey fuzz names that are in this folder
 func uploadFuzzNames(sc *storage.Client, oldRevision, category string, bad, grey []string) {
 	uploadString := func(fileName, contents string) error {
-		name := fmt.Sprintf("%s/%s/%s", category, oldRevision, fileName)
+		name := fmt.Sprintf("%s/%s/%s/%s", category, oldRevision, config.Generator.Architecture, fileName)
 		w := sc.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
 		defer util.Close(w)
 		w.ObjectAttrs.ContentEncoding = "text/plain"
