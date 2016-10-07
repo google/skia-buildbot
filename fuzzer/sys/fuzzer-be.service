@@ -19,6 +19,7 @@ ExecStart=/usr/local/bin/fuzzer-be \
   --aggregator_working_dir=/mnt/ssd0/aggregator-wd \
   --executable_cache_path=/mnt/ssd0/executable_cache \
   --fuzz_path=/mnt/ssd0/fuzzes \
+  --architecture=linux_x64 \
   --api_fuzz_processes=1 \
   --binary_fuzz_processes=4 \
   --analysis_processes=24 \

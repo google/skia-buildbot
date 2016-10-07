@@ -56,23 +56,26 @@ func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 	data.ClearStaging()
 	fuzzNames := make([]string, 0, 100)
 
-	for _, cat := range common.FUZZ_CATEGORIES {
-		badPath := fmt.Sprintf("%s/%s/bad", cat, revision)
-		reports, err := fstorage.GetReportsFromGS(g.storageClient, badPath, cat, nil, config.FrontEnd.NumDownloadProcesses)
-		if err != nil {
-			return err
+	for _, arch := range common.ARCHITECTURES {
+		for _, cat := range common.FUZZ_CATEGORIES {
+			badPath := fmt.Sprintf("%s/%s/%s/bad", cat, revision, arch)
+			reports, err := fstorage.GetReportsFromGS(g.storageClient, badPath, cat, nil, config.FrontEnd.NumDownloadProcesses)
+			if err != nil {
+				return err
+			}
+			b := 0
+			for report := range reports {
+				fuzzNames = append(fuzzNames, report.FuzzName)
+				data.NewFuzzFound(cat, report)
+				b++
+			}
+			glog.Infof("%d bad fuzzes freshly loaded from gs://%s/%s", b, config.GS.Bucket, badPath)
 		}
-		b := 0
-		for report := range reports {
-			fuzzNames = append(fuzzNames, report.FuzzName)
-			data.NewFuzzFound(cat, report)
-			b++
-		}
-		glog.Infof("%d bad fuzzes freshly loaded from gs://%s/%s", b, config.GS.Bucket, badPath)
 	}
 	// We must wait until after all the fuzzes are in staging, otherwise, we'll only have a partial update
 	data.StagingToCurrent()
 
+	// TODO(kjlubick): Properly handle different architectures
 	for _, category := range common.FUZZ_CATEGORIES {
 		if err := g.Cache.StoreTree(data.StagingCopy(category), category, revision); err != nil {
 			glog.Errorf("Problem storing category %s to boltDB: %s", category, err)
