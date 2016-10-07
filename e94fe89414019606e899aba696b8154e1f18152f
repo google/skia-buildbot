@@ -16,6 +16,24 @@
       "revId": "e94fe89414019606e899aba696b8154e1f18152f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff45d8e5_1dc1f325",
+        "filename": "fuzzer/package.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-07T19:17:51Z",
+      "side": 1,
+      "message": "SGTM",
+      "parentUuid": "ff45d8e5_bdd1dff8",
+      "revId": "e94fe89414019606e899aba696b8154e1f18152f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
