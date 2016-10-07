@@ -13,6 +13,7 @@
     "autoprefixer": "~6.0.2",
     "bower": "~1.5.2",
     "cssmin": "",
+    "html-minifier": "~3.0.0",
     "native-promise-only": "",
     "postcss-cli": "~2.1.0",
     "uglify-js": "",
