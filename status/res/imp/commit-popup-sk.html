@@ -106,8 +106,7 @@
       },
       _makeRevertURL: function(commit){
         if (commit.patchStorage === 'gerrit') {
-          // TODO(rmistry): Update this link once skbug/5815 is resolved.
-          return "https://skia-review.googlesource.com/c/" + commit.issue;
+          return "https://skia-review.googlesource.com/c/" + commit.issue + '/?revert';
         } else {
           return "https://codereview.chromium.org/" + commit.issue + "/revert";
         }
