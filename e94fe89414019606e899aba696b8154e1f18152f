@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ff45d8e5_bdd1dff8",
+        "filename": "fuzzer/package.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-07T19:16:27Z",
+      "side": 1,
+      "message": "With your blessing, I\u0027ll add html-minifier to all the package.json files in our rep",
+      "revId": "e94fe89414019606e899aba696b8154e1f18152f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
