@@ -1,0 +1,129 @@
+<!-- The <day-range-sk> custom element declaration.
+
+  Allows picking a range of days from the last year.
+
+  Displays the range selection.
+
+  Attributes:
+    begin - ts
+    end   - ts
+
+  Events:
+    day-range-change - Events return timestamps for begin, end.
+
+  Methods:
+-->
+
+<link rel="import" href="/res/imp/rangesel.html" />
+
+<dom-module id="day-range-sk">
+  <style>
+    range-sel-sk {
+      display: block;
+      margin-bottom: 2em;
+    }
+  </style>
+  <template>
+    <range-sel-sk
+      begin="[[_pct_begin]]"
+      end="[[_pct_end]]"
+      on-range-change="_rangeChange"
+      on-range-change-end="_rangeChangeEnd"
+      ></range-sel-sk>
+    <span id=hbegin></span>
+    <span id=hend></span>
+  </template>
+</dom-module>
+
+<script>
+  (function () {
+    var MONTHS = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+      ];
+
+    Polymer({
+      is: "day-range-sk",
+
+      properties: {
+        begin: {
+          type: Number,
+          value: 0,
+          reflectToAttribute: true,
+          observer: "_beginChange",
+        },
+        end: {
+          type: Number,
+          value: 0,
+          reflectToAttribute: true,
+          observer: "_endChange",
+        },
+        now: {
+          type: Date,
+          value: Date.now(),
+        },
+        _pct_begin: {
+          type: Number,
+          value: 0,
+        },
+        _pct_end: {
+          type: Number,
+          value: 0,
+        },
+      },
+
+      _ts2Percent: function(ts) {
+        var t = new Date(ts*1000);
+        var diff = new Date(this.now - t);
+        return (1.0 - diff/(365*24*60*60*1000)) * 100;
+      },
+
+      _percent2Ts: function(p) {
+        return Math.floor((new Date(this.now - (1.0 - p/100)*(365*24*60*60*1000)))/1000);
+      },
+
+      _beginChange: function() {
+        this.set("_pct_begin", this._ts2Percent(this.begin));
+      },
+
+      _endChange: function() {
+        this.set("_pct_end", this._ts2Percent(this.end));
+      },
+
+      _rangeChange: function(e) {
+        this.$.hbegin.textContent = this._display(e.detail.begin);
+        this.$.hend.textContent = this._display(e.detail.end);
+      },
+
+      _rangeChangeEnd: function(e) {
+        this.set("begin", this._percent2Ts(e.detail.begin));
+        this.set("end", this._percent2Ts(e.detail.end));
+        // Calc new valus for begin and end.
+        // Generate event that begin, end ts have changed.
+        var msg = {
+          begin: this.begin,
+          end: this.end,
+        };
+        this.fire("day-range-change", msg);
+      },
+
+      _display: function(p) {
+        var ts = this._percent2Ts(p);
+        // Convert ts to human friendly string.
+        var d = new Date(ts*1000);
+        return MONTHS[d.getMonth()] + " " + d.getDate();
+      },
+
+    });
+  })();
+</script>
