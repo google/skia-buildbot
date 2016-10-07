@@ -9,6 +9,7 @@ import (
 
 type generatorConfig struct {
 	AflRoot                string
+	Architecture           string
 	FuzzSamples            string
 	AflOutputPath          string
 	WorkingPath            string

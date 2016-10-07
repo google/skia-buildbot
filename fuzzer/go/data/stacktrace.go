@@ -127,10 +127,8 @@ var asanStackTraceLine = regexp.MustCompile(`in (?P<function>[a-zA-Z0-9_:]+).*(?
 func parseASANStackTrace(contents string) StackTrace {
 	r := bytes.NewBufferString(contents)
 	scan := bufio.NewScanner(r)
-
-	hasBegun := false
-
 	frames := make([]StackTraceFrame, 0, 5)
+	hasBegun := false
 
 	for scan.Scan() {
 		line := scan.Text()
@@ -155,6 +153,32 @@ func parseASANStackTrace(contents string) StackTrace {
 		}
 	}
 	return StackTrace{Frames: frames}
+}
+
+var asanSummaryLine = regexp.MustCompile(`SUMMARY.*(?:\.\./)+(?P<package>(?:\w+/)+)(?P<file>.+?):(?P<line>\d+) ?(?P<function>[a-zA-Z0-9_:]+)?`)
+
+func parseASANSummary(contents string) StackTrace {
+	r := bytes.NewBufferString(contents)
+	scan := bufio.NewScanner(r)
+	for scan.Scan() {
+		line := scan.Text()
+		line = strings.Replace(line, "(anonymous namespace)::", "", -1)
+
+		if match := asanSummaryLine.FindStringSubmatch(line); match != nil {
+			// match[0] is the entire matched portion, [1] is the
+			// "package", [2] is the file name, [3] is the line number [4] is the function name
+			f := common.UNKNOWN_FUNCTION
+			if len(match) == 5 {
+				f = match[4]
+			}
+			if f == "" {
+				f = common.UNKNOWN_FUNCTION
+			}
+			newFrame := FullStackFrame(match[1], match[2], f, common.SafeAtoi(match[3]))
+			return StackTrace{Frames: []StackTraceFrame{newFrame}}
+		}
+	}
+	return StackTrace{}
 }
 
 // FullStackFrame creates a StackTraceFrame with all components

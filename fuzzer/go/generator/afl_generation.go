@@ -68,7 +68,7 @@ func (g *Generator) Start() error {
 		fuzzCount = 4
 	}
 
-	g.fuzzProcessCount = metrics2.GetCounter("afl-fuzz-process-count", map[string]string{"category": g.Category})
+	g.fuzzProcessCount = metrics2.GetCounter("afl-fuzz-process-count", map[string]string{"category": g.Category, "architecture": config.Generator.Architecture})
 	g.fuzzProcessCount.Inc(int64(fuzzCount))
 	for i := 1; i < fuzzCount; i++ {
 		fuzzerName := fmt.Sprintf("fuzzer%d", i)

@@ -24,6 +24,9 @@ const (
 	UNCLAIMED = "<unclaimed>"
 )
 
+// The list of architectures we fuzz on
+var ARCHITECTURES = []string{"linux_x64"}
+
 // FuzzerInfo contains all the configuration needed to display, execute and analyze a fuzzer.
 type FuzzerInfo struct {
 	// PrettyName is the human readable name for this fuzzer.
@@ -154,6 +157,7 @@ func HasCategory(c string) bool {
 	return found
 }
 
+// Status returns the status of a fuzz category (i.e. stable, experimental, etc)
 func Status(c string) string {
 	f, found := fuzzers[c]
 	if !found {
@@ -163,6 +167,7 @@ func Status(c string) string {
 	return f.Status
 }
 
+// Groomer returns the groomer of a fuzz category
 func Groomer(c string) string {
 	f, found := fuzzers[c]
 	if !found {
@@ -170,6 +175,16 @@ func Groomer(c string) string {
 		return FUZZER_NOT_FOUND
 	}
 	return f.Groomer
+}
+
+// Returns if fuzzer knows about a given architecture
+func HasArchitecture(a string) bool {
+	for _, ar := range ARCHITECTURES {
+		if a == ar {
+			return true
+		}
+	}
+	return false
 }
 
 // SafeParseInt parses a string that is known to contain digits into an int.
