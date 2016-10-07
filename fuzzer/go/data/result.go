@@ -138,7 +138,11 @@ func ParseGCSPackage(g GCSPackage) FuzzResult {
 // use the AddressSanitizer dump, with the Clang dump as a fallback.
 func getStackTrace(asan, dump string) StackTrace {
 	if asanCrashed(asan) {
-		return parseASANStackTrace(asan)
+		s := parseASANStackTrace(asan)
+		if s.IsEmpty() {
+			s = parseASANSummary(asan)
+		}
+		return s
 	}
 	return parseCatchsegvStackTrace(dump)
 }
@@ -175,6 +179,18 @@ func parseAll(category string, data *BuildData) FuzzFlag {
 			(strings.Contains(data.Asan, "Signal boring") && strings.Contains(data.StdErr, "Signal boring")) {
 			return TerminatedGracefully
 		}
+		f := FuzzFlag(0)
+		if strings.Contains(data.Asan, "AddressSanitizer failed to allocate") {
+			f |= BadAlloc
+			f |= ASANCrashed
+		}
+		if strings.Contains(data.StdErr, "std::bad_alloc") {
+			f |= BadAlloc
+			f |= ClangCrashed
+		}
+		if f != 0 {
+			return f
+		}
 		return TimedOut
 	}
 
@@ -195,6 +211,9 @@ func parseAll(category string, data *BuildData) FuzzFlag {
 // includes things like ASAN_GlobalBufferOverflow.
 func parseAsan(category, asan string) FuzzFlag {
 	f := FuzzFlag(0)
+	if strings.Contains(asan, "AddressSanitizer failed to allocate") {
+		f |= BadAlloc
+	}
 	if !asanCrashed(asan) {
 		return f
 	}
@@ -214,9 +233,6 @@ func parseAsan(category, asan string) FuzzFlag {
 	if strings.Contains(asan, "heap-use-after-free") {
 		f |= ASAN_HeapUseAfterFree
 	}
-	if strings.Contains(asan, "AddressSanitizer failed to allocate") {
-		f |= BadAlloc
-	}
 
 	// Split off the stderr that happened before the crash.
 	errs := strings.Split(asan, "=================")
@@ -231,13 +247,16 @@ func parseAsan(category, asan string) FuzzFlag {
 
 // asanCrashed returns true if the asan output is consistent with a crash.
 func asanCrashed(asan string) bool {
-	return strings.Contains(asan, "ERROR: AddressSanitizer:")
+	return strings.Contains(asan, "ERROR: AddressSanitizer:") || strings.Contains(asan, "runtime error:")
 }
 
 // parseAsan returns the flags discovered while looking through the Clang dump and standard error.
 // This includes things like
 func parseCatchsegv(category, dump, err string) FuzzFlag {
 	f := FuzzFlag(0)
+	if strings.Contains(err, "std::bad_alloc") {
+		f |= BadAlloc
+	}
 	if !clangDumped(dump) && strings.Contains(err, "[terminated]") {
 		return f
 	}
@@ -247,9 +266,6 @@ func parseCatchsegv(category, dump, err string) FuzzFlag {
 	}
 	if category == "skpicture" && strings.Contains(err, "Rendering") {
 		f |= SKPICTURE_DuringRendering
-	}
-	if strings.Contains(err, "std::bad_alloc") {
-		f |= BadAlloc
 	}
 	return f
 }

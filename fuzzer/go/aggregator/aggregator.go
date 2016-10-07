@@ -40,8 +40,11 @@ import (
 // error output.  Upload uploads these pieces to Google Storage (GCS).  Bug Reporting is used to
 // either create or update a bug related to the given fuzz.
 type Aggregator struct {
+	// If we are watching for regressions, all fuzzes passed in should be "grey".  If they are not
+	// don't deduplicate them.
+	WatchForRegressions bool
 	// Should be set to true if a bug should be created for every bad fuzz found.
-	// Example: Detecting regressions.
+	// Example: detecting a bad fuzz in a "stable" fuzzer
 	// TODO(kjlubick): consider making this a function that clients supply so they can decide.
 	MakeBugOnBadFuzz bool
 	// Should be set if we want to upload grey fuzzes.  This should only be true
@@ -78,8 +81,9 @@ type Aggregator struct {
 	uploadCount    int64
 	bugReportCount int64
 
-	greyNames []string
-	badNames  []string
+	greyNames      []string
+	badNames       []string
+	duplicateNames []string
 }
 
 const (
@@ -271,7 +275,7 @@ func (agg *Aggregator) scanHelper(alreadyFoundFuzzes *SortedStringSlice) error {
 		// we have references to where the crashes will be.
 		// TODO(kjlubick), switch to using flock once afl-fuzz implements that upstream.
 		time.Sleep(time.Second)
-		metrics2.GetInt64Metric("fuzzer.fuzzes.newly-found", map[string]string{"category": category}).Update(int64(len(newlyFound)))
+		metrics2.GetInt64Metric("fuzzer.fuzzes.newly-found", map[string]string{"category": category, "architecture": config.Generator.Architecture}).Update(int64(len(newlyFound)))
 		glog.Infof("%d newly found %s bad fuzzes", len(newlyFound), category)
 		for _, f := range newlyFound {
 			agg.forAnalysis <- analysisPackage{
@@ -390,7 +394,7 @@ func collectFuzzerMetrics() error {
 			}
 			metric := fmt.Sprintf("fuzzer.stats.%s", strings.Replace(m, "_", "-", -1))
 			if match := r.FindStringSubmatch(contents); match != nil {
-				metrics2.GetInt64Metric(metric, map[string]string{"category": category}).Update(int64(common.SafeAtoi(match[1])))
+				metrics2.GetInt64Metric(metric, map[string]string{"category": category, "architecture": config.Generator.Architecture}).Update(int64(common.SafeAtoi(match[1])))
 			}
 		}
 	}
@@ -598,8 +602,9 @@ func (agg *Aggregator) waitForUploads(identifier int) {
 				glog.Errorf("Problem in Uploader %d, no deduplicator found for category %q; %#v;", identifier, p.Category, agg.deduplicators)
 				return
 			}
-			if p.FuzzType != GREY_FUZZ && !d.IsUnique(data.ParseReport(p.Data)) {
+			if !agg.WatchForRegressions && p.FuzzType != GREY_FUZZ && !d.IsUnique(data.ParseReport(p.Data)) {
 				glog.Infof("Skipping upload of duplicate fuzz %s", p.Data.Name)
+				agg.duplicateNames = append(agg.duplicateNames, p.Data.Name)
 				// We are skipping the bugReport, so increment the counts.
 				atomic.AddInt64(&agg.bugReportCount, int64(1))
 				continue
@@ -659,7 +664,7 @@ func (agg *Aggregator) upload(p uploadPackage) error {
 // uploadBinaryFromDisk uploads a binary file on disk to GCS, returning an error if anything
 // goes wrong.
 func (agg *Aggregator) uploadBinaryFromDisk(p uploadPackage, fileName, filePath string) error {
-	name := fmt.Sprintf("%s/%s/%s/%s/%s", p.Category, config.Common.SkiaVersion.Hash, p.FuzzType, p.Data.Name, fileName)
+	name := fmt.Sprintf("%s/%s/%s/%s/%s/%s", p.Category, config.Common.SkiaVersion.Hash, config.Generator.Architecture, p.FuzzType, p.Data.Name, fileName)
 	w := agg.storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
 	defer util.Close(w)
 	// We set the encoding to avoid accidental crashes if Chrome were to try to render a fuzzed png
@@ -680,7 +685,7 @@ func (agg *Aggregator) uploadBinaryFromDisk(p uploadPackage, fileName, filePath 
 // uploadBinaryFromDisk uploads the contents of a string as a file to GCS, returning an error if
 // anything goes wrong.
 func (agg *Aggregator) uploadString(p uploadPackage, fileName, contents string) error {
-	name := fmt.Sprintf("%s/%s/%s/%s/%s", p.Category, config.Common.SkiaVersion.Hash, p.FuzzType, p.Data.Name, fileName)
+	name := fmt.Sprintf("%s/%s/%s/%s/%s/%s", p.Category, config.Common.SkiaVersion.Hash, config.Generator.Architecture, p.FuzzType, p.Data.Name, fileName)
 	w := agg.storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
 	defer util.Close(w)
 	w.ObjectAttrs.ContentEncoding = "text/plain"
@@ -831,8 +836,9 @@ func (agg *Aggregator) ForceAnalysis(path, category string) {
 func (agg *Aggregator) ClearUploadedFuzzNames() {
 	agg.greyNames = []string{}
 	agg.badNames = []string{}
+	agg.duplicateNames = []string{}
 }
 
-func (agg *Aggregator) UploadedFuzzNames() (bad, grey []string) {
-	return agg.badNames, agg.greyNames
+func (agg *Aggregator) UploadedFuzzNames() (bad, grey, duplicate []string) {
+	return agg.badNames, agg.greyNames, agg.duplicateNames
 }
