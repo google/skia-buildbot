@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/skia-dev/glog"
 
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/sharedconfig"
@@ -18,8 +18,9 @@ import (
 )
 
 const (
-	CONFIG_CODE_REVIEW_URL   = "CodeReviewURL"
-	TIMESTAMP_LRU_CACHE_SIZE = 1000
+	CONFIG_RIETVELD_CODE_REVIEW_URL = "RietveldCodeReviewURL"
+	CONFIG_GERRIT_CODE_REVIEW_URL   = "GerritCodeReviewURL"
+	TIMESTAMP_LRU_CACHE_SIZE        = 1000
 )
 
 func init() {
@@ -28,7 +29,8 @@ func init() {
 
 type goldTrybotProcessor struct {
 	*goldProcessor
-	review *rietveld.Rietveld
+	rietveldReview *rietveld.Rietveld
+	gerritReview   *gerrit.Gerrit
 
 	//    map[issue:patchset] -> timestamp.
 	cache map[string]time.Time
@@ -48,10 +50,17 @@ func newGoldTrybotProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 	// Get the underlying goldProcessor.
 	gProcessor := processor.(*goldProcessor)
 	gProcessor.ingestionStore = ingestionStore
+
+	gerritReview, err := gerrit.NewGerrit(config.ExtraParams[CONFIG_GERRIT_CODE_REVIEW_URL], "", nil)
+	if err != nil {
+		return nil, err
+	}
+
 	ret := &goldTrybotProcessor{
-		goldProcessor: gProcessor,
-		review:        rietveld.New(config.ExtraParams[CONFIG_CODE_REVIEW_URL], nil),
-		cache:         map[string]time.Time{},
+		goldProcessor:  gProcessor,
+		rietveldReview: rietveld.New(config.ExtraParams[CONFIG_RIETVELD_CODE_REVIEW_URL], nil),
+		gerritReview:   gerritReview,
+		cache:          map[string]time.Time{},
 	}
 
 	// Change the function to extract the commitID.
@@ -69,13 +78,12 @@ func (g *goldTrybotProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults 
 
 	var ts time.Time
 	var ok bool
+	var err error
 	var cacheId = fmt.Sprintf("%d:%d", dmResults.Issue, dmResults.Patchset)
 	if ts, ok = g.cache[cacheId]; !ok {
-		patchinfo, err := g.getPatchset(dmResults.Issue, dmResults.Patchset)
-		if err != nil {
+		if ts, err = g.getCreatedTimeStamp(dmResults); err != nil {
 			return nil, err
 		}
-		ts = patchinfo.Created
 
 		// p.cache is a very crude LRU cache.
 		if len(g.cache) > TIMESTAMP_LRU_CACHE_SIZE {
@@ -84,7 +92,13 @@ func (g *goldTrybotProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults 
 		g.cache[cacheId] = ts
 	}
 
-	source := fmt.Sprintf("%s/%d", g.review.Url(), dmResults.Issue)
+	// Get the source (url) from the issue.
+	var source string
+	if dmResults.isGerritIssue() {
+		source = g.gerritReview.Url(dmResults.Issue)
+	} else {
+		source = g.rietveldReview.Url(dmResults.Issue)
+	}
 	return &tracedb.CommitID{
 		Timestamp: ts.Unix(),
 		ID:        strconv.FormatInt(dmResults.Patchset, 10),
@@ -92,17 +106,40 @@ func (g *goldTrybotProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults 
 	}, nil
 }
 
+// getCreatedTimeStamp returns the timestamp of the patchset contained in
+// DMResult either from Gerrit or Rietveld.
+func (g *goldTrybotProcessor) getCreatedTimeStamp(dmResults *DMResults) (time.Time, error) {
+	if dmResults.isGerritIssue() {
+		issueProps, err := g.gerritReview.GetIssueProperties(dmResults.Issue)
+		if err != nil {
+			return time.Time{}, err
+		}
+
+		if len(issueProps.Patchsets) < int(dmResults.Patchset) {
+			return time.Time{}, fmt.Errorf("Given patchset (%d) number is not available form Gerrit. Only found %d patchsets.", dmResults.Patchset, len(issueProps.Patchsets))
+		}
+
+		return issueProps.Patchsets[dmResults.Patchset-1].Created, nil
+	} else {
+		patchinfo, err := g.getRietveldPatchset(dmResults.Issue, dmResults.Patchset)
+		if err != nil {
+			return time.Time{}, err
+		}
+		return patchinfo.Created, nil
+	}
+}
+
 // getPatchset retrieves the patchset. If it does not exist (but the Rietveld issue exists)
 // it will return a ingestion.IgnoreResultsFileErr indicating that this input file should be ignored.
-func (g *goldTrybotProcessor) getPatchset(issueID int64, patchsetID int64) (*rietveld.Patchset, error) {
-	patchinfo, err := g.review.GetPatchset(issueID, patchsetID)
+func (g *goldTrybotProcessor) getRietveldPatchset(issueID int64, patchsetID int64) (*rietveld.Patchset, error) {
+	patchinfo, err := g.rietveldReview.GetPatchset(issueID, patchsetID)
 	if err == nil {
 		return patchinfo, nil
 	}
 
 	// If we can find the issue, check if the patchset has been removed.
 	var issueInfo *rietveld.Issue
-	if issueInfo, err = g.review.GetIssueProperties(issueID, false); err == nil {
+	if issueInfo, err = g.rietveldReview.GetIssueProperties(issueID, false); err == nil {
 		found := false
 		for _, pset := range issueInfo.Patchsets {
 			if pset == patchsetID {
@@ -124,11 +161,11 @@ func (g *goldTrybotProcessor) getPatchset(issueID int64, patchsetID int64) (*rie
 }
 
 // ExtractIssueInfo returns the issue id and the patchset id for a given commitID.
-func ExtractIssueInfo(commitID *tracedb.CommitID, reviewURL string) (string, string) {
-	return commitID.Source[strings.LastIndex(commitID.Source, "/")+1:], commitID.ID
-}
-
-// GetPrefix returns the filter prefix to search for the given issue and reviewURL.
-func GetPrefix(issueID string, reviewURL string) string {
-	return fmt.Sprintf("%s/%s", reviewURL, issueID)
+func ExtractIssueInfo(commitID *tracedb.CommitID, rietveldReview *rietveld.Rietveld, gerritReview *gerrit.Gerrit) (string, string) {
+	issue, ok := gerritReview.ExtractIssue(commitID.Source)
+	if ok {
+		return issue, commitID.ID
+	}
+	issue, _ = rietveldReview.ExtractIssue(commitID.Source)
+	return issue, commitID.ID
 }

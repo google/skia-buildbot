@@ -7,6 +7,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
@@ -30,6 +31,7 @@ type Storage struct {
 	EventBus          *eventbus.EventBus
 	TrybotResults     *trybot.TrybotResults
 	RietveldAPI       *rietveld.Rietveld
+	GerritAPI         *gerrit.Gerrit
 
 	// NCommits is the number of commits we should consider. If NCommits is
 	// 0 or smaller all commits in the last tile will be considered.
