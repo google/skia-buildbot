@@ -179,8 +179,15 @@
 
     ready: function() {
       // Populate the query element.
-      sk.get("/_/paramset/").then(JSON.parse).then(function(json) {
-        this.$.query.setParamset(json);
+      sk.get("/_/initpage/").then(JSON.parse).then(function(json) {
+        this.$.query.setParamset(json.dataframe.paramset);
+
+        // Remove the paramset so it doesn't get displayed in the Params tab.
+        json.dataframe.paramset = {};
+
+        // Display this SearchResult, which has no traces, but this will
+        // set up the tick marks, the skp bands, and the 0-trace.
+        this._addTraces(json, true, false);
       }.bind(this)).catch(sk.errorMessage);
 
       // Reflect the current query to the query summary.
@@ -262,12 +269,18 @@
       });
     },
 
-    _addTraces: function(json, incremental) {
+    // _addTraces adds the traces to the graph in the serialized SearchResults
+    // found in json. If incremental is true then the traces are added w/o
+    // removing the old traces. If tab is true then the details tab is
+    // switched to the params for the displayed traces.
+    _addTraces: function(json, incremental, tab) {
       var dataframe = json.dataframe;
-      // Convert the dataframe into a form suitable for the plot element.
       var lines = {};
 
+      // Add in the 0-trace.
       dataframe.traceset["special_zero"] = Array(dataframe.header.length).fill(0);
+
+      // Convert the dataframe into a form suitable for the plot element.
       var keys = Object.keys(dataframe.traceset);
       keys.forEach(function(key) {
         var values = [];
@@ -319,7 +332,9 @@
 
       // Populate the paramset element.
       this.$.paramset.setParamSets([dataframe.paramset]);
-      this.$.detailtab.selected = 1;
+      if (tab) {
+        this.$.detailtab.selected = 1;
+      }
     },
 
     _add: function() {
@@ -328,7 +343,7 @@
         q: this.$.query.current_query,
       };
       sk.post("/_/search/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json) {
-        this._addTraces(json, false);
+        this._addTraces(json, false, true);
       }.bind(this)).catch(sk.errorMessage);
     },
 
@@ -418,10 +433,8 @@
         formula: this.$.formula.value,
       };
       sk.post("/_/calc/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json){
-        // TODO(jcgregorio) This only works if the time range doesn't change.
-        this._addTraces(json, true);
-      }.bind(this));
-      //}.bind(this)).catch(sk.errorMessage);
+        this._addTraces(json, true, false);
+      }.bind(this)).catch(sk.errorMessage);
     },
 
   });
