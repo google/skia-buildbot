@@ -1159,15 +1159,23 @@ func helpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func paramsetHandler(w http.ResponseWriter, r *http.Request) {
+func initpageHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		loadTemplates()
 	}
-	if r.Method == "GET" {
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(freshDataFrame.Get().ParamSet); err != nil {
-			glog.Errorf("Failed to encode paramset: %s", err)
-		}
+	df := freshDataFrame.Get()
+	resp, err := searchResponseFromDataFrame(&dataframe.DataFrame{
+		Header:   df.Header,
+		ParamSet: df.ParamSet,
+		TraceSet: ptracestore.TraceSet{},
+	})
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to load init data.")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		glog.Errorf("Failed to encode paramset: %s", err)
 	}
 }
 
@@ -1522,7 +1530,7 @@ func main() {
 
 	// New endpoints that use ptracestore will go here.
 	router.HandleFunc("/new/", templateHandler("newindex.html"))
-	router.HandleFunc("/_/paramset/", paramsetHandler)
+	router.HandleFunc("/_/initpage/", initpageHandler)
 	router.HandleFunc("/_/search/", searchHandler)
 	router.HandleFunc("/_/count/", countHandler)
 	router.HandleFunc("/_/cid/", cidHandler)
