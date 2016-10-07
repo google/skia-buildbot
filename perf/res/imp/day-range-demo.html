@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>range-sel-sk demo</title>
+  <title>day-range-sk demo</title>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
@@ -8,9 +8,9 @@
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <link rel="stylesheet" href="/res/common/css/md.css">
   <link rel="import" href="/res/imp/bower_components/polymer/polymer.html">
-  <link rel="import" href="rangesel.html">
+  <link rel="import" href="day-range.html">
   <style type="text/css" media="screen">
-    range-sel-sk {
+    day-range-sk {
       display: block;
       margin-bottom: 2em;
     }
@@ -19,7 +19,7 @@
 <body>
   <h1>Range</h1>
 
-  <range-sel-sk begin=15 end=50 id=range></range-sel-sk>
+  <day-range-sk id=range></day-range-sk>
 
   <table>
     <tr><th>begin</th><td id=vbegin></td></tr>
@@ -28,30 +28,25 @@
 
   <h2>Events</h2>
   <p>
-    <h3>range-change</h3> <pre id=event></pre>
-  </p>
-
-  <p>
-    <h3>range-change-end</h3> <pre id=end-event></pre>
+    <h3>day-range-change</h3> <pre id=event></pre>
   </p>
 
   <button id=restore>Restore</button>
 
   <script type="text/javascript" charset="utf-8">
     (function () {
-      $$$('#range').addEventListener('range-change', function(e) {
+      $$$('#range').addEventListener('day-range-change', function(e) {
         $$$('#vbegin').textContent = e.detail.begin;
         $$$('#vend').textContent = e.detail.end;
+      });
+
+      $$$('#range').addEventListener('day-range-change', function(e) {
         $$$('#event').textContent = JSON.stringify(e, null, 2);
       });
 
-      $$$('#range').addEventListener('range-change-end', function(e) {
-        $$$('#end-event').textContent = JSON.stringify(e, null, 2);
-      });
-
       $$$('#restore').addEventListener('click', function(e) {
-        $$$('#range').begin = 15;
-        $$$('#range').end = 50;
+        $$$('#range').begin = (Date.now() - 3*24*60*60*1000)/1000;
+        $$$('#range').end= (Date.now() - 60*60*1000)/1000;
       });
     })();
   </script>
