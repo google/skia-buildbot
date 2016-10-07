@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "dfbf34c0_77b1ea91",
+        "filename": "fuzzer/go/fuzzer-fe/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 416,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-07T15:40:22Z",
+      "side": 1,
+      "message": "The err goes into the logs while the \"Architecture not found\" gets returned to the user, which is why we have both err and msg, to avoid such issues.",
+      "parentUuid": "dfbf34c0_f7d33ac9",
+      "revId": "e2f07cb3d0d1ef408a7c921de74ac118da1a8a7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dfbf34c0_3753f26a",
         "filename": "fuzzer/go/fuzzer-fe/main.go",
         "patchSetId": 1
