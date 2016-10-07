@@ -17,11 +17,15 @@ import (
 )
 
 const (
-	TEST_DATA_DIR        = "./testdata"
-	TEST_TRACE_DB_FILE   = "./tracedb-data.db"
-	TEST_SHAREDB_DIR     = "./sharedb-data"
-	TEST_INGESTION_FILE  = TEST_DATA_DIR + "/dm.json"
-	TEST_CODE_REVIEW_URL = "https://codereview.chromium.org"
+	TEST_DATA_DIR       = "./testdata"
+	TEST_TRACE_DB_FILE  = "./tracedb-data.db"
+	TEST_SHAREDB_DIR    = "./sharedb-data"
+	TEST_INGESTION_FILE = TEST_DATA_DIR + "/dm.json"
+	// URL of the rietveld instance.
+	TEST_CODE_RIETVELDREVIEW_URL = "https://codereview.chromium.org"
+
+	// URL of the gerrit instance.
+	TEST_CODE_GERRITREVIEW_URL = gerrit.GERRIT_SKIA_URL
 )
 
 var (
@@ -31,11 +35,11 @@ var (
 func TestTrybotResults(t *testing.T) {
 	testutils.SkipIfShort(t)
 
-	rietveldAPI := rietveld.New(TEST_CODE_REVIEW_URL, nil)
-	gerritAPI, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", nil)
+	rietveldAPI := rietveld.New(TEST_CODE_RIETVELDREVIEW_URL, nil)
+	gerritAPI, err := gerrit.NewGerrit(TEST_CODE_GERRITREVIEW_URL, "", nil)
 	assert.NoError(t, err)
 
-	server, serverAddress := goldingestion.RunGoldTrybotProcessor(t, TEST_TRACE_DB_FILE, TEST_SHAREDB_DIR, TEST_INGESTION_FILE, TEST_DATA_DIR, TEST_CODE_REVIEW_URL)
+	server, serverAddress := goldingestion.RunGoldTrybotProcessor(t, TEST_TRACE_DB_FILE, TEST_SHAREDB_DIR, TEST_INGESTION_FILE, TEST_DATA_DIR, TEST_CODE_RIETVELDREVIEW_URL, TEST_CODE_GERRITREVIEW_URL)
 	defer util.RemoveAll(TEST_SHAREDB_DIR)
 	defer testutils.Remove(t, TEST_TRACE_DB_FILE)
 	defer server.Stop()
@@ -49,7 +53,7 @@ func TestTrybotResults(t *testing.T) {
 	defer func() { assert.NoError(t, ingestionStore.Close()) }()
 
 	tileBuilder := tracedb.NewBranchTileBuilder(db, nil, rietveldAPI, gerritAPI, eventbus.New(nil))
-	tr := NewTrybotResults(tileBuilder, rietveldAPI, ingestionStore)
+	tr := NewTrybotResults(tileBuilder, rietveldAPI, gerritAPI, ingestionStore)
 	tr.timeFrame = time.Now().Sub(BEGINNING_OF_TIME)
 
 	issues, total, err := tr.ListTrybotIssues(0, 20)

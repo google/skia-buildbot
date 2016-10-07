@@ -223,3 +223,20 @@ func TestAbandon(t *testing.T) {
 	err = api.Abandon(&c1, "Abandoning this CL")
 	assert.Error(t, err, "Got status 409 Conflict (409)")
 }
+
+func TestUrlAndExtractIssue(t *testing.T) {
+	api, err := NewGerrit(GERRIT_SKIA_URL, "", nil)
+	assert.NoError(t, err)
+	assert.Equal(t, GERRIT_SKIA_URL, api.Url(0))
+	url1 := api.Url(1234)
+	assert.Equal(t, fmt.Sprintf("%s/c/%d", GERRIT_SKIA_URL, 1234), url1)
+	found, ok := api.ExtractIssue(url1)
+	assert.True(t, ok)
+	assert.Equal(t, "1234", found)
+	found, ok = api.ExtractIssue(fmt.Sprintf("%s/%d", GERRIT_SKIA_URL, 1234))
+	assert.Equal(t, "", found)
+	assert.False(t, ok)
+	found, ok = api.ExtractIssue("random string")
+	assert.Equal(t, "", found)
+	assert.False(t, ok)
+}
