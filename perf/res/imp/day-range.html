@@ -1,0 +1,203 @@
+<!-- The <day-range-sk> custom element declaration.
+
+  Allows picking a range of time from the last year.
+
+  Attributes:
+    begin - The beginning of the selected time range, given in seconds
+       since the Unix epoch.
+    begin - The end of the selected time range, given in seconds
+       since the Unix epoch.
+
+  Events:
+    day-range-change - Fired then the selection has stopped changing. Contains
+      the begin and end timestamps in the details:
+
+      {
+        begin: 1470084997,
+        end: 1474184677
+      }
+
+  Methods:
+    None.
+-->
+
+<link rel="import" href="/res/imp/rangesel.html" />
+
+<dom-module id="day-range-sk">
+  <style>
+    :host {
+      position: relative;
+    }
+
+    range-sel-sk {
+      display: block;
+      margin-bottom: 2em;
+    }
+
+    #hbegin,
+    #hend {
+     display: inline-block;
+     margin: 0.5em 0 0.5em 0.5em;
+     padding: 0.4em;
+     border: solid 1px lightgray;
+    }
+
+    #ticks {
+      position: absolute;
+      width: 600px;
+      height: 40px;
+      top: 30px;
+      left: 10px;
+    }
+
+    .tick {
+      position: absolute;
+      border-left: solid gray 1px;
+      padding: 16px 0 0 4px;
+      font-size: 10px;
+    }
+  </style>
+  <template>
+    <range-sel-sk
+      begin="[[_pct_begin]]"
+      end="[[_pct_end]]"
+      on-range-change="_rangeChange"
+      on-range-change-end="_rangeChangeEnd"
+      ></range-sel-sk>
+    <div id=ticks>
+      <div id=m0  class=tick></div>
+      <div id=m1  class=tick></div>
+      <div id=m2  class=tick></div>
+      <div id=m3  class=tick></div>
+      <div id=m4  class=tick></div>
+      <div id=m5  class=tick></div>
+      <div id=m6  class=tick></div>
+      <div id=m7  class=tick></div>
+      <div id=m8  class=tick></div>
+      <div id=m9  class=tick></div>
+      <div id=m10 class=tick></div>
+      <div id=m11 class=tick></div>
+    </div>
+    <span id=hbegin></span>
+    <span id=hend></span>
+  </template>
+</dom-module>
+
+<script>
+  (function () {
+    var MONTHS = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+      ];
+
+    Polymer({
+      is: "day-range-sk",
+
+      properties: {
+        begin: {
+          type: Number,
+          value: 0,
+          reflectToAttribute: true,
+          observer: "_beginChange",
+        },
+        end: {
+          type: Number,
+          value: 0,
+          reflectToAttribute: true,
+          observer: "_endChange",
+        },
+        now: {
+          type: Date,
+          value: Date.now(),
+        },
+        _pct_begin: {
+          type: Number,
+          value: 0,
+        },
+        _pct_end: {
+          type: Number,
+          value: 0,
+        },
+      },
+
+      ready: function() {
+        this._calcTicks();
+      },
+
+      _ts2Percent: function(ts) {
+        var t = new Date(ts*1000);
+        var diff = new Date(this.now - t);
+        return (1.0 - diff/(365*24*60*60*1000)) * 100;
+      },
+
+      _percent2Ts: function(p) {
+        return Math.floor((new Date(this.now - (1.0 - p/100)*(365*24*60*60*1000)))/1000);
+      },
+
+      _beginChange: function() {
+        this.set("_pct_begin", this._ts2Percent(this.begin));
+        this._calcTicks();
+      },
+
+      _endChange: function() {
+        this.set("_pct_end", this._ts2Percent(this.end));
+        this._calcTicks();
+      },
+
+      _rangeChange: function(e) {
+        this.$.hbegin.textContent = this._display(e.detail.begin);
+        this.$.hend.textContent = this._display(e.detail.end);
+      },
+
+      _rangeChangeEnd: function(e) {
+        this.set("begin", this._percent2Ts(e.detail.begin));
+        this.set("end", this._percent2Ts(e.detail.end));
+        var msg = {
+          begin: this.begin,
+          end: this.end,
+        };
+        this.fire("day-range-change", msg);
+      },
+
+      _display: function(p) {
+        var ts = this._percent2Ts(p);
+        // Convert ts to human friendly string.
+        var d = new Date(ts*1000);
+        return MONTHS[d.getMonth()] + " " + d.getDate();
+      },
+
+      _calcTicks: function() {
+        var d = new Date();
+        d.setDate(1);
+        var month = d.getMonth();
+        for (var i = 0; i < 12; i++) {
+          var ele = $$$('#m' + i, this);
+          ele.textContent = MONTHS[d.getMonth()];
+          ele.style.left = Math.floor(600*this._ts2Percent(d.valueOf()/1000)/100) - 2 + "px";
+          if (month == 0) {
+            console.log(d);
+            d.setFullYear(d.getFullYear()-1);
+            console.log(d);
+            month = 11;
+            d.setMonth(month);
+            console.log(d);
+          } else {
+            month--;
+            d.setMonth(month);
+          }
+        }
+      },
+
+    });
+  })();
+</script>
