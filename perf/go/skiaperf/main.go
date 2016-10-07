@@ -22,6 +22,7 @@ import (
 	storage "google.golang.org/api/storage/v1"
 
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/calc"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
@@ -31,6 +32,7 @@ import (
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/sharedconfig"
@@ -1237,6 +1239,27 @@ func getSkps(headers []*dataframe.ColumnHeader) ([]int, error) {
 	return ret, nil
 }
 
+func searchResponseFromDataFrame(df *dataframe.DataFrame) (*SearchResponse, error) {
+	// Calculate the human ticks based on the column headers.
+	ts := []int64{}
+	for _, c := range df.Header {
+		ts = append(ts, c.Timestamp)
+	}
+	ticks := human.FlotTickMarks(ts)
+
+	// Determine where SKP changes occurred.
+	skps, err := getSkps(df.Header)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load skps: %s", err)
+	}
+
+	return &SearchResponse{
+		DataFrame: df,
+		Ticks:     ticks,
+		Skps:      skps,
+	}, nil
+}
+
 // searchHandler takes the POST'd query and returns a serialized DataFrame of
 // the results.
 func searchHandler(w http.ResponseWriter, r *http.Request) {
@@ -1260,6 +1283,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Invalid query.")
 		return
 	}
+
 	begin := git.LastNIndex(sr.LastN)[0].Timestamp
 	end := time.Now()
 	df, err := dataframe.NewFromQueryAndRange(git, ptracestore.Default, begin, end, q)
@@ -1267,25 +1291,10 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to load data.")
 		return
 	}
-
-	// Calculate the human ticks based on the column headers.
-	ts := []int64{}
-	for _, c := range df.Header {
-		ts = append(ts, c.Timestamp)
-	}
-	ticks := human.FlotTickMarks(ts)
-
-	// Determine where SKP changes occurred.
-	skps, err := getSkps(df.Header)
+	resp, err := searchResponseFromDataFrame(df)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to load skps.")
+		httputils.ReportError(w, r, err, "Failed to get ticks or skps.")
 		return
-	}
-
-	resp := &SearchResponse{
-		DataFrame: df,
-		Ticks:     ticks,
-		Skps:      skps,
 	}
 
 	// TODO(jcgregorio) Limit the results if there are too many?
@@ -1339,6 +1348,106 @@ func cidHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		glog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
+func to64(a []float32) []float64 {
+	ret := make([]float64, len(a), len(a))
+	for i, x := range a {
+		if x == ptracestore.MISSING_VALUE {
+			ret[i] = ptracestore.MISSING_VALUE
+		} else {
+			ret[i] = float64(x)
+		}
+	}
+	return ret
+}
+
+func to32(a []float64) []float32 {
+	ret := make([]float32, len(a), len(a))
+	for i, x := range a {
+		ret[i] = float32(x)
+	}
+	return ret
+}
+
+type CalcRequest struct {
+	LastN   int    `json:"lastn"`
+	Formula string `json:"formula"`
+}
+
+// newCalcHandler returns the results of running calculations over traces.
+//
+// It expects a JSON serialized CalcRequest in a POST and then returns a
+// serialized JSON SearchResponse.
+func newCalcHandler(w http.ResponseWriter, r *http.Request) {
+	if *local {
+		loadTemplates()
+	}
+	w.Header().Set("Content-Type", "application/json")
+	cr := &CalcRequest{}
+	defer util.Close(r.Body)
+	if err := json.NewDecoder(r.Body).Decode(cr); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		return
+	}
+
+	// During the calculation 'rowsFromQuery' will be called to load up data, we
+	// will capture the dataframe that's created at that time. We only really
+	// need df.Headers so it doesn't matter if the calculation has multiple calls
+	// to filter(), we can just use the last one returned.
+	var df *dataframe.DataFrame
+
+	rowsFromQuery := func(s string) (calc.Rows, error) {
+		urlValues, err := url.ParseQuery(s)
+		if err != nil {
+			return nil, err
+		}
+		q, err := query.New(urlValues)
+		if err != nil {
+			return nil, err
+		}
+		begin := git.LastNIndex(cr.LastN)[0].Timestamp
+		end := time.Now()
+		// TODO(jcgregorio) If cr.LastN == 50 we should use the freshDataFrame.
+		df, err = dataframe.NewFromQueryAndRange(git, ptracestore.Default, begin, end, q)
+		if err != nil {
+			return nil, err
+		}
+		// DataFrames are float32, but calc does its work in float64.
+		rows := calc.Rows{}
+		for k, v := range df.TraceSet {
+			rows[k] = to64(v)
+		}
+		return rows, nil
+	}
+
+	ctx := calc.NewContext(rowsFromQuery)
+	rows, err := ctx.Eval(cr.Formula)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Calculation failed.")
+		return
+	}
+
+	// Convert the Rows from float64 to float32 for DataFrame.
+	ts := ptracestore.TraceSet{}
+	for k, v := range rows {
+		ts[k] = to32(v)
+	}
+	df.TraceSet = ts
+
+	// Clear the paramset since we are returning calculated values.
+	df.ParamSet = paramtools.ParamSet{}
+
+	resp, err := searchResponseFromDataFrame(df)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to get ticks or skps.")
+		return
+	}
+
+	// TODO(jcgregorio) Limit the results if there are too many?
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		glog.Errorf("Failed to encode paramset: %s", err)
 	}
@@ -1417,6 +1526,7 @@ func main() {
 	router.HandleFunc("/_/search/", searchHandler)
 	router.HandleFunc("/_/count/", countHandler)
 	router.HandleFunc("/_/cid/", cidHandler)
+	router.HandleFunc("/_/calc/", newCalcHandler)
 
 	router.HandleFunc("/frame/", templateHandler("frame.html"))
 	router.HandleFunc("/shortcuts/", shortcutHandler)

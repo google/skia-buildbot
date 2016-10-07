@@ -282,10 +282,10 @@
       if (incremental) {
         Object.keys(lines).forEach(function(key) {
           this._lines[key] = lines[key];
-        });
+        }.bind(this));
         Object.keys(dataframe.traceset).forEach(function(key) {
           this._dataframe.traceset[key] = dataframe.traceset[key];
-        });
+        }.bind(this));
       } else {
         this._lines = lines;
         this._dataframe = dataframe;
@@ -293,7 +293,7 @@
       if (!incremental) {
         this.$.plot.removeAll();
       }
-      this.$.plot.addLines(lines);
+      this.$.plot.addLines(this._lines);
 
       // Ticks are serialized as a slice of slices, ala [[0, "foo"], [1.5, "bar"], ..]
       // because the structure we actually need, a map[float64]string, isn't able
@@ -417,10 +417,11 @@
         lastn: +this._lastn,
         formula: this.$.formula.value,
       };
-      sk.post("/_/ncalc/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json){
+      sk.post("/_/calc/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json){
         // TODO(jcgregorio) This only works if the time range doesn't change.
         this._addTraces(json, true);
-      }).catch(sk.errorMessage);
+      }.bind(this));
+      //}.bind(this)).catch(sk.errorMessage);
     },
 
   });
