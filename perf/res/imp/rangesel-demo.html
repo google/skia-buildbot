@@ -26,6 +26,15 @@
     <tr><th>end</th><td id=vend></td></tr>
   </table>
 
+  <h2>Events</h2>
+  <p>
+    <h3>range-change</h3> <pre id=event></pre>
+  </p>
+
+  <p>
+    <h3>range-change-end</h3> <pre id=end-event></pre>
+  </p>
+
   <button id=restore>Restore</button>
 
   <script type="text/javascript" charset="utf-8">
@@ -33,6 +42,14 @@
       $$$('#range').addEventListener('range-change', function(e) {
         $$$('#vbegin').textContent = e.detail.begin;
         $$$('#vend').textContent = e.detail.end;
+      });
+
+      $$$('#range').addEventListener('range-change', function(e) {
+        $$$('#event').textContent = JSON.stringify(e, null, 2);
+      });
+
+      $$$('#range').addEventListener('range-change-end', function(e) {
+        $$$('#end-event').textContent = JSON.stringify(e, null, 2);
       });
 
       $$$('#restore').addEventListener('click', function(e) {

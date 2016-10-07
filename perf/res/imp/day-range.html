@@ -1,0 +1,45 @@
+<!-- The <day-range-sk> custom element declaration.
+
+  Allows picking a range of days from the last year.
+
+  Displays the range selection in human days, e.g. "5w 2d".
+
+  Attributes:
+    begin - ts
+    end   - ts
+
+  Events:
+    Events return timestamps for begin, end.
+
+  Methods:
+-->
+
+<link rel="import" href="/res/imp/rangesel.html" />
+
+<dom-module id="day-range-sk">
+  <style>
+  </style>
+  <template>
+    <range-sel-sk begin="[[_pct_begin]]" end="[[_pct_end]]"></range-sel-sk>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "day-range-sk",
+
+    properties: {
+      _pct_begin: {
+        type: Number,
+        value: 0,
+        observer: "_pct_beginChange",
+      },
+      begin
+
+    },
+
+    ready: function() {
+    },
+
+  });
+</script>
