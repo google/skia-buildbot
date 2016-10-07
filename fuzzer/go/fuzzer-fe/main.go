@@ -411,8 +411,14 @@ func fuzzHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, nil, "Category not found")
 		return
 	}
+	architecture := v["architecture"]
+	if !fcommon.HasArchitecture(architecture) {
+		httputils.ReportError(w, r, nil, "Architecture not found")
+		return
+	}
 	name := v["name"]
-	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/bad/%s/%s", category, config.Common.SkiaVersion.Hash, name, name))
+	// TODO(kjlubick): Support downloading regressed files as well
+	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/%s/bad/%s/%s", category, config.Common.SkiaVersion.Hash, architecture, name, name))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fuzz not found")
 		return
@@ -434,10 +440,15 @@ func metadataHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, nil, "Category not found")
 		return
 	}
+	architecture := v["architecture"]
+	if !fcommon.HasArchitecture(architecture) {
+		httputils.ReportError(w, r, nil, "Architecture not found")
+		return
+	}
 	name := v["name"]
 	hash := strings.Split(name, "_")[0]
 
-	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/bad/%s/%s", category, config.Common.SkiaVersion.Hash, hash, name))
+	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/%s/bad/%s/%s", category, config.Common.SkiaVersion.Hash, architecture, hash, name))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fuzz metadata not found")
 		return
