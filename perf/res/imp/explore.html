@@ -26,6 +26,7 @@
 <link rel="import" href="/res/imp/plot-simple.html" />
 <link rel="import" href="/res/imp/commit-detail-panel.html" />
 <link rel="import" href="/res/imp/highlight.html" />
+<link rel="import" href="/res/imp/day-range.html" />
 
 <dom-module id="explore-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
@@ -91,6 +92,9 @@
       color: #1F78B4;
     }
 
+    day-range-sk {
+      display: block;
+    }
   </style>
   <template>
     <div>
@@ -99,6 +103,9 @@
           <div id=plotDiv class="layout flex">
             <highlightbar-sk id=highlight></highlightbar-sk>
             <plot-simple-sk width=1024 height=480 id=plot></plot-simple-sk>
+            <div class="layout horizontal center-justified">
+              <day-range-sk id=range on-day-range-change="_rangeChange"></day-range-sk>
+            </div>
           </div>
           <div class="layout vertical" id=buttons>
             <button title="Create shortcut.">
@@ -127,7 +134,6 @@
                   <div>
                     Matches: <span id=matches></span>
                   </div>
-                  <paper-input value="{{_lastn}}" id=lastn label="Number of Commits"></paper-input>
                   <button on-tap="_add" class=action>Plot</button>
                 </div>
               </div>
@@ -165,20 +171,28 @@
           traceset: {},
         }; },
       },
-      _lastn: {
-        type: Number,
-        value: 50,
-      },
       // Keep track of whether a request is inflight to count the number of traces that match the current query.
       _countInProgress: {
         type: Boolean,
         value: false,
-      }
+      },
+      // The time range we are plotting, in Unix timestamp seconds.
+      _begin: {
+        type: Number,
+        value: function() { return Math.floor(Date.now()/1000 - 24*60*60); },
+      },
+      _end: {
+        type: Number,
+        value: function() { return Math.floor(Date.now()/1000); },
+      },
     },
 
     ready: function() {
       // Populate the query element.
       sk.get("/_/initpage/").then(JSON.parse).then(function(json) {
+        var header = json.dataframe.header;
+        this._begin = this.$.range.begin = header[0].timestamp;
+        this._end   = this.$.range.end   = header[header.length-1].timestamp;
         this.$.query.setParamset(json.dataframe.paramset);
 
         // Remove the paramset so it doesn't get displayed in the Params tab.
@@ -253,6 +267,12 @@
 
       this._updateCount();
       this._resizeWatcher();
+    },
+
+    _rangeChange: function(e) {
+      this.set("_begin", e.detail.begin);
+      this.set("_end", e.detail.end);
+      // TODO(jcgregorio) Should re-run all current queries and calcs being displayed.
     },
 
     _updateCount: function() {
@@ -338,7 +358,8 @@
 
     _add: function() {
       var body = {
-        lastn: +this._lastn,
+        begin: this._begin,
+        end: this._end,
         q: this.$.query.current_query,
       };
       sk.post("/_/search/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json) {
@@ -428,7 +449,8 @@
 
     _addCalculated: function() {
       var body = {
-        lastn: +this._lastn,
+        begin: this._begin,
+        end: this._end,
         formula: this.$.formula.value,
       };
       sk.post("/_/calc/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json){
