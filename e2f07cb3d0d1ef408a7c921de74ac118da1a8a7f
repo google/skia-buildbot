@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "dfbf34c0_f7d33ac9",
+        "filename": "fuzzer/go/fuzzer-fe/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 416,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-07T15:26:48Z",
+      "side": 1,
+      "message": "Echoing back user-input doesn\u0027t seem like a good idea.  I believe this the reason we don\u0027t fmt.Errorf() the Category.",
+      "parentUuid": "dfbf34c0_d7647e44",
+      "revId": "e2f07cb3d0d1ef408a7c921de74ac118da1a8a7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dfbf34c0_3753f26a",
         "filename": "fuzzer/go/fuzzer-fe/main.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2016-10-07T15:19:59Z",
       "side": 1,
       "message": "httputils.ReportError(w, r, fmt.Errorf(\"Could not find arch: %q\", architecture), \"Architecture not found\")",
+      "revId": "e2f07cb3d0d1ef408a7c921de74ac118da1a8a7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dfbf34c0_b7c9c221",
+        "filename": "fuzzer/go/fuzzer-fe/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 445,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-07T15:26:48Z",
+      "side": 1,
+      "message": "Echoing back user-input doesn\u0027t seem like a good idea.  I believe this the reason we don\u0027t fmt.Errorf() the Category.",
+      "parentUuid": "dfbf34c0_3753f26a",
       "revId": "e2f07cb3d0d1ef408a7c921de74ac118da1a8a7f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
