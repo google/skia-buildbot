@@ -54,12 +54,12 @@ func GetAllFuzzNamesInFolder(s *storage.Client, name string) (hashes []string, e
 // IsNameOfFuzz returns true if the GCS file name given is a fuzz, which is basically if it doesn't
 // have a . in it.
 func IsNameOfFuzz(name string) bool {
-	return !strings.Contains(name, ".")
+	return name != "" && !strings.Contains(name, ".")
 }
 
 // DownloadAllFuzzes downloads all fuzzes of a given type "bad", "grey" at the specified revision
 // and returns a slice of all the paths on disk where they are.
-func DownloadAllFuzzes(s *storage.Client, downloadPath, category, revision, fuzzType string, processes int) ([]string, error) {
+func DownloadAllFuzzes(s *storage.Client, downloadPath, category, revision, architecture, fuzzType string, processes int) ([]string, error) {
 	completedCount := int32(0)
 	var wg sync.WaitGroup
 	toDownload := make(chan string, 1000)
@@ -74,10 +74,13 @@ func DownloadAllFuzzes(s *storage.Client, downloadPath, category, revision, fuzz
 			return
 		}
 		fuzzHash := name[strings.LastIndex(name, "/")+1:]
+		if fuzzHash == "" {
+			return
+		}
 		fuzzPaths = append(fuzzPaths, filepath.Join(downloadPath, fuzzHash))
 		toDownload <- item.Name
 	}
-	if err := gs.AllFilesInDir(s, config.GS.Bucket, fmt.Sprintf("%s/%s/%s", category, revision, fuzzType), download); err != nil {
+	if err := gs.AllFilesInDir(s, config.GS.Bucket, fmt.Sprintf("%s/%s/%s/%s", category, revision, architecture, fuzzType), download); err != nil {
 		return nil, fmt.Errorf("Problem iterating through all files: %s", err)
 	}
 	close(toDownload)

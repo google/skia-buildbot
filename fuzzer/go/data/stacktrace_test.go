@@ -507,3 +507,47 @@ func TestParseGCSPackage_ClangDumpedNoSymbols(t *testing.T) {
 		t.Errorf("Should have parsed unsymbolized stacktrace: \n%s", frame.String())
 	}
 }
+
+func TestParseGCSPackage_BadAllocNoCrash(t *testing.T) {
+	// Both triggered bad alloc, just with no explicit crash. We don't have a full
+	// stacktrace, but we can at least get the most recent line.
+	g := GCSPackage{
+		Debug: OutputFiles{
+			Asan:   testutils.MustReadFile(stacktrace("10debug.asan")),
+			Dump:   "",
+			StdErr: testutils.MustReadFile(stacktrace("10debug.err")),
+		},
+		Release: OutputFiles{
+			Asan:   testutils.MustReadFile(stacktrace("10release.asan")),
+			Dump:   "",
+			StdErr: testutils.MustReadFile(stacktrace("10release.err")),
+		},
+		FuzzCategory: "skpicture",
+	}
+
+	result := ParseGCSPackage(g)
+	expectedDebugFlags := BadAlloc | ClangCrashed | ASANCrashed
+	expectedReleaseFlags := BadAlloc | ClangCrashed | ASANCrashed
+	if result.Debug.Flags != expectedDebugFlags {
+		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
+	}
+	if result.Release.Flags != expectedReleaseFlags {
+		t.Errorf("Parsed Release flags were wrong.  Expected %s, but was %s", expectedReleaseFlags.String(), result.Release.Flags.String())
+	}
+	expectedDebug := StackTrace{
+		Frames: []StackTraceFrame{
+			FullStackFrame("src/core/", "SkPictureData.cpp", common.UNKNOWN_FUNCTION, 392),
+		},
+	}
+	if !reflect.DeepEqual(expectedDebug, result.Debug.StackTrace) {
+		t.Errorf("Expected Debug to be %#v\nbut was %#v", expectedDebug, result.Debug.StackTrace)
+	}
+	expectedRelease := StackTrace{
+		Frames: []StackTraceFrame{
+			FullStackFrame("src/core/", "SkPictureData.cpp", "SkPictureData::parseStreamTag", 377),
+		},
+	}
+	if !reflect.DeepEqual(expectedRelease, result.Release.StackTrace) {
+		t.Errorf("Expected Release to be %#v\nbut was %#v", expectedRelease, result.Release.StackTrace)
+	}
+}
