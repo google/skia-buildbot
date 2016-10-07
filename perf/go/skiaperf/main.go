@@ -1181,8 +1181,9 @@ func initpageHandler(w http.ResponseWriter, r *http.Request) {
 
 // SearchRequest is used to deserialize JSON search requests in searchHandler().
 type SearchRequest struct {
-	LastN int    `json:"lastn"`
-	Query string `json:"q"` // The query encoded as a URL query.
+	Begin int    `json:"begin"` // Beginning of time range in Unix timestamp seconds.
+	End   int    `json:"end"`   // End of time range in Unix timestamp seconds.
+	Query string `json:"q"`     // The query encoded as a URL query.
 }
 
 // SearchResponse is serialized to JSON as the response to search requests.
@@ -1291,9 +1292,8 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Invalid query.")
 		return
 	}
-
-	begin := git.LastNIndex(sr.LastN)[0].Timestamp
-	end := time.Now()
+	begin := time.Unix(int64(sr.Begin), 0)
+	end := time.Unix(int64(sr.End), 0)
 	df, err := dataframe.NewFromQueryAndRange(git, ptracestore.Default, begin, end, q)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load data.")
@@ -1382,8 +1382,9 @@ func to32(a []float64) []float32 {
 }
 
 type CalcRequest struct {
-	LastN   int    `json:"lastn"`
-	Formula string `json:"formula"`
+	Begin   int    `json:"begin"`   // Beginning of time range in Unix timestamp seconds.
+	End     int    `json:"end"`     // End of time range in Unix timestamp seconds.
+	Formula string `json:"formula"` // The formula to evaluate.
 }
 
 // newCalcHandler returns the results of running calculations over traces.
@@ -1417,9 +1418,8 @@ func newCalcHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return nil, err
 		}
-		begin := git.LastNIndex(cr.LastN)[0].Timestamp
-		end := time.Now()
-		// TODO(jcgregorio) If cr.LastN == 50 we should use the freshDataFrame.
+		begin := time.Unix(int64(cr.Begin), 0)
+		end := time.Unix(int64(cr.End), 0)
 		df, err = dataframe.NewFromQueryAndRange(git, ptracestore.Default, begin, end, q)
 		if err != nil {
 			return nil, err
