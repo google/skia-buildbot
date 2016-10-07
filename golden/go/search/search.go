@@ -254,10 +254,9 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 	pidMap := util.NewStringSet(issue.TargetPatchsets)
 	talliesByTest := idx.TalliesByTest()
 	digestMap := map[string]*Digest{}
-	reviewURL := storages.RietveldAPI.Url()
 
 	for idx, cid := range issue.CommitIDs {
-		_, pid := goldingestion.ExtractIssueInfo(cid.CommitID, reviewURL)
+		_, pid := goldingestion.ExtractIssueInfo(cid.CommitID, storages.RietveldAPI, storages.GerritAPI)
 		if !pidMap[pid] {
 			continue
 		}

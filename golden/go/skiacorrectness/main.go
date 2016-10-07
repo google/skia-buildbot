@@ -231,7 +231,7 @@ func main() {
 		DigestStore:       digestStore,
 		NCommits:          *nCommits,
 		EventBus:          evt,
-		TrybotResults:     trybot.NewTrybotResults(branchTileBuilder, rietveldAPI, ingestionStore),
+		TrybotResults:     trybot.NewTrybotResults(branchTileBuilder, rietveldAPI, gerritAPI, ingestionStore),
 		RietveldAPI:       rietveldAPI,
 	}
 
