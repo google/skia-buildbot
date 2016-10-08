@@ -1179,11 +1179,156 @@ func initpageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// SearchRequest is used to deserialize JSON search requests in searchHandler().
-type SearchRequest struct {
-	Begin int    `json:"begin"` // Beginning of time range in Unix timestamp seconds.
-	End   int    `json:"end"`   // End of time range in Unix timestamp seconds.
-	Query string `json:"q"`     // The query encoded as a URL query.
+// FrameRequest is used to deserialize JSON frame requests in frameHandler().
+type FrameRequest struct {
+	Begin    int      `json:"begin"`    // Beginning of time range in Unix timestamp seconds.
+	End      int      `json:"end"`      // End of time range in Unix timestamp seconds.
+	Formulas []string `json:"formulas"` // The Formulae to evaluate.
+	Queries  []string `json:"queries"`  // The queries to perform encoded as a URL query.
+	Hidden   []string `json:"hidden"`   // The ids of traces to remove from the response.
+}
+
+// FrameResponse is serialized to JSON as the response to frame requests.
+type FrameResponse struct {
+	DataFrame *dataframe.DataFrame `json:"dataframe"`
+	Ticks     []interface{}        `json:"ticks"`
+	Skps      []int                `json:"skps"`
+}
+
+// doSeach applies the given query and returns a dataframe that matches the
+// given time range [begin, end) in a DataFrame.
+func doSearch(queryStr string, begin, end time.Time) (*dataframe.DataFrame, error) {
+	urlValues, err := url.ParseQuery(queryStr)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse query: %s", err)
+	}
+	q, err := query.New(urlValues)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid Query: %s", err)
+	}
+	return dataframe.NewFromQueryAndRange(git, ptracestore.Default, begin, end, q)
+}
+
+// doCalc applies the given formula and returns a dataframe that matches the
+// given time range [begin, end) in a DataFrame.
+func doCalc(formula string, begin, end time.Time) (*dataframe.DataFrame, error) {
+	// During the calculation 'rowsFromQuery' will be called to load up data, we
+	// will capture the dataframe that's created at that time. We only really
+	// need df.Headers so it doesn't matter if the calculation has multiple calls
+	// to filter(), we can just use the last one returned.
+	var df *dataframe.DataFrame
+
+	rowsFromQuery := func(s string) (calc.Rows, error) {
+		urlValues, err := url.ParseQuery(s)
+		if err != nil {
+			return nil, err
+		}
+		q, err := query.New(urlValues)
+		if err != nil {
+			return nil, err
+		}
+		df, err = dataframe.NewFromQueryAndRange(git, ptracestore.Default, begin, end, q)
+		if err != nil {
+			return nil, err
+		}
+		// DataFrames are float32, but calc does its work in float64.
+		rows := calc.Rows{}
+		for k, v := range df.TraceSet {
+			rows[k] = to64(v)
+		}
+		return rows, nil
+	}
+
+	ctx := calc.NewContext(rowsFromQuery)
+	rows, err := ctx.Eval(formula)
+	if err != nil {
+		return nil, fmt.Errorf("Calculation failed: %s", err)
+	}
+
+	// Convert the Rows from float64 to float32 for DataFrame.
+	ts := ptracestore.TraceSet{}
+	for k, v := range rows {
+		ts[k] = to32(v)
+	}
+	df.TraceSet = ts
+
+	// Clear the paramset since we are returning calculated values.
+	df.ParamSet = paramtools.ParamSet{}
+
+	return df, nil
+}
+
+// dfAppend appends the paramset and traceset of 'b' to 'a'.
+//
+// Also, if a has to Header then it uses b's Header.
+// Assumes that a and b both have the same Header, or that
+// 'a' is an empty DataFrame.
+func dfAppend(a, b *dataframe.DataFrame) {
+	if len(a.Header) == 0 {
+		a.Header = b.Header
+	}
+	a.ParamSet.AddParamSet(b.ParamSet)
+	for k, v := range b.TraceSet {
+		a.TraceSet[k] = v
+	}
+}
+
+// frameHandler returns the results of running searches and calculations over traces.
+//
+// It expects a JSON serialized FrameRequest in a POST and then returns a
+// serialized JSON FrameResponse.
+func frameHandler(w http.ResponseWriter, r *http.Request) {
+	if *local {
+		loadTemplates()
+	}
+	w.Header().Set("Content-Type", "application/json")
+	fr := &FrameRequest{}
+	defer util.Close(r.Body)
+	if err := json.NewDecoder(r.Body).Decode(fr); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		return
+	}
+	begin := time.Unix(int64(fr.Begin), 0)
+	end := time.Unix(int64(fr.End), 0)
+
+	// Results from all the queries and calcs will be accumulated in this dataframe.
+	df := dataframe.NewEmpty()
+
+	// Queries.
+	for _, q := range fr.Queries {
+		newDF, err := doSearch(q, begin, end)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to complete query.")
+			return
+		}
+		dfAppend(df, newDF)
+	}
+
+	// Formulas.
+	for _, formula := range fr.Formulas {
+		newDF, err := doCalc(formula, begin, end)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to complete query.")
+			return
+		}
+		dfAppend(df, newDF)
+	}
+
+	// Filter out "Hidden" traces.
+	for _, key := range fr.Hidden {
+		delete(df.TraceSet, key)
+	}
+
+	resp, err := searchResponseFromDataFrame(df)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to get ticks or skps.")
+		return
+	}
+
+	// TODO(jcgregorio) Limit the results if there are too many?
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		glog.Errorf("Failed to encode paramset: %s", err)
+	}
 }
 
 // SearchResponse is serialized to JSON as the response to search requests.
@@ -1269,48 +1414,6 @@ func searchResponseFromDataFrame(df *dataframe.DataFrame) (*SearchResponse, erro
 	}, nil
 }
 
-// searchHandler takes the POST'd query and returns a serialized DataFrame of
-// the results.
-func searchHandler(w http.ResponseWriter, r *http.Request) {
-	if *local {
-		loadTemplates()
-	}
-	w.Header().Set("Content-Type", "application/json")
-	sr := &SearchRequest{}
-	defer util.Close(r.Body)
-	if err := json.NewDecoder(r.Body).Decode(sr); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode JSON.")
-		return
-	}
-	urlValues, err := url.ParseQuery(sr.Query)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse query.")
-		return
-	}
-	q, err := query.New(urlValues)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Invalid query.")
-		return
-	}
-	begin := time.Unix(int64(sr.Begin), 0)
-	end := time.Unix(int64(sr.End), 0)
-	df, err := dataframe.NewFromQueryAndRange(git, ptracestore.Default, begin, end, q)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to load data.")
-		return
-	}
-	resp, err := searchResponseFromDataFrame(df)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get ticks or skps.")
-		return
-	}
-
-	// TODO(jcgregorio) Limit the results if there are too many?
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		glog.Errorf("Failed to encode paramset: %s", err)
-	}
-}
-
 // countHandler takes the POST'd query and runs that against the current
 // dataframe and returns how many traces match the query.
 func countHandler(w http.ResponseWriter, r *http.Request) {
@@ -1379,86 +1482,6 @@ func to32(a []float64) []float32 {
 		ret[i] = float32(x)
 	}
 	return ret
-}
-
-type CalcRequest struct {
-	Begin   int    `json:"begin"`   // Beginning of time range in Unix timestamp seconds.
-	End     int    `json:"end"`     // End of time range in Unix timestamp seconds.
-	Formula string `json:"formula"` // The formula to evaluate.
-}
-
-// newCalcHandler returns the results of running calculations over traces.
-//
-// It expects a JSON serialized CalcRequest in a POST and then returns a
-// serialized JSON SearchResponse.
-func newCalcHandler(w http.ResponseWriter, r *http.Request) {
-	if *local {
-		loadTemplates()
-	}
-	w.Header().Set("Content-Type", "application/json")
-	cr := &CalcRequest{}
-	defer util.Close(r.Body)
-	if err := json.NewDecoder(r.Body).Decode(cr); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode JSON.")
-		return
-	}
-
-	// During the calculation 'rowsFromQuery' will be called to load up data, we
-	// will capture the dataframe that's created at that time. We only really
-	// need df.Headers so it doesn't matter if the calculation has multiple calls
-	// to filter(), we can just use the last one returned.
-	var df *dataframe.DataFrame
-
-	rowsFromQuery := func(s string) (calc.Rows, error) {
-		urlValues, err := url.ParseQuery(s)
-		if err != nil {
-			return nil, err
-		}
-		q, err := query.New(urlValues)
-		if err != nil {
-			return nil, err
-		}
-		begin := time.Unix(int64(cr.Begin), 0)
-		end := time.Unix(int64(cr.End), 0)
-		df, err = dataframe.NewFromQueryAndRange(git, ptracestore.Default, begin, end, q)
-		if err != nil {
-			return nil, err
-		}
-		// DataFrames are float32, but calc does its work in float64.
-		rows := calc.Rows{}
-		for k, v := range df.TraceSet {
-			rows[k] = to64(v)
-		}
-		return rows, nil
-	}
-
-	ctx := calc.NewContext(rowsFromQuery)
-	rows, err := ctx.Eval(cr.Formula)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Calculation failed.")
-		return
-	}
-
-	// Convert the Rows from float64 to float32 for DataFrame.
-	ts := ptracestore.TraceSet{}
-	for k, v := range rows {
-		ts[k] = to32(v)
-	}
-	df.TraceSet = ts
-
-	// Clear the paramset since we are returning calculated values.
-	df.ParamSet = paramtools.ParamSet{}
-
-	resp, err := searchResponseFromDataFrame(df)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get ticks or skps.")
-		return
-	}
-
-	// TODO(jcgregorio) Limit the results if there are too many?
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		glog.Errorf("Failed to encode paramset: %s", err)
-	}
 }
 
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
@@ -1531,10 +1554,9 @@ func main() {
 	// New endpoints that use ptracestore will go here.
 	router.HandleFunc("/new/", templateHandler("newindex.html"))
 	router.HandleFunc("/_/initpage/", initpageHandler)
-	router.HandleFunc("/_/search/", searchHandler)
 	router.HandleFunc("/_/count/", countHandler)
 	router.HandleFunc("/_/cid/", cidHandler)
-	router.HandleFunc("/_/calc/", newCalcHandler)
+	router.HandleFunc("/_/frame/", frameHandler)
 
 	router.HandleFunc("/frame/", templateHandler("frame.html"))
 	router.HandleFunc("/shortcuts/", shortcutHandler)
