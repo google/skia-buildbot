@@ -360,9 +360,9 @@
       var body = {
         begin: this._begin,
         end: this._end,
-        q: this.$.query.current_query,
+        queries: [this.$.query.current_query],
       };
-      sk.post("/_/search/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json) {
+      sk.post("/_/frame/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json) {
         this._addTraces(json, false, true);
       }.bind(this)).catch(sk.errorMessage);
     },
@@ -451,9 +451,9 @@
       var body = {
         begin: this._begin,
         end: this._end,
-        formula: this.$.formula.value,
+        formulas: [this.$.formula.value],
       };
-      sk.post("/_/calc/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json){
+      sk.post("/_/frame/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json){
         this._addTraces(json, true, false);
       }.bind(this)).catch(sk.errorMessage);
     },

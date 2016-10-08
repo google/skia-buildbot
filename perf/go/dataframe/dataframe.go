@@ -112,3 +112,11 @@ func NewFromQueryAndRange(vcs vcsinfo.VCS, store ptracestore.PTraceStore, begin,
 	colHeaders, commitIDs := getRange(vcs, begin, end)
 	return _new(colHeaders, commitIDs, q, store)
 }
+
+func NewEmpty() *DataFrame {
+	return &DataFrame{
+		TraceSet: ptracestore.TraceSet{},
+		Header:   []*ColumnHeader{},
+		ParamSet: paramtools.ParamSet{},
+	}
+}
