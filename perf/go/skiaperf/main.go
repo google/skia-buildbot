@@ -1179,6 +1179,136 @@ func initpageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// FrameRequest is used to deserialize JSON search requests in frameHandler().
+type FrameRequest struct {
+	Begin    int      `json:"begin"`    // Beginning of time range in Unix timestamp seconds.
+	End      int      `json:"end"`      // End of time range in Unix timestamp seconds.
+	Formulas []string `json:"formulas"` // The Formulae to evaluate.
+	Queries  []string `json:"queries"`  // The queries to perform encoded as a URL query.
+	Hidden   []string `json:"hidden"`   // The ids of traces to remove from the response.
+}
+
+// FrameResponse is serialized to JSON as the response to frame requests.
+type FrameResponse struct {
+	DataFrame *dataframe.DataFrame `json:"dataframe"`
+	Ticks     []interface{}        `json:"ticks"`
+	Skps      []int                `json:"skps"`
+}
+
+func doSearch(queryStr string, begin, end time.Time) (*dataframe.DataFrame, error) {
+	urlValues, err := url.ParseQuery(queryStr)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse query: %s", err)
+	}
+	q, err := query.New(urlValues)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid Query: %s", err)
+	}
+	return dataframe.NewFromQueryAndRange(git, ptracestore.Default, begin, end, q)
+}
+
+func doCalc(formula string, begin, end time.Time) (*dataframe.DataFrame, error) {
+	// During the calculation 'rowsFromQuery' will be called to load up data, we
+	// will capture the dataframe that's created at that time. We only really
+	// need df.Headers so it doesn't matter if the calculation has multiple calls
+	// to filter(), we can just use the last one returned.
+	var df *dataframe.DataFrame
+
+	rowsFromQuery := func(s string) (calc.Rows, error) {
+		urlValues, err := url.ParseQuery(s)
+		if err != nil {
+			return nil, err
+		}
+		q, err := query.New(urlValues)
+		if err != nil {
+			return nil, err
+		}
+		df, err = dataframe.NewFromQueryAndRange(git, ptracestore.Default, begin, end, q)
+		if err != nil {
+			return nil, err
+		}
+		// DataFrames are float32, but calc does its work in float64.
+		rows := calc.Rows{}
+		for k, v := range df.TraceSet {
+			rows[k] = to64(v)
+		}
+		return rows, nil
+	}
+
+	ctx := calc.NewContext(rowsFromQuery)
+	rows, err := ctx.Eval(formula)
+	if err != nil {
+		return nil, fmt.Errorf("Calculation failed: %s", err)
+	}
+
+	// Convert the Rows from float64 to float32 for DataFrame.
+	ts := ptracestore.TraceSet{}
+	for k, v := range rows {
+		ts[k] = to32(v)
+	}
+	df.TraceSet = ts
+
+	// Clear the paramset since we are returning calculated values.
+	df.ParamSet = paramtools.ParamSet{}
+
+	return df, nil
+}
+
+// frameHandler returns the results of running searches and calculations over traces.
+//
+// It expects a JSON serialized FrameRequest in a POST and then returns a
+// serialized JSON FrameResponse.
+func frameHandler(w http.ResponseWriter, r *http.Request) {
+	if *local {
+		loadTemplates()
+	}
+	w.Header().Set("Content-Type", "application/json")
+	fr := &FrameRequest{}
+	defer util.Close(r.Body)
+	if err := json.NewDecoder(r.Body).Decode(fr); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		return
+	}
+	begin := time.Unix(int64(fr.Begin), 0)
+	end := time.Unix(int64(fr.End), 0)
+
+	// Results from all the queries and calcs will be accumulated in this dataframe.
+	var df *dataframe.DataFrame
+
+	// Queries.
+	for _, q := range fr.Queries {
+		newDF, err := doSearch(q, begin, end)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to complete query.")
+			return
+		}
+		dataframe.Append(df, newDF)
+	}
+
+	// Formulas.
+	for _, formula := range fr.Formulas {
+		newDF, err := doCalc(formula, begin, end)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to complete query.")
+			return
+		}
+		dataframe.Append(df, newDF)
+	}
+
+	// TODO(jcgregorio) Filter out "Hidden" here.
+
+	resp, err := searchResponseFromDataFrame(df)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to get ticks or skps.")
+		return
+	}
+
+	// TODO(jcgregorio) Limit the results if there are too many?
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		glog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
 // SearchRequest is used to deserialize JSON search requests in searchHandler().
 type SearchRequest struct {
 	Begin int    `json:"begin"` // Beginning of time range in Unix timestamp seconds.
