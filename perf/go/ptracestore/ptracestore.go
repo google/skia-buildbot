@@ -249,7 +249,7 @@ func (b *BoltTraceStore) Add(commitID *cid.CommitID, values map[string]float32, 
 }
 
 func (b *BoltTraceStore) Details(commitID *cid.CommitID, traceID string) (string, float32, error) {
-	db, err := b.getBoltDB(commitID, false)
+	db, err := b.getBoltDB(commitID, true)
 	if err != nil {
 		return "", 0, fmt.Errorf("Unable to open datastore: %s", err)
 	}
@@ -467,6 +467,7 @@ func (b *BoltTraceStore) Match(commitIDs []*cid.CommitID, q *query.Query) (Trace
 	for _, tm := range mapper {
 		db, err := b.getBoltDB(tm.commitID, true)
 		if err == tileNotExist {
+			glog.Infof("Skipped non-existent db: %s", tm.commitID.Filename())
 			continue
 		}
 		if err != nil {

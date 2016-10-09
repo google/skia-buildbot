@@ -185,11 +185,18 @@
         type: Number,
         value: function() { return Math.floor(Date.now()/1000); },
       },
+      // The formulas that have been calculated and displayed.
       _formulas: {
         type: Array,
         value: function() { return []; },
       },
+      // The queries that have been run to add traces to the plot.
       _queries: {
+        type: Array,
+        value: function() { return []; },
+      },
+      // The ids of all the traces that have been hidden.
+      _hidden: {
         type: Array,
         value: function() { return []; },
       },
@@ -285,6 +292,7 @@
         end: this._end,
         formulas: this._formulas,
         queries: this._queries,
+        hidden: this._hidden,
       };
       sk.post("/_/frame/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json){
         this.$.plot.removeAll();
@@ -385,7 +393,7 @@
         queries: [q],
       };
       sk.post("/_/frame/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json) {
-        this._addTraces(json, false, true);
+        this._addTraces(json, true, true);
       }.bind(this)).catch(sk.errorMessage);
     },
 
@@ -417,16 +425,18 @@
     _removeAll: function() {
       this._formulas = [];
       this._queries = [];
+      this._hidden = [];
       this.$.plot.removeAll();
       this._lines = [];
     },
 
     _removeHighlighted: function() {
       var ids = this.$.plot.highlighted();
+      Array.prototype.push.apply(this._hidden, ids);
       var toadd = [];
 
       Object.keys(this._dataframe.traceset).forEach(function(key) {
-        if (ids.indexOf(key) != -1) {
+        if (this._hidden.indexOf(key) != -1) {
           return
         }
         var values = [];
@@ -448,6 +458,7 @@
 
       Object.keys(this._dataframe.traceset).forEach(function(key) {
         if (ids.indexOf(key) == -1 && !key.startsWith("special")) {
+          this._hidden.push(key);
           return
         }
         var values = [];
