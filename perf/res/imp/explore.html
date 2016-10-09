@@ -193,6 +193,10 @@
         type: Array,
         value: function() { return []; },
       },
+      _hidden: {
+        type: Array,
+        value: function() { return []; },
+      },
     },
 
     ready: function() {
@@ -285,6 +289,7 @@
         end: this._end,
         formulas: this._formulas,
         queries: this._queries,
+        hidden: this._hidden,
       };
       sk.post("/_/frame/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json){
         this.$.plot.removeAll();
@@ -417,16 +422,18 @@
     _removeAll: function() {
       this._formulas = [];
       this._queries = [];
+      this._hidden = [];
       this.$.plot.removeAll();
       this._lines = [];
     },
 
     _removeHighlighted: function() {
       var ids = this.$.plot.highlighted();
+      Array.prototype.push.apply(this._hidden, ids);
       var toadd = [];
 
       Object.keys(this._dataframe.traceset).forEach(function(key) {
-        if (ids.indexOf(key) != -1) {
+        if (this._hidden.indexOf(key) != -1) {
           return
         }
         var values = [];
@@ -448,6 +455,7 @@
 
       Object.keys(this._dataframe.traceset).forEach(function(key) {
         if (ids.indexOf(key) == -1 && !key.startsWith("special")) {
+          this._hidden.push(key);
           return
         }
         var values = [];
