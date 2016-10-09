@@ -273,7 +273,12 @@ func (b *BoltTraceStore) Details(commitID *cid.CommitID, traceID string) (string
 		}
 
 		// Read the value.
-		buf := bytes.NewBuffer(v.Get([]byte(traceID)))
+		rawValues := v.Get([]byte(traceID))
+		if rawValues == nil {
+			rawValues = []byte{}
+		}
+		rawValues = dup(rawValues)
+		buf := bytes.NewBuffer(rawValues)
 		value := traceValue{
 			Index: -1,
 		}
@@ -292,7 +297,12 @@ func (b *BoltTraceStore) Details(commitID *cid.CommitID, traceID string) (string
 		}
 
 		// Read the source.
-		buf = bytes.NewBuffer(s.Get([]byte(traceID)))
+		rawSource := s.Get([]byte(traceID))
+		if rawSource == nil {
+			return fmt.Errorf("Source not found.")
+		}
+		rawSource = dup(rawSource)
+		buf = bytes.NewBuffer(rawSource)
 		source := sourceValue{
 			Index: -1,
 		}
@@ -423,6 +433,7 @@ func loadMatches(db *bolt.DB, idxmap map[int]int, q *query.Query, traceSet Trace
 			}
 			// Don't make the copy until we know we are going to need it.
 			traceid := string(dup(btraceid))
+			rawValues = dup(rawValues)
 
 			// Get the trace.
 			trace := traceSet[traceid]
