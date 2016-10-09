@@ -185,12 +185,9 @@
           ele.textContent = MONTHS[d.getMonth()];
           ele.style.left = Math.floor(600*this._ts2Percent(d.valueOf()/1000)/100) - 2 + "px";
           if (month == 0) {
-            console.log(d);
             d.setFullYear(d.getFullYear()-1);
-            console.log(d);
             month = 11;
             d.setMonth(month);
-            console.log(d);
           } else {
             month--;
             d.setMonth(month);

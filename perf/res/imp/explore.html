@@ -185,6 +185,14 @@
         type: Number,
         value: function() { return Math.floor(Date.now()/1000); },
       },
+      _formulas: {
+        type: Array,
+        value: function() { return []; },
+      },
+      _queries: {
+        type: Array,
+        value: function() { return []; },
+      },
     },
 
     ready: function() {
@@ -272,7 +280,17 @@
     _rangeChange: function(e) {
       this.set("_begin", e.detail.begin);
       this.set("_end", e.detail.end);
-      // TODO(jcgregorio) Should re-run all current queries and calcs being displayed.
+      var body = {
+        begin: this._begin,
+        end: this._end,
+        formulas: this._formulas,
+        queries: this._queries,
+      };
+      sk.post("/_/frame/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json){
+        this.$.plot.removeAll();
+        this._lines = [];
+        this._addTraces(json, false, true);
+      }.bind(this)).catch(sk.errorMessage);
     },
 
     _updateCount: function() {
@@ -357,10 +375,14 @@
     },
 
     _add: function() {
+      var q = this.$.query.current_query;
+      if (this._queries.indexOf(q) == -1) {
+        this._queries.push(q);
+      }
       var body = {
         begin: this._begin,
         end: this._end,
-        queries: [this.$.query.current_query],
+        queries: [q],
       };
       sk.post("/_/frame/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json) {
         this._addTraces(json, false, true);
@@ -393,6 +415,8 @@
     },
 
     _removeAll: function() {
+      this._formulas = [];
+      this._queries = [];
       this.$.plot.removeAll();
       this._lines = [];
     },
@@ -448,12 +472,17 @@
     },
 
     _addCalculated: function() {
+      var f = this.$.formula.value;
+      if (this._formulas.indexOf(f) == -1) {
+        this._formulas.push(f);
+      }
       var body = {
         begin: this._begin,
         end: this._end,
-        formulas: [this.$.formula.value],
+        formulas: [f],
       };
       sk.post("/_/frame/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json){
+        // TODO(jcgregorio) Remove all returned trace ids from hidden.
         this._addTraces(json, true, false);
       }.bind(this)).catch(sk.errorMessage);
     },
