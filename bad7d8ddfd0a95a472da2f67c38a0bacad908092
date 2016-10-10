@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ff45d8e5_003428fb",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-10T00:45:56Z",
+      "side": 1,
+      "message": "nit: either wrong indentation, too many linebreaks, or too few linebreaks; take your pick.",
+      "range": {
+        "startLine": 166,
+        "startChar": 8,
+        "endLine": 167,
+        "endChar": 10
+      },
+      "revId": "bad7d8ddfd0a95a472da2f67c38a0bacad908092",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
