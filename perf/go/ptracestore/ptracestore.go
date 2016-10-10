@@ -29,7 +29,7 @@ const (
 )
 
 var (
-	// tileNotExist is returned from getBoltDB only if 'onlyIfExists' is true and
+	// tileNotExist is returned from getBoltDB only if 'readonly' is true and
 	// the tile doesn't exist.
 	tileNotExist = errors.New("Tile does not exist.")
 )
@@ -88,6 +88,10 @@ type BoltTraceStore struct {
 	// cache is a cache of opened tiles.
 	cache *lru.Cache
 
+	// queryCache is a cache of opened tiles used for queries, i.e. for Match and
+	// Details calls.
+	queryCache *lru.Cache
+
 	// dir is the directory where tiles are stored.
 	dir string
 }
@@ -131,13 +135,17 @@ func New(dir string) (*BoltTraceStore, error) {
 	cache := lru.New(MAX_CACHED_TILES)
 	cache.OnEvicted = closer
 
+	queryCache := lru.New(MAX_CACHED_TILES)
+	queryCache.OnEvicted = closer
+
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return nil, fmt.Errorf("Failed to create %q for ptracestore: %s", dir, err)
 	}
 
 	return &BoltTraceStore{
-		dir:   dir,
-		cache: cache,
+		dir:        dir,
+		cache:      cache,
+		queryCache: queryCache,
 	}, nil
 }
 
@@ -155,22 +163,32 @@ type sourceValue struct {
 
 // getBoltDB returns a new/existing bolt.DB. Already opened db's are cached.
 //
-// If 'onlyIfExists' is true then getBoltDB will fail with a tileNotExist error
+// If 'readonly' is true then getBoltDB will fail with a tileNotExist error
 // instead of creating a new DB at that location.
 //
 // Calls must call Done() on the returned cacheEntry when they are done using it.
-func (b *BoltTraceStore) getBoltDB(commitID *cid.CommitID, onlyIfExists bool) (*cacheEntry, error) {
+func (b *BoltTraceStore) getBoltDB(commitID *cid.CommitID, readonly bool) (*cacheEntry, error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 	name := commitID.Filename()
+	// Look for tile in the cache.
 	if ientry, ok := b.cache.Get(name); ok {
 		if entry, ok := ientry.(*cacheEntry); ok {
 			entry.wg.Add(1)
 			return entry, nil
 		}
 	}
+
+	// Look for tile in the queryCache.
+	if ientry, ok := b.queryCache.Get(name); ok {
+		if entry, ok := ientry.(*cacheEntry); ok {
+			entry.wg.Add(1)
+			return entry, nil
+		}
+	}
+
 	filename := filepath.Join(b.dir, commitID.Filename())
-	if _, err := os.Stat(filename); os.IsNotExist(err) && onlyIfExists {
+	if _, err := os.Stat(filename); os.IsNotExist(err) && readonly {
 		return nil, tileNotExist
 	}
 	db, err := bolt.Open(filename, 0600, &bolt.Options{Timeout: 5 * time.Second})
@@ -182,7 +200,12 @@ func (b *BoltTraceStore) getBoltDB(commitID *cid.CommitID, onlyIfExists bool) (*
 		wg: sync.WaitGroup{},
 	}
 	entry.wg.Add(1)
-	b.cache.Add(name, entry)
+
+	if readonly {
+		b.queryCache.Add(name, entry)
+	} else {
+		b.cache.Add(name, entry)
+	}
 	return entry, nil
 }
 
