@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ff45d8e5_e35ca654",
+        "filename": "task_scheduler/sys/task-scheduler.service",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-10T21:30:24Z",
+      "side": 1,
+      "message": "Did you try just adding the following here?\nEnvironment\u003dPATH\u003d/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/mnt/pd0/depot_tools\n\nSeems a lot simpler than plumbing through a depot_tools_path argument everywhere. Also would be simpler to extend if this comes up again.",
+      "revId": "5c0443c6f8d83628d557c410d3fe5000f3710895",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
