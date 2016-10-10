@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ff45d8e5_63589653",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1305,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-10T22:41:30Z",
+      "side": 1,
+      "message": "nit: j.MakeTaskKey(d)",
+      "revId": "84e91f6c088fe475ac6f078bd46a8378f31e762c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
