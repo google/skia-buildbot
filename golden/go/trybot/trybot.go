@@ -73,7 +73,7 @@ type Tryjob struct {
 // TrybotResults manages everything related to aggregating information about trybot results.
 type TrybotResults struct {
 	tileBuilder    tracedb.BranchTileBuilder
-	reviewURL      string
+	reviewURLx     string
 	rietveldAPI    *rietveld.Rietveld
 	gerritAPI      *gerrit.Gerrit
 	ingestionStore *goldingestion.IngestionStore
@@ -84,7 +84,7 @@ type TrybotResults struct {
 func NewTrybotResults(tileBuilder tracedb.BranchTileBuilder, rietveldAPI *rietveld.Rietveld, gerritAPI *gerrit.Gerrit, ingestionStore *goldingestion.IngestionStore) *TrybotResults {
 	ret := &TrybotResults{
 		tileBuilder:    tileBuilder,
-		reviewURL:      rietveldAPI.Url(0),
+		reviewURLx:     rietveldAPI.Url(0),
 		rietveldAPI:    rietveldAPI,
 		gerritAPI:      gerritAPI,
 		ingestionStore: ingestionStore,
@@ -101,16 +101,24 @@ func (t *TrybotResults) ListTrybotIssues(offset, size int) ([]*Issue, int, error
 	end := time.Now()
 	begin := end.Add(-t.timeFrame)
 
-	commits, issueIDs, err := t.getCommits(begin, end, t.reviewURL)
+	// Get all issues from Rietveld.
+	commits, issueIDs, err := t.getCommits(begin, end, t.rietveldAPI.Url(0), false)
 	if err != nil {
 		return nil, 0, err
 	}
+	issuesList := t.getIssuesFromCommits(commits, issueIDs, false)
 
-	issuesList := t.getIssuesFromCommits(commits, issueIDs)
+	// Get all issues from Gerrit.
+	commits, issueIDs, err = t.getCommits(begin, end, t.gerritAPI.Url(0), true)
+	if err != nil {
+		return nil, 0, err
+	}
+	issuesList = append(issuesList, t.getIssuesFromCommits(commits, issueIDs, true)...)
 	if len(issuesList) == 0 {
 		return []*Issue{}, 0, nil
 	}
 
+	sort.Sort(IssuesSlice(issuesList))
 	maxIdx := util.MaxInt(0, len(issuesList)-1)
 	offset = util.MinInt(util.MaxInt(offset, 0), maxIdx)
 	size = util.MaxInt(size, 0)
@@ -130,8 +138,8 @@ func (t *TrybotResults) GetIssue(issueID string, targetPatchsets []string) (*Iss
 
 	end := time.Now()
 	begin := end.Add(-t.timeFrame)
-	prefix := t.getPrefix(numIssueID)
-	commits, issueIDs, err := t.getCommits(begin, end, prefix)
+	prefix, isGerrit := t.getPrefix(numIssueID)
+	commits, issueIDs, err := t.getCommits(begin, end, prefix, isGerrit)
 
 	if err != nil {
 		return nil, nil, err
@@ -141,7 +149,7 @@ func (t *TrybotResults) GetIssue(issueID string, targetPatchsets []string) (*Iss
 		return nil, nil, nil
 	}
 
-	issue := t.getIssuesFromCommits(commits, issueIDs)[0]
+	issue := t.getIssuesFromCommits(commits, issueIDs, isGerrit)[0]
 	tile, err := t.tileBuilder.CachedTileFromCommits(tracedb.ShortFromLong(commits))
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error retrieving tile: %s", err)
@@ -161,9 +169,15 @@ func (t *TrybotResults) GetIssue(issueID string, targetPatchsets []string) (*Iss
 	}, tile, nil
 }
 
-func (t *TrybotResults) getPrefix(issueID int64) string {
-	// TODO(stephana): Make this general to work for gerrit and rietveld.
-	return t.rietveldAPI.Url(issueID)
+// getPrefix returns the URL prefix for the given issue ID and whether it's
+// a Gerrit issue or not.
+func (t *TrybotResults) getPrefix(issueID int64) (string, bool) {
+	// This uses a heuristic to distinguish between Gerrit and Rietveld issues.
+	// This is a hack and will be obsolete once Rietveld support is removed.
+	if issueID < 1000000 {
+		return t.gerritAPI.Url(issueID), true
+	}
+	return t.rietveldAPI.Url(issueID), false
 }
 
 func (t *TrybotResults) getPatchsetDetails(issue *Issue, targetPatchsets []string) (map[int64]*PatchsetDetail, []string, error) {
@@ -273,6 +287,7 @@ func (t *TrybotResults) getCachedPatchset(intIssueID, pid int64, targetPatchsets
 		return val.(*rietveld.Patchset), nil
 	}
 
+	// XXX
 	val, err := t.rietveldAPI.GetPatchset(intIssueID, pid)
 	if err != nil {
 		return nil, err
@@ -287,7 +302,9 @@ func filterTryjob(tj *rietveld.TryjobResult) bool {
 	return !strings.HasPrefix(tj.Builder, "Test")
 }
 
-func (t *TrybotResults) getCommits(startTime, endTime time.Time, prefix string) ([]*tracedb.CommitIDLong, map[string]bool, error) {
+// getCommits retrieves the commits within the given time range and prefix.
+// isGerrit is a convenience flag indicating whether the Gerrit api should be queried.
+func (t *TrybotResults) getCommits(startTime, endTime time.Time, prefix string, isGerrit bool) ([]*tracedb.CommitIDLong, map[string]bool, error) {
 	commits, err := t.tileBuilder.ListLong(startTime, endTime, prefix)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error retrieving commits in the range %s - %s. Got error: %s", startTime, endTime, err)
@@ -296,7 +313,11 @@ func (t *TrybotResults) getCommits(startTime, endTime time.Time, prefix string) 
 	commits, issueIDs, newBegin := t.uniqueIssues(commits)
 
 	// Retrieve any commitIDs we have not retrieved for the issues of interest.
-	earlierCommits, err := t.tileBuilder.ListLong(newBegin, startTime, t.reviewURL)
+	reviewURL := t.rietveldAPI.Url(0)
+	if isGerrit {
+		reviewURL = t.gerritAPI.Url(0)
+	}
+	earlierCommits, err := t.tileBuilder.ListLong(newBegin, startTime, reviewURL)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error retrieving commits in the range %s - %s. Got error: %s", newBegin, startTime, err)
 	}
@@ -316,8 +337,7 @@ func (t *TrybotResults) getCommits(startTime, endTime time.Time, prefix string) 
 // getIssuesFromCommits returns instances of Issue based on the provided commits and the set
 // of issue ids. It is assumed that issueIDs only contains issues that have Rietveld details
 // attached to them. Any commit that is not in issueIDs will be ommitted.
-func (t *TrybotResults) getIssuesFromCommits(commits []*tracedb.CommitIDLong, issueIDs map[string]bool) []*Issue {
-	codeReviewURL := strings.TrimSuffix(t.reviewURL, "/")
+func (t *TrybotResults) getIssuesFromCommits(commits []*tracedb.CommitIDLong, issueIDs map[string]bool, isGerrit bool) []*Issue {
 	issueMap := make(map[string]*Issue, len(issueIDs))
 	for _, cid := range commits {
 		iid, _ := goldingestion.ExtractIssueInfo(cid.CommitID, t.rietveldAPI, t.gerritAPI)
@@ -325,6 +345,18 @@ func (t *TrybotResults) getIssuesFromCommits(commits []*tracedb.CommitIDLong, is
 		// Ignore issues that are not in issueIDs
 		if !issueIDs[iid] {
 			continue
+		}
+
+		// if the iid is not numeric it is wrong.
+		numIID, err := strconv.ParseInt(iid, 10, 64)
+		if err != nil {
+			glog.Errorf("Unable to parse issue id %s. Got error: %s", iid, err)
+			continue
+		}
+
+		getURL := t.rietveldAPI.Url
+		if isGerrit {
+			getURL = t.gerritAPI.Url
 		}
 
 		issue, ok := issueMap[iid]
@@ -335,7 +367,7 @@ func (t *TrybotResults) getIssuesFromCommits(commits []*tracedb.CommitIDLong, is
 				Subject:   cid.Desc,
 				Owner:     cid.Author,
 				Updated:   details.Modified.Unix(),
-				URL:       fmt.Sprintf("%s/%s", codeReviewURL, iid),
+				URL:       getURL(numIID),
 				Patchsets: details.Patchsets,
 			}
 			issueMap[iid] = issue
@@ -347,7 +379,6 @@ func (t *TrybotResults) getIssuesFromCommits(commits []*tracedb.CommitIDLong, is
 		ret = append(ret, issue)
 	}
 
-	sort.Sort(IssuesSlice(ret))
 	return ret
 }
 
