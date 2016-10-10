@@ -5,6 +5,8 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/testutils"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
@@ -25,8 +27,11 @@ const (
 	// temporary directory to store sharedb content.
 	TRYBOT_SHAREDB_DIR = "./sharedb-testdata"
 
-	// URL of the code review system.
-	TEST_CODE_REVIEW_URL = "https://codereview.chromium.org"
+	// URL of the rietveld instance.
+	TEST_CODE_RIETVELDREVIEW_URL = rietveld.RIETVELD_SKIA_URL
+
+	// URL of the gerrit instance.
+	TEST_CODE_GERRITREVIEW_URL = gerrit.GERRIT_SKIA_URL
 )
 
 var (
@@ -53,7 +58,7 @@ var (
 
 // Tests the processor in conjunction with the vcs.
 func TestTrybotGoldProcessor(t *testing.T) {
-	server, serverAddress := RunGoldTrybotProcessor(t, TRYBOT_TRACE_DB_FILE, TRYBOT_SHAREDB_DIR, TRYBOT_INGESTION_FILE, TEST_DATA_DIR, TEST_CODE_REVIEW_URL)
+	server, serverAddress := RunGoldTrybotProcessor(t, TRYBOT_TRACE_DB_FILE, TRYBOT_SHAREDB_DIR, TRYBOT_INGESTION_FILE, TEST_DATA_DIR, TEST_CODE_RIETVELDREVIEW_URL, TEST_CODE_GERRITREVIEW_URL)
 	defer util.RemoveAll(TRYBOT_SHAREDB_DIR)
 	defer testutils.Remove(t, TRYBOT_TRACE_DB_FILE)
 	defer server.Stop()
@@ -68,14 +73,14 @@ func TestTrybotGoldProcessor(t *testing.T) {
 	commitIDs, err := traceDB.List(startTime, time.Now())
 	assert.NoError(t, err)
 
-	assert.Equal(t, 1, len(FilterCommitIDs(commitIDs, TEST_CODE_REVIEW_URL)))
-	assert.Equal(t, 0, len(FilterCommitIDs(commitIDs, "master")))
+	assert.Equal(t, 1, len(filterCommitIDs(commitIDs, TEST_CODE_RIETVELDREVIEW_URL)))
+	assert.Equal(t, 0, len(filterCommitIDs(commitIDs, "master")))
 
 	assert.Equal(t, 1, len(commitIDs))
 	assert.Equal(t, &tracedb.CommitID{
 		Timestamp: 1443718869,
 		ID:        "1",
-		Source:    TEST_CODE_REVIEW_URL + "/1381483003",
+		Source:    TEST_CODE_RIETVELDREVIEW_URL + "/1381483003",
 	}, commitIDs[0])
 
 	// Get a tile and make sure we have the right number of traces.
@@ -96,11 +101,15 @@ func TestTrybotGoldProcessor(t *testing.T) {
 	}
 
 	// Make sure the prefix is stripped correctly.
-	assert.Equal(t, TEST_CODE_REVIEW_URL+"/1381483003", commitIDs[0].Source)
-	issueID, patchsetID := ExtractIssueInfo(commitIDs[0], TEST_CODE_REVIEW_URL)
+	rietveldReview := rietveld.New(TEST_CODE_RIETVELDREVIEW_URL, nil)
+	gerritReview, err := gerrit.NewGerrit(TEST_CODE_GERRITREVIEW_URL, "", nil)
+	assert.NoError(t, err)
+
+	assert.Equal(t, TEST_CODE_RIETVELDREVIEW_URL+"/1381483003", commitIDs[0].Source)
+	issueID, patchsetID := ExtractIssueInfo(commitIDs[0], rietveldReview, gerritReview)
 	assert.Equal(t, "1", patchsetID)
 	assert.Equal(t, "1381483003", issueID)
-	issueID, patchsetID = ExtractIssueInfo(&tracedb.CommitID{}, TEST_CODE_REVIEW_URL)
+	issueID, patchsetID = ExtractIssueInfo(&tracedb.CommitID{}, rietveldReview, gerritReview)
 	assert.Equal(t, "", issueID)
 	assert.Equal(t, "", patchsetID)
 	assert.NoError(t, traceDB.Close())
