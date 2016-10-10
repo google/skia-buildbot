@@ -1,6 +1,7 @@
 package rietveld
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -29,4 +30,20 @@ func TestRietveld(t *testing.T) {
 	keys, err := api.SearchKeys(5, SearchModifiedAfter(time.Now().Add(-time.Hour)))
 	assert.NoError(t, err)
 	assert.Equal(t, 5, len(keys))
+}
+
+func TestUrlAndExtractIssue(t *testing.T) {
+	api := New(RIETVELD_SKIA_URL, nil)
+	assert.Equal(t, RIETVELD_SKIA_URL, api.Url(0))
+	url1 := api.Url(1234)
+	assert.Equal(t, fmt.Sprintf("%s/%d", RIETVELD_SKIA_URL, 1234), url1)
+	found, ok := api.ExtractIssue(url1)
+	assert.True(t, ok)
+	assert.Equal(t, "1234", found)
+	found, ok = api.ExtractIssue(fmt.Sprintf("%s/c/%d", RIETVELD_SKIA_URL, 1234))
+	assert.Equal(t, "", found)
+	assert.False(t, ok)
+	found, ok = api.ExtractIssue("random string")
+	assert.Equal(t, "", found)
+	assert.False(t, ok)
 }

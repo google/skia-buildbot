@@ -2,6 +2,7 @@ package goldingestion
 
 import (
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -102,8 +103,8 @@ func TestGoldProcessor(t *testing.T) {
 	commitIDs, err := traceDB.List(startTime, time.Now())
 	assert.NoError(t, err)
 
-	assert.Equal(t, 1, len(FilterCommitIDs(commitIDs, "master")))
-	assert.Equal(t, 0, len(FilterCommitIDs(commitIDs, TEST_CODE_REVIEW_URL)))
+	assert.Equal(t, 1, len(filterCommitIDs(commitIDs, "master")))
+	assert.Equal(t, 0, len(filterCommitIDs(commitIDs, TEST_CODE_RIETVELDREVIEW_URL)))
 
 	assert.Equal(t, 1, len(commitIDs))
 	assert.Equal(t, &tracedb.CommitID{
@@ -130,4 +131,20 @@ func TestGoldProcessor(t *testing.T) {
 
 	assert.Equal(t, "master", commitIDs[0].Source)
 	assert.NoError(t, traceDB.Close())
+}
+
+// filterCommitIDs returns all commitIDs that have the given prefix. If the
+// prefix is an empty string it will return the input slice.
+func filterCommitIDs(commitIDs []*tracedb.CommitID, prefix string) []*tracedb.CommitID {
+	if prefix == "" {
+		return commitIDs
+	}
+
+	ret := make([]*tracedb.CommitID, 0, len(commitIDs))
+	for _, cid := range commitIDs {
+		if strings.HasPrefix(cid.Source, prefix) {
+			ret = append(ret, cid)
+		}
+	}
+	return ret
 }

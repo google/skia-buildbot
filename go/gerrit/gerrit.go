@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os/user"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -46,8 +47,8 @@ type ChangeInfo struct {
 	Subject         string                 `json:"subject"`
 	Branch          string                 `json:"branch"`
 	Committed       bool                   `json:"committed"`
-	Revisions       map[string]Revision    `json:"revisions"`
-	Patchsets       []*PatchSet            `json:"patchsets"`
+	Revisions       map[string]*Revision   `json:"revisions"`
+	Patchsets       []*Revision            `json:"-"`
 	MoreChanges     bool                   `json:"_more_changes"`
 	Issue           int64                  `json:"_number"`
 	Labels          map[string]*LabelEntry `json:"labels"`
@@ -72,20 +73,19 @@ type LabelDetail struct {
 	Value int
 }
 
+// Revision is the information associated with a patchset in Gerrit.
 type Revision struct {
-	CreatedString string `json:"created"`
-}
-
-type PatchSet struct {
-	Created    time.Time
-	RevisionId string
+	ID            string    `json:"-"`
+	CreatedString string    `json:"created"`
+	Created       time.Time `json:"-"`
 }
 
 // Gerrit is an object used for iteracting with the issue tracker.
 type Gerrit struct {
-	client  *http.Client
-	url     string
-	cookies map[string]string
+	client            *http.Client
+	buildbucketClient *buildbucket.Client
+	url               string
+	cookies           map[string]string
 }
 
 // NewGerrit returns a new Gerrit instance. If gitCookiesPath is empty the
@@ -103,9 +103,10 @@ func NewGerrit(url, gitCookiesPath string, client *http.Client) (*Gerrit, error)
 	}
 
 	return &Gerrit{
-		url:     url,
-		client:  client,
-		cookies: cookies,
+		url:               url,
+		client:            client,
+		buildbucketClient: buildbucket.NewClient(client),
+		cookies:           cookies,
 	}, nil
 }
 
@@ -157,9 +158,31 @@ func parseTime(t string) time.Time {
 	return parsed
 }
 
-// Url returns the url of the Gerrit instance targeted by this instance.
-func (g *Gerrit) Url() string {
-	return g.url
+// Url returns the url of the Gerrit issue identified by issueID or the
+// base URL of the Gerrit instance if issueID is 0.
+func (g *Gerrit) Url(issueID int64) string {
+	if issueID == 0 {
+		return g.url
+	}
+	return fmt.Sprintf("%s/c/%d", g.url, issueID)
+}
+
+// extractReg is the regular expression used by ExtractIssue.
+var extractReg = regexp.MustCompile("^/c/([0-9]+)$")
+
+// ExtractIssue returns the issue id as a string given the issue URL.
+// The second return value is true if the issueURL matches the current Gerrit
+// instance. If it is false the first return value should be ignored.
+func (g *Gerrit) ExtractIssue(issueURL string) (string, bool) {
+	if !strings.HasPrefix(issueURL, g.url) {
+		return "", false
+	}
+
+	match := extractReg.FindStringSubmatch(strings.TrimRight(issueURL[len(g.url):], "/"))
+	if len(match) != 2 {
+		return "", false
+	}
+	return match[1], true
 }
 
 // GetIssueProperties returns a fully filled-in ChangeInfo object, as opposed to
@@ -179,11 +202,14 @@ func (g *Gerrit) GetIssueProperties(issue int64) (*ChangeInfo, error) {
 		fullIssue.Committed = true
 	}
 	// Make patchset objects with the revision IDs and created timestamps.
-	var patchsets patchsetSortable
+	patchsets := make([]*Revision, 0, len(fullIssue.Revisions))
 	for id, r := range fullIssue.Revisions {
-		patchsets = append(patchsets, &PatchSet{RevisionId: id, Created: parseTime(r.CreatedString)})
+		// Fill in the missing fields.
+		r.ID = id
+		r.Created = parseTime(r.CreatedString)
+		patchsets = append(patchsets, r)
 	}
-	sort.Sort(patchsets)
+	sort.Sort(revisionSlice(patchsets))
 	fullIssue.Patchsets = patchsets
 
 	return fullIssue, nil
@@ -198,7 +224,7 @@ func (g *Gerrit) setReview(issue *ChangeInfo, message string, labels map[string]
 		"labels":  labels,
 	}
 	latestPatchset := issue.Patchsets[len(issue.Patchsets)-1]
-	return g.post(fmt.Sprintf("/a/changes/%s/revisions/%s/review", issue.ChangeId, latestPatchset.RevisionId), postData)
+	return g.post(fmt.Sprintf("/a/changes/%s/revisions/%s/review", issue.ChangeId, latestPatchset.ID), postData)
 }
 
 // AddComment adds a message to the issue.
@@ -313,11 +339,11 @@ func (p changeListSortable) Len() int           { return len(p) }
 func (p changeListSortable) Less(i, j int) bool { return p[i].Created.Before(p[j].Created) }
 func (p changeListSortable) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
-type patchsetSortable []*PatchSet
+type revisionSlice []*Revision
 
-func (p patchsetSortable) Len() int           { return len(p) }
-func (p patchsetSortable) Less(i, j int) bool { return p[i].Created.Before(p[j].Created) }
-func (p patchsetSortable) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (r revisionSlice) Len() int           { return len(r) }
+func (r revisionSlice) Less(i, j int) bool { return r[i].Created.Before(r[j].Created) }
+func (r revisionSlice) Swap(i, j int)      { r[i], r[j] = r[j], r[i] }
 
 // SearchTerm is a wrapper for search terms to pass into the Search method.
 type SearchTerm struct {
@@ -390,7 +416,7 @@ func (g *Gerrit) Search(limit int, terms ...*SearchTerm) ([]*ChangeInfo, error) 
 }
 
 func (g *Gerrit) GetTrybotResults(issueID int64, patchsetID int64) ([]*buildbucket.Build, error) {
-	return buildbucket.NewClient(g.client).GetTrybotsForCL(issueID, patchsetID, "gerrit", g.url)
+	return g.buildbucketClient.GetTrybotsForCL(issueID, patchsetID, "gerrit", g.url)
 }
 
 // CodeReviewCache is an LRU cache for Gerrit Issues that polls in the background to determine if

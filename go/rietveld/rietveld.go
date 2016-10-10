@@ -87,9 +87,31 @@ func New(url string, client *http.Client) *Rietveld {
 	}
 }
 
-// Url returns the URL of the server for this Rietveld instance.
-func (r *Rietveld) Url() string {
-	return r.url
+// Url returns the url of the Rietveld issue identified by issueID or the
+// base URL of the Rietveld instance if issueID is 0.
+func (r *Rietveld) Url(issueID int64) string {
+	if issueID == 0 {
+		return r.url
+	}
+	return fmt.Sprintf("%s/%d", r.url, issueID)
+}
+
+// extractReg is the regular expression used by ExtractIssue.
+var extractReg = regexp.MustCompile("^/([0-9]+)$")
+
+// ExtractIssue returns the issue id as a string given the issue URL.
+// The second return value is true if the issueURL matches the current Rietveld
+// instance. If it is false the first return value should be ignored.
+func (r *Rietveld) ExtractIssue(issueURL string) (string, bool) {
+	if !strings.HasPrefix(issueURL, r.url) {
+		return "", false
+	}
+
+	match := extractReg.FindStringSubmatch(strings.TrimRight(issueURL[len(r.url):], "/"))
+	if len(match) != 2 {
+		return "", false
+	}
+	return match[1], true
 }
 
 // Patchset contains the information about one patchset. Currently we omit

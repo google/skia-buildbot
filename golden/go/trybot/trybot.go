@@ -12,6 +12,7 @@ import (
 
 	cache "github.com/patrickmn/go-cache"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
@@ -74,16 +75,18 @@ type TrybotResults struct {
 	tileBuilder    tracedb.BranchTileBuilder
 	reviewURL      string
 	rietveldAPI    *rietveld.Rietveld
+	gerritAPI      *gerrit.Gerrit
 	ingestionStore *goldingestion.IngestionStore
 	timeFrame      time.Duration
 	patchsetCache  *cache.Cache
 }
 
-func NewTrybotResults(tileBuilder tracedb.BranchTileBuilder, rietveldAPI *rietveld.Rietveld, ingestionStore *goldingestion.IngestionStore) *TrybotResults {
+func NewTrybotResults(tileBuilder tracedb.BranchTileBuilder, rietveldAPI *rietveld.Rietveld, gerritAPI *gerrit.Gerrit, ingestionStore *goldingestion.IngestionStore) *TrybotResults {
 	ret := &TrybotResults{
 		tileBuilder:    tileBuilder,
-		reviewURL:      rietveldAPI.Url(),
+		reviewURL:      rietveldAPI.Url(0),
 		rietveldAPI:    rietveldAPI,
+		gerritAPI:      gerritAPI,
 		ingestionStore: ingestionStore,
 		timeFrame:      TIME_FRAME,
 		patchsetCache:  cache.New(PATCHSET_CACHE_EXPIRATION, PATCHSET_CACHE_CLEANUP_INTERVAL),
@@ -120,9 +123,14 @@ func (t *TrybotResults) ListTrybotIssues(offset, size int) ([]*Issue, int, error
 // of the issue information including the commit ids that make up the issue.
 // The commmit ids align with the tile that is returned.
 func (t *TrybotResults) GetIssue(issueID string, targetPatchsets []string) (*IssueDetails, *tiling.Tile, error) {
+	numIssueID, err := strconv.ParseInt(issueID, 10, 64)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	end := time.Now()
 	begin := end.Add(-t.timeFrame)
-	prefix := goldingestion.GetPrefix(issueID, t.reviewURL)
+	prefix := t.getPrefix(numIssueID)
 	commits, issueIDs, err := t.getCommits(begin, end, prefix)
 
 	if err != nil {
@@ -151,6 +159,11 @@ func (t *TrybotResults) GetIssue(issueID string, targetPatchsets []string) (*Iss
 		PatchsetDetails: patchsetDetails,
 		TargetPatchsets: targetPatchsets,
 	}, tile, nil
+}
+
+func (t *TrybotResults) getPrefix(issueID int64) string {
+	// TODO(stephana): Make this general to work for gerrit and rietveld.
+	return t.rietveldAPI.Url(issueID)
 }
 
 func (t *TrybotResults) getPatchsetDetails(issue *Issue, targetPatchsets []string) (map[int64]*PatchsetDetail, []string, error) {
@@ -291,7 +304,7 @@ func (t *TrybotResults) getCommits(startTime, endTime time.Time, prefix string) 
 	// Only get the commitIDs we are interested in.
 	temp := make([]*tracedb.CommitIDLong, 0, len(earlierCommits))
 	for _, cid := range earlierCommits {
-		iid, _ := goldingestion.ExtractIssueInfo(cid.CommitID, t.reviewURL)
+		iid, _ := goldingestion.ExtractIssueInfo(cid.CommitID, t.rietveldAPI, t.gerritAPI)
 		if issueIDs[iid] {
 			temp = append(temp, cid)
 		}
@@ -307,7 +320,7 @@ func (t *TrybotResults) getIssuesFromCommits(commits []*tracedb.CommitIDLong, is
 	codeReviewURL := strings.TrimSuffix(t.reviewURL, "/")
 	issueMap := make(map[string]*Issue, len(issueIDs))
 	for _, cid := range commits {
-		iid, _ := goldingestion.ExtractIssueInfo(cid.CommitID, t.reviewURL)
+		iid, _ := goldingestion.ExtractIssueInfo(cid.CommitID, t.rietveldAPI, t.gerritAPI)
 
 		// Ignore issues that are not in issueIDs
 		if !issueIDs[iid] {
@@ -351,7 +364,7 @@ func (t *TrybotResults) uniqueIssues(commitIDs []*tracedb.CommitIDLong) ([]*trac
 			continue
 		}
 		ret = append(ret, cid)
-		iid, _ := goldingestion.ExtractIssueInfo(cid.CommitID, t.reviewURL)
+		iid, _ := goldingestion.ExtractIssueInfo(cid.CommitID, t.rietveldAPI, t.gerritAPI)
 		issueIDs[iid] = true
 		rIssue := cid.Details.(*rietveld.Issue)
 		if minTime.After(rIssue.Created) {

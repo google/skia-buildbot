@@ -84,11 +84,11 @@ func NewBranchTileBuilder(db DB, vcs vcsinfo.VCS, rietveldReview *rietveld.Rietv
 		db:                 db,
 		vcs:                vcs,
 		rietveldReview:     rietveldReview,
-		rietveldReviewURL:  rietveldReview.Url(),
+		rietveldReviewURL:  rietveldReview.Url(0),
 		rietveldIssueCache: rietveld.NewCodeReviewCache(rietveldReview, time.Minute, MAX_ISSUE_CACHE_SIZE),
 
 		gerritReview:          gerritReview,
-		gerritReviewURL:       gerritReview.Url(),
+		gerritReviewURL:       gerritReview.Url(0),
 		gerritChangeInfoCache: gerrit.NewCodeReviewCache(gerritReview, time.Minute, MAX_ISSUE_CACHE_SIZE),
 		tcache:                lru.New(MAX_TILE_CACHE_SIZE),
 	}
