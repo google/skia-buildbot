@@ -7,7 +7,6 @@ import (
 	"sort"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/vcsinfo"
@@ -63,9 +62,6 @@ func rangeImpl(resp []*vcsinfo.IndexCommit) ([]*ColumnHeader, []*cid.CommitID) {
 // needed by DataFrame and ptracestore.PTraceStore, respectively. The slices
 // are for the last 50 commits in the repo.
 func lastN(vcs vcsinfo.VCS) ([]*ColumnHeader, []*cid.CommitID) {
-	if err := vcs.Update(true, false); err != nil {
-		glog.Errorf("Failed to update repo: %s", err)
-	}
 	return rangeImpl(vcs.LastNIndex(DEFAULT_NUM_COMMITS))
 }
 
@@ -73,9 +69,6 @@ func lastN(vcs vcsinfo.VCS) ([]*ColumnHeader, []*cid.CommitID) {
 // needed by DataFrame and ptracestore.PTraceStore, respectively. The slices
 // are for the commits that fall in the given time range [begin, end).
 func getRange(vcs vcsinfo.VCS, begin, end time.Time) ([]*ColumnHeader, []*cid.CommitID) {
-	if err := vcs.Update(true, false); err != nil {
-		glog.Errorf("Failed to update repo: %s", err)
-	}
 	return rangeImpl(vcs.Range(begin, end))
 }
 

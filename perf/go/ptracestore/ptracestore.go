@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	MAX_CACHED_TILES = 5
+	MAX_CACHED_TILES = 20
 
 	TRACE_VALUES_BUCKET_NAME  = "traces"
 	TRACE_SOURCES_BUCKET_NAME = "sources"
@@ -92,11 +92,35 @@ type BoltTraceStore struct {
 	dir string
 }
 
+// cacheEntry is what's stored in the BoltTraceStore cache.
+//
+// The cacheEntry holds a bolt.DB and a WaitGroup. Every time the cacheEntry is
+// requested from getBoltDB the wg is incremented. If the entry gets evicted
+// from the cache we wait for the 'wg' to reach zero before closing the BoltDB,
+// since there may be transactions still running against the DB.
+type cacheEntry struct {
+	db *bolt.DB
+	wg sync.WaitGroup
+}
+
+func (c *cacheEntry) Done() {
+	c.wg.Done()
+}
+
 // closer is a callback we pass to the lru cache to close bolt.DBs once they've
 // been evicted from the cache.
+//
+// The call to entry.wg.Wait() is safe because the BoltTraceStore cache is
+// protected by a mutex, and lru.Cache is single threaded, so no adds can
+// happen concurrently. Only during an add will an entry be evicted from the
+// cache, and during that eviction we can wait for the wg to decrease to 0,
+// which is guaranteed since the cache is locked.
 func closer(key lru.Key, value interface{}) {
-	if db, ok := value.(*bolt.DB); ok {
-		util.Close(db)
+	if entry, ok := value.(*cacheEntry); ok {
+		glog.Infof("Waiting: %v", key)
+		entry.wg.Wait()
+		glog.Infof("Closing: %v", key)
+		util.Close(entry.db)
 	} else {
 		glog.Errorf("Found a non-bolt.DB in the cache at key %q", key)
 	}
@@ -133,25 +157,33 @@ type sourceValue struct {
 //
 // If 'onlyIfExists' is true then getBoltDB will fail with a tileNotExist error
 // instead of creating a new DB at that location.
-func (b *BoltTraceStore) getBoltDB(commitID *cid.CommitID, onlyIfExists bool) (*bolt.DB, error) {
+//
+// Calls must call Done() on the returned cacheEntry when they are done using it.
+func (b *BoltTraceStore) getBoltDB(commitID *cid.CommitID, onlyIfExists bool) (*cacheEntry, error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 	name := commitID.Filename()
-	if idb, ok := b.cache.Get(name); ok {
-		if db, ok := idb.(*bolt.DB); ok {
-			return db, nil
+	if ientry, ok := b.cache.Get(name); ok {
+		if entry, ok := ientry.(*cacheEntry); ok {
+			entry.wg.Add(1)
+			return entry, nil
 		}
 	}
 	filename := filepath.Join(b.dir, commitID.Filename())
 	if _, err := os.Stat(filename); os.IsNotExist(err) && onlyIfExists {
 		return nil, tileNotExist
 	}
-	db, err := bolt.Open(filename, 0600, &bolt.Options{Timeout: 1 * time.Second})
+	db, err := bolt.Open(filename, 0600, &bolt.Options{Timeout: 5 * time.Second})
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open %q: %s", filename, err)
 	}
-	b.cache.Add(name, db)
-	return db, nil
+	entry := &cacheEntry{
+		db: db,
+		wg: sync.WaitGroup{},
+	}
+	entry.wg.Add(1)
+	b.cache.Add(name, entry)
+	return entry, nil
 }
 
 func uint64ToBytes(u uint64) []byte {
@@ -171,10 +203,11 @@ func serialize(i interface{}) ([]byte, error) {
 
 func (b *BoltTraceStore) Add(commitID *cid.CommitID, values map[string]float32, sourceFile string) error {
 	index := commitID.Offset % constants.COMMITS_PER_TILE
-	db, err := b.getBoltDB(commitID, false)
+	entry, err := b.getBoltDB(commitID, false)
 	if err != nil {
 		return fmt.Errorf("Unable to open datastore: %s", err)
 	}
+	defer entry.Done()
 
 	var lastSourceIndex uint64
 	// Add the source and get its index.
@@ -195,7 +228,7 @@ func (b *BoltTraceStore) Add(commitID *cid.CommitID, values map[string]float32, 
 		return nil
 	}
 
-	if err := db.Update(addSource); err != nil {
+	if err := entry.db.Update(addSource); err != nil {
 		return fmt.Errorf("Error while writing source list: %s", err)
 	}
 
@@ -241,7 +274,7 @@ func (b *BoltTraceStore) Add(commitID *cid.CommitID, values map[string]float32, 
 		return nil
 	}
 
-	if err := db.Update(addValues); err != nil {
+	if err := entry.db.Update(addValues); err != nil {
 		return fmt.Errorf("Error while writing values: %s", err)
 	}
 
@@ -249,10 +282,11 @@ func (b *BoltTraceStore) Add(commitID *cid.CommitID, values map[string]float32, 
 }
 
 func (b *BoltTraceStore) Details(commitID *cid.CommitID, traceID string) (string, float32, error) {
-	db, err := b.getBoltDB(commitID, true)
+	entry, err := b.getBoltDB(commitID, true)
 	if err != nil {
 		return "", 0, fmt.Errorf("Unable to open datastore: %s", err)
 	}
+	defer entry.Done()
 
 	localIndex := int64(commitID.Offset % constants.COMMITS_PER_TILE)
 	var sourceRet string
@@ -327,7 +361,7 @@ func (b *BoltTraceStore) Details(commitID *cid.CommitID, traceID string) (string
 		return nil
 	}
 
-	if err := db.View(get); err != nil {
+	if err := entry.db.View(get); err != nil {
 		return "", 0, fmt.Errorf("Error while reading value: %s", err)
 	}
 
@@ -415,7 +449,9 @@ func dup(b []byte) []byte {
 // loadMatches loads values into 'traceSet' that match the query 'q' from the
 // tile in the BoltDB 'db'.  Only values at the offsets in 'idxmap' are
 // actually loaded, and 'idxmap' determines where they are stored in the Trace.
-func loadMatches(db *bolt.DB, idxmap map[int]int, q *query.Query, traceSet TraceSet, traceLen int) error {
+func loadMatches(entry *cacheEntry, idxmap map[int]int, q *query.Query, traceSet TraceSet, traceLen int) error {
+	defer entry.Done()
+
 	get := func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(TRACE_VALUES_BUCKET_NAME))
 		if bucket == nil {
@@ -458,14 +494,14 @@ func loadMatches(db *bolt.DB, idxmap map[int]int, q *query.Query, traceSet Trace
 		return nil
 	}
 
-	return db.View(get)
+	return entry.db.View(get)
 }
 
 func (b *BoltTraceStore) Match(commitIDs []*cid.CommitID, q *query.Query) (TraceSet, error) {
 	ret := TraceSet{}
 	mapper := buildMapper(commitIDs)
 	for _, tm := range mapper {
-		db, err := b.getBoltDB(tm.commitID, true)
+		entry, err := b.getBoltDB(tm.commitID, true)
 		if err == tileNotExist {
 			glog.Infof("Skipped non-existent db: %s", tm.commitID.Filename())
 			continue
@@ -473,7 +509,8 @@ func (b *BoltTraceStore) Match(commitIDs []*cid.CommitID, q *query.Query) (Trace
 		if err != nil {
 			return nil, fmt.Errorf("Failed to open tile from %s: %s", tm.commitID.Filename(), err)
 		}
-		if err := loadMatches(db, tm.idxmap, q, ret, len(commitIDs)); err != nil {
+		// loadMatches calls entry.Done().
+		if err := loadMatches(entry, tm.idxmap, q, ret, len(commitIDs)); err != nil {
 			return nil, fmt.Errorf("Failed to load traces from %s: %s", tm.commitID.Filename(), err)
 		}
 	}
