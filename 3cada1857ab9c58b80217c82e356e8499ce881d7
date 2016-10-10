@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7f1568be_e624776f",
+        "filename": "golden/go/goldingestion/trybot_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-10T13:04:31Z",
+      "side": 1,
+      "message": "Just to be consistent: There is also a rietveld.RIETVELD_SKIA_URL",
+      "revId": "3cada1857ab9c58b80217c82e356e8499ce881d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
