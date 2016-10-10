@@ -15,6 +15,7 @@ import (
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/mockhttpclient"
@@ -70,6 +71,21 @@ var (
 	}
 )
 
+func MockOutExec() {
+	// Mock out exec.Run because "git cl patch" doesn't work with fake
+	// issues.
+	exec.SetRunForTesting(func(c *exec.Command) error {
+		if c.Name == "git" && len(c.Args) >= 2 {
+			if c.Args[0] == "cl" && c.Args[1] == "patch" {
+				return nil
+			} else if c.Args[0] == "reset" && c.Args[1] == "HEAD^" {
+				return nil
+			}
+		}
+		return exec.DefaultRun(c)
+	})
+}
+
 // setup prepares the tests to run. Returns the created temporary dir,
 // TryJobIntegrator instance, and URLMock instance.
 func setup(t *testing.T) (string, *TryJobIntegrator, *mockhttpclient.URLMock) {
@@ -101,6 +117,9 @@ func setup(t *testing.T) (string, *TryJobIntegrator, *mockhttpclient.URLMock) {
 	mock := mockhttpclient.NewURLMock()
 	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, mock.Client(), d, cache, projectRepoMapping, rm, taskCfgCache)
 	assert.NoError(t, err)
+
+	MockOutExec()
+
 	return tmpDir, integrator, mock
 }
 
