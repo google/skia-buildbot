@@ -9,6 +9,7 @@ import (
 	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
 	"github.com/satori/go.uuid"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
@@ -16,6 +17,7 @@ import (
 // Verify that sendHeartbeats sends heartbeats for unfinished try jobs.
 func TestHeartbeats(t *testing.T) {
 	tmpDir, trybots, mock := setup(t)
+	defer exec.SetRunForTesting(exec.DefaultRun)
 	defer testutils.RemoveAll(t, tmpDir)
 
 	now := time.Now()
@@ -102,6 +104,7 @@ func TestHeartbeats(t *testing.T) {
 
 func TestGetRepo(t *testing.T) {
 	tmpDir, trybots, _ := setup(t)
+	defer exec.SetRunForTesting(exec.DefaultRun)
 	defer testutils.RemoveAll(t, tmpDir)
 
 	url, r, err := trybots.getRepo(patchProject)
@@ -115,6 +118,7 @@ func TestGetRepo(t *testing.T) {
 
 func TestGetRevision(t *testing.T) {
 	tmpDir, trybots, _ := setup(t)
+	defer exec.SetRunForTesting(exec.DefaultRun)
 	defer testutils.RemoveAll(t, tmpDir)
 
 	// Get the (only) commit from the repo.
@@ -145,6 +149,7 @@ func TestGetRevision(t *testing.T) {
 
 func TestCancelBuild(t *testing.T) {
 	tmpDir, trybots, mock := setup(t)
+	defer exec.SetRunForTesting(exec.DefaultRun)
 	defer testutils.RemoveAll(t, tmpDir)
 
 	id := int64(12345)
@@ -160,6 +165,7 @@ func TestCancelBuild(t *testing.T) {
 
 func TestTryLeaseBuild(t *testing.T) {
 	tmpDir, trybots, mock := setup(t)
+	defer exec.SetRunForTesting(exec.DefaultRun)
 	defer testutils.RemoveAll(t, tmpDir)
 
 	id := int64(12345)
@@ -179,6 +185,7 @@ func TestTryLeaseBuild(t *testing.T) {
 
 func TestJobStarted(t *testing.T) {
 	tmpDir, trybots, mock := setup(t)
+	defer exec.SetRunForTesting(exec.DefaultRun)
 	defer testutils.RemoveAll(t, tmpDir)
 
 	j := tryjob()
@@ -198,6 +205,7 @@ func TestJobStarted(t *testing.T) {
 
 func TestJobFinished(t *testing.T) {
 	tmpDir, trybots, mock := setup(t)
+	defer exec.SetRunForTesting(exec.DefaultRun)
 	defer testutils.RemoveAll(t, tmpDir)
 
 	j := tryjob()
@@ -250,6 +258,7 @@ func TestJobFinished(t *testing.T) {
 
 func TestGetJobToSchedule(t *testing.T) {
 	tmpDir, trybots, mock := setup(t)
+	defer exec.SetRunForTesting(exec.DefaultRun)
 	defer testutils.RemoveAll(t, tmpDir)
 
 	now := time.Now()
@@ -352,6 +361,7 @@ func TestGetJobToSchedule(t *testing.T) {
 
 func TestPoll(t *testing.T) {
 	tmpDir, trybots, mock := setup(t)
+	defer exec.SetRunForTesting(exec.DefaultRun)
 	defer testutils.RemoveAll(t, tmpDir)
 
 	now := time.Now()
