@@ -189,17 +189,23 @@ func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNew
 func (c *taskCandidate) allDepsMet(cache db.TaskCache) (bool, map[string]string, error) {
 	rv := make(map[string]string, len(c.TaskSpec.Dependencies))
 	for _, depName := range c.TaskSpec.Dependencies {
-		d, err := cache.GetTaskForCommit(c.Repo, c.Revision, depName)
+		key := c.TaskKey.Copy()
+		key.Name = depName
+		byKey, err := cache.GetTasksByKey(&key)
 		if err != nil {
 			return false, nil, err
 		}
-		if d == nil {
+		ok := false
+		for _, t := range byKey {
+			if t.Done() && t.Success() && t.IsolatedOutput != "" {
+				rv[t.Id] = t.IsolatedOutput
+				ok = true
+				break
+			}
+		}
+		if !ok {
 			return false, nil, nil
 		}
-		if !d.Done() || !d.Success() || d.IsolatedOutput == "" {
-			return false, nil, nil
-		}
-		rv[d.Id] = d.IsolatedOutput
 	}
 	return true, rv, nil
 }

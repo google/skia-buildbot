@@ -483,6 +483,31 @@ func TestFilterTaskCandidates(t *testing.T) {
 			}
 		}
 	}
+
+	// Add a try job. Ensure that no deps have been incorrectly satisfied.
+	tryKey := k4.Copy()
+	tryKey.Server = "dummy-server"
+	tryKey.Issue = "dummy-issue"
+	tryKey.Patchset = "dummy-patchset"
+	candidates[tryKey] = &taskCandidate{
+		TaskKey: tryKey,
+		TaskSpec: &specs.TaskSpec{
+			Dependencies: []string{buildTask},
+		},
+	}
+	c, err = s.filterTaskCandidates(candidates)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(c))
+	assert.Equal(t, 2, len(c[repoName][testTask]))
+	assert.Equal(t, 1, len(c[repoName][perfTask]))
+	for _, byRepo := range c {
+		for _, byName := range byRepo {
+			for _, candidate := range byName {
+				assert.NotEqual(t, candidate.Name, buildTask)
+				assert.False(t, candidate.IsTryJob())
+			}
+		}
+	}
 }
 
 func TestProcessTaskCandidate(t *testing.T) {
