@@ -2184,7 +2184,7 @@ func TestGetTasksForJob(t *testing.T) {
 				j5 = j
 			}
 		}
-		tasksByName, _, err := s.GetTasksForJob(j.Id)
+		tasksByName, _, err := s.GetTasksForJob(j)
 		assert.NoError(t, err)
 		for _, tasks := range tasksByName {
 			assert.Equal(t, 0, len(tasks))
@@ -2255,7 +2255,7 @@ func TestGetTasksForJob(t *testing.T) {
 		},
 	}
 	for _, j := range jobs {
-		tasksByName, gotGraph, err := s.GetTasksForJob(j.Id)
+		tasksByName, gotGraph, err := s.GetTasksForJob(j)
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
 		testutils.AssertDeepEqual(t, depGraph[j.Id], gotGraph)
@@ -2273,7 +2273,7 @@ func TestGetTasksForJob(t *testing.T) {
 
 	// Test that the results propagated through.
 	for _, j := range jobs {
-		tasksByName, gotGraph, err := s.GetTasksForJob(j.Id)
+		tasksByName, gotGraph, err := s.GetTasksForJob(j)
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
 		testutils.AssertDeepEqual(t, depGraph[j.Id], gotGraph)
@@ -2295,7 +2295,7 @@ func TestGetTasksForJob(t *testing.T) {
 	expect[j1.Id][buildTask] = []*db.Task{t1, t3}
 	expect[j2.Id][buildTask] = []*db.Task{t1, t3}
 	for _, j := range jobs {
-		tasksByName, gotGraph, err := s.GetTasksForJob(j.Id)
+		tasksByName, gotGraph, err := s.GetTasksForJob(j)
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
 		testutils.AssertDeepEqual(t, depGraph[j.Id], gotGraph)
@@ -2315,7 +2315,7 @@ func TestGetTasksForJob(t *testing.T) {
 
 	// Test that the results propagated through.
 	for _, j := range jobs {
-		tasksByName, gotGraph, err := s.GetTasksForJob(j.Id)
+		tasksByName, gotGraph, err := s.GetTasksForJob(j)
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
 		testutils.AssertDeepEqual(t, depGraph[j.Id], gotGraph)
@@ -2361,7 +2361,7 @@ func TestGetTasksForJob(t *testing.T) {
 	expect[j4.Id][testTask] = []*db.Task{t5}
 	expect[j5.Id][perfTask] = []*db.Task{t6}
 	for _, j := range jobs {
-		tasksByName, gotGraph, err := s.GetTasksForJob(j.Id)
+		tasksByName, gotGraph, err := s.GetTasksForJob(j)
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
 		testutils.AssertDeepEqual(t, depGraph[j.Id], gotGraph)
