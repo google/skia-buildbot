@@ -35,6 +35,7 @@
   <table>
     <tr><th>Selected</th><td id=selected></td></tr>
     <tr><th>Focused</th><td id=focused></td></tr>
+    <tr><th>Zoom</th><td id=zoom></td></tr>
   </table>
 
   <script type="text/javascript" charset="utf-8">
@@ -92,6 +93,10 @@
 
       $$$('#plot').addEventListener('trace_focused', function(e) {
         $$$('#focused').textContent = JSON.stringify(e.detail);
+      });
+
+      $$$('#plot').addEventListener('zoom', function(e) {
+        $$$('#zoom').textContent = JSON.stringify(e.detail);
       });
 
       $$$('#bands').addEventListener('click', function(e) {

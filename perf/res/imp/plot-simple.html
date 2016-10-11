@@ -31,6 +31,9 @@
           pt: [2, 34.5],
         }
 
+     zoom - Event produced when the user has zoomed into a region
+       by dragging.
+
   Methods:
     addLines(lines) - Add lines to the plot, where lines is an object that
       maps the line id to an array of [x, y] points. For example:
@@ -630,6 +633,13 @@ work, so we just prefix every rule with plot-simple-sk.
         this._xRange.domain([xMin, xMax]);
         this._yRange.domain([yMin, yMax]);
         this._plot();
+        var detail = {
+          xMin: xMin,
+          xMax: xMax,
+          yMin: yMin,
+          yMax: yMax,
+        };
+        this.dispatchEvent(new CustomEvent("zoom", {detail: detail, bubbles: true}));
       },
 
       noCrosshair: function(nocrosshair) {
