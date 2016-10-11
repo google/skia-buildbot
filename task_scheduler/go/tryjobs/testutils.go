@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
@@ -111,7 +112,8 @@ func setup(t *testing.T) (string, *TryJobIntegrator, *mockhttpclient.URLMock) {
 
 	// Set up other TryJobIntegrator inputs.
 	taskCfgCache := specs.NewTaskCfgCache(path.Join(tmpDir, "cfg_cache"), rm)
-	d := db.NewInMemoryDB()
+	d, err := local_db.NewDB("tasks_db", path.Join(tmpDir, "tasks.db"))
+	assert.NoError(t, err)
 	cache, err := db.NewJobCache(d, time.Hour, db.DummyGetRevisionTimestamp(time.Now()))
 	assert.NoError(t, err)
 	mock := mockhttpclient.NewURLMock()

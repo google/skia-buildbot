@@ -297,7 +297,7 @@ func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiBuildMessage, 
 	j := &db.Job{
 		BuildbucketBuildId:  b.Id,
 		BuildbucketLeaseKey: leaseKey,
-		Created:             time.Unix(0, b.CreatedTs/util.MICROS_TO_NANOS).UTC(),
+		Created:             time.Unix(0, b.CreatedTs*util.MICROS_TO_NANOS).UTC(),
 		Dependencies:        spec.TaskSpecs,
 		Name:                params.BuilderName,
 		RepoState:           rs,
