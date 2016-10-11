@@ -2157,3 +2157,213 @@ func TestTrybots(t *testing.T) {
 	assert.True(t, tryJob.IsTryJob())
 	assert.True(t, tryJob.Done())
 }
+
+func TestGetTasksForJob(t *testing.T) {
+	tr, d, _, _, swarmingClient, s, _ := setup(t)
+	defer tr.Cleanup()
+
+	// Cycle once, check that we have empty sets for all Jobs.
+	assert.NoError(t, s.MainLoop())
+	jobs, err := s.jCache.UnfinishedJobs()
+	assert.NoError(t, err)
+	assert.Equal(t, 5, len(jobs))
+	var j1, j2, j3, j4, j5 *db.Job
+	for _, j := range jobs {
+		if j.Revision == c1 {
+			if j.Name == buildTask {
+				j1 = j
+			} else {
+				j2 = j
+			}
+		} else {
+			if j.Name == buildTask {
+				j3 = j
+			} else if j.Name == testTask {
+				j4 = j
+			} else {
+				j5 = j
+			}
+		}
+		tasksByName, _, err := s.GetTasksForJob(j.Id)
+		assert.NoError(t, err)
+		for _, tasks := range tasksByName {
+			assert.Equal(t, 0, len(tasks))
+		}
+	}
+	assert.NotNil(t, j1)
+	assert.NotNil(t, j2)
+	assert.NotNil(t, j3)
+	assert.NotNil(t, j4)
+	assert.NotNil(t, j5)
+
+	// Run both available compile tasks.
+	bot1 := makeBot("bot1", map[string]string{"pool": "Skia", "os": "Ubuntu"})
+	bot2 := makeBot("bot2", map[string]string{"pool": "Skia", "os": "Ubuntu"})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
+	assert.NoError(t, s.MainLoop())
+	assert.NoError(t, s.tCache.Update())
+	tasks, err := s.tCache.UnfinishedTasks()
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(tasks))
+	t1 := tasks[0]
+	assert.NotNil(t, t1)
+	t2 := tasks[1]
+	assert.NotNil(t, t2)
+	if t1.Revision == c2 {
+		t1, t2 = t2, t1
+	}
+
+	// Test that we get the new tasks where applicable.
+	expect := map[string]map[string][]*db.Task{
+		j1.Id: map[string][]*db.Task{
+			buildTask: {t1},
+		},
+		j2.Id: map[string][]*db.Task{
+			buildTask: {t1},
+			testTask:  {},
+		},
+		j3.Id: map[string][]*db.Task{
+			buildTask: {t2},
+		},
+		j4.Id: map[string][]*db.Task{
+			buildTask: {t2},
+			testTask:  {},
+		},
+		j5.Id: map[string][]*db.Task{
+			buildTask: {t2},
+			perfTask:  {},
+		},
+	}
+	depGraph := map[string]map[string][]string{
+		j1.Id: map[string][]string{
+			buildTask: {},
+		},
+		j2.Id: map[string][]string{
+			buildTask: {},
+			testTask:  {buildTask},
+		},
+		j3.Id: map[string][]string{
+			buildTask: {},
+		},
+		j4.Id: map[string][]string{
+			buildTask: {},
+			testTask:  {buildTask},
+		},
+		j5.Id: map[string][]string{
+			buildTask: {},
+			perfTask:  {buildTask},
+		},
+	}
+	for _, j := range jobs {
+		tasksByName, gotGraph, err := s.GetTasksForJob(j.Id)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
+		testutils.AssertDeepEqual(t, depGraph[j.Id], gotGraph)
+	}
+
+	// One task successful, the other not.
+	t1.Status = db.TASK_STATUS_FAILURE
+	t1.Finished = time.Now()
+	t2.Status = db.TASK_STATUS_SUCCESS
+	t2.Finished = time.Now()
+	t2.IsolatedOutput = "abc123"
+
+	assert.NoError(t, d.PutTasks([]*db.Task{t1, t2}))
+	assert.NoError(t, s.tCache.Update())
+
+	// Test that the results propagated through.
+	for _, j := range jobs {
+		tasksByName, gotGraph, err := s.GetTasksForJob(j.Id)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
+		testutils.AssertDeepEqual(t, depGraph[j.Id], gotGraph)
+	}
+
+	// Cycle. Ensure that we schedule a retry of t1.
+	assert.NoError(t, s.MainLoop())
+	assert.NoError(t, s.tCache.Update())
+	tasks, err = s.tCache.UnfinishedTasks()
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(tasks))
+	t3 := tasks[0]
+	assert.NotNil(t, t3)
+	assert.Equal(t, t1.Id, t3.RetryOf)
+
+	// Verify that both the original t1 and its retry show up.
+	t1, err = s.tCache.GetTask(t1.Id) // t1 was updated.
+	assert.NoError(t, err)
+	expect[j1.Id][buildTask] = []*db.Task{t1, t3}
+	expect[j2.Id][buildTask] = []*db.Task{t1, t3}
+	for _, j := range jobs {
+		tasksByName, gotGraph, err := s.GetTasksForJob(j.Id)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
+		testutils.AssertDeepEqual(t, depGraph[j.Id], gotGraph)
+	}
+
+	// The retry succeeded.
+	t3.Status = db.TASK_STATUS_SUCCESS
+	t3.Finished = time.Now()
+	t3.IsolatedOutput = "abc"
+	assert.NoError(t, d.PutTask(t3))
+	assert.NoError(t, s.tCache.Update())
+	assert.NoError(t, s.MainLoop())
+	assert.NoError(t, s.tCache.Update())
+	tasks, err = s.tCache.UnfinishedTasks()
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(tasks))
+
+	// Test that the results propagated through.
+	for _, j := range jobs {
+		tasksByName, gotGraph, err := s.GetTasksForJob(j.Id)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
+		testutils.AssertDeepEqual(t, depGraph[j.Id], gotGraph)
+	}
+
+	// Schedule the remaining tasks.
+	bot3 := makeBot("bot3", map[string]string{
+		"pool":        "Skia",
+		"os":          "Android",
+		"device_type": "grouper",
+	})
+	bot4 := makeBot("bot4", map[string]string{
+		"pool":        "Skia",
+		"os":          "Android",
+		"device_type": "grouper",
+	})
+	bot5 := makeBot("bot5", map[string]string{
+		"pool":        "Skia",
+		"os":          "Android",
+		"device_type": "grouper",
+	})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot3, bot4, bot5})
+	assert.NoError(t, s.MainLoop())
+	assert.NoError(t, s.tCache.Update())
+
+	// Verify that the new tasks show up.
+	tasks, err = s.tCache.UnfinishedTasks()
+	assert.NoError(t, err)
+	assert.Equal(t, 3, len(tasks))
+	var t4, t5, t6 *db.Task
+	for _, task := range tasks {
+		if task.Name == testTask {
+			if task.Revision == c1 {
+				t4 = task
+			} else {
+				t5 = task
+			}
+		} else {
+			t6 = task
+		}
+	}
+	expect[j2.Id][testTask] = []*db.Task{t4}
+	expect[j4.Id][testTask] = []*db.Task{t5}
+	expect[j5.Id][perfTask] = []*db.Task{t6}
+	for _, j := range jobs {
+		tasksByName, gotGraph, err := s.GetTasksForJob(j.Id)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
+		testutils.AssertDeepEqual(t, depGraph[j.Id], gotGraph)
+	}
+}

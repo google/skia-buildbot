@@ -1253,3 +1253,53 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 	}
 	return nil
 }
+
+// getTasksForJobHelper is a helper function used by GetTasksForJob.
+func (s *TaskScheduler) getTasksForJobHelper(key db.TaskKey, cfg *specs.TasksCfg, tasks map[string][]*db.Task, depGraph map[string][]string) error {
+	gotTasks, err := s.tCache.GetTasksByKey(&key)
+	if err != nil {
+		return err
+	}
+	tasks[key.Name] = gotTasks
+	tSpec, ok := cfg.Tasks[key.Name]
+	if !ok {
+		return fmt.Errorf("TaskSpec %q not found in config!", key.Name)
+	}
+	deps := make([]string, len(tSpec.Dependencies))
+	copy(deps, tSpec.Dependencies)
+	depGraph[key.Name] = deps
+
+	for _, d := range tSpec.Dependencies {
+		if _, ok := tasks[d]; !ok {
+			key.Name = d
+			if err := s.getTasksForJobHelper(key, cfg, tasks, depGraph); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// GetTasksForJob find all Tasks for the given Job ID. It returns the Tasks
+// in a map keyed by name, a map[string][]string which describes the dependency
+// graph of tasks, and an error if any.
+func (s *TaskScheduler) GetTasksForJob(id string) (map[string][]*db.Task, map[string][]string, error) {
+	j, err := s.jCache.GetJob(id)
+	if err != nil {
+		return nil, nil, err
+	}
+	cfg, err := s.taskCfgCache.ReadTasksCfg(j.RepoState)
+	if err != nil {
+		return nil, nil, err
+	}
+	tasks := map[string][]*db.Task{}
+	depGraph := map[string][]string{}
+	for _, d := range j.Dependencies {
+		if _, ok := tasks[d]; !ok {
+			if err := s.getTasksForJobHelper(j.MakeTaskKey(d), cfg, tasks, depGraph); err != nil {
+				return nil, nil, err
+			}
+		}
+	}
+	return tasks, depGraph, nil
+}
