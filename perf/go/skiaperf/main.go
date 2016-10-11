@@ -1330,6 +1330,10 @@ func frameHandler(w http.ResponseWriter, r *http.Request) {
 		delete(df.TraceSet, key)
 	}
 
+	if len(df.Header) == 0 {
+		df = dataframe.NewHeaderOnly(git, begin, end)
+	}
+
 	resp, err := responseFromDataFrame(df)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to get ticks or skps.")
