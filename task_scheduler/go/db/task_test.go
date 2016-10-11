@@ -521,6 +521,119 @@ func TestUpdateDBFromSwarmingTask(t *testing.T) {
 	assert.True(t, lastDbModified.Equal(updatedTask.DbModified))
 }
 
+func TestUpdateDBFromSwarmingTaskTryJob(t *testing.T) {
+	db := NewInMemoryTaskDB()
+
+	// Create task, initialize from swarming, and save.
+	now := time.Now().UTC().Round(time.Microsecond)
+	task := &Task{
+		TaskKey: TaskKey{
+			RepoState: RepoState{
+				Patch: Patch{
+					Server:   "A",
+					Issue:    "B",
+					Patchset: "P",
+				},
+				Repo:     "C",
+				Revision: "D",
+			},
+			Name:        "B",
+			ForcedJobId: "G",
+		},
+		Commits:       []string{"D", "Z"},
+		Status:        TASK_STATUS_PENDING,
+		ParentTaskIds: []string{"E", "F"},
+	}
+	assert.NoError(t, db.AssignId(task))
+
+	s := &swarming_api.SwarmingRpcsTaskResult{
+		TaskId:    "E", // This is the Swarming TaskId.
+		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
+		State:     SWARMING_STATE_PENDING,
+		Tags: []string{
+			fmt.Sprintf("%s:%s", SWARMING_TAG_ID, task.Id),
+			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
+			fmt.Sprintf("%s:C", SWARMING_TAG_REPO),
+			fmt.Sprintf("%s:D", SWARMING_TAG_REVISION),
+			fmt.Sprintf("%s:E", SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:F", SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:G", SWARMING_TAG_FORCED_JOB_ID),
+			fmt.Sprintf("%s:A", SWARMING_TAG_SERVER),
+			fmt.Sprintf("%s:B", SWARMING_TAG_ISSUE),
+			fmt.Sprintf("%s:P", SWARMING_TAG_PATCHSET),
+		},
+	}
+	modified, err := task.UpdateFromSwarming(s)
+	assert.NoError(t, err)
+	assert.True(t, modified)
+
+	// Make sure we can't change the server, issue, or patchset.
+	s = &swarming_api.SwarmingRpcsTaskResult{
+		TaskId:    "E", // This is the Swarming TaskId.
+		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
+		State:     SWARMING_STATE_PENDING,
+		Tags: []string{
+			fmt.Sprintf("%s:%s", SWARMING_TAG_ID, task.Id),
+			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
+			fmt.Sprintf("%s:C", SWARMING_TAG_REPO),
+			fmt.Sprintf("%s:D", SWARMING_TAG_REVISION),
+			fmt.Sprintf("%s:E", SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:F", SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:G", SWARMING_TAG_FORCED_JOB_ID),
+			fmt.Sprintf("%s:BAD", SWARMING_TAG_SERVER),
+			fmt.Sprintf("%s:B", SWARMING_TAG_ISSUE),
+			fmt.Sprintf("%s:P", SWARMING_TAG_PATCHSET),
+		},
+	}
+	modified, err = task.UpdateFromSwarming(s)
+	assert.NotNil(t, err)
+	assert.False(t, modified)
+
+	// Make sure we can't change the server, issue, or patchset.
+	s = &swarming_api.SwarmingRpcsTaskResult{
+		TaskId:    "E", // This is the Swarming TaskId.
+		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
+		State:     SWARMING_STATE_PENDING,
+		Tags: []string{
+			fmt.Sprintf("%s:%s", SWARMING_TAG_ID, task.Id),
+			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
+			fmt.Sprintf("%s:C", SWARMING_TAG_REPO),
+			fmt.Sprintf("%s:D", SWARMING_TAG_REVISION),
+			fmt.Sprintf("%s:E", SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:F", SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:G", SWARMING_TAG_FORCED_JOB_ID),
+			fmt.Sprintf("%s:A", SWARMING_TAG_SERVER),
+			fmt.Sprintf("%s:BAD", SWARMING_TAG_ISSUE),
+			fmt.Sprintf("%s:P", SWARMING_TAG_PATCHSET),
+		},
+	}
+	modified, err = task.UpdateFromSwarming(s)
+	assert.NotNil(t, err)
+	assert.False(t, modified)
+
+	// Make sure we can't change the server, issue, or patchset.
+	s = &swarming_api.SwarmingRpcsTaskResult{
+		TaskId:    "E", // This is the Swarming TaskId.
+		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
+		State:     SWARMING_STATE_PENDING,
+		Tags: []string{
+			fmt.Sprintf("%s:%s", SWARMING_TAG_ID, task.Id),
+			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
+			fmt.Sprintf("%s:C", SWARMING_TAG_REPO),
+			fmt.Sprintf("%s:D", SWARMING_TAG_REVISION),
+			fmt.Sprintf("%s:E", SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:F", SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:G", SWARMING_TAG_FORCED_JOB_ID),
+			fmt.Sprintf("%s:A", SWARMING_TAG_SERVER),
+			fmt.Sprintf("%s:B", SWARMING_TAG_ISSUE),
+			fmt.Sprintf("%s:BAD", SWARMING_TAG_PATCHSET),
+		},
+	}
+	modified, err = task.UpdateFromSwarming(s)
+	assert.NotNil(t, err)
+	assert.False(t, modified)
+}
+
 func TestCopyTask(t *testing.T) {
 	now := time.Now()
 	v := &Task{
