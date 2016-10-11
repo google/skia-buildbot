@@ -1354,7 +1354,7 @@ func getSkps(headers []*dataframe.ColumnHeader) ([]int, error) {
 	end := ci.Hash
 
 	// Now query for all the changes to the skp version over the given range of commits.
-	log, err := git.LogFine(begin, end, "--format=format:%ct", "infra/bots/assets/skp/VERSION")
+	log, err := git.LogFine(begin, end, "--format=format:%ct", "--", "infra/bots/assets/skp/VERSION")
 	if err != nil {
 		return nil, fmt.Errorf("Could not get skp log for %s...%s: %s", begin, end, err)
 	}
@@ -1367,6 +1367,21 @@ func getSkps(headers []*dataframe.ColumnHeader) ([]int, error) {
 			continue
 		}
 		ts = append(ts, int64(i))
+	}
+
+	// Now query for all the changes to the old skp version over the given range of commits.
+	log, err = git.LogFine(begin, end, "--format=format:%ct", "--", "SKP_VERSION")
+	if err != nil {
+		glog.Infof("Could not get skp log for %s...%s: %s", begin, end, err)
+	} else {
+		// Parse.
+		for _, s := range strings.Split(log, "\n") {
+			i, err := strconv.Atoi(s)
+			if err != nil {
+				continue
+			}
+			ts = append(ts, int64(i))
+		}
 	}
 
 	// Sort because they are in reverse order.
