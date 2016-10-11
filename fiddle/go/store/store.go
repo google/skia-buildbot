@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
 
@@ -324,18 +325,14 @@ func (s *Store) GetMedia(fiddleHash string, media Media) ([]byte, string, string
 	}
 	runIds := []string{}
 	ctx := context.Background()
-	for {
-		list, err := s.bucket.List(ctx, q)
+	it := s.bucket.Objects(ctx, q)
+	for obj, err := it.Next(); err != iterator.Done; obj, err = it.Next() {
 		if err != nil {
 			return nil, "", "", fmt.Errorf("Failed to retrieve list of results for (%s, %s): %s", fiddleHash, string(media), err)
 		}
-		for _, name := range list.Prefixes {
-			runIds = append(runIds, name)
+		if obj.Prefix != "" {
+			runIds = append(runIds, obj.Prefix)
 		}
-		if list.Next == nil {
-			break
-		}
-		q = list.Next
 	}
 	if len(runIds) == 0 {
 		return nil, "", "", fmt.Errorf("This fiddle has no valid output written (%s, %s)", fiddleHash, string(media))
@@ -407,22 +404,16 @@ func (s *Store) DownloadAllSourceImages(fiddleRoot string) error {
 	if err := os.MkdirAll(filepath.Join(fiddleRoot, "images"), 0755); err != nil {
 		return fmt.Errorf("Failed to create images directory: %s", err)
 	}
-	for {
-		list, err := s.bucket.List(ctx, q)
+	it := s.bucket.Objects(ctx, q)
+	for obj, err := it.Next(); err != iterator.Done; obj, err = it.Next() {
 		if err != nil {
 			return fmt.Errorf("Failed to retrieve image list: %s", err)
 		}
-		for _, res := range list.Results {
-			filename := strings.Split(res.Name, "/")[1]
-			dstFullPath := filepath.Join(fiddleRoot, "images", filename)
-			if err := downloadSingleSourceImage(ctx, s.bucket, res.Name, dstFullPath); err != nil {
-				glog.Errorf("Failed to download image %q: %s", res.Name, err)
-			}
+		filename := strings.Split(obj.Name, "/")[1]
+		dstFullPath := filepath.Join(fiddleRoot, "images", filename)
+		if err := downloadSingleSourceImage(ctx, s.bucket, obj.Name, dstFullPath); err != nil {
+			glog.Errorf("Failed to download image %q: %s", obj.Name, err)
 		}
-		if list.Next == nil {
-			break
-		}
-		q = list.Next
 	}
 	return nil
 }
@@ -445,29 +436,23 @@ func (s *Store) ListSourceImages() ([]int, error) {
 	q := &storage.Query{
 		Prefix: fmt.Sprintf("source/"),
 	}
-	for {
-		list, err := s.bucket.List(ctx, q)
+	it := s.bucket.Objects(ctx, q)
+	for obj, err := it.Next(); err != iterator.Done; obj, err = it.Next() {
 		if err != nil {
 			return nil, fmt.Errorf("Failed to retrieve image list: %s", err)
 		}
-		for _, res := range list.Results {
-			filename := strings.Split(res.Name, "/")[1]
-			matches := sourceFileName.FindAllStringSubmatch(filename, -1)
-			if len(matches) != 1 || len(matches[0]) != 2 {
-				glog.Infof("Filename %s is not a source image.", filename)
-				continue
-			}
-			i, err := strconv.Atoi(matches[0][1])
-			if err != nil {
-				glog.Errorf("Failed to parse souce image filename: %s", err)
-				continue
-			}
-			ret = append(ret, i)
+		filename := strings.Split(obj.Name, "/")[1]
+		matches := sourceFileName.FindAllStringSubmatch(filename, -1)
+		if len(matches) != 1 || len(matches[0]) != 2 {
+			glog.Infof("Filename %s is not a source image.", filename)
+			continue
 		}
-		if list.Next == nil {
-			break
+		i, err := strconv.Atoi(matches[0][1])
+		if err != nil {
+			glog.Errorf("Failed to parse souce image filename: %s", err)
+			continue
 		}
-		q = list.Next
+		ret = append(ret, i)
 	}
 	return ret, nil
 }
@@ -485,22 +470,16 @@ func (s *Store) ListAllNames() ([]Named, error) {
 	q := &storage.Query{
 		Prefix: fmt.Sprintf("named/"),
 	}
-	for {
-		list, err := s.bucket.List(ctx, q)
+	it := s.bucket.Objects(ctx, q)
+	for obj, err := it.Next(); err != iterator.Done; obj, err = it.Next() {
 		if err != nil {
 			return nil, fmt.Errorf("Failed to retrieve name list: %s", err)
 		}
-		for _, res := range list.Results {
-			filename := strings.Split(res.Name, "/")[1]
-			ret = append(ret, Named{
-				Name: filename,
-				User: res.Metadata[USER_METADATA],
-			})
-		}
-		if list.Next == nil {
-			break
-		}
-		q = list.Next
+		filename := strings.Split(obj.Name, "/")[1]
+		ret = append(ret, Named{
+			Name: filename,
+			User: obj.Metadata[USER_METADATA],
+		})
 	}
 	return ret, nil
 }
