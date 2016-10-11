@@ -178,7 +178,7 @@ func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNew
 			},
 			IoTimeoutSecs: int64(swarming.RECOMMENDED_IO_TIMEOUT.Seconds()),
 		},
-		Tags: db.TagsForTask(c.Name, id, c.TaskSpec.Priority, c.Repo, c.RetryOf, c.Revision, dimsMap, c.ForcedJobId, c.ParentTaskIds),
+		Tags: db.TagsForTask(c.Name, id, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds),
 		User: "skia-task-scheduler",
 	}
 }
