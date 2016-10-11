@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3f5690ee_0f84a546",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T16:16:21Z",
+      "side": 1,
+      "message": "nit: IWBN if this were 404 for unknown job.",
+      "revId": "76a013312163848526e5e3366fe0239e4a5dfd82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f5690ee_2f3329ab",
+        "filename": "task_scheduler/res/imp/job-sk-demo.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T16:16:21Z",
+      "side": 1,
+      "message": "Types of all of these fields should be Object, correct?",
+      "range": {
+        "startLine": 59,
+        "startChar": 14,
+        "endLine": 59,
+        "endChar": 19
+      },
+      "revId": "76a013312163848526e5e3366fe0239e4a5dfd82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f5690ee_8f4175f6",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T16:16:21Z",
+      "side": 1,
+      "message": "Don\u0027t style and href need $\u003d?",
+      "range": {
+        "startLine": 74,
+        "startChar": 24,
+        "endLine": 74,
+        "endChar": 30
+      },
+      "revId": "76a013312163848526e5e3366fe0239e4a5dfd82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f5690ee_cf3b7d84",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T16:16:21Z",
+      "side": 1,
+      "message": "nit: I think it would be better to remove the link for Server. I can\u0027t imagine ever intentionally clicking on it, but I can imagine clicking it thinking it would take me to the issue/patch being tested.\n\nSame for Repo and to a lesser extent Issue.",
+      "range": {
+        "startLine": 87,
+        "startChar": 26,
+        "endLine": 87,
+        "endChar": 67
+      },
+      "revId": "76a013312163848526e5e3366fe0239e4a5dfd82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
