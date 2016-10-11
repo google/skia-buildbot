@@ -111,11 +111,12 @@
             <button title="Create shortcut.">
               <iron-icon icon="link"></iron-icon>
             </button>
-            <button on-click="_removeHighlighted">Remove Highlighted</button>
-            <button on-click="_removeAll">Remove All</button>
-            <button on-click="_highlightedOnly">Highlighted Only</button>
-            <button on-click="_clearHighlights">Clear Highlights</button>
-            <button on-click="_resetAxes">Reset Axes</button>
+            <button on-click="_removeHighlighted" title="Remove all the highlighted traces.">Remove Highlighted</button>
+            <button on-click="_removeAll" title="Remove all the traces.">Remove All</button>
+            <button on-click="_highlightedOnly" title="Remove all but the highlighted traces.">Highlighted Only</button>
+            <button on-click="_clearHighlights" title="Remove highlights from all traces.">Clear Highlights</button>
+            <button on-click="_resetAxes" title="Reset back to the original zoom level.">Reset Axes</button>
+            <button on-click="_zoomToRange" id=zoom_range disabled title="Fit the time range to the current zoom window.">Zoom Range</button>
           </div>
         </div>
         <div id=tabs class="flex">
@@ -200,6 +201,12 @@
         type: Array,
         value: function() { return []; },
       },
+      // The [begin, end] timestamps of the region
+      // that the user is zoomed in on.
+      _zoomRange: {
+        type: Array,
+        value: function() { return []; },
+      }
     },
 
     ready: function() {
@@ -207,7 +214,7 @@
       sk.get("/_/initpage/").then(JSON.parse).then(function(json) {
         var header = json.dataframe.header;
         this._begin = this.$.range.begin = header[0].timestamp;
-        this._end   = this.$.range.end   = header[header.length-1].timestamp;
+        this._end   = this.$.range.end   = header[header.length-1].timestamp+1;
         this.$.query.setParamset(json.dataframe.paramset);
 
         // Remove the paramset so it doesn't get displayed in the Params tab.
@@ -255,13 +262,22 @@
         this.$.highlight.value = e.detail.pt[1];
       }.bind(this));
 
+      // User has zoomed in on the graph.
+      this.$.plot.addEventListener("zoom", function(e) {
+        var begin = this._dataframe.header[Math.floor(e.detail.xMin)].timestamp;
+        var endIndex = Math.min(Math.floor(e.detail.xMax), this._dataframe.header.length-1);
+        var end = this._dataframe.header[endIndex].timestamp+1;
+        this._zoomRange = [begin, end];
+        this.$.zoom_range.disabled = false;
+      }.bind(this));
+
       // Highlight a trace when it is clicked on.
       this.$.plot.addEventListener("trace_selected", function(e) {
         this.$.plot.clearHighlight();
         this.$.plot.setHighlight(e.detail.id);
         this.$.commits.setCommitDetail([]);
 
-        var x = e.detail.pt[0]|0;
+        var x = +e.detail.pt[0]|0;
         // loop backwards from x until you get the next
         // non 1e32 point.
         var commits = [this._dataframe.header[x]];
@@ -284,9 +300,24 @@
       this._resizeWatcher();
     },
 
+    // Fit the time range being to the zoom being displayed.
+    // Reload all the queries/formulas on the new time range.
+    _zoomToRange: function() {
+      this.$.range.begin = this._zoomRange[0];
+      this.$.range.end = this._zoomRange[1];
+      this._rangeChangeImpl(this._zoomRange[0], this._zoomRange[1]);
+    },
+
+    // Called when the day-range slider has changed, causes all the
+    // queries/formulas to be reloade for the new time range.
     _rangeChange: function(e) {
-      this.set("_begin", e.detail.begin);
-      this.set("_end", e.detail.end);
+      this._rangeChangeImpl(e.detail.begin, e.detail.end);
+    },
+
+    // Reload all the queries/formulas on the given time range.
+    _rangeChangeImpl: function(begin, end) {
+      this.set("_begin", begin);
+      this.set("_end", end);
       var body = {
         begin: this._begin,
         end: this._end,
@@ -298,6 +329,7 @@
         this.$.plot.removeAll();
         this._lines = [];
         this._addTraces(json, false, true);
+        this.$.zoom_range.disabled = true;
       }.bind(this)).catch(sk.errorMessage);
     },
 
@@ -341,9 +373,13 @@
         Object.keys(lines).forEach(function(key) {
           this._lines[key] = lines[key];
         }.bind(this));
-        Object.keys(dataframe.traceset).forEach(function(key) {
-          this._dataframe.traceset[key] = dataframe.traceset[key];
-        }.bind(this));
+        if (this._dataframe.header == undefined) {
+          this._dataframe = dataframe;
+        } else {
+          Object.keys(dataframe.traceset).forEach(function(key) {
+            this._dataframe.traceset[key] = dataframe.traceset[key];
+          }.bind(this));
+        }
       } else {
         this._lines = lines;
         this._dataframe = dataframe;
@@ -480,6 +516,7 @@
 
     _resetAxes: function() {
       this.$.plot.resetAxes();
+      this.$.zoom_range.disabled = true;
     },
 
     _addCalculated: function() {
