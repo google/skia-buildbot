@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/go/buildskia"
 	"golang.org/x/net/context"
+	"google.golang.org/api/iterator"
 )
 
 // DownloadSkiaVersionForFuzzing downloads the revision of Skia specified in Google Storage
@@ -60,13 +61,13 @@ func revisionHelper(storageClient *storage.Client, prefix string) (string, time.
 		return "", time.Time{}, fmt.Errorf("Storage service cannot be nil!")
 	}
 	q := &storage.Query{Prefix: prefix}
-	contents, err := storageClient.Bucket(config.GS.Bucket).List(context.Background(), q)
-	if err != nil {
-		return "", time.Time{}, err
-	}
-	for _, r := range contents.Results {
-		if r.Name != prefix {
-			return strings.SplitAfter(r.Name, prefix)[1], r.Updated, nil
+	it := storageClient.Bucket(config.GS.Bucket).Objects(context.Background(), q)
+	for obj, err := it.Next(); err != iterator.Done; obj, err = it.Next() {
+		if err != nil {
+			return "", time.Time{}, err
+		}
+		if obj.Name != prefix {
+			return strings.SplitAfter(obj.Name, prefix)[1], obj.Updated, nil
 		}
 	}
 	return "", time.Time{}, fmt.Errorf("Could not find specified revision in %q", prefix)
