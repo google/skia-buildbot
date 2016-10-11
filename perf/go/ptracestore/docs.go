@@ -67,5 +67,32 @@
 
   The largest sourceIndex used is stored at the key 'lastSourceIndex' and is incremented
   when new sourceFullname's are added.
+
+BigTable
+========
+
+
+    Table      | Key                 | ValueColumn           | SourcesColumn
+   ------------+---------------------+-----------------------+-----------------------
+    traces     | [tileid]:[traceid]  | [index, float32]*     | [index, sourceIndex]*
+   ------------+---------------------+-----------------------+-----------------------
+    sourceList | sourceIndex         | sourceFullname        |
+               | "maxIndex"          | Max Index Used So Far |
+   ------------+---------------------+-----------------------+-----------------------
+
+Where tileid is the tile number with 0 padding, i.e.:
+
+  00532:,config=8888,....,
+
+Scan a tile by doing a Prefix scan for the tile number.
+
+Use a RowKeyFilter to load up the traces that match a query.
+
+Steps
+  * Remove invert.
+  * Have query emit an regex for the search.
+  * Run Prefix scans.
+  * Prepend "\d{5}:" to each query regex.
+
 */
 package ptracestore
