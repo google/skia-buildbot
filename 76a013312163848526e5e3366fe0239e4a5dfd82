@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7f82c883_10b11293",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-11T17:01:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3f5690ee_0f84a546",
+      "revId": "76a013312163848526e5e3366fe0239e4a5dfd82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3f5690ee_2f3329ab",
         "filename": "task_scheduler/res/imp/job-sk-demo.html",
         "patchSetId": 2
@@ -36,6 +54,24 @@
         "endLine": 59,
         "endChar": 19
       },
+      "revId": "76a013312163848526e5e3366fe0239e4a5dfd82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7f82c883_7065fe3c",
+        "filename": "task_scheduler/res/imp/job-sk-demo.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-11T17:01:27Z",
+      "side": 1,
+      "message": "Whoops, fixed.",
+      "parentUuid": "3f5690ee_2f3329ab",
       "revId": "76a013312163848526e5e3366fe0239e4a5dfd82",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -65,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "7f82c883_50db9a0e",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-11T17:01:27Z",
+      "side": 1,
+      "message": "It seems to work with or without it. Added for good measure.",
+      "parentUuid": "3f5690ee_8f4175f6",
+      "revId": "76a013312163848526e5e3366fe0239e4a5dfd82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3f5690ee_cf3b7d84",
         "filename": "task_scheduler/res/imp/job-sk.html",
         "patchSetId": 2
@@ -82,6 +136,24 @@
         "endLine": 87,
         "endChar": 67
       },
+      "revId": "76a013312163848526e5e3366fe0239e4a5dfd82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7f82c883_500d5a9a",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-11T17:01:27Z",
+      "side": 1,
+      "message": "Okay, I think the repo link has some value, so I left that, but I removed the links from server/issue/patchset and added a \"codereview link\" instead.",
+      "parentUuid": "3f5690ee_cf3b7d84",
       "revId": "76a013312163848526e5e3366fe0239e4a5dfd82",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
