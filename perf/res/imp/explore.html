@@ -16,6 +16,7 @@
 <link rel="import" href="/res/imp/bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+<link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="/res/imp/bower_components/paper-tabs/paper-tabs.html">
 
 <link rel="import" href="/res/common/imp/query2-sk.html" />
@@ -105,6 +106,7 @@
             <plot-simple-sk width=1024 height=480 id=plot></plot-simple-sk>
             <div class="layout horizontal center-justified">
               <day-range-sk id=range on-day-range-change="_rangeChange"></day-range-sk>
+              <paper-spinner id=spinner></paper-spinner>
             </div>
           </div>
           <div class="layout vertical" id=buttons>
@@ -325,12 +327,12 @@
         queries: this._queries,
         hidden: this._hidden,
       };
-      sk.post("/_/frame/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json){
+      this._requestFrame(body).then(function(json) {
         this.$.plot.removeAll();
         this._lines = [];
         this._addTraces(json, false, true);
         this.$.zoom_range.disabled = true;
-      }.bind(this)).catch(sk.errorMessage);
+      }.bind(this)).catch(this._catch);
     },
 
     _updateCount: function() {
@@ -428,9 +430,9 @@
         end: this._end,
         queries: [q],
       };
-      sk.post("/_/frame/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json) {
+      this._requestFrame(body).then(function(json) {
         this._addTraces(json, true, true);
-      }.bind(this)).catch(sk.errorMessage);
+      }.bind(this)).catch(this._catch);
     },
 
     _tabSelect: function() {
@@ -529,10 +531,35 @@
         end: this._end,
         formulas: [f],
       };
-      sk.post("/_/frame/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json){
+      this._requestFrame(body).then(function(json) {
         // TODO(jcgregorio) Remove all returned trace ids from hidden.
         this._addTraces(json, true, false);
-      }.bind(this)).catch(sk.errorMessage);
+      }.bind(this)).catch(this._catch);
+    },
+
+    // Common catch function that turns off the spinner.
+    _catch: function(msg) {
+      sk.errorMessage(msg);
+      this.$.spinner.active = false;
+    },
+
+    // Requests a new dataframe, where body is a serialized FrameRequest:
+    //
+    //    var body = {
+    //      begin: this._begin,
+    //      end: this._end,
+    //      formulas: this._formulas,
+    //      queries: this._queries,
+    //      hidden: this._hidden,
+    //    };
+    //
+    // Returns a Promise that makes the request and parses the JSON response.
+    _requestFrame: function(body) {
+      this.$.spinner.active = true;
+      return sk.post("/_/frame/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json) {
+        this.$.spinner.active = false;
+        return json;
+      }.bind(this));
     },
 
   });
