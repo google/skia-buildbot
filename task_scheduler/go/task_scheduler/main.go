@@ -67,6 +67,7 @@ var (
 
 	// HTML templates.
 	blacklistTemplate *template.Template = nil
+	jobTemplate       *template.Template = nil
 	mainTemplate      *template.Template = nil
 	triggerTemplate   *template.Template = nil
 
@@ -95,6 +96,11 @@ func reloadTemplates() {
 	}
 	blacklistTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/blacklist.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/footer.html"),
+	))
+	jobTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/job.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/footer.html"),
 	))
@@ -265,10 +271,61 @@ func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func jobHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in testing mode.
+	if *local {
+		reloadTemplates()
+	}
+
+	id, ok := mux.Vars(r)["id"]
+	if !ok {
+		err := "Job ID is required."
+		httputils.ReportError(w, r, fmt.Errorf(err), err)
+		return
+	}
+
+	job, tasks, depGraph, err := ts.GetJob(id)
+	if err != nil {
+		if err == db.ErrNotFound {
+			http.Error(w, fmt.Sprintf("Unknown Job %q", id), 404)
+			return
+		}
+		httputils.ReportError(w, r, err, "Failed to obtain tasks for Job.")
+		return
+	}
+	data := struct {
+		Job      *db.Job               `json:"job"`
+		Tasks    map[string][]*db.Task `json:"tasks"`
+		DepGraph map[string][]string   `json:"depGraph"`
+	}{
+		Job:      job,
+		Tasks:    tasks,
+		DepGraph: depGraph,
+	}
+	b, err := json.Marshal(&data)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode response.")
+		return
+	}
+
+	page := struct {
+		Data string
+	}{
+		Data: string(b),
+	}
+	if err := jobTemplate.Execute(w, page); err != nil {
+		httputils.ReportError(w, r, err, "Failed to execute template.")
+		return
+	}
+}
+
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/blacklist", blacklistHandler)
+	r.HandleFunc("/job/{id}", jobHandler)
 	r.HandleFunc("/trigger", triggerHandler)
 	r.HandleFunc("/json/blacklist", jsonBlacklistHandler).Methods(http.MethodPost, http.MethodDelete)
 	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods(http.MethodPost)

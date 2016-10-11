@@ -1,0 +1,84 @@
+<html>
+<head>
+  <title>job-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/common/js/common.js"></script>
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script type="text/javascript" charset="utf-8">
+    var job = {
+        "BuildbucketBuildId": 0,
+        "BuildbucketLeaseKey": 0,
+        "Created": "2016-10-10T15:56:13.393516175-04:00",
+        "DbModified": "2016-10-10T19:56:44.572122663Z",
+        "Dependencies": ["Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN"],
+        "Finished": "0001-01-01T00:00:00Z",
+        "Id": "20161010T195613.393516175Z_0000000000000048",
+        "IsForce": false,
+        "Name": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN",
+        "Priority": 0.8,
+        "Issue": "2410843002",
+        "Patchset": "1",
+        "Server": "https://codereview.chromium.org",
+        "Repo": "https://skia.googlesource.com/skia.git",
+        "Revision": "6ca48820407244bbdeb8f9e0ed7d76dd94270460",
+        "Status": "",
+    };
+
+    var tasks = {
+        "Build-Ubuntu-GCC-x86_64-Release-GN": [],
+        "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": [],
+        "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": [],
+    };
+
+    var depGraph = {
+        "Build-Ubuntu-GCC-x86_64-Release-GN": [],
+        "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": ["Build-Ubuntu-GCC-x86_64-Release-GN"],
+        "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": ["Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN"],
+    };
+  </script>
+  <link rel="import" href="job-sk.html">
+  <link rel="import" href="/res/common/imp/error-toast-sk.html">
+</head>
+<body>
+<dom-module id="job-sk-demo">
+  <template>
+    <job-sk
+        job="[[job]]"
+        tasks="[[tasks]]"
+        depGraph="[[depGraph]]"
+        ></job-sk>
+  </template>
+  <script>
+  Polymer({
+    is: 'job-sk-demo',
+
+    properties: {
+      job: {
+        type: Object,
+        value: function() {
+          return job;
+        },
+      },
+      tasks: {
+        type: Object,
+        value: function() {
+          return tasks;
+        },
+      },
+      depGraph: {
+        type: Object,
+        value: function() {
+          return depGraph;
+        },
+      },
+    },
+  });
+  </script>
+</dom-module>
+  <h1>job-sk demo</h1>
+  <job-sk-demo></job-sk-demo>
+  <error-toast-sk></error-toast-sk>
+</body>
+</html>

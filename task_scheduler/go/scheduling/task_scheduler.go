@@ -1283,11 +1283,7 @@ func (s *TaskScheduler) getTasksForJobHelper(key db.TaskKey, cfg *specs.TasksCfg
 // GetTasksForJob find all Tasks for the given Job ID. It returns the Tasks
 // in a map keyed by name, a map[string][]string which describes the dependency
 // graph of tasks, and an error if any.
-func (s *TaskScheduler) GetTasksForJob(id string) (map[string][]*db.Task, map[string][]string, error) {
-	j, err := s.jCache.GetJob(id)
-	if err != nil {
-		return nil, nil, err
-	}
+func (s *TaskScheduler) GetTasksForJob(j *db.Job) (map[string][]*db.Task, map[string][]string, error) {
 	cfg, err := s.taskCfgCache.ReadTasksCfg(j.RepoState)
 	if err != nil {
 		return nil, nil, err
@@ -1302,4 +1298,17 @@ func (s *TaskScheduler) GetTasksForJob(id string) (map[string][]*db.Task, map[st
 		}
 	}
 	return tasks, depGraph, nil
+}
+
+// GetJob returns the given Job, plus its component Tasks.
+func (s *TaskScheduler) GetJob(id string) (*db.Job, map[string][]*db.Task, map[string][]string, error) {
+	j, err := s.jCache.GetJob(id)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	tasks, depGraph, err := s.GetTasksForJob(j)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	return j, tasks, depGraph, nil
 }
