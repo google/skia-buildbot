@@ -103,12 +103,24 @@ func (c *taskCandidate) MakeIsolateTask(infraBotsDir, baseDir string) *isolate.T
 	}
 }
 
+// getPatchStorage returns "gerrit" or "rietveld" based on the Server URL.
+func getPatchStorage(server string) string {
+	if strings.Contains(server, "codereview.chromium") {
+		return "rietveld"
+	}
+	return "gerrit"
+}
+
 // replaceVars replaces variable names with their values in a given string.
 func replaceVars(c *taskCandidate, s string) string {
 	replacements := map[string]string{
-		specs.VARIABLE_REPO:      c.Repo,
-		specs.VARIABLE_REVISION:  c.Revision,
-		specs.VARIABLE_TASK_NAME: c.Name,
+		specs.VARIABLE_CODEREVIEW_SERVER: c.Server,
+		specs.VARIABLE_ISSUE:             c.Issue,
+		specs.VARIABLE_PATCH_STORAGE:     getPatchStorage(c.Server),
+		specs.VARIABLE_PATCHSET:          c.Patchset,
+		specs.VARIABLE_REPO:              c.Repo,
+		specs.VARIABLE_REVISION:          c.Revision,
+		specs.VARIABLE_TASK_NAME:         c.Name,
 	}
 	for k, v := range replacements {
 		s = strings.Replace(s, fmt.Sprintf(specs.VARIABLE_SYNTAX, k), v, -1)
