@@ -116,3 +116,13 @@ func NewEmpty() *DataFrame {
 		ParamSet: paramtools.ParamSet{},
 	}
 }
+
+// NewHeaderOnly returns a DataFrame with a populated Header, with no traces.
+func NewHeaderOnly(vcs vcsinfo.VCS, begin, end time.Time) *DataFrame {
+	colHeaders, _ := getRange(vcs, begin, end)
+	return &DataFrame{
+		TraceSet: ptracestore.TraceSet{},
+		Header:   colHeaders,
+		ParamSet: paramtools.ParamSet{},
+	}
+}
