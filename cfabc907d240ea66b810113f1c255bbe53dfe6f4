@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3f5690ee_3212ae62",
+        "filename": "perf/go/ptracestore/ptracestore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T19:15:32Z",
+      "side": 1,
+      "message": "nit: s/bolt.DB/cacheEntry/",
+      "range": {
+        "startLine": 125,
+        "startChar": 27,
+        "endLine": 125,
+        "endChar": 34
+      },
+      "revId": "cfabc907d240ea66b810113f1c255bbe53dfe6f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f5690ee_521f3269",
+        "filename": "perf/go/ptracestore/ptracestore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T19:15:32Z",
+      "side": 1,
+      "message": "typo: Callers",
+      "range": {
+        "startLine": 161,
+        "startChar": 3,
+        "endLine": 161,
+        "endChar": 8
+      },
+      "revId": "cfabc907d240ea66b810113f1c255bbe53dfe6f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
