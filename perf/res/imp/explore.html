@@ -192,24 +192,15 @@
         type: Boolean,
         value: false,
       },
-      // The time range we are plotting, in Unix timestamp seconds.
-      _begin: {
-        type: Number,
-        value: function() { return Math.floor(Date.now()/1000 - 24*60*60); },
-      },
-      _end: {
-        type: Number,
-        value: function() { return Math.floor(Date.now()/1000); },
-      },
-      // The formulas that have been calculated and displayed.
-      _formulas: {
-        type: Array,
-        value: function() { return []; },
-      },
-      // The queries that have been run to add traces to the plot.
-      _queries: {
-        type: Array,
-        value: function() { return []; },
+      // The state that goes into the URL.
+      state: {
+        type: Object,
+        value: function() { return {
+          _begin: Math.floor(Date.now()/1000 - 24*60*60),
+          _end: Math.floor(Date.now()/1000),
+          _formulas: "",
+          _queries: "",
+        }; },
       },
       // The ids of all the traces that have been hidden.
       _hidden: {
@@ -228,8 +219,8 @@
       // Populate the query element.
       sk.get("/_/initpage/").then(JSON.parse).then(function(json) {
         var header = json.dataframe.header;
-        this._begin = this.$.range.begin = header[0].timestamp;
-        this._end   = this.$.range.end   = header[header.length-1].timestamp+1;
+        this.state._begin = this.$.range.begin = header[0].timestamp;
+        this.state._end   = this.$.range.end   = header[header.length-1].timestamp+1;
         this.$.query.setParamset(json.dataframe.paramset);
 
         // Remove the paramset so it doesn't get displayed in the Params tab.
@@ -238,6 +229,16 @@
         // Display this SearchResult, which has no traces, but this will
         // set up the tick marks, the skp bands, and the 0-trace.
         this._addTraces(json, true, false);
+
+        // From this point on reflect the state to the URL.
+        sk.stateReflector(this,  function() {
+          if (this.state._queries == "" && this.state._formulas == "") {
+            return
+          }
+          this.$.range.begin = this.state._begin;
+          this.$.range.end = this.state._end;
+          this._rangeChangeImpl(this.state._begin, this.state._end);
+        }.bind(this));
       }.bind(this)).catch(sk.errorMessage);
 
       // Reflect the current query to the query summary.
@@ -343,13 +344,13 @@
 
     // Reload all the queries/formulas on the given time range.
     _rangeChangeImpl: function(begin, end) {
-      this.set("_begin", begin);
-      this.set("_end", end);
+      this.state._begin = begin;
+      this.state._end = end;
       var body = {
-        begin: this._begin,
-        end: this._end,
-        formulas: this._formulas,
-        queries: this._queries,
+        begin: this.state._begin,
+        end: this.state._end,
+        formulas: this.state._formulas.split(/\s+/),
+        queries: this.state._queries.split(/\s+/),
         hidden: this._hidden,
       };
       this._requestFrame(body).then(function(json) {
@@ -447,12 +448,15 @@
 
     _add: function() {
       var q = this.$.query.current_query;
-      if (this._queries.indexOf(q) == -1) {
-        this._queries.push(q);
+      if (this.state._queries.indexOf(q) == -1) {
+        if (this.state._queries) {
+          this.state._queries += " ";
+        }
+        this.state._queries += q;
       }
       var body = {
-        begin: this._begin,
-        end: this._end,
+        begin: this.state._begin,
+        end: this.state._end,
         queries: [q],
       };
       this._requestFrame(body).then(function(json) {
@@ -486,8 +490,8 @@
     },
 
     _removeAll: function() {
-      this._formulas = [];
-      this._queries = [];
+      this.state._formulas = "";
+      this.state._queries = "";
       this._hidden = [];
       this.$.plot.removeAll();
       this._lines = [];
@@ -548,12 +552,15 @@
 
     _addCalculated: function() {
       var f = this.$.formula.value;
-      if (this._formulas.indexOf(f) == -1) {
-        this._formulas.push(f);
+      if (this.state._formulas.indexOf(f) == -1) {
+        if (this.state._formulas) {
+          this.state._formulas += " ";
+        }
+        this.state._formulas += f;
       }
       var body = {
-        begin: this._begin,
-        end: this._end,
+        begin: this.state._begin,
+        end: this.state._end,
         formulas: [f],
       };
       this._requestFrame(body).then(function(json) {

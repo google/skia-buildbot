@@ -1301,6 +1301,9 @@ func frameHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Queries.
 	for _, q := range fr.Queries {
+		if q == "" {
+			continue
+		}
 		newDF, err := doSearch(q, begin, end)
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to complete query.")
@@ -1311,6 +1314,9 @@ func frameHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Formulas.
 	for _, formula := range fr.Formulas {
+		if formula == "" {
+			continue
+		}
 		newDF, err := doCalc(formula, begin, end)
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to complete query.")
