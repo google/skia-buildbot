@@ -53,7 +53,8 @@
 
     #queryTab.hidden,
     #commits.hidden,
-    #paramset.hidden {
+    #paramset.hidden,
+    #simple_paramset.hidden {
       display: none;
     }
 
@@ -96,6 +97,15 @@
     day-range-sk {
       display: block;
     }
+
+    #commits {
+      margin: 1em;
+    }
+
+    #simple_paramset {
+      margin: 1em 0 1em 1em;
+    }
+
   </style>
   <template>
     <div>
@@ -125,7 +135,7 @@
           <paper-tabs selected=0 id=detailtab no-bar on-iron-select="_tabSelect">
             <paper-tab>Query</paper-tab>
             <paper-tab>Params</paper-tab>
-            <paper-tab id=commitsTab disabled>Commits</paper-tab>
+            <paper-tab id=commitsTab disabled>Details</paper-tab>
           </paper-tabs>
           <div id=detail>
             <div id=queryTab class="layout vertical">
@@ -150,7 +160,10 @@
               </div>
             </div>
             <paramset-sk id=paramset class=hidden clickable-values></paramset-sk>
-            <commit-detail-panel-sk class=hidden id=commits></commit-detail-panel-sk>
+            <div id=details class="layout horizontal wrap">
+              <paramset-sk id=simple_paramset clickable-values></paramset-sk>
+              <commit-detail-panel-sk id=commits></commit-detail-panel-sk>
+            </div>
           </div>
         </div>
       </div>
@@ -242,19 +255,10 @@
       }.bind(this));
 
       // Highlight trace when a paramset value is clicked.
-      this.$.paramset.addEventListener("paramset-key-value-click", function(e){
-        var keys = [];
-        Object.keys(this._lines).forEach(function(key) {
-          if (sk.key.matches(key, e.detail.key, e.detail.value)) {
-            keys.push(key);
-          }
-        });
-        // Additively highlight if the ctrl key is pressed.
-        if (!e.detail.ctrl) {
-          this.$.plot.clearHighlight();
-        }
-        this.$.plot.setHighlight(keys);
-      }.bind(this));
+      this.$.paramset.addEventListener("paramset-key-value-click",
+        this._paramsetKeyValueClick.bind(this));
+      this.$.simple_paramset.addEventListener("paramset-key-value-click",
+        this._paramsetKeyValueClick.bind(this));
 
       // Reflect the focused trace in the paramset.
       this.$.plot.addEventListener("trace_focused", function(e) {
@@ -290,16 +294,37 @@
           }
           commits.push(this._dataframe.header[i]);
         }
+        // Convert the trace id into a paramset to display.
+        var params = sk.key.toObject(e.detail.id);
+        var paramset = {}
+        Object.keys(params).forEach(function(key) {
+          paramset[key] = [params[key]];
+        });
         // Request populated commits from the server.
         sk.post("/_/cid/", JSON.stringify(commits)).then(JSON.parse).then(function(json){
           this.$.commits.setCommitDetail(json);
           this.$.commitsTab.disabled = false;
+          this.$.simple_paramset.setParamSets([paramset]);
           this.$.detailtab.selected = 2;
         }.bind(this)).catch(sk.errorMessage);
       }.bind(this));
 
       this._updateCount();
       this._resizeWatcher();
+    },
+
+    _paramsetKeyValueClick: function(e) {
+      var keys = [];
+      Object.keys(this._lines).forEach(function(key) {
+        if (sk.key.matches(key, e.detail.key, e.detail.value)) {
+          keys.push(key);
+        }
+      });
+      // Additively highlight if the ctrl key is pressed.
+      if (!e.detail.ctrl) {
+        this.$.plot.clearHighlight();
+      }
+      this.$.plot.setHighlight(keys);
     },
 
     // Fit the time range being to the zoom being displayed.
@@ -439,7 +464,7 @@
       var sel = this.$.detailtab.selected;
       this.$.queryTab.classList.toggle('hidden', !(sel == 0));
       this.$.paramset.classList.toggle('hidden', !(sel == 1));
-      this.$.commits.classList.toggle('hidden', !(sel == 2));
+      this.$.details.classList.toggle('hidden', !(sel == 2));
     },
 
 
