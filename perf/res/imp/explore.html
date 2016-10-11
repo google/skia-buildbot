@@ -539,7 +539,7 @@
 
     // Common catch function that turns off the spinner.
     _catch: function(msg) {
-      sk.errorMessage(msg);
+      sk.errorMessage(msg, 10000);
       this.$.spinner.active = false;
     },
 
@@ -558,6 +558,9 @@
       this.$.spinner.active = true;
       return sk.post("/_/frame/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json) {
         this.$.spinner.active = false;
+        if (json.msg) {
+          sk.errorMessage(json.msg, 30000);
+        }
         return json;
       }.bind(this));
     },

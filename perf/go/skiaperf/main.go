@@ -58,6 +58,10 @@ import (
 	"go.skia.org/infra/perf/go/vec"
 )
 
+const (
+	MAX_TRACES_IN_RESPONSE = 350
+)
+
 var (
 	// TODO(jcgregorio) Make into a flag.
 	BEGINNING_OF_TIME = time.Date(2014, time.June, 18, 0, 0, 0, 0, time.UTC)
@@ -1164,7 +1168,7 @@ func initpageHandler(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 	df := freshDataFrame.Get()
-	resp, err := searchResponseFromDataFrame(&dataframe.DataFrame{
+	resp, err := responseFromDataFrame(&dataframe.DataFrame{
 		Header:   df.Header,
 		ParamSet: df.ParamSet,
 		TraceSet: ptracestore.TraceSet{},
@@ -1193,6 +1197,7 @@ type FrameResponse struct {
 	DataFrame *dataframe.DataFrame `json:"dataframe"`
 	Ticks     []interface{}        `json:"ticks"`
 	Skps      []int                `json:"skps"`
+	Msg       string               `json:"msg"`
 }
 
 // doSeach applies the given query and returns a dataframe that matches the
@@ -1319,7 +1324,7 @@ func frameHandler(w http.ResponseWriter, r *http.Request) {
 		delete(df.TraceSet, key)
 	}
 
-	resp, err := searchResponseFromDataFrame(df)
+	resp, err := responseFromDataFrame(df)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to get ticks or skps.")
 		return
@@ -1329,13 +1334,6 @@ func frameHandler(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		glog.Errorf("Failed to encode paramset: %s", err)
 	}
-}
-
-// SearchResponse is serialized to JSON as the response to search requests.
-type SearchResponse struct {
-	DataFrame *dataframe.DataFrame `json:"dataframe"`
-	Ticks     []interface{}        `json:"ticks"`
-	Skps      []int                `json:"skps"`
 }
 
 // getSkps returns the indices where the SKPs have been updated given
@@ -1408,7 +1406,7 @@ func getSkps(headers []*dataframe.ColumnHeader) ([]int, error) {
 	return ret, nil
 }
 
-func searchResponseFromDataFrame(df *dataframe.DataFrame) (*SearchResponse, error) {
+func responseFromDataFrame(df *dataframe.DataFrame) (*FrameResponse, error) {
 	// Calculate the human ticks based on the column headers.
 	ts := []int64{}
 	for _, c := range df.Header {
@@ -1422,10 +1420,28 @@ func searchResponseFromDataFrame(df *dataframe.DataFrame) (*SearchResponse, erro
 		return nil, fmt.Errorf("Failed to load skps: %s", err)
 	}
 
-	return &SearchResponse{
+	// Truncate the result if it's too large.
+	msg := ""
+	if len(df.TraceSet) > MAX_TRACES_IN_RESPONSE {
+		msg = fmt.Sprintf("Response too large, the number of traces returned has been truncated from %d to %d.", len(df.TraceSet), MAX_TRACES_IN_RESPONSE)
+		keys := []string{}
+		for k, _ := range df.TraceSet {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		keys = keys[:MAX_TRACES_IN_RESPONSE]
+		newTraceSet := ptracestore.TraceSet{}
+		for _, key := range keys {
+			newTraceSet[key] = df.TraceSet[key]
+		}
+		df.TraceSet = newTraceSet
+	}
+
+	return &FrameResponse{
 		DataFrame: df,
 		Ticks:     ticks,
 		Skps:      skps,
+		Msg:       msg,
 	}, nil
 }
 
