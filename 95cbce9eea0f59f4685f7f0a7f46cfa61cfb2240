@@ -1,0 +1,588 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ff45d8e5_46bec8a9",
+        "filename": "go/calc/funcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: s/1e32/vec.MISSING_DATA_SENTINEL/",
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff45d8e5_e6e914aa",
+        "filename": "go/calc/funcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: move below dup",
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff45d8e5_a6e30cc6",
+        "filename": "go/calc/funcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: copy(ret, a)",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 2
+      },
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff45d8e5_86db700e",
+        "filename": "go/calc/funcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: seems that this comment belongs to var filterFunc or type FilterFunc rather than Eval method. Same for others.",
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f5690ee_92fb5a5f",
+        "filename": "go/calc/funcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "typo: s/Rows/rows/",
+      "range": {
+        "startLine": 60,
+        "startChar": 44,
+        "endLine": 60,
+        "endChar": 48
+      },
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f5690ee_8fa5f5b5",
+        "filename": "go/calc/funcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: Might be useful to put this in a method Node.Float64()",
+      "range": {
+        "startLine": 84,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 59
+      },
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f5690ee_b275be22",
+        "filename": "go/calc/funcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: IMO, better to assume Eval returns an error with enough context, otherwise you get error messages like \"norm() failed evaluating argument: fill() failed evaluating argument: ratio() argument failed to evaluate: filter() takes a string argument.\"",
+      "range": {
+        "startLine": 95,
+        "startChar": 14,
+        "endLine": 95,
+        "endChar": 70
+      },
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f5690ee_32a38e4d",
+        "filename": "go/calc/funcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: Why is dup necessary here (and in FillFunc.Eval) but not in LogFunc.Eval?",
+      "range": {
+        "startLine": 100,
+        "startChar": 2,
+        "endLine": 100,
+        "endChar": 15
+      },
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f5690ee_9297da3d",
+        "filename": "go/calc/funcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "MIN_STDDEV is 0.001. Might be best to fmt.Sprintf and use the actual value of MIN_STDDEV.",
+      "range": {
+        "startLine": 113,
+        "startChar": 39,
+        "endLine": 113,
+        "endChar": 42
+      },
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f5690ee_7230b653",
+        "filename": "go/calc/funcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: if formula is `norm(ave(filter(\",config\u003d8888,\")))`, then the key for the overall result will end up being `norm(norm(ave(filter(\",config\u003d8888,\"))))` due to using ctx.formula here.\n\nSame issue for several other Eval methods.",
+      "range": {
+        "startLine": 190,
+        "startChar": 13,
+        "endLine": 190,
+        "endChar": 24
+      },
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f5690ee_12104ab1",
+        "filename": "go/calc/funcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: (assuming \"row\" and \"trace\" are synonymous,) documentation should use either row or trace consistently. Using both makes me question if there is some distinction that I\u0027m missing.",
+      "range": {
+        "startLine": 194,
+        "startChar": 70,
+        "endLine": 194,
+        "endChar": 75
+      },
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f5690ee_d2d962ea",
+        "filename": "go/calc/funcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: check if either rowA[i] or rowB[i] are MISSING_DATA_SENTINEL",
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff45d8e5_03f2f2c9",
+        "filename": "go/calc/lex.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: Seems simpler to combine items and peekBuffer.",
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff45d8e5_c3d2ca23",
+        "filename": "go/calc/lex.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: It seems this could be a local var in run().",
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff45d8e5_c3fbaaa3",
+        "filename": "go/calc/lex.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "Does this want to be \"l.peekBuffer[1:]\"?\n\nIf not, wouldn\u0027t it be simpler for peekBuffer to be type *item?\n\nAlso if not, peekItem implementation is wrong.",
+      "range": {
+        "startLine": 47,
+        "startChar": 17,
+        "endLine": 47,
+        "endChar": 33
+      },
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff45d8e5_230b6ed1",
+        "filename": "go/calc/lex.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "Reading this, I would assume that multiple calls to peekItem without calling nextItem would return the same thing, but that is not the case.",
+      "range": {
+        "startLine": 54,
+        "startChar": 56,
+        "endLine": 55,
+        "endChar": 26
+      },
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff45d8e5_03d99249",
+        "filename": "go/calc/lex.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: probably a good idea to mention here that string must be ASCII.",
+      "range": {
+        "startLine": 90,
+        "startChar": 46,
+        "endLine": 90,
+        "endChar": 52
+      },
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff45d8e5_4308fad1",
+        "filename": "go/calc/lex.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: cast seems unnecessary",
+      "range": {
+        "startLine": 106,
+        "startChar": 4,
+        "endLine": 106,
+        "endChar": 8
+      },
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff45d8e5_e3d34629",
+        "filename": "go/calc/lex.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: s/rune/byte/",
+      "range": {
+        "startLine": 114,
+        "startChar": 25,
+        "endLine": 114,
+        "endChar": 29
+      },
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f5690ee_12b76acf",
+        "filename": "go/calc/parser.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: Could change this to something like fmt.Errorf(\"Expected a function, instead got %q\", n.Val); then Func.Eval methods could call Node.Eval without checking the type first (as RatioFunc.Eval does).",
+      "range": {
+        "startLine": 37,
+        "startChar": 14,
+        "endLine": 37,
+        "endChar": 76
+      },
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff45d8e5_a39f7e64",
+        "filename": "go/calc/parser.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: Might be useful to indicate what we found instead. x3",
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f5690ee_d2e322c5",
+        "filename": "go/calc/parser.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "It appears that commas between arguments are optional. Is that intended?",
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f5690ee_92435a6c",
+        "filename": "go/calc/parser_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: assert.True(len(rows[\"fill(,config\u003d8888,os\u003dUbuntu12,)\"]) \u003e 0) and alias assert to require package to avoid a panic if the test fails.\n\nSimilar in other tests.",
+      "range": {
+        "startLine": 81,
+        "startChar": 56,
+        "endLine": 81,
+        "endChar": 59
+      },
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff45d8e5_a373fea3",
+        "filename": "go/vec/vec.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: If \"vec\" is short for \"vector,\" I would expect \"Norm\" to return sqrt(a[0]^2 + a[1]^2 + ...). https://en.wikipedia.org/wiki/Norm_(mathematics)\n\nMaybe this should be called \"stat\"?",
+      "range": {
+        "startLine": 2,
+        "startChar": 8,
+        "endLine": 2,
+        "endChar": 11
+      },
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff45d8e5_23512e04",
+        "filename": "go/vec/vec.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "nit: copy comment from https://skia.googlesource.com/buildbot/+/70732a4089c1ce66009f37bad20a6e1f4ffb7dd5/perf/go/ptracestore/ptracestore.go#37\n\nnit: Presumably you\u0027ll be passing ptracestore.Traces to the functions here, so it makes sense to me that ptracestore.MISSING_VALUE would be defined as \u003d vec.MISSING_DATA_SENTINEL. Might want to mention here that the value is stored in DB so it can\u0027t easily be changed.",
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff45d8e5_a3853e67",
+        "filename": "go/vec/vec.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "older \u003d\u003d later in the array? This isn\u0027t clear.",
+      "range": {
+        "startLine": 61,
+        "startChar": 35,
+        "endLine": 61,
+        "endChar": 47
+      },
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff45d8e5_c38aca76",
+        "filename": "go/vec/vec.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "Do you mean the end of the array?",
+      "range": {
+        "startLine": 61,
+        "startChar": 64,
+        "endLine": 62,
+        "endChar": 12
+      },
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff45d8e5_63b97632",
+        "filename": "go/vec/vec.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-11T18:44:50Z",
+      "side": 1,
+      "message": "Wrong sentinel value.",
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
