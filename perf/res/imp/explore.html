@@ -51,6 +51,7 @@
       height: 480px;
     }
 
+    #details.hidden,
     #queryTab.hidden,
     #commits.hidden,
     #paramset.hidden,
@@ -120,12 +121,9 @@
             </div>
           </div>
           <div class="layout vertical" id=buttons>
-            <button title="Create shortcut.">
-              <iron-icon icon="link"></iron-icon>
-            </button>
-            <button on-click="_removeHighlighted" title="Remove all the highlighted traces.">Remove Highlighted</button>
+            <button on-click="_removeHighlighted" title="Hide all the highlighted traces.">Hide Highlighted</button>
             <button on-click="_removeAll" title="Remove all the traces.">Remove All</button>
-            <button on-click="_highlightedOnly" title="Remove all but the highlighted traces.">Highlighted Only</button>
+            <button on-click="_highlightedOnly" title="Hide all but the highlighted traces.">Highlighted Only</button>
             <button on-click="_clearHighlights" title="Remove highlights from all traces.">Clear Highlights</button>
             <button on-click="_resetAxes" title="Reset back to the original zoom level.">Reset Axes</button>
             <button on-click="_zoomToRange" id=zoom_range disabled title="Fit the time range to the current zoom window.">Zoom Range</button>
@@ -192,24 +190,19 @@
         type: Boolean,
         value: false,
       },
-      // The time range we are plotting, in Unix timestamp seconds.
-      _begin: {
-        type: Number,
-        value: function() { return Math.floor(Date.now()/1000 - 24*60*60); },
-      },
-      _end: {
-        type: Number,
-        value: function() { return Math.floor(Date.now()/1000); },
-      },
-      // The formulas that have been calculated and displayed.
-      _formulas: {
-        type: Array,
-        value: function() { return []; },
-      },
-      // The queries that have been run to add traces to the plot.
-      _queries: {
-        type: Array,
-        value: function() { return []; },
+      // The state that goes into the URL.
+      //
+      // Note that formulas and queries are stored as space separated strings
+      // because that's what sk.query.toObject needs, i.e. it can't serialize
+      // Arrays. We convert them back to Arrays before sending to the server.
+      state: {
+        type: Object,
+        value: function() { return {
+          begin: Math.floor(Date.now()/1000 - 24*60*60),
+          end: Math.floor(Date.now()/1000),
+          formulas: "",
+          queries: "",
+        }; },
       },
       // The ids of all the traces that have been hidden.
       _hidden: {
@@ -228,8 +221,8 @@
       // Populate the query element.
       sk.get("/_/initpage/").then(JSON.parse).then(function(json) {
         var header = json.dataframe.header;
-        this._begin = this.$.range.begin = header[0].timestamp;
-        this._end   = this.$.range.end   = header[header.length-1].timestamp+1;
+        this.state.begin = this.$.range.begin = header[0].timestamp;
+        this.state.end   = this.$.range.end   = header[header.length-1].timestamp+1;
         this.$.query.setParamset(json.dataframe.paramset);
 
         // Remove the paramset so it doesn't get displayed in the Params tab.
@@ -238,6 +231,16 @@
         // Display this SearchResult, which has no traces, but this will
         // set up the tick marks, the skp bands, and the 0-trace.
         this._addTraces(json, true, false);
+
+        // From this point on reflect the state to the URL.
+        sk.stateReflector(this,  function() {
+          if (this.state.queries == "" && this.state.formulas == "") {
+            return
+          }
+          this.$.range.begin = this.state.begin;
+          this.$.range.end = this.state.end;
+          this._rangeChangeImpl(this.state.begin, this.state.end);
+        }.bind(this));
       }.bind(this)).catch(sk.errorMessage);
 
       // Reflect the current query to the query summary.
@@ -343,13 +346,13 @@
 
     // Reload all the queries/formulas on the given time range.
     _rangeChangeImpl: function(begin, end) {
-      this.set("_begin", begin);
-      this.set("_end", end);
+      this.state.begin = begin;
+      this.state.end = end;
       var body = {
-        begin: this._begin,
-        end: this._end,
-        formulas: this._formulas,
-        queries: this._queries,
+        begin: this.state.begin,
+        end: this.state.end,
+        formulas: this.state.formulas.split(/\s+/),
+        queries: this.state.queries.split(/\s+/),
         hidden: this._hidden,
       };
       this._requestFrame(body).then(function(json) {
@@ -447,12 +450,15 @@
 
     _add: function() {
       var q = this.$.query.current_query;
-      if (this._queries.indexOf(q) == -1) {
-        this._queries.push(q);
+      if (this.state.queries.indexOf(q) == -1) {
+        if (this.state.queries) {
+          this.state.queries += " ";
+        }
+        this.state.queries += q;
       }
       var body = {
-        begin: this._begin,
-        end: this._end,
+        begin: this.state.begin,
+        end: this.state.end,
         queries: [q],
       };
       this._requestFrame(body).then(function(json) {
@@ -486,8 +492,8 @@
     },
 
     _removeAll: function() {
-      this._formulas = [];
-      this._queries = [];
+      this.state.formulas = "";
+      this.state.queries = "";
       this._hidden = [];
       this.$.plot.removeAll();
       this._lines = [];
@@ -548,12 +554,15 @@
 
     _addCalculated: function() {
       var f = this.$.formula.value;
-      if (this._formulas.indexOf(f) == -1) {
-        this._formulas.push(f);
+      if (this.state.formulas.indexOf(f) == -1) {
+        if (this.state.formulas) {
+          this.state.formulas += " ";
+        }
+        this.state.formulas += f;
       }
       var body = {
-        begin: this._begin,
-        end: this._end,
+        begin: this.state.begin,
+        end: this.state.end,
         formulas: [f],
       };
       this._requestFrame(body).then(function(json) {
@@ -571,10 +580,10 @@
     // Requests a new dataframe, where body is a serialized FrameRequest:
     //
     //    var body = {
-    //      begin: this._begin,
-    //      end: this._end,
-    //      formulas: this._formulas,
-    //      queries: this._queries,
+    //      begin: this.begin,
+    //      end: this.end,
+    //      formulas: this.formulas,
+    //      queries: this.queries,
     //      hidden: this._hidden,
     //    };
     //
