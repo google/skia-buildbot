@@ -18,6 +18,8 @@ const (
 	// DEFAULT_NUM_COMMITS is the number of commits in the DataFrame returned
 	// from New().
 	DEFAULT_NUM_COMMITS = 50
+
+	MAX_SAMPLE_SIZE = 256
 )
 
 // ColumnHeader describes each column in a DataFrame.
@@ -69,7 +71,7 @@ func lastN(vcs vcsinfo.VCS) ([]*ColumnHeader, []*cid.CommitID) {
 // needed by DataFrame and ptracestore.PTraceStore, respectively. The slices
 // are for the commits that fall in the given time range [begin, end).
 func getRange(vcs vcsinfo.VCS, begin, end time.Time) ([]*ColumnHeader, []*cid.CommitID) {
-	return rangeImpl(vcs.Range(begin, end))
+	return rangeImpl(DownSample(vcs.Range(begin, end), MAX_SAMPLE_SIZE))
 }
 
 func _new(colHeaders []*ColumnHeader, commitIDs []*cid.CommitID, q *query.Query, store ptracestore.PTraceStore) (*DataFrame, error) {
