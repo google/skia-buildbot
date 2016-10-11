@@ -413,15 +413,15 @@ func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 	defer exec.SetRunForTesting(exec.DefaultRun)
 	// Poll frontend and execute the first task.
 	wg1 := pollAndExecOnce()
+	wg1.Wait() // Wait for task to return to make asserting commands deterministic.
 	// Update current task.
 	task2 := pendingChromiumPerfTask()
 	mockServer.SetCurrentTask(&task2.DBTask)
 	// Poll frontend and execute the second task.
 	wg2 := pollAndExecOnce()
+	wg2.Wait() // Wait for task to return to make asserting commands deterministic.
 
 	// Expect two pending task requests.
-	wg1.Wait()
-	wg2.Wait()
 	expect.Equal(t, 2, mockServer.OldestPendingTaskReqCount())
 	// Expect six commands: git pull; make all; capture_archives_on_workers ...; git pull;
 	// make all; run_chromium_perf_on_workers ...
