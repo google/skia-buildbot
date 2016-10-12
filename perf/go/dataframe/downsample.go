@@ -9,7 +9,7 @@ import (
 // DownSample the given slice of IndexCommits so that there's no more than 'n'
 // IndexCommits returned.
 func DownSample(sample []*vcsinfo.IndexCommit, n int) []*vcsinfo.IndexCommit {
-	if len(sample) < 2 {
+	if len(sample) <= n {
 		return sample
 	}
 	if n <= 0 {
