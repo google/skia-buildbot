@@ -36,6 +36,75 @@
     },
     {
       "key": {
+        "uuid": "9c6eaae8_23ad383a",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T21:01:19Z",
+      "side": 1,
+      "message": "nit: move after \"// Lay out the task specs and tasks.\"",
+      "range": {
+        "startLine": 270,
+        "startChar": 0,
+        "endLine": 271,
+        "endChar": 23
+      },
+      "revId": "ff675e00d1e7cf4e23cec1af661fd897f961c2f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_c376bcc8",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T21:01:19Z",
+      "side": 1,
+      "message": "nit: might be slightly easier to understand if \"width\" and \"colHeight\" were named \"curX\" and \"curY,\" although I can see why you picked these names.",
+      "range": {
+        "startLine": 309,
+        "startChar": 0,
+        "endLine": 310,
+        "endChar": 27
+      },
+      "revId": "ff675e00d1e7cf4e23cec1af661fd897f961c2f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_2311b868",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 342,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T21:01:19Z",
+      "side": 1,
+      "message": "nit: I generally see \"A -\u003e B\" to illustrate \"A depends on B,\" although maybe that\u0027s only in UML. Here, dst and src are the opposite -- I\u0027m guessing it\u0027s meant to say \"A comes before B\"?",
+      "range": {
+        "startLine": 342,
+        "startChar": 14,
+        "endLine": 342,
+        "endChar": 17
+      },
+      "revId": "ff675e00d1e7cf4e23cec1af661fd897f961c2f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fc7ec69b_7b6bd717",
         "filename": "task_scheduler/res/imp/job-sk.html",
         "patchSetId": 2
@@ -70,6 +139,29 @@
       "writtenOn": "2016-10-12T20:30:33Z",
       "side": 1,
       "message": "If you are clearing things only, you don\u0027t need an enter() call here",
+      "revId": "ff675e00d1e7cf4e23cec1af661fd897f961c2f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_a34f0862",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T21:01:19Z",
+      "side": 1,
+      "message": "Did you mean to use taskSpecX and taskSpecY?",
+      "range": {
+        "startLine": 397,
+        "startChar": 1,
+        "endLine": 398,
+        "endChar": 57
+      },
       "revId": "ff675e00d1e7cf4e23cec1af661fd897f961c2f5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
