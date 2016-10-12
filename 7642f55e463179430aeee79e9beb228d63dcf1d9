@@ -22,6 +22,24 @@
       "revId": "7642f55e463179430aeee79e9beb228d63dcf1d9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_4098626a",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T18:12:20Z",
+      "side": 1,
+      "message": "Removed in https://skia-review.googlesource.com/3065",
+      "parentUuid": "9c6eaae8_60700633",
+      "revId": "7642f55e463179430aeee79e9beb228d63dcf1d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
