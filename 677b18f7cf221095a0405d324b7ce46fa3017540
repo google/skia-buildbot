@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "9c6eaae8_03a4b452",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-12T20:36:12Z",
+      "side": 1,
+      "message": "Done. Fixed in a later CL that adds support for Objects and Arrays of Strings to sk.query.*.",
+      "parentUuid": "9c6eaae8_9d526730",
+      "revId": "677b18f7cf221095a0405d324b7ce46fa3017540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9c6eaae8_1d3f37e2",
         "filename": "perf/res/imp/explore.html",
         "patchSetId": 7
