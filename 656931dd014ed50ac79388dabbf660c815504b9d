@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c6eaae8_1d665720",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T14:23:12Z",
+      "side": 1,
+      "message": "Does this want to be hidden initially?",
+      "range": {
+        "startLine": 163,
+        "startChar": 28,
+        "endLine": 163,
+        "endChar": 35
+      },
+      "revId": "656931dd014ed50ac79388dabbf660c815504b9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
