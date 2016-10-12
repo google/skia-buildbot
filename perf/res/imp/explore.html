@@ -327,7 +327,7 @@
       this.$.plot.setHighlight(keys);
     },
 
-    // Fit the time range being to the zoom being displayed.
+    // Fit the time range to the zoom being displayed.
     // Reload all the queries/formulas on the new time range.
     _zoomToRange: function() {
       this.$.range.begin = this._zoomRange[0];
@@ -336,7 +336,7 @@
     },
 
     // Called when the day-range slider has changed, causes all the
-    // queries/formulas to be reloade for the new time range.
+    // queries/formulas to be reloaded for the new time range.
     _rangeChange: function(e) {
       this._rangeChangeImpl(e.detail.begin, e.detail.end);
     },
