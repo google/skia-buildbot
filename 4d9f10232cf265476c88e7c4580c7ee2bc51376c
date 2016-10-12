@@ -16,6 +16,24 @@
       "revId": "4d9f10232cf265476c88e7c4580c7ee2bc51376c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c051249_30520810",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-12T15:20:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c051249_b021d8be",
+      "revId": "4d9f10232cf265476c88e7c4580c7ee2bc51376c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
