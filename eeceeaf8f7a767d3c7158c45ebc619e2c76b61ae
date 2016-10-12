@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c6eaae8_40e06289",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 486,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T19:06:48Z",
+      "side": 1,
+      "message": "Isn\u0027t it possible for this post request to be fired off, then the user changes the range and _rangeChange completes and calls _addTraces before this post returns? Then we would get strange traces that don\u0027t belong to the current header.",
+      "range": {
+        "startLine": 486,
+        "startChar": 8,
+        "endLine": 486,
+        "endChar": 43
+      },
+      "revId": "eeceeaf8f7a767d3c7158c45ebc619e2c76b61ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
