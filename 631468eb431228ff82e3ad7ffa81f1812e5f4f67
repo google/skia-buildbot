@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c6eaae8_43706c67",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1349,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T21:12:50Z",
+      "side": 1,
+      "message": "nit: comment should mention \"git\" somewhere",
+      "revId": "631468eb431228ff82e3ad7ffa81f1812e5f4f67",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_43294c43",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1351,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T21:12:50Z",
+      "side": 1,
+      "message": "begin is exclusive: https://github.com/google/skia-buildbot/blob/0dec15bc3873df39de276710d6882f5efde36b0a/go/gitinfo/gitinfo.go#L329",
+      "range": {
+        "startLine": 1351,
+        "startChar": 11,
+        "endLine": 1351,
+        "endChar": 20
+      },
+      "revId": "631468eb431228ff82e3ad7ffa81f1812e5f4f67",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_23f698be",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1358,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T21:12:50Z",
+      "side": 1,
+      "message": "nit: LogFine uses .., not ..., and those unfortunately mean different things.",
+      "range": {
+        "startLine": 1358,
+        "startChar": 43,
+        "endLine": 1358,
+        "endChar": 46
+      },
+      "revId": "631468eb431228ff82e3ad7ffa81f1812e5f4f67",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_e3b180fb",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1364,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T21:12:50Z",
+      "side": 1,
+      "message": "nit: Ravi reminded me today that if you want int64, use strconv.ParseInt(s, 10, 64)",
+      "range": {
+        "startLine": 1364,
+        "startChar": 12,
+        "endLine": 1364,
+        "endChar": 24
+      },
+      "revId": "631468eb431228ff82e3ad7ffa81f1812e5f4f67",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
