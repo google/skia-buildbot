@@ -500,7 +500,7 @@ this.sk = this.sk || function() {
   // The reverse of this function is toObject.
   sk.query.fromObject = function(o) {
     var ret = [];
-    Object.keys(o).forEach(function(key) {
+    Object.keys(o).sort().forEach(function(key) {
       if (Array.isArray(o[key])) {
         o[key].forEach(function(value) {
           ret.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
@@ -543,8 +543,7 @@ this.sk = this.sk || function() {
   //     b: "true",
   //   }
   //
-  // Only Number, String, Boolean, and Array of String hints are supported,
-  // along with nested Objects that contain only those types.
+  // Only Number, String, Boolean, Object, and Array of String hints are supported.
   sk.query.toObject = function(s, target) {
     var target = target || {};
     var ret = {};
@@ -595,12 +594,34 @@ this.sk = this.sk || function() {
   // Namespace for utilities for working with Objects.
   sk.object = {};
 
+  // Returns true if a and b are equal, covers Boolean, Number, String and
+  // Arrays and Objects.
+  sk.object.equals = function(a, b) {
+    if (typeof(a) != typeof(b)) {
+      return false
+    }
+    var ta = typeof(a);
+    if (ta == 'string' || ta == 'boolean' || ta == 'number') {
+      return a === b
+    }
+    if (ta == 'object') {
+      if (Array.isArray(ta)) {
+        return JSON.stringify(a) == JSON.stringify(b)
+      } else {
+        return sk.query.fromObject(a) == sk.query.fromObject(b)
+      }
+    }
+  }
+
   // Returns an object with only values that are in o that are different
   // from d.
+  //
+  // Only works shallowly, i.e. only diffs on the attributes of
+  // o and d, and only for the types that sk.object.equals supports.
   sk.object.getDelta = function (o, d) {
     var ret = {};
     Object.keys(o).forEach(function(key) {
-      if (o[key] != d[key]) {
+      if (!sk.object.equals(o[key], d[key])) {
         ret[key] = o[key];
       }
     });
@@ -612,9 +633,9 @@ this.sk = this.sk || function() {
     var ret = {};
     Object.keys(o).forEach(function(key) {
       if (delta.hasOwnProperty(key)) {
-        ret[key] = delta[key];
+        ret[key] = JSON.parse(JSON.stringify(delta[key]));
       } else {
-        ret[key] = o[key];
+        ret[key] = JSON.parse(JSON.stringify(o[key]));
       }
     });
     return ret;
@@ -666,6 +687,10 @@ this.sk = this.sk || function() {
   // page - An object with a property 'state' where the state to be reflected
   //        into the URL is stored. We need the level of indirection because
   //        JS doesn't have pointers.
+  //
+  //        The 'state' must be on Object and all the values in the Object
+  //        must be Number, String, Boolean, Object, or Array of String.
+  //        Doesn't handle NaN, null, or undefined.
   // cb   - A callback of the form function() that is called when state has been
   //        changed by a change in the URL.
   sk.stateReflector = function(page, cb) {

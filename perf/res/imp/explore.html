@@ -192,16 +192,13 @@
       },
       // The state that goes into the URL.
       //
-      // Note that formulas and queries are stored as space separated strings
-      // because that's what sk.query.toObject needs, i.e. it can't serialize
-      // Arrays. We convert them back to Arrays before sending to the server.
       state: {
         type: Object,
         value: function() { return {
           begin: Math.floor(Date.now()/1000 - 24*60*60),
           end: Math.floor(Date.now()/1000),
-          formulas: "",
-          queries: "",
+          formulas: [],
+          queries: [],
         }; },
       },
       // The ids of all the traces that have been hidden.
@@ -234,7 +231,7 @@
 
         // From this point on reflect the state to the URL.
         sk.stateReflector(this,  function() {
-          if (this.state.queries == "" && this.state.formulas == "") {
+          if (this.state.queries.length == 0 && this.state.formulas.length == 0) {
             return
           }
           this.$.range.begin = this.state.begin;
@@ -351,8 +348,8 @@
       var body = {
         begin: this.state.begin,
         end: this.state.end,
-        formulas: this.state.formulas.split(/\s+/),
-        queries: this.state.queries.split(/\s+/),
+        formulas: this.state.formulas,
+        queries: this.state.queries,
         hidden: this._hidden,
       };
       this._requestFrame(body).then(function(json) {
@@ -451,10 +448,7 @@
     _add: function() {
       var q = this.$.query.current_query;
       if (this.state.queries.indexOf(q) == -1) {
-        if (this.state.queries) {
-          this.state.queries += " ";
-        }
-        this.state.queries += q;
+        this.state.queries.push(q);
       }
       var body = {
         begin: this.state.begin,
@@ -492,8 +486,8 @@
     },
 
     _removeAll: function() {
-      this.state.formulas = "";
-      this.state.queries = "";
+      this.state.formulas = [];
+      this.state.queries = [];
       this._hidden = [];
       this.$.plot.removeAll();
       this._lines = [];
@@ -555,10 +549,7 @@
     _addCalculated: function() {
       var f = this.$.formula.value;
       if (this.state.formulas.indexOf(f) == -1) {
-        if (this.state.formulas) {
-          this.state.formulas += " ";
-        }
-        this.state.formulas += f;
+        this.state.formulas.push(f);
       }
       var body = {
         begin: this.state.begin,
