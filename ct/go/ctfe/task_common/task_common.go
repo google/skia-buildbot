@@ -602,7 +602,7 @@ type clDetail struct {
 	Patchsets []int  `json:"patchsets"`
 }
 
-func GetCLDetail(clURLString string) (clDetail, error) {
+func getCLDetail(clURLString string) (clDetail, error) {
 	if clURLString == "" {
 		return clDetail{}, fmt.Errorf("No CL specified")
 	}
@@ -632,7 +632,7 @@ func GetCLDetail(clURLString string) (clDetail, error) {
 	return detail, err
 }
 
-func GetCLPatch(detail clDetail, patchsetID int) (string, error) {
+func getCLPatch(detail clDetail, patchsetID int) (string, error) {
 	if len(detail.Patchsets) == 0 {
 		return "", fmt.Errorf("CL has no patchsets")
 	}
@@ -664,7 +664,7 @@ func GetCLPatch(detail clDetail, patchsetID int) (string, error) {
 	return string(patchBytes), nil
 }
 
-func GatherCLData(detail clDetail, patch string) (map[string]string, error) {
+func gatherCLData(detail clDetail, patch string) (map[string]string, error) {
 	clData := map[string]string{}
 	clData["cl"] = strconv.Itoa(detail.Issue)
 	clData["patchset"] = strconv.Itoa(detail.Patchsets[len(detail.Patchsets)-1])
@@ -694,7 +694,7 @@ func GatherCLData(detail clDetail, patch string) (map[string]string, error) {
 
 func getCLHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	detail, err := GetCLDetail(r.FormValue("cl"))
+	detail, err := getCLDetail(r.FormValue("cl"))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to get CL details")
 		return
@@ -706,12 +706,12 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	patch, err := GetCLPatch(detail, 0)
+	patch, err := getCLPatch(detail, 0)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to get CL patch")
 		return
 	}
-	clData, err := GatherCLData(detail, patch)
+	clData, err := gatherCLData(detail, patch)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to get CL data")
 		return

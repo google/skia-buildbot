@@ -16,16 +16,15 @@ import (
 
 // URIs for frontend handlers.
 const (
-	CHROMIUM_PERF_URI                       = "chromium_perf/"
-	CHROMIUM_PERF_RUNS_URI                  = "chromium_perf_runs/"
-	GET_CHROMIUM_PERF_RUN_STATUS_URI        = "get_chromium_perf_run_status"
-	CHROMIUM_PERF_PARAMETERS_POST_URI       = "_/chromium_perf/"
-	ADD_CHROMIUM_PERF_TASK_POST_URI         = "_/add_chromium_perf_task"
-	GET_CHROMIUM_PERF_TASKS_POST_URI        = "_/get_chromium_perf_tasks"
-	UPDATE_CHROMIUM_PERF_TASK_POST_URI      = "_/update_chromium_perf_task"
-	WEBHOOK_ADD_CHROMIUM_PERF_TASK_POST_URI = "_/webhook_add_chromium_perf_task"
-	DELETE_CHROMIUM_PERF_TASK_POST_URI      = "_/delete_chromium_perf_task"
-	REDO_CHROMIUM_PERF_TASK_POST_URI        = "_/redo_chromium_perf_task"
+	CHROMIUM_PERF_URI                  = "chromium_perf/"
+	CHROMIUM_PERF_RUNS_URI             = "chromium_perf_runs/"
+	GET_CHROMIUM_PERF_RUN_STATUS_URI   = "get_chromium_perf_run_status"
+	CHROMIUM_PERF_PARAMETERS_POST_URI  = "_/chromium_perf/"
+	ADD_CHROMIUM_PERF_TASK_POST_URI    = "_/add_chromium_perf_task"
+	GET_CHROMIUM_PERF_TASKS_POST_URI   = "_/get_chromium_perf_tasks"
+	UPDATE_CHROMIUM_PERF_TASK_POST_URI = "_/update_chromium_perf_task"
+	DELETE_CHROMIUM_PERF_TASK_POST_URI = "_/delete_chromium_perf_task"
+	REDO_CHROMIUM_PERF_TASK_POST_URI   = "_/redo_chromium_perf_task"
 
 	CHROMIUM_ANALYSIS_URI                  = "chromium_analysis/"
 	CHROMIUM_ANALYSIS_RUNS_URI             = "chromium_analysis_runs/"
