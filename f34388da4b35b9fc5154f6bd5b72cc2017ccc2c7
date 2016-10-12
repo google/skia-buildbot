@@ -22,6 +22,24 @@
       "revId": "f34388da4b35b9fc5154f6bd5b72cc2017ccc2c7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c693ee5_fd56ff5d",
+        "filename": "perf/go/dataframe/downsample.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-12T20:02:02Z",
+      "side": 1,
+      "message": "Done in https://skia-review.googlesource.com/c/3247/",
+      "parentUuid": "9c6eaae8_7dbd1380",
+      "revId": "f34388da4b35b9fc5154f6bd5b72cc2017ccc2c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
