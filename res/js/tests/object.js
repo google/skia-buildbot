@@ -14,13 +14,11 @@ describe('sk.object functions',
       assert.deepEqual(second, {});
       test({a: "foo"}, {a: "bar"}, {a: "foo"});
       test({a: "foo", b: "bar"}, {a: true, c: "bar"}, {a: "foo", b: "bar"});
-      test(["one", 2, 3.0], [1, "2", 3], {'0': "one"});
+      test(["one", 2, 3.0], [1, "2", 3], {'0': "one", '1': 2});
       test({a: undefined, b: NaN, c: null}, {a: true, b: true, c: true},
            {a: undefined, b: NaN, c: null});
       test({a: undefined, b: NaN, c: false}, {a: null, b: null, c: null},
-           {b: NaN, c: false});
-      var noop = function () {};
-      test({a: test, b: noop}, {a: test, b: function () {}}, {b: noop});
+           {a: undefined, c: false});
     }
 
     function testApplyDelta() {
@@ -41,12 +39,24 @@ describe('sk.object functions',
            {a: "foo", c: "bar"});
       test(["one"], [1, "2", 3], {'0': "one", '1': "2", '2': 3});
       test({b: NaN, c: false}, {a: null, b: null, c: null},
-           {a: null, b: NaN, c: false});
+           {a: null, b: null, c: false});
+    }
+
+    function testEquals() {
+      assert.isTrue(sk.object.equals(1, 1));
+      assert.isTrue(sk.object.equals(NaN, NaN));
+      assert.isTrue(sk.object.equals(undefined, undefined));
+      assert.isTrue(sk.object.equals([1,2], [1,2]));
+      assert.isTrue(sk.object.equals([], []));
+      assert.isFalse(sk.object.equals([1], []));
+      assert.isFalse(sk.object.equals(NaN, []));
+      assert.isFalse(sk.object.equals(undefined, []));
     }
 
     it('should be able get differences and apply differences', function() {
       testGetDelta();
       testApplyDelta();
+      testEquals();
     });
   }
 );

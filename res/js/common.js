@@ -595,12 +595,18 @@ this.sk = this.sk || function() {
   // Namespace for utilities for working with Objects.
   sk.object = {};
 
+  // Returns true if a and b are equal, covers primitive types and Arrays but
+  // not Objects.
+  sk.object.equals = function(a, b) {
+    return JSON.stringify(a) == JSON.stringify(b);
+  }
+
   // Returns an object with only values that are in o that are different
   // from d.
   sk.object.getDelta = function (o, d) {
     var ret = {};
     Object.keys(o).forEach(function(key) {
-      if (o[key] != d[key]) {
+      if (!sk.object.equals(o[key], d[key])) {
         ret[key] = o[key];
       }
     });
@@ -612,9 +618,9 @@ this.sk = this.sk || function() {
     var ret = {};
     Object.keys(o).forEach(function(key) {
       if (delta.hasOwnProperty(key)) {
-        ret[key] = delta[key];
+        ret[key] = JSON.parse(JSON.stringify(delta[key]));
       } else {
-        ret[key] = o[key];
+        ret[key] = JSON.parse(JSON.stringify(o[key]));
       }
     });
     return ret;
