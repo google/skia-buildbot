@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c6eaae8_7dbd1380",
+        "filename": "perf/go/dataframe/downsample.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T13:31:16Z",
+      "side": 1,
+      "message": "nit: len(sample) \u003c\u003d n",
+      "range": {
+        "startLine": 12,
+        "startChar": 4,
+        "endLine": 12,
+        "endChar": 19
+      },
+      "revId": "f34388da4b35b9fc5154f6bd5b72cc2017ccc2c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
