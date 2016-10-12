@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c6eaae8_a0093ed7",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 342,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T20:13:05Z",
+      "side": 1,
+      "message": "typo reloaded",
+      "range": {
+        "startLine": 342,
+        "startChar": 30,
+        "endLine": 342,
+        "endChar": 36
+      },
+      "revId": "85f38844f7668a32bec3563ad2daf149dbfc3504",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
