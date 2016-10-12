@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c6eaae8_dda69f5d",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1303,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T14:15:29Z",
+      "side": 1,
+      "message": "Does it make sense to break early from these loops if len(df.TraceSet) \u003e MAX_TRACES_IN_RESPONSE?",
+      "revId": "22a4e80b52269bfa9f01901fa7fd22db38133604",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_1dadf739",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1333,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T14:15:29Z",
+      "side": 1,
+      "message": "done?",
+      "revId": "22a4e80b52269bfa9f01901fa7fd22db38133604",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
