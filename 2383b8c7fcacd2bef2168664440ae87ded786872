@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c6eaae8_3de0fb88",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T13:50:34Z",
+      "side": 1,
+      "message": "extra word",
+      "range": {
+        "startLine": 303,
+        "startChar": 26,
+        "endLine": 303,
+        "endChar": 31
+      },
+      "revId": "2383b8c7fcacd2bef2168664440ae87ded786872",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_1ddbb7e1",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T13:50:34Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 312,
+        "startChar": 30,
+        "endLine": 312,
+        "endChar": 37
+      },
+      "revId": "2383b8c7fcacd2bef2168664440ae87ded786872",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
