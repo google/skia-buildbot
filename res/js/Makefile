@@ -10,6 +10,11 @@ test: node_modules/karma/bin/karma
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" \
 		node_modules/karma/bin/karma start karma.conf.js
 
+.PHONY: debug
+debug: node_modules/karma/bin/karma
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" \
+		node_modules/karma/bin/karma --no-single-run start karma.conf.js
+
 .PHONY: all
 all: build
 
