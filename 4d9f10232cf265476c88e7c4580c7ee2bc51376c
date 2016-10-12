@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c051249_b021d8be",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-12T14:43:00Z",
+      "side": 1,
+      "message": "SplitN isn\u0027t guaranteed to return a slice of length 2:\n\nhttps://play.golang.org/p/BwDBOIEWpu",
+      "revId": "4d9f10232cf265476c88e7c4580c7ee2bc51376c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
