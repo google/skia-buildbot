@@ -63,6 +63,30 @@ func GerritPollerTest(t *testing.T) {
 	time.Sleep(time.Hour)
 }
 
+func TestGetPatch(t *testing.T) {
+	skipTestIfRequired(t)
+
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	assert.NoError(t, err)
+
+	patch, err := api.GetPatch(2370, "current")
+	assert.NoError(t, err)
+	expected := `
+
+diff --git a/whitespace.txt b/whitespace.txt
+index c0f0a49..d5733b3 100644
+--- a/whitespace.txt
++++ b/whitespace.txt
+@@ -1,4 +1,5 @@
+ testing
++
+  
+ 
+ 
+`
+	assert.Equal(t, expected, patch)
+}
+
 func TestAddComment(t *testing.T) {
 	skipTestIfRequired(t)
 
