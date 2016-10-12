@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c6eaae8_9d526730",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T14:44:57Z",
+      "side": 1,
+      "message": "Seems like it would be easier to just fix sk.query.toObject and sk.query.fromObject to handle arrays. I.e. translate foo \u003d [1, 2, 3] to/from \"foo\u003d1\u0026foo\u003d2\u0026foo\u003d3\".\n\nKevin might have solved this problem in the Swarming UI, because those URLs handle query params with multiple values, although I assume he is not using the sk JS library.",
+      "range": {
+        "startLine": 195,
+        "startChar": 0,
+        "endLine": 197,
+        "endChar": 16
+      },
+      "revId": "677b18f7cf221095a0405d324b7ce46fa3017540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_1d3f37e2",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 561,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T14:44:57Z",
+      "side": 1,
+      "message": "Formulas can contain spaces.",
+      "range": {
+        "startLine": 561,
+        "startChar": 8,
+        "endLine": 561,
+        "endChar": 32
+      },
+      "revId": "677b18f7cf221095a0405d324b7ce46fa3017540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_3d447b71",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 583,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T14:44:57Z",
+      "side": 1,
+      "message": "s/this./this.state./ x4",
+      "revId": "677b18f7cf221095a0405d324b7ce46fa3017540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
