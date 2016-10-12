@@ -12,6 +12,8 @@ describe('sk.stateReflector',
           name: "Fritz",
           alive: true,
           labels: "foo bar baz",
+          array: ["1", "2", "3"],
+          obj: {foo: 1, bar: 2},
         }
       };
 
@@ -31,17 +33,23 @@ describe('sk.stateReflector',
         assert.equal(spy.callCount, 1);
         page.state.height = 1.5;
         page.state.name = "Lucy";
+        page.state.obj.bar = 3;
         clock.tick(200);  // Causes timers to be called.
         assert.equal(window.history.length - initHistoryLength, 1);
         page.state.alive = false;
         page.state.labels = "foo bar";
+        page.state.array.push("4");
+        page.state.obj.bar = 5;
         clock.tick(200);  // Causes timers to be called.
         assert.equal(window.history.length - initHistoryLength, 2);
         assert.deepEqual(page.state,
                          { height: 1.5,
                            name: "Lucy",
                            alive: false,
-                           labels: "foo bar" });
+                           labels: "foo bar",
+                           array: ["1", "2", "3", "4"],
+                           obj: {foo: 1, bar: 5},
+                         });
         // Trigger popstate due to history.back() and wait for callback.
         return new Promise(function (resolve, reject) {
           nextResolveCallback = resolve;
@@ -53,7 +61,10 @@ describe('sk.stateReflector',
                          { height: 1.5,
                            name: "Lucy",
                            alive: true,
-                           labels: "foo bar baz" });
+                           labels: "foo bar baz",
+                           array: ["1", "2", "3"],
+                           obj: {foo: 1, bar: 3},
+                         });
         // Trigger popstate due to history.back() and wait for callback.
         return new Promise(function (resolve, reject) {
           nextResolveCallback = resolve;
@@ -65,7 +76,10 @@ describe('sk.stateReflector',
                          { height: 2.0,
                            name: "Fritz",
                            alive: true,
-                           labels: "foo bar baz" });
+                           labels: "foo bar baz",
+                           array: ["1", "2", "3"],
+                           obj: {foo: 1, bar: 2},
+                         });
         // Trigger popstate due to history.forward() and wait for callback.
         return new Promise(function (resolve, reject) {
           nextResolveCallback = resolve;
@@ -77,7 +91,10 @@ describe('sk.stateReflector',
                          { height: 1.5,
                            name: "Lucy",
                            alive: true,
-                           labels: "foo bar baz" });
+                           labels: "foo bar baz",
+                           array: ["1", "2", "3"],
+                           obj: {foo: 1, bar: 3},
+                         });
       });
       return pending;
     }
