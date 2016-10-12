@@ -23,6 +23,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	skutil "go.skia.org/infra/go/util"
@@ -35,6 +36,9 @@ const (
 
 	// Maximum page size used for pagination.
 	MAX_PAGE_SIZE = 100
+
+	// Used to identify Rietveld CLs.
+	RIETVELD_URL = "codereview.chromium.org"
 )
 
 var (
@@ -592,14 +596,16 @@ func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-var clURLRegexp = regexp.MustCompile("^(?:https?://codereview\\.chromium\\.org/)?(\\d{3,})/?$")
+var rietveldURLRegexp = regexp.MustCompile("^(https?://codereview\\.chromium\\.org/)(\\d{3,})/?$")
+var gerritURLRegexp = regexp.MustCompile("^(https?://skia-review\\.googlesource\\.com/c/)(\\d{3,})/?$")
 
 type clDetail struct {
-	Issue     int    `json:"issue"`
-	Subject   string `json:"subject"`
-	Modified  string `json:"modified"`
-	Project   string `json:"project"`
-	Patchsets []int  `json:"patchsets"`
+	Issue         int64  `json:"issue"`
+	Subject       string `json:"subject"`
+	Modified      string `json:"modified"`
+	Project       string `json:"project"`
+	Patchsets     []int  `json:"patchsets"`
+	CodereviewURL string
 }
 
 func getCLDetail(clURLString string) (clDetail, error) {
@@ -607,12 +613,13 @@ func getCLDetail(clURLString string) (clDetail, error) {
 		return clDetail{}, fmt.Errorf("No CL specified")
 	}
 
-	matches := clURLRegexp.FindStringSubmatch(clURLString)
-	if len(matches) < 2 || matches[1] == "" {
+	matches := rietveldURLRegexp.FindStringSubmatch(clURLString)
+	if len(matches) < 3 || matches[1] == "" || matches[2] == "" {
 		// Don't return error, since user could still be typing.
 		return clDetail{}, nil
 	}
-	clString := matches[1]
+	crURL := matches[1]
+	clString := matches[2]
 	detailJsonUrl := "https://codereview.chromium.org/api/" + clString
 	glog.Infof("Reading CL detail from %s", detailJsonUrl)
 	detailResp, err := httpClient.Get(detailJsonUrl)
@@ -629,6 +636,7 @@ func getCLDetail(clURLString string) (clDetail, error) {
 	}
 	detail := clDetail{}
 	err = json.NewDecoder(detailResp.Body).Decode(&detail)
+	detail.CodereviewURL = crURL
 	return detail, err
 }
 
@@ -666,9 +674,10 @@ func getCLPatch(detail clDetail, patchsetID int) (string, error) {
 
 func gatherCLData(detail clDetail, patch string) (map[string]string, error) {
 	clData := map[string]string{}
-	clData["cl"] = strconv.Itoa(detail.Issue)
+	clData["cl"] = strconv.FormatInt(detail.Issue, 10)
 	clData["patchset"] = strconv.Itoa(detail.Patchsets[len(detail.Patchsets)-1])
 	clData["subject"] = detail.Subject
+	clData["url"] = detail.CodereviewURL // TODO(rmistry): Maybe just create it from scratch?
 	modifiedTime, err := time.Parse("2006-01-02 15:04:05.999999", detail.Modified)
 	if err != nil {
 		glog.Errorf("Unable to parse modified time for CL %d; input '%s', got %v", detail.Issue, detail.Modified, err)
@@ -694,23 +703,66 @@ func gatherCLData(detail clDetail, patch string) (map[string]string, error) {
 
 func getCLHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	detail, err := getCLDetail(r.FormValue("cl"))
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get CL details")
-		return
-	}
-	if detail.Issue == 0 {
-		// Return successful empty response, since the user could still be typing.
-		if err := json.NewEncoder(w).Encode(map[string]interface{}{}); err != nil {
-			httputils.ReportError(w, r, err, "Failed to encode JSON")
+	clURLString := r.FormValue("cl")
+	var detail clDetail
+	var patch string
+	if strings.Contains(clURLString, RIETVELD_URL) {
+		detail, err := getCLDetail(clURLString)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to get CL details")
+			return
 		}
-		return
+		if detail.Issue == 0 {
+			// Return successful empty response, since the user could still be typing.
+			if err := json.NewEncoder(w).Encode(map[string]interface{}{}); err != nil {
+				httputils.ReportError(w, r, err, "Failed to encode JSON")
+			}
+			return
+		}
+		patch, err = getCLPatch(detail, 0)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to get CL patch")
+			return
+		}
+	} else {
+		// If it is not Rietveld then assume it is Gerrit.
+		matches := rietveldURLRegexp.FindStringSubmatch(clURLString)
+		if len(matches) < 3 || matches[1] == "" || matches[2] == "" {
+			// Don't return error, since user could still be typing.
+			return
+		}
+		crURL := matches[1]
+		clString := matches[2]
+		g, err := gerrit.NewGerrit(crURL, "", nil)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to talk to Gerrit")
+			return
+		}
+		cl, err := strconv.ParseInt(clString, 10, 32)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Invalid Gerrit CL number")
+			return
+		}
+		change, err := g.GetIssueProperties(cl)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to get issue properties from Gerrit")
+			return
+		}
+		detail = clDetail{
+			Issue:         cl,
+			Subject:       change.Subject,
+			Modified:      change.UpdatedString,
+			Project:       change.Project,
+			Patchsets:     []int{len(change.Patchsets)},
+			CodereviewURL: crURL,
+		}
+		patch, err = g.GetPatch(cl, "current")
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to download patch from Gerrit")
+			return
+		}
 	}
-	patch, err := getCLPatch(detail, 0)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get CL patch")
-		return
-	}
+
 	clData, err := gatherCLData(detail, patch)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to get CL data")

@@ -161,7 +161,8 @@
 
       clUrl: function(clData) {
         if (clData && !clData.error) {
-          return "https://codereview.chromium.org/" + clData.cl + "/#ps" + clData.patchset;
+          // rmistry: This is wrong for Gerrit!
+          return clData.url + clData.cl + "/#ps" + clData.patchset;
         }
         return "javascript:void(0);"
       },
