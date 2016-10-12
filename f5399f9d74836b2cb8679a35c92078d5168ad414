@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c6eaae8_1d3df777",
+        "filename": "res/js/common.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 508,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T17:34:31Z",
+      "side": 1,
+      "message": "nit: this will be true for null",
+      "range": {
+        "startLine": 508,
+        "startChar": 17,
+        "endLine": 508,
+        "endChar": 43
+      },
+      "revId": "f5399f9d74836b2cb8679a35c92078d5168ad414",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_5deccfef",
+        "filename": "res/js/tests/encode.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T17:34:31Z",
+      "side": 1,
+      "message": "Based on line 15, I would expect that these tests will fail flakily.",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 69
+      },
+      "revId": "f5399f9d74836b2cb8679a35c92078d5168ad414",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
