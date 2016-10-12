@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c6eaae8_9d87c7c3",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1370,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T14:05:04Z",
+      "side": 1,
+      "message": "nit: seems like this should be a function since the only thing that differs is the filename.",
+      "range": {
+        "startLine": 1357,
+        "startChar": 0,
+        "endLine": 1370,
+        "endChar": 2
+      },
+      "revId": "decee6903711d293a5c789d26e71541e6abb27e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
