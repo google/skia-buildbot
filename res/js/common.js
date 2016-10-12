@@ -501,7 +501,15 @@ this.sk = this.sk || function() {
   sk.query.fromObject = function(o) {
     var ret = [];
     Object.keys(o).forEach(function(key) {
-      ret.push(encodeURIComponent(key) + '=' + encodeURIComponent(o[key]));
+      if (Array.isArray(o[key])) {
+        o[key].forEach(function(value) {
+          ret.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+        })
+      } else if (typeof(o[key]) == 'object') {
+          ret.push(encodeURIComponent(key) + '=' + encodeURIComponent(sk.query.fromObject(o[key])));
+      } else {
+        ret.push(encodeURIComponent(key) + '=' + encodeURIComponent(o[key]));
+      }
     });
     return ret.join('&');
   }
@@ -535,7 +543,8 @@ this.sk = this.sk || function() {
   //     b: "true",
   //   }
   //
-  // Only Number, String, and Boolean hints are supported.
+  // Only Number, String, Boolean, and Array of String hints are supported,
+  // along with nested Objects that contain only those types.
   sk.query.toObject = function(s, target) {
     var target = target || {};
     var ret = {};
@@ -552,6 +561,15 @@ this.sk = this.sk || function() {
               break;
             case 'number':
               ret[key] = Number(value);
+              break;
+            case 'object': // Arrays report as 'object' to typeof.
+              if (Array.isArray(target[key])) {
+                var r = ret[key] || [];
+                r.push(value);
+                ret[key] = r;
+              } else {
+                ret[key] = sk.query.toObject(value, target[key]);
+              }
               break;
             case 'string':
               ret[key] = value;
