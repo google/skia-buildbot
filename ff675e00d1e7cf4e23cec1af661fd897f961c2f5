@@ -1,0 +1,112 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fc7ec69b_5bc29b32",
+        "filename": "task_scheduler/bower.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-12T20:30:33Z",
+      "side": 1,
+      "message": "Any reason you are sticking to 3.X instead of the shiny new 4.2.7?",
+      "revId": "ff675e00d1e7cf4e23cec1af661fd897f961c2f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c693ee5_9d526330",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-12T20:30:33Z",
+      "side": 1,
+      "message": "I don\u0027t think you need to set a default value for this or tasks.  Polymer generally waits until all arguments to a function (_computeTasksGraph) are defined before calling it.",
+      "revId": "ff675e00d1e7cf4e23cec1af661fd897f961c2f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc7ec69b_7b6bd717",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-12T20:30:33Z",
+      "side": 1,
+      "message": "d3.select(this.$.tasks-svg)",
+      "range": {
+        "startLine": 379,
+        "startChar": 14,
+        "endLine": 380,
+        "endChar": 31
+      },
+      "revId": "ff675e00d1e7cf4e23cec1af661fd897f961c2f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bc744ebe_19cf4b80",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-12T20:30:33Z",
+      "side": 1,
+      "message": "If you are clearing things only, you don\u0027t need an enter() call here",
+      "revId": "ff675e00d1e7cf4e23cec1af661fd897f961c2f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bc744ebe_99bb5bd8",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-12T20:30:33Z",
+      "side": 1,
+      "message": "I notice you did all of your styling on the enter() selector.  This means that if the data updates and say, a task goes from running to done, the style won\u0027t be updated to go from yellow to green (or whatever the colors are)\n\nYou should only apply the fixed styles after the .enter() and then do any dynamic styles on an update selector:\n\nvar data \u003d svg.select(...).data(...);\ndata.enter().append(\"svg...\").attr(\"rx\", \"4\").attr(\"ry\", \"4\") ...\n\n// the un-named, yet super important update selector\ndata.attr(\"width\", function(data) { return data.width; })...",
+      "revId": "ff675e00d1e7cf4e23cec1af661fd897f961c2f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bc9b6e32_01258e17",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 448,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-12T20:30:33Z",
+      "side": 1,
+      "message": "I\u0027m not sure what this path data is.  Could you add a comment explaining it and how it got here?",
+      "revId": "ff675e00d1e7cf4e23cec1af661fd897f961c2f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
