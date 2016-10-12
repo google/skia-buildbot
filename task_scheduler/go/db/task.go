@@ -40,6 +40,10 @@ const (
 	SWARMING_TAG_RETRY_OF       = "sk_retry_of"
 	SWARMING_TAG_REVISION       = "sk_revision"
 	SWARMING_TAG_SERVER         = "sk_issue_server"
+
+	// These two tags allow the swarming ui to point to the GoB repo
+	SWARMING_TAG_SOURCE_REVISION = "source_revision"
+	SWARMING_TAG_SOURCE_REPO     = "source_repo"
 )
 
 type TaskStatus string
@@ -532,14 +536,16 @@ func (d *TaskDecoder) Result() ([]*Task, error) {
 // TagsForTask returns the tags which should be set for a Task.
 func TagsForTask(name, id string, priority float64, rs RepoState, retryOf string, dimensions map[string]string, forcedJobId string, parentTaskIds []string) []string {
 	tags := map[string]string{
-		SWARMING_TAG_ALLOW_MILO:    "1",
-		SWARMING_TAG_FORCED_JOB_ID: forcedJobId,
-		SWARMING_TAG_NAME:          name,
-		SWARMING_TAG_ID:            id,
-		SWARMING_TAG_PRIORITY:      fmt.Sprintf("%f", priority),
-		SWARMING_TAG_REPO:          rs.Repo,
-		SWARMING_TAG_RETRY_OF:      retryOf,
-		SWARMING_TAG_REVISION:      rs.Revision,
+		SWARMING_TAG_ALLOW_MILO:      "1",
+		SWARMING_TAG_FORCED_JOB_ID:   forcedJobId,
+		SWARMING_TAG_NAME:            name,
+		SWARMING_TAG_ID:              id,
+		SWARMING_TAG_PRIORITY:        fmt.Sprintf("%f", priority),
+		SWARMING_TAG_REPO:            rs.Repo,
+		SWARMING_TAG_RETRY_OF:        retryOf,
+		SWARMING_TAG_REVISION:        rs.Revision,
+		SWARMING_TAG_SOURCE_REVISION: rs.Revision,
+		SWARMING_TAG_SOURCE_REPO:     rs.Repo + "/+/%s",
 	}
 	if rs.IsTryJob() {
 		tags[SWARMING_TAG_SERVER] = rs.Server

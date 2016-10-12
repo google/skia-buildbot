@@ -46,7 +46,7 @@ const (
 	TASK_TRIGGER_URL_FMT = "https://task-scheduler.skia.org/trigger?submit=true&task_spec=%s&commit=%s"
 	// TASKLIST_URL_FMT is a format string for the Swarming tasklist URL.
 	// Parameters are a single tag key and value.
-	TASKLIST_URL_FMT = "https://chromium-swarm.appspot.com/newui/tasklist?c=name&c=state&c=created_ts&c=duration&c=completed_ts&c=sk_revision&f=%s%%3A%s&l=50&s=created_ts%%3Adesc"
+	TASKLIST_URL_FMT = "https://chromium-swarm.appspot.com/newui/tasklist?c=name&c=state&c=created_ts&c=duration&c=completed_ts&c=source_revision&f=%s%%3A%s&l=50&s=created_ts%%3Adesc"
 	// BOT_DETAIL_URL_FMT is a format string for the Swarming bot detail URL.
 	// Parameter is bot name.
 	BOT_DETAIL_URL_FMT = "https://chromium-swarm.appspot.com/newui/bot?id=%s"
