@@ -215,6 +215,39 @@ func (g *Gerrit) GetIssueProperties(issue int64) (*ChangeInfo, error) {
 	return fullIssue, nil
 }
 
+// GetPatch returns the formatted patch for one revision. Documentation is here:
+// https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-patch
+func (g *Gerrit) GetPatch(issue int64, revision string) (string, error) {
+	url := fmt.Sprintf("%s/changes/%d/revisions/%s/patch", g.url, issue, revision)
+	resp, err := g.client.Get(url)
+	if err != nil {
+		return "", fmt.Errorf("Failed to GET %s: %s", url, err)
+	}
+	if resp.StatusCode == 404 {
+		return "", fmt.Errorf("Not a valid Issue %s", url)
+	}
+	if resp.StatusCode >= 400 {
+		return "", fmt.Errorf("Error retrieving %s: %d %s", url, resp.StatusCode, resp.Status)
+	}
+	defer util.Close(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("Could not read response body: %s", err)
+	}
+
+	data, err := base64.StdEncoding.DecodeString(string(body))
+	if err != nil {
+		return "", fmt.Errorf("Could not base64 decode response body: %s", err)
+	}
+	// Extract out only the patch.
+	tokens := strings.SplitN(string(data), "---", 2)
+	if len(tokens) != 2 {
+		return "", fmt.Errorf("Gerrit patch response was invalid: %s", string(data))
+	}
+	patch := tokens[1]
+	return patch, nil
+}
+
 // setReview calls the Set Review endpoint of the Gerrit API to add messages and/or set labels for
 // the latest patchset.
 // API documentation: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#set-review
