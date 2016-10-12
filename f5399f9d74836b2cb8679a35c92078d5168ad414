@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "7c73b6d0_e2de5cfe",
+        "filename": "res/js/common.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 508,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-12T20:34:15Z",
+      "side": 1,
+      "message": "Fixed in a later CL by documenting that sk.query and sk.object functions don\u0027t work with null, undefined, or NaN. I love Javascript.",
+      "parentUuid": "9c6eaae8_1d3df777",
+      "revId": "f5399f9d74836b2cb8679a35c92078d5168ad414",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9c6eaae8_5deccfef",
         "filename": "res/js/tests/encode.js",
         "patchSetId": 5
@@ -42,6 +60,24 @@
         "endLine": 14,
         "endChar": 69
       },
+      "revId": "f5399f9d74836b2cb8679a35c92078d5168ad414",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bc744ebe_bc8ac517",
+        "filename": "res/js/tests/encode.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-12T20:34:15Z",
+      "side": 1,
+      "message": "Fixed in a later CL by sorting the keys of the Object.",
+      "parentUuid": "9c6eaae8_5deccfef",
       "revId": "f5399f9d74836b2cb8679a35c92078d5168ad414",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
