@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c6eaae8_0057ca5b",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1198,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T18:50:00Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 1198,
+        "startChar": 3,
+        "endLine": 1198,
+        "endChar": 10
+      },
+      "revId": "4aa1d8231d5dc58a11cecfed59be31747953a15c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_c060f22f",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1233,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T18:50:00Z",
+      "side": 1,
+      "message": "nit: appears to be identical to doSearch.",
+      "range": {
+        "startLine": 1222,
+        "startChar": 0,
+        "endLine": 1233,
+        "endChar": 3
+      },
+      "revId": "4aa1d8231d5dc58a11cecfed59be31747953a15c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
