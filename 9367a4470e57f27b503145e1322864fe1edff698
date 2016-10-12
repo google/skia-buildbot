@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c6eaae8_a0a61eaa",
+        "filename": "perf/res/imp/day-range.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T18:34:47Z",
+      "side": 1,
+      "message": "s/begin/end/",
+      "range": {
+        "startLine": 8,
+        "startChar": 4,
+        "endLine": 8,
+        "endChar": 9
+      },
+      "revId": "9367a4470e57f27b503145e1322864fe1edff698",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_c0a31299",
+        "filename": "perf/res/imp/day-range.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T18:34:47Z",
+      "side": 1,
+      "message": "typo when",
+      "range": {
+        "startLine": 12,
+        "startChar": 29,
+        "endLine": 12,
+        "endChar": 33
+      },
+      "revId": "9367a4470e57f27b503145e1322864fe1edff698",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_80f0ba8a",
+        "filename": "perf/res/imp/day-range.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T18:34:47Z",
+      "side": 1,
+      "message": "Seems confusing to have both month and d.getMonth/d.setMonth that have to be kept in sync. Any reason not to get rid of var month?",
+      "range": {
+        "startLine": 182,
+        "startChar": 8,
+        "endLine": 182,
+        "endChar": 33
+      },
+      "revId": "9367a4470e57f27b503145e1322864fe1edff698",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_a0d85e10",
+        "filename": "perf/res/imp/day-range.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T18:34:47Z",
+      "side": 1,
+      "message": "Is this ticks.width/100 * percent? Maybe add a comment.",
+      "range": {
+        "startLine": 186,
+        "startChar": 38,
+        "endLine": 186,
+        "endChar": 80
+      },
+      "revId": "9367a4470e57f27b503145e1322864fe1edff698",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_20e52ecb",
+        "filename": "perf/res/imp/day-range.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T18:34:47Z",
+      "side": 1,
+      "message": "debugging? x3",
+      "range": {
+        "startLine": 188,
+        "startChar": 12,
+        "endLine": 188,
+        "endChar": 27
+      },
+      "revId": "9367a4470e57f27b503145e1322864fe1edff698",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_20f76e73",
+        "filename": "perf/res/imp/rangesel.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-12T18:34:47Z",
+      "side": 1,
+      "message": "nit: \"or \u0027range-change-end\u0027\"",
+      "range": {
+        "startLine": 156,
+        "startChar": 17,
+        "endLine": 156,
+        "endChar": 31
+      },
+      "revId": "9367a4470e57f27b503145e1322864fe1edff698",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
