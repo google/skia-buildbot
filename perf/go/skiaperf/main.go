@@ -1340,7 +1340,6 @@ func frameHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO(jcgregorio) Limit the results if there are too many?
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		glog.Errorf("Failed to encode paramset: %s", err)
 	}
