@@ -86,6 +86,7 @@
         <template is="dom-if" if="[[_job.Status]]">
           <div class="tr"><div class="td">Finished</div><div class="td"><human-date-sk date="[[_job.Finished]]"></human-date-sk></div></div>
         </template>
+        <div class="tr"><div class="td">Duration</div><div class="td">[[_duration]]</div></div>
         <div class="tr">
           <div class="td">Repo</div>
           <div class="td"><a href$="[[_job.Repo]]" target="_blank">[[_job.Repo]]</a></div>
@@ -147,6 +148,14 @@
           type: Object,
         },
 
+        _codereviewLink: {
+          type: String,
+          computed: "_computeCodereviewLink(_job)",
+        },
+        _duration: {
+          type: String,
+          computed: "_computeDuration(_job)",
+        },
         _isTryJob: {
           type: Boolean,
           computed: "_computeIsTryJob(_job)",
@@ -154,10 +163,6 @@
         _revisionLink: {
           type: String,
           computed: "_computeRevisionLink(_job)",
-        },
-        _codereviewLink: {
-          type: String,
-          computed: "_computeCodereviewLink(_job)",
         },
         _statusText: {
           type: String,
@@ -179,6 +184,27 @@
         this.set("_graph", graph);
       },
 
+      _computeCodereviewLink: function(job) {
+        if (job.Server.indexOf("codereview.chromium") != -1) {
+          return job.Server + "/" + job.Issue + "/#ps" + job.Patchset;
+        } else {
+          return job.Server + "/c/" + job.Issue + "/" + job.Patchset;
+        }
+      },
+
+      _computeDuration: function(job) {
+        if (!job) {
+          return "???";
+        }
+        var start = new Date(job.Created);
+        var end = new Date(job.Finished);
+        if (job.Status == "") {
+          end = new Date();
+        }
+        var duration = (end.getTime() - start.getTime()) / 1000;
+        return sk.human.strDuration(duration);
+      },
+
       _computeIsTryJob: function(job) {
         return job.Server != "" && job.Issue != "" && job.Patchset != "";
       },
@@ -186,14 +212,6 @@
       _computeRevisionLink: function(job) {
         // This assumes we use Gitiles, but that's a safe assumption for now.
         return job.Repo + "/+/" + job.Revision;
-      },
-
-      _computeCodereviewLink: function(job) {
-        if (job.Server.indexOf("codereview.chromium") != -1) {
-          return job.Server + "/" + job.Issue + "/#ps" + job.Patchset;
-        } else {
-          return job.Server + "/c/" + job.Issue + "/" + job.Patchset;
-        }
       },
 
       _computeStatusText: function(job) {

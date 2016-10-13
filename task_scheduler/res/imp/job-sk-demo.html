@@ -7,13 +7,14 @@
   <script src="/res/common/js/common.js"></script>
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <script type="text/javascript" charset="utf-8">
-    var job = {
+    // job1, tasks1, and depGraph1 represent real task data.
+    var job1 = {
         "BuildbucketBuildId": 0,
         "BuildbucketLeaseKey": 0,
         "Created": "2016-10-10T15:56:13.393516175-04:00",
         "DbModified": "2016-10-10T19:56:44.572122663Z",
         "Dependencies": ["Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN"],
-        "Finished": "0001-01-01T00:00:00Z",
+        "Finished": "2016-10-11T15:30:45.22367Z",
         "Id": "20161010T195613.393516175Z_0000000000000048",
         "IsForce": false,
         "Name": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN",
@@ -23,10 +24,9 @@
         "Server": "https://codereview.chromium.org",
         "Repo": "https://skia.googlesource.com/skia.git",
         "Revision": "6ca48820407244bbdeb8f9e0ed7d76dd94270460",
-        "Status": "",
+        "Status": "SUCCESS",
     };
 
-    // tasks1 and depGraph1 represent real task data.
     var tasks1 = {
         "Build-Ubuntu-GCC-x86_64-Release-GN": [{
             "Commits": null,
@@ -99,7 +99,25 @@
         "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": ["Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN"],
     };
 
-    // tasks2 and depGraph2 are fake data but are more visually interesting.
+    // job2, tasks2, and depGraph2 are fake data but are more visually
+    // interesting.
+    var job2 = {
+        "Created": (new Date(new Date().getTime() - 5000000)).toUTCString(),
+        "DbModified": "2016-10-10T19:56:44.572122663Z",
+        "Dependencies": ["D", "F"],
+        "Finished": "",
+        "Id": "20161010T195613.393516175Z_0000000000000048",
+        "IsForce": false,
+        "Name": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN",
+        "Priority": 0.8,
+        "Issue": "2410843002",
+        "Patchset": "1",
+        "Server": "https://codereview.chromium.org",
+        "Repo": "https://skia.googlesource.com/skia.git",
+        "Revision": "6ca48820407244bbdeb8f9e0ed7d76dd94270460",
+        "Status": "",
+    };
+
     var tasks2 = {
       "A": [{
         "Id": "A1",
@@ -178,17 +196,17 @@
 
     ready: function() {
       if (this.alternate) {
-        this.$.job_sk.setData(job, tasks2, depGraph2);
+        this.$.job_sk.setData(job2, tasks2, depGraph2);
       } else {
-        this.$.job_sk.setData(job, tasks1, depGraph1);
+        this.$.job_sk.setData(job1, tasks1, depGraph1);
       }
     },
 
     _alternateChanged: function() {
       if (this.alternate) {
-        this.$.job_sk.setData(job, tasks2, depGraph2);
+        this.$.job_sk.setData(job2, tasks2, depGraph2);
       } else {
-        this.$.job_sk.setData(job, tasks1, depGraph1);
+        this.$.job_sk.setData(job1, tasks1, depGraph1);
       }
     },
   });
