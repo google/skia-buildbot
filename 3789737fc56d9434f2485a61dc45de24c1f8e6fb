@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "fc8b2631_e2bfeca2",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 742,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-13T12:31:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9c6eaae8_00a4aa52",
+      "revId": "3789737fc56d9434f2485a61dc45de24c1f8e6fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9c6eaae8_c09d5208",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 5
@@ -42,6 +60,24 @@
         "endLine": 764,
         "endChar": 40
       },
+      "revId": "3789737fc56d9434f2485a61dc45de24c1f8e6fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc8b2631_02bdd8aa",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 764,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-13T12:31:54Z",
+      "side": 1,
+      "message": "This is true. Using a real patchsetID instead of \"current\". Done.",
+      "parentUuid": "9c6eaae8_c09d5208",
       "revId": "3789737fc56d9434f2485a61dc45de24c1f8e6fb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
