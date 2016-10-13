@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1c78fafe_26fbd6d6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-13T17:13:13Z",
+      "side": 1,
+      "message": "Is this referring to these paths?:\n* https://gold.skia.org/trybot?size\u003d50\u0026offset\u003d0\n* https://gold.skia.org/json/search?issue\u003d238191300",
+      "revId": "5b192a67482e2ef3ae2468d69648363ee821f743",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1c78fafe_e67b7e45",
+        "filename": "golden/go/trybot/trybot.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-13T17:13:13Z",
+      "side": 1,
+      "message": "I was going to comment about how this might be avoidable but it is probably too much work to do. The hack works and will be temporary.",
+      "revId": "5b192a67482e2ef3ae2468d69648363ee821f743",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
