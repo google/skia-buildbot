@@ -2,9 +2,11 @@ package query
 
 import (
 	"fmt"
+	"math/rand"
 	"net/url"
 	"reflect"
 	"regexp"
+	"strings"
 	"testing"
 
 	"go.skia.org/infra/go/paramtools"
@@ -412,6 +414,75 @@ func TestForceValue(t *testing.T) {
 	for _, tc := range testCases {
 		if got, want := ForceValid(tc.input), tc.want; !reflect.DeepEqual(got, want) {
 			t.Errorf("Failed to force a map to be valid: Got %#v Want %#v", got, want)
+		}
+	}
+}
+
+var (
+	paramset = paramtools.ParamSet{
+		"arch":        []string{"Arm7", "arm", "arm64", "x86", "x86_64"},
+		"config":      []string{"565", "8888", "angle", "esinst", "f16", "gl", "glinst", "glinst4", "glmsaa4", "glnvpr4"},
+		"source_type": []string{"bench", "gm", "image", "skp", "svg"},
+		"sub_result":  []string{"bytes", "max_rss_mb", "min_ms", "ops"},
+	}
+
+	commonQuery = url.Values{"arch": []string{"~arm"}, "config": []string{"565"}, "source_type": []string{"gm"}}
+)
+
+func corpusFromParams() []string {
+	ret := []string{}
+	r := rand.New(rand.NewSource(99))
+	keys := []string{}
+	for k, _ := range paramset {
+		keys = append(keys, k)
+	}
+	for i := 0; i < 1000; i++ {
+		structuredKey := []string{}
+		for _, key := range keys {
+			value := paramset[key][r.Intn(len(paramset[key]))]
+			structuredKey = append(structuredKey, key+"="+value)
+		}
+		ret = append(ret, ","+strings.Join(structuredKey, ",")+",")
+	}
+	return ret
+}
+
+func BenchmarkNormal(b *testing.B) {
+	// Create a large set of structured keys.
+	corpus := corpusFromParams()
+	q, err := New(commonQuery)
+	if err != nil {
+		b.FailNow()
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		for _, s := range corpus {
+			_ = q.Matches(s)
+		}
+	}
+}
+
+func BenchmarkRE(b *testing.B) {
+	// Create a large set of structured keys.
+	corpus := corpusFromParams()
+	q, err := New(commonQuery)
+	if err != nil {
+		b.FailNow()
+	}
+	// Test against q.RE2.
+	re, err := q.RE2(paramset)
+	if err != nil {
+		b.FailNow()
+	}
+	reg, err := regexp.Compile(re)
+	if err != nil {
+		b.FailNow()
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		for _, s := range corpus {
+			_ = reg.MatchString(s)
 		}
 	}
 }
