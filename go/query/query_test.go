@@ -1,9 +1,13 @@
 package query
 
 import (
+	"fmt"
 	"net/url"
 	"reflect"
+	"regexp"
 	"testing"
+
+	"go.skia.org/infra/go/paramtools"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -169,6 +173,9 @@ func TestNew(t *testing.T) {
 }
 
 func TestMatches(t *testing.T) {
+	paramset := paramtools.ParamSet{
+		"config": []string{"565", "8888", "gpu"},
+	}
 	testCases := []struct {
 		key     string
 		query   url.Values
@@ -285,24 +292,47 @@ func TestMatches(t *testing.T) {
 		},
 		{
 			key:     ",arch=x86,config=8888,debug=true,",
-			query:   url.Values{"arch": []string{"~^x"}, "config": []string{"!565"}, "debug": []string{"*"}},
+			query:   url.Values{"arch": []string{"~x"}, "config": []string{"!565"}, "debug": []string{"*"}},
 			matches: true,
 			reason:  "Negative, wildcard, and regexp",
 		},
 		{
 			key:     ",arch=x86,config=8888,debug=true,",
-			query:   url.Values{"arch": []string{"~^y.*"}, "config": []string{"!565"}, "debug": []string{"*"}},
+			query:   url.Values{"arch": []string{"~y"}, "config": []string{"!565"}, "debug": []string{"*"}},
 			matches: false,
 			reason:  "Negative, wildcard, and miss regexp",
 		},
 	}
 	for _, tc := range testCases {
+		// Test against q.Matches.
 		q, err := New(tc.query)
 		assert.NoError(t, err)
 		if got, want := q.Matches(tc.key), tc.matches; got != want {
 			t.Errorf("Failed matching %q to %#v. Got %v Want %v. %s", tc.key, tc.query, got, want, tc.reason)
 		}
+		// Test against q.RE2.
+		re, err := q.RE2(paramset)
+		reg, err := regexp.Compile(re)
+		assert.NoError(t, err)
+		if got, want := reg.MatchString(tc.key), tc.matches; got != want {
+			t.Errorf("Regexp Failed matching %q to %#v for %#v. Got %v Want %v. %s", tc.key, re, tc.query, got, want, tc.reason)
+		}
+
 	}
+}
+
+func TestRE2Error(t *testing.T) {
+	values := []string{}
+	for i := 0; i < MAX_REGEX_ALTERNATIVES+1; i++ {
+		values = append(values, fmt.Sprintf("config_%d", i))
+	}
+	paramset := paramtools.ParamSet{
+		"config": values,
+	}
+	q, err := New(url.Values{"config": []string{"!565"}})
+	assert.NoError(t, err)
+	_, err = q.RE2(paramset)
+	assert.Equal(t, regexTooLong, err)
 }
 
 func TestParseKey(t *testing.T) {
