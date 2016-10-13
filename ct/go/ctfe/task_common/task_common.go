@@ -556,6 +556,9 @@ func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	addTaskVars := tasks[0].GetPopulatedAddTaskVars()
 	// Replace the username with the new requester.
 	addTaskVars.GetAddTaskCommonVars().Username = login.LoggedInAs(r)
+	// Do not preserve repeat_after_days for retried tasks. Carrying over
+	// repeat_after_days causes the same task to be unknowingly repeated.
+	addTaskVars.GetAddTaskCommonVars().RepeatAfterDays = "0"
 	if _, err := AddTask(addTaskVars); err != nil {
 		httputils.ReportError(w, r, err, "Could not redo the task.")
 		return
