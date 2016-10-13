@@ -379,8 +379,16 @@
      "mimetype": "application/json",
      "responsetest": "ctfeChromiumPerfParametersJSON"
    },
-   "ctfe_cl_data": {
-     "url": "https://ct.skia.org/_/cl_data?cl=1330473002",
+   "ctfe_rietveld_cl_data": {
+     "url": "https://ct.skia.org/_/cl_data?cl=https://codereview.chromium.org/1330473002",
+     "method": "POST",
+     "expected": [200],
+     "body": "",
+     "mimetype": "application/json",
+     "responsetest": "ctfeCLDataJSON"
+   },
+   "ctfe_gerrit_cl_data": {
+     "url": "https://ct.skia.org/_/cl_data?cl=https://chromium-review.googlesource.com/c/398078/",
      "method": "POST",
      "expected": [200],
      "body": "",
