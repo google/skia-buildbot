@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fc8b2631_c224b01e",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-13T12:41:16Z",
+      "side": 1,
+      "message": "missing semicolon, here and other places too, e.g. line 417, line 400",
+      "range": {
+        "startLine": 432,
+        "startChar": 63,
+        "endLine": 432,
+        "endChar": 65
+      },
+      "revId": "e544ffbaca4135e0436a1cfa1982936b53ee1262",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
