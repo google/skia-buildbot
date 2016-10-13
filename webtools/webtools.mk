@@ -71,7 +71,7 @@ debug_elements_html:
 
 res/vul/elements.html: res/imp/*.html elements.html ./node_modules/.bin/vulcanize
 	-mkdir res/vul
-	./node_modules/.bin/vulcanize --inline-css --inline-scripts --strip-comments --abspath=./ elements.html | ./node_modules/.bin/html-minifier -o res/vul/elements.html --minify-css --minify-js --remove-comments --collapse-whitespace --conservative-collapse
+	./node_modules/.bin/vulcanize --inline-css --inline-scripts --strip-comments --abspath=./ elements.html | ./node_modules/.bin/html-minifier -o res/vul/elements.html --minify-js --remove-comments --collapse-whitespace --conservative-collapse
 
 #### clean_webtools ####
 

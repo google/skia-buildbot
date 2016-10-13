@@ -39,13 +39,13 @@
     </style>
     <iron-ajax auto url="/json/fuzz-summary" handle-as="json" last-response="{{fuzzers}}"></iron-ajax>
     <h2>Stable Fuzzers</h2>
-    <div class=".summaryBox" class="horizontal layout wrap around-justified">
+    <div class="summaryBox" class="horizontal layout wrap around-justified">
       <template is="dom-repeat" items="[[stable_fuzzers]]" as="fuzzer">
         <fuzzer-tile fuzzer=[[fuzzer]]></fuzzer-tile>
       </template>
     </div>
     <h2>Experimental Fuzzers</h2>
-    <div class=".summaryBox" class="horizontal layout wrap around-justified">
+    <div class="summaryBox" class="horizontal layout wrap around-justified">
       <template is="dom-repeat" items="[[experimental_fuzzers]]" as="fuzzer">
         <fuzzer-tile fuzzer=[[fuzzer]]></fuzzer-tile>
       </template>
