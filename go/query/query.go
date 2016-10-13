@@ -22,19 +22,32 @@
 package query
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
 	"sort"
 	"strings"
 
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/util"
+)
+
+const (
+	// MAX_REGEX_ALTERNATIVES is a safety to make sure the regexs don't become
+	// huge. For example, if someone created the query "name=!desk_nytimes.skp",
+	// the inverted query as a regexp would be over 4,000 key=value compares in
+	// the regex since we have over 4,000 values for 'name' in the full ParamSet.
+	MAX_REGEX_ALTERNATIVES = 100
 )
 
 var (
 	invalidChar = regexp.MustCompile("([^a-zA-Z0-9._\\-])")
 	keyRe       = regexp.MustCompile("^,([a-zA-Z0-9._\\-]+=[a-zA-Z0-9._\\-]+,)+$")
 	paramRe     = regexp.MustCompile("^[a-zA-Z0-9._\\-]+$")
+
+	// regexTooLong is returned from RE2 if MAX_REGEX_ALTERNATIVES is exceeded.
+	regexTooLong = errors.New(fmt.Sprintf("Query has more than %d alternatives in regex.", MAX_REGEX_ALTERNATIVES))
 )
 
 func clean(s string) string {
@@ -138,6 +151,7 @@ func ParseKey(key string) (map[string]string, error) {
 
 // queryParam represents a query on a particular parameter in a key.
 type queryParam struct {
+	key         string         // The param key.
 	keyMatch    string         // The param key, including the leading "," and trailing "=".
 	keyMatchLen int            // The length of keyMatch.
 	isWildCard  bool           // True if this is a wildcard value match.
@@ -236,6 +250,7 @@ func New(q url.Values) (*Query, error) {
 			}
 		}
 		params = append(params, queryParam{
+			key:         key,
 			keyMatch:    keyMatch,
 			keyMatchLen: len(keyMatch),
 			isWildCard:  isWildCard,
@@ -281,4 +296,64 @@ func (q *Query) Matches(s string) bool {
 		s = s[valueIndex:]
 	}
 	return true
+}
+
+// matchAlternatives returns a regex string that matches "key=value" for each
+// value in 'values'. The value in keyMatch must contain the key prepended with
+// ',' and postpended with '='.
+func matchAlternatives(keyMatch string, values []string) string {
+	or := []string{}
+	for _, v := range values {
+		or = append(or, "("+keyMatch+v+")")
+	}
+	return "(" + strings.Join(or, "|") + ")"
+}
+
+// RE2 returns the query as an RE2 compatible regular expression to be used
+// against a structured key.
+func (q *Query) RE2(paramset paramtools.ParamSet) (string, error) {
+	ret := []string{}
+	for _, p := range q.params {
+		if p.isWildCard {
+			ret = append(ret, p.keyMatch, "[^,]+")
+		} else if p.isRegex {
+			// TODO(jcgregorio) Possibly filter p.reg to avoid problematic expressions.
+			// Or maybe don't accept regexp, just globs, and convert the globs to regexps.
+			ret = append(ret, p.keyMatch, p.reg.String()+"[^,]*")
+		} else if p.isNegative {
+			// Do the inverse match by finding all the param values
+			// not in p.values and match one of them.
+			params, ok := paramset[p.key]
+			if !ok {
+				// If there is no param of that name then the negative will match by
+				// definition, so nothing to do.
+				continue
+			}
+
+			// values as a map will make inverting things easier.
+			values := map[string]bool{}
+			for _, v := range p.values {
+				values[v] = true
+			}
+
+			// Populate 'inverted' with all params not in 'values'.
+			inverted := []string{}
+			for _, p := range params {
+				if !values[p] {
+					inverted = append(inverted, p)
+				}
+			}
+			if len(inverted) > MAX_REGEX_ALTERNATIVES {
+				return "", regexTooLong
+			}
+			ret = append(ret, matchAlternatives(p.keyMatch, inverted))
+		} else {
+			if len(p.values) > MAX_REGEX_ALTERNATIVES {
+				return "", regexTooLong
+			}
+			ret = append(ret, matchAlternatives(p.keyMatch, p.values))
+		}
+		ret = append(ret, "(,[^,]+)*")
+	}
+	return strings.Join(ret, "") + ",", nil
 }
