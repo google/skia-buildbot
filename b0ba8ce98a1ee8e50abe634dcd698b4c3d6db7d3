@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fc8b2631_621e9cd2",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 703,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-13T12:31:54Z",
+      "side": 1,
+      "message": "In testing found that using a CL that was not chromium/skia/catapult showed the following in the UI: \"Failed to get CL data\".\nNot returning an error here displays the correct error in the UI. Eg: \"This is not a chromium CL.\"",
+      "revId": "b0ba8ce98a1ee8e50abe634dcd698b4c3d6db7d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
