@@ -33,6 +33,24 @@
       "revId": "5b192a67482e2ef3ae2468d69648363ee821f743",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fcd24643_debcb986",
+        "filename": "golden/go/trybot/trybot.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-13T21:03:44Z",
+      "side": 1,
+      "message": "I am glad you pointed this out. It\u0027s ugly, but I think we will see it very quickly if it stops working. IMO we should defer implementing a better method to that, hoping we will remove Rietveld support before then.",
+      "parentUuid": "1c78fafe_e67b7e45",
+      "revId": "5b192a67482e2ef3ae2468d69648363ee821f743",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
