@@ -261,7 +261,7 @@ func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiBuildMessage, 
 	patchset := params.Properties.GerritPatchset
 	if params.Properties.PatchStorage == "rietveld" {
 		server = params.Properties.Rietveld
-		issue = fmt.Sprintf("%d", params.Properties.RietveldIssue)
+		issue = params.Properties.RietveldIssue
 		patchset = fmt.Sprintf("%d", params.Properties.RietveldPatchset)
 	} else if params.Properties.PatchStorage != "gerrit" {
 		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid patch storage: %s", params.Properties.PatchStorage))
@@ -269,7 +269,7 @@ func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiBuildMessage, 
 	rs := db.RepoState{
 		Patch: db.Patch{
 			Server:   server,
-			Issue:    issue,
+			Issue:    fmt.Sprintf("%d", issue),
 			Patchset: patchset,
 		},
 		Repo:     repoName,
