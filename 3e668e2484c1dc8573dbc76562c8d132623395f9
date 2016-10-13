@@ -22,6 +22,24 @@
       "revId": "3e668e2484c1dc8573dbc76562c8d132623395f9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc8b2631_627a1c12",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 560,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-13T11:35:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9c6eaae8_406b82e5",
+      "revId": "3e668e2484c1dc8573dbc76562c8d132623395f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
