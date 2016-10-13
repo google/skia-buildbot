@@ -1,9 +1,13 @@
 package query
 
 import (
+	"fmt"
 	"net/url"
 	"reflect"
+	"regexp"
 	"testing"
+
+	"go.skia.org/infra/go/paramtools"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -169,6 +173,9 @@ func TestNew(t *testing.T) {
 }
 
 func TestMatches(t *testing.T) {
+	paramset := paramtools.ParamSet{
+		"config": []string{"565", "8888", "gpu"},
+	}
 	testCases := []struct {
 		key     string
 		query   url.Values
@@ -285,13 +292,13 @@ func TestMatches(t *testing.T) {
 		},
 		{
 			key:     ",arch=x86,config=8888,debug=true,",
-			query:   url.Values{"arch": []string{"~^x"}, "config": []string{"!565"}, "debug": []string{"*"}},
+			query:   url.Values{"arch": []string{"~x"}, "config": []string{"!565"}, "debug": []string{"*"}},
 			matches: true,
 			reason:  "Negative, wildcard, and regexp",
 		},
 		{
 			key:     ",arch=x86,config=8888,debug=true,",
-			query:   url.Values{"arch": []string{"~^y.*"}, "config": []string{"!565"}, "debug": []string{"*"}},
+			query:   url.Values{"arch": []string{"~y"}, "config": []string{"!565"}, "debug": []string{"*"}},
 			matches: false,
 			reason:  "Negative, wildcard, and miss regexp",
 		},
@@ -302,6 +309,14 @@ func TestMatches(t *testing.T) {
 		if got, want := q.Matches(tc.key), tc.matches; got != want {
 			t.Errorf("Failed matching %q to %#v. Got %v Want %v. %s", tc.key, tc.query, got, want, tc.reason)
 		}
+		re, err := q.RE2(paramset)
+		fmt.Printf("%q %v\n", re, err)
+		reg, err := regexp.Compile(re)
+		assert.NoError(t, err)
+		if got, want := reg.MatchString(tc.key), tc.matches; got != want {
+			t.Errorf("Regexp Failed matching %q to %#v for %#v. Got %v Want %v. %s", tc.key, re, tc.query, got, want, tc.reason)
+		}
+
 	}
 }
 

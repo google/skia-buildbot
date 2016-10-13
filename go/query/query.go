@@ -22,12 +22,14 @@
 package query
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
 	"sort"
 	"strings"
 
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/util"
 )
 
@@ -35,6 +37,8 @@ var (
 	invalidChar = regexp.MustCompile("([^a-zA-Z0-9._\\-])")
 	keyRe       = regexp.MustCompile("^,([a-zA-Z0-9._\\-]+=[a-zA-Z0-9._\\-]+,)+$")
 	paramRe     = regexp.MustCompile("^[a-zA-Z0-9._\\-]+$")
+
+	regexTooLong = errors.New("Query is too long.")
 )
 
 func clean(s string) string {
@@ -138,6 +142,7 @@ func ParseKey(key string) (map[string]string, error) {
 
 // queryParam represents a query on a particular parameter in a key.
 type queryParam struct {
+	key         string         // The param key.
 	keyMatch    string         // The param key, including the leading "," and trailing "=".
 	keyMatchLen int            // The length of keyMatch.
 	isWildCard  bool           // True if this is a wildcard value match.
@@ -236,6 +241,7 @@ func New(q url.Values) (*Query, error) {
 			}
 		}
 		params = append(params, queryParam{
+			key:         key,
 			keyMatch:    keyMatch,
 			keyMatchLen: len(keyMatch),
 			isWildCard:  isWildCard,
@@ -281,4 +287,50 @@ func (q *Query) Matches(s string) bool {
 		s = s[valueIndex:]
 	}
 	return true
+}
+
+func orAlternatives(keyMatch string, values []string) string {
+	or := []string{}
+	for _, v := range values {
+		or = append(or, "("+keyMatch+v+")")
+	}
+	return "(" + strings.Join(or, "|") + ")"
+}
+
+// RE2 returns the query as an RE2 compatible regular expression.
+func (q *Query) RE2(paramset paramtools.ParamSet) (string, error) {
+	ret := []string{}
+	for _, p := range q.params {
+		if p.isWildCard {
+			ret = append(ret, p.keyMatch, "[^,]+")
+		} else if p.isRegex {
+			ret = append(ret, p.keyMatch, p.reg.String()+"[^,]*")
+		} else if p.isNegative {
+			// Change values to the inverse set of the ParamSet and then do the exact
+			// same steps as for values.
+			if params, ok := paramset[p.key]; ok {
+				other := []string{}
+				values := map[string]bool{}
+				for _, v := range p.values {
+					values[v] = true
+				}
+				for _, p := range params {
+					if !values[p] {
+						other = append(other, p)
+					}
+				}
+				if len(other) > 100 {
+					return "", regexTooLong
+				}
+				ret = append(ret, orAlternatives(p.keyMatch, other))
+			}
+		} else {
+			if len(p.values) > 100 {
+				return "", regexTooLong
+			}
+			ret = append(ret, orAlternatives(p.keyMatch, p.values))
+		}
+		ret = append(ret, "(,[^,]+)*")
+	}
+	return strings.Join(ret, "") + ",", nil
 }
