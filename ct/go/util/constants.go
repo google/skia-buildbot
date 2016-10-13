@@ -313,7 +313,7 @@ var (
 	}
 
 	SupportedPlatformsToDesc = map[string]string{
-		PLATFORM_LINUX:   "Linux (100 Ubuntu12.04 machines)",
+		PLATFORM_LINUX:   "Linux (100 Ubuntu14.04 machines)",
 		PLATFORM_ANDROID: "Android (100 N5 devices)",
 	}
 
