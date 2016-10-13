@@ -106,7 +106,7 @@
         <div class="tr"><div class="td">Manually forced</div><div class="td">[[job.IsForce]]</div></div>
       </div>
     </div>
-  
+
     <div class="container">
       <h2>Tasks</h2>
       <svg id="tasks_svg"></svg>
@@ -394,7 +394,7 @@
               .attr("rx", "4")
               .attr("ry", "4");
         taskLinks.attr("href", function(data) {
-            return "https://chromium-swarm.appspot.com/newui/task?id=" + data.task.SwarmingTaskId;
+            return "https://chromium-swarm.appspot.com/task?id=" + data.task.SwarmingTaskId;
         });
         taskLinks.exit().remove();
         var taskRects = svg.selectAll("rect.task").data(tasks);
