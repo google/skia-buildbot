@@ -137,6 +137,29 @@
       "revId": "60c2a1dfdbfa31a6cb3e57695e072c7ee54327a7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ce7d256_00ad6639",
+        "filename": "go/query/query.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-13T23:43:17Z",
+      "side": 1,
+      "message": "Maybe try changing \"*\" to \"*?\" to see if performance changes.",
+      "range": {
+        "startLine": 356,
+        "startChar": 29,
+        "endLine": 356,
+        "endChar": 30
+      },
+      "revId": "60c2a1dfdbfa31a6cb3e57695e072c7ee54327a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
