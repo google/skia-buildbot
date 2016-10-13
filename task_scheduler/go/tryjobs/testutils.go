@@ -12,8 +12,8 @@ import (
 	"time"
 
 	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
-	"github.com/satori/go.uuid"
-	"github.com/stretchr/testify/assert"
+	uuid "github.com/satori/go.uuid"
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
@@ -133,11 +133,12 @@ func Params(t *testing.T, builder, project, revision, server, issue, patchset st
 			Revision:     revision,
 		},
 	}
+	issueInt, err := strconv.Atoi(issue)
+	assert.NoError(t, err)
+	patchsetInt, err := strconv.Atoi(patchset)
+	assert.NoError(t, err)
+
 	if server == rietveldUrl {
-		issueInt, err := strconv.Atoi(issue)
-		assert.NoError(t, err)
-		patchsetInt, err := strconv.Atoi(patchset)
-		assert.NoError(t, err)
 		p.Properties.PatchStorage = "rietveld"
 		p.Properties.Rietveld = server
 		p.Properties.RietveldIssue = jsonutils.Number(issueInt)
@@ -145,7 +146,7 @@ func Params(t *testing.T, builder, project, revision, server, issue, patchset st
 	} else if server == gerritUrl {
 		p.Properties.PatchStorage = "gerrit"
 		p.Properties.Gerrit = gerritUrl
-		p.Properties.GerritIssue = issue
+		p.Properties.GerritIssue = jsonutils.Number(issueInt)
 		p.Properties.GerritPatchset = patchset
 	} else {
 		assert.FailNow(t, "Invalid server")
@@ -176,7 +177,7 @@ func tryjob() *db.Job {
 		RepoState: db.RepoState{
 			Patch: db.Patch{
 				Server:   "fake-server",
-				Issue:    "fake-issue",
+				Issue:    "1234",
 				Patchset: "fake-patchset",
 			},
 			Repo:     repoName,
