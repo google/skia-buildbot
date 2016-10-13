@@ -44,7 +44,8 @@ type VCS interface {
 	// LastNIndex returns the last N commits.
 	LastNIndex(N int) []*IndexCommit
 
-	// Range returns all commits from 'begin' to 'end', exclusive of the endpoints.
+	// Range returns all commits from the half open interval ['begin', 'end'), i.e.
+	// includes 'begin' and excludes 'end'.
 	Range(begin, end time.Time) []*IndexCommit
 
 	// IndexOf returns the index of the commit hash, where 0 is the index of the first hash.
