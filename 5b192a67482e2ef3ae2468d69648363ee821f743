@@ -51,6 +51,24 @@
       "revId": "5b192a67482e2ef3ae2468d69648363ee821f743",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c405ed3_dff5bbe3",
+        "filename": "golden/go/trybot/trybot.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-13T21:36:59Z",
+      "side": 1,
+      "message": "Agreed.",
+      "parentUuid": "fcd24643_debcb986",
+      "revId": "5b192a67482e2ef3ae2468d69648363ee821f743",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
