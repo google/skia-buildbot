@@ -16,6 +16,24 @@
       "revId": "b0ba8ce98a1ee8e50abe634dcd698b4c3d6db7d3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c6eaae8_293d1978",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 703,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-13T13:44:55Z",
+      "side": 1,
+      "message": "Yeah, I think this was broken by https://skia.googlesource.com/buildbot/+/6753a5174a9a78020a328298a4fd45507090bfc3%5E%21/go/util/http.go",
+      "parentUuid": "fc8b2631_621e9cd2",
+      "revId": "b0ba8ce98a1ee8e50abe634dcd698b4c3d6db7d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
