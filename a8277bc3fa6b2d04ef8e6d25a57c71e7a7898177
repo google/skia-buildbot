@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c6eaae8_29a199a6",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-13T14:48:43Z",
+      "side": 1,
+      "message": "nit: Since we need both tasks and graph to do anything interesting, should we have a single setTaskData method?",
+      "revId": "a8277bc3fa6b2d04ef8e6d25a57c71e7a7898177",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
