@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "fc8b2631_62f77c72",
+        "filename": "task_scheduler/bower.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-13T12:47:04Z",
+      "side": 1,
+      "message": "Yeah, I\u0027m not using any bells and whistles, so I\u0027m perfectly happy with the old version for now, unless there\u0027s a compelling reason to switch. Agreed that we should probably upgrade everything at once sometime.",
+      "parentUuid": "fc8b2631_e231ac59",
+      "revId": "ff675e00d1e7cf4e23cec1af661fd897f961c2f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3c693ee5_9d526330",
         "filename": "task_scheduler/res/imp/job-sk.html",
         "patchSetId": 2
@@ -319,6 +337,24 @@
       "side": 1,
       "message": "Yes.  enter() means \"Select everything that I have a data object for, but don\u0027t yet have an html/ svg element\" exit() means \"Select everything I have an html/svg element for, but the bound data object is no longer in the data array\"\n\nThey are just selectors, they don\u0027t do anything magic to create or data bind or delete.\nSince you do \n\nvar elem \u003d svg.selectAll(types[i]).data([]);\n\ni.e. binding to empty array, there is no data, so nothing can be created, so the call to enter() is pointless.",
       "parentUuid": "fc8b2631_02a4f8a0",
+      "revId": "ff675e00d1e7cf4e23cec1af661fd897f961c2f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc8b2631_42028071",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-13T12:47:04Z",
+      "side": 1,
+      "message": "Got it, thanks!",
+      "parentUuid": "fc8b2631_a227a420",
       "revId": "ff675e00d1e7cf4e23cec1af661fd897f961c2f5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
