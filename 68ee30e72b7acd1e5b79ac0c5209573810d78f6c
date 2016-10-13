@@ -22,6 +22,24 @@
       "revId": "68ee30e72b7acd1e5b79ac0c5209573810d78f6c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1c78fafe_26767667",
+        "filename": "task_scheduler/res/imp/job-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-13T17:11:26Z",
+      "side": 1,
+      "message": "Actually, [\"D\", \"F\"], although I never implemented the \"job depends on these leaf tasks\" visualization. Fixed.",
+      "parentUuid": "9c6eaae8_5444a471",
+      "revId": "68ee30e72b7acd1e5b79ac0c5209573810d78f6c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
