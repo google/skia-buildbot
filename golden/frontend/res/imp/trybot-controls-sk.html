@@ -74,7 +74,7 @@
 
     </style>
     <template is="dom-if" if={{_issue}}>
-      <div class="issueHeader">Issue: <a href$="https://codereview.chromium.org/{{_issue.id}}" target="_blank">
+      <div class="issueHeader">Issue: <a href$="_issue.URL" target="_blank" rel="noopener">
         {{_issue.id}} ({{_issue.owner}}) {{_issue.subject}}</a>
       </div>
 

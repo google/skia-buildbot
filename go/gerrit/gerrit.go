@@ -76,6 +76,7 @@ type LabelDetail struct {
 // Revision is the information associated with a patchset in Gerrit.
 type Revision struct {
 	ID            string    `json:"-"`
+	Number        int64     `json:"_number"`
 	CreatedString string    `json:"created"`
 	Created       time.Time `json:"-"`
 }
@@ -213,6 +214,15 @@ func (g *Gerrit) GetIssueProperties(issue int64) (*ChangeInfo, error) {
 	fullIssue.Patchsets = patchsets
 
 	return fullIssue, nil
+}
+
+// GetPatchsetIDs is a convenience function that returns the sorted list of patchset IDs.
+func (c *ChangeInfo) GetPatchsetIDs() []int64 {
+	ret := make([]int64, len(c.Patchsets))
+	for idx, patchSet := range c.Patchsets {
+		ret[idx] = patchSet.Number
+	}
+	return ret
 }
 
 // GetPatch returns the formatted patch for one revision. Documentation is here:

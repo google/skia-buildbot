@@ -70,12 +70,6 @@ func newGoldTrybotProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 
 // getCommitID overrides the function with the same name in goldProcessor.
 func (g *goldTrybotProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults *DMResults) (*tracedb.CommitID, error) {
-	// Ignore results from Gerrit for now.
-	if dmResults.isGerritIssue() {
-		glog.Infof("Ignoring Gerrit issue  %d/%d for now.", dmResults.Issue, dmResults.Patchset)
-		return nil, ingestion.IgnoreResultsFileErr
-	}
-
 	var ts time.Time
 	var ok bool
 	var err error
@@ -116,7 +110,7 @@ func (g *goldTrybotProcessor) getCreatedTimeStamp(dmResults *DMResults) (time.Ti
 		}
 
 		if len(issueProps.Patchsets) < int(dmResults.Patchset) {
-			return time.Time{}, fmt.Errorf("Given patchset (%d) number is not available form Gerrit. Only found %d patchsets.", dmResults.Patchset, len(issueProps.Patchsets))
+			return time.Time{}, fmt.Errorf("Given patchset (%d) number is not available from Gerrit. Only found %d patchsets.", dmResults.Patchset, len(issueProps.Patchsets))
 		}
 
 		return issueProps.Patchsets[dmResults.Patchset-1].Created, nil
