@@ -600,7 +600,7 @@ func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 var rietveldURLRegexp = regexp.MustCompile("^(https?://codereview\\.chromium\\.org)/(\\d{3,})/?$")
-var gerritURLRegexp = regexp.MustCompile("^(https?://skia-review\\.googlesource\\.com)/c/(\\d{3,})/?$")
+var gerritURLRegexp = regexp.MustCompile("^(https?://(?:[a-z]+)-review\\.googlesource\\.com)/c/(\\d{3,})/?$")
 
 type clDetail struct {
 	Issue         int64  `json:"issue"`
@@ -693,7 +693,7 @@ func gatherCLData(detail clDetail, patch string) (map[string]string, error) {
 	clData["skia_patch"] = ""
 	clData["catapult_patch"] = ""
 	switch detail.Project {
-	case "chromium":
+	case "chromium", "chromium/src":
 		clData["chromium_patch"] = patch
 	case "skia":
 		clData["skia_patch"] = patch
