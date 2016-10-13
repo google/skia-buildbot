@@ -22,6 +22,24 @@
       "revId": "26d0d6483f54f3a444c17adb66155c0c242a3d1b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc8b2631_62113c68",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 417,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-13T14:24:32Z",
+      "side": 1,
+      "message": "No, now that this is data-bound, I think it needs to be by class for selectAll.  It is wrong though; it needs to be \"marker.arrowhead\", and it\u0027s missing the .attr(\"class\", \"arrowhead\") below though. Fixed in https://skia-review.googlesource.com/3282",
+      "parentUuid": "9c6eaae8_e9e881d1",
+      "revId": "26d0d6483f54f3a444c17adb66155c0c242a3d1b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
