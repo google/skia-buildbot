@@ -16,6 +16,24 @@
       "revId": "a8277bc3fa6b2d04ef8e6d25a57c71e7a7898177",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc8b2631_c242f03b",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-13T14:57:51Z",
+      "side": 1,
+      "message": "That\u0027s much better. I just created a single \"setData\" method.",
+      "parentUuid": "9c6eaae8_29a199a6",
+      "revId": "a8277bc3fa6b2d04ef8e6d25a57c71e7a7898177",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
