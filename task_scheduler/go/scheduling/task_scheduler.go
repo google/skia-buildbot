@@ -1226,15 +1226,18 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 		}
 		if status != j.Status {
 			j.Status = status
+			if j.Done() {
+				j.Finished = time.Now()
 
-			if j.IsTryJob() && j.Done() {
-				// Report the try job status to Buildbucket. If
-				// we fail to do so, don't insert the updated
-				// Job into the DB - we'll come back to it on
-				// the next loop.
-				if err := s.tryjobs.JobFinished(j); err != nil {
-					errs = append(errs, fmt.Errorf("Failed to send update for try job: %s", err))
-					continue
+				if j.IsTryJob() {
+					// Report the try job status to Buildbucket. If
+					// we fail to do so, don't insert the updated
+					// Job into the DB - we'll come back to it on
+					// the next loop.
+					if err := s.tryjobs.JobFinished(j); err != nil {
+						errs = append(errs, fmt.Errorf("Failed to send update for try job: %s", err))
+						continue
+					}
 				}
 			}
 

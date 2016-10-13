@@ -2156,6 +2156,7 @@ func TestTrybots(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, tryJob.IsTryJob())
 	assert.True(t, tryJob.Done())
+	assert.True(t, tryJob.Finished.After(tryJob.Created))
 }
 
 func TestGetTasksForJob(t *testing.T) {
