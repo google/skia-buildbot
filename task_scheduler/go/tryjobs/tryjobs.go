@@ -33,7 +33,7 @@ const (
 	BUCKET_TESTING = "skia.testing"
 
 	// How often to send heartbeats to Buildbucket.
-	HEARTBEAT_INTERVAL = 5 * time.Minute
+	HEARTBEAT_INTERVAL = 2 * time.Minute
 
 	// We attempt to renew leases in batches. This is the batch size.
 	LEASE_BATCH_SIZE = 25
@@ -46,7 +46,7 @@ const (
 	// We use a shorter initial lease duration in case we succeed in leasing
 	// a build but fail to insert the associated Job into the DB, eg.
 	// because the scheduler was interrupted.
-	LEASE_DURATION_INITIAL = 2 * time.Minute
+	LEASE_DURATION_INITIAL = 5 * time.Minute
 
 	// How many pending builds to read from the bucket at a time.
 	PEEK_MAX_BUILDS = 50
