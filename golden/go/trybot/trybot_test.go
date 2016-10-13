@@ -17,12 +17,14 @@ import (
 )
 
 const (
-	TEST_DATA_DIR       = "./testdata"
-	TEST_TRACE_DB_FILE  = "./tracedb-data.db"
-	TEST_SHAREDB_DIR    = "./sharedb-data"
-	TEST_INGESTION_FILE = TEST_DATA_DIR + "/dm.json"
+	TEST_DATA_DIR                = "./testdata"
+	TEST_TRACE_DB_FILE           = "./tracedb-data.db"
+	TEST_SHAREDB_DIR             = "./sharedb-data"
+	TEST_RIETVELD_INGESTION_FILE = TEST_DATA_DIR + "/rietveld-dm.json"
+	TEST_GERRIT_INGESTION_FILE   = TEST_DATA_DIR + "/gerrit-dm.json"
+
 	// URL of the rietveld instance.
-	TEST_CODE_RIETVELDREVIEW_URL = "https://codereview.chromium.org"
+	TEST_CODE_RIETVELDREVIEW_URL = rietveld.RIETVELD_SKIA_URL
 
 	// URL of the gerrit instance.
 	TEST_CODE_GERRITREVIEW_URL = gerrit.GERRIT_SKIA_URL
@@ -32,14 +34,22 @@ var (
 	BEGINNING_OF_TIME = time.Date(2015, time.June, 1, 0, 0, 0, 0, time.UTC)
 )
 
-func TestTrybotResults(t *testing.T) {
+func TestRietveldTrybotResults(t *testing.T) {
+	testOneTrybotResults(t, TEST_RIETVELD_INGESTION_FILE)
+}
+
+func TestGerritTrybotResults(t *testing.T) {
+	testOneTrybotResults(t, TEST_GERRIT_INGESTION_FILE)
+}
+
+func testOneTrybotResults(t *testing.T, ingestionFile string) {
 	testutils.SkipIfShort(t)
 
 	rietveldAPI := rietveld.New(TEST_CODE_RIETVELDREVIEW_URL, nil)
 	gerritAPI, err := gerrit.NewGerrit(TEST_CODE_GERRITREVIEW_URL, "", nil)
 	assert.NoError(t, err)
 
-	server, serverAddress := goldingestion.RunGoldTrybotProcessor(t, TEST_TRACE_DB_FILE, TEST_SHAREDB_DIR, TEST_INGESTION_FILE, TEST_DATA_DIR, TEST_CODE_RIETVELDREVIEW_URL, TEST_CODE_GERRITREVIEW_URL)
+	server, serverAddress := goldingestion.RunGoldTrybotProcessor(t, TEST_TRACE_DB_FILE, TEST_SHAREDB_DIR, ingestionFile, TEST_DATA_DIR, TEST_CODE_RIETVELDREVIEW_URL, TEST_CODE_GERRITREVIEW_URL)
 	defer util.RemoveAll(TEST_SHAREDB_DIR)
 	defer testutils.Remove(t, TEST_TRACE_DB_FILE)
 	defer server.Stop()
@@ -73,7 +83,7 @@ func TestTrybotResults(t *testing.T) {
 	}
 
 	// // Parse the input file and extract 'by hand'
-	fsResult, err := ingestion.FileSystemResult(TEST_INGESTION_FILE, "./")
+	fsResult, err := ingestion.FileSystemResult(ingestionFile, "./")
 	assert.NoError(t, err)
 
 	r, err := fsResult.Open()
@@ -88,5 +98,4 @@ func TestTrybotResults(t *testing.T) {
 		}
 	}
 	assert.Equal(t, expectedDigests, foundDigests)
-
 }
