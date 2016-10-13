@@ -105,6 +105,24 @@
     },
     {
       "key": {
+        "uuid": "fc8b2631_c28030fe",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 342,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-13T11:36:36Z",
+      "side": 1,
+      "message": "I think the way it currently is, i.e. \"A leads to B\" is more intuitive to me and hopefully others.",
+      "parentUuid": "9c6eaae8_2311b868",
+      "revId": "ff675e00d1e7cf4e23cec1af661fd897f961c2f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fc7ec69b_7b6bd717",
         "filename": "task_scheduler/res/imp/job-sk.html",
         "patchSetId": 2
