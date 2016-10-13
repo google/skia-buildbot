@@ -162,11 +162,7 @@
   <template>
     Alternate tasks set
     <paper-toggle-button checked="{{alternate}}"></paper-toggle-button>
-    <job-sk
-        job="[[job]]"
-        tasks="[[tasks]]"
-        graph="[[graph]]"
-        ></job-sk>
+    <job-sk id="job_sk"></job-sk>
   </template>
   <script>
   Polymer({
@@ -178,38 +174,21 @@
         value: false,
         observer: "_alternateChanged",
       },
+    },
 
-      job: {
-        type: Object,
-        value: function() {
-          return job;
-        },
-      },
-      tasks: {
-        type: Object,
-        value: function() {
-          return {};
-        },
-      },
-      graph: {
-        type: Object,
-        value: function() {
-          return {};
-        },
-      },
+    ready: function() {
+      if (this.alternate) {
+        this.$.job_sk.setData(job, tasks2, depGraph2);
+      } else {
+        this.$.job_sk.setData(job, tasks1, depGraph1);
+      }
     },
 
     _alternateChanged: function() {
-      // Set empty first to prevent triggering the callback with mismatched tasks and graph.
-      this.tasks = {};
-      this.graph = {};
-
       if (this.alternate) {
-        this.tasks = tasks2;
-        this.graph = depGraph2;
+        this.$.job_sk.setData(job, tasks2, depGraph2);
       } else {
-        this.tasks = tasks1;
-        this.graph = depGraph1;
+        this.$.job_sk.setData(job, tasks1, depGraph1);
       }
     },
   });

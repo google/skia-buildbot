@@ -15,15 +15,15 @@
     <job-sk></job-sk>
 
   Properties:
-    // input
-    job: Object representing a job.
-    tasks: Object whose keys are task spec names and values are tasks.
-    graph: Object whose keys are task spec names and values are arrays of
-        task spec names indicating which task specs depend upon which other
-        task specs.
+    None.
 
   Methods:
-    None.
+    setData: Provide job, tasks, and graph data.
+        job: Object representing a job.
+        tasks: Object whose keys are task spec names and values are tasks.
+        graph: Object whose keys are task spec names and values are arrays of
+            task spec names indicating which task specs depend upon which
+            other task specs.
 
   Events:
     None.
@@ -76,34 +76,34 @@
     <div class="container">
       <h2>Job Information</h2>
       <div class="table">
-        <div class="tr"><div class="td">ID</div><div class="td">[[job.Id]]</div></div>
-        <div class="tr"><div class="td">Name</div><div class="td">[[job.Name]]</div></div>
+        <div class="tr"><div class="td">ID</div><div class="td">[[_job.Id]]</div></div>
+        <div class="tr"><div class="td">Name</div><div class="td">[[_job.Name]]</div></div>
         <div class="tr">
           <div class="td">Status</div>
           <div class="td" style$="background-color:[[_statusColor]]">[[_statusText]]</div>
         </div>
-        <div class="tr"><div class="td">Created</div><div class="td"><human-date-sk date="[[job.Created]]"></human-date-sk></div></div>
-        <template is="dom-if" if="[[job.Status]]">
-          <div class="tr"><div class="td">Finished</div><div class="td"><human-date-sk date="[[job.Finished]]"></human-date-sk></div></div>
+        <div class="tr"><div class="td">Created</div><div class="td"><human-date-sk date="[[_job.Created]]"></human-date-sk></div></div>
+        <template is="dom-if" if="[[_job.Status]]">
+          <div class="tr"><div class="td">Finished</div><div class="td"><human-date-sk date="[[_job.Finished]]"></human-date-sk></div></div>
         </template>
         <div class="tr">
           <div class="td">Repo</div>
-          <div class="td"><a href$="[[job.Repo]]" target="_blank">[[job.Repo]]</a></div>
+          <div class="td"><a href$="[[_job.Repo]]" target="_blank">[[_job.Repo]]</a></div>
         </div>
         <div class="tr">
           <div class="td">Revision</div>
-          <div class="td"><a href$="[[_revisionLink]]" target="_blank">[[job.Revision]]</a></div>
+          <div class="td"><a href$="[[_revisionLink]]" target="_blank">[[_job.Revision]]</a></div>
         </div>
         <template is="dom-if" if="[[_isTryJob]]">
           <div class="tr">
             <div class="td">Codereview Link</div>
             <div class="td"><a href$="[[_codereviewLink]]" target="_blank">[[_codereviewLink]]</a></div>
           </div>
-          <div class="tr"><div class="td">Codereview Server</div><div class="td">[[job.Server]]</div></div>
-          <div class="tr"><div class="td">Issue</div><div class="td">[[job.Issue]]</div></div>
-          <div class="tr"><div class="td">Patchset</div><div class="td">[[job.Patchset]]</div></div>
+          <div class="tr"><div class="td">Codereview Server</div><div class="td">[[_job.Server]]</div></div>
+          <div class="tr"><div class="td">Issue</div><div class="td">[[_job.Issue]]</div></div>
+          <div class="tr"><div class="td">Patchset</div><div class="td">[[_job.Patchset]]</div></div>
         </template>
-        <div class="tr"><div class="td">Manually forced</div><div class="td">[[job.IsForce]]</div></div>
+        <div class="tr"><div class="td">Manually forced</div><div class="td">[[_job.IsForce]]</div></div>
       </div>
     </div>
 
@@ -135,46 +135,49 @@
       is: "job-sk",
 
       properties: {
-        job: {
-          type: Object,
-          value: function() {
-            return {};
-          },
-        },
-
-        tasks: {
+        _job: {
           type: Object,
         },
 
-        graph: {
+        _tasks: {
+          type: Object,
+        },
+
+        _graph: {
           type: Object,
         },
 
         _isTryJob: {
           type: Boolean,
-          computed: "_computeIsTryJob(job)",
+          computed: "_computeIsTryJob(_job)",
         },
         _revisionLink: {
           type: String,
-          computed: "_computeRevisionLink(job)",
+          computed: "_computeRevisionLink(_job)",
         },
         _codereviewLink: {
           type: String,
-          computed: "_computeCodereviewLink(job)",
+          computed: "_computeCodereviewLink(_job)",
         },
         _statusText: {
           type: String,
-          computed: "_computeStatusText(job)",
+          computed: "_computeStatusText(_job)",
         },
         _statusColor: {
           type: String,
-          computed: "_computeStatusColor(job)",
+          computed: "_computeStatusColor(_job)",
         },
       },
 
       observers: [
-        "_computeTasksGraph(tasks, graph)",
+        "_computeTasksGraph(_tasks, _graph)",
       ],
+
+      setData: function(job, tasks, graph) {
+        this.set("_job", job);
+        this.set("_tasks", tasks);
+        this.set("_graph", graph);
+      },
 
       _computeIsTryJob: function(job) {
         return job.Server != "" && job.Issue != "" && job.Patchset != "";
@@ -194,11 +197,25 @@
       },
 
       _computeStatusText: function(job) {
-        return jobStatusToTextColor[job.Status][0];
+        if (!job || job.Status == undefined || job.Status == null) {
+          return "unknown";
+        }
+        var textColor = jobStatusToTextColor[job.Status];
+        if (!textColor || textColor.length != 2) {
+          return "unknown";
+        }
+        return textColor[0];
       },
 
       _computeStatusColor: function(job) {
-        return jobStatusToTextColor[job.Status][1];
+        if (!job || job.Status == undefined || job.Status == null) {
+          return "rgb(255, 255, 255)";
+        }
+        var textColor = jobStatusToTextColor[job.Status];
+        if (!textColor || textColor.length != 2) {
+          return "rgb(255, 255, 255)";
+        }
+        return textColor[1];
       },
 
       _computeTasksGraph: function(taskData, graph) {
@@ -414,10 +431,11 @@
         // Draw arrows.
         var arrowWidth = 4;
         var arrowHeight = 4;
-        var arrowHeadPath = svg.selectAll("path.arrowhead").data([0]);
+        var arrowHeadPath = svg.selectAll("marker.arrowhead").data([0]);
         arrowHeadPath.enter()
           .append("svg:marker")
             .attr("id", "arrowhead")
+            .attr("class", "arrowhead")
             .attr("viewBox", "0 0 10 10")
             .attr("refX", "0")
             .attr("refY", "5")
