@@ -24,6 +24,20 @@ var (
 	}
 )
 
+const (
+	// Possible values for the Build.Status field.
+	// See: https://github.com/luci/luci-go/blob/master/common/api/buildbucket/buildbucket/v1/buildbucket-gen.go#L156
+	STATUS_COMPLETED = "COMPLETED"
+	STATUS_SCHEDULED = "SCHEDULED"
+	STATUS_STARTED   = "STARTED"
+
+	// Possible values for the Build.Result field.
+	// See:https://github.com/luci/luci-go/blob/master/common/api/buildbucket/buildbucket/v1/buildbucket-gen.go#L146
+	RESULT_CANCELED = "CANCELED"
+	RESULT_FAILURE  = "FAILURE"
+	RESULT_SUCCESS  = "SUCCESS"
+)
+
 type Author struct {
 	Email string `json:"email"`
 }
@@ -43,7 +57,7 @@ type Properties struct {
 	AttemptStartTs   int64            `json:"attempt_start_ts"`
 	Category         string           `json:"category"`
 	Gerrit           string           `json:"gerrit"`
-	GerritIssue      string           `json:"event.change.number"`
+	GerritIssue      jsonutils.Number `json:"event.change.number"`
 	GerritPatchset   string           `json:"event.patchSet.ref"`
 	Master           string           `json:"master"`
 	PatchProject     string           `json:"patch_project"`
@@ -92,6 +106,7 @@ type Build struct {
 	Id                string         `json:"id"`
 	Url               string         `json:"url"`
 	ParametersJson    string         `json:"parameters_json"`
+	Parameters        *Parameters    `json:"-"`
 	Result            string         `json:"result"`
 	ResultDetailsJson string         `json:"result_details_json"`
 	Status            string         `json:"status"`
@@ -249,5 +264,19 @@ func (c *Client) GetTrybotsForCL(issueID, patchsetID int64, patchStorage, crUrl 
 	host := u.Host
 	q := url.Values{"tag": []string{fmt.Sprintf("buildset:patch/%s/%s/%d/%d", patchStorage, host, issueID, patchsetID)}}
 	url := apiUrl + "/search?" + q.Encode()
-	return c.Search(url)
+
+	builds, err := c.Search(url)
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the parameters.
+	for _, build := range builds {
+		build.Parameters = &Parameters{}
+		if err := json.Unmarshal([]byte(build.ParametersJson), build.Parameters); err != nil {
+			return nil, fmt.Errorf("Unable to decode parameters in build: %s", err)
+		}
+	}
+
+	return builds, nil
 }
