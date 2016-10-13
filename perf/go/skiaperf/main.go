@@ -1345,6 +1345,30 @@ func frameHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// getCommitTimesForFile returns a slice of Unix timestamps in seconds that are
+// the times that the given file changed in git between the given 'begin' and
+// 'end' hashes (inclusive).
+func getCommitTimesForFile(begin, end string, filename string) []int64 {
+	ret := []int64{}
+
+	// Now query for all the changes to the skp version over the given range of commits.
+	log, err := git.LogFine(begin+"^", end, "--format=format:%ct", "--", filename)
+	if err != nil {
+		glog.Errorf("Could not get skp log for %s..%s -- %q: %s", begin, end, filename, err)
+		return ret
+	}
+
+	// Parse.
+	for _, s := range strings.Split(log, "\n") {
+		i, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			continue
+		}
+		ret = append(ret, int64(i))
+	}
+	return ret
+}
+
 // getSkps returns the indices where the SKPs have been updated given
 // the ColumnHeaders.
 func getSkps(headers []*dataframe.ColumnHeader) ([]int, error) {
@@ -1361,35 +1385,9 @@ func getSkps(headers []*dataframe.ColumnHeader) ([]int, error) {
 	end := ci.Hash
 
 	// Now query for all the changes to the skp version over the given range of commits.
-	log, err := git.LogFine(begin, end, "--format=format:%ct", "--", "infra/bots/assets/skp/VERSION")
-	if err != nil {
-		return nil, fmt.Errorf("Could not get skp log for %s...%s: %s", begin, end, err)
-	}
-
-	// Parse.
-	ts := []int64{}
-	for _, s := range strings.Split(log, "\n") {
-		i, err := strconv.Atoi(s)
-		if err != nil {
-			continue
-		}
-		ts = append(ts, int64(i))
-	}
-
-	// Now query for all the changes to the old skp version over the given range of commits.
-	log, err = git.LogFine(begin, end, "--format=format:%ct", "--", "SKP_VERSION")
-	if err != nil {
-		glog.Infof("Could not get skp log for %s...%s: %s", begin, end, err)
-	} else {
-		// Parse.
-		for _, s := range strings.Split(log, "\n") {
-			i, err := strconv.Atoi(s)
-			if err != nil {
-				continue
-			}
-			ts = append(ts, int64(i))
-		}
-	}
+	ts := getCommitTimesForFile(begin, end, "infra/bots/assets/skp/VERSION")
+	// Add in the changes to the old skp version over the given range of commits.
+	ts = append(ts, getCommitTimesForFile(begin, end, "SKP_VERSION")...)
 
 	// Sort because they are in reverse order.
 	sort.Sort(util.Int64Slice(ts))
