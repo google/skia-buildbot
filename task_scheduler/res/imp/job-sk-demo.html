@@ -26,28 +26,146 @@
         "Status": "",
     };
 
-    var tasks = {
-        "Build-Ubuntu-GCC-x86_64-Release-GN": [],
-        "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": [],
-        "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": [],
+    // tasks1 and depGraph1 represent real task data.
+    var tasks1 = {
+        "Build-Ubuntu-GCC-x86_64-Release-GN": [{
+            "Commits": null,
+            "Created": "2016-10-11T15:23:15.39299Z",
+            "DbModified": "2016-10-11T15:24:56.496602748Z",
+            "Finished": "2016-10-11T15:24:32.45798Z",
+            "Id": "20161011T152315.308660290Z_0000000000000a40",
+            "IsolatedOutput": "4694633b38084550cb545bf81e19d13e9c46cd26",
+            "ParentTaskIds": null,
+            "RetryOf": "",
+            "Started": "2016-10-11T15:23:26.15551Z",
+            "Status": "SUCCESS",
+            "SwarmingBotId": "skia-vm-050",
+            "SwarmingTaskId": "31cd28b854e04d10",
+            "Issue": "2410843002",
+            "Patchset": "20001",
+            "Server": "https://codereview.chromium.org",
+            "Repo": "https://skia.googlesource.com/skia.git",
+            "Revision": "4824cf4c1ef991fe9b0dcd1536e83b37907d3fcf",
+            "Name": "Build-Ubuntu-GCC-x86_64-Release-GN",
+            "ForcedJobId": "",
+        }],
+        "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": [{
+            "Commits": null,
+            "Created": "2016-10-11T15:25:06.66662Z",
+            "DbModified": "2016-10-11T15:27:56.507119337Z",
+            "Finished": "2016-10-11T15:27:21.39336Z",
+            "Id": "20161011T152506.638634008Z_0000000000000a41",
+            "IsolatedOutput": "35a4cf35f4018402ba9d34f8ad5dc437cc7d875c",
+            "ParentTaskIds": ["20161011T152315.308660290Z_0000000000000a40"],
+            "RetryOf": "",
+            "Started": "2016-10-11T15:25:17.30722Z",
+            "Status": "SUCCESS",
+            "SwarmingBotId": "skia-vm-050",
+            "SwarmingTaskId": "31cd2a6aef2ec410",
+            "Issue": "2410843002",
+            "Patchset": "20001",
+            "Server": "https://codereview.chromium.org",
+            "Repo": "https://skia.googlesource.com/skia.git",
+            "Revision": "4824cf4c1ef991fe9b0dcd1536e83b37907d3fcf",
+            "Name": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN",
+            "ForcedJobId": "",
+        }],
+        "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": [{
+            "Commits": null,
+            "Created": "2016-10-11T15:28:13.98995Z",
+            "DbModified": "2016-10-11T15:30:56.978965626Z",
+            "Finished": "2016-10-11T15:30:45.22367Z",
+            "Id": "20161011T152813.960219550Z_0000000000000a42",
+            "IsolatedOutput": "",
+            "ParentTaskIds": ["20161011T152506.638634008Z_0000000000000a41"],
+            "RetryOf": "",
+            "Started": "2016-10-11T15:28:43.17047Z",
+            "Status": "SUCCESS",
+            "SwarmingBotId": "skia-vm-051",
+            "SwarmingTaskId": "31cd2d46acc0e110",
+            "Issue": "2410843002",
+            "Patchset": "20001",
+            "Server": "https://codereview.chromium.org",
+            "Repo": "https://skia.googlesource.com/skia.git",
+            "Revision": "4824cf4c1ef991fe9b0dcd1536e83b37907d3fcf",
+            "Name": "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN",
+            "ForcedJobId": "",
+        }],
     };
 
-    var depGraph = {
+    var depGraph1 = {
         "Build-Ubuntu-GCC-x86_64-Release-GN": [],
         "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": ["Build-Ubuntu-GCC-x86_64-Release-GN"],
         "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": ["Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN"],
     };
+
+    // tasks2 and depGraph2 are fake data but are more visually interesting.
+    var tasks2 = {
+      "A": [{
+        "Id": "A1",
+        "Name": "A",
+        "Status": "SUCCESS",
+        "SwarmingTaskId": "31cd28b854e04d10",
+      }],
+      "B": [{
+        "Id": "B1",
+        "Name": "B",
+        "Status": "FAILURE",
+        "ParentTaskIds": ["A1"],
+        "SwarmingTaskId": "31cd28b854e04d10",
+      }, {
+        "Id": "B2",
+        "Name": "B",
+        "Status": "SUCCESS",
+        "ParentTaskIds": ["A1"],
+        "SwarmingTaskId": "31cd28b854e04d10",
+      }],
+      "C": [{
+        "Id": "C1",
+        "Name": "C",
+        "Status": "SUCCESS",
+        "ParentTaskIds": ["A1"],
+        "SwarmingTaskId": "31cd28b854e04d10",
+      }],
+      "D": [{
+        "Id": "D1",
+        "Name": "D",
+        "Status": "",
+        "ParentTaskIds": ["B2"],
+        "SwarmingTaskId": "31cd28b854e04d10",
+      }],
+      "E": [{
+        "Id": "E1",
+        "Name": "E",
+        "Status": "RUNNING",
+        "ParentTaskIds": ["B2"],
+        "SwarmingTaskId": "31cd28b854e04d10",
+      }],
+    };
+
+    var depGraph2 = {
+      "F": ["E"],
+      "E": ["B"],
+      "D": ["B"],
+      "C": ["A"],
+      "B": ["A"],
+      "A": [],
+    };
+
   </script>
   <link rel="import" href="job-sk.html">
   <link rel="import" href="/res/common/imp/error-toast-sk.html">
+  <link rel="import" href="/res/imp/bower_components/paper-toggle-button/paper-toggle-button.html" />
 </head>
 <body>
 <dom-module id="job-sk-demo">
   <template>
+    Alternate tasks set
+    <paper-toggle-button checked="{{alternate}}"></paper-toggle-button>
     <job-sk
         job="[[job]]"
         tasks="[[tasks]]"
-        depGraph="[[depGraph]]"
+        graph="[[graph]]"
         ></job-sk>
   </template>
   <script>
@@ -55,6 +173,12 @@
     is: 'job-sk-demo',
 
     properties: {
+      alternate: {
+        type: Boolean,
+        value: false,
+        observer: "_alternateChanged",
+      },
+
       job: {
         type: Object,
         value: function() {
@@ -64,15 +188,29 @@
       tasks: {
         type: Object,
         value: function() {
-          return tasks;
+          return {};
         },
       },
-      depGraph: {
+      graph: {
         type: Object,
         value: function() {
-          return depGraph;
+          return {};
         },
       },
+    },
+
+    _alternateChanged: function() {
+      // Set empty first to prevent triggering the callback with mismatched tasks and graph.
+      this.tasks = {};
+      this.graph = {};
+
+      if (this.alternate) {
+        this.tasks = tasks2;
+        this.graph = depGraph2;
+      } else {
+        this.tasks = tasks1;
+        this.graph = depGraph1;
+      }
     },
   });
   </script>
