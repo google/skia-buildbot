@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 	"sync"
@@ -41,7 +42,7 @@ var (
 	pool       = flag.String("pool", swarming.DIMENSION_POOL_VALUE_SKIA, "Which Swarming pool to use.")
 	script     = flag.String("script", "", "Path to a Python script to run.")
 	taskName   = flag.String("task_name", "", "Name of the task to run.")
-	workdir    = flag.String("workdir", ".", "Working directory. Optional, but recommended not to use CWD.")
+	workdir    = flag.String("workdir", os.TempDir(), "Working directory. Optional, but recommended not to use CWD.")
 )
 
 func main() {
