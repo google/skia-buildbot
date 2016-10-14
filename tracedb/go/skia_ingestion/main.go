@@ -5,8 +5,12 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"runtime/pprof"
+	"time"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
@@ -16,6 +20,7 @@ import (
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
+	"go.skia.org/infra/go/util"
 	_ "go.skia.org/infra/golden/go/goldingestion"
 	_ "go.skia.org/infra/golden/go/pdfingestion"
 	_ "go.skia.org/infra/perf/go/perfingestion"
@@ -32,6 +37,7 @@ var (
 	influxUser         = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	influxPassword     = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
 	influxDatabase     = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 )
 
 func main() {
@@ -68,6 +74,33 @@ func main() {
 	}
 	for _, oneIngester := range ingesters {
 		oneIngester.Start()
+	}
+
+	// Enable the memory profiler if memProfile was set.
+	if *memProfile > 0 {
+		writeProfileFn := func() {
+			glog.Infof("\nWriting Memory Profile")
+			f, err := ioutil.TempFile("./", "memory-profile")
+			if err != nil {
+				glog.Fatalf("Unable to create memory profile file: %s", err)
+			}
+			if err := pprof.WriteHeapProfile(f); err != nil {
+				glog.Fatalf("Unable to write memory profile file: %v", err)
+			}
+			util.Close(f)
+			glog.Infof("Memory profile written to %s", f.Name())
+
+			os.Exit(0)
+		}
+
+		// Write the profile after the given time or whenever we get a SIGINT signal.
+		time.AfterFunc(*memProfile, writeProfileFn)
+		ch := make(chan os.Signal)
+		signal.Notify(ch, os.Interrupt)
+		go func() {
+			<-ch
+			writeProfileFn()
+		}()
 	}
 
 	// Run the ingesters forever.
