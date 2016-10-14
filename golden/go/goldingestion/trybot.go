@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -33,7 +34,8 @@ type goldTrybotProcessor struct {
 	gerritReview   *gerrit.Gerrit
 
 	//    map[issue:patchset] -> timestamp.
-	cache map[string]time.Time
+	cache      map[string]time.Time
+	cacheMutex sync.Mutex
 }
 
 func newGoldTrybotProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
@@ -74,6 +76,7 @@ func (g *goldTrybotProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults 
 	var ok bool
 	var err error
 	var cacheId = fmt.Sprintf("%d:%d", dmResults.Issue, dmResults.Patchset)
+	g.cacheMutex.Lock()
 	if ts, ok = g.cache[cacheId]; !ok {
 		if ts, err = g.getCreatedTimeStamp(dmResults); err != nil {
 			return nil, err
@@ -85,6 +88,7 @@ func (g *goldTrybotProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults 
 		}
 		g.cache[cacheId] = ts
 	}
+	g.cacheMutex.Unlock()
 
 	// Get the source (url) from the issue.
 	var source string
