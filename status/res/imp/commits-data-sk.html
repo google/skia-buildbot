@@ -579,18 +579,33 @@
         this.set("build_details", build_details);
         this.set("builders", builders);
         this._filterBuilders();
+
+        // Filter out local branch heads, trim origin/ prefix from remaining,
+        // add autoroll tags as branch heads.
+        var filteredBranchHeads = [];
+        var originPrefix = "origin/";
+        for (var i = 0; i < data.branch_heads.length; i++) {
+          var b = data.branch_heads[i];
+          if (b.name.indexOf(originPrefix) === 0) {
+            b.name = b.name.substring(originPrefix.length);
+            if (b.name != "HEAD") {
+              filteredBranchHeads.push(b);
+            }
+          }
+        }
         if (autoroll_last) {
-          data.branch_heads.push({
+          filteredBranchHeads.push({
               name: "last DEPS roll",
               head: autoroll_last,
           });
         }
         if (autoroll_current) {
-          data.branch_heads.push({
+          filteredBranchHeads.push({
             name: "current DEPS roll",
             head: autoroll_current,
           });
         }
+        this.set("branch_heads", filteredBranchHeads);
 
         var timeIdx = 0;
         var now = new Date();
@@ -633,7 +648,6 @@
         // Actually draw the commits.
         this.set("commits", commits);
         console.log(commits);  // TODO(kjlubick): Remove this once we've solved skia:5575.
-        this.set("branch_heads", data.branch_heads);
         this.set("time_points", time_points);
         console.timeEnd("totalLoadTime");
       },
