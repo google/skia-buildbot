@@ -507,7 +507,7 @@ func (gs *GsUtil) DownloadRemoteFile(remotePath, localPath string) error {
 			return err
 		}
 		// Sleep for 30 seconds. Bots run out of memory without this.
-		// Eg: https://chromium-swarm.appspot.com/user/task/2fba9fba3d553510
+		// Eg: https://chromium-swarm.appspot.com/task?id=2fba9fba3d553510
 		// Maybe this sleep gives Golang time to clear some caches.
 		time.Sleep(30 * time.Second)
 	}
