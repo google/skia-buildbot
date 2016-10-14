@@ -225,8 +225,8 @@ func ComputeBlamelist(cache db.TaskCache, repo *gitrepo.Repo, taskName, repoName
 		return []string{revision}, nil, nil
 	}
 
-	commit := repo.Get(revision)
-	if commit == nil {
+	initialCommit := repo.Get(revision)
+	if initialCommit == nil {
 		return nil, nil, fmt.Errorf("No such commit: %q", revision)
 	}
 
@@ -234,13 +234,14 @@ func ComputeBlamelist(cache db.TaskCache, repo *gitrepo.Repo, taskName, repoName
 	var stealFrom *db.Task
 
 	// Run the helper function to recurse on commit history.
-	if err := commit.Recurse(func(commit *gitrepo.Commit) (bool, error) {
+	if err := initialCommit.Recurse(func(commit *gitrepo.Commit) (bool, error) {
 		// Shortcut in case we missed this case before; if this is the first
 		// task for this task spec which has a valid Revision, the blamelist will
 		// be the entire Git history. If we find too many commits, assume we've
 		// hit this case and just return the Revision as the blamelist.
 		if len(commitsBuf) > buildbot.MAX_BLAMELIST_COMMITS && stealFrom == nil {
-			commitsBuf = append(commitsBuf[:0], commit)
+			commitsBuf = append(commitsBuf[:0], initialCommit)
+			glog.Warningf("Found too many commits for %s @ %s; cutting short.")
 			return false, ERR_BLAMELIST_DONE
 		}
 
@@ -438,6 +439,9 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 	c.Commits = commits
 	if stealingFrom != nil {
 		c.StealingFromId = stealingFrom.Id
+	}
+	if len(c.Commits) > 0 && !util.In(c.Revision, c.Commits) {
+		glog.Errorf("task candidate %s @ %s doesn't have its own revision in its blamelist: %v", c.Name, c.Revision, c.Commits)
 	}
 
 	if c.IsForceRun() {
