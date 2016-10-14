@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1c32ba87_fdc1982d",
+        "filename": "ct/go/util/constants.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-14T15:24:36Z",
+      "side": 1,
+      "message": "Ah, so you want to link to the task by name instead of by id.  Apparently name is not a tag:\nhttps://screenshot.googleplex.com/nLD4FkEsuB3\n\nSince it is not a tag, it is not being filtered correctly.  When you create these tasks, you should add the name to tags and then it \"should work\"",
+      "parentUuid": "1c32ba87_1d757421",
+      "revId": "78a861e78c62a9b54b444711c56c33b1e2d247d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1c32ba87_dd7e1c03",
         "filename": "ct/py/csv_comparer_test.py",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2016-10-14T15:17:12Z",
       "side": 1,
       "message": "Nit: Combine this line with the one below.",
+      "revId": "78a861e78c62a9b54b444711c56c33b1e2d247d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1c32ba87_1dc7b441",
+        "filename": "ct/py/csv_comparer_test.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-14T15:24:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1c32ba87_dd7e1c03",
       "revId": "78a861e78c62a9b54b444711c56c33b1e2d247d8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
