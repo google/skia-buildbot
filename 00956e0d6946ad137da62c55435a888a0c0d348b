@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ce7d256_e66a1ae1",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-14T19:02:53Z",
+      "side": 1,
+      "message": "nit: platformsToDesc should be an argument so that the descriptions change if platformsToDesc changes.",
+      "revId": "00956e0d6946ad137da62c55435a888a0c0d348b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ce7d256_867a2eab",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-14T19:02:53Z",
+      "side": 1,
+      "message": "Is it ok that this is only checked in JS? (I.e. I could create a POST request to run 100k page sets without parallel.)",
+      "revId": "00956e0d6946ad137da62c55435a888a0c0d348b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ce7d256_66772ac5",
+        "filename": "ct/templates/chromium_analysis.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-14T19:02:53Z",
+      "side": 1,
+      "message": "nit: maybe should rename",
+      "range": {
+        "startLine": 39,
+        "startChar": 17,
+        "endLine": 39,
+        "endChar": 36
+      },
+      "revId": "00956e0d6946ad137da62c55435a888a0c0d348b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
