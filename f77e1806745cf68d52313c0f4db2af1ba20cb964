@@ -22,6 +22,24 @@
       "revId": "f77e1806745cf68d52313c0f4db2af1ba20cb964",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ce7d256_a31804e6",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 589,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-14T12:51:39Z",
+      "side": 1,
+      "message": "Changed to \u003d\u003d\u003d since we want an actual 0.",
+      "parentUuid": "1c32ba87_4b9ec504",
+      "revId": "f77e1806745cf68d52313c0f4db2af1ba20cb964",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
