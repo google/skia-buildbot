@@ -411,7 +411,9 @@ func fuzzHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, fmt.Errorf("Could not find category: %q", category), "Category not found")
 		return
 	}
-	architecture := v["architecture"]
+	architecture := "linux_x64"
+	// TODO(kjlubick): Change the frontend to handle architectures
+	// architecture := v["architecture"]
 	if !fcommon.HasArchitecture(architecture) {
 		httputils.ReportError(w, r, fmt.Errorf("Could not find arch: %q", architecture), "Architecture not found")
 		return
@@ -440,7 +442,9 @@ func metadataHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, fmt.Errorf("Could not find category: %q", category), "Category not found")
 		return
 	}
-	architecture := v["architecture"]
+	architecture := "linux_x64"
+	// TODO(kjlubick): Change the frontend to handle architectures
+	// architecture := v["architecture"]
 	if !fcommon.HasArchitecture(architecture) {
 		httputils.ReportError(w, r, fmt.Errorf("Could not find arch: %q", architecture), "Architecture not found")
 		return
