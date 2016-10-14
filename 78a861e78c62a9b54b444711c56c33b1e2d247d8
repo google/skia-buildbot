@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1c32ba87_1d757421",
+        "filename": "ct/go/util/constants.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-14T15:17:12Z",
+      "side": 1,
+      "message": "Do you know if there is a way to directly link to a task using a tag?\nThis used to work before: https://chromium-swarm.appspot.com/tasklist?c\u003dname\u0026c\u003dstate\u0026c\u003dcreated_ts\u0026c\u003duser\u0026f\u003drunid%3Armistry-20161011120726\u0026f\u003dname%3Achromium_perf_6\u0026l\u003d500\u0026s\u003dcreated_ts%3Adesc\n(Remove the name and you will see the task I am trying to link to)",
+      "revId": "78a861e78c62a9b54b444711c56c33b1e2d247d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1c32ba87_dd7e1c03",
+        "filename": "ct/py/csv_comparer_test.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-14T15:17:12Z",
+      "side": 1,
+      "message": "Nit: Combine this line with the one below.",
+      "revId": "78a861e78c62a9b54b444711c56c33b1e2d247d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
