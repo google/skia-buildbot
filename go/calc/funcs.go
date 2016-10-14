@@ -397,16 +397,18 @@ func (LogFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 		return nil, fmt.Errorf("log() failed evaluating argument: %s", err)
 	}
 
-	for _, r := range rows {
-		for i, v := range r {
+	for j, r := range rows {
+		row := dup(r)
+		for i, v := range row {
 			if v != MISSING_DATA_SENTINEL {
 				if v > 0 {
-					r[i] = math.Log10(v)
+					row[i] = math.Log10(v)
 				} else {
-					r[i] = MISSING_DATA_SENTINEL
+					row[i] = MISSING_DATA_SENTINEL
 				}
 			}
 		}
+		rows[j] = row
 	}
 	// TODO rename the rows
 	return rows, nil

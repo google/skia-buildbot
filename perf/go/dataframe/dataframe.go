@@ -9,6 +9,7 @@ import (
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/ptracestore"
@@ -75,6 +76,7 @@ func getRange(vcs vcsinfo.VCS, begin, end time.Time) ([]*ColumnHeader, []*cid.Co
 }
 
 func _new(colHeaders []*ColumnHeader, commitIDs []*cid.CommitID, q *query.Query, store ptracestore.PTraceStore) (*DataFrame, error) {
+	defer timer.New("_new time").Stop()
 	traceSet, err := store.Match(commitIDs, q)
 	if err != nil {
 		return nil, fmt.Errorf("DataFrame failed to query for all traces: %s", err)
@@ -104,6 +106,7 @@ func New(vcs vcsinfo.VCS, store ptracestore.PTraceStore) (*DataFrame, error) {
 // the given time range [begin, end) and the passed in query, or a non-nil
 // error if the traces can't be retrieved.
 func NewFromQueryAndRange(vcs vcsinfo.VCS, store ptracestore.PTraceStore, begin, end time.Time, q *query.Query) (*DataFrame, error) {
+	defer timer.New("NewFromQueryAndRange time").Stop()
 	colHeaders, commitIDs := getRange(vcs, begin, end)
 	return _new(colHeaders, commitIDs, q, store)
 }
