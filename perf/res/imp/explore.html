@@ -211,7 +211,13 @@
       _zoomRange: {
         type: Array,
         value: function() { return []; },
-      }
+      },
+      // The id of the current frame request. Will be th empty string
+      // if there is no pending request.
+      _requestId: {
+        type: String,
+        value: "",
+      },
     },
 
     ready: function() {
@@ -564,7 +570,9 @@
 
     // Common catch function that turns off the spinner.
     _catch: function(msg) {
-      sk.errorMessage(msg, 10000);
+      if (msg) {
+        sk.errorMessage(msg, 10000);
+      }
       this.$.spinner.active = false;
     },
 
@@ -579,15 +587,30 @@
     //    };
     //
     // Returns a Promise that makes the request and parses the JSON response.
-    _requestFrame: function(body) {
+    _requestFrame: function(body, cb) {
+      if (this._requestId != "") {
+        sk.errorMessage("There is a pending query already running.");
+        return
+      }
       this.$.spinner.active = true;
-      return sk.post("/_/frame/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json) {
-        this.$.spinner.active = false;
-        if (json.msg) {
-          sk.errorMessage(json.msg, 30000);
+
+      sk.post("/_/frame/start", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json) {
+        this._requestId = json;
+        this._checkFrameRequestStatus(cb);
+      }.bind(this)).catch(this._catch);
+    },
+
+    _checkFrameRequestStatus: function(cb) {
+      sk.get("/_/frame/start").then(JSON.parse).then(function(json) {
+        if (json.state == "Running") {
+          window.setTimeout(this._checkFrameRequestStatus.bind(this, cb), 500);
+        } else {
+          this._catch(json.msg);
+          sk.get("/_/frame/results").then(JSON.parse).then(function(json) {
+            cb(json);
+          }).catch(this._catch);
         }
-        return json;
-      }.bind(this));
+      }).catch(this._catch);
     },
 
   });
