@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"text/template"
 
 	"github.com/gorilla/mux"
@@ -52,6 +53,9 @@ type DBTask struct {
 	ChromiumPatch  string         `db:"chromium_patch"`
 	CatapultPatch  string         `db:"catapult_patch"`
 	BenchmarkPatch string         `db:"benchmark_patch"`
+	RunInParallel  bool           `db:"run_in_parallel"`
+	Platform       string         `db:"platform"`
+	RunOnGCE       bool           `db:"run_on_gce"`
 	RawOutput      sql.NullString `db:"raw_output"`
 }
 
@@ -72,6 +76,9 @@ func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars.ChromiumPatch = dbTask.ChromiumPatch
 	taskVars.CatapultPatch = dbTask.CatapultPatch
 	taskVars.BenchmarkPatch = dbTask.BenchmarkPatch
+	taskVars.RunInParallel = strconv.FormatBool(dbTask.RunInParallel)
+	taskVars.Platform = dbTask.Platform
+	taskVars.RunOnGCE = strconv.FormatBool(dbTask.RunOnGCE)
 	return taskVars
 }
 
@@ -112,16 +119,23 @@ type AddTaskVars struct {
 	ChromiumPatch  string `json:"chromium_patch"`
 	CatapultPatch  string `json:"catapult_patch"`
 	BenchmarkPatch string `json:"benchmark_patch"`
+	RunInParallel  string `json:"run_in_parallel"`
+	Platform       string `json:"platform"`
+	RunOnGCE       string `json:"run_on_gce"`
 }
 
 func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
 	if task.Benchmark == "" ||
 		task.PageSets == "" ||
+		task.RunInParallel == "" ||
+		task.Platform == "" ||
+		task.RunOnGCE == "" ||
 		task.Description == "" {
 		return "", nil, fmt.Errorf("Invalid parameters")
 	}
 	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
 		{"benchmark", task.Benchmark, 100},
+		{"platform", task.Platform, 100},
 		{"page_sets", task.PageSets, 100},
 		{"benchmark_args", task.BenchmarkArgs, 255},
 		{"browser_args", task.BrowserArgs, 255},
@@ -132,7 +146,15 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 	}); err != nil {
 		return "", nil, err
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,benchmark,page_sets,benchmark_args,browser_args,description,chromium_patch,catapult_patch,benchmark_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?,?,?);",
+	runInParallel := 0
+	if strings.EqualFold(task.RunInParallel, "True") {
+		runInParallel = 1
+	}
+	runOnGCE := 0
+	if strings.EqualFold(task.RunOnGCE, "True") {
+		runOnGCE = 1
+	}
+	return fmt.Sprintf("INSERT INTO %s (username,benchmark,page_sets,benchmark_args,browser_args,description,chromium_patch,catapult_patch,benchmark_patch,ts_added,repeat_after_days,run_in_parallel,platform,run_on_gce) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
 			db.TABLE_CHROMIUM_ANALYSIS_TASKS),
 		[]interface{}{
 			task.Username,
@@ -146,6 +168,9 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 			task.BenchmarkPatch,
 			task.TsAdded,
 			task.RepeatAfterDays,
+			runInParallel,
+			task.Platform,
+			runOnGCE,
 		},
 		nil
 }
