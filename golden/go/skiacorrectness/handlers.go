@@ -799,14 +799,11 @@ func parseQuery(r *http.Request, query *search.Query) error {
 		query.Limit = limit
 	}
 
-	// Parse the query
+	// Parse the query parameters.
 	var err error
-	query.Query = url.Values{}
-	if q := r.FormValue("query"); q != "" {
-		query.Query, err = url.ParseQuery(q)
-		if err != nil {
-			return fmt.Errorf("Unable to parse query: %s. Error: %s", q, err)
-		}
+	query.Query, err = url.ParseQuery(r.FormValue("query"))
+	if err != nil {
+		return err
 	}
 
 	// Parse out the patchsets.
@@ -1008,4 +1005,56 @@ func textAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+}
+
+// // CTQuery is the input structure to the CompareTest function.
+// type CTQuery struct {
+// 	// Test is the name of the test.
+// 	Test string `json:"test"`
+//
+// 	// RowQuery is the query to select the row digests.
+// 	RowQuery *Query `json:"rowQuery"`
+//
+// 	// ColumnQuery is the query to select the column digests.
+// 	ColumnQuery *Query `json:"columnQuery"`
+//
+// 	// Match is the list of parameter fields where the column digests have to match
+// 	// the value of the row digests. That means column digests will only be included
+// 	// if the corresponding parameter values match the corresponding row digest.
+// 	Match []string `json:"match"`
+//
+// 	// SortRows defines by what to sort the rows.
+// 	SortRows string `json:"sortRows"`
+//
+// 	// SortColumns defines by what to sort the digest.
+// 	SortColumns string `json:"sortColumns"`
+//
+// 	// RowsDir defines the sort direction for rows.
+// 	RowsDir string `json:"rowsDir"`
+//
+// 	// ColumnsDir defines the sort direction for columns.
+// 	ColumnsDir string `json:"columnsDir"`
+// }
+
+// jsonCompareTestHandler returns a JSON descripiton for the given test.
+// The result is intended to be displayed in a grid-like fashion.
+//
+// Input format of a POST request:
+//
+// Output format in JSON:
+//
+//
+func jsonCompareTestHandler(w http.ResponseWriter, r *http.Request) {
+	var ctQuery search.CTQuery
+	if err := ParseCTQuery(r.Body, &ctQuery); err != nil {
+		httputils.ReportError(w, r, err, err.Error())
+		return
+	}
+
+	compareResult, err := search.CompareTest(&ctQuery, storages, ixr.GetIndex())
+	if err != nil {
+		httputils.ReportError(w, r, err, "Search for digests failed.")
+		return
+	}
+	sendJsonResponse(w, compareResult)
 }
