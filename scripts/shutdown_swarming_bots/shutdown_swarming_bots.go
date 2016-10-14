@@ -142,7 +142,7 @@ func main() {
 			glog.Errorf("Problem shutting down %s: %s", m, err)
 		} else {
 			logIfVerbose("Response from shutting down %s: %#v", m, r)
-			glog.Infof("Task for shutting down %s: https://chromium-swarm.appspot.com/user/task/%s", m, r.TaskId)
+			glog.Infof("Task for shutting down %s: https://chromium-swarm.appspot.com/task?id=%s", m, r.TaskId)
 		}
 	}
 
