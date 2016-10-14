@@ -15,6 +15,7 @@ import (
 	"github.com/golang/groupcache/lru"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/constants"
@@ -473,9 +474,11 @@ func dup(b []byte) []byte {
 // tile in the BoltDB 'db'.  Only values at the offsets in 'idxmap' are
 // actually loaded, and 'idxmap' determines where they are stored in the Trace.
 func loadMatches(entry *cacheEntry, idxmap map[int]int, q *query.Query, traceSet TraceSet, traceLen int) error {
+	defer timer.New("loadMatches time").Stop()
 	defer entry.Done()
 
 	get := func(tx *bolt.Tx) error {
+		defer timer.New("loadMatches TX time").Stop()
 		bucket := tx.Bucket([]byte(TRACE_VALUES_BUCKET_NAME))
 		if bucket == nil {
 			// If the bucket doesn't exist then we've never written to this tile, it's not an error,
@@ -490,13 +493,12 @@ func loadMatches(entry *cacheEntry, idxmap map[int]int, q *query.Query, traceSet
 			if !q.Matches(string(btraceid)) {
 				continue
 			}
-			// Don't make the copy until we know we are going to need it.
-			traceid := string(dup(btraceid))
-			rawValues = dup(rawValues)
 
 			// Get the trace.
-			trace := traceSet[traceid]
+			trace := traceSet[string(btraceid)]
 			if trace == nil {
+				// Don't make the copy until we know we are going to need it.
+				traceid := string(dup(btraceid))
 				traceSet[traceid] = NewTrace(traceLen)
 				trace = traceSet[traceid]
 			}
