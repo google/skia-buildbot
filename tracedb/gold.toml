@@ -46,4 +46,5 @@ GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the re
 
     [Ingesters.gold-trybot.ExtraParams]
     TraceService   = "localhost:10000"
-    CodeReviewURL = "https://codereview.chromium.org"
+    RietveldCodeReviewURL = "https://codereview.chromium.org"
+    GerritCodeReviewURL = "https://skia-review.googlesource.com"
