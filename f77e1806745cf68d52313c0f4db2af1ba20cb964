@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1c32ba87_4b9ec504",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 589,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-14T11:50:55Z",
+      "side": 1,
+      "message": "In JS, it\u0027s a best practice to either do !foo or foo \u003d\u003d\u003d 0 rather than foo \u003d\u003d 0, just so you are explicit in which cases you actually care about. !foo would be better",
+      "range": {
+        "startLine": 589,
+        "startChar": 14,
+        "endLine": 589,
+        "endChar": 47
+      },
+      "revId": "f77e1806745cf68d52313c0f4db2af1ba20cb964",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
