@@ -53,14 +53,20 @@ func newGoldTrybotProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 	gProcessor := processor.(*goldProcessor)
 	gProcessor.ingestionStore = ingestionStore
 
-	gerritReview, err := gerrit.NewGerrit(config.ExtraParams[CONFIG_GERRIT_CODE_REVIEW_URL], "", nil)
+	gerritURL := config.ExtraParams[CONFIG_GERRIT_CODE_REVIEW_URL]
+	rietveldURL := config.ExtraParams[CONFIG_RIETVELD_CODE_REVIEW_URL]
+	if (gerritURL == "") || (rietveldURL == "") {
+		return nil, fmt.Errorf("Missing URLs for rietveld and/or gerrit code review systems. Got values: ('%s', '%s')", rietveldURL, gerritURL)
+	}
+
+	gerritReview, err := gerrit.NewGerrit(gerritURL, "", nil)
 	if err != nil {
 		return nil, err
 	}
 
 	ret := &goldTrybotProcessor{
 		goldProcessor:  gProcessor,
-		rietveldReview: rietveld.New(config.ExtraParams[CONFIG_RIETVELD_CODE_REVIEW_URL], nil),
+		rietveldReview: rietveld.New(rietveldURL, nil),
 		gerritReview:   gerritReview,
 		cache:          map[string]time.Time{},
 	}
