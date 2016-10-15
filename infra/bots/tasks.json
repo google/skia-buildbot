@@ -1,0 +1,38 @@
+{
+  "jobs": {
+    "Infra-PerCommit": {
+      "priority": 0.8,
+      "tasks": [
+        "Infra-PerCommit"
+      ]
+    }
+  },
+  "tasks": {
+    "Infra-PerCommit": {
+      "dimensions": [
+        "pool:Skia",
+        "os:Ubuntu",
+        "gpu:none"
+      ],
+      "extra_args": [
+        "--workdir",
+        "../../..",
+        "swarm_infra",
+        "repository=skia-buildbot",
+        "buildername=Infra-PerCommit",
+        "mastername=fake-master",
+        "buildnumber=2",
+        "slavename=fake-buildslave",
+        "nobuildbot=True",
+        "swarm_out_dir=${ISOLATED_OUTDIR}",
+        "revision=<(REVISION)",
+        "patch_storage=<(PATCH_STORAGE)",
+        "rietveld=<(CODEREVIEW_SERVER)",
+        "issue=<(ISSUE)",
+        "patchset=<(PATCHSET)"
+      ],
+      "isolate": "swarm_recipe.isolate",
+      "priority": 0.8
+    }
+  }
+}

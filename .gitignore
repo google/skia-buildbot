@@ -6,6 +6,8 @@
 *.cfgc
 # gclient files
 .gclient*
+# recipe DEPS
+infra/bots/.recipe_deps
 # common code
 /common
 **/res/common
