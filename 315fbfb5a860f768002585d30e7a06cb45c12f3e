@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c90b309_2e90b728",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-17T13:24:42Z",
+      "side": 1,
+      "message": "Does this need to be updated for Gerrit, or is that a task for another CL?",
+      "revId": "315fbfb5a860f768002585d30e7a06cb45c12f3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c90b309_0ea7f392",
+        "filename": "golden/go/skiacorrectness/handlers.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1024,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-17T13:24:42Z",
+      "side": 1,
+      "message": "I\u0027m always a little hesitant to dump the error string back to the client because of an XSS risk.  What do you think?",
+      "range": {
+        "startLine": 1024,
+        "startChar": 35,
+        "endLine": 1024,
+        "endChar": 46
+      },
+      "revId": "315fbfb5a860f768002585d30e7a06cb45c12f3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
