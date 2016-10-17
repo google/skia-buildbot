@@ -233,6 +233,7 @@ func main() {
 		EventBus:          evt,
 		TrybotResults:     trybot.NewTrybotResults(branchTileBuilder, rietveldAPI, gerritAPI, ingestionStore),
 		RietveldAPI:       rietveldAPI,
+		GerritAPI:         gerritAPI,
 	}
 
 	// TODO(stephana): Remove this workaround to avoid circular dependencies once the 'storage' module is cleaned up.
