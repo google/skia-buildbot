@@ -119,6 +119,7 @@ func replaceVars(c *taskCandidate, s string) string {
 	replacements := map[string]string{
 		specs.VARIABLE_CODEREVIEW_SERVER: c.Server,
 		specs.VARIABLE_ISSUE:             c.Issue,
+		specs.VARIABLE_ISSUE_SHORT:       c.Issue[len(c.Issue)-2:],
 		specs.VARIABLE_PATCH_STORAGE:     getPatchStorage(c.Server),
 		specs.VARIABLE_PATCHSET:          c.Patchset,
 		specs.VARIABLE_REPO:              c.Repo,
