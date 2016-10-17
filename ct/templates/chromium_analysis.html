@@ -36,6 +36,10 @@
 
     <script type="text/javascript" charset="utf-8">
        (function() {
+         sk.post('/_/benchmarks_platforms/').then(JSON.parse).then(function(json) {
+           $$$('chromium-analysis-sk').platformsToDesc = json["platforms"];
+           $$$('chromium-analysis-sk').platforms = Object.keys(json["platforms"]);
+         }).catch(sk.errorMessage);
          ctfe.pageSets.getPageSets().then(function(pageSets) {
            $$$('chromium-analysis-sk').pageSets = pageSets;
          }).catch(sk.errorMessage);
