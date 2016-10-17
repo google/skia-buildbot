@@ -55,6 +55,10 @@ func NewTrace(traceLen int) Trace {
 // TraceSet is a set of Trace's, keyed by trace id.
 type TraceSet map[string]Trace
 
+// Progress is a func that is called as Match works, passing in the steps
+// completed and the total number of steps.
+type Progress func(step, totalSteps int)
+
 // PTraceStore is an interface for storing Perf data.
 //
 // PTraceStore doesn't know anything about git hashes or Rietveld issue IDs,
@@ -77,7 +81,7 @@ type PTraceStore interface {
 	//
 	// The returned TraceSet will contain a slice of Trace, and that list will be
 	// empty if there are no matches.
-	Match(commitIDs []*cid.CommitID, q *query.Query) (TraceSet, error)
+	Match(commitIDs []*cid.CommitID, q *query.Query, progress Progress) (TraceSet, error)
 }
 
 // BoltTraceStore is an implementation of PTraceStore that uses BoltDB.
@@ -520,10 +524,15 @@ func loadMatches(entry *cacheEntry, idxmap map[int]int, q *query.Query, traceSet
 	return entry.db.View(get)
 }
 
-func (b *BoltTraceStore) Match(commitIDs []*cid.CommitID, q *query.Query) (TraceSet, error) {
+func (b *BoltTraceStore) Match(commitIDs []*cid.CommitID, q *query.Query, progress Progress) (TraceSet, error) {
 	ret := TraceSet{}
 	mapper := buildMapper(commitIDs)
+	i := 0
 	for _, tm := range mapper {
+		i++
+		if progress != nil {
+			progress(i, len(mapper))
+		}
 		entry, err := b.getBoltDB(tm.commitID, true)
 		if err == tileNotExist {
 			glog.Infof("Skipped non-existent db: %s", tm.commitID.Filename())
@@ -536,6 +545,9 @@ func (b *BoltTraceStore) Match(commitIDs []*cid.CommitID, q *query.Query) (Trace
 		if err := loadMatches(entry, tm.idxmap, q, ret, len(commitIDs)); err != nil {
 			return nil, fmt.Errorf("Failed to load traces from %s: %s", tm.commitID.Filename(), err)
 		}
+	}
+	if progress != nil {
+		progress(len(mapper), len(mapper))
 	}
 	return ret, nil
 }
