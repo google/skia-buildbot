@@ -3,6 +3,7 @@
   queue a task to analyse Chromium.
 
   Attributes:
+    benchmarks: Which benchmarks to show. Must be set.
     platformsToDesc: Map of platforms to their descriptions. Must be set.
     platforms: List of all supported platforms. Must be set.
     pageSets: List of all supported page sets, as accepted by page-set-selector-sk property
@@ -74,7 +75,12 @@
       <tr>
         <td>Benchmark Name</td>
         <td>
-          <paper-input value="" id="benchmark_name" label=""></paper-input>
+          <autocomplete-input-sk id="benchmark_name"
+            value="{{selectedBenchmarkName}}"
+            autocomplete="[[benchmarks]]"
+            display-options-on-focus="true"
+            accept-custom-value="true"
+          ></autocomplete-input-sk>
         </td>
       </tr>
 
@@ -198,6 +204,10 @@
    Polymer({
      is: "chromium-analysis-sk",
      properties: {
+       benchmarks: {
+         type: Array,
+         value: [],
+       },
        platforms: {
          type: Array,
          value: [],
@@ -216,6 +226,7 @@
        },
        chromiumClDescription: String,
        catapultClDescription: String,
+       selectedBenchmarkName: String,
      },
 
      observers: [
@@ -300,7 +311,7 @@
      },
 
      validateTask: function() {
-       if (! this.$.benchmark_name.value) {
+       if (! this.selectedBenchmarkName) {
          sk.errorMessage("Please specify a benchmark");
          this.$.benchmark_name.focus();
          return;
@@ -324,7 +335,7 @@
 
      queueTask: function() {
        var params = {};
-       params["benchmark"] = this.$.benchmark_name.value;
+       params["benchmark"] = this.selectedBenchmarkName;
        params["page_sets"] = this.$.page_sets.selected;
        params["benchmark_args"] = this.$.benchmark_args.value;
        params["browser_args"] = this.$.browser_args.value;
