@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c90b309_b9564f71",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-17T16:48:55Z",
+      "side": 1,
+      "message": "I assume no \"skia\" it\u0027s already scoped to skia-review.googlesource.com?",
+      "range": {
+        "startLine": 58,
+        "startChar": 2,
+        "endLine": 58,
+        "endChar": 12
+      },
+      "revId": "9a95ca9d8464d9ac60a6bd7cf72ae44cc5af98ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
