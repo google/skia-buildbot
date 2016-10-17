@@ -94,18 +94,19 @@ type CommitRange struct {
 
 // Query is the query that Search understands.
 type Query struct {
-	BlameGroupID   string // Only applies to Untriaged digests.
-	Pos            bool
-	Neg            bool
-	Unt            bool
-	Head           bool
-	IncludeIgnores bool
-	Query          url.Values
-	Issue          string
-	Patchsets      []string
-	CommitRange    CommitRange
-	Limit          int  // Only return this many items.
-	IncludeMaster  bool // Include digests from master when searching Rietveld issues.
+	BlameGroupID   string      `json:"blame"`
+	Pos            bool        `json:"pos"`
+	Neg            bool        `json:"neg"`
+	Head           bool        `json:"head"`
+	Unt            bool        `json:"unt"`
+	IncludeIgnores bool        `json:"include"`
+	QueryStr       string      `json:"query"`
+	Query          url.Values  `json:"-"`
+	Issue          string      `json:"issue"`
+	Patchsets      []string    `json:"patchsets"`
+	CommitRange    CommitRange `json:"-"`
+	Limit          int         `json:"limit"`
+	IncludeMaster  bool        `json:"master"` // Include digests also contained in master when searching Rietveld issues.
 }
 
 // SearchResponse is the standard search response. Depending on the query some fields
