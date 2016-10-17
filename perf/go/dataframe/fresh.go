@@ -43,7 +43,7 @@ func (f *Refresher) oneStep() error {
 	if err := f.vcs.Update(true, false); err != nil {
 		glog.Errorf("Failed to update repo: %s", err)
 	}
-	newDf, err := New(f.vcs, f.store)
+	newDf, err := New(f.vcs, f.store, nil)
 	if err != nil {
 		return err
 	}
