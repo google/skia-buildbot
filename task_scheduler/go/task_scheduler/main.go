@@ -55,6 +55,7 @@ var (
 
 	// PROJECT_REPO_MAPPING is a mapping of project names to repo URLs.
 	PROJECT_REPO_MAPPING = map[string]string{
+		"buildbot":     common.REPO_SKIA_INFRA,
 		"skia":         common.REPO_SKIA,
 		"skiabuildbot": common.REPO_SKIA_INFRA,
 	}
