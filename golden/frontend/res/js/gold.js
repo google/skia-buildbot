@@ -15,6 +15,12 @@ var gold = gold || {};
   gold.NEGATIVE = 'negative';
   gold.UNTRIAGED = 'untriage';
 
+  // Costants for sort order in the compare view.
+  gold.SORT_ASC = "asc";
+  gold.SORT_DESC = "desc";
+  gold.SORT_FIELD_N = "count";
+  gold.SORT_FIELD_DIFF = "diff";
+
   // Default values for the search controls.
   gold.defaultSearchState = {
      query:   "",
@@ -24,6 +30,7 @@ var gold = gold || {};
      neg: false,
      unt: true,
      blame: "",
+     limit: 50,
      issue: "",
      patchsets: ""
   };
@@ -67,7 +74,7 @@ var gold = gold || {};
     return '/img/images/' + digest + '.png'
   };
 
-  // Returns the URL to the image info site for the given digest. 
+  // Returns the URL to the image info site for the given digest.
   gold.imageInfoHref = function(digest) {
     var imgUrl = window.location.protocol + "//" + window.location.hostname + gold.imgHref(digest);
     return "https://imageinfo.skia.org/info?" + sk.query.fromObject({url: imgUrl});
