@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5c90b309_ce534b80",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-17T14:49:13Z",
+      "side": 1,
+      "message": "Gerrit support already landed. It\u0027s transparent from the perspective of this query format. \nThe backend figures out whether Issue refers to Gerrit or Rietveld.",
+      "parentUuid": "5c90b309_2e90b728",
+      "revId": "315fbfb5a860f768002585d30e7a06cb45c12f3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c90b309_0ea7f392",
         "filename": "golden/go/skiacorrectness/handlers.go",
         "patchSetId": 13
@@ -36,6 +54,24 @@
         "endLine": 1024,
         "endChar": 46
       },
+      "revId": "315fbfb5a860f768002585d30e7a06cb45c12f3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c90b309_ae560771",
+        "filename": "golden/go/skiacorrectness/handlers.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1024,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-17T14:49:13Z",
+      "side": 1,
+      "message": "I agree. \nIn this case it was deliberate though. The ParseCTQuery returns information in the \nerror message why the input was unacceptable. \nWithout that we have to dig through the logs and find when an arbitrary user submitted some wrong info. \n\nIMO our current convention is broken here, because it doesn\u0027t allow for returning the right information to the front-end.",
+      "parentUuid": "5c90b309_0ea7f392",
       "revId": "315fbfb5a860f768002585d30e7a06cb45c12f3e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
