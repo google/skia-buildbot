@@ -103,6 +103,13 @@ var fuzzers = map[string]FuzzerInfo{
 		ExtraBugLabels:      []string{"Area-ImageDecoder"},
 		ArgsAfterExecutable: []string{"--type", "image_mode", "--bytes"},
 	},
+	"sksl2glsl": {
+		PrettyName:          "SKSL Compiler (GLSL)",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "ethannicholas",
+		ExtraBugLabels:      []string{},
+		ArgsAfterExecutable: []string{"--type", "sksl2glsl", "--bytes"},
+	},
 	"skpicture": {
 		PrettyName:          "SkPicture",
 		Status:              EXPERIMENTAL_FUZZER,
