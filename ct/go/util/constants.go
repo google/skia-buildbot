@@ -69,6 +69,7 @@ const (
 	BENCHMARK_SKPICTURE_PRINTER = "skpicture_printer"
 	BENCHMARK_RR                = "rasterize_and_record_micro"
 	BENCHMARK_REPAINT           = "repaint"
+	BENCHMARK_LOADING           = "loading.cluster_telemetry"
 
 	// Logserver link. This is only accessible from Google corp.
 	MASTER_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
@@ -210,6 +211,7 @@ var (
 		BENCHMARK_SKPICTURE_PRINTER: "skpicture_printer_ct",
 		BENCHMARK_RR:                "rasterize_and_record_micro_ct",
 		BENCHMARK_REPAINT:           "repaint_ct",
+		BENCHMARK_LOADING:           "loading.cluster_telemetry",
 	}
 
 	// Information about the different CT pageset types.
@@ -310,6 +312,7 @@ var (
 	SupportedBenchmarks = []string{
 		BENCHMARK_RR,
 		BENCHMARK_REPAINT,
+		BENCHMARK_LOADING,
 	}
 
 	SupportedPlatformsToDesc = map[string]string{
