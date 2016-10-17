@@ -126,7 +126,7 @@ func main() {
 			}
 			glog.Infof("Downloading all bad %s fuzzes @%s to setup duplication detection", category, config.Common.SkiaVersion.Hash)
 			baseFolder := fmt.Sprintf("%s/%s/%s/bad", category, config.Common.SkiaVersion.Hash, config.Generator.Architecture)
-			if startingReports[category], err = fstorage.GetReportsFromGS(storageClient, baseFolder, category, nil, config.Generator.NumDownloadProcesses); err != nil {
+			if startingReports[category], err = fstorage.GetReportsFromGS(storageClient, baseFolder, category, config.Generator.Architecture, nil, config.Generator.NumDownloadProcesses); err != nil {
 				glog.Fatalf("Could not download previously found %s fuzzes for deduplication: %s", category, err)
 			}
 		} else {
