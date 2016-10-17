@@ -38,15 +38,15 @@ var (
 
 	// responseTesters is a mapping of names to functions that test response bodies.
 	responseTesters = map[string]ResponseTester{
-		"ctfeCLDataJSON":                 ctfeCLDataJSON,
-		"ctfeChromiumPerfParametersJSON": ctfeChromiumPerfParametersJSON,
-		"ctfeGetTasksJSON":               ctfeGetTasksJSON,
-		"ctfeGetTasksNonEmptyJSON":       ctfeGetTasksNonEmptyJSON,
-		"ctfeRevDataJSON":                ctfeRevDataJSON,
-		"nonZeroContenLength":            nonZeroContenLength,
-		"skfiddleJSONBad":                skfiddleJSONBad,
-		"skfiddleJSONGood":               skfiddleJSONGood,
-		"validJSON":                      validJSON,
+		"ctfeCLDataJSON":              ctfeCLDataJSON,
+		"ctfeBenchmarksPlatformsJSON": ctfeBenchmarksPlatformsJSON,
+		"ctfeGetTasksJSON":            ctfeGetTasksJSON,
+		"ctfeGetTasksNonEmptyJSON":    ctfeGetTasksNonEmptyJSON,
+		"ctfeRevDataJSON":             ctfeRevDataJSON,
+		"nonZeroContenLength":         nonZeroContenLength,
+		"skfiddleJSONBad":             skfiddleJSONBad,
+		"skfiddleJSONGood":            skfiddleJSONGood,
+		"validJSON":                   validJSON,
 	}
 )
 
@@ -192,9 +192,9 @@ func hasKeys(obj map[string]interface{}, keys []string) bool {
 	return true
 }
 
-// ctfeChromiumPerfParametersJSON tests that the response contains valid JSON with the keys
-// expected by ct/templates/chromium_perf.html.
-func ctfeChromiumPerfParametersJSON(r io.Reader, headers http.Header) bool {
+// ctfeBenchmarksPlatformsJSON tests that the response contains valid JSON with the keys
+// expected by ct/templates/chromium_perf.html and ct/templates/chromium_analysis.html.
+func ctfeBenchmarksPlatformsJSON(r io.Reader, headers http.Header) bool {
 	return hasKeys(decodeJSONObject(r), []string{"benchmarks", "platforms"})
 }
 

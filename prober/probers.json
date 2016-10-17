@@ -371,13 +371,13 @@
      "body": "",
      "mimetype": ""
    },
-   "ctfe_chromium_perf_parameters": {
-     "url": "https://ct.skia.org/_/chromium_perf/",
+   "ctfe_benchmarks_platforms": {
+     "url": "https://ct.skia.org/_/benchmarks_platforms/",
      "method": "POST",
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
-     "responsetest": "ctfeChromiumPerfParametersJSON"
+     "responsetest": "ctfeBenchmarksPlatformsJSON"
    },
    "ctfe_rietveld_cl_data": {
      "url": "https://ct.skia.org/_/cl_data?cl=https://codereview.chromium.org/1330473002",
