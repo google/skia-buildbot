@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5c90b309_f39b985b",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-17T13:05:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ce7d256_e66a1ae1",
+      "revId": "00956e0d6946ad137da62c55435a888a0c0d348b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ce7d256_867a2eab",
         "filename": "ct/res/imp/chromium-analysis-sk.html",
         "patchSetId": 7
@@ -30,6 +48,24 @@
       "writtenOn": "2016-10-14T19:02:53Z",
       "side": 1,
       "message": "Is it ok that this is only checked in JS? (I.e. I could create a POST request to run 100k page sets without parallel.)",
+      "revId": "00956e0d6946ad137da62c55435a888a0c0d348b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c90b309_13995c63",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-17T13:05:31Z",
+      "side": 1,
+      "message": "Yea, I think that might be ok for now. We can add in server checks if it ends up being a problem.",
+      "parentUuid": "5ce7d256_867a2eab",
       "revId": "00956e0d6946ad137da62c55435a888a0c0d348b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -53,6 +89,24 @@
         "endLine": 39,
         "endChar": 36
       },
+      "revId": "00956e0d6946ad137da62c55435a888a0c0d348b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c90b309_ee82cfe5",
+        "filename": "ct/templates/chromium_analysis.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-17T13:05:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ce7d256_66772ac5",
       "revId": "00956e0d6946ad137da62c55435a888a0c0d348b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
