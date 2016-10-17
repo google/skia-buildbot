@@ -16,6 +16,8 @@
     autocomplete: Array<String> values for auto-completing.
     heading: String, the heading to display
     value: String Any typed-in value
+    display-options-on-focus: Boolean, show all matching values during focus
+    accept-custom-value: Boolean, can choose a value not from suggestions
 
   Methods:
     None.
@@ -51,7 +53,13 @@
     or simply by typing it out and unfocusing the paper-input, we call _commit,
     which fires the on-change event.
     -->
-    <paper-input id="input" label="[[label]]" on-change="_change" on-keyup="_keyup"></paper-input>
+    <paper-input id="input" label="[[label]]"
+      on-change="_change"
+      on-keyup="_keyup"
+      on-focus="_keyup"
+      display-options-on-focus="{{displayOptionsOnFocus}}"
+      accept-custom-value="{{acceptCustomValue}}"
+    ></paper-input>
     <div id="suggestions_div" hidden$="{{_show_suggestions(_suggestions.*)}}">
       <paper-listbox id="suggestions_box" on-iron-select="_suggestion_changed">
         <template is="dom-repeat" items="[[_suggestions]]">
@@ -85,6 +93,16 @@
           observer: "_value_changed",
         },
 
+        displayOptionsOnFocus: {
+          type: Boolean,
+          value: false,
+        },
+
+        acceptCustomValue: {
+          type: Boolean,
+          value: false,
+        },
+
         _arrow_key_pressed: {
           type: Boolean,
           value: false,
@@ -101,6 +119,14 @@
             return [];
           },
         },
+      },
+
+      _onFocus: function(e) {
+        if (this.displayOptionsOnFocus && (
+                this.value === '' || this.value === undefined)) {
+          this.value = '';
+          this._keyup(e);
+        }
       },
 
       _value_changed: function() {
@@ -160,11 +186,17 @@
             // highlighted, we accept that selection.
             this.$.input.value = this.$.suggestions_box.selectedItem.value;
             this._commit();
+          } else if (e.keyCode == ENTER && this.acceptCustomValue) {
+            // If the enter key is pressed without highlighting a suggestion
+            // then accept the current input value.
+            this._commit();
           } else {
             // The user has entered text. Recompute autocomplete suggestions.
             var v = this.$.input.value;
             this._suggestions = [];
-            if (v != "") {  // Don't give suggestions for empty input.
+            // Give suggestions on empty input only if displayOptionsOnFocus
+            // is true.
+            if (v != "" || this.displayOptionsOnFocus) {
               // If possible, treat partially-entered input as a regular
               // expression.
               var re;
