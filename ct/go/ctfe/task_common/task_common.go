@@ -783,7 +783,21 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func benchmarksPlatformsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	data := map[string]interface{}{
+		"benchmarks": ctutil.SupportedBenchmarks,
+		"platforms":  ctutil.SupportedPlatformsToDesc,
+	}
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		return
+	}
+}
+
 func AddHandlers(r *mux.Router) {
 	r.HandleFunc("/"+ctfeutil.PAGE_SETS_PARAMETERS_POST_URI, pageSetsHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.CL_DATA_POST_URI, getCLHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.BENCHMARKS_PLATFORMS_POST_URI, benchmarksPlatformsHandler).Methods("POST")
 }
