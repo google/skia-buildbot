@@ -1019,8 +1019,12 @@ func textAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 //
 //
 func jsonCompareTestHandler(w http.ResponseWriter, r *http.Request) {
+	// Retrieve the testname from the URL
+	testName, ok := mux.Vars(r)["test"]
+  if
+
 	var ctQuery search.CTQuery
-	if err := search.ParseCTQuery(r.Body, &ctQuery, 5); err != nil {
+	if err := search.ParseCTQuery(r.Body, testName, 5, &ctQuery); err != nil {
 		httputils.ReportError(w, r, err, err.Error())
 		return
 	}

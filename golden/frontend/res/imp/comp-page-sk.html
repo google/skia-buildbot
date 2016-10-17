@@ -106,7 +106,7 @@
           <span class="name">Name: {{_data.summary.name}}</span>
           <span class="pos">Pos: {{_data.summary.pos}}</span>
           <span class="neg">Neg: {{_data.summary.neg}}</span>
-          <span class="unt">Unt: {{_data.summary.untriaged}}</span>
+          <span class="unt">Unt: {{_data.summary.unt}}</span>
         </div>
 
         <div>
@@ -177,15 +177,15 @@
 
       // The current state of the page.
       var defaultQuery = {
-        test: "",
         rowQuery: null,
         columnQuery: null,
         match: defaultMatchConfigs,
         rowN: 5,
         columnN: 5,
-        sort: "row",
-        dir: gold.SORT_ASC,
-        digest: ""
+        sortRows: gold.SORT_FIELD_N,
+        rowsDir: gold.SORT_DESC,
+        sortColumns: gold.SORT_FIELD_DIFF,
+        columnsDir: gold.SORT_ASC
       };
 
       Polymer({
@@ -231,6 +231,7 @@
 
         _load: function() {
           this.set("_diffData", {});
+          debugger;
           sk.get("/json/paramset").then(JSON.parse).then(function (json) {
             this.$.rowSearchControls.setParamSet(json);
             this.$.rowSearchControls.setState(this._query.rowQuery);
@@ -247,7 +248,7 @@
           sk.post(url, JSON.stringify(this._query)).then(JSON.parse).then(function (json) {
             activity.stopSpinner();
             this.set("_data", json);
-            this.$.gridCompare.setValue(json.diffs);
+            this.$.gridCompare.setValue(json.grid);
           }.bind(this)).catch(function(e) {
             activity.stopSpinner();
             sk.errorMessage(e);
