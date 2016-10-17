@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "5c90b309_aec4c7f8",
+        "filename": "ct/go/ctfe/util/util.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-17T15:07:06Z",
+      "side": 1,
+      "message": "There\u0027s probably a prober for this URL.",
+      "range": {
+        "startLine": 22,
+        "startChar": 38,
+        "endLine": 22,
+        "endChar": 56
+      },
+      "revId": "00956e0d6946ad137da62c55435a888a0c0d348b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ce7d256_e66a1ae1",
         "filename": "ct/res/imp/chromium-analysis-sk.html",
         "patchSetId": 7
