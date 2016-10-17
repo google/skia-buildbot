@@ -18,6 +18,15 @@
         autocomplete="[[autocomplete]]"
         on-change="_change"
         ></autocomplete-input-sk>
+    <autocomplete-input-sk
+        id="input2"
+        label="US States (with focus)"
+        value="{{value2}}"
+        autocomplete="[[autocomplete]]"
+        on-change="_change2"
+        display-options-on-focus="true"
+        accept-custom-value="true"
+        ></autocomplete-input-sk>
   </template>
   <script>
   Polymer({
@@ -84,9 +93,15 @@
       value: {
         type: String,
       },
+      value2: {
+        type: String,
+      },
     },
     _change: function() {
-      console.log("on-change fired: " + this.value);
+      console.log("on-change fired in 1st element: " + this.value);
+    },
+    _change2: function() {
+      console.log("on-change fired in 2nd element: " + this.value2);
     },
   });
   </script>
