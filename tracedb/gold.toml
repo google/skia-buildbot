@@ -31,7 +31,7 @@ GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the re
   [Ingesters.gold-trybot]
   RunEvery       = "5m"
   NCommits       = 10
-  MinDays        = 3
+  MinDays        = 7
   StatusDir      = "/mnt/pd0/gold/ingest_status"
   MetricName     = "gold-ingest-trybot"
   LocalCache     = true
