@@ -308,6 +308,18 @@ var v15_down = []string{
 	`ALTER TABLE ChromiumPerfTasks DROP catapult_patch`,
 }
 
+var v16_up = []string{
+	`ALTER TABLE ChromiumAnalysisTasks ADD run_in_parallel BOOLEAN NOT NULL DEFAULT True`,
+	`ALTER TABLE ChromiumAnalysisTasks ADD platform VARCHAR(100) NOT NULL DEFAULT "Linux"`,
+	`ALTER TABLE ChromiumAnalysisTasks ADD run_on_gce BOOLEAN NOT NULL DEFAULT True`,
+}
+
+var v16_down = []string{
+	`ALTER TABLE ChromiumAnalysisTasks DROP run_in_parallel`,
+	`ALTER TABLE ChromiumAnalysisTasks DROP platform`,
+	`ALTER TABLE ChromiumAnalysisTasks DROP run_on_gce`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -386,6 +398,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v15_up,
 		MySQLDown: v15_down,
+	},
+	// version 16: Add run_in_parallel, platform, run_on_gce columns to ChromiumAnalysisTasks.
+	{
+		MySQLUp:   v16_up,
+		MySQLDown: v16_down,
 	},
 }
 

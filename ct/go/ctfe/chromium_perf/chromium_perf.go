@@ -6,7 +6,6 @@ package chromium_perf
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -20,7 +19,6 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
-	"go.skia.org/infra/go/httputils"
 )
 
 var (
@@ -113,19 +111,6 @@ func (task DBTask) Select(query string, args ...interface{}) (interface{}, error
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(addTaskTemplate, w, r)
-}
-
-func parametersHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	data := map[string]interface{}{
-		"benchmarks": ctutil.SupportedBenchmarks,
-		"platforms":  ctutil.SupportedPlatformsToDesc,
-	}
-	if err := json.NewEncoder(w).Encode(data); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
-		return
-	}
 }
 
 type AddTaskVars struct {
@@ -270,7 +255,6 @@ func AddHandlers(r *mux.Router) {
 	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_URI, addTaskView).Methods("GET")
 	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_RUNS_URI, runsHistoryView).Methods("GET")
 	r.HandleFunc("/"+ctfeutil.GET_CHROMIUM_PERF_RUN_STATUS_URI, getTaskStatusHandler).Methods("GET")
-	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_PARAMETERS_POST_URI, parametersHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.ADD_CHROMIUM_PERF_TASK_POST_URI, addTaskHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.GET_CHROMIUM_PERF_TASKS_POST_URI, getTasksHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.UPDATE_CHROMIUM_PERF_TASK_POST_URI, updateTaskHandler).Methods("POST")

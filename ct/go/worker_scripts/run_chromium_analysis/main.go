@@ -13,6 +13,7 @@ import (
 
 	"strings"
 
+	"go.skia.org/infra/ct/go/adb"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/common"
@@ -33,6 +34,8 @@ var (
 	benchmarkName      = flag.String("benchmark_name", "", "The telemetry benchmark to run on this worker.")
 	benchmarkExtraArgs = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
 	browserExtraArgs   = flag.String("browser_extra_args", "", "The extra arguments that are passed to the browser while running the benchmark.")
+	runInParallel      = flag.Bool("run_in_parallel", true, "Run the benchmark by bringing up multiple chrome instances in parallel.")
+	targetPlatform     = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")
 	chromeCleanerTimer = flag.Duration("cleaner_timer", 15*time.Minute, "How often all chrome processes will be killed on this slave.")
 )
 
@@ -62,6 +65,19 @@ func main() {
 	// Sync the local chromium checkout.
 	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{"src": chromiumHash}); err != nil {
 		glog.Fatalf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
+	}
+
+	if *targetPlatform == util.PLATFORM_ANDROID {
+		if err := adb.VerifyLocalDevice(); err != nil {
+			// Android device missing or offline.
+			glog.Fatalf("Could not find Android device: %s", err)
+		}
+		// Kill adb server to make sure we start from a clean slate.
+		skutil.LogErr(util.ExecuteCmd(util.BINARY_ADB, []string{"kill-server"}, []string{},
+			util.ADB_ROOT_TIMEOUT, nil, nil))
+		// Make sure adb shell is running as root.
+		skutil.LogErr(util.ExecuteCmd(util.BINARY_ADB, []string{"root"}, []string{},
+			util.ADB_ROOT_TIMEOUT, nil, nil))
 	}
 
 	// Instantiate GsUtil object.
@@ -123,7 +139,19 @@ func main() {
 		glog.Fatalf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
 	}
 
-	glog.Infoln("===== Going to run the task with parallel chrome processes =====")
+	numWorkers := WORKER_POOL_SIZE
+	if *targetPlatform == util.PLATFORM_ANDROID || !*runInParallel {
+		// Do not run page sets in parallel if the target platform is Android.
+		// This is because the nopatch/withpatch APK needs to be installed prior to
+		// each run and this will interfere with the parallel runs. Instead of trying
+		// to find a complicated solution to this, it makes sense for Android to
+		// continue to be serial because it will help guard against
+		// crashes/flakiness/inconsistencies which are more prevalent in mobile runs.
+		numWorkers = 1
+		glog.Infoln("===== Going to run the task serially =====")
+	} else {
+		glog.Infoln("===== Going to run the task with parallel chrome processes =====")
+	}
 
 	// Create channel that contains all pageset file names. This channel will
 	// be consumed by the worker pool.
@@ -136,7 +164,7 @@ func main() {
 	var mutex sync.RWMutex
 
 	// Loop through workers in the worker pool.
-	for i := 0; i < WORKER_POOL_SIZE; i++ {
+	for i := 0; i < numWorkers; i++ {
 		// Increment the WaitGroup counter.
 		wg.Add(1)
 
@@ -151,7 +179,7 @@ func main() {
 				// Retry run_benchmark binary 3 times if there are any errors.
 				retryAttempts := 3
 				for i := 0; ; i++ {
-					err = util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinary, *runID, *browserExtraArgs, *benchmarkName, "Linux", *benchmarkExtraArgs, *pagesetType, -1, true)
+					err = util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinary, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, -1, true)
 					if err == nil {
 						break
 					}

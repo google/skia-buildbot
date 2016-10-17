@@ -22,6 +22,8 @@
           '--benchmark_name=<(BENCHMARK)',
           '--benchmark_extra_args=<(BENCHMARK_ARGS)',
           '--browser_extra_args=<(BROWSER_EXTRA_ARGS)',
+          '--run_in_parallel=<(RUN_IN_PARALLEL)',
+          '--target_platform=<(TARGET_PLATFORM)',
         ],
       },
     }],

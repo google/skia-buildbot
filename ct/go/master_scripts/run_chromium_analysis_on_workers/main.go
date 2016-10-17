@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -35,6 +36,9 @@ var (
 	benchmarkExtraArgs = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
 	browserExtraArgs   = flag.String("browser_extra_args", "", "The extra arguments that are passed to the browser while running the benchmark.")
 	runID              = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
+	targetPlatform     = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")
+	runOnGCE           = flag.Bool("run_on_gce", true, "Run on Linux GCE instances. Used only if Linux is used for the target_platform.")
+	runInParallel      = flag.Bool("run_in_parallel", true, "Run the benchmark by bringing up multiple chrome instances in parallel.")
 
 	taskCompletedSuccessfully = false
 
@@ -161,7 +165,7 @@ func main() {
 	benchmarkPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, benchmarkPatchName)
 
 	// Create the required chromium build.
-	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask("build_chromium", *runID, "chromium", "Linux", []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName)}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
+	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask("build_chromium", *runID, "chromium", *targetPlatform, []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName)}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
 	if err != nil {
 		glog.Errorf("Error encountered when swarming build repo task: %s", err)
 		return
@@ -179,8 +183,14 @@ func main() {
 		"BENCHMARK":          *benchmarkName,
 		"BENCHMARK_ARGS":     *benchmarkExtraArgs,
 		"BROWSER_EXTRA_ARGS": *browserExtraArgs,
+		"RUN_IN_PARALLEL":    strconv.FormatBool(*runInParallel),
+		"TARGET_PLATFORM":    *targetPlatform,
 	}
-	if err := util.TriggerSwarmingTask(*pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, 3*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, isolateExtraArgs, util.GCE_WORKER_DIMENSIONS); err != nil {
+	workerDimensions := util.GOLO_WORKER_DIMENSIONS
+	if *runOnGCE && *targetPlatform != util.PLATFORM_ANDROID {
+		workerDimensions = util.GCE_WORKER_DIMENSIONS
+	}
+	if err := util.TriggerSwarmingTask(*pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, 3*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, isolateExtraArgs, workerDimensions); err != nil {
 		glog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}

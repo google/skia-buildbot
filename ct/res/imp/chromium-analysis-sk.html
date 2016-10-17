@@ -3,6 +3,8 @@
   queue a task to analyse Chromium.
 
   Attributes:
+    platformsToDesc: Map of platforms to their descriptions. Must be set.
+    platforms: List of all supported platforms. Must be set.
     pageSets: List of all supported page sets, as accepted by page-set-selector-sk property
       pageSets. Must be set.
 
@@ -77,9 +79,43 @@
       </tr>
 
       <tr>
+        <td>Target Platform</td>
+        <td>
+          <iron-selector attr-for-selected="id" id="target_platform" selected="Linux" class="medium-field">
+            <template is="dom-repeat" items="{{platforms}}">
+              <div id="{{item}}">{{getPlatformDesc(item, platformsToDesc)}}</div>
+            </template>
+          </iron-selector>
+        </td>
+      </tr>
+
+      <tr>
+        <td>Run on GCE</td>
+        <td>
+          <iron-selector attr-for-selected="id" id="run_on_gce" selected="run_on_gce_True" class="long-field">
+            <div id="run_on_gce_True">True</div>
+            <div id="run_on_gce_False">False</div>
+          </iron-selector>
+        </td>
+      </tr>
+
+      <tr>
         <td>PageSets Type</td>
         <td>
           <page-set-selector-sk id="page_sets" page-sets="{{pageSets}}"></page-set-selector-sk>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+           Run in Parallel<br/>
+           Read about the trade-offs <a href="https://docs.google.com/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit?pli=1#heading=h.xz46aihphb8z">here</a>
+        </td>
+        <td>
+          <iron-selector attr-for-selected="id" id="run_in_parallel" selected="run_in_parallel_True" class="long-field">
+            <div id="run_in_parallel_True">True</div>
+            <div id="run_in_parallel_False">False</div>
+          </iron-selector>
         </td>
       </tr>
 
@@ -118,12 +154,12 @@
         <td>
           Catapult Git patch (optional)<br/>
           Applied to Catapult Rev in <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/DEPS">DEPS</a>
-        </td> 
+        </td>
         <td>
           <patch-sk id="catapult_patch"
-                    patch-type="catapult"                                       
-                    cl-description="{{catapultClDescription}}"> 
-          </patch-sk> 
+                    patch-type="catapult"
+                    cl-description="{{catapultClDescription}}">
+          </patch-sk>
         </td>
       </tr>
 
@@ -162,6 +198,14 @@
    Polymer({
      is: "chromium-analysis-sk",
      properties: {
+       platforms: {
+         type: Array,
+         value: [],
+       },
+       platformsToDesc: {
+         type: Object,
+         value: {},
+       },
        pageSets: {
          type: Array,
          observer: 'pageSetsChanged',
@@ -180,6 +224,12 @@
 
      ready: function() {
        var that = this;
+       this.$.target_platform.addEventListener('click', function(e) {
+         that.platformChanged();
+       });
+       this.$.run_in_parallel.addEventListener('click', function(e) {
+         that.runInParallelChanged();
+       });
        this.$.submit_task.addEventListener('click', function(e) {
          that.validateTask();
        });
@@ -194,6 +244,44 @@
        });
      },
 
+     getPlatformDesc: function(platform, platformsToDesc) {
+       if (platformsToDesc) {
+         return platformsToDesc[platform];
+       }
+     },
+
+     platformChanged: function() {
+       if (this.$.target_platform.selected == "Android") {
+         // Cannot run on GCE instances if Android is selected.
+         this.$.run_on_gce.selected = "run_on_gce_False";
+         this.$.run_on_gce_True.hidden = "True";
+
+         // Cannot run in parallel if Android is selected.
+         this.$.run_in_parallel.selected = "run_in_parallel_False";
+         this.$.run_in_parallel_True.hidden = "True";
+       } else {
+         this.$.run_on_gce_True.hidden = "";
+         this.$.run_on_gce.selected = "run_on_gce_True";
+
+         this.$.run_in_parallel_True.hidden = "";
+         this.$.run_in_parallel.selected = "run_in_parallel_True";
+       }
+       this.runInParallelChanged();
+     },
+
+     runInParallelChanged: function() {                                             
+       if (this.$.run_in_parallel.selected == "run_in_parallel_True") {
+         document.getElementById('100k').hidden = "";
+         document.getElementById('Mobile100k').hidden = "";
+       } else {
+         // Should not run on 100k page sets without parallel because it would
+         // take too long.
+         document.getElementById('100k').hidden = "True";
+         document.getElementById('Mobile100k').hidden = "True";
+         this.$.page_sets.selected = "10k";
+       }
+     },
+
      pageSetsChanged: function(newValue, oldValue) {
        // CT's chromium analysis does not support 1M and PDFs.
        for (var i=this.pageSets.length-1; i>=0; i--) {
@@ -202,8 +290,8 @@
            this.pageSets.splice(i, 1);
          }
        }
-       if (!oldValue || oldValue.length == 0) {                                  
-         this.$.page_sets.selectFirst();                                         
+       if (!oldValue || oldValue.length == 0) {
+         this.$.page_sets.selectFirst();
        }
      },
 
@@ -247,6 +335,9 @@
          params["benchmark_patch"] = this.$.chromium_patch.patch;
        }
        params["repeat_after_days"] = this.$.repeat_after_days.selected;
+       params["run_in_parallel"] = this.$.run_in_parallel.selected == "run_in_parallel_True";
+       params["platform"] = this.$.target_platform.selected;
+       params["run_on_gce"] = this.$.run_on_gce.selected == "run_on_gce_True";
 
        var that = this;
        sk.post("/_/add_chromium_analysis_task", JSON.stringify(params)).then(function(resp) {
