@@ -157,7 +157,8 @@ func TestParseGCSPackage_Grey(t *testing.T) {
 			Dump:   "",
 			StdErr: testutils.MustReadFile(stacktrace("0grey_release.err")),
 		},
-		FuzzCategory: "skcodec",
+		FuzzCategory:     "skcodec",
+		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
@@ -195,7 +196,8 @@ func TestParseGCSPackage_GlobalStackOverflow(t *testing.T) {
 			Dump:   "",
 			StdErr: testutils.MustReadFile(stacktrace("1grey_release.err")),
 		},
-		FuzzCategory: "skcodec",
+		FuzzCategory:     "skcodec",
+		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
@@ -229,7 +231,8 @@ func TestParseGCSPackage_AssertDuringRendering(t *testing.T) {
 			Dump:   "",
 			StdErr: testutils.MustReadFile(stacktrace("2grey_release.err")),
 		},
-		FuzzCategory: "skpicture",
+		FuzzCategory:     "skpicture",
+		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
@@ -268,7 +271,8 @@ func TestParseGCSPackage_UseAfterFree(t *testing.T) {
 			Dump:   testutils.MustReadFile(stacktrace("3bad_release.dump")),
 			StdErr: "",
 		},
-		FuzzCategory: "skpicture",
+		FuzzCategory:     "skpicture",
+		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
@@ -308,7 +312,8 @@ func TestParseGCSPackage_TimeOut(t *testing.T) {
 			Dump:   "",
 			StdErr: testutils.MustReadFile(stacktrace("4bad_release.err")),
 		},
-		FuzzCategory: "skcodec",
+		FuzzCategory:     "skcodec",
+		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
@@ -341,7 +346,8 @@ func TestParseGCSPackage_BadAlloc(t *testing.T) {
 			Dump:   "",
 			StdErr: testutils.MustReadFile(stacktrace("5bad_release.err")),
 		},
-		FuzzCategory: "skcodec",
+		FuzzCategory:     "skcodec",
+		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
@@ -374,7 +380,8 @@ func TestParseGCSPackage_EmptyStacktrace(t *testing.T) {
 			Dump:   testutils.MustReadFile(stacktrace("6bad_release.dump")),
 			StdErr: testutils.MustReadFile(stacktrace("6bad_release.err")),
 		},
-		FuzzCategory: "skcodec",
+		FuzzCategory:     "skcodec",
+		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
@@ -407,7 +414,8 @@ func TestParseGCSPackage_SKAbort(t *testing.T) {
 			Dump:   "",
 			StdErr: testutils.MustReadFile(stacktrace("7bad_release.err")),
 		},
-		FuzzCategory: "skpicture",
+		FuzzCategory:     "skpicture",
+		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
@@ -448,7 +456,8 @@ func TestParseGCSPackage_SKBoring(t *testing.T) {
 			Dump:   "",
 			StdErr: testutils.MustReadFile(stacktrace("8grey_release.err")),
 		},
-		FuzzCategory: "skpicture",
+		FuzzCategory:     "skpicture",
+		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
@@ -481,7 +490,8 @@ func TestParseGCSPackage_ClangDumpedNoSymbols(t *testing.T) {
 			Dump:   testutils.MustReadFile(stacktrace("9bad_release.dump")),
 			StdErr: testutils.MustReadFile(stacktrace("9bad_release.err")),
 		},
-		FuzzCategory: "api_gradient",
+		FuzzCategory:     "api_gradient",
+		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
@@ -522,7 +532,8 @@ func TestParseGCSPackage_BadAllocNoCrash(t *testing.T) {
 			Dump:   "",
 			StdErr: testutils.MustReadFile(stacktrace("10release.err")),
 		},
-		FuzzCategory: "skpicture",
+		FuzzCategory:     "skpicture",
+		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)

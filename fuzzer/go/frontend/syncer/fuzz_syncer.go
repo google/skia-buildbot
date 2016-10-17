@@ -17,9 +17,10 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
-// FuzzSyncer is a struct that will handle the syncing of bad/grey fuzzes.
-// Once started, it will occasionally wake up and download any new fuzzes
-// Clients should look at LastCount for the last count of fuzzes data.
+// FuzzSyncer is a struct that will fetch the bad/grey fuzzes from GCS at discrete intervals.
+// Once started, it will occasionally wake up and download any new fuzzes from GCS using the
+// supplied gsloader. It looks at both the current revision and the previous revision to count
+//regressions.  Clients should look at LastCount for the most recent result of the counts.
 type FuzzSyncer struct {
 	countMutex    sync.Mutex
 	storageClient *storage.Client
