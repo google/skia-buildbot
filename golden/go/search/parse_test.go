@@ -12,7 +12,6 @@ import (
 
 func TestParseCTQuery(t *testing.T) {
 	testQuery := CTQuery{
-		Test: "blurimage",
 		RowQuery: &Query{
 			Pos:            true,
 			Neg:            false,
@@ -38,7 +37,7 @@ func TestParseCTQuery(t *testing.T) {
 	assert.NoError(t, err)
 
 	var ctQuery CTQuery
-	assert.NoError(t, ParseCTQuery(ioutil.NopCloser(bytes.NewBuffer(jsonBytes)), &ctQuery, 9))
+	assert.NoError(t, ParseCTQuery(ioutil.NopCloser(bytes.NewBuffer(jsonBytes)), "blurimage", 9, &ctQuery))
 	exp := url.Values{"source_type": []string{"gm"}, "param": []string{"value"}, "name": []string{"blurimage"}}
 	assert.Equal(t, exp, ctQuery.RowQuery.Query)
 	assert.Equal(t, exp, ctQuery.ColumnQuery.Query)
@@ -47,5 +46,28 @@ func TestParseCTQuery(t *testing.T) {
 	testQuery.RowQuery.QueryStr = ""
 	jsonBytes, err = json.Marshal(&testQuery)
 	assert.NoError(t, err)
-	assert.Error(t, ParseCTQuery(ioutil.NopCloser(bytes.NewBuffer(jsonBytes)), &ctQuery, 10))
+	assert.Error(t, ParseCTQuery(ioutil.NopCloser(bytes.NewBuffer(jsonBytes)), "blurimage", 10, &ctQuery))
+}
+
+func TestParseCTQueryFromString(t *testing.T) {
+	jsonStr := `{"rowQuery":{
+                  "query":"source_type=gm",
+                  "head":true,
+                  "include":false,
+                  "pos":false,
+                  "neg":false,
+                  "unt":true,
+                  "blame":"",
+                  "limit":50,
+                  "issue":"",
+                  "patchsets":""
+                },
+                "columnQuery":{
+                  "query":"source_type=gm",
+                  "head":true,"include":false,"pos":false,"neg":false,"unt":true,"blame":"","limit":50,"issue":"",
+                  "patchsets":""},
+                "match":null,
+                "rowN":5,"columnN":5,"sortRows":"count","rowsDir":"desc","sortColumns":"diff","columnsDir":"asc"}`
+	var ctQuery CTQuery
+	assert.NoError(t, ParseCTQuery(ioutil.NopCloser(bytes.NewBuffer([]byte(jsonStr))), "verttext", 9, &ctQuery))
 }
