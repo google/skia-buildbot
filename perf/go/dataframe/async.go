@@ -429,6 +429,7 @@ func dfAppend(a, b *DataFrame) {
 	if len(a.Header) == 0 {
 		a.Header = b.Header
 	}
+	a.Skip = b.Skip
 	a.ParamSet.AddParamSet(b.ParamSet)
 	for k, v := range b.TraceSet {
 		a.TraceSet[k] = v

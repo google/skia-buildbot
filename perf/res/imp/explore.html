@@ -133,7 +133,10 @@
             <button on-click="_highlightedOnly" title="Hide all but the highlighted traces.">Highlighted Only</button>
             <button on-click="_clearHighlights" title="Remove highlights from all traces.">Clear Highlights</button>
             <button on-click="_resetAxes" title="Reset back to the original zoom level.">Reset Axes</button>
-            <button on-click="_zoomToRange" id=zoom_range disabled title="Fit the time range to the current zoom window.">Zoom Range</button>
+            <div>
+              <button on-click="_zoomToRange" id=zoom_range disabled title="Fit the time range to the current zoom window.">Zoom Range</button>
+              <span title="Number of commits skipped between each point displayed." hidden="[[_isZero(_dataframe.skip)]]" id=skip>[[_dataframe.skip]]</span>
+            </div>
           </div>
         </div>
         <div id=tabs class="flex">
@@ -627,6 +630,10 @@
         }
       }.bind(this)).catch(this._catch.bind(this));
     },
+
+    _isZero: function(n) {
+      return n === 0;
+    }
 
   });
 </script>
