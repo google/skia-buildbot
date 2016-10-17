@@ -263,7 +263,12 @@ func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiBuildMessage, 
 		server = params.Properties.Rietveld
 		issue = params.Properties.RietveldIssue
 		patchset = fmt.Sprintf("%d", params.Properties.RietveldPatchset)
-	} else if params.Properties.PatchStorage != "gerrit" {
+	} else if params.Properties.PatchStorage == "gerrit" {
+		glog.Infof("Got Gerrit CL:\nServer: %s\nIssue: %d\nPatchset: %s\n", server, issue, patchset)
+		psSplit := strings.Split(patchset, "/")
+		patchset = psSplit[len(psSplit)-1]
+		glog.Infof("Trimmed patchset to %s", patchset)
+	} else {
 		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid patch storage: %s", params.Properties.PatchStorage))
 	}
 	rs := db.RepoState{
