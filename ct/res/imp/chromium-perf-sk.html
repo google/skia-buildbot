@@ -75,13 +75,8 @@
       <tr>
         <td>Benchmark Name</td>
         <td>
-          <iron-selector attr-for-selected="id" id="benchmark_name" selected="rasterize_and_record_micro" class="medium-field">
-            <template is="dom-repeat" items="{{benchmarks}}">
-              <div id="{{item}}">{{item}}</div>
-            </template>
-            <div id="custom">custom</div>
-          </iron-selector>
-          <paper-input value="" id="custom_benchmark_name" class="hidden" label="Enter name of your custom benchmark"></paper-input>
+          <!-- try class="medium-field"-->
+          <paper-input-autocomplete id="benchmark_name" source="{{benchmarks}}" display-options-on-focus="true" suggestions-in-overlay="true"></paper-input-autocomplete>
         </td>
       </tr>
 
@@ -257,10 +252,6 @@
 
      ready: function() {
        var that = this;
-       this.$.benchmark_name.addEventListener('click', function(e) {
-         that.setRunInParallel();
-         that.$.custom_benchmark_name.classList.toggle("hidden", that.$.benchmark_name.selected != "custom");
-       });
        this.$.target_platform.addEventListener('click', function(e) {
          that.platformChanged();
          that.setRunInParallel();
@@ -299,7 +290,7 @@
      },
 
      setRunInParallel: function() {
-       if (this.$.benchmark_name.selected == "rasterize_and_record_micro" &&
+       if (this.$.benchmark_name.getValue() == "rasterize_and_record_micro" &&
            this.$.target_platform.selected == "Linux") {
          // Decided to leave this False to give the more consistent results
          // by default to users. Should be revisited when parallel runs give
@@ -337,9 +328,9 @@
          this.$.desc.focus();
          return;
        }
-       if (! this.getBenchmarkName()) {
+       if (! this.$.benchmark_name.getValue()) {
          sk.errorMessage("Please specify a benchmark");
-         this.$.custom_benchmark_name.focus();
+         this.$.benchmark_name.focus();
          return;
        }
        this.$.confirm_dialog.open()
@@ -350,16 +341,9 @@
        this.$.confirm_dialog.close()
      },
 
-     getBenchmarkName: function() {
-       if (this.$.benchmark_name.selected == "custom") {
-         return this.$.custom_benchmark_name.value;
-       }
-       return this.$.benchmark_name.selected;
-     },
-
      queueTask: function() {
        var params = {};
-       params["benchmark"] = this.getBenchmarkName();
+       params["benchmark"] = this.$.benchmark_name.getValue();
        params["platform"] = this.$.target_platform.selected;
        params["page_sets"] = this.$.page_sets.selected;
        params["repeat_runs"] = this.$.repeat_runs.selected;

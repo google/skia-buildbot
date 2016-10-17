@@ -17,7 +17,8 @@
     "polymer": "Polymer/polymer#^1.0.0",
     "iron-elements": "PolymerElements/iron-elements#~1.0.0",
     "paper-elements": "PolymerElements/paper-elements#~1.0.0",
-    "layout": "Polymer/layout"
+    "layout": "Polymer/layout",
+    "paper-input-autocomplete": "rodo1111/paper-input-autocomplete"
   },
   "resolutions": {
     "polymer": "^1.0.0"
