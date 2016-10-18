@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fc632725_7418dd59",
+        "filename": "golden/frontend/res/imp/issue-sk.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-18T19:02:50Z",
+      "side": 1,
+      "message": "If it\u0027s constant, do you really need the $ ?",
+      "range": {
+        "startLine": 70,
+        "startChar": 29,
+        "endLine": 70,
+        "endChar": 31
+      },
+      "revId": "2a71bf331efcdfd2b2e13261e25cdf3a032c232a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
