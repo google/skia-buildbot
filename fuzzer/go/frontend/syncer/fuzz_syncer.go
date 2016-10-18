@@ -17,9 +17,10 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
-// FuzzSyncer is a struct that will handle the syncing of bad/grey fuzzes.
-// Once started, it will occasionally wake up and download any new fuzzes
-// Clients should look at LastCount for the last count of fuzzes data.
+// FuzzSyncer is a struct that will fetch the bad/grey fuzzes from GCS at discrete intervals.
+// Once started, it will occasionally wake up and download any new fuzzes from GCS using the
+// supplied gsloader. It looks at both the current revision and the previous revision to count
+//regressions.  Clients should look at LastCount for the most recent result of the counts.
 type FuzzSyncer struct {
 	countMutex    sync.Mutex
 	storageClient *storage.Client
@@ -28,7 +29,7 @@ type FuzzSyncer struct {
 	fuzzNameCache map[string]util.StringSet // maps key->FuzzNames
 }
 
-// FuzzCount is a struct that holds the counts of fuzzes.
+// FuzzCount is a struct that holds the counts of fuzzes across all architectures.
 type FuzzCount struct {
 	TotalBad  int `json:"totalBadCount"`
 	TotalGrey int `json:"totalGreyCount"`
@@ -78,25 +79,29 @@ func (f *FuzzSyncer) Refresh() {
 	defer f.countMutex.Unlock()
 	allBadFuzzes := util.NewStringSet()
 
-	// TODO(kjlubick): Make the front end properly deal with architecture
-	for _, a := range common.ARCHITECTURES {
-		for _, cat := range common.FUZZ_CATEGORIES {
-			lastCount := FuzzCount{}
+	for _, cat := range common.FUZZ_CATEGORIES {
+		lastCount := FuzzCount{}
 
+		previousGreyNames := util.NewStringSet()
+		previousBadNames := util.NewStringSet()
+		currentGreyNames := util.NewStringSet()
+		currentBadNames := util.NewStringSet()
+		for _, a := range common.ARCHITECTURES {
 			// Previous fuzzes and current grey fuzzes can be drawn from the cache, if they aren't there.
-			previousGreyNames := f.getOrLookUpFuzzNames("grey", cat, a, prevRevision)
-			previousBadNames := f.getOrLookUpFuzzNames("bad", cat, a, prevRevision)
-			currentGreyNames := f.getOrLookUpFuzzNames("grey", cat, a, currRevision)
+			previousGreyNames = previousGreyNames.Union(f.getOrLookUpFuzzNames("grey", cat, a, prevRevision))
+			previousBadNames = previousBadNames.Union(f.getOrLookUpFuzzNames("bad", cat, a, prevRevision))
+			currentGreyNames = currentGreyNames.Union(f.getOrLookUpFuzzNames("grey", cat, a, currRevision))
 			// always fetch current counts
-			currentBadNames := f.getFuzzNames("bad", cat, a, currRevision)
-			lastCount.TotalBad = len(currentBadNames)
-			lastCount.TotalGrey = len(currentGreyNames)
-			lastCount.ThisBad = len(currentBadNames.Complement(previousBadNames).Complement(previousGreyNames))
-			lastCount.ThisRegression = len(previousGreyNames.Intersect(currentBadNames))
-			allBadFuzzes = allBadFuzzes.Union(currentBadNames)
-
-			f.lastCount[cat] = lastCount
+			currentBadNames = currentBadNames.Union(f.getFuzzNames("bad", cat, a, currRevision))
 		}
+
+		lastCount.TotalBad = len(currentBadNames)
+		lastCount.TotalGrey = len(currentGreyNames)
+		lastCount.ThisBad = len(currentBadNames.Complement(previousBadNames).Complement(previousGreyNames))
+		lastCount.ThisRegression = len(previousGreyNames.Intersect(currentBadNames))
+		allBadFuzzes = allBadFuzzes.Union(currentBadNames)
+
+		f.lastCount[cat] = lastCount
 	}
 
 	if err = f.updateLoadedBinaryFuzzes(allBadFuzzes.Keys()); err != nil {
@@ -149,9 +154,11 @@ func (f *FuzzSyncer) getOrLookUpFuzzNames(fuzzType, category, architecture, revi
 // (bad|grey)_fuzz_names file, which exists in previous revisions.  Second, it manually counts
 // all fuzzes in the given GCS folder.
 func (f *FuzzSyncer) getFuzzNames(fuzzType, category, architecture, revision string) util.StringSet {
-	// The file stored, if it exists, is a pipe seperated list.
+	// Sometimes fuzzes with the name "" show up, and we don't want that.
+	emptyString := util.NewStringSet([]string{""})
+	// The file stored, if it exists, is a pipe separated list.
 	if names, err := gs.FileContentsFromGS(f.storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/%s/%s_fuzz_names.txt", category, revision, architecture, fuzzType)); err == nil {
-		return util.NewStringSet(strings.Split(string(names), "|"))
+		return util.NewStringSet(strings.Split(string(names), "|")).Complement(emptyString)
 	} else {
 		glog.Infof("Could not find cached names, downloading them the long way, instead: %s", err)
 	}
@@ -160,7 +167,7 @@ func (f *FuzzSyncer) getFuzzNames(fuzzType, category, architecture, revision str
 		glog.Errorf("Problem fetching %s %s %s fuzzes at revision %s: %s", fuzzType, architecture, category, revision, err)
 		return nil
 	} else {
-		return util.NewStringSet(names)
+		return util.NewStringSet(names).Complement(emptyString)
 	}
 }
 
