@@ -117,13 +117,13 @@ func TestRangeImpl(t *testing.T) {
 		},
 	}
 
-	headers, pcommits := rangeImpl(commits)
+	headers, pcommits, _ := rangeImpl(commits, 0)
 	assert.Equal(t, 2, len(headers))
 	assert.Equal(t, 2, len(pcommits))
 	testutils.AssertDeepEqual(t, expected_headers, headers)
 	testutils.AssertDeepEqual(t, expected_pcommits, pcommits)
 
-	headers, pcommits = rangeImpl([]*vcsinfo.IndexCommit{})
+	headers, pcommits, _ = rangeImpl([]*vcsinfo.IndexCommit{}, 0)
 	assert.Equal(t, 0, len(headers))
 	assert.Equal(t, 0, len(pcommits))
 }
@@ -153,11 +153,12 @@ func TestNew(t *testing.T) {
 	}
 	store.matchFail = false
 
-	d, err := _new(colHeaders, pcommits, &query.Query{}, store, nil)
+	d, err := _new(colHeaders, pcommits, &query.Query{}, store, nil, 1)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(d.TraceSet))
 	assert.True(t, util.SSliceEqual(d.ParamSet["arch"], []string{"x86"}))
 	assert.True(t, util.SSliceEqual(d.ParamSet["config"], []string{"8888", "565", "gpu"}))
+	assert.Equal(t, 1, d.Skip)
 }
 
 func TestVCS(t *testing.T) {
