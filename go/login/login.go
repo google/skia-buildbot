@@ -263,6 +263,7 @@ func setSkIDCookieValue(w http.ResponseWriter, value *Session) {
 //   https://security.google.com/settings/security/permissions
 //
 // to revoke any grants they make.
+// rmistry
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("LogoutHandler\n")
 	setSkIDCookieValue(w, &Session{})

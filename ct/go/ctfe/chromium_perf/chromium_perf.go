@@ -19,6 +19,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/login"
 )
 
 var (
@@ -110,6 +111,9 @@ func (task DBTask) Select(query string, args ...interface{}) (interface{}, error
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
+	// rmistry
+	//fmt.Println("HERE HERE HERE HERE2222222222222222")
+	//http.Redirect(w, r, login.LoginURL(w, r), http.StatusFound)
 	ctfeutil.ExecuteSimpleTemplate(addTaskTemplate, w, r)
 }
 
@@ -230,10 +234,6 @@ func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}
 	return clauses, args, nil
 }
 
-func getTaskStatusHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.GetTaskStatusHandler(&DBTask{}, w, r)
-}
-
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.UpdateTaskHandler(&UpdateVars{}, db.TABLE_CHROMIUM_PERF_TASKS, w, r)
 }
@@ -251,10 +251,9 @@ func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddHandlers(r *mux.Router) {
-	r.HandleFunc("/", addTaskView).Methods("GET")
-	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_URI, addTaskView).Methods("GET")
-	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_RUNS_URI, runsHistoryView).Methods("GET")
-	r.HandleFunc("/"+ctfeutil.GET_CHROMIUM_PERF_RUN_STATUS_URI, getTaskStatusHandler).Methods("GET")
+	r.Handle("/", login.ForceAuth(http.HandlerFunc(addTaskView), ctfeutil.OAUTH2_CALLBACK_PATH)).Methods("GET")
+	r.Handle("/"+ctfeutil.CHROMIUM_PERF_URI, login.ForceAuth(http.HandlerFunc(addTaskView), ctfeutil.OAUTH2_CALLBACK_PATH)).Methods("GET")
+	r.Handle("/"+ctfeutil.CHROMIUM_PERF_RUNS_URI, login.ForceAuth(http.HandlerFunc(runsHistoryView), ctfeutil.OAUTH2_CALLBACK_PATH)).Methods("GET")
 	r.HandleFunc("/"+ctfeutil.ADD_CHROMIUM_PERF_TASK_POST_URI, addTaskHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.GET_CHROMIUM_PERF_TASKS_POST_URI, getTasksHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.UPDATE_CHROMIUM_PERF_TASK_POST_URI, updateTaskHandler).Methods("POST")
