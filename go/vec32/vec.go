@@ -108,3 +108,11 @@ func FillAt(a []float32, i int) (float32, error) {
 	Fill(b)
 	return b[i], nil
 }
+
+func Dup(a []float32) []float32 {
+	ret := make([]float32, len(a), len(a))
+	for i, x := range a {
+		ret[i] = x
+	}
+	return ret
+}
