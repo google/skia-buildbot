@@ -48,6 +48,42 @@
     },
     {
       "key": {
+        "uuid": "fc632725_71846fa3",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1193,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-18T19:08:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c90b309_b4c416f9",
+      "revId": "8fc0e3f8c319ed9cea10bcd3a4680795d0e80213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_1423696d",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1193,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-18T19:08:34Z",
+      "side": 1,
+      "message": "No, but maybe for future work.",
+      "parentUuid": "5c90b309_342fa657",
+      "revId": "8fc0e3f8c319ed9cea10bcd3a4680795d0e80213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c90b309_143dc283",
         "filename": "perf/go/skiaperf/main.go",
         "patchSetId": 13
@@ -88,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "fc632725_be153601",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 13
+      },
+      "lineNbr": 572,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-18T19:08:34Z",
+      "side": 1,
+      "message": "Fixed in later CL.",
+      "parentUuid": "5c90b309_eb25dc1f",
+      "revId": "8fc0e3f8c319ed9cea10bcd3a4680795d0e80213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fc632725_d471fc8d",
         "filename": "perf/res/imp/explore.html",
         "patchSetId": 13
@@ -105,6 +159,24 @@
         "endLine": 628,
         "endChar": 50
       },
+      "revId": "8fc0e3f8c319ed9cea10bcd3a4680795d0e80213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_94fdb999",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 13
+      },
+      "lineNbr": 628,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-18T19:08:34Z",
+      "side": 1,
+      "message": "I\u0027m not sure that works, but I\u0027ll try that in a later CL.",
+      "parentUuid": "fc632725_d471fc8d",
       "revId": "8fc0e3f8c319ed9cea10bcd3a4680795d0e80213",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
