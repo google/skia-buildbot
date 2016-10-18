@@ -38,10 +38,10 @@ func ExtractFuzzNamesFromPaths(paths []string) (names []string) {
 func GetAllFuzzNamesInFolder(s *storage.Client, name string) (hashes []string, err error) {
 	filter := func(item *storage.ObjectAttrs) {
 		name := item.Name
-		if !IsNameOfFuzz(name) {
+		fuzzHash := name[strings.LastIndex(name, "/")+1:]
+		if !IsNameOfFuzz(fuzzHash) {
 			return
 		}
-		fuzzHash := name[strings.LastIndex(name, "/")+1:]
 		hashes = append(hashes, fuzzHash)
 	}
 
