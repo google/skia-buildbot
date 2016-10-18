@@ -1,10 +1,15 @@
 package search
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/url"
+	"strings"
+
+	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
@@ -13,18 +18,34 @@ import (
 // ParseCTQuery parses JSON from the given ReadCloser into the given
 // pointer to an instance of CTQuery. It will fill in values and validate key
 // fields of the query. It will return an error if parsing failed
-// for some reason and always close the ReadCloser. limitDefault is the
-// the default limit for the row and column queries.
-func ParseCTQuery(r io.ReadCloser, ctQuery *CTQuery, limitDefault int) error {
+// for some reason and always close the ReadCloser. testName is the name of the
+// test that should be compared and limitDefault is the default limit for the
+// row and column queries.
+func ParseCTQuery(r io.ReadCloser, testName string, limitDefault int, ctQuery *CTQuery) error {
 	defer util.Close(r)
+	var err error
+
+	inputJson, err := ioutil.ReadAll(r)
+	if err != nil {
+		return err
+	}
+	r = ioutil.NopCloser(bytes.NewBuffer(inputJson))
+	glog.Infof("QUERY: \n\n%s\n\n", string(inputJson))
 
 	// Parse the body of the JSON request.
 	if err := json.NewDecoder(r).Decode(ctQuery); err != nil {
 		return err
 	}
 
+	if (ctQuery.RowQuery == nil) || (ctQuery.ColumnQuery == nil) {
+		return fmt.Errorf("Rowquery and columnquery must not be null.")
+	}
+
+	// Parse the list of patchsets from a comma separated list in the stringsted.
+	ctQuery.ColumnQuery.Patchsets = strings.Split(ctQuery.ColumnQuery.PatchsetsStr, ",")
+	ctQuery.RowQuery.Patchsets = strings.Split(ctQuery.RowQuery.PatchsetsStr, ",")
+
 	// Parse the query string into a url.Values instance.
-	var err error
 	if ctQuery.RowQuery.Query, err = url.ParseQuery(ctQuery.RowQuery.QueryStr); err != nil {
 		return err
 	}
@@ -38,13 +59,11 @@ func ParseCTQuery(r io.ReadCloser, ctQuery *CTQuery, limitDefault int) error {
 		return fmt.Errorf("Corpus for row and column query need to match and be non-empty.")
 	}
 
-	if ctQuery.Test == "" {
-		return fmt.Errorf("Test in compare query cannot be empty.")
-	}
-
 	// Make sure the test is set right.
-	ctQuery.ColumnQuery.Query.Set(types.PRIMARY_KEY_FIELD, ctQuery.Test)
-	ctQuery.RowQuery.Query.Set(types.PRIMARY_KEY_FIELD, ctQuery.Test)
+	if testName != "" {
+		ctQuery.ColumnQuery.Query.Set(types.PRIMARY_KEY_FIELD, testName)
+		ctQuery.RowQuery.Query.Set(types.PRIMARY_KEY_FIELD, testName)
+	}
 
 	// Set the limit to a default if not set.
 	if ctQuery.RowQuery.Limit == 0 {

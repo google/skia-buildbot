@@ -101,7 +101,6 @@ func TestCompareTests(t *testing.T) {
 		q, err := url.ParseQuery(fmt.Sprintf("source_type=gm&name=%s", testName))
 		assert.NoError(t, err)
 		ctQuery := &CTQuery{
-			Test: testName,
 			RowQuery: &Query{
 				Pos:            true,
 				Neg:            true,
@@ -126,7 +125,7 @@ func TestCompareTests(t *testing.T) {
 			RowsDir:     "desc",
 			ColumnsDir:  "asc",
 		}
-		ret, err := CompareTest(ctQuery, storages, ixr.GetIndex())
+		ret, err := CompareTest(testName, ctQuery, storages, ixr.GetIndex())
 		assert.NoError(t, err)
 
 		// Make sure the rows are as expected.
