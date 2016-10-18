@@ -103,7 +103,8 @@ type Query struct {
 	QueryStr       string      `json:"query"`
 	Query          url.Values  `json:"-"`
 	Issue          string      `json:"issue"`
-	Patchsets      []string    `json:"patchsets"`
+	PatchsetsStr   string      `json:"patchsets"` // Comma-separated list of patchsets.
+	Patchsets      []string    `json:"-"`
 	CommitRange    CommitRange `json:"-"`
 	Limit          int         `json:"limit"`
 	IncludeMaster  bool        `json:"master"` // Include digests also contained in master when searching Rietveld issues.
@@ -653,9 +654,6 @@ func GetDigestDetails(test, digest string, storages *storage.Storage, idx *index
 
 // CTQuery is the input structure to the CompareTest function.
 type CTQuery struct {
-	// Test is the name of the test.
-	Test string `json:"test"`
-
 	// RowQuery is the query to select the row digests.
 	RowQuery *Query `json:"rowQuery"`
 
@@ -727,8 +725,8 @@ type CTDiffMetrics struct {
 // CompareTest allows to compare the digests within one test. It assumes that
 // the provided instance of CTQuery is consistent in that the row query and
 // column query contain the same test names and the same corpus field.
-func CompareTest(ctq *CTQuery, storages *storage.Storage, idx *indexer.SearchIndex) (*CTResponse, error) {
-	rowDigests, err := filterTile(ctq.RowQuery, ctq.Test, storages, idx)
+func CompareTest(testName string, ctq *CTQuery, storages *storage.Storage, idx *indexer.SearchIndex) (*CTResponse, error) {
+	rowDigests, err := filterTile(ctq.RowQuery, testName, storages, idx)
 	if err != nil {
 		return nil, err
 	}
@@ -739,10 +737,10 @@ func CompareTest(ctq *CTQuery, storages *storage.Storage, idx *indexer.SearchInd
 	// after the comparison step.
 
 	// Build the rows, sort them and trim them.
-	rows := getSortedRows(rowDigests, ctq.Test, ctq.SortRows, ctq.RowsDir, ctq.RowQuery.Limit, idx)
+	rows := getSortedRows(rowDigests, testName, ctq.SortRows, ctq.RowsDir, ctq.RowQuery.Limit, idx)
 
 	// Get the column digests conditioned on the result of the row digests.
-	columnDigests, err := filterTileWithMatch(ctq.ColumnQuery, ctq.Test, ctq.Match, rowDigests, storages, idx)
+	columnDigests, err := filterTileWithMatch(ctq.ColumnQuery, testName, ctq.Match, rowDigests, storages, idx)
 	if err != nil {
 		return nil, err
 	}
@@ -783,7 +781,7 @@ func CompareTest(ctq *CTQuery, storages *storage.Storage, idx *indexer.SearchInd
 			Columns:      columns,
 			ColumnsTotal: columnsTotal,
 		},
-		Name:   ctq.Test,
+		Name:   testName,
 		Corpus: ctq.RowQuery.Query.Get(types.CORPUS_FIELD),
 		// TODO(stephana): Change the values below with actual stats about the test.
 		Positive:  0,
