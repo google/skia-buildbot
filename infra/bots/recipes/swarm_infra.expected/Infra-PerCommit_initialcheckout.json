@@ -178,6 +178,7 @@
     "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
     "env": {
       "CHROME_HEADLESS": "1",
+      "DEPOT_TOOLS": "[DEPOT_TOOLS]",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[SLAVE_BUILD]/go",
       "KARMA_PORT": "15001",
