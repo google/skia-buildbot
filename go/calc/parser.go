@@ -4,7 +4,7 @@ import "fmt"
 
 type (
 	NodeType      int
-	Rows          map[string][]float64
+	Rows          map[string][]float32
 	RowsFromQuery func(q string) (Rows, error)
 )
 
