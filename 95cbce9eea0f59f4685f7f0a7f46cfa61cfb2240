@@ -546,6 +546,24 @@
     },
     {
       "key": {
+        "uuid": "fc632725_89400951",
+        "filename": "go/vec/vec.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-18T13:33:02Z",
+      "side": 1,
+      "message": "Done in https://skia-review.googlesource.com/c/3583/",
+      "parentUuid": "ff45d8e5_a3853e67",
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ff45d8e5_c38aca76",
         "filename": "go/vec/vec.go",
         "patchSetId": 6
@@ -569,6 +587,24 @@
     },
     {
       "key": {
+        "uuid": "fc632725_6945ad5e",
+        "filename": "go/vec/vec.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-18T13:33:02Z",
+      "side": 1,
+      "message": "Done in https://skia-review.googlesource.com/c/3583/",
+      "parentUuid": "ff45d8e5_c38aca76",
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ff45d8e5_63b97632",
         "filename": "go/vec/vec.go",
         "patchSetId": 6
@@ -580,6 +616,24 @@
       "writtenOn": "2016-10-11T18:44:50Z",
       "side": 1,
       "message": "Wrong sentinel value.",
+      "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_c959614e",
+        "filename": "go/vec/vec.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-18T13:33:02Z",
+      "side": 1,
+      "message": "Fixed in another CL.",
+      "parentUuid": "ff45d8e5_63b97632",
       "revId": "95cbce9eea0f59f4685f7f0a7f46cfa61cfb2240",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
