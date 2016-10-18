@@ -3,6 +3,8 @@ package vec32
 import (
 	"math"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -122,4 +124,16 @@ func TestFillAtErrors(t *testing.T) {
 			t.Fatalf("Expected \"%v\" to fail FillAt.", tc)
 		}
 	}
+}
+
+func TestDup(t *testing.T) {
+	a := []float32{1, 2, MISSING_DATA_SENTINEL, 0}
+	b := Dup(a)
+	assert.Equal(t, a, b)
+	b[0] = 2
+	assert.NotEqual(t, a, b)
+
+	a = []float32{}
+	b = Dup(a)
+	assert.Equal(t, a, b)
 }

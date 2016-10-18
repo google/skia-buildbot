@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/ptracestore"
 )
 
@@ -396,7 +397,7 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 		// DataFrames are float32, but calc does its work in float64.
 		rows := calc.Rows{}
 		for k, v := range df.TraceSet {
-			rows[k] = to64(v)
+			rows[k] = vec32.Dup(v)
 		}
 		return rows, nil
 	}
@@ -410,7 +411,7 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 	// Convert the Rows from float64 to float32 for DataFrame.
 	ts := ptracestore.TraceSet{}
 	for k, v := range rows {
-		ts[k] = to32(v)
+		ts[k] = v
 	}
 	df.TraceSet = ts
 
@@ -434,18 +435,6 @@ func dfAppend(a, b *DataFrame) {
 	for k, v := range b.TraceSet {
 		a.TraceSet[k] = v
 	}
-}
-
-func to64(a []float32) []float64 {
-	ret := make([]float64, len(a), len(a))
-	for i, x := range a {
-		if x == ptracestore.MISSING_VALUE {
-			ret[i] = ptracestore.MISSING_VALUE
-		} else {
-			ret[i] = float64(x)
-		}
-	}
-	return ret
 }
 
 func to32(a []float64) []float32 {

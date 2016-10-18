@@ -572,10 +572,10 @@
         end: this.state.end,
         formulas: [f],
       };
-      this._requestFrame(body).then(function(json) {
+      this._requestFrame(body, function(json) {
         // TODO(jcgregorio) Remove all returned trace ids from hidden.
         this._addTraces(json, true, false);
-      }.bind(this)).catch(this._catch.bind(this));
+      }.bind(this));
     },
 
     // Common catch function for _requestFrame and _checkFrameRequestStatus.

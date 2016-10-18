@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/constants"
 )
@@ -35,20 +36,14 @@ var (
 	tileNotExist = errors.New("Tile does not exist.")
 )
 
-// MISSING_VALUE signifies a missing sample value.
-//
-// JSON doesn't support NaN or +/- Inf, so we need a valid float32 to signal
-// missing data that also has a compact JSON representation.
-const MISSING_VALUE = 1e32
-
 // Trace is just a slice of float32s.
 type Trace []float32
 
-// NewTrace returns a Trace of length 'traceLen' initialized to MISSING_VALUE.
+// NewTrace returns a Trace of length 'traceLen' initialized to vec32.MISSING_DATA_SENTINEL.
 func NewTrace(traceLen int) Trace {
 	ret := make([]float32, traceLen)
 	for i, _ := range ret {
-		ret[i] = MISSING_VALUE
+		ret[i] = vec32.MISSING_DATA_SENTINEL
 	}
 	return ret
 }
