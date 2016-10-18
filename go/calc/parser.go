@@ -1,11 +1,9 @@
 package calc
 
-import "fmt"
+import (
+	"fmt"
 
-type (
-	NodeType      int
-	Rows          map[string][]float64
-	RowsFromQuery func(q string) (Rows, error)
+	"go.skia.org/infra/go/vec32"
 )
 
 const (
@@ -14,6 +12,29 @@ const (
 	NodeNum
 	NodeString
 )
+
+type (
+	NodeType      int
+	RowsFromQuery func(q string) (Rows, error)
+)
+
+type Rows map[string][]float32
+
+func newRow(rows Rows) []float32 {
+	if len(rows) == 0 {
+		return []float32{}
+	}
+	var n int
+	for _, v := range rows {
+		n = len(v)
+		break
+	}
+	ret := make([]float32, n, n)
+	for i := range ret {
+		ret[i] = vec32.MISSING_DATA_SENTINEL
+	}
+	return ret
+}
 
 // Node is a single node in the parse tree.
 type Node struct {

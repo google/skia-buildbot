@@ -5,42 +5,16 @@ import (
 	"math"
 	"strconv"
 
-	"go.skia.org/infra/go/vec"
+	"go.skia.org/infra/go/vec32"
 )
 
 const (
 	// MIN_STDDEV is the smallest standard deviation we will normalize, smaller
 	// than this and we presume it's a standard deviation of zero.
 	MIN_STDDEV = 0.001
-
-	MISSING_DATA_SENTINEL = 1e32
 )
 
 type FilterFunc struct{}
-
-func newRow(rows Rows) []float64 {
-	if len(rows) == 0 {
-		return []float64{}
-	}
-	var n int
-	for _, v := range rows {
-		n = len(v)
-		break
-	}
-	ret := make([]float64, n, n)
-	for i := range ret {
-		ret[i] = MISSING_DATA_SENTINEL
-	}
-	return ret
-}
-
-func dup(a []float64) []float64 {
-	ret := make([]float64, len(a), len(a))
-	for i, x := range a {
-		ret[i] = x
-	}
-	return ret
-}
 
 // filterFunc is a Func that returns a filtered set of Rows in the Context.
 //
@@ -85,7 +59,7 @@ func (NormFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 			return nil, fmt.Errorf("norm() takes a number as its second argument.")
 		}
 		var err error
-		minStdDev, err = strconv.ParseFloat(node.Args[1].Val, 64)
+		minStdDev, err = strconv.ParseFloat(node.Args[1].Val, 32)
 		if err != nil {
 			return nil, fmt.Errorf("norm() stddev not a valid number %s : %s", node.Args[1].Val, err)
 		}
@@ -97,8 +71,8 @@ func (NormFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 
 	ret := Rows{}
 	for key, r := range rows {
-		row := dup(r)
-		vec.Norm(row, minStdDev)
+		row := vec32.Dup(r)
+		vec32.Norm(row, float32(minStdDev))
 		ret["norm("+key+")"] = row
 	}
 
@@ -120,7 +94,7 @@ type FillFunc struct{}
 // fillFunc implements Func and fills in all the missing datapoints with nearby
 // points.
 //
-// Note that a Row with all MISSING_DATA_SENTINEL values will be filled with
+// Note that a Row with all vec32.MISSING_DATA_SENTINEL values will be filled with
 // 0's.
 func (FillFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 	if len(node.Args) != 1 {
@@ -136,8 +110,8 @@ func (FillFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 
 	ret := Rows{}
 	for key, r := range rows {
-		row := dup(r)
-		vec.Fill(row)
+		row := vec32.Dup(r)
+		vec32.Fill(row)
 		ret["fill("+key+")"] = row
 	}
 	return ret, nil
@@ -154,9 +128,9 @@ type AveFunc struct{}
 // aveFunc implements Func and averages the values of all argument
 // traces into a single trace.
 //
-// MISSING_DATA_SENTINEL values are not included in the average.  Note that if
-// all the values at an index are MISSING_DATA_SENTINEL then the average will
-// be MISSING_DATA_SENTINEL.
+// vec32.MISSING_DATA_SENTINEL values are not included in the average.  Note that if
+// all the values at an index are vec32.MISSING_DATA_SENTINEL then the average will
+// be vec32.MISSING_DATA_SENTINEL.
 func (AveFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("ave() takes a single argument.")
@@ -175,16 +149,16 @@ func (AveFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 
 	ret := newRow(rows)
 	for i, _ := range ret {
-		sum := 0.0
+		sum := float32(0.0)
 		count := 0
 		for _, r := range rows {
-			if v := r[i]; v != MISSING_DATA_SENTINEL {
+			if v := r[i]; v != vec32.MISSING_DATA_SENTINEL {
 				sum += v
 				count += 1
 			}
 		}
 		if count > 0 {
-			ret[i] = sum / float64(count)
+			ret[i] = sum / float32(count)
 		}
 	}
 	return Rows{ctx.formula: ret}, nil
@@ -207,7 +181,7 @@ func (RatioFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ratio() argument failed to evaluate: %s", err)
 	}
-	rowA := []float64{}
+	rowA := []float32{}
 	for _, v := range rowsA {
 		rowA = v
 		break
@@ -217,7 +191,7 @@ func (RatioFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ratio() argument failed to evaluate: %s", err)
 	}
-	rowB := []float64{}
+	rowB := []float32{}
 	for _, v := range rowsB {
 		rowB = v
 		break
@@ -226,8 +200,8 @@ func (RatioFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 	ret := newRow(rowsA)
 	for i, _ := range ret {
 		ret[i] = rowA[i] / rowB[i]
-		if math.IsInf(ret[i], 0) {
-			ret[i] = MISSING_DATA_SENTINEL
+		if math.IsInf(float64(ret[i]), 0) {
+			ret[i] = vec32.MISSING_DATA_SENTINEL
 		}
 	}
 	return Rows{ctx.formula: ret}, nil
@@ -243,8 +217,8 @@ var ratioFunc = RatioFunc{}
 // CountFunc implements Func and counts the number of non-sentinel values in
 // all argument rows.
 //
-// MISSING_DATA_SENTINEL values are not included in the count.  Note that if
-// all the values at an index are MISSING_DATA_SENTINEL then the count will
+// vec32.MISSING_DATA_SENTINEL values are not included in the count.  Note that if
+// all the values at an index are vec32.MISSING_DATA_SENTINEL then the count will
 // be 0.
 type CountFunc struct{}
 
@@ -268,11 +242,11 @@ func (CountFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 	for i, _ := range ret {
 		count := 0
 		for _, r := range rows {
-			if r[i] != MISSING_DATA_SENTINEL {
+			if r[i] != vec32.MISSING_DATA_SENTINEL {
 				count += 1
 			}
 		}
-		ret[i] = float64(count)
+		ret[i] = float32(count)
 	}
 	return Rows{ctx.formula: ret}, nil
 }
@@ -288,9 +262,9 @@ type SumFunc struct{}
 // SumFunc implements Func and sums the values of all argument
 // rows into a single trace.
 //
-// MISSING_DATA_SENTINEL values are not included in the sum. Note that if all
-// the values at an index are MISSING_DATA_SENTINEL then the sum will be
-// MISSING_DATA_SENTINEL.
+// vec32.MISSING_DATA_SENTINEL values are not included in the sum. Note that if all
+// the values at an index are vec32.MISSING_DATA_SENTINEL then the sum will be
+// vec32.MISSING_DATA_SENTINEL.
 func (SumFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("sum() takes a single argument.")
@@ -309,10 +283,10 @@ func (SumFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 
 	ret := newRow(rows)
 	for i, _ := range ret {
-		sum := 0.0
+		sum := float32(0.0)
 		count := 0
 		for _, r := range rows {
-			if v := r[i]; v != MISSING_DATA_SENTINEL {
+			if v := r[i]; v != vec32.MISSING_DATA_SENTINEL {
 				sum += v
 				count += 1
 			}
@@ -335,9 +309,9 @@ type GeoFunc struct{}
 // geoFunc implements Func and merges the values of all argument
 // rows into a single trace with a geometric mean.
 //
-// MISSING_DATA_SENTINEL and negative values are not included in the mean.
-// Note that if all the values at an index are MISSING_DATA_SENTINEL or
-// negative then the mean will be MISSING_DATA_SENTINEL.
+// vec32.MISSING_DATA_SENTINEL and negative values are not included in the mean.
+// Note that if all the values at an index are vec32.MISSING_DATA_SENTINEL or
+// negative then the mean will be vec32.MISSING_DATA_SENTINEL.
 func (GeoFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("geo() takes a single argument.")
@@ -360,15 +334,15 @@ func (GeoFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 		sumLog := 0.0
 		count := 0
 		for _, r := range rows {
-			if v := r[i]; v >= 0 && v != MISSING_DATA_SENTINEL {
-				sumLog += math.Log(v)
+			if v := r[i]; v >= 0 && v != vec32.MISSING_DATA_SENTINEL {
+				sumLog += math.Log(float64(v))
 				count += 1
 			}
 		}
 		if count > 0 {
 			// The geometric mean is the N-th root of the product of N terms.
 			// In log-space, the root becomes a division, then we translate back to normal space.
-			ret[i] = math.Exp(sumLog / float64(count))
+			ret[i] = float32(math.Exp(sumLog / float64(count)))
 		}
 	}
 	return Rows{ctx.formula: ret}, nil
@@ -384,7 +358,7 @@ type LogFunc struct{}
 
 // logFunc implements Func and transforms a row of x into a row of log10(x).
 //
-// Values <= 0 are set to MISSING_DATA_SENTINEL.  MISSING_DATA_SENTINEL values are left untouched.
+// Values <= 0 are set to vec32.MISSING_DATA_SENTINEL.  vec32.MISSING_DATA_SENTINEL values are left untouched.
 func (LogFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("log() takes a single argument.")
@@ -398,13 +372,13 @@ func (LogFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 	}
 
 	for j, r := range rows {
-		row := dup(r)
+		row := vec32.Dup(r)
 		for i, v := range row {
-			if v != MISSING_DATA_SENTINEL {
+			if v != vec32.MISSING_DATA_SENTINEL {
 				if v > 0 {
-					row[i] = math.Log10(v)
+					row[i] = float32(math.Log10(float64(v)))
 				} else {
-					row[i] = MISSING_DATA_SENTINEL
+					row[i] = vec32.MISSING_DATA_SENTINEL
 				}
 			}
 		}
