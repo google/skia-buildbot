@@ -1,0 +1,118 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fc632725_fb36a0a4",
+        "filename": "perf/go/dataframe/async.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-18T17:20:21Z",
+      "side": 1,
+      "message": "nit: this is only used in one place, where it could be replaced with uuid.NewV1().String().",
+      "revId": "3dc0f5975be387fc8018a91c3f95b62410b7d869",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_fb0340e5",
+        "filename": "perf/go/dataframe/async.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-18T17:20:21Z",
+      "side": 1,
+      "message": "nit: gob-encoding would probably be better, mostly to correctly handle any new field types, but also for better performance.",
+      "range": {
+        "startLine": 54,
+        "startChar": 41,
+        "endLine": 54,
+        "endChar": 62
+      },
+      "revId": "3dc0f5975be387fc8018a91c3f95b62410b7d869",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_3bdf7826",
+        "filename": "perf/go/dataframe/async.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-18T17:20:21Z",
+      "side": 1,
+      "message": "missing mutex read lock",
+      "revId": "3dc0f5975be387fc8018a91c3f95b62410b7d869",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_dbeda4dc",
+        "filename": "perf/go/dataframe/async.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-18T17:20:21Z",
+      "side": 1,
+      "message": "missing mutex read lock",
+      "revId": "3dc0f5975be387fc8018a91c3f95b62410b7d869",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_ded752d7",
+        "filename": "perf/go/dataframe/async.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-18T17:20:21Z",
+      "side": 1,
+      "message": "nit: either change the docs for FrameRequestProcess to say request is read-only (and not protected by mutex) or get read lock here.\n\nSame for FrameRequestProcess.git",
+      "revId": "3dc0f5975be387fc8018a91c3f95b62410b7d869",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_7e68be33",
+        "filename": "perf/go/dataframe/async.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-18T17:20:21Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 360,
+        "startChar": 3,
+        "endLine": 360,
+        "endChar": 10
+      },
+      "revId": "3dc0f5975be387fc8018a91c3f95b62410b7d869",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
