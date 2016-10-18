@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fc632725_efa9ba67",
+        "filename": "fuzzer/go/frontend/fuzzpool/fuzzpool.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-18T19:20:17Z",
+      "side": 1,
+      "message": "Needs top level doc describing module.",
+      "revId": "e104d6b096d562e404fc9e95cc9e2841a602d00a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_2fa4528b",
+        "filename": "fuzzer/go/frontend/fuzzpool/fuzzpool.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-18T19:20:17Z",
+      "side": 1,
+      "message": "Needs docs.",
+      "revId": "e104d6b096d562e404fc9e95cc9e2841a602d00a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
