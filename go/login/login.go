@@ -263,9 +263,30 @@ func setSkIDCookieValue(w http.ResponseWriter, value *Session) {
 //   https://security.google.com/settings/security/permissions
 //
 // to revoke any grants they make.
+// rmistry
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("LogoutHandler\n")
+	s, err := getSession(r)
+	fmt.Println("IN LOGOUT IN LOGOUT IN LOGOUT IN LOGOUT")
+	if err != nil {
+		glog.Errorf("PROBLEM: %s", err)
+		fmt.Println("PROBLEM: %s", err)
+		return
+	}
 	setSkIDCookieValue(w, &Session{})
+	// oauthConfig.RedirectURL
+	// rmistry
+	client := GetHttpClient(r)
+	resp, err := client.Get(fmt.Sprintf("https://accounts.google.com/o/oauth2/revoke?token=%s", s.Token))
+	if err != nil {
+		glog.Errorf("PROBLEM2: %s", err)
+		fmt.Println("PROBLEM2: %s", err)
+		return
+	}
+	defer resp.Body.Close()
+	fmt.Println("STATUS CODE IS: %d", resp.StatusCode)
+
+	// https://accounts.google.com/o/oauth2/revoke?token={token}
 	http.Redirect(w, r, r.FormValue("redirect"), 302)
 }
 
