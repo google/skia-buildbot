@@ -68,6 +68,7 @@ var (
 	// Directories with these names are skipped when searching for tests.
 	NO_CRAWL_DIR_NAMES = []string{
 		".git",
+		".recipe_deps",
 		"bower_components",
 		"third_party",
 		"node_modules",
@@ -287,6 +288,9 @@ func main() {
 	tests = append(tests, cmdTest([]string{"go", "vet", "./..."}, ".", "go vet"))
 	tests = append(tests, cmdTest([]string{"errcheck", "-ignore", ":Close", "go.skia.org/infra/..."}, ".", "errcheck"))
 	tests = append(tests, polylintTests()...)
+	tests = append(tests, cmdTest([]string{"python", "infra/bots/recipes.py", "simulation_test"}, ".", "recipe simulation test"))
+	tests = append(tests, cmdTest([]string{"go", "run", "infra/bots/gen_tasks.go", "--test"}, ".", "gen_tasks.go --test"))
+	tests = append(tests, cmdTest([]string{"python", "infra/bots/check_cq_cfg.py"}, ".", "check CQ config"))
 
 	goimportsCmd := []string{"goimports", "-l", "."}
 	tests = append(tests, &test{
