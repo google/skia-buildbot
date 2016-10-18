@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fc632725_8fa126e1",
+        "filename": "fuzzer/go/frontend/fuzzpool/fuzzpool.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-18T20:35:12Z",
+      "side": 1,
+      "message": "break into 3 assignments",
+      "revId": "58c0a9d9b4da14b84b4a24512e68310bdb3b87fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_4ff54ed6",
+        "filename": "fuzzer/go/frontend/gsloader/gsloader.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-18T20:35:12Z",
+      "side": 1,
+      "message": "Docs for the pool added as arg.",
+      "revId": "58c0a9d9b4da14b84b4a24512e68310bdb3b87fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_8fef6604",
+        "filename": "fuzzer/go/frontend/gsloader/gsloader.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-18T20:35:12Z",
+      "side": 1,
+      "message": "Drop } else { and bump out the glog.Infof and return one level.",
+      "revId": "58c0a9d9b4da14b84b4a24512e68310bdb3b87fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_4f5c2e08",
+        "filename": "fuzzer/go/fuzzer-fe/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-18T20:35:12Z",
+      "side": 1,
+      "message": "client side JS?",
+      "revId": "58c0a9d9b4da14b84b4a24512e68310bdb3b87fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_6f7e4a5f",
+        "filename": "fuzzer/go/fuzzer-fe/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-18T20:35:12Z",
+      "side": 1,
+      "message": "w.Header().Set(\"Content-Type\", \"application/json\")",
+      "revId": "58c0a9d9b4da14b84b4a24512e68310bdb3b87fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
