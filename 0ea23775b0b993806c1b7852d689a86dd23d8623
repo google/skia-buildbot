@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fc632725_e9bb7dc4",
+        "filename": "golden/frontend/res/imp/comp-page-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-18T18:57:37Z",
+      "side": 1,
+      "message": "nit: I like to use [[ ]] (one way bindings) anywhere I can.  This way, when I see {{ }}, I know that is a data source (and/or sink) and when I see [[ ]] I know immediately it is just a sink.  You may also find this useful, especially as the elements get bigger.",
+      "range": {
+        "startLine": 109,
+        "startChar": 33,
+        "endLine": 109,
+        "endChar": 54
+      },
+      "revId": "0ea23775b0b993806c1b7852d689a86dd23d8623",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
