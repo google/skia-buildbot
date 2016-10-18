@@ -134,6 +134,7 @@ def RunSteps(api):
   if m and len(m.groups()) > 0:
     karma_port = '15%s' % m.groups()[0]
   env['KARMA_PORT'] = karma_port
+  env['DEPOT_TOOLS'] = api.path['depot_tools']
   api.python('run_unittests', 'run_unittests', cwd=infra_dir, env=env)
 
 
