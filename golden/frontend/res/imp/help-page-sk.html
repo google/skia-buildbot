@@ -1,11 +1,11 @@
 <!--
-  TODO(stephana): Place holder for old page to be ported over. 
+  TODO(stephana): Place holder for old page to be ported over.
 -->
 
 <dom-module id="help-page-sk">
   <template>
 	<template is="dom-if" if="{{_isNotFound}}">
-	  <h1>404 - Not found.</h1>  	
+	  <h1>404 - Not found.</h1>
 	  <h3>Please consider the help information below.</h3>
 	  <br><br>
 	</template>
@@ -28,10 +28,10 @@
 
     	properties: {
     		_isNotFound: false
-    	}, 
+    	},
 
-    	pageSelected: function(routeName) {
-    		this._isNotFound = (routeName == "notfound");
+    	pageSelected: function(ctx) {
+    		this._isNotFound = (ctx.routeID == "notfound");
     	},
 
       pageDeselected: function() {
