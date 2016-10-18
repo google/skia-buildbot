@@ -22,6 +22,24 @@
       "revId": "44eae7a8873795f85f6620cd339df3e740b1e011",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_315157d7",
+        "filename": "go/vec32/vec.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-18T18:36:26Z",
+      "side": 1,
+      "message": "Updated in https://skia-review.googlesource.com/c/3622/",
+      "parentUuid": "fc632725_31e957a2",
+      "revId": "44eae7a8873795f85f6620cd339df3e740b1e011",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
