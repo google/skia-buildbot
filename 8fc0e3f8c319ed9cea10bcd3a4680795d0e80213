@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c90b309_342fa657",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1193,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-18T17:20:21Z",
+      "side": 1,
+      "message": "Did you consider using EventSource and streaming the results to the client? https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
+      "range": {
+        "startLine": 1192,
+        "startChar": 3,
+        "endLine": 1193,
+        "endChar": 82
+      },
+      "revId": "8fc0e3f8c319ed9cea10bcd3a4680795d0e80213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c90b309_b4c416f9",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1193,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-18T17:20:21Z",
+      "side": 1,
+      "message": "typo \"the\"",
+      "range": {
+        "startLine": 1193,
+        "startChar": 29,
+        "endLine": 1193,
+        "endChar": 33
+      },
+      "revId": "8fc0e3f8c319ed9cea10bcd3a4680795d0e80213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c90b309_143dc283",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1197,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-18T17:20:21Z",
+      "side": 1,
+      "message": "IMO, it would be cleaner to make status and results the same request.",
+      "range": {
+        "startLine": 1196,
+        "startChar": 0,
+        "endLine": 1197,
+        "endChar": 70
+      },
+      "revId": "8fc0e3f8c319ed9cea10bcd3a4680795d0e80213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c90b309_eb25dc1f",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 13
+      },
+      "lineNbr": 572,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-18T17:20:21Z",
+      "side": 1,
+      "message": "This call site not updated.",
+      "revId": "8fc0e3f8c319ed9cea10bcd3a4680795d0e80213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_d471fc8d",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 13
+      },
+      "lineNbr": 628,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-18T17:20:21Z",
+      "side": 1,
+      "message": "nit: use promises:\n  ...\n  sk.post(\"/_/frame/start\", JSON.stringify(body), \"application/json\").then(JSON.parse).then(function(json) {\n    this._requestId \u003d json.id;\n    return this._getFrameResult();\n  }.bind(this)).then(function(json) {\n    cb(json);\n    this._catch(json.msg);\n  }.bind(this)).catch(this._catch.bind(this));\n},\n\n_getFrameResult: function() {\n  return sk.get(\"/_/frame/status/\"+this._requestId).then(JSON.parse).then(function(json) {\n    if (json.state \u003d\u003d \"Running\") {\n      this.$.percent.textContent \u003d Math.floor(json.percent*100) + \"%\";\n      return new Promise(func(resolve) {  \n        window.setTimeout(resolve, 300);\n      }).then(this._getFrameResult);\n    } else {\n      return sk.get(\"/_/frame/results/\"+this._requestId).then(JSON.parse);\n    }\n  }.bind(this)).then(JSON.parse);\n}",
+      "range": {
+        "startLine": 611,
+        "startChar": 0,
+        "endLine": 628,
+        "endChar": 50
+      },
+      "revId": "8fc0e3f8c319ed9cea10bcd3a4680795d0e80213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
