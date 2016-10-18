@@ -52,7 +52,7 @@ type FrameRequest struct {
 }
 
 func (f *FrameRequest) Id() string {
-	return fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%x", *f))))
+	return fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%#v", *f))))
 }
 
 // FrameResponse is serialized to JSON as the response to frame requests.
@@ -66,9 +66,14 @@ type FrameResponse struct {
 // FrameRequestProcess keeps track of a running Go routine that's
 // processing a FrameRequest to build a FrameResponse.
 type FrameRequestProcess struct {
-	mutex         sync.Mutex // Protects access to all other struct members.
-	git           *gitinfo.GitInfo
-	request       *FrameRequest
+	// request is read-only, it should not be modified.
+	request *FrameRequest
+
+	// git is for Git info. The value of the 'git' variable should not be
+	//   changed, but git is Go routine safe.
+	git *gitinfo.GitInfo
+
+	mutex         sync.RWMutex // Protects access to the remaining struct members.
 	response      *FrameResponse
 	lastUpdate    time.Time    // The last time this process was updated.
 	state         ProcessState // The current state of the process.
@@ -158,7 +163,7 @@ func (fr *RunningFrameRequests) Status(id string) (ProcessState, string, float32
 	if p, ok := fr.inProcess[id]; !ok {
 		return PROCESS_ERROR, "", 0.0, errorNotFound
 	} else {
-		return p.state, p.message, p.percent, nil
+		return p.Status()
 	}
 }
 
@@ -169,7 +174,7 @@ func (fr *RunningFrameRequests) Response(id string) (*FrameResponse, error) {
 	if p, ok := fr.inProcess[id]; !ok {
 		return nil, errorNotFound
 	} else {
-		return p.response, nil
+		return p.Response(), nil
 	}
 }
 
@@ -197,6 +202,21 @@ func (p *FrameRequestProcess) searchInc() {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	p.search += 1
+}
+
+// Response returns the FrameResponse of the completed FrameRequestProcess.
+func (p *FrameRequestProcess) Response() *FrameResponse {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	return p.response
+}
+
+// Status returns the ProcessingState, the message, and the percent complete of
+// a FrameRequestProcess of the given 'id'.
+func (p *FrameRequestProcess) Status() (ProcessState, string, float32, error) {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	return p.state, p.message, p.percent, nil
 }
 
 // Run does the work in a FrameRequestProcess. It does not return until all the
@@ -358,7 +378,7 @@ func ResponseFromDataFrame(df *DataFrame, git *gitinfo.GitInfo) (*FrameResponse,
 	}, nil
 }
 
-// doSeach applies the given query and returns a dataframe that matches the
+// doSearch applies the given query and returns a dataframe that matches the
 // given time range [begin, end) in a DataFrame.
 func (p *FrameRequestProcess) doSearch(queryStr string, begin, end time.Time) (*DataFrame, error) {
 	urlValues, err := url.ParseQuery(queryStr)
