@@ -107,6 +107,12 @@
       margin: 1em 0 1em 1em;
     }
 
+    #percent {
+      margin: 0.6em;
+      font-family: monospace;
+      width: 3em;
+    }
+
   </style>
   <template>
     <div>
@@ -118,6 +124,7 @@
             <div class="layout horizontal center-justified">
               <day-range-sk id=range on-day-range-change="_rangeChange"></day-range-sk>
               <paper-spinner id=spinner></paper-spinner>
+              <span id=percent></span>
             </div>
           </div>
           <div class="layout vertical" id=buttons>
@@ -211,7 +218,13 @@
       _zoomRange: {
         type: Array,
         value: function() { return []; },
-      }
+      },
+      // The id of the current frame request. Will be the empty string
+      // if there is no pending request.
+      _requestId: {
+        type: String,
+        value: "",
+      },
     },
 
     ready: function() {
@@ -352,12 +365,12 @@
         queries: this.state.queries,
         hidden: this._hidden,
       };
-      this._requestFrame(body).then(function(json) {
+      this._requestFrame(body, function(json) {
         this.$.plot.removeAll();
         this._lines = [];
         this._addTraces(json, false, true);
         this.$.zoom_range.disabled = true;
-      }.bind(this)).catch(this._catch);
+      }.bind(this));
     },
 
     _updateCount: function() {
@@ -455,9 +468,9 @@
         end: this.state.end,
         queries: [q],
       };
-      this._requestFrame(body).then(function(json) {
+      this._requestFrame(body, function(json) {
         this._addTraces(json, true, true);
-      }.bind(this)).catch(this._catch);
+      }.bind(this));
     },
 
     _tabSelect: function() {
@@ -559,35 +572,60 @@
       this._requestFrame(body).then(function(json) {
         // TODO(jcgregorio) Remove all returned trace ids from hidden.
         this._addTraces(json, true, false);
-      }.bind(this)).catch(this._catch);
+      }.bind(this)).catch(this._catch.bind(this));
     },
 
-    // Common catch function that turns off the spinner.
+    // Common catch function for _requestFrame and _checkFrameRequestStatus.
     _catch: function(msg) {
-      sk.errorMessage(msg, 10000);
+      this._requestId = "";
+      if (msg) {
+        sk.errorMessage(msg, 10000);
+      }
+      this.$.percent.textContent = "";
       this.$.spinner.active = false;
     },
 
     // Requests a new dataframe, where body is a serialized FrameRequest:
     //
-    //    var body = {
-    //      begin: this.begin,
-    //      end: this.end,
-    //      formulas: this.formulas,
-    //      queries: this.queries,
-    //      hidden: this._hidden,
-    //    };
+    // {
+    //    begin: 1448325780,
+    //    end:   1476706336,
+    //    formulas : ["ave(filter("name=desk_nytimes.skp&sub_result=min_ms"))"],
+    //    hidden : [],
+    //    queries : [
+    //        "name=AndroidCodec_01_original.jpg_SampleSize8",
+    //        "name=AndroidCodec_1.bmp_SampleSize8"],
+    // };
     //
-    // Returns a Promise that makes the request and parses the JSON response.
-    _requestFrame: function(body) {
+    // The 'cb' callback function will be called with the decoded JSON body
+    // of the response once it's available.
+    _requestFrame: function(body, cb) {
+      if (this._requestId != "") {
+        sk.errorMessage("There is a pending query already running.");
+        return
+      }
       this.$.spinner.active = true;
-      return sk.post("/_/frame/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json) {
-        this.$.spinner.active = false;
-        if (json.msg) {
-          sk.errorMessage(json.msg, 30000);
+
+      sk.post("/_/frame/start", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json) {
+        this._requestId = json.id;
+        this._checkFrameRequestStatus(cb);
+      }.bind(this)).catch(this._catch.bind(this));
+    },
+
+    // Periodically check the status of a pending FrameRequest, calling the
+    // 'cb' callback with the decoded JSON upon success.
+    _checkFrameRequestStatus: function(cb) {
+      sk.get("/_/frame/status/"+this._requestId).then(JSON.parse).then(function(json) {
+        if (json.state == "Running") {
+          this.$.percent.textContent = Math.floor(json.percent*100) + "%";
+          window.setTimeout(this._checkFrameRequestStatus.bind(this, cb), 300);
+        } else {
+          sk.get("/_/frame/results/"+this._requestId).then(JSON.parse).then(function(json) {
+            cb(json);
+            this._catch(json.msg);
+          }.bind(this)).catch(this._catch);
         }
-        return json;
-      }.bind(this));
+      }.bind(this)).catch(this._catch.bind(this));
     },
 
   });

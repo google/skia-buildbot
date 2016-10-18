@@ -74,6 +74,10 @@ Flags:
 	flag.PrintDefaults()
 }
 
+func progress(step, totalSteps int) {
+	glog.Infof("Progress - %0.2f", 100.0*float32(step)/float32(totalSteps))
+}
+
 // _df returns the DataFrame that matches the given query in the range of the
 // --begin and --end command line flags.
 func _df(vcs vcsinfo.VCS, store ptracestore.PTraceStore, q *query.Query) (*dataframe.DataFrame, error) {
@@ -91,7 +95,7 @@ func _df(vcs vcsinfo.VCS, store ptracestore.PTraceStore, q *query.Query) (*dataf
 	if *verbose {
 		fmt.Printf("Requesting from %s to %s\n", beginTime, endTime)
 	}
-	return dataframe.NewFromQueryAndRange(vcs, store, beginTime, endTime, q)
+	return dataframe.NewFromQueryAndRange(vcs, store, beginTime, endTime, q, progress)
 }
 
 func count(vcs vcsinfo.VCS, store ptracestore.PTraceStore) {

@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -22,7 +21,6 @@ import (
 	storage "google.golang.org/api/storage/v1"
 
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/calc"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
@@ -32,7 +30,6 @@ import (
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/sharedconfig"
@@ -56,10 +53,6 @@ import (
 	"go.skia.org/infra/perf/go/tilestats"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/vec"
-)
-
-const (
-	MAX_TRACES_IN_RESPONSE = 350
 )
 
 var (
@@ -138,6 +131,8 @@ var (
 	tileStats *tilestats.TileStats
 
 	freshDataFrame *dataframe.Refresher
+
+	frameRequests *dataframe.RunningFrameRequests
 )
 
 func loadTemplates() {
@@ -195,6 +190,8 @@ func Init() {
 	if err != nil {
 		glog.Fatalf("Failed to build the dataframe Refresher: %s", err)
 	}
+
+	frameRequests = dataframe.NewRunningFrameRequests(git)
 
 	initIngestion()
 
@@ -1168,11 +1165,11 @@ func initpageHandler(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 	df := freshDataFrame.Get()
-	resp, err := responseFromDataFrame(&dataframe.DataFrame{
+	resp, err := dataframe.ResponseFromDataFrame(&dataframe.DataFrame{
 		Header:   df.Header,
 		ParamSet: df.ParamSet,
 		TraceSet: ptracestore.TraceSet{},
-	})
+	}, git)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load init data.")
 		return
@@ -1183,161 +1180,32 @@ func initpageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// FrameRequest is used to deserialize JSON frame requests in frameHandler().
-type FrameRequest struct {
-	Begin    int      `json:"begin"`    // Beginning of time range in Unix timestamp seconds.
-	End      int      `json:"end"`      // End of time range in Unix timestamp seconds.
-	Formulas []string `json:"formulas"` // The Formulae to evaluate.
-	Queries  []string `json:"queries"`  // The queries to perform encoded as a URL query.
-	Hidden   []string `json:"hidden"`   // The ids of traces to remove from the response.
+// FrameStartResponse is serialized as JSON for the response in
+// frameStartHandler.
+type FrameStartResponse struct {
+	ID string `json:"id"`
 }
 
-// FrameResponse is serialized to JSON as the response to frame requests.
-type FrameResponse struct {
-	DataFrame *dataframe.DataFrame `json:"dataframe"`
-	Ticks     []interface{}        `json:"ticks"`
-	Skps      []int                `json:"skps"`
-	Msg       string               `json:"msg"`
-}
-
-// doSeach applies the given query and returns a dataframe that matches the
-// given time range [begin, end) in a DataFrame.
-func doSearch(queryStr string, begin, end time.Time) (*dataframe.DataFrame, error) {
-	urlValues, err := url.ParseQuery(queryStr)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse query: %s", err)
-	}
-	q, err := query.New(urlValues)
-	if err != nil {
-		return nil, fmt.Errorf("Invalid Query: %s", err)
-	}
-	return dataframe.NewFromQueryAndRange(git, ptracestore.Default, begin, end, q)
-}
-
-// doCalc applies the given formula and returns a dataframe that matches the
-// given time range [begin, end) in a DataFrame.
-func doCalc(formula string, begin, end time.Time) (*dataframe.DataFrame, error) {
-	// During the calculation 'rowsFromQuery' will be called to load up data, we
-	// will capture the dataframe that's created at that time. We only really
-	// need df.Headers so it doesn't matter if the calculation has multiple calls
-	// to filter(), we can just use the last one returned.
-	var df *dataframe.DataFrame
-
-	rowsFromQuery := func(s string) (calc.Rows, error) {
-		urlValues, err := url.ParseQuery(s)
-		if err != nil {
-			return nil, err
-		}
-		q, err := query.New(urlValues)
-		if err != nil {
-			return nil, err
-		}
-		df, err = dataframe.NewFromQueryAndRange(git, ptracestore.Default, begin, end, q)
-		if err != nil {
-			return nil, err
-		}
-		// DataFrames are float32, but calc does its work in float64.
-		rows := calc.Rows{}
-		for k, v := range df.TraceSet {
-			rows[k] = to64(v)
-		}
-		return rows, nil
-	}
-
-	ctx := calc.NewContext(rowsFromQuery)
-	rows, err := ctx.Eval(formula)
-	if err != nil {
-		return nil, fmt.Errorf("Calculation failed: %s", err)
-	}
-
-	// Convert the Rows from float64 to float32 for DataFrame.
-	ts := ptracestore.TraceSet{}
-	for k, v := range rows {
-		ts[k] = to32(v)
-	}
-	df.TraceSet = ts
-
-	// Clear the paramset since we are returning calculated values.
-	df.ParamSet = paramtools.ParamSet{}
-
-	return df, nil
-}
-
-// dfAppend appends the paramset and traceset of 'b' to 'a'.
+// frameStartHandler starts a FrameRequest running and returns the ID
+// of the Go routine doing the work.
 //
-// Also, if a has to Header then it uses b's Header.
-// Assumes that a and b both have the same Header, or that
-// 'a' is an empty DataFrame.
-func dfAppend(a, b *dataframe.DataFrame) {
-	if len(a.Header) == 0 {
-		a.Header = b.Header
-	}
-	a.ParamSet.AddParamSet(b.ParamSet)
-	for k, v := range b.TraceSet {
-		a.TraceSet[k] = v
-	}
-}
-
-// frameHandler returns the results of running searches and calculations over traces.
-//
-// It expects a JSON serialized FrameRequest in a POST and then returns a
-// serialized JSON FrameResponse.
-func frameHandler(w http.ResponseWriter, r *http.Request) {
-	if *local {
-		loadTemplates()
-	}
+// Building a DataFrame can take a long time to complete, so we run the request
+// in a Go routine and break the building DataFrames into three separate requests:
+//  * Start building the DataFrame (_/frame/start), which returns an identifier of the long
+//    running request, {id}.
+//  * Query the status of the running request (_/frame/status/{id}).
+//  * Finally return the constructed DataFrame (_/frame/results/{id}).
+func frameStartHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	fr := &FrameRequest{}
+	fr := &dataframe.FrameRequest{}
 	defer util.Close(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(fr); err != nil {
 		httputils.ReportError(w, r, err, "Failed to decode JSON.")
 		return
 	}
-	begin := time.Unix(int64(fr.Begin), 0)
-	end := time.Unix(int64(fr.End), 0)
 
-	// Results from all the queries and calcs will be accumulated in this dataframe.
-	df := dataframe.NewEmpty()
-
-	// Queries.
-	for _, q := range fr.Queries {
-		if q == "" {
-			continue
-		}
-		newDF, err := doSearch(q, begin, end)
-		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to complete query.")
-			return
-		}
-		dfAppend(df, newDF)
-	}
-
-	// Formulas.
-	for _, formula := range fr.Formulas {
-		if formula == "" {
-			continue
-		}
-		newDF, err := doCalc(formula, begin, end)
-		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to complete query.")
-			return
-		}
-		dfAppend(df, newDF)
-	}
-
-	// Filter out "Hidden" traces.
-	for _, key := range fr.Hidden {
-		delete(df.TraceSet, key)
-	}
-
-	if len(df.Header) == 0 {
-		df = dataframe.NewHeaderOnly(git, begin, end)
-	}
-
-	resp, err := responseFromDataFrame(df)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get ticks or skps.")
-		return
+	resp := FrameStartResponse{
+		ID: frameRequests.Add(fr),
 	}
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
@@ -1345,111 +1213,51 @@ func frameHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getCommitTimesForFile returns a slice of Unix timestamps in seconds that are
-// the times that the given file changed in git between the given 'begin' and
-// 'end' hashes (inclusive).
-func getCommitTimesForFile(begin, end string, filename string) []int64 {
-	ret := []int64{}
-
-	// Now query for all the changes to the skp version over the given range of commits.
-	log, err := git.LogFine(begin+"^", end, "--format=format:%ct", "--", filename)
-	if err != nil {
-		glog.Errorf("Could not get skp log for %s..%s -- %q: %s", begin, end, filename, err)
-		return ret
-	}
-
-	// Parse.
-	for _, s := range strings.Split(log, "\n") {
-		i, err := strconv.ParseInt(s, 10, 64)
-		if err != nil {
-			continue
-		}
-		ret = append(ret, int64(i))
-	}
-	return ret
+// FrameStatus is used to serialize a JSON response in frameStatusHandler.
+type FrameStatus struct {
+	State   dataframe.ProcessState `json:"state"`
+	Message string                 `json:"message"`
+	Percent float32                `json:"percent"`
 }
 
-// getSkps returns the indices where the SKPs have been updated given
-// the ColumnHeaders.
-func getSkps(headers []*dataframe.ColumnHeader) ([]int, error) {
-	// We have Offsets, which need to be converted to git hashes.
-	ci, err := git.ByIndex(int(headers[0].Offset))
+// frameStatusHandler returns the status of a pending FrameRequest.
+//
+// See frameStartHandler for more details.
+func frameStatusHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	id := mux.Vars(r)["id"]
+	state, message, percent, err := frameRequests.Status(id)
 	if err != nil {
-		return nil, fmt.Errorf("Could not find commit for index %d: %s", headers[0].Offset, err)
+		httputils.ReportError(w, r, err, message)
+		return
 	}
-	begin := ci.Hash
-	ci, err = git.ByIndex(int(headers[len(headers)-1].Offset))
-	if err != nil {
-		return nil, fmt.Errorf("Could not find commit for index %d: %s", headers[len(headers)-1].Offset, err)
+
+	resp := FrameStatus{
+		State:   state,
+		Message: message,
+		Percent: percent,
 	}
-	end := ci.Hash
 
-	// Now query for all the changes to the skp version over the given range of commits.
-	ts := getCommitTimesForFile(begin, end, "infra/bots/assets/skp/VERSION")
-	// Add in the changes to the old skp version over the given range of commits.
-	ts = append(ts, getCommitTimesForFile(begin, end, "SKP_VERSION")...)
-
-	// Sort because they are in reverse order.
-	sort.Sort(util.Int64Slice(ts))
-
-	// Now flag all the columns where the skp changes.
-	ret := []int{}
-	for i, h := range headers {
-		if len(ts) == 0 {
-			break
-		}
-		if h.Timestamp >= ts[0] {
-			ret = append(ret, i)
-			ts = ts[1:]
-			if len(ts) == 0 {
-				break
-			}
-			// Coalesce all skp updates for a col into a single index.
-			for len(ts) > 0 && h.Timestamp >= ts[0] {
-				ts = ts[1:]
-			}
-		}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		glog.Errorf("Failed to encode response: %s", err)
 	}
-	return ret, nil
 }
 
-func responseFromDataFrame(df *dataframe.DataFrame) (*FrameResponse, error) {
-	// Calculate the human ticks based on the column headers.
-	ts := []int64{}
-	for _, c := range df.Header {
-		ts = append(ts, c.Timestamp)
-	}
-	ticks := human.FlotTickMarks(ts)
-
-	// Determine where SKP changes occurred.
-	skps, err := getSkps(df.Header)
+// frameStatusHandler returns the results of a pending FrameRequest.
+//
+// See frameStartHandler for more details.
+func frameResultsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	id := mux.Vars(r)["id"]
+	df, err := frameRequests.Response(id)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to load skps: %s", err)
+		httputils.ReportError(w, r, err, "Async processing of frame failed.")
+		return
 	}
 
-	// Truncate the result if it's too large.
-	msg := ""
-	if len(df.TraceSet) > MAX_TRACES_IN_RESPONSE {
-		msg = fmt.Sprintf("Response too large, the number of traces returned has been truncated from %d to %d.", len(df.TraceSet), MAX_TRACES_IN_RESPONSE)
-		keys := []string{}
-		for k, _ := range df.TraceSet {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		keys = keys[:MAX_TRACES_IN_RESPONSE]
-		newTraceSet := ptracestore.TraceSet{}
-		for _, key := range keys {
-			newTraceSet[key] = df.TraceSet[key]
-		}
-		df.TraceSet = newTraceSet
+	if err := json.NewEncoder(w).Encode(df); err != nil {
+		glog.Errorf("Failed to encode response: %s", err)
 	}
-
-	return &FrameResponse{
-		DataFrame: df,
-		Ticks:     ticks,
-		Skps:      skps,
-		Msg:       msg,
-	}, nil
 }
 
 // countHandler takes the POST'd query and runs that against the current
@@ -1500,26 +1308,6 @@ func cidHandler(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		glog.Errorf("Failed to encode paramset: %s", err)
 	}
-}
-
-func to64(a []float32) []float64 {
-	ret := make([]float64, len(a), len(a))
-	for i, x := range a {
-		if x == ptracestore.MISSING_VALUE {
-			ret[i] = ptracestore.MISSING_VALUE
-		} else {
-			ret[i] = float64(x)
-		}
-	}
-	return ret
-}
-
-func to32(a []float64) []float32 {
-	ret := make([]float32, len(a), len(a))
-	for i, x := range a {
-		ret[i] = float32(x)
-	}
-	return ret
 }
 
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
@@ -1594,7 +1382,9 @@ func main() {
 	router.HandleFunc("/_/initpage/", initpageHandler)
 	router.HandleFunc("/_/count/", countHandler)
 	router.HandleFunc("/_/cid/", cidHandler)
-	router.HandleFunc("/_/frame/", frameHandler)
+	router.HandleFunc("/_/frame/start", frameStartHandler)
+	router.HandleFunc("/_/frame/status/{id:[a-zA-Z0-9]+}", frameStatusHandler)
+	router.HandleFunc("/_/frame/results/{id:[a-zA-Z0-9]+}", frameResultsHandler)
 
 	router.HandleFunc("/frame/", templateHandler("frame.html"))
 	router.HandleFunc("/shortcuts/", shortcutHandler)
