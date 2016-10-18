@@ -72,8 +72,9 @@ func handleQuery(args []string) {
 		return
 	}
 	fmt.Printf("Found: %d\n", len(iss))
+	_ = "breakpoint"
 	for _, issue := range iss {
-		glog.Infof("%20d %10s %s\n", issue.ID, issue.State, issue.Title)
+		fmt.Printf("%20d %10s %s\n", issue.ID, issue.State, issue.Title)
 	}
 }
 
