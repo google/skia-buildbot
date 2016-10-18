@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fc632725_1e38aa01",
+        "filename": "perf/go/dataframe/downsample.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-18T17:44:37Z",
+      "side": 1,
+      "message": "typo downsampled",
+      "range": {
+        "startLine": 12,
+        "startChar": 25,
+        "endLine": 12,
+        "endChar": 26
+      },
+      "revId": "107f8246f4355dc05864628e8bcdf9bea41df98d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_7ef71e1e",
+        "filename": "perf/go/dataframe/downsample.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-18T17:44:37Z",
+      "side": 1,
+      "message": "nit: Maybe I\u0027m just misreading some of the documentation, but this description of skip does not agree with the documentation on DataFrame: \"// Skip is the number of commits skipped to bring the DataFrame down\n// to less than MAX_SAMPLE_SIZE commits. If Skip is zero then no\n// commits were skipped.\"\nAlthough it does agree with the title of the element, \"Number of commits skipped between each point displayed.\"",
+      "range": {
+        "startLine": 13,
+        "startChar": 17,
+        "endLine": 14,
+        "endChar": 24
+      },
+      "revId": "107f8246f4355dc05864628e8bcdf9bea41df98d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
