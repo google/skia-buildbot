@@ -63,13 +63,18 @@ func Norm(a []float32, minStdDev float32) {
 // Fill in non-sentinel values with nearby points.
 //
 // Sentinel values are filled with points later in the array, except for the
-// beginning of the array where we can't do that, so we fill those points in
-// using the first non sentinel.
+// end of the array where we can't do that, so we fill those points in
+// using the first non sentinel found when searching backwards from the end.
 //
 // So
 //    [1e32, 1e32,   2, 3, 1e32, 5]
 // becomes
 //    [2,    2,      2, 3, 5,    5]
+//
+// and
+//    [3, 1e32, 5, 1e32, 1e32]
+// becomes
+//    [3, 5,    5, 5,    5]
 //
 //
 // Note that a vector filled with all sentinels will be filled with 0s.
