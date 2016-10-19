@@ -116,10 +116,16 @@ func getPatchStorage(server string) string {
 
 // replaceVars replaces variable names with their values in a given string.
 func replaceVars(c *taskCandidate, s string) string {
+	issueShort := ""
+	if len(c.Issue) < specs.ISSUE_SHORT_LENGTH {
+		issueShort = c.Issue
+	} else {
+		issueShort = c.Issue[len(c.Issue)-specs.ISSUE_SHORT_LENGTH:]
+	}
 	replacements := map[string]string{
 		specs.VARIABLE_CODEREVIEW_SERVER: c.Server,
 		specs.VARIABLE_ISSUE:             c.Issue,
-		specs.VARIABLE_ISSUE_SHORT:       c.Issue[len(c.Issue)-2:],
+		specs.VARIABLE_ISSUE_SHORT:       issueShort,
 		specs.VARIABLE_PATCH_STORAGE:     getPatchStorage(c.Server),
 		specs.VARIABLE_PATCHSET:          c.Patchset,
 		specs.VARIABLE_REPO:              c.Repo,
