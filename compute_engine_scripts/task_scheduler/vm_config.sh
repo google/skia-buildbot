@@ -14,4 +14,4 @@ if [ $? != "0" ]; then
 fi
 
 # The name of instance where skia task scheduler is running.
-INSTANCE_NAME=skia-task-scheduler
+INSTANCE_NAME=skia-task-scheduler-test
