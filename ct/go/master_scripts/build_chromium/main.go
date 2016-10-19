@@ -37,12 +37,12 @@ func sendEmail(recipients []string) {
 		failureHtml = util.GetFailureEmailHtml(*runID)
 	}
 	bodyTemplate := `
-	The Cluster telemetry queued task to create a new chromium build has completed.<br/>
+	The Cluster telemetry queued task to create a new chromium build has completed. %s.<br/>
 	%s
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, failureHtml, frontend.ChromiumBuildTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, util.GetSwarmingLogsLink(*runID), failureHtml, frontend.ChromiumBuildTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return

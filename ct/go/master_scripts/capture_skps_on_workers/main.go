@@ -46,13 +46,13 @@ func sendEmail(recipients []string) {
 		failureHtml = util.GetFailureEmailHtml(*runID)
 	}
 	bodyTemplate := `
-	The Capture SKPs task on %s pageset has completed.<br/>
+	The Capture SKPs task on %s pageset has completed. %s.<br/>
 	Run description: %s<br/>
 	%s
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, *description, failureHtml, frontend.CaptureSKPsTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, frontend.CaptureSKPsTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return

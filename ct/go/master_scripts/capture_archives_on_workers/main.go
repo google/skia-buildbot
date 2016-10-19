@@ -40,12 +40,12 @@ func sendEmail(recipients []string) {
 		failureHtml = util.GetFailureEmailHtml(*runID)
 	}
 	bodyTemplate := `
-	The Cluster telemetry queued task to capture archives of %s pagesets has completed.<br/>
+	The Cluster telemetry queued task to capture archives of %s pagesets has completed. %s.<br/>
 	%s
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, failureHtml, frontend.AdminTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), failureHtml, frontend.AdminTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
