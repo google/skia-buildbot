@@ -64,6 +64,8 @@
     }
   </style>
   <template>
+    <template is="dom-if" if="{{!loggedIn}}"><b>Please click the Login link to schedule tasks.</b></template>
+    <template is="dom-if" if="{{loggedIn}}">
 
     <paper-dialog heading="Confirmation" id="confirm_dialog">
       <div>Proceed with queueing task?</div>
@@ -218,6 +220,7 @@
 
     <br/><br/>
 
+    </template>
   </template>
 </dom-module>
 
@@ -249,6 +252,7 @@
        skiaClDescription: String,
        catapultClDescription: String,
        selectedBenchmarkName: String,
+       loggedIn: Boolean,
      },
 
      observers: [
@@ -256,6 +260,9 @@
      ],
 
      ready: function() {
+       if (!this.loggedIn) {
+         return;
+       }
        var that = this;
        this.$.target_platform.addEventListener('click', function(e) {
          that.platformChanged();
@@ -319,7 +326,10 @@
      },
 
      clDescriptionChanged: function(chromiumClDesc, skiaClDesc, catapultClDesc) {
-       this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, skiaClDesc, catapultClDesc)
+       console.log(this.$.desc);
+       if (this.$.desc) {
+         this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, skiaClDesc, catapultClDesc)
+       }
      },
 
      validateTask: function() {
