@@ -1,11 +1,12 @@
 package repo_manager
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -30,14 +31,18 @@ const (
 )
 
 var (
-	ISSUE_CREATED_REGEX = regexp.MustCompile(fmt.Sprintf("Issue created. URL: %s/(\\d+)", autoroll.RIETVELD_URL))
-
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
 	NewRepoManager func(string, string, time.Duration, string) (RepoManager, error) = NewDefaultRepoManager
 
 	DEPOT_TOOLS_AUTH_USER_REGEX = regexp.MustCompile(fmt.Sprintf("Logged in to %s as ([\\w-]+).", autoroll.RIETVELD_URL))
 )
+
+// issueJson is the structure of "git cl issue --json"
+type issueJson struct {
+	Issue    int64  `json:"issue"`
+	IssueUrl string `json:"issue_url"`
+}
 
 // RepoManager is used by AutoRoller for managing checkouts.
 type RepoManager interface {
@@ -366,15 +371,34 @@ func (r *repoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryR
 	uploadCmd.Args = append(uploadCmd.Args, "-m", commitMsg)
 
 	// Upload the CL.
-	uploadOutput, err := exec.RunCommand(uploadCmd)
+	if _, err := exec.RunCommand(uploadCmd); err != nil {
+		return 0, err
+	}
+
+	// Obtain the issue number.
+	tmp, err := ioutil.TempDir("", "")
 	if err != nil {
 		return 0, err
 	}
-	issues := ISSUE_CREATED_REGEX.FindStringSubmatch(uploadOutput)
-	if len(issues) != 2 {
-		return 0, fmt.Errorf("Failed to find newly-uploaded issue number!")
+	defer util.RemoveAll(tmp)
+	jsonFile := path.Join(tmp, "issue.json")
+	if _, err := exec.RunCommand(&exec.Command{
+		Dir:  r.chromiumDir,
+		Env:  getEnv(r.depot_tools),
+		Name: "git",
+		Args: []string{"cl", "issue", fmt.Sprintf("--json=%s", jsonFile)},
+	}); err != nil {
+		return 0, err
 	}
-	return strconv.ParseInt(issues[1], 10, 64)
+	f, err := os.Open(jsonFile)
+	if err != nil {
+		return 0, err
+	}
+	var issue issueJson
+	if err := json.NewDecoder(f).Decode(&issue); err != nil {
+		return 0, err
+	}
+	return issue.Issue, nil
 }
 
 func (r *repoManager) User() string {
