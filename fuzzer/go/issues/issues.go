@@ -49,7 +49,7 @@ out/Release/fuzz {{.Params}} ~/Downloads/{{.Name}}
 fuzz_category: {{.Category}}
 fuzz_commit: {{.Revision}}
 related_fuzz: https://fuzzer.skia.org/category/{{.Category}}/name/{{.Name}}
-fuzz_download: https://fuzzer.skia.org/fuzz/{{.Category}}/{{.Name}}
+fuzz_download: https://fuzzer.skia.org/fuzz/{{.Name}}
 `))
 
 func (im *IssuesManager) CreateBadBugIssue(p IssueReportingPackage, desc string) error {

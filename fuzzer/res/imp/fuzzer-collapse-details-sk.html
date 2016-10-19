@@ -70,6 +70,10 @@
       padding: 5px;
     }
 
+    .flags {
+      max-width: 600px;
+    }
+
     .raw {
       font-size: 0.7em;
       display: inline-block;
@@ -111,7 +115,8 @@
                   <a href$="{{_getMetaLink(report,'debug','dump')}}">debug_dump</a>
                   <a href$="{{_getMetaLink(report,'release','dump')}}">release_dump</a>
                 </div>
-                <div>{{_getFlags(report)}}</div>
+                <div class="flags">{{_getFlags(report)}}</div>
+                <div><b>OS/Architecture:</b> [[report.architecture]]</div>
                 <h4>Debug Stack Trace</h4>
                 <fuzzer-stacktrace-sk trace="{{report.debugStackTrace}}"></fuzzer-stacktrace-sk>
                 <h4>Release Stack Trace</h4>
@@ -225,12 +230,12 @@
     },
 
     _getDownloadLink: function(report) {
-      return "/fuzz/"+report.category+"/" + report.fuzzName;
+      return "/fuzz/" + report.fuzzName;
     },
 
     _getMetaLink: function(report, build, extension) {
       var name = report.fuzzName +"_" + build +"." + extension;
-      return "/metadata/" + report.category +"/" + name;
+      return "/metadata/" + name;
     },
 
     _getDetailsLink: function(detailsBase, details) {

@@ -7,6 +7,7 @@ default:
 	ln -sfT ../../../../third_party/bower_components res/imp/bower_components
 	ln -sfT ../../../../res  res/common
 	ln -sfT ../../../res/js res/js
+	ln -sfT ../../../res/img res/img
 	npm install http-server
 
 	# We use sinon to mock up the demo page's json requests.
