@@ -22,6 +22,29 @@
       "revId": "b11c6d32d029e2fb4db65aa8bfd4dfd3d59e0916",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_d0b60f91",
+        "filename": "go/metadata/metadata.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-19T20:48:25Z",
+      "side": 1,
+      "message": "Why do we need NSQDTestServerAddr if we\u0027ve removed Redis?",
+      "range": {
+        "startLine": 138,
+        "startChar": 5,
+        "endLine": 138,
+        "endChar": 23
+      },
+      "revId": "b11c6d32d029e2fb4db65aa8bfd4dfd3d59e0916",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
