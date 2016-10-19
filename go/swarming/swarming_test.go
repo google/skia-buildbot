@@ -73,13 +73,15 @@ func TestCreateIsolatedGenJSON(t *testing.T) {
 
 // E2E_Success verifies that an islated.gen.json is created, batcharchive works,
 // triggering swarming tasks works and collecting swarming tasks works.
-func E2E_Success(t *testing.T) {
+func TestE2E_Success(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir("", "swarming_work_")
 	assert.NoError(t, err)
+	fmt.Println("Here")
 	s, err := NewSwarmingClient(workDir)
+	fmt.Println("Here")
 	assert.NoError(t, err)
 	defer s.Cleanup()
 
@@ -112,7 +114,7 @@ func E2E_Success(t *testing.T) {
 	// Trigger swarming using the isolate hashes.
 	dimensions := map[string]string{"pool": "Chrome"}
 	tags := map[string]string{"testing": "123"}
-	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, tags, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false)
+	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, tags, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false, true)
 	assert.NoError(t, err)
 
 	// Collect both output and file output of all tasks.
@@ -120,8 +122,11 @@ func E2E_Success(t *testing.T) {
 		output, outputDir, err := task.Collect(s)
 		assert.NoError(t, err)
 		output = sanitizeOutput(output)
+		fmt.Println("For task %s", task.Title)
+		fmt.Println(task.Tags)
 		assert.Equal(t, fmt.Sprintf("arg_1_%s\narg_2_%s\n", task.Title, task.Title), output)
-		assert.Equal(t, tags, task.Tags)
+		tagsWithTaskName := map[string]string{"testing": "123", "name": task.Title}
+		assert.Equal(t, tagsWithTaskName, task.Tags)
 		// Verify contents of the outputDir.
 		rawFileOutput, err := ioutil.ReadFile(path.Join(outputDir, "output.txt"))
 		assert.NoError(t, err)
@@ -133,7 +138,7 @@ func E2E_Success(t *testing.T) {
 // E2E_OnFailure verifies that an islated.gen.json is created, batcharchive
 // works, triggering swarming tasks works and collecting swarming tasks with one
 // failure works.
-func E2E_OneFailure(t *testing.T) {
+func TestE2E_OneFailure(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	// Instantiate the swarming client.
@@ -176,7 +181,7 @@ func E2E_OneFailure(t *testing.T) {
 	// Trigger swarming using the isolate hashes.
 	dimensions := map[string]string{"pool": "Chrome"}
 	tags := map[string]string{"testing": "123"}
-	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, tags, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false)
+	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, tags, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false, false)
 	assert.NoError(t, err)
 
 	// Collect testTask1. It should have failed.
