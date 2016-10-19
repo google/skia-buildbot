@@ -13,6 +13,9 @@ var gold = gold || {};
   // Constants for status values.
   gold.POSITIVE = 'positive',
   gold.NEGATIVE = 'negative';
+  // ISSUE_TRACKER_URL is the url of the monorail issue tracker.
+  var ISSUE_TRACKER_URL = "https://bugs.chromium.org/p/skia/issues/";
+
   gold.UNTRIAGED = 'untriage';
 
   // Default values for the search controls.
@@ -152,6 +155,10 @@ var gold = gold || {};
       sk.errorMessage(e);
     });
   },
+
+  gold.issueURL = function(issueID) {
+    return ISSUE_TRACKER_URL + "/detail?id=" + issueID;
+  };
 
   // makeTriageQuery returns an object that can be sent as a query to the
   // backend to triage digests. The arguments can either be a triple:
