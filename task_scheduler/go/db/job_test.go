@@ -20,7 +20,7 @@ func TestJobCopy(t *testing.T) {
 		BuildbucketLeaseKey: 987,
 		Created:             now.Add(time.Nanosecond),
 		DbModified:          now.Add(time.Millisecond),
-		Dependencies:        []string{"A", "B"},
+		Dependencies:        map[string][]string{"A": []string{"B"}, "B": []string{}},
 		Finished:            now.Add(time.Second),
 		Id:                  "abc123",
 		IsForce:             true,
@@ -63,10 +63,12 @@ func TestJobEncoder(t *testing.T) {
 	e := JobEncoder{}
 	expectedJobs := map[*Job][]byte{}
 	for i := 0; i < 25; i++ {
+		taskA := fmt.Sprintf("a%d", i)
+		taskB := fmt.Sprintf("b%d", i+1)
 		job := &Job{}
 		job.Id = fmt.Sprintf("Id-%d", i)
 		job.Name = "Bingo-was-his-name-o"
-		job.Dependencies = []string{fmt.Sprintf("a%d", i), fmt.Sprintf("b%d", i+1)}
+		job.Dependencies = map[string][]string{taskA: []string{taskB}, taskB: []string{}}
 		var buf bytes.Buffer
 		err := gob.NewEncoder(&buf).Encode(job)
 		assert.NoError(t, err)
@@ -94,10 +96,12 @@ func TestJobDecoder(t *testing.T) {
 	d := JobDecoder{}
 	expectedJobs := map[string]*Job{}
 	for i := 0; i < 250; i++ {
+		taskA := fmt.Sprintf("a%d", i)
+		taskB := fmt.Sprintf("b%d", i+1)
 		job := &Job{}
 		job.Id = fmt.Sprintf("Id-%d", i)
 		job.Name = "Bingo-was-his-name-o"
-		job.Dependencies = []string{fmt.Sprintf("a%d", i), fmt.Sprintf("b%d", i+1)}
+		job.Dependencies = map[string][]string{taskA: []string{taskB}, taskB: []string{}}
 		var buf bytes.Buffer
 		err := gob.NewEncoder(&buf).Encode(job)
 		assert.NoError(t, err)

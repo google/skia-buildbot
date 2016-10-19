@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/util"
+	"github.com/skia-dev/glog"
 )
 
 const (
@@ -34,6 +34,10 @@ const (
 
 	// JOB_URL_TMPL is a template for Job URLs.
 	JOB_URL_TMPL = "https://task-scheduler.skia.org/job/%s"
+
+	// MAX_TASK_ATTEMPTS is the maximum number of attempts we'll make of
+	// each TaskSpec in a Job.
+	MAX_TASK_ATTEMPTS = 2
 )
 
 var (
@@ -103,9 +107,11 @@ type Job struct {
 	// for this Job, or zero if the job is new.
 	DbModified time.Time
 
-	// Dependencies are the names of the TaskSpecs on which this Job
-	// depends.  This property should never change for a given Job instance.
-	Dependencies []string
+	// Dependencies maps out the DAG of TaskSpec names upon which this Job
+	// depends. Keys are TaskSpec names and values are slices of TaskSpec
+	// names indicating which TaskSpecs that TaskSpec depends on. This
+	// property should never change for a given Job instance.
+	Dependencies map[string][]string
 
 	// Finished is the time at which all of the Job's dependencies finished,
 	// successfully or not.
@@ -133,11 +139,29 @@ type Job struct {
 
 	// Status is the current Job status, default JOB_STATUS_IN_PROGRESS.
 	Status JobStatus
+
+	// Tasks are the Task instances which satisfied the dependencies of
+	// the Job. Keys are TaskSpec names and values are slices of MiniTask
+	// instances describing the Tasks.
+	Tasks map[string][]*MiniTask
 }
 
 // Copy returns a copy of the Job.
 func (j *Job) Copy() *Job {
-	deps := util.CopyStringSlice(j.Dependencies)
+	deps := make(map[string][]string, len(j.Dependencies))
+	for k, v := range j.Dependencies {
+		cpy := make([]string, len(v))
+		copy(cpy, v)
+		deps[k] = cpy
+	}
+	tasks := make(map[string][]*MiniTask, len(j.Tasks))
+	for k, v := range j.Tasks {
+		cpy := make([]*MiniTask, 0, len(v))
+		for _, t := range v {
+			cpy = append(cpy, t.Copy())
+		}
+		tasks[k] = cpy
+	}
 	return &Job{
 		BuildbucketBuildId:  j.BuildbucketBuildId,
 		BuildbucketLeaseKey: j.BuildbucketLeaseKey,
@@ -151,6 +175,7 @@ func (j *Job) Copy() *Job {
 		Priority:            j.Priority,
 		RepoState:           j.RepoState.Copy(),
 		Status:              j.Status,
+		Tasks:               tasks,
 	}
 }
 
@@ -173,6 +198,87 @@ func (j *Job) MakeTaskKey(taskName string) TaskKey {
 // URL returns a URL for the Job.
 func (j *Job) URL() string {
 	return fmt.Sprintf(JOB_URL_TMPL, j.Id)
+}
+
+// TraverseDependencies traces the dependency graph of the Job, calling the
+// given function for each dependency. Only calls the function on task specs
+// for whose dependencies the function has already been called.
+func (j *Job) TraverseDependencies(fn func(string) (bool, error)) error {
+	done := make(map[string]bool, len(j.Dependencies))
+	var visit func(string) (bool, error)
+	visit = func(name string) (bool, error) {
+		for _, d := range j.Dependencies[name] {
+			if !done[d] {
+				stop, err := visit(d)
+				if err != nil {
+					return false, err
+				}
+				if stop {
+					return true, nil
+				}
+			}
+		}
+		done[name] = true
+		return fn(name)
+	}
+	for d, _ := range j.Dependencies {
+		if !done[d] {
+			stop, err := visit(d)
+			if err != nil {
+				return err
+			}
+			if stop {
+				return nil
+			}
+		}
+	}
+	return nil
+}
+
+// DeriveStatus derives a JobStatus based on the TaskStatuses in the Job's
+// dependency tree.
+func (j *Job) DeriveStatus() JobStatus {
+	if j.Tasks == nil {
+		return JOB_STATUS_IN_PROGRESS
+	}
+	worstStatus := JOB_STATUS_SUCCESS
+	if err := j.TraverseDependencies(func(name string) (bool, error) {
+		tasks, ok := j.Tasks[name]
+		if !ok || len(tasks) == 0 {
+			worstStatus = WorseJobStatus(worstStatus, JOB_STATUS_IN_PROGRESS)
+			return true, nil
+		}
+
+		// We may have more than one Task for this spec, due to
+		// retrying of failed Tasks. We should not return a "failed"
+		// result if we still have retry attempts remaining or if we've
+		// already retried and succeeded.
+
+		canRetry := len(tasks) < MAX_TASK_ATTEMPTS
+		bestStatus := JOB_STATUS_MISHAP
+		for _, t := range tasks {
+			status := JobStatusFromTaskStatus(t.Status)
+			if bestStatus.WorseThan(status) {
+				bestStatus = status
+			}
+		}
+		if bestStatus == JOB_STATUS_SUCCESS || bestStatus == JOB_STATUS_IN_PROGRESS {
+			worstStatus = WorseJobStatus(worstStatus, bestStatus)
+		} else if canRetry {
+			worstStatus = WorseJobStatus(worstStatus, JOB_STATUS_IN_PROGRESS)
+		} else {
+			worstStatus = WorseJobStatus(worstStatus, bestStatus)
+			return true, nil
+		}
+		return false, nil
+	}); err != nil {
+		// Our inner function doesn't return errors, and
+		// TraverseDependencies doesn't return errors of its own, so
+		// this should be safe.
+		glog.Errorf("Got error traversing Job dependencies: %s", err)
+		return JOB_STATUS_IN_PROGRESS
+	}
+	return worstStatus
 }
 
 // JobSlice implements sort.Interface. To sort jobs []*Job, use
