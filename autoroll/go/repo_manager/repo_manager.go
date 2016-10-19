@@ -347,6 +347,14 @@ func (r *repoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryR
 	if err != nil {
 		return 0, err
 	}
+	commitMsg += `
+Documentation for the AutoRoller is here:
+https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
+
+If the roll is causing failures, see:
+http://www.chromium.org/developers/tree-sheriffs/sheriff-details-chromium#TOC-Failures-due-to-DEPS-rolls
+
+`
 	if cqExtraTrybots != "" {
 		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
 	}
