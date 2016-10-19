@@ -22,6 +22,24 @@
       "revId": "2a71bf331efcdfd2b2e13261e25cdf3a032c232a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_cc8e857d",
+        "filename": "golden/frontend/res/imp/issue-sk.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-19T13:12:32Z",
+      "side": 1,
+      "message": "good catch. Removed the class altogether since it was not backed by any CSS definition.",
+      "parentUuid": "fc632725_7418dd59",
+      "revId": "2a71bf331efcdfd2b2e13261e25cdf3a032c232a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
