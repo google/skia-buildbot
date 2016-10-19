@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fc632725_6cc65157",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 808,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-19T14:41:35Z",
+      "side": 1,
+      "message": "nit: move to ct/go/util/mail.go",
+      "revId": "cc5044e56b1d32a810c3ebd6c2824d8b124084ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
