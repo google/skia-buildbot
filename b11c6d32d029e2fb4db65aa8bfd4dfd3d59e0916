@@ -45,6 +45,24 @@
       "revId": "b11c6d32d029e2fb4db65aa8bfd4dfd3d59e0916",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_b046f36c",
+        "filename": "go/metadata/metadata.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-19T21:06:54Z",
+      "side": 1,
+      "message": "Yes NSQ is used for distributed events. \nThere is a task to move to cloud pubsub (https://bugs.chromium.org/p/skia/issues/detail?id\u003d5649) which was not available when I wrote the global events package.\nThat move will remove NSQ entirely. It\u0027s not a hug amount of work and I would like to keep global events around rather than just ditching it wholesale. I\u0027ll make it part of this quarters effort to reduce flakyness.",
+      "parentUuid": "fc632725_d0b60f91",
+      "revId": "b11c6d32d029e2fb4db65aa8bfd4dfd3d59e0916",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
