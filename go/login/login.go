@@ -263,9 +263,33 @@ func setSkIDCookieValue(w http.ResponseWriter, value *Session) {
 //   https://security.google.com/settings/security/permissions
 //
 // to revoke any grants they make.
+// rmistry
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("LogoutHandler\n")
+	s, err := getSession(r)
+	fmt.Println("IN LOGOUT IN LOGOUT IN LOGOUT IN LOGOUT")
+	if err != nil {
+		glog.Errorf("PROBLEM: %s", err)
+		fmt.Println("PROBLEM: %s", err)
+		return
+	}
 	setSkIDCookieValue(w, &Session{})
+	// oauthConfig.RedirectURL
+	// rmistry
+	client := GetHttpClient(r)
+	fmt.Println()
+	resp, err := client.Get(fmt.Sprintf("https://accounts.google.com/o/oauth2/revoke?token=%s", s.Token.AccessToken))
+	if err != nil {
+		glog.Errorf("PROBLEM2: %s", err)
+		fmt.Println("PROBLEM2: %s", err)
+		return
+	}
+	defer resp.Body.Close()
+	fmt.Println("TOKEN IS: %s", s.Token.AccessToken)
+	fmt.Println("STATUS CODE IS: %d", resp.StatusCode)
+	fmt.Println("STATUS IS: %s", resp.Status)
+
+	// https://accounts.google.com/o/oauth2/revoke?token={token}
 	http.Redirect(w, r, r.FormValue("redirect"), 302)
 }
 
@@ -352,7 +376,9 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(activeUserDomainWhiteList) > 0 && !activeUserDomainWhiteList[parts[1]] && !activeUserEmailWhiteList[email] {
-		http.Error(w, "Accounts from your domain are not allowed or your email address is not white listed.", 500)
+		http.Error(w, "Accounts from your domain are not allowed or your email address is not white listed. <a href='www.google.com'>Go back</a>.", 500)
+		fmt.Println("LOGIN ERROR!!!!!!!")
+		fmt.Println(redirect)
 		return
 	}
 	s := Session{
