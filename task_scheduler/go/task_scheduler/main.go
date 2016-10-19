@@ -287,7 +287,7 @@ func jobHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	job, tasks, depGraph, err := ts.GetJob(id)
+	job, err := ts.GetJob(id)
 	if err != nil {
 		if err == db.ErrNotFound {
 			http.Error(w, fmt.Sprintf("Unknown Job %q", id), 404)
@@ -296,16 +296,7 @@ func jobHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to obtain tasks for Job.")
 		return
 	}
-	data := struct {
-		Job      *db.Job               `json:"job"`
-		Tasks    map[string][]*db.Task `json:"tasks"`
-		DepGraph map[string][]string   `json:"depGraph"`
-	}{
-		Job:      job,
-		Tasks:    tasks,
-		DepGraph: depGraph,
-	}
-	b, err := json.Marshal(&data)
+	b, err := json.Marshal(job)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to encode response.")
 		return

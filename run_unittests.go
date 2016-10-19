@@ -63,6 +63,7 @@ var (
 		"golden":          false,
 		"perf":            false,
 		"status":          false,
+		"task_scheduler":  false,
 	}
 
 	// Directories with these names are skipped when searching for tests.
