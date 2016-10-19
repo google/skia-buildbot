@@ -31,7 +31,7 @@ Where:
 
     {
       digest: "abc12..."    // The image digest.
-      n: 12                 // The number of times the image ocurs in the current tile. 
+      n: 12                 // The number of times the image ocurs in the current tile.
     }
 
     And diffXY looks like:
@@ -49,12 +49,12 @@ Where:
 
     'diff-dblclick' - Triggered when an image is double-clicked.
        e.detail contains the diffXY info associated with that thumbnail.
-  
+
   Methods:
     None
 -->
- 
-<link rel="import" href="bower_components/polymer/polymer.html"> 
+
+<link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="bower_components/paper-tooltip/paper-tooltip.html">
 <link rel="import" href="bower_components/iron-icons/iron-icons.html">
@@ -135,7 +135,7 @@ Where:
             <div class="horizontal layout">
               <template is="dom-repeat" items="{{row}}" as="cell" index-as="colIdx">
                 <div class="imgWrapper">
-                  <img src="{{cell.diffImgUrl}}" data-row="{{rowIdx}}" data-col="{{colIdx}}">
+                  <img src="{{_diffHref(rowIdx, colIdx)}}" data-row="{{rowIdx}}" data-col="{{colIdx}}">
                   <paper-tooltip>
                     <table class="ttTable" border="0" cellspacing="5" cellpadding="5">
                       <tr><th>Pixel Diff (%)</th><td>{{cell.pixelDiffPercent}}</td></tr>
@@ -159,7 +159,7 @@ Where:
 
         properties: {
           _value: {
-            type: Object, 
+            type: Object,
             value: function() { return {}; }
           }
         },
@@ -170,7 +170,7 @@ Where:
         },
 
         _handleCellsClick: function(ev) {
-          this._fireDiffEvent('diff-click', ev); 
+          this._fireDiffEvent('diff-click', ev);
         },
 
         _handleCellsDblClick: function(ev) {
@@ -181,9 +181,9 @@ Where:
           if (ev.target.tagName === 'IMG') {
             ev.stopPropagation();
             if (this._deferredFire) {
-              this.cancelAsync(this._deferredFire); 
-              this._deferredFire = null; 
-            } 
+              this.cancelAsync(this._deferredFire);
+              this._deferredFire = null;
+            }
 
             if ((ev.type === 'click') && (ev.detail > 1)) {
               return;
@@ -191,16 +191,16 @@ Where:
 
             // Fire the event, potentially with a delay.
             var row = ev.target.dataRow,
-                col = ev.target.dataCol; 
-            var detail = sk.object.shallowCopy(this._value.cells[row][col]); 
+                col = ev.target.dataCol;
+            var detail = sk.object.shallowCopy(this._value.cells[row][col]);
             detail.rowDigest = this._value.rows[row].digest;
-            detail.colDigest = this._value.columns[col].digest; 
+            detail.colDigest = this._value.cells[row][col].digest;
 
             var delay = (ev.type === 'click') ? 500 : 0;
             this._deferredFire = this.async(function() {
                this.fire(evType, detail);
                this._deferredFire = null;
-            }.bind(this), delay); 
+            }.bind(this), delay);
           }
         },
 
@@ -210,28 +210,32 @@ Where:
 
         _getColsWithHeaders: function(cols) {
           if (!cols) {
-            return []; 
+            return [];
           }
 
-          var ret = []; 
+          var ret = [];
           for(var i=0, ilen=cols.length; i<ilen; i++) {
             if (this._diffTitle(cols[i].type)) {
               ret.push(cols[i]);
             } else {
-              return ret; 
+              return ret;
             }
           }
           return ret;
-        }, 
+        },
 
         _hasNoHeaderCols: function(cols) {
           if (!cols) {
-            return false; 
+            return false;
           }
 
           var withHeaders = this._getColsWithHeaders(cols);
-          return (withHeaders.length < cols.length); 
-        }, 
+          return (withHeaders.length < cols.length);
+        },
+
+        _diffHref: function(rowIdx, colIdx) {
+          return gold.diffImgHref(this._value.rows[rowIdx].digest, this._value.cells[rowIdx][colIdx].digest);
+        },
 
         _imgHref: gold.imgHref,
         _diffTitle: gold.getDiffTitle
@@ -240,4 +244,3 @@ Where:
     }());
   </script>
 </dom-module>
-

@@ -103,10 +103,10 @@
     <div class="vertical layout">
       <div class="horizontal layout center headingContainer">
         <div id="heading">
-          <span class="name">Name: {{_data.summary.name}}</span>
-          <span class="pos">Pos: {{_data.summary.pos}}</span>
-          <span class="neg">Neg: {{_data.summary.neg}}</span>
-          <span class="unt">Unt: {{_data.summary.untriaged}}</span>
+          <span class="name">Name: [[_data.summary.name]]</span>
+          <span class="pos">Pos: [[_data.summary.pos]]</span>
+          <span class="neg">Neg: [[_data.summary.neg]]</span>
+          <span class="unt">Unt: [[_data.summary.unt]]</span>
         </div>
 
         <div>
@@ -177,16 +177,24 @@
 
       // The current state of the page.
       var defaultQuery = {
-        test: "",
         rowQuery: null,
         columnQuery: null,
         match: defaultMatchConfigs,
         rowN: 5,
         columnN: 5,
-        sort: "row",
-        dir: gold.SORT_ASC,
-        digest: ""
+        sortRows: gold.SORT_FIELD_N,
+        rowsDir: gold.SORT_DESC,
+        sortColumns: gold.SORT_FIELD_DIFF,
+        columnsDir: gold.SORT_ASC
       };
+
+      var defaultRowQuery = sk.object.shallowCopy(gold.defaultSearchState);
+      defaultRowQuery.limit = 10;
+      var defaultColumnQuery = sk.object.shallowCopy(gold.defaultSearchState);
+      defaultColumnQuery.pos = true;
+      defaultColumnQuery.neg = true;
+      defaultColumnQuery.unt = false;
+      defaultColumnQuery.limit = 10;
 
       Polymer({
         is: "comp-page-sk",
@@ -212,7 +220,7 @@
           this.listen(this.$.gridCompare, 'diff-dblclick', '_handleGridDblClick');
           this.listen(this.$.compDetails, 'zoom-clicked', "_handleZoomClicked");
           this.listen(this.$.rowSearchControls, 'state-change', '_handleRowQueryChange');
-          this.listen(this.$.colSearchControls, 'state-change', '_handleColQueryChange');
+          this.listen(this.$.colSearchControls, 'state-change', '_handleColumnQueryChange');
           this.listen(this.$.moreColumnsButton, 'click', '_handleMoreColumns');
           this.listen(this.$.moreRowsButton, 'click', '_handleMoreRows');
           this._setDefaultState(gold.defaultSearchState, true);
@@ -222,8 +230,8 @@
           this._testName = ctx.params.test;
           this._query = sk.object.shallowCopy(defaultQuery);
           this._query.match = defaultMatchConfigs.slice();
-          this._query.rowQuery = this._getDefaultStateWithCorpus();
-          this._query.colQuery = this._getDefaultStateWithCorpus();
+          this._query.rowQuery = this._getDefaultStateWithCorpus(defaultRowQuery);
+          this._query.columnQuery = this._getDefaultStateWithCorpus(defaultColumnQuery);
           this._load();
         },
 
@@ -236,7 +244,7 @@
             this.$.rowSearchControls.setState(this._query.rowQuery);
 
             this.$.colSearchControls.setParamSet(json);
-            this.$.colSearchControls.setState(this._query.colQuery);
+            this.$.colSearchControls.setState(this._query.columnQuery);
             this.$.paramsSelect.setParamSet(json);
             this.$.paramsSelect.setSelection(this._query.match);
           }.bind(this)).catch(sk.errorMessage);
@@ -247,7 +255,7 @@
           sk.post(url, JSON.stringify(this._query)).then(JSON.parse).then(function (json) {
             activity.stopSpinner();
             this.set("_data", json);
-            this.$.gridCompare.setValue(json.diffs);
+            this.$.gridCompare.setValue(json.grid);
           }.bind(this)).catch(function(e) {
             activity.stopSpinner();
             sk.errorMessage(e);
@@ -288,8 +296,8 @@
           }
         },
 
-        _handleColQueryChange: function(ev) {
-          this._query.colQuery = ev.detail;
+        _handleColumnQueryChange: function(ev) {
+          this._query.columnQuery = ev.detail;
           this._load();
         },
 

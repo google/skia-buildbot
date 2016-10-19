@@ -169,6 +169,7 @@
         var pageElement = this.$$("section[data-route="+routeID+"]").children[0];
         page(path, (function(ctx) {
           this.route = routeID;
+          ctx.routeID = routeID;
           this._pagesSelect(pageElement, ctx);
         }).bind(this));
       }
