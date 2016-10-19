@@ -87,3 +87,8 @@ func SendTaskStartEmail(recipients []string, taskName, runID, description string
 	}
 	return nil
 }
+
+// GetSwarmingLogsLink returns HTML snippet that contains a href to the swarming logs.
+func GetSwarmingLogsLink(runID string) string {
+	return fmt.Sprintf("Swarming logs <a href='%s'>link</a>", fmt.Sprintf(SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID))
+}

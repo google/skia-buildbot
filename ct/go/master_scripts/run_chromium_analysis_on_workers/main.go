@@ -80,7 +80,7 @@ func sendEmail(recipients []string, gs *util.GsUtil) {
 	}
 
 	bodyTemplate := `
-	The chromium analysis %s benchmark task on %s pageset has completed.<br/>
+	The chromium analysis %s benchmark task on %s pageset has completed. %s.<br/>
 	Run description: %s<br/>
 	%s
 	The CSV output is <a href='%s'>here</a>.%s<br/>
@@ -91,7 +91,7 @@ func sendEmail(recipients []string, gs *util.GsUtil) {
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, *description, failureHtml, outputLink, archivedWebpagesText, chromiumPatchLink, catapultPatchLink, benchmarkPatchLink, frontend.ChromiumAnalysisTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, outputLink, archivedWebpagesText, chromiumPatchLink, catapultPatchLink, benchmarkPatchLink, frontend.ChromiumAnalysisTasksWebapp)
 	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
