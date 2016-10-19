@@ -30,14 +30,14 @@ const (
 	testTasksCfg = `{
   "tasks": {
     "fake-task1": {
-      "dependencies": [],
+      "dependencies": {},
       "dimensions": ["pool:Skia", "os:Ubuntu", "cpu:x86-64-avx2", "gpu:none"],
       "extra_args": [],
       "isolate": "fake1.isolate",
       "priority": 0.8
     },
     "fake-task2": {
-      "dependencies": ["fake-task1"],
+      "dependencies": {"fake-task1":[]},
       "dimensions": ["pool:Skia", "os:Ubuntu", "cpu:x86-64-avx2", "gpu:none"],
       "extra_args": [],
       "isolate": "fake2.isolate",
