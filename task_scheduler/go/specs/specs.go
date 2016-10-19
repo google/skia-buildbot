@@ -19,6 +19,8 @@ import (
 )
 
 const (
+	ISSUE_SHORT_LENGTH = 2
+
 	TASKS_CFG_FILE = "infra/bots/tasks.json"
 
 	VARIABLE_SYNTAX = "<(%s)"
