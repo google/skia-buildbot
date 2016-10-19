@@ -219,7 +219,7 @@ func (s *SwarmingClient) BatchArchiveTargets(isolatedGenJSONs []string, d time.D
 }
 
 // Trigger swarming using the specified hashes and dimensions.
-func (s *SwarmingClient) TriggerSwarmingTasks(tasksToHashes, dimensions, tags map[string]string, priority int, expiration, hardTimeout, ioTimeout time.Duration, idempotent bool) ([]*SwarmingTask, error) {
+func (s *SwarmingClient) TriggerSwarmingTasks(tasksToHashes, dimensions, tags map[string]string, priority int, expiration, hardTimeout, ioTimeout time.Duration, idempotent, addTaskNameAsTag bool) ([]*SwarmingTask, error) {
 	tasks := []*SwarmingTask{}
 
 	for taskName, hash := range tasksToHashes {
@@ -227,12 +227,19 @@ func (s *SwarmingClient) TriggerSwarmingTasks(tasksToHashes, dimensions, tags ma
 		if err := os.MkdirAll(taskOutputDir, 0700); err != nil {
 			return nil, fmt.Errorf("Could not create %s: %s", taskOutputDir, err)
 		}
+		taskTags := map[string]string{}
+		for k, v := range tags {
+			taskTags[k] = v
+		}
+		if addTaskNameAsTag {
+			taskTags["name"] = taskName
+		}
 		task := &SwarmingTask{
 			Title:        taskName,
 			IsolatedHash: hash,
 			OutputDir:    taskOutputDir,
 			Dimensions:   dimensions,
-			Tags:         tags,
+			Tags:         taskTags,
 			Priority:     priority,
 			Expiration:   expiration,
 			Idempotent:   idempotent,
