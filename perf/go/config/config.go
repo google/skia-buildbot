@@ -22,7 +22,7 @@ const (
 
 	// MIN_CLUSTER_STEP_COMMITS is minimum number of commits that we need on either leg
 	// of a step function.
-	MIN_CLUSTER_STEP_COMMITS = 5
+	MIN_CLUSTER_STEP_COMMITS = 4
 
 	// MIN_STDDEV is the smallest standard deviation we will normalize, smaller
 	// than this and we presume it's a standard deviation of zero.
