@@ -17,12 +17,16 @@ import (
 )
 
 const (
+	ROLL_ATTEMPT_THROTTLE_TIME = 10 * time.Minute
+	ROLL_ATTEMPT_THROTTLE_NUM  = 3
+
 	STATUS_DRY_RUN_FAILURE     = "dry run failed"
 	STATUS_DRY_RUN_IN_PROGRESS = "dry run in progress"
 	STATUS_DRY_RUN_SUCCESS     = "dry run succeeded"
 	STATUS_ERROR               = "error"
 	STATUS_IN_PROGRESS         = "in progress"
 	STATUS_STOPPED             = "stopped"
+	STATUS_THROTTLED           = "throttled"
 	STATUS_UP_TO_DATE          = "up to date"
 )
 
@@ -34,12 +38,14 @@ var (
 		STATUS_ERROR,
 		STATUS_IN_PROGRESS,
 		STATUS_STOPPED,
+		STATUS_THROTTLED,
 		STATUS_UP_TO_DATE,
 	}
 )
 
 // AutoRoller is a struct used for managing DEPS rolls.
 type AutoRoller struct {
+	attemptCounter   *util.AutoDecrementCounter
 	cqExtraTrybots   string
 	emails           []string
 	includeCommitLog bool
@@ -74,6 +80,7 @@ func NewAutoRoller(workdir, childPath, cqExtraTrybots string, emails []string, r
 	}
 
 	arb := &AutoRoller{
+		attemptCounter:   util.NewAutoDecrementCounter(ROLL_ATTEMPT_THROTTLE_TIME),
 		cqExtraTrybots:   cqExtraTrybots,
 		emails:           emails,
 		includeCommitLog: true,
@@ -511,6 +518,10 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 	}
 
 	// Create a new roll.
+	if r.attemptCounter.Get() >= ROLL_ATTEMPT_THROTTLE_NUM {
+		return STATUS_THROTTLED, nil
+	}
+	r.attemptCounter.Inc()
 	uploadedNum, err := r.rm.CreateNewRoll(r.GetEmails(), r.cqExtraTrybots, r.isMode(autoroll_modes.MODE_DRY_RUN))
 	if err != nil {
 		return STATUS_ERROR, fmt.Errorf("Failed to upload a new roll: %s", err)

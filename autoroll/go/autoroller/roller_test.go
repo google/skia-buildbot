@@ -700,3 +700,36 @@ func TestAutoRollCommitLandRace(t *testing.T) {
 	assert.NoError(t, roller.doAutoRoll())
 	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll1, trybots, false)
 }
+
+// TestAutoRollThrottle ensures that we properly throttle the roller so that it
+// doesn't upload new CLs over and over.
+func TestAutoRollThrottle(t *testing.T) {
+	workdir, roller, rm, rv, roll1 := setup(t)
+	defer func() {
+		assert.NoError(t, roller.Close())
+		assert.NoError(t, os.RemoveAll(workdir))
+	}()
+
+	// The roll failed. Verify that we close it and upload another one.
+	rv.pretendRollFailed(roll1, noTrybots)
+	rv.rollerWillCloseIssue(roll1)
+	roll2 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), noTrybots, false)
+	assert.NoError(t, roller.doAutoRoll())
+	roll1.Closed = true // The roller should have closed this CL.
+	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll2, noTrybots, false, roll1, noTrybots, false)
+
+	// The roll failed. Verify that we close it and upload another one.
+	rv.pretendRollFailed(roll2, noTrybots)
+	rv.rollerWillCloseIssue(roll2)
+	roll3 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), noTrybots, false)
+	assert.NoError(t, roller.doAutoRoll())
+	roll2.Closed = true // The roller should have closed this CL.
+	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll3, noTrybots, false, roll2, noTrybots, false)
+
+	// Now we should be throttled.
+	rv.pretendRollFailed(roll3, noTrybots)
+	rv.rollerWillCloseIssue(roll3)
+	assert.NoError(t, roller.doAutoRoll())
+	roll3.Closed = true // The roller should have closed this CL.
+	checkStatus(t, roller, rv, rm, STATUS_THROTTLED, nil, nil, false, roll3, noTrybots, false)
+}
