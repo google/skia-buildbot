@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fc632725_cd02fcb6",
+        "filename": "go/metadata/metadata.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-19T20:27:30Z",
+      "side": 1,
+      "message": "I have changed the project meta data to reflect this change.",
+      "range": {
+        "startLine": 58,
+        "startChar": 1,
+        "endLine": 58,
+        "endChar": 16
+      },
+      "revId": "b11c6d32d029e2fb4db65aa8bfd4dfd3d59e0916",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
