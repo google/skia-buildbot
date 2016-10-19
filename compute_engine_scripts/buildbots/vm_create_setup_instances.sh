@@ -184,8 +184,6 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
 
     install_go
 
-    install_redis
-
     if [ "$VM_IS_BUILDBOT" = 1 ]; then
       checkout_skia_repos
 
