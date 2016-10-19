@@ -22,6 +22,24 @@
       "revId": "0ea23775b0b993806c1b7852d689a86dd23d8623",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_acca29a6",
+        "filename": "golden/frontend/res/imp/comp-page-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-19T13:19:30Z",
+      "side": 1,
+      "message": "Agreed. I changed the four instances above now and I will fix the remaining cases when I do another pass through this element in a later CL.",
+      "parentUuid": "fc632725_e9bb7dc4",
+      "revId": "0ea23775b0b993806c1b7852d689a86dd23d8623",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
