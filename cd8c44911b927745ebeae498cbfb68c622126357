@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fc632725_cfc7972f",
+        "filename": "fuzzer/res/imp/fuzzer-details-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-19T15:13:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fc632725_0c6b5da0",
+      "revId": "cd8c44911b927745ebeae498cbfb68c622126357",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fc632725_ac66a9d5",
         "filename": "fuzzer/res/imp/fuzzer-details-sk.html",
         "patchSetId": 4
@@ -30,6 +48,24 @@
       "writtenOn": "2016-10-19T13:47:58Z",
       "side": 1,
       "message": "blank line between classes.",
+      "revId": "cd8c44911b927745ebeae498cbfb68c622126357",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_6fc2c322",
+        "filename": "fuzzer/res/imp/fuzzer-details-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-19T15:13:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fc632725_ac66a9d5",
       "revId": "cd8c44911b927745ebeae498cbfb68c622126357",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "fc632725_0fb18fc7",
+        "filename": "fuzzer/res/imp/fuzzer-details-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-19T15:13:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fc632725_4c755579",
+      "revId": "cd8c44911b927745ebeae498cbfb68c622126357",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fc632725_ac7d0960",
         "filename": "fuzzer/res/imp/fuzzer-filter-sk.html",
         "patchSetId": 4
@@ -64,6 +118,24 @@
       "writtenOn": "2016-10-19T13:47:58Z",
       "side": 1,
       "message": "blank lines between classes.",
+      "revId": "cd8c44911b927745ebeae498cbfb68c622126357",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_efad336b",
+        "filename": "fuzzer/res/imp/fuzzer-filter-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-19T15:13:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fc632725_ac7d0960",
       "revId": "cd8c44911b927745ebeae498cbfb68c622126357",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
