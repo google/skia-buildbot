@@ -35,6 +35,15 @@ func (t *ClusterableTrace) String() string {
 	return fmt.Sprintf("%s %#v", t.Key, t.Values[:2])
 }
 
+func (t *ClusterableTrace) Dup(newKey string) *ClusterableTrace {
+	cp := &ClusterableTrace{
+		Key:    newKey,
+		Values: make([]float32, len(t.Values)),
+	}
+	copy(cp.Values, t.Values)
+	return cp
+}
+
 // NewFullTrace takes data you would find in a Trace and returns a
 // ClusterableTrace usable for kmeans clustering.
 func NewFullTrace(key string, values []float32, minStdDev float32) *ClusterableTrace {

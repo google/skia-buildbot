@@ -119,3 +119,21 @@ func Dup(a []float32) []float32 {
 	copy(ret, a)
 	return ret
 }
+
+// Mean calculates and returns the Mean value of the given []float32.
+func Mean(xs []float32) float32 {
+	total := float32(0.0)
+	for _, v := range xs {
+		total += v
+	}
+	return total / float32(len(xs))
+}
+
+// SSE calculates and returns the sum squared error from the given base of []float32.
+func SSE(xs []float32, base float32) float32 {
+	total := 0.0
+	for _, v := range xs {
+		total += math.Pow(float64(v-base), 2)
+	}
+	return float32(total)
+}
