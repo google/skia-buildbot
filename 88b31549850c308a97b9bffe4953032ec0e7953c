@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fc632725_a04b4823",
+        "filename": "go/mockhttpclient/urlmock.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-19T19:17:17Z",
+      "side": 1,
+      "message": "Extracted from URLMock.RoundTrip",
+      "revId": "88b31549850c308a97b9bffe4953032ec0e7953c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc632725_80f3accb",
+        "filename": "go/mockhttpclient/urlmock_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-19T19:17:17Z",
+      "side": 1,
+      "message": "Renamed with no modifications.",
+      "revId": "88b31549850c308a97b9bffe4953032ec0e7953c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
