@@ -240,19 +240,19 @@ func runServer() {
 
 	r.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 	r.HandleFunc("/", indexHandler)
-	r.HandleFunc("/category/{category:[a-z_]+}", detailsPageHandler)
-	r.HandleFunc("/category/{category:[a-z_]+}/name/{name}", detailsPageHandler)
-	r.HandleFunc("/category/{category:[a-z_]+}/file/{file}", detailsPageHandler)
-	r.HandleFunc("/category/{category:[a-z_]+}/file/{file}/func/{function}", detailsPageHandler)
-	r.HandleFunc(`/category/{category:[a-z_]+}/file/{file}/func/{function}/line/{line}`, detailsPageHandler)
+	r.HandleFunc("/category/{category:[0-9a-z_]+}", detailsPageHandler)
+	r.HandleFunc("/category/{category:[0-9a-z_]+}/name/{name}", detailsPageHandler)
+	r.HandleFunc("/category/{category:[0-9a-z_]+}/file/{file}", detailsPageHandler)
+	r.HandleFunc("/category/{category:[0-9a-z_]+}/file/{file}/func/{function}", detailsPageHandler)
+	r.HandleFunc(`/category/{category:[0-9a-z_]+}/file/{file}/func/{function}/line/{line}`, detailsPageHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/json/fuzz-summary", summaryJSONHandler)
 	r.HandleFunc("/json/details", detailsJSONHandler)
 	r.HandleFunc("/json/status", statusJSONHandler)
-	r.HandleFunc(`/fuzz/{category:[a-z_]+}/{name:[0-9a-f]+}`, fuzzHandler)
-	r.HandleFunc(`/metadata/{category:[a-z_]+}/{name:[0-9a-f]+_(debug|release)\.(err|dump|asan)}`, metadataHandler)
+	r.HandleFunc(`/fuzz/{name:[0-9a-f]+}`, fuzzHandler)
+	r.HandleFunc(`/metadata/{name:[0-9a-f]+_(debug|release)\.(err|dump|asan)}`, metadataHandler)
 	r.HandleFunc("/newBug", newBugHandler)
 	r.HandleFunc("/roll", rollHandler)
 	r.HandleFunc("/roll/revision", updateRevision)
@@ -325,7 +325,6 @@ type countSummary struct {
 
 // summaryJSONHandler returns a countSummary, representing the results for all fuzzers.
 func summaryJSONHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO(kjlubick): Allow for filtering by architecture(s)
 	summary := getSummary()
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(summary); err != nil {
@@ -369,10 +368,6 @@ func detailsJSONHandler(w http.ResponseWriter, r *http.Request) {
 
 	category := r.FormValue("category")
 	architecture := r.FormValue("architecture")
-	if architecture == "" {
-		// TODO(kjlubick): remove this when the client has been updated to supply architecture
-		architecture = "linux_x64"
-	}
 	name := r.FormValue("name")
 	badOrGrey := r.FormValue("badOrGrey")
 
@@ -430,27 +425,29 @@ func decodeBase64(s string) (string, error) {
 	return string(b), err
 }
 
-// fuzzHandler serves the contents of the fuzz as application/octet-stream
+// fuzzHandler serves the contents of the fuzz as application/octet-stream.  It looks up the fuzz
+// by name in the fuzzPool and uses the category/architecture/badness from the returned FuzzReport
+// to fetch it from Google Storage and return it to the user.  This primarily allows users to
+// download grey fuzzes if they want to and simplifies the client side request.
 func fuzzHandler(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
-	category := v["category"]
-	// Check the category to avoid someone trying to download arbitrary files from our bucket
-	if !fcommon.HasCategory(category) {
-		httputils.ReportError(w, r, fmt.Errorf("Could not find category: %q", category), "Category not found")
-		return
-	}
-	architecture, ok := v["architecture"]
-	if !ok {
-		// TODO(kjlubick): remove this when the client has been updated to supply architecture
-		architecture = "linux_x64"
-	}
-	if !fcommon.HasArchitecture(architecture) {
-		httputils.ReportError(w, r, fmt.Errorf("Could not find arch: %q", architecture), "Architecture not found")
-		return
-	}
+
 	name := v["name"]
-	// TODO(kjlubick): Support downloading regressed files as well
-	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/%s/bad/%s/%s", category, config.Common.SkiaVersion.Hash, architecture, name, name))
+	if fuzzPool == nil {
+		httputils.ReportError(w, r, nil, "Fuzzes not loaded yet")
+		return
+	}
+	fuzz, err := fuzzPool.FindFuzzDetailForFuzz(name)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Fuzz not found")
+		return
+	}
+	badOrGrey := "bad"
+	if fuzz.IsGrey {
+		badOrGrey = "grey"
+	}
+
+	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/%s/%s/%s/%s", fuzz.FuzzCategory, config.Common.SkiaVersion.Hash, fuzz.FuzzArchitecture, badOrGrey, fuzz.FuzzName, fuzz.FuzzName))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fuzz not found")
 		return
@@ -465,27 +462,29 @@ func fuzzHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // metadataHandler serves the contents of a fuzz's metadata (e.g. stacktrace) as text/plain
+//  It looks up the fuzz by name in the fuzzPool and uses the category/architecture/badness from
+// the returned FuzzReport to fetch the metadata from Google Storage and return it to the user.
+// This primarily allows users to download grey fuzz metadata if they want to and simplifies
+//  the client side request.
 func metadataHandler(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
-	category := v["category"]
-	// Check the category to avoid someone trying to download arbitrary files from our bucket
-	if !fcommon.HasCategory(category) {
-		httputils.ReportError(w, r, fmt.Errorf("Could not find category: %q", category), "Category not found")
-		return
-	}
-	architecture, ok := v["category"]
-	if !ok {
-		// TODO(kjlubick): remove this when the client has been updated to supply architecture
-		architecture = "linux_x64"
-	}
-	if !fcommon.HasArchitecture(architecture) {
-		httputils.ReportError(w, r, fmt.Errorf("Could not find arch: %q", architecture), "Architecture not found")
-		return
-	}
 	name := v["name"]
 	hash := strings.Split(name, "_")[0]
+	if fuzzPool == nil {
+		httputils.ReportError(w, r, nil, "Fuzzes not loaded yet")
+		return
+	}
+	fuzz, err := fuzzPool.FindFuzzDetailForFuzz(hash)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Fuzz not found")
+		return
+	}
+	badOrGrey := "bad"
+	if fuzz.IsGrey {
+		badOrGrey = "grey"
+	}
 
-	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/%s/bad/%s/%s", category, config.Common.SkiaVersion.Hash, architecture, hash, name))
+	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/%s/%s/%s/%s", fuzz.FuzzCategory, config.Common.SkiaVersion.Hash, fuzz.FuzzArchitecture, badOrGrey, fuzz.FuzzName, name))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fuzz metadata not found")
 		return
