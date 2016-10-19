@@ -43,16 +43,16 @@
     <iron-ajax auto url="/json/details"
       handle-as="json"
       params="[[_urlParams]]"
-      last-response="{{_fileDetails}}">
+      last-response="{{_fuzzDetails}}">
     </iron-ajax>
 
-    <template is="dom-repeat" items="{{_filteredFileDetails}}" as="file" sort="_byCount">
+    <template is="dom-repeat" items="[[_filteredFileDetails]]" as="file" sort="_byCount">
       <fuzzer-collapse-file-sk file="{{file}}"
           category="[[category]]"
           expand="[[_shouldExpand()]]">
       </fuzzer-collapse-file-sk>
     </template>
-    <template is="dom-if" if="{{_isEmpty}}">
+    <template is="dom-if" if="[[_isEmpty]]">
       <div>No results found (or server is still loading). Try refreshing this page later.</div>
     </template>
 
@@ -63,6 +63,12 @@
       is: 'fuzzer-info-sk',
 
       properties: {
+        architecture: {
+          type: String,
+          value: function() {
+            return [];
+          }
+        },
         category: {
           type: String,
           value: "",
@@ -79,7 +85,7 @@
             return [];
           }
         },
-        _fileDetails: {
+        _fuzzDetails: {
           type: Array,
           value: function() {
             return [];
@@ -87,7 +93,7 @@
         },
         _filteredFileDetails: {
           type: Array,
-          computed: "_filter(_fileDetails, include, exclude)",
+          computed: "_filter(_fuzzDetails, architecture.*, include.*, exclude.*)",
         },
         _isEmpty: {
           type: Boolean,
@@ -98,31 +104,24 @@
           computed: "_getURLParams(category)",
         },
       },
-      _getURLParams: function(category) {
-        return {
-          "category": category,
-          "file": fuzzer.paramFromPath("file"),
-          "func": fuzzer.paramFromPath("func"),
-          "line": fuzzer.paramFromPath("line"),
-          "name": fuzzer.paramFromPath("name"),
-        };
-      },
-      _shouldExpand: function(){
-        return fuzzer.paramFromPath("file").length > 0 || fuzzer.paramFromPath("name").length > 0;
-      },
+
       _byCount: function(a, b) {
         // Higher counts come first
         return b.count - a.count;
       },
-      _filter: function(fileDetails, include, exclude){
-        if (this._empty(fileDetails)) {
+
+      _empty: function(a) {
+        return !a || !a.length;
+      },
+
+      _filter: function(fuzzDetails){
+        if (this._empty(fuzzDetails)) {
           return [];
         }
-        exclude = exclude || [];
-        include = include || [];
-        if (exclude.length === 0 && include.length === 0) {
-          return fileDetails;
-        }
+        var exclude = this.exclude || [];
+        var include = this.include || [];
+        var architecture = this.architecture || [];
+        var fileDetails = this._group(fuzzDetails);
 
         // make a fresh copy of the data.  This way, we can just completely replace the array
         // without having to do Polymer's special array manipulation.
@@ -134,6 +133,9 @@
             var funcCount = 0;
             func.byLineNumber.forEach(function(line) {
               line.reports = line.reports.filter(function(report) {
+                if (architecture.length > 0 && architecture.indexOf(report.architecture) === -1) {
+                  return false;
+                }
                 if (sk.sharesElement(exclude, report.debugFlags) ||
                     sk.sharesElement(exclude, report.releaseFlags)) {
                   return false;
@@ -155,13 +157,92 @@
           });
           file.count = fileCount;
         });
-
         return retVal;
-
       },
-      _empty: function(a) {
-        return !a || !a.length;
-      }
+
+      _getURLParams: function(category) {
+        return {
+          "category": category,
+          "file": fuzzer.paramFromPath("file"),
+          "func": fuzzer.paramFromPath("func"),
+          "line": fuzzer.paramFromPath("line"),
+          "name": fuzzer.paramFromPath("name"),
+          // TODO(kjlubick) Maybe make this user changeable
+          "badOrGrey": "bad",
+        };
+      },
+
+      _group: function(fuzzes) {
+        var files = {};
+        // files is a flat array of fuzzes.  We want to turn it into an array
+        // of objects like:
+        // {
+        //   fileName: String,
+        //   count: Integer,
+        //   byFunction: Array<{
+        //     functionName: String,
+        //     count: Integer,
+        //     byLineNumber: Array<{
+        //       lineNumber: Integer,
+        //       count: Integer,
+        //       reports: Array<Fuzz>
+        //     }>
+        //   }>
+        // }
+        // where Fuzz is the original object given to us by the server.  See
+        // fuzzer-collapse-details-sk for the Fuzz schema.
+
+        // First we group up the fuzzes by file, func, and line number
+        fuzzes.forEach(function(f){
+          var file = f.fileName || "UNKNOWN";
+          var func = f.functionName || "UNKNOWN";
+          var line = f.lineNumber || -1;
+          if (!files[file]) {
+            files[file] = {};
+          }
+          if (!files[file][func]) {
+            files[file][func] = {};
+          }
+          if (!files[file][func][line]) {
+            files[file][func][line] = [];
+          }
+          files[file][func][line].push(f)
+        });
+
+        // Take the object and put it into arrays, so Polymer can use dom-repeats.
+        var fileData = [];
+        for (var file in files) {
+          var funcs = files[file];
+          var byFunction = [];
+          for (var func in funcs) {
+            var lines = funcs[func];
+            var byLineNumber = [];
+            for (line in lines) {
+              byLineNumber.push({
+                count: 0,
+                lineNumber: line,
+                reports: lines[line],
+              });
+            }
+            byFunction.push({
+              count: 0,
+              functionName: func,
+              byLineNumber: byLineNumber,
+            });
+          }
+          fileData.push({
+            count: 0,
+            fileName: file,
+            byFunction: byFunction,
+          })
+        }
+
+        return fileData;
+      },
+
+      _shouldExpand: function(){
+        return fuzzer.paramFromPath("file").length > 0 || fuzzer.paramFromPath("name").length > 0;
+      },
     });
   </script>
 </dom-module>
