@@ -1190,7 +1190,8 @@ type FrameStartResponse struct {
 // of the Go routine doing the work.
 //
 // Building a DataFrame can take a long time to complete, so we run the request
-// in a Go routine and break the building DataFrames into three separate requests:
+// in a Go routine and break the building of DataFrames into three separate
+// requests:
 //  * Start building the DataFrame (_/frame/start), which returns an identifier of the long
 //    running request, {id}.
 //  * Query the status of the running request (_/frame/status/{id}).
@@ -1243,9 +1244,9 @@ func frameStatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// frameStatusHandler returns the results of a pending FrameRequest.
+// frameResultsHandler returns the results of a pending FrameRequest.
 //
-// See frameStartHandler for more details.
+// See frameStatusHandler for more details.
 func frameResultsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id := mux.Vars(r)["id"]
