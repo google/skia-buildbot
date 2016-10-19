@@ -347,6 +347,7 @@ func (r *repoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryR
 	if err != nil {
 		return 0, err
 	}
+	commitMsg += "\nDocumentation for the AutoRoller is here: https://skia.googlesource.com/buildbot/+/master/autoroll/README.md\n"
 	if cqExtraTrybots != "" {
 		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
 	}
