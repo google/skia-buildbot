@@ -60,19 +60,19 @@ func deltaOffset(n int) int {
 // DiffMetrics contains the diff information between two images.
 type DiffMetrics struct {
 	// NumDiffPixels is the absolute number of pixels that are different.
-	NumDiffPixels int
+	NumDiffPixels int `json:"numDiffPixels"`
 
 	// PixelDiffPercent is the percentage of pixels that are different.
-	PixelDiffPercent float32
+	PixelDiffPercent float32 `json:"pixelDiffPercent"`
 
 	// MaxRGBADiffs contains the maximum difference of each channel.
-	MaxRGBADiffs []int
+	MaxRGBADiffs []int `json:"maxRGBADiffs"`
 
 	// DimDiffer is true if the dimensions between the two images are different.
-	DimDiffer bool
+	DimDiffer bool `json:"dimDiffer"`
 
 	// Diffs contains different diff metrics for the to images.
-	Diffs map[string]float32
+	Diffs map[string]float32 `json:"diffs"`
 }
 
 // Diff error to indicate different error conditions during diffing.
