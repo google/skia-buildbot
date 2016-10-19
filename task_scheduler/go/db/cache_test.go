@@ -548,7 +548,7 @@ func TestJobCacheReset(t *testing.T) {
 
 	// Make an update.
 	j2 := makeJob(startTime.Add(time.Minute))
-	j1.Dependencies = []string{"someTask"}
+	j1.Dependencies = map[string][]string{"someTask": []string{}}
 	assert.NoError(t, db.PutJobs([]*Job{j2, j1}))
 
 	// Ensure cache gets reset.
@@ -593,7 +593,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	testGetUnfinished(t, []*Job{j3}, c)
 
 	// Update the job.
-	j3.Dependencies = []string{"a", "b", "c"}
+	j3.Dependencies = map[string][]string{"a": []string{}, "b": []string{}, "c": []string{}}
 	assert.False(t, j3.Done())
 	assert.NoError(t, db.PutJob(j3))
 	assert.NoError(t, c.Update())
