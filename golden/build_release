@@ -71,9 +71,7 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
   # Builds and uploads a debian package for skiacorrectness.
   APPNAME=skiacorrectness-$INSTANCE_ID
   CORRECTNESS_APPNAME="skiacorrectness"
-  SETUP_APPNAME="setup_skiacorrectness"
   SYSTEMD="${CORRECTNESS_APPNAME}.service"
-  SYSTEMD_TIMER="${SETUP_APPNAME}.timer"
   DESCRIPTION="Manages baseline images."
 
   DEPENDS=git
@@ -110,11 +108,6 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
   ${INSTALL_DIR} --mode=755                                       ${ROOT}/usr/local/share/skiacorrectness/frontend/res/vul
   ${INSTALL}     --mode=644 ./frontend/res/vul/elements.html      ${ROOT}/usr/local/share/skiacorrectness/frontend/res/vul/elements.html
   ${INSTALL}     --mode=644 ./frontend/index.html                 ${ROOT}/usr/local/share/skiacorrectness/frontend/index.html
-
-  ${INSTALL} --mode=644 -T ./sys/${SETUP_APPNAME}.timer           ${ROOT}/etc/systemd/system/${SETUP_APPNAME}.timer
-  ${INSTALL} --mode=644 -T ./sys/${SETUP_APPNAME}.service         ${ROOT}/etc/systemd/system/${SETUP_APPNAME}.service
-  ${INSTALL} --mode=755 -T ./sys/${SETUP_APPNAME}.sh              ${ROOT}/usr/local/bin/${SETUP_APPNAME}.sh
-
   ${INSTALL} --mode=644 -T ./sys/${CORRECTNESS_APPNAME}.service   ${ROOT}/etc/systemd/system/${CORRECTNESS_APPNAME}.service
   }
 
