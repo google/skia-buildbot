@@ -804,3 +804,8 @@ func GetHashesFromBuild(chromiumBuild string) (string, string) {
 	tokens := strings.Split(chromiumBuild, "-")
 	return tokens[1], tokens[2]
 }
+
+// GetSwarmingLogsLink returns HTML snippet that contains a href to the swarming logs.
+func GetSwarmingLogsLink(runID string) string {
+	return fmt.Sprintf("Swarming logs <a href='%s'>link</a>", fmt.Sprintf(SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID))
+}

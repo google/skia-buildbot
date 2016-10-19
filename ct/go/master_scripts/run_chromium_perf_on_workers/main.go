@@ -75,7 +75,7 @@ func sendEmail(recipients []string) {
 		}
 	}
 	bodyTemplate := `
-	The chromium perf %s benchmark task on %s pageset has completed.<br/>
+	The chromium perf %s benchmark task on %s pageset has completed. %s.<br/>
 	Run description: %s<br/>
 	%s
 	The HTML output with differences between the base run and the patch run is <a href='%s'>here</a>.<br/>
@@ -86,7 +86,7 @@ func sendEmail(recipients []string) {
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, *description, failureHtml, htmlOutputLink, chromiumPatchLink, skiaPatchLink, catapultPatchLink, frontend.ChromiumPerfTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, htmlOutputLink, chromiumPatchLink, skiaPatchLink, catapultPatchLink, frontend.ChromiumPerfTasksWebapp)
 	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
