@@ -25,9 +25,10 @@ import (
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/data"
 	"go.skia.org/infra/fuzzer/go/frontend"
+	"go.skia.org/infra/fuzzer/go/frontend/fuzzcache"
+	"go.skia.org/infra/fuzzer/go/frontend/fuzzpool"
 	"go.skia.org/infra/fuzzer/go/frontend/gsloader"
 	"go.skia.org/infra/fuzzer/go/frontend/syncer"
-	"go.skia.org/infra/fuzzer/go/fuzzcache"
 	"go.skia.org/infra/fuzzer/go/issues"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -65,6 +66,8 @@ var (
 	fuzzSyncer *syncer.FuzzSyncer = nil
 
 	issueManager *issues.IssuesManager = nil
+
+	fuzzPool *fuzzpool.FuzzPool = fuzzpool.New()
 
 	repo     *gitinfo.GitInfo = nil
 	repoLock sync.Mutex
@@ -144,7 +147,7 @@ func main() {
 	}
 
 	go func() {
-		if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Common.SkiaRoot, &config.Common, false); err != nil {
+		if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Common.SkiaRoot, &config.Common, !*local); err != nil {
 			glog.Fatalf("Problem downloading Skia: %s", err)
 		}
 
@@ -157,10 +160,10 @@ func main() {
 		}
 		defer util.Close(cache)
 
-		if err := gsloader.LoadFromBoltDB(cache); err != nil {
+		if err := gsloader.LoadFromBoltDB(fuzzPool, cache); err != nil {
 			glog.Errorf("Could not load from boltdb.  Loading from source of truth anyway. %s", err)
 		}
-		gsLoader := gsloader.New(storageClient, cache)
+		gsLoader := gsloader.New(storageClient, cache, fuzzPool)
 		if err := gsLoader.LoadFreshFromGoogleStorage(); err != nil {
 			glog.Fatalf("Error loading in data from GCS: %s", err)
 		}
@@ -261,6 +264,8 @@ func runServer() {
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }
 
+// indexHandler displays the index page, which has no real templating. The client side JS will
+// query for more information.
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		reloadTemplates()
@@ -272,6 +277,8 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// detailsPageHandler displays the details page customized with the category requrested. The client
+// side JS will query for more information.
 func detailsPageHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		reloadTemplates()
@@ -289,6 +296,8 @@ func detailsPageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// rollHandler displays the roll page, which has no real templating. The client side JS will
+// query for more information and post the roll.
 func rollHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		reloadTemplates()
@@ -300,6 +309,8 @@ func rollHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// countSummary represents the data needed to summarize the results for a fuzzer, which is mostly
+// counts of what has been found.
 type countSummary struct {
 	Category        string `json:"category"`
 	CategoryDisplay string `json:"categoryDisplay"`
@@ -312,15 +323,18 @@ type countSummary struct {
 	Groomer        string `json:"groomer"`
 }
 
+// summaryJSONHandler returns a countSummary, representing the results for all fuzzers.
 func summaryJSONHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO(kjlubick): Allow for filtering by architecture(s)
 	summary := getSummary()
-
+	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(summary); err != nil {
 		glog.Errorf("Failed to write or encode output: %v", err)
 		return
 	}
 }
 
+// getSummary() creates a countSummary for every fuzzer.
 func getSummary() []countSummary {
 	counts := make([]countSummary, 0, len(fcommon.FUZZ_CATEGORIES))
 	for _, cat := range fcommon.FUZZ_CATEGORIES {
@@ -348,11 +362,20 @@ func getSummary() []countSummary {
 	return counts
 }
 
+// detailsJSONHandler returns the "details" for a given fuzzer, optionally filtered by file name,
+// function name and line number.
 func detailsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	category := r.FormValue("category")
+	architecture := r.FormValue("architecture")
+	if architecture == "" {
+		// TODO(kjlubick): remove this when the client has been updated to supply architecture
+		architecture = "linux_x64"
+	}
 	name := r.FormValue("name")
+	badOrGrey := r.FormValue("badOrGrey")
+
 	// The file names have "/" in them and the functions can have "(*&" in them.
 	// We base64 encode them to prevent problems.
 	file, err := decodeBase64(r.FormValue("file"))
@@ -371,25 +394,29 @@ func detailsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var f data.FuzzReportTree
+	var reports []data.FuzzReport
 	if name != "" {
-		var err error
-		if f, err = data.FindFuzzDetailForFuzz(category, name); err != nil {
+		if report, err := fuzzPool.FindFuzzDetailForFuzz(name); err != nil {
 			httputils.ReportError(w, r, err, "There was a problem fulfilling the request.")
+		} else {
+			reports = append(reports, report)
 		}
 	} else {
 		line, err := strconv.ParseInt(lineStr, 10, 32)
 		if err != nil {
 			line = fcommon.UNKNOWN_LINE
 		}
+		if badOrGrey != "grey" && badOrGrey != "bad" {
+			badOrGrey = ""
+		}
 
-		if f, err = data.FindFuzzDetails(category, file, function, int(line)); err != nil {
+		if reports, err = fuzzPool.FindFuzzDetails(category, architecture, badOrGrey, file, function, int(line)); err != nil {
 			httputils.ReportError(w, r, err, "There was a problem fulfilling the request.")
 			return
 		}
 	}
 
-	if err := json.NewEncoder(w).Encode(f); err != nil {
+	if err := json.NewEncoder(w).Encode(reports); err != nil {
 		glog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
@@ -403,6 +430,7 @@ func decodeBase64(s string) (string, error) {
 	return string(b), err
 }
 
+// fuzzHandler serves the contents of the fuzz as application/octet-stream
 func fuzzHandler(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 	category := v["category"]
@@ -411,7 +439,11 @@ func fuzzHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, fmt.Errorf("Could not find category: %q", category), "Category not found")
 		return
 	}
-	architecture := v["architecture"]
+	architecture, ok := v["architecture"]
+	if !ok {
+		// TODO(kjlubick): remove this when the client has been updated to supply architecture
+		architecture = "linux_x64"
+	}
 	if !fcommon.HasArchitecture(architecture) {
 		httputils.ReportError(w, r, fmt.Errorf("Could not find arch: %q", architecture), "Architecture not found")
 		return
@@ -432,6 +464,7 @@ func fuzzHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// metadataHandler serves the contents of a fuzz's metadata (e.g. stacktrace) as text/plain
 func metadataHandler(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 	category := v["category"]
@@ -440,7 +473,11 @@ func metadataHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, fmt.Errorf("Could not find category: %q", category), "Category not found")
 		return
 	}
-	architecture := v["architecture"]
+	architecture, ok := v["category"]
+	if !ok {
+		// TODO(kjlubick): remove this when the client has been updated to supply architecture
+		architecture = "linux_x64"
+	}
 	if !fcommon.HasArchitecture(architecture) {
 		httputils.ReportError(w, r, fmt.Errorf("Could not find arch: %q", architecture), "Architecture not found")
 		return
@@ -467,12 +504,16 @@ type commit struct {
 	Author string `json:"author"`
 }
 
+// The status struct indicates what Skia revision the fuzzer is currently working on and if it
+// is in the middle of rolling to a new revision.
 type status struct {
 	Current     commit    `json:"current"`
 	Pending     *commit   `json:"pending"`
 	LastUpdated time.Time `json:"lastUpdated"`
 }
 
+// statusJSONHandler returns the current status of the fuzzer using information from the config
+// and versionwatcher.  TODO(kjlubick): should it use the config or just versionWatcher?
 func statusJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -508,6 +549,7 @@ func statusJSONHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// newBugHandler redirects the request to a pre-filled bug report at Monorail.
 func newBugHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	name := r.FormValue("name")
@@ -531,9 +573,17 @@ func getCommitInfo(revision string) (*vcsinfo.LongCommit, error) {
 	repoLock.Lock()
 	defer repoLock.Unlock()
 	var err error
-	repo, err = gitinfo.NewGitInfo(filepath.Join(config.Common.SkiaRoot, "skia"), true, false)
+	repo, err = gitinfo.NewGitInfo(filepath.Join(config.Common.SkiaRoot, "skia"), false, false)
 	if err != nil {
-		return nil, fmt.Errorf("Could not fetch Skia before check: %s", err)
+		return nil, fmt.Errorf("Could not create Skia repo: %s", err)
+	}
+
+	if err = repo.Checkout("master"); err != nil {
+		return nil, fmt.Errorf("Could not checkout master: %s", err)
+	}
+
+	if err = repo.Update(true, false); err != nil {
+		return nil, fmt.Errorf("Could not update master branch: %s", err)
 	}
 
 	currInfo, err := repo.Details(revision, false)
@@ -543,6 +593,9 @@ func getCommitInfo(revision string) (*vcsinfo.LongCommit, error) {
 	return currInfo, nil
 }
 
+// updateRevision handles the POST request to roll the revision under fuzz forward.  It checks for
+// authentication, verifies the revision is legit, that we are not already rolling forward,
+// and then updates GCS with a pending version.
 func updateRevision(w http.ResponseWriter, r *http.Request) {
 	if !login.IsGoogler(r) {
 		http.Error(w, "You do not have permission to push.  You must be a Googler.", http.StatusForbidden)

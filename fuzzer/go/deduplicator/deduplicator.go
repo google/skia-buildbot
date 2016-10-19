@@ -49,7 +49,7 @@ func (d *Deduplicator) IsUnique(report data.FuzzReport) bool {
 func key(r data.FuzzReport) string {
 	ds := trim(r.DebugStackTrace)
 	rs := trim(r.ReleaseStackTrace)
-	return fmt.Sprintf("C:%s,F:%q,F:%q,S:%s,S:%s", r.FuzzCategory, r.DebugFlags, r.ReleaseFlags, ds.String(), rs.String())
+	return fmt.Sprintf("C:%s,A:%s,F:%q,F:%q,S:%s,S:%s", r.FuzzCategory, r.FuzzArchitecture, r.DebugFlags, r.ReleaseFlags, ds.String(), rs.String())
 }
 
 // trim returns a copy of the given stacktrace, with the line numbers removed and all but the

@@ -8,27 +8,22 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
-	"go.skia.org/infra/fuzzer/go/data"
-	"go.skia.org/infra/fuzzer/go/fuzzcache"
+	"go.skia.org/infra/fuzzer/go/frontend/fuzzcache"
+	"go.skia.org/infra/fuzzer/go/frontend/fuzzpool"
 	fstorage "go.skia.org/infra/fuzzer/go/storage"
 )
 
-// LoadFromBoltDB loads the data.FuzzReport from FuzzReportCache associated with the given hash.
-// The FuzzReport is first put into the staging fuzz cache, and then into the current.
+// LoadFromBoltDB fills the given *fuzzpool.FuzzPool from FuzzReportCache associated with the given
+//  hash. The data.FuzzReports will all be in the current part of the pool.
 // If a cache for the commit does not exist, or there are other problems with the retrieval,
 // an error is returned.  We do not need to deduplicate on extraction because
 // the fuzzes were deduplicated on storage.
-func LoadFromBoltDB(cache *fuzzcache.FuzzReportCache) error {
+func LoadFromBoltDB(pool *fuzzpool.FuzzPool, cache *fuzzcache.FuzzReportCache) error {
 	glog.Infof("Looking into cache for revision %s", config.Common.SkiaVersion.Hash)
-	for _, category := range common.FUZZ_CATEGORIES {
-		if staging, err := cache.LoadTree(category, config.Common.SkiaVersion.Hash); err != nil {
-			return fmt.Errorf("Problem decoding existing from bolt db: %s", err)
-		} else {
-			data.SetStaging(category, *staging)
-			glog.Infof("Successfully loaded %s fuzzes from bolt db cache with %d files", category, len(*staging))
-		}
+	if err := cache.LoadPool(pool, config.Common.SkiaVersion.Hash); err != nil {
+		return fmt.Errorf("Could not load from cache: %s", err)
 	}
-	data.StagingToCurrent()
+	glog.Infof("Loaded a fuzz pool of size %d", len(pool.Reports()))
 	return nil
 }
 
@@ -36,89 +31,104 @@ func LoadFromBoltDB(cache *fuzzcache.FuzzReportCache) error {
 type GSLoader struct {
 	storageClient *storage.Client
 	Cache         *fuzzcache.FuzzReportCache
+	Pool          *fuzzpool.FuzzPool
 }
 
 // New creates a GSLoader and returns it.
-func New(s *storage.Client, c *fuzzcache.FuzzReportCache) *GSLoader {
+func New(s *storage.Client, c *fuzzcache.FuzzReportCache, p *fuzzpool.FuzzPool) *GSLoader {
 	return &GSLoader{
 		storageClient: s,
 		Cache:         c,
+		Pool:          p,
 	}
 }
 
-// LoadFreshFromGoogleStorage pulls all fuzzes out of GCS and loads them into memory.
+// LoadFreshFromGoogleStorage pulls all bad and grey fuzzes out of GCS and loads them into memory.
 // The "fresh" in the name refers to the fact that all other loaded fuzzes (if any)
 // are written over, including in the cache.
 // Upon completion, the full results are cached to a boltDB instance and moved from staging
 // to the current copy.
 func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 	revision := config.Common.SkiaVersion.Hash
-	data.ClearStaging()
+	g.Pool.ClearStaging()
 	fuzzNames := make([]string, 0, 100)
 
 	for _, arch := range common.ARCHITECTURES {
 		for _, cat := range common.FUZZ_CATEGORIES {
 			badPath := fmt.Sprintf("%s/%s/%s/bad", cat, revision, arch)
-			reports, err := fstorage.GetReportsFromGS(g.storageClient, badPath, cat, nil, config.FrontEnd.NumDownloadProcesses)
+			reports, err := fstorage.GetReportsFromGS(g.storageClient, badPath, cat, arch, nil, config.FrontEnd.NumDownloadProcesses)
 			if err != nil {
 				return err
 			}
 			b := 0
 			for report := range reports {
+				report.IsGrey = false
 				fuzzNames = append(fuzzNames, report.FuzzName)
-				data.NewFuzzFound(cat, report)
+				g.Pool.AddFuzzReport(report)
 				b++
 			}
 			glog.Infof("%d bad fuzzes freshly loaded from gs://%s/%s", b, config.GS.Bucket, badPath)
+
+			greyPath := fmt.Sprintf("%s/%s/%s/grey", cat, revision, arch)
+			reports, err = fstorage.GetReportsFromGS(g.storageClient, greyPath, cat, arch, nil, config.FrontEnd.NumDownloadProcesses)
+			if err != nil {
+				return err
+			}
+			b = 0
+			for report := range reports {
+				report.IsGrey = true
+				fuzzNames = append(fuzzNames, report.FuzzName)
+				g.Pool.AddFuzzReport(report)
+				b++
+			}
+			glog.Infof("%d grey fuzzes freshly loaded from gs://%s/%s", b, config.GS.Bucket, greyPath)
 		}
 	}
-	// We must wait until after all the fuzzes are in staging, otherwise, we'll only have a partial update
-	data.StagingToCurrent()
-
-	// TODO(kjlubick): Properly handle different architectures
-	for _, category := range common.FUZZ_CATEGORIES {
-		if err := g.Cache.StoreTree(data.StagingCopy(category), category, revision); err != nil {
-			glog.Errorf("Problem storing category %s to boltDB: %s", category, err)
-		}
+	g.Pool.CurrentFromStaging()
+	g.Pool.ClearStaging()
+	if err := g.Cache.StorePool(g.Pool, revision); err != nil {
+		return fmt.Errorf("Problem storing fuzz pool to boltDB: %s", err)
 	}
 	return g.Cache.StoreFuzzNames(fuzzNames, revision)
 }
 
 // LoadFuzzesFromGoogleStorage pulls all fuzzes out of GCS that are on the given whitelist
-// and loads them into memory (as staging).  After loading them, it updates the cache
-// and moves them from staging to the current copy.
+// and loads them into memory (as staging). These fuzzes represent the newly found bad fuzzes
+// that have been uploaded by the various generators/aggregators. After loading them, it
+// updates the cache and moves them from staging to the current copy.
 func (g *GSLoader) LoadFuzzesFromGoogleStorage(whitelist []string) error {
 	revision := config.Common.SkiaVersion.Hash
-	data.StagingFromCurrent()
+	g.Pool.StagingFromCurrent()
 	sort.Strings(whitelist)
 
 	fuzzNames := make([]string, 0, 100)
-	for _, cat := range common.FUZZ_CATEGORIES {
-		badPath := fmt.Sprintf("%s/%s/bad", cat, revision)
-		reports, err := fstorage.GetReportsFromGS(g.storageClient, badPath, cat, whitelist, config.FrontEnd.NumDownloadProcesses)
-		if err != nil {
-			return err
+	for _, arch := range common.ARCHITECTURES {
+		for _, cat := range common.FUZZ_CATEGORIES {
+			badPath := fmt.Sprintf("%s/%s/bad", cat, revision)
+			reports, err := fstorage.GetReportsFromGS(g.storageClient, badPath, cat, arch, whitelist, config.FrontEnd.NumDownloadProcesses)
+			if err != nil {
+				return err
+			}
+			b := 0
+			for report := range reports {
+				report.IsGrey = false
+				fuzzNames = append(fuzzNames, report.FuzzName)
+				g.Pool.AddFuzzReport(report)
+				b++
+			}
+			glog.Infof("%d bad fuzzes incrementally loaded from gs://%s/%s", b, config.GS.Bucket, badPath)
 		}
-		b := 0
-		for report := range reports {
-			fuzzNames = append(fuzzNames, report.FuzzName)
-			data.NewFuzzFound(cat, report)
-			b++
-		}
-		glog.Infof("%d bad fuzzes incrementally loaded from gs://%s/%s", b, config.GS.Bucket, badPath)
 	}
 	// We must wait until after all the fuzzes are in staging, otherwise, we'll only have a partial update
-	data.StagingToCurrent()
-
+	g.Pool.CurrentFromStaging()
+	g.Pool.ClearStaging()
 	oldBinaryFuzzNames, err := g.Cache.LoadFuzzNames(revision)
 	if err != nil {
 		glog.Warningf("Could not read old binary fuzz names from cache.  Continuing...", err)
 		oldBinaryFuzzNames = []string{}
 	}
-	for _, category := range common.FUZZ_CATEGORIES {
-		if err := g.Cache.StoreTree(data.StagingCopy(category), category, revision); err != nil {
-			glog.Errorf("Problem storing category %s to boltDB: %s", category, err)
-		}
+	if err := g.Cache.StorePool(g.Pool, revision); err != nil {
+		return fmt.Errorf("Problem storing fuzz pool to boltDB: %s", err)
 	}
 	return g.Cache.StoreFuzzNames(append(oldBinaryFuzzNames, whitelist...), revision)
 }
