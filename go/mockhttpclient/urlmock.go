@@ -11,6 +11,10 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+const (
+	TEST_FAILED_STATUS_CODE = 599
+)
+
 // URLMock implements http.RoundTripper but returns mocked responses. It
 // provides two methods for mocking responses to requests for particular URLs:
 //
@@ -26,13 +30,13 @@ import (
 //
 //    // Mock out a URL to always respond with the same body.
 //    m := NewURLMock()
-//    m.Mock("https://www.google.com", []byte("Here's a response.")
+//    m.Mock("https://www.google.com", MockGetDialogue([]byte("Here's a response.")))
 //    res, _ := m.Client().Get("https://www.google.com")
 //    respBody, _ := ioutil.ReadAll(res.Body)  // respBody == []byte("Here's a response.")
 //
 //    // Mock out a URL to give different responses.
-//    m.MockOnce("https://www.google.com", []byte("hi"))
-//    m.MockOnce("https://www.google.com", []byte("Second response."))
+//    m.MockOnce("https://www.google.com", MockGetDialogue([]byte("hi")))
+//    m.MockOnce("https://www.google.com", MockGetDialogue([]byte("Second response.")))
 //    res1, _ := m.Client().Get("https://www.google.com")
 //    body1, _ := ioutil.ReadAll(res1.Body)  // body1 == []byte("hi")
 //    res2, _ := m.Client().Get("https://www.google.com")
@@ -57,6 +61,52 @@ type MockDialogue struct {
 	responsePayload []byte
 }
 
+func (md *MockDialogue) GetResponse(r *http.Request) (*http.Response, error) {
+	if md.requestMethod != r.Method {
+		return nil, fmt.Errorf("Wrong Method, expected %q, but was %q", md.requestMethod, r.Method)
+	}
+	if md.requestPayload == nil {
+		if r.Body != nil {
+			requestBody, _ := ioutil.ReadAll(r.Body)
+			return nil, fmt.Errorf("No request payload expected, but was %s (%#v) ", string(requestBody), r.Body)
+		}
+	} else {
+		if ct := r.Header.Get("Content-Type"); md.requestType != ct {
+			return nil, fmt.Errorf("Content-Type was wrong, expected %q, but was %q", md.requestType, ct)
+		}
+		defer util.Close(r.Body)
+		requestBody, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			return nil, fmt.Errorf("Error reading request body: %s", err)
+		}
+		if !reflect.DeepEqual(md.requestPayload, DONT_CARE_REQUEST) && !reflect.DeepEqual(md.requestPayload, requestBody) {
+			return nil, fmt.Errorf("Wrong request payload, expected \n%s, but was \n%s", md.requestPayload, requestBody)
+		}
+	}
+	return &http.Response{
+		Body:       &respBodyCloser{bytes.NewReader(md.responsePayload)},
+		Status:     md.responseStatus,
+		StatusCode: md.responseCode,
+	}, nil
+}
+
+// ServeHTTP implements http.Handler.
+func (md MockDialogue) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	resp, err := md.GetResponse(r)
+	if err != nil {
+		http.Error(w, err.Error(), TEST_FAILED_STATUS_CODE)
+		return
+	}
+	defer resp.Body.Close()
+	// TODO(benjaminwagner): I don't see an easy way to include resp.Status.
+	w.WriteHeader(resp.StatusCode)
+	_, err = io.Copy(w, resp.Body)
+	if err != nil {
+		http.Error(w, err.Error(), TEST_FAILED_STATUS_CODE)
+		return
+	}
+}
+
 func MockGetDialogue(responseBody []byte) MockDialogue {
 	return MockDialogue{
 		requestMethod:  "GET",
@@ -66,6 +116,18 @@ func MockGetDialogue(responseBody []byte) MockDialogue {
 		responseStatus:  "OK",
 		responseCode:    http.StatusOK,
 		responsePayload: responseBody,
+	}
+}
+
+func MockGetError(responseStatus string, responseCode int) MockDialogue {
+	return MockDialogue{
+		requestMethod:  "GET",
+		requestType:    "",
+		requestPayload: nil,
+
+		responseStatus:  responseStatus,
+		responseCode:    responseCode,
+		responsePayload: []byte{},
 	}
 }
 
@@ -84,8 +146,8 @@ func MockPostDialogue(requestType string, requestBody, responseBody []byte) Mock
 // Mock adds a mocked response for the given URL; whenever this URLMock is used
 // as a transport for an http.Client, requests to the given URL will always
 // receive the given body in their responses. Mocks specified using Mock() are
-// independent of those specified MockOnce(), except that those specified using
-// MockOnce() take precedence when present.
+// independent of those specified using MockOnce(), except that those specified
+// using MockOnce() take precedence when present.
 func (m *URLMock) Mock(url string, md MockDialogue) {
 	m.mockAlways[url] = md
 }
@@ -126,33 +188,7 @@ func (m *URLMock) RoundTrip(r *http.Request) (*http.Response, error) {
 	if md == nil {
 		return nil, fmt.Errorf("Unknown URL %q", url)
 	}
-	if md.requestMethod != r.Method {
-		return nil, fmt.Errorf("Wrong Method, expected %q, but was %q", md.requestMethod, r.Method)
-	}
-	if md.requestPayload == nil {
-		if r.Body != nil {
-			requestBody, _ := ioutil.ReadAll(r.Body)
-			return nil, fmt.Errorf("No request payload expected, but was %s (%#v) ", string(requestBody), r.Body)
-		}
-	} else {
-		if ct := r.Header.Get("Content-Type"); md.requestType != ct {
-			return nil, fmt.Errorf("Content-Type was wrong, expected %q, but was %q", md.requestType, ct)
-		}
-		defer util.Close(r.Body)
-		requestBody, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			return nil, fmt.Errorf("Error reading request body: %s", err)
-		}
-		if !reflect.DeepEqual(md.requestPayload, DONT_CARE_REQUEST) && !reflect.DeepEqual(md.requestPayload, requestBody) {
-			return nil, fmt.Errorf("Wrong request payload, expected \n%s, but was \n%s", md.requestPayload, requestBody)
-		}
-	}
-
-	return &http.Response{
-		Body:       &respBodyCloser{bytes.NewReader(md.responsePayload)},
-		Status:     md.responseStatus,
-		StatusCode: md.responseCode,
-	}, nil
+	return md.GetResponse(r)
 }
 
 // Empty returns true iff all of the URLs registered via MockOnce() have been
