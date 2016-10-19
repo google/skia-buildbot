@@ -30,7 +30,7 @@ path. Optionally run `npm install npm -g`, as suggested by the
 Install other dependencies:
 
 ```
-$ sudo apt-get install python-django redis-server
+$ sudo apt-get install python-django
 $ go get github.com/kisielk/errcheck \
   golang.org/x/tools/cmd/goimports \
   github.com/luci/luci-go/client/cmd/isolate
