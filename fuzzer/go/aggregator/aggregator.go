@@ -484,8 +484,9 @@ func setupAnalysis(workingDirPath string) error {
 func analyze(workingDirPath, filename, category string) (uploadPackage, error) {
 	upload := uploadPackage{
 		Data: data.GCSPackage{
-			Name:         filename,
-			FuzzCategory: category,
+			Name:             filename,
+			FuzzCategory:     category,
+			FuzzArchitecture: config.Generator.Architecture,
 		},
 		FuzzType: BAD_FUZZ,
 		FilePath: filepath.Join(config.Aggregator.FuzzPath, filename),

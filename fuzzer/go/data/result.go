@@ -31,10 +31,11 @@ type OutputFiles struct {
 
 // GCSPackage is a struct containing all the pieces of a fuzz that exist in Google Storage.
 type GCSPackage struct {
-	Name         string
-	FuzzCategory string
-	Debug        OutputFiles
-	Release      OutputFiles
+	Name             string
+	FuzzCategory     string
+	FuzzArchitecture string
+	Debug            OutputFiles
+	Release          OutputFiles
 }
 
 // A bit mask representing what happened when a fuzz ran against Skia.

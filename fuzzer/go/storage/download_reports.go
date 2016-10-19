@@ -19,10 +19,10 @@ import (
 // optional whitelist can be included, in which case only the fuzzes whose names are on the list
 // will be downloaded.  The category is needed to properly parse the downloaded files to make
 // the FuzzReports.  The downloading will use as many processes as specified, to speed things up.
-func GetReportsFromGS(s *storage.Client, baseFolder, category string, whitelist []string, processes int) (<-chan data.FuzzReport, error) {
+func GetReportsFromGS(s *storage.Client, baseFolder, category, architecture string, whitelist []string, processes int) (<-chan data.FuzzReport, error) {
 	reports := make(chan data.FuzzReport, 10000)
 
-	fuzzPackages, err := fetchFuzzPackages(s, baseFolder, category)
+	fuzzPackages, err := fetchFuzzPackages(s, baseFolder, category, architecture)
 	if err != nil {
 		close(reports)
 		return reports, err
@@ -64,19 +64,20 @@ func GetReportsFromGS(s *storage.Client, baseFolder, category string, whitelist 
 // need to be downloaded.  The use of this struct decouples the names of the files that need to be
 // downloaded with the download logic.
 type fuzzPackage struct {
-	FuzzName        string
-	FuzzCategory    string
-	DebugASANName   string
-	DebugDumpName   string
-	DebugErrName    string
-	ReleaseASANName string
-	ReleaseDumpName string
-	ReleaseErrName  string
+	FuzzName         string
+	FuzzCategory     string
+	FuzzArchitecture string
+	DebugASANName    string
+	DebugDumpName    string
+	DebugErrName     string
+	ReleaseASANName  string
+	ReleaseDumpName  string
+	ReleaseErrName   string
 }
 
 // fetchFuzzPackages scans for all fuzzes in the given folder and returns a slice of all of the
 // metadata for each fuzz, as a fuzz package.  It returns error if it cannot access Google Storage.
-func fetchFuzzPackages(s *storage.Client, baseFolder, category string) (fuzzPackages []fuzzPackage, err error) {
+func fetchFuzzPackages(s *storage.Client, baseFolder, category, architecture string) (fuzzPackages []fuzzPackage, err error) {
 	fuzzNames, err := common.GetAllFuzzNamesInFolder(s, baseFolder)
 	if err != nil {
 		return nil, fmt.Errorf("Problem getting fuzz packages from %s: %s", baseFolder, err)
@@ -84,14 +85,15 @@ func fetchFuzzPackages(s *storage.Client, baseFolder, category string) (fuzzPack
 	for _, fuzzName := range fuzzNames {
 		prefix := fmt.Sprintf("%s/%s/%s", baseFolder, fuzzName, fuzzName)
 		fuzzPackages = append(fuzzPackages, fuzzPackage{
-			FuzzName:        fuzzName,
-			FuzzCategory:    category,
-			DebugASANName:   fmt.Sprintf("%s_debug.asan", prefix),
-			DebugDumpName:   fmt.Sprintf("%s_debug.dump", prefix),
-			DebugErrName:    fmt.Sprintf("%s_debug.err", prefix),
-			ReleaseASANName: fmt.Sprintf("%s_release.asan", prefix),
-			ReleaseDumpName: fmt.Sprintf("%s_release.dump", prefix),
-			ReleaseErrName:  fmt.Sprintf("%s_release.err", prefix),
+			FuzzName:         fuzzName,
+			FuzzCategory:     category,
+			FuzzArchitecture: architecture,
+			DebugASANName:    fmt.Sprintf("%s_debug.asan", prefix),
+			DebugDumpName:    fmt.Sprintf("%s_debug.dump", prefix),
+			DebugErrName:     fmt.Sprintf("%s_debug.err", prefix),
+			ReleaseASANName:  fmt.Sprintf("%s_release.asan", prefix),
+			ReleaseDumpName:  fmt.Sprintf("%s_release.dump", prefix),
+			ReleaseErrName:   fmt.Sprintf("%s_release.err", prefix),
 		})
 	}
 	return fuzzPackages, nil
@@ -114,8 +116,9 @@ func download(s *storage.Client, toDownload <-chan fuzzPackage, reports chan<- d
 	defer wg.Done()
 	for job := range toDownload {
 		p := data.GCSPackage{
-			Name:         job.FuzzName,
-			FuzzCategory: job.FuzzCategory,
+			Name:             job.FuzzName,
+			FuzzCategory:     job.FuzzCategory,
+			FuzzArchitecture: job.FuzzArchitecture,
 			Debug: data.OutputFiles{
 				Asan:   emptyStringOnError(gs.FileContentsFromGS(s, config.GS.Bucket, job.DebugASANName)),
 				Dump:   emptyStringOnError(gs.FileContentsFromGS(s, config.GS.Bucket, job.DebugDumpName)),

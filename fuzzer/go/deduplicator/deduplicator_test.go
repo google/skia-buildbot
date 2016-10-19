@@ -12,6 +12,8 @@ func TestSimpleDeduplication(t *testing.T) {
 	r2 := data.MockReport("skpicture", "bbbb")
 	// mock report ffff and aaaa are the same, except for the name.
 	r3 := data.MockReport("skpicture", "ffff")
+	// mock report jjjj and aaaa are the same, except for the name and architecture.
+	r4 := data.MockReport("skpicture", "jjjj")
 	if !d.IsUnique(r1) {
 		t.Errorf("The deduplicator has not seen %#v, but said it has", r1)
 	}
@@ -23,6 +25,9 @@ func TestSimpleDeduplication(t *testing.T) {
 	}
 	if d.IsUnique(r3) {
 		t.Errorf("Should not have said %#v was unique, it just saw something like it.", r3)
+	}
+	if !d.IsUnique(r4) {
+		t.Errorf("The deduplicator has not seen %#v, but said it has", r4)
 	}
 }
 
@@ -142,6 +147,19 @@ func TestCategory(t *testing.T) {
 	}
 }
 
+func TestArchitecture(t *testing.T) {
+	d := New()
+	r1 := makeReport()
+	r2 := makeReport()
+	r2.FuzzArchitecture = "something else"
+	if !d.IsUnique(r1) {
+		t.Errorf("The deduplicator has not seen %#v, but said it has", r1)
+	}
+	if !d.IsUnique(r2) {
+		t.Errorf("The deduplicator has not seen %#v, but said it has", r2)
+	}
+}
+
 func TestOther(t *testing.T) {
 	d := New()
 	r1 := makeReport()
@@ -178,6 +196,7 @@ func makeReport() data.FuzzReport {
 		ReleaseFlags:      rf,
 		FuzzName:          "doesn't matter",
 		FuzzCategory:      "api",
+		FuzzArchitecture:  "mock_x64",
 	}
 }
 

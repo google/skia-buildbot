@@ -1,15 +1,18 @@
 package fuzzcache
 
+// The FuzzReportCache is a wrapper around a bolt db that stores bad/grey fuzz names as
+// well as the data structure that can be used to query for fuzz results.
+
 import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
 
 	"github.com/boltdb/bolt"
-	"go.skia.org/infra/fuzzer/go/data"
+	"go.skia.org/infra/fuzzer/go/frontend/fuzzpool"
 )
 
-const REPORT_KEY = "report-"
+const POOL_KEY = "fuzzpool"
 
 var FUZZ_NAMES_KEY = []byte("fuzz_names")
 
@@ -28,31 +31,25 @@ func New(dbPath string) (*FuzzReportCache, error) {
 	return &c, nil
 }
 
-func getReportKey(category string) []byte {
-	return []byte(REPORT_KEY + category)
-}
-
-// Load returns a *data.FuzzReport that corresponds to the passed in revision,
-// and the fuzz names associated with the report.
-// It returns an error if such a Report does not exist.
-func (b *FuzzReportCache) LoadTree(category, revision string) (*data.FuzzReportTree, error) {
-	var report data.FuzzReportTree
+// LoadPool fills the passed in *fuzzpool.FuzzPool with the data corresponding to the revision.
+// It returns an error if such a FuzzPool does not exist.
+func (b *FuzzReportCache) LoadPool(pool *fuzzpool.FuzzPool, revision string) error {
 	loadFunc := func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(revision))
 		if b == nil {
 			return fmt.Errorf("Cache for revision %s does not exist", revision)
 		}
-		c := b.Get(getReportKey(category))
+		c := b.Get([]byte(POOL_KEY))
 		if c == nil {
 			return fmt.Errorf("Could not find report for revision %s", revision)
 		}
 		dec := gob.NewDecoder(bytes.NewBuffer(c))
-		if err := dec.Decode(&report); err != nil {
+		if err := dec.Decode(pool); err != nil {
 			return fmt.Errorf("Could not decode report: %s", err)
 		}
 		return nil
 	}
-	return &report, b.DB.View(loadFunc)
+	return b.DB.View(loadFunc)
 }
 
 func (b *FuzzReportCache) LoadFuzzNames(revision string) ([]string, error) {
@@ -75,10 +72,10 @@ func (b *FuzzReportCache) LoadFuzzNames(revision string) ([]string, error) {
 	return fuzzNames, b.DB.View(loadFunc)
 }
 
-// Store stores a data.FuzzReport and the fuzzNames associated with it to the underlying
+// Store stores a fuzzpool.FuzzPool and the fuzzNames associated with it to the underlying
 // data.FuzzReportCache. It creates a bucket with the
 // name of the given revision and stores the report as a []byte under a simple key.
-func (b *FuzzReportCache) StoreTree(report data.FuzzReportTree, category, revision string) error {
+func (b *FuzzReportCache) StorePool(report *fuzzpool.FuzzPool, revision string) error {
 	storeFunc := func(tx *bolt.Tx) error {
 		bkt, err := tx.CreateBucketIfNotExists([]byte(revision))
 		if err != nil {
@@ -89,7 +86,7 @@ func (b *FuzzReportCache) StoreTree(report data.FuzzReportTree, category, revisi
 		if err := enc.Encode(report); err != nil {
 			return fmt.Errorf("Problem encoding report: %s", err)
 		}
-		if err := bkt.Put(getReportKey(category), buffReport.Bytes()); err != nil {
+		if err := bkt.Put([]byte(POOL_KEY), buffReport.Bytes()); err != nil {
 			return fmt.Errorf("Problem storing %d bytes of report: %s", buffReport.Len(), err)
 		}
 		return nil
