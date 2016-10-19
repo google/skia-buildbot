@@ -68,24 +68,6 @@ function install_go {
   echo
 }
 
-function install_redis {
-  REDIS_VERSION="redis-2.8.19"
-  echo
-  echo "Install Redis"
-  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-      "wget http://download.redis.io/releases/$REDIS_VERSION.tar.gz && " \
-      "tar -zxvf $REDIS_VERSION.tar.gz && " \
-      "cd $REDIS_VERSION && " \
-      "make && " \
-      "sudo make install && " \
-      "echo -n | sudo utils/install_server.sh && " \
-      "cd .. && " \
-      "rm -rf $REDIS_VERSION && " \
-      "rm $REDIS_VERSION.tar.gz" \
-      || FAILED="$FAILED InstallRedis"
-  echo
-}
-
 function setup_android_sdk {
   echo
   echo "===== Android SDK. ====="
