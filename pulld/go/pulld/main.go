@@ -126,6 +126,27 @@ func getFunctionForAction(action string) func(name string, mode string, ch chan<
 	}
 }
 
+func doChange(name, action string) (ChangeResult, error) {
+	f := getFunctionForAction(action)
+	res := ChangeResult{}
+	if util.In(name, PROCESS_ENDING_UNITS) {
+		go func() {
+			<-time.After(1 * time.Second)
+			if _, err := f(name, "replace", nil); err != nil {
+				sklog.Error(err)
+			}
+		}()
+		res.Result = "enqueued"
+	} else {
+		ch := make(chan string)
+		if _, err := f(name, "replace", ch); err != nil {
+			return res, err
+		}
+		res.Result = <-ch
+	}
+	return res, nil
+}
+
 // changeHandler changes the status of a service.
 //
 // Takes the following query parameters:
@@ -161,23 +182,10 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	f := getFunctionForAction(action)
-	res := ChangeResult{}
-	if util.In(name, PROCESS_ENDING_UNITS) {
-		go func() {
-			<-time.After(1 * time.Second)
-			if _, err := f(name, "replace", nil); err != nil {
-				sklog.Error(err)
-			}
-		}()
-		res.Result = "enqueued"
-	} else {
-		ch := make(chan string)
-		if _, err := f(name, "replace", ch); err != nil {
-			httputils.ReportError(w, r, err, "Action failed.")
-			return
-		}
-		res.Result = <-ch
+	res, err := doChange(name, action)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Action failed.")
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(res); err != nil {
