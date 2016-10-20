@@ -1,0 +1,92 @@
+  <!-- The <sort-control-sk> custom element declaration.
+
+  Custom element for displaying the current sort selections.
+  The sort options are:
+
+    Descending by N
+    Descending by Diff
+    Ascending by Diff
+
+    Attributes:
+      value - One of ["", "asc", "desc"] where "" means descending by N.
+      disabled - Boolean for disabling the control.
+    Events:
+      changed - Sent when the control value has changed. The e.detail
+        value is one of ["", "asc", "desc"].
+    Methods:
+  -->
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="bower_components/paper-item/paper-item.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="sort-control-sk">
+  <template>
+    <style include="shared-styles"></style>
+    <br><br><br>
+    <paper-dropdown-menu label="Sort By" disabled="{{disabled}}">
+      <paper-listbox id="itemMenu" class="dropdown-content" selected="{{_currSelection}}" attr-for-selected="value">
+        <template is="dom-repeat" items="{{_items}}">
+          <paper-item value="[[item.val]]">[[item.lab]]</paper-item>
+        </template>
+      </paper-listbox>
+    </paper-dropdown-menu>
+  </template>
+  <script>
+  (function() {
+    Polymer({
+      is: 'sort-control-sk',
+      properties: {
+        disabled: {
+          type: Boolean,
+          value: false
+        },
+        selection: {
+          type: Object,
+          notify: true,
+          reflectToAttribute: true,
+          observer: "_handleSelectionChanged"
+        },
+        _currSelection: {
+          type:String,
+        }
+      },
+
+      ready: function () {
+        this.listen(this.$.itemMenu, 'iron-select', '_handleItemSelected');
+      },
+
+      setItems: function(items) {
+        
+        this._noFire = true;
+        var exi = [];
+        for(var i=0, iLen=items.length; i < iLen; i++) {
+          var it = items[i];
+          exi.push({val:gold.SORT_ASC + ":" + it.field, lab: it.label + ' ↑'});
+          exi.push({val:gold.SORT_DESC + ":" + it.field, lab: it.label + ' ↓'});
+        }
+        this.set("_items", exi);
+      },
+
+      _handleSelectionChanged: function(sortOrder) {
+        this._setValue = sortOrder.dir+":"+sortOrder.field;
+        this.set("_currSelection", this._setValue);
+      },
+
+      _handleItemSelected: function(ev) {
+        // Don't do anything if the value was just set.
+        if (this._setValue && this._setValue === this._currSelection) {
+          this._setVal = null;
+          return;
+        }
+        var sortOrder = this._currSelection.split(":");
+        var detail = {dir: sortOrder[0], field: sortOrder.slice(1).join(':')};
+        this.set('selection', detail);
+        this.fire('sort-changed', detail);
+      }
+    });
+  })();
+  </script>
+</dom-module>
