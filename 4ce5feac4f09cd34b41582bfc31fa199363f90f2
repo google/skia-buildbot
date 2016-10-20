@@ -184,6 +184,24 @@
     },
     {
       "key": {
+        "uuid": "5c8ef381_be178528",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-20T16:55:57Z",
+      "side": 1,
+      "message": "Good point, done. Tests pass, so looks like this is working without the shortcuts.",
+      "parentUuid": "5c8ef381_febf4d06",
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c8ef381_589c7154",
         "filename": "task_scheduler/go/db/job_test.go",
         "patchSetId": 9
