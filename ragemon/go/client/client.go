@@ -72,6 +72,9 @@ func GetOrRegister(measurement string, tags map[string]string) (*Counter, error)
 	defer client.mutex.Unlock()
 
 	params := util.CopyStringMap(tags)
+	if params == nil {
+		params = map[string]string{}
+	}
 	params[MEASUREMENT_NAME_KEY] = measurement
 	if client.appName != "" {
 		params[APP_NAME_KEY] = client.appName

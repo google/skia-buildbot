@@ -68,7 +68,11 @@ func WriteDrawCpp(checkout, fiddleRoot, code string, opts *types.Options, local 
 	dstDir := filepath.Join(fiddleRoot, "src")
 	if !local {
 		var err error
-		dstDir, err = ioutil.TempDir(filepath.Join(fiddleRoot, "tmp"), "code")
+		tmpDir := filepath.Join(fiddleRoot, "tmp")
+		if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil && err != os.ErrExist {
+			return "", fmt.Errorf("Failed to create temp dir for draw.cpp: %s", err)
+		}
+		dstDir, err = ioutil.TempDir(tmpDir, "code")
 		glog.Infof("Created tmp dir: %s %s", dstDir, err)
 		if err != nil {
 			return "", fmt.Errorf("Failed to create temp dir for draw.cpp: %s", err)
