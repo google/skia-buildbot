@@ -51,7 +51,7 @@ var (
 func ParseTasksCfg(contents string) (*TasksCfg, error) {
 	var rv TasksCfg
 	if err := json.Unmarshal([]byte(contents), &rv); err != nil {
-		return nil, fmt.Errorf("Failed to read tasks cfg: could not parse file: %s", err)
+		return nil, fmt.Errorf("Failed to read tasks cfg: could not parse file: %s\nContents:\n%s", err, string(contents))
 	}
 	if err := rv.Validate(); err != nil {
 		return nil, err
@@ -200,6 +200,42 @@ func (j *JobSpec) Copy() *JobSpec {
 		Priority:  j.Priority,
 		TaskSpecs: taskSpecs,
 	}
+}
+
+// GetTaskSpecDAG returns a map describing all of the dependencies of the
+// JobSpec. Its keys are TaskSpec names and values are TaskSpec names upon
+// which the keys depend.
+func (j *JobSpec) GetTaskSpecDAG(cfg *TasksCfg) (map[string][]string, error) {
+	rv := map[string][]string{}
+	var visit func(string) error
+	visit = func(name string) error {
+		spec, ok := cfg.Tasks[name]
+		if !ok {
+			return fmt.Errorf("No such task: %s", name)
+		}
+		deps := util.CopyStringSlice(spec.Dependencies)
+		if deps == nil {
+			deps = []string{}
+		}
+		rv[name] = deps
+		for _, t := range deps {
+			if _, ok := rv[t]; !ok {
+				if err := visit(t); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	}
+
+	for _, t := range j.TaskSpecs {
+		if _, ok := rv[t]; !ok {
+			if err := visit(t); err != nil {
+				return nil, err
+			}
+		}
+	}
+	return rv, nil
 }
 
 // TaskCfgCache is a struct used for caching tasks cfg files. The user should

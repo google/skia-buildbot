@@ -283,9 +283,17 @@ func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiBuildMessage, 
 	}
 
 	// Obtain the correct Job spec.
-	spec, err := t.taskCfgCache.GetJobSpec(rs, params.BuilderName)
+	cfg, err := t.taskCfgCache.ReadTasksCfg(rs)
 	if err != nil {
-		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to obtain JobSpec: %s", err))
+		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to obtain Tasks cfg: %s", err))
+	}
+	spec, ok := cfg.Jobs[params.BuilderName]
+	if !ok {
+		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("No such JobSpec: %s", params.BuilderName))
+	}
+	deps, err := spec.GetTaskSpecDAG(cfg)
+	if err != nil {
+		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to obtain tasks DAG: %s", err))
 	}
 
 	// Attempt to lease the build.
@@ -301,9 +309,10 @@ func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiBuildMessage, 
 		BuildbucketBuildId:  b.Id,
 		BuildbucketLeaseKey: leaseKey,
 		Created:             time.Unix(0, b.CreatedTs*util.MICROS_TO_NANOS).UTC(),
-		Dependencies:        spec.TaskSpecs,
+		Dependencies:        deps,
 		Name:                params.BuilderName,
 		RepoState:           rs,
+		Tasks:               map[string][]*db.MiniTask{},
 	}
 
 	return j, nil
