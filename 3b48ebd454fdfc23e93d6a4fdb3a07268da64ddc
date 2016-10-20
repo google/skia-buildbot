@@ -45,6 +45,24 @@
       "revId": "3b48ebd454fdfc23e93d6a4fdb3a07268da64ddc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_49e585ed",
+        "filename": "go/vec32/vec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-20T18:02:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c8ef381_09f53dd6",
+      "revId": "3b48ebd454fdfc23e93d6a4fdb3a07268da64ddc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
