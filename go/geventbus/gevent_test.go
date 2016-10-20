@@ -13,7 +13,9 @@ import (
 	"go.skia.org/infra/go/testutils"
 )
 
-func TestEventBus(t *testing.T) {
+// TODO(stephana): Revisit this test when we either have a more stable
+// distributed event system or decide to remove the global eventbus.
+func xTestEventBus(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	eventBus, err := NewNSQEventBus(metadata.NSQDTestServerAddr())
