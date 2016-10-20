@@ -1,0 +1,285 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c8ef381_b8cf9d67",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T13:42:08Z",
+      "side": 1,
+      "message": "nit: TaskSummary?",
+      "range": {
+        "startLine": 146,
+        "startChar": 21,
+        "endLine": 146,
+        "endChar": 29
+      },
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_78b295ed",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T13:42:08Z",
+      "side": 1,
+      "message": "nit: docs should say how fn return value is used",
+      "range": {
+        "startLine": 212,
+        "startChar": 51,
+        "endLine": 212,
+        "endChar": 64
+      },
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_38bc0dbd",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T13:42:08Z",
+      "side": 1,
+      "message": "nit: len(j.Tasks) \u003d\u003d 0",
+      "range": {
+        "startLine": 247,
+        "startChar": 4,
+        "endLine": 247,
+        "endChar": 18
+      },
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_18bfc9b4",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T13:42:08Z",
+      "side": 1,
+      "message": "I think this wants to return true",
+      "range": {
+        "startLine": 279,
+        "startChar": 2,
+        "endLine": 279,
+        "endChar": 19
+      },
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_589c7154",
+        "filename": "task_scheduler/go/db/job_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T13:42:08Z",
+      "side": 1,
+      "message": "nit: missing \"build\": []string{}",
+      "range": {
+        "startLine": 163,
+        "startChar": 36,
+        "endLine": 163,
+        "endChar": 61
+      },
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_1896e932",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T13:42:08Z",
+      "side": 1,
+      "message": "nit: add test (testutils.AssertCopy)",
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_03743e41",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T13:42:08Z",
+      "side": 1,
+      "message": "nit: maybe create a MakeJob function?",
+      "range": {
+        "startLine": 183,
+        "startChar": 0,
+        "endLine": 196,
+        "endChar": 2
+      },
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_e3bc9aa6",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1165,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T13:42:08Z",
+      "side": 1,
+      "message": "nit: I don\u0027t think it\u0027s possible for status to change if j.Tasks hasn\u0027t changed. Maybe move \"if changed\" before \"j.Tasks \u003d minis\"?",
+      "range": {
+        "startLine": 1165,
+        "startChar": 2,
+        "endLine": 1165,
+        "endChar": 43
+      },
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_c3cb963b",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1214,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T13:42:08Z",
+      "side": 1,
+      "message": "no longer accurate",
+      "range": {
+        "startLine": 1214,
+        "startChar": 31,
+        "endLine": 1214,
+        "endChar": 57
+      },
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_83aeee64",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T13:42:08Z",
+      "side": 1,
+      "message": "nit: maybe put this as the first thing in visit; remove here and above.",
+      "range": {
+        "startLine": 232,
+        "startChar": 2,
+        "endLine": 232,
+        "endChar": 26
+      },
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_a3dd32fc",
+        "filename": "task_scheduler/res/imp/job-sk-demo.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T13:42:08Z",
+      "side": 1,
+      "message": "nit: wrong indentation",
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_c3e2b6bb",
+        "filename": "task_scheduler/res/imp/job-sk-demo.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T13:42:08Z",
+      "side": 1,
+      "message": "nit: extra fields Name and ParentTaskIds",
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_0310bec1",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T13:42:08Z",
+      "side": 1,
+      "message": "(Completely unrelated to this CL) It might be a good idea to add MarshalJSON and UnmarshalJSON methods to TaskStatus and JobStatus to map \"\" to/from \"PENDING\" or \"IN_PROGRESS\".",
+      "range": {
+        "startLine": 115,
+        "startChar": 6,
+        "endLine": 115,
+        "endChar": 8
+      },
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
