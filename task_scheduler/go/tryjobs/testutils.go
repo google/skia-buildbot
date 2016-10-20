@@ -8,10 +8,12 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
 	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
+	"github.com/skia-dev/glog"
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/exec"
@@ -273,29 +275,44 @@ func MockJobStarted(mock *mockhttpclient.URLMock, id int64, now time.Time, err e
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/start?alt=json", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockJobSuccess(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, err error) {
-	req := []byte(fmt.Sprintf("{\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"result\\\": \\\"TODO(borenet)\\\"}\",\"url\":\"https://task-scheduler.skia.org/job/%s\"}\n", j.BuildbucketLeaseKey, j.Id))
-	resp := []byte("{}")
+func MockJobSuccess(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expectErr error) {
+	jobBytes, err := json.Marshal(j)
 	if err != nil {
-		resp = []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", err.Error()))
+		glog.Fatal(err)
+	}
+	jobStr := strings.Replace(string(jobBytes), "\"", "\\\"", -1)
+	req := []byte(fmt.Sprintf("{\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"job\\\":%s}\",\"url\":\"https://task-scheduler.skia.org/job/%s\"}\n", j.BuildbucketLeaseKey, jobStr, j.Id))
+	resp := []byte("{}")
+	if expectErr != nil {
+		resp = []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", expectErr.Error()))
 	}
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/succeed?alt=json", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockJobFailure(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, err error) {
-	req := []byte(fmt.Sprintf("{\"failure_reason\":\"BUILD_FAILURE\",\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"result\\\": \\\"TODO(borenet)\\\"}\",\"url\":\"https://task-scheduler.skia.org/job/%s\"}\n", j.BuildbucketLeaseKey, j.Id))
-	resp := []byte("{}")
+func MockJobFailure(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expectErr error) {
+	jobBytes, err := json.Marshal(j)
 	if err != nil {
-		resp = []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", err.Error()))
+		glog.Fatal(err)
+	}
+	jobStr := strings.Replace(string(jobBytes), "\"", "\\\"", -1)
+	req := []byte(fmt.Sprintf("{\"failure_reason\":\"BUILD_FAILURE\",\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"job\\\":%s}\",\"url\":\"https://task-scheduler.skia.org/job/%s\"}\n", j.BuildbucketLeaseKey, jobStr, j.Id))
+	resp := []byte("{}")
+	if expectErr != nil {
+		resp = []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", expectErr.Error()))
 	}
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/fail?alt=json", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockJobMishap(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, err error) {
-	req := []byte(fmt.Sprintf("{\"failure_reason\":\"INFRA_FAILURE\",\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"result\\\": \\\"TODO(borenet)\\\"}\",\"url\":\"https://task-scheduler.skia.org/job/%s\"}\n", j.BuildbucketLeaseKey, j.Id))
-	resp := []byte("{}")
+func MockJobMishap(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expectErr error) {
+	jobBytes, err := json.Marshal(j)
 	if err != nil {
-		resp = []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", err.Error()))
+		glog.Fatal(err)
+	}
+	jobStr := strings.Replace(string(jobBytes), "\"", "\\\"", -1)
+	req := []byte(fmt.Sprintf("{\"failure_reason\":\"INFRA_FAILURE\",\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"job\\\":%s}\",\"url\":\"https://task-scheduler.skia.org/job/%s\"}\n", j.BuildbucketLeaseKey, jobStr, j.Id))
+	resp := []byte("{}")
+	if expectErr != nil {
+		resp = []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", expectErr.Error()))
 	}
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/fail?alt=json", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
