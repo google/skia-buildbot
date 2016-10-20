@@ -419,6 +419,11 @@ type JobCache interface {
 	// GetJob returns the job with the given ID, or an error if no such job exists.
 	GetJob(string) (*Job, error)
 
+	// GetJobMaybeExpired does the same as GetJob but tries to dig into the
+	// DB in case the Job is old enough to have scrolled out of the cache
+	// window.
+	GetJobMaybeExpired(string) (*Job, error)
+
 	// ScheduledJobsForCommit indicates whether or not we triggered any jobs
 	// for the given repo/commit.
 	ScheduledJobsForCommit(string, string) (bool, error)
@@ -467,6 +472,18 @@ func (c *jobCache) GetJob(id string) (*Job, error) {
 		return j.Copy(), nil
 	}
 	return nil, ErrNotFound
+}
+
+// See documentation for JobCache interface.
+func (c *jobCache) GetJobMaybeExpired(id string) (*Job, error) {
+	j, err := c.GetJob(id)
+	if err == nil {
+		return j, nil
+	}
+	if err != ErrNotFound {
+		return nil, err
+	}
+	return c.db.GetJobById(id)
 }
 
 // See documentation for JobCache interface.

@@ -1182,5 +1182,5 @@ func (s *TaskScheduler) getTasksForJob(j *db.Job) (map[string][]*db.Task, error)
 
 // GetJob returns the given Job.
 func (s *TaskScheduler) GetJob(id string) (*db.Job, error) {
-	return s.jCache.GetJob(id)
+	return s.jCache.GetJobMaybeExpired(id)
 }
