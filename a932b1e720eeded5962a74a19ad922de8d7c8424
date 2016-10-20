@@ -16,6 +16,24 @@
       "revId": "a932b1e720eeded5962a74a19ad922de8d7c8424",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_be51c54e",
+        "filename": "run_unittests.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-20T16:38:11Z",
+      "side": 1,
+      "message": "We might want to blacklist a directory, but we also now have other repos checked out in infra/bots/.recipe_deps and we want to avoid running those tests in addition to ours.",
+      "parentUuid": "5c8ef381_1e8a51a6",
+      "revId": "a932b1e720eeded5962a74a19ad922de8d7c8424",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
