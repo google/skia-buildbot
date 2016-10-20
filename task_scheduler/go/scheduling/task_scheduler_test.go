@@ -2021,7 +2021,7 @@ func TestTrybots(t *testing.T) {
 	assert.False(t, tryJob.Done())
 
 	// Mock out the JobFinished call.
-	tryjobs.MockJobSuccess(mock, tryJob, now, nil)
+	tryjobs.MockJobSuccess(mock, tryJob, now, nil, true)
 
 	// Run through the try job's tasks.
 	for i := 0; i < 10; i++ {

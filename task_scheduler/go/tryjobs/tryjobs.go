@@ -392,10 +392,18 @@ func (t *TryJobIntegrator) JobFinished(j *db.Job) error {
 	if !j.Done() {
 		return fmt.Errorf("JobFinished called for unfinished Job!")
 	}
+	b, err := json.Marshal(struct {
+		Job *db.Job `json:"job"`
+	}{
+		Job: j,
+	})
+	if err != nil {
+		return err
+	}
 	if j.Status == db.JOB_STATUS_SUCCESS {
 		resp, err := t.bb.Succeed(j.BuildbucketBuildId, &buildbucket_api.ApiSucceedRequestBodyMessage{
 			LeaseKey:          j.BuildbucketLeaseKey,
-			ResultDetailsJson: "{\"result\": \"TODO(borenet)\"}",
+			ResultDetailsJson: string(b),
 			Url:               j.URL(),
 		}).Do()
 		if err != nil {
@@ -412,7 +420,7 @@ func (t *TryJobIntegrator) JobFinished(j *db.Job) error {
 		resp, err := t.bb.Fail(j.BuildbucketBuildId, &buildbucket_api.ApiFailRequestBodyMessage{
 			FailureReason:     failureReason,
 			LeaseKey:          j.BuildbucketLeaseKey,
-			ResultDetailsJson: "{\"result\": \"TODO(borenet)\"}",
+			ResultDetailsJson: string(b),
 			Url:               j.URL(),
 		}).Do()
 		if err != nil {

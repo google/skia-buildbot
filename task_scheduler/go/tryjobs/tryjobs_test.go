@@ -217,13 +217,13 @@ func TestJobFinished(t *testing.T) {
 	j.Finished = now
 	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j}))
 	assert.NoError(t, trybots.jCache.Update())
-	MockJobSuccess(mock, j, now, nil)
+	MockJobSuccess(mock, j, now, nil, false)
 	assert.NoError(t, trybots.JobFinished(j))
 	assert.True(t, mock.Empty())
 
 	// Successful job, failed to update.
 	err := fmt.Errorf("fail")
-	MockJobSuccess(mock, j, now, err)
+	MockJobSuccess(mock, j, now, err, false)
 	assert.EqualError(t, trybots.JobFinished(j), err.Error())
 	assert.True(t, mock.Empty())
 
