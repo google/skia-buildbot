@@ -7,7 +7,6 @@ import (
 	"time"
 
 	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
-	"github.com/satori/go.uuid"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/testutils"
@@ -45,7 +44,6 @@ func TestHeartbeats(t *testing.T) {
 	// Don't send heartbeats for non-try jobs.
 	j2 := &db.Job{
 		Created: time.Now(),
-		Id:      uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String(),
 		Name:    "fake-name",
 		RepoState: db.RepoState{
 			Repo:     repoName,
@@ -332,7 +330,7 @@ func TestGetJobToSchedule(t *testing.T) {
 
 	// Invalid RepoState.
 	b7 := Build(t, now)
-	b7.ParametersJson = testutils.MarshalJSON(t, Params(t, "fake-job", patchProject, rs.Revision, rs.Server, rs.Issue, ""))
+	b7.ParametersJson = testutils.MarshalJSON(t, Params(t, "fake-job", patchProject, "bad-revision", rs.Server, rs.Issue, rs.Patchset))
 	MockCancelBuild(mock, b7.Id, nil)
 	result, err = trybots.getJobToSchedule(b7, now)
 	assert.Nil(t, err) // We don't report errors for bad data from buildbucket.

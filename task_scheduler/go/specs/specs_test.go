@@ -284,7 +284,16 @@ func tempGitRepoTests(t *testing.T, dir string, cases map[db.RepoState]error) {
 		} else {
 			defer testutils.RemoveAll(t, d)
 			assert.NoError(t, err)
-			gotRepo := strings.TrimSpace(testutils.Run(t, d, "git", "remote", "get-url", "origin"))
+			output := testutils.Run(t, d, "git", "remote", "-v")
+			gotRepo := "COULD NOT FIND REPO"
+			for _, s := range strings.Split(output, "\n") {
+				if strings.HasPrefix(s, "origin") {
+					split := strings.Fields(s)
+					assert.Equal(t, 3, len(split))
+					gotRepo = split[1]
+					break
+				}
+			}
 			assert.Equal(t, rs.Repo, gotRepo)
 			gotRevision := strings.TrimSpace(testutils.Run(t, d, "git", "rev-parse", "HEAD"))
 			assert.Equal(t, rs.Revision, gotRevision)

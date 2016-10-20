@@ -12,7 +12,6 @@ import (
 	"time"
 
 	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
-	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/exec"
@@ -60,8 +59,8 @@ var (
 	rs = db.RepoState{
 		Patch: db.Patch{
 			Server:   gerritUrl,
-			Issue:    "fake-issue",
-			Patchset: "fake-patchset",
+			Issue:    "2112",
+			Patchset: "3",
 		},
 		Repo:     repoName,
 		Revision: "master",
@@ -172,7 +171,6 @@ func tryjob() *db.Job {
 		BuildbucketBuildId:  rand.Int63(),
 		BuildbucketLeaseKey: rand.Int63(),
 		Created:             time.Now(),
-		Id:                  uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String(),
 		Name:                "fake-name",
 		RepoState: db.RepoState{
 			Patch: db.Patch{
