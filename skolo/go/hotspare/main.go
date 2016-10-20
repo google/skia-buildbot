@@ -71,11 +71,7 @@ func (v *virtualIPManager) Run() {
 				bringUpVIP()
 			}
 		} else {
-			sklog.Infof("Connected successfully to %s: %v\n", v.Addr, conn.Close())
-			if v.consecutiveFailures >= v.Threshold {
-				tearDownVIP()
-			}
-			v.consecutiveFailures = 0
+			sklog.Infof("Connected successfully to %s. %v\n", v.Addr, conn.Close())
 		}
 		metrics2.GetInt64Metric("skolo.hotspare.consecutive_failures", nil).Update(int64(v.consecutiveFailures))
 	}
@@ -96,16 +92,6 @@ func bringUpVIP() {
 	sklog.Infof("Output: %s", out)
 	if err != nil {
 		sklog.Errorf("Could not bring up VIP: %s", err)
-	}
-}
-
-func tearDownVIP() {
-	sklog.Infof("Tearing down VIP, master is live")
-	cmd := fmt.Sprintf("sudo ifconfig %s down", *virtualInterface)
-	out, err := exec.RunSimple(cmd)
-	sklog.Infof("Output: %s", out)
-	if err != nil {
-		sklog.Errorf("Could not tear down VIP: %s", err)
 	}
 }
 
