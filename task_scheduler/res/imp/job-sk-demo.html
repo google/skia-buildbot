@@ -7,13 +7,17 @@
   <script src="/res/common/js/common.js"></script>
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <script type="text/javascript" charset="utf-8">
-    // job1, tasks1, and depGraph1 represent real task data.
+    // job1 represents real task data.
     var job1 = {
         "BuildbucketBuildId": 0,
         "BuildbucketLeaseKey": 0,
         "Created": "2016-10-10T15:56:13.393516175-04:00",
         "DbModified": "2016-10-10T19:56:44.572122663Z",
-        "Dependencies": ["Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN"],
+        "Dependencies": {
+            "Build-Ubuntu-GCC-x86_64-Release-GN": [],
+            "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": ["Build-Ubuntu-GCC-x86_64-Release-GN"],
+            "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": ["Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN"],
+        },
         "Finished": "2016-10-11T15:30:45.22367Z",
         "Id": "20161010T195613.393516175Z_0000000000000048",
         "IsForce": false,
@@ -25,86 +29,37 @@
         "Repo": "https://skia.googlesource.com/skia.git",
         "Revision": "6ca48820407244bbdeb8f9e0ed7d76dd94270460",
         "Status": "SUCCESS",
+        "Tasks": {
+            "Build-Ubuntu-GCC-x86_64-Release-GN": [{
+                "Id": "20161011T152315.308660290Z_0000000000000a40",
+                "Status": "SUCCESS",
+                "SwarmingTaskId": "31cd28b854e04d10",
+            }],
+            "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": [{
+                "Id": "20161011T152506.638634008Z_0000000000000a41",
+                "Status": "SUCCESS",
+                "SwarmingTaskId": "31cd2a6aef2ec410",
+            }],
+            "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": [{
+                "Id": "20161011T152813.960219550Z_0000000000000a42",
+                "Status": "SUCCESS",
+                "SwarmingTaskId": "31cd2d46acc0e110",
+            }],
+        },
     };
 
-    var tasks1 = {
-        "Build-Ubuntu-GCC-x86_64-Release-GN": [{
-            "Commits": null,
-            "Created": "2016-10-11T15:23:15.39299Z",
-            "DbModified": "2016-10-11T15:24:56.496602748Z",
-            "Finished": "2016-10-11T15:24:32.45798Z",
-            "Id": "20161011T152315.308660290Z_0000000000000a40",
-            "IsolatedOutput": "4694633b38084550cb545bf81e19d13e9c46cd26",
-            "ParentTaskIds": null,
-            "RetryOf": "",
-            "Started": "2016-10-11T15:23:26.15551Z",
-            "Status": "SUCCESS",
-            "SwarmingBotId": "skia-vm-050",
-            "SwarmingTaskId": "31cd28b854e04d10",
-            "Issue": "2410843002",
-            "Patchset": "20001",
-            "Server": "https://codereview.chromium.org",
-            "Repo": "https://skia.googlesource.com/skia.git",
-            "Revision": "4824cf4c1ef991fe9b0dcd1536e83b37907d3fcf",
-            "Name": "Build-Ubuntu-GCC-x86_64-Release-GN",
-            "ForcedJobId": "",
-        }],
-        "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": [{
-            "Commits": null,
-            "Created": "2016-10-11T15:25:06.66662Z",
-            "DbModified": "2016-10-11T15:27:56.507119337Z",
-            "Finished": "2016-10-11T15:27:21.39336Z",
-            "Id": "20161011T152506.638634008Z_0000000000000a41",
-            "IsolatedOutput": "35a4cf35f4018402ba9d34f8ad5dc437cc7d875c",
-            "ParentTaskIds": ["20161011T152315.308660290Z_0000000000000a40"],
-            "RetryOf": "",
-            "Started": "2016-10-11T15:25:17.30722Z",
-            "Status": "SUCCESS",
-            "SwarmingBotId": "skia-vm-050",
-            "SwarmingTaskId": "31cd2a6aef2ec410",
-            "Issue": "2410843002",
-            "Patchset": "20001",
-            "Server": "https://codereview.chromium.org",
-            "Repo": "https://skia.googlesource.com/skia.git",
-            "Revision": "4824cf4c1ef991fe9b0dcd1536e83b37907d3fcf",
-            "Name": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN",
-            "ForcedJobId": "",
-        }],
-        "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": [{
-            "Commits": null,
-            "Created": "2016-10-11T15:28:13.98995Z",
-            "DbModified": "2016-10-11T15:30:56.978965626Z",
-            "Finished": "2016-10-11T15:30:45.22367Z",
-            "Id": "20161011T152813.960219550Z_0000000000000a42",
-            "IsolatedOutput": "",
-            "ParentTaskIds": ["20161011T152506.638634008Z_0000000000000a41"],
-            "RetryOf": "",
-            "Started": "2016-10-11T15:28:43.17047Z",
-            "Status": "SUCCESS",
-            "SwarmingBotId": "skia-vm-051",
-            "SwarmingTaskId": "31cd2d46acc0e110",
-            "Issue": "2410843002",
-            "Patchset": "20001",
-            "Server": "https://codereview.chromium.org",
-            "Repo": "https://skia.googlesource.com/skia.git",
-            "Revision": "4824cf4c1ef991fe9b0dcd1536e83b37907d3fcf",
-            "Name": "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN",
-            "ForcedJobId": "",
-        }],
-    };
-
-    var depGraph1 = {
-        "Build-Ubuntu-GCC-x86_64-Release-GN": [],
-        "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": ["Build-Ubuntu-GCC-x86_64-Release-GN"],
-        "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": ["Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN"],
-    };
-
-    // job2, tasks2, and depGraph2 are fake data but are more visually
-    // interesting.
+    // job2 is fake data but is more visually interesting.
     var job2 = {
         "Created": (new Date(new Date().getTime() - 5000000)).toUTCString(),
         "DbModified": "2016-10-10T19:56:44.572122663Z",
-        "Dependencies": ["D", "F"],
+        "Dependencies": {
+          "F": ["E"],
+          "E": ["B"],
+          "D": ["B"],
+          "C": ["A"],
+          "B": ["A"],
+          "A": [],
+        },
         "Finished": "",
         "Id": "20161010T195613.393516175Z_0000000000000048",
         "IsForce": false,
@@ -116,58 +71,37 @@
         "Repo": "https://skia.googlesource.com/skia.git",
         "Revision": "6ca48820407244bbdeb8f9e0ed7d76dd94270460",
         "Status": "",
-    };
-
-    var tasks2 = {
-      "A": [{
-        "Id": "A1",
-        "Name": "A",
-        "Status": "SUCCESS",
-        "SwarmingTaskId": "31cd28b854e04d10",
-      }],
-      "B": [{
-        "Id": "B1",
-        "Name": "B",
-        "Status": "FAILURE",
-        "ParentTaskIds": ["A1"],
-        "SwarmingTaskId": "31cd28b854e04d10",
-      }, {
-        "Id": "B2",
-        "Name": "B",
-        "Status": "SUCCESS",
-        "ParentTaskIds": ["A1"],
-        "SwarmingTaskId": "31cd28b854e04d10",
-      }],
-      "C": [{
-        "Id": "C1",
-        "Name": "C",
-        "Status": "SUCCESS",
-        "ParentTaskIds": ["A1"],
-        "SwarmingTaskId": "31cd28b854e04d10",
-      }],
-      "D": [{
-        "Id": "D1",
-        "Name": "D",
-        "Status": "",
-        "ParentTaskIds": ["B2"],
-        "SwarmingTaskId": "31cd28b854e04d10",
-      }],
-      "E": [{
-        "Id": "E1",
-        "Name": "E",
-        "Status": "RUNNING",
-        "ParentTaskIds": ["B2"],
-        "SwarmingTaskId": "31cd28b854e04d10",
-      }],
-    };
-
-    var depGraph2 = {
-      "F": ["E"],
-      "E": ["B"],
-      "D": ["B"],
-      "C": ["A"],
-      "B": ["A"],
-      "A": [],
+        "Tasks": {
+          "A": [{ 
+            "Id": "A1",
+            "Status": "SUCCESS",
+            "SwarmingTaskId": "31cd28b854e04d10",
+          }],
+          "B": [{ 
+            "Id": "B1",
+            "Status": "FAILURE",
+            "SwarmingTaskId": "31cd28b854e04d10",
+          }, {
+            "Id": "B2",
+            "Status": "SUCCESS",
+            "SwarmingTaskId": "31cd28b854e04d10",
+          }],
+          "C": [{
+            "Id": "C1",
+            "Status": "SUCCESS",
+            "SwarmingTaskId": "31cd28b854e04d10",
+          }],
+          "D": [{
+            "Id": "D1",
+            "Status": "",
+            "SwarmingTaskId": "31cd28b854e04d10",
+          }],
+          "E": [{
+            "Id": "E1",
+            "Status": "RUNNING",
+            "SwarmingTaskId": "31cd28b854e04d10",
+          }],
+        },
     };
 
   </script>
@@ -196,17 +130,17 @@
 
     ready: function() {
       if (this.alternate) {
-        this.$.job_sk.setData(job2, tasks2, depGraph2);
+        this.$.job_sk.setJob(job2);
       } else {
-        this.$.job_sk.setData(job1, tasks1, depGraph1);
+        this.$.job_sk.setJob(job1);
       }
     },
 
     _alternateChanged: function() {
       if (this.alternate) {
-        this.$.job_sk.setData(job2, tasks2, depGraph2);
+        this.$.job_sk.setJob(job2);
       } else {
-        this.$.job_sk.setData(job1, tasks1, depGraph1);
+        this.$.job_sk.setJob(job1);
       }
     },
   });

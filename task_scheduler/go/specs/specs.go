@@ -51,7 +51,7 @@ var (
 func ParseTasksCfg(contents string) (*TasksCfg, error) {
 	var rv TasksCfg
 	if err := json.Unmarshal([]byte(contents), &rv); err != nil {
-		return nil, fmt.Errorf("Failed to read tasks cfg: could not parse file: %s", err)
+		return nil, fmt.Errorf("Failed to read tasks cfg: could not parse file: %s\nContents:\n%s", err, string(contents))
 	}
 	if err := rv.Validate(); err != nil {
 		return nil, err
@@ -200,6 +200,41 @@ func (j *JobSpec) Copy() *JobSpec {
 		Priority:  j.Priority,
 		TaskSpecs: taskSpecs,
 	}
+}
+
+// GetTaskSpecDAG returns a map describing all of the dependencies of the
+// JobSpec. Its keys are TaskSpec names and values are TaskSpec names upon
+// which the keys depend.
+func (j *JobSpec) GetTaskSpecDAG(cfg *TasksCfg) (map[string][]string, error) {
+	rv := map[string][]string{}
+	var visit func(string) error
+	visit = func(name string) error {
+		if _, ok := rv[name]; ok {
+			return nil
+		}
+		spec, ok := cfg.Tasks[name]
+		if !ok {
+			return fmt.Errorf("No such task: %s", name)
+		}
+		deps := util.CopyStringSlice(spec.Dependencies)
+		if deps == nil {
+			deps = []string{}
+		}
+		rv[name] = deps
+		for _, t := range deps {
+			if err := visit(t); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	for _, t := range j.TaskSpecs {
+		if err := visit(t); err != nil {
+			return nil, err
+		}
+	}
+	return rv, nil
 }
 
 // TaskCfgCache is a struct used for caching tasks cfg files. The user should
@@ -353,6 +388,32 @@ func (c *TaskCfgCache) GetJobSpec(rs db.RepoState, name string) (*JobSpec, error
 		return nil, fmt.Errorf("No such job spec: %s @ %s", name, rs)
 	}
 	return j.Copy(), nil
+}
+
+// MakeJob is a helper function which retrieves the given JobSpec at the given
+// RepoState and uses it to create a Job instance.
+func (c *TaskCfgCache) MakeJob(rs db.RepoState, name string) (*db.Job, error) {
+	cfg, err := c.ReadTasksCfg(rs)
+	if err != nil {
+		return nil, err
+	}
+	spec, ok := cfg.Jobs[name]
+	if !ok {
+		return nil, fmt.Errorf("No such job: %s", name)
+	}
+	deps, err := spec.GetTaskSpecDAG(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	return &db.Job{
+		Created:      time.Now(),
+		Dependencies: deps,
+		Name:         name,
+		Priority:     spec.Priority,
+		RepoState:    rs,
+		Tasks:        map[string][]*db.TaskSummary{},
+	}, nil
 }
 
 // Cleanup removes cache entries which are outside of our scheduling window.

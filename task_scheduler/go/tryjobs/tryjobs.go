@@ -282,8 +282,8 @@ func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiBuildMessage, 
 		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid RepoState: %s", rs))
 	}
 
-	// Obtain the correct Job spec.
-	spec, err := t.taskCfgCache.GetJobSpec(rs, params.BuilderName)
+	// Create a Job.
+	j, err := t.taskCfgCache.MakeJob(rs, params.BuilderName)
 	if err != nil {
 		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to obtain JobSpec: %s", err))
 	}
@@ -296,15 +296,9 @@ func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiBuildMessage, 
 		return nil, err
 	}
 
-	// Create and return the Job.
-	j := &db.Job{
-		BuildbucketBuildId:  b.Id,
-		BuildbucketLeaseKey: leaseKey,
-		Created:             time.Unix(0, b.CreatedTs*util.MICROS_TO_NANOS).UTC(),
-		Dependencies:        spec.TaskSpecs,
-		Name:                params.BuilderName,
-		RepoState:           rs,
-	}
+	// Update and return the Job.
+	j.BuildbucketBuildId = b.Id
+	j.BuildbucketLeaseKey = leaseKey
 
 	return j, nil
 }

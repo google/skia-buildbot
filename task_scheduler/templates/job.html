@@ -3,9 +3,9 @@
 <job-sk id="job-sk"></job-sk>
 <script>
 // Add Job info from the server to the job-sk.
-var data = JSON.parse({{.Data}});
-var j = document.getElementById("job-sk");
-j.setData(data.job, data.tasks, data.depGraph);
+var job = JSON.parse({{.Data}});
+var elem = document.getElementById("job-sk");
+elem.setJob(job);
 </script>
 
 {{template "footer.html"}}
