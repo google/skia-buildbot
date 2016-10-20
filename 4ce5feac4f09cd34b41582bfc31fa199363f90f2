@@ -143,6 +143,24 @@
     },
     {
       "key": {
+        "uuid": "5c8ef381_3e3715a3",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-20T17:05:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c8ef381_1e07b1f5",
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c8ef381_18bfc9b4",
         "filename": "task_scheduler/go/db/job.go",
         "patchSetId": 9
