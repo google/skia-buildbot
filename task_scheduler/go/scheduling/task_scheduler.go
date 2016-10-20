@@ -232,7 +232,7 @@ func ComputeBlamelist(cache db.TaskCache, repo *gitrepo.Repo, taskName, repoName
 		// hit this case and just return the Revision as the blamelist.
 		if len(commitsBuf) > buildbot.MAX_BLAMELIST_COMMITS && stealFrom == nil {
 			commitsBuf = append(commitsBuf[:0], initialCommit)
-			glog.Warningf("Found too many commits for %s @ %s; cutting short.")
+			glog.Warningf("Found too many commits for %s @ %s; cutting short.", taskName, commit.Hash)
 			return false, ERR_BLAMELIST_DONE
 		}
 
