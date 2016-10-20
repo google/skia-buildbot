@@ -773,3 +773,12 @@ func TestTaskDecoderError(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, 0, len(result))
 }
+
+func TestCopyTaskSummary(t *testing.T) {
+	v := &TaskSummary{
+		Id:             "123",
+		Status:         TASK_STATUS_FAILURE,
+		SwarmingTaskId: "abc123",
+	}
+	testutils.AssertCopy(t, v, v.Copy())
+}
