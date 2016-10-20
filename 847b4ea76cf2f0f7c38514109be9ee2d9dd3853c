@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c8ef381_98997466",
+        "filename": "task_scheduler/go/tryjobs/testutils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T20:50:43Z",
+      "side": 1,
+      "message": "nit: make a function",
+      "range": {
+        "startLine": 279,
+        "startChar": 0,
+        "endLine": 283,
+        "endChar": 62
+      },
+      "revId": "847b4ea76cf2f0f7c38514109be9ee2d9dd3853c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_38964833",
+        "filename": "task_scheduler/go/tryjobs/testutils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T20:50:43Z",
+      "side": 1,
+      "message": "nit: maybe jobStr, err :\u003d json.Marshal(string(jobBytes))?",
+      "range": {
+        "startLine": 283,
+        "startChar": 11,
+        "endLine": 283,
+        "endChar": 62
+      },
+      "revId": "847b4ea76cf2f0f7c38514109be9ee2d9dd3853c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
