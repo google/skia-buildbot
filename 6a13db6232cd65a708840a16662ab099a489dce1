@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c8ef381_d89a9cfa",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T19:52:16Z",
+      "side": 1,
+      "message": "nit: .catch(sk.errorMessage)",
+      "range": {
+        "startLine": 178,
+        "startChar": 21,
+        "endLine": 180,
+        "endChar": 21
+      },
+      "revId": "6a13db6232cd65a708840a16662ab099a489dce1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
