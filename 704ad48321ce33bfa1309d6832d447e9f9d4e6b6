@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c8ef381_6405102d",
+        "filename": "pulld/go/pulld/reboot.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T18:40:19Z",
+      "side": 1,
+      "message": "I might need to add a Liveness metric if I can\u0027t figure out how to query influx for \"this metric has been 1 for more than 24 hours.\"",
+      "revId": "704ad48321ce33bfa1309d6832d447e9f9d4e6b6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
