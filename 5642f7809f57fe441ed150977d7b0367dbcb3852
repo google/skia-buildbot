@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c8ef381_89992d66",
+        "filename": "go/vec32/vec.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5010
+      },
+      "writtenOn": "2016-10-20T18:05:39Z",
+      "side": 1,
+      "message": "You got me all excited there for a second.",
+      "range": {
+        "startLine": 145,
+        "startChar": 5,
+        "endLine": 145,
+        "endChar": 8
+      },
+      "revId": "5642f7809f57fe441ed150977d7b0367dbcb3852",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
