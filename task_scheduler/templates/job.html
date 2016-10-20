@@ -1,11 +1,5 @@
 {{template "header.html"}}
 
-<job-sk id="job-sk"></job-sk>
-<script>
-// Add Job info from the server to the job-sk.
-var job = JSON.parse({{.Data}});
-var elem = document.getElementById("job-sk");
-elem.setJob(job);
-</script>
-
+<job-sk id="job-sk" job-id="{{.JobId}}"></job-sk>
+<error-toast-sk></error-toast-sk>
 {{template "footer.html"}}

@@ -272,6 +272,30 @@ func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func jsonJobHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	id, ok := mux.Vars(r)["id"]
+	if !ok {
+		err := "Job ID is required."
+		httputils.ReportError(w, r, fmt.Errorf(err), err)
+		return
+	}
+
+	job, err := ts.GetJob(id)
+	if err != nil {
+		if err == db.ErrNotFound {
+			http.Error(w, fmt.Sprintf("Unknown Job %q", id), 404)
+			return
+		}
+		httputils.ReportError(w, r, err, "Error retrieving Job.")
+		return
+	}
+	if err := json.NewEncoder(w).Encode(job); err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode response.")
+		return
+	}
+}
+
 func jobHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
@@ -287,25 +311,10 @@ func jobHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	job, err := ts.GetJob(id)
-	if err != nil {
-		if err == db.ErrNotFound {
-			http.Error(w, fmt.Sprintf("Unknown Job %q", id), 404)
-			return
-		}
-		httputils.ReportError(w, r, err, "Failed to obtain tasks for Job.")
-		return
-	}
-	b, err := json.Marshal(job)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode response.")
-		return
-	}
-
 	page := struct {
-		Data string
+		JobId string
 	}{
-		Data: string(b),
+		JobId: id,
 	}
 	if err := jobTemplate.Execute(w, page); err != nil {
 		httputils.ReportError(w, r, err, "Failed to execute template.")
@@ -320,6 +329,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/job/{id}", jobHandler)
 	r.HandleFunc("/trigger", triggerHandler)
 	r.HandleFunc("/json/blacklist", jsonBlacklistHandler).Methods(http.MethodPost, http.MethodDelete)
+	r.HandleFunc("/json/job/{id}", jsonJobHandler)
 	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods(http.MethodPost)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))

@@ -131,6 +131,10 @@
       is: "job-sk",
 
       properties: {
+        jobId: {
+          type: String,
+        },
+
         _job: {
           type: Object,
         },
@@ -162,11 +166,16 @@
       },
 
       observers: [
-        "_computeTasksGraph(_job)",
+        "_loadJob(jobId)",
       ],
 
-      setJob: function(job) {
-        this.set("_job", job);
+      _loadJob: function(jobId) {
+        var url = "/json/job/" + jobId;
+        console.log("Loading Job from " + url);
+        sk.get(url).then(JSON.parse).then(function(json) {
+          this.set("_job", json);
+          this._computeTasksGraph();
+        }.bind(this)).catch(sk.errorMessage);
       },
 
       _computeCodereviewLink: function(job) {
@@ -221,9 +230,9 @@
         return textColor[1];
       },
 
-      _computeTasksGraph: function(job) {
-        var taskData = job.Tasks;
-        var graph = job.Dependencies;
+      _computeTasksGraph: function() {
+        var taskData = this._job.Tasks;
+        var graph = this._job.Dependencies;
 
         // Skip drawing the graph if taskData or graph are missing or empty. This
         // is mainly to prevent errors on the demo page.
