@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c8ef381_d8a05cdd",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T20:16:07Z",
+      "side": 1,
+      "message": "Any reason not to do\nb, err :\u003d json.Marshal(struct {\n  Job *db.Job `json:\"job\"`\n} {\n  Job: j,\n})",
+      "range": {
+        "startLine": 402,
+        "startChar": 22,
+        "endLine": 402,
+        "endChar": 61
+      },
+      "revId": "1789643c2d280d45238f01e0b57f8832eb791e64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
