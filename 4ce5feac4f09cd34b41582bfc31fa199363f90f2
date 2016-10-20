@@ -166,6 +166,24 @@
     },
     {
       "key": {
+        "uuid": "5c8ef381_febf4d06",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T16:50:11Z",
+      "side": 1,
+      "message": "Sorry, I was confused by true vs false.\n\nI think both line 258 and line 280 need to return false.\n\nIf that\u0027s correct, we don\u0027t seem to have any code that returns true from this function. It would probably be clearer to just remove the bool return value.",
+      "parentUuid": "5c8ef381_a3f1b22b",
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c8ef381_589c7154",
         "filename": "task_scheduler/go/db/job_test.go",
         "patchSetId": 9
