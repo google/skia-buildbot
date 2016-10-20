@@ -50,22 +50,6 @@ var (
 	// Error message shown when a required executable is not installed.
 	ERR_NEED_INSTALL = "%s failed to run! Is it installed? Error: %v"
 
-	// Directories in which to run "go test" and whether or not to invoke
-	// with --alsologtostderr.
-	GO_TEST_DIRS_AND_VERBOSITY = map[string]bool{
-		".":               false,
-		"alertserver":     false,
-		"autoroll":        true,
-		"build_scheduler": false,
-		"ct":              false,
-		"datahopper":      false,
-		"fuzzer":          false,
-		"golden":          false,
-		"perf":            false,
-		"status":          false,
-		"task_scheduler":  false,
-	}
-
 	// Directories with these names are skipped when searching for tests.
 	NO_CRAWL_DIR_NAMES = []string{
 		".git",
@@ -256,11 +240,11 @@ func main() {
 	glog.Info("Searching for tests.")
 	tests := []*test{}
 
-	// Search for Python tests in the repo.
+	// Search for Python tests and Go dirs to test in the repo.
 	if err := filepath.Walk(rootDir, func(p string, info os.FileInfo, err error) error {
 		basename := path.Base(p)
-		// Skip some directories.
 		if info.IsDir() {
+			// Skip some directories.
 			for _, skip := range NO_CRAWL_DIR_NAMES {
 				if basename == skip {
 					return filepath.SkipDir
@@ -271,6 +255,10 @@ func main() {
 					return filepath.SkipDir
 				}
 			}
+
+			if basename == "go" {
+				tests = append(tests, goTest(path.Dir(p), false))
+			}
 		}
 		if strings.HasSuffix(basename, "_test.py") {
 			tests = append(tests, pythonTest(p))
@@ -278,11 +266,6 @@ func main() {
 		return nil
 	}); err != nil {
 		glog.Fatal(err)
-	}
-
-	// Go tests.
-	for goDir, extraLog := range GO_TEST_DIRS_AND_VERBOSITY {
-		tests = append(tests, goTest(goDir, extraLog))
 	}
 
 	// Other tests.
