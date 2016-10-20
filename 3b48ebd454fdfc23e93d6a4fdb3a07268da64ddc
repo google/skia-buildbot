@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c8ef381_49726593",
+        "filename": "go/vec32/vec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T17:55:15Z",
+      "side": 1,
+      "message": "base does not have type []float32 (but it would make more sense to me if it did)",
+      "range": {
+        "startLine": 142,
+        "startChar": 67,
+        "endLine": 142,
+        "endChar": 84
+      },
+      "revId": "3b48ebd454fdfc23e93d6a4fdb3a07268da64ddc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_09f53dd6",
+        "filename": "go/vec32/vec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-20T17:55:15Z",
+      "side": 1,
+      "message": "nit: \"(v-base)*(v-base)\" is likely to be much faster.",
+      "range": {
+        "startLine": 149,
+        "startChar": 12,
+        "endLine": 149,
+        "endChar": 40
+      },
+      "revId": "3b48ebd454fdfc23e93d6a4fdb3a07268da64ddc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
