@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c8ef381_1e8a51a6",
+        "filename": "run_unittests.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-20T16:35:21Z",
+      "side": 1,
+      "message": "Is there a reason we don\u0027t just run \"go test ./...\" at the root directory and let \"go test\" do all the work?",
+      "revId": "a932b1e720eeded5962a74a19ad922de8d7c8424",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
