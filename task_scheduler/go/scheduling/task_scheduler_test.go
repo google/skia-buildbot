@@ -237,7 +237,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	// returned (ie. all dependencies and their dependencies).
 	j1 := &db.Job{
 		Name:         "j1",
-		Dependencies: []string{testTask},
+		Dependencies: map[string][]string{testTask: []string{buildTask}, buildTask: []string{}},
 		Priority:     0.5,
 		RepoState:    rs1.Copy(),
 	}
@@ -265,13 +265,13 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	// dependencies are de-duplicated.
 	j2 := &db.Job{
 		Name:         "j2",
-		Dependencies: []string{testTask},
+		Dependencies: map[string][]string{testTask: []string{buildTask}, buildTask: []string{}},
 		Priority:     0.6,
 		RepoState:    rs2,
 	}
 	j3 := &db.Job{
 		Name:         "j3",
-		Dependencies: []string{perfTask},
+		Dependencies: map[string][]string{perfTask: []string{buildTask}, buildTask: []string{}},
 		Priority:     0.6,
 		RepoState:    rs2,
 	}
@@ -1019,35 +1019,35 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	j1 := &db.Job{
 		Created:      now,
 		Name:         "j1",
-		Dependencies: []string{buildTask},
+		Dependencies: map[string][]string{buildTask: []string{}},
 		Priority:     0.5,
 		RepoState:    rs1.Copy(),
 	}
 	j2 := &db.Job{
 		Created:      now,
 		Name:         "j2",
-		Dependencies: []string{testTask},
+		Dependencies: map[string][]string{testTask: []string{buildTask}, buildTask: []string{}},
 		Priority:     0.5,
 		RepoState:    rs1.Copy(),
 	}
 	j3 := &db.Job{
 		Created:      now,
 		Name:         "j3",
-		Dependencies: []string{buildTask},
+		Dependencies: map[string][]string{buildTask: []string{}},
 		Priority:     0.5,
 		RepoState:    rs2.Copy(),
 	}
 	j4 := &db.Job{
 		Created:      now,
 		Name:         "j4",
-		Dependencies: []string{testTask},
+		Dependencies: map[string][]string{testTask: []string{buildTask}, buildTask: []string{}},
 		Priority:     0.5,
 		RepoState:    rs2.Copy(),
 	}
 	j5 := &db.Job{
 		Created:      now,
 		Name:         "j5",
-		Dependencies: []string{perfTask},
+		Dependencies: map[string][]string{perfTask: []string{buildTask}, buildTask: []string{}},
 		Priority:     0.5,
 		RepoState:    rs2.Copy(),
 	}
@@ -1946,111 +1946,6 @@ func TestBlacklist(t *testing.T) {
 	assert.NotEqual(t, c1, tasks[0].Revision)
 }
 
-func TestGetWorstJobStatus(t *testing.T) {
-	tr, d, _, _, _, s, _ := setup(t)
-	defer tr.Cleanup()
-
-	test := func(j *db.Job, expect db.JobStatus) {
-		res, err := getWorstJobStatus(j, s.tCache, s.taskCfgCache)
-		assert.NoError(t, err)
-		assert.Equal(t, expect, res)
-	}
-
-	// No tasks for the Job: in progress.
-	j1 := &db.Job{
-		Dependencies: []string{testTask},
-		Name:         "j1",
-		RepoState: db.RepoState{
-			Repo:     repoName,
-			Revision: c2,
-		},
-	}
-	test(j1, db.JOB_STATUS_IN_PROGRESS)
-
-	// Add a task for the job. It's still in progress.
-	t1 := makeTask(buildTask, repoName, c2)
-	assert.NoError(t, d.PutTask(t1))
-	assert.NoError(t, s.tCache.Update())
-	test(j1, db.JOB_STATUS_IN_PROGRESS)
-
-	// The first task finished, but the Job is still in progress.
-	t1.Status = db.TASK_STATUS_SUCCESS
-	t1.Finished = time.Now()
-	t1.IsolatedOutput = "abc123"
-	assert.NoError(t, d.PutTask(t1))
-	assert.NoError(t, s.tCache.Update())
-	test(j1, db.JOB_STATUS_IN_PROGRESS)
-
-	// Or, maybe the first task failed, but we still have a retry.
-	t1.Status = db.TASK_STATUS_FAILURE
-	assert.NoError(t, d.PutTask(t1))
-	assert.NoError(t, s.tCache.Update())
-	test(j1, db.JOB_STATUS_IN_PROGRESS)
-
-	// There aren't any retries left!
-	t1.RetryOf = "abc123"
-	assert.NoError(t, d.PutTask(t1))
-	assert.NoError(t, s.tCache.Update())
-	test(j1, db.JOB_STATUS_FAILURE)
-
-	// Or maybe it was a mishap.
-	t1.Status = db.TASK_STATUS_MISHAP
-	assert.NoError(t, d.PutTask(t1))
-	assert.NoError(t, s.tCache.Update())
-	test(j1, db.JOB_STATUS_MISHAP)
-
-	// Okay, it succeeded.
-	t1.Status = db.TASK_STATUS_SUCCESS
-	assert.NoError(t, d.PutTask(t1))
-	assert.NoError(t, s.tCache.Update())
-	test(j1, db.JOB_STATUS_IN_PROGRESS)
-
-	// Now the second task has been triggered.
-	t2 := makeTask(testTask, repoName, c2)
-	t2.Status = db.TASK_STATUS_PENDING
-	assert.NoError(t, d.PutTask(t2))
-	assert.NoError(t, s.tCache.Update())
-	test(j1, db.JOB_STATUS_IN_PROGRESS)
-
-	// Now it's running.
-	t2.Status = db.TASK_STATUS_RUNNING
-	assert.NoError(t, d.PutTask(t2))
-	assert.NoError(t, s.tCache.Update())
-	test(j1, db.JOB_STATUS_IN_PROGRESS)
-
-	// It was a mishap, but we have a retry.
-	t2.Status = db.TASK_STATUS_MISHAP
-	assert.NoError(t, d.PutTask(t2))
-	assert.NoError(t, s.tCache.Update())
-	test(j1, db.JOB_STATUS_IN_PROGRESS)
-
-	// Add *another* task for the retry.
-	t3 := makeTask(testTask, repoName, c2)
-	t3.RetryOf = t2.Id
-	t3.Status = db.TASK_STATUS_RUNNING
-	assert.NoError(t, d.PutTask(t3))
-	assert.NoError(t, s.tCache.Update())
-	test(j1, db.JOB_STATUS_IN_PROGRESS)
-
-	// It failed.
-	t3.Status = db.TASK_STATUS_FAILURE
-	assert.NoError(t, d.PutTask(t3))
-	assert.NoError(t, s.tCache.Update())
-	test(j1, db.JOB_STATUS_FAILURE)
-
-	// Or it was a mishap.
-	t3.Status = db.TASK_STATUS_MISHAP
-	assert.NoError(t, d.PutTask(t3))
-	assert.NoError(t, s.tCache.Update())
-	test(j1, db.JOB_STATUS_MISHAP)
-
-	// No, it succeeded!
-	t3.Status = db.TASK_STATUS_SUCCESS
-	assert.NoError(t, d.PutTask(t3))
-	assert.NoError(t, s.tCache.Update())
-	test(j1, db.JOB_STATUS_SUCCESS)
-}
-
 func TestTrybots(t *testing.T) {
 	tr, d, _, _, swarmingClient, s, mock := setup(t)
 	defer tr.Cleanup()
@@ -2185,7 +2080,7 @@ func TestGetTasksForJob(t *testing.T) {
 				j5 = j
 			}
 		}
-		tasksByName, _, err := s.GetTasksForJob(j)
+		tasksByName, err := s.getTasksForJob(j)
 		assert.NoError(t, err)
 		for _, tasks := range tasksByName {
 			assert.Equal(t, 0, len(tasks))
@@ -2235,31 +2130,10 @@ func TestGetTasksForJob(t *testing.T) {
 			perfTask:  {},
 		},
 	}
-	depGraph := map[string]map[string][]string{
-		j1.Id: map[string][]string{
-			buildTask: {},
-		},
-		j2.Id: map[string][]string{
-			buildTask: {},
-			testTask:  {buildTask},
-		},
-		j3.Id: map[string][]string{
-			buildTask: {},
-		},
-		j4.Id: map[string][]string{
-			buildTask: {},
-			testTask:  {buildTask},
-		},
-		j5.Id: map[string][]string{
-			buildTask: {},
-			perfTask:  {buildTask},
-		},
-	}
 	for _, j := range jobs {
-		tasksByName, gotGraph, err := s.GetTasksForJob(j)
+		tasksByName, err := s.getTasksForJob(j)
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
-		testutils.AssertDeepEqual(t, depGraph[j.Id], gotGraph)
 	}
 
 	// One task successful, the other not.
@@ -2274,10 +2148,9 @@ func TestGetTasksForJob(t *testing.T) {
 
 	// Test that the results propagated through.
 	for _, j := range jobs {
-		tasksByName, gotGraph, err := s.GetTasksForJob(j)
+		tasksByName, err := s.getTasksForJob(j)
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
-		testutils.AssertDeepEqual(t, depGraph[j.Id], gotGraph)
 	}
 
 	// Cycle. Ensure that we schedule a retry of t1.
@@ -2296,10 +2169,9 @@ func TestGetTasksForJob(t *testing.T) {
 	expect[j1.Id][buildTask] = []*db.Task{t1, t3}
 	expect[j2.Id][buildTask] = []*db.Task{t1, t3}
 	for _, j := range jobs {
-		tasksByName, gotGraph, err := s.GetTasksForJob(j)
+		tasksByName, err := s.getTasksForJob(j)
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
-		testutils.AssertDeepEqual(t, depGraph[j.Id], gotGraph)
 	}
 
 	// The retry succeeded.
@@ -2316,10 +2188,9 @@ func TestGetTasksForJob(t *testing.T) {
 
 	// Test that the results propagated through.
 	for _, j := range jobs {
-		tasksByName, gotGraph, err := s.GetTasksForJob(j)
+		tasksByName, err := s.getTasksForJob(j)
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
-		testutils.AssertDeepEqual(t, depGraph[j.Id], gotGraph)
 	}
 
 	// Schedule the remaining tasks.
@@ -2362,9 +2233,8 @@ func TestGetTasksForJob(t *testing.T) {
 	expect[j4.Id][testTask] = []*db.Task{t5}
 	expect[j5.Id][perfTask] = []*db.Task{t6}
 	for _, j := range jobs {
-		tasksByName, gotGraph, err := s.GetTasksForJob(j)
+		tasksByName, err := s.getTasksForJob(j)
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
-		testutils.AssertDeepEqual(t, depGraph[j.Id], gotGraph)
 	}
 }

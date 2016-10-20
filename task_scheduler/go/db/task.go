@@ -372,6 +372,31 @@ func (t *Task) Copy() *Task {
 	}
 }
 
+// TaskSummary is a subset of the information found in a Task.
+type TaskSummary struct {
+	Id             string
+	Status         TaskStatus
+	SwarmingTaskId string
+}
+
+// MakeTaskSummary creates a TaskSummary from the Task instance.
+func (t *Task) MakeTaskSummary() *TaskSummary {
+	return &TaskSummary{
+		Id:             t.Id,
+		Status:         t.Status,
+		SwarmingTaskId: t.SwarmingTaskId,
+	}
+}
+
+// Copy returns a copy of the TaskSummary.
+func (t *TaskSummary) Copy() *TaskSummary {
+	return &TaskSummary{
+		Id:             t.Id,
+		Status:         t.Status,
+		SwarmingTaskId: t.SwarmingTaskId,
+	}
+}
+
 // TaskSlice implements sort.Interface. To sort tasks []*Task, use
 // sort.Sort(TaskSlice(tasks)).
 type TaskSlice []*Task

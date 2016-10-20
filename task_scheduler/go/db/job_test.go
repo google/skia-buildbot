@@ -20,7 +20,7 @@ func TestJobCopy(t *testing.T) {
 		BuildbucketLeaseKey: 987,
 		Created:             now.Add(time.Nanosecond),
 		DbModified:          now.Add(time.Millisecond),
-		Dependencies:        []string{"A", "B"},
+		Dependencies:        map[string][]string{"A": []string{"B"}, "B": []string{}},
 		Finished:            now.Add(time.Second),
 		Id:                  "abc123",
 		IsForce:             true,
@@ -30,6 +30,13 @@ func TestJobCopy(t *testing.T) {
 			Repo: DEFAULT_TEST_REPO,
 		},
 		Status: JOB_STATUS_SUCCESS,
+		Tasks: map[string][]*TaskSummary{
+			"task-name": {&TaskSummary{
+				Id:             "12345",
+				Status:         TASK_STATUS_FAILURE,
+				SwarmingTaskId: "abc123",
+			}},
+		},
 	}
 	testutils.AssertCopy(t, v, v.Copy())
 }
@@ -66,7 +73,8 @@ func TestJobEncoder(t *testing.T) {
 		job := &Job{}
 		job.Id = fmt.Sprintf("Id-%d", i)
 		job.Name = "Bingo-was-his-name-o"
-		job.Dependencies = []string{fmt.Sprintf("a%d", i), fmt.Sprintf("b%d", i+1)}
+		job.Dependencies = map[string][]string{}
+		job.Tasks = map[string][]*TaskSummary{}
 		var buf bytes.Buffer
 		err := gob.NewEncoder(&buf).Encode(job)
 		assert.NoError(t, err)
@@ -79,6 +87,7 @@ func TestJobEncoder(t *testing.T) {
 		assert.NoError(t, err)
 		actualJobs[job] = serialized
 	}
+
 	testutils.AssertDeepEqual(t, expectedJobs, actualJobs)
 }
 
@@ -97,7 +106,8 @@ func TestJobDecoder(t *testing.T) {
 		job := &Job{}
 		job.Id = fmt.Sprintf("Id-%d", i)
 		job.Name = "Bingo-was-his-name-o"
-		job.Dependencies = []string{fmt.Sprintf("a%d", i), fmt.Sprintf("b%d", i+1)}
+		job.Dependencies = map[string][]string{}
+		job.Tasks = map[string][]*TaskSummary{}
 		var buf bytes.Buffer
 		err := gob.NewEncoder(&buf).Encode(job)
 		assert.NoError(t, err)
@@ -145,4 +155,68 @@ func TestJobDecoderError(t *testing.T) {
 	result, err := d.Result()
 	assert.Error(t, err)
 	assert.Equal(t, 0, len(result))
+}
+
+func TestJobDeriveStatus(t *testing.T) {
+	// No tasks for the Job: in progress.
+	j1 := &Job{
+		Dependencies: map[string][]string{"test": []string{"build"}, "build": []string{}},
+		Name:         "j1",
+		RepoState: RepoState{
+			Repo:     "my-repo",
+			Revision: "my-revision",
+		},
+	}
+	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+
+	// Test empty vs nil j1.Tasks.
+	j1.Tasks = map[string][]*TaskSummary{}
+	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+
+	// Add a task for the job. It's still in progress.
+	t1 := &TaskSummary{Status: TASK_STATUS_RUNNING}
+	j1.Tasks = map[string][]*TaskSummary{"build": []*TaskSummary{t1}}
+	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+
+	// Okay, it succeeded.
+	t1.Status = TASK_STATUS_SUCCESS
+	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+
+	// Or, maybe the first task failed, but we still have a retry.
+	t1.Status = TASK_STATUS_FAILURE
+	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+
+	// Or maybe it was a mishap, but we still have a retry.
+	t1.Status = TASK_STATUS_MISHAP
+	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+
+	// Now a retry has been triggered.
+	t2 := &TaskSummary{Status: TASK_STATUS_PENDING}
+	j1.Tasks["build"] = append(j1.Tasks["build"], t2)
+	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+
+	// Now it's running.
+	t2.Status = TASK_STATUS_RUNNING
+	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+
+	// It failed, and there aren't any retries left!
+	t2.Status = TASK_STATUS_FAILURE
+	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_FAILURE)
+
+	// Or it was a mishap.
+	t2.Status = TASK_STATUS_MISHAP
+	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_MISHAP)
+
+	// No, it succeeded.
+	t2.Status = TASK_STATUS_SUCCESS
+	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+
+	// Add the test task.
+	t3 := &TaskSummary{Status: TASK_STATUS_RUNNING}
+	j1.Tasks["test"] = []*TaskSummary{t3}
+	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
+
+	// It succeeded!
+	t3.Status = TASK_STATUS_SUCCESS
+	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_SUCCESS)
 }

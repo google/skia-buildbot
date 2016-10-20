@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	"path"
+	"reflect"
 	"sort"
 	"sync"
 	"time"
@@ -167,24 +168,14 @@ func (s *TaskScheduler) RecentSpecsAndCommits() ([]string, []string, []string) {
 
 // Trigger adds the given Job to the database and returns its ID.
 func (s *TaskScheduler) Trigger(repo, commit, jobName string) (string, error) {
-	rs := db.RepoState{
+	j, err := s.taskCfgCache.MakeJob(db.RepoState{
 		Repo:     repo,
 		Revision: commit,
-	}
-	spec, err := s.taskCfgCache.GetJobSpec(rs, jobName)
+	}, jobName)
 	if err != nil {
 		return "", err
 	}
-
-	j := &db.Job{
-		Created:      time.Now(),
-		Dependencies: spec.TaskSpecs,
-		IsForce:      true,
-		Name:         jobName,
-		Priority:     spec.Priority,
-		RepoState:    rs,
-	}
-
+	j.IsForce = true
 	if err := s.db.PutJob(j); err != nil {
 		return "", err
 	}
@@ -314,36 +305,19 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(unfinishedJobs []*db.Job) (map
 
 	// Get the repo+commit+taskspecs for each job.
 	candidates := map[db.TaskKey]*taskCandidate{}
-	var gatherDeps func(*db.Job, string) error
-	gatherDeps = func(j *db.Job, tsName string) error {
-		key := j.MakeTaskKey(tsName)
-		if _, ok := candidates[key]; ok {
-			return nil
-		}
-		spec, err := s.taskCfgCache.GetTaskSpec(j.RepoState, tsName)
-		if err != nil {
-			return err
-		}
-		c := &taskCandidate{
-			JobCreated: j.Created,
-			TaskKey:    key,
-			TaskSpec:   spec,
-		}
-		candidates[key] = c
-		for _, d := range spec.Dependencies {
-			if err := gatherDeps(j, d); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-
 	for _, j := range unfinishedJobs {
-		for _, tsName := range j.Dependencies {
-			// Gather the dependencies recursively.
-			if err := gatherDeps(j, tsName); err != nil {
+		for tsName, _ := range j.Dependencies {
+			key := j.MakeTaskKey(tsName)
+			spec, err := s.taskCfgCache.GetTaskSpec(j.RepoState, tsName)
+			if err != nil {
 				return nil, err
 			}
+			c := &taskCandidate{
+				JobCreated: j.Created,
+				TaskKey:    key,
+				TaskSpec:   spec,
+			}
+			candidates[key] = c
 		}
 	}
 	glog.Infof("Found %d task candidates for %d unfinished jobs.", len(candidates), len(unfinishedJobs))
@@ -839,24 +813,20 @@ func (s *TaskScheduler) gatherNewJobs() error {
 			if scheduled {
 				return false, nil
 			}
-			cfg, err := s.taskCfgCache.ReadTasksCfg(db.RepoState{
+			rs := db.RepoState{
 				Repo:     repoUrl,
 				Revision: c.Hash,
-			})
+			}
+			cfg, err := s.taskCfgCache.ReadTasksCfg(rs)
 			if err != nil {
 				return false, err
 			}
-			for name, jobSpec := range cfg.Jobs {
-				newJobs = append(newJobs, &db.Job{
-					Created:      now,
-					Dependencies: jobSpec.TaskSpecs,
-					Name:         name,
-					Priority:     jobSpec.Priority,
-					RepoState: db.RepoState{
-						Repo:     repoUrl,
-						Revision: c.Hash,
-					},
-				})
+			for name, _ := range cfg.Jobs {
+				j, err := s.taskCfgCache.MakeJob(rs, name)
+				if err != nil {
+					return false, err
+				}
+				newJobs = append(newJobs, j)
 			}
 			if c.Hash == "50537e46e4f0999df0a4707b227000cfa8c800ff" {
 				// Stop recursing here, since Jobs were added
@@ -1138,81 +1108,6 @@ func updateUnfinishedTasks(cache db.TaskCache, d db.TaskDB, s swarming.ApiClient
 	return nil
 }
 
-// getWorstJobStatus finds the worst status for any Task throughout a Job's
-// dependency tree.
-func getWorstJobStatus(j *db.Job, tCache db.TaskCache, taskCfgCache *specs.TaskCfgCache) (db.JobStatus, error) {
-	worstStatus := db.JOB_STATUS_SUCCESS
-	for _, d := range j.Dependencies {
-		status, err := getWorstJobStatusHelper(j, d, tCache, taskCfgCache)
-		if err != nil {
-			return db.JOB_STATUS_IN_PROGRESS, err
-		}
-		worstStatus = db.WorseJobStatus(worstStatus, status)
-	}
-	return worstStatus, nil
-}
-
-func getWorstJobStatusHelper(j *db.Job, taskName string, tCache db.TaskCache, taskCfgCache *specs.TaskCfgCache) (db.JobStatus, error) {
-	key := j.MakeTaskKey(taskName)
-	tasks, err := tCache.GetTasksByKey(&key)
-	if err != nil {
-		return db.JOB_STATUS_IN_PROGRESS, err
-	}
-
-	if len(tasks) == 0 {
-		// Follow the Task's dependencies; one or more might have failed.
-		cfg, err := taskCfgCache.ReadTasksCfg(j.RepoState)
-		if err != nil {
-			return db.JOB_STATUS_IN_PROGRESS, err
-		}
-		ts, ok := cfg.Tasks[taskName]
-		if !ok {
-			return db.JOB_STATUS_IN_PROGRESS, fmt.Errorf("Unknown task spec %q, %s @ %s", taskName, j.Repo, j.Revision)
-		}
-		// If there are no tasks for this job, it's considered to be
-		// in progress.
-		worstStatus := db.JOB_STATUS_IN_PROGRESS
-		for _, dep := range ts.Dependencies {
-			status, err := getWorstJobStatusHelper(j, dep, tCache, taskCfgCache)
-			if err != nil {
-				return db.JOB_STATUS_IN_PROGRESS, err
-			}
-			worstStatus = db.WorseJobStatus(worstStatus, status)
-		}
-		return worstStatus, nil
-	} else {
-		// We may have more than one Task for this spec, due to
-		// retrying of failed Tasks. We should not return a "failed"
-		// result if we still have retry attempts remaining or if we've
-		// already retried and succeeded.
-		canRetry := true
-		bestStatus := db.JOB_STATUS_MISHAP
-		for _, t := range tasks {
-			// We only allow one retry, so if this task is a retry
-			// of a previous one, we can't retry again. If we change
-			// that policy in the future, this will have to be
-			// something like, if t.AttemptNum >= MAX_ATTEMPTS.
-			if t.RetryOf != "" {
-				canRetry = false
-			}
-			status := db.JobStatusFromTaskStatus(t.Status)
-			if bestStatus.WorseThan(status) {
-				if t.Created.Before(j.Created) {
-					glog.Warningf("Job %s is using task %s which was created before it! (%s vs %s)", j.Id, t.Id, j.Created, t.Created)
-				}
-				bestStatus = status
-			}
-		}
-		if bestStatus == db.JOB_STATUS_SUCCESS || bestStatus == db.JOB_STATUS_IN_PROGRESS {
-			return bestStatus, nil
-		} else if canRetry {
-			return db.JOB_STATUS_IN_PROGRESS, nil
-		} else {
-			return bestStatus, nil
-		}
-	}
-}
-
 // updateUnfinishedJobs updates all not-yet-finished Jobs to determine if their
 // state has changed.
 func (s *TaskScheduler) updateUnfinishedJobs() error {
@@ -1224,12 +1119,21 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 	modified := make([]*db.Job, 0, len(jobs))
 	errs := []error{}
 	for _, j := range jobs {
-		status, err := getWorstJobStatus(j, s.tCache, s.taskCfgCache)
+		tasks, err := s.getTasksForJob(j)
 		if err != nil {
 			return err
 		}
-		if status != j.Status {
-			j.Status = status
+		summaries := make(map[string][]*db.TaskSummary, len(tasks))
+		for k, v := range tasks {
+			cpy := make([]*db.TaskSummary, 0, len(v))
+			for _, t := range v {
+				cpy = append(cpy, t.MakeTaskSummary())
+			}
+			summaries[k] = cpy
+		}
+		if !reflect.DeepEqual(summaries, j.Tasks) {
+			j.Tasks = summaries
+			j.Status = j.DeriveStatus()
 			if j.Done() {
 				j.Finished = time.Now()
 
@@ -1261,61 +1165,22 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 	return nil
 }
 
-// getTasksForJobHelper is a helper function used by GetTasksForJob.
-func (s *TaskScheduler) getTasksForJobHelper(key db.TaskKey, cfg *specs.TasksCfg, tasks map[string][]*db.Task, depGraph map[string][]string) error {
-	gotTasks, err := s.tCache.GetTasksByKey(&key)
-	if err != nil {
-		return err
-	}
-	tasks[key.Name] = gotTasks
-	tSpec, ok := cfg.Tasks[key.Name]
-	if !ok {
-		return fmt.Errorf("TaskSpec %q not found in config!", key.Name)
-	}
-	deps := make([]string, len(tSpec.Dependencies))
-	copy(deps, tSpec.Dependencies)
-	depGraph[key.Name] = deps
-
-	for _, d := range tSpec.Dependencies {
-		if _, ok := tasks[d]; !ok {
-			key.Name = d
-			if err := s.getTasksForJobHelper(key, cfg, tasks, depGraph); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-// GetTasksForJob find all Tasks for the given Job ID. It returns the Tasks
-// in a map keyed by name, a map[string][]string which describes the dependency
-// graph of tasks, and an error if any.
-func (s *TaskScheduler) GetTasksForJob(j *db.Job) (map[string][]*db.Task, map[string][]string, error) {
-	cfg, err := s.taskCfgCache.ReadTasksCfg(j.RepoState)
-	if err != nil {
-		return nil, nil, err
-	}
+// getTasksForJob finds all Tasks for the given Job. It returns the Tasks
+// in a map keyed by name.
+func (s *TaskScheduler) getTasksForJob(j *db.Job) (map[string][]*db.Task, error) {
 	tasks := map[string][]*db.Task{}
-	depGraph := map[string][]string{}
-	for _, d := range j.Dependencies {
-		if _, ok := tasks[d]; !ok {
-			if err := s.getTasksForJobHelper(j.MakeTaskKey(d), cfg, tasks, depGraph); err != nil {
-				return nil, nil, err
-			}
+	for d, _ := range j.Dependencies {
+		key := j.MakeTaskKey(d)
+		gotTasks, err := s.tCache.GetTasksByKey(&key)
+		if err != nil {
+			return nil, err
 		}
+		tasks[d] = gotTasks
 	}
-	return tasks, depGraph, nil
+	return tasks, nil
 }
 
-// GetJob returns the given Job, plus its component Tasks.
-func (s *TaskScheduler) GetJob(id string) (*db.Job, map[string][]*db.Task, map[string][]string, error) {
-	j, err := s.jCache.GetJob(id)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	tasks, depGraph, err := s.GetTasksForJob(j)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	return j, tasks, depGraph, nil
+// GetJob returns the given Job.
+func (s *TaskScheduler) GetJob(id string) (*db.Job, error) {
+	return s.jCache.GetJob(id)
 }

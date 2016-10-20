@@ -18,12 +18,7 @@
     None.
 
   Methods:
-    setData: Provide job, tasks, and graph data.
-        job: Object representing a job.
-        tasks: Object whose keys are task spec names and values are tasks.
-        graph: Object whose keys are task spec names and values are arrays of
-            task spec names indicating which task specs depend upon which
-            other task specs.
+    setJob: Provide job data.
 
   Events:
     None.
@@ -140,14 +135,6 @@
           type: Object,
         },
 
-        _tasks: {
-          type: Object,
-        },
-
-        _graph: {
-          type: Object,
-        },
-
         _codereviewLink: {
           type: String,
           computed: "_computeCodereviewLink(_job)",
@@ -175,13 +162,11 @@
       },
 
       observers: [
-        "_computeTasksGraph(_tasks, _graph)",
+        "_computeTasksGraph(_job)",
       ],
 
-      setData: function(job, tasks, graph) {
+      setJob: function(job) {
         this.set("_job", job);
-        this.set("_tasks", tasks);
-        this.set("_graph", graph);
       },
 
       _computeCodereviewLink: function(job) {
@@ -236,7 +221,10 @@
         return textColor[1];
       },
 
-      _computeTasksGraph: function(taskData, graph) {
+      _computeTasksGraph: function(job) {
+        var taskData = job.Tasks;
+        var graph = job.Dependencies;
+
         // Skip drawing the graph if taskData or graph are missing or empty. This
         // is mainly to prevent errors on the demo page.
         if (!taskData || !graph || Object.keys(taskData).length == 0 || Object.keys(graph).length == 0) {

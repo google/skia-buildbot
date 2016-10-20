@@ -148,36 +148,37 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	assert.Equal(t, 1, len(cache.cache))
 }
 
-func TestTasksCircularDependency(t *testing.T) {
-	// tasks is a map[task_spec_name][]dependency_name
-	makeTasksCfg := func(tasks, jobs map[string][]string) string {
-		taskSpecs := make(map[string]*TaskSpec, len(tasks))
-		for name, deps := range tasks {
-			taskSpecs[name] = &TaskSpec{
-				CipdPackages: []*CipdPackage{},
-				Dependencies: deps,
-				Dimensions:   []string{},
-				Isolate:      "abc123",
-				Priority:     0.0,
-			}
+// makeTasksCfg generates a JSON representation of a TasksCfg based on the given
+// tasks and jobs.
+func makeTasksCfg(t *testing.T, tasks, jobs map[string][]string) string {
+	taskSpecs := make(map[string]*TaskSpec, len(tasks))
+	for name, deps := range tasks {
+		taskSpecs[name] = &TaskSpec{
+			CipdPackages: []*CipdPackage{},
+			Dependencies: deps,
+			Dimensions:   []string{},
+			Isolate:      "abc123",
+			Priority:     0.0,
 		}
-		jobSpecs := make(map[string]*JobSpec, len(jobs))
-		for name, deps := range jobs {
-			jobSpecs[name] = &JobSpec{
-				TaskSpecs: deps,
-			}
-		}
-		cfg := TasksCfg{
-			Tasks: taskSpecs,
-			Jobs:  jobSpecs,
-		}
-		c, err := json.Marshal(&cfg)
-		assert.NoError(t, err)
-		return string(c)
 	}
+	jobSpecs := make(map[string]*JobSpec, len(jobs))
+	for name, deps := range jobs {
+		jobSpecs[name] = &JobSpec{
+			TaskSpecs: deps,
+		}
+	}
+	cfg := TasksCfg{
+		Tasks: taskSpecs,
+		Jobs:  jobSpecs,
+	}
+	c, err := json.Marshal(&cfg)
+	assert.NoError(t, err)
+	return string(c)
+}
 
+func TestTasksCircularDependency(t *testing.T) {
 	// Bonus: Unknown dependency.
-	_, err := ParseTasksCfg(makeTasksCfg(map[string][]string{
+	_, err := ParseTasksCfg(makeTasksCfg(t, map[string][]string{
 		"a": []string{"b"},
 	}, map[string][]string{
 		"j": []string{"a"},
@@ -185,11 +186,11 @@ func TestTasksCircularDependency(t *testing.T) {
 	assert.EqualError(t, err, "Task \"a\" has unknown task \"b\" as a dependency.")
 
 	// No tasks or jobs.
-	_, err = ParseTasksCfg(makeTasksCfg(map[string][]string{}, map[string][]string{}))
+	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{}, map[string][]string{}))
 	assert.NoError(t, err)
 
 	// Single-node cycle.
-	_, err = ParseTasksCfg(makeTasksCfg(map[string][]string{
+	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
 		"a": []string{"a"},
 	}, map[string][]string{
 		"j": []string{"a"},
@@ -197,7 +198,7 @@ func TestTasksCircularDependency(t *testing.T) {
 	assert.EqualError(t, err, "Found a circular dependency involving \"a\" and \"a\"")
 
 	// Small cycle.
-	_, err = ParseTasksCfg(makeTasksCfg(map[string][]string{
+	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
 		"a": []string{"b"},
 		"b": []string{"a"},
 	}, map[string][]string{
@@ -206,7 +207,7 @@ func TestTasksCircularDependency(t *testing.T) {
 	assert.EqualError(t, err, "Found a circular dependency involving \"b\" and \"a\"")
 
 	// Longer cycle.
-	_, err = ParseTasksCfg(makeTasksCfg(map[string][]string{
+	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
 		"a": []string{"b"},
 		"b": []string{"c"},
 		"c": []string{"d"},
@@ -223,7 +224,7 @@ func TestTasksCircularDependency(t *testing.T) {
 	assert.EqualError(t, err, "Found a circular dependency involving \"j\" and \"a\"")
 
 	// No false positive on a complex-ish graph.
-	_, err = ParseTasksCfg(makeTasksCfg(map[string][]string{
+	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
 		"a": []string{},
 		"b": []string{"a"},
 		"c": []string{"a"},
@@ -237,7 +238,7 @@ func TestTasksCircularDependency(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Unreachable task (d)
-	_, err = ParseTasksCfg(makeTasksCfg(map[string][]string{
+	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
 		"a": []string{},
 		"b": []string{"a"},
 		"c": []string{"a"},
@@ -251,7 +252,7 @@ func TestTasksCircularDependency(t *testing.T) {
 	assert.EqualError(t, err, "Task \"d\" is not reachable by any Job!")
 
 	// Dependency on unknown task.
-	_, err = ParseTasksCfg(makeTasksCfg(map[string][]string{
+	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
 		"a": []string{},
 		"b": []string{"a"},
 		"c": []string{"a"},
@@ -367,4 +368,35 @@ func TestTempGitRepoPatch(t *testing.T) {
 		}: nil,
 	}
 	tempGitRepoTests(t, gb.Dir(), cases)
+}
+
+func TestGetTaskSpecDAG(t *testing.T) {
+	test := func(dag map[string][]string, jobDeps []string) {
+		cfg, err := ParseTasksCfg(makeTasksCfg(t, dag, map[string][]string{
+			"j": jobDeps,
+		}))
+		assert.NoError(t, err)
+		j, ok := cfg.Jobs["j"]
+		assert.True(t, ok)
+		res, err := j.GetTaskSpecDAG(cfg)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, res, dag)
+	}
+
+	test(map[string][]string{"a": []string{}}, []string{"a"})
+
+	test(map[string][]string{
+		"a": []string{"b"},
+		"b": []string{},
+	}, []string{"a"})
+
+	test(map[string][]string{
+		"a": []string{},
+		"b": []string{"a"},
+		"c": []string{"a"},
+		"d": []string{"b"},
+		"e": []string{"b"},
+		"f": []string{"c"},
+		"g": []string{"d", "e", "f"},
+	}, []string{"a", "g"})
 }

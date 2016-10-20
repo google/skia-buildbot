@@ -30,11 +30,13 @@ func makeTask(ts time.Time, commits []string) *Task {
 
 func makeJob(ts time.Time) *Job {
 	return &Job{
-		Created: ts,
+		Created:      ts,
+		Dependencies: map[string][]string{},
 		RepoState: RepoState{
 			Repo: DEFAULT_TEST_REPO,
 		},
-		Name: "Test-Job",
+		Name:  "Test-Job",
+		Tasks: map[string][]*TaskSummary{},
 	}
 }
 
