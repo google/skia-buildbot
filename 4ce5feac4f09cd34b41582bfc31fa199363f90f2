@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "5c8ef381_43356607",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-20T15:42:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c8ef381_b8cf9d67",
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c8ef381_78b295ed",
         "filename": "task_scheduler/go/db/job.go",
         "patchSetId": 9
@@ -42,6 +60,24 @@
         "endLine": 212,
         "endChar": 64
       },
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_e3101a76",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-20T15:42:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c8ef381_78b295ed",
       "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "5c8ef381_c31f1681",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-20T15:42:13Z",
+      "side": 1,
+      "message": "Done, and added a test case for nil vs empty, but this is handled by the check on line 253.",
+      "parentUuid": "5c8ef381_38bc0dbd",
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c8ef381_18bfc9b4",
         "filename": "task_scheduler/go/db/job.go",
         "patchSetId": 9
@@ -88,6 +142,24 @@
         "endLine": 279,
         "endChar": 19
       },
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_a3f1b22b",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-20T15:42:13Z",
+      "side": 1,
+      "message": "Can you explain why? IIUC, if we\u0027ve reached this point, the tasks along the dependency chain are either successful or pending/running, so we need to keep going. In fact, now that I think about it, I may need to remove line 277, eg. in case one branch has a failure and another has a mishap.",
+      "parentUuid": "5c8ef381_18bfc9b4",
       "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -117,6 +189,24 @@
     },
     {
       "key": {
+        "uuid": "5c8ef381_63ec2a4f",
+        "filename": "task_scheduler/go/db/job_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-20T15:42:13Z",
+      "side": 1,
+      "message": "Good catch, fixed.",
+      "parentUuid": "5c8ef381_589c7154",
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c8ef381_1896e932",
         "filename": "task_scheduler/go/db/task.go",
         "patchSetId": 9
@@ -128,6 +218,24 @@
       "writtenOn": "2016-10-20T13:42:08Z",
       "side": 1,
       "message": "nit: add test (testutils.AssertCopy)",
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_43e3265c",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-20T15:42:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c8ef381_1896e932",
       "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -157,6 +265,24 @@
     },
     {
       "key": {
+        "uuid": "5c8ef381_233dc2da",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-20T15:42:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c8ef381_03743e41",
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c8ef381_e3bc9aa6",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 9
@@ -174,6 +300,24 @@
         "endLine": 1165,
         "endChar": 43
       },
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_034bde77",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1165,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-20T15:42:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c8ef381_e3bc9aa6",
       "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -203,6 +347,24 @@
     },
     {
       "key": {
+        "uuid": "5c8ef381_c344f664",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1214,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-20T15:42:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c8ef381_c3cb963b",
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c8ef381_83aeee64",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 9
@@ -226,6 +388,24 @@
     },
     {
       "key": {
+        "uuid": "5c8ef381_0372fec7",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-20T15:42:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c8ef381_83aeee64",
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c8ef381_a3dd32fc",
         "filename": "task_scheduler/res/imp/job-sk-demo.html",
         "patchSetId": 9
@@ -237,6 +417,24 @@
       "writtenOn": "2016-10-20T13:42:08Z",
       "side": 1,
       "message": "nit: wrong indentation",
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_c3c956b5",
+        "filename": "task_scheduler/res/imp/job-sk-demo.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-20T15:42:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c8ef381_a3dd32fc",
       "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -260,6 +458,24 @@
     },
     {
       "key": {
+        "uuid": "5c8ef381_63cf4ab8",
+        "filename": "task_scheduler/res/imp/job-sk-demo.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-20T15:42:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c8ef381_c3e2b6bb",
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c8ef381_0310bec1",
         "filename": "task_scheduler/res/imp/job-sk.html",
         "patchSetId": 9
@@ -277,6 +493,24 @@
         "endLine": 115,
         "endChar": 8
       },
+      "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c8ef381_437fa682",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-20T15:42:13Z",
+      "side": 1,
+      "message": "Agreed.",
+      "parentUuid": "5c8ef381_0310bec1",
       "revId": "4ce5feac4f09cd34b41582bfc31fa199363f90f2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
