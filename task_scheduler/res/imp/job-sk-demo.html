@@ -104,6 +104,17 @@
         },
     };
 
+    // Mock out sk.get and so we can fake a response from the server.
+    sk.get = function(url) {
+      return new Promise(function (resolve, reject) {
+        if (url.indexOf("job1") != -1) {
+          resolve(JSON.stringify(job1));
+        } else {
+          resolve(JSON.stringify(job2));
+        }
+      });
+    };
+
   </script>
   <link rel="import" href="job-sk.html">
   <link rel="import" href="/res/common/imp/error-toast-sk.html">
@@ -130,17 +141,17 @@
 
     ready: function() {
       if (this.alternate) {
-        this.$.job_sk.setJob(job2);
+        this.$.job_sk.jobId = "job2";
       } else {
-        this.$.job_sk.setJob(job1);
+        this.$.job_sk.jobId = "job1";
       }
     },
 
     _alternateChanged: function() {
       if (this.alternate) {
-        this.$.job_sk.setJob(job2);
+        this.$.job_sk.jobId = "job2";
       } else {
-        this.$.job_sk.setJob(job1);
+        this.$.job_sk.jobId = "job1";
       }
     },
   });
