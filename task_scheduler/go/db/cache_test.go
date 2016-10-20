@@ -62,6 +62,35 @@ func TestTaskCache(t *testing.T) {
 	}, tasks)
 }
 
+func TestTaskCacheKnownTaskName(t *testing.T) {
+	db := NewInMemoryTaskDB()
+	c, err := NewTaskCache(db, time.Hour)
+	assert.NoError(t, err)
+
+	// Try jobs don't count toward KnownTaskName.
+	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
+	t1 := makeTask(startTime, []string{"a", "b", "c", "d"})
+	t1.Server = "fake-server"
+	t1.Issue = "fake-issue"
+	t1.Patchset = "fake-patchset"
+	assert.NoError(t, db.PutTask(t1))
+	assert.NoError(t, c.Update())
+	assert.False(t, c.KnownTaskName(t1.Repo, t1.Name))
+
+	// Forced jobs don't count toward KnownTaskName.
+	t2 := makeTask(startTime, []string{"a", "b", "c", "d"})
+	t2.ForcedJobId = "job-id"
+	assert.NoError(t, db.PutTask(t2))
+	assert.NoError(t, c.Update())
+	assert.False(t, c.KnownTaskName(t2.Repo, t2.Name))
+
+	// Normal task.
+	t3 := makeTask(startTime, []string{"a", "b", "c", "d"})
+	assert.NoError(t, db.PutTask(t3))
+	assert.NoError(t, c.Update())
+	assert.True(t, c.KnownTaskName(t3.Repo, t3.Name))
+}
+
 func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 	db := NewInMemoryTaskDB()
 

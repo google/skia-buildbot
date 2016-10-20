@@ -81,5 +81,7 @@ func (c *cacheWrapper) insert(t *db.Task) {
 	for _, commit := range t.Commits {
 		c.byCommit[commit] = t
 	}
-	c.known = true
+	if !t.IsForceRun() && !t.IsTryJob() {
+		c.known = true
+	}
 }
