@@ -137,3 +137,71 @@ func TestDup(t *testing.T) {
 	b = Dup(a)
 	assert.Equal(t, a, b)
 }
+
+func TestMean(t *testing.T) {
+	testCases := []struct {
+		Slice []float32
+		Mean  float32
+	}{
+		{
+			Slice: []float32{1, 2, e, 0},
+			Mean:  1.0,
+		},
+		{
+			Slice: []float32{},
+			Mean:  0.0,
+		},
+		{
+			Slice: []float32{e},
+			Mean:  0.0,
+		},
+		{
+			Slice: []float32{e, e},
+			Mean:  0.0,
+		},
+		{
+			Slice: []float32{1, 5},
+			Mean:  3.0,
+		},
+	}
+	for _, tc := range testCases {
+		if got, want := Mean(tc.Slice), tc.Mean; !near(got, want) {
+			t.Errorf("Mean(%v) Got %v Want %v", tc.Slice, got, want)
+		}
+	}
+}
+
+func TestSSE(t *testing.T) {
+	testCases := []struct {
+		Slice []float32
+		Base  float32
+		SSE   float32
+	}{
+		{
+			Slice: []float32{1, 1, e, 0},
+			Base:  0.0,
+			SSE:   2.0,
+		},
+		{
+			Slice: []float32{1, 1, e, 0},
+			Base:  1.0,
+			SSE:   1.0,
+		},
+		{
+			Slice: []float32{},
+			Base:  1.0,
+			SSE:   0.0,
+		},
+		{
+			Slice: []float32{e},
+			Base:  3.0,
+			SSE:   0.0,
+		},
+	}
+	for _, tc := range testCases {
+		if got, want := SSE(tc.Slice, tc.Base), tc.SSE; !near(got, want) {
+			t.Errorf("SSE(%v, %f) Got %v Want %v", tc.Slice, tc.Base, got, want)
+		}
+	}
+
+}

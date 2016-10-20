@@ -119,3 +119,35 @@ func Dup(a []float32) []float32 {
 	copy(ret, a)
 	return ret
 }
+
+// Mean calculates and returns the Mean value of the given []float32.
+//
+// Returns 0 for an array with no non-MISSING_DATA_SENTINEL values.
+func Mean(xs []float32) float32 {
+	total := float32(0.0)
+	n := 0
+	for _, v := range xs {
+		if v != MISSING_DATA_SENTINEL {
+			total += v
+			n++
+		}
+	}
+	if n == 0 {
+		return total
+	} else {
+		return total / float32(n)
+	}
+}
+
+// SSE calculates and returns the sum squared error from the given base of []float32.
+//
+// Returns 0 for an array with no non-MISSING_DATA_SENTINEL values.
+func SSE(xs []float32, base float32) float32 {
+	total := float32(0.0)
+	for _, v := range xs {
+		if v != MISSING_DATA_SENTINEL {
+			total += (v - base) * (v - base)
+		}
+	}
+	return total
+}
