@@ -49,7 +49,9 @@ func TestEventBus(t *testing.T) {
 	assert.Equal(t, []int{1, 2, 3}, vals)
 }
 
-func TestEventBusGlobally(t *testing.T) {
+// TODO(stephana): Revisit this test when we either have a more stable
+// distributed event system or decide to remove the global eventbus.
+func xTestEventBusGlobally(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	messages := []*testType{
