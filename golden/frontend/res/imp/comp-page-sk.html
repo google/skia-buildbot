@@ -34,6 +34,7 @@
 <link rel="import" href="search-controls-sk.html">
 <link rel="import" href="select-popup-sk.html">
 <link rel="import" href="zoom-dialog-sk.html">
+<link rel="import" href="sort-control-sk.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="comp-page-sk">
@@ -98,15 +99,27 @@
       .moreColumns {
         vertical-align: middle;
       }
+
+      .contentWrapper {
+        padding: 0.5em;
+      }
+
+      #columnSortControl, #rowSortControl {
+        width: 10em;
+      }
+
+      #rowSortControl {
+        margin-top: 2em;
+      }
     </style>
     <activity-sk id="activityCompare" busy="{{_hideAll}}"></activity-sk>
-    <div class="vertical layout">
+    <div class="vertical layout contentWrapper">
       <div class="horizontal layout center headingContainer">
         <div id="heading">
-          <span class="name">Name: [[_data.summary.name]]</span>
-          <span class="pos">Pos: [[_data.summary.pos]]</span>
-          <span class="neg">Neg: [[_data.summary.neg]]</span>
-          <span class="unt">Unt: [[_data.summary.unt]]</span>
+          <span class="name">Name: [[_data.name]]</span>
+          <span class="pos">Pos: [[_data.pos]]</span>
+          <span class="neg">Neg: [[_data.neg]]</span>
+          <span class="unt">Unt: [[_data.unt]]</span>
         </div>
 
         <div>
@@ -118,12 +131,11 @@
             </paper-listbox>
           </paper-dropdown-menu>
         </div>
-
       </div>
 
       <div id="mainContent" class="horizontal layout wrap">
         <!-- left column -->
-        <div class="vertical layout">
+        <div class="vertical layout leftColumn">
           <div class="vertical layout modButtonContainer">
             <div class="horizontal layout">
               <paper-button id="syncButton" toggles raised active="{{_syncParams}}">
@@ -134,11 +146,16 @@
 
           </div>
           <search-controls-sk id="rowSearchControls" orientation="vertical"></search-controls-sk>
+          <sort-control-sk id="rowSortControl" selection="{{_rowSorting}}" disabled="[[_hideAll]]"></sort-control-sk>
         </div>
 
         <!-- main column with grid -->
         <div class="vertical layout gridContainer">
-          <search-controls-sk id="colSearchControls" orientation="horizontal" disabled="{{_syncParams}}"></search-controls-sk>
+          <div class="horizontal layout">
+            <search-controls-sk id="colSearchControls" orientation="horizontal" disabled="{{_syncParams}}"></search-controls-sk>
+            <sort-control-sk id="columnSortControl" selection="{{_colSorting}}" disabled="[[_hideAll]]"></sort-control-sk>
+          </div>
+
           <div class="horizontal layout center">
             <div class="layout vertical center">
               <grid-sk id="gridCompare"></grid-sk>
@@ -173,6 +190,7 @@
   <script>
     (function() {
 
+      // Default values for match selection.
       var defaultMatchConfigs = ["gamma_correct"];
 
       // The current state of the page.
@@ -182,12 +200,13 @@
         match: defaultMatchConfigs,
         rowN: 5,
         columnN: 5,
-        sortRows: gold.SORT_FIELD_N,
-        rowsDir: gold.SORT_DESC,
-        sortColumns: gold.SORT_FIELD_DIFF,
-        columnsDir: gold.SORT_ASC
+        sortRows: "",
+        rowsDir: "",
+        sortColumns: "",
+        columnsDir: ""
       };
 
+      // Default values for the row and column queries.
       var defaultRowQuery = sk.object.shallowCopy(gold.defaultSearchState);
       defaultRowQuery.limit = 10;
       var defaultColumnQuery = sk.object.shallowCopy(gold.defaultSearchState);
@@ -195,6 +214,18 @@
       defaultColumnQuery.neg = true;
       defaultColumnQuery.unt = false;
       defaultColumnQuery.limit = 10;
+
+      // Sort options for the row and column query.
+      var SORT_FIELD_N_IMAGES = "count";
+      var SORT_FIELD_DIFF = "diff";
+
+      var rowSortOptions = [
+          {field: SORT_FIELD_N_IMAGES, label: "#images"},
+          {field: SORT_FIELD_DIFF, label: "Diff to Closest"}
+        ];
+      var colSortOptions = [ {field: SORT_FIELD_DIFF, label: "Diff"} ];
+      var defaultRowSorting = {dir: gold.SORT_DESC, field: SORT_FIELD_N_IMAGES};
+      var defaultColSorting = {dir: gold.SORT_DESC, field: SORT_FIELD_DIFF};
 
       Polymer({
         is: "comp-page-sk",
@@ -223,6 +254,10 @@
           this.listen(this.$.colSearchControls, 'state-change', '_handleColumnQueryChange');
           this.listen(this.$.moreColumnsButton, 'click', '_handleMoreColumns');
           this.listen(this.$.moreRowsButton, 'click', '_handleMoreRows');
+          this.listen(this.$.rowSortControl, 'sort-changed', '_load');
+          this.listen(this.$.columnSortControl, 'sort-changed', '_load');
+          this.$.rowSortControl.setItems(rowSortOptions);
+          this.$.columnSortControl.setItems(colSortOptions);
           this._setDefaultState(gold.defaultSearchState, true);
         },
 
@@ -232,6 +267,8 @@
           this._query.match = defaultMatchConfigs.slice();
           this._query.rowQuery = this._getDefaultStateWithCorpus(defaultRowQuery);
           this._query.columnQuery = this._getDefaultStateWithCorpus(defaultColumnQuery);
+          this.set("_colSorting", sk.object.shallowCopy(defaultColSorting));
+          this.set("_rowSorting", sk.object.shallowCopy(defaultRowSorting));
           this._load();
         },
 
@@ -248,6 +285,12 @@
             this.$.paramsSelect.setParamSet(json);
             this.$.paramsSelect.setSelection(this._query.match);
           }.bind(this)).catch(sk.errorMessage);
+
+          // Update the query object.
+          this._query.sortRows = this._rowSorting.field;
+          this._query.rowsDir = this._rowSorting.dir;
+          this._query.sortColumns = this._colSorting.field,
+          this._query.columnsDir = this._colSorting.dir;
 
           var url = "/json/cmp/" + this._testName;
           var activity = this.$.activityCompare;
