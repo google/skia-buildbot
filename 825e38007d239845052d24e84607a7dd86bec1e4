@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3cccdff8_5ae5a5ed",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-21T13:34:51Z",
+      "side": 1,
+      "message": "I don\u0027t see how this will work. If the task has an empty blamelist, it will never show up on status or be returned from GetTaskForCommit, so later tasks will end up in this case also, so all following tasks will also have an empty blamelist.",
+      "range": {
+        "startLine": 234,
+        "startChar": 16,
+        "endLine": 234,
+        "endChar": 30
+      },
+      "revId": "825e38007d239845052d24e84607a7dd86bec1e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
