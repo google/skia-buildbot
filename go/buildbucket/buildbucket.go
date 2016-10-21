@@ -11,6 +11,7 @@ import (
 
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 const (
@@ -96,6 +97,10 @@ type buildBucketResponse struct {
 	Etag  string `json:"etag"`
 }
 
+type ResultDetails struct {
+	Job *db.Job `json:"job"`
+}
+
 // Build is a struct containing information about a build in BuildBucket.
 type Build struct {
 	Bucket            string         `json:"bucket"`
@@ -108,6 +113,7 @@ type Build struct {
 	ParametersJson    string         `json:"parameters_json"`
 	Parameters        *Parameters    `json:"-"`
 	Result            string         `json:"result"`
+	ResultDetails     *ResultDetails `json:"-"`
 	ResultDetailsJson string         `json:"result_details_json"`
 	Status            string         `json:"status"`
 	StatusChanged     jsonutils.Time `json:"status_changed_ts"`
@@ -270,11 +276,16 @@ func (c *Client) GetTrybotsForCL(issueID, patchsetID int64, patchStorage, crUrl 
 		return nil, err
 	}
 
-	// Parse the parameters.
+	// Parse the parameters and build details.
 	for _, build := range builds {
 		build.Parameters = &Parameters{}
 		if err := json.Unmarshal([]byte(build.ParametersJson), build.Parameters); err != nil {
 			return nil, fmt.Errorf("Unable to decode parameters in build: %s", err)
+		}
+
+		build.ResultDetails = &ResultDetails{}
+		if err := json.Unmarshal([]byte(build.ResultDetailsJson), build.ResultDetails); err != nil {
+			return nil, fmt.Errorf("Unable to decode build details in build: %s", err)
 		}
 	}
 
