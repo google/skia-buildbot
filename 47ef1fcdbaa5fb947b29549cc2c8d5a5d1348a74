@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7c2ad761_2866cb45",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1006,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-21T22:18:24Z",
+      "side": 1,
+      "message": "nit: also test retry",
+      "revId": "47ef1fcdbaa5fb947b29549cc2c8d5a5d1348a74",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1e9f18_bf081b0c",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1467,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-21T22:18:24Z",
+      "side": 1,
+      "message": "nit: t.Logf or remove.",
+      "range": {
+        "startLine": 1467,
+        "startChar": 0,
+        "endLine": 1467,
+        "endChar": 50
+      },
+      "revId": "47ef1fcdbaa5fb947b29549cc2c8d5a5d1348a74",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c0f8be2_c8ba7719",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1930,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-21T22:18:24Z",
+      "side": 1,
+      "message": "nit: not accurate\n\ncopy-n-pasted several places",
+      "range": {
+        "startLine": 1930,
+        "startChar": 4,
+        "endLine": 1930,
+        "endChar": 37
+      },
+      "revId": "47ef1fcdbaa5fb947b29549cc2c8d5a5d1348a74",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ca3ff16_5d0c8757",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2043,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-21T22:18:24Z",
+      "side": 1,
+      "message": "nit: add comment that c1 jobs never finish\n\nalso for same assertion at the end of the function",
+      "revId": "47ef1fcdbaa5fb947b29549cc2c8d5a5d1348a74",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
