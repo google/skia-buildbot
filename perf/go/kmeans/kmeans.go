@@ -86,7 +86,7 @@ func (p SortableClusterSlice) Less(i, j int) bool { return len(p[i]) > len(p[j])
 func (p SortableClusterSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // GetClusters returns the observations categorized into the clusters they fit
-// into.  The return value is sorted by the number of members of the cluster.
+// into. The return value is sorted by the number of members of the cluster.
 // The very first element of each cluster is the centroid, the remainging
 // members are the observations that are in the cluster.
 func GetClusters(observations []Clusterable, centroids []Centroid) ([][]Clusterable, float64) {
