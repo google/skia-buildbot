@@ -14,8 +14,8 @@
       font-family:Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
     }
 
-    commits-detail-panel-sk {
-      margin-top: 1em;
+    commit-detail-panel-sk {
+      margin: 2em;
       display: block;
     }
 
@@ -28,7 +28,11 @@
 <body>
   <h1>Commits</h1>
 
-  <commit-detail-panel-sk id=panel></commit-detail-panel-sk>
+  <commit-detail-panel-sk selectable id=panel></commit-detail-panel-sk>
+
+  <div>
+    Event: <code id=evt></code>
+  </div>
 
   <script type="text/javascript" charset="utf-8">
     var commitinfo = [
@@ -58,6 +62,9 @@
       },
     ];
     $$$('#panel').setCommitDetail(commitinfo);
+    $$$('#panel').addEventListener('commit-selected', function(e) {
+      $$$('#evt').textContent = JSON.stringify(e.detail);
+    });
   </script>
 
   <error-toast-sk></error-toast-sk>
