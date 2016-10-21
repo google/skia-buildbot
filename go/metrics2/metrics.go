@@ -93,6 +93,7 @@ func NewClient(influxClient *influxdb.Client, defaultTags map[string]string, rep
 	}
 	go func() {
 		for _ = range time.Tick(PUSH_FREQUENCY) {
+			fmt.Println("ABOUT TO PUSH TO INFLUXDB!!!")
 			byMeasurement, err := c.pushData()
 			if err != nil {
 				glog.Errorf("Failed to push data into InfluxDB: %s", err)

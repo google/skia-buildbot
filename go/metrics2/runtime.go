@@ -1,6 +1,7 @@
 package metrics2
 
 import (
+	"fmt"
 	"runtime"
 	"time"
 )
@@ -21,6 +22,7 @@ func RuntimeMetrics() {
 	numGoroutine := newRuntimeStat("num-goroutine")
 	go func() {
 		for _ = range time.Tick(RUNTIME_STATS_FREQUENCY) {
+			fmt.Println("IN THE METRICS TICKER!!!!!!!!")
 			stats := new(runtime.MemStats)
 			runtime.ReadMemStats(stats)
 
