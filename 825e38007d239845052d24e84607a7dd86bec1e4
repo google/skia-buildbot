@@ -22,6 +22,24 @@
       "revId": "825e38007d239845052d24e84607a7dd86bec1e4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3cccdff8_faca9158",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-21T13:39:47Z",
+      "side": 1,
+      "message": "The scoring works out such that we never schedule the task, which is what we want in this case.  Stay tuned, I have a better fix incoming.",
+      "parentUuid": "3cccdff8_5ae5a5ed",
+      "revId": "825e38007d239845052d24e84607a7dd86bec1e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
