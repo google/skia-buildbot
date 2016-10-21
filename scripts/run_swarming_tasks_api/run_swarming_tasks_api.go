@@ -25,6 +25,7 @@ const (
 	LIST_CMD         = "list"
 	CANCEL_CMD       = "cancel"
 	RETRY_CMD        = "retry"
+	STDOUT_CMD       = "stdout"
 	WORKER_POOL_SIZE = 20
 	// Number of tasks to display before displaying confirmation of whether to
 	// proceed.
@@ -32,7 +33,7 @@ const (
 )
 
 var (
-	cmd     = flag.String("cmd", "", "Which swarming operation to use. Eg: list, cancel, retry.")
+	cmd     = flag.String("cmd", "", "Which swarming operation to use. Eg: list, cancel, retry, stdout.")
 	tags    = common.NewMultiStringFlag("tag", nil, "Colon-separated key/value pair, eg: \"runid:testing\" Tags with which to find matching tasks. Can specify multiple times.")
 	pool    = flag.String("pool", "", "Which Swarming pool to use.")
 	workdir = flag.String("workdir", ".", "Working directory. Optional, but recommended not to use CWD.")
@@ -42,6 +43,7 @@ var (
 		LIST_CMD:   true,
 		CANCEL_CMD: true,
 		RETRY_CMD:  true,
+		STDOUT_CMD: true,
 	}
 )
 
@@ -165,6 +167,41 @@ func main() {
 			wg.Wait()
 
 			glog.Infof("Retried %d tasks.", len(tasks))
+		}
+	} else if *cmd == STDOUT_CMD {
+		resp, err := displayTasksAndConfirm(tasks, "downloading stdout")
+		if err != nil {
+			glog.Fatal(err)
+		}
+		if resp {
+			glog.Infof("Starting cancelation of %d tasks...", len(tasks))
+			tasksChannel := getClosedTasksChannel(tasks, false /* dedupNames */)
+
+			var wg sync.WaitGroup
+			// Loop through workers in the worker pool.
+			for i := 0; i < WORKER_POOL_SIZE; i++ {
+				// Increment the WaitGroup counter.
+				wg.Add(1)
+				// Create and run a goroutine closure that cancels tasks.
+				go func() {
+					// Decrement the WaitGroup counter when the goroutine completes.
+					defer wg.Done()
+
+					for t := range tasksChannel {
+						_, err := swarmApi.GetStdoutOfTask(t.TaskId)
+						if err != nil {
+							glog.Errorf("Could not download from %s: %s", getTaskStr(t), err)
+							continue
+						}
+						// TODO(rmistry): Write out somewhere!
+						glog.Infof("Downloaded from %s", getTaskStr(t))
+					}
+				}()
+			}
+			// Wait for all spawned goroutines to complete
+			wg.Wait()
+
+			glog.Infof("Downloaded stdout from %d tasks.", len(tasks))
 		}
 	}
 }
