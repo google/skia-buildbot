@@ -210,10 +210,17 @@ func (s *TaskScheduler) Trigger(repo, commit, jobName string) (string, error) {
 func ComputeBlamelist(cache db.TaskCache, repo *gitrepo.Repo, taskName, repoName, revision string, commitsBuf []*gitrepo.Commit) ([]string, *db.Task, error) {
 	// TODO(borenet): If this is a try job, don't compute the blamelist.
 
-	// If this is the first invocation of a given task spec, save time by
-	// setting the blamelist to only be c.Revision.
+	// If this is the first invocation of a given task spec, don't bother
+	// searching for commits. We only want to trigger new bots at branch
+	// heads, so if the passed-in revision is a branch head, return it as
+	// the blamelist, otherwise return an empty blamelist.
 	if !cache.KnownTaskName(repoName, taskName) {
-		return []string{revision}, nil, nil
+		for _, name := range repo.Branches() {
+			if repo.Get(name).Hash == revision {
+				return []string{revision}, nil, nil
+			}
+		}
+		return []string{}, nil, nil
 	}
 
 	initialCommit := repo.Get(revision)
@@ -226,20 +233,28 @@ func ComputeBlamelist(cache db.TaskCache, repo *gitrepo.Repo, taskName, repoName
 
 	// Run the helper function to recurse on commit history.
 	if err := initialCommit.Recurse(func(commit *gitrepo.Commit) (bool, error) {
-		// Shortcut in case we missed this case before; if this is the first
-		// task for this task spec which has a valid Revision, the blamelist will
-		// be the entire Git history. If we find too many commits, assume we've
-		// hit this case and just return the Revision as the blamelist.
-		if len(commitsBuf) > buildbot.MAX_BLAMELIST_COMMITS && stealFrom == nil {
-			commitsBuf = append(commitsBuf[:0], initialCommit)
-			glog.Warningf("Found too many commits for %s @ %s; cutting short.", taskName, commit.Hash)
-			return false, ERR_BLAMELIST_DONE
-		}
-
 		// Determine whether any task already includes this commit.
 		prev, err := cache.GetTaskForCommit(repoName, commit.Hash, taskName)
 		if err != nil {
 			return false, err
+		}
+
+		// Shortcut in case we missed this case before; if this is the
+		// first invocation of a given task spec, don't bother searching
+		// for commits. We only want to trigger new bots at branch
+		// heads, so if the passed-in revision is a branch head, return
+		// it as the blamelist, otherwise return an empty blamelist.
+		if stealFrom == nil && (len(commitsBuf) > buildbot.MAX_BLAMELIST_COMMITS || (len(commit.Parents) == 0 && prev == nil)) {
+			for _, name := range repo.Branches() {
+				if repo.Get(name).Hash == initialCommit.Hash {
+					commitsBuf = append(commitsBuf[:0], initialCommit)
+					glog.Warningf("Found too many commits for %s @ %s; is a branch head.", taskName, initialCommit.Hash)
+					return false, ERR_BLAMELIST_DONE
+				}
+				glog.Warningf("Found too many commits for %s @ %s; not a branch head so returning empty.", taskName, initialCommit.Hash)
+				commitsBuf = commitsBuf[:0]
+				return false, ERR_BLAMELIST_DONE
+			}
 		}
 
 		// If we're stealing commits from a previous task but the current
@@ -428,7 +443,14 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 	// provided by running the task.
 	stoleFromCommits := 0
 	if stealingFrom != nil {
-		stoleFromCommits = len(stealingFrom.Commits)
+		// Treat retries as if they're new; don't use stealingFrom.Commits.
+		if c.RetryOf != "" {
+			if stealingFrom.Id != c.RetryOf {
+				glog.Errorf("Candidate %v is a retry of %s but is stealing commits from %s!", c.TaskKey, c.RetryOf, stealingFrom.Id)
+			}
+		} else {
+			stoleFromCommits = len(stealingFrom.Commits)
+		}
 	}
 	score := testednessIncrease(len(c.Commits), stoleFromCommits)
 
@@ -596,6 +618,12 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 	// bots which they don't actually need.
 	rv := make([]*taskCandidate, 0, len(bots))
 	for _, c := range tasks {
+		// TODO(borenet): Make this threshold configurable.
+		if c.Score <= 0.0 {
+			glog.Warningf("candidate %s @ %s has a score of %2f; skipping.", c.Name, c.Revision, c.Score)
+			continue
+		}
+
 		// For each dimension of the task, find the set of bots which matches.
 		matches := util.StringSet{}
 		for i, d := range c.TaskSpec.Dimensions {
