@@ -773,6 +773,7 @@ func CompareTest(testName string, ctq *CTQuery, storages *storage.Storage, idx *
 		cells[idx] = row[0:util.MinInt(limit, len(row))]
 	}
 
+	testSummary := idx.GetSummaries()
 	ret := &CTResponse{
 		Grid: &CTGrid{
 			Cells:        cells,
@@ -781,12 +782,11 @@ func CompareTest(testName string, ctq *CTQuery, storages *storage.Storage, idx *
 			Columns:      columns,
 			ColumnsTotal: columnsTotal,
 		},
-		Name:   testName,
-		Corpus: ctq.RowQuery.Query.Get(types.CORPUS_FIELD),
-		// TODO(stephana): Change the values below with actual stats about the test.
-		Positive:  0,
-		Negative:  0,
-		Untriaged: 0,
+		Name:      testName,
+		Corpus:    ctq.RowQuery.Query.Get(types.CORPUS_FIELD),
+		Positive:  testSummary[testName].Pos,
+		Negative:  testSummary[testName].Neg,
+		Untriaged: testSummary[testName].Untriaged,
 	}
 
 	return ret, nil
