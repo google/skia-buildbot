@@ -74,6 +74,10 @@ func (c *TestClient) ListCTBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
 	})
 }
 
+func (c *TestClient) GetStdoutOfTask(id string) (*swarming.SwarmingRpcsTaskOutput, error) {
+	return nil, nil
+}
+
 func (c *TestClient) GracefullyShutdownBot(id string) (*swarming.SwarmingRpcsTerminateResponse, error) {
 	return nil, nil
 }
