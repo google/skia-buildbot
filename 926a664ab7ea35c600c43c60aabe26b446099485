@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3ca3ff16_aed28cb9",
+        "filename": "golden/frontend/res/imp/comp-page-sk.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-24T15:28:37Z",
+      "side": 1,
+      "message": "Maybe it\u0027s overkill here, but I have seen in the past that binding variables can have unexpected side effects, because Polymer injects functionality into the object that it binds. \nOther bindings to the same object then show some strange behavior.",
+      "parentUuid": "3ca3ff16_4be4ba25",
+      "revId": "926a664ab7ea35c600c43c60aabe26b446099485",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ca3ff16_0b6112c0",
         "filename": "golden/frontend/res/imp/sort-control-sk-demo.html",
         "patchSetId": 9
@@ -30,6 +48,24 @@
       "writtenOn": "2016-10-24T12:42:06Z",
       "side": 1,
       "message": "Does this demo really need d3?",
+      "revId": "926a664ab7ea35c600c43c60aabe26b446099485",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ca3ff16_ee83f499",
+        "filename": "golden/frontend/res/imp/sort-control-sk-demo.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-24T15:28:37Z",
+      "side": 1,
+      "message": "No, removed.",
+      "parentUuid": "3ca3ff16_0b6112c0",
       "revId": "926a664ab7ea35c600c43c60aabe26b446099485",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "3ca3ff16_4ee2088c",
+        "filename": "golden/frontend/res/imp/sort-control-sk.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-24T15:28:37Z",
+      "side": 1,
+      "message": "Not in this element. I usually have one central element (in gold the *-page-sk.html elements) that handles working with the URL params.",
+      "parentUuid": "3ca3ff16_2be16e15",
+      "revId": "926a664ab7ea35c600c43c60aabe26b446099485",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ca3ff16_cb56eae7",
         "filename": "golden/frontend/res/imp/sort-control-sk.html",
         "patchSetId": 9
@@ -64,6 +118,24 @@
       "writtenOn": "2016-10-24T12:42:06Z",
       "side": 1,
       "message": "What is _noFire for?  I don\u0027t see any reads to it here.",
+      "revId": "926a664ab7ea35c600c43c60aabe26b446099485",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ca3ff16_2edfbcc1",
+        "filename": "golden/frontend/res/imp/sort-control-sk.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-24T15:28:37Z",
+      "side": 1,
+      "message": "Good catch, that was left-over from some unused logic.",
+      "parentUuid": "3ca3ff16_cb56eae7",
       "revId": "926a664ab7ea35c600c43c60aabe26b446099485",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -87,6 +159,24 @@
         "endLine": 89,
         "endChar": 25
       },
+      "revId": "926a664ab7ea35c600c43c60aabe26b446099485",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ca3ff16_6ed9c4d9",
+        "filename": "golden/frontend/res/imp/sort-control-sk.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-24T15:28:37Z",
+      "side": 1,
+      "message": "That\u0027s some old (obsolete) optimization habit, removed.",
+      "parentUuid": "3ca3ff16_ab5b9e0f",
       "revId": "926a664ab7ea35c600c43c60aabe26b446099485",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
