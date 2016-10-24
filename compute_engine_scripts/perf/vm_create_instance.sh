@@ -21,7 +21,7 @@ gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME \
 gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME"-data" \
   --size "1000" \
   --zone $ZONE \
-  --type "pd-standard"
+  --type "pd-ssd"
 
 # Create the instance with the two disks attached.
 gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
