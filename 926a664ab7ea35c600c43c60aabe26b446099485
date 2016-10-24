@@ -1,0 +1,95 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ca3ff16_4be4ba25",
+        "filename": "golden/frontend/res/imp/comp-page-sk.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-24T12:42:06Z",
+      "side": 1,
+      "message": "Do you really need to copy this?  Isn\u0027t defaultColSorting a constant value?",
+      "revId": "926a664ab7ea35c600c43c60aabe26b446099485",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ca3ff16_0b6112c0",
+        "filename": "golden/frontend/res/imp/sort-control-sk-demo.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-24T12:42:06Z",
+      "side": 1,
+      "message": "Does this demo really need d3?",
+      "revId": "926a664ab7ea35c600c43c60aabe26b446099485",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ca3ff16_2be16e15",
+        "filename": "golden/frontend/res/imp/sort-control-sk.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-24T12:42:06Z",
+      "side": 1,
+      "message": "Does the sort option get stored to / retrieved from url params or other state?",
+      "revId": "926a664ab7ea35c600c43c60aabe26b446099485",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ca3ff16_cb56eae7",
+        "filename": "golden/frontend/res/imp/sort-control-sk.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-24T12:42:06Z",
+      "side": 1,
+      "message": "What is _noFire for?  I don\u0027t see any reads to it here.",
+      "revId": "926a664ab7ea35c600c43c60aabe26b446099485",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ca3ff16_ab5b9e0f",
+        "filename": "golden/frontend/res/imp/sort-control-sk.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-24T12:42:06Z",
+      "side": 1,
+      "message": "Do you need to define iLen as its own variable here?",
+      "range": {
+        "startLine": 89,
+        "startChar": 21,
+        "endLine": 89,
+        "endChar": 25
+      },
+      "revId": "926a664ab7ea35c600c43c60aabe26b446099485",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
