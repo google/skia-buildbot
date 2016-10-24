@@ -403,6 +403,20 @@ func SearchOwner(name string) *SearchTerm {
 	}
 }
 
+func SearchStatus(status string) *SearchTerm {
+	return &SearchTerm{
+		Key:   "status",
+		Value: status,
+	}
+}
+
+func SearchProject(project string) *SearchTerm {
+	return &SearchTerm{
+		Key:   "project",
+		Value: project,
+	}
+}
+
 // SearchModifiedAfter is a SearchTerm used for finding issues modified after
 // a particular time.Time.
 // API documentation is here: https://review.openstack.org/Documentation/user-search.html
