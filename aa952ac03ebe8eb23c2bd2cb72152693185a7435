@@ -22,6 +22,24 @@
       "revId": "aa952ac03ebe8eb23c2bd2cb72152693185a7435",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ca3ff16_8e8d1017",
+        "filename": "scripts/run_swarming_tasks_api/run_swarming_tasks_api.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-24T13:53:34Z",
+      "side": 1,
+      "message": "This is just saying what the false here means.",
+      "parentUuid": "3ca3ff16_ee7db426",
+      "revId": "aa952ac03ebe8eb23c2bd2cb72152693185a7435",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
