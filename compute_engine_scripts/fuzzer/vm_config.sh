@@ -15,11 +15,18 @@ fi
 # The base names of the VM instances. Actual names are VM_NAME_BASE-name
 VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 
-# The name of instance where skia fuzzer is running on.
-INSTANCE_NAME=${VM_NAME_BASE}-fuzzer
-
-FUZZER_IP_ADDRESS=104.154.112.111
-FUZZER_MACHINE_TYPE=n1-standard-32
 FUZZER_SOURCE_SNAPSHOT=skia-systemd-pushable-base
 FUZZER_SCOPES='https://www.googleapis.com/auth/devstorage.read_write'
 
+FUZZER_FE_IP_ADDRESS=104.154.112.170
+FUZZER_FE_MACHINE_TYPE=n1-standard-8
+# The name of instance where skia fuzzer frontend is running on.
+FUZZER_FE_INSTANCE_NAME=${VM_NAME_BASE}-fuzzer-fe
+
+FUZZER_BE_MACHINE_TYPE=n1-standard-32
+
+FUZZER_BE1_IP_ADDRESS=104.154.112.171
+FUZZER_BE1_INSTANCE_NAME=${VM_NAME_BASE}-fuzzer-be-1
+
+FUZZER_BE2_IP_ADDRESS=104.154.112.172
+FUZZER_BE2_INSTANCE_NAME=${VM_NAME_BASE}-fuzzer-be-2
