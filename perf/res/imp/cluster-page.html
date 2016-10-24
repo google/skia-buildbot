@@ -1,0 +1,148 @@
+<!-- The <cluster-page-sk> custom element declaration.
+
+  Attributes:
+  Events:
+  Methods:
+-->
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
+
+<link rel="import" href="/res/common/imp/query2-sk.html" />
+<link rel="import" href="/res/common/imp/query-summary-sk.html" />
+<link rel="stylesheet" href="/res/common/css/md.css">
+
+<link rel="import" href="/res/imp/commit-detail-picker.html" />
+<link rel="import" href="/res/imp/day-range.html" />
+<dom-module id="cluster-page-sk">
+  <style include="iron-flex iron-flex-alignment iron-positioning">
+    day-range-sk {
+      display: block;
+    }
+
+    label {
+      width: 4em;
+      display: inline-block;
+      text-align: right;
+    }
+  </style>
+  <template>
+    <h2>Range</h2>
+    <div class="layout horizontal">
+      <day-range-sk id=range on-day-range-change="_rangeChange"></day-range-sk>
+      <paper-spinner id=spinner></paper-spinner>
+      <span id=percent></span>
+    </div>
+    <div>
+      <div>
+        <label for="begin">Begin</label>
+        <commit-detail-picker-sk on-commit-selected="_beginCommitSelected" id=begin></commit-picker-sk>
+      </div>
+      <div>
+        <label for="end">End</label>
+        <commit-detail-picker-sk on-commit-selected="_endCommitSelected" id=end></commit-picker-sk>
+      </div>
+    </div>
+    <h2>Query</h2>
+    <div class="layout horizontal">
+      <query2-sk id=query></query2-sk>
+      <div class="layout vertical" id=selections>
+        <h3>Selections</h3>
+        <query-summary-sk id=summary></query-summary-sk>
+        <div>
+          Matches: <span id=matches></span>
+        </div>
+        <button on-tap="_add" class=action>Cluster</button>
+      </div>
+    </div>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "cluster-page-sk",
+
+    properties: {
+      _dataframe: {
+        type: Object,
+        value: function() { return {
+          traceset: {},
+        }; },
+      },
+      // Keep track of whether a request is inflight to count the number of traces that match the current query.
+      _countInProgress: {
+        type: Boolean,
+        value: false,
+      },
+      // The state that goes into the URL.
+      //
+      state: {
+        type: Object,
+        value: function() { return {
+          begin: Math.floor(Date.now()/1000 - 24*60*60),
+          end: Math.floor(Date.now()/1000),
+          query: "",
+        }; },
+      },
+      // The id of the current cluster request. Will be the empty string
+      // if there is no pending request.
+      _requestId: {
+        type: String,
+        value: "",
+      },
+    },
+
+    ready: function() {
+      sk.get("/_/initpage/").then(JSON.parse).then(function(json) {
+        this.$.query.setParamset(json.dataframe.paramset);
+      }.bind(this)).catch(sk.errorMessage);
+
+      sk.get("/_/cidRange/").then(JSON.parse).then(function(cids) {
+        this.state.begin = this.$.range.begin = cids[0].ts;
+        this.state.end   = this.$.range.end   = cids[cids.length-1].ts+1;
+        cids.reverse();
+        this.$.begin.setCommitDetail(cids);
+        this.$.end.setCommitDetail(cids);
+
+        // From this point on reflect the state to the URL.
+        sk.stateReflector(this,  function() {
+          // Add code to swap begin and end to keep them in order.
+          // Or move the other one so they make sense.
+          this.$.range.begin = this.state.begin;
+          this.$.range.end = this.state.end;
+          this.$.query.setCurrentQuery(this.state.query);
+          this._rangeChangeImpl(this.state.begin, this.state.end);
+        }.bind(this));
+      }.bind(this)).catch(sk.errorMessage);
+    },
+
+    _beginCommitSelected: function(e) {
+      this.state.begin = e.detail.commit.ts;
+    },
+
+    _endCommitSelected: function(e) {
+      this.state.end = e.detail.commit.ts;
+    },
+
+    _rangeChangeImpl: function(begin, end) {
+      var q = "?";
+      if (begin) {
+        q += "begin="+begin;
+      }
+      if (end) {
+        q += "&end="+end;
+      }
+      sk.get("/_/cidRange/"+q).then(JSON.parse).then(function(cids) {
+        this.state.begin = this.$.range.begin = cids[0].ts;
+        this.state.end   = this.$.range.end   = cids[cids.length-1].ts+1;
+        cids.reverse();
+        this.$.begin.setCommitDetail(cids);
+        this.$.end.setCommitDetail(cids);
+      }.bind(this)).catch(sk.errorMessage);
+    },
+
+    _rangeChange: function(e) {
+      this._rangeChangeImpl(e.detail.begin, e.detail.end);
+    },
+
+  });
+</script>
