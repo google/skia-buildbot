@@ -126,6 +126,14 @@ func (g *GitBuilder) CommitGen(file string) string {
 	return g.CommitMsg(s)
 }
 
+// CommitGenMsg commits arbitrary content to the given file and uses the given
+// commit message. The current branch is then pushed. Returns the hash of the
+// new commit.
+func (g *GitBuilder) CommitGenMsg(file, msg string) string {
+	g.AddGen(file)
+	return g.CommitMsg(msg)
+}
+
 // CreateBranchTrackBranch creates a new branch tracking an existing branch,
 // checks out the new branch, and pushes the new branch.
 func (g *GitBuilder) CreateBranchTrackBranch(newBranch, existingBranch string) {

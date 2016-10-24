@@ -57,7 +57,8 @@ type TaskCache interface {
 	// date range.
 	GetTasksFromDateRange(time.Time, time.Time) ([]*Task, error)
 
-	// KnownTaskName returns true iff the given task name has been seen before.
+	// KnownTaskName returns true iff the given task name has been seen
+	// before for a non-forced, non-tryjob run.
 	KnownTaskName(string, string) bool
 
 	// UnfinishedTasks returns a list of tasks which were not finished at
@@ -331,12 +332,14 @@ func (c *taskCache) insertOrUpdateTask(task *Task) {
 	}
 
 	// Known task names.
-	if nameMap, ok := c.knownTaskNames[task.Repo]; ok {
-		if ts, ok := nameMap[task.Name]; !ok || ts.Before(task.Created) {
-			nameMap[task.Name] = task.Created
+	if !task.IsForceRun() && !task.IsTryJob() {
+		if nameMap, ok := c.knownTaskNames[task.Repo]; ok {
+			if ts, ok := nameMap[task.Name]; !ok || ts.Before(task.Created) {
+				nameMap[task.Name] = task.Created
+			}
+		} else {
+			c.knownTaskNames[task.Repo] = map[string]time.Time{task.Name: task.Created}
 		}
-	} else {
-		c.knownTaskNames[task.Repo] = map[string]time.Time{task.Name: task.Created}
 	}
 }
 
