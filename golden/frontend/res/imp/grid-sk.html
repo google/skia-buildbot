@@ -138,6 +138,7 @@ Where:
                   <img src="{{_diffHref(rowIdx, colIdx)}}" data-row="{{rowIdx}}" data-col="{{colIdx}}">
                   <paper-tooltip>
                     <table class="ttTable" border="0" cellspacing="5" cellpadding="5">
+                      <tr><th>Diff</th><td>{{cell.diffs.combined}}</td></tr>
                       <tr><th>Pixel Diff (%)</th><td>{{cell.pixelDiffPercent}}</td></tr>
                       <tr><th>Num Diff Pixels</th><td>{{cell.numDiffPixels}}</td></tr>
                       <tr><th>Max RBBA Diffs</th><td>[{{cell.maxRGBADiffs}}]</td></tr>
