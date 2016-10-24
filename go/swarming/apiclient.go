@@ -55,6 +55,8 @@ type ApiClient interface {
 	// corresponding to the CT Swarming bots.
 	ListCTBots() ([]*swarming.SwarmingRpcsBotInfo, error)
 
+	GetStdoutOfTask(id string) (*swarming.SwarmingRpcsTaskOutput, error)
+
 	GracefullyShutdownBot(id string) (*swarming.SwarmingRpcsTerminateResponse, error)
 
 	// ListTasks returns a slice of swarming.SwarmingRpcsTaskResult instances
@@ -147,6 +149,10 @@ func (c *apiClient) ListBots(dimensions map[string]string) ([]*swarming.Swarming
 	}
 
 	return bots, nil
+}
+
+func (c *apiClient) GetStdoutOfTask(id string) (*swarming.SwarmingRpcsTaskOutput, error) {
+	return c.s.Task.Stdout(id).Do()
 }
 
 func (c *apiClient) GracefullyShutdownBot(id string) (*swarming.SwarmingRpcsTerminateResponse, error) {
