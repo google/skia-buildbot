@@ -395,6 +395,21 @@ func (g *GitInfo) LogArgs(args ...string) (string, error) {
 	return output, nil
 }
 
+// LogArgs is the same as Log() but appends all the 'args' to the Log
+// request to allow finer control of the log output. I.e. you could call:
+//
+//   LogArgs("--since=2015-10-24", "--format=format:%ct", "infra/bots/assets/skp/VERSION")
+func (g *GitInfo) LogArgs(args ...string) (string, error) {
+	command := []string{"git", "log"}
+	command = append(command, args...)
+	glog.Infof("command: %#v", command)
+	output, err := exec.RunCwd(g.dir, command...)
+	if err != nil {
+		return "", err
+	}
+	return output, nil
+}
+
 // FullHash gives the full commit hash for the given ref.
 func (g *GitInfo) FullHash(ref string) (string, error) {
 	output, err := exec.RunCwd(g.dir, "git", "rev-parse", fmt.Sprintf("%s^{commit}", ref))

@@ -149,6 +149,7 @@ func loadTemplates() {
 
 		// ptracestore pages go here.
 		filepath.Join(*resourcesDir, "templates/newindex.html"),
+		filepath.Join(*resourcesDir, "templates/clusters2.html"),
 
 		// Sub templates used by other templates.
 		filepath.Join(*resourcesDir, "templates/header.html"),
@@ -1161,9 +1162,6 @@ func helpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func initpageHandler(w http.ResponseWriter, r *http.Request) {
-	if *local {
-		loadTemplates()
-	}
 	df := freshDataFrame.Get()
 	resp, err := dataframe.ResponseFromDataFrame(&dataframe.DataFrame{
 		Header:   df.Header,
@@ -1174,6 +1172,56 @@ func initpageHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to load init data.")
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		glog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
+func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		httputils.ReportError(w, r, err, "Invalid URL query.")
+		return
+	}
+	beginStr := r.Form.Get("begin")
+	endStr := r.Form.Get("end")
+	df := freshDataFrame.Get()
+	begin := df.Header[0].Timestamp
+	end := df.Header[len(df.Header)-1].Timestamp
+	var err error
+	if beginStr != "" || endStr != "" {
+		if beginStr != "" {
+			begin, err = strconv.ParseInt(beginStr, 10, 64)
+			if err != nil {
+				httputils.ReportError(w, r, err, "Failed to parse Unix timestamp from 'begin' query parameter.")
+				return
+			}
+		}
+		if endStr != "" {
+			end, err = strconv.ParseInt(endStr, 10, 64)
+			if err != nil {
+				httputils.ReportError(w, r, err, "Failed to parse Unix timestamp from 'end' query parameter.")
+				return
+			}
+		}
+		df = dataframe.NewHeaderOnly(git, time.Unix(begin, 0), time.Unix(end, 0))
+	}
+
+	cids := []*cid.CommitID{}
+	for _, h := range df.Header {
+		cids = append(cids, &cid.CommitID{
+			Offset: int(h.Offset),
+			Source: h.Source,
+		})
+	}
+
+	glog.Infof("CID: %#v", cids[0])
+	resp, err := cidl.Lookup(cids)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to lookup all commit ids")
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		glog.Errorf("Failed to encode paramset: %s", err)
@@ -1380,7 +1428,9 @@ func main() {
 
 	// New endpoints that use ptracestore will go here.
 	router.HandleFunc("/new/", templateHandler("newindex.html"))
+	router.HandleFunc("/newCluster/", templateHandler("clusters2.html"))
 	router.HandleFunc("/_/initpage/", initpageHandler)
+	router.HandleFunc("/_/cidRange/", cidRangeHandler)
 	router.HandleFunc("/_/count/", countHandler)
 	router.HandleFunc("/_/cid/", cidHandler)
 	router.HandleFunc("/_/frame/start", frameStartHandler)
