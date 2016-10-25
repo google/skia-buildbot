@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e1af00ab_3ec4c5f7",
+        "filename": "go/git/gitdir.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-25T19:37:22Z",
+      "side": 1,
+      "message": "nit: is it obvious that this is a hash?",
+      "range": {
+        "startLine": 22,
+        "startChar": 1,
+        "endLine": 22,
+        "endChar": 5
+      },
+      "revId": "e61b750f7323364c668eb73c98ad91c4277df27c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e1af00ab_9e1879ea",
+        "filename": "go/git/gitdir.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-25T19:37:22Z",
+      "side": 1,
+      "message": "nit: maybe call this parentDir or workdir.\n\nSame for callers.",
+      "range": {
+        "startLine": 29,
+        "startChar": 24,
+        "endLine": 29,
+        "endChar": 27
+      },
+      "revId": "e61b750f7323364c668eb73c98ad91c4277df27c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e1af00ab_3e2845f7",
+        "filename": "go/git/gitdir.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-25T19:37:22Z",
+      "side": 1,
+      "message": "nit: also used for git.Checkout",
+      "range": {
+        "startLine": 43,
+        "startChar": 43,
+        "endLine": 43,
+        "endChar": 51
+      },
+      "revId": "e61b750f7323364c668eb73c98ad91c4277df27c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e1af00ab_5e8e71ba",
+        "filename": "go/git/gitdir_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-25T19:37:22Z",
+      "side": 1,
+      "message": "nit: num !\u003d 0",
+      "range": {
+        "startLine": 27,
+        "startChar": 5,
+        "endLine": 27,
+        "endChar": 24
+      },
+      "revId": "e61b750f7323364c668eb73c98ad91c4277df27c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
