@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "e1af00ab_fe465d6e",
+        "filename": "go/git/gitdir.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-25T19:48:36Z",
+      "side": 1,
+      "message": "I think a branch head is a commit hash by definition, but I added comments.",
+      "parentUuid": "e1af00ab_3ec4c5f7",
+      "revId": "e61b750f7323364c668eb73c98ad91c4277df27c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e1af00ab_9e1879ea",
         "filename": "go/git/gitdir.go",
         "patchSetId": 2
@@ -42,6 +60,24 @@
         "endLine": 29,
         "endChar": 27
       },
+      "revId": "e61b750f7323364c668eb73c98ad91c4277df27c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e1af00ab_7e5b6d45",
+        "filename": "go/git/gitdir.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-25T19:48:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e1af00ab_9e1879ea",
       "revId": "e61b750f7323364c668eb73c98ad91c4277df27c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "e1af00ab_fe6bfdd0",
+        "filename": "go/git/gitdir.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-25T19:48:36Z",
+      "side": 1,
+      "message": "Changed the error message. This is one of those errors which shouldn\u0027t normally occur; eg. only if the directory has the wrong permissions or something like that.",
+      "parentUuid": "e1af00ab_3e2845f7",
+      "revId": "e61b750f7323364c668eb73c98ad91c4277df27c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e1af00ab_5e8e71ba",
         "filename": "go/git/gitdir_test.go",
         "patchSetId": 2
@@ -88,6 +142,24 @@
         "endLine": 27,
         "endChar": 24
       },
+      "revId": "e61b750f7323364c668eb73c98ad91c4277df27c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e1af00ab_9e7ab99c",
+        "filename": "go/git/gitdir_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-25T19:48:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e1af00ab_5e8e71ba",
       "revId": "e61b750f7323364c668eb73c98ad91c4277df27c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
