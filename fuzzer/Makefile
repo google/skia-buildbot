@@ -13,8 +13,15 @@ default: all
 
 all: clean_webtools core_js elements_html skiaversion frontend backend update
 
-release: all
-	./build_release "$(MESSAGE)"
+fe_release: all
+	./build_fe_release "$(MESSAGE)"
+
+be_release: all
+	CONFIG=1 ./build_be_release "$(MESSAGE)"
+	CONFIG=2 ./build_be_release "$(MESSAGE)"
+
+release: all fe_release be_release
+	echo
 
 test: testgo testjs
 	echo

@@ -471,7 +471,7 @@ server {
     add_header X-Content-Type-Options nosniff;
 
     location / {
-        proxy_pass http://skia-fuzzer:8001;
+        proxy_pass http://skia-fuzzer-fe:8001;
     }
 }
 server {
