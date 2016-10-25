@@ -140,3 +140,32 @@ func TestLookup(t *testing.T) {
 	details, err = lookup.Lookup(cids)
 	assert.Error(t, err)
 }
+
+func TestParseLogLine(t *testing.T) {
+	s := "1476870603 e8f0a7b986f1e5583c9bc162efcdd92fd6430549 joel.liang@arm.com Generate Signed Distance Field directly from vector path"
+	var index int = 3
+	entry, err := parseLogLine(s, &index, nil)
+	assert.NoError(t, err)
+	expected := &cacheEntry{
+		author:  "joel.liang@arm.com",
+		subject: "Generate Signed Distance Field directly from vector path",
+		hash:    "e8f0a7b986f1e5583c9bc162efcdd92fd6430549",
+		ts:      1476870603,
+	}
+	assert.Equal(t, expected, entry)
+	assert.Equal(t, 4, index)
+
+	// No subject.
+	s = "1476870603 e8f0a7b986f1e5583c9bc162efcdd92fd6430549 joel.liang@arm.com"
+	entry, err = parseLogLine(s, &index, nil)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Failed to parse parts")
+	assert.Equal(t, 4, index)
+
+	// Invalid timestamp.
+	s = "1476870ZZZ e8f0a7b986f1e5583c9bc162efcdd92fd6430549 joel.liang@arm.com Generate Signed Distance Field directly from vector path"
+	entry, err = parseLogLine(s, &index, nil)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Can't parse timestamp")
+	assert.Equal(t, 4, index)
+}
