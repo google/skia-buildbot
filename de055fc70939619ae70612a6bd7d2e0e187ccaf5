@@ -40,6 +40,24 @@
       "revId": "de055fc70939619ae70612a6bd7d2e0e187ccaf5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c15afc67_49f38d85",
+        "filename": "go/gitinfo/gitinfo.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-25T13:50:44Z",
+      "side": 1,
+      "message": "SGTM. When I added the go/gitrepo package, my original idea was to do a refactor into three packages based on use case:\n\ngo/git: Deals with a Git checkout. No fancy helpers or caching.\ngo/gitinfo: Uses go/git to run commands and adds helpers and caching.\ngo/gitrepo: Uses go/git to run commands. Keeps an in-memory representation of the repo. Does not maintain a checkout (ie. git clone --mirror).\n\nPersonally, I\u0027d prefer that we use \"git clone --mirror\" whenever possible since it\u0027s much safer than maintaining a checkout.",
+      "parentUuid": "c15afc67_a91a29dd",
+      "revId": "de055fc70939619ae70612a6bd7d2e0e187ccaf5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
