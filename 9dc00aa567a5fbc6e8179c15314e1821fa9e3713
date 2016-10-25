@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e1af00ab_7bd93f0b",
+        "filename": "perf/go/cid/cid.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-25T17:51:34Z",
+      "side": 1,
+      "message": "Need a mutex, either here or at https://skia.googlesource.com/buildbot/+/00dc0248488797bd01522d442c605a23f8585f1c/perf/go/skiaperf/main.go#1303",
+      "revId": "9dc00aa567a5fbc6e8179c15314e1821fa9e3713",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
