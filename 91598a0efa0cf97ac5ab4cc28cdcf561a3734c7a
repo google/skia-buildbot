@@ -16,6 +16,24 @@
       "revId": "91598a0efa0cf97ac5ab4cc28cdcf561a3734c7a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e1af00ab_5bf9e3d5",
+        "filename": "perf/go/cid/cid.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-25T18:27:11Z",
+      "side": 1,
+      "message": "Yes, because c.git.ByIndex can be slow.",
+      "parentUuid": "e1af00ab_bb9c67a6",
+      "revId": "91598a0efa0cf97ac5ab4cc28cdcf561a3734c7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
