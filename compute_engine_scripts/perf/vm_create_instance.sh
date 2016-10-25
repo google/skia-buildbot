@@ -6,10 +6,11 @@ set -x
 
 source vm_config.sh
 
-MACHINE_TYPE=n1-highmem-8
+MACHINE_TYPE=n1-standard-32
 SOURCE_SNAPSHOT=skia-systemd-pushable-base
 SCOPES='https://www.googleapis.com/auth/devstorage.full_control'
 IP_ADDRESS=104.154.112.108
+DISK_NAME="$INSTANCE_NAME-ssd-data"
 
 # Create a boot disk from the pushable base snapshot.
 gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME \
@@ -18,7 +19,7 @@ gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME \
   --type "pd-standard"
 
 # Create a large data disk.
-gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME"-data" \
+gcloud compute --project $PROJECT_ID disks create $DISK_NAME \
   --size "1000" \
   --zone $ZONE \
   --type "pd-ssd"
@@ -34,7 +35,7 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --metadata-from-file "startup-script=startup-script.sh" \
   --metadata "owner_primary=jcgregorio,owner_secondary=stephana" \
   --disk name=${INSTANCE_NAME},device-name=${INSTANCE_NAME},mode=rw,boot=yes,auto-delete=yes \
-  --disk name=${INSTANCE_NAME}-data,device-name=${INSTANCE_NAME}-data,mode=rw,boot=no \
+  --disk name=${DISK_NAME},device-name=${DISK_NAME},mode=rw,boot=no \
   --address=$IP_ADDRESS
 
 # Wait until the instance is up.
@@ -48,7 +49,7 @@ gcloud compute copy-files ../common/safe_format_and_mount $PROJECT_USER@$INSTANC
 
 gcloud compute --project $PROJECT_ID ssh $PROJECT_USER@$INSTANCE_NAME \
   --zone $ZONE \
-  --command "/tmp/format_and_mount.sh $INSTANCE_NAME" \
+  --command "/tmp/format_and_mount.sh $INSTANCE_NAME-ssd" \
   || echo "Installation failure."
 
 # The instance believes it is skia-systemd-snapshot-maker until it is rebooted.
