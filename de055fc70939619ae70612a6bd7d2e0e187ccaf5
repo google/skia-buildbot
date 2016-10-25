@@ -22,6 +22,24 @@
       "revId": "de055fc70939619ae70612a6bd7d2e0e187ccaf5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c15afc67_a91a29dd",
+        "filename": "go/gitinfo/gitinfo.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-25T13:45:38Z",
+      "side": 1,
+      "message": "That was my thought also.\n\nThe other thing we might want to address is speed and caching. This new func will be used in a later CL to cache the last year of commits info to speed up processing in Perf. The cache, which isn\u0027t in gitinfo, speeds up one operation from 1 minute down to 5ms.",
+      "parentUuid": "c15afc67_e9cf013a",
+      "revId": "de055fc70939619ae70612a6bd7d2e0e187ccaf5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
