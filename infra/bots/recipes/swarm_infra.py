@@ -12,6 +12,7 @@ import re
 DEPS = [
   'build/file',
   'depot_tools/bot_update',
+  'depot_tools/gclient',
   'depot_tools/infra_paths',
   'depot_tools/rietveld',
   'recipe_engine/path',
@@ -48,25 +49,41 @@ def git_checkout(api, url, dest, ref=None):
     git(api, 'clone', INFRA_GIT_URL, dest)
 
   # Ensure that the correct ref is checked out.
-  git(api, 'fetch', 'origin', cwd=dest)
-  git(api, 'clean', '-d', '-f', cwd=dest)
+  ref = ref or REF_ORIGIN_MASTER
   if ref == REF_HEAD:
     ref = REF_ORIGIN_MASTER
-  git(api, 'reset', '--hard', ref or REF_ORIGIN_MASTER, cwd=dest)
+  git(api, 'fetch', 'origin', cwd=dest)
+  git(api, 'clean', '-d', '-f', cwd=dest)
+  git(api, 'checkout', 'master', cwd=dest)
+  git(api, 'reset', '--hard', ref, cwd=dest)
 
   api.path['checkout'] = dest
 
-  # Maybe apply a patch.
-  if (api.properties.get('rietveld') and
-      api.properties.get('issue') and
-      api.properties.get('patchset')):
-    api.rietveld.apply_issue()
-  elif (api.properties.get('repository') and
-        api.properties.get('event.patchSet.ref') and
-        api.properties.get('event.change.number')):
-    api.bot_update.apply_gerrit_ref(root=dest)
-    # Applying gerrit ref puts us in a detached branch. Go back to the master.
-    git(api, 'checkout', 'master', cwd=dest)
+  # Run bot_update, just to apply patches.
+  cfg_kwargs = {'CACHE_DIR': '/b/cache'}
+  gclient_cfg = api.gclient.make_config(**cfg_kwargs)
+  dirname = api.path['slave_build'].join('go', 'src', 'go.skia.org')
+  basename = 'infra'
+  sln = gclient_cfg.solutions.add()
+  sln.name = basename
+  sln.managed = False
+  sln.url = INFRA_GIT_URL
+  sln.revision = ref
+  gclient_cfg.got_revision_mapping[basename] = 'got_revision'
+  api.bot_update.ensure_checkout(
+      gclient_config=gclient_cfg,
+      cwd=dirname)
+
+  # Fix the remote URL, since bot_update switches it to the cached repo.
+  git(api, 'remote', 'set-url', 'origin', INFRA_GIT_URL, cwd=dest)
+
+  # Re-checkout master, since bot_update detaches us. We already set master
+  # to the correct commit, and any applied patch should not have been committed,
+  # so this should be safe.
+  git(api, 'checkout', 'master', cwd=dest)
+
+  # "git status" just to sanity check.
+  git(api, 'status', cwd=dest)
 
 
 def RunSteps(api):
