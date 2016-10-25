@@ -6,7 +6,7 @@
 # a la google-skia-[DISK_NAME]-data
 set -x
 
-DISK_NAME="google-$1-data"
+DISK_NAME="google-$1-ssd-data"
 
 echo "Formatting and setting up fstab rules for "$DISK_NAME
 # Mount data disk
