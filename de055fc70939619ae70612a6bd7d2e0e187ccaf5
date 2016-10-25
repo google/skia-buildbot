@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c15afc67_e9cf013a",
+        "filename": "go/gitinfo/gitinfo.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-25T13:39:52Z",
+      "side": 1,
+      "message": "We seem to be getting to the point where it may be better to stop adding helper functions and just add a \"Git\" function which runs any git command in the repo dir:\n\noutput, err :\u003d repo.Git(\"log\", \"--since\u003d2015-10-24\", \"--format\u003dformat:%ct\", \"infra/bots/assets/skp/VERSION\")\n\nIf we\u0027re not parsing the output or doing any other magic, it\u0027s only slightly more typing for the user and completely flexible.",
+      "range": {
+        "startLine": 388,
+        "startChar": 26,
+        "endLine": 388,
+        "endChar": 30
+      },
+      "revId": "de055fc70939619ae70612a6bd7d2e0e187ccaf5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
