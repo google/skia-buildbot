@@ -6,7 +6,7 @@ After=network-online.target
 [Service]
 ExecStart=/usr/local/bin/fuzzer-fe \
   --log_dir=/var/log/logserver \
-  --resources_dir=/usr/local/share/fuzzer/ \
+  --resources_dir=/usr/local/share/fuzzer-fe/ \
   --bolt_db_path=/mnt/ssd0/fe-db \
   --host=fuzzer.skia.org \
   --influxdb_database=skmetrics \

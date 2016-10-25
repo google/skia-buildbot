@@ -1,0 +1,42 @@
+[Unit]
+Description=Fuzzer backend
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/fuzzer-be \
+  --log_dir=/var/log/logserver \
+  --influxdb_database=skmetrics \
+  --influxdb_host=skia-monitoring:10117 \
+  --skia_root=/mnt/ssd0/skia-be \
+  --clang_path=/usr/bin/clang \
+  --clang_p_p_path=/usr/bin/clang++ \
+  --depot_tools_path=/mnt/ssd0/depot_tools \
+  --afl_root=/mnt/ssd0/afl \
+  --afl_output_path=/mnt/ssd0/fuzzes/afl-out \
+  --fuzz_samples=/mnt/ssd0/fuzzes/samples \
+  --generator_working_dir=/mnt/ssd0/generator-wd \
+  --aggregator_working_dir=/mnt/ssd0/aggregator-wd \
+  --executable_cache_path=/mnt/ssd0/executable_cache \
+  --fuzz_path=/mnt/ssd0/fuzzes \
+  --architecture=linux_x64 \
+  --api_fuzz_processes=2 \
+  --binary_fuzz_processes=4 \
+  --analysis_processes=24 \
+  --upload_processes=32 \
+  --download_processes=32 \
+  --fuzz_to_run=skcodec_scale \
+  --fuzz_to_run=skcodec_mode \
+  --fuzz_to_run=api_parse_path \
+  --fuzz_to_run=api_image_filter \
+  --fuzz_to_run=color_icc \
+  --fuzz_to_run=color_deserialize \
+  --fuzz_to_run=api_pathop \
+  --fuzz_to_run=api_gradient
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
