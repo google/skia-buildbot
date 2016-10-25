@@ -206,8 +206,13 @@
 
         _handleTriage: function(ev) {
           ev.stopPropagation();
+          debugger; 
           sk.post('/json/triage', JSON.stringify(ev.detail)).then(function() {
-            this.$.clusterView.newTriageStatus(ev.detail.digest, ev.detail.status);
+            var change = gold.flattenTriageQuery(ev.detail);
+            var ele = this.$.clusterView;
+            for(var i =0; i < change.length; i++) {
+              ele.newTriageStatus(change[i][1], change[i][2]);
+            }
           }.bind(this)).catch(sk.errorMessage);
         },
 

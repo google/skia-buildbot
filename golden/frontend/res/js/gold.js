@@ -189,6 +189,31 @@ var gold = gold || {};
     };
   };
 
+  gold.flattenTriageQuery = function(q) {
+    var ret = [];
+    q = q.testDigestStatus
+    for(var k in q) {
+      if (q.hasOwnProperty(k)) {
+        var statusMap = {};
+        // iterat over the digests and group by status.
+        for(var j in q[k]) {
+          if (q[k].hasOwnProperty(j)) {
+            var status = q[k][j];
+            if (!statusMap[status]) {
+              statusMap[status] = [];
+            }
+            statusMap[status].push(j);
+            debugger; 
+          }
+        }
+        for(j in statusMap) {
+          ret.push([k, statusMap[j], j]);
+        }
+      }
+    }
+    return ret;
+  };
+
   // PageStateBehavior is a re-usable behavior what adds the _state and
   // _ctx (page.js context) variables to a Polymer element. All methods are
   // implemented as private since they should only be used within a
