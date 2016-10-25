@@ -403,6 +403,27 @@ func SearchOwner(name string) *SearchTerm {
 	}
 }
 
+func SearchStatus(status string) *SearchTerm {
+	return &SearchTerm{
+		Key:   "status",
+		Value: status,
+	}
+}
+
+func SearchProject(project string) *SearchTerm {
+	return &SearchTerm{
+		Key:   "project",
+		Value: project,
+	}
+}
+
+func SearchLabel(label, value string) *SearchTerm {
+	return &SearchTerm{
+		Key:   "label",
+		Value: fmt.Sprintf("%s=%s", label, value),
+	}
+}
+
 // SearchModifiedAfter is a SearchTerm used for finding issues modified after
 // a particular time.Time.
 // API documentation is here: https://review.openstack.org/Documentation/user-search.html
@@ -436,6 +457,7 @@ func (g *Gerrit) Search(limit int, terms ...*SearchTerm) ([]*ChangeInfo, error) 
 		q.Add("n", strconv.Itoa(queryLimit))
 		q.Add("S", strconv.Itoa(skip))
 		searchUrl := "/changes/?" + q.Encode()
+		fmt.Println("The searchUrl is: %s", searchUrl)
 		err := g.get(searchUrl, &data)
 		if err != nil {
 			return nil, fmt.Errorf("Gerrit search failed: %v", err)
@@ -518,4 +540,15 @@ func (c *CodeReviewCache) poll() {
 		glog.Infof("\nRemoving: %d", issue.Issue)
 		c.cache.Remove(issue.Issue)
 	}
+}
+
+// ContainsAny returns true if the provides ChangeInfo slice contains any
+// change with the same issueID as id.
+func ContainsAny(id int64, changes []*ChangeInfo) bool {
+	for _, c := range changes {
+		if id == c.Issue {
+			return true
+		}
+	}
+	return false
 }
