@@ -138,6 +138,7 @@ func NewEmpty() *DataFrame {
 // NewHeaderOnly returns a DataFrame with a populated Header, with no traces.
 // The 'progress' callback is called periodically as the query is processed.
 func NewHeaderOnly(vcs vcsinfo.VCS, begin, end time.Time) *DataFrame {
+	defer timer.New("NewHeaderOnly time").Stop()
 	colHeaders, _, skip := getRange(vcs, begin, end)
 	return &DataFrame{
 		TraceSet: ptracestore.TraceSet{},

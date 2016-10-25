@@ -6,11 +6,13 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/rietveld"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/constants"
 )
@@ -97,21 +99,97 @@ func FromHash(vcs vcsinfo.VCS, hash string) (*CommitID, error) {
 	}, nil
 }
 
+type cacheEntry struct {
+	author  string
+	subject string
+	hash    string
+	ts      int64
+}
+
 // CommitIDLookup allows getting CommitDetails from CommitIDs.
 type CommitIDLookup struct {
-	git *gitinfo.GitInfo
-	rv  *rietveld.Rietveld
+	git   *gitinfo.GitInfo
+	rv    *rietveld.Rietveld
+	cache map[int]cacheEntry
+}
+
+// getCommitTimesForFile returns a slice of Unix timestamps in seconds that are
+// the times that the given file changed in git between the given 'begin' and
+// 'end' hashes (inclusive).
+func (c *CommitIDLookup) warmCache() {
+	defer timer.New("cid.warmCache time").Stop()
+	now := time.Now()
+
+	// Extract ts, hash, author email, and subject from the git log.
+	since := now.Add(-365 * 24 * time.Hour).Format("2006-01-02")
+	glog.Infof("Warming from: %s", since)
+	log, err := c.git.LogArgs("--since="+since, "--format=format:%ct %H %ae %s")
+	if err != nil {
+		glog.Errorf("Could not get skp log for --since=%q: %s", since, err)
+		return
+	}
+	glog.Infof("len(log) %d", len(log))
+
+	// Get the index of the first commit, and then increment from there.
+	lines := strings.Split(log, "\n")
+	length := len(lines)
+	revLines := make([]string, 0, length)
+	for i := 0; i < length-1; i++ {
+		revLines = append(revLines, lines[length-1-i])
+	}
+
+	var index int = -1
+	// Parse.
+	for _, s := range revLines {
+		parts := strings.SplitN(s, " ", 4)
+		if len(parts) != 4 {
+			glog.Errorf("Failed to parse parts of %q: %#v", s, parts)
+			return
+		}
+		ts := parts[0]
+		hash := parts[1]
+		author := parts[2]
+		subject := parts[3]
+		tsi, err := strconv.ParseInt(ts, 10, 64)
+		if err != nil {
+			glog.Errorf("Can't parse timestamp %q: %s", ts, err)
+			return
+		}
+		if index == -1 {
+			index, err = c.git.IndexOf(hash)
+			if err != nil {
+				glog.Errorf("Failed to get index of %q: %s", hash, err)
+				return
+			}
+			glog.Infof("First Index == %d for %s", index, hash)
+		} else {
+			index++
+		}
+		c.cache[index] = cacheEntry{
+			author:  author,
+			subject: subject,
+			hash:    hash,
+			ts:      tsi,
+		}
+	}
+	glog.Infof("Length of cache: %d", len(c.cache))
+	glog.Infof("Cache: %v", c.cache)
+
 }
 
 func New(git *gitinfo.GitInfo, rv *rietveld.Rietveld) *CommitIDLookup {
-	return &CommitIDLookup{
-		git: git,
-		rv:  rv,
+	cidl := &CommitIDLookup{
+		git:   git,
+		rv:    rv,
+		cache: map[int]cacheEntry{},
 	}
+	cidl.warmCache()
+	return cidl
 }
 
 // Lookup returns a CommitDetail for each CommitID.
 func (c *CommitIDLookup) Lookup(cids []*CommitID) ([]*CommitDetail, error) {
+	defer timer.New("cid.Lookup time").Stop()
 	ret := make([]*CommitDetail, len(cids), len(cids))
 	for i, cid := range cids {
 		if strings.HasPrefix(cid.Source, CODE_REVIEW_URL) {
@@ -144,15 +222,26 @@ func (c *CommitIDLookup) Lookup(cids []*CommitID) ([]*CommitDetail, error) {
 			}
 		} else {
 			// Presume that cid.Source is a branch name.
-			lc, err := c.git.ByIndex(cid.Offset)
-			if err != nil {
-				return nil, fmt.Errorf("Failed to find match for cid %#v: %s", *cid, err)
-			}
-			ret[i] = &CommitDetail{
-				Author:    lc.Author,
-				Message:   fmt.Sprintf("%.7s - %s", lc.Hash, lc.ShortCommit.Subject),
-				URL:       fmt.Sprintf("https://skia.googlesource.com/skia/+/%s", lc.Hash),
-				Timestamp: lc.Timestamp.Unix(),
+			if entry, ok := c.cache[cid.Offset]; ok {
+				glog.Info("cache hit")
+				ret[i] = &CommitDetail{
+					Author:    entry.author,
+					Message:   fmt.Sprintf("%.7s - %s", entry.hash, entry.subject),
+					URL:       fmt.Sprintf("https://skia.googlesource.com/skia/+/%s", entry.hash),
+					Timestamp: entry.ts,
+				}
+			} else {
+				glog.Info("cache miss")
+				lc, err := c.git.ByIndex(cid.Offset)
+				if err != nil {
+					return nil, fmt.Errorf("Failed to find match for cid %#v: %s", *cid, err)
+				}
+				ret[i] = &CommitDetail{
+					Author:    lc.Author,
+					Message:   fmt.Sprintf("%.7s - %s", lc.Hash, lc.ShortCommit.Subject),
+					URL:       fmt.Sprintf("https://skia.googlesource.com/skia/+/%s", lc.Hash),
+					Timestamp: lc.Timestamp.Unix(),
+				}
 			}
 		}
 	}
