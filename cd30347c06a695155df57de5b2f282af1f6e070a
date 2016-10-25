@@ -1,0 +1,141 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c15afc67_3473105e",
+        "filename": "perf/go/cid/cid.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-25T17:21:01Z",
+      "side": 1,
+      "message": "nit: document this param",
+      "range": {
+        "startLine": 123,
+        "startChar": 28,
+        "endLine": 123,
+        "endChar": 38
+      },
+      "revId": "cd30347c06a695155df57de5b2f282af1f6e070a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c15afc67_f4a1987c",
+        "filename": "perf/go/cid/cid.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-25T17:21:01Z",
+      "side": 1,
+      "message": "nit: seems much simpler to do this in warmCache.",
+      "range": {
+        "startLine": 136,
+        "startChar": 0,
+        "endLine": 143,
+        "endChar": 2
+      },
+      "revId": "cd30347c06a695155df57de5b2f282af1f6e070a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c15afc67_5497a425",
+        "filename": "perf/go/cid/cid.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-25T17:21:01Z",
+      "side": 1,
+      "message": "nit: copy-and-pasto \"skp\"",
+      "range": {
+        "startLine": 162,
+        "startChar": 29,
+        "endLine": 162,
+        "endChar": 32
+      },
+      "revId": "cd30347c06a695155df57de5b2f282af1f6e070a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "21c75867_58798170",
+        "filename": "perf/go/cid/cid.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-25T17:21:01Z",
+      "side": 1,
+      "message": "This is only valid if cid.Source \u003d\u003d \"master\" -- doesn\u0027t work for branches.",
+      "revId": "cd30347c06a695155df57de5b2f282af1f6e070a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c15afc67_b403a071",
+        "filename": "perf/go/cid/cid.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-25T17:21:01Z",
+      "side": 1,
+      "message": "nit: won\u0027t this fill the logs very quickly?",
+      "revId": "cd30347c06a695155df57de5b2f282af1f6e070a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "21c75867_98e4f928",
+        "filename": "perf/go/cid/cid.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-25T17:21:01Z",
+      "side": 1,
+      "message": "Seems like this function will get slower as new commits come in, since you don\u0027t cache any new commits.",
+      "revId": "cd30347c06a695155df57de5b2f282af1f6e070a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c15afc67_74b58885",
+        "filename": "perf/go/cid/cid_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-25T17:21:01Z",
+      "side": 1,
+      "message": "nit: It\u0027s a good idea to e.g. assert.Contains(t, err.Error(), \"Failed to parse parts\") so that you know you\u0027re testing what you are trying to test.",
+      "revId": "cd30347c06a695155df57de5b2f282af1f6e070a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
