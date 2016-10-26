@@ -126,6 +126,22 @@ func NewFromQueryAndRange(vcs vcsinfo.VCS, store ptracestore.PTraceStore, begin,
 	return _new(colHeaders, commitIDs, q, store, progress, skip)
 }
 
+func NewFromCommitIDsAndQuery(cids []*cid.CommitID, cidl *cid.CommitIDLookup, store ptracestore.PTraceStore, q *query.Query, progress ptracestore.Progress) (*DataFrame, error) {
+	details, err := cidl.Lookup(cids)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to look up CommitIDs: %s", err)
+	}
+	colHeaders := []*ColumnHeader{}
+	for _, d := range details {
+		colHeaders = append(colHeaders, &ColumnHeader{
+			Source:    d.Source,
+			Offset:    int64(d.Offset),
+			Timestamp: d.Timestamp,
+		})
+	}
+	return _new(colHeaders, cids, q, store, progress, 0)
+}
+
 // NewEmpty returns a new empty DataFrame.
 func NewEmpty() *DataFrame {
 	return &DataFrame{
@@ -138,6 +154,7 @@ func NewEmpty() *DataFrame {
 // NewHeaderOnly returns a DataFrame with a populated Header, with no traces.
 // The 'progress' callback is called periodically as the query is processed.
 func NewHeaderOnly(vcs vcsinfo.VCS, begin, end time.Time) *DataFrame {
+	defer timer.New("NewHeaderOnly time").Stop()
 	colHeaders, _, skip := getRange(vcs, begin, end)
 	return &DataFrame{
 		TraceSet: ptracestore.TraceSet{},
