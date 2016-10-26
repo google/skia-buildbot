@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "6105d0c2_c646ec6e",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-26T19:39:30Z",
+      "side": 1,
+      "message": "Yeah, I\u0027m not sure. There\u0027s not really a way to avoid it though.  I\u0027ll quickly roll back if this causes a problem.",
+      "parentUuid": "6105d0c2_40680412",
+      "revId": "3ff3740c994b707d8e6ca4c3ade4bf9d7581e536",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6105d0c2_a0464094",
         "filename": "task_scheduler/go/specs/helpers.go",
         "patchSetId": 1
@@ -42,6 +60,24 @@
     },
     {
       "key": {
+        "uuid": "6105d0c2_e67a109d",
+        "filename": "task_scheduler/go/specs/helpers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-26T19:39:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6105d0c2_a0464094",
+      "revId": "3ff3740c994b707d8e6ca4c3ade4bf9d7581e536",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6105d0c2_e0c838b1",
         "filename": "task_scheduler/go/specs/specs_test.go",
         "patchSetId": 1
@@ -59,6 +95,24 @@
         "endLine": 421,
         "endChar": 10
       },
+      "revId": "3ff3740c994b707d8e6ca4c3ade4bf9d7581e536",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_66672001",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-26T19:39:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6105d0c2_e0c838b1",
       "revId": "3ff3740c994b707d8e6ca4c3ade4bf9d7581e536",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
