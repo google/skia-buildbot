@@ -856,8 +856,8 @@ func TestComputeBlamelist(t *testing.T) {
 	}
 
 	name := "Test-Ubuntu12-ShuttleA-GTX660-x86-Release"
-	repoName := "skia.git"
-	repo, err := gitrepo.NewRepo(repoName, tr.Dir())
+	repoDir, repoName := path.Split(tr.Dir())
+	repo, err := gitrepo.NewRepo(repoName, repoDir)
 	assert.NoError(t, err)
 	ids := []string{}
 	commitsBuf := make([]*gitrepo.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)

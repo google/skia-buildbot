@@ -73,7 +73,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames [
 	repos := make(map[string]*gitrepo.Repo, len(repoNames))
 	rm := gitinfo.NewRepoMap(workdir)
 	for _, r := range repoNames {
-		repo, err := gitrepo.NewRepo(r, path.Join(workdir, path.Base(r)))
+		repo, err := gitrepo.NewRepo(r, workdir)
 		if err != nil {
 			return nil, err
 		}
