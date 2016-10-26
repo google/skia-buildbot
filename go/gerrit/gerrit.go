@@ -403,6 +403,27 @@ func SearchOwner(name string) *SearchTerm {
 	}
 }
 
+func SearchStatus(status string) *SearchTerm {
+	return &SearchTerm{
+		Key:   "status",
+		Value: status,
+	}
+}
+
+func SearchProject(project string) *SearchTerm {
+	return &SearchTerm{
+		Key:   "project",
+		Value: project,
+	}
+}
+
+func SearchLabel(label, value string) *SearchTerm {
+	return &SearchTerm{
+		Key:   "label",
+		Value: fmt.Sprintf("%s=%s", label, value),
+	}
+}
+
 // SearchModifiedAfter is a SearchTerm used for finding issues modified after
 // a particular time.Time.
 // API documentation is here: https://review.openstack.org/Documentation/user-search.html
@@ -518,4 +539,15 @@ func (c *CodeReviewCache) poll() {
 		glog.Infof("\nRemoving: %d", issue.Issue)
 		c.cache.Remove(issue.Issue)
 	}
+}
+
+// ContainsAny returns true if the provided ChangeInfo slice contains any
+// change with the same issueID as id.
+func ContainsAny(id int64, changes []*ChangeInfo) bool {
+	for _, c := range changes {
+		if id == c.Issue {
+			return true
+		}
+	}
+	return false
 }
