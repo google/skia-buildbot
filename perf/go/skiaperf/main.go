@@ -6,6 +6,7 @@ import (
 	"fmt"
 	ehtml "html"
 	"html/template"
+	"math"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -41,6 +42,7 @@ import (
 	"go.skia.org/infra/perf/go/annotate"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering"
+	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	idb "go.skia.org/infra/perf/go/db"
@@ -149,6 +151,7 @@ func loadTemplates() {
 
 		// ptracestore pages go here.
 		filepath.Join(*resourcesDir, "templates/newindex.html"),
+		filepath.Join(*resourcesDir, "templates/clusters2.html"),
 
 		// Sub templates used by other templates.
 		filepath.Join(*resourcesDir, "templates/header.html"),
@@ -1161,9 +1164,6 @@ func helpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func initpageHandler(w http.ResponseWriter, r *http.Request) {
-	if *local {
-		loadTemplates()
-	}
 	df := freshDataFrame.Get()
 	resp, err := dataframe.ResponseFromDataFrame(&dataframe.DataFrame{
 		Header:   df.Header,
@@ -1174,6 +1174,66 @@ func initpageHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to load init data.")
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		glog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
+type RangeRequest struct {
+	Source string `json:"source"`
+	Offset int    `json:"offset"`
+	Begin  int64  `json:"begin"`
+	End    int64  `json:"end"`
+}
+
+func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	rr := &RangeRequest{}
+	defer util.Close(r.Body)
+	if err := json.NewDecoder(r.Body).Decode(rr); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		return
+	}
+
+	df := freshDataFrame.Get()
+	begin := df.Header[0].Timestamp
+	end := df.Header[len(df.Header)-1].Timestamp
+	var err error
+	if rr.Begin != 0 || rr.End != 0 {
+		if rr.Begin != 0 {
+			begin = rr.Begin
+		}
+		if rr.End != 0 {
+			end = rr.End
+		}
+		df = dataframe.NewHeaderOnly(git, time.Unix(begin, 0), time.Unix(end, 0))
+	}
+
+	found := false
+	cids := []*cid.CommitID{}
+	for _, h := range df.Header {
+		cids = append(cids, &cid.CommitID{
+			Offset: int(h.Offset),
+			Source: h.Source,
+		})
+		if int(h.Offset) == rr.Offset && h.Source == rr.Source {
+			found = true
+		}
+	}
+	if !found && rr.Source != "" && rr.Offset != -1 {
+		cids = append(cids, &cid.CommitID{
+			Offset: rr.Offset,
+			Source: rr.Source,
+		})
+	}
+
+	resp, err := cidl.Lookup(cids)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to lookup all commit ids")
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		glog.Errorf("Failed to encode paramset: %s", err)
@@ -1311,6 +1371,73 @@ func cidHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type ClusterRequest struct {
+	Source string `json:"source"`
+	Offset int    `json:"offset"`
+	Radius int    `json:"radius"`
+	Query  string `json:"query"`
+}
+
+type ClusterResponse struct {
+	Summary *clustering2.ClusterSummaries
+	Frame   *dataframe.FrameResponse
+}
+
+func progress(step, totalSteps int) {
+	glog.Infof("Clustering: %d/%d", step, totalSteps)
+}
+
+func clusterHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	req := &ClusterRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ReportError(w, r, err, "Could not decode POST body.")
+		return
+	}
+	cids := []*cid.CommitID{}
+	for i := req.Offset - req.Radius; i <= req.Offset+req.Radius; i++ {
+		cids = append(cids, &cid.CommitID{
+			Source: req.Source,
+			Offset: i,
+		})
+	}
+	parsedQuery, err := url.ParseQuery(req.Query)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Invalid URL query.")
+	}
+	q, err := query.New(parsedQuery)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Invalid Query.")
+	}
+	df, err := dataframe.NewFromCommitIDsAndQuery(cids, cidl, ptracestore.Default, q, progress)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Invalid range of commits.")
+		return
+	}
+	frame, err := dataframe.ResponseFromDataFrame(df, git)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to convert DataFrame to FrameResponse.")
+		return
+	}
+	frame.DataFrame.TraceSet = ptracestore.TraceSet{}
+	n := len(df.TraceSet)
+	k := int(math.Floor(math.Sqrt(float64(n))))
+	summary, err := clustering2.CalculateClusterSummaries(df, k, config.MIN_STDDEV)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Invalid clustering.")
+		return
+	}
+
+	resp := ClusterResponse{
+		Summary: summary,
+		Frame:   frame,
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		glog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -1380,12 +1507,15 @@ func main() {
 
 	// New endpoints that use ptracestore will go here.
 	router.HandleFunc("/new/", templateHandler("newindex.html"))
+	router.HandleFunc("/newCluster/", templateHandler("clusters2.html"))
 	router.HandleFunc("/_/initpage/", initpageHandler)
+	router.HandleFunc("/_/cidRange/", cidRangeHandler)
 	router.HandleFunc("/_/count/", countHandler)
 	router.HandleFunc("/_/cid/", cidHandler)
 	router.HandleFunc("/_/frame/start", frameStartHandler)
 	router.HandleFunc("/_/frame/status/{id:[a-zA-Z0-9]+}", frameStatusHandler)
 	router.HandleFunc("/_/frame/results/{id:[a-zA-Z0-9]+}", frameResultsHandler)
+	router.HandleFunc("/_/cluster/", clusterHandler)
 
 	router.HandleFunc("/frame/", templateHandler("frame.html"))
 	router.HandleFunc("/shortcuts/", shortcutHandler)
