@@ -1,5 +1,11 @@
 package git
 
+import (
+	"io/ioutil"
+	"os"
+	"path"
+)
+
 /*
 	Utility for managing a Git checkout.
 */
@@ -56,4 +62,25 @@ func (c *Checkout) Update() error {
 		return err
 	}
 	return nil
+}
+
+// TempCheckout is a temporary Git Checkout.
+type TempCheckout Checkout
+
+// NewTempCheckout returns a TempCheckout instance.
+func NewTempCheckout(repoUrl string) (*TempCheckout, error) {
+	tmpDir, err := ioutil.TempDir("", "")
+	if err != nil {
+		return nil, err
+	}
+	c, err := NewCheckout(repoUrl, tmpDir)
+	if err != nil {
+		return nil, err
+	}
+	return (*TempCheckout)(c), nil
+}
+
+// Delete removes the TempCheckout's working directory.
+func (c *TempCheckout) Delete() error {
+	return os.RemoveAll(path.Dir(c.Dir()))
 }

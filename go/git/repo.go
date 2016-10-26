@@ -35,3 +35,8 @@ func (r *Repo) Update() error {
 func (r *Repo) Checkout(workdir string) (*Checkout, error) {
 	return NewCheckout(r.Dir(), workdir)
 }
+
+// TempCheckout returns a TempCheckout of the repo.
+func (r *Repo) TempCheckout() (*TempCheckout, error) {
+	return NewTempCheckout(r.Dir())
+}

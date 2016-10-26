@@ -99,3 +99,26 @@ func TestCheckout(t *testing.T) {
 	assert.NoError(t, err)
 	updateAndAssertClean()
 }
+
+func TestTempCheckout(t *testing.T) {
+	gb, _ := setup(t)
+	defer gb.Cleanup()
+
+	c, err := NewTempCheckout(gb.Dir())
+	assert.NoError(t, err)
+
+	// Verify that we can run git commands.
+	_, err = c.Git("branch")
+	assert.NoError(t, err)
+
+	// Verify that we have a working copy.
+	_, err = c.Git("status")
+	assert.NoError(t, err)
+
+	// Delete the checkout.
+	assert.NoError(t, c.Delete())
+
+	// Verify that the directory is gone.
+	_, err = os.Stat(c.Dir())
+	assert.True(t, os.IsNotExist(err))
+}
