@@ -7,8 +7,8 @@
     None
 
   Methods:
-    open(detail) - Opens the dialog with the given detail that is passed to the 
-                   multi-zoom-sk element. 
+    open(detail) - Opens the dialog with the given detail that is passed to the
+                   multi-zoom-sk element.
 
   Events:
     None
@@ -18,15 +18,18 @@
 
 -->
 
-<link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
 <link rel="import" href="bower_components/paper-button/paper-button.html">
 <link rel="import" href="multi-zoom-sk.html">
 
 <dom-module id="zoom-dialog-sk">
   <template>
     <paper-dialog id="zoomDialog" opened="{{opened}}">
-      <multi-zoom-sk id="zoomer"></multi-zoom-sk>
+      <paper-dialog-scrollable>
+        <multi-zoom-sk id="zoomer"></multi-zoom-sk>
+      </paper-dialog-scrollable>
       <div class="buttons">
         <paper-button dialog-dismiss>Close</paper-button>
       </div>
@@ -38,7 +41,7 @@
 
       properties: {
         opened: {
-          type: Boolean, 
+          type: Boolean,
           value: false,
           notify: true
         }
@@ -50,8 +53,8 @@
       },
 
       open: function(detail) {
-        this._zoomDetail = detail; 
-        this.$.zoomDialog.open(); 
+        this._zoomDetail = detail;
+        this.$.zoomDialog.open();
       },
 
       _handleZoomDialogOpened: function(ev) {
@@ -62,8 +65,8 @@
       },
 
       _handleZoomClosed: function (ev) {
-       this.$.zoomer.clear(); 
-       this._zoomDetail = null; 
+       this.$.zoomer.clear();
+       this._zoomDetail = null;
       }
 
     });
