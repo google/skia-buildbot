@@ -22,6 +22,24 @@
       "revId": "4a675eedacff379c64360b9e050cdeef4701fa18",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_a0c0001b",
+        "filename": "golden/frontend/res/imp/cluster-page-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-10-26T16:42:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6105d0c2_5ddaabce",
+      "revId": "4a675eedacff379c64360b9e050cdeef4701fa18",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
