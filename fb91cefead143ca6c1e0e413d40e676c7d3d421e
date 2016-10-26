@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6105d0c2_8bdd1dc8",
+        "filename": "cq_watcher/build_release",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-26T17:56:20Z",
+      "side": 1,
+      "message": "vertically align the ${ROOT}\u0027s",
+      "revId": "fb91cefead143ca6c1e0e413d40e676c7d3d421e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_cb73950c",
+        "filename": "cq_watcher/go/cq_watcher/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-26T17:56:20Z",
+      "side": 1,
+      "message": "remove commented out code.",
+      "revId": "fb91cefead143ca6c1e0e413d40e676c7d3d421e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_ab78e1e7",
+        "filename": "cq_watcher/go/cq_watcher/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-26T17:56:20Z",
+      "side": 1,
+      "message": "remove commented out code.",
+      "revId": "fb91cefead143ca6c1e0e413d40e676c7d3d421e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_2b533156",
+        "filename": "cq_watcher/sys/cq_watcherd.service",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-26T17:56:20Z",
+      "side": 1,
+      "message": "bin/cq_watcherd",
+      "revId": "fb91cefead143ca6c1e0e413d40e676c7d3d421e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
