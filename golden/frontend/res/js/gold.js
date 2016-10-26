@@ -169,6 +169,7 @@ var gold = gold || {};
   // backend to triage digests. The arguments can either be a triple:
   //    makeTriageQuery(testName, digests, status)
   // or an array containing triples (as arrays) with the same information.
+  // Note: 'digests' can either be a single string or an array of strings.
   gold.makeTriageQuery = function(triageList) {
     if (arguments.length === 3) {
       triageList = [[arguments[0], arguments[1], arguments[2]]];
@@ -176,17 +177,52 @@ var gold = gold || {};
 
     var ret = {};
     triageList.forEach(function(t) {
-      var test=t[0], digest=t[1], status=t[2];
+      var test=t[0], digests=t[1], status=t[2];
+      if (!Array.isArray(digests)) {
+        digests = [digests];
+      }
+
       var found = ret[test];
       if (!found) {
         ret[test] = {};
         found = ret[test];
       }
-      found[digest] = status;
+
+      for(var i=0; i < digests.length; i++) {
+        found[digests[i]] = status;
+      }
     });
     return {
       testDigestStatus: ret
     };
+  };
+
+  // flattenTriageQuery is the inverse operation of makeTriageQuery.
+  // It returns an array of triples where each triple contains:
+  //    [testName, digests, status]
+  // testName and status are strings and digests is an array of strings.
+  gold.flattenTriageQuery = function(q) {
+    var ret = [];
+    q = q.testDigestStatus
+    for(var k in q) {
+      if (q.hasOwnProperty(k)) {
+        var statusMap = {};
+        // iterat over the digests and group by status.
+        for(var j in q[k]) {
+          if (q[k].hasOwnProperty(j)) {
+            var status = q[k][j];
+            if (!statusMap[status]) {
+              statusMap[status] = [];
+            }
+            statusMap[status].push(j);
+          }
+        }
+        for(j in statusMap) {
+          ret.push([k, statusMap[j], j]);
+        }
+      }
+    }
+    return ret;
   };
 
   // PageStateBehavior is a re-usable behavior what adds the _state and
