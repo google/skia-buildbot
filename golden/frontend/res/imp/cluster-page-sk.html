@@ -207,7 +207,14 @@
         _handleTriage: function(ev) {
           ev.stopPropagation();
           sk.post('/json/triage', JSON.stringify(ev.detail)).then(function() {
-            this.$.clusterView.newTriageStatus(ev.detail.digest, ev.detail.status);
+            var change = gold.flattenTriageQuery(ev.detail);
+            var ele = this.$.clusterView;
+            // 'change' contains triples of (testname, digests, status)
+            // since the triaging was successful we set the corresponding nodes
+            // in the cluster view to the new status.
+            for(var i =0; i < change.length; i++) {
+              ele.newTriageStatus(change[i][1], change[i][2]);
+            }
           }.bind(this)).catch(sk.errorMessage);
         },
 
