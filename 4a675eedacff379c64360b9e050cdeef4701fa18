@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6105d0c2_5ddaabce",
+        "filename": "golden/frontend/res/imp/cluster-page-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-26T14:40:13Z",
+      "side": 1,
+      "message": "This [1] and [2] seem a bit magical to me.  Would you be able to add a brief comment like \n// index 1 is the digest, index 2 is the status\n?",
+      "range": {
+        "startLine": 213,
+        "startChar": 44,
+        "endLine": 213,
+        "endChar": 45
+      },
+      "revId": "4a675eedacff379c64360b9e050cdeef4701fa18",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
