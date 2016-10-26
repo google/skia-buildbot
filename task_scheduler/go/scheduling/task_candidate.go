@@ -132,6 +132,11 @@ func replaceVars(c *taskCandidate, s string) string {
 		specs.VARIABLE_REVISION:          c.Revision,
 		specs.VARIABLE_TASK_NAME:         c.Name,
 	}
+
+	// Handle conditionals first.
+	s = specs.EvalConditional(s, replacements)
+
+	// Now handle direct variable expansions.
 	for k, v := range replacements {
 		s = strings.Replace(s, fmt.Sprintf(specs.VARIABLE_SYNTAX, k), v, -1)
 	}
