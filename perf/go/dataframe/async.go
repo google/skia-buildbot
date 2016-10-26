@@ -259,7 +259,7 @@ func (p *FrameRequestProcess) Run() {
 		df = NewHeaderOnly(p.git, begin, end)
 	}
 
-	resp, err := ResponseFromDataFrame(df, p.git)
+	resp, err := ResponseFromDataFrame(df, p.git, true)
 	if err != nil {
 		p.reportError(err, "Failed to get ticks or skps.")
 		return
@@ -339,7 +339,9 @@ func getSkps(headers []*ColumnHeader, git *gitinfo.GitInfo) ([]int, error) {
 }
 
 // ResponseFromDataFrame fills out the rest of a FrameResponse for the given DataFrame.
-func ResponseFromDataFrame(df *DataFrame, git *gitinfo.GitInfo) (*FrameResponse, error) {
+//
+// If truncate is true then the number of traces returned is limited.
+func ResponseFromDataFrame(df *DataFrame, git *gitinfo.GitInfo, truncate bool) (*FrameResponse, error) {
 	// Calculate the human ticks based on the column headers.
 	ts := []int64{}
 	for _, c := range df.Header {
@@ -355,7 +357,7 @@ func ResponseFromDataFrame(df *DataFrame, git *gitinfo.GitInfo) (*FrameResponse,
 
 	// Truncate the result if it's too large.
 	msg := ""
-	if len(df.TraceSet) > MAX_TRACES_IN_RESPONSE {
+	if truncate && len(df.TraceSet) > MAX_TRACES_IN_RESPONSE {
 		msg = fmt.Sprintf("Response too large, the number of traces returned has been truncated from %d to %d.", len(df.TraceSet), MAX_TRACES_IN_RESPONSE)
 		keys := []string{}
 		for k, _ := range df.TraceSet {
