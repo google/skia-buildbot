@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6105d0c2_40680412",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-26T17:13:25Z",
+      "side": 1,
+      "message": "Are empty args ignored? No way to test with a trybot. :-)",
+      "revId": "3ff3740c994b707d8e6ca4c3ade4bf9d7581e536",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_a0464094",
+        "filename": "task_scheduler/go/specs/helpers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-26T17:13:25Z",
+      "side": 1,
+      "message": "regexp.QuoteMeta",
+      "range": {
+        "startLine": 31,
+        "startChar": 22,
+        "endLine": 31,
+        "endChar": 70
+      },
+      "revId": "3ff3740c994b707d8e6ca4c3ade4bf9d7581e536",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_e0c838b1",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-26T17:13:25Z",
+      "side": 1,
+      "message": "nit: test non-empty non-conditional",
+      "range": {
+        "startLine": 421,
+        "startChar": 8,
+        "endLine": 421,
+        "endChar": 10
+      },
+      "revId": "3ff3740c994b707d8e6ca4c3ade4bf9d7581e536",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
