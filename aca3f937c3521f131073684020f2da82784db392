@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6105d0c2_eb2939b8",
+        "filename": "go/cq/cq.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-26T18:05:54Z",
+      "side": 1,
+      "message": "Move this above \"type Client\"",
+      "revId": "aca3f937c3521f131073684020f2da82784db392",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_6b39a9ec",
+        "filename": "go/cq/cq.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-10-26T18:05:54Z",
+      "side": 1,
+      "message": "Use only 1 lock/unlock pair and keep them closer together by just recording the value of interest:\n\n\t\tcqTryBotsMutex.RLock()\n\t\tisTrybot :\u003d util.ContainsAny(b.Parameters.BuilderName, c.cqTryBots)\n\t\tcqTryBotsMutex.RUnlock()\n\t\tif !isTrybot {\n\t\t\tglog.Infof(\"\\tSkipping %s because it is not a CQ trybot\", b.Parameters.BuilderName)\n\t\t\tcontinue\n\t\t}\n\nBetter would be to break the following out into its own func:\n\n\t\tcqTryBotsMutex.RLock()\n\t\tisTrybot :\u003d util.ContainsAny(b.Parameters.BuilderName, c.cqTryBots)\n\t\tcqTryBotsMutex.RUnlock()\n\n\n\nSame for similar use of cqTryBotsMutex below.",
+      "range": {
+        "startLine": 152,
+        "startChar": 1,
+        "endLine": 159,
+        "endChar": 26
+      },
+      "revId": "aca3f937c3521f131073684020f2da82784db392",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
