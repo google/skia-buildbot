@@ -32,6 +32,9 @@ const (
 	// StepFit.Regression values become interesting, i.e. they may indicate real
 	// regressions or improvements.
 	INTERESTING_THRESHHOLD = 150.0
+
+	// CENTROID_KEY is the name for the centroid when it appears as a trace in a DataFrame.
+	CENTROID_KEY = "special_centroid"
 )
 
 // ValueWeight is a weight proportional to the number of times the parameter
@@ -116,7 +119,7 @@ func chooseK(observations []kmeans.Clusterable, k int) []kmeans.Centroid {
 	popN := len(observations)
 	centroids := make([]kmeans.Centroid, k)
 	for i := 0; i < k; i++ {
-		centroids[i] = observations[rand.Intn(popN)].(*ctrace2.ClusterableTrace).Dup("I'm a centroid")
+		centroids[i] = observations[rand.Intn(popN)].(*ctrace2.ClusterableTrace).Dup(CENTROID_KEY)
 	}
 	return centroids
 }
@@ -141,7 +144,11 @@ func getParamSummaries(cluster []kmeans.Clusterable) map[string][]ValueWeight {
 	clusterSize := float64(len(cluster))
 	// First figure out what parameters and values appear in the cluster.
 	for _, o := range cluster {
-		params, err := query.ParseKey(o.(*ctrace2.ClusterableTrace).Key)
+		key := o.(*ctrace2.ClusterableTrace).Key
+		if key == CENTROID_KEY {
+			continue
+		}
+		params, err := query.ParseKey(key)
 		if err != nil {
 			glog.Errorf("Invalid key found in Cluster: %s", err)
 			continue
