@@ -3,6 +3,7 @@ package specs
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"path"
 	"regexp"
 	"strings"
@@ -11,8 +12,8 @@ import (
 
 	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/gitrepo"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -70,15 +71,20 @@ func TestTaskSpecs(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	repos := gitinfo.NewRepoMap(tr.Dir)
+	repoUrl := path.Join(tr.Dir, repoName)
+	repo, err := gitrepo.NewRepo(repoUrl, tr.Dir)
+	assert.NoError(t, err)
+	repos := map[string]*gitrepo.Repo{
+		repoUrl: repo,
+	}
 	cache := NewTaskCfgCache(tr.Dir, repos)
 
 	rs1 := db.RepoState{
-		Repo:     repoName,
+		Repo:     repoUrl,
 		Revision: c1,
 	}
 	rs2 := db.RepoState{
-		Repo:     repoName,
+		Repo:     repoUrl,
 		Revision: c2,
 	}
 	specs, err := cache.GetTaskSpecsForRepoStates([]db.RepoState{rs1, rs2})
@@ -121,7 +127,12 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	repos := gitinfo.NewRepoMap(tr.Dir)
+	repoUrl := path.Join(tr.Dir, repoName)
+	repo, err := gitrepo.NewRepo(repoUrl, tr.Dir)
+	assert.NoError(t, err)
+	repos := map[string]*gitrepo.Repo{
+		repoName: repo,
+	}
 	cache := NewTaskCfgCache(tr.Dir, repos)
 
 	// Load configs into the cache.
@@ -133,7 +144,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 		Repo:     repoName,
 		Revision: c2,
 	}
-	_, err := cache.GetTaskSpecsForRepoStates([]db.RepoState{rs1, rs2})
+	_, err = cache.GetTaskSpecsForRepoStates([]db.RepoState{rs1, rs2})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(cache.cache))
 
@@ -277,15 +288,17 @@ PROJECT: skia`)
 	return gb, c1, c2
 }
 
-func tempGitRepoTests(t *testing.T, dir string, cases map[db.RepoState]error) {
+func tempGitRepoTests(t *testing.T, repo *gitrepo.Repo, cases map[db.RepoState]error) {
 	for rs, expectErr := range cases {
-		d, err := TempGitRepo(dir, rs)
+		c, err := TempGitRepo(repo.Repo(), rs)
 		if expectErr != nil {
 			assert.EqualError(t, err, expectErr.Error())
 		} else {
-			defer testutils.RemoveAll(t, d)
+			defer func() {
+				assert.NoError(t, c.Delete())
+			}()
 			assert.NoError(t, err)
-			output := testutils.Run(t, d, "git", "remote", "-v")
+			output, err := c.Git("remote", "-v")
 			gotRepo := "COULD NOT FIND REPO"
 			for _, s := range strings.Split(output, "\n") {
 				if strings.HasPrefix(s, "origin") {
@@ -296,12 +309,13 @@ func tempGitRepoTests(t *testing.T, dir string, cases map[db.RepoState]error) {
 				}
 			}
 			assert.Equal(t, rs.Repo, gotRepo)
-			gotRevision := strings.TrimSpace(testutils.Run(t, d, "git", "rev-parse", "HEAD"))
+			gotRevision, err := c.RevParse("HEAD")
+			assert.NoError(t, err)
 			assert.Equal(t, rs.Revision, gotRevision)
 			// If not a try job, we expect a clean checkout,
 			// otherwise we expect a dirty checkout, from the
 			// applied patch.
-			_, err := exec.RunCwd(d, "git", "diff", "--exit-code", "--no-patch", rs.Revision)
+			_, err = c.Git("diff", "--exit-code", "--no-patch", rs.Revision)
 			if rs.IsTryJob() {
 				assert.NotNil(t, err)
 			} else {
@@ -315,25 +329,27 @@ func TestTempGitRepo(t *testing.T) {
 	gb, c1, c2 := tempGitRepoSetup(t)
 	defer gb.Cleanup()
 
+	tmpDir, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmpDir)
+	repo, err := gitrepo.NewRepo(gb.Dir(), tmpDir)
+	assert.NoError(t, err)
+
 	cases := map[db.RepoState]error{
 		{
-			Repo:     gb.Dir(),
+			Repo:     repo.Repo().Dir(),
 			Revision: c1,
 		}: nil,
 		{
-			Repo:     gb.Dir(),
+			Repo:     repo.Repo().Dir(),
 			Revision: c2,
 		}: nil,
 		{
-			Repo:     "bogus.git",
-			Revision: c1,
-		}: fmt.Errorf("Command exited with exit status 128: git clone bogus.git .; Stdout+Stderr:\nfatal: repository 'bogus.git' does not exist\n"),
-		{
-			Repo:     gb.Dir(),
+			Repo:     repo.Repo().Dir(),
 			Revision: "bogusRev",
 		}: fmt.Errorf("Command exited with exit status 1: git checkout bogusRev; Stdout+Stderr:\nerror: pathspec 'bogusRev' did not match any file(s) known to git.\n"),
 	}
-	tempGitRepoTests(t, gb.Dir(), cases)
+	tempGitRepoTests(t, repo, cases)
 }
 
 func TestTempGitRepoPatch(t *testing.T) {
@@ -351,6 +367,12 @@ func TestTempGitRepoPatch(t *testing.T) {
 	assert.Equal(t, 2, len(m))
 	rvIssue := m[1]
 
+	tmpDir, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmpDir)
+	repo, err := gitrepo.NewRepo(gb.Dir(), tmpDir)
+	assert.NoError(t, err)
+
 	// TODO(borenet): Also upload to Gerrit and verify that we can apply
 	// those patches successfully as well. This is difficult because it's
 	// hard to trick git-cl into uploading to a particular Gerrit instance
@@ -363,11 +385,11 @@ func TestTempGitRepoPatch(t *testing.T) {
 				Issue:    rvIssue,
 				Patchset: "1",
 			},
-			Repo:     gb.Dir(),
+			Repo:     repo.Repo().Dir(),
 			Revision: c2,
 		}: nil,
 	}
-	tempGitRepoTests(t, gb.Dir(), cases)
+	tempGitRepoTests(t, repo, cases)
 }
 
 func TestGetTaskSpecDAG(t *testing.T) {
