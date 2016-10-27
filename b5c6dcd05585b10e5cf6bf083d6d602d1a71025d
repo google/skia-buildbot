@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6105d0c2_9494152b",
+        "filename": "task_scheduler/go/blacklist/blacklist.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T17:31:47Z",
+      "side": 1,
+      "message": "now unused?",
+      "revId": "b5c6dcd05585b10e5cf6bf083d6d602d1a71025d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "21a03809_6faee0cc",
+        "filename": "task_scheduler/sys/task-scheduler.service",
+        "patchSetId": 8
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T17:31:47Z",
+      "side": 1,
+      "message": "no clue if it\u0027s required, but probably a good idea to add \"mkdir /mnt/pd0/tmp\" to instance setup script",
+      "range": {
+        "startLine": 21,
+        "startChar": 19,
+        "endLine": 21,
+        "endChar": 31
+      },
+      "revId": "b5c6dcd05585b10e5cf6bf083d6d602d1a71025d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
