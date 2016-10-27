@@ -3,6 +3,7 @@ package testutils
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,6 +18,69 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	assert "github.com/stretchr/testify/require"
 )
+
+const (
+	UNIT_TEST        = "unittest"
+	INTEGRATION_TEST = "integration"
+	MANUAL_TEST      = "manual"
+)
+
+var (
+	unittest    = flag.Bool(UNIT_TEST, false, "Whether or not to run unit tests.")
+	integration = flag.Bool(INTEGRATION_TEST, false, "Whether or not to run integration tests.")
+	manual      = flag.Bool(MANUAL_TEST, false, "Whether or not to run manual tests.")
+
+	DEFAULT_RUN = map[string]bool{
+		UNIT_TEST:        true,
+		INTEGRATION_TEST: true,
+		MANUAL_TEST:      false,
+	}
+)
+
+// shouldRun determines whether the test should run based on the provided flags.
+func shouldRun(testType string) bool {
+	// Fallback if no test filter is specified.
+	if !*unittest && !*integration && !*manual {
+		return DEFAULT_RUN[testType]
+	}
+
+	switch testType {
+	case UNIT_TEST:
+		return *unittest
+	case INTEGRATION_TEST:
+		return *integration
+	case MANUAL_TEST:
+		return *manual
+	}
+	return false
+}
+
+// UnitTest is a function which should be called at the beginning of a unit
+// test: A small test with no dependencies on external databases, filesystems,
+// networks, etc.
+func UnitTest(t *testing.T) {
+	if !shouldRun(UNIT_TEST) {
+		t.Skip("Not running unit tests.")
+	}
+}
+
+// IntegrationTest is a function which should be called at the beginning of an
+// integration test: a medium-sized test which has dependencies on external
+// databases, filesystems, networks, etc.
+func IntegrationTest(t *testing.T) {
+	if !shouldRun(INTEGRATION_TEST) {
+		t.Skip("Not running integration tests.")
+	}
+}
+
+// ManualTest is a function which should be called at the beginning of a manual
+// test: a large test with significant reliance on external dependencies which
+// makes it too slow or flaky to run as part of the normal test suite.
+func ManualTest(t *testing.T) {
+	if !shouldRun(MANUAL_TEST) {
+		t.Skip("Not running manual tests.")
+	}
+}
 
 // SkipIfShort causes the test to be skipped when running with -short.
 func SkipIfShort(t *testing.T) {
