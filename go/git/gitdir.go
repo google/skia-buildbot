@@ -30,7 +30,7 @@ type GitDir string
 
 // newGitDir creates a GitDir instance based in the given directory.
 func newGitDir(repoUrl, workdir string, mirror bool) (GitDir, error) {
-	dest := path.Join(workdir, path.Base(repoUrl))
+	dest := path.Join(workdir, strings.TrimSuffix(path.Base(repoUrl), ".git"))
 	if _, err := os.Stat(dest); err != nil {
 		if os.IsNotExist(err) {
 			// Clone the repo.
@@ -90,8 +90,8 @@ func (g GitDir) Details(name string) (*vcsinfo.LongCommit, error) {
 }
 
 // RevParse runs "git rev-parse <name>" and returns the result.
-func (g GitDir) RevParse(name string) (string, error) {
-	out, err := g.Git("rev-parse", name)
+func (g GitDir) RevParse(args ...string) (string, error) {
+	out, err := g.Git(append([]string{"rev-parse"}, args...)...)
 	if err != nil {
 		return "", err
 	}
@@ -107,6 +107,11 @@ func (g GitDir) RevList(name string) ([]string, error) {
 	return strings.Fields(out), nil
 }
 
+// GetBranchHead returns the commit hash at the HEAD of the given branch.
+func (g GitDir) GetBranchHead(branchName string) (string, error) {
+	return g.RevParse("--verify", fmt.Sprintf("refs/heads/%s^{commit}", branchName))
+}
+
 // Branches runs "git branch" and returns a slice of Branch instances.
 func (g GitDir) Branches() ([]*Branch, error) {
 	out, err := g.Git("branch")
@@ -119,7 +124,7 @@ func (g GitDir) Branches() ([]*Branch, error) {
 		if name == "*" {
 			continue
 		}
-		head, err := g.RevParse(name)
+		head, err := g.GetBranchHead(name)
 		if err != nil {
 			return nil, err
 		}
