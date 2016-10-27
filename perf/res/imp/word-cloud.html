@@ -1,0 +1,101 @@
+<!--
+  This in an HTML Import-able file that contains the definitions
+  for the following elements:
+
+    <word-cloud-sk>
+
+  Properties:
+    None.
+
+  Methods:
+    setItems(items) - Where items is a serialized map[string][]types.ValueWeight representing the weights
+      of all the parameter values, grouped by parameter key.
+
+      For example:
+
+      [
+        "cpu_or_gpu": [
+          {"Value":"CPU","Weight":19},
+          {"Value":"GPU","Weight":7},
+        ], [
+          ...
+        ],
+        ...
+      ]
+
+  Events:
+      None.
+
+-->
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<dom-module id="word-cloud-sk">
+  <style include="iron-flex iron-flex-alignment">
+    .param {
+      margin:  0.6em;
+      border:  solid #eee 1px;
+      padding: 0.6em;
+    }
+
+    .item {
+      margin: 0.6em;
+    }
+  </style>
+  <template>
+    <div class="layout horizontal wrap">
+      <template is="dom-repeat" items="{{_items}}" as="item">
+        <div class=item><h3>{{item.name}}</h3>
+          <div class="param layout vertical">
+            <template is="dom-repeat" items="{{item.values}}" as="entry">
+              <div style$="{{computeStyle(entry)}}">{{entry.Value}}</div>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: 'word-cloud-sk',
+
+    ready: function () {
+      this._items = [];
+    },
+
+    setItems: function(items) {
+      // Convert map[string][]types.ValueWeight to an Array so it can be
+      // processed by polymer templating.
+      //
+      var ar = [];
+      Object.keys(items).forEach(function(key) {
+        ar.push({
+          name: key,
+          values: items[key],
+        });
+      });
+      ar.sort(function(a,b) {
+        if (a.values[0].Weight > b.values[0].Weight) {
+          return -1;
+        }
+        if (a.values[0].Weight < b.values[0].Weight) {
+          return 1;
+        }
+        if (a.values[0].Weight < b.values[0].Weight) {
+          return -1;
+        }
+        if (a.values[0].Weight > b.values[0].Weight) {
+          return 1;
+        }
+        return 0;
+      });
+
+      this._items = ar;
+    },
+
+    computeStyle: function (entry) {
+      return 'font-size: ' + entry.Weight + 'px;';
+    },
+  });
+</script>
+
