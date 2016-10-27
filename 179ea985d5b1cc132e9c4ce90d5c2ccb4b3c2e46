@@ -389,6 +389,24 @@
     },
     {
       "key": {
+        "uuid": "86081a1d_d8e20d1b",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 549,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-27T18:35:36Z",
+      "side": 1,
+      "message": "Good point. Turns out TaskCfgCache doesn\u0027t even need a workdir, so I removed it. AFAICT we don\u0027t typically create temp dirs inside of our workdir (the only previous instance of that which I\u0027m aware of was in TempGitRepo).",
+      "parentUuid": "618870a5_8bb17031",
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6105d0c2_191afe92",
         "filename": "task_scheduler/go/specs/specs_test.go",
         "patchSetId": 5
