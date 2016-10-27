@@ -1,6 +1,6 @@
 #!/bin/bash
 # Builds and uploads a debian package for cq_watcher.
-APPNAME=cq_watcherd
+APPNAME=cq-watcherd
 DESCRIPTION="Application to watch over the CQ and alert."
 SYSTEMD=${APPNAME}.service
 
