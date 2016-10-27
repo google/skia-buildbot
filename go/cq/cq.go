@@ -115,9 +115,9 @@ func (c *Client) ReportCQStats(change int64) error {
 	patchsetIds := changeInfo.GetPatchsetIDs()
 	latestPatchsetId := patchsetIds[len(patchsetIds)-1]
 	if changeInfo.Committed {
-		// The last patchset in Gerrit does not contain trybot information so
-		// we have to look at the one immediately before it. This will be fixed
-		// with crbug.com/634944.
+		// TODO(rmistry): The last patchset in Gerrit does not contain trybot
+		// information so we have to look at the one immediately before it.
+		// This will be fixed with crbug.com/634944.
 		latestPatchsetId = patchsetIds[len(patchsetIds)-2]
 	}
 
@@ -156,6 +156,10 @@ func (c *Client) ReportCQStatsForLandedCL(change, patchsetId int64, builds []*bu
 
 		createdTime := time.Time(b.Created).UTC()
 		completedTime := time.Time(b.Completed).UTC()
+		if (completedTime == time.Time{}.UTC()) {
+			// The correct completed time has not shown up in Buildbucket yet.
+			continue
+		}
 		if endTimeOfCQBots.Before(completedTime) {
 			endTimeOfCQBots = completedTime
 		}
