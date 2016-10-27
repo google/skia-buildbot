@@ -22,6 +22,24 @@
       "revId": "61d06032891a7abfe9739ea4b6fcb0bd9b3d4b35",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_94537582",
+        "filename": "infra/bots/recipes/swarm_infra.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-27T16:01:52Z",
+      "side": 1,
+      "message": "This was done in the landed patchset.",
+      "parentUuid": "6105d0c2_19603ebc",
+      "revId": "61d06032891a7abfe9739ea4b6fcb0bd9b3d4b35",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
