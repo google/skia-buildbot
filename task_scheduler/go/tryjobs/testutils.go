@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/gitrepo"
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
@@ -89,26 +89,25 @@ func MockOutExec() {
 
 // setup prepares the tests to run. Returns the created temporary dir,
 // TryJobIntegrator instance, and URLMock instance.
-func setup(t *testing.T) (string, *TryJobIntegrator, *mockhttpclient.URLMock) {
+func setup(t *testing.T) (*TryJobIntegrator, *mockhttpclient.URLMock, func()) {
 	testutils.SkipIfShort(t)
 
 	// Set up the test Git repo.
-	tmpDir, err := ioutil.TempDir("", "try_job_integrator_test_")
+	gb := testutils.GitInit(t)
+	assert.NoError(t, os.MkdirAll(path.Join(gb.Dir(), "infra", "bots"), os.ModePerm))
+	tasksJson := path.Join("infra", "bots", "tasks.json")
+	gb.Add(tasksJson, testTasksCfg)
+	gb.Commit()
+
+	tmpDir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	repoDir := path.Join(tmpDir, repoName)
-	assert.NoError(t, os.Mkdir(repoDir, os.ModePerm))
-	testutils.Run(t, repoDir, "git", "init")
-	testutils.Run(t, repoDir, "git", "remote", "add", "origin", ".")
-	assert.NoError(t, os.MkdirAll(path.Join(repoDir, "infra", "bots"), os.ModePerm))
-	tasksJson := path.Join(repoDir, "infra", "bots", "tasks.json")
-	testutils.WriteFile(t, tasksJson, testTasksCfg)
-	testutils.Run(t, repoDir, "git", "add", tasksJson)
-	testutils.Run(t, repoDir, "git", "commit", "-m", "Initial Commit")
-	testutils.Run(t, repoDir, "git", "push", "origin", "master")
-	testutils.Run(t, repoDir, "git", "branch", "-u", "origin/master")
-	rm := gitinfo.NewRepoMap(tmpDir)
-	_, err = rm.Repo(repoName)
+
+	repo, err := gitrepo.NewRepo(gb.Dir(), tmpDir)
 	assert.NoError(t, err)
+
+	rm := map[string]*gitrepo.Repo{
+		repoName: repo,
+	}
 
 	// Set up other TryJobIntegrator inputs.
 	taskCfgCache := specs.NewTaskCfgCache(path.Join(tmpDir, "cfg_cache"), rm)
@@ -122,7 +121,11 @@ func setup(t *testing.T) (string, *TryJobIntegrator, *mockhttpclient.URLMock) {
 
 	MockOutExec()
 
-	return tmpDir, integrator, mock
+	return integrator, mock, func() {
+		exec.SetRunForTesting(exec.DefaultRun)
+		testutils.RemoveAll(t, tmpDir)
+		gb.Cleanup()
+	}
 }
 
 func Params(t *testing.T, builder, project, revision, server, issue, patchset string) buildbucket.Parameters {
