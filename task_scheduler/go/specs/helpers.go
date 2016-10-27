@@ -14,6 +14,8 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/skia-dev/glog"
@@ -22,9 +24,52 @@ import (
 )
 
 var (
+	// "Constants"
+	CONDITIONAL_SYNTAX = fmt.Sprintf(VARIABLE_SYNTAX, "%s?%s:%s")
+
+	// Used for parsing conditionals.
+	conditionalPattern = regexp.QuoteMeta(CONDITIONAL_SYNTAX)
+	conditionalRE      = regexp.MustCompile(fmt.Sprintf(conditionalPattern, "(\\w+)", "\"(.*)\"", "\"(.*)\""))
+
 	// Flags.
 	test = flag.Bool("test", false, "Run in test mode: verify that the output hasn't changed.")
 )
+
+// Conditional creates a conditional based on whether a variable is defined.
+// Conditionals are evaluated before variable expansions, so they may contain
+// variable expansions.
+func Conditional(variable, ifTrue, ifFalse string) string {
+	return fmt.Sprintf(CONDITIONAL_SYNTAX, variable, strconv.Quote(ifTrue), strconv.Quote(ifFalse))
+}
+
+// EvalConditional evaluates the given conditional string.
+func EvalConditional(s string, vars map[string]string) string {
+	matches := conditionalRE.FindStringSubmatch(s)
+	if len(matches) == 0 {
+		glog.Infof("No matches of %s for %s", conditionalRE, s)
+		return s
+	}
+	glog.Infof("Got matches: %v", matches)
+	if len(matches) != 4 {
+		glog.Errorf("Malformed conditional: %q; skipping.", s)
+		return s
+	}
+	v, ok := vars[matches[1]]
+	if !ok {
+		glog.Errorf("Conditional uses unknown variable %q; skipping.", matches[1])
+		return s
+	}
+	result := matches[2]
+	if v == "" {
+		result = matches[3]
+	}
+	rv, err := strconv.Unquote("\"" + result + "\"")
+	if err != nil {
+		glog.Errorf("Malformed conditional; failed to unquote: %s\nError: %s\nSkipping.", result, err)
+		return s
+	}
+	return rv
+}
 
 // getCheckoutRoot returns the path of the root of the checkout.
 func getCheckoutRoot() (string, error) {
