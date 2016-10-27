@@ -46,10 +46,8 @@ func Conditional(variable, ifTrue, ifFalse string) string {
 func EvalConditional(s string, vars map[string]string) string {
 	matches := conditionalRE.FindStringSubmatch(s)
 	if len(matches) == 0 {
-		glog.Infof("No matches of %s for %s", conditionalRE, s)
 		return s
 	}
-	glog.Infof("Got matches: %v", matches)
 	if len(matches) != 4 {
 		glog.Errorf("Malformed conditional: %q; skipping.", s)
 		return s
