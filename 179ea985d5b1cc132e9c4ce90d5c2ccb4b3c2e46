@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "6105d0c2_341429b6",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 668,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-27T16:48:19Z",
+      "side": 1,
+      "message": "Good point, probably not. Changed as suggested.",
+      "parentUuid": "6105d0c2_599116dc",
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6105d0c2_79c17ae7",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 5
@@ -42,6 +60,24 @@
         "endLine": 964,
         "endChar": 81
       },
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_14b5a585",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 964,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-27T16:48:19Z",
+      "side": 1,
+      "message": "Done here and changed ComputeBlamelist to do the same.",
+      "parentUuid": "6105d0c2_79c17ae7",
       "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "6105d0c2_b4ddd9c7",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-27T16:48:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6105d0c2_19c95e0c",
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6105d0c2_59e3d68f",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 5
@@ -88,6 +142,24 @@
         "endLine": 283,
         "endChar": 2
       },
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_94da55cc",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-27T16:48:19Z",
+      "side": 1,
+      "message": "\\o/",
+      "parentUuid": "6105d0c2_59e3d68f",
       "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -117,6 +189,24 @@
     },
     {
       "key": {
+        "uuid": "6105d0c2_54655d38",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-27T16:48:19Z",
+      "side": 1,
+      "message": "Not any more!",
+      "parentUuid": "6105d0c2_39e0a281",
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6105d0c2_79da1acf",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 5
@@ -134,6 +224,24 @@
         "endLine": 286,
         "endChar": 5
       },
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_74686112",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-27T16:48:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6105d0c2_79da1acf",
       "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -163,6 +271,24 @@
     },
     {
       "key": {
+        "uuid": "6105d0c2_1483e59d",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-27T16:48:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6105d0c2_d99c06fa",
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6105d0c2_9960ce1a",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 5
@@ -180,6 +306,24 @@
         "endLine": 313,
         "endChar": 63
       },
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_b472f901",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-27T16:48:19Z",
+      "side": 1,
+      "message": "It was added in an intermediate stage; I had this using a git.Repo, not a gitrepo.Repo, so it was shelling out to Git every time.  The comment is no longer relevant now that this uses gitrepo.Repo, so I\u0027ve removed it.",
+      "parentUuid": "6105d0c2_9960ce1a",
       "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -209,6 +353,24 @@
     },
     {
       "key": {
+        "uuid": "6105d0c2_548efdb9",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 549,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-27T16:48:19Z",
+      "side": 1,
+      "message": "I like the first option best since it\u0027s the most portable and doesn\u0027t require callers to know where they want the tmpdir to be.  Added to task-scheduler.service.",
+      "parentUuid": "6105d0c2_3965423a",
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6105d0c2_191afe92",
         "filename": "task_scheduler/go/specs/specs_test.go",
         "patchSetId": 5
@@ -226,6 +388,24 @@
         "endLine": 140,
         "endChar": 20
       },
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_b460391a",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-27T16:48:19Z",
+      "side": 1,
+      "message": "Not sure that it actually matters any more, now that we\u0027re always pointing to a local upstream. Changed to repoUrl.",
+      "parentUuid": "6105d0c2_191afe92",
       "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -255,6 +435,24 @@
     },
     {
       "key": {
+        "uuid": "6105d0c2_f42ab1ad",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-27T16:48:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6105d0c2_f91e2a84",
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6105d0c2_19283e9b",
         "filename": "task_scheduler/go/task_scheduler/main.go",
         "patchSetId": 5
@@ -266,6 +464,24 @@
       "writtenOn": "2016-10-27T14:30:58Z",
       "side": 1,
       "message": "nit: FWIW, ReportError logs both the third and fourth argument, and only the fourth argument appears in the HTML response, so it\u0027s probably best to just do:\nhttputils.ReportError(w, r, nil, fmt.Sprintf(\"Unable to find commit %s in any repo.\", msg.Commit))",
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_142ac5ab",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-27T16:48:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6105d0c2_19283e9b",
       "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -289,6 +505,24 @@
         "endLine": 21,
         "endChar": 19
       },
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_94525525",
+        "filename": "task_scheduler/go/tryjobs/tryjobs_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-27T16:48:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6105d0c2_b94b1275",
       "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
