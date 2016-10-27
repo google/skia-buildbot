@@ -9,6 +9,11 @@ import (
 	"go.skia.org/infra/perf/go/kmeans"
 )
 
+const (
+	// CENTROID_KEY is the name for the centroid when it appears as a trace in a DataFrame.
+	CENTROID_KEY = "special_centroid"
+)
+
 // ClusterableTrace contains Trace data and implements kmeans.Clusterable and kmeans.Centroid.
 type ClusterableTrace struct {
 	Key    string
@@ -72,7 +77,7 @@ func CalculateCentroid(members []kmeans.Clusterable) kmeans.Centroid {
 		mean[i] = mean[i] / numMembers
 	}
 	return &ClusterableTrace{
-		Key:    "I'm a centroid!",
+		Key:    CENTROID_KEY,
 		Values: mean,
 	}
 }
