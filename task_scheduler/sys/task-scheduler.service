@@ -18,6 +18,7 @@ User=default
 Group=default
 LimitNOFILE=10000
 Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/mnt/pd0/depot_tools
+Environment=TMPDIR=/mnt/pd0/tmp
 
 [Install]
 WantedBy=multi-user.target
