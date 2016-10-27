@@ -56,9 +56,9 @@ type Error struct {
 type Properties struct {
 	AttemptStartTs   int64            `json:"attempt_start_ts"`
 	Category         string           `json:"category"`
-	Gerrit           string           `json:"gerrit"`
-	GerritIssue      jsonutils.Number `json:"event.change.number"`
-	GerritPatchset   string           `json:"event.patchSet.ref"`
+	Gerrit           string           `json:"patch_gerrit_url"`
+	GerritIssue      jsonutils.Number `json:"patch_issue"`
+	GerritPatchset   string           `json:"patch_ref"`
 	Master           string           `json:"master"`
 	PatchProject     string           `json:"patch_project"`
 	PatchStorage     string           `json:"patch_storage"`
