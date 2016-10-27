@@ -12,8 +12,8 @@ import (
 
 	"github.com/skia-dev/glog"
 
-	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitrepo"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
@@ -246,12 +246,11 @@ type TaskCfgCache struct {
 	recentJobSpecs  map[string]time.Time
 	recentMtx       sync.RWMutex
 	recentTaskSpecs map[string]time.Time
-	repos           *gitinfo.RepoMap
-	workdir         string
+	repos           map[string]*gitrepo.Repo
 }
 
 // NewTaskCfgCache returns a TaskCfgCache instance.
-func NewTaskCfgCache(workdir string, repos *gitinfo.RepoMap) *TaskCfgCache {
+func NewTaskCfgCache(repos map[string]*gitrepo.Repo) *TaskCfgCache {
 	return &TaskCfgCache{
 		cache:           map[db.RepoState]*TasksCfg{},
 		mtx:             sync.Mutex{},
@@ -260,7 +259,6 @@ func NewTaskCfgCache(workdir string, repos *gitinfo.RepoMap) *TaskCfgCache {
 		recentMtx:       sync.RWMutex{},
 		recentTaskSpecs: map[string]time.Time{},
 		repos:           repos,
-		workdir:         workdir,
 	}
 }
 
@@ -273,22 +271,21 @@ func (c *TaskCfgCache) readTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 		return rv, nil
 	}
 
-	// We haven't seen this RepoState before, or it's scrolled our of our
+	// We haven't seen this RepoState before, or it's scrolled out of our
 	// window. Read it.
 	// Point the upstream to a local source of truth to eliminate network
 	// latency.
-	r, err := c.repos.Repo(rs.Repo)
-	if err != nil {
-		return nil, err
+	r, ok := c.repos[rs.Repo]
+	if !ok {
+		return nil, fmt.Errorf("Unknown repo %q", rs.Repo)
 	}
-	rsCpy := rs.Copy()
-	rsCpy.Repo = r.Dir()
-	repoDir, err := TempGitRepo(c.workdir, rsCpy)
+	checkout, err := TempGitRepo(r.Repo(), rs)
 	if err != nil {
-		return nil, fmt.Errorf("Could not read task cfg; failed to check out RepoState %q: %s", rs, err)
+		return nil, fmt.Errorf("Could not read task cfg; failed to check out RepoState %s: %s", rs, err)
 	}
-	defer util.RemoveAll(repoDir)
-	cfg, err := ReadTasksCfg(repoDir)
+	defer checkout.Delete()
+
+	cfg, err := ReadTasksCfg(checkout.Dir())
 	if err != nil {
 		// The tasks.cfg file may not exist for a particular commit.
 		if strings.Contains(err.Error(), "does not exist in") || strings.Contains(err.Error(), "exists on disk, but not in") || strings.Contains(err.Error(), "no such file or directory") {
@@ -305,9 +302,9 @@ func (c *TaskCfgCache) readTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 	// Write the commit and task specs into the recent lists.
 	c.recentMtx.Lock()
 	defer c.recentMtx.Unlock()
-	d, err := r.Details(rs.Revision, false)
-	if err != nil {
-		return nil, err
+	d := r.Get(rs.Revision)
+	if d == nil {
+		return nil, fmt.Errorf("Unknown revision %s in %s", rs.Revision, rs.Repo)
 	}
 	ts := d.Timestamp
 	if ts.After(c.recentCommits[rs.Revision]) {
@@ -422,13 +419,13 @@ func (c *TaskCfgCache) Cleanup(period time.Duration) error {
 	defer c.mtx.Unlock()
 	periodStart := time.Now().Add(-period)
 	for repoState, _ := range c.cache {
-		repo, err := c.repos.Repo(repoState.Repo)
-		if err != nil {
-			return err
+		repo, ok := c.repos[repoState.Repo]
+		if !ok {
+			return fmt.Errorf("Unknown repo: %q", repoState.Repo)
 		}
-		details, err := repo.Details(repoState.Revision, false)
-		if err != nil {
-			return err
+		details := repo.Get(repoState.Revision)
+		if details == nil {
+			return fmt.Errorf("Unknown revision %s in %s", repoState.Revision, repoState.Repo)
 		}
 		if details.Timestamp.Before(periodStart) {
 			delete(c.cache, repoState)
@@ -540,72 +537,51 @@ func findCycles(tasks map[string]*TaskSpec, jobs map[string]*JobSpec) error {
 
 // TempGitRepo creates a git repository in a temporary directory, gets it into
 // the given RepoState, and returns its location.
-func TempGitRepo(workdir string, rs db.RepoState) (rv string, rvErr error) {
-	// Create a temporary dir for the git checkout.
-	if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
-		if !os.IsExist(err) {
-			return "", err
-		}
+func TempGitRepo(repo *git.Repo, rs db.RepoState) (rv *git.TempCheckout, rvErr error) {
+	c, err := repo.TempCheckout()
+	if err != nil {
+		return nil, err
 	}
 
-	tmp, err := ioutil.TempDir(workdir, fmt.Sprintf("tmp_%s", path.Base(rs.Repo)))
-	if err != nil {
-		return "", err
-	}
 	defer func() {
 		if rvErr != nil {
-			if err := os.RemoveAll(tmp); err != nil {
-				glog.Errorf("Failed to remove %s: %s", tmp, err)
-			}
+			c.Delete()
 		}
 	}()
 
-	subdir := strings.TrimSuffix(path.Base(rs.Repo), ".git")
-	d := path.Join(tmp, subdir)
-	if err := os.MkdirAll(d, os.ModePerm); err != nil {
-		if !os.IsExist(err) {
-			return "", err
-		}
-	}
-
-	// Obtain the git checkout.
-	if _, err := exec.RunCwd(d, "git", "clone", rs.Repo, "."); err != nil {
-		return "", err
-	}
-
 	// Check out the correct commit.
 	glog.Infof("Checking out %s", rs.Revision)
-	if _, err := exec.RunCwd(d, "git", "checkout", rs.Revision); err != nil {
-		return "", err
+	if _, err := c.Git("checkout", rs.Revision); err != nil {
+		return nil, err
 	}
 
 	// Write a dummy .gclient file in the parent of the checkout.
-	if err := ioutil.WriteFile(path.Join(d, "..", ".gclient"), []byte(""), os.ModePerm); err != nil {
-		return "", err
+	if err := ioutil.WriteFile(path.Join(c.Dir(), "..", ".gclient"), []byte(""), os.ModePerm); err != nil {
+		return nil, err
 	}
 
 	// Apply a patch if necessary.
 	if rs.IsTryJob() {
-		if _, err := exec.RunCwd(d, "git", "checkout", "-b", "patch"); err != nil {
-			return "", err
+		if _, err := c.Git("checkout", "-b", "patch"); err != nil {
+			return nil, err
 		}
 		server := strings.TrimRight(rs.Server, "/")
 		if strings.Contains(rs.Server, "codereview.chromium") {
 			patchUrl := fmt.Sprintf("%s/%s/#ps%s", server, rs.Issue, rs.Patchset)
-			if _, err := exec.RunCwd(d, "git", "cl", "patch", "--rietveld", "--no-commit", patchUrl); err != nil {
-				return "", err
+			if _, err := c.Git("cl", "patch", "--rietveld", "--no-commit", patchUrl); err != nil {
+				return nil, err
 			}
 		} else {
 			patchUrl := fmt.Sprintf("%s/c/%s/%s", server, rs.Issue, rs.Patchset)
-			if _, err := exec.RunCwd(d, "git", "cl", "patch", "--gerrit", patchUrl); err != nil {
-				return "", err
+			if _, err := c.Git("cl", "patch", "--gerrit", patchUrl); err != nil {
+				return nil, err
 			}
 			// Un-commit the applied patch.
-			if _, err := exec.RunCwd(d, "git", "reset", "HEAD^"); err != nil {
-				return "", err
+			if _, err := c.Git("reset", "HEAD^"); err != nil {
+				return nil, err
 			}
 		}
 	}
 
-	return d, nil
+	return c, nil
 }

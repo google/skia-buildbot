@@ -10,3 +10,6 @@ if [ -z "$(which gclient)" ]; then
   sudo -u default echo '# Add depot_tools to PATH"' >> /home/default/.bashrc
   sudo -u default echo 'export PATH="/mnt/pd0/depot_tools:$PATH"' >> /home/default/.bashrc
 fi
+
+# Create tmp dir if needed.
+sudo -u default mkdir -p /mnt/pd0/tmp

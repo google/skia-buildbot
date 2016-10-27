@@ -8,16 +8,14 @@ import (
 
 	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 // Verify that sendHeartbeats sends heartbeats for unfinished try jobs.
 func TestHeartbeats(t *testing.T) {
-	tmpDir, trybots, mock := setup(t)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	defer testutils.RemoveAll(t, tmpDir)
+	trybots, mock, cleanup := setup(t)
+	defer cleanup()
 
 	now := time.Now()
 
@@ -101,9 +99,8 @@ func TestHeartbeats(t *testing.T) {
 }
 
 func TestGetRepo(t *testing.T) {
-	tmpDir, trybots, _ := setup(t)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	defer testutils.RemoveAll(t, tmpDir)
+	trybots, _, cleanup := setup(t)
+	defer cleanup()
 
 	url, r, err := trybots.getRepo(patchProject)
 	assert.NoError(t, err)
@@ -115,14 +112,13 @@ func TestGetRepo(t *testing.T) {
 }
 
 func TestGetRevision(t *testing.T) {
-	tmpDir, trybots, _ := setup(t)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	defer testutils.RemoveAll(t, tmpDir)
+	trybots, _, cleanup := setup(t)
+	defer cleanup()
 
 	// Get the (only) commit from the repo.
 	_, r, err := trybots.getRepo(patchProject)
 	assert.NoError(t, err)
-	c, err := r.FullHash("origin/master")
+	c, err := r.Repo().RevParse("origin/master")
 	assert.NoError(t, err)
 
 	// Try different inputs to getRevision.
@@ -132,7 +128,6 @@ func TestGetRevision(t *testing.T) {
 		"master":        c,
 		"origin/master": c,
 		c:               c,
-		c[:39]:          c,
 		"abc123":        "",
 	}
 	for input, expect := range tests {
@@ -140,15 +135,15 @@ func TestGetRevision(t *testing.T) {
 		if expect == "" {
 			assert.Error(t, err)
 		} else {
-			assert.Equal(t, expect, got)
+			assert.NoError(t, err)
+			assert.Equal(t, expect, got, fmt.Sprintf("Input: %q", input))
 		}
 	}
 }
 
 func TestCancelBuild(t *testing.T) {
-	tmpDir, trybots, mock := setup(t)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	defer testutils.RemoveAll(t, tmpDir)
+	trybots, mock, cleanup := setup(t)
+	defer cleanup()
 
 	id := int64(12345)
 	MockCancelBuild(mock, id, nil)
@@ -162,9 +157,8 @@ func TestCancelBuild(t *testing.T) {
 }
 
 func TestTryLeaseBuild(t *testing.T) {
-	tmpDir, trybots, mock := setup(t)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	defer testutils.RemoveAll(t, tmpDir)
+	trybots, mock, cleanup := setup(t)
+	defer cleanup()
 
 	id := int64(12345)
 	now := time.Now()
@@ -182,9 +176,8 @@ func TestTryLeaseBuild(t *testing.T) {
 }
 
 func TestJobStarted(t *testing.T) {
-	tmpDir, trybots, mock := setup(t)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	defer testutils.RemoveAll(t, tmpDir)
+	trybots, mock, cleanup := setup(t)
+	defer cleanup()
 
 	j := tryjob()
 	now := time.Now()
@@ -202,9 +195,8 @@ func TestJobStarted(t *testing.T) {
 }
 
 func TestJobFinished(t *testing.T) {
-	tmpDir, trybots, mock := setup(t)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	defer testutils.RemoveAll(t, tmpDir)
+	trybots, mock, cleanup := setup(t)
+	defer cleanup()
 
 	j := tryjob()
 	now := time.Now()
@@ -255,9 +247,8 @@ func TestJobFinished(t *testing.T) {
 }
 
 func TestGetJobToSchedule(t *testing.T) {
-	tmpDir, trybots, mock := setup(t)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	defer testutils.RemoveAll(t, tmpDir)
+	trybots, mock, cleanup := setup(t)
+	defer cleanup()
 
 	now := time.Now()
 
@@ -358,9 +349,8 @@ func TestGetJobToSchedule(t *testing.T) {
 }
 
 func TestPoll(t *testing.T) {
-	tmpDir, trybots, mock := setup(t)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	defer testutils.RemoveAll(t, tmpDir)
+	trybots, mock, cleanup := setup(t)
+	defer cleanup()
 
 	now := time.Now()
 
