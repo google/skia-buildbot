@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "6105d0c2_79885aab",
+        "filename": "go/cq/cq.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-27T13:53:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6105d0c2_660ba040",
+      "revId": "d4fc90327fa7882f443662106eb1ec3f017f4ad2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6105d0c2_a6fdb800",
         "filename": "go/cq/cq.go",
         "patchSetId": 8
@@ -42,6 +60,24 @@
         "endLine": 151,
         "endChar": 12
       },
+      "revId": "d4fc90327fa7882f443662106eb1ec3f017f4ad2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_f99bcafb",
+        "filename": "go/cq/cq.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-27T13:53:29Z",
+      "side": 1,
+      "message": "That was how I had it initially but there were a few messy if stmts that made things ugly. While the loops are similar I think the logic inside is different enough to keep them separate. Also it gives the flexibility to further diverge if needed in the future.",
+      "parentUuid": "6105d0c2_a6fdb800",
       "revId": "d4fc90327fa7882f443662106eb1ec3f017f4ad2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
