@@ -3,6 +3,7 @@ package gitrepo
 import (
 	"fmt"
 	"io/ioutil"
+	"path"
 	"testing"
 
 	"github.com/skia-dev/glog"
@@ -19,13 +20,16 @@ import (
 //
 // c1--c2------c4--c5--
 //       \-c3-----/
-func gitSetup(t *testing.T) (*testutils.GitBuilder, *Repo, []*Commit) {
+func gitSetup(t *testing.T) (*testutils.GitBuilder, *Repo, []*Commit, func()) {
 	testutils.SkipIfShort(t)
 
 	g := testutils.GitInit(t)
 	g.CommitGen("myfile.txt")
 
-	repo, err := NewRepo(".", g.Dir())
+	tmp, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+
+	repo, err := NewRepo(g.Dir(), tmp)
 	assert.NoError(t, err)
 
 	c1 := repo.Get("master")
@@ -70,12 +74,15 @@ func gitSetup(t *testing.T) (*testutils.GitBuilder, *Repo, []*Commit) {
 	assert.Equal(t, c3, repo.Get("branch2"))
 	assert.False(t, util.TimeIsZero(c5.Timestamp))
 
-	return g, repo, []*Commit{c1, c2, c3, c4, c5}
+	return g, repo, []*Commit{c1, c2, c3, c4, c5}, func() {
+		g.Cleanup()
+		testutils.RemoveAll(t, tmp)
+	}
 }
 
 func TestGitRepo(t *testing.T) {
-	g, repo, commits := gitSetup(t)
-	defer g.Cleanup()
+	g, repo, commits, cleanup := gitSetup(t)
+	defer cleanup()
 
 	c1 := commits[0]
 	c2 := commits[1]
@@ -106,18 +113,19 @@ func TestGitRepo(t *testing.T) {
 }
 
 func TestSerialize(t *testing.T) {
-	g, repo, _ := gitSetup(t)
-	defer g.Cleanup()
+	g, repo, _, cleanup := gitSetup(t)
+	defer cleanup()
 
 	glog.Infof("New repo.")
-	repo2, err := NewRepo(".", g.Dir())
+	repo2, err := NewRepo(g.Dir(), path.Dir(repo.repo.Dir()))
 	assert.NoError(t, err)
+
 	testutils.AssertDeepEqual(t, repo, repo2)
 }
 
 func TestRecurse(t *testing.T) {
-	g, repo, commits := gitSetup(t)
-	defer g.Cleanup()
+	_, repo, commits, cleanup := gitSetup(t)
+	defer cleanup()
 
 	c1 := commits[0]
 	c2 := commits[1]
@@ -171,8 +179,8 @@ func TestRecurse(t *testing.T) {
 }
 
 func TestRecurseAllBranches(t *testing.T) {
-	g, repo, commits := gitSetup(t)
-	defer g.Cleanup()
+	g, repo, commits, cleanup := gitSetup(t)
+	defer cleanup()
 
 	c1 := commits[0]
 	c2 := commits[1]
