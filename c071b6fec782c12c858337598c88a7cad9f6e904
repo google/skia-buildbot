@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6105d0c2_712cf8f2",
+        "filename": "go/gitrepo/gitrepo.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T14:30:58Z",
+      "side": 1,
+      "message": "nit: maybe in another CL, move to package git and rename to Graph or Memory or InMemory.\n\nOr if that makes too many naming conflicts, maybe make it a sub-package of git with a less-ambiguous name than gitrepo.",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 15
+      },
+      "revId": "c071b6fec782c12c858337598c88a7cad9f6e904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_f11808eb",
+        "filename": "go/gitrepo/gitrepo_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T14:30:58Z",
+      "side": 1,
+      "message": "nit: might be easiest to return func() here; e.g.\n...\nreturn g, repo, []*Commit{c1, c2, c3, c4, c5}, func() {\n  g.Cleanup()\n  testutils.RemoveAll(t, tmp)\n}\n...\ng, repo, commits, cleanup :\u003d gitSetup(t)\ndefer cleanup()",
+      "range": {
+        "startLine": 23,
+        "startChar": 70,
+        "endLine": 23,
+        "endChar": 76
+      },
+      "revId": "c071b6fec782c12c858337598c88a7cad9f6e904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_11c93c0c",
+        "filename": "task_scheduler/go/blacklist/blacklist.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T14:30:58Z",
+      "side": 1,
+      "message": "nit: seems simpler to just call findCommit here.",
+      "revId": "c071b6fec782c12c858337598c88a7cad9f6e904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_d173440c",
+        "filename": "task_scheduler/go/blacklist/blacklist_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T14:30:58Z",
+      "side": 1,
+      "message": "Did you mean tmp here?\n\nSame below.",
+      "range": {
+        "startLine": 169,
+        "startChar": 38,
+        "endLine": 169,
+        "endChar": 44
+      },
+      "revId": "c071b6fec782c12c858337598c88a7cad9f6e904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
