@@ -1,0 +1,336 @@
+<!--
+  This in an HTML Import-able file that contains the definitions
+  for the following elements:
+
+    <cluster-summary-sk>
+
+  Properties:
+    fade - A boolean, fade out an issue if its status isn't New.
+    full_summary - A serialized:
+
+       {
+         summary: cluster2.ClusterSummary,
+         dataframe: dataframe,
+       }
+
+  Methods:
+    setSummary() - A serialized types.ClusterSummary.
+      If the summary.ID == -1 then the triaging dialog is not displayed.
+
+  Events:
+    None.
+
+-->
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/paper-material/paper-material.html">
+<link rel="import" href="/res/imp/bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="/res/imp/bower_components/paper-radio-group/paper-radio-group.html">
+
+<link rel="stylesheet" href="/res/common/css/md.css">
+
+<link rel="import" href="/res/common/imp/login.html">
+<link rel="import" href="/res/common/imp/toggle.html">
+
+<link rel="import" href="/res/imp/commit-detail-panel.html" />
+<link rel="import" href="/res/imp/plot-simple.html">
+<link rel="import" href="/res/imp/word-cloud.html">
+
+<dom-module id="cluster-summary-sk">
+  <style include="iron-flex iron-flex-alignment">
+    #status.disabled {
+      opacity: 0.5;
+    }
+
+    .regression {
+      background-color: #ddd;
+      border-radius: 6px;
+      padding: 3px 6px;
+      margin-bottom: 0.5em;
+    }
+
+    .high {
+      background-color: #33A02C;
+      color: white;
+      border-radius: 6px;
+      padding: 3px 6px;
+    }
+
+    .low {
+      background-color: #E31A1C;
+      color: white;
+      border-radius: 6px;
+      padding: 3px 6px;
+    }
+
+    @media (max-width: 600px) {
+      #graph {
+        display: none;
+      }
+    }
+
+    .fade {
+      opacity: 0.3;
+    }
+
+    word-cloud2-sk {
+      display: none;
+    }
+
+    word-cloud2-sk.display {
+      display: block;
+    }
+
+    .disabledMessage  {
+      display: none;
+    }
+
+    #status {
+      padding: 0.5em 2em;
+    }
+
+    #status.disabled .disabledMessage {
+      display: block;
+    }
+
+    plot-simple-sk {
+      margin: 1em;
+    }
+
+    paper-material #status.hidden,
+    #permalink.hidden {
+      display: none;
+    }
+
+    #choices paper-radio-button {
+      --default-primary-color: #1f78b4;
+    }
+
+    input {
+      padding: 0.6em;
+    }
+
+    .labelled {
+      margin-right: 2em;
+    }
+
+    commit-detail-panel-sk {
+      margin: 0.6em;
+    }
+  </style>
+  <template>
+    <div id=container class$="layout horizontal {{faded(fade, summary.Status)}}">
+      <div class="layout vertical">
+        <div class$="regression {{statusClass(summary.StepFit.Status)}}">
+          Regression: <span>{{trunc(summary.StepFit.Regression)}}</span>
+        </div>
+        <div class="layout horizontal wrap">
+          <div class=labelled>Cluster Size: <span class="clClusterSize">{{summary.Keys.length}}</span></div>
+          <div class=labelled>Least Squares Error: <span class="clLeastSquares">{{trunc(summary.StepFit.LeastSquares)}}</span></div>
+          <div class=labelled>Step Size: <span class="clStepSize">{{trunc(summary.StepFit.StepSize)}}</span></div>
+            <div class=labelled><span class="clBugs">Bugs:</span></div>
+            <template is="dom-repeat" items="{{summary.Bugs}}" as="b">
+              <a href$="{{bugLink(b)}}">{{b}}</a>&nbsp;
+            </template>
+        </div>
+        <plot-simple-sk specialevents on-trace_selected="_traceSelected" id=graph width=400 height=150></plot-simple-sk>
+        <commit-detail-panel-sk id=commits></commit-detail-panel-sk>
+        <div>
+          <button id="shortcut" on-click="_openShortcut">View on dashboard</button>
+          <a id="permalink" class$="{{hiddenClass(summary.ID)}}" href$="{{permaLink(summary.ID)}}">Permlink</a>
+        </div>
+        <toggle-display-sk>Word Cloud</toggle-display-sk>
+        <word-cloud2-sk id=wordcloud><word-cloud2-sk>
+      </div>
+      <div>
+        <paper-material elevation="1">
+          <div id=status class$="{{hiddenClassDisabled(summary.ID)}}">
+            <p class="disabledMessage">You must be logged in to change the status.</p>
+            <paper-radio-group id=choices class="layout horizontal" selected="{{cachedStatus}}">
+              <b class="status">Status:</b>
+              <paper-radio-button name="New" label="New">New</paper-radio-button>
+              <paper-radio-button name="Ignore" label="Ignore">Ignore</paper-radio-button>
+              <paper-radio-button name="Bug" label="Bug">Bug</paper-radio-button>
+            </paper-radio-group>
+            <input value="{{summary.Message}}" label="Note" id="message"></input>
+            <button class="action layout self end" id=update on-click="_update">Update</button>
+          </div>
+        </paper-material>
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'cluster-summary-sk',
+
+      properties: {
+        fade: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true,
+        },
+        full_summary: {
+          type: Object,
+          value: function() { return {}; },
+          observer: "_fullSummaryChange",
+        },
+        summary: {
+          type: Object,
+          value: function() { return {}; },
+        },
+        dataframe: {
+          type: Object,
+          value: function() { return {}; },
+        },
+      },
+
+      ready: function () {
+        this.cachedStatus = this.summary.Status || 'New';
+
+        sk.Login.then(function(status) {
+          this.$.status.classList.toggle('disabled', status['Email'] == '');
+        }.bind(this)).catch(sk.errorMessage);
+      },
+
+      lastCommitIndex: function(commits) {
+        for (var i = commits.length - 1; i >= 0; i--) {
+          if (commits[i].commit_time != 0) {
+            return i;
+          }
+        }
+        // We shouldn't get here.
+        return commits.length-1;
+      },
+
+      _fullSummaryChange: function () {
+        this.set('dataframe', this.full_summary.dataframe);
+        this.set('summary', this.full_summary.summary);
+
+        this.cachedStatus = this.summary.Status || 'New';
+        // Set the data- attributes used for sorting cluster summaries.
+        this.dataset.clustersize = this.summary.Keys.length;
+        this.dataset.steplse = this.summary.StepFit.LeastSquares;
+        this.dataset.stepsize = this.summary.StepFit.StepSize;
+        this.dataset.stepregression = this.summary.StepFit.Regression;
+        this.dataset.timestamp = this.summary.Timestamp;
+        // We take in a ClusterSummary, but need to transform all that data
+        // into a format that plot-sk can handle.
+
+        var line = [];
+        this.summary.Centroid.forEach(function(y, x) {
+          line.push([x, y]);
+        });
+        this.$.graph.addLines({special_centroid: line});
+
+        var tickmap = {};
+        this.dataframe.ticks.forEach(function(t) {
+          tickmap[t[0]] = t[1];
+        });
+        this.$.graph.setTicks(tickmap);
+        // Set the x-bar but only if status != uninteresting.
+        if (this.summary.StepFit.Status != "Uninteresting") {
+          // Loop through the dataframe header to find the location we should
+          // place the x-bar at.
+          var step = this.summary.StepPoint;
+          var xbar = -1;
+          this.dataframe.dataframe.header.forEach(function(h, i) {
+            if (h.source == step.source && h.offset == step.offset) {
+              xbar = i;
+            }
+          });
+          if (xbar != -1) {
+            this.$.graph.setXBar(xbar);
+          }
+        }
+        this.$.wordcloud.setItems(this.summary.ParamSummaries);
+      },
+
+      _update: function () {
+        window.alert("Currently unimplemented.");
+        /*
+        var status = this.$.choices.selected;
+        var state = {
+          Id: this.summary.ID,
+          Status: status,
+          Message: this.$.message.value
+        };
+        sk.post('/annotate/', JSON.stringify(state)).then(JSON.parse).then(function (json) {
+          this.set("summary.Status", status);
+          if (json.Bug) {
+            // Open the bug reporting page in a new window.
+            window.open(json.Bug, '_blank');
+          }
+        }.bind(this)).catch(sk.errorMessage);
+        */
+      },
+
+      _openShortcut: function (e) {
+        window.alert("Currently unimplemented.");
+        /*
+        var keys = this.summary.Keys.slice(0, 50);
+        var state = {
+          scale: 0,
+          tiles: [-1],
+          hash: this.summary.Hash,
+          keys: keys,
+        };
+        sk.post('/shortcuts/', JSON.stringify(state)).then(JSON.parse).then(function (json) {
+          window.open('/#' + json.id, '_blank');
+        });
+        e.preventDefault();
+        */
+      },
+
+      _traceSelected: function(e) {
+        var h = this.dataframe.dataframe.header[e.detail.index];
+        sk.post("/_/cid/", JSON.stringify([h])).then(JSON.parse).then(function(json){
+          this.$.commits.setCommitDetail(json);
+        }.bind(this)).catch(sk.errorMessage);
+      },
+
+      // Below are filters used in template expansion:
+      hiddenClass: function (id) {
+        if (id == -1) {
+          return 'hidden';
+        }
+        return '';
+      },
+
+      hiddenClassDisabled: function (id) {
+        if (id == -1) {
+          return 'hidden';
+        }
+        return '';
+      },
+
+      permaLink: function (id) {
+        return '/cl/' + id;
+      },
+
+      faded: function (fade, status) {
+        if (fade && status != 'New') {
+          return 'fade';
+        }
+        return '';
+      },
+
+      statusClass: function (status) {
+        status = status || "";
+        return status.toLowerCase();
+      },
+
+      trunc: function (value) {
+        return (+value).toPrecision(3);
+      },
+
+      truncHash: function (value) {
+        if (value) {
+          return value.substring(0, 7);
+        }
+      },
+
+      bugLink: function (b) {
+        return 'https://bug.skia.org/' + b;
+      }
+    });
+  </script>
+</dom-module>
