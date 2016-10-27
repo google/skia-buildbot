@@ -179,8 +179,8 @@ def GenTests(api):
   )
   gerrit_kwargs = {
       'repository': 'skia',
-      'event.patchSet.ref': 'refs/changes/00/2100/2',
-      'event.change.number': '2100',
+      'patch_ref': 'refs/changes/00/2100/2',
+      'patch_issue': '2100',
   }
   yield (
       api.test('Infra-PerCommit_try_gerrit') +
