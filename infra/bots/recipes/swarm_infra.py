@@ -177,15 +177,13 @@ def GenTests(api):
                      slavename='skiabot-linux-infra-001',
                      path_config='kitchen')
   )
-  gerrit_kwargs = {
-      'repository': 'skia',
-      'event.patchSet.ref': 'refs/changes/00/2100/2',
-      'event.change.number': '2100',
-  }
   yield (
       api.test('Infra-PerCommit_try_gerrit') +
       api.properties(revision=REF_HEAD,
                      slavename='skiabot-linux-infra-001',
-                     path_config='kitchen',
-                     **gerrit_kwargs)
+                     path_config='kitchen') +
+      api.properties.tryserver(
+          gerrit_project='skia',
+          gerrit_url='https://skia-review.googlesource.com/',
+      )
   )
