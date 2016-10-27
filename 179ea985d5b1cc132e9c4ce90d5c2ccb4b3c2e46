@@ -1,0 +1,297 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6105d0c2_599116dc",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 668,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T14:30:58Z",
+      "side": 1,
+      "message": "nit: maybe add a method DeleteOrLog so you can do \"defer c.DeleteOrLog()\"\n\nOr just change Delete to not return an error. Will we ever do something other than log and continue if it returns an error?",
+      "range": {
+        "startLine": 664,
+        "startChar": 0,
+        "endLine": 668,
+        "endChar": 4
+      },
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_79c17ae7",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 964,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T14:30:58Z",
+      "side": 1,
+      "message": "nit: maybe simpler to just pass in *git.Commit",
+      "range": {
+        "startLine": 964,
+        "startChar": 58,
+        "endLine": 964,
+        "endChar": 81
+      },
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_19c95e0c",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T14:30:58Z",
+      "side": 1,
+      "message": "typo out",
+      "range": {
+        "startLine": 276,
+        "startChar": 60,
+        "endLine": 276,
+        "endChar": 63
+      },
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_59e3d68f",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T14:30:58Z",
+      "side": 1,
+      "message": "+1 -- I like this a lot better than previous, because it ensures we\u0027re not going to accidentally check out a new repo here.",
+      "range": {
+        "startLine": 280,
+        "startChar": 0,
+        "endLine": 283,
+        "endChar": 2
+      },
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_39e0a281",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T14:30:58Z",
+      "side": 1,
+      "message": "Is this necessary?",
+      "range": {
+        "startLine": 284,
+        "startChar": 0,
+        "endLine": 285,
+        "endChar": 28
+      },
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_79da1acf",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T14:30:58Z",
+      "side": 1,
+      "message": "nit: s/repo/checkout/",
+      "range": {
+        "startLine": 286,
+        "startChar": 1,
+        "endLine": 286,
+        "endChar": 5
+      },
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_d99c06fa",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T14:30:58Z",
+      "side": 1,
+      "message": "nit: %q will be confusing IMO",
+      "range": {
+        "startLine": 288,
+        "startChar": 81,
+        "endLine": 288,
+        "endChar": 83
+      },
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_9960ce1a",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T14:30:58Z",
+      "side": 1,
+      "message": "I don\u0027t understand this comment. Isn\u0027t everything in gitrepo.Repo in memory?",
+      "range": {
+        "startLine": 313,
+        "startChar": 25,
+        "endLine": 313,
+        "endChar": 63
+      },
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_3965423a",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 549,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T14:30:58Z",
+      "side": 1,
+      "message": "nit: (Sorry to keep bringing this up.) We should probably do one of the following:\n  - set TMPDIR in task_scheduler\u0027s environment to /mnt/pd0/tmp (or a tmpfs)\n  - bind-mount /tmp on /mnt/pd0/tmp\n  - make /tmp a tmpfs\n  - specify a workdir for TempCheckout (possibly pointing to a tmpfs)",
+      "range": {
+        "startLine": 549,
+        "startChar": 11,
+        "endLine": 549,
+        "endChar": 30
+      },
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_191afe92",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T14:30:58Z",
+      "side": 1,
+      "message": "Above, you changed this to repoUrl. Which is correct?",
+      "range": {
+        "startLine": 140,
+        "startChar": 12,
+        "endLine": 140,
+        "endChar": 20
+      },
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_f91e2a84",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T14:30:58Z",
+      "side": 1,
+      "message": "nit: repoUrl",
+      "range": {
+        "startLine": 152,
+        "startChar": 23,
+        "endLine": 152,
+        "endChar": 50
+      },
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_19283e9b",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T14:30:58Z",
+      "side": 1,
+      "message": "nit: FWIW, ReportError logs both the third and fourth argument, and only the fourth argument appears in the HTML response, so it\u0027s probably best to just do:\nhttputils.ReportError(w, r, nil, fmt.Sprintf(\"Unable to find commit %s in any repo.\", msg.Commit))",
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6105d0c2_b94b1275",
+        "filename": "task_scheduler/go/tryjobs/tryjobs_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T14:30:58Z",
+      "side": 1,
+      "message": "nit: same as in gitrepo_test.go, it might be easiest for setup(t) to return a cleanup fn.",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 19
+      },
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

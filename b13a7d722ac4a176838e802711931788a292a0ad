@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6105d0c2_f9290ab8",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 556,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T14:30:58Z",
+      "side": 0,
+      "message": "I think you still need something like this to call c.Delete() if this function returns an error.",
+      "range": {
+        "startLine": 555,
+        "startChar": 0,
+        "endLine": 556,
+        "endChar": 19
+      },
+      "revId": "b13a7d722ac4a176838e802711931788a292a0ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
