@@ -11,6 +11,9 @@ import (
 	assert "github.com/stretchr/testify/require"
 )
 
+// The simulated duration of each function in ms.
+const FN_DURATION_MS = 500
+
 type extype struct {
 	data  map[string]int
 	mutex sync.Mutex
@@ -53,9 +56,9 @@ func TestGenericTopology(t *testing.T) {
 		return nil
 	}
 
-	aFn := incFn(1, orderCh, "b")
-	bFn := incFn(10, orderCh, "c")
-	cFn := incFn(100, orderCh, "d")
+	bFn := incFn(1, orderCh, "b")
+	cFn := incFn(10, orderCh, "c")
+	dFn := incFn(100, orderCh, "d")
 
 	sinkFn := func(ctx interface{}) error {
 		d := ctx.(*extype)
@@ -68,9 +71,9 @@ func TestGenericTopology(t *testing.T) {
 	// then collects the results in a sink function.
 	root := NewNode(rootFn)
 	NewNode(sinkFn,
-		root.Child(aFn),
 		root.Child(bFn),
-		root.Child(cFn))
+		root.Child(cFn),
+		root.Child(dFn))
 
 	// Create a context and trigger in the root node.
 	d := &extype{data: map[string]int{}}
@@ -80,8 +83,8 @@ func TestGenericTopology(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	// Make sure the functions are called in parallel.
-	assert.True(t, delta < (510*time.Millisecond))
+	// Make sure the functions are roughly called in parallel.
+	assert.True(t, delta < (2*FN_DURATION_MS*time.Millisecond))
 	assert.Equal(t, len(d.data), 2)
 	assert.Equal(t, len(orderCh), 5)
 	assert.Equal(t, d.data["val"], 111)
@@ -166,7 +169,7 @@ func incFn(increment int, ch chan<- string, chVal string) ProcessFn {
 		d.data["val"] += increment
 		d.mutex.Unlock()
 		ch <- chVal
-		time.Sleep(time.Millisecond * 500)
+		time.Sleep(time.Millisecond * FN_DURATION_MS)
 		return nil
 	}
 }
