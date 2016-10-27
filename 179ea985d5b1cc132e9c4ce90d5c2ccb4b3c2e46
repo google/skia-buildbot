@@ -371,6 +371,24 @@
     },
     {
       "key": {
+        "uuid": "618870a5_8bb17031",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 549,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-27T17:31:47Z",
+      "side": 1,
+      "message": "SGTM. Maybe follow up to remove places we pass around workdir just to provide a place for temp dir?",
+      "parentUuid": "6105d0c2_548efdb9",
+      "revId": "179ea985d5b1cc132e9c4ce90d5c2ccb4b3c2e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6105d0c2_191afe92",
         "filename": "task_scheduler/go/specs/specs_test.go",
         "patchSetId": 5
