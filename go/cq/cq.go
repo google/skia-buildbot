@@ -125,8 +125,15 @@ func (c *Client) ReportCQStats(change int64) error {
 	if err != nil {
 		return err
 	}
+	// Consider only CQ bots.
+	cqBuilds := []*buildbucket.Build{}
+	for _, b := range builds {
+		if c.isCQTryBot(b.Parameters.BuilderName) {
+			cqBuilds = append(cqBuilds, b)
+		}
+	}
 	gerritURL := fmt.Sprintf("%s/c/%d/%d", gerrit.GERRIT_SKIA_URL, change, latestPatchsetId)
-	if len(builds) == 0 {
+	if len(cqBuilds) == 0 {
 		glog.Infof("No trybot results were found for %s", gerritURL)
 		return nil
 	}
@@ -134,9 +141,9 @@ func (c *Client) ReportCQStats(change int64) error {
 	glog.Infof("Starting processing %s. Merged status: %t", gerritURL, changeInfo.Committed)
 
 	if changeInfo.Committed {
-		c.ReportCQStatsForLandedCL(change, latestPatchsetId, builds)
+		c.ReportCQStatsForLandedCL(change, latestPatchsetId, cqBuilds)
 	} else {
-		c.ReportCQStatsForInFlightCL(change, latestPatchsetId, builds)
+		c.ReportCQStatsForInFlightCL(change, latestPatchsetId, cqBuilds)
 	}
 	return nil
 }
@@ -145,15 +152,10 @@ func (c *Client) ReportCQStats(change int64) error {
 // change and patchsetID:
 // * The total time the change spent waiting for CQ trybots to complete.
 // * The time each CQ trybot took to complete.
-func (c *Client) ReportCQStatsForLandedCL(change, patchsetId int64, builds []*buildbucket.Build) {
+func (c *Client) ReportCQStatsForLandedCL(change, patchsetId int64, cqBuilds []*buildbucket.Build) {
 	endTimeOfCQBots := time.Time{}
 	maximumTrybotDuration := int64(0)
-	for _, b := range builds {
-		if !c.isCQTryBot(b.Parameters.BuilderName) {
-			glog.Infof("\tSkipping %s because it is not a CQ trybot", b.Parameters.BuilderName)
-			continue
-		}
-
+	for _, b := range cqBuilds {
 		createdTime := time.Time(b.Created).UTC()
 		completedTime := time.Time(b.Completed).UTC()
 		if endTimeOfCQBots.Before(completedTime) {
@@ -186,14 +188,10 @@ func (c *Client) ReportCQStatsForLandedCL(change, patchsetId int64, builds []*bu
 // change and patchsetID:
 // * How long CQ trybots have been running for.
 // * How many CQ trybots have been triggered.
-func (c *Client) ReportCQStatsForInFlightCL(issue, patchsetId int64, builds []*buildbucket.Build) {
+func (c *Client) ReportCQStatsForInFlightCL(issue, patchsetId int64, cqBuilds []*buildbucket.Build) {
 	totalTriggeredCQBots := int(0)
 	currentTime := time.Now()
-	for _, b := range builds {
-		if !c.isCQTryBot(b.Parameters.BuilderName) {
-			glog.Infof("\tSkipping %s because it is not a CQ trybot", b.Parameters.BuilderName)
-			continue
-		}
+	for _, b := range cqBuilds {
 		totalTriggeredCQBots++
 
 		createdTime := time.Time(b.Created).UTC()
