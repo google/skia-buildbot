@@ -116,7 +116,7 @@ func TestTempCheckout(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Delete the checkout.
-	assert.NoError(t, c.Delete())
+	c.Delete()
 
 	// Verify that the directory is gone.
 	_, err = os.Stat(c.Dir())

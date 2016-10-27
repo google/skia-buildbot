@@ -130,3 +130,8 @@ func (g GitDir) Branches() ([]*Branch, error) {
 	}
 	return branches, nil
 }
+
+// GetFile returns the contents of the given file at the given commit.
+func (g GitDir) GetFile(fileName, commit string) (string, error) {
+	return g.Git("show", commit+":"+fileName)
+}

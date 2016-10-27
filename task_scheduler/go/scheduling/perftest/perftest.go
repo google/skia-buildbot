@@ -21,7 +21,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/gitrepo"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -120,9 +120,6 @@ func main() {
 	assertNoError(os.Mkdir(path.Join(workdir, repoName), os.ModePerm))
 	run(repoDir, "git", "init")
 	run(repoDir, "git", "remote", "add", "origin", ".")
-
-	repos := gitinfo.NewRepoMap(workdir)
-	assertNoError(err)
 
 	// Write some files.
 	assertNoError(ioutil.WriteFile(path.Join(workdir, ".gclient"), []byte("dummy"), os.ModePerm))
@@ -248,12 +245,12 @@ func main() {
 	}
 
 	// Create the task scheduler.
-	repo, err := repos.Repo(repoName)
+	repo, err := gitrepo.NewRepo(repoName, workdir)
 	assertNoError(err)
-	head, err := repo.FullHash("HEAD")
+	head, err := repo.Repo().RevParse("HEAD")
 	assertNoError(err)
 
-	commits, err := repo.RevList(head)
+	commits, err := repo.Repo().RevList(head)
 	assertNoError(err)
 	assertDeepEqual([]string{head}, commits)
 
@@ -273,7 +270,7 @@ func main() {
 	assertNoError(err)
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
-	s, err := scheduling.NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, []string{"skia.git"}, isolateClient, swarmingClient, http.DefaultClient, 0.9, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, map[string]string{"skia": repoName})
+	s, err := scheduling.NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, map[string]*gitrepo.Repo{repoName: repo}, isolateClient, swarmingClient, http.DefaultClient, 0.9, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, map[string]string{"skia": repoName})
 	assertNoError(err)
 
 	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {
@@ -321,7 +318,7 @@ func main() {
 
 	// Add more commits to the repo.
 	makeDummyCommits(repoDir, 200)
-	commits, err = repo.RevList(fmt.Sprintf("%s..HEAD", head))
+	commits, err = repo.Repo().RevList(fmt.Sprintf("%s..HEAD", head))
 	assertNoError(err)
 
 	// Start the profiler.

@@ -16,7 +16,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/gitrepo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/influxdb"
@@ -64,7 +64,7 @@ var (
 	ts *scheduling.TaskScheduler
 
 	// Git repo objects.
-	repos *gitinfo.RepoMap
+	repos map[string]*gitrepo.Repo
 
 	// HTML templates.
 	blacklistTemplate *template.Template = nil
@@ -252,14 +252,21 @@ func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
 		return
 	}
-	repo, err := repos.RepoForCommit(msg.Commit)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to trigger jobs.")
+	repoName := ""
+	for name, r := range repos {
+		commit := r.Get(msg.Commit)
+		if commit != nil && commit.Hash == msg.Commit {
+			repoName = name
+			break
+		}
+	}
+	if repoName == "" {
+		httputils.ReportError(w, r, nil, fmt.Sprintf("Unable to find commit %s in any repo.", msg.Commit))
 		return
 	}
 	ids := make([]string, 0, len(msg.Jobs))
 	for _, j := range msg.Jobs {
-		id, err := ts.Trigger(repo, msg.Commit, j)
+		id, err := ts.Trigger(repoName, msg.Commit, j)
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to trigger jobs.")
 			return
@@ -405,11 +412,13 @@ func main() {
 	defer util.Close(d)
 
 	// Git repos.
-	repos = gitinfo.NewRepoMap(wdAbs)
+	repos = make(map[string]*gitrepo.Repo, len(REPOS))
 	for _, r := range REPOS {
-		if _, err := repos.Repo(r); err != nil {
+		repo, err := gitrepo.NewRepo(r, wdAbs)
+		if err != nil {
 			glog.Fatal(err)
 		}
+		repos[r] = repo
 	}
 
 	// Initialize Swarming client.
@@ -428,7 +437,7 @@ func main() {
 
 	// Create and start the task scheduler.
 	glog.Infof("Creating task scheduler.")
-	ts, err = scheduling.NewTaskScheduler(d, period, wdAbs, REPOS, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, tryjobs.BUCKET_PRIMARY, PROJECT_REPO_MAPPING)
+	ts, err = scheduling.NewTaskScheduler(d, period, wdAbs, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, tryjobs.BUCKET_PRIMARY, PROJECT_REPO_MAPPING)
 	if err != nil {
 		glog.Fatal(err)
 	}

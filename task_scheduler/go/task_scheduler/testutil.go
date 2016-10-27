@@ -7,7 +7,7 @@ import (
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/gitrepo"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -19,25 +19,20 @@ const (
 
 // mockSwarmingBotsForAllTasksForTesting returns a list containing one swarming
 // bot for each TaskSpec in the given repos, or nil on error.
-func mockSwarmingBotsForAllTasksForTesting(repos *gitinfo.RepoMap) []*swarming_api.SwarmingRpcsBotInfo {
+func mockSwarmingBotsForAllTasksForTesting(repos map[string]*gitrepo.Repo) []*swarming_api.SwarmingRpcsBotInfo {
 	botId := 0
 	rv := []*swarming_api.SwarmingRpcsBotInfo{}
-	for _, repoUrl := range repos.Repos() {
-		repo, err := repos.Repo(repoUrl)
-		if err != nil {
-			glog.Error(err)
-			continue
-		}
-		branches, err := repo.GetBranches()
+	for _, repo := range repos {
+		branches, err := repo.Repo().Branches()
 		if err != nil {
 			glog.Error(err)
 			continue
 		}
 		for _, branch := range branches {
-			if branch.Name != "origin/master" {
+			if branch.Name != "master" {
 				continue
 			}
-			contents, err := repo.GetFile(branch.Head, specs.TASKS_CFG_FILE)
+			contents, err := repo.Repo().GetFile(branch.Head, specs.TASKS_CFG_FILE)
 			if err != nil {
 				glog.Error(err)
 				continue

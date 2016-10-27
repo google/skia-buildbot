@@ -9,39 +9,32 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strconv"
-	"strings"
 	"sync"
-	"time"
 
 	"github.com/skia-dev/glog"
 
-	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
 	// Name of the file we store inside the Git checkout to speed up the
 	// initial Update().
-	CACHE_FILE = ".git/sk_gitrepo.gob"
-
-	// We only consider branches on the "origin" remote.
-	REMOTE_BRANCH_PREFIX = "origin/"
+	CACHE_FILE = "sk_gitrepo.gob"
 )
 
 // Commit represents a commit in a Git repo.
 type Commit struct {
-	Hash      string
-	Parents   []int
-	repo      *Repo
-	Timestamp time.Time
+	*vcsinfo.LongCommit
+	ParentIndices []int
+	repo          *Repo
 }
 
 // Parents returns the parents of this commit.
 func (c *Commit) GetParents() []*Commit {
-	rv := make([]*Commit, 0, len(c.Parents))
-	for _, idx := range c.Parents {
+	rv := make([]*Commit, 0, len(c.ParentIndices))
+	for _, idx := range c.ParentIndices {
 		rv = append(rv, c.repo.commitsData[idx])
 	}
 	return rv
@@ -78,8 +71,8 @@ func (c *Commit) recurse(f func(*Commit) (bool, error), visited map[*Commit]bool
 		if !keepGoing {
 			return nil
 		}
-		if len(c.Parents) == 1 {
-			p := c.repo.commitsData[c.Parents[0]]
+		if len(c.ParentIndices) == 1 {
+			p := c.repo.commitsData[c.ParentIndices[0]]
 			if visited[p] {
 				return nil
 			}
@@ -88,7 +81,7 @@ func (c *Commit) recurse(f func(*Commit) (bool, error), visited map[*Commit]bool
 			break
 		}
 	}
-	for _, parentIdx := range c.Parents {
+	for _, parentIdx := range c.ParentIndices {
 		p := c.repo.commitsData[parentIdx]
 		if visited[p] {
 			continue
@@ -102,12 +95,11 @@ func (c *Commit) recurse(f func(*Commit) (bool, error), visited map[*Commit]bool
 
 // Repo represents an entire Git repo.
 type Repo struct {
-	branches    []*gitinfo.GitBranch
+	branches    []*git.Branch
 	commits     map[string]int
 	commitsData []*Commit
 	mtx         sync.RWMutex
-	repoUrl     string
-	workdir     string
+	repo        *git.Repo
 }
 
 // gobRepo is a utility struct used for serializing a Repo using gob.
@@ -116,34 +108,15 @@ type gobRepo struct {
 	CommitsData []*Commit
 }
 
-// NewRepo returns a Repo instance which uses the given repoUrl and workdir.
-func NewRepo(repoUrl, workdir string) (*Repo, error) {
+// New returns a Repo instance which uses the given git.Repo.
+func New(repo *git.Repo) (*Repo, error) {
 	rv := &Repo{
 		commits:     map[string]int{},
 		commitsData: []*Commit{},
-		repoUrl:     repoUrl,
-		workdir:     workdir,
+		repo:        repo,
 	}
-	if _, err := os.Stat(workdir); err != nil {
-		if os.IsNotExist(err) {
-			if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
-				return nil, fmt.Errorf("Failed to create workdir for gitrepo.Repo: %s", err)
-			}
-		} else {
-			return nil, fmt.Errorf("There is a problem with the workdir for gitrepo.Repo: %s", err)
-		}
-	}
-	if _, err := os.Stat(path.Join(workdir, ".git")); err != nil {
-		if os.IsNotExist(err) {
-			glog.Infof("Cloning %s...", repoUrl)
-			if _, err := exec.RunCwd(workdir, "git", "clone", repoUrl, "."); err != nil {
-				return nil, fmt.Errorf("Failed to clone gitrepo.Repo: %s", err)
-			}
-		} else {
-			return nil, fmt.Errorf("Failed to create gitrepo.Repo: %s", err)
-		}
-	}
-	cacheFile := path.Join(workdir, CACHE_FILE)
+
+	cacheFile := path.Join(repo.Dir(), CACHE_FILE)
 	f, err := os.Open(cacheFile)
 	if err == nil {
 		var r gobRepo
@@ -166,20 +139,30 @@ func NewRepo(repoUrl, workdir string) (*Repo, error) {
 	return rv, nil
 }
 
+// NewRepo returns a Repo instance, creating a git.Repo from the repoUrl and workdir.
+func NewRepo(repoUrl, workdir string) (*Repo, error) {
+	repo, err := git.NewRepo(repoUrl, workdir)
+	if err != nil {
+		return nil, err
+	}
+	return New(repo)
+}
+
+// Repo returns the underlying git.Repo object.
+func (r *Repo) Repo() *git.Repo {
+	return r.repo
+}
+
 func (r *Repo) addCommit(hash string) error {
-	output, err := exec.RunCwd(r.workdir, "git", "log", "-n", "1", "--format=format:%P%n%ct", hash)
+	d, err := r.repo.Details(hash)
 	if err != nil {
 		return fmt.Errorf("gitrepo.Repo: Failed to obtain Git commit details: %s", err)
 	}
-	split := strings.Split(output, "\n")
-	if len(split) != 2 {
-		return fmt.Errorf("git log returned incorrect format: %s", output)
-	}
-	parentLine := strings.Split(split[0], " ")
+
 	var parents []int
-	if len(parentLine) > 0 {
-		parentHashes := make([]int, 0, len(parentLine))
-		for _, h := range parentLine {
+	if len(d.Parents) > 0 {
+		parentIndices := make([]int, 0, len(d.Parents))
+		for _, h := range d.Parents {
 			if h == "" {
 				continue
 			}
@@ -187,21 +170,17 @@ func (r *Repo) addCommit(hash string) error {
 			if !ok {
 				return fmt.Errorf("gitrepo.Repo: Could not find parent commit %q", h)
 			}
-			parentHashes = append(parentHashes, p)
+			parentIndices = append(parentIndices, p)
 		}
-		if len(parentHashes) > 0 {
-			parents = parentHashes
+		if len(parentIndices) > 0 {
+			parents = parentIndices
 		}
 	}
-	ts, err := strconv.ParseInt(split[1], 10, 64)
-	if err != nil {
-		return err
-	}
+
 	c := &Commit{
-		Hash:      hash,
-		Parents:   parents,
-		repo:      r,
-		Timestamp: time.Unix(ts, 0),
+		LongCommit:    d,
+		ParentIndices: parents,
+		repo:          r,
 	}
 	r.commits[hash] = len(r.commitsData)
 	r.commitsData = append(r.commitsData, c)
@@ -215,45 +194,28 @@ func (r *Repo) Update() error {
 	defer r.mtx.Unlock()
 
 	// Update the local copy.
-	glog.Infof("Updating %s...", r.repoUrl)
-	if err := exec.Run(&exec.Command{
-		Name:    "git",
-		Args:    []string{"fetch", "origin"},
-		Dir:     r.workdir,
-		Timeout: 4 * time.Minute,
-	}); err != nil {
+	glog.Infof("Updating gitrepo.Repo...")
+	if err := r.repo.Update(); err != nil {
 		return fmt.Errorf("Failed to update gitrepo.Repo: %s", err)
 	}
 
 	// Obtain the list of branches.
 	glog.Info("  Getting branches...")
-	branches, err := gitinfo.GetBranches(r.workdir)
+	branches, err := r.repo.Branches()
 	if err != nil {
 		return fmt.Errorf("Failed to get branches for gitrepo.Repo: %s", err)
 	}
-	filteredBranches := make([]*gitinfo.GitBranch, 0, len(branches))
-	for _, b := range branches {
-		if !strings.HasPrefix(b.Name, REMOTE_BRANCH_PREFIX) {
-			continue
-		}
-		b.Name = b.Name[len(REMOTE_BRANCH_PREFIX):]
-		if b.Name == "HEAD" {
-			continue
-		}
-		filteredBranches = append(filteredBranches, b)
-	}
-	r.branches = filteredBranches
+	r.branches = branches
 
 	// Load all commits from the repo.
 	glog.Infof("  Loading commits...")
 	for _, b := range r.branches {
-		output, err := exec.RunCwd(r.workdir, "git", "rev-list", REMOTE_BRANCH_PREFIX+b.Name)
+		commits, err := r.repo.RevList(b.Name)
 		if err != nil {
 			return fmt.Errorf("Failed to 'git rev-list' for gitrepo.Repo: %s", err)
 		}
-		split := strings.Split(output, "\n")
-		for i := len(split) - 1; i >= 0; i-- {
-			hash := split[i]
+		for i := len(commits) - 1; i >= 0; i-- {
+			hash := commits[i]
 			if hash == "" {
 				continue
 			}
@@ -268,7 +230,7 @@ func (r *Repo) Update() error {
 
 	// Write to the cache file.
 	glog.Infof("  Writing cache file...")
-	cacheFile := path.Join(r.workdir, CACHE_FILE)
+	cacheFile := path.Join(r.repo.Dir(), CACHE_FILE)
 	f, err := os.Create(cacheFile)
 	if err != nil {
 		return err

@@ -440,8 +440,8 @@ type JobCache interface {
 }
 
 // GetRevisionTimestamp is a function signature that retrieves the timestamp of
-// a revision. NewJobCache accepts this type rather than gitinfo.RepoMap to aide
-// testing.
+// a revision. NewJobCache accepts this type rather than
+// map[string]*gitrepo.Repo to aide testing.
 type GetRevisionTimestamp func(repo, revision string) (time.Time, error)
 
 type jobCache struct {

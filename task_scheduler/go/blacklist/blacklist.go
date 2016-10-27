@@ -10,7 +10,7 @@ import (
 	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/buildbot"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/gitrepo"
 	"go.skia.org/infra/go/util"
 )
 
@@ -109,7 +109,7 @@ func (b *Blacklist) writeOut() error {
 }
 
 // Add adds a new Rule to the Blacklist.
-func (b *Blacklist) AddRule(r *Rule, repos *gitinfo.RepoMap) error {
+func (b *Blacklist) AddRule(r *Rule, repos map[string]*gitrepo.Repo) error {
 	if err := ValidateRule(r, repos); err != nil {
 		return err
 	}
@@ -131,43 +131,35 @@ func (b *Blacklist) addRule(r *Rule) error {
 	return nil
 }
 
-// validateCommit returns an error if the commit is not valid.
-func validateCommit(c string, repos *gitinfo.RepoMap) error {
-	repo, err := repos.RepoForCommit(c)
-	if err != nil {
-		return fmt.Errorf("Failed to validate commit %q: %s", c, err)
+// findCommit finds the repo for the given commit.
+func findCommit(c string, repos map[string]*gitrepo.Repo) (string, error) {
+	for repoName, r := range repos {
+		commit := r.Get(c)
+		if commit != nil && commit.Hash == c {
+			return repoName, nil
+		}
 	}
-	r, err := repos.Repo(repo)
-	if err != nil {
-		return fmt.Errorf("Failed to retrieve repo for commit %q: %s", c, err)
-	}
-	h, err := r.FullHash(c)
-	if err != nil {
-		return fmt.Errorf("Failed to validate commit %q: %s", c, err)
-	}
-	if h != c {
-		return fmt.Errorf("%q is not a valid commit.", c)
-	}
-	return nil
+	return "", fmt.Errorf("Could not find commit %s in any repo.", c)
 }
 
 // NewCommitRangeRule creates a new Rule which covers a range of commits.
-func NewCommitRangeRule(name, user, description string, taskSpecPatterns []string, startCommit, endCommit string, repos *gitinfo.RepoMap) (*Rule, error) {
-	if err := validateCommit(startCommit, repos); err != nil {
-		return nil, err
-	}
-	if err := validateCommit(endCommit, repos); err != nil {
-		return nil, err
-	}
-	r, err := repos.RepoForCommit(startCommit)
+func NewCommitRangeRule(name, user, description string, taskSpecPatterns []string, startCommit, endCommit string, repos map[string]*gitrepo.Repo) (*Rule, error) {
+	repoName, err := findCommit(startCommit, repos)
 	if err != nil {
 		return nil, err
 	}
-	repo, err := repos.Repo(r)
+	repo2, err := findCommit(endCommit, repos)
 	if err != nil {
 		return nil, err
 	}
-	commits, err := repo.RevList(fmt.Sprintf("%s..%s", startCommit, endCommit))
+	if repo2 != repoName {
+		return nil, fmt.Errorf("Commit %s is in a different repo (%s) from %s (%s)", endCommit, repo2, startCommit, repoName)
+	}
+	repo, ok := repos[repoName]
+	if !ok {
+		return nil, fmt.Errorf("Unknown repo %s", repoName)
+	}
+	commits, err := repo.Repo().RevList(fmt.Sprintf("%s..%s", startCommit, endCommit))
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +239,7 @@ type Rule struct {
 }
 
 // ValidateRule returns an error if the given Rule is not valid.
-func ValidateRule(r *Rule, repos *gitinfo.RepoMap) error {
+func ValidateRule(r *Rule, repos map[string]*gitrepo.Repo) error {
 	if r.Name == "" {
 		return fmt.Errorf("Rules must have a name.")
 	}
@@ -261,7 +253,7 @@ func ValidateRule(r *Rule, repos *gitinfo.RepoMap) error {
 		return fmt.Errorf("Rules must include a taskSpec pattern and/or a commit/range.")
 	}
 	for _, c := range r.Commits {
-		if err := validateCommit(c, repos); err != nil {
+		if _, err := findCommit(c, repos); err != nil {
 			return err
 		}
 	}
