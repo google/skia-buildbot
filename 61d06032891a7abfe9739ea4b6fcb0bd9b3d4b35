@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6105d0c2_19603ebc",
+        "filename": "infra/bots/recipes/swarm_infra.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-27T15:14:45Z",
+      "side": 1,
+      "message": "Oh, we should probably change this to use api.tryserver.properties, per tandrii\u0027s comment on https://codereview.chromium.org/2459543002/diff/20001/scripts/slave/recipes/skia/swarm_infra.py",
+      "range": {
+        "startLine": 184,
+        "startChar": 7,
+        "endLine": 184,
+        "endChar": 16
+      },
+      "revId": "61d06032891a7abfe9739ea4b6fcb0bd9b3d4b35",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
