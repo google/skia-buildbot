@@ -16,7 +16,6 @@ import (
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot"
-	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/gitrepo"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
@@ -54,33 +53,18 @@ type TaskScheduler struct {
 	period           time.Duration
 	queue            []*taskCandidate // protected by queueMtx.
 	queueMtx         sync.RWMutex
-	repoMap          *gitinfo.RepoMap
 	repos            map[string]*gitrepo.Repo
 	swarming         swarming.ApiClient
 	taskCfgCache     *specs.TaskCfgCache
 	tCache           db.TaskCache
 	timeDecayAmt24Hr float64
 	tryjobs          *tryjobs.TryJobIntegrator
-	workdir          string
 }
 
-func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string) (*TaskScheduler, error) {
+func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repos map[string]*gitrepo.Repo, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		return nil, err
-	}
-
-	repos := make(map[string]*gitrepo.Repo, len(repoNames))
-	rm := gitinfo.NewRepoMap(workdir)
-	for _, r := range repoNames {
-		repo, err := gitrepo.NewRepo(r, path.Join(workdir, path.Base(r)))
-		if err != nil {
-			return nil, err
-		}
-		repos[r] = repo
-		if _, err := rm.Repo(r); err != nil {
-			return nil, err
-		}
 	}
 
 	// Create caches.
@@ -94,8 +78,8 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames [
 		glog.Fatal(err)
 	}
 
-	taskCfgCache := specs.NewTaskCfgCache(path.Join(workdir, "cfg_cache"), rm)
-	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, c, d, jCache, projectRepoMapping, rm, taskCfgCache)
+	taskCfgCache := specs.NewTaskCfgCache(path.Join(workdir, "cfg_cache"), repos)
+	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, c, d, jCache, projectRepoMapping, repos, taskCfgCache)
 	if err != nil {
 		return nil, err
 	}
@@ -108,14 +92,12 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repoNames [
 		period:           period,
 		queue:            []*taskCandidate{},
 		queueMtx:         sync.RWMutex{},
-		repoMap:          rm,
 		repos:            repos,
 		swarming:         swarmingClient,
 		taskCfgCache:     taskCfgCache,
 		tCache:           tCache,
 		timeDecayAmt24Hr: timeDecayAmt24Hr,
 		tryjobs:          tryjobs,
-		workdir:          workdir,
 	}
 	return s, nil
 }
@@ -671,21 +653,26 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 // taskCandidates.
 func (s *TaskScheduler) isolateTasks(rs db.RepoState, candidates []*taskCandidate) error {
 	// Create and check out a temporary repo.
-	// Point the upstream to a local source of truth to eliminate network
-	// latency.
-	altUpstream := path.Join(s.workdir, path.Base(rs.Repo))
-	rs.Repo = altUpstream
-	repoDir, err := specs.TempGitRepo(path.Join(s.workdir, "temp_repos"), rs)
+	repo, ok := s.repos[rs.Repo]
+	if !ok {
+		return fmt.Errorf("Unknown repo: %q", rs.Repo)
+	}
+	c, err := specs.TempGitRepo(repo.Repo(), rs)
 	if err != nil {
 		return err
 	}
-	defer util.RemoveAll(repoDir)
+	defer func() {
+		if err := c.Delete(); err != nil {
+			glog.Errorf("Failed to delete %s: %s", c.Dir(), err)
+		}
+	}()
 
 	// Isolate the tasks.
-	infraBotsDir := path.Join(repoDir, "infra", "bots")
+	infraBotsDir := path.Join(c.Dir(), "infra", "bots")
+	baseDir := path.Dir(c.Dir())
 	tasks := make([]*isolate.Task, 0, len(candidates))
 	for _, c := range candidates {
-		tasks = append(tasks, c.MakeIsolateTask(infraBotsDir, s.workdir))
+		tasks = append(tasks, c.MakeIsolateTask(infraBotsDir, baseDir))
 	}
 	hashes, err := s.isolate.IsolateTasks(tasks)
 	if err != nil {
@@ -719,9 +706,6 @@ func (s *TaskScheduler) scheduleTasks() error {
 	for _, c := range schedule {
 		byRepoState[c.RepoState] = append(byRepoState[c.RepoState], c)
 	}
-
-	// Cleanup.
-	defer s.cleanupRepos()
 
 	// Isolate the tasks by commit.
 	for rs, candidates := range byRepoState {
@@ -951,31 +935,8 @@ func (s *TaskScheduler) MainLoop() error {
 	return nil
 }
 
-// cleanupRepos cleans up the scheduler's repos. It logs errors rather than
-// returning them.
-func (s *TaskScheduler) cleanupRepos() {
-	for _, repoName := range s.repoMap.Repos() {
-		repo, err := s.repoMap.Repo(repoName)
-		if err != nil {
-			glog.Errorf("Failed to cleanup repo: %s", err)
-			continue
-		}
-		if err := repo.Reset("HEAD"); err != nil {
-			glog.Errorf("Failed to cleanup repo: %s", err)
-			continue
-		}
-		// TODO(borenet): With trybots, we probably need to "git clean -d -f".
-		if err := repo.Checkout("master"); err != nil {
-			glog.Errorf("Failed to cleanup repo: %s", err)
-			continue
-		}
-
-	}
-}
-
 // updateRepos syncs the scheduler's repos.
 func (s *TaskScheduler) updateRepos() error {
-	s.cleanupRepos()
 	for _, r := range s.repos {
 		if err := r.Update(); err != nil {
 			return err
@@ -1005,13 +966,13 @@ func (s *TaskScheduler) timeDecayForCommit(now time.Time, repoName, commit strin
 		// Shortcut for special case.
 		return 1.0, nil
 	}
-	repo, err := s.repoMap.Repo(repoName)
-	if err != nil {
-		return 0.0, err
+	repo, ok := s.repos[repoName]
+	if !ok {
+		return 0.0, fmt.Errorf("Unknown repo %q", repoName)
 	}
-	d, err := repo.Details(commit, false)
-	if err != nil {
-		return 0.0, err
+	d := repo.Get(commit)
+	if d == nil {
+		return 0.0, fmt.Errorf("Unknown commit %s in %s", commit, repoName)
 	}
 	return timeDecay24Hr(s.timeDecayAmt24Hr, now.Sub(d.Timestamp)), nil
 }
