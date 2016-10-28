@@ -15,7 +15,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/isolate"
 )
 
@@ -31,6 +31,7 @@ const (
 type SwarmingClient struct {
 	WorkDir        string
 	isolateClient  *isolate.Client
+	SwarmingPy     string
 	SwarmingServer string
 }
 
@@ -55,8 +56,7 @@ type TaskOutputFormat struct {
 }
 
 func (t *SwarmingTask) Trigger(s *SwarmingClient, hardTimeout, ioTimeout time.Duration) error {
-	swarmingBinary := path.Join(s.WorkDir, "client-py", "swarming.py")
-	if err := _VerifyBinaryExists(swarmingBinary); err != nil {
+	if err := _VerifyBinaryExists(s.SwarmingPy); err != nil {
 		return fmt.Errorf("Could not find swarming binary: %s", err)
 	}
 
@@ -87,7 +87,7 @@ func (t *SwarmingTask) Trigger(s *SwarmingClient, hardTimeout, ioTimeout time.Du
 	triggerArgs = append(triggerArgs, t.IsolatedHash)
 
 	err := exec.Run(&exec.Command{
-		Name: swarmingBinary,
+		Name: s.SwarmingPy,
 		Args: triggerArgs,
 		// Triggering a task should be immediate. Setting a 15m timeout incase
 		// something goes wrong.
@@ -102,8 +102,7 @@ func (t *SwarmingTask) Trigger(s *SwarmingClient, hardTimeout, ioTimeout time.Du
 }
 
 func (t *SwarmingTask) Collect(s *SwarmingClient) (string, string, error) {
-	swarmingBinary := path.Join(s.WorkDir, "client-py", "swarming.py")
-	if err := _VerifyBinaryExists(swarmingBinary); err != nil {
+	if err := _VerifyBinaryExists(s.SwarmingPy); err != nil {
 		return "", "", fmt.Errorf("Could not find swarming binary: %s", err)
 	}
 	dumpJSON := path.Join(t.OutputDir, fmt.Sprintf("%s-trigger-output.json", t.Title))
@@ -117,7 +116,7 @@ func (t *SwarmingTask) Collect(s *SwarmingClient) (string, string, error) {
 		"--verbose",
 	}
 	err := exec.Run(&exec.Command{
-		Name:      swarmingBinary,
+		Name:      s.SwarmingPy,
 		Args:      collectArgs,
 		Timeout:   t.Expiration,
 		LogStdout: true,
@@ -157,9 +156,14 @@ func NewSwarmingClient(workDir string) (*SwarmingClient, error) {
 	}
 	// Checkout luci client-py to get access to swarming.py for triggering and
 	// collecting tasks.
-	if _, err := gitinfo.CloneOrUpdate(LUCI_CLIENT_REPO, path.Join(workDir, "client-py"), false); err != nil {
+	luciClient, err := git.NewCheckout(LUCI_CLIENT_REPO, workDir)
+	if err != nil {
 		return nil, fmt.Errorf("Could not checkout %s: %s", LUCI_CLIENT_REPO, err)
 	}
+	if err := luciClient.Update(); err != nil {
+		return nil, err
+	}
+	swarmingPy := path.Join(luciClient.Dir(), "swarming.py")
 
 	// Create an isolate client.
 	isolateClient, err := isolate.NewClient(workDir)
@@ -170,6 +174,7 @@ func NewSwarmingClient(workDir string) (*SwarmingClient, error) {
 	return &SwarmingClient{
 		WorkDir:        workDir,
 		isolateClient:  isolateClient,
+		SwarmingPy:     swarmingPy,
 		SwarmingServer: SWARMING_SERVER,
 	}, nil
 }
