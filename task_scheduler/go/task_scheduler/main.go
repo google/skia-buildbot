@@ -252,16 +252,9 @@ func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
 		return
 	}
-	repoName := ""
-	for name, r := range repos {
-		commit := r.Get(msg.Commit)
-		if commit != nil && commit.Hash == msg.Commit {
-			repoName = name
-			break
-		}
-	}
-	if repoName == "" {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Unable to find commit %s in any repo.", msg.Commit))
+	_, repoName, _, err := repograph.FindCommitInGraphs(msg.Commit, repos)
+	if err != nil {
+		httputils.ReportError(w, r, nil, err.Error())
 		return
 	}
 	ids := make([]string, 0, len(msg.Jobs))
