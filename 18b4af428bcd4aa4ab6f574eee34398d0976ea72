@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e19380d8_7d6a2aca",
+        "filename": "go/testutils/testutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-28T13:53:18Z",
+      "side": 1,
+      "message": "IMO, tests that use ioutil.TempDir (or os.TempDir() directly) and clean up after themselves can still be considered unit tests.\n\nIt would also be nice if unit tests could also include tests that assume a base Linux system with git (maybe all of depot_tools?) installed, for code that uses exec.",
+      "range": {
+        "startLine": 59,
+        "startChar": 66,
+        "endLine": 59,
+        "endChar": 77
+      },
+      "revId": "18b4af428bcd4aa4ab6f574eee34398d0976ea72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "61ba3039_c74539b3",
+        "filename": "go/testutils/testutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-28T13:53:18Z",
+      "side": 1,
+      "message": "I agree that this needs to be renamed if these tests will be run per-commit.\n\nOTOH, maybe anything we want to run per-commit should be an IntegrationTest, so that this can be just those tests that are likely to cause problems if run per-commit, e.g. they interact with production services like swarming or GS.",
+      "range": {
+        "startLine": 76,
+        "startChar": 3,
+        "endLine": 76,
+        "endChar": 13
+      },
+      "revId": "18b4af428bcd4aa4ab6f574eee34398d0976ea72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "61ba3039_a7c475f9",
+        "filename": "go/testutils/testutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-28T13:53:18Z",
+      "side": 1,
+      "message": "In a past project, we had a way to write tests and have them compile, but indicate they are failing or flaky due to a known bug. Maybe something like:\nfunc FailingTest(t *testing.T, bug int) {\n  if !shouldRun(FAILING_TEST) {\n    t.Skipf(\"Skipping test due to http://skbug.com/%d\", bug)\n  }\n}\n\nThis can also be helpful for TDD.\n\nWith said past project, we also had a tool to identify tests tagged with bugs that had been closed, but I\u0027m not sure that\u0027s really necessary for infra.",
+      "range": {
+        "startLine": 78,
+        "startChar": 24,
+        "endLine": 78,
+        "endChar": 29
+      },
+      "revId": "18b4af428bcd4aa4ab6f574eee34398d0976ea72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
