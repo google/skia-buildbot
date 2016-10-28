@@ -53,7 +53,6 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 			fmt.Sprintf("patch_storage=%s", specs.PLACEHOLDER_PATCH_STORAGE),
 			fmt.Sprintf("patch_issue=%s", specs.PLACEHOLDER_ISSUE),
 			fmt.Sprintf("patch_set=%s", specs.PLACEHOLDER_PATCHSET),
-			fmt.Sprintf("patch_ref=refs/changes/%s/%s/%s", specs.PLACEHOLDER_ISSUE_SHORT, specs.PLACEHOLDER_ISSUE, specs.PLACEHOLDER_PATCHSET),
 		},
 		Isolate:  "swarm_recipe.isolate",
 		Priority: 0.8,
