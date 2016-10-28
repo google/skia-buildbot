@@ -8,7 +8,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/gitrepo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -863,15 +863,15 @@ func TestGitRepoGetRevisionTimestamp(t *testing.T) {
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
-	repo, err := gitrepo.NewRepo(g.Dir(), workdir)
+	repo, err := repograph.NewGraph(g.Dir(), workdir)
 	assert.NoError(t, err)
 
-	grt := GitRepoGetRevisionTimestamp(map[string]*gitrepo.Repo{
+	grt := GitRepoGetRevisionTimestamp(map[string]*repograph.Graph{
 		"a.git": repo,
 	})
 
-	var firstCommit *gitrepo.Commit
-	err = repo.RecurseAllBranches(func(c *gitrepo.Commit) (bool, error) {
+	var firstCommit *repograph.Commit
+	err = repo.RecurseAllBranches(func(c *repograph.Commit) (bool, error) {
 		ts, err := grt("a.git", c.Hash)
 		assert.NoError(t, err)
 		assert.True(t, c.Timestamp.Equal(ts))

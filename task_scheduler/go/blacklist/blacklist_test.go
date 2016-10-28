@@ -6,7 +6,7 @@ import (
 	"path"
 	"testing"
 
-	"go.skia.org/infra/go/gitrepo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 
@@ -165,8 +165,8 @@ func TestValidation(t *testing.T) {
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
-	repos := map[string]*gitrepo.Repo{}
-	repo, err := gitrepo.NewRepo(remote, tmp)
+	repos := map[string]*repograph.Graph{}
+	repo, err := repograph.NewGraph(remote, tmp)
 	assert.NoError(t, err)
 	repos[remote] = repo
 
@@ -306,8 +306,8 @@ func TestCommitRange(t *testing.T) {
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
-	repos := map[string]*gitrepo.Repo{}
-	repo, err := gitrepo.NewRepo(remote, tmp)
+	repos := map[string]*repograph.Graph{}
+	repo, err := repograph.NewGraph(remote, tmp)
 	assert.NoError(t, err)
 	repos[remote] = repo
 	f := path.Join(tmp, "blacklist.json")

@@ -1,4 +1,4 @@
-package gitrepo
+package repograph
 
 import (
 	"fmt"
@@ -13,14 +13,14 @@ import (
 )
 
 // gitSetup initializes a Git repo in a temporary directory with some commits.
-// Returns the path of the temporary directory, the Repo object associated with
+// Returns the path of the temporary directory, the Graph object associated with
 // the repo, and a slice of the commits which were added.
 //
 // The repo layout looks like this:
 //
 // c1--c2------c4--c5--
 //       \-c3-----/
-func gitSetup(t *testing.T) (*testutils.GitBuilder, *Repo, []*Commit, func()) {
+func gitSetup(t *testing.T) (*testutils.GitBuilder, *Graph, []*Commit, func()) {
 	testutils.SkipIfShort(t)
 
 	g := testutils.GitInit(t)
@@ -29,7 +29,7 @@ func gitSetup(t *testing.T) (*testutils.GitBuilder, *Repo, []*Commit, func()) {
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
-	repo, err := NewRepo(g.Dir(), tmp)
+	repo, err := NewGraph(g.Dir(), tmp)
 	assert.NoError(t, err)
 
 	c1 := repo.Get("master")
@@ -80,7 +80,7 @@ func gitSetup(t *testing.T) (*testutils.GitBuilder, *Repo, []*Commit, func()) {
 	}
 }
 
-func TestGitRepo(t *testing.T) {
+func TestGraph(t *testing.T) {
 	g, repo, commits, cleanup := gitSetup(t)
 	defer cleanup()
 
@@ -101,7 +101,7 @@ func TestGitRepo(t *testing.T) {
 	tmp2, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp2)
-	repo2, err := NewRepo(g.Dir(), tmp2)
+	repo2, err := NewGraph(g.Dir(), tmp2)
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, repo.Branches(), repo2.Branches())
 	m1 := repo.Get("master")
@@ -117,7 +117,7 @@ func TestSerialize(t *testing.T) {
 	defer cleanup()
 
 	glog.Infof("New repo.")
-	repo2, err := NewRepo(g.Dir(), path.Dir(repo.repo.Dir()))
+	repo2, err := NewGraph(g.Dir(), path.Dir(repo.repo.Dir()))
 	assert.NoError(t, err)
 
 	testutils.AssertDeepEqual(t, repo, repo2)

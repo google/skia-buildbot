@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/gitrepo"
+	"go.skia.org/infra/go/git/repograph"
 
 	"github.com/skia-dev/glog"
 )
@@ -441,7 +441,7 @@ type JobCache interface {
 
 // GetRevisionTimestamp is a function signature that retrieves the timestamp of
 // a revision. NewJobCache accepts this type rather than
-// map[string]*gitrepo.Repo to aide testing.
+// map[string]*repograph.Graph to aide testing.
 type GetRevisionTimestamp func(repo, revision string) (time.Time, error)
 
 type jobCache struct {
@@ -639,8 +639,8 @@ func NewJobCache(db JobDB, timePeriod time.Duration, getRevisionTimestamp GetRev
 }
 
 // GitRepoGetRevisionTimestamp returns a GetRevisionTimestamp function that gets
-// the revision timestamp from repos, which maps repo name to *gitrepo.Repo.
-func GitRepoGetRevisionTimestamp(repos map[string]*gitrepo.Repo) GetRevisionTimestamp {
+// the revision timestamp from repos, which maps repo name to *repograph.Graph.
+func GitRepoGetRevisionTimestamp(repos map[string]*repograph.Graph) GetRevisionTimestamp {
 	return func(repo, revision string) (time.Time, error) {
 		r, ok := repos[repo]
 		if !ok {

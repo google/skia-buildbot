@@ -7,7 +7,7 @@ import (
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/go/gitrepo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -19,7 +19,7 @@ const (
 
 // mockSwarmingBotsForAllTasksForTesting returns a list containing one swarming
 // bot for each TaskSpec in the given repos, or nil on error.
-func mockSwarmingBotsForAllTasksForTesting(repos map[string]*gitrepo.Repo) []*swarming_api.SwarmingRpcsBotInfo {
+func mockSwarmingBotsForAllTasksForTesting(repos map[string]*repograph.Graph) []*swarming_api.SwarmingRpcsBotInfo {
 	botId := 0
 	rv := []*swarming_api.SwarmingRpcsBotInfo{}
 	for _, repo := range repos {

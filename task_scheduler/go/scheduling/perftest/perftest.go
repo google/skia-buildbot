@@ -21,7 +21,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gitrepo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -245,7 +245,7 @@ func main() {
 	}
 
 	// Create the task scheduler.
-	repo, err := gitrepo.NewRepo(repoName, workdir)
+	repo, err := repograph.NewGraph(repoName, workdir)
 	assertNoError(err)
 	head, err := repo.Repo().RevParse("HEAD")
 	assertNoError(err)
@@ -270,7 +270,7 @@ func main() {
 	assertNoError(err)
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
-	s, err := scheduling.NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, map[string]*gitrepo.Repo{repoName: repo}, isolateClient, swarmingClient, http.DefaultClient, 0.9, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, map[string]string{"skia": repoName})
+	s, err := scheduling.NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, map[string]*repograph.Graph{repoName: repo}, isolateClient, swarmingClient, http.DefaultClient, 0.9, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, map[string]string{"skia": repoName})
 	assertNoError(err)
 
 	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {
