@@ -3,6 +3,7 @@ package testutils
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,6 +18,68 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	assert "github.com/stretchr/testify/require"
 )
+
+const (
+	UNIT_TEST        = "unittest"
+	INTEGRATION_TEST = "integration"
+	ENORMOUS_TEST    = "enormous"
+)
+
+var (
+	unittest    = flag.Bool(UNIT_TEST, false, "Whether or not to run unit tests.")
+	integration = flag.Bool(INTEGRATION_TEST, false, "Whether or not to run integration tests.")
+	enormous    = flag.Bool(ENORMOUS_TEST, false, "Whether or not to run enormous tests.")
+
+	DEFAULT_RUN = map[string]bool{
+		UNIT_TEST:        true,
+		INTEGRATION_TEST: true,
+		ENORMOUS_TEST:    false,
+	}
+)
+
+// shouldRun determines whether the test should run based on the provided flags.
+func shouldRun(testType string) bool {
+	// Fallback if no test filter is specified.
+	if !*unittest && !*integration && !*enormous {
+		return DEFAULT_RUN[testType]
+	}
+
+	switch testType {
+	case UNIT_TEST:
+		return *unittest
+	case INTEGRATION_TEST:
+		return *integration
+	case ENORMOUS_TEST:
+		return *enormous
+	}
+	return false
+}
+
+// UnitTest is a function which should be called at the beginning of a unit
+// test: A small test with no dependencies on external databases, networks, etc.
+func UnitTest(t *testing.T) {
+	if !shouldRun(UNIT_TEST) {
+		t.Skip("Not running unit tests.")
+	}
+}
+
+// IntegrationTest is a function which should be called at the beginning of an
+// integration test: a medium-sized test which has dependencies on external
+// databases, networks, etc.
+func IntegrationTest(t *testing.T) {
+	if !shouldRun(INTEGRATION_TEST) {
+		t.Skip("Not running integration tests.")
+	}
+}
+
+// EnormousTest is a function which should be called at the beginning of a enormous
+// test: a large test with significant reliance on external dependencies which
+// makes it too slow or flaky to run as part of the normal test suite.
+func EnormousTest(t *testing.T) {
+	if !shouldRun(ENORMOUS_TEST) {
+		t.Skip("Not running enormous tests.")
+	}
+}
 
 // SkipIfShort causes the test to be skipped when running with -short.
 func SkipIfShort(t *testing.T) {
