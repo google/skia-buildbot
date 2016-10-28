@@ -28,8 +28,7 @@
         "revision=<(REVISION)",
         "<(PATCH_STORAGE?\"patch_storage=<(PATCH_STORAGE)\":\"\")",
         "<(PATCH_STORAGE?\"patch_issue=<(ISSUE)\":\"\")",
-        "<(PATCH_STORAGE?\"patch_set=<(PATCHSET)\":\"\")",
-        "<(PATCH_STORAGE?\"patch_ref=refs/changes/<(ISSUE_SHORT)/<(ISSUE)/<(PATCHSET)\":\"\")"
+        "<(PATCH_STORAGE?\"patch_set=<(PATCHSET)\":\"\")"
       ],
       "isolate": "swarm_recipe.isolate",
       "priority": 0.8
