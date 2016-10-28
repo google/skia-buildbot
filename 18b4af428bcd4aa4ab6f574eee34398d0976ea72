@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "21c918eb_9d56ee71",
+        "filename": "go/testutils/testutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-28T14:13:06Z",
+      "side": 1,
+      "message": "sure, removed \"filesystem\" from the comments. This is really going to be a judgment call, since we\u0027ve made no distinction in the past.",
+      "parentUuid": "e19380d8_7d6a2aca",
+      "revId": "18b4af428bcd4aa4ab6f574eee34398d0976ea72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "61ba3039_c74539b3",
         "filename": "go/testutils/testutils.go",
         "patchSetId": 1
@@ -48,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "21c918eb_1d3b1e34",
+        "filename": "go/testutils/testutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-28T14:13:06Z",
+      "side": 1,
+      "message": "I\u0027m envisioning having bots which run all three types of tests, separately, at each commit.  We\u0027d have the UnitTests running on the CQ and maybe the IntegrationTests as well, and only the UnitTests on the presubmit.",
+      "parentUuid": "61ba3039_c74539b3",
+      "revId": "18b4af428bcd4aa4ab6f574eee34398d0976ea72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "61ba3039_a7c475f9",
         "filename": "go/testutils/testutils.go",
         "patchSetId": 1
@@ -65,6 +101,24 @@
         "endLine": 78,
         "endChar": 29
       },
+      "revId": "18b4af428bcd4aa4ab6f574eee34398d0976ea72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a16b489a_f6149969",
+        "filename": "go/testutils/testutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-10-28T14:13:06Z",
+      "side": 1,
+      "message": "We can add something like that, but let\u0027s save it for a future addition to this to keep things simple for now.  I can imagine adding a \"flaky\" category (since we have so many) and having a separate bot to run those tests just to report stats on how often they fail.  Similarly, we could have a \"failing\" category with a bot which verifies that those tests actually fail and notifies us when they don\u0027t.",
+      "parentUuid": "61ba3039_a7c475f9",
       "revId": "18b4af428bcd4aa4ab6f574eee34398d0976ea72",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
