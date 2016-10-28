@@ -13,7 +13,9 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -131,7 +133,7 @@ func clearDB(t *testing.T, local bool) testDB {
 
 // testGetBuildFromMaster is a helper function which pretends to load JSON data
 // from a build master and decodes it into a Build object.
-func testGetBuildFromMaster(repos *gitinfo.RepoMap) (*Build, error) {
+func testGetBuildFromMaster(repos map[string]*repograph.Graph) (*Build, error) {
 	httpClient = testHttpClient
 	return getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX660-x86-Release", 721, repos)
 }
@@ -145,10 +147,14 @@ func TestGetBuildFromMaster(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	repos := gitinfo.NewRepoMap(tr.Dir)
+	repo, err := repograph.New(&git.Repo{GitDir: git.GitDir(path.Join(tr.Dir, "skia.git"))})
+	assert.NoError(t, err)
+	repos := map[string]*repograph.Graph{
+		common.REPO_SKIA: repo,
+	}
 
 	// Default, complete build.
-	_, err := testGetBuildFromMaster(repos)
+	_, err = testGetBuildFromMaster(repos)
 	assert.NoError(t, err)
 	// Incomplete build.
 	_, err = getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind", 152, repos)
@@ -164,7 +170,11 @@ func TestBuildJsonSerialization(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	repos := gitinfo.NewRepoMap(tr.Dir)
+	repo, err := repograph.New(&git.Repo{GitDir: git.GitDir(path.Join(tr.Dir, "skia.git"))})
+	assert.NoError(t, err)
+	repos := map[string]*repograph.Graph{
+		common.REPO_SKIA: repo,
+	}
 
 	b1, err := testGetBuildFromMaster(repos)
 	assert.NoError(t, err)
@@ -187,7 +197,11 @@ func testFindCommitsForBuild(t *testing.T, local bool) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	repos := gitinfo.NewRepoMap(tr.Dir)
+	repo, err := repograph.New(&git.Repo{GitDir: git.GitDir(path.Join(tr.Dir, "skia.git"))})
+	assert.NoError(t, err)
+	repos := map[string]*repograph.Graph{
+		common.REPO_SKIA: repo,
+	}
 
 	// The test repo is laid out like this:
 	//
@@ -357,7 +371,11 @@ func testBuildDbSerialization(t *testing.T, local bool) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	repos := gitinfo.NewRepoMap(tr.Dir)
+	repo, err := repograph.New(&git.Repo{GitDir: git.GitDir(path.Join(tr.Dir, "skia.git"))})
+	assert.NoError(t, err)
+	repos := map[string]*repograph.Graph{
+		common.REPO_SKIA: repo,
+	}
 
 	// Test case: an empty build. Tests null and empty values.
 	emptyBuild := &Build{
@@ -388,7 +406,11 @@ func testUnfinishedBuild(t *testing.T, local bool) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	repos := gitinfo.NewRepoMap(tr.Dir)
+	repo, err := repograph.New(&git.Repo{GitDir: git.GitDir(path.Join(tr.Dir, "skia.git"))})
+	assert.NoError(t, err)
+	repos := map[string]*repograph.Graph{
+		common.REPO_SKIA: repo,
+	}
 
 	// Obtain and insert an unfinished build.
 	httpClient = testHttpClient
@@ -448,7 +470,11 @@ func testLastProcessedBuilds(t *testing.T, local bool) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	repos := gitinfo.NewRepoMap(tr.Dir)
+	repo, err := repograph.New(&git.Repo{GitDir: git.GitDir(path.Join(tr.Dir, "skia.git"))})
+	assert.NoError(t, err)
+	repos := map[string]*repograph.Graph{
+		common.REPO_SKIA: repo,
+	}
 
 	build, err := testGetBuildFromMaster(repos)
 	assert.NoError(t, err)
@@ -548,7 +574,11 @@ func testGetUningestedBuilds(t *testing.T, local bool) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	repos := gitinfo.NewRepoMap(tr.Dir)
+	repo, err := repograph.New(&git.Repo{GitDir: git.GitDir(path.Join(tr.Dir, "skia.git"))})
+	assert.NoError(t, err)
+	repos := map[string]*repograph.Graph{
+		common.REPO_SKIA: repo,
+	}
 
 	// This builder is no longer found on the master.
 	b1, err := testGetBuildFromMaster(repos)
@@ -620,7 +650,11 @@ func testIngestNewBuilds(t *testing.T, local bool) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	repos := gitinfo.NewRepoMap(tr.Dir)
+	repo, err := repograph.New(&git.Repo{GitDir: git.GitDir(path.Join(tr.Dir, "skia.git"))})
+	assert.NoError(t, err)
+	repos := map[string]*repograph.Graph{
+		common.REPO_SKIA: repo,
+	}
 
 	// This builder needs to load a few builds.
 	b1, err := testGetBuildFromMaster(repos)

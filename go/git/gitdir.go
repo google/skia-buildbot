@@ -148,3 +148,12 @@ func (g GitDir) Branches() ([]*Branch, error) {
 func (g GitDir) GetFile(fileName, commit string) (string, error) {
 	return g.Git("show", commit+":"+fileName)
 }
+
+// NumCommits returns the number of commits in the repo.
+func (g GitDir) NumCommits() (int64, error) {
+	out, err := g.Git("rev-list", "--all", "--count")
+	if err != nil {
+		return 0, err
+	}
+	return strconv.ParseInt(strings.TrimSpace(out), 10, 64)
+}

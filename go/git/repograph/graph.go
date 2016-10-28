@@ -93,6 +93,13 @@ func (c *Commit) recurse(f func(*Commit) (bool, error), visited map[*Commit]bool
 	return nil
 }
 
+// Helpers for sorting.
+type CommitSlice []*Commit
+
+func (s CommitSlice) Len() int           { return len(s) }
+func (s CommitSlice) Less(a, b int) bool { return s[a].Timestamp.Before(s[b].Timestamp) }
+func (s CommitSlice) Swap(a, b int)      { s[a], s[b] = s[b], s[a] }
+
 // Graph represents an entire Git repo.
 type Graph struct {
 	branches    []*git.Branch
@@ -308,4 +315,16 @@ func (r *Graph) RecurseAllBranches(f func(*Commit) (bool, error)) error {
 		}
 	}
 	return nil
+}
+
+// FindCommitInGraphs returns the Commit and Graph objects for the given
+// commit hash if it exists in any of the repos in the map.
+func FindCommitInGraphs(commit string, repos map[string]*Graph) (*Commit, string, *Graph, error) {
+	for name, repo := range repos {
+		c := repo.Get(commit)
+		if c != nil {
+			return c, name, repo, nil
+		}
+	}
+	return nil, "", nil, fmt.Errorf("Unable to find commit %s in any repo.", commit)
 }
