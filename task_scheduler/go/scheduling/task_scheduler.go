@@ -599,7 +599,7 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 	for _, c := range tasks {
 		// TODO(borenet): Make this threshold configurable.
 		if c.Score <= 0.0 {
-			glog.Warningf("candidate %s @ %s has a score of %2f; skipping.", c.Name, c.Revision, c.Score)
+			glog.Warningf("candidate %s @ %s has a score of %2f; skipping (%d commits).", c.Name, c.Revision, c.Score, len(c.Commits))
 			continue
 		}
 
@@ -716,12 +716,6 @@ func (s *TaskScheduler) scheduleTasks() error {
 			return err
 		}
 		req := candidate.MakeTaskRequest(t.Id)
-		/*j, err := json.MarshalIndent(req, "", "    ")
-		if err != nil {
-			glog.Errorf("Failed to marshal JSON: %s", err)
-		} else {
-			glog.Infof("Requesting Swarming Task:\n\n%s\n\n", string(j))
-		}*/
 		resp, err := s.swarming.TriggerTask(req)
 		if err != nil {
 			return err
@@ -959,7 +953,11 @@ func (s *TaskScheduler) timeDecayForCommit(now time.Time, commit *gitrepo.Commit
 		// Shortcut for special case.
 		return 1.0, nil
 	}
-	return timeDecay24Hr(s.timeDecayAmt24Hr, now.Sub(commit.Timestamp)), nil
+	rv := timeDecay24Hr(s.timeDecayAmt24Hr, now.Sub(commit.Timestamp))
+	if rv == 0.0 {
+		glog.Warningf("timeDecayForCommit is zero. Now: %s, Commit: %s ts %s, TimeDecay: %2f\nDetails: %v", now, commit.Hash, commit.Timestamp, s.timeDecayAmt24Hr, commit)
+	}
+	return rv, nil
 }
 
 func (ts *TaskScheduler) GetBlacklist() *blacklist.Blacklist {

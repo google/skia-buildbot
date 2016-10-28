@@ -2,9 +2,12 @@ package git
 
 import (
 	"fmt"
+	"io/ioutil"
 	"strings"
 	"testing"
 	"time"
+
+	"go.skia.org/infra/go/testutils"
 
 	assert "github.com/stretchr/testify/require"
 )
@@ -38,7 +41,12 @@ func TestGitBranch(t *testing.T) {
 	gb, commits := setup(t)
 	defer gb.Cleanup()
 
-	g := GitDir(gb.Dir())
+	tmpDir, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmpDir)
+
+	g, err := newGitDir(gb.Dir(), tmpDir, false)
+	assert.NoError(t, err)
 	branches, err := g.Branches()
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(branches))
@@ -49,6 +57,10 @@ func TestGitBranch(t *testing.T) {
 	// Add a branch.
 	gb.CreateBranchTrackBranch("newbranch", "master")
 	c10 := gb.CommitGen("branchfile")
+	_, err = g.Git("fetch", "origin")
+	assert.NoError(t, err)
+	_, err = g.Git("checkout", "-b", "newbranch", "-t", "origin/newbranch")
+	assert.NoError(t, err)
 	branches, err = g.Branches()
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(branches))
@@ -60,4 +72,34 @@ func TestGitBranch(t *testing.T) {
 	assert.Equal(t, "master", m.Name)
 	assert.Equal(t, c10, o.Head)
 	assert.Equal(t, "newbranch", o.Name)
+
+	// Add an ambiguous ref to ensure that Branches() doesn't have a
+	// problem with it.
+	testutils.Run(t, gb.Dir(), "git", "update-ref", "refs/heads/meta/config", commits[6])
+	testutils.Run(t, gb.Dir(), "git", "push", "origin", "refs/heads/meta/config")
+	testutils.Run(t, gb.Dir(), "git", "update-ref", "refs/tags/meta/config", commits[3])
+	testutils.Run(t, gb.Dir(), "git", "push", "origin", "refs/tags/meta/config")
+	_, err = g.Git("fetch")
+	assert.NoError(t, err)
+	_, err = g.Git("checkout", "-b", "meta/config", "-t", "origin/meta/config")
+	assert.NoError(t, err)
+
+	// Verify that it's actually ambiguous. We're also testing that RevParse
+	// returns an error for ambiguous refs, since Git doesn't exit with non-
+	// zero code in that case.
+	_, err = g.RevParse("meta/config")
+	assert.Error(t, err)
+
+	// Make sure Branches() succeeds and uses the correct ref.
+	branches, err = g.Branches()
+	assert.NoError(t, err)
+	checked := false
+	for _, b := range branches {
+		if b.Name == "meta/config" {
+			assert.Equal(t, b.Head, commits[6])
+			checked = true
+			break
+		}
+	}
+	assert.True(t, checked)
 }
