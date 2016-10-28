@@ -70,6 +70,15 @@ def git_checkout(api, url, dest, ref=None):
   sln.url = INFRA_GIT_URL
   sln.revision = ref
   gclient_cfg.got_revision_mapping[basename] = 'got_revision'
+
+  # Hack the patch_ref. Yay Python!
+  if api.bot_update._issue and api.bot_update._patchset:
+    api.bot_update._gerrit_ref = 'refs/changes/%d/%d/%d' % (
+        int(str(api.bot_update._issue)[-2:]),
+        api.bot_update._issue,
+        api.bot_update._patchset,
+    )
+
   api.bot_update.ensure_checkout(
       gclient_config=gclient_cfg,
       cwd=dirname)
