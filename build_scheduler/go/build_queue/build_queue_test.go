@@ -5,18 +5,17 @@ import (
 	"math"
 	"os"
 	"path"
-	"reflect"
 	"testing"
 	"time"
 
-	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/build_scheduler/go/blacklist"
 	"go.skia.org/infra/go/buildbot"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/workdir/buildbot.git/go/gitrepo"
 )
 
 const (
@@ -51,6 +50,8 @@ var (
 		'H': "d30286d2254716d396073c177a754f9e152bbb52",
 		'I': "06eb2a58139d3ff764f10232d5c8f9362d55e20f",
 	}
+
+	commits = map[string]*gitrepo.Commit{}
 )
 
 type testDB struct {
@@ -107,15 +108,15 @@ func TestBuildScoring(t *testing.T) {
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
-	repos := gitinfo.NewRepoMap(tr.Dir)
-	repo, err := repos.Repo(TEST_REPO)
-	assert.NoError(t, err)
-	assert.NoError(t, repos.Update())
 
-	details := map[string]*vcsinfo.LongCommit{}
+	remote := path.Join(tr.Dir, "skia.git")
+	repo, err := repograph.NewGraph(remote, tr.Dir)
+	assert.NoError(t, err)
+
+	details := map[string]*repograph.Commit{}
 	for _, h := range hashes {
-		d, err := repo.Details(h, false)
-		assert.NoError(t, err)
+		d := repo.Get(h)
+		assert.NotNil(t, d)
 		details[h] = d
 	}
 
@@ -125,7 +126,7 @@ func TestBuildScoring(t *testing.T) {
 		Commits:     []string{hashes['A'], hashes['B'], hashes['C']},
 	}
 	cases := []struct {
-		commit        *vcsinfo.LongCommit
+		commit        *repograph.Commit
 		build         *buildbot.Build
 		expectedScore float64
 		lambda        float64
@@ -248,7 +249,7 @@ type buildQueueExpect struct {
 	err error
 }
 
-func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQueueExpect, testInsert bool) {
+func testBuildQueue(t *testing.T, timeDecay24Hr float64, getExpectations func(*repograph.Graph) []*buildQueueExpect, testInsert bool) {
 	testutils.SkipIfShort(t)
 
 	// Initialize the buildbot database.
@@ -258,10 +259,13 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
-	repos := gitinfo.NewRepoMap(tr.Dir)
-	repo, err := repos.Repo(TEST_REPO)
+
+	remote := path.Join(tr.Dir, "skia.git")
+	repo, err := repograph.NewGraph(remote, tr.Dir)
 	assert.NoError(t, err)
-	assert.NoError(t, repos.Update())
+	repos := map[string]*repograph.Graph{
+		common.REPO_SKIA: repo,
+	}
 
 	// Insert an initial build.
 	buildNum := 0
@@ -288,8 +292,8 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 	assert.NoError(t, err)
 
 	// Fake time.Now()
-	details, err := repo.Details(hashes['I'], false)
-	assert.NoError(t, err)
+	details := repo.Get(hashes['I'])
+	assert.NotNil(t, details)
 	now := details.Timestamp.Add(1 * time.Hour)
 
 	// Update the queue.
@@ -298,14 +302,13 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 	// Ensure that we get the expected BuildCandidate at each step. Insert
 	// each BuildCandidate into the buildbot database to simulate actually
 	// running builds.
-	for _, expected := range expectations {
+	for _, expected := range getExpectations(repo) {
 		bc, err := q.Pop([]string{TEST_BUILDER})
 		assert.Equal(t, expected.err, err)
 		if err != nil {
 			break
 		}
-		glog.Infof("\n%v\n%v", expected.bc, bc)
-		assert.True(t, reflect.DeepEqual(expected.bc, bc))
+		testutils.AssertDeepEqual(t, expected.bc, bc)
 		if testInsert || buildNum == 0 {
 			// Actually insert a build, as if we're really using the scheduler.
 			// Do this even if we're not testing insertion, because if we don't,
@@ -316,7 +319,7 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 				Number:      buildNum,
 				BuildSlave:  "fake",
 				Branch:      "master",
-				GotRevision: bc.Commit,
+				GotRevision: bc.Commit.Hash,
 				Repository:  TEST_REPO,
 				Started:     time.Now(),
 			}
@@ -327,100 +330,94 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 	}
 }
 
-var zeroLambdaExpectations = []*buildQueueExpect{
-	// First round: a single build at origin/master.
-	{
-		&BuildCandidate{
-			Author:  TEST_AUTHOR,
-			Commit:  hashes['I'],
-			Builder: TEST_BUILDER,
-			Score:   9.875,
-			Repo:    TEST_REPO,
+func zeroLambdaExpectations(r *repograph.Graph) []*buildQueueExpect {
+	return []*buildQueueExpect{
+		// First round: a single build at origin/master.
+		{
+			&BuildCandidate{
+				Commit:  r.Get(hashes['I']),
+				Builder: TEST_BUILDER,
+				Score:   9.875,
+				Repo:    TEST_REPO,
+			},
+			nil,
 		},
-		nil,
-	},
-	// Second round: bisect 8 -> 4 + 4
-	{
-		&BuildCandidate{
-			Author:  TEST_AUTHOR,
-			Commit:  hashes['E'],
-			Builder: TEST_BUILDER,
-			Score:   1.625,
-			Repo:    TEST_REPO,
+		// Second round: bisect 8 -> 4 + 4
+		{
+			&BuildCandidate{
+				Commit:  r.Get(hashes['E']),
+				Builder: TEST_BUILDER,
+				Score:   1.625,
+				Repo:    TEST_REPO,
+			},
+			nil,
 		},
-		nil,
-	},
-	// Third round: bisect 4 + 4 -> 4 + 2 + 2
-	{
-		&BuildCandidate{
-			Author:  TEST_AUTHOR,
-			Commit:  hashes['C'],
-			Builder: TEST_BUILDER,
-			Score:   1.25,
-			Repo:    TEST_REPO,
+		// Third round: bisect 4 + 4 -> 4 + 2 + 2
+		{
+			&BuildCandidate{
+				Commit:  r.Get(hashes['C']),
+				Builder: TEST_BUILDER,
+				Score:   1.25,
+				Repo:    TEST_REPO,
+			},
+			nil,
 		},
-		nil,
-	},
-	// Fourth round: bisect 4 + 2 + 2 -> 2 + 2 + 2 + 2
-	{
-		&BuildCandidate{
-			Author:  TEST_AUTHOR,
-			Commit:  hashes['H'],
-			Builder: TEST_BUILDER,
-			Score:   1.25,
-			Repo:    TEST_REPO,
+		// Fourth round: bisect 4 + 2 + 2 -> 2 + 2 + 2 + 2
+		{
+			&BuildCandidate{
+				Commit:  r.Get(hashes['H']),
+				Builder: TEST_BUILDER,
+				Score:   1.25,
+				Repo:    TEST_REPO,
+			},
+			nil,
 		},
-		nil,
-	},
-	// Fifth round: bisect 2 + 2 + 2 + 2 -> 2 + 2 + 2 + 1 + 1
-	{
-		&BuildCandidate{
-			Author:  TEST_AUTHOR,
-			Commit:  hashes['F'],
-			Builder: TEST_BUILDER,
-			Score:   0.5,
-			Repo:    TEST_REPO,
+		// Fifth round: bisect 2 + 2 + 2 + 2 -> 2 + 2 + 2 + 1 + 1
+		{
+			&BuildCandidate{
+				Commit:  r.Get(hashes['F']),
+				Builder: TEST_BUILDER,
+				Score:   0.5,
+				Repo:    TEST_REPO,
+			},
+			nil,
 		},
-		nil,
-	},
-	// Sixth round: bisect 2 + 2 + 2 + 1 + 1 -> 2 + 2 + 1 + 1 + 1 + 1
-	{
-		&BuildCandidate{
-			Author:  TEST_AUTHOR,
-			Commit:  hashes['G'],
-			Builder: TEST_BUILDER,
-			Score:   0.5,
-			Repo:    TEST_REPO,
+		// Sixth round: bisect 2 + 2 + 2 + 1 + 1 -> 2 + 2 + 1 + 1 + 1 + 1
+		{
+			&BuildCandidate{
+				Commit:  r.Get(hashes['G']),
+				Builder: TEST_BUILDER,
+				Score:   0.5,
+				Repo:    TEST_REPO,
+			},
+			nil,
 		},
-		nil,
-	},
-	// Seventh round: bisect 2 + 2 + 1 + 1 + 1 + 1 -> 2 + 1 + 1 + 1 + 1 + 1 + 1
-	{
-		&BuildCandidate{
-			Author:  TEST_AUTHOR,
-			Commit:  hashes['D'],
-			Builder: TEST_BUILDER,
-			Score:   0.5,
-			Repo:    TEST_REPO,
+		// Seventh round: bisect 2 + 2 + 1 + 1 + 1 + 1 -> 2 + 1 + 1 + 1 + 1 + 1 + 1
+		{
+			&BuildCandidate{
+				Commit:  r.Get(hashes['D']),
+				Builder: TEST_BUILDER,
+				Score:   0.5,
+				Repo:    TEST_REPO,
+			},
+			nil,
 		},
-		nil,
-	},
-	// Eighth round: bisect 2 + 1 + 1 + 1 + 1 + 1 + 1 -> 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
-	{
-		&BuildCandidate{
-			Author:  TEST_AUTHOR,
-			Commit:  hashes['B'],
-			Builder: TEST_BUILDER,
-			Score:   0.5,
-			Repo:    TEST_REPO,
+		// Eighth round: bisect 2 + 1 + 1 + 1 + 1 + 1 + 1 -> 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
+		{
+			&BuildCandidate{
+				Commit:  r.Get(hashes['B']),
+				Builder: TEST_BUILDER,
+				Score:   0.5,
+				Repo:    TEST_REPO,
+			},
+			nil,
 		},
-		nil,
-	},
-	// Ninth round: All commits individually tested; Score is 0.
-	{
-		nil,
-		ERR_EMPTY_QUEUE,
-	},
+		// Ninth round: All commits individually tested; Score is 0.
+		{
+			nil,
+			ERR_EMPTY_QUEUE,
+		},
+	}
 }
 
 func TestBuildQueueZeroLambdaNoInsert(t *testing.T) {
@@ -431,100 +428,94 @@ func TestBuildQueueZeroLambdaInsert(t *testing.T) {
 	testBuildQueue(t, 1.0, zeroLambdaExpectations, true)
 }
 
-var lambdaExpectations = []*buildQueueExpect{
-	// First round: a single build at origin/master.
-	{
-		&BuildCandidate{
-			Author:  TEST_AUTHOR,
-			Commit:  hashes['I'],
-			Builder: TEST_BUILDER,
-			Score:   9.199112062778687,
-			Repo:    TEST_REPO,
+func lambdaExpectations(r *repograph.Graph) []*buildQueueExpect {
+	return []*buildQueueExpect{
+		// First round: a single build at origin/master.
+		{
+			&BuildCandidate{
+				Commit:  r.Get(hashes['I']),
+				Builder: TEST_BUILDER,
+				Score:   9.199112062778687,
+				Repo:    TEST_REPO,
+			},
+			nil,
 		},
-		nil,
-	},
-	// Second round: bisect 8 -> 4 + 8
-	{
-		&BuildCandidate{
-			Author:  TEST_AUTHOR,
-			Commit:  hashes['E'],
-			Builder: TEST_BUILDER,
-			Score:   1.5115399445789144,
-			Repo:    TEST_REPO,
+		// Second round: bisect 8 -> 4 + 8
+		{
+			&BuildCandidate{
+				Commit:  r.Get(hashes['E']),
+				Builder: TEST_BUILDER,
+				Score:   1.5115399445789144,
+				Repo:    TEST_REPO,
+			},
+			nil,
 		},
-		nil,
-	},
-	// Third round: bisect 4 + 4 -> 2 + 2 + 4
-	{
-		&BuildCandidate{
-			Author:  TEST_AUTHOR,
-			Commit:  hashes['H'],
-			Builder: TEST_BUILDER,
-			Score:   1.1659240823148886,
-			Repo:    TEST_REPO,
+		// Third round: bisect 4 + 4 -> 2 + 2 + 4
+		{
+			&BuildCandidate{
+				Commit:  r.Get(hashes['H']),
+				Builder: TEST_BUILDER,
+				Score:   1.1659240823148886,
+				Repo:    TEST_REPO,
+			},
+			nil,
 		},
-		nil,
-	},
-	// Fourth round: bisect 2 + 2 + 4 -> 2 + 2 + 2 + 2
-	{
-		&BuildCandidate{
-			Author:  TEST_AUTHOR,
-			Commit:  hashes['C'],
-			Builder: TEST_BUILDER,
-			Score:   1.1615269290297145,
-			Repo:    TEST_REPO,
+		// Fourth round: bisect 2 + 2 + 4 -> 2 + 2 + 2 + 2
+		{
+			&BuildCandidate{
+				Commit:  r.Get(hashes['C']),
+				Builder: TEST_BUILDER,
+				Score:   1.1615269290297145,
+				Repo:    TEST_REPO,
+			},
+			nil,
 		},
-		nil,
-	},
-	// Fifth round: bisect 2 + 2 + 2 + 2 -> 1 + 1 + 2 + 2 + 2
-	{
-		&BuildCandidate{
-			Author:  TEST_AUTHOR,
-			Commit:  hashes['F'],
-			Builder: TEST_BUILDER,
-			Score:   0.46716910846026205,
-			Repo:    TEST_REPO,
+		// Fifth round: bisect 2 + 2 + 2 + 2 -> 1 + 1 + 2 + 2 + 2
+		{
+			&BuildCandidate{
+				Commit:  r.Get(hashes['F']),
+				Builder: TEST_BUILDER,
+				Score:   0.46716910846026205,
+				Repo:    TEST_REPO,
+			},
+			nil,
 		},
-		nil,
-	},
-	// Sixth round: bisect 1 + 1 + 2 + 2 + 2 -> 1 + 1 + 1 + 1 + 2 + 2
-	{
-		&BuildCandidate{
-			Author:  TEST_AUTHOR,
-			Commit:  hashes['G'],
-			Builder: TEST_BUILDER,
-			Score:   0.46518052365376716,
-			Repo:    TEST_REPO,
+		// Sixth round: bisect 1 + 1 + 2 + 2 + 2 -> 1 + 1 + 1 + 1 + 2 + 2
+		{
+			&BuildCandidate{
+				Commit:  r.Get(hashes['G']),
+				Builder: TEST_BUILDER,
+				Score:   0.46518052365376716,
+				Repo:    TEST_REPO,
+			},
+			nil,
 		},
-		nil,
-	},
-	// Seventh round: bisect 1 + 1 + 1 + 1 + 2 + 2 -> 1 + 1 + 1 + 1 + 1 + 1 + 2
-	{
-		&BuildCandidate{
-			Author:  TEST_AUTHOR,
-			Commit:  hashes['D'],
-			Builder: TEST_BUILDER,
-			Score:   0.464773434279506,
-			Repo:    TEST_REPO,
+		// Seventh round: bisect 1 + 1 + 1 + 1 + 2 + 2 -> 1 + 1 + 1 + 1 + 1 + 1 + 2
+		{
+			&BuildCandidate{
+				Commit:  r.Get(hashes['D']),
+				Builder: TEST_BUILDER,
+				Score:   0.464773434279506,
+				Repo:    TEST_REPO,
+			},
+			nil,
 		},
-		nil,
-	},
-	// Eighth round: bisect 1 + 1 + 1 + 1 + 1 + 1 + 2 -> 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
-	{
-		&BuildCandidate{
-			Author:  TEST_AUTHOR,
-			Commit:  hashes['B'],
-			Builder: TEST_BUILDER,
-			Score:   0.4640899801691636,
-			Repo:    TEST_REPO,
+		// Eighth round: bisect 1 + 1 + 1 + 1 + 1 + 1 + 2 -> 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
+		{
+			&BuildCandidate{
+				Commit:  r.Get(hashes['B']),
+				Builder: TEST_BUILDER,
+				Score:   0.4640899801691636,
+				Repo:    TEST_REPO,
+			},
+			nil,
 		},
-		nil,
-	},
-	// Ninth round: All commits individually tested; Score is 0.
-	{
-		nil,
-		ERR_EMPTY_QUEUE,
-	},
+		// Ninth round: All commits individually tested; Score is 0.
+		{
+			nil,
+			ERR_EMPTY_QUEUE,
+		},
+	}
 }
 
 func TestBuildQueueLambdaNoInsert(t *testing.T) {
@@ -545,10 +536,13 @@ func TestBuildQueueNoPrevious(t *testing.T) {
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
-	repos := gitinfo.NewRepoMap(tr.Dir)
-	repo, err := repos.Repo(TEST_REPO)
+
+	remote := path.Join(tr.Dir, "skia.git")
+	repo, err := repograph.NewGraph(remote, tr.Dir)
 	assert.NoError(t, err)
-	assert.NoError(t, repos.Update())
+	repos := map[string]*repograph.Graph{
+		common.REPO_SKIA: repo,
+	}
 
 	// Create the BuildQueue.
 	tmp, err := ioutil.TempDir("", "")
@@ -560,8 +554,8 @@ func TestBuildQueueNoPrevious(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Fake time.Now()
-	details, err := repo.Details(hashes['I'], false)
-	assert.NoError(t, err)
+	details := repo.Get(hashes['I'])
+	assert.NotNil(t, details)
 	now := details.Timestamp.Add(1 * time.Hour)
 
 	// Update the queue.
@@ -573,8 +567,7 @@ func TestBuildQueueNoPrevious(t *testing.T) {
 	bc, err := q.Pop([]string{TEST_BUILDER})
 	assert.NoError(t, err)
 	assert.Equal(t, &BuildCandidate{
-		Author:  TEST_AUTHOR,
-		Commit:  hashes['I'],
+		Commit:  repo.Get(hashes['I']),
 		Builder: TEST_BUILDER,
 		Score:   math.MaxFloat64,
 		Repo:    TEST_REPO,

@@ -35,7 +35,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
@@ -87,7 +87,7 @@ var (
 	db buildbot.DB
 
 	// repos provides information about the Git repositories in workdir.
-	repos *gitinfo.RepoMap
+	repos map[string]*repograph.Graph
 
 	// tradefedLiveness is a metric for the time since last successful run through step().
 	tradefedLiveness = metrics2.NewLiveness("android-internal-ingest", nil)
@@ -218,9 +218,11 @@ func ingestBuild(build *buildbot.Build, commitHash, target string) error {
 func step(targets []string, buildService *androidbuildinternal.Service) {
 	glog.Infof("step: Begin")
 
-	if err := repos.Update(); err != nil {
-		glog.Errorf("Failed to update repos: %s", err)
-		return
+	for _, repo := range repos {
+		if err := repo.Update(); err != nil {
+			glog.Errorf("Failed to update repos: %s", err)
+			return
+		}
 	}
 	// Loop over every target and look for skia commits in the builds.
 	for _, target := range targets {
@@ -526,10 +528,12 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		glog.Errorf("Failed to encode properties: %s", err)
 	}
-	if err := repos.Update(); err != nil {
-		glog.Errorf("Failed to update repos: %s", err)
-		httputils.ReportError(w, r, nil, "Failed to update repos.")
-		return
+	for _, repo := range repos {
+		if err := repo.Update(); err != nil {
+			glog.Errorf("Failed to update repos: %s", err)
+			httputils.ReportError(w, r, nil, "Failed to update repos.")
+			return
+		}
 	}
 	if err := ingestBuild(b, commitHash, target); err != nil {
 		glog.Errorf("Failed to ingest build: %s", err)
@@ -545,44 +549,40 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 // ingestBuildWebhookCodenames. This metric records the age of the oldest commit for which we have
 // not ingested a build. Returns an error if any metric was not updated.
 func updateWebhookMetrics() error {
-	if err := repos.Update(); err != nil {
-		return err
+	for _, repo := range repos {
+		if err := repo.Update(); err != nil {
+			return err
+		}
 	}
-	repo, err := repos.Repo(common.REPO_SKIA)
-	if err != nil {
-		return err
+	repo, ok := repos[common.REPO_SKIA]
+	if !ok {
+		return fmt.Errorf("Unknown repo: %s", common.REPO_SKIA)
 	}
-	commitHashes := repo.LastN(100)
-	N := len(commitHashes)
 	for codename, _ := range ingestBuildWebhookCodenames {
-		var untestedCommitInfo *vcsinfo.LongCommit = nil
-		for i := 0; i < N; i++ {
-			// commitHashes is ordered oldest to newest.
-			commitHash := commitHashes[N-i-1]
-			buildNumber, err := db.GetBuildNumberForCommit(FAKE_MASTER, codename, commitHash)
+		var untestedCommitInfo *repograph.Commit = nil
+		if err := repo.Get("master").Recurse(func(c *repograph.Commit) (bool, error) {
+			buildNumber, err := db.GetBuildNumberForCommit(FAKE_MASTER, codename, c.Hash)
 			if err != nil {
-				return err
+				return false, err
 			}
 			if buildNumber == -1 {
-				commitInfo, err := repo.Details(commitHash, true)
-				if err != nil {
-					return err
-				}
-				if commitInfo.Branches["master"] {
-					untestedCommitInfo = commitInfo
-				}
+				untestedCommitInfo = c
 				// No tests for this commit, check older.
-				continue
+				return true, nil
 			}
-			metric := metrics2.GetInt64Metric("datahopper_internal.ingest-build-webhook.oldest-untested-commit-age", map[string]string{"codename": codename})
-			if untestedCommitInfo == nil {
-				// There are no untested commits.
-				metric.Update(0)
-			} else {
-				metric.Update(int64(time.Since(untestedCommitInfo.Timestamp).Seconds()))
-			}
-			break
+			return false, nil
+		}); err != nil {
+			return err
 		}
+
+		metric := metrics2.GetInt64Metric("datahopper_internal.ingest-build-webhook.oldest-untested-commit-age", map[string]string{"codename": codename})
+		if untestedCommitInfo == nil {
+			// There are no untested commits.
+			metric.Update(0)
+		} else {
+			metric.Update(int64(time.Since(untestedCommitInfo.Timestamp).Seconds()))
+		}
+		break
 	}
 	return nil
 }
@@ -651,14 +651,14 @@ func main() {
 		webhook.MustInitRequestSaltFromMetadata()
 	}
 
-	repos = gitinfo.NewRepoMap(*workdir)
+	repos = map[string]*repograph.Graph{}
+
 	// Ensure Skia repo is cloned and updated.
-	if _, err := repos.Repo(common.REPO_SKIA); err != nil {
+	skiaRepo, err := repograph.NewGraph(common.REPO_SKIA, *workdir)
+	if err != nil {
 		glog.Fatalf("Unable to clone Skia repo at %s: %s", common.REPO_SKIA, err)
 	}
-	if err := repos.Update(); err != nil {
-		glog.Fatalf("Failed to update repos: %s", err)
-	}
+	repos[common.REPO_SKIA] = skiaRepo
 
 	// Initialize and start metrics.
 	for codename, _ := range ingestBuildWebhookCodenames {
