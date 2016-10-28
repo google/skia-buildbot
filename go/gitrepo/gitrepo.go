@@ -210,7 +210,7 @@ func (r *Repo) Update() error {
 	// Load all commits from the repo.
 	glog.Infof("  Loading commits...")
 	for _, b := range r.branches {
-		commits, err := r.repo.RevList(b.Name)
+		commits, err := r.repo.RevList(b.Head)
 		if err != nil {
 			return fmt.Errorf("Failed to 'git rev-list' for gitrepo.Repo: %s", err)
 		}
@@ -245,7 +245,7 @@ func (r *Repo) Update() error {
 	if err := f.Close(); err != nil {
 		return err
 	}
-	glog.Infof("  Done.")
+	glog.Infof("  Done. Repo has %d commits.", len(r.commits))
 	return nil
 }
 

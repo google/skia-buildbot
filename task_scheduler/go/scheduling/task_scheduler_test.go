@@ -1596,6 +1596,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	repoDir := path.Join(tr.Dir, repoName)
 	testutils.Run(t, repoDir, "git", "checkout", "master")
 	makeDummyCommits(t, repoDir, 10, "master")
+	assert.NoError(t, s.repos[repoName].Repo().Update())
 	commits, err := s.repos[repoName].Repo().RevList("HEAD")
 	assert.NoError(t, err)
 
@@ -1792,6 +1793,7 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	// Add some commits to the repo.
 	testutils.Run(t, repoDir, "git", "checkout", "master")
 	makeDummyCommits(t, repoDir, 8, "master")
+	assert.NoError(t, s.repos[repoName].Repo().Update())
 	commits, err := s.repos[repoName].Repo().RevList(fmt.Sprintf("%s..HEAD", head))
 	assert.Nil(t, err)
 	assert.Equal(t, 8, len(commits))
