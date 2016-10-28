@@ -17,7 +17,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gitrepo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/swarming"
@@ -146,9 +146,9 @@ func setup(t *testing.T) (*util.TempRepo, db.DB, *swarming.TestClient, *TaskSche
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
 	urlMock := mockhttpclient.NewURLMock()
-	repo, err := gitrepo.NewRepo(repoName, tr.Dir)
+	repo, err := repograph.NewGraph(repoName, tr.Dir)
 	assert.NoError(t, err)
-	repos := map[string]*gitrepo.Repo{
+	repos := map[string]*repograph.Graph{
 		repoName: repo,
 	}
 	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), tr.Dir, repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping)
@@ -515,7 +515,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 
 	cache := newCacheWrapper(s.tCache)
 	now := time.Unix(0, 1470674884000000)
-	commitsBuf := make([]*gitrepo.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
+	commitsBuf := make([]*repograph.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
 
 	// Try job candidates have a specific score and no blamelist.
 	c := &taskCandidate{
@@ -858,10 +858,10 @@ func TestComputeBlamelist(t *testing.T) {
 
 	name := "Test-Ubuntu12-ShuttleA-GTX660-x86-Release"
 	repoDir, repoName := path.Split(tr.Dir())
-	repo, err := gitrepo.NewRepo(repoName, repoDir)
+	repo, err := repograph.NewGraph(repoName, repoDir)
 	assert.NoError(t, err)
 	ids := []string{}
-	commitsBuf := make([]*gitrepo.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
+	commitsBuf := make([]*repograph.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
 	test := func(tc *testCase) {
 		// Update the repo.
 		assert.NoError(t, repo.Update())
@@ -1763,9 +1763,9 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	assert.NoError(t, err)
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
-	repo, err := gitrepo.NewRepo(repoName, workdir)
+	repo, err := repograph.NewGraph(repoName, workdir)
 	assert.NoError(t, err)
-	repos := map[string]*gitrepo.Repo{
+	repos := map[string]*repograph.Graph{
 		repoName: repo,
 	}
 	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping)

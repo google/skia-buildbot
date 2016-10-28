@@ -1,7 +1,7 @@
-package gitrepo
+package repograph
 
 /*
-   The gitrepo package provides an in-memory representation of an entire Git repo.
+   The repograph package provides an in-memory representation of an entire Git repo.
 */
 
 import (
@@ -28,7 +28,7 @@ const (
 type Commit struct {
 	*vcsinfo.LongCommit
 	ParentIndices []int
-	repo          *Repo
+	repo          *Graph
 }
 
 // Parents returns the parents of this commit.
@@ -93,8 +93,8 @@ func (c *Commit) recurse(f func(*Commit) (bool, error), visited map[*Commit]bool
 	return nil
 }
 
-// Repo represents an entire Git repo.
-type Repo struct {
+// Graph represents an entire Git repo.
+type Graph struct {
 	branches    []*git.Branch
 	commits     map[string]int
 	commitsData []*Commit
@@ -102,15 +102,15 @@ type Repo struct {
 	repo        *git.Repo
 }
 
-// gobRepo is a utility struct used for serializing a Repo using gob.
-type gobRepo struct {
+// gobGraph is a utility struct used for serializing a Graph using gob.
+type gobGraph struct {
 	Commits     map[string]int
 	CommitsData []*Commit
 }
 
-// New returns a Repo instance which uses the given git.Repo.
-func New(repo *git.Repo) (*Repo, error) {
-	rv := &Repo{
+// New returns a Graph instance which uses the given git.Graph.
+func New(repo *git.Repo) (*Graph, error) {
+	rv := &Graph{
 		commits:     map[string]int{},
 		commitsData: []*Commit{},
 		repo:        repo,
@@ -119,7 +119,7 @@ func New(repo *git.Repo) (*Repo, error) {
 	cacheFile := path.Join(repo.Dir(), CACHE_FILE)
 	f, err := os.Open(cacheFile)
 	if err == nil {
-		var r gobRepo
+		var r gobGraph
 		if err := gob.NewDecoder(f).Decode(&r); err != nil {
 			util.Close(f)
 			return nil, err
@@ -139,8 +139,8 @@ func New(repo *git.Repo) (*Repo, error) {
 	return rv, nil
 }
 
-// NewRepo returns a Repo instance, creating a git.Repo from the repoUrl and workdir.
-func NewRepo(repoUrl, workdir string) (*Repo, error) {
+// NewGraph returns a Graph instance, creating a git.Repo from the repoUrl and workdir.
+func NewGraph(repoUrl, workdir string) (*Graph, error) {
 	repo, err := git.NewRepo(repoUrl, workdir)
 	if err != nil {
 		return nil, err
@@ -149,14 +149,14 @@ func NewRepo(repoUrl, workdir string) (*Repo, error) {
 }
 
 // Repo returns the underlying git.Repo object.
-func (r *Repo) Repo() *git.Repo {
+func (r *Graph) Repo() *git.Repo {
 	return r.repo
 }
 
-func (r *Repo) addCommit(hash string) error {
+func (r *Graph) addCommit(hash string) error {
 	d, err := r.repo.Details(hash)
 	if err != nil {
-		return fmt.Errorf("gitrepo.Repo: Failed to obtain Git commit details: %s", err)
+		return fmt.Errorf("repograph.Graph: Failed to obtain Git commit details: %s", err)
 	}
 
 	var parents []int
@@ -168,7 +168,7 @@ func (r *Repo) addCommit(hash string) error {
 			}
 			p, ok := r.commits[h]
 			if !ok {
-				return fmt.Errorf("gitrepo.Repo: Could not find parent commit %q", h)
+				return fmt.Errorf("repograph.Graph: Could not find parent commit %q", h)
 			}
 			parentIndices = append(parentIndices, p)
 		}
@@ -188,22 +188,22 @@ func (r *Repo) addCommit(hash string) error {
 }
 
 // Update syncs the local copy of the repo and loads new commits/branches into
-// the Repo object.
-func (r *Repo) Update() error {
+// the Graph object.
+func (r *Graph) Update() error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 
 	// Update the local copy.
-	glog.Infof("Updating gitrepo.Repo...")
+	glog.Infof("Updating repograph.Graph...")
 	if err := r.repo.Update(); err != nil {
-		return fmt.Errorf("Failed to update gitrepo.Repo: %s", err)
+		return fmt.Errorf("Failed to update repograph.Graph: %s", err)
 	}
 
 	// Obtain the list of branches.
 	glog.Info("  Getting branches...")
 	branches, err := r.repo.Branches()
 	if err != nil {
-		return fmt.Errorf("Failed to get branches for gitrepo.Repo: %s", err)
+		return fmt.Errorf("Failed to get branches for repograph.Graph: %s", err)
 	}
 	r.branches = branches
 
@@ -212,7 +212,7 @@ func (r *Repo) Update() error {
 	for _, b := range r.branches {
 		commits, err := r.repo.RevList(b.Head)
 		if err != nil {
-			return fmt.Errorf("Failed to 'git rev-list' for gitrepo.Repo: %s", err)
+			return fmt.Errorf("Failed to 'git rev-list' for repograph.Graph: %s", err)
 		}
 		for i := len(commits) - 1; i >= 0; i-- {
 			hash := commits[i]
@@ -235,7 +235,7 @@ func (r *Repo) Update() error {
 	if err != nil {
 		return err
 	}
-	if err := gob.NewEncoder(f).Encode(gobRepo{
+	if err := gob.NewEncoder(f).Encode(gobGraph{
 		Commits:     r.commits,
 		CommitsData: r.commitsData,
 	}); err != nil {
@@ -245,12 +245,12 @@ func (r *Repo) Update() error {
 	if err := f.Close(); err != nil {
 		return err
 	}
-	glog.Infof("  Done. Repo has %d commits.", len(r.commits))
+	glog.Infof("  Done. Graph has %d commits.", len(r.commits))
 	return nil
 }
 
 // Branches returns the list of known branches in the repo.
-func (r *Repo) Branches() []string {
+func (r *Graph) Branches() []string {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	rv := make([]string, 0, len(r.branches))
@@ -263,7 +263,7 @@ func (r *Repo) Branches() []string {
 // Get returns a Commit object for the given ref, if such a commit exists. This
 // function does not understand complex ref types (eg. HEAD~3); only branch
 // names and full commit hashes are accepted.
-func (r *Repo) Get(ref string) *Commit {
+func (r *Graph) Get(ref string) *Commit {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	if c, ok := r.commits[ref]; ok {
@@ -292,7 +292,7 @@ func (r *Repo) Get(ref string) *Commit {
 //      glog.Info(c.Hash)
 //      return true, nil
 // })
-func (r *Repo) RecurseAllBranches(f func(*Commit) (bool, error)) error {
+func (r *Graph) RecurseAllBranches(f func(*Commit) (bool, error)) error {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	visited := make(map[*Commit]bool, len(r.commitsData))

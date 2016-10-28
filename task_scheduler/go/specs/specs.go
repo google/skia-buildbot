@@ -13,7 +13,7 @@ import (
 	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/gitrepo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
@@ -246,11 +246,11 @@ type TaskCfgCache struct {
 	recentJobSpecs  map[string]time.Time
 	recentMtx       sync.RWMutex
 	recentTaskSpecs map[string]time.Time
-	repos           map[string]*gitrepo.Repo
+	repos           map[string]*repograph.Graph
 }
 
 // NewTaskCfgCache returns a TaskCfgCache instance.
-func NewTaskCfgCache(repos map[string]*gitrepo.Repo) *TaskCfgCache {
+func NewTaskCfgCache(repos map[string]*repograph.Graph) *TaskCfgCache {
 	return &TaskCfgCache{
 		cache:           map[db.RepoState]*TasksCfg{},
 		mtx:             sync.Mutex{},

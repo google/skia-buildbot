@@ -13,7 +13,7 @@ import (
 	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbucket"
-	"go.skia.org/infra/go/gitrepo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -63,12 +63,12 @@ type TryJobIntegrator struct {
 	db                 db.JobDB
 	jCache             db.JobCache
 	projectRepoMapping map[string]string
-	rm                 map[string]*gitrepo.Repo
+	rm                 map[string]*repograph.Graph
 	taskCfgCache       *specs.TaskCfgCache
 }
 
 // NewTryJobIntegrator returns a TryJobIntegrator instance.
-func NewTryJobIntegrator(apiUrl, bucket string, c *http.Client, d db.JobDB, cache db.JobCache, projectRepoMapping map[string]string, rm map[string]*gitrepo.Repo, taskCfgCache *specs.TaskCfgCache) (*TryJobIntegrator, error) {
+func NewTryJobIntegrator(apiUrl, bucket string, c *http.Client, d db.JobDB, cache db.JobCache, projectRepoMapping map[string]string, rm map[string]*repograph.Graph, taskCfgCache *specs.TaskCfgCache) (*TryJobIntegrator, error) {
 	bb, err := buildbucket_api.New(c)
 	if err != nil {
 		return nil, err
@@ -181,7 +181,7 @@ func (t *TryJobIntegrator) sendHeartbeats(now time.Time) error {
 	return nil
 }
 
-func (t *TryJobIntegrator) getRepo(project string) (string, *gitrepo.Repo, error) {
+func (t *TryJobIntegrator) getRepo(project string) (string, *repograph.Graph, error) {
 	url, ok := t.projectRepoMapping[project]
 	if !ok {
 		return "", nil, fmt.Errorf("Unknown patch project %q", project)
@@ -193,7 +193,7 @@ func (t *TryJobIntegrator) getRepo(project string) (string, *gitrepo.Repo, error
 	return url, r, nil
 }
 
-func (t *TryJobIntegrator) getRevision(repo *gitrepo.Repo, revision string) (string, error) {
+func (t *TryJobIntegrator) getRevision(repo *repograph.Graph, revision string) (string, error) {
 	if revision == "" || revision == "HEAD" || revision == "origin/master" {
 		revision = "master"
 	}

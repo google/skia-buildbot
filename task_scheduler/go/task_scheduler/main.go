@@ -16,7 +16,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/gitrepo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/influxdb"
@@ -64,7 +64,7 @@ var (
 	ts *scheduling.TaskScheduler
 
 	// Git repo objects.
-	repos map[string]*gitrepo.Repo
+	repos map[string]*repograph.Graph
 
 	// HTML templates.
 	blacklistTemplate *template.Template = nil
@@ -412,9 +412,9 @@ func main() {
 	defer util.Close(d)
 
 	// Git repos.
-	repos = make(map[string]*gitrepo.Repo, len(REPOS))
+	repos = make(map[string]*repograph.Graph, len(REPOS))
 	for _, r := range REPOS {
-		repo, err := gitrepo.NewRepo(r, wdAbs)
+		repo, err := repograph.NewGraph(r, wdAbs)
 		if err != nil {
 			glog.Fatal(err)
 		}

@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gitrepo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
@@ -102,10 +102,10 @@ func setup(t *testing.T) (*TryJobIntegrator, *mockhttpclient.URLMock, func()) {
 	tmpDir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
-	repo, err := gitrepo.NewRepo(gb.Dir(), tmpDir)
+	repo, err := repograph.NewGraph(gb.Dir(), tmpDir)
 	assert.NoError(t, err)
 
-	rm := map[string]*gitrepo.Repo{
+	rm := map[string]*repograph.Graph{
 		repoName: repo,
 	}
 
