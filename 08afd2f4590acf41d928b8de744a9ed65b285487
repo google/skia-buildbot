@@ -1,0 +1,193 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a1dd08a2_6c839352",
+        "filename": "golden/go/issuestore/issuestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-28T13:23:24Z",
+      "side": 1,
+      "message": "Does this return true/false if it succeeded?  Are you worried about partial adding?",
+      "revId": "08afd2f4590acf41d928b8de744a9ed65b285487",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "81b56446_26788735",
+        "filename": "golden/go/issuestore/issuestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-28T13:23:24Z",
+      "side": 1,
+      "message": "assessing?",
+      "range": {
+        "startLine": 158,
+        "startChar": 10,
+        "endLine": 158,
+        "endChar": 16
+      },
+      "revId": "08afd2f4590acf41d928b8de744a9ed65b285487",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "81ce44ee_e37e695b",
+        "filename": "golden/go/issuestore/issuestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-28T13:23:24Z",
+      "side": 1,
+      "message": "You may consider using named result params if it makes the code shorter and clearer.\nhttps://golang.org/doc/effective_go.html#named-results",
+      "revId": "08afd2f4590acf41d928b8de744a9ed65b285487",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "868bbadf_0f7e111f",
+        "filename": "golden/go/issuestore/issuestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-28T13:23:24Z",
+      "side": 1,
+      "message": "there",
+      "range": {
+        "startLine": 191,
+        "startChar": 57,
+        "endLine": 191,
+        "endChar": 67
+      },
+      "revId": "08afd2f4590acf41d928b8de744a9ed65b285487",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a6eefe70_03b6c58d",
+        "filename": "golden/go/issuestore/issuestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-28T13:23:24Z",
+      "side": 1,
+      "message": "I don\u0027t think you need the if statement, right?  The for loop won\u0027t do anything if offset \u003d\u003d 0",
+      "range": {
+        "startLine": 196,
+        "startChar": 2,
+        "endLine": 196,
+        "endChar": 17
+      },
+      "revId": "08afd2f4590acf41d928b8de744a9ed65b285487",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c1667cd0_ba4046a4",
+        "filename": "golden/go/issuestore/issuestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-28T13:23:24Z",
+      "side": 1,
+      "message": "Maybe just return tx.CreateBucket... for the last one?  See also line 367",
+      "revId": "08afd2f4590acf41d928b8de744a9ed65b285487",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "868bbadf_6f947d1e",
+        "filename": "golden/go/issuestore/issuestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-28T13:23:24Z",
+      "side": 1,
+      "message": "(op \u003d\u003d subtractOP || op \u003d\u003d deleteOP) \u0026\u0026 issueBytes \u003d\u003d nil\n\n(drop inner parens)",
+      "range": {
+        "startLine": 288,
+        "startChar": 5,
+        "endLine": 288,
+        "endChar": 66
+      },
+      "revId": "08afd2f4590acf41d928b8de744a9ed65b285487",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "21c918eb_5d82b6e8",
+        "filename": "golden/go/issuestore/issuestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-28T13:23:24Z",
+      "side": 1,
+      "message": "drop extra parens, and on lines 319 and 324",
+      "range": {
+        "startLine": 314,
+        "startChar": 5,
+        "endLine": 314,
+        "endChar": 18
+      },
+      "revId": "08afd2f4590acf41d928b8de744a9ed65b285487",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "81b56446_66abaf5f",
+        "filename": "golden/go/issuestore/issuestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 391,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-10-28T13:23:24Z",
+      "side": 1,
+      "message": "Add a comment that the result ends up in tgt and what the boolean return value means.\nSame for removeStrings.",
+      "range": {
+        "startLine": 391,
+        "startChar": 63,
+        "endLine": 391,
+        "endChar": 64
+      },
+      "revId": "08afd2f4590acf41d928b8de744a9ed65b285487",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
