@@ -13,7 +13,7 @@ import (
 	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/gitrepo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -72,9 +72,9 @@ func TestTaskSpecs(t *testing.T) {
 	defer tr.Cleanup()
 
 	repoUrl := path.Join(tr.Dir, repoName)
-	repo, err := gitrepo.NewRepo(repoUrl, tr.Dir)
+	repo, err := repograph.NewGraph(repoUrl, tr.Dir)
 	assert.NoError(t, err)
-	repos := map[string]*gitrepo.Repo{
+	repos := map[string]*repograph.Graph{
 		repoUrl: repo,
 	}
 	cache := NewTaskCfgCache(repos)
@@ -128,9 +128,9 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	defer tr.Cleanup()
 
 	repoUrl := path.Join(tr.Dir, repoName)
-	repo, err := gitrepo.NewRepo(repoUrl, tr.Dir)
+	repo, err := repograph.NewGraph(repoUrl, tr.Dir)
 	assert.NoError(t, err)
-	repos := map[string]*gitrepo.Repo{
+	repos := map[string]*repograph.Graph{
 		repoUrl: repo,
 	}
 	cache := NewTaskCfgCache(repos)
@@ -288,7 +288,7 @@ PROJECT: skia`)
 	return gb, c1, c2
 }
 
-func tempGitRepoTests(t *testing.T, repo *gitrepo.Repo, cases map[db.RepoState]error) {
+func tempGitRepoTests(t *testing.T, repo *repograph.Graph, cases map[db.RepoState]error) {
 	for rs, expectErr := range cases {
 		c, err := TempGitRepo(repo.Repo(), rs)
 		if expectErr != nil {
@@ -330,7 +330,7 @@ func TestTempGitRepo(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
-	repo, err := gitrepo.NewRepo(gb.Dir(), tmpDir)
+	repo, err := repograph.NewGraph(gb.Dir(), tmpDir)
 	assert.NoError(t, err)
 
 	cases := map[db.RepoState]error{
@@ -368,7 +368,7 @@ func TestTempGitRepoPatch(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
-	repo, err := gitrepo.NewRepo(gb.Dir(), tmpDir)
+	repo, err := repograph.NewGraph(gb.Dir(), tmpDir)
 	assert.NoError(t, err)
 
 	// TODO(borenet): Also upload to Gerrit and verify that we can apply

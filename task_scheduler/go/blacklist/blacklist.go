@@ -10,7 +10,7 @@ import (
 	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/buildbot"
-	"go.skia.org/infra/go/gitrepo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/util"
 )
 
@@ -109,7 +109,7 @@ func (b *Blacklist) writeOut() error {
 }
 
 // Add adds a new Rule to the Blacklist.
-func (b *Blacklist) AddRule(r *Rule, repos map[string]*gitrepo.Repo) error {
+func (b *Blacklist) AddRule(r *Rule, repos map[string]*repograph.Graph) error {
 	if err := ValidateRule(r, repos); err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func (b *Blacklist) addRule(r *Rule) error {
 }
 
 // findCommit finds the repo for the given commit.
-func findCommit(c string, repos map[string]*gitrepo.Repo) (string, error) {
+func findCommit(c string, repos map[string]*repograph.Graph) (string, error) {
 	for repoName, r := range repos {
 		commit := r.Get(c)
 		if commit != nil && commit.Hash == c {
@@ -143,7 +143,7 @@ func findCommit(c string, repos map[string]*gitrepo.Repo) (string, error) {
 }
 
 // NewCommitRangeRule creates a new Rule which covers a range of commits.
-func NewCommitRangeRule(name, user, description string, taskSpecPatterns []string, startCommit, endCommit string, repos map[string]*gitrepo.Repo) (*Rule, error) {
+func NewCommitRangeRule(name, user, description string, taskSpecPatterns []string, startCommit, endCommit string, repos map[string]*repograph.Graph) (*Rule, error) {
 	repoName, err := findCommit(startCommit, repos)
 	if err != nil {
 		return nil, err
@@ -239,7 +239,7 @@ type Rule struct {
 }
 
 // ValidateRule returns an error if the given Rule is not valid.
-func ValidateRule(r *Rule, repos map[string]*gitrepo.Repo) error {
+func ValidateRule(r *Rule, repos map[string]*repograph.Graph) error {
 	if r.Name == "" {
 		return fmt.Errorf("Rules must have a name.")
 	}

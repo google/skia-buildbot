@@ -1,4 +1,4 @@
-package gitrepo
+package repograph
 
 import (
 	"fmt"

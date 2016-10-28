@@ -16,7 +16,7 @@ import (
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot"
-	"go.skia.org/infra/go/gitrepo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/swarming"
@@ -53,7 +53,7 @@ type TaskScheduler struct {
 	period           time.Duration
 	queue            []*taskCandidate // protected by queueMtx.
 	queueMtx         sync.RWMutex
-	repos            map[string]*gitrepo.Repo
+	repos            map[string]*repograph.Graph
 	swarming         swarming.ApiClient
 	taskCfgCache     *specs.TaskCfgCache
 	tCache           db.TaskCache
@@ -61,7 +61,7 @@ type TaskScheduler struct {
 	tryjobs          *tryjobs.TryJobIntegrator
 }
 
-func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repos map[string]*gitrepo.Repo, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string) (*TaskScheduler, error) {
+func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repos map[string]*repograph.Graph, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		return nil, err
@@ -184,12 +184,12 @@ func (s *TaskScheduler) Trigger(repo, commit, jobName string) (string, error) {
 //
 // Args:
 //   - cache:      TaskCache instance.
-//   - repo:       gitrepo.Repo instance corresponding to the repository of the task.
+//   - repo:       repograph.Graph instance corresponding to the repository of the task.
 //   - taskName:   Name of the task.
 //   - repoName:   Name of the repository for the task.
 //   - revision:   Revision at which the task would run.
 //   - commitsBuf: Buffer for use as scratch space.
-func ComputeBlamelist(cache db.TaskCache, repo *gitrepo.Repo, taskName, repoName string, revision *gitrepo.Commit, commitsBuf []*gitrepo.Commit) ([]string, *db.Task, error) {
+func ComputeBlamelist(cache db.TaskCache, repo *repograph.Graph, taskName, repoName string, revision *repograph.Commit, commitsBuf []*repograph.Commit) ([]string, *db.Task, error) {
 	// If this is the first invocation of a given task spec, don't bother
 	// searching for commits. We only want to trigger new bots at branch
 	// heads, so if the passed-in revision is a branch head, return it as
@@ -207,7 +207,7 @@ func ComputeBlamelist(cache db.TaskCache, repo *gitrepo.Repo, taskName, repoName
 	var stealFrom *db.Task
 
 	// Run the helper function to recurse on commit history.
-	if err := revision.Recurse(func(commit *gitrepo.Commit) (bool, error) {
+	if err := revision.Recurse(func(commit *repograph.Commit) (bool, error) {
 		// Determine whether any task already includes this commit.
 		prev, err := cache.GetTaskForCommit(repoName, commit.Hash, taskName)
 		if err != nil {
@@ -385,7 +385,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 
 // processTaskCandidate computes the remaining information about the task
 // candidate, eg. blamelists and scoring.
-func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*gitrepo.Commit) error {
+func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*repograph.Commit) error {
 	if c.IsTryJob() {
 		c.Score = CANDIDATE_SCORE_TRY_JOB + now.Sub(c.JobCreated).Hours()
 		return nil
@@ -457,7 +457,7 @@ func (s *TaskScheduler) processTaskCandidates(candidates map[string]map[string][
 			go func(candidates []*taskCandidate) {
 				defer wg.Done()
 				cache := newCacheWrapper(s.tCache)
-				commitsBuf := make([]*gitrepo.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
+				commitsBuf := make([]*repograph.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
 				for {
 					// Find the best candidate.
 					idx := -1
@@ -801,7 +801,7 @@ func (s *TaskScheduler) gatherNewJobs() error {
 	now := time.Now()
 	newJobs := []*db.Job{}
 	for repoUrl, r := range s.repos {
-		if err := r.RecurseAllBranches(func(c *gitrepo.Commit) (bool, error) {
+		if err := r.RecurseAllBranches(func(c *repograph.Commit) (bool, error) {
 			if now.Add(-s.period).After(c.Timestamp) {
 				return false, nil
 			}
@@ -948,7 +948,7 @@ func timeDecay24Hr(decayAmt24Hr float64, elapsed time.Duration) float64 {
 // timeDecayForCommit computes a multiplier for a task candidate score based
 // on how long ago the given commit landed. This allows us to prioritize more
 // recent commits.
-func (s *TaskScheduler) timeDecayForCommit(now time.Time, commit *gitrepo.Commit) (float64, error) {
+func (s *TaskScheduler) timeDecayForCommit(now time.Time, commit *repograph.Commit) (float64, error) {
 	if s.timeDecayAmt24Hr == 1.0 {
 		// Shortcut for special case.
 		return 1.0, nil
