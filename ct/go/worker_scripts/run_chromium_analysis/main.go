@@ -5,6 +5,7 @@ package main
 import (
 	"flag"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -59,6 +60,11 @@ func main() {
 	// Reset the local chromium checkout.
 	if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
 		glog.Fatalf("Could not reset %s: %s", util.ChromiumSrcDir, err)
+	}
+	// Clean up any left over lock files from sync errors of previous runs.
+	err := os.Remove(filepath.Join(util.ChromiumSrcDir, ".git", "index.lock"))
+	if err != nil {
+		glog.Info("No index.lock file found.")
 	}
 	// Parse out the Chromium and Skia hashes.
 	chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuild)
