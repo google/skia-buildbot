@@ -1,0 +1,273 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e60e367c_86dc6ccb",
+        "filename": "build_scheduler/go/build_queue/build_queue.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-31T03:23:40Z",
+      "side": 1,
+      "message": "nit: maybe add Hashes method to repograph.CommitSlice?",
+      "range": {
+        "startLine": 269,
+        "startChar": 0,
+        "endLine": 272,
+        "endChar": 2
+      },
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e60e367c_462714e6",
+        "filename": "build_scheduler/go/build_queue/build_queue_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-31T03:23:40Z",
+      "side": 1,
+      "message": "unused",
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e60e367c_8638ec02",
+        "filename": "build_scheduler/go/build_scheduler/build_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-31T03:23:40Z",
+      "side": 1,
+      "message": "nit: :\u003d, remove declaration above",
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e60e367c_06187c98",
+        "filename": "build_scheduler/go/build_scheduler/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-31T03:23:40Z",
+      "side": 1,
+      "message": "nit: maybe add repograph.NewMap to encapsulate this, since there are at least two places in this CL that look similar to this and also one in task_scheduler.\n\nIf you decide to do that, you might also consider making a typedef \"type Map map[string]*Graph\" and adding methods FindCommit (FindCommitInGraphs) and Update (calls update on each value).",
+      "range": {
+        "startLine": 317,
+        "startChar": 0,
+        "endLine": 324,
+        "endChar": 2
+      },
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e60e367c_661df088",
+        "filename": "datahopper_internal/go/datahopper_internal/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 533,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-31T03:23:40Z",
+      "side": 1,
+      "message": "nit: next line does logging again; can pass err instead of nil",
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e60e367c_8603cc2a",
+        "filename": "go/buildbot/buildbot_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-31T03:23:40Z",
+      "side": 1,
+      "message": "nit: seems a little fragile, e.g. if new fields get added to git.Repo",
+      "range": {
+        "startLine": 150,
+        "startChar": 28,
+        "endLine": 150,
+        "endChar": 88
+      },
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e60e367c_c60dc457",
+        "filename": "go/buildbot/ingest.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-31T03:23:40Z",
+      "side": 1,
+      "message": "nit: Seems like FindCommitsInGraph",
+      "range": {
+        "startLine": 253,
+        "startChar": 0,
+        "endLine": 258,
+        "endChar": 3
+      },
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e60e367c_26fad807",
+        "filename": "go/buildbot/ingest.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 640,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-31T03:23:40Z",
+      "side": 1,
+      "message": "missing wg.Add\n\n(It worked fine before because the \"defer wg.Done()\" never happened and the Wait() returned immediately.)",
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e60e367c_06d19cb4",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-31T03:23:40Z",
+      "side": 1,
+      "message": "nit: \"InGraphs\" is a tiny bit repetitive given package prefix.",
+      "range": {
+        "startLine": 320,
+        "startChar": 3,
+        "endLine": 320,
+        "endChar": 21
+      },
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e60e367c_c6bf845f",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-31T03:23:40Z",
+      "side": 1,
+      "message": "nit: doc doesn\u0027t describe all return values",
+      "range": {
+        "startLine": 320,
+        "startChar": 34,
+        "endLine": 320,
+        "endChar": 58
+      },
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e60e367c_26cc9820",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-31T03:23:40Z",
+      "side": 1,
+      "message": "nit: maybe say error is returned iff hash isn\u0027t found in any of repos.",
+      "range": {
+        "startLine": 321,
+        "startChar": 15,
+        "endLine": 321,
+        "endChar": 27
+      },
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e60e367c_66c69000",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-31T03:23:40Z",
+      "side": 1,
+      "message": "nit: unit test would be nice",
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e60e367c_46cb9406",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-31T03:23:40Z",
+      "side": 1,
+      "message": "nit: err.Error() contains user-supplied msg.Commit without quoting, which in theory could be used in XSS attack.\n\nSorry, I should have noticed that in previous review.\n\nIf you fix by changing %s to %q in FindCommitInGraphs, maybe also mention in doc that the returned error is safe for HTTP responses.",
+      "range": {
+        "startLine": 257,
+        "startChar": 35,
+        "endLine": 257,
+        "endChar": 46
+      },
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
