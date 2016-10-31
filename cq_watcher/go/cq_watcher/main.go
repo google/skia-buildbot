@@ -70,6 +70,25 @@ func monitorStatsForInFlightCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit
 				continue
 			}
 		}
+		// If no CLs are currently in the CQ then report dummy data to prevent
+		// "Failed to execute query for rule..." failures in the alertserver.
+		if len(changes) == 0 {
+			currentTime := time.Now()
+			dummyIssue := "0"
+			dummyPatchsetId := "0"
+			dummyTrybot := "DummyTrybot"
+			durationTags := map[string]string{
+				"issue":    dummyIssue,
+				"patchset": dummyPatchsetId,
+				"trybot":   dummyTrybot,
+			}
+			metrics2.RawAddInt64PointAtTime(fmt.Sprintf("%s.%s.%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_TRYBOT_DURATION), durationTags, 0, currentTime)
+			numTags := map[string]string{
+				"issue":    dummyIssue,
+				"patchset": dummyPatchsetId,
+			}
+			metrics2.RawAddInt64PointAtTime(fmt.Sprintf("%s.%s.%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_TRYBOT_NUM), numTags, 0, currentTime)
+		}
 		liveness.Reset()
 	}
 }
