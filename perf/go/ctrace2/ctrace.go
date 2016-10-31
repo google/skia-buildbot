@@ -5,8 +5,15 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/skia-dev/glog"
+
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/kmeans"
+)
+
+const (
+	// CENTROID_KEY is the name for the centroid when it appears as a trace in a DataFrame.
+	CENTROID_KEY = "special_centroid"
 )
 
 // ClusterableTrace contains Trace data and implements kmeans.Clusterable and kmeans.Centroid.
@@ -50,6 +57,8 @@ func NewFullTrace(key string, values []float32, minStdDev float32) *ClusterableT
 	copy(norm, values)
 	vec32.Fill(norm)
 	vec32.Norm(norm, minStdDev)
+	glog.Infof("Before: %#v", values)
+	glog.Infof("After : %#v", norm)
 
 	return &ClusterableTrace{
 		Key:    key,
@@ -72,7 +81,7 @@ func CalculateCentroid(members []kmeans.Clusterable) kmeans.Centroid {
 		mean[i] = mean[i] / numMembers
 	}
 	return &ClusterableTrace{
-		Key:    "I'm a centroid!",
+		Key:    CENTROID_KEY,
 		Values: mean,
 	}
 }
