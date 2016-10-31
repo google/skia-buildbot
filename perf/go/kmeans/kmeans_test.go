@@ -2,6 +2,7 @@ package kmeans
 
 import (
 	"math"
+	"sort"
 	"testing"
 )
 
@@ -100,6 +101,13 @@ func TestLosingCentroids(t *testing.T) {
 	}
 }
 
+// SortableClusterSlice is a utility type for sorting.
+type SortableClusterSlice [][]Clusterable
+
+func (p SortableClusterSlice) Len() int           { return len(p) }
+func (p SortableClusterSlice) Less(i, j int) bool { return len(p[i]) > len(p[j]) } // Sort from largest to smallest.
+func (p SortableClusterSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
 func TestFullKmeans(t *testing.T) {
 	observations := []Clusterable{
 		myObservation{0.0, 0.0},
@@ -118,6 +126,7 @@ func TestFullKmeans(t *testing.T) {
 	centroids = Do(observations, centroids, calculateCentroid)
 	centroids = Do(observations, centroids, calculateCentroid)
 	clusters, _ := GetClusters(observations, centroids)
+	sort.Sort(SortableClusterSlice(clusters))
 	if got, want := len(centroids), 3; got != want {
 		t.Errorf("Wrong length of centroids: Got %d, Want %d", got, want)
 	}
