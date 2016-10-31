@@ -9,12 +9,13 @@
   <link rel=import href="sort.html">
 </head>
 <body>
-    <sort-sk target=stuffToBeSorted>
+    <sort-sk target=stuffToBeSorted node_name=DIV>
       <button data-key="clustersize" data-default=down>Cluster Size </button>
       <button data-key="stepsize">Step Size </button>
     </sort-sk>
 
     <div id=stuffToBeSorted>
+      <p>This doesn't participate in sorting.</p>
       <div data-clustersize=10 data-stepsize=5.5>A</div>
       <div data-clustersize=50 data-stepsize=1.2>B</div>
     </div>
