@@ -8,10 +8,7 @@
 //
 package kmeans
 
-import (
-	"math"
-	"sort"
-)
+import "math"
 
 // Clusterable defines the interface that an object must support to do k-means
 // clustering on it.
@@ -106,7 +103,7 @@ func GetClusters(observations []Clusterable, centroids []Centroid) ([][]Clustera
 		totalError += clusterError
 		r[index] = append(r[index], o)
 	}
-	sort.Sort(SortableClusterSlice(r))
+	//sort.Sort(SortableClusterSlice(r))
 	return r, totalError
 }
 
