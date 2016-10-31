@@ -9,6 +9,8 @@
 
     nocrosshair - If true then the mouse following croshair is hidden.
 
+    specialevents - If true then special lines emit events also.
+
   Events:
     trace_selected - Event produced when the user clicks on a line.
       The e.detail contains the id of the line and the index of the
@@ -169,6 +171,10 @@ work, so we just prefix every rule with plot-simple-sk.
           value: false,
           reflectToAttribute: true,
         },
+        specialevents: {
+          type: Boolean,
+          value: false,
+        },
       },
 
       ready: function() {
@@ -308,7 +314,7 @@ work, so we just prefix every rule with plot-simple-sk.
       // Create an event from this._closest of the given name.
       _eventFromClosest: function(name) {
         var id = this._lineData[this._closest.trace]._id;
-        if (id.startsWith(SPECIAL)) {
+        if (!this.specialevents && id.startsWith(SPECIAL)) {
           return
         }
         var detail = {
