@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "86373a0c_87958589",
+        "filename": "status/res/imp/build-table.css",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-10-31T13:27:19Z",
+      "side": 1,
+      "message": "Nit: Capitalize to be consistent with the other place it is referenced?",
+      "revId": "2e12a374c431017b5a4abb7f0993670326be2fc9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
