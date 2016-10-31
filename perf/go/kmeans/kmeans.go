@@ -8,10 +8,7 @@
 //
 package kmeans
 
-import (
-	"math"
-	"sort"
-)
+import "math"
 
 // Clusterable defines the interface that an object must support to do k-means
 // clustering on it.
@@ -78,13 +75,6 @@ func Do(observations []Clusterable, centroids []Centroid, f CalculateCentroid) [
 	return newCentroids
 }
 
-// SortableClusterSlice is a utility type for sorting.
-type SortableClusterSlice [][]Clusterable
-
-func (p SortableClusterSlice) Len() int           { return len(p) }
-func (p SortableClusterSlice) Less(i, j int) bool { return len(p[i]) > len(p[j]) } // Sort from largest to smallest.
-func (p SortableClusterSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
 // GetClusters returns the observations categorized into the clusters they fit
 // into. The return value is sorted by the number of members of the cluster.
 // The very first element of each cluster is the centroid, the remainging
@@ -106,7 +96,6 @@ func GetClusters(observations []Clusterable, centroids []Centroid) ([][]Clustera
 		totalError += clusterError
 		r[index] = append(r[index], o)
 	}
-	sort.Sort(SortableClusterSlice(r))
 	return r, totalError
 }
 
