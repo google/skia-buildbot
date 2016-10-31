@@ -46,6 +46,9 @@ var (
 func main() {
 	defer common.LogPanic()
 	worker_common.Init()
+	if !*worker_common.Local {
+		defer util.CleanTmpDir()
+	}
 	defer util.TimeTrack(time.Now(), "Running Chromium Perf")
 	defer glog.Flush()
 
