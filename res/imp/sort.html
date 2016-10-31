@@ -33,6 +33,10 @@
   Attributes:
     target - The id of the container element whose children are to be sorted.
 
+    node_name - The type of elements that are being sorted. All other elements
+        will remain unchanged. If the empty string then all child elments are
+        sorted.
+
   Methods:
     None.
 
@@ -65,6 +69,10 @@
         target: {
           type: String,
           value: "",
+        },
+        node_name: {
+          type: String,
+          value: "",
         }
       },
 
@@ -75,7 +83,7 @@
           var ico = document.createElement('iron-icon');
           ico.icon = 'icons:arrow-drop-down';
           ico.style.visibility = 'hidden';
-          Polymer.dom(ele).appendChild(ico); 
+          Polymer.dom(ele).appendChild(ico);
           ele.addEventListener('click', this.clickHandler.bind(this));
         }.bind(this));
 
@@ -117,6 +125,9 @@
         var children = container.children;
         for (var i = 0; i < children.length; i++) {
           var ele = children[i];
+          if (this.node_name != "" && ele.nodeName != this.node_name) {
+            continue;
+          }
           var value = ele.dataset[sortBy];
           if (!alpha) {
             value = +value;
