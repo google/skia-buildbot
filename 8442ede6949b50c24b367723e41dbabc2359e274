@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "86373a0c_8a6aac2c",
+        "filename": "res/imp/sort.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-31T16:35:33Z",
+      "side": 1,
+      "message": "nit: ISTM that all other elements will be moved before the sorted elements.",
+      "range": {
+        "startLine": 36,
+        "startChar": 60,
+        "endLine": 37,
+        "endChar": 30
+      },
+      "revId": "8442ede6949b50c24b367723e41dbabc2359e274",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
