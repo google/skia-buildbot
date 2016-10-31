@@ -16,6 +16,24 @@
       "revId": "2e12a374c431017b5a4abb7f0993670326be2fc9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "86373a0c_c7866d63",
+        "filename": "status/res/imp/build-table.css",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-10-31T13:34:09Z",
+      "side": 1,
+      "message": "Done, although I\u0027m planning to revert tomorrow...",
+      "parentUuid": "86373a0c_87958589",
+      "revId": "2e12a374c431017b5a4abb7f0993670326be2fc9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
