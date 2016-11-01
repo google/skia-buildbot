@@ -27,6 +27,14 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
+const (
+	// SORT_ASC indicates that we want to sort in ascending order.
+	SORT_ASC = "asc"
+
+	// SORT_DESC indicates that we want to sort in descending order.
+	SORT_DESC = "desc"
+)
+
 // Point is a single point. Used in Trace.
 type Point struct {
 	X int `json:"x"` // The commit index [0-49].
@@ -676,6 +684,9 @@ type CTQuery struct {
 
 	// ColumnsDir defines the sort direction for columns.
 	ColumnsDir string `json:"columnsDir"`
+
+	// Metric is the diff metric to use for sorting.
+	Metric string `json:"metric"`
 }
 
 // CTResponse is the structure returned by the CompareTest.
@@ -690,10 +701,6 @@ type CTResponse struct {
 
 // CTGrid contains the grid of diff values returned by CompareTest.
 type CTGrid struct {
-	// Cells contains the column digest and the diff metric compared to the
-	// corresponding row digest.
-	Cells [][]*CTDiffMetrics `json:"cells"`
-
 	// Rows contains the row digest and the number of times it occurs.
 	Rows []*CTRow `json:"rows"`
 
@@ -707,37 +714,45 @@ type CTGrid struct {
 	ColumnsTotal int `json:"columnsTotal"`
 }
 
-// CTRow is used by CTGrid to encode row digest information.
-type CTRow struct {
+// CTDigestCount captures the digest and how often it appears in the tile.
+type CTDigestCount struct {
 	Digest string `json:"digest"`
 	N      int    `json:"n"`
+}
+
+// CTRow is used by CTGrid to encode row digest information.
+type CTRow struct {
+	CTDigestCount
+	Values []*CTDiffMetrics `json:"values"`
 }
 
 // CTDiffMetrics contains diff metric between the contain digest and the
 // corresponding row digest.
 type CTDiffMetrics struct {
 	*diff.DiffMetrics
-	CTRow
+	CTDigestCount
 }
 
-// TODO: Assumes that the test name and the corpus is the identical in both queries.
-
 // CompareTest allows to compare the digests within one test. It assumes that
+
 // the provided instance of CTQuery is consistent in that the row query and
 // column query contain the same test names and the same corpus field.
 func CompareTest(testName string, ctq *CTQuery, storages *storage.Storage, idx *indexer.SearchIndex) (*CTResponse, error) {
+	// Retrieve the row digests.
 	rowDigests, err := filterTile(ctq.RowQuery, testName, storages, idx)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO(stephana): Implement sorting for rows other than the currently
-	// hardcoded sorting by number of occurrences.
-	// If we want to sort by diff results, the function call below has to be moved
-	// after the comparison step.
+	// Build the rows output.
+	rows := getCTRows(rowDigests, testName, ctq.SortRows, ctq.RowsDir, ctq.RowQuery.Limit, idx)
 
-	// Build the rows, sort them and trim them.
-	rows := getSortedRows(rowDigests, testName, ctq.SortRows, ctq.RowsDir, ctq.RowQuery.Limit, idx)
+	// If we sort by image frequency then we can sort and limit now, reducing the
+	// number of diffs we need to make.
+	sortEarly := ctq.SortRows == SORT_FIELD_COUNT
+	if sortEarly {
+		sortAndLimitRows(&rows, ctq.SortRows, ctq.RowsDir, ctq.Metric, ctq.RowQuery.Limit)
+	}
 
 	// Get the column digests conditioned on the result of the row digests.
 	columnDigests, err := filterTileWithMatch(ctq.ColumnQuery, testName, ctq.Match, rowDigests, storages, idx)
@@ -746,16 +761,19 @@ func CompareTest(testName string, ctq *CTQuery, storages *storage.Storage, idx *
 	}
 
 	// Compare the rows in parallel.
-	cells := make([][]*CTDiffMetrics, len(rows))
 	var wg sync.WaitGroup
 	wg.Add(len(rows))
+	rowLenCh := make(chan int, len(rows))
 	for idx, rowElement := range rows {
 		go func(idx int, digest string, paramSet paramtools.ParamSet) {
 			defer wg.Done()
-			cells[idx], err = getDiffRow(storages.DiffStore, digest, columnDigests[digest].Keys(), ctq.SortColumns, ctq.ColumnsDir)
+			var total int
+			var err error
+			rows[idx].Values, total, err = getDiffs(storages.DiffStore, digest, columnDigests[digest].Keys(), ctq.ColumnsDir, ctq.Metric, ctq.ColumnQuery.Limit)
 			if err != nil {
 				glog.Errorf("Unable to calculate diff of row for digest %s. Got error: %s", digest, err)
 			}
+			rowLenCh <- total
 		}(idx, rowElement.Digest, rowDigests[rowElement.Digest])
 	}
 	wg.Wait()
@@ -766,17 +784,21 @@ func CompareTest(testName string, ctq *CTQuery, storages *storage.Storage, idx *
 
 	// Find the max length of rows and trim them if necessary.
 	columns := []string{}
-	columnsTotal := len(columns)
-	limit := ctq.ColumnQuery.Limit
-	for idx, row := range cells {
-		columnsTotal = util.MinInt(columnsTotal, len(row))
-		cells[idx] = row[0:util.MinInt(limit, len(row))]
+	columnsTotal := 0
+	close(rowLenCh)
+	for t := range rowLenCh {
+		if t > columnsTotal {
+			columnsTotal = t
+		}
+	}
+
+	if !sortEarly {
+		sortAndLimitRows(&rows, ctq.SortRows, ctq.RowsDir, ctq.Metric, ctq.RowQuery.Limit)
 	}
 
 	testSummary := idx.GetSummaries()
 	ret := &CTResponse{
 		Grid: &CTGrid{
-			Cells:        cells,
 			Rows:         rows,
 			RowsTotal:    len(rowDigests),
 			Columns:      columns,
@@ -917,44 +939,101 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, storages *storage.St
 	return nil
 }
 
-// getSortedRows returns the instance of CTRow that correspond to the given set of row digests.
-func getSortedRows(entries map[string]paramtools.ParamSet, testName, sortField, sortDir string, limit int, idx *indexer.SearchIndex) []*CTRow {
+// getCTRows returns the instance of CTRow that correspond to the given set of row digests.
+func getCTRows(entries map[string]paramtools.ParamSet, testName, sortField, sortDir string, limit int, idx *indexer.SearchIndex) []*CTRow {
 	tallies := idx.TalliesByTest()[testName]
 	ret := make([]*CTRow, 0, len(entries))
 	for digest := range entries {
 		ret = append(ret, &CTRow{
-			Digest: digest,
-			N:      tallies[digest],
+			CTDigestCount: CTDigestCount{
+				Digest: digest,
+				N:      tallies[digest],
+			},
 		})
 	}
-	sort.Sort(CTRowSlice(ret))
-	return ret[:util.MinInt(limit, len(ret))]
+	return ret
 }
 
-// Sort rows descending by N
-type CTRowSlice []*CTRow
+// sortAndLimitRows sorts the given rows based on field, direction and diffMetric (if sorted by
+// by diff). After the sort it will slice the result to be not larger than limit.
+func sortAndLimitRows(rows *[]*CTRow, field, direction string, diffMetric string, limit int) {
+	// Determine the less function used for sorting the rows.
+	var lessFn ctRowSliceLessFn
+	if field == SORT_FIELD_COUNT {
+		lessFn = func(c *ctRowSlice, i, j int) bool { return c.data[i].N < c.data[j].N }
+	} else {
+		lessFn = func(c *ctRowSlice, i, j int) bool {
+			return (len(c.data[i].Values) > 0) && (len(c.data[j].Values) > 0) && (c.data[i].Values[0].Diffs[diffMetric] < c.data[j].Values[0].Diffs[diffMetric])
+		}
+	}
 
-func (c CTRowSlice) Len() int           { return len(c) }
-func (c CTRowSlice) Less(i, j int) bool { return c[i].N > c[j].N }
-func (c CTRowSlice) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
+	sortSlice := sort.Interface(newCTRowSlice(*rows, lessFn))
+	if direction == SORT_DESC {
+		sortSlice = sort.Reverse(sortSlice)
+	}
 
-// getDiffRow gets the sorted and limited comparison of one digest against the list of candidate digests.
-func getDiffRow(diffStore diff.DiffStore, digest string, colDigests []string, sortField, sortDir string) ([]*CTDiffMetrics, error) {
+	sort.Sort(sortSlice)
+	*rows = (*rows)[:util.MinInt(limit, len(*rows))]
+}
+
+// Sort adapter to allow sorting rows by supplying a less function.
+type ctRowSliceLessFn func(c *ctRowSlice, i, j int) bool
+type ctRowSlice struct {
+	lessFn ctRowSliceLessFn
+	data   []*CTRow
+}
+
+func newCTRowSlice(data []*CTRow, lessFn ctRowSliceLessFn) *ctRowSlice {
+	return &ctRowSlice{lessFn: lessFn, data: data}
+}
+func (c *ctRowSlice) Len() int           { return len(c.data) }
+func (c *ctRowSlice) Less(i, j int) bool { return c.lessFn(c, i, j) }
+func (c *ctRowSlice) Swap(i, j int)      { c.data[i], c.data[j] = c.data[j], c.data[i] }
+
+// getDiffs gets the sorted and limited comparison of one digest against the list of digests.
+// Arguments:
+//    digest: primary digest
+//    colDigests: the digests to compare against
+//    sortDir: sort direction of the resulting list
+//    diffMetric: id of the diffmetric to use (assumed to be defined in the diff package).
+//    limit: is the maximum number of diffs to return after the sort.
+func getDiffs(diffStore diff.DiffStore, digest string, colDigests []string, sortDir, diffMetric string, limit int) ([]*CTDiffMetrics, int, error) {
 	diffMap, err := diffStore.Get(diff.PRIORITY_NOW, digest, colDigests)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	ret := make([]*CTDiffMetrics, 0, len(diffMap))
 	for colDigest, diffMetrics := range diffMap {
 		ret = append(ret, &CTDiffMetrics{
-			DiffMetrics: diffMetrics,
-			CTRow:       CTRow{Digest: colDigest, N: 0},
+			DiffMetrics:   diffMetrics,
+			CTDigestCount: CTDigestCount{Digest: colDigest, N: 0},
 		})
 	}
 
-	// TODO(stephana): Add the reference points for each row, sort the result
-	// and trim it to the desired length.
+	// TODO(stephana): Add the reference points for each row.
 
-	return ret, nil
+	lessFn := func(c *ctDiffMetricsSlice, i, j int) bool {
+		return c.data[i].Diffs[diffMetric] < c.data[j].Diffs[diffMetric]
+	}
+	sortSlice := sort.Interface(newCTDiffMetricsSlice(ret, lessFn))
+	if sortDir == SORT_DESC {
+		sortSlice = sort.Reverse(sortSlice)
+	}
+	sort.Sort(sortSlice)
+	return ret[:util.MinInt(limit, len(ret))], len(ret), nil
 }
+
+// Sort adapter to allow sorting lists of diff metrics via a less function.
+type ctDiffMetricsSliceLessFn func(c *ctDiffMetricsSlice, i, j int) bool
+type ctDiffMetricsSlice struct {
+	lessFn ctDiffMetricsSliceLessFn
+	data   []*CTDiffMetrics
+}
+
+func newCTDiffMetricsSlice(data []*CTDiffMetrics, lessFn ctDiffMetricsSliceLessFn) *ctDiffMetricsSlice {
+	return &ctDiffMetricsSlice{lessFn: lessFn, data: data}
+}
+func (c *ctDiffMetricsSlice) Len() int           { return len(c.data) }
+func (c *ctDiffMetricsSlice) Less(i, j int) bool { return c.lessFn(c, i, j) }
+func (c *ctDiffMetricsSlice) Swap(i, j int)      { c.data[i], c.data[j] = c.data[j], c.data[i] }
