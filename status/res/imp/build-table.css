@@ -14,13 +14,13 @@ build-table-sk a.plain:hover {
 }
 
 build-table-sk .success {
-    background-color: #D95F02;
+    background-color: rgba(102, 166, 30, .3);
 }
 build-table-sk .failure {
-    background-color: black
+    background-color: #d95f02;
 }
 build-table-sk .exception {
-    background-color: rgba(102, 166, 30, .3);
+    background-color: #7570b3;
     color:white;
 }
 build-table-sk .inprogress {
