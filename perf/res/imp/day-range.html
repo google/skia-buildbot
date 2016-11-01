@@ -147,11 +147,13 @@
       _beginChange: function() {
         this.set("_pct_begin", this._ts2Percent(this.begin));
         this._calcTicks();
+        this.$.hbegin.textContent = this._display(this._ts2Percent(this.begin));
       },
 
       _endChange: function() {
         this.set("_pct_end", this._ts2Percent(this.end));
         this._calcTicks();
+        this.$.hend.textContent = this._display(this._ts2Percent(this.end));
       },
 
       _rangeChange: function(e) {
