@@ -89,13 +89,15 @@ type ClusterSummary struct {
 
 	// StepPoint is the ColumnHeader for the step point.
 	StepPoint *dataframe.ColumnHeader
+
+	// Num is the number of observations that are in this cluster.
+	Num int
 }
 
-// newClusterSummary returns a new ClusterSummary with space
-// for 'numKeys' keys.
-func newClusterSummary(numKeys int) *ClusterSummary {
+// newClusterSummary returns a new ClusterSummary.
+func newClusterSummary() *ClusterSummary {
 	return &ClusterSummary{
-		Keys:           make([]string, numKeys),
+		Keys:           []string{},
 		ParamSummaries: map[string][]ValueWeight{},
 		StepFit:        &StepFit{},
 		StepPoint:      &dataframe.ColumnHeader{},
@@ -116,7 +118,7 @@ func chooseK(observations []kmeans.Clusterable, k int) []kmeans.Centroid {
 	popN := len(observations)
 	centroids := make([]kmeans.Centroid, k)
 	for i := 0; i < k; i++ {
-		centroids[i] = observations[rand.Intn(popN)].(*ctrace2.ClusterableTrace).Dup("I'm a centroid")
+		centroids[i] = observations[rand.Intn(popN)].(*ctrace2.ClusterableTrace).Dup(ctrace2.CENTROID_KEY)
 	}
 	return centroids
 }
@@ -141,7 +143,11 @@ func getParamSummaries(cluster []kmeans.Clusterable) map[string][]ValueWeight {
 	clusterSize := float64(len(cluster))
 	// First figure out what parameters and values appear in the cluster.
 	for _, o := range cluster {
-		params, err := query.ParseKey(o.(*ctrace2.ClusterableTrace).Key)
+		key := o.(*ctrace2.ClusterableTrace).Key
+		if key == ctrace2.CENTROID_KEY {
+			continue
+		}
+		params, err := query.ParseKey(key)
 		if err != nil {
 			glog.Errorf("Invalid key found in Cluster: %s", err)
 			continue
@@ -242,15 +248,18 @@ func getClusterSummaries(observations []kmeans.Clusterable, centroids []kmeans.C
 
 	for i, cluster := range allClusters {
 		// cluster is just an array of the observations for a given cluster.
-		numSampleTraces := len(cluster)
-		if numSampleTraces > config.MAX_SAMPLE_TRACES_PER_CLUSTER {
-			numSampleTraces = config.MAX_SAMPLE_TRACES_PER_CLUSTER
+		// Drop the first value which is the centroid.
+		cluster = cluster[1:]
+		numSampleKeys := len(cluster)
+		if numSampleKeys > config.MAX_SAMPLE_TRACES_PER_CLUSTER {
+			numSampleKeys = config.MAX_SAMPLE_TRACES_PER_CLUSTER
 		}
 		stepFit := getStepFit(centroids[i].(*ctrace2.ClusterableTrace).Values)
-		summary := newClusterSummary(len(cluster) - 1)
+		summary := newClusterSummary()
 		summary.ParamSummaries = getParamSummaries(cluster)
 		summary.StepFit = stepFit
 		summary.StepPoint = header[stepFit.TurningPoint]
+		summary.Num = len(cluster)
 
 		// First, sort the traces so they are ordered with the traces closest to
 		// the centroid first.
@@ -261,11 +270,10 @@ func getClusterSummaries(observations []kmeans.Clusterable, centroids []kmeans.C
 				Distance:    centroids[i].Distance(cluster[j]),
 			})
 		}
-		// Sort, leaving the centroid, the 0th element, unmoved.
-		sort.Sort(sortableClusterableSlice(sc[1:]))
+		sort.Sort(sortableClusterableSlice(sc))
 
-		for j, o := range sc[1:] {
-			summary.Keys[j] = o.Observation.(*ctrace2.ClusterableTrace).Key
+		for _, o := range sc[:numSampleKeys] {
+			summary.Keys = append(summary.Keys, o.Observation.(*ctrace2.ClusterableTrace).Key)
 		}
 
 		summary.Centroid = centroids[i].(*ctrace2.ClusterableTrace).Values
@@ -277,8 +285,10 @@ func getClusterSummaries(observations []kmeans.Clusterable, centroids []kmeans.C
 	return ret
 }
 
+type Progress func(totalError float64)
+
 // CalculateClusterSummaries runs k-means clustering over the trace shapes.
-func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshhold float32) (*ClusterSummaries, error) {
+func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshhold float32, progress Progress) (*ClusterSummaries, error) {
 	// Convert the DataFrame to a slice of kmeans.Clusterable.
 	observations := make([]kmeans.Clusterable, 0, len(df.TraceSet))
 	for key, trace := range df.TraceSet {
@@ -295,6 +305,9 @@ func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshhold 
 		centroids = kmeans.Do(observations, centroids, ctrace2.CalculateCentroid)
 		totalError := kmeans.TotalError(observations, centroids)
 		glog.Infof("Total Error: %f\n", totalError)
+		if progress != nil {
+			progress(totalError)
+		}
 		if math.Abs(totalError-lastTotalError) < KMEAN_EPSILON {
 			break
 		}
