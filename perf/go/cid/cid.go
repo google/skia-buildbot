@@ -42,6 +42,7 @@ func (c CommitID) Filename() string {
 
 // CommitDetail describes a CommitID.
 type CommitDetail struct {
+	CommitID
 	Author    string `json:"author"`
 	Message   string `json:"message"`
 	URL       string `json:"url"`
@@ -222,6 +223,7 @@ func (c *CommitIDLookup) Lookup(cids []*CommitID) ([]*CommitDetail, error) {
 				return nil, fmt.Errorf("Failed to load patchset with id %d: %s", patchsetID, err)
 			}
 			ret[i] = &CommitDetail{
+				CommitID:  *cid,
 				Author:    issue.Owner,
 				Message:   fmt.Sprintf("Iss: %d Patch: %d - %s", issueID, patchsetID, issue.Description),
 				URL:       cid.Source,
@@ -233,6 +235,7 @@ func (c *CommitIDLookup) Lookup(cids []*CommitID) ([]*CommitDetail, error) {
 			c.mutex.Unlock()
 			if ok {
 				ret[i] = &CommitDetail{
+					CommitID:  *cid,
 					Author:    entry.author,
 					Message:   fmt.Sprintf("%.7s - %s", entry.hash, entry.subject),
 					URL:       fmt.Sprintf("https://skia.googlesource.com/skia/+/%s", entry.hash),
@@ -244,6 +247,7 @@ func (c *CommitIDLookup) Lookup(cids []*CommitID) ([]*CommitDetail, error) {
 					return nil, fmt.Errorf("Failed to find match for cid %#v: %s", *cid, err)
 				}
 				ret[i] = &CommitDetail{
+					CommitID:  *cid,
 					Author:    lc.Author,
 					Message:   fmt.Sprintf("%.7s - %s", lc.Hash, lc.ShortCommit.Subject),
 					URL:       fmt.Sprintf("https://skia.googlesource.com/skia/+/%s", lc.Hash),
