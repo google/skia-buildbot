@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "26d3ee49_bed69809",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 760,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-01T21:37:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "26d3ee49_ca4aaf9b",
+      "revId": "8267d032e95b7a33e1b6316d13efe36aa057f8c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "26d3ee49_8a55d737",
         "filename": "golden/go/search/search.go",
         "patchSetId": 6
@@ -42,6 +60,24 @@
     },
     {
       "key": {
+        "uuid": "26d3ee49_3ee3a8ef",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 939,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-01T21:37:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "26d3ee49_8a55d737",
+      "revId": "8267d032e95b7a33e1b6316d13efe36aa057f8c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "26d3ee49_4a5fbf55",
         "filename": "golden/go/search/search.go",
         "patchSetId": 6
@@ -59,6 +95,24 @@
     },
     {
       "key": {
+        "uuid": "26d3ee49_e1c8f144",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 954,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-01T21:37:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "26d3ee49_4a5fbf55",
+      "revId": "8267d032e95b7a33e1b6316d13efe36aa057f8c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "26d3ee49_ea2c4bcd",
         "filename": "golden/go/search/search.go",
         "patchSetId": 6
@@ -70,6 +124,24 @@
       "writtenOn": "2016-11-01T19:21:08Z",
       "side": 1,
       "message": "Add comment for what the int means?  Also wrap comments to 100 columns",
+      "revId": "8267d032e95b7a33e1b6316d13efe36aa057f8c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "26d3ee49_01ebed9d",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 988,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-01T21:37:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "26d3ee49_ea2c4bcd",
       "revId": "8267d032e95b7a33e1b6316d13efe36aa057f8c1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
