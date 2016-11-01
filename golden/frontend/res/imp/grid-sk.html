@@ -131,11 +131,11 @@ Where:
           </template>
         </div>
         <div id="cellsContainer" class="vertical layout">
-          <template is="dom-repeat" items="{{_value.cells}}" as="row" index-as="rowIdx">
+          <template is="dom-repeat" items="{{_value.rows}}" as="row" index-as="rowIdx">
             <div class="horizontal layout">
-              <template is="dom-repeat" items="{{row}}" as="cell" index-as="colIdx">
+              <template is="dom-repeat" items="{{row.values}}" as="cell" index-as="colIdx">
                 <div class="imgWrapper">
-                  <img src="{{_diffHref(rowIdx, colIdx)}}" data-row="{{rowIdx}}" data-col="{{colIdx}}">
+                  <img src="{{_diffHref(row, cell)}}" data-row="{{rowIdx}}" data-col="{{colIdx}}">
                   <paper-tooltip>
                     <table class="ttTable" border="0" cellspacing="5" cellpadding="5">
                       <tr><th>Diff</th><td>{{cell.diffs.combined}}</td></tr>
@@ -193,9 +193,9 @@ Where:
             // Fire the event, potentially with a delay.
             var row = ev.target.dataRow,
                 col = ev.target.dataCol;
-            var detail = sk.object.shallowCopy(this._value.cells[row][col]);
+            var detail = sk.object.shallowCopy(this._value.rows[row].values[col]);
             detail.rowDigest = this._value.rows[row].digest;
-            detail.colDigest = this._value.cells[row][col].digest;
+            detail.colDigest = this._value.rows[row].values[col].digest;
 
             var delay = (ev.type === 'click') ? 500 : 0;
             this._deferredFire = this.async(function() {
@@ -234,8 +234,8 @@ Where:
           return (withHeaders.length < cols.length);
         },
 
-        _diffHref: function(rowIdx, colIdx) {
-          return gold.diffImgHref(this._value.rows[rowIdx].digest, this._value.cells[rowIdx][colIdx].digest);
+        _diffHref: function(row, cell) {
+          return gold.diffImgHref(row.digest, cell.digest);
         },
 
         _imgHref: gold.imgHref,
