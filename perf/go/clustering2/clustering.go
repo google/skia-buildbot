@@ -37,8 +37,8 @@ const (
 // ValueWeight is a weight proportional to the number of times the parameter
 // Value appears in a cluster. Used in ClusterSummary.
 type ValueWeight struct {
-	Value  string
-	Weight int
+	Value  string `json:"value"`
+	Weight int    `json:"weight"`
 }
 
 // StepFit stores information on the best Step Function fit on a trace.
@@ -46,56 +46,58 @@ type ValueWeight struct {
 // Used in ClusterSummary.
 type StepFit struct {
 	// LeastSquares is the Least Squares error for a step function curve fit to the trace.
-	LeastSquares float32
+	LeastSquares float32 `json:"least_squares"`
 
 	// TurningPoint is the index where the Step Function changes value.
-	TurningPoint int
+	TurningPoint int `json:"turning_point"`
 
 	// StepSize is the size of the step in the step function. Negative values
 	// indicate a step up, i.e. they look like a performance regression in the
 	// trace, as opposed to positive values which look like performance
 	// improvements.
-	StepSize float32
+	StepSize float32 `json:"step_size"`
 
 	// The "Regression" value is calculated as Step Size / Least Squares Error.
 	//
 	// The better the fit the larger the number returned, because LSE
 	// gets smaller with a better fit. The higher the Step Size the
 	// larger the number returned.
-	Regression float32
+	Regression float32 `json:"regression"`
 
 	// Status of the cluster.
 	//
 	// Values can be "High", "Low", and "Uninteresting"
-	Status string
+	Status string `json:"status"`
 }
 
 // ClusterSummary is a summary of a single cluster of traces.
 type ClusterSummary struct {
 	// Centroid is the calculated centroid of the cluster.
-	Centroid []float32
+	Centroid []float32 `json:"centroid"`
 
 	// Keys of all the members of the Cluster.
 	//
 	// The keys are sorted so that the ones at the beginning of the list are
 	// closest to the centroid.
-	Keys []string
+	Keys []string `json:"keys"`
 
 	// ParamSummaries is a summary of all the parameters in the cluster.
-	ParamSummaries map[string][]ValueWeight
+	ParamSummaries map[string][]ValueWeight `json:"param_summaries"`
 
 	// StepFit is info on the fit of the centroid to a step function.
-	StepFit *StepFit
+	StepFit *StepFit `json:"step_fit"`
 
 	// StepPoint is the ColumnHeader for the step point.
-	StepPoint *dataframe.ColumnHeader
+	StepPoint *dataframe.ColumnHeader `json:"step_point"`
+
+	// Num is the number of observations that are in this cluster.
+	Num int `json:"num"`
 }
 
-// newClusterSummary returns a new ClusterSummary with space
-// for 'numKeys' keys.
-func newClusterSummary(numKeys int) *ClusterSummary {
+// newClusterSummary returns a new ClusterSummary.
+func newClusterSummary() *ClusterSummary {
 	return &ClusterSummary{
-		Keys:           make([]string, numKeys),
+		Keys:           []string{},
 		ParamSummaries: map[string][]ValueWeight{},
 		StepFit:        &StepFit{},
 		StepPoint:      &dataframe.ColumnHeader{},
@@ -116,7 +118,7 @@ func chooseK(observations []kmeans.Clusterable, k int) []kmeans.Centroid {
 	popN := len(observations)
 	centroids := make([]kmeans.Centroid, k)
 	for i := 0; i < k; i++ {
-		centroids[i] = observations[rand.Intn(popN)].(*ctrace2.ClusterableTrace).Dup("I'm a centroid")
+		centroids[i] = observations[rand.Intn(popN)].(*ctrace2.ClusterableTrace).Dup(ctrace2.CENTROID_KEY)
 	}
 	return centroids
 }
@@ -141,7 +143,11 @@ func getParamSummaries(cluster []kmeans.Clusterable) map[string][]ValueWeight {
 	clusterSize := float64(len(cluster))
 	// First figure out what parameters and values appear in the cluster.
 	for _, o := range cluster {
-		params, err := query.ParseKey(o.(*ctrace2.ClusterableTrace).Key)
+		key := o.(*ctrace2.ClusterableTrace).Key
+		if key == ctrace2.CENTROID_KEY {
+			continue
+		}
+		params, err := query.ParseKey(key)
 		if err != nil {
 			glog.Errorf("Invalid key found in Cluster: %s", err)
 			continue
@@ -242,15 +248,18 @@ func getClusterSummaries(observations []kmeans.Clusterable, centroids []kmeans.C
 
 	for i, cluster := range allClusters {
 		// cluster is just an array of the observations for a given cluster.
-		numSampleTraces := len(cluster)
-		if numSampleTraces > config.MAX_SAMPLE_TRACES_PER_CLUSTER {
-			numSampleTraces = config.MAX_SAMPLE_TRACES_PER_CLUSTER
+		// Drop the first value which is the centroid.
+		cluster = cluster[1:]
+		numSampleKeys := len(cluster)
+		if numSampleKeys > config.MAX_SAMPLE_TRACES_PER_CLUSTER {
+			numSampleKeys = config.MAX_SAMPLE_TRACES_PER_CLUSTER
 		}
 		stepFit := getStepFit(centroids[i].(*ctrace2.ClusterableTrace).Values)
-		summary := newClusterSummary(len(cluster) - 1)
+		summary := newClusterSummary()
 		summary.ParamSummaries = getParamSummaries(cluster)
 		summary.StepFit = stepFit
 		summary.StepPoint = header[stepFit.TurningPoint]
+		summary.Num = len(cluster)
 
 		// First, sort the traces so they are ordered with the traces closest to
 		// the centroid first.
@@ -261,11 +270,10 @@ func getClusterSummaries(observations []kmeans.Clusterable, centroids []kmeans.C
 				Distance:    centroids[i].Distance(cluster[j]),
 			})
 		}
-		// Sort, leaving the centroid, the 0th element, unmoved.
-		sort.Sort(sortableClusterableSlice(sc[1:]))
+		sort.Sort(sortableClusterableSlice(sc))
 
-		for j, o := range sc[1:] {
-			summary.Keys[j] = o.Observation.(*ctrace2.ClusterableTrace).Key
+		for _, o := range sc[:numSampleKeys] {
+			summary.Keys = append(summary.Keys, o.Observation.(*ctrace2.ClusterableTrace).Key)
 		}
 
 		summary.Centroid = centroids[i].(*ctrace2.ClusterableTrace).Values
@@ -277,8 +285,10 @@ func getClusterSummaries(observations []kmeans.Clusterable, centroids []kmeans.C
 	return ret
 }
 
+type Progress func(totalError float64)
+
 // CalculateClusterSummaries runs k-means clustering over the trace shapes.
-func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshhold float32) (*ClusterSummaries, error) {
+func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshhold float32, progress Progress) (*ClusterSummaries, error) {
 	// Convert the DataFrame to a slice of kmeans.Clusterable.
 	observations := make([]kmeans.Clusterable, 0, len(df.TraceSet))
 	for key, trace := range df.TraceSet {
@@ -295,6 +305,9 @@ func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshhold 
 		centroids = kmeans.Do(observations, centroids, ctrace2.CalculateCentroid)
 		totalError := kmeans.TotalError(observations, centroids)
 		glog.Infof("Total Error: %f\n", totalError)
+		if progress != nil {
+			progress(totalError)
+		}
 		if math.Abs(totalError-lastTotalError) < KMEAN_EPSILON {
 			break
 		}
