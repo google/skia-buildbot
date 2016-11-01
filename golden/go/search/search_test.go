@@ -2,6 +2,7 @@ package search
 
 import (
 	"fmt"
+	"math"
 	"net/url"
 	"os"
 	"testing"
@@ -13,6 +14,7 @@ import (
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/mocks"
@@ -94,7 +96,6 @@ func TestCompareTests(t *testing.T) {
 
 		// rowLimit is the number of elements expected in each row.
 		rowLimit := util.MinInt(len(digestSet)-1, MAX_DIM)
-		util.MaxInt(len(digestSet)-1, limit)
 
 		// Make sure the query searches for the current testName. It is assumed
 		// that all tests in the tile have source_type == 'gm'.
@@ -120,33 +121,52 @@ func TestCompareTests(t *testing.T) {
 				Limit:          limit,
 			},
 			Match:       []string{},
-			SortRows:    "n",
-			SortColumns: "diff",
-			RowsDir:     "desc",
-			ColumnsDir:  "asc",
+			SortRows:    SORT_FIELD_COUNT,
+			SortColumns: SORT_FIELD_DIFF,
+			RowsDir:     SORT_DESC,
+			ColumnsDir:  SORT_ASC,
+			Metric:      diff.METRIC_COMBINED,
 		}
-		ret, err := CompareTest(testName, ctQuery, storages, ixr.GetIndex())
-		assert.NoError(t, err)
 
-		// Make sure the rows are as expected.
-		assert.Equal(t, limit, len(ret.Grid.Cells))
-		for idx, row := range ret.Grid.Cells {
-			foundDigestSet := util.StringSet{}
-			for _, cell := range row {
-				foundDigestSet[cell.Digest] = true
-			}
-			// Make sure there are not duplicate digest in a row.
-			assert.Equal(t, len(row), len(foundDigestSet))
-			// Make sure the 'row' digest is not in the row, i.e. compared to itself.
-			assert.False(t, foundDigestSet[ret.Grid.Rows[idx].Digest])
-			// Make sure we get the expected number of digests in this row.
-			assert.Equal(t, rowLimit, len(row))
-
-			// Make sure the found digests are fully contained in the whole set.
-			assert.Equal(t, digestSet.Intersect(foundDigestSet), foundDigestSet)
-		}
-		assert.Equal(t, limit, len(ret.Grid.Rows))
+		idx := ixr.GetIndex()
+		testCompTest(t, testName, limit, rowLimit, digestSet, ctQuery, idx, storages)
 	}
+}
+
+func testCompTest(t *testing.T, testName string, limit, rowLimit int, digestSet util.StringSet, ctQuery *CTQuery, idx *indexer.SearchIndex, storages *storage.Storage) {
+	ret, err := CompareTest(testName, ctQuery, storages, idx)
+	assert.NoError(t, err)
+
+	// Make sure the rows are as expected.
+	assert.Equal(t, limit, len(ret.Grid.Rows))
+	lastCount := math.MaxInt64
+	for idx, row := range ret.Grid.Rows {
+		assert.True(t, lastCount >= row.N)
+		lastCount = row.N
+		foundDigestSet := util.StringSet{}
+		for _, cell := range row.Values {
+			foundDigestSet[cell.Digest] = true
+		}
+		// Make sure there are not duplicate digest in a row.
+		assert.Equal(t, len(row.Values), len(foundDigestSet))
+		// Make sure the 'row' digest is not in the row, i.e. compared to itself.
+		assert.False(t, foundDigestSet[ret.Grid.Rows[idx].Digest])
+		// Make sure we get the expected number of digests in this row.
+		assert.Equal(t, rowLimit, len(row.Values))
+
+		// Make sure the found digests are fully contained in the whole set.
+		assert.Equal(t, digestSet.Intersect(foundDigestSet), foundDigestSet)
+
+		// Make sure the values are monotonically increasing.
+		lastVal := row.Values[0].Diffs[ctQuery.Metric]
+		for _, val := range row.Values[1:] {
+			_, ok := val.Diffs[ctQuery.Metric]
+			assert.True(t, ok)
+			assert.True(t, lastVal <= val.Diffs[ctQuery.Metric])
+			lastVal = val.Diffs[ctQuery.Metric]
+		}
+	}
+	assert.Equal(t, limit, len(ret.Grid.Rows))
 }
 
 func loadSample(t assert.TestingT, fileName string) *serialize.Sample {

@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"sort"
@@ -36,6 +37,10 @@ func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[st
 				PixelDiffPercent: 1.0,
 				MaxRGBADiffs:     []int{5, 3, 4, 0},
 				DimDiffer:        false,
+				Diffs: map[string]float32{
+					diff.METRIC_COMBINED: rand.Float32(),
+					diff.METRIC_PERCENT:  rand.Float32(),
+				},
 			}
 		}
 	}

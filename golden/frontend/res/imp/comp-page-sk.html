@@ -221,11 +221,11 @@
 
       var rowSortOptions = [
           {field: SORT_FIELD_N_IMAGES, label: "#images"},
-          {field: SORT_FIELD_DIFF, label: "Diff to Closest"}
+          {field: SORT_FIELD_DIFF, label: "Diff"}
         ];
       var colSortOptions = [ {field: SORT_FIELD_DIFF, label: "Diff"} ];
       var defaultRowSorting = {dir: gold.SORT_DESC, field: SORT_FIELD_N_IMAGES};
-      var defaultColSorting = {dir: gold.SORT_DESC, field: SORT_FIELD_DIFF};
+      var defaultColSorting = {dir: gold.SORT_ASC, field: SORT_FIELD_DIFF};
 
       Polymer({
         is: "comp-page-sk",
