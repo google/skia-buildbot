@@ -16,6 +16,7 @@ type testStruct struct {
 }
 
 func TestReadPersistenceActual(t *testing.T) {
+	testutils.SmallTest(t)
 	dir, err := testutils.TestDataDir()
 	assert.NoError(t, err)
 	assert.NoError(t, SetPersistenceDir(dir))
@@ -30,6 +31,7 @@ func TestReadPersistenceActual(t *testing.T) {
 }
 
 func TestWritePersistenceActual(t *testing.T) {
+	testutils.SmallTest(t)
 	dir, err := ioutil.TempDir("", "writepersist")
 	assert.NoError(t, err)
 	assert.NoError(t, SetPersistenceDir(dir))

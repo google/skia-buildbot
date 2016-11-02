@@ -31,6 +31,7 @@ func init() {
 }
 
 func TestEventBus(t *testing.T) {
+	testutils.MediumTest(t)
 	eventBus := New(nil)
 
 	ch := make(chan int, 5)
@@ -122,6 +123,7 @@ func xTestEventBusGlobally(t *testing.T) {
 }
 
 func TestSubTopics(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	const N_NUMBERS = 200

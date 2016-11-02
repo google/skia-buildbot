@@ -1,14 +1,26 @@
 {
   "jobs": {
-    "Infra-PerCommit": {
+    "Infra-PerCommit-Large": {
       "priority": 0.8,
       "tasks": [
-        "Infra-PerCommit"
+        "Infra-PerCommit-Large"
+      ]
+    },
+    "Infra-PerCommit-Medium": {
+      "priority": 0.8,
+      "tasks": [
+        "Infra-PerCommit-Medium"
+      ]
+    },
+    "Infra-PerCommit-Small": {
+      "priority": 0.8,
+      "tasks": [
+        "Infra-PerCommit-Small"
       ]
     }
   },
   "tasks": {
-    "Infra-PerCommit": {
+    "Infra-PerCommit-Large": {
       "dimensions": [
         "pool:Skia",
         "os:Ubuntu",
@@ -19,7 +31,57 @@
         "../../..",
         "swarm_infra",
         "repository=<(REPO)",
-        "buildername=Infra-PerCommit",
+        "buildername=Infra-PerCommit-Large",
+        "mastername=fake-master",
+        "buildnumber=2",
+        "slavename=fake-buildslave",
+        "nobuildbot=True",
+        "swarm_out_dir=${ISOLATED_OUTDIR}",
+        "revision=<(REVISION)",
+        "patch_storage=<(PATCH_STORAGE)",
+        "patch_issue=<(ISSUE)",
+        "patch_set=<(PATCHSET)"
+      ],
+      "isolate": "swarm_recipe.isolate",
+      "priority": 0.8
+    },
+    "Infra-PerCommit-Medium": {
+      "dimensions": [
+        "pool:Skia",
+        "os:Ubuntu",
+        "gpu:none"
+      ],
+      "extra_args": [
+        "--workdir",
+        "../../..",
+        "swarm_infra",
+        "repository=<(REPO)",
+        "buildername=Infra-PerCommit-Medium",
+        "mastername=fake-master",
+        "buildnumber=2",
+        "slavename=fake-buildslave",
+        "nobuildbot=True",
+        "swarm_out_dir=${ISOLATED_OUTDIR}",
+        "revision=<(REVISION)",
+        "patch_storage=<(PATCH_STORAGE)",
+        "patch_issue=<(ISSUE)",
+        "patch_set=<(PATCHSET)"
+      ],
+      "isolate": "swarm_recipe.isolate",
+      "priority": 0.8
+    },
+    "Infra-PerCommit-Small": {
+      "dimensions": [
+        "pool:Skia",
+        "os:Ubuntu",
+        "gpu:none"
+      ],
+      "extra_args": [
+        "--workdir",
+        "../../..",
+        "swarm_infra",
+        "repository=<(REPO)",
+        "buildername=Infra-PerCommit-Small",
         "mastername=fake-master",
         "buildnumber=2",
         "slavename=fake-buildslave",

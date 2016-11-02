@@ -3,6 +3,8 @@ package vec
 import (
 	"math"
 	"testing"
+
+	"go.skia.org/infra/go/testutils"
 )
 
 func near(a, b float64) bool {
@@ -22,6 +24,7 @@ func vecNear(a, b []float64) bool {
 }
 
 func TestNorm(t *testing.T) {
+	testutils.SmallTest(t)
 	testCases := []struct {
 		In  []float64
 		Out []float64
@@ -60,6 +63,7 @@ func TestNorm(t *testing.T) {
 }
 
 func TestFill(t *testing.T) {
+	testutils.SmallTest(t)
 	testCases := []struct {
 		In  []float64
 		Out []float64
@@ -95,6 +99,7 @@ func TestFill(t *testing.T) {
 }
 
 func TestFillAtErrors(t *testing.T) {
+	testutils.SmallTest(t)
 	testCases := []struct {
 		Slice []float64
 		Idx   int

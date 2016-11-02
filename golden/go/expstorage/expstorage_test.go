@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"sort"
 	"testing"
-)
 
-import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/database/testutil"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/types"
 )
 
 func TestMySQLExpectationsStore(t *testing.T) {
+	testutils.MediumTest(t)
 	// Set up the test database.
 	testDb := testutil.SetupMySQLTestDatabase(t, db.MigrationSteps())
 	defer testDb.Close(t)

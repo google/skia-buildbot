@@ -10,6 +10,7 @@ import (
 )
 
 func TestModifiedTasks(t *testing.T) {
+	testutils.SmallTest(t)
 	m := ModifiedTasks{}
 
 	_, err := m.GetModifiedTasks("dummy-id")
@@ -55,6 +56,7 @@ func TestModifiedTasks(t *testing.T) {
 // Test that if a Task is modified multiple times, it only appears once in the
 // result of GetModifiedTasks.
 func TestMultipleTaskModifications(t *testing.T) {
+	testutils.SmallTest(t)
 	m := ModifiedTasks{}
 
 	id, err := m.StartTrackingModifiedTasks()
@@ -79,6 +81,7 @@ func TestMultipleTaskModifications(t *testing.T) {
 }
 
 func TestModifiedTasksTooManyUsers(t *testing.T) {
+	testutils.SmallTest(t)
 	m := ModifiedTasks{}
 
 	var oneId string
@@ -97,6 +100,7 @@ func TestModifiedTasksTooManyUsers(t *testing.T) {
 }
 
 func TestModifiedJobs(t *testing.T) {
+	testutils.SmallTest(t)
 	m := ModifiedJobs{}
 
 	_, err := m.GetModifiedJobs("dummy-id")
@@ -140,6 +144,7 @@ func TestModifiedJobs(t *testing.T) {
 }
 
 func TestMultipleJobModifications(t *testing.T) {
+	testutils.SmallTest(t)
 	m := ModifiedJobs{}
 
 	id, err := m.StartTrackingModifiedJobs()
@@ -164,6 +169,7 @@ func TestMultipleJobModifications(t *testing.T) {
 }
 
 func TestModifiedJobsTooManyUsers(t *testing.T) {
+	testutils.SmallTest(t)
 	m := ModifiedJobs{}
 
 	var oneId string

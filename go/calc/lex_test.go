@@ -1,9 +1,13 @@
 package calc
 
-import "testing"
+import (
+	"testing"
+
+	"go.skia.org/infra/go/testutils"
+)
 
 func TestLex(t *testing.T) {
-
+	testutils.SmallTest(t)
 	testCases := []struct {
 		input string
 		items []item
@@ -74,6 +78,7 @@ func TestLex(t *testing.T) {
 }
 
 func TestLexErrors(t *testing.T) {
+	testutils.SmallTest(t)
 
 	testCases := []string{
 		"foo}",

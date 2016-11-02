@@ -5,10 +5,13 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/testutils"
+
 	assert "github.com/stretchr/testify/require"
 )
 
 func TestTestMemIgnoreStore(t *testing.T) {
+	testutils.SmallTest(t)
 	memStore := NewMemIgnoreStore()
 	testIgnoreStore(t, memStore)
 }
@@ -111,6 +114,7 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 }
 
 func TestToQuery(t *testing.T) {
+	testutils.SmallTest(t)
 	queries, err := ToQuery([]*IgnoreRule{})
 	assert.NoError(t, err)
 	assert.Len(t, queries, 0)

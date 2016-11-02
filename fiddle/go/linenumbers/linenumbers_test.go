@@ -3,10 +3,13 @@ package linenumbers
 import (
 	"testing"
 
+	"go.skia.org/infra/go/testutils"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func TestLineNumbers(t *testing.T) {
+	testutils.SmallTest(t)
 	code := `a
 b
 c`

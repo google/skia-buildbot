@@ -12,6 +12,7 @@ import (
 )
 
 func TestCopyTaskCandidate(t *testing.T) {
+	testutils.SmallTest(t)
 	v := &taskCandidate{
 		Commits:        []string{"a", "b"},
 		IsolatedInput:  "lonely-parameter",
@@ -36,6 +37,7 @@ func TestCopyTaskCandidate(t *testing.T) {
 }
 
 func TestTaskCandidateId(t *testing.T) {
+	testutils.SmallTest(t)
 	t1 := makeTaskCandidate("task1", []string{"k:v"})
 	t1.Repo = "Myrepo"
 	t1.Revision = "abc123"
@@ -74,6 +76,7 @@ func TestTaskCandidateId(t *testing.T) {
 }
 
 func TestReplaceVar(t *testing.T) {
+	testutils.SmallTest(t)
 	c := makeTaskCandidate("c", []string{"k:v"})
 	c.Repo = "my-repo"
 	c.Revision = "abc123"

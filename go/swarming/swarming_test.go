@@ -23,6 +23,7 @@ const (
 // TestCreateIsolatedGenJSON verifies that an isolated.gen.json with expected
 // values is created from the test isolated files.
 func TestCreateIsolatedGenJSON(t *testing.T) {
+	testutils.LargeTest(t)
 	workDir, err := ioutil.TempDir("", "swarming_work_")
 	assert.NoError(t, err)
 	s, err := NewSwarmingClient(workDir)

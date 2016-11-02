@@ -7,12 +7,15 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/testutils"
+
 	assert "github.com/stretchr/testify/require"
 )
 
 var urlMap = map[string][]byte{}
 
 func TestPollingStatus(t *testing.T) {
+	testutils.SmallTest(t)
 	i := 0
 	tc := []int64{0, 10, -35}
 	duration := 100 * time.Millisecond

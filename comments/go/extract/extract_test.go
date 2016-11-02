@@ -3,6 +3,8 @@ package extract
 import (
 	"testing"
 
+	"go.skia.org/infra/go/testutils"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -79,6 +81,7 @@ DEF_SIMPLE_GM(arccirclegap, canvas, 250, 250) {
 `
 
 func TestExtract(t *testing.T) {
+	testutils.SmallTest(t)
 	gms := Extract(testCode, "filename.cpp")
 	assert.Equal(t, 7, len(gms))
 

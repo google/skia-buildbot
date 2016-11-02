@@ -3,10 +3,13 @@ package util
 import (
 	"testing"
 
+	"go.skia.org/infra/go/testutils"
+
 	assert "github.com/stretchr/testify/require"
 )
 
 func TestJSONCodec(t *testing.T) {
+	testutils.SmallTest(t)
 	itemCodec := JSONCodec(&myTestType{})
 	testInstance := &myTestType{5, "hello"}
 	jsonBytes, err := itemCodec.Encode(testInstance)
@@ -29,6 +32,7 @@ func TestJSONCodec(t *testing.T) {
 }
 
 func TestMemLRUCache(t *testing.T) {
+	testutils.SmallTest(t)
 	cache := NewMemLRUCache(0)
 	UnitTestLRUCache(t, cache)
 }

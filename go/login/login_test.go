@@ -6,6 +6,8 @@ import (
 	"sync"
 	"testing"
 
+	"go.skia.org/infra/go/testutils"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,6 +18,7 @@ func loginInit() {
 }
 
 func TestLoginURL(t *testing.T) {
+	testutils.SmallTest(t)
 	once.Do(loginInit)
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("GET", "http://example.com/", nil)
@@ -38,6 +41,7 @@ func TestLoginURL(t *testing.T) {
 }
 
 func TestLoggedInAs(t *testing.T) {
+	testutils.SmallTest(t)
 	once.Do(loginInit)
 
 	r, err := http.NewRequest("GET", "http://example.com/", nil)

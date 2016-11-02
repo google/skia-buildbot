@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/rietveld"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 
@@ -32,6 +33,7 @@ var (
 )
 
 func TestCommitID(t *testing.T) {
+	testutils.SmallTest(t)
 	c := &CommitID{
 		Offset: 51,
 		Source: "master",
@@ -46,6 +48,7 @@ func TestCommitID(t *testing.T) {
 }
 
 func TestFromIssue(t *testing.T) {
+	testutils.SmallTest(t)
 	b, err := ioutil.ReadFile(filepath.Join("testdata", "rietveld_response.txt"))
 	assert.NoError(t, err)
 	m := mockhttpclient.NewURLMock()
@@ -68,6 +71,7 @@ func TestFromIssue(t *testing.T) {
 }
 
 func TestFromHash(t *testing.T) {
+	testutils.SmallTest(t)
 	vcs := ingestion.MockVCS(TEST_COMMITS)
 	commitID, err := FromHash(vcs, "fe4a4029a080bc955e9588d05a6cd9eb490845d4")
 	assert.NoError(t, err)
@@ -84,6 +88,7 @@ func TestFromHash(t *testing.T) {
 }
 
 func TestLookup(t *testing.T) {
+	testutils.SmallTest(t)
 	b, err := ioutil.ReadFile(filepath.Join("testdata", "rietveld_response.txt"))
 	assert.NoError(t, err)
 	m := mockhttpclient.NewURLMock()
@@ -150,6 +155,7 @@ func TestLookup(t *testing.T) {
 }
 
 func TestParseLogLine(t *testing.T) {
+	testutils.SmallTest(t)
 	s := "1476870603 e8f0a7b986f1e5583c9bc162efcdd92fd6430549 joel.liang@arm.com Generate Signed Distance Field directly from vector path"
 	var index int = 3
 	entry, err := parseLogLine(s, &index, nil)

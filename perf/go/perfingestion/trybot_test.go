@@ -19,6 +19,7 @@ import (
 
 // TestTrybotBenchData tests parsing and processing of a single trybot file.
 func TestTrybotBenchData(t *testing.T) {
+	testutils.SmallTest(t)
 	// Load the sample data file as BenchData.
 	r, err := os.Open(filepath.Join(TEST_DATA_DIR, "trybot.json"))
 	assert.NoError(t, err)
@@ -32,6 +33,7 @@ func TestTrybotBenchData(t *testing.T) {
 }
 
 func TestTrybotPerfIngestion(t *testing.T) {
+	testutils.SmallTest(t)
 	b, err := ioutil.ReadFile(filepath.Join("testdata", "rietveld_response.txt"))
 	assert.NoError(t, err)
 	m := mockhttpclient.NewURLMock()

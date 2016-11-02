@@ -4,10 +4,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils"
+
+	assert "github.com/stretchr/testify/require"
 )
 
 func TestConfigRead(t *testing.T) {
+	testutils.SmallTest(t)
 	m, err := ReadMetrics(filepath.Join("./testdata", "metrics.cfg"))
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(m))

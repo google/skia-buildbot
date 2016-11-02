@@ -26,6 +26,7 @@ func makeFakeTile(t *testing.T, filename string, tile *tiling.Tile) {
 }
 
 func TestMerging(t *testing.T) {
+	testutils.SmallTest(t)
 	randomPath, err := ioutil.TempDir("", "mergedtiles_test")
 	if err != nil {
 		t.Fatalf("Failing to create temporary directory: %s", err)

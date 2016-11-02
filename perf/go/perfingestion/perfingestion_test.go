@@ -71,6 +71,7 @@ var (
 
 // Tests parsing and processing of a single file.
 func TestBenchData(t *testing.T) {
+	testutils.SmallTest(t)
 	// Load the sample data file as BenchData.
 	r, err := os.Open(filepath.Join(TEST_DATA_DIR, TEST_INGESTION_FILE))
 	assert.NoError(t, err)
@@ -93,6 +94,7 @@ func TestBenchData(t *testing.T) {
 
 // Tests the processor in conjunction with the vcs.
 func TestPerfProcessor(t *testing.T) {
+	testutils.SmallTest(t)
 
 	// Set up mock VCS and run a servcer with the given data directory.
 	vcs := ingestion.MockVCS(TEST_COMMITS)

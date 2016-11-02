@@ -4,6 +4,7 @@ import (
 	"math"
 	"testing"
 
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/types"
@@ -27,6 +28,7 @@ func newTestContext() *Context {
 }
 
 func TestFilter(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext()
 
 	testCases := []struct {
@@ -51,6 +53,7 @@ func TestFilter(t *testing.T) {
 }
 
 func TestEvalNoModifyTile(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext()
 
 	traces, err := ctx.Eval(`fill(filter("config=8888"))`)
@@ -67,6 +70,7 @@ func TestEvalNoModifyTile(t *testing.T) {
 }
 
 func TestEvalErrors(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext()
 
 	testCases := []string{
@@ -102,6 +106,7 @@ func near(a, b float64) bool {
 }
 
 func TestNorm(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext()
 	ctx.Tile.Traces["t1"].(*types.PerfTrace).Values = []float64{2.0, -2.0, 1e100}
 	delete(ctx.Tile.Traces, "t2")
@@ -116,6 +121,7 @@ func TestNorm(t *testing.T) {
 }
 
 func TestAve(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext()
 	ctx.Tile.Traces["t1"].(*types.PerfTrace).Values = []float64{1.0, -1.0, 1e100, 1e100}
 	ctx.Tile.Traces["t2"].(*types.PerfTrace).Values = []float64{1e100, 2.0, -2.0, 1e100}
@@ -135,6 +141,7 @@ func TestAve(t *testing.T) {
 }
 
 func TestAvg(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext()
 	ctx.Tile.Traces["t1"].(*types.PerfTrace).Values = []float64{1.0, -1.0, 1e100, 1e100}
 	ctx.Tile.Traces["t2"].(*types.PerfTrace).Values = []float64{1e100, 2.0, -2.0, 1e100}
@@ -154,6 +161,7 @@ func TestAvg(t *testing.T) {
 }
 
 func TestCount(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext()
 	ctx.Tile.Traces["t1"].(*types.PerfTrace).Values = []float64{1.0, -1.0, 1e100, 1e100}
 	ctx.Tile.Traces["t2"].(*types.PerfTrace).Values = []float64{1e100, 2.0, -2.0, 1e100}
@@ -173,6 +181,7 @@ func TestCount(t *testing.T) {
 }
 
 func TestRatio(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext()
 	ctx.Tile.Traces["t1"].(*types.PerfTrace).Values = []float64{10, 4, 100, 50, 9999, 0}
 	ctx.Tile.Traces["t2"].(*types.PerfTrace).Values = []float64{5, 2, 4, 5, 0, 1000}
@@ -194,6 +203,7 @@ func TestRatio(t *testing.T) {
 }
 
 func TestFill(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext()
 	ctx.Tile.Traces["t1"].(*types.PerfTrace).Values = []float64{1e100, 1e100, 2, 3, 1e100, 5}
 	delete(ctx.Tile.Traces, "t2")
@@ -213,6 +223,7 @@ func TestFill(t *testing.T) {
 }
 
 func TestSum(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext()
 	ctx.Tile.Traces["t1"].(*types.PerfTrace).Values = []float64{1.0, -1.0, 1e100, 1e100}
 	ctx.Tile.Traces["t2"].(*types.PerfTrace).Values = []float64{1e100, 2.0, -2.0, 1e100}
@@ -232,6 +243,7 @@ func TestSum(t *testing.T) {
 }
 
 func TestGeo(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext()
 	ctx.Tile.Traces["t1"].(*types.PerfTrace).Values = []float64{1.0, -1.0, 2.0, 1e100}
 	ctx.Tile.Traces["t2"].(*types.PerfTrace).Values = []float64{1e100, 2.0, 8.0, -2.0}
@@ -251,6 +263,7 @@ func TestGeo(t *testing.T) {
 }
 
 func TestLog(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext()
 	ctx.Tile.Traces["t1"].(*types.PerfTrace).Values = []float64{1, 10, 100, -1, 0, 1e100}
 	delete(ctx.Tile.Traces, "t2")

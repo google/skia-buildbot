@@ -12,6 +12,7 @@ import (
 const TEST_DATA_DIR = "testdata"
 
 func TestDigestStore(t *testing.T) {
+	testutils.SmallTest(t)
 	assert.NoError(t, os.MkdirAll(TEST_DATA_DIR, 0755))
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 

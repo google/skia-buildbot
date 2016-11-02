@@ -28,15 +28,28 @@ var (
 	medium = flag.Bool(MEDIUM_TEST, false, "Whether or not to run medium tests.")
 	large  = flag.Bool(LARGE_TEST, false, "Whether or not to run large tests.")
 
+	// DEFAULT_RUN indicates whether the given test type runs by default
+	// when no filter flag is specified.
 	DEFAULT_RUN = map[string]bool{
-		SMALL_TEST:  true,
-		MEDIUM_TEST: true,
+		SMALL_TEST:  false,
+		MEDIUM_TEST: false,
 		LARGE_TEST:  false,
+	}
+
+	TIMEOUT_SMALL  = "2s"
+	TIMEOUT_MEDIUM = "15s"
+	TIMEOUT_LARGE  = "10m"
+
+	// TEST_TYPES lists all of the types of tests.
+	TEST_TYPES = []string{
+		SMALL_TEST,
+		MEDIUM_TEST,
+		LARGE_TEST,
 	}
 )
 
-// shouldRun determines whether the test should run based on the provided flags.
-func shouldRun(testType string) bool {
+// ShouldRun determines whether the test should run based on the provided flags.
+func ShouldRun(testType string) bool {
 	// Fallback if no test filter is specified.
 	if !*small && !*medium && !*large {
 		return DEFAULT_RUN[testType]
@@ -57,7 +70,7 @@ func shouldRun(testType string) bool {
 // test: A test (under 2 seconds) with no dependencies on external databases,
 // networks, etc.
 func SmallTest(t *testing.T) {
-	if !shouldRun(SMALL_TEST) {
+	if !ShouldRun(SMALL_TEST) {
 		t.Skip("Not running small tests.")
 	}
 }
@@ -66,7 +79,7 @@ func SmallTest(t *testing.T) {
 // medium-sized test: a test (2-15 seconds) which has dependencies on external
 // databases, networks, etc.
 func MediumTest(t *testing.T) {
-	if !shouldRun(MEDIUM_TEST) {
+	if !ShouldRun(MEDIUM_TEST) {
 		t.Skip("Not running medium tests.")
 	}
 }
@@ -76,7 +89,7 @@ func MediumTest(t *testing.T) {
 // dependencies which makes it too slow or flaky to run as part of the normal
 // test suite.
 func LargeTest(t *testing.T) {
-	if !shouldRun(LARGE_TEST) {
+	if !ShouldRun(LARGE_TEST) {
 		t.Skip("Not running large tests.")
 	}
 }

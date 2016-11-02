@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/testutils"
 	skutil "go.skia.org/infra/go/util"
 
 	expect "github.com/stretchr/testify/assert"
@@ -77,6 +78,7 @@ func pendingChromiumPerfTask() ChromiumPerfTask {
 }
 
 func TestChromiumPerfExecute(t *testing.T) {
+	testutils.SmallTest(t)
 	task := pendingChromiumPerfTask()
 	mockRun := exec.CommandCollector{}
 	exec.SetRunForTesting(mockRun.Run)
@@ -122,6 +124,7 @@ func pendingCaptureSkpsTask() CaptureSkpsTask {
 }
 
 func TestCaptureSkpsExecute(t *testing.T) {
+	testutils.SmallTest(t)
 	task := pendingCaptureSkpsTask()
 	mockRun := exec.CommandCollector{}
 	exec.SetRunForTesting(mockRun.Run)
@@ -156,6 +159,7 @@ func pendingLuaScriptTaskWithAggregator() LuaScriptTask {
 }
 
 func TestLuaScriptExecuteWithAggregator(t *testing.T) {
+	testutils.SmallTest(t)
 	task := pendingLuaScriptTaskWithAggregator()
 	mockRun := exec.CommandCollector{}
 	exec.SetRunForTesting(mockRun.Run)
@@ -184,6 +188,7 @@ func TestLuaScriptExecuteWithAggregator(t *testing.T) {
 }
 
 func TestLuaScriptExecuteWithoutAggregator(t *testing.T) {
+	testutils.SmallTest(t)
 	task := LuaScriptTask{
 		DBTask: lua_scripts.DBTask{
 			CommonCols:          pendingCommonCols(),
@@ -232,6 +237,7 @@ func pendingChromiumBuildTask() ChromiumBuildTask {
 }
 
 func TestChromiumBuildExecute(t *testing.T) {
+	testutils.SmallTest(t)
 	task := pendingChromiumBuildTask()
 	mockRun := exec.CommandCollector{}
 	exec.SetRunForTesting(mockRun.Run)
@@ -262,6 +268,7 @@ func pendingRecreatePageSetsTask() RecreatePageSetsTask {
 }
 
 func TestRecreatePageSetsExecute(t *testing.T) {
+	testutils.SmallTest(t)
 	task := pendingRecreatePageSetsTask()
 	mockRun := exec.CommandCollector{}
 	exec.SetRunForTesting(mockRun.Run)
@@ -291,6 +298,7 @@ func pendingRecreateWebpageArchivesTask() RecreateWebpageArchivesTask {
 }
 
 func TestRecreateWebpageArchivesExecute(t *testing.T) {
+	testutils.SmallTest(t)
 	task := pendingRecreateWebpageArchivesTask()
 	mockRun := exec.CommandCollector{}
 	exec.SetRunForTesting(mockRun.Run)
@@ -309,6 +317,7 @@ func TestRecreateWebpageArchivesExecute(t *testing.T) {
 }
 
 func TestAsPollerTask(t *testing.T) {
+	testutils.SmallTest(t)
 	expect.Nil(t, asPollerTask(nil))
 	{
 		taskStruct := pendingChromiumPerfTask()
@@ -344,6 +353,7 @@ func TestAsPollerTask(t *testing.T) {
 
 // Test that updateWebappTaskSetFailed works.
 func TestUpdateWebappTaskSetFailed(t *testing.T) {
+	testutils.SmallTest(t)
 	task := pendingRecreateWebpageArchivesTask()
 	mockServer := frontend.MockServer{}
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
@@ -363,6 +373,7 @@ func TestUpdateWebappTaskSetFailed(t *testing.T) {
 
 // Test that updateWebappTaskSetFailed returns an error when the server response indicates an error.
 func TestUpdateWebappTaskSetFailedFailure(t *testing.T) {
+	testutils.SmallTest(t)
 	errstr := "You must be at least this tall to ride this ride."
 	task := pendingRecreateWebpageArchivesTask()
 	reqCount := 0
@@ -381,6 +392,7 @@ func TestUpdateWebappTaskSetFailedFailure(t *testing.T) {
 }
 
 func TestPollAndExecOnce(t *testing.T) {
+	testutils.SmallTest(t)
 	task := pendingRecreateWebpageArchivesTask()
 	mockServer := frontend.MockServer{}
 	mockServer.SetCurrentTask(&task.RecreateWebpageArchivesDBTask)
@@ -404,6 +416,7 @@ func TestPollAndExecOnce(t *testing.T) {
 }
 
 func TestPollAndExecOnceMultipleTasks(t *testing.T) {
+	testutils.SmallTest(t)
 	task1 := pendingRecreateWebpageArchivesTask()
 	mockServer := frontend.MockServer{}
 	mockServer.SetCurrentTask(&task1.RecreateWebpageArchivesDBTask)
@@ -438,6 +451,7 @@ func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 }
 
 func TestPollAndExecOnceError(t *testing.T) {
+	testutils.SmallTest(t)
 	task := pendingRecreateWebpageArchivesTask()
 	mockServer := frontend.MockServer{}
 	mockServer.SetCurrentTask(&task.RecreateWebpageArchivesDBTask)
@@ -472,6 +486,7 @@ func TestPollAndExecOnceError(t *testing.T) {
 }
 
 func TestPollAndExecOnceNoTasks(t *testing.T) {
+	testutils.SmallTest(t)
 	mockServer := frontend.MockServer{}
 	mockServer.SetCurrentTask(nil)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))

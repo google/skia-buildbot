@@ -93,6 +93,7 @@ var (
 )
 
 func TestRangeImpl(t *testing.T) {
+	testutils.SmallTest(t)
 
 	expected_headers := []*ColumnHeader{
 		&ColumnHeader{
@@ -129,6 +130,7 @@ func TestRangeImpl(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
+	testutils.SmallTest(t)
 	colHeaders := []*ColumnHeader{
 		&ColumnHeader{
 			Source:    "master",
@@ -165,6 +167,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestVCS(t *testing.T) {
+	testutils.SmallTest(t)
 	vcs := &mockVcs{
 		commits: commits,
 	}

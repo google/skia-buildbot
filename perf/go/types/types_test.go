@@ -5,11 +5,13 @@ import (
 	"net/url"
 	"testing"
 
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/perf/go/config"
 )
 
 func TestMerge(t *testing.T) {
+	testutils.SmallTest(t)
 	t1 := tiling.NewTile()
 	t1.Scale = 1
 	t1.TileIndex = 20
@@ -124,6 +126,7 @@ func TestMerge(t *testing.T) {
 }
 
 func TestPerfTrace(t *testing.T) {
+	testutils.SmallTest(t)
 	N := 5
 	// Test NewPerfTrace.
 	g := NewPerfTraceN(N)
@@ -205,6 +208,7 @@ func TestPerfTrace(t *testing.T) {
 }
 
 func TestTileTrim(t *testing.T) {
+	testutils.SmallTest(t)
 	t1 := tiling.NewTile()
 	t1.Scale = 1
 	t1.TileIndex = 1
@@ -255,6 +259,7 @@ func TestTileTrim(t *testing.T) {
 }
 
 func TestMatchesWithIgnore(t *testing.T) {
+	testutils.SmallTest(t)
 	tr := NewPerfTrace()
 	tr.Params_["p1"] = "v1"
 	tr.Params_["p2"] = "v2"
@@ -320,6 +325,7 @@ func TestMatchesWithIgnore(t *testing.T) {
 }
 
 func TestSetAt(t *testing.T) {
+	testutils.SmallTest(t)
 	testCases := []struct {
 		want float64
 	}{

@@ -10,6 +10,7 @@ import (
 )
 
 func TestGetTrybotsForCL(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	client := NewClient(httputils.NewTimeoutClient())

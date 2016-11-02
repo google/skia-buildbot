@@ -79,6 +79,7 @@ func clearDB(t *testing.T) *testDB {
 }
 
 func TestLambda(t *testing.T) {
+	testutils.SmallTest(t)
 	cases := []struct {
 		in  float64
 		out float64
@@ -102,6 +103,7 @@ func TestLambda(t *testing.T) {
 }
 
 func TestBuildScoring(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	// Load the test repo.
@@ -249,6 +251,7 @@ type buildQueueExpect struct {
 }
 
 func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQueueExpect, testInsert bool) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	// Initialize the buildbot database.
@@ -536,6 +539,7 @@ func TestBuildQueueLambdaInsert(t *testing.T) {
 }
 
 func TestBuildQueueNoPrevious(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	// Initialize the buildbot database.

@@ -10,6 +10,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
@@ -26,7 +27,9 @@ var (
 
 	// Top-level list of all Jobs to run at each commit.
 	JOBS = []string{
-		"Infra-PerCommit",
+		"Infra-PerCommit-Small",
+		"Infra-PerCommit-Medium",
+		"Infra-PerCommit-Large",
 	}
 )
 
@@ -65,7 +68,7 @@ func process(b *specs.TasksCfgBuilder, name string) {
 	deps := []string{}
 
 	// Infra tests.
-	if name == "Infra-PerCommit" {
+	if strings.Contains(name, "Infra-PerCommit") {
 		deps = append(deps, infra(b, name))
 	}
 

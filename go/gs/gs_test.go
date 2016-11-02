@@ -30,6 +30,7 @@ func compareStringSlices(a, b []string) bool {
 }
 
 func TestGetLatestGSDirs(t *testing.T) {
+	testutils.SmallTest(t)
 	startTS := time.Date(1970, time.November, 29, 13, 45, 20, 67, time.UTC).Unix()
 	endTS := time.Date(1972, time.February, 2, 3, 45, 20, 67, time.UTC).Unix()
 	results := GetLatestGSDirs(startTS, endTS, "prefix")
@@ -51,6 +52,7 @@ func TestGetLatestGSDirs(t *testing.T) {
 }
 
 func TestDownloadHelper(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	// Setup.

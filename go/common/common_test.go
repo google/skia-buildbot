@@ -3,9 +3,12 @@ package common
 import (
 	"reflect"
 	"testing"
+
+	"go.skia.org/infra/go/testutils"
 )
 
 func TestMultiString(t *testing.T) {
+	testutils.SmallTest(t)
 	m := MultiString{}
 	if err := m.Set("alpha"); err != nil {
 		t.Errorf("Should not have gotten error: %s", err)

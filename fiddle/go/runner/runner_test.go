@@ -11,9 +11,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/fiddle/go/types"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/testutils"
 )
 
 func TestPrep(t *testing.T) {
+	testutils.SmallTest(t)
 	opts := &types.Options{
 		Width:  128,
 		Height: 256,
@@ -54,6 +56,7 @@ void draw(SkCanvas* canvas) {
 }
 
 func TestWriteDrawCpp(t *testing.T) {
+	testutils.SmallTest(t)
 	// Create a temp fiddleRoot that gets cleaned up.
 	fiddleRoot, err := ioutil.TempDir("", "runner-test")
 	assert.NoError(t, err)
@@ -106,6 +109,7 @@ func testRun(cmd *exec.Command) error {
 }
 
 func TestRun(t *testing.T) {
+	testutils.SmallTest(t)
 	// Now test local runs, first set up exec for testing.
 	exec.SetRunForTesting(testRun)
 	defer exec.SetRunForTesting(exec.DefaultRun)

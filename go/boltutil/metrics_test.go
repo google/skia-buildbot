@@ -17,6 +17,7 @@ import (
 )
 
 func TestDbMetric(t *testing.T) {
+	testutils.SmallTest(t)
 	tmpdir, err := ioutil.TempDir("", "TestDbMetric")
 	assert.NoError(t, err)
 	defer util.RemoveAll(tmpdir)

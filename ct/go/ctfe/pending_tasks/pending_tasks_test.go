@@ -11,12 +11,14 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
+	"go.skia.org/infra/go/testutils"
 
 	expect "github.com/stretchr/testify/assert"
 	assert "github.com/stretchr/testify/require"
 )
 
 func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
+	testutils.SmallTest(t)
 	test := func(task task_common.Task) {
 		buf := bytes.Buffer{}
 		assert.NoError(t, EncodeTask(&buf, task))

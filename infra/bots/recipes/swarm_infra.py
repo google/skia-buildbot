@@ -161,7 +161,15 @@ def RunSteps(api):
     karma_port = '15%s' % m.groups()[0]
   env['KARMA_PORT'] = karma_port
   env['DEPOT_TOOLS'] = api.path['depot_tools']
-  api.python('run_unittests', 'run_unittests', cwd=infra_dir, env=env)
+
+  cmd = ['go', 'run', './run_unittests.go', '--alsologtostderr']
+  if 'Large' in api.properties['buildername']:
+    cmd.append('--large')
+  elif 'Medium' in api.properties['buildername']:
+    cmd.append('--medium')
+  else:
+    cmd.append('--small')
+  api.step('run_unittests', cmd, cwd=infra_dir, env=env)
 
 
 def GenTests(api):
@@ -169,17 +177,20 @@ def GenTests(api):
       api.test('Infra-PerCommit') +
       api.path.exists(api.path['slave_build'].join('go', 'src', INFRA_GO,
                                                    '.git')) +
-      api.properties(slavename='skiabot-linux-infra-001',
+      api.properties(buildername='Infra-PerCommit-Small',
+                     slavename='skiabot-linux-infra-001',
                      path_config='kitchen')
   )
   yield (
       api.test('Infra-PerCommit_initialcheckout') +
-      api.properties(slavename='skiabot-linux-infra-001',
+      api.properties(buildername='Infra-PerCommit-Small',
+                     slavename='skiabot-linux-infra-001',
                      path_config='kitchen')
   )
   yield (
       api.test('Infra-PerCommit_try_rietveld') +
-      api.properties(rietveld='https://codereview.chromium.org',
+      api.properties(buildername='Infra-PerCommit-Small',
+                     rietveld='https://codereview.chromium.org',
                      issue=1234,
                      patchset=1,
                      revision=REF_HEAD,
@@ -188,11 +199,24 @@ def GenTests(api):
   )
   yield (
       api.test('Infra-PerCommit_try_gerrit') +
-      api.properties(revision=REF_HEAD,
+      api.properties(buildername='Infra-PerCommit-Small',
+                     revision=REF_HEAD,
                      slavename='skiabot-linux-infra-001',
                      path_config='kitchen') +
       api.properties.tryserver(
           gerrit_project='skia',
           gerrit_url='https://skia-review.googlesource.com/',
       )
+  )
+  yield (
+      api.test('Infra-PerCommit-Large') +
+      api.properties(buildername='Infra-PerCommit-Large',
+                     slavename='skiabot-linux-infra-001',
+                     path_config='kitchen')
+  )
+  yield (
+      api.test('Infra-PerCommit-Medium') +
+      api.properties(buildername='Infra-PerCommit-Medium',
+                     slavename='skiabot-linux-infra-001',
+                     path_config='kitchen')
   )

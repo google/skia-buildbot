@@ -414,6 +414,7 @@ func setup(t *testing.T) (string, *AutoRoller, *mockRepoManager, *mockRietveld, 
 // TestAutoRollBasic ensures that the typical function of the AutoRoller works
 // as expected.
 func TestAutoRollBasic(t *testing.T) {
+	testutils.MediumTest(t)
 	// setup will initialize the roller and upload a CL.
 	workdir, roller, rm, rv, roll1 := setup(t)
 	defer func() {
@@ -447,6 +448,7 @@ func TestAutoRollBasic(t *testing.T) {
 // TestAutoRollStop ensures that we can properly stop and restart the
 // AutoRoller.
 func TestAutoRollStop(t *testing.T) {
+	testutils.MediumTest(t)
 	// setup will initialize the roller and upload a CL.
 	workdir, roller, rm, rv, roll1 := setup(t)
 	defer func() {
@@ -496,6 +498,7 @@ func TestAutoRollStop(t *testing.T) {
 
 // TestAutoRollDryRun ensures that the Dry Run functionalify works as expected.
 func TestAutoRollDryRun(t *testing.T) {
+	testutils.MediumTest(t)
 	workdir, roller, rm, rv, roll1 := setup(t)
 	defer func() {
 		assert.NoError(t, roller.Close())
@@ -595,6 +598,7 @@ func TestAutoRollDryRun(t *testing.T) {
 // roller to query the commit queue directly to determine whether it landed the
 // CL.
 func TestAutoRollCommitDescRace(t *testing.T) {
+	testutils.MediumTest(t)
 	workdir, roller, rm, rv, roll1 := setup(t)
 	defer func() {
 		assert.NoError(t, roller.Close())
@@ -651,6 +655,7 @@ func TestAutoRollCommitDescRace(t *testing.T) {
 // the time we check for it. In this case, we expect the roller to repeatedly
 // sync the code, waiting for the commit to show up.
 func TestAutoRollCommitLandRace(t *testing.T) {
+	testutils.LargeTest(t)
 	workdir, roller, rm, rv, roll1 := setup(t)
 	defer func() {
 		assert.NoError(t, roller.Close())
@@ -704,6 +709,7 @@ func TestAutoRollCommitLandRace(t *testing.T) {
 // TestAutoRollThrottle ensures that we properly throttle the roller so that it
 // doesn't upload new CLs over and over.
 func TestAutoRollThrottle(t *testing.T) {
+	testutils.MediumTest(t)
 	workdir, roller, rm, rv, roll1 := setup(t)
 	defer func() {
 		assert.NoError(t, roller.Close())

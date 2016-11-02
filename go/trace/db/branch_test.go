@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/rietveld"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -25,6 +26,7 @@ const (
 )
 
 func TestPerfTrace(t *testing.T) {
+	testutils.LargeTest(t)
 	b, err := ioutil.ReadFile(filepath.Join("testdata", "rietveld_response.txt"))
 	assert.NoError(t, err)
 
@@ -129,6 +131,7 @@ func TestPerfTrace(t *testing.T) {
 }
 
 func TestTileFromCommits(t *testing.T) {
+	testutils.SmallTest(t)
 	ts, cleanup := setupClientServerForTesting(t.Fatalf)
 	defer cleanup()
 

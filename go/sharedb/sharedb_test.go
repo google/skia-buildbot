@@ -9,6 +9,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -18,6 +19,7 @@ const MAX_KEYS = 200
 const DATA_DIR = "./data_dir"
 
 func TestShareDB(t *testing.T) {
+	testutils.MediumTest(t)
 	// Create the server and start it.
 	serverImpl := NewServer(DATA_DIR)
 	defer util.RemoveAll(DATA_DIR)

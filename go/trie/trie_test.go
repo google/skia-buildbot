@@ -10,6 +10,7 @@ import (
 )
 
 func TestTrie(t *testing.T) {
+	testutils.SmallTest(t)
 	trie := New()
 	trie.Insert([]string{"a", "b", "c"}, "1")
 	trie.Insert([]string{"a", "b"}, "2")
@@ -52,6 +53,7 @@ func TestTrie(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
+	testutils.SmallTest(t)
 	trie := New()
 	assert.Equal(t, "Trie(Node([], {}))", trie.String())
 	trie.Insert([]string{"a"}, "1")

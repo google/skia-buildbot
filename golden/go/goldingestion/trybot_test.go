@@ -58,6 +58,7 @@ var (
 
 // Tests the processor in conjunction with the vcs.
 func TestTrybotGoldProcessor(t *testing.T) {
+	testutils.LargeTest(t)
 	server, serverAddress := RunGoldTrybotProcessor(t, TRYBOT_TRACE_DB_FILE, TRYBOT_SHAREDB_DIR, TRYBOT_INGESTION_FILE, TEST_DATA_DIR, TEST_CODE_RIETVELDREVIEW_URL, TEST_CODE_GERRITREVIEW_URL)
 	defer util.RemoveAll(TRYBOT_SHAREDB_DIR)
 	defer testutils.Remove(t, TRYBOT_TRACE_DB_FILE)

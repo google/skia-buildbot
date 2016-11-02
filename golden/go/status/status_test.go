@@ -29,6 +29,7 @@ const (
 )
 
 func TestStatusWatcher(t *testing.T) {
+	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
 	err := gs.DownloadTestDataFile(t, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)

@@ -3,9 +3,12 @@ package data
 import (
 	"reflect"
 	"testing"
+
+	"go.skia.org/infra/go/testutils"
 )
 
 func TestSortedFuzzReports(t *testing.T) {
+	testutils.SmallTest(t)
 	a := make(SortedFuzzReports, 0, 5)
 	addingOrder := []string{"gggg", "aaaa", "cccc", "eeee", "dddd", "bbbb",
 		"ffff"}

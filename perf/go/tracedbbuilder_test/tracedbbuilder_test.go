@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/trace/service"
 	"go.skia.org/infra/go/util"
@@ -30,6 +31,7 @@ func cleanup() {
 }
 
 func TestNewTraceDBBuilder(t *testing.T) {
+	testutils.MediumTest(t)
 	defer cleanup()
 
 	// First spin up a traceservice server that we wil talk to.

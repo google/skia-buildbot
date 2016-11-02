@@ -110,10 +110,12 @@ func testRasterizer(t *testing.T, rasterizer Rasterizer, expectation string) {
 }
 
 func TestRasterizePdfium(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 	testRasterizer(t, Pdfium{}, "minimalPdfium.png")
 }
 
 func TestRasterizePoppler(t *testing.T) {
+	testutils.SmallTest(t)
 	testRasterizer(t, Poppler{}, "minimalPoppler.png")
 }

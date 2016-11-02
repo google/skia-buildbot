@@ -20,6 +20,7 @@ const (
 )
 
 func TestPriorityQueue(t *testing.T) {
+	testutils.SmallTest(t)
 	pq := &priorityQueue{}
 	vals := []*workItem{
 		&workItem{id: "0", priority: 0},
@@ -47,6 +48,7 @@ func TestPriorityQueue(t *testing.T) {
 }
 
 func TestReadThroughCache(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	randBytes := make([]byte, PACKAGE_SIZE)
@@ -122,6 +124,7 @@ func TestReadThroughCache(t *testing.T) {
 }
 
 func TestErrHandling(t *testing.T) {
+	testutils.SmallTest(t)
 	errWorker := func(priority int64, id string) (interface{}, error) {
 		return nil, fmt.Errorf("id: %v", time.Now())
 	}

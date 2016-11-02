@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vec32"
 )
 
@@ -44,6 +45,7 @@ func newTestContext(rows Rows) *Context {
 }
 
 func TestFilter(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext(nil)
 
 	testCases := []struct {
@@ -68,6 +70,7 @@ func TestFilter(t *testing.T) {
 }
 
 func TestEvalNoModifyTile(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext(nil)
 
 	rows, err := ctx.Eval(`fill(filter("config=8888"))`)
@@ -85,6 +88,7 @@ func TestEvalNoModifyTile(t *testing.T) {
 }
 
 func TestEvalErrors(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext(nil)
 
 	testCases := []string{
@@ -120,6 +124,7 @@ func near(a, b float32) bool {
 }
 
 func TestNorm(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext(Rows{
 		",name=t1,": []float32{2.0, -2.0, e},
 	})
@@ -134,6 +139,7 @@ func TestNorm(t *testing.T) {
 }
 
 func TestAve(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext(Rows{
 		",name=t1,": []float32{1.0, -1.0, e, e},
 		",name=t2,": []float32{e, 2.0, -2.0, e},
@@ -155,6 +161,7 @@ func TestAve(t *testing.T) {
 }
 
 func TestAvg(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext(Rows{
 		",name=t1,": []float32{1.0, -1.0, e, e},
 		",name=t2,": []float32{e, 2.0, -2.0, e},
@@ -176,6 +183,7 @@ func TestAvg(t *testing.T) {
 }
 
 func TestCount(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext(Rows{
 		",name=t1,": []float32{1.0, -1.0, e, e},
 		",name=t2,": []float32{e, 2.0, -2.0, e},
@@ -197,6 +205,7 @@ func TestCount(t *testing.T) {
 }
 
 func TestRatio(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext(Rows{
 		",name=t1,": []float32{10, 4, 100, 50, 9999, 0},
 		",name=t2,": []float32{5, 2, 4, 5, 0, 1000},
@@ -218,6 +227,7 @@ func TestRatio(t *testing.T) {
 }
 
 func TestFill(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext(Rows{
 		",name=t1,": []float32{e, e, 2, 3, e, 5},
 	})
@@ -238,6 +248,7 @@ func TestFill(t *testing.T) {
 }
 
 func TestSum(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext(Rows{
 		",name=t1,": []float32{1.0, -1.0, e, e},
 		",name=t2,": []float32{e, 2.0, -2.0, e},
@@ -259,6 +270,7 @@ func TestSum(t *testing.T) {
 }
 
 func TestGeo(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext(Rows{
 		",name=t1,": []float32{1.0, -1.0, 2.0, e},
 		",name=t2,": []float32{e, 2.0, 8.0, -2.0},
@@ -280,6 +292,7 @@ func TestGeo(t *testing.T) {
 }
 
 func TestLog(t *testing.T) {
+	testutils.SmallTest(t)
 	ctx := newTestContext(Rows{
 		",name=t1,": []float32{1, 10, 100, -1, 0, e},
 	})

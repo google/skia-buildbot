@@ -3,10 +3,13 @@ package buildbot
 import (
 	"testing"
 
+	"go.skia.org/infra/go/testutils"
+
 	assert "github.com/stretchr/testify/require"
 )
 
 func TestBuilderNameSchema(t *testing.T) {
+	testutils.SmallTest(t)
 	tc := map[string]map[string]string{
 		"Build-Ubuntu-GCC-x86-Release": {
 			"role":          "Build",

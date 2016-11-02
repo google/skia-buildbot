@@ -11,6 +11,7 @@ import (
 )
 
 func TestNoRollover(t *testing.T) {
+	testutils.SmallTest(t)
 	mockOutPersistence()
 	log1 := testutils.MustReadFile("pylog1.0")
 	log2 := testutils.MustReadFile("pylog1.1")
@@ -48,6 +49,7 @@ func TestNoRollover(t *testing.T) {
 }
 
 func TestNoRollover2(t *testing.T) {
+	testutils.SmallTest(t)
 	// Checks rollover with the rollover file actually having something.
 	mockOutPersistence()
 	log1 := testutils.MustReadFile("pylog1.0")
@@ -88,6 +90,7 @@ func TestNoRollover2(t *testing.T) {
 }
 
 func TestRolloverToEmpty(t *testing.T) {
+	testutils.SmallTest(t)
 	mockOutPersistence()
 	log1 := testutils.MustReadFile("pylog1.0")
 	log2 := testutils.MustReadFile("pylog1.1")
@@ -126,6 +129,7 @@ func TestRolloverToEmpty(t *testing.T) {
 }
 
 func TestRolloverWithNew(t *testing.T) {
+	testutils.SmallTest(t)
 	mockOutPersistence()
 	log1 := testutils.MustReadFile("pylog1.0")
 	log2 := testutils.MustReadFile("pylog1.1")
@@ -165,6 +169,7 @@ func TestRolloverWithNew(t *testing.T) {
 }
 
 func TestWritePersistence(t *testing.T) {
+	testutils.SmallTest(t)
 	readFromPersistenceFile = func(reportName string, v interface{}) error {
 		return nil
 	}
@@ -230,6 +235,7 @@ func TestWritePersistence(t *testing.T) {
 }
 
 func TestReadPersistenceHappy(t *testing.T) {
+	testutils.SmallTest(t)
 	readFromPersistenceFile = func(reportName string, v interface{}) error {
 		rlog, ok := v.(*rolloverLog)
 		if !ok {
@@ -255,6 +261,7 @@ func TestReadPersistenceHappy(t *testing.T) {
 }
 
 func TestReadPersistenceCorrupt(t *testing.T) {
+	testutils.SmallTest(t)
 	readFromPersistenceFile = func(reportName string, v interface{}) error {
 		if reportName != "pylog" {
 			t.Errorf("Wrong reportName: %s", reportName)

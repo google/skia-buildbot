@@ -10,10 +10,13 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/testutils"
+
 	assert "github.com/stretchr/testify/require"
 )
 
 func TestAtMost(t *testing.T) {
+	testutils.SmallTest(t)
 	a := AtMost([]string{"a", "b"}, 3)
 	if got, want := len(a), 2; got != want {
 		t.Errorf("Wrong length: Got %v Want %v", got, want)
@@ -31,6 +34,7 @@ func TestAtMost(t *testing.T) {
 }
 
 func TestSSliceEqual(t *testing.T) {
+	testutils.SmallTest(t)
 	testcases := []struct {
 		a    []string
 		b    []string
@@ -71,6 +75,7 @@ func TestSSliceEqual(t *testing.T) {
 }
 
 func TestIntersectIntSets(t *testing.T) {
+	testutils.SmallTest(t)
 	sets := []map[int]bool{
 		map[int]bool{1: true, 2: true, 3: true, 4: true},
 		map[int]bool{2: true, 4: true, 5: true, 7: true},
@@ -81,6 +86,7 @@ func TestIntersectIntSets(t *testing.T) {
 }
 
 func TestAddParamsToParamSet(t *testing.T) {
+	testutils.SmallTest(t)
 	testCases := []struct {
 		a       map[string][]string
 		b       map[string]string
@@ -136,6 +142,7 @@ func TestAddParamsToParamSet(t *testing.T) {
 }
 
 func TestAddParamSetToParamSet(t *testing.T) {
+	testutils.SmallTest(t)
 	testCases := []struct {
 		a       map[string][]string
 		b       map[string][]string
@@ -186,6 +193,7 @@ func TestAddParamSetToParamSet(t *testing.T) {
 }
 
 func TestAnyMatch(t *testing.T) {
+	testutils.SmallTest(t)
 	slice := []*regexp.Regexp{
 		regexp.MustCompile("somestring"),
 		regexp.MustCompile("^abcdefg$"),
@@ -208,6 +216,7 @@ func TestAnyMatch(t *testing.T) {
 }
 
 func TestIsNil(t *testing.T) {
+	testutils.SmallTest(t)
 	assert.True(t, IsNil(nil))
 	assert.False(t, IsNil(false))
 	assert.False(t, IsNil(0))
@@ -247,6 +256,7 @@ func TestIsNil(t *testing.T) {
 }
 
 func TestUnixFloatToTime(t *testing.T) {
+	testutils.SmallTest(t)
 	cases := []struct {
 		in  float64
 		out time.Time
@@ -262,6 +272,7 @@ func TestUnixFloatToTime(t *testing.T) {
 }
 
 func TestTimeToUnixFloat(t *testing.T) {
+	testutils.SmallTest(t)
 	cases := []struct {
 		in  time.Time
 		out float64
@@ -277,6 +288,7 @@ func TestTimeToUnixFloat(t *testing.T) {
 }
 
 func TestTimeConversion(t *testing.T) {
+	testutils.SmallTest(t)
 	cases := []float64{
 		0.0,
 		1.0,
@@ -289,6 +301,7 @@ func TestTimeConversion(t *testing.T) {
 }
 
 func TestMD5Hash(t *testing.T) {
+	testutils.SmallTest(t)
 	m_1 := map[string]string{"key1": "val1"}
 	m_2 := map[string]string{}
 	var m_3 map[string]string = nil
@@ -333,6 +346,7 @@ func TestMD5Hash(t *testing.T) {
 }
 
 func TestBugsFromCommitMsg(t *testing.T) {
+	testutils.SmallTest(t)
 	cases := []struct {
 		in  string
 		out map[string][]string
@@ -388,6 +402,7 @@ BUG=1234, skia:5678
 }
 
 func TestIsDirEmpty(t *testing.T) {
+	testutils.SmallTest(t)
 	d, err := ioutil.TempDir(os.TempDir(), "test_empty")
 	assert.NoError(t, err)
 	defer RemoveAll(d)
@@ -419,6 +434,7 @@ type DomainTestCase struct {
 }
 
 func TestCookieDomainMatch(t *testing.T) {
+	testutils.SmallTest(t)
 	// Test cases borrowed from test_domain_match in
 	// https://svn.python.org/projects/python/trunk/Lib/test/test_cookielib.py
 	testCases := []DomainTestCase{

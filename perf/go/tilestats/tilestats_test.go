@@ -3,10 +3,13 @@ package tilestats
 import (
 	"testing"
 
+	"go.skia.org/infra/go/testutils"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCalcStats(t *testing.T) {
+	testutils.SmallTest(t)
 	testcases := []struct {
 		vec      []float64
 		expected TraceStats

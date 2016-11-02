@@ -25,6 +25,7 @@ func (c dummyClient) Write(client.BatchPoints) error {
 }
 
 func TestQueryNumber(t *testing.T) {
+	testutils.SmallTest(t)
 	type queryCase struct {
 		Name        string
 		QueryFunc   func(client.Query) (*client.Response, error)

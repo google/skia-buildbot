@@ -11,6 +11,7 @@ import (
 )
 
 func TestParseReleaseDump(t *testing.T) {
+	testutils.SmallTest(t)
 	testInput := testutils.MustReadFile("parse-catchsegv-release.dump")
 	trace := parseCatchsegvStackTrace(testInput)
 	expected := StackTrace{
@@ -33,6 +34,7 @@ func TestParseReleaseDump(t *testing.T) {
 }
 
 func TestParseDebugDump(t *testing.T) {
+	testutils.SmallTest(t)
 	testInput := testutils.MustReadFile("parse-catchsegv-debug.dump")
 
 	trace := parseCatchsegvStackTrace(testInput)
@@ -64,6 +66,7 @@ func TestParseDebugDump(t *testing.T) {
 }
 
 func TestParsingEdgeCases(t *testing.T) {
+	testutils.SmallTest(t)
 	// This is a made up dump that has the edge cases for parsing function names.
 	testInput := testutils.MustReadFile("parse-catchsegv-edge.dump")
 	trace := parseCatchsegvStackTrace(testInput)
@@ -87,6 +90,7 @@ func TestParsingEdgeCases(t *testing.T) {
 }
 
 func TestParseASANSingle(t *testing.T) {
+	testutils.SmallTest(t)
 	testInput := testutils.MustReadFile("parse-asan-single.asan")
 
 	trace := parseASANStackTrace(testInput)
@@ -110,6 +114,7 @@ func TestParseASANSingle(t *testing.T) {
 }
 
 func TestParseASANDouble(t *testing.T) {
+	testutils.SmallTest(t)
 	testInput := testutils.MustReadFile("parse-asan-double.asan")
 
 	trace := parseASANStackTrace(testInput)
@@ -133,6 +138,7 @@ func TestParseASANDouble(t *testing.T) {
 }
 
 func TestParseEmptyStackTrace(t *testing.T) {
+	testutils.SmallTest(t)
 	trace := parseCatchsegvStackTrace("")
 
 	if !trace.IsEmpty() {
@@ -145,6 +151,7 @@ func stacktrace(file string) string {
 }
 
 func TestParseGCSPackage_Grey(t *testing.T) {
+	testutils.SmallTest(t)
 	// Everything was successful or partially successful
 	g := GCSPackage{
 		Debug: OutputFiles{
@@ -184,6 +191,7 @@ func TestParseGCSPackage_Grey(t *testing.T) {
 // fallback to the catchsegv debug/err output.
 
 func TestParseGCSPackage_GlobalStackOverflow(t *testing.T) {
+	testutils.SmallTest(t)
 	// Both debug/release crashed with a stackoverflow.
 	g := GCSPackage{
 		Debug: OutputFiles{
@@ -219,6 +227,7 @@ func TestParseGCSPackage_GlobalStackOverflow(t *testing.T) {
 }
 
 func TestParseGCSPackage_AssertDuringRendering(t *testing.T) {
+	testutils.SmallTest(t)
 	// Debug assert hit.  Release heap buffer overflow
 	g := GCSPackage{
 		Debug: OutputFiles{
@@ -259,6 +268,7 @@ func TestParseGCSPackage_AssertDuringRendering(t *testing.T) {
 }
 
 func TestParseGCSPackage_UseAfterFree(t *testing.T) {
+	testutils.SmallTest(t)
 	// Debug ClangCrashed.  Release heap use after free.
 	g := GCSPackage{
 		Debug: OutputFiles{
@@ -300,6 +310,7 @@ func TestParseGCSPackage_UseAfterFree(t *testing.T) {
 }
 
 func TestParseGCSPackage_TimeOut(t *testing.T) {
+	testutils.SmallTest(t)
 	// Everything timed out on analysis
 	g := GCSPackage{
 		Debug: OutputFiles{
@@ -334,6 +345,7 @@ func TestParseGCSPackage_TimeOut(t *testing.T) {
 }
 
 func TestParseGCSPackage_BadAlloc(t *testing.T) {
+	testutils.SmallTest(t)
 	// Everything was a bad:alloc
 	g := GCSPackage{
 		Debug: OutputFiles{
@@ -368,6 +380,7 @@ func TestParseGCSPackage_BadAlloc(t *testing.T) {
 }
 
 func TestParseGCSPackage_EmptyStacktrace(t *testing.T) {
+	testutils.SmallTest(t)
 	// According to AddressSanitizer, both crashed while trying to report a bug.
 	g := GCSPackage{
 		Debug: OutputFiles{
@@ -402,6 +415,7 @@ func TestParseGCSPackage_EmptyStacktrace(t *testing.T) {
 }
 
 func TestParseGCSPackage_SKAbort(t *testing.T) {
+	testutils.SmallTest(t)
 	// Both hit SK_ABORT somewhere.
 	g := GCSPackage{
 		Debug: OutputFiles{
@@ -444,6 +458,7 @@ func TestParseGCSPackage_SKAbort(t *testing.T) {
 }
 
 func TestParseGCSPackage_SKBoring(t *testing.T) {
+	testutils.SmallTest(t)
 	// Both triggered SkBoring.
 	g := GCSPackage{
 		Debug: OutputFiles{
@@ -478,6 +493,7 @@ func TestParseGCSPackage_SKBoring(t *testing.T) {
 }
 
 func TestParseGCSPackage_ClangDumpedNoSymbols(t *testing.T) {
+	testutils.SmallTest(t)
 	// Release dumped for Clang only, and there were no symbols. Also, only Clang hit the assert.
 	g := GCSPackage{
 		Debug: OutputFiles{
@@ -519,6 +535,7 @@ func TestParseGCSPackage_ClangDumpedNoSymbols(t *testing.T) {
 }
 
 func TestParseGCSPackage_BadAllocNoCrash(t *testing.T) {
+	testutils.SmallTest(t)
 	// Both triggered bad alloc, just with no explicit crash. We don't have a full
 	// stacktrace, but we can at least get the most recent line.
 	g := GCSPackage{
