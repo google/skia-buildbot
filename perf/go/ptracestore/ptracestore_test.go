@@ -254,4 +254,13 @@ func TestMatch(t *testing.T) {
 	traces, err = d.Match(commits, q, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(traces))
+
+	// MatchExact.
+	commits = []*cid.CommitID{commitID1, commitID2, commitID3, commitID4}
+	keys := []string{",config=565,test=foo,", ",config=8888,test=foo,"}
+	traces, err = d.MatchExact(commits, keys, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(traces))
+	assert.Equal(t, Trace{1.23, 2.34, 3.45, vec32.MISSING_DATA_SENTINEL}, traces[",config=565,test=foo,"])
+	assert.Equal(t, Trace{3.21, 5.43, 9.10, vec32.MISSING_DATA_SENTINEL}, traces[",config=8888,test=foo,"])
 }
