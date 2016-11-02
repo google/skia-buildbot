@@ -246,11 +246,11 @@ type TaskCfgCache struct {
 	recentJobSpecs  map[string]time.Time
 	recentMtx       sync.RWMutex
 	recentTaskSpecs map[string]time.Time
-	repos           map[string]*repograph.Graph
+	repos           repograph.Map
 }
 
 // NewTaskCfgCache returns a TaskCfgCache instance.
-func NewTaskCfgCache(repos map[string]*repograph.Graph) *TaskCfgCache {
+func NewTaskCfgCache(repos repograph.Map) *TaskCfgCache {
 	return &TaskCfgCache{
 		cache:           map[db.RepoState]*TasksCfg{},
 		mtx:             sync.Mutex{},

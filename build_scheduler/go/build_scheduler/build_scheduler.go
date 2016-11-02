@@ -12,7 +12,7 @@ import (
 	"go.skia.org/infra/build_scheduler/go/build_queue"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/buildbucket"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 )
 
@@ -80,7 +80,7 @@ type BuildScheduler struct {
 	cacheMtx       sync.RWMutex
 	local          bool
 	q              *build_queue.BuildQueue
-	repos          *gitinfo.RepoMap
+	repos          repograph.Map
 	status         *BuildSchedulerStatus
 	statusMtx      sync.RWMutex
 }
@@ -131,23 +131,11 @@ func (bs *BuildScheduler) updateCommits() error {
 // build.
 func (bs *BuildScheduler) Trigger(builderNames []string, commit string) ([]*buildbucket.Build, error) {
 	// Find the desired commit's repo and author.
-	author := ""
-	repoName := ""
-	for _, r := range REPOS {
-		repo, err := bs.repos.Repo(r)
-		if err != nil {
-			return nil, err
-		}
-		details, err := repo.Details(commit, false)
-		if err == nil {
-			author = details.Author
-			repoName = r
-			break
-		}
+	details, repoName, _, err := bs.repos.FindCommit(commit)
+	if err != nil {
+		return nil, err
 	}
-	if repoName == "" {
-		return nil, fmt.Errorf("Unable to find commit %s in any repo.", commit)
-	}
+	author := details.Author
 
 	// Find the desired builders.
 	builders := make([]*buildbot.Builder, 0, len(builderNames))
@@ -250,13 +238,13 @@ func (bs *BuildScheduler) scheduleBuilds() error {
 			continue
 		}
 		if bs.local {
-			glog.Infof("Would schedule: %s @ %s, score = %0.3f", build.Builder, build.Commit[0:7], build.Score)
+			glog.Infof("Would schedule: %s @ %s, score = %0.3f", build.Builder, build.Commit.Hash[0:7], build.Score)
 		} else {
-			scheduled, err := bs.bb.RequestBuild(build.Builder, s.Master, build.Commit, build.Repo, build.Author, "")
+			scheduled, err := bs.bb.RequestBuild(build.Builder, s.Master, build.Commit.Hash, build.Repo, build.Commit.Author, "")
 			if err != nil {
 				errs = append(errs, err)
 			} else {
-				glog.Infof("Scheduled: %s @ %s, score = %0.3f, id = %s", build.Builder, build.Commit[0:7], build.Score, scheduled.Id)
+				glog.Infof("Scheduled: %s @ %s, score = %0.3f, id = %s", build.Builder, build.Commit.Hash[0:7], build.Score, scheduled.Id)
 			}
 		}
 		for _, builder := range builders {
@@ -278,7 +266,7 @@ func (bs *BuildScheduler) scheduleBuilds() error {
 	return nil
 }
 
-func StartNewBuildScheduler(period time.Duration, scoreThreshold, scoreDecay24Hr float64, db buildbot.DB, bb *buildbucket.Client, repos *gitinfo.RepoMap, workdir string, local bool) *BuildScheduler {
+func StartNewBuildScheduler(period time.Duration, scoreThreshold, scoreDecay24Hr float64, db buildbot.DB, bb *buildbucket.Client, repos repograph.Map, workdir string, local bool) *BuildScheduler {
 	// Build the queue.
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {

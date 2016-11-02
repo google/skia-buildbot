@@ -74,7 +74,7 @@ func TestTaskSpecs(t *testing.T) {
 	repoUrl := path.Join(tr.Dir, repoName)
 	repo, err := repograph.NewGraph(repoUrl, tr.Dir)
 	assert.NoError(t, err)
-	repos := map[string]*repograph.Graph{
+	repos := repograph.Map{
 		repoUrl: repo,
 	}
 	cache := NewTaskCfgCache(repos)
@@ -130,7 +130,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	repoUrl := path.Join(tr.Dir, repoName)
 	repo, err := repograph.NewGraph(repoUrl, tr.Dir)
 	assert.NoError(t, err)
-	repos := map[string]*repograph.Graph{
+	repos := repograph.Map{
 		repoUrl: repo,
 	}
 	cache := NewTaskCfgCache(repos)

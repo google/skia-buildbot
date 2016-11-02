@@ -53,7 +53,7 @@ type TaskScheduler struct {
 	period           time.Duration
 	queue            []*taskCandidate // protected by queueMtx.
 	queueMtx         sync.RWMutex
-	repos            map[string]*repograph.Graph
+	repos            repograph.Map
 	swarming         swarming.ApiClient
 	taskCfgCache     *specs.TaskCfgCache
 	tCache           db.TaskCache
@@ -61,7 +61,7 @@ type TaskScheduler struct {
 	tryjobs          *tryjobs.TryJobIntegrator
 }
 
-func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repos map[string]*repograph.Graph, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string) (*TaskScheduler, error) {
+func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		return nil, err
