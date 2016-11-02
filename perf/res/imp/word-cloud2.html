@@ -16,8 +16,8 @@
 
         {
           "cpu_or_gpu": [
-            {"Value":"CPU","Weight":19},
-            {"Value":"GPU","Weight":7},
+            {"value":"CPU","weight":19},
+            {"value":"GPU","weight":7},
           ],
           "config": [
             ...
@@ -48,7 +48,7 @@
         <div class=item><h3>[[item.name]]</h3>
           <div class="param layout vertical">
             <template is="dom-repeat" items="[[item.values]]" as="entry">
-              <div style$="[[computeStyle(entry)]]">[[entry.Value]]</div>
+              <div style$="[[computeStyle(entry)]]">[[entry.value]]</div>
             </template>
           </div>
         </div>
@@ -88,10 +88,10 @@
         });
       }.bind(this));
       ar.sort(function(a,b) {
-        if (a.values[0].Weight > b.values[0].Weight) {
+        if (a.values[0].weight > b.values[0].weight) {
           return -1;
         }
-        if (a.values[0].Weight < b.values[0].Weight) {
+        if (a.values[0].weight < b.values[0].weight) {
           return 1;
         }
         return a.name.localeCompare(b.name);
@@ -101,7 +101,7 @@
     },
 
     computeStyle: function (entry) {
-      return 'font-size: ' + entry.Weight + 'px;';
+      return 'font-size: ' + entry.weight + 'px;';
     },
   });
 </script>
