@@ -1,0 +1,321 @@
+<!--
+  This in an HTML Import-able file that contains the definitions
+  for the following elements:
+
+    <cluster-summary2-sk>
+
+  Properties:
+    fade - A boolean, fade out an issue if its status isn't New.
+    full_summary - A serialized:
+
+       {
+         summary: cluster2.ClusterSummary,
+         frame: dataframe.FrameResponse,
+       }
+
+
+    triage - The triage status of the cluster. Something of the form:
+
+       {
+         id: 11,
+         status: "Bug",
+         message: "This is a regression.",
+       }
+
+  Methods:
+    None.
+
+  Events:
+    open-keys - An event that is fired when the user clicks the "View on
+      dashboard" button that contains a list of keys, and the timestamp range of
+      traces in the details that should be opened in the explorer, and the xbar
+      location specified as a serialized cid.CommitID, for example:
+
+      {
+        "keys":[
+          ",arch=x86_64,bench_type=skandroidcodec,compiler=Clang,...",
+          ",arch=arm,bench_type=skandroidcodec,compiler=Clang,...",
+        ],
+        begin: 1476982874,
+        end: 1476987166,
+        xbar: {"source":"master","offset":24750,"timestamp":1476985844},
+      }
+
+-->
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/paper-material/paper-material.html">
+<link rel="import" href="/res/imp/bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="/res/imp/bower_components/paper-radio-group/paper-radio-group.html">
+
+<link rel="stylesheet" href="/res/common/css/md.css">
+
+<link rel="import" href="/res/common/imp/login.html">
+<link rel="import" href="/res/common/imp/toggle.html">
+
+<link rel="import" href="/res/imp/commit-detail-panel.html" />
+<link rel="import" href="/res/imp/plot-simple.html">
+<link rel="import" href="/res/imp/word-cloud2.html">
+
+<dom-module id="cluster-summary2-sk">
+  <style include="iron-flex iron-flex-alignment">
+    #status.disabled {
+      opacity: 0.5;
+    }
+
+    .regression {
+      background-color: #ddd;
+      border-radius: 6px;
+      padding: 3px 6px;
+      margin-bottom: 0.5em;
+    }
+
+    .high {
+      background-color: #E7298A;
+      color: white;
+      border-radius: 6px;
+      padding: 3px 6px;
+    }
+
+    .low {
+      background-color: #1B9E77;
+      color: white;
+      border-radius: 6px;
+      padding: 3px 6px;
+    }
+
+    @media (max-width: 600px) {
+      #graph {
+        display: none;
+      }
+    }
+
+    .fade {
+      opacity: 0.3;
+    }
+
+    word-cloud2-sk {
+      display: none;
+    }
+
+    word-cloud2-sk.display {
+      display: block;
+    }
+
+    .disabledMessage  {
+      display: none;
+    }
+
+    #status {
+      padding: 0.5em 2em;
+    }
+
+    #status.disabled .disabledMessage {
+      display: block;
+    }
+
+    plot-simple-sk {
+      margin: 1em;
+    }
+
+    paper-material {
+      margin: 1em;
+    }
+
+    paper-material #status.hidden,
+    #permalink.hidden {
+      display: none;
+    }
+
+    #choices paper-radio-button {
+      --default-primary-color: #1f78b4;
+    }
+
+    input {
+      padding: 0.6em;
+    }
+
+    .labelled {
+      margin-right: 2em;
+    }
+
+    commit-detail-panel-sk {
+      margin: 0.6em;
+    }
+  </style>
+  <template>
+    <div id=container class$="layout horizontal [[_faded(fade, triage.status)]]">
+      <div class="layout vertical">
+        <div class$="regression [[_statusClass(_summary.step_fit.status)]]">
+          Regression: <span>[[_trunc(_summary.step_fit.regression)]]</span>
+        </div>
+        <div class="layout horizontal wrap">
+          <div class=labelled>Cluster Size: <span>[[_summary.num]]</span></div>
+          <div class=labelled>Least Squares Error: <span>[[_trunc(_summary.step_fit.least_squares)]]</span></div>
+          <div class=labelled>Step Size: <span>[[_trunc(_summary.step_fit.step_size)]]</span></div>
+        </div>
+        <div class="layout horizontal wrap">
+          <plot-simple-sk specialevents on-trace_selected="_traceSelected" id=graph width=400 height=150></plot-simple-sk>
+          <paper-material elevation="1">
+            <div id=status class$="[[_hiddenClass(triage.id)]]">
+              <p class="disabledMessage">You must be logged in to change the status.</p>
+              <paper-radio-group id=choices class="layout horizontal" selected="[[triage.status]]">
+                <b class="status">Status:</b>
+                <paper-radio-button name="New" label="New">New</paper-radio-button>
+                <paper-radio-button name="Ignore" label="Ignore">Ignore</paper-radio-button>
+                <paper-radio-button name="Bug" label="Bug">Bug</paper-radio-button>
+              </paper-radio-group>
+              <input value="[[triage.message]]" size=80 label="Note" id="message"></input>
+              <button class="action layout self end" id=update on-click="_update">Update</button>
+            </div>
+          </paper-material>
+        </div>
+        <commit-detail-panel-sk id=commits></commit-detail-panel-sk>
+        <div>
+          <button id="shortcut" on-click="_openShortcut">View on dashboard</button>
+          <a id="permalink" class$="[[_hiddenClass(triage.id)]]" href$="[[_permaLink(triage.id)]]">Permlink</a>
+        </div>
+        <toggle-display-sk>Word Cloud</toggle-display-sk>
+        <word-cloud2-sk id=wordcloud items="[[_summary.param_summaries]]"></word-cloud2-sk>
+      </div>
+      <div>
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'cluster-summary2-sk',
+
+      properties: {
+        fade: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true,
+        },
+        full_summary: {
+          type: Object,
+          value: function() { return {}; },
+          observer: "_fullSummaryChange",
+        },
+        triage: {
+          type: Object,
+          value: function() {
+            return {
+              id: -1,
+              status: "New",
+              message: "",
+            };
+          },
+        },
+        _summary: {
+          type: Object,
+          value: function() { return {}; },
+        },
+        _frame: {
+          type: Object,
+          value: function() { return {}; },
+        },
+      },
+
+      ready: function () {
+        sk.Login.then(function(status) {
+          this.$.status.classList.toggle('disabled', status['Email'] == '');
+        }.bind(this)).catch(sk.errorMessage);
+      },
+
+      _fullSummaryChange: function () {
+        if (!this.full_summary.frame) {
+          return
+        }
+        this.set('_frame', this.full_summary.frame);
+        this.set('_summary', this.full_summary.summary);
+
+        // Set the data- attributes used for sorting cluster summaries.
+        this.dataset.clustersize = this._summary.num;
+        this.dataset.steplse = this._summary.step_fit.least_squares;
+        this.dataset.stepsize = this._summary.step_fit.step_size;
+        this.dataset.stepregression = this._summary.step_fit.regression;
+        this.dataset.timestamp = this._summary.timestamp;
+
+        // We take in a ClusterSummary, but need to transform all that data
+        // into a format that plot-sk can handle.
+        var line = [];
+        this._summary.centroid.forEach(function(y, x) {
+          line.push([x, y]);
+        });
+        this.$.graph.addLines({special_centroid: line});
+
+        // Set the tickmarks.
+        var tickmap = {};
+        this._frame.ticks.forEach(function(t) {
+          tickmap[t[0]] = t[1];
+        });
+        this.$.graph.setTicks(tickmap);
+
+        // Set the x-bar but only if status != uninteresting.
+        if (this._summary.step_fit.status != "Uninteresting") {
+          // Loop through the dataframe header to find the location we should
+          // place the x-bar at.
+          var step = this._summary.step_point;
+          var xbar = -1;
+          this._frame.dataframe.header.forEach(function(h, i) {
+            if (h.source == step.source && h.offset == step.offset) {
+              xbar = i;
+            }
+          });
+          if (xbar != -1) {
+            this.$.graph.setXBar(xbar);
+          }
+        }
+      },
+
+      _update: function () {
+        window.alert("Currently unimplemented.");
+      },
+
+      _openShortcut: function (e) {
+        this.fire('open-keys', {
+          keys: this._summary.keys.slice(0, 50),
+          begin: this._frame.dataframe.header[0].timestamp,
+          end: this._frame.dataframe.header[this._frame.dataframe.header.length-1].timestamp+1,
+          xbar: this._summary.step_point,
+        });
+      },
+
+      _traceSelected: function(e) {
+        var h = this._frame.dataframe.header[e.detail.index];
+        sk.post("/_/cid/", JSON.stringify([h])).then(JSON.parse).then(function(json){
+          this.$.commits.setCommitDetail(json);
+        }.bind(this)).catch(sk.errorMessage);
+      },
+
+      // Below are filters used in template expansion:
+      _hiddenClass: function (id) {
+        if (id == -1) {
+          return 'hidden';
+        }
+        return '';
+      },
+
+      _permaLink: function (id) {
+        return '/cl2/' + id;
+      },
+
+      _faded: function (fade, status) {
+        if (fade && status != 'New') {
+          return 'fade';
+        }
+        return '';
+      },
+
+      _statusClass: function (status) {
+        status = status || "";
+        return status.toLowerCase();
+      },
+
+      _trunc: function (value) {
+        return (+value).toPrecision(3);
+      },
+
+    });
+  </script>
+</dom-module>
