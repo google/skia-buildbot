@@ -126,6 +126,7 @@ func main() {
 	}
 	defer skutil.RemoveAll(pathToPagesets)
 
+	// TODO(rmistry): Skip if that flag exists!
 	// Download archives if they do not exist locally.
 	pathToArchives := filepath.Join(util.WebArchivesDir, *pagesetType)
 	if _, err := gs.DownloadSwarmingArtifacts(pathToArchives, util.WEB_ARCHIVES_DIR_NAME, *pagesetType, *startRange, *num); err != nil {
