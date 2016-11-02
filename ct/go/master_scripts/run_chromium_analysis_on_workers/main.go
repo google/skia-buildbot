@@ -45,6 +45,7 @@ var (
 	chromiumPatchLink  = util.MASTER_LOGSERVER_LINK
 	catapultPatchLink  = util.MASTER_LOGSERVER_LINK
 	benchmarkPatchLink = util.MASTER_LOGSERVER_LINK
+	customWebpagesLink = util.MASTER_LOGSERVER_LINK
 	outputLink         = util.MASTER_LOGSERVER_LINK
 )
 
@@ -86,12 +87,14 @@ func sendEmail(recipients []string, gs *util.GsUtil) {
 	The CSV output is <a href='%s'>here</a>.%s<br/>
 	The patch(es) you specified are here:
 	<a href='%s'>chromium</a>/<a href='%s'>catapult</a>/<a href='%s'>telemetry</a>
+	<br/>
+	Custom webpages (if specified) are <a href='%s'>here</a>.
 	<br/><br/>
 	You can schedule more runs <a href='%s'>here</a>.
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, outputLink, archivedWebpagesText, chromiumPatchLink, catapultPatchLink, benchmarkPatchLink, frontend.ChromiumAnalysisTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, outputLink, archivedWebpagesText, chromiumPatchLink, catapultPatchLink, benchmarkPatchLink, customWebpagesLink, frontend.ChromiumAnalysisTasksWebapp)
 	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
@@ -150,11 +153,12 @@ func main() {
 
 	remoteOutputDir := filepath.Join(util.ChromiumAnalysisRunsDir, *runID)
 
-	// Copy the patches to Google Storage.
+	// Copy the patches and custom webpages to Google Storage.
 	chromiumPatchName := *runID + ".chromium.patch"
 	catapultPatchName := *runID + ".catapult.patch"
 	benchmarkPatchName := *runID + ".benchmark.patch"
-	for _, patchName := range []string{chromiumPatchName, catapultPatchName, benchmarkPatchName} {
+	customWebpagesName := *runID + "custom_webpages.csv"
+	for _, patchName := range []string{chromiumPatchName, catapultPatchName, benchmarkPatchName, customWebpagesName} {
 		if err := gs.UploadFile(patchName, os.TempDir(), remoteOutputDir); err != nil {
 			glog.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
 			return
@@ -163,6 +167,10 @@ func main() {
 	chromiumPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, chromiumPatchName)
 	catapultPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, catapultPatchName)
 	benchmarkPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, benchmarkPatchName)
+	customWebpagesLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, customWebpagesName)
+
+	// TODO(rmistry): Read the customWebpagesName and see if there is anything in it. If there is then calculate number of pages
+	// and add utility functions to call from here and from the perf master script.
 
 	// Create the required chromium build.
 	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask("build_chromium", *runID, "chromium", *targetPlatform, []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName)}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)

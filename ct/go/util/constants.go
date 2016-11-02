@@ -77,6 +77,10 @@ const (
 	// Default browser args when running benchmarks.
 	DEFAULT_BROWSER_ARGS = "--disable-setuid-sandbox"
 
+	// Use live sites flag.
+	// TODO(rmistry): Replace use of this everywhere.
+	USE_LIVE_SITES_FLAGS = "--use-live-sites"
+
 	// Timeouts
 
 	PKILL_TIMEOUT       = 5 * time.Minute
