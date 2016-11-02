@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"sort"
 	"testing"
 
 	"go.skia.org/infra/go/query"
@@ -146,6 +147,12 @@ func TestBuildMapper(t *testing.T) {
 	assert.Equal(t, got, want)
 }
 
+func matchesFromQuery(q *query.Query) KeyMatches {
+	return func(key string) bool {
+		return q.Matches(key)
+	}
+}
+
 func TestMatch(t *testing.T) {
 	setupStoreDir(t)
 	defer cleanup()
@@ -204,7 +211,7 @@ func TestMatch(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	commits := []*cid.CommitID{commitID1, commitID2, commitID3, commitID4}
-	traces, err := d.Match(commits, q, nil)
+	traces, err := d.Match(commits, matchesFromQuery(q), nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(traces))
 	assert.Equal(t, 4, len(traces[",config=565,test=foo,"]))
@@ -215,7 +222,7 @@ func TestMatch(t *testing.T) {
 		"test": []string{"foo"},
 	})
 	assert.NoError(t, err)
-	traces, err = d.Match(commits, q, nil)
+	traces, err = d.Match(commits, matchesFromQuery(q), nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(traces))
 	assert.Equal(t, 4, len(traces[",config=565,test=foo,"]))
@@ -228,7 +235,7 @@ func TestMatch(t *testing.T) {
 		Source: "master",
 	}
 	commits = []*cid.CommitID{commitID4, commitID5}
-	traces, err = d.Match(commits, q, nil)
+	traces, err = d.Match(commits, matchesFromQuery(q), nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(traces))
 	assert.Equal(t, 2, len(traces[",config=565,test=foo,"]))
@@ -239,7 +246,7 @@ func TestMatch(t *testing.T) {
 	q, err = query.New(url.Values{})
 	assert.NoError(t, err)
 	commits = []*cid.CommitID{commitID1, commitID2, commitID3, commitID4}
-	traces, err = d.Match(commits, q, nil)
+	traces, err = d.Match(commits, matchesFromQuery(q), nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(traces))
 	assert.Equal(t, 4, len(traces[",config=565,test=foo,"]))
@@ -251,14 +258,22 @@ func TestMatch(t *testing.T) {
 	q, err = query.New(url.Values{"bar": []string{"baz"}})
 	assert.NoError(t, err)
 	commits = []*cid.CommitID{commitID1, commitID2, commitID3, commitID4}
-	traces, err = d.Match(commits, q, nil)
+	traces, err = d.Match(commits, matchesFromQuery(q), nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(traces))
 
-	// MatchExact.
+	// Match exact.
 	commits = []*cid.CommitID{commitID1, commitID2, commitID3, commitID4}
 	keys := []string{",config=565,test=foo,", ",config=8888,test=foo,"}
-	traces, err = d.MatchExact(commits, keys, nil)
+	sort.Strings(keys)
+	matches := func(key string) bool {
+		i := sort.SearchStrings(keys, key)
+		if i > len(keys)-1 {
+			return false
+		}
+		return keys[i] == key
+	}
+	traces, err = d.Match(commits, matches, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(traces))
 	assert.Equal(t, Trace{1.23, 2.34, 3.45, vec32.MISSING_DATA_SENTINEL}, traces[",config=565,test=foo,"])

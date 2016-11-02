@@ -14,7 +14,6 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/golang/groupcache/lru"
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vec32"
@@ -56,6 +55,10 @@ type TraceSet map[string]Trace
 // to a single tile.
 type Progress func(step, totalSteps int)
 
+// KeyMatches is a func that returns true if a key matches some criteria.
+// Passed to Match().
+type KeyMatches func(key string) bool
+
 // PTraceStore is an interface for storing Perf data.
 //
 // PTraceStore doesn't know anything about git hashes or Rietveld issue IDs,
@@ -80,15 +83,7 @@ type PTraceStore interface {
 	//
 	// The returned TraceSet will contain a slice of Trace, and that list will be
 	// empty if there are no matches.
-	Match(commitIDs []*cid.CommitID, q *query.Query, progress Progress) (TraceSet, error)
-
-	// Match returns TraceSet that match the given set of keys.
-	//
-	// The 'progess' callback will be called as each Tile is processed.
-	//
-	// The returned TraceSet will contain a slice of Trace, and that list will be
-	// empty if there are no matches.
-	MatchExact(commitIDs []*cid.CommitID, keys []string, progress Progress) (TraceSet, error)
+	Match(commitIDs []*cid.CommitID, matches KeyMatches, progress Progress) (TraceSet, error)
 }
 
 // BoltTraceStore is an implementation of PTraceStore that uses BoltDB.
@@ -480,13 +475,10 @@ func dup(b []byte) []byte {
 	return ret
 }
 
-// keyMatches is a func that returns true if a key matches some criteria.
-type keyMatches func(key string) bool
-
 // loadMatches loads values into 'traceSet' that match the 'matches' from the
 // tile in the BoltDB 'db'.  Only values at the offsets in 'idxmap' are
 // actually loaded, and 'idxmap' determines where they are stored in the Trace.
-func loadMatches(entry *cacheEntry, idxmap map[int]int, matches keyMatches, traceSet TraceSet, traceLen int) error {
+func loadMatches(entry *cacheEntry, idxmap map[int]int, matches KeyMatches, traceSet TraceSet, traceLen int) error {
 	defer timer.New("loadMatches time").Stop()
 	defer entry.Done()
 
@@ -534,7 +526,7 @@ func loadMatches(entry *cacheEntry, idxmap map[int]int, matches keyMatches, trac
 	return entry.db.View(get)
 }
 
-func (b *BoltTraceStore) matchImpl(commitIDs []*cid.CommitID, matches keyMatches, progress Progress) (TraceSet, error) {
+func (b *BoltTraceStore) Match(commitIDs []*cid.CommitID, matches KeyMatches, progress Progress) (TraceSet, error) {
 	ret := TraceSet{}
 	mapper := buildMapper(commitIDs)
 	i := 0
@@ -560,22 +552,6 @@ func (b *BoltTraceStore) matchImpl(commitIDs []*cid.CommitID, matches keyMatches
 		progress(len(mapper), len(mapper))
 	}
 	return ret, nil
-}
-
-func (b *BoltTraceStore) Match(commitIDs []*cid.CommitID, q *query.Query, progress Progress) (TraceSet, error) {
-	// Wrap the query in a closure to pass to loadMatches.
-	matches := func(key string) bool {
-		return q.Matches(key)
-	}
-	return b.matchImpl(commitIDs, matches, progress)
-}
-
-func (b *BoltTraceStore) MatchExact(commitIDs []*cid.CommitID, keys []string, progress Progress) (TraceSet, error) {
-	// Wrap the keys in a closure to pass to loadMatches.
-	matches := func(key string) bool {
-		return util.In(key, keys)
-	}
-	return b.matchImpl(commitIDs, matches, progress)
 }
 
 var Default *BoltTraceStore
