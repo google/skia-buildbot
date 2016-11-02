@@ -16,7 +16,7 @@ TARGET_INSTANCE_IDS=$2
 
 # Default values.
 GS_BUCKETS="skia-infra-gm,chromium-skia-gm"
-N_COMMITS="50"
+N_COMMITS="100"
 ADD_FLAGS=""
 
 # Strip the second argument to keep this compatible with the shared build script.
