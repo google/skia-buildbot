@@ -11,10 +11,9 @@ import (
 	"go.skia.org/infra/build_scheduler/go/blacklist"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -46,8 +45,7 @@ var (
 
 // BuildCandidate is a struct which describes a candidate for a build.
 type BuildCandidate struct {
-	Author  string
-	Commit  string
+	Commit  *repograph.Commit
 	Builder string
 	Score   float64
 	Repo    string
@@ -59,9 +57,9 @@ type BuildCandidateSlice []*BuildCandidate
 func (s BuildCandidateSlice) Len() int { return len(s) }
 func (s BuildCandidateSlice) Less(i, j int) bool {
 	if s[i].Score == s[j].Score {
-		// Fall back to sorting by commit hash to keep the sort order
-		// consistent for testing.
-		return s[i].Commit < s[j].Commit
+		// Fall back to sorting by commit hash to keep the sort
+		// order consistent for testing.
+		return s[i].Commit.Hash < s[j].Commit.Hash
 	}
 	return s[i].Score < s[j].Score
 }
@@ -78,7 +76,7 @@ type BuildQueue struct {
 	queue            map[string][]*BuildCandidate
 	recentCommits    []string
 	recentCommitsMtx sync.RWMutex
-	repos            *gitinfo.RepoMap
+	repos            repograph.Map
 	timeLambda       float64
 }
 
@@ -107,7 +105,7 @@ type BuildQueue struct {
 // timeDecay24Hr equal to 0.5 causes the score for a build candidate with value
 // 1.0 to be 0.5 if the commit is 24 hours old. At 48 hours with a value of 1.0
 // the build candidate would receive a score of 0.25.
-func NewBuildQueue(period time.Duration, repos *gitinfo.RepoMap, scoreThreshold, timeDecay24Hr float64, bl *blacklist.Blacklist, db buildbot.DB) (*BuildQueue, error) {
+func NewBuildQueue(period time.Duration, repos repograph.Map, scoreThreshold, timeDecay24Hr float64, bl *blacklist.Blacklist, db buildbot.DB) (*BuildQueue, error) {
 	if timeDecay24Hr <= 0.0 || timeDecay24Hr > 1.0 {
 		return nil, fmt.Errorf("Time penalty must be 0 < p <= 1")
 	}
@@ -139,7 +137,7 @@ func timeFactor(now, t time.Time, lambda float64) float64 {
 
 // scoreBuild returns the current score for the given commit/builder pair. The
 // details on how scoring works are described in the doc for NewBuildQueue.
-func scoreBuild(commit *vcsinfo.LongCommit, build *buildbot.Build, now time.Time, timeLambda float64) float64 {
+func scoreBuild(commit *repograph.Commit, build *buildbot.Build, now time.Time, timeLambda float64) float64 {
 	s := -1.0
 	if build != nil {
 		if build.GotRevision == commit.Hash {
@@ -181,11 +179,11 @@ func (q *BuildQueue) update(now time.Time) error {
 	errs := map[string]error{}
 	mutex := sync.Mutex{}
 	var wg sync.WaitGroup
-	for _, repoUrl := range q.repos.Repos() {
+	for repoUrl, repo := range q.repos {
 		wg.Add(1)
-		go func(repoUrl string) {
+		go func(repo *repograph.Graph, repoUrl string) {
 			defer wg.Done()
-			candidates, err := q.updateRepo(repoUrl, now)
+			candidates, err := q.updateRepo(repo, now)
 			mutex.Lock()
 			defer mutex.Unlock()
 			if err != nil {
@@ -195,7 +193,7 @@ func (q *BuildQueue) update(now time.Time) error {
 			for k, v := range candidates {
 				queue[k] = v
 			}
-		}(repoUrl)
+		}(repo, repoUrl)
 	}
 	wg.Wait()
 	if len(errs) > 0 {
@@ -216,16 +214,12 @@ func (q *BuildQueue) update(now time.Time) error {
 
 // updateRepo syncs the given repo and returns a set of BuildCandidates for
 // each builder which uses it.
-func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*BuildCandidate, error) {
+func (q *BuildQueue) updateRepo(repo *repograph.Graph, now time.Time) (map[string][]*BuildCandidate, error) {
 	defer timer.New("BuildQueue.updateRepo()").Stop()
 	errMsg := "Failed to update the repo: %v"
 
 	// Sync/update the code.
-	repo, err := q.repos.Repo(repoUrl)
-	if err != nil {
-		return nil, fmt.Errorf(errMsg, err)
-	}
-	if err := repo.Update(true, true); err != nil {
+	if err := repo.Update(); err != nil {
 		return nil, fmt.Errorf(errMsg, err)
 	}
 
@@ -234,42 +228,48 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 	if q.period == PERIOD_FOREVER {
 		from = time.Unix(0, 0)
 	}
-	recentCommitsList := util.Reverse(repo.From(from))
-	q.setRecentCommits(recentCommitsList)
-	recentCommits := make([]*vcsinfo.LongCommit, 0, len(recentCommitsList))
-	for _, h := range recentCommitsList {
-		skip := false
-		for _, branch := range BLACKLIST_BRANCHES {
-			if repo.IsAncestor(h, fmt.Sprintf("origin/%s", branch)) {
-				glog.Warningf("Skipping commit %s on blacklisted branch %s", h, branch)
-				skip = true
-				break
-			}
-		}
-		if skip {
-			continue
-		}
-		details, err := repo.Details(h, true)
-		if err != nil {
-			return nil, fmt.Errorf(errMsg, err)
-		}
-		recentCommits = append(recentCommits, details)
-	}
-
-	// Pre-load commit details, from a larger window than we actually care about.
+	// Pre-load builds from a larger window than we actually care about.
 	fromPreload := now.Add(time.Duration(int64(-1.5 * float64(q.period))))
 	if q.period == PERIOD_FOREVER {
 		fromPreload = time.Unix(0, 0)
 	}
-	recentCommitsPreload := repo.From(fromPreload)
-	for _, c := range recentCommitsPreload {
-		if _, err := repo.Details(c, true); err != nil {
-			return nil, fmt.Errorf(errMsg, err)
+	// Figure out which branch heads to blacklist.
+	commitBlacklist := map[*repograph.Commit]bool{}
+	for _, branch := range BLACKLIST_BRANCHES {
+		head := repo.Get(branch)
+		if head != nil {
+			commitBlacklist[head] = true
 		}
 	}
 
-	// Get all builds associated with the recent commits.
-	buildsByCommit, err := q.db.GetBuildsForCommits(recentCommitsPreload, nil)
+	// Find recent commits.
+	recentCommits := make([]*repograph.Commit, 0, 100)
+	recentCommitsPreload := make([]*repograph.Commit, 0, 100)
+	if err := repo.RecurseAllBranches(func(c *repograph.Commit) (bool, error) {
+		if c.Timestamp.Before(fromPreload) {
+			return false, nil
+		}
+		if commitBlacklist[c] {
+			return false, nil
+		}
+		recentCommitsPreload = append(recentCommits, c)
+		if c.Timestamp.After(from) {
+			recentCommits = append(recentCommits, c)
+		}
+		return true, nil
+	}); err != nil {
+		return nil, err
+	}
+
+	// Sort commits lists by timestamp.
+	sort.Sort(repograph.CommitSlice(recentCommits))
+	sort.Sort(repograph.CommitSlice(recentCommitsPreload))
+
+	// Set the list of recent commit hashes.
+	q.setRecentCommits(repograph.CommitSlice(recentCommits).Hashes())
+
+	// Get all builds associated with the recent commits in the preload.
+	buildsByCommit, err := q.db.GetBuildsForCommits(repograph.CommitSlice(recentCommitsPreload).Hashes(), nil)
 	if err != nil {
 		return nil, fmt.Errorf(errMsg, err)
 	}
@@ -283,7 +283,11 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 				continue
 			}
 			if _, ok := buildCaches[build.Builder]; !ok {
-				bc, err := newBuildCache(build.Master, build.Builder, build.Repository, q.db)
+				repo, ok := q.repos[build.Repository]
+				if !ok {
+					return nil, fmt.Errorf(errMsg, fmt.Sprintf("No such repo: %s", build.Repository))
+				}
+				bc, err := newBuildCache(build.Master, build.Builder, build.Repository, repo, q.db)
 				if err != nil {
 					return nil, fmt.Errorf(errMsg, err)
 				}
@@ -326,12 +330,9 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 }
 
 // getCandidatesForBuilder finds all BuildCandidates for the given builder, in order.
-func (q *BuildQueue) getCandidatesForBuilder(bc *buildCache, recentCommits []*vcsinfo.LongCommit, now time.Time) ([]*BuildCandidate, error) {
+func (q *BuildQueue) getCandidatesForBuilder(bc *buildCache, recentCommits []*repograph.Commit, now time.Time) ([]*BuildCandidate, error) {
 	defer timer.New(fmt.Sprintf("getCandidatesForBuilder(%s)", bc.Builder)).Stop()
-	repo, err := q.repos.Repo(bc.Repo)
-	if err != nil {
-		return nil, err
-	}
+	repo := bc.Repo
 	candidates := []*BuildCandidate{}
 	for {
 		score, newBuild, stoleFrom, err := q.getBestCandidate(bc, recentCommits, now)
@@ -341,9 +342,9 @@ func (q *BuildQueue) getCandidatesForBuilder(bc *buildCache, recentCommits []*vc
 		if score < q.scoreThreshold {
 			break
 		}
-		d, err := repo.Details(newBuild.GotRevision, false)
-		if err != nil {
-			return nil, err
+		d := repo.Get(newBuild.GotRevision)
+		if d == nil {
+			return nil, fmt.Errorf("Got unknown commit: %s", newBuild.GotRevision)
 		}
 		// "insert" the new build.
 		if err := bc.PutBuild(newBuild); err != nil {
@@ -355,42 +356,33 @@ func (q *BuildQueue) getCandidatesForBuilder(bc *buildCache, recentCommits []*vc
 			}
 		}
 		candidates = append(candidates, &BuildCandidate{
-			Author:  d.Author,
 			Builder: newBuild.Builder,
-			Commit:  newBuild.GotRevision,
+			Commit:  d,
 			Score:   score,
-			Repo:    bc.Repo,
+			Repo:    newBuild.Repository,
 		})
 	}
 	return candidates, nil
 }
 
 // getBestCandidate finds the best BuildCandidate for the given builder.
-func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []*vcsinfo.LongCommit, now time.Time) (float64, *buildbot.Build, *buildbot.Build, error) {
+func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []*repograph.Commit, now time.Time) (float64, *buildbot.Build, *buildbot.Build, error) {
 	errMsg := fmt.Sprintf("Failed to get best candidate for %s: %%v", bc.Builder)
-	repo, err := q.repos.Repo(bc.Repo)
-	if err != nil {
-		return 0.0, nil, nil, fmt.Errorf(errMsg, err)
-	}
 	// Find the current scores for each commit.
-	currentScores := map[string]float64{}
+	currentScores := map[*repograph.Commit]float64{}
 	for _, commit := range recentCommits {
 		currentBuild, err := bc.getBuildForCommit(commit.Hash)
 		if err != nil {
 			return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 		}
-		d, err := repo.Details(commit.Hash, false)
-		if err != nil {
-			return 0.0, nil, nil, err
-		}
-		currentScores[commit.Hash] = scoreBuild(d, currentBuild, now, q.timeLambda)
+		currentScores[commit] = scoreBuild(commit, currentBuild, now, q.timeLambda)
 	}
 
 	// For each commit/builder pair, determine the score increase obtained
 	// by running a build at that commit.
-	scoreIncrease := map[string]float64{}
-	newBuildsByCommit := map[string]*buildbot.Build{}
-	stoleFromByCommit := map[string]*buildbot.Build{}
+	scoreIncrease := map[*repograph.Commit]float64{}
+	newBuildsByCommit := map[*repograph.Commit]*buildbot.Build{}
+	stoleFromByCommit := map[*repograph.Commit]*buildbot.Build{}
 	foundBranches := map[string]bool{}
 	for _, commit := range recentCommits {
 		if rule := q.bl.MatchRule(bc.Builder, commit.Hash); rule != "" {
@@ -426,19 +418,19 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []*vcsinfo.L
 			// Don't bisect giant blamelists...
 			if len(b.Commits) > NO_BISECT_COMMIT_LIMIT {
 				glog.Warningf("Skipping %s on %s; previous build has too many commits (#%d)", commit.Hash[0:7], b.Builder, b.Number)
-				scoreIncrease[commit.Hash] = 0.0
+				scoreIncrease[commit] = 0.0
 				break // Don't bother looking at previous commits either, since these will be out of range.
 			}
 		}
 
-		newScores := map[string]float64{}
+		newScores := map[*repograph.Commit]float64{}
 		// Pretend to create a new Build at the given commit.
 		newBuild := buildbot.Build{
 			Builder:     bc.Builder,
 			Master:      bc.Master,
 			Number:      bc.MaxBuildNum + 1,
 			GotRevision: commit.Hash,
-			Repository:  bc.Repo,
+			Repository:  bc.RepoName,
 		}
 		commits, stealFrom, stolen, err := buildbot.FindCommitsForBuild(bc, &newBuild, q.repos)
 		if err != nil {
@@ -446,24 +438,24 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []*vcsinfo.L
 		}
 		// Re-score all commits in the new build.
 		newBuild.Commits = commits
-		for _, c := range commits {
-			d, err := repo.Details(c, false)
-			if err != nil {
-				return 0.0, nil, nil, fmt.Errorf(errMsg, err)
+		for _, hash := range commits {
+			d := bc.Repo.Get(hash)
+			if d == nil {
+				return 0.0, nil, nil, fmt.Errorf("Got unknown commit: %s", hash)
 			}
-			if _, ok := currentScores[c]; !ok {
+			if _, ok := currentScores[d]; !ok {
 				// If this build has commits which are outside of our window,
 				// insert them into currentScores to account for them.
-				b, err := bc.getBuildForCommit(c)
+				b, err := bc.getBuildForCommit(d.Hash)
 				if err != nil {
 					return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 				}
 				score := scoreBuild(d, b, now, q.timeLambda)
-				currentScores[c] = score
+				currentScores[d] = score
 			}
-			newScores[c] = scoreBuild(d, &newBuild, now, q.timeLambda)
+			newScores[d] = scoreBuild(d, &newBuild, now, q.timeLambda)
 		}
-		newBuildsByCommit[commit.Hash] = &newBuild
+		newBuildsByCommit[commit] = &newBuild
 		// If the new build includes commits previously included in
 		// another build, update scores for commits in the build we stole
 		// them from.
@@ -493,13 +485,13 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []*vcsinfo.L
 			}
 			stoleFromBuild.Commits = newCommits
 			for _, c := range stoleFromBuild.Commits {
-				d, err := repo.Details(c, false)
-				if err != nil {
-					return 0.0, nil, nil, err
+				d := bc.Repo.Get(c)
+				if d == nil {
+					return 0.0, nil, nil, fmt.Errorf("Got unknown commit: %s", c)
 				}
-				newScores[c] = scoreBuild(d, &stoleFromBuild, now, q.timeLambda)
+				newScores[d] = scoreBuild(d, &stoleFromBuild, now, q.timeLambda)
 			}
-			stoleFromByCommit[commit.Hash] = &stoleFromBuild
+			stoleFromByCommit[commit] = &stoleFromBuild
 		}
 		// Sum the old and new scores.
 		oldScoresList := make([]float64, 0, len(newScores))
@@ -510,7 +502,7 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []*vcsinfo.L
 		}
 		oldTotal := util.Float64StableSum(oldScoresList)
 		newTotal := util.Float64StableSum(newScoresList)
-		scoreIncrease[commit.Hash] = newTotal - oldTotal
+		scoreIncrease[commit] = newTotal - oldTotal
 	}
 
 	// Arrange the score increases by builder.
@@ -544,26 +536,21 @@ func (q *BuildQueue) Pop(builders []string) (*BuildCandidate, error) {
 			// build is tip-of-tree. Unfortunately, we don't know which repo
 			// the bot uses, so we can only say "origin/master" and use the Skia
 			// repo as a default.
-			r, err := q.repos.Repo(common.REPO_SKIA)
-			if err != nil {
-				return nil, err
+			r, ok := q.repos[common.REPO_SKIA]
+			if !ok {
+				return nil, fmt.Errorf("Unknown repo: %s", common.REPO_SKIA)
 			}
-			h, err := r.FullHash("origin/master")
-			if err != nil {
-				return nil, err
+			commit := r.Get("master")
+			if commit == nil {
+				return nil, fmt.Errorf("Unable to retrieve commit at HEAD of master.")
 			}
-			if rule := q.bl.MatchRule(builder, h); rule != "" {
-				glog.Warningf("Skipping blacklisted builder/commit: %s @ %s due to rule %q", builder, h, rule)
+			if rule := q.bl.MatchRule(builder, commit.Hash); rule != "" {
+				glog.Warningf("Skipping blacklisted builder/commit: %s @ %s due to rule %q", builder, commit.Hash, rule)
 				continue
 			}
-			details, err := r.Details(h, false)
-			if err != nil {
-				return nil, err
-			}
 			best = &BuildCandidate{
-				Author:  details.Author,
 				Builder: builder,
-				Commit:  h,
+				Commit:  commit,
 				Repo:    common.REPO_SKIA,
 				Score:   math.MaxFloat64,
 			}

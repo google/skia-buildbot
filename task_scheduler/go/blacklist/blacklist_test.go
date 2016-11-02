@@ -165,7 +165,7 @@ func TestValidation(t *testing.T) {
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
-	repos := map[string]*repograph.Graph{}
+	repos := repograph.Map{}
 	repo, err := repograph.NewGraph(remote, tmp)
 	assert.NoError(t, err)
 	repos[remote] = repo
@@ -306,7 +306,7 @@ func TestCommitRange(t *testing.T) {
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
-	repos := map[string]*repograph.Graph{}
+	repos := repograph.Map{}
 	repo, err := repograph.NewGraph(remote, tmp)
 	assert.NoError(t, err)
 	repos[remote] = repo
