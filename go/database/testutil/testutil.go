@@ -3,12 +3,12 @@ package testutil
 import (
 	"strings"
 	"testing"
-)
 
-import (
 	"github.com/jmoiron/sqlx"
+
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/database"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )
 
@@ -64,6 +64,8 @@ func LocalTestRootDatabaseConfig(m []database.MigrationStep) *database.DatabaseC
 // The test assumes that the database is empty and that the readwrite user is
 // not allowed to create/drop/alter tables.
 func MySQLVersioningTests(t *testing.T, dbName string, migrationSteps []database.MigrationStep) {
+	testutils.SkipIfShort(t)
+
 	// OpenDB as root user and remove all tables.
 	rootConf := LocalTestRootDatabaseConfig(migrationSteps)
 	lockDB := GetMySQlLock(t, rootConf)
@@ -162,6 +164,8 @@ type MySQLTestDatabase struct {
 // defer util.Close(db)
 // ... Tests here ...
 func SetupMySQLTestDatabase(t *testing.T, migrationSteps []database.MigrationStep) *MySQLTestDatabase {
+	testutils.SkipIfShort(t)
+
 	conf := LocalTestRootDatabaseConfig(migrationSteps)
 	lock := GetMySQlLock(t, conf)
 	rootVdb, err := conf.NewVersionedDB()

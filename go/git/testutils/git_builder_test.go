@@ -7,10 +7,11 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/testutils"
 )
 
 func TestGitSetup(t *testing.T) {
-	SkipIfShort(t)
+	testutils.SkipIfShort(t)
 	g := GitInit(t)
 	defer g.Cleanup()
 	commits := GitSetup(g)
@@ -46,7 +47,7 @@ func TestGitSetup(t *testing.T) {
 }
 
 func TestGitBuilderCommitTime(t *testing.T) {
-	SkipIfShort(t)
+	testutils.SkipIfShort(t)
 	g := GitInit(t)
 	defer g.Cleanup()
 

@@ -17,7 +17,9 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/exec"
+	exec_testutils "go.skia.org/infra/go/exec/testutils"
 	"go.skia.org/infra/go/git/repograph"
+	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/swarming"
@@ -183,7 +185,7 @@ func TestGatherNewJobs(t *testing.T) {
 	// Add a commit on master, run gatherNewJobs, ensure that we added the
 	// new Jobs.
 	d := path.Join(tr.Dir, "skia.git")
-	testutils.Run(t, d, "git", "checkout", "master")
+	exec_testutils.Run(t, d, "git", "checkout", "master")
 	makeDummyCommits(t, d, 1, "master")
 	assert.NoError(t, s.updateRepos())
 	testGatherNewJobs(8) // we didn't add to the jobs spec, so 3 jobs/rev.
@@ -196,20 +198,20 @@ func TestGatherNewJobs(t *testing.T) {
 	// Add a commit on a branch other than master, run gatherNewJobs, ensure
 	// that we added the new Jobs.
 	branchName := "otherBranch"
-	testutils.Run(t, d, "git", "checkout", "-b", branchName)
+	exec_testutils.Run(t, d, "git", "checkout", "-b", branchName)
 	msg := "Branch commit"
 	fileName := "some_other_file"
 	assert.NoError(t, ioutil.WriteFile(path.Join(d, fileName), []byte(msg), os.ModePerm))
-	testutils.Run(t, d, "git", "add", fileName)
-	testutils.Run(t, d, "git", "commit", "-m", msg)
-	testutils.Run(t, d, "git", "push", "origin", branchName)
+	exec_testutils.Run(t, d, "git", "add", fileName)
+	exec_testutils.Run(t, d, "git", "commit", "-m", msg)
+	exec_testutils.Run(t, d, "git", "push", "origin", branchName)
 	assert.NoError(t, s.updateRepos())
 	testGatherNewJobs(41) // 38 previous jobs + 3 new ones.
 
 	// Add several commits in a row on different branches, ensure that we
 	// added all of the Jobs for all of the new commits.
 	makeDummyCommits(t, d, 5, branchName)
-	testutils.Run(t, d, "git", "checkout", "master")
+	exec_testutils.Run(t, d, "git", "checkout", "master")
 	makeDummyCommits(t, d, 5, "master")
 	assert.NoError(t, s.updateRepos())
 	testGatherNewJobs(71) // 10 commits x 3 jobs/commit = 30, plus 41
@@ -816,7 +818,7 @@ func TestComputeBlamelist(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	// Setup.
-	tr := testutils.GitInit(t)
+	tr := git_testutils.GitInit(t)
 	defer tr.Cleanup()
 
 	d := db.NewInMemoryTaskDB()
@@ -1547,15 +1549,15 @@ func TestSchedulingE2E(t *testing.T) {
 }
 
 func makeDummyCommits(t *testing.T, repoDir string, numCommits int, branch string) {
-	testutils.Run(t, repoDir, "git", "config", "user.email", "test@skia.org")
-	testutils.Run(t, repoDir, "git", "config", "user.name", "Skia Tester")
+	exec_testutils.Run(t, repoDir, "git", "config", "user.email", "test@skia.org")
+	exec_testutils.Run(t, repoDir, "git", "config", "user.name", "Skia Tester")
 	dummyFile := path.Join(repoDir, "dummyfile.txt")
 	for i := 0; i < numCommits; i++ {
 		title := fmt.Sprintf("Dummy #%d/%d", i, numCommits)
 		assert.NoError(t, ioutil.WriteFile(dummyFile, []byte(title), os.ModePerm))
-		testutils.Run(t, repoDir, "git", "add", dummyFile)
-		testutils.Run(t, repoDir, "git", "commit", "-m", title)
-		testutils.Run(t, repoDir, "git", "push", "origin", branch)
+		exec_testutils.Run(t, repoDir, "git", "add", dummyFile)
+		exec_testutils.Run(t, repoDir, "git", "commit", "-m", title)
+		exec_testutils.Run(t, repoDir, "git", "push", "origin", branch)
 	}
 }
 
@@ -1594,7 +1596,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 
 	// Add some commits.
 	repoDir := path.Join(tr.Dir, repoName)
-	testutils.Run(t, repoDir, "git", "checkout", "master")
+	exec_testutils.Run(t, repoDir, "git", "checkout", "master")
 	makeDummyCommits(t, repoDir, 10, "master")
 	assert.NoError(t, s.repos[repoName].Repo().Update())
 	commits, err := s.repos[repoName].Repo().RevList("HEAD")
@@ -1791,7 +1793,7 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	mock(tasks[head][taskName])
 
 	// Add some commits to the repo.
-	testutils.Run(t, repoDir, "git", "checkout", "master")
+	exec_testutils.Run(t, repoDir, "git", "checkout", "master")
 	makeDummyCommits(t, repoDir, 8, "master")
 	assert.NoError(t, s.repos[repoName].Repo().Update())
 	commits, err := s.repos[repoName].Repo().RevList(fmt.Sprintf("%s..HEAD", head))

@@ -12,8 +12,10 @@ import (
 
 	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
+	exec_testutils "go.skia.org/infra/go/exec/testutils"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
+	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -277,10 +279,10 @@ func TestTasksCircularDependency(t *testing.T) {
 	assert.EqualError(t, err, "Job \"j\" has unknown task \"q\" as a dependency.")
 }
 
-func tempGitRepoSetup(t *testing.T) (*testutils.GitBuilder, string, string) {
+func tempGitRepoSetup(t *testing.T) (*git_testutils.GitBuilder, string, string) {
 	testutils.SkipIfShort(t)
 
-	gb := testutils.GitInit(t)
+	gb := git_testutils.GitInit(t)
 	gb.Add("codereview.settings", `CODE_REVIEW_SERVER: codereview.chromium.org
 PROJECT: skia`)
 	c1 := gb.CommitMsg("initial commit")
@@ -357,10 +359,10 @@ func TestTempGitRepoPatch(t *testing.T) {
 	defer gb.Cleanup()
 
 	gb.AddGen("somefile")
-	testutils.Run(t, gb.Dir(), "git", "commit", "-m", "commit")
+	exec_testutils.Run(t, gb.Dir(), "git", "commit", "-m", "commit")
 
-	testutils.Run(t, gb.Dir(), "git", "cl", "upload", "--bypass-hooks", "--rietveld", "-m", "test", "-f")
-	output := testutils.Run(t, gb.Dir(), "git", "cl", "issue")
+	exec_testutils.Run(t, gb.Dir(), "git", "cl", "upload", "--bypass-hooks", "--rietveld", "-m", "test", "-f")
+	output := exec_testutils.Run(t, gb.Dir(), "git", "cl", "issue")
 	m := regexp.MustCompile(`Issue number: (\d+)`).FindStringSubmatch(output)
 	assert.Equal(t, 2, len(m))
 	rvIssue := m[1]

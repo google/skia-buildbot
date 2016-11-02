@@ -8,6 +8,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
+	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )
@@ -20,10 +21,10 @@ import (
 //
 // c1--c2------c4--c5--
 //       \-c3-----/
-func gitSetup(t *testing.T) (*testutils.GitBuilder, *Graph, []*Commit, func()) {
+func gitSetup(t *testing.T) (*git_testutils.GitBuilder, *Graph, []*Commit, func()) {
 	testutils.SkipIfShort(t)
 
-	g := testutils.GitInit(t)
+	g := git_testutils.GitInit(t)
 	g.CommitGen("myfile.txt")
 
 	tmp, err := ioutil.TempDir("", "")
