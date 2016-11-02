@@ -81,6 +81,14 @@ type PTraceStore interface {
 	// The returned TraceSet will contain a slice of Trace, and that list will be
 	// empty if there are no matches.
 	Match(commitIDs []*cid.CommitID, q *query.Query, progress Progress) (TraceSet, error)
+
+	// Match returns TraceSet that match the given set of keys.
+	//
+	// The 'progess' callback will be called as each Tile is processed.
+	//
+	// The returned TraceSet will contain a slice of Trace, and that list will be
+	// empty if there are no matches.
+	MatchExact(commitIDs []*cid.CommitID, keys []string, progress Progress) (TraceSet, error)
 }
 
 // BoltTraceStore is an implementation of PTraceStore that uses BoltDB.
@@ -472,10 +480,13 @@ func dup(b []byte) []byte {
 	return ret
 }
 
-// loadMatches loads values into 'traceSet' that match the query 'q' from the
+// keyMatches is a func that returns true if a key matches some criteria.
+type keyMatches func(key string) bool
+
+// loadMatches loads values into 'traceSet' that match the 'matches' from the
 // tile in the BoltDB 'db'.  Only values at the offsets in 'idxmap' are
 // actually loaded, and 'idxmap' determines where they are stored in the Trace.
-func loadMatches(entry *cacheEntry, idxmap map[int]int, q *query.Query, traceSet TraceSet, traceLen int) error {
+func loadMatches(entry *cacheEntry, idxmap map[int]int, matches keyMatches, traceSet TraceSet, traceLen int) error {
 	defer timer.New("loadMatches time").Stop()
 	defer entry.Done()
 
@@ -492,10 +503,9 @@ func loadMatches(entry *cacheEntry, idxmap map[int]int, q *query.Query, traceSet
 		// Loop over the entire bucket.
 		for btraceid, rawValues := v.First(); btraceid != nil; btraceid, rawValues = v.Next() {
 			// Does the trace id match the query?
-			if !q.Matches(string(btraceid)) {
+			if !matches(string(btraceid)) {
 				continue
 			}
-
 			// Get the trace.
 			trace := traceSet[string(btraceid)]
 			if trace == nil {
@@ -524,7 +534,7 @@ func loadMatches(entry *cacheEntry, idxmap map[int]int, q *query.Query, traceSet
 	return entry.db.View(get)
 }
 
-func (b *BoltTraceStore) Match(commitIDs []*cid.CommitID, q *query.Query, progress Progress) (TraceSet, error) {
+func (b *BoltTraceStore) matchImpl(commitIDs []*cid.CommitID, matches keyMatches, progress Progress) (TraceSet, error) {
 	ret := TraceSet{}
 	mapper := buildMapper(commitIDs)
 	i := 0
@@ -542,7 +552,7 @@ func (b *BoltTraceStore) Match(commitIDs []*cid.CommitID, q *query.Query, progre
 			return nil, fmt.Errorf("Failed to open tile from %s: %s", tm.commitID.Filename(), err)
 		}
 		// loadMatches calls entry.Done().
-		if err := loadMatches(entry, tm.idxmap, q, ret, len(commitIDs)); err != nil {
+		if err := loadMatches(entry, tm.idxmap, matches, ret, len(commitIDs)); err != nil {
 			return nil, fmt.Errorf("Failed to load traces from %s: %s", tm.commitID.Filename(), err)
 		}
 	}
@@ -550,6 +560,22 @@ func (b *BoltTraceStore) Match(commitIDs []*cid.CommitID, q *query.Query, progre
 		progress(len(mapper), len(mapper))
 	}
 	return ret, nil
+}
+
+func (b *BoltTraceStore) Match(commitIDs []*cid.CommitID, q *query.Query, progress Progress) (TraceSet, error) {
+	// Wrap the query in a closure to pass to loadMatches.
+	matches := func(key string) bool {
+		return q.Matches(key)
+	}
+	return b.matchImpl(commitIDs, matches, progress)
+}
+
+func (b *BoltTraceStore) MatchExact(commitIDs []*cid.CommitID, keys []string, progress Progress) (TraceSet, error) {
+	// Wrap the keys in a closure to pass to loadMatches.
+	matches := func(key string) bool {
+		return util.In(key, keys)
+	}
+	return b.matchImpl(commitIDs, matches, progress)
 }
 
 var Default *BoltTraceStore
