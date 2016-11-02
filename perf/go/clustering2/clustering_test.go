@@ -121,7 +121,7 @@ func TestCalcCusterSummaries(t *testing.T) {
 	for key, _ := range df.TraceSet {
 		df.ParamSet.AddParamsFromKey(key)
 	}
-	sum, err := CalculateClusterSummaries(df, 4, 0.01)
+	sum, err := CalculateClusterSummaries(df, 4, 0.01, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, sum)
 	assert.Equal(t, 2, len(sum.Clusters))
@@ -138,6 +138,6 @@ func TestCalcCusterSummariesDegenerate(t *testing.T) {
 		ParamSet: paramtools.ParamSet{},
 		Skip:     0,
 	}
-	_, err := CalculateClusterSummaries(df, 4, 0.01)
+	_, err := CalculateClusterSummaries(df, 4, 0.01, nil)
 	assert.Error(t, err)
 }
