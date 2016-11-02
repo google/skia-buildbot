@@ -209,6 +209,7 @@
           end: Math.floor(Date.now()/1000),
           formulas: [],
           queries: [],
+          keys: "",  // The id of the shortcut to a list of trace keys.
         }; },
       },
       // The ids of all the traces that have been hidden.
@@ -247,7 +248,7 @@
 
         // From this point on reflect the state to the URL.
         sk.stateReflector(this,  function() {
-          if (this.state.queries.length == 0 && this.state.formulas.length == 0) {
+          if (this.state.queries.length == 0 && this.state.formulas.length == 0 && this.state.keys == "") {
             return
           }
           this.$.range.begin = this.state.begin;
@@ -367,6 +368,7 @@
         formulas: this.state.formulas,
         queries: this.state.queries,
         hidden: this._hidden,
+        keys: this.state.keys,
       };
       this._requestFrame(body, function(json) {
         this.$.plot.removeAll();
@@ -504,6 +506,7 @@
     _removeAll: function() {
       this.state.formulas = [];
       this.state.queries = [];
+      this.state.keys = "";
       this._hidden = [];
       this.$.plot.removeAll();
       this._lines = [];
