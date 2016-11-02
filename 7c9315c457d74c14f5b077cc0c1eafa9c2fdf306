@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "66ba4639_a345928c",
+        "filename": "perf/go/ptracestore/ptracestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-02T16:54:15Z",
+      "side": 1,
+      "message": "MatchExact",
+      "range": {
+        "startLine": 85,
+        "startChar": 4,
+        "endLine": 85,
+        "endChar": 9
+      },
+      "revId": "7c9315c457d74c14f5b077cc0c1eafa9c2fdf306",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_635c4a60",
+        "filename": "perf/go/ptracestore/ptracestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 567,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-02T16:54:15Z",
+      "side": 1,
+      "message": "nit: matches \u003d\u003d q.Matches",
+      "range": {
+        "startLine": 567,
+        "startChar": 1,
+        "endLine": 567,
+        "endChar": 8
+      },
+      "revId": "7c9315c457d74c14f5b077cc0c1eafa9c2fdf306",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_c327f6e6",
+        "filename": "perf/go/ptracestore/ptracestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 576,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-02T16:54:15Z",
+      "side": 1,
+      "message": "nit: seems very slow",
+      "range": {
+        "startLine": 576,
+        "startChar": 9,
+        "endLine": 576,
+        "endChar": 27
+      },
+      "revId": "7c9315c457d74c14f5b077cc0c1eafa9c2fdf306",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
