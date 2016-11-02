@@ -22,6 +22,24 @@
       "revId": "db6e35d6cc526b5ed478a6e1cb4c3d4cd2b24e51",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_18b6898d",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-02T13:09:22Z",
+      "side": 0,
+      "message": "buildbot.IngestNewBuildsLoop now does the update.",
+      "parentUuid": "e60e367c_462274ce",
+      "revId": "db6e35d6cc526b5ed478a6e1cb4c3d4cd2b24e51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

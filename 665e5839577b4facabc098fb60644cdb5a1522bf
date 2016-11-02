@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "66ba4639_58565170",
+        "filename": "build_scheduler/go/build_queue/build_queue.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-02T13:09:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e60e367c_86dc6ccb",
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e60e367c_462714e6",
         "filename": "build_scheduler/go/build_queue/build_queue_test.go",
         "patchSetId": 4
@@ -42,6 +60,24 @@
     },
     {
       "key": {
+        "uuid": "66ba4639_9846f9bd",
+        "filename": "build_scheduler/go/build_queue/build_queue_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-02T13:09:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e60e367c_462714e6",
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e60e367c_8638ec02",
         "filename": "build_scheduler/go/build_scheduler/build_scheduler.go",
         "patchSetId": 4
@@ -53,6 +89,24 @@
       "writtenOn": "2016-10-31T03:23:40Z",
       "side": 1,
       "message": "nit: :\u003d, remove declaration above",
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_f83bc52f",
+        "filename": "build_scheduler/go/build_scheduler/build_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-02T13:09:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e60e367c_8638ec02",
       "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -82,6 +136,24 @@
     },
     {
       "key": {
+        "uuid": "66ba4639_d84081a3",
+        "filename": "build_scheduler/go/build_scheduler/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-02T13:09:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e60e367c_06187c98",
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e60e367c_661df088",
         "filename": "datahopper_internal/go/datahopper_internal/main.go",
         "patchSetId": 4
@@ -93,6 +165,24 @@
       "writtenOn": "2016-10-31T03:23:40Z",
       "side": 1,
       "message": "nit: next line does logging again; can pass err instead of nil",
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_d8b3619e",
+        "filename": "datahopper_internal/go/datahopper_internal/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 533,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-02T13:09:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e60e367c_661df088",
       "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -122,6 +212,24 @@
     },
     {
       "key": {
+        "uuid": "66ba4639_78c355f3",
+        "filename": "go/buildbot/buildbot_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-02T13:09:22Z",
+      "side": 1,
+      "message": "Agreed, but I don\u0027t know a way around it since we don\u0027t want to use the constructor which will trim the \".git\" suffix and sync the nonexistent repo.",
+      "parentUuid": "e60e367c_8603cc2a",
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e60e367c_c60dc457",
         "filename": "go/buildbot/ingest.go",
         "patchSetId": 4
@@ -145,6 +253,24 @@
     },
     {
       "key": {
+        "uuid": "66ba4639_58c011e5",
+        "filename": "go/buildbot/ingest.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-02T13:09:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e60e367c_c60dc457",
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e60e367c_26fad807",
         "filename": "go/buildbot/ingest.go",
         "patchSetId": 4
@@ -156,6 +282,24 @@
       "writtenOn": "2016-10-31T03:23:40Z",
       "side": 1,
       "message": "missing wg.Add\n\n(It worked fine before because the \"defer wg.Done()\" never happened and the Wait() returned immediately.)",
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_b8cbfd08",
+        "filename": "go/buildbot/ingest.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 640,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-02T13:09:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e60e367c_26fad807",
       "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -208,6 +352,42 @@
     },
     {
       "key": {
+        "uuid": "66ba4639_f8c585f2",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-02T13:09:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e60e367c_06d19cb4",
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_98d0b9b2",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-02T13:09:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e60e367c_c6bf845f",
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e60e367c_26cc9820",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 4
@@ -231,6 +411,24 @@
     },
     {
       "key": {
+        "uuid": "66ba4639_d8ca4102",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-02T13:09:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e60e367c_26cc9820",
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e60e367c_66c69000",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 4
@@ -242,6 +440,24 @@
       "writtenOn": "2016-10-31T03:23:40Z",
       "side": 1,
       "message": "nit: unit test would be nice",
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_386b8d13",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-02T13:09:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e60e367c_66c69000",
       "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -265,6 +481,24 @@
         "endLine": 257,
         "endChar": 46
       },
+      "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_787515e7",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-02T13:09:22Z",
+      "side": 1,
+      "message": "Just changed the error message.",
+      "parentUuid": "e60e367c_46cb9406",
       "revId": "665e5839577b4facabc098fb60644cdb5a1522bf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
