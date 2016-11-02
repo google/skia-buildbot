@@ -171,6 +171,24 @@
     },
     {
       "key": {
+        "uuid": "66ba4639_786d15e2",
+        "filename": "perf/res/imp/cluster2.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-02T14:48:26Z",
+      "side": 1,
+      "message": "Sorry, I mean that when the page is first loaded, it seems like we should show the commit info for the \"turn.\"",
+      "parentUuid": "66ba4639_1801696b",
+      "revId": "a8bf3fb4515bc5c69b5ff4871b5979d1500e81e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "26d3ee49_1e422cad",
         "filename": "perf/res/imp/cluster2.html",
         "patchSetId": 2
