@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "66ba4639_d87a4164",
+        "filename": "perf/go/shortcut2/shortcut.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-02T15:35:32Z",
+      "side": 1,
+      "message": "In my experience, MySQL truncates values that are too long. It might be a good idea to check that len(b) is \u003c\u003d the size of the column.\n\nhttps://dev.mysql.com/doc/refman/5.0/en/storage-requirements.html",
+      "revId": "9c8d2e8daf503e1d382fdf863a594eb7b7076877",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
