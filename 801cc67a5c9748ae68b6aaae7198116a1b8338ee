@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "66ba4639_83da0ecc",
+        "filename": "perf/go/clustering2/clustering.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-02T16:47:40Z",
+      "side": 1,
+      "message": "nit: I think sc[:numSampleKeys] \u003d\u003d sc, and \"sc[:numSampleKeys]\" makes me wonder what I\u0027m not understanding.",
+      "range": {
+        "startLine": 275,
+        "startChar": 20,
+        "endLine": 275,
+        "endChar": 38
+      },
+      "revId": "801cc67a5c9748ae68b6aaae7198116a1b8338ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
