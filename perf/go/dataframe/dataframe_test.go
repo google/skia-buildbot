@@ -66,6 +66,13 @@ func (m mockPTraceStore) Match(commitIDs []*cid.CommitID, q *query.Query, progre
 	return m.traceSet, nil
 }
 
+func (m mockPTraceStore) MatchExact(commitIDs []*cid.CommitID, keys []string, progress ptracestore.Progress) (ptracestore.TraceSet, error) {
+	if m.matchFail {
+		return nil, fmt.Errorf("Failed to retrieve traces.")
+	}
+	return m.traceSet, nil
+}
+
 var (
 	ts0 = time.Unix(1406721642, 0).UTC()
 	ts1 = time.Unix(1406721715, 0).UTC()
