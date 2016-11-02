@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "66ba4639_3eb4151d",
+        "filename": "perf/go/dataframe/dataframe.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-02T18:40:26Z",
+      "side": 1,
+      "message": "nit: matches \u003d\u003d q.Matches\n\nSame in NewFromCommitIDsAndQuery.",
+      "range": {
+        "startLine": 129,
+        "startChar": 1,
+        "endLine": 129,
+        "endChar": 8
+      },
+      "revId": "5631ae05c84c8f2ed705551c29aaeea6e802a761",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_3e69b5a9",
+        "filename": "perf/go/ptracestore/ptracestore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-02T18:40:26Z",
+      "side": 1,
+      "message": "nit: Why not just \"return q.Matches\"?",
+      "range": {
+        "startLine": 151,
+        "startChar": 1,
+        "endLine": 153,
+        "endChar": 2
+      },
+      "revId": "5631ae05c84c8f2ed705551c29aaeea6e802a761",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
