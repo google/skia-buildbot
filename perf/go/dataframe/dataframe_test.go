@@ -59,14 +59,7 @@ func (m mockPTraceStore) Details(commitID *cid.CommitID, traceID string) (string
 	return "", 0, nil
 }
 
-func (m mockPTraceStore) Match(commitIDs []*cid.CommitID, q *query.Query, progress ptracestore.Progress) (ptracestore.TraceSet, error) {
-	if m.matchFail {
-		return nil, fmt.Errorf("Failed to retrieve traces.")
-	}
-	return m.traceSet, nil
-}
-
-func (m mockPTraceStore) MatchExact(commitIDs []*cid.CommitID, keys []string, progress ptracestore.Progress) (ptracestore.TraceSet, error) {
+func (m mockPTraceStore) Match(commitIDs []*cid.CommitID, matches ptracestore.KeyMatches, progress ptracestore.Progress) (ptracestore.TraceSet, error) {
 	if m.matchFail {
 		return nil, fmt.Errorf("Failed to retrieve traces.")
 	}
@@ -160,7 +153,10 @@ func TestNew(t *testing.T) {
 	}
 	store.matchFail = false
 
-	d, err := _new(colHeaders, pcommits, &query.Query{}, store, nil, 1)
+	matches := func(key string) bool {
+		return true
+	}
+	d, err := _new(colHeaders, pcommits, matches, store, nil, 1)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(d.TraceSet))
 	assert.True(t, util.SSliceEqual(d.ParamSet["arch"], []string{"x86"}))
