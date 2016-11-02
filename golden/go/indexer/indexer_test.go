@@ -56,6 +56,7 @@ var (
 )
 
 func TestIndexer(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	err := gs.DownloadTestDataFile(t, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)

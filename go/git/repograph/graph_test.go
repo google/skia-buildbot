@@ -22,6 +22,7 @@ import (
 // c1--c2------c4--c5--
 //       \-c3-----/
 func gitSetup(t *testing.T) (*git_testutils.GitBuilder, *Graph, []*Commit, func()) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	g := git_testutils.GitInit(t)

@@ -5,11 +5,13 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/types"
 )
 
 func TestAdd(t *testing.T) {
+	testutils.SmallTest(t)
 	ts, cleanup := setupClientServerForTesting(t.Fatalf)
 	defer cleanup()
 

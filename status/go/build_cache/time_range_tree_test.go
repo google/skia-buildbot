@@ -22,6 +22,7 @@ func test(t *testing.T, tree *TimeRangeTree, cases []testCase) {
 }
 
 func TestTimeRangeTree(t *testing.T) {
+	testutils.SmallTest(t)
 	tree := NewTimeRangeTree()
 
 	k1 := time.Unix(1460124300, 0)
@@ -90,6 +91,7 @@ func TestTimeRangeTree(t *testing.T) {
 }
 
 func TestTimestampCollision(t *testing.T) {
+	testutils.SmallTest(t)
 	tree := NewTimeRangeTree()
 
 	k1 := time.Unix(1460124300, 0)

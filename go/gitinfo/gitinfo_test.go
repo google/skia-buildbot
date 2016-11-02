@@ -14,6 +14,7 @@ import (
 )
 
 func TestDisplay(t *testing.T) {
+	testutils.MediumTest(t)
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
@@ -52,6 +53,7 @@ func TestDisplay(t *testing.T) {
 }
 
 func TestFrom(t *testing.T) {
+	testutils.MediumTest(t)
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
@@ -92,6 +94,7 @@ func TestFrom(t *testing.T) {
 }
 
 func TestLastN(t *testing.T) {
+	testutils.MediumTest(t)
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
@@ -129,6 +132,7 @@ func TestLastN(t *testing.T) {
 }
 
 func TestByIndex(t *testing.T) {
+	testutils.MediumTest(t)
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
@@ -147,6 +151,7 @@ func TestByIndex(t *testing.T) {
 }
 
 func TestLastNIndex(t *testing.T) {
+	testutils.MediumTest(t)
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
@@ -194,6 +199,7 @@ func TestLastNIndex(t *testing.T) {
 }
 
 func TestIndexOf(t *testing.T) {
+	testutils.MediumTest(t)
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
@@ -214,6 +220,7 @@ func TestIndexOf(t *testing.T) {
 }
 
 func TestRange(t *testing.T) {
+	testutils.MediumTest(t)
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
@@ -285,6 +292,7 @@ func TestRange(t *testing.T) {
 }
 
 func TestLog(t *testing.T) {
+	testutils.MediumTest(t)
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
@@ -333,6 +341,7 @@ hello.go
 }
 
 func TestLogFine(t *testing.T) {
+	testutils.MediumTest(t)
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
@@ -363,6 +372,7 @@ func TestLogFine(t *testing.T) {
 }
 
 func TestLogArgs(t *testing.T) {
+	testutils.MediumTest(t)
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
@@ -382,6 +392,7 @@ func TestLogArgs(t *testing.T) {
 }
 
 func TestShortList(t *testing.T) {
+	testutils.MediumTest(t)
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
@@ -432,6 +443,7 @@ func TestShortList(t *testing.T) {
 }
 
 func TestTileAddressFromHash(t *testing.T) {
+	testutils.MediumTest(t)
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
@@ -474,6 +486,7 @@ func TestTileAddressFromHash(t *testing.T) {
 }
 
 func TestNumCommits(t *testing.T) {
+	testutils.MediumTest(t)
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
@@ -488,6 +501,7 @@ func TestNumCommits(t *testing.T) {
 }
 
 func TestRevList(t *testing.T) {
+	testutils.MediumTest(t)
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
@@ -537,6 +551,7 @@ func TestRevList(t *testing.T) {
 }
 
 func TestBranchInfo(t *testing.T) {
+	testutils.MediumTest(t)
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
@@ -591,6 +606,7 @@ func TestBranchInfo(t *testing.T) {
 }
 
 func TestSetBranch(t *testing.T) {
+	testutils.MediumTest(t)
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 

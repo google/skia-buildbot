@@ -39,6 +39,7 @@ const (
 )
 
 func TestCopyTaskSpec(t *testing.T) {
+	testutils.SmallTest(t)
 	v := &TaskSpec{
 		CipdPackages: []*CipdPackage{
 			&CipdPackage{
@@ -60,6 +61,7 @@ func TestCopyTaskSpec(t *testing.T) {
 }
 
 func TestCopyJobSpec(t *testing.T) {
+	testutils.SmallTest(t)
 	v := &JobSpec{
 		TaskSpecs: []string{"Build", "Test"},
 		Priority:  753,
@@ -68,6 +70,7 @@ func TestCopyJobSpec(t *testing.T) {
 }
 
 func TestTaskSpecs(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	tr := util.NewTempRepo()
@@ -124,6 +127,7 @@ func TestTaskSpecs(t *testing.T) {
 }
 
 func TestTaskCfgCacheCleanup(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	tr := util.NewTempRepo()
@@ -190,6 +194,7 @@ func makeTasksCfg(t *testing.T, tasks, jobs map[string][]string) string {
 }
 
 func TestTasksCircularDependency(t *testing.T) {
+	testutils.SmallTest(t)
 	// Bonus: Unknown dependency.
 	_, err := ParseTasksCfg(makeTasksCfg(t, map[string][]string{
 		"a": []string{"b"},
@@ -326,6 +331,7 @@ func tempGitRepoTests(t *testing.T, repo *repograph.Graph, cases map[db.RepoStat
 }
 
 func TestTempGitRepo(t *testing.T) {
+	testutils.SmallTest(t)
 	gb, c1, c2 := tempGitRepoSetup(t)
 	defer gb.Cleanup()
 
@@ -353,6 +359,7 @@ func TestTempGitRepo(t *testing.T) {
 }
 
 func TestTempGitRepoPatch(t *testing.T) {
+	testutils.SmallTest(t)
 	t.Skip("This test uploads to production servers. Don't run it by default.")
 
 	gb, _, c2 := tempGitRepoSetup(t)
@@ -393,6 +400,7 @@ func TestTempGitRepoPatch(t *testing.T) {
 }
 
 func TestGetTaskSpecDAG(t *testing.T) {
+	testutils.SmallTest(t)
 	test := func(dag map[string][]string, jobDeps []string) {
 		cfg, err := ParseTasksCfg(makeTasksCfg(t, dag, map[string][]string{
 			"j": jobDeps,

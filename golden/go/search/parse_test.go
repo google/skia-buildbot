@@ -7,10 +7,13 @@ import (
 	"net/url"
 	"testing"
 
+	"go.skia.org/infra/go/testutils"
+
 	assert "github.com/stretchr/testify/require"
 )
 
 func TestParseCTQuery(t *testing.T) {
+	testutils.SmallTest(t)
 	testQuery := CTQuery{
 		RowQuery: &Query{
 			Pos:            true,

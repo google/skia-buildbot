@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -82,6 +83,7 @@ import (
 
 */
 func TestCalcSummaries(t *testing.T) {
+	testutils.SmallTest(t)
 	tile := &tiling.Tile{
 		Traces: map[string]tiling.Trace{
 			"a": &types.GoldenTrace{

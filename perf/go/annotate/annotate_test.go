@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/testutils"
 )
 
 var once sync.Once
@@ -17,6 +18,7 @@ func loginInit() {
 }
 
 func TestMissingLogin(t *testing.T) {
+	testutils.SmallTest(t)
 	once.Do(loginInit)
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("POST", "https://perf.skia.org/annotate", nil)
@@ -33,6 +35,7 @@ func TestMissingLogin(t *testing.T) {
 }
 
 func TestGoodLogin(t *testing.T) {
+	testutils.SmallTest(t)
 	once.Do(loginInit)
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("POST", "https://perf.skia.org/annotate", nil)

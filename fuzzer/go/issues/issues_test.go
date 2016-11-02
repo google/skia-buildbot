@@ -5,9 +5,11 @@ import (
 
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/testutils"
 )
 
 func TestCreateBadBugURL(t *testing.T) {
+	testutils.SmallTest(t)
 	// No http calls need to be mocked up, as none should be used.
 	urlMock := mockhttpclient.NewURLMock()
 	im := NewManager(urlMock.Client())
@@ -28,6 +30,7 @@ func TestCreateBadBugURL(t *testing.T) {
 }
 
 func TestCreateBadBugIssue(t *testing.T) {
+	testutils.SmallTest(t)
 	urlMock := mockhttpclient.NewURLMock()
 	im := NewManager(urlMock.Client())
 	p := IssueReportingPackage{

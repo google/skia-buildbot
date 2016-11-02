@@ -24,13 +24,11 @@
   {
     "cmd": [
       "git",
-      "remote",
-      "set-url",
-      "origin",
-      "https://skia.googlesource.com/buildbot"
+      "clone",
+      "https://skia.googlesource.com/buildbot",
+      "[SLAVE_BUILD]/go/src/go.skia.org/infra"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
-    "name": "git remote"
+    "name": "git clone"
   },
   {
     "cmd": [
@@ -130,7 +128,7 @@
       "https://skia.googlesource.com/buildbot"
     ],
     "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
-    "name": "git remote (2)"
+    "name": "git remote"
   },
   {
     "cmd": [
@@ -168,13 +166,11 @@
   {
     "cmd": [
       "git",
-      "remote",
-      "set-url",
-      "origin",
-      "https://skia.googlesource.com/buildbot"
+      "clone",
+      "https://skia.googlesource.com/buildbot",
+      "[SLAVE_BUILD]/go/src/go.skia.org/infra"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
-    "name": "git remote (3)"
+    "name": "git clone (2)"
   },
   {
     "cmd": [
@@ -274,7 +270,7 @@
       "https://skia.googlesource.com/buildbot"
     ],
     "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
-    "name": "git remote (4)"
+    "name": "git remote (2)"
   },
   {
     "cmd": [
@@ -355,7 +351,7 @@
       "run",
       "./run_unittests.go",
       "--alsologtostderr",
-      "--small"
+      "--large"
     ],
     "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
     "env": {

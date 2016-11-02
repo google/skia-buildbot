@@ -66,6 +66,7 @@ func clearDB(t *testing.T) *testutil.MySQLTestDatabase {
 }
 
 func TestRuleTriggeringE2E(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 	d := clearDB(t)
 	defer d.Close(t)
@@ -113,6 +114,7 @@ func (m *mockAlerter) AddAlert(a *alerting.Alert) error {
 }
 
 func TestEmptyResultsError(t *testing.T) {
+	testutils.SmallTest(t)
 	am := &mockAlerter{}
 
 	// Ensure that the rule triggers an alert when results are empty.
@@ -135,6 +137,7 @@ func TestEmptyResultsError(t *testing.T) {
 }
 
 func TestEmptyResultsOk(t *testing.T) {
+	testutils.SmallTest(t)
 	am := &mockAlerter{}
 
 	// Ensure that the rule does not trigger an alert when EmptyResultsOk is
@@ -158,6 +161,7 @@ func TestEmptyResultsOk(t *testing.T) {
 }
 
 func TestRuleParsing(t *testing.T) {
+	testutils.SmallTest(t)
 	type parseCase struct {
 		Name        string
 		Input       string

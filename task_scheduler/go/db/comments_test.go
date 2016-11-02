@@ -11,11 +11,13 @@ import (
 )
 
 func TestCopyTaskComment(t *testing.T) {
+	testutils.SmallTest(t)
 	v := makeTaskComment(1, 1, 1, 1, time.Now())
 	testutils.AssertCopy(t, v, v.Copy())
 }
 
 func TestCopyTaskSpecComment(t *testing.T) {
+	testutils.SmallTest(t)
 	v := makeTaskSpecComment(1, 1, 1, time.Now())
 	v.Flaky = true
 	v.IgnoreFailure = true
@@ -23,11 +25,13 @@ func TestCopyTaskSpecComment(t *testing.T) {
 }
 
 func TestCopyCommitComment(t *testing.T) {
+	testutils.SmallTest(t)
 	v := makeCommitComment(1, 1, 1, time.Now())
 	testutils.AssertCopy(t, v, v.Copy())
 }
 
 func TestCopyRepoComments(t *testing.T) {
+	testutils.SmallTest(t)
 	v := &RepoComments{
 		Repo: "r1",
 		TaskComments: map[string]map[string][]*TaskComment{
@@ -47,6 +51,7 @@ func TestCopyRepoComments(t *testing.T) {
 
 // TestCommentBox checks that CommentBox correctly implements CommentDB.
 func TestCommentBox(t *testing.T) {
+	testutils.SmallTest(t)
 	TestCommentDB(t, &CommentBox{})
 }
 
@@ -54,6 +59,7 @@ func TestCommentBox(t *testing.T) {
 // initialized with a persisted map and will correctly write changes to the
 // provided writer.
 func TestCommentBoxWithPersistence(t *testing.T) {
+	testutils.SmallTest(t)
 	expected := map[string]*RepoComments{}
 	callCount := 0
 	testWriter := func(actual map[string]*RepoComments) error {
@@ -209,6 +215,7 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 // NewCommentBoxWithPersistence returns an error, the modification does not take
 // effect.
 func TestCommentBoxWithPersistenceError(t *testing.T) {
+	testutils.SmallTest(t)
 	callCount := 0
 	var injectedError error = nil
 	testWriter := func(actual map[string]*RepoComments) error {

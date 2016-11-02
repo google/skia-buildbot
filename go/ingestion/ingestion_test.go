@@ -13,6 +13,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/sharedconfig"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -22,10 +23,12 @@ const LOCAL_STATUS_DIR = "./ingestion_status"
 const RFLOCATION_CONTENT = "result file content"
 
 func TestPollingIngester(t *testing.T) {
+	testutils.SmallTest(t)
 	testIngester(t, LOCAL_STATUS_DIR+"-polling", false)
 }
 
 func TestEventIngester(t *testing.T) {
+	testutils.SmallTest(t)
 	testIngester(t, LOCAL_STATUS_DIR+"-events", true)
 }
 
@@ -223,6 +226,7 @@ func getVCS(start, end int64, nCommits int) vcsinfo.VCS {
 }
 
 func TestRflQueue(t *testing.T) {
+	testutils.SmallTest(t)
 	locs := []ResultFileLocation{
 		rfLocation(time.Now(), "1"),
 		rfLocation(time.Now(), "2"),

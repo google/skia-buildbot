@@ -140,6 +140,7 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task) *swarming_
 
 // Common setup for TaskScheduler tests.
 func setup(t *testing.T) (*util.TempRepo, db.DB, *swarming.TestClient, *TaskScheduler, *mockhttpclient.URLMock) {
+	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 	tr := util.NewTempRepo()
 	d := db.NewInMemoryDB()
@@ -676,6 +677,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 }
 
 func TestTestedness(t *testing.T) {
+	testutils.SmallTest(t)
 	tc := []struct {
 		in  int
 		out float64
@@ -715,6 +717,7 @@ func TestTestedness(t *testing.T) {
 }
 
 func TestTestednessIncrease(t *testing.T) {
+	testutils.SmallTest(t)
 	tc := []struct {
 		a   int
 		b   int
@@ -815,6 +818,7 @@ func TestTestednessIncrease(t *testing.T) {
 }
 
 func TestComputeBlamelist(t *testing.T) {
+	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
 	// Setup.
@@ -1027,6 +1031,7 @@ func TestComputeBlamelist(t *testing.T) {
 }
 
 func TestTimeDecay24Hr(t *testing.T) {
+	testutils.SmallTest(t)
 	tc := []struct {
 		decayAmt24Hr float64
 		elapsed      time.Duration
@@ -1275,6 +1280,7 @@ func makeSwarmingBot(id string, dims []string) *swarming_api.SwarmingRpcsBotInfo
 }
 
 func TestGetCandidatesToSchedule(t *testing.T) {
+	testutils.MediumTest(t)
 	// Empty lists.
 	rv := getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{})
 	assert.Equal(t, 0, len(rv))
@@ -1691,6 +1697,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 }
 
 func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	workdir, err := ioutil.TempDir("", "")

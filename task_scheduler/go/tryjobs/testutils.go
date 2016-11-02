@@ -91,6 +91,7 @@ func MockOutExec() {
 // setup prepares the tests to run. Returns the created temporary dir,
 // TryJobIntegrator instance, and URLMock instance.
 func setup(t *testing.T) (*TryJobIntegrator, *mockhttpclient.URLMock, func()) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	// Set up the test Git repo.

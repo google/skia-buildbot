@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/ctrace2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/kmeans"
@@ -15,6 +16,7 @@ import (
 )
 
 func TestParamSummaries(t *testing.T) {
+	testutils.SmallTest(t)
 	obs := []kmeans.Clusterable{
 		ctrace2.NewFullTrace(",arch=x86,config=8888,", []float32{1, 2}, 0.001),
 		ctrace2.NewFullTrace(",arch=x86,config=565,", []float32{2, 3}, 0.001),
@@ -37,6 +39,7 @@ func TestParamSummaries(t *testing.T) {
 }
 
 func TestStepFit(t *testing.T) {
+	testutils.SmallTest(t)
 	testCases := []struct {
 		value    []float32
 		expected *StepFit
@@ -79,6 +82,7 @@ func TestStepFit(t *testing.T) {
 }
 
 func TestCalcCusterSummaries(t *testing.T) {
+	testutils.SmallTest(t)
 	rand.Seed(1)
 	now := time.Now()
 	df := &dataframe.DataFrame{
@@ -131,6 +135,7 @@ func TestCalcCusterSummaries(t *testing.T) {
 }
 
 func TestCalcCusterSummariesDegenerate(t *testing.T) {
+	testutils.SmallTest(t)
 	rand.Seed(1)
 	df := &dataframe.DataFrame{
 		TraceSet: ptracestore.TraceSet{},

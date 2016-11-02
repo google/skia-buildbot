@@ -68,6 +68,7 @@ func xTestEventBus(t *testing.T) {
 }
 
 func TestJSONHelper(t *testing.T) {
+	testutils.SmallTest(t)
 	type myTestType struct {
 		A int
 		B string

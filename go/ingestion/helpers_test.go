@@ -39,6 +39,7 @@ var (
 )
 
 func TestGoogleStorageSource(t *testing.T) {
+	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
 	evt := eventbus.New(nil)
@@ -48,6 +49,7 @@ func TestGoogleStorageSource(t *testing.T) {
 }
 
 func TestFileSystemResultFileLocations(t *testing.T) {
+	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
 	err := gs.DownloadTestDataArchive(t, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
@@ -60,6 +62,7 @@ func TestFileSystemResultFileLocations(t *testing.T) {
 }
 
 func TestCompareSources(t *testing.T) {
+	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
 	evt := eventbus.New(nil)

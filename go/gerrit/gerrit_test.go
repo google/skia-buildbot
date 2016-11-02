@@ -19,6 +19,7 @@ func skipTestIfRequired(t *testing.T) {
 	if !RUN_GERRIT_TESTS {
 		t.Skip("Skipping test due to RUN_GERRIT_TESTS=false")
 	}
+	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 }
 
@@ -249,6 +250,7 @@ func TestAbandon(t *testing.T) {
 }
 
 func TestUrlAndExtractIssue(t *testing.T) {
+	testutils.SmallTest(t)
 	api, err := NewGerrit(GERRIT_SKIA_URL, "", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, GERRIT_SKIA_URL, api.Url(0))

@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	"go.skia.org/infra/fuzzer/go/data"
+	"go.skia.org/infra/go/testutils"
 )
 
 func TestSimpleDeduplication(t *testing.T) {
+	testutils.SmallTest(t)
 	d := New()
 	r1 := data.MockReport("skpicture", "aaaa")
 	r2 := data.MockReport("skpicture", "bbbb")
@@ -32,6 +34,7 @@ func TestSimpleDeduplication(t *testing.T) {
 }
 
 func TestUnknownStacktraces(t *testing.T) {
+	testutils.SmallTest(t)
 	d := New()
 	// mock report ee has no stacktrace for either.  It should not be considered a duplicate, ever.
 	r1 := data.MockReport("skpicture", "eeee")
@@ -44,6 +47,7 @@ func TestUnknownStacktraces(t *testing.T) {
 }
 
 func TestKey(t *testing.T) {
+	testutils.SmallTest(t)
 	// r1 is a report with 6 and 7 stacktrace frames for Debug/Release
 	r1 := makeReport()
 	r1.DebugStackTrace.Frames = append(r1.DebugStackTrace.Frames, data.StackTraceFrame{})
@@ -71,6 +75,7 @@ func TestKey(t *testing.T) {
 }
 
 func TestLinesOfStacktrace(t *testing.T) {
+	testutils.SmallTest(t)
 	d := New()
 	r1 := makeReport()
 	r2 := makeReport()
@@ -93,6 +98,7 @@ func TestLinesOfStacktrace(t *testing.T) {
 }
 
 func TestLineNumbers(t *testing.T) {
+	testutils.SmallTest(t)
 	d := New()
 	r1 := makeReport()
 	r2 := makeReport()
@@ -115,6 +121,7 @@ func TestLineNumbers(t *testing.T) {
 }
 
 func TestFlags(t *testing.T) {
+	testutils.SmallTest(t)
 	d := New()
 	r1 := makeReport()
 	r2 := makeReport()
@@ -135,6 +142,7 @@ func TestFlags(t *testing.T) {
 }
 
 func TestCategory(t *testing.T) {
+	testutils.SmallTest(t)
 	d := New()
 	r1 := makeReport()
 	r2 := makeReport()
@@ -148,6 +156,7 @@ func TestCategory(t *testing.T) {
 }
 
 func TestArchitecture(t *testing.T) {
+	testutils.SmallTest(t)
 	d := New()
 	r1 := makeReport()
 	r2 := makeReport()
@@ -161,6 +170,7 @@ func TestArchitecture(t *testing.T) {
 }
 
 func TestOther(t *testing.T) {
+	testutils.SmallTest(t)
 	d := New()
 	r1 := makeReport()
 	r1.DebugFlags = append(r1.DebugFlags, "Other")

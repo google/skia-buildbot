@@ -3,10 +3,13 @@ package types
 import (
 	"testing"
 
+	"go.skia.org/infra/go/testutils"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func TestOptions(t *testing.T) {
+	testutils.SmallTest(t)
 	code := `void draw(SkCanvas* canvas) {
     SkPaint p;
     p.setColor(SK_ColorRED);

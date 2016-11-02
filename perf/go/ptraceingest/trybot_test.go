@@ -19,6 +19,7 @@ import (
 
 // TestTrybotBenchData tests parsing and processing of a single trybot file.
 func TestTrybotBenchData(t *testing.T) {
+	testutils.SmallTest(t)
 	// Load the sample data file as BenchData.
 	r, err := os.Open(filepath.Join(TEST_DATA_DIR, "trybot.json"))
 	assert.NoError(t, err)
@@ -34,6 +35,7 @@ func TestTrybotBenchData(t *testing.T) {
 
 // Tests the processor in conjunction with Rietveld.
 func TestPerfTrybotProcessor(t *testing.T) {
+	testutils.SmallTest(t)
 	orig := ptracestore.Default
 	dir, err := ioutil.TempDir("", "ptrace")
 	assert.NoError(t, err)

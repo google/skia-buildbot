@@ -359,9 +359,11 @@
   },
   {
     "cmd": [
-      "python",
-      "-u",
-      "run_unittests"
+      "go",
+      "run",
+      "./run_unittests.go",
+      "--alsologtostderr",
+      "--small"
     ],
     "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
     "env": {

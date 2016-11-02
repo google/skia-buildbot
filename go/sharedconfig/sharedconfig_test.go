@@ -3,10 +3,13 @@ package sharedconfig
 import (
 	"testing"
 
+	"go.skia.org/infra/go/testutils"
+
 	assert "github.com/stretchr/testify/require"
 )
 
 func TestIngesterConfig(t *testing.T) {
+	testutils.SmallTest(t)
 	conf, err := ConfigFromTomlFile("./test-file.toml")
 	assert.NoError(t, err)
 

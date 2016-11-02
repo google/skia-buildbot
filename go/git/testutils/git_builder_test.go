@@ -11,6 +11,7 @@ import (
 )
 
 func TestGitSetup(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 	g := GitInit(t)
 	defer g.Cleanup()
@@ -47,6 +48,7 @@ func TestGitSetup(t *testing.T) {
 }
 
 func TestGitBuilderCommitTime(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 	g := GitInit(t)
 	defer g.Cleanup()

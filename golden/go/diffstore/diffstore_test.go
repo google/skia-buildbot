@@ -18,6 +18,7 @@ import (
 const TEST_N_DIGESTS = 20
 
 func TestDiffStore(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	// Get a small tile and get them cached.

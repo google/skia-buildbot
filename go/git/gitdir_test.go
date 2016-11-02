@@ -15,7 +15,6 @@ import (
 
 func TestGitDetails(t *testing.T) {
 	start := time.Now().Add(-2 * time.Second) // Need a small buffer due to 1-second granularity.
-
 	gb, commits := setup(t)
 	defer gb.Cleanup()
 

@@ -40,6 +40,7 @@ func (d *testDB) cleanup(t *testing.T) {
 
 // Test that we insert, update, delete, and retrieve rolls as expected.
 func TestRolls(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 	d := newTestDB(t)
 	defer d.cleanup(t)

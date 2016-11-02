@@ -7,9 +7,12 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"go.skia.org/infra/go/testutils"
 )
 
 func TestEmptyMock(t *testing.T) {
+	testutils.SmallTest(t)
 	urlMock := NewURLMock()
 	c := urlMock.Client()
 
@@ -39,6 +42,7 @@ func getResponseBody(t *testing.T, resp *http.Response) []byte {
 }
 
 func TestGetMockOnce(t *testing.T) {
+	testutils.SmallTest(t)
 	urlMock := NewURLMock()
 
 	expectedResponse := []byte("Hello world")
@@ -72,6 +76,7 @@ func TestGetMockOnce(t *testing.T) {
 }
 
 func TestGetMockAlways(t *testing.T) {
+	testutils.SmallTest(t)
 	expectedResponse := []byte("Hello world")
 	c := New(map[string]MockDialogue{
 		"http://www.example.com": MockGetDialogue(expectedResponse),
@@ -89,6 +94,7 @@ func TestGetMockAlways(t *testing.T) {
 }
 
 func TestPostNotGet(t *testing.T) {
+	testutils.SmallTest(t)
 	urlMock := NewURLMock()
 
 	expectedResponse := []byte("Hello world")
@@ -103,6 +109,7 @@ func TestPostNotGet(t *testing.T) {
 }
 
 func TestPostWrongBody(t *testing.T) {
+	testutils.SmallTest(t)
 	urlMock := NewURLMock()
 
 	expectedResponseBody := []byte("Hello world")
@@ -117,6 +124,7 @@ func TestPostWrongBody(t *testing.T) {
 }
 
 func TestPostDontCareBody(t *testing.T) {
+	testutils.SmallTest(t)
 	urlMock := NewURLMock()
 
 	expectedResponseBody := []byte("Hello world")
@@ -131,6 +139,7 @@ func TestPostDontCareBody(t *testing.T) {
 }
 
 func TestPostWrongType(t *testing.T) {
+	testutils.SmallTest(t)
 	urlMock := NewURLMock()
 
 	firstRequestBody := []byte("alpha")
