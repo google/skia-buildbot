@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "66ba4639_f89905b6",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-02T15:08:58Z",
+      "side": 1,
+      "message": "nit: rewrap",
+      "range": {
+        "startLine": 443,
+        "startChar": 0,
+        "endLine": 444,
+        "endChar": 33
+      },
+      "revId": "755c5dd30befad33f1cc1fa3eab71315fdcbf319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_d89ec19b",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-02T15:08:58Z",
+      "side": 1,
+      "message": "nit: pass err here for easier debugging",
+      "range": {
+        "startLine": 257,
+        "startChar": 30,
+        "endLine": 257,
+        "endChar": 33
+      },
+      "revId": "755c5dd30befad33f1cc1fa3eab71315fdcbf319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
