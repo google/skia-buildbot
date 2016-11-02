@@ -226,10 +226,10 @@ func ComputeBlamelist(cache db.TaskCache, repo *repograph.Graph, taskName, repoN
 					glog.Warningf("Found too many commits for %s @ %s; is a branch head.", taskName, revision.Hash)
 					return false, ERR_BLAMELIST_DONE
 				}
-				glog.Warningf("Found too many commits for %s @ %s; not a branch head so returning empty.", taskName, revision.Hash)
-				commitsBuf = commitsBuf[:0]
-				return false, ERR_BLAMELIST_DONE
 			}
+			glog.Warningf("Found too many commits for %s @ %s; not a branch head so returning empty.", taskName, revision.Hash)
+			commitsBuf = commitsBuf[:0]
+			return false, ERR_BLAMELIST_DONE
 		}
 
 		// If we're stealing commits from a previous task but the current
