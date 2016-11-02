@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "66ba4639_38e6ed30",
+        "filename": "perf/res/imp/commit-detail-picker.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-02T15:27:18Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 12,
+        "startChar": 6,
+        "endLine": 12,
+        "endChar": 10
+      },
+      "revId": "d668f7afdc4f19b320b35f8db33f0faf5a4a6d93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_78e07512",
+        "filename": "perf/res/imp/commit-detail-picker.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-02T15:27:18Z",
+      "side": 1,
+      "message": "Does this need to change this.$.select.textContent back to this.title, for the case that details are being changed rather than initialized?",
+      "revId": "d668f7afdc4f19b320b35f8db33f0faf5a4a6d93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
