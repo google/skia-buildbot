@@ -3,6 +3,7 @@ package testutils
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,6 +18,70 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	assert "github.com/stretchr/testify/require"
 )
+
+const (
+	SMALL_TEST  = "small"
+	MEDIUM_TEST = "medium"
+	LARGE_TEST  = "large"
+)
+
+var (
+	small  = flag.Bool(SMALL_TEST, false, "Whether or not to run small tests.")
+	medium = flag.Bool(MEDIUM_TEST, false, "Whether or not to run medium tests.")
+	large  = flag.Bool(LARGE_TEST, false, "Whether or not to run large tests.")
+
+	DEFAULT_RUN = map[string]bool{
+		SMALL_TEST:  true,
+		MEDIUM_TEST: true,
+		LARGE_TEST:  false,
+	}
+)
+
+// shouldRun determines whether the test should run based on the provided flags.
+func shouldRun(testType string) bool {
+	// Fallback if no test filter is specified.
+	if !*small && !*medium && !*large {
+		return DEFAULT_RUN[testType]
+	}
+
+	switch testType {
+	case SMALL_TEST:
+		return *small
+	case MEDIUM_TEST:
+		return *medium
+	case LARGE_TEST:
+		return *large
+	}
+	return false
+}
+
+// SmallTest is a function which should be called at the beginning of a small
+// test: A test (under 2 seconds) with no dependencies on external databases,
+// networks, etc.
+func SmallTest(t *testing.T) {
+	if !shouldRun(SMALL_TEST) {
+		t.Skip("Not running small tests.")
+	}
+}
+
+// MediumTest is a function which should be called at the beginning of an
+// medium-sized test: a test (2-15 seconds) which has dependencies on external
+// databases, networks, etc.
+func MediumTest(t *testing.T) {
+	if !shouldRun(MEDIUM_TEST) {
+		t.Skip("Not running medium tests.")
+	}
+}
+
+// LargeTest is a function which should be called at the beginning of a large
+// test: a test (> 15 seconds) with significant reliance on external
+// dependencies which makes it too slow or flaky to run as part of the normal
+// test suite.
+func LargeTest(t *testing.T) {
+	if !shouldRun(LARGE_TEST) {
+		t.Skip("Not running large tests.")
+	}
+}
 
 // SkipIfShort causes the test to be skipped when running with -short.
 func SkipIfShort(t *testing.T) {
