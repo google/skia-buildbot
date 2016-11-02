@@ -9,6 +9,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git/repograph"
+	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -850,10 +851,10 @@ func TestJobCacheGetRevisionTimestampError(t *testing.T) {
 
 func TestGitRepoGetRevisionTimestamp(t *testing.T) {
 	testutils.SkipIfShort(t)
-	g := testutils.GitInit(t)
+	g := git_testutils.GitInit(t)
 	defer g.Cleanup()
 
-	testutils.GitSetup(g)
+	git_testutils.GitSetup(g)
 	now := time.Now()
 	g.AddGen("a.txt")
 	g.CommitMsgAt("Extra commit 1", now.Add(3*time.Second))

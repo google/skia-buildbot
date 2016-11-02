@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/repograph"
+	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
@@ -93,7 +94,7 @@ func setup(t *testing.T) (*TryJobIntegrator, *mockhttpclient.URLMock, func()) {
 	testutils.SkipIfShort(t)
 
 	// Set up the test Git repo.
-	gb := testutils.GitInit(t)
+	gb := git_testutils.GitInit(t)
 	assert.NoError(t, os.MkdirAll(path.Join(gb.Dir(), "infra", "bots"), os.ModePerm))
 	tasksJson := path.Join("infra", "bots", "tasks.json")
 	gb.Add(tasksJson, testTasksCfg)
