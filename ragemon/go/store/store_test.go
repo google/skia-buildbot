@@ -10,6 +10,7 @@ import (
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/ragemon/go/ts"
 
 	"github.com/stretchr/testify/assert"
@@ -64,6 +65,7 @@ func queries(t *testing.T, now time.Time, m []Measurement, st *StoreImpl) {
 }
 
 func TestNew(t *testing.T) {
+	testutils.SmallTest(t)
 	setupStoreDir(t)
 	defer cleanup()
 

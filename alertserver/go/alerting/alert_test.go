@@ -62,6 +62,7 @@ func clearDB(t *testing.T) *testutil.MySQLTestDatabase {
 // TestAlertJsonSerialization verifies that we properly serialize and
 // deserialize Alerts to JSON.
 func TestAlertJsonSerialization(t *testing.T) {
+	testutils.SmallTest(t)
 	cases := []*Alert{
 		&Alert{Comments: []*Comment{}, Actions: []Action{}}, // Empty Alert.
 		makeAlert(), // Realistic case.
@@ -79,6 +80,7 @@ func TestAlertJsonSerialization(t *testing.T) {
 // TestAlertDBSerialization verifies that we properly serialize and
 // deserialize Alerts into the DB.
 func TestAlertDBSerialization(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 	d := clearDB(t)
 	defer d.Close(t)
@@ -104,6 +106,7 @@ func TestAlertDBSerialization(t *testing.T) {
 // TestAlertFlowE2E verifies that we can insert an Alert, manipulate it,
 // retrieve it, and dismiss it properly.
 func TestAlertFlowE2E(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 	d := clearDB(t)
 	defer d.Close(t)

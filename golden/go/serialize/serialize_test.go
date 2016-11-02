@@ -46,6 +46,7 @@ var testParamsList = []paramtools.Params{
 }
 
 func TestSerializeStrings(t *testing.T) {
+	testutils.SmallTest(t)
 	testArr := []string{}
 	for i := 0; i < 100; i++ {
 		testArr = append(testArr, fmt.Sprintf("str-%4d", i))
@@ -65,6 +66,7 @@ func TestSerializeStrings(t *testing.T) {
 }
 
 func TestSerializeCommits(t *testing.T) {
+	testutils.SmallTest(t)
 	testCommits := []*tiling.Commit{
 		&tiling.Commit{
 			CommitTime: 42,
@@ -92,6 +94,7 @@ func TestSerializeCommits(t *testing.T) {
 }
 
 func TestSerializeParamSets(t *testing.T) {
+	testutils.SmallTest(t)
 	testParamSet := paramtools.ParamSet(map[string][]string{})
 	for _, p := range testParamsList {
 		testParamSet.AddParams(p)
@@ -125,6 +128,7 @@ func TestSerializeParamSets(t *testing.T) {
 }
 
 func TestIntsToBytes(t *testing.T) {
+	testutils.SmallTest(t)
 	data := []int{20266, 20266, 20266, 20266}
 	testBytes := intsToBytes(data)
 	found, err := bytesToInts(testBytes)
@@ -133,6 +137,7 @@ func TestIntsToBytes(t *testing.T) {
 }
 
 func TestSerializeTile(t *testing.T) {
+	testutils.MediumTest(t)
 	testDataDir := TEST_DATA_DIR
 	testutils.RemoveAll(t, testDataDir)
 	assert.NoError(t, gs.DownloadTestDataFile(t, TEST_DATA_STORAGE_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH))

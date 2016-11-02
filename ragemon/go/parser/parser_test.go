@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/ragemon/go/store"
 	"go.skia.org/infra/ragemon/go/ts"
 )
@@ -28,6 +29,7 @@ func equalExceptTime(m1, m2 []store.Measurement) bool {
 }
 
 func TestParser(t *testing.T) {
+	testutils.SmallTest(t)
 	now := time.Now().Unix()
 	testCases := []struct {
 		value    string

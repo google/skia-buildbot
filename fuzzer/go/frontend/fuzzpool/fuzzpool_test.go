@@ -7,6 +7,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	fcommon "go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/data"
+	"go.skia.org/infra/go/testutils"
 )
 
 func loadReports() *FuzzPool {
@@ -26,6 +27,7 @@ func loadReports() *FuzzPool {
 }
 
 func TestGetAll(t *testing.T) {
+	testutils.SmallTest(t)
 	pool := loadReports()
 	actualReports := pool.Reports()
 
@@ -38,6 +40,7 @@ func TestGetAll(t *testing.T) {
 }
 
 func TestGetByName(t *testing.T) {
+	testutils.SmallTest(t)
 	pool := loadReports()
 	r, err := pool.FindFuzzDetailForFuzz("bbbb")
 	assert.NoError(t, err)
@@ -51,6 +54,7 @@ func TestGetByName(t *testing.T) {
 }
 
 func TestGetByCategory(t *testing.T) {
+	testutils.SmallTest(t)
 	pool := loadReports()
 	actualReports, err := pool.FindFuzzDetails("skpicture", "", "", "", "", fcommon.UNKNOWN_LINE)
 	assert.NoError(t, err)
@@ -73,6 +77,7 @@ func TestGetByCategory(t *testing.T) {
 }
 
 func TestGetByArchitecture(t *testing.T) {
+	testutils.SmallTest(t)
 	pool := loadReports()
 	actualReports, err := pool.FindFuzzDetails("", "mock_arm8", "", "", "", fcommon.UNKNOWN_LINE)
 	assert.NoError(t, err)
@@ -94,6 +99,7 @@ func TestGetByArchitecture(t *testing.T) {
 	}
 }
 func TestGetByBadness(t *testing.T) {
+	testutils.SmallTest(t)
 	pool := loadReports()
 	actualReports, err := pool.FindFuzzDetails("", "", "bad", "", "", fcommon.UNKNOWN_LINE)
 	assert.NoError(t, err)
@@ -116,6 +122,7 @@ func TestGetByBadness(t *testing.T) {
 }
 
 func TestGetByFilename(t *testing.T) {
+	testutils.SmallTest(t)
 	pool := loadReports()
 	actualReports, err := pool.FindFuzzDetails("", "", "", "mock/package/alpha", "", fcommon.UNKNOWN_LINE)
 	assert.NoError(t, err)
@@ -138,6 +145,7 @@ func TestGetByFilename(t *testing.T) {
 }
 
 func TestGetByFunctionName(t *testing.T) {
+	testutils.SmallTest(t)
 	pool := loadReports()
 	actualReports, err := pool.FindFuzzDetails("", "", "", "", "beta", fcommon.UNKNOWN_LINE)
 	assert.NoError(t, err)
@@ -160,6 +168,7 @@ func TestGetByFunctionName(t *testing.T) {
 }
 
 func TestGetByLineNumber(t *testing.T) {
+	testutils.SmallTest(t)
 	pool := loadReports()
 	actualReports, err := pool.FindFuzzDetails("", "", "", "", "", 16)
 	assert.NoError(t, err)

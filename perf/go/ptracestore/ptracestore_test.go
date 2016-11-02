@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/constants"
@@ -33,6 +34,7 @@ func cleanup() {
 }
 
 func TestAdd(t *testing.T) {
+	testutils.SmallTest(t)
 	setupStoreDir(t)
 	defer cleanup()
 
@@ -102,6 +104,7 @@ func TestAdd(t *testing.T) {
 }
 
 func TestBuildMapper(t *testing.T) {
+	testutils.SmallTest(t)
 	commitIDs := []*cid.CommitID{
 		&cid.CommitID{
 			Source: "master",
@@ -154,6 +157,7 @@ func matchesFromQuery(q *query.Query) KeyMatches {
 }
 
 func TestMatch(t *testing.T) {
+	testutils.SmallTest(t)
 	setupStoreDir(t)
 	defer cleanup()
 

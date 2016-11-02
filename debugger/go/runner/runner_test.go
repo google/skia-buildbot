@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/testutils"
 )
 
 func mockGetCurrentHash() string {
@@ -21,6 +22,7 @@ func testRun(cmd *exec.Command) error {
 }
 
 func TestRunContainer(t *testing.T) {
+	testutils.SmallTest(t)
 	// Now test local runs, first set up exec for testing.
 	exec.SetRunForTesting(testRun)
 	defer exec.SetRunForTesting(exec.DefaultRun)
@@ -33,6 +35,7 @@ func TestRunContainer(t *testing.T) {
 }
 
 func TestRunLocal(t *testing.T) {
+	testutils.SmallTest(t)
 	// Now test local runs, first set up exec for testing.
 	exec.SetRunForTesting(testRun)
 	defer exec.SetRunForTesting(exec.DefaultRun)

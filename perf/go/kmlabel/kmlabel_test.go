@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/kmeans"
 )
 
@@ -35,6 +36,7 @@ var (
 )
 
 func TestMeasure(t *testing.T) {
+	testutils.SmallTest(t)
 	m := NewMeasure(2)
 	m.Inc(0)
 	m.Inc(1)
@@ -49,6 +51,7 @@ func TestMeasure(t *testing.T) {
 }
 
 func TestCentroid(t *testing.T) {
+	testutils.SmallTest(t)
 	c := NewCentroid([]int{2, 3}, []int{1, 1})
 	tr := &Trace{
 		ID:     "foo",
@@ -79,6 +82,7 @@ func TestCentroid(t *testing.T) {
 }
 
 func TestCentroidsAndTraces(t *testing.T) {
+	testutils.SmallTest(t)
 	centroids, traces, f, reverse := CentroidsAndTraces(paramset, traceparams, 2)
 	assert.Equal(t, 2, len(centroids))
 	assert.Equal(t, 4, len(traces))
@@ -133,6 +137,7 @@ func TestCentroidsAndTraces(t *testing.T) {
 }
 
 func TestClusterAndDescribe(t *testing.T) {
+	testutils.SmallTest(t)
 	d := ClusterAndDescribe(paramset, traceparams, 8)
 	assert.Equal(t, 0.5, d.Percent)
 	total := 0

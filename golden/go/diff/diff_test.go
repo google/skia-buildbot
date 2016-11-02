@@ -11,6 +11,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/image/text"
 )
 
@@ -19,6 +20,7 @@ const (
 )
 
 func TestDiffMetrics(t *testing.T) {
+	testutils.MediumTest(t)
 	// Assert different images with the same dimensions.
 	assertDiffs(t, "4029959456464745507", "16465366847175223174",
 		&DiffMetrics{
@@ -235,6 +237,7 @@ func assertDiffMatch(t *testing.T, expected, src1, src2 string, expectedDiffMetr
 
 // TestDiffImages tests that the diff images produced are correct.
 func TestDiffImages(t *testing.T) {
+	testutils.SmallTest(t)
 	assertDiffMatch(t, EXPECTED_NO_DIFF, SRC1, SRC1)
 	assertDiffMatch(t, EXPECTED_NO_DIFF, SRC2, SRC2)
 	assertDiffMatch(t, EXPECTED_1_2, SRC1, SRC2)
@@ -273,6 +276,7 @@ func assertDiffs(t *testing.T, d1, d2 string, expectedDiffMetrics *DiffMetrics) 
 }
 
 func TestDeltaOffset(t *testing.T) {
+	testutils.SmallTest(t)
 	testCases := []struct {
 		offset int
 		want   int

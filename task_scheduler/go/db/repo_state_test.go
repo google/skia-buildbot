@@ -7,6 +7,7 @@ import (
 )
 
 func TestCopyPatch(t *testing.T) {
+	testutils.SmallTest(t)
 	v := Patch{
 		Issue:    "1",
 		Patchset: "2",
@@ -16,6 +17,7 @@ func TestCopyPatch(t *testing.T) {
 }
 
 func TestCopyRepoState(t *testing.T) {
+	testutils.SmallTest(t)
 	v := RepoState{
 		Patch: Patch{
 			Issue:    "1",

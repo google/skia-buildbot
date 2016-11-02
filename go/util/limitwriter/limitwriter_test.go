@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"testing"
 
+	"go.skia.org/infra/go/testutils"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func TestLimitBuf(t *testing.T) {
+	testutils.SmallTest(t)
 	buf := &bytes.Buffer{}
 	b := New(buf, 10)
 	n, err := b.Write([]byte("123456"))

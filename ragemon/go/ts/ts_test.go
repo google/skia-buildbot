@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/testutils"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,6 +24,7 @@ func roundTrip(t *testing.T, pts []Point) {
 }
 
 func TestTS(t *testing.T) {
+	testutils.SmallTest(t)
 	now := time.Unix(1471877350, 0)
 	ts := New(Point{
 		Timestamp: now.Unix(),
@@ -47,6 +50,7 @@ func TestTS(t *testing.T) {
 }
 
 func TestAddWrongOrder(t *testing.T) {
+	testutils.SmallTest(t)
 	ts := New(Point{
 		Timestamp: 140,
 		Value:     10,
@@ -59,6 +63,7 @@ func TestAddWrongOrder(t *testing.T) {
 }
 
 func TestRoundTrip(t *testing.T) {
+	testutils.SmallTest(t)
 	now := time.Unix(1471877350, 0)
 	roundTrip(t, []Point{
 		Point{
@@ -112,6 +117,7 @@ func TestRoundTrip(t *testing.T) {
 }
 
 func TestErrors(t *testing.T) {
+	testutils.SmallTest(t)
 	_, _, err := decode([]byte{})
 	assert.Error(t, err)
 
@@ -123,6 +129,7 @@ func TestErrors(t *testing.T) {
 }
 
 func TestRange(t *testing.T) {
+	testutils.SmallTest(t)
 	now := int64(1471877350)
 	pt := Point{
 		Timestamp: now,
@@ -137,6 +144,7 @@ func TestRange(t *testing.T) {
 }
 
 func TestInRange(t *testing.T) {
+	testutils.SmallTest(t)
 	now := int64(1471877350)
 	series1 := &TimeSeries{
 		data: []Point{

@@ -3,6 +3,7 @@ package alerting
 import (
 	"testing"
 
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -17,6 +18,7 @@ func newCluster(keys []string, regression float64, hash string) *types.ClusterSu
 }
 
 func TestCombineClusters(t *testing.T) {
+	testutils.SmallTest(t)
 	// Let's say we have existing clusters with the following trace ids:
 	//
 	//    C[1], C[2], C[3], C[8,9] C[10,11]

@@ -11,6 +11,7 @@ import (
 
 // Basic test to make sure we can retrieve issues from Rietveld.
 func TestRietveld(t *testing.T) {
+	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
 	api := New("https://codereview.chromium.org", nil)
@@ -33,6 +34,7 @@ func TestRietveld(t *testing.T) {
 }
 
 func TestUrlAndExtractIssue(t *testing.T) {
+	testutils.SmallTest(t)
 	api := New(RIETVELD_SKIA_URL, nil)
 	assert.Equal(t, RIETVELD_SKIA_URL, api.Url(0))
 	url1 := api.Url(1234)

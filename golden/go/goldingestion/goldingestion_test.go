@@ -54,6 +54,7 @@ var (
 
 // Tests parsing and processing of a single file.
 func TestDMResults(t *testing.T) {
+	testutils.SmallTest(t)
 	f, err := os.Open(TEST_INGESTION_FILE)
 	assert.NoError(t, err)
 
@@ -72,6 +73,7 @@ func TestDMResults(t *testing.T) {
 
 // Tests the processor in conjunction with the vcs.
 func TestGoldProcessor(t *testing.T) {
+	testutils.SmallTest(t)
 
 	// Set up mock VCS and run a servcer with the given data directory.
 	vcs := ingestion.MockVCS(TEST_COMMITS)

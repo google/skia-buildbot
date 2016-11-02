@@ -31,6 +31,7 @@ const (
 )
 
 func TestBlamerWithSyntheticData(t *testing.T) {
+	testutils.SmallTest(t)
 	start := time.Now().Unix()
 	commits := []*tiling.Commit{
 		&tiling.Commit{CommitTime: start + 10, Hash: "h1", Author: "John Doe 1"},
@@ -180,6 +181,7 @@ func BenchmarkBlamer(b *testing.B) {
 }
 
 func TestBlamerWithLiveData(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	err := gs.DownloadTestDataFile(t, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)

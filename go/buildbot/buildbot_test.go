@@ -139,6 +139,7 @@ func testGetBuildFromMaster(repos *gitinfo.RepoMap) (*Build, error) {
 // TestGetBuildFromMaster verifies that we can load JSON data from the build master and
 // decode it into a Build object.
 func TestGetBuildFromMaster(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	// Load the test repo.
@@ -158,6 +159,7 @@ func TestGetBuildFromMaster(t *testing.T) {
 // TestBuildJsonSerialization verifies that we can serialize a build to JSON
 // and back without losing or corrupting the data.
 func TestBuildJsonSerialization(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	// Load the test repo.
@@ -178,6 +180,7 @@ func TestBuildJsonSerialization(t *testing.T) {
 // testFindCommitsForBuild verifies that findCommitsForBuild correctly obtains
 // the list of commits which were newly built in a given build.
 func testFindCommitsForBuild(t *testing.T, local bool) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 	httpClient = testHttpClient
 	d := clearDB(t, local)
@@ -348,6 +351,7 @@ func dbSerializeAndCompare(t *testing.T, d testDB, b1 *Build, ignoreIds bool) {
 // testBuildDbSerialization verifies that we can write a build to the DB and
 // pull it back out without losing or corrupting the data.
 func testBuildDbSerialization(t *testing.T, local bool) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	d := clearDB(t, local)
@@ -380,6 +384,7 @@ func testBuildDbSerialization(t *testing.T, local bool) {
 // finished, load the build back from the database, and update it when it
 // finishes.
 func testUnfinishedBuild(t *testing.T, local bool) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 	d := clearDB(t, local)
 	defer d.Close(t)
@@ -440,6 +445,7 @@ func testUnfinishedBuild(t *testing.T, local bool) {
 // testLastProcessedBuilds verifies that getLastProcessedBuilds gives us
 // the expected result.
 func testLastProcessedBuilds(t *testing.T, local bool) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 	d := clearDB(t, local)
 	defer d.Close(t)
@@ -518,6 +524,7 @@ func testLastProcessedBuilds(t *testing.T, local bool) {
 // TestGetLatestBuilds verifies that getLatestBuilds gives us
 // the expected results.
 func TestGetLatestBuilds(t *testing.T) {
+	testutils.MediumTest(t)
 	// Note: Masters with no builders shouldn't be in the map.
 	expected := map[string]map[string]int{
 		"client.skia.fyi": map[string]int{
@@ -540,6 +547,7 @@ func TestGetLatestBuilds(t *testing.T) {
 
 // testGetUningestedBuilds verifies that getUningestedBuilds works as expected.
 func testGetUningestedBuilds(t *testing.T, local bool) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 	d := clearDB(t, local)
 	defer d.Close(t)
@@ -612,6 +620,7 @@ func testGetUningestedBuilds(t *testing.T, local bool) {
 // the database for new and unfinished builds, respectively, and ingest them
 // into the database.
 func testIngestNewBuilds(t *testing.T, local bool) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 	d := clearDB(t, local)
 	defer d.Close(t)
@@ -704,6 +713,7 @@ func testIngestNewBuilds(t *testing.T, local bool) {
 // testBuildKeyOrdering ensures that we properly sort build keys so that the
 // build numbers are strictly ascending.
 func testBuildKeyOrdering(t *testing.T, local bool) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 	d := clearDB(t, local)
 	defer d.Close(t)
@@ -732,6 +742,7 @@ func testBuildKeyOrdering(t *testing.T, local bool) {
 
 // testBuilderComments ensures that we properly handle builder comments.
 func testBuilderComments(t *testing.T, local bool) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 	d := clearDB(t, local)
 	defer d.Close(t)
@@ -803,6 +814,7 @@ func testBuilderComments(t *testing.T, local bool) {
 
 // testCommitComments ensures that we properly handle builder comments.
 func testCommitComments(t *testing.T, local bool) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 	d := clearDB(t, local)
 	defer d.Close(t)
@@ -941,6 +953,7 @@ func TestRemoteCommitComments(t *testing.T) {
 }
 
 func TestInt64Serialization(t *testing.T) {
+	testutils.SmallTest(t)
 	cases := []int64{0, 1, 15, 255, 2047, 4096, 8191, -1}
 	for _, c := range cases {
 		v, err := bytesToIntBigEndian(intToBytesBigEndian(c))
@@ -954,6 +967,7 @@ func TestInt64Serialization(t *testing.T) {
 }
 
 func TestBuildIDs(t *testing.T) {
+	testutils.SmallTest(t)
 	type id struct {
 		Master  string
 		Builder string

@@ -4,10 +4,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/types"
 )
 
 func TestFromParams(t *testing.T) {
+	testutils.SmallTest(t)
 	traceparams := []map[string]string{
 		map[string]string{
 			"config": "8888",

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"go.skia.org/infra/fiddle/go/store"
+	"go.skia.org/infra/go/testutils"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -29,6 +30,7 @@ func (n *namedMock) WriteName(name, hash, user string) error {
 }
 
 func TestNamed(t *testing.T) {
+	testutils.SmallTest(t)
 	mock := &namedMock{
 		lookup: map[string]string{
 			"star":     "cbb8dee39e9f1576cd97c2d504db8eee",
@@ -79,6 +81,7 @@ func TestNamed(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
+	testutils.SmallTest(t)
 	mock := &namedMock{
 		lookup: map[string]string{
 			"star":     "cbb8dee39e9f1576cd97c2d504db8eee",

@@ -4,11 +4,13 @@ import (
 	"net/url"
 	"testing"
 
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
 
 func TestTallyBasic(t *testing.T) {
+	testutils.SmallTest(t)
 	// Create a tile to test against.
 	tile := tiling.NewTile()
 	trace1 := types.NewGoldenTrace()

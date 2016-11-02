@@ -14,6 +14,7 @@ import (
 )
 
 func TestAddRemove(t *testing.T) {
+	testutils.SmallTest(t)
 	// Setup.
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
@@ -42,6 +43,7 @@ func TestAddRemove(t *testing.T) {
 }
 
 func TestRules(t *testing.T) {
+	testutils.SmallTest(t)
 	type testCase struct {
 		taskSpec    string
 		commit      string
@@ -158,6 +160,7 @@ func TestRules(t *testing.T) {
 }
 
 func TestValidation(t *testing.T) {
+	testutils.SmallTest(t)
 	// Setup.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
@@ -299,6 +302,7 @@ func TestValidation(t *testing.T) {
 }
 
 func TestCommitRange(t *testing.T) {
+	testutils.SmallTest(t)
 	// Setup.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
@@ -369,6 +373,7 @@ func TestCommitRange(t *testing.T) {
 }
 
 func TestNoTrybots(t *testing.T) {
+	testutils.SmallTest(t)
 	// Setup.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()

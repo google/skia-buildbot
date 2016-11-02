@@ -11,6 +11,7 @@ import (
 
 // TestModeHistory verifies that we correctly track mode history.
 func TestModeHistory(t *testing.T) {
+	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	// Create the ModeHistory.

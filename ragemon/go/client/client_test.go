@@ -8,11 +8,13 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/testutils"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestClient(t *testing.T) {
+	testutils.MediumTest(t)
 	// init() should have run by now.
 	assert.Equal(t, "", client.hostName)
 

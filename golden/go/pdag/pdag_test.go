@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/testutils"
+
 	assert "github.com/stretchr/testify/require"
 )
 
@@ -20,6 +22,7 @@ type extype struct {
 }
 
 func TestSimpleTopology(t *testing.T) {
+	testutils.SmallTest(t)
 	rootFn := func(ctx interface{}) error {
 		d := ctx.(*extype)
 		d.data["val"] = 0
@@ -47,6 +50,7 @@ func TestSimpleTopology(t *testing.T) {
 }
 
 func TestGenericTopology(t *testing.T) {
+	testutils.SmallTest(t)
 	orderCh := make(chan string, 5)
 
 	rootFn := func(ctx interface{}) error {
@@ -99,6 +103,7 @@ func TestGenericTopology(t *testing.T) {
 }
 
 func TestError(t *testing.T) {
+	testutils.SmallTest(t)
 	errFn := func(c interface{}) error {
 		return fmt.Errorf("Not Implemented")
 	}
@@ -115,6 +120,7 @@ func TestError(t *testing.T) {
 }
 
 func TestComplexCallOrder(t *testing.T) {
+	testutils.SmallTest(t)
 	aFn := orderFn("a")
 	bFn := orderFn("b")
 	cFn := orderFn("c")

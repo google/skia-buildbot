@@ -3,10 +3,13 @@ package fileutil
 import (
 	"testing"
 
+	"go.skia.org/infra/go/testutils"
+
 	assert "github.com/stretchr/testify/require"
 )
 
 func TestTwoLevelRadixPath(t *testing.T) {
+	testutils.SmallTest(t)
 	assert.Equal(t, "", TwoLevelRadixPath(""))
 	assert.Equal(t, "ab/cd/abcdefgh.txt", TwoLevelRadixPath("abcdefgh.txt"))
 	assert.Equal(t, "/etc/xyz/ab.txt", TwoLevelRadixPath("/etc", "xyz/ab.txt"))
