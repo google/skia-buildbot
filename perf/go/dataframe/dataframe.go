@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/ptracestore"
@@ -88,9 +89,9 @@ func getRange(vcs vcsinfo.VCS, begin, end time.Time) ([]*ColumnHeader, []*cid.Co
 	return rangeImpl(commits, skip)
 }
 
-func _new(colHeaders []*ColumnHeader, commitIDs []*cid.CommitID, q *query.Query, store ptracestore.PTraceStore, progress ptracestore.Progress, skip int) (*DataFrame, error) {
+func _new(colHeaders []*ColumnHeader, commitIDs []*cid.CommitID, matches ptracestore.KeyMatches, store ptracestore.PTraceStore, progress ptracestore.Progress, skip int) (*DataFrame, error) {
 	defer timer.New("_new time").Stop()
-	traceSet, err := store.Match(commitIDs, q, progress)
+	traceSet, err := store.Match(commitIDs, matches, progress)
 	if err != nil {
 		return nil, fmt.Errorf("DataFrame failed to query for all traces: %s", err)
 	}
@@ -113,7 +114,10 @@ func _new(colHeaders []*ColumnHeader, commitIDs []*cid.CommitID, q *query.Query,
 // 'store', or a non-nil error if there was a failure retrieving the traces.
 func New(vcs vcsinfo.VCS, store ptracestore.PTraceStore, progress ptracestore.Progress) (*DataFrame, error) {
 	colHeaders, commitIDs, skip := lastN(vcs)
-	return _new(colHeaders, commitIDs, &query.Query{}, store, progress, skip)
+	matches := func(key string) bool {
+		return true
+	}
+	return _new(colHeaders, commitIDs, matches, store, progress, skip)
 }
 
 // NewFromQueryAndRange returns a populated DataFrame of the traces that match
@@ -123,7 +127,38 @@ func New(vcs vcsinfo.VCS, store ptracestore.PTraceStore, progress ptracestore.Pr
 func NewFromQueryAndRange(vcs vcsinfo.VCS, store ptracestore.PTraceStore, begin, end time.Time, q *query.Query, progress ptracestore.Progress) (*DataFrame, error) {
 	defer timer.New("NewFromQueryAndRange time").Stop()
 	colHeaders, commitIDs, skip := getRange(vcs, begin, end)
-	return _new(colHeaders, commitIDs, q, store, progress, skip)
+	matches := func(key string) bool {
+		return q.Matches(key)
+	}
+	return _new(colHeaders, commitIDs, matches, store, progress, skip)
+}
+
+func NewFromKeysAndRange(vcs vcsinfo.VCS, keys []string, store ptracestore.PTraceStore, begin, end time.Time, progress ptracestore.Progress) (*DataFrame, error) {
+	defer timer.New("NewFromKeysAndRange time").Stop()
+	colHeaders, commitIDs, skip := getRange(vcs, begin, end)
+	matches := func(key string) bool {
+		return util.In(key, keys)
+	}
+	return _new(colHeaders, commitIDs, matches, store, progress, skip)
+}
+
+func NewFromCommitIDsAndQuery(cids []*cid.CommitID, cidl *cid.CommitIDLookup, store ptracestore.PTraceStore, q *query.Query, progress ptracestore.Progress) (*DataFrame, error) {
+	details, err := cidl.Lookup(cids)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to look up CommitIDs: %s", err)
+	}
+	colHeaders := []*ColumnHeader{}
+	for _, d := range details {
+		colHeaders = append(colHeaders, &ColumnHeader{
+			Source:    d.Source,
+			Offset:    int64(d.Offset),
+			Timestamp: d.Timestamp,
+		})
+	}
+	matches := func(key string) bool {
+		return q.Matches(key)
+	}
+	return _new(colHeaders, cids, matches, store, progress, 0)
 }
 
 // NewEmpty returns a new empty DataFrame.
@@ -138,6 +173,7 @@ func NewEmpty() *DataFrame {
 // NewHeaderOnly returns a DataFrame with a populated Header, with no traces.
 // The 'progress' callback is called periodically as the query is processed.
 func NewHeaderOnly(vcs vcsinfo.VCS, begin, end time.Time) *DataFrame {
+	defer timer.New("NewHeaderOnly time").Stop()
 	colHeaders, _, skip := getRange(vcs, begin, end)
 	return &DataFrame{
 		TraceSet: ptracestore.TraceSet{},
