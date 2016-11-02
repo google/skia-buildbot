@@ -12,6 +12,7 @@ import (
 	"github.com/satori/go.uuid"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/testutils"
 )
 
 // GitBuilder creates commits and branches in a git repo.
@@ -42,7 +43,7 @@ func GitInit(t *testing.T) *GitBuilder {
 
 // Cleanup removes the directory containing the git repo.
 func (g *GitBuilder) Cleanup() {
-	RemoveAll(g.t, g.dir)
+	testutils.RemoveAll(g.t, g.dir)
 }
 
 // Dir returns the directory of the git repo, e.g. for cloning.

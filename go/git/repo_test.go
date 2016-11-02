@@ -6,14 +6,15 @@ import (
 	"strings"
 	"testing"
 
+	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
 
 	assert "github.com/stretchr/testify/require"
 )
 
-func setup(t *testing.T) (*testutils.GitBuilder, []string) {
+func setup(t *testing.T) (*git_testutils.GitBuilder, []string) {
 	// Create a local git repo to play with.
-	g := testutils.GitInit(t)
+	g := git_testutils.GitInit(t)
 	commits := make([]string, 10)
 	for i := 0; i < 10; i++ {
 		commits[9-i] = g.CommitGenMsg("somefile", fmt.Sprintf("Commit Title #%d\n\nCommit Body #%d", i, i))
