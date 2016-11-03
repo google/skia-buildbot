@@ -19,7 +19,7 @@ import (
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/influxdb"
@@ -61,7 +61,7 @@ var (
 	bs *BuildScheduler
 
 	// Git repo objects.
-	repos *gitinfo.RepoMap
+	repos repograph.Map
 
 	// Flags.
 	buildbotDbHost = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
@@ -314,11 +314,12 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	repos = gitinfo.NewRepoMap(*workdir)
-	for _, r := range REPOS {
-		if _, err := repos.Repo(r); err != nil {
-			glog.Fatal(err)
-		}
+	repos, err = repograph.NewMap(REPOS, *workdir)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	if err := repos.Update(); err != nil {
+		glog.Fatal(err)
 	}
 
 	bs = StartNewBuildScheduler(period, *scoreThreshold, *scoreDecay24Hr, db, bb, repos, *workdir, *local)

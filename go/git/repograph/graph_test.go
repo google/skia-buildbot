@@ -249,3 +249,67 @@ func TestRecurseAllBranches(t *testing.T) {
 	assert.False(t, gotCommits[c1])
 	assert.True(t, gotCommits[c2])
 }
+
+func TestFindCommit(t *testing.T) {
+	g1, repo1, commits1, cleanup1 := gitSetup(t)
+	defer cleanup1()
+	g2, repo2, commits2, cleanup2 := gitSetup(t)
+	defer cleanup2()
+
+	m := Map{
+		g1.Dir(): repo1,
+		g2.Dir(): repo2,
+	}
+
+	tc := []struct {
+		hash string
+		url  string
+		repo *Graph
+		err  bool
+	}{
+		{
+			hash: commits1[0].Hash,
+			url:  g1.Dir(),
+			repo: repo1,
+			err:  false,
+		},
+		{
+			hash: commits1[len(commits1)-1].Hash,
+			url:  g1.Dir(),
+			repo: repo1,
+			err:  false,
+		},
+		{
+			hash: commits2[0].Hash,
+			url:  g2.Dir(),
+			repo: repo2,
+			err:  false,
+		},
+		{
+			hash: commits2[len(commits2)-1].Hash,
+			url:  g2.Dir(),
+			repo: repo2,
+			err:  false,
+		},
+		{
+			hash: "",
+			err:  true,
+		},
+		{
+			hash: "abcdef",
+			err:  true,
+		},
+	}
+	for _, c := range tc {
+		commit, url, repo, err := m.FindCommit(c.hash)
+		if c.err {
+			assert.Error(t, err)
+		} else {
+			assert.Nil(t, err)
+			assert.NotNil(t, commit)
+			assert.Equal(t, c.hash, commit.Hash)
+			assert.Equal(t, c.url, url)
+			assert.Equal(t, c.repo, repo)
+		}
+	}
+}

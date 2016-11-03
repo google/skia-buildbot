@@ -881,7 +881,7 @@ func TestGitRepoGetRevisionTimestamp(t *testing.T) {
 	repo, err := repograph.NewGraph(g.Dir(), workdir)
 	assert.NoError(t, err)
 
-	grt := GitRepoGetRevisionTimestamp(map[string]*repograph.Graph{
+	grt := GitRepoGetRevisionTimestamp(repograph.Map{
 		"a.git": repo,
 	})
 

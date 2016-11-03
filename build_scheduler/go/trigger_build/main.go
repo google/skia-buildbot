@@ -14,7 +14,7 @@ import (
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git"
 )
 
 var (
@@ -44,13 +44,12 @@ func main() {
 	// Sync the repos, find the desired commit.
 	author := ""
 	repoName := ""
-	repos := gitinfo.NewRepoMap(*workdir)
 	for _, r := range REPOS {
-		repo, err := repos.Repo(r)
+		repo, err := git.NewRepo(r, *workdir)
 		if err != nil {
 			glog.Fatal(err)
 		}
-		details, err := repo.Details(*commit, false)
+		details, err := repo.Details(*commit)
 		if err == nil {
 			author = details.Author
 			repoName = r

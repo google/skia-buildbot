@@ -63,12 +63,12 @@ type TryJobIntegrator struct {
 	db                 db.JobDB
 	jCache             db.JobCache
 	projectRepoMapping map[string]string
-	rm                 map[string]*repograph.Graph
+	rm                 repograph.Map
 	taskCfgCache       *specs.TaskCfgCache
 }
 
 // NewTryJobIntegrator returns a TryJobIntegrator instance.
-func NewTryJobIntegrator(apiUrl, bucket string, c *http.Client, d db.JobDB, cache db.JobCache, projectRepoMapping map[string]string, rm map[string]*repograph.Graph, taskCfgCache *specs.TaskCfgCache) (*TryJobIntegrator, error) {
+func NewTryJobIntegrator(apiUrl, bucket string, c *http.Client, d db.JobDB, cache db.JobCache, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache *specs.TaskCfgCache) (*TryJobIntegrator, error) {
 	bb, err := buildbucket_api.New(c)
 	if err != nil {
 		return nil, err

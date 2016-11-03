@@ -64,7 +64,7 @@ var (
 	ts *scheduling.TaskScheduler
 
 	// Git repo objects.
-	repos map[string]*repograph.Graph
+	repos repograph.Map
 
 	// HTML templates.
 	blacklistTemplate *template.Template = nil
@@ -252,16 +252,9 @@ func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
 		return
 	}
-	repoName := ""
-	for name, r := range repos {
-		commit := r.Get(msg.Commit)
-		if commit != nil && commit.Hash == msg.Commit {
-			repoName = name
-			break
-		}
-	}
-	if repoName == "" {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Unable to find commit %s in any repo.", msg.Commit))
+	_, repoName, _, err := repos.FindCommit(msg.Commit)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Unable to find the given commit in any repo.")
 		return
 	}
 	ids := make([]string, 0, len(msg.Jobs))
@@ -412,13 +405,12 @@ func main() {
 	defer util.Close(d)
 
 	// Git repos.
-	repos = make(map[string]*repograph.Graph, len(REPOS))
-	for _, r := range REPOS {
-		repo, err := repograph.NewGraph(r, wdAbs)
-		if err != nil {
-			glog.Fatal(err)
-		}
-		repos[r] = repo
+	repos, err = repograph.NewMap(REPOS, wdAbs)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	if err := repos.Update(); err != nil {
+		glog.Fatal(err)
 	}
 
 	// Initialize Swarming client.
