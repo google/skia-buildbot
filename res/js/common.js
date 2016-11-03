@@ -72,6 +72,9 @@ this.sk = this.sk || function() {
    *
    */
   sk.errorMessage = function(message, duration) {
+    if (typeof message === 'object') {
+      message = message.response || JSON.stringify(message);
+    }
     var detail = {
       message: message,
     }
@@ -136,15 +139,20 @@ this.sk = this.sk || function() {
           // Resolve the promise with the response text
           resolve(req.response);
         } else {
-          // Otherwise reject with the status text
-          // which will hopefully be a meaningful error
-          reject(req.response);
+          // Otherwise reject with an object containing the status text and
+          // response code, which will hopefully be meaningful error
+          reject({
+            response: req.response,
+            status: req.status,
+          });
         }
       };
 
       // Handle network errors
       req.onerror = function() {
-        reject(Error("Network Error"));
+        reject({
+            response: Error("Network Error")
+          });
       };
 
       // Make the request

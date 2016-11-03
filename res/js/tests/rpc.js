@@ -40,7 +40,10 @@ describe('sk.request, sk.get, sk.post, and sk.delete',
       assert.deepEqual(request.requestHeaders, requestHeaders);
       var responseBody = "This didn't work out.";
       request.respond(503, {}, responseBody);
-      return promise.should.be.rejectedWith(responseBody);
+      return promise.should.be.rejectedWith({
+        status:503,
+        response: responseBody,
+      });
     }
 
     it('should reject when non-OK response', testRequestErrorResponse);
@@ -51,7 +54,9 @@ describe('sk.request, sk.get, sk.post, and sk.delete',
       server.restore();
       var method = 'GET';
       var url = 'http://x.invalid/test-url';
-      return sk.request(method, url).should.be.rejectedWith(Error);
+      return sk.request(method, url).should.be.rejectedWith({
+        response:Error
+      });
     }
 
     it('should fail with a network error', testRequestNetworkError);
