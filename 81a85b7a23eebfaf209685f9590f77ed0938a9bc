@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "66ba4639_ac73ba93",
+        "filename": "golden/frontend/res/imp/comp-page-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-03T14:27:17Z",
+      "side": 1,
+      "message": "Make this and above a 1-way binding",
+      "range": {
+        "startLine": 169,
+        "startChar": 60,
+        "endLine": 169,
+        "endChar": 85
+      },
+      "revId": "81a85b7a23eebfaf209685f9590f77ed0938a9bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
