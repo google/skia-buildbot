@@ -109,7 +109,7 @@ func (b *Blacklist) writeOut() error {
 }
 
 // Add adds a new Rule to the Blacklist.
-func (b *Blacklist) AddRule(r *Rule, repos map[string]*repograph.Graph) error {
+func (b *Blacklist) AddRule(r *Rule, repos repograph.Map) error {
 	if err := ValidateRule(r, repos); err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func (b *Blacklist) addRule(r *Rule) error {
 }
 
 // findCommit finds the repo for the given commit.
-func findCommit(c string, repos map[string]*repograph.Graph) (string, error) {
+func findCommit(c string, repos repograph.Map) (string, error) {
 	for repoName, r := range repos {
 		commit := r.Get(c)
 		if commit != nil && commit.Hash == c {
@@ -143,7 +143,7 @@ func findCommit(c string, repos map[string]*repograph.Graph) (string, error) {
 }
 
 // NewCommitRangeRule creates a new Rule which covers a range of commits.
-func NewCommitRangeRule(name, user, description string, taskSpecPatterns []string, startCommit, endCommit string, repos map[string]*repograph.Graph) (*Rule, error) {
+func NewCommitRangeRule(name, user, description string, taskSpecPatterns []string, startCommit, endCommit string, repos repograph.Map) (*Rule, error) {
 	repoName, err := findCommit(startCommit, repos)
 	if err != nil {
 		return nil, err
@@ -239,7 +239,7 @@ type Rule struct {
 }
 
 // ValidateRule returns an error if the given Rule is not valid.
-func ValidateRule(r *Rule, repos map[string]*repograph.Graph) error {
+func ValidateRule(r *Rule, repos repograph.Map) error {
 	if r.Name == "" {
 		return fmt.Errorf("Rules must have a name.")
 	}

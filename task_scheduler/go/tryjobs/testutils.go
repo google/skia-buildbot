@@ -107,7 +107,7 @@ func setup(t *testing.T) (*TryJobIntegrator, *mockhttpclient.URLMock, func()) {
 	repo, err := repograph.NewGraph(gb.Dir(), tmpDir)
 	assert.NoError(t, err)
 
-	rm := map[string]*repograph.Graph{
+	rm := repograph.Map{
 		repoName: repo,
 	}
 

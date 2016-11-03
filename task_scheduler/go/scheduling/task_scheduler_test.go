@@ -151,7 +151,7 @@ func setup(t *testing.T) (*util.TempRepo, db.DB, *swarming.TestClient, *TaskSche
 	urlMock := mockhttpclient.NewURLMock()
 	repo, err := repograph.NewGraph(repoName, tr.Dir)
 	assert.NoError(t, err)
-	repos := map[string]*repograph.Graph{
+	repos := repograph.Map{
 		repoName: repo,
 	}
 	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), tr.Dir, repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping)
@@ -1774,7 +1774,7 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	swarmingClient := swarming.NewTestClient()
 	repo, err := repograph.NewGraph(repoName, workdir)
 	assert.NoError(t, err)
-	repos := map[string]*repograph.Graph{
+	repos := repograph.Map{
 		repoName: repo,
 	}
 	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping)

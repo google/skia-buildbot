@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/git/repograph"
 )
 
 // buildCache is a struct used as an intermediary between the buildbot
@@ -18,7 +19,8 @@ type buildCache struct {
 	Builder        string
 	Master         string
 	MaxBuildNum    int
-	Repo           string
+	Repo           *repograph.Graph
+	RepoName       string
 }
 
 // See documentation for DB interface.
@@ -159,7 +161,7 @@ func (bc *buildCache) NumIngestedBuilds() (int, error) {
 
 // newBuildCache returns a buildCache instance for the given
 // builder/master/repo combination.
-func newBuildCache(master, builder, repo string, db buildbot.DB) (*buildCache, error) {
+func newBuildCache(master, builder, repoName string, repo *repograph.Graph, db buildbot.DB) (*buildCache, error) {
 	maxBuild, err := db.GetMaxBuildNumber(master, builder)
 	if err != nil {
 		return nil, err
@@ -172,6 +174,7 @@ func newBuildCache(master, builder, repo string, db buildbot.DB) (*buildCache, e
 		Master:         master,
 		MaxBuildNum:    maxBuild,
 		Repo:           repo,
+		RepoName:       repoName,
 	}, nil
 }
 

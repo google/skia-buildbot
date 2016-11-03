@@ -93,6 +93,22 @@ func (c *Commit) recurse(f func(*Commit) (bool, error), visited map[*Commit]bool
 	return nil
 }
 
+// Helpers for sorting.
+type CommitSlice []*Commit
+
+func (s CommitSlice) Len() int           { return len(s) }
+func (s CommitSlice) Less(a, b int) bool { return s[a].Timestamp.Before(s[b].Timestamp) }
+func (s CommitSlice) Swap(a, b int)      { s[a], s[b] = s[b], s[a] }
+
+// Hashes returns a slice of commit hashes corresponding to the commits in s.
+func (s CommitSlice) Hashes() []string {
+	rv := make([]string, 0, len(s))
+	for _, c := range s {
+		rv = append(rv, c.Hash)
+	}
+	return rv
+}
+
 // Graph represents an entire Git repo.
 type Graph struct {
 	branches    []*git.Branch
@@ -308,4 +324,44 @@ func (r *Graph) RecurseAllBranches(f func(*Commit) (bool, error)) error {
 		}
 	}
 	return nil
+}
+
+// Map is a convenience type for dealing with multiple Graphs for different
+// repos. The keys are repository URLs.
+type Map map[string]*Graph
+
+// NewMap returns a Map instance with Graphs for the given repo URLs.
+func NewMap(repos []string, workdir string) (Map, error) {
+	rv := make(map[string]*Graph, len(repos))
+	for _, r := range repos {
+		g, err := NewGraph(r, workdir)
+		if err != nil {
+			return nil, err
+		}
+		rv[r] = g
+	}
+	return rv, nil
+}
+
+// Update updates all Graphs in the Map.
+func (m Map) Update() error {
+	for _, g := range m {
+		if err := g.Update(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// FindCommit returns the Commit object, repo URL, and Graph object for the
+// given commit hash if it exists in any of the Graphs in the Map and an error
+// otherwise.
+func (m Map) FindCommit(commit string) (*Commit, string, *Graph, error) {
+	for name, repo := range m {
+		c := repo.Get(commit)
+		if c != nil {
+			return c, name, repo, nil
+		}
+	}
+	return nil, "", nil, fmt.Errorf("Unable to find commit %s in any repo.", commit)
 }

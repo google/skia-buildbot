@@ -10,7 +10,7 @@ import (
 
 	"github.com/skia-dev/glog"
 
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
@@ -105,13 +105,7 @@ func get(url string, rv interface{}) error {
 // findCommitsRecursive is a recursive function called by FindCommitsForBuild.
 // It traces the history to find builds which were first included in the given
 // build.
-func findCommitsRecursive(db DB, commits map[string]bool, b *Build, hash string, repo *gitinfo.GitInfo, stealFrom int, stolen []string) (map[string]bool, int, []string, error) {
-	// Shortcut for empty hashes. This can happen when a commit has no
-	// parents (initial commit) or when a Build has no GotRevision.
-	if hash == "" {
-		return commits, stealFrom, stolen, nil
-	}
-
+func findCommitsRecursive(db DB, commits map[string]bool, b *Build, commit *repograph.Commit, stealFrom int, stolen []string) (map[string]bool, int, []string, error) {
 	// Shortcut in case we missed this case before; if this is the first
 	// build on this bot which has a valid GotRevision, the blamelist will
 	// be the entire Git history. If we find too many commits, assume we've
@@ -121,9 +115,9 @@ func findCommitsRecursive(db DB, commits map[string]bool, b *Build, hash string,
 	}
 
 	// Determine whether any build already includes this commit.
-	n, err := db.GetBuildNumberForCommit(b.Master, b.Builder, hash)
+	n, err := db.GetBuildNumberForCommit(b.Master, b.Builder, commit.Hash)
 	if err != nil {
-		return commits, stealFrom, stolen, fmt.Errorf("Could not find build for commit %s: %s", hash, err)
+		return commits, stealFrom, stolen, fmt.Errorf("Could not find build for commit %s: %s", commit.Hash, err)
 	}
 
 	// If we're stealing commits from a previous build but the current
@@ -143,7 +137,7 @@ func findCommitsRecursive(db DB, commits map[string]bool, b *Build, hash string,
 			// Build, then we're "inserting" this one in between two already-ingested
 			// Builds. In that case, this build is providing "better" information
 			// on the already-claimed commits, so we steal them from the other Build.
-			if hash == b.GotRevision {
+			if commit.Hash == b.GotRevision {
 				stealFrom = n
 				// Another shortcut: If our GotRevision is the same as the
 				// GotRevision of the Build we're stealing commits from,
@@ -163,7 +157,7 @@ func findCommitsRecursive(db DB, commits map[string]bool, b *Build, hash string,
 			}
 			if stealFrom == n {
 				// Continue stealing commits from the older build.
-				stolen = append(stolen, hash)
+				stolen = append(stolen, commit.Hash)
 			} else {
 				// If we've hit a commit belonging to a different build,
 				// just return.
@@ -173,25 +167,15 @@ func findCommitsRecursive(db DB, commits map[string]bool, b *Build, hash string,
 	}
 
 	// Add the commit.
-	commits[hash] = true
+	commits[commit.Hash] = true
 
 	// Recurse on the commit's parents.
-	c, err := repo.Details(hash, false)
-	if err != nil {
-		// Special case. Commits can disappear from the repository
-		// after they're picked up by the buildbots but before they're
-		// ingested here. If we can't find a commit, log an error and
-		// skip the commit.
-		glog.Errorf("Failed to obtain details for %s: %s", hash, err)
-		delete(commits, hash)
-		return commits, stealFrom, stolen, nil
-	}
-	for _, p := range c.Parents {
+	for _, p := range commit.GetParents() {
 		// If we've already seen this parent commit, don't revisit it.
-		if _, ok := commits[p]; ok {
+		if _, ok := commits[p.Hash]; ok {
 			continue
 		}
-		commits, stealFrom, stolen, err = findCommitsRecursive(db, commits, b, p, repo, stealFrom, stolen)
+		commits, stealFrom, stolen, err = findCommitsRecursive(db, commits, b, p, stealFrom, stolen)
 		if err != nil {
 			return commits, stealFrom, stolen, err
 		}
@@ -202,36 +186,46 @@ func findCommitsRecursive(db DB, commits map[string]bool, b *Build, hash string,
 // FindCommitsForBuild determines which commits were first included in the
 // given build. Assumes that all previous builds for the given builder/master
 // are already in the database.
-func FindCommitsForBuild(db DB, b *Build, repos *gitinfo.RepoMap) ([]string, int, []string, error) {
+func FindCommitsForBuild(db DB, b *Build, repos repograph.Map) ([]string, int, []string, error) {
 	defer metrics2.FuncTimer().Stop()
 	// Shortcut: Don't bother computing commit blamelists for trybots.
 	if IsTrybot(b.Builder) {
 		return []string{}, -1, []string{}, nil
 	}
+	// If there's no repo or got revision, there's no blamelist.
 	if b.Repository == "" {
 		return []string{}, -1, []string{}, nil
 	}
-	repo, err := repos.Repo(b.Repository)
-	if err != nil {
-		return nil, -1, nil, fmt.Errorf("Could not find commits for build: %s", err)
-	}
-
-	// Update (git pull) on demand.
-	if b.GotRevision != "" {
-		if _, err := repo.Details(b.GotRevision, false); err != nil {
-			if err := repo.Update(true, true); err != nil {
-				return nil, -1, nil, fmt.Errorf("Could not find commits for build: failed to update repo: %s", err)
-			}
-		}
+	if b.GotRevision == "" {
+		return []string{}, -1, []string{}, nil
 	}
 
 	// Shortcut for the first build for a given builder: Just use GotRevision
 	// as the blamelist.
-	if b.Number == 0 && b.GotRevision != "" {
+	if b.Number == 0 {
 		return []string{b.GotRevision}, -1, []string{}, nil
 	}
+
+	// Get the repo and commit.
+	repo, ok := repos[b.Repository]
+	if !ok {
+		return nil, -1, nil, fmt.Errorf("Could not find commits for build. No such repo: %s", b.Repository)
+	}
+
+	// Update (git pull) on demand.
+	commit := repo.Get(b.GotRevision)
+	if commit == nil {
+		if err := repo.Update(); err != nil {
+			return nil, -1, nil, fmt.Errorf("Could not find commits for build: failed to update repo: %s", err)
+		}
+		commit = repo.Get(b.GotRevision)
+		if commit == nil {
+			return nil, -1, nil, fmt.Errorf("Commit %s does not exist in repo %s", b.GotRevision, b.Repository)
+		}
+	}
+
 	// Start tracing commits back in time until we hit a previous build.
-	commitMap, stealFrom, stolen, err := findCommitsRecursive(db, map[string]bool{}, b, b.GotRevision, repo, -1, []string{})
+	commitMap, stealFrom, stolen, err := findCommitsRecursive(db, map[string]bool{}, b, commit, -1, []string{})
 	if err != nil {
 		return nil, -1, nil, err
 	}
@@ -244,7 +238,7 @@ func FindCommitsForBuild(db DB, b *Build, repos *gitinfo.RepoMap) ([]string, int
 
 // getBuildFromMaster retrieves the given build from the build master's JSON
 // interface as specified by the master, builder, and build number.
-func getBuildFromMaster(master, builder string, buildNumber int, repos *gitinfo.RepoMap) (*Build, error) {
+func getBuildFromMaster(master, builder string, buildNumber int, repos repograph.Map) (*Build, error) {
 	var build Build
 	url := fmt.Sprintf("%s%s/json/builders/%s/builds/%d", BUILDBOT_URL, master, builder, buildNumber)
 	err := get(url, &build)
@@ -255,12 +249,12 @@ func getBuildFromMaster(master, builder string, buildNumber int, repos *gitinfo.
 	if build.Repository == "" {
 		// Attempt to determine the repository.
 		glog.Infof("No repository set for %s #%d; attempting to find it.", build.Builder, build.Number)
-		r, err := repos.RepoForCommit(build.GotRevision)
-		if err == nil {
+		_, r, _, err := repos.FindCommit(build.GotRevision)
+		if err != nil {
+			glog.Warningf("Unable to find repo for commit %s; %s", build.GotRevision, err)
+		} else {
 			glog.Infof("Found %s for %s", r, build.GotRevision)
 			build.Repository = r
-		} else {
-			glog.Warningf("Encountered error determining repo for %s: %s", build.GotRevision, err)
 		}
 	}
 
@@ -270,7 +264,7 @@ func getBuildFromMaster(master, builder string, buildNumber int, repos *gitinfo.
 // retryGetBuildFromMaster retrieves the given build from the build master's JSON
 // interface as specified by the master, builder, and build number. Makes
 // multiple attempts in case the master fails to respond.
-func retryGetBuildFromMaster(master, builder string, buildNumber int, repos *gitinfo.RepoMap) (*Build, error) {
+func retryGetBuildFromMaster(master, builder string, buildNumber int, repos repograph.Map) (*Build, error) {
 	defer metrics2.FuncTimer().Stop()
 	var b *Build
 	var err error
@@ -300,7 +294,7 @@ func validateBuildForIngestion(b *Build) error {
 
 // IngestBuild retrieves the given build from the build master's JSON interface
 // and pushes it into the database.
-func IngestBuild(db DB, b *Build, repos *gitinfo.RepoMap) error {
+func IngestBuild(db DB, b *Build, repos repograph.Map) error {
 	defer metrics2.FuncTimer().Stop()
 	if err := validateBuildForIngestion(b); err != nil {
 		return err
@@ -541,7 +535,7 @@ func getUningestedBuilds(db DB, m string) (map[string][]int, error) {
 }
 
 // ingestNewBuilds finds the set of uningested builds and ingests them.
-func ingestNewBuilds(db DB, m string, repos *gitinfo.RepoMap) error {
+func ingestNewBuilds(db DB, m string, repos repograph.Map) error {
 	defer metrics2.FuncTimer().Stop()
 	glog.Infof("Ingesting builds for %s", m)
 	// TODO(borenet): Investigate the use of channels here. We should be
@@ -615,29 +609,40 @@ func NumTotalBuilds() (int, error) {
 }
 
 // IngestNewBuildsLoop continually ingests new builds.
-func IngestNewBuildsLoop(db DB, workdir string) error {
+func IngestNewBuildsLoop(db DB, repos repograph.Map) error {
 	local, ok := db.(*localDB)
 	if !ok {
 		return fmt.Errorf("Can only ingest builds with a local DB instance.")
 	}
 	cache := newIngestCache(local)
-	repos := gitinfo.NewRepoMap(workdir)
+	lv := map[string]*metrics2.Liveness{}
+	for _, m := range MASTER_NAMES {
+		lv[m] = metrics2.NewLiveness("buildbot-ingest", map[string]string{"master": m})
+	}
 	go func() {
-		var wg sync.WaitGroup
-		for _, m := range MASTER_NAMES {
-			go func(master string) {
-				defer wg.Done()
-				lv := metrics2.NewLiveness("buildbot-ingest", map[string]string{"master": master})
-				for _ = range time.Tick(10 * time.Second) {
+		for _ = range time.Tick(10 * time.Second) {
+			failedUpdate := false
+			if err := repos.Update(); err != nil {
+				glog.Errorf("Failed to update repo: %s", err)
+				failedUpdate = true
+			}
+			if failedUpdate {
+				continue
+			}
+			var wg sync.WaitGroup
+			for _, m := range MASTER_NAMES {
+				wg.Add(1)
+				go func(master string) {
+					defer wg.Done()
 					if err := ingestNewBuilds(cache, master, repos); err != nil {
 						glog.Errorf("Failed to ingest new builds: %s", err)
 					} else {
-						lv.Reset()
+						lv[master].Reset()
 					}
-				}
-			}(m)
+				}(m)
+			}
+			wg.Wait()
 		}
-		wg.Wait()
 	}()
 	return nil
 }

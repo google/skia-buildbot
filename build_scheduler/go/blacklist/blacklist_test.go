@@ -6,7 +6,7 @@ import (
 	"path"
 	"testing"
 
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 
@@ -168,9 +168,12 @@ func TestValidation(t *testing.T) {
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
-	repos := gitinfo.NewRepoMap(tmp)
-	_, err = repos.Repo(remote)
+
+	repo, err := repograph.NewGraph(remote, tr.Dir)
 	assert.NoError(t, err)
+	repos := repograph.Map{
+		remote: repo,
+	}
 
 	// Test.
 	tests := []struct {
@@ -275,7 +278,7 @@ func TestValidation(t *testing.T) {
 					"06eb2a58139d3ff764f10232d5c8f9362d55",
 				},
 			},
-			expect: fmt.Errorf("%q is not a valid commit.", "06eb2a58139d3ff764f10232d5c8f9362d55"),
+			expect: fmt.Errorf("Unable to find commit %s in any repo.", "06eb2a58139d3ff764f10232d5c8f9362d55"),
 			msg:    "Invalid commit",
 		},
 		{
@@ -309,9 +312,13 @@ func TestCommitRange(t *testing.T) {
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
-	repos := gitinfo.NewRepoMap(tmp)
-	_, err = repos.Repo(remote)
+
+	repo, err := repograph.NewGraph(remote, tr.Dir)
 	assert.NoError(t, err)
+	repos := repograph.Map{
+		remote: repo,
+	}
+
 	f := path.Join(tmp, "blacklist.json")
 	b, err := FromFile(f)
 	assert.NoError(t, err)

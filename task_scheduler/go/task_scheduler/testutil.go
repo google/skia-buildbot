@@ -19,7 +19,7 @@ const (
 
 // mockSwarmingBotsForAllTasksForTesting returns a list containing one swarming
 // bot for each TaskSpec in the given repos, or nil on error.
-func mockSwarmingBotsForAllTasksForTesting(repos map[string]*repograph.Graph) []*swarming_api.SwarmingRpcsBotInfo {
+func mockSwarmingBotsForAllTasksForTesting(repos repograph.Map) []*swarming_api.SwarmingRpcsBotInfo {
 	botId := 0
 	rv := []*swarming_api.SwarmingRpcsBotInfo{}
 	for _, repo := range repos {

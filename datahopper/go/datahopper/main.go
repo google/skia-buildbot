@@ -7,7 +7,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -18,7 +20,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metrics2"
@@ -29,9 +31,6 @@ import (
 )
 
 const (
-	SKIA_REPO  = "https://skia.googlesource.com/skia.git"
-	INFRA_REPO = "https://skia.googlesource.com/buildbot.git"
-
 	MEASUREMENT_BUILDS_DURATION               = "buildbot.builds.duration"
 	MEASUREMENT_BUILDS_FAILURE                = "buildbot.builds.failure-status"
 	MEASUREMENT_BUILDS_INGESTED               = "buildbot.builds.ingested"
@@ -82,8 +81,15 @@ func main() {
 	// Global init to initialize glog and parse arguments.
 	common.InitWithMetrics2("datahopper", influxHost, influxUser, influxPassword, influxDatabase, local)
 
+	// Absolutify the workdir.
+	w, err := filepath.Abs(*workdir)
+	if err != nil {
+		glog.Fatal(w)
+	}
+	glog.Infof("Workdir is %s", w)
+
 	// Authenticated HTTP client.
-	oauthCacheFile := path.Join(*workdir, "google_storage_token.data")
+	oauthCacheFile := path.Join(w, "google_storage_token.data")
 	httpClient, err := auth.NewClient(*local, oauthCacheFile, swarming.AUTH_SCOPE)
 	if err != nil {
 		glog.Fatal(err)
@@ -96,33 +102,26 @@ func main() {
 	}
 
 	// Shared repo objects.
-	skiaRepo, err := gitinfo.CloneOrUpdate(SKIA_REPO, path.Join(*workdir, "datahopper_skia"), true)
+	reposDir := path.Join(w, "repos")
+	if err := os.MkdirAll(reposDir, os.ModePerm); err != nil {
+		glog.Fatal(err)
+	}
+	repos, err := repograph.NewMap([]string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, reposDir)
 	if err != nil {
 		glog.Fatal(err)
 	}
-	infraRepo, err := gitinfo.CloneOrUpdate(INFRA_REPO, path.Join(*workdir, "datahopper_infra"), true)
-	if err != nil {
+	if err := repos.Update(); err != nil {
 		glog.Fatal(err)
 	}
-	go func() {
-		for _ = range time.Tick(5 * time.Minute) {
-			if err := skiaRepo.Update(true, true); err != nil {
-				glog.Errorf("Failed to sync Skia repo: %v", err)
-			}
-			if err := infraRepo.Update(true, true); err != nil {
-				glog.Errorf("Failed to sync Infra repo: %v", err)
-			}
-		}
-	}()
 
 	// Data generation goroutines.
-	db, err := buildbot.NewLocalDB(path.Join(*workdir, "buildbot.db"))
+	db, err := buildbot.NewLocalDB(path.Join(w, "buildbot.db"))
 	if err != nil {
 		glog.Fatal(err)
 	}
 
 	// Buildbot data ingestion.
-	if err := buildbot.IngestNewBuildsLoop(db, *workdir); err != nil {
+	if err := buildbot.IngestNewBuildsLoop(db, repos); err != nil {
 		glog.Fatal(err)
 	}
 
@@ -433,8 +432,18 @@ func main() {
 		skiaGauge := metrics2.GetInt64Metric("repo.commits", map[string]string{"repo": "skia"})
 		infraGauge := metrics2.GetInt64Metric("repo.commits", map[string]string{"repo": "infra"})
 		for _ = range time.Tick(5 * time.Minute) {
-			skiaGauge.Update(int64(skiaRepo.NumCommits()))
-			infraGauge.Update(int64(infraRepo.NumCommits()))
+			nSkia, err := repos[common.REPO_SKIA].Repo().NumCommits()
+			if err != nil {
+				glog.Errorf("Failed to get number of commits for Skia: %s", err)
+			} else {
+				skiaGauge.Update(nSkia)
+			}
+			nInfra, err := repos[common.REPO_SKIA_INFRA].Repo().NumCommits()
+			if err != nil {
+				glog.Errorf("Failed to get number of commits for Infra: %s", err)
+			} else {
+				infraGauge.Update(nInfra)
+			}
 		}
 	}()
 
