@@ -178,6 +178,11 @@ func (b *TasksCfgBuilder) Finish() error {
 	// character.
 	enc = bytes.Replace(enc, []byte("\\u003c"), []byte("<"), -1)
 
+	// Add a newline to the end of the file. Most text editors add one, so
+	// adding one here enables manual editing of the file, even though we'd
+	// rather that not happen.
+	enc = append(enc, []byte("\n")...)
+
 	// Write the tasks.json file.
 	outFile := path.Join(b.root, TASKS_CFG_FILE)
 	if *test {
