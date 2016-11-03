@@ -51,7 +51,7 @@ func loadImg(sourcePath string) (*image.NRGBA, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer util.Close(f)
 	return decodeImg(f)
 }
 

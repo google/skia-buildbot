@@ -147,7 +147,7 @@ func (task *AddRecreatePageSetsTaskVars) GetInsertQueryAndBinds() (string, []int
 	if task.PageSets == "" {
 		return "", nil, fmt.Errorf("Invalid parameters")
 	}
-	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{{"page_sets", task.PageSets, 100}}); err != nil {
+	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{{Name: "page_sets", Value: task.PageSets, Limit: 100}}); err != nil {
 		return "", nil, err
 	}
 	return fmt.Sprintf("INSERT INTO %s (username,page_sets,ts_added,repeat_after_days) VALUES (?,?,?,?);",
@@ -181,7 +181,7 @@ func (task *AddRecreateWebpageArchivesTaskVars) GetInsertQueryAndBinds() (string
 	if err := chromium_builds.Validate(task.ChromiumBuild); err != nil {
 		return "", nil, err
 	}
-	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{{"page_sets", task.PageSets, 100}}); err != nil {
+	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{{Name: "page_sets", Value: task.PageSets, Limit: 100}}); err != nil {
 		return "", nil, err
 	}
 	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?);",
