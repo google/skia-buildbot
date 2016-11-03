@@ -301,7 +301,7 @@ func TestValidation(t *testing.T) {
 }
 
 func TestCommitRange(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	// Setup.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
