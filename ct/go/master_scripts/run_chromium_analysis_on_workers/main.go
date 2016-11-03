@@ -5,8 +5,10 @@ package main
 
 import (
 	"database/sql"
+	"encoding/csv"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -45,6 +47,7 @@ var (
 	chromiumPatchLink  = util.MASTER_LOGSERVER_LINK
 	catapultPatchLink  = util.MASTER_LOGSERVER_LINK
 	benchmarkPatchLink = util.MASTER_LOGSERVER_LINK
+	customWebpagesLink = util.MASTER_LOGSERVER_LINK
 	outputLink         = util.MASTER_LOGSERVER_LINK
 )
 
@@ -86,12 +89,14 @@ func sendEmail(recipients []string, gs *util.GsUtil) {
 	The CSV output is <a href='%s'>here</a>.%s<br/>
 	The patch(es) you specified are here:
 	<a href='%s'>chromium</a>/<a href='%s'>catapult</a>/<a href='%s'>telemetry</a>
+	<br/>
+	Custom webpages (if specified) are <a href='%s'>here</a>.
 	<br/><br/>
 	You can schedule more runs <a href='%s'>here</a>.
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, outputLink, archivedWebpagesText, chromiumPatchLink, catapultPatchLink, benchmarkPatchLink, frontend.ChromiumAnalysisTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, outputLink, archivedWebpagesText, chromiumPatchLink, catapultPatchLink, benchmarkPatchLink, customWebpagesLink, frontend.ChromiumAnalysisTasksWebapp)
 	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
@@ -124,11 +129,11 @@ func main() {
 		return
 	}
 
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *gaeTaskID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium analysis", *runID, *description))
+	//skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *gaeTaskID))
+	//skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium analysis", *runID, *description))
 	// Ensure webapp is updated and email is sent even if task fails.
-	defer updateWebappTask()
-	defer sendEmail(emailsArr, gs)
+	//defer updateWebappTask()
+	//defer sendEmail(emailsArr, gs)
 	// Cleanup dirs after run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
 	// Finish with glog flush and how long the task took.
@@ -150,11 +155,12 @@ func main() {
 
 	remoteOutputDir := filepath.Join(util.ChromiumAnalysisRunsDir, *runID)
 
-	// Copy the patches to Google Storage.
+	// Copy the patches and custom webpages to Google Storage.
 	chromiumPatchName := *runID + ".chromium.patch"
 	catapultPatchName := *runID + ".catapult.patch"
 	benchmarkPatchName := *runID + ".benchmark.patch"
-	for _, patchName := range []string{chromiumPatchName, catapultPatchName, benchmarkPatchName} {
+	customWebpagesName := *runID + ".custom_webpages.csv"
+	for _, patchName := range []string{chromiumPatchName, catapultPatchName, benchmarkPatchName, customWebpagesName} {
 		if err := gs.UploadFile(patchName, os.TempDir(), remoteOutputDir); err != nil {
 			glog.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
 			return
@@ -163,6 +169,40 @@ func main() {
 	chromiumPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, chromiumPatchName)
 	catapultPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, catapultPatchName)
 	benchmarkPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, benchmarkPatchName)
+	customWebpagesLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, customWebpagesName)
+
+	// TODO(rmistry): Read the customWebpagesName and see if there is anything in it. If there is then calculate number of pages
+	// and add utility functions to call from here and from the perf master script.
+	customWebPagesFilePath := filepath.Join(os.TempDir(), customWebpagesName)
+	csvFile, err := os.Open(customWebPagesFilePath)
+	if err != nil {
+		// do something
+	}
+	defer csvFile.Close()
+	reader := csv.NewReader(csvFile)
+	for {
+		records, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			// Do something
+		}
+		for _, record := range records {
+			if record == "" {
+				continue
+			}
+			fmt.Println(record)
+		}
+	}
+
+	numPages, err := util.GetNumPages(*pagesetType, customWebPagesFilePath)
+	if err != nil {
+		glog.Errorf("Error encountered when calculating number of pages: %s", err)
+		return
+	}
+	fmt.Printf("Num of pages to use is: %d", numPages)
+	return
 
 	// Create the required chromium build.
 	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask("build_chromium", *runID, "chromium", *targetPlatform, []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName)}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
@@ -190,6 +230,9 @@ func main() {
 	if *runOnGCE && *targetPlatform != util.PLATFORM_ANDROID {
 		workerDimensions = util.GCE_WORKER_DIMENSIONS
 	}
+	// TODO(rmistry): stuff here.
+	// Get the number of pages that will be run.
+	// numPages := util.GetNumPages(*pagesetType, )
 	if err := util.TriggerSwarmingTask(*pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, 3*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, isolateExtraArgs, workerDimensions); err != nil {
 		glog.Errorf("Error encountered when swarming tasks: %s", err)
 		return

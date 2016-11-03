@@ -804,3 +804,27 @@ func GetHashesFromBuild(chromiumBuild string) (string, string) {
 	tokens := strings.Split(chromiumBuild, "-")
 	return tokens[1], tokens[2]
 }
+
+func GetNumPages(pageType, customWebpagesPath string) (int, error) {
+	csvFile, err := os.Open(customWebPagesFilePath)
+	if err != nil {
+		return , err
+	}
+	defer csvFile.Close()
+	reader := csv.NewReader(csvFile)
+	for {
+		records, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			// Do something
+		}
+		for _, record := range records {
+			if record == "" {
+				continue
+			}
+			fmt.Println(record)
+		}
+	}
+}

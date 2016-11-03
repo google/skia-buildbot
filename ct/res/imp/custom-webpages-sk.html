@@ -1,0 +1,92 @@
+<!--
+  TODO(rmistry): Update the below documentation!
+  The <custom-webpages-sk> custom element declaration. Allows entering a CL in the form of
+  https://codereview.chromium.org/1344993003 (or just the CL number) to retrieve a patch from that
+  CL. Alternatively, allows entering a patch manually in an expanding text area.
+
+  Attributes:
+    patchType: Specifies the project for the patch. Must be set. Supported values include
+      "chromium" and "skia". See also encodeCLData in
+      ct/go/ctfe/chromium_perf/chromium_perf.go.
+    cl: Raw value of the CL input. Does not notify.
+    clDescription: Human-readable description of the CL. Notifies.
+    patch: The patch, either retrieved from the CL or manually entered/modified. Notifies.
+
+  Events:
+    None.
+
+  Methods:
+    validate(): Checks that patch is valid based on cl. If not, shows an error toast and returns
+      false. Otherwise returns true.
+-->
+
+<dom-module id="custom-webpages-sk">
+  <style>
+    paper-input {
+      width: 20em;
+    }
+
+    .long-field {
+      width: 40em;
+    }
+
+    td.webpages-label {
+      vertical-align: middle;
+    }
+
+    .webpages-detail-container {
+      position: relative;
+      text-align: center;
+      height: 100px;
+      min-width: 200px;
+      max-width: 300px;
+    }
+
+    .webpages-error {
+      color: red;
+    }
+  </style>
+  <template>
+    <a href="javascript:void(0);" id="webpages_expander">
+      <iron-icon icon="{{webpagesExpanderIcon(webpagesOpened)}}"></iron-icon>
+      Specify custom CSV of web pages
+    </a>
+    <span class="long-field">
+      <iron-collapse id="webpages_collapse" opened="{{webpagesOpened}}">
+        <iron-autogrow-textarea class="long-field" rows=5 max-rows=20 bind-value="{{webpages}}" placeholder="Eg: webpage1,webpage2,webpage3,webpage4">
+        </iron-autogrow-textarea>
+      </iron-collapse>
+    </span>
+  </template>
+  <script>
+    Polymer({
+      is: "custom-webpages-sk",
+      properties: {
+        webpagesOpened: {
+          type: Boolean,
+          value: false,
+        },
+        webpages: {
+          type: String,
+          notify: true,
+        },
+      },
+
+      ready: function() {
+        var that = this;
+        this.$.webpages_expander.addEventListener('click', function(e) {
+          that.$.webpages_collapse.toggle();
+        });
+      },
+
+      webpagesExpanderIcon: function(webpagesOpened) {
+        if (webpagesOpened) {
+          return "expand-less";
+        } else {
+          return "expand-more";
+        }
+      },
+    });
+  </script>
+
+</dom-module>
