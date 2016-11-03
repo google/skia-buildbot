@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/ptracestore"
+	"go.skia.org/infra/perf/go/shortcut2"
 )
 
 type ProcessState string
@@ -49,6 +50,7 @@ type FrameRequest struct {
 	Formulas []string `json:"formulas"` // The Formulae to evaluate.
 	Queries  []string `json:"queries"`  // The queries to perform encoded as a URL query.
 	Hidden   []string `json:"hidden"`   // The ids of traces to remove from the response.
+	Keys     string   `json:"keys"`     // The id of a list of keys stored via shortcut2.
 }
 
 func (f *FrameRequest) Id() string {
@@ -84,12 +86,16 @@ type FrameRequestProcess struct {
 }
 
 func newProcess(req *FrameRequest, git *gitinfo.GitInfo) *FrameRequestProcess {
+	numKeys := 0
+	if req.Keys != "" {
+		numKeys = 1
+	}
 	ret := &FrameRequestProcess{
 		git:           git,
 		request:       req,
 		lastUpdate:    time.Now(),
 		state:         PROCESS_RUNNING,
-		totalSearches: len(req.Formulas) + len(req.Queries),
+		totalSearches: len(req.Formulas) + len(req.Queries) + numKeys,
 	}
 	go ret.Run()
 	return ret
@@ -126,11 +132,9 @@ func (fr *RunningFrameRequests) step() {
 	for k, v := range fr.inProcess {
 		v.mutex.Lock()
 		if now.Sub(v.lastUpdate) > MAX_FINISHED_PROCESS_AGE {
-			v.mutex.Unlock()
 			delete(fr.inProcess, k)
-		} else {
-			v.mutex.Unlock()
 		}
+		v.mutex.Unlock()
 	}
 }
 
@@ -250,6 +254,16 @@ func (p *FrameRequestProcess) Run() {
 		p.searchInc()
 	}
 
+	// Keys
+	if p.request.Keys != "" {
+		newDF, err := p.doKeys(p.request.Keys, begin, end)
+		if err != nil {
+			p.reportError(err, "Failed to complete query.")
+			return
+		}
+		dfAppend(df, newDF)
+	}
+
 	// Filter out "Hidden" traces.
 	for _, key := range p.request.Hidden {
 		delete(df.TraceSet, key)
@@ -259,7 +273,7 @@ func (p *FrameRequestProcess) Run() {
 		df = NewHeaderOnly(p.git, begin, end)
 	}
 
-	resp, err := ResponseFromDataFrame(df, p.git)
+	resp, err := ResponseFromDataFrame(df, p.git, true)
 	if err != nil {
 		p.reportError(err, "Failed to get ticks or skps.")
 		return
@@ -339,7 +353,9 @@ func getSkps(headers []*ColumnHeader, git *gitinfo.GitInfo) ([]int, error) {
 }
 
 // ResponseFromDataFrame fills out the rest of a FrameResponse for the given DataFrame.
-func ResponseFromDataFrame(df *DataFrame, git *gitinfo.GitInfo) (*FrameResponse, error) {
+//
+// If truncate is true then the number of traces returned is limited.
+func ResponseFromDataFrame(df *DataFrame, git *gitinfo.GitInfo, truncate bool) (*FrameResponse, error) {
 	// Calculate the human ticks based on the column headers.
 	ts := []int64{}
 	for _, c := range df.Header {
@@ -355,7 +371,7 @@ func ResponseFromDataFrame(df *DataFrame, git *gitinfo.GitInfo) (*FrameResponse,
 
 	// Truncate the result if it's too large.
 	msg := ""
-	if len(df.TraceSet) > MAX_TRACES_IN_RESPONSE {
+	if truncate && len(df.TraceSet) > MAX_TRACES_IN_RESPONSE {
 		msg = fmt.Sprintf("Response too large, the number of traces returned has been truncated from %d to %d.", len(df.TraceSet), MAX_TRACES_IN_RESPONSE)
 		keys := []string{}
 		for k, _ := range df.TraceSet {
@@ -390,6 +406,16 @@ func (p *FrameRequestProcess) doSearch(queryStr string, begin, end time.Time) (*
 		return nil, fmt.Errorf("Invalid Query: %s", err)
 	}
 	return NewFromQueryAndRange(p.git, ptracestore.Default, begin, end, q, p.progress)
+}
+
+// doKeys returns a DataFrame that matches the given set of keys given
+// the time range [begin, end).
+func (p *FrameRequestProcess) doKeys(keyID string, begin, end time.Time) (*DataFrame, error) {
+	keys, err := shortcut2.Get(keyID)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to find that set of keys %q: %s", keyID, err)
+	}
+	return NewFromKeysAndRange(p.git, keys.Keys, ptracestore.Default, begin, end, p.progress)
 }
 
 // doCalc applies the given formula and returns a dataframe that matches the
