@@ -1,0 +1,325 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "66ba4639_1d482e2a",
+        "filename": "perf/go/clustering2/async.go",
+        "patchSetId": 70
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-03T20:40:35Z",
+      "side": 1,
+      "message": "nit: document fields",
+      "revId": "9d3ed19059862f70ca99f6470a31af6cb668ac45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_3db412d4",
+        "filename": "perf/go/dataframe/async.go",
+        "patchSetId": 70
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-03T20:40:35Z",
+      "side": 1,
+      "message": "nit: maybe rename KeysId",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 5
+      },
+      "revId": "9d3ed19059862f70ca99f6470a31af6cb668ac45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_fdd1ea0b",
+        "filename": "perf/go/dataframe/async.go",
+        "patchSetId": 70
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-03T20:40:35Z",
+      "side": 1,
+      "message": "nit: missing p.searchInc()?",
+      "range": {
+        "startLine": 265,
+        "startChar": 1,
+        "endLine": 265,
+        "endChar": 2
+      },
+      "revId": "9d3ed19059862f70ca99f6470a31af6cb668ac45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_c1bd249a",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 70
+      },
+      "lineNbr": 1187,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-03T20:40:35Z",
+      "side": 1,
+      "message": "Is this a time range?",
+      "range": {
+        "startLine": 1187,
+        "startChar": 34,
+        "endLine": 1187,
+        "endChar": 39
+      },
+      "revId": "9d3ed19059862f70ca99f6470a31af6cb668ac45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_e1a94835",
+        "filename": "perf/res/imp/cluster-page.html",
+        "patchSetId": 70
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-03T20:40:35Z",
+      "side": 1,
+      "message": "nit: extra div",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 11
+      },
+      "revId": "9d3ed19059862f70ca99f6470a31af6cb668ac45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_419ad4aa",
+        "filename": "perf/res/imp/cluster-page.html",
+        "patchSetId": 70
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-03T20:40:35Z",
+      "side": 1,
+      "message": "Is this intentionally not declared in \"properties\"?",
+      "range": {
+        "startLine": 88,
+        "startChar": 52,
+        "endLine": 88,
+        "endChar": 62
+      },
+      "revId": "9d3ed19059862f70ca99f6470a31af6cb668ac45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_c18c04c5",
+        "filename": "perf/res/imp/cluster-page.html",
+        "patchSetId": 70
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-03T20:40:35Z",
+      "side": 1,
+      "message": "nit: Do we wrap JS? In this file, two lines are not wrapped, one line is wrapped.",
+      "range": {
+        "startLine": 106,
+        "startChar": 6,
+        "endLine": 106,
+        "endChar": 8
+      },
+      "revId": "9d3ed19059862f70ca99f6470a31af6cb668ac45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_c1da44cd",
+        "filename": "perf/res/imp/cluster-page.html",
+        "patchSetId": 70
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-03T20:40:35Z",
+      "side": 1,
+      "message": "I think this won\u0027t work well, since an empty begin or end param will mean something different every time you visit the page.\n\nInstead, you can set begin and end to 0 here and update them immediately after calling stateReflector. (Might require ignoring such a request in _updateCommitSelections also.)",
+      "range": {
+        "startLine": 116,
+        "startChar": 0,
+        "endLine": 117,
+        "endChar": 43
+      },
+      "revId": "9d3ed19059862f70ca99f6470a31af6cb668ac45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_0128ccb7",
+        "filename": "perf/res/imp/cluster-page.html",
+        "patchSetId": 70
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-03T20:40:35Z",
+      "side": 1,
+      "message": "nit: duplicate property",
+      "range": {
+        "startLine": 139,
+        "startChar": 6,
+        "endLine": 139,
+        "endChar": 16
+      },
+      "revId": "9d3ed19059862f70ca99f6470a31af6cb668ac45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_6155580c",
+        "filename": "perf/res/imp/cluster-page.html",
+        "patchSetId": 70
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-03T20:40:35Z",
+      "side": 1,
+      "message": "nit: confusing var name -- I initially thought you were setting this.state.",
+      "range": {
+        "startLine": 155,
+        "startChar": 12,
+        "endLine": 155,
+        "endChar": 17
+      },
+      "revId": "9d3ed19059862f70ca99f6470a31af6cb668ac45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_e19ae8b9",
+        "filename": "perf/res/imp/cluster-page.html",
+        "patchSetId": 70
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-03T20:40:35Z",
+      "side": 1,
+      "message": "nit: missing catch",
+      "range": {
+        "startLine": 158,
+        "startChar": 11,
+        "endLine": 158,
+        "endChar": 15
+      },
+      "revId": "9d3ed19059862f70ca99f6470a31af6cb668ac45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_41ec9412",
+        "filename": "perf/res/imp/cluster-page.html",
+        "patchSetId": 70
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-03T20:40:35Z",
+      "side": 1,
+      "message": "What\u0027s this for? It doesn\u0027t look like cluster-summary2-sk uses this, and it doesn\u0027t seem to be used in this file.",
+      "range": {
+        "startLine": 195,
+        "startChar": 12,
+        "endLine": 195,
+        "endChar": 23
+      },
+      "revId": "9d3ed19059862f70ca99f6470a31af6cb668ac45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_01aa8c71",
+        "filename": "perf/res/imp/cluster-page.html",
+        "patchSetId": 70
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-03T20:40:35Z",
+      "side": 1,
+      "message": "nit: this.$.matches.textContent \u003d \"\"?",
+      "revId": "9d3ed19059862f70ca99f6470a31af6cb668ac45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_046d7a78",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 70
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-03T20:40:35Z",
+      "side": 1,
+      "message": "nit: Same issue as in cluster-page.html.",
+      "revId": "9d3ed19059862f70ca99f6470a31af6cb668ac45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_44778244",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 70
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-03T20:40:35Z",
+      "side": 1,
+      "message": "Not yet used?",
+      "revId": "9d3ed19059862f70ca99f6470a31af6cb668ac45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
