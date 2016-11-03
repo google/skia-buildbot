@@ -359,7 +359,7 @@ func GetStartRange(workerNum, artifactsPerWorker int) int {
 	return ((workerNum - 1) * artifactsPerWorker) + 1
 }
 
-func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot int, isolateExtraArgs, dimensions map[string]string) error {
+func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs, dimensions map[string]string) error {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir("", "swarming_work_")
 	if err != nil {
@@ -375,7 +375,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 	// Get path to isolate files.
 	_, currentFile, _, _ := runtime.Caller(0)
 	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
-	numTasks := int(math.Ceil(float64(PagesetTypeToInfo[pagesetType].NumPages) / float64(maxPagesPerBot)))
+	numTasks := int(math.Ceil(float64(numPages) / float64(maxPagesPerBot)))
 	for i := 1; i <= numTasks; i++ {
 		isolateArgs := map[string]string{
 			"START_RANGE":  strconv.Itoa(GetStartRange(i, maxPagesPerBot)),
@@ -461,7 +461,8 @@ func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GsUtil, totalPages, nu
 	util.MkdirAll(localOutputDir, 0700)
 	noOutputSlaves := []string{}
 	// Copy outputs from all slaves locally.
-	for i := 0; i < totalPages/numPerWorker; i++ {
+	numTasks := int(math.Ceil(float64(totalPages) / float64(numPerWorker)))
+	for i := 0; i < numTasks; i++ {
 		startRange := (i * numPerWorker) + 1
 		workerLocalOutputPath := filepath.Join(localOutputDir, strconv.Itoa(startRange)+".csv")
 		workerRemoteOutputPath := filepath.Join(BenchmarkRunsDir, runID, strconv.Itoa(startRange), "outputs", runID+".output")
@@ -803,4 +804,36 @@ func GetArchivesNum(gs *GsUtil, benchmarkArgs, pagesetType string) (int, error) 
 func GetHashesFromBuild(chromiumBuild string) (string, string) {
 	tokens := strings.Split(chromiumBuild, "-")
 	return tokens[1], tokens[2]
+}
+
+// GetNumPages returns the number of specified custom webpages. If Custom
+// webpages are not specified then the number of pages associated with the
+// pageset type is returned.
+func GetNumPages(pagesetType, customWebPagesFilePath string) (int, error) {
+	csvFile, err := os.Open(customWebPagesFilePath)
+	if err != nil {
+		return PagesetTypeToInfo[pagesetType].NumPages, err
+	}
+	defer csvFile.Close()
+	reader := csv.NewReader(csvFile)
+	customPages := 0
+	for {
+		records, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return PagesetTypeToInfo[pagesetType].NumPages, err
+		}
+		for _, record := range records {
+			if strings.TrimSpace(record) == "" {
+				continue
+			}
+			customPages++
+		}
+	}
+	if customPages == 0 {
+		return PagesetTypeToInfo[pagesetType].NumPages, nil
+	}
+	return customPages, nil
 }
