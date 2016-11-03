@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "66ba4639_e7931d35",
+        "filename": "res/js/common.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-11-03T14:31:17Z",
+      "side": 1,
+      "message": "To keep the behavior as backward compatible as possible you should check if the object has a \u0027response\u0027 attribute and just display that first, and fall back to the JSON.stringify if it doesn\u0027t.",
+      "revId": "1bf7df00af035a419137b1e7fc3a09d451d13559",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
