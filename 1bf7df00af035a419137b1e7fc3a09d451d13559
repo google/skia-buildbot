@@ -16,6 +16,24 @@
       "revId": "1bf7df00af035a419137b1e7fc3a09d451d13559",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ba4639_0793c134",
+        "filename": "res/js/common.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-03T14:45:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "66ba4639_e7931d35",
+      "revId": "1bf7df00af035a419137b1e7fc3a09d451d13559",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
