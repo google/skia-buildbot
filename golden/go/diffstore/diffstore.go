@@ -144,6 +144,10 @@ func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []str
 		return nil, fmt.Errorf("Received empty dMain digest.")
 	}
 
+	if len(rightDigests) == 0 {
+		return nil, fmt.Errorf("Received empty list of digests to compare %s to.", mainDigest)
+	}
+
 	diffMap := make(map[string]*diff.DiffMetrics, len(rightDigests))
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
@@ -166,6 +170,11 @@ func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []str
 		}
 	}
 	wg.Wait()
+
+	if len(diffMap) == 0 {
+		return nil, fmt.Errorf("Unable to calculate any diffs for digest %s.", mainDigest)
+	}
+
 	return diffMap, nil
 }
 

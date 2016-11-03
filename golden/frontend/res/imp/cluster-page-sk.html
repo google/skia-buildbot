@@ -158,6 +158,7 @@
 
         _loadClusterDiff: function() {
           gold.loadWithActivity(this, "/json/clusterdiff" + window.location.search, this.$.activityMain, function(json) {
+            debugger;
             this._data = json;
             this.$.clusterView.setData(json);
             this.$.parameters.setParamSets([json.paramsetsUnion]);
