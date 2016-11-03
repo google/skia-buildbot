@@ -150,12 +150,6 @@ func TestBuildMapper(t *testing.T) {
 	assert.Equal(t, got, want)
 }
 
-func matchesFromQuery(q *query.Query) KeyMatches {
-	return func(key string) bool {
-		return q.Matches(key)
-	}
-}
-
 func TestMatch(t *testing.T) {
 	testutils.SmallTest(t)
 	setupStoreDir(t)
@@ -215,7 +209,7 @@ func TestMatch(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	commits := []*cid.CommitID{commitID1, commitID2, commitID3, commitID4}
-	traces, err := d.Match(commits, matchesFromQuery(q), nil)
+	traces, err := d.Match(commits, q.Matches, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(traces))
 	assert.Equal(t, 4, len(traces[",config=565,test=foo,"]))
@@ -226,7 +220,7 @@ func TestMatch(t *testing.T) {
 		"test": []string{"foo"},
 	})
 	assert.NoError(t, err)
-	traces, err = d.Match(commits, matchesFromQuery(q), nil)
+	traces, err = d.Match(commits, q.Matches, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(traces))
 	assert.Equal(t, 4, len(traces[",config=565,test=foo,"]))
@@ -239,7 +233,7 @@ func TestMatch(t *testing.T) {
 		Source: "master",
 	}
 	commits = []*cid.CommitID{commitID4, commitID5}
-	traces, err = d.Match(commits, matchesFromQuery(q), nil)
+	traces, err = d.Match(commits, q.Matches, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(traces))
 	assert.Equal(t, 2, len(traces[",config=565,test=foo,"]))
@@ -250,7 +244,7 @@ func TestMatch(t *testing.T) {
 	q, err = query.New(url.Values{})
 	assert.NoError(t, err)
 	commits = []*cid.CommitID{commitID1, commitID2, commitID3, commitID4}
-	traces, err = d.Match(commits, matchesFromQuery(q), nil)
+	traces, err = d.Match(commits, q.Matches, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(traces))
 	assert.Equal(t, 4, len(traces[",config=565,test=foo,"]))
@@ -262,7 +256,7 @@ func TestMatch(t *testing.T) {
 	q, err = query.New(url.Values{"bar": []string{"baz"}})
 	assert.NoError(t, err)
 	commits = []*cid.CommitID{commitID1, commitID2, commitID3, commitID4}
-	traces, err = d.Match(commits, matchesFromQuery(q), nil)
+	traces, err = d.Match(commits, q.Matches, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(traces))
 

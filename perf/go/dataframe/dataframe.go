@@ -126,10 +126,7 @@ func New(vcs vcsinfo.VCS, store ptracestore.PTraceStore, progress ptracestore.Pr
 func NewFromQueryAndRange(vcs vcsinfo.VCS, store ptracestore.PTraceStore, begin, end time.Time, q *query.Query, progress ptracestore.Progress) (*DataFrame, error) {
 	defer timer.New("NewFromQueryAndRange time").Stop()
 	colHeaders, commitIDs, skip := getRange(vcs, begin, end)
-	matches := func(key string) bool {
-		return q.Matches(key)
-	}
-	return _new(colHeaders, commitIDs, matches, store, progress, skip)
+	return _new(colHeaders, commitIDs, q.Matches, store, progress, skip)
 }
 
 // NewFromKeysAndRange returns a populated DataFrame of the traces that match
@@ -165,10 +162,7 @@ func NewFromCommitIDsAndQuery(cids []*cid.CommitID, cidl *cid.CommitIDLookup, st
 			Timestamp: d.Timestamp,
 		})
 	}
-	matches := func(key string) bool {
-		return q.Matches(key)
-	}
-	return _new(colHeaders, cids, matches, store, progress, 0)
+	return _new(colHeaders, cids, q.Matches, store, progress, 0)
 }
 
 // NewEmpty returns a new empty DataFrame.
