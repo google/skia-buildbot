@@ -41,6 +41,7 @@ import (
 	"go.skia.org/infra/perf/go/annotate"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering"
+	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	idb "go.skia.org/infra/perf/go/db"
@@ -49,6 +50,7 @@ import (
 	"go.skia.org/infra/perf/go/ptracestore"
 	"go.skia.org/infra/perf/go/quartiles"
 	"go.skia.org/infra/perf/go/shortcut"
+	"go.skia.org/infra/perf/go/shortcut2"
 	"go.skia.org/infra/perf/go/stats"
 	"go.skia.org/infra/perf/go/tilestats"
 	"go.skia.org/infra/perf/go/types"
@@ -133,6 +135,8 @@ var (
 	freshDataFrame *dataframe.Refresher
 
 	frameRequests *dataframe.RunningFrameRequests
+
+	clusterRequests *clustering2.RunningClusterRequests
 )
 
 func loadTemplates() {
@@ -149,6 +153,7 @@ func loadTemplates() {
 
 		// ptracestore pages go here.
 		filepath.Join(*resourcesDir, "templates/newindex.html"),
+		filepath.Join(*resourcesDir, "templates/clusters2.html"),
 
 		// Sub templates used by other templates.
 		filepath.Join(*resourcesDir, "templates/header.html"),
@@ -191,8 +196,6 @@ func Init() {
 		glog.Fatalf("Failed to build the dataframe Refresher: %s", err)
 	}
 
-	frameRequests = dataframe.NewRunningFrameRequests(git)
-
 	initIngestion()
 
 	// Connect to traceDB and create the builders.
@@ -216,6 +219,9 @@ func Init() {
 
 	branchTileBuilder = tracedb.NewBranchTileBuilder(db, git, rietveldAPI, gerritAPI, evt)
 	cidl = cid.New(git, rietveldAPI)
+
+	frameRequests = dataframe.NewRunningFrameRequests(git)
+	clusterRequests = clustering2.NewRunningClusterRequests(git, cidl)
 }
 
 // showcutHandler handles the POST requests of the shortcut page.
@@ -1161,19 +1167,81 @@ func helpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func initpageHandler(w http.ResponseWriter, r *http.Request) {
-	if *local {
-		loadTemplates()
-	}
 	df := freshDataFrame.Get()
 	resp, err := dataframe.ResponseFromDataFrame(&dataframe.DataFrame{
 		Header:   df.Header,
 		ParamSet: df.ParamSet,
 		TraceSet: ptracestore.TraceSet{},
-	}, git)
+	}, git, false)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load init data.")
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		glog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
+// RangeRequest is used in cidRangeHandler and is used to query for a range of
+// cid.CommitIDs that include the range between [begin, end) and include the
+// explicit CommitID of "Source, Offset".
+type RangeRequest struct {
+	Source string `json:"source"`
+	Offset int    `json:"offset"`
+	Begin  int64  `json:"begin"`
+	End    int64  `json:"end"`
+}
+
+// cidRangeHandler accepts a POST'd JSON serialized RangeRequest
+// and returns a serialized JSON slice of cid.CommitDetails.
+func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	rr := &RangeRequest{}
+	defer util.Close(r.Body)
+	if err := json.NewDecoder(r.Body).Decode(rr); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		return
+	}
+
+	df := freshDataFrame.Get()
+	begin := df.Header[0].Timestamp
+	end := df.Header[len(df.Header)-1].Timestamp
+	var err error
+	if rr.Begin != 0 || rr.End != 0 {
+		if rr.Begin != 0 {
+			begin = rr.Begin
+		}
+		if rr.End != 0 {
+			end = rr.End
+		}
+		df = dataframe.NewHeaderOnly(git, time.Unix(begin, 0), time.Unix(end, 0))
+	}
+
+	found := false
+	cids := []*cid.CommitID{}
+	for _, h := range df.Header {
+		cids = append(cids, &cid.CommitID{
+			Offset: int(h.Offset),
+			Source: h.Source,
+		})
+		if int(h.Offset) == rr.Offset && h.Source == rr.Source {
+			found = true
+		}
+	}
+	if !found && rr.Source != "" && rr.Offset != -1 {
+		cids = append(cids, &cid.CommitID{
+			Offset: rr.Offset,
+			Source: rr.Source,
+		})
+	}
+
+	resp, err := cidl.Lookup(cids)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to lookup all commit ids")
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		glog.Errorf("Failed to encode paramset: %s", err)
@@ -1311,6 +1379,97 @@ func cidHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ClusterStartResponse is serialized as JSON for the response in
+// clusterStartHandler.
+type ClusterStartResponse struct {
+	ID string `json:"id"`
+}
+
+// clusterStartHandler takes a POST'd ClusterRequest and starts a long
+// running Go routine to do the actual clustering. The ID of the long
+// running routine is returned to be used in subsequent calls to
+// clusterStatusHandler to check on the status of the work.
+func clusterStartHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	req := &clustering2.ClusterRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ReportError(w, r, err, "Could not decode POST body.")
+		return
+	}
+	resp := ClusterStartResponse{
+		ID: clusterRequests.Add(req),
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		glog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
+// ClusterStatus is used to serialize a JSON response in clusterStatusHandler.
+type ClusterStatus struct {
+	State   clustering2.ProcessState     `json:"state"`
+	Message string                       `json:"message"`
+	Value   *clustering2.ClusterResponse `json:"value"`
+}
+
+// clusterStatusHandler is used to check on the status of a long
+// running cluster request. The ID of the routine is passed in via
+// the URL path. A JSON serialized ClusterStatus is returned, with
+// ClusterStatus.Value being populated only when the clustering
+// process has finished.
+func clusterStatusHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	id := mux.Vars(r)["id"]
+
+	status := &ClusterStatus{}
+	state, msg, err := clusterRequests.Status(id)
+	if err != nil {
+		httputils.ReportError(w, r, err, msg)
+		return
+	}
+	status.State = state
+	status.Message = msg
+	if state == clustering2.PROCESS_SUCCESS {
+		value, err := clusterRequests.Response(id)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to retrieve results.")
+			return
+		}
+		status.Value = value
+	}
+
+	if err := json.NewEncoder(w).Encode(status); err != nil {
+		glog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
+// keysHandler handles the POST requests of a list of keys.
+//
+//    {
+//       "keys": [
+//            ",arch=x86,...",
+//            ",arch=x86,...",
+//       ]
+//    }
+//
+// And returns the ID of the new shortcut to that list of keys:
+//
+//   {
+//     "id": 123456,
+//   }
+func keysHandler(w http.ResponseWriter, r *http.Request) {
+	defer util.Close(r.Body)
+	id, err := shortcut2.Insert(r.Body)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Error inserting shortcut.")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(map[string]string{"id": id}); err != nil {
+		glog.Errorf("Failed to write or encode output: %s", err)
+	}
+}
+
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -1380,12 +1539,17 @@ func main() {
 
 	// New endpoints that use ptracestore will go here.
 	router.HandleFunc("/new/", templateHandler("newindex.html"))
+	router.HandleFunc("/newCluster/", templateHandler("clusters2.html"))
 	router.HandleFunc("/_/initpage/", initpageHandler)
+	router.HandleFunc("/_/cidRange/", cidRangeHandler)
 	router.HandleFunc("/_/count/", countHandler)
 	router.HandleFunc("/_/cid/", cidHandler)
+	router.HandleFunc("/_/keys/", keysHandler)
 	router.HandleFunc("/_/frame/start", frameStartHandler)
 	router.HandleFunc("/_/frame/status/{id:[a-zA-Z0-9]+}", frameStatusHandler)
 	router.HandleFunc("/_/frame/results/{id:[a-zA-Z0-9]+}", frameResultsHandler)
+	router.HandleFunc("/_/cluster/start", clusterStartHandler)
+	router.HandleFunc("/_/cluster/status/{id:[a-zA-Z0-9]+}", clusterStatusHandler)
 
 	router.HandleFunc("/frame/", templateHandler("frame.html"))
 	router.HandleFunc("/shortcuts/", shortcutHandler)
