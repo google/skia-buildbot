@@ -73,6 +73,7 @@
 
       .gridContainer {
         margin: 0 5em 3em 2em;
+        overflow-x: auto;
       }
 
       .compDiffContainer {
@@ -113,7 +114,7 @@
       }
     </style>
     <activity-sk id="activityCompare" busy="{{_hideAll}}"></activity-sk>
-    <div class="vertical layout contentWrapper">
+    <div class="vertical layout contentWrapper" hidden$="{{!_data}}">
       <div class="horizontal layout center headingContainer">
         <div id="heading">
           <span class="name">Name: [[_data.name]]</span>
@@ -123,11 +124,12 @@
         </div>
 
         <div>
+          <!-- Note:The values of the dropdown need to match the metric ids on the backend -->
           <span class="diffMetricLabel">Diff Metric:</span>
           <paper-dropdown-menu label="Diff metric" class="diffMetricSelect" no-label-float>
-            <paper-listbox class="dropdown-content" selected="0">
-              <paper-item>Normalized</paper-item>
-              <paper-item>Percent</paper-item>
+            <paper-listbox id="diffMetric" class="dropdown-content" selected="{{_diffMetric}}" attr-for-selected="value">
+              <paper-item value="combined">Combined</paper-item>
+              <paper-item value="percent">Percent</paper-item>
             </paper-listbox>
           </paper-dropdown-menu>
         </div>
@@ -159,13 +161,13 @@
           <div class="horizontal layout center">
             <div class="layout vertical center">
               <grid-sk id="gridCompare"></grid-sk>
-              <paper-button>
-                <iron-icon id="moreRowsButton" icon="icons:expand-more"></iron-icon>
+              <paper-button  id="moreRowsButton" hidden$="[[_noMoreRows(_data)]]">
+                <iron-icon icon="icons:expand-more"></iron-icon>
               </paper-button>
             </div>
             <div class="moreColumns">
-              <paper-button>
-                <iron-icon id="moreColumnsButton" icon="icons:chevron-right"></iron-icon>
+              <paper-button id="moreColumnsButton" hidden$="[[_noMoreColumns(_data)]]">
+                <iron-icon icon="icons:chevron-right"></iron-icon>
               </paper-button>
             </div>
           </div>
@@ -198,12 +200,11 @@
         rowQuery: null,
         columnQuery: null,
         match: defaultMatchConfigs,
-        rowN: 5,
-        columnN: 5,
         sortRows: "",
         rowsDir: "",
         sortColumns: "",
-        columnsDir: ""
+        columnsDir: "",
+        metric: ""
       };
 
       // Default values for the row and column queries.
@@ -227,6 +228,10 @@
       var defaultRowSorting = {dir: gold.SORT_DESC, field: SORT_FIELD_N_IMAGES};
       var defaultColSorting = {dir: gold.SORT_ASC, field: SORT_FIELD_DIFF};
 
+      // ids fo the different diff metrics.
+      var METRIC_COMBINED = "combined";
+      var METRIC_PERCENT = "percent";
+
       Polymer({
         is: "comp-page-sk",
 
@@ -235,12 +240,15 @@
         properties: {
           _data: {
             type: Object,
-            value: function() { return {}; }
+            value: null
           },
           _syncParams: {
             type: Boolean,
             value: false,
             observer: '_handleSyncStateChange'
+          },
+          _diffMetric: {
+              type: String
           }
         },
 
@@ -256,6 +264,7 @@
           this.listen(this.$.moreRowsButton, 'click', '_handleMoreRows');
           this.listen(this.$.rowSortControl, 'sort-changed', '_load');
           this.listen(this.$.columnSortControl, 'sort-changed', '_load');
+          this.listen(this.$.diffMetric, 'iron-select', '_load');
           this.$.rowSortControl.setItems(rowSortOptions);
           this.$.columnSortControl.setItems(colSortOptions);
           this._setDefaultState(gold.defaultSearchState, true);
@@ -269,6 +278,7 @@
           this._query.columnQuery = this._getDefaultStateWithCorpus(defaultColumnQuery);
           this.set("_colSorting", sk.object.shallowCopy(defaultColSorting));
           this.set("_rowSorting", sk.object.shallowCopy(defaultRowSorting));
+          this.set("_diffMetric", METRIC_COMBINED);
           this._load();
         },
 
@@ -291,10 +301,12 @@
           this._query.rowsDir = this._rowSorting.dir;
           this._query.sortColumns = this._colSorting.field,
           this._query.columnsDir = this._colSorting.dir;
+          this._query.metric = this._diffMetric;
 
           var url = "/json/cmp/" + this._testName;
           var activity = this.$.activityCompare;
           activity.startSpinner("Loading...");
+          this.set("_data", null);
           sk.post(url, JSON.stringify(this._query)).then(JSON.parse).then(function (json) {
             activity.stopSpinner();
             this.set("_data", json);
@@ -351,13 +363,31 @@
         },
 
         _handleMoreRows: function() {
-          this._query.rowN += 5;
+          this._query.rowQuery.limit += 10;
           this._load();
         },
 
         _handleMoreColumns: function() {
-          this._query.columnN += 5;
-          this._load();
+          if (this._data) {
+            this._query.columnQuery.limit += 10;
+            this._load();
+          }
+        },
+
+        _noMoreRows: function(data) {
+          return data && (data.grid.rows.length >= data.grid.rowTotal);
+        },
+
+        _noMoreColumns: function(data) {
+          if (data) {
+            for(var i=0; i < data.grid.rows.length; i++) {
+              if (data.grid.rows[i].values.length >= data.grid.columnsTotal) {
+                return true;
+              }
+            }
+            return false;
+          }
+          return true;
         }
       });
 
