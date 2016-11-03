@@ -114,6 +114,7 @@ var (
 	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	newonly        = flag.Bool("newonly", false, "Only run with the new UI, don't load tracedb stuff.")
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	ptraceStoreDir = flag.String("ptrace_store_dir", "/tmp/ptracestore", "The directory where the ptracestore tiles are stored.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
@@ -186,9 +187,6 @@ func Init() {
 	if err != nil {
 		glog.Fatal(err)
 	}
-	evt := eventbus.New(nil)
-	tileStats = tilestats.New(evt)
-
 	ptracestore.Init(*ptraceStoreDir)
 
 	freshDataFrame, err = dataframe.NewRefresher(git, ptracestore.Default, time.Minute)
@@ -197,31 +195,33 @@ func Init() {
 	}
 
 	initIngestion()
-
-	// Connect to traceDB and create the builders.
-	db, err := tracedb.NewTraceServiceDBFromAddress(*traceservice, types.PerfTraceBuilder)
-	if err != nil {
-		glog.Fatalf("Failed to connect to tracedb: %s", err)
-	}
-
-	masterTileBuilder, err = tracedb.NewMasterTileBuilder(db, git, *tileSize, evt)
-	if err != nil {
-		glog.Fatalf("Failed to build trace/db.DB: %s", err)
-	}
-
 	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
-
 	// TODO(stephana): Add gerrit url as a flag and pick correct cookie configs.
 	gerritAPI, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", httputils.NewTimeoutClient())
 	if err != nil {
 		glog.Fatalf("Failed to create Gerrit client: %s", err)
 	}
-
-	branchTileBuilder = tracedb.NewBranchTileBuilder(db, git, rietveldAPI, gerritAPI, evt)
 	cidl = cid.New(git, rietveldAPI)
 
 	frameRequests = dataframe.NewRunningFrameRequests(git)
 	clusterRequests = clustering2.NewRunningClusterRequests(git, cidl)
+
+	if !*newonly {
+		evt := eventbus.New(nil)
+		tileStats = tilestats.New(evt)
+		// Connect to traceDB and create the builders.
+		db, err := tracedb.NewTraceServiceDBFromAddress(*traceservice, types.PerfTraceBuilder)
+		if err != nil {
+			glog.Fatalf("Failed to connect to tracedb: %s", err)
+		}
+
+		masterTileBuilder, err = tracedb.NewMasterTileBuilder(db, git, *tileSize, evt)
+		if err != nil {
+			glog.Fatalf("Failed to build trace/db.DB: %s", err)
+		}
+
+		branchTileBuilder = tracedb.NewBranchTileBuilder(db, git, rietveldAPI, gerritAPI, evt)
+	}
 }
 
 // showcutHandler handles the POST requests of the shortcut page.
@@ -1519,8 +1519,10 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	stats.Start(masterTileBuilder, git)
-	alerting.Start(masterTileBuilder)
+	if !*newonly {
+		stats.Start(masterTileBuilder, git)
+		alerting.Start(masterTileBuilder)
+	}
 
 	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {
