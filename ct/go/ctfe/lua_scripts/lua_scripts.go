@@ -120,9 +120,9 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 		return "", nil, err
 	}
 	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{"lua_script", task.LuaScript, db.TEXT_MAX_LENGTH},
-		{"lua_aggregator_script", task.LuaAggregatorScript, db.TEXT_MAX_LENGTH},
-		{"description", task.Description, 255},
+		{Name: "lua_script", Value: task.LuaScript, Limit: db.TEXT_MAX_LENGTH},
+		{Name: "lua_aggregator_script", Value: task.LuaAggregatorScript, Limit: db.TEXT_MAX_LENGTH},
+		{Name: "description", Value: task.Description, Limit: 255},
 	}); err != nil {
 		return "", nil, err
 	}
@@ -162,8 +162,8 @@ func (vars *UpdateVars) UriPath() string {
 
 func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
 	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{"ScriptOutput", task.ScriptOutput.String, 255},
-		{"AggregatedOutput", task.AggregatedOutput.String, 255},
+		{Name: "ScriptOutput", Value: task.ScriptOutput.String, Limit: 255},
+		{Name: "AggregatedOutput", Value: task.AggregatedOutput.String, Limit: 255},
 	}); err != nil {
 		return nil, nil, err
 	}

@@ -31,7 +31,7 @@ func TestBoltDBStoreAndRetrieve(t *testing.T) {
 		t.Fatalf("Error while loading pool: %s", err)
 	}
 	if !reflect.DeepEqual(expectedFuzzPool, pool) {
-		t.Errorf("Expected: %#v\n, but was: %#v", expectedFuzzPool, *pool)
+		t.Errorf("Expected: %#v\n, but was: %#v", expectedFuzzPool, pool)
 	}
 	names, err := db.LoadFuzzNames("deadbeef")
 

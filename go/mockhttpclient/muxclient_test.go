@@ -36,11 +36,11 @@ func TestVars(t *testing.T) {
 	r.Host("example.com").Methods("POST").Path("/add/{id:[a-zA-Z0-9]+}").
 		Queries("name", "{name}", "size", "42").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			t := MuxSafeT(t)
-			assert.Equal(t, mux.Vars(r)["id"], mux.Vars(r)["name"])
-			_, err := w.Write([]byte(expectedResponse))
-			assert.NoError(t, err)
-		})
+		t := MuxSafeT(t)
+		assert.Equal(t, mux.Vars(r)["id"], mux.Vars(r)["name"])
+		_, err := w.Write([]byte(expectedResponse))
+		assert.NoError(t, err)
+	})
 	client := NewMuxClient(r)
 	resp, err := client.Post("http://example.com/add/foo?name=foo&size=42", "", nil)
 	assert.NoError(t, err)
@@ -65,9 +65,9 @@ func TestAssertionFailure(t *testing.T) {
 	r.Host("example.com").Methods("POST").Path("/add/{id:[a-zA-Z0-9]+}").
 		Queries("name", "{name}", "size", "42").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			t := MuxSafeT(mockT)
-			assert.Equal(t, mux.Vars(r)["id"], mux.Vars(r)["name"])
-		})
+		t := MuxSafeT(mockT)
+		assert.Equal(t, mux.Vars(r)["id"], mux.Vars(r)["name"])
+	})
 	client := NewMuxClient(r)
 	_, err := client.Post("http://example.com/add/foo?name=bar&size=42", "", nil)
 
@@ -87,8 +87,8 @@ func TestMissingHandler(t *testing.T) {
 		// Intentional typo "naem".
 		Queries("naem", "{name}", "size", "42").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			handlerCalled = true
-		})
+		handlerCalled = true
+	})
 	client := NewMuxClient(r)
 	_, err := client.Post("http://example.com/add/foo?name=foo&size=42", "", nil)
 	assert.Error(t, err)
@@ -146,7 +146,7 @@ func TestStreamingBodyClosedForEmptyHandler(t *testing.T) {
 	r := mux.NewRouter()
 	r.Host("example.com").Methods("POST").Path("/add/{id:[a-zA-Z0-9]+}").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		})
+	})
 	client := NewMuxClient(r)
 	_, err := doStreamingRequestAndAssertBodyClosed(t, client, "http://example.com/add/foo")
 	assert.NoError(t, err)
@@ -157,8 +157,8 @@ func TestStreamingBodyClosedForMissingHandler(t *testing.T) {
 	handlerCalled := false
 	r.Host("example.com").Methods("POST").Path("/add/{id:[a-zA-Z0-9]+}").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			handlerCalled = true
-		})
+		handlerCalled = true
+	})
 	client := NewMuxClient(r)
 	_, err := doStreamingRequestAndAssertBodyClosed(t, client, "http://example.com/remove/foo")
 	assert.Error(t, err)
@@ -171,8 +171,8 @@ func TestStreamingBodyClosedForInvalidURL(t *testing.T) {
 	handlerCalled := false
 	r.Host("example.com").Methods("POST").Path("/add/{id:[a-zA-Z0-9]+}").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			handlerCalled = true
-		})
+		handlerCalled = true
+	})
 	client := NewMuxClient(r)
 	_, err := doStreamingRequestAndAssertBodyClosed(t, client, "http:///remove/foo")
 	assert.Error(t, err)

@@ -1,6 +1,7 @@
 package local_db
 
 import (
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"sort"
@@ -86,7 +87,7 @@ func TestFormatParseId(t *testing.T) {
 		"20010101T010101.100000000Z_1ffffffffffffffff",
 	} {
 		_, _, err := ParseId(invalidId)
-		assert.Error(t, err, "No error for Id: %q", invalidId)
+		assert.Error(t, err, fmt.Sprintf("No error for Id: %q", invalidId))
 	}
 }
 
