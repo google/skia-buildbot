@@ -222,6 +222,7 @@ func Init() {
 
 	frameRequests = dataframe.NewRunningFrameRequests(git)
 	clusterRequests = clustering2.NewRunningClusterRequests(git, cidl)
+	dataframe.StartWarmer(git)
 }
 
 // showcutHandler handles the POST requests of the shortcut page.
