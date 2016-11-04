@@ -1,4 +1,4 @@
-To compile the proto buffers definition you need to install version 3 of
+To compile the proto buffers definition you need to install version 4 of
 protocol buffers.
 
 To install it directly from source:
