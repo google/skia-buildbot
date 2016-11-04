@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "ebc99f45_5445a263",
+        "filename": "build_scheduler/go/build_queue/build_queue.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-04T22:10:38Z",
+      "side": 1,
+      "message": "Yep. It\u0027s impossible to see anything interesting in the logs with thousands of lines of unnecessary warnings.  I left them commented out instead of removing just to remind the next reader that they were there once.",
+      "parentUuid": "8b50234a_cccb2fab",
+      "revId": "a61a5b81f06c9a4a653ebc0619f7e2787c4c8e0f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8b50234a_2cf8ebcb",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 4
@@ -36,6 +54,24 @@
         "endLine": 100,
         "endChar": 70
       },
+      "revId": "a61a5b81f06c9a4a653ebc0619f7e2787c4c8e0f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebc99f45_34449665",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-04T22:10:38Z",
+      "side": 1,
+      "message": "This was sorting incorrectly; we want the most recent commit first.",
+      "parentUuid": "8b50234a_2cf8ebcb",
       "revId": "a61a5b81f06c9a4a653ebc0619f7e2787c4c8e0f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
