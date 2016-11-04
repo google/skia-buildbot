@@ -97,7 +97,7 @@ func (c *Commit) recurse(f func(*Commit) (bool, error), visited map[*Commit]bool
 type CommitSlice []*Commit
 
 func (s CommitSlice) Len() int           { return len(s) }
-func (s CommitSlice) Less(a, b int) bool { return s[a].Timestamp.Before(s[b].Timestamp) }
+func (s CommitSlice) Less(a, b int) bool { return s[a].Timestamp.After(s[b].Timestamp) }
 func (s CommitSlice) Swap(a, b int)      { s[a], s[b] = s[b], s[a] }
 
 // Hashes returns a slice of commit hashes corresponding to the commits in s.
