@@ -66,6 +66,9 @@ this.sk = this.sk || function() {
 
   /**
    * errorMessage dispatches an event with the error message in it.
+   * message is expected to be an object with either a field response
+   * (e.g. server response) or message (e.g. message of a typeError)
+   * that is a String.
    *
    * See <error-toast-sk> for an element that listens for such events
    * and displays the error messages.
@@ -73,7 +76,9 @@ this.sk = this.sk || function() {
    */
   sk.errorMessage = function(message, duration) {
     if (typeof message === 'object') {
-      message = message.response || JSON.stringify(message);
+      message = message.response || // for backwards compatibility
+          message.message || // for handling Errors {name:String, message:String}
+          JSON.stringify(message); // for everything else
     }
     var detail = {
       message: message,
