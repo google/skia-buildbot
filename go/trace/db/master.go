@@ -7,7 +7,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/tiling"
 )

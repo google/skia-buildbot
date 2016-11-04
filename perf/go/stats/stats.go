@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/metrics2"
 	tracedb "go.skia.org/infra/go/trace/db"
 )

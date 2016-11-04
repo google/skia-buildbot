@@ -13,7 +13,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/status/go/build_cache"
 	"go.skia.org/infra/task_scheduler/go/db"

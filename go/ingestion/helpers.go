@@ -16,7 +16,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sharedconfig"

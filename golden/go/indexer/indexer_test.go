@@ -12,7 +12,7 @@ import (
 
 	"go.skia.org/infra/go/database/testutil"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"

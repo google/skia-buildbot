@@ -12,7 +12,7 @@ import (
 	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/golden/go/diff"

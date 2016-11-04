@@ -33,7 +33,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
