@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8b50234a_cccb2fab",
+        "filename": "build_scheduler/go/build_queue/build_queue.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-04T20:32:26Z",
+      "side": 1,
+      "message": "Intentional change? x3",
+      "revId": "a61a5b81f06c9a4a653ebc0619f7e2787c4c8e0f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b50234a_2cf8ebcb",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-04T20:32:26Z",
+      "side": 1,
+      "message": "What\u0027s this about?",
+      "range": {
+        "startLine": 100,
+        "startChar": 65,
+        "endLine": 100,
+        "endChar": 70
+      },
+      "revId": "a61a5b81f06c9a4a653ebc0619f7e2787c4c8e0f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
