@@ -205,6 +205,7 @@ func Init() {
 
 	frameRequests = dataframe.NewRunningFrameRequests(git)
 	clusterRequests = clustering2.NewRunningClusterRequests(git, cidl)
+	dataframe.StartWarmer(git)
 
 	if !*newonly {
 		evt := eventbus.New(nil)
