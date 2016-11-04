@@ -65,7 +65,7 @@ func queries(t *testing.T, now time.Time, m []Measurement, st *StoreImpl) {
 }
 
 func TestNew(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	setupStoreDir(t)
 	defer cleanup()
 

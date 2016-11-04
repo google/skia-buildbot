@@ -19,7 +19,7 @@ import (
 const TEST_IMG_DIGEST = "abc-test-image-digest-xyz"
 
 func TestImageLoader(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
 	baseDir, workingDir, tile, imageLoader := getImageLoaderAndTile(t)
