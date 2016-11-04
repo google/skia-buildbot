@@ -9,7 +9,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/gitinfo"
 )
 
 // BuildClangHarness builds the test harness for fuzzing using clang, pulling it from the executable

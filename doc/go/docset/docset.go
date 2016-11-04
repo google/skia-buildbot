@@ -61,7 +61,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/doc/go/config"
 	"go.skia.org/infra/doc/go/reitveld"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/util"
 )
 

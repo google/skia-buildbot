@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/fiddle/go/buildlib"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/gitinfo"
 )
 
 // flags

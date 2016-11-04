@@ -14,7 +14,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	tracedb "go.skia.org/infra/go/trace/db"

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/timer"

@@ -16,7 +16,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/util/limitwriter"

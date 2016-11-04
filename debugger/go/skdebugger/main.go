@@ -23,7 +23,7 @@ import (
 	"go.skia.org/infra/debugger/go/runner"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
