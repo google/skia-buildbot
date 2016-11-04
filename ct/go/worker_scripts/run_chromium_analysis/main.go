@@ -44,7 +44,7 @@ func main() {
 	defer common.LogPanic()
 	worker_common.Init()
 	if !*worker_common.Local {
-		defer util.CleanTmpDir()
+		//defer util.CleanTmpDir()
 	}
 	defer util.TimeTrack(time.Now(), "Running Chromium Analysis")
 	defer glog.Flush()
@@ -69,12 +69,12 @@ func main() {
 	if err != nil {
 		glog.Info("No index.lock file found.")
 	}
-	// Parse out the Chromium and Skia hashes.
-	chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuild)
-	// Sync the local chromium checkout.
-	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{"src": chromiumHash}); err != nil {
-		glog.Fatalf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
-	}
+	//// Parse out the Chromium and Skia hashes.
+	//chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuild)
+	//// Sync the local chromium checkout.
+	//if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{"src": chromiumHash}); err != nil {
+	//	glog.Fatalf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
+	//}
 
 	if *targetPlatform == util.PLATFORM_ANDROID {
 		if err := adb.VerifyLocalDevice(); err != nil {
@@ -110,28 +110,52 @@ func main() {
 		glog.Fatalf("Could not apply %s: %s", benchmarkPatchName, err)
 	}
 
+	// Download the custom webpages for this run from Google storage.
+	customWebpagesName := *runID + ".custom_webpages.csv"
+	if _, err := util.DownloadPatch(filepath.Join(tmpDir, customWebpagesName), filepath.Join(remotePatchesDir, customWebpagesName), gs); err != nil {
+		glog.Fatalf("Could not download %s: %s", customWebpagesName, err)
+	}
+	customWebpages, err := util.GetCustomPages(filepath.Join(tmpDir, customWebpagesName))
+	if err != nil {
+		glog.Fatal("Could not read custom webpages file %s: %s", customWebpagesName, err)
+	}
+	if len(customWebpages) > 0 {
+		startIndex := *startRange - 1
+		endIndex := skutil.MinInt(*startRange+*num, len(customWebpages))
+		customWebpages = customWebpages[startIndex:endIndex]
+	}
+
 	// Download the specified chromium build.
 	if err := gs.DownloadChromiumBuild(*chromiumBuild); err != nil {
 		glog.Fatal(err)
 	}
-	//Delete the chromium build to save space when we are done.
+	//Delete the chromium build to save space when we are done.)
 	defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
 
 	chromiumBinary := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, util.BINARY_CHROME)
 
-	// Download pagesets if they do not exist locally.
-	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
-	if _, err := gs.DownloadSwarmingArtifacts(pathToPagesets, util.PAGESETS_DIR_NAME, *pagesetType, *startRange, *num); err != nil {
-		glog.Fatal(err)
+	var pathToPagesets string
+	if len(customWebpages) > 0 {
+		pathToPagesets = filepath.Join(util.PagesetsDir, "custom")
+		if err := util.CreateCustomPagesets(customWebpages, pathToPagesets); err != nil {
+			glog.Fatal(err)
+		}
+	} else {
+		// Download pagesets if they do not exist locally.
+		pathToPagesets = filepath.Join(util.PagesetsDir, *pagesetType)
+		if _, err := gs.DownloadSwarmingArtifacts(pathToPagesets, util.PAGESETS_DIR_NAME, *pagesetType, *startRange, *num); err != nil {
+			glog.Fatal(err)
+		}
+
+		// Download archives if they do not exist locally.
+		pathToArchives := filepath.Join(util.WebArchivesDir, *pagesetType)
+		if _, err := gs.DownloadSwarmingArtifacts(pathToArchives, util.WEB_ARCHIVES_DIR_NAME, *pagesetType, *startRange, *num); err != nil {
+			glog.Fatal(err)
+		}
+		defer skutil.RemoveAll(pathToArchives)
+
 	}
 	defer skutil.RemoveAll(pathToPagesets)
-
-	// Download archives if they do not exist locally.
-	pathToArchives := filepath.Join(util.WebArchivesDir, *pagesetType)
-	if _, err := gs.DownloadSwarmingArtifacts(pathToArchives, util.WEB_ARCHIVES_DIR_NAME, *pagesetType, *startRange, *num); err != nil {
-		glog.Fatal(err)
-	}
-	defer skutil.RemoveAll(pathToArchives)
 
 	// Establish nopatch output paths.
 	localOutputDir := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID)
