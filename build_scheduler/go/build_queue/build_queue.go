@@ -279,7 +279,7 @@ func (q *BuildQueue) updateRepo(repo *repograph.Graph, now time.Time) (map[strin
 	for _, buildsForCommit := range buildsByCommit {
 		for _, build := range buildsForCommit {
 			if rule := q.bl.MatchRule(build.Builder, ""); rule != "" {
-				glog.Warningf("Skipping blacklisted builder: %s due to rule %q", build.Builder, rule)
+				//glog.Warningf("Skipping blacklisted builder: %s due to rule %q", build.Builder, rule)
 				continue
 			}
 			if _, ok := buildCaches[build.Builder]; !ok {
@@ -386,7 +386,7 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []*repograph
 	foundBranches := map[string]bool{}
 	for _, commit := range recentCommits {
 		if rule := q.bl.MatchRule(bc.Builder, commit.Hash); rule != "" {
-			glog.Warningf("Skipping blacklisted builder/commit: %s @ %s due to rule %q", bc.Builder, commit.Hash, rule)
+			//glog.Warningf("Skipping blacklisted builder/commit: %s @ %s due to rule %q", bc.Builder, commit.Hash, rule)
 			continue
 		}
 		// Shortcut: Don't bisect builds with a huge number
@@ -545,7 +545,7 @@ func (q *BuildQueue) Pop(builders []string) (*BuildCandidate, error) {
 				return nil, fmt.Errorf("Unable to retrieve commit at HEAD of master.")
 			}
 			if rule := q.bl.MatchRule(builder, commit.Hash); rule != "" {
-				glog.Warningf("Skipping blacklisted builder/commit: %s @ %s due to rule %q", builder, commit.Hash, rule)
+				//glog.Warningf("Skipping blacklisted builder/commit: %s @ %s due to rule %q", builder, commit.Hash, rule)
 				continue
 			}
 			best = &BuildCandidate{

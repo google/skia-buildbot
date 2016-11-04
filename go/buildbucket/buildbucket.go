@@ -54,19 +54,19 @@ type Error struct {
 }
 
 type Properties struct {
-	AttemptStartTs   int64            `json:"attempt_start_ts"`
-	Category         string           `json:"category"`
-	Gerrit           string           `json:"patch_gerrit_url"`
-	GerritIssue      jsonutils.Number `json:"patch_issue"`
-	GerritPatchset   string           `json:"patch_ref"`
-	Master           string           `json:"master"`
-	PatchProject     string           `json:"patch_project"`
-	PatchStorage     string           `json:"patch_storage"`
-	Reason           string           `json:"reason"`
+	AttemptStartTs   int64            `json:"attempt_start_ts,omitempty"`
+	Category         string           `json:"category,omitempty"`
+	Gerrit           string           `json:"patch_gerrit_url,omitempty"`
+	GerritIssue      jsonutils.Number `json:"patch_issue,omitempty"`
+	GerritPatchset   string           `json:"patch_ref,omitempty"`
+	Master           string           `json:"master,omitempty"`
+	PatchProject     string           `json:"patch_project,omitempty"`
+	PatchStorage     string           `json:"patch_storage,omitempty"`
+	Reason           string           `json:"reason,omitempty"`
 	Revision         string           `json:"revision,omitempty"`
-	Rietveld         string           `json:"rietveld"`
-	RietveldIssue    jsonutils.Number `json:"issue"`
-	RietveldPatchset jsonutils.Number `json:"patchset"`
+	Rietveld         string           `json:"rietveld,omitempty"`
+	RietveldIssue    jsonutils.Number `json:"issue,omitempty"`
+	RietveldPatchset jsonutils.Number `json:"patchset,omitempty"`
 }
 
 type Parameters struct {
