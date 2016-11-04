@@ -34,15 +34,16 @@ const (
 	MAX_URI_GET_TRIES = 4
 
 	// Pageset types supported by CT.
-	PAGESET_TYPE_ALL         = "All"
-	PAGESET_TYPE_100k        = "100k"
-	PAGESET_TYPE_MOBILE_100k = "Mobile100k"
-	PAGESET_TYPE_10k         = "10k"
-	PAGESET_TYPE_MOBILE_10k  = "Mobile10k"
-	PAGESET_TYPE_PDF_400m    = "PDF400m"
-	PAGESET_TYPE_PDF_1m      = "PDF1m"
-	PAGESET_TYPE_PDF_1k      = "PDF1k"
-	PAGESET_TYPE_DUMMY_1k    = "Dummy1k" // Used for testing.
+	PAGESET_TYPE_ALL           = "All"
+	PAGESET_TYPE_100k          = "100k"
+	PAGESET_TYPE_MOBILE_100k   = "Mobile100k"
+	PAGESET_TYPE_10k           = "10k"
+	PAGESET_TYPE_MOBILE_10k    = "Mobile10k"
+	PAGESET_TYPE_PDF_400m      = "PDF400m"
+	PAGESET_TYPE_PDF_1m        = "PDF1m"
+	PAGESET_TYPE_PDF_1k        = "PDF1k"
+	PAGESET_TYPE_TRANSLATE_48k = "Translate48k"
+	PAGESET_TYPE_DUMMY_1k      = "Dummy1k" // Used for testing.
 
 	// Names of binaries executed by CT.
 	BINARY_CHROME        = "chrome"
@@ -305,6 +306,16 @@ var (
 			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "PDF 1K",
+		},
+		PAGESET_TYPE_TRANSLATE_48k: &PagesetTypeInfo{
+			NumPages:                   48000,
+			CSVSource:                  "csv/translate-48k.csv",
+			UserAgent:                  "desktop",
+			CreatePagesetsTimeoutSecs:  1800,
+			CaptureArchivesTimeoutSecs: 300,
+			CaptureSKPsTimeoutSecs:     300,
+			RunChromiumPerfTimeoutSecs: 300,
+			Description:                "Translate 48K",
 		},
 	}
 
