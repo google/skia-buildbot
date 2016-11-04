@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8b50234a_7b91fb9b",
+        "filename": "perf/go/dataframe/warmer.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-04T16:31:25Z",
+      "side": 1,
+      "message": "I understand the reasoning for doing this once after startup, but if the data later gets evicted from the disk cache, doesn\u0027t that mean something more important took its place?",
+      "revId": "42ce492abd783834c60a21db1ccebf9bcc8253ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b50234a_bb8a7366",
+        "filename": "perf/go/dataframe/warmer.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-04T16:31:25Z",
+      "side": 1,
+      "message": "Do you mean -365?",
+      "range": {
+        "startLine": 32,
+        "startChar": 25,
+        "endLine": 32,
+        "endChar": 28
+      },
+      "revId": "42ce492abd783834c60a21db1ccebf9bcc8253ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
