@@ -331,7 +331,7 @@ func tempGitRepoTests(t *testing.T, repo *repograph.Graph, cases map[db.RepoStat
 }
 
 func TestTempGitRepo(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	gb, c1, c2 := tempGitRepoSetup(t)
 	defer gb.Cleanup()
 
@@ -359,7 +359,7 @@ func TestTempGitRepo(t *testing.T) {
 }
 
 func TestTempGitRepoPatch(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	t.Skip("This test uploads to production servers. Don't run it by default.")
 
 	gb, _, c2 := tempGitRepoSetup(t)
