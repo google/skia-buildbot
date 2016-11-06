@@ -75,6 +75,24 @@
       "revId": "a61a5b81f06c9a4a653ebc0619f7e2787c4c8e0f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebc99f45_a5c132ec",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-06T12:28:53Z",
+      "side": 1,
+      "message": "IMO, it would be more intuitive for CommitSlice to sort in chronological order, and when we want reverse chronological order, just use sort.Reverse.",
+      "parentUuid": "ebc99f45_34449665",
+      "revId": "a61a5b81f06c9a4a653ebc0619f7e2787c4c8e0f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
