@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ebc99f45_777d3b5d",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1523,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-07T15:43:00Z",
+      "side": 1,
+      "message": "nit: do you mean 307?\nnit: http.StatusTemporaryRedirect (or http.StatusFound if you really mean 302)\n\nx2",
+      "range": {
+        "startLine": 1523,
+        "startChar": 78,
+        "endLine": 1523,
+        "endChar": 81
+      },
+      "revId": "665ece9b17999db0cc8bdf41ff5ca1fd463fc1b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebc99f45_3777b37f",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1601,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-07T15:43:00Z",
+      "side": 1,
+      "message": "Not yet used?",
+      "range": {
+        "startLine": 1601,
+        "startChar": 20,
+        "endLine": 1601,
+        "endChar": 22
+      },
+      "revId": "665ece9b17999db0cc8bdf41ff5ca1fd463fc1b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebc99f45_57a03fdd",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-07T15:43:00Z",
+      "side": 1,
+      "message": "intentionally commented?",
+      "range": {
+        "startLine": 328,
+        "startChar": 8,
+        "endLine": 328,
+        "endChar": 10
+      },
+      "revId": "665ece9b17999db0cc8bdf41ff5ca1fd463fc1b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
