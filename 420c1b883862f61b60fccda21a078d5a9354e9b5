@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2bde5729_e3738603",
+        "filename": "task_scheduler/go/db/recovery/backups.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-07T22:06:46Z",
+      "side": 1,
+      "message": "IIRC you can have GS do the gzip for you, so the file can just be *.bdb",
+      "range": {
+        "startLine": 30,
+        "startChar": 70,
+        "endLine": 30,
+        "endChar": 72
+      },
+      "revId": "420c1b883862f61b60fccda21a078d5a9354e9b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb12ff1_5d76cb4a",
+        "filename": "task_scheduler/go/db/recovery/backups.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-07T22:06:46Z",
+      "side": 1,
+      "message": "Why not return the error?",
+      "range": {
+        "startLine": 280,
+        "startChar": 7,
+        "endLine": 280,
+        "endChar": 13
+      },
+      "revId": "420c1b883862f61b60fccda21a078d5a9354e9b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bd84f3b_7376684b",
+        "filename": "task_scheduler/go/db/recovery/backups.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-07T22:06:46Z",
+      "side": 1,
+      "message": "I\u0027m confused: IIUC, we only write the trigger file when backupDB fails, but we only attempt to run backupDB when a trigger file already exists.\n\nedit: Oh, the file is created nightly by the backup trigger process.",
+      "range": {
+        "startLine": 296,
+        "startChar": 34,
+        "endLine": 296,
+        "endChar": 57
+      },
+      "revId": "420c1b883862f61b60fccda21a078d5a9354e9b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bb12ff1_7d170fb9",
+        "filename": "task_scheduler/go/db/recovery/backups.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-07T22:06:46Z",
+      "side": 1,
+      "message": "Why bother with these no-ops right now?",
+      "range": {
+        "startLine": 326,
+        "startChar": 16,
+        "endLine": 326,
+        "endChar": 40
+      },
+      "revId": "420c1b883862f61b60fccda21a078d5a9354e9b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
