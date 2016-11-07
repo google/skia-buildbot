@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ebc99f45_8d7bf8e0",
+        "filename": "status/go/build_cache/build_cache.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-07T17:47:54Z",
+      "side": 1,
+      "message": "Sorry for being slow. It appears that this deadlocks, since c.getBulderList() attempts to acquire c.mutex.",
+      "revId": "be638fac6b42a1be21f18ff814b399010e855ff0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
