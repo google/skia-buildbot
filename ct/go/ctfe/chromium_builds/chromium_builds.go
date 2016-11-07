@@ -132,8 +132,8 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 		chromiumRevTs = parsedTs.UTC().Format("20060102150405")
 	}
 	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{"chromium_rev", task.ChromiumRev, 100},
-		{"skia_rev", task.SkiaRev, 100},
+		{Name: "chromium_rev", Value: task.ChromiumRev, Limit: 100},
+		{Name: "skia_rev", Value: task.SkiaRev, Limit: 100},
 	}); err != nil {
 		return "", nil, err
 	}
