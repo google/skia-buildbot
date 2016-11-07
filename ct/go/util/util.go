@@ -575,6 +575,7 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	timeoutSecs := PagesetTypeToInfo[pagesetType].RunChromiumPerfTimeoutSecs
 	if err := ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
 		if retWebpageFailErr {
+			// TODO(rmistry): Remove this. Make sure you use the android stuff below.
 			return fmt.Errorf("Run benchmark command failed with: %s", err)
 		} else {
 			glog.Errorf("Run benchmark command failed with: %s", err)
