@@ -19,7 +19,7 @@ task_scheduler: core_js elements_html skiaversion
 	go install -v ./go/task_scheduler
 
 testgo: skiaversion
-	go test ./go/... -v
+	go test ./go/... -v --small --medium
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug

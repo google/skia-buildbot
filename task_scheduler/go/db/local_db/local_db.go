@@ -5,19 +5,16 @@ import (
 	"encoding/binary"
 	"encoding/gob"
 	"fmt"
-	"net/http"
+	"io"
 	"path"
 	"sort"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/boltdb/bolt"
-	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/boltutil"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -293,7 +290,7 @@ func jobsBucket(tx *bolt.Tx) *bolt.Bucket {
 }
 
 // NewDB returns a local DB instance.
-func NewDB(name, filename string) (db.DBCloser, error) {
+func NewDB(name, filename string) (db.BackupDBCloser, error) {
 	boltdb, err := bolt.Open(filename, 0600, nil)
 	if err != nil {
 		return nil, err
@@ -813,22 +810,22 @@ func (d *localDB) writeCommentsMap(comments map[string]*db.RepoComments) error {
 	})
 }
 
-// RunBackupServer runs an HTTP server which provides downloadable database
-// backups.
-func (d *localDB) RunBackupServer(port string) error {
-	r := mux.NewRouter()
-	r.HandleFunc("/backup", func(w http.ResponseWriter, r *http.Request) {
-		if err := d.view("Backup", func(tx *bolt.Tx) error {
-			w.Header().Set("Content-Type", "application/octet-stream")
-			w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", d.filename))
-			w.Header().Set("Content-Length", strconv.Itoa(int(tx.Size())))
-			_, err := tx.WriteTo(w)
-			return err
-		}); err != nil {
-			glog.Errorf("Failed to create DB backup: %s", err)
-			httputils.ReportError(w, r, err, "Failed to create DB backup")
-		}
+// See docs for BackupDBCloser interface.
+func (d *localDB) WriteBackup(w io.Writer) error {
+	return d.view("WriteBackup", func(tx *bolt.Tx) error {
+		_, err := tx.WriteTo(w)
+		return err
 	})
-	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	return http.ListenAndServe(port, nil)
+}
+
+// See docs for BackupDBCloser interface.
+func (d *localDB) SetIncrementalBackupTime(time.Time) error {
+	// TODO(benjaminwagner): Implement along with incremental backups.
+	return nil
+}
+
+// See docs for BackupDBCloser interface.
+func (d *localDB) GetIncrementalBackupTime() (time.Time, error) {
+	// TODO(benjaminwagner): Implement along with incremental backups.
+	return time.Now(), nil
 }
