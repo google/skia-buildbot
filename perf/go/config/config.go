@@ -31,6 +31,10 @@ const (
 	// Different datasets that are stored in tiles.
 	DATASET_NANO = "nano"
 
+	// GOTO_RANGE is the number of commits on either side of a target
+	// commit we will display when going through the goto redirector.
+	GOTO_RANGE = 10
+
 	// Constructor names that are used to instantiate an ingester.
 	// Note that, e.g. 'android-gold' has a different ingester, but writes
 	// to the gold dataset.
