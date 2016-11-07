@@ -1471,6 +1471,61 @@ func keysHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// gotoHandler handles redirecting from a git hash to either the explore page
+// or the clustering page.
+//
+// Sets begin and end to a range of commits on either side of the selected
+// commit.
+func gotoHandler(w http.ResponseWriter, r *http.Request) {
+	hash := mux.Vars(r)["hash"]
+	dest := mux.Vars(r)["dest"]
+	index, err := git.IndexOf(hash)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Could not look up git hash.")
+		return
+	}
+	last := git.LastN(1)
+	if len(last) != 1 {
+		httputils.ReportError(w, r, fmt.Errorf("gitinfo.LastN(1) returned 0 hashes."), "Failed to find last hash.")
+		return
+	}
+	lastIndex, err := git.IndexOf(last[0])
+	if err != nil {
+		httputils.ReportError(w, r, err, "Could not look up last git hash.")
+		return
+	}
+	begin := index - config.GOTO_RANGE
+	if begin < 0 {
+		begin = 0
+	}
+	end := index + config.GOTO_RANGE
+	if end > lastIndex {
+		end = lastIndex
+	}
+	details, err := cidl.Lookup([]*cid.CommitID{
+		&cid.CommitID{
+			Offset: begin,
+			Source: "master",
+		},
+		&cid.CommitID{
+			Offset: end,
+			Source: "master",
+		},
+	})
+	if err != nil {
+		httputils.ReportError(w, r, err, "Could not convert indices to hashes.")
+		return
+	}
+	beginTime := details[0].Timestamp
+	endTime := details[1].Timestamp + 1
+
+	if dest == "e" {
+		http.Redirect(w, r, fmt.Sprintf("/e/?begin=%d&end=%d", beginTime, endTime), 302)
+	} else if dest == "c" {
+		http.Redirect(w, r, fmt.Sprintf("/c/?begin=%d&end=%d&offset=%d&source=master", beginTime, endTime, index), 302)
+	}
+}
+
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -1541,8 +1596,9 @@ func main() {
 	router.HandleFunc("/", templateHandler("index.html"))
 
 	// New endpoints that use ptracestore will go here.
-	router.HandleFunc("/new/", templateHandler("newindex.html"))
-	router.HandleFunc("/newCluster/", templateHandler("clusters2.html"))
+	router.HandleFunc("/e/", templateHandler("newindex.html"))
+	router.HandleFunc("/c/", templateHandler("clusters2.html"))
+	router.HandleFunc("/g/{dest:[ec]}/{hash:[a-zA-Z0-9]+}", gotoHandler)
 	router.HandleFunc("/_/initpage/", initpageHandler)
 	router.HandleFunc("/_/cidRange/", cidRangeHandler)
 	router.HandleFunc("/_/count/", countHandler)
