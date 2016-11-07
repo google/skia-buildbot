@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "ebc99f45_9745478e",
+        "filename": "go/mockhttpclient/muxclient_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-07T15:08:46Z",
+      "side": 1,
+      "message": "I know, but that\u0027s what gofmt does.",
+      "parentUuid": "ebc99f45_977b07e1",
+      "revId": "e97ceaf0aa0739c41e03f39c564f2f5a767a7a68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ebc99f45_d770aff9",
         "filename": "go/pdf/pdf_test.go",
         "patchSetId": 4
@@ -42,6 +60,24 @@
         "endLine": 56,
         "endChar": 4
       },
+      "revId": "e97ceaf0aa0739c41e03f39c564f2f5a767a7a68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebc99f45_771c5b7e",
+        "filename": "go/pdf/pdf_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-07T15:08:46Z",
+      "side": 1,
+      "message": "Did not know about this, thanks.",
+      "parentUuid": "ebc99f45_d770aff9",
       "revId": "e97ceaf0aa0739c41e03f39c564f2f5a767a7a68",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
