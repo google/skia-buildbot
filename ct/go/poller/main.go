@@ -154,9 +154,10 @@ type ChromiumAnalysisTask struct {
 func (task *ChromiumAnalysisTask) Execute() error {
 	runId := runId(task)
 	for fileSuffix, patch := range map[string]string{
-		".chromium.patch":  task.ChromiumPatch,
-		".catapult.patch":  task.CatapultPatch,
-		".benchmark.patch": task.BenchmarkPatch,
+		".chromium.patch":      task.ChromiumPatch,
+		".catapult.patch":      task.CatapultPatch,
+		".benchmark.patch":     task.BenchmarkPatch,
+		".custom_webpages.csv": task.CustomWebpages,
 	} {
 		// Add an extra newline at the end because git sometimes rejects patches due to
 		// missing newlines.

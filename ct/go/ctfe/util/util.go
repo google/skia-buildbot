@@ -5,11 +5,15 @@
 package util
 
 import (
+	"encoding/csv"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"text/template"
 
+	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 )
@@ -119,4 +123,38 @@ func CheckLengths(checks []LengthCheck) error {
 		}
 	}
 	return nil
+}
+
+func GetQualifiedCustomWebpages(customWebpages, benchmarkArgs string) ([]string, error) {
+	qualifiedWebpages := []string{}
+	if customWebpages != "" {
+		if !strings.Contains(benchmarkArgs, util.USE_LIVE_SITES_FLAGS) {
+			return nil, errors.New("Cannot use custom webpages without " + util.USE_LIVE_SITES_FLAGS)
+		}
+		r := csv.NewReader(strings.NewReader(customWebpages))
+		for {
+			records, err := r.Read()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				return nil, err
+			}
+			for _, record := range records {
+				if strings.TrimSpace(record) == "" {
+					return nil, errors.New("Cannot specify empty webpages")
+				}
+				var qualifiedWebpage string
+				if strings.HasPrefix(record, "http://") || strings.HasPrefix(record, "https://") {
+					qualifiedWebpage = record
+				} else if len(strings.Split(record, ".")) > 2 {
+					qualifiedWebpage = fmt.Sprintf("http://%s", record)
+				} else {
+					qualifiedWebpage = fmt.Sprintf("http://www.%s", record)
+				}
+				qualifiedWebpages = append(qualifiedWebpages, qualifiedWebpage)
+			}
+		}
+	}
+	return qualifiedWebpages, nil
 }

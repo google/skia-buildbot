@@ -109,6 +109,7 @@
         <td>PageSets Type</td>
         <td>
           <page-set-selector-sk id="page_sets" page-sets="{{pageSets}}"></page-set-selector-sk>
+          <custom-webpages-sk id="custom_webpages"></custom-webpages-sk>
         </td>
       </tr>
 
@@ -337,6 +338,7 @@
        var params = {};
        params["benchmark"] = this.selectedBenchmarkName;
        params["page_sets"] = this.$.page_sets.selected;
+       params["custom_webpages"] = this.$.custom_webpages.webpages;
        params["benchmark_args"] = this.$.benchmark_args.value;
        params["browser_args"] = this.$.browser_args.value;
        params["desc"] = this.$.desc.value;

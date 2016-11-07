@@ -359,7 +359,7 @@ func GetStartRange(workerNum, artifactsPerWorker int) int {
 	return ((workerNum - 1) * artifactsPerWorker) + 1
 }
 
-func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot int, isolateExtraArgs, dimensions map[string]string) error {
+func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs, dimensions map[string]string) error {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir("", "swarming_work_")
 	if err != nil {
@@ -375,7 +375,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 	// Get path to isolate files.
 	_, currentFile, _, _ := runtime.Caller(0)
 	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
-	numTasks := int(math.Ceil(float64(PagesetTypeToInfo[pagesetType].NumPages) / float64(maxPagesPerBot)))
+	numTasks := int(math.Ceil(float64(numPages) / float64(maxPagesPerBot)))
 	for i := 1; i <= numTasks; i++ {
 		isolateArgs := map[string]string{
 			"START_RANGE":  strconv.Itoa(GetStartRange(i, maxPagesPerBot)),
@@ -461,7 +461,8 @@ func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GsUtil, totalPages, nu
 	util.MkdirAll(localOutputDir, 0700)
 	noOutputSlaves := []string{}
 	// Copy outputs from all slaves locally.
-	for i := 0; i < totalPages/numPerWorker; i++ {
+	numTasks := int(math.Ceil(float64(totalPages) / float64(numPerWorker)))
+	for i := 0; i < numTasks; i++ {
 		startRange := (i * numPerWorker) + 1
 		workerLocalOutputPath := filepath.Join(localOutputDir, strconv.Itoa(startRange)+".csv")
 		workerRemoteOutputPath := filepath.Join(BenchmarkRunsDir, runID, strconv.Itoa(startRange), "outputs", runID+".output")
@@ -783,9 +784,9 @@ func DownloadAndApplyPatch(patchName, localDir, remotePatchesDir, checkout strin
 }
 
 // GetArchivesNum returns the number of archives for the specified pagesetType.
-// -1 is returned if --use-live-sites is specified or if there is an error.
+// -1 is returned if USE_LIVE_SITES_FLAGS is specified or if there is an error.
 func GetArchivesNum(gs *GsUtil, benchmarkArgs, pagesetType string) (int, error) {
-	if strings.Contains(benchmarkArgs, "--use-live-sites") {
+	if strings.Contains(benchmarkArgs, USE_LIVE_SITES_FLAGS) {
 		return -1, nil
 	}
 	// Calculate the number of archives the workers worked with.
@@ -803,4 +804,82 @@ func GetArchivesNum(gs *GsUtil, benchmarkArgs, pagesetType string) (int, error) 
 func GetHashesFromBuild(chromiumBuild string) (string, string) {
 	tokens := strings.Split(chromiumBuild, "-")
 	return tokens[1], tokens[2]
+}
+
+// GetNumPages returns the number of specified custom webpages. If Custom
+// webpages are not specified then the number of pages associated with the
+// pageset type is returned.
+func GetNumPages(pagesetType, customWebPagesFilePath string) (int, error) {
+	customPages, err := GetCustomPages(customWebPagesFilePath)
+	if err != nil {
+		return PagesetTypeToInfo[pagesetType].NumPages, err
+	}
+	if len(customPages) == 0 {
+		return PagesetTypeToInfo[pagesetType].NumPages, nil
+	}
+	return len(customPages), nil
+}
+
+// GetCustomPages returns the specified custom webpages. If Custom
+// webpages are not specified then it returns an empty slice.
+func GetCustomPages(customWebPagesFilePath string) ([]string, error) {
+	csvFile, err := os.Open(customWebPagesFilePath)
+	if err != nil {
+		return nil, err
+	}
+	defer util.Close(csvFile)
+	reader := csv.NewReader(csvFile)
+	customPages := []string{}
+	for {
+		records, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		for _, record := range records {
+			if strings.TrimSpace(record) == "" {
+				continue
+			}
+			customPages = append(customPages, record)
+		}
+	}
+	return customPages, nil
+}
+
+func CreateCustomPagesets(webpages []string, pagesetsDir string) error {
+	// Empty the local dir.
+	util.RemoveAll(pagesetsDir)
+	// Create the local dir.
+	util.MkdirAll(pagesetsDir, 0700)
+	for i, w := range webpages {
+		pagesetPath := filepath.Join(pagesetsDir, fmt.Sprintf("%d.py", i))
+		if err := WritePageset(pagesetPath, DEFAULT_CUSTOM_PAGE_USERAGENT, DEFAULT_CUSTOM_PAGE_ARCHIVEPATH, w); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type Pageset struct {
+	UserAgent       string `json:"user_agent"`
+	ArchiveDataFile string `json:"archive_data_file"`
+	UrlsList        string `json:"urls_list"`
+}
+
+func WritePageset(filePath, userAgent, archiveFilePath, url string) error {
+	pageSet := Pageset{
+		UserAgent:       userAgent,
+		ArchiveDataFile: archiveFilePath,
+		UrlsList:        url,
+	}
+	b, err := json.Marshal(pageSet)
+	if err != nil {
+		return err
+	}
+	if err := ioutil.WriteFile(filePath, b, 0644); err != nil {
+		return err
+	}
+	return nil
 }

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"text/template"
 
 	"github.com/gorilla/mux"
@@ -46,6 +47,7 @@ type DBTask struct {
 
 	Benchmark      string         `db:"benchmark"`
 	PageSets       string         `db:"page_sets"`
+	CustomWebpages string         `db:"custom_webpages"`
 	BenchmarkArgs  string         `db:"benchmark_args"`
 	BrowserArgs    string         `db:"browser_args"`
 	Description    string         `db:"description"`
@@ -69,6 +71,7 @@ func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars.RepeatAfterDays = strconv.FormatInt(dbTask.RepeatAfterDays, 10)
 	taskVars.Benchmark = dbTask.Benchmark
 	taskVars.PageSets = dbTask.PageSets
+	taskVars.CustomWebpages = dbTask.CustomWebpages
 	taskVars.BenchmarkArgs = dbTask.BenchmarkArgs
 	taskVars.BrowserArgs = dbTask.BrowserArgs
 	taskVars.Description = dbTask.Description
@@ -112,6 +115,7 @@ type AddTaskVars struct {
 
 	Benchmark      string `json:"benchmark"`
 	PageSets       string `json:"page_sets"`
+	CustomWebpages string `json:"custom_webpages"`
 	BenchmarkArgs  string `json:"benchmark_args"`
 	BrowserArgs    string `json:"browser_args"`
 	Description    string `json:"desc"`
@@ -130,6 +134,10 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 		task.Description == "" {
 		return "", nil, fmt.Errorf("Invalid parameters")
 	}
+	customWebpages, err := ctfeutil.GetQualifiedCustomWebpages(task.CustomWebpages, task.BenchmarkArgs)
+	if err != nil {
+		return "", nil, err
+	}
 	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
 		{Name: "benchmark", Value: task.Benchmark, Limit: 100},
 		{Name: "platform", Value: task.Platform, Limit: 100},
@@ -137,6 +145,7 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 		{Name: "benchmark_args", Value: task.BenchmarkArgs, Limit: 255},
 		{Name: "browser_args", Value: task.BrowserArgs, Limit: 255},
 		{Name: "desc", Value: task.Description, Limit: 255},
+		{Name: "custom_webpages", Value: strings.Join(customWebpages, ","), Limit: db.LONG_TEXT_MAX_LENGTH},
 		{Name: "chromium_patch", Value: task.ChromiumPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
 		{Name: "catapult_patch", Value: task.CatapultPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
 		{Name: "benchmark_patch", Value: task.BenchmarkPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
@@ -151,12 +160,13 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 	if task.RunOnGCE {
 		runOnGCE = 1
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,benchmark,page_sets,benchmark_args,browser_args,description,chromium_patch,catapult_patch,benchmark_patch,ts_added,repeat_after_days,run_in_parallel,platform,run_on_gce) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
+	return fmt.Sprintf("INSERT INTO %s (username,benchmark,page_sets,custom_webpages,benchmark_args,browser_args,description,chromium_patch,catapult_patch,benchmark_patch,ts_added,repeat_after_days,run_in_parallel,platform,run_on_gce) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
 			db.TABLE_CHROMIUM_ANALYSIS_TASKS),
 		[]interface{}{
 			task.Username,
 			task.Benchmark,
 			task.PageSets,
+			strings.Join(customWebpages, ","),
 			task.BenchmarkArgs,
 			task.BrowserArgs,
 			task.Description,

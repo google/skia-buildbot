@@ -320,6 +320,14 @@ var v16_down = []string{
 	`ALTER TABLE ChromiumAnalysisTasks DROP run_on_gce`,
 }
 
+var v17_up = []string{
+	`ALTER TABLE ChromiumAnalysisTasks ADD custom_webpages longtext NOT NULL DEFAULT ""`,
+}
+
+var v17_down = []string{
+	`ALTER TABLE ChromiumAnalysisTasks DROP custom_webpages`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -403,6 +411,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v16_up,
 		MySQLDown: v16_down,
+	},
+	// version 17: Add custom_webpages to ChromiumAnalysisTasks.
+	{
+		MySQLUp:   v17_up,
+		MySQLDown: v17_down,
 	},
 }
 
