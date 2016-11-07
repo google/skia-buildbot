@@ -25,7 +25,7 @@ const (
 )
 
 func TestIssueStore(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	const N_ISSUES = 20
 
 	// Add a number of issues
