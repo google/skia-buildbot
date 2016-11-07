@@ -119,6 +119,24 @@
     },
     {
       "key": {
+        "uuid": "2bde5729_7dfab704",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-07T18:56:34Z",
+      "side": 1,
+      "message": "Hmm. I\u0027m a little surprised that one line of ~1MB is less crashy than 40k lines of ~20 chars.\n\nI think \"list\" is a bit more accurate than \"CSV,\" and makes it clearer that both newline-separated and comma-separated are ok.",
+      "parentUuid": "ebc99f45_cd202064",
+      "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ebc99f45_8a7bdee0",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 18
@@ -154,6 +172,24 @@
     },
     {
       "key": {
+        "uuid": "2bde5729_fd7087f9",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-07T18:56:34Z",
+      "side": 1,
+      "message": "Ok, we should be careful of XSS attacks from echoing user input.",
+      "parentUuid": "2bad776a_3176eb4a",
+      "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ebc99f45_0aea8ec3",
         "filename": "ct/go/util/util.go",
         "patchSetId": 18
@@ -183,6 +219,24 @@
       "side": 1,
       "message": "Done. Not sure why the dry run succeeded without this.",
       "parentUuid": "ebc99f45_0aea8ec3",
+      "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2bde5729_dd5d8b5d",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 830,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-07T18:56:34Z",
+      "side": 1,
+      "message": "I think it\u0027s only run by presubmit, not the dry run. Maybe Eric can fix it?",
+      "parentUuid": "6bd84f3b_dffe5b44",
       "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
