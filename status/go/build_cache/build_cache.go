@@ -140,12 +140,12 @@ func (c *BuildCache) getBuilderList() []string {
 // updateBuilderComments updates the comments for all builders.
 func (c *BuildCache) updateBuilderComments() error {
 	defer timer.New("BuildCache.updateBuilderComments").Stop()
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 	builderComments, err := c.db.GetBuildersComments(c.getBuilderList())
 	if err != nil {
 		return err
 	}
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
 	c.builderComments = builderComments
 	return nil
 }
