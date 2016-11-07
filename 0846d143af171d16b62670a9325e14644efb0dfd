@@ -42,6 +42,42 @@
     },
     {
       "key": {
+        "uuid": "ebc99f45_6d548cdf",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-11-07T18:38:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ebc99f45_6a76b2fd",
+      "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebc99f45_0d65c8cb",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-11-07T18:38:02Z",
+      "side": 1,
+      "message": "I tested with newlines, AFAICT GetQualifiedCustomWebpages seems to be doing the right thing.",
+      "parentUuid": "ebc99f45_ca0c865b",
+      "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ebc99f45_4a2176c8",
         "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
         "patchSetId": 18
@@ -65,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "ebc99f45_cd202064",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-11-07T18:38:02Z",
+      "side": 1,
+      "message": "I went with CSV to try to keep things compact. Pasting 40k webpages one per line in the text box seems to cause more crashiness than pasting 40k webpages on a single line separated by commas. Though the UI still seems to handle different kinds of inputs. Eg:\n\"\"\"\ntest1\ntest2\ntest3\ntest4\n\"\"\"\nand\n\"\"\"\ntest1,test2\ntest3,test4\n\"\"\"\nand\n\"\"\"\ntest1,test2,test3,test4\n\"\"\"\n\nDo you recommend I change \"Specify custom CSV of web pages\" to \"Specify custom list of web pages\"?",
+      "parentUuid": "ebc99f45_4a2176c8",
+      "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ebc99f45_8a7bdee0",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 18
@@ -76,6 +130,24 @@
       "writtenOn": "2016-11-07T17:34:18Z",
       "side": 1,
       "message": "Do we know that err is HTML-safe?",
+      "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2bad776a_3176eb4a",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-11-07T18:38:02Z",
+      "side": 1,
+      "message": "I think so, but not sure. I wanted a way to display to users the errors in GetQualifiedCustomWebpages.",
+      "parentUuid": "ebc99f45_8a7bdee0",
       "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -99,6 +171,24 @@
     },
     {
       "key": {
+        "uuid": "6bd84f3b_dffe5b44",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 830,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-11-07T18:38:02Z",
+      "side": 1,
+      "message": "Done. Not sure why the dry run succeeded without this.",
+      "parentUuid": "ebc99f45_0aea8ec3",
+      "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ebc99f45_8ab0bede",
         "filename": "ct/go/worker_scripts/run_chromium_analysis/main.go",
         "patchSetId": 18
@@ -110,6 +200,24 @@
       "writtenOn": "2016-11-07T17:34:18Z",
       "side": 1,
       "message": "nit: Would making this conditional on USE_LIVE_SITES_FLAGS be more accurate than conditional on customWebpages?",
+      "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2bde5729_bd7c3f26",
+        "filename": "ct/go/worker_scripts/run_chromium_analysis/main.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-11-07T18:38:02Z",
+      "side": 1,
+      "message": "Yes that is better. Done.",
+      "parentUuid": "ebc99f45_8ab0bede",
       "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -133,6 +241,24 @@
         "endLine": 112,
         "endChar": 72
       },
+      "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2bde5729_5d8fbb0a",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 18
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-11-07T18:38:02Z",
+      "side": 1,
+      "message": "Yes I was worried about that but it makes things far easier to keep the current flow of pagesets the same and only use custom webpages if they are specified.\nI will revisit this if users report confusion.",
+      "parentUuid": "ebc99f45_add4b4d1",
       "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
