@@ -184,6 +184,8 @@ func main() {
 	// the workers (acting as "readers") when it wants to be the "writer" and
 	// kill all zombie chrome processes.
 	var mutex sync.RWMutex
+	var timeoutsCounterMutex sync.RWMutex
+	timeoutsCounter := 0
 
 	// Loop through workers in the worker pool.
 	for i := 0; i < numWorkers; i++ {
@@ -198,17 +200,29 @@ func main() {
 			for pagesetName := range pagesetRequests {
 
 				mutex.RLock()
-				if err := util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDirNoPatch, *chromiumBuildNoPatch, chromiumBinaryNoPatch, runIDNoPatch, *browserExtraArgsNoPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark, false); err != nil {
-					glog.Errorf("Error while running nopatch benchmark: %s", err)
-					mutex.RUnlock()
-					continue
+				if err := util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDirNoPatch, *chromiumBuildNoPatch, chromiumBinaryNoPatch, runIDNoPatch, *browserExtraArgsNoPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark, true /* retWebpageFailErr */); err != nil {
+					if strings.Contains(err.Error(), "Command killed since it took longer than") {
+						// TODO(rmistry): Move into a function!
+						timeoutsCounterMutex.Lock()
+						timeoutsCounter++
+						timeoutsCounterMutex.Unlock()
+					}
 				}
-				if err := util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDirWithPatch, *chromiumBuildWithPatch, chromiumBinaryWithPatch, runIDWithPatch, *browserExtraArgsWithPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark, false); err != nil {
-					glog.Errorf("Error while running withpatch benchmark: %s", err)
-					mutex.RUnlock()
-					continue
+				if err := util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDirWithPatch, *chromiumBuildWithPatch, chromiumBinaryWithPatch, runIDWithPatch, *browserExtraArgsWithPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark, true /* retWebpageFailErr */); err != nil {
+					if strings.Contains(err.Error(), "Command killed since it took longer than") {
+						// TODO(rmistry): Move into a function!
+						timeoutsCounterMutex.Lock()
+						timeoutsCounter++
+						timeoutsCounterMutex.Unlock()
+					}
 				}
 				mutex.RUnlock()
+				// Check for the too many timeouts here with a mutext thingy....
+				timeoutsCounterMutex.RLock()
+				if timeoutsCounter > 10 {
+					glog.Fatalf("Ran into 20 sequential timeouts. Something is wrong. Killing the task!", pathToPagesets, err)
+				}
+				timeoutsCounterMutex.RUnlock()
 			}
 		}()
 	}

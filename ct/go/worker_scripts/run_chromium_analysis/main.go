@@ -188,7 +188,7 @@ func main() {
 				// Retry run_benchmark binary 3 times if there are any errors.
 				retryAttempts := 3
 				for i := 0; ; i++ {
-					err = util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinary, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, -1, true)
+					err = util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinary, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, -1, true /* retWebpageFailErr */)
 					if err == nil {
 						break
 					}
