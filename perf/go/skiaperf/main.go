@@ -1520,9 +1520,9 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 	endTime := details[1].Timestamp + 1
 
 	if dest == "e" {
-		http.Redirect(w, r, fmt.Sprintf("/e/?begin=%d&end=%d", beginTime, endTime), 302)
+		http.Redirect(w, r, fmt.Sprintf("/e/?begin=%d&end=%d", beginTime, endTime), http.StatusFound)
 	} else if dest == "c" {
-		http.Redirect(w, r, fmt.Sprintf("/c/?begin=%d&end=%d&offset=%d&source=master", beginTime, endTime, index), 302)
+		http.Redirect(w, r, fmt.Sprintf("/c/?begin=%d&end=%d&offset=%d&source=master", beginTime, endTime, index), http.StatusFound)
 	}
 }
 
