@@ -131,15 +131,15 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 		return "", nil, fmt.Errorf("Invalid parameters")
 	}
 	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{"benchmark", task.Benchmark, 100},
-		{"platform", task.Platform, 100},
-		{"page_sets", task.PageSets, 100},
-		{"benchmark_args", task.BenchmarkArgs, 255},
-		{"browser_args", task.BrowserArgs, 255},
-		{"desc", task.Description, 255},
-		{"chromium_patch", task.ChromiumPatch, db.LONG_TEXT_MAX_LENGTH},
-		{"catapult_patch", task.CatapultPatch, db.LONG_TEXT_MAX_LENGTH},
-		{"benchmark_patch", task.BenchmarkPatch, db.LONG_TEXT_MAX_LENGTH},
+		{Name: "benchmark", Value: task.Benchmark, Limit: 100},
+		{Name: "platform", Value: task.Platform, Limit: 100},
+		{Name: "page_sets", Value: task.PageSets, Limit: 100},
+		{Name: "benchmark_args", Value: task.BenchmarkArgs, Limit: 255},
+		{Name: "browser_args", Value: task.BrowserArgs, Limit: 255},
+		{Name: "desc", Value: task.Description, Limit: 255},
+		{Name: "chromium_patch", Value: task.ChromiumPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
+		{Name: "catapult_patch", Value: task.CatapultPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
+		{Name: "benchmark_patch", Value: task.BenchmarkPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
 	}); err != nil {
 		return "", nil, err
 	}
@@ -192,7 +192,7 @@ func (vars *UpdateVars) UriPath() string {
 
 func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
 	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{"RawOutput", task.RawOutput.String, 255},
+		{Name: "RawOutput", Value: task.RawOutput.String, Limit: 255},
 	}); err != nil {
 		return nil, nil, err
 	}
