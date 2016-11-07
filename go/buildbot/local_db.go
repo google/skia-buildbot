@@ -825,7 +825,8 @@ func getBuilderComment(tx *bolt.Tx, id []byte) (*BuilderComment, error) {
 func getBuilderComments(tx *bolt.Tx, builder string) ([]*BuilderComment, error) {
 	c := tx.Bucket(BUCKET_BUILDER_COMMENTS_BY_BUILDER).Cursor()
 	ids := [][]byte{}
-	for k, v := c.Seek([]byte(builder)); bytes.HasPrefix(k, []byte(fmt.Sprintf("%s|", builder))); k, v = c.Next() {
+	prefix := []byte(fmt.Sprintf("%s|", builder))
+	for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
 		ids = append(ids, v)
 	}
 	rv := make([]*BuilderComment, 0, len(ids))
