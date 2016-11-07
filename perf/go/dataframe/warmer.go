@@ -36,7 +36,7 @@ func onestep() {
 	}
 	_, err := _new(colHeaders, commitIDs, matches, ptracestore.Default, nil, skip)
 	if err != nil {
-		glog.Errorf("Failed building the dataframe while warming.", err)
+		glog.Errorf("Failed building the dataframe while warming: %s", err)
 	}
 
 }
