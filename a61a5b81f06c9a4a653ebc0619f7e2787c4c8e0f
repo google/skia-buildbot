@@ -93,6 +93,24 @@
       "revId": "a61a5b81f06c9a4a653ebc0619f7e2787c4c8e0f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebc99f45_b7e643fe",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-07T15:56:06Z",
+      "side": 1,
+      "message": "I disagree.  I don\u0027t think I\u0027ve ever seen Git commits sorted in forward chronological order.",
+      "parentUuid": "ebc99f45_a5c132ec",
+      "revId": "a61a5b81f06c9a4a653ebc0619f7e2787c4c8e0f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
