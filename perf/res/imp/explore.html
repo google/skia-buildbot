@@ -247,14 +247,7 @@
         this._addTraces(json, true, false);
 
         // From this point on reflect the state to the URL.
-        sk.stateReflector(this,  function() {
-          if (this.state.queries.length == 0 && this.state.formulas.length == 0 && this.state.keys == "") {
-            return
-          }
-          this.$.range.begin = this.state.begin;
-          this.$.range.end = this.state.end;
-          this._rangeChangeImpl(this.state.begin, this.state.end);
-        }.bind(this));
+        this._startStateReflector();
       }.bind(this)).catch(sk.errorMessage);
 
       // Reflect the current query to the query summary.
@@ -330,6 +323,19 @@
       this._resizeWatcher();
     },
 
+    _startStateReflector: function() {
+      sk.stateReflector(this,  function() {
+        /*
+        if (this.state.queries.length == 0 && this.state.formulas.length == 0 && this.state.keys == "") {
+          return
+        }
+        */
+        this.$.range.begin = this.state.begin;
+        this.$.range.end = this.state.end;
+        this._rangeChangeImpl(this.state.begin, this.state.end);
+      }.bind(this));
+    },
+
     _paramsetKeyValueClick: function(e) {
       var keys = [];
       Object.keys(this._lines).forEach(function(key) {
@@ -370,10 +376,11 @@
         hidden: this._hidden,
         keys: this.state.keys,
       };
+      var switchToTab = body.formulas.length > 0 || body.queries.length > 0 || body.keys != "";
       this._requestFrame(body, function(json) {
         this.$.plot.removeAll();
         this._lines = [];
-        this._addTraces(json, false, true);
+        this._addTraces(json, false, switchToTab);
         this.$.zoom_range.disabled = true;
       }.bind(this));
     },
