@@ -156,7 +156,7 @@
           keys: e.detail.keys,
         };
         sk.post('/_/keys/', JSON.stringify(state)).then(JSON.parse).then(function (json) {
-          window.open('/new/?keys=' + json.id + '&begin=' + e.detail.begin + '&end=' + e.detail.end, '_blank');
+          window.open('/e/?keys=' + json.id + '&begin=' + e.detail.begin + '&end=' + e.detail.end, '_blank');
         }.bind(this));
       }.bind(this));
     },
