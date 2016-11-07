@@ -83,6 +83,8 @@ if '__main__' == __name__:
           qualified_website = website
         elif website.startswith('https://') or website.startswith('http://'):
           qualified_website = website
+        elif len(website.split('.')) > 2:
+          qualified_website = 'http://%s' % website
         else:
           qualified_website = 'http://www.%s' % website
         websites.append(qualified_website)
