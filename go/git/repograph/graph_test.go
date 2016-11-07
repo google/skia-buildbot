@@ -22,9 +22,6 @@ import (
 // c1--c2------c4--c5--
 //       \-c3-----/
 func gitSetup(t *testing.T) (*git_testutils.GitBuilder, *Graph, []*Commit, func()) {
-	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
-
 	g := git_testutils.GitInit(t)
 	g.CommitGen("myfile.txt")
 
@@ -83,6 +80,8 @@ func gitSetup(t *testing.T) (*git_testutils.GitBuilder, *Graph, []*Commit, func(
 }
 
 func TestGraph(t *testing.T) {
+	testutils.MediumTest(t)
+	testutils.SkipIfShort(t)
 	g, repo, commits, cleanup := gitSetup(t)
 	defer cleanup()
 
@@ -115,6 +114,8 @@ func TestGraph(t *testing.T) {
 }
 
 func TestSerialize(t *testing.T) {
+	testutils.MediumTest(t)
+	testutils.SkipIfShort(t)
 	g, repo, _, cleanup := gitSetup(t)
 	defer cleanup()
 
@@ -126,6 +127,8 @@ func TestSerialize(t *testing.T) {
 }
 
 func TestRecurse(t *testing.T) {
+	testutils.MediumTest(t)
+	testutils.SkipIfShort(t)
 	_, repo, commits, cleanup := gitSetup(t)
 	defer cleanup()
 
@@ -181,6 +184,8 @@ func TestRecurse(t *testing.T) {
 }
 
 func TestRecurseAllBranches(t *testing.T) {
+	testutils.MediumTest(t)
+	testutils.SkipIfShort(t)
 	g, repo, commits, cleanup := gitSetup(t)
 	defer cleanup()
 
@@ -251,6 +256,8 @@ func TestRecurseAllBranches(t *testing.T) {
 }
 
 func TestFindCommit(t *testing.T) {
+	testutils.LargeTest(t)
+	testutils.SkipIfShort(t)
 	g1, repo1, commits1, cleanup1 := gitSetup(t)
 	defer cleanup1()
 	g2, repo2, commits2, cleanup2 := gitSetup(t)
