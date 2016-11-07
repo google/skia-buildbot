@@ -97,7 +97,7 @@ func (md MockDialogue) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), TEST_FAILED_STATUS_CODE)
 		return
 	}
-	defer resp.Body.Close()
+	defer util.Close(resp.Body)
 	// TODO(benjaminwagner): I don't see an easy way to include resp.Status.
 	w.WriteHeader(resp.StatusCode)
 	_, err = io.Copy(w, resp.Body)

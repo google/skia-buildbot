@@ -166,7 +166,7 @@ func (c *client) getTaskList(url string) ([]*db.Task, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer r.Body.Close()
+	defer util.Close(r.Body)
 	if err := interpretStatusCode(r); err != nil {
 		return nil, err
 	}
@@ -210,7 +210,7 @@ func (c *client) getJobList(url string) ([]*db.Job, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer r.Body.Close()
+	defer util.Close(r.Body)
 	if err := interpretStatusCode(r); err != nil {
 		return nil, err
 	}
@@ -283,7 +283,7 @@ func (c *client) doStartTrackingModifiedDataRequest(path string) (string, error)
 	if err != nil {
 		return "", err
 	}
-	defer r.Body.Close()
+	defer util.Close(r.Body)
 	if err := interpretStatusCode(r); err != nil {
 		return "", err
 	}
@@ -351,7 +351,7 @@ func (c *client) doStopTrackingModifiedDataRequest(path, id string) {
 		glog.Error(err)
 		return
 	}
-	defer r.Body.Close()
+	defer util.Close(r.Body)
 	if err := interpretStatusCode(r); err != nil {
 		glog.Error(err)
 		return
@@ -663,7 +663,7 @@ func (c *client) GetCommentsForRepos(repos []string, from time.Time) ([]*db.Repo
 	if err != nil {
 		return nil, err
 	}
-	defer r.Body.Close()
+	defer util.Close(r.Body)
 	if err := interpretStatusCode(r); err != nil {
 		return nil, err
 	}
@@ -828,7 +828,7 @@ func (c *client) doCommentRequest(method, path string, gob io.Reader) error {
 	if err != nil {
 		return err
 	}
-	defer r.Body.Close()
+	defer util.Close(r.Body)
 	if err := interpretStatusCode(r); err != nil {
 		return err
 	}

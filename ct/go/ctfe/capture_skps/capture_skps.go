@@ -105,8 +105,8 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 		return "", nil, err
 	}
 	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{"page_sets", task.PageSets, 100},
-		{"desc", task.Description, 255},
+		{Name: "page_sets", Value: task.PageSets, Limit: 100},
+		{Name: "desc", Value: task.Description, Limit: 255},
 	}); err != nil {
 		return "", nil, err
 	}

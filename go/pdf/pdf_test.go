@@ -51,7 +51,7 @@ func filesEqual(path1, path2 string) bool {
 func readImg(t assert.TestingT, path string) *image.NRGBA {
 	infile, err := os.Open(path)
 	assert.Nil(t, err)
-	defer infile.Close()
+	defer testutils.AssertCloses(t, infile)
 
 	img, _, err := image.Decode(infile)
 	assert.Nil(t, err)

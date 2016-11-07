@@ -142,18 +142,18 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 		return "", nil, fmt.Errorf("Invalid parameters")
 	}
 	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{"benchmark", task.Benchmark, 100},
-		{"platform", task.Platform, 100},
-		{"page_sets", task.PageSets, 100},
-		{"benchmark_args", task.BenchmarkArgs, 255},
-		{"browser_args_nopatch", task.BrowserArgsNoPatch, 255},
-		{"browser_args_withpatch", task.BrowserArgsWithPatch, 255},
-		{"desc", task.Description, 255},
-		{"chromium_patch", task.ChromiumPatch, db.LONG_TEXT_MAX_LENGTH},
-		{"blink_patch", task.BlinkPatch, db.LONG_TEXT_MAX_LENGTH},
-		{"skia_patch", task.SkiaPatch, db.LONG_TEXT_MAX_LENGTH},
-		{"catapult_patch", task.CatapultPatch, db.LONG_TEXT_MAX_LENGTH},
-		{"benchmark_patch", task.BenchmarkPatch, db.LONG_TEXT_MAX_LENGTH},
+		{Name: "benchmark", Value: task.Benchmark, Limit: 100},
+		{Name: "platform", Value: task.Platform, Limit: 100},
+		{Name: "page_sets", Value: task.PageSets, Limit: 100},
+		{Name: "benchmark_args", Value: task.BenchmarkArgs, Limit: 255},
+		{Name: "browser_args_nopatch", Value: task.BrowserArgsNoPatch, Limit: 255},
+		{Name: "browser_args_withpatch", Value: task.BrowserArgsWithPatch, Limit: 255},
+		{Name: "desc", Value: task.Description, Limit: 255},
+		{Name: "chromium_patch", Value: task.ChromiumPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
+		{Name: "blink_patch", Value: task.BlinkPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
+		{Name: "skia_patch", Value: task.SkiaPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
+		{Name: "catapult_patch", Value: task.CatapultPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
+		{Name: "benchmark_patch", Value: task.BenchmarkPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
 	}); err != nil {
 		return "", nil, err
 	}
@@ -207,9 +207,9 @@ func (vars *UpdateVars) UriPath() string {
 
 func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
 	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{"NoPatchRawOutput", task.NoPatchRawOutput.String, 255},
-		{"WithPatchRawOutput", task.WithPatchRawOutput.String, 255},
-		{"Results", task.Results.String, 255},
+		{Name: "NoPatchRawOutput", Value: task.NoPatchRawOutput.String, Limit: 255},
+		{Name: "WithPatchRawOutput", Value: task.WithPatchRawOutput.String, Limit: 255},
+		{Name: "Results", Value: task.Results.String, Limit: 255},
 	}); err != nil {
 		return nil, nil, err
 	}
