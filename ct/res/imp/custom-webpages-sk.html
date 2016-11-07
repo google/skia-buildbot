@@ -1,0 +1,84 @@
+<!--
+  The <custom-webpages-sk> custom element declaration. Allows entering a string
+  of custom webpages in the following format: "test1.com,test2.com,test3.com".
+
+  Attributes:
+    webpages: The string of custom webpages.
+
+  Events:
+    None.
+
+  Methods:
+    None.
+-->
+
+<dom-module id="custom-webpages-sk">
+  <style>
+    paper-input {
+      width: 20em;
+    }
+
+    .long-field {
+      width: 40em;
+    }
+
+    td.webpages-label {
+      vertical-align: middle;
+    }
+
+    .webpages-detail-container {
+      position: relative;
+      text-align: center;
+      height: 100px;
+      min-width: 200px;
+      max-width: 300px;
+    }
+
+    .webpages-error {
+      color: red;
+    }
+  </style>
+  <template>
+    <a href="javascript:void(0);" id="webpages_expander">
+      <iron-icon icon="{{webpagesExpanderIcon(webpagesOpened)}}"></iron-icon>
+      Specify custom list of web pages
+    </a>
+    <span class="long-field">
+      <iron-collapse id="webpages_collapse" opened="{{webpagesOpened}}">
+        <iron-autogrow-textarea class="long-field" rows=5 max-rows=20 bind-value="{{webpages}}" placeholder="Eg: webpage1,webpage2,webpage3,webpage4">
+        </iron-autogrow-textarea>
+      </iron-collapse>
+    </span>
+  </template>
+  <script>
+    Polymer({
+      is: "custom-webpages-sk",
+      properties: {
+        webpagesOpened: {
+          type: Boolean,
+          value: false,
+        },
+        webpages: {
+          type: String,
+          notify: true,
+        },
+      },
+
+      ready: function() {
+        var that = this;
+        this.$.webpages_expander.addEventListener('click', function(e) {
+          that.$.webpages_collapse.toggle();
+        });
+      },
+
+      webpagesExpanderIcon: function(webpagesOpened) {
+        if (webpagesOpened) {
+          return "expand-less";
+        } else {
+          return "expand-more";
+        }
+      },
+    });
+  </script>
+
+</dom-module>
