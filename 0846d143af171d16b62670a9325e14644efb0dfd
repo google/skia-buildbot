@@ -137,6 +137,24 @@
     },
     {
       "key": {
+        "uuid": "2bde5729_5d141b25",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-11-07T19:17:28Z",
+      "side": 1,
+      "message": "\u003e Hmm. I\u0027m a little surprised that one line of ~1MB is less crashy than 40k lines of ~20 chars.\n\nMy observation was from a non-scientific one-time test. I had concluded that it had something with the textbox not liking so much vertical content but I could be completely wrong.\n\n \u003e \n \u003e I think \"list\" is a bit more accurate than \"CSV,\" and makes it clearer that both newline-separated and comma-separated are ok.\n\nDone.",
+      "parentUuid": "2bde5729_7dfab704",
+      "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ebc99f45_8a7bdee0",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 18
