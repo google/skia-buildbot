@@ -325,11 +325,6 @@
 
     _startStateReflector: function() {
       sk.stateReflector(this,  function() {
-        /*
-        if (this.state.queries.length == 0 && this.state.formulas.length == 0 && this.state.keys == "") {
-          return
-        }
-        */
         this.$.range.begin = this.state.begin;
         this.$.range.end = this.state.end;
         this._rangeChangeImpl(this.state.begin, this.state.end);
