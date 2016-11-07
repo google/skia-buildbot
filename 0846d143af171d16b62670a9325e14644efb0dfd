@@ -1,0 +1,141 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ebc99f45_6a76b2fd",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-07T17:34:18Z",
+      "side": 1,
+      "message": "Should CheckLengths on the result rather than the input.",
+      "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebc99f45_ca0c865b",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-07T17:34:18Z",
+      "side": 1,
+      "message": "nit: Might want to strings.Trim this to allow a newline at the end.",
+      "range": {
+        "startLine": 151,
+        "startChar": 60,
+        "endLine": 151,
+        "endChar": 79
+      },
+      "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebc99f45_4a2176c8",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-07T17:34:18Z",
+      "side": 1,
+      "message": "nit: In CSV, records are separated by newlines and fields within a record are separated by commas. I think it will be easier to work with (e.g. editing the list in a text editor or spreadsheet) if each webpage is a different record (i.e. separated by newlines). I wouldn\u0027t even call it a CSV, although you could parse it as one if you want.",
+      "range": {
+        "startLine": 169,
+        "startChar": 3,
+        "endLine": 169,
+        "endChar": 36
+      },
+      "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebc99f45_8a7bdee0",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-07T17:34:18Z",
+      "side": 1,
+      "message": "Do we know that err is HTML-safe?",
+      "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebc99f45_0aea8ec3",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 830,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-07T17:34:18Z",
+      "side": 1,
+      "message": "errcheck will complain unless util.Close(csvFile)",
+      "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebc99f45_8ab0bede",
+        "filename": "ct/go/worker_scripts/run_chromium_analysis/main.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-07T17:34:18Z",
+      "side": 1,
+      "message": "nit: Would making this conditional on USE_LIVE_SITES_FLAGS be more accurate than conditional on customWebpages?",
+      "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebc99f45_add4b4d1",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 18
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-07T17:34:18Z",
+      "side": 1,
+      "message": "nit: Seems like allowing both page_sets and custom_webpages to be set will be confusing, e.g. on task history it will show both, even though custom_webpages overrides page_sets.",
+      "range": {
+        "startLine": 111,
+        "startChar": 0,
+        "endLine": 112,
+        "endChar": 72
+      },
+      "revId": "0846d143af171d16b62670a9325e14644efb0dfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
