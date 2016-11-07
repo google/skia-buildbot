@@ -126,23 +126,16 @@ func (c *BuildCache) update() error {
 	return c.updateBuilderComments()
 }
 
-// getBuilderList returns the list of all known builders.
-func (c *BuildCache) getBuilderList() []string {
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
-	builderList := make([]string, 0, len(c.builders))
-	for b, _ := range c.builders {
-		builderList = append(builderList, b)
-	}
-	return builderList
-}
-
 // updateBuilderComments updates the comments for all builders.
 func (c *BuildCache) updateBuilderComments() error {
 	defer timer.New("BuildCache.updateBuilderComments").Stop()
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	builderComments, err := c.db.GetBuildersComments(c.getBuilderList())
+	builderList := make([]string, 0, len(c.builders))
+	for b, _ := range c.builders {
+		builderList = append(builderList, b)
+	}
+	builderComments, err := c.db.GetBuildersComments(builderList)
 	if err != nil {
 		return err
 	}
