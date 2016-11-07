@@ -575,6 +575,7 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	timeoutSecs := PagesetTypeToInfo[pagesetType].RunChromiumPerfTimeoutSecs
 	if err := ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
 		if retWebpageFailErr {
+			// TODO(rmistry): Remove this. Make sure you use the android stuff below.
 			return fmt.Errorf("Run benchmark command failed with: %s", err)
 		} else {
 			glog.Errorf("Run benchmark command failed with: %s", err)
@@ -803,4 +804,27 @@ func GetArchivesNum(gs *GsUtil, benchmarkArgs, pagesetType string) (int, error) 
 func GetHashesFromBuild(chromiumBuild string) (string, string) {
 	tokens := strings.Split(chromiumBuild, "-")
 	return tokens[1], tokens[2]
+}
+
+type TimeoutTracker struct {
+	timeoutCounter      int
+	timeoutCounterMutex sync.Mutex
+}
+
+func (t *TimeoutTracker) Increment() {
+	t.timeoutCounterMutex.Lock()
+	defer t.timeoutCounterMutex.Unlock()
+	t.timeoutCounter++
+}
+
+func (t *TimeoutTracker) Reset() {
+	t.timeoutCounterMutex.Lock()
+	defer t.timeoutCounterMutex.Unlock()
+	t.timeoutCounter = 0
+}
+
+func (t *TimeoutTracker) Read() int {
+	t.timeoutCounterMutex.Lock()
+	defer t.timeoutCounterMutex.Unlock()
+	return t.timeoutCounter
 }
