@@ -12,8 +12,8 @@
     selector - The iron-selector element that wraps the commits.
 
     mailbox - The sk.Mailbox name to listen for the data to populate
-      the element. This is in addition to the 'commits' mailbox 
-      described below. 
+      the element. This is in addition to the 'commits' mailbox
+      described below.
 
   Methods:
     setCommitInfo - Sets the commit info, an array of *types.Commit. See the
@@ -90,11 +90,13 @@
         <a target="_blank" href$="{{_statusHref(_firstHash)}}">Buildbot Percent Complete: <span>{{_commitPercent(_percent)}}</span>%</a>
       </div>
     </template>
+    <div>
     <iron-selector id=selector>
       <template is="dom-repeat" items="{{_commitinfo}}" as="c">
         <commit-sk data-hash$="{{c.hash}}" hash="{{c.hash}}" commit="{{c}}"></commit-sk>
       </template>
     </iron-selector>
+  </div>
   </template>
   <script>
     Polymer({

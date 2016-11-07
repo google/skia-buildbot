@@ -37,7 +37,9 @@
     </style>
     <paper-dialog id="commitsDialog">
       <h1>Commit(s)</h1>
-      <commits-panel-sk id="commitsPanel"></commits-panel-sk>
+      <div>
+        <commits-panel-sk id="commitsPanel"></commits-panel-sk>
+      </div
       <div class="buttons">
         <paper-button raised dialog-dismiss>Close</paper-button>
       </div>
@@ -61,7 +63,10 @@
           this.$.commitsDialog.close();
         }
         this.$.commitsPanel.setCommitInfo(commitInfo);
-        this.$.commitsDialog.open();
+        this.async(function(){
+          this.$.commitsDialog.open();
+          this.$.commitsDialog.refit();
+        }, 10);
       }
 
     });
