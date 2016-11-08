@@ -22,6 +22,24 @@
       "revId": "ac0e56d983d88d3ca7e554373b1651a214e7dc57",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2bde5729_307129fc",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-08T20:45:21Z",
+      "side": 1,
+      "message": "Done in https://skia-review.googlesource.com/c/4561/",
+      "parentUuid": "2bde5729_90c75dfb",
+      "revId": "ac0e56d983d88d3ca7e554373b1651a214e7dc57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
