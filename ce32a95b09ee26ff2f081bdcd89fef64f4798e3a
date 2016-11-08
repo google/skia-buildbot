@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2bde5729_5512277c",
+        "filename": "ct/go/worker_scripts/run_chromium_perf/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-08T19:37:05Z",
+      "side": 1,
+      "message": "I must have convinced myself this makes sense when I reviewed for run_chromium_analysis, but I don\u0027t remember the reason. Is startRange 1-based?",
+      "range": {
+        "startLine": 124,
+        "startChar": 2,
+        "endLine": 124,
+        "endChar": 31
+      },
+      "revId": "ce32a95b09ee26ff2f081bdcd89fef64f4798e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
