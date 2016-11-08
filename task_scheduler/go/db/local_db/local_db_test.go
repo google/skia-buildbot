@@ -653,7 +653,7 @@ func TestLocalDBJobDBUpdateJobsWithRetries(t *testing.T) {
 }
 
 func TestLocalDBCommentDB(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	d, tmpdir := makeDB(t, "TestLocalDBCommentDB")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)

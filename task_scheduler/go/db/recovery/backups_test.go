@@ -595,6 +595,7 @@ func TestBackupDBLarge(t *testing.T) {
 
 // backupDB should work for a 16GB DB.
 func TestBackupDBHuge(t *testing.T) {
+	t.Skipf("TODO(benjaminwagner): change TMPDIR to make this work.")
 	testutils.LargeTest(t)
 	// Send 16GB. Add 1 so it's not a multiple of 8MB.
 	var contentSize int64 = 16*1024*1024*1024 + 1
