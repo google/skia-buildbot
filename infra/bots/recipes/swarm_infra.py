@@ -107,6 +107,23 @@ def RunSteps(api):
   api.file.makedirs('makedirs go/src', go_src)
   infra_dir = go_src.join(INFRA_GO)
 
+  # Set tmp to a location inside slave_build to ensure we have sufficient temp
+  # space.
+  tmp_dir = api.path['slave_build'].join('tmp')
+  api.step(
+      'mkdir tmp',
+      cmd=['mkdir', '-p', tmp_dir])
+  # Chrome looks for X sockets in TMPDIR.
+  api.step(
+      'link .font-unix',
+      cmd=['ln', '-s', '/tmp/.font-unix', tmp_dir])
+  api.step(
+      'link .ICE-unix',
+      cmd=['ln', '-s', '/tmp/.ICE-unix', tmp_dir])
+  api.step(
+      'link .X11-unix',
+      cmd=['ln', '-s', '/tmp/.X11-unix', tmp_dir])
+
   # Check out the infra repo.
   git_checkout(
       api,
@@ -118,7 +135,8 @@ def RunSteps(api):
   env = {'CHROME_HEADLESS': '1',
          'GOPATH': go_dir,
          'GIT_USER_AGENT': 'git/1.9.1',  # I don't think this version matters.
-         'PATH': api.path.pathsep.join([str(go_dir.join('bin')), '%(PATH)s'])}
+         'PATH': api.path.pathsep.join([str(go_dir.join('bin')), '%(PATH)s']),
+         'TMPDIR': tmp_dir}
   api.step('update_deps', cmd=['go', 'get', '-u', './...'], cwd=infra_dir,
            env=env)
 
