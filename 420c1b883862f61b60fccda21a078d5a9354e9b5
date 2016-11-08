@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "2bde5729_17ac2cd4",
+        "filename": "task_scheduler/go/db/recovery/backups.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-08T02:25:33Z",
+      "side": 1,
+      "message": "Done. Hopefully I did it right -- seems to work, at least when downloading from pantheon with Chrome.",
+      "parentUuid": "2bde5729_e3738603",
+      "revId": "420c1b883862f61b60fccda21a078d5a9354e9b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bb12ff1_5d76cb4a",
         "filename": "task_scheduler/go/db/recovery/backups.go",
         "patchSetId": 3
@@ -42,6 +60,24 @@
         "endLine": 280,
         "endChar": 13
       },
+      "revId": "420c1b883862f61b60fccda21a078d5a9354e9b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2bde5729_570f9413",
+        "filename": "task_scheduler/go/db/recovery/backups.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-08T02:25:33Z",
+      "side": 1,
+      "message": "Done. Added tests.",
+      "parentUuid": "6bb12ff1_5d76cb4a",
       "revId": "420c1b883862f61b60fccda21a078d5a9354e9b5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "2bde5729_77149025",
+        "filename": "task_scheduler/go/db/recovery/backups.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-08T02:25:33Z",
+      "side": 1,
+      "message": "Added more comments about this.",
+      "parentUuid": "6bd84f3b_7376684b",
+      "revId": "420c1b883862f61b60fccda21a078d5a9354e9b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bb12ff1_7d170fb9",
         "filename": "task_scheduler/go/db/recovery/backups.go",
         "patchSetId": 3
@@ -88,6 +142,24 @@
         "endLine": 326,
         "endChar": 40
       },
+      "revId": "420c1b883862f61b60fccda21a078d5a9354e9b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2bde5729_b7fd38c4",
+        "filename": "task_scheduler/go/db/recovery/backups.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-08T02:25:33Z",
+      "side": 1,
+      "message": "Mostly just in case I forget to do it later. Removed.",
+      "parentUuid": "6bb12ff1_7d170fb9",
       "revId": "420c1b883862f61b60fccda21a078d5a9354e9b5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
