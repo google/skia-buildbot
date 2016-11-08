@@ -10,7 +10,6 @@ Type=oneshot
 #  - workdir is --workdir argument in task-scheduler.service
 #  - triggerdir is recovery.TRIGGER_DIRNAME in backups.go
 #  - basename is the base filename of the target backup file
-ExecStartPre=mkdir -p /mnt/pd0/task_scheduler_workdir/trigger-backup
 ExecStart=/usr/bin/touch /mnt/pd0/task_scheduler_workdir/trigger-backup/task-scheduler-nightly
 User=default
 Group=default
