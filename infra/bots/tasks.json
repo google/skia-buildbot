@@ -26,6 +26,8 @@
         "os:Ubuntu",
         "gpu:none"
       ],
+      "execution_timeout_ns": 5520000000000,
+      "expiration_ns": 104400000000000,
       "extra_args": [
         "--workdir",
         "../../..",
@@ -51,6 +53,8 @@
         "os:Ubuntu",
         "gpu:none"
       ],
+      "execution_timeout_ns": 5520000000000,
+      "expiration_ns": 104400000000000,
       "extra_args": [
         "--workdir",
         "../../..",
@@ -76,6 +80,8 @@
         "os:Ubuntu",
         "gpu:none"
       ],
+      "execution_timeout_ns": 5520000000000,
+      "expiration_ns": 104400000000000,
       "extra_args": [
         "--workdir",
         "../../..",

@@ -11,6 +11,7 @@ package main
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
@@ -43,6 +44,8 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 			"os:Ubuntu",
 			"gpu:none",
 		},
+		ExecutionTimeout: 92 * time.Minute,
+		Expiration:       29 * time.Hour,
 		ExtraArgs: []string{
 			"--workdir", "../../..", "swarm_infra",
 			fmt.Sprintf("repository=%s", specs.PLACEHOLDER_REPO),
