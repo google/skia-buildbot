@@ -102,17 +102,17 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repos repog
 	return s, nil
 }
 
-// Start initiates the TaskScheduler's goroutines for scheduling tasks.
-func (s *TaskScheduler) Start(ctx context.Context) {
+// Start initiates the TaskScheduler's goroutines for scheduling tasks. beforeMainLoop
+// will be run before each scheduling iteration.
+func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 	s.tryjobs.Start(ctx)
+	lv := metrics2.NewLiveness("last-successful-task-scheduling")
 	go util.RepeatCtx(time.Minute, ctx, func() {
-		lv := metrics2.NewLiveness("last-successful-task-scheduling")
-		for _ = range time.Tick(time.Minute) {
-			if err := s.MainLoop(); err != nil {
-				glog.Errorf("Failed to run the task scheduler: %s", err)
-			} else {
-				lv.Reset()
-			}
+		beforeMainLoop()
+		if err := s.MainLoop(); err != nil {
+			glog.Errorf("Failed to run the task scheduler: %s", err)
+		} else {
+			lv.Reset()
 		}
 	})
 }
