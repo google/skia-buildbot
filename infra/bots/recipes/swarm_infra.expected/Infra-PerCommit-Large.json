@@ -23,6 +23,22 @@
   },
   {
     "cmd": [
+      "mkdir",
+      "-p",
+      "[SLAVE_BUILD]/tmp"
+    ],
+    "name": "mkdir tmp"
+  },
+  {
+    "cmd": [
+      "chmod",
+      "aug+wrx",
+      "[SLAVE_BUILD]/tmp"
+    ],
+    "name": "chmod tmp"
+  },
+  {
+    "cmd": [
       "git",
       "clone",
       "https://skia.googlesource.com/buildbot",
@@ -159,7 +175,8 @@
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[SLAVE_BUILD]/go",
-      "PATH": "[SLAVE_BUILD]/go/bin:%(PATH)s"
+      "PATH": "[SLAVE_BUILD]/go/bin:%(PATH)s",
+      "TMPDIR": "[SLAVE_BUILD]/tmp"
     },
     "name": "update_deps"
   },
@@ -313,7 +330,8 @@
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[SLAVE_BUILD]/go",
-      "PATH": "[SLAVE_BUILD]/go/bin:%(PATH)s"
+      "PATH": "[SLAVE_BUILD]/go/bin:%(PATH)s",
+      "TMPDIR": "[SLAVE_BUILD]/tmp"
     },
     "name": "install goimports"
   },
@@ -328,7 +346,8 @@
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[SLAVE_BUILD]/go",
-      "PATH": "[SLAVE_BUILD]/go/bin:%(PATH)s"
+      "PATH": "[SLAVE_BUILD]/go/bin:%(PATH)s",
+      "TMPDIR": "[SLAVE_BUILD]/tmp"
     },
     "name": "install errcheck"
   },
@@ -341,7 +360,8 @@
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[SLAVE_BUILD]/go",
-      "PATH": "[SLAVE_BUILD]/go/bin:%(PATH)s"
+      "PATH": "[SLAVE_BUILD]/go/bin:%(PATH)s",
+      "TMPDIR": "[SLAVE_BUILD]/tmp"
     },
     "name": "setup database"
   },
@@ -360,7 +380,8 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[SLAVE_BUILD]/go",
       "KARMA_PORT": "15001",
-      "PATH": "[SLAVE_BUILD]/go/bin:%(PATH)s"
+      "PATH": "[SLAVE_BUILD]/go/bin:%(PATH)s",
+      "TMPDIR": "[SLAVE_BUILD]/tmp"
     },
     "name": "run_unittests"
   },
