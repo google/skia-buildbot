@@ -183,22 +183,34 @@ func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNew
 		extraArgs = append(extraArgs, replaceVars(c, arg))
 	}
 
+	expirationSecs := int64(c.TaskSpec.Expiration.Seconds())
+	if expirationSecs == int64(0) {
+		expirationSecs = int64(swarming.RECOMMENDED_EXPIRATION)
+	}
+	executionTimeoutSecs := int64(c.TaskSpec.ExecutionTimeout.Seconds())
+	if executionTimeoutSecs == int64(0) {
+		executionTimeoutSecs = int64(swarming.RECOMMENDED_HARD_TIMEOUT)
+	}
+	ioTimeoutSecs := int64(c.TaskSpec.IoTimeout.Seconds())
+	if ioTimeoutSecs == int64(0) {
+		ioTimeoutSecs = int64(swarming.RECOMMENDED_IO_TIMEOUT)
+	}
 	return &swarming_api.SwarmingRpcsNewTaskRequest{
-		ExpirationSecs: int64(swarming.RECOMMENDED_EXPIRATION.Seconds()),
+		ExpirationSecs: expirationSecs,
 		Name:           c.Name,
 		Priority:       int64(100.0 * c.TaskSpec.Priority),
 		Properties: &swarming_api.SwarmingRpcsTaskProperties{
 			CipdInput:            cipdInput,
 			Dimensions:           dims,
 			Env:                  env,
-			ExecutionTimeoutSecs: int64(swarming.RECOMMENDED_HARD_TIMEOUT.Seconds()),
+			ExecutionTimeoutSecs: executionTimeoutSecs,
 			ExtraArgs:            extraArgs,
 			InputsRef: &swarming_api.SwarmingRpcsFilesRef{
 				Isolated:       c.IsolatedInput,
 				Isolatedserver: isolate.ISOLATE_SERVER_URL,
 				Namespace:      isolate.DEFAULT_NAMESPACE,
 			},
-			IoTimeoutSecs: int64(swarming.RECOMMENDED_IO_TIMEOUT.Seconds()),
+			IoTimeoutSecs: ioTimeoutSecs,
 		},
 		Tags: db.TagsForTask(c.Name, id, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds),
 		User: "skia-task-scheduler",

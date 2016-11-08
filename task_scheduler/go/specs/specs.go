@@ -113,8 +113,20 @@ type TaskSpec struct {
 	// Environment is a set of environment variables needed by the task.
 	Environment map[string]string `json:"environment,omitempty"`
 
+	// ExecutionTimeout is the maximum amount of time the task is allowed
+	// to take.
+	ExecutionTimeout time.Duration `json:"execution_timeout_ns,omitempty"`
+
+	// Expiration is how long the task may remain in the pending state
+	// before it is abandoned.
+	Expiration time.Duration `json:"expiration_ns,omitempty"`
+
 	// ExtraArgs are extra command-line arguments to pass to the task.
 	ExtraArgs []string `json:"extra_args,omitempty"`
+
+	// IoTimeout is the maximum amount of time which the task may take to
+	// communicate with the server.
+	IoTimeout time.Duration `json:"io_timeout_ns,omitempty"`
 
 	// Isolate is the name of the isolate file used by this task.
 	Isolate string `json:"isolate"`
@@ -164,13 +176,16 @@ func (t *TaskSpec) Copy() *TaskSpec {
 	environment := util.CopyStringMap(t.Environment)
 	extraArgs := util.CopyStringSlice(t.ExtraArgs)
 	return &TaskSpec{
-		CipdPackages: cipdPackages,
-		Dependencies: deps,
-		Dimensions:   dims,
-		Environment:  environment,
-		ExtraArgs:    extraArgs,
-		Isolate:      t.Isolate,
-		Priority:     t.Priority,
+		CipdPackages:     cipdPackages,
+		Dependencies:     deps,
+		Dimensions:       dims,
+		Environment:      environment,
+		ExecutionTimeout: t.ExecutionTimeout,
+		Expiration:       t.Expiration,
+		ExtraArgs:        extraArgs,
+		IoTimeout:        t.IoTimeout,
+		Isolate:          t.Isolate,
+		Priority:         t.Priority,
 	}
 }
 
