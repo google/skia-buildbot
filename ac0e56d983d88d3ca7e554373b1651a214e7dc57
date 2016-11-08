@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2bde5729_90c75dfb",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-08T20:40:46Z",
+      "side": 1,
+      "message": "Need .Seconds() here and for other time.Duration constants.",
+      "range": {
+        "startLine": 188,
+        "startChar": 25,
+        "endLine": 188,
+        "endChar": 56
+      },
+      "revId": "ac0e56d983d88d3ca7e554373b1651a214e7dc57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
