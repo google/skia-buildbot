@@ -99,6 +99,7 @@
         <td>PageSets Type</td>
         <td>
           <page-set-selector-sk id="page_sets" page-sets="{{pageSets}}"></page-set-selector-sk>
+          <custom-webpages-sk id="custom_webpages"></custom-webpages-sk>
         </td>
       </tr>
 
@@ -351,6 +352,7 @@
        params["benchmark"] = this.selectedBenchmarkName;
        params["platform"] = this.$.target_platform.selected;
        params["page_sets"] = this.$.page_sets.selected;
+       params["custom_webpages"] = this.$.custom_webpages.webpages;
        params["repeat_runs"] = this.$.repeat_runs.selected;
        params["run_in_parallel"] = this.$.run_in_parallel.selected;
        params["benchmark_args"] = this.$.benchmark_args.value;

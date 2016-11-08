@@ -111,6 +111,21 @@ func main() {
 		glog.Fatalf("Could not apply %s: %s", benchmarkPatchName, err)
 	}
 
+	// Download the custom webpages for this run from Google storage.
+	customWebpagesName := *runID + ".custom_webpages.csv"
+	if _, err := util.DownloadPatch(filepath.Join(tmpDir, customWebpagesName), filepath.Join(remotePatchesDir, customWebpagesName), gs); err != nil {
+		glog.Fatalf("Could not download %s: %s", customWebpagesName, err)
+	}
+	customWebpages, err := util.GetCustomPages(filepath.Join(tmpDir, customWebpagesName))
+	if err != nil {
+		glog.Fatalf("Could not read custom webpages file %s: %s", customWebpagesName, err)
+	}
+	if len(customWebpages) > 0 {
+		startIndex := *startRange - 1
+		endIndex := skutil.MinInt(*startRange+*num, len(customWebpages))
+		customWebpages = customWebpages[startIndex:endIndex]
+	}
+
 	// Download the specified chromium builds.
 	for _, chromiumBuild := range []string{*chromiumBuildNoPatch, *chromiumBuildWithPatch} {
 		if err := gs.DownloadChromiumBuild(chromiumBuild); err != nil {
@@ -123,19 +138,29 @@ func main() {
 	chromiumBinaryNoPatch := filepath.Join(util.ChromiumBuildsDir, *chromiumBuildNoPatch, util.BINARY_CHROME)
 	chromiumBinaryWithPatch := filepath.Join(util.ChromiumBuildsDir, *chromiumBuildWithPatch, util.BINARY_CHROME)
 
-	// Download pagesets if they do not exist locally.
-	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
-	if _, err := gs.DownloadSwarmingArtifacts(pathToPagesets, util.PAGESETS_DIR_NAME, *pagesetType, *startRange, *num); err != nil {
-		glog.Fatal(err)
+	var pathToPagesets string
+	if len(customWebpages) > 0 {
+		pathToPagesets = filepath.Join(util.PagesetsDir, "custom")
+		if err := util.CreateCustomPagesets(customWebpages, pathToPagesets); err != nil {
+			glog.Fatal(err)
+		}
+	} else {
+		// Download pagesets if they do not exist locally.
+		pathToPagesets = filepath.Join(util.PagesetsDir, *pagesetType)
+		if _, err := gs.DownloadSwarmingArtifacts(pathToPagesets, util.PAGESETS_DIR_NAME, *pagesetType, *startRange, *num); err != nil {
+			glog.Fatal(err)
+		}
 	}
 	defer skutil.RemoveAll(pathToPagesets)
 
-	// Download archives if they do not exist locally.
-	pathToArchives := filepath.Join(util.WebArchivesDir, *pagesetType)
-	if _, err := gs.DownloadSwarmingArtifacts(pathToArchives, util.WEB_ARCHIVES_DIR_NAME, *pagesetType, *startRange, *num); err != nil {
-		glog.Fatal(err)
+	if !strings.Contains(*benchmarkExtraArgs, util.USE_LIVE_SITES_FLAGS) {
+		// Download archives if they do not exist locally.
+		pathToArchives := filepath.Join(util.WebArchivesDir, *pagesetType)
+		if _, err := gs.DownloadSwarmingArtifacts(pathToArchives, util.WEB_ARCHIVES_DIR_NAME, *pagesetType, *startRange, *num); err != nil {
+			glog.Fatal(err)
+		}
+		defer skutil.RemoveAll(pathToArchives)
 	}
-	defer skutil.RemoveAll(pathToArchives)
 
 	// Establish nopatch output paths.
 	runIDNoPatch := fmt.Sprintf("%s-nopatch", *runID)

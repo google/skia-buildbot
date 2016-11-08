@@ -50,6 +50,7 @@ var (
 	chromiumPatchLink   = util.MASTER_LOGSERVER_LINK
 	catapultPatchLink   = util.MASTER_LOGSERVER_LINK
 	benchmarkPatchLink  = util.MASTER_LOGSERVER_LINK
+	customWebpagesLink  = util.MASTER_LOGSERVER_LINK
 	noPatchOutputLink   = util.MASTER_LOGSERVER_LINK
 	withPatchOutputLink = util.MASTER_LOGSERVER_LINK
 )
@@ -81,12 +82,14 @@ func sendEmail(recipients []string) {
 	The HTML output with differences between the base run and the patch run is <a href='%s'>here</a>.<br/>
 	The patch(es) you specified are here:
 	<a href='%s'>chromium</a>/<a href='%s'>skia</a>/<a href='%s'>catapult</a>
+	<br/>
+	Custom webpages (if specified) are <a href='%s'>here</a>.
 	<br/><br/>
 	You can schedule more runs <a href='%s'>here</a>.
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, htmlOutputLink, chromiumPatchLink, skiaPatchLink, catapultPatchLink, frontend.ChromiumPerfTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, htmlOutputLink, chromiumPatchLink, skiaPatchLink, catapultPatchLink, customWebpagesLink, frontend.ChromiumPerfTasksWebapp)
 	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
@@ -150,12 +153,13 @@ func main() {
 	}
 	remoteOutputDir := filepath.Join(util.ChromiumPerfRunsDir, *runID)
 
-	// Copy the patches to Google Storage.
+	// Copy the patches and custom webpages to Google Storage.
 	skiaPatchName := *runID + ".skia.patch"
 	chromiumPatchName := *runID + ".chromium.patch"
 	catapultPatchName := *runID + ".catapult.patch"
 	benchmarkPatchName := *runID + ".benchmark.patch"
-	for _, patchName := range []string{skiaPatchName, chromiumPatchName, catapultPatchName, benchmarkPatchName} {
+	customWebpagesName := *runID + ".custom_webpages.csv"
+	for _, patchName := range []string{skiaPatchName, chromiumPatchName, catapultPatchName, benchmarkPatchName, customWebpagesName} {
 		if err := gs.UploadFile(patchName, os.TempDir(), remoteOutputDir); err != nil {
 			glog.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
 			return
@@ -165,6 +169,7 @@ func main() {
 	chromiumPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, chromiumPatchName)
 	catapultPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, catapultPatchName)
 	benchmarkPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, benchmarkPatchName)
+	customWebpagesLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, customWebpagesName)
 
 	// Create the two required chromium builds (with patch and without the patch).
 	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
@@ -198,7 +203,13 @@ func main() {
 		"RUN_IN_PARALLEL":              strconv.FormatBool(*runInParallel),
 		"TARGET_PLATFORM":              *targetPlatform,
 	}
-	if err := util.TriggerSwarmingTask(*pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, util.GOLO_WORKER_DIMENSIONS); err != nil {
+	customWebPagesFilePath := filepath.Join(os.TempDir(), customWebpagesName)
+	numPages, err := util.GetNumPages(*pagesetType, customWebPagesFilePath)
+	if err != nil {
+		glog.Errorf("Error encountered when calculating number of pages: %s", err)
+		return
+	}
+	if err := util.TriggerSwarmingTask(*pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numPages, isolateExtraArgs, util.GOLO_WORKER_DIMENSIONS); err != nil {
 		glog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}
@@ -210,7 +221,7 @@ func main() {
 	pathToPyFiles := util.GetPathToPyFiles(false)
 	for _, run := range []string{runIDNoPatch, runIDWithPatch} {
 		if strings.Contains(*benchmarkExtraArgs, "--output-format=csv-pivot-table") {
-			if noOutputSlaves, err = util.MergeUploadCSVFiles(run, pathToPyFiles, gs, util.PagesetTypeToInfo[*pagesetType].NumPages, MAX_PAGES_PER_SWARMING_BOT, true /* handleStrings */); err != nil {
+			if noOutputSlaves, err = util.MergeUploadCSVFiles(run, pathToPyFiles, gs, numPages, MAX_PAGES_PER_SWARMING_BOT, true /* handleStrings */); err != nil {
 				glog.Errorf("Unable to merge and upload CSV files for %s: %s", run, err)
 			}
 			// Cleanup created dir after the run completes.

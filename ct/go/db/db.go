@@ -328,6 +328,14 @@ var v17_down = []string{
 	`ALTER TABLE ChromiumAnalysisTasks DROP custom_webpages`,
 }
 
+var v18_up = []string{
+	`ALTER TABLE ChromiumPerfTasks ADD custom_webpages longtext NOT NULL DEFAULT ""`,
+}
+
+var v18_down = []string{
+	`ALTER TABLE ChromiumPerfTasks DROP custom_webpages`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -416,6 +424,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v17_up,
 		MySQLDown: v17_down,
+	},
+	// version 18: Add custom_webpages to ChromiumPerfTasks.
+	{
+		MySQLUp:   v18_up,
+		MySQLDown: v18_down,
 	},
 }
 
