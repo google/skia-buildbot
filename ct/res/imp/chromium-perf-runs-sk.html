@@ -136,6 +136,12 @@
         </paper-dialog-scrollable>
       </paper-dialog>
 
+      <paper-dialog heading="Custom Webpages" id="{{ getCustomWebpagesId(index) }}">
+        <paper-dialog-scrollable>
+          <pre>{{chromiumPerfTask.CustomWebpages}}</pre>
+        </paper-dialog-scrollable>
+      </paper-dialog>
+
     </template>
 
     <table class="runshistory" id="runshistory" cellpadding="5" border="1">
@@ -258,6 +264,9 @@
               <a href="javascript:void(0);" data-index$="{{index}}" data-type="withpatchBrowserArgs">WithPatch Browser Args</a>
               <br/>
             </template>
+            <template is="dom-if" if="{{chromiumPerfTask.CustomWebpages}}">
+              <a href="javascript:void(0);" data-index$="{{index}}" data-type="customWebpages">Custom Webpages</a>
+            </template>
           </td>
 
           <!-- Patches -->
@@ -373,6 +382,8 @@
              that.toggleDialog(that.getCatapultPatchId(id));
            } else if (anchor.dataset.type == "benchmarkPatch") {
              that.toggleDialog(that.getBenchmarkPatchId(id));
+           } else if (anchor.dataset.type == "customWebpages") {
+             that.toggleDialog(that.getCustomWebpagesId(id));
            }
          }
          var button = sk.findParent(e.target, "PAPER-ICON-BUTTON");
@@ -460,6 +471,10 @@
 
      getBenchmarkPatchId: function(index) {
        return "benchmark_patch" + index;
+     },
+
+     getCustomWebpagesId: function(index) {
+       return "custom_webpages" + index;
      },
 
      resetPagination: function() {
