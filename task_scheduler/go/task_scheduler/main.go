@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/db/recovery"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
@@ -80,6 +81,7 @@ var (
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
 	scoreDecay24Hr = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
 	timePeriod     = flag.String("timePeriod", "4d", "Time period to use.")
+	gsBucket       = flag.String("gsBucket", "skia-task-scheduler", "Name of Google Cloud Storage bucket to use for backups and recovery.")
 	workdir        = flag.String("workdir", "workdir", "Working directory to use.")
 
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
@@ -368,6 +370,9 @@ func main() {
 	}
 	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
+	ctx, cancelFn := context.WithCancel(context.Background())
+	defer cancelFn()
+
 	// Parse the time period.
 	period, err := human.ParseDuration(*timePeriod)
 	if err != nil {
@@ -382,7 +387,7 @@ func main() {
 
 	// Authenticated HTTP client.
 	oauthCacheFile := path.Join(wdAbs, "google_storage_token.data")
-	httpClient, err := auth.NewClient(*local, oauthCacheFile, swarming.AUTH_SCOPE)
+	httpClient, err := auth.NewClient(*local, oauthCacheFile, swarming.AUTH_SCOPE, auth.SCOPE_READ_WRITE)
 	if err != nil {
 		glog.Fatal(err)
 	}
@@ -427,6 +432,18 @@ func main() {
 		}
 	}
 
+	// Start DB backup.
+	if *local && *gsBucket == "skia-task-scheduler" {
+		glog.Fatalf("Specify --gsBucket=dogben-test to run locally.")
+	}
+	// TODO(benjaminwagner): The storage client library already handles buffering
+	// and retrying requests, so we may not want to use BackoffTransport for the
+	// httpClient provided to NewDBBackup.
+	b, err := recovery.NewDBBackup(ctx, *gsBucket, d, wdAbs, httpClient)
+	if err != nil {
+		glog.Fatal(err)
+	}
+
 	// Create and start the task scheduler.
 	glog.Infof("Creating task scheduler.")
 	ts, err = scheduling.NewTaskScheduler(d, period, wdAbs, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, tryjobs.BUCKET_PRIMARY, PROJECT_REPO_MAPPING)
@@ -435,11 +452,7 @@ func main() {
 	}
 
 	glog.Infof("Created task scheduler. Starting loop.")
-	ctx, cancelFn := context.WithCancel(context.Background())
-	defer func() {
-		cancelFn()
-	}()
-	ts.Start(ctx)
+	ts.Start(ctx, b.Tick)
 
 	// Start up the web server.
 	serverURL := "https://" + *host
