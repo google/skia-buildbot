@@ -37,7 +37,7 @@ var (
 // for some reason and always close the ReadCloser. testName is the name of the
 // test that should be compared and limitDefault is the default limit for the
 // row and column queries.
-func ParseCTQuery(r io.ReadCloser, testName string, limitDefault int, ctQuery *CTQuery) error {
+func ParseCTQuery(r io.ReadCloser, limitDefault int, ctQuery *CTQuery) error {
 	defer util.Close(r)
 	var err error
 
@@ -68,10 +68,9 @@ func ParseCTQuery(r io.ReadCloser, testName string, limitDefault int, ctQuery *C
 		return fmt.Errorf("Corpus for row and column query need to match and be non-empty.")
 	}
 
-	// Make sure the test is set right.
-	if testName != "" {
-		ctQuery.ColumnQuery.Query.Set(types.PRIMARY_KEY_FIELD, testName)
-		ctQuery.RowQuery.Query.Set(types.PRIMARY_KEY_FIELD, testName)
+	// Make sure that the name is forced to match.
+	if !util.In(types.PRIMARY_KEY_FIELD, ctQuery.Match) {
+		ctQuery.Match = append(ctQuery.Match, types.PRIMARY_KEY_FIELD)
 	}
 
 	// Set the limit to a default if not set.
