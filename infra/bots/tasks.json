@@ -26,6 +26,7 @@
         "os:Ubuntu",
         "gpu:none"
       ],
+      "expiration_ns": 104400000000000,
       "extra_args": [
         "--workdir",
         "../../..",
@@ -51,6 +52,7 @@
         "os:Ubuntu",
         "gpu:none"
       ],
+      "expiration_ns": 104400000000000,
       "extra_args": [
         "--workdir",
         "../../..",
@@ -76,6 +78,7 @@
         "os:Ubuntu",
         "gpu:none"
       ],
+      "expiration_ns": 104400000000000,
       "extra_args": [
         "--workdir",
         "../../..",
