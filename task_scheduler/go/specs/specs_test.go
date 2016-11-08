@@ -53,9 +53,12 @@ func TestCopyTaskSpec(t *testing.T) {
 		Environment: map[string]string{
 			"Polluted": "true",
 		},
-		ExtraArgs: []string{"--do-really-awesome-stuff"},
-		Isolate:   "abc123",
-		Priority:  19.0,
+		ExecutionTimeout: 60 * time.Minute,
+		Expiration:       90 * time.Minute,
+		ExtraArgs:        []string{"--do-really-awesome-stuff"},
+		IoTimeout:        10 * time.Minute,
+		Isolate:          "abc123",
+		Priority:         19.0,
 	}
 	testutils.AssertCopy(t, v, v.Copy())
 }
