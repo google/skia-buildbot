@@ -22,6 +22,24 @@
       "revId": "ce32a95b09ee26ff2f081bdcd89fef64f4798e3a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2bde5729_35e67b6f",
+        "filename": "ct/go/worker_scripts/run_chromium_perf/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-11-08T19:40:16Z",
+      "side": 1,
+      "message": "Yep. The flag documentation is:\nstartRange \u003d flag.Int(\"start_range\", 1, \"The number this worker will run benchmarks from.\")",
+      "parentUuid": "2bde5729_5512277c",
+      "revId": "ce32a95b09ee26ff2f081bdcd89fef64f4798e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
