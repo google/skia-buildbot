@@ -185,15 +185,15 @@ func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNew
 
 	expirationSecs := int64(c.TaskSpec.Expiration.Seconds())
 	if expirationSecs == int64(0) {
-		expirationSecs = int64(swarming.RECOMMENDED_EXPIRATION)
+		expirationSecs = int64(swarming.RECOMMENDED_EXPIRATION.Seconds())
 	}
 	executionTimeoutSecs := int64(c.TaskSpec.ExecutionTimeout.Seconds())
 	if executionTimeoutSecs == int64(0) {
-		executionTimeoutSecs = int64(swarming.RECOMMENDED_HARD_TIMEOUT)
+		executionTimeoutSecs = int64(swarming.RECOMMENDED_HARD_TIMEOUT.Seconds())
 	}
 	ioTimeoutSecs := int64(c.TaskSpec.IoTimeout.Seconds())
 	if ioTimeoutSecs == int64(0) {
-		ioTimeoutSecs = int64(swarming.RECOMMENDED_IO_TIMEOUT)
+		ioTimeoutSecs = int64(swarming.RECOMMENDED_IO_TIMEOUT.Seconds())
 	}
 	return &swarming_api.SwarmingRpcsNewTaskRequest{
 		ExpirationSecs: expirationSecs,
