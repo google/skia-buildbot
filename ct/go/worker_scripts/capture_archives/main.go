@@ -22,7 +22,7 @@ import (
 
 const (
 	// The number of goroutines that will run in parallel to capture archives.
-	WORKER_POOL_SIZE = 10
+	WORKER_POOL_SIZE = 5
 )
 
 var (
