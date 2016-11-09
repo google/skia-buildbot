@@ -77,7 +77,7 @@ func (r *Rule) queryExecutionAlert(queryErr error, am Alerter) error {
 		return err
 	}
 	name := "Failed to execute query"
-	msg := fmt.Sprintf("Failed to execute query for rule \"%s\": [ %s ]", r.Name, r.Query)
+	msg := fmt.Sprintf("Failed to execute query for rule \"%s\": [ %s ]  The logs might provide more information: http://104.154.112.114:10115/alertserver.ERROR?page_y=end", r.Name, r.Query)
 	glog.Errorf("%s\nFull error:\n%v", msg, queryErr)
 	return am.AddAlert(&alerting.Alert{
 		Name:        name,
