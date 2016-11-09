@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "4b770b47_7156321c",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-11-09T19:55:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ebafdfaa_6f405900",
+      "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ebafdfaa_0f7d555d",
         "filename": "perf/triage.md",
         "patchSetId": 2
@@ -42,6 +60,24 @@
         "endLine": 13,
         "endChar": 64
       },
+      "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4b770b47_b17c9a97",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-11-09T19:55:09Z",
+      "side": 1,
+      "message": "We are down to those only being the Windows bots and hopefully you are fixing that problem this quarter ;-)",
+      "parentUuid": "ebafdfaa_0f7d555d",
       "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "4b770b47_31698ad5",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-11-09T19:55:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bb823f7_0c7687fb",
+      "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ebafdfaa_6f9cd950",
         "filename": "perf/triage.md",
         "patchSetId": 2
@@ -88,6 +142,24 @@
         "endLine": 49,
         "endChar": 72
       },
+      "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4b770b47_51cc56c3",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-11-09T19:55:09Z",
+      "side": 1,
+      "message": "\u003e Will clustering ever produce more than one low or high regression? E.g. a bunch of tests are 10% slower, and a bunch of other tests are 5x slower -- would that end up as two clusters?\n\nNot usually, those almost always cluster together.\n\n \u003e \n \u003e If not, how is it possible that we would have both a low and a high cluster, since it seems to be the same algorithm whether it\u0027s a step up or step down?\n\nStep up and step down have different shapes and would never cluster together.\n\n \u003e \n \u003e If so, how would that be indicated in the UI and stored in Regression below?\n\nIf we have more that one step up then we\u0027ll take the cluster with the largest regression factor and only store/present that.",
+      "parentUuid": "ebafdfaa_6f9cd950",
       "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -117,6 +189,24 @@
     },
     {
       "key": {
+        "uuid": "4b770b47_71c952b2",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-11-09T19:55:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6bbdafe5_abd78107",
+      "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ebafdfaa_2ab91fab",
         "filename": "perf/triage.md",
         "patchSetId": 2
@@ -134,6 +224,24 @@
         "endLine": 55,
         "endChar": 11
       },
+      "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4b770b47_d1a046e3",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-11-09T19:55:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ebafdfaa_2ab91fab",
       "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -163,6 +271,24 @@
     },
     {
       "key": {
+        "uuid": "4b770b47_b19fba96",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-11-09T19:55:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ebafdfaa_6fb3b9ef",
+      "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ebafdfaa_ea5e978c",
         "filename": "perf/triage.md",
         "patchSetId": 2
@@ -186,6 +312,24 @@
     },
     {
       "key": {
+        "uuid": "4b770b47_51b53619",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-11-09T19:55:09Z",
+      "side": 1,
+      "message": "s//database/, using mysql which we already use for alert data.",
+      "parentUuid": "ebafdfaa_ea5e978c",
+      "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4b770b47_8e75bb3e",
         "filename": "perf/triage.md",
         "patchSetId": 2
@@ -203,6 +347,24 @@
         "endLine": 125,
         "endChar": 24
       },
+      "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4b770b47_d1092611",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-11-09T19:55:09Z",
+      "side": 1,
+      "message": "No, no data means that the algorithm has never run over that commit/query combo.\n\nMay happen when new commits arrive, or if the range of commits displayed on the triage page goes back in time before this triage algorithm started running.",
+      "parentUuid": "4b770b47_8e75bb3e",
       "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
