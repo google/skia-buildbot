@@ -18,12 +18,16 @@ import (
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/exec"
 	skutil "go.skia.org/infra/go/util"
 )
 
 const (
 	// The number of goroutines that will run in parallel to run benchmarks.
 	WORKER_POOL_SIZE = 10
+	// The number of allowed benchmark timeouts in a row before the worker
+	// script fails.
+	MAX_ALLOWED_SEQUENTIAL_TIMEOUTS = 20
 )
 
 var (
@@ -185,6 +189,8 @@ func main() {
 	// kill all zombie chrome processes.
 	var mutex sync.RWMutex
 
+	timeoutTracker := util.TimeoutTracker{}
+
 	// Loop through workers in the worker pool.
 	for i := 0; i < numWorkers; i++ {
 		// Increment the WaitGroup counter.
@@ -198,17 +204,23 @@ func main() {
 			for pagesetName := range pagesetRequests {
 
 				mutex.RLock()
-				if err := util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDirNoPatch, *chromiumBuildNoPatch, chromiumBinaryNoPatch, runIDNoPatch, *browserExtraArgsNoPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark, false); err != nil {
-					glog.Errorf("Error while running nopatch benchmark: %s", err)
-					mutex.RUnlock()
-					continue
+				noPatchErr := util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDirNoPatch, *chromiumBuildNoPatch, chromiumBinaryNoPatch, runIDNoPatch, *browserExtraArgsNoPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark)
+				if noPatchErr != nil && strings.Contains(noPatchErr.Error(), exec.TIMEOUT_ERROR_PREFIX) {
+					timeoutTracker.Increment()
+				} else {
+					timeoutTracker.Reset()
 				}
-				if err := util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDirWithPatch, *chromiumBuildWithPatch, chromiumBinaryWithPatch, runIDWithPatch, *browserExtraArgsWithPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark, false); err != nil {
-					glog.Errorf("Error while running withpatch benchmark: %s", err)
-					mutex.RUnlock()
-					continue
+				withPatchErr := util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDirWithPatch, *chromiumBuildWithPatch, chromiumBinaryWithPatch, runIDWithPatch, *browserExtraArgsWithPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark)
+				if withPatchErr != nil && strings.Contains(withPatchErr.Error(), exec.TIMEOUT_ERROR_PREFIX) {
+					timeoutTracker.Increment()
+				} else {
+					timeoutTracker.Reset()
 				}
 				mutex.RUnlock()
+
+				if timeoutTracker.Read() > MAX_ALLOWED_SEQUENTIAL_TIMEOUTS {
+					glog.Fatalf("Ran into %d sequential timeouts. Something is wrong. Killing the task.", MAX_ALLOWED_SEQUENTIAL_TIMEOUTS)
+				}
 			}
 		}()
 	}
