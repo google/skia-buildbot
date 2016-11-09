@@ -75,12 +75,12 @@ type gsDBBackup struct {
 //  - gsBucket is the GS bucket to store backups.
 //  - db is the DB to back up.
 //  - authClient is a client authenticated with auth.SCOPE_READ_WRITE.
-func NewDBBackup(ctx context.Context, gsBucket string, db db.BackupDBCloser, workdir string, authClient *http.Client) (DBBackup, error) {
+func NewDBBackup(ctx context.Context, gsBucket string, db db.BackupDBCloser, name string, workdir string, authClient *http.Client) (DBBackup, error) {
 	gsClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(authClient))
 	if err != nil {
 		return nil, err
 	}
-	b, err := newGsDbBackupWithClient(ctx, gsBucket, db, workdir, gsClient)
+	b, err := newGsDbBackupWithClient(ctx, gsBucket, db, name, workdir, gsClient)
 	if err != nil {
 		return nil, err
 	}
@@ -92,9 +92,9 @@ func NewDBBackup(ctx context.Context, gsBucket string, db db.BackupDBCloser, wor
 
 // newGsDbBackupWithClient is the same as NewDBBackup but takes a GS client for
 // testing and does not start the metrics goroutine.
-func newGsDbBackupWithClient(ctx context.Context, gsBucket string, db db.BackupDBCloser, workdir string, gsClient *storage.Client) (*gsDBBackup, error) {
+func newGsDbBackupWithClient(ctx context.Context, gsBucket string, db db.BackupDBCloser, name string, workdir string, gsClient *storage.Client) (*gsDBBackup, error) {
 	metricTags := map[string]string{
-		"database": "task_scheduler",
+		"database": name,
 	}
 	b := &gsDBBackup{
 		gsBucket:              gsBucket,

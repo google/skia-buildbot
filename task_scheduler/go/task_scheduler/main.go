@@ -439,7 +439,7 @@ func main() {
 	// TODO(benjaminwagner): The storage client library already handles buffering
 	// and retrying requests, so we may not want to use BackoffTransport for the
 	// httpClient provided to NewDBBackup.
-	b, err := recovery.NewDBBackup(ctx, *gsBucket, d, wdAbs, httpClient)
+	b, err := recovery.NewDBBackup(ctx, *gsBucket, d, DB_NAME, wdAbs, httpClient)
 	if err != nil {
 		glog.Fatal(err)
 	}

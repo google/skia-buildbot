@@ -124,7 +124,7 @@ func getMockedDBBackupWithContent(t *testing.T, mockMux *mux.Router, content io.
 		DB:      db.NewInMemoryDB(),
 		content: content,
 	}
-	b, err := newGsDbBackupWithClient(ctx, TEST_BUCKET, db, dir, gsClient)
+	b, err := newGsDbBackupWithClient(ctx, TEST_BUCKET, db, "task_scheduler_db", dir, gsClient)
 	assert.NoError(t, err)
 	return b, func() {
 		ctxCancel()
