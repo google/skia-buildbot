@@ -3,7 +3,9 @@
 package main
 
 import (
+	"errors"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -40,7 +42,7 @@ var (
 	chromeCleanerTimer = flag.Duration("cleaner_timer", 15*time.Minute, "How often all chrome processes will be killed on this slave.")
 )
 
-func main() {
+func runChromiumAnalysis() error {
 	defer common.LogPanic()
 	worker_common.Init()
 	if !*worker_common.Local {
@@ -51,35 +53,35 @@ func main() {
 
 	// Validate required arguments.
 	if *chromiumBuild == "" {
-		glog.Fatal("Must specify --chromium_build")
+		return errors.New("Must specify --chromium_build")
 	}
 	if *runID == "" {
-		glog.Fatal("Must specify --run_id")
+		return errors.New("Must specify --run_id")
 	}
 	if *benchmarkName == "" {
-		glog.Fatal("Must specify --benchmark_name")
+		return errors.New("Must specify --benchmark_name")
 	}
 
 	// Reset the local chromium checkout.
 	if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
-		glog.Fatalf("Could not reset %s: %s", util.ChromiumSrcDir, err)
+		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
 	// Clean up any left over lock files from sync errors of previous runs.
 	err := os.Remove(filepath.Join(util.ChromiumSrcDir, ".git", "index.lock"))
 	if err != nil {
-		glog.Info("No index.lock file found.")
+		return errors.New("No index.lock file found.")
 	}
 	// Parse out the Chromium and Skia hashes.
 	chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuild)
 	// Sync the local chromium checkout.
 	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{"src": chromiumHash}); err != nil {
-		glog.Fatalf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
+		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
 	}
 
 	if *targetPlatform == util.PLATFORM_ANDROID {
 		if err := adb.VerifyLocalDevice(); err != nil {
 			// Android device missing or offline.
-			glog.Fatalf("Could not find Android device: %s", err)
+			return fmt.Errorf("Could not find Android device: %s", err)
 		}
 		// Kill adb server to make sure we start from a clean slate.
 		skutil.LogErr(util.ExecuteCmd(util.BINARY_ADB, []string{"kill-server"}, []string{},
@@ -92,7 +94,7 @@ func main() {
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Fatal(err)
+		return err
 	}
 
 	tmpDir, err := ioutil.TempDir("", "patches")
@@ -101,23 +103,23 @@ func main() {
 	// Download the catapult patch for this run from Google storage.
 	catapultPatchName := *runID + ".catapult.patch"
 	if err := util.DownloadAndApplyPatch(catapultPatchName, tmpDir, remotePatchesDir, util.CatapultSrcDir, gs); err != nil {
-		glog.Fatalf("Could not apply %s: %s", catapultPatchName, err)
+		return fmt.Errorf("Could not apply %s: %s", catapultPatchName, err)
 	}
 
 	// Download the benchmark patch for this run from Google storage.
 	benchmarkPatchName := *runID + ".benchmark.patch"
 	if err := util.DownloadAndApplyPatch(benchmarkPatchName, tmpDir, remotePatchesDir, util.ChromiumSrcDir, gs); err != nil {
-		glog.Fatalf("Could not apply %s: %s", benchmarkPatchName, err)
+		return fmt.Errorf("Could not apply %s: %s", benchmarkPatchName, err)
 	}
 
 	// Download the custom webpages for this run from Google storage.
 	customWebpagesName := *runID + ".custom_webpages.csv"
 	if _, err := util.DownloadPatch(filepath.Join(tmpDir, customWebpagesName), filepath.Join(remotePatchesDir, customWebpagesName), gs); err != nil {
-		glog.Fatalf("Could not download %s: %s", customWebpagesName, err)
+		return fmt.Errorf("Could not download %s: %s", customWebpagesName, err)
 	}
 	customWebpages, err := util.GetCustomPages(filepath.Join(tmpDir, customWebpagesName))
 	if err != nil {
-		glog.Fatalf("Could not read custom webpages file %s: %s", customWebpagesName, err)
+		return fmt.Errorf("Could not read custom webpages file %s: %s", customWebpagesName, err)
 	}
 	if len(customWebpages) > 0 {
 		startIndex := *startRange - 1
@@ -127,7 +129,7 @@ func main() {
 
 	// Download the specified chromium build.
 	if err := gs.DownloadChromiumBuild(*chromiumBuild); err != nil {
-		glog.Fatal(err)
+		return err
 	}
 	//Delete the chromium build to save space when we are done.
 	defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
@@ -138,13 +140,13 @@ func main() {
 	if len(customWebpages) > 0 {
 		pathToPagesets = filepath.Join(util.PagesetsDir, "custom")
 		if err := util.CreateCustomPagesets(customWebpages, pathToPagesets); err != nil {
-			glog.Fatal(err)
+			return err
 		}
 	} else {
 		// Download pagesets if they do not exist locally.
 		pathToPagesets = filepath.Join(util.PagesetsDir, *pagesetType)
 		if _, err := gs.DownloadSwarmingArtifacts(pathToPagesets, util.PAGESETS_DIR_NAME, *pagesetType, *startRange, *num); err != nil {
-			glog.Fatal(err)
+			return err
 		}
 	}
 	defer skutil.RemoveAll(pathToPagesets)
@@ -153,7 +155,7 @@ func main() {
 		// Download archives if they do not exist locally.
 		pathToArchives := filepath.Join(util.WebArchivesDir, *pagesetType)
 		if _, err := gs.DownloadSwarmingArtifacts(pathToArchives, util.WEB_ARCHIVES_DIR_NAME, *pagesetType, *startRange, *num); err != nil {
-			glog.Fatal(err)
+			return err
 		}
 		defer skutil.RemoveAll(pathToArchives)
 	}
@@ -170,7 +172,7 @@ func main() {
 
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
-		glog.Fatalf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
+		return fmt.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
 	}
 
 	numWorkers := WORKER_POOL_SIZE
@@ -240,7 +242,18 @@ func main() {
 	// If "--output-format=csv-pivot-table" was specified then merge all CSV files and upload.
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv-pivot-table") {
 		if err := util.MergeUploadCSVFilesOnWorkers(localOutputDir, pathToPyFiles, *runID, remoteDir, gs, *startRange, true /* handleStrings */); err != nil {
-			glog.Fatalf("Error while processing withpatch CSV files: %s", err)
+			return fmt.Errorf("Error while processing withpatch CSV files: %s", err)
 		}
 	}
+
+	return nil
+}
+
+func main() {
+	retCode := 0
+	if err := runChromiumAnalysis(); err != nil {
+		glog.Errorf("Error while running chromium analysis: %s", err)
+		retCode = 255
+	}
+	os.Exit(retCode)
 }
