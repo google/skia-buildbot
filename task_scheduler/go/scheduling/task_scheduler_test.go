@@ -2306,3 +2306,76 @@ func TestGetTasksForJob(t *testing.T) {
 		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
 	}
 }
+
+func TestTaskTimeouts(t *testing.T) {
+	tr, _, swarmingClient, s, _ := setup(t)
+	defer tr.Cleanup()
+
+	// The test repo does not set any timeouts. Ensure that we get
+	// reasonable default values.
+	bot1 := makeBot("bot1", map[string]string{"pool": "Skia", "os": "Ubuntu", "gpu": "none"})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	assert.NoError(t, s.MainLoop())
+	assert.NoError(t, s.tCache.Update())
+	unfinished, err := s.tCache.UnfinishedTasks()
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(unfinished))
+	task := unfinished[0]
+	swarmingTask, err := swarmingClient.GetTaskMetadata(task.SwarmingTaskId)
+	assert.NoError(t, err)
+	// These are the defaults in go/swarming/swarming.go.
+	assert.Equal(t, int64(60*60), swarmingTask.Request.Properties.ExecutionTimeoutSecs)
+	assert.Equal(t, int64(20*60), swarmingTask.Request.Properties.IoTimeoutSecs)
+	assert.Equal(t, int64(4*60*60), swarmingTask.Request.ExpirationSecs)
+	// Fail the task to get it out of the unfinished list.
+	task.Status = db.TASK_STATUS_FAILURE
+	assert.NoError(t, s.db.PutTask(task))
+
+	// Rewrite tasks.json with some timeouts.
+	name := "Timeout-Task"
+	cfg := &specs.TasksCfg{
+		Jobs: map[string]*specs.JobSpec{
+			"Timeout-Job": &specs.JobSpec{
+				Priority:  1.0,
+				TaskSpecs: []string{name},
+			},
+		},
+		Tasks: map[string]*specs.TaskSpec{
+			name: &specs.TaskSpec{
+				CipdPackages: []*specs.CipdPackage{},
+				Dependencies: []string{},
+				Dimensions: []string{
+					"pool:Skia",
+					"os:Mac",
+					"gpu:my-gpu",
+				},
+				ExecutionTimeout: 40 * time.Minute,
+				Expiration:       2 * time.Hour,
+				IoTimeout:        3 * time.Minute,
+				Isolate:          "compile_skia.isolate",
+				Priority:         1.0,
+			},
+		},
+	}
+	repoDir := path.Join(tr.Dir, "skia.git")
+	tasksJson := path.Join(repoDir, specs.TASKS_CFG_FILE)
+	testutils.WriteFile(t, tasksJson, testutils.MarshalJSON(t, &cfg))
+	exec_testutils.Run(t, repoDir, "git", "add", specs.TASKS_CFG_FILE)
+	exec_testutils.Run(t, repoDir, "git", "commit", "-m", "timeouts")
+
+	// Cycle, ensure that we get the expected timeouts.
+	bot2 := makeBot("bot2", map[string]string{"pool": "Skia", "os": "Mac", "gpu": "my-gpu"})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot2})
+	assert.NoError(t, s.MainLoop())
+	assert.NoError(t, s.tCache.Update())
+	unfinished, err = s.tCache.UnfinishedTasks()
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(unfinished))
+	task = unfinished[0]
+	assert.Equal(t, name, task.Name)
+	swarmingTask, err = swarmingClient.GetTaskMetadata(task.SwarmingTaskId)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(40*60), swarmingTask.Request.Properties.ExecutionTimeoutSecs)
+	assert.Equal(t, int64(3*60), swarmingTask.Request.Properties.IoTimeoutSecs)
+	assert.Equal(t, int64(2*60*60), swarmingTask.Request.ExpirationSecs)
+}
