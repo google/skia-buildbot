@@ -1020,14 +1020,13 @@ func textAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 //
 func jsonCompareTestHandler(w http.ResponseWriter, r *http.Request) {
 	// Note that testName cannot be empty by definition of the route that got us here.
-	testName := mux.Vars(r)["test"]
 	var ctQuery search.CTQuery
-	if err := search.ParseCTQuery(r.Body, testName, 5, &ctQuery); err != nil {
+	if err := search.ParseCTQuery(r.Body, 5, &ctQuery); err != nil {
 		httputils.ReportError(w, r, err, err.Error())
 		return
 	}
 
-	compareResult, err := search.CompareTest(testName, &ctQuery, storages, ixr.GetIndex())
+	compareResult, err := search.CompareTest(&ctQuery, storages, ixr.GetIndex())
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
