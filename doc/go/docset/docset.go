@@ -82,6 +82,9 @@ type DocSet struct {
 	// navigation is the HTML formatted navigation structure for the given repo.
 	navigation string
 
+	// A site map served to the Google crawler.
+	siteMap string
+
 	cache *lru.Cache
 
 	mutex sync.Mutex
@@ -287,6 +290,21 @@ func diff(current, next []string) (int, int) {
 	return end, begin
 }
 
+// siteMapTemplate is a self-refrential template used to recursively expand over node tree.
+var siteMapTemplate = template.Must(template.New("SITENODE").Parse(`https://skia.org{{.Index.URL}}
+{{range .Files}}https://skia.org{{.URL}}
+{{end}}{{range .Dirs}}{{template "SITENODE" .}}{{end}}`))
+
+// nodeToSite converts the node to a sitemap.
+func nodeToSite(n *node, depth int) string {
+	b := &bytes.Buffer{}
+	if err := siteMapTemplate.Execute(b, n); err != nil {
+		glog.Errorf("Failed to expand: %s", err)
+		return ""
+	}
+	return b.String()
+}
+
 // navTemplate is a self-refrential template used to recursively expand over node tree.
 var navTemplate = template.Must(template.New("NODE").Parse(`
 <li><a data-path="{{.Index.URL}}" href="{{.Index.URL}}">{{.Index.Name}}</a></li>
@@ -300,6 +318,12 @@ var navTemplate = template.Must(template.New("NODE").Parse(`
     {{template "NODE" .}}
   {{end}}
 </ul>`))
+
+// buildSiteMapconverts a slice of navEntry's into an HTML formatted
+// site map.
+func buildSiteMap(n *node) string {
+	return nodeToSite(n, 1)
+}
 
 // nodeToHTML converts the node to HTML, keeping track of depth for pretty printing the output.
 func nodeToHTML(n *node, depth int) string {
@@ -451,10 +475,12 @@ func (d *DocSet) BuildNavigation() {
 	addDepth(node, 1)
 	printnode(node, 0)
 	s := buildNavString(node)
+	sm := buildSiteMap(node)
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
 	d.cache = lru.New(MARKDOWN_CACHE_SIZE)
 	d.navigation = s
+	d.siteMap = sm
 }
 
 // Navigation returns the HTML formatted navigation.
@@ -462,6 +488,13 @@ func (d *DocSet) Navigation() string {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
 	return d.navigation
+}
+
+// SiteMap returns the txt formatted site map.
+func (d *DocSet) SiteMap() string {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+	return d.siteMap
 }
 
 // issueAndPatch is a regex for extracting the issue number from a directory name
