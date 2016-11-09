@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/types"
 
 	assert "github.com/stretchr/testify/require"
 )
@@ -40,8 +42,9 @@ func TestParseCTQuery(t *testing.T) {
 	assert.NoError(t, err)
 
 	var ctQuery CTQuery
-	assert.NoError(t, ParseCTQuery(ioutil.NopCloser(bytes.NewBuffer(jsonBytes)), "blurimage", 9, &ctQuery))
-	exp := url.Values{"source_type": []string{"gm"}, "param": []string{"value"}, "name": []string{"blurimage"}}
+	assert.NoError(t, ParseCTQuery(ioutil.NopCloser(bytes.NewBuffer(jsonBytes)), 9, &ctQuery))
+	exp := url.Values{"source_type": []string{"gm"}, "param": []string{"value"}}
+	assert.True(t, util.In(types.PRIMARY_KEY_FIELD, ctQuery.Match))
 	assert.Equal(t, exp, ctQuery.RowQuery.Query)
 	assert.Equal(t, exp, ctQuery.ColumnQuery.Query)
 	assert.Equal(t, 9, ctQuery.ColumnQuery.Limit)
@@ -49,5 +52,5 @@ func TestParseCTQuery(t *testing.T) {
 	testQuery.RowQuery.QueryStr = ""
 	jsonBytes, err = json.Marshal(&testQuery)
 	assert.NoError(t, err)
-	assert.Error(t, ParseCTQuery(ioutil.NopCloser(bytes.NewBuffer(jsonBytes)), "blurimage", 10, &ctQuery))
+	assert.Error(t, ParseCTQuery(ioutil.NopCloser(bytes.NewBuffer(jsonBytes)), 10, &ctQuery))
 }

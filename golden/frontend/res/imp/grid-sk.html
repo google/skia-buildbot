@@ -125,6 +125,7 @@ Where:
               <paper-tooltip>
                 <table class="ttTable" border="0" cellspacing="5" cellpadding="5">
                   <tr><th>N</th><td>{{row.n}}</td></tr>
+                  <tr><th>Test</th><td>{{row.test}}</td></tr>
                 </table>
               </paper-tooltip>
             </div>
@@ -142,6 +143,7 @@ Where:
                       <tr><th>Pixel Diff (%)</th><td>{{cell.pixelDiffPercent}}</td></tr>
                       <tr><th>Num Diff Pixels</th><td>{{cell.numDiffPixels}}</td></tr>
                       <tr><th>Max RBBA Diffs</th><td>[{{cell.maxRGBADiffs}}]</td></tr>
+                      <tr><th>N</th><td>[{{cell.n}}]</td></tr>
                     </table>
                   </paper-tooltip>
                 </div>
@@ -195,6 +197,7 @@ Where:
                 col = ev.target.dataCol;
             var detail = sk.object.shallowCopy(this._value.rows[row].values[col]);
             detail.rowDigest = this._value.rows[row].digest;
+            detail.test = this._value.rows[row].test;
             detail.colDigest = this._value.rows[row].values[col].digest;
 
             var delay = (ev.type === 'click') ? 500 : 0;
