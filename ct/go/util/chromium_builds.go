@@ -14,6 +14,12 @@ import (
 	"strings"
 )
 
+const (
+	// Use 14 chars here instead of the traditional 7 to reduce the chances of
+	// ambiguous hashes while still leaving directory lengths reasonable.
+	TRUNCATED_HASH_LENGTH = 14
+)
+
 // Construct the name of a directory to store a chromium build. For generic clean builds, runID
 // should be empty.
 func ChromiumBuildDir(chromiumHash, skiaHash, runID string) string {
@@ -225,7 +231,10 @@ func buildChromium(chromiumDir, targetPlatform string, useWhitelistedFonts bool)
 }
 
 func getTruncatedHash(commitHash string) string {
-	return commitHash[0:7]
+	if len(commitHash) < TRUNCATED_HASH_LENGTH {
+		return commitHash
+	}
+	return commitHash[0:TRUNCATED_HASH_LENGTH]
 }
 
 func ResetChromiumCheckout(chromiumSrcDir string) error {
