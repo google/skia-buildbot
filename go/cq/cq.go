@@ -159,7 +159,7 @@ func (c *Client) ReportCQStatsForLandedCL(change, patchsetId int64, cqBuilds []*
 		createdTime := time.Time(b.Created).UTC()
 		completedTime := time.Time(b.Completed).UTC()
 		if (completedTime == time.Time{}.UTC()) {
-			// The correct completed time has not shown up in Buildbucket yet.
+			glog.Warningf("\tSkipping %s. The correct completed time has not shown up in Buildbucket yet.", b.Parameters.BuilderName)
 			continue
 		}
 		if endTimeOfCQBots.Before(completedTime) {
