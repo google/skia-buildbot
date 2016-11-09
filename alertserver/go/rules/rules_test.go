@@ -133,7 +133,7 @@ func TestEmptyResultsError(t *testing.T) {
 	}
 	assert.NoError(t, r.tick(am))
 	assert.Equal(t, 1, len(am.Alerts))
-	assert.Equal(t, "Failed to execute query for rule \"TestRule\": [ DummyQuery ]", am.Alerts[0].Message)
+	assert.Equal(t, "Failed to execute query for rule \"TestRule\": [ DummyQuery ]  The logs might provide more information: http://104.154.112.114:10115/alertserver.ERROR?page_y=end", am.Alerts[0].Message)
 }
 
 func TestEmptyResultsOk(t *testing.T) {
