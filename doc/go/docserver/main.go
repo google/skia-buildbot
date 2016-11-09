@@ -125,6 +125,13 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		d.BuildNavigation()
 		loadTemplates()
 	}
+	if r.URL.Path == "/sitemap.txt" {
+		w.Header().Set("Content-Type", "text/plain")
+		if _, err := w.Write([]byte(d.SiteMap())); err != nil {
+			glog.Errorf("Failed to write sitemap.txt: %s", err)
+		}
+		return
+	}
 
 	filename, raw, err := d.RawFilename(r.URL.Path)
 	if err != nil {

@@ -17,4 +17,10 @@ res/css/docs.css: node_modules/lastupdate res/css/main.css ${BOWER_DIR}/google-c
 release: default
 	./build_release
 
+.PHONY: push
+push: default
+	./build_release "`git log -n1 --format=%s`"
+	go install -v ../push/go/pushcli
+	pushcli docserver skia-docs
+
 include ../webtools/webtools.mk
