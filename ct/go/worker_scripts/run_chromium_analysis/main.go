@@ -69,7 +69,7 @@ func runChromiumAnalysis() error {
 	// Clean up any left over lock files from sync errors of previous runs.
 	err := os.Remove(filepath.Join(util.ChromiumSrcDir, ".git", "index.lock"))
 	if err != nil {
-		return errors.New("No index.lock file found.")
+		glog.Info("No index.lock file found.")
 	}
 	// Parse out the Chromium and Skia hashes.
 	chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuild)
