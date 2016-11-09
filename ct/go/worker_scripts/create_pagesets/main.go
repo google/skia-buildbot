@@ -4,6 +4,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -23,7 +25,7 @@ var (
 	pagesetType = flag.String("pageset_type", util.PAGESET_TYPE_MOBILE_10k, "The type of pagesets to create from the CSV list in util.PagesetTypeToInfo.")
 )
 
-func main() {
+func createPagesets() error {
 	defer common.LogPanic()
 	worker_common.Init()
 	if !*worker_common.Local {
@@ -47,11 +49,11 @@ func main() {
 	// Download the CSV file from Google Storage.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Fatal(err)
+		return err
 	}
 	csvFile := filepath.Join(util.StorageDir, filepath.Base(csvSource))
 	if err := gs.DownloadRemoteFile(csvSource, csvFile); err != nil {
-		glog.Fatalf("Could not download %s: %s", csvSource, err)
+		return fmt.Errorf("Could not download %s: %s", csvSource, err)
 	}
 	defer skutil.Remove(csvFile)
 
@@ -74,20 +76,31 @@ func main() {
 		"-o", pathToPagesets,
 	}
 	if err := util.ExecuteCmd("python", args, []string{}, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
-		glog.Fatal(err)
+		return err
 	}
 
 	// Check to see if there is anything in the pathToPagesets dir.
 	pagesetsEmpty, err := skutil.IsDirEmpty(pathToPagesets)
 	if err != nil {
-		glog.Fatal(err)
+		return err
 	}
 	if pagesetsEmpty {
-		glog.Fatalf("Could not create any page sets in %s", pathToPagesets)
+		return fmt.Errorf("Could not create any page sets in %s", pathToPagesets)
 	}
 
 	// Upload all page sets to Google Storage.
 	if err := gs.UploadSwarmingArtifacts(util.PAGESETS_DIR_NAME, *pagesetType); err != nil {
-		glog.Fatal(err)
+		return err
 	}
+
+	return nil
+}
+
+func main() {
+	retCode := 0
+	if err := createPagesets(); err != nil {
+		glog.Errorf("Error while creating pagesets: %s", err)
+		retCode = 255
+	}
+	os.Exit(retCode)
 }

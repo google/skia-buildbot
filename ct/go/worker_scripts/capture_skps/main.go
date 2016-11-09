@@ -2,6 +2,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -35,7 +36,7 @@ var (
 	chromeCleanerTimer = flag.Duration("cleaner_timer", 30*time.Minute, "How often all chrome processes will be killed on this slave.")
 )
 
-func main() {
+func captureSkps() error {
 	defer common.LogPanic()
 	worker_common.Init()
 	if !*worker_common.Local {
@@ -46,33 +47,33 @@ func main() {
 
 	// Validate required arguments.
 	if *chromiumBuild == "" {
-		glog.Fatal("Must specify --chromium_build")
+		return errors.New("Must specify --chromium_build")
 	}
 	if *runID == "" {
-		glog.Fatal("Must specify --run_id")
+		return errors.New("Must specify --run_id")
 	}
 	if *targetPlatform == util.PLATFORM_ANDROID {
-		glog.Fatal("Android is not yet supported for capturing SKPs.")
+		return errors.New("Android is not yet supported for capturing SKPs.")
 	}
 
 	// Reset the local chromium checkout.
 	if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
-		glog.Fatalf("Could not reset %s: %s", util.ChromiumSrcDir, err)
+		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
 	// Sync the local chromium checkout.
 	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{}); err != nil {
-		glog.Fatalf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
+		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
 	}
 
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Fatal(err)
+		return err
 	}
 
 	// Download the specified chromium build.
 	if err := gs.DownloadChromiumBuild(*chromiumBuild); err != nil {
-		glog.Fatal(err)
+		return err
 	}
 	// Delete the chromium build to save space when we are done.
 	defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
@@ -80,14 +81,14 @@ func main() {
 	if *targetPlatform == util.PLATFORM_ANDROID {
 		// Install the APK on the Android device.
 		if err := util.InstallChromeAPK(*chromiumBuild); err != nil {
-			glog.Fatalf("Could not install the chromium APK: %s", err)
+			return fmt.Errorf("Could not install the chromium APK: %s", err)
 		}
 	}
 
 	// Download pagesets if they do not exist locally.
 	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
 	if _, err := gs.DownloadSwarmingArtifacts(pathToPagesets, util.PAGESETS_DIR_NAME, *pagesetType, *startRange, *num); err != nil {
-		glog.Fatal(err)
+		return err
 	}
 	defer skutil.RemoveAll(pathToPagesets)
 
@@ -95,7 +96,7 @@ func main() {
 	pathToArchives := filepath.Join(util.WebArchivesDir, *pagesetType)
 	archivesToIndex, err := gs.DownloadSwarmingArtifacts(pathToArchives, util.WEB_ARCHIVES_DIR_NAME, *pagesetType, *startRange, *num)
 	if err != nil {
-		glog.Fatal(err)
+		return err
 	}
 	defer skutil.RemoveAll(pathToArchives)
 
@@ -112,7 +113,7 @@ func main() {
 	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].CaptureSKPsTimeoutSecs
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
-		glog.Fatalf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
+		return fmt.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
 	}
 
 	// Create channel that contains all pageset file names. This channel will
@@ -209,20 +210,31 @@ func main() {
 
 	// Move and validate all SKP files.
 	if err := util.ValidateSKPs(pathToSkps, pathToPyFiles); err != nil {
-		glog.Fatal(err)
+		return err
 	}
 
 	// Check to see if there is anything in the pathToSKPs dir.
 	skpsEmpty, err := skutil.IsDirEmpty(pathToSkps)
 	if err != nil {
-		glog.Fatal(err)
+		return err
 	}
 	if skpsEmpty {
-		glog.Fatalf("Could not create any SKP in %s", pathToSkps)
+		return fmt.Errorf("Could not create any SKP in %s", pathToSkps)
 	}
 
 	// Upload SKPs dir to Google Storage.
 	if err := gs.UploadSwarmingArtifacts(util.SKPS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild)); err != nil {
-		glog.Fatal(err)
+		return err
 	}
+
+	return nil
+}
+
+func main() {
+	retCode := 0
+	if err := captureSkps(); err != nil {
+		glog.Errorf("Error while capturing SKPs: %s", err)
+		retCode = 255
+	}
+	os.Exit(retCode)
 }

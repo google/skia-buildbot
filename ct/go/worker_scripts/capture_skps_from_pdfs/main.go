@@ -4,6 +4,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -41,7 +42,7 @@ var (
 	targetPlatform = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")
 )
 
-func main() {
+func captureSkpsFromPdfs() error {
 	defer common.LogPanic()
 	worker_common.Init()
 	if !*worker_common.Local {
@@ -52,23 +53,23 @@ func main() {
 
 	// Validate required arguments.
 	if *runID == "" {
-		glog.Fatal("Must specify --run_id")
+		return errors.New("Must specify --run_id")
 	}
 	if *chromiumBuild == "" {
-		glog.Fatal("Must specify --chromium_build")
+		return errors.New("Must specify --chromium_build")
 	}
 
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Fatal(err)
+		return err
 	}
 
 	// Download PDF pagesets if they do not exist locally.
 	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
 	pagesetsToIndex, err := gs.DownloadSwarmingArtifacts(pathToPagesets, util.PAGESETS_DIR_NAME, *pagesetType, *startRange, *num)
 	if err != nil {
-		glog.Fatal(err)
+		return err
 	}
 	defer skutil.RemoveAll(pathToPagesets)
 
@@ -94,16 +95,16 @@ func main() {
 	//pdfiumRemotePath := filepath.Join(util.BinariesDir, *runID, util.BINARY_PDFIUM_TEST)
 	//respBody, err := gs.GetRemoteFileContents(pdfiumRemotePath)
 	//if err != nil {
-	//	glog.Fatalf("Could not fetch %s: %s", pdfiumRemotePath, err)
+	//	return fmt.Errorf("Could not fetch %s: %s", pdfiumRemotePath, err)
 	//}
 	//defer skutil.Close(respBody)
 	//out, err := os.Create(pdfiumLocalPath)
 	//if err != nil {
-	//	glog.Fatalf("Unable to create file %s: %s", pdfiumLocalPath, err)
+	//	return fmt.Errorf("Unable to create file %s: %s", pdfiumLocalPath, err)
 	//}
 	//defer skutil.Remove(pdfiumLocalPath)
 	//if _, err = io.Copy(out, respBody); err != nil {
-	//	glog.Fatal(err)
+	//	return err
 	//}
 	//skutil.Close(out)
 	//// Downloaded pdfium_test binary needs to be set as an executable.
@@ -113,7 +114,7 @@ func main() {
 	//timeoutSecs := util.PagesetTypeToInfo[*pagesetType].CaptureSKPsTimeoutSecs
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
-		glog.Fatalf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
+		return fmt.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
 	}
 
 	// Create channel that contains all pageset file names. This channel will
@@ -231,33 +232,33 @@ func main() {
 	// Check to see if there is anything in the pathToPDFs and pathToSKPs dirs.
 	pdfsEmpty, err := skutil.IsDirEmpty(pathToPdfs)
 	if err != nil {
-		glog.Fatal(err)
+		return err
 	}
 	if pdfsEmpty {
-		glog.Fatalf("Could not download any PDF in %s", pathToPdfs)
+		return fmt.Errorf("Could not download any PDF in %s", pathToPdfs)
 	}
 	// TODO(rmistry): Uncomment when ready to capture SKPs.
 	//skpsEmpty, err := skutil.IsDirEmpty(pathToSkps)
 	//if err != nil {
-	//	glog.Fatal(err)
+	//	reutrn err
 	//}
 	//if skpsEmpty {
-	//	glog.Fatalf("Could not create any SKP in %s", pathToSkps)
+	//	return fmt.Errorf("Could not create any SKP in %s", pathToSkps)
 	//}
 	//
 	//// Move and validate all SKP files.
 	//pathToPyFiles := util.GetPathToPyFiles(!*worker_common.Local)
 	//if err := util.ValidateSKPs(pathToSkps, pathToPyFiles); err != nil {
-	//	glog.Fatal(err)
+	//	return err
 	//}
 
 	// Upload PDFs dir to Google Storage.
 	if err := gs.UploadSwarmingArtifacts(util.PDFS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild)); err != nil {
-		glog.Fatal(err)
+		return err
 	}
 	// Upload SKPs dir to Google Storage.
 	if err := gs.UploadSwarmingArtifacts(util.SKPS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild)); err != nil {
-		glog.Fatal(err)
+		return err
 	}
 
 	// Summarize errors.
@@ -273,6 +274,8 @@ func main() {
 			glog.Errorf("\t%s", erroredSKP)
 		}
 	}
+
+	return nil
 }
 
 func downloadPDFs(pdfURL, index, pathToPdfs string, httpTimeoutClient *http.Client) error {
@@ -318,4 +321,13 @@ func getPdfFileName(u string) (string, error) {
 	}
 	pdfFileName := fmt.Sprintf("%s%s", p.Host, strings.Replace(p.Path, "/", "__", -1))
 	return pdfFileName, nil
+}
+
+func main() {
+	retCode := 0
+	if err := captureSkpsFromPdfs(); err != nil {
+		glog.Errorf("Error while capturing SKPs from PDFs: %s", err)
+		retCode = 255
+	}
+	os.Exit(retCode)
 }
