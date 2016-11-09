@@ -723,7 +723,8 @@ type CTDigestCount struct {
 // CTRow is used by CTGrid to encode row digest information.
 type CTRow struct {
 	CTDigestCount
-	Values []*CTDiffMetrics `json:"values"`
+	TestName string           `json:"test"`
+	Values   []*CTDiffMetrics `json:"values"`
 }
 
 // CTDiffMetrics contains diff metric between the contain digest and the
@@ -737,15 +738,15 @@ type CTDiffMetrics struct {
 
 // the provided instance of CTQuery is consistent in that the row query and
 // column query contain the same test names and the same corpus field.
-func CompareTest(testName string, ctq *CTQuery, storages *storage.Storage, idx *indexer.SearchIndex) (*CTResponse, error) {
+func CompareTest(ctq *CTQuery, storages *storage.Storage, idx *indexer.SearchIndex) (*CTResponse, error) {
 	// Retrieve the row digests.
-	rowDigests, err := filterTile(ctq.RowQuery, testName, storages, idx)
+	rowDigests, err := filterTile(ctq.RowQuery, storages, idx)
 	if err != nil {
 		return nil, err
 	}
 
 	// Build the rows output.
-	rows := getCTRows(rowDigests, testName, ctq.SortRows, ctq.RowsDir, ctq.RowQuery.Limit, idx)
+	rows := getCTRows(rowDigests, ctq.SortRows, ctq.RowsDir, ctq.RowQuery.Limit, idx)
 
 	// If we sort by image frequency then we can sort and limit now, reducing the
 	// number of diffs we need to make.
@@ -755,7 +756,7 @@ func CompareTest(testName string, ctq *CTQuery, storages *storage.Storage, idx *
 	}
 
 	// Get the column digests conditioned on the result of the row digests.
-	columnDigests, err := filterTileWithMatch(ctq.ColumnQuery, testName, ctq.Match, rowDigests, storages, idx)
+	columnDigests, err := filterTileWithMatch(ctq.ColumnQuery, ctq.Match, rowDigests, storages, idx)
 	if err != nil {
 		return nil, err
 	}
@@ -796,7 +797,7 @@ func CompareTest(testName string, ctq *CTQuery, storages *storage.Storage, idx *
 		sortAndLimitRows(&rows, ctq.SortRows, ctq.RowsDir, ctq.Metric, ctq.RowQuery.Limit)
 	}
 
-	testSummary := idx.GetSummaries()
+	// testSummary := idx.GetSummaries()
 	ret := &CTResponse{
 		Grid: &CTGrid{
 			Rows:         rows,
@@ -804,11 +805,10 @@ func CompareTest(testName string, ctq *CTQuery, storages *storage.Storage, idx *
 			Columns:      columns,
 			ColumnsTotal: columnsTotal,
 		},
-		Name:      testName,
-		Corpus:    ctq.RowQuery.Query.Get(types.CORPUS_FIELD),
-		Positive:  testSummary[testName].Pos,
-		Negative:  testSummary[testName].Neg,
-		Untriaged: testSummary[testName].Untriaged,
+		Corpus: ctq.RowQuery.Query.Get(types.CORPUS_FIELD),
+		// Positive:  testSummary[testName].Pos,
+		// Negative:  testSummary[testName].Neg,
+		// Untriaged: testSummary[testName].Untriaged,
 	}
 
 	return ret, nil
@@ -817,8 +817,8 @@ func CompareTest(testName string, ctq *CTQuery, storages *storage.Storage, idx *
 // filterTile iterates over the tile and finds digests that match the given query.
 // It returns a map[digest]ParamSet which contains all the found digests and
 // the paramsets that generated them.
-func filterTile(query *Query, testName string, storages *storage.Storage, idx *indexer.SearchIndex) (map[string]paramtools.ParamSet, error) {
-	ret := make(map[string]paramtools.ParamSet, len(idx.TalliesByTest()[testName]))
+func filterTile(query *Query, storages *storage.Storage, idx *indexer.SearchIndex) (map[string]paramtools.ParamSet, error) {
+	ret := map[string]paramtools.ParamSet{}
 
 	// Add digest/trace to the result.
 	addFn := func(digest string, trace tiling.Trace, accptRet interface{}) {
@@ -849,7 +849,7 @@ func paramsMatch(matchFields []string, condParamSets paramtools.ParamSet, params
 // fields listed in matchFields. condDigests contains the digests their
 // parameter sets for which we would like to find a set of digests for
 // comparison. It returns a set of digests for each digest in condDigests.
-func filterTileWithMatch(query *Query, testName string, matchFields []string, condDigests map[string]paramtools.ParamSet, storages *storage.Storage, idx *indexer.SearchIndex) (map[string]util.StringSet, error) {
+func filterTileWithMatch(query *Query, matchFields []string, condDigests map[string]paramtools.ParamSet, storages *storage.Storage, idx *indexer.SearchIndex) (map[string]util.StringSet, error) {
 	if len(condDigests) == 0 {
 		return map[string]util.StringSet{}, nil
 	}
@@ -940,14 +940,16 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, storages *storage.St
 }
 
 // getCTRows returns the instance of CTRow that correspond to the given set of row digests.
-func getCTRows(entries map[string]paramtools.ParamSet, testName, sortField, sortDir string, limit int, idx *indexer.SearchIndex) []*CTRow {
-	tallies := idx.TalliesByTest()[testName]
+func getCTRows(entries map[string]paramtools.ParamSet, sortField, sortDir string, limit int, idx *indexer.SearchIndex) []*CTRow {
+	talliesByTest := idx.TalliesByTest()
 	ret := make([]*CTRow, 0, len(entries))
-	for digest := range entries {
+	for digest, paramSet := range entries {
+		testName := paramSet[types.PRIMARY_KEY_FIELD][0]
 		ret = append(ret, &CTRow{
+			TestName: testName,
 			CTDigestCount: CTDigestCount{
 				Digest: digest,
-				N:      tallies[digest],
+				N:      talliesByTest[testName][digest],
 			},
 		})
 	}
