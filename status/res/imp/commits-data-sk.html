@@ -74,7 +74,7 @@
     var COLOR_BUILD_FAILED = "#D95F02";
     var COLOR_BUILD_EXCEPTION = "#7570B3";
 
-    var VALID_BUILDER_CATEGORIES = ["Build", "Housekeeper", "Perf", "Test"];
+    var VALID_BUILDER_CATEGORIES = ["Build", "Housekeeper", "Infra", "Perf", "Test", "Upload"];
 
     var BUILDBOT_RESULT_SUCCESS = 0;
     var BUILDBOT_RESULT_WARNINGS = 1;
@@ -510,7 +510,7 @@
                 builderDetails.url = build.dashboardBuilderUrl
               }
               var split = builder.split("-");
-              if (split.length > 2 && VALID_BUILDER_CATEGORIES.indexOf(split[0]) != -1) {
+              if (split.length >= 2 && VALID_BUILDER_CATEGORIES.indexOf(split[0]) != -1) {
                   builderDetails.category = split[0];
                   builderDetails.subcategory = split[1];
               }
