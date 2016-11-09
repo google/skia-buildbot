@@ -112,11 +112,12 @@ func (c *TestClient) TriggerTask(t *swarming.SwarmingRpcsNewTaskRequest) (*swarm
 	id := uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
 	rv := &swarming.SwarmingRpcsTaskRequestMetadata{
 		Request: &swarming.SwarmingRpcsTaskRequest{
-			CreatedTs:  createdTs,
-			Name:       t.Name,
-			Priority:   t.Priority,
-			Properties: t.Properties,
-			Tags:       t.Tags,
+			CreatedTs:      createdTs,
+			ExpirationSecs: t.ExpirationSecs,
+			Name:           t.Name,
+			Priority:       t.Priority,
+			Properties:     t.Properties,
+			Tags:           t.Tags,
 		},
 		TaskId: id,
 		TaskResult: &swarming.SwarmingRpcsTaskResult{
