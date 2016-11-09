@@ -18,12 +18,16 @@ import (
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/exec"
 	skutil "go.skia.org/infra/go/util"
 )
 
 const (
 	// The number of goroutines that will run in parallel to run benchmarks.
 	WORKER_POOL_SIZE = 10
+	// The number of allowed benchmark timeouts in a row before the worker
+	// script fails.
+	MAX_ALLOWED_SEQUENTIAL_TIMEOUTS = 5
 )
 
 var (
@@ -44,7 +48,7 @@ func main() {
 	defer common.LogPanic()
 	worker_common.Init()
 	if !*worker_common.Local {
-		defer util.CleanTmpDir()
+		//defer util.CleanTmpDir()
 	}
 	defer util.TimeTrack(time.Now(), "Running Chromium Analysis")
 	defer glog.Flush()
@@ -70,11 +74,11 @@ func main() {
 		glog.Info("No index.lock file found.")
 	}
 	// Parse out the Chromium and Skia hashes.
-	chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuild)
+	//chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuild)
 	// Sync the local chromium checkout.
-	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{"src": chromiumHash}); err != nil {
-		glog.Fatalf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
-	}
+	//if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{"src": chromiumHash}); err != nil {
+	//	glog.Fatalf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
+	//}
 
 	if *targetPlatform == util.PLATFORM_ANDROID {
 		if err := adb.VerifyLocalDevice(); err != nil {
@@ -197,6 +201,8 @@ func main() {
 	// kill all zombie chrome processes.
 	var mutex sync.RWMutex
 
+	timeoutTracker := util.TimeoutTracker{}
+
 	// Loop through workers in the worker pool.
 	for i := 0; i < numWorkers; i++ {
 		// Increment the WaitGroup counter.
@@ -213,9 +219,12 @@ func main() {
 				// Retry run_benchmark binary 3 times if there are any errors.
 				retryAttempts := 3
 				for i := 0; ; i++ {
-					err = util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinary, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, -1, true)
+					err = util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinary, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, -1)
 					if err == nil {
+						timeoutTracker.Reset()
 						break
+					} else if strings.Contains(err.Error(), exec.TIMEOUT_ERROR_PREFIX) {
+						timeoutTracker.Increment()
 					}
 					if i >= (retryAttempts - 1) {
 						glog.Errorf("%s failed inspite of 3 retries. Last error: %s", pagesetName, err)
@@ -225,6 +234,10 @@ func main() {
 					glog.Warningf("Retrying due to error: %s", err)
 				}
 				mutex.RUnlock()
+
+				if timeoutTracker.Read() > MAX_ALLOWED_SEQUENTIAL_TIMEOUTS {
+					glog.Fatalf("Ran into %d sequential timeouts. Something is wrong. Killing the task.", MAX_ALLOWED_SEQUENTIAL_TIMEOUTS)
+				}
 			}
 		}()
 	}

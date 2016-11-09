@@ -516,7 +516,7 @@ func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GsUtil, totalPages, nu
 	return noOutputSlaves, nil
 }
 
-func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBuildName, chromiumBinary, runID, browserExtraArgs, benchmarkName, targetPlatform, benchmarkExtraArgs, pagesetType string, repeatBenchmark int, retWebpageFailErr bool) error {
+func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBuildName, chromiumBinary, runID, browserExtraArgs, benchmarkName, targetPlatform, benchmarkExtraArgs, pagesetType string, repeatBenchmark int) error {
 	pagesetBaseName := filepath.Base(fileInfoName)
 	if filepath.Ext(pagesetBaseName) == ".pyc" {
 		// Ignore .pyc files.
@@ -575,17 +575,14 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	}
 	timeoutSecs := PagesetTypeToInfo[pagesetType].RunChromiumPerfTimeoutSecs
 	if err := ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
-		if retWebpageFailErr {
-			return fmt.Errorf("Run benchmark command failed with: %s", err)
-		} else {
-			glog.Errorf("Run benchmark command failed with: %s", err)
-			if targetPlatform == PLATFORM_ANDROID {
-				// Kill the port-forwarder to start from a clean slate.
-				util.LogErr(ExecuteCmd("pkill", []string{"-f", "forwarder_host"}, []string{}, PKILL_TIMEOUT, nil, nil))
-			}
+		if targetPlatform == PLATFORM_ANDROID {
+			// Kill the port-forwarder to start from a clean slate.
+			util.LogErr(ExecuteCmd("pkill", []string{"-f", "forwarder_host"}, []string{}, PKILL_TIMEOUT, nil, nil))
 		}
+		return fmt.Errorf("Run benchmark command failed with: %s", err)
 	}
-	return nil
+	return fmt.Errorf("%s: something", exec.TIMEOUT_ERROR_PREFIX)
+	// return nil
 }
 
 func MergeUploadCSVFilesOnWorkers(localOutputDir, pathToPyFiles, runID, remoteDir string, gs *GsUtil, startRange int, handleStrings bool) error {
@@ -882,4 +879,29 @@ func WritePageset(filePath, userAgent, archiveFilePath, url string) error {
 		return err
 	}
 	return nil
+}
+
+type TimeoutTracker struct {
+	timeoutCounter      int
+	timeoutCounterMutex sync.Mutex
+}
+
+func (t *TimeoutTracker) Increment() {
+	t.timeoutCounterMutex.Lock()
+	defer t.timeoutCounterMutex.Unlock()
+	t.timeoutCounter++
+	fmt.Println("IIIIIIIIIIIIIIIIT IS: %d", t.timeoutCounter)
+}
+
+func (t *TimeoutTracker) Reset() {
+	t.timeoutCounterMutex.Lock()
+	defer t.timeoutCounterMutex.Unlock()
+	t.timeoutCounter = 0
+	fmt.Println("IIIIIIIIIIIIIIIIT IS: %d", t.timeoutCounter)
+}
+
+func (t *TimeoutTracker) Read() int {
+	t.timeoutCounterMutex.Lock()
+	defer t.timeoutCounterMutex.Unlock()
+	return t.timeoutCounter
 }
