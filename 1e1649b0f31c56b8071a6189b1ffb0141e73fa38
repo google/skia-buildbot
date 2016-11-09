@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ebafdfaa_6f405900",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-09T18:44:17Z",
+      "side": 1,
+      "message": "nit: give an example query here",
+      "range": {
+        "startLine": 5,
+        "startChar": 12,
+        "endLine": 5,
+        "endChar": 55
+      },
+      "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebafdfaa_0f7d555d",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-09T18:44:17Z",
+      "side": 1,
+      "message": "What about bots that have blamelists that tend to be \u003e 5 commits? We will have only 2-3 data points, and everything will look like a step.",
+      "range": {
+        "startLine": 13,
+        "startChar": 4,
+        "endLine": 13,
+        "endChar": 64
+      },
+      "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bb823f7_0c7687fb",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-09T18:44:17Z",
+      "side": 1,
+      "message": "maybe mention empty means sufficient data but no regressions",
+      "range": {
+        "startLine": 43,
+        "startChar": 4,
+        "endLine": 43,
+        "endChar": 24
+      },
+      "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebafdfaa_6f9cd950",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-09T18:44:17Z",
+      "side": 1,
+      "message": "Will clustering ever produce more than one low or high regression? E.g. a bunch of tests are 10% slower, and a bunch of other tests are 5x slower -- would that end up as two clusters?\n\nIf not, how is it possible that we would have both a low and a high cluster, since it seems to be the same algorithm whether it\u0027s a step up or step down?\n\nIf so, how would that be indicated in the UI and stored in Regression below?",
+      "range": {
+        "startLine": 49,
+        "startChar": 31,
+        "endLine": 49,
+        "endChar": 72
+      },
+      "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bbdafe5_abd78107",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-09T18:44:17Z",
+      "side": 1,
+      "message": "insert \"non-empty\"\n\n(I assume cells without any regressions don\u0027t get to have a status or text comment.)",
+      "range": {
+        "startLine": 53,
+        "startChar": 9,
+        "endLine": 53,
+        "endChar": 37
+      },
+      "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebafdfaa_2ab91fab",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-09T18:44:17Z",
+      "side": 1,
+      "message": "s/Nfs/Nsf/ (to match below)\n\nnit: When I see \"NSF,\" I think \"non-sufficient funds.\"",
+      "range": {
+        "startLine": 55,
+        "startChar": 8,
+        "endLine": 55,
+        "endChar": 11
+      },
+      "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebafdfaa_6fb3b9ef",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-09T18:44:17Z",
+      "side": 1,
+      "message": "nit: seems like you want map[commit][query]Regression\n\nedit: I see, this is per-commit. Maybe state that in the previous sentence?",
+      "range": {
+        "startLine": 66,
+        "startChar": 4,
+        "endLine": 66,
+        "endChar": 28
+      },
+      "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebafdfaa_ea5e978c",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-09T18:44:17Z",
+      "side": 1,
+      "message": "Do you mean Cloud Datastore? After you\u0027ve told everyone else not to use it?",
+      "range": {
+        "startLine": 91,
+        "startChar": 28,
+        "endLine": 91,
+        "endChar": 37
+      },
+      "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4b770b47_8e75bb3e",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-09T18:44:17Z",
+      "side": 1,
+      "message": "nit: I assume \"no data\" here doesn\u0027t mean the same thing as \"insufficient data\" above. Maybe s/no data exists/no regressions exist/.",
+      "range": {
+        "startLine": 125,
+        "startChar": 17,
+        "endLine": 125,
+        "endChar": 24
+      },
+      "revId": "1e1649b0f31c56b8071a6189b1ffb0141e73fa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
