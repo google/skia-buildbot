@@ -94,12 +94,19 @@ func (c *taskCandidate) MakeTask() *db.Task {
 
 // MakeIsolateTask creates an isolate.Task from this taskCandidate.
 func (c *taskCandidate) MakeIsolateTask(infraBotsDir, baseDir string) *isolate.Task {
+	os := "linux"
+	for _, d := range c.TaskSpec.Dimensions {
+		if strings.HasPrefix(d, "os:") {
+			os = d[len("os:"):]
+			break
+		}
+	}
 	return &isolate.Task{
 		BaseDir:     baseDir,
 		Blacklist:   isolate.DEFAULT_BLACKLIST,
 		Deps:        c.IsolatedHashes,
 		IsolateFile: path.Join(infraBotsDir, c.TaskSpec.Isolate),
-		OsType:      "linux", // TODO(borenet)
+		OsType:      os,
 	}
 }
 
