@@ -142,7 +142,8 @@ func GetQualifiedCustomWebpages(customWebpages, benchmarkArgs string) ([]string,
 			}
 			for _, record := range records {
 				if strings.TrimSpace(record) == "" {
-					return nil, errors.New("Cannot specify empty webpages")
+					// Skip empty webpages.
+					continue
 				}
 				var qualifiedWebpage string
 				if strings.HasPrefix(record, "http://") || strings.HasPrefix(record, "https://") {
