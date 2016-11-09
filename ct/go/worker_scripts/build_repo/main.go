@@ -2,6 +2,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -28,20 +29,20 @@ var (
 	outDir            = flag.String("out", "", "The out directory where hashes will be stored.")
 )
 
-func main() {
+func buildRepo() error {
 	defer common.LogPanic()
 	worker_common.Init()
 	defer util.TimeTrack(time.Now(), "Building Repo")
 	defer glog.Flush()
 
 	if *outDir == "" {
-		glog.Fatal("Must specify --out")
+		return errors.New("Must specify --out")
 	}
 
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Fatal(err)
+		return err
 	}
 
 	var remoteDirs []string
@@ -53,7 +54,7 @@ func main() {
 				patchName := path.Base(patch)
 				patchLocalPath := filepath.Join(os.TempDir(), patchName)
 				if _, err := util.DownloadPatch(patchLocalPath, patch, gs); err != nil {
-					glog.Fatal(err)
+					return err
 				}
 			}
 		}
@@ -71,7 +72,7 @@ func main() {
 		pathToPyFiles := util.GetPathToPyFiles(!*worker_common.Local)
 		chromiumHash, skiaHash, err := util.CreateChromiumBuildOnSwarming(*runID, *targetPlatform, chromiumHash, skiaHash, pathToPyFiles, applyPatches, *uploadSingleBuild)
 		if err != nil {
-			glog.Fatalf("Could not create chromium build: %s", err)
+			return fmt.Errorf("Could not create chromium build: %s", err)
 		}
 
 		if !*uploadSingleBuild {
@@ -81,10 +82,10 @@ func main() {
 	} else if *repoName == "pdfium" {
 		// Sync PDFium and build pdfium_test binary.
 		if err := util.SyncDir(util.PDFiumTreeDir, map[string]string{}); err != nil {
-			glog.Fatalf("Could not sync PDFium: %s", err)
+			return fmt.Errorf("Could not sync PDFium: %s", err)
 		}
 		if err := util.BuildPDFium(); err != nil {
-			glog.Fatalf("Could not build PDFium: %s", err)
+			return fmt.Errorf("Could not build PDFium: %s", err)
 		}
 		// Copy pdfium_test to Google Storage.
 		pdfiumLocalDir := path.Join(util.PDFiumTreeDir, "out", "Debug")
@@ -92,10 +93,10 @@ func main() {
 		// Instantiate GsUtil object.
 		gs, err := util.NewGsUtil(nil)
 		if err != nil {
-			glog.Fatal(err)
+			return err
 		}
 		if err := gs.UploadFile(util.BINARY_PDFIUM_TEST, pdfiumLocalDir, pdfiumRemoteDir); err != nil {
-			glog.Fatalf("Could not upload %s to %s: %s", util.BINARY_PDFIUM_TEST, pdfiumRemoteDir, err)
+			return fmt.Errorf("Could not upload %s to %s: %s", util.BINARY_PDFIUM_TEST, pdfiumRemoteDir, err)
 		}
 		remoteDirs = append(remoteDirs, *runID)
 	}
@@ -104,10 +105,21 @@ func main() {
 	buildDirsOutputFile := filepath.Join(*outDir, util.BUILD_OUTPUT_FILENAME)
 	f, err := os.Create(buildDirsOutputFile)
 	if err != nil {
-		glog.Fatalf("Could not create %s: %s", buildDirsOutputFile, err)
+		return fmt.Errorf("Could not create %s: %s", buildDirsOutputFile, err)
 	}
 	defer skutil.Close(f)
 	if _, err := f.WriteString(strings.Join(remoteDirs, ",")); err != nil {
-		glog.Fatalf("Could not write to %s: %s", buildDirsOutputFile, err)
+		return fmt.Errorf("Could not write to %s: %s", buildDirsOutputFile, err)
 	}
+
+	return nil
+}
+
+func main() {
+	retCode := 0
+	if err := buildRepo(); err != nil {
+		glog.Errorf("Error while building repo: %s", err)
+		retCode = 255
+	}
+	os.Exit(retCode)
 }

@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -32,7 +33,7 @@ var (
 	chromeCleanerTimer = flag.Duration("cleaner_timer", 30*time.Minute, "How often all chrome processes will be killed on this slave.")
 )
 
-func main() {
+func captureArchives() error {
 	defer common.LogPanic()
 	worker_common.Init()
 	if !*worker_common.Local {
@@ -43,11 +44,11 @@ func main() {
 
 	// Reset the local chromium checkout.
 	if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
-		glog.Fatalf("Could not reset %s: %s", util.ChromiumSrcDir, err)
+		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
 	// Sync the local chromium checkout.
 	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{}); err != nil {
-		glog.Fatalf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
+		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
 	}
 
 	// Delete and remake the local webpage archives directory.
@@ -59,14 +60,14 @@ func main() {
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Fatal(err)
+		return err
 	}
 
 	// Download pagesets.
 	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
 	pagesetsToIndex, err := gs.DownloadSwarmingArtifacts(pathToPagesets, util.PAGESETS_DIR_NAME, *pagesetType, *startRange, *num)
 	if err != nil {
-		glog.Fatal(err)
+		return err
 	}
 	defer skutil.RemoveAll(pathToPagesets)
 
@@ -75,7 +76,7 @@ func main() {
 	// Loop through all pagesets.
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
-		glog.Fatalf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
+		return fmt.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
 	}
 
 	// Create channel that contains all pageset file names. This channel will
@@ -161,20 +162,31 @@ func main() {
 	// Check to see if there is anything in the pathToArchives dir.
 	archivesEmpty, err := skutil.IsDirEmpty(pathToArchives)
 	if err != nil {
-		glog.Fatal(err)
+		return err
 	}
 	if archivesEmpty {
-		glog.Fatalf("Could not create any archives in %s", pathToArchives)
+		return fmt.Errorf("Could not create any archives in %s", pathToArchives)
 	}
 
 	// Upload all webpage archives to Google Storage.
 	if err := gs.UploadSwarmingArtifacts(util.WEB_ARCHIVES_DIR_NAME, *pagesetType); err != nil {
-		glog.Fatal(err)
+		return err
 	}
+
+	return nil
 }
 
 func addIndexInDataFileLocation(originalDataFile string, index string) string {
 	fileName := filepath.Base(originalDataFile)
 	fileDir := filepath.Dir(originalDataFile)
 	return path.Join(fileDir, index, fileName)
+}
+
+func main() {
+	retCode := 0
+	if err := captureArchives(); err != nil {
+		glog.Errorf("Error while capturing archives: %s", err)
+		retCode = 255
+	}
+	os.Exit(retCode)
 }
