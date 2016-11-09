@@ -46,7 +46,6 @@ import (
 	"io/ioutil"
 	"net/mail"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -60,8 +59,9 @@ import (
 	"github.com/golang/groupcache/lru"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/doc/go/config"
-	"go.skia.org/infra/doc/go/reitveld"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 )
 
@@ -70,10 +70,19 @@ const (
 )
 
 var (
-	rc = reitveld.NewClient()
+	gc *gerrit.Gerrit
 
 	IssueClosedErr = errors.New("The requested issue is closed.")
 )
+
+func init() {
+	client := httputils.NewTimeoutClient()
+	var err error
+	gc, err = gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", client)
+	if err != nil {
+		glog.Fatalf("Failed to create Gerrit client: %s", err)
+	}
+}
 
 // DocSet is a single checked out repository of Markdown documents.
 type DocSet struct {
@@ -94,35 +103,23 @@ type DocSet struct {
 // If refresh is true then the git repo will be periodically refreshed (git pull).
 func newDocSet(repoDir, repo string, issue, patchset int64, refresh bool) (*DocSet, error) {
 	if issue > 0 {
-		issueInfo, err := rc.Issue(issue)
+		info, err := gc.GetIssueProperties(issue)
 		if err != nil {
-			err := fmt.Errorf("Failed to retrieve issue status %d: %s", issue, err)
-			glog.Error(err)
-			return nil, err
+			return nil, fmt.Errorf("Failed to load issue info: %s", err)
 		}
-		if issueInfo.Closed {
+		if info.SubmittedString != "" {
 			return nil, IssueClosedErr
 		}
 	}
-	git, err := gitinfo.CloneOrUpdate(repo, repoDir, false)
+	git, err := gitinfo.CloneOrUpdate(repo, repoDir, true)
 	if err != nil {
 		glog.Fatalf("Failed to CloneOrUpdate repo %q: %s", repo, err)
 	}
 	if issue > 0 {
-		cmd := exec.Command("patch", "-p1")
-		if _, err := cmd.StdinPipe(); err != nil {
-			return nil, err
-		}
-		cmd.Dir = repoDir
-		diff, err := rc.Patchset(issue, patchset)
+		issuePostFix := issue % 100
+		git.Checkout(fmt.Sprintf("refs/changes/%02d/%d/%d", issuePostFix, issue, patchset))
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve patchset: %s", err)
-		}
-		cmd.Stdin = diff
-		defer util.Close(diff)
-		b, err := cmd.CombinedOutput()
-		if err != nil {
-			return nil, fmt.Errorf("Error while patching %#v - %s: %s", *cmd, string(b), err)
+			glog.Fatalf("Failed to CloneOrUpdate repo %q: %s", repo, err)
 		}
 	}
 	d := &DocSet{
@@ -179,13 +176,17 @@ func NewDocSet(workDir, repo string) (*DocSet, error) {
 //
 // The returned DocSet is not periodically refreshed.
 func NewDocSetForIssue(workDir, repo string, issue int64) (*DocSet, error) {
-	// Only do pull and patch if directory doesn't exist.
-	issueInfo, err := rc.Issue(issue)
+	info, err := gc.GetIssueProperties(issue)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load issue info: %s", err)
 	}
-	patchset := issueInfo.Patchsets[len(issueInfo.Patchsets)-1]
-	addr, err := mail.ParseAddress(issueInfo.OwnerEmail)
+	patchset := int64(-1)
+	for _, rev := range info.Revisions {
+		if rev.Number > patchset {
+			patchset = rev.Number
+		}
+	}
+	addr, err := mail.ParseAddress(info.Owner.Email)
 	if err != nil {
 		return nil, fmt.Errorf("CL contains invalid author email: %s", err)
 	}
@@ -494,13 +495,9 @@ func StartCleaner(workDir string) {
 				glog.Errorf("Failed to parse %q as int: %s", m[1], err)
 				continue
 			}
-			issueInfo, err := rc.Issue(issue)
-			if err != nil && err != reitveld.MissingIssue {
-				glog.Errorf("Failed to retrieve issue status %d: %s", issue, err)
-				continue
-			}
+			info, err := gc.GetIssueProperties(issue)
 			// Delete closed and missing issues.
-			if (issueInfo != nil && issueInfo.Closed) || (err == reitveld.MissingIssue) {
+			if err != nil || info.SubmittedString != "" {
 				if err := os.RemoveAll(filename); err != nil {
 					glog.Errorf("Failed to remove %q: %s", filename, err)
 				}
