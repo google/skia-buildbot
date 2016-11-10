@@ -22,6 +22,24 @@
       "revId": "f455705573f275e2e1b2b94e3dd23cba5fce7915",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb935fd8_3bfb57cf",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-11-10T20:02:45Z",
+      "side": 1,
+      "message": "\u003e Would be better to do:\n \u003e var (\n \u003e   ErrTimeout \u003d errors.New(\"Command killed after timeout.\")\n \u003e )\n\nDoing err \u003d\u003d ErrTimeout would not work where I am doing the check because the places propagating it keep prepending strings to it.\n\n \u003e \n \u003e Or make a struct ErrTimeout and/or a function IsTimeout(err error) bool.\n\nDone (IsTimeout).",
+      "parentUuid": "4b770b47_24c37b2a",
+      "revId": "f455705573f275e2e1b2b94e3dd23cba5fce7915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
