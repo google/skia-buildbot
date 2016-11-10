@@ -59,6 +59,12 @@ const (
 	BUCKET_COMMENTS = "comments"
 	KEY_COMMENT_MAP = "comment-map"
 
+	// BUCKET_BACKUP is the name of the backup bucket. Key is
+	// KEY_INCREMENTAL_BACKUP_TIME, value is time.Time.MarshalBinary. The value
+	// will be updated in place.
+	BUCKET_BACKUP               = "backup"
+	KEY_INCREMENTAL_BACKUP_TIME = "inc-backup-ts"
+
 	// TIMESTAMP_FORMAT is a format string passed to Time.Format and time.Parse to
 	// format/parse the timestamp in the Task ID. It is similar to
 	// util.RFC3339NanoZeroPad, but since Task.Id can not contain colons, we omit
@@ -204,8 +210,10 @@ type localDB struct {
 
 	dbMetric *boltutil.DbMetric
 
-	modTasks db.ModifiedTasks
-	modJobs  db.ModifiedJobs
+	// ModifiedTasks and ModifiedJobs are embedded in order to implement
+	// db.TaskReader and db.JobReader.
+	db.ModifiedTasks
+	db.ModifiedJobs
 
 	// CommentBox is embedded in order to implement db.CommentDB. CommentBox uses
 	// this localDB to persist the comments.
@@ -332,6 +340,9 @@ func NewDB(name, filename string) (db.BackupDBCloser, error) {
 		}
 		commentsBucket, err := tx.CreateBucketIfNotExists([]byte(BUCKET_COMMENTS))
 		if err != nil {
+			return err
+		}
+		if _, err := tx.CreateBucketIfNotExists([]byte(BUCKET_BACKUP)); err != nil {
 			return err
 		}
 
@@ -584,24 +595,9 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 		revertChanges()
 		return err
 	} else {
-		d.modTasks.TrackModifiedTasksGOB(gobs)
+		d.TrackModifiedTasksGOB(gobs)
 	}
 	return nil
-}
-
-// See docs for TaskDB interface.
-func (d *localDB) GetModifiedTasks(id string) ([]*db.Task, error) {
-	return d.modTasks.GetModifiedTasks(id)
-}
-
-// See docs for TaskDB interface.
-func (d *localDB) StartTrackingModifiedTasks() (string, error) {
-	return d.modTasks.StartTrackingModifiedTasks()
-}
-
-// See docs for TaskDB interface.
-func (d *localDB) StopTrackingModifiedTasks(id string) {
-	d.modTasks.StopTrackingModifiedTasks(id)
 }
 
 // Sets job.Id based on job.Created. tx must be an update transaction.
@@ -778,24 +774,9 @@ func (d *localDB) PutJobs(jobs []*db.Job) error {
 		revertChanges()
 		return err
 	} else {
-		d.modJobs.TrackModifiedJobsGOB(gobs)
+		d.TrackModifiedJobsGOB(gobs)
 	}
 	return nil
-}
-
-// See docs for JobDB interface.
-func (d *localDB) GetModifiedJobs(id string) ([]*db.Job, error) {
-	return d.modJobs.GetModifiedJobs(id)
-}
-
-// See docs for JobDB interface.
-func (d *localDB) StartTrackingModifiedJobs() (string, error) {
-	return d.modJobs.StartTrackingModifiedJobs()
-}
-
-// See docs for JobDB interface.
-func (d *localDB) StopTrackingModifiedJobs(id string) {
-	d.modJobs.StopTrackingModifiedJobs(id)
 }
 
 // writeCommentsMap is passed to db.NewCommentBoxWithPersistence to persist
@@ -819,13 +800,31 @@ func (d *localDB) WriteBackup(w io.Writer) error {
 }
 
 // See docs for BackupDBCloser interface.
-func (d *localDB) SetIncrementalBackupTime(time.Time) error {
-	// TODO(benjaminwagner): Implement along with incremental backups.
+func (d *localDB) SetIncrementalBackupTime(t time.Time) error {
+	t = t.UTC()
+	val, err := t.MarshalBinary()
+	if err != nil {
+		return err
+	}
+	err = d.update("SetIncrementalBackupTime", func(tx *bolt.Tx) error {
+		return tx.Bucket([]byte(BUCKET_BACKUP)).Put([]byte(KEY_INCREMENTAL_BACKUP_TIME), val)
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // See docs for BackupDBCloser interface.
 func (d *localDB) GetIncrementalBackupTime() (time.Time, error) {
-	// TODO(benjaminwagner): Implement along with incremental backups.
-	return time.Now(), nil
+	incBackupTime := time.Time{}
+	err := d.view("GetIncrementalBackupTime", func(tx *bolt.Tx) error {
+		commentsBucket := tx.Bucket([]byte(BUCKET_BACKUP))
+		serializedIncBackupTime := commentsBucket.Get([]byte(KEY_INCREMENTAL_BACKUP_TIME))
+		if serializedIncBackupTime == nil {
+			return nil
+		}
+		return incBackupTime.UnmarshalBinary(serializedIncBackupTime)
+	})
+	return incBackupTime.UTC(), err
 }
