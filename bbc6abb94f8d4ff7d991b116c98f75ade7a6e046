@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4b770b47_e9d0ee09",
+        "filename": "doc/go/docset/docset.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-11-10T18:41:06Z",
+      "side": 0,
+      "message": "Intentionally removed?",
+      "range": {
+        "startLine": 452,
+        "startChar": 1,
+        "endLine": 452,
+        "endChar": 10
+      },
+      "revId": "bbc6abb94f8d4ff7d991b116c98f75ade7a6e046",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
