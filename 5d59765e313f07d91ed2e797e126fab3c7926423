@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4b770b47_295fd68a",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-10T17:35:56Z",
+      "side": 1,
+      "message": "nit: maybe consider making jsonJobHandler handle GET on \"/json/job/{id}\" and jsonCancelJobHandler handle DELETE on \"/json/job/{id}\".",
+      "revId": "5d59765e313f07d91ed2e797e126fab3c7926423",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
