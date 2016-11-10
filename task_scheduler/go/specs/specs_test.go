@@ -67,6 +67,7 @@ func TestCopyJobSpec(t *testing.T) {
 	testutils.SmallTest(t)
 	v := &JobSpec{
 		TaskSpecs: []string{"Build", "Test"},
+		Trigger:   "trigger-name",
 		Priority:  753,
 	}
 	testutils.AssertCopy(t, v, v.Copy())

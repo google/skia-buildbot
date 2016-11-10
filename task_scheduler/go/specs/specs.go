@@ -202,6 +202,7 @@ type CipdPackage struct {
 type JobSpec struct {
 	Priority  float64  `json:"priority"`
 	TaskSpecs []string `json:"tasks"`
+	Trigger   string   `json:"trigger,omitempty"`
 }
 
 // Copy returns a copy of the JobSpec.
@@ -214,6 +215,7 @@ func (j *JobSpec) Copy() *JobSpec {
 	return &JobSpec{
 		Priority:  j.Priority,
 		TaskSpecs: taskSpecs,
+		Trigger:   j.Trigger,
 	}
 }
 

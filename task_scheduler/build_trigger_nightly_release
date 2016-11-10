@@ -1,0 +1,18 @@
+#!/bin/bash
+# Builds and uploads a debian package for task-scheduler-trigger-nightly.
+APPNAME=task-scheduler-trigger-nightly
+DESCRIPTION="Service which triggers nightly task-scheduler jobs."
+SYSTEMD=${APPNAME}.service
+SYSTEMD_TIMER=${APPNAME}.timer
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL} --mode=644 -T ./sys/${APPNAME}.service ${ROOT}/etc/systemd/system/${APPNAME}.service
+${INSTALL} --mode=644 -T ./sys/${APPNAME}.timer   ${ROOT}/etc/systemd/system/${APPNAME}.timer
+${INSTALL_DIR} --mode=777                         ${ROOT}/mnt/pd0/task_scheduler_workdir/periodic-job-trigger
+}
+
+source ../bash/release.sh
