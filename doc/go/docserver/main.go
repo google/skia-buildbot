@@ -23,6 +23,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/doc/go/docset"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 )
@@ -31,6 +32,8 @@ var (
 	indexTemplate *template.Template
 
 	primary *docset.DocSet
+
+	gc *gerrit.Gerrit
 )
 
 // flags
@@ -62,17 +65,22 @@ func Init() {
 	loadTemplates()
 
 	var err error
+	gc, err = gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", nil)
+	if err != nil {
+		glog.Fatalf("Failed to create Gerrit client: %s", err)
+	}
+
 	if *preview {
-		primary, err = docset.NewPreviewDocSet()
+		primary, err = docset.NewPreviewDocSet(gc)
 	} else {
-		primary, err = docset.NewDocSet(*workDir, *docRepo)
+		primary, err = docset.NewDocSet(*workDir, *docRepo, gc)
 	}
 	if err != nil {
 		glog.Fatalf("Failed to load the docset: %s", err)
 	}
 
 	if !*preview {
-		go docset.StartCleaner(*workDir)
+		go docset.StartCleaner(*workDir, gc)
 	}
 }
 
@@ -107,9 +115,9 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, r, fmt.Errorf("Not a valid integer id for an issue."), "The CL given is not valid.")
 			return
 		}
-		d, err = docset.NewDocSetForIssue(filepath.Join(*workDir, "patches"), filepath.Join(*workDir, "primary"), issue)
-		if err == docset.IssueClosedErr {
-			httputils.ReportError(w, r, err, "Failed to load the given CL, that issue is closed.")
+		d, err = docset.NewDocSetForIssue(filepath.Join(*workDir, "patches"), filepath.Join(*workDir, "primary"), issue, gc)
+		if err == docset.IssueCommittedErr {
+			httputils.ReportError(w, r, err, "Failed to load the given CL, that issue is merged.")
 			return
 		}
 		if err != nil {
