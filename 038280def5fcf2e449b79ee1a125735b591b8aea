@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb935fd8_7e214d65",
+        "filename": "task_scheduler/go/scheduling/periodic.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-10T21:13:18Z",
+      "side": 1,
+      "message": "N/A",
+      "range": {
+        "startLine": 41,
+        "startChar": 16,
+        "endLine": 41,
+        "endChar": 37
+      },
+      "revId": "038280def5fcf2e449b79ee1a125735b591b8aea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb935fd8_61a37288",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2420,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-10T21:13:18Z",
+      "side": 1,
+      "message": "uber-nit: copy/paste",
+      "range": {
+        "startLine": 2420,
+        "startChar": 56,
+        "endLine": 2420,
+        "endChar": 64
+      },
+      "revId": "038280def5fcf2e449b79ee1a125735b591b8aea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb935fd8_9eeff9df",
+        "filename": "task_scheduler/sys/task-scheduler-trigger-nightly.service",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-10T21:13:18Z",
+      "side": 1,
+      "message": "nit: s/basename/trigger/",
+      "range": {
+        "startLine": 9,
+        "startChar": 28,
+        "endLine": 9,
+        "endChar": 36
+      },
+      "revId": "038280def5fcf2e449b79ee1a125735b591b8aea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb935fd8_3e9c2550",
+        "filename": "task_scheduler/sys/task-scheduler-trigger-nightly.service",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-10T21:13:18Z",
+      "side": 1,
+      "message": "nit: \"trigger selects Jobs by the value of JobSpec.Trigger\"",
+      "range": {
+        "startLine": 12,
+        "startChar": 5,
+        "endLine": 12,
+        "endChar": 61
+      },
+      "revId": "038280def5fcf2e449b79ee1a125735b591b8aea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
