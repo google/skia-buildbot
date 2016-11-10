@@ -114,6 +114,17 @@
         }
       });
     };
+    sk.post = function(url) {
+      return new Promise(function (resolve, reject) {
+        var j = job1;
+        if (url.indexOf("job1") == -1) {
+          j = job2;
+        }
+        j.Status = "CANCELED";
+        j.Finished = (new Date()).toISOString();
+        resolve(JSON.stringify(j));
+      });
+    };
 
   </script>
   <link rel="import" href="job-sk.html">

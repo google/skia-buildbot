@@ -25,12 +25,21 @@
 -->
 
 <link rel="import" href="/res/common/imp/human-date-sk.html">
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
 
 <dom-module id="job-sk">
   <template>
+    <style include="iron-flex iron-flex-alignment">
     <style>
     :host {
       font-family: sans-serif;
+    }
+    #cancelButton {
+      background-color: #D95F02;
+      color: #fff;
+      font-family: 'Roboto', 'Noto', sans-serif;
+      font-size: 1.0em;
     }
     .container {
       margin: 5px;
@@ -69,7 +78,16 @@
     }
     </style>
     <div class="container">
-      <h2>Job Information</h2>
+      <div class="layout horizontal">
+        <div class="flex">
+          <h2>Job Information</h2>
+        </div>
+        <template is="dom-if" if="[[!_job.Status]]">
+          <div>
+            <paper-button raised id="cancelButton" on-tap="_cancelJob">Cancel</paper-button>
+          </div>
+        </template>
+      </div>
       <div class="table">
         <div class="tr"><div class="td">ID</div><div class="td">[[_job.Id]]</div></div>
         <div class="tr"><div class="td">Name</div><div class="td">[[_job.Name]]</div></div>
@@ -173,6 +191,15 @@
         var url = "/json/job/" + jobId;
         console.log("Loading Job from " + url);
         sk.get(url).then(JSON.parse).then(function(json) {
+          this.set("_job", json);
+          this._computeTasksGraph();
+        }.bind(this)).catch(sk.errorMessage);
+      },
+
+      _cancelJob: function(jobId) {
+        var url = "/json/job/" + jobId + "/cancel";
+        console.log("Canceling Job: " + url);
+        sk.post(url).then(JSON.parse).then(function(json) {
           this.set("_job", json);
           this._computeTasksGraph();
         }.bind(this)).catch(sk.errorMessage);
