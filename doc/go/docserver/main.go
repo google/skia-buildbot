@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"mime"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"runtime"
 	"text/template"
@@ -103,6 +104,16 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	// clone a new copy of the docs repo and patch that issue into it,
 	// and then serve this reqeust from that patched repo.
 	cl := r.FormValue("cl")
+
+	// Images and other assets won't include the ?cl=[issueid], which means if we
+	// add a new image in a CL it won't normally show up in the preview, but we
+	// can extract the issue id from the Referer header if present.
+	ref := r.Header.Get("Referer")
+	if cl == "" && ref != "" {
+		if refParsed, err := url.Parse(ref); err == nil && refParsed.Host == r.Host {
+			cl = refParsed.Query().Get("cl")
+		}
+	}
 	if cl != "" {
 		issue, err := strconv.ParseInt(cl, 10, 64)
 		if err != nil {
