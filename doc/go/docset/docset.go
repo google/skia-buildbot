@@ -60,7 +60,8 @@ import (
 	"github.com/golang/groupcache/lru"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/doc/go/config"
-	"go.skia.org/infra/doc/go/reitveld"
+	//"go.skia.org/infra/doc/go/reitveld"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/util"
 )
@@ -70,7 +71,7 @@ const (
 )
 
 var (
-	rc = reitveld.NewClient()
+	//rc = reitveld.NewClient()
 
 	IssueClosedErr = errors.New("The requested issue is closed.")
 )
@@ -95,15 +96,16 @@ type DocSet struct {
 // The repo is checked out into repoDir.
 // If a valid issue and patchset are supplied then the repo will be patched with that CL.
 // If refresh is true then the git repo will be periodically refreshed (git pull).
-func newDocSet(repoDir, repo string, issue, patchset int64, refresh bool) (*DocSet, error) {
+func newDocSet(repoDir, repo string, issue, patchset int64, refresh bool, gc *gerrit.Gerrit) (*DocSet, error) {
 	if issue > 0 {
-		issueInfo, err := rc.Issue(issue)
+		issueInfo, err := gc.GetIssueProperties(issue)
 		if err != nil {
 			err := fmt.Errorf("Failed to retrieve issue status %d: %s", issue, err)
 			glog.Error(err)
 			return nil, err
 		}
-		if issueInfo.Closed {
+		// TODO(rmistry): Add something for abandoned :/
+		if issueInfo.Committed {
 			return nil, IssueClosedErr
 		}
 	}
@@ -117,12 +119,12 @@ func newDocSet(repoDir, repo string, issue, patchset int64, refresh bool) (*DocS
 			return nil, err
 		}
 		cmd.Dir = repoDir
-		diff, err := rc.Patchset(issue, patchset)
+		diff, err := gc.GetPatch(issue, "current")
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve patchset: %s", err)
+			return nil, fmt.Errorf("Failed to retrieve patch: %s", err)
 		}
-		cmd.Stdin = diff
-		defer util.Close(diff)
+		patchReader := bytes.NewBufferString(diff)
+		cmd.Stdin = patchReader
 		b, err := cmd.CombinedOutput()
 		if err != nil {
 			return nil, fmt.Errorf("Error while patching %#v - %s: %s", *cmd, string(b), err)
@@ -144,7 +146,7 @@ func newDocSet(repoDir, repo string, issue, patchset int64, refresh bool) (*DocS
 }
 
 // NewPreviewDocSet creates a new DocSet, one that is not refreshed.
-func NewPreviewDocSet() (*DocSet, error) {
+func NewPreviewDocSet(gc *gerrit.Gerrit) (*DocSet, error) {
 	// Start from cwd and move up until you find a .git file, then use that dir as repoDir.
 	dir, err := os.Getwd()
 	if err != nil {
@@ -169,8 +171,8 @@ func NewPreviewDocSet() (*DocSet, error) {
 }
 
 // NewDocSet creates a new DocSet, one that is periodically refreshed.
-func NewDocSet(workDir, repo string) (*DocSet, error) {
-	d, err := newDocSet(filepath.Join(workDir, "primary"), repo, -1, -1, true)
+func NewDocSet(workDir, repo string, gc *gerrit.Gerrit) (*DocSet, error) {
+	d, err := newDocSet(filepath.Join(workDir, "primary"), repo, -1, -1, true, gc)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to CloneOrUpdate repo %q: %s", repo, err)
 	}
@@ -181,14 +183,15 @@ func NewDocSet(workDir, repo string) (*DocSet, error) {
 // the given issue.
 //
 // The returned DocSet is not periodically refreshed.
-func NewDocSetForIssue(workDir, repo string, issue int64) (*DocSet, error) {
+// rmistry
+func NewDocSetForIssue(workDir, repo string, issue int64, gc *gerrit.Gerrit) (*DocSet, error) {
 	// Only do pull and patch if directory doesn't exist.
-	issueInfo, err := rc.Issue(issue)
+	issueInfo, err := gc.GetIssueProperties(issue)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load issue info: %s", err)
 	}
-	patchset := issueInfo.Patchsets[len(issueInfo.Patchsets)-1]
-	addr, err := mail.ParseAddress(issueInfo.OwnerEmail)
+	patchset := int64(len(issueInfo.Patchsets))
+	addr, err := mail.ParseAddress(issueInfo.Owner.Email)
 	if err != nil {
 		return nil, fmt.Errorf("CL contains invalid author email: %s", err)
 	}
@@ -199,7 +202,7 @@ func NewDocSetForIssue(workDir, repo string, issue int64) (*DocSet, error) {
 	var d *DocSet
 	repoDir := filepath.Join(workDir, "patches", fmt.Sprintf("%d-%d", issue, patchset))
 	if _, err := os.Stat(repoDir); os.IsNotExist(err) {
-		d, err = newDocSet(repoDir, repo, issue, patchset, false)
+		d, err = newDocSet(repoDir, repo, issue, patchset, false, gc)
 		if err != nil {
 			if err == IssueClosedErr {
 				return nil, err
@@ -503,7 +506,7 @@ var issueAndPatch = regexp.MustCompile("([0-9]+)-[0-9]+")
 
 // StartCleaner is a process that periodically checks the status of every issue
 // that has been previewed and removes all the local files for closed issues.
-func StartCleaner(workDir string) {
+func StartCleaner(workDir string, gc *gerrit.Gerrit) {
 	glog.Info("Starting Cleaner")
 	for _ = range time.Tick(config.REFRESH) {
 		// TODO (stephana): The extra 'patches' directory should go away after
@@ -527,13 +530,13 @@ func StartCleaner(workDir string) {
 				glog.Errorf("Failed to parse %q as int: %s", m[1], err)
 				continue
 			}
-			issueInfo, err := rc.Issue(issue)
-			if err != nil && err != reitveld.MissingIssue {
+			issueInfo, err := gc.GetIssueProperties(issue)
+			if err != nil {
 				glog.Errorf("Failed to retrieve issue status %d: %s", issue, err)
 				continue
 			}
-			// Delete closed and missing issues.
-			if (issueInfo != nil && issueInfo.Closed) || (err == reitveld.MissingIssue) {
+			// Delete closed issues.
+			if issueInfo != nil && issueInfo.Committed {
 				if err := os.RemoveAll(filename); err != nil {
 					glog.Errorf("Failed to remove %q: %s", filename, err)
 				}
