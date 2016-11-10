@@ -20,12 +20,16 @@ import (
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/exec"
 	skutil "go.skia.org/infra/go/util"
 )
 
 const (
 	// The number of goroutines that will run in parallel to run benchmarks.
 	WORKER_POOL_SIZE = 10
+	// The number of allowed benchmark timeouts in a row before the worker
+	// script fails.
+	MAX_ALLOWED_SEQUENTIAL_TIMEOUTS = 20
 )
 
 var (
@@ -199,6 +203,8 @@ func runChromiumAnalysis() error {
 	// kill all zombie chrome processes.
 	var mutex sync.RWMutex
 
+	timeoutTracker := util.TimeoutTracker{}
+
 	// Loop through workers in the worker pool.
 	for i := 0; i < numWorkers; i++ {
 		// Increment the WaitGroup counter.
@@ -215,9 +221,12 @@ func runChromiumAnalysis() error {
 				// Retry run_benchmark binary 3 times if there are any errors.
 				retryAttempts := 3
 				for i := 0; ; i++ {
-					err = util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinary, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, -1, true)
+					err = util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinary, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, -1)
 					if err == nil {
+						timeoutTracker.Reset()
 						break
+					} else if exec.IsTimeout(err) {
+						timeoutTracker.Increment()
 					}
 					if i >= (retryAttempts - 1) {
 						glog.Errorf("%s failed inspite of 3 retries. Last error: %s", pagesetName, err)
@@ -227,6 +236,11 @@ func runChromiumAnalysis() error {
 					glog.Warningf("Retrying due to error: %s", err)
 				}
 				mutex.RUnlock()
+
+				if timeoutTracker.Read() > MAX_ALLOWED_SEQUENTIAL_TIMEOUTS {
+					glog.Errorf("Ran into %d sequential timeouts. Something is wrong. Killing the goroutine.", MAX_ALLOWED_SEQUENTIAL_TIMEOUTS)
+					return
+				}
 			}
 		}()
 	}
