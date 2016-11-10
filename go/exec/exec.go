@@ -52,6 +52,10 @@ import (
 	"github.com/skia-dev/glog"
 )
 
+const (
+	TIMEOUT_ERROR_PREFIX = "Command killed since it took longer than"
+)
+
 var (
 	runFn func(command *Command) error = DefaultRun
 
@@ -224,13 +228,19 @@ func wait(command *Command, cmd *osexec.Cmd) error {
 			return fmt.Errorf("Failed to kill timed out process: %s", err)
 		}
 		<-done // allow goroutine to exit
-		return fmt.Errorf("Command killed since it took longer than %f secs", command.Timeout.Seconds())
+		return fmt.Errorf("%s %f secs", TIMEOUT_ERROR_PREFIX, command.Timeout.Seconds())
 	case err := <-done:
 		if err != nil {
 			return fmt.Errorf("Command exited with %s: %s", err, DebugString(command))
 		}
 		return nil
 	}
+}
+
+// IsTimeout returns true if the specified error was raised due to a command
+// timing out.
+func IsTimeout(err error) bool {
+	return strings.Contains(err.Error(), TIMEOUT_ERROR_PREFIX)
 }
 
 // DefaultRun can be passed to SetRunForTesting to go back to running commands as normal.
