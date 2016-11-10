@@ -61,7 +61,10 @@ func Init() {
 	}
 	loadTemplates()
 
-	var err error
+	err := docset.Init()
+	if err != nil {
+		glog.Fatalf("Failed to initialize docset: %s", err)
+	}
 	if *preview {
 		primary, err = docset.NewPreviewDocSet()
 	} else {
@@ -70,7 +73,6 @@ func Init() {
 	if err != nil {
 		glog.Fatalf("Failed to load the docset: %s", err)
 	}
-
 	if !*preview {
 		go docset.StartCleaner(*workDir)
 	}
@@ -107,8 +109,8 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, r, fmt.Errorf("Not a valid integer id for an issue."), "The CL given is not valid.")
 			return
 		}
-		d, err = docset.NewDocSetForIssue(filepath.Join(*workDir, "patches"), filepath.Join(*workDir, "primary"), issue)
-		if err == docset.IssueClosedErr {
+		d, err = docset.NewDocSetForIssue(filepath.Join(*workDir, "patches"), *docRepo, issue)
+		if err == docset.IssueCommittedErr {
 			httputils.ReportError(w, r, err, "Failed to load the given CL, that issue is closed.")
 			return
 		}
