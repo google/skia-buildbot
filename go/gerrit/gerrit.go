@@ -25,6 +25,10 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+var (
+	ErrCookiesMissing = errors.New("Cannot make authenticated post calls without a valid .gitcookies file")
+)
+
 const (
 	TIME_FORMAT      = "2006-01-02 15:04:05.999999"
 	GERRIT_SKIA_URL  = "https://skia-review.googlesource.com"
@@ -362,7 +366,7 @@ func (g *Gerrit) post(suburl string, postData interface{}) error {
 		}
 	}
 	if auth == "" {
-		return errors.New("Cannot make authenticated post calls without a valid .gitcookies file")
+		return ErrCookiesMissing
 	}
 	req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(auth)))
 	req.Header.Set("Content-Type", "application/json")
