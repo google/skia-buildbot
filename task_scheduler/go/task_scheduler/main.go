@@ -261,7 +261,7 @@ func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	ids := make([]string, 0, len(msg.Jobs))
 	for _, j := range msg.Jobs {
-		id, err := ts.Trigger(repoName, msg.Commit, j)
+		id, err := ts.TriggerJob(repoName, msg.Commit, j)
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to trigger jobs.")
 			return
@@ -290,6 +290,32 @@ func jsonJobHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		httputils.ReportError(w, r, err, "Error retrieving Job.")
+		return
+	}
+	if err := json.NewEncoder(w).Encode(job); err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode response.")
+		return
+	}
+}
+
+func jsonCancelJobHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if !login.IsGoogler(r) {
+		errStr := "Cannot cancel jobs; user is not a logged-in Googler."
+		httputils.ReportError(w, r, fmt.Errorf(errStr), errStr)
+		return
+	}
+
+	id, ok := mux.Vars(r)["id"]
+	if !ok {
+		err := "Job ID is required."
+		httputils.ReportError(w, r, fmt.Errorf(err), err)
+		return
+	}
+
+	job, err := ts.CancelJob(id)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to cancel job.")
 		return
 	}
 	if err := json.NewEncoder(w).Encode(job); err != nil {
@@ -332,6 +358,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/trigger", triggerHandler)
 	r.HandleFunc("/json/blacklist", jsonBlacklistHandler).Methods(http.MethodPost, http.MethodDelete)
 	r.HandleFunc("/json/job/{id}", jsonJobHandler)
+	r.HandleFunc("/json/job/{id}/cancel", jsonCancelJobHandler).Methods(http.MethodPost)
 	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods(http.MethodPost)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))

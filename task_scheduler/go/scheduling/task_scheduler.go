@@ -148,8 +148,8 @@ func (s *TaskScheduler) RecentSpecsAndCommits() ([]string, []string, []string) {
 	return s.taskCfgCache.RecentSpecsAndCommits()
 }
 
-// Trigger adds the given Job to the database and returns its ID.
-func (s *TaskScheduler) Trigger(repo, commit, jobName string) (string, error) {
+// TriggerJob adds the given Job to the database and returns its ID.
+func (s *TaskScheduler) TriggerJob(repo, commit, jobName string) (string, error) {
 	j, err := s.taskCfgCache.MakeJob(db.RepoState{
 		Repo:     repo,
 		Revision: commit,
@@ -163,6 +163,26 @@ func (s *TaskScheduler) Trigger(repo, commit, jobName string) (string, error) {
 	}
 	glog.Infof("Created manually-triggered Job %q", j.Id)
 	return j.Id, nil
+}
+
+// CancelJob cancels the given Job if it is not already finished.
+func (s *TaskScheduler) CancelJob(id string) (*db.Job, error) {
+	// TODO(borenet): Prevent concurrent update of the Job.
+	j, err := s.jCache.GetJobMaybeExpired(id)
+	if err != nil {
+		return nil, err
+	}
+	if j.Done() {
+		return nil, fmt.Errorf("Job %s is already finished with status %s", id, j.Status)
+	}
+	j.Status = db.JOB_STATUS_CANCELED
+	if err := s.jobFinished(j); err != nil {
+		return nil, err
+	}
+	if err := s.db.PutJob(j); err != nil {
+		return nil, err
+	}
+	return j, s.jCache.Update()
 }
 
 // ComputeBlamelist computes the blamelist for a new task, specified by name,
@@ -1080,6 +1100,25 @@ func updateUnfinishedTasks(cache db.TaskCache, d db.TaskDB, s swarming.ApiClient
 	return nil
 }
 
+// jobFinished marks the Job as finished and reports its result to Buildbucket
+// if necessary.
+func (s *TaskScheduler) jobFinished(j *db.Job) error {
+	if !j.Done() {
+		return fmt.Errorf("jobFinished called on Job with status %q", j.Status)
+	}
+	j.Finished = time.Now()
+	if j.IsTryJob() {
+		// Report the try job status to Buildbucket. If
+		// we fail to do so, don't insert the updated
+		// Job into the DB - we'll come back to it on
+		// the next loop.
+		if err := s.tryjobs.JobFinished(j); err != nil {
+			return fmt.Errorf("Failed to send update for try job: %s", err)
+		}
+	}
+	return nil
+}
+
 // updateUnfinishedJobs updates all not-yet-finished Jobs to determine if their
 // state has changed.
 func (s *TaskScheduler) updateUnfinishedJobs() error {
@@ -1107,17 +1146,8 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 			j.Tasks = summaries
 			j.Status = j.DeriveStatus()
 			if j.Done() {
-				j.Finished = time.Now()
-
-				if j.IsTryJob() {
-					// Report the try job status to Buildbucket. If
-					// we fail to do so, don't insert the updated
-					// Job into the DB - we'll come back to it on
-					// the next loop.
-					if err := s.tryjobs.JobFinished(j); err != nil {
-						errs = append(errs, fmt.Errorf("Failed to send update for try job: %s", err))
-						continue
-					}
+				if err := s.jobFinished(j); err != nil {
+					errs = append(errs, err)
 				}
 			}
 
