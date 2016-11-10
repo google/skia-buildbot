@@ -22,6 +22,24 @@
       "revId": "bbc6abb94f8d4ff7d991b116c98f75ade7a6e046",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4b770b47_04767ffb",
+        "filename": "doc/go/docset/docset.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-11-10T18:59:59Z",
+      "side": 0,
+      "message": "Yeah, it was clogging up the logs.",
+      "parentUuid": "4b770b47_e9d0ee09",
+      "revId": "bbc6abb94f8d4ff7d991b116c98f75ade7a6e046",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
