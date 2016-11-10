@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4b770b47_24c37b2a",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-10T18:50:31Z",
+      "side": 1,
+      "message": "Would be better to do:\nvar (\n  ErrTimeout \u003d errors.New(\"Command killed after timeout.\")\n)\n\nOr make a struct ErrTimeout and/or a function IsTimeout(err error) bool.",
+      "range": {
+        "startLine": 56,
+        "startChar": 1,
+        "endLine": 56,
+        "endChar": 66
+      },
+      "revId": "f455705573f275e2e1b2b94e3dd23cba5fce7915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
