@@ -110,7 +110,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	// can extract the issue id from the Referer header if present.
 	ref := r.Header.Get("Referer")
 	if cl == "" && ref != "" {
-		if refParsed, err := url.Parse(ref); err == nil && refParsed.Host == r.Host {
+		if refParsed, err := url.Parse(ref); err == nil && (refParsed.Host == r.Host || refParsed.Host == "skia.org") {
 			cl = refParsed.Query().Get("cl")
 		}
 	}
