@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb935fd8_ddf41eb4",
+        "filename": "task_scheduler/go/scheduling/periodic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-11T20:08:31Z",
+      "side": 1,
+      "message": "One concern is that, since we \"don\u0027t know\" what triggers we care about in this file, the scheduler sends no data for a given trigger until it actually triggers.  If the scheduler restarts more often than the trigger file appears, we\u0027ll almost always be in a \"no data\" state.",
+      "range": {
+        "startLine": 35,
+        "startChar": 16,
+        "endLine": 35,
+        "endChar": 27
+      },
+      "revId": "33da49816a65b3307e7253b622b967654af45419",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
