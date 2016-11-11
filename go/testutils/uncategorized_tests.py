@@ -17,7 +17,7 @@ SKIP = 'SKIP'
 
 
 def main():
-  cmd = ['go', 'test', '-v', './...']
+  cmd = ['go', 'test', '-v', './...', '--uncategorized']
   try:
     output = subprocess.check_output(cmd)
   except subprocess.CalledProcessError as e:
