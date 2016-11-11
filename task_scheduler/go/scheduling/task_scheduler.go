@@ -59,6 +59,7 @@ type TaskScheduler struct {
 	tCache           db.TaskCache
 	timeDecayAmt24Hr float64
 	tryjobs          *tryjobs.TryJobIntegrator
+	workdir          string
 }
 
 func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string) (*TaskScheduler, error) {
@@ -98,6 +99,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repos repog
 		tCache:           tCache,
 		timeDecayAmt24Hr: timeDecayAmt24Hr,
 		tryjobs:          tryjobs,
+		workdir:          workdir,
 	}
 	return s, nil
 }
@@ -840,12 +842,14 @@ func (s *TaskScheduler) gatherNewJobs() error {
 			if err != nil {
 				return false, err
 			}
-			for name, _ := range cfg.Jobs {
-				j, err := s.taskCfgCache.MakeJob(rs, name)
-				if err != nil {
-					return false, err
+			for name, spec := range cfg.Jobs {
+				if spec.Trigger == "" {
+					j, err := s.taskCfgCache.MakeJob(rs, name)
+					if err != nil {
+						return false, err
+					}
+					newJobs = append(newJobs, j)
 				}
-				newJobs = append(newJobs, j)
 			}
 			if c.Hash == "50537e46e4f0999df0a4707b227000cfa8c800ff" {
 				// Stop recursing here, since Jobs were added
@@ -862,6 +866,12 @@ func (s *TaskScheduler) gatherNewJobs() error {
 	if err := s.db.PutJobs(newJobs); err != nil {
 		return err
 	}
+
+	// Also trigger any available periodic jobs.
+	if err := s.triggerPeriodicJobs(); err != nil {
+		return err
+	}
+
 	return s.jCache.Update()
 }
 
