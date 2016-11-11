@@ -24,16 +24,17 @@ const (
 )
 
 var (
-	small  = flag.Bool(SMALL_TEST, false, "Whether or not to run small tests.")
-	medium = flag.Bool(MEDIUM_TEST, false, "Whether or not to run medium tests.")
-	large  = flag.Bool(LARGE_TEST, false, "Whether or not to run large tests.")
+	small         = flag.Bool(SMALL_TEST, false, "Whether or not to run small tests.")
+	medium        = flag.Bool(MEDIUM_TEST, false, "Whether or not to run medium tests.")
+	large         = flag.Bool(LARGE_TEST, false, "Whether or not to run large tests.")
+	uncategorized = flag.Bool("uncategorized", false, "Only run uncategorized tests.")
 
 	// DEFAULT_RUN indicates whether the given test type runs by default
 	// when no filter flag is specified.
 	DEFAULT_RUN = map[string]bool{
-		SMALL_TEST:  false,
-		MEDIUM_TEST: false,
-		LARGE_TEST:  false,
+		SMALL_TEST:  true,
+		MEDIUM_TEST: true,
+		LARGE_TEST:  true,
 	}
 
 	TIMEOUT_SMALL  = "2s"
@@ -50,6 +51,10 @@ var (
 
 // ShouldRun determines whether the test should run based on the provided flags.
 func ShouldRun(testType string) bool {
+	if *uncategorized {
+		return false
+	}
+
 	// Fallback if no test filter is specified.
 	if !*small && !*medium && !*large {
 		return DEFAULT_RUN[testType]
