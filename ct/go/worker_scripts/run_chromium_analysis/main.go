@@ -253,6 +253,10 @@ func runChromiumAnalysis() error {
 	// Wait for all spawned goroutines to complete.
 	wg.Wait()
 
+	if timeoutTracker.Read() > MAX_ALLOWED_SEQUENTIAL_TIMEOUTS {
+		return fmt.Errorf("There were %d sequential timeouts.", MAX_ALLOWED_SEQUENTIAL_TIMEOUTS)
+	}
+
 	// If "--output-format=csv-pivot-table" was specified then merge all CSV files and upload.
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv-pivot-table") {
 		if err := util.MergeUploadCSVFilesOnWorkers(localOutputDir, pathToPyFiles, *runID, remoteDir, gs, *startRange, true /* handleStrings */); err != nil {
