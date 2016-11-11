@@ -143,6 +143,7 @@ func setup(t *testing.T) (*util.TempRepo, db.DB, *swarming.TestClient, *TaskSche
 	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 	tr := util.NewTempRepo()
+	assert.NoError(t, os.Mkdir(path.Join(tr.Dir, TRIGGER_DIRNAME), os.ModePerm))
 	d := db.NewInMemoryDB()
 	isolateClient, err := isolate.NewClient(tr.Dir)
 	assert.NoError(t, err)
@@ -1703,6 +1704,7 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
+	assert.NoError(t, os.Mkdir(path.Join(workdir, TRIGGER_DIRNAME), os.ModePerm))
 
 	run := func(dir string, cmd ...string) {
 		_, err := exec.RunCwd(dir, cmd...)
@@ -2378,4 +2380,61 @@ func TestTaskTimeouts(t *testing.T) {
 	assert.Equal(t, int64(40*60), swarmingTask.Request.Properties.ExecutionTimeoutSecs)
 	assert.Equal(t, int64(3*60), swarmingTask.Request.Properties.IoTimeoutSecs)
 	assert.Equal(t, int64(2*60*60), swarmingTask.Request.ExpirationSecs)
+}
+
+func TestPeriodicJobs(t *testing.T) {
+	tr, _, _, s, _ := setup(t)
+	defer tr.Cleanup()
+
+	// Rewrite tasks.json with a periodic job.
+	name := "Periodic-Task"
+	cfg := &specs.TasksCfg{
+		Jobs: map[string]*specs.JobSpec{
+			"Periodic-Job": &specs.JobSpec{
+				Priority:  1.0,
+				TaskSpecs: []string{name},
+				Trigger:   "nightly",
+			},
+		},
+		Tasks: map[string]*specs.TaskSpec{
+			name: &specs.TaskSpec{
+				CipdPackages: []*specs.CipdPackage{},
+				Dependencies: []string{},
+				Dimensions: []string{
+					"pool:Skia",
+					"os:Mac",
+					"gpu:my-gpu",
+				},
+				ExecutionTimeout: 40 * time.Minute,
+				Expiration:       2 * time.Hour,
+				IoTimeout:        3 * time.Minute,
+				Isolate:          "compile_skia.isolate",
+				Priority:         1.0,
+			},
+		},
+	}
+	repoDir := path.Join(tr.Dir, "skia.git")
+	tasksJson := path.Join(repoDir, specs.TASKS_CFG_FILE)
+	testutils.WriteFile(t, tasksJson, testutils.MarshalJSON(t, &cfg))
+	exec_testutils.Run(t, repoDir, "git", "add", specs.TASKS_CFG_FILE)
+	exec_testutils.Run(t, repoDir, "git", "commit", "-m", "nightly-job")
+
+	// Cycle, ensure that the periodic task is not added.
+	assert.NoError(t, s.MainLoop())
+	assert.NoError(t, s.jCache.Update())
+	unfinished, err := s.jCache.UnfinishedJobs()
+	assert.NoError(t, err)
+	assert.Equal(t, 5, len(unfinished)) // Existing per-commit jobs.
+
+	// Write the trigger file. Cycle, ensure that the trigger file was
+	// removed and the periodic task was added.
+	triggerFile := path.Join(tr.Dir, TRIGGER_DIRNAME, "nightly")
+	ioutil.WriteFile(triggerFile, []byte{}, os.ModePerm)
+	assert.NoError(t, s.MainLoop())
+	_, err = os.Stat(triggerFile)
+	assert.True(t, os.IsNotExist(err))
+	assert.NoError(t, s.jCache.Update())
+	unfinished, err = s.jCache.UnfinishedJobs()
+	assert.NoError(t, err)
+	assert.Equal(t, 6, len(unfinished))
 }
