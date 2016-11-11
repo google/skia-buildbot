@@ -8,6 +8,7 @@ import (
 	"image"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
 	"sync"
 
@@ -66,7 +67,9 @@ func newImgLoader(client *http.Client, imgDir string, gsBucketNames []string, gs
 	}
 
 	// Set up the work queues that balance the load.
-	ret.imageCache = rtcache.New(ret.imageLoadWorker, maxCacheSize, N_IMG_WORKERS)
+	if ret.imageCache, err = rtcache.New(ret.imageLoadWorker, maxCacheSize, N_IMG_WORKERS); err != nil {
+		return nil, err
+	}
 	return ret, nil
 }
 
@@ -137,6 +140,25 @@ func (il *ImageLoader) Get(priority int64, digests []string) ([]*image.NRGBA, er
 // IsOnDisk returns true if the image that corresponds to the given digest is in the disk cache.
 func (il *ImageLoader) IsOnDisk(digest string) bool {
 	return fileutil.FileExists(fileutil.TwoLevelRadixPath(il.localImgDir, getDigestImageFileName(digest)))
+}
+
+// PurgeImages removes the images that correspond to the given digests.
+func (il *ImageLoader) PurgeImages(digests []string, purgeGS bool) error {
+	for _, d := range digests {
+		fName := fileutil.TwoLevelRadixPath(il.localImgDir, getDigestImageFileName(d))
+		if fileutil.FileExists(fName) {
+			if err := os.Remove(fName); err != nil {
+				glog.Errorf("Unable to remove image %s. Got error: %s", fName, err)
+			}
+		}
+	}
+
+	if purgeGS {
+		for _, d := range digests {
+			il.removeImg(d)
+		}
+	}
+	return nil
 }
 
 // imageLoadWorker implements the rtcache.ReadThroughFunc signature.
@@ -239,4 +261,23 @@ func (il *ImageLoader) downloadImgFromBucket(digest, bucketName string) ([]byte,
 
 	glog.Infof("Done downloading image for: %s. Length: %d", digest, buf.Len())
 	return buf.Bytes(), err
+}
+
+// downloadImg retrieves the given image from Google storage.
+func (il *ImageLoader) removeImg(digest string) {
+	ctx := context.Background()
+	for _, bucketName := range il.gsBucketNames {
+		// Retrieve the attributes to test if the file exists.
+		objLocation := filepath.Join(il.gsImageBaseDir, getDigestImageFileName(digest))
+		_, err := il.storageClient.Bucket(bucketName).Object(objLocation).Attrs(ctx)
+		if err != nil {
+			continue
+		}
+
+		// Log an error and continue to the next bucket if we cannot delete the existing file.
+		if err := il.storageClient.Bucket(bucketName).Object(objLocation).Delete(ctx); err != nil {
+			glog.Errorf("Unable to delete existing object at %s. Got error: %s", objLocation, err)
+			continue
+		}
+	}
 }

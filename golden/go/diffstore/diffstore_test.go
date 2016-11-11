@@ -81,7 +81,7 @@ func TestDiffStore(t *testing.T) {
 		// Load the diff from disk and compare.
 		for twoDigest, dr := range found {
 			id := combineDigests(oneDigest, twoDigest)
-			loadedDr, err := memDiffStore.loadDiffMetric(id)
+			loadedDr, err := memDiffStore.metricsStore.loadDiffMetric(id)
 			assert.NoError(t, err)
 			assert.Equal(t, dr, loadedDr, "Comparing: %s", id)
 		}
@@ -129,3 +129,7 @@ type digestsSlice [][]string
 func (d digestsSlice) Len() int           { return len(d) }
 func (d digestsSlice) Less(i, j int) bool { return len(d[i]) > len(d[j]) }
 func (d digestsSlice) Swap(i, j int)      { d[i], d[j] = d[j], d[i] }
+
+func TestFailureHandling(t *testing.T) {
+
+}
