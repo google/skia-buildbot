@@ -81,7 +81,7 @@ func TestDiffStore(t *testing.T) {
 		// Load the diff from disk and compare.
 		for twoDigest, dr := range found {
 			id := combineDigests(oneDigest, twoDigest)
-			loadedDr, err := memDiffStore.loadDiffMetric(id)
+			loadedDr, err := memDiffStore.metricsStore.loadDiffMetric(id)
 			assert.NoError(t, err)
 			assert.Equal(t, dr, loadedDr, "Comparing: %s", id)
 		}
@@ -129,3 +129,42 @@ type digestsSlice [][]string
 func (d digestsSlice) Len() int           { return len(d) }
 func (d digestsSlice) Less(i, j int) bool { return len(d[i]) > len(d[j]) }
 func (d digestsSlice) Swap(i, j int)      { d[i], d[j] = d[j], d[i] }
+
+func TestFailureHandling(t *testing.T) {
+	testutils.MediumTest(t)
+	testutils.SkipIfShort(t)
+
+	// Get a small tile and get them cached.
+	baseDir := TEST_DATA_BASE_DIR + "-diffstore-failure"
+	client, tile := getSetupAndTile(t, baseDir)
+	defer testutils.RemoveAll(t, baseDir)
+
+	diffStore, err := New(client, baseDir, []string{TEST_GS_BUCKET_NAME}, TEST_GS_IMAGE_DIR, 10)
+	assert.NoError(t, err)
+	memDiffStore := diffStore.(*MemDiffStore)
+
+	validDigestSet := util.StringSet{}
+	for _, trace := range tile.Traces {
+		gTrace := trace.(*types.GoldenTrace)
+		validDigestSet.AddLists(gTrace.Values)
+	}
+	delete(validDigestSet, types.MISSING_DIGEST)
+
+	invalidDigest_1 := "invalid-digest-1"
+	invalidDigest_2 := "invalid_digest_2"
+
+	validDigests := validDigestSet.Keys()
+	mainDigest := validDigests[0]
+	diffDigests := append(validDigests[1:6], invalidDigest_1, invalidDigest_2)
+
+	diffs, err := diffStore.Get(diff.PRIORITY_NOW, mainDigest, diffDigests)
+	assert.NoError(t, err)
+	assert.Equal(t, len(diffDigests)-2, len(diffs))
+
+	unavailableDigests := diffStore.UnavailableDigests()
+	assert.Equal(t, 2, len(unavailableDigests))
+	assert.NotNil(t, unavailableDigests[invalidDigest_1])
+	assert.NotNil(t, unavailableDigests[invalidDigest_2])
+
+	assert.NotNil(t, memDiffStore)
+}
