@@ -8,6 +8,7 @@ import (
 
 	"github.com/skia-dev/glog"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -18,7 +19,25 @@ const (
 	// indicating that periodic jobs should be triggered. These files are
 	// created by the systemd task-scheduler-trigger-*.service.
 	TRIGGER_DIRNAME = "periodic-job-trigger"
+
+	// PERIODIC_TRIGGER_MEASUREMENT is the name of the liveness metric for
+	// periodic triggers.
+	PERIODIC_TRIGGER_MEASUREMENT = "task-scheduler-periodic-trigger"
 )
+
+// periodicTriggerMetrics tracks liveness metrics for various periodic triggers.
+type periodicTriggerMetrics map[string]*metrics2.Liveness
+
+// Reset resets the given trigger metric.
+func (m periodicTriggerMetrics) Reset(name string) {
+	lv, ok := m[name]
+	if !ok {
+		lv = metrics2.NewLiveness(PERIODIC_TRIGGER_MEASUREMENT, map[string]string{
+			"trigger": name,
+		})
+	}
+	lv.Reset()
+}
 
 // findAndParseTriggerFiles returns the base filenames for each file in
 // triggerDir.
@@ -93,6 +112,7 @@ func (s *TaskScheduler) triggerPeriodicJobs() error {
 		if err := deleteTriggerFile(triggerDir, trigger); err != nil {
 			return err
 		}
+		s.triggerMetrics.Reset(trigger)
 	}
 	return nil
 }
