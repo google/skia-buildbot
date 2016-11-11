@@ -196,8 +196,8 @@
         }.bind(this)).catch(sk.errorMessage);
       },
 
-      _cancelJob: function(jobId) {
-        var url = "/json/job/" + jobId + "/cancel";
+      _cancelJob: function() {
+        var url = "/json/job/" + this._job.Id + "/cancel";
         console.log("Canceling Job: " + url);
         sk.post(url).then(JSON.parse).then(function(json) {
           this.set("_job", json);
