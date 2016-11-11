@@ -147,7 +147,6 @@ func (il *ImageLoader) imageLoadWorker(priority int64, digest string) (interface
 	imagePath := fileutil.TwoLevelRadixPath(il.localImgDir, imageFileName)
 	if fileutil.FileExists(imagePath) {
 		img, err := loadImg(imagePath)
-		glog.Infof("Loaded img %s from disk", imagePath)
 		return img, err
 	}
 
@@ -176,7 +175,6 @@ func (il *ImageLoader) saveImgInfoAsync(imageFileName string, imgBytes []byte) {
 
 // downloadImg retrieves the given image from Google storage.
 func (il *ImageLoader) downloadImg(digest string) ([]byte, error) {
-	glog.Infof("Starting download for for: %s", digest)
 	var err error
 	var imgData []byte
 	for _, bucketName := range il.gsBucketNames {

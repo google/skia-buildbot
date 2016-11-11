@@ -121,7 +121,7 @@ func TestCompareTests(t *testing.T) {
 				Query:          q,
 				Limit:          limit,
 			},
-			Match:       []string{},
+			Match:       []string{types.PRIMARY_KEY_FIELD},
 			SortRows:    SORT_FIELD_COUNT,
 			SortColumns: SORT_FIELD_DIFF,
 			RowsDir:     SORT_DESC,
@@ -135,7 +135,7 @@ func TestCompareTests(t *testing.T) {
 }
 
 func testCompTest(t *testing.T, testName string, limit, rowLimit int, digestSet util.StringSet, ctQuery *CTQuery, idx *indexer.SearchIndex, storages *storage.Storage) {
-	ret, err := CompareTest(testName, ctQuery, storages, idx)
+	ret, err := CompareTest(ctQuery, storages, idx)
 	assert.NoError(t, err)
 
 	// Make sure the rows are as expected.
