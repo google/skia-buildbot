@@ -2429,7 +2429,7 @@ func TestPeriodicJobs(t *testing.T) {
 	// Write the trigger file. Cycle, ensure that the trigger file was
 	// removed and the periodic task was added.
 	triggerFile := path.Join(tr.Dir, TRIGGER_DIRNAME, "nightly")
-	ioutil.WriteFile(triggerFile, []byte{}, os.ModePerm)
+	assert.NoError(t, ioutil.WriteFile(triggerFile, []byte{}, os.ModePerm))
 	assert.NoError(t, s.MainLoop())
 	_, err = os.Stat(triggerFile)
 	assert.True(t, os.IsNotExist(err))
