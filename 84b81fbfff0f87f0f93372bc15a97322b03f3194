@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "eb935fd8_04763749",
+        "filename": "alertserver/alerts.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 951,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-11T14:45:32Z",
+      "side": 1,
+      "message": "This is the same query and condition as the previous alert?",
+      "range": {
+        "startLine": 951,
+        "startChar": 0,
+        "endLine": 951,
+        "endChar": 10
+      },
+      "revId": "84b81fbfff0f87f0f93372bc15a97322b03f3194",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb935fd8_9e1b7986",
         "filename": "task_scheduler/go/db/modified_data.go",
         "patchSetId": 2
@@ -13,6 +36,47 @@
       "writtenOn": "2016-11-10T20:43:18Z",
       "side": 1,
       "message": "I didn\u0027t feel the need to add tests, but I\u0027m happy to do so if you like.",
+      "revId": "84b81fbfff0f87f0f93372bc15a97322b03f3194",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb935fd8_c4944f21",
+        "filename": "task_scheduler/go/db/modified_data.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-11T14:45:32Z",
+      "side": 1,
+      "message": "No, seems fine.",
+      "parentUuid": "eb935fd8_9e1b7986",
+      "revId": "84b81fbfff0f87f0f93372bc15a97322b03f3194",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb935fd8_441cbfd9",
+        "filename": "task_scheduler/go/db/recovery/backups.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 418,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-11T14:45:32Z",
+      "side": 1,
+      "message": "Would it be worth the effort to do something like find the last job we backed up and perform backups for all jobs since then?  I\u0027m worried about a gap in the jobs.",
+      "range": {
+        "startLine": 418,
+        "startChar": 41,
+        "endLine": 418,
+        "endChar": 45
+      },
       "revId": "84b81fbfff0f87f0f93372bc15a97322b03f3194",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
