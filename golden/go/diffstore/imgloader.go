@@ -66,7 +66,9 @@ func newImgLoader(client *http.Client, imgDir string, gsBucketNames []string, gs
 	}
 
 	// Set up the work queues that balance the load.
-	ret.imageCache = rtcache.New(ret.imageLoadWorker, maxCacheSize, N_IMG_WORKERS)
+	if ret.imageCache, err = rtcache.New(ret.imageLoadWorker, maxCacheSize, N_IMG_WORKERS); err != nil {
+		return nil, err
+	}
 	return ret, nil
 }
 
@@ -137,6 +139,11 @@ func (il *ImageLoader) Get(priority int64, digests []string) ([]*image.NRGBA, er
 // IsOnDisk returns true if the image that corresponds to the given digest is in the disk cache.
 func (il *ImageLoader) IsOnDisk(digest string) bool {
 	return fileutil.FileExists(fileutil.TwoLevelRadixPath(il.localImgDir, getDigestImageFileName(digest)))
+}
+
+//
+func (il *ImageLoader) PurgeImages(digests []string, purgeGS bool) error {
+	return nil
 }
 
 // imageLoadWorker implements the rtcache.ReadThroughFunc signature.
