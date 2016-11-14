@@ -94,6 +94,8 @@ func runChromiumPerf() error {
 		// Make sure adb shell is running as root.
 		skutil.LogErr(util.ExecuteCmd(util.BINARY_ADB, []string{"root"}, []string{},
 			util.ADB_ROOT_TIMEOUT, nil, nil))
+		// Clean up any leftover "pseudo_lock" files from catapult repo.
+		skutil.LogErr(util.RemoveCatapultLockFiles(util.CatapultSrcDir))
 	}
 
 	// Instantiate GsUtil object.
