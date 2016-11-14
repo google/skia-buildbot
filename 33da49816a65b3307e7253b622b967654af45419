@@ -61,6 +61,24 @@
     },
     {
       "key": {
+        "uuid": "eb935fd8_a78d78bf",
+        "filename": "task_scheduler/go/scheduling/periodic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-14T17:36:58Z",
+      "side": 1,
+      "message": "I like the idea of keeping things more-or-less the same as they are now, but persisting the liveness across restarts.",
+      "parentUuid": "eb935fd8_9c260f2e",
+      "revId": "33da49816a65b3307e7253b622b967654af45419",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb935fd8_c1e434f8",
         "filename": "task_scheduler/go/scheduling/periodic.go",
         "patchSetId": 1
@@ -90,6 +108,24 @@
       "side": 1,
       "message": "Nightly and weekly jobs do show up on status, but they tend to never be interesting, since their blamelists span more than 35 commits, which means we rarely see them.",
       "parentUuid": "eb935fd8_c1e434f8",
+      "revId": "33da49816a65b3307e7253b622b967654af45419",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb935fd8_07a46c42",
+        "filename": "task_scheduler/go/scheduling/periodic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-14T17:36:58Z",
+      "side": 1,
+      "message": "It sounds like if we don\u0027t have alerts for when the Job fails, no one will notice.",
+      "parentUuid": "eb935fd8_9cd52fcf",
       "revId": "33da49816a65b3307e7253b622b967654af45419",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
