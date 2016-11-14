@@ -1,13 +1,16 @@
 package scheduling
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"path"
+	"time"
 
 	"github.com/skia-dev/glog"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -18,7 +21,70 @@ const (
 	// indicating that periodic jobs should be triggered. These files are
 	// created by the systemd task-scheduler-trigger-*.service.
 	TRIGGER_DIRNAME = "periodic-job-trigger"
+
+	// PERIODIC_TRIGGER_MEASUREMENT is the name of the liveness metric for
+	// periodic triggers.
+	PERIODIC_TRIGGER_MEASUREMENT = "task-scheduler-periodic-trigger"
+
+	// LAST_TRIGGERED_JSON_FILE is the name of a JSON file containing the
+	// last-triggered time for each known trigger.
+	LAST_TRIGGERED_JSON_FILE = "last-triggered.json"
 )
+
+// periodicTriggerMetrics tracks liveness metrics for various periodic triggers.
+type periodicTriggerMetrics struct {
+	jsonFile      string                        `json:"-"`
+	LastTriggered map[string]time.Time          `json:"last_triggered"`
+	metrics       map[string]*metrics2.Liveness `json:"-"`
+}
+
+// newPeriodicTriggerMetrics returns a periodicTriggerMetrics instance,
+// pre-filled with data from a file.
+func newPeriodicTriggerMetrics(workdir string) (*periodicTriggerMetrics, error) {
+	jsonFile := path.Join(workdir, LAST_TRIGGERED_JSON_FILE)
+	f, err := os.Open(jsonFile)
+	if err != nil {
+		return nil, err
+	}
+	defer util.Close(f)
+	var rv periodicTriggerMetrics
+	if err := json.NewDecoder(f).Decode(&rv); err != nil {
+		return nil, err
+	}
+	rv.jsonFile = jsonFile
+	rv.metrics = make(map[string]*metrics2.Liveness, len(rv.LastTriggered))
+	for trigger, last := range rv.LastTriggered {
+		lv := metrics2.NewLiveness(PERIODIC_TRIGGER_MEASUREMENT, map[string]string{
+			"trigger": trigger,
+		})
+		lv.ManualReset(last)
+		rv.metrics[trigger] = lv
+	}
+	return &rv, nil
+}
+
+// Reset resets the given trigger metric.
+func (m *periodicTriggerMetrics) Reset(name string) {
+	now := time.Now()
+	lv, ok := m.metrics[name]
+	if !ok {
+		lv = metrics2.NewLiveness(PERIODIC_TRIGGER_MEASUREMENT, map[string]string{
+			"trigger": name,
+		})
+		m.LastTriggered[name] = now
+	}
+	lv.ManualReset(now)
+}
+
+// Write writes the last-triggered times to a JSON file.
+func (m *periodicTriggerMetrics) Write() error {
+	f, err := os.Create(m.jsonFile)
+	if err != nil {
+		return err
+	}
+	defer util.Close(f)
+	return json.NewEncoder(f).Encode(m)
+}
 
 // findAndParseTriggerFiles returns the base filenames for each file in
 // triggerDir.
@@ -93,6 +159,7 @@ func (s *TaskScheduler) triggerPeriodicJobs() error {
 		if err := deleteTriggerFile(triggerDir, trigger); err != nil {
 			return err
 		}
+		s.triggerMetrics.Reset(trigger)
 	}
-	return nil
+	return s.triggerMetrics.Write()
 }

@@ -81,3 +81,19 @@ large. As this number grows, DB performance suffers. Please file a bug and
 increase the threshhold in alerts.cfg. It's unclear what causes this issue, but
 it might be due to killing the process without gracefully closing the DB or due
 to large read transactions concurrent with write transactions.
+
+
+trigger_nightly
+---------------
+
+The nightly trigger has not run in over 25 hours. Check that the
+task-scheduler-trigger-nightly.service has run. If not, check the systemctl
+settings on the server. If so, check the Task Scheduler logs.
+
+
+trigger_weekly
+--------------
+
+The weekly trigger has not run in over 8 days. Check that the
+task-scheduler-trigger-weekly.service has run. If not, check the systemctl
+settings on the server. If so, check the Task Scheduler logs.

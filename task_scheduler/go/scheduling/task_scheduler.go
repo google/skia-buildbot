@@ -59,6 +59,7 @@ type TaskScheduler struct {
 	taskCfgCache     *specs.TaskCfgCache
 	tCache           db.TaskCache
 	timeDecayAmt24Hr float64
+	triggerMetrics   periodicTriggerMetrics
 	tryjobs          *tryjobs.TryJobIntegrator
 	workdir          string
 }
@@ -100,6 +101,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repos repog
 		taskCfgCache:     taskCfgCache,
 		tCache:           tCache,
 		timeDecayAmt24Hr: timeDecayAmt24Hr,
+		triggerMetrics:   periodicTriggerMetrics{},
 		tryjobs:          tryjobs,
 		workdir:          workdir,
 	}
