@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "eb935fd8_27c24894",
+        "filename": "perf/go/regression/regression.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-11-14T18:10:32Z",
+      "side": 1,
+      "message": "True, but I\u0027m not sure NONE is staying \"\", it may change depending on what the UI needs.",
+      "parentUuid": "eb935fd8_27f5e814",
+      "revId": "752a4a33f7805cf8dcf23ccb19e644649bd8bc4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb935fd8_87ecfc4f",
         "filename": "perf/go/regression/regression.go",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2016-11-14T17:50:24Z",
       "side": 1,
       "message": "nit: If we do overwrite Low, shouldn\u0027t LowStatus.Status always become NEW?",
+      "revId": "752a4a33f7805cf8dcf23ccb19e644649bd8bc4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb935fd8_67cc50c4",
+        "filename": "perf/go/regression/regression.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-11-14T18:10:32Z",
+      "side": 1,
+      "message": "A newer cluster might better show off the regression, but that shouldn\u0027t change the status once the cluster has been triaged.",
+      "parentUuid": "eb935fd8_87ecfc4f",
       "revId": "752a4a33f7805cf8dcf23ccb19e644649bd8bc4c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -53,6 +89,24 @@
         "endLine": 104,
         "endChar": 41
       },
+      "revId": "752a4a33f7805cf8dcf23ccb19e644649bd8bc4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb935fd8_a7d6584f",
+        "filename": "perf/triage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-11-14T18:10:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eb935fd8_072e2cc3",
       "revId": "752a4a33f7805cf8dcf23ccb19e644649bd8bc4c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
