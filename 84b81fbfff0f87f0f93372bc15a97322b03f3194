@@ -83,6 +83,24 @@
     },
     {
       "key": {
+        "uuid": "eb935fd8_3c17bbb9",
+        "filename": "task_scheduler/go/db/recovery/backups.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 418,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-14T15:15:48Z",
+      "side": 1,
+      "message": "We don\u0027t have a way to query the DB by modified time, but if we pass in the JobCache here, we could iterate over all the Jobs and check the DbModified time.\n\nI\u0027d like to leave that as a TODO for now. It would need to be a perfect storm for the DB to become corrupted at the same time that GS is too slow to keep up with Job backups.",
+      "parentUuid": "eb935fd8_441cbfd9",
+      "revId": "84b81fbfff0f87f0f93372bc15a97322b03f3194",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb935fd8_1e304902",
         "filename": "task_scheduler/go/db/recovery/backups_test.go",
         "patchSetId": 2
