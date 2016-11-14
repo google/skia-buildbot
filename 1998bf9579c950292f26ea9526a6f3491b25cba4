@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "eb935fd8_67b290cd",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 769,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-11-14T17:21:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eb935fd8_fc0e3316",
+      "revId": "1998bf9579c950292f26ea9526a6f3491b25cba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb935fd8_3cf25bed",
         "filename": "ct/go/worker_scripts/run_chromium_analysis/main.go",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2016-11-14T16:39:10Z",
       "side": 1,
       "message": "Only relevant to Android?",
+      "revId": "1998bf9579c950292f26ea9526a6f3491b25cba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb935fd8_47e674d3",
+        "filename": "ct/go/worker_scripts/run_chromium_analysis/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-11-14T17:21:37Z",
+      "side": 1,
+      "message": "The immediate problem was only in Android but I guess something similar could happen to linux runs as well. Moved it out. Done.",
+      "parentUuid": "eb935fd8_3cf25bed",
       "revId": "1998bf9579c950292f26ea9526a6f3491b25cba4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
