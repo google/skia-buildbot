@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "eb935fd8_fcc2b323",
+        "filename": "task_scheduler/go/scheduling/busy_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-14T15:04:42Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "eb935fd8_fc70f34f",
+      "revId": "d32dbe48b67491bb5b7379295560e7444d806f64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb935fd8_9ca36f87",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2016-11-14T14:54:47Z",
       "side": 1,
       "message": "Hopefully this works, but I suspect it will fail flakily, since there\u0027s no guarantee of when the delete goroutine will run.",
+      "revId": "d32dbe48b67491bb5b7379295560e7444d806f64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb935fd8_dce6d7d4",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-14T15:04:42Z",
+      "side": 1,
+      "message": "Added a special case for zero busyTime.",
+      "parentUuid": "eb935fd8_9ca36f87",
       "revId": "d32dbe48b67491bb5b7379295560e7444d806f64",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
