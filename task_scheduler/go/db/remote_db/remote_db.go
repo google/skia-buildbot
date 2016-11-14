@@ -434,12 +434,22 @@ func (c *client) GetModifiedTasks(id string) ([]*db.Task, error) {
 	return c.getTaskList(c.serverRoot + MODIFIED_TASKS_PATH + "?" + params.Encode())
 }
 
+// Not implemented, because it's not faster than GetModifiedTasks.
+func (c *client) GetModifiedTasksGOB(id string) (map[string][]byte, error) {
+	return nil, fmt.Errorf("GetModifiedTasksGOB is not implemented.")
+}
+
 // See documentation for db.JobReader.
 func (c *client) GetModifiedJobs(id string) ([]*db.Job, error) {
 	params := url.Values{}
 	params.Set("format", "gob")
 	params.Set("id", id)
 	return c.getJobList(c.serverRoot + MODIFIED_JOBS_PATH + "?" + params.Encode())
+}
+
+// Not implemented, because it's not faster than GetModifiedJobs.
+func (c *client) GetModifiedJobsGOB(id string) (map[string][]byte, error) {
+	return nil, fmt.Errorf("GetModifiedJobsGOB is not implemented.")
 }
 
 // GetTasksHandler translates a GET request to GetTasksFromDateRange or

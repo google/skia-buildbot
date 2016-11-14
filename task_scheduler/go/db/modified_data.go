@@ -85,7 +85,8 @@ func (m *modifiedData) TrackModifiedEntries(gobs map[string][]byte) {
 	}
 }
 
-// See docs for TaskDB interface.
+// See docs for TaskReader.StartTrackingModifiedTasks or
+// JobReader.StartTrackingModifiedJobs.
 func (m *modifiedData) StartTrackingModifiedEntries() (string, error) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
@@ -102,6 +103,8 @@ func (m *modifiedData) StartTrackingModifiedEntries() (string, error) {
 	return id, nil
 }
 
+// See docs for TaskReader.StopTrackingModifiedTasks or
+// JobReader.StopTrackingModifiedJobs.
 func (m *modifiedData) StopTrackingModifiedEntries(id string) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
@@ -113,7 +116,7 @@ type ModifiedTasks struct {
 	m modifiedData
 }
 
-// See docs for TaskDB interface.
+// See docs for TaskReader interface.
 func (m *ModifiedTasks) GetModifiedTasks(id string) ([]*Task, error) {
 	tasks, err := m.m.GetModifiedEntries(id)
 	if err != nil {
@@ -131,6 +134,11 @@ func (m *ModifiedTasks) GetModifiedTasks(id string) ([]*Task, error) {
 	}
 	sort.Sort(TaskSlice(rv))
 	return rv, nil
+}
+
+// See docs for TaskReader interface.
+func (m *ModifiedTasks) GetModifiedTasksGOB(id string) (map[string][]byte, error) {
+	return m.m.GetModifiedEntries(id)
 }
 
 // TrackModifiedTask indicates the given Task should be returned from the next
@@ -151,12 +159,12 @@ func (m *ModifiedTasks) TrackModifiedTasksGOB(gobs map[string][]byte) {
 	m.m.TrackModifiedEntries(gobs)
 }
 
-// See docs for TaskDB interface.
+// See docs for TaskReader interface.
 func (m *ModifiedTasks) StartTrackingModifiedTasks() (string, error) {
 	return m.m.StartTrackingModifiedEntries()
 }
 
-// See docs for TaskDB interface.
+// See docs for TaskReader interface.
 func (m *ModifiedTasks) StopTrackingModifiedTasks(id string) {
 	m.m.StopTrackingModifiedEntries(id)
 }
@@ -165,7 +173,7 @@ type ModifiedJobs struct {
 	m modifiedData
 }
 
-// See docs for JobDB interface.
+// See docs for JobReader interface.
 func (m *ModifiedJobs) GetModifiedJobs(id string) ([]*Job, error) {
 	jobs, err := m.m.GetModifiedEntries(id)
 	if err != nil {
@@ -183,6 +191,11 @@ func (m *ModifiedJobs) GetModifiedJobs(id string) ([]*Job, error) {
 	}
 	sort.Sort(JobSlice(rv))
 	return rv, nil
+}
+
+// See docs for JobReader interface.
+func (m *ModifiedJobs) GetModifiedJobsGOB(id string) (map[string][]byte, error) {
+	return m.m.GetModifiedEntries(id)
 }
 
 // TrackModifiedJob indicates the given Job should be returned from the next
@@ -203,12 +216,12 @@ func (m *ModifiedJobs) TrackModifiedJobsGOB(gobs map[string][]byte) {
 	m.m.TrackModifiedEntries(gobs)
 }
 
-// See docs for JobDB interface.
+// See docs for JobReader interface.
 func (m *ModifiedJobs) StartTrackingModifiedJobs() (string, error) {
 	return m.m.StartTrackingModifiedEntries()
 }
 
-// See docs for JobDB interface.
+// See docs for JobReader interface.
 func (m *ModifiedJobs) StopTrackingModifiedJobs(id string) {
 	m.m.StopTrackingModifiedEntries(id)
 }

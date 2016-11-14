@@ -3,6 +3,7 @@ package recovery
 import (
 	"bytes"
 	"compress/gzip"
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -48,6 +49,10 @@ And write it out!
 `
 	TEST_DB_TIME         = 1477000000
 	TEST_DB_CONTENT_SEED = 299792
+
+	// If metrics2.Liveness.Get returns a value longer than
+	// MAX_TEST_TIME_SECONDS, we know it wasn't reset during the test.
+	MAX_TEST_TIME_SECONDS = 15 * 60
 )
 
 // Create an io.Reader that returns the given number of bytes.
@@ -63,6 +68,8 @@ func makeLargeDBContent(bytes int64) io.Reader {
 type testDB struct {
 	db.DB
 	content          io.Reader
+	ts               time.Time
+	injectSetTSError error
 	injectGetTSError error
 	injectWriteError error
 }
@@ -87,7 +94,11 @@ func (tdb *testDB) WriteBackup(w io.Writer) error {
 }
 
 // Implements BackupDBCloser.SetIncrementalBackupTime.
-func (*testDB) SetIncrementalBackupTime(time.Time) error {
+func (tdb *testDB) SetIncrementalBackupTime(ts time.Time) error {
+	if tdb.injectSetTSError != nil {
+		return tdb.injectSetTSError
+	}
+	tdb.ts = ts
 	return nil
 }
 
@@ -96,7 +107,7 @@ func (tdb *testDB) GetIncrementalBackupTime() (time.Time, error) {
 	if tdb.injectGetTSError != nil {
 		return time.Time{}, tdb.injectGetTSError
 	}
-	return time.Unix(TEST_DB_TIME, 0).UTC(), nil
+	return tdb.ts.UTC(), nil
 }
 
 // getMockedDBBackup returns a gsDBBackup that handles GS requests with mockMux.
@@ -123,6 +134,7 @@ func getMockedDBBackupWithContent(t *testing.T, mockMux *mux.Router, content io.
 	db := &testDB{
 		DB:      db.NewInMemoryDB(),
 		content: content,
+		ts:      time.Unix(TEST_DB_TIME, 0),
 	}
 	b, err := newGsDbBackupWithClient(ctx, TEST_BUCKET, db, "task_scheduler_db", dir, gsClient)
 	assert.NoError(t, err)
@@ -342,11 +354,10 @@ func TestWriteDBBackupToFileDBError(t *testing.T) {
 	assert.Contains(t, err.Error(), injectedError.Error())
 }
 
-// addMultipartHandler causes r to respond to a request to add an object with
-// the given name to TEST_BUCKET with a successful response and sets
-// actualBytesGzip to the object contents. Also performs assertions on the
-// request.
-func addMultipartHandler(t *testing.T, r *mux.Router, name string, actualBytesGzip *[]byte) {
+// addMultipartHandler causes r to respond to a request to add an object to
+// TEST_BUCKET with a successful response and sets actualBytesGzip[object_name]
+// to the object contents. Also performs assertions on the request.
+func addMultipartHandler(t *testing.T, r *mux.Router, actualBytesGzip map[string][]byte) {
 	gsRoute(r).Methods("POST").Path(fmt.Sprintf("/upload/storage/v1/b/%s/o", TEST_BUCKET)).
 		Queries("uploadType", "multipart").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -359,17 +370,65 @@ func addMultipartHandler(t *testing.T, r *mux.Router, name string, actualBytesGz
 			assert.NoError(t, err)
 			data := map[string]string{}
 			assert.NoError(t, json.NewDecoder(jsonPart).Decode(&data))
+			name := data["name"]
 			assert.Equal(t, TEST_BUCKET, data["bucket"])
-			assert.Equal(t, name, data["name"])
 			assert.Equal(t, "application/octet-stream", data["contentType"])
 			assert.Equal(t, "gzip", data["contentEncoding"])
 			assert.Equal(t, fmt.Sprintf("attachment; filename=\"%s\"", path.Base(name)), data["contentDisposition"])
 			dataPart, err := mr.NextPart()
 			assert.NoError(t, err)
-			*actualBytesGzip, err = ioutil.ReadAll(dataPart)
+			actualBytesGzip[name], err = ioutil.ReadAll(dataPart)
 			assert.NoError(t, err)
 			_, _ = w.Write([]byte(makeObjectResponse(object{TEST_BUCKET, name, time.Now()})))
 		})
+}
+
+// upload should upload data to GS.
+func TestUpload(t *testing.T) {
+	testutils.SmallTest(t)
+	now := time.Now().Round(time.Second)
+	r := mux.NewRouter()
+	actualBytesGzip := map[string][]byte{}
+	addMultipartHandler(t, r, actualBytesGzip)
+
+	b, cancel := getMockedDBBackup(t, r)
+	defer cancel()
+
+	name := "path/to/gsfile.txt"
+	err := upload(b.ctx, strings.NewReader(TEST_DB_CONTENT), b.gsClient.Bucket(b.gsBucket), name, now)
+	assert.NoError(t, err)
+
+	gzR, err := gzip.NewReader(bytes.NewReader(actualBytesGzip[name]))
+	assert.NoError(t, err)
+	assert.True(t, now.Equal(gzR.Header.ModTime))
+	assert.Equal(t, "gsfile.txt", gzR.Header.Name)
+	actualBytes, err := ioutil.ReadAll(gzR)
+	assert.NoError(t, err)
+	assert.NoError(t, gzR.Close())
+	assert.Equal(t, TEST_DB_CONTENT, string(actualBytes))
+}
+
+// upload may fail if the GS request fails.
+func TestUploadError(t *testing.T) {
+	testutils.SmallTest(t)
+	now := time.Now()
+	r := mux.NewRouter()
+	name := "path/to/gsfile.txt"
+
+	gsRoute(r).Methods("POST").
+		Path(fmt.Sprintf("/upload/storage/v1/b/%s/o", TEST_BUCKET)).
+		Queries("uploadType", "multipart").
+		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			util.Close(r.Body)
+			http.Error(w, "I don't like your poem.", http.StatusTeapot)
+		})
+
+	b, cancel := getMockedDBBackup(t, r)
+	defer cancel()
+
+	err := upload(b.ctx, strings.NewReader(TEST_DB_CONTENT), b.gsClient.Bucket(b.gsBucket), name, now)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "got HTTP response code 418 with body: I don't like your poem.")
 }
 
 // uploadFile should upload a file to GS.
@@ -384,20 +443,20 @@ func TestUploadFile(t *testing.T) {
 
 	now := time.Now().Round(time.Second)
 	r := mux.NewRouter()
-	name := "path/to/gsfile.txt"
-	var actualBytesGzip []byte
-	addMultipartHandler(t, r, name, &actualBytesGzip)
+	actualBytesGzip := map[string][]byte{}
+	addMultipartHandler(t, r, actualBytesGzip)
 
 	b, cancel := getMockedDBBackup(t, r)
 	defer cancel()
 
+	name := "path/to/gsfile.txt"
 	err = uploadFile(b.ctx, filename, b.gsClient.Bucket(b.gsBucket), name, now)
 	assert.NoError(t, err)
 
-	gzR, err := gzip.NewReader(bytes.NewReader(actualBytesGzip))
+	gzR, err := gzip.NewReader(bytes.NewReader(actualBytesGzip[name]))
 	assert.NoError(t, err)
 	assert.True(t, now.Equal(gzR.Header.ModTime))
-	assert.Equal(t, "myfile.txt", gzR.Header.Name)
+	assert.Equal(t, "gsfile.txt", gzR.Header.Name)
 	actualBytes, err := ioutil.ReadAll(gzR)
 	assert.NoError(t, err)
 	assert.NoError(t, gzR.Close())
@@ -423,36 +482,6 @@ func TestUploadFileNoFile(t *testing.T) {
 	assert.Contains(t, err.Error(), "Unable to read temporary backup file")
 }
 
-// uploadFile may fail if the GS request fails.
-func TestUploadFileUploadError(t *testing.T) {
-	testutils.SmallTest(t)
-	tempdir, err := ioutil.TempDir("", "backups_test")
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, tempdir)
-
-	filename := path.Join(tempdir, "myfile.txt")
-	assert.NoError(t, ioutil.WriteFile(filename, []byte(TEST_DB_CONTENT), os.ModePerm))
-
-	now := time.Now()
-	r := mux.NewRouter()
-	name := "path/to/gsfile.txt"
-
-	gsRoute(r).Methods("POST").
-		Path(fmt.Sprintf("/upload/storage/v1/b/%s/o", TEST_BUCKET)).
-		Queries("uploadType", "multipart").
-		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			util.Close(r.Body)
-			http.Error(w, "I don't like your poem.", http.StatusTeapot)
-		})
-
-	b, cancel := getMockedDBBackup(t, r)
-	defer cancel()
-
-	err = uploadFile(b.ctx, filename, b.gsClient.Bucket(b.gsBucket), name, now)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "got HTTP response code 418 with body: I don't like your poem.")
-}
-
 // backupDB should create a GS object with the gzipped contents of the DB.
 func TestBackupDB(t *testing.T) {
 	testutils.SmallTest(t)
@@ -475,22 +504,28 @@ func TestBackupDB(t *testing.T) {
 
 	now := time.Now()
 	r := mux.NewRouter()
-	name := DB_BACKUP_DIR + "/" + now.UTC().Format("2006/01/02") + "/task-scheduler.bdb"
 
-	var actualBytesGzip []byte
-	addMultipartHandler(t, r, name, &actualBytesGzip)
+	actualBytesGzip := map[string][]byte{}
+	addMultipartHandler(t, r, actualBytesGzip)
 
 	b, cancel := getMockedDBBackup(t, r)
 	defer cancel()
 
+	// Test resetting incrementalBackupResetCount.
+	b.incrementalBackupResetCount.Inc(1)
+
 	err := b.backupDB(now, "task-scheduler")
 	assert.NoError(t, err)
-	gzR, err := gzip.NewReader(bytes.NewReader(actualBytesGzip))
+	name := DB_BACKUP_DIR + "/" + now.UTC().Format("2006/01/02") + "/task-scheduler.bdb"
+	gzR, err := gzip.NewReader(bytes.NewReader(actualBytesGzip[name]))
 	assert.NoError(t, err)
 	actualBytes, err := ioutil.ReadAll(gzR)
 	assert.NoError(t, err)
 	assert.NoError(t, gzR.Close())
 	assert.Equal(t, expectedBytes, actualBytes)
+
+	// incrementalBackupResetCount should be reset.
+	assert.Equal(t, int64(0), b.incrementalBackupResetCount.Get())
 }
 
 // testBackupDBLarge tests backupDB for DB contents larger than 8MB.
@@ -765,10 +800,9 @@ func TestMaybeBackupDBSuccess(t *testing.T) {
 	testutils.SmallTest(t)
 	now := time.Date(2016, 10, 26, 5, 0, 0, 0, time.UTC)
 	r := mux.NewRouter()
-	name := DB_BACKUP_DIR + "/" + now.UTC().Format("2006/01/02") + "/task-scheduler.bdb"
 
-	var actualBytesGzip []byte
-	addMultipartHandler(t, r, name, &actualBytesGzip)
+	actualBytesGzip := map[string][]byte{}
+	addMultipartHandler(t, r, actualBytesGzip)
 
 	b, cancel := getMockedDBBackup(t, r)
 	defer cancel()
@@ -777,7 +811,8 @@ func TestMaybeBackupDBSuccess(t *testing.T) {
 
 	b.maybeBackupDB(now)
 
-	assert.True(t, len(actualBytesGzip) > 0)
+	name := DB_BACKUP_DIR + "/" + now.UTC().Format("2006/01/02") + "/task-scheduler.bdb"
+	assert.True(t, len(actualBytesGzip[name]) > 0)
 
 	file, _, err := b.findAndParseTriggerFile()
 	assert.NoError(t, err)
@@ -834,4 +869,356 @@ func TestMaybeBackupDBRetriesExhausted(t *testing.T) {
 	file, _, err := b.findAndParseTriggerFile()
 	assert.NoError(t, err)
 	assert.Equal(t, "", file)
+}
+
+// backupJob should create a GS object with the gzipped bytes.
+func TestBackupJob(t *testing.T) {
+	testutils.SmallTest(t)
+	now := time.Now()
+
+	j := &db.Job{
+		Created:      now,
+		Dependencies: map[string][]string{},
+		RepoState: db.RepoState{
+			Repo: db.DEFAULT_TEST_REPO,
+		},
+		Name:  "Test-Job",
+		Tasks: map[string][]*db.TaskSummary{},
+	}
+	var buf bytes.Buffer
+	assert.NoError(t, gob.NewEncoder(&buf).Encode(j))
+	jobgob := buf.Bytes()
+
+	r := mux.NewRouter()
+
+	actualBytesGzip := map[string][]byte{}
+	addMultipartHandler(t, r, actualBytesGzip)
+
+	b, cancel := getMockedDBBackup(t, r)
+	defer cancel()
+
+	err := b.backupJob(now, "myjob", jobgob)
+	assert.NoError(t, err)
+	name := JOB_BACKUP_DIR + "/" + now.UTC().Format("2006/01/02") + "/myjob.gob"
+	gzR, err := gzip.NewReader(bytes.NewReader(actualBytesGzip[name]))
+	assert.NoError(t, err)
+	actualBytes, err := ioutil.ReadAll(gzR)
+	assert.NoError(t, err)
+	assert.NoError(t, gzR.Close())
+	assert.Equal(t, jobgob, actualBytes)
+}
+
+// incrementalBackupStep should just update the incremental backup time when
+// there are no jobs.
+func TestIncrementalBackupStepNoJobs(t *testing.T) {
+	testutils.SmallTest(t)
+	r := mux.NewRouter()
+	b, cancel := getMockedDBBackup(t, r)
+	defer cancel()
+
+	// Metrics occasionally fail to be deleted, so we might have a leftover from a
+	// previous test.
+	beforeCount := b.jobBackupCount.Get()
+
+	b.incrementalBackupLiveness.ManualReset(time.Time{})
+
+	now := time.Now()
+	assert.NoError(t, b.incrementalBackupStep(now))
+
+	newTs, err := b.db.GetIncrementalBackupTime()
+	assert.NoError(t, err)
+	assert.True(t, now.Equal(newTs))
+	assert.True(t, b.incrementalBackupLiveness.Get() < MAX_TEST_TIME_SECONDS)
+
+	assert.Equal(t, beforeCount, b.jobBackupCount.Get())
+}
+
+// incrementalBackupStep should back up each added or modified job.
+func TestIncrementalBackupStep(t *testing.T) {
+	testutils.SmallTest(t)
+	now := time.Now()
+	namePrefix := JOB_BACKUP_DIR + "/" + now.UTC().Format("2006/01/02") + "/"
+
+	r := mux.NewRouter()
+	actualBytesGzip := map[string][]byte{}
+	addMultipartHandler(t, r, actualBytesGzip)
+
+	b, cancel := getMockedDBBackup(t, r)
+	defer cancel()
+
+	// Metrics occasionally fail to be deleted, so we might have a leftover from a
+	// previous test.
+	beforeCount := b.jobBackupCount.Get()
+
+	b.incrementalBackupLiveness.ManualReset(time.Time{})
+
+	// Add a job.
+	j1 := &db.Job{
+		Created:      now,
+		Dependencies: map[string][]string{},
+		RepoState: db.RepoState{
+			Repo: db.DEFAULT_TEST_REPO,
+		},
+		Name:  "Test-Job",
+		Tasks: map[string][]*db.TaskSummary{},
+	}
+	assert.NoError(t, b.db.PutJob(j1))
+	name1 := namePrefix + j1.Id + ".gob"
+
+	assert.NoError(t, b.incrementalBackupStep(now))
+
+	// Check the uploaded data.
+	{
+		gzR, err := gzip.NewReader(bytes.NewReader(actualBytesGzip[name1]))
+		assert.NoError(t, err)
+		var j1Copy *db.Job
+		assert.NoError(t, gob.NewDecoder(gzR).Decode(&j1Copy))
+		assert.NoError(t, gzR.Close())
+		testutils.AssertDeepEqual(t, j1, j1Copy)
+	}
+
+	newTs, err := b.db.GetIncrementalBackupTime()
+	assert.NoError(t, err)
+	assert.True(t, now.Equal(newTs))
+	assert.True(t, b.incrementalBackupLiveness.Get() < MAX_TEST_TIME_SECONDS)
+
+	assert.Equal(t, beforeCount+1, b.jobBackupCount.Get())
+
+	// Modify j1 and add j2.
+	j1.Status = db.JOB_STATUS_CANCELED
+	j2 := &db.Job{
+		Created:      now.Add(time.Second),
+		Dependencies: map[string][]string{},
+		RepoState: db.RepoState{
+			Repo: db.DEFAULT_TEST_REPO,
+		},
+		Name:  "Test-Job",
+		Tasks: map[string][]*db.TaskSummary{},
+	}
+	assert.NoError(t, b.db.PutJobs([]*db.Job{j1, j2}))
+	name2 := namePrefix + j2.Id + ".gob"
+
+	assert.NoError(t, b.incrementalBackupStep(now))
+
+	// Check the uploaded data.
+	{
+		gzR, err := gzip.NewReader(bytes.NewReader(actualBytesGzip[name1]))
+		assert.NoError(t, err)
+		var j1Copy *db.Job
+		assert.NoError(t, gob.NewDecoder(gzR).Decode(&j1Copy))
+		assert.NoError(t, gzR.Close())
+		testutils.AssertDeepEqual(t, j1, j1Copy)
+	}
+
+	{
+		gzR, err := gzip.NewReader(bytes.NewReader(actualBytesGzip[name2]))
+		assert.NoError(t, err)
+		var j2Copy *db.Job
+		assert.NoError(t, gob.NewDecoder(gzR).Decode(&j2Copy))
+		assert.NoError(t, gzR.Close())
+		testutils.AssertDeepEqual(t, j2, j2Copy)
+	}
+
+	assert.Equal(t, beforeCount+3, b.jobBackupCount.Get())
+}
+
+// incrementalBackupStep should continue when one job can not be uploaded.
+func TestIncrementalBackupStepSingleUploadError(t *testing.T) {
+	testutils.SmallTest(t)
+	now := time.Now()
+
+	r := mux.NewRouter()
+	b, cancel := getMockedDBBackup(t, r)
+	defer cancel()
+
+	// Metrics occasionally fail to be deleted, so we might have a leftover from a
+	// previous test.
+	beforeCount := b.jobBackupCount.Get()
+
+	b.incrementalBackupLiveness.ManualReset(time.Time{})
+
+	// Add two jobs.
+	j1 := &db.Job{
+		Created:      now,
+		Dependencies: map[string][]string{},
+		RepoState: db.RepoState{
+			Repo: db.DEFAULT_TEST_REPO,
+		},
+		Name:  "Test-Job",
+		Tasks: map[string][]*db.TaskSummary{},
+	}
+	j2 := j1.Copy()
+	j2.Created = now.Add(time.Second)
+	assert.NoError(t, b.db.PutJobs([]*db.Job{j1, j2}))
+
+	count := 0
+	gsRoute(r).Methods("POST").Path(fmt.Sprintf("/upload/storage/v1/b/%s/o", TEST_BUCKET)).
+		Queries("uploadType", "multipart").
+		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			count++
+			if count == 1 {
+				util.Close(r.Body)
+				http.Error(w, "No one wants this job.", http.StatusTeapot)
+				return
+			}
+			t := mockhttpclient.MuxSafeT(t)
+			mediaType, params, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+			assert.NoError(t, err)
+			assert.Equal(t, "multipart/related", mediaType)
+			mr := multipart.NewReader(r.Body, params["boundary"])
+			jsonPart, err := mr.NextPart()
+			assert.NoError(t, err)
+			_, err = io.Copy(w, jsonPart)
+			assert.NoError(t, err)
+		})
+
+	oldTs, err := b.db.GetIncrementalBackupTime()
+	assert.NoError(t, err)
+
+	err = b.incrementalBackupStep(now)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "got HTTP response code 418 with body: No one wants this job.")
+
+	assert.Equal(t, 2, count)
+
+	newTs, err := b.db.GetIncrementalBackupTime()
+	assert.NoError(t, err)
+	assert.True(t, oldTs.Equal(newTs))
+	assert.True(t, b.incrementalBackupLiveness.Get() > MAX_TEST_TIME_SECONDS)
+
+	assert.Equal(t, beforeCount+1, b.jobBackupCount.Get())
+}
+
+// incrementalBackupStep should report multiple errors when they occur.
+func TestIncrementalBackupStepMultipleUploadError(t *testing.T) {
+	testutils.SmallTest(t)
+	now := time.Now()
+
+	r := mux.NewRouter()
+	b, cancel := getMockedDBBackup(t, r)
+	defer cancel()
+
+	// Metrics occasionally fail to be deleted, so we might have a leftover from a
+	// previous test.
+	beforeCount := b.jobBackupCount.Get()
+
+	b.incrementalBackupLiveness.ManualReset(time.Time{})
+
+	// Add two jobs.
+	j1 := &db.Job{
+		Created:      now,
+		Dependencies: map[string][]string{},
+		RepoState: db.RepoState{
+			Repo: db.DEFAULT_TEST_REPO,
+		},
+		Name:  "Test-Job",
+		Tasks: map[string][]*db.TaskSummary{},
+	}
+	j2 := j1.Copy()
+	j2.Created = now.Add(time.Second)
+	assert.NoError(t, b.db.PutJobs([]*db.Job{j1, j2}))
+
+	gsRoute(r).Methods("POST").Path(fmt.Sprintf("/upload/storage/v1/b/%s/o", TEST_BUCKET)).
+		Queries("uploadType", "multipart").
+		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			util.Close(r.Body)
+			http.Error(w, "No one wants this job.", http.StatusTeapot)
+		})
+
+	oldTs, err := b.db.GetIncrementalBackupTime()
+	assert.NoError(t, err)
+
+	err = b.incrementalBackupStep(now)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Multiple errors performing incremental Job backups")
+
+	newTs, err := b.db.GetIncrementalBackupTime()
+	assert.NoError(t, err)
+	assert.True(t, oldTs.Equal(newTs))
+	assert.True(t, b.incrementalBackupLiveness.Get() > MAX_TEST_TIME_SECONDS)
+
+	assert.Equal(t, beforeCount, b.jobBackupCount.Get())
+}
+
+// incrementalBackupStep should restart modified job tracking on ErrUnknownId.
+func TestIncrementalBackupStepReset(t *testing.T) {
+	testutils.SmallTest(t)
+	r := mux.NewRouter()
+
+	actualBytesGzip := map[string][]byte{}
+	addMultipartHandler(t, r, actualBytesGzip)
+
+	b, cancel := getMockedDBBackup(t, r)
+	defer cancel()
+
+	// Metrics occasionally fail to be deleted, so we might have a leftover from a
+	// previous test.
+	beforeCount := b.jobBackupCount.Get()
+
+	b.incrementalBackupLiveness.ManualReset(time.Time{})
+
+	// Invalidate the ID.
+	b.db.StopTrackingModifiedJobs(b.modifiedJobsId)
+
+	oldTs, err := b.db.GetIncrementalBackupTime()
+	assert.NoError(t, err)
+
+	now := time.Now()
+	err = b.incrementalBackupStep(now)
+	assert.True(t, db.IsUnknownId(err))
+
+	assert.Equal(t, int64(1), b.incrementalBackupResetCount.Get())
+
+	newTs, err := b.db.GetIncrementalBackupTime()
+	assert.NoError(t, err)
+	assert.True(t, oldTs.Equal(newTs))
+	assert.True(t, b.incrementalBackupLiveness.Get() > MAX_TEST_TIME_SECONDS)
+
+	assert.Equal(t, beforeCount, b.jobBackupCount.Get())
+	assert.Equal(t, 0, len(actualBytesGzip))
+
+	// Ensure next round succeeds.
+	now = now.Add(10 * time.Second)
+	j1 := &db.Job{
+		Created:      now,
+		Dependencies: map[string][]string{},
+		RepoState: db.RepoState{
+			Repo: db.DEFAULT_TEST_REPO,
+		},
+		Name:  "Test-Job",
+		Tasks: map[string][]*db.TaskSummary{},
+	}
+	assert.NoError(t, b.db.PutJob(j1))
+	name1 := JOB_BACKUP_DIR + "/" + now.UTC().Format("2006/01/02") + "/" + j1.Id + ".gob"
+
+	assert.NoError(t, b.incrementalBackupStep(now))
+
+	newTs, err = b.db.GetIncrementalBackupTime()
+	assert.NoError(t, err)
+	assert.True(t, now.Equal(newTs))
+	assert.True(t, b.incrementalBackupLiveness.Get() < MAX_TEST_TIME_SECONDS)
+
+	assert.Equal(t, beforeCount+1, b.jobBackupCount.Get())
+	assert.Equal(t, 1, len(actualBytesGzip))
+	assert.True(t, len(actualBytesGzip[name1]) > 0)
+}
+
+// incrementalBackupStep should return an error if unable to set the incremental
+// backup time in the DB.
+func TestIncrementalBackupStepSetTSError(t *testing.T) {
+	testutils.SmallTest(t)
+	r := mux.NewRouter()
+	b, cancel := getMockedDBBackup(t, r)
+	defer cancel()
+
+	injectedError := fmt.Errorf("It's too late. Self-destruct sequence has been initiated.")
+	b.db.(*testDB).injectSetTSError = injectedError
+
+	b.incrementalBackupLiveness.ManualReset(time.Time{})
+
+	now := time.Now()
+	err := b.incrementalBackupStep(now)
+	assert.Equal(t, injectedError, err)
+
+	assert.True(t, b.incrementalBackupLiveness.Get() > MAX_TEST_TIME_SECONDS)
 }

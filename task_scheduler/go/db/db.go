@@ -54,6 +54,10 @@ type TaskReader interface {
 	// by Created timestamp.
 	GetModifiedTasks(string) ([]*Task, error)
 
+	// GetModifiedTasksGOB returns the GOB-encoded results of GetModifiedTasks,
+	// keyed by Task.Id.
+	GetModifiedTasksGOB(string) (map[string][]byte, error)
+
 	// GetTaskById returns the task with the given Id field. Returns nil, nil if
 	// task is not found.
 	GetTaskById(string) (*Task, error)
@@ -158,6 +162,10 @@ type JobReader interface {
 	// GetModifiedJobs was run with the given id. The returned jobs are sorted by
 	// Created timestamp.
 	GetModifiedJobs(string) ([]*Job, error)
+
+	// GetModifiedJobsGOB returns the GOB-encoded results of GetModifiedJobs,
+	// keyed by Job.Id.
+	GetModifiedJobsGOB(string) (map[string][]byte, error)
 
 	// GetJobById returns the job with the given Id field. Returns nil, nil if
 	// job is not found.

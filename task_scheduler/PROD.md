@@ -48,10 +48,14 @@ than 25 hours old.
    service is enabled.
 
  - Check if there are any files in the directory
-   /mnt/pd0/task_scheduler_workdir/trigger-backup. If not, check the systemd
+   `/mnt/pd0/task_scheduler_workdir/trigger-backup`. If not, check the systemd
    logs for task-scheduler-db-backup for errors.
 
- - Check logs for "Automatic DB backup failed" or other errors.
+ - If the systemd timer failed to execute, you can trigger a manual
+   backup by running `touch
+   /mnt/pd0/task_scheduler_workdir/trigger-backup/task-scheduler-manual`.
+
+ - Otherwise, check logs for "Automatic DB backup failed" or other errors.
 
 
 too_many_recent_db_backups
@@ -71,6 +75,27 @@ The function DBBackup.Tick is not being called periodically. If
 scheduling_failed alert is firing, resolve that first. Otherwise, check for
 recent code changes that may have unintentionally removed the callback to
 trigger a DB backup from the task scheduler loop.
+
+
+incremental_backup_liveness
+---------------------------
+
+The function gsDBBackup.incrementalBackupStep has not succeeded recently. Check
+logs for "Incremental Job backup failed". If Task Scheduler is otherwise
+operating normally, this is not a critical alert, since we also perform a full
+nightly backup.
+
+
+incremental_backup_reset
+------------------------
+
+The function gsDBBackup.incrementalBackupStep is not able to keep up with the
+rate of new and modified Jobs. This likely indicates a problem with the
+connection to Google Storage or the need for additional concurrency. Check logs
+for "Incremental Job backup failed" or "incrementalBackupStep too slow". This
+alert will also resolve itself after the next full backup, which can be manually
+triggered by running `touch
+/mnt/pd0/task_scheduler_workdir/trigger-backup/task-scheduler-manual`.
 
 
 db_too_many_free_pages

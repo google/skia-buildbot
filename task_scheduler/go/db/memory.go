@@ -15,7 +15,7 @@ import (
 type inMemoryTaskDB struct {
 	tasks    map[string]*Task
 	tasksMtx sync.RWMutex
-	modTasks ModifiedTasks
+	ModifiedTasks
 }
 
 // See docs for TaskDB interface. Does not take any locks.
@@ -54,11 +54,6 @@ func (db *inMemoryTaskDB) GetTasksFromDateRange(start, end time.Time) ([]*Task, 
 }
 
 // See docs for TaskDB interface.
-func (db *inMemoryTaskDB) GetModifiedTasks(id string) ([]*Task, error) {
-	return db.modTasks.GetModifiedTasks(id)
-}
-
-// See docs for TaskDB interface.
 func (db *inMemoryTaskDB) PutTask(task *Task) error {
 	db.tasksMtx.Lock()
 	defer db.tasksMtx.Unlock()
@@ -81,7 +76,7 @@ func (db *inMemoryTaskDB) PutTask(task *Task) error {
 
 	// TODO(borenet): Keep tasks in a sorted slice.
 	db.tasks[task.Id] = task
-	db.modTasks.TrackModifiedTask(task)
+	db.TrackModifiedTask(task)
 	return nil
 }
 
@@ -93,16 +88,6 @@ func (db *inMemoryTaskDB) PutTasks(tasks []*Task) error {
 		}
 	}
 	return nil
-}
-
-// See docs for TaskDB interface.
-func (db *inMemoryTaskDB) StartTrackingModifiedTasks() (string, error) {
-	return db.modTasks.StartTrackingModifiedTasks()
-}
-
-// See docs for TaskDB interface.
-func (db *inMemoryTaskDB) StopTrackingModifiedTasks(id string) {
-	db.modTasks.StopTrackingModifiedTasks(id)
 }
 
 // NewInMemoryTaskDB returns an extremely simple, inefficient, in-memory TaskDB
@@ -117,7 +102,7 @@ func NewInMemoryTaskDB() TaskDB {
 type inMemoryJobDB struct {
 	jobs    map[string]*Job
 	jobsMtx sync.RWMutex
-	modJobs ModifiedJobs
+	ModifiedJobs
 }
 
 func (db *inMemoryJobDB) assignId(j *Job) error {
@@ -155,11 +140,6 @@ func (db *inMemoryJobDB) GetJobsFromDateRange(start, end time.Time) ([]*Job, err
 }
 
 // See docs for JobDB interface.
-func (db *inMemoryJobDB) GetModifiedJobs(id string) ([]*Job, error) {
-	return db.modJobs.GetModifiedJobs(id)
-}
-
-// See docs for JobDB interface.
 func (db *inMemoryJobDB) PutJob(job *Job) error {
 	db.jobsMtx.Lock()
 	defer db.jobsMtx.Unlock()
@@ -182,7 +162,7 @@ func (db *inMemoryJobDB) PutJob(job *Job) error {
 
 	// TODO(borenet): Keep jobs in a sorted slice.
 	db.jobs[job.Id] = job
-	db.modJobs.TrackModifiedJob(job)
+	db.TrackModifiedJob(job)
 	return nil
 }
 
@@ -194,16 +174,6 @@ func (db *inMemoryJobDB) PutJobs(jobs []*Job) error {
 		}
 	}
 	return nil
-}
-
-// See docs for JobDB interface.
-func (db *inMemoryJobDB) StartTrackingModifiedJobs() (string, error) {
-	return db.modJobs.StartTrackingModifiedJobs()
-}
-
-// See docs for JobDB interface.
-func (db *inMemoryJobDB) StopTrackingModifiedJobs(id string) {
-	db.modJobs.StopTrackingModifiedJobs(id)
 }
 
 // NewInMemoryJobDB returns an extremely simple, inefficient, in-memory JobDB
