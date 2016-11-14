@@ -147,6 +147,24 @@
       "revId": "33da49816a65b3307e7253b622b967654af45419",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb935fd8_a23ac6de",
+        "filename": "task_scheduler/go/scheduling/periodic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-14T18:55:33Z",
+      "side": 1,
+      "message": "That\u0027s true, but it\u0027s already the case.  IMO task scheduler isn\u0027t the place for throwing alerts when a job fails.",
+      "parentUuid": "eb935fd8_07a46c42",
+      "revId": "33da49816a65b3307e7253b622b967654af45419",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
