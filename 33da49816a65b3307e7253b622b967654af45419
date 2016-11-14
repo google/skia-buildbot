@@ -22,6 +22,41 @@
       "revId": "33da49816a65b3307e7253b622b967654af45419",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb935fd8_41d82437",
+        "filename": "task_scheduler/go/scheduling/periodic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-14T14:43:42Z",
+      "side": 1,
+      "message": "Right, although the \"no data\" state is actually data showing the last trigger was at the time of the last restart.\n\nCould we do the following at startup?\n 1. Scan the JobSpecs at HEAD and find any with triggers specified.\n 2. Map those triggers to a time range that we expect to contain the most recent run for that trigger. (Unfortunately this means that the trigger times are specified in multiple places.)\n 3. Scan the DB for matching Jobs.\n 4. Set the metric to an appropriate value based on whether a Job was found and it succeeded.",
+      "parentUuid": "eb935fd8_ddf41eb4",
+      "revId": "33da49816a65b3307e7253b622b967654af45419",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb935fd8_c1e434f8",
+        "filename": "task_scheduler/go/scheduling/periodic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-14T14:43:42Z",
+      "side": 1,
+      "message": "IWBN to do this per-Job, only if the Job succeeds. Unless these also appear on Status?",
+      "revId": "33da49816a65b3307e7253b622b967654af45419",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
