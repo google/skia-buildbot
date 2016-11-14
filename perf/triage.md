@@ -101,8 +101,8 @@ indexed by cid.CommitID, and will also have a column for timestamp to make
 time range queries easy. The Regression will be stored as serialized JSON in a
 text field.
 
- Column:     index       ts          text
-              cid     timestamp  [serialized map[string]Regression as JSON]
+ Column:     index       ts       triaged      text
+              cid     timestamp    bool    [map[string]Regression as JSON]
 
 UI Model
 --------
