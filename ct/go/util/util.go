@@ -763,6 +763,27 @@ func DownloadPatch(localPath, remotePath string, gs *GsUtil) (int64, error) {
 	return written, nil
 }
 
+// RemoveCatapultLockFiles cleans up any leftover "pseudo_lock" files from the
+// catapult repo. See skbug.com/5919#c16 for context.
+func RemoveCatapultLockFiles(catapultSrcDir string) error {
+	visit := func(path string, f os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if f.IsDir() {
+			return nil
+		}
+		if filepath.Ext(f.Name()) == ".pseudo_lock" {
+			if err := os.Remove(path); err != nil {
+				return err
+			}
+
+		}
+		return nil
+	}
+	return filepath.Walk(catapultSrcDir, visit)
+}
+
 func DownloadAndApplyPatch(patchName, localDir, remotePatchesDir, checkout string, gs *GsUtil) error {
 	patchLocalPath := filepath.Join(localDir, patchName)
 	patchRemotePath := filepath.Join(remotePatchesDir, patchName)
