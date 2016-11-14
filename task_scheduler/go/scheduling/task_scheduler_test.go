@@ -2427,6 +2427,8 @@ func TestPeriodicJobs(t *testing.T) {
 	unfinished, err := s.jCache.UnfinishedJobs()
 	assert.NoError(t, err)
 	assert.Equal(t, 5, len(unfinished)) // Existing per-commit jobs.
+	assert.Equal(t, 0, len(s.triggerMetrics.LastTriggered))
+	assert.Equal(t, 0, len(s.triggerMetrics.metrics))
 
 	// Write the trigger file. Cycle, ensure that the trigger file was
 	// removed and the periodic task was added.
@@ -2439,6 +2441,16 @@ func TestPeriodicJobs(t *testing.T) {
 	unfinished, err = s.jCache.UnfinishedJobs()
 	assert.NoError(t, err)
 	assert.Equal(t, 6, len(unfinished))
+	assert.Equal(t, 1, len(s.triggerMetrics.LastTriggered))
+	assert.Equal(t, 1, len(s.triggerMetrics.metrics))
+
+	// Test the metrics by creating a new periodicTriggerMetrics and
+	// verifying that we get the same last-triggered time.
+	metrics, err := newPeriodicTriggerMetrics(s.workdir)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(metrics.LastTriggered))
+	assert.Equal(t, 1, len(metrics.metrics))
+	assert.Equal(t, s.triggerMetrics.LastTriggered["nightly"], metrics.LastTriggered["nightly"])
 }
 
 func TestCheckBlamelistContinuity(t *testing.T) {
