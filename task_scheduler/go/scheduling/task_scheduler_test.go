@@ -157,6 +157,7 @@ func setup(t *testing.T) (*util.TempRepo, db.DB, *swarming.TestClient, *TaskSche
 	}
 	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), tr.Dir, repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping)
 	assert.NoError(t, err)
+	s.busyBots.busyTime = time.Duration(int64(0))
 	return tr, d, swarmingClient, s, urlMock
 }
 
@@ -1781,6 +1782,7 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	}
 	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping)
 	assert.NoError(t, err)
+	s.busyBots.busyTime = time.Duration(int64(0))
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
 	mock := func(task *db.Task) {

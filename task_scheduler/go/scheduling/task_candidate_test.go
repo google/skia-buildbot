@@ -14,6 +14,7 @@ import (
 func TestCopyTaskCandidate(t *testing.T) {
 	testutils.SmallTest(t)
 	v := &taskCandidate{
+		BotId:          "bot-id",
 		Commits:        []string{"a", "b"},
 		IsolatedInput:  "lonely-parameter",
 		IsolatedHashes: []string{"browns"},
