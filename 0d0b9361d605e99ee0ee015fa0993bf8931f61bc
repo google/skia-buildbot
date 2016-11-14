@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "eb935fd8_87195ceb",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1238,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-14T17:39:18Z",
+      "side": 1,
+      "message": "Yeah, since we\u0027re just logging errors and I\u0027m hoping to get the problem figured out and fixed at which point this can go away.",
+      "parentUuid": "eb935fd8_a7d578ce",
+      "revId": "0d0b9361d605e99ee0ee015fa0993bf8931f61bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb935fd8_47cd944f",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
@@ -36,6 +54,24 @@
         "endLine": 1242,
         "endChar": 36
       },
+      "revId": "0d0b9361d605e99ee0ee015fa0993bf8931f61bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb935fd8_87907cd7",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1242,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-14T17:39:18Z",
+      "side": 1,
+      "message": "len(commits) \u003e 100 is unlikely, and I want to have the opportunity to see all of the missing commits, which won\u0027t happen if we use len(commits).  Changed to max(len(commits), 100).",
+      "parentUuid": "eb935fd8_47cd944f",
       "revId": "0d0b9361d605e99ee0ee015fa0993bf8931f61bc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
