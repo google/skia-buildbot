@@ -346,6 +346,15 @@ var gold = gold || {};
     // with a query string that represents the current state.
     _setUrlFromState: function() {
       history.replaceState(this._ctx.state, this._ctx.title, window.location.pathname + gold.queryFromState(this._state));
+    },
+
+    _addCorpus: function(state) {
+      var params = sk.query.toParamSet(sk.object.shallowCopy(state.query));
+      if ((!params["source_type]"]) && this._statusElement) {
+        params["source_type"] = [this._statusElement.corpus];
+        state.query = sk.query.fromParamSet(params);
+      }
+      return state;
     }
   };
 
