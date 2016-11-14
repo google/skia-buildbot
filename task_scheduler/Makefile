@@ -28,4 +28,24 @@ debug: clean_webtools debug_core_js debug_elements_html
 task_scheduler_debug: debug skiaversion
 	go install -v ./go/task_scheduler
 
+.PHONY: push
+push: all
+	./build_release "`git log -n1 --format=%s`"
+	go install -v ../push/go/pushcli
+	pushcli task-scheduler skia-task-scheduler
+
+.PHONY: push_backup
+push_backup: all
+	./build_backup_release "`git log -n1 --format=%s`"
+	go install -v ../push/go/pushcli
+	pushcli task-scheduler-db-backup skia-task-scheduler
+
+.PHONY: push_trigger
+push_trigger: all
+	./build_trigger_nightly_release "`git log -n1 --format=%s`"
+	./build_trigger_weekly_release "`git log -n1 --format=%s`"
+	go install -v ../push/go/pushcli
+	pushcli task-scheduler-trigger-nightly skia-task-scheduler
+	pushcli task-scheduler-trigger-weekly skia-task-scheduler
+
 include ../webtools/webtools.mk
