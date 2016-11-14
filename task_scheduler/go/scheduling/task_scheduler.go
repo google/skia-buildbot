@@ -436,6 +436,11 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 		glog.Errorf("task candidate %s @ %s doesn't have its own revision in its blamelist: %v", c.Name, c.Revision, c.Commits)
 	}
 
+	checkBlamelistContinuity(c.Commits, c.Revision, repo)
+	if stealingFrom != nil {
+		checkBlamelistContinuity(stealingFrom.Commits, stealingFrom.Revision, repo)
+	}
+
 	if c.IsForceRun() {
 		c.Score = CANDIDATE_SCORE_FORCE_RUN + now.Sub(c.JobCreated).Hours()
 		return nil
@@ -783,6 +788,12 @@ func (s *TaskScheduler) scheduleTasks() error {
 	}
 	tasks := make([]*db.Task, 0, len(tasksToInsert))
 	for _, t := range tasksToInsert {
+		repo, ok := s.repos[t.Repo]
+		if !ok {
+			glog.Errorf("Task %s has invalid repository %q!", t.Id, t.Repo)
+		} else {
+			checkBlamelistContinuity(t.Commits, t.Revision, repo)
+		}
 		tasks = append(tasks, t)
 	}
 
@@ -1202,4 +1213,47 @@ func (s *TaskScheduler) getTasksForJob(j *db.Job) (map[string][]*db.Task, error)
 // GetJob returns the given Job.
 func (s *TaskScheduler) GetJob(id string) (*db.Job, error) {
 	return s.jCache.GetJobMaybeExpired(id)
+}
+
+// checkBlamelistContinuity verifies that the blamelist covers a contiguous set
+// of commits. Prints an error if not.
+// TODO(borenet): Remove once skbug.com/5965 is resolved.
+func checkBlamelistContinuity(commits []string, gotRevision string, repo *repograph.Graph) {
+	if err := checkBlamelistContinuityHelper(commits, gotRevision, repo); err != nil {
+		glog.Errorf("checkBlamelistContinuity failed: %s", err)
+	}
+}
+func checkBlamelistContinuityHelper(commits []string, gotRevision string, repo *repograph.Graph) error {
+	if len(commits) == 0 {
+		return nil
+	}
+
+	expectCommits := make(map[string]bool, len(commits))
+	for _, c := range commits {
+		expectCommits[c] = true
+	}
+	actualCommits := make([]string, 0, len(commits))
+	max := 100
+	if len(commits) > max {
+		max = len(commits)
+	}
+
+	if err := repo.Get(gotRevision).Recurse(func(c *repograph.Commit) (bool, error) {
+		actualCommits = append(actualCommits, c.Hash)
+		delete(expectCommits, c.Hash)
+		if len(expectCommits) == 0 {
+			return false, nil
+		} else if len(actualCommits) > max {
+			// Prevent traversing the whole repo.
+			return false, fmt.Errorf("Got too many commits while recursing.")
+		}
+		return true, nil
+	}); err != nil {
+		return err
+	}
+
+	if len(actualCommits) != len(commits) {
+		return fmt.Errorf("Got incorrect number of commits; Expect:\n%v\nGot:\n%v", commits, actualCommits)
+	}
+	return nil
 }
