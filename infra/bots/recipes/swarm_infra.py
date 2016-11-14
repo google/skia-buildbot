@@ -10,7 +10,6 @@ import re
 
 
 DEPS = [
-  'build/file',
   'depot_tools/bot_update',
   'depot_tools/gclient',
   'depot_tools/infra_paths',
@@ -20,6 +19,7 @@ DEPS = [
   'recipe_engine/properties',
   'recipe_engine/python',
   'recipe_engine/raw_io',
+  'recipe_engine/shutil',
   'recipe_engine/step',
 ]
 
@@ -104,7 +104,7 @@ def RunSteps(api):
 
   go_dir = api.path['slave_build'].join('go')
   go_src = go_dir.join('src')
-  api.file.makedirs('makedirs go/src', go_src)
+  api.shutil.makedirs('makedirs go/src', go_src)
   infra_dir = go_src.join(INFRA_GO)
 
   # Check out the infra repo.
