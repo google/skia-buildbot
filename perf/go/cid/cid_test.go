@@ -39,12 +39,14 @@ func TestCommitID(t *testing.T) {
 		Source: "master",
 	}
 	assert.Equal(t, "master-000001.bdb", c.Filename())
+	assert.Equal(t, "master-000001", c.ID())
 
 	c = &CommitID{
 		Offset: 0,
 		Source: "https://codereview.chromium.org/2251213006",
 	}
 	assert.Equal(t, "https___codereview_chromium_org_2251213006-000000.bdb", c.Filename())
+	assert.Equal(t, "https___codereview_chromium_org_2251213006-000000", c.ID())
 }
 
 func TestFromIssue(t *testing.T) {
