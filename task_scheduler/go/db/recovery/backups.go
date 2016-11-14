@@ -4,6 +4,7 @@ package recovery
 import (
 	"bytes"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -36,6 +37,12 @@ const (
 	// RETRY_COUNT is the number of times to attempt a DB backup when failures
 	// occur.
 	RETRY_COUNT = 3
+
+	// JOB_BACKUP_DIR is the prefix of the object name to store incremental Job
+	// backups in the GS bucket.
+	JOB_BACKUP_DIR = "job-backup"
+	// JOB_FILE_NAME_EXTENSION is added to the base filename.
+	JOB_FILE_NAME_EXTENSION = "gob"
 )
 
 // DBBackup has methods to trigger periodic and immediate backups.
@@ -60,6 +67,8 @@ type gsDBBackup struct {
 	// triggerDir is the directory that task-scheduler-db-backup.service will
 	// write files to trigger an automatic backup.
 	triggerDir string
+	// modifiedJobsId is the return value of StartTrackingModifiedJobs.
+	modifiedJobsId string
 	// lastDBBackupLiveness records the modified time of the most recent DB
 	// backup.
 	lastDBBackupLiveness *metrics2.Liveness
@@ -67,6 +76,15 @@ type gsDBBackup struct {
 	recentDBBackupCount *metrics2.Int64Metric
 	// maybeBackupDBLiveness records whether maybeBackupDB is being called.
 	maybeBackupDBLiveness *metrics2.Liveness
+	// jobBackupCount records the number of jobs backed up since the gsDBBackup
+	// was created.
+	jobBackupCount *metrics2.Counter
+	// incrementalBackupLiveness tracks whether incrementalBackupStep is running
+	// successfully.
+	incrementalBackupLiveness *metrics2.Liveness
+	// incrementalBackupResetCount records the number of times GetModifiedJobsGOB
+	// returned ErrUnknownId since the last successful DB backup.
+	incrementalBackupResetCount *metrics2.Counter
 }
 
 // NewDBBackup creates a DBBackup.
@@ -86,27 +104,66 @@ func NewDBBackup(ctx context.Context, gsBucket string, db db.BackupDBCloser, nam
 	}
 
 	go util.RepeatCtx(10*time.Minute, b.ctx, b.updateMetrics)
+	go util.RepeatCtx(10*time.Second, b.ctx, func() {
+		if err := b.incrementalBackupStep(time.Now()); err != nil {
+			glog.Errorf("Incremental Job backup failed: %s", err)
+		}
+	})
 
 	return b, nil
 }
 
 // newGsDbBackupWithClient is the same as NewDBBackup but takes a GS client for
-// testing and does not start the metrics goroutine.
+// testing and does not start the metrics goroutine or the incremental backup
+// goroutine.
 func newGsDbBackupWithClient(ctx context.Context, gsBucket string, db db.BackupDBCloser, name string, workdir string, gsClient *storage.Client) (*gsDBBackup, error) {
+	modJobsId, err := db.StartTrackingModifiedJobs()
+	if err != nil {
+		return nil, err
+	}
 	metricTags := map[string]string{
 		"database": name,
 	}
 	b := &gsDBBackup{
-		gsBucket:              gsBucket,
-		gsClient:              gsClient,
-		db:                    db,
-		ctx:                   ctx,
-		triggerDir:            path.Join(workdir, TRIGGER_DIRNAME),
-		lastDBBackupLiveness:  metrics2.NewLiveness("last-db-backup", metricTags),
-		recentDBBackupCount:   metrics2.GetInt64Metric("recent-db-backup-count", metricTags),
-		maybeBackupDBLiveness: metrics2.NewLiveness("db-backup-maybe-backup-db", metricTags),
+		gsBucket:                    gsBucket,
+		gsClient:                    gsClient,
+		db:                          db,
+		ctx:                         ctx,
+		triggerDir:                  path.Join(workdir, TRIGGER_DIRNAME),
+		modifiedJobsId:              modJobsId,
+		lastDBBackupLiveness:        metrics2.NewLiveness("last-db-backup", metricTags),
+		recentDBBackupCount:         metrics2.GetInt64Metric("recent-db-backup-count", metricTags),
+		maybeBackupDBLiveness:       metrics2.NewLiveness("db-backup-maybe-backup-db", metricTags),
+		jobBackupCount:              metrics2.GetCounter("incremental-job-backup", metricTags),
+		incrementalBackupLiveness:   metrics2.NewLiveness("incremental-backup", metricTags),
+		incrementalBackupResetCount: metrics2.GetCounter("incremental-backup-reset", metricTags),
 	}
-
+	// Release resources when done.
+	go func() {
+		<-ctx.Done()
+		b.db.StopTrackingModifiedTasks(b.modifiedJobsId)
+		// TODO(benjaminwagner): Liveness doesn't have a Delete method.
+		//if err := b.lastDBBackupLiveness.Delete(); err != nil {
+		//	glog.Error(err)
+		//}
+		if err := b.recentDBBackupCount.Delete(); err != nil {
+			glog.Error(err)
+		}
+		// TODO(benjaminwagner): Liveness doesn't have a Delete method.
+		//if err := b.maybeBackupDBLiveness.Delete(); err != nil {
+		//	glog.Error(err)
+		//}
+		if err := b.jobBackupCount.Delete(); err != nil {
+			glog.Error(err)
+		}
+		// TODO(benjaminwagner): Liveness doesn't have a Delete method.
+		//if err := b.incrementalBackupLiveness.Delete(); err != nil {
+		//	glog.Error(err)
+		//}
+		if err := b.incrementalBackupResetCount.Delete(); err != nil {
+			glog.Error(err)
+		}
+	}()
 	return b, nil
 }
 
@@ -171,6 +228,11 @@ func uploadFile(ctx context.Context, filename string, bucket *storage.BucketHand
 	// If we are able to successfully read temp file until EOF, we don't
 	// care if Close returns an error.
 	defer util.Close(fileR)
+	return upload(ctx, fileR, bucket, objectname, modTime)
+}
+
+// upload gzips and writes the given content as the given object name to GS.
+func upload(ctx context.Context, content io.Reader, bucket *storage.BucketHandle, objectname string, modTime time.Time) (err error) {
 	objW := bucket.Object(objectname).NewWriter(ctx)
 	defer func() {
 		// We set objW to nil when we manually close it below.
@@ -178,8 +240,9 @@ func uploadFile(ctx context.Context, filename string, bucket *storage.BucketHand
 			_ = objW.CloseWithError(err)
 		}
 	}()
+	basename := path.Base(objectname)
 	objW.ObjectAttrs.ContentType = "application/octet-stream"
-	objW.ObjectAttrs.ContentDisposition = fmt.Sprintf("attachment; filename=\"%s\"", path.Base(objectname))
+	objW.ObjectAttrs.ContentDisposition = fmt.Sprintf("attachment; filename=\"%s\"", basename)
 	objW.ObjectAttrs.ContentEncoding = "gzip"
 	gzW := gzip.NewWriter(objW)
 	defer func() {
@@ -188,9 +251,9 @@ func uploadFile(ctx context.Context, filename string, bucket *storage.BucketHand
 			util.Close(gzW)
 		}
 	}()
-	gzW.Header.Name = path.Base(filename)
+	gzW.Header.Name = basename
 	gzW.Header.ModTime = modTime.UTC()
-	if _, err = io.Copy(gzW, fileR); err != nil {
+	if _, err = io.Copy(gzW, content); err != nil {
 		return err
 	}
 	if err, gzW = gzW.Close(), nil; err != nil {
@@ -225,6 +288,7 @@ func (b *gsDBBackup) backupDB(now time.Time, basename string) (err error) {
 	if err := uploadFile(b.ctx, tempfilename, bucket, objectname, modTime); err != nil {
 		return err
 	}
+	b.incrementalBackupResetCount.Reset()
 	return nil
 }
 
@@ -333,8 +397,63 @@ func (b *gsDBBackup) maybeBackupDB(now time.Time) {
 	}
 }
 
+// See documentation for DBBackup.Tick.
 func (b *gsDBBackup) Tick() {
 	now := time.Now()
 	// TODO(benjaminwagner): Tick should return as soon as the DB file is written.
 	b.maybeBackupDB(now)
+}
+
+// backupJob writes the given bytes to GS under the given Job id.
+func (b *gsDBBackup) backupJob(now time.Time, id string, jobGob []byte) error {
+	bucket := b.gsClient.Bucket(b.gsBucket)
+	objectname := fmt.Sprintf("%s/%s/%s.%s", JOB_BACKUP_DIR, now.UTC().Format("2006/01/02"), id, JOB_FILE_NAME_EXTENSION)
+	return upload(b.ctx, bytes.NewReader(jobGob), bucket, objectname, now)
+}
+
+// incrementalBackupStep writes all recently modified Jobs to GS.
+func (b *gsDBBackup) incrementalBackupStep(now time.Time) error {
+	jobs, err := b.db.GetModifiedJobsGOB(b.modifiedJobsId)
+	if db.IsUnknownId(err) {
+		glog.Errorf("incrementalBackupStep too slow; GetModifiedJobsGOB expired id: %s", b.modifiedJobsId)
+		b.incrementalBackupResetCount.Inc(1)
+		id, startErr := b.db.StartTrackingModifiedJobs()
+		if startErr != nil {
+			return startErr
+		}
+		b.modifiedJobsId = id
+		// Since we just started tracking, there's nothing to do.
+		// TODO(benjaminwagner): Ideally, we should scan the JobCache for Jobs whose
+		// DbModified time is after b.db.GetIncrementalBackupTime() and call
+		// backupJob for each of them.
+		return err
+	} else if err != nil {
+		return err
+	}
+	errs := []error{}
+	for id, jobGob := range jobs {
+		// TODO(benjaminwagner): Use goroutines.
+		if err := b.backupJob(now, id, jobGob); err != nil {
+			// We still want to process the remaining jobs.
+			errs = append(errs, err)
+			continue
+		}
+		b.jobBackupCount.Inc(1)
+	}
+	if len(errs) == 0 {
+		if err := b.db.SetIncrementalBackupTime(now); err != nil {
+			return err
+		}
+		b.incrementalBackupLiveness.Reset()
+		return nil
+	} else if len(errs) == 1 {
+		return errs[0]
+	} else {
+		errStr := &bytes.Buffer{}
+		fmt.Fprint(errStr, "Multiple errors performing incremental Job backups:")
+		for _, err := range errs {
+			fmt.Fprint(errStr, "\n", err.Error())
+		}
+		return errors.New(errStr.String())
+	}
 }

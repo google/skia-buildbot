@@ -32,7 +32,7 @@ func mockSwarmingBotsForAllTasksForTesting(repos repograph.Map) []*swarming_api.
 			if branch.Name != "master" {
 				continue
 			}
-			contents, err := repo.Repo().GetFile(branch.Head, specs.TASKS_CFG_FILE)
+			contents, err := repo.Repo().GetFile(specs.TASKS_CFG_FILE, branch.Head)
 			if err != nil {
 				glog.Error(err)
 				continue

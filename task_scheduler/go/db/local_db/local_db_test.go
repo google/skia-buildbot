@@ -139,8 +139,7 @@ func TestPackUnpackV1(t *testing.T) {
 
 // Create a localDB for testing. Call defer util.RemoveAll() on the second
 // return value.
-func makeDB(t *testing.T, name string) (db.DBCloser, string) {
-	//testutils.SkipIfShort(t)
+func makeDB(t *testing.T, name string) (db.BackupDBCloser, string) {
 	tmpdir, err := ioutil.TempDir("", name)
 	assert.NoError(t, err)
 	d, err := NewDB(name, filepath.Join(tmpdir, "task.db"))
@@ -163,8 +162,7 @@ func TestAssignIdAlreadyAssigned(t *testing.T) {
 // Test that AssignId uses created timestamp when set, and generates unique IDs
 // for the same timestamp.
 func TestAssignIdsFromCreatedTs(t *testing.T) {
-	testutils.MediumTest(t)
-	testutils.SkipIfShort(t) // Creates a lot of tasks.
+	testutils.MediumTest(t) // Creates a lot of tasks.
 
 	d, tmpdir := makeDB(t, "TestAssignIdsFromCreatedTs")
 	defer util.RemoveAll(tmpdir)
@@ -430,8 +428,7 @@ func TestPutTaskLeavesTasksUnchanged(t *testing.T) {
 // Test that PutJob uses Created timestamp, and generates unique IDs for the
 // same timestamp.
 func TestJobIdsFromCreatedTs(t *testing.T) {
-	testutils.MediumTest(t)
-	testutils.SkipIfShort(t) // Creates a lot of jobs.
+	testutils.MediumTest(t) // Creates a lot of jobs.
 
 	d, tmpdir := makeDB(t, "TestJobIdsFromCreatedTs")
 	defer util.RemoveAll(tmpdir)
@@ -658,4 +655,23 @@ func TestLocalDBCommentDB(t *testing.T) {
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
 	db.TestCommentDB(t, d)
+}
+
+func TestLocalDBIncrementalBackupTime(t *testing.T) {
+	testutils.SmallTest(t)
+	d, tmpdir := makeDB(t, "TestLocalDBIncrementalBackupTime")
+	defer util.RemoveAll(tmpdir)
+	defer testutils.AssertCloses(t, d)
+
+	test := func(ts time.Time) {
+		assert.NoError(t, d.SetIncrementalBackupTime(ts))
+		actual, err := d.GetIncrementalBackupTime()
+		assert.NoError(t, err)
+		assert.True(t, ts.Equal(actual))
+	}
+	test(time.Date(2008, time.August, 8, 8, 8, 8, 8, time.UTC))
+	test(time.Date(1776, time.July, 4, 13, 0, 0, 0, time.UTC))
+	test(time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC))
+	test(time.Date(2016, time.December, 31, 23, 59, 59, 999999999, time.UTC))
+	test(time.Date(2008, time.August, 8, 8, 8, 8, 8, time.UTC))
 }
