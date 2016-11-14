@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb935fd8_c788c43f",
+        "filename": "task_scheduler/go/scheduling/periodic.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-14T18:18:59Z",
+      "side": 1,
+      "message": "nit: should check return value of f.Close()",
+      "revId": "6046f27e2be85560b4fec88594026452d337f364",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
