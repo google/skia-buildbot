@@ -19,6 +19,7 @@ import (
 
 // taskCandidate is a struct used for determining which tasks to schedule.
 type taskCandidate struct {
+	BotId          string
 	Commits        []string
 	IsolatedInput  string
 	IsolatedHashes []string
@@ -34,6 +35,7 @@ type taskCandidate struct {
 // Copy returns a copy of the taskCandidate.
 func (c *taskCandidate) Copy() *taskCandidate {
 	return &taskCandidate{
+		BotId:          c.BotId,
 		Commits:        util.CopyStringSlice(c.Commits),
 		IsolatedInput:  c.IsolatedInput,
 		IsolatedHashes: util.CopyStringSlice(c.IsolatedHashes),
