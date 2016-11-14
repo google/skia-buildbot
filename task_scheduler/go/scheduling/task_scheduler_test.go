@@ -2452,27 +2452,3 @@ func TestPeriodicJobs(t *testing.T) {
 	assert.Equal(t, 1, len(metrics.metrics))
 	assert.Equal(t, s.triggerMetrics.LastTriggered["nightly"], metrics.LastTriggered["nightly"])
 }
-
-func TestCheckBlamelistContinuity(t *testing.T) {
-	testutils.MediumTest(t)
-
-	gb := git_testutils.GitInit(t)
-	filename := "somefile"
-	a := gb.CommitGen(filename)
-	b := gb.CommitGen(filename)
-	c := gb.CommitGen(filename)
-	d := gb.CommitGen(filename)
-
-	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
-	repo, err := repograph.NewGraph(gb.Dir(), wd)
-	assert.NoError(t, err)
-
-	err = checkBlamelistContinuityHelper([]string{a, b, c, d}, d, repo)
-	assert.NoError(t, err)
-
-	err = checkBlamelistContinuityHelper([]string{b, c}, c, repo)
-	assert.NoError(t, err)
-	err = checkBlamelistContinuityHelper([]string{a, d}, d, repo)
-	assert.EqualError(t, err, fmt.Sprintf("Got incorrect number of commits; Expect:\n%s\nGot:\n%s", []string{a, d}, []string{d, c, b, a}))
-}
