@@ -79,6 +79,24 @@
     },
     {
       "key": {
+        "uuid": "eb935fd8_e7fa2006",
+        "filename": "task_scheduler/go/scheduling/periodic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-14T17:43:22Z",
+      "side": 1,
+      "message": "So the problem is that we\u0027ll end up with no data until each trigger runs for the first time, and subsequently if we get into a bad state we\u0027ll end up with no data again.  I guess we can manually seed it with the correct last-triggered values.",
+      "parentUuid": "eb935fd8_a78d78bf",
+      "revId": "33da49816a65b3307e7253b622b967654af45419",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb935fd8_c1e434f8",
         "filename": "task_scheduler/go/scheduling/periodic.go",
         "patchSetId": 1
