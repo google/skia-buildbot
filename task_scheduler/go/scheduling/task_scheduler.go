@@ -46,6 +46,7 @@ var (
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
 	bl               *blacklist.Blacklist
+	busyBots         *busyBots
 	db               db.DB
 	isolate          *isolate.Client
 	jCache           db.JobCache
@@ -87,6 +88,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repos repog
 
 	s := &TaskScheduler{
 		bl:               bl,
+		busyBots:         newBusyBots(2 * time.Minute),
 		db:               d,
 		isolate:          isolateClient,
 		jCache:           jCache,
@@ -653,6 +655,7 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 			}
 
 			// Force the candidate to run on this bot.
+			c.BotId = bot
 			c.TaskSpec.Dimensions = append(c.TaskSpec.Dimensions, fmt.Sprintf("id:%s", bot))
 
 			// Add the task to the scheduling list.
@@ -707,7 +710,7 @@ func (s *TaskScheduler) isolateTasks(rs db.RepoState, candidates []*taskCandidat
 func (s *TaskScheduler) scheduleTasks() error {
 	defer timer.New("TaskScheduler.scheduleTasks").Stop()
 	// Find free bots, match them with tasks.
-	bots, err := getFreeSwarmingBots(s.swarming)
+	bots, err := getFreeSwarmingBots(s.swarming, s.busyBots)
 	if err != nil {
 		return err
 	}
@@ -742,6 +745,7 @@ func (s *TaskScheduler) scheduleTasks() error {
 		if err != nil {
 			return err
 		}
+		s.busyBots.Put(candidate.BotId)
 		created, err := swarming.ParseTimestamp(resp.Request.CreatedTs)
 		if err != nil {
 			return fmt.Errorf("Failed to parse timestamp of created task: %s", err)
@@ -1051,7 +1055,7 @@ func testednessIncrease(blamelistLength, stoleFromBlamelistLength int) float64 {
 }
 
 // getFreeSwarmingBots returns a slice of free swarming bots.
-func getFreeSwarmingBots(s swarming.ApiClient) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
+func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
 	defer timer.New("getFreeSwarmingBots").Stop()
 	bots, err := s.ListSkiaBots()
 	if err != nil {
@@ -1066,6 +1070,9 @@ func getFreeSwarmingBots(s swarming.ApiClient) ([]*swarming_api.SwarmingRpcsBotI
 			continue
 		}
 		if bot.TaskId != "" {
+			continue
+		}
+		if busy.Get(bot.BotId) {
 			continue
 		}
 		rv = append(rv, bot)
