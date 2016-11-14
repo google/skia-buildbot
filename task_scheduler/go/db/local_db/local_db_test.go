@@ -150,7 +150,7 @@ func makeDB(t *testing.T, name string) (db.DBCloser, string) {
 
 // Test that AssignId returns an error if Id is set.
 func TestAssignIdAlreadyAssigned(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	d, tmpdir := makeDB(t, "TestAssignIdAlreadyAssigned")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
@@ -220,7 +220,7 @@ func TestAssignIdsFromCreatedTs(t *testing.T) {
 // Test that AssignId can generate ids when created timestamp is not set, and
 // generates unique IDs for PutTasks.
 func TestAssignIdsFromCurrentTime(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	d, tmpdir := makeDB(t, "TestAssignIdsFromCurrentTime")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
@@ -283,7 +283,7 @@ func TestAssignIdsFromCurrentTime(t *testing.T) {
 // Test that PutTask returns an error when AssignId time is too far before (or
 // after) the value subsequently assigned to Task.Created.
 func TestPutTaskValidateCreatedTime(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	d, tmpdir := makeDB(t, "TestPutTaskValidateCreatedTime")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
@@ -362,7 +362,7 @@ func TestPutTaskValidateCreatedTime(t *testing.T) {
 // Test that PutTask/s does not modify the passed-in Tasks when there is an
 // error.
 func TestPutTaskLeavesTasksUnchanged(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	d, tmpdir := makeDB(t, "TestPutTaskLeavesTasksUnchanged")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
@@ -487,7 +487,7 @@ func TestJobIdsFromCreatedTs(t *testing.T) {
 // Test that PutJob returns an error when Job.Created is not set or when
 // modified after insertion.
 func TestPutJobValidateCreatedTime(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	d, tmpdir := makeDB(t, "TestPutJobValidateCreatedTime")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
@@ -528,7 +528,7 @@ func TestPutJobValidateCreatedTime(t *testing.T) {
 
 // Test that PutJob/s does not modify the passed-in Jobs when there is an error.
 func TestPutJobLeavesJobsUnchanged(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	d, tmpdir := makeDB(t, "TestPutJobLeavesJobsUnchanged")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
@@ -589,7 +589,7 @@ func TestPutJobLeavesJobsUnchanged(t *testing.T) {
 }
 
 func TestLocalDBTaskDB(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	d, tmpdir := makeDB(t, "TestLocalDBTaskDB")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
@@ -597,7 +597,7 @@ func TestLocalDBTaskDB(t *testing.T) {
 }
 
 func TestLocalDBTaskDBTooManyUsers(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	d, tmpdir := makeDB(t, "TestLocalDBTaskDBTooManyUsers")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
@@ -621,7 +621,7 @@ func TestLocalDBTaskDBUpdateTasksWithRetries(t *testing.T) {
 }
 
 func TestLocalDBJobDB(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	d, tmpdir := makeDB(t, "TestLocalDBJobDB")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
@@ -629,7 +629,7 @@ func TestLocalDBJobDB(t *testing.T) {
 }
 
 func TestLocalDBJobDBTooManyUsers(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	d, tmpdir := makeDB(t, "TestLocalDBJobDBTooManyUsers")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
@@ -637,7 +637,7 @@ func TestLocalDBJobDBTooManyUsers(t *testing.T) {
 }
 
 func TestLocalDBJobDBConcurrentUpdate(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	d, tmpdir := makeDB(t, "TestLocalDBJobDBConcurrentUpdate")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
@@ -645,7 +645,7 @@ func TestLocalDBJobDBConcurrentUpdate(t *testing.T) {
 }
 
 func TestLocalDBJobDBUpdateJobsWithRetries(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	d, tmpdir := makeDB(t, "TestLocalDBJobDBUpdateJobsWithRetries")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
