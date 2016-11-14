@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb935fd8_a7d578ce",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1238,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-14T17:22:28Z",
+      "side": 1,
+      "message": "We are assuming no merges, correct?",
+      "revId": "0d0b9361d605e99ee0ee015fa0993bf8931f61bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb935fd8_47cd944f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1242,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-14T17:22:28Z",
+      "side": 1,
+      "message": "s/100/len(commits)/, since len(commits) could be more than 100",
+      "range": {
+        "startLine": 1242,
+        "startChar": 33,
+        "endLine": 1242,
+        "endChar": 36
+      },
+      "revId": "0d0b9361d605e99ee0ee015fa0993bf8931f61bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
