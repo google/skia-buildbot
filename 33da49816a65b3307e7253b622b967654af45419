@@ -43,6 +43,24 @@
     },
     {
       "key": {
+        "uuid": "eb935fd8_9c260f2e",
+        "filename": "task_scheduler/go/scheduling/periodic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-14T15:15:18Z",
+      "side": 1,
+      "message": "I don\u0027t really want to depend on Jobs in the DB to determine whether the triggering is working; we may remove job specs for a given trigger, or add a new one, and we may get false negatives or positives.\n\nAlternative suggestion:  Change the various triggers to use a fixed subdirectory and write a TRIGGER file there, eg:\n\n/workdir/periodic-job-trigger/nightly/TRIGGER\n\nThen we can enumerate the directories to obtain the list of all trigger names.  That\u0027d also allow us to write a \"last-trigger-time\" file for each trigger, which we could read on startup to properly initialize the livenesses.  Really, we could just use a single last-trigger.json file containing a map for all triggers.\n\nThoughts?",
+      "parentUuid": "eb935fd8_41d82437",
+      "revId": "33da49816a65b3307e7253b622b967654af45419",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb935fd8_c1e434f8",
         "filename": "task_scheduler/go/scheduling/periodic.go",
         "patchSetId": 1
@@ -54,6 +72,24 @@
       "writtenOn": "2016-11-14T14:43:42Z",
       "side": 1,
       "message": "IWBN to do this per-Job, only if the Job succeeds. Unless these also appear on Status?",
+      "revId": "33da49816a65b3307e7253b622b967654af45419",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb935fd8_9cd52fcf",
+        "filename": "task_scheduler/go/scheduling/periodic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-14T15:15:18Z",
+      "side": 1,
+      "message": "Nightly and weekly jobs do show up on status, but they tend to never be interesting, since their blamelists span more than 35 commits, which means we rarely see them.",
+      "parentUuid": "eb935fd8_c1e434f8",
       "revId": "33da49816a65b3307e7253b622b967654af45419",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
