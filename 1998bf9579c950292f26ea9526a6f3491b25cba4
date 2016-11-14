@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb935fd8_fc0e3316",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 769,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-14T16:39:10Z",
+      "side": 1,
+      "message": "nit: docs for filepath.Walk aren\u0027t very clear, but ISTM we shouldn\u0027t rely on f if err is non-nil.",
+      "revId": "1998bf9579c950292f26ea9526a6f3491b25cba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb935fd8_3cf25bed",
+        "filename": "ct/go/worker_scripts/run_chromium_analysis/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-14T16:39:10Z",
+      "side": 1,
+      "message": "Only relevant to Android?",
+      "revId": "1998bf9579c950292f26ea9526a6f3491b25cba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
