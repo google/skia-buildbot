@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -226,14 +225,14 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Find the current build of Skia.
 	current := build.Current()
-	exe := filepath.Join(*workRoot, "versions", current.Hash, "out", "Release", "visualize_color_gamut")
-	resources := filepath.Join(*workRoot, "versions", current.Hash, "resources")
+	exe := filepath.Join(*workRoot, "versions", current.Hash, "skia", "out", "Release", "colorspaceinfo")
+	resources := filepath.Join(*workRoot, "versions", current.Hash, "skia", "resources")
 
-	// buf is for the stdout/stderr output of running visualize_color_gamut.
+	// buf is for the stdout/stderr output of running colorspaceinfo.
 	buf := bytes.Buffer{}
 	comb := limitwriter.New(&buf, 64*1024)
 
-	// Run visualize_color_gamut.
+	// Run colorspaceinfo.
 	visCmd := &exec.Command{
 		Name: exe,
 		Args: []string{
@@ -253,7 +252,7 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("About to run: %#v", *visCmd)
 	if err := exec.Run(visCmd); err != nil {
 		glog.Infof("Combined Output %s", buf.String())
-		httputils.ReportError(w, r, err, "Failed to execute visualize_color_gamut.")
+		httputils.ReportError(w, r, err, "Failed to execute colorspaceinfo.")
 		return
 	}
 	output, err := ioutil.ReadFile(filepath.Join(dir, "output.png"))
@@ -304,11 +303,16 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 // buildVisualize, given a directory that Skia is checked out into,
 // builds the specific targets we need for this application.
 func buildVisualize(checkout, depotTools string) error {
-	// Do a gyp build of visualize_color_gamut.
-	glog.Info("Starting build of visualize_color_gamut")
-	if err := buildskia.NinjaBuild(checkout, depotTools, []string{}, buildskia.RELEASE_BUILD, "visualize_color_gamut", runtime.NumCPU(), true); err != nil {
-		return fmt.Errorf("Failed to build: %s", err)
+	glog.Info("Starting GNGen")
+	if err := buildskia.GNGen(checkout, depotTools, "Release", []string{"is_official_build=true"}); err != nil {
+		return fmt.Errorf("Failed GN gen: %s", err)
 	}
+
+	glog.Info("Building colorspaceinfo")
+	if msg, err := buildskia.GNNinjaBuild(checkout, depotTools, "Release", "colorspaceinfo", true); err != nil {
+		return fmt.Errorf("Failed ninja build of colorspaceinfo: %q %s", msg, err)
+	}
+
 	return nil
 }
 
@@ -344,7 +348,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to connect to Google Storage: %s", err)
 	}
-	build = buildskia.New(*workRoot, *depotTools, repo, buildVisualize, 3, *timeBetweenBuilds, false)
+	build = buildskia.New(*workRoot, *depotTools, repo, buildVisualize, 3, *timeBetweenBuilds, true)
 	build.Start()
 	cache = lru.New(NUM_CACHED_RESULT_IMAGES)
 	loadTemplates()
