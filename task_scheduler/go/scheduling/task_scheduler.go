@@ -94,7 +94,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repos repog
 
 	s := &TaskScheduler{
 		bl:               bl,
-		busyBots:         newBusyBots(2 * time.Minute),
+		busyBots:         newBusyBots(5 * time.Minute),
 		db:               d,
 		isolate:          isolateClient,
 		jCache:           jCache,
