@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "503c1cf2_5cb18cdd",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-15T18:59:48Z",
+      "side": 0,
+      "message": "Can\u0027t import this file, so moved these to local_db package.",
+      "revId": "191ee776bbbce1abca9403d6a774f55b90e84df2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
