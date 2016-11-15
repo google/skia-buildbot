@@ -9,7 +9,6 @@ import (
 
 	"github.com/skia-dev/glog"
 
-	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/util"
 )
@@ -19,37 +18,7 @@ const (
 )
 
 var (
-	DEFAULT_RULES = []*Rule{
-		&Rule{
-			AddedBy: "TaskScheduler",
-			TaskSpecPatterns: []string{
-				buildbot.TRYBOT_PATTERN,
-			},
-			Commits:     []string{},
-			Description: "Trybots are scheduled through Rietveld or the Commit Queue.",
-			Name:        "Trybots",
-		},
-		&Rule{
-			AddedBy: "TaskScheduler",
-			TaskSpecPatterns: []string{
-				"^Housekeeper-Nightly-RecreateSKPs_Canary$",
-				"^Housekeeper-Weekly-RecreateSKPs$",
-				"^Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Debug-CT_DM_1m_SKPs$",
-			},
-			Commits:     []string{},
-			Description: "Bots which the Task Scheduler should not schedule because they run on a timer.",
-			Name:        "Timed Bots",
-		},
-		&Rule{
-			AddedBy: "TaskScheduler",
-			TaskSpecPatterns: []string{
-				"^Infra-PerCommit$",
-			},
-			Commits:     []string{"355d0d378d1b9f2df9abe9fd4a73348d9b13471b"},
-			Description: "Infra-PerCommit is broken at this revision.",
-			Name:        "Infra-PerCommit@355d0d3",
-		},
-	}
+	DEFAULT_RULES = []*Rule{}
 
 	ERR_NO_SUCH_RULE = fmt.Errorf("No such rule.")
 )
