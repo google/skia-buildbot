@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "503c1cf2_12852d27",
+        "filename": "perf/go/db/db.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-15T21:09:44Z",
+      "side": 1,
+      "message": "From http://boolean.co.nz/blog/max-length-for-mysql-text-field-types/135/ \nTEXT 65,535 bytes ~64kb\nMEDIUMTEXT 16,777,215 bytes ~16MB\n\nAre you confident that the data won\u0027t exceed 64k? Seems pretty small.",
+      "range": {
+        "startLine": 98,
+        "startChar": 15,
+        "endLine": 98,
+        "endChar": 19
+      },
+      "revId": "b4f28c1d175aa1dd970516eb00bd35653159b5c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_8d9760d5",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-15T21:09:44Z",
+      "side": 1,
+      "message": "Why not use sql.Tx?",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 67
+      },
+      "revId": "b4f28c1d175aa1dd970516eb00bd35653159b5c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_2dd8d4d9",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-15T21:09:44Z",
+      "side": 1,
+      "message": "Appears to deadlock. Callers, e.g. SetHigh, are already holding s.mutex when calling load. Same for store.\n\nThe unit tests call these methods directly, so they didn\u0027t catch the problem.",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 23
+      },
+      "revId": "b4f28c1d175aa1dd970516eb00bd35653159b5c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_6d92dc39",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-15T21:09:44Z",
+      "side": 1,
+      "message": "nit: it\u0027s a good idea to check the length of strings, because IIRC they will be silently truncated if they are too long.",
+      "range": {
+        "startLine": 60,
+        "startChar": 40,
+        "endLine": 60,
+        "endChar": 45
+      },
+      "revId": "b4f28c1d175aa1dd970516eb00bd35653159b5c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_2d5bb4a0",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-15T21:09:44Z",
+      "side": 1,
+      "message": "nit: need to check rows.Err()",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 2
+      },
+      "revId": "b4f28c1d175aa1dd970516eb00bd35653159b5c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_adf6a41c",
+        "filename": "perf/go/regression/db_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-15T21:09:44Z",
+      "side": 1,
+      "message": "It appears this server hasn\u0027t been used for any of our dependencies before.",
+      "range": {
+        "startLine": 14,
+        "startChar": 2,
+        "endLine": 14,
+        "endChar": 10
+      },
+      "revId": "b4f28c1d175aa1dd970516eb00bd35653159b5c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
