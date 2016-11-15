@@ -19,7 +19,7 @@ const MAX_KEYS = 200
 const DATA_DIR = "./data_dir"
 
 func TestShareDB(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	// Create the server and start it.
 	serverImpl := NewServer(DATA_DIR)
 	defer util.RemoveAll(DATA_DIR)

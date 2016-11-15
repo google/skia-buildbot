@@ -162,7 +162,7 @@ func TestAssignIdAlreadyAssigned(t *testing.T) {
 // Test that AssignId uses created timestamp when set, and generates unique IDs
 // for the same timestamp.
 func TestAssignIdsFromCreatedTs(t *testing.T) {
-	testutils.MediumTest(t) // Creates a lot of tasks.
+	testutils.LargeTest(t) // Creates a lot of tasks.
 
 	d, tmpdir := makeDB(t, "TestAssignIdsFromCreatedTs")
 	defer util.RemoveAll(tmpdir)

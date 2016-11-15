@@ -116,6 +116,6 @@ func TestRasterizePdfium(t *testing.T) {
 }
 
 func TestRasterizePoppler(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	testRasterizer(t, Poppler{}, "minimalPoppler.png")
 }

@@ -8,6 +8,6 @@ import (
 )
 
 func TestMySQLVersioning(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	testutil.MySQLVersioningTests(t, "correctness", migrationSteps)
 }

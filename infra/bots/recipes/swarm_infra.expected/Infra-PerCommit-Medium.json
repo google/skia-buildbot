@@ -4,7 +4,7 @@
       "python",
       "-u",
       "\nimport sys, os\npath = sys.argv[1]\nmode = int(sys.argv[2])\nif not os.path.isdir(path):\n  if os.path.exists(path):\n    print \"%s exists but is not a dir\" % path\n    sys.exit(1)\n  os.makedirs(path, mode)\n",
-      "[SLAVE_BUILD]/go/src",
+      "[SLAVE_BUILD]/gopath/src",
       "511"
     ],
     "name": "makedirs makedirs go/src",
@@ -26,7 +26,7 @@
       "git",
       "clone",
       "https://skia.googlesource.com/buildbot",
-      "[SLAVE_BUILD]/go/src/go.skia.org/infra"
+      "[SLAVE_BUILD]/gopath/src/go.skia.org/infra"
     ],
     "name": "git clone"
   },
@@ -36,7 +36,7 @@
       "fetch",
       "origin"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "name": "git fetch"
   },
   {
@@ -46,7 +46,7 @@
       "-d",
       "-f"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "name": "git clean"
   },
   {
@@ -55,7 +55,7 @@
       "checkout",
       "master"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "name": "git checkout"
   },
   {
@@ -65,7 +65,7 @@
       "--hard",
       "origin/master"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "name": "git reset"
   },
   {
@@ -87,7 +87,7 @@
       "infra@origin/master",
       "--output_manifest"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org",
     "env": {
       "PATH": "%(PATH)s:RECIPE_PACKAGE_REPO[depot_tools]"
     },
@@ -127,7 +127,7 @@
       "origin",
       "https://skia.googlesource.com/buildbot"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "name": "git remote"
   },
   {
@@ -136,7 +136,7 @@
       "checkout",
       "master"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "name": "git checkout (2)"
   },
   {
@@ -144,8 +144,22 @@
       "git",
       "status"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "name": "git status"
+  },
+  {
+    "cmd": [
+      "which",
+      "go"
+    ],
+    "env": {
+      "CHROME_HEADLESS": "1",
+      "GIT_USER_AGENT": "git/1.9.1",
+      "GOPATH": "[SLAVE_BUILD]/gopath",
+      "GOROOT": "[SLAVE_BUILD]/go/go",
+      "PATH": "[SLAVE_BUILD]/go/go/bin:[SLAVE_BUILD]/gopath/bin:%(PATH)s"
+    },
+    "name": "which go"
   },
   {
     "cmd": [
@@ -154,12 +168,13 @@
       "-u",
       "./..."
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "env": {
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
-      "GOPATH": "[SLAVE_BUILD]/go",
-      "PATH": "[SLAVE_BUILD]/go/bin:%(PATH)s"
+      "GOPATH": "[SLAVE_BUILD]/gopath",
+      "GOROOT": "[SLAVE_BUILD]/go/go",
+      "PATH": "[SLAVE_BUILD]/go/go/bin:[SLAVE_BUILD]/gopath/bin:%(PATH)s"
     },
     "name": "update_deps"
   },
@@ -168,7 +183,7 @@
       "git",
       "clone",
       "https://skia.googlesource.com/buildbot",
-      "[SLAVE_BUILD]/go/src/go.skia.org/infra"
+      "[SLAVE_BUILD]/gopath/src/go.skia.org/infra"
     ],
     "name": "git clone (2)"
   },
@@ -178,7 +193,7 @@
       "fetch",
       "origin"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "name": "git fetch (2)"
   },
   {
@@ -188,7 +203,7 @@
       "-d",
       "-f"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "name": "git clean (2)"
   },
   {
@@ -197,7 +212,7 @@
       "checkout",
       "master"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "name": "git checkout (3)"
   },
   {
@@ -207,7 +222,7 @@
       "--hard",
       "origin/master"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "name": "git reset (2)"
   },
   {
@@ -229,7 +244,7 @@
       "infra@origin/master",
       "--output_manifest"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org",
     "env": {
       "PATH": "%(PATH)s:RECIPE_PACKAGE_REPO[depot_tools]"
     },
@@ -269,7 +284,7 @@
       "origin",
       "https://skia.googlesource.com/buildbot"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "name": "git remote (2)"
   },
   {
@@ -278,7 +293,7 @@
       "checkout",
       "master"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "name": "git checkout (4)"
   },
   {
@@ -286,7 +301,7 @@
       "git",
       "status"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "name": "git status (2)"
   },
   {
@@ -295,7 +310,7 @@
       "rev-parse",
       "HEAD"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "name": "git rev-parse",
     "stdout": "/path/to/tmp/",
     "~followup_annotations": [
@@ -308,12 +323,13 @@
       "get",
       "golang.org/x/tools/cmd/goimports"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "env": {
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
-      "GOPATH": "[SLAVE_BUILD]/go",
-      "PATH": "[SLAVE_BUILD]/go/bin:%(PATH)s"
+      "GOPATH": "[SLAVE_BUILD]/gopath",
+      "GOROOT": "[SLAVE_BUILD]/go/go",
+      "PATH": "[SLAVE_BUILD]/go/go/bin:[SLAVE_BUILD]/gopath/bin:%(PATH)s"
     },
     "name": "install goimports"
   },
@@ -323,12 +339,13 @@
       "get",
       "github.com/kisielk/errcheck"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "env": {
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
-      "GOPATH": "[SLAVE_BUILD]/go",
-      "PATH": "[SLAVE_BUILD]/go/bin:%(PATH)s"
+      "GOPATH": "[SLAVE_BUILD]/gopath",
+      "GOROOT": "[SLAVE_BUILD]/go/go",
+      "PATH": "[SLAVE_BUILD]/go/go/bin:[SLAVE_BUILD]/gopath/bin:%(PATH)s"
     },
     "name": "install errcheck"
   },
@@ -336,12 +353,13 @@
     "cmd": [
       "./setup_test_db"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra/go/database",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra/go/database",
     "env": {
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
-      "GOPATH": "[SLAVE_BUILD]/go",
-      "PATH": "[SLAVE_BUILD]/go/bin:%(PATH)s"
+      "GOPATH": "[SLAVE_BUILD]/gopath",
+      "GOROOT": "[SLAVE_BUILD]/go/go",
+      "PATH": "[SLAVE_BUILD]/go/go/bin:[SLAVE_BUILD]/gopath/bin:%(PATH)s"
     },
     "name": "setup database"
   },
@@ -353,14 +371,15 @@
       "--alsologtostderr",
       "--medium"
     ],
-    "cwd": "[SLAVE_BUILD]/go/src/go.skia.org/infra",
+    "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
     "env": {
       "CHROME_HEADLESS": "1",
       "DEPOT_TOOLS": "[DEPOT_TOOLS]",
       "GIT_USER_AGENT": "git/1.9.1",
-      "GOPATH": "[SLAVE_BUILD]/go",
+      "GOPATH": "[SLAVE_BUILD]/gopath",
+      "GOROOT": "[SLAVE_BUILD]/go/go",
       "KARMA_PORT": "15001",
-      "PATH": "[SLAVE_BUILD]/go/bin:%(PATH)s"
+      "PATH": "[SLAVE_BUILD]/go/go/bin:[SLAVE_BUILD]/gopath/bin:%(PATH)s"
     },
     "name": "run_unittests"
   },
