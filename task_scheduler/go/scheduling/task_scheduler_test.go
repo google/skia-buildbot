@@ -833,7 +833,11 @@ func TestComputeBlamelist(t *testing.T) {
 
 	// The test repo is laid out like this:
 	//
-	// *   K (HEAD, master, Case #7)
+	// *   O (HEAD, master, Case #10)
+	// *   N
+	// *   M (Case #11)
+	// *   L
+	// *   K (Case #7)
 	// *   J (Case #6)
 	// |\
 	// | * I
@@ -1030,6 +1034,26 @@ func TestComputeBlamelist(t *testing.T) {
 	task, err = cache.GetTask(ids[8])
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(task.Commits))
+
+	// Four more commits.
+	commit(f, "L")
+	commit(f, "M")
+	commit(f, "N")
+	commit(f, "O")
+
+	// 10. Not really a test case, but setting up for #11.
+	test(&testCase{
+		Revision:     hashes["O"],
+		Expected:     []string{hashes["L"], hashes["M"], hashes["N"], hashes["O"]},
+		StoleFromIdx: -1,
+	})
+
+	// 11. Steal *two* commits from #10.
+	test(&testCase{
+		Revision:     hashes["M"],
+		Expected:     []string{hashes["L"], hashes["M"]},
+		StoleFromIdx: 10,
+	})
 }
 
 func TestTimeDecay24Hr(t *testing.T) {
@@ -2451,28 +2475,4 @@ func TestPeriodicJobs(t *testing.T) {
 	assert.Equal(t, 1, len(metrics.LastTriggered))
 	assert.Equal(t, 1, len(metrics.metrics))
 	assert.Equal(t, s.triggerMetrics.LastTriggered["nightly"].Unix(), metrics.LastTriggered["nightly"].Unix())
-}
-
-func TestCheckBlamelistContinuity(t *testing.T) {
-	testutils.MediumTest(t)
-
-	gb := git_testutils.GitInit(t)
-	filename := "somefile"
-	a := gb.CommitGen(filename)
-	b := gb.CommitGen(filename)
-	c := gb.CommitGen(filename)
-	d := gb.CommitGen(filename)
-
-	wd, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
-	repo, err := repograph.NewGraph(gb.Dir(), wd)
-	assert.NoError(t, err)
-
-	err = checkBlamelistContinuityHelper([]string{a, b, c, d}, d, repo)
-	assert.NoError(t, err)
-
-	err = checkBlamelistContinuityHelper([]string{b, c}, c, repo)
-	assert.NoError(t, err)
-	err = checkBlamelistContinuityHelper([]string{a, d}, d, repo)
-	assert.EqualError(t, err, fmt.Sprintf("Got incorrect number of commits; Expect:\n%s\nGot:\n%s", []string{a, d}, []string{d, c, b, a}))
 }
