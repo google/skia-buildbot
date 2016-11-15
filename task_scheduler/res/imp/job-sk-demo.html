@@ -152,17 +152,17 @@
 
     ready: function() {
       if (this.alternate) {
-        this.$.job_sk.jobId = "job2";
-      } else {
         this.$.job_sk.jobId = "job1";
+      } else {
+        this.$.job_sk.jobId = "job2";
       }
     },
 
     _alternateChanged: function() {
       if (this.alternate) {
-        this.$.job_sk.jobId = "job2";
-      } else {
         this.$.job_sk.jobId = "job1";
+      } else {
+        this.$.job_sk.jobId = "job2";
       }
     },
   });
