@@ -50,6 +50,7 @@ var (
 	NO_CRAWL_DIR_NAMES = []string{
 		".git",
 		".recipe_deps",
+		"assets",
 		"bower_components",
 		"third_party",
 		"node_modules",
