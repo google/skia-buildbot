@@ -562,7 +562,7 @@
           return '';
         }
 
-        return 'cmp/' + test;
+        return 'cmp?' + sk.query.fromObject({query: sk.query.fromParamSet({name: [test]})});
       },
 
       _hideListFeatures: function(mode) {
