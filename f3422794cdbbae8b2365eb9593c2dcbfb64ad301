@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "503c1cf2_5c018c1f",
+        "filename": "infra/bots/assets/go/VERSION",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-15T18:27:28Z",
+      "side": 1,
+      "message": "where\u0027s the create.py script?  Or is that in skia proper?",
+      "revId": "f3422794cdbbae8b2365eb9593c2dcbfb64ad301",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
