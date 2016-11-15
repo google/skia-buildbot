@@ -2450,7 +2450,7 @@ func TestPeriodicJobs(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(metrics.LastTriggered))
 	assert.Equal(t, 1, len(metrics.metrics))
-	assert.Equal(t, s.triggerMetrics.LastTriggered["nightly"], metrics.LastTriggered["nightly"])
+	assert.Equal(t, s.triggerMetrics.LastTriggered["nightly"].Unix(), metrics.LastTriggered["nightly"].Unix())
 }
 
 func TestCheckBlamelistContinuity(t *testing.T) {
