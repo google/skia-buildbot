@@ -371,21 +371,3 @@ func TestCommitRange(t *testing.T) {
 		assert.Equal(t, c.expect, b.Match("", c.commit))
 	}
 }
-
-func TestNoTrybots(t *testing.T) {
-	testutils.SmallTest(t)
-	// Setup.
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
-	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, tmp)
-	f := path.Join(tmp, "blacklist.json")
-	b, err := FromFile(f)
-	assert.NoError(t, err)
-
-	// Test.
-	assert.True(t, b.Match("Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release-Trybot", ""))
-
-	assert.Equal(t, "Cannot remove built-in rule \"Trybots\"", b.RemoveRule("Trybots").Error())
-}
