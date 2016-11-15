@@ -63,7 +63,7 @@ Access instances
 ================
 
 Run `gcloud compute ssh chrome-bot@skia-vm-NNN`. Find the correct zone at
-https://pantheon.corp.google.com/project/31977622648/compute/instances
+https://console.cloud.google.com/project/31977622648/compute/instances
 
 
 How to delete old instances

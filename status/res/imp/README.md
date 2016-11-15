@@ -3,9 +3,9 @@ Status Elements
 
 Before being able to run the demo pages, run the
 ```
-make web 
+make web
 ```
-in the infra/status directory. 
+in the infra/status directory.
 
 To run the demo pages, navigate to this directory and run
 ```
@@ -13,7 +13,7 @@ make run
 ```
 
 This will download the necessary dependencies, download the demo data from
-[Google Storage](https://pantheon.corp.google.com/storage/browser/skia-infra-testdata/status-demo/?project=google.com:skia-buildbots)
+[Google Storage](https://console.cloud.google.com/storage/browser/skia-infra-testdata/status-demo/?project=google.com:skia-buildbots)
 and set up a local server for debugging on http://localhost:8080.
 
 

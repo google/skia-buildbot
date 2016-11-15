@@ -87,7 +87,7 @@ set +x
 echo
 echo "The setup script has completed! Manual steps required:"
 echo
-echo " - Go to https://pantheon.corp.google.com/apis/credentials/oauthclient/31977622648-ubjke2f3staq6ouas64r31h8f8tcbiqp.apps.googleusercontent.com?project=google.com:skia-buildbots, click Download JSON, and save it to /b/storage/client_secret.json."
+echo " - Go to https://console.cloud.google.com/apis/credentials/oauthclient/31977622648-ubjke2f3staq6ouas64r31h8f8tcbiqp.apps.googleusercontent.com?project=google.com:skia-buildbots, click Download JSON, and save it to /b/storage/client_secret.json."
 echo " - Run a master script from the command line to set up Gmail and Google Storage authorization tokens."
 echo "     Here is an example of running a master script:"
 echo '     $ cd /b/skia-repo/go/src/go.skia.org/infra/ct'

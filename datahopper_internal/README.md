@@ -22,7 +22,7 @@ configuration in ../influxdb/influxdb-config.toml.
 
 You will also need a file named "service-account.json" in the CWD containing the
 value of the
-[GCE metadata key jwt_service_account](https://pantheon.corp.google.com/project/31977622648/compute/metadata).
+[GCE metadata key jwt_service_account](https://console.cloud.google.com/project/31977622648/compute/metadata).
 
 To start a local server, `mkdir /tmp/datahopper_internal`, then run:
 
