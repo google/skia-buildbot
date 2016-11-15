@@ -21,6 +21,13 @@
   },
   "tasks": {
     "Infra-PerCommit-Large": {
+      "cipd_packages": [
+        {
+          "name": "skia/bots/go",
+          "path": "go",
+          "version": "version:0"
+        }
+      ],
       "dimensions": [
         "pool:Skia",
         "os:Ubuntu",
@@ -46,6 +53,13 @@
       "priority": 0.8
     },
     "Infra-PerCommit-Medium": {
+      "cipd_packages": [
+        {
+          "name": "skia/bots/go",
+          "path": "go",
+          "version": "version:0"
+        }
+      ],
       "dimensions": [
         "pool:Skia",
         "os:Ubuntu",
@@ -71,6 +85,13 @@
       "priority": 0.8
     },
     "Infra-PerCommit-Small": {
+      "cipd_packages": [
+        {
+          "name": "skia/bots/go",
+          "path": "go",
+          "version": "version:0"
+        }
+      ],
       "dimensions": [
         "pool:Skia",
         "os:Ubuntu",

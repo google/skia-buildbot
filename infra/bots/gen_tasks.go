@@ -37,7 +37,7 @@ var (
 // generated chain of Tasks, which the Job should add as a dependency.
 func infra(b *specs.TasksCfgBuilder, name string) string {
 	b.MustAddTask(name, &specs.TaskSpec{
-		CipdPackages: []*specs.CipdPackage{},
+		CipdPackages: []*specs.CipdPackage{b.MustGetCipdPackageFromAsset("go")},
 		Dimensions: []string{
 			"pool:Skia",
 			"os:Ubuntu",

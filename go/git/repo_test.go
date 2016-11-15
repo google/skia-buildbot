@@ -13,7 +13,7 @@ import (
 )
 
 func setup(t *testing.T) (*git_testutils.GitBuilder, []string) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 
 	// Create a local git repo to play with.
 	g := git_testutils.GitInit(t)

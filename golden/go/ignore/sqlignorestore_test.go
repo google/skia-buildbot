@@ -10,7 +10,7 @@ import (
 )
 
 func TestSQLIgnoreStore(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	// Set up the database. This also locks the db until this test is finished
 	// causing similar tests to wait.
 	migrationSteps := db.MigrationSteps()

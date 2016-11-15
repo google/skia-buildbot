@@ -650,7 +650,7 @@ func testGetUningestedBuilds(t *testing.T, local bool) {
 // the database for new and unfinished builds, respectively, and ingest them
 // into the database.
 func testIngestNewBuilds(t *testing.T, local bool) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 	d := clearDB(t, local)
 	defer d.Close(t)

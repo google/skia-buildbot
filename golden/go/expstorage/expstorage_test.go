@@ -15,7 +15,7 @@ import (
 )
 
 func TestMySQLExpectationsStore(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	// Set up the test database.
 	testDb := testutil.SetupMySQLTestDatabase(t, db.MigrationSteps())
 	defer testDb.Close(t)

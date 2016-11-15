@@ -184,7 +184,7 @@ func TestRecurse(t *testing.T) {
 }
 
 func TestRecurseAllBranches(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 	g, repo, commits, cleanup := gitSetup(t)
 	defer cleanup()

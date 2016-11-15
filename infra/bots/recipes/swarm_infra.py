@@ -62,7 +62,7 @@ def git_checkout(api, url, dest, ref=None):
   # Run bot_update, just to apply patches.
   cfg_kwargs = {'CACHE_DIR': '/b/cache'}
   gclient_cfg = api.gclient.make_config(**cfg_kwargs)
-  dirname = api.path['slave_build'].join('go', 'src', 'go.skia.org')
+  dirname = api.path['slave_build'].join('gopath', 'src', 'go.skia.org')
   basename = 'infra'
   sln = gclient_cfg.solutions.add()
   sln.name = basename
@@ -102,10 +102,12 @@ def RunSteps(api):
       api.path.c.base_paths['slave_build'] +
       ('buildbot', 'infra', 'bots', '.recipe_deps', 'depot_tools'))
 
-  go_dir = api.path['slave_build'].join('go')
+  go_dir = api.path['slave_build'].join('gopath')
   go_src = go_dir.join('src')
   api.shutil.makedirs('makedirs go/src', go_src)
   infra_dir = go_src.join(INFRA_GO)
+  go_root = api.path['slave_build'].join('go', 'go')
+  go_bin = go_root.join('bin')
 
   # Check out the infra repo.
   git_checkout(
@@ -116,11 +118,14 @@ def RunSteps(api):
 
   # Fetch Go dependencies.
   env = {'CHROME_HEADLESS': '1',
+         'GOROOT': go_root,
          'GOPATH': go_dir,
          'GIT_USER_AGENT': 'git/1.9.1',  # I don't think this version matters.
-         'PATH': api.path.pathsep.join([str(go_dir.join('bin')), '%(PATH)s'])}
-  api.step('update_deps', cmd=['go', 'get', '-u', './...'], cwd=infra_dir,
-           env=env)
+         'PATH': api.path.pathsep.join([
+             str(go_bin), str(go_dir.join('bin')), '%(PATH)s'])}
+  api.step('which go', cmd=['which', 'go'], env=env)
+  api.step('update_deps', cmd=['go', 'get', '-u', './...'],
+           cwd=infra_dir, env=env)
 
   # Checkout AGAIN to undo whatever `go get -u` did to the infra repo.
   git_checkout(
@@ -175,7 +180,7 @@ def RunSteps(api):
 def GenTests(api):
   yield (
       api.test('Infra-PerCommit') +
-      api.path.exists(api.path['slave_build'].join('go', 'src', INFRA_GO,
+      api.path.exists(api.path['slave_build'].join('gopath', 'src', INFRA_GO,
                                                    '.git')) +
       api.properties(buildername='Infra-PerCommit-Small',
                      slavename='skiabot-linux-infra-001',
