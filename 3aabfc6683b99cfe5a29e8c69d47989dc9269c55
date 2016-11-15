@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "503c1cf2_b775533c",
+        "filename": "task_scheduler/res/imp/job-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-15T19:00:54Z",
+      "side": 1,
+      "message": "Swapping the jobs so that job2 shows up by default.  job1 is finished, so it turns the timer off.  I didn\u0027t want to add logic to turn the timer back on, since that\u0027ll never happen in real life.",
+      "range": {
+        "startLine": 154,
+        "startChar": 15,
+        "endLine": 154,
+        "endChar": 24
+      },
+      "revId": "3aabfc6683b99cfe5a29e8c69d47989dc9269c55",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
