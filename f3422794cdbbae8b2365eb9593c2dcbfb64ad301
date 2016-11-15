@@ -16,6 +16,24 @@
       "revId": "f3422794cdbbae8b2365eb9593c2dcbfb64ad301",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_fc834054",
+        "filename": "infra/bots/assets/go/VERSION",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-15T18:34:26Z",
+      "side": 1,
+      "message": "Per the readme, the asset is actually managed from the Skia repo, we\u0027re just specifying the version we want here.",
+      "parentUuid": "503c1cf2_5c018c1f",
+      "revId": "f3422794cdbbae8b2365eb9593c2dcbfb64ad301",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
