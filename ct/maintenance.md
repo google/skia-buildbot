@@ -180,13 +180,13 @@ TODO(benjaminwagner): Add local flag and kill e2e_tests from Makefile.
 ### Frontend
 
 The CTFE DB is a
-[Cloud SQL](https://pantheon.corp.google.com/project/31977622648/sql/instances)
+[Cloud SQL](https://console.cloud.google.com/project/31977622648/sql/instances)
 instance named ctfe. The IP address of this instance is the default value of the
 `--ctfe_db_host` argument. The DB is created/upgraded automatically with an
 `ExecStartPre` configuration in sys/ctfe.service.
 
 The frontend runs on a GCE instance named
-[skia-ctfe](https://pantheon.corp.google.com/project/31977622648/compute/instancesDetail/zones/us-central1-c/instances/skia-ctfe).
+[skia-ctfe](https://console.cloud.google.com/project/31977622648/compute/instancesDetail/zones/us-central1-c/instances/skia-ctfe).
 There are scripts to create and delete this instance in
 ../compute_engine_scripts/ctfe/.
 
@@ -216,9 +216,9 @@ out-of-date. There are a few files that the script does not create
 automatically:
 
 - /b/storage/webhook_salt.data: Set this file to the value of
-  [GCE metadata key webhook_request_salt](https://pantheon.corp.google.com/project/31977622648/compute/metadata).
+  [GCE metadata key webhook_request_salt](https://console.cloud.google.com/project/31977622648/compute/metadata).
 - /b/storage/influxdb_password.txt: Set this file to the value of
-  [GCE metadata key influxdb_password](https://pantheon.corp.google.com/project/31977622648/compute/metadata).
+  [GCE metadata key influxdb_password](https://console.cloud.google.com/project/31977622648/compute/metadata).
 - /b/storage/email.data and /b/storage/google_storage_token.data: Sign in to
   `skia.buildbots@gmail.com` in your browser using the password stored in
   [Valentine](https://valentine.corp.google.com/) as
@@ -245,7 +245,7 @@ start_poller () {
 ```
 
 find `influxdb_name` in
-[GCE metadata](https://pantheon.corp.google.com/project/31977622648/compute/metadata).
+[GCE metadata](https://console.cloud.google.com/project/31977622648/compute/metadata).
 
 To stop the poller safely, check that the CTFE task queue is empty and check
 with `pstree <PID of poller>` to verify that there are no master scripts

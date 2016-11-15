@@ -20,9 +20,9 @@ from django.template import loader
 os.environ['DJANGO_SETTINGS_MODULE'] = 'csv-django-settings'
 
 GS_HTML_BROWSER_LINK = (
-    'https://pantheon.corp.google.com/storage/browser/cluster-telemetry')
+    'https://console.cloud.google.com/storage/browser/cluster-telemetry')
 GS_HTML_DIRECT_LINK = (
-    'https://pantheon.corp.google.com/m/cloudstorage/b/cluster-telemetry/o')
+    'https://console.cloud.google.com/m/cloudstorage/b/cluster-telemetry/o')
 
 
 def _GetPercentageDiff(value1, value2):

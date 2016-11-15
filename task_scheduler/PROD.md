@@ -41,7 +41,7 @@ than 25 hours old.
  - If db_backup_trigger_liveness is firing, resolve that first.
 
  - Look for backup files in the
-   [skia-task-scheduler bucket](https://pantheon.corp.google.com/storage/browser/skia-task-scheduler/db-backup/)
+   [skia-task-scheduler bucket](https://console.cloud.google.com/storage/browser/skia-task-scheduler/db-backup/)
    that are more recent, in case the alert is incorrect.
 
  - Check that task-scheduler-db-backup is deployed to the server and the systemd
@@ -62,7 +62,7 @@ too_many_recent_db_backups
 --------------------------
 
 There are too many recent backups in the
-[skia-task-scheduler bucket](https://pantheon.corp.google.com/storage/browser/skia-task-scheduler/db-backup/).
+[skia-task-scheduler bucket](https://console.cloud.google.com/storage/browser/skia-task-scheduler/db-backup/).
 This indicates a runaway process is creating unnecessary backups. Review the
 task scheduler logs for "Beginning manual DB backup" to determine what is
 triggering the excessive backups.

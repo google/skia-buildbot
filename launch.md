@@ -58,7 +58,7 @@ If you add any critical TODOs while you're coding, file a blocking bug for the i
   ideally Chrome on Android.
 - Write VM create and delete scripts, using `compute_engine_scripts/ctfe` as a
   template. Find a free IP address at
-  [Google Developers Console > Networking > External IP addresses](https://pantheon.corp.google.com/project/31977622648/addresses/list)
+  [Google Developers Console > Networking > External IP addresses](https://console.cloud.google.com/project/31977622648/addresses/list)
   to use for your instance. Create your instance.
 - Write a `build_release` script following the instructions in
   `bash/release.sh`. Write a `.service` file, passing at least these arguments
