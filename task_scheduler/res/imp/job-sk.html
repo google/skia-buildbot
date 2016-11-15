@@ -25,6 +25,7 @@
 -->
 
 <link rel="import" href="/res/common/imp/human-date-sk.html">
+<link rel="import" href="/res/common/imp/timer-sk.html">
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
 
@@ -77,6 +78,7 @@
       font-size: 0.75em;
     }
     </style>
+    <timer-sk id="timer" period="[[_reload]]" on-trigger="_loadJob">
     <div class="container">
       <div class="layout horizontal">
         <div class="flex">
@@ -151,6 +153,7 @@
       properties: {
         jobId: {
           type: String,
+          observer: "_loadJob",
         },
 
         _job: {
@@ -169,6 +172,10 @@
           type: Boolean,
           computed: "_computeIsTryJob(_job)",
         },
+        _reload: {
+          type: Number,
+          value: 10,
+        },
         _revisionLink: {
           type: String,
           computed: "_computeRevisionLink(_job)",
@@ -183,16 +190,16 @@
         },
       },
 
-      observers: [
-        "_loadJob(jobId)",
-      ],
-
-      _loadJob: function(jobId) {
-        var url = "/json/job/" + jobId;
+      _loadJob: function() {
+        var url = "/json/job/" + this.jobId;
         console.log("Loading Job from " + url);
         sk.get(url).then(JSON.parse).then(function(json) {
           this.set("_job", json);
           this._computeTasksGraph();
+          // If the job is finished, don't reload.
+          if (this._job.Status != "") {
+            this.set("_reload", -1);
+          }
         }.bind(this)).catch(sk.errorMessage);
       },
 
