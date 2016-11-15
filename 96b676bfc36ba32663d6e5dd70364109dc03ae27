@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "503c1cf2_cdcfa8b9",
+        "filename": "golden/frontend/res/imp/comp-page-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-15T21:56:25Z",
+      "side": 1,
+      "message": "I prefer \u003d\u003d\u003d all the time, except when there\u0027s a good reason (e.g. input is string/int)",
+      "range": {
+        "startLine": 329,
+        "startChar": 51,
+        "endLine": 329,
+        "endChar": 53
+      },
+      "revId": "96b676bfc36ba32663d6e5dd70364109dc03ae27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_cdb68823",
+        "filename": "golden/frontend/res/imp/digest-details-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-15T21:56:25Z",
+      "side": 1,
+      "message": "This looks really strange to embed one set of params in another.  Can you add some comments on why this is?",
+      "revId": "96b676bfc36ba32663d6e5dd70364109dc03ae27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_0d1cf02c",
+        "filename": "golden/frontend/res/imp/grid-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-15T21:56:25Z",
+      "side": 1,
+      "message": "src$\u003d",
+      "range": {
+        "startLine": 125,
+        "startChar": 21,
+        "endLine": 125,
+        "endChar": 26
+      },
+      "revId": "96b676bfc36ba32663d6e5dd70364109dc03ae27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_314dce88",
+        "filename": "golden/frontend/res/imp/grid-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-15T21:56:25Z",
+      "side": 1,
+      "message": "src$\u003d",
+      "range": {
+        "startLine": 125,
+        "startChar": 20,
+        "endLine": 125,
+        "endChar": 25
+      },
+      "revId": "96b676bfc36ba32663d6e5dd70364109dc03ae27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_6dc5bc4d",
+        "filename": "golden/frontend/res/imp/grid-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-15T21:56:25Z",
+      "side": 1,
+      "message": "why not just if rowDigest !\u003d\u003d undefined?",
+      "range": {
+        "startLine": 201,
+        "startChar": 17,
+        "endLine": 201,
+        "endChar": 49
+      },
+      "revId": "96b676bfc36ba32663d6e5dd70364109dc03ae27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_8dd48002",
+        "filename": "golden/frontend/res/imp/search-controls-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-15T21:56:25Z",
+      "side": 1,
+      "message": "\u003d\u003d\u003d",
+      "range": {
+        "startLine": 169,
+        "startChar": 54,
+        "endLine": 169,
+        "endChar": 56
+      },
+      "revId": "96b676bfc36ba32663d6e5dd70364109dc03ae27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_7195968e",
+        "filename": "res/js/common.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 601,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-15T21:56:25Z",
+      "side": 1,
+      "message": "separator",
+      "range": {
+        "startLine": 601,
+        "startChar": 43,
+        "endLine": 601,
+        "endChar": 50
+      },
+      "revId": "96b676bfc36ba32663d6e5dd70364109dc03ae27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
