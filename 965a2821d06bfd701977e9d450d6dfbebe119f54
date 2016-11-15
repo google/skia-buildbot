@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "503c1cf2_17399f01",
+        "filename": "task_scheduler/go/db/local_db/dbviewer/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-15T19:20:33Z",
+      "side": 1,
+      "message": "Nit: I think I\u0027d prefer an optional --output-file flag instead of always printing a giant blob to stdout.",
+      "range": {
+        "startLine": 75,
+        "startChar": 17,
+        "endLine": 75,
+        "endChar": 23
+      },
+      "revId": "965a2821d06bfd701977e9d450d6dfbebe119f54",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
