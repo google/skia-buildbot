@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "503c1cf2_8ee3ccec",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-16T19:09:35Z",
+      "side": 1,
+      "message": "What do you mean special?  Do we report metrics differently for them?",
+      "revId": "c8d187c0cc0a6cbceebb3fff34fa933ea1796b15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
