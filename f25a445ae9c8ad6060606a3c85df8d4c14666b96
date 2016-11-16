@@ -22,6 +22,24 @@
       "revId": "f25a445ae9c8ad6060606a3c85df8d4c14666b96",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_f0cfd76b",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-11-16T17:36:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "503c1cf2_102cfba8",
+      "revId": "f25a445ae9c8ad6060606a3c85df8d4c14666b96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
