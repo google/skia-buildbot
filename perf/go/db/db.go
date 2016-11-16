@@ -88,6 +88,20 @@ var migrationSteps = []database.MigrationStep{
 		MySQLDown: []string{},
 	},
 
+	// version 3
+	{
+		MySQLUp: []string{
+			`CREATE TABLE IF NOT EXISTS regression (
+				cid        CHAR(255)    NOT NULL PRIMARY KEY,
+				timestamp  BIGINT       NOT NULL,
+				triaged    TINYINT      NOT NULL,
+				body       MEDIUMTEXT   NOT NULL
+			)`,
+		},
+		MySQLDown: []string{
+			`DROP TABLE IF EXISTS regression`,
+		},
+	},
 	// Use this is a template for more migration steps.
 	// version x
 	// {
