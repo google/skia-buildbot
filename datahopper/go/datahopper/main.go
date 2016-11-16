@@ -366,20 +366,45 @@ func main() {
 
 					// Find the tags for the task, including ID, name, dimensions,
 					// and components of the builder name.
-					name, err := swarming.GetTagValue(task.TaskResult, "name")
-					if err != nil || name == "" {
-						glog.Errorf("Failed to find name for Swarming task: %v", task)
-						continue
-					}
-					builderName, err := swarming.GetTagValue(task.TaskResult, "buildername")
-					if err != nil || builderName == "" {
-						glog.Errorf("Failed to find buildername for Swarming task: %v", task)
-						continue
-					}
-					builderTags, err := buildbot.ParseBuilderName(builderName)
-					if err != nil {
-						glog.Errorf("Failed to parse builder name for Swarming task: %s", err)
-						continue
+					var builderName string
+					var builderTags map[string]string
+					var name string
+					user, err := swarming.GetTagValue(task.TaskResult, "user")
+					if err != nil || user == "" {
+						// This is an old-style task.
+						name, err = swarming.GetTagValue(task.TaskResult, "name")
+						if err != nil || name == "" {
+							glog.Errorf("Failed to find name for Swarming task: %v", task)
+							continue
+						}
+						builderName, err = swarming.GetTagValue(task.TaskResult, "buildername")
+						if err != nil || builderName == "" {
+							glog.Errorf("Failed to find buildername for Swarming task: %v", task)
+							continue
+						}
+						builderTags, err = buildbot.ParseBuilderName(builderName)
+						if err != nil {
+							glog.Errorf("Failed to parse builder name for Swarming task: %s", err)
+							continue
+						}
+					} else if user == "skia-task-scheduler" {
+						// This is a new-style task.
+						builderName, err = swarming.GetTagValue(task.TaskResult, "sk_name")
+						if err != nil || builderName == "" {
+							glog.Errorf("Failed to find sk_name for Swarming task: %v", task)
+							continue
+						}
+						name = builderName
+						if strings.HasPrefix(name, "Upload") {
+							// These bots are "special".
+							builderTags = map[string]string{}
+						} else {
+							builderTags, err = buildbot.ParseBuilderName(builderName)
+							if err != nil {
+								glog.Errorf("Failed to parse builder name for Swarming task: %s", err)
+								continue
+							}
+						}
 					}
 
 					tags := map[string]string{
