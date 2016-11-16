@@ -166,6 +166,7 @@
       "go",
       "get",
       "-u",
+      "-t",
       "./..."
     ],
     "cwd": "[SLAVE_BUILD]/gopath/src/go.skia.org/infra",
