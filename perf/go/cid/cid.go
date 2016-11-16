@@ -37,12 +37,12 @@ type CommitID struct {
 
 // Filename returns a safe filename to be used as part of the underlying BoltDB tile name.
 func (c CommitID) Filename() string {
-	return fmt.Sprintf("%s.bdb", c.ID())
+	return fmt.Sprintf("%s-%06d.bdb", safeRe.ReplaceAllLiteralString(c.Source, "_"), c.Offset/constants.COMMITS_PER_TILE)
 }
 
 // ID returns a unique ID for the CommitID.
 func (c CommitID) ID() string {
-	return fmt.Sprintf("%s-%06d", safeRe.ReplaceAllLiteralString(c.Source, "_"), c.Offset/constants.COMMITS_PER_TILE)
+	return fmt.Sprintf("%s-%06d", safeRe.ReplaceAllLiteralString(c.Source, "_"), c.Offset)
 }
 
 // CommitDetail describes a CommitID.

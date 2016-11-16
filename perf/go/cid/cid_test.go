@@ -39,7 +39,7 @@ func TestCommitID(t *testing.T) {
 		Source: "master",
 	}
 	assert.Equal(t, "master-000001.bdb", c.Filename())
-	assert.Equal(t, "master-000001", c.ID())
+	assert.Equal(t, "master-000051", c.ID())
 
 	c = &CommitID{
 		Offset: 0,
