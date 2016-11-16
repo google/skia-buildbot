@@ -49,6 +49,7 @@ import (
 	_ "go.skia.org/infra/perf/go/ptraceingest"
 	"go.skia.org/infra/perf/go/ptracestore"
 	"go.skia.org/infra/perf/go/quartiles"
+	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/shortcut2"
 	"go.skia.org/infra/perf/go/stats"
@@ -1526,6 +1527,52 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// RegressionRangeRequest is used in regressionRangeHandler and is used to query for a range of
+type RegressionRangeRequest struct {
+	Begin int64 `json:"begin"`
+	End   int64 `json:"end"`
+}
+
+// RegressionRow are all the Regression's for a specific commit.
+//
+// They have the same order as RegressionRangeResponse.Header.
+type RegressionRow struct {
+	Id      *cid.CommitDetail        `json:"cid"`
+	Columns []*regression.Regression `json:"columns"`
+}
+
+// RegressionRangeResponse is the response from regressionRangeHandler.
+type RegressionRangeResponse struct {
+	Header []string         `json:"header"`
+	Table  []*RegressionRow `json:"table"`
+}
+
+// regressionRangeHandler accepts a POST'd JSON serialized RegressionRangeRequest
+// and returns a serialized JSON
+//
+//    {
+//      header: [ "query1", "query2", "query3", ...],
+//      table: [
+//        { cid: cid1, columns: [ Regression, Regression, Regression, ...], },
+//        { cid: cid2, columns: [ Regression, null,       Regression, ...], },
+//        { cid: cid3, columns: [ Regression, Regression, Regression, ...], },
+//      ]
+//    }
+//
+func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	rr := &RegressionRangeRequest{}
+	defer util.Close(r.Body)
+	if err := json.NewDecoder(r.Body).Decode(rr); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		return
+	}
+	// Get a list of commits for the range.
+	// Convert them to CommitDetails.
+	// Query for Regressions in the range.
+	// Build the RegressionRangeResponse.
+}
+
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -1609,6 +1656,7 @@ func main() {
 	router.HandleFunc("/_/frame/results/{id:[a-zA-Z0-9]+}", frameResultsHandler)
 	router.HandleFunc("/_/cluster/start", clusterStartHandler)
 	router.HandleFunc("/_/cluster/status/{id:[a-zA-Z0-9]+}", clusterStatusHandler)
+	router.HandleFunc("/_/reg/", regressionRangeHandler)
 
 	router.HandleFunc("/frame/", templateHandler("frame.html"))
 	router.HandleFunc("/shortcuts/", shortcutHandler)
