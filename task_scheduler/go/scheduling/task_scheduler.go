@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -322,7 +321,7 @@ func ComputeBlamelist(cache db.TaskCache, repo *repograph.Graph, taskName, repoN
 // findTaskCandidatesForJobs returns the set of all taskCandidates needed by all
 // currently-unfinished jobs.
 func (s *TaskScheduler) findTaskCandidatesForJobs(unfinishedJobs []*db.Job) (map[db.TaskKey]*taskCandidate, error) {
-	defer timer.New("TaskScheduler.findTaskCandidatesForJobs").Stop()
+	defer metrics2.FuncTimer().Stop()
 
 	// Get the repo+commit+taskspecs for each job.
 	candidates := map[db.TaskKey]*taskCandidate{}
@@ -348,7 +347,7 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(unfinishedJobs []*db.Job) (map
 // filterTaskCandidates reduces the set of taskCandidates to the ones we might
 // actually want to run and organizes them by repo and TaskSpec name.
 func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]*taskCandidate) (map[string]map[string][]*taskCandidate, error) {
-	defer timer.New("TaskScheduler.filterTaskCandidates").Stop()
+	defer metrics2.FuncTimer().Stop()
 
 	candidatesBySpec := map[string]map[string][]*taskCandidate{}
 	total := 0
@@ -477,7 +476,7 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 
 // Process the task candidates.
 func (s *TaskScheduler) processTaskCandidates(candidates map[string]map[string][]*taskCandidate) ([]*taskCandidate, error) {
-	defer timer.New("process task candidates").Stop()
+	defer metrics2.FuncTimer().Stop()
 	now := time.Now()
 	processed := make(chan *taskCandidate)
 	errs := make(chan error)
@@ -569,7 +568,7 @@ func (s *TaskScheduler) processTaskCandidates(candidates map[string]map[string][
 // regenerateTaskQueue obtains the set of all eligible task candidates, scores
 // them, and prepares them to be triggered.
 func (s *TaskScheduler) regenerateTaskQueue() error {
-	defer timer.New("TaskScheduler.regenerateTaskQueue").Stop()
+	defer metrics2.FuncTimer().Stop()
 
 	// Find the unfinished Jobs.
 	unfinishedJobs, err := s.jCache.UnfinishedJobs()
@@ -607,7 +606,7 @@ func (s *TaskScheduler) regenerateTaskQueue() error {
 // candidates in the queue and returns the candidates which should be run.
 // Assumes that the tasks are sorted in decreasing order by score.
 func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*taskCandidate) []*taskCandidate {
-	defer timer.New("scheduling.getCandidatesToSchedule").Stop()
+	defer metrics2.FuncTimer().Stop()
 	// Create a bots-by-swarming-dimension mapping.
 	botsByDim := map[string]util.StringSet{}
 	for _, b := range bots {
@@ -715,7 +714,7 @@ func (s *TaskScheduler) isolateTasks(rs db.RepoState, candidates []*taskCandidat
 // scheduleTasks queries for free Swarming bots and triggers tasks according
 // to relative priorities in the queue.
 func (s *TaskScheduler) scheduleTasks() error {
-	defer timer.New("TaskScheduler.scheduleTasks").Stop()
+	defer metrics2.FuncTimer().Stop()
 	// Find free bots, match them with tasks.
 	bots, err := getFreeSwarmingBots(s.swarming, s.busyBots)
 	if err != nil {
@@ -828,7 +827,7 @@ func (s *TaskScheduler) scheduleTasks() error {
 
 // gatherNewJobs finds and inserts Jobs for all new commits.
 func (s *TaskScheduler) gatherNewJobs() error {
-	defer timer.New("TaskScheduler.gatherNewJobs").Stop()
+	defer metrics2.FuncTimer().Stop()
 
 	// Find all new Jobs for all new commits.
 	now := time.Now()
@@ -888,7 +887,7 @@ func (s *TaskScheduler) gatherNewJobs() error {
 
 // MainLoop runs a single end-to-end task scheduling loop.
 func (s *TaskScheduler) MainLoop() error {
-	defer timer.New("TaskSchedulder.MainLoop").Stop()
+	defer metrics2.FuncTimer().Stop()
 
 	glog.Infof("Task Scheduler updating...")
 
@@ -1063,7 +1062,7 @@ func testednessIncrease(blamelistLength, stoleFromBlamelistLength int) float64 {
 
 // getFreeSwarmingBots returns a slice of free swarming bots.
 func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
-	defer timer.New("getFreeSwarmingBots").Stop()
+	defer metrics2.FuncTimer().Stop()
 	bots, err := s.ListSkiaBots()
 	if err != nil {
 		return nil, err
