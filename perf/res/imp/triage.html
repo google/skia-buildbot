@@ -1,0 +1,63 @@
+<!-- The <triage-sk> custom element declaration.
+
+  Allows triaging clusters.
+
+  Attributes:
+  Events:
+  Methods:
+-->
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
+
+<dom-module id="triage-sk">
+  <style include="iron-flex iron-flex-alignment iron-positioning">
+  </style>
+  <template>
+    <paper-spinner id=spinner></paper-spinner>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "triage-sk",
+
+    properties: {
+      state: {
+        type: Object,
+        value: function() { return {
+          begin: Math.floor(Date.now()/1000 - 24*60*60),
+          end: Math.floor(Date.now()/1000),
+        }; },
+      },
+      _reg: {
+        type: Object,
+        value: function() { return {}; },
+      }
+    },
+
+    ready: function() {
+      // From this point on reflect the state to the URL.
+      sk.stateReflector(this, this._updateRange.bind(this));
+    },
+
+    _updateRange: function() {
+      this.$.range.begin = this.state.begin;
+      this.$.range.end = this.state.end;
+      var body = {
+        begin: this.state.begin,
+        end: this.state.end,
+      };
+      this.$.spinner.active = true;
+      sk.post("/_/reg/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(cids) {
+        this.$.spinner.active = false;
+        this.set('_reg', json);
+      }.bind(this)).catch(function(msg) {
+        if (msg) {
+          sk.errorMessage(msg, 10000);
+        }
+        this.$.spinner.active = false;
+      }.bind(this));
+    },
+
+  });
+</script>
