@@ -95,7 +95,7 @@ func intx(f func(tx *sql.Tx) error) (err error) {
 
 	defer func() {
 		if err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			return
 		}
 		err = tx.Commit()

@@ -99,7 +99,8 @@ func TestTriageWithExisting(t *testing.T) {
 		Status:  IGNORE,
 		Message: "SKP Update",
 	}
-	r.TriageLow("source_type=skp", tr)
+	err = r.TriageLow("source_type=skp", tr)
+	assert.NoError(t, err)
 	body, err = r.JSON()
 	assert.NoError(t, err)
 
