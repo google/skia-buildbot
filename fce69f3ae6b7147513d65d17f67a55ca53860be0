@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "503c1cf2_faf6961d",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-16T13:15:52Z",
+      "side": 1,
+      "message": "N/A",
+      "range": {
+        "startLine": 26,
+        "startChar": 3,
+        "endLine": 26,
+        "endChar": 32
+      },
+      "revId": "fce69f3ae6b7147513d65d17f67a55ca53860be0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_9a014a23",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-16T13:15:52Z",
+      "side": 1,
+      "message": "N/A",
+      "range": {
+        "startLine": 47,
+        "startChar": 3,
+        "endLine": 47,
+        "endChar": 32
+      },
+      "revId": "fce69f3ae6b7147513d65d17f67a55ca53860be0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_bafc0e02",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-16T13:15:52Z",
+      "side": 1,
+      "message": "I think this doesn\u0027t do anything unless you name the return value.",
+      "range": {
+        "startLine": 105,
+        "startChar": 2,
+        "endLine": 105,
+        "endChar": 19
+      },
+      "revId": "fce69f3ae6b7147513d65d17f67a55ca53860be0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_7aea862e",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-16T13:15:52Z",
+      "side": 1,
+      "message": "nit: No way to check specifically for \"doesn\u0027t exist\"?",
+      "range": {
+        "startLine": 116,
+        "startChar": 5,
+        "endLine": 116,
+        "endChar": 16
+      },
+      "revId": "fce69f3ae6b7147513d65d17f67a55ca53860be0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
