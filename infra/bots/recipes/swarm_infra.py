@@ -124,7 +124,7 @@ def RunSteps(api):
          'PATH': api.path.pathsep.join([
              str(go_bin), str(go_dir.join('bin')), '%(PATH)s'])}
   api.step('which go', cmd=['which', 'go'], env=env)
-  api.step('update_deps', cmd=['go', 'get', '-u', './...'],
+  api.step('update_deps', cmd=['go', 'get', '-u', '-t', './...'],
            cwd=infra_dir, env=env)
 
   # Checkout AGAIN to undo whatever `go get -u` did to the infra repo.
