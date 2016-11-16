@@ -562,7 +562,9 @@
           return '';
         }
 
-        return 'cmp/' + test;
+        // See gold.defaultSearchState why we need to embed an encoded query
+        // before encoding the search string.
+        return 'cmp?' + sk.query.fromObject({query: sk.query.fromParamSet({name: [test]})});
       },
 
       _hideListFeatures: function(mode) {

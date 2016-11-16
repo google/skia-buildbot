@@ -114,13 +114,13 @@
       }
     </style>
     <activity-sk id="activityCompare" busy="{{_hideAll}}"></activity-sk>
-    <div class="vertical layout contentWrapper" hidden$="{{!_data}}">
+    <div class="vertical layout contentWrapper">
       <div class="horizontal layout center headingContainer">
-        <div id="heading">
-          <span class="name">Name: [[_data.name]]</span>
-          <span class="pos">Pos: [[_data.pos]]</span>
-          <span class="neg">Neg: [[_data.neg]]</span>
-          <span class="unt">Unt: [[_data.unt]]</span>
+        <div id="heading" hidden$="[[!_data.summary]]">
+          <span class="name">Name: [[_data.summary.name]]</span>
+          <span class="pos">Pos: [[_data.summary.pos]]</span>
+          <span class="neg">Neg: [[_data.summary.neg]]</span>
+          <span class="unt">Unt: [[_data.summary.untriaged]]</span>
         </div>
 
         <div>
@@ -154,7 +154,7 @@
         <!-- main column with grid -->
         <div class="vertical layout gridContainer">
           <div class="horizontal layout">
-            <search-controls-sk id="colSearchControls" orientation="horizontal" disabled="{{_syncParams}}"></search-controls-sk>
+            <search-controls-sk id="colSearchControls" orientation="horizontal"></search-controls-sk>
             <sort-control-sk id="columnSortControl" selection="{{_colSorting}}" disabled="[[_hideAll]]"></sort-control-sk>
           </div>
 
@@ -174,6 +174,12 @@
         </div>
         <div class="vertical layout compDiffContainer">
           <activity-sk id="activityCompDiff"></activity-sk>
+          <digest-details-sk id="digestDetails"
+               mode="detail"
+               details="[[_digestDetails.digest]]"
+               commits="[[_digestDetails.commits]]">
+          </digest-details-sk>
+
           <digest-details-sk
                id="compDetails"
                mode="diff"
@@ -193,7 +199,7 @@
     (function() {
 
       // Default values for match selection.
-      var defaultMatchConfigs = ["gamma_correct"];
+      var defaultMatchConfigs = ["gamma_correct", "name"];
 
       // The current state of the page.
       var defaultQuery = {
@@ -225,7 +231,7 @@
           {field: SORT_FIELD_DIFF, label: "Diff"}
         ];
       var colSortOptions = [ {field: SORT_FIELD_DIFF, label: "Diff"} ];
-      var defaultRowSorting = {dir: gold.SORT_DESC, field: SORT_FIELD_N_IMAGES};
+      var defaultRowSorting = {dir: gold.SORT_DESC, field: SORT_FIELD_DIFF};
       var defaultColSorting = {dir: gold.SORT_ASC, field: SORT_FIELD_DIFF};
 
       // ids fo the different diff metrics.
@@ -244,8 +250,6 @@
           },
           _syncParams: {
             type: Boolean,
-            value: false,
-            observer: '_handleSyncStateChange'
           },
           _diffMetric: {
               type: String
@@ -253,7 +257,6 @@
         },
 
         ready: function() {
-          this.set('_diffData', {});
           this.listen(this.$.paramsSelect, 'changed-selection', '_handleMatchChanged');
           this.listen(this.$.gridCompare, 'diff-click', '_handleGridClick');
           this.listen(this.$.gridCompare, 'diff-dblclick', '_handleGridDblClick');
@@ -265,17 +268,22 @@
           this.listen(this.$.rowSortControl, 'sort-changed', '_load');
           this.listen(this.$.columnSortControl, 'sort-changed', '_load');
           this.listen(this.$.diffMetric, 'iron-select', '_load');
+          this.listen(this.$.syncButton, 'tap', '_handleSyncStateChange');
           this.$.rowSortControl.setItems(rowSortOptions);
           this.$.columnSortControl.setItems(colSortOptions);
           this._setDefaultState(gold.defaultSearchState, true);
         },
 
         pageSelected: function(ctx) {
-          this._testName = ctx.params.test;
           this._query = sk.object.shallowCopy(defaultQuery);
           this._query.match = defaultMatchConfigs.slice();
-          this._query.rowQuery = this._getDefaultStateWithCorpus(defaultRowQuery);
+          this.set('_syncParams', true);
+
+          // Use the _state variable to as the row query and reflect the URL parameters.
+          this._initState(ctx, this._getDefaultStateWithCorpus(defaultRowQuery));
+
           this._query.columnQuery = this._getDefaultStateWithCorpus(defaultColumnQuery);
+          this._query.columnQuery.query = this._state.query;
           this.set("_colSorting", sk.object.shallowCopy(defaultColSorting));
           this.set("_rowSorting", sk.object.shallowCopy(defaultRowSorting));
           this.set("_diffMetric", METRIC_COMBINED);
@@ -284,11 +292,17 @@
 
         pageDeselected: function() {},
 
+        // _reset clears the detail views.
+        _reset: function() {
+          this.set('_diffData', {});
+          this.set('_digestDetails', {});
+        },
+
         _load: function() {
-          this.set("_diffData", {});
+          this._reset();
           sk.get("/json/paramset").then(JSON.parse).then(function (json) {
             this.$.rowSearchControls.setParamSet(json);
-            this.$.rowSearchControls.setState(this._query.rowQuery);
+            this.$.rowSearchControls.setState(this._state);
 
             this.$.colSearchControls.setParamSet(json);
             this.$.colSearchControls.setState(this._query.columnQuery);
@@ -302,13 +316,26 @@
           this._query.sortColumns = this._colSorting.field,
           this._query.columnsDir = this._colSorting.dir;
           this._query.metric = this._diffMetric;
+          this._query.rowQuery = sk.object.shallowCopy(this._state);
 
-          var url = "/json/cmp/" + this._testName;
           var activity = this.$.activityCompare;
           activity.startSpinner("Loading...");
           this.set("_data", null);
-          sk.post(url, JSON.stringify(this._query)).then(JSON.parse).then(function (json) {
+          sk.post("/json/cmp", JSON.stringify(this._query)).then(JSON.parse).then(function (json) {
             activity.stopSpinner();
+
+            // If there is only one test set the summary. Otherwise inject it
+            // into the individual rows.
+            if (Object.keys(json.summaries).length === 1) {
+              json.summary = json.summaries[json.grid.rows[0].test];
+              json.summary.name = json.grid.rows[0].test;
+            } else {
+              // Inject the summaries into every test.
+              for(var i=0; i < json.grid.rows.length; i++) {
+                json.grid.rows[i].summary = json.summaries[json.grid.rows[i].test];
+              }
+            }
+
             this.set("_data", json);
             this.$.gridCompare.setValue(json.grid);
           }.bind(this)).catch(function(e) {
@@ -318,20 +345,28 @@
         },
 
         _handleGridClick: function(ev) {
-          url = "/json/diff" +  gold.diffQuery(this._testName, ev.detail.rowDigest, ev.detail.colDigest);
           this.$.compDetails.clear();
-          gold.loadWithActivity(this, url, this.$.activityCompDiff, '_diffData');
+          this.$.digestDetails.clear();
+          if (ev.detail.colDigest) {
+            var url = "/json/diff" +  gold.diffQuery(ev.detail.test, ev.detail.rowDigest, ev.detail.colDigest);
+            gold.loadWithActivity(this, url, this.$.activityCompDiff, '_diffData');
+          } else {
+            var url = "/json/details" + gold.detailQuery(ev.detail.test, ev.detail.rowDigest);
+            gold.loadWithActivity(this, url, this.$.activityCompDiff, '_digestDetails');
+          }
         },
 
         _handleGridDblClick: function(ev) {
-          var zoomDetail = {
-            leftImgUrl: gold.imgHref(ev.detail.rowDigest),
-            rightImgUrl: gold.imgHref(ev.detail.colDigest),
-            middleImgUrl: gold.diffImgHref(ev.detail.rowDigest, ev.detail.colDigest),
-            llabel: "Row",
-            rlabel: "Column"
-          };
-          $$$('zoom-dialog-sk', this).open(zoomDetail);
+          if (ev.detail.colDigest) {
+            var zoomDetail = {
+              leftImgUrl: gold.imgHref(ev.detail.rowDigest),
+              rightImgUrl: gold.imgHref(ev.detail.colDigest),
+              middleImgUrl: gold.diffImgHref(ev.detail.rowDigest, ev.detail.colDigest),
+              llabel: "Row",
+              rlabel: "Column"
+            };
+            $$$('zoom-dialog-sk', this).open(zoomDetail);
+          }
         },
 
         _handleMatchChanged: function(ev) {
@@ -340,30 +375,30 @@
         },
 
         _handleRowQueryChange: function(ev) {
-          this._query.rowQuery = ev.detail;
-
-          // If we sync params trigger the load via the event that is
-          // generated by calling setState.
-          if (this._syncParams) {
-            this.$.colSearchControls.setState(ev.detail, true);
-          } else {
-            this._load();
-          }
+          // Reload the page with the new  state in the query parameters.
+          this._redirectToState(ev.detail);
         },
 
         _handleColumnQueryChange: function(ev) {
-          this._query.columnQuery = ev.detail;
+          this._query.columnQuery = this._addCorpus(ev.detail);
           this._load();
         },
 
-        _handleSyncStateChange: function(newVal) {
-          if (newVal) {
-            this.$.colSearchControls.setState(this._query.rowQuery, true);
+        _handleSyncStateChange: function(ev) {
+          if (this._syncParams) {
+            this._copyQueryStr();
           }
         },
 
+        // copy the query string from the row query to the column query.
+        _copyQueryStr: function() {
+          var newState = sk.object.shallowCopy(this.$.colSearchControls.state);
+          newState.query = this._state.query;
+          this.$.colSearchControls.setState(this._state, true);
+        },
+
         _handleMoreRows: function() {
-          this._query.rowQuery.limit += 10;
+          this._state.limit += 10;
           this._load();
         },
 
