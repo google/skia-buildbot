@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "503c1cf2_3d84785d",
+        "filename": "golden/frontend/res/imp/comp-page-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-16T16:08:51Z",
+      "side": 1,
+      "message": "Good catch. Done.",
+      "parentUuid": "503c1cf2_cdcfa8b9",
+      "revId": "96b676bfc36ba32663d6e5dd70364109dc03ae27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "503c1cf2_cdb68823",
         "filename": "golden/frontend/res/imp/digest-details-sk.html",
         "patchSetId": 8
@@ -36,6 +54,24 @@
       "writtenOn": "2016-11-15T21:56:25Z",
       "side": 1,
       "message": "This looks really strange to embed one set of params in another.  Can you add some comments on why this is?",
+      "revId": "96b676bfc36ba32663d6e5dd70364109dc03ae27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_bd5368fb",
+        "filename": "golden/frontend/res/imp/digest-details-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-16T16:08:51Z",
+      "side": 1,
+      "message": "That\u0027s an ugly aspect of how this is implemented. I added a reference to a more generic definition of the search structure, where I added a comment about why the query string is \nencoded within an object that itself is usually URL encoded.",
+      "parentUuid": "503c1cf2_cdb68823",
       "revId": "96b676bfc36ba32663d6e5dd70364109dc03ae27",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -88,6 +124,42 @@
     },
     {
       "key": {
+        "uuid": "503c1cf2_3d0bd8d8",
+        "filename": "golden/frontend/res/imp/grid-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-16T16:08:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "503c1cf2_0d1cf02c",
+      "revId": "96b676bfc36ba32663d6e5dd70364109dc03ae27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_dd062ccf",
+        "filename": "golden/frontend/res/imp/grid-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-16T16:08:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "503c1cf2_314dce88",
+      "revId": "96b676bfc36ba32663d6e5dd70364109dc03ae27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "503c1cf2_6dc5bc4d",
         "filename": "golden/frontend/res/imp/grid-sk.html",
         "patchSetId": 8
@@ -111,6 +183,24 @@
     },
     {
       "key": {
+        "uuid": "503c1cf2_fd0170b8",
+        "filename": "golden/frontend/res/imp/grid-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-16T16:08:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "503c1cf2_6dc5bc4d",
+      "revId": "96b676bfc36ba32663d6e5dd70364109dc03ae27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "503c1cf2_8dd48002",
         "filename": "golden/frontend/res/imp/search-controls-sk.html",
         "patchSetId": 8
@@ -128,6 +218,24 @@
         "endLine": 169,
         "endChar": 56
       },
+      "revId": "96b676bfc36ba32663d6e5dd70364109dc03ae27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_1d0894d8",
+        "filename": "golden/frontend/res/imp/search-controls-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-16T16:08:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "503c1cf2_8dd48002",
       "revId": "96b676bfc36ba32663d6e5dd70364109dc03ae27",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
