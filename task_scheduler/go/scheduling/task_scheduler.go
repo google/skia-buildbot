@@ -888,7 +888,7 @@ func (s *TaskScheduler) gatherNewJobs() error {
 
 // MainLoop runs a single end-to-end task scheduling loop.
 func (s *TaskScheduler) MainLoop() error {
-	defer timer.New("TaskSchedulder.MainLoop").Stop()
+	defer metrics2.FuncTimer().Stop()
 
 	glog.Infof("Task Scheduler updating...")
 
