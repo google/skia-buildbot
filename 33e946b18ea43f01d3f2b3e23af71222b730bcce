@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "503c1cf2_9d14a4bc",
+        "filename": "go/isolate/isolate_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-16T15:15:11Z",
+      "side": 1,
+      "message": "Confirmed that this fails without the fix and succeeds with it.",
+      "range": {
+        "startLine": 104,
+        "startChar": 25,
+        "endLine": 104,
+        "endChar": 31
+      },
+      "revId": "33e946b18ea43f01d3f2b3e23af71222b730bcce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
