@@ -16,6 +16,24 @@
       "revId": "c8d187c0cc0a6cbceebb3fff34fa933ea1796b15",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_69ce4247",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-16T19:13:55Z",
+      "side": 1,
+      "message": "Poorly explained.  For other bots we parse out the OS, device type, etc from the builder name.  For uploads, we don\u0027t really care about that stuff (it actually would make the data more confusing, since uploads might group with test/perf tasks).  Also the Upload-* names currently violate the builder name schema, which I guess we could update but I\u0027m hesitant to do so until after fully transitioning, so we can\u0027t call ParseBuilderName on them or we\u0027ll get an error.",
+      "parentUuid": "503c1cf2_8ee3ccec",
+      "revId": "c8d187c0cc0a6cbceebb3fff34fa933ea1796b15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
