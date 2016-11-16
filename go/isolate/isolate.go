@@ -9,7 +9,6 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -335,7 +334,6 @@ func (c *Client) IsolateTasks(tasks []*Task) ([]string, error) {
 	}
 
 	// Parse isolated hash for each task from the output.
-	taskIds := []string{}
 	hashes := map[string]string{}
 	for _, line := range strings.Split(string(output), "\n") {
 		m := isolatedHashRegexp.FindStringSubmatch(line)
@@ -344,16 +342,14 @@ func (c *Client) IsolateTasks(tasks []*Task) ([]string, error) {
 				return nil, fmt.Errorf("Isolated output regexp returned invalid match: %v", m)
 			}
 			hashes[m[2]] = m[1]
-			taskIds = append(taskIds, m[2])
 		}
 	}
 	if len(hashes) != len(tasks) {
 		return nil, fmt.Errorf("Ended up with an incorrect number of isolated hashes!")
 	}
-	sort.Strings(taskIds)
-	rv := make([]string, 0, len(taskIds))
-	for _, id := range taskIds {
-		rv = append(rv, hashes[id])
+	rv := make([]string, 0, len(tasks))
+	for i, _ := range tasks {
+		rv = append(rv, hashes[fmt.Sprintf(TASK_ID_TMPL, strconv.Itoa(i))])
 	}
 	return rv, nil
 }
