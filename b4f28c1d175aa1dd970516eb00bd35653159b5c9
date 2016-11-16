@@ -280,6 +280,29 @@
       "revId": "b4f28c1d175aa1dd970516eb00bd35653159b5c9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_1a81ba4c",
+        "filename": "perf/go/regression/db_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-11-16T13:48:07Z",
+      "side": 1,
+      "message": "Ah, this was their suggested usage: https://github.com/DATA-DOG/go-sqlmock\n\nAlso, besides forking the repo we don\u0027t have much choice.",
+      "range": {
+        "startLine": 14,
+        "startChar": 33,
+        "endLine": 14,
+        "endChar": 34
+      },
+      "revId": "b4f28c1d175aa1dd970516eb00bd35653159b5c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
