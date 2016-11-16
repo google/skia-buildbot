@@ -1,6 +1,7 @@
 package isolate
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -98,4 +99,29 @@ func TestIsolateTasks(t *testing.T) {
 	t2.Deps = []string{h1}
 	hashes = do([]*Task{t2}, "")
 	assert.NotEqual(t, h2, hashes[0])
+
+	// Isolate a bunch of tasks individually and then all at once, ensuring
+	// that we get the same hashes in the correct order.
+	tasks := []*Task{}
+	expectHashes := []string{}
+	for i := 0; i < 11; i++ {
+		f := fmt.Sprintf("myfile%d", i)
+		fp := path.Join(workdir, f)
+		assert.NoError(t, ioutil.WriteFile(fp, []byte(f), 0644))
+		dummyIsolate := path.Join(workdir, fmt.Sprintf("dummy%d.isolate", i))
+		writeIsolateFile(dummyIsolate, &isolateFile{
+			Includes: []string{},
+			Files:    []string{f},
+		})
+		t := &Task{
+			BaseDir:     workdir,
+			IsolateFile: dummyIsolate,
+			OsType:      "linux",
+		}
+		h := do([]*Task{t}, "")
+		tasks = append(tasks, t)
+		expectHashes = append(expectHashes, h[0])
+	}
+	gotHashes := do(tasks, "")
+	testutils.AssertDeepEqual(t, expectHashes, gotHashes)
 }
