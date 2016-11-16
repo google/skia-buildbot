@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "503c1cf2_102cfba8",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-16T17:18:11Z",
+      "side": 1,
+      "message": "nit s/benchmarks/benchmark/",
+      "range": {
+        "startLine": 83,
+        "startChar": 57,
+        "endLine": 83,
+        "endChar": 67
+      },
+      "revId": "f25a445ae9c8ad6060606a3c85df8d4c14666b96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
