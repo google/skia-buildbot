@@ -295,7 +295,7 @@ func main() {
 	router.HandleFunc("/json/ignores/save/{id}", jsonIgnoresUpdateHandler).Methods("POST")
 	router.HandleFunc("/json/triage", jsonTriageHandler).Methods("POST")
 	router.HandleFunc("/json/clusterdiff", jsonClusterDiffHandler).Methods("GET")
-	router.HandleFunc("/json/cmp/{test}", jsonCompareTestHandler).Methods("POST")
+	router.HandleFunc("/json/cmp", jsonCompareTestHandler).Methods("POST")
 	router.HandleFunc("/json/triagelog", jsonTriageLogHandler).Methods("GET")
 	router.HandleFunc("/json/triagelog/undo", jsonTriageUndoHandler).Methods("POST")
 	router.HandleFunc("/json/trybot", jsonListTrybotsHandler).Methods("GET")

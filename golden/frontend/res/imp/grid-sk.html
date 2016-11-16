@@ -119,29 +119,31 @@ Where:
       </div>
       <div class="horizontal layout">
         <div class="vertical layout" id="rowsContainer">
-          <template is="dom-repeat" items="{{_value.rows}}" as="row">
-            <div class="imgWrapper">
-              <img src="{{_imgHref(row.digest)}}">
-              <paper-tooltip>
-                <table class="ttTable" border="0" cellspacing="5" cellpadding="5">
-                  <tr><th>N</th><td>{{row.n}}</td></tr>
-                </table>
-              </paper-tooltip>
-            </div>
-          </template>
-        </div>
-        <div id="cellsContainer" class="vertical layout">
           <template is="dom-repeat" items="{{_value.rows}}" as="row" index-as="rowIdx">
             <div class="horizontal layout">
+              <div class="imgWrapper">
+                <img src$="{{_imgHref(row.digest)}}" data-rowdigest="{{rowIdx}}">
+                <paper-tooltip>
+                  <table class="ttTable" border="0" cellspacing="5" cellpadding="5">
+                    <tr><th>N</th><td>{{row.n}}</td></tr>
+                    <tr hidden$="[[!row.summary]]"><th>Test</th><td>{{row.test}}</td></tr>
+                    <tr hidden$="[[!row.summary]]"><th>Pos</th><td>{{row.summary.pos}}</td></tr>
+                    <tr hidden$="[[!row.summary]]"><th>Neg</th><td>{{row.summary.neg}}</td></tr>
+                    <tr hidden$="[[!row.summary]]"><th>Unt</th><td>{{row.summary.untriaged}}</td></tr>
+                  </table>
+                </paper-tooltip>
+              </div>
+
               <template is="dom-repeat" items="{{row.values}}" as="cell" index-as="colIdx">
                 <div class="imgWrapper">
-                  <img src="{{_diffHref(row, cell)}}" data-row="{{rowIdx}}" data-col="{{colIdx}}">
+                  <img src$="{{_diffHref(row, cell)}}" data-row="{{rowIdx}}" data-col="{{colIdx}}">
                   <paper-tooltip>
                     <table class="ttTable" border="0" cellspacing="5" cellpadding="5">
                       <tr><th>Diff</th><td>{{cell.diffs.combined}}</td></tr>
                       <tr><th>Pixel Diff (%)</th><td>{{cell.pixelDiffPercent}}</td></tr>
                       <tr><th>Num Diff Pixels</th><td>{{cell.numDiffPixels}}</td></tr>
                       <tr><th>Max RBBA Diffs</th><td>[{{cell.maxRGBADiffs}}]</td></tr>
+                      <tr><th>N</th><td>[{{cell.n}}]</td></tr>
                     </table>
                   </paper-tooltip>
                 </div>
@@ -166,8 +168,8 @@ Where:
         },
 
         ready: function () {
-          this.listen(this.$.cellsContainer, 'click', "_handleCellsClick");
-          this.listen(this.$.cellsContainer, 'dblclick', "_handleCellsDblClick");
+          this.listen(this.$.rowsContainer, 'click', "_handleCellsClick");
+          this.listen(this.$.rowsContainer, 'dblclick', "_handleCellsDblClick");
         },
 
         _handleCellsClick: function(ev) {
@@ -191,11 +193,26 @@ Where:
             }
 
             // Fire the event, potentially with a delay.
-            var row = ev.target.dataRow,
+            var rowDigest = ev.target.dataRowdigest,
+                row = ev.target.dataRow,
                 col = ev.target.dataCol;
-            var detail = sk.object.shallowCopy(this._value.rows[row].values[col]);
+
+            var detail = null;
+            if (rowDigest !== undefined) {
+              row = rowDigest;
+              detail = sk.object.shallowCopy(this._value.rows[row]);
+              delete(detail, 'values');
+            } else if ((row !== undefined) && (col !== undefined)) {
+              detail = sk.object.shallowCopy(this._value.rows[row].values[col]);
+              detail.colDigest = this._value.rows[row].values[col].digest;
+            }
+
+            if (!detail) {
+              return;
+            }
+
             detail.rowDigest = this._value.rows[row].digest;
-            detail.colDigest = this._value.rows[row].values[col].digest;
+            detail.test = this._value.rows[row].test;
 
             var delay = (ev.type === 'click') ? 500 : 0;
             this._deferredFire = this.async(function() {

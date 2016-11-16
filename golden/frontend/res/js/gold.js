@@ -24,6 +24,10 @@ var gold = gold || {};
 
   // Default values for the search controls.
   gold.defaultSearchState = {
+     // Note: query is a URL encoded query over the test parameters
+     // The fields of query are not fixed but change over time. This requires
+     // to encode/decode a query in a separate step when encoding/decoding
+     // this entire object.
      query:   "",
      head:    true,
      include: false,
@@ -346,6 +350,16 @@ var gold = gold || {};
     // with a query string that represents the current state.
     _setUrlFromState: function() {
       history.replaceState(this._ctx.state, this._ctx.title, window.location.pathname + gold.queryFromState(this._state));
+    },
+
+    // _addCorpus injects the corpus into the query string of a query object.
+    _addCorpus: function(state) {
+      var params = sk.query.toParamSet(sk.object.shallowCopy(state.query));
+      if ((!params["source_type]"]) && this._statusElement) {
+        params["source_type"] = [this._statusElement.corpus];
+        state.query = sk.query.fromParamSet(params);
+      }
+      return state;
     }
   };
 

@@ -598,10 +598,12 @@ this.sk = this.sk || function() {
   }
 
   // splitAmp returns the given query string as a newline
-  // separated list of key value pairs.
-  sk.query.splitAmp = function(queryStr) {
+  // separated list of key value pairs. If sepator is not
+  // provided newline will be used.
+  sk.query.splitAmp = function(queryStr, separator) {
+    separator = (separator) ? separator : '\n';
     queryStr = queryStr || "";
-    return queryStr.split('&').join('\n');
+    return queryStr.split('&').join(separator);
   };
 
   // Namespace for utilities for working with Objects.

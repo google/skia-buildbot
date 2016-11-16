@@ -60,8 +60,19 @@
       .buttonContainer {
         width: 8em;
       }
+
+      .horizontal.currSelection {
+        margin-left: 1em;
+        margin-right: 3em;
+        max-width: 20em;
+      }
+
+      .vertical.currSelection {
+        padding-top: 1em;
+        max-width: 10em;
+      }
     </style>
-      <div class$="{{orientation}} layout">
+      <div class$="[[orientation]] layout">
         <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.pos}}" disabled={{disabled}}>Positive</paper-toggle-button>
         <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.neg}}" disabled={{disabled}}>Negative</paper-toggle-button>
         <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.unt}}" disabled={{disabled}}>Untriaged</paper-toggle-button>
@@ -71,6 +82,9 @@
         <div class="buttonContainer">
           <paper-button id="searchButton" class$="topControl" raised disabled={{disabled}}
                         title="Filter Traces"><iron-icon icon="image:tune"></iron-icon></paper-button>
+        </div>
+        <div class$="[[orientation]] currSelection">
+          [[_splitAmp(state.query, orientation)]]
         </div>
       </div>
 
@@ -149,6 +163,10 @@
 
         _tcClass: function(orientation) {
           return (orientation==='horizontal') ? "horizontalTopControl" : "verticalTopControl";
+        },
+
+        _splitAmp: function(qStr, orientation) {
+          return sk.query.splitAmp(qStr, (orientation === 'horizontal') ? ', ':' \n');
         }
 
       });
