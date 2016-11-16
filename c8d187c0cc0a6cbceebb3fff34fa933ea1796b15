@@ -34,6 +34,24 @@
       "revId": "c8d187c0cc0a6cbceebb3fff34fa933ea1796b15",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_0920560b",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-16T19:14:47Z",
+      "side": 1,
+      "message": "Okay, that makes sense.",
+      "parentUuid": "503c1cf2_69ce4247",
+      "revId": "c8d187c0cc0a6cbceebb3fff34fa933ea1796b15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
