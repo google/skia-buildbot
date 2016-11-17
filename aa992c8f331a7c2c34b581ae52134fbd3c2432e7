@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "503c1cf2_3df2a6b8",
+        "filename": "task_scheduler/go/scheduling/busy_bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-17T17:13:41Z",
+      "side": 1,
+      "message": "Whoops, this was here for testing and I forgot to remove it.",
+      "parentUuid": "503c1cf2_1d3fe2e9",
+      "revId": "aa992c8f331a7c2c34b581ae52134fbd3c2432e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "503c1cf2_9d2012b2",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2016-11-17T15:37:08Z",
       "side": 1,
       "message": "Can we do this as soon as the task is started?",
+      "revId": "aa992c8f331a7c2c34b581ae52134fbd3c2432e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503c1cf2_3db906cd",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1113,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-17T17:13:41Z",
+      "side": 1,
+      "message": "Sure, done.",
+      "parentUuid": "503c1cf2_9d2012b2",
       "revId": "aa992c8f331a7c2c34b581ae52134fbd3c2432e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
