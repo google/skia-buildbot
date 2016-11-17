@@ -3,10 +3,10 @@ package issuestore
 import (
 	"bytes"
 	"encoding/json"
-	"path"
 
 	"github.com/boltdb/bolt"
-	"go.skia.org/infra/go/fileutil"
+
+	"go.skia.org/infra/go/boltutil"
 	"go.skia.org/infra/go/util"
 )
 
@@ -80,11 +80,11 @@ func (r *Annotation) IsEmpty() bool {
 
 var (
 	// Bucket names in boltdb. 'INDEX' in the name indicates an index.
-	ISSUE_BUCKET = []byte("issues")
-	DIGEST_INDEX = []byte("digest-idx")
-	TRACE_INDEX  = []byte("trace-idx")
-	IGNORE_INDEX = []byte("ignore-idx")
-	TEST_INDEX   = []byte("test-idx")
+	ISSUE_BUCKET = "issues"
+	DIGEST_INDEX = "digest-idx"
+	TRACE_INDEX  = "trace-idx"
+	IGNORE_INDEX = "ignore-idx"
+	TEST_INDEX   = "test-idx"
 )
 
 // Separator used to separate child and parent id in indices.
@@ -92,32 +92,30 @@ const IDX_SEPARATOR = "|"
 
 // boltIssueStore implements the IssueStore interface.
 type boltIssueStore struct {
-	db *bolt.DB
+	store *boltutil.Store
 }
 
 // New returns a new instance of IssueStore that is stored in the given directory.
 func New(baseDir string) (IssueStore, error) {
-	baseDir, err := fileutil.EnsureDirExists(baseDir)
+	config := &boltutil.Config{
+		Directory: baseDir,
+		Name:      "issuestore",
+		Indices:   []string{DIGEST_INDEX, TRACE_INDEX, IGNORE_INDEX, TEST_INDEX},
+	}
+
+	store, err := boltutil.NewStore(config)
 	if err != nil {
 		return nil, err
 	}
 
-	dbName := path.Join(baseDir, "ignorestore.db")
-	db, err := bolt.Open(dbName, 0600, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	ret := &boltIssueStore{
-		db: db,
-	}
-
-	return ret, ret.initBuckets()
+	return &boltIssueStore{
+		store: store,
+	}, nil
 }
 
 // ByDigest, see IgnoreStore interface.
 func (b *boltIssueStore) ByDigest(digest string) ([]string, error) {
-	return b.getIndexedData(DIGEST_INDEX, digest)
+	return b.readFromIndex(DIGEST_INDEX, digest)
 }
 
 // ByIgnore, see IgnoreStore interface.
@@ -401,6 +399,18 @@ func removeStrings(tgt *[]string, src []string) bool {
 		return true
 	}
 	return false
+}
+
+func (b *boltIssueStore) readFromIndex(index, key string) ([]string, error) {
+  var ret []string = nil
+  readFn := func(tx *bolt.Tx, data []string) error{
+
+  }
+
+  return ret, b.store.Read(DIGEST_INDEX, []string{digest}, readFn)
+}
+
+	return nil, nil
 }
 
 // getIndexedData retrieves all parentIDs that have the given prefix in the index
