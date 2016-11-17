@@ -17,11 +17,10 @@ type Status string
 
 // Status constants.
 const (
-	NONE   Status = ""       // There is no regression.
-	NEW    Status = "New"    // There is an untriaged regression.
-	BUG    Status = "Bug"    // This regression is a bug.
-	IGNORE Status = "Ignore" // The regression is ignorable, e.g. noise or SKP update.
-	NSF    Status = "Nsf"    // Insufficient data to do clustering.
+	NONE      Status = ""          // There is no regression.
+	POSITIVE  Status = "positive"  // This change in performance is OK/expected.
+	NEGATIVE  Status = "negative"  // This regression is a bug.
+	UNTRIAGED Status = "untriaged" // The regression has not been triaged.
 )
 
 // Regressions is a map[query]Regression and one Regressions is stored for each
@@ -82,7 +81,7 @@ func (r *Regressions) SetLow(query string, df *dataframe.FrameResponse, low *clu
 	// cluster is 'better', for some definition of 'better'.
 	reg.Low = low
 	if reg.LowStatus.Status == NONE {
-		reg.LowStatus.Status = NEW
+		reg.LowStatus.Status = UNTRIAGED
 	}
 }
 
@@ -102,7 +101,7 @@ func (r *Regressions) SetHigh(query string, df *dataframe.FrameResponse, high *c
 	// cluster is 'better', for some definition of 'better'.
 	reg.High = high
 	if reg.HighStatus.Status == NONE {
-		reg.HighStatus.Status = NEW
+		reg.HighStatus.Status = UNTRIAGED
 	}
 }
 
@@ -140,8 +139,8 @@ func (r *Regressions) TriageHigh(query string, tr TriageStatus) error {
 func (r *Regressions) Triaged() bool {
 	ret := true
 	for _, reg := range r.ByQuery {
-		ret = ret && (reg.HighStatus.Status != NEW)
-		ret = ret && (reg.LowStatus.Status != NEW)
+		ret = ret && (reg.HighStatus.Status != UNTRIAGED)
+		ret = ret && (reg.LowStatus.Status != UNTRIAGED)
 	}
 	return ret
 }

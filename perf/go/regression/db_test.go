@@ -96,7 +96,7 @@ func TestTriageWithExisting(t *testing.T) {
 	// Now determine what the serialized Regressions would look like
 	// after a successful triaging.
 	tr := TriageStatus{
-		Status:  IGNORE,
+		Status:  POSITIVE,
 		Message: "SKP Update",
 	}
 	err = r.TriageLow("source_type=skp", tr)
@@ -157,7 +157,7 @@ func TestTriageWithMissing(t *testing.T) {
 	// Execute our method.
 	st := NewStore()
 	tr := TriageStatus{
-		Status:  IGNORE,
+		Status:  POSITIVE,
 		Message: "SKP Update",
 	}
 	err = st.TriageLow(c, "source_type=skp", tr)
