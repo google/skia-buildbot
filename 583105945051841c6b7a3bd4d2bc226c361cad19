@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "503c1cf2_b8c404a2",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1114,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-17T17:16:22Z",
+      "side": 1,
+      "message": "Hmm, sorry -- I\u0027m not sure this is set if the task is canceled (or expired).",
+      "revId": "583105945051841c6b7a3bd4d2bc226c361cad19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
