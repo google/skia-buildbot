@@ -101,6 +101,18 @@ func (c *TestClient) ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRp
 	return c.ListTasks(start, end, []string{"pool:Skia"}, "")
 }
 
+func (c *TestClient) ListTaskResults(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskResult, error) {
+	tasks, err := c.ListTasks(start, end, tags, state)
+	if err != nil {
+		return nil, err
+	}
+	rv := make([]*swarming.SwarmingRpcsTaskResult, len(tasks), len(tasks))
+	for i, t := range tasks {
+		rv[i] = t.TaskResult
+	}
+	return rv, nil
+}
+
 func (c *TestClient) CancelTask(id string) error {
 	return nil
 }

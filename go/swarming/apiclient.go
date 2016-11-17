@@ -59,14 +59,21 @@ type ApiClient interface {
 
 	GracefullyShutdownBot(id string) (*swarming.SwarmingRpcsTerminateResponse, error)
 
-	// ListTasks returns a slice of swarming.SwarmingRpcsTaskResult instances
-	// corresponding to the specified tags and within given time window.
-	// Specify time.Time{} for start and end if you do not want to restrict on time.
+	// ListTasks returns a slice of swarming.SwarmingRpcsTaskRequestMetadata
+	// instances corresponding to the specified tags and within given time window.
+	// The results will have TaskId, TaskResult, and Request fields populated.
+	// Specify time.Time{} for start and end if you do not want to restrict on
+	// time. Specify "" for state if you do not want to restrict on state.
 	ListTasks(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error)
 
-	// ListSkiaTasks returns a slice of swarming.SwarmingRpcsTaskResult instances
-	// corresponding to Skia Swarming tasks within the given time window.
+	// ListSkiaTasks is ListTasks limited to pool:Skia.
 	ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error)
+
+	// ListTaskResults returns a slice of swarming.SwarmingRpcsTaskResult
+	// instances corresponding to the specified tags and within given time window.
+	// Specify time.Time{} for start and end if you do not want to restrict on
+	// time. Specify "" for state if you do not want to restrict on state.
+	ListTaskResults(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskResult, error)
 
 	// CancelTask cancels the task with the given ID.
 	CancelTask(id string) error
@@ -163,80 +170,88 @@ func (c *apiClient) ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRpc
 	return c.ListTasks(start, end, []string{"pool:Skia"}, "")
 }
 
+func (c *apiClient) ListTaskResults(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskResult, error) {
+	tasks := []*swarming.SwarmingRpcsTaskResult{}
+	cursor := ""
+	for {
+		list := c.s.Tasks.List()
+		if state != "" {
+			list.State(state)
+		}
+		list.Limit(100)
+		list.Tags(tags...)
+		list.IncludePerformanceStats(true)
+		if !start.IsZero() {
+			list.Start(float64(start.Unix()))
+		}
+		if !end.IsZero() {
+			list.End(float64(end.Unix()))
+		}
+		if cursor != "" {
+			list.Cursor(cursor)
+		}
+		res, err := list.Do()
+		if err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, res.Items...)
+		if len(res.Items) == 0 || res.Cursor == "" {
+			break
+		}
+		cursor = res.Cursor
+	}
+	return tasks, nil
+}
+
+// listTaskRequests is a helper for ListTasks.
+func (c *apiClient) listTaskRequests(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskRequest, error) {
+	reqs := []*swarming.SwarmingRpcsTaskRequest{}
+	cursor := ""
+	for {
+		list := c.s.Tasks.Requests()
+		if state != "" {
+			list.State(state)
+		}
+		list.Limit(100)
+		list.Tags(tags...)
+		if !start.IsZero() {
+			list.Start(float64(start.Unix()))
+		}
+		if !end.IsZero() {
+			list.End(float64(end.Unix()))
+		}
+		if cursor != "" {
+			list.Cursor(cursor)
+		}
+		res, err := list.Do()
+		if err != nil {
+			return nil, err
+		}
+		reqs = append(reqs, res.Items...)
+		if len(res.Items) == 0 || res.Cursor == "" {
+			break
+		}
+		cursor = res.Cursor
+	}
+	return reqs, nil
+}
+
 func (c *apiClient) ListTasks(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
 	var wg sync.WaitGroup
-
-	// Query for task results.
-	tasks := []*swarming.SwarmingRpcsTaskResult{}
+	var tasks []*swarming.SwarmingRpcsTaskResult
 	var tasksErr error
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		cursor := ""
-		for {
-			list := c.s.Tasks.List()
-			if state != "" {
-				list.State(state)
-			}
-			list.Limit(100)
-			list.Tags(tags...)
-			list.IncludePerformanceStats(true)
-			if !start.IsZero() {
-				list.Start(float64(start.Unix()))
-			}
-			if !end.IsZero() {
-				list.End(float64(end.Unix()))
-			}
-			if cursor != "" {
-				list.Cursor(cursor)
-			}
-			res, err := list.Do()
-			if err != nil {
-				tasksErr = err
-				return
-			}
-			tasks = append(tasks, res.Items...)
-			if len(res.Items) == 0 || res.Cursor == "" {
-				break
-			}
-			cursor = res.Cursor
-		}
+		tasks, tasksErr = c.ListTaskResults(start, end, tags, state)
 	}()
 
-	// Query for task requests.
-	reqs := []*swarming.SwarmingRpcsTaskRequest{}
+	var reqs []*swarming.SwarmingRpcsTaskRequest
 	var reqsErr error
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		cursor := ""
-		for {
-			list := c.s.Tasks.Requests()
-			if state != "" {
-				list.State(state)
-			}
-			list.Limit(100)
-			list.Tags(tags...)
-			if !start.IsZero() {
-				list.Start(float64(start.Unix()))
-			}
-			if !end.IsZero() {
-				list.End(float64(end.Unix()))
-			}
-			if cursor != "" {
-				list.Cursor(cursor)
-			}
-			res, err := list.Do()
-			if err != nil {
-				reqsErr = err
-				return
-			}
-			reqs = append(reqs, res.Items...)
-			if len(res.Items) == 0 || res.Cursor == "" {
-				break
-			}
-			cursor = res.Cursor
-		}
+		reqs, reqsErr = c.listTaskRequests(start, end, tags, state)
 	}()
 
 	wg.Wait()
