@@ -93,7 +93,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repos repog
 
 	s := &TaskScheduler{
 		bl:               bl,
-		busyBots:         newBusyBots(5 * time.Minute),
+		busyBots:         newBusyBots(),
 		db:               d,
 		isolate:          isolateClient,
 		jCache:           jCache,
@@ -716,10 +716,11 @@ func (s *TaskScheduler) isolateTasks(rs db.RepoState, candidates []*taskCandidat
 func (s *TaskScheduler) scheduleTasks() error {
 	defer metrics2.FuncTimer().Stop()
 	// Find free bots, match them with tasks.
-	bots, err := getFreeSwarmingBots(s.swarming, s.busyBots)
+	bots, err := getFreeSwarmingBots(s.swarming)
 	if err != nil {
 		return err
 	}
+	bots = s.busyBots.Filter(bots)
 	s.queueMtx.Lock()
 	defer s.queueMtx.Unlock()
 	schedule := getCandidatesToSchedule(bots, s.queue)
@@ -751,7 +752,7 @@ func (s *TaskScheduler) scheduleTasks() error {
 		if err != nil {
 			return err
 		}
-		s.busyBots.Put(candidate.BotId)
+		s.busyBots.Reserve(candidate.BotId)
 		created, err := swarming.ParseTimestamp(resp.Request.CreatedTs)
 		if err != nil {
 			return fmt.Errorf("Failed to parse timestamp of created task: %s", err)
@@ -916,7 +917,7 @@ func (s *TaskScheduler) MainLoop() error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := updateUnfinishedTasks(s.tCache, s.db, s.swarming); err != nil {
+		if err := s.updateUnfinishedTasks(); err != nil {
 			e2 = err
 		}
 	}()
@@ -1061,7 +1062,7 @@ func testednessIncrease(blamelistLength, stoleFromBlamelistLength int) float64 {
 }
 
 // getFreeSwarmingBots returns a slice of free swarming bots.
-func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
+func getFreeSwarmingBots(s swarming.ApiClient) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
 	defer metrics2.FuncTimer().Stop()
 	bots, err := s.ListSkiaBots()
 	if err != nil {
@@ -1078,9 +1079,6 @@ func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots) ([]*swarming_api.
 		if bot.TaskId != "" {
 			continue
 		}
-		if busy.Get(bot.BotId) {
-			continue
-		}
 		rv = append(rv, bot)
 	}
 	return rv, nil
@@ -1088,8 +1086,8 @@ func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots) ([]*swarming_api.
 
 // updateUnfinishedTasks queries Swarming for all unfinished tasks and updates
 // their status in the DB.
-func updateUnfinishedTasks(cache db.TaskCache, d db.TaskDB, s swarming.ApiClient) error {
-	tasks, err := cache.UnfinishedTasks()
+func (s *TaskScheduler) updateUnfinishedTasks() error {
+	tasks, err := s.tCache.UnfinishedTasks()
 	if err != nil {
 		return err
 	}
@@ -1103,14 +1101,18 @@ func updateUnfinishedTasks(cache db.TaskCache, d db.TaskDB, s swarming.ApiClient
 		wg.Add(1)
 		go func(idx int, t *db.Task) {
 			defer wg.Done()
-			swarmTask, err := s.GetTask(t.SwarmingTaskId)
+			swarmTask, err := s.swarming.GetTask(t.SwarmingTaskId)
 			if err != nil {
 				errs[idx] = fmt.Errorf("Failed to update unfinished task; failed to get updated task from swarming: %s", err)
 				return
 			}
-			if err := db.UpdateDBFromSwarmingTask(d, swarmTask); err != nil {
+			if err := db.UpdateDBFromSwarmingTask(s.db, swarmTask); err != nil {
 				errs[idx] = fmt.Errorf("Failed to update unfinished task: %s", err)
 				return
+			}
+			// If the task is finished, free its bot.
+			if swarmTask.StartedTs != "" {
+				s.busyBots.Release(swarmTask.BotId)
 			}
 		}(i, t)
 	}
