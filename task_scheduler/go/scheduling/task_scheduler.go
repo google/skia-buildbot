@@ -1111,7 +1111,7 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 				return
 			}
 			// If the task is finished, free its bot.
-			if swarmTask.StartedTs != "" {
+			if swarmTask.State != db.SWARMING_STATE_PENDING {
 				s.busyBots.Release(swarmTask.BotId)
 			}
 		}(i, t)
