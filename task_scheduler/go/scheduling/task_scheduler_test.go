@@ -124,6 +124,7 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task) *swarming_
 		TaskId: task.SwarmingTaskId,
 		TaskResult: &swarming_api.SwarmingRpcsTaskResult{
 			AbandonedTs: abandoned,
+			BotId:       task.SwarmingBotId,
 			CreatedTs:   ts(task.Created),
 			CompletedTs: ts(task.Finished),
 			Failure:     failed,
@@ -157,7 +158,6 @@ func setup(t *testing.T) (*util.TempRepo, db.DB, *swarming.TestClient, *TaskSche
 	}
 	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), tr.Dir, repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping)
 	assert.NoError(t, err)
-	s.busyBots.busyTime = time.Duration(int64(0))
 	return tr, d, swarmingClient, s, urlMock
 }
 
@@ -1615,6 +1615,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	t1.Finished = time.Now()
 	t1.IsolatedOutput = "abc123"
 	tasksList = append(tasksList, t1)
+	s.busyBots.Release(t1.SwarmingBotId)
 
 	// Forcibly create and insert a second task at c1.
 	t2 := t1.Copy()
@@ -1655,6 +1656,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	task.IsolatedOutput = "abc123"
 	assert.NoError(t, d.PutTask(task))
 	assert.NoError(t, s.tCache.Update())
+	s.busyBots.Release(task.SwarmingBotId)
 
 	oldTasksByCommit := tasks
 
@@ -1700,6 +1702,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 		newTask.IsolatedOutput = "abc123"
 		assert.NoError(t, d.PutTask(newTask))
 		assert.NoError(t, s.tCache.Update())
+		s.busyBots.Release(newTask.SwarmingBotId)
 		oldTasksByCommit = tasks
 
 	}
@@ -1806,7 +1809,6 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	}
 	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping)
 	assert.NoError(t, err)
-	s.busyBots.busyTime = time.Duration(int64(0))
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
 	mock := func(task *db.Task) {
@@ -1826,6 +1828,7 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks[head]))
 	mock(tasks[head][taskName])
+	s.busyBots.Release(tasks[head][taskName].SwarmingBotId)
 
 	// Add some commits to the repo.
 	exec_testutils.Run(t, repoDir, "git", "checkout", "master")
@@ -1867,6 +1870,9 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	mock(t1)
 	mock(t2)
 	mock(t3)
+	s.busyBots.Release(t1.SwarmingBotId)
+	s.busyBots.Release(t2.SwarmingBotId)
+	s.busyBots.Release(t3.SwarmingBotId)
 
 	// Ensure that we got the blamelists right.
 	mkCopy := func(orig []string) []string {
@@ -1948,6 +1954,8 @@ func TestSchedulingRetry(t *testing.T) {
 
 	assert.NoError(t, d.PutTasks([]*db.Task{t1, t2}))
 	assert.NoError(t, s.tCache.Update())
+	s.busyBots.Release(t1.SwarmingBotId)
+	s.busyBots.Release(t2.SwarmingBotId)
 
 	// Cycle. Ensure that we schedule a retry of t1.
 	assert.NoError(t, s.MainLoop())
@@ -1964,6 +1972,7 @@ func TestSchedulingRetry(t *testing.T) {
 	t3.Finished = time.Now()
 	assert.NoError(t, d.PutTask(t3))
 	assert.NoError(t, s.tCache.Update())
+	s.busyBots.Release(t3.SwarmingBotId)
 	assert.NoError(t, s.MainLoop())
 	assert.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.UnfinishedTasks()
@@ -1991,6 +2000,7 @@ func TestParentTaskId(t *testing.T) {
 	assert.Equal(t, 0, len(t1.ParentTaskIds))
 	assert.NoError(t, d.PutTasks([]*db.Task{t1}))
 	assert.NoError(t, s.tCache.Update())
+	s.busyBots.Release(t1.SwarmingBotId)
 
 	// Run the dependent tasks. Ensure that their parent IDs are correct.
 	bot3 := makeBot("bot3", map[string]string{
@@ -2080,6 +2090,7 @@ func TestTrybots(t *testing.T) {
 			t.Status = db.TASK_STATUS_SUCCESS
 			t.Finished = now
 			t.IsolatedOutput = "abc123"
+			s.busyBots.Release(t.SwarmingBotId)
 			n++
 		}
 		assert.NoError(t, d.PutTasks(tasks))
@@ -2143,6 +2154,7 @@ func TestTrybots(t *testing.T) {
 			task.Status = db.TASK_STATUS_SUCCESS
 			task.Finished = now
 			task.IsolatedOutput = "abc123"
+			s.busyBots.Release(task.SwarmingBotId)
 			n++
 		}
 		assert.NoError(t, d.PutTasks(tasks))
@@ -2245,6 +2257,7 @@ func TestGetTasksForJob(t *testing.T) {
 	t1.Finished = time.Now()
 	assert.NoError(t, d.PutTasks([]*db.Task{t1}))
 	assert.NoError(t, s.tCache.Update())
+	s.busyBots.Release(t1.SwarmingBotId)
 
 	// Test that the results propagated through.
 	for _, j := range jobs {
@@ -2281,6 +2294,7 @@ func TestGetTasksForJob(t *testing.T) {
 	t2.IsolatedOutput = "abc"
 	assert.NoError(t, d.PutTask(t2))
 	assert.NoError(t, s.tCache.Update())
+	s.busyBots.Release(t2.SwarmingBotId)
 	assert.NoError(t, s.MainLoop())
 	assert.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.UnfinishedTasks()

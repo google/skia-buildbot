@@ -90,6 +90,7 @@ func (c *taskCandidate) MakeTask() *db.Task {
 		Id:            "", // Filled in when the task is inserted into the DB.
 		ParentTaskIds: parentTaskIds,
 		RetryOf:       c.RetryOf,
+		SwarmingBotId: c.BotId,
 		TaskKey:       c.TaskKey.Copy(),
 	}
 }
