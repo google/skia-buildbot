@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -49,6 +50,7 @@ import (
 	_ "go.skia.org/infra/perf/go/ptraceingest"
 	"go.skia.org/infra/perf/go/ptracestore"
 	"go.skia.org/infra/perf/go/quartiles"
+	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/shortcut2"
 	"go.skia.org/infra/perf/go/stats"
@@ -107,6 +109,7 @@ var (
 // flags
 var (
 	configFilename = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
+	clusterQueries = flag.String("cluster_queries", "source_type=skp&sub_result=min_ms source_type=svg&sub_result=min_ms", "A space separated list of queries we want to cluster over.")
 	gitRepoDir     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	gitRepoURL     = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
@@ -138,6 +141,8 @@ var (
 	frameRequests *dataframe.RunningFrameRequests
 
 	clusterRequests *clustering2.RunningClusterRequests
+
+	regStore *regression.Store
 )
 
 func loadTemplates() {
@@ -155,6 +160,7 @@ func loadTemplates() {
 		// ptracestore pages go here.
 		filepath.Join(*resourcesDir, "templates/newindex.html"),
 		filepath.Join(*resourcesDir, "templates/clusters2.html"),
+		filepath.Join(*resourcesDir, "templates/triage.html"),
 
 		// Sub templates used by other templates.
 		filepath.Join(*resourcesDir, "templates/header.html"),
@@ -206,6 +212,7 @@ func Init() {
 	frameRequests = dataframe.NewRunningFrameRequests(git)
 	clusterRequests = clustering2.NewRunningClusterRequests(git, cidl)
 	dataframe.StartWarmer(git)
+	regStore = regression.NewStore()
 
 	if !*newonly {
 		evt := eventbus.New(nil)
@@ -1526,6 +1533,111 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// RegressionRangeRequest is used in regressionRangeHandler and is used to query for a range of
+// of Regressions.
+//
+// Begin and End are Unix timestamps in seconds.
+type RegressionRangeRequest struct {
+	Begin int64 `json:"begin"`
+	End   int64 `json:"end"`
+}
+
+// RegressionRow are all the Regression's for a specific commit. It is used in
+// RegressionRangeResponse.
+//
+// The Columns have the same order as RegressionRangeResponse.Header.
+type RegressionRow struct {
+	Id      *cid.CommitDetail        `json:"cid"`
+	Columns []*regression.Regression `json:"columns"`
+}
+
+// RegressionRangeResponse is the response from regressionRangeHandler.
+type RegressionRangeResponse struct {
+	Header []string         `json:"header"`
+	Table  []*RegressionRow `json:"table"`
+}
+
+// regressionRangeHandler accepts a POST'd JSON serialized RegressionRangeRequest
+// and returns a serialized JSON RegressionRangeResponse:
+//
+//    {
+//      header: [ "query1", "query2", "query3", ...],
+//      table: [
+//        { cid: cid1, columns: [ Regression, Regression, Regression, ...], },
+//        { cid: cid2, columns: [ Regression, null,       Regression, ...], },
+//        { cid: cid3, columns: [ Regression, Regression, Regression, ...], },
+//      ]
+//    }
+//
+// Note that there will be nulls in the columns slice where no Regression have been found.
+func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	rr := &RegressionRangeRequest{}
+	defer util.Close(r.Body)
+	if err := json.NewDecoder(r.Body).Decode(rr); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		return
+	}
+
+	// Get a list of commits for the range.
+	indexCommits := git.Range(time.Unix(rr.Begin, 0), time.Unix(rr.End, 0))
+	ids := make([]*cid.CommitID, 0, len(indexCommits))
+	for _, indexCommit := range indexCommits {
+		ids = append(ids, &cid.CommitID{
+			Source: "master",
+			Offset: indexCommit.Index,
+		})
+	}
+
+	// Convert the CommitIDs to CommitDetails.
+	cids, err := cidl.Lookup(ids)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to look up commit details")
+		return
+	}
+
+	// Query for Regressions in the range.
+	regMap, err := regStore.Range(rr.Begin, rr.End)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to retrieve clusters.")
+		return
+	}
+
+	// Build a list of all queries we are currently clustering over, joined with
+	// the queries that are present in the set of Regressions we just loaded.
+	headers := strings.Split(*clusterQueries, " ")
+	for _, reg := range regMap {
+		for q, _ := range reg.ByQuery {
+			headers = append(headers, q)
+		}
+	}
+	headers = util.NewStringSet(headers).Keys()
+	sort.Sort(sort.StringSlice(headers))
+
+	// Build the RegressionRangeResponse.
+	ret := RegressionRangeResponse{
+		Header: headers,
+		Table:  []*RegressionRow{},
+	}
+	for _, cid := range cids {
+		row := &RegressionRow{
+			Id:      cid,
+			Columns: make([]*regression.Regression, len(headers), len(headers)),
+		}
+		if r, ok := regMap[cid.ID()]; ok {
+			for i, h := range headers {
+				if reg, ok := r.ByQuery[h]; ok {
+					row.Columns[i] = reg
+				}
+			}
+		}
+		ret.Table = append(ret.Table, row)
+	}
+	if err := json.NewEncoder(w).Encode(ret); err != nil {
+		glog.Errorf("Failed to write or encode output: %s", err)
+	}
+}
+
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -1598,6 +1710,7 @@ func main() {
 	// New endpoints that use ptracestore will go here.
 	router.HandleFunc("/e/", templateHandler("newindex.html"))
 	router.HandleFunc("/c/", templateHandler("clusters2.html"))
+	router.HandleFunc("/t/", templateHandler("triage.html"))
 	router.HandleFunc("/g/{dest:[ec]}/{hash:[a-zA-Z0-9]+}", gotoHandler)
 	router.HandleFunc("/_/initpage/", initpageHandler)
 	router.HandleFunc("/_/cidRange/", cidRangeHandler)
@@ -1609,6 +1722,7 @@ func main() {
 	router.HandleFunc("/_/frame/results/{id:[a-zA-Z0-9]+}", frameResultsHandler)
 	router.HandleFunc("/_/cluster/start", clusterStartHandler)
 	router.HandleFunc("/_/cluster/status/{id:[a-zA-Z0-9]+}", clusterStatusHandler)
+	router.HandleFunc("/_/reg/", regressionRangeHandler)
 
 	router.HandleFunc("/frame/", templateHandler("frame.html"))
 	router.HandleFunc("/shortcuts/", shortcutHandler)

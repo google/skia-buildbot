@@ -87,6 +87,8 @@ func (s *Store) Range(begin, end int64) (map[string]*Regressions, error) {
 	return ret, nil
 }
 
+// intx runs f within a database transaction.
+//
 func intx(f func(tx *sql.Tx) error) (err error) {
 	tx, err := db.DB.Begin()
 	if err != nil {
