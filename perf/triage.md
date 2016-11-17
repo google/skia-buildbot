@@ -32,21 +32,19 @@ The UI will look roughly like this:
     |                                  +--------+--------------------+------------+
     |                                  |   High | Low       |  High  | Low        |
     |                                  +--------+--------------------+------------+
-    | 5166651 Fix FreePageCount alert. |      N | N         |     N  | N          |
-    | 669f2da [task scheduler] Get the |      N | N         |     N  | N          |
+    | 5166651 Fix FreePageCount alert. |        |           |        |            |
+    | 669f2da [task scheduler] Get the |        |           |        |            |
     | a6ebcd2 Make Status categorize I |        |           |        |            |
-    | 501bc48 [CQ Watcher] Log when a  |      I |           |        | ↓          |
+    | 501bc48 [CQ Watcher] Log when a  |      ✓ |           |        | ?          |
     | 1b31bb5 [CT] Reduce number of pa |        |           |        |            |
-    | ea80add Add ability to specify c |      ↑ | ↓         |        |            |
-    | c844730 Fix alert queries due to |        |           |        | B          |
+    | ea80add Add ability to specify c |      ✓ | ✗         |        |            |
+    | c844730 Fix alert queries due to |        |           |        | ✗          |
     +----------------------------------+--------+-----------+--------+------------+
 
   * In the above sketch:
-    * 'N' means insufficient data to do clustering.
-    * '↑' means an untriaged High regression was found, i.e. a step up.
-    * '↓' means an untriaged Low regression was found, i.e. a step down.
-    * 'I' means Ignore.
-    * 'B' means Bug.
+    * '?' means an untriaged regression was found.
+    * '✓' means this change is acceptable.
+    * '✗' means bug.
     * ' ' means sufficient data to cluster, but no regressions found.
   * One column for each query, two sub-cols for low and high regressions.
   * Queries can be added/removed semi-easily (flags or metadata).
@@ -54,10 +52,9 @@ The UI will look roughly like this:
     over time, i.e. we may add new queries or stop running old queries.
   * Each non-empty query/commit/(low|high) cell has:
     * Status:
-      * Nsf - insufficient data to do clustering around that commit.
-      * New - untriaged - analysis found regression, but not yet triaged.
-      * Bug
-      * Ignore - An expected regression, or a noisy cluster.
+      * untriaged - Analysis found regression, but not yet triaged.
+      * negative - This is a regression.
+      * positive - An expected change in behavior, or a noisy cluster.
     * A text comment.
   * Each low/high cell pops up a cluster-summary2-sk that allows inspecting
     the centroid of the regression, the members of the cluster, and triaging
@@ -81,7 +78,7 @@ The data stored for each commit of the triage page analysis will be:
         Message  string
     }
 
-    Status is "New", Bug", "Ignore", or "Nsf".
+    Status is "untriaged", "positive", or "negative".
 
 
 The alerting analysis will run the following analysis continuously:

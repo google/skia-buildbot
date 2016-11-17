@@ -22,7 +22,7 @@ func TestRegressions(t *testing.T) {
 
 	// Triage the low cluster.
 	err := r.TriageLow("source_type=skp", TriageStatus{
-		Status:  IGNORE,
+		Status:  POSITIVE,
 		Message: "SKP Update",
 	})
 	assert.NoError(t, err)
@@ -30,7 +30,7 @@ func TestRegressions(t *testing.T) {
 
 	// Trying to triage a high cluster that doesn't exists.
 	err = r.TriageHigh("source_type=skp", TriageStatus{
-		Status: BUG,
+		Status: NEGATIVE,
 	})
 	assert.Equal(t, err, ErrNoClusterFound)
 	assert.True(t, r.Triaged())
@@ -41,7 +41,7 @@ func TestRegressions(t *testing.T) {
 
 	// And triage the high cluster.
 	err = r.TriageHigh("source_type=skp", TriageStatus{
-		Status:  BUG,
+		Status:  NEGATIVE,
 		Message: "See bug #foo.",
 	})
 	assert.NoError(t, err)
@@ -49,12 +49,12 @@ func TestRegressions(t *testing.T) {
 
 	// Trying to triage an unknown query.
 	err = r.TriageHigh("uknownquery", TriageStatus{
-		Status: BUG,
+		Status: NEGATIVE,
 	})
 	assert.Equal(t, err, ErrNoClusterFound)
 
 	// Try serializing to JSON.
 	b, err := r.JSON()
 	assert.NoError(t, err)
-	assert.Equal(t, "{\"by_query\":{\"source_type=skp\":{\"low\":{\"centroid\":null,\"keys\":null,\"param_summaries\":null,\"step_fit\":null,\"step_point\":null,\"num\":0},\"high\":{\"centroid\":null,\"keys\":null,\"param_summaries\":null,\"step_fit\":null,\"step_point\":null,\"num\":0},\"frame\":{\"dataframe\":null,\"ticks\":null,\"skps\":null,\"msg\":\"\"},\"low_status\":{\"status\":\"Ignore\",\"message\":\"SKP Update\"},\"high_status\":{\"status\":\"Bug\",\"message\":\"See bug #foo.\"}}}}", string(b))
+	assert.Equal(t, "{\"by_query\":{\"source_type=skp\":{\"low\":{\"centroid\":null,\"keys\":null,\"param_summaries\":null,\"step_fit\":null,\"step_point\":null,\"num\":0},\"high\":{\"centroid\":null,\"keys\":null,\"param_summaries\":null,\"step_fit\":null,\"step_point\":null,\"num\":0},\"frame\":{\"dataframe\":null,\"ticks\":null,\"skps\":null,\"msg\":\"\"},\"low_status\":{\"status\":\"positive\",\"message\":\"SKP Update\"},\"high_status\":{\"status\":\"negative\",\"message\":\"See bug #foo.\"}}}}", string(b))
 }
