@@ -1,0 +1,112 @@
+<!-- The <triage-status-sk> custom element declaration.
+
+  Displays a button that shows the triage status of a cluster.  When the
+  button is pushed a dialog opens that allows the user to see the cluster
+  details and to change the triage status.
+
+  Attributes:
+    query - The query string that this cluster is associated with.
+
+    full_summary - A serialized:
+
+       {
+         summary: cluster2.ClusterSummary,
+         frame: dataframe.FrameResponse,
+       }
+
+    triage - The triage status of the cluster. Something of the form:
+
+       {
+         status: "untriaged",
+         message: "This is a regression.",
+       }
+
+  Events:
+    triaged - Contains the new triage status. The detail contains the cid and triage
+      status, for example:
+
+      {
+        cid: {
+          source: "master",
+          offset: 25004,
+        },
+        triage: {
+          status: "negative",
+          message: "This is a regression in ...",
+        },
+        query: "source_type=skp&sub_result=min_ms",
+      }
+
+  Methods:
+    None.
+-->
+<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
+<link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
+
+<link rel="import" href="/res/common/imp/tricon-sk.html">
+<link rel="import" href="/res/imp/cluster2.html">
+<link rel="stylesheet" href="/res/common/css/md.css">
+<dom-module id="triage-status-sk">
+  <style>
+    cluster-summary2-sk {
+      display: block;
+      margin: 2em;
+    }
+  </style>
+  <template>
+    <button title="[[triage.message]]" on-click="_show">
+      <tricon-sk value="[[triage.status]]"></tricon-sk>
+    </button>
+    <paper-dialog id=dialog>
+      <cluster-summary2-sk on-triaged=_onTriaged id=summary full_summary="[[full_summary]]" triage="[[triage]]"></cluster-summary2-sk>
+      <div class=buttons>
+        <button on-click=_close>Close</button>
+      </div>
+    </paper-dialog>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "triage-status-sk",
+
+    properties: {
+      query: {
+        type: String,
+        value: "",
+      },
+      full_summary: {
+        type: Object,
+        value: function() { return {}; },
+      },
+      triage: {
+        type: Object,
+        value: function() {
+          return {
+            status: "",
+            message: "",
+          };
+        },
+      },
+    },
+
+    _onTriaged: function(e) {
+      e.stopPropagation();
+      this.triage = e.detail.triage;
+      this.notifyPath("triage.status");
+      this.notifyPath("triage.message");
+      e.detail.query = this.query;
+      this.dispatchEvent(new CustomEvent('triaged', {detail: e.detail, bubbles: true}));
+    },
+
+    _show: function() {
+      this.$.dialog.open();
+    },
+
+    _close: function() {
+      this.$.dialog.close();
+    },
+
+  });
+</script>
