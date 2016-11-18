@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -61,6 +62,8 @@ type TryJobIntegrator struct {
 	bb                 *buildbucket_api.Service
 	bucket             string
 	db                 db.JobDB
+	finished           map[string]bool
+	finishedMtx        sync.Mutex
 	jCache             db.JobCache
 	projectRepoMapping map[string]string
 	rm                 repograph.Map
@@ -78,6 +81,7 @@ func NewTryJobIntegrator(apiUrl, bucket string, c *http.Client, d db.JobDB, cach
 		bb:                 bb,
 		bucket:             bucket,
 		db:                 d,
+		finished:           map[string]bool{},
 		jCache:             cache,
 		projectRepoMapping: projectRepoMapping,
 		rm:                 rm,
@@ -105,6 +109,8 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 // Jobs.
 func (t *TryJobIntegrator) sendHeartbeats(now time.Time) error {
 	glog.Infof("Sending heartbeats.")
+	t.finishedMtx.Lock()
+	defer t.finishedMtx.Unlock()
 	if err := t.jCache.Update(); err != nil {
 		return err
 	}
@@ -114,10 +120,12 @@ func (t *TryJobIntegrator) sendHeartbeats(now time.Time) error {
 	}
 	jobs := make([]*db.Job, 0, len(unfinishedJobs))
 	for _, j := range unfinishedJobs {
-		if j.IsTryJob() {
+		if j.IsTryJob() && !t.finished[j.Id] {
 			jobs = append(jobs, j)
 		}
 	}
+	t.finished = map[string]bool{}
+
 	// Sort so that we get deterministic results in tests.
 	sort.Sort(db.JobSlice(jobs))
 
@@ -153,7 +161,7 @@ func (t *TryJobIntegrator) sendHeartbeats(now time.Time) error {
 			if result.Error != nil {
 				// Cancel the job.
 				// TODO(borenet): Should we return an error here?
-				glog.Errorf("Error sending heartbeat for job; canceling %q: %s", jobs[i].Id, result.Error.Message)
+				glog.Errorf("Error sending heartbeat for job; canceling %q. %s: %s", jobs[i].Id, result.Error.Reason, result.Error.Message)
 				cancelJobs = append(cancelJobs, jobs[i])
 			}
 		}
@@ -393,6 +401,8 @@ func (t *TryJobIntegrator) jobStarted(j *db.Job) error {
 
 // JobFinished notifies Buildbucket that the given Job has finished.
 func (t *TryJobIntegrator) JobFinished(j *db.Job) error {
+	t.finishedMtx.Lock()
+	defer t.finishedMtx.Unlock()
 	if !j.Done() {
 		return fmt.Errorf("JobFinished called for unfinished Job!")
 	}
@@ -434,5 +444,6 @@ func (t *TryJobIntegrator) JobFinished(j *db.Job) error {
 			return fmt.Errorf(resp.Error.Message)
 		}
 	}
+	t.finished[j.Id] = true
 	return nil
 }
