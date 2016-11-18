@@ -4,6 +4,7 @@ package recovery
 import (
 	"bytes"
 	"compress/gzip"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"io"
@@ -12,6 +13,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -21,6 +23,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"golang.org/x/net/context"
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
 
@@ -52,6 +55,9 @@ type DBBackup interface {
 	Tick()
 	// ImmediateBackup triggers a backup immediately.
 	ImmediateBackup() error
+	// RetrieveJobs returns all backed-up Jobs created or modified since the given
+	// time, as a map[Job.Id]*Job. Only the most recent backup is returned.
+	RetrieveJobs(since time.Time) (map[string]*db.Job, error)
 }
 
 // gsDBBackup implements DBBackup.
@@ -94,7 +100,7 @@ type gsDBBackup struct {
 //  - db is the DB to back up.
 //  - authClient is a client authenticated with auth.SCOPE_READ_WRITE.
 func NewDBBackup(ctx context.Context, gsBucket string, db db.BackupDBCloser, name string, workdir string, authClient *http.Client) (DBBackup, error) {
-	gsClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(authClient))
+	gsClient, err := storage.NewClient(ctx, option.WithHTTPClient(authClient))
 	if err != nil {
 		return nil, err
 	}
@@ -404,11 +410,22 @@ func (b *gsDBBackup) Tick() {
 	b.maybeBackupDB(now)
 }
 
+// formatJobObjectName returns the GS object name for a Job with the given id
+// being uploaded at the given time.
+func formatJobObjectName(ts time.Time, id string) string {
+	return fmt.Sprintf("%s/%s/%s.%s", JOB_BACKUP_DIR, ts.UTC().Format("2006/01/02"), id, JOB_FILE_NAME_EXTENSION)
+}
+
+// parseIdFromJobObjectName returns the Job ID from a GS object name formatted
+// with formatJobObjectName.
+func parseIdFromJobObjectName(name string) string {
+	return strings.TrimSuffix(path.Base(name), "."+JOB_FILE_NAME_EXTENSION)
+}
+
 // backupJob writes the given bytes to GS under the given Job id.
 func (b *gsDBBackup) backupJob(now time.Time, id string, jobGob []byte) error {
 	bucket := b.gsClient.Bucket(b.gsBucket)
-	objectname := fmt.Sprintf("%s/%s/%s.%s", JOB_BACKUP_DIR, now.UTC().Format("2006/01/02"), id, JOB_FILE_NAME_EXTENSION)
-	return upload(b.ctx, bytes.NewReader(jobGob), bucket, objectname, now)
+	return upload(b.ctx, bytes.NewReader(jobGob), bucket, formatJobObjectName(now, id), now)
 }
 
 // incrementalBackupStep writes all recently modified Jobs to GS.
@@ -456,4 +473,64 @@ func (b *gsDBBackup) incrementalBackupStep(now time.Time) error {
 		}
 		return errors.New(errStr.String())
 	}
+}
+
+// downloadGOB reads, ungzips, and GOB-decodes the given object from GS.
+func downloadGOB(ctx context.Context, bucket *storage.BucketHandle, objectname string, dst interface{}) error {
+	objR, err := bucket.Object(objectname).NewReader(ctx)
+	if err != nil {
+		return err
+	}
+	// As long as we can decode the object, we don't care if Close returns an
+	// error.
+	defer util.Close(objR)
+	gzR, err := gzip.NewReader(objR)
+	if err != nil {
+		return err
+	}
+	defer util.Close(gzR)
+	if err := gob.NewDecoder(gzR).Decode(dst); err != nil {
+		return fmt.Errorf("Error decoding GOB data: %s", err)
+	}
+	return nil
+}
+
+// See docs for DBBackup interface.
+func (b *gsDBBackup) RetrieveJobs(since time.Time) (map[string]*db.Job, error) {
+	sinceDir := path.Dir(formatJobObjectName(since, "dummy")) + "/"
+	bucket := b.gsClient.Bucket(b.gsBucket)
+	rv := map[string]*db.Job{}
+	// Iterate from today backwards to sinceDir.
+	for t := time.Now(); ; t = t.Add(-24 * time.Hour) {
+		curDir := path.Dir(formatJobObjectName(t, "dummy")) + "/"
+		if curDir < sinceDir {
+			break
+		}
+
+		q := &storage.Query{Prefix: curDir, Versions: false}
+		it := bucket.Objects(b.ctx, q)
+		for obj, err := it.Next(); err != iterator.Done; obj, err = it.Next() {
+			if err != nil {
+				return nil, fmt.Errorf("Unable to list jobs in %s/%s: %s", b.gsBucket, curDir, err)
+			}
+			if obj.Updated.Before(since) {
+				continue
+			}
+
+			// If rv already contains this Job, it is newer than this version, so
+			// skip.
+			id := parseIdFromJobObjectName(obj.Name)
+			if _, ok := rv[id]; ok {
+				continue
+			}
+
+			// TODO(benjaminwagner): Download and decode in parallel.
+			var job db.Job
+			if err := downloadGOB(b.ctx, bucket, obj.Name, &job); err != nil {
+				return nil, fmt.Errorf("Unable to read %s/%s: %s", b.gsBucket, obj.Name, err)
+			}
+			rv[job.Id] = &job
+		}
+	}
+	return rv, nil
 }

@@ -15,6 +15,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -191,16 +192,23 @@ func gsRoute(mockMux *mux.Router) *mux.Route {
 	return mockMux.Schemes("https").Host("www.googleapis.com")
 }
 
+// addListObjectsHandler causes r to respond to a request to list objects in
+// TEST_BUCKET/prefix with the given objects, formatted with
+// makeObjectsResponse.
+func addListObjectsHandler(t *testing.T, r *mux.Router, prefix string, objs []object) {
+	gsRoute(r).Methods("GET").
+		Path(fmt.Sprintf("/storage/v1/b/%s/o", TEST_BUCKET)).
+		Queries("prefix", prefix).
+		Handler(mockhttpclient.MockGetDialogue([]byte(makeObjectsResponse(objs))))
+}
+
 // getBackupMetrics should return zero time and zero count when there are no
 // existing backups.
 func TestGetBackupMetricsNoFiles(t *testing.T) {
 	testutils.SmallTest(t)
 	now := time.Now()
 	r := mux.NewRouter()
-	gsRoute(r).Methods("GET").
-		Path(fmt.Sprintf("/storage/v1/b/%s/o", TEST_BUCKET)).
-		Queries("prefix", DB_BACKUP_DIR).
-		Handler(mockhttpclient.MockGetDialogue([]byte(makeObjectsResponse([]object{}))))
+	addListObjectsHandler(t, r, DB_BACKUP_DIR, []object{})
 	b, cancel := getMockedDBBackup(t, r)
 	defer cancel()
 
@@ -216,13 +224,10 @@ func TestGetBackupMetricsTwoFiles(t *testing.T) {
 	testutils.SmallTest(t)
 	now := time.Now().Round(time.Second)
 	r := mux.NewRouter()
-	gsRoute(r).Methods("GET").
-		Path(fmt.Sprintf("/storage/v1/b/%s/o", TEST_BUCKET)).
-		Queries("prefix", DB_BACKUP_DIR).
-		Handler(mockhttpclient.MockGetDialogue([]byte(makeObjectsResponse([]object{
-			{TEST_BUCKET, "a", now.Add(-1 * time.Hour).UTC()},
-			{TEST_BUCKET, "b", now.Add(-2 * time.Hour).UTC()},
-		}))))
+	addListObjectsHandler(t, r, DB_BACKUP_DIR, []object{
+		{TEST_BUCKET, "a", now.Add(-1 * time.Hour).UTC()},
+		{TEST_BUCKET, "b", now.Add(-2 * time.Hour).UTC()},
+	})
 	b, cancel := getMockedDBBackup(t, r)
 	defer cancel()
 
@@ -237,14 +242,11 @@ func TestGetBackupMetricsSeveralDays(t *testing.T) {
 	testutils.SmallTest(t)
 	now := time.Now().Round(time.Second)
 	r := mux.NewRouter()
-	gsRoute(r).Methods("GET").
-		Path(fmt.Sprintf("/storage/v1/b/%s/o", TEST_BUCKET)).
-		Queries("prefix", DB_BACKUP_DIR).
-		Handler(mockhttpclient.MockGetDialogue([]byte(makeObjectsResponse([]object{
-			{TEST_BUCKET, "a", now.Add(-49 * time.Hour).UTC()},
-			{TEST_BUCKET, "b", now.Add(-25 * time.Hour).UTC()},
-			{TEST_BUCKET, "c", now.Add(-1 * time.Hour).UTC()},
-		}))))
+	addListObjectsHandler(t, r, DB_BACKUP_DIR, []object{
+		{TEST_BUCKET, "a", now.Add(-49 * time.Hour).UTC()},
+		{TEST_BUCKET, "b", now.Add(-25 * time.Hour).UTC()},
+		{TEST_BUCKET, "c", now.Add(-1 * time.Hour).UTC()},
+	})
 	b, cancel := getMockedDBBackup(t, r)
 	defer cancel()
 
@@ -260,14 +262,11 @@ func TestGetBackupMetricsOld(t *testing.T) {
 	testutils.SmallTest(t)
 	now := time.Now().Round(time.Second)
 	r := mux.NewRouter()
-	gsRoute(r).Methods("GET").
-		Path(fmt.Sprintf("/storage/v1/b/%s/o", TEST_BUCKET)).
-		Queries("prefix", DB_BACKUP_DIR).
-		Handler(mockhttpclient.MockGetDialogue([]byte(makeObjectsResponse([]object{
-			{TEST_BUCKET, "a", now.Add(-49 * time.Hour).UTC()},
-			{TEST_BUCKET, "b", now.Add(-128 * time.Hour).UTC()},
-			{TEST_BUCKET, "c", now.Add(-762 * time.Hour).UTC()},
-		}))))
+	addListObjectsHandler(t, r, DB_BACKUP_DIR, []object{
+		{TEST_BUCKET, "a", now.Add(-49 * time.Hour).UTC()},
+		{TEST_BUCKET, "b", now.Add(-128 * time.Hour).UTC()},
+		{TEST_BUCKET, "c", now.Add(-762 * time.Hour).UTC()},
+	})
 	b, cancel := getMockedDBBackup(t, r)
 	defer cancel()
 
@@ -871,13 +870,27 @@ func TestMaybeBackupDBRetriesExhausted(t *testing.T) {
 	assert.Equal(t, "", file)
 }
 
-// backupJob should create a GS object with the gzipped bytes.
-func TestBackupJob(t *testing.T) {
+func TestFormatJobObjectName(t *testing.T) {
 	testutils.SmallTest(t)
-	now := time.Now()
+	assert.Equal(t, "job-backup/2016/01/01/police-officer.gob", formatJobObjectName(time.Date(2016, 1, 1, 0, 0, 0, 0, time.UTC), "police-officer"))
+	assert.Equal(t, "job-backup/2016/02/29/nurse.gob", formatJobObjectName(time.Date(2016, 2, 29, 1, 2, 3, 0, time.UTC), "nurse"))
+	assert.Equal(t, "job-backup/2008/08/08/scientist.gob", formatJobObjectName(time.Date(2008, 8, 8, 8, 8, 8, 8, time.UTC), "scientist"))
+}
 
-	j := &db.Job{
-		Created:      now,
+func TestParseIdFromJobObjectName(t *testing.T) {
+	testutils.SmallTest(t)
+	test := func(id string) {
+		assert.Equal(t, id, parseIdFromJobObjectName(formatJobObjectName(time.Date(2016, 1, 1, 0, 0, 0, 0, time.UTC), id)))
+	}
+	test("police-officer")
+	test("name.with.internal.dots")
+	test("20161116T220425.634818978Z_0000000000001e88")
+}
+
+// makeJob returns a dummy Job without Id and DbModified set.
+func makeJob(now time.Time) *db.Job {
+	return &db.Job{
+		Created:      now.UTC(),
 		Dependencies: map[string][]string{},
 		RepoState: db.RepoState{
 			Repo: db.DEFAULT_TEST_REPO,
@@ -885,6 +898,23 @@ func TestBackupJob(t *testing.T) {
 		Name:  "Test-Job",
 		Tasks: map[string][]*db.TaskSummary{},
 	}
+}
+
+// makeExistingJob returns a dummy Job with Id and DbModified set to the given
+// values.
+func makeExistingJob(now time.Time, id string) *db.Job {
+	job := makeJob(now)
+	job.Id = id
+	job.DbModified = now.UTC()
+	return job
+}
+
+// backupJob should create a GS object with the gzipped bytes.
+func TestBackupJob(t *testing.T) {
+	testutils.SmallTest(t)
+	now := time.Now()
+
+	j := makeJob(now)
 	var buf bytes.Buffer
 	assert.NoError(t, gob.NewEncoder(&buf).Encode(j))
 	jobgob := buf.Bytes()
@@ -953,15 +983,7 @@ func TestIncrementalBackupStep(t *testing.T) {
 	b.incrementalBackupLiveness.ManualReset(time.Time{})
 
 	// Add a job.
-	j1 := &db.Job{
-		Created:      now,
-		Dependencies: map[string][]string{},
-		RepoState: db.RepoState{
-			Repo: db.DEFAULT_TEST_REPO,
-		},
-		Name:  "Test-Job",
-		Tasks: map[string][]*db.TaskSummary{},
-	}
+	j1 := makeJob(now)
 	assert.NoError(t, b.db.PutJob(j1))
 	name1 := namePrefix + j1.Id + ".gob"
 
@@ -986,15 +1008,7 @@ func TestIncrementalBackupStep(t *testing.T) {
 
 	// Modify j1 and add j2.
 	j1.Status = db.JOB_STATUS_CANCELED
-	j2 := &db.Job{
-		Created:      now.Add(time.Second),
-		Dependencies: map[string][]string{},
-		RepoState: db.RepoState{
-			Repo: db.DEFAULT_TEST_REPO,
-		},
-		Name:  "Test-Job",
-		Tasks: map[string][]*db.TaskSummary{},
-	}
+	j2 := makeJob(now.Add(time.Second))
 	assert.NoError(t, b.db.PutJobs([]*db.Job{j1, j2}))
 	name2 := namePrefix + j2.Id + ".gob"
 
@@ -1038,17 +1052,8 @@ func TestIncrementalBackupStepSingleUploadError(t *testing.T) {
 	b.incrementalBackupLiveness.ManualReset(time.Time{})
 
 	// Add two jobs.
-	j1 := &db.Job{
-		Created:      now,
-		Dependencies: map[string][]string{},
-		RepoState: db.RepoState{
-			Repo: db.DEFAULT_TEST_REPO,
-		},
-		Name:  "Test-Job",
-		Tasks: map[string][]*db.TaskSummary{},
-	}
-	j2 := j1.Copy()
-	j2.Created = now.Add(time.Second)
+	j1 := makeJob(now)
+	j2 := makeJob(now.Add(time.Second))
 	assert.NoError(t, b.db.PutJobs([]*db.Job{j1, j2}))
 
 	count := 0
@@ -1105,17 +1110,8 @@ func TestIncrementalBackupStepMultipleUploadError(t *testing.T) {
 	b.incrementalBackupLiveness.ManualReset(time.Time{})
 
 	// Add two jobs.
-	j1 := &db.Job{
-		Created:      now,
-		Dependencies: map[string][]string{},
-		RepoState: db.RepoState{
-			Repo: db.DEFAULT_TEST_REPO,
-		},
-		Name:  "Test-Job",
-		Tasks: map[string][]*db.TaskSummary{},
-	}
-	j2 := j1.Copy()
-	j2.Created = now.Add(time.Second)
+	j1 := makeJob(now)
+	j2 := makeJob(now.Add(time.Second))
 	assert.NoError(t, b.db.PutJobs([]*db.Job{j1, j2}))
 
 	gsRoute(r).Methods("POST").Path(fmt.Sprintf("/upload/storage/v1/b/%s/o", TEST_BUCKET)).
@@ -1179,15 +1175,7 @@ func TestIncrementalBackupStepReset(t *testing.T) {
 
 	// Ensure next round succeeds.
 	now = now.Add(10 * time.Second)
-	j1 := &db.Job{
-		Created:      now,
-		Dependencies: map[string][]string{},
-		RepoState: db.RepoState{
-			Repo: db.DEFAULT_TEST_REPO,
-		},
-		Name:  "Test-Job",
-		Tasks: map[string][]*db.TaskSummary{},
-	}
+	j1 := makeJob(now)
 	assert.NoError(t, b.db.PutJob(j1))
 	name1 := JOB_BACKUP_DIR + "/" + now.UTC().Format("2006/01/02") + "/" + j1.Id + ".gob"
 
@@ -1221,4 +1209,316 @@ func TestIncrementalBackupStepSetTSError(t *testing.T) {
 	assert.Equal(t, injectedError, err)
 
 	assert.True(t, b.incrementalBackupLiveness.Get() > MAX_TEST_TIME_SECONDS)
+}
+
+// addGetObjectHandler causes r to respond to a request for the contents of
+// TEST_BUCKET/name with the given contents.
+func addGetObjectHandler(t *testing.T, r *mux.Router, name string, contents []byte) {
+	// URI does not match documentation at https://cloud.google.com/storage/docs/json_api/v1/objects/get
+	r.Schemes("https").Host("storage.googleapis.com").Methods("GET").
+		Path(fmt.Sprintf("/%s/%s", TEST_BUCKET, name)).
+		Handler(mockhttpclient.MockGetDialogue(contents))
+}
+
+// addGetJobGOBHandler causes r to respond to a request for the given job (in
+// TEST_BUCKET with name given by formatJobObjectName) with the gzipped
+// GOB-encoded Job.
+func addGetJobGOBHandler(t *testing.T, r *mux.Router, job *db.Job) {
+	buf := &bytes.Buffer{}
+	gzW := gzip.NewWriter(buf)
+	assert.NoError(t, gob.NewEncoder(gzW).Encode(job))
+	assert.NoError(t, gzW.Close())
+	addGetObjectHandler(t, r, formatJobObjectName(job.DbModified, job.Id), buf.Bytes())
+}
+
+// downloadGOB should download data from GS.
+func TestDownloadGOB(t *testing.T) {
+	testutils.SmallTest(t)
+
+	now := time.Now()
+	job := makeExistingJob(now, "j1")
+
+	r := mux.NewRouter()
+	addGetJobGOBHandler(t, r, job)
+
+	b, cancel := getMockedDBBackup(t, r)
+	defer cancel()
+
+	var jobCopy db.Job
+	name := formatJobObjectName(job.DbModified, job.Id)
+	err := downloadGOB(b.ctx, b.gsClient.Bucket(b.gsBucket), name, &jobCopy)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, job, &jobCopy)
+}
+
+// downloadGOB should return a sensible error if the object doesn't exist.
+func TestDownloadGOBNotFound(t *testing.T) {
+	testutils.SmallTest(t)
+
+	r := mux.NewRouter()
+	name := "foo/bar/baz.gob"
+	r.Schemes("https").Host("storage.googleapis.com").Methods("GET").
+		Path(fmt.Sprintf("/%s/%s", TEST_BUCKET, name)).
+		Handler(mockhttpclient.MockGetError("Not Found", http.StatusNotFound))
+
+	b, cancel := getMockedDBBackup(t, r)
+	defer cancel()
+
+	var dummy db.Job
+	err := downloadGOB(b.ctx, b.gsClient.Bucket(b.gsBucket), name, &dummy)
+	assert.Error(t, err)
+	assert.Regexp(t, "object doesn't exist", err.Error())
+	testutils.AssertDeepEqual(t, db.Job{}, dummy)
+}
+
+// downloadGOB should return an error if the data is not gzip-encoded.
+func TestDownloadGOBNotGzip(t *testing.T) {
+	testutils.SmallTest(t)
+
+	now := time.Now()
+	job := makeExistingJob(now, "j1")
+
+	r := mux.NewRouter()
+
+	name := "not-gzip.gob"
+	buf := &bytes.Buffer{}
+	assert.NoError(t, gob.NewEncoder(buf).Encode(job))
+	addGetObjectHandler(t, r, name, buf.Bytes())
+
+	b, cancel := getMockedDBBackup(t, r)
+	defer cancel()
+
+	var dummy db.Job
+	err := downloadGOB(b.ctx, b.gsClient.Bucket(b.gsBucket), name, &dummy)
+	assert.Error(t, err)
+	assert.Regexp(t, "gzip: invalid header", err.Error())
+	testutils.AssertDeepEqual(t, db.Job{}, dummy)
+}
+
+// downloadGOB should return an error if the data is not GOB-encoded.
+func TestDownloadGOBNotGOB(t *testing.T) {
+	testutils.SmallTest(t)
+
+	r := mux.NewRouter()
+
+	name := "poem.txt"
+	buf := &bytes.Buffer{}
+	gzW := gzip.NewWriter(buf)
+	_, err := gzW.Write([]byte(TEST_DB_CONTENT))
+	assert.NoError(t, err)
+	assert.NoError(t, gzW.Close())
+	addGetObjectHandler(t, r, name, buf.Bytes())
+
+	b, cancel := getMockedDBBackup(t, r)
+	defer cancel()
+
+	var dummy db.Job
+	err = downloadGOB(b.ctx, b.gsClient.Bucket(b.gsBucket), name, &dummy)
+	assert.Error(t, err)
+	assert.Regexp(t, "Error decoding GOB data", err.Error())
+	testutils.AssertDeepEqual(t, db.Job{}, dummy)
+}
+
+// addGetJobGOBsHandlers causes r to respond to list and get requests for the
+// given Jobs. Calls addGetJobGOBHandler for each Job. Calls
+// addListObjectsHandler for each dir.
+func addGetJobGOBsHandlers(t *testing.T, r *mux.Router, jobsByDir map[string][]*db.Job) {
+	for dir, jobs := range jobsByDir {
+		objs := make([]object, len(jobs), len(jobs))
+		for i, job := range jobs {
+			name := formatJobObjectName(job.DbModified, job.Id)
+			addGetJobGOBHandler(t, r, job)
+			objs[i] = object{TEST_BUCKET, name, job.DbModified}
+		}
+		addListObjectsHandler(t, r, dir+"/", objs)
+	}
+}
+
+// assertJobMapsEqual asserts expected and actual are deep equal. If not,
+// provides a useful indication of their differences to FailNow.
+func assertJobMapsEqual(t *testing.T, expected map[string]*db.Job, actual map[string]*db.Job) {
+	msg := &bytes.Buffer{}
+	for id, eJob := range expected {
+		if aJob, ok := actual[id]; ok {
+			if !reflect.DeepEqual(eJob, aJob) {
+				fmt.Fprintf(msg, "Job %q differs:\n\tExpected: %v\n\tActual:   %v\n", id, eJob, aJob)
+			}
+		} else {
+			fmt.Fprintf(msg, "Missing job %q: %v\n", id, eJob)
+		}
+	}
+	for id, aJob := range actual {
+		if _, ok := expected[id]; !ok {
+			fmt.Fprintf(msg, "Extra job %q: %v\n", id, aJob)
+		}
+	}
+	if msg.Len() > 0 {
+		assert.FailNow(t, msg.String())
+	}
+}
+
+// RetrieveJobs should download Jobs for the requested period from GS.
+func TestRetrieveJobsSimple(t *testing.T) {
+	testutils.SmallTest(t)
+
+	now := time.Now().Round(time.Second)
+	since := now.Add(-1 * time.Hour)
+	allJobsByDir := map[string][]*db.Job{}
+	expectedJobs := map[string]*db.Job{}
+
+	job1 := makeExistingJob(since.Add(-10*time.Minute), "before")
+	allJobsByDir[path.Dir(formatJobObjectName(job1.DbModified, job1.Id))] = []*db.Job{job1}
+
+	job2 := makeExistingJob(since.Add(10*time.Minute), "after")
+	allJobsByDir[path.Dir(formatJobObjectName(job2.DbModified, job2.Id))] = []*db.Job{job2}
+	expectedJobs[job2.Id] = job2.Copy()
+
+	r := mux.NewRouter()
+	addGetJobGOBsHandlers(t, r, allJobsByDir)
+	b, cancel := getMockedDBBackup(t, r)
+	defer cancel()
+
+	actualJobs, err := b.RetrieveJobs(since)
+	assert.NoError(t, err)
+	assertJobMapsEqual(t, expectedJobs, actualJobs)
+}
+
+// RetrieveJobs should download Jobs for the requested period from GS where the
+// Jobs span multiple directories.
+func TestRetrieveJobsMultipleDirs(t *testing.T) {
+	testutils.MediumTest(t) // GOB encoding and decoding takes time.
+
+	now := time.Now().Round(time.Second)
+	since := now.Add(-26 * time.Hour)
+	allJobsByDir := map[string][]*db.Job{}
+	expectedJobs := map[string]*db.Job{}
+	// Add jobs before since. Not expected from RetrieveJobs.
+	for i := -26 * time.Hour; i < 0; i += time.Hour {
+		ts := since.Add(i)
+		job := makeExistingJob(ts, fmt.Sprintf("%s", i))
+		dir := path.Dir(formatJobObjectName(job.DbModified, job.Id))
+		allJobsByDir[dir] = append(allJobsByDir[dir], job)
+	}
+	// Add jobs at and after since. Expected from RetrieveJobs.
+	for i := time.Duration(0); i <= 26*time.Hour; i += time.Hour {
+		ts := since.Add(i)
+		job := makeExistingJob(ts, fmt.Sprintf("%s", i))
+		dir := path.Dir(formatJobObjectName(job.DbModified, job.Id))
+		allJobsByDir[dir] = append(allJobsByDir[dir], job)
+		expectedJobs[job.Id] = job.Copy()
+	}
+
+	r := mux.NewRouter()
+	addGetJobGOBsHandlers(t, r, allJobsByDir)
+	b, cancel := getMockedDBBackup(t, r)
+	defer cancel()
+
+	actualJobs, err := b.RetrieveJobs(since)
+	assert.NoError(t, err)
+	assertJobMapsEqual(t, expectedJobs, actualJobs)
+}
+
+// RetrieveJobs should download Jobs for the requested period from GS when there
+// are older versions for the same Job.
+func TestRetrieveJobsMultipleVersions(t *testing.T) {
+	testutils.MediumTest(t) // GOB encoding and decoding takes time.
+
+	now := time.Now().Round(time.Second)
+	since := now.Add(-26 * time.Hour)
+	allJobsByDir := map[string][]*db.Job{}
+	expectedJobs := map[string]*db.Job{}
+	// Add and modify jobs before since. Not expected from RetrieveJobs.
+	for i := -26 * time.Hour; i < -time.Hour; i += time.Hour {
+		ts := since.Add(i)
+		origjob := makeExistingJob(ts, fmt.Sprintf("before-mod-before-%s", i))
+		origdir := path.Dir(formatJobObjectName(origjob.DbModified, origjob.Id))
+		modjob := origjob.Copy()
+		modjob.Status = db.JOB_STATUS_CANCELED
+		modjob.DbModified = ts.Add(time.Hour).UTC()
+		moddir := path.Dir(formatJobObjectName(modjob.DbModified, modjob.Id))
+		allJobsByDir[moddir] = append(allJobsByDir[moddir], modjob)
+		if origdir != moddir {
+			allJobsByDir[origdir] = append(allJobsByDir[origdir], origjob)
+		}
+	}
+	// Add jobs created before since and modified after since. Expected from
+	// RetrieveJobs.
+	for i := time.Hour; i < 26*time.Hour; i += time.Hour {
+		ts := since.Add(-i)
+		origjob := makeExistingJob(ts, fmt.Sprintf("before-mod-after-%s", i))
+		origdir := path.Dir(formatJobObjectName(origjob.DbModified, origjob.Id))
+		modjob := origjob.Copy()
+		modjob.Status = db.JOB_STATUS_CANCELED
+		modjob.DbModified = since.Add(i).UTC()
+		moddir := path.Dir(formatJobObjectName(modjob.DbModified, modjob.Id))
+		allJobsByDir[moddir] = append(allJobsByDir[moddir], modjob)
+		if origdir != moddir {
+			allJobsByDir[origdir] = append(allJobsByDir[origdir], origjob)
+		}
+		expectedJobs[modjob.Id] = modjob.Copy()
+	}
+	// Add jobs created and modified after since. Expected from RetrieveJobs.
+	for i := time.Duration(0); i < 26*time.Hour; i += time.Hour {
+		ts := since.Add(i)
+		origjob := makeExistingJob(ts, fmt.Sprintf("after-mod-after-%s", i))
+		origdir := path.Dir(formatJobObjectName(origjob.DbModified, origjob.Id))
+		modjob := origjob.Copy()
+		modjob.Status = db.JOB_STATUS_SUCCESS
+		modjob.DbModified = ts.Add(time.Hour).UTC()
+		moddir := path.Dir(formatJobObjectName(modjob.DbModified, modjob.Id))
+		allJobsByDir[moddir] = append(allJobsByDir[moddir], modjob)
+		if origdir != moddir {
+			allJobsByDir[origdir] = append(allJobsByDir[origdir], origjob)
+		}
+		expectedJobs[modjob.Id] = modjob.Copy()
+	}
+
+	r := mux.NewRouter()
+	addGetJobGOBsHandlers(t, r, allJobsByDir)
+	b, cancel := getMockedDBBackup(t, r)
+	defer cancel()
+
+	actualJobs, err := b.RetrieveJobs(since)
+	assert.NoError(t, err)
+	assertJobMapsEqual(t, expectedJobs, actualJobs)
+}
+
+// RetrieveJobs should give a sensible error if unable to list Jobs in GS.
+func TestRetrieveJobsErrorListingJobs(t *testing.T) {
+	testutils.SmallTest(t)
+
+	r := mux.NewRouter()
+	now := time.Now().Round(time.Second)
+	prefix := JOB_BACKUP_DIR + "/" + now.UTC().Format("2006/01/02") + "/"
+	gsRoute(r).Methods("GET").
+		Path(fmt.Sprintf("/storage/v1/b/%s/o", TEST_BUCKET)).
+		Queries("prefix", prefix).
+		Handler(mockhttpclient.MockGetError("No jobs today", http.StatusTeapot))
+	b, cancel := getMockedDBBackup(t, r)
+	defer cancel()
+
+	_, err := b.RetrieveJobs(now)
+	assert.Error(t, err)
+	assert.Regexp(t, "Unable to list jobs in "+TEST_BUCKET+"/"+prefix, err)
+}
+
+// RetrieveJobs should give a sensible error if unable to download a Job from
+// GS.
+func TestRetrieveJobsErrorDownloading(t *testing.T) {
+	testutils.SmallTest(t)
+
+	r := mux.NewRouter()
+	now := time.Now().Round(time.Second)
+	prefix := JOB_BACKUP_DIR + "/" + now.UTC().Format("2006/01/02") + "/"
+	name := prefix + "j1.gob"
+	addListObjectsHandler(t, r, prefix, []object{
+		{TEST_BUCKET, name, now.UTC()},
+	})
+	addGetObjectHandler(t, r, name, []byte("Hi Mom!"))
+	b, cancel := getMockedDBBackup(t, r)
+	defer cancel()
+
+	_, err := b.RetrieveJobs(now)
+	assert.Error(t, err)
+	assert.Regexp(t, `Unable to read .*/j1\.gob`, err)
 }
