@@ -49,6 +49,7 @@ type TaskScheduler struct {
 	db               db.DB
 	isolate          *isolate.Client
 	jCache           db.JobCache
+	jobsMtx          *sync.RWMutex
 	lastScheduled    time.Time // protected by queueMtx.
 	period           time.Duration
 	queue            []*taskCandidate // protected by queueMtx.
@@ -81,7 +82,8 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repos repog
 	}
 
 	taskCfgCache := specs.NewTaskCfgCache(repos)
-	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, c, d, jCache, projectRepoMapping, repos, taskCfgCache)
+	jobsMtx := &sync.RWMutex{}
+	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, c, d, jCache, projectRepoMapping, repos, taskCfgCache, jobsMtx)
 	if err != nil {
 		return nil, err
 	}
@@ -97,6 +99,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, workdir string, repos repog
 		db:               d,
 		isolate:          isolateClient,
 		jCache:           jCache,
+		jobsMtx:          jobsMtx,
 		period:           period,
 		queue:            []*taskCandidate{},
 		queueMtx:         sync.RWMutex{},
@@ -177,7 +180,8 @@ func (s *TaskScheduler) TriggerJob(repo, commit, jobName string) (string, error)
 
 // CancelJob cancels the given Job if it is not already finished.
 func (s *TaskScheduler) CancelJob(id string) (*db.Job, error) {
-	// TODO(borenet): Prevent concurrent update of the Job.
+	s.jobsMtx.Lock()
+	defer s.jobsMtx.Unlock()
 	j, err := s.jCache.GetJobMaybeExpired(id)
 	if err != nil {
 		return nil, err
@@ -1147,6 +1151,8 @@ func (s *TaskScheduler) jobFinished(j *db.Job) error {
 // updateUnfinishedJobs updates all not-yet-finished Jobs to determine if their
 // state has changed.
 func (s *TaskScheduler) updateUnfinishedJobs() error {
+	s.jobsMtx.Lock()
+	defer s.jobsMtx.Unlock()
 	jobs, err := s.jCache.UnfinishedJobs()
 	if err != nil {
 		return err
