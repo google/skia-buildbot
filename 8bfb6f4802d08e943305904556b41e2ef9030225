@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "500b3ca9_4a391393",
+        "filename": "perf/res/imp/triage-status-demo.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-18T20:27:16Z",
+      "side": 1,
+      "message": "should be 5?",
+      "range": {
+        "startLine": 79,
+        "startChar": 26,
+        "endLine": 79,
+        "endChar": 27
+      },
+      "revId": "8bfb6f4802d08e943305904556b41e2ef9030225",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "500b3ca9_eadd6731",
+        "filename": "perf/res/imp/triage-status-demo.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-18T20:27:16Z",
+      "side": 1,
+      "message": "Should be {\"source\":\"master\",\"offset\":24749,\"timestamp\":1476985138}?",
+      "range": {
+        "startLine": 86,
+        "startChar": 1,
+        "endLine": 87,
+        "endChar": 32
+      },
+      "revId": "8bfb6f4802d08e943305904556b41e2ef9030225",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "500b3ca9_8af26be8",
+        "filename": "perf/res/imp/triage-status.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-18T20:27:16Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 35,
+        "startChar": 10,
+        "endLine": 35,
+        "endChar": 16
+      },
+      "revId": "8bfb6f4802d08e943305904556b41e2ef9030225",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "500b3ca9_4a8b533f",
+        "filename": "perf/res/imp/triage-status.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-18T20:27:16Z",
+      "side": 1,
+      "message": "Do we want to call _close here?",
+      "range": {
+        "startLine": 101,
+        "startChar": 4,
+        "endLine": 101,
+        "endChar": 6
+      },
+      "revId": "8bfb6f4802d08e943305904556b41e2ef9030225",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
