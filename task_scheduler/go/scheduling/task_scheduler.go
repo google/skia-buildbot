@@ -752,7 +752,7 @@ func (s *TaskScheduler) scheduleTasks() error {
 		if err != nil {
 			return err
 		}
-		s.busyBots.Reserve(candidate.BotId)
+		s.busyBots.Reserve(candidate.BotId, resp.TaskId)
 		created, err := swarming.ParseTimestamp(resp.Request.CreatedTs)
 		if err != nil {
 			return fmt.Errorf("Failed to parse timestamp of created task: %s", err)
@@ -1112,7 +1112,7 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 			}
 			// If the task is finished, free its bot.
 			if swarmTask.State != db.SWARMING_STATE_PENDING {
-				s.busyBots.Release(swarmTask.BotId)
+				s.busyBots.Release(swarmTask.BotId, t.SwarmingTaskId)
 			}
 		}(i, t)
 	}
