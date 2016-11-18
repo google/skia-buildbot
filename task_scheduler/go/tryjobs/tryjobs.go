@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -62,13 +63,14 @@ type TryJobIntegrator struct {
 	bucket             string
 	db                 db.JobDB
 	jCache             db.JobCache
+	jobsMtx            *sync.RWMutex
 	projectRepoMapping map[string]string
 	rm                 repograph.Map
 	taskCfgCache       *specs.TaskCfgCache
 }
 
 // NewTryJobIntegrator returns a TryJobIntegrator instance.
-func NewTryJobIntegrator(apiUrl, bucket string, c *http.Client, d db.JobDB, cache db.JobCache, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache *specs.TaskCfgCache) (*TryJobIntegrator, error) {
+func NewTryJobIntegrator(apiUrl, bucket string, c *http.Client, d db.JobDB, cache db.JobCache, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache *specs.TaskCfgCache, jobsMtx *sync.RWMutex) (*TryJobIntegrator, error) {
 	bb, err := buildbucket_api.New(c)
 	if err != nil {
 		return nil, err
@@ -79,6 +81,7 @@ func NewTryJobIntegrator(apiUrl, bucket string, c *http.Client, d db.JobDB, cach
 		bucket:             bucket,
 		db:                 d,
 		jCache:             cache,
+		jobsMtx:            jobsMtx,
 		projectRepoMapping: projectRepoMapping,
 		rm:                 rm,
 		taskCfgCache:       taskCfgCache,
@@ -105,6 +108,8 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 // Jobs.
 func (t *TryJobIntegrator) sendHeartbeats(now time.Time) error {
 	glog.Infof("Sending heartbeats.")
+	t.jobsMtx.Lock()
+	defer t.jobsMtx.Unlock()
 	if err := t.jCache.Update(); err != nil {
 		return err
 	}
@@ -118,6 +123,7 @@ func (t *TryJobIntegrator) sendHeartbeats(now time.Time) error {
 			jobs = append(jobs, j)
 		}
 	}
+
 	// Sort so that we get deterministic results in tests.
 	sort.Sort(db.JobSlice(jobs))
 
@@ -153,12 +159,12 @@ func (t *TryJobIntegrator) sendHeartbeats(now time.Time) error {
 			if result.Error != nil {
 				// Cancel the job.
 				// TODO(borenet): Should we return an error here?
-				glog.Errorf("Error sending heartbeat for job; canceling %q: %s", jobs[i].Id, result.Error.Message)
+				glog.Errorf("Error sending heartbeat for job; locally canceling %q. %s: %s", jobs[i].Id, result.Error.Reason, result.Error.Message)
 				cancelJobs = append(cancelJobs, jobs[i])
 			}
 		}
 		if len(cancelJobs) > 0 {
-			glog.Errorf("Canceling %d jobs", len(cancelJobs))
+			glog.Errorf("Locally canceling %d jobs", len(cancelJobs))
 			if err := t.localCancelJobs(cancelJobs); err != nil {
 				errs = append(errs, err)
 			}

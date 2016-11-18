@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -118,7 +119,7 @@ func setup(t *testing.T) (*TryJobIntegrator, *mockhttpclient.URLMock, func()) {
 	cache, err := db.NewJobCache(d, time.Hour, db.DummyGetRevisionTimestamp(time.Now()))
 	assert.NoError(t, err)
 	mock := mockhttpclient.NewURLMock()
-	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, mock.Client(), d, cache, projectRepoMapping, rm, taskCfgCache)
+	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, mock.Client(), d, cache, projectRepoMapping, rm, taskCfgCache, &sync.RWMutex{})
 	assert.NoError(t, err)
 
 	MockOutExec()
