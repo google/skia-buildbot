@@ -275,6 +275,14 @@
        this.$.view_history.addEventListener('click', function(e) {
          that.gotoRunsHistory();
        });
+       this.$.custom_webpages.addEventListener('click', function(e) {
+         // Do not display the pagesets selector if custom webpages is open.
+         that.$.page_sets.hidden = that.$.custom_webpages.webpagesOpened;
+         if (!that.$.custom_webpages.webpagesOpened) {
+           // Clear out webpages if it is no longer open.
+           that.$.custom_webpages.webpages = '';
+         }
+       });
        this.platformChanged();
        this.setRunInParallel();
      },
