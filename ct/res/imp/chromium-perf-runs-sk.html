@@ -217,7 +217,14 @@
               </tr>
               <tr>
                 <td>PageSet:</td>
-                <td>{{chromiumPerfTask.PageSets}}</td>
+                <td>
+                  <template is="dom-if" if="{{chromiumPerfTask.CustomWebpages}}">
+                    <a href="javascript:void(0);" data-index$="{{index}}" data-type="customWebpages">Custom Webpages</a>
+                  </template>
+                  <template is="dom-if" if="{{!chromiumPerfTask.CustomWebpages}}">
+                    {{chromiumPerfTask.PageSets}}
+                  </template>
+                </td>
               </tr>
               <tr>
                 <td>Repeats:</td>
@@ -263,9 +270,6 @@
             <template is="dom-if" if="{{chromiumPerfTask.BrowserArgsWithPatch}}">
               <a href="javascript:void(0);" data-index$="{{index}}" data-type="withpatchBrowserArgs">WithPatch Browser Args</a>
               <br/>
-            </template>
-            <template is="dom-if" if="{{chromiumPerfTask.CustomWebpages}}">
-              <a href="javascript:void(0);" data-index$="{{index}}" data-type="customWebpages">Custom Webpages</a>
             </template>
           </td>
 

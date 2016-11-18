@@ -199,7 +199,13 @@
               </tr>
               <tr>
                 <td>PageSet:</td>
-                <td>{{chromiumAnalysisTask.PageSets}}</td>
+                  <template is="dom-if" if="{{chromiumAnalysisTask.CustomWebpages}}">
+                    <a href="javascript:void(0);" data-index$="{{index}}" data-type="customWebpages">Custom Webpages</a>
+                  </template>
+                  <template is="dom-if" if="{{!chromiumAnalysisTask.CustomWebpages}}">
+                    {{chromiumAnalysisTask.PageSets}}
+                  </template>
+                </td>
               </tr>
               <tr>
                 <td>ParallelRun:</td>
@@ -233,9 +239,6 @@
             <template is="dom-if" if="{{chromiumAnalysisTask.BrowserArgs}}">
               <a href="javascript:void(0);" data-index$="{{index}}" data-type="browserArgs">Browser Args</a>
               <br/>
-            </template>
-            <template is="dom-if" if="{{chromiumAnalysisTask.CustomWebpages}}">
-              <a href="javascript:void(0);" data-index$="{{index}}" data-type="customWebpages">Custom Webpages</a>
             </template>
           </td>
 
