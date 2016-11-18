@@ -39,11 +39,14 @@
 <body>
   <h1>Cluster</h1>
 
-  <h2>A transient cluster [id = -1]</h2>
+  <h2>A cluster </h2>
   <cluster-summary2-sk id=cluster></cluster-summary2-sk>
 
-  <h2>A saved cluster [id != -1]</h2>
-  <cluster-summary2-sk fade id=nostatus></cluster-summary2-sk>
+  <h2>A cluster with triaging </h2>
+  <cluster-summary2-sk id=nostatus></cluster-summary2-sk>
+
+  <h3>Events</h3>
+  <pre><code id=events></code></pre>
 
   <script type="text/javascript" charset="utf-8">
     (function () {
@@ -127,14 +130,17 @@
 
       var summary2 = JSON.parse(JSON.stringify(full_summary));
       var triage = {
-        id: 3,
-        status: "New",
-        message: "",
+        status: "untriaged",
+        message: "Nothing to see here.",
       };
       summary2.summary.step_fit.status = "High";
       summary2.summary.step_fit.regression = 201;
       $$$('#nostatus').full_summary = summary2;
       $$$('#nostatus').triage = triage;
+
+      $$$('#nostatus').addEventListener("triaged", function(e) {
+        $$$('#events').textContent = JSON.stringify(e.detail, null, ' ');
+      });
     })();
   </script>
 </body>
