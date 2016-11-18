@@ -17,6 +17,8 @@
 
 <link rel="import" href="/res/common/imp/query-summary-sk.html" />
 
+<link rel="import" href="/res/imp/triage-status.html" />
+
 <dom-module id="triage-page-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
     .fixed {
@@ -25,6 +27,10 @@
 
     .cluster {
       text-align: center;
+    }
+
+    triage-status-sk {
+      text-align: left;
     }
 
     tr:nth-child(even) {
@@ -45,11 +51,32 @@
           <th colspan=2><query-summary-sk selection="{{item}}"></query-summary-sk></th>
         </template>
       </tr>
+      <tr>
+        <th></th>
+        <template is="dom-repeat" items="{{_reg.header}}">
+          <th>Low</th>
+          <th>High</th>
+        </template>
+      </tr>
       <template is="dom-repeat" items="{{_reg.table}}">
         <tr><td class=fixed>{{_trunc(item.cid.message)}}</td>
           <template is="dom-repeat" items="{{item.columns}}">
-            <td class=cluster>{{_isLowNull(item)}}</td>
-            <td class=cluster>{{_isHighNull(item)}}</td>
+            <td class=cluster>
+              <template is="dom-if" if="{{item.low}}">
+                <triage-status-sk cluster_type=low full_summary="[[_full_summary(item.frame, item.low)]]" triage="[[item.high_status]]"></triage-status-sk>
+              </template>
+              <template is="dom-if" if="{{_not(item.low)}}">
+                -
+              </template>
+            </td>
+            <td class=cluster>
+              <template is="dom-if" if="{{item.high}}">
+                <triage-status-sk cluster_type=high full_summary="[[_full_summary(item.frame, item.high)]]" triage="[[item.high_status]]"></triage-status-sk>
+              </template>
+              <template is="dom-if" if="{{_not(item.high)}}">
+                -
+              </template>
+            </td>
           </template>
         </tr>
       </template>
@@ -100,24 +127,15 @@
       return s.slice(0, 40);
     },
 
-    _isLowNull: function(col) {
-      if (col === null) {
-        return "-";
+    _full_summary: function(frame, summary) {
+      return {
+        frame: frame,
+        summary: summary,
       }
-      if (!col.low) {
-        return "-";
-      }
-      return "X";
     },
 
-    _isHighNull: function(col) {
-      if (col === null) {
-        return "-";
-      }
-      if (!col.high) {
-        return "-";
-      }
-      return "X";
+    _not: function(x) {
+      return !x;
     },
 
   });
