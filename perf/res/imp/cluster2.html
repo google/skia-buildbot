@@ -17,8 +17,7 @@
     triage - The triage status of the cluster. Something of the form:
 
        {
-         id: 11,
-         status: "Bug",
+         status: "untriaged",
          message: "This is a regression.",
        }
 
@@ -41,8 +40,24 @@
         xbar: {"source":"master","offset":24750,"timestamp":1476985844},
       }
 
+    triaged - An event generated when the 'Update' button is pressed, which
+      contains the new triage status. The detail contains the cid and triage
+      status, for example:
+
+      {
+        cid: {
+          source: "master",
+          offset: 25004,
+        },
+        triage: {
+          status: "negative",
+          messge: "This is a regression in ...",
+        },
+      }
+
 -->
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <link rel="import" href="/res/imp/bower_components/paper-material/paper-material.html">
 <link rel="import" href="/res/imp/bower_components/paper-radio-button/paper-radio-button.html">
 <link rel="import" href="/res/imp/bower_components/paper-radio-group/paper-radio-group.html">
@@ -51,6 +66,7 @@
 
 <link rel="import" href="/res/common/imp/login.html">
 <link rel="import" href="/res/common/imp/toggle.html">
+<link rel="import" href="/res/common/imp/triage-sk.html">
 
 <link rel="import" href="/res/imp/commit-detail-panel.html" />
 <link rel="import" href="/res/imp/plot-simple.html">
@@ -126,10 +142,6 @@
       display: none;
     }
 
-    #choices paper-radio-button {
-      --default-primary-color: #1f78b4;
-    }
-
     input {
       padding: 0.6em;
     }
@@ -156,15 +168,10 @@
         <div class="layout horizontal wrap">
           <plot-simple-sk specialevents on-trace_selected="_traceSelected" id=graph width=400 height=150></plot-simple-sk>
           <paper-material elevation="1">
-            <div id=status class$="[[_hiddenClass(triage.id)]]">
+            <div id=status class$="[[_hiddenClass(triage.status)]]">
               <p class="disabledMessage">You must be logged in to change the status.</p>
-              <paper-radio-group id=choices class="layout horizontal" selected="[[triage.status]]">
-                <b class="status">Status:</b>
-                <paper-radio-button name="New" label="New">New</paper-radio-button>
-                <paper-radio-button name="Ignore" label="Ignore">Ignore</paper-radio-button>
-                <paper-radio-button name="Bug" label="Bug">Bug</paper-radio-button>
-              </paper-radio-group>
-              <input value="[[triage.message]]" size=80 label="Note" id="message"></input>
+              <triage-sk value="{{triage.status}}"></triage-sk>
+              <paper-input value="{{triage.message}}" label="Message"></paper-input>
               <button class="action layout self end" id=update on-click="_update">Update</button>
             </div>
           </paper-material>
@@ -172,7 +179,7 @@
         <commit-detail-panel-sk id=commits></commit-detail-panel-sk>
         <div>
           <button id="shortcut" on-click="_openShortcut">View on dashboard</button>
-          <a id="permalink" class$="[[_hiddenClass(triage.id)]]" href$="[[_permaLink(triage.id)]]">Permlink</a>
+          <a id="permalink" class$="[[_hiddenClass(triage.status)]]" href$="[[_permaLink(_frame)]]">Permlink</a>
         </div>
         <toggle-display-sk>Word Cloud</toggle-display-sk>
         <word-cloud2-sk id=wordcloud items="[[_summary.param_summaries]]"></word-cloud2-sk>
@@ -200,11 +207,11 @@
           type: Object,
           value: function() {
             return {
-              id: -1,
-              status: "New",
+              status: "",
               message: "",
             };
           },
+          observer: '_triageChanged',
         },
         _summary: {
           type: Object,
@@ -269,7 +276,13 @@
       },
 
       _update: function () {
-        window.alert("Currently unimplemented.");
+        var mid = Math.floor(this._frame.dataframe.header.length/2);
+        var cid = this._frame.dataframe.header[mid];
+        var detail = {
+          cid: cid,
+          triage: this.triage,
+        }
+        this.dispatchEvent(new CustomEvent('triaged', {detail: detail, bubbles: true}));
       },
 
       _openShortcut: function (e) {
@@ -289,19 +302,27 @@
       },
 
       // Below are filters used in template expansion:
-      _hiddenClass: function (id) {
-        if (id == -1) {
+      _hiddenClass: function (status) {
+        if (status == '') {
           return 'hidden';
         }
         return '';
       },
 
-      _permaLink: function (id) {
-        return '/cl2/' + id;
+      _permaLink: function () {
+        // Bounce to the triage page, but with the time range narrowed to
+        // contain just the middle commit.
+        if (!this._frame || !this._frame.dataframe) {
+          return ""
+        }
+        var mid = Math.floor(this._frame.dataframe.header.length/2);
+        var begin = this._frame.dataframe.header[mid].timestamp;
+        var end = begin+1;
+        return '/t/?begin=' + begin + '&end=' + end;
       },
 
       _faded: function (fade, status) {
-        if (fade && status != 'New') {
+        if (fade && status != 'untriaged') {
           return 'fade';
         }
         return '';
