@@ -22,6 +22,24 @@
       "revId": "bb5758a83dbc7d34d6af2da6e010ece5d7f0a372",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "500b3ca9_f00e76aa",
+        "filename": "perf/res/imp/triage-status.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-11-18T21:36:41Z",
+      "side": 1,
+      "message": "That would require fiddling CSS via JS. I\u0027ll wait until someone complains.",
+      "parentUuid": "500b3ca9_8dd3a519",
+      "revId": "bb5758a83dbc7d34d6af2da6e010ece5d7f0a372",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
