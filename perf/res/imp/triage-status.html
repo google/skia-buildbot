@@ -7,6 +7,8 @@
   Attributes:
     query - The query string that this cluster is associated with.
 
+    cluster_type - The type of cluster, either "low" or "high".
+
     full_summary - A serialized:
 
        {
@@ -76,6 +78,10 @@
         type: String,
         value: "",
       },
+      cluster_type: {
+        type: String,
+        value: "",
+      },
       full_summary: {
         type: Object,
         value: function() { return {}; },
@@ -97,6 +103,7 @@
       this.notifyPath("triage.status");
       this.notifyPath("triage.message");
       e.detail.query = this.query;
+      e.detail.cluster_type = this.cluster_type;
       this.dispatchEvent(new CustomEvent('triaged', {detail: e.detail, bubbles: true}));
     },
 
