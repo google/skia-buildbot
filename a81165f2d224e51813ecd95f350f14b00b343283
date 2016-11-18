@@ -22,6 +22,24 @@
       "revId": "a81165f2d224e51813ecd95f350f14b00b343283",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b09b987b_60ca1009",
+        "filename": "task_scheduler/go/db/recovery/backups.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-18T17:59:51Z",
+      "side": 1,
+      "message": "Good point. I had been thinking about the use in backupJob, but in RetrieveJobs it\u0027s not \"now.\"",
+      "parentUuid": "b09b987b_43927939",
+      "revId": "a81165f2d224e51813ecd95f350f14b00b343283",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
