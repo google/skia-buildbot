@@ -14,7 +14,7 @@ themselves very well to being executed from a
 
 ## Setting up the master servers
 The basic setup looks like:
-![master-design](https://cloud.githubusercontent.com/assets/6819944/16122340/ac1a7d82-33b4-11e6-90ac-c6224b39522f.png)
+![master-design](../img/master-design.png)
 
 The master and the spare can theoretically be run on any OS that supports NSF mounting and systemd.
 They are currently running Ubuntu 16.04.  16.04 is the first LTS release that supports systemd.
