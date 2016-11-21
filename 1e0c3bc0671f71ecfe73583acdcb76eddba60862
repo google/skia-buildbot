@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "500b3ca9_dc425fab",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1584,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-21T20:46:18Z",
+      "side": 1,
+      "message": "nit: include tr.Query and detail[0].URL?",
+      "range": {
+        "startLine": 1584,
+        "startChar": 36,
+        "endLine": 1584,
+        "endChar": 41
+      },
+      "revId": "1e0c3bc0671f71ecfe73583acdcb76eddba60862",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
