@@ -214,6 +214,10 @@ func Init() {
 	dataframe.StartWarmer(git)
 	regStore = regression.NewStore()
 
+	// Start running continuous clustering looking for regressions.
+	queries := strings.Split(*clusterQueries, " ")
+	go regression.NewContinuous(git, cidl, queries, regStore).Run()
+
 	if !*newonly {
 		evt := eventbus.New(nil)
 		tileStats = tilestats.New(evt)
