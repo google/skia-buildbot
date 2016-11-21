@@ -1535,6 +1535,44 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type TriageRequest struct {
+	Cid         *cid.CommitDetail       `json:"cid"`
+	Query       string                  `json:"query"`
+	Triage      regression.TriageStatus `json:"triage"`
+	ClusterType string                  `json:"cluster_type"`
+}
+
+// triageHandler takes a POST'd TriageRequest serialized as JSON
+// and performs the triage. If succesful it returns a 200, or an
+// HTTP status code of 500 otherwise.
+func triageHandler(w http.ResponseWriter, r *http.Request) {
+	if login.LoggedInAs(r) == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to triage.")
+		return
+	}
+	if r.Method != "POST" {
+		http.NotFound(w, r)
+		return
+	}
+	tr := &TriageRequest{}
+	defer util.Close(r.Body)
+	if err := json.NewDecoder(r.Body).Decode(tr); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		return
+	}
+
+	var err error
+	if tr.ClusterType == "low" {
+		err = regStore.TriageLow(tr.Cid, tr.Query, tr.Triage)
+	} else {
+		err = regStore.TriageHigh(tr.Cid, tr.Query, tr.Triage)
+	}
+
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to triage.")
+	}
+}
+
 // RegressionRangeRequest is used in regressionRangeHandler and is used to query for a range of
 // of Regressions.
 //
@@ -1725,6 +1763,7 @@ func main() {
 	router.HandleFunc("/_/cluster/start", clusterStartHandler)
 	router.HandleFunc("/_/cluster/status/{id:[a-zA-Z0-9]+}", clusterStatusHandler)
 	router.HandleFunc("/_/reg/", regressionRangeHandler)
+	router.HandleFunc("/_/triage/", triageHandler)
 
 	router.HandleFunc("/frame/", templateHandler("frame.html"))
 	router.HandleFunc("/shortcuts/", shortcutHandler)
