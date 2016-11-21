@@ -1478,8 +1478,8 @@ func keysHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// gotoHandler handles redirecting from a git hash to either the explore page
-// or the clustering page.
+// gotoHandler handles redirecting from a git hash to either the explore,
+// clustering, or triage page.
 //
 // Sets begin and end to a range of commits on either side of the selected
 // commit.
@@ -1530,6 +1530,8 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, fmt.Sprintf("/e/?begin=%d&end=%d", beginTime, endTime), http.StatusFound)
 	} else if dest == "c" {
 		http.Redirect(w, r, fmt.Sprintf("/c/?begin=%d&end=%d&offset=%d&source=master", beginTime, endTime, index), http.StatusFound)
+	} else if dest == "t" {
+		http.Redirect(w, r, fmt.Sprintf("/t/?begin=%d&end=%d", beginTime, endTime), http.StatusFound)
 	}
 }
 
@@ -1711,7 +1713,7 @@ func main() {
 	router.HandleFunc("/e/", templateHandler("newindex.html"))
 	router.HandleFunc("/c/", templateHandler("clusters2.html"))
 	router.HandleFunc("/t/", templateHandler("triage.html"))
-	router.HandleFunc("/g/{dest:[ec]}/{hash:[a-zA-Z0-9]+}", gotoHandler)
+	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", gotoHandler)
 	router.HandleFunc("/_/initpage/", initpageHandler)
 	router.HandleFunc("/_/cidRange/", cidRangeHandler)
 	router.HandleFunc("/_/count/", countHandler)
