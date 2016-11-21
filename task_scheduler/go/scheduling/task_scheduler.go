@@ -8,6 +8,7 @@ import (
 	"path"
 	"reflect"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -621,6 +622,9 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 		}
 	}
 
+	// TODO(benjaminwagner): Remove debug logging.
+	glog.Infof("DEBUG: free n6p bots: %s", botsByDim["device_type:angler"])
+
 	// Match bots to tasks.
 	// TODO(borenet): Some tasks require a more specialized bot. We should
 	// match so that less-specialized tasks don't "steal" more-specialized
@@ -641,6 +645,10 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 			} else {
 				matches = matches.Intersect(botsByDim[d])
 			}
+		}
+		// TODO(benjaminwagner): Remove debug logging.
+		if strings.Contains(c.Name, "Nexus6p") {
+			glog.Infof("DEBUG: n6p task %s matches %s", c.TaskKey, matches)
 		}
 		if len(matches) > 0 {
 			// We're going to run this task. Choose a bot. Sort the
@@ -666,6 +674,11 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 
 			// Add the task to the scheduling list.
 			rv = append(rv, c)
+
+			// TODO(benjaminwagner): Remove debug logging.
+			if strings.Contains(c.Name, "Nexus6p") {
+				glog.Infof("DEBUG: chose bot %s for n6p task %s", bot, c.TaskKey)
+			}
 
 			// If we've exhausted the bot list, stop here.
 			if len(botsByDim) == 0 {
