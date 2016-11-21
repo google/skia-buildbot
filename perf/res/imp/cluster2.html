@@ -277,6 +277,7 @@
       _update: function () {
         var mid = Math.floor(this._frame.dataframe.header.length/2);
         var cid = this._frame.dataframe.header[mid];
+        cid.ts = cid.timestamp; // TODO(jcgregorio) Harmonize cid and dataframe.
         var detail = {
           cid: cid,
           triage: this.triage,
