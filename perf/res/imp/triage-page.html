@@ -44,7 +44,7 @@
   </style>
   <template>
     <paper-spinner id=spinner></paper-spinner>
-    <table>
+    <table on-open-keys=_openKeys>
       <tr>
         <th>Commit</th>
         <template is="dom-repeat" items="{{_reg.header}}">
@@ -104,6 +104,15 @@
 
     ready: function() {
       sk.stateReflector(this, this._updateRange.bind(this));
+    },
+
+    _openKeys: function(e) {
+      var state = {
+        keys: e.detail.keys,
+      };
+      sk.post('/_/keys/', JSON.stringify(state)).then(JSON.parse).then(function (json) {
+        window.open('/e/?keys=' + json.id + '&begin=' + e.detail.begin + '&end=' + e.detail.end, '_blank');
+      }.bind(this));
     },
 
     _updateRange: function() {
