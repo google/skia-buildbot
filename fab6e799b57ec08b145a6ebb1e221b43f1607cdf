@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d079ec3f_6edbafd9",
+        "filename": "perf/go/regression/continuous.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-22T18:43:31Z",
+      "side": 1,
+      "message": "Would be nice to have unit tests.",
+      "revId": "fab6e799b57ec08b145a6ebb1e221b43f1607cdf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_ee755feb",
+        "filename": "perf/go/regression/continuous.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-22T18:43:31Z",
+      "side": 1,
+      "message": "missing continue",
+      "range": {
+        "startLine": 64,
+        "startChar": 3,
+        "endLine": 64,
+        "endChar": 4
+      },
+      "revId": "fab6e799b57ec08b145a6ebb1e221b43f1607cdf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_0e86aba4",
+        "filename": "perf/go/regression/continuous.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-22T18:43:31Z",
+      "side": 1,
+      "message": "typo -- use constant?\n\nIt looks like this check isn\u0027t actually needed, though.",
+      "range": {
+        "startLine": 81,
+        "startChar": 75,
+        "endLine": 81,
+        "endChar": 89
+      },
+      "revId": "fab6e799b57ec08b145a6ebb1e221b43f1607cdf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_ee4b1fa1",
+        "filename": "perf/go/regression/continuous.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-22T18:43:31Z",
+      "side": 1,
+      "message": "nit: maybe use details[0] like previous glog.Infof?",
+      "range": {
+        "startLine": 84,
+        "startChar": 59,
+        "endLine": 84,
+        "endChar": 66
+      },
+      "revId": "fab6e799b57ec08b145a6ebb1e221b43f1607cdf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30324888_b677c8b0",
+        "filename": "perf/res/imp/triage-page.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-22T18:43:31Z",
+      "side": 1,
+      "message": "Would it make sense to just move this to cluster-summary2-sk?",
+      "range": {
+        "startLine": 113,
+        "startChar": 4,
+        "endLine": 113,
+        "endChar": 13
+      },
+      "revId": "fab6e799b57ec08b145a6ebb1e221b43f1607cdf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
