@@ -8,6 +8,7 @@ import (
 	"path"
 	"reflect"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -609,6 +610,8 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 	defer metrics2.FuncTimer().Stop()
 	// Create a bots-by-swarming-dimension mapping.
 	botsByDim := map[string]util.StringSet{}
+	// TODO(benjaminwagner): Remove debug logging.
+	botsByDeviceType := map[string]util.StringSet{}
 	for _, b := range bots {
 		for _, dim := range b.Dimensions {
 			for _, val := range dim.Value {
@@ -617,9 +620,18 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 					botsByDim[d] = util.StringSet{}
 				}
 				botsByDim[d][b.BotId] = true
+				if dim.Key == "device_type" {
+					if _, ok := botsByDeviceType[val]; !ok {
+						botsByDeviceType[val] = util.StringSet{}
+					}
+					botsByDeviceType[val][b.BotId] = true
+				}
 			}
 		}
 	}
+
+	// TODO(benjaminwagner): Remove debug logging.
+	glog.Infof("DEBUG: free android bots: %s", botsByDeviceType)
 
 	// Match bots to tasks.
 	// TODO(borenet): Some tasks require a more specialized bot. We should
@@ -635,14 +647,23 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 
 		// For each dimension of the task, find the set of bots which matches.
 		matches := util.StringSet{}
+		// TODO(benjaminwagner): Remove debug logging.
+		deviceType := ""
 		for i, d := range c.TaskSpec.Dimensions {
 			if i == 0 {
 				matches = matches.Union(botsByDim[d])
 			} else {
 				matches = matches.Intersect(botsByDim[d])
 			}
+			if strings.HasPrefix(d, "device_type:") {
+				deviceType = d[len("device_type:"):]
+			}
 		}
 		if len(matches) > 0 {
+			// TODO(benjaminwagner): Remove debug logging.
+			if deviceType != "" {
+				glog.Infof("DEBUG: %s task %s matches %s", deviceType, c.TaskKey, matches)
+			}
 			// We're going to run this task. Choose a bot. Sort the
 			// bots by ID so that the choice is deterministic.
 			choices := make([]string, 0, len(matches))
@@ -666,6 +687,11 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 
 			// Add the task to the scheduling list.
 			rv = append(rv, c)
+
+			// TODO(benjaminwagner): Remove debug logging.
+			if deviceType != "" {
+				glog.Infof("DEBUG: chose bot %s for %s task %s", bot, deviceType, c.TaskKey)
+			}
 
 			// If we've exhausted the bot list, stop here.
 			if len(botsByDim) == 0 {
@@ -711,6 +737,23 @@ func (s *TaskScheduler) isolateTasks(rs db.RepoState, candidates []*taskCandidat
 	return nil
 }
 
+func hasDim(bot *swarming_api.SwarmingRpcsBotInfo, key, value string) bool {
+	for _, dim := range bot.Dimensions {
+		if key == dim.Key {
+			if value == "*" {
+				return true
+			}
+			for _, val := range dim.Value {
+				if value == val {
+					return true
+				}
+			}
+			return false
+		}
+	}
+	return false
+}
+
 // scheduleTasks queries for free Swarming bots and triggers tasks according
 // to relative priorities in the queue.
 func (s *TaskScheduler) scheduleTasks() error {
@@ -721,6 +764,7 @@ func (s *TaskScheduler) scheduleTasks() error {
 		return err
 	}
 	bots = s.busyBots.Filter(bots)
+
 	s.queueMtx.Lock()
 	defer s.queueMtx.Unlock()
 	schedule := getCandidatesToSchedule(bots, s.queue)
@@ -1068,19 +1112,36 @@ func getFreeSwarmingBots(s swarming.ApiClient) ([]*swarming_api.SwarmingRpcsBotI
 	if err != nil {
 		return nil, err
 	}
+	// TODO(benjaminwagner): Remove debug logging.
+	androidbots := map[string]string{}
 	rv := make([]*swarming_api.SwarmingRpcsBotInfo, 0, len(bots))
 	for _, bot := range bots {
+		// TODO(benjaminwagner): Remove debug logging.
+		isandroid := hasDim(bot, "device_type", "*")
 		if bot.IsDead {
+			if isandroid {
+				androidbots[bot.BotId] = "IsDead"
+			}
 			continue
 		}
 		if bot.Quarantined {
+			if isandroid {
+				androidbots[bot.BotId] = "Quarantined"
+			}
 			continue
 		}
 		if bot.TaskId != "" {
+			if isandroid {
+				androidbots[bot.BotId] = "has TaskId " + bot.TaskId
+			}
 			continue
+		}
+		if isandroid {
+			androidbots[bot.BotId] = "available"
 		}
 		rv = append(rv, bot)
 	}
+	glog.Infof("DEBUG: android bots: %s", androidbots)
 	return rv, nil
 }
 
