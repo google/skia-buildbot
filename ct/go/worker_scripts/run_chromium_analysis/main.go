@@ -26,7 +26,7 @@ import (
 
 const (
 	// The number of goroutines that will run in parallel to run benchmarks.
-	WORKER_POOL_SIZE = 10
+	WORKER_POOL_SIZE = 5
 	// The number of allowed benchmark timeouts in a row before the worker
 	// script fails.
 	MAX_ALLOWED_SEQUENTIAL_TIMEOUTS = 20
