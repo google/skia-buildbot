@@ -44,36 +44,36 @@
   </style>
   <template>
     <paper-spinner id=spinner></paper-spinner>
-    <table>
+    <table on-triaged=_triaged>
       <tr>
         <th>Commit</th>
-        <template is="dom-repeat" items="{{_reg.header}}">
-          <th colspan=2><query-summary-sk selection="{{item}}"></query-summary-sk></th>
+        <template is="dom-repeat" items="[[_reg.header]]">
+          <th colspan=2><query-summary-sk selection="[[item]]"></query-summary-sk></th>
         </template>
       </tr>
       <tr>
         <th></th>
-        <template is="dom-repeat" items="{{_reg.header}}">
+        <template is="dom-repeat" items="[[_reg.header]]">
           <th>Low</th>
           <th>High</th>
         </template>
       </tr>
-      <template is="dom-repeat" items="{{_reg.table}}">
-        <tr><td class=fixed>{{_trunc(item.cid.message)}}</td>
-          <template is="dom-repeat" items="{{item.columns}}">
+      <template is="dom-repeat" items="[[_reg.table]]">
+        <tr><td class=fixed>[[_trunc(item.cid.message)]]</td>
+          <template is="dom-repeat" items="[[item.columns]]">
             <td class=cluster>
-              <template is="dom-if" if="{{item.low}}">
-                <triage-status-sk cluster_type=low full_summary="[[_full_summary(item.frame, item.low)]]" triage="[[item.high_status]]"></triage-status-sk>
+              <template is="dom-if" if="[[item.low]]">
+                <triage-status-sk query="[[_queryFrom(index)]]" cluster_type=low full_summary="[[_full_summary(item.frame, item.low)]]" triage="[[item.high_status]]"></triage-status-sk>
               </template>
-              <template is="dom-if" if="{{_not(item.low)}}">
+              <template is="dom-if" if="[[_not(item.low)]]">
                 -
               </template>
             </td>
             <td class=cluster>
-              <template is="dom-if" if="{{item.high}}">
-                <triage-status-sk cluster_type=high full_summary="[[_full_summary(item.frame, item.high)]]" triage="[[item.high_status]]"></triage-status-sk>
+              <template is="dom-if" if="[[item.high]]">
+                <triage-status-sk query="[[_queryFrom(index)]]" cluster_type=high full_summary="[[_full_summary(item.frame, item.high)]]" triage="[[item.high_status]]"></triage-status-sk>
               </template>
-              <template is="dom-if" if="{{_not(item.high)}}">
+              <template is="dom-if" if="[[_not(item.high)]]">
                 -
               </template>
             </td>
@@ -99,6 +99,10 @@
       _reg: {
         type: Object,
         value: function() { return {}; },
+      },
+      _triageInProgress: {
+        type: Boolean,
+        value: false,
       }
     },
 
@@ -121,6 +125,29 @@
         }
         this.$.spinner.active = false;
       }.bind(this));
+    },
+
+    _triaged: function(e) {
+      this.$.spinner.active = true;
+      if (this._triageInProgress === true) {
+        sk.errorMessage("A triage request is in progress.");
+        return
+      }
+      this._triageInProgress = true;
+      sk.post("/_/triage/", JSON.stringify(e.detail), "application/json").then(function() {
+        this.$.spinner.active = false;
+        this._triageInProgress = false;
+      }.bind(this)).catch(function(msg) {
+        if (msg) {
+          sk.errorMessage(msg, 10000);
+        }
+        this.$.spinner.active = false;
+        this._triageInProgress = false;
+      }.bind(this));
+    },
+
+    _queryFrom: function(index) {
+      return this._reg.header[index];
     },
 
     _trunc: function(s) {
