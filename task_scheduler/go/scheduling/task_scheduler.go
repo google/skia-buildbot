@@ -8,6 +8,7 @@ import (
 	"path"
 	"reflect"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -621,6 +622,9 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 		}
 	}
 
+	// TODO(benjaminwagner): Remove debug logging.
+	glog.Infof("DEBUG: free n6p bots: %s", botsByDim["device_type:angler"])
+
 	// Match bots to tasks.
 	// TODO(borenet): Some tasks require a more specialized bot. We should
 	// match so that less-specialized tasks don't "steal" more-specialized
@@ -641,6 +645,10 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 			} else {
 				matches = matches.Intersect(botsByDim[d])
 			}
+		}
+		// TODO(benjaminwagner): Remove debug logging.
+		if strings.Contains(c.Name, "Nexus6p") {
+			glog.Infof("DEBUG: n6p task %s matches %s", c.TaskKey, matches)
 		}
 		if len(matches) > 0 {
 			// We're going to run this task. Choose a bot. Sort the
@@ -666,6 +674,11 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 
 			// Add the task to the scheduling list.
 			rv = append(rv, c)
+
+			// TODO(benjaminwagner): Remove debug logging.
+			if strings.Contains(c.Name, "Nexus6p") {
+				glog.Infof("DEBUG: chose bot %s for n6p task %s", bot, c.TaskKey)
+			}
 
 			// If we've exhausted the bot list, stop here.
 			if len(botsByDim) == 0 {
@@ -711,6 +724,19 @@ func (s *TaskScheduler) isolateTasks(rs db.RepoState, candidates []*taskCandidat
 	return nil
 }
 
+func hasDim(bot *swarming_api.SwarmingRpcsBotInfo, key, value string) bool {
+	for _, dim := range bot.Dimensions {
+		if key == dim.Key {
+			for _, val := range dim.Value {
+				if value == val {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 // scheduleTasks queries for free Swarming bots and triggers tasks according
 // to relative priorities in the queue.
 func (s *TaskScheduler) scheduleTasks() error {
@@ -720,7 +746,21 @@ func (s *TaskScheduler) scheduleTasks() error {
 	if err != nil {
 		return err
 	}
+	// TODO(benjaminwagner): Remove debug logging.
+	n6pbots := map[string]string{}
+	for _, bot := range bots {
+		if hasDim(bot, "device_type", "angler") {
+			n6pbots[bot.BotId] = "busy"
+		}
+	}
 	bots = s.busyBots.Filter(bots)
+	for _, bot := range bots {
+		if _, ok := n6pbots[bot.BotId]; ok {
+			n6pbots[bot.BotId] = "available"
+		}
+	}
+	glog.Infof("DEBUG: n6p bots: %s", n6pbots)
+
 	s.queueMtx.Lock()
 	defer s.queueMtx.Unlock()
 	schedule := getCandidatesToSchedule(bots, s.queue)
@@ -1068,19 +1108,36 @@ func getFreeSwarmingBots(s swarming.ApiClient) ([]*swarming_api.SwarmingRpcsBotI
 	if err != nil {
 		return nil, err
 	}
+	// TODO(benjaminwagner): Remove debug logging.
+	n6pbots := map[string]string{}
 	rv := make([]*swarming_api.SwarmingRpcsBotInfo, 0, len(bots))
 	for _, bot := range bots {
+		// TODO(benjaminwagner): Remove debug logging.
+		isn6p := hasDim(bot, "device_type", "angler")
 		if bot.IsDead {
+			if isn6p {
+				n6pbots[bot.BotId] = "IsDead"
+			}
 			continue
 		}
 		if bot.Quarantined {
+			if isn6p {
+				n6pbots[bot.BotId] = "Quarantined"
+			}
 			continue
 		}
 		if bot.TaskId != "" {
+			if isn6p {
+				n6pbots[bot.BotId] = "has TaskId " + bot.TaskId
+			}
 			continue
+		}
+		if isn6p {
+			n6pbots[bot.BotId] = "available"
 		}
 		rv = append(rv, bot)
 	}
+	glog.Infof("DEBUG: n6p bots: %s", n6pbots)
 	return rv, nil
 }
 
