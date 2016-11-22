@@ -206,9 +206,9 @@ func getStepFit(trace []float32) *StepFit {
 	regression := stepSize / lse
 	status := "Uninteresting"
 	if regression > INTERESTING_THRESHHOLD {
-		status = "High"
-	} else if regression < -INTERESTING_THRESHHOLD {
 		status = "Low"
+	} else if regression < -INTERESTING_THRESHHOLD {
+		status = "High"
 	}
 	return &StepFit{
 		LeastSquares: lse,
