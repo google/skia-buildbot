@@ -31,7 +31,7 @@ const (
 	// INTERESTING_THRESHHOLD is the threshhold value beyond which
 	// StepFit.Regression values become interesting, i.e. they may indicate real
 	// regressions or improvements.
-	INTERESTING_THRESHHOLD = 150.0
+	INTERESTING_THRESHHOLD = 90.0
 )
 
 // ValueWeight is a weight proportional to the number of times the parameter
@@ -206,9 +206,9 @@ func getStepFit(trace []float32) *StepFit {
 	regression := stepSize / lse
 	status := "Uninteresting"
 	if regression > INTERESTING_THRESHHOLD {
-		status = "High"
-	} else if regression < -INTERESTING_THRESHHOLD {
 		status = "Low"
+	} else if regression < -INTERESTING_THRESHHOLD {
+		status = "High"
 	}
 	return &StepFit{
 		LeastSquares: lse,

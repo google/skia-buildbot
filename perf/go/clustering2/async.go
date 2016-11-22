@@ -233,7 +233,15 @@ func (p *ClusterRequestProcess) Run() {
 		return
 	}
 	n := len(df.TraceSet)
-	k := int(math.Floor(math.Sqrt(float64(n))))
+	// We want K to be around 50 when n = 30000, which has been determined via
+	// trial and error to be a good value for the Perf data we are working in. We
+	// want K to decrease from  there as n gets smaller, but don't want K to go
+	// below 10, so we use a simple linear relation:
+	//
+	//  k = 40/30000 * n + 10
+	//
+	k := int(math.Floor((40.0/30000.0)*float64(n) + 10))
+	glog.Infof("Clustering with K=%d", k)
 	summary, err := CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.clusterProgress)
 	if err != nil {
 		p.reportError(err, "Invalid clustering.")

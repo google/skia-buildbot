@@ -44,7 +44,7 @@
   </style>
   <template>
     <paper-spinner id=spinner></paper-spinner>
-    <table on-triaged=_triaged>
+    <table on-open-keys=_openKeys on-triaged=_triaged>
       <tr>
         <th>Commit</th>
         <template is="dom-repeat" items="[[_reg.header]]">
@@ -63,7 +63,7 @@
           <template is="dom-repeat" items="[[item.columns]]">
             <td class=cluster>
               <template is="dom-if" if="[[item.low]]">
-                <triage-status-sk query="[[_queryFrom(index)]]" cluster_type=low full_summary="[[_full_summary(item.frame, item.low)]]" triage="[[item.high_status]]"></triage-status-sk>
+                <triage-status-sk query="[[_queryFrom(index)]]" cluster_type=low full_summary="[[_full_summary(item.frame, item.low)]]" triage="[[item.low_status]]"></triage-status-sk>
               </template>
               <template is="dom-if" if="[[_not(item.low)]]">
                 -
@@ -108,6 +108,15 @@
 
     ready: function() {
       sk.stateReflector(this, this._updateRange.bind(this));
+    },
+
+    _openKeys: function(e) {
+      var state = {
+        keys: e.detail.keys,
+      };
+      sk.post('/_/keys/', JSON.stringify(state)).then(JSON.parse).then(function (json) {
+        window.open('/e/?keys=' + json.id + '&begin=' + e.detail.begin + '&end=' + e.detail.end, '_blank');
+      }.bind(this));
     },
 
     _updateRange: function() {
