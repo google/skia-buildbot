@@ -59,7 +59,7 @@
         </template>
       </tr>
       <template is="dom-repeat" items="[[_reg.table]]">
-        <tr><td class=fixed>[[_trunc(item.cid.message)]]</td>
+        <tr><td class=fixed><a href="[[item.cid.url]]">[[_trunc(item.cid.message)]]</a></td>
           <template is="dom-repeat" items="[[item.columns]]">
             <td class=cluster>
               <template is="dom-if" if="[[item.low]]">
