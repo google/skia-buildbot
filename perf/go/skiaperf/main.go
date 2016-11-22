@@ -214,6 +214,10 @@ func Init() {
 	dataframe.StartWarmer(git)
 	regStore = regression.NewStore()
 
+	// Start running continuous clustering looking for regressions.
+	queries := strings.Split(*clusterQueries, " ")
+	go regression.NewContinuous(git, cidl, queries, regStore).Run()
+
 	if !*newonly {
 		evt := eventbus.New(nil)
 		tileStats = tilestats.New(evt)
@@ -1670,12 +1674,20 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	headers = util.NewStringSet(headers).Keys()
 	sort.Sort(sort.StringSlice(headers))
 
+	// Reverse the order of the cids, so the latest
+	// commit shows up first in the UI display.
+	revCids := make([]*cid.CommitDetail, len(cids), len(cids))
+	for i, c := range cids {
+		revCids[len(cids)-1-i] = c
+	}
+
 	// Build the RegressionRangeResponse.
 	ret := RegressionRangeResponse{
 		Header: headers,
 		Table:  []*RegressionRow{},
 	}
-	for _, cid := range cids {
+
+	for _, cid := range revCids {
 		row := &RegressionRow{
 			Id:      cid,
 			Columns: make([]*regression.Regression, len(headers), len(headers)),
