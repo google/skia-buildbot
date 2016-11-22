@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "30324888_f9a77357",
+        "filename": "perf/go/clustering2/clustering.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-22T19:12:50Z",
+      "side": 1,
+      "message": "Should be y1 - y0?",
+      "revId": "e32ef556bb33d4b4e64ae9c8373817bf2d5f84b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30324888_1904af7a",
+        "filename": "perf/go/regression/continuous.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-22T19:12:50Z",
+      "side": 1,
+      "message": "missed this one",
+      "range": {
+        "startLine": 89,
+        "startChar": 60,
+        "endLine": 89,
+        "endChar": 67
+      },
+      "revId": "e32ef556bb33d4b4e64ae9c8373817bf2d5f84b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
