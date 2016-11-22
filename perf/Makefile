@@ -10,7 +10,10 @@ BOWER_DIR=third_party/bower_components
 VULCANIZE1=true
 
 .PHONY: build
-build: web ptracequery perf_migratedb
+build: skiaperf web ptracequery perf_migratedb
+
+.PHONY: skiaperf
+skiaperf:
 	go install -v ./go/skiaperf
 
 ptracequery:
