@@ -154,7 +154,7 @@ func (s *Store) Write(inputRecs []Record, writeFn WriteFn, tx ...*bolt.Tx) error
 		// Capture the index values before they are changed.
 		origIndexState := s.getIndexState(foundRecs)
 
-		writeRecs := foundRecs
+		writeRecs := inputRecs
 		if writeFn != nil {
 			writeRecs, err = writeFn(tx, foundRecs)
 			if err != nil {
