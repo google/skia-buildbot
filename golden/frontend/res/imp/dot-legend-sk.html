@@ -102,11 +102,10 @@
       _computeHref: function (di, test) {
         return 'detail' + gold.detailQuery(test, di.digest);
       },
-      
+
       _computeHref2: function (di, digests, test) {
-        return 'diff' + gold.diffQuery(test, di.digest, digests[0].digest);
+        return 'diff' + gold.diffQuery(test, digests[0].digest, di.digest);
       }
     });
   </script>
 </dom-module>
-
