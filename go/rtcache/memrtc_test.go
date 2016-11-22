@@ -61,7 +61,8 @@ func TestReadThroughCache(t *testing.T) {
 	}
 
 	// create a worker queue for a given type
-	q := New(worker, 10000, runtime.NumCPU()-2)
+	q, err := New(worker, 10000, runtime.NumCPU()-2)
+	assert.NoError(t, err)
 
 	// make sure all results arrive.
 	var allDone sync.WaitGroup
@@ -130,8 +131,9 @@ func TestErrHandling(t *testing.T) {
 	}
 
 	testID := "id-1"
-	q := New(errWorker, 10000, runtime.NumCPU())
-	_, err := q.Get(1, testID)
+	q, err := New(errWorker, 10000, runtime.NumCPU())
+	assert.NoError(t, err)
+	_, err = q.Get(1, testID)
 	assert.Error(t, err)
 	time.Sleep(time.Millisecond)
 	_, err = q.Get(1, testID)
