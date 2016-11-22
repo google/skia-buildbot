@@ -47,22 +47,22 @@ func TestStepFit(t *testing.T) {
 	}{
 		{
 			value:    []float32{0, 0, 1, 1, 1},
-			expected: &StepFit{TurningPoint: 2, StepSize: -1, Status: "Low"},
+			expected: &StepFit{TurningPoint: 2, StepSize: -1, Status: HIGH},
 			message:  "Simple Step Up",
 		},
 		{
 			value:    []float32{1, 1, 1, 0, 0},
-			expected: &StepFit{TurningPoint: 3, StepSize: 1, Status: "High"},
+			expected: &StepFit{TurningPoint: 3, StepSize: 1, Status: LOW},
 			message:  "Simple Step Down",
 		},
 		{
 			value:    []float32{1, 1, 1, 1, 1},
-			expected: &StepFit{TurningPoint: 0, StepSize: -1, Status: "Uninteresting"},
+			expected: &StepFit{TurningPoint: 0, StepSize: -1, Status: UNINTERESTING},
 			message:  "No step",
 		},
 		{
 			value:    []float32{},
-			expected: &StepFit{TurningPoint: 0, StepSize: -1, Status: "Uninteresting"},
+			expected: &StepFit{TurningPoint: 0, StepSize: -1, Status: UNINTERESTING},
 			message:  "Empty",
 		},
 	}
