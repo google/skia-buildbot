@@ -16,6 +16,24 @@
       "revId": "09846b59fe8b686b60f99005a8f1b7d1ec5c9d44",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "50d33c96_6add3772",
+        "filename": "task_scheduler/res/imp/job-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-23T15:22:57Z",
+      "side": 0,
+      "message": "Yes, I swapped them to demonstrate the auto-reload which only occurs when there is a pending/running task remaining.  The \"real\" Job is finished, so it cancels the auto-reload, and switching to the fake data does not re-enable it since it doesn\u0027t reload the page.  I didn\u0027t want to write a special case for the Job going from finished to unfinished since that can\u0027t happen, so I just swapped the jobs.",
+      "parentUuid": "50d33c96_2a84df5c",
+      "revId": "09846b59fe8b686b60f99005a8f1b7d1ec5c9d44",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

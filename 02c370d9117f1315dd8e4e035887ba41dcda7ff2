@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "50d33c96_cacd43c5",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-23T15:22:57Z",
+      "side": 1,
+      "message": "This will use the Swarming UI (@google and @chromium only) for any logged-in user, including @gmail. I\u0027d recommend using login.IsGoogler(r) instead.",
+      "range": {
+        "startLine": 205,
+        "startChar": 61,
+        "endLine": 205,
+        "endChar": 71
+      },
+      "revId": "02c370d9117f1315dd8e4e035887ba41dcda7ff2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "50d33c96_2ad33f6a",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-23T15:22:57Z",
+      "side": 1,
+      "message": "Same here; let\u0027s use the \"@google.com\" suffix to decide which URL to use.",
+      "range": {
+        "startLine": 270,
+        "startChar": 48,
+        "endLine": 270,
+        "endChar": 53
+      },
+      "revId": "02c370d9117f1315dd8e4e035887ba41dcda7ff2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
