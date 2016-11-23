@@ -3,13 +3,20 @@ package scheduling
 import (
 	"sync"
 
+	"go.skia.org/infra/go/metrics2"
+
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
+)
+
+const (
+	MEASUREMENT_BUSY_BOTS = "busy-bots"
 )
 
 // busyBots is a struct used for marking a bot as busy while it runs a Task.
 type busyBots struct {
-	bots map[string]string
-	mtx  sync.Mutex
+	bots    map[string]string
+	metrics map[string]*metrics2.Liveness
+	mtx     sync.Mutex
 }
 
 // newBusyBots returns a busyBots instance.
@@ -24,6 +31,13 @@ func (b *busyBots) Reserve(bot, task string) {
 	b.mtx.Lock()
 	defer b.mtx.Unlock()
 	b.bots[bot] = task
+	if m, ok := b.metrics[bot]; ok {
+		m.Delete()
+		delete(b.metrics, bot)
+	}
+	b.metrics[bot] = metrics2.NewLiveness(MEASUREMENT_BUSY_BOTS, map[string]string{
+		"bot": bot,
+	})
 }
 
 // Filter returns a copy of the given slice of bots with the busy bots removed.
@@ -53,5 +67,7 @@ func (b *busyBots) Release(bot, task string) {
 	defer b.mtx.Unlock()
 	if b.bots[bot] == task {
 		delete(b.bots, bot)
+		b.metrics[bot].Delete()
+		delete(b.metrics, bot)
 	}
 }
