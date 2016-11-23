@@ -60,6 +60,24 @@
     },
     {
       "key": {
+        "uuid": "4df48341_c286a4a5",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T18:55:08Z",
+      "side": 1,
+      "message": "Right, I wouldn\u0027t change the other Parse methods -- this was a comment specifically about ParseDimensionFlags.",
+      "parentUuid": "4df48341_820e5ca9",
+      "revId": "b966945b5e6bd52502ed313f8c39a144faa3f981",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df48341_ffffffb6",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -100,6 +118,24 @@
         "endLine": 39,
         "endChar": 62
       },
+      "revId": "b966945b5e6bd52502ed313f8c39a144faa3f981",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_4293b4eb",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T18:55:08Z",
+      "side": 1,
+      "message": "Also, \"task-scheduler\" will already be present in app and host tags, correct?",
+      "parentUuid": "4df48341_9fbeb3b0",
       "revId": "b966945b5e6bd52502ed313f8c39a144faa3f981",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
