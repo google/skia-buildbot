@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "50d33c96_ed1821f1",
+        "filename": "perf/go/clustering2/async.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T16:24:03Z",
+      "side": 1,
+      "message": "Not completely related to this CL, but it seems that once we filter out this data, we\u0027ll never see it in the triage UI, even if new data comes in. See https://skia.googlesource.com/buildbot/+/d466b3d79b72f1d6b119263a9284648d08c8e33a/perf/go/regression/regression.go#77 and https://skia.googlesource.com/buildbot/+/d466b3d79b72f1d6b119263a9284648d08c8e33a/perf/go/regression/regression.go#97",
+      "revId": "d6d31c71fbf5c05a9b41d89be216299df96e78d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
