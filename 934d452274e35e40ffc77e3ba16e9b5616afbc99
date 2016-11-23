@@ -102,6 +102,24 @@
     },
     {
       "key": {
+        "uuid": "4df48341_8820bb63",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-23T22:34:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df48341_c5c10e3e",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "30324888_8ab7fb1e",
         "filename": "go/boltutil/store.go",
         "patchSetId": 13
@@ -196,6 +214,24 @@
       "side": 1,
       "message": "Sorry, I don\u0027t think I was very clear. I think the code works as-is for multiple record types (except NewStore), but the naming is a bit confusing. Now is a good time to change the naming. :-)\n\nThe way I would use this for multiple types in the same DB is something like:\ntype DB struct {\n  tasks *boltutil.IndexedBucket\n  jobs *boltutil.IndexedBucket\n}\n\nfunc NewDb(filename string) (*DB, error) {\n  db, _ :\u003d bolt.Open(filename, 0600, nil)\n  tasks, _ :\u003d boltutil.NewIndexedBucket(\u0026boltutil.Config{\n    DB: db,\n    Name: TASK_BUCKET,\n    Indices: TASK_INDICES,\n    Codec: NewTaskCodec(),\n  })\n  jobs, _ :\u003d boltutil.NewIndexedBucket(\u0026boltutil.Config{\n    DB: db,\n    Name: JOB_BUCKET,\n    Indices: JOB_INDICES,\n    Codec: NewJobCodec(),\n  })\n  return \u0026DB{\n    tasks: tasks,\n    jobs: jobs,\n  }\n}",
       "parentUuid": "50d33c96_4a64b3f6",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_930eaca9",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-23T22:34:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df48341_c85923a7",
       "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -337,6 +373,24 @@
       "side": 1,
       "message": "Could I get a preview? :-)",
       "parentUuid": "4df48341_4243b411",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_53c5c4f3",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-23T22:34:17Z",
+      "side": 1,
+      "message": "To keep track of indices I would compare the provided indices with a list I keep in a \"_meta\" bucket. \nIf the list changes I will remove indices that I no longer need and build new indices if necessary. \nSo when the constructor returns the indices are in a defined state and there is no manual migration necessary. \nThe underlying assumption is that the indices only change in code.",
+      "parentUuid": "4df48341_684a17c7",
       "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -882,6 +936,24 @@
     },
     {
       "key": {
+        "uuid": "4df48341_537a64db",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-23T22:34:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df48341_48acf33b",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d079ec3f_11880c40",
         "filename": "go/boltutil/store.go",
         "patchSetId": 13
@@ -935,6 +1007,24 @@
       "side": 1,
       "message": "What do you mean by \"leak data into the log\"? Do you mean if the error is used in an HTTP response?",
       "parentUuid": "4df48341_1fcaa303",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_73020828",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-23T22:34:17Z",
+      "side": 1,
+      "message": "Not so much HTTP response, but simply be written to a log file. If the rec contained sensitive\ndata we would now have them in a log file. If the rec values were essential to debugging this I would make the the error message more specific. But it\u0027s already part of the contract that the Key() cannot be empty and it should be easy to figure out what\u0027s going on which out having the specific record.",
+      "parentUuid": "4df48341_a8bc9f69",
       "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -1732,6 +1822,24 @@
       "side": 1,
       "message": "Fair enough, but if \u0027myval\u0027 is also a valid index value, then when I do an index lookup for \u0027myval\u0027 then I will also get results for \u0027myvalX\u0027, with results that are prefixed with an extra X.",
       "parentUuid": "4df48341_e2b7681f",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_8e14436e",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 331,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-23T22:34:17Z",
+      "side": 1,
+      "message": "True. I don\u0027t like to restrict the keys or values of the index at all, because I want to be able to use any byte array as a key or value. The issue is really to determine how much the boltDB key is the secondary dataset key and how much of it is the primary key. \nWhat if I append two bytes to indicate the length of key? This would have the advantage that it works for all key/values and I could even implement a range query.",
+      "parentUuid": "4df48341_282e4fbc",
       "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
