@@ -232,6 +232,8 @@ func (p *ClusterRequestProcess) Run() {
 		p.reportError(err, "Invalid range of commits.")
 		return
 	}
+	// Filter out Traces with insufficient data.
+
 	n := len(df.TraceSet)
 	// We want K to be around 50 when n = 30000, which has been determined via
 	// trial and error to be a good value for the Perf data we are working in. We
