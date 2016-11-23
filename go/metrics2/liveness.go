@@ -4,6 +4,8 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"go.skia.org/infra/go/util"
 )
 
@@ -19,6 +21,7 @@ const (
 // successfully. Every liveness metric should have a corresponding alert set up that
 // will fire of the time-since-last-successful-update metric gets too large.
 type Liveness struct {
+	cancelFn             func()
 	lastSuccessfulUpdate time.Time
 	m                    *Int64Metric
 	mtx                  sync.Mutex
@@ -31,16 +34,18 @@ func (c *Client) NewLiveness(name string, tagsList ...map[string]string) *Livene
 	// Make a copy of the tags and add the name.
 	tags := util.AddParams(map[string]string{}, tagsList...)
 	tags["name"] = name
+	ctx, cancelFn := context.WithCancel(context.Background())
 	l := &Liveness{
+		cancelFn:             cancelFn,
 		lastSuccessfulUpdate: time.Now(),
 		m:                    c.GetInt64Metric(MEASUREMENT_LIVENESS, tags),
 		mtx:                  sync.Mutex{},
 	}
-	go func() {
+	go util.RepeatCtx(time.Minute, ctx, func() {
 		for _ = range time.Tick(c.reportFrequency) {
 			l.update()
 		}
-	}()
+	})
 	return l
 }
 
@@ -88,4 +93,12 @@ func (l *Liveness) ManualReset(lastSuccessfulUpdate time.Time) {
 	defer l.mtx.Unlock()
 	l.lastSuccessfulUpdate = lastSuccessfulUpdate
 	l.updateLocked()
+}
+
+// Delete removes the Liveness from metrics.
+func (l *Liveness) Delete() error {
+	l.mtx.Lock()
+	defer l.mtx.Unlock()
+	l.cancelFn()
+	return l.m.Delete()
 }
