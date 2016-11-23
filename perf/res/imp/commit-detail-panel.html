@@ -35,6 +35,7 @@
 
     select(index) - Causes the commit at 'index' to be selected.
 -->
+<link rel="import" href="/res/imp/commit-detail.html" />
 
 <dom-module id="commit-detail-panel-sk">
   <style>
@@ -67,7 +68,9 @@
         <tr data-id$="[[index]]" data-selected$="[[_selected(index,_selectedIndex)]]">
           <td>[[_trim(item.author)]]</td>
           <td>[[_humanize(item.ts)]]</td>
-          <td><a href$="[[item.url]]">[[_trimNewline(item.message)]]</a></td>
+          <td>
+            <commit-detail-sk cid="[[item]]"></commit-detail-sk>
+          </td>
         </tr>
       </template>
     </table>
@@ -99,6 +102,9 @@
     },
 
     setCommitDetail: function(details) {
+      details.forEach(function(ele) {
+        ele.message = ele.message.slice(0, 40);
+      });
       this.set('_details', details);
       this.set('_selectedIndex', -1);
       this.$.template.render();
