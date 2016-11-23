@@ -18,6 +18,7 @@
 <link rel="import" href="/res/common/imp/query-summary-sk.html" />
 
 <link rel="import" href="/res/imp/triage-status.html" />
+<link rel="import" href="/res/imp/commit-detail.html" />
 
 <dom-module id="triage-page-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
@@ -59,7 +60,10 @@
         </template>
       </tr>
       <template is="dom-repeat" items="[[_reg.table]]">
-        <tr><td class=fixed><a href="[[item.cid.url]]">[[_trunc(item.cid.message)]]</a></td>
+        <tr>
+          <td class=fixed>
+            <commit-detail-sk cid="[[item.cid]]"></commit-detail-sk>
+          </td>
           <template is="dom-repeat" items="[[item.columns]]">
             <td class=cluster>
               <template is="dom-if" if="[[item.low]]">
@@ -99,6 +103,7 @@
       _reg: {
         type: Object,
         value: function() { return {}; },
+        observer: "_shortenCidMessages",
       },
       _triageInProgress: {
         type: Boolean,
@@ -159,8 +164,13 @@
       return this._reg.header[index];
     },
 
-    _trunc: function(s) {
-      return s.slice(0, 40);
+    _shortenCidMessages: function() {
+      if (!this._reg || !this._reg.table) {
+        return
+      }
+      this._reg.table.forEach(function(ele) {
+        ele.cid.message = ele.cid.message.slice(0, 40);
+      });
     },
 
     _full_summary: function(frame, summary) {
