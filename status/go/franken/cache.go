@@ -41,6 +41,9 @@ const (
 	// TASK_URL_FMT is a format string for the Swarming task URL. Parameter is
 	// task ID.
 	TASK_URL_FMT = "https://chromium-swarm.appspot.com/task?id=%s"
+	// NOAUTH_TASK_URL_FMT is a format string for the Swarming task URL that is
+	// available to users that are not logged in. Parameter is task ID.
+	NOAUTH_TASK_URL_FMT = "https://luci-milo.appspot.com/swarming/task/%s"
 	// TASK_TRIGGER_URL_FMT is a format string for triggering a Task with task
 	// scheduler. Parameters are task spec name and commit hash.
 	TASK_TRIGGER_URL_FMT = "https://task-scheduler.skia.org/trigger?submit=true&task_spec=%s&commit=%s"
@@ -262,7 +265,7 @@ func (c *BTCache) buildNumberToTaskId(num int) (string, error) {
 }
 
 // taskToBuild generates a Build representing a Task.
-func (c *BTCache) taskToBuild(task *db.Task) *buildbot.Build {
+func (c *BTCache) taskToBuild(task *db.Task, loggedIn bool) *buildbot.Build {
 	results := buildbot.BUILDBOT_EXCEPTION
 	switch task.Status {
 	case db.TASK_STATUS_PENDING, db.TASK_STATUS_RUNNING, db.TASK_STATUS_SUCCESS:
@@ -275,8 +278,12 @@ func (c *BTCache) taskToBuild(task *db.Task) *buildbot.Build {
 
 	buildSlave := DEFAULT_BUILD_SLAVE
 
+	taskUrlFmt := NOAUTH_TASK_URL_FMT
+	if loggedIn {
+		taskUrlFmt = TASK_URL_FMT
+	}
 	properties := [][]interface{}{
-		{"taskURL", fmt.Sprintf(TASK_URL_FMT, task.SwarmingTaskId), PROPERTY_SOURCE},
+		{"taskURL", fmt.Sprintf(taskUrlFmt, task.SwarmingTaskId), PROPERTY_SOURCE},
 		{"taskRetryURL", fmt.Sprintf(TASK_TRIGGER_URL_FMT, task.Name, task.Revision), PROPERTY_SOURCE},
 		{"taskSpecTasklistURL", fmt.Sprintf(TASKLIST_URL_FMT, db.SWARMING_TAG_NAME, task.Name), PROPERTY_SOURCE},
 	}
@@ -327,7 +334,7 @@ func (c *BTCache) taskToBuild(task *db.Task) *buildbot.Build {
 
 // GetBuildsForCommits returns the build data and task data (as Builds) for the
 // given commits. See also BuildCache.GetBuildsForCommits.
-func (c *BTCache) GetBuildsForCommits(commits []string) (map[string]map[string]*buildbot.BuildSummary, error) {
+func (c *BTCache) GetBuildsForCommits(commits []string, loggedIn bool) (map[string]map[string]*buildbot.BuildSummary, error) {
 	if len(commits) == 0 {
 		return map[string]map[string]*buildbot.BuildSummary{}, nil
 	}
@@ -359,7 +366,7 @@ func (c *BTCache) GetBuildsForCommits(commits []string) (map[string]map[string]*
 		}
 		for name, task := range taskMap {
 			builder := taskNameToBuilderName(name)
-			buildMap[builder] = c.taskToBuild(task).GetSummary()
+			buildMap[builder] = c.taskToBuild(task, loggedIn).GetSummary()
 		}
 	}
 	return buildResult, nil
@@ -367,8 +374,8 @@ func (c *BTCache) GetBuildsForCommits(commits []string) (map[string]map[string]*
 
 // GetBuildsForCommit returns the build data and task data (as Builds) for the
 // given commit. See also BuildCache.GetBuildsForCommit.
-func (c *BTCache) GetBuildsForCommit(hash string) ([]*buildbot.BuildSummary, error) {
-	builds, err := c.GetBuildsForCommits([]string{hash})
+func (c *BTCache) GetBuildsForCommit(hash string, loggedIn bool) ([]*buildbot.BuildSummary, error) {
+	builds, err := c.GetBuildsForCommits([]string{hash}, loggedIn)
 	if err != nil {
 		return nil, err
 	}
@@ -381,7 +388,7 @@ func (c *BTCache) GetBuildsForCommit(hash string) ([]*buildbot.BuildSummary, err
 
 // GetBuildsFromDateRange returns builds and tasks (as Builds) within the given
 // date range. See also BuildCache.GetBuildsFromDateRange.
-func (c *BTCache) GetBuildsFromDateRange(from, to time.Time) ([]*buildbot.Build, error) {
+func (c *BTCache) GetBuildsFromDateRange(from, to time.Time, loggedIn bool) ([]*buildbot.Build, error) {
 	buildResult, err := c.builds.GetBuildsFromDateRange(from, to)
 	if err != nil {
 		return nil, err
@@ -393,7 +400,7 @@ func (c *BTCache) GetBuildsFromDateRange(from, to time.Time) ([]*buildbot.Build,
 	// TODO(benjaminwagner): Does anyone care if the return value is sorted?
 	for _, task := range taskResult {
 		if task.Done() {
-			buildResult = append(buildResult, c.taskToBuild(task))
+			buildResult = append(buildResult, c.taskToBuild(task, loggedIn))
 		}
 	}
 	return buildResult, nil

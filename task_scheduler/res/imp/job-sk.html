@@ -267,6 +267,11 @@
       _computeTasksGraph: function() {
         var taskData = this._job.Tasks;
         var graph = this._job.Dependencies;
+        var taskLinkUrlPrefix = "https://luci-milo.appspot.com/swarming/task/";
+        if ($$$("login-sk").email &&
+            $$$("login-sk").email.endsWith("@google.com")) {
+          taskLinkUrlPrefix = "https://chromium-swarm.appspot.com/task?id=";
+        }
 
         // Skip drawing the graph if taskData or graph are missing or empty. This
         // is mainly to prevent errors on the demo page.
@@ -460,7 +465,7 @@
               .attr("rx", "4")
               .attr("ry", "4");
         taskLinks.attr("href", function(data) {
-            return "https://chromium-swarm.appspot.com/task?id=" + data.task.SwarmingTaskId;
+            return taskLinkUrlPrefix + data.task.SwarmingTaskId;
         });
         taskLinks.exit().remove();
         var taskRects = svg.selectAll("rect.task").data(tasks);

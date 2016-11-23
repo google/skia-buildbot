@@ -202,7 +202,7 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	for _, c := range commitData.Commits {
 		hashes = append(hashes, c.Hash)
 	}
-	builds, err := buildCache.GetBuildsForCommits(hashes)
+	builds, err := buildCache.GetBuildsForCommits(hashes, login.IsGoogler(r))
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to obtain builds: %s", err))
 		return
@@ -464,7 +464,7 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch the builds.
-	builds, err := buildCache.GetBuildsFromDateRange(startTime, endTime)
+	builds, err := buildCache.GetBuildsFromDateRange(startTime, endTime, login.IsGoogler(r))
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load builds: %v", err))
 		return
@@ -627,7 +627,7 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get the number of finished builds for the requested commit.
 	hash := r.FormValue("commit")
-	buildsAtNewCommit, err := buildCache.GetBuildsForCommit(hash)
+	buildsAtNewCommit, err := buildCache.GetBuildsForCommit(hash, login.IsGoogler(r))
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get the number of finished builds."))
 		return
@@ -645,7 +645,7 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get an old commit from the cache."))
 		return
 	}
-	buildsAtOldCommit, err := buildCache.GetBuildsForCommit(oldCommit.Hash)
+	buildsAtOldCommit, err := buildCache.GetBuildsForCommit(oldCommit.Hash, login.IsGoogler(r))
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get the number of finished builds."))
 		return

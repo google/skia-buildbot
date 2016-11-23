@@ -107,10 +107,16 @@
     // Mock out sk.get and so we can fake a response from the server.
     sk.get = function(url) {
       return new Promise(function (resolve, reject) {
-        if (url.indexOf("job1") != -1) {
-          resolve(JSON.stringify(job1));
+        if (url.indexOf("/json/job/") != -1) {
+          if (url.indexOf("job1") != -1) {
+            resolve(JSON.stringify(job1));
+          } else {
+            resolve(JSON.stringify(job2));
+          }
+        } else if (url == "/loginstatus/") {
+          resolve('{"Email":"user@google.com","LoginURL":"https://accounts.google.com/"}');
         } else {
-          resolve(JSON.stringify(job2));
+          reject("Unknown url " + url);
         }
       });
     };
@@ -129,6 +135,7 @@
   </script>
   <link rel="import" href="job-sk.html">
   <link rel="import" href="/res/common/imp/error-toast-sk.html">
+  <link rel="import" href="/res/common/imp/login.html">
   <link rel="import" href="/res/imp/bower_components/paper-toggle-button/paper-toggle-button.html" />
 </head>
 <body>
@@ -168,6 +175,7 @@
   });
   </script>
 </dom-module>
+  <login-sk style="display:none"></login-sk>
   <h1>job-sk demo</h1>
   <job-sk-demo></job-sk-demo>
   <error-toast-sk></error-toast-sk>
