@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "4df48341_4250544e",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 422,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-23T19:05:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df48341_bf505723",
+      "revId": "b966945b5e6bd52502ed313f8c39a144faa3f981",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df48341_dfb79b1f",
         "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
         "patchSetId": 2
@@ -78,6 +96,24 @@
     },
     {
       "key": {
+        "uuid": "4df48341_422974b2",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-23T19:05:06Z",
+      "side": 1,
+      "message": "Changed as suggested.",
+      "parentUuid": "4df48341_c286a4a5",
+      "revId": "b966945b5e6bd52502ed313f8c39a144faa3f981",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df48341_ffffffb6",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -95,6 +131,24 @@
         "endLine": 38,
         "endChar": 24
       },
+      "revId": "b966945b5e6bd52502ed313f8c39a144faa3f981",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_a2396002",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-23T19:05:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df48341_ffffffb6",
       "revId": "b966945b5e6bd52502ed313f8c39a144faa3f981",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -142,6 +196,24 @@
     },
     {
       "key": {
+        "uuid": "4df48341_621918a2",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-23T19:05:06Z",
+      "side": 1,
+      "message": "Changed to just \"task-candidate-count\"",
+      "parentUuid": "4df48341_4293b4eb",
+      "revId": "b966945b5e6bd52502ed313f8c39a144faa3f981",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df48341_7f208f62",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -165,6 +237,24 @@
     },
     {
       "key": {
+        "uuid": "4df48341_c2110478",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 575,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-23T19:05:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df48341_7f208f62",
+      "revId": "b966945b5e6bd52502ed313f8c39a144faa3f981",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df48341_bfecd7d8",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -182,6 +272,24 @@
         "endLine": 600,
         "endChar": 15
       },
+      "revId": "b966945b5e6bd52502ed313f8c39a144faa3f981",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_a20e0052",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 600,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-23T19:05:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df48341_bfecd7d8",
       "revId": "b966945b5e6bd52502ed313f8c39a144faa3f981",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
