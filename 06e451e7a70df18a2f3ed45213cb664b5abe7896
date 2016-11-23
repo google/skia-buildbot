@@ -1,0 +1,228 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4df48341_08570b1f",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T21:31:15Z",
+      "side": 1,
+      "message": "Need to close db here also. (Or just move this above.)",
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_a8d81f81",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T21:31:15Z",
+      "side": 1,
+      "message": "very ignorable nit: It would be nice to consistently put the *bolt.Tx arg first. Right now it\u0027s first for WriteFn and the index methods, and last for the other methods.",
+      "range": {
+        "startLine": 114,
+        "startChar": 16,
+        "endLine": 114,
+        "endChar": 22
+      },
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_c8500325",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T21:31:15Z",
+      "side": 1,
+      "message": "nit: index value",
+      "range": {
+        "startLine": 119,
+        "startChar": 30,
+        "endLine": 119,
+        "endChar": 39
+      },
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_a84dbf88",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T21:31:15Z",
+      "side": 1,
+      "message": "nit: record keys",
+      "range": {
+        "startLine": 119,
+        "startChar": 53,
+        "endLine": 119,
+        "endChar": 65
+      },
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_8868bbd2",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T21:31:15Z",
+      "side": 1,
+      "message": "nit: values",
+      "range": {
+        "startLine": 120,
+        "startChar": 38,
+        "endLine": 120,
+        "endChar": 42
+      },
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_28776fb4",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T21:31:15Z",
+      "side": 1,
+      "message": "Update",
+      "range": {
+        "startLine": 155,
+        "startChar": 26,
+        "endLine": 155,
+        "endChar": 31
+      },
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_c8b4831d",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T21:31:15Z",
+      "side": 1,
+      "message": "keys is not necessarily in the same order as inputRecs.",
+      "range": {
+        "startLine": 180,
+        "startChar": 1,
+        "endLine": 180,
+        "endChar": 26
+      },
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_a806dffa",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T21:31:15Z",
+      "side": 1,
+      "message": "typo it",
+      "range": {
+        "startLine": 249,
+        "startChar": 54,
+        "endLine": 249,
+        "endChar": 56
+      },
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_68257771",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T21:31:15Z",
+      "side": 1,
+      "message": "getIndexValues(rec)?",
+      "range": {
+        "startLine": 397,
+        "startChar": 12,
+        "endLine": 397,
+        "endChar": 29
+      },
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_a81a5f2f",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 456,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T21:31:15Z",
+      "side": 1,
+      "message": "getIndexValues(rec)?",
+      "range": {
+        "startLine": 456,
+        "startChar": 35,
+        "endLine": 456,
+        "endChar": 54
+      },
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
