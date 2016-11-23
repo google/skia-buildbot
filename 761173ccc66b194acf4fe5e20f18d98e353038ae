@@ -16,6 +16,24 @@
       "revId": "761173ccc66b194acf4fe5e20f18d98e353038ae",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_428bb470",
+        "filename": "task_scheduler/go/scheduling/busy_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-23T19:08:02Z",
+      "side": 1,
+      "message": "Good idea. Tags are supposed to be cheap, so it shouldn\u0027t cause problems to add another.",
+      "parentUuid": "4df48341_025a4c6c",
+      "revId": "761173ccc66b194acf4fe5e20f18d98e353038ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
