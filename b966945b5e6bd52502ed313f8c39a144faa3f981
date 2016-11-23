@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "4df48341_820e5ca9",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-23T18:43:08Z",
+      "side": 1,
+      "message": "Good question.  I don\u0027t know of a case where we\u0027d supply multiple values for a dimension or tag, or a case where we\u0027d want to receive a task which had such.  The only case I can think of where I\u0027d *expect* this to be the case is when we load information about swarming bots, which can have multiple values for one dimension key.",
+      "parentUuid": "4df48341_dfb79b1f",
+      "revId": "b966945b5e6bd52502ed313f8c39a144faa3f981",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df48341_ffffffb6",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
