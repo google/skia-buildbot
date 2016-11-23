@@ -173,7 +173,7 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 	if s == nil {
 		return false, fmt.Errorf("Missing TaskResult. %v", s)
 	}
-	tags, err := swarming.TagValues(s)
+	tags, err := swarming.ParseTags(s.Tags)
 	if err != nil {
 		return false, err
 	}

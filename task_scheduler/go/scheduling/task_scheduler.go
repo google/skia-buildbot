@@ -35,6 +35,9 @@ const (
 	// 5 commits behind.
 	CANDIDATE_SCORE_TRY_JOB = 10.0
 
+	// Measurement name for
+	MEASUREMENT_TASK_CANDIDATES = "task-scheduler.task-candidates"
+
 	NUM_TOP_CANDIDATES = 50
 )
 
@@ -565,6 +568,46 @@ func (s *TaskScheduler) processTaskCandidates(candidates map[string]map[string][
 	return rvCandidates, nil
 }
 
+// recordCandidateMetrics generates metrics for candidates by dimension sets.
+func (s *TaskScheduler) recordCandidateMetrics(candidates map[string]map[string][]*taskCandidate) {
+	defer metrics2.FuncTimer().Stop()
+
+	// Generate counts.
+	counts := map[string]int64{}
+	dimensions := map[string]map[string]string{}
+	for _, byRepo := range candidates {
+		for _, bySpec := range byRepo {
+			for _, c := range bySpec {
+				parseDims, err := swarming.ParseDimensions(c.TaskSpec.Dimensions)
+				if err != nil {
+					glog.Errorf("Failed to parse dimensions: %s", err)
+					continue
+				}
+				dims := make(map[string]string, len(parseDims))
+				for k, v := range parseDims {
+					// Just take the first value for each dimension.
+					dims[k] = v[0]
+				}
+				k, err := util.MD5Params(dims)
+				if err != nil {
+					glog.Errorf("Failed to create metrics key: %s", err)
+					continue
+				}
+				if _, ok := counts[k]; !ok {
+					counts[k] = 0
+					dimensions[k] = dims
+				}
+				counts[k]++
+			}
+		}
+	}
+	// Report the data.
+	now := time.Now()
+	for k, count := range counts {
+		metrics2.RawAddInt64PointAtTime(MEASUREMENT_TASK_CANDIDATES, dimensions[k], count, now)
+	}
+}
+
 // regenerateTaskQueue obtains the set of all eligible task candidates, scores
 // them, and prepares them to be triggered.
 func (s *TaskScheduler) regenerateTaskQueue() error {
@@ -587,6 +630,9 @@ func (s *TaskScheduler) regenerateTaskQueue() error {
 	if err != nil {
 		return err
 	}
+
+	// Record the number of task candidates per dimension set.
+	s.recordCandidateMetrics(candidates)
 
 	// Process the remaining task candidates.
 	queue, err := s.processTaskCandidates(candidates)
