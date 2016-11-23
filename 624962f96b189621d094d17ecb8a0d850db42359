@@ -22,6 +22,24 @@
       "revId": "624962f96b189621d094d17ecb8a0d850db42359",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_e5353239",
+        "filename": "golden/go/issuestore/issuestore.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-23T19:33:33Z",
+      "side": 0,
+      "message": "Will do as soon as the other issues are resolved.",
+      "parentUuid": "d079ec3f_948b8a01",
+      "revId": "624962f96b189621d094d17ecb8a0d850db42359",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
