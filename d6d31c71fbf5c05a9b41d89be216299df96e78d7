@@ -16,6 +16,24 @@
       "revId": "d6d31c71fbf5c05a9b41d89be216299df96e78d7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_14c31a46",
+        "filename": "perf/go/clustering2/async.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-11-23T16:37:15Z",
+      "side": 1,
+      "message": "That is just where the frame is set, which is the list of commits, which will never change and is complete whether or not data is present.\n\nClusters do get overwritten, a new cluster will always overwrite an old cluster because it probably has more data:\n\nhttps://skia.googlesource.com/buildbot/+/master/perf/go/regression/continuous.go#84",
+      "parentUuid": "50d33c96_ed1821f1",
+      "revId": "d6d31c71fbf5c05a9b41d89be216299df96e78d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
