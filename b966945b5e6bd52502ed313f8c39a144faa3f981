@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4df48341_bf505723",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 422,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T18:36:31Z",
+      "side": 1,
+      "message": "[]string",
+      "range": {
+        "startLine": 422,
+        "startChar": 61,
+        "endLine": 422,
+        "endChar": 67
+      },
+      "revId": "b966945b5e6bd52502ed313f8c39a144faa3f981",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_dfb79b1f",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T18:36:31Z",
+      "side": 1,
+      "message": "nits:\n1. Is there a case where we don\u0027t want ParseDimensionFlags to do this?\n2. Would it make sense for ParseDimensionFlags to return an error if there are multiple values specified for a dimension?",
+      "revId": "b966945b5e6bd52502ed313f8c39a144faa3f981",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_ffffffb6",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T18:36:31Z",
+      "side": 1,
+      "message": "incomplete?",
+      "range": {
+        "startLine": 38,
+        "startChar": 21,
+        "endLine": 38,
+        "endChar": 24
+      },
+      "revId": "b966945b5e6bd52502ed313f8c39a144faa3f981",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_9fbeb3b0",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T18:36:31Z",
+      "side": 1,
+      "message": "nit: maybe \"task-candidate-count\"",
+      "range": {
+        "startLine": 39,
+        "startChar": 47,
+        "endLine": 39,
+        "endChar": 62
+      },
+      "revId": "b966945b5e6bd52502ed313f8c39a144faa3f981",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_7f208f62",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 575,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T18:36:31Z",
+      "side": 1,
+      "message": "nit: maybe mention in this comment that the key for both maps is the MD5 hash of the dimensions.",
+      "range": {
+        "startLine": 575,
+        "startChar": 2,
+        "endLine": 575,
+        "endChar": 20
+      },
+      "revId": "b966945b5e6bd52502ed313f8c39a144faa3f981",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_bfecd7d8",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 600,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T18:36:31Z",
+      "side": 1,
+      "message": "nit: can just do\ncounts[k]++\ndimensions[k] \u003d dims",
+      "range": {
+        "startLine": 596,
+        "startChar": 0,
+        "endLine": 600,
+        "endChar": 15
+      },
+      "revId": "b966945b5e6bd52502ed313f8c39a144faa3f981",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
