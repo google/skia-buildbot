@@ -81,11 +81,15 @@ func (c *Continuous) Run() {
 				for _, cl := range resp.Summary.Clusters {
 					if cl.StepPoint.Offset == int64(commit.Index) {
 						if cl.StepFit.Status == clustering2.LOW {
-							c.store.SetLow(details[0], q, resp.Frame, cl)
+							if err := c.store.SetLow(details[0], q, resp.Frame, cl); err != nil {
+								glog.Errorf("Failed to save newly found cluster: %s", err)
+							}
 							glog.Infof("Found Low regression at %s for %q: %v", details[0].Message, q, *cl.StepFit)
 						}
 						if cl.StepFit.Status == clustering2.HIGH {
-							c.store.SetHigh(details[0], q, resp.Frame, cl)
+							if err := c.store.SetHigh(details[0], q, resp.Frame, cl); err != nil {
+								glog.Errorf("Failed to save newly found cluster: %s", err)
+							}
 							glog.Infof("Found High regression at %s for %q: %v", id.ID(), q, *cl.StepFit)
 						}
 					}
