@@ -84,6 +84,24 @@
     },
     {
       "key": {
+        "uuid": "4df48341_c5c10e3e",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T20:54:38Z",
+      "side": 1,
+      "message": "The issue I would like to avoid is WriteFn modifying the values returned from IndexValues. Maybe the best solution is to just copy the return value of IndexValues.\n\nI can imagine writing something like this:\n\twriteFn :\u003d func(tx *bolt.Tx, result []boltutil.Record) error {\n\t\ta :\u003d result[0].(*Annotation).Digests[0] \u003d newvalue\n\t}\n\nIf I have implemented IndexValues in the straightforward way:\nfunc (a *Annotation) IndexValues() map[string][]string {\n\treturn map[string][]string{\n\t\tDIGEST_INDEX: a.Digests,\n\t\tTRACE_INDEX: a.Traces,\n\t\tIGNORE_INDEX: a.Ignores,\n\t\tTEST_INDEX: a.TestNames,\n\t}\n}\n\n...then if Store doesn\u0027t copy the results of IndexValues, newvalue will end up in origIndexState.",
+      "parentUuid": "50d33c96_ca29c39d",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "30324888_8ab7fb1e",
         "filename": "go/boltutil/store.go",
         "patchSetId": 13
@@ -160,6 +178,24 @@
       "side": 1,
       "message": "Right now, there is only support for one record type. That\u0027s intentionally, because none the three immediate use cases for this require to store more than one record type. \nI agree that it should support multiple record types. But it would require to add a codec for each type and also specify the record type I am reading/writing with operation. \nI would prefer to add that when we need it. I am happy to help migrate TaskScheduler to this if it makes sense.",
       "parentUuid": "30324888_ea20ef63",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_c85923a7",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T20:54:38Z",
+      "side": 1,
+      "message": "Sorry, I don\u0027t think I was very clear. I think the code works as-is for multiple record types (except NewStore), but the naming is a bit confusing. Now is a good time to change the naming. :-)\n\nThe way I would use this for multiple types in the same DB is something like:\ntype DB struct {\n  tasks *boltutil.IndexedBucket\n  jobs *boltutil.IndexedBucket\n}\n\nfunc NewDb(filename string) (*DB, error) {\n  db, _ :\u003d bolt.Open(filename, 0600, nil)\n  tasks, _ :\u003d boltutil.NewIndexedBucket(\u0026boltutil.Config{\n    DB: db,\n    Name: TASK_BUCKET,\n    Indices: TASK_INDICES,\n    Codec: NewTaskCodec(),\n  })\n  jobs, _ :\u003d boltutil.NewIndexedBucket(\u0026boltutil.Config{\n    DB: db,\n    Name: JOB_BUCKET,\n    Indices: JOB_INDICES,\n    Codec: NewJobCodec(),\n  })\n  return \u0026DB{\n    tasks: tasks,\n    jobs: jobs,\n  }\n}",
+      "parentUuid": "50d33c96_4a64b3f6",
       "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -283,6 +319,24 @@
       "side": 1,
       "message": "Right now there none. I would like to add that in an immediate follow on CL.",
       "parentUuid": "d079ec3f_1489da0c",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_684a17c7",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T20:54:38Z",
+      "side": 1,
+      "message": "Could I get a preview? :-)",
+      "parentUuid": "4df48341_4243b411",
       "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -810,6 +864,24 @@
     },
     {
       "key": {
+        "uuid": "4df48341_48acf33b",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T20:54:38Z",
+      "side": 1,
+      "message": "Sorry, I was not clear. Joe always says \"make(\u003cslice\u003e, N, N)\" rather than \"make(\u003cslice\u003e, N)\"",
+      "parentUuid": "4df48341_c587cef8",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d079ec3f_11880c40",
         "filename": "go/boltutil/store.go",
         "patchSetId": 13
@@ -845,6 +917,24 @@
       "side": 1,
       "message": "I\u0027d rather not since that would most likely leak data into the log and it should be fairly easy to tack down, because it\u0027s just one field that is wrong.",
       "parentUuid": "d079ec3f_11880c40",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_a8bc9f69",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T20:54:38Z",
+      "side": 1,
+      "message": "What do you mean by \"leak data into the log\"? Do you mean if the error is used in an HTTP response?",
+      "parentUuid": "4df48341_1fcaa303",
       "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -1296,6 +1386,24 @@
     },
     {
       "key": {
+        "uuid": "4df48341_487ab3db",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T20:54:38Z",
+      "side": 1,
+      "message": "Yes, neither approach to paging will show results that are logically before the current page, but that\u0027s a feature, not a bug.\n\nThe indexed approach can result in an item appearing at the end of one page, and then when I go to the next page, the same item appears at the beginning of the page due to a new item being inserted. The lastKey approach does not have that problem.\n\nIt sounds like you want the ForEach API, which can exit early after reading the first \u0027size\u0027 records.",
+      "parentUuid": "4df48341_421854ed",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d079ec3f_f14c6043",
         "filename": "go/boltutil/store.go",
         "patchSetId": 13
@@ -1606,6 +1714,24 @@
       "side": 1,
       "message": "It\u0027s actually fine if an index value contained an IDX_SEPARATOR as long as we are only supporting to lookup by exact value. i.e. if my values is \u0027myvalX\u0027 and \u0027X\u0027 is the IDX_SEPARATOR we will still be able to find \u0027myvalX\u0027 correctly since we would scan the index for \u0027myvalXX\u0027.",
       "parentUuid": "d079ec3f_31c0a836",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_282e4fbc",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 331,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T20:54:38Z",
+      "side": 1,
+      "message": "Fair enough, but if \u0027myval\u0027 is also a valid index value, then when I do an index lookup for \u0027myval\u0027 then I will also get results for \u0027myvalX\u0027, with results that are prefixed with an extra X.",
+      "parentUuid": "4df48341_e2b7681f",
       "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
