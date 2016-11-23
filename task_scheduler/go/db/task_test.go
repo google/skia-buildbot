@@ -61,7 +61,7 @@ func TestUpdateFromSwarmingInvalid(t *testing.T) {
 		CreatedTs: now.Format(swarming.TIMESTAMP_FORMAT),
 		State:     SWARMING_STATE_COMPLETED,
 		Tags:      []string{"invalid"},
-	}, "Invalid Swarming task tag")
+	}, "key/value pairs must take the form \"key:value\"; \"invalid\" is invalid")
 
 	testError(&swarming_api.SwarmingRpcsTaskResult{
 		CreatedTs: "20160817T142302.543490",
