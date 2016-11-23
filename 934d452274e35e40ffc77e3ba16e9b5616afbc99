@@ -1,0 +1,963 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "30324888_56b994cb",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 18,
+        "startChar": 56,
+        "endLine": 18,
+        "endChar": 64
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_f1b0e0dc",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: maybe mention that the return value should not share structure with Record.",
+      "range": {
+        "startLine": 29,
+        "startChar": 50,
+        "endLine": 29,
+        "endChar": 51
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30324888_8ab7fb1e",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: I think it will be confusing to pass in indices -- I would guess that most implementations will ignore this argument. If anything, we should just check that the return value of IndexValues contains all the expected map keys.",
+      "range": {
+        "startLine": 30,
+        "startChar": 13,
+        "endLine": 30,
+        "endChar": 21
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30324888_ea20ef63",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: The naming and the documentation seem to indicate there is only one type of record being stored in the BoltDB. Is that considered best practice for BoltDB?\n\nIf not, I think it would be useful to adjust the language to make it more intuitive when there are multiple types.\n\nFor example, if I were to use this for Task Scheduler, I would probably do something like:\ntype DB struct {\n  tasks *Store\n  jobs *Store\n}\n\nMaybe s/Store/IndexedBucket/?",
+      "range": {
+        "startLine": 33,
+        "startChar": 3,
+        "endLine": 33,
+        "endChar": 8
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_54a68293",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: maybe should rename LRUCodec, since the LRU doesn\u0027t make sense here.",
+      "range": {
+        "startLine": 47,
+        "startChar": 12,
+        "endLine": 47,
+        "endChar": 20
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_547f6219",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "typo of",
+      "range": {
+        "startLine": 58,
+        "startChar": 23,
+        "endLine": 58,
+        "endChar": 24
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_1489da0c",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "What is the process for adding a new index for an existing DB/bucket?",
+      "range": {
+        "startLine": 58,
+        "startChar": 4,
+        "endLine": 58,
+        "endChar": 79
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_34cbb636",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "I\u0027m not 100% sure this will work, but IMO it will be nicer to have something like:\ntype DecoderFactory interface {\n  NewDecoder() Decoder\n}\ntype Decoder interface {\n  // Process decodes the byte slice and includes it in AsRecords().\n  // Caller must ensure b does not change until after AsRecords() returns.\n  Process(b []byte) err\n  // AsRecords returns all decoded Records provided to Process, or\n  // any error encountered.\n  AsRecords() ([]Record, error)\n}\n\nAlso, add Encode method to Record.\n\nThen we would replace return value of List and Read and argument of WriteFn with Decoder. This would allow me to use MyTypeDecoder, where I can add a convenience method:\nAsMyType() ([]MyType, error)\n\nThis is based on the public methods of TaskDecoder: https://skia.googlesource.com/buildbot/+/dc5e7cb1cbcdb4d4900e96236cce66d2f6985594/task_scheduler/go/db/task.go#461\nI found that decoding byte slices takes a significant amount of time, and assuming you\u0027re reading more than a couple records, decoding in parallel makes things much faster. (TaskDecoder gives the results in arbitrary order because I didn\u0027t need them to be stable, but it shouldn\u0027t be too hard to change it to be stable.)",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 63,
+        "endChar": 20
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30324888_857ccc24",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: mention that the caller must close the bolt.DB when finished.",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30324888_aace776f",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: IMO, you should pass in *bolt.DB rather than directory and name.",
+      "range": {
+        "startLine": 68,
+        "startChar": 17,
+        "endLine": 68,
+        "endChar": 59
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30324888_2a9a675c",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 79,
+        "startChar": 1,
+        "endLine": 79,
+        "endChar": 8
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30324888_c5796437",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: before returning an error, you should call db.Close()",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30324888_c5de44fa",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "It seems you\u0027re using ... as a way to accept optional parameters. That seems pretty confusing. Probably better to just have:\nRead(keys []string)\nReadTx(tx *bolt.Tx, keys []string)\n\nSame for other methods.",
+      "range": {
+        "startLine": 97,
+        "startChar": 39,
+        "endLine": 97,
+        "endChar": 42
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_d1f364ef",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: s/primary keys/record keys/g",
+      "range": {
+        "startLine": 101,
+        "startChar": 25,
+        "endLine": 101,
+        "endChar": 37
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_f1f8e0cd",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: s/keys/index values/g",
+      "range": {
+        "startLine": 101,
+        "startChar": 75,
+        "endLine": 101,
+        "endChar": 79
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_b1f258e8",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: %q",
+      "range": {
+        "startLine": 105,
+        "startChar": 41,
+        "endLine": 105,
+        "endChar": 45
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_31df4854",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 123,
+        "startChar": 40,
+        "endLine": 123,
+        "endChar": 48
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_d15284f8",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: might be simpler to require WriteFn to modify the passed-in slice in-place. I expect many implementations will do that anyway, and it removes the confusion about whether the argument can be modified.",
+      "range": {
+        "startLine": 123,
+        "startChar": 36,
+        "endLine": 124,
+        "endChar": 37
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_b4dec6f8",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: This function seems a bit complicated. It might be nice to instead have Insert(inputRecs) and Update(keys, writeFn).",
+      "range": {
+        "startLine": 138,
+        "startChar": 16,
+        "endLine": 138,
+        "endChar": 74
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_915cfc0b",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: Joe seems to always use the 3-arg version of make(\u003cslice\u003e), and I concur, because it\u0027s too easy to think that the 2-arg version means make(\u003cslice\u003e, 0, N).\n\nSeveral instances in this file.",
+      "range": {
+        "startLine": 140,
+        "startChar": 24,
+        "endLine": 140,
+        "endChar": 38
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_11880c40",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: since this is a programming error, it will be useful to include the rec in the error message",
+      "range": {
+        "startLine": 144,
+        "startChar": 47,
+        "endLine": 144,
+        "endChar": 48
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_b161f8bc",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "err",
+      "range": {
+        "startLine": 151,
+        "startChar": 10,
+        "endLine": 151,
+        "endChar": 13
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_d1792472",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "inputRecs",
+      "range": {
+        "startLine": 157,
+        "startChar": 15,
+        "endLine": 157,
+        "endChar": 24
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_b178186b",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: not writing indices to the main bucket",
+      "range": {
+        "startLine": 169,
+        "startChar": 47,
+        "endLine": 169,
+        "endChar": 59
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_91739c8e",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "copy/pasto?",
+      "range": {
+        "startLine": 173,
+        "startChar": 17,
+        "endLine": 173,
+        "endChar": 23
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_518e9450",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: should check that the keys of writeRecs \u003d\u003d keys of inputRecs after calling writeFn.",
+      "range": {
+        "startLine": 178,
+        "startChar": 32,
+        "endLine": 178,
+        "endChar": 41
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_31974833",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: should check that there are no duplicates in keys; otherwise indexes will be corrupted.",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_718b903f",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "typo then",
+      "range": {
+        "startLine": 191,
+        "startChar": 35,
+        "endLine": 191,
+        "endChar": 38
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_d1204464",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "err",
+      "range": {
+        "startLine": 205,
+        "startChar": 10,
+        "endLine": 205,
+        "endChar": 13
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_f1254071",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "copy/pasto",
+      "range": {
+        "startLine": 208,
+        "startChar": 2,
+        "endLine": 208,
+        "endChar": 66
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_51153402",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "Maybe add a TODO to use a cursor. Seek, read record, then delete to avoid traversing the bucket twice (once to read and again to delete).",
+      "range": {
+        "startLine": 211,
+        "startChar": 13,
+        "endLine": 211,
+        "endChar": 26
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_d147e41c",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "It\u0027s hard for me to imagine a use for this that won\u0027t behave in unexpected ways.\n\nIf you want to iterate over all records in the DB, use bolt.Bucket.ForEach (or if you\u0027re worried about a long-lived read Tx, provide an API similar to ForEach that under-the-covers uses something like below).\n\nIf you want to implement paging, integer offsets tend not to work well, because adding new records causes the same record to appear on multiple pages, while deleting records causes records to be skipped. Instead, your API should look like:\nList(lastKey string, count int)\nIf lastKey is \"\", then start at the first record. Otherwise, start at the first record after lastKey. Read count records or until reaching the end of the bucket.\n\nYou can then do something like:\nr, _ \u003d List(\"\", 10)\nr, _ \u003d List(r[len(r)-1].Key(), 10)\nr, _ \u003d List(r[len(r)-1].Key(), 10)\n\nIf you also need to iterate backwards, it\u0027s easy enough to add a \"direction\" parameter:\nr, _ \u003d List(BEFORE, r[0].Key(), 10)\nr, _ \u003d List(AFTER, r[len(r)-1].Key(), 10)",
+      "range": {
+        "startLine": 230,
+        "startChar": 0,
+        "endLine": 231,
+        "endChar": 38
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_f14c6043",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: Do you mean offset?",
+      "range": {
+        "startLine": 232,
+        "startChar": 63,
+        "endLine": 232,
+        "endChar": 67
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_b146d81d",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "Should check if val is nil and break.",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_3112e80a",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "Maybe there\u0027s another part of the spec that makes this well-defined, but if I\u0027m reading https://golang.org/ref/spec#Order_of_evaluation correctly, this only works because the Go Gods are smiling upon you.\n\n(That is, because viewFn sets the values of ret and total, and evaluation of the return arguments is not defined, ret and total could be their original values or their values after viewFn is called.)\n\nOTOH, I think many Go programmers rely on something like this, so I really don\u0027t know.",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_513c5484",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "typo of",
+      "range": {
+        "startLine": 283,
+        "startChar": 3,
+        "endLine": 283,
+        "endChar": 5
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_1136cca2",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 303,
+        "startChar": 26,
+        "endLine": 303,
+        "endChar": 36
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_51e8d4f6",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: s/readIndexValues/indexLookup/",
+      "range": {
+        "startLine": 313,
+        "startChar": 16,
+        "endLine": 313,
+        "endChar": 31
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_11c32c46",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 325,
+        "startChar": 29,
+        "endLine": 325,
+        "endChar": 33
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_31c0a836",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 331,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: maybe check that the index values don\u0027t include IDX_SEPARATOR? (Alternatively, document that restriction above.)",
+      "range": {
+        "startLine": 331,
+        "startChar": 12,
+        "endLine": 331,
+        "endChar": 27
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_b1aa5867",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "Is it correct that if rec \u003d\u003d nil, we\u0027re not touching that record in the DB? Or does it mean we\u0027re deleting the record? Maybe add a comment.",
+      "range": {
+        "startLine": 354,
+        "startChar": 2,
+        "endLine": 354,
+        "endChar": 3
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_f46f6e68",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 401,
+        "startChar": 71,
+        "endLine": 401,
+        "endChar": 73
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d079ec3f_9474ea3e",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 403,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 1,
+      "message": "nit: s/kv/k/g",
+      "range": {
+        "startLine": 403,
+        "startChar": 39,
+        "endLine": 403,
+        "endChar": 41
+      },
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

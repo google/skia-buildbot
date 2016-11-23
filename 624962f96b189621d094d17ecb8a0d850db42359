@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d079ec3f_948b8a01",
+        "filename": "golden/go/issuestore/issuestore.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T02:10:33Z",
+      "side": 0,
+      "message": "nit: maybe keep getIndexedData and just change the implementation? Seems like a lot of copy/paste in these four methods.",
+      "range": {
+        "startLine": 120,
+        "startChar": 1,
+        "endLine": 120,
+        "endChar": 46
+      },
+      "revId": "624962f96b189621d094d17ecb8a0d850db42359",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
