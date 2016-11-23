@@ -58,7 +58,7 @@ func main() {
 		*taskName = fmt.Sprintf("run_%s", scriptName)
 	}
 
-	dims, err := swarming.ParseDimensions(dimensions)
+	dims, err := swarming.ParseDimensionFlags(dimensions)
 	if err != nil {
 		glog.Fatalf("Problem parsing dimensions: %s", err)
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -384,22 +385,64 @@ func (c *apiClient) GetTaskMetadata(id string) (*swarming.SwarmingRpcsTaskReques
 	}, nil
 }
 
-// TagValues returns map[tag_key]tag_value for all tags from the given Swarming task.
-func TagValues(t *swarming.SwarmingRpcsTaskResult) (map[string][]string, error) {
-	rv := make(map[string][]string, len(t.Tags))
-	for _, tag := range t.Tags {
-		split := strings.SplitN(tag, ":", 2)
+// ParseDimensions parses a string slice of dimensions into a map[string][]string.
+func ParseDimensions(dims []string) (map[string][]string, error) {
+	rv := make(map[string][]string, len(dims))
+	for _, dim := range dims {
+		split := strings.SplitN(dim, ":", 2)
 		if len(split) != 2 {
-			return nil, fmt.Errorf("Invalid Swarming task tag: %q %v", tag, t)
+			return nil, fmt.Errorf("key/value pairs must take the form \"key:value\"; %q is invalid", dim)
 		}
 		rv[split[0]] = append(rv[split[0]], split[1])
 	}
 	return rv, nil
 }
 
+// ParseDimensionFlags parses the MultiString flag into a map[string]string.
+func ParseDimensionFlags(dimensionFlags *common.MultiString) (map[string]string, error) {
+	if dimensionFlags == nil {
+		return map[string]string{}, nil
+	}
+	dims, err := ParseDimensions(*dimensionFlags)
+	if err != nil {
+		return nil, err
+	}
+	rv := make(map[string]string, len(dims))
+	for k, vals := range dims {
+		if len(vals) != 1 {
+			return nil, fmt.Errorf("Expected a single value for dimension %q; got: %v", k, vals)
+		}
+		rv[k] = vals[0]
+	}
+	return rv, nil
+}
+
+// PackageDimensions packages a map[string][]string of dimensions into a []string.
+func PackageDimensions(dims map[string][]string) []string {
+	rv := make([]string, 0, len(dims))
+	for k, vals := range dims {
+		for _, v := range vals {
+			rv = append(rv, fmt.Sprintf("%s:%s", k, v))
+		}
+	}
+	// Sort to make test results predictable.
+	sort.Strings(rv)
+	return rv
+}
+
+// ParseTags parses a string slice of tags into a map[string][]string.
+func ParseTags(tags []string) (map[string][]string, error) {
+	return ParseDimensions(tags)
+}
+
+// PackageTags packages a map[string]string of tags into a []string.
+func PackageTags(tags map[string][]string) []string {
+	return PackageDimensions(tags)
+}
+
 // GetTagValue returns the value for the given tag key from the given Swarming task.
 func GetTagValue(t *swarming.SwarmingRpcsTaskResult, tagKey string) (string, error) {
-	tagValues, err := TagValues(t)
+	tagValues, err := ParseTags(t.Tags)
 	if err != nil {
 		return "", err
 	}
@@ -428,19 +471,4 @@ func Started(t *swarming.SwarmingRpcsTaskRequestMetadata) (time.Time, error) {
 // Completed returns a time.Time for the given task's started time.
 func Completed(t *swarming.SwarmingRpcsTaskRequestMetadata) (time.Time, error) {
 	return ParseTimestamp(t.TaskResult.CompletedTs)
-}
-
-func ParseDimensions(dimensionFlags *common.MultiString) (map[string]string, error) {
-	dims := map[string]string{}
-	if dimensionFlags == nil {
-		return dims, nil
-	}
-	for _, dim := range *dimensionFlags {
-		split := strings.SplitN(dim, ":", 2)
-		if len(split) != 2 {
-			return nil, fmt.Errorf("dimension must take the form \"key:value\"; %q is invalid", dim)
-		}
-		dims[split[0]] = split[1]
-	}
-	return dims, nil
 }

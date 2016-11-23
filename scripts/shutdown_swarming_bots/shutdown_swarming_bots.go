@@ -43,7 +43,7 @@ func main() {
 	if *dimensions == nil && *includeBots == nil {
 		glog.Fatal("So one does not accidentally shutdown the entire pool, you must specify a dimension or an include rule.")
 	}
-	requestedDims, err := swarming.ParseDimensions(dimensions)
+	requestedDims, err := swarming.ParseDimensionFlags(dimensions)
 	if err != nil {
 		glog.Fatalf("Problem parsing dimensions: %s", err)
 	}
