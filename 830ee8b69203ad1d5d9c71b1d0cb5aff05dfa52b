@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4df48341_08f38bbe",
+        "filename": "perf/res/imp/commit-detail-panel.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T21:35:03Z",
+      "side": 1,
+      "message": "Can be removed?",
+      "revId": "830ee8b69203ad1d5d9c71b1d0cb5aff05dfa52b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
