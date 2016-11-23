@@ -16,6 +16,75 @@
       "revId": "6fff4d4f67bbdf343625f5d331a9c401b59b5729",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_bf3cd7f2",
+        "filename": "task_scheduler/go/db/recovery/gsviewer/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-23T18:18:07Z",
+      "side": 1,
+      "message": "Can we name this something more specific, eg. gs_jobs_viewer or something?",
+      "range": {
+        "startLine": 4,
+        "startChar": 5,
+        "endLine": 4,
+        "endChar": 13
+      },
+      "revId": "6fff4d4f67bbdf343625f5d331a9c401b59b5729",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_7f688fd1",
+        "filename": "task_scheduler/go/db/recovery/gsviewer/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-23T18:18:07Z",
+      "side": 1,
+      "message": "I didn\u0027t know about this. Cool!",
+      "range": {
+        "startLine": 29,
+        "startChar": 12,
+        "endLine": 29,
+        "endChar": 25
+      },
+      "revId": "6fff4d4f67bbdf343625f5d331a9c401b59b5729",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_3ff7a71d",
+        "filename": "task_scheduler/go/db/recovery/gsviewer/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-23T18:18:07Z",
+      "side": 1,
+      "message": "Why can\u0027t we use stdout in the  default case?",
+      "range": {
+        "startLine": 52,
+        "startChar": 1,
+        "endLine": 52,
+        "endChar": 17
+      },
+      "revId": "6fff4d4f67bbdf343625f5d331a9c401b59b5729",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
