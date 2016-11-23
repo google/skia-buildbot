@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "50d33c96_4ab15328",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T15:29:25Z",
+      "side": 1,
+      "message": "On line 756, we pass login.DEFAULT_DOMAIN_WHITELIST to the login module, which prevents users on domains other than google.com, chromium.org, and skia.org from logging in. But it\u0027s probably better to just use login.IsGoogler(r) to avoid the skia.org issue mentioned in the commit message and in case we want to show the unobfuscated names from datahopper-internal in the future.",
+      "parentUuid": "50d33c96_cacd43c5",
+      "revId": "02c370d9117f1315dd8e4e035887ba41dcda7ff2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "50d33c96_2ad33f6a",
         "filename": "task_scheduler/res/imp/job-sk.html",
         "patchSetId": 1
