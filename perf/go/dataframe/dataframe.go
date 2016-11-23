@@ -46,6 +46,36 @@ type DataFrame struct {
 	Skip     int                  `json:"skip"`
 }
 
+// BuildParamSet rebuilds d.ParamSet from the keys of d.TraceSet.
+func (d *DataFrame) BuildParamSet() {
+	paramSet := paramtools.ParamSet{}
+	for key, _ := range d.TraceSet {
+		paramSet.AddParamsFromKey(key)
+	}
+	for _, values := range paramSet {
+		sort.Strings(values)
+	}
+	d.ParamSet = paramSet
+}
+
+// TraceFilter is a function type that should return true if trace 'tr' should
+// be removed from a DataFrame. It is used in FilterOut.
+type TraceFilter func(tr ptracestore.Trace) bool
+
+// FilterOut removes traces from d.TraceSet if the filter function 'f' returns
+// true for a trace.
+//
+// FilterOut rebuilds the ParamSet to match the new set of traces once
+// filtering is complete.
+func (d *DataFrame) FilterOut(f TraceFilter) {
+	for key, tr := range d.TraceSet {
+		if f(tr) {
+			delete(d.TraceSet, key)
+		}
+	}
+	d.BuildParamSet()
+}
+
 // rangeImpl returns the slices of ColumnHeader and cid.CommitID that
 // are needed by DataFrame and ptracestore.PTraceStore, respectively. The
 // slices are populated from the given vcsinfo.IndexCommits.
@@ -94,19 +124,15 @@ func _new(colHeaders []*ColumnHeader, commitIDs []*cid.CommitID, matches ptraces
 	if err != nil {
 		return nil, fmt.Errorf("DataFrame failed to query for all traces: %s", err)
 	}
-	paramSet := paramtools.ParamSet{}
-	for key, _ := range traceSet {
-		paramSet.AddParamsFromKey(key)
-	}
-	for _, values := range paramSet {
-		sort.Strings(values)
-	}
-	return &DataFrame{
+	d := &DataFrame{
 		TraceSet: traceSet,
 		Header:   colHeaders,
-		ParamSet: paramSet,
+		ParamSet: paramtools.ParamSet{},
 		Skip:     skip,
-	}, nil
+	}
+
+	d.BuildParamSet()
+	return d, nil
 }
 
 // New returns a populated DataFrame of the last 50 commits given the 'vcs' and

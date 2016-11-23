@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -194,4 +195,64 @@ func TestVCS(t *testing.T) {
 	assert.Error(t, err)
 	_, err = NewFromQueryAndRange(vcs, store, ts0, ts1.Add(time.Second), &query.Query{}, nil)
 	assert.Error(t, err)
+}
+
+func TestBuildParamSet(t *testing.T) {
+	testutils.SmallTest(t)
+	// Test the empty case first.
+	df := &DataFrame{
+		TraceSet: ptracestore.TraceSet{},
+		ParamSet: paramtools.ParamSet{},
+	}
+	df.BuildParamSet()
+	assert.Equal(t, 0, len(df.ParamSet))
+
+	df = &DataFrame{
+		TraceSet: ptracestore.TraceSet{
+			",arch=x86,config=565,":  ptracestore.Trace([]float32{1.2, 2.1}),
+			",arch=x86,config=8888,": ptracestore.Trace([]float32{1.3, 3.1}),
+			",arch=x86,config=gpu,":  ptracestore.Trace([]float32{1.4, 4.1}),
+		},
+		ParamSet: paramtools.ParamSet{},
+	}
+	df.BuildParamSet()
+	assert.Equal(t, 2, len(df.ParamSet))
+	values, ok := df.ParamSet["arch"]
+	assert.True(t, ok)
+	assert.Equal(t, []string{"x86"}, values)
+	values, ok = df.ParamSet["config"]
+	assert.True(t, ok)
+	assert.Equal(t, []string{"565", "8888", "gpu"}, values)
+}
+
+func TestFilter(t *testing.T) {
+	testutils.SmallTest(t)
+	df := &DataFrame{
+		TraceSet: ptracestore.TraceSet{
+			",arch=x86,config=565,":  ptracestore.Trace([]float32{1.2, 2.1}),
+			",arch=x86,config=8888,": ptracestore.Trace([]float32{1.3, 3.1}),
+			",arch=x86,config=gpu,":  ptracestore.Trace([]float32{1.4, 4.1}),
+		},
+		ParamSet: paramtools.ParamSet{},
+	}
+	f := func(tr ptracestore.Trace) bool {
+		return tr[0] > 1.25
+	}
+	df.FilterOut(f)
+	assert.Equal(t, 1, len(df.TraceSet))
+	assert.Equal(t, []string{"565"}, df.ParamSet["config"])
+
+	df = &DataFrame{
+		TraceSet: ptracestore.TraceSet{
+			",arch=x86,config=565,":  ptracestore.Trace([]float32{1.2, 2.1}),
+			",arch=x86,config=8888,": ptracestore.Trace([]float32{1.3, 3.1}),
+			",arch=x86,config=gpu,":  ptracestore.Trace([]float32{1.4, 4.1}),
+		},
+		ParamSet: paramtools.ParamSet{},
+	}
+	f = func(tr ptracestore.Trace) bool {
+		return true
+	}
+	df.FilterOut(f)
+	assert.Equal(t, 0, len(df.TraceSet))
 }

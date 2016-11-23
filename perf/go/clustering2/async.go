@@ -13,6 +13,7 @@ import (
 
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -207,6 +208,30 @@ func (p *ClusterRequestProcess) Status() (ProcessState, string, error) {
 	return p.state, p.message, nil
 }
 
+// missing returns true if >50% of the trace is vec32.MISSING_DATA_SENTINEL.
+func missing(tr ptracestore.Trace) bool {
+	count := 0
+	for _, x := range tr {
+		if x == vec32.MISSING_DATA_SENTINEL {
+			count++
+		}
+	}
+	return (100*count)/len(tr) > 50
+}
+
+// tooMuchMissingData returns true if a trace has too many
+// MISSING_DATA_SENTINEL values.
+//
+// The criteria is if there is >50% missing data on either side of the target
+// commit, which sits at the center of the trace.
+func tooMuchMissingData(tr ptracestore.Trace) bool {
+	if len(tr) < 3 {
+		return false
+	}
+	n := len(tr) / 2
+	return missing(tr[:n]) || missing(tr[len(tr)-n:])
+}
+
 // Run does the work in a ClusterRequestProcess. It does not return until all the
 // work is done or the request failed. Should be run as a Go routine.
 func (p *ClusterRequestProcess) Run() {
@@ -232,6 +257,14 @@ func (p *ClusterRequestProcess) Run() {
 		p.reportError(err, "Invalid range of commits.")
 		return
 	}
+
+	before := len(df.TraceSet)
+	// Filter out Traces with insufficient data. I.e. we need 50% or more data
+	// on either side of the target commit.
+	df.FilterOut(tooMuchMissingData)
+	after := len(df.TraceSet)
+	glog.Infof("Filtered Traces: %d %d", before, after)
+
 	n := len(df.TraceSet)
 	// We want K to be around 50 when n = 30000, which has been determined via
 	// trial and error to be a good value for the Perf data we are working in. We
