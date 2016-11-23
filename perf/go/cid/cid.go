@@ -51,6 +51,7 @@ type CommitDetail struct {
 	Author    string `json:"author"`
 	Message   string `json:"message"`
 	URL       string `json:"url"`
+	Hash      string `json:"hash"`
 	Timestamp int64  `json:"ts"`
 }
 
@@ -244,6 +245,7 @@ func (c *CommitIDLookup) Lookup(cids []*CommitID) ([]*CommitDetail, error) {
 					Author:    entry.author,
 					Message:   fmt.Sprintf("%.7s - %s", entry.hash, entry.subject),
 					URL:       fmt.Sprintf("https://skia.googlesource.com/skia/+/%s", entry.hash),
+					Hash:      entry.hash,
 					Timestamp: entry.ts,
 				}
 			} else {
@@ -256,6 +258,7 @@ func (c *CommitIDLookup) Lookup(cids []*CommitID) ([]*CommitDetail, error) {
 					Author:    lc.Author,
 					Message:   fmt.Sprintf("%.7s - %s", lc.Hash, lc.ShortCommit.Subject),
 					URL:       fmt.Sprintf("https://skia.googlesource.com/skia/+/%s", lc.Hash),
+					Hash:      lc.Hash,
 					Timestamp: lc.Timestamp.Unix(),
 				}
 				c.mutex.Lock()
