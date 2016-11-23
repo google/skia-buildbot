@@ -136,6 +136,7 @@ func TestLookup(t *testing.T) {
 			},
 			Author:  "Joe Gregorio (jcgregorio@google.com)",
 			Message: "ab8d7b6 - Test Commit 1", URL: "https://skia.googlesource.com/skia/+/ab8d7b6872097732a27c459bb226683cdb4695bd",
+			Hash:      "ab8d7b6872097732a27c459bb226683cdb4695bd",
 			Timestamp: 1407642093,
 		},
 		&CommitDetail{
@@ -146,6 +147,7 @@ func TestLookup(t *testing.T) {
 			Author:    "mtklein_C",
 			Message:   "Iss: 1467533002 Patch: 40001 - GN: Android perf/tests Committed: foo.  ",
 			URL:       "https://codereview.chromium.org/1467533002",
+			Hash:      "",
 			Timestamp: 1448988012,
 		},
 	}
