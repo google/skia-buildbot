@@ -161,6 +161,7 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/newindex.html"),
 		filepath.Join(*resourcesDir, "templates/clusters2.html"),
 		filepath.Join(*resourcesDir, "templates/triage.html"),
+		filepath.Join(*resourcesDir, "templates/search.html"),
 
 		// Sub templates used by other templates.
 		filepath.Join(*resourcesDir, "templates/header.html"),
@@ -1779,6 +1780,7 @@ func main() {
 	router.HandleFunc("/e/", templateHandler("newindex.html"))
 	router.HandleFunc("/c/", templateHandler("clusters2.html"))
 	router.HandleFunc("/t/", templateHandler("triage.html"))
+	router.HandleFunc("/s/", templateHandler("search.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", gotoHandler)
 	router.HandleFunc("/_/initpage/", initpageHandler)
 	router.HandleFunc("/_/cidRange/", cidRangeHandler)

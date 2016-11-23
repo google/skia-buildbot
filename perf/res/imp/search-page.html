@@ -1,0 +1,38 @@
+<!-- The <search-page-sk> custom element declaration.
+
+  Allows loading up the descriptions of a range of commits
+  and then searching them. Also allows jumping to specific
+  pages (explore, cluster, or triage) for each commit.
+
+  Attributes:
+  Events:
+  Methods:
+-->
+
+<dom-module id="search-page-sk">
+  <style>
+  </style>
+  <template>
+    
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "search-page-sk",
+
+    properties: {
+      state: {
+        type: Object,
+        value: function() { return {
+          begin: Math.floor(Date.now()/1000 - 4*24*60*60),
+          end: Math.floor(Date.now()/1000),
+        }; },
+      },
+    },
+
+    ready: function() {
+    },
+
+  });
+</script>
