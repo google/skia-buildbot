@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4df48341_025a4c6c",
+        "filename": "task_scheduler/go/scheduling/busy_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T18:58:34Z",
+      "side": 1,
+      "message": "As long as we\u0027re deleting and recreating the metric, does it make sense to add the task as a tag also? I could imagine it would make graphs more difficult in Graphana, but might provide useful data.",
+      "revId": "761173ccc66b194acf4fe5e20f18d98e353038ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
