@@ -34,6 +34,24 @@
       "revId": "09846b59fe8b686b60f99005a8f1b7d1ec5c9d44",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "50d33c96_6a71b789",
+        "filename": "task_scheduler/res/imp/job-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-23T15:40:29Z",
+      "side": 0,
+      "message": "Reverted.",
+      "parentUuid": "50d33c96_6add3772",
+      "revId": "09846b59fe8b686b60f99005a8f1b7d1ec5c9d44",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
