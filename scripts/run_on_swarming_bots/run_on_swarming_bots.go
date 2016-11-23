@@ -58,9 +58,14 @@ func main() {
 		*taskName = fmt.Sprintf("run_%s", scriptName)
 	}
 
-	dims, err := swarming.ParseDimensions(dimensions)
+	parseDims, err := swarming.ParseDimensionFlags(dimensions)
 	if err != nil {
 		glog.Fatalf("Problem parsing dimensions: %s", err)
+	}
+	// Just take the first value for each dimension.
+	dims := make(map[string]string, len(parseDims))
+	for k, vals := range parseDims {
+		dims[k] = vals[0]
 	}
 	dims["pool"] = *pool
 

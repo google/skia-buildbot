@@ -43,7 +43,7 @@ func main() {
 	if *dimensions == nil && *includeBots == nil {
 		glog.Fatal("So one does not accidentally shutdown the entire pool, you must specify a dimension or an include rule.")
 	}
-	requestedDims, err := swarming.ParseDimensions(dimensions)
+	requestedDims, err := swarming.ParseDimensionFlags(dimensions)
 	if err != nil {
 		glog.Fatalf("Problem parsing dimensions: %s", err)
 	}
@@ -105,16 +105,18 @@ func main() {
 		}
 		// Check that the bot matches all the specified dimensions.
 		matchesAll := true
-		for k, d := range requestedDims {
-			has := false
-			for _, dim := range bot.Dimensions {
-				if k == dim.Key {
-					has = util.In(d, dim.Value)
+		for k, dims := range requestedDims {
+			for _, d := range dims {
+				has := false
+				for _, dim := range bot.Dimensions {
+					if k == dim.Key {
+						has = util.In(d, dim.Value)
+					}
 				}
-			}
-			if !has {
-				matchesAll = false
-				break
+				if !has {
+					matchesAll = false
+					break
+				}
 			}
 		}
 		if matchesAll {
