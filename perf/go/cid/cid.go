@@ -11,6 +11,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/timer"
@@ -204,6 +205,7 @@ func New(git *gitinfo.GitInfo, rv *rietveld.Rietveld) *CommitIDLookup {
 // Lookup returns a CommitDetail for each CommitID.
 func (c *CommitIDLookup) Lookup(cids []*CommitID) ([]*CommitDetail, error) {
 	defer timer.New("cid.Lookup time").Stop()
+	now := time.Now()
 	ret := make([]*CommitDetail, len(cids), len(cids))
 	for i, cid := range cids {
 		if strings.HasPrefix(cid.Source, CODE_REVIEW_URL) {
@@ -243,7 +245,7 @@ func (c *CommitIDLookup) Lookup(cids []*CommitID) ([]*CommitDetail, error) {
 				ret[i] = &CommitDetail{
 					CommitID:  *cid,
 					Author:    entry.author,
-					Message:   fmt.Sprintf("%.7s - %s", entry.hash, entry.subject),
+					Message:   fmt.Sprintf("%.7s - %s - %.28s", entry.hash, human.Duration(now.Sub(time.Unix(entry.ts, 0))), entry.subject),
 					URL:       fmt.Sprintf("https://skia.googlesource.com/skia/+/%s", entry.hash),
 					Hash:      entry.hash,
 					Timestamp: entry.ts,
@@ -256,7 +258,7 @@ func (c *CommitIDLookup) Lookup(cids []*CommitID) ([]*CommitDetail, error) {
 				ret[i] = &CommitDetail{
 					CommitID:  *cid,
 					Author:    lc.Author,
-					Message:   fmt.Sprintf("%.7s - %s", lc.Hash, lc.ShortCommit.Subject),
+					Message:   fmt.Sprintf("%.7s - %s - %.28s", lc.Hash, human.Duration(now.Sub(lc.Timestamp)), lc.ShortCommit.Subject),
 					URL:       fmt.Sprintf("https://skia.googlesource.com/skia/+/%s", lc.Hash),
 					Hash:      lc.Hash,
 					Timestamp: lc.Timestamp.Unix(),
