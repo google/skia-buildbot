@@ -3,6 +3,7 @@ package cid
 import (
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -134,8 +135,9 @@ func TestLookup(t *testing.T) {
 				Offset: 1,
 				Source: "master",
 			},
-			Author:  "Joe Gregorio (jcgregorio@google.com)",
-			Message: "ab8d7b6 - Test Commit 1", URL: "https://skia.googlesource.com/skia/+/ab8d7b6872097732a27c459bb226683cdb4695bd",
+			Author:    "Joe Gregorio (jcgregorio@google.com)",
+			Message:   "ab8d7b6 -  2y 15w - Test Commit 1",
+			URL:       "https://skia.googlesource.com/skia/+/ab8d7b6872097732a27c459bb226683cdb4695bd",
 			Hash:      "ab8d7b6872097732a27c459bb226683cdb4695bd",
 			Timestamp: 1407642093,
 		},
@@ -151,6 +153,12 @@ func TestLookup(t *testing.T) {
 			Timestamp: 1448988012,
 		},
 	}
+	// Message will change based on the passage of time. Test what we can, then
+	// copy the actual Message into the expected Message.
+	assert.True(t, strings.HasPrefix(details[0].Message, "ab8d7b6 -"))
+	assert.True(t, strings.HasSuffix(details[0].Message, " - Test Commit 1"))
+	expectedDetails[0].Message = details[0].Message
+
 	assert.Equal(t, expectedDetails, details)
 
 	cids[0].Offset = -1
