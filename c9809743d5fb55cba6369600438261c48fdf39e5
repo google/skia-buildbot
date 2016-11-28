@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "f01d104e_1365b635",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-28T18:25:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df48341_2d50947b",
+      "revId": "c9809743d5fb55cba6369600438261c48fdf39e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df48341_8d19e0a4",
         "filename": "go/boltutil/store.go",
         "patchSetId": 20
@@ -36,6 +54,24 @@
       "writtenOn": "2016-11-28T16:43:22Z",
       "side": 1,
       "message": "nit: maybe add a TODO to sort keys to ensure locality of reads in the boltdb bucket.",
+      "revId": "c9809743d5fb55cba6369600438261c48fdf39e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_53864ea5",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-28T18:25:11Z",
+      "side": 1,
+      "message": "I thought about this too and in my understanding of how boltdb works, it should not make a different. \nAt least within an transaction it will cache all pages that it loads. Even if I did a direct bucket.Get(...) it will do a \nCursor seek first. \nSee https://github.com/boltdb/bolt/blob/master/bucket.go#L268",
+      "parentUuid": "4df48341_8d19e0a4",
       "revId": "c9809743d5fb55cba6369600438261c48fdf39e5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -65,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "f01d104e_d3279ede",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 379,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-28T18:25:11Z",
+      "side": 1,
+      "message": "Good catch, thank you.  I expanded this to break if we are past that value of interest, which should keep unnecessary reads at bay.\nAdded test to make sure this edgecase is covered. More tests to be added in next CL.",
+      "parentUuid": "4df48341_4d7f58ca",
+      "revId": "c9809743d5fb55cba6369600438261c48fdf39e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df48341_cd836893",
         "filename": "go/boltutil/store.go",
         "patchSetId": 20
@@ -82,6 +136,24 @@
         "endLine": 402,
         "endChar": 13
       },
+      "revId": "c9809743d5fb55cba6369600438261c48fdf39e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_33539231",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-28T18:25:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df48341_cd836893",
       "revId": "c9809743d5fb55cba6369600438261c48fdf39e5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
