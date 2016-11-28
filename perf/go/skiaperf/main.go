@@ -1227,7 +1227,7 @@ func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 		if rr.End != 0 {
 			end = rr.End
 		}
-		df = dataframe.NewHeaderOnly(git, time.Unix(begin, 0), time.Unix(end, 0))
+		df = dataframe.NewHeaderOnly(git, time.Unix(begin, 0), time.Unix(end, 0), false)
 	}
 
 	found := false

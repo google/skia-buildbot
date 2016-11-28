@@ -270,7 +270,7 @@ func (p *FrameRequestProcess) Run() {
 	}
 
 	if len(df.Header) == 0 {
-		df = NewHeaderOnly(p.git, begin, end)
+		df = NewHeaderOnly(p.git, begin, end, true)
 	}
 
 	resp, err := ResponseFromDataFrame(df, p.git, true)

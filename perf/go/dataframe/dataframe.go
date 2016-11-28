@@ -112,9 +112,18 @@ func lastN(vcs vcsinfo.VCS) ([]*ColumnHeader, []*cid.CommitID, int) {
 // needed by DataFrame and ptracestore.PTraceStore, respectively. The slices
 // are for the commits that fall in the given time range [begin, end).
 //
+// If 'downsample' is true then the number of commits returned is limited
+// to MAX_SAMPLE_SIZE.
+//
 // The value for 'skip', the number of commits skipped, is also returned.
-func getRange(vcs vcsinfo.VCS, begin, end time.Time) ([]*ColumnHeader, []*cid.CommitID, int) {
-	commits, skip := DownSample(vcs.Range(begin, end), MAX_SAMPLE_SIZE)
+func getRange(vcs vcsinfo.VCS, begin, end time.Time, downsample bool) ([]*ColumnHeader, []*cid.CommitID, int) {
+	var commits []*vcsinfo.IndexCommit
+	skip := 1
+	if downsample {
+		commits, skip = DownSample(vcs.Range(begin, end), MAX_SAMPLE_SIZE)
+	} else {
+		commits = vcs.Range(begin, end)
+	}
 	return rangeImpl(commits, skip)
 }
 
@@ -151,7 +160,7 @@ func New(vcs vcsinfo.VCS, store ptracestore.PTraceStore, progress ptracestore.Pr
 // periodically as the query is processed.
 func NewFromQueryAndRange(vcs vcsinfo.VCS, store ptracestore.PTraceStore, begin, end time.Time, q *query.Query, progress ptracestore.Progress) (*DataFrame, error) {
 	defer timer.New("NewFromQueryAndRange time").Stop()
-	colHeaders, commitIDs, skip := getRange(vcs, begin, end)
+	colHeaders, commitIDs, skip := getRange(vcs, begin, end, true)
 	return _new(colHeaders, commitIDs, q.Matches, store, progress, skip)
 }
 
@@ -160,7 +169,7 @@ func NewFromQueryAndRange(vcs vcsinfo.VCS, store ptracestore.PTraceStore, begin,
 // callback is called periodically as the query is processed.
 func NewFromKeysAndRange(vcs vcsinfo.VCS, keys []string, store ptracestore.PTraceStore, begin, end time.Time, progress ptracestore.Progress) (*DataFrame, error) {
 	defer timer.New("NewFromKeysAndRange time").Stop()
-	colHeaders, commitIDs, skip := getRange(vcs, begin, end)
+	colHeaders, commitIDs, skip := getRange(vcs, begin, end, true)
 	sort.Strings(keys)
 	matches := func(key string) bool {
 		i := sort.SearchStrings(keys, key)
@@ -202,9 +211,12 @@ func NewEmpty() *DataFrame {
 
 // NewHeaderOnly returns a DataFrame with a populated Header, with no traces.
 // The 'progress' callback is called periodically as the query is processed.
-func NewHeaderOnly(vcs vcsinfo.VCS, begin, end time.Time) *DataFrame {
+//
+// If 'downsample' is true then the number of commits returned is limited
+// to MAX_SAMPLE_SIZE.
+func NewHeaderOnly(vcs vcsinfo.VCS, begin, end time.Time, downsample bool) *DataFrame {
 	defer timer.New("NewHeaderOnly time").Stop()
-	colHeaders, _, skip := getRange(vcs, begin, end)
+	colHeaders, _, skip := getRange(vcs, begin, end, downsample)
 	return &DataFrame{
 		TraceSet: ptracestore.TraceSet{},
 		Header:   colHeaders,
