@@ -16,12 +16,21 @@
 <link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="/res/common/imp/query-summary-sk.html" />
+<link rel="import" href="/res/common/imp/details-summary.html" />
 
 <link rel="import" href="/res/imp/triage-status.html" />
 <link rel="import" href="/res/imp/commit-detail.html" />
 
 <dom-module id="triage-page-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
+    details-sk {
+      margin-top: 0.5em;
+    }
+
+    day-range-sk {
+      display: block;
+    }
+
     .fixed {
       font-family: monospace;
     }
@@ -44,6 +53,12 @@
     }
   </style>
   <template>
+    <details-sk>
+      <summary-sk>
+        Range
+      </summary-sk>
+      <day-range-sk id=range on-day-range-change="_rangeChange"></day-range-sk>
+    </details-sk>
     <paper-spinner id=spinner></paper-spinner>
     <table on-open-keys=_openKeys on-triaged=_triaged>
       <tr>
@@ -124,7 +139,15 @@
       }.bind(this));
     },
 
+    _rangeChange: function(e) {
+      this.state.begin = e.detail.begin;
+      this.state.end = e.detail.end;
+      this._updateRange();
+    },
+
     _updateRange: function() {
+      this.$.range.begin = this.state.begin;
+      this.$.range.end = this.state.end;
       var body = {
         begin: this.state.begin,
         end: this.state.end,
