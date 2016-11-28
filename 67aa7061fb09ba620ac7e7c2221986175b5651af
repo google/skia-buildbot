@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4df48341_6d8d7c13",
+        "filename": "go/metrics2/liveness.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-28T16:07:07Z",
+      "side": 1,
+      "message": "nit: can pass l.update directly.",
+      "range": {
+        "startLine": 44,
+        "startChar": 43,
+        "endLine": 46,
+        "endChar": 2
+      },
+      "revId": "67aa7061fb09ba620ac7e7c2221986175b5651af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
