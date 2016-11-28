@@ -119,6 +119,24 @@
     },
     {
       "key": {
+        "uuid": "4df48341_943fa81a",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 379,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-28T19:05:34Z",
+      "side": 1,
+      "message": "Still not convinced. Objects:\na: aaa\nab: aa\naac: a\n\nIndex:\naaaa3\naaab2\naaac1\n\nLookup \"aa\"; on 1st iteration, keyPrefixLen \u003d 3, which is \u003e searchPrefixLen, so we break and return empty.",
+      "parentUuid": "f01d104e_d3279ede",
+      "revId": "c9809743d5fb55cba6369600438261c48fdf39e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df48341_cd836893",
         "filename": "go/boltutil/store.go",
         "patchSetId": 20
