@@ -22,6 +22,24 @@
       "revId": "b177635f1e17ee1ea8767293483b862e8dabb17a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_f3057ac3",
+        "filename": "go/boltutil/store_test.go",
+        "patchSetId": 22
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-28T21:01:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df48341_54b6c08e",
+      "revId": "b177635f1e17ee1ea8767293483b862e8dabb17a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
