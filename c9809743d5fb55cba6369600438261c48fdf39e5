@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4df48341_2d50947b",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-28T16:43:22Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 57,
+        "startChar": 33,
+        "endLine": 57,
+        "endChar": 43
+      },
+      "revId": "c9809743d5fb55cba6369600438261c48fdf39e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_8d19e0a4",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-28T16:43:22Z",
+      "side": 1,
+      "message": "nit: maybe add a TODO to sort keys to ensure locality of reads in the boltdb bucket.",
+      "revId": "c9809743d5fb55cba6369600438261c48fdf39e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_4d7f58ca",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 379,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-28T16:43:22Z",
+      "side": 1,
+      "message": "I\u0027m not convinced this is correct. Let\u0027s say we have the following objects, denoted with \u003cprimary key\u003e: \u003cindex value\u003e\na: aaa\naa: aa\naaa: a\n\nThe index table will look like this:\naaaa1\naaaa2\naaaa3\n\nLet\u0027s suppose I call indexLookup(bucket, \"aa\"). In the first loop iteration, keyPrefixLen, val :\u003d 1, \"aaa\". Since keyPrefixLen !\u003d searchPrefixLen, we\u0027ll break and return empty, even though there is an entry for \"aa\".\n\nChanging break to continue would solve this issue.\n\nMaybe it would be worthwhile to *both* insert a \\0 between value and key as well as include the length at the end? Maybe not worth if we can assume that index values are generally not prefixes of other index values.",
+      "range": {
+        "startLine": 379,
+        "startChar": 3,
+        "endLine": 379,
+        "endChar": 8
+      },
+      "revId": "c9809743d5fb55cba6369600438261c48fdf39e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_cd836893",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-28T16:43:22Z",
+      "side": 1,
+      "message": "typo V*A*lues",
+      "range": {
+        "startLine": 402,
+        "startChar": 12,
+        "endLine": 402,
+        "endChar": 13
+      },
+      "revId": "c9809743d5fb55cba6369600438261c48fdf39e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
