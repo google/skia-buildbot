@@ -1,0 +1,10 @@
+.auto-bug {
+	fill: black;
+	margin-left: 10px;
+}
+.auto-bug > svg{
+	vertical-align: bottom;
+}
+.auto-bug:hover {
+	fill: red;
+}
