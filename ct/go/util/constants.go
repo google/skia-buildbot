@@ -71,6 +71,7 @@ const (
 	BENCHMARK_RR                = "rasterize_and_record_micro"
 	BENCHMARK_REPAINT           = "repaint"
 	BENCHMARK_LOADING           = "loading.cluster_telemetry"
+	BENCHMARK_USECOUNTER        = "usecounter_ct"
 
 	// Logserver link. This is only accessible from Google corp.
 	MASTER_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
@@ -220,6 +221,7 @@ var (
 		BENCHMARK_RR:                "rasterize_and_record_micro_ct",
 		BENCHMARK_REPAINT:           "repaint_ct",
 		BENCHMARK_LOADING:           "loading.cluster_telemetry",
+		BENCHMARK_USECOUNTER:        "usecounter_ct",
 	}
 
 	// Information about the different CT pageset types.
@@ -331,6 +333,7 @@ var (
 		BENCHMARK_RR,
 		BENCHMARK_REPAINT,
 		BENCHMARK_LOADING,
+		BENCHMARK_USECOUNTER,
 	}
 
 	SupportedPlatformsToDesc = map[string]string{
