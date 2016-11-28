@@ -397,6 +397,24 @@
     },
     {
       "key": {
+        "uuid": "4df48341_7479c433",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-28T19:05:34Z",
+      "side": 1,
+      "message": "SGTM. You might consider adding a version number for each index, to allow the client to change the format of the indexed values if desired. (Although the client could probably just change the name of the index instead.) Might do the same for IndexedBucket version.",
+      "parentUuid": "4df48341_53c5c4f3",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d079ec3f_34cbb636",
         "filename": "go/boltutil/store.go",
         "patchSetId": 13
@@ -1025,6 +1043,24 @@
       "side": 1,
       "message": "Not so much HTTP response, but simply be written to a log file. If the rec contained sensitive\ndata we would now have them in a log file. If the rec values were essential to debugging this I would make the the error message more specific. But it\u0027s already part of the contract that the Key() cannot be empty and it should be easy to figure out what\u0027s going on which out having the specific record.",
       "parentUuid": "4df48341_a8bc9f69",
+      "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_91a7baa1",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-28T19:05:34Z",
+      "side": 1,
+      "message": "I very much hope our logs are secure!! If you believe otherwise, we should fix it!",
+      "parentUuid": "4df48341_73020828",
       "revId": "934d452274e35e40ffc77e3ba16e9b5616afbc99",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
