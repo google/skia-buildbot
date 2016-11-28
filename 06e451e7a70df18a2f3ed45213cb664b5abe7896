@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "f01d104e_589aed5c",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-28T16:03:24Z",
+      "side": 1,
+      "message": "I refactored it, so an open boltDB is a config field, so it\u0027s the responsibility of the caller to close the DB they opened.",
+      "parentUuid": "4df48341_08570b1f",
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df48341_a8d81f81",
         "filename": "go/boltutil/store.go",
         "patchSetId": 15
@@ -36,6 +54,24 @@
         "endLine": 114,
         "endChar": 22
       },
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_7897a931",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-28T16:03:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df48341_a8d81f81",
       "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -88,6 +124,42 @@
     },
     {
       "key": {
+        "uuid": "f01d104e_33a39283",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-28T16:03:24Z",
+      "side": 1,
+      "message": "It should actually be \"index values\", though I agree that the nomenclature is bit fuzzy.",
+      "parentUuid": "4df48341_a84dbf88",
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_93b8c6ae",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-28T16:03:24Z",
+      "side": 1,
+      "message": "I think that\u0027s correct. Let\u0027s chat offline about nomenclature and I am happy to change it so it\u0027s intuitive.",
+      "parentUuid": "4df48341_c8500325",
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df48341_8868bbd2",
         "filename": "go/boltutil/store.go",
         "patchSetId": 15
@@ -105,6 +177,24 @@
         "endLine": 120,
         "endChar": 42
       },
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_b3bdc29d",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-28T16:03:24Z",
+      "side": 1,
+      "message": "Same: nomenclature needs to be clarified.",
+      "parentUuid": "4df48341_8868bbd2",
       "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -134,6 +224,24 @@
     },
     {
       "key": {
+        "uuid": "f01d104e_d3c23e24",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-28T16:03:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df48341_28776fb4",
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df48341_c8b4831d",
         "filename": "go/boltutil/store.go",
         "patchSetId": 15
@@ -151,6 +259,24 @@
         "endLine": 180,
         "endChar": 26
       },
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_33aab24f",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-28T16:03:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df48341_c8b4831d",
       "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -180,6 +306,24 @@
     },
     {
       "key": {
+        "uuid": "f01d104e_93dfe6f8",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-28T16:03:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df48341_a806dffa",
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df48341_68257771",
         "filename": "go/boltutil/store.go",
         "patchSetId": 15
@@ -203,6 +347,24 @@
     },
     {
       "key": {
+        "uuid": "f01d104e_53b72eb6",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-28T16:03:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df48341_68257771",
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df48341_a81a5f2f",
         "filename": "go/boltutil/store.go",
         "patchSetId": 15
@@ -220,6 +382,24 @@
         "endLine": 456,
         "endChar": 54
       },
+      "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_73b42ab1",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 456,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-28T16:03:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df48341_a81a5f2f",
       "revId": "06e451e7a70df18a2f3ed45213cb664b5abe7896",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
