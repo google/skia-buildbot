@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4df48341_54b6c08e",
+        "filename": "go/boltutil/store_test.go",
+        "patchSetId": 22
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-28T19:05:34Z",
+      "side": 1,
+      "message": "Please use ioutil.TempDir(\"\", \"\")",
+      "range": {
+        "startLine": 24,
+        "startChar": 17,
+        "endLine": 24,
+        "endChar": 56
+      },
+      "revId": "b177635f1e17ee1ea8767293483b862e8dabb17a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
