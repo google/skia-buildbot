@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4df48341_d146629b",
+        "filename": "chromeextensions/skia-trooper/bugs.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-11-28T18:10:24Z",
+      "side": 1,
+      "message": "I had misunderstood your intention, I thought the bug link would show up only in the extension\u0027s popup.\nFor bug links on alerts.skia.org we can directly add this to the server instead of needing the extension because we control the content there.\nYou could add it directly to the alertserver and also add it to the extension. I would prefer adding this only to the popup because I personally use alerts.skia.org only for bulk edits and use the extension for individual interactions (like these bug links).",
+      "revId": "1684b2699d783f08a8d612c88f4c0b70ea03b190",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
