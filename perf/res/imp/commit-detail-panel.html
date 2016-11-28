@@ -67,7 +67,6 @@
       <template id=template is="dom-repeat" items="{{_details}}" >
         <tr data-id$="[[index]]" data-selected$="[[_selected(index,_selectedIndex)]]">
           <td>[[_trim(item.author)]]</td>
-          <td>[[_humanize(item.ts)]]</td>
           <td>
             <commit-detail-sk cid="[[item]]"></commit-detail-sk>
           </td>
@@ -145,13 +144,6 @@
     _trim: function(s) {
       s = s.slice(0, 72);
       return s;
-    },
-
-    _trimNewline: function(s) {
-      if (!s) {
-        return "";
-      }
-      return this._trim(s.split("\n")[0]);
     },
 
   });
