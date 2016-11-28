@@ -204,3 +204,30 @@ func TestParseDuration(t *testing.T) {
 		}
 	}
 }
+
+func TestDuration(t *testing.T) {
+	testutils.SmallTest(t)
+	testCases := []struct {
+		expected string
+		value    time.Duration
+	}{
+		{"     0s", 0},
+		{"     1s", time.Second},
+		{"     1s", -time.Second},
+		{"     1m", 60 * time.Second},
+		{" 1m  1s", 61 * time.Second},
+		{" 1m 59s", 119 * time.Second},
+		{"59m 59s", 3599 * time.Second},
+		{" 1h  1s", 3601 * time.Second},
+		{"23h 59m", 24*60*60*time.Second - time.Second},
+		{"     1d", 24 * 60 * 60 * time.Second},
+		{" 1d  1s", 24*60*60*time.Second + time.Second},
+		{" 1w  1s", 7*24*60*60*time.Second + time.Second},
+		{" 1y  1d", 365*24*60*60*time.Second + 24*60*60*time.Second},
+	}
+	for _, tc := range testCases {
+		if got, want := Duration(tc.value), tc.expected; got != want {
+			t.Errorf("Failed case Got %q Want %q", got, want)
+		}
+	}
+}

@@ -3,8 +3,10 @@ package human
 
 import (
 	"fmt"
+	"math"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -174,4 +176,65 @@ func ParseDuration(s string) (time.Duration, error) {
 		d = time.Duration(n) * 7 * 24 * time.Hour
 	}
 	return d, nil
+}
+
+type delta struct {
+	units string
+	delta int64
+}
+
+var (
+	deltas = []delta{
+		{
+			units: "y",
+			delta: 365 * 24 * 60 * 60,
+		},
+		{
+			units: "w",
+			delta: 7 * 24 * 60 * 60,
+		},
+		{
+			units: "d",
+			delta: 24 * 60 * 60,
+		},
+		{
+			units: "h",
+			delta: 60 * 60,
+		},
+		{
+			units: "m",
+			delta: 60,
+		},
+		{
+			units: "s",
+			delta: 1,
+		},
+	}
+)
+
+// Duration returns a human friendly description of the given time.Duration.
+//
+// For example Duration(61*time.Second) returns " 1m 1s".
+//
+// The length of the string returned is guaranteed to always be 7.
+// A negative duration is treated the same as a positive duration.
+func Duration(duration time.Duration) string {
+	ret := []string{}
+	s := int64(math.Abs(duration.Seconds()))
+	for _, d := range deltas {
+		if d.delta <= s {
+			ret = append(ret, fmt.Sprintf("%2d%s", s/d.delta, d.units))
+			s = s % d.delta
+			if len(ret) == 2 {
+				break
+			}
+		}
+	}
+	if len(ret) == 0 {
+		ret = append(ret, "   ", " 0s")
+	}
+	if len(ret) < 2 {
+		ret = []string{"   ", ret[0]}
+	}
+	return strings.Join(ret, " ")
 }
