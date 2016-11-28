@@ -22,6 +22,24 @@
       "revId": "67aa7061fb09ba620ac7e7c2221986175b5651af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_94ce886f",
+        "filename": "go/metrics2/liveness.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-28T19:37:12Z",
+      "side": 1,
+      "message": "Done in https://skia-review.googlesource.com/c/5279/",
+      "parentUuid": "4df48341_6d8d7c13",
+      "revId": "67aa7061fb09ba620ac7e7c2221986175b5651af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
