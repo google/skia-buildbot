@@ -21,8 +21,8 @@
       color: #1f78b4;
     }
 
-    .linkish {
-      font-family: monospace;
+    pre {
+      margin: 0;
     }
 
     .tip {
@@ -37,7 +37,7 @@
     }
   </style>
   <template>
-    <div on-click=_click class=linkish>[[cid.message]]</div>
+    <div on-click=_click class=linkish><pre>[[cid.message]]</pre></div>
     <div class="tip hidden" id=tip>
       <a href="/g/e/[[cid.hash]]">Explore</a>
       <a href="/g/c/[[cid.hash]]">Cluster</a>
