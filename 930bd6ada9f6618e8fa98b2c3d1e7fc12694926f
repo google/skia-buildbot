@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4df48341_f1d84682",
+        "filename": "perf/res/imp/commit-detail.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-28T18:27:02Z",
+      "side": 1,
+      "message": "Do you want \"Explore\" \"Cluster\" etc. links to be monospace also? This applies to those links.",
+      "range": {
+        "startLine": 22,
+        "startChar": 6,
+        "endLine": 22,
+        "endChar": 28
+      },
+      "revId": "930bd6ada9f6618e8fa98b2c3d1e7fc12694926f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
