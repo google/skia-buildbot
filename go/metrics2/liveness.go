@@ -41,10 +41,8 @@ func (c *Client) NewLiveness(name string, tagsList ...map[string]string) *Livene
 		m:                    c.GetInt64Metric(MEASUREMENT_LIVENESS, tags),
 		mtx:                  sync.Mutex{},
 	}
-	go util.RepeatCtx(time.Minute, ctx, func() {
-		for _ = range time.Tick(c.reportFrequency) {
-			l.update()
-		}
+	go util.RepeatCtx(c.reportFrequency, ctx, func() {
+		l.update()
 	})
 	return l
 }
