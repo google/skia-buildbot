@@ -30,7 +30,7 @@ func onestep() {
 	defer timer.New("Warmer onestep").Stop()
 	end := time.Now()
 	begin := time.Now().Add(-365 * 24 * time.Hour)
-	colHeaders, commitIDs, skip := getRange(vcs, begin, end)
+	colHeaders, commitIDs, skip := getRange(vcs, begin, end, true)
 	matches := func(key string) bool {
 		return false
 	}
