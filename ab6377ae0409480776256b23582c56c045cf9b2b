@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4df48341_112cca06",
+        "filename": "go/human/human.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-28T18:01:40Z",
+      "side": 1,
+      "message": "Assuming \u003c 100 years.",
+      "range": {
+        "startLine": 219,
+        "startChar": 3,
+        "endLine": 219,
+        "endChar": 65
+      },
+      "revId": "ab6377ae0409480776256b23582c56c045cf9b2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_1133aa54",
+        "filename": "perf/go/cid/cid_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-28T18:01:40Z",
+      "side": 1,
+      "message": "Test will fail next week.",
+      "range": {
+        "startLine": 138,
+        "startChar": 26,
+        "endLine": 138,
+        "endChar": 32
+      },
+      "revId": "ab6377ae0409480776256b23582c56c045cf9b2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
