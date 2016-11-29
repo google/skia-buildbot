@@ -114,6 +114,11 @@ func (ix *IndexedBucket) ReadTx(tx *bolt.Tx, keys []string) ([]Record, error) {
 // ReadIndex returns the record keys for the given index name and list of index values.
 // The return value maps from index values (secondary key values) to a list of primary keys.
 func (ix *IndexedBucket) ReadIndex(idx string, keys []string) (map[string][]string, error) {
+	return ix.ReadIndexTx(nil, idx, keys)
+}
+
+// ReadIndexTx does the same as ReadIndex but uses an existing transaction.
+func (ix *IndexedBucket) ReadIndexTx(tx *bolt.Tx, idx string, keys []string) (map[string][]string, error) {
 	if _, ok := ix.indices[idx]; !ok {
 		return nil, fmt.Errorf("Invalid index: %q", idx)
 	}
@@ -127,7 +132,12 @@ func (ix *IndexedBucket) ReadIndex(idx string, keys []string) (map[string][]stri
 		return nil
 	}
 
-	err := ix.DB.View(viewFn)
+	var err error
+	if tx != nil {
+		err = viewFn(tx)
+	} else {
+		err = ix.DB.View(viewFn)
+	}
 	return ret, err
 }
 
