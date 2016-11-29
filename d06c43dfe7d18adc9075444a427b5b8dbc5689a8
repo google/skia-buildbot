@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f01d104e_d046a970",
+        "filename": "task_scheduler/go/window/window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-29T19:04:13Z",
+      "side": 1,
+      "message": "This actually uses the earliest commit timestamp from ANY repo, which is not what we want.  In order to not do this, we have to have Start() and all other methods accept a repo URL...",
+      "range": {
+        "startLine": 41,
+        "startChar": 17,
+        "endLine": 41,
+        "endChar": 23
+      },
+      "revId": "d06c43dfe7d18adc9075444a427b5b8dbc5689a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
