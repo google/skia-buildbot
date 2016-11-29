@@ -94,7 +94,14 @@ type DigestFailure struct {
 	Digest string  `json:"digest"`
 	Reason DiffErr `json:"reason"`
 	TS     int64   `json:"ts"`
-	Error  string  `json:"error"`
+}
+
+func NewDigestFailure(digest string, reason DiffErr) *DigestFailure {
+	return &DigestFailure{
+		Digest: digest,
+		Reason: reason,
+		TS:     util.TimeStampMs(),
+	}
 }
 
 // Implement sort.Interface for a slice of DigestFailure

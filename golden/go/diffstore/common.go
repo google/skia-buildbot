@@ -6,7 +6,10 @@ import (
 	"image/png"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
+
+	"github.com/boltdb/bolt"
 
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/util"
@@ -88,4 +91,14 @@ func createRadixPath(baseDir, fileName string) (string, error) {
 	}
 
 	return targetPath, nil
+}
+
+// openBoltDB opens a boltDB in the given given directory with the given name.
+func openBoltDB(baseDir, name string) (*bolt.DB, error) {
+	baseDir, err := fileutil.EnsureDirExists(baseDir)
+	if err != nil {
+		return nil, err
+	}
+
+	return bolt.Open(path.Join(baseDir, name), 0600, nil)
 }
