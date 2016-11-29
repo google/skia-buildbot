@@ -1221,13 +1221,10 @@ func addGetObjectHandler(t *testing.T, r *mux.Router, name string, contents []by
 }
 
 // addGetJobGOBHandler causes r to respond to a request for the given job (in
-// TEST_BUCKET with name given by formatJobObjectName) with the gzipped
-// GOB-encoded Job.
+// TEST_BUCKET with name given by formatJobObjectName) with the GOB-encoded Job.
 func addGetJobGOBHandler(t *testing.T, r *mux.Router, job *db.Job) {
 	buf := &bytes.Buffer{}
-	gzW := gzip.NewWriter(buf)
-	assert.NoError(t, gob.NewEncoder(gzW).Encode(job))
-	assert.NoError(t, gzW.Close())
+	assert.NoError(t, gob.NewEncoder(buf).Encode(job))
 	addGetObjectHandler(t, r, formatJobObjectName(job.DbModified, job.Id), buf.Bytes())
 }
 
@@ -1271,30 +1268,6 @@ func TestDownloadGOBNotFound(t *testing.T) {
 	testutils.AssertDeepEqual(t, db.Job{}, dummy)
 }
 
-// downloadGOB should return an error if the data is not gzip-encoded.
-func TestDownloadGOBNotGzip(t *testing.T) {
-	testutils.SmallTest(t)
-
-	now := time.Now()
-	job := makeExistingJob(now, "j1")
-
-	r := mux.NewRouter()
-
-	name := "not-gzip.gob"
-	buf := &bytes.Buffer{}
-	assert.NoError(t, gob.NewEncoder(buf).Encode(job))
-	addGetObjectHandler(t, r, name, buf.Bytes())
-
-	b, cancel := getMockedDBBackup(t, r)
-	defer cancel()
-
-	var dummy db.Job
-	err := downloadGOB(b.ctx, b.gsClient.Bucket(b.gsBucket), name, &dummy)
-	assert.Error(t, err)
-	assert.Regexp(t, "gzip: invalid header", err.Error())
-	testutils.AssertDeepEqual(t, db.Job{}, dummy)
-}
-
 // downloadGOB should return an error if the data is not GOB-encoded.
 func TestDownloadGOBNotGOB(t *testing.T) {
 	testutils.SmallTest(t)
@@ -1302,18 +1275,13 @@ func TestDownloadGOBNotGOB(t *testing.T) {
 	r := mux.NewRouter()
 
 	name := "poem.txt"
-	buf := &bytes.Buffer{}
-	gzW := gzip.NewWriter(buf)
-	_, err := gzW.Write([]byte(TEST_DB_CONTENT))
-	assert.NoError(t, err)
-	assert.NoError(t, gzW.Close())
-	addGetObjectHandler(t, r, name, buf.Bytes())
+	addGetObjectHandler(t, r, name, []byte(TEST_DB_CONTENT))
 
 	b, cancel := getMockedDBBackup(t, r)
 	defer cancel()
 
 	var dummy db.Job
-	err = downloadGOB(b.ctx, b.gsClient.Bucket(b.gsBucket), name, &dummy)
+	err := downloadGOB(b.ctx, b.gsClient.Bucket(b.gsBucket), name, &dummy)
 	assert.Error(t, err)
 	assert.Regexp(t, "Error decoding GOB data", err.Error())
 	testutils.AssertDeepEqual(t, db.Job{}, dummy)
