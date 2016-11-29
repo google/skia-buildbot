@@ -16,6 +16,24 @@
       "revId": "1684b2699d783f08a8d612c88f4c0b70ea03b190",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df48341_baacd3d5",
+        "filename": "chromeextensions/skia-trooper/bugs.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-29T19:00:00Z",
+      "side": 1,
+      "message": "You are right.  I guess I just got excited building extensions.  I\u0027ll rework this to the appropriate places.",
+      "parentUuid": "4df48341_d146629b",
+      "revId": "1684b2699d783f08a8d612c88f4c0b70ea03b190",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
