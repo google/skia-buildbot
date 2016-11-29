@@ -48,6 +48,24 @@
     },
     {
       "key": {
+        "uuid": "f01d104e_d947b51c",
+        "filename": "task_scheduler/go/window/window.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-29T21:11:08Z",
+      "side": 1,
+      "message": "So the problem is that, in the case of merges, we may follow the \"wrong\" branch and end up far earlier in the commit history than we meant to.  I think we have to always follow the first parent.  That\u0027s currently how Commit.Recurse() works, but I\u0027m not sure if I want to rely on that.  If we think that\u0027s okay, then we can use it.",
+      "parentUuid": "f01d104e_b9b4b9b1",
+      "revId": "67a3151613f24853ae8774d7cf827f3ed85b8daf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f01d104e_16175a2f",
         "filename": "task_scheduler/go/window/window.go",
         "patchSetId": 2
