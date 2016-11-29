@@ -118,7 +118,6 @@
       _reg: {
         type: Object,
         value: function() { return {}; },
-        observer: "_shortenCidMessages",
       },
       _triageInProgress: {
         type: Boolean,
@@ -185,15 +184,6 @@
 
     _queryFrom: function(index) {
       return this._reg.header[index];
-    },
-
-    _shortenCidMessages: function() {
-      if (!this._reg || !this._reg.table) {
-        return
-      }
-      this._reg.table.forEach(function(ele) {
-        ele.cid.message = ele.cid.message.slice(0, 40);
-      });
     },
 
     _full_summary: function(frame, summary) {

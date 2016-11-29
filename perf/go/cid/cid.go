@@ -245,7 +245,7 @@ func (c *CommitIDLookup) Lookup(cids []*CommitID) ([]*CommitDetail, error) {
 				ret[i] = &CommitDetail{
 					CommitID:  *cid,
 					Author:    entry.author,
-					Message:   fmt.Sprintf("%.7s - %s - %.28s", entry.hash, human.Duration(now.Sub(time.Unix(entry.ts, 0))), entry.subject),
+					Message:   fmt.Sprintf("%.7s - %s - %.40s", entry.hash, human.Duration(now.Sub(time.Unix(entry.ts, 0))), entry.subject),
 					URL:       fmt.Sprintf("https://skia.googlesource.com/skia/+/%s", entry.hash),
 					Hash:      entry.hash,
 					Timestamp: entry.ts,
