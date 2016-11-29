@@ -1586,7 +1586,7 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 	a := &types.Activity{
 		UserID: login.LoggedInAs(r),
 		Action: fmt.Sprintf("Perf Triage: %q %q %q %q", tr.Query, detail[0].URL, tr.Triage.Status, tr.Triage.Message),
-		URL:    r.Header.Get("Referer"),
+		URL:    fmt.Sprintf("/t/?begin=%d&end=%d", detail[0].Timestamp, detail[0].Timestamp+1),
 	}
 	if err := activitylog.Write(a); err != nil {
 		glog.Errorf("Failed to log activity: %s", err)
