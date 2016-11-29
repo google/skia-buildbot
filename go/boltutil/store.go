@@ -4,6 +4,7 @@ package boltutil
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/boltdb/bolt"
 	"go.skia.org/infra/go/util"
@@ -13,6 +14,15 @@ const (
 	// Maximum length of the value for an index. This results from us storing the
 	// length in a two byte uint.
 	MAX_INDEX_VAL_LEN = 65535
+
+	// META_DATA_BUCKET_PREFIX is the prefix of the bucket name used for meta data.
+	META_DATA_BUCKET_PREFIX = "_meta_"
+
+	// META_DATA_KEY is the key under which meta data are stored.
+	META_DATA_KEY = "meta"
+
+	// BUILD_INDEX_BATCH_SIZE is the batchsize used when building new indices.
+	BUILD_INDEX_BATCH_SIZE = 100
 )
 
 // Record is the interface that has to be implemented by a client to store
@@ -41,9 +51,8 @@ type IndexedBucket struct {
 	// BoltDB instance used by this store.
 	DB *bolt.DB
 
-	// indices is the list of indices this store maintains. The key and values
-	// are different representations of the same value for convenience.
-	indices map[string][]byte
+	// indices is the set of indices this IndexedBucket maintains.
+	indices util.StringSet
 
 	// mainBucket is the name of the bucket where the records are stored.
 	mainBucket []byte
@@ -71,17 +80,14 @@ type Config struct {
 // NewIndexedBucket returns a new instance of IndexedBucket. Since it uses an existing
 // BoltDB instance, it is up to the caller to close it.
 func NewIndexedBucket(config *Config) (*IndexedBucket, error) {
-	indices := make(map[string][]byte, len(config.Indices))
-	for _, idx := range config.Indices {
-		if idx == "" {
-			return nil, fmt.Errorf("Index name cannot be empty string.")
-		}
-		indices[idx] = []byte(idx)
+	// Make sure there is not collision with any internal buckets, i.e. for meta data.
+	if config.Name == "" || strings.HasPrefix(config.Name, "_") {
+		return nil, fmt.Errorf("Bucket name cannot be empty or start with %q", "_")
 	}
 
 	ret := &IndexedBucket{
 		DB:         config.DB,
-		indices:    indices,
+		indices:    util.NewStringSet(config.Indices),
 		mainBucket: []byte(config.Name),
 		codec:      config.Codec,
 	}
@@ -212,7 +218,7 @@ func (ix *IndexedBucket) writeRecs(inputRecs []Record, writeFn WriteFn, tx *bolt
 			}
 		}
 
-		if err := ix.updateIndices(tx, writeRecs, origIndexState); err != nil {
+		if err := ix.updateIndices(tx, writeRecs, origIndexState, ix.indices); err != nil {
 			return err
 		}
 
@@ -392,7 +398,7 @@ func (ix *IndexedBucket) getIndexState(recs []Record) ([]map[string][]string, er
 	var err error
 	for i, rec := range recs {
 		if rec != nil {
-			if ret[i], err = ix.getIndexValues(rec); err != nil {
+			if ret[i], err = ix.getIndexValues(rec, ix.indices); err != nil {
 				return nil, err
 			}
 		}
@@ -401,7 +407,7 @@ func (ix *IndexedBucket) getIndexState(recs []Record) ([]map[string][]string, er
 }
 
 // getIndexValues extracts the index values from rec and returns a deep copy.
-func (ix *IndexedBucket) getIndexValues(rec Record) (map[string][]string, error) {
+func (ix *IndexedBucket) getIndexValues(rec Record, targetIndices util.StringSet) (map[string][]string, error) {
 	iv := rec.IndexValues()
 	ret := make(map[string][]string, len(iv))
 	for idxName, values := range iv {
@@ -415,6 +421,12 @@ func (ix *IndexedBucket) getIndexValues(rec Record) (map[string][]string, error)
 				return nil, fmt.Errorf("Value for index %s too long. Cannot exceed %d.", idxName, MAX_INDEX_VAL_LEN)
 			}
 		}
+
+		// Only consider the indices in targetIndices.
+		if !targetIndices[idxName] {
+			continue
+		}
+
 		ret[idxName] = append([]string(nil), values...)
 	}
 	return ret, nil
@@ -446,9 +458,9 @@ func fromIndexEntry(entry []byte) (int, string) {
 }
 
 // updateIndices updates the indices the given records
-func (ix *IndexedBucket) updateIndices(tx *bolt.Tx, recs []Record, baseState []map[string][]string) error {
-	addChanges := make(map[string][]string, len(ix.indices))
-	delChanges := make(map[string][]string, len(ix.indices))
+func (ix *IndexedBucket) updateIndices(tx *bolt.Tx, recs []Record, baseState []map[string][]string, indices util.StringSet) error {
+	addChanges := make(map[string][]string, len(indices))
+	delChanges := make(map[string][]string, len(indices))
 	var indexVals map[string][]string
 	var err error
 	for i, rec := range recs {
@@ -456,7 +468,7 @@ func (ix *IndexedBucket) updateIndices(tx *bolt.Tx, recs []Record, baseState []m
 		// we need to update the index.
 		if rec != nil {
 			parentId := rec.Key()
-			if indexVals, err = ix.getIndexValues(rec); err != nil {
+			if indexVals, err = ix.getIndexValues(rec, indices); err != nil {
 				return err
 			}
 
@@ -490,7 +502,7 @@ func (ix *IndexedBucket) deleteIndices(tx *bolt.Tx, entries []Record) error {
 	for _, entry := range entries {
 		if entry != nil {
 			parentId := entry.Key()
-			if idxValsMap, err = ix.getIndexValues(entry); err != nil {
+			if idxValsMap, err = ix.getIndexValues(entry, ix.indices); err != nil {
 				return err
 			}
 
@@ -504,20 +516,122 @@ func (ix *IndexedBucket) deleteIndices(tx *bolt.Tx, entries []Record) error {
 	return writeIndexChanges(tx, changes, deleteIndexOp)
 }
 
-// initBuckets makes sure all needed buckets exist.
+// metaData captures the meta data that are stored for each IndexedBucket.
+type metaData struct {
+	// Version is for future use when the bucket layout changes.
+	Version int
+
+	// Indices contains the indices currently maintained for a bucket.
+	Indices []string
+}
+
+// initBuckets makes sure all needed buckets exist and the configured indices
+// are correct in the database. If indices were added or removed it will
+// update the database accordingly.
 func (ix *IndexedBucket) initBuckets() error {
 	return ix.DB.Update(func(tx *bolt.Tx) error {
+		// Create the main bucket if it does not exist.
 		if _, err := tx.CreateBucketIfNotExists(ix.mainBucket); err != nil {
 			return err
 		}
 
-		for _, idxName := range ix.indices {
-			if _, err := tx.CreateBucketIfNotExists(idxName); err != nil {
+		var removeIndices util.StringSet = nil
+		var addIndices util.StringSet = nil
+
+		// Get the metadata bucket and load the meta data.
+		metaBucketName := []byte(META_DATA_BUCKET_PREFIX + string(ix.mainBucket))
+		codec := util.JSONCodec(&metaData{})
+		bucket := tx.Bucket(metaBucketName)
+		var err error
+
+		// If the bucket doesn't exist or is empty, we create all indices.
+		if bucket == nil {
+			if bucket, err = tx.CreateBucket(metaBucketName); err != nil {
+				return err
+			}
+			addIndices = ix.indices
+		} else if metaBytes := bucket.Get([]byte(META_DATA_KEY)); metaBytes == nil {
+			addIndices = ix.indices
+		} else {
+			// deserialize the meta data.
+			iMeta, err := codec.Decode(metaBytes)
+			if err != nil {
+				return err
+			}
+			metaRec := iMeta.(*metaData)
+
+			// Find the indices that need to be added or removed.
+			existingIndices := util.NewStringSet(metaRec.Indices)
+			addIndices = ix.indices.Complement(existingIndices)
+			removeIndices = existingIndices.Complement(ix.indices)
+		}
+
+		// Delete all unnecessary indices.
+		for idxName := range removeIndices {
+			if err := tx.DeleteBucket([]byte(idxName)); err != nil {
 				return err
 			}
 		}
-		return nil
+
+		// Add the necessary indices.
+		if len(addIndices) > 0 {
+			if err := ix.buildIndices(tx, addIndices); err != nil {
+				return err
+			}
+		}
+
+		// Write the meta data.
+		metaRec := &metaData{Version: 1, Indices: ix.indices.Keys()}
+		metaBytes, err := codec.Encode(metaRec)
+		if err != nil {
+			return err
+		}
+		return bucket.Put([]byte(META_DATA_KEY), metaBytes)
 	})
+}
+
+// buildIndices iterates over all records and creates the provided indices.
+func (ix *IndexedBucket) buildIndices(tx *bolt.Tx, indices util.StringSet) error {
+	// Clear the indices first to be in a well defined state.
+	for idxName := range indices {
+		bucket := tx.Bucket([]byte(idxName))
+		if bucket != nil {
+			if err := tx.DeleteBucket([]byte(idxName)); err != nil {
+				return err
+			}
+		}
+		if _, err := tx.CreateBucket([]byte(idxName)); err != nil {
+			return err
+		}
+	}
+
+	// iterate over the entire database and build the indices.
+	recBatch := make([]Record, 0, BUILD_INDEX_BATCH_SIZE)
+	emptyBaseState := make([]map[string][]string, BUILD_INDEX_BATCH_SIZE, BUILD_INDEX_BATCH_SIZE)
+	c := tx.Bucket(ix.mainBucket).Cursor()
+	for k, v := c.First(); k != nil; k, v = c.Next() {
+		rec, err := ix.codec.Decode(v)
+		if err != nil {
+			return fmt.Errorf("Error while (re)building indices, while reading record with key %q: %s", string(k), err)
+		}
+		recBatch = append(recBatch, rec.(Record))
+		if len(recBatch) >= BUILD_INDEX_BATCH_SIZE {
+			if err := ix.updateIndices(tx, recBatch, emptyBaseState[:len(recBatch)], indices); err != nil {
+				return err
+			}
+			// Note: This might prevent some instances of Record from being garbage collected
+			// right away which is accpetable in this case.
+			recBatch = recBatch[:0]
+		}
+	}
+
+	// Process any records that haven't been indexed yet.
+	if len(recBatch) > 0 {
+		if err := ix.updateIndices(tx, recBatch, emptyBaseState[:len(recBatch)], indices); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // indexOp is a helper type that allows to define different operations for writeIndexChanges.
