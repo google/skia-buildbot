@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "f01d104e_10912131",
+        "filename": "task_scheduler/go/db/recovery/gsviewer/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-29T18:44:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df48341_bf3cd7f2",
+      "revId": "6fff4d4f67bbdf343625f5d331a9c401b59b5729",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df48341_7f688fd1",
         "filename": "task_scheduler/go/db/recovery/gsviewer/main.go",
         "patchSetId": 1
@@ -100,6 +118,24 @@
       "side": 1,
       "message": "I did it this way due to your comment here: https://skia-review.googlesource.com/c/4837/#message-240d50f81fbeb083ec4dbce19dbcae63102da42a\n\nIf you prefer Stdout to be the default, I think I prefer removing the --output argument and using shell redirection to write to a file.",
       "parentUuid": "4df48341_3ff7a71d",
+      "revId": "6fff4d4f67bbdf343625f5d331a9c401b59b5729",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_10c84143",
+        "filename": "task_scheduler/go/db/recovery/gsviewer/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-29T18:44:50Z",
+      "side": 1,
+      "message": "Removed per above.",
+      "parentUuid": "4df48341_f76276eb",
       "revId": "6fff4d4f67bbdf343625f5d331a9c401b59b5729",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
