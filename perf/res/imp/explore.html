@@ -18,6 +18,7 @@
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="/res/imp/bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
 
 <link rel="import" href="/res/common/imp/query2-sk.html" />
 <link rel="import" href="/res/common/imp/paramset.html" />
@@ -57,6 +58,15 @@
     #paramset.hidden,
     #simple_paramset.hidden {
       display: none;
+    }
+
+    paper-checkbox {
+      --paper-checkbox-checked-color: #1f78b4;
+      --paper-checkbox-checked-ink-color: #1f78b4;
+      --paper-checkbox-unchecked-color: #1f78b4;
+      --paper-checkbox-unchecked-ink-color: #1f78b4;
+      --paper-checkbox-label-color: #1f78b4;
+      margin: 0.6em;
     }
 
     paper-tabs {
@@ -137,6 +147,7 @@
               <button on-click="_zoomToRange" id=zoom_range disabled title="Fit the time range to the current zoom window.">Zoom Range</button>
               <span title="Number of commits skipped between each point displayed." hidden="[[_isZero(_dataframe.skip)]]" id=skip>[[_dataframe.skip]]</span>
             </div>
+            <paper-checkbox checked="{{_show_zero}}" title="Toggle the presence of the zero line.">Zero</paper-checkbox>
           </div>
         </div>
         <div id=tabs class="flex">
@@ -229,9 +240,17 @@
         type: String,
         value: "",
       },
+      _show_zero: {
+        type: Boolean,
+        value: true,
+        observer: "_zeroChanged",
+      }
     },
 
+
     ready: function() {
+      this.ZERO_NAME = "special_zero";
+
       // Populate the query element.
       sk.get("/_/initpage/").then(JSON.parse).then(function(json) {
         var header = json.dataframe.header;
@@ -393,6 +412,24 @@
       });
     },
 
+    _zeroChanged: function() {
+      if (!this._dataframe.header) {
+        return;
+      }
+      if (this._show_zero) {
+        var line = [];
+        for (var i = 0; i < this._dataframe.header.length; i++) {
+          line.push([i, 0]);
+        }
+        var lines = {};
+        lines[this.ZERO_NAME] = line;
+        this.$.plot.addLines(lines);
+      } else {
+        this.$.plot.deleteLine(this.ZERO_NAME);
+      }
+      this.$.plot.resetAxes();
+    },
+
     // _addTraces adds the traces to the graph in the serialized SearchResults
     // found in json. If incremental is true then the traces are added w/o
     // removing the old traces. If tab is true then the details tab is
@@ -402,7 +439,9 @@
       var lines = {};
 
       // Add in the 0-trace.
-      dataframe.traceset["special_zero"] = Array(dataframe.header.length).fill(0);
+      if (this._show_zero) {
+        dataframe.traceset[this.ZERO_NAME] = Array(dataframe.header.length).fill(0);
+      }
 
       // Convert the dataframe into a form suitable for the plot element.
       var keys = Object.keys(dataframe.traceset);
