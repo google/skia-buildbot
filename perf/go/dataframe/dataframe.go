@@ -117,12 +117,10 @@ func lastN(vcs vcsinfo.VCS) ([]*ColumnHeader, []*cid.CommitID, int) {
 //
 // The value for 'skip', the number of commits skipped, is also returned.
 func getRange(vcs vcsinfo.VCS, begin, end time.Time, downsample bool) ([]*ColumnHeader, []*cid.CommitID, int) {
-	var commits []*vcsinfo.IndexCommit
-	skip := 1
+	commits := vcs.Range(begin, end)
+	skip := 0
 	if downsample {
 		commits, skip = DownSample(vcs.Range(begin, end), MAX_SAMPLE_SIZE)
-	} else {
-		commits = vcs.Range(begin, end)
 	}
 	return rangeImpl(commits, skip)
 }
