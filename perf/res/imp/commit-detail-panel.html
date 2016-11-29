@@ -101,9 +101,6 @@
     },
 
     setCommitDetail: function(details) {
-      details.forEach(function(ele) {
-        ele.message = ele.message.slice(0, 40);
-      });
       this.set('_details', details);
       this.set('_selectedIndex', -1);
       this.$.template.render();
