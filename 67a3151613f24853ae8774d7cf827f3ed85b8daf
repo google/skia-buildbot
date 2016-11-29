@@ -66,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "f01d104e_3c2437d2",
+        "filename": "task_scheduler/go/window/window.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-29T21:57:53Z",
+      "side": 1,
+      "message": "A. I\u0027m fine with the code you have.\n\nB. think Commit.Recurse() should follow parents in the same order as they are listed by git. If it doesn\u0027t do that now or it\u0027s not documented, it should be.\n\nC. If we are only recursing on the first parent, the second example code becomes simpler:\nc :\u003d r.Get(\"master\")\nfor i :\u003d 1; i \u003c w.numCommits; i++ {\n  p :\u003d c.GetParents()\n  if len(p) \u003c 1 {\n    break\n  }\n  c \u003d p[0]\n}\nif c.Timestamp.Before(start) {\n  start \u003d c.Timestamp\n}",
+      "parentUuid": "f01d104e_d947b51c",
+      "revId": "67a3151613f24853ae8774d7cf827f3ed85b8daf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f01d104e_16175a2f",
         "filename": "task_scheduler/go/window/window.go",
         "patchSetId": 2
