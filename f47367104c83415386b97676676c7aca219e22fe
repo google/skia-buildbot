@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f01d104e_44e5a31b",
+        "filename": "perf/go/dataframe/dataframe.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-29T13:48:47Z",
+      "side": 1,
+      "message": "nit: commits :\u003d vcs.Range(begin, end); remove else; DownSample(commits, MAX_SAMPLE_SIZE)",
+      "range": {
+        "startLine": 120,
+        "startChar": 1,
+        "endLine": 120,
+        "endChar": 35
+      },
+      "revId": "f47367104c83415386b97676676c7aca219e22fe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
