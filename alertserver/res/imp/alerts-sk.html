@@ -70,12 +70,12 @@
     </div>
     <div class="alertSection">
       <h3>Active</h3>
-      <template is="dom-repeat" items="{{alerts}}" as="a">
-        <template is="dom-if" if="{{_isSnoozed(a)}}">
+      <template is="dom-repeat" items="[[alerts]]" as="a">
+        <template is="dom-if" if="[[_isSnoozed(a)]]">
           <alert-sk
-              alert="{{a}}"
+              alert="[[a]]"
               allow_edit
-              compact$="{{_isCompact(compact, _showMultiControls)}}"
+              compact="[[_isCompact(compact, _showMultiControls)]]"
               on-select-changed="_alertSelectChanged"
               on-submit="_alertSubmitted">
           </alert-sk>
@@ -84,12 +84,12 @@
     </div>
     <div class="alertSection">
       <h3>Snoozed</h3>
-      <template is="dom-repeat" items="{{alerts}}" as="a">
-        <template is="dom-if" if="{{!_isSnoozed(a)}}">
+      <template is="dom-repeat" items="[[alerts]]" as="a">
+        <template is="dom-if" if="[[!_isSnoozed(a)]]">
           <alert-sk
               alert="{{a}}"
               allow_edit
-              compact$="{{_isCompact(compact, _showMultiControls)}}"
+              compact="[[_isCompact(compact, _showMultiControls)]]"
               on-select-changed="_alertSelectChanged"
               on-submit="_alertSubmitted">
           </alert-sk>
@@ -200,6 +200,10 @@
         }
 
         sk.get(url).then(JSON.parse).then(function(json) {
+          json.sort(function(a,b) {
+            return a.name.localeCompare(b.name);
+          });
+
           this._setAlerts(json);
 
           // Select alerts that were selected before.
