@@ -37,12 +37,6 @@ import (
 const (
 	// APP_NAME is the name of this app.
 	APP_NAME = "task_scheduler"
-
-	// DB_NAME is the name of the database.
-	DB_NAME = "task_scheduler_db"
-
-	// DB_FILENAME is the name of the file in which the database is stored.
-	DB_FILENAME = "task_scheduler.bdb"
 )
 
 var (
@@ -430,7 +424,7 @@ func main() {
 
 	// Initialize the database.
 	// TODO(benjaminwagner): Create a signal handler which closes the DB.
-	d, err := local_db.NewDB(DB_NAME, path.Join(wdAbs, DB_FILENAME))
+	d, err := local_db.NewDB(local_db.DB_NAME, path.Join(wdAbs, local_db.DB_FILENAME))
 	if err != nil {
 		glog.Fatal(err)
 	}
@@ -466,7 +460,7 @@ func main() {
 	// TODO(benjaminwagner): The storage client library already handles buffering
 	// and retrying requests, so we may not want to use BackoffTransport for the
 	// httpClient provided to NewDBBackup.
-	b, err := recovery.NewDBBackup(ctx, *gsBucket, d, DB_NAME, wdAbs, httpClient)
+	b, err := recovery.NewDBBackup(ctx, *gsBucket, d, local_db.DB_NAME, wdAbs, httpClient)
 	if err != nil {
 		glog.Fatal(err)
 	}

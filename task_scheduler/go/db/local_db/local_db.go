@@ -21,6 +21,12 @@ import (
 )
 
 const (
+	// DB_NAME is the name of the database.
+	DB_NAME = "task_scheduler_db"
+
+	// DB_FILENAME is the name of the file in which the database is stored.
+	DB_FILENAME = "task_scheduler.bdb"
+
 	// BUCKET_TASKS is the name of the Tasks bucket. Key is Task.Id, which is set
 	// to (creation time, sequence number) (see formatId for detail), value is
 	// described in docs for BUCKET_TASKS_VERSION. Tasks will be updated in place.
