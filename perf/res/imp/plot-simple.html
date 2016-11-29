@@ -230,12 +230,10 @@ work, so we just prefix every rule with plot-simple-sk.
         // First clear all the lines, but backup _lineData for later use.
         var backup = this._lineData;
         this.removeAll();
-        this._lineData = backup;
         // Then re-add all the lines except the one we want deleted.
-        for (var i = this._lineData.length - 1; i >= 0; i--) {
-          if (this._lineData[i]._id == id) {
-            this._lineData.splice(i, 1);
-            break;
+        for (var i = backup.length - 1; i >= 0; i--) {
+          if (backup[i]._id != id) {
+            this._lineData.push(backup[i]);
           }
         }
         this._plot();
