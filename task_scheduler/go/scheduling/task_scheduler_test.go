@@ -1153,16 +1153,17 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.jCache.Update())
 
 	// Regenerate the task queue.
-	assert.NoError(t, s.regenerateTaskQueue())
-	assert.Equal(t, 2, len(s.queue)) // Two Build tasks.
+	queue, err := s.regenerateTaskQueue()
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(queue)) // Two Build tasks.
 
 	testSort := func() {
 		// Ensure that we sorted correctly.
-		if len(s.queue) == 0 {
+		if len(queue) == 0 {
 			return
 		}
-		highScore := s.queue[0].Score
-		for _, c := range s.queue {
+		highScore := queue[0].Score
+		for _, c := range queue {
 			assert.True(t, highScore >= c.Score)
 			highScore = c.Score
 		}
@@ -1173,7 +1174,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	// tasks. The one at HEAD should have a single-commit blamelist and a
 	// score of 2.0. The other should have no commits in its blamelist and
 	// a score of -1.0.
-	for _, c := range s.queue {
+	for _, c := range queue {
 		assert.Equal(t, buildTask, c.Name)
 		if c.Revision == c1 {
 			assert.Equal(t, 0, len(c.Commits))
@@ -1186,7 +1187,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 
 	// Insert the first task, even though it scored lower.
 	var t1 *db.Task
-	for _, c := range s.queue { // Order not guaranteed; find the right candidate.
+	for _, c := range queue { // Order not guaranteed; find the right candidate.
 		if c.Revision == c1 {
 			t1 = makeTask(c.Name, c.Repo, c.Revision)
 			break
@@ -1199,13 +1200,14 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 
 	// Regenerate the task queue.
-	assert.NoError(t, s.regenerateTaskQueue())
+	queue, err = s.regenerateTaskQueue()
+	assert.NoError(t, err)
 
 	// Now we expect the queue to contain the other Build task and the one
 	// Test task we unblocked by running the first Build task.
-	assert.Equal(t, 2, len(s.queue))
+	assert.Equal(t, 2, len(queue))
 	testSort()
-	for _, c := range s.queue {
+	for _, c := range queue {
 		if c.Name == testTask {
 			assert.Equal(t, -1.0, c.Score)
 			assert.Equal(t, 0, len(c.Commits))
@@ -1217,29 +1219,30 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	}
 	buildIdx := 0
 	testIdx := 1
-	if s.queue[1].Name == buildTask {
+	if queue[1].Name == buildTask {
 		buildIdx = 1
 		testIdx = 0
 	}
-	assert.Equal(t, buildTask, s.queue[buildIdx].Name)
-	assert.Equal(t, c2, s.queue[buildIdx].Revision)
+	assert.Equal(t, buildTask, queue[buildIdx].Name)
+	assert.Equal(t, c2, queue[buildIdx].Revision)
 
-	assert.Equal(t, testTask, s.queue[testIdx].Name)
-	assert.Equal(t, c1, s.queue[testIdx].Revision)
+	assert.Equal(t, testTask, queue[testIdx].Name)
+	assert.Equal(t, c1, queue[testIdx].Revision)
 
 	// Run the other Build task.
-	t2 := makeTask(s.queue[buildIdx].Name, s.queue[buildIdx].Repo, s.queue[buildIdx].Revision)
+	t2 := makeTask(queue[buildIdx].Name, queue[buildIdx].Repo, queue[buildIdx].Revision)
 	t2.Status = db.TASK_STATUS_SUCCESS
 	t2.IsolatedOutput = "fake isolated hash"
 	assert.NoError(t, d.PutTask(t2))
 	assert.NoError(t, s.tCache.Update())
 
 	// Regenerate the task queue.
-	assert.NoError(t, s.regenerateTaskQueue())
-	assert.Equal(t, 3, len(s.queue))
+	queue, err = s.regenerateTaskQueue()
+	assert.NoError(t, err)
+	assert.Equal(t, 3, len(queue))
 	testSort()
 	perfIdx := -1
-	for i, c := range s.queue {
+	for i, c := range queue {
 		if c.Name == perfTask {
 			perfIdx = i
 		}
@@ -1264,18 +1267,19 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 
 	// Regenerate the task queue.
-	assert.NoError(t, s.regenerateTaskQueue())
+	queue, err = s.regenerateTaskQueue()
+	assert.NoError(t, err)
 
 	// Now we expect the queue to contain one Test and one Perf task. The
 	// Test task is a backfill, and should have a score of 0.5.
-	assert.Equal(t, 2, len(s.queue))
+	assert.Equal(t, 2, len(queue))
 	testSort()
 	// First candidate should be the perf task.
-	assert.Equal(t, perfTask, s.queue[0].Name)
-	assert.Equal(t, 2.0, s.queue[0].Score)
+	assert.Equal(t, perfTask, queue[0].Name)
+	assert.Equal(t, 2.0, queue[0].Score)
 	// The test task is next, a backfill.
-	assert.Equal(t, testTask, s.queue[1].Name)
-	assert.Equal(t, 0.5, s.queue[1].Score)
+	assert.Equal(t, testTask, queue[1].Name)
+	assert.Equal(t, 0.5, queue[1].Score)
 }
 
 func makeTaskCandidate(name string, dims []string) *taskCandidate {
