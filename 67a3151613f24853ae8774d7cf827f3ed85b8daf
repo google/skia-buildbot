@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f01d104e_f6c39e97",
+        "filename": "task_scheduler/go/window/window.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-29T20:52:15Z",
+      "side": 1,
+      "message": "too suspenseful",
+      "range": {
+        "startLine": 13,
+        "startChar": 3,
+        "endLine": 13,
+        "endChar": 30
+      },
+      "revId": "67a3151613f24853ae8774d7cf827f3ed85b8daf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_b9b4b9b1",
+        "filename": "task_scheduler/go/window/window.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-29T20:52:15Z",
+      "side": 1,
+      "message": "Would it work to do something like:\nn :\u003d w.numCommits\nhead :\u003d r.Get(\"master\")\nstopErr :\u003d errors.New(\"stop\")\nerr :\u003d head.Recurse(func(c *Commit) (bool, error) {\n  if c.Timestamp.Before(start) {\n    start \u003d c.Timestamp\n  }\n  n--\n  if n \u003c\u003d 0 {\n    return false, stopErr\n  }\n  return true, nil\n}\nif err !\u003d stopErr {\n  return err\n}\n\nOr if you want to be pedantic:\nrecurse :\u003d func(c *Commit, n int) time.Time {\n  if n \u003c\u003d 1 {\n    return c.Timestamp\n  }\n  t :\u003d c.Timestamp\n  n--\n  for _, p :\u003d range c.GetParents() {\n    pt :\u003d recurse(p, n)\n    if pt.Before(t) {\n      t \u003d pt\n    }\n  }\n  return t\n}\ncommitStart :\u003d recurse(head, w.numCommits)\nif commitStart.Before(start) {\n  start \u003d commitStart\n}",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 3
+      },
+      "revId": "67a3151613f24853ae8774d7cf827f3ed85b8daf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_16175a2f",
+        "filename": "task_scheduler/go/window/window.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-29T20:52:15Z",
+      "side": 1,
+      "message": "ISTM this needs to be !w.Start().After(t), otherwise HEAD~99 will be outside the window.",
+      "range": {
+        "startLine": 94,
+        "startChar": 8,
+        "endLine": 94,
+        "endChar": 27
+      },
+      "revId": "67a3151613f24853ae8774d7cf827f3ed85b8daf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_197b0de1",
+        "filename": "task_scheduler/go/window/window_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-29T20:52:15Z",
+      "side": 1,
+      "message": "nit: documentation, at least for func return value",
+      "range": {
+        "startLine": 59,
+        "startChar": 5,
+        "endLine": 59,
+        "endChar": 10
+      },
+      "revId": "67a3151613f24853ae8774d7cf827f3ed85b8daf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_d9fb3508",
+        "filename": "task_scheduler/go/window/window_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-29T20:52:15Z",
+      "side": 1,
+      "message": "Hmm, seems unintuitive.",
+      "range": {
+        "startLine": 98,
+        "startChar": 1,
+        "endLine": 98,
+        "endChar": 33
+      },
+      "revId": "67a3151613f24853ae8774d7cf827f3ed85b8daf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
