@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f01d104e_df25dc71",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 520,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-29T17:34:42Z",
+      "side": 1,
+      "message": "Maybe add a Version field and always set it to 1 for now. Later, if we change the bucket formats, we can check version to see if we need to upgrade things.",
+      "revId": "e199f420fd098bc16fc5e3141070b1fb2af5bcca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_3f8ef04f",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 544,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-29T17:34:42Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 544,
+        "startChar": 45,
+        "endLine": 544,
+        "endChar": 52
+      },
+      "revId": "e199f420fd098bc16fc5e3141070b1fb2af5bcca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_1f47741c",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 612,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-29T17:34:42Z",
+      "side": 1,
+      "message": "nit: maybe provide some context, e.g. \"Error while (re)building indices, while reading record with key %q: %s\"",
+      "range": {
+        "startLine": 612,
+        "startChar": 10,
+        "endLine": 612,
+        "endChar": 13
+      },
+      "revId": "e199f420fd098bc16fc5e3141070b1fb2af5bcca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_9f1c442f",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 621,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-29T17:34:42Z",
+      "side": 1,
+      "message": "I think you mean recBatch[:0]",
+      "range": {
+        "startLine": 621,
+        "startChar": 14,
+        "endLine": 621,
+        "endChar": 25
+      },
+      "revId": "e199f420fd098bc16fc5e3141070b1fb2af5bcca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_ffa53898",
+        "filename": "go/boltutil/store_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-29T17:34:42Z",
+      "side": 1,
+      "message": "nit: In other tests, I\u0027ve found it useful for my \"setup\" function to return a cleanup function; e.g.:\n  objToTest, cleanup :\u003d setup(t, param)\n  defer cleanup()\n...\nfunc setup(t *testing.T, param string) (*MyObj, func()) {\n  ...\n  return o, func() {\n    assert.NoError(t, o.Close())\n    testutils.RemoveAll(t, baseDir)\n  }\n}",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 62,
+        "endChar": 20
+      },
+      "revId": "e199f420fd098bc16fc5e3141070b1fb2af5bcca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_9a8612fa",
+        "filename": "go/boltutil/store_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-29T17:34:42Z",
+      "side": 1,
+      "message": "nit: maybe newIndexedBucket should do this?",
+      "range": {
+        "startLine": 64,
+        "startChar": 1,
+        "endLine": 64,
+        "endChar": 55
+      },
+      "revId": "e199f420fd098bc16fc5e3141070b1fb2af5bcca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_9f97e430",
+        "filename": "go/boltutil/store_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-29T17:34:42Z",
+      "side": 1,
+      "message": "I think this will cause the temp dir to be in the git checkout. You probably want to pass \"\" to indicate the system default temp dir.",
+      "range": {
+        "startLine": 199,
+        "startChar": 32,
+        "endLine": 199,
+        "endChar": 35
+      },
+      "revId": "e199f420fd098bc16fc5e3141070b1fb2af5bcca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
