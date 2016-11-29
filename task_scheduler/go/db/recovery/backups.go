@@ -475,7 +475,7 @@ func (b *gsDBBackup) incrementalBackupStep(now time.Time) error {
 	}
 }
 
-// downloadGOB reads, ungzips, and GOB-decodes the given object from GS.
+// downloadGOB reads and GOB-decodes the given object from GS.
 func downloadGOB(ctx context.Context, bucket *storage.BucketHandle, objectname string, dst interface{}) error {
 	objR, err := bucket.Object(objectname).NewReader(ctx)
 	if err != nil {
@@ -484,21 +484,20 @@ func downloadGOB(ctx context.Context, bucket *storage.BucketHandle, objectname s
 	// As long as we can decode the object, we don't care if Close returns an
 	// error.
 	defer util.Close(objR)
-	gzR, err := gzip.NewReader(objR)
-	if err != nil {
-		return err
-	}
-	defer util.Close(gzR)
-	if err := gob.NewDecoder(gzR).Decode(dst); err != nil {
+	// GS will transparently decompress gzip unless the client specifies
+	// "Accept-Encoding: gzip". Unfortunately, the Go GS client library does not
+	// provide a way to specify Accept-Encoding, so the file will be decompressed
+	// on the server side. See https://cloud.google.com/storage/docs/transcoding
+	if err := gob.NewDecoder(objR).Decode(dst); err != nil {
 		return fmt.Errorf("Error decoding GOB data: %s", err)
 	}
 	return nil
 }
 
-// See docs for DBBackup interface.
-func (b *gsDBBackup) RetrieveJobs(since time.Time) (map[string]*db.Job, error) {
+// RetrieveJobs implements DBBackup.RetrieveJobs for gsDBBackup.
+func RetrieveJobs(ctx context.Context, since time.Time, gsClient *storage.Client, gsBucket string) (map[string]*db.Job, error) {
 	sinceDir := path.Dir(formatJobObjectName(since, "dummy")) + "/"
-	bucket := b.gsClient.Bucket(b.gsBucket)
+	bucket := gsClient.Bucket(gsBucket)
 	rv := map[string]*db.Job{}
 	// Iterate from today backwards to sinceDir.
 	for t := time.Now(); ; t = t.Add(-24 * time.Hour) {
@@ -508,11 +507,12 @@ func (b *gsDBBackup) RetrieveJobs(since time.Time) (map[string]*db.Job, error) {
 		}
 
 		q := &storage.Query{Prefix: curDir, Versions: false}
-		it := bucket.Objects(b.ctx, q)
+		it := bucket.Objects(ctx, q)
 		for obj, err := it.Next(); err != iterator.Done; obj, err = it.Next() {
 			if err != nil {
-				return nil, fmt.Errorf("Unable to list jobs in %s/%s: %s", b.gsBucket, curDir, err)
+				return nil, fmt.Errorf("Unable to list jobs in %s/%s: %s", gsBucket, curDir, err)
 			}
+
 			if obj.Updated.Before(since) {
 				continue
 			}
@@ -526,11 +526,16 @@ func (b *gsDBBackup) RetrieveJobs(since time.Time) (map[string]*db.Job, error) {
 
 			// TODO(benjaminwagner): Download and decode in parallel.
 			var job db.Job
-			if err := downloadGOB(b.ctx, bucket, obj.Name, &job); err != nil {
-				return nil, fmt.Errorf("Unable to read %s/%s: %s", b.gsBucket, obj.Name, err)
+			if err := downloadGOB(ctx, bucket, obj.Name, &job); err != nil {
+				return nil, fmt.Errorf("Unable to read %s/%s: %s", gsBucket, obj.Name, err)
 			}
 			rv[job.Id] = &job
 		}
 	}
 	return rv, nil
+}
+
+// See docs for DBBackup interface.
+func (b *gsDBBackup) RetrieveJobs(since time.Time) (map[string]*db.Job, error) {
+	return RetrieveJobs(b.ctx, since, b.gsClient, b.gsBucket)
 }
