@@ -70,30 +70,30 @@
     </div>
     <div class="alertSection">
       <h3>Active</h3>
-      <template is="dom-repeat" items="[[alerts]]" as="a">
-        <template is="dom-if" if="[[_isSnoozed(a)]]">
-          <alert-sk
-              alert="[[a]]"
-              allow_edit
-              compact="[[_isCompact(compact, _showMultiControls)]]"
-              on-select-changed="_alertSelectChanged"
-              on-submit="_alertSubmitted">
-          </alert-sk>
-        </template>
+      <template is="dom-repeat" items="[[_active_alerts]]" as="a" index-as="index">
+        <alert-sk
+            alert="[[a]]"
+            allow_edit
+            compact="[[_isCompact(compact, _showMultiControls)]]"
+            index="[[index]]"
+            on-select-changed="_alertSelectChanged"
+            on-submit="_alertSubmitted"
+            on-click="_clickDetected">
+        </alert-sk>
       </template>
     </div>
     <div class="alertSection">
       <h3>Snoozed</h3>
-      <template is="dom-repeat" items="[[alerts]]" as="a">
-        <template is="dom-if" if="[[!_isSnoozed(a)]]">
-          <alert-sk
-              alert="{{a}}"
-              allow_edit
-              compact="[[_isCompact(compact, _showMultiControls)]]"
-              on-select-changed="_alertSelectChanged"
-              on-submit="_alertSubmitted">
-          </alert-sk>
-        </template>
+      <template is="dom-repeat" items="[[_snoozed_alerts]]" as="a" index-as="index">
+        <alert-sk
+            alert="{{a}}"
+            allow_edit
+            compact="[[_isCompact(compact, _showMultiControls)]]"
+            index="[[index]]"
+            on-select-changed="_alertSelectChanged"
+            on-submit="_alertSubmitted"
+            on-click="_clickDetected">
+        </alert-sk>
       </template>
     </div>
   </template>
@@ -124,6 +124,11 @@
           observer: "_reloadChanged",
           value: 60,
         },
+
+        _active_alerts: {
+          type: Array,
+          computed: "_active(alerts,alerts.*)",
+        },
         _lastLoaded: {
           type: String,
           value: "not yet loaded",
@@ -135,6 +140,10 @@
         _showMultiControls: {
           type: Boolean,
           value: false,
+        },
+        _snoozed_alerts: {
+          type: Array,
+          computed: "_snoozed(alerts,alerts.*)",
         },
         _timeout: {
           type: Object,
@@ -151,6 +160,12 @@
         this._reloadAlerts();
       },
 
+      _active: function(alerts) {
+        return alerts.filter(function(a){
+          return a.snoozedUntil == 0;
+        });
+      },
+
       _alertSubmitted: function() {
         // Deselect all alerts.
         for (var i = 0; i < this.alerts.length; i++) {
@@ -158,6 +173,32 @@
         }
         this._alertSelectChanged();
         this._reloadAlerts();
+      },
+
+      _clickDetected: function(e) {
+        // Unfortunately, the click event gets fired anytime anything is clicked
+        // on the alert-sk.
+        if (!e.target.classList.contains("paper-checkbox")) {
+          return;
+        }
+        // Prevent the multiselect from selecting all the text in between the clicks.
+        document.getSelection().removeAllRanges();
+        // refers to the .alertSection div that houses all the alert-sks
+        var alertSection = e.model.dataHost.parentElement;
+        var idx = e.model.index;
+
+        if (e.shiftKey && alertSection._lastClicked >= 0) {
+          // We can't iterate through this.alerts because snoozed and unsnoozed
+          // are interleaved.
+          var alerts = alertSection.getElementsByTagName("alert-sk");
+          var start = Math.min(idx, alertSection._lastClicked);
+          var end = Math.max(idx, alertSection._lastClicked);
+          for (var i = start; i < end; i++) {
+            alerts[i].set("alert.selected", true);
+          }
+          this._alertSelectChanged();
+        }
+        alertSection._lastClicked = idx;
       },
 
       _reloadChanged: function() {
@@ -225,7 +266,7 @@
         }.bind(this));
       },
 
-      _alertSelectChanged: function() {
+      _alertSelectChanged: function(e) {
         this._showMultiControls = false;
         var selectedIds = [];
         for (var i = 0; i < this.alerts.length; i++) {
@@ -234,19 +275,21 @@
             selectedIds.push(this.alerts[i].id);
           }
         }
-        this._multiAlertParams["alerts"] = selectedIds;
+        this._multiAlertParams.alerts = selectedIds;
       },
 
       _multiControlsStyle: function (_showMultiControls) {
         return _showMultiControls ? '' : 'display: none;';
       },
 
-      _isSnoozed: function (a) {
-        return a.snoozedUntil == 0;
-      },
-
       _isCompact: function (compact, _showMultiControls) {
         return compact || _showMultiControls;
+      },
+
+      _snoozed: function(alerts) {
+        return alerts.filter(function(a){
+          return a.snoozedUntil !== 0;
+        });
       },
     });
   </script>
