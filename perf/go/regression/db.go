@@ -60,6 +60,19 @@ func (s *Store) store(tx *sql.Tx, cid *cid.CommitDetail, r *Regressions) error {
 	return nil
 }
 
+// Untriaged returns the number of untriaged regressions.
+func (s *Store) Untriaged() (int, error) {
+	row := db.DB.QueryRow("SELECT count(*) FROM regression WHERE triaged=false")
+	if row == nil {
+		return -1, fmt.Errorf("Failed to query database for count of untriaged regressions.")
+	}
+	var count int
+	if err := row.Scan(&count); err != nil {
+		return -1, fmt.Errorf("Failed to read from database: %s", err)
+	}
+	return count, nil
+}
+
 // Range returns a map from cid.ID()'s to *Regressions that exist in the given time range.
 func (s *Store) Range(begin, end int64) (map[string]*Regressions, error) {
 	ret := map[string]*Regressions{}

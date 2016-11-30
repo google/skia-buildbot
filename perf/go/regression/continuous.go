@@ -5,6 +5,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 )
@@ -45,9 +46,14 @@ func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, queries []str
 //
 // Note that it never returns so it should be called as a Go routine.
 func (c *Continuous) Run() {
+	newClustersGauge := metrics2.GetInt64Metric("perf.clustering.untriaged", nil)
+	runsCounter := metrics2.GetCounter("perf.clustering.runs", nil)
+	clusteringLatency := metrics2.NewTimer("perf.clustering.latency", nil)
+
 	// TODO(jcgregorio) Add liveness metrics.
 	glog.Infof("Continuous starting.")
 	for _ = range time.Tick(time.Minute) {
+		clusteringLatency.Start()
 		// Get the last NUM_COMMITS commits.
 		indexCommits := c.git.LastNIndex(NUM_COMMITS)
 		// Drop the RADIUS most recent, since we are clustering
@@ -95,6 +101,13 @@ func (c *Continuous) Run() {
 					}
 				}
 			}
+		}
+		clusteringLatency.Stop()
+		runsCounter.Inc(1)
+		if count, err := c.store.Untriaged(); err == nil {
+			newClustersGauge.Update(int64(count))
+		} else {
+			glog.Errorf("Failed to get untriaged count: %s", err)
 		}
 	}
 }
