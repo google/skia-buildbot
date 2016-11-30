@@ -109,6 +109,7 @@
       e.detail.query = this.query;
       e.detail.cluster_type = this.cluster_type;
       this.dispatchEvent(new CustomEvent('triaged', {detail: e.detail, bubbles: true}));
+      this.$.dialog.close();
     },
 
     _show: function() {
