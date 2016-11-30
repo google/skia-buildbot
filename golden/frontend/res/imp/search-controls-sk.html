@@ -39,6 +39,7 @@
 <link rel="import" href="bower_components/iron-icons/image-icons.html">
 <link rel="import" href="bower_components/paper-button/paper-button.html">
 <link rel="import" href="query-dialog-sk.html">
+<link rel="import" href="filter-dialog-sk.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="search-controls-sk">
@@ -80,8 +81,12 @@
         <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.include}}" disabled={{disabled}}>Ignored</paper-toggle-button>
 
         <div class="buttonContainer">
-          <paper-button id="searchButton" class$="topControl" raised disabled={{disabled}}
+          <paper-button id="searchButton" class$="topControl" raised disabled="[[disabled]]"
                         title="Filter Traces"><iron-icon icon="image:tune"></iron-icon></paper-button>
+        </div>
+        <div class="buttonContainer">
+          <paper-button id="filterButton" class$="topControl" raised disabled="[[disabled]]"
+                        title="Metrics Filter"><iron-icon icon="icons:filter-list"></iron-icon></paper-button>
         </div>
         <div class$="[[orientation]] currSelection">
           [[_splitAmp(state.query, orientation)]]
@@ -89,6 +94,7 @@
       </div>
 
       <query-dialog-sk id="queryDialog" trigger="searchButton"></query-dialog-sk>
+      <filter-dialog-sk id="filterDialog" trigger="filterButton"></filter-dialog-sk>
   </template>
 
   <script>
@@ -116,8 +122,10 @@
         ],
 
         ready: function() {
-          this.listen(this.$.searchButton, 'click', '_handleSearchButton');
+          this.listen(this.$.searchButton, 'tap', '_handleSearchButton');
+          this.listen(this.$.filterButton, 'tap', '_handleFilterButton');
           this.listen(this.$.queryDialog, 'edit', '_handleQueryEdit');
+          this.listen(this.$.filterDialog, 'edit', '_handleFilterEdit');
 
           // If the corpus changes make sure we do cleanup work.
           this.async(function() {
@@ -142,9 +150,19 @@
           this.set('state.query', ev.detail);
         },
 
+        _handleFilterEdit: function(ev) {
+          ev.stopPropagation();
+          this.set('state.filter', ev.detail);
+        },
+
         _handleSearchButton: function(ev) {
           ev.stopPropagation();
           this.$.queryDialog.open(this.state.query);
+        },
+
+        _handleFilterButton: function(ev) {
+          ev.stopPropagation();
+          this.$.filterDialog.open(this.state.filter);
         },
 
         _handleCorpusChange: function(ev) {

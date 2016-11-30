@@ -1,0 +1,98 @@
+<!--
+   The <filter-dialog-sk> custom element declaration.
+
+  A dialog that provides input elements to filter search results by
+  metric values.
+
+  Attributes:
+    None.
+
+  Methods:
+    open() - Opens the dialog.
+
+    close() - Closes the dialog.
+
+    setValue(newValue): Sets the values to be filtered. Needs to be called
+      before the dialog is opened.
+
+  Events:
+    'edit' - emitted when user clicks the 'Filter' button (and closes the dialog in the process).
+             The 'detail' field of the event contains the modified version
+             of filter object.
+
+  Mailboxes:
+    None
+
+-->
+
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="bower_components/paper-slider/paper-slider.html">
+
+<dom-module id="filter-dialog-sk">
+  <template>
+    <style>
+      paper-slider {
+        width: 25em;
+        margin-top: 0;
+        --paper-slider-input: {
+            width: 7em;
+          };
+      }
+
+      .sliderHeader {
+        font-weight: bold;
+        font-size: 110%;
+      }
+    </style>
+    <paper-dialog id="filterDialog">
+      <h3>Filter By Maximum Values</h3>
+      <div class="sliderHeader">RGBA</div>
+      <paper-slider value="{{_curr.rgbamax}}" min="0" max="255" editable></paper-slider>
+      <div class="sliderHeader">Pixels</div>
+      <paper-slider value="{{_curr.pixelmax}}" min="0" max="5000" editable></paper-slider>
+      <div class="sliderHeader">Diff</div>
+      <paper-slider value="{{_curr.diffmax}}" min="0" max="1" step="0.05" editable></paper-slider>
+      <div class="buttons">
+        <paper-button id="editButton" raised dialog-dismiss>Filter</paper-button>
+      </div>
+    </paper-dialog>
+  </template>
+  <script>
+    Polymer({
+      is: "filter-dialog-sk",
+
+      properties: {
+        _curr: {
+          type: Object
+        }
+      },
+
+      ready: function() {
+        this.listen(this.$.editButton, 'tap', '_handleEditButton');
+      },
+
+      open: function() {
+        this.set('_curr', this._value);
+        this.$.filterDialog.open();
+      },
+
+      close: function() {
+        this.$.filterDialog.close();
+      },
+
+      setValue: function(newVal) {
+        this._value = sk.object.shallowCopy(newVal);
+      },
+
+      _handleEditButton: function(ev) {
+        ev.stopPropagation();
+        this._value = sk.object.shallowCopy(this._curr);
+        this.fire('edit', sk.object.shallowCopy(this._curr));
+      }
+    });
+  </script>
+</dom-module>
