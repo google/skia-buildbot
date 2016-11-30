@@ -331,9 +331,9 @@ func calcNewClusters() {
 
 // Start kicks off a go routine the periodically refreshes the current alerting clusters.
 func Start(tb tracedb.MasterTileBuilder) {
-	newClustersGauge = metrics2.GetInt64Metric("perf.clustering.untriaged", nil)
-	runsCounter = metrics2.GetCounter("perf.clustering.runs", nil)
-	clusteringLatency = metrics2.NewTimer("perf.clustering.latency", nil)
+	newClustersGauge = metrics2.GetInt64Metric("old.perf.clustering.untriaged", nil)
+	runsCounter = metrics2.GetCounter("old.perf.clustering.runs", nil)
+	clusteringLatency = metrics2.NewTimer("old.perf.clustering.latency", nil)
 	tileBuilder = tb
 	client, err := auth.NewDefaultJWTServiceAccountClient("https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
