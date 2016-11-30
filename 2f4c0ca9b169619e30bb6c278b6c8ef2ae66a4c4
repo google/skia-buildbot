@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "f01d104e_0c6e62de",
+        "filename": "golden/go/diffstore/diffstore.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-30T19:44:40Z",
+      "side": 1,
+      "message": "It seems that you are updating multiple data stores non-atomically. Maybe add comments to indicate why partial failure won\u0027t cause problems?",
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f01d104e_71f24dba",
         "filename": "golden/go/diffstore/failure_store.go",
         "patchSetId": 15
@@ -25,6 +42,52 @@
     },
     {
       "key": {
+        "uuid": "2d82efcd_96db2c7e",
+        "filename": "golden/go/diffstore/failure_store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-30T19:44:40Z",
+      "side": 1,
+      "message": "typo \"a\"",
+      "range": {
+        "startLine": 44,
+        "startChar": 27,
+        "endLine": 44,
+        "endChar": 29
+      },
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_cc6e0aa8",
+        "filename": "golden/go/diffstore/failure_store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-30T19:44:40Z",
+      "side": 1,
+      "message": "typo: unavailableDigests vs unavailableDigest",
+      "range": {
+        "startLine": 73,
+        "startChar": 3,
+        "endLine": 73,
+        "endChar": 21
+      },
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f01d104e_11b119df",
         "filename": "golden/go/diffstore/failure_store.go",
         "patchSetId": 15
@@ -36,6 +99,231 @@
       "writtenOn": "2016-11-30T17:58:27Z",
       "side": 1,
       "message": "If you lock this here, shouldn\u0027t you lock on adding the failures or purging?",
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_6c3c3685",
+        "filename": "golden/go/diffstore/failure_store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-30T19:44:40Z",
+      "side": 1,
+      "message": "Locking appears correct to me (at least in the patchset I\u0027m reviewing...).",
+      "parentUuid": "f01d104e_11b119df",
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d82efcd_36f498d5",
+        "filename": "golden/go/diffstore/failure_store_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-30T19:44:40Z",
+      "side": 1,
+      "message": "uber-nit: This test could pass if failureStore is just a memory cache. To test persistence, you need to close the original failureStore and create a new instance pointing at the same boltdb.",
+      "range": {
+        "startLine": 14,
+        "startChar": 5,
+        "endLine": 14,
+        "endChar": 24
+      },
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_2c015eb8",
+        "filename": "golden/go/diffstore/failure_store_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-30T19:44:40Z",
+      "side": 1,
+      "message": "I think this is now redundant with MediumTest. (Maybe ask Eric?)",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 25
+      },
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_0770fb49",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-30T19:44:40Z",
+      "side": 1,
+      "message": "failureStore",
+      "range": {
+        "startLine": 50,
+        "startChar": 4,
+        "endLine": 50,
+        "endChar": 16
+      },
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_278c1718",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-30T19:44:40Z",
+      "side": 1,
+      "message": "nit: ignoring return value\n\nSeveral in this method.",
+      "range": {
+        "startLine": 180,
+        "startChar": 3,
+        "endLine": 180,
+        "endChar": 35
+      },
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_c79d0343",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-30T19:44:40Z",
+      "side": 1,
+      "message": "wrong documentation",
+      "range": {
+        "startLine": 281,
+        "startChar": 3,
+        "endLine": 281,
+        "endChar": 61
+      },
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_47df53f6",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-30T19:44:40Z",
+      "side": 1,
+      "message": "nit: should probably log an error if err !\u003d storage.ErrObjectNotExist",
+      "range": {
+        "startLine": 288,
+        "startChar": 5,
+        "endLine": 288,
+        "endChar": 8
+      },
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_c7cb4333",
+        "filename": "golden/go/diffstore/metrics_store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-30T19:44:40Z",
+      "side": 1,
+      "message": "typo databasel",
+      "range": {
+        "startLine": 19,
+        "startChar": 57,
+        "endLine": 19,
+        "endChar": 58
+      },
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_a7ce4743",
+        "filename": "golden/go/diffstore/metrics_store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-30T19:44:40Z",
+      "side": 1,
+      "message": "store",
+      "range": {
+        "startLine": 19,
+        "startChar": 4,
+        "endLine": 19,
+        "endChar": 12
+      },
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d82efcd_b66c28b0",
+        "filename": "golden/go/diffstore/metrics_store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-30T19:44:40Z",
+      "side": 1,
+      "message": "nit: Why not just:\nd1, d2 :\u003d splitDigests(m.ID)\nreturn map[string][]string{\n  METRICS_DIGEST_INDEX: []string{d1, d2},\n}",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 47,
+        "endChar": 11
+      },
       "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
