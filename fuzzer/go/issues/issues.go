@@ -45,6 +45,13 @@ var newBugTemplate = template.Must(template.New("new_bug").Parse(`# Description 
 To replicate, build target "fuzz" at the specified commit and run:
 out/Release/fuzz {{.Params}} ~/Downloads/{{.Name}}
 
+The problem may only be revealed by an ASAN build, in which case you would need to run:
+gn gen out/ASAN --args='cc="/usr/bin/clang" cxx="/usr/bin/clang++" sanitize="ASAN"'
+or:
+gn gen out/ASAN --args='cc="/usr/bin/clang" cxx="/usr/bin/clang++" sanitize="ASAN" is_debug=false'
+
+prior to building.
+
 # tracking metadata below:
 fuzz_category: {{.Category}}
 fuzz_commit: {{.Revision}}
