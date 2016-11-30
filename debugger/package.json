@@ -17,6 +17,6 @@
     "native-promise-only": "",
     "postcss-cli": "~2.1.0",
     "uglify-js": "",
-    "vulcanize": "^1.10.4",
+    "vulcanize": "^1.10.4"
   }
 }

@@ -200,11 +200,16 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 func buildSkiaServe(checkout, depotTools string) error {
-	// Do a gyp build of skiaserve.
-	glog.Info("Starting build of skiaserve")
-	if err := buildskia.NinjaBuild(checkout, depotTools, []string{}, buildskia.BUILD_TYPE, "skiaserve", runtime.NumCPU(), true); err != nil {
-		return fmt.Errorf("Failed to build: %s", err)
+	glog.Info("Starting GNGen")
+	if err := buildskia.GNGen(checkout, depotTools, "Release", []string{"is_official_build=true"}); err != nil {
+		return fmt.Errorf("Failed GN gen: %s", err)
 	}
+
+	glog.Info("Building skiaserve")
+	if msg, err := buildskia.GNNinjaBuild(checkout, depotTools, "Release", "skiaserve", true); err != nil {
+		return fmt.Errorf("Failed ninja build of skiaserve: %q %s", msg, err)
+	}
+
 	return nil
 }
 
@@ -256,7 +261,7 @@ func main() {
 		if err != nil {
 			glog.Fatalf("Failed to clone Skia: %s", err)
 		}
-		build = buildskia.New(*workRoot, *depotTools, repo, buildSkiaServe, 64, *timeBetweenBuilds, false)
+		build = buildskia.New(*workRoot, *depotTools, repo, buildSkiaServe, 64, *timeBetweenBuilds, true)
 		build.Start()
 
 		getHash := func() string {
