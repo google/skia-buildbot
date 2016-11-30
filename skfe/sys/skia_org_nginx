@@ -651,6 +651,49 @@ server {
     rewrite ^ https://skia.googlesource.com/skia redirect;
 }
 
+#####   review.skia.org (REDIRECT)   ###########################
+server {
+    listen 443;
+    server_name review.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/review.access.log;
+    error_log /var/log/nginx/review.error.log error;
+
+    # Note: nginx automatically appends the incoming query parameters to the redirect URL.
+    rewrite ^/([0-9]+)$ https://skia-review.googlesource.com/c/$1/ redirect;
+    rewrite ^ https://skia-review.googlesource.com redirect;
+}
+
+server {
+    listen 80;
+    server_name review.skia.org;
+    return 301 https://review.skia.org$request_uri;
+}
+
+#####   reviews.skia.org (REDIRECT)   ##########################
+# (People have trouble remembering if they should type "review" or "reviews.")
+server {
+    listen 443;
+    server_name reviews.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/reviews.access.log;
+    error_log /var/log/nginx/reviews.error.log error;
+
+    # Note: nginx automatically appends the incoming query parameters to the redirect URL.
+    rewrite ^/([0-9]+)$ https://skia-review.googlesource.com/c/$1/ redirect;
+    rewrite ^ https://skia-review.googlesource.com redirect;
+}
+
+server {
+    listen 80;
+    server_name reviews.skia.org;
+    return 301 https://reviews.skia.org$request_uri;
+}
+
 #####   grandcentral.skia.org   ###########################
 server {
     listen      443;
