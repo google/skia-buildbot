@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f01d104e_c7b1832a",
+        "filename": "go/rtcache/memrtc.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-30T19:47:28Z",
+      "side": 0,
+      "message": "We use this in quite a few places. Should we be changing all of them over to hashicorp?",
+      "range": {
+        "startLine": 8,
+        "startChar": 2,
+        "endLine": 8,
+        "endChar": 34
+      },
+      "revId": "24ef0f173e7777bc41a0d0e79ec96f40d349eb6d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
