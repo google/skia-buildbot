@@ -23,6 +23,7 @@ const (
 
 	DIMENSION_POOL_KEY                 = "pool"
 	DIMENSION_POOL_VALUE_SKIA          = "Skia"
+	DIMENSION_POOL_VALUE_SKIA_CT       = "SkiaCT"
 	DIMENSION_POOL_VALUE_SKIA_TRIGGERS = "SkiaTriggers"
 	DIMENSION_POOL_VALUE_CT            = "CT"
 
@@ -47,6 +48,10 @@ type ApiClient interface {
 	// ListSkiaBots returns a slice of swarming.SwarmingRpcsBotInfo instances
 	// corresponding to the Skia Swarming bots.
 	ListSkiaBots() ([]*swarming.SwarmingRpcsBotInfo, error)
+
+	// ListSkiaCTBots returns a slice of swarming.SwarmingRpcsBotInfo
+	// instances corresponding to the Skia CT Swarming bots.
+	ListSkiaCTBots() ([]*swarming.SwarmingRpcsBotInfo, error)
 
 	// ListSkiaTriggerBots returns a slice of swarming.SwarmingRpcsBotInfo instances
 	// corresponding to the Skia Swarming Trigger bots.
@@ -116,6 +121,12 @@ func (c *apiClient) SwarmingService() *swarming.Service {
 func (c *apiClient) ListSkiaBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
 	return c.ListBots(map[string]string{
 		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_SKIA,
+	})
+}
+
+func (c *apiClient) ListSkiaCTBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
+	return c.ListBots(map[string]string{
+		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_SKIA_CT,
 	})
 }
 

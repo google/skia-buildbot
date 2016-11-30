@@ -1186,10 +1186,37 @@ func testednessIncrease(blamelistLength, stoleFromBlamelistLength int) float64 {
 // getFreeSwarmingBots returns a slice of free swarming bots.
 func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
 	defer metrics2.FuncTimer().Stop()
-	bots, err := s.ListSkiaBots()
-	if err != nil {
-		return nil, err
+
+	var skiaBots []*swarming_api.SwarmingRpcsBotInfo
+	var err1 error
+
+	var ctBots []*swarming_api.SwarmingRpcsBotInfo
+	var err2 error
+
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		skiaBots, err1 = s.ListSkiaBots()
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		ctBots, err2 = s.ListSkiaCTBots()
+	}()
+
+	wg.Wait()
+	if err1 != nil {
+		return nil, err1
 	}
+	if err2 != nil {
+		return nil, err2
+	}
+
+	bots := append(skiaBots, ctBots...)
+
 	// TODO(benjaminwagner): Remove debug logging.
 	androidbots := map[string]string{}
 	rv := make([]*swarming_api.SwarmingRpcsBotInfo, 0, len(bots))
