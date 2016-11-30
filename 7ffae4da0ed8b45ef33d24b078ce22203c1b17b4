@@ -22,6 +22,24 @@
       "revId": "7ffae4da0ed8b45ef33d24b078ce22203c1b17b4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_d633f7af",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-11-30T16:08:40Z",
+      "side": 1,
+      "message": "If we were storing millions of rows, probably yes, but we\u0027re talking about maybe 1000 rows/year added to MySQL.",
+      "parentUuid": "2d82efcd_56e114b5",
+      "revId": "7ffae4da0ed8b45ef33d24b078ce22203c1b17b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
