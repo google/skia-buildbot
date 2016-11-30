@@ -1187,7 +1187,7 @@ func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots) ([]*swarming_api.
 		}
 		rv = append(rv, bot)
 	}
-	return busy.Filter(bots), nil
+	return busy.Filter(rv), nil
 }
 
 // updateUnfinishedTasks queries Swarming for all unfinished tasks and updates
