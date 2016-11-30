@@ -47,12 +47,26 @@ type FuzzerInfo struct {
 // centralized location to add a new fuzzer, i.e. adding an entry and information here, combined
 // with modifying the fuzzer-be.service should be sufficient to add a new fuzzer into the system.
 var fuzzers = map[string]FuzzerInfo{
+	"api_draw_functions": {
+		PrettyName:          "API - CanvasDrawFunctions",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "hcm",
+		ExtraBugLabels:      nil,
+		ArgsAfterExecutable: []string{"--type", "api", "--name", "DrawFunctions", "--bytes"},
+	},
 	"api_gradient": {
 		PrettyName:          "API - Gradients",
 		Status:              EXPERIMENTAL_FUZZER,
 		Groomer:             "fmalita",
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "Gradients", "--bytes"},
+	},
+	"api_image_filter": {
+		PrettyName:          "API - SerializedImageFilter",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "robertphillips",
+		ExtraBugLabels:      []string{"Area-ImageFilter"},
+		ArgsAfterExecutable: []string{"--type", "api", "--name", "SerializedImageFilter", "--bytes"},
 	},
 	"api_parse_path": {
 		PrettyName:          "API - ParsePath",
@@ -67,13 +81,6 @@ var fuzzers = map[string]FuzzerInfo{
 		Groomer:             "caryclark",
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "Pathop", "--bytes"},
-	},
-	"api_image_filter": {
-		PrettyName:          "API - SerializedImageFilter",
-		Status:              EXPERIMENTAL_FUZZER,
-		Groomer:             "robertphillips",
-		ExtraBugLabels:      []string{"Area-ImageFilter"},
-		ArgsAfterExecutable: []string{"--type", "api", "--name", "SerializedImageFilter", "--bytes"},
 	},
 	"color_deserialize": {
 		PrettyName:          "SkColorSpace - Deserialize",
