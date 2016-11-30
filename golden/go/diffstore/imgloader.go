@@ -8,6 +8,7 @@ import (
 	"image"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
 	"sync"
 
@@ -16,6 +17,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/rtcache"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/diff"
 	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 )
@@ -45,15 +47,20 @@ type ImageLoader struct {
 	// imageCache caches and calculates images.
 	imageCache rtcache.ReadThroughCache
 
-	// keep ?
-	isMaster bool
+	// failureStore persists failures in retrieving digests. .
+	failureStore *failureStore
 
 	wg sync.WaitGroup
 }
 
 // Creates a new instance of ImageLoader.
-func newImgLoader(client *http.Client, imgDir string, gsBucketNames []string, gsImageBaseDir string, maxCacheSize int) (*ImageLoader, error) {
+func newImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []string, gsImageBaseDir string, maxCacheSize int) (*ImageLoader, error) {
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	if err != nil {
+		return nil, err
+	}
+
+	fStore, err := newFailureStore(filepath.Join(baseDir, FAILUREDB_NAME))
 	if err != nil {
 		return nil, err
 	}
@@ -63,10 +70,13 @@ func newImgLoader(client *http.Client, imgDir string, gsBucketNames []string, gs
 		localImgDir:    imgDir,
 		gsBucketNames:  gsBucketNames,
 		gsImageBaseDir: gsImageBaseDir,
+		failureStore:   fStore,
 	}
 
 	// Set up the work queues that balance the load.
-	ret.imageCache = rtcache.New(ret.imageLoadWorker, maxCacheSize, N_IMG_WORKERS)
+	if ret.imageCache, err = rtcache.New(ret.imageLoadWorker, maxCacheSize, N_IMG_WORKERS); err != nil {
+		return nil, err
+	}
 	return ret, nil
 }
 
@@ -139,6 +149,25 @@ func (il *ImageLoader) IsOnDisk(digest string) bool {
 	return fileutil.FileExists(fileutil.TwoLevelRadixPath(il.localImgDir, getDigestImageFileName(digest)))
 }
 
+// PurgeImages removes the images that correspond to the given digests.
+func (il *ImageLoader) PurgeImages(digests []string, purgeGS bool) error {
+	for _, d := range digests {
+		fName := fileutil.TwoLevelRadixPath(il.localImgDir, getDigestImageFileName(d))
+		if fileutil.FileExists(fName) {
+			if err := os.Remove(fName); err != nil {
+				glog.Errorf("Unable to remove image %s. Got error: %s", fName, err)
+			}
+		}
+	}
+
+	if purgeGS {
+		for _, d := range digests {
+			il.removeImg(d)
+		}
+	}
+	return nil
+}
+
 // imageLoadWorker implements the rtcache.ReadThroughFunc signature.
 // It loads an image file either from disk or from Google storage.
 func (il *ImageLoader) imageLoadWorker(priority int64, digest string) (interface{}, error) {
@@ -147,20 +176,30 @@ func (il *ImageLoader) imageLoadWorker(priority int64, digest string) (interface
 	imagePath := fileutil.TwoLevelRadixPath(il.localImgDir, imageFileName)
 	if fileutil.FileExists(imagePath) {
 		img, err := loadImg(imagePath)
+		if err != nil {
+			util.LogErr(il.failureStore.addDigestFailure(diff.NewDigestFailure(digest, diff.CORRUPTED)))
+			return nil, err
+		}
 		return img, err
 	}
 
 	// Download the image
 	imgBytes, err := il.downloadImg(digest)
 	if err != nil {
+		util.LogErr(il.failureStore.addDigestFailure(diff.NewDigestFailure(digest, diff.HTTP)))
+		return nil, err
+	}
+
+	// Decode it and return it.
+	img, err := decodeImg(bytes.NewBuffer(imgBytes))
+	if err != nil {
+		util.LogErr(il.failureStore.addDigestFailure(diff.NewDigestFailure(digest, diff.CORRUPTED)))
 		return nil, err
 	}
 
 	// Save the file to disk.
 	il.saveImgInfoAsync(imageFileName, imgBytes)
-
-	// Decode it and return it.
-	return decodeImg(bytes.NewBuffer(imgBytes))
+	return img, nil
 }
 
 func (il *ImageLoader) saveImgInfoAsync(imageFileName string, imgBytes []byte) {
@@ -195,7 +234,7 @@ func (il *ImageLoader) downloadImgFromBucket(digest, bucketName string) ([]byte,
 	// Retrieve the attributes.
 	attrs, err := il.storageClient.Bucket(bucketName).Object(objLocation).Attrs(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to retrieve attributes for %s/%s: %s", bucketName, objLocation, err)
+		return nil, fmt.Errorf("Unable to retrieve attributes for %s/%s: %.80s", bucketName, objLocation, err)
 	}
 
 	var buf *bytes.Buffer
@@ -203,7 +242,7 @@ func (il *ImageLoader) downloadImgFromBucket(digest, bucketName string) ([]byte,
 		err = func() error {
 			reader, err := il.storageClient.Bucket(bucketName).Object(objLocation).NewReader(ctx)
 			if err != nil {
-				return fmt.Errorf("New reader failed for %s/%s: %s", bucketName, objLocation, err)
+				return fmt.Errorf("New reader failed for %s/%s: %.80s", bucketName, objLocation, err)
 			}
 			defer util.Close(reader)
 
@@ -237,4 +276,26 @@ func (il *ImageLoader) downloadImgFromBucket(digest, bucketName string) ([]byte,
 
 	glog.Infof("Done downloading image for: %s. Length: %d", digest, buf.Len())
 	return buf.Bytes(), err
+}
+
+// removeImg removes the image that corresponds to the given digest from GS.
+func (il *ImageLoader) removeImg(digest string) {
+	ctx := context.Background()
+	for _, bucketName := range il.gsBucketNames {
+		// Retrieve the attributes to test if the file exists.
+		objLocation := filepath.Join(il.gsImageBaseDir, getDigestImageFileName(digest))
+		_, err := il.storageClient.Bucket(bucketName).Object(objLocation).Attrs(ctx)
+		if err != nil {
+			// We ignore the error because it most likely indicates that the requested object
+			// does not exist. Currently the Attrs(...) call does not return ErrObjectNotExist
+			// as documented.
+			continue
+		}
+
+		// Log an error and continue to the next bucket if we cannot delete the existing file.
+		if err := il.storageClient.Bucket(bucketName).Object(objLocation).Delete(ctx); err != nil {
+			glog.Errorf("Unable to delete existing object at %s. Got error: %s", objLocation, err)
+			continue
+		}
+	}
 }
