@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f01d104e_67236f1b",
+        "filename": "res/css/md.css",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-11-30T19:18:21Z",
+      "side": 1,
+      "message": "You may want to check with any other users of file to ensure that the new look is okay.",
+      "range": {
+        "startLine": 33,
+        "startChar": 7,
+        "endLine": 33,
+        "endChar": 15
+      },
+      "revId": "a8594b41d6f4a32b3e0699b7601cdaef00b8111e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
