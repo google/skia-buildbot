@@ -221,3 +221,32 @@ func TestRange(t *testing.T) {
 		t.Errorf("there were unfulfilled expections: %s", err)
 	}
 }
+
+func TestUntriaged(t *testing.T) {
+	testutils.SmallTest(t)
+	// Set up mock db.
+	mdb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer mdb.Close()
+
+	// Set expectations.
+	rows := sqlmock.NewRows([]string{"count"}).
+		AddRow(7)
+	mock.ExpectQuery("SELECT count(.+) FROM regression WHERE triaged=false").WillReturnRows(rows)
+
+	// Put mock db into place.
+	db.DB = mdb
+
+	// Execute our method.
+	st := NewStore()
+	count, err := st.Untriaged()
+	assert.NoError(t, err)
+	assert.Equal(t, 7, count)
+
+	// Make sure that all expectations were met.
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expections: %s", err)
+	}
+}
