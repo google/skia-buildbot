@@ -1769,6 +1769,10 @@ func initIngestion() {
 	}
 }
 
+func oldMainHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/e/", http.StatusMovedPermanently)
+}
+
 func main() {
 	defer common.LogPanic()
 	// Setup DB flags.
@@ -1804,7 +1808,7 @@ func main() {
 
 	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 
-	router.HandleFunc("/", templateHandler("index.html"))
+	router.HandleFunc("/", oldMainHandler)
 
 	// New endpoints that use ptracestore will go here.
 	router.HandleFunc("/e/", templateHandler("newindex.html"))
