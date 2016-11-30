@@ -64,7 +64,7 @@ func setupRepo(t *testing.T, numCommits int) (string, *repograph.Graph, []string
 // asserting that the Window returns a particular value for a given commit
 // index, and a cleanup function.
 func setup(t *testing.T, period time.Duration, numCommits, threshold int) (*Window, func(int, bool), func()) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 
 	repoUrl, repo, commits, cleanup := setupRepo(t, numCommits)
 	rm := repograph.Map{
@@ -137,7 +137,7 @@ func TestWindowRepoAndDuration2(t *testing.T) {
 
 // Test multiple repos.
 func TestWindowMultiRepo(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	url1, repo1, commits1, cleanup1 := setupRepo(t, 20)
 	defer cleanup1()
 	url2, repo2, commits2, cleanup2 := setupRepo(t, 10)
