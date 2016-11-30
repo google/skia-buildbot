@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d82efcd_f68b803b",
+        "filename": "golden/frontend/res/imp/filter-dialog-sk-demo.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-30T19:28:50Z",
+      "side": 1,
+      "message": "Do you really need d3 here?",
+      "revId": "93b3d6f17eed67ba3dbfbbc5e7d090ee3c922560",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_e7975fd6",
+        "filename": "golden/frontend/res/imp/filter-dialog-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-30T19:28:50Z",
+      "side": 1,
+      "message": "I would prefer the edit button has an \u0027on-tap\u003d\"_handleEditButton\"\u0027 than do this.",
+      "revId": "93b3d6f17eed67ba3dbfbbc5e7d090ee3c922560",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_a78647a2",
+        "filename": "golden/frontend/res/imp/search-controls-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-30T19:28:50Z",
+      "side": 1,
+      "message": "Can disabled be a one-way binding?  Same for line 84",
+      "range": {
+        "startLine": 88,
+        "startChar": 78,
+        "endLine": 88,
+        "endChar": 90
+      },
+      "revId": "93b3d6f17eed67ba3dbfbbc5e7d090ee3c922560",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_87586b75",
+        "filename": "golden/frontend/res/imp/search-controls-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-11-30T19:28:50Z",
+      "side": 1,
+      "message": "Again, for buttons, I prefer the listeners to be done in the markup.",
+      "revId": "93b3d6f17eed67ba3dbfbbc5e7d090ee3c922560",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
