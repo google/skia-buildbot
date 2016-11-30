@@ -609,25 +609,25 @@ func (s *TaskScheduler) recordCandidateMetrics(candidates map[string]map[string]
 
 // regenerateTaskQueue obtains the set of all eligible task candidates, scores
 // them, and prepares them to be triggered.
-func (s *TaskScheduler) regenerateTaskQueue() error {
+func (s *TaskScheduler) regenerateTaskQueue() ([]*taskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	// Find the unfinished Jobs.
 	unfinishedJobs, err := s.jCache.UnfinishedJobs()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Find TaskSpecs for all unfinished Jobs.
 	preFilterCandidates, err := s.findTaskCandidatesForJobs(unfinishedJobs)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Filter task candidates.
 	candidates, err := s.filterTaskCandidates(preFilterCandidates)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Record the number of task candidates per dimension set.
@@ -636,15 +636,10 @@ func (s *TaskScheduler) regenerateTaskQueue() error {
 	// Process the remaining task candidates.
 	queue, err := s.processTaskCandidates(candidates)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// Save the queue.
-	s.queueMtx.Lock()
-	defer s.queueMtx.Unlock()
-	s.lastScheduled = time.Now()
-	s.queue = queue
-	return nil
+	return queue, nil
 }
 
 // getCandidatesToSchedule matches the list of free Swarming bots to task
@@ -798,25 +793,14 @@ func hasDim(bot *swarming_api.SwarmingRpcsBotInfo, key, value string) bool {
 	return false
 }
 
-// scheduleTasks queries for free Swarming bots and triggers tasks according
-// to relative priorities in the queue.
-func (s *TaskScheduler) scheduleTasks() error {
+// isolateCandidates uploads inputs for the taskCandidates to the Isolate server.
+func (s *TaskScheduler) isolateCandidates(candidates []*taskCandidate) error {
 	defer metrics2.FuncTimer().Stop()
-	// Find free bots, match them with tasks.
-	bots, err := getFreeSwarmingBots(s.swarming)
-	if err != nil {
-		return err
-	}
-	bots = s.busyBots.Filter(bots)
-
-	s.queueMtx.Lock()
-	defer s.queueMtx.Unlock()
-	schedule := getCandidatesToSchedule(bots, s.queue)
 
 	// First, group by commit hash since we have to isolate the code at
 	// a particular revision for each task.
 	byRepoState := map[db.RepoState][]*taskCandidate{}
-	for _, c := range schedule {
+	for _, c := range candidates {
 		byRepoState[c.RepoState] = append(byRepoState[c.RepoState], c)
 	}
 
@@ -825,6 +809,20 @@ func (s *TaskScheduler) scheduleTasks() error {
 		if err := s.isolateTasks(rs, candidates); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// scheduleTasks queries for free Swarming bots and triggers tasks according
+// to relative priorities in the queue.
+func (s *TaskScheduler) scheduleTasks(bots []*swarming_api.SwarmingRpcsBotInfo, queue []*taskCandidate) error {
+	defer metrics2.FuncTimer().Stop()
+	// Match free bots with tasks.
+	schedule := getCandidatesToSchedule(bots, queue)
+
+	// Isolate the tasks by commit.
+	if err := s.isolateCandidates(schedule); err != nil {
+		return err
 	}
 
 	// Trigger tasks.
@@ -887,20 +885,23 @@ func (s *TaskScheduler) scheduleTasks() error {
 	}
 
 	// Remove the tasks from the queue.
-	newQueue := make([]*taskCandidate, 0, len(s.queue)-len(schedule))
-	for i, j := 0, 0; i < len(s.queue); {
+	newQueue := make([]*taskCandidate, 0, len(queue)-len(schedule))
+	for i, j := 0, 0; i < len(queue); {
 		if j >= len(schedule) {
-			newQueue = append(newQueue, s.queue[i:]...)
+			newQueue = append(newQueue, queue[i:]...)
 			break
 		}
-		if s.queue[i] == schedule[j] {
+		if queue[i] == schedule[j] {
 			j++
 		} else {
-			newQueue = append(newQueue, s.queue[i])
+			newQueue = append(newQueue, queue[i])
 		}
 		i++
 	}
+	s.queueMtx.Lock()
+	defer s.queueMtx.Unlock()
 	s.queue = newQueue
+	s.lastScheduled = time.Now()
 
 	// Note; if regenerateQueue and scheduleTasks are ever decoupled so that
 	// the queue is reused by multiple runs of scheduleTasks, we'll need to
@@ -1007,10 +1008,24 @@ func (s *TaskScheduler) MainLoop() error {
 		defer wg.Done()
 		if err := s.updateUnfinishedTasks(); err != nil {
 			e2 = err
+			return
+		}
+		if err := s.tCache.Update(); err != nil {
+			e2 = err
+			return
+		}
+
+		if err := s.jCache.Update(); err != nil {
+			e2 = err
+			return
+		}
+
+		if err := s.updateUnfinishedJobs(); err != nil {
+			e2 = err
+			return
 		}
 	}()
 	wg.Wait()
-
 	if e1 != nil {
 		return e1
 	}
@@ -1018,34 +1033,52 @@ func (s *TaskScheduler) MainLoop() error {
 		return e2
 	}
 
-	// Update the caches.
-	if err := s.tCache.Update(); err != nil {
-		return err
-	}
+	// Regenerate the queue and query for free Swarming bots in parallel.
+	var queue []*taskCandidate
+	var bots []*swarming_api.SwarmingRpcsBotInfo
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
 
-	if err := s.jCache.Update(); err != nil {
-		return err
-	}
+		// Add Jobs for new commits.
+		if err := s.gatherNewJobs(); err != nil {
+			e1 = err
+			return
+		}
 
-	if err := s.updateUnfinishedJobs(); err != nil {
-		return err
-	}
+		// Regenerate the queue.
+		glog.Infof("Task Scheduler regenerating the queue...")
+		var err error
+		queue, err = s.regenerateTaskQueue()
+		if err != nil {
+			e1 = err
+			return
+		}
+	}()
 
-	// Add Jobs for new commits.
-	if err := s.gatherNewJobs(); err != nil {
-		return err
-	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
 
-	// Regenerate the queue, schedule tasks.
-	// TODO(borenet): Query for free Swarming bots while we're regenerating
-	// the queue.
-	glog.Infof("Task Scheduler regenerating the queue...")
-	if err := s.regenerateTaskQueue(); err != nil {
-		return err
+		var err error
+		bots, err = getFreeSwarmingBots(s.swarming, s.busyBots)
+		if err != nil {
+			e2 = err
+			return
+		}
+
+	}()
+
+	wg.Wait()
+	if e1 != nil {
+		return e1
+	}
+	if e2 != nil {
+		return e2
 	}
 
 	glog.Infof("Task Scheduler scheduling tasks...")
-	if err := s.scheduleTasks(); err != nil {
+	if err := s.scheduleTasks(bots, queue); err != nil {
 		return err
 	}
 	return nil
@@ -1053,6 +1086,7 @@ func (s *TaskScheduler) MainLoop() error {
 
 // updateRepos syncs the scheduler's repos.
 func (s *TaskScheduler) updateRepos() error {
+	defer metrics2.FuncTimer().Stop()
 	for _, r := range s.repos {
 		if err := r.Update(); err != nil {
 			return err
@@ -1150,7 +1184,7 @@ func testednessIncrease(blamelistLength, stoleFromBlamelistLength int) float64 {
 }
 
 // getFreeSwarmingBots returns a slice of free swarming bots.
-func getFreeSwarmingBots(s swarming.ApiClient) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
+func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
 	defer metrics2.FuncTimer().Stop()
 	bots, err := s.ListSkiaBots()
 	if err != nil {
@@ -1186,12 +1220,13 @@ func getFreeSwarmingBots(s swarming.ApiClient) ([]*swarming_api.SwarmingRpcsBotI
 		rv = append(rv, bot)
 	}
 	glog.Infof("DEBUG: android bots: %s", androidbots)
-	return rv, nil
+	return busy.Filter(bots), nil
 }
 
 // updateUnfinishedTasks queries Swarming for all unfinished tasks and updates
 // their status in the DB.
 func (s *TaskScheduler) updateUnfinishedTasks() error {
+	defer metrics2.FuncTimer().Stop()
 	tasks, err := s.tCache.UnfinishedTasks()
 	if err != nil {
 		return err
@@ -1252,6 +1287,7 @@ func (s *TaskScheduler) jobFinished(j *db.Job) error {
 // updateUnfinishedJobs updates all not-yet-finished Jobs to determine if their
 // state has changed.
 func (s *TaskScheduler) updateUnfinishedJobs() error {
+	defer metrics2.FuncTimer().Stop()
 	jobs, err := s.jCache.UnfinishedJobs()
 	if err != nil {
 		return err
