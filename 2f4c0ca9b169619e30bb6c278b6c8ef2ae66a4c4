@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "2d82efcd_f981334e",
+        "filename": "golden/go/diffstore/diffstore.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-30T22:26:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f01d104e_0c6e62de",
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f01d104e_71f24dba",
         "filename": "golden/go/diffstore/failure_store.go",
         "patchSetId": 15
@@ -36,6 +54,24 @@
         "endLine": 33,
         "endChar": 48
       },
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d82efcd_59be270a",
+        "filename": "golden/go/diffstore/failure_store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-30T22:26:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f01d104e_71f24dba",
       "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -65,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "2d82efcd_79c3e39a",
+        "filename": "golden/go/diffstore/failure_store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-30T22:26:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2d82efcd_96db2c7e",
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f01d104e_cc6e0aa8",
         "filename": "golden/go/diffstore/failure_store.go",
         "patchSetId": 15
@@ -82,6 +136,24 @@
         "endLine": 73,
         "endChar": 21
       },
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_88dddb2f",
+        "filename": "golden/go/diffstore/failure_store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-30T22:26:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f01d104e_cc6e0aa8",
       "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -123,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "f01d104e_c8b6f3da",
+        "filename": "golden/go/diffstore/failure_store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-30T22:26:52Z",
+      "side": 1,
+      "message": "@kjlubick  the atomicity  for adding and purging is guaranteed by boltDB. The mutex is only used to protect  \u0027cachedFailures\u0027. Whenever there is a change it creates a new copy and swaps it out atomically.\nI added comments above to make it clearer what \u0027cachedFailures\u0027 and \u0027mutex\u0027 do.",
+      "parentUuid": "f01d104e_11b119df",
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d82efcd_36f498d5",
         "filename": "golden/go/diffstore/failure_store_test.go",
         "patchSetId": 15
@@ -140,6 +230,24 @@
         "endLine": 14,
         "endChar": 24
       },
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_2b6b0161",
+        "filename": "golden/go/diffstore/failure_store_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-30T22:26:52Z",
+      "side": 1,
+      "message": "I don\u0027t think that\u0027s correct (unless I misunderstand). The cache is actually re-loaded at the end of each \u0027add\u0027 and \u0027purge\u0027. \nIt\u0027s not an efficient way to do things, but in this particular case it\u0027s fine, because we only expect a limited number of failures and the point is to keep them around between restarts, so they can be inspected by hand.",
+      "parentUuid": "2d82efcd_36f498d5",
       "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -169,6 +277,24 @@
     },
     {
       "key": {
+        "uuid": "f01d104e_6b75f938",
+        "filename": "golden/go/diffstore/failure_store_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-30T22:26:52Z",
+      "side": 1,
+      "message": "Agreed, removed.",
+      "parentUuid": "f01d104e_2c015eb8",
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f01d104e_0770fb49",
         "filename": "golden/go/diffstore/imgloader.go",
         "patchSetId": 15
@@ -186,6 +312,24 @@
         "endLine": 50,
         "endChar": 16
       },
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_eb89e90d",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-30T22:26:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f01d104e_0770fb49",
       "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -215,6 +359,24 @@
     },
     {
       "key": {
+        "uuid": "f01d104e_aba61190",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-30T22:26:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f01d104e_278c1718",
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f01d104e_c79d0343",
         "filename": "golden/go/diffstore/imgloader.go",
         "patchSetId": 15
@@ -238,6 +400,24 @@
     },
     {
       "key": {
+        "uuid": "f01d104e_4bbe7d99",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-30T22:26:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f01d104e_c79d0343",
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f01d104e_47df53f6",
         "filename": "golden/go/diffstore/imgloader.go",
         "patchSetId": 15
@@ -255,6 +435,24 @@
         "endLine": 288,
         "endChar": 8
       },
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_6badf937",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-30T22:26:52Z",
+      "side": 1,
+      "message": "I agree. When I implemented this, the function did not return \"ErrObjectNotExist \" as documented. That\u0027s my resorted to ignoring the error. Added a comment to that effect.",
+      "parentUuid": "f01d104e_47df53f6",
       "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -307,6 +505,42 @@
     },
     {
       "key": {
+        "uuid": "f01d104e_4b33dd27",
+        "filename": "golden/go/diffstore/metrics_store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-30T22:26:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f01d104e_a7ce4743",
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_6b2899b1",
+        "filename": "golden/go/diffstore/metrics_store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-30T22:26:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f01d104e_c7cb4333",
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d82efcd_b66c28b0",
         "filename": "golden/go/diffstore/metrics_store.go",
         "patchSetId": 15
@@ -324,6 +558,24 @@
         "endLine": 47,
         "endChar": 11
       },
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_2b15c167",
+        "filename": "golden/go/diffstore/metrics_store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-30T22:26:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2d82efcd_b66c28b0",
       "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false

@@ -22,6 +22,24 @@
       "revId": "24ef0f173e7777bc41a0d0e79ec96f40d349eb6d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01d104e_88f31bed",
+        "filename": "go/rtcache/memrtc.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-11-30T22:26:52Z",
+      "side": 0,
+      "message": "I chose this cache, because it offers methods groupcache doesn\u0027t have, but I don\u0027t think it\u0027s high priority.\nIn any case I filed a bug https://bugs.chromium.org/p/skia/issues/detail?id\u003d6016\nand we can discuss it there.",
+      "parentUuid": "f01d104e_c7b1832a",
+      "revId": "24ef0f173e7777bc41a0d0e79ec96f40d349eb6d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
