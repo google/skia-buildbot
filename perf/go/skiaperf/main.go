@@ -1547,11 +1547,17 @@ type TriageRequest struct {
 	ClusterType string                  `json:"cluster_type"`
 }
 
+// TriageResponse is used in triageHandler.
+type TriageResponse struct {
+	Bug string `json:"bug"` // URL to bug reporting page.
+}
+
 // triageHandler takes a POST'd TriageRequest serialized as JSON
 // and performs the triage.
 //
 // If succesful it returns a 200, or an HTTP status code of 500 otherwise.
 func triageHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	if login.LoggedInAs(r) == "" {
 		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to triage.")
 		return
@@ -1583,13 +1589,38 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	link := fmt.Sprintf("%s/t/?begin=%d&end=%d", r.Header.Get("Origin"), detail[0].Timestamp, detail[0].Timestamp+1)
 	a := &types.Activity{
 		UserID: login.LoggedInAs(r),
 		Action: fmt.Sprintf("Perf Triage: %q %q %q %q", tr.Query, detail[0].URL, tr.Triage.Status, tr.Triage.Message),
-		URL:    fmt.Sprintf("/t/?begin=%d&end=%d", detail[0].Timestamp, detail[0].Timestamp+1),
+		URL:    link,
 	}
 	if err := activitylog.Write(a); err != nil {
 		glog.Errorf("Failed to log activity: %s", err)
+	}
+
+	resp := &TriageResponse{}
+
+	if tr.Triage.Status == regression.NEGATIVE {
+
+		comment := fmt.Sprintf(`This bug was found via SkiaPerf.
+
+Visit this URL to see the details of the suspicious cluster:
+
+  %s
+
+The suspect commit is:
+
+  %s
+  `, link, detail[0].URL)
+		q := url.Values{
+			"labels":  []string{"FromSkiaPerf,Type-Defect,Priority-Medium"},
+			"comment": []string{comment},
+		}
+		resp.Bug = "https://bugs.chromium.org/p/skia/issues/entry?" + q.Encode()
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		glog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 
