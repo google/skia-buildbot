@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d82efcd_56e114b5",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-11-30T16:01:53Z",
+      "side": 1,
+      "message": "Might need an index on this column. Also on timestamp for Range below. (Missed that before.)",
+      "range": {
+        "startLine": 65,
+        "startChar": 62,
+        "endLine": 65,
+        "endChar": 75
+      },
+      "revId": "7ffae4da0ed8b45ef33d24b078ce22203c1b17b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
