@@ -170,9 +170,13 @@
         return
       }
       this._triageInProgress = true;
-      sk.post("/_/triage/", JSON.stringify(e.detail), "application/json").then(function() {
+      sk.post("/_/triage/", JSON.stringify(e.detail), "application/json").then(JSON.parse).then(function(json) {
         this.$.spinner.active = false;
         this._triageInProgress = false;
+        if (json.bug) {
+          // Open the bug reporting page in a new window.
+          window.open(json.bug, '_blank');
+        }
       }.bind(this)).catch(function(msg) {
         if (msg) {
           sk.errorMessage(msg, 10000);
