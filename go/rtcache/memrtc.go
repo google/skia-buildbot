@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/golang/groupcache/lru"
+	lru "github.com/hashicorp/golang-lru"
 	ttlcache "github.com/robfig/go-cache"
 )
 
@@ -39,16 +39,21 @@ type MemReadThroughCache struct {
 // New returns a new instance of ReadThroughCache that is stored in RAM.
 // nWorkers defines the number of concurrent workers that call wokerFn when
 // requested items are not in RAM.
-func New(workerFn ReadThroughFunc, maxSize int, nWorkers int) ReadThroughCache {
+func New(workerFn ReadThroughFunc, maxSize int, nWorkers int) (ReadThroughCache, error) {
 	// if maxSize is <= 0 then we don't cache at all. But lru.Cache will not
 	// limit the cache if the size is 0. So we cache 1 element.
 	if maxSize <= 0 {
 		maxSize = 1
 	}
 
+	lruCache, err := lru.New(maxSize)
+	if err != nil {
+		return nil, err
+	}
+
 	ret := &MemReadThroughCache{
 		workerFn:       workerFn,
-		cache:          lru.New(maxSize),
+		cache:          lruCache,
 		errCache:       ttlcache.New(DEFAULT_ERRCACHE_EXPIRATION_TIME, ERRCACHE_CLEANUP_TIME),
 		pQ:             &priorityQueue{},
 		inProgress:     map[string]*workItem{},
@@ -58,7 +63,7 @@ func New(workerFn ReadThroughFunc, maxSize int, nWorkers int) ReadThroughCache {
 	}
 	ret.emptyCond = sync.NewCond(&ret.mutex)
 	ret.startWorker()
-	return ret
+	return ret, nil
 }
 
 // Get implements the ReadThroughCache interface.
@@ -74,6 +79,29 @@ func (m *MemReadThroughCache) Get(priority int64, id string) (interface{}, error
 		return nil, err
 	}
 	return ret, nil
+}
+
+// Keys implements the ReadThroughCache interface.
+func (m *MemReadThroughCache) Keys() []string {
+	m.mutex.Lock()
+	keys := m.cache.Keys()
+	m.mutex.Unlock()
+
+	// Convert to strings.
+	ret := make([]string, len(keys))
+	for idx, key := range keys {
+		ret[idx] = key.(string)
+	}
+	return ret
+}
+
+// Remove implements the ReadThroughCache interface.
+func (m *MemReadThroughCache) Remove(ids []string) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	for _, id := range ids {
+		m.cache.Remove(id)
+	}
 }
 
 // getOrEnqueue retrieves the desired item from the cache or schedules that it be calculated.

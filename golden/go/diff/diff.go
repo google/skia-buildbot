@@ -94,7 +94,17 @@ type DigestFailure struct {
 	Digest string  `json:"digest"`
 	Reason DiffErr `json:"reason"`
 	TS     int64   `json:"ts"`
-	Error  string  `json:"error"`
+}
+
+// NewDigestFailure is a convenience function to create an instance of DigestFailure.
+// It sets the provided arguments in the correct fields and adds a timestamp with
+// the current time in milliseconds.
+func NewDigestFailure(digest string, reason DiffErr) *DigestFailure {
+	return &DigestFailure{
+		Digest: digest,
+		Reason: reason,
+		TS:     util.TimeStampMs(),
+	}
 }
 
 // Implement sort.Interface for a slice of DigestFailure

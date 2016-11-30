@@ -10,7 +10,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/boltdb/bolt"
 	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/fileutil"
@@ -31,12 +30,6 @@ const (
 
 	// DEFAULT_TEMPFILE_DIR_NAME is the name of the temp directory.
 	DEFAULT_TEMPFILE_DIR_NAME = "__temp"
-
-	// METRICSDB_NAME is the name of the boltdb caching diff metrics.
-	METRICSDB_NAME = "diff.DiffMetricss.db"
-
-	// METRICS_BUCKET is the name of the bucket in the metrics DB.
-	METRICS_BUCKET = "metrics"
 
 	// BYTES_PER_IMAGE is the estimated number of bytes an uncompressed images consumes.
 	// Used to conservatively estimate the maximum number of items in the cache.
@@ -61,11 +54,8 @@ type MemDiffStore struct {
 	// imgLoader fetches and caches images.
 	imgLoader *ImageLoader
 
-	// metricDB stores the diff metrics in a boltdb databasel.
-	metricsDB *bolt.DB
-
-	// diffMetricsCodec encodes/decodes diff.DiffMetrics instances to JSON.
-	diffMetricsCodec util.LRUCodec
+	// metricsStore persists diff metrics.
+	metricsStore *metricsStore
 
 	// wg is used to synchronize background operations like saving files. Used for testing.
 	wg sync.WaitGroup
@@ -80,25 +70,27 @@ func New(client *http.Client, baseDir string, gsBucketNames []string, gsImageBas
 
 	// Set up image retrieval, caching and serving.
 	imgDir := fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME)))
-	imgLoader, err := newImgLoader(client, imgDir, gsBucketNames, gsImageBaseDir, imageCacheCount)
+	imgLoader, err := newImgLoader(client, baseDir, imgDir, gsBucketNames, gsImageBaseDir, imageCacheCount)
 	if err != err {
 		return nil, err
 	}
 
-	metricsDB, err := bolt.Open(filepath.Join(baseDir, METRICSDB_NAME), 0600, nil)
+	mStore, err := newMetricStore(baseDir)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to open metricsDB: %s", err)
+		return nil, err
 	}
 
 	ret := &MemDiffStore{
-		baseDir:          baseDir,
-		localDiffDir:     fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFFIMG_DIR_NAME))),
-		imgLoader:        imgLoader,
-		metricsDB:        metricsDB,
-		diffMetricsCodec: util.JSONCodec(&diff.DiffMetrics{}),
+		baseDir:      baseDir,
+		localDiffDir: fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFFIMG_DIR_NAME))),
+		imgLoader:    imgLoader,
+		metricsStore: mStore,
 	}
 
-	ret.diffMetricsCache = rtcache.New(ret.diffMetricsWorker, diffCacheCount, runtime.NumCPU())
+	if ret.diffMetricsCache, err = rtcache.New(ret.diffMetricsWorker, diffCacheCount, runtime.NumCPU()); err != nil {
+		return nil, err
+	}
+
 	return ret, nil
 }
 
@@ -169,17 +161,41 @@ func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []str
 	return diffMap, nil
 }
 
-// TODO(stephana): Implement UnavailableDigests and PurgeDigests when/if we
-// re-add the endpoints to deal with image errors.
-
 // UnavailableDigests implements the DiffStore interface.
 func (m *MemDiffStore) UnavailableDigests() map[string]*diff.DigestFailure {
-	return nil
+	return m.imgLoader.failureStore.unavailableDigests()
 }
 
 // PurgeDigests implements the DiffStore interface.
 func (m *MemDiffStore) PurgeDigests(digests []string, purgeGS bool) error {
-	return nil
+	// We remove the given digests from the various places where they might
+	// be stored. None of the purge steps should return an error if the digests
+	// related information is missing. So any error indicates a bigger problem in the
+	// underlying system, i.e.issues with disk etc., that needs to be investigated
+	// by hand. Since we remove the digests from the failureStore last, we will
+	// not loose the vital information of what digests failed in the first place.
+
+	// Remove the images from, the iamge cache, disk and GS if necessary.
+	if err := m.imgLoader.PurgeImages(digests, purgeGS); err != nil {
+		return err
+	}
+
+	// Remove the diff metrics from the cache if they exist.
+	digestSet := util.NewStringSet(digests)
+	removeKeys := make([]string, 0, len(digests))
+	for _, key := range m.diffMetricsCache.Keys() {
+		d1, d2 := splitDigests(key)
+		if digestSet[d1] || digestSet[d2] {
+			removeKeys = append(removeKeys, key)
+		}
+	}
+	m.diffMetricsCache.Remove(removeKeys)
+
+	if err := m.metricsStore.purgeMetrics(digests); err != nil {
+		return err
+	}
+
+	return m.imgLoader.failureStore.purgeDigestFailures(digests)
 }
 
 // ImageHandler implements the DiffStore interface.
@@ -241,7 +257,7 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 	leftDigest, rightDigest := splitDigests(id)
 
 	// Load it from disk cache if necessary.
-	if dm, err := d.loadDiffMetric(id); err != nil {
+	if dm, err := d.metricsStore.loadDiffMetric(id); err != nil {
 		glog.Errorf("Error trying to load diff metric: %s", err)
 	} else if dm != nil {
 		return dm, nil
@@ -273,7 +289,7 @@ func (d *MemDiffStore) saveDiffInfoAsync(diffID, leftDigest, rightDigest string,
 	d.wg.Add(2)
 	go func() {
 		defer d.wg.Done()
-		if err := d.saveDiffMetric(diffID, dr); err != nil {
+		if err := d.metricsStore.saveDiffMetric(diffID, dr); err != nil {
 			glog.Errorf("Error saving diff metric: %s", err)
 		}
 	}()
@@ -285,54 +301,6 @@ func (d *MemDiffStore) saveDiffInfoAsync(diffID, leftDigest, rightDigest string,
 			glog.Error(err)
 		}
 	}()
-}
-
-// loadDiffMetric loads a diffMetric from disk.
-func (d *MemDiffStore) loadDiffMetric(id string) (*diff.DiffMetrics, error) {
-	var jsonData []byte = nil
-	viewFn := func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(METRICS_BUCKET))
-		if bucket == nil {
-			return nil
-		}
-
-		jsonData = bucket.Get([]byte(id))
-		return nil
-	}
-
-	if err := d.metricsDB.View(viewFn); err != nil {
-		return nil, err
-	}
-
-	if jsonData == nil {
-		return nil, nil
-	}
-
-	ret, err := d.diffMetricsCodec.Decode(jsonData)
-	if err != nil {
-		return nil, err
-	}
-	return ret.(*diff.DiffMetrics), nil
-}
-
-// saveDiffMetric stores a diffmetric on disk.
-func (d *MemDiffStore) saveDiffMetric(id string, dr *diff.DiffMetrics) error {
-	jsonData, err := d.diffMetricsCodec.Encode(dr)
-	if err != nil {
-		return err
-	}
-
-	updateFn := func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists([]byte(METRICS_BUCKET))
-		if err != nil {
-			return err
-		}
-
-		return bucket.Put([]byte(id), jsonData)
-	}
-
-	err = d.metricsDB.Update(updateFn)
-	return err
 }
 
 func getDiffBasename(d1, d2 string) string {

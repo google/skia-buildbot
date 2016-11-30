@@ -21,6 +21,12 @@ type ReadThroughCache interface {
 
 	// Contains returns true if the identfied item is currently cached.
 	Contains(id string) bool
+
+	// Keys returns the keys of the cache.
+	Keys() []string
+
+	// Remove removes the element with the given ids from the cache.
+	Remove(ids []string)
 }
 
 // WorkerFn defines the function that is called when an item is not in the

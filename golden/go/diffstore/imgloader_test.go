@@ -68,7 +68,7 @@ func getImageLoaderAndTile(t assert.TestingT) (string, string, *tiling.Tile, *Im
 
 	imgCacheCount, _ := getCacheCounts(10)
 	gsBuckets := []string{TEST_GS_BUCKET_NAME, TEST_GS_SECONDARY_BUCKET}
-	imgLoader, err := newImgLoader(client, workingDir, gsBuckets, TEST_GS_IMAGE_DIR, imgCacheCount)
+	imgLoader, err := newImgLoader(client, baseDir, workingDir, gsBuckets, TEST_GS_IMAGE_DIR, imgCacheCount)
 	assert.NoError(t, err)
 	return baseDir, workingDir, tile, imgLoader
 }
