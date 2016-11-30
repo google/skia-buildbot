@@ -1,0 +1,65 @@
+<html>
+<head>
+  <title>filter-dialog-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="../../node_modules/native-promise-only/npo.js"></script>
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="../common/js/common.js"></script>
+
+  <link rel="import" href="bower_components/polymer/polymer.html">
+  <link rel="import" href="filter-dialog-sk.html">
+  <link rel="import" href="bower_components/paper-button/paper-button.html">
+
+</head>
+<body>
+  <h1>filter-dialog-sk demo</h1>
+
+  <dom-module id="main-document-element">
+    <template>
+      <filter-dialog-sk id="filterDialog"></filter-dialog-sk>
+      <paper-button on-tap="_handleClick" raised>Open Dialog</paper-button>
+      <br><br>
+      Selection: &quot;{{_selection}}&quot;
+    </template>
+
+    <script>
+      HTMLImports.whenReady(function () {
+        Polymer({
+          is: 'main-document-element',
+
+          properties: {
+            _selection: {
+              type: String,
+              value: ''
+            }
+          },
+
+          ready: function() {
+            var filter = {
+              rgbamax: 200,
+              pixelmax: 10,
+              diffmax: 300
+            };
+            this.$.filterDialog.setValue(filter);
+            this.listen(this.$.filterDialog, 'edit', '_handleEditEvent');
+          },
+
+          _handleClick: function() {
+            this.$.filterDialog.open(this._selection);
+          },
+
+          _handleEditEvent: function(ev) {
+            this._selection=sk.query.fromObject(ev.detail);
+          }
+        });
+      });
+    </script>
+  </dom-module>
+
+  <!-- Instantite the element defined above -->
+  <main-document-element></main-document-element>
+
+</body>
+</html>
