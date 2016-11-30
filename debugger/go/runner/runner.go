@@ -54,7 +54,7 @@ func (c *Runner) Start(port int) error {
 	hash := c.getHash()
 	machine := fmt.Sprintf("debug%05d", port)
 	name := "sudo"
-	skiaserve := filepath.Join(c.workRoot, "versions", hash, "out", "Release", "skiaserve")
+	skiaserve := filepath.Join(c.workRoot, "versions", hash, "skia", "out", "Release", "skiaserve")
 	args := []string{
 		"systemd-nspawn", "-D", c.imageDir,
 		"--read-only",        // Mount the root file system as read only.

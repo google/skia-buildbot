@@ -31,7 +31,7 @@ func TestRunContainer(t *testing.T) {
 	err := runner.Start(20003)
 	assert.NoError(t, err)
 	assert.NotNil(t, runner)
-	assert.Equal(t, "sudo systemd-nspawn -D /mnt/pd0/container --read-only --machine debug20003 --bind-ro /mnt/pd0/debugger xargs --arg-file=/dev/null /mnt/pd0/debugger/versions/aabbccdd/out/Release/skiaserve --port 20003 --hosted", execString)
+	assert.Equal(t, "sudo systemd-nspawn -D /mnt/pd0/container --read-only --machine debug20003 --bind-ro /mnt/pd0/debugger xargs --arg-file=/dev/null /mnt/pd0/debugger/versions/aabbccdd/skia/out/Release/skiaserve --port 20003 --hosted", execString)
 }
 
 func TestRunLocal(t *testing.T) {
@@ -44,5 +44,5 @@ func TestRunLocal(t *testing.T) {
 	err := runner.Start(20003)
 	assert.NoError(t, err)
 	assert.NotNil(t, runner)
-	assert.Equal(t, "/mnt/pd0/debugger/versions/aabbccdd/out/Release/skiaserve --port 20003 --source  --hosted", execString)
+	assert.Equal(t, "/mnt/pd0/debugger/versions/aabbccdd/skia/out/Release/skiaserve --port 20003 --source  --hosted", execString)
 }
