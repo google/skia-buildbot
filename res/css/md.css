@@ -32,6 +32,7 @@ button.raised:active {
 
 button:disabled {
   color: #999;
+  background-color: #fff;
 }
 
 button.action:active {

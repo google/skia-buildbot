@@ -13,7 +13,7 @@
   Usage:
 
     <comments-sk
-        comments="{{myComments}}"
+        comments="[[myComments]]"
         add_comment_url="/json/comments">
     </comments-sk>
 
@@ -82,79 +82,79 @@
     }
   </style>
   <template>
-    <table>
-      <template is="dom-if" if="{{_showHeader(comments)}}">
+    <table id="table">
+      <template is="dom-if" if="[[_showHeader(comments)]]">
         <tr>
           <th>Time</th>
           <th>User</th>
           <th>Message</th>
-          <template is="dom-repeat" items="{{extra_fields}}" as="field">
-            <th>{{field.label}}</th>
+          <template is="dom-repeat" items="[[extra_fields]]" as="field">
+            <th>[[field.label]]</th>
           </template>
         </tr>
       </template>
-      <template is="dom-if" if="{{_canCollapse}}">
-        <template is="dom-if" if="{{_collapsed}}">
+      <template is="dom-if" if="[[_canCollapse]]">
+        <template is="dom-if" if="[[_collapsed]]">
           <td colspan="3" class="viewlink">
-            <a href="#" onclick="return false;" on-click="_uncollapse">... view <span>{{_numMoreComments(collapse_threshold, comments)}}</span> more comments</a>
+            <a href="#" onclick="return false;" on-click="_uncollapse">... view <span>[[_numMoreComments(collapse_threshold, comments)]]</span> more comments</a>
           </td>
         </template>
-        <template is="dom-if" if="{{_not(_collapsed)}}">
+        <template is="dom-if" if="[[_not(_collapsed)]]">
           <td colspan="3" class="viewlink">
             <a href="#" onclick="return false;" on-click="_collapse">... view fewer comments</a>
           </td>
         </template>
       </template>
-      <template is="dom-repeat" items="{{comments}}" as="comment" index-as="index">
-        <template is="dom-if" if="{{_showThisComment(collapse_threshold, _collapsed, comments, index)}}">
+      <template is="dom-repeat" items="[[comments]]" as="comment" index-as="index">
+        <template is="dom-if" if="[[_showThisComment(collapse_threshold, _collapsed, comments, index)]]">
           <tr class="comment">
-            <td><human-date-sk date="{{comment.time}}" diff seconds></human-date-sk> ago</td>
-            <td>{{comment.user}}</td>
-            <td class="commentMessage"><linkify-sk text="{{comment.message}}"></linkify-sk></td>
-            <template is="dom-repeat" items="{{extra_fields}}" as="field">
+            <td><human-date-sk date="[[comment.time]]" diff seconds></human-date-sk> ago</td>
+            <td>[[comment.user]]</td>
+            <td class="commentMessage"><linkify-sk text="[[comment.message]]"></linkify-sk></td>
+            <template is="dom-repeat" items="[[extra_fields]]" as="field">
               <td>
-                <template is="dom-if" if="{{_fieldIsBool(field)}}">
-                  <template is="dom-if" if="{{_get(comment, field)}}">
+                <template is="dom-if" if="[[_fieldIsBool(field)]]">
+                  <template is="dom-if" if="[[_get(comment, field)]]">
                     <iron-icon icon="icons:check"></iron-icon>
                   </template>
-                  <template is="dom-if" if="{{!_get(comment, field)}}">
+                  <template is="dom-if" if="[[!_get(comment, field)]]">
                     <iron-icon icon="icons:check-box-outline-blank"></iron-icon>
                   </template>
                 </template>
-                <template is="dom-if" if="{{_fieldIsText(field)}}">
-                  <span>{{_get(comment, field)}}</span>
+                <template is="dom-if" if="[[_fieldIsText(field)]]">
+                  <span>[[_get(comment, field)]]</span>
                 </template>
               </td>
             </template>
-            <template is="dom-if" if="{{_canDeleteComment}}">
+            <template is="dom-if" if="[[_canDeleteComment]]">
               <td>
-                <paper-icon-button icon="icons:clear" x-data="{{comment.id}}" on-click="_deleteComment"></paper-icon-button>
+                <paper-icon-button class="clickable" icon="icons:clear" x-data="[[comment.id]]" on-click="_deleteComment"></paper-icon-button>
               </td>
             </template>
           </tr>
         </template>
       </template>
-      <template is="dom-if" if="{{_canAddComment}}">
+      <template is="dom-if" if="[[_canAddComment]]">
         <tr>
           <td colspan="3">
             <paper-input id="commentBox" label="Comment" value="{{_commentText}}" style="width: 100%">
             </paper-input>
           </td>
-          <template is="dom-repeat" items="{{extra_fields}}" as="field">
+          <template is="dom-repeat" items="[[extra_fields]]" as="field">
             <td>
-              <template is="dom-if" if="{{_fieldIsBool(field)}}">
-                <paper-checkbox id="{{_computeId(field)}}">
-                {{field.label}}
+              <template is="dom-if" if="[[_fieldIsBool(field)]]">
+                <paper-checkbox id="[[_computeId(field)]]">
+                [[field.label]]
                 </paper-checkbox>
               </template>
-              <template is="dom-if" if="{{_fieldIsText(field)}}">
-                <paper-input id="{{_computeId(field)}}" label="{{field.label}}" noLabelFloat>
+              <template is="dom-if" if="[[_fieldIsText(field)]]">
+                <paper-input id="[[_computeId(field)]]" label="{{field.label}}" no-label-float>
                 </paper-input>
               </template>
             </td>
           </template>
           <td>
-            <button on-click="_addComment">submit</button>
+            <button class="clickable" on-click="_addComment">submit</button>
           </td>
         </tr>
       </template>
@@ -270,13 +270,12 @@
       },
 
       ready: function() {
-        var that = this;
         sk.Login.then(function (status) {
           var email = status["Email"];
           if (sk.isGoogler(email)) {
-            that._editRights = true;
+            this._editRights = true;
           }
-        });
+        }.bind(this));
       },
 
       _collapse: function() {
@@ -288,7 +287,7 @@
       },
 
       _addComment: function() {
-        if (!this.allow_empty_comments && this._commentText == "") {
+        if (!this.allow_empty_comments && !this._commentText) {
           sk.errorMessage("Empty comments are not allowed.");
           return;
         }
@@ -304,33 +303,51 @@
           }
           params[field.name] = value;
         }
-        params["comment"] = this._commentText;
-        var that = this;
+        params.comment = this._commentText;
+        this._disableUI();
         sk.post(this.add_comment_url, JSON.stringify(params)).then(function (resp) {
-          that._commentText = "";
-          for (var i = 0; i < that.extra_fields.length; i++) {
-            var field = that.extra_fields[i];
-            var valElem = that.$$("#extraField_" + field.name);
+          this._commentText = "";
+          for (var i = 0; i < this.extra_fields.length; i++) {
+            var field = this.extra_fields[i];
+            var valElem = this.$$("#extraField_" + field.name);
             if (field.type == "bool") {
               valElem.checked = false;
             } else {
               valElem.value = "";
             }
           }
-          that.dispatchEvent(new CustomEvent("submit", null));
-        }, function (err) {
+          this._enableUI();
+          this.dispatchEvent(new CustomEvent("submit", null));
+        }.bind(this), function (err) {
+          this._enableUI();
           sk.errorMessage(err);
-        });
+        }.bind(this));
       },
 
       _deleteComment: function(e, d, t) {
-        var commentId = e.model.__data__.comment.id;
-        var that = this;
+        var commentId = e.model.comment.id;
+        this._disableUI();
         sk.delete(this.add_comment_url + "/" + commentId).then(function (resp) {
-          that.dispatchEvent(new CustomEvent("submit", null));
-        }, function (err) {
+          this._enableUI();
+          this.dispatchEvent(new CustomEvent("submit", null));
+        }.bind(this), function (err) {
+          this._enableUI();
           sk.errorMessage(err);
-        });
+        }.bind(this));
+      },
+
+      _disableUI: function() {
+        var elements = this.$.table.getElementsByClassName("clickable");
+        for (var i = 0; i< elements.length; i++) {
+          elements[i].disabled = true;
+        }
+      },
+
+      _enableUI: function() {
+        var elements = this.$.table.getElementsByClassName("clickable");
+        for (var i = 0; i< elements.length; i++) {
+          elements[i].disabled = false;
+        }
       },
 
       _not: function(val) {

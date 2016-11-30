@@ -6,7 +6,13 @@
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
   <script src="/res/common/js/common.js"></script>
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="/res/imp/sinon-1.17.2.js"></script>
   <script type="text/javascript">
+    var server = sinon.fakeServer.create();
+    sinon.format = function(object) {return JSON.stringify(object);}
+    sinon.log = function(message) {console.log(message);};
+    server.autoRespond = true;
+    server.autoRespondAfter = 3000;
     // Mock out login to fake that a user is logged in
     sk.Login = {
       then: function(f){
@@ -16,12 +22,10 @@
       }
     };
 
-    // Mock out sk.post() to pretend to support adding comments.
-    sk.post = function(url, body) {
-      return new Promise(function (resolve, reject) {
-        resolve("Added the comment.");
-      });
-    }
+    var response = {"Hello":"World"};
+    server.respondWith("POST","/json/skia/builds/foobar/Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-Shared/2858/comments", JSON.stringify(response));
+
+
   </script>
   <link rel=import href="build-popup-sk.html">
 </head>
@@ -29,7 +33,7 @@
   <h1>build-popup-sk demo</h1>
   <build-popup-sk
       buildbot_url_prefix="https://uberchromegw.corp.google.com/i/client.skia/"
-      build='{"builder":"Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-Shared","number":2858,"buildslave":"skiabot-linux-tester-001","commits":["33366974d43eae80e22284a2e445225c343859da"],"comments":[],"failedSteps":["dm"],"color":"red","id":1234,"finished":true,"results":2, "got_revision": "33366974d43eae80e22284a2e445225c343859da"}'
+      build='{"builder":"Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-Shared","number":2858,"buildslave":"skiabot-linux-tester-001","commits":["33366974d43eae80e22284a2e445225c343859da"],"comments":[{"id":974079955,"user":"kjlubick@google.com","time":"2016-11-30T15:40:53.527245846Z","message":"This is a test comment.  No actual llamas were harmed."}],"failedSteps":["dm"],"color":"red","id":1234,"finished":true,"results":2, "got_revision": "33366974d43eae80e22284a2e445225c343859da","master":"foobar"}'
       commit_details='{"33366974d43eae80e22284a2e445225c343859da":{"shortHash":"3336697","shortAuthor":"reed@google.com","shortSubject":"<span style=\"background-color:orange;\">XSS test</span> remove internalDrawBitmap, as it is no longer shared with any other c..."}}'
       repo="skia">
   </build-popup-sk>
