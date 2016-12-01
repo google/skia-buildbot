@@ -254,6 +254,24 @@
     },
     {
       "key": {
+        "uuid": "f01d104e_2b48612e",
+        "filename": "golden/go/diffstore/failure_store_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-01T01:03:16Z",
+      "side": 1,
+      "message": "For white-box testing, I agree with you.",
+      "parentUuid": "f01d104e_2b6b0161",
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f01d104e_2c015eb8",
         "filename": "golden/go/diffstore/failure_store_test.go",
         "patchSetId": 15
