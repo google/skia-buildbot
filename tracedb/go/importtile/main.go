@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
-	ptypes "go.skia.org/infra/perf/go/types"
 	"google.golang.org/grpc"
 )
 
@@ -24,8 +23,6 @@ import (
 var (
 	address    = flag.String("address", "localhost:9090", "The address of the traceserver gRPC endpoint.")
 	cpuprofile = flag.String("cpuprofile", "", "Write cpu profile to file.")
-	dataset    = flag.String("dataset", "gold", "The name of the dataset in the file tile store.")
-	gold       = flag.Bool("gold", true, "The type of data in the tile, true for gold, false for perf.")
 )
 
 func _main(ts db.DB) {
@@ -68,10 +65,7 @@ func main() {
 	defer util.Close(conn)
 
 	// Build a TraceService client.
-	builder := ptypes.PerfTraceBuilder
-	if *gold {
-		builder = types.GoldenTraceBuilder
-	}
+	builder := types.GoldenTraceBuilder
 	ts, err := db.NewTraceServiceDB(conn, builder)
 	if err != nil {
 		log.Fatalf("Failed to create db.DB: %s", err)

@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/go/util"
 	_ "go.skia.org/infra/golden/go/goldingestion"
 	_ "go.skia.org/infra/golden/go/pdfingestion"
-	_ "go.skia.org/infra/perf/go/perfingestion"
 	storage "google.golang.org/api/storage/v1"
 )
 
