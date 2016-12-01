@@ -1,0 +1,27 @@
+{
+   "name": "Swarming Customizations for Skia",
+   "version": "0.1",
+   "description": "Swarming Customizations for Skia",
+   "content_scripts": [
+    {
+      "matches": ["https://chromium-swarm.appspot.com/task?*"],
+      "js": [
+        "node_modules/skia-common-js/common.js",
+        "tasks.js"
+      ]
+    },
+    {
+      "matches": ["https://chromium-swarm.appspot.com/bot?*"],
+      "css": ["styles.css"],
+      "js": [
+        "node_modules/skia-common-js/common.js",
+        "bots.js"
+      ]
+    }
+  ],
+   "browser_action": {
+     "name": "Display all active alerts.",
+     "default_popup": "popup.html"
+   },
+  "manifest_version": 2
+}

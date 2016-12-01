@@ -1,0 +1,11 @@
+{
+  "name": "skia-swarming",
+  "": "",
+  "private": true,
+  "description": "Augment Swarming UI with Skia-specific info.",
+  "author": "kjlubick",
+  "license": "LICENSE",
+  "devDependencies": {
+    "skia-common-js": "^1.1.0"
+  }
+}
