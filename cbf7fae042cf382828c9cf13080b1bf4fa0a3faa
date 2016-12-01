@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d6e6f0e_d6ff39b7",
+        "filename": "chromeextensions/skia-swarming/bots.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-01T21:16:57Z",
+      "side": 1,
+      "message": "skia-vm-* are missing from this section.",
+      "range": {
+        "startLine": 5,
+        "startChar": 4,
+        "endLine": 5,
+        "endChar": 8
+      },
+      "revId": "cbf7fae042cf382828c9cf13080b1bf4fa0a3faa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
