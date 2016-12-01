@@ -1773,6 +1773,14 @@ func oldMainHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/e/", http.StatusMovedPermanently)
 }
 
+func oldClustersHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/c/", http.StatusMovedPermanently)
+}
+
+func oldAlertsHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/t/", http.StatusMovedPermanently)
+}
+
 func main() {
 	defer common.LogPanic()
 	// Setup DB flags.
@@ -1808,13 +1816,23 @@ func main() {
 
 	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 
+	// Redirects for the old Perf URLs.
 	router.HandleFunc("/", oldMainHandler)
+	router.HandleFunc("/clusters/", oldClustersHandler)
+	router.HandleFunc("/alerts/", oldAlertsHandler)
 
 	// New endpoints that use ptracestore will go here.
 	router.HandleFunc("/e/", templateHandler("newindex.html"))
 	router.HandleFunc("/c/", templateHandler("clusters2.html"))
 	router.HandleFunc("/t/", templateHandler("triage.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", gotoHandler)
+	router.HandleFunc("/help/", helpHandler)
+	router.PathPrefix("/activitylog/").HandlerFunc(activityHandler)
+	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	router.HandleFunc("/logout/", login.LogoutHandler)
+	router.HandleFunc("/loginstatus/", login.StatusHandler)
+
+	// JSON handlers.
 	router.HandleFunc("/_/initpage/", initpageHandler)
 	router.HandleFunc("/_/cidRange/", cidRangeHandler)
 	router.HandleFunc("/_/count/", countHandler)
@@ -1828,6 +1846,7 @@ func main() {
 	router.HandleFunc("/_/reg/", regressionRangeHandler)
 	router.HandleFunc("/_/triage/", triageHandler)
 
+	// Legacy handlers, to be removed.
 	router.HandleFunc("/frame/", templateHandler("frame.html"))
 	router.HandleFunc("/shortcuts/", shortcutHandler)
 	router.PathPrefix("/tiles/").HandlerFunc(tileHandler)
@@ -1836,11 +1855,8 @@ func main() {
 	router.HandleFunc("/commits/", commitsHandler)
 	router.HandleFunc("/_/commits/", commitsJSONHandler)
 	router.HandleFunc("/shortcommits/", shortCommitsHandler)
-	router.HandleFunc("/clusters/", templateHandler("clusters.html"))
 	router.HandleFunc("/clustering/", clusteringHandler)
 	router.PathPrefix("/cl/").HandlerFunc(clHandler)
-	router.PathPrefix("/activitylog/").HandlerFunc(activityHandler)
-	router.HandleFunc("/alerts/", templateHandler("alerting.html"))
 	router.HandleFunc("/alerting/", alertingHandler)
 	router.HandleFunc("/alert_reset/", alertResetHandler)
 	router.HandleFunc("/annotate/", annotate.Handler)
@@ -1848,10 +1864,6 @@ func main() {
 	router.HandleFunc("/per/", templateHandler("percommit.html"))
 	router.HandleFunc("/_/per/", perCommitJSONHandler)
 	router.HandleFunc("/calc/", calcHandler)
-	router.HandleFunc("/help/", helpHandler)
-	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	router.HandleFunc("/logout/", login.LogoutHandler)
-	router.HandleFunc("/loginstatus/", login.StatusHandler)
 
 	http.Handle("/", httputils.LoggingGzipRequestResponse(router))
 
