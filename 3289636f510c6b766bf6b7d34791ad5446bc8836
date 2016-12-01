@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d6e6f0e_c0064fce",
+        "filename": "chromeextensions/skia-swarming/bots.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-01T19:21:33Z",
+      "side": 1,
+      "message": "IIUC you\u0027re planning to have a checked-in botmapping.js file containing the location, IP address, and maintenance instructions of each bot in the pool?  If so, -1. I\u0027d much rather have this information get derived in real time rather than have it checked in and have to commit a code change every time we add/remove/modify a bot.  IMO it\u0027d be better just to have rules like \"skia-rpi-[001-030] are on shelf 3a\", etc.  Where possible, we should try to make the bots self-report this type of information.",
+      "range": {
+        "startLine": 5,
+        "startChar": 4,
+        "endLine": 5,
+        "endChar": 8
+      },
+      "revId": "3289636f510c6b766bf6b7d34791ad5446bc8836",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
