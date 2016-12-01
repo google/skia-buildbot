@@ -6,9 +6,9 @@ import (
 	"net"
 	"os"
 
+	"go.skia.org/infra/go/trace/db/perftypes"
 	"go.skia.org/infra/go/trace/service"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/perf/go/types"
 	"google.golang.org/grpc"
 )
 
@@ -53,7 +53,7 @@ func setupClientServerForTesting(f fatalf) (DB, cleanup) {
 	if err != nil {
 		f("did not connect: %v", err)
 	}
-	ts, err := NewTraceServiceDB(conn, types.PerfTraceBuilder)
+	ts, err := NewTraceServiceDB(conn, perftypes.PerfTraceBuilder)
 	if err != nil {
 		f("Failed to create tracedb.DB: %s", err)
 	}

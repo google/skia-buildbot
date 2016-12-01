@@ -1,15 +1,17 @@
-package types
+package perftypes
 
 import (
 	"encoding/binary"
 	"encoding/gob"
 	"fmt"
 	"math"
-	"time"
 
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/perf/go/config"
+)
+
+const (
+	MISSING_DATA_SENTINEL = 1e100
 )
 
 // PerfTrace represents all the values of a single floating point measurement.
@@ -28,7 +30,7 @@ func (t *PerfTrace) Len() int {
 }
 
 func (t *PerfTrace) IsMissing(i int) bool {
-	return t.Values[i] == config.MISSING_DATA_SENTINEL
+	return t.Values[i] == MISSING_DATA_SENTINEL
 }
 
 func (t *PerfTrace) DeepCopy() tiling.Trace {
@@ -73,11 +75,11 @@ func (t *PerfTrace) Grow(n int, fill tiling.FillType) {
 	if fill == tiling.FILL_AFTER {
 		copy(newValues, t.Values)
 		for i := 0; i < delta; i++ {
-			newValues[i+len(t.Values)] = config.MISSING_DATA_SENTINEL
+			newValues[i+len(t.Values)] = MISSING_DATA_SENTINEL
 		}
 	} else {
 		for i := 0; i < delta; i++ {
-			newValues[i] = config.MISSING_DATA_SENTINEL
+			newValues[i] = MISSING_DATA_SENTINEL
 		}
 		copy(newValues[delta:], t.Values)
 	}
@@ -133,7 +135,7 @@ func NewPerfTraceN(n int) *PerfTrace {
 		Params_: make(map[string]string),
 	}
 	for i, _ := range t.Values {
-		t.Values[i] = config.MISSING_DATA_SENTINEL
+		t.Values[i] = MISSING_DATA_SENTINEL
 	}
 	return t
 }
@@ -254,19 +256,4 @@ func (c *ClusterSummary) Merge(from *ClusterSummary) {
 			c.Keys = append(c.Keys, k)
 		}
 	}
-}
-
-// Activity stores information on one user action activity. This corresponds to
-// one record in the activity database table. See DESIGN.md for details.
-type Activity struct {
-	ID     int
-	TS     int64
-	UserID string
-	Action string
-	URL    string
-}
-
-// Date returns an RFC3339 string for the Activity's TS.
-func (a *Activity) Date() string {
-	return time.Unix(a.TS, 0).Format(time.RFC3339)
 }

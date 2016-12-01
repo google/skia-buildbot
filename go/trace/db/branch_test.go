@@ -15,8 +15,8 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/trace/db/perftypes"
 	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -163,7 +163,7 @@ func TestTileFromCommits(t *testing.T) {
 				"platform": "android",
 				"type":     "skp",
 			},
-			Value: types.BytesFromFloat64(0.01),
+			Value: perftypes.BytesFromFloat64(0.01),
 		},
 		"key:gpu:win8": &Entry{
 			Params: map[string]string{
@@ -171,7 +171,7 @@ func TestTileFromCommits(t *testing.T) {
 				"platform": "win8",
 				"type":     "skp",
 			},
-			Value: types.BytesFromFloat64(1.234),
+			Value: perftypes.BytesFromFloat64(1.234),
 		},
 	}
 
@@ -200,7 +200,7 @@ func TestTileFromCommits(t *testing.T) {
 				"platform": "linux",
 				"type":     "skp",
 			},
-			Value: types.BytesFromFloat64(0.05),
+			Value: perftypes.BytesFromFloat64(0.05),
 		},
 	}
 

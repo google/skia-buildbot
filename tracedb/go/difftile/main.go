@@ -13,9 +13,7 @@ import (
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
-	gconfig "go.skia.org/infra/golden/go/config"
 	gtypes "go.skia.org/infra/golden/go/types"
-	ptypes "go.skia.org/infra/perf/go/types"
 	"google.golang.org/grpc"
 )
 
@@ -23,13 +21,9 @@ import (
 var (
 	address   = flag.String("address", "localhost:9090", "The address of the traceserver gRPC endpoint.")
 	tilestore = flag.String("tilestore", "/usr/local/google/home/jcgregorio/projects/tiles/tileStore3/", "The directory of the file tile store.")
-	dataset   = flag.String("dataset", "", "The name of the dataset in the file tile store <gold | nano>")
 )
 
-// TODO(stephana): Extend this to also work for perf if it would
-// be useful to have this for perf.
-
-func diff(tile *tiling.Tile, ts db.DB, isGold bool) error {
+func diff(tile *tiling.Tile, ts db.DB) error {
 	commits := tile.Commits
 	startTime := time.Unix(commits[0].CommitTime, 0)
 	commitIDs, err := ts.List(startTime, time.Now())
@@ -89,7 +83,7 @@ func main() {
 	grpclog.Init()
 
 	// Load the 0,-1 tile.
-	fileTilestore := filetilestore.NewFileTileStore(*tilestore, *dataset, time.Hour)
+	fileTilestore := filetilestore.NewFileTileStore(*tilestore, "gold", time.Hour)
 	tile, err := fileTilestore.Get(0, -1)
 	if err != nil {
 		glog.Fatalf("Failed to load tile: %s", err)
@@ -111,12 +105,7 @@ func main() {
 	}
 	defer util.Close(conn)
 
-	// Build a TraceService client.
-	builder := ptypes.PerfTraceBuilder
-	isGold := *dataset == gconfig.DATASET_GOLD
-	if isGold {
-		builder = gtypes.GoldenTraceBuilder
-	}
+	builder := gtypes.GoldenTraceBuilder
 
 	glog.Infof("START load tracedb.")
 	ts, err := db.NewTraceServiceDB(conn, builder)
@@ -124,7 +113,7 @@ func main() {
 		log.Fatalf("Failed to create db.DB: %s", err)
 	}
 	glog.Infof("DONE load tracedb.")
-	if err = diff(tile, ts, isGold); err != nil {
+	if err = diff(tile, ts); err != nil {
 		glog.Fatalf("Diff error: %s", err)
 	}
 }

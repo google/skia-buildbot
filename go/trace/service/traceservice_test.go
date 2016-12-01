@@ -10,8 +10,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/trace/db/perftypes"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/perf/go/types"
 	"golang.org/x/net/context"
 )
 
@@ -138,11 +138,11 @@ func TestImpl(t *testing.T) {
 		Values: []*ValuePair{
 			&ValuePair{
 				Key:   "key:gpu:win8",
-				Value: types.BytesFromFloat64(1.234),
+				Value: perftypes.BytesFromFloat64(1.234),
 			},
 			&ValuePair{
 				Key:   "key:8888:android",
-				Value: types.BytesFromFloat64(0.01),
+				Value: perftypes.BytesFromFloat64(0.01),
 			},
 		},
 	}

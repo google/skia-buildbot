@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/trace/db/perftypes"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/perf/go/types"
 )
 
 func TestAdd(t *testing.T) {
@@ -37,7 +37,7 @@ func TestAdd(t *testing.T) {
 				"platform": "android",
 				"type":     "skp",
 			},
-			Value: types.BytesFromFloat64(0.01),
+			Value: perftypes.BytesFromFloat64(0.01),
 		},
 		"key:gpu:win8": &Entry{
 			Params: map[string]string{
@@ -45,7 +45,7 @@ func TestAdd(t *testing.T) {
 				"platform": "win8",
 				"type":     "skp",
 			},
-			Value: types.BytesFromFloat64(1.234),
+			Value: perftypes.BytesFromFloat64(1.234),
 		},
 	}
 
@@ -66,12 +66,12 @@ func TestAdd(t *testing.T) {
 	assert.True(t, util.In("d41d8cd98f00b204e9800998ecf8427e", hashes))
 	assert.NotEqual(t, hashes[0], hashes[1])
 
-	tr := tile.Traces["key:8888:android"].(*types.PerfTrace)
+	tr := tile.Traces["key:8888:android"].(*perftypes.PerfTrace)
 	assert.Equal(t, 0.01, tr.Values[0])
 	assert.True(t, tr.IsMissing(1))
 	assert.Equal(t, "8888", tr.Params()["config"])
 
-	tr = tile.Traces["key:gpu:win8"].(*types.PerfTrace)
+	tr = tile.Traces["key:gpu:win8"].(*perftypes.PerfTrace)
 	assert.Equal(t, 1.234, tr.Values[0])
 	assert.True(t, tr.IsMissing(1))
 
