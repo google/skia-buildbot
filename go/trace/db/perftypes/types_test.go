@@ -1,4 +1,4 @@
-package types
+package perftypes
 
 import (
 	"math"
@@ -7,7 +7,6 @@ import (
 
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/perf/go/config"
 )
 
 func TestMerge(t *testing.T) {
@@ -333,7 +332,7 @@ func TestSetAt(t *testing.T) {
 			want: 1.0,
 		},
 		{
-			want: config.MISSING_DATA_SENTINEL,
+			want: MISSING_DATA_SENTINEL,
 		},
 		{
 			want: math.MaxFloat64,
