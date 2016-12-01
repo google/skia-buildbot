@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d6e6f0e_6b7ac162",
+        "filename": "golden/go/goldingestion/trybot.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-12-01T17:27:48Z",
+      "side": 1,
+      "message": "Commented out?",
+      "revId": "0d4f0b8d3da12ecc148ed0a9a80d9cae73a1e0d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
