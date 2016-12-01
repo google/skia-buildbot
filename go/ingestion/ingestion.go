@@ -29,6 +29,10 @@ const (
 	TAG_INGESTER_SOURCE   = "source"
 
 	POLL_CHUNK_SIZE = 50
+
+	// POLL_TIME_CHUNK_DURATION_SEC is the time chunks that are polled.
+	// i.e. a 30-day poll interval will be polled in 2 day chunks.
+	POLL_TIME_CHUNK_DURATION_SEC = 48 * int64(time.Hour/time.Second)
 )
 
 var (
@@ -208,22 +212,39 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 					return
 				}
 
-				// measure how long the polling takes.
-				resultFiles, err := source.Poll(startTime, endTime)
-				if err != nil {
-					// Indicate that there was an error in polling the source.
-					srcMetrics.pollError.Update(1)
-					glog.Errorf("Error polling data source '%s': %s", source.ID(), err)
-					return
+				// Poll in time chunks in reverse order, so we get the most recent day first.
+				// This really matters when starting ingestion with a large ingestion time frame.
+				tempEnd := endTime
+				tempStart := util.MaxInt64(startTime, tempEnd-POLL_TIME_CHUNK_DURATION_SEC)
+				for tempStart >= startTime {
+					glog.Infof("Polling range: %s - %s", time.Unix(tempStart, 0), time.Unix(tempEnd, 0))
+					// measure how long the polling takes.
+					resultFiles, err := source.Poll(tempStart, tempEnd)
+					if err != nil {
+						// Indicate that there was an error in polling the source.
+						srcMetrics.pollError.Update(1)
+						glog.Errorf("Error polling data source '%s': %s", source.ID(), err)
+						return
+					}
+
+					// Indicate that the polling was successful.
+					srcMetrics.pollError.Update(0)
+					totalRF := len(resultFiles)
+					for len(resultFiles) > 0 {
+						chunkSize := util.MinInt(POLL_CHUNK_SIZE, len(resultFiles))
+						for _, rf := range resultFiles[:chunkSize] {
+							glog.Infof("RESFILE(%d/%d):  %s", chunkSize, totalRF, rf.Name())
+						}
+
+						pollChan <- resultFiles[:chunkSize]
+						resultFiles = resultFiles[chunkSize:]
+					}
+
+					// Ingest the next oder time chunk.
+					tempEnd = tempStart
+					tempStart = util.MaxInt64(startTime, tempEnd-POLL_TIME_CHUNK_DURATION_SEC)
 				}
 
-				// Indicate that the polling was successful.
-				srcMetrics.pollError.Update(0)
-				for len(resultFiles) > 0 {
-					chunkSize := util.MinInt(POLL_CHUNK_SIZE, len(resultFiles))
-					pollChan <- resultFiles[:chunkSize]
-					resultFiles = resultFiles[chunkSize:]
-				}
 				srcMetrics.liveness.Reset()
 				srcMetrics.pollTimer.Stop()
 			})
