@@ -25,6 +25,98 @@
     },
     {
       "key": {
+        "uuid": "2d6e6f0e_a016b331",
+        "filename": "task_scheduler/go/scheduling/busy_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-01T19:56:18Z",
+      "side": 1,
+      "message": "entry represents a task?",
+      "range": {
+        "startLine": 29,
+        "startChar": 3,
+        "endLine": 29,
+        "endChar": 8
+      },
+      "revId": "6cb3baff3a19b629c8cbdf4e2e925c7a14d20ad2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d6e6f0e_a024f3c5",
+        "filename": "task_scheduler/go/scheduling/busy_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-01T19:56:18Z",
+      "side": 1,
+      "message": "nit: Maybe make a function in swarming_api? I\u0027m pretty sure we do this in multiple places.",
+      "range": {
+        "startLine": 44,
+        "startChar": 2,
+        "endLine": 49,
+        "endChar": 3
+      },
+      "revId": "6cb3baff3a19b629c8cbdf4e2e925c7a14d20ad2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d6e6f0e_e0e8abf7",
+        "filename": "task_scheduler/go/scheduling/busy_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-01T19:56:18Z",
+      "side": 1,
+      "message": "nit: looks like entry.dims isn\u0027t used. Maybe we could just use string ID as the value?",
+      "range": {
+        "startLine": 83,
+        "startChar": 30,
+        "endLine": 86,
+        "endChar": 3
+      },
+      "revId": "6cb3baff3a19b629c8cbdf4e2e925c7a14d20ad2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d6e6f0e_3375dfec",
+        "filename": "task_scheduler/go/scheduling/busy_bots_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-01T19:56:18Z",
+      "side": 1,
+      "message": "nit: same assertion twice",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 85
+      },
+      "revId": "6cb3baff3a19b629c8cbdf4e2e925c7a14d20ad2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d6e6f0e_601adb89",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -42,6 +134,24 @@
         "endLine": 1192,
         "endChar": 53
       },
+      "revId": "6cb3baff3a19b629c8cbdf4e2e925c7a14d20ad2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d6e6f0e_93c2f323",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1192,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-01T19:56:18Z",
+      "side": 1,
+      "message": "SGTM.\n\nThere are probably more efficient ways to go about it, but let\u0027s see how this does before getting more complicated. E.g. query for all PENDING, PENDING_RUNNING (whatever that means...), and RUNNING tasks without time restrictions; and also query for all COMPLETED tasks in the last 15 minutes. That would probably cover 95% of UnfinishedTasks().",
+      "parentUuid": "2d6e6f0e_601adb89",
       "revId": "6cb3baff3a19b629c8cbdf4e2e925c7a14d20ad2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
