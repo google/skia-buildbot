@@ -41,6 +41,9 @@ import (
 	"io"
 	"sort"
 	"strings"
+	"time"
+
+	"github.com/skia-dev/glog"
 
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
@@ -194,4 +197,39 @@ func ParseDMResultsFromReader(r io.ReadCloser) (*DMResults, error) {
 		return nil, fmt.Errorf("Failed to decode JSON: %s", err)
 	}
 	return dmResults, nil
+}
+
+type canary struct {
+	done      chan bool
+	ticker    *time.Ticker
+	startTime time.Time
+	msg       string
+}
+
+func newCanary(msg string, screamAfter time.Duration) *canary {
+	// Start a go routine that waits for duration - then screams and goes back to sleep
+	ret := &canary{
+		done:      make(chan bool),
+		ticker:    time.NewTicker(screamAfter),
+		startTime: time.Now(),
+		msg:       msg,
+	}
+	go func() {
+	loop:
+		for {
+			select {
+			case <-ret.ticker.C:
+				glog.Infof("Canary: %s: %d", msg, time.Now().Sub(ret.startTime)/time.Second)
+			case <-ret.done:
+				break loop
+			}
+		}
+	}()
+	return ret
+}
+
+func (c *canary) Stop() {
+	// glog.Infof("Canary stop: %s: %d", c.msg, time.Now().Sub(c.startTime)/time.Second)
+	c.ticker.Stop()
+	c.done <- true
 }

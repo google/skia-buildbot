@@ -78,23 +78,31 @@ func newGoldTrybotProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 
 // getCommitID overrides the function with the same name in goldProcessor.
 func (g *goldTrybotProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults *DMResults) (*tracedb.CommitID, error) {
+	// defer newCanary("getCommitID", time.Second*5).Stop()
 	var ts time.Time
 	var ok bool
 	var err error
 	var cacheId = fmt.Sprintf("%d:%d", dmResults.Issue, dmResults.Patchset)
-	g.cacheMutex.Lock()
-	if ts, ok = g.cache[cacheId]; !ok {
-		if ts, err = g.getCreatedTimeStamp(dmResults); err != nil {
-			return nil, err
-		}
 
-		// p.cache is a very crude LRU cache.
-		if len(g.cache) > TIMESTAMP_LRU_CACHE_SIZE {
-			g.cache = map[string]time.Time{}
+	err = func() error {
+		g.cacheMutex.Lock()
+		defer g.cacheMutex.Unlock()
+		if ts, ok = g.cache[cacheId]; !ok {
+			if ts, err = g.getCreatedTimeStamp(dmResults); err != nil {
+				return err
+			}
+
+			// p.cache is a very crude LRU cache.
+			if len(g.cache) > TIMESTAMP_LRU_CACHE_SIZE {
+				g.cache = map[string]time.Time{}
+			}
+			g.cache[cacheId] = ts
 		}
-		g.cache[cacheId] = ts
+		return nil
+	}()
+	if err != nil {
+		return nil, err
 	}
-	g.cacheMutex.Unlock()
 
 	// Get the source (url) from the issue.
 	var source string
@@ -113,6 +121,7 @@ func (g *goldTrybotProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults 
 // getCreatedTimeStamp returns the timestamp of the patchset contained in
 // DMResult either from Gerrit or Rietveld.
 func (g *goldTrybotProcessor) getCreatedTimeStamp(dmResults *DMResults) (time.Time, error) {
+	defer newCanary("getCreatedTimeStamp", time.Second*5).Stop()
 	if dmResults.isGerritIssue() {
 		issueProps, err := g.gerritReview.GetIssueProperties(dmResults.Issue)
 		if err != nil {
@@ -136,6 +145,7 @@ func (g *goldTrybotProcessor) getCreatedTimeStamp(dmResults *DMResults) (time.Ti
 // getPatchset retrieves the patchset. If it does not exist (but the Rietveld issue exists)
 // it will return a ingestion.IgnoreResultsFileErr indicating that this input file should be ignored.
 func (g *goldTrybotProcessor) getRietveldPatchset(issueID int64, patchsetID int64) (*rietveld.Patchset, error) {
+	defer newCanary("getRietveldPatchset", time.Second*5).Stop()
 	patchinfo, err := g.rietveldReview.GetPatchset(issueID, patchsetID)
 	if err == nil {
 		return patchinfo, nil
