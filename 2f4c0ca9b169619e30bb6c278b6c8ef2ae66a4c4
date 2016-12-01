@@ -213,6 +213,24 @@
     },
     {
       "key": {
+        "uuid": "2d6e6f0e_3002f826",
+        "filename": "golden/go/diffstore/failure_store.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-01T12:48:50Z",
+      "side": 1,
+      "message": "Thanks for the explanation.",
+      "parentUuid": "f01d104e_c8b6f3da",
+      "revId": "2f4c0ca9b169619e30bb6c278b6c8ef2ae66a4c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d82efcd_36f498d5",
         "filename": "golden/go/diffstore/failure_store_test.go",
         "patchSetId": 15
