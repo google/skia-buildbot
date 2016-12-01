@@ -84,7 +84,7 @@ var (
 
 	// TODO(borenet): Avoid hard-coding this list. Instead, obtain it from
 	// checked-in code or the set of masters which are actually running.
-	MASTER_NAMES = []string{"client.skia", "client.skia.android", "client.skia.compile", "client.skia.fyi"}
+	MASTER_NAMES = []string{"client.skia.fyi"}
 	httpClient   = httputils.NewTimeoutClient()
 )
 
