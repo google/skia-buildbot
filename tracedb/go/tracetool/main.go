@@ -3,10 +3,8 @@ package main
 
 import (
 	"crypto/md5"
-	"encoding/binary"
 	"flag"
 	"fmt"
-	"math"
 	"math/rand"
 	"os"
 	"regexp"
@@ -29,7 +27,6 @@ var (
 	begin   = flag.String("begin", "1w", "Select the commit ids for the range beginning this long ago.")
 	end     = flag.String("end", "0s", "Select the commit ids for the range ending this long ago.")
 	id      = flag.String("id", "", "Selects the CommitID with an ID that begins with id.")
-	gold    = flag.Bool("gold", true, "If true then the values are considered digests, otherwise they're treated as float64.")
 	regex   = flag.String("regex", "", "A regular expression to match against traceids.")
 	verbose = flag.Bool("verbose", false, "Verbose output.")
 	only    = flag.Bool("only", false, "If true then only print values, otherwise print keys and values.")
@@ -53,7 +50,7 @@ Commands:
   ping      	Call the Ping service method every 1s.
 
   sample    	Get a sampling of values for the given ID.
-            	Flags: --begin --end --id --gold --regex --only
+            	Flags: --begin --end --id --regex --only
 
             	The first commitid with an ID that begins with the value of --id
             	will be loaded and a sampling of 10 values will be displayed.
@@ -201,11 +198,6 @@ func ping(client traceservice.TraceServiceClient) {
 // converter is a func that will convert the raw byte slice returned into the correct type.
 type converter func([]byte) interface{}
 
-// perfConverter in an implementation of converter for float64 types.
-func perfConverter(b []byte) interface{} {
-	return math.Float64frombits(binary.LittleEndian.Uint64(b))
-}
-
 // goldConverter in an implementation of converter for digests (strings).
 func goldConverter(b []byte) interface{} {
 	return string(b)
@@ -217,11 +209,6 @@ func sample(client traceservice.TraceServiceClient) {
 	if err != nil {
 		fmt.Printf("Failed to retrieve the list: %s\n", err)
 		return
-	}
-	// Choose the right value converter.
-	var conv converter = perfConverter
-	if *gold {
-		conv = goldConverter
 	}
 
 	for _, cid := range listResp.Commitids {
@@ -245,9 +232,9 @@ func sample(client traceservice.TraceServiceClient) {
 			for i := 0; i < N; i++ {
 				pair := resp.Values[rand.Intn(len(resp.Values))]
 				if *only {
-					fmt.Printf("%v\n", conv(pair.Value))
+					fmt.Printf("%v\n", goldConverter(pair.Value))
 				} else {
-					fmt.Printf("%110s  -  %v\n", pair.Key, conv(pair.Value))
+					fmt.Printf("%110s  -  %v\n", pair.Key, goldConverter(pair.Value))
 				}
 			}
 		} else {
@@ -258,9 +245,9 @@ func sample(client traceservice.TraceServiceClient) {
 			for _, pair := range resp.Values {
 				if r.MatchString(pair.Key) {
 					if *only {
-						fmt.Printf("%v\n", conv(pair.Value))
+						fmt.Printf("%v\n", goldConverter(pair.Value))
 					} else {
-						fmt.Printf("%110s  -  %v\n", pair.Key, conv(pair.Value))
+						fmt.Printf("%110s  -  %v\n", pair.Key, goldConverter(pair.Value))
 					}
 				}
 			}
