@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d6e6f0e_e0070b3a",
+        "filename": "task_scheduler/go/scheduling/busy_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-01T19:02:25Z",
+      "side": 1,
+      "message": "outdated, will remove",
+      "range": {
+        "startLine": 18,
+        "startChar": 28,
+        "endLine": 18,
+        "endChar": 57
+      },
+      "revId": "6cb3baff3a19b629c8cbdf4e2e925c7a14d20ad2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d6e6f0e_601adb89",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1192,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-01T19:02:25Z",
+      "side": 1,
+      "message": "This will probably give us a lot of extra tasks, but I think it\u0027ll usually prevent us from having to do the individual query by task ID, even though we do that as an exception below when necessary.",
+      "range": {
+        "startLine": 1192,
+        "startChar": 41,
+        "endLine": 1192,
+        "endChar": 53
+      },
+      "revId": "6cb3baff3a19b629c8cbdf4e2e925c7a14d20ad2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d6e6f0e_a0f7d31a",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1220,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-01T19:02:25Z",
+      "side": 1,
+      "message": "Will update comment",
+      "range": {
+        "startLine": 1220,
+        "startChar": 1,
+        "endLine": 1220,
+        "endChar": 70
+      },
+      "revId": "6cb3baff3a19b629c8cbdf4e2e925c7a14d20ad2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
