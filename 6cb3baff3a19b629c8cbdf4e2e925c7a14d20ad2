@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "2d6e6f0e_6043fb63",
+        "filename": "task_scheduler/go/scheduling/busy_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-01T20:34:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2d6e6f0e_e0070b3a",
+      "revId": "6cb3baff3a19b629c8cbdf4e2e925c7a14d20ad2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d6e6f0e_a016b331",
         "filename": "task_scheduler/go/scheduling/busy_bots.go",
         "patchSetId": 2
@@ -42,6 +60,24 @@
         "endLine": 29,
         "endChar": 8
       },
+      "revId": "6cb3baff3a19b629c8cbdf4e2e925c7a14d20ad2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d6e6f0e_9375d375",
+        "filename": "task_scheduler/go/scheduling/busy_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-01T20:34:09Z",
+      "side": 1,
+      "message": "Yeah. Replaced with just the task ID string, per your comment below.",
+      "parentUuid": "2d6e6f0e_a016b331",
       "revId": "6cb3baff3a19b629c8cbdf4e2e925c7a14d20ad2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "2d6e6f0e_d64f39d9",
+        "filename": "task_scheduler/go/scheduling/busy_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-01T20:34:09Z",
+      "side": 1,
+      "message": "The uses are all slightly different: task-style dimensions (1:1) vs bot-style dimensions (1:many), converting back and forth between the API representation ([]*SwarmingRpcsString[List]Pair) and the saner map[string]\u003cvalue(s)\u003e.  I added helper functions in the swarming package.",
+      "parentUuid": "2d6e6f0e_a024f3c5",
+      "revId": "6cb3baff3a19b629c8cbdf4e2e925c7a14d20ad2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d6e6f0e_e0e8abf7",
         "filename": "task_scheduler/go/scheduling/busy_bots.go",
         "patchSetId": 2
@@ -88,6 +142,24 @@
         "endLine": 86,
         "endChar": 3
       },
+      "revId": "6cb3baff3a19b629c8cbdf4e2e925c7a14d20ad2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d6e6f0e_334e7f3a",
+        "filename": "task_scheduler/go/scheduling/busy_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-01T20:34:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2d6e6f0e_e0e8abf7",
       "revId": "6cb3baff3a19b629c8cbdf4e2e925c7a14d20ad2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -158,6 +230,24 @@
     },
     {
       "key": {
+        "uuid": "2d6e6f0e_764465b8",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1192,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-01T20:34:09Z",
+      "side": 1,
+      "message": "Unfortunately, the time range is actually the creation time of the task, not the last-modified time, so we can\u0027t treat it like a \"changed since I last queried\" endpoint.",
+      "parentUuid": "2d6e6f0e_93c2f323",
+      "revId": "6cb3baff3a19b629c8cbdf4e2e925c7a14d20ad2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d6e6f0e_a0f7d31a",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -175,6 +265,24 @@
         "endLine": 1220,
         "endChar": 70
       },
+      "revId": "6cb3baff3a19b629c8cbdf4e2e925c7a14d20ad2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d6e6f0e_e056eb20",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1220,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-01T20:34:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2d6e6f0e_a0f7d31a",
       "revId": "6cb3baff3a19b629c8cbdf4e2e925c7a14d20ad2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
