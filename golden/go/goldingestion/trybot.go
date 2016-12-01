@@ -82,26 +82,19 @@ func (g *goldTrybotProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults 
 	var ok bool
 	var err error
 	var cacheId = fmt.Sprintf("%d:%d", dmResults.Issue, dmResults.Patchset)
-
-	err = func() error {
-		g.cacheMutex.Lock()
-		defer g.cacheMutex.Unlock()
-		if ts, ok = g.cache[cacheId]; !ok {
-			if ts, err = g.getCreatedTimeStamp(dmResults); err != nil {
-				return err
-			}
-
-			// p.cache is a very crude LRU cache.
-			if len(g.cache) > TIMESTAMP_LRU_CACHE_SIZE {
-				g.cache = map[string]time.Time{}
-			}
-			g.cache[cacheId] = ts
+	g.cacheMutex.Lock()
+	if ts, ok = g.cache[cacheId]; !ok {
+		if ts, err = g.getCreatedTimeStamp(dmResults); err != nil {
+			return nil, err
 		}
-		return nil
-	}()
-	if err != nil {
-		return nil, err
+
+		// p.cache is a very crude LRU cache.
+		if len(g.cache) > TIMESTAMP_LRU_CACHE_SIZE {
+			g.cache = map[string]time.Time{}
+		}
+		g.cache[cacheId] = ts
 	}
+	g.cacheMutex.Unlock()
 
 	// Get the source (url) from the issue.
 	var source string
