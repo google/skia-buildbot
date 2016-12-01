@@ -3,10 +3,10 @@ package scheduling
 import (
 	"sync"
 
-	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/trie"
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
-	"github.com/skia-dev/glog"
 )
 
 const (
@@ -15,66 +15,54 @@ const (
 
 // busyBots is a struct used for marking a bot as busy while it runs a Task.
 type busyBots struct {
-	bots    map[string]string
-	metrics map[string]*metrics2.Liveness
-	mtx     sync.Mutex
+	pendingTasks *trie.Trie
+	mtx          sync.Mutex
 }
 
 // newBusyBots returns a busyBots instance.
 func newBusyBots() *busyBots {
 	return &busyBots{
-		bots:    map[string]string{},
-		metrics: map[string]*metrics2.Liveness{},
+		pendingTasks: trie.New(),
 	}
-}
-
-// Reserve marks a bot as busy.
-func (b *busyBots) Reserve(bot, task string) {
-	b.mtx.Lock()
-	defer b.mtx.Unlock()
-	b.bots[bot] = task
-	if m, ok := b.metrics[bot]; ok {
-		if err := m.Delete(); err != nil {
-			glog.Errorf("Failed to delete liveness metric: %s", err)
-		}
-		delete(b.metrics, bot)
-	}
-	b.metrics[bot] = metrics2.NewLiveness(MEASUREMENT_BUSY_BOTS, map[string]string{
-		"bot":     bot,
-		"task-id": task,
-	})
 }
 
 // Filter returns a copy of the given slice of bots with the busy bots removed.
 func (b *busyBots) Filter(bots []*swarming_api.SwarmingRpcsBotInfo) []*swarming_api.SwarmingRpcsBotInfo {
 	b.mtx.Lock()
 	defer b.mtx.Unlock()
+	matched := make(map[string]bool, len(bots))
 	rv := make([]*swarming_api.SwarmingRpcsBotInfo, 0, len(bots))
 	for _, bot := range bots {
-		if _, ok := b.bots[bot.BotId]; !ok {
+		// Find matching tasks.
+		matches := b.pendingTasks.SearchSubset(swarming.BotDimensionsToStringSlice(bot.Dimensions))
+		// Choose the first non-empty entry and pretend that
+		// this bot is busy with that task.
+		var e string
+		for _, match := range matches {
+			m := match.(string)
+			if _, ok := matched[m]; !ok {
+				e = m
+				break
+			}
+		}
+		if e != "" {
+			matched[e] = true
+		} else {
 			rv = append(rv, bot)
 		}
 	}
 	return rv
 }
 
-// Busy returns true iff the bot is busy.
-func (b *busyBots) Busy(bot string) bool {
+// RefreshTasks updates the contents of busyBots based on the cached tasks.
+func (b *busyBots) RefreshTasks(pending []*swarming_api.SwarmingRpcsTaskRequestMetadata) error {
 	b.mtx.Lock()
 	defer b.mtx.Unlock()
-	_, ok := b.bots[bot]
-	return ok
-}
 
-// Release marks the bot as not busy.
-func (b *busyBots) Release(bot, task string) {
-	b.mtx.Lock()
-	defer b.mtx.Unlock()
-	if b.bots[bot] == task {
-		delete(b.bots, bot)
-		if err := b.metrics[bot].Delete(); err != nil {
-			glog.Errorf("Failed to delete liveness metric: %s", err)
-		}
-		delete(b.metrics, bot)
+	b.pendingTasks = trie.New()
+	for _, t := range pending {
+		dims := swarming.TaskDimensionsToStringSlice(t.Request.Properties.Dimensions)
+		b.pendingTasks.Insert(dims, t.TaskId)
 	}
+	return nil
 }
