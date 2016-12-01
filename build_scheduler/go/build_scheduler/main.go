@@ -39,7 +39,11 @@ var (
 
 	// MASTERS determines which masters we poll for builders.
 	MASTERS = []string{
+		"client.skia",
+		"client.skia.android",
+		"client.skia.compile",
 		"client.skia.fyi",
+		//"client.skia.internal",
 	}
 
 	// REPOS are the repositories to query.
