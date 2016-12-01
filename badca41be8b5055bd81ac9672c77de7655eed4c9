@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d6e6f0e_312cb707",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 410,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-01T21:45:25Z",
+      "side": 1,
+      "message": "missing []",
+      "range": {
+        "startLine": 410,
+        "startChar": 28,
+        "endLine": 410,
+        "endChar": 45
+      },
+      "revId": "badca41be8b5055bd81ac9672c77de7655eed4c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
