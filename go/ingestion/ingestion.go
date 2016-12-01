@@ -214,10 +214,10 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 
 				// Poll in time chunks in reverse order, so we get the most recent day first.
 				// This really matters when starting ingestion with a large ingestion time frame.
+				glog.Infof("Polling range: %s - %s", time.Unix(startTime, 0), time.Unix(endTime, 0))
 				tempEnd := endTime
 				tempStart := util.MaxInt64(startTime, tempEnd-POLL_TIME_CHUNK_DURATION_SEC)
 				for tempStart >= startTime {
-					glog.Infof("Polling range: %s - %s", time.Unix(tempStart, 0), time.Unix(tempEnd, 0))
 					// measure how long the polling takes.
 					resultFiles, err := source.Poll(tempStart, tempEnd)
 					if err != nil {
@@ -229,13 +229,8 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 
 					// Indicate that the polling was successful.
 					srcMetrics.pollError.Update(0)
-					totalRF := len(resultFiles)
 					for len(resultFiles) > 0 {
 						chunkSize := util.MinInt(POLL_CHUNK_SIZE, len(resultFiles))
-						for _, rf := range resultFiles[:chunkSize] {
-							glog.Infof("RESFILE(%d/%d):  %s", chunkSize, totalRF, rf.Name())
-						}
-
 						pollChan <- resultFiles[:chunkSize]
 						resultFiles = resultFiles[chunkSize:]
 					}
