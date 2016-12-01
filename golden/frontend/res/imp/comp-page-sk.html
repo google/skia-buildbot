@@ -140,9 +140,9 @@
         <div class="vertical layout leftColumn">
           <div class="vertical layout modButtonContainer">
             <div class="horizontal layout">
-              <paper-button id="syncButton" toggles raised active="{{_syncParams}}">
+              <!-- <paper-button id="syncButton" toggles raised active="{{_syncParams}}">
                 <iron-icon icon="notification:sync" hidden$="{{!_syncParams}}"></iron-icon><iron-icon icon="notification:sync-disabled" hidden$="{{_syncParams}}"></iron-icon>
-              </paper-button>
+              </paper-button> -->
               <select-popup-sk id="paramsSelect"></select-popup-sk>
             </div>
 
@@ -268,7 +268,7 @@
           this.listen(this.$.rowSortControl, 'sort-changed', '_load');
           this.listen(this.$.columnSortControl, 'sort-changed', '_load');
           this.listen(this.$.diffMetric, 'iron-select', '_load');
-          this.listen(this.$.syncButton, 'tap', '_handleSyncStateChange');
+          // this.listen(this.$.syncButton, 'tap', '_handleSyncStateChange');
           this.$.rowSortControl.setItems(rowSortOptions);
           this.$.columnSortControl.setItems(colSortOptions);
           this._setDefaultState(gold.defaultSearchState, true);
@@ -277,7 +277,7 @@
         pageSelected: function(ctx) {
           this._query = sk.object.shallowCopy(defaultQuery);
           this._query.match = defaultMatchConfigs.slice();
-          this.set('_syncParams', true);
+          this.set('_syncParams', false);
 
           // Use the _state variable to as the row query and reflect the URL parameters.
           this._initState(ctx, this._getDefaultStateWithCorpus(defaultRowQuery));
@@ -380,6 +380,7 @@
         },
 
         _handleColumnQueryChange: function(ev) {
+          debugger;
           this._query.columnQuery = this._addCorpus(ev.detail);
           this._load();
         },
