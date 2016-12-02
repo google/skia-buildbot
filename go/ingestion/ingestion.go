@@ -208,6 +208,7 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 					return
 				}
 
+				glog.Infof("Polling range: %s - %s", time.Unix(startTime, 0), time.Unix(endTime, 0))
 				// measure how long the polling takes.
 				resultFiles, err := source.Poll(startTime, endTime)
 				if err != nil {
