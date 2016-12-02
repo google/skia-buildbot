@@ -57,6 +57,24 @@
       "revId": "cbf7fae042cf382828c9cf13080b1bf4fa0a3faa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d6e6f0e_8aad8d84",
+        "filename": "chromeextensions/skia-swarming/bots.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-02T16:03:35Z",
+      "side": 1,
+      "message": "https://docs.google.com/document/d/1zTR1YtrIFBo-fRWgbUgvJNVJ-s_4_sNjTrHIoX2vulo/edit#heading\u003dh.l3122dw5y2w1",
+      "parentUuid": "2d6e6f0e_b6ef1dcd",
+      "revId": "cbf7fae042cf382828c9cf13080b1bf4fa0a3faa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
