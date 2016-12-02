@@ -79,8 +79,8 @@
         </h3>
       </div>
       <div>
-        <a href$="{{_makeRetryURL(build)}}" target="_blank" class="retry">
-            <paper-button raised class="colored" role="button">Re-run Build</paper-button>
+        <a href$="[[build.retryUrl]]" target="_blank" class="retry">
+            <paper-button raised class="colored" role="button">Re-run Job</paper-button>
         </a>
       </div>
     </div>
@@ -100,25 +100,25 @@
         </tr>
       </template>
       <tr>
-        <td>Builder</td>
+        <td>Other Tasks Like This</td>
         <td>
-          <a target="_blank" href$="{{_makeDashboardBuilderURL(build)}}">
+          <a target="_blank" rel="noopener" href$="{{_makeDashboardBuilderURL(build)}}">
             <span>{{build.builder}}</span>
           </a>
         </td>
       </tr>
       <tr>
-        <td>Buildslave</td>
+        <td>All tasks done on this bot</td>
         <td>
-          <a target="_blank" href$="{{_makeDashboardSlaveURL(build)}}">
+          <a target="_blank" rel="noopener" href$="{{_makeDashboardSlaveURL(build)}}">
             <span>{{build.buildslave}}</span>
           </a>
         </td>
       </tr>
       <tr>
-        <td>Host machine</td>
+        <td>Bot</td>
         <td>
-          <a target="_blank" href$="{{_makeSlaveHostURL(build)}}">
+          <a target="_blank" rel="noopener" href$="{{_makeSlaveHostURL(build)}}">
             Lookup
           </a>
         </td>

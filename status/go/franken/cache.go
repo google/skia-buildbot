@@ -46,7 +46,7 @@ const (
 	NOAUTH_TASK_URL_FMT = "https://luci-milo.appspot.com/swarming/task/%s"
 	// TASK_TRIGGER_URL_FMT is a format string for triggering a Task with task
 	// scheduler. Parameters are task spec name and commit hash.
-	TASK_TRIGGER_URL_FMT = "https://task-scheduler.skia.org/trigger?submit=true&task_spec=%s&commit=%s"
+	TASK_TRIGGER_URL_FMT = "https://task-scheduler.skia.org/trigger?submit=true&job=%s&commit=%s"
 	// TASKLIST_URL_FMT is a format string for the Swarming tasklist URL.
 	// Parameters are a single tag key and value.
 	TASKLIST_URL_FMT = "https://chromium-swarm.appspot.com/tasklist?c=name&c=state&c=created_ts&c=duration&c=completed_ts&c=source_revision&f=%s%%3A%s&l=50&s=created_ts%%3Adesc"
@@ -290,7 +290,7 @@ func (c *BTCache) taskToBuild(task *db.Task, loggedIn bool) *buildbot.Build {
 	if task.SwarmingBotId != "" {
 		buildSlave = task.SwarmingBotId
 		properties = append(properties, [][]interface{}{
-			{"botTasklistURL", fmt.Sprintf(TASKLIST_URL_FMT, "slavename", task.SwarmingBotId), PROPERTY_SOURCE},
+			{"botTasklistURL", fmt.Sprintf(TASKLIST_URL_FMT, "id", task.SwarmingBotId), PROPERTY_SOURCE},
 			{"botDetailURL", fmt.Sprintf(BOT_DETAIL_URL_FMT, task.SwarmingBotId), PROPERTY_SOURCE},
 		}...)
 	}
