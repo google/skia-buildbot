@@ -218,11 +218,7 @@
         return 'https://skia.googlesource.com/' + repo + '/+/' + c;
       },
       _makeRetryURL: function(build){
-        if (build.retryUrl) {
-          return build.retryUrl;
-        } else {
-          return "https://build-scheduler.skia.org/trigger?submit=true&builder="+ build.builder +"&commit=" + build.got_revision;
-        }
+        return build.retryUrl;
       },
       _buildResultString: function (build) {
         return build.finished ? build.results == 0 ? 'success' : build.results == 1 ? 'success' : build.results == 3 ? 'success' : build.results == 2 ? 'failed' : build.results == 4 ? 'exception' : 'exception' : 'running';

@@ -137,7 +137,7 @@ func TestIntsToBytes(t *testing.T) {
 }
 
 func TestSerializeTile(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	testDataDir := TEST_DATA_DIR
 	testutils.RemoveAll(t, testDataDir)
 	assert.NoError(t, gs.DownloadTestDataFile(t, TEST_DATA_STORAGE_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH))

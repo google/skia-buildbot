@@ -21,10 +21,6 @@ perf:
 alertserver:
 	cd alertserver && $(MAKE) all
 
-.PHONY: build_scheduler
-build_scheduler:
-	cd build_scheduler && $(MAKE) all
-
 .PHONY: cq_watcher
 cq_watcher:
 	cd cq_watcher && $(MAKE) default
@@ -70,7 +66,7 @@ task_scheduler:
 	cd task_scheduler && $(MAKE) all
 
 .PHONY: all
-all: alertserver build_scheduler datahopper datahopper_internal golden perf sharedgo logserver ct ctfe cq_watcher status task_scheduler tags
+all: alertserver datahopper datahopper_internal golden perf sharedgo logserver ct ctfe cq_watcher status task_scheduler tags
 
 .PHONY: tags
 tags:
