@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "2d6e6f0e_4a9b755e",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-02T14:24:43Z",
+      "side": 1,
+      "message": "Yep, Swarming does that too.",
+      "parentUuid": "ede617fe_620052b5",
+      "revId": "b15d1b6430596535e46b25ceed97012f8e762975",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ede617fe_a2097adf",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 5
@@ -36,6 +54,24 @@
         "endLine": 2488,
         "endChar": 32
       },
+      "revId": "b15d1b6430596535e46b25ceed97012f8e762975",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ede617fe_02114e05",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2488,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-02T14:24:43Z",
+      "side": 1,
+      "message": "D\u0027oh. I meant to plumb now in as a parameter. Fixed.",
+      "parentUuid": "ede617fe_a2097adf",
       "revId": "b15d1b6430596535e46b25ceed97012f8e762975",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
