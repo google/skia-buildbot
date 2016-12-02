@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d6e6f0e_cd72ffc2",
+        "filename": "chromeextensions/skia-swarming/bot_mapping.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-12-02T16:29:34Z",
+      "side": 1,
+      "message": "ct-vm-.* are also GCE instances:\nhttps://chromium-swarm.appspot.com/bot?id\u003dct-vm-001",
+      "revId": "fbed0b06fa6f9d90126308e38177d6fe404cf970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d6e6f0e_6dac8bd5",
+        "filename": "chromeextensions/skia-swarming/bots.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-12-02T16:29:34Z",
+      "side": 1,
+      "message": "Intentional?",
+      "revId": "fbed0b06fa6f9d90126308e38177d6fe404cf970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d6e6f0e_4ddc2f76",
+        "filename": "chromeextensions/skia-swarming/bots.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-12-02T16:29:34Z",
+      "side": 1,
+      "message": "Call \"test\" something more descriptive? (same below).",
+      "revId": "fbed0b06fa6f9d90126308e38177d6fe404cf970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d6e6f0e_8d0c8723",
+        "filename": "chromeextensions/skia-swarming/manifest.json",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-12-02T16:29:34Z",
+      "side": 1,
+      "message": "Remove section?",
+      "revId": "fbed0b06fa6f9d90126308e38177d6fe404cf970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
