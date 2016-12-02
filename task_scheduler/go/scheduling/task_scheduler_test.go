@@ -61,6 +61,28 @@ var (
 	projectRepoMapping = map[string]string{
 		"skia": repoName,
 	}
+
+	androidTaskDims = map[string]string{
+		"pool":        "Skia",
+		"os":          "Android",
+		"device_type": "grouper",
+	}
+
+	linuxTaskDims = map[string]string{
+		"os":   "Ubuntu",
+		"pool": "Skia",
+	}
+
+	androidBotDims = map[string][]string{
+		"pool":        []string{"Skia"},
+		"os":          []string{"Android"},
+		"device_type": []string{"grouper"},
+	}
+
+	linuxBotDims = map[string][]string{
+		"os":   []string{"Ubuntu"},
+		"pool": []string{"Skia"},
+	}
 )
 
 func makeTask(name, repo, revision string) *db.Task {
@@ -77,7 +99,7 @@ func makeTask(name, repo, revision string) *db.Task {
 	}
 }
 
-func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task) *swarming_api.SwarmingRpcsTaskRequestMetadata {
+func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task, dims map[string]string) *swarming_api.SwarmingRpcsTaskRequestMetadata {
 	tag := func(k, v string) string {
 		return fmt.Sprintf("%s:%s", k, v)
 	}
@@ -110,6 +132,7 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task) *swarming_
 		tag(db.SWARMING_TAG_ID, task.Id),
 		tag(db.SWARMING_TAG_FORCED_JOB_ID, task.ForcedJobId),
 		tag(db.SWARMING_TAG_NAME, task.Name),
+		tag(swarming.DIMENSION_POOL_KEY, swarming.DIMENSION_POOL_VALUE_SKIA),
 		tag(db.SWARMING_TAG_REPO, task.Repo),
 		tag(db.SWARMING_TAG_REVISION, task.Revision),
 	}
@@ -117,9 +140,21 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task) *swarming_
 		tags = append(tags, tag(db.SWARMING_TAG_PARENT_TASK_ID, p))
 	}
 
+	dimensions := make([]*swarming_api.SwarmingRpcsStringPair, 0, len(dims))
+	for k, v := range dims {
+		dimensions = append(dimensions, &swarming_api.SwarmingRpcsStringPair{
+			Key:   k,
+			Value: v,
+		})
+	}
+
 	return &swarming_api.SwarmingRpcsTaskRequestMetadata{
 		Request: &swarming_api.SwarmingRpcsTaskRequest{
 			CreatedTs: ts(task.Created),
+			Properties: &swarming_api.SwarmingRpcsTaskProperties{
+				Dimensions: dimensions,
+			},
+			Tags: tags,
 		},
 		TaskId: task.SwarmingTaskId,
 		TaskResult: &swarming_api.SwarmingRpcsTaskResult{
@@ -1469,7 +1504,7 @@ func TestSchedulingE2E(t *testing.T) {
 	t1.IsolatedOutput = "abc123"
 	assert.NoError(t, d.PutTask(t1))
 	swarmingClient.MockTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{
-		makeSwarmingRpcsTaskRequestMetadata(t, t1),
+		makeSwarmingRpcsTaskRequestMetadata(t, t1, linuxTaskDims),
 	})
 
 	// No bots free. Ensure that the queue is correct.
@@ -1482,20 +1517,9 @@ func TestSchedulingE2E(t *testing.T) {
 	assert.Equal(t, expectLen, len(s.queue))
 
 	// More bots than tasks free, ensure the queue is correct.
-	bot2 := makeBot("bot2", map[string]string{
-		"pool":        "Skia",
-		"os":          "Android",
-		"device_type": "grouper",
-	})
-	bot3 := makeBot("bot3", map[string]string{
-		"pool":        "Skia",
-		"os":          "Android",
-		"device_type": "grouper",
-	})
-	bot4 := makeBot("bot4", map[string]string{
-		"pool": "Skia",
-		"os":   "Ubuntu",
-	})
+	bot2 := makeBot("bot2", androidTaskDims)
+	bot3 := makeBot("bot3", androidTaskDims)
+	bot4 := makeBot("bot4", linuxTaskDims)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3, bot4})
 	assert.NoError(t, s.MainLoop())
 	assert.NoError(t, s.tCache.Update())
@@ -1533,8 +1557,8 @@ func TestSchedulingE2E(t *testing.T) {
 	// No new bots free; only the remaining build task should be in the queue.
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{})
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{
-		makeSwarmingRpcsTaskRequestMetadata(t, t2),
-		makeSwarmingRpcsTaskRequestMetadata(t, t3),
+		makeSwarmingRpcsTaskRequestMetadata(t, t2, linuxTaskDims),
+		makeSwarmingRpcsTaskRequestMetadata(t, t3, linuxTaskDims),
 	}
 	swarmingClient.MockTasks(mockTasks)
 	assert.NoError(t, s.MainLoop())
@@ -1552,7 +1576,7 @@ func TestSchedulingE2E(t *testing.T) {
 	// Ensure that we finalize all of the tasks and insert into the DB.
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3, bot4})
 	mockTasks = []*swarming_api.SwarmingRpcsTaskRequestMetadata{
-		makeSwarmingRpcsTaskRequestMetadata(t, t3),
+		makeSwarmingRpcsTaskRequestMetadata(t, t3, linuxTaskDims),
 	}
 	assert.NoError(t, s.MainLoop())
 	assert.NoError(t, s.tCache.Update())
@@ -1576,7 +1600,7 @@ func TestSchedulingE2E(t *testing.T) {
 	}
 	mockTasks = make([]*swarming_api.SwarmingRpcsTaskRequestMetadata, 0, len(tasksList))
 	for _, task := range tasksList {
-		mockTasks = append(mockTasks, makeSwarmingRpcsTaskRequestMetadata(t, task))
+		mockTasks = append(mockTasks, makeSwarmingRpcsTaskRequestMetadata(t, task, linuxTaskDims))
 	}
 	swarmingClient.MockTasks(mockTasks)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3, bot4})
@@ -1602,8 +1626,8 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	defer tr.Cleanup()
 
 	// Run the available compile task at c2.
-	bot1 := makeBot("bot1", map[string]string{"pool": "Skia", "os": "Ubuntu"})
-	bot2 := makeBot("bot2", map[string]string{"pool": "Skia", "os": "Ubuntu"})
+	bot1 := makeBot("bot1", linuxTaskDims)
+	bot2 := makeBot("bot2", linuxTaskDims)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
 	assert.NoError(t, s.MainLoop())
 	assert.NoError(t, s.tCache.Update())
@@ -1619,7 +1643,6 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	t1.Finished = time.Now()
 	t1.IsolatedOutput = "abc123"
 	tasksList = append(tasksList, t1)
-	s.busyBots.Release(t1.SwarmingBotId, t1.SwarmingTaskId)
 
 	// Forcibly create and insert a second task at c1.
 	t2 := t1.Copy()
@@ -1660,7 +1683,6 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	task.IsolatedOutput = "abc123"
 	assert.NoError(t, d.PutTask(task))
 	assert.NoError(t, s.tCache.Update())
-	s.busyBots.Release(task.SwarmingBotId, task.SwarmingTaskId)
 
 	oldTasksByCommit := tasks
 
@@ -1706,7 +1728,6 @@ func TestSchedulerStealingFrom(t *testing.T) {
 		newTask.IsolatedOutput = "abc123"
 		assert.NoError(t, d.PutTask(newTask))
 		assert.NoError(t, s.tCache.Update())
-		s.busyBots.Release(newTask.SwarmingBotId, newTask.SwarmingTaskId)
 		oldTasksByCommit = tasks
 
 	}
@@ -1816,7 +1837,10 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
 	mock := func(task *db.Task) {
-		mockTasks = append(mockTasks, makeSwarmingRpcsTaskRequestMetadata(t, task))
+		task.Status = db.TASK_STATUS_SUCCESS
+		task.Finished = time.Now()
+		task.IsolatedOutput = "abc123"
+		mockTasks = append(mockTasks, makeSwarmingRpcsTaskRequestMetadata(t, task, linuxTaskDims))
 		swarmingClient.MockTasks(mockTasks)
 	}
 
@@ -1832,7 +1856,6 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks[head]))
 	mock(tasks[head][taskName])
-	s.busyBots.Release(tasks[head][taskName].SwarmingBotId, tasks[head][taskName].SwarmingTaskId)
 
 	// Add some commits to the repo.
 	exec_testutils.Run(t, repoDir, "git", "checkout", "master")
@@ -1874,9 +1897,6 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	mock(t1)
 	mock(t2)
 	mock(t3)
-	s.busyBots.Release(t1.SwarmingBotId, t1.SwarmingTaskId)
-	s.busyBots.Release(t2.SwarmingBotId, t2.SwarmingTaskId)
-	s.busyBots.Release(t3.SwarmingBotId, t3.SwarmingTaskId)
 
 	// Ensure that we got the blamelists right.
 	mkCopy := func(orig []string) []string {
@@ -1933,8 +1953,8 @@ func TestSchedulingRetry(t *testing.T) {
 	defer tr.Cleanup()
 
 	// Run the available compile task at c2.
-	bot1 := makeBot("bot1", map[string]string{"pool": "Skia", "os": "Ubuntu"})
-	bot2 := makeBot("bot2", map[string]string{"pool": "Skia", "os": "Ubuntu"})
+	bot1 := makeBot("bot1", linuxTaskDims)
+	bot2 := makeBot("bot2", linuxTaskDims)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
 	assert.NoError(t, s.MainLoop())
 	assert.NoError(t, s.tCache.Update())
@@ -1958,8 +1978,6 @@ func TestSchedulingRetry(t *testing.T) {
 
 	assert.NoError(t, d.PutTasks([]*db.Task{t1, t2}))
 	assert.NoError(t, s.tCache.Update())
-	s.busyBots.Release(t1.SwarmingBotId, t1.SwarmingTaskId)
-	s.busyBots.Release(t2.SwarmingBotId, t2.SwarmingTaskId)
 
 	// Cycle. Ensure that we schedule a retry of t1.
 	assert.NoError(t, s.MainLoop())
@@ -1976,7 +1994,6 @@ func TestSchedulingRetry(t *testing.T) {
 	t3.Finished = time.Now()
 	assert.NoError(t, d.PutTask(t3))
 	assert.NoError(t, s.tCache.Update())
-	s.busyBots.Release(t3.SwarmingBotId, t3.SwarmingTaskId)
 	assert.NoError(t, s.MainLoop())
 	assert.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.UnfinishedTasks()
@@ -1989,8 +2006,8 @@ func TestParentTaskId(t *testing.T) {
 	defer tr.Cleanup()
 
 	// Run the available compile task at c2.
-	bot1 := makeBot("bot1", map[string]string{"pool": "Skia", "os": "Ubuntu"})
-	bot2 := makeBot("bot2", map[string]string{"pool": "Skia", "os": "Ubuntu"})
+	bot1 := makeBot("bot1", linuxTaskDims)
+	bot2 := makeBot("bot2", linuxTaskDims)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
 	assert.NoError(t, s.MainLoop())
 	assert.NoError(t, s.tCache.Update())
@@ -2004,19 +2021,10 @@ func TestParentTaskId(t *testing.T) {
 	assert.Equal(t, 0, len(t1.ParentTaskIds))
 	assert.NoError(t, d.PutTasks([]*db.Task{t1}))
 	assert.NoError(t, s.tCache.Update())
-	s.busyBots.Release(t1.SwarmingBotId, t1.SwarmingTaskId)
 
 	// Run the dependent tasks. Ensure that their parent IDs are correct.
-	bot3 := makeBot("bot3", map[string]string{
-		"pool":        "Skia",
-		"os":          "Android",
-		"device_type": "grouper",
-	})
-	bot4 := makeBot("bot4", map[string]string{
-		"pool":        "Skia",
-		"os":          "Android",
-		"device_type": "grouper",
-	})
+	bot3 := makeBot("bot3", androidTaskDims)
+	bot4 := makeBot("bot4", androidTaskDims)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot3, bot4})
 	assert.NoError(t, s.MainLoop())
 	assert.NoError(t, s.tCache.Update())
@@ -2028,7 +2036,7 @@ func TestParentTaskId(t *testing.T) {
 		p := task.ParentTaskIds[0]
 		assert.Equal(t, p, t1.Id)
 
-		updated, err := task.UpdateFromSwarming(makeSwarmingRpcsTaskRequestMetadata(t, task).TaskResult)
+		updated, err := task.UpdateFromSwarming(makeSwarmingRpcsTaskRequestMetadata(t, task, linuxTaskDims).TaskResult)
 		assert.NoError(t, err)
 		assert.False(t, updated)
 	}
@@ -2041,8 +2049,8 @@ func TestBlacklist(t *testing.T) {
 	defer tr.Cleanup()
 
 	// Mock some bots, add one of the build tasks to the blacklist.
-	bot1 := makeBot("bot1", map[string]string{"pool": "Skia", "os": "Ubuntu"})
-	bot2 := makeBot("bot2", map[string]string{"pool": "Skia", "os": "Ubuntu"})
+	bot1 := makeBot("bot1", linuxTaskDims)
+	bot2 := makeBot("bot2", linuxTaskDims)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
 	assert.NoError(t, s.GetBlacklist().AddRule(&blacklist.Rule{
 		AddedBy:          "Tests",
@@ -2069,15 +2077,8 @@ func TestTrybots(t *testing.T) {
 	// results back.
 
 	// Run ourselves out of tasks.
-	bot1 := makeBot("bot1", map[string]string{
-		"pool": "Skia",
-		"os":   "Ubuntu",
-	})
-	bot2 := makeBot("bot2", map[string]string{
-		"pool":        "Skia",
-		"os":          "Android",
-		"device_type": "grouper",
-	})
+	bot1 := makeBot("bot1", linuxTaskDims)
+	bot2 := makeBot("bot2", androidTaskDims)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
 	now := time.Now()
 
@@ -2094,7 +2095,6 @@ func TestTrybots(t *testing.T) {
 			t.Status = db.TASK_STATUS_SUCCESS
 			t.Finished = now
 			t.IsolatedOutput = "abc123"
-			s.busyBots.Release(t.SwarmingBotId, t.SwarmingTaskId)
 			n++
 		}
 		assert.NoError(t, d.PutTasks(tasks))
@@ -2158,7 +2158,6 @@ func TestTrybots(t *testing.T) {
 			task.Status = db.TASK_STATUS_SUCCESS
 			task.Finished = now
 			task.IsolatedOutput = "abc123"
-			s.busyBots.Release(task.SwarmingBotId, task.SwarmingTaskId)
 			n++
 		}
 		assert.NoError(t, d.PutTasks(tasks))
@@ -2218,7 +2217,7 @@ func TestGetTasksForJob(t *testing.T) {
 	assert.NotNil(t, j5)
 
 	// Run the available compile task at c2.
-	bot1 := makeBot("bot1", map[string]string{"pool": "Skia", "os": "Ubuntu"})
+	bot1 := makeBot("bot1", linuxTaskDims)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
 	assert.NoError(t, s.MainLoop())
 	assert.NoError(t, s.tCache.Update())
@@ -2261,7 +2260,6 @@ func TestGetTasksForJob(t *testing.T) {
 	t1.Finished = time.Now()
 	assert.NoError(t, d.PutTasks([]*db.Task{t1}))
 	assert.NoError(t, s.tCache.Update())
-	s.busyBots.Release(t1.SwarmingBotId, t1.SwarmingTaskId)
 
 	// Test that the results propagated through.
 	for _, j := range jobs {
@@ -2298,7 +2296,6 @@ func TestGetTasksForJob(t *testing.T) {
 	t2.IsolatedOutput = "abc"
 	assert.NoError(t, d.PutTask(t2))
 	assert.NoError(t, s.tCache.Update())
-	s.busyBots.Release(t2.SwarmingBotId, t2.SwarmingTaskId)
 	assert.NoError(t, s.MainLoop())
 	assert.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.UnfinishedTasks()
@@ -2313,21 +2310,9 @@ func TestGetTasksForJob(t *testing.T) {
 	}
 
 	// Schedule the remaining tasks.
-	bot3 := makeBot("bot3", map[string]string{
-		"pool":        "Skia",
-		"os":          "Android",
-		"device_type": "grouper",
-	})
-	bot4 := makeBot("bot4", map[string]string{
-		"pool":        "Skia",
-		"os":          "Android",
-		"device_type": "grouper",
-	})
-	bot5 := makeBot("bot5", map[string]string{
-		"pool":        "Skia",
-		"os":          "Android",
-		"device_type": "grouper",
-	})
+	bot3 := makeBot("bot3", androidTaskDims)
+	bot4 := makeBot("bot4", androidTaskDims)
+	bot5 := makeBot("bot5", androidTaskDims)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot3, bot4, bot5})
 	assert.NoError(t, s.MainLoop())
 	assert.NoError(t, s.tCache.Update())
@@ -2493,4 +2478,58 @@ func TestPeriodicJobs(t *testing.T) {
 	assert.Equal(t, 1, len(metrics.LastTriggered))
 	assert.Equal(t, 1, len(metrics.metrics))
 	assert.Equal(t, s.triggerMetrics.LastTriggered["nightly"].Unix(), metrics.LastTriggered["nightly"].Unix())
+}
+
+func TestUpdateUnfinishedTasks(t *testing.T) {
+	tr, _, swarmingClient, s, _ := setup(t)
+	defer tr.Cleanup()
+
+	// Create a few tasks.
+	now := time.Unix(1480683321, 0).UTC()
+	t1 := &db.Task{
+		Id:             "t1",
+		Created:        now.Add(-time.Minute),
+		Status:         db.TASK_STATUS_RUNNING,
+		SwarmingTaskId: "swarmt1",
+	}
+	t2 := &db.Task{
+		Id:             "t2",
+		Created:        now.Add(-10 * time.Minute),
+		Status:         db.TASK_STATUS_PENDING,
+		SwarmingTaskId: "swarmt2",
+	}
+	t3 := &db.Task{
+		Id:             "t3",
+		Created:        now.Add(-5 * time.Hour), // Outside the 4-hour window.
+		Status:         db.TASK_STATUS_PENDING,
+		SwarmingTaskId: "swarmt3",
+	}
+
+	// Insert the tasks into the DB.
+	tasks := []*db.Task{t1, t2, t3}
+	assert.NoError(t, s.db.PutTasks(tasks))
+	assert.NoError(t, s.tCache.Update())
+
+	// Update the tasks, mock in Swarming.
+	t1.Status = db.TASK_STATUS_SUCCESS
+	t2.Status = db.TASK_STATUS_FAILURE
+	t3.Status = db.TASK_STATUS_SUCCESS
+
+	m1 := makeSwarmingRpcsTaskRequestMetadata(t, t1, linuxTaskDims)
+	m2 := makeSwarmingRpcsTaskRequestMetadata(t, t2, linuxTaskDims)
+	m3 := makeSwarmingRpcsTaskRequestMetadata(t, t3, linuxTaskDims)
+	swarmingClient.MockTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{m1, m2, m3})
+
+	// Assert that the third task doesn't show up in the time range query.
+	got, err := swarmingClient.ListTasks(now.Add(-4*time.Hour), now, []string{"pool:Skia"}, "")
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsTaskRequestMetadata{m1, m2}, got)
+
+	// Ensure that we update the tasks as expected.
+	assert.NoError(t, s.updateUnfinishedTasks(now))
+	for _, task := range tasks {
+		got, err := s.db.GetTaskById(task.Id)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, task, got)
+	}
 }
