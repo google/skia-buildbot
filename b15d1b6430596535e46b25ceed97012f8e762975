@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ede617fe_620052b5",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-02T14:01:54Z",
+      "side": 1,
+      "message": "nit: It looks like all dimensions appear in tags.",
+      "revId": "b15d1b6430596535e46b25ceed97012f8e762975",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ede617fe_a2097adf",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2488,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-02T14:01:54Z",
+      "side": 1,
+      "message": "updateUnfinishedTasks uses actual time.Now(). Doesn\u0027t that mean this test will start failing at some point?",
+      "range": {
+        "startLine": 2488,
+        "startChar": 8,
+        "endLine": 2488,
+        "endChar": 32
+      },
+      "revId": "b15d1b6430596535e46b25ceed97012f8e762975",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
