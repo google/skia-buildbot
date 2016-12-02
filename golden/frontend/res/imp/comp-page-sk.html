@@ -342,10 +342,18 @@
           this.$.digestDetails.clear();
           if (ev.detail.colDigest) {
             var url = "/json/diff" +  gold.diffQuery(ev.detail.test, ev.detail.rowDigest, ev.detail.colDigest);
-            gold.loadWithActivity(this, url, this.$.activityCompDiff, '_diffData');
+            this.$.gridCompare.clearSelection();
+            gold.loadWithActivity(this, url, this.$.activityCompDiff, function(json) {
+              this.set('_diffData', json);
+              this.$.gridCompare.selectCell(ev.detail.rowIndex, ev.detail.columnIndex);
+            }.bind(this));
           } else {
             var url = "/json/details" + gold.detailQuery(ev.detail.test, ev.detail.rowDigest);
-            gold.loadWithActivity(this, url, this.$.activityCompDiff, '_digestDetails');
+            this.$.gridCompare.clearSelection();
+            gold.loadWithActivity(this, url, this.$.activityCompDiff, function(json) {
+              this.set('_digestDetails', json);
+              this.$.gridCompare.selectRow(ev.detail.rowIndex);
+            }.bind(this));
           }
         },
 
