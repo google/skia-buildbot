@@ -51,7 +51,12 @@ Where:
        e.detail contains the diffXY info associated with that thumbnail.
 
   Methods:
-    None
+    selectRow(row) - will highlight the row image of the given row index.
+
+    selectCell(row, column) - will highlight the cell image for the given row
+                              index.
+
+    clearSelection() - clears all selections.
 -->
 
 <link rel="import" href="bower_components/polymer/polymer.html">
@@ -104,6 +109,10 @@ Where:
         margin: 0 5px 0 5px;
         padding: 5px 1em 5px 1em;
       }
+
+      .highlight {
+        border-color: red;
+      }
     </style>
     <div class="vertical layout">
       <div class="horizontal layout end" id="colsContainer">
@@ -121,7 +130,7 @@ Where:
         <div class="vertical layout" id="rowsContainer">
           <template is="dom-repeat" items="{{_value.rows}}" as="row" index-as="rowIdx">
             <div class="horizontal layout">
-              <div class="imgWrapper">
+              <div class="imgWrapper" id$="row-[[rowIdx]]">
                 <img src$="{{_imgHref(row.digest)}}" data-rowdigest="{{rowIdx}}">
                 <paper-tooltip>
                   <table class="ttTable" border="0" cellspacing="5" cellpadding="5">
@@ -135,7 +144,7 @@ Where:
               </div>
 
               <template is="dom-repeat" items="{{row.values}}" as="cell" index-as="colIdx">
-                <div class="imgWrapper">
+                <div class="imgWrapper" id$="cell-[[rowIdx]]-[[colIdx]]">
                   <img src$="{{_diffHref(row, cell)}}" data-row="{{rowIdx}}" data-col="{{colIdx}}">
                   <paper-tooltip>
                     <table class="ttTable" border="0" cellspacing="5" cellpadding="5">
@@ -170,6 +179,7 @@ Where:
         ready: function () {
           this.listen(this.$.rowsContainer, 'click', "_handleCellsClick");
           this.listen(this.$.rowsContainer, 'dblclick', "_handleCellsDblClick");
+          this.clearSelection();
         },
 
         _handleCellsClick: function(ev) {
@@ -213,6 +223,8 @@ Where:
 
             detail.rowDigest = this._value.rows[row].digest;
             detail.test = this._value.rows[row].test;
+            detail.rowIndex = row;
+            detail.columnIndex = col;
 
             var delay = (ev.type === 'click') ? 500 : 0;
             this._deferredFire = this.async(function() {
@@ -224,6 +236,40 @@ Where:
 
         setValue: function (value) {
           this.set("_value", value);
+        },
+
+        _highlightClear: function(selector, clear) {
+          var ele = this.$$(selector);
+          if (ele) {
+            this.toggleClass('highlight', !clear, ele);
+            return true;
+          }
+          return false;
+        },
+
+        selectCell: function(row, column) {
+          if (this._highlightClear('#cell-'+ row + '-' + column, false)) {
+            this._selectedCellRow = row;
+            this._selectedCellCol = column;
+          }
+        },
+
+        selectRow: function(row) {
+          if (this._highlightClear('#row-'+ row, false)) {
+            this._selectedRow = row;
+          }
+        },
+
+        clearSelection: function() {
+          if (this._selectedCellRow >= 0) {
+            this._highlightClear('#cell-'+ this._selectedCellRow + '-' + this._selectedCellCol, true);
+          }
+          if (this._selectedRow >= 0) {
+            this._highlightClear('#row-'+ this._selectedRow, true);
+          }
+          this._selectedCellRow = -1;
+          this._selectedCellCol = -1;
+          this._selectedRow = -1;
         },
 
         _getColsWithHeaders: function(cols) {
