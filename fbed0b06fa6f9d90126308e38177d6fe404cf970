@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "4df2c3e7_b52348bd",
+        "filename": "chromeextensions/skia-swarming/bot_mapping.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-02T20:45:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2d6e6f0e_cd72ffc2",
+      "revId": "fbed0b06fa6f9d90126308e38177d6fe404cf970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d6e6f0e_6dac8bd5",
         "filename": "chromeextensions/skia-swarming/bots.js",
         "patchSetId": 5
@@ -30,6 +48,24 @@
       "writtenOn": "2016-12-02T16:29:34Z",
       "side": 1,
       "message": "Intentional?",
+      "revId": "fbed0b06fa6f9d90126308e38177d6fe404cf970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df2c3e7_d56c8ce6",
+        "filename": "chromeextensions/skia-swarming/bots.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-02T20:45:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2d6e6f0e_6dac8bd5",
       "revId": "fbed0b06fa6f9d90126308e38177d6fe404cf970",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "4df2c3e7_b57108c1",
+        "filename": "chromeextensions/skia-swarming/bots.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-02T20:45:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2d6e6f0e_4ddc2f76",
+      "revId": "fbed0b06fa6f9d90126308e38177d6fe404cf970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d6e6f0e_8d0c8723",
         "filename": "chromeextensions/skia-swarming/manifest.json",
         "patchSetId": 5
@@ -64,6 +118,24 @@
       "writtenOn": "2016-12-02T16:29:34Z",
       "side": 1,
       "message": "Remove section?",
+      "revId": "fbed0b06fa6f9d90126308e38177d6fe404cf970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df2c3e7_f590b0a2",
+        "filename": "chromeextensions/skia-swarming/manifest.json",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-02T20:45:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2d6e6f0e_8d0c8723",
       "revId": "fbed0b06fa6f9d90126308e38177d6fe404cf970",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
