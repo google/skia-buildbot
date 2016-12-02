@@ -24,7 +24,7 @@ func TestPrep(t *testing.T) {
 	want := `#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = "/mnt/pd0/fiddle/images/2.png"; // Either a string, or 0.
-  return DrawOptions(128, 256, true, true, true, true, path);
+  return DrawOptions(128, 256, true, true, true, true, false, false, path);
 }
 
 #line 1
@@ -43,7 +43,28 @@ void draw(SkCanvas* canvas) {
 	want = `#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = 0; // Either a string, or 0.
-  return DrawOptions(128, 256, true, true, true, true, path);
+  return DrawOptions(128, 256, true, true, true, true, false, false, path);
+}
+
+#line 1
+void draw(SkCanvas* canvas) {
+#line 2
+}
+`
+	got = prepCodeToCompile("/mnt/pd0/fiddle/", "void draw(SkCanvas* canvas) {\n}", opts)
+	assert.Equal(t, want, got)
+
+	opts = &types.Options{
+		Width:  128,
+		Height: 256,
+		Source: 0,
+		SRGB:   true,
+		F16:    false,
+	}
+	want = `#include "fiddle_main.h"
+DrawOptions GetDrawOptions() {
+  static const char *path = 0; // Either a string, or 0.
+  return DrawOptions(128, 256, true, true, true, true, true, false, path);
 }
 
 #line 1
