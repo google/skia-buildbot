@@ -75,6 +75,24 @@
       "revId": "cbf7fae042cf382828c9cf13080b1bf4fa0a3faa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d6e6f0e_2de0d30a",
+        "filename": "chromeextensions/skia-swarming/bots.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-12-02T16:29:34Z",
+      "side": 1,
+      "message": "I mean where does this line get the JUMPHOST_IP from? (I\u0027m probably just missing something).",
+      "parentUuid": "2d6e6f0e_8aad8d84",
+      "revId": "cbf7fae042cf382828c9cf13080b1bf4fa0a3faa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
