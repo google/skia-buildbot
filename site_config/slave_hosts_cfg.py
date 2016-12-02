@@ -91,7 +91,7 @@ _slave_host_dicts = {
       #('skiabot-linux-swarm-137', '137', False),
       #('skiabot-linux-swarm-138', '138', False),
       #('skiabot-linux-swarm-139', '139', False),
-      ('skiabot-linux-swarm-140', '140', False),
+      #('skiabot-linux-swarm-140', '140', False),
       #('skiabot-linux-swarm-141', '141', False),
       #('skiabot-linux-swarm-142', '142', False),
       #('skiabot-linux-swarm-143', '143', False),
@@ -142,7 +142,7 @@ _slave_host_dicts = {
       #('skiabot-linux-swarm-069', '69', False),
       #('skiabot-linux-swarm-070', '70', False),
       #('skiabot-linux-swarm-071', '71', False),
-      ('skiabot-linux-swarm-072', '72', False),
+      #('skiabot-linux-swarm-072', '72', False),
       #('skiabot-linux-swarm-073', '73', False),
       #('skiabot-linux-swarm-074', '74', False),
       #('skiabot-linux-swarm-075', '75', False),
@@ -360,7 +360,7 @@ _slave_host_dicts = {
 
   'slave11-c3': {
     'slaves': [
-      ('slave11-c3', '0', False),
+      #('slave11-c3', '0', False),
     ],
     'copies': None,
     'ip': NO_IP_ADDR,
