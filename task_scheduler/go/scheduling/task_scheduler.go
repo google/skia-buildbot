@@ -15,7 +15,6 @@ import (
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
@@ -34,6 +33,10 @@ const (
 	// Try jobs have high priority, equal to building at HEAD when we're
 	// 5 commits behind.
 	CANDIDATE_SCORE_TRY_JOB = 10.0
+
+	// MAX_BLAMELIST_COMMITS is the maximum number of commits which are
+	// allowed in a task blamelist before we stop tracing commit history.
+	MAX_BLAMELIST_COMMITS = 500
 
 	// Measurement name for task candidate counts by dimension set.
 	MEASUREMENT_TASK_CANDIDATE_COUNT = "task-candidate-count"
@@ -254,7 +257,7 @@ func ComputeBlamelist(cache db.TaskCache, repo *repograph.Graph, taskName, repoN
 		// for commits. We only want to trigger new bots at branch
 		// heads, so if the passed-in revision is a branch head, return
 		// it as the blamelist, otherwise return an empty blamelist.
-		if stealFrom == nil && (len(commitsBuf) > buildbot.MAX_BLAMELIST_COMMITS || (len(commit.Parents) == 0 && prev == nil)) {
+		if stealFrom == nil && (len(commitsBuf) > MAX_BLAMELIST_COMMITS || (len(commit.Parents) == 0 && prev == nil)) {
 			for _, name := range repo.Branches() {
 				if repo.Get(name).Hash == revision.Hash {
 					commitsBuf = append(commitsBuf[:0], revision)
@@ -492,7 +495,7 @@ func (s *TaskScheduler) processTaskCandidates(candidates map[string]map[string][
 			go func(candidates []*taskCandidate) {
 				defer wg.Done()
 				cache := newCacheWrapper(s.tCache)
-				commitsBuf := make([]*repograph.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
+				commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
 				for {
 					// Find the best candidate.
 					idx := -1
