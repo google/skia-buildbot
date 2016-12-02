@@ -17,11 +17,11 @@ import (
 
 	"github.com/skia-dev/glog"
 
-	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/scheduling"
 )
 
 var (
@@ -111,7 +111,7 @@ func updateBlamelists(cache db.TaskCache, t *db.Task) ([]*db.Task, error) {
 	firstCommit := lastCommit
 	// Work backwards until prev changes.
 	for i := lastCommit - 1; i > 0; i-- {
-		if lastCommit-firstCommit+1 > buildbot.MAX_BLAMELIST_COMMITS && stealFrom == nil {
+		if lastCommit-firstCommit+1 > scheduling.MAX_BLAMELIST_COMMITS && stealFrom == nil {
 			t.Commits = []string{t.Revision}
 			return []*db.Task{t}, nil
 		}

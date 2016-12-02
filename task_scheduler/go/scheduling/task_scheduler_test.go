@@ -15,7 +15,6 @@ import (
 	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/exec"
 	exec_testutils "go.skia.org/infra/go/exec/testutils"
 	"go.skia.org/infra/go/git/repograph"
@@ -555,7 +554,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 
 	cache := newCacheWrapper(s.tCache)
 	now := time.Unix(0, 1470674884000000)
-	commitsBuf := make([]*repograph.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
+	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
 
 	// Try job candidates have a specific score and no blamelist.
 	c := &taskCandidate{
@@ -908,7 +907,7 @@ func TestComputeBlamelist(t *testing.T) {
 	repo, err := repograph.NewGraph(repoName, repoDir)
 	assert.NoError(t, err)
 	ids := []string{}
-	commitsBuf := make([]*repograph.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
+	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
 	test := func(tc *testCase) {
 		// Update the repo.
 		assert.NoError(t, repo.Update())
@@ -990,7 +989,7 @@ func TestComputeBlamelist(t *testing.T) {
 
 	// The above used a special case of "commit has no parents". Test the
 	// other (blamelist too long) case by creating a bunch of commits.
-	for i := 0; i < buildbot.MAX_BLAMELIST_COMMITS+1; i++ {
+	for i := 0; i < MAX_BLAMELIST_COMMITS+1; i++ {
 		commit(f, "C")
 	}
 	commit(f, "D")

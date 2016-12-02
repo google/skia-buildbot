@@ -120,11 +120,6 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	// Buildbot data ingestion.
-	if err := buildbot.IngestNewBuildsLoop(db, repos); err != nil {
-		glog.Fatal(err)
-	}
-
 	// Run a server for the buildbot data.
 	if _, err := buildbot.RunBuildServer(*grpcPort, db); err != nil {
 		glog.Fatal(err)
