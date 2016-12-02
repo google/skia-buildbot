@@ -1190,8 +1190,8 @@ func (s *TaskScheduler) updateUnfinishedTasks(now time.Time) error {
 	}
 	sort.Sort(db.TaskSlice(tasks))
 
-	// Query for all tasks triggered in the last 4 hours.
-	start := now.Add(-4 * time.Hour)
+	// Query for all tasks triggered in the last hour which are pending or running.
+	start := now.Add(-1 * time.Hour)
 	var wg sync.WaitGroup
 	swarmTasks := map[string]*swarming_api.SwarmingRpcsTaskRequestMetadata{}
 	errs := []error{}
@@ -1200,7 +1200,7 @@ func (s *TaskScheduler) updateUnfinishedTasks(now time.Time) error {
 		wg.Add(1)
 		go func(pool string) {
 			defer wg.Done()
-			t, err := s.swarming.ListTasks(start, now, []string{fmt.Sprintf("pool:%s", pool)}, "")
+			t, err := s.swarming.ListTasks(start, now, []string{fmt.Sprintf("pool:%s", pool)}, "PENDING_RUNNING")
 			mtx.Lock()
 			defer mtx.Unlock()
 			if err != nil {
@@ -1217,7 +1217,8 @@ func (s *TaskScheduler) updateUnfinishedTasks(now time.Time) error {
 		return fmt.Errorf("Got errors loading tasks: %v", errs)
 	}
 
-	// Find any unfinished tasks which weren't found in the above query.
+	// Update the tasks we found in the first query, record any unfinished
+	// tasks which weren't found so we can ask for them specifically.
 	remaining := []*db.Task{}
 	for _, t := range tasks {
 		swarmTask, ok := swarmTasks[t.SwarmingTaskId]
@@ -1241,6 +1242,7 @@ func (s *TaskScheduler) updateUnfinishedTasks(now time.Time) error {
 	// Query for any tasks we didn't get in the first round.
 	// TODO(borenet): This would be faster if Swarming had a
 	// get-multiple-tasks-by-ID endpoint.
+	glog.Infof("Querying Swarming for %d of %d tasks not found in the initial query.", len(remaining), len(tasks))
 	errs = make([]error, len(remaining))
 	for i, t := range remaining {
 		wg.Add(1)
