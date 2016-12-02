@@ -27,7 +27,7 @@ func RunGoldTrybotProcessor(t assert.TestingT, traceDBFile, shareDBDir, ingestio
 
 	r, err := fsResult.Open()
 	assert.NoError(t, err)
-	dmResults, err := ParseDMResultsFromReader(r)
+	dmResults, err := ParseDMResultsFromReader(r, fsResult.Name())
 	assert.NoError(t, err)
 
 	now := time.Now()

@@ -119,6 +119,9 @@ type DMResults struct {
 	Patchset     int64             `json:"patchset,string"`
 	Results      []*Result         `json:"results"`
 	PatchStorage string            `json:"patch_storage"`
+
+	// name is the name/path of the file where this came from.
+	name string
 }
 
 // TODO(stephana): Remove isGerritIssue once we switch to Gerrit.
@@ -183,9 +186,14 @@ func (d *DMResults) ignoreResult(params map[string]string) bool {
 	return !ok || (ext != "png")
 }
 
+// Name returns the name/path from which these results were parsed.
+func (d *DMResults) Name() string {
+	return d.name
+}
+
 // ParseDMResultsFromReader parses the stream out of the io.ReadCloser
 // into a DMResults instance and closes the reader.
-func ParseDMResultsFromReader(r io.ReadCloser) (*DMResults, error) {
+func ParseDMResultsFromReader(r io.ReadCloser, name string) (*DMResults, error) {
 	defer util.Close(r)
 
 	dec := json.NewDecoder(r)
@@ -193,5 +201,6 @@ func ParseDMResultsFromReader(r io.ReadCloser) (*DMResults, error) {
 	if err := dec.Decode(dmResults); err != nil {
 		return nil, fmt.Errorf("Failed to decode JSON: %s", err)
 	}
+	dmResults.name = name
 	return dmResults, nil
 }
