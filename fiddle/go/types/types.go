@@ -42,9 +42,11 @@ type Output struct {
 //
 // If new fields are added make sure to update ComputeHash.
 type Options struct {
-	Width  int `json:"width"`
-	Height int `json:"height"`
-	Source int `json:"source"`
+	Width  int  `json:"width"`
+	Height int  `json:"height"`
+	Source int  `json:"source"`
+	SRGB   bool `json:"srgb"`
+	F16    bool `json:"f16"`
 }
 
 // ComputeHash calculates the fiddleHash for the given code and options.
@@ -60,6 +62,9 @@ func (o *Options) ComputeHash(code string) (string, error) {
 	out := []string{
 		"DECLARE_bool(portableFonts);",
 		fmt.Sprintf("// WxH: %d, %d", o.Width, o.Height),
+	}
+	if o.SRGB || o.F16 {
+		out = append(out, fmt.Sprintf("// SRGB: %v, %v", o.SRGB, o.F16))
 	}
 	for _, line := range lines {
 		if strings.Contains(line, "%:") {
