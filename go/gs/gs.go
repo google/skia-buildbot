@@ -48,7 +48,6 @@ func lastDate(year int, month time.Month) int {
 func GetLatestGSDirs(startTS int64, endTS int64, bsSubdir string) []string {
 	startTime := time.Unix(startTS, 0).UTC()
 	startYear, startMonth, startDay := startTime.Date()
-	glog.Infoln("GS dir start time: ", startTime)
 	endTime := time.Unix(endTS, 0).UTC()
 	lastAddedTime := startTime
 	results := make([]string, 0)
@@ -140,13 +139,11 @@ func AllFilesInDir(s *storage.Client, bucket, folder string, callback func(item 
 	it := s.Bucket(bucket).Objects(context.Background(), q)
 	for obj, err := it.Next(); err != iterator.Done; obj, err = it.Next() {
 		if err != nil {
-			glog.Infof("Downloaded %d files from gs://%s/%s", total, bucket, folder)
 			return fmt.Errorf("Problem reading from Google Storage: %v", err)
 		}
 		total++
 		callback(obj)
 	}
-	glog.Infof("Downloaded %d files from gs://%s/%s", total, bucket, folder)
 	return nil
 }
 

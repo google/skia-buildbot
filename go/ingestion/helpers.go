@@ -160,8 +160,6 @@ func (g *GoogleStorageSource) Poll(startTime, endTime int64) ([]ResultFileLocati
 	dirs := gs.GetLatestGSDirs(startTime, endTime, g.rootDir)
 	retval := []ResultFileLocation{}
 	for _, dir := range dirs {
-		glog.Infof("Opening bucket/directory: %s/%s", g.bucket, dir)
-
 		err := gs.AllFilesInDir(g.storageClient, g.bucket, dir, func(item *storage.ObjectAttrs) {
 			// TODO(stephana): remove this when we move away from the chromium-skia-gm bucket.
 			if strings.Contains(filepath.Base(item.Name), "uploading") {
