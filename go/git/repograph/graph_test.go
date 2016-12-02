@@ -127,7 +127,7 @@ func TestSerialize(t *testing.T) {
 }
 
 func TestRecurse(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 	_, repo, commits, cleanup := gitSetup(t)
 	defer cleanup()
