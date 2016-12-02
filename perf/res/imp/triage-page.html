@@ -51,6 +51,11 @@
       border-collapse: collapse;
       border-spacing: 0;
     }
+
+    .dot {
+      text-decoration: none;
+      color: black;
+    }
   </style>
   <template>
     <details-sk>
@@ -74,7 +79,7 @@
           <th>High</th>
         </template>
       </tr>
-      <template is="dom-repeat" items="[[_reg.table]]">
+      <template is="dom-repeat" items="[[_reg.table]]" index-as="tableIndex">
         <tr>
           <td class=fixed>
             <commit-detail-sk cid="[[item.cid]]"></commit-detail-sk>
@@ -85,7 +90,7 @@
                 <triage-status-sk query="[[_queryFrom(index)]]" cluster_type=low full_summary="[[_full_summary(item.frame, item.low)]]" triage="[[item.low_status]]"></triage-status-sk>
               </template>
               <template is="dom-if" if="[[_not(item.low)]]">
-                -
+                <a class=dot title="No clusters found." href="/g/c/[[_hashFrom(tableIndex)]]?query=[[_encQueryFrom(index)]]">[[_display(tableIndex)]]</a>
               </template>
             </td>
             <td class=cluster>
@@ -93,7 +98,7 @@
                 <triage-status-sk query="[[_queryFrom(index)]]" cluster_type=high full_summary="[[_full_summary(item.frame, item.high)]]" triage="[[item.high_status]]"></triage-status-sk>
               </template>
               <template is="dom-if" if="[[_not(item.high)]]">
-                -
+                <a class=dot title="No clusters found." href="/g/c/[[_hashFrom(tableIndex)]]?query=[[_encQueryFrom(index)]]">[[_display(tableIndex)]]</a>
               </template>
             </td>
           </template>
@@ -190,6 +195,14 @@
       return this._reg.header[index];
     },
 
+    _encQueryFrom: function(index) {
+      return encodeURIComponent(this._reg.header[index]);
+    },
+
+    _hashFrom: function(index) {
+      return this._reg.table[index].cid.hash;
+    },
+
     _full_summary: function(frame, summary) {
       return {
         frame: frame,
@@ -199,6 +212,14 @@
 
     _not: function(x) {
       return !x;
+    },
+
+    _display: function(index) {
+      if (index < 5) {
+        return "";
+      } else {
+        return "∅";
+      }
     },
 
   });
