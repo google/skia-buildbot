@@ -108,6 +108,12 @@ type CommitRange struct {
 	End   string
 }
 
+type Filter struct {
+	RGBAMax  int     `json:"rgbamax"`
+	PixelMax int     `json:"pixelmax"`
+	DiffMax  float32 `json:"diffmax"`
+}
+
 // Query is the query that Search understands.
 type Query struct {
 	BlameGroupID   string      `json:"blame"`
@@ -122,6 +128,7 @@ type Query struct {
 	PatchsetsStr   string      `json:"patchsets"` // Comma-separated list of patchsets.
 	Patchsets      []string    `json:"-"`
 	CommitRange    CommitRange `json:"-"`
+	Filter         *Filter     `json:"filter"`
 	Limit          int         `json:"limit"`
 	IncludeMaster  bool        `json:"master"` // Include digests also contained in master when searching Rietveld issues.
 }
