@@ -193,6 +193,8 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
     fi
 
     if [ "$VM_IS_SWARMINGBOT" = 1 ]; then
+      copy_files
+
       run_swarming_bootstrap
     fi
 
