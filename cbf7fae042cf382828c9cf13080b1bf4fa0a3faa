@@ -93,6 +93,24 @@
       "revId": "cbf7fae042cf382828c9cf13080b1bf4fa0a3faa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df2c3e7_35e3d81b",
+        "filename": "chromeextensions/skia-swarming/bots.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-02T20:45:16Z",
+      "side": 1,
+      "message": "I wasn\u0027t planning on including the actual JUMPHOST_IP because I don\u0027t want to expose that detail.",
+      "parentUuid": "2d6e6f0e_2de0d30a",
+      "revId": "cbf7fae042cf382828c9cf13080b1bf4fa0a3faa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
