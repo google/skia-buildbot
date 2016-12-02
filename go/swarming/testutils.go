@@ -94,6 +94,16 @@ func (c *TestClient) ListTasks(start, end time.Time, tags []string, state string
 	rv := make([]*swarming.SwarmingRpcsTaskRequestMetadata, 0, len(c.taskList))
 	tagSet := util.NewStringSet(tags)
 	for _, t := range c.taskList {
+		created, err := time.Parse(TIMESTAMP_FORMAT, t.TaskResult.CreatedTs)
+		if err != nil {
+			return nil, err
+		}
+		if !util.TimeIsZero(start) && start.After(created) {
+			continue
+		}
+		if !util.TimeIsZero(end) && end.Before(created) {
+			continue
+		}
 		if len(tagSet.Intersect(util.NewStringSet(t.Request.Tags))) == len(tags) {
 			if state == "" || t.TaskResult.State == state {
 				rv = append(rv, t)
