@@ -507,7 +507,19 @@ func keysHandler(w http.ResponseWriter, r *http.Request) {
 //
 // Sets begin and end to a range of commits on either side of the selected
 // commit.
+//
+// Preserves query parameters that are passed into /g/ and passes them onto the
+// target URL.
 func gotoHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed.", http.StatusMethodNotAllowed)
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		httputils.ReportError(w, r, err, "Could not parse query parameters.")
+		return
+	}
+	query := r.Form
 	hash := mux.Vars(r)["hash"]
 	dest := mux.Vars(r)["dest"]
 	index, err := git.IndexOf(hash)
@@ -549,13 +561,17 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	beginTime := details[0].Timestamp
 	endTime := details[1].Timestamp + 1
+	query.Set("begin", fmt.Sprintf("%d", beginTime))
+	query.Set("end", fmt.Sprintf("%d", endTime))
 
 	if dest == "e" {
-		http.Redirect(w, r, fmt.Sprintf("/e/?begin=%d&end=%d", beginTime, endTime), http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf("/e/?%s", query.Encode()), http.StatusFound)
 	} else if dest == "c" {
-		http.Redirect(w, r, fmt.Sprintf("/c/?begin=%d&end=%d&offset=%d&source=master", beginTime, endTime, index), http.StatusFound)
+		query.Set("offset", fmt.Sprintf("%d", index))
+		query.Set("source", "master")
+		http.Redirect(w, r, fmt.Sprintf("/c/?%s", query.Encode()), http.StatusFound)
 	} else if dest == "t" {
-		http.Redirect(w, r, fmt.Sprintf("/t/?begin=%d&end=%d", beginTime, endTime), http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf("/t/?%s", query.Encode()), http.StatusFound)
 	}
 }
 
