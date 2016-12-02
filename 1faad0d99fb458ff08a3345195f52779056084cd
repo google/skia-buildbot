@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6db867f6_58d2fded",
+        "filename": "perf/res/imp/triage-page.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5010
+      },
+      "writtenOn": "2016-12-02T17:50:55Z",
+      "side": 1,
+      "message": "This 5 \u003d\u003d number of points we want on either side before it makes sense to cluster, right?\n\nDoes a \"∅\" imply clustering has run here and found nothing, or just that we\u0027ve found nothing yet, perhaps because we haven\u0027t even clustered once yet?",
+      "revId": "1faad0d99fb458ff08a3345195f52779056084cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
