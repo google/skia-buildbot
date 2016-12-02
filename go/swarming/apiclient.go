@@ -396,6 +396,64 @@ func (c *apiClient) GetTaskMetadata(id string) (*swarming.SwarmingRpcsTaskReques
 	}, nil
 }
 
+// BotDimensionsToStringMap converts Swarming bot dimensions as represented in
+// the Swarming API to a map[string][]string.
+func BotDimensionsToStringMap(dims []*swarming.SwarmingRpcsStringListPair) map[string][]string {
+	m := make(map[string][]string, len(dims))
+	for _, pair := range dims {
+		m[pair.Key] = pair.Value
+	}
+	return m
+}
+
+// TaskDimensionsToStringMap converts Swarming task dimensions as represented
+// in the Swarming API to a map[string][]string.
+func TaskDimensionsToStringMap(dims []*swarming.SwarmingRpcsStringPair) map[string][]string {
+	m := make(map[string][]string, len(dims))
+	for _, pair := range dims {
+		m[pair.Key] = []string{pair.Value}
+	}
+	return m
+}
+
+// BotDimensionsToStringSlice converts Swarming bot dimensions as represented
+// in the Swarming API to a []string.
+func BotDimensionsToStringSlice(dims []*swarming.SwarmingRpcsStringListPair) []string {
+	return PackageDimensions(BotDimensionsToStringMap(dims))
+}
+
+// TaskDimensionsToStringSlice converts Swarming task dimensions as represented
+// in the Swarming API to a []string.
+func TaskDimensionsToStringSlice(dims []*swarming.SwarmingRpcsStringPair) []string {
+	return PackageDimensions(TaskDimensionsToStringMap(dims))
+}
+
+// StringMapToBotDimensions converts Swarming bot dimensions from a
+// map[string][]string to their Swarming API representation.
+func StringMapToBotDimensions(dims map[string][]string) []*swarming.SwarmingRpcsStringListPair {
+	dimensions := make([]*swarming.SwarmingRpcsStringListPair, 0, len(dims))
+	for k, v := range dims {
+		dimensions = append(dimensions, &swarming.SwarmingRpcsStringListPair{
+			Key:   k,
+			Value: v,
+		})
+	}
+	return dimensions
+}
+
+// StringMapToTaskDimensions converts Swarming task dimensions from a
+// map[string]string to their Swarming API representation.
+func StringMapToTaskDimensions(dims map[string]string) []*swarming.SwarmingRpcsStringPair {
+	dimensions := make([]*swarming.SwarmingRpcsStringPair, 0, len(dims))
+	for k, v := range dims {
+		dimensions = append(dimensions, &swarming.SwarmingRpcsStringPair{
+			Key:   k,
+			Value: v,
+		})
+	}
+	return dimensions
+}
+
 // ParseDimensions parses a string slice of dimensions into a map[string][]string.
 func ParseDimensions(dims []string) (map[string][]string, error) {
 	rv := make(map[string][]string, len(dims))

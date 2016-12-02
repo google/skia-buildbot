@@ -1,63 +1,79 @@
 package scheduling
 
 import (
-	"fmt"
 	"testing"
 
-	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
-	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
+
+	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 )
 
 func TestBusyBots(t *testing.T) {
 	testutils.SmallTest(t)
 
+	bot := func(id string, dims map[string][]string) *swarming_api.SwarmingRpcsBotInfo {
+		return &swarming_api.SwarmingRpcsBotInfo{
+			BotId:      id,
+			Dimensions: swarming.StringMapToBotDimensions(dims),
+		}
+	}
+
+	task := func(id string, dims map[string]string) *swarming_api.SwarmingRpcsTaskRequestMetadata {
+		return &swarming_api.SwarmingRpcsTaskRequestMetadata{
+			Request: &swarming_api.SwarmingRpcsTaskRequest{
+				Properties: &swarming_api.SwarmingRpcsTaskProperties{
+					Dimensions: swarming.StringMapToTaskDimensions(dims),
+				},
+			},
+			TaskId: id,
+		}
+	}
+
 	// No bots are busy.
 	bb := newBusyBots()
-	b1 := &swarming_api.SwarmingRpcsBotInfo{
-		BotId: "b1",
-	}
-	assert.False(t, bb.Busy(b1.BotId))
+	b1 := bot("b1", map[string][]string{
+		"pool": []string{"Skia"},
+	})
 	bots := []*swarming_api.SwarmingRpcsBotInfo{b1}
 	testutils.AssertDeepEqual(t, bots, bb.Filter(bots))
 
-	// Reserve the bot.
-	taskId := "task1"
-	bb.Reserve(b1.BotId, taskId)
-	assert.True(t, bb.Busy(b1.BotId))
+	// Reserve the bot for a task.
+	t1 := task("t1", map[string]string{"pool": "Skia"})
+	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1})
 	testutils.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsBotInfo{}, bb.Filter(bots))
 
-	// Release the bot, from the wrong task. Ensure it's still busy.
-	bb.Release(b1.BotId, "dummy-task")
-	assert.True(t, bb.Busy(b1.BotId))
+	// Ensure that it's still busy.
 	testutils.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsBotInfo{}, bb.Filter(bots))
 
-	// Really release the bot.
-	bb.Release(b1.BotId, taskId)
-	assert.False(t, bb.Busy(b1.BotId))
+	// It's no longer busy.
+	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{})
 	testutils.AssertDeepEqual(t, bots, bb.Filter(bots))
 
-	// Test with a bunch of bots.
-	for i := 0; i < 10; i++ {
-		bots = append(bots, &swarming_api.SwarmingRpcsBotInfo{
-			BotId: fmt.Sprintf("b%d", i+2),
-		})
-	}
-	for _, b := range bots {
-		assert.False(t, bb.Busy(b.BotId))
-	}
-	testutils.AssertDeepEqual(t, bots, bb.Filter(bots))
+	// There are two bots and one task.
+	b2 := bot("b2", map[string][]string{
+		"pool": []string{"Skia"},
+	})
+	bots = append(bots, b2)
+	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1})
+	testutils.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsBotInfo{b2}, bb.Filter(bots))
 
-	// Mark some as busy.
-	expect := []*swarming_api.SwarmingRpcsBotInfo{}
-	for i, b := range bots {
-		if i%2 == 0 {
-			bb.Reserve(b.BotId, fmt.Sprintf("task%d", i))
-			assert.True(t, bb.Busy(b.BotId))
-		} else {
-			assert.False(t, bb.Busy(b.BotId))
-			expect = append(expect, b)
-		}
-	}
-	testutils.AssertDeepEqual(t, expect, bb.Filter(bots))
+	// Two tasks and one bot.
+	t2 := task("t2", map[string]string{"pool": "Skia"})
+	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2})
+	testutils.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsBotInfo{}, bb.Filter([]*swarming_api.SwarmingRpcsBotInfo{b1}))
+
+	// Differentiate between dimension sets.
+	// Since busyBots works in order, if we were arbitrarily picking any
+	// bot for each task, then b3 would get filtered out. Verify that b4
+	// gets filtered out as we'd expect.
+	b3 := bot("b3", linuxBotDims)
+	b4 := bot("b4", androidBotDims)
+	t3 := task("t3", androidTaskDims)
+	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t3})
+	testutils.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsBotInfo{b3}, bb.Filter([]*swarming_api.SwarmingRpcsBotInfo{b3, b4}))
+
+	// Test supersets of dimensions.
+	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2, t3})
+	testutils.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsBotInfo{b3}, bb.Filter([]*swarming_api.SwarmingRpcsBotInfo{b1, b2, b3, b4}))
 }
