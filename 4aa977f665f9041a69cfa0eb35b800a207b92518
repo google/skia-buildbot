@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d6e6f0e_4a89b542",
+        "filename": "compute_engine_scripts/buildbots/vm_create_setup_instances.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-12-02T12:38:50Z",
+      "side": 1,
+      "message": "What do they need from here? is this for presubmit?",
+      "revId": "4aa977f665f9041a69cfa0eb35b800a207b92518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
