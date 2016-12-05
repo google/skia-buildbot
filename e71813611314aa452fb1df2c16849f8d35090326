@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "4df2c3e7_7d1ffad3",
+        "filename": "perf/go/clustering2/async.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-12-05T20:12:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df2c3e7_1d6a2e5b",
+      "revId": "e71813611314aa452fb1df2c16849f8d35090326",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df2c3e7_bd91e233",
         "filename": "perf/res/imp/cluster-page.html",
         "patchSetId": 1
@@ -42,6 +60,24 @@
         "endLine": 105,
         "endChar": 65
       },
+      "revId": "e71813611314aa452fb1df2c16849f8d35090326",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df2c3e7_bdb0c292",
+        "filename": "perf/res/imp/cluster-page.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-12-05T20:12:44Z",
+      "side": 1,
+      "message": "It does, which was surprising to me.",
+      "parentUuid": "4df2c3e7_bd91e233",
       "revId": "e71813611314aa452fb1df2c16849f8d35090326",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
