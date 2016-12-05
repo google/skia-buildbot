@@ -202,7 +202,7 @@ func TestJobFinished(t *testing.T) {
 	now := time.Now()
 
 	// Job not actually finished.
-	assert.EqualError(t, trybots.JobFinished(j), "JobFinished called for unfinished Job!")
+	assert.EqualError(t, trybots.jobFinished(j), "JobFinished called for unfinished Job!")
 
 	// Successful job.
 	j.Status = db.JOB_STATUS_SUCCESS
@@ -210,13 +210,13 @@ func TestJobFinished(t *testing.T) {
 	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j}))
 	assert.NoError(t, trybots.jCache.Update())
 	MockJobSuccess(mock, j, now, nil, false)
-	assert.NoError(t, trybots.JobFinished(j))
+	assert.NoError(t, trybots.jobFinished(j))
 	assert.True(t, mock.Empty())
 
 	// Successful job, failed to update.
 	err := fmt.Errorf("fail")
 	MockJobSuccess(mock, j, now, err, false)
-	assert.EqualError(t, trybots.JobFinished(j), err.Error())
+	assert.EqualError(t, trybots.jobFinished(j), err.Error())
 	assert.True(t, mock.Empty())
 
 	// Failed job.
@@ -224,12 +224,12 @@ func TestJobFinished(t *testing.T) {
 	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j}))
 	assert.NoError(t, trybots.jCache.Update())
 	MockJobFailure(mock, j, now, nil)
-	assert.NoError(t, trybots.JobFinished(j))
+	assert.NoError(t, trybots.jobFinished(j))
 	assert.True(t, mock.Empty())
 
 	// Failed job, failed to update.
 	MockJobFailure(mock, j, now, err)
-	assert.EqualError(t, trybots.JobFinished(j), err.Error())
+	assert.EqualError(t, trybots.jobFinished(j), err.Error())
 	assert.True(t, mock.Empty())
 
 	// Mishap.
@@ -237,12 +237,12 @@ func TestJobFinished(t *testing.T) {
 	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j}))
 	assert.NoError(t, trybots.jCache.Update())
 	MockJobMishap(mock, j, now, nil)
-	assert.NoError(t, trybots.JobFinished(j))
+	assert.NoError(t, trybots.jobFinished(j))
 	assert.True(t, mock.Empty())
 
 	// Mishap, failed to update.
 	MockJobMishap(mock, j, now, err)
-	assert.EqualError(t, trybots.JobFinished(j), err.Error())
+	assert.EqualError(t, trybots.jobFinished(j), err.Error())
 	assert.True(t, mock.Empty())
 }
 

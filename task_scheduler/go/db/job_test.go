@@ -19,6 +19,7 @@ func TestJobCopy(t *testing.T) {
 	v := &Job{
 		BuildbucketBuildId:  12345,
 		BuildbucketLeaseKey: 987,
+		BuildbucketStatus:   "hi",
 		Created:             now.Add(time.Nanosecond),
 		DbModified:          now.Add(time.Millisecond),
 		Dependencies:        map[string][]string{"A": []string{"B"}, "B": []string{}},

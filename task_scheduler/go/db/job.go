@@ -32,6 +32,10 @@ const (
 	// JOB_STATUS_CANCELED indicates that the Job has been canceled.
 	JOB_STATUS_CANCELED JobStatus = "CANCELED"
 
+	// JOB_STATUS_SCHEDULED indicates that the Job has been created but
+	// not started.
+	JOB_STATUS_SCHEDULED = "SCHEDULED"
+
 	// JOB_URL_TMPL is a template for Job URLs.
 	JOB_URL_TMPL = "https://task-scheduler.skia.org/job/%s"
 
@@ -54,6 +58,11 @@ var (
 // JOB_STATUS_IN_PROGRESS is final; we do not retry Jobs, only their component
 // Tasks.
 type JobStatus string
+
+// Done returns true iff the JobStatus indicates a finishes Job.
+func (s JobStatus) Done() bool {
+	return s != JOB_STATUS_IN_PROGRESS
+}
 
 // WorseThan returns true iff this JobStatus is worse than the given JobStatus.
 func (s JobStatus) WorseThan(other JobStatus) bool {
@@ -98,6 +107,10 @@ type Job struct {
 	// BuildbucketLeaseKey is the lease key for running a Buildbucket build.
 	// TODO(borenet): Maybe this doesn't belong in the DB.
 	BuildbucketLeaseKey int64
+
+	// BuildbucketStatus is the last status of the Job which was reported to
+	// Buildbucket.
+	BuildbucketStatus JobStatus
 
 	// Created is the creation timestamp. This property should never change
 	// for a given Job instance.
@@ -171,6 +184,7 @@ func (j *Job) Copy() *Job {
 	return &Job{
 		BuildbucketBuildId:  j.BuildbucketBuildId,
 		BuildbucketLeaseKey: j.BuildbucketLeaseKey,
+		BuildbucketStatus:   j.BuildbucketStatus,
 		Created:             j.Created,
 		DbModified:          j.DbModified,
 		Dependencies:        deps,
@@ -186,7 +200,7 @@ func (j *Job) Copy() *Job {
 }
 
 func (j *Job) Done() bool {
-	return j.Status != JOB_STATUS_IN_PROGRESS
+	return j.Status.Done()
 }
 
 // MakeTaskKey returns a TaskKey for the given Task name.

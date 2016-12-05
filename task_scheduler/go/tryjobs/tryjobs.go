@@ -53,6 +53,9 @@ const (
 
 	// How often to poll Buildbucket for newly-scheduled builds.
 	POLL_INTERVAL = time.Minute
+
+	// How often to update Buildbucket with modified builds.
+	UPDATE_INTERVAL = 30 * time.Second
 )
 
 // TryJobIntegrator is responsible for communicating with Buildbucket to
@@ -62,6 +65,7 @@ type TryJobIntegrator struct {
 	bucket             string
 	db                 db.JobDB
 	jCache             db.JobCache
+	modJobsId          string
 	projectRepoMapping map[string]string
 	rm                 repograph.Map
 	taskCfgCache       *specs.TaskCfgCache
@@ -74,11 +78,16 @@ func NewTryJobIntegrator(apiUrl, bucket string, c *http.Client, d db.JobDB, cach
 		return nil, err
 	}
 	bb.BasePath = apiUrl
+	modJobsId, err := d.StartTrackingModifiedJobs()
+	if err != nil {
+		return nil, err
+	}
 	rv := &TryJobIntegrator{
 		bb:                 bb,
 		bucket:             bucket,
 		db:                 d,
 		jCache:             cache,
+		modJobsId:          modJobsId,
 		projectRepoMapping: projectRepoMapping,
 		rm:                 rm,
 		taskCfgCache:       taskCfgCache,
@@ -89,13 +98,18 @@ func NewTryJobIntegrator(apiUrl, bucket string, c *http.Client, d db.JobDB, cach
 // Start initiates the TryJobIntegrator's heatbeat and polling loops. If the
 // given Context is canceled, the loops stop.
 func (t *TryJobIntegrator) Start(ctx context.Context) {
+	go util.RepeatCtx(POLL_INTERVAL, ctx, func() {
+		if err := t.Poll(time.Now()); err != nil {
+			glog.Errorf("Failed to poll for new try jobs: %s", err)
+		}
+	})
 	go util.RepeatCtx(HEARTBEAT_INTERVAL, ctx, func() {
 		if err := t.sendHeartbeats(time.Now()); err != nil {
 			glog.Error(err)
 		}
 	})
-	go util.RepeatCtx(POLL_INTERVAL, ctx, func() {
-		if err := t.Poll(time.Now()); err != nil {
+	go util.RepeatCtx(UPDATE_INTERVAL, ctx, func() {
+		if err := t.updateJobs(); err != nil {
 			glog.Errorf("Failed to poll for new try jobs: %s", err)
 		}
 	})
@@ -303,6 +317,7 @@ func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiBuildMessage, 
 	// Update and return the Job.
 	j.BuildbucketBuildId = b.Id
 	j.BuildbucketLeaseKey = leaseKey
+	j.BuildbucketStatus = db.JOB_STATUS_SCHEDULED
 
 	return j, nil
 }
@@ -346,31 +361,62 @@ func (t *TryJobIntegrator) Poll(now time.Time) error {
 		}
 	}
 
-	// Since Jobs may consist of multiple Tasks, we consider them to be
-	// "started" as soon as we've picked them up.
-	// TODO(borenet): Sending "started" notifications after inserting the
-	// new Jobs into the database puts us at risk of never sending the
-	// notification if the process is interrupted. However, we need to
-	// include the Job ID with the notification, so we have to insert the
-	// Job into the DB first.
-	cancelJobs := []*db.Job{}
-	for _, j := range jobs {
-		if err := t.jobStarted(j); err != nil {
-			errs = append(errs, err)
-			cancelJobs = append(cancelJobs, j)
-		}
-	}
-	if len(cancelJobs) > 0 {
-		if err := t.localCancelJobs(cancelJobs); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
 	// Report any errors.
 	if len(errs) > 0 {
 		return fmt.Errorf("Got errors loading builds from Buildbucket: %v", errs)
 	}
 
+	return nil
+}
+
+// updateJob sends an update to Buildbucket for a modified job.
+func (t *TryJobIntegrator) updateJob(j *db.Job) error {
+	if j.BuildbucketStatus == db.JOB_STATUS_SCHEDULED {
+		return t.jobStarted(j)
+	}
+	if j.Status == db.JOB_STATUS_CANCELED {
+		return t.localCancelJobs([]*db.Job{j})
+	}
+	if j.Done() {
+		return t.jobFinished(j)
+	}
+	return nil
+}
+
+// updateJobs sends updates to Buildbucket for modified jobs.
+func (t *TryJobIntegrator) updateJobs() error {
+	jobs, err := t.db.GetModifiedJobs(t.modJobsId)
+	if err != nil {
+		if db.IsUnknownId(err) {
+			glog.Warningf("Connection to db lost; will not be able to update Buildbucket for any jobs modified since the last update.")
+			modJobsId, err := t.db.StartTrackingModifiedJobs()
+			if err != nil {
+				return err
+			}
+			t.modJobsId = modJobsId
+		}
+		return err
+	}
+	errs := []error{}
+	insert := []*db.Job{}
+	for _, j := range jobs {
+		if j.BuildbucketBuildId != 0 && j.Status != j.BuildbucketStatus {
+			if err := t.updateJob(j); err != nil {
+				errs = append(errs, err)
+			} else {
+				j.BuildbucketStatus = j.Status
+				insert = append(insert, j)
+			}
+		}
+	}
+	if len(insert) > 0 {
+		if err := t.db.PutJobs(insert); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("Got errors updating Jobs in Buildbucket: %v", errs)
+	}
 	return nil
 }
 
@@ -391,8 +437,8 @@ func (t *TryJobIntegrator) jobStarted(j *db.Job) error {
 	return nil
 }
 
-// JobFinished notifies Buildbucket that the given Job has finished.
-func (t *TryJobIntegrator) JobFinished(j *db.Job) error {
+// jobFinished notifies Buildbucket that the given Job has finished.
+func (t *TryJobIntegrator) jobFinished(j *db.Job) error {
 	if !j.Done() {
 		return fmt.Errorf("JobFinished called for unfinished Job!")
 	}
