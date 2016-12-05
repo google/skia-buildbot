@@ -110,7 +110,7 @@ func (p *pdfProcessor) Process(resultsFile ingestion.ResultFileLocation) error {
 		return err
 	}
 
-	dmResults, err := goldingestion.ParseDMResultsFromReader(r)
+	dmResults, err := goldingestion.ParseDMResultsFromReader(r, resultsFile.Name())
 	if err != nil {
 		return err
 	}

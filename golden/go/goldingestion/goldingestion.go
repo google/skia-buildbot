@@ -55,7 +55,7 @@ func (g *goldProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 		return err
 	}
 
-	dmResults, err := ParseDMResultsFromReader(r)
+	dmResults, err := ParseDMResultsFromReader(r, resultsFile.Name())
 	if err != nil {
 		return err
 	}

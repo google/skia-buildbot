@@ -58,7 +58,7 @@ func TestDMResults(t *testing.T) {
 	f, err := os.Open(TEST_INGESTION_FILE)
 	assert.NoError(t, err)
 
-	dmResults, err := ParseDMResultsFromReader(f)
+	dmResults, err := ParseDMResultsFromReader(f, TEST_INGESTION_FILE)
 	assert.NoError(t, err)
 
 	entries := dmResults.getTraceDBEntries()
