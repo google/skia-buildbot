@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4df2c3e7_a2bb030c",
+        "filename": "skolo/build_release_backup",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-05T19:55:43Z",
+      "side": 1,
+      "message": "Should probably use quotes. Same for other files.",
+      "range": {
+        "startLine": 4,
+        "startChar": 8,
+        "endLine": 4,
+        "endChar": 43
+      },
+      "revId": "036f512356e4c3345dbd047ac1fca1dd2a6127ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df2c3e7_225273fa",
+        "filename": "skolo/build_release_backup",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-05T19:55:43Z",
+      "side": 1,
+      "message": "Would it make sense for bash/release.sh to just do the following on line 88?\nif [ -v SYSTEMD_TIMER ]; then\n  RESTART_TARGET\u003d${SYSTEMD_TIMER}\n  SYSTEMD \u003d \"${SYSTEMD} ${SYSTEMD_TIMER}\"\nfi\n\n(Also, I wonder if that shouldn\u0027t be if [ ! -z \"${SYSTEMD_TIMER}\" ]...)",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 13
+      },
+      "revId": "036f512356e4c3345dbd047ac1fca1dd2a6127ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
