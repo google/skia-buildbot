@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4df2c3e7_82eebf3f",
+        "filename": "golden/go/goldingestion/common.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-12-05T19:40:18Z",
+      "side": 1,
+      "message": "Why is this private with and accessor when everything else in this struct is public?",
+      "revId": "2a3e33ec9e3316a566d92b4dd8b8aacaeecda34d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
