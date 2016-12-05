@@ -16,6 +16,24 @@
       "revId": "060eb511d7e19de11624db0683b8f3066a1a4392",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df2c3e7_87a9315b",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-05T18:18:04Z",
+      "side": 1,
+      "message": "No, I just realized that it would be a problem.  Added a check to the test and verified that it fails without this line.",
+      "parentUuid": "4df2c3e7_ac665ad1",
+      "revId": "060eb511d7e19de11624db0683b8f3066a1a4392",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
