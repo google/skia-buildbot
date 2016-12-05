@@ -22,6 +22,24 @@
       "revId": "c33546d76e46996760a401f93e8c95fb3d3c92e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df2c3e7_81059c7a",
+        "filename": "golden/frontend/res/imp/comp-page-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-12-05T21:17:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df2c3e7_2cadca81",
+      "revId": "c33546d76e46996760a401f93e8c95fb3d3c92e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
