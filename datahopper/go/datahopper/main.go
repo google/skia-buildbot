@@ -11,7 +11,6 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -25,21 +24,13 @@ import (
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 )
 
 const (
-	MEASUREMENT_BUILDS_DURATION               = "buildbot.builds.duration"
-	MEASUREMENT_BUILDS_FAILURE                = "buildbot.builds.failure-status"
-	MEASUREMENT_BUILDS_INGESTED               = "buildbot.builds.ingested"
-	MEASUREMENT_BUILDS_TOTAL                  = "buildbot.builds.total"
-	MEASUREMENT_BUILDSLAVES_CONNECTED         = "buildbot.buildslaves.connected"
-	MEASUREMENT_BUILDSTEPS_DURATION           = "buildbot.buildsteps.duration"
-	MEASUREMENT_BUILDSTEPS_FAILURE            = "buildbot.buildsteps.failure-status"
-	MEASUREMENT_SWARM_BOTS_LAST_SEEN          = "buildbot.swarm-bots.last-seen"
-	MEASUREMENT_SWARM_BOTS_QUARANTINED        = "buildbot.swarm-bots.quarantined"
+	MEASUREMENT_SWARM_BOTS_LAST_SEEN          = "swarming.bots.last-seen"
+	MEASUREMENT_SWARM_BOTS_QUARANTINED        = "swarming.bots.quarantined"
 	MEASUREMENT_SWARM_TASKS_DURATION          = "swarming.tasks.duration"
 	MEASUREMENT_SWARM_TASKS_OVERHEAD_BOT      = "swarming.tasks.overhead.bot"
 	MEASUREMENT_SWARM_TASKS_OVERHEAD_DOWNLOAD = "swarming.tasks.overhead.download"
@@ -124,133 +115,6 @@ func main() {
 	if _, err := buildbot.RunBuildServer(*grpcPort, db); err != nil {
 		glog.Fatal(err)
 	}
-
-	// Measure buildbot data ingestion progress.
-	totalGauge := metrics2.GetInt64Metric(MEASUREMENT_BUILDS_TOTAL, nil)
-	ingestGuage := metrics2.GetInt64Metric(MEASUREMENT_BUILDS_INGESTED, nil)
-	go func() {
-		for _ = range time.Tick(common.SAMPLE_PERIOD) {
-			totalBuilds, err := buildbot.NumTotalBuilds()
-			if err != nil {
-				glog.Error(err)
-				continue
-			}
-			ingestedBuilds, err := db.NumIngestedBuilds()
-			if err != nil {
-				glog.Error(err)
-				continue
-			}
-			totalGauge.Update(int64(totalBuilds))
-			ingestGuage.Update(int64(ingestedBuilds))
-		}
-	}()
-
-	// Average build and step duration, failure rate.
-	go func() {
-		start := time.Now().Add(-1 * time.Hour)
-		for _ = range time.Tick(10 * time.Minute) {
-			end := time.Now().UTC()
-			glog.Info("Loading build and buildstep duration data from %s to %s", start, end)
-			builds, err := db.GetBuildsFromDateRange(start, end)
-			if err != nil {
-				glog.Errorf("Failed to obtain build and buildstep duration data: %s", err)
-				continue
-			}
-			for _, b := range builds {
-				if !b.IsFinished() {
-					continue
-				}
-				tags := map[string]string{
-					"builder":    b.Builder,
-					"buildslave": b.BuildSlave,
-					"master":     b.Master,
-					"number":     strconv.Itoa(b.Number),
-				}
-				builderNameParts, err := buildbot.ParseBuilderName(b.Builder)
-				if err != nil {
-					glog.Warningf("Failed to parse builder name %q: %s", b.Builder, err)
-					builderNameParts = map[string]string{}
-				}
-				for k, v := range builderNameParts {
-					tags[k] = v
-				}
-				// Report build duration.
-				d := b.Finished.Sub(b.Started)
-				metrics2.RawAddInt64PointAtTime(MEASUREMENT_BUILDS_DURATION, tags, int64(d), b.Finished)
-
-				// Report build failure rate.
-				failureStatus := 0
-				if b.Results != buildbot.BUILDBOT_SUCCESS {
-					failureStatus = 1
-				}
-				metrics2.RawAddInt64PointAtTime(MEASUREMENT_BUILDS_FAILURE, tags, int64(failureStatus), b.Finished)
-
-				for _, s := range b.Steps {
-					if !s.IsFinished() {
-						continue
-					}
-					d := s.Finished.Sub(s.Started)
-					stepTags := make(map[string]string, len(tags)+1)
-					for k, v := range tags {
-						stepTags[k] = v
-					}
-					stepTags["step"] = s.Name
-					// Report step duration.
-					metrics2.RawAddInt64PointAtTime(MEASUREMENT_BUILDSTEPS_DURATION, stepTags, int64(d), s.Finished)
-
-					// Report step failure rate.
-					stepFailStatus := 0
-					if s.Results != buildbot.BUILDBOT_SUCCESS {
-						stepFailStatus = 1
-					}
-					metrics2.RawAddInt64PointAtTime(MEASUREMENT_BUILDSTEPS_FAILURE, stepTags, int64(stepFailStatus), s.Finished)
-				}
-			}
-			start = end
-		}
-	}()
-
-	// Offline buildslaves.
-	go func() {
-		lastKnownSlaves := map[string]string{}
-		for _ = range time.Tick(time.Minute) {
-			glog.Info("Loading buildslave data.")
-			slaves, err := buildbot.GetBuildSlaves()
-			if err != nil {
-				glog.Error(err)
-				continue
-			}
-			currentSlaves := map[string]string{}
-			for masterName, m := range slaves {
-				for _, s := range m {
-					delete(lastKnownSlaves, s.Name)
-					currentSlaves[s.Name] = masterName
-					if util.In(s.Name, BUILDSLAVE_OFFLINE_BLACKLIST) {
-						continue
-					}
-					v := int64(0)
-					if s.Connected {
-						v = int64(1)
-					}
-					metrics2.GetInt64Metric(MEASUREMENT_BUILDSLAVES_CONNECTED, map[string]string{
-						"buildslave": s.Name,
-						"master":     masterName,
-					}).Update(v)
-				}
-			}
-			// Delete metrics for slaves which have disappeared.
-			for slave, master := range lastKnownSlaves {
-				glog.Infof("Removing metric for buildslave %s", slave)
-				if err := metrics2.GetInt64Metric(MEASUREMENT_BUILDSLAVES_CONNECTED, map[string]string{
-					"buildslave": slave,
-					"master":     master,
-				}).Delete(); err != nil {
-					glog.Errorf("Failed to delete metric: %s", err)
-				}
-			}
-			lastKnownSlaves = currentSlaves
-		}
-	}()
 
 	// Swarming bots.
 	go func() {
