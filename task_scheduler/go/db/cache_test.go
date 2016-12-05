@@ -641,6 +641,21 @@ func TestJobCacheUnfinished(t *testing.T) {
 	testGetUnfinished(t, []*Job{j3}, c)
 }
 
+func TestJobCacheByBuildbucketBuildId(t *testing.T) {
+	testutils.SmallTest(t)
+	db := NewInMemoryJobDB()
+
+	// Insert a job.
+	startTime := time.Now().Add(-30 * time.Minute)
+	j1 := makeJob(startTime)
+	assert.NoError(t, db.PutJob(j1))
+
+	// Create the cache. Ensure that the existing job is present.
+	c, err := NewJobCache(db, time.Hour, DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)))
+	assert.NoError(t, err)
+	testGetUnfinished(t, []*Job{j1}, c)
+}
+
 // assertJobInSlice fails the test if job is not deep-equal to an element of
 // slice.
 func assertJobInSlice(t *testing.T, job *Job, slice []*Job) {
