@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4df2c3e7_1d6a2e5b",
+        "filename": "perf/go/clustering2/async.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-05T20:03:05Z",
+      "side": 1,
+      "message": "nit: just change to if k \u003c\u003d 0 || k \u003e MAX_K {",
+      "range": {
+        "startLine": 286,
+        "startChar": 1,
+        "endLine": 289,
+        "endChar": 12
+      },
+      "revId": "e71813611314aa452fb1df2c16849f8d35090326",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df2c3e7_bd91e233",
+        "filename": "perf/res/imp/cluster-page.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-05T20:03:05Z",
+      "side": 1,
+      "message": "I don\u0027t know Polymer well enough to know if this works when state.k is changed by sk.stateReflector.",
+      "range": {
+        "startLine": 105,
+        "startChar": 54,
+        "endLine": 105,
+        "endChar": 65
+      },
+      "revId": "e71813611314aa452fb1df2c16849f8d35090326",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
