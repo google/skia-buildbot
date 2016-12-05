@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4df2c3e7_4c3a4ef7",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 430,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-05T17:57:00Z",
+      "side": 1,
+      "message": "wrong name",
+      "range": {
+        "startLine": 430,
+        "startChar": 4,
+        "endLine": 430,
+        "endChar": 27
+      },
+      "revId": "d5881efa4d643a86d582a83cbc2a39d1f7ac3efb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df2c3e7_0c19e6a2",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 504,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-05T17:57:00Z",
+      "side": 1,
+      "message": "needs Copy()?",
+      "range": {
+        "startLine": 504,
+        "startChar": 18,
+        "endLine": 504,
+        "endChar": 19
+      },
+      "revId": "d5881efa4d643a86d582a83cbc2a39d1f7ac3efb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df2c3e7_4c0fee4f",
+        "filename": "task_scheduler/go/db/cache_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 653,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-05T17:57:00Z",
+      "side": 1,
+      "message": "Comment out-of-date or misplaced.",
+      "range": {
+        "startLine": 653,
+        "startChar": 1,
+        "endLine": 653,
+        "endChar": 43
+      },
+      "revId": "d5881efa4d643a86d582a83cbc2a39d1f7ac3efb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df2c3e7_ccfbde04",
+        "filename": "task_scheduler/go/db/cache_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 658,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-05T17:57:00Z",
+      "side": 1,
+      "message": "nit: only works if len(expect) \u003d\u003d 1; in that case, maybe just change expect to be *Job instead of []*Job.",
+      "range": {
+        "startLine": 658,
+        "startChar": 12,
+        "endLine": 658,
+        "endChar": 27
+      },
+      "revId": "d5881efa4d643a86d582a83cbc2a39d1f7ac3efb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df2c3e7_6c7f527f",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-05T17:57:00Z",
+      "side": 1,
+      "message": "I assume that TS won\u0027t be modifying Jobs once they are Done(). If that\u0027s not a good assumption, we might need to think about special handling of ErrConcurrentUpdate.",
+      "range": {
+        "startLine": 156,
+        "startChar": 11,
+        "endLine": 156,
+        "endChar": 31
+      },
+      "revId": "d5881efa4d643a86d582a83cbc2a39d1f7ac3efb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df2c3e7_0cac46d3",
+        "filename": "task_scheduler/go/tryjobs/tryjobs_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-05T17:57:00Z",
+      "side": 1,
+      "message": "Same nit as above.",
+      "range": {
+        "startLine": 27,
+        "startChar": 12,
+        "endLine": 27,
+        "endChar": 27
+      },
+      "revId": "d5881efa4d643a86d582a83cbc2a39d1f7ac3efb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
