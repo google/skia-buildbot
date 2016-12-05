@@ -85,14 +85,14 @@ func TestPDFProcessor(t *testing.T) {
 	assert.NoError(t, err)
 	r, err := fsResult.Open()
 	assert.NoError(t, err)
-	fsDMResults, err := goldingestion.ParseDMResultsFromReader(r)
+	fsDMResults, err := goldingestion.ParseDMResultsFromReader(r, TEST_INGESTION_FILE)
 	assert.NoError(t, err)
 
 	foundResult, err := ingestion.FileSystemResult(resultFileName, "./")
 	assert.NoError(t, err)
 	r, err = foundResult.Open()
 	assert.NoError(t, err)
-	foundDMResults, err := goldingestion.ParseDMResultsFromReader(r)
+	foundDMResults, err := goldingestion.ParseDMResultsFromReader(r, foundResult.Name())
 	assert.NoError(t, err)
 
 	dmResult1 := *fsDMResults

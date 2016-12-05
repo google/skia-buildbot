@@ -89,7 +89,7 @@ func testOneTrybotResults(t *testing.T, ingestionFile string) {
 
 	r, err := fsResult.Open()
 	assert.NoError(t, err)
-	dmResults, err := goldingestion.ParseDMResultsFromReader(r)
+	dmResults, err := goldingestion.ParseDMResultsFromReader(r, fsResult.Name())
 	assert.NoError(t, err)
 
 	expectedDigests := util.NewStringSet()
