@@ -641,6 +641,47 @@ func TestJobCacheUnfinished(t *testing.T) {
 	testGetUnfinished(t, []*Job{j3}, c)
 }
 
+func TestJobCacheActiveTryJobs(t *testing.T) {
+	testutils.SmallTest(t)
+	db := NewInMemoryJobDB()
+
+	// Insert a job.
+	startTime := time.Now().Add(-30 * time.Minute)
+	j1 := makeJob(startTime)
+	assert.NoError(t, db.PutJob(j1))
+
+	// Create the cache.
+	c, err := NewJobCache(db, time.Hour, DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)))
+	assert.NoError(t, err)
+
+	// Ensure that the job is not in the active list.
+	assertActive := func(expect []*Job) {
+		assert.NoError(t, c.Update())
+		actual, err := c.GetActiveTryJobs()
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, expect, actual)
+	}
+	assertNoActive := func() {
+		assertActive([]*Job{})
+	}
+
+	assertNoActive()
+
+	// Now j1 is a try job.
+	put := func(j *Job) {
+		assert.NoError(t, db.PutJob(j))
+		assert.NoError(t, c.Update())
+	}
+	j1.BuildbucketLeaseKey = 12345
+	put(j1)
+	assertActive([]*Job{j1})
+
+	// Now it's not again.
+	j1.BuildbucketLeaseKey = 0
+	put(j1)
+	assertNoActive()
+}
+
 // assertJobInSlice fails the test if job is not deep-equal to an element of
 // slice.
 func assertJobInSlice(t *testing.T, job *Job, slice []*Job) {
