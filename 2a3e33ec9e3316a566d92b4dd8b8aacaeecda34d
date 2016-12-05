@@ -16,6 +16,24 @@
       "revId": "2a3e33ec9e3316a566d92b4dd8b8aacaeecda34d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df2c3e7_a1a4208a",
+        "filename": "golden/go/goldingestion/common.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-12-05T21:20:45Z",
+      "side": 1,
+      "message": "DMResult  is really a pure input structure in that is used to parse the Gold results JSON file. \nThe name is injected separately. I wanted to make it very clear that this is not parsed from JSON (thus the private).\nAs a consequence I added the accessor and the separate argument in ParseDMResultsFromReader.",
+      "parentUuid": "4df2c3e7_82eebf3f",
+      "revId": "2a3e33ec9e3316a566d92b4dd8b8aacaeecda34d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
