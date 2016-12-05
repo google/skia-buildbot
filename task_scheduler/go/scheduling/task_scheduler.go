@@ -1292,15 +1292,6 @@ func (s *TaskScheduler) jobFinished(j *db.Job) error {
 		return fmt.Errorf("jobFinished called on Job with status %q", j.Status)
 	}
 	j.Finished = time.Now()
-	if j.IsTryJob() {
-		// Report the try job status to Buildbucket. If
-		// we fail to do so, don't insert the updated
-		// Job into the DB - we'll come back to it on
-		// the next loop.
-		if err := s.tryjobs.JobFinished(j); err != nil {
-			return fmt.Errorf("Failed to send update for try job: %s", err)
-		}
-	}
 	return nil
 }
 

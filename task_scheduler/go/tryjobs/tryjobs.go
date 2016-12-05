@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -14,6 +15,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -32,8 +34,8 @@ const (
 	BUCKET_PRIMARY = "skia.primary"
 	BUCKET_TESTING = "skia.testing"
 
-	// How often to send heartbeats to Buildbucket.
-	HEARTBEAT_INTERVAL = 2 * time.Minute
+	// How often to send updates to Buildbucket.
+	UPDATE_INTERVAL = 30 * time.Second
 
 	// We attempt to renew leases in batches. This is the batch size.
 	LEASE_BATCH_SIZE = 25
@@ -53,6 +55,10 @@ const (
 
 	// How often to poll Buildbucket for newly-scheduled builds.
 	POLL_INTERVAL = time.Minute
+
+	// This error reason indicates that we already marked the build as
+	// finished.
+	BUILDBUCKET_API_ERROR_REASON_COMPLETED = "BUILD_IS_COMPLETED"
 )
 
 // TryJobIntegrator is responsible for communicating with Buildbucket to
@@ -89,8 +95,8 @@ func NewTryJobIntegrator(apiUrl, bucket string, c *http.Client, d db.JobDB, cach
 // Start initiates the TryJobIntegrator's heatbeat and polling loops. If the
 // given Context is canceled, the loops stop.
 func (t *TryJobIntegrator) Start(ctx context.Context) {
-	go util.RepeatCtx(HEARTBEAT_INTERVAL, ctx, func() {
-		if err := t.sendHeartbeats(time.Now()); err != nil {
+	go util.RepeatCtx(UPDATE_INTERVAL, ctx, func() {
+		if err := t.updateJobs(time.Now()); err != nil {
 			glog.Error(err)
 		}
 	})
@@ -101,25 +107,71 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 	})
 }
 
-// sendHeartbeats sends heartbeats to Buildbucket for all of the unfinished try
-// Jobs.
-func (t *TryJobIntegrator) sendHeartbeats(now time.Time) error {
-	glog.Infof("Sending heartbeats.")
+// updateJobs sends updates to Buildbucket for all active try Jobs.
+func (t *TryJobIntegrator) updateJobs(now time.Time) error {
+	// Get all Jobs associated with in-progress Buildbucket builds.
 	if err := t.jCache.Update(); err != nil {
 		return err
 	}
-	unfinishedJobs, err := t.jCache.UnfinishedJobs()
+
+	jobs, err := t.jCache.GetActiveTryJobs()
 	if err != nil {
-		return fmt.Errorf("Failed to obtain unfinished jobs: %s", err)
+		return err
 	}
-	jobs := make([]*db.Job, 0, len(unfinishedJobs))
-	for _, j := range unfinishedJobs {
-		if j.IsTryJob() {
-			jobs = append(jobs, j)
+	// Sort to maintain consistency in testing.
+	sort.Sort(db.JobSlice(jobs))
+
+	// Divide up finished and unfinished Jobs.
+	finished := make([]*db.Job, 0, len(jobs))
+	unfinished := make([]*db.Job, 0, len(jobs))
+	for _, j := range jobs {
+		if j.Done() {
+			finished = append(finished, j)
+		} else {
+			unfinished = append(unfinished, j)
 		}
 	}
-	// Sort so that we get deterministic results in tests.
-	sort.Sort(db.JobSlice(jobs))
+
+	// Send heartbeats for unfinished Jobs.
+	var heartbeatErr error
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		heartbeatErr = t.sendHeartbeats(now, unfinished)
+	}()
+
+	// Send updates for finished Jobs, empty the lease keys to mark them
+	// as inactive in the DB.
+	errs := []error{}
+	insert := make([]*db.Job, 0, len(finished))
+	for _, j := range finished {
+		if err := t.jobFinished(j); err != nil {
+			errs = append(errs, err)
+		} else {
+			j.BuildbucketLeaseKey = 0
+			insert = append(insert, j)
+		}
+	}
+	if err := t.db.PutJobs(insert); err != nil {
+		errs = append(errs, err)
+	}
+
+	wg.Wait()
+	if heartbeatErr != nil {
+		errs = append(errs, heartbeatErr)
+	}
+
+	if len(errs) > 0 {
+		return fmt.Errorf("Failed to update jobs; got errors: %v", errs)
+	}
+	return nil
+}
+
+// sendHeartbeats sends heartbeats to Buildbucket for all of the unfinished try
+// Jobs.
+func (t *TryJobIntegrator) sendHeartbeats(now time.Time, jobs []*db.Job) error {
+	defer metrics2.FuncTimer().Stop()
 
 	expiration := now.Add(LEASE_DURATION).Unix() * 1000000
 
@@ -206,6 +258,7 @@ func (t *TryJobIntegrator) getRevision(repo *repograph.Graph, revision string) (
 
 func (t *TryJobIntegrator) localCancelJobs(jobs []*db.Job) error {
 	for _, j := range jobs {
+		j.BuildbucketLeaseKey = 0
 		j.Status = db.JOB_STATUS_CANCELED
 		j.Finished = time.Now()
 	}
@@ -391,8 +444,8 @@ func (t *TryJobIntegrator) jobStarted(j *db.Job) error {
 	return nil
 }
 
-// JobFinished notifies Buildbucket that the given Job has finished.
-func (t *TryJobIntegrator) JobFinished(j *db.Job) error {
+// jobFinished notifies Buildbucket that the given Job has finished.
+func (t *TryJobIntegrator) jobFinished(j *db.Job) error {
 	if !j.Done() {
 		return fmt.Errorf("JobFinished called for unfinished Job!")
 	}
@@ -414,7 +467,11 @@ func (t *TryJobIntegrator) JobFinished(j *db.Job) error {
 			return err
 		}
 		if resp.Error != nil {
-			return fmt.Errorf(resp.Error.Message)
+			if resp.Error.Reason == BUILDBUCKET_API_ERROR_REASON_COMPLETED {
+				glog.Warningf("Sent success status for build %d after completion.", j.BuildbucketBuildId)
+			} else {
+				return fmt.Errorf(resp.Error.Message)
+			}
 		}
 	} else {
 		failureReason := "BUILD_FAILURE"
@@ -431,7 +488,11 @@ func (t *TryJobIntegrator) JobFinished(j *db.Job) error {
 			return err
 		}
 		if resp.Error != nil {
-			return fmt.Errorf(resp.Error.Message)
+			if resp.Error.Reason == BUILDBUCKET_API_ERROR_REASON_COMPLETED {
+				glog.Warningf("Sent failure status for build %d after completion.", j.BuildbucketBuildId)
+			} else {
+				return fmt.Errorf(resp.Error.Message)
+			}
 		}
 	}
 	return nil
