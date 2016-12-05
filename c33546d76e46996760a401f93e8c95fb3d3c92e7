@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4df2c3e7_2cadca81",
+        "filename": "golden/frontend/res/imp/comp-page-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-05T18:09:41Z",
+      "side": 1,
+      "message": "What\u0027s this no-op function for?",
+      "range": {
+        "startLine": 381,
+        "startChar": 66,
+        "endLine": 382,
+        "endChar": 22
+      },
+      "revId": "c33546d76e46996760a401f93e8c95fb3d3c92e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
