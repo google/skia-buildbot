@@ -263,6 +263,8 @@
           this.listen(this.$.rowSortControl, 'sort-changed', '_load');
           this.listen(this.$.columnSortControl, 'sort-changed', '_load');
           this.listen(this.$.diffMetric, 'iron-select', '_load');
+          this.listen(this.$.digestDetails, 'triage', '_handleTriage');
+          this.listen(this.$.compDetails, 'triage', '_handleTriage');
           this.$.rowSortControl.setItems(rowSortOptions);
           this.$.columnSortControl.setItems(colSortOptions);
           this._setDefaultState(gold.defaultSearchState, true);
@@ -276,7 +278,11 @@
           this._initState(ctx, this._getDefaultStateWithCorpus(defaultRowQuery));
 
           this._query.columnQuery = this._getDefaultStateWithCorpus(defaultColumnQuery);
-          this._query.columnQuery.query = this._state.query;
+          this._query.columnQuery.head = this._state.head;
+          this._query.columnQuery.include = this._state.include;
+          this._query.columnQuery.query = '';
+          this._query.columnQuery = this._addCorpus(this._query.columnQuery);
+
           this.set("_colSorting", sk.object.shallowCopy(defaultColSorting));
           this.set("_rowSorting", sk.object.shallowCopy(defaultRowSorting));
           this.set("_diffMetric", METRIC_COMBINED);
@@ -342,10 +348,18 @@
           this.$.digestDetails.clear();
           if (ev.detail.colDigest) {
             var url = "/json/diff" +  gold.diffQuery(ev.detail.test, ev.detail.rowDigest, ev.detail.colDigest);
-            gold.loadWithActivity(this, url, this.$.activityCompDiff, '_diffData');
+            this.$.gridCompare.clearSelection();
+            gold.loadWithActivity(this, url, this.$.activityCompDiff, function(json) {
+              this.set('_diffData', json);
+              this.$.gridCompare.selectCell(ev.detail.rowIndex, ev.detail.columnIndex);
+            }.bind(this));
           } else {
             var url = "/json/details" + gold.detailQuery(ev.detail.test, ev.detail.rowDigest);
-            gold.loadWithActivity(this, url, this.$.activityCompDiff, '_digestDetails');
+            this.$.gridCompare.clearSelection();
+            gold.loadWithActivity(this, url, this.$.activityCompDiff, function(json) {
+              this.set('_digestDetails', json);
+              this.$.gridCompare.selectRow(ev.detail.rowIndex);
+            }.bind(this));
           }
         },
 
@@ -360,6 +374,11 @@
             };
             $$$('zoom-dialog-sk', this).open(zoomDetail);
           }
+        },
+
+        _handleTriage: function(ev) {
+          ev.stopPropagation();
+          sk.post('/json/triage', JSON.stringify(ev.detail)).catch(sk.errorMessage);
         },
 
         _handleMatchChanged: function(ev) {
