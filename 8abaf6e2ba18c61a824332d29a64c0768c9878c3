@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4df2c3e7_a26663d1",
+        "filename": "compute_engine_scripts/android_ingest/vm_create_instance.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-12-05T19:48:45Z",
+      "side": 1,
+      "message": "skia-android-ingest ?",
+      "range": {
+        "startLine": 3,
+        "startChar": 35,
+        "endLine": 3,
+        "endChar": 44
+      },
+      "revId": "8abaf6e2ba18c61a824332d29a64c0768c9878c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4df2c3e7_a28f8349",
+        "filename": "compute_engine_scripts/android_ingest/vm_delete_instance.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-12-05T19:48:45Z",
+      "side": 1,
+      "message": "skia-android-ingest ?",
+      "range": {
+        "startLine": 3,
+        "startChar": 35,
+        "endLine": 3,
+        "endChar": 46
+      },
+      "revId": "8abaf6e2ba18c61a824332d29a64c0768c9878c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
