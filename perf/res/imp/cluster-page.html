@@ -14,7 +14,9 @@
 -->
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 
+<link rel="import" href="/res/common/imp/details-summary.html">
 <link rel="import" href="/res/common/imp/query2-sk.html" />
 <link rel="import" href="/res/common/imp/query-summary-sk.html" />
 <link rel="import" href="/res/common/imp/sort.html" />
@@ -46,6 +48,25 @@
       padding: 1em;
       margin: 1em;
     }
+
+    #advanced h2 {
+      display: inline-block;
+      margin: 0;
+    }
+
+    #advanced {
+      height: 2em;
+      display: inline-block;
+      vertical-align: bottom;
+    }
+
+    #inputs {
+      margin-left: 2em;
+    }
+
+    #inputs paper-input {
+      width: 20em;
+    }
   </style>
   <template>
     <h2>Range</h2>
@@ -75,6 +96,16 @@
         </div>
       </div>
     </div>
+
+    <details-sk>
+      <summary-sk id=advanced>
+        <h2>Advanced</h2>
+      </summary-sk>
+      <div id=inputs>
+        <paper-input type=number min=0 max=100 value="{{state.k}}"      label="K (A value of 0 means the server chooses)."></paper-input>
+        <paper-input type=number min=1 max=25  value="{{state.radius}}" label="Number of commits to include on either side."></paper-input>
+      </div>
+    </details-sk>
 
     <h2>Results</h2>
     <sort-sk target=clusters node_name="CLUSTER-SUMMARY2-SK">
@@ -119,6 +150,7 @@
           offset: -1,
           radius: 5,
           query: "",
+          k: 0,
         }; },
       },
       // The id of the current cluster request. Will be the empty string
@@ -180,8 +212,9 @@
       var body = {
         source: this.state.source,
         offset: this.state.offset,
-        radius: this.state.radius,
+        radius: +this.state.radius,
         query: this.state.query,
+        k: +this.state.k,
       };
       this._summaries = [];
       this.$.results.render();

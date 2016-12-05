@@ -32,6 +32,16 @@ const (
 	// MAX_FINISHED_PROCESS_AGE is the amount of time to keep a finished
 	// ClusterRequestProcess around before deleting it.
 	MAX_FINISHED_PROCESS_AGE = time.Minute
+
+	// The following limits are just to prevent excessively large or long-running
+	// clusterings from being triggered.
+
+	// MAX_K is the largest K used for clustering.
+	MAX_K = 100
+
+	// MAX_RADIUS  is the maximum number of points on either side of a commit
+	// that will be included in clustering.
+	MAX_RADIUS = 25
 )
 
 var (
@@ -44,6 +54,7 @@ type ClusterRequest struct {
 	Offset int    `json:"offset"`
 	Radius int    `json:"radius"`
 	Query  string `json:"query"`
+	K      int    `json:"k"`
 }
 
 func (c *ClusterRequest) Id() string {
@@ -236,6 +247,12 @@ func tooMuchMissingData(tr ptracestore.Trace) bool {
 // work is done or the request failed. Should be run as a Go routine.
 func (p *ClusterRequestProcess) Run() {
 	cids := []*cid.CommitID{}
+	if p.request.Radius <= 0 {
+		p.request.Radius = 1
+	}
+	if p.request.Radius > MAX_RADIUS {
+		p.request.Radius = MAX_RADIUS
+	}
 	for i := p.request.Offset - p.request.Radius; i <= p.request.Offset+p.request.Radius; i++ {
 		cids = append(cids, &cid.CommitID{
 			Source: p.request.Source,
@@ -265,15 +282,18 @@ func (p *ClusterRequestProcess) Run() {
 	after := len(df.TraceSet)
 	glog.Infof("Filtered Traces: %d %d", before, after)
 
-	n := len(df.TraceSet)
-	// We want K to be around 50 when n = 30000, which has been determined via
-	// trial and error to be a good value for the Perf data we are working in. We
-	// want K to decrease from  there as n gets smaller, but don't want K to go
-	// below 10, so we use a simple linear relation:
-	//
-	//  k = 40/30000 * n + 10
-	//
-	k := int(math.Floor((40.0/30000.0)*float64(n) + 10))
+	k := p.request.K
+	if k <= 0 || k > MAX_K {
+		n := len(df.TraceSet)
+		// We want K to be around 50 when n = 30000, which has been determined via
+		// trial and error to be a good value for the Perf data we are working in. We
+		// want K to decrease from  there as n gets smaller, but don't want K to go
+		// below 10, so we use a simple linear relation:
+		//
+		//  k = 40/30000 * n + 10
+		//
+		k = int(math.Floor((40.0/30000.0)*float64(n) + 10))
+	}
 	glog.Infof("Clustering with K=%d", k)
 	summary, err := CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.clusterProgress)
 	if err != nil {
