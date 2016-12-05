@@ -12,15 +12,27 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 )
 
-// Verify that sendHeartbeats sends heartbeats for unfinished try jobs.
-func TestHeartbeats(t *testing.T) {
+// Verify that updateJobs sends heartbeats for unfinished try Jobs and
+// success/failure for finished Jobs.
+func TestUpdateJobs(t *testing.T) {
 	trybots, mock, cleanup := setup(t)
 	defer cleanup()
 
 	now := time.Now()
 
+	assertActiveTryJobs := func(expect []*db.Job) {
+		assert.NoError(t, trybots.jCache.Update())
+		active, err := trybots.jCache.GetActiveTryJobs()
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, expect, active)
+	}
+	assertNoActiveTryJobs := func() {
+		assertActiveTryJobs([]*db.Job{})
+	}
+
 	// No jobs.
-	assert.NoError(t, trybots.sendHeartbeats(now))
+	assertNoActiveTryJobs()
+	assert.NoError(t, trybots.updateJobs(now))
 	assert.True(t, mock.Empty())
 
 	// One unfinished try job.
@@ -28,34 +40,31 @@ func TestHeartbeats(t *testing.T) {
 	MockHeartbeats(t, mock, now, []*db.Job{j1}, nil)
 	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j1}))
 	assert.NoError(t, trybots.jCache.Update())
-	assert.NoError(t, trybots.sendHeartbeats(now))
+	assert.NoError(t, trybots.updateJobs(now))
 	assert.True(t, mock.Empty())
+	assertActiveTryJobs([]*db.Job{j1})
 
-	// Don't send heartbeats for finished jobs.
+	// Send success/failure for finished jobs, not heartbeats.
 	j1.Status = db.JOB_STATUS_SUCCESS
-	j1.Finished = time.Now()
+	j1.Finished = now
 	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j1}))
 	assert.NoError(t, trybots.jCache.Update())
-	assert.NoError(t, trybots.sendHeartbeats(now))
+	MockJobSuccess(mock, j1, now, nil, false)
+	assert.NoError(t, trybots.updateJobs(now))
 	assert.True(t, mock.Empty())
+	assertNoActiveTryJobs()
 
-	// Don't send heartbeats for non-try jobs.
-	j2 := &db.Job{
-		Created: time.Now(),
-		Name:    "fake-name",
-		RepoState: db.RepoState{
-			Repo:     repoName,
-			Revision: "fake-revision",
-		},
-	}
-	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j2}))
+	// Failure.
+	j1, err := trybots.db.GetJobById(j1.Id)
+	assert.NoError(t, err)
+	j1.BuildbucketLeaseKey = 12345
+	j1.Status = db.JOB_STATUS_FAILURE
+	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j1}))
 	assert.NoError(t, trybots.jCache.Update())
-	assert.NoError(t, trybots.sendHeartbeats(now))
+	MockJobFailure(mock, j1, now, nil)
+	assert.NoError(t, trybots.updateJobs(now))
 	assert.True(t, mock.Empty())
-	j2.Status = db.JOB_STATUS_SUCCESS
-	j2.Finished = time.Now()
-	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j2}))
-	assert.NoError(t, trybots.jCache.Update())
+	assertNoActiveTryJobs()
 
 	// More than one batch of heartbeats.
 	jobs := []*db.Job{}
@@ -67,17 +76,20 @@ func TestHeartbeats(t *testing.T) {
 	MockHeartbeats(t, mock, now, jobs[LEASE_BATCH_SIZE:], nil)
 	assert.NoError(t, trybots.db.PutJobs(jobs))
 	assert.NoError(t, trybots.jCache.Update())
-	assert.NoError(t, trybots.sendHeartbeats(now))
+	assert.NoError(t, trybots.updateJobs(now))
 	assert.True(t, mock.Empty())
 
 	// Test heartbeat failure for one job, ensure that it gets canceled.
-	j1, j2 = jobs[0], jobs[1]
+	j1, j2 := jobs[0], jobs[1]
 	for _, j := range jobs[2:] {
 		j.Status = db.JOB_STATUS_SUCCESS
 		j.Finished = time.Now()
 	}
 	assert.NoError(t, trybots.db.PutJobs(jobs[2:]))
 	assert.NoError(t, trybots.jCache.Update())
+	for _, j := range jobs[2:] {
+		MockJobSuccess(mock, j, now, nil, false)
+	}
 	MockHeartbeats(t, mock, now, []*db.Job{j1, j2}, map[string]*heartbeatResp{
 		j1.Id: &heartbeatResp{
 			BuildId: fmt.Sprintf("%d", j1.BuildbucketBuildId),
@@ -86,7 +98,7 @@ func TestHeartbeats(t *testing.T) {
 			},
 		},
 	})
-	assert.NoError(t, trybots.sendHeartbeats(now))
+	assert.NoError(t, trybots.updateJobs(now))
 	assert.True(t, mock.Empty())
 	assert.NoError(t, trybots.jCache.Update())
 	unfinished, err := trybots.jCache.UnfinishedJobs()
@@ -202,7 +214,7 @@ func TestJobFinished(t *testing.T) {
 	now := time.Now()
 
 	// Job not actually finished.
-	assert.EqualError(t, trybots.JobFinished(j), "JobFinished called for unfinished Job!")
+	assert.EqualError(t, trybots.jobFinished(j), "JobFinished called for unfinished Job!")
 
 	// Successful job.
 	j.Status = db.JOB_STATUS_SUCCESS
@@ -210,13 +222,13 @@ func TestJobFinished(t *testing.T) {
 	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j}))
 	assert.NoError(t, trybots.jCache.Update())
 	MockJobSuccess(mock, j, now, nil, false)
-	assert.NoError(t, trybots.JobFinished(j))
+	assert.NoError(t, trybots.jobFinished(j))
 	assert.True(t, mock.Empty())
 
 	// Successful job, failed to update.
 	err := fmt.Errorf("fail")
 	MockJobSuccess(mock, j, now, err, false)
-	assert.EqualError(t, trybots.JobFinished(j), err.Error())
+	assert.EqualError(t, trybots.jobFinished(j), err.Error())
 	assert.True(t, mock.Empty())
 
 	// Failed job.
@@ -224,12 +236,12 @@ func TestJobFinished(t *testing.T) {
 	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j}))
 	assert.NoError(t, trybots.jCache.Update())
 	MockJobFailure(mock, j, now, nil)
-	assert.NoError(t, trybots.JobFinished(j))
+	assert.NoError(t, trybots.jobFinished(j))
 	assert.True(t, mock.Empty())
 
 	// Failed job, failed to update.
 	MockJobFailure(mock, j, now, err)
-	assert.EqualError(t, trybots.JobFinished(j), err.Error())
+	assert.EqualError(t, trybots.jobFinished(j), err.Error())
 	assert.True(t, mock.Empty())
 
 	// Mishap.
@@ -237,12 +249,12 @@ func TestJobFinished(t *testing.T) {
 	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j}))
 	assert.NoError(t, trybots.jCache.Update())
 	MockJobMishap(mock, j, now, nil)
-	assert.NoError(t, trybots.JobFinished(j))
+	assert.NoError(t, trybots.jobFinished(j))
 	assert.True(t, mock.Empty())
 
 	// Mishap, failed to update.
 	MockJobMishap(mock, j, now, err)
-	assert.EqualError(t, trybots.JobFinished(j), err.Error())
+	assert.EqualError(t, trybots.jobFinished(j), err.Error())
 	assert.True(t, mock.Empty())
 }
 
