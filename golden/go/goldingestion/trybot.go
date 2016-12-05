@@ -132,7 +132,7 @@ func (g *goldTrybotProcessor) getCreatedTimeStamp(dmResults *DMResults) (time.Ti
 
 		return issueProps.Patchsets[dmResults.Patchset-1].Created, nil
 	} else {
-		patchinfo, err := g.getRietveldPatchset(dmResults.Issue, dmResults.Patchset)
+		patchinfo, err := g.getRietveldPatchset(dmResults.Issue, dmResults.Patchset, dmResults.Name())
 		if err != nil {
 			return time.Time{}, err
 		}
@@ -142,7 +142,14 @@ func (g *goldTrybotProcessor) getCreatedTimeStamp(dmResults *DMResults) (time.Ti
 
 // getPatchset retrieves the patchset. If it does not exist (but the Rietveld issue exists)
 // it will return a ingestion.IgnoreResultsFileErr indicating that this input file should be ignored.
-func (g *goldTrybotProcessor) getRietveldPatchset(issueID int64, patchsetID int64) (*rietveld.Patchset, error) {
+func (g *goldTrybotProcessor) getRietveldPatchset(issueID int64, patchsetID int64, name string) (*rietveld.Patchset, error) {
+	// TODO(stephana): This should be a side effect of Rietveld to Gerrit transition.
+	// Remove once transition complete. In the meantime log a warning for ingestigation.
+	if issueID == 0 {
+		glog.Warningf("Received issue number 0 in file %s", name)
+		return nil, ingestion.IgnoreResultsFileErr
+	}
+
 	patchinfo, err := g.rietveldReview.GetPatchset(issueID, patchsetID)
 	if err == nil {
 		return patchinfo, nil
