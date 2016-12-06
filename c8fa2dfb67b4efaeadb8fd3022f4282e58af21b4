@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd4b13fc_81e6fe28",
+        "filename": "task_scheduler/bucket-lifecycle-config.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-06T18:32:06Z",
+      "side": 1,
+      "message": "Is this some special GS config?  I don\u0027t know what any of this means.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 1
+      },
+      "revId": "c8fa2dfb67b4efaeadb8fd3022f4282e58af21b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
