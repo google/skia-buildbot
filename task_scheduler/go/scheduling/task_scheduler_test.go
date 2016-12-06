@@ -613,6 +613,23 @@ func TestProcessTaskCandidate(t *testing.T) {
 	assert.NoError(t, s.processTaskCandidate(c, now, cache, commitsBuf))
 	assert.True(t, c.Score > 0)
 	assert.Equal(t, 1, len(c.Commits))
+
+	// Now, replace the time window to ensure that this next candidate runs
+	// at a commit outside the window. Ensure that it gets the correct
+	// blamelist.
+	var err error
+	s.window, err = window.New(time.Nanosecond, 0, nil)
+	assert.NoError(t, err)
+	c = &taskCandidate{
+		TaskKey: db.TaskKey{
+			RepoState: db.RepoState{
+				Repo:     repoName,
+				Revision: c2,
+			},
+		},
+	}
+	assert.NoError(t, s.processTaskCandidate(c, now, cache, commitsBuf))
+	assert.Equal(t, 0, len(c.Commits))
 }
 
 func TestProcessTaskCandidates(t *testing.T) {
