@@ -455,14 +455,22 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 	if revision == nil {
 		return fmt.Errorf("No such commit %s in %s.", c.Revision, c.Repo)
 	}
-	commits, stealingFrom, err := ComputeBlamelist(cache, repo, c.Name, c.Repo, revision, commitsBuf)
-	if err != nil {
-		return err
+	var commits []string
+	var stealingFrom *db.Task
+	if revision.Timestamp.Before(s.window.Start()) {
+		commits = []string{}
+	} else {
+		var err error
+		commits, stealingFrom, err = ComputeBlamelist(cache, repo, c.Name, c.Repo, revision, commitsBuf)
+		if err != nil {
+			return err
+		}
 	}
 	c.Commits = commits
 	if stealingFrom != nil {
 		c.StealingFromId = stealingFrom.Id
 	}
+
 	if len(c.Commits) > 0 && !util.In(c.Revision, c.Commits) {
 		glog.Errorf("task candidate %s @ %s doesn't have its own revision in its blamelist: %v", c.Name, c.Revision, c.Commits)
 	}
