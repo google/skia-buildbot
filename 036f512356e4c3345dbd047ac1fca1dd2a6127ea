@@ -63,6 +63,24 @@
       "revId": "036f512356e4c3345dbd047ac1fca1dd2a6127ea",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd4b13fc_044afcc5",
+        "filename": "skolo/build_release_backup",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-06T18:52:12Z",
+      "side": 1,
+      "message": "Do you want me to make that change in this CL?",
+      "parentUuid": "cd4b13fc_e4e030b5",
+      "revId": "036f512356e4c3345dbd047ac1fca1dd2a6127ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
