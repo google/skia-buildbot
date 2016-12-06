@@ -99,6 +99,24 @@
       "revId": "036f512356e4c3345dbd047ac1fca1dd2a6127ea",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd4b13fc_cf28ad99",
+        "filename": "skolo/build_release_backup",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-06T20:12:52Z",
+      "side": 1,
+      "message": "I was under the impression that it will work as written because of the change on line 4 will enable the timer also (which was missing before)",
+      "parentUuid": "cd4b13fc_6f08794a",
+      "revId": "036f512356e4c3345dbd047ac1fca1dd2a6127ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
