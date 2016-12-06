@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/status/go/build_cache"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 const (
@@ -84,7 +85,11 @@ type BTCache struct {
 // NewBTCache creates a combined Build and Task cache for the given repos,
 // pulling data from the given buildDb and taskDb.
 func NewBTCache(repos *gitinfo.RepoMap, buildDb buildbot.DB, taskDb db.RemoteDB) (*BTCache, error) {
-	tasks, err := db.NewTaskCache(taskDb, build_cache.BUILD_LOADING_PERIOD)
+	w, err := window.New(build_cache.BUILD_LOADING_PERIOD, 0, nil)
+	if err != nil {
+		return nil, err
+	}
+	tasks, err := db.NewTaskCache(taskDb, w)
 	if err != nil {
 		return nil, err
 	}

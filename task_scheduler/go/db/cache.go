@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/task_scheduler/go/window"
 
 	"github.com/skia-dev/glog"
 )
@@ -82,7 +83,7 @@ type taskCache struct {
 	tasksByKey map[TaskKey]map[string]*Task
 	// tasksByTime is sorted by Task.Created.
 	tasksByTime []*Task
-	timePeriod  time.Duration
+	timeWindow  *window.Window
 	unfinished  map[string]*Task
 }
 
@@ -356,7 +357,7 @@ func (c *taskCache) expireAndUpdate(start time.Time, tasks []*Task) {
 }
 
 // reset re-initializes c. Assumes the caller holds a lock.
-func (c *taskCache) reset(now time.Time) error {
+func (c *taskCache) reset() error {
 	if c.queryId != "" {
 		c.db.StopTrackingModifiedTasks(c.queryId)
 	}
@@ -364,7 +365,8 @@ func (c *taskCache) reset(now time.Time) error {
 	if err != nil {
 		return err
 	}
-	start := now.Add(-c.timePeriod)
+	start := c.timeWindow.Start()
+	now := time.Now()
 	glog.Infof("Reading Tasks from %s to %s.", start, now)
 	tasks, err := c.db.GetTasksFromDateRange(start, now)
 	if err != nil {
@@ -381,38 +383,33 @@ func (c *taskCache) reset(now time.Time) error {
 	return nil
 }
 
-// update implements Update with the given current time for testing.
-func (c *taskCache) update(now time.Time) error {
+// See documentation for TaskCache interface.
+func (c *taskCache) Update() error {
 	newTasks, err := c.db.GetModifiedTasks(c.queryId)
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	if IsUnknownId(err) {
 		glog.Warningf("Connection to db lost; re-initializing cache from scratch.")
-		if err := c.reset(now); err != nil {
+		if err := c.reset(); err != nil {
 			return err
 		}
 		return nil
 	} else if err != nil {
 		return err
 	}
-	start := now.Add(-c.timePeriod)
+	start := c.timeWindow.Start()
 	c.expireAndUpdate(start, newTasks)
 	return nil
 }
 
-// See documentation for TaskCache interface.
-func (c *taskCache) Update() error {
-	return c.update(time.Now())
-}
-
 // NewTaskCache returns a local cache which provides more convenient views of
 // task data than the database can provide.
-func NewTaskCache(db TaskReader, timePeriod time.Duration) (TaskCache, error) {
+func NewTaskCache(db TaskReader, timeWindow *window.Window) (TaskCache, error) {
 	tc := &taskCache{
 		db:         db,
-		timePeriod: timePeriod,
+		timeWindow: timeWindow,
 	}
-	if err := tc.reset(time.Now()); err != nil {
+	if err := tc.reset(); err != nil {
 		return nil, err
 	}
 	return tc, nil
@@ -455,7 +452,7 @@ type jobCache struct {
 	mtx                  sync.RWMutex
 	queryId              string
 	jobs                 map[string]*Job
-	timePeriod           time.Duration
+	timeWindow           *window.Window
 	triggeredForCommit   map[string]map[string]bool
 	unfinished           map[string]*Job
 }
@@ -463,12 +460,7 @@ type jobCache struct {
 // getJobTimestamp returns the timestamp of a Job for purposes of cache
 // expiration.
 func (c *jobCache) getJobTimestamp(job *Job) time.Time {
-	commitTs, err := c.getRevisionTimestamp(job.Repo, job.Revision)
-	if err != nil {
-		glog.Error(err)
-		return job.Created
-	}
-	return commitTs
+	return job.Created
 }
 
 // See documentation for JobCache interface.
@@ -541,7 +533,7 @@ func (c *jobCache) expireJobs(start time.Time) {
 		}
 	}
 	if expiredUnfinishedCount > 0 {
-		glog.Infof("Expired %d unfinished jobs for revisions before %s.", expiredUnfinishedCount, start)
+		glog.Infof("Expired %d unfinished jobs created before %s.", expiredUnfinishedCount, start)
 	}
 	for repo, revMap := range c.triggeredForCommit {
 		for rev, _ := range revMap {
@@ -610,7 +602,7 @@ func (c *jobCache) reset() error {
 		return err
 	}
 	now := time.Now()
-	start := now.Add(-c.timePeriod)
+	start := c.timeWindow.Start()
 	glog.Infof("Reading Jobs from %s to %s.", start, now)
 	jobs, err := c.db.GetJobsFromDateRange(start, now)
 	if err != nil {
@@ -626,8 +618,8 @@ func (c *jobCache) reset() error {
 	return nil
 }
 
-// update implements Update with the given current time for testing.
-func (c *jobCache) update(now time.Time) error {
+// See documentation for JobCache interface.
+func (c *jobCache) Update() error {
 	newJobs, err := c.db.GetModifiedJobs(c.queryId)
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
@@ -640,23 +632,17 @@ func (c *jobCache) update(now time.Time) error {
 	} else if err != nil {
 		return err
 	}
-	start := now.Add(-c.timePeriod)
-	c.expireAndUpdate(start, newJobs)
+	c.expireAndUpdate(c.timeWindow.Start(), newJobs)
 	return nil
-}
-
-// See documentation for JobCache interface.
-func (c *jobCache) Update() error {
-	return c.update(time.Now())
 }
 
 // NewJobCache returns a local cache which provides more convenient views of
 // job data than the database can provide.
-func NewJobCache(db JobDB, timePeriod time.Duration, getRevisionTimestamp GetRevisionTimestamp) (JobCache, error) {
+func NewJobCache(db JobDB, timeWindow *window.Window, getRevisionTimestamp GetRevisionTimestamp) (JobCache, error) {
 	tc := &jobCache{
 		db:                   db,
 		getRevisionTimestamp: getRevisionTimestamp,
-		timePeriod:           timePeriod,
+		timeWindow:           timeWindow,
 	}
 	if err := tc.reset(); err != nil {
 		return nil, err

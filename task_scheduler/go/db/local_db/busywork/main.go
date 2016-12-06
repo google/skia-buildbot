@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
+	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 var (
@@ -184,7 +185,11 @@ func findApproxLatestCommit(d db.TaskDB) int {
 // putTasks inserts randomly-generated tasks into the DB. Does not return.
 func putTasks(d db.TaskDB) {
 	glog.Infof("putTasks begin")
-	cache, err := db.NewTaskCache(d, 4*24*time.Hour)
+	w, err := window.New(4*24*time.Hour, 0, nil)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	cache, err := db.NewTaskCache(d, w)
 	if err != nil {
 		glog.Fatal(err)
 	}
@@ -193,6 +198,9 @@ func putTasks(d db.TaskDB) {
 	meanTasksPerCommit := float64(kNumTaskNames * kNumRepos / kMedianBlamelistLength)
 	maxTasksPerIter := float64(kNumTaskNames * kNumRepos * kRecentCommitRange)
 	for {
+		if err := w.Update(); err != nil {
+			glog.Fatal(err)
+		}
 		iterTasks := int(math.Max(0, math.Min(maxTasksPerIter, (rand.NormFloat64()+1)*meanTasksPerCommit)))
 		glog.Infof("Adding %d tasks with revisions %s - %s", iterTasks, itoh(currentCommit), itoh(currentCommit+kRecentCommitRange))
 		for i := 0; i < iterTasks; i++ {

@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
+	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 func assertNoError(err error) {
@@ -256,26 +257,29 @@ func main() {
 
 	d, err := local_db.NewDB("testdb", path.Join(workdir, "tasks.db"))
 	assertNoError(err)
-	tCache, err := db.NewTaskCache(d, time.Hour)
+	w, err := window.New(time.Hour, 0, nil)
+	assertNoError(err)
+	tCache, err := db.NewTaskCache(d, w)
 	assertNoError(err)
 	// Use dummy GetRevisionTimestamp function so that nothing ever expires from
 	// the cache.
 	dummyGetRevisionTimestamp := func(string, string) (time.Time, error) {
 		return time.Now(), nil
 	}
-	jCache, err := db.NewJobCache(d, time.Hour, dummyGetRevisionTimestamp)
+	jCache, err := db.NewJobCache(d, w, dummyGetRevisionTimestamp)
 	assertNoError(err)
 
 	isolateClient, err := isolate.NewClient(workdir)
 	assertNoError(err)
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
-	s, err := scheduling.NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, repograph.Map{repoName: repo}, isolateClient, swarmingClient, http.DefaultClient, 0.9, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, map[string]string{"skia": repoName})
+	s, err := scheduling.NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, workdir, repograph.Map{repoName: repo}, isolateClient, swarmingClient, http.DefaultClient, 0.9, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, map[string]string{"skia": repoName})
 	assertNoError(err)
 
 	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {
 		swarmingClient.MockBots(bots)
 		assertNoError(s.MainLoop())
+		assertNoError(w.Update())
 		assertNoError(tCache.Update())
 		tasks, err := tCache.GetTasksForCommits(repoName, commits)
 		assertNoError(err)

@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 func testGetTasksForCommits(t *testing.T, c TaskCache, b *Task) {
@@ -35,7 +36,9 @@ func TestTaskCache(t *testing.T) {
 	assert.NoError(t, db.PutTask(t1))
 
 	// Create the cache. Ensure that the existing task is present.
-	c, err := NewTaskCache(db, time.Hour)
+	w, err := window.New(time.Hour, 0, nil)
+	assert.NoError(t, err)
+	c, err := NewTaskCache(db, w)
 	assert.NoError(t, err)
 	testGetTasksForCommits(t, c, t1)
 
@@ -67,7 +70,9 @@ func TestTaskCache(t *testing.T) {
 func TestTaskCacheKnownTaskName(t *testing.T) {
 	testutils.SmallTest(t)
 	db := NewInMemoryTaskDB()
-	c, err := NewTaskCache(db, time.Hour)
+	w, err := window.New(time.Hour, 0, nil)
+	assert.NoError(t, err)
+	c, err := NewTaskCache(db, w)
 	assert.NoError(t, err)
 
 	// Try jobs don't count toward KnownTaskName.
@@ -104,7 +109,9 @@ func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 	assert.NoError(t, db.PutTask(t1))
 
 	// Create the cache.
-	c, err := NewTaskCache(db, time.Hour)
+	w, err := window.New(time.Hour, 0, nil)
+	assert.NoError(t, err)
+	c, err := NewTaskCache(db, w)
 	assert.NoError(t, err)
 
 	// Insert two more tasks. Ensure at least 1 nanosecond between task Created
@@ -193,7 +200,9 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 	assert.NoError(t, db.PutTasks([]*Task{t1, t2, t3}))
 
 	// Create the cache.
-	c, err := NewTaskCache(db, time.Hour)
+	w, err := window.New(time.Hour, 0, nil)
+	assert.NoError(t, err)
+	c, err := NewTaskCache(db, w)
 	assert.NoError(t, err)
 
 	// Check that there's no conflict among the tasks in different repos.
@@ -250,7 +259,9 @@ func TestTaskCacheReset(t *testing.T) {
 	assert.NoError(t, db.PutTask(t1))
 
 	// Create the cache. Ensure that the existing task is present.
-	c, err := NewTaskCache(db, time.Hour)
+	w, err := window.New(time.Hour, 0, nil)
+	assert.NoError(t, err)
+	c, err := NewTaskCache(db, w)
 	assert.NoError(t, err)
 	testGetTasksForCommits(t, c, t1)
 
@@ -279,7 +290,9 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	assert.NoError(t, db.PutTask(t1))
 
 	// Create the cache. Ensure that the existing task is present.
-	c, err := NewTaskCache(db, time.Hour)
+	w, err := window.New(time.Hour, 0, nil)
+	assert.NoError(t, err)
+	c, err := NewTaskCache(db, w)
 	assert.NoError(t, err)
 	tasks, err := c.UnfinishedTasks()
 	assert.NoError(t, err)
@@ -373,7 +386,9 @@ func TestTaskCacheExpiration(t *testing.T) {
 	db := NewInMemoryTaskDB()
 
 	period := 10 * time.Minute
-	timeStart := time.Now().Add(-period)
+	w, err := window.New(period, 0, nil)
+	assert.NoError(t, err)
+	timeStart := w.Start()
 
 	// Make a bunch of tasks with various timestamps.
 	mk := func(mins int, name string, blame []string) *Task {
@@ -394,9 +409,8 @@ func TestTaskCacheExpiration(t *testing.T) {
 	assert.NoError(t, db.PutTasks(tasks))
 
 	// Create the cache.
-	taskCacheI, err := NewTaskCache(db, period)
+	c, err := NewTaskCache(db, w)
 	assert.NoError(t, err)
-	c := taskCacheI.(*taskCache) // To access update method.
 
 	{
 		// Check that tasks[0] and tasks[1] are in the cache.
@@ -426,7 +440,8 @@ func TestTaskCacheExpiration(t *testing.T) {
 	assert.NoError(t, db.PutTasks([]*Task{tasks[6], tasks[8], tasks[1], tasks[7]}))
 
 	// update, expiring tasks[0] and tasks[1].
-	assert.NoError(t, c.update(tasks[0].Created.Add(period).Add(time.Nanosecond)))
+	assert.NoError(t, w.UpdateWithTime(tasks[0].Created.Add(period).Add(time.Nanosecond)))
+	assert.NoError(t, c.Update())
 
 	{
 		// Check that tasks[0] and tasks[1] are no longer in the cache.
@@ -472,7 +487,8 @@ func TestTaskCacheExpiration(t *testing.T) {
 		mk(11, "Build3", []string{"e"}),
 	}
 	assert.NoError(t, db.PutTasks(newTasks))
-	assert.NoError(t, c.update(newTasks[0].Created.Add(period)))
+	assert.NoError(t, w.UpdateWithTime(newTasks[0].Created.Add(period)))
+	assert.NoError(t, c.Update())
 
 	{
 		// Check that only new task is in the cache.
@@ -511,7 +527,9 @@ func TestJobCache(t *testing.T) {
 	assert.NoError(t, db.PutJob(j1))
 
 	// Create the cache. Ensure that the existing job is present.
-	c, err := NewJobCache(db, time.Hour, DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)))
+	w, err := window.New(time.Hour, 0, nil)
+	assert.NoError(t, err)
+	c, err := NewJobCache(db, w, DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)))
 	assert.NoError(t, err)
 	test, err := c.GetJob(j1.Id)
 	assert.NoError(t, err)
@@ -545,7 +563,9 @@ func TestJobCacheTriggeredForCommit(t *testing.T) {
 	assert.NoError(t, db.PutJobs([]*Job{j1, j2, j3}))
 
 	// Create the cache.
-	cache, err := NewJobCache(db, time.Hour, DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)))
+	w, err := window.New(time.Hour, 0, nil)
+	assert.NoError(t, err)
+	cache, err := NewJobCache(db, w, DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)))
 	assert.NoError(t, err)
 	b, err := cache.ScheduledJobsForCommit(j1.Repo, j1.Revision)
 	assert.NoError(t, err)
@@ -579,7 +599,9 @@ func TestJobCacheReset(t *testing.T) {
 	assert.NoError(t, db.PutJob(j1))
 
 	// Create the cache. Ensure that the existing job is present.
-	c, err := NewJobCache(db, time.Hour, DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)))
+	w, err := window.New(time.Hour, 0, nil)
+	assert.NoError(t, err)
+	c, err := NewJobCache(db, w, DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)))
 	assert.NoError(t, err)
 	testGetUnfinished(t, []*Job{j1}, c)
 
@@ -607,7 +629,9 @@ func TestJobCacheUnfinished(t *testing.T) {
 	assert.NoError(t, db.PutJob(j1))
 
 	// Create the cache. Ensure that the existing job is present.
-	c, err := NewJobCache(db, time.Hour, DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)))
+	w, err := window.New(time.Hour, 0, nil)
+	assert.NoError(t, err)
+	c, err := NewJobCache(db, w, DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)))
 	assert.NoError(t, err)
 	testGetUnfinished(t, []*Job{j1}, c)
 
@@ -647,7 +671,9 @@ func TestJobCacheActiveTryJobs(t *testing.T) {
 
 	// Create the cache.
 	startTime := time.Now().Add(-30 * time.Minute)
-	c, err := NewJobCache(db, time.Hour, DummyGetRevisionTimestamp(startTime.Add(-1*time.Minute)))
+	w, err := window.New(time.Hour, 0, nil)
+	assert.NoError(t, err)
+	c, err := NewJobCache(db, w, DummyGetRevisionTimestamp(startTime.Add(-1*time.Minute)))
 	assert.NoError(t, err)
 
 	assertActive := func(j *Job) {
@@ -748,7 +774,9 @@ func TestJobCacheExpiration(t *testing.T) {
 	db := NewInMemoryJobDB()
 
 	period := 10 * time.Minute
-	timeStart := time.Now().Add(-period)
+	w, err := window.New(period, 0, nil)
+	assert.NoError(t, err)
+	timeStart := w.Start()
 
 	getRevisionTimestamp := func(repo, rev string) (time.Time, error) {
 		assert.Equal(t, DEFAULT_TEST_REPO, repo)
@@ -771,7 +799,9 @@ func TestJobCacheExpiration(t *testing.T) {
 
 	// Make a bunch of jobs with various revisions.
 	make := func(rev string, isForce bool) *Job {
-		job := makeJob(timeStart.Add(7 * time.Minute))
+		ts, err := getRevisionTimestamp(DEFAULT_TEST_REPO, rev)
+		assert.NoError(t, err)
+		job := makeJob(ts)
 		job.Revision = rev
 		job.IsForce = isForce
 		return job
@@ -790,7 +820,7 @@ func TestJobCacheExpiration(t *testing.T) {
 	assert.NoError(t, db.PutJobs(jobs))
 
 	// Create the cache.
-	jobCacheI, err := NewJobCache(db, period, getRevisionTimestamp)
+	jobCacheI, err := NewJobCache(db, w, getRevisionTimestamp)
 	assert.NoError(t, err)
 	c := jobCacheI.(*jobCache) // To access update method.
 
@@ -803,7 +833,8 @@ func TestJobCacheExpiration(t *testing.T) {
 	assert.NoError(t, db.PutJobs([]*Job{jobs[1], jobs[8]}))
 
 	// update, expiring jobs[0] and jobs[1].
-	assert.NoError(t, c.update(timeStart.Add(time.Minute).Add(period).Add(time.Nanosecond)))
+	assert.NoError(t, w.UpdateWithTime(timeStart.Add(time.Minute).Add(period).Add(time.Nanosecond)))
+	assert.NoError(t, c.Update())
 
 	// Check that jobs[0] and jobs[1] are no longer in the cache.
 	assertJobsNotCached(t, c, jobs[:2])
@@ -816,7 +847,8 @@ func TestJobCacheExpiration(t *testing.T) {
 		make("e", false),
 	}
 	assert.NoError(t, db.PutJobs(newJobs))
-	assert.NoError(t, c.update(timeStart.Add(5*time.Minute).Add(period).Add(-time.Nanosecond)))
+	assert.NoError(t, w.UpdateWithTime(timeStart.Add(5*time.Minute).Add(period).Add(-time.Nanosecond)))
+	assert.NoError(t, c.Update())
 
 	// Check that only new job is in the cache.
 	assertJobsNotCached(t, c, jobs)
@@ -828,9 +860,11 @@ func TestJobCacheGetRevisionTimestampError(t *testing.T) {
 	db := NewInMemoryJobDB()
 
 	period := 10 * time.Minute
-	timeStart := time.Now().Add(-period)
+	w, err := window.New(period, 0, nil)
+	assert.NoError(t, err)
+	timeStart := w.Start()
 
-	enableTransientError := true
+	enableTransientError := false
 
 	getRevisionTimestamp := func(repo, rev string) (time.Time, error) {
 		if enableTransientError {
@@ -844,7 +878,9 @@ func TestJobCacheGetRevisionTimestampError(t *testing.T) {
 		}
 	}
 
-	make := func(created time.Time, rev string) *Job {
+	make := func(rev string) *Job {
+		created, err := getRevisionTimestamp(DEFAULT_TEST_REPO, rev)
+		assert.NoError(t, err)
 		job := makeJob(created)
 		job.Revision = rev
 		return job
@@ -852,62 +888,53 @@ func TestJobCacheGetRevisionTimestampError(t *testing.T) {
 
 	// Make jobs with different Created timestamps.
 	jobs := []*Job{
-		make(timeStart.Add(2*time.Minute), "a"), // 0
-		make(timeStart.Add(3*time.Minute), "a"), // 1
-		make(timeStart.Add(2*time.Minute), "b"), // 2
-		make(timeStart.Add(3*time.Minute), "b"), // 3
+		make("a"), // 0
+		make("a"), // 1
+		make("b"), // 2
+		make("b"), // 3
 	}
 	assert.NoError(t, db.PutJobs(jobs))
 
-	// Create the cache.
-	jobCacheI, err := NewJobCache(db, period, getRevisionTimestamp)
-	assert.NoError(t, err)
-	c := jobCacheI.(*jobCache) // To access update method.
+	enableTransientError = true
 
-	// Check that all jobs are in the cache.
-	assertJobsCached(t, c, jobs)
+	// Create the cache.
+	c, err := NewJobCache(db, w, getRevisionTimestamp)
+	assert.NoError(t, err)
+
+	// Check we've scheduled jobs at both commits.
+	assertJobsScheduled := func(rev string, expect bool) {
+		s, err := c.ScheduledJobsForCommit(DEFAULT_TEST_REPO, rev)
+		assert.NoError(t, err)
+		assert.Equal(t, expect, s)
+	}
+	assertJobsScheduled("a", true)
+	assertJobsScheduled("b", true)
 
 	// update and expire jobs before timeStart.Add(1 * time.Minute); since
-	// getRevisionTimestamp returns an error, this shouldn't expire any jobs.
-	assert.NoError(t, c.update(timeStart.Add(1*time.Minute).Add(period).Add(time.Nanosecond)))
+	// getRevisionTimestamp returns an error, this shouldn't expire any
+	// commits.
+	assert.NoError(t, w.UpdateWithTime(timeStart.Add(1*time.Minute).Add(period).Add(time.Nanosecond)))
+	assert.NoError(t, c.Update())
 
 	// Check that all jobs are in the cache.
-	assertJobsCached(t, c, jobs)
+	assertJobsScheduled("a", true)
+	assertJobsScheduled("b", true)
 
-	// Transient error is resolved; jobs for revision "a" should be expired.
+	// Transient error is resolved; revision "a" should be expired.
 	enableTransientError = false
-	assert.NoError(t, c.update(timeStart.Add(1*time.Minute).Add(period).Add(time.Nanosecond)))
+	assert.NoError(t, w.UpdateWithTime(timeStart.Add(1*time.Minute).Add(period).Add(time.Nanosecond)))
+	assert.NoError(t, c.Update())
 
-	assertJobsNotCached(t, c, jobs[:2])
-	assertJobsCached(t, c, jobs[2:])
+	assertJobsScheduled("a", false)
+	assertJobsScheduled("b", true)
 
-	// Created time is ignored if getRevisionTimestamp does not error.
-	assert.NoError(t, c.update(timeStart.Add(2*time.Minute).Add(period).Add(time.Nanosecond)))
-
-	assertJobsNotCached(t, c, jobs[:2])
-	assertJobsCached(t, c, jobs[2:])
-
-	// If error persists, jobs are expired by Created time.
+	// If error persists, revisions never expire.
 	enableTransientError = true
-	assert.NoError(t, c.update(timeStart.Add(2*time.Minute).Add(period).Add(time.Nanosecond)))
+	assert.NoError(t, w.UpdateWithTime(timeStart.Add(2*time.Minute).Add(period).Add(time.Nanosecond)))
+	assert.NoError(t, c.Update())
 
-	assertJobsNotCached(t, c, jobs[:2])
-	// jobs[2] should also not be cached, but it has the same revision as jobs[3],
-	// so ScheduledJobsForCommit returns true.
-	{
-		_, err := c.GetJob(jobs[2].Id)
-		assert.Error(t, err)
-		assert.True(t, IsNotFound(err))
-
-		unfinishedJobs, err := c.UnfinishedJobs()
-		assert.NoError(t, err)
-		for _, other := range unfinishedJobs {
-			if jobs[2].Id == other.Id {
-				t.Errorf("Found unexpected job %v in UnfinishedJobs.", other)
-			}
-		}
-	}
-	assertJobsCached(t, c, jobs[3:])
+	assertJobsScheduled("a", false)
+	assertJobsScheduled("b", true)
 }
 
 func TestGitRepoGetRevisionTimestamp(t *testing.T) {
