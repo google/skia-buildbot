@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd4b13fc_416d56a9",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 492,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-06T18:33:18Z",
+      "side": 1,
+      "message": "nit: stealingFrom.Id !\u003d c.RetryOf \u0026\u0026 stealingFrom.ForcedJobId \u003d\u003d \"\"",
+      "range": {
+        "startLine": 491,
+        "startChar": 0,
+        "endLine": 492,
+        "endChar": 39
+      },
+      "revId": "77353e6ad801176bca98030e9acde6a457968cfb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
