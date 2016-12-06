@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 const (
@@ -112,10 +113,12 @@ func setup(t *testing.T) (*TryJobIntegrator, *mockhttpclient.URLMock, func()) {
 	}
 
 	// Set up other TryJobIntegrator inputs.
+	window, err := window.New(time.Hour, 100, rm)
+	assert.NoError(t, err)
 	taskCfgCache := specs.NewTaskCfgCache(rm)
 	d, err := local_db.NewDB("tasks_db", path.Join(tmpDir, "tasks.db"))
 	assert.NoError(t, err)
-	cache, err := db.NewJobCache(d, time.Hour, db.DummyGetRevisionTimestamp(time.Now()))
+	cache, err := db.NewJobCache(d, window, db.DummyGetRevisionTimestamp(time.Now()))
 	assert.NoError(t, err)
 	mock := mockhttpclient.NewURLMock()
 	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, mock.Client(), d, cache, projectRepoMapping, rm, taskCfgCache)
