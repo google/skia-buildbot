@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Android Ingestion Status</title>
+    {%template "header.html" .%}
+  </head>
+  <body>
+    {%range .%}
+      <details-sk>
+        <summary-sk>
+          {%.TS%}
+        </summary-sk>
+        <pre><code>{%.JSON%}</code></pre>
+      </details-sk>
+    {%end%}
+  </body>
+</html>
