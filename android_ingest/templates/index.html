@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Android Ingestion Status</title>
+    {%template "header.html" .%}
+    <style type="text/css" media="screen">
+      body {
+        margin: 0;
+        padding: 2em;
+      }
+
+      pre {
+        margin-left: 2em;
+        color: green;
+      }
+
+      details-sk {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Android Ingestion Status</h1>
+    {%range .%}
+      <details-sk>
+        <summary-sk>
+          {%.TS%}
+        </summary-sk>
+        <pre><code>{%.JSON%}</code></pre>
+      </details-sk>
+    {%end%}
+  </body>
+</html>
