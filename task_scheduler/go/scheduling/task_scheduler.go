@@ -460,7 +460,7 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 	if revision.Timestamp.Before(s.window.Start()) {
 		// If the commit has scrolled out of our window, don't bother computing
 		// a blamelist.
-		commits = []string{c.Revision}
+		commits = []string{}
 	} else {
 		var err error
 		commits, stealingFrom, err = ComputeBlamelist(cache, repo, c.Name, c.Repo, revision, commitsBuf)
