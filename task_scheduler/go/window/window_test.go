@@ -23,7 +23,7 @@ func TestWindowNoRepos(t *testing.T) {
 	start := now.Add(-period)
 	startTs := int64(1480434267192070480)
 	assert.Equal(t, startTs, start.UnixNano())
-	assert.NoError(t, w.update(now))
+	assert.NoError(t, w.UpdateWithTime(now))
 	assert.Equal(t, startTs, w.Start().UnixNano())
 
 	assert.False(t, w.TestTime(time.Unix(0, 0)))
@@ -73,7 +73,7 @@ func setup(t *testing.T, period time.Duration, numCommits, threshold int) (*Wind
 	w, err := New(period, threshold, rm)
 	assert.NoError(t, err)
 	now := repo.Get(commits[len(commits)-1]).Timestamp.Add(5 * time.Second)
-	assert.NoError(t, w.update(now))
+	assert.NoError(t, w.UpdateWithTime(now))
 
 	test := func(idx int, expect bool) {
 		actual, err := w.TestCommitHash(repoUrl, commits[idx])
@@ -150,7 +150,7 @@ func TestWindowMultiRepo(t *testing.T) {
 	w, err := New(0, 6, rm)
 	assert.NoError(t, err)
 	now := repo1.Get(commits1[len(commits1)-1]).Timestamp.Add(5 * time.Second)
-	assert.NoError(t, w.update(now))
+	assert.NoError(t, w.UpdateWithTime(now))
 
 	test := func(repoUrl, commit string, expect bool) {
 		actual, err := w.TestCommitHash(repoUrl, commit)

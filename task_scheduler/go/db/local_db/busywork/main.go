@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
+	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 var (
@@ -184,7 +185,11 @@ func findApproxLatestCommit(d db.TaskDB) int {
 // putTasks inserts randomly-generated tasks into the DB. Does not return.
 func putTasks(d db.TaskDB) {
 	glog.Infof("putTasks begin")
-	cache, err := db.NewTaskCache(d, 4*24*time.Hour)
+	w, err := window.New(4*24*time.Hour, 0, nil)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	cache, err := db.NewTaskCache(d, w)
 	if err != nil {
 		glog.Fatal(err)
 	}
