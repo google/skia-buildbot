@@ -40,6 +40,24 @@
       "revId": "c8fa2dfb67b4efaeadb8fd3022f4282e58af21b4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd4b13fc_e11fc226",
+        "filename": "task_scheduler/bucket-lifecycle-config.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-06T18:35:09Z",
+      "side": 1,
+      "message": "Yeah, unfortunately JSON doesn\u0027t support comments.",
+      "parentUuid": "cd4b13fc_a15bfa11",
+      "revId": "c8fa2dfb67b4efaeadb8fd3022f4282e58af21b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
