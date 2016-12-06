@@ -1,7 +1,7 @@
 #!/bin/bash
 # Builds and uploads a debian package for rpi-backup.
 APPNAME=rpi-backup
-SYSTEMD=${APPNAME}.service
+SYSTEMD="${APPNAME}.service ${APPNAME}.timer"
 SYSTEMD_TIMER=${APPNAME}.timer
 DESCRIPTION="backup the rpi image to GS"
 

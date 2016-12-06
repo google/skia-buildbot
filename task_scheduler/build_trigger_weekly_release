@@ -2,7 +2,7 @@
 # Builds and uploads a debian package for task-scheduler-trigger-weekly.
 APPNAME=task-scheduler-trigger-weekly
 DESCRIPTION="Service which triggers weekly task-scheduler jobs."
-SYSTEMD=${APPNAME}.service
+SYSTEMD="${APPNAME}.service ${APPNAME}.timer"
 SYSTEMD_TIMER=${APPNAME}.timer
 
 # Copy files into the right locations in ${ROOT}.

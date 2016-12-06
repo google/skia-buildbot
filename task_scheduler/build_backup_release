@@ -2,7 +2,7 @@
 # Builds and uploads a debian package for task-scheduler-db-backup.
 APPNAME=task-scheduler-db-backup
 DESCRIPTION="Service which triggers backups of the task-scheduler database."
-SYSTEMD=${APPNAME}.service
+SYSTEMD="${APPNAME}.service ${APPNAME}.timer"
 SYSTEMD_TIMER=${APPNAME}.timer
 
 # Copy files into the right locations in ${ROOT}.
