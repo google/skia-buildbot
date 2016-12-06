@@ -4,6 +4,16 @@ Task Scheduler Production Manual
 General information about the Task Scheduler is available in the
 [README](./README.md).
 
+GS bucket lifecycle config
+--------------------------
+
+The file bucket-lifecycle-config.json configures a Google Storage bucket to move
+files in the skia-task-scheduler bucket to nearline or coldline storage after a
+period of time. The configuration can be set by running `gsutil lifecycle set
+bucket-lifecycle-config.json gs://skia-task-scheduler`.
+
+[More documentation of object lifecycle](https://cloud.google.com/storage/docs/lifecycle).
+
 
 Alerts
 ======
