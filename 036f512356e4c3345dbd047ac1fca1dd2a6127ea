@@ -45,6 +45,24 @@
       "revId": "036f512356e4c3345dbd047ac1fca1dd2a6127ea",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd4b13fc_e4e030b5",
+        "filename": "skolo/build_release_backup",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-12-06T18:47:47Z",
+      "side": 1,
+      "message": "Agreed, this uses SYSTEMD_TIMER differently in that it creates actually timers (like you would with cron). \nThe original intention of the SYSTEMD_TIMER was to delayed start of a service.",
+      "parentUuid": "4df2c3e7_225273fa",
+      "revId": "036f512356e4c3345dbd047ac1fca1dd2a6127ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
