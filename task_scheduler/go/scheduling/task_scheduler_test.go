@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
+	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 const (
@@ -190,7 +191,7 @@ func setup(t *testing.T) (*util.TempRepo, db.DB, *swarming.TestClient, *TaskSche
 	repos := repograph.Map{
 		repoName: repo,
 	}
-	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), tr.Dir, repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping)
+	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, tr.Dir, repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping)
 	assert.NoError(t, err)
 	return tr, d, swarmingClient, s, urlMock
 }
@@ -271,15 +272,19 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	// Run on an empty job list, ensure empty list returned.
 	test([]*db.Job{}, map[db.TaskKey]*taskCandidate{})
 
+	now := time.Now().UTC()
+
 	// Run for one job, ensure that we get the right set of task specs
 	// returned (ie. all dependencies and their dependencies).
 	j1 := &db.Job{
+		Created:      now,
 		Name:         "j1",
 		Dependencies: map[string][]string{testTask: []string{buildTask}, buildTask: []string{}},
 		Priority:     0.5,
 		RepoState:    rs1.Copy(),
 	}
 	tc1 := &taskCandidate{
+		JobCreated: now,
 		TaskKey: db.TaskKey{
 			RepoState: rs1.Copy(),
 			Name:      buildTask,
@@ -287,6 +292,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		TaskSpec: ts[rs1][buildTask].Copy(),
 	}
 	tc2 := &taskCandidate{
+		JobCreated: now,
 		TaskKey: db.TaskKey{
 			RepoState: rs1.Copy(),
 			Name:      testTask,
@@ -302,18 +308,21 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	// Add a job, ensure that its dependencies are added and that the right
 	// dependencies are de-duplicated.
 	j2 := &db.Job{
+		Created:      now,
 		Name:         "j2",
 		Dependencies: map[string][]string{testTask: []string{buildTask}, buildTask: []string{}},
 		Priority:     0.6,
 		RepoState:    rs2,
 	}
 	j3 := &db.Job{
+		Created:      now,
 		Name:         "j3",
 		Dependencies: map[string][]string{perfTask: []string{buildTask}, buildTask: []string{}},
 		Priority:     0.6,
 		RepoState:    rs2,
 	}
 	tc3 := &taskCandidate{
+		JobCreated: now,
 		TaskKey: db.TaskKey{
 			RepoState: rs2.Copy(),
 			Name:      buildTask,
@@ -321,6 +330,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		TaskSpec: ts[rs2][buildTask].Copy(),
 	}
 	tc4 := &taskCandidate{
+		JobCreated: now,
 		TaskKey: db.TaskKey{
 			RepoState: rs2.Copy(),
 			Name:      testTask,
@@ -328,6 +338,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		TaskSpec: ts[rs2][testTask].Copy(),
 	}
 	tc5 := &taskCandidate{
+		JobCreated: now,
 		TaskKey: db.TaskKey{
 			RepoState: rs2.Copy(),
 			Name:      perfTask,
@@ -704,7 +715,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 		},
 	}
 
-	processed, err := s.processTaskCandidates(candidates)
+	processed, err := s.processTaskCandidates(candidates, time.Now())
 	assert.NoError(t, err)
 	for _, c := range processed {
 		assertProcessed(c)
@@ -862,7 +873,8 @@ func TestComputeBlamelist(t *testing.T) {
 	defer tr.Cleanup()
 
 	d := db.NewInMemoryTaskDB()
-	cache, err := db.NewTaskCache(d, time.Hour)
+	w, err := window.New(time.Hour, 0, nil)
+	cache, err := db.NewTaskCache(d, w)
 	assert.NoError(t, err)
 
 	// The test repo is laid out like this:
@@ -1187,7 +1199,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.jCache.Update())
 
 	// Regenerate the task queue.
-	queue, err := s.regenerateTaskQueue()
+	queue, err := s.regenerateTaskQueue(time.Now())
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(queue)) // Two Build tasks.
 
@@ -1234,7 +1246,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 
 	// Regenerate the task queue.
-	queue, err = s.regenerateTaskQueue()
+	queue, err = s.regenerateTaskQueue(time.Now())
 	assert.NoError(t, err)
 
 	// Now we expect the queue to contain the other Build task and the one
@@ -1271,7 +1283,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 
 	// Regenerate the task queue.
-	queue, err = s.regenerateTaskQueue()
+	queue, err = s.regenerateTaskQueue(time.Now())
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(queue))
 	testSort()
@@ -1301,7 +1313,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 
 	// Regenerate the task queue.
-	queue, err = s.regenerateTaskQueue()
+	queue, err = s.regenerateTaskQueue(time.Now())
 	assert.NoError(t, err)
 
 	// Now we expect the queue to contain one Test and one Perf task. The
@@ -1831,7 +1843,7 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	repos := repograph.Map{
 		repoName: repo,
 	}
-	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), workdir, repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping)
+	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, workdir, repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping)
 	assert.NoError(t, err)
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
