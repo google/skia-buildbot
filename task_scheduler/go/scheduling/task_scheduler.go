@@ -455,9 +455,18 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 	if revision == nil {
 		return fmt.Errorf("No such commit %s in %s.", c.Revision, c.Repo)
 	}
-	commits, stealingFrom, err := ComputeBlamelist(cache, repo, c.Name, c.Repo, revision, commitsBuf)
-	if err != nil {
-		return err
+	var stealingFrom *db.Task
+	var commits []string
+	if revision.Timestamp.Before(s.window.Start()) {
+		// If the commit has scrolled out of our window, don't bother computing
+		// a blamelist.
+		commits = []string{c.Revision}
+	} else {
+		var err error
+		commits, stealingFrom, err = ComputeBlamelist(cache, repo, c.Name, c.Repo, revision, commitsBuf)
+		if err != nil {
+			return err
+		}
 	}
 	c.Commits = commits
 	if stealingFrom != nil {
@@ -479,7 +488,7 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 	if stealingFrom != nil {
 		// Treat retries as if they're new; don't use stealingFrom.Commits.
 		if c.RetryOf != "" {
-			if stealingFrom.Id != c.RetryOf {
+			if stealingFrom.Id != c.RetryOf && stealingFrom.ForcedJobId == "" {
 				glog.Errorf("Candidate %v is a retry of %s but is stealing commits from %s!", c.TaskKey, c.RetryOf, stealingFrom.Id)
 			}
 		} else {
