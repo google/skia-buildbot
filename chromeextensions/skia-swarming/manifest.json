@@ -1,6 +1,6 @@
 {
    "name": "Swarming Customizations for Skia",
-   "version": "0.9",
+   "version": "1.0",
    "description": "Swarming Customizations for Skia",
    "content_scripts": [
     {
@@ -18,5 +18,10 @@
       ]
     }
   ],
+   "icons": {
+     "16": "pencil16.png",
+     "48": "pencil48.png",
+     "128": "pencil128.png"
+   },
   "manifest_version": 2
 }
