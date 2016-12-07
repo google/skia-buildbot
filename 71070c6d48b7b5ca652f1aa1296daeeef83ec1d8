@@ -22,6 +22,24 @@
       "revId": "71070c6d48b7b5ca652f1aa1296daeeef83ec1d8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd4b13fc_f3f54b62",
+        "filename": "go/git/repograph/graph_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-07T16:33:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cd4b13fc_d3c12f22",
+      "revId": "71070c6d48b7b5ca652f1aa1296daeeef83ec1d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
