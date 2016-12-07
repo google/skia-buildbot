@@ -103,3 +103,31 @@ func TestGitBranch(t *testing.T) {
 	}
 	assert.True(t, checked)
 }
+
+func TestIsAncestor(t *testing.T) {
+	gb, commits := setup(t)
+	defer gb.Cleanup()
+
+	tmpDir, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmpDir)
+
+	g, err := newGitDir(gb.Dir(), tmpDir, false)
+	assert.NoError(t, err)
+
+	// Commits are in decreasing chronological order; commits[0] is the most
+	// recent and therefore is not an ancestor of commits[9].
+	b, err := g.IsAncestor(commits[0], commits[len(commits)-1])
+	assert.NoError(t, err)
+	assert.False(t, b)
+
+	for i := 0; i < len(commits)-1; i++ {
+		b, err := g.IsAncestor(commits[i], commits[i+1])
+		assert.NoError(t, err)
+		assert.False(t, b)
+
+		b, err = g.IsAncestor(commits[i+1], commits[i])
+		assert.NoError(t, err)
+		assert.True(t, b)
+	}
+}
