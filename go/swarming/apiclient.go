@@ -97,6 +97,9 @@ type ApiClient interface {
 	// GetTaskMetadata returns a swarming.SwarmingRpcsTaskRequestMetadata instance
 	// corresponding to the given Swarming task.
 	GetTaskMetadata(id string) (*swarming.SwarmingRpcsTaskRequestMetadata, error)
+
+	// GetModifiedTasks returns all tasks modified after the given time.Time.
+	GetModifiedTasks(pool string, after time.Time) ([]*swarming.SwarmingRpcsTaskResult, error)
 }
 
 type apiClient struct {
@@ -302,6 +305,38 @@ func (c *apiClient) ListTasks(start, end time.Time, tags []string, state string)
 	}
 
 	return rv, nil
+}
+
+func (c *apiClient) GetModifiedTasks(pool string, after time.Time) ([]*swarming.SwarmingRpcsTaskResult, error) {
+	tasks := []*swarming.SwarmingRpcsTaskResult{}
+	cursor := ""
+mainLoop:
+	for {
+		list := c.s.Tasks.List().Sort("MODIFIED_TS")
+		list.Limit(25)
+		if cursor != "" {
+			list.Cursor(cursor)
+		}
+		res, err := list.Do()
+		if err != nil {
+			return nil, err
+		}
+		for _, t := range res.Items {
+			ts, err := ParseTimestamp(t.ModifiedTs)
+			if err != nil {
+				return nil, err
+			}
+			if ts.Before(after) {
+				break mainLoop
+			}
+			tasks = append(tasks, t)
+		}
+		if len(res.Items) == 0 || res.Cursor == "" {
+			break
+		}
+		cursor = res.Cursor
+	}
+	return tasks, nil
 }
 
 func (c *apiClient) CancelTask(id string) error {
