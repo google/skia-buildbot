@@ -38,6 +38,7 @@ import (
 	"go.skia.org/infra/golden/go/history"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/stats"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/trybot"
@@ -221,6 +222,9 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Unable to open ingestion store: %s", err)
 	}
+
+	statsObj := stats.NewStats()
+
 	storages = &storage.Storage{
 		DiffStore:         diffStore,
 		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt),
@@ -232,6 +236,7 @@ func main() {
 		TrybotResults:     trybot.NewTrybotResults(branchTileBuilder, rietveldAPI, gerritAPI, ingestionStore),
 		RietveldAPI:       rietveldAPI,
 		GerritAPI:         gerritAPI,
+		Stats:             statsObj,
 	}
 
 	// TODO(stephana): Remove this workaround to avoid circular dependencies once the 'storage' module is cleaned up.
@@ -301,6 +306,7 @@ func main() {
 	router.HandleFunc("/json/trybot", jsonListTrybotsHandler).Methods("GET")
 	router.HandleFunc("/json/failure", jsonListFailureHandler).Methods("GET")
 	router.HandleFunc("/json/failure/clear", jsonClearFailureHandler).Methods("POST")
+	router.HandleFunc("/json/stats", jsonStatsHandler).Methods("GET")
 
 	// For everything else serve the same markup.
 	indexFile := *resourcesDir + "/index.html"

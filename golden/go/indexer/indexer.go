@@ -39,6 +39,7 @@ type SearchIndex struct {
 	paramsetSummary *paramsets.ParamSummary
 	blamer          *blame.Blamer
 	warmer          *warmer.Warmer
+	storages        *storage.Storage
 
 	// Used by the pdag pipeline.
 	testNames []string
@@ -286,5 +287,11 @@ func calcBlame(state interface{}) error {
 func runWarmer(state interface{}) error {
 	idx := state.(*SearchIndex)
 	go idx.warmer.Run(idx.tilePair.TileWithIgnores, idx.summaries, idx.tallies)
+	return nil
+}
+
+func calcStats(state interface{}) error {
+	idx := state.(*SearchIndex)
+	go idx.storages.Stats.CalculateTileStats(idx.tilePair.TileWithIgnores)
 	return nil
 }
