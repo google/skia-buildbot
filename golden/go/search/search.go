@@ -161,17 +161,17 @@ type intermediate struct {
 	Traces map[string]tiling.Trace
 }
 
-func (i *intermediate) addTrace(id string, tr tiling.Trace, digests []string) {
+func (i *intermediate) addTrace(id string, tr tiling.Trace) {
 	i.Traces[id] = tr
 }
 
-func newIntermediate(test, digest, id string, tr tiling.Trace, digests []string) *intermediate {
+func newIntermediate(test, digest, id string, tr tiling.Trace) *intermediate {
 	ret := &intermediate{
 		Test:   test,
 		Digest: digest,
 		Traces: map[string]tiling.Trace{},
 	}
-	ret.addTrace(id, tr, digests)
+	ret.addTrace(id, tr)
 	return ret
 }
 
@@ -217,31 +217,6 @@ func Search(q *Query, storages *storage.Storage, idx *indexer.SearchIndex) (*Sea
 		Commits:       commits,
 		IssueResponse: issueResponse,
 	}, nil
-}
-
-// issueIntermediate is a utility struct for searchByIssue.
-type issueIntermediate struct {
-	test     string
-	digest   string
-	status   types.Label
-	paramSet map[string][]string
-}
-
-// newIssueIntermediate creates a new instance of issueIntermediate.
-func newIssueIntermediate(params map[string]string, digest string, status types.Label) *issueIntermediate {
-	ret := &issueIntermediate{
-		test:     params[types.PRIMARY_KEY_FIELD],
-		digest:   digest,
-		status:   status,
-		paramSet: map[string][]string{},
-	}
-	ret.add(params)
-	return ret
-}
-
-// add adds to an existing intermediate value.
-func (i *issueIntermediate) add(params map[string]string) {
-	util.AddParamsToParamSet(i.paramSet, params)
 }
 
 func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, idx *indexer.SearchIndex) ([]*Digest, *IssueResponse, error) {
@@ -383,9 +358,9 @@ func searchTile(q *Query, e *expstorage.Expectations, parsedQuery url.Values, st
 				}
 				key := fmt.Sprintf("%s:%s", test, digest)
 				if i, ok := inter[key]; !ok {
-					inter[key] = newIntermediate(test, digest, id, tr, digests)
+					inter[key] = newIntermediate(test, digest, id, tr)
 				} else {
-					i.addTrace(id, tr, digests)
+					i.addTrace(id, tr)
 				}
 			}
 		}
@@ -854,14 +829,18 @@ func filterTile(query *Query, storages *storage.Storage, idx *indexer.SearchInde
 	ret := map[string]paramtools.ParamSet{}
 
 	// Add digest/trace to the result.
-	addFn := func(digest string, trace tiling.Trace, accptRet interface{}) {
+	addFn := func(test, digest, traceID string, trace tiling.Trace, accptRet interface{}) {
 		if found, ok := ret[digest]; ok {
 			found.AddParams(trace.Params())
 		} else {
 			ret[digest] = paramtools.NewParamSet(trace.Params())
 		}
 	}
-	return ret, iterTile(query, addFn, nil, storages, idx)
+
+	if err := iterTile(query, addFn, nil, storages, idx); err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
 
 // paramsMatch Returns true if all the parameters listed in matchFields have matching values
@@ -898,13 +877,13 @@ func getFilterByTileFunctions(matchFields []string, condDigests map[string]param
 			}
 			return len(matching) > 0, matching
 		}
-		addFn = func(digest string, trace tiling.Trace, acceptRet interface{}) {
+		addFn = func(test, digest, traceID string, trace tiling.Trace, acceptRet interface{}) {
 			for _, d := range acceptRet.([]string) {
 				(*target)[d][digest] = true
 			}
 		}
 	} else {
-		addFn = func(digest string, trace tiling.Trace, acceptRet interface{}) {
+		addFn = func(test, digest, traceID string, trace tiling.Trace, acceptRet interface{}) {
 			for d := range condDigests {
 				(*target)[d][digest] = true
 			}
@@ -944,70 +923,23 @@ func filterTileWithMatch(query *Query, matchFields []string, condDigests map[str
 			}
 			return len(matching) > 0, matching
 		}
-		addFn = func(digest string, trace tiling.Trace, acceptRet interface{}) {
+		addFn = func(test, digest, traceID string, trace tiling.Trace, acceptRet interface{}) {
 			for _, d := range acceptRet.([]string) {
 				ret[d][digest] = true
 			}
 		}
 	} else {
-		addFn = func(digest string, trace tiling.Trace, acceptRet interface{}) {
+		addFn = func(test, digest, traceID string, trace tiling.Trace, acceptRet interface{}) {
 			for d := range condDigests {
 				ret[d][digest] = true
 			}
 		}
 	}
 
-	return ret, iterTile(query, addFn, acceptFn, storages, idx)
-}
-
-// AcceptFn is the callback function used by iterTile to determine whether to
-// include a trace into the result or not. The second return value is an
-// intermediate result that will be passed to addFn to avoid redundant computation.
-type AcceptFn func(trace tiling.Trace) (bool, interface{})
-
-// AddFn is the callback function used by iterTile to add a digest and it's
-// trace to the result. acceptResult is the same value returned by the AcceptFn.
-type AddFn func(digest string, trace tiling.Trace, acceptResult interface{})
-
-// iterTile is a generic function to extract information from a tile.
-// It iterates over the tile and filters against the given query. If calls
-// acceptFn to determine whether to keep a trace (after it has already been
-// tested against the query) and calls addFn to add a digest and its trace.
-// acceptFn == nil equals unconditional acceptance.
-func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, storages *storage.Storage, idx *indexer.SearchIndex) error {
-	tile := idx.GetTile(query.IncludeIgnores)
-	exp, err := storages.ExpectationsStore.Get()
-	if err != nil {
-		return err
+	if err := iterTile(query, addFn, acceptFn, storages, idx); err != nil {
+		return nil, err
 	}
-
-	if acceptFn == nil {
-		acceptFn = func(tr tiling.Trace) (bool, interface{}) { return true, nil }
-	}
-
-	traceTally := idx.TalliesByTrace()
-	lastCommitIndex := tile.LastCommitIndex()
-
-	// Iterate through the tile.
-	for id, tr := range tile.Traces {
-		// Check if the query matches.
-		if tiling.Matches(tr, query.Query) {
-			// Check if we should accept this trace.
-			if ok, acceptRet := acceptFn(tr); ok {
-				test := tr.Params()[types.PRIMARY_KEY_FIELD]
-				digests := digestsFromTrace(id, tr, query.Head, lastCommitIndex, traceTally)
-				for _, digest := range digests {
-					cl := exp.Classification(test, digest)
-					if query.excludeClassification(cl) {
-						continue
-					}
-					// Add the digest to the results.
-					addFn(digest, tr, acceptRet)
-				}
-			}
-		}
-	}
-	return nil
+	return ret, nil
 }
 
 // getCTRows returns the instance of CTRow that correspond to the given set of row digests.
