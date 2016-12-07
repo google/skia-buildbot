@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -16,9 +17,12 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/net/context"
+
+	storage "cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
-	storage "google.golang.org/api/storage/v1"
+	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/calc"
@@ -86,6 +90,8 @@ var (
 	clusterRequests *clustering2.RunningClusterRequests
 
 	regStore *regression.Store
+
+	storageClient *storage.Client
 )
 
 func loadTemplates() {
@@ -773,6 +779,39 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type DetailsRequest struct {
+	cid.CommitID
+	TraceID string `json:"traceid"`
+}
+
+func detailsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	dr := &DetailsRequest{}
+	defer util.Close(r.Body)
+	if err := json.NewDecoder(r.Body).Decode(dr); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		return
+	}
+	name, _, err := ptracestore.Default.Details(&dr.CommitID, dr.TraceID)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to load details")
+		return
+	}
+	u, err := url.Parse(name)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse source file location.")
+		return
+	}
+	reader, err := storageClient.Bucket(u.Host).Object(u.Path).NewReader(context.Background())
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to get reader for source file location")
+		return
+	}
+	if _, err := io.Copy(w, reader); err != nil {
+		glog.Errorf("Failed to copy JSON file to HTTP stream: %s", err)
+	}
+}
+
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -785,9 +824,14 @@ func initIngestion() {
 	evt := eventbus.New(nil)
 
 	// Initialize oauth client and start the ingesters.
-	client, err := auth.NewDefaultJWTServiceAccountClient(storage.CloudPlatformScope)
+	client, err := auth.NewDefaultJWTServiceAccountClient(storage.ScopeReadWrite)
 	if err != nil {
 		glog.Fatalf("Failed to auth: %s", err)
+	}
+
+	storageClient, err = storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	if err != nil {
+		glog.Fatalf("Failed to create a Google Storage API client: %s", err)
 	}
 
 	// Start the ingesters.
@@ -876,6 +920,7 @@ func main() {
 	router.HandleFunc("/_/cluster/status/{id:[a-zA-Z0-9]+}", clusterStatusHandler)
 	router.HandleFunc("/_/reg/", regressionRangeHandler)
 	router.HandleFunc("/_/triage/", triageHandler)
+	router.HandleFunc("/_/details/", detailsHandler)
 
 	http.Handle("/", httputils.LoggingGzipRequestResponse(router))
 
