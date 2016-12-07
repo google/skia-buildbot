@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/pdag"
+	"go.skia.org/infra/golden/go/stats"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
@@ -39,6 +40,7 @@ type SearchIndex struct {
 	paramsetSummary *paramsets.ParamSummary
 	blamer          *blame.Blamer
 	warmer          *warmer.Warmer
+	stats           *stats.Stats
 
 	// Used by the pdag pipeline.
 	testNames []string
@@ -286,5 +288,11 @@ func calcBlame(state interface{}) error {
 func runWarmer(state interface{}) error {
 	idx := state.(*SearchIndex)
 	go idx.warmer.Run(idx.tilePair.TileWithIgnores, idx.summaries, idx.tallies)
+	return nil
+}
+
+func calcStats(state interface{}) error {
+	idx := state.(*SearchIndex)
+	go idx.stats.CalculateTileStats(idx.tilePair.TileWithIgnores)
 	return nil
 }
