@@ -38,7 +38,7 @@ func getValueMap(b *ingestcommon.BenchData) map[string]float32 {
 			}
 
 			for k, vi := range result {
-				if k == "options" {
+				if k == "options" || k == "samples" {
 					continue
 				}
 				key["sub_result"] = k
