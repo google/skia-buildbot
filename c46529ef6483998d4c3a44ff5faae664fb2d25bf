@@ -40,6 +40,24 @@
       "revId": "c46529ef6483998d4c3a44ff5faae664fb2d25bf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd4b13fc_10cd48c2",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 650,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-07T21:18:13Z",
+      "side": 1,
+      "message": "Sorry, I confused repoMap with repograph.Map.",
+      "parentUuid": "cd4b13fc_b05c9438",
+      "revId": "c46529ef6483998d4c3a44ff5faae664fb2d25bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
