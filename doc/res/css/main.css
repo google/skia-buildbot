@@ -117,6 +117,22 @@ div#___gcse_0 {
   width: 260px;
 }
 
+.float {
+  position: fixed;
+  top: 0;
+  right: 0;
+  border: 2px solid;
+  padding: 1em;
+}
+
+.float li {
+  list-style-type: none;
+}
+
+.float ul {
+  padding: 0;
+}
+
 @media (max-width: 900px) {
   #menu {
     width: 30px;
