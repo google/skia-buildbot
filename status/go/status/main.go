@@ -90,6 +90,11 @@ var (
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
 	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+
+	repoMap = map[string]string{
+		"skia":  common.REPO_SKIA,
+		"infra": common.REPO_SKIA_INFRA,
+	}
 )
 
 // StringIsInteresting returns true iff the string contains non-whitespace characters.
@@ -635,7 +640,12 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 			finished++
 		}
 	}
-	repo, _ := mux.Vars(r)["repo"]
+	repoName, _ := mux.Vars(r)["repo"]
+	repo, ok := repoMap[repoName]
+	if !ok {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Unknown repo %q", repoName))
+		return
+	}
 	tasksForCommit, err := tasksPerCommit.Get(db.RepoState{
 		Repo:     repo,
 		Revision: hash,
@@ -651,12 +661,14 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 
 	res := struct {
 		Commit             string  `json:"commit"`
-		FinishedAtCommit   int     `json:"finishedAtCommit"`
+		FinishedTasks      int     `json:"finishedTasks"`
 		FinishedProportion float64 `json:"finishedProportion"`
+		TotalTasks         int     `json:"totalTasks"`
 	}{
 		Commit:             hash,
-		FinishedAtCommit:   finished,
+		FinishedTasks:      finished,
 		FinishedProportion: proportion,
+		TotalTasks:         tasksForCommit,
 	}
 	if err := json.NewEncoder(w).Encode(res); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON."))
