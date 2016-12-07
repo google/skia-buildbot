@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"math"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -656,6 +657,15 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 			finishedAtOldCommit++
 		}
 	}
+
+	// TODO(borenet): Remove this as part of making this endpoint more accurate.
+	var finishedProps float64
+	if finishedAtOldCommit > 0 {
+		finishedProps = float64(finishedAtNewCommit) / float64(finishedAtOldCommit)
+	} else {
+		// If finishedAtOldCommit == 0 we set the value to 1.<finishedAtNewCommit>
+		finishedProps = 1.0 + float64(finishedAtNewCommit)/math.Ceil(math.Log10(float64(finishedAtNewCommit)))
+	}
 	res := struct {
 		OldCommit           string  `json:"oldCommit"`
 		FinishedAtOldCommit int     `json:"finishedAtOldCommit"`
@@ -667,7 +677,7 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 		FinishedAtOldCommit: finishedAtOldCommit,
 		NewCommit:           hash,
 		FinishedAtNewCommit: finishedAtNewCommit,
-		FinishedProportion:  float64(finishedAtNewCommit) / float64(finishedAtOldCommit),
+		FinishedProportion:  finishedProps,
 	}
 	if err := json.NewEncoder(w).Encode(res); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON."))
