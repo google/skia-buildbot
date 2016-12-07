@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/stats"
 	"go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -32,6 +33,7 @@ type Storage struct {
 	TrybotResults     *trybot.TrybotResults
 	RietveldAPI       *rietveld.Rietveld
 	GerritAPI         *gerrit.Gerrit
+	Stats             *stats.Stats
 
 	// NCommits is the number of commits we should consider. If NCommits is
 	// 0 or smaller all commits in the last tile will be considered.
