@@ -19,6 +19,10 @@ imagediff:
 sampler:
 	go install -v ./go/sampler
 
+.PHONY: tilestats
+tilestats:
+	go install -v ./go/tilestats
+
 .PHONY: packages
 packages:
 	go build -v ./go/...
