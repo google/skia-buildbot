@@ -320,3 +320,38 @@ func TestFindCommit(t *testing.T) {
 		}
 	}
 }
+
+func TestUpdateHistoryChanged(t *testing.T) {
+	testutils.LargeTest(t)
+	testutils.SkipIfShort(t)
+	g, repo, commits, cleanup := gitSetup(t)
+	defer cleanup()
+
+	glog.Infof("%v", repo.Branches())
+
+	// c3 is the one commit on branch2.
+	c3 := repo.Get("branch2")
+	assert.NotNil(t, c3)
+	assert.Equal(t, c3, commits[2]) // c3 from setup()
+
+	// Change branch 2 to be based at c4 with one commit, c6.
+	g.CheckoutBranch("branch2")
+	g.Reset("--hard", commits[3].Hash) // c4 from setup()
+	f := "myfile"
+	c6hash := g.CommitGen(f)
+
+	assert.NoError(t, repo.Update())
+	c6 := repo.Get("branch2")
+	assert.NotNil(t, c6)
+	assert.Equal(t, c6hash, c6.Hash)
+
+	// Ensure that c3 is not reachable from c6.
+	anc, err := repo.repo.IsAncestor(c3.Hash, c6.Hash)
+	assert.NoError(t, err)
+	assert.False(t, anc)
+
+	assert.NoError(t, c6.Recurse(func(c *Commit) (bool, error) {
+		assert.NotEqual(t, c, c3)
+		return true, nil
+	}))
+}
