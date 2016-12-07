@@ -1,6 +1,7 @@
 package digesttools
 
 import (
+	"encoding/json"
 	"math"
 	"net/http"
 	"testing"
@@ -84,4 +85,11 @@ func TestCombinedDiffMetric(t *testing.T) {
 	assert.InDelta(t, 1.0, combinedDiffMetric(0.0, []int{}), 0.000001)
 	assert.InDelta(t, 1.0, combinedDiffMetric(1.0, []int{255, 255, 255, 255}), 0.000001)
 	assert.InDelta(t, math.Sqrt(0.5), combinedDiffMetric(0.5, []int{255, 255, 255, 255}), 0.000001)
+}
+
+func TestJSON(t *testing.T) {
+	closest := newClosest()
+	closest.Diff = float32(math.Inf(0))
+	_, err := json.Marshal(closest)
+	assert.NoError(t, err)
 }
