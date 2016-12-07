@@ -163,6 +163,7 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task, dims map[s
 			CreatedTs:   ts(task.Created),
 			CompletedTs: ts(task.Finished),
 			Failure:     failed,
+			ModifiedTs:  ts(time.Now()),
 			OutputsRef: &swarming_api.SwarmingRpcsFilesRef{
 				Isolated: task.IsolatedOutput,
 			},

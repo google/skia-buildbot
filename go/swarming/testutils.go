@@ -129,6 +129,25 @@ func (c *TestClient) ListTaskResults(start, end time.Time, tags []string, state 
 	return rv, nil
 }
 
+func (c *TestClient) GetModifiedTasks(pool string, after time.Time) ([]*swarming.SwarmingRpcsTaskResult, error) {
+	tasks, err := c.ListTasks(time.Unix(0, 0), time.Now(), []string{"pool:Skia"}, "")
+	if err != nil {
+		return nil, err
+	}
+	rv := make([]*swarming.SwarmingRpcsTaskResult, 0, len(tasks))
+	for _, t := range tasks {
+		ts, err := ParseTimestamp(t.TaskResult.ModifiedTs)
+		if err != nil {
+			return nil, err
+		}
+		if ts.Before(after) {
+			break
+		}
+		rv = append(rv, t.TaskResult)
+	}
+	return rv, nil
+}
+
 func (c *TestClient) CancelTask(id string) error {
 	return nil
 }
