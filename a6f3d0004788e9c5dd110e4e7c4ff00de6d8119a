@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "cd4b13fc_b8fd60c0",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 831,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-07T15:24:04Z",
+      "side": 1,
+      "message": "IMO channels will just make this more difficult to read and debug: we\u0027d have to add another goroutine to collect the errors out of the channel, which introduces the possibility of deadlock.",
+      "parentUuid": "cd4b13fc_f87688b5",
+      "revId": "a6f3d0004788e9c5dd110e4e7c4ff00de6d8119a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cd4b13fc_b859e048",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
@@ -48,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "cd4b13fc_78d91884",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 835,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-07T15:24:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cd4b13fc_b859e048",
+      "revId": "a6f3d0004788e9c5dd110e4e7c4ff00de6d8119a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cd4b13fc_1891f4a4",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
@@ -65,6 +101,24 @@
         "endLine": 869,
         "endChar": 32
       },
+      "revId": "a6f3d0004788e9c5dd110e4e7c4ff00de6d8119a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd4b13fc_580a1c02",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 869,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-07T15:24:04Z",
+      "side": 1,
+      "message": "Sure.",
+      "parentUuid": "cd4b13fc_1891f4a4",
       "revId": "a6f3d0004788e9c5dd110e4e7c4ff00de6d8119a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
