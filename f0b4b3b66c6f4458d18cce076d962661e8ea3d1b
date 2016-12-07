@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0d744b42_d3e04cb5",
+        "filename": "perf/go/ptraceingest/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5010
+      },
+      "writtenOn": "2016-12-07T17:29:49Z",
+      "side": 1,
+      "message": "Ah, just avoiding this, right?",
+      "revId": "f0b4b3b66c6f4458d18cce076d962661e8ea3d1b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
