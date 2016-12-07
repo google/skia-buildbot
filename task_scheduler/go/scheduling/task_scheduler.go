@@ -53,23 +53,24 @@ var (
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
-	bl               *blacklist.Blacklist
-	busyBots         *busyBots
-	db               db.DB
-	isolate          *isolate.Client
-	jCache           db.JobCache
-	lastScheduled    time.Time        // protected by queueMtx.
-	queue            []*taskCandidate // protected by queueMtx.
-	queueMtx         sync.RWMutex
-	repos            repograph.Map
-	swarming         swarming.ApiClient
-	taskCfgCache     *specs.TaskCfgCache
-	tCache           db.TaskCache
-	timeDecayAmt24Hr float64
-	triggerMetrics   *periodicTriggerMetrics
-	tryjobs          *tryjobs.TryJobIntegrator
-	window           *window.Window
-	workdir          string
+	bl                  *blacklist.Blacklist
+	busyBots            *busyBots
+	db                  db.DB
+	isolate             *isolate.Client
+	jCache              db.JobCache
+	lastQueriedForTasks time.Time        // Only used in updateUnfinishedTasks, not thread-safe.
+	lastScheduled       time.Time        // protected by queueMtx.
+	queue               []*taskCandidate // protected by queueMtx.
+	queueMtx            sync.RWMutex
+	repos               repograph.Map
+	swarming            swarming.ApiClient
+	taskCfgCache        *specs.TaskCfgCache
+	tCache              db.TaskCache
+	timeDecayAmt24Hr    float64
+	triggerMetrics      *periodicTriggerMetrics
+	tryjobs             *tryjobs.TryJobIntegrator
+	window              *window.Window
+	workdir             string
 }
 
 func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string) (*TaskScheduler, error) {
@@ -1272,18 +1273,31 @@ func (s *TaskScheduler) updateUnfinishedTasks(now time.Time) error {
 	}
 	sort.Sort(db.TaskSlice(tasks))
 
-	// Query for all tasks triggered in the last 15 minutes which are
-	// pending or running.
-	start := now.Add(-15 * time.Minute)
+	// Query for all pending tasks as well as all tasks modified after the
+	// last time we checked.
+	start := now.Add(time.Hour)
 	var wg sync.WaitGroup
-	swarmTasks := map[string]*swarming_api.SwarmingRpcsTaskRequestMetadata{}
+	pending := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
+	swarmTasks := map[string]*swarming_api.SwarmingRpcsTaskResult{}
 	errs := []error{}
 	var mtx sync.Mutex
 	for _, pool := range SWARMING_POOLS {
 		wg.Add(1)
 		go func(pool string) {
 			defer wg.Done()
-			t, err := s.swarming.ListTasks(start, now, []string{fmt.Sprintf("pool:%s", pool)}, "PENDING_RUNNING")
+			t, err := s.swarming.ListTasks(start, now, []string{fmt.Sprintf("pool:%s", pool)}, "PENDING")
+			mtx.Lock()
+			defer mtx.Unlock()
+			if err != nil {
+				errs = append(errs, err)
+			} else {
+				pending = append(pending, t...)
+			}
+		}(pool)
+		wg.Add(1)
+		go func(pool string) {
+			defer wg.Done()
+			t, err := s.swarming.GetModifiedTasks(pool, s.lastQueriedForTasks)
 			mtx.Lock()
 			defer mtx.Unlock()
 			if err != nil {
@@ -1300,59 +1314,10 @@ func (s *TaskScheduler) updateUnfinishedTasks(now time.Time) error {
 		return fmt.Errorf("Got errors loading tasks: %v", errs)
 	}
 
-	// Update the tasks we found in the first query, record any unfinished
-	// tasks which weren't found so we can ask for them specifically.
-	remaining := []*db.Task{}
-	for _, t := range tasks {
-		swarmTask, ok := swarmTasks[t.SwarmingTaskId]
-		if !ok {
-			remaining = append(remaining, t)
-			continue
-		}
-		if err := db.UpdateDBFromSwarmingTask(s.db, swarmTask.TaskResult); err != nil {
-			return fmt.Errorf("Failed to update unfinished task: %s", err)
-		}
-	}
-
-	// Collect all of the still-pending tasks and record them for busyBots.
-	pending := make([]*swarming_api.SwarmingRpcsTaskRequestMetadata, 0, len(swarmTasks))
+	// Update the tasks we found.
 	for _, t := range swarmTasks {
-		if t.TaskResult.State == db.SWARMING_STATE_PENDING {
-			pending = append(pending, t)
-		}
-	}
-
-	// Query for any tasks we didn't get in the first round.
-	// TODO(borenet): This would be faster if Swarming had a
-	// get-multiple-tasks-by-ID endpoint.
-	glog.Infof("Querying Swarming for %d of %d tasks not found in the initial query (%d tasks).", len(remaining), len(tasks), len(swarmTasks))
-	errs = make([]error, len(remaining))
-	for i, t := range remaining {
-		wg.Add(1)
-		go func(idx int, t *db.Task) {
-			defer wg.Done()
-			swarmTask, err := s.swarming.GetTaskMetadata(t.SwarmingTaskId)
-			if err != nil {
-				errs[idx] = fmt.Errorf("Failed to update unfinished task; failed to get updated task from swarming: %s", err)
-				return
-			}
-			if err := db.UpdateDBFromSwarmingTask(s.db, swarmTask.TaskResult); err != nil {
-				errs[idx] = fmt.Errorf("Failed to update unfinished task: %s", err)
-				return
-			}
-
-			// If the task is pending, we need to know about it for busyBots.
-			if swarmTask.TaskResult.State == db.SWARMING_STATE_PENDING {
-				mtx.Lock()
-				defer mtx.Unlock()
-				pending = append(pending, swarmTask)
-			}
-		}(i, t)
-	}
-	wg.Wait()
-	for _, err := range errs {
-		if err != nil {
-			return err
+		if err := db.UpdateDBFromSwarmingTask(s.db, t); err != nil {
+			return fmt.Errorf("Failed to update unfinished task: %s", err)
 		}
 	}
 
@@ -1360,7 +1325,7 @@ func (s *TaskScheduler) updateUnfinishedTasks(now time.Time) error {
 	if err := s.tCache.Update(); err != nil {
 		return err
 	}
-
+	s.lastQueriedForTasks = now
 	return s.busyBots.RefreshTasks(pending)
 }
 
