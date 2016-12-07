@@ -131,7 +131,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir str
 func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 	s.tryjobs.Start(ctx)
 	lv := metrics2.NewLiveness("last-successful-task-scheduling")
-	go util.RepeatCtx(time.Minute, ctx, func() {
+	go util.RepeatCtx(5*time.Second, ctx, func() {
 		beforeMainLoop()
 		if err := s.MainLoop(); err != nil {
 			glog.Errorf("Failed to run the task scheduler: %s", err)

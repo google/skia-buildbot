@@ -54,7 +54,7 @@ const (
 	PEEK_MAX_BUILDS = 50
 
 	// How often to poll Buildbucket for newly-scheduled builds.
-	POLL_INTERVAL = time.Minute
+	POLL_INTERVAL = 10 * time.Second
 
 	// This error reason indicates that we already marked the build as
 	// finished.
