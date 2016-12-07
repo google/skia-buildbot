@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd4b13fc_d365af59",
+        "filename": "chromeextensions/skia-swarming/tasks.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-07T16:42:25Z",
+      "side": 1,
+      "message": "Just want to make sure this is clear: jobID will only be set for manually-forced (ie. through the task scheduler UI) jobs, not for try jobs or \"normal\" per-commit or timed jobs.  Might want to note that in the label \u003ctd\u003e.",
+      "range": {
+        "startLine": 17,
+        "startChar": 6,
+        "endLine": 17,
+        "endChar": 11
+      },
+      "revId": "93f7a1f3be2272069168fd58a361ce7c17f7c343",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd4b13fc_9350877e",
+        "filename": "chromeextensions/skia-swarming/tasks.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-07T16:42:25Z",
+      "side": 1,
+      "message": "Nit: I prefer having the URL as the text of the link.",
+      "range": {
+        "startLine": 25,
+        "startChar": 183,
+        "endLine": 25,
+        "endChar": 206
+      },
+      "revId": "93f7a1f3be2272069168fd58a361ce7c17f7c343",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd4b13fc_b34d83e2",
+        "filename": "chromeextensions/skia-swarming/tasks.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-07T16:42:25Z",
+      "side": 1,
+      "message": "I prefer having the commit hash, possibly shortened to 7 or 12 characters, as the link text.",
+      "range": {
+        "startLine": 37,
+        "startChar": 112,
+        "endLine": 37,
+        "endChar": 123
+      },
+      "revId": "93f7a1f3be2272069168fd58a361ce7c17f7c343",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd4b13fc_535aff9b",
+        "filename": "chromeextensions/skia-swarming/tasks.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-07T16:42:25Z",
+      "side": 1,
+      "message": "Again, I\u0027d like the task ID as the link text.",
+      "range": {
+        "startLine": 44,
+        "startChar": 260,
+        "endLine": 44,
+        "endChar": 277
+      },
+      "revId": "93f7a1f3be2272069168fd58a361ce7c17f7c343",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd4b13fc_7357fb72",
+        "filename": "chromeextensions/skia-swarming/tasks.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-07T16:42:25Z",
+      "side": 1,
+      "message": "...",
+      "range": {
+        "startLine": 51,
+        "startChar": 263,
+        "endLine": 51,
+        "endChar": 280
+      },
+      "revId": "93f7a1f3be2272069168fd58a361ce7c17f7c343",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd4b13fc_334ad3c6",
+        "filename": "chromeextensions/skia-swarming/tasks.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-07T16:42:25Z",
+      "side": 1,
+      "message": "Can you explain what this is?  AFAICT this will just link back to the tasks list with the sole task in the list being the one we\u0027re currently looking at.",
+      "range": {
+        "startLine": 56,
+        "startChar": 34,
+        "endLine": 56,
+        "endChar": 50
+      },
+      "revId": "93f7a1f3be2272069168fd58a361ce7c17f7c343",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd4b13fc_134557b6",
+        "filename": "chromeextensions/skia-swarming/tasks.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-07T16:42:25Z",
+      "side": 1,
+      "message": "...",
+      "range": {
+        "startLine": 58,
+        "startChar": 273,
+        "endLine": 58,
+        "endChar": 291
+      },
+      "revId": "93f7a1f3be2272069168fd58a361ce7c17f7c343",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
