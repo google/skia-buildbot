@@ -221,14 +221,43 @@ func (r *Graph) Update() error {
 	if err != nil {
 		return fmt.Errorf("Failed to get branches for repograph.Graph: %s", err)
 	}
-	r.branches = branches
 
-	// Load all commits from the repo.
+	// Load new commits from the repo.
 	glog.Infof("  Loading commits...")
-	for _, b := range r.branches {
-		commits, err := r.repo.RevList(b.Head)
-		if err != nil {
-			return fmt.Errorf("Failed to 'git rev-list' for repograph.Graph: %s", err)
+	for _, b := range branches {
+		// Shortcut: If we already have the head of this branch, don't
+		// bother loading commits.
+		if _, ok := r.commits[b.Head]; ok {
+			continue
+		}
+
+		// Load all commits on this branch.
+		// First, try to load only new commits on this branch.
+		var commits []string
+		for _, old := range r.branches {
+			if old.Name == b.Name {
+				anc, err := r.repo.IsAncestor(old.Head, b.Head)
+				if err != nil {
+					return err
+				}
+				if anc {
+					commits, err = r.repo.RevList(fmt.Sprintf("%s..%s", old.Head, b.Head))
+					if err != nil {
+						return err
+					}
+				}
+				break
+			}
+		}
+		// If this is a new branch, or if the old branch head is not
+		// reachable from the new (eg. if commit history was modified),
+		// load ALL commits reachable from the branch head.
+		if len(commits) == 0 {
+			glog.Infof("  Branch %s is new or its history has changed; loading all commits.", b.Name)
+			commits, err = r.repo.RevList(b.Head)
+			if err != nil {
+				return fmt.Errorf("Failed to 'git rev-list' for repograph.Graph: %s", err)
+			}
 		}
 		for i := len(commits) - 1; i >= 0; i-- {
 			hash := commits[i]
@@ -243,6 +272,7 @@ func (r *Graph) Update() error {
 			}
 		}
 	}
+	r.branches = branches
 
 	// Write to the cache file.
 	glog.Infof("  Writing cache file...")

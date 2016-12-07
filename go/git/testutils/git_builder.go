@@ -166,6 +166,13 @@ func (g *GitBuilder) MergeBranch(name string) string {
 	return g.lastCommitHash()
 }
 
+// Reset runs "git reset" in the repo.
+func (g *GitBuilder) Reset(args ...string) {
+	cmd := append([]string{"git", "reset"}, args...)
+	g.run(cmd...)
+	g.push()
+}
+
 // GitSetup adds commits to the Git repo managed by g.
 //
 // The repo layout looks like this:

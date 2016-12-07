@@ -157,3 +157,18 @@ func (g GitDir) NumCommits() (int64, error) {
 	}
 	return strconv.ParseInt(strings.TrimSpace(out), 10, 64)
 }
+
+// IsAncestor returns true iff A is an ancestor of B.
+func (g GitDir) IsAncestor(a, b string) (bool, error) {
+	out, err := g.Git("merge-base", "--is-ancestor", a, b)
+	if err != nil {
+		// Either a is not an ancestor of b, or we got a real error. If
+		// the output is empty, assume it's the former case. Otherwise,
+		// return an error.
+		if out == "" {
+			return false, nil
+		}
+		return false, fmt.Errorf("%s: %s", err, out)
+	}
+	return true, nil
+}
