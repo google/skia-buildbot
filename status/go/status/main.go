@@ -18,6 +18,8 @@ import (
 	"time"
 	"unicode"
 
+	"golang.org/x/net/context"
+
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot"
@@ -36,6 +38,7 @@ import (
 	"go.skia.org/infra/status/go/commit_cache"
 	"go.skia.org/infra/status/go/device_cfg"
 	"go.skia.org/infra/status/go/franken"
+	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 )
 
@@ -58,7 +61,7 @@ var (
 	commitCaches         map[string]*commit_cache.CommitCache = nil
 	buildbotDashTemplate *template.Template                   = nil
 	commitsTemplate      *template.Template                   = nil
-	db                   buildbot.DB                          = nil
+	buildDb              buildbot.DB                          = nil
 	hostsTemplate        *template.Template                   = nil
 	infraTemplate        *template.Template                   = nil
 	dbClient             *influxdb.Client                     = nil
@@ -69,6 +72,7 @@ var (
 	slaveHosts           *polling_status.PollingStatus        = nil
 	androidDevices       *polling_status.PollingStatus        = nil
 	sshDevices           *polling_status.PollingStatus        = nil
+	tasksPerCommit       *tasksPerCommitCache                 = nil
 )
 
 // flags
@@ -618,56 +622,41 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	// Get the commit cache.
-	cache, err := getCommitCache(w, r)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get the commit cache."))
-		return
-	}
-
-	// Get the number of finished builds for the requested commit.
+	// Get the number of finished tasks for the requested commit.
 	hash := r.FormValue("commit")
-	buildsAtNewCommit, err := buildCache.GetBuildsForCommit(hash, login.IsGoogler(r))
+	builds, err := buildCache.GetBuildsForCommit(hash, login.IsGoogler(r))
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get the number of finished builds."))
 		return
 	}
-	finishedAtNewCommit := 0
-	for _, b := range buildsAtNewCommit {
+	finished := 0
+	for _, b := range builds {
 		if b.Finished {
-			finishedAtNewCommit++
+			finished++
 		}
+	}
+	repo, _ := mux.Vars(r)["repo"]
+	tasksForCommit, err := tasksPerCommit.Get(db.RepoState{
+		Repo:     repo,
+		Revision: hash,
+	})
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get number of tasks at commit."))
+		return
+	}
+	proportion := 1.0
+	if tasksForCommit > 0 {
+		proportion = float64(finished) / float64(tasksForCommit)
 	}
 
-	// Find an older commit for which we'll assume that all builds have completed.
-	oldCommit, err := cache.Get(cache.NumCommits() - DEFAULT_COMMITS_TO_LOAD)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get an old commit from the cache."))
-		return
-	}
-	buildsAtOldCommit, err := buildCache.GetBuildsForCommit(oldCommit.Hash, login.IsGoogler(r))
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get the number of finished builds."))
-		return
-	}
-	finishedAtOldCommit := 0
-	for _, b := range buildsAtOldCommit {
-		if b.Finished {
-			finishedAtOldCommit++
-		}
-	}
 	res := struct {
-		OldCommit           string  `json:"oldCommit"`
-		FinishedAtOldCommit int     `json:"finishedAtOldCommit"`
-		NewCommit           string  `json:"newCommit"`
-		FinishedAtNewCommit int     `json:"finishedAtNewCommit"`
-		FinishedProportion  float64 `json:"finishedProportion"`
+		Commit             string  `json:"commit"`
+		FinishedAtCommit   int     `json:"finishedAtCommit"`
+		FinishedProportion float64 `json:"finishedProportion"`
 	}{
-		OldCommit:           oldCommit.Hash,
-		FinishedAtOldCommit: finishedAtOldCommit,
-		NewCommit:           hash,
-		FinishedAtNewCommit: finishedAtNewCommit,
-		FinishedProportion:  float64(finishedAtNewCommit) / float64(finishedAtOldCommit),
+		Commit:             hash,
+		FinishedAtCommit:   finished,
+		FinishedProportion: proportion,
 	}
 	if err := json.NewEncoder(w).Encode(res); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON."))
@@ -727,7 +716,7 @@ func main() {
 	}
 
 	// Create buildbot remote DB.
-	db, err = buildbot.NewRemoteDB(*buildbotDbHost)
+	buildDb, err = buildbot.NewRemoteDB(*buildbotDbHost)
 	if err != nil {
 		glog.Fatal(err)
 	}
@@ -768,8 +757,14 @@ func main() {
 
 	glog.Info("Checkout complete")
 
+	// Cache for buildProgressHandler.
+	tasksPerCommit, err = newTasksPerCommitCache(*workdir, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, 14*24*time.Hour, context.Background())
+	if err != nil {
+		glog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
+	}
+
 	// Create the build cache.
-	bc, err := franken.NewBTCache(repos, db, taskDb)
+	bc, err := franken.NewBTCache(repos, buildDb, taskDb)
 	if err != nil {
 		glog.Fatalf("Failed to create build cache: %s", err)
 	}
@@ -777,13 +772,13 @@ func main() {
 
 	// Create the commit caches.
 	commitCaches = map[string]*commit_cache.CommitCache{}
-	skiaCache, err := commit_cache.New(skiaRepo, path.Join(*workdir, "commit_cache.gob"), DEFAULT_COMMITS_TO_LOAD, db)
+	skiaCache, err := commit_cache.New(skiaRepo, path.Join(*workdir, "commit_cache.gob"), DEFAULT_COMMITS_TO_LOAD, buildDb)
 	if err != nil {
 		glog.Fatalf("Failed to create commit cache: %v", err)
 	}
 	commitCaches[SKIA_REPO] = skiaCache
 
-	infraCache, err := commit_cache.New(infraRepo, path.Join(*workdir, "commit_cache_infra.gob"), DEFAULT_COMMITS_TO_LOAD, db)
+	infraCache, err := commit_cache.New(infraRepo, path.Join(*workdir, "commit_cache_infra.gob"), DEFAULT_COMMITS_TO_LOAD, buildDb)
 	if err != nil {
 		glog.Fatalf("Failed to create commit cache: %v", err)
 	}
