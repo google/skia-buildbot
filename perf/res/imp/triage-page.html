@@ -52,6 +52,10 @@
       border-spacing: 0;
     }
 
+    #table.hidden {
+      display: none;
+    }
+
     .dot {
       text-decoration: none;
       color: black;
@@ -65,7 +69,7 @@
       <day-range-sk id=range on-day-range-change="_rangeChange"></day-range-sk>
     </details-sk>
     <paper-spinner id=spinner></paper-spinner>
-    <table on-open-keys=_openKeys on-triaged=_triaged>
+    <table on-open-keys=_openKeys on-triaged=_triaged id=table>
       <tr>
         <th>Commit</th>
         <template is="dom-repeat" items="[[_reg.header]]">
@@ -90,7 +94,7 @@
                 <triage-status-sk query="[[_queryFrom(index)]]" cluster_type=low full_summary="[[_full_summary(item.frame, item.low)]]" triage="[[item.low_status]]"></triage-status-sk>
               </template>
               <template is="dom-if" if="[[_not(item.low)]]">
-                <a class=dot title="No clusters found." href="/g/c/[[_hashFrom(tableIndex)]]?query=[[_encQueryFrom(index)]]">[[_display(tableIndex)]]</a>
+                <a class=dot title="No clusters found." href="/g/c/[[_hashFrom(tableIndex)]]?query=[[_encQueryFrom(index)]]">[[_display(tableIndex,state.end)]]</a>
               </template>
             </td>
             <td class=cluster>
@@ -98,7 +102,7 @@
                 <triage-status-sk query="[[_queryFrom(index)]]" cluster_type=high full_summary="[[_full_summary(item.frame, item.high)]]" triage="[[item.high_status]]"></triage-status-sk>
               </template>
               <template is="dom-if" if="[[_not(item.high)]]">
-                <a class=dot title="No clusters found." href="/g/c/[[_hashFrom(tableIndex)]]?query=[[_encQueryFrom(index)]]">[[_display(tableIndex)]]</a>
+                <a class=dot title="No clusters found." href="/g/c/[[_hashFrom(tableIndex)]]?query=[[_encQueryFrom(index)]]">[[_display(tableIndex,state.end)]]</a>
               </template>
             </td>
           </template>
@@ -109,118 +113,124 @@
 </dom-module>
 
 <script>
-  Polymer({
-    is: "triage-page-sk",
+  (function () {
+    var now = Math.floor(Date.now()/1000);
 
-    properties: {
-      state: {
-        type: Object,
-        value: function() { return {
-          begin: Math.floor(Date.now()/1000 - 4*24*60*60),
-          end: Math.floor(Date.now()/1000),
-        }; },
+    Polymer({
+      is: "triage-page-sk",
+
+      properties: {
+        state: {
+          type: Object,
+          value: function() { return {
+            begin: now - 4*24*60*60,
+            end: now,
+          }; },
+        },
+        _reg: {
+          type: Object,
+          value: function() { return {}; },
+        },
+        _triageInProgress: {
+          type: Boolean,
+          value: false,
+        }
       },
-      _reg: {
-        type: Object,
-        value: function() { return {}; },
+
+      ready: function() {
+        sk.stateReflector(this, this._updateRange.bind(this));
       },
-      _triageInProgress: {
-        type: Boolean,
-        value: false,
-      }
-    },
 
-    ready: function() {
-      sk.stateReflector(this, this._updateRange.bind(this));
-    },
+      _openKeys: function(e) {
+        var state = {
+          keys: e.detail.keys,
+        };
+        sk.post('/_/keys/', JSON.stringify(state)).then(JSON.parse).then(function (json) {
+          window.open('/e/?keys=' + json.id + '&begin=' + e.detail.begin + '&end=' + e.detail.end, '_blank');
+        }.bind(this));
+      },
 
-    _openKeys: function(e) {
-      var state = {
-        keys: e.detail.keys,
-      };
-      sk.post('/_/keys/', JSON.stringify(state)).then(JSON.parse).then(function (json) {
-        window.open('/e/?keys=' + json.id + '&begin=' + e.detail.begin + '&end=' + e.detail.end, '_blank');
-      }.bind(this));
-    },
+      _rangeChange: function(e) {
+        this.set('state.begin', e.detail.begin);
+        this.set('state.end', e.detail.end);
+        this._updateRange();
+      },
 
-    _rangeChange: function(e) {
-      this.state.begin = e.detail.begin;
-      this.state.end = e.detail.end;
-      this._updateRange();
-    },
+      _updateRange: function() {
+        this.$.range.begin = this.state.begin;
+        this.$.range.end = this.state.end;
+        var body = {
+          begin: this.state.begin,
+          end: this.state.end,
+        };
+        this.$.spinner.active = true;
+        this.$.table.classList.toggle("hidden", true);
+        sk.post("/_/reg/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json) {
+          this.$.spinner.active = false;
+          this.$.table.classList.toggle("hidden", false);
+          this.set('_reg', json);
+        }.bind(this)).catch(function(msg) {
+          if (msg) {
+            sk.errorMessage(msg, 10000);
+          }
+          this.$.spinner.active = false;
+        }.bind(this));
+      },
 
-    _updateRange: function() {
-      this.$.range.begin = this.state.begin;
-      this.$.range.end = this.state.end;
-      var body = {
-        begin: this.state.begin,
-        end: this.state.end,
-      };
-      this.$.spinner.active = true;
-      sk.post("/_/reg/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json) {
-        this.$.spinner.active = false;
-        this.set('_reg', json);
-      }.bind(this)).catch(function(msg) {
-        if (msg) {
-          sk.errorMessage(msg, 10000);
+      _triaged: function(e) {
+        this.$.spinner.active = true;
+        if (this._triageInProgress === true) {
+          sk.errorMessage("A triage request is in progress.");
+          return
         }
-        this.$.spinner.active = false;
-      }.bind(this));
-    },
+        this._triageInProgress = true;
+        sk.post("/_/triage/", JSON.stringify(e.detail), "application/json").then(JSON.parse).then(function(json) {
+          this.$.spinner.active = false;
+          this._triageInProgress = false;
+          if (json.bug) {
+            // Open the bug reporting page in a new window.
+            window.open(json.bug, '_blank');
+          }
+        }.bind(this)).catch(function(msg) {
+          if (msg) {
+            sk.errorMessage(msg, 10000);
+          }
+          this.$.spinner.active = false;
+          this._triageInProgress = false;
+        }.bind(this));
+      },
 
-    _triaged: function(e) {
-      this.$.spinner.active = true;
-      if (this._triageInProgress === true) {
-        sk.errorMessage("A triage request is in progress.");
-        return
-      }
-      this._triageInProgress = true;
-      sk.post("/_/triage/", JSON.stringify(e.detail), "application/json").then(JSON.parse).then(function(json) {
-        this.$.spinner.active = false;
-        this._triageInProgress = false;
-        if (json.bug) {
-          // Open the bug reporting page in a new window.
-          window.open(json.bug, '_blank');
+      _queryFrom: function(index) {
+        return this._reg.header[index];
+      },
+
+      _encQueryFrom: function(index) {
+        return encodeURIComponent(this._reg.header[index]);
+      },
+
+      _hashFrom: function(index) {
+        return this._reg.table[index].cid.hash;
+      },
+
+      _full_summary: function(frame, summary) {
+        return {
+          frame: frame,
+          summary: summary,
         }
-      }.bind(this)).catch(function(msg) {
-        if (msg) {
-          sk.errorMessage(msg, 10000);
+      },
+
+      _not: function(x) {
+        return !x;
+      },
+
+      _display: function(index) {
+        if (this.state.end == now && index < 5) {
+          return "";
+        } else {
+          return "∅";
         }
-        this.$.spinner.active = false;
-        this._triageInProgress = false;
-      }.bind(this));
-    },
+      },
 
-    _queryFrom: function(index) {
-      return this._reg.header[index];
-    },
-
-    _encQueryFrom: function(index) {
-      return encodeURIComponent(this._reg.header[index]);
-    },
-
-    _hashFrom: function(index) {
-      return this._reg.table[index].cid.hash;
-    },
-
-    _full_summary: function(frame, summary) {
-      return {
-        frame: frame,
-        summary: summary,
-      }
-    },
-
-    _not: function(x) {
-      return !x;
-    },
-
-    _display: function(index) {
-      if (index < 5) {
-        return "";
-      } else {
-        return "∅";
-      }
-    },
-
-  });
+    });
+  })();
 </script>
