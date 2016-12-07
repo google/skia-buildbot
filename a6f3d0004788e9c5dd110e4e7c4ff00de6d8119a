@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd4b13fc_f87688b5",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 831,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-07T14:33:27Z",
+      "side": 1,
+      "message": "nit: maybe use a channel",
+      "range": {
+        "startLine": 830,
+        "startChar": 0,
+        "endLine": 831,
+        "endChar": 18
+      },
+      "revId": "a6f3d0004788e9c5dd110e4e7c4ff00de6d8119a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd4b13fc_b859e048",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 835,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-07T14:33:27Z",
+      "side": 1,
+      "message": "nit: scheduleTasks is 130 lines long. Maybe extract this func into a helper method?",
+      "range": {
+        "startLine": 835,
+        "startChar": 5,
+        "endLine": 835,
+        "endChar": 47
+      },
+      "revId": "a6f3d0004788e9c5dd110e4e7c4ff00de6d8119a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd4b13fc_1891f4a4",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 869,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-07T14:33:27Z",
+      "side": 1,
+      "message": "I wrote a function that does something similar... I should probably send it for review.",
+      "range": {
+        "startLine": 869,
+        "startChar": 0,
+        "endLine": 869,
+        "endChar": 32
+      },
+      "revId": "a6f3d0004788e9c5dd110e4e7c4ff00de6d8119a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
