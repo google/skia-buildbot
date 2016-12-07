@@ -788,10 +788,67 @@ func (s *TaskScheduler) isolateCandidates(candidates []*taskCandidate) error {
 	}
 
 	// Isolate the tasks by commit.
+	var wg sync.WaitGroup
+	var mtx sync.Mutex
+	errs := []error{}
 	for rs, candidates := range byRepoState {
-		if err := s.isolateTasks(rs, candidates); err != nil {
-			return err
-		}
+		wg.Add(1)
+		go func(rs db.RepoState, candidates []*taskCandidate) {
+			defer wg.Done()
+			if err := s.isolateTasks(rs, candidates); err != nil {
+				mtx.Lock()
+				defer mtx.Unlock()
+				errs = append(errs, err)
+			}
+		}(rs, candidates)
+	}
+	wg.Wait()
+	if len(errs) > 0 {
+		return fmt.Errorf("Failed to isolate candidates; got errors: %v", errs)
+	}
+	return nil
+}
+
+// triggerTasks triggers the given slice of tasks to run on Swarming.
+func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, tasks []*db.Task) error {
+	var wg sync.WaitGroup
+	var mtx sync.Mutex
+	errs := []error{}
+	for i, t := range tasks {
+		candidate := candidates[i]
+		wg.Add(1)
+		go func(candidate *taskCandidate, t *db.Task) {
+			defer wg.Done()
+			if err := s.db.AssignId(t); err != nil {
+				mtx.Lock()
+				defer mtx.Unlock()
+				errs = append(errs, err)
+				return
+			}
+			req := candidate.MakeTaskRequest(t.Id)
+			resp, err := s.swarming.TriggerTask(req)
+			if err != nil {
+				mtx.Lock()
+				defer mtx.Unlock()
+				errs = append(errs, err)
+				return
+			}
+			created, err := swarming.ParseTimestamp(resp.Request.CreatedTs)
+			if err != nil {
+				mtx.Lock()
+				defer mtx.Unlock()
+				errs = append(errs, fmt.Errorf("Failed to parse timestamp of created task: %s", err))
+				return
+			}
+			t.Created = created
+			t.SwarmingTaskId = resp.TaskId
+		}(candidate, t)
+	}
+	wg.Wait()
+	if len(errs) > 0 {
+		// TODO(borenet): We may have triggered some tasks; should we
+		// insert those into the DB?
+		return fmt.Errorf("Failed to trigger tasks; got errors: %v", errs)
 	}
 	return nil
 }
@@ -808,25 +865,20 @@ func (s *TaskScheduler) scheduleTasks(bots []*swarming_api.SwarmingRpcsBotInfo, 
 		return err
 	}
 
-	// Trigger tasks.
+	// Trigger tasks. Keep the Task instances in order.
+	triggered := make([]*db.Task, 0, len(schedule))
+	for _, candidate := range schedule {
+		triggered = append(triggered, candidate.MakeTask())
+	}
+	if err := s.triggerTasks(schedule, triggered); err != nil {
+		return err
+	}
+
+	// Update blamelists in the DB.
 	byCandidateId := make(map[string]*db.Task, len(schedule))
 	tasksToInsert := make(map[string]*db.Task, len(schedule)*2)
-	for _, candidate := range schedule {
-		t := candidate.MakeTask()
-		if err := s.db.AssignId(t); err != nil {
-			return err
-		}
-		req := candidate.MakeTaskRequest(t.Id)
-		resp, err := s.swarming.TriggerTask(req)
-		if err != nil {
-			return err
-		}
-		created, err := swarming.ParseTimestamp(resp.Request.CreatedTs)
-		if err != nil {
-			return fmt.Errorf("Failed to parse timestamp of created task: %s", err)
-		}
-		t.Created = created
-		t.SwarmingTaskId = resp.TaskId
+	for i, t := range triggered {
+		candidate := schedule[i]
 		byCandidateId[candidate.MakeId()] = t
 		tasksToInsert[t.Id] = t
 		// If we're stealing commits from another task, find it and adjust
