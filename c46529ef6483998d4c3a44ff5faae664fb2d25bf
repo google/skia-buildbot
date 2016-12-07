@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd4b13fc_70384ce6",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 650,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-07T21:13:01Z",
+      "side": 1,
+      "message": "Doesn\u0027t this need to be repoName?",
+      "range": {
+        "startLine": 650,
+        "startChar": 12,
+        "endLine": 650,
+        "endChar": 16
+      },
+      "revId": "c46529ef6483998d4c3a44ff5faae664fb2d25bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
