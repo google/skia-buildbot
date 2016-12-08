@@ -2558,3 +2558,361 @@ func TestUpdateUnfinishedTasks(t *testing.T) {
 		testutils.AssertDeepEqual(t, task, got)
 	}
 }
+
+// setupAddTasksTest calls setup then adds 7 commits to the repo and returns
+// their hashes.
+func setupAddTasksTest(t *testing.T) ([]string, db.DB, *TaskScheduler, func()) {
+	tr, d, _, s, _ := setup(t)
+
+	// Add some commits to test blamelist calculation.
+	dir := path.Join(tr.Dir, "skia.git")
+	exec_testutils.Run(t, dir, "git", "checkout", "master")
+	makeDummyCommits(t, dir, 7, "master")
+	assert.NoError(t, s.updateRepos())
+	hashes, err := s.repos[repoName].Repo().RevList("HEAD")
+	assert.NoError(t, err)
+
+	return hashes, d, s, func() {
+		tr.Cleanup()
+	}
+}
+
+// assertBlamelist asserts task.Commits contains exactly the hashes at the given
+// indexes of hashes, in any order.
+func assertBlamelist(t *testing.T, hashes []string, task *db.Task, indexes []int) {
+	expected := util.NewStringSet()
+	for _, idx := range indexes {
+		expected[hashes[idx]] = true
+	}
+	assert.Equal(t, expected, util.NewStringSet(task.Commits))
+}
+
+// assertModifiedTasks asserts that the result of GetModifiedTasks is deep-equal
+// to expected, in any order.
+func assertModifiedTasks(t *testing.T, d db.TaskReader, id string, expected []*db.Task) {
+	tasksById := map[string]*db.Task{}
+	modTasks, err := d.GetModifiedTasks(id)
+	assert.NoError(t, err)
+	assert.Equal(t, len(expected), len(modTasks))
+	for _, task := range modTasks {
+		tasksById[task.Id] = task
+	}
+
+	assert.Equal(t, len(expected), len(tasksById))
+	for i, expectedTask := range expected {
+		actualTask, ok := tasksById[expectedTask.Id]
+		assert.True(t, ok, "Missing task; idx %d; id %s", i, expectedTask.Id)
+		testutils.AssertDeepEqual(t, expectedTask, actualTask)
+	}
+}
+
+// addTasksSingleTaskSpec should add tasks and compute simple blamelists.
+func TestAddTasksSingleTaskSpecSimple(t *testing.T) {
+	hashes, d, s, cleanup := setupAddTasksTest(t)
+	defer cleanup()
+
+	t1 := makeTask("toil", repoName, hashes[6])
+	assert.NoError(t, d.PutTask(t1))
+	assert.NoError(t, s.tCache.Update())
+
+	trackId, err := d.StartTrackingModifiedTasks()
+	assert.NoError(t, err)
+
+	t2 := makeTask("toil", repoName, hashes[5]) // Commits should be {5}
+	t3 := makeTask("toil", repoName, hashes[3]) // Commits should be {3, 4}
+	t4 := makeTask("toil", repoName, hashes[2]) // Commits should be {2}
+	t5 := makeTask("toil", repoName, hashes[0]) // Commits should be {0, 1}
+
+	// Clear Commits on some tasks, set incorrect Commits on others to
+	// ensure it's ignored.
+	t3.Commits = nil
+	t4.Commits = []string{hashes[5], hashes[4], hashes[3], hashes[2]}
+	sort.Strings(t4.Commits)
+
+	// Specify tasks in wrong order to ensure results are deterministic.
+	assert.NoError(t, s.addTasksSingleTaskSpec([]*db.Task{t5, t2, t3, t4}))
+
+	assertBlamelist(t, hashes, t2, []int{5})
+	assertBlamelist(t, hashes, t3, []int{3, 4})
+	assertBlamelist(t, hashes, t4, []int{2})
+	assertBlamelist(t, hashes, t5, []int{0, 1})
+
+	// Check that the tasks were inserted into the DB.
+	assertModifiedTasks(t, d, trackId, []*db.Task{t2, t3, t4, t5})
+}
+
+// addTasksSingleTaskSpec should compute blamelists when new tasks bisect each
+// other.
+func TestAddTasksSingleTaskSpecBisectNew(t *testing.T) {
+	hashes, d, s, cleanup := setupAddTasksTest(t)
+	defer cleanup()
+
+	t1 := makeTask("toil", repoName, hashes[6])
+	assert.NoError(t, d.PutTask(t1))
+	assert.NoError(t, s.tCache.Update())
+
+	trackId, err := d.StartTrackingModifiedTasks()
+	assert.NoError(t, err)
+
+	// t2.Commits = {1, 2, 3, 4, 5}
+	t2 := makeTask("toil", repoName, hashes[1])
+	// t3.Commits = {3, 4, 5}
+	// t2.Commits = {1, 2}
+	t3 := makeTask("toil", repoName, hashes[3])
+	// t4.Commits = {4, 5}
+	// t3.Commits = {3}
+	t4 := makeTask("toil", repoName, hashes[4])
+	// t5.Commits = {0}
+	t5 := makeTask("toil", repoName, hashes[0])
+	// t6.Commits = {2}
+	// t2.Commits = {1}
+	t6 := makeTask("toil", repoName, hashes[2])
+	// t7.Commits = {1}
+	// t2.Commits = {}
+	t7 := makeTask("toil", repoName, hashes[1])
+
+	// Specify tasks in wrong order to ensure results are deterministic.
+	tasks := []*db.Task{t5, t2, t7, t3, t6, t4}
+
+	// Assign Ids.
+	for _, task := range tasks {
+		assert.NoError(t, d.AssignId(task))
+	}
+
+	assert.NoError(t, s.addTasksSingleTaskSpec(tasks))
+
+	assertBlamelist(t, hashes, t2, []int{})
+	assertBlamelist(t, hashes, t3, []int{3})
+	assertBlamelist(t, hashes, t4, []int{4, 5})
+	assertBlamelist(t, hashes, t5, []int{0})
+	assertBlamelist(t, hashes, t6, []int{2})
+	assertBlamelist(t, hashes, t7, []int{1})
+
+	// Check that the tasks were inserted into the DB.
+	assertModifiedTasks(t, d, trackId, tasks)
+}
+
+// addTasksSingleTaskSpec should compute blamelists when new tasks bisect old
+// tasks.
+func TestAddTasksSingleTaskSpecBisectOld(t *testing.T) {
+	hashes, d, s, cleanup := setupAddTasksTest(t)
+	defer cleanup()
+
+	t1 := makeTask("toil", repoName, hashes[6])
+	t2 := makeTask("toil", repoName, hashes[1])
+	t2.Commits = []string{hashes[1], hashes[2], hashes[3], hashes[4], hashes[5]}
+	sort.Strings(t2.Commits)
+	assert.NoError(t, d.PutTasks([]*db.Task{t1, t2}))
+	assert.NoError(t, s.tCache.Update())
+
+	trackId, err := d.StartTrackingModifiedTasks()
+	assert.NoError(t, err)
+
+	// t3.Commits = {3, 4, 5}
+	// t2.Commits = {1, 2}
+	t3 := makeTask("toil", repoName, hashes[3])
+	// t4.Commits = {4, 5}
+	// t3.Commits = {3}
+	t4 := makeTask("toil", repoName, hashes[4])
+	// t5.Commits = {2}
+	// t2.Commits = {1}
+	t5 := makeTask("toil", repoName, hashes[2])
+	// t6.Commits = {4, 5}
+	// t4.Commits = {}
+	t6 := makeTask("toil", repoName, hashes[4])
+
+	// Specify tasks in wrong order to ensure results are deterministic.
+	assert.NoError(t, s.addTasksSingleTaskSpec([]*db.Task{t5, t3, t6, t4}))
+
+	t2Updated, err := d.GetTaskById(t2.Id)
+	assert.NoError(t, err)
+	assertBlamelist(t, hashes, t2Updated, []int{1})
+	assertBlamelist(t, hashes, t3, []int{3})
+	assertBlamelist(t, hashes, t4, []int{})
+	assertBlamelist(t, hashes, t5, []int{2})
+	assertBlamelist(t, hashes, t6, []int{4, 5})
+
+	// Check that the tasks were inserted into the DB.
+	t2.Commits = t2Updated.Commits
+	t2.DbModified = t2Updated.DbModified
+	assertModifiedTasks(t, d, trackId, []*db.Task{t2, t3, t4, t5, t6})
+}
+
+// addTasksSingleTaskSpec should update existing tasks, keeping the correct
+// blamelist.
+func TestAddTasksSingleTaskSpecUpdate(t *testing.T) {
+	hashes, d, s, cleanup := setupAddTasksTest(t)
+	defer cleanup()
+
+	t1 := makeTask("toil", repoName, hashes[6])
+	t2 := makeTask("toil", repoName, hashes[3])
+	t3 := makeTask("toil", repoName, hashes[4])
+	t3.Commits = nil // Stolen by t5
+	t4 := makeTask("toil", repoName, hashes[0])
+	t4.Commits = []string{hashes[0], hashes[1], hashes[2]}
+	sort.Strings(t4.Commits)
+	t5 := makeTask("toil", repoName, hashes[4])
+	t5.Commits = []string{hashes[4], hashes[5]}
+	sort.Strings(t5.Commits)
+
+	tasks := []*db.Task{t1, t2, t3, t4, t5}
+	assert.NoError(t, d.PutTasks(tasks))
+	assert.NoError(t, s.tCache.Update())
+
+	trackId, err := d.StartTrackingModifiedTasks()
+	assert.NoError(t, err)
+
+	// Make an update.
+	for _, task := range tasks {
+		task.Status = db.TASK_STATUS_MISHAP
+	}
+
+	// Specify tasks in wrong order to ensure results are deterministic.
+	assert.NoError(t, s.addTasksSingleTaskSpec([]*db.Task{t5, t3, t1, t4, t2}))
+
+	// Check that blamelists did not change.
+	assertBlamelist(t, hashes, t1, []int{6})
+	assertBlamelist(t, hashes, t2, []int{3})
+	assertBlamelist(t, hashes, t3, []int{})
+	assertBlamelist(t, hashes, t4, []int{0, 1, 2})
+	assertBlamelist(t, hashes, t5, []int{4, 5})
+
+	// Check that the tasks were inserted into the DB.
+	assertModifiedTasks(t, d, trackId, []*db.Task{t1, t2, t3, t4, t5})
+}
+
+// AddTasks should call addTasksSingleTaskSpec for each group of tasks.
+func TestAddTasks(t *testing.T) {
+	hashes, d, s, cleanup := setupAddTasksTest(t)
+	defer cleanup()
+
+	toil1 := makeTask("toil", repoName, hashes[6])
+	duty1 := makeTask("duty", repoName, hashes[6])
+	work1 := makeTask("work", repoName, hashes[6])
+	work2 := makeTask("work", repoName, hashes[1])
+	work2.Commits = []string{hashes[1], hashes[2], hashes[3], hashes[4], hashes[5]}
+	sort.Strings(work2.Commits)
+	onus1 := makeTask("onus", repoName, hashes[6])
+	onus2 := makeTask("onus", repoName, hashes[3])
+	onus2.Commits = []string{hashes[3], hashes[4], hashes[5]}
+	sort.Strings(onus2.Commits)
+	assert.NoError(t, d.PutTasks([]*db.Task{toil1, duty1, work1, work2, onus1, onus2}))
+
+	trackId, err := d.StartTrackingModifiedTasks()
+	assert.NoError(t, err)
+
+	// toil2.Commits = {5}
+	toil2 := makeTask("toil", repoName, hashes[5])
+	// toil3.Commits = {3, 4}
+	toil3 := makeTask("toil", repoName, hashes[3])
+
+	// duty2.Commits = {1, 2, 3, 4, 5}
+	duty2 := makeTask("duty", repoName, hashes[1])
+	// duty3.Commits = {3, 4, 5}
+	// duty2.Commits = {1, 2}
+	duty3 := makeTask("duty", repoName, hashes[3])
+
+	// work3.Commits = {3, 4, 5}
+	// work2.Commits = {1, 2}
+	work3 := makeTask("work", repoName, hashes[3])
+	// work4.Commits = {2}
+	// work2.Commits = {1}
+	work4 := makeTask("work", repoName, hashes[2])
+
+	onus2.Status = db.TASK_STATUS_MISHAP
+	// onus3 steals all commits from onus2
+	onus3 := makeTask("onus", repoName, hashes[3])
+	// onus4 steals all commits from onus3
+	onus4 := makeTask("onus", repoName, hashes[3])
+
+	tasks := map[string]map[string][]*db.Task{
+		repoName: map[string][]*db.Task{
+			"toil": []*db.Task{toil2, toil3},
+			"duty": []*db.Task{duty2, duty3},
+			"work": []*db.Task{work3, work4},
+			"onus": []*db.Task{onus2, onus3, onus4},
+		},
+	}
+
+	assert.NoError(t, s.AddTasks(tasks))
+
+	assertBlamelist(t, hashes, toil2, []int{5})
+	assertBlamelist(t, hashes, toil3, []int{3, 4})
+
+	assertBlamelist(t, hashes, duty2, []int{1, 2})
+	assertBlamelist(t, hashes, duty3, []int{3, 4, 5})
+
+	work2Updated, err := d.GetTaskById(work2.Id)
+	assert.NoError(t, err)
+	assertBlamelist(t, hashes, work2Updated, []int{1})
+	assertBlamelist(t, hashes, work3, []int{3, 4, 5})
+	assertBlamelist(t, hashes, work4, []int{2})
+
+	assertBlamelist(t, hashes, onus2, []int{})
+	assertBlamelist(t, hashes, onus3, []int{})
+	assertBlamelist(t, hashes, onus4, []int{3, 4, 5})
+
+	// Check that the tasks were inserted into the DB.
+	work2.Commits = work2Updated.Commits
+	work2.DbModified = work2Updated.DbModified
+	assertModifiedTasks(t, d, trackId, []*db.Task{toil2, toil3, duty2, duty3, work2, work3, work4, onus2, onus3, onus4})
+}
+
+// AddTasks should not leave DB in an inconsistent state if there is a partial error.
+func TestAddTasksFailure(t *testing.T) {
+	hashes, d, s, cleanup := setupAddTasksTest(t)
+	defer cleanup()
+
+	toil1 := makeTask("toil", repoName, hashes[6])
+	duty1 := makeTask("duty", repoName, hashes[6])
+	duty2 := makeTask("duty", repoName, hashes[5])
+	assert.NoError(t, d.PutTasks([]*db.Task{toil1, duty1, duty2}))
+
+	// Cause ErrConcurrentUpdate in AddTasks.
+	cachedDuty2 := duty2.Copy()
+	duty2.Status = db.TASK_STATUS_MISHAP
+	assert.NoError(t, d.PutTask(duty2))
+
+	trackId, err := d.StartTrackingModifiedTasks()
+	assert.NoError(t, err)
+
+	// toil2.Commits = {3, 4, 5}
+	toil2 := makeTask("toil", repoName, hashes[3])
+
+	cachedDuty2.Status = db.TASK_STATUS_FAILURE
+	// duty3.Commits = {3, 4}
+	duty3 := makeTask("duty", repoName, hashes[3])
+
+	tasks := map[string]map[string][]*db.Task{
+		repoName: map[string][]*db.Task{
+			"toil": []*db.Task{toil2},
+			"duty": []*db.Task{cachedDuty2, duty3},
+		},
+	}
+
+	// Try multiple times to reduce chance of test passing flakily.
+	for i := 0; i < 3; i++ {
+		err := s.AddTasks(tasks)
+		assert.Error(t, err)
+		assert.True(t, db.IsConcurrentUpdate(err))
+		modTasks, err := d.GetModifiedTasks(trackId)
+		assert.NoError(t, err)
+		for _, task := range modTasks {
+			assert.Equal(t, "toil", task.Name)
+			testutils.AssertDeepEqual(t, toil2, task)
+			assertBlamelist(t, hashes, toil2, []int{3, 4, 5})
+		}
+	}
+
+	duty2.Status = db.TASK_STATUS_FAILURE
+	tasks[repoName]["duty"] = []*db.Task{duty2, duty3}
+	assert.NoError(t, s.AddTasks(tasks))
+
+	assertBlamelist(t, hashes, toil2, []int{3, 4, 5})
+
+	assertBlamelist(t, hashes, duty2, []int{5})
+	assertBlamelist(t, hashes, duty3, []int{3, 4})
+
+	// Check that the tasks were inserted into the DB.
+	assertModifiedTasks(t, d, trackId, []*db.Task{toil2, duty2, duty3})
+}
