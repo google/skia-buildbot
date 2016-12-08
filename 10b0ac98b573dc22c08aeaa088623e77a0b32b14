@@ -88,6 +88,24 @@
     },
     {
       "key": {
+        "uuid": "cd4b13fc_7634bf0f",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-08T13:37:11Z",
+      "side": 1,
+      "message": "So my very first preference would be for Swarming to provide an endpoint for this, and we wouldn\u0027t have to do this hacky thing.  I used the low-ish limit of 25 to try to avoid loading too many unneeded tasks, since updateUnfinishedTasks is by far the most expensive part of the scheduling loop.\n\nWe do record the last-queried time before we start to query, so if some tasks are modified as we\u0027re querying, and they jump to before the cursor, we should pick them up on the next loop.  So as long as Swarming is reasonably consistent we should be fine.\n\nI\u0027ll add some more metrics to try to find out why this is so slow.  If it\u0027s not the transfer time for all the tasks, then I may just be spinning my wheels here.",
+      "parentUuid": "0d744b42_562e8aa3",
+      "revId": "10b0ac98b573dc22c08aeaa088623e77a0b32b14",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0d744b42_d6427a5f",
         "filename": "go/swarming/apiclient.go",
         "patchSetId": 3
