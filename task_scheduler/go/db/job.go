@@ -287,7 +287,11 @@ type JobSlice []*Job
 func (s JobSlice) Len() int { return len(s) }
 
 func (s JobSlice) Less(i, j int) bool {
-	return s[i].Created.Before(s[j].Created)
+	if s[i].Created.Equal(s[j].Created) {
+		return s[i].Id < s[j].Id
+	} else {
+		return s[i].Created.Before(s[j].Created)
+	}
 }
 
 func (s JobSlice) Swap(i, j int) {
