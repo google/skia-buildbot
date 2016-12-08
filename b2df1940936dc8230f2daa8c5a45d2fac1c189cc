@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd4b13fc_198b2c72",
+        "filename": "appengine_scripts/skia-tree-status/sheriff.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-08T17:17:32Z",
+      "side": 1,
+      "message": "FYI this gives me a 404.",
+      "revId": "b2df1940936dc8230f2daa8c5a45d2fac1c189cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
