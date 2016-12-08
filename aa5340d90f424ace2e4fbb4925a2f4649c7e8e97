@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "cd4b13fc_99517c29",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-08T21:07:11Z",
+      "side": 1,
+      "message": "Reverted. (Also in tasks.go)\n\nThe only time order should matter in AddTasks is when one task is stealing all commits from another. If those two tasks are created in the same microsecond (swarming time precision), something is very wrong.",
+      "parentUuid": "cd4b13fc_f661af2a",
+      "revId": "aa5340d90f424ace2e4fbb4925a2f4649c7e8e97",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cd4b13fc_96870ba1",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -42,6 +60,24 @@
     },
     {
       "key": {
+        "uuid": "cd4b13fc_a5bd2b66",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-08T21:07:11Z",
+      "side": 1,
+      "message": "Added comments.",
+      "parentUuid": "cd4b13fc_96870ba1",
+      "revId": "aa5340d90f424ace2e4fbb4925a2f4649c7e8e97",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cd4b13fc_966e2b17",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -59,6 +95,24 @@
         "endLine": 1020,
         "endChar": 6
       },
+      "revId": "aa5340d90f424ace2e4fbb4925a2f4649c7e8e97",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd4b13fc_19248cc3",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1020,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-08T21:07:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cd4b13fc_966e2b17",
       "revId": "aa5340d90f424ace2e4fbb4925a2f4649c7e8e97",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
