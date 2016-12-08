@@ -9,7 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"path"
+	//"path"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -25,7 +25,7 @@ import (
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
-	"go.skia.org/infra/go/influxdb_init"
+	//"go.skia.org/infra/go/influxdb_init"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/polling_status"
@@ -34,9 +34,9 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/status/go/commit_cache"
-	"go.skia.org/infra/status/go/device_cfg"
+	//"go.skia.org/infra/status/go/device_cfg"
 	"go.skia.org/infra/status/go/franken"
-	"go.skia.org/infra/task_scheduler/go/db/remote_db"
+	//"go.skia.org/infra/task_scheduler/go/db/remote_db"
 )
 
 const (
@@ -732,16 +732,16 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl)
-	if err != nil {
-		glog.Fatal(err)
-	}
+	//taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl)
+	//if err != nil {
+	//	glog.Fatal(err)
+	//}
 
-	// Setup InfluxDB client.
-	dbClient, err = influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
-	if err != nil {
-		glog.Fatal(err)
-	}
+	//// Setup InfluxDB client.
+	//dbClient, err = influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
+	//if err != nil {
+	//	glog.Fatal(err)
+	//}
 
 	// By default use a set of credentials setup for localhost access.
 	var cookieSalt = "notverysecret"
@@ -756,49 +756,49 @@ func main() {
 	login.Init(clientID, clientSecret, redirectURL, cookieSalt, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST, false)
 
 	// Check out source code.
-	repos := gitinfo.NewRepoMap(path.Join(*workdir, "repos"))
-	skiaRepo, err := repos.Repo(common.REPO_SKIA)
-	if err != nil {
-		glog.Fatalf("Failed to check out Skia: %v", err)
-	}
-	infraRepo, err := repos.Repo(common.REPO_SKIA_INFRA)
-	if err != nil {
-		glog.Fatalf("Failed to checkout Infra: %v", err)
-	}
+	//repos := gitinfo.NewRepoMap(path.Join(*workdir, "repos"))
+	//skiaRepo, err := repos.Repo(common.REPO_SKIA)
+	//if err != nil {
+	//	glog.Fatalf("Failed to check out Skia: %v", err)
+	//}
+	//infraRepo, err := repos.Repo(common.REPO_SKIA_INFRA)
+	//if err != nil {
+	//	glog.Fatalf("Failed to checkout Infra: %v", err)
+	//}
 
 	glog.Info("Checkout complete")
 
-	// Create the build cache.
-	bc, err := franken.NewBTCache(repos, db, taskDb)
-	if err != nil {
-		glog.Fatalf("Failed to create build cache: %s", err)
-	}
-	buildCache = bc
+	//// Create the build cache.
+	//bc, err := franken.NewBTCache(repos, db, taskDb)
+	//if err != nil {
+	//	glog.Fatalf("Failed to create build cache: %s", err)
+	//}
+	//buildCache = bc
 
-	// Create the commit caches.
-	commitCaches = map[string]*commit_cache.CommitCache{}
-	skiaCache, err := commit_cache.New(skiaRepo, path.Join(*workdir, "commit_cache.gob"), DEFAULT_COMMITS_TO_LOAD, db)
-	if err != nil {
-		glog.Fatalf("Failed to create commit cache: %v", err)
-	}
-	commitCaches[SKIA_REPO] = skiaCache
+	//// Create the commit caches.
+	//commitCaches = map[string]*commit_cache.CommitCache{}
+	//skiaCache, err := commit_cache.New(skiaRepo, path.Join(*workdir, "commit_cache.gob"), DEFAULT_COMMITS_TO_LOAD, db)
+	//if err != nil {
+	//	glog.Fatalf("Failed to create commit cache: %v", err)
+	//}
+	//commitCaches[SKIA_REPO] = skiaCache
 
-	infraCache, err := commit_cache.New(infraRepo, path.Join(*workdir, "commit_cache_infra.gob"), DEFAULT_COMMITS_TO_LOAD, db)
-	if err != nil {
-		glog.Fatalf("Failed to create commit cache: %v", err)
-	}
-	commitCaches[INFRA_REPO] = infraCache
-	glog.Info("commit_cache complete")
+	//infraCache, err := commit_cache.New(infraRepo, path.Join(*workdir, "commit_cache_infra.gob"), DEFAULT_COMMITS_TO_LOAD, db)
+	//if err != nil {
+	//	glog.Fatalf("Failed to create commit cache: %v", err)
+	//}
+	//commitCaches[INFRA_REPO] = infraCache
+	//glog.Info("commit_cache complete")
 
-	// Load Perf and Gold data in a loop.
-	perfStatus = dbClient.Int64PollingStatus("skmetrics", PERF_STATUS_QUERY, time.Minute)
-	goldGMStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), time.Minute)
-	goldImageStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), time.Minute)
+	//// Load Perf and Gold data in a loop.
+	//perfStatus = dbClient.Int64PollingStatus("skmetrics", PERF_STATUS_QUERY, time.Minute)
+	//goldGMStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), time.Minute)
+	//goldImageStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), time.Minute)
 
-	// Load slave_hosts_cfg and device cfgs in a loop.
-	slaveHosts = buildbot.SlaveHostsCfgPoller(path.Join(*workdir, "repos", "buildbot.git"))
-	androidDevices = device_cfg.AndroidDeviceCfgPoller(*workdir)
-	sshDevices = device_cfg.SSHDeviceCfgPoller(*workdir)
+	//// Load slave_hosts_cfg and device cfgs in a loop.
+	//slaveHosts = buildbot.SlaveHostsCfgPoller(path.Join(*workdir, "repos", "buildbot.git"))
+	//androidDevices = device_cfg.AndroidDeviceCfgPoller(*workdir)
+	//sshDevices = device_cfg.SSHDeviceCfgPoller(*workdir)
 
 	runServer(serverURL)
 }

@@ -193,6 +193,7 @@
         open="{{open}}"
         sheriff="{{sheriff}}"
         wrangler="{{wrangler}}"
+        robocop="{{robocop}}"
         trooper="{{trooper}}">
       </tree-status-sk>
 
@@ -211,7 +212,12 @@
         </a>
         <a href="http://skia-tree-status.appspot.com/gpu-sheriff" target="_blank" class="inherit">
         <paper-button id="wrangler-button" class="roles" title="The current GPU wranger"><iron-icon icon="icons:gesture"></iron-icon>
-            GPU: [[wrangler]]
+            Wrangler: [[wrangler]]
+          </paper-button>
+        </a>
+        <a href="http://skia-tree-status.appspot.com/robocop" target="_blank" class="inherit">
+        <paper-button id="robocop-button" class="roles" title="The current Android robocop"><iron-icon icon="icons:android"></iron-icon>
+            Robocop: [[robocop]]
           </paper-button>
         </a>
         <a href="http://skia-tree-status.appspot.com/trooper" target="_blank" class="inherit">
@@ -326,6 +332,9 @@
         type: String,
       },
       wrangler: {
+        type: String,
+      },
+      robocop: {
         type: String,
       },
       trooper: {
