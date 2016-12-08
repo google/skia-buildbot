@@ -1,0 +1,228 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0d744b42_b641ee59",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-08T02:38:03Z",
+      "side": 1,
+      "message": "uber-nit: I prefer \"begin\" \"start\" or \"since\"",
+      "range": {
+        "startLine": 102,
+        "startChar": 31,
+        "endLine": 102,
+        "endChar": 36
+      },
+      "revId": "10b0ac98b573dc22c08aeaa088623e77a0b32b14",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0d744b42_36e89e32",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-08T02:38:03Z",
+      "side": 1,
+      "message": "nit: for consistency with other methods, seems like this should be ListModifiedTasks",
+      "range": {
+        "startLine": 102,
+        "startChar": 1,
+        "endLine": 102,
+        "endChar": 17
+      },
+      "revId": "10b0ac98b573dc22c08aeaa088623e77a0b32b14",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0d744b42_16eb2232",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-08T02:38:03Z",
+      "side": 1,
+      "message": "1. This param is ignored.\n2. Could we pass in tags and state like the other ListTask* methods?",
+      "range": {
+        "startLine": 310,
+        "startChar": 37,
+        "endLine": 310,
+        "endChar": 48
+      },
+      "revId": "10b0ac98b573dc22c08aeaa088623e77a0b32b14",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0d744b42_562e8aa3",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-08T02:38:03Z",
+      "side": 1,
+      "message": "I\u0027m skeptical that this will work as intended. The first request will get the 25 most-recently-modified tasks, but other tasks might be modified before we make the next request. Those newly-modified tasks would then end up before the cursor, and wouldn\u0027t be returned at all.\n\nIt\u0027s more likely to work if we make a single request, specifying a Limit of say, 1.1 * the number of tasks we expect to be running, and if we underestimate the Limit, make additional requests with exponentially larger Limits.\n\nOr, after \"break mainLoop,\" recursively call GetModifiedTasks(pool, tasks[0].ModifiedTs) until there are no new tasks returned. (Except, don\u0027t use recursion and give up after looping N times.)",
+      "revId": "10b0ac98b573dc22c08aeaa088623e77a0b32b14",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0d744b42_d6427a5f",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-08T02:38:03Z",
+      "side": 1,
+      "message": "nit: this includes tasks that are modified at exactly after, which disagrees with the documentation.",
+      "range": {
+        "startLine": 329,
+        "startChar": 6,
+        "endLine": 329,
+        "endChar": 22
+      },
+      "revId": "10b0ac98b573dc22c08aeaa088623e77a0b32b14",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0d744b42_163802e5",
+        "filename": "go/swarming/testutils.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-08T02:38:03Z",
+      "side": 1,
+      "message": "param is unused",
+      "range": {
+        "startLine": 132,
+        "startChar": 38,
+        "endLine": 132,
+        "endChar": 49
+      },
+      "revId": "10b0ac98b573dc22c08aeaa088623e77a0b32b14",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0d744b42_1651e226",
+        "filename": "go/swarming/testutils.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-08T02:38:03Z",
+      "side": 1,
+      "message": "same nit as above",
+      "range": {
+        "startLine": 143,
+        "startChar": 5,
+        "endLine": 143,
+        "endChar": 21
+      },
+      "revId": "10b0ac98b573dc22c08aeaa088623e77a0b32b14",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0d744b42_167fa27f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1275,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-08T02:38:03Z",
+      "side": 1,
+      "message": "unused?",
+      "range": {
+        "startLine": 1271,
+        "startChar": 0,
+        "endLine": 1275,
+        "endChar": 31
+      },
+      "revId": "10b0ac98b573dc22c08aeaa088623e77a0b32b14",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0d744b42_967152c1",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1277,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-08T02:38:03Z",
+      "side": 1,
+      "message": "\"...triggered in the last hour\"",
+      "range": {
+        "startLine": 1277,
+        "startChar": 14,
+        "endLine": 1277,
+        "endChar": 31
+      },
+      "revId": "10b0ac98b573dc22c08aeaa088623e77a0b32b14",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0d744b42_f66c56e6",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1279,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-08T02:38:03Z",
+      "side": 1,
+      "message": "now.Add(-time.Hour)",
+      "range": {
+        "startLine": 1279,
+        "startChar": 18,
+        "endLine": 1279,
+        "endChar": 27
+      },
+      "revId": "10b0ac98b573dc22c08aeaa088623e77a0b32b14",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

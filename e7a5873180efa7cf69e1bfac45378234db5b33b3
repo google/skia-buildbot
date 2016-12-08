@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0d744b42_7682a654",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1325,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-08T02:38:03Z",
+      "side": 0,
+      "message": "I would be more comfortable if we check that we\u0027ve found swarming tasks for all UnfinishedTasks() and log a warning if not.\n\nWe would need to ignore any pending tasks that were created \u003e 1 hour ago.",
+      "range": {
+        "startLine": 1325,
+        "startChar": 4,
+        "endLine": 1325,
+        "endChar": 57
+      },
+      "revId": "e7a5873180efa7cf69e1bfac45378234db5b33b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
