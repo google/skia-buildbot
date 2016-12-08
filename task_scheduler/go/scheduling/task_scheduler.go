@@ -15,6 +15,7 @@ import (
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
@@ -53,18 +54,24 @@ var (
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
-	bl               *blacklist.Blacklist
-	busyBots         *busyBots
-	db               db.DB
-	isolate          *isolate.Client
-	jCache           db.JobCache
-	lastScheduled    time.Time        // protected by queueMtx.
-	queue            []*taskCandidate // protected by queueMtx.
-	queueMtx         sync.RWMutex
-	repos            repograph.Map
-	swarming         swarming.ApiClient
-	taskCfgCache     *specs.TaskCfgCache
-	tCache           db.TaskCache
+	bl            *blacklist.Blacklist
+	busyBots      *busyBots
+	db            db.DB
+	isolate       *isolate.Client
+	jCache        db.JobCache
+	lastScheduled time.Time        // protected by queueMtx.
+	queue         []*taskCandidate // protected by queueMtx.
+	queueMtx      sync.RWMutex
+	repos         repograph.Map
+	swarming      swarming.ApiClient
+	taskCfgCache  *specs.TaskCfgCache
+	tCache        db.TaskCache
+	// schedulingMtx ensures blamelist computation is consistent. It must be held
+	// for a call to db.PutTasks() through tCache.Update(). It also must be held
+	// to ensure sequential calls to tCache provide a consistent view of the DB.
+	// TODO(dogben): Handle ErrConcurrentUpdate in all calls to PutTasks and
+	// remove this mutex.
+	schedulingMtx    sync.Mutex
 	timeDecayAmt24Hr float64
 	triggerMetrics   *periodicTriggerMetrics
 	tryjobs          *tryjobs.TryJobIntegrator
@@ -362,7 +369,8 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(unfinishedJobs []*db.Job) (map
 }
 
 // filterTaskCandidates reduces the set of taskCandidates to the ones we might
-// actually want to run and organizes them by repo and TaskSpec name.
+// actually want to run and organizes them by repo and TaskSpec name. Caller
+// must hold schedulingMtx.
 func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]*taskCandidate) (map[string]map[string][]*taskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 
@@ -508,7 +516,7 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 	return nil
 }
 
-// Process the task candidates.
+// Process the task candidates. Caller must hold schedulingMtx.
 func (s *TaskScheduler) processTaskCandidates(candidates map[string]map[string][]*taskCandidate, now time.Time) ([]*taskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 	processed := make(chan *taskCandidate)
@@ -637,7 +645,7 @@ func (s *TaskScheduler) recordCandidateMetrics(candidates map[string]map[string]
 }
 
 // regenerateTaskQueue obtains the set of all eligible task candidates, scores
-// them, and prepares them to be triggered.
+// them, and prepares them to be triggered. Caller must hold schedulingMtx.
 func (s *TaskScheduler) regenerateTaskQueue(now time.Time) ([]*taskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 
@@ -854,7 +862,7 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, tasks []*db.Ta
 }
 
 // scheduleTasks queries for free Swarming bots and triggers tasks according
-// to relative priorities in the queue.
+// to relative priorities in the queue. Caller must hold schedulingMtx.
 func (s *TaskScheduler) scheduleTasks(bots []*swarming_api.SwarmingRpcsBotInfo, queue []*taskCandidate) error {
 	defer metrics2.FuncTimer().Stop()
 	// Match free bots with tasks.
@@ -1011,6 +1019,8 @@ func (s *TaskScheduler) gatherNewJobs() error {
 // MainLoop runs a single end-to-end task scheduling loop.
 func (s *TaskScheduler) MainLoop() error {
 	defer metrics2.FuncTimer().Stop()
+	s.schedulingMtx.Lock()
+	defer s.schedulingMtx.Unlock()
 
 	glog.Infof("Task Scheduler updating...")
 
@@ -1263,7 +1273,7 @@ func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots) ([]*swarming_api.
 }
 
 // updateUnfinishedTasks queries Swarming for all unfinished tasks and updates
-// their status in the DB.
+// their status in the DB. Caller must hold schedulingMtx.
 func (s *TaskScheduler) updateUnfinishedTasks(now time.Time) error {
 	defer metrics2.FuncTimer().Stop()
 	tasks, err := s.tCache.UnfinishedTasks()
@@ -1375,7 +1385,7 @@ func (s *TaskScheduler) jobFinished(j *db.Job) error {
 }
 
 // updateUnfinishedJobs updates all not-yet-finished Jobs to determine if their
-// state has changed.
+// state has changed. Caller must hold schedulingMtx.
 func (s *TaskScheduler) updateUnfinishedJobs() error {
 	defer metrics2.FuncTimer().Stop()
 	jobs, err := s.jCache.UnfinishedJobs()
@@ -1424,7 +1434,7 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 }
 
 // getTasksForJob finds all Tasks for the given Job. It returns the Tasks
-// in a map keyed by name.
+// in a map keyed by name. Caller must hold schedulingMtx.
 func (s *TaskScheduler) getTasksForJob(j *db.Job) (map[string][]*db.Task, error) {
 	tasks := map[string][]*db.Task{}
 	for d, _ := range j.Dependencies {
@@ -1441,4 +1451,115 @@ func (s *TaskScheduler) getTasksForJob(j *db.Job) (map[string][]*db.Task, error)
 // GetJob returns the given Job.
 func (s *TaskScheduler) GetJob(id string) (*db.Job, error) {
 	return s.jCache.GetJobMaybeExpired(id)
+}
+
+// addTasksSingleTaskSpec computes the blamelist for each task in tasks, all of
+// which must have the same Repo and Name fields, and inserts/updates them in
+// the TaskDB. Also adjusts blamelists of existing tasks. Caller must hold
+// schedulingMtx.
+func (s *TaskScheduler) addTasksSingleTaskSpec(tasks []*db.Task) error {
+	sort.Sort(db.TaskSlice(tasks))
+	cache := newCacheWrapper(s.tCache)
+	repoName := tasks[0].Repo
+	taskName := tasks[0].Name
+	repo, ok := s.repos[repoName]
+	if !ok {
+		return fmt.Errorf("No such repo: %s", repoName)
+	}
+	start := cache.Start()
+	commitsBuf := make([]*repograph.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
+	updatedTasks := map[string]*db.Task{}
+	for _, task := range tasks {
+		if task.Repo != repoName || task.Name != taskName {
+			return fmt.Errorf("Mismatched Repo or Name: %v", tasks)
+		}
+		if task.Id == "" {
+			if err := s.db.AssignId(task); err != nil {
+				return err
+			}
+		}
+		// Compute blamelist.
+		revision := repo.Get(task.Revision)
+		if revision == nil {
+			return fmt.Errorf("No such commit %s in %s.", task.Revision, task.Repo)
+		}
+		if revision.Timestamp.Before(start) {
+			return fmt.Errorf("Can not add task %s with revision %s (at %s) before cache start %s.", task.Id, task.Revision, revision.Timestamp, start)
+		}
+		commits, stealingFrom, err := ComputeBlamelist(cache, repo, task.Name, task.Repo, revision, commitsBuf)
+		if err != nil {
+			return err
+		}
+		task.Commits = commits
+		if len(task.Commits) > 0 && !util.In(task.Revision, task.Commits) {
+			glog.Errorf("task %s (%s @ %s) doesn't have its own revision in its blamelist: %v", task.Id, task.Name, task.Revision, task.Commits)
+		}
+		updatedTasks[task.Id] = task
+		cache.insert(task)
+		if stealingFrom != nil && stealingFrom.Id != task.Id {
+			stole := util.NewStringSet(commits)
+			oldC := util.NewStringSet(stealingFrom.Commits)
+			newC := oldC.Complement(stole)
+			if len(newC) == 0 {
+				stealingFrom.Commits = nil
+			} else {
+				newCommits := make([]string, 0, len(newC))
+				for c, _ := range newC {
+					newCommits = append(newCommits, c)
+				}
+				stealingFrom.Commits = newCommits
+			}
+			updatedTasks[stealingFrom.Id] = stealingFrom
+			cache.insert(stealingFrom)
+		}
+	}
+	putTasks := make([]*db.Task, 0, len(updatedTasks))
+	for _, task := range updatedTasks {
+		putTasks = append(putTasks, task)
+	}
+	return s.db.PutTasks(putTasks)
+}
+
+// AddTasks inserts the given tasks into the TaskDB, updating blamelists. The
+// provided Tasks should have all fields initialized except for Commits, which
+// will be overwritten, and optionally Id, which will be assigned if necessary.
+// AddTasks updates existing Tasks' blamelists, if needed. The provided map
+// groups Tasks by repo and TaskSpec name. May return error on partial success.
+func (s *TaskScheduler) AddTasks(taskMap map[string]map[string][]*db.Task) error {
+	s.schedulingMtx.Lock()
+	defer s.schedulingMtx.Unlock()
+	if err := s.tCache.Update(); err != nil {
+		return err
+	}
+
+	errs := make(chan error)
+	wg := sync.WaitGroup{}
+	for _, byName := range taskMap {
+		for _, tasks := range byName {
+			if len(tasks) == 0 {
+				continue
+			}
+			wg.Add(1)
+			go func(tasks []*db.Task) {
+				defer wg.Done()
+				if err := s.addTasksSingleTaskSpec(tasks); err != nil {
+					errs <- err
+				}
+			}(tasks)
+		}
+	}
+	go func() {
+		wg.Wait()
+		close(errs)
+	}()
+	rvErrs := []error{}
+	for err := range errs {
+		glog.Error(err)
+		rvErrs = append(rvErrs, err)
+	}
+
+	if len(rvErrs) != 0 {
+		return rvErrs[0]
+	}
+	return nil
 }

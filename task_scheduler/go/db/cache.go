@@ -68,6 +68,9 @@ type TaskCache interface {
 
 	// Update loads new tasks from the database.
 	Update() error
+
+	// Start returns the beginning of the cached time window.
+	Start() time.Time
 }
 
 type taskCache struct {
@@ -400,6 +403,11 @@ func (c *taskCache) Update() error {
 	start := c.timeWindow.Start()
 	c.expireAndUpdate(start, newTasks)
 	return nil
+}
+
+// See documentation for TaskCache interface.
+func (c *taskCache) Start() time.Time {
+	return c.timeWindow.Start()
 }
 
 // NewTaskCache returns a local cache which provides more convenient views of

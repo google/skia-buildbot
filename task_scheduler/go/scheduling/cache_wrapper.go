@@ -74,6 +74,11 @@ func (c *cacheWrapper) Update() error {
 	return fmt.Errorf("cacheWrapper.Update not implemented.")
 }
 
+// See documentation for TaskCache interface.
+func (c *cacheWrapper) Start() time.Time {
+	return c.c.Start()
+}
+
 // insert adds a task to the cacheWrapper's fake layer so that it will be
 // included in query results but not actually inserted into the DB.
 func (c *cacheWrapper) insert(t *db.Task) {
