@@ -4,21 +4,16 @@ import (
 	"fmt"
 	"math"
 	"net/url"
-	"os"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
-	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/serialize"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
@@ -54,7 +49,13 @@ func TestCompareTests(t *testing.T) {
 	const MAX_DIM = 999999999999
 	var HEAD = true
 
-	storages, idx, tile := getStoragesIndexTile(t, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
+	storages := serialize.LoadSampledTile(t, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
+	defer testutils.RemoveAll(t, TEST_DATA_DIR)
+
+	ixr, err := indexer.New(storages, 10*time.Minute)
+	assert.NoError(t, err)
+	idx := ixr.GetIndex()
+	tile := idx.GetTile(false)
 
 	// testNameSet collects all test names and the set of digests for
 	// each test to establish a ground truth for the search below.
@@ -177,45 +178,4 @@ func testCompTest(t *testing.T, maxLimit, maxRowLimit int, testNameSet map[strin
 		expectedRowCount := util.MinInt(len(testNameSet[uniqueTests.Keys()[0]]), maxLimit)
 		assert.Equal(t, expectedRowCount, len(ret.Grid.Rows))
 	}
-}
-
-func getStoragesIndexTile(t *testing.T, bucket, storagePath, outputPath string) (*storage.Storage, *indexer.SearchIndex, *tiling.Tile) {
-	err := gs.DownloadTestDataFile(t, bucket, storagePath, outputPath)
-	assert.NoError(t, err, "Unable to download testdata.")
-	defer testutils.RemoveAll(t, TEST_DATA_DIR)
-
-	sample := loadSample(t, TEST_DATA_PATH)
-
-	tileBuilder := mocks.NewMockTileBuilderFromTile(t, sample.Tile)
-	eventBus := eventbus.New(nil)
-	expStore := expstorage.NewMemExpectationsStore(eventBus)
-	err = expStore.AddChange(sample.Expectations.Tests, "testuser")
-	assert.NoError(t, err)
-
-	storages := &storage.Storage{
-		ExpectationsStore: expStore,
-		MasterTileBuilder: tileBuilder,
-		DigestStore: &mocks.MockDigestStore{
-			FirstSeen: time.Now().Unix(),
-			OkValue:   true,
-		},
-		DiffStore: mocks.NewMockDiffStore(),
-		EventBus:  eventBus,
-	}
-
-	ixr, err := indexer.New(storages, 10*time.Minute)
-	assert.NoError(t, err)
-	idx := ixr.GetIndex()
-	tile := idx.GetTile(false)
-	return storages, idx, tile
-}
-
-func loadSample(t assert.TestingT, fileName string) *serialize.Sample {
-	file, err := os.Open(fileName)
-	assert.NoError(t, err)
-
-	sample, err := serialize.DeserializeSample(file)
-	assert.NoError(t, err)
-
-	return sample
 }

@@ -1033,3 +1033,9 @@ func jsonCompareTestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	sendJsonResponse(w, compareResult)
 }
+
+// jsonStatsHandler returns statistics about the current tile.
+func jsonStatsHandler(w http.ResponseWriter, r *http.Request) {
+	ret := storages.Stats.GetTileStats()
+	sendJsonResponse(w, ret)
+}
