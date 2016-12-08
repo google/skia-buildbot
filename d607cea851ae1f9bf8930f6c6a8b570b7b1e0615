@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8d391bbb_89133985",
+        "filename": "fiddle/PROD.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-12-08T21:41:45Z",
+      "side": 1,
+      "message": "Should we also mention that the change will take some time to propagate and to snooze the alert for a few hours.",
+      "revId": "d607cea851ae1f9bf8930f6c6a8b570b7b1e0615",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
