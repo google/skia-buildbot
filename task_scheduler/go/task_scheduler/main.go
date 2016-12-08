@@ -473,7 +473,11 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	glog.Infof("Created task scheduler. Starting loop.")
+	glog.Infof("Created task scheduler. Starting backups.")
+	if err := b.Start(); err != nil {
+		glog.Fatal(err)
+	}
+	glog.Infof("Starting task scheduler.")
 	ts.Start(ctx, b.Tick)
 
 	// Start up the web server.
