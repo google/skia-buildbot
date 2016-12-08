@@ -39,18 +39,15 @@ func newTasksPerCommitCache(workdir string, repoUrls []string, period time.Durat
 			return nil, fmt.Errorf("There is a problem with the workdir: %s", err)
 		}
 	}
-	repos := repograph.Map{}
-	for _, r := range repoUrls {
-		repo, err := repograph.NewGraph(r, wd)
-		if err != nil {
-			return nil, err
-		}
-		repos[r] = repo
+	repos, err := repograph.NewMap(repoUrls, wd)
+	if err != nil {
+		return nil, err
 	}
 	tcc := specs.NewTaskCfgCache(repos)
 	c := &tasksPerCommitCache{
 		cached: map[db.RepoState]int{},
 		period: period,
+		repos:  repos,
 		tcc:    tcc,
 	}
 	go util.RepeatCtx(time.Minute, ctx, func() {
