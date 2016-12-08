@@ -7,7 +7,8 @@
     <tree-status-sk>
 
   This element occasionally polls the tree, displaying the status and exposing
-  the active roles (sherrif, wrangler, trooper) through various properties.
+  the active roles (sherrif, wrangler, robocop, trooper) through various
+  properties.
 
   To use this file import it:
 
@@ -24,7 +25,8 @@
     // output
     sheriff: Who is the current sheriff
     wrangler: Who is the current gpu wrangler
-    trooper: Who is the current trooper
+    robocop: Who is the current android robocop
+    trooper: Who is the current infra trooper
 -->
 <link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
 
@@ -56,6 +58,12 @@
       params='{"format":"json"}'
       handle-as="json"
       last-response="{{_wranglerStatus}}">
+    </iron-ajax>
+    <iron-ajax id="robocop"
+      auto url="https://skia-tree-status.appspot.com/current-robocop"
+      params='{"format":"json"}'
+      handle-as="json"
+      last-response="{{_robocopStatus}}">
     </iron-ajax>
     <iron-ajax id="trooper"
       auto url="https://skia-tree-status.appspot.com/current-trooper"
@@ -97,6 +105,11 @@
         computed: "_getName(_wranglerStatus)",
         notify: true,
       },
+      robocop: {
+        type: String,
+        computed: "_getName(_robocopStatus)",
+        notify: true,
+      },
       trooper: {
         type: String,
         computed: "_getName(_trooperStatus)",
@@ -124,6 +137,9 @@
         type: Object
       },
       _wranglerStatus: {
+        type: Object
+      },
+      _robocopStatus: {
         type: Object
       },
       _trooperStatus: {
@@ -161,6 +177,7 @@
 
     _reload: function() {
       this.$.status.generateRequest();
+      this.$.robocop.generateRequest();
       this.$.trooper.generateRequest();
       this.$.wrangler.generateRequest();
       this.$.sheriff.generateRequest();
