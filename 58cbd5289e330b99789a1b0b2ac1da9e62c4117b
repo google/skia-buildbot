@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0d744b42_f6f9b6cf",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-08T03:09:39Z",
+      "side": 1,
+      "message": "Future CL will do recovery after scheduling.NewTaskScheduler and before b.Start().",
+      "revId": "58cbd5289e330b99789a1b0b2ac1da9e62c4117b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
