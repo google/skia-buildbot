@@ -88,3 +88,10 @@ fiddles.
 Depending on the failure mode either fix the code, fix fiddle_secwrap.cpp if
 it is a sandbox issue, or contact the person that created the fiddle.
 
+To delete a named fiddle remove the associated file from
+gs://skia-fiddle/named. I.e. visit:
+
+ http://go/skia-fiddle-storage
+
+Each named fiddle is represented by a single file. To delete the named fiddle
+just delete the associated file in that directory.
