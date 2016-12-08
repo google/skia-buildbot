@@ -106,6 +106,24 @@
     },
     {
       "key": {
+        "uuid": "0d744b42_a1abe623",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-08T14:03:18Z",
+      "side": 1,
+      "message": "Assuming \"next loop\" means the next time MainLoop runs, agreed.\n\nIf we can do more queries in parallel, that might help, since (I think) the Swarming API and DB is load-balanced among several servers. However, if querying for each unfinished task individually is too slow, I can\u0027t imagine that another way  of splitting the queries would be faster.\n\nWe might also consider continuously updating from Swarming in parallel with scheduling. We would need to be much more careful about retrying when PutTasks returns ErrConcurrentUpdate.\n\nMaybe the next step is to ask the Swarming team what they recommend. Maybe they could easily add an API where we would make a request with task IDs and what we believe to be their current state, and they would return any tasks that don\u0027t match that state.",
+      "parentUuid": "cd4b13fc_7634bf0f",
+      "revId": "10b0ac98b573dc22c08aeaa088623e77a0b32b14",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0d744b42_d6427a5f",
         "filename": "go/swarming/apiclient.go",
         "patchSetId": 3
