@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd4b13fc_764b5fa2",
+        "filename": "chromeextensions/skia-swarming/tasks.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-12-08T13:15:23Z",
+      "side": 1,
+      "message": "These columns are not the easiest to read. Might be able to extract out a method because they look to have some commonalities:\n\nvar newCol \u003d document.createElement(\"td\");\nnewCol.innerText \u003d variable1;\nvar nextCol \u003d document.createElement(\"td\");\nnextCol.href \u003d variable2;\nnextCol.target \u003d ..\nnextcol.rel \u003d ..\netc",
+      "revId": "a55dba93629e7417cbb8620430a34b792c5ff0de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
