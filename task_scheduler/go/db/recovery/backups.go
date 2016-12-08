@@ -55,6 +55,9 @@ type DBBackup interface {
 	Tick()
 	// ImmediateBackup triggers a backup immediately.
 	ImmediateBackup() error
+	// Start launches goroutines to run incremental Job backups and update
+	// metrics.
+	Start() error
 	// RetrieveJobs returns all backed-up Jobs created or modified since the given
 	// time, as a map[Job.Id]*Job. Only the most recent backup is returned.
 	RetrieveJobs(since time.Time) (map[string]*db.Job, error)
@@ -99,6 +102,7 @@ type gsDBBackup struct {
 //  - gsBucket is the GS bucket to store backups.
 //  - db is the DB to back up.
 //  - authClient is a client authenticated with auth.SCOPE_READ_WRITE.
+// Does not start incremental backups or metric updates until Start() is called.
 func NewDBBackup(ctx context.Context, gsBucket string, db db.BackupDBCloser, name string, workdir string, authClient *http.Client) (DBBackup, error) {
 	gsClient, err := storage.NewClient(ctx, option.WithHTTPClient(authClient))
 	if err != nil {
@@ -109,24 +113,12 @@ func NewDBBackup(ctx context.Context, gsBucket string, db db.BackupDBCloser, nam
 		return nil, err
 	}
 
-	go util.RepeatCtx(10*time.Minute, b.ctx, b.updateMetrics)
-	go util.RepeatCtx(10*time.Second, b.ctx, func() {
-		if err := b.incrementalBackupStep(time.Now()); err != nil {
-			glog.Errorf("Incremental Job backup failed: %s", err)
-		}
-	})
-
 	return b, nil
 }
 
 // newGsDbBackupWithClient is the same as NewDBBackup but takes a GS client for
-// testing and does not start the metrics goroutine or the incremental backup
-// goroutine.
+// testing.
 func newGsDbBackupWithClient(ctx context.Context, gsBucket string, db db.BackupDBCloser, name string, workdir string, gsClient *storage.Client) (*gsDBBackup, error) {
-	modJobsId, err := db.StartTrackingModifiedJobs()
-	if err != nil {
-		return nil, err
-	}
 	metricTags := map[string]string{
 		"database": name,
 	}
@@ -136,7 +128,6 @@ func newGsDbBackupWithClient(ctx context.Context, gsBucket string, db db.BackupD
 		db:                          db,
 		ctx:                         ctx,
 		triggerDir:                  path.Join(workdir, TRIGGER_DIRNAME),
-		modifiedJobsId:              modJobsId,
 		lastDBBackupLiveness:        metrics2.NewLiveness("last-db-backup", metricTags),
 		recentDBBackupCount:         metrics2.GetInt64Metric("recent-db-backup-count", metricTags),
 		maybeBackupDBLiveness:       metrics2.NewLiveness("db-backup-maybe-backup-db", metricTags),
@@ -147,30 +138,54 @@ func newGsDbBackupWithClient(ctx context.Context, gsBucket string, db db.BackupD
 	// Release resources when done.
 	go func() {
 		<-ctx.Done()
-		b.db.StopTrackingModifiedTasks(b.modifiedJobsId)
-		// TODO(benjaminwagner): Liveness doesn't have a Delete method.
-		//if err := b.lastDBBackupLiveness.Delete(); err != nil {
-		//	glog.Error(err)
-		//}
+		if b.modifiedJobsId != "" {
+			b.db.StopTrackingModifiedTasks(b.modifiedJobsId)
+		}
+		if err := b.lastDBBackupLiveness.Delete(); err != nil {
+			glog.Error(err)
+		}
 		if err := b.recentDBBackupCount.Delete(); err != nil {
 			glog.Error(err)
 		}
-		// TODO(benjaminwagner): Liveness doesn't have a Delete method.
-		//if err := b.maybeBackupDBLiveness.Delete(); err != nil {
-		//	glog.Error(err)
-		//}
+		if err := b.maybeBackupDBLiveness.Delete(); err != nil {
+			glog.Error(err)
+		}
 		if err := b.jobBackupCount.Delete(); err != nil {
 			glog.Error(err)
 		}
-		// TODO(benjaminwagner): Liveness doesn't have a Delete method.
-		//if err := b.incrementalBackupLiveness.Delete(); err != nil {
-		//	glog.Error(err)
-		//}
+		if err := b.incrementalBackupLiveness.Delete(); err != nil {
+			glog.Error(err)
+		}
 		if err := b.incrementalBackupResetCount.Delete(); err != nil {
 			glog.Error(err)
 		}
 	}()
 	return b, nil
+}
+
+// startTrackingJobs sets b.modifiedJobsId for Start, but does not start
+// goroutines to allow testing.
+func (b *gsDBBackup) startTrackingJobs() error {
+	modJobsId, err := b.db.StartTrackingModifiedJobs()
+	if err != nil {
+		return err
+	}
+	b.modifiedJobsId = modJobsId
+	return nil
+}
+
+// See documentation for DBBackup.Start.
+func (b *gsDBBackup) Start() error {
+	if err := b.startTrackingJobs(); err != nil {
+		return err
+	}
+	go util.RepeatCtx(10*time.Minute, b.ctx, b.updateMetrics)
+	go util.RepeatCtx(10*time.Second, b.ctx, func() {
+		if err := b.incrementalBackupStep(time.Now()); err != nil {
+			glog.Errorf("Incremental Job backup failed: %s", err)
+		}
+	})
+	return nil
 }
 
 // getBackupMetrics returns the Updated time of the most recent DB backup and
