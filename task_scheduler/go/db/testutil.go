@@ -240,18 +240,20 @@ func TestTaskDBConcurrentUpdate(t *testing.T, db TaskDB) {
 	assert.NoError(t, db.PutTask(t2))
 
 	// Update t2 at the same time as t1Cached; should still get an error.
+	t2Before := t2.Copy()
 	t2.Status = TASK_STATUS_MISHAP
 	err = db.PutTasks([]*Task{t2, t1Cached})
 	assert.True(t, IsConcurrentUpdate(err))
 
 	{
-		// DB should still have the old value of t1.
+		// DB should still have the old value of t1 and t2.
 		t1Again, err := db.GetTaskById(t1.Id)
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, t1, t1Again)
 
-		// DB should also still have the old value of t2, but to keep InMemoryDB
-		// simple, we don't check that here.
+		t2Again, err := db.GetTaskById(t2.Id)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, t2Before, t2Again)
 	}
 }
 
@@ -807,18 +809,20 @@ func TestJobDBConcurrentUpdate(t *testing.T, db JobDB) {
 	assert.NoError(t, db.PutJob(j2))
 
 	// Update j2 at the same time as j1Cached; should still get an error.
+	j2Before := j2.Copy()
 	j2.Status = JOB_STATUS_MISHAP
 	err = db.PutJobs([]*Job{j2, j1Cached})
 	assert.True(t, IsConcurrentUpdate(err))
 
 	{
-		// DB should still have the old value of j1.
+		// DB should still have the old value of j1 and j2.
 		j1Again, err := db.GetJobById(j1.Id)
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, j1, j1Again)
 
-		// DB should also still have the old value of j2, but to keep InMemoryDB
-		// simple, we don't check that here.
+		j2Again, err := db.GetJobById(j2.Id)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, j2Before, j2Again)
 	}
 }
 
