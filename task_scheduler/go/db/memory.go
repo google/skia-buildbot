@@ -55,37 +55,42 @@ func (db *inMemoryTaskDB) GetTasksFromDateRange(start, end time.Time) ([]*Task, 
 
 // See docs for TaskDB interface.
 func (db *inMemoryTaskDB) PutTask(task *Task) error {
-	db.tasksMtx.Lock()
-	defer db.tasksMtx.Unlock()
-
-	if util.TimeIsZero(task.Created) {
-		return fmt.Errorf("Created not set. Task %s created time is %s. %v", task.Id, task.Created, task)
-	}
-
-	if task.Id == "" {
-		if err := db.AssignId(task); err != nil {
-			return err
-		}
-	} else if existing := db.tasks[task.Id]; existing != nil {
-		if !existing.DbModified.Equal(task.DbModified) {
-			glog.Warningf("Cached Task has been modified in the DB. Current:\n%v\nCached:\n%v", existing, task)
-			return ErrConcurrentUpdate
-		}
-	}
-	task.DbModified = time.Now()
-
-	// TODO(borenet): Keep tasks in a sorted slice.
-	db.tasks[task.Id] = task
-	db.TrackModifiedTask(task)
-	return nil
+	return db.PutTasks([]*Task{task})
 }
 
 // See docs for TaskDB interface.
 func (db *inMemoryTaskDB) PutTasks(tasks []*Task) error {
-	for _, t := range tasks {
-		if err := db.PutTask(t); err != nil {
-			return err
+	db.tasksMtx.Lock()
+	defer db.tasksMtx.Unlock()
+
+	// Validate.
+	for _, task := range tasks {
+		if util.TimeIsZero(task.Created) {
+			return fmt.Errorf("Created not set. Task %s created time is %s. %v", task.Id, task.Created, task)
 		}
+
+		if existing := db.tasks[task.Id]; existing != nil {
+			if !existing.DbModified.Equal(task.DbModified) {
+				glog.Warningf("Cached Task has been modified in the DB. Current:\n%v\nCached:\n%v", existing, task)
+				return ErrConcurrentUpdate
+			}
+		}
+	}
+
+	// Insert.
+	for _, task := range tasks {
+		if task.Id == "" {
+			if err := db.AssignId(task); err != nil {
+				// Should never happen.
+				return err
+			}
+		}
+
+		task.DbModified = time.Now()
+
+		// TODO(borenet): Keep tasks in a sorted slice.
+		db.tasks[task.Id] = task.Copy()
+		db.TrackModifiedTask(task)
 	}
 	return nil
 }
@@ -141,37 +146,41 @@ func (db *inMemoryJobDB) GetJobsFromDateRange(start, end time.Time) ([]*Job, err
 
 // See docs for JobDB interface.
 func (db *inMemoryJobDB) PutJob(job *Job) error {
-	db.jobsMtx.Lock()
-	defer db.jobsMtx.Unlock()
-
-	if util.TimeIsZero(job.Created) {
-		return fmt.Errorf("Created not set. Job %s created time is %s. %v", job.Id, job.Created, job)
-	}
-
-	if job.Id == "" {
-		if err := db.assignId(job); err != nil {
-			return err
-		}
-	} else if existing := db.jobs[job.Id]; existing != nil {
-		if !existing.DbModified.Equal(job.DbModified) {
-			glog.Warningf("Cached Job has been modified in the DB. Current:\n%v\nCached:\n%v", existing, job)
-			return ErrConcurrentUpdate
-		}
-	}
-	job.DbModified = time.Now()
-
-	// TODO(borenet): Keep jobs in a sorted slice.
-	db.jobs[job.Id] = job
-	db.TrackModifiedJob(job)
-	return nil
+	return db.PutJobs([]*Job{job})
 }
 
 // See docs for JobDB interface.
 func (db *inMemoryJobDB) PutJobs(jobs []*Job) error {
-	for _, j := range jobs {
-		if err := db.PutJob(j); err != nil {
-			return err
+	db.jobsMtx.Lock()
+	defer db.jobsMtx.Unlock()
+
+	// Validate.
+	for _, job := range jobs {
+		if util.TimeIsZero(job.Created) {
+			return fmt.Errorf("Created not set. Job %s created time is %s. %v", job.Id, job.Created, job)
 		}
+
+		if existing := db.jobs[job.Id]; existing != nil {
+			if !existing.DbModified.Equal(job.DbModified) {
+				glog.Warningf("Cached Job has been modified in the DB. Current:\n%v\nCached:\n%v", existing, job)
+				return ErrConcurrentUpdate
+			}
+		}
+	}
+
+	// Insert.
+	for _, job := range jobs {
+		if job.Id == "" {
+			if err := db.assignId(job); err != nil {
+				// Should never happen.
+				return err
+			}
+		}
+		job.DbModified = time.Now()
+
+		// TODO(borenet): Keep jobs in a sorted slice.
+		db.jobs[job.Id] = job.Copy()
+		db.TrackModifiedJob(job)
 	}
 	return nil
 }

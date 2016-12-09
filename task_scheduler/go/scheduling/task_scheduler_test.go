@@ -2555,6 +2555,8 @@ func TestUpdateUnfinishedTasks(t *testing.T) {
 	for _, task := range tasks {
 		got, err := s.db.GetTaskById(task.Id)
 		assert.NoError(t, err)
+		// Ignore DbModified when comparing.
+		task.DbModified = got.DbModified
 		testutils.AssertDeepEqual(t, task, got)
 	}
 }
@@ -2897,6 +2899,7 @@ func TestAddTasksFailure(t *testing.T) {
 		assert.True(t, db.IsConcurrentUpdate(err))
 		modTasks, err := d.GetModifiedTasks(trackId)
 		assert.NoError(t, err)
+		// "duty" tasks should never be updated.
 		for _, task := range modTasks {
 			assert.Equal(t, "toil", task.Name)
 			testutils.AssertDeepEqual(t, toil2, task)
