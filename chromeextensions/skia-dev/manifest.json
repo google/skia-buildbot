@@ -1,6 +1,6 @@
 {
    "name": "Notifications for Skia Developers",
-   "version": "1",
+   "version": "1.2",
    "description": "Notifications for Skia Developers.",
    "permissions": [
      "notifications",
