@@ -94,4 +94,6 @@ gs://skia-fiddle/named. I.e. visit:
  http://go/skia-fiddle-storage
 
 Each named fiddle is represented by a single file. To delete the named fiddle
-just delete the associated file in that directory.
+just delete the associated file in that directory. The alert will eventually
+go away when fiddle does a new build, which will happen about an hour after
+the next DEPS roll into Chrome.
