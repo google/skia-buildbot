@@ -362,6 +362,8 @@ func runServer(serverURL string) {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 
+	scheduling.RegisterPubSubServer(ts, r)
+
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	glog.Infof("Ready to serve on %s", serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
@@ -468,6 +470,9 @@ func main() {
 
 	// Create and start the task scheduler.
 	glog.Infof("Creating task scheduler.")
+	if err := scheduling.InitPubSub(); err != nil {
+		glog.Fatal(err)
+	}
 	ts, err = scheduling.NewTaskScheduler(d, period, *commitWindow, wdAbs, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, tryjobs.BUCKET_PRIMARY, PROJECT_REPO_MAPPING)
 	if err != nil {
 		glog.Fatal(err)
