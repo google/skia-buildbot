@@ -16,6 +16,24 @@
       "revId": "a55dba93629e7417cbb8620430a34b792c5ff0de",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8d391bbb_ace3abed",
+        "filename": "chromeextensions/skia-swarming/tasks.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-09T15:46:30Z",
+      "side": 1,
+      "message": "Done.  I even found a bug while doing it this way.",
+      "parentUuid": "cd4b13fc_764b5fa2",
+      "revId": "a55dba93629e7417cbb8620430a34b792c5ff0de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
