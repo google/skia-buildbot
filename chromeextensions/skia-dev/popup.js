@@ -24,9 +24,10 @@
     });
   }
 
-  function setTrooperSheriffWrangler() {
+  function setTrooperSheriffRobocopWrangler() {
     var urls = ['http://skia-tree-status.appspot.com/current-trooper',
                 'http://skia-tree-status.appspot.com/current-sheriff',
+                'http://skia-tree-status.appspot.com/current-robocop',
                 'http://skia-tree-status.appspot.com/current-gpu-sheriff']
     urls.forEach(function(url) {
       sk.get(url).then(function(resp) {
@@ -137,12 +138,12 @@
 
   function main() {
     setTreeStatus();
-    setTrooperSheriffWrangler();
+    setTrooperSheriffRobocopWrangler();
     setPerfAlerts();
     setGoldAlerts();
     setRollStatus();
     setInfraAlerts();
-    addMasterStatusRows();
+    // addMasterStatusRows();
   }
 
   main();
