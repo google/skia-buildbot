@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "1a23a39f_090399f1",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-09T13:50:03Z",
+      "side": 1,
+      "message": "SGTM",
+      "parentUuid": "cd4b13fc_99517c29",
+      "revId": "aa5340d90f424ace2e4fbb4925a2f4649c7e8e97",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cd4b13fc_96870ba1",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -72,6 +90,24 @@
       "side": 1,
       "message": "Added comments.",
       "parentUuid": "cd4b13fc_96870ba1",
+      "revId": "aa5340d90f424ace2e4fbb4925a2f4649c7e8e97",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a23a39f_e9ff3db5",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-09T13:50:03Z",
+      "side": 1,
+      "message": "Thanks, LGTM",
+      "parentUuid": "cd4b13fc_a5bd2b66",
       "revId": "aa5340d90f424ace2e4fbb4925a2f4649c7e8e97",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
