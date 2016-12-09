@@ -22,6 +22,24 @@
       "revId": "2c4a7eeb2e18ee68273ba2a49d6e6e0ab2d432ff",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a23a39f_e9617dbb",
+        "filename": "task_scheduler/go/tryjobs/job_cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-09T14:48:37Z",
+      "side": 1,
+      "message": "I think what you have is better than alternatives.\n\nThe only way I can see to share functionality would be to make an interface:\n\ntype JobCacheSpecialization interface {\n  Reinit()\n  ExpireAndUpdate(start time.Time, jobs []*db.Job)\n}\n\nWe could then implement a type JobCacheImpl with 99% of reset() and Update() methods. The locking becomes a bit confusing, though.",
+      "parentUuid": "1a23a39f_e9e61d2b",
+      "revId": "2c4a7eeb2e18ee68273ba2a49d6e6e0ab2d432ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
