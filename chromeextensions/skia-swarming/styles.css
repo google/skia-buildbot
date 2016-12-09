@@ -2,3 +2,7 @@
     border: 1px solid #BBB;
     padding: 5px;
 }
+
+a[href] {
+    color: #1F78B4;
+}
