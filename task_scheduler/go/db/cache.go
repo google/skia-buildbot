@@ -432,10 +432,6 @@ type JobCache interface {
 	// window.
 	GetJobMaybeExpired(string) (*Job, error)
 
-	// GetActiveTryJobs returns all active try Jobs. A try Job is
-	// considered to be active if it has a non-zero Buildbucket lease key.
-	GetActiveTryJobs() ([]*Job, error)
-
 	// ScheduledJobsForCommit indicates whether or not we triggered any jobs
 	// for the given repo/commit.
 	ScheduledJobsForCommit(string, string) (bool, error)
@@ -454,7 +450,6 @@ type JobCache interface {
 type GetRevisionTimestamp func(repo, revision string) (time.Time, error)
 
 type jobCache struct {
-	activeTryJobs        map[string]*Job
 	db                   JobDB
 	getRevisionTimestamp GetRevisionTimestamp
 	mtx                  sync.RWMutex
@@ -495,18 +490,6 @@ func (c *jobCache) GetJobMaybeExpired(id string) (*Job, error) {
 }
 
 // See documentation for JobCache interface.
-func (c *jobCache) GetActiveTryJobs() ([]*Job, error) {
-	c.mtx.RLock()
-	defer c.mtx.RUnlock()
-
-	rv := make([]*Job, 0, len(c.activeTryJobs))
-	for _, j := range c.activeTryJobs {
-		rv = append(rv, j.Copy())
-	}
-	return rv, nil
-}
-
-// See documentation for JobCache interface.
 func (c *jobCache) ScheduledJobsForCommit(repo, rev string) (bool, error) {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
@@ -533,7 +516,6 @@ func (c *jobCache) expireJobs(start time.Time) {
 	for _, job := range c.jobs {
 		if c.getJobTimestamp(job).Before(start) {
 			delete(c.jobs, job.Id)
-			delete(c.activeTryJobs, job.Id)
 			delete(c.unfinished, job.Id)
 			if !job.Done() {
 				expiredUnfinishedCount++
@@ -569,13 +551,6 @@ func (c *jobCache) insertOrUpdateJob(job *Job) {
 			c.triggeredForCommit[job.Repo] = map[string]bool{}
 		}
 		c.triggeredForCommit[job.Repo][job.Revision] = true
-	}
-
-	// Active try jobs.
-	if job.BuildbucketLeaseKey == 0 {
-		delete(c.activeTryJobs, job.Id)
-	} else {
-		c.activeTryJobs[job.Id] = job
 	}
 
 	// Unfinished jobs.
@@ -617,7 +592,6 @@ func (c *jobCache) reset() error {
 		c.db.StopTrackingModifiedJobs(queryId)
 		return err
 	}
-	c.activeTryJobs = map[string]*Job{}
 	c.queryId = queryId
 	c.jobs = map[string]*Job{}
 	c.triggeredForCommit = map[string]map[string]bool{}

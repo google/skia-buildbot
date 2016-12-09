@@ -118,10 +118,8 @@ func setup(t *testing.T) (*TryJobIntegrator, *mockhttpclient.URLMock, func()) {
 	taskCfgCache := specs.NewTaskCfgCache(rm)
 	d, err := local_db.NewDB("tasks_db", path.Join(tmpDir, "tasks.db"))
 	assert.NoError(t, err)
-	cache, err := db.NewJobCache(d, window, db.DummyGetRevisionTimestamp(time.Now()))
-	assert.NoError(t, err)
 	mock := mockhttpclient.NewURLMock()
-	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, mock.Client(), d, cache, projectRepoMapping, rm, taskCfgCache)
+	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, mock.Client(), d, window, projectRepoMapping, rm, taskCfgCache)
 	assert.NoError(t, err)
 
 	MockOutExec()

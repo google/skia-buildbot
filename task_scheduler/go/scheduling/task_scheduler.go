@@ -102,7 +102,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir str
 	}
 
 	taskCfgCache := specs.NewTaskCfgCache(repos)
-	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, c, d, jCache, projectRepoMapping, repos, taskCfgCache)
+	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, c, d, w, projectRepoMapping, repos, taskCfgCache)
 	if err != nil {
 		return nil, err
 	}
