@@ -58,7 +58,7 @@ function drawExtraTableEntries(jobID, gerritIssue, gerritPatchSet, sourceRepo, s
 
   elem = document.getElementById("extra_retry_of");
   if (retryOf) {
-    var link = `https://chromium-swarm.appspot.com/tasklist?c=name&amp;c=state&amp;c=created_ts&amp;c=user&amp;f=sk_id%3A${retryOf}&amp;l=10&amp;s=created_ts%3Adesc`;
+    var link = `https://chromium-swarm.appspot.com/tasklist?c=name&c=state&c=created_ts&c=user&f=sk_id%3A${retryOf}&l=10&s=created_ts%3Adesc`;
     addTableEntry(elem, "Retry of Task", link, retryOf);
   } else {
     elem.innerHTML = "";
@@ -66,7 +66,7 @@ function drawExtraTableEntries(jobID, gerritIssue, gerritPatchSet, sourceRepo, s
 
   elem = document.getElementById("extra_depends_on");
   if (parentTaskId) {
-    var link = `https://chromium-swarm.appspot.com/tasklist?c=name&amp;c=state&amp;c=created_ts&amp;c=user&amp;f=sk_id%3A${parentTaskId}&amp;l=10&amp;s=created_ts%3Adesc`;
+    var link = `https://chromium-swarm.appspot.com/tasklist?c=name&c=state&c=created_ts&c=user&f=sk_id%3A${parentTaskId}&l=10&s=created_ts%3Adesc`;
     addTableEntry(elem, "Parent Task", link, parentTaskId);
   } else {
     elem.innerHTML = "";
@@ -74,7 +74,7 @@ function drawExtraTableEntries(jobID, gerritIssue, gerritPatchSet, sourceRepo, s
 
   elem = document.getElementById("extra_dependents");
   if (thisTaskId) {
-    var link = `https://chromium-swarm.appspot.com/tasklist?c=name&amp;c=state&amp;c=created_ts&amp;c=user&amp;f=sk_parent_task_id%3A${thisTaskId}&amp;l=10&amp;s=created_ts%3Adesc`;
+    var link = `https://chromium-swarm.appspot.com/tasklist?c=name&c=state&c=created_ts&c=user&f=sk_parent_task_id%3A${thisTaskId}&l=10&s=created_ts%3Adesc`;
     addTableEntry(elem, "Child Tasks", link, "Find in Task List");
   } else {
     elem.innerHTML = "";
