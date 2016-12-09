@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a23a39f_c1333506",
+        "filename": "android_ingest/go/poprepo/poprepo.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-09T20:56:15Z",
+      "side": 1,
+      "message": "Nit: It\u0027s probably fine, but I\u0027m always afraid of using --all since you may pick up files which aren\u0027t supposed to be checked in.  Since you know the filename, why not just \"git add \u003cfilename\u003e\"?",
+      "range": {
+        "startLine": 118,
+        "startChar": 38,
+        "endLine": 118,
+        "endChar": 44
+      },
+      "revId": "ff8688229a983ddfebd9ea3c284ae956b9961216",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a23a39f_c16575f6",
+        "filename": "android_ingest/go/poprepo/poprepo.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-09T20:56:15Z",
+      "side": 1,
+      "message": "Nit: I prefer the explicit: git push origin master",
+      "range": {
+        "startLine": 126,
+        "startChar": 32,
+        "endLine": 126,
+        "endChar": 36
+      },
+      "revId": "ff8688229a983ddfebd9ea3c284ae956b9961216",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
