@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a23a39f_e9e61d2b",
+        "filename": "task_scheduler/go/tryjobs/job_cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-09T14:03:29Z",
+      "side": 1,
+      "message": "Is there a good way to share this and the below funcs?",
+      "range": {
+        "startLine": 42,
+        "startChar": 19,
+        "endLine": 42,
+        "endChar": 29
+      },
+      "revId": "2c4a7eeb2e18ee68273ba2a49d6e6e0ab2d432ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
