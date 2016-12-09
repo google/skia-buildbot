@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -19,6 +18,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 /*
@@ -67,19 +67,23 @@ type TryJobIntegrator struct {
 	bb                 *buildbucket_api.Service
 	bucket             string
 	db                 db.JobDB
-	jCache             db.JobCache
+	jCache             *jobCache
 	projectRepoMapping map[string]string
 	rm                 repograph.Map
 	taskCfgCache       *specs.TaskCfgCache
 }
 
 // NewTryJobIntegrator returns a TryJobIntegrator instance.
-func NewTryJobIntegrator(apiUrl, bucket string, c *http.Client, d db.JobDB, cache db.JobCache, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache *specs.TaskCfgCache) (*TryJobIntegrator, error) {
+func NewTryJobIntegrator(apiUrl, bucket string, c *http.Client, d db.JobDB, w *window.Window, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache *specs.TaskCfgCache) (*TryJobIntegrator, error) {
 	bb, err := buildbucket_api.New(c)
 	if err != nil {
 		return nil, err
 	}
 	bb.BasePath = apiUrl
+	cache, err := newJobCache(d, w)
+	if err != nil {
+		return nil, err
+	}
 	rv := &TryJobIntegrator{
 		bb:                 bb,
 		bucket:             bucket,
@@ -118,8 +122,6 @@ func (t *TryJobIntegrator) updateJobs(now time.Time) error {
 	if err != nil {
 		return err
 	}
-	// Sort to maintain consistency in testing.
-	sort.Sort(db.JobSlice(jobs))
 
 	// Divide up finished and unfinished Jobs.
 	finished := make([]*db.Job, 0, len(jobs))
