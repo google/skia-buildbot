@@ -108,10 +108,7 @@ func TestUpdateJobs(t *testing.T) {
 	active, err := trybots.jCache.GetActiveTryJobs()
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, []*db.Job{j2}, active)
-	unfinished, err := trybots.jCache.UnfinishedJobs()
-	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*db.Job{j2}, unfinished)
-	canceled, err := trybots.jCache.GetJob(j1.Id)
+	canceled, err := trybots.jCache.db.GetJobById(j1.Id)
 	assert.NoError(t, err)
 	assert.True(t, canceled.Done())
 	assert.Equal(t, db.JOB_STATUS_CANCELED, canceled.Status)
@@ -375,7 +372,7 @@ func TestPoll(t *testing.T) {
 
 	assertAdded := func(builds []*buildbucket_api.ApiBuildMessage) {
 		assert.NoError(t, trybots.jCache.Update())
-		jobs, err := trybots.jCache.UnfinishedJobs()
+		jobs, err := trybots.jCache.GetActiveTryJobs()
 		assert.NoError(t, err)
 		byId := make(map[int64]*db.Job, len(jobs))
 		for _, j := range jobs {
