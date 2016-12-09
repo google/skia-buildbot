@@ -1,6 +1,6 @@
 {
    "name": "Swarming Customizations for Skia",
-   "version": "1.1",
+   "version": "1.2",
    "description": "Swarming Customizations for Skia",
    "content_scripts": [
     {
