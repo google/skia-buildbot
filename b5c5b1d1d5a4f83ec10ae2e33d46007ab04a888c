@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8d391bbb_9290c2a2",
+        "filename": "task_scheduler/go/scheduling/pubsub.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-10T18:34:57Z",
+      "side": 1,
+      "message": "nit: seems like we don\u0027t actually need this.",
+      "range": {
+        "startLine": 80,
+        "startChar": 5,
+        "endLine": 80,
+        "endChar": 23
+      },
+      "revId": "b5c5b1d1d5a4f83ec10ae2e33d46007ab04a888c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8d391bbb_3259d647",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-10T18:34:57Z",
+      "side": 1,
+      "message": "How is this different from / related to PUBSUB_TOPIC_SWARMING_TASKS?",
+      "revId": "b5c5b1d1d5a4f83ec10ae2e33d46007ab04a888c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
