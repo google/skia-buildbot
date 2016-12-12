@@ -36,12 +36,7 @@ func TestAdd(t *testing.T) {
 	}()
 
 	// Start testing.
-	p, err := NewPopRepo(gb.Dir(), workdir)
-	assert.NoError(t, err)
-
-	_, err = p.checkout.Git("config", "user.email", "tester@example.com")
-	assert.NoError(t, err)
-	_, err = p.checkout.Git("config", "user.name", "tester@example.com")
+	p, err := NewPopRepo(gb.Dir(), workdir, true)
 	assert.NoError(t, err)
 
 	// Confirm our inital commit is really there.
