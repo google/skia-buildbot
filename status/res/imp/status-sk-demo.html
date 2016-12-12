@@ -97,12 +97,18 @@
     var denae = {"username": "denae@google.com", "schedule_start": "02/29", "schedule_end": "03/06"};
     server.respondWith("GET","https://skia-tree-status.appspot.com/current-trooper?format=json", JSON.stringify(denae));
 
+    var elise = {"username": "elise@google.com", "schedule_start": "02/29", "schedule_end": "03/06"};
+    server.respondWith("GET","https://skia-tree-status.appspot.com/current-robocop?format=json", JSON.stringify(elise));
+
   </script>
 
   <link rel="import" href="status-sk.html">
 </head>
 
 <body>
-  <status-sk repo="skia"></status-sk>
+  <status-sk
+      repo="skia"
+      repo_base="https://skia.googlesource.com/skia/+/">
+  </status-sk>
 </body>
 </html>

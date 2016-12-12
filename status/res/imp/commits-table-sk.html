@@ -32,7 +32,8 @@
     logged_in: Boolean, if the links should be for internal or external buildbot pages.
     num_builders: Number, the number of builders with data, after filtering.
     relanded_map: Object, a map of a commit hash that was relanded to the commit hash that relands it.
-    repo: String, the current repo, used to make links.
+    repo: String, the current repo.  Used to direct comments to the right place.
+    repo_base: The base URL for commits. Commit hashes will be appended to this.
     reverted_map: Object, a map of a commit hash that was relanded to the commit hash that relands it.
 
     // outputs
@@ -159,6 +160,7 @@
           num_builders="[[num_builders]]"
           relanded_map="[[relanded_map]]"
           repo="[[repo]]"
+          repo_base="[[repo_base]]"
           reverted_map="[[reverted_map]]"
           time_points="[[time_points]]"
 
@@ -222,6 +224,9 @@
           type: Object,
         },
         repo: {
+          type: String,
+        },
+        repo_base: {
           type: String,
         },
         reverted_map: {

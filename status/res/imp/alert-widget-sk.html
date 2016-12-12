@@ -17,8 +17,7 @@
 
   Properties:
     reload: Number, How often (in seconds) to reload the alert status.
-    include: Array<String>, The include filters for polling alerts.
-    exclude: Array<String>, The exclude filters for polling alerts.
+    repo: String, the name of the repo "infra", "skia", etc. Used to filter alerts.
 
     active_alerts: Number, The number of active alerts.
 -->
@@ -127,18 +126,6 @@
 
     properties: {
       // input
-      include: {
-        type: Array,
-        value: function() {
-          return [];
-        }
-      },
-      exclude: {
-        type: Array,
-        value: function() {
-          return [];
-        }
-      },
       reload: {
         type: Number,
         value: 60,
@@ -189,17 +176,22 @@
     },
 
     _alertsURL: function(repo) {
-      if (this.repo === "infra") {
+      if (repo === "infra") {
         return "https://alerts.skia.org/infra";
       }
       return "https://alerts.skia.org";
     },
 
     _reload: function() {
-      var params = {"category": this.include, "excludeCategory": this.exclude};
-      var url = "https://alerts.skia.org/json/alerts/?" + sk.query.fromParamSet(params);
-      sk.get(url).then(JSON.parse).then(function(json) {
-        this.set('_allAlerts', json);
+      var url = "https://alerts.skia.org/json/alerts/";
+      if (this.repo === "infra") {
+        url += "?category=infra";
+      }
+        else {
+        url += "?excludeCategory=infra";
+      }
+      sk.get(url).then(JSON.parse).then(function(alerts) {
+        this.set("_allAlerts", alerts);
         this.async(this._reload, this.reload*1000);
       }.bind(this)).catch(function(err) {
         sk.errorMessage(err);
