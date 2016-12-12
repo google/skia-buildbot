@@ -181,7 +181,7 @@ func BenchmarkBlamer(b *testing.B) {
 }
 
 func TestBlamerWithLiveData(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
 	err := gs.DownloadTestDataFile(t, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
