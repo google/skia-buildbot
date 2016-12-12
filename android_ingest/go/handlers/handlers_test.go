@@ -18,7 +18,7 @@ var once sync.Once
 
 func handlerInit() {
 	_, currentFile, _, _ := runtime.Caller(0)
-	Init(filepath.Join(filepath.Dir(currentFile), "../.."), true)
+	Init(filepath.Join(filepath.Dir(currentFile), "../.."), true, nil)
 }
 
 func TestUpload(t *testing.T) {

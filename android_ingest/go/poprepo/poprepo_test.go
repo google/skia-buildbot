@@ -36,7 +36,7 @@ func TestAdd(t *testing.T) {
 	}()
 
 	// Start testing.
-	p, err := NewPopRepo(gb.Dir(), workdir)
+	p, err := NewPopRepo(gb.Dir(), workdir, true)
 	assert.NoError(t, err)
 
 	_, err = p.checkout.Git("config", "user.email", "tester@example.com")

@@ -4,12 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/android_ingest/go/continuous"
 	"go.skia.org/infra/android_ingest/go/handlers"
+	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
@@ -26,6 +27,8 @@ var (
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	workRoot       = flag.String("work_root", "", "Directory location where all the work is done.")
+	repoUrl        = flag.String("repo_url", "", "URL of the git repo where buildids are to be stored.")
+	branch         = flag.String("branch", "git_master-skia", "The branch where to look for buildids.")
 )
 
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
@@ -43,9 +46,26 @@ func main() {
 	} else {
 		common.InitWithMetrics2("androidingest", influxHost, influxUser, influxPassword, influxDatabase, local)
 	}
-	if err := os.MkdirAll(filepath.Join(*workRoot, "tmp"), 0777); err != nil {
-		glog.Fatalf("Failed to create WORK_ROOT/tmp dir: %s", err)
+	if *workRoot == "" {
+		glog.Fatal("The --work_root flag must be supplied.")
 	}
+	if *repoUrl == "" {
+		glog.Fatal("The --repo_url flag must be supplied.")
+	}
+
+	// Create a new auth'd client.
+	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope)
+	if err != nil {
+		glog.Fatalf("Unable to create authenticated client: %s", err)
+	}
+
+	// Start process that adds buildids to the git repo.
+	process, err := continuous.New(*branch, *repoUrl, *workRoot, client, *local)
+	if err != nil {
+		glog.Fatalf("Failed to start continuous process of adding new buildids to git repo: %s", err)
+	}
+	process.Start()
+
 	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {
 		redirectURL = "https://android-ingest.skia.org/oauth2callback/"
@@ -53,7 +73,7 @@ func main() {
 	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
 		glog.Fatalf("Failed to initialize the login system: %s", err)
 	}
-	handlers.Init(*resourcesDir, *local)
+	handlers.Init(*resourcesDir, *local, process)
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 	r.HandleFunc("/upload", handlers.UploadHandler)
