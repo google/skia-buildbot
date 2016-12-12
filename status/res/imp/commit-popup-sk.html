@@ -47,7 +47,7 @@
     <div id="popup" class="horizontal layout wrap">
       <div class="flex">
         <p>
-          <a href$="[[_makeRepoURL(repo,commit)]]" target="_blank">[[commit.hash]]</a>
+          <a href$="[[_makeCommitURL(commit, repo_base)]]" target="_blank">[[commit.hash]]</a>
           <br/>
           [[commit.author]]
           <br/>
@@ -86,6 +86,9 @@
         repo: {
           type: String,
         },
+        repo_base: {
+          type: String,
+        },
       },
 
       commentAdded: function() {
@@ -97,12 +100,8 @@
         return sk.human.localeTime(new Date(dateStr));
       },
 
-      _makeRepoURL: function(repo,commit) {
-        if (repo == "infra") {
-          return "https://skia.googlesource.com/buildbot/+/"+commit.hash;
-        } else {
-          return "https://skia.googlesource.com/" + repo + "/+/"+commit.hash;
-        }
+      _makeCommitURL: function(commit, repo_base) {
+        return repo_base + commit.hash;
       },
       _makeRevertURL: function(commit){
         if (commit.patchStorage === 'gerrit') {
