@@ -19,7 +19,7 @@ done
 
 MACHINE_TYPE=n1-highmem-16
 SOURCE_SNAPSHOT=skia-systemd-pushable-base
-SCOPES='https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/gerritcodereview'
+SCOPES='https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/gerritcodereview https://www.googleapis.com/auth/pubsub'
 IP_ADDRESS=104.154.112.128
 
 # Create a boot disk from the pushable base snapshot.
