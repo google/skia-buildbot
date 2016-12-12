@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8d391bbb_3d2b6793",
+        "filename": "compute_engine_scripts/task_scheduler/vm_create_instance.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-12T16:25:50Z",
+      "side": 1,
+      "message": "Need to add to this?",
+      "revId": "c5812d2b6e588843aa991bae5f09c47737ac9bdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
