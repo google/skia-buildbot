@@ -66,17 +66,18 @@ func (p *PopRepo) GetLast() (int64, int64, error) {
 	if err != nil {
 		return 0, 0, fmt.Errorf("Unable to read file %q: %s", fullpath, err)
 	}
-	parts := strings.Split(string(b), " ")
+	s := strings.TrimSpace(string(b))
+	parts := strings.Split(s, " ")
 	if len(parts) != 2 {
-		return 0, 0, fmt.Errorf("Unable to find just buildid and timestamp in: %q", string(b))
+		return 0, 0, fmt.Errorf("Unable to find just buildid and timestamp in: %q", s)
 	}
 	ts, err := strconv.ParseInt(parts[1], 10, 64)
 	if err != nil {
-		return 0, 0, fmt.Errorf("Timestamp is invalid in %q: %s", string(b), err)
+		return 0, 0, fmt.Errorf("Timestamp is invalid in %q: %s", s, err)
 	}
 	buildid, err := strconv.ParseInt(parts[0], 10, 64)
 	if err != nil {
-		return 0, 0, fmt.Errorf("BuildID is invalid in %q: %s", string(b), err)
+		return 0, 0, fmt.Errorf("BuildID is invalid in %q: %s", s, err)
 	}
 	return buildid, ts, nil
 }
