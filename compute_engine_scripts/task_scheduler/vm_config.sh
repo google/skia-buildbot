@@ -13,5 +13,21 @@ if [ $? != "0" ]; then
   exit 1
 fi
 
-# The name of instance where skia task scheduler is running.
-INSTANCE_NAME=skia-task-scheduler
+VM_ID=${VM_ID:-prod}
+case "$VM_ID" in
+  prod)
+    INSTANCE_NAME=skia-task-scheduler
+    IP_ADDRESS=104.154.112.128
+    ;;
+
+  stage)
+    INSTANCE_NAME=skia-task-scheduler-stage
+    IP_ADDRESS=104.154.112.129
+    ;;
+
+  *)
+    echo "Invalid instance name '${VM_ID}'"
+    exit 1
+    ;;
+
+esac
