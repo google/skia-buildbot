@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8d391bbb_18223118",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1222,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-12T19:44:21Z",
+      "side": 1,
+      "message": "nit: Why map instead of slice? RefreshTasks wants a slice...",
+      "range": {
+        "startLine": 1222,
+        "startChar": 15,
+        "endLine": 1222,
+        "endChar": 73
+      },
+      "revId": "c211f4ea2acd2a5d3071ac7adb86b53938ad2f9a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
