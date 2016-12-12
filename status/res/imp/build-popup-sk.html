@@ -33,6 +33,7 @@
         shortSubject: String, shortened version of the commit subject.
 
     repo: The name (not the URL) of the repository of the commit.
+    repo_base: The base URL for commits. Commit hashes will be appended to this.
 
   Methods:
     None.
@@ -108,18 +109,10 @@
         </td>
       </tr>
       <tr>
-        <td>All tasks done on this bot</td>
-        <td>
-          <a target="_blank" rel="noopener" href$="{{_makeDashboardSlaveURL(build)}}">
-            <span>{{build.buildslave}}</span>
-          </a>
-        </td>
-      </tr>
-      <tr>
         <td>Bot</td>
         <td>
           <a target="_blank" rel="noopener" href$="{{_makeSlaveHostURL(build)}}">
-            Lookup
+            [[build.buildslave]]
           </a>
         </td>
       </tr>
@@ -129,7 +122,7 @@
     <table>
       <template is="dom-repeat" items="{{build.commits}}" as="c">
         <tr>
-          <td><a href$="{{_makeCommitURL(c, repo)}}">{{_commitHash(c, commit_details)}}</a></td>
+          <td><a href$="{{_makeCommitURL(c, repo_base)}}">{{_commitHash(c, commit_details)}}</a></td>
           <td>{{_commitAuthor(c, commit_details)}}</td>
           <td>{{_commitSubject(c, commit_details)}}</td>
         </tr>
@@ -169,6 +162,11 @@
           type: String,
           value: "",
         },
+
+        repo_base: {
+          type: String,
+          value: "",
+        }
       },
 
       _commentAdded: function () {
@@ -194,13 +192,6 @@
           return '/buildbots?botGrouping=builder&filterBy=builder&include=%5E' + build.builder + '%24&tab=builds';
         }
       },
-      _makeDashboardSlaveURL: function (build) {
-        if (build.dashboardSlaveUrl) {
-          return build.dashboardSlaveUrl;
-        } else {
-          return '/buildbots?botGrouping=buildslave&filterBy=buildslave&include=%5E' + build.buildslave + '%24&tab=builds';
-        }
-      },
       _makeSlaveHostURL: function (build) {
         if (build.slaveHostUrl) {
           return build.slaveHostUrl;
@@ -214,8 +205,8 @@
       _makeBuildStepLogURL: function (build, buildbot_url_prefix, step) {
         return buildbot_url_prefix + 'builders/' + build.builder + '/builds/' + build.number + '/steps/' + step + '/logs/stdio';
       },
-      _makeCommitURL: function (c, repo) {
-        return 'https://skia.googlesource.com/' + repo + '/+/' + c;
+      _makeCommitURL: function (c, repo_base) {
+        return repo_base + c;
       },
       _makeRetryURL: function(build){
         return build.retryUrl;

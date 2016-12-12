@@ -15,7 +15,9 @@
 
   Properties:
     load: Number, How many commits should be loaded, defaulting to 35.
-    repo: String, The repo that should be shown.
+    repo: String, The name of the repo that should be shown.
+    repo_base: String, the base url to which a commit hash or branch name can
+        be appended, such that the url will link to the source code at that head.
 
   Methods:
     None.
@@ -199,7 +201,6 @@
 
       <!-- JSON arrays requires double quotes to be valid -->
       <alert-widget-sk rtoolbar
-        exclude='["infra"]'
         reload="[[reload]]"
         repo="[[repo]]">
       </alert-widget-sk>
@@ -235,6 +236,7 @@
           autoroll="[[autoroll_status]]"
           branch_heads="[[branch_heads]]"
           commits="[[commits]]"
+          repo_base="[[repo_base]]"
 
           commits_to_load="{{commits_to_load}}"
           reload="{{reload}}">
@@ -253,6 +255,7 @@
             num_builders="[[num_builders]]"
             relanded_map="[[relanded_map]]"
             repo="[[repo]]"
+            repo_base="[[repo_base]]"
             reverted_map="[[reverted_map]]"
             time_points="[[time_points]]"
 
@@ -301,6 +304,9 @@
         value: 35,
       },
       repo: {
+        type: String,
+      },
+      repo_base: {
         type: String,
       },
 

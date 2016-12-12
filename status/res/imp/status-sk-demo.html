@@ -17,8 +17,8 @@
   <!-- Makes a var called alerts-->
   <script type="text/javascript" src="alert-widget-demo.json"></script>
   <script type="text/javascript" charset="utf-8">
-    // sinon.format = function(object) {return JSON.stringify(object);}
-    // sinon.log = function(message) {console.log(message);};
+    sinon.format = function(object) {return JSON.stringify(object);}
+    sinon.log = function(message) {console.log(message);};
 
     // Sets the time to be Thu Mar 10 2016 12:13:20 GMT-0500 (EST)
     var clock = sinon.useFakeTimers(1457630000000, "Date");
@@ -97,12 +97,18 @@
     var denae = {"username": "denae@google.com", "schedule_start": "02/29", "schedule_end": "03/06"};
     server.respondWith("GET","https://skia-tree-status.appspot.com/current-trooper?format=json", JSON.stringify(denae));
 
+    var elise = {"username": "elise@google.com", "schedule_start": "02/29", "schedule_end": "03/06"};
+    server.respondWith("GET","https://skia-tree-status.appspot.com/current-robocop?format=json", JSON.stringify(denae));
+
   </script>
 
   <link rel="import" href="status-sk.html">
 </head>
 
 <body>
-  <status-sk repo="skia"></status-sk>
+  <status-sk
+      repo="skia"
+      repo_base="https://skia.googlesource.com/skia/+/">
+  </status-sk>
 </body>
 </html>

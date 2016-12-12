@@ -132,7 +132,6 @@
     var font = "10px monospace"; // Font used for labels.
 
     var BRANCH_PREFIX = "origin/";
-    var REPO_BASE = "https://skia.googlesource.com/skia/+/";
 
     // Draws a filled-in dot at the given center with the given radius and color.
     function drawDot(ctx, center, radius, color) {
@@ -446,6 +445,9 @@
         commits: {
           type: Array,
         },
+        repo_base: {
+          type: String,
+        },
 
         // output
         commits_to_load: {
@@ -536,13 +538,14 @@
 
         // Link to generic branch heads.
         this.branch_heads.forEach(function(branch) {
+          var name = branch.name;
           if (branch.name.startsWith(BRANCH_PREFIX)) {
-            // If the commit is not found in the range of commits, we will just be
-            // overwriting the value at key "-1", which won't actually get used.
-            var idx = this._indexOfRevision(branch.head);
             var name = branch.name.slice(BRANCH_PREFIX.length);
-            linkMap[idx] = REPO_BASE + name;
           }
+          // If the commit is not found in the range of commits, we will just be
+          // overwriting the value at key "-1", which won't actually get used.
+          var idx = this._indexOfRevision(branch.head);
+          linkMap[idx] = this.repo_base + name;
         }.bind(this));
 
         // Link to the deps
