@@ -4,9 +4,12 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
+# Maybe add pre-step to set up roots git config?
 ExecStart=/usr/local/bin/androidingest \
     --resources_dir=/usr/local/share/androidingest/  \
-    --log_dir=/var/log/logserver
+    --log_dir=/var/log/logserver \
+    --work_root=/home/default/android-ingest-work \
+    --repo_url=/home/default/android-ingest-repo
 
 Restart=always
 User=default
