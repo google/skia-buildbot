@@ -17,6 +17,9 @@ import (
 )
 
 const (
+	// Compute Engine project ID.
+	PROJECT_ID = "google.com:skia-buildbots"
+
 	REPO_SKIA       = "https://skia.googlesource.com/skia.git"
 	REPO_SKIA_INFRA = "https://skia.googlesource.com/buildbot.git"
 

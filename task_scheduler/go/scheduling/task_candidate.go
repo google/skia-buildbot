@@ -146,7 +146,7 @@ func replaceVars(c *taskCandidate, s string) string {
 }
 
 // MakeTaskRequest creates a SwarmingRpcsNewTaskRequest object from the taskCandidate.
-func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNewTaskRequest {
+func (c *taskCandidate) MakeTaskRequest(id string) (*swarming_api.SwarmingRpcsNewTaskRequest, error) {
 	var cipdInput *swarming_api.SwarmingRpcsCipdInput
 	if len(c.TaskSpec.CipdPackages) > 0 {
 		cipdInput = &swarming_api.SwarmingRpcsCipdInput{
@@ -219,9 +219,11 @@ func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNew
 			},
 			IoTimeoutSecs: ioTimeoutSecs,
 		},
-		Tags: db.TagsForTask(c.Name, id, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds),
-		User: "skia-task-scheduler",
-	}
+		PubsubAuthToken: "", // TODO(borenet)
+		PubsubTopic:     PUBSUB_TOPIC_SWARMING_TASKS_FULL,
+		Tags:            db.TagsForTask(c.Name, id, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds),
+		User:            "skia-task-scheduler",
+	}, nil
 }
 
 // allDepsMet determines whether all dependencies for the given task candidate

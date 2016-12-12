@@ -93,12 +93,12 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir str
 	// Create caches.
 	tCache, err := db.NewTaskCache(d, w)
 	if err != nil {
-		glog.Fatal(err)
+		return nil, err
 	}
 
 	jCache, err := db.NewJobCache(d, w, db.GitRepoGetRevisionTimestamp(repos))
 	if err != nil {
-		glog.Fatal(err)
+		return nil, err
 	}
 
 	taskCfgCache := specs.NewTaskCfgCache(repos)
@@ -833,7 +833,13 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, tasks []*db.Ta
 				errs = append(errs, err)
 				return
 			}
-			req := candidate.MakeTaskRequest(t.Id)
+			req, err := candidate.MakeTaskRequest(t.Id)
+			if err != nil {
+				mtx.Lock()
+				defer mtx.Unlock()
+				errs = append(errs, err)
+				return
+			}
 			resp, err := s.swarming.TriggerTask(req)
 			if err != nil {
 				mtx.Lock()
@@ -1560,6 +1566,21 @@ func (s *TaskScheduler) AddTasks(taskMap map[string]map[string][]*db.Task) error
 
 	if len(rvErrs) != 0 {
 		return rvErrs[0]
+	}
+	return nil
+}
+
+// updateTaskFromSwarming loads the given Swarming task ID from Swarming and
+// updates the associated db.Task in the database.
+func (s *TaskScheduler) updateTaskFromSwarming(swarmingTaskId string) error {
+	// Obtain the Swarming task data.
+	res, err := s.swarming.SwarmingService().Task.Result(swarmingTaskId).Do()
+	if err != nil {
+		return err
+	}
+	// Update the task in the DB.
+	if err := db.UpdateDBFromSwarmingTask(s.db, res); err != nil {
+		return fmt.Errorf("Failed to update task: %s", err)
 	}
 	return nil
 }
