@@ -21,7 +21,7 @@
   </head>
   <body>
     <h1>Android Ingestion Status</h1>
-    {%range .%}
+    {%range .Recent%}
       <details-sk>
         <summary-sk>
           {%.TS%}
@@ -29,5 +29,7 @@
         <pre><code>{%.JSON%}</code></pre>
       </details-sk>
     {%end%}
+    <h1>Last BuildID Added To Git</h1>
+    <p>Last BuildID: {%.LastBuildId%}</p>
   </body>
 </html>
