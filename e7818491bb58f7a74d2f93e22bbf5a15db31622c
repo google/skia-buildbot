@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a23a39f_867d4ad3",
+        "filename": "status/templates/infra.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-12T15:31:30Z",
+      "side": 1,
+      "message": "Can we have the server hand us the repo name and URL?  That\u0027d let us remove one of these templates and reduce the amount of work required to add a repo in the future.",
+      "range": {
+        "startLine": 5,
+        "startChar": 11,
+        "endLine": 5,
+        "endChar": 21
+      },
+      "revId": "e7818491bb58f7a74d2f93e22bbf5a15db31622c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a23a39f_46673241",
+        "filename": "status/templates/infra.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-12T15:31:30Z",
+      "side": 1,
+      "message": "Super-nit: I like to make the distinction between a repo URL and a revision link template.  For example:\nrepo_name\u003d\"infra\"\nrepo_url\u003d\"https://skia.googlesource.com/buildbot\"\nrevlink_tmpl\u003d\"%s/+/%s\"\n\nThe server could provide all three.",
+      "range": {
+        "startLine": 11,
+        "startChar": 19,
+        "endLine": 11,
+        "endChar": 60
+      },
+      "revId": "e7818491bb58f7a74d2f93e22bbf5a15db31622c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
