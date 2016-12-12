@@ -35,6 +35,7 @@ import (
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/status/go/capacity"
 	"go.skia.org/infra/status/go/commit_cache"
 	"go.skia.org/infra/status/go/device_cfg"
 	"go.skia.org/infra/status/go/franken"
@@ -60,6 +61,8 @@ var (
 	buildCache           *franken.BTCache                     = nil
 	commitCaches         map[string]*commit_cache.CommitCache = nil
 	buildbotDashTemplate *template.Template                   = nil
+	capacityClient       *capacity.CapacityClient             = nil
+	capacityTemplate     *template.Template                   = nil
 	commitsTemplate      *template.Template                   = nil
 	buildDb              buildbot.DB                          = nil
 	hostsTemplate        *template.Template                   = nil
@@ -84,6 +87,7 @@ var (
 	resourcesDir       = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	buildbotDbHost     = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
 	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
+	capacityPeriod     = flag.Duration("capacity_period", 10*time.Minute, "How often to re-calculate capacity statistics.")
 
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
@@ -124,6 +128,10 @@ func reloadTemplates() {
 	))
 	buildbotDashTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/buildbot_dash.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+	capacityTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/capacity.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 }
@@ -455,6 +463,30 @@ func infraHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func capacityHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("capacityHandler").Stop()
+	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in testing mode.
+	if *testing {
+		reloadTemplates()
+	}
+
+	if err := capacityTemplate.Execute(w, nil); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
+	}
+}
+
+func capacityStatsHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("capacityStatsHandler").Stop()
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(capacityClient.CapacityMetrics()); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
+		return
+	}
+}
+
 func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	defer timer.New("buildsHandler").Stop()
 	w.Header().Set("Content-Type", "application/json")
@@ -693,6 +725,8 @@ func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", commitsHandler)
 	r.Handle("/buildbots", login.ForceAuth(http.HandlerFunc(buildbotDashHandler), OAUTH2_CALLBACK_PATH))
+	r.HandleFunc("/capacity", capacityHandler)
+	r.HandleFunc("/capacity/json", capacityStatsHandler)
 	r.HandleFunc("/hosts", hostsHandler)
 	r.HandleFunc("/infra", infraHandler)
 	r.Handle("/json/builds", login.ForceAuth(http.HandlerFunc(buildsJsonHandler), OAUTH2_CALLBACK_PATH))
@@ -756,6 +790,9 @@ func main() {
 	if err != nil {
 		glog.Fatal(err)
 	}
+
+	capacityClient = capacity.New(dbClient)
+	capacityClient.StartLoading(*capacityPeriod)
 
 	// By default use a set of credentials setup for localhost access.
 	var cookieSalt = "notverysecret"
