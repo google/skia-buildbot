@@ -10,7 +10,11 @@ BOWER_DIR=third_party/bower_components
 VULCANIZE1=true
 
 .PHONY: build
-build: androidingest web
+build: androidingest query_buildapi web
+
+.PHONY: query_buildapi
+query_buildapi:
+	go install -v ./go/query_buildapi
 
 .PHONY: androidingest
 androidingest:
