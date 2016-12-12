@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "1a23a39f_26ac366b",
+        "filename": "task_scheduler/go/scheduling/pubsub.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-12T13:54:07Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "8d391bbb_9290c2a2",
+      "revId": "b5c5b1d1d5a4f83ec10ae2e33d46007ab04a888c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8d391bbb_3259d647",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -36,6 +54,24 @@
       "writtenOn": "2016-12-10T18:34:57Z",
       "side": 1,
       "message": "How is this different from / related to PUBSUB_TOPIC_SWARMING_TASKS?",
+      "revId": "b5c5b1d1d5a4f83ec10ae2e33d46007ab04a888c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a23a39f_06b93aa8",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-12T13:54:07Z",
+      "side": 1,
+      "message": "This is an incorrect fully-qualified pubsub topic.  Fixed and moved into pubsub.go.",
+      "parentUuid": "8d391bbb_3259d647",
       "revId": "b5c5b1d1d5a4f83ec10ae2e33d46007ab04a888c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
