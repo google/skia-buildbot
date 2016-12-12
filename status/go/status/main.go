@@ -63,7 +63,6 @@ var (
 	commitsTemplate      *template.Template                   = nil
 	buildDb              buildbot.DB                          = nil
 	hostsTemplate        *template.Template                   = nil
-	infraTemplate        *template.Template                   = nil
 	dbClient             *influxdb.Client                     = nil
 	goldGMStatus         *polling_status.PollingStatus        = nil
 	goldSKPStatus        *polling_status.PollingStatus        = nil
@@ -121,10 +120,6 @@ func reloadTemplates() {
 	))
 	hostsTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/hosts.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-	infraTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/infra.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 	buildbotDashTemplate = template.Must(template.ParseFiles(
@@ -414,6 +409,12 @@ func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type commitsTemplateData struct {
+	Repo     string
+	Title    string
+	RepoBase string
+}
+
 func commitsHandler(w http.ResponseWriter, r *http.Request) {
 	defer timer.New("commitsHandler").Stop()
 	w.Header().Set("Content-Type", "text/html")
@@ -423,7 +424,13 @@ func commitsHandler(w http.ResponseWriter, r *http.Request) {
 		reloadTemplates()
 	}
 
-	if err := commitsTemplate.Execute(w, struct{}{}); err != nil {
+	d := commitsTemplateData{
+		Repo:     "skia",
+		Title:    "Skia Status",
+		RepoBase: "https://skia.googlesource.com/skia/+/",
+	}
+
+	if err := commitsTemplate.Execute(w, d); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
 	}
 }
@@ -437,7 +444,13 @@ func infraHandler(w http.ResponseWriter, r *http.Request) {
 		reloadTemplates()
 	}
 
-	if err := infraTemplate.Execute(w, struct{}{}); err != nil {
+	d := commitsTemplateData{
+		Repo:     "infra",
+		Title:    "Skia Infra Status",
+		RepoBase: "https://skia.googlesource.com/buildbot/+/",
+	}
+
+	if err := commitsTemplate.Execute(w, d); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
 	}
 }

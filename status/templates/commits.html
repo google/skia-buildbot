@@ -2,13 +2,13 @@
 <html>
   <head>
     {{template "header.html" .}}
-    <title>Skia Status</title>
+    <title>{{.Title}}</title>
 
   </head>
   <body>
     <status-sk
-        repo="skia"
-        repo_base="https://skia.googlesource.com/skia/+/">
+        repo="{{.Repo}}"
+        repo_base="{{.RepoBase}}">
     </status-sk>
   </body>
 </html>
