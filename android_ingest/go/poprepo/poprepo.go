@@ -38,12 +38,16 @@ type PopRepo struct {
 	checkout *git.Checkout
 	workdir  string
 	repo     string
+	local    bool
 }
 
 // NewPopRepo returns a *PopRepo that writes and reads BuildIds
 // into the git repo from repoUrl. The workdir is where the repo
 // is to be checked out.
-func NewPopRepo(repoUrl, workdir string) (*PopRepo, error) {
+//
+// If not 'local' then the HOME environment variable is set for running on the
+// server.
+func NewPopRepo(repoUrl, workdir string, local bool) (*PopRepo, error) {
 	checkout, err := git.NewCheckout(repoUrl, workdir)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create the checkout of %q at %q: %s", repoUrl, workdir, err)
@@ -55,6 +59,7 @@ func NewPopRepo(repoUrl, workdir string) (*PopRepo, error) {
 		checkout: checkout,
 		workdir:  checkout.Dir(),
 		repo:     repoUrl,
+		local:    local,
 	}, nil
 }
 
@@ -66,17 +71,18 @@ func (p *PopRepo) GetLast() (int64, int64, error) {
 	if err != nil {
 		return 0, 0, fmt.Errorf("Unable to read file %q: %s", fullpath, err)
 	}
-	parts := strings.Split(string(b), " ")
+	s := strings.TrimSpace(string(b))
+	parts := strings.Split(s, " ")
 	if len(parts) != 2 {
-		return 0, 0, fmt.Errorf("Unable to find just buildid and timestamp in: %q", string(b))
+		return 0, 0, fmt.Errorf("Unable to find just buildid and timestamp in: %q", s)
 	}
 	ts, err := strconv.ParseInt(parts[1], 10, 64)
 	if err != nil {
-		return 0, 0, fmt.Errorf("Timestamp is invalid in %q: %s", string(b), err)
+		return 0, 0, fmt.Errorf("Timestamp is invalid in %q: %s", s, err)
 	}
 	buildid, err := strconv.ParseInt(parts[0], 10, 64)
 	if err != nil {
-		return 0, 0, fmt.Errorf("BuildID is invalid in %q: %s", string(b), err)
+		return 0, 0, fmt.Errorf("BuildID is invalid in %q: %s", s, err)
 	}
 	return buildid, ts, nil
 }
@@ -101,6 +107,9 @@ func (p *PopRepo) Add(buildid int64, ts int64) error {
 		Env:            []string{fmt.Sprintf("GIT_COMMITTER_DATE=%d", ts)},
 		Dir:            p.workdir,
 		CombinedOutput: &output,
+	}
+	if !p.local {
+		cmd.Env = append(cmd.Env, fmt.Sprintf("HOME=/home/default"))
 	}
 
 	// Also needs to confirm that the buildids are ascending, which means they should be ints.

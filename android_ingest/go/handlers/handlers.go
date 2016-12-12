@@ -11,6 +11,7 @@ import (
 
 	"github.com/skia-dev/glog"
 
+	"go.skia.org/infra/android_ingest/go/continuous"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 )
@@ -38,6 +39,8 @@ var (
 	resourcesDir string
 
 	local bool
+
+	process *continuous.Process
 )
 
 // UploadHandler handles POSTs of images to be analyzed.
@@ -70,6 +73,12 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// IndexContent is the data passed to the index.html template.
+type IndexContext struct {
+	Recent      []*Request
+	LastBuildId int64
+}
+
 // MainHandler displays the main page with the last MAX_RECENT Requests.
 func MainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
@@ -82,9 +91,20 @@ func MainHandler(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 
+	var lastBuildId int64 = -1
+	// process is nil when testing.
+	if process != nil {
+		lastBuildId, _, _ = process.Last()
+	}
+
+	indexContent := &IndexContext{
+		Recent:      recent,
+		LastBuildId: lastBuildId,
+	}
+
 	mutex.Lock()
 	defer mutex.Unlock()
-	if err := templates.ExecuteTemplate(w, "index.html", recent); err != nil {
+	if err := templates.ExecuteTemplate(w, "index.html", indexContent); err != nil {
 		glog.Errorf("Failed to expand template: %s", err)
 	}
 }
@@ -98,8 +118,9 @@ func loadTemplates() {
 	))
 }
 
-func Init(dir string, isLocal bool) {
+func Init(dir string, isLocal bool, continuousProcess *continuous.Process) {
 	resourcesDir = dir
 	local = isLocal
+	process = continuousProcess
 	loadTemplates()
 }

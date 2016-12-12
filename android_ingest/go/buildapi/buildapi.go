@@ -108,11 +108,6 @@ func (a *API) onePage(branch string, endBuildId int64, collect map[int64]int64, 
 			time.Sleep(SLEEP_DURATION)
 			continue
 		}
-		if len(resp.Builds) == 0 {
-			glog.Infof("No builds in response.")
-			time.Sleep(SLEEP_DURATION)
-			continue
-		}
 		for _, build := range resp.Builds {
 			// Convert build.BuildId to int64.
 			buildId, err := strconv.ParseInt(build.BuildId, 10, 64)

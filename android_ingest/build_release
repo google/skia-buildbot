@@ -19,7 +19,7 @@ ${INSTALL_DIR} --mode=755                                 ${ROOT}/usr/local/shar
 ${INSTALL} --mode=644 ./templates/*                       ${ROOT}/usr/local/share/androidingest/templates
 ${INSTALL} --mode=644 ./res/js/core.js                    ${ROOT}/usr/local/share/androidingest/res/js/core.js
 ${INSTALL} --mode=644 ./res/vul/elements.html             ${ROOT}/usr/local/share/androidingest/res/vul/elements.html
-
+${INSTALL} --mode=644 ./sys/gitconfig                     ${ROOT}/home/default/.gitconfig
 }
 
 source ../bash/release.sh
