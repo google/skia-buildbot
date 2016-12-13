@@ -40,6 +40,24 @@
       "revId": "9ba18d35160f35e767585d8e8ae595991f0b825c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8d391bbb_7ed6b5af",
+        "filename": "status/res/imp/status-menu-section-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-13T18:26:31Z",
+      "side": 0,
+      "message": "Go link.  That way when I tweak what columns show up by default, I won\u0027t have to change them here too.",
+      "parentUuid": "8d391bbb_3edc3dce",
+      "revId": "9ba18d35160f35e767585d8e8ae595991f0b825c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
