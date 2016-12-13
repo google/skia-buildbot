@@ -40,9 +40,6 @@
     <h3>
       <a href$="{{_makeBuilderURL(buildbot_url_prefix,builder)}}" target="_blank">{{builder.builder}}</a>
     </h3>
-    <a href$="{{_makeDashboardURL(builder)}}" target="_blank">
-      View in dashboard
-    </a>
     <table>
       <tr>
         <td>Master:</td>
@@ -101,9 +98,6 @@
         }
       },
 
-      _makeDashboardURL: function(builder) {
-        return "/buildbots?botGrouping=builder&filterBy=builder&include=%5E"+builder.builder+"%24";
-      },
       _makeBuildMasterURL: function(buildbotUrlPrefix, builder) {
         return buildbotUrlPrefix;
       },
