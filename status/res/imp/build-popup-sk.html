@@ -189,14 +189,14 @@
         if (build.dashboardBuilderUrl) {
           return build.dashboardBuilderUrl;
         } else {
-          return '/buildbots?botGrouping=builder&filterBy=builder&include=%5E' + build.builder + '%24&tab=builds';
+          return '';
         }
       },
       _makeSlaveHostURL: function(build) {
         if (build.slaveHostUrl) {
           return build.slaveHostUrl;
         } else {
-          return '/hosts?filter=%5E' + build.buildslave + '%24';
+          return '';
         }
       },
       _makeAddCommentURL: function(build, repo) {
