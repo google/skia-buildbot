@@ -45,10 +45,11 @@ func TestAdd(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Confirm our inital commit is really there.
-	buildid, ts, err := p.GetLast()
+	buildid, ts, hash, err := p.GetLast()
 	assert.NoError(t, err)
 	assert.Equal(t, int64(0), buildid)
 	assert.Equal(t, int64(0), ts)
+	assert.Len(t, hash, 40)
 
 	// Add a couple more commits.
 	err = p.Add(3516196, 1479855768)
@@ -62,9 +63,10 @@ func TestAdd(t *testing.T) {
 	assert.Error(t, err)
 
 	// Confirm we get what we added before the error.
-	buildid, ts, err = p.GetLast()
+	buildid, ts, hash, err = p.GetLast()
 	assert.Equal(t, int64(3516727), buildid)
 	assert.Equal(t, int64(1479863307), ts)
+	assert.Len(t, hash, 40)
 
 	// Confirm all the commits are there.
 	log, err := p.checkout.Git("log", "--pretty=oneline")
