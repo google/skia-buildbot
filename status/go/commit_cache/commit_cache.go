@@ -10,7 +10,6 @@ import (
 
 	"github.com/skia-dev/glog"
 
-	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -32,8 +31,6 @@ type CommitCache struct {
 	BranchHeads []*gitinfo.GitBranch
 	cacheFile   string
 	Commits     []*vcsinfo.LongCommit
-	Comments    map[string][]*buildbot.CommitComment
-	db          buildbot.DB
 	mutex       sync.RWMutex
 	repo        *gitinfo.GitInfo
 	requestSize int
@@ -74,7 +71,7 @@ func (c *CommitCache) toFile() error {
 // New creates and returns a new CommitCache which watches the given repo.
 // The initial update will load ALL commits from the repository, so expect
 // this to be slow.
-func New(repo *gitinfo.GitInfo, cacheFile string, requestSize int, db buildbot.DB) (*CommitCache, error) {
+func New(repo *gitinfo.GitInfo, cacheFile string, requestSize int) (*CommitCache, error) {
 	defer timer.New("commit_cache.New()").Stop()
 	c, err := fromFile(cacheFile)
 	if err != nil {
@@ -82,7 +79,6 @@ func New(repo *gitinfo.GitInfo, cacheFile string, requestSize int, db buildbot.D
 		c = &CommitCache{}
 	}
 	c.cacheFile = cacheFile
-	c.db = db
 	c.repo = repo
 	c.requestSize = requestSize
 
@@ -196,10 +192,6 @@ func (c *CommitCache) update() (rv error) {
 	for _, c := range allCommits {
 		commitStrs = append(commitStrs, c.Hash)
 	}
-	comments, err := c.db.GetCommitsComments(commitStrs)
-	if err != nil {
-		return fmt.Errorf("Failed to retrieve commit comments: %s", err)
-	}
 
 	// Update the cached values all at once at at the end.
 	glog.Infof("Updating the cache.")
@@ -210,17 +202,15 @@ func (c *CommitCache) update() (rv error) {
 	defer timer.New("  CommitCache locked").Stop()
 	c.BranchHeads = branchHeads
 	c.Commits = allCommits
-	c.Comments = comments
 	glog.Infof("Finished updating the cache.")
 	return nil
 }
 
 type CommitData struct {
-	Comments    map[string][]*buildbot.CommitComment `json:"comments"`
-	Commits     []*vcsinfo.LongCommit                `json:"commits"`
-	BranchHeads []*gitinfo.GitBranch                 `json:"branch_heads"`
-	StartIdx    int                                  `json:"startIdx"`
-	EndIdx      int                                  `json:"endIdx"`
+	Commits     []*vcsinfo.LongCommit `json:"commits"`
+	BranchHeads []*gitinfo.GitBranch  `json:"branch_heads"`
+	StartIdx    int                   `json:"startIdx"`
+	EndIdx      int                   `json:"endIdx"`
 }
 
 // getRange returns the given commit range along with the branch heads.
@@ -231,15 +221,7 @@ func (c *CommitCache) getRange(startIdx, endIdx int) (*CommitData, error) {
 	if err != nil {
 		return nil, err
 	}
-	hashes := make([]string, 0, len(commits))
-	comments := map[string][]*buildbot.CommitComment{}
-	for _, commit := range commits {
-		hashes = append(hashes, commit.Hash)
-		comments[commit.Hash] = c.Comments[commit.Hash]
-	}
-
 	data := &CommitData{
-		Comments:    comments,
 		Commits:     commits,
 		BranchHeads: c.BranchHeads,
 		StartIdx:    startIdx,
@@ -256,47 +238,4 @@ func (c *CommitCache) GetLastN(n int) (*CommitData, error) {
 		start = 0
 	}
 	return c.getRange(start, end)
-}
-
-// AddCommitComment adds a CommitComment to the CommitCache (and the database).
-func (c *CommitCache) AddCommitComment(comment *buildbot.CommitComment) error {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-
-	if err := c.db.PutCommitComment(comment); err != nil {
-		return err
-	}
-
-	commitStrs := make([]string, 0, len(c.Commits))
-	for _, c := range c.Commits {
-		commitStrs = append(commitStrs, c.Hash)
-	}
-	comments, err := c.db.GetCommitsComments(commitStrs)
-	if err != nil {
-		return fmt.Errorf("Failed to retrieve commit comments: %s", err)
-	}
-	c.Comments = comments
-	return nil
-}
-
-// DeleteCommitComment deletes a CommitComment from the CommitCache (and the
-// database).
-func (c *CommitCache) DeleteCommitComment(id int64) error {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-
-	if err := c.db.DeleteCommitComment(id); err != nil {
-		return err
-	}
-
-	commitStrs := make([]string, 0, len(c.Commits))
-	for _, c := range c.Commits {
-		commitStrs = append(commitStrs, c.Hash)
-	}
-	comments, err := c.db.GetCommitsComments(commitStrs)
-	if err != nil {
-		return fmt.Errorf("Failed to retrieve commit comments: %s", err)
-	}
-	c.Comments = comments
-	return nil
 }

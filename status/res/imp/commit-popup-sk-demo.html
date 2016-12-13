@@ -15,13 +15,6 @@
         });
       }
     };
-
-    // Mock out sk.post() to pretend to support adding comments.
-    sk.post = function(url, body) {
-      return new Promise(function (resolve, reject) {
-        resolve("Added the comment.");
-      });
-    }
   </script>
   <link rel=import href="commit-popup-sk.html">
 </head>

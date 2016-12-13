@@ -61,7 +61,6 @@ var (
 	commitCaches         map[string]*commit_cache.CommitCache = nil
 	buildbotDashTemplate *template.Template                   = nil
 	commitsTemplate      *template.Template                   = nil
-	buildDb              buildbot.DB                          = nil
 	hostsTemplate        *template.Template                   = nil
 	dbClient             *influxdb.Client                     = nil
 	goldGMStatus         *polling_status.PollingStatus        = nil
@@ -212,7 +211,6 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	rv := commitsData{
-		Comments:    commitData.Comments,
 		Commits:     commitData.Commits,
 		BranchHeads: commitData.BranchHeads,
 		Builds:      builds,
@@ -350,61 +348,6 @@ func deleteBuilderCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := buildCache.DeleteBuilderComment(builder, commentId); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
-		return
-	}
-}
-
-func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("addCommitCommentHandler").Stop()
-	if !userHasEditRights(r) {
-		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	cache, err := getCommitCache(w, r)
-	if err != nil {
-		return
-	}
-	commit := mux.Vars(r)["commit"]
-	comment := struct {
-		Comment string `json:"comment"`
-	}{}
-	if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
-		return
-	}
-	defer util.Close(r.Body)
-
-	c := buildbot.CommitComment{
-		Commit:    commit,
-		User:      login.LoggedInAs(r),
-		Timestamp: time.Now().UTC(),
-		Message:   comment.Comment,
-	}
-	if err := cache.AddCommitComment(&c); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add commit comment: %s", err))
-		return
-	}
-}
-
-func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("deleteCommitCommentHandler").Stop()
-	if !userHasEditRights(r) {
-		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	cache, err := getCommitCache(w, r)
-	if err != nil {
-		return
-	}
-	commentId, err := strconv.ParseInt(mux.Vars(r)["commentId"], 10, 32)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
-		return
-	}
-	if err := cache.DeleteCommitComment(commentId); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete commit comment: %s", err))
 		return
 	}
 }
@@ -713,8 +656,6 @@ func runServer(serverURL string) {
 	builders.HandleFunc("/comments/{commentId:[0-9]+}", deleteBuilderCommentHandler).Methods("DELETE")
 	commits := r.PathPrefix("/json/{repo}/commits").Subrouter()
 	commits.HandleFunc("/", commitsJsonHandler)
-	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", addCommitCommentHandler).Methods("POST")
-	commits.HandleFunc("/{commit:[a-f0-9]+}/comments/{commentId:[0-9]+}", deleteCommitCommentHandler).Methods("DELETE")
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	glog.Infof("Ready to serve on %s", serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
@@ -740,12 +681,7 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
-	// Create buildbot remote DB.
-	buildDb, err = buildbot.NewRemoteDB(*buildbotDbHost)
-	if err != nil {
-		glog.Fatal(err)
-	}
-
+	// Create remote Tasks DB.
 	taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl)
 	if err != nil {
 		glog.Fatal(err)
@@ -789,7 +725,7 @@ func main() {
 	}
 
 	// Create the build cache.
-	bc, err := franken.NewBTCache(repos, buildDb, taskDb)
+	bc, err := franken.NewBTCache(repos, taskDb)
 	if err != nil {
 		glog.Fatalf("Failed to create build cache: %s", err)
 	}
@@ -797,13 +733,13 @@ func main() {
 
 	// Create the commit caches.
 	commitCaches = map[string]*commit_cache.CommitCache{}
-	skiaCache, err := commit_cache.New(skiaRepo, path.Join(*workdir, "commit_cache.gob"), DEFAULT_COMMITS_TO_LOAD, buildDb)
+	skiaCache, err := commit_cache.New(skiaRepo, path.Join(*workdir, "commit_cache.gob"), DEFAULT_COMMITS_TO_LOAD)
 	if err != nil {
 		glog.Fatalf("Failed to create commit cache: %v", err)
 	}
 	commitCaches[SKIA_REPO] = skiaCache
 
-	infraCache, err := commit_cache.New(infraRepo, path.Join(*workdir, "commit_cache_infra.gob"), DEFAULT_COMMITS_TO_LOAD, buildDb)
+	infraCache, err := commit_cache.New(infraRepo, path.Join(*workdir, "commit_cache_infra.gob"), DEFAULT_COMMITS_TO_LOAD)
 	if err != nil {
 		glog.Fatalf("Failed to create commit cache: %v", err)
 	}

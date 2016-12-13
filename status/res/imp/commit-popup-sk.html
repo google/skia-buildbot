@@ -20,7 +20,6 @@
 -->
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
-<link rel="import" href="/res/common/imp/comments-sk.html">
 <link rel="import" href="/res/common/imp/linkify-sk.html">
 <link rel="import" href="status-popup.html">
 
@@ -66,13 +65,6 @@
     <h3 id="commitSubject"><linkify-sk text="[[commit.subject]]"></linkify-sk></h3>
     <p id="commitBody"><linkify-sk text="[[commit.body]]"></p>
     <hr/>
-    <comments-sk
-        comments="[[commit.comments]]"
-        add_comment_url="[[_makeCommentUrl(repo,commit)]]"
-        on-submit="commentAdded"
-        allow_add_comment
-        allow_delete_comment>
-    </comments-sk>
   </template>
   <script>
     Polymer({
@@ -91,11 +83,6 @@
         },
       },
 
-      commentAdded: function() {
-        // reload page
-        window.location.href = window.location.href;
-      },
-
       _humanize: function(dateStr) {
         return sk.human.localeTime(new Date(dateStr));
       },
@@ -110,9 +97,6 @@
           return "https://codereview.chromium.org/" + commit.issue + "/revert";
         }
       },
-      _makeCommentUrl: function(repo, commit){
-        return "/json/"+repo+"/commits/"+commit.hash+"/comments";
-      }
     });
   </script>
 </dom-module>
