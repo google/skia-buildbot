@@ -94,7 +94,7 @@ func MainHandler(w http.ResponseWriter, r *http.Request) {
 	var lastBuildId int64 = -1
 	// process is nil when testing.
 	if process != nil {
-		lastBuildId, _, _ = process.Last()
+		lastBuildId, _, _, _ = process.Last()
 	}
 
 	indexContent := &IndexContext{

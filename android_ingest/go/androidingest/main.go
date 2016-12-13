@@ -9,9 +9,11 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/android_ingest/go/continuous"
 	"go.skia.org/infra/android_ingest/go/handlers"
+	"go.skia.org/infra/android_ingest/go/lookup"
 	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
@@ -59,8 +61,24 @@ func main() {
 		glog.Fatalf("Unable to create authenticated client: %s", err)
 	}
 
+	// The repo we're adding commits to.
+	checkout, err := git.NewCheckout(*repoUrl, *workRoot)
+	if err != nil {
+		glog.Fatalf("Unable to create the checkout of %q at %q: %s", *repoUrl, *workRoot, err)
+	}
+	if err := checkout.Update(); err != nil {
+		glog.Fatalf("Unable to update the checkout of %q at %q: %s", *repoUrl, *workRoot, err)
+	}
+
+	// checkout isn't go routine safe, but lookup.New() only uses it in New(), so this
+	// is safe, i.e. when we later pass checkout to continuous.New().
+	lookup, err := lookup.New(checkout)
+	if err != nil {
+		glog.Fatalf("Failed to create buildid lookup cache: %s", err)
+	}
+
 	// Start process that adds buildids to the git repo.
-	process, err := continuous.New(*branch, *repoUrl, *workRoot, client, *local)
+	process, err := continuous.New(*branch, checkout, lookup, client, *local)
 	if err != nil {
 		glog.Fatalf("Failed to start continuous process of adding new buildids to git repo: %s", err)
 	}

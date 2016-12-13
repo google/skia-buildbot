@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/testutils"
 	testsize "go.skia.org/infra/go/testutils"
 
@@ -21,7 +22,7 @@ func TestAdd(t *testing.T) {
 
 	// Populate it with an initial BUILDID file.
 	gb.Add(BUILDID_FILENAME, "0 0")
-	gb.CommitMsg("init")
+	gb.CommitMsg("https://android-ingest.skia.org/r/0")
 
 	// Create a branch and check it out, otherwise we can't push
 	// to 'master' on this repo.
@@ -36,7 +37,12 @@ func TestAdd(t *testing.T) {
 	}()
 
 	// Start testing.
-	p, err := NewPopRepo(gb.Dir(), workdir, true)
+	checkout, err := git.NewCheckout(gb.Dir(), workdir)
+	assert.NoError(t, err)
+	err = checkout.Cleanup()
+	assert.NoError(t, err)
+
+	p := NewPopRepo(checkout, true)
 	assert.NoError(t, err)
 
 	_, err = p.checkout.Git("config", "user.email", "tester@example.com")
@@ -45,10 +51,11 @@ func TestAdd(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Confirm our inital commit is really there.
-	buildid, ts, err := p.GetLast()
+	buildid, ts, hash, err := p.GetLast()
 	assert.NoError(t, err)
 	assert.Equal(t, int64(0), buildid)
 	assert.Equal(t, int64(0), ts)
+	assert.Len(t, hash, 40)
 
 	// Add a couple more commits.
 	err = p.Add(3516196, 1479855768)
@@ -62,9 +69,10 @@ func TestAdd(t *testing.T) {
 	assert.Error(t, err)
 
 	// Confirm we get what we added before the error.
-	buildid, ts, err = p.GetLast()
+	buildid, ts, hash, err = p.GetLast()
 	assert.Equal(t, int64(3516727), buildid)
 	assert.Equal(t, int64(1479863307), ts)
+	assert.Len(t, hash, 40)
 
 	// Confirm all the commits are there.
 	log, err := p.checkout.Git("log", "--pretty=oneline")
