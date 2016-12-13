@@ -36,7 +36,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/status/go/commit_cache"
-	"go.skia.org/infra/status/go/device_cfg"
 	"go.skia.org/infra/status/go/franken"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
@@ -57,21 +56,16 @@ const (
 )
 
 var (
-	buildCache           *franken.BTCache                     = nil
-	commitCaches         map[string]*commit_cache.CommitCache = nil
-	buildbotDashTemplate *template.Template                   = nil
-	commitsTemplate      *template.Template                   = nil
-	buildDb              buildbot.DB                          = nil
-	hostsTemplate        *template.Template                   = nil
-	dbClient             *influxdb.Client                     = nil
-	goldGMStatus         *polling_status.PollingStatus        = nil
-	goldSKPStatus        *polling_status.PollingStatus        = nil
-	goldImageStatus      *polling_status.PollingStatus        = nil
-	perfStatus           *polling_status.PollingStatus        = nil
-	slaveHosts           *polling_status.PollingStatus        = nil
-	androidDevices       *polling_status.PollingStatus        = nil
-	sshDevices           *polling_status.PollingStatus        = nil
-	tasksPerCommit       *tasksPerCommitCache                 = nil
+	buildCache      *franken.BTCache                     = nil
+	commitCaches    map[string]*commit_cache.CommitCache = nil
+	commitsTemplate *template.Template                   = nil
+	buildDb         buildbot.DB                          = nil
+	dbClient        *influxdb.Client                     = nil
+	goldGMStatus    *polling_status.PollingStatus        = nil
+	goldSKPStatus   *polling_status.PollingStatus        = nil
+	goldImageStatus *polling_status.PollingStatus        = nil
+	perfStatus      *polling_status.PollingStatus        = nil
+	tasksPerCommit  *tasksPerCommitCache                 = nil
 )
 
 // flags
@@ -116,14 +110,6 @@ func reloadTemplates() {
 	}
 	commitsTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/commits.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-	hostsTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/hosts.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-	buildbotDashTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/buildbot_dash.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 }
@@ -455,137 +441,6 @@ func infraHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("buildsHandler").Stop()
-	w.Header().Set("Content-Type", "application/json")
-
-	start, err := getIntParam("start", r)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid value for parameter \"start\": %v", err))
-		return
-	}
-	end, err := getIntParam("end", r)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid value for parameter \"end\": %v", err))
-		return
-	}
-
-	var startTime time.Time
-	var endTime time.Time
-
-	if end == nil {
-		endTime = time.Now()
-	} else {
-		endTime = time.Unix(int64(*end), 0)
-	}
-
-	if start == nil {
-		startTime = endTime.AddDate(0, 0, -1)
-	} else {
-		startTime = time.Unix(int64(*start), 0)
-	}
-
-	// Fetch the builds.
-	builds, err := buildCache.GetBuildsFromDateRange(startTime, endTime, login.IsGoogler(r))
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load builds: %v", err))
-		return
-	}
-	// Shrink the builds.
-	// TODO(borenet): Can we share build-shrinking code with the main status
-	// page?
-
-	// TinyBuildStep is a struct containing a small subset of a BuildStep's fields.
-	type TinyBuildStep struct {
-		Name     string
-		Started  time.Time
-		Finished time.Time
-		Results  int
-	}
-
-	// TinyBuild is a struct containing a small subset of a Build's fields.
-	type TinyBuild struct {
-		Builder    string
-		BuildSlave string
-		Master     string
-		Number     int
-		Properties [][]interface{} `json:"properties"`
-		Started    time.Time
-		Finished   time.Time
-		Results    int
-		Steps      []*TinyBuildStep
-	}
-
-	type buildbotDashData struct {
-		Builds  []*TinyBuild `json:"builds"`
-		Commits []string     `json:"commits"`
-	}
-
-	rv := make([]*TinyBuild, 0, len(builds))
-	for _, b := range builds {
-		steps := make([]*TinyBuildStep, 0, len(b.Steps))
-		for _, s := range b.Steps {
-			steps = append(steps, &TinyBuildStep{
-				Name:     s.Name,
-				Started:  s.Started,
-				Finished: s.Finished,
-				Results:  s.Results,
-			})
-		}
-		rv = append(rv, &TinyBuild{
-			Builder:    b.Builder,
-			BuildSlave: b.BuildSlave,
-			Master:     b.Master,
-			Number:     b.Number,
-			Properties: b.Properties,
-			Started:    b.Started,
-			Finished:   b.Finished,
-			Results:    b.Results,
-			Steps:      steps,
-		})
-	}
-
-	commits, err := commitCaches[SKIA_REPO].RevisionsInDateRange(startTime, endTime)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load Skia commits: %v", err))
-		return
-	}
-
-	infraCommits, err := commitCaches[INFRA_REPO].RevisionsInDateRange(startTime, endTime)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load Infra commits: %v", err))
-		return
-	}
-
-	commits = append(commits, infraCommits...)
-
-	data := buildbotDashData{
-		Builds:  rv,
-		Commits: commits,
-	}
-
-	defer timer.New("buildsHandler_encode").Stop()
-	if err := json.NewEncoder(w).Encode(data); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to write or encode output: %s", err))
-		return
-	}
-}
-
-func buildbotDashHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("buildbotDashHandler").Stop()
-	w.Header().Set("Content-Type", "text/html")
-
-	// Don't use cached templates in testing mode.
-	if *testing {
-		reloadTemplates()
-	}
-
-	if err := buildbotDashTemplate.Execute(w, struct{}{}); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
-		return
-	}
-}
-
 func perfJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(map[string]interface{}{"alerts": perfStatus}); err != nil {
@@ -604,32 +459,6 @@ func goldJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}); err != nil {
 		glog.Errorf("Failed to write or encode output: %s", err)
 		return
-	}
-}
-
-func slaveHostsJsonHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(map[string]interface{}{
-		"hosts":          slaveHosts,
-		"androidDevices": androidDevices,
-		"sshDevices":     sshDevices,
-	}); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
-		return
-	}
-}
-
-func hostsHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("hostsHandler").Stop()
-	w.Header().Set("Content-Type", "text/html")
-
-	// Don't use cached templates in testing mode.
-	if *testing {
-		reloadTemplates()
-	}
-
-	if err := hostsTemplate.Execute(w, struct{}{}); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 
@@ -692,13 +521,9 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", commitsHandler)
-	r.Handle("/buildbots", login.ForceAuth(http.HandlerFunc(buildbotDashHandler), OAUTH2_CALLBACK_PATH))
-	r.HandleFunc("/hosts", hostsHandler)
 	r.HandleFunc("/infra", infraHandler)
-	r.Handle("/json/builds", login.ForceAuth(http.HandlerFunc(buildsJsonHandler), OAUTH2_CALLBACK_PATH))
 	r.HandleFunc("/json/goldStatus", goldJsonHandler)
 	r.HandleFunc("/json/perfAlerts", perfJsonHandler)
-	r.HandleFunc("/json/slaveHosts", slaveHostsJsonHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/json/{repo}/buildProgress", buildProgressHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
@@ -815,10 +640,6 @@ func main() {
 	goldGMStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), time.Minute)
 	goldImageStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), time.Minute)
 
-	// Load slave_hosts_cfg and device cfgs in a loop.
-	slaveHosts = buildbot.SlaveHostsCfgPoller(path.Join(*workdir, "repos", "buildbot.git"))
-	androidDevices = device_cfg.AndroidDeviceCfgPoller(*workdir)
-	sshDevices = device_cfg.SSHDeviceCfgPoller(*workdir)
-
+	// Run the server.
 	runServer(serverURL)
 }

@@ -16,15 +16,10 @@ default:
 # Run a local HTTP server for the demo pages.
 run:
 	# We download these here because the default target is called by unittests
-	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/slave-hosts-demo.json
 	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/commits-table-demo.json
 	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/commits-table-35-demo.json
 	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/commits-canvas-demo.json
 	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/autoroll-widget-demo.json
 	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/alert-widget-demo.json
-	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/buildbot-dash-demo-60min.json
-	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/buildbot-dash-demo-24hr.json
-	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/buildbot-dash-demo-1w.json
-	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/buildbot-dash-demo-2w.json
 	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/status-infra-demo.json
 	../../node_modules/.bin/http-server -p 8080 -a 127.0.0.1

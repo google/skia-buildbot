@@ -24,8 +24,7 @@ user-operable widgets, the output of which are exposed for databinding as well. 
 apart the components and makes it easier to, for example, change from using Polymer to using D3 for
 a component of the visualization.
 
-For performance reasons, the drawing of the main table on status (commits-table-sk) and the table on
-the buildbots dash (build-table) are done with D3.
+For performance reasons, the drawing of the main table on status (commits-table-sk) is done with D3.
 An excellent primer on D3 is [Interactive Data Visualization for the Web](http://chimera.labs.oreilly.com/books/1230000000345/index.html) by Scott Murray.
 
 The elements were previously written in Polymer 0.5.
