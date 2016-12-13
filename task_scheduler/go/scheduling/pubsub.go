@@ -70,26 +70,31 @@ func InitPubSub() error {
 	return nil
 }
 
+// PubSubRequest is the format of pub/sub HTTP request body.
+type PubSubRequest struct {
+	Message      pubsub.Message `json:"message"`
+	Subscription string         `json:"subscription"`
+}
+
 // PubSubTaskMessage is a message received from Swarming via pub/sub about a
 // Task.
 type PubSubTaskMessage struct {
 	SwarmingTaskId string `json:"task_id"`
-	UserData       string `json:"userdata"`
 }
 
 // RegisterPubSubServer adds handler to r that handle pub/sub push
 // notifications.
 func RegisterPubSubServer(s *TaskScheduler, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/pubsub/%s", PUBSUB_TOPIC_SWARMING_TASKS), func(w http.ResponseWriter, r *http.Request) {
-		var m pubsub.Message
-		if err := json.NewDecoder(r.Body).Decode(&m); err != nil {
+		var req PubSubRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			httputils.ReportError(w, r, err, "Failed to decode request body.")
 			return
 		}
 
 		// TODO(borenet): Ensure that the auth token is correct.
 		var t PubSubTaskMessage
-		if err := json.Unmarshal(m.Data, &t); err != nil {
+		if err := json.Unmarshal(req.Message.Data, &t); err != nil {
 			httputils.ReportError(w, r, err, "Failed to decode PubSubTaskMessage.")
 			return
 		}
@@ -99,5 +104,6 @@ func RegisterPubSubServer(s *TaskScheduler, r *mux.Router) {
 			httputils.ReportError(w, r, err, "Failed to process Swarming task.")
 			return
 		}*/
+		w.WriteHeader(http.StatusOK)
 	}).Methods(http.MethodPost)
 }
