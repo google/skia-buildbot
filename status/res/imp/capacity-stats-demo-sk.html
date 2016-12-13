@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Capacity Stats Demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/js/status_utils.js"></script>
+  <script src="/res/common/js/common.js"></script>
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="/res/imp/sinon-1.17.2.js"></script>
+
+  <script type="text/javascript" charset="utf-8">
+    // sinon.format = function(object) {return JSON.stringify(object);}
+    // sinon.log = function(message) {console.log(message);};
+
+    var server = sinon.fakeServer.create();
+    server.autoRespond = true;
+
+    var data = [
+      {
+        gpu:"1002:683d",
+        device_type:"",
+        device:"",
+        os:"Windows",
+        ms_per_commit: 1234567,
+        tasks_per_commit: 4,
+        num_bots: 2,
+      },
+      {
+        gpu:"",
+        device_type:"angler",
+        device:"",
+        os:"Android",
+        ms_per_commit: 2345678,
+        tasks_per_commit: 8,
+        num_bots: 6,
+      },
+      {
+        gpu:"",
+        device_type:"sprout",
+        device:"",
+        os:"Android",
+        ms_per_commit: 7891011,
+        tasks_per_commit: 5,
+        num_bots: 12,
+      },
+      {
+        gpu:"",
+        device_type:"",
+        device:"iPad5,1",
+        os:"iOS-9.3.1",
+        ms_per_commit: 891011,
+        tasks_per_commit: 2,
+        num_bots: 1,
+      },
+      {
+        gpu:"none",
+        device_type:"",
+        device:"",
+        os:"Ubuntu-14.04",
+        ms_per_commit: 95432254,
+        tasks_per_commit: 117,
+        num_bots: 40,
+      },
+      {
+        gpu:"none",
+        device_type:"",
+        device:"",
+        os:"Windows-2008ServerR2-SP1",
+        ms_per_commit: 95432254,
+        tasks_per_commit: 80,
+        num_bots: 25,
+      },
+    ];
+
+    server.respondWith("GET","/capacity/json", JSON.stringify(data));
+
+    var login = {"Email":"test@google.com","LoginURL":"http://www.example.com","IsAGoogler":true};
+    server.respondWith("GET","/loginstatus/", JSON.stringify(login));
+
+    var version = {"commit":"3e0fcf9b99baf4256851a6767bc6955266fc2369","date":"2016-02-19T13:57:18-05:00"};
+    server.respondWith("GET","/json/version", JSON.stringify(version));
+  </script>
+  <link rel="import" href="capacity-stats-sk.html">
+  </head>
+  <body>
+    <capacity-stats-sk></capacity-stats-sk>
+  </body>
+
+</html>
