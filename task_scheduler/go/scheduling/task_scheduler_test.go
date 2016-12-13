@@ -2896,7 +2896,6 @@ func TestAddTasksFailure(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		err := s.AddTasks(tasks)
 		assert.Error(t, err)
-		assert.True(t, db.IsConcurrentUpdate(err))
 		modTasks, err := d.GetModifiedTasks(trackId)
 		assert.NoError(t, err)
 		// "duty" tasks should never be updated.
@@ -2918,4 +2917,114 @@ func TestAddTasksFailure(t *testing.T) {
 
 	// Check that the tasks were inserted into the DB.
 	assertModifiedTasks(t, d, trackId, []*db.Task{toil2, duty2, duty3})
+}
+
+// spyDB calls onPutTasks before delegating PutTask(s) to DB.
+type spyDB struct {
+	db.DB
+	onPutTasks func([]*db.Task)
+}
+
+func (s *spyDB) PutTask(task *db.Task) error {
+	s.onPutTasks([]*db.Task{task})
+	return s.DB.PutTask(task)
+}
+
+func (s *spyDB) PutTasks(tasks []*db.Task) error {
+	s.onPutTasks(tasks)
+	return s.DB.PutTasks(tasks)
+}
+
+// AddTasks should retry on ErrConcurrentUpdate.
+func TestAddTasksRetries(t *testing.T) {
+	hashes, d, s, cleanup := setupAddTasksTest(t)
+	defer cleanup()
+
+	toil1 := makeTask("toil", repoName, hashes[6])
+	duty1 := makeTask("duty", repoName, hashes[6])
+	work1 := makeTask("work", repoName, hashes[6])
+	toil2 := makeTask("toil", repoName, hashes[1])
+	toil2.Commits = []string{hashes[1], hashes[2], hashes[3], hashes[4], hashes[5]}
+	sort.Strings(toil2.Commits)
+	duty2 := makeTask("duty", repoName, hashes[1])
+	duty2.Commits = util.CopyStringSlice(toil2.Commits)
+	work2 := makeTask("work", repoName, hashes[1])
+	work2.Commits = util.CopyStringSlice(toil2.Commits)
+	assert.NoError(t, d.PutTasks([]*db.Task{toil1, toil2, duty1, duty2, work1, work2}))
+
+	trackId, err := d.StartTrackingModifiedTasks()
+	assert.NoError(t, err)
+
+	// *3.Commits = {3, 4, 5}
+	// *2.Commits = {1, 2}
+	toil3 := makeTask("toil", repoName, hashes[3])
+	duty3 := makeTask("duty", repoName, hashes[3])
+	work3 := makeTask("work", repoName, hashes[3])
+	// *4.Commits = {2}
+	// *2.Commits = {1}
+	toil4 := makeTask("toil", repoName, hashes[2])
+	duty4 := makeTask("duty", repoName, hashes[2])
+	work4 := makeTask("work", repoName, hashes[2])
+
+	tasks := map[string]map[string][]*db.Task{
+		repoName: map[string][]*db.Task{
+			"toil": []*db.Task{toil3.Copy(), toil4.Copy()},
+			"duty": []*db.Task{duty3.Copy(), duty4.Copy()},
+			"work": []*db.Task{work3.Copy(), work4.Copy()},
+		},
+	}
+
+	retryCount := map[string]int{}
+	causeConcurrentUpdate := func(tasks []*db.Task) {
+		retryCount[tasks[0].Name]++
+		if tasks[0].Name == "toil" && retryCount["toil"] < 2 {
+			toil2.Started = time.Now().UTC()
+			assert.NoError(t, d.PutTasks([]*db.Task{toil2}))
+		}
+		if tasks[0].Name == "duty" && retryCount["duty"] < 3 {
+			duty2.Started = time.Now().UTC()
+			assert.NoError(t, d.PutTasks([]*db.Task{duty2}))
+		}
+		if tasks[0].Name == "work" && retryCount["work"] < 4 {
+			work2.Started = time.Now().UTC()
+			assert.NoError(t, d.PutTasks([]*db.Task{work2}))
+		}
+	}
+	s.db = &spyDB{
+		DB:         d,
+		onPutTasks: causeConcurrentUpdate,
+	}
+
+	assert.NoError(t, s.AddTasks(tasks))
+
+	modified := []*db.Task{}
+	check := func(t2, t3, t4 *db.Task) {
+		t2InDB, err := d.GetTaskById(t2.Id)
+		assert.NoError(t, err)
+		assertBlamelist(t, hashes, t2InDB, []int{1})
+		t3Arg := tasks[t3.Repo][t3.Name][0]
+		t3InDB, err := d.GetTaskById(t3Arg.Id)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, t3Arg, t3InDB)
+		assertBlamelist(t, hashes, t3InDB, []int{3, 4, 5})
+		t4Arg := tasks[t4.Repo][t4.Name][1]
+		t4InDB, err := d.GetTaskById(t4Arg.Id)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, t4Arg, t4InDB)
+		assertBlamelist(t, hashes, t4InDB, []int{2})
+		t2.Commits = t2InDB.Commits
+		t2.DbModified = t2InDB.DbModified
+		t3.Id = t3InDB.Id
+		t3.Commits = t3InDB.Commits
+		t3.DbModified = t3InDB.DbModified
+		t4.Id = t4InDB.Id
+		t4.Commits = t4InDB.Commits
+		t4.DbModified = t4InDB.DbModified
+		modified = append(modified, t2, t3, t4)
+	}
+
+	check(toil2, toil3, toil4)
+	check(duty2, duty3, duty4)
+	check(work2, work3, work4)
+	assertModifiedTasks(t, d, trackId, modified)
 }
