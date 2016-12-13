@@ -10,7 +10,9 @@ import (
 	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/android_ingest/go/buildapi"
+	"go.skia.org/infra/android_ingest/go/lookup"
 	"go.skia.org/infra/android_ingest/go/poprepo"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/metrics2"
 )
 
@@ -21,14 +23,16 @@ type Process struct {
 	api    *buildapi.API
 	repo   *poprepo.PopRepo
 	branch string
+	lookup *lookup.Cache
 }
 
 // New returns a new *Process.
-func New(branch, repoUrl, workdir string, client *http.Client, local bool) (*Process, error) {
-	repo, err := poprepo.NewPopRepo(repoUrl, workdir, local)
-	if err != nil {
-		return nil, err
-	}
+//
+// The lookupCache has entries added as they are found in Start().
+//
+// If running in production then 'local' should be false.
+func New(branch string, checkout *git.Checkout, lookupCache *lookup.Cache, client *http.Client, local bool) (*Process, error) {
+	repo := poprepo.NewPopRepo(checkout, local)
 	api, err := buildapi.NewAPI(client)
 	if err != nil {
 		return nil, err
@@ -37,12 +41,13 @@ func New(branch, repoUrl, workdir string, client *http.Client, local bool) (*Pro
 		api:    api,
 		repo:   repo,
 		branch: branch,
+		lookup: lookupCache,
 	}, nil
 }
 
-// Last returns the last buildid, its timestamp, or a non-nil error if
-// and error occurred.
-func (c *Process) Last() (int64, int64, error) {
+// Last returns the last buildid, its timestamp, and git hash, or a non-nil
+// error if and error occurred.
+func (c *Process) Last() (int64, int64, string, error) {
 	return c.repo.GetLast()
 }
 
@@ -52,7 +57,7 @@ func (c *Process) Start() {
 		t := metrics2.NewTimer("repobuilder")
 		for _ = range time.Tick(time.Minute) {
 			t.Start()
-			buildid, _, err := c.repo.GetLast()
+			buildid, _, _, err := c.repo.GetLast()
 			if err != nil {
 				glog.Errorf("Failed to get last buildid: %s", err)
 				continue
@@ -69,6 +74,13 @@ func (c *Process) Start() {
 					// lands successfully.
 					break
 				}
+				// Keep lookup.Cache up to date.
+				buildid, _, hash, err := c.repo.GetLast()
+				if err != nil {
+					glog.Errorf("Failed to lookup newly added buildid to repo: %s", err)
+					break
+				}
+				c.lookup.Add(buildid, hash)
 			}
 			t.Stop()
 		}
