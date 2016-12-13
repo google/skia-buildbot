@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8d391bbb_63b53e16",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-13T14:03:07Z",
+      "side": 1,
+      "message": "I don\u0027t like that we\u0027re recording specific dimensions.  I\u0027d rather run a single query to obtain all task data from the last 24 hours and dynamically group by the dimension sets we\u0027re actually using.",
+      "range": {
+        "startLine": 28,
+        "startChar": 5,
+        "endLine": 28,
+        "endChar": 17
+      },
+      "revId": "84307190910ed18cf43c512082a5e303532cd5fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8d391bbb_83b2322d",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-13T14:03:07Z",
+      "side": 1,
+      "message": "Nit: use util.RepeatCtx",
+      "range": {
+        "startLine": 72,
+        "startChar": 1,
+        "endLine": 72,
+        "endChar": 11
+      },
+      "revId": "84307190910ed18cf43c512082a5e303532cd5fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8d391bbb_03a642f4",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-13T14:03:07Z",
+      "side": 1,
+      "message": "Nit: This is actually 4 days OR the last 10 commits, however long the time period.  I might avoid giving a specific number since this will eventually be wrong and we won\u0027t remember to update it.",
+      "range": {
+        "startLine": 95,
+        "startChar": 49,
+        "endLine": 95,
+        "endChar": 50
+      },
+      "revId": "84307190910ed18cf43c512082a5e303532cd5fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8d391bbb_23bb460e",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-13T14:03:07Z",
+      "side": 1,
+      "message": "Why aren\u0027t these at the top?",
+      "range": {
+        "startLine": 163,
+        "startChar": 0,
+        "endLine": 163,
+        "endChar": 5
+      },
+      "revId": "84307190910ed18cf43c512082a5e303532cd5fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8d391bbb_c3ab4abc",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-13T14:03:07Z",
+      "side": 1,
+      "message": "Nit: to me this name implies the time period over which the statistics will be calculated, not how often they\u0027ll be updated.",
+      "range": {
+        "startLine": 90,
+        "startChar": 1,
+        "endLine": 90,
+        "endChar": 15
+      },
+      "revId": "84307190910ed18cf43c512082a5e303532cd5fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8d391bbb_e315ae27",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 466,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-13T14:03:07Z",
+      "side": 1,
+      "message": "IMO no need to add this or capacity.html template until the next CL where it gets implemented.",
+      "range": {
+        "startLine": 466,
+        "startChar": 5,
+        "endLine": 466,
+        "endChar": 20
+      },
+      "revId": "84307190910ed18cf43c512082a5e303532cd5fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
