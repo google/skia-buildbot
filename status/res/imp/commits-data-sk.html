@@ -452,7 +452,6 @@
         }
         this.set("_filtering", true);
         console.time("processData");
-        data.commits.reverse();
         for (var i = 0; i < data.commits.length; i++) {
           data.commits[i].comments = data.comments[data.commits[i].hash] || [];
         }
@@ -580,18 +579,11 @@
         this.set("builders", builders);
         this._filterBuilders();
 
-        // Filter out local branch heads, trim origin/ prefix from remaining,
-        // add autoroll tags as branch heads.
+        // Add autoroll tags as branch heads.
         var filteredBranchHeads = [];
-        var originPrefix = "origin/";
         for (var i = 0; i < data.branch_heads.length; i++) {
           var b = data.branch_heads[i];
-          if (b.name.indexOf(originPrefix) === 0) {
-            b.name = b.name.substring(originPrefix.length);
-            if (b.name != "HEAD") {
-              filteredBranchHeads.push(b);
-            }
-          }
+          filteredBranchHeads.push(b);
         }
         if (autoroll_last) {
           filteredBranchHeads.push({
