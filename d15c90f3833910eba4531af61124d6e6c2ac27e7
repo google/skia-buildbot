@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1aaac39b_9dac0387",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-14T15:42:07Z",
+      "side": 1,
+      "message": "nit: Maybe make a method on repograph.Map?",
+      "range": {
+        "startLine": 195,
+        "startChar": 0,
+        "endLine": 198,
+        "endChar": 2
+      },
+      "revId": "d15c90f3833910eba4531af61124d6e6c2ac27e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1aaac39b_40d0d0df",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 558,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-14T15:42:07Z",
+      "side": 1,
+      "message": "\"break\" makes sense, but I don\u0027t understand why \"n \u003d i\".",
+      "range": {
+        "startLine": 558,
+        "startChar": 3,
+        "endLine": 558,
+        "endChar": 8
+      },
+      "revId": "d15c90f3833910eba4531af61124d6e6c2ac27e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1aaac39b_00f40864",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 613,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-14T15:42:07Z",
+      "side": 1,
+      "message": "The entire map is replaced on update, so no need to copy (assuming caller isn\u0027t modifying it).",
+      "range": {
+        "startLine": 613,
+        "startChar": 51,
+        "endLine": 613,
+        "endChar": 71
+      },
+      "revId": "d15c90f3833910eba4531af61124d6e6c2ac27e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1aaac39b_80aff860",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-14T15:42:07Z",
+      "side": 1,
+      "message": "nit: I definitely appreciate making minimal changes; but would it make more sense to pass in a task_scheduler db.CommitComment?",
+      "range": {
+        "startLine": 314,
+        "startChar": 0,
+        "endLine": 320,
+        "endChar": 56
+      },
+      "revId": "d15c90f3833910eba4531af61124d6e6c2ac27e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1aaac39b_40b9f0a7",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-14T15:42:07Z",
+      "side": 1,
+      "message": "nit: Maybe pass in repo here also?",
+      "range": {
+        "startLine": 339,
+        "startChar": 22,
+        "endLine": 339,
+        "endChar": 41
+      },
+      "revId": "d15c90f3833910eba4531af61124d6e6c2ac27e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
