@@ -395,3 +395,12 @@ func (m Map) FindCommit(commit string) (*Commit, string, *Graph, error) {
 	}
 	return nil, "", nil, fmt.Errorf("Unable to find commit %s in any repo.", commit)
 }
+
+// RepoURLs returns the list of repositories in the Map.
+func (m Map) RepoURLs() []string {
+	rv := make([]string, 0, len(m))
+	for r, _ := range m {
+		rv = append(rv, r)
+	}
+	return rv
+}

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/fnv"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -14,7 +15,9 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/status/go/build_cache"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
@@ -60,7 +63,7 @@ const (
 type BTCache struct {
 	// repos, tasks, commentDb, builds, taskNumberCache, and commentIdCache are
 	// safe for concurrent use.
-	repos     *gitinfo.RepoMap
+	repos     repograph.Map
 	tasks     db.TaskCache
 	commentDb db.CommentDB
 	builds    *build_cache.BuildCache
@@ -73,6 +76,8 @@ type BTCache struct {
 	commentIdCache util.LRUCache
 	// mutex protects cachedTaskComments and cachedTaskSpecComments.
 	mutex sync.RWMutex
+	// cachedCommitComments contains CommitComments.
+	cachedCommitComments map[string]map[string][]*buildbot.CommitComment
 	// cachedTaskComments contains BuildComments generated from the latest
 	// TaskComments.
 	// map[TaskComment.Repo][TaskComment.Revision][TaskComment.Name][]BuildComment
@@ -84,7 +89,7 @@ type BTCache struct {
 
 // NewBTCache creates a combined Build and Task cache for the given repos,
 // pulling data from the given buildDb and taskDb.
-func NewBTCache(repos *gitinfo.RepoMap, buildDb buildbot.DB, taskDb db.RemoteDB) (*BTCache, error) {
+func NewBTCache(repos repograph.Map, buildDb buildbot.DB, taskDb db.RemoteDB) (*BTCache, error) {
 	w, err := window.New(build_cache.BUILD_LOADING_PERIOD, 0, nil)
 	if err != nil {
 		return nil, err
@@ -187,14 +192,32 @@ func (c *BTCache) update() error {
 // is separate from update to avoid calling c.repos.Update when adding/deleting
 // comments.
 func (c *BTCache) updateComments() error {
-	repos := c.repos.Repos()
-	comments, err := c.commentDb.GetCommentsForRepos(repos, time.Now().Add(-build_cache.BUILD_LOADING_PERIOD))
+	repoNames := c.repos.RepoURLs()
+	comments, err := c.commentDb.GetCommentsForRepos(repoNames, time.Now().Add(-build_cache.BUILD_LOADING_PERIOD))
 	if err != nil {
 		return err
 	}
-	taskComments := make(map[string]map[string]map[string][]*buildbot.BuildComment, len(repos))
+	commitComments := make(map[string]map[string][]*buildbot.CommitComment, len(repoNames))
+	taskComments := make(map[string]map[string]map[string][]*buildbot.BuildComment, len(repoNames))
 	taskSpecComments := map[string][]*buildbot.BuilderComment{}
 	for _, rc := range comments {
+		for _, comments := range rc.CommitComments {
+			for _, comment := range comments {
+				commitMap, ok := commitComments[comment.Repo]
+				if !ok {
+					commitMap = map[string][]*buildbot.CommitComment{}
+					commitComments[comment.Repo] = commitMap
+				}
+				c := &buildbot.CommitComment{
+					Id:        comment.Timestamp.UnixNano(),
+					Commit:    comment.Revision,
+					User:      comment.User,
+					Timestamp: comment.Timestamp,
+					Message:   comment.Message,
+				}
+				commitMap[comment.Revision] = append(commitMap[comment.Revision], c)
+			}
+		}
 		for _, m := range rc.TaskComments {
 			for _, comments := range m {
 				comment := comments[0]
@@ -241,6 +264,7 @@ func (c *BTCache) updateComments() error {
 	}
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
+	c.cachedCommitComments = commitComments
 	c.cachedTaskComments = taskComments
 	c.cachedTaskSpecComments = taskSpecComments
 	return nil
@@ -339,18 +363,12 @@ func (c *BTCache) taskToBuild(task *db.Task, loggedIn bool) *buildbot.Build {
 
 // GetBuildsForCommits returns the build data and task data (as Builds) for the
 // given commits. See also BuildCache.GetBuildsForCommits.
-func (c *BTCache) GetBuildsForCommits(commits []string, loggedIn bool) (map[string]map[string]*buildbot.BuildSummary, error) {
+func (c *BTCache) GetBuildsForCommits(repoName string, commits []string, loggedIn bool) (map[string]map[string]*buildbot.BuildSummary, error) {
 	if len(commits) == 0 {
 		return map[string]map[string]*buildbot.BuildSummary{}, nil
 	}
 
 	buildResult, err := c.builds.GetBuildsForCommits(commits)
-	if err != nil {
-		return nil, err
-	}
-
-	// (Assume all commits are for the same repo.)
-	repoName, err := c.repos.RepoForCommit(commits[0])
 	if err != nil {
 		return nil, err
 	}
@@ -379,8 +397,8 @@ func (c *BTCache) GetBuildsForCommits(commits []string, loggedIn bool) (map[stri
 
 // GetBuildsForCommit returns the build data and task data (as Builds) for the
 // given commit. See also BuildCache.GetBuildsForCommit.
-func (c *BTCache) GetBuildsForCommit(hash string, loggedIn bool) ([]*buildbot.BuildSummary, error) {
-	builds, err := c.GetBuildsForCommits([]string{hash}, loggedIn)
+func (c *BTCache) GetBuildsForCommit(repoName, hash string, loggedIn bool) ([]*buildbot.BuildSummary, error) {
+	builds, err := c.GetBuildsForCommits(repoName, []string{hash}, loggedIn)
 	if err != nil {
 		return nil, err
 	}
@@ -429,7 +447,7 @@ func (c *BTCache) AddBuilderComment(builder string, comment *buildbot.BuilderCom
 	name, isTask := builderNameToTaskName(builder)
 	if isTask {
 		repo := ""
-		for _, repoName := range c.repos.Repos() {
+		for repoName, _ := range c.repos {
 			if c.tasks.KnownTaskName(repoName, name) {
 				repo = repoName
 				break
@@ -524,4 +542,133 @@ func (c *BTCache) DeleteBuildComment(master, builder string, number int, comment
 	} else {
 		return c.builds.DeleteBuildComment(master, builder, number, commentId)
 	}
+}
+
+// getLastNCommits returns the last N commits in the given repo.
+func (c *BTCache) getLastNCommits(r *repograph.Graph, n int) ([]*vcsinfo.LongCommit, error) {
+	// Find the last Nth commit on master, which we assume has far more
+	// commits than any other branch.
+	commit := r.Get("master")
+	for i := 0; i < n-1; i++ {
+		p := commit.GetParents()
+		if len(p) < 1 {
+			// Cut short if we've hit the beginning of history.
+			break
+		}
+		commit = p[0]
+	}
+
+	// Now find all commits newer than the current commit.
+	start := commit.Timestamp
+	commits := make([]*repograph.Commit, 0, 2*n)
+	if err := r.RecurseAllBranches(func(c *repograph.Commit) (bool, error) {
+		if !c.Timestamp.Before(start) {
+			commits = append(commits, c)
+			return true, nil
+		}
+		return false, nil
+	}); err != nil {
+		return nil, err
+	}
+
+	// Sort the commits by timestamp, most recent first.
+	sort.Sort(repograph.CommitSlice(commits))
+
+	// Return the most-recent N commits.
+	rv := make([]*vcsinfo.LongCommit, 0, len(commits))
+	for _, c := range commits {
+		rv = append(rv, c.LongCommit)
+		if len(rv) >= n {
+			break
+		}
+	}
+	return rv, nil
+}
+
+// CommitsData is a struct used for collecting builds and commits.
+type CommitsData struct {
+	Comments    map[string][]*buildbot.CommitComment         `json:"comments"`
+	Commits     []*vcsinfo.LongCommit                        `json:"commits"`
+	BranchHeads []*gitinfo.GitBranch                         `json:"branch_heads"`
+	Builds      map[string]map[string]*buildbot.BuildSummary `json:"builds"`
+	Builders    map[string][]*buildbot.BuilderComment        `json:"builders"`
+}
+
+// GetLastN returns commit and build information for the last N commits in the
+// given repo.
+func (c *BTCache) GetLastN(repo string, n int, loggedIn bool) (*CommitsData, error) {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+
+	r, ok := c.repos[repo]
+	if !ok {
+		return nil, fmt.Errorf("No such repo: %s", repo)
+	}
+
+	commits, err := c.getLastNCommits(r, n)
+	if err != nil {
+		return nil, err
+	}
+
+	commitComments := c.cachedCommitComments[repo]
+	if commitComments == nil {
+		commitComments = map[string][]*buildbot.CommitComment{}
+	}
+
+	branches := r.Branches()
+	branchHeads := make([]*gitinfo.GitBranch, 0, len(branches))
+	for _, b := range branches {
+		branchHeads = append(branchHeads, &gitinfo.GitBranch{
+			Name: b,
+			Head: r.Get(b).Hash,
+		})
+	}
+
+	hashes := make([]string, 0, len(commits))
+	for _, c := range commits {
+		hashes = append(hashes, c.Hash)
+	}
+	builds, err := c.GetBuildsForCommits(repo, hashes, loggedIn)
+	if err != nil {
+		return nil, err
+	}
+
+	builders := c.GetBuildersComments()
+	return &CommitsData{
+		Comments:    commitComments,
+		Commits:     commits,
+		BranchHeads: branchHeads,
+		Builds:      builds,
+		Builders:    builders,
+	}, nil
+}
+
+// AddCommitComment adds a CommitComment.
+func (c *BTCache) AddCommitComment(repo string, comment *buildbot.CommitComment) error {
+	// Truncate the timestamp to milliseconds.
+	ts := comment.Timestamp.Round(time.Millisecond)
+	if err := c.commentDb.PutCommitComment(&db.CommitComment{
+		Repo:      repo,
+		Revision:  comment.Commit,
+		Timestamp: ts,
+		User:      comment.User,
+		Message:   comment.Message,
+	}); err != nil {
+		return err
+	}
+	return c.updateComments()
+}
+
+// DeleteCommitComment deletes a CommitComment.
+func (c *BTCache) DeleteCommitComment(repo, commit string, id int64) error {
+	ts := time.Unix(0, id)
+	comment := &db.CommitComment{
+		Repo:      repo,
+		Revision:  commit,
+		Timestamp: ts,
+	}
+	if err := c.commentDb.DeleteCommitComment(comment); err != nil {
+		return err
+	}
+	return c.updateComments()
 }

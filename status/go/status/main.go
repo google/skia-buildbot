@@ -24,7 +24,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/influxdb_init"
@@ -34,8 +34,6 @@ import (
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/status/go/commit_cache"
 	"go.skia.org/infra/status/go/franken"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
@@ -56,16 +54,15 @@ const (
 )
 
 var (
-	buildCache      *franken.BTCache                     = nil
-	commitCaches    map[string]*commit_cache.CommitCache = nil
-	commitsTemplate *template.Template                   = nil
-	buildDb         buildbot.DB                          = nil
-	dbClient        *influxdb.Client                     = nil
-	goldGMStatus    *polling_status.PollingStatus        = nil
-	goldSKPStatus   *polling_status.PollingStatus        = nil
-	goldImageStatus *polling_status.PollingStatus        = nil
-	perfStatus      *polling_status.PollingStatus        = nil
-	tasksPerCommit  *tasksPerCommitCache                 = nil
+	buildCache      *franken.BTCache              = nil
+	commitsTemplate *template.Template            = nil
+	buildDb         buildbot.DB                   = nil
+	dbClient        *influxdb.Client              = nil
+	goldGMStatus    *polling_status.PollingStatus = nil
+	goldSKPStatus   *polling_status.PollingStatus = nil
+	goldImageStatus *polling_status.PollingStatus = nil
+	perfStatus      *polling_status.PollingStatus = nil
+	tasksPerCommit  *tasksPerCommitCache          = nil
 )
 
 // flags
@@ -135,38 +132,17 @@ func getIntParam(name string, r *http.Request) (*int, error) {
 	return &v32, nil
 }
 
-func getCommitCache(w http.ResponseWriter, r *http.Request) (*commit_cache.CommitCache, error) {
-	repo, _ := mux.Vars(r)["repo"]
-	cache, ok := commitCaches[repo]
-	if !ok {
-		e := fmt.Sprintf("Unknown repo: %s", repo)
-		err := fmt.Errorf(e)
-		httputils.ReportError(w, r, err, e)
-		return nil, err
-	}
-	return cache, nil
-}
-
-type commitsData struct {
-	Comments    map[string][]*buildbot.CommitComment         `json:"comments"`
-	Commits     []*vcsinfo.LongCommit                        `json:"commits"`
-	BranchHeads []*gitinfo.GitBranch                         `json:"branch_heads"`
-	Builds      map[string]map[string]*buildbot.BuildSummary `json:"builds"`
-	Builders    map[string][]*buildbot.BuilderComment        `json:"builders"`
-	StartIdx    int                                          `json:"startIdx"`
-	EndIdx      int                                          `json:"endIdx"`
+func getRepo(r *http.Request) string {
+	repoName, _ := mux.Vars(r)["repo"]
+	return repoMap[repoName]
 }
 
 // commitsJsonHandler writes information about a range of commits into the
-// ResponseWriter. The information takes the form of a JSON-encoded commitsData
+// ResponseWriter. The information takes the form of a JSON-encoded CommitsData
 // object.
 func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	defer timer.New("commitsJsonHandler").Stop()
 	w.Header().Set("Content-Type", "application/json")
-	cache, err := getCommitCache(w, r)
-	if err != nil {
-		return
-	}
 	commitsToLoad := DEFAULT_COMMITS_TO_LOAD
 	n, err := getIntParam("n", r)
 	if err != nil {
@@ -181,30 +157,13 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		commitsToLoad = MAX_COMMITS_TO_LOAD
 	}
 	if commitsToLoad < 0 {
-		commitsToLoad = 0
+		commitsToLoad = DEFAULT_COMMITS_TO_LOAD
 	}
-	commitData, err := cache.GetLastN(commitsToLoad)
+	repo := getRepo(r)
+	rv, err := buildCache.GetLastN(repo, commitsToLoad, login.IsGoogler(r))
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load commits from cache: %v", err))
 		return
-	}
-	hashes := make([]string, 0, len(commitData.Commits))
-	for _, c := range commitData.Commits {
-		hashes = append(hashes, c.Hash)
-	}
-	builds, err := buildCache.GetBuildsForCommits(hashes, login.IsGoogler(r))
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to obtain builds: %s", err))
-		return
-	}
-	rv := commitsData{
-		Comments:    commitData.Comments,
-		Commits:     commitData.Commits,
-		BranchHeads: commitData.BranchHeads,
-		Builds:      builds,
-		Builders:    buildCache.GetBuildersComments(),
-		StartIdx:    commitData.StartIdx,
-		EndIdx:      commitData.EndIdx,
 	}
 	if err := json.NewEncoder(w).Encode(rv); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
@@ -347,10 +306,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	cache, err := getCommitCache(w, r)
-	if err != nil {
-		return
-	}
+	repo := getRepo(r)
 	commit := mux.Vars(r)["commit"]
 	comment := struct {
 		Comment string `json:"comment"`
@@ -367,7 +323,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Timestamp: time.Now().UTC(),
 		Message:   comment.Comment,
 	}
-	if err := cache.AddCommitComment(&c); err != nil {
+	if err := buildCache.AddCommitComment(repo, &c); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add commit comment: %s", err))
 		return
 	}
@@ -380,16 +336,14 @@ func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	cache, err := getCommitCache(w, r)
-	if err != nil {
-		return
-	}
-	commentId, err := strconv.ParseInt(mux.Vars(r)["commentId"], 10, 32)
+	repo := getRepo(r)
+	commit := mux.Vars(r)["commit"]
+	commentId, err := strconv.ParseInt(mux.Vars(r)["commentId"], 10, 64)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
-	if err := cache.DeleteCommitComment(commentId); err != nil {
+	if err := buildCache.DeleteCommitComment(repo, commit, commentId); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete commit comment: %s", err))
 		return
 	}
@@ -471,7 +425,8 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get the number of finished tasks for the requested commit.
 	hash := r.FormValue("commit")
-	builds, err := buildCache.GetBuildsForCommit(hash, login.IsGoogler(r))
+	repo := getRepo(r)
+	builds, err := buildCache.GetBuildsForCommit(repo, hash, login.IsGoogler(r))
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get the number of finished builds."))
 		return
@@ -481,12 +436,6 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 		if b.Finished {
 			finished++
 		}
-	}
-	repoName, _ := mux.Vars(r)["repo"]
-	repo, ok := repoMap[repoName]
-	if !ok {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Unknown repo %q", repoName))
-		return
 	}
 	tasksForCommit, err := tasksPerCommit.Get(db.RepoState{
 		Repo:     repo,
@@ -571,6 +520,7 @@ func main() {
 		glog.Fatal(err)
 	}
 
+	// Create remote Tasks DB.
 	taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl)
 	if err != nil {
 		glog.Fatal(err)
@@ -595,16 +545,10 @@ func main() {
 	login.Init(clientID, clientSecret, redirectURL, cookieSalt, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST, false)
 
 	// Check out source code.
-	repos := gitinfo.NewRepoMap(path.Join(*workdir, "repos"))
-	skiaRepo, err := repos.Repo(common.REPO_SKIA)
+	repos, err := repograph.NewMap([]string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, path.Join(*workdir, "repos"))
 	if err != nil {
-		glog.Fatalf("Failed to check out Skia: %v", err)
+		glog.Fatal(err)
 	}
-	infraRepo, err := repos.Repo(common.REPO_SKIA_INFRA)
-	if err != nil {
-		glog.Fatalf("Failed to checkout Infra: %v", err)
-	}
-
 	glog.Info("Checkout complete")
 
 	// Cache for buildProgressHandler.
@@ -619,21 +563,6 @@ func main() {
 		glog.Fatalf("Failed to create build cache: %s", err)
 	}
 	buildCache = bc
-
-	// Create the commit caches.
-	commitCaches = map[string]*commit_cache.CommitCache{}
-	skiaCache, err := commit_cache.New(skiaRepo, path.Join(*workdir, "commit_cache.gob"), DEFAULT_COMMITS_TO_LOAD, buildDb)
-	if err != nil {
-		glog.Fatalf("Failed to create commit cache: %v", err)
-	}
-	commitCaches[SKIA_REPO] = skiaCache
-
-	infraCache, err := commit_cache.New(infraRepo, path.Join(*workdir, "commit_cache_infra.gob"), DEFAULT_COMMITS_TO_LOAD, buildDb)
-	if err != nil {
-		glog.Fatalf("Failed to create commit cache: %v", err)
-	}
-	commitCaches[INFRA_REPO] = infraCache
-	glog.Info("commit_cache complete")
 
 	// Load Perf and Gold data in a loop.
 	perfStatus = dbClient.Int64PollingStatus("skmetrics", PERF_STATUS_QUERY, time.Minute)
