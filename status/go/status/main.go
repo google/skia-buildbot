@@ -24,7 +24,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/influxdb_init"
@@ -34,9 +34,7 @@ import (
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/status/go/commit_cache"
-	"go.skia.org/infra/status/go/device_cfg"
+	"go.skia.org/infra/status/go/capacity"
 	"go.skia.org/infra/status/go/franken"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
@@ -57,21 +55,16 @@ const (
 )
 
 var (
-	buildCache           *franken.BTCache                     = nil
-	commitCaches         map[string]*commit_cache.CommitCache = nil
-	buildbotDashTemplate *template.Template                   = nil
-	commitsTemplate      *template.Template                   = nil
-	buildDb              buildbot.DB                          = nil
-	hostsTemplate        *template.Template                   = nil
-	dbClient             *influxdb.Client                     = nil
-	goldGMStatus         *polling_status.PollingStatus        = nil
-	goldSKPStatus        *polling_status.PollingStatus        = nil
-	goldImageStatus      *polling_status.PollingStatus        = nil
-	perfStatus           *polling_status.PollingStatus        = nil
-	slaveHosts           *polling_status.PollingStatus        = nil
-	androidDevices       *polling_status.PollingStatus        = nil
-	sshDevices           *polling_status.PollingStatus        = nil
-	tasksPerCommit       *tasksPerCommitCache                 = nil
+	buildCache      *franken.BTCache              = nil
+	buildDb         buildbot.DB                   = nil
+	capacityClient  *capacity.CapacityClient      = nil
+	commitsTemplate *template.Template            = nil
+	dbClient        *influxdb.Client              = nil
+	goldGMStatus    *polling_status.PollingStatus = nil
+	goldImageStatus *polling_status.PollingStatus = nil
+	goldSKPStatus   *polling_status.PollingStatus = nil
+	perfStatus      *polling_status.PollingStatus = nil
+	tasksPerCommit  *tasksPerCommitCache          = nil
 )
 
 // flags
@@ -84,6 +77,7 @@ var (
 	resourcesDir       = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	buildbotDbHost     = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
 	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
+	capacityPeriod     = flag.Duration("capacity_period", 10*time.Minute, "How often to re-calculate capacity statistics.")
 
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
@@ -118,14 +112,6 @@ func reloadTemplates() {
 		filepath.Join(*resourcesDir, "templates/commits.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
-	hostsTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/hosts.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-	buildbotDashTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/buildbot_dash.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
 }
 
 func Init() {
@@ -149,38 +135,12 @@ func getIntParam(name string, r *http.Request) (*int, error) {
 	return &v32, nil
 }
 
-func getCommitCache(w http.ResponseWriter, r *http.Request) (*commit_cache.CommitCache, error) {
-	repo, _ := mux.Vars(r)["repo"]
-	cache, ok := commitCaches[repo]
-	if !ok {
-		e := fmt.Sprintf("Unknown repo: %s", repo)
-		err := fmt.Errorf(e)
-		httputils.ReportError(w, r, err, e)
-		return nil, err
-	}
-	return cache, nil
-}
-
-type commitsData struct {
-	Comments    map[string][]*buildbot.CommitComment         `json:"comments"`
-	Commits     []*vcsinfo.LongCommit                        `json:"commits"`
-	BranchHeads []*gitinfo.GitBranch                         `json:"branch_heads"`
-	Builds      map[string]map[string]*buildbot.BuildSummary `json:"builds"`
-	Builders    map[string][]*buildbot.BuilderComment        `json:"builders"`
-	StartIdx    int                                          `json:"startIdx"`
-	EndIdx      int                                          `json:"endIdx"`
-}
-
 // commitsJsonHandler writes information about a range of commits into the
-// ResponseWriter. The information takes the form of a JSON-encoded commitsData
+// ResponseWriter. The information takes the form of a JSON-encoded CommitsData
 // object.
 func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	defer timer.New("commitsJsonHandler").Stop()
 	w.Header().Set("Content-Type", "application/json")
-	cache, err := getCommitCache(w, r)
-	if err != nil {
-		return
-	}
 	commitsToLoad := DEFAULT_COMMITS_TO_LOAD
 	n, err := getIntParam("n", r)
 	if err != nil {
@@ -195,30 +155,13 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		commitsToLoad = MAX_COMMITS_TO_LOAD
 	}
 	if commitsToLoad < 0 {
-		commitsToLoad = 0
+		commitsToLoad = DEFAULT_COMMITS_TO_LOAD
 	}
-	commitData, err := cache.GetLastN(commitsToLoad)
+	repo, _ := mux.Vars(r)["repo"]
+	rv, err := buildCache.GetLastN(repo, commitsToLoad, login.IsGoogler(r))
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load commits from cache: %v", err))
 		return
-	}
-	hashes := make([]string, 0, len(commitData.Commits))
-	for _, c := range commitData.Commits {
-		hashes = append(hashes, c.Hash)
-	}
-	builds, err := buildCache.GetBuildsForCommits(hashes, login.IsGoogler(r))
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to obtain builds: %s", err))
-		return
-	}
-	rv := commitsData{
-		Comments:    commitData.Comments,
-		Commits:     commitData.Commits,
-		BranchHeads: commitData.BranchHeads,
-		Builds:      builds,
-		Builders:    buildCache.GetBuildersComments(),
-		StartIdx:    commitData.StartIdx,
-		EndIdx:      commitData.EndIdx,
 	}
 	if err := json.NewEncoder(w).Encode(rv); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
@@ -361,10 +304,6 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	cache, err := getCommitCache(w, r)
-	if err != nil {
-		return
-	}
 	commit := mux.Vars(r)["commit"]
 	comment := struct {
 		Comment string `json:"comment"`
@@ -381,7 +320,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Timestamp: time.Now().UTC(),
 		Message:   comment.Comment,
 	}
-	if err := cache.AddCommitComment(&c); err != nil {
+	if err := buildCache.AddCommitComment(&c); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add commit comment: %s", err))
 		return
 	}
@@ -394,16 +333,13 @@ func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	cache, err := getCommitCache(w, r)
-	if err != nil {
-		return
-	}
+	commit := mux.Vars(r)["commit"]
 	commentId, err := strconv.ParseInt(mux.Vars(r)["commentId"], 10, 32)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
-	if err := cache.DeleteCommitComment(commentId); err != nil {
+	if err := buildCache.DeleteCommitComment(commit, commentId); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete commit comment: %s", err))
 		return
 	}
@@ -455,133 +391,12 @@ func infraHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("buildsHandler").Stop()
+func capacityStatsHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("capacityStatsHandler").Stop()
 	w.Header().Set("Content-Type", "application/json")
 
-	start, err := getIntParam("start", r)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid value for parameter \"start\": %v", err))
-		return
-	}
-	end, err := getIntParam("end", r)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid value for parameter \"end\": %v", err))
-		return
-	}
-
-	var startTime time.Time
-	var endTime time.Time
-
-	if end == nil {
-		endTime = time.Now()
-	} else {
-		endTime = time.Unix(int64(*end), 0)
-	}
-
-	if start == nil {
-		startTime = endTime.AddDate(0, 0, -1)
-	} else {
-		startTime = time.Unix(int64(*start), 0)
-	}
-
-	// Fetch the builds.
-	builds, err := buildCache.GetBuildsFromDateRange(startTime, endTime, login.IsGoogler(r))
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load builds: %v", err))
-		return
-	}
-	// Shrink the builds.
-	// TODO(borenet): Can we share build-shrinking code with the main status
-	// page?
-
-	// TinyBuildStep is a struct containing a small subset of a BuildStep's fields.
-	type TinyBuildStep struct {
-		Name     string
-		Started  time.Time
-		Finished time.Time
-		Results  int
-	}
-
-	// TinyBuild is a struct containing a small subset of a Build's fields.
-	type TinyBuild struct {
-		Builder    string
-		BuildSlave string
-		Master     string
-		Number     int
-		Properties [][]interface{} `json:"properties"`
-		Started    time.Time
-		Finished   time.Time
-		Results    int
-		Steps      []*TinyBuildStep
-	}
-
-	type buildbotDashData struct {
-		Builds  []*TinyBuild `json:"builds"`
-		Commits []string     `json:"commits"`
-	}
-
-	rv := make([]*TinyBuild, 0, len(builds))
-	for _, b := range builds {
-		steps := make([]*TinyBuildStep, 0, len(b.Steps))
-		for _, s := range b.Steps {
-			steps = append(steps, &TinyBuildStep{
-				Name:     s.Name,
-				Started:  s.Started,
-				Finished: s.Finished,
-				Results:  s.Results,
-			})
-		}
-		rv = append(rv, &TinyBuild{
-			Builder:    b.Builder,
-			BuildSlave: b.BuildSlave,
-			Master:     b.Master,
-			Number:     b.Number,
-			Properties: b.Properties,
-			Started:    b.Started,
-			Finished:   b.Finished,
-			Results:    b.Results,
-			Steps:      steps,
-		})
-	}
-
-	commits, err := commitCaches[SKIA_REPO].RevisionsInDateRange(startTime, endTime)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load Skia commits: %v", err))
-		return
-	}
-
-	infraCommits, err := commitCaches[INFRA_REPO].RevisionsInDateRange(startTime, endTime)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load Infra commits: %v", err))
-		return
-	}
-
-	commits = append(commits, infraCommits...)
-
-	data := buildbotDashData{
-		Builds:  rv,
-		Commits: commits,
-	}
-
-	defer timer.New("buildsHandler_encode").Stop()
-	if err := json.NewEncoder(w).Encode(data); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to write or encode output: %s", err))
-		return
-	}
-}
-
-func buildbotDashHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("buildbotDashHandler").Stop()
-	w.Header().Set("Content-Type", "text/html")
-
-	// Don't use cached templates in testing mode.
-	if *testing {
-		reloadTemplates()
-	}
-
-	if err := buildbotDashTemplate.Execute(w, struct{}{}); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
+	if err := json.NewEncoder(w).Encode(capacityClient.CapacityMetrics()); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
 		return
 	}
 }
@@ -607,32 +422,6 @@ func goldJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func slaveHostsJsonHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(map[string]interface{}{
-		"hosts":          slaveHosts,
-		"androidDevices": androidDevices,
-		"sshDevices":     sshDevices,
-	}); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
-		return
-	}
-}
-
-func hostsHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("hostsHandler").Stop()
-	w.Header().Set("Content-Type", "text/html")
-
-	// Don't use cached templates in testing mode.
-	if *testing {
-		reloadTemplates()
-	}
-
-	if err := hostsTemplate.Execute(w, struct{}{}); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
-	}
-}
-
 // buildProgressHandler returns the number of finished builds at the given
 // commit, compared to that of an older commit.
 func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
@@ -642,7 +431,8 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get the number of finished tasks for the requested commit.
 	hash := r.FormValue("commit")
-	builds, err := buildCache.GetBuildsForCommit(hash, login.IsGoogler(r))
+	repo, _ := mux.Vars(r)["repo"]
+	builds, err := buildCache.GetBuildsForCommit(repo, hash, login.IsGoogler(r))
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get the number of finished builds."))
 		return
@@ -692,13 +482,10 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", commitsHandler)
-	r.Handle("/buildbots", login.ForceAuth(http.HandlerFunc(buildbotDashHandler), OAUTH2_CALLBACK_PATH))
-	r.HandleFunc("/hosts", hostsHandler)
 	r.HandleFunc("/infra", infraHandler)
-	r.Handle("/json/builds", login.ForceAuth(http.HandlerFunc(buildsJsonHandler), OAUTH2_CALLBACK_PATH))
+	r.HandleFunc("/capacity/json", capacityStatsHandler)
 	r.HandleFunc("/json/goldStatus", goldJsonHandler)
 	r.HandleFunc("/json/perfAlerts", perfJsonHandler)
-	r.HandleFunc("/json/slaveHosts", slaveHostsJsonHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/json/{repo}/buildProgress", buildProgressHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
@@ -746,6 +533,7 @@ func main() {
 		glog.Fatal(err)
 	}
 
+	// Create remote Tasks DB.
 	taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl)
 	if err != nil {
 		glog.Fatal(err)
@@ -770,16 +558,10 @@ func main() {
 	login.Init(clientID, clientSecret, redirectURL, cookieSalt, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST, false)
 
 	// Check out source code.
-	repos := gitinfo.NewRepoMap(path.Join(*workdir, "repos"))
-	skiaRepo, err := repos.Repo(common.REPO_SKIA)
+	repos, err := repograph.NewMap([]string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, path.Join(*workdir, "repos"))
 	if err != nil {
-		glog.Fatalf("Failed to check out Skia: %v", err)
+		glog.Fatal(err)
 	}
-	infraRepo, err := repos.Repo(common.REPO_SKIA_INFRA)
-	if err != nil {
-		glog.Fatalf("Failed to checkout Infra: %v", err)
-	}
-
 	glog.Info("Checkout complete")
 
 	// Cache for buildProgressHandler.
@@ -795,30 +577,14 @@ func main() {
 	}
 	buildCache = bc
 
-	// Create the commit caches.
-	commitCaches = map[string]*commit_cache.CommitCache{}
-	skiaCache, err := commit_cache.New(skiaRepo, path.Join(*workdir, "commit_cache.gob"), DEFAULT_COMMITS_TO_LOAD, buildDb)
-	if err != nil {
-		glog.Fatalf("Failed to create commit cache: %v", err)
-	}
-	commitCaches[SKIA_REPO] = skiaCache
-
-	infraCache, err := commit_cache.New(infraRepo, path.Join(*workdir, "commit_cache_infra.gob"), DEFAULT_COMMITS_TO_LOAD, buildDb)
-	if err != nil {
-		glog.Fatalf("Failed to create commit cache: %v", err)
-	}
-	commitCaches[INFRA_REPO] = infraCache
-	glog.Info("commit_cache complete")
+	capacityClient = capacity.New(tasksPerCommit.tcc, bc.GetTaskCache(), repos)
+	capacityClient.StartLoading(*capacityPeriod)
 
 	// Load Perf and Gold data in a loop.
 	perfStatus = dbClient.Int64PollingStatus("skmetrics", PERF_STATUS_QUERY, time.Minute)
 	goldGMStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), time.Minute)
 	goldImageStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), time.Minute)
 
-	// Load slave_hosts_cfg and device cfgs in a loop.
-	slaveHosts = buildbot.SlaveHostsCfgPoller(path.Join(*workdir, "repos", "buildbot.git"))
-	androidDevices = device_cfg.AndroidDeviceCfgPoller(*workdir)
-	sshDevices = device_cfg.SSHDeviceCfgPoller(*workdir)
-
+	// Run the server.
 	runServer(serverURL)
 }
