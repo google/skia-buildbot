@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a23133a_797a8728",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-14T18:14:52Z",
+      "side": 1,
+      "message": "nit: RepoNames (since Graph.Repo() returns *git.Repo, Map.Repos() ought to return []*git.Repo)",
+      "range": {
+        "startLine": 399,
+        "startChar": 3,
+        "endLine": 399,
+        "endChar": 8
+      },
+      "revId": "39215bf4eeb3288a53b09fdb28b099e2e7f6ef9a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
