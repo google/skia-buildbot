@@ -56,7 +56,6 @@ const (
 var (
 	buildCache      *franken.BTCache              = nil
 	commitsTemplate *template.Template            = nil
-	buildDb         buildbot.DB                   = nil
 	dbClient        *influxdb.Client              = nil
 	goldGMStatus    *polling_status.PollingStatus = nil
 	goldSKPStatus   *polling_status.PollingStatus = nil
@@ -513,12 +512,6 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
-	// Create buildbot remote DB.
-	buildDb, err = buildbot.NewRemoteDB(*buildbotDbHost)
-	if err != nil {
-		glog.Fatal(err)
-	}
-
 	// Create remote Tasks DB.
 	taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl)
 	if err != nil {
@@ -557,7 +550,7 @@ func main() {
 	}
 
 	// Create the build cache.
-	bc, err := franken.NewBTCache(repos, buildDb, taskDb)
+	bc, err := franken.NewBTCache(repos, taskDb)
 	if err != nil {
 		glog.Fatalf("Failed to create build cache: %s", err)
 	}
