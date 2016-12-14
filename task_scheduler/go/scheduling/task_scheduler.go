@@ -1531,41 +1531,72 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(tasks []*db.Task) error {
 // will be overwritten, and optionally Id, which will be assigned if necessary.
 // AddTasks updates existing Tasks' blamelists, if needed. The provided map
 // groups Tasks by repo and TaskSpec name. May return error on partial success.
+// May modify Commits and Id of argument tasks on error.
 func (s *TaskScheduler) AddTasks(taskMap map[string]map[string][]*db.Task) error {
 	s.schedulingMtx.Lock()
 	defer s.schedulingMtx.Unlock()
-	if err := s.tCache.Update(); err != nil {
-		return err
-	}
 
-	errs := make(chan error)
-	wg := sync.WaitGroup{}
-	for _, byName := range taskMap {
-		for _, tasks := range byName {
+	type queueItem struct {
+		Repo string
+		Name string
+	}
+	queue := map[queueItem]bool{}
+	for repo, byName := range taskMap {
+		for name, tasks := range byName {
 			if len(tasks) == 0 {
 				continue
 			}
+			queue[queueItem{
+				Repo: repo,
+				Name: name,
+			}] = true
+		}
+	}
+
+	for i := 0; i < db.NUM_RETRIES; i++ {
+		if len(queue) == 0 {
+			return nil
+		}
+		if err := s.tCache.Update(); err != nil {
+			return err
+		}
+
+		done := make(chan queueItem)
+		errs := make(chan error, len(queue))
+		wg := sync.WaitGroup{}
+		for item, _ := range queue {
 			wg.Add(1)
-			go func(tasks []*db.Task) {
+			go func(item queueItem, tasks []*db.Task) {
 				defer wg.Done()
 				if err := s.addTasksSingleTaskSpec(tasks); err != nil {
 					errs <- err
+				} else {
+					done <- item
 				}
-			}(tasks)
+			}(item, taskMap[item.Repo][item.Name])
+		}
+		go func() {
+			wg.Wait()
+			close(done)
+			close(errs)
+		}()
+		for item := range done {
+			delete(queue, item)
+		}
+		rvErrs := []error{}
+		for err := range errs {
+			if !db.IsConcurrentUpdate(err) {
+				glog.Error(err)
+				rvErrs = append(rvErrs, err)
+			}
+		}
+		if len(rvErrs) != 0 {
+			return rvErrs[0]
 		}
 	}
-	go func() {
-		wg.Wait()
-		close(errs)
-	}()
-	rvErrs := []error{}
-	for err := range errs {
-		glog.Error(err)
-		rvErrs = append(rvErrs, err)
-	}
 
-	if len(rvErrs) != 0 {
-		return rvErrs[0]
+	if len(queue) > 0 {
+		return fmt.Errorf("AddTasks: %d consecutive ErrConcurrentUpdate", db.NUM_RETRIES)
 	}
 	return nil
 }
