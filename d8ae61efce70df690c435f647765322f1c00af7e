@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a23133a_b96d7f43",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 875,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-14T18:40:07Z",
+      "side": 1,
+      "message": "Diff from prev:\n\n--- before.txt\t2016-12-14 13:35:43.000082940 -0500\n+++ after.txt\t2016-12-14 13:35:42.032090825 -0500\n@@ -1,41 +1,36 @@\n-\tbyCandidateId :\u003d make(map[string]*db.Task, len(schedule))\n-\ttasksToInsert :\u003d make(map[string]*db.Task, len(schedule)*2)\n-\tfor i, t :\u003d range triggered {\n-\t\tcandidate :\u003d schedule[i]\n+\tbyCandidateId :\u003d make(map[string]*db.Task, len(candidates))\n+\ttasksToInsert :\u003d make(map[string]*db.Task, len(candidates)*2)\n+\tfor i, t :\u003d range tasks {\n+\t\tcandidate :\u003d candidates[i]\n \t\tbyCandidateId[candidate.MakeId()] \u003d t\n \t\ttasksToInsert[t.Id] \u003d t\n \t\t// If we\u0027re stealing commits from another task, find it and adjust\n \t\t// its blamelist.\n-\t\t// TODO(borenet): We\u0027re retrieving a cached task which may have been\n-\t\t// changed since the cache was last updated. We need to handle that.\n \t\tif candidate.StealingFromId !\u003d \"\" {\n \t\t\tvar stealingFrom *db.Task\n \t\t\tif _, err :\u003d parseId(candidate.StealingFromId); err \u003d\u003d nil {\n \t\t\t\tstealingFrom \u003d byCandidateId[candidate.StealingFromId]\n \t\t\t\tif stealingFrom \u003d\u003d nil {\n-\t\t\t\t\treturn fmt.Errorf(\"Attempting to backfill a just-triggered candidate but can\u0027t find it: %q\", candidate.StealingFromId)\n+\t\t\t\t\treturn nil, fmt.Errorf(\"Attempting to backfill a just-triggered candidate but can\u0027t find it: %q\", candidate.StealingFromId)\n \t\t\t\t}\n \t\t\t} else {\n \t\t\t\tvar ok bool\n \t\t\t\tstealingFrom, ok \u003d tasksToInsert[candidate.StealingFromId]\n \t\t\t\tif !ok {\n-\t\t\t\t\tstealingFrom, err \u003d s.tCache.GetTask(candidate.StealingFromId)\n+\t\t\t\t\tstealingFrom, err \u003d s.db.GetTaskById(candidate.StealingFromId)\n \t\t\t\t\tif err !\u003d nil {\n-\t\t\t\t\t\treturn err\n+\t\t\t\t\t\treturn nil, err\n \t\t\t\t\t}\n \t\t\t\t}\n \t\t\t}\n \t\t\toldCommits :\u003d util.NewStringSet(stealingFrom.Commits)\n-\t\t\tstealing :\u003d util.NewStringSet(t.Commits)\n+\t\t\tstealing :\u003d util.NewStringSet(candidate.Commits)\n \t\t\tstealingFrom.Commits \u003d oldCommits.Complement(stealing).Keys()\n \t\t\ttasksToInsert[stealingFrom.Id] \u003d stealingFrom\n \t\t}\n \t}\n-\ttasks :\u003d make([]*db.Task, 0, len(tasksToInsert))\n+\trv :\u003d make([]*db.Task, 0, len(tasksToInsert))\n \tfor _, t :\u003d range tasksToInsert {\n-\t\ttasks \u003d append(tasks, t)\n-\t}\n-\t// Insert the tasks into the database.\n-\tif err :\u003d s.db.PutTasks(tasks); err !\u003d nil {\n-        \treturn err\n+\t\trv \u003d append(rv, t)\n \t}\n+\treturn rv, nil",
+      "revId": "d8ae61efce70df690c435f647765322f1c00af7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a23133a_b9f25f76",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1795,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-14T18:40:07Z",
+      "side": 1,
+      "message": "moved from below unchanged",
+      "range": {
+        "startLine": 1781,
+        "startChar": 0,
+        "endLine": 1795,
+        "endChar": 1
+      },
+      "revId": "d8ae61efce70df690c435f647765322f1c00af7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a23133a_59530387",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1978,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-14T18:40:07Z",
+      "side": 1,
+      "message": "There\u0027s a ton of setup for this test, so I just modified the existing test. Ideally we would make a separate test for the retries. WDYT?",
+      "revId": "d8ae61efce70df690c435f647765322f1c00af7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a23133a_395acf99",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 3035,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-14T18:40:07Z",
+      "side": 1,
+      "message": "Forgot to do this in previous CL.",
+      "revId": "d8ae61efce70df690c435f647765322f1c00af7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
