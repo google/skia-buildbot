@@ -54,24 +54,18 @@ var (
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
-	bl            *blacklist.Blacklist
-	busyBots      *busyBots
-	db            db.DB
-	isolate       *isolate.Client
-	jCache        db.JobCache
-	lastScheduled time.Time        // protected by queueMtx.
-	queue         []*taskCandidate // protected by queueMtx.
-	queueMtx      sync.RWMutex
-	repos         repograph.Map
-	swarming      swarming.ApiClient
-	taskCfgCache  *specs.TaskCfgCache
-	tCache        db.TaskCache
-	// schedulingMtx ensures blamelist computation is consistent. It must be held
-	// for a call to db.PutTasks() through tCache.Update(). It also must be held
-	// to ensure sequential calls to tCache provide a consistent view of the DB.
-	// TODO(dogben): Handle ErrConcurrentUpdate in all calls to PutTasks and
-	// remove this mutex.
-	schedulingMtx    sync.Mutex
+	bl               *blacklist.Blacklist
+	busyBots         *busyBots
+	db               db.DB
+	isolate          *isolate.Client
+	jCache           db.JobCache
+	lastScheduled    time.Time        // protected by queueMtx.
+	queue            []*taskCandidate // protected by queueMtx.
+	queueMtx         sync.RWMutex
+	repos            repograph.Map
+	swarming         swarming.ApiClient
+	taskCfgCache     *specs.TaskCfgCache
+	tCache           db.TaskCache
 	timeDecayAmt24Hr float64
 	triggerMetrics   *periodicTriggerMetrics
 	tryjobs          *tryjobs.TryJobIntegrator
@@ -369,8 +363,7 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(unfinishedJobs []*db.Job) (map
 }
 
 // filterTaskCandidates reduces the set of taskCandidates to the ones we might
-// actually want to run and organizes them by repo and TaskSpec name. Caller
-// must hold schedulingMtx.
+// actually want to run and organizes them by repo and TaskSpec name.
 func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]*taskCandidate) (map[string]map[string][]*taskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 
@@ -516,7 +509,7 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 	return nil
 }
 
-// Process the task candidates. Caller must hold schedulingMtx.
+// Process the task candidates.
 func (s *TaskScheduler) processTaskCandidates(candidates map[string]map[string][]*taskCandidate, now time.Time) ([]*taskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 	processed := make(chan *taskCandidate)
@@ -645,7 +638,7 @@ func (s *TaskScheduler) recordCandidateMetrics(candidates map[string]map[string]
 }
 
 // regenerateTaskQueue obtains the set of all eligible task candidates, scores
-// them, and prepares them to be triggered. Caller must hold schedulingMtx.
+// them, and prepares them to be triggered.
 func (s *TaskScheduler) regenerateTaskQueue(now time.Time) ([]*taskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 
@@ -911,7 +904,7 @@ func (s *TaskScheduler) getTasksToUpdate(candidates []*taskCandidate, tasks []*d
 }
 
 // scheduleTasks queries for free Swarming bots and triggers tasks according
-// to relative priorities in the queue. Caller must hold schedulingMtx.
+// to relative priorities in the queue.
 func (s *TaskScheduler) scheduleTasks(bots []*swarming_api.SwarmingRpcsBotInfo, queue []*taskCandidate) error {
 	defer metrics2.FuncTimer().Stop()
 	// Match free bots with tasks.
@@ -1029,8 +1022,6 @@ func (s *TaskScheduler) gatherNewJobs() error {
 // MainLoop runs a single end-to-end task scheduling loop.
 func (s *TaskScheduler) MainLoop() error {
 	defer metrics2.FuncTimer().Stop()
-	s.schedulingMtx.Lock()
-	defer s.schedulingMtx.Unlock()
 
 	glog.Infof("Task Scheduler updating...")
 
@@ -1283,7 +1274,7 @@ func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots) ([]*swarming_api.
 }
 
 // updateUnfinishedTasks queries Swarming for all unfinished tasks and updates
-// their status in the DB. Caller must hold schedulingMtx.
+// their status in the DB.
 func (s *TaskScheduler) updateUnfinishedTasks(now time.Time) error {
 	defer metrics2.FuncTimer().Stop()
 	tasks, err := s.tCache.UnfinishedTasks()
@@ -1395,7 +1386,7 @@ func (s *TaskScheduler) jobFinished(j *db.Job) error {
 }
 
 // updateUnfinishedJobs updates all not-yet-finished Jobs to determine if their
-// state has changed. Caller must hold schedulingMtx.
+// state has changed.
 func (s *TaskScheduler) updateUnfinishedJobs() error {
 	defer metrics2.FuncTimer().Stop()
 	jobs, err := s.jCache.UnfinishedJobs()
@@ -1444,7 +1435,7 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 }
 
 // getTasksForJob finds all Tasks for the given Job. It returns the Tasks
-// in a map keyed by name. Caller must hold schedulingMtx.
+// in a map keyed by name.
 func (s *TaskScheduler) getTasksForJob(j *db.Job) (map[string][]*db.Task, error) {
 	tasks := map[string][]*db.Task{}
 	for d, _ := range j.Dependencies {
@@ -1465,8 +1456,7 @@ func (s *TaskScheduler) GetJob(id string) (*db.Job, error) {
 
 // addTasksSingleTaskSpec computes the blamelist for each task in tasks, all of
 // which must have the same Repo and Name fields, and inserts/updates them in
-// the TaskDB. Also adjusts blamelists of existing tasks. Caller must hold
-// schedulingMtx.
+// the TaskDB. Also adjusts blamelists of existing tasks.
 func (s *TaskScheduler) addTasksSingleTaskSpec(tasks []*db.Task) error {
 	sort.Sort(db.TaskSlice(tasks))
 	cache := newCacheWrapper(s.tCache)
@@ -1537,9 +1527,6 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(tasks []*db.Task) error {
 // groups Tasks by repo and TaskSpec name. May return error on partial success.
 // May modify Commits and Id of argument tasks on error.
 func (s *TaskScheduler) AddTasks(taskMap map[string]map[string][]*db.Task) error {
-	s.schedulingMtx.Lock()
-	defer s.schedulingMtx.Unlock()
-
 	type queueItem struct {
 		Repo string
 		Name string
