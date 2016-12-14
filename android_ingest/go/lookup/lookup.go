@@ -49,6 +49,12 @@ func New(checkout *git.Checkout) (*Cache, error) {
 	return c, nil
 }
 
+func NewForTest() *Cache {
+	return &Cache{
+		hashes: map[int64]string{},
+	}
+}
+
 func (c *Cache) parseLog(log string) error {
 	// The oneline log format looks like
 	//
