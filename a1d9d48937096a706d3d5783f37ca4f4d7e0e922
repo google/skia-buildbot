@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1aaac39b_60086c4c",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-14T17:53:41Z",
+      "side": 1,
+      "message": "if !task.Done() {",
+      "range": {
+        "startLine": 64,
+        "startChar": 4,
+        "endLine": 64,
+        "endChar": 60
+      },
+      "revId": "a1d9d48937096a706d3d5783f37ca4f4d7e0e922",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1aaac39b_60006ce3",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-14T17:53:41Z",
+      "side": 1,
+      "message": "This can move up to 119.",
+      "range": {
+        "startLine": 130,
+        "startChar": 2,
+        "endLine": 130,
+        "endChar": 12
+      },
+      "revId": "a1d9d48937096a706d3d5783f37ca4f4d7e0e922",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
