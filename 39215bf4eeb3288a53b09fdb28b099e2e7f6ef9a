@@ -22,6 +22,24 @@
       "revId": "39215bf4eeb3288a53b09fdb28b099e2e7f6ef9a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a23133a_b9e01fb2",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-14T21:01:47Z",
+      "side": 1,
+      "message": "Changed to RepoURLs for specificity.",
+      "parentUuid": "9a23133a_797a8728",
+      "revId": "39215bf4eeb3288a53b09fdb28b099e2e7f6ef9a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
