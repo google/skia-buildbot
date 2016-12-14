@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1aaac39b_fd6ae7cc",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1602,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-14T12:59:28Z",
+      "side": 1,
+      "message": "Is there any reason to log the concurrent update error?  Isn\u0027t the message always just \"Concurrent Update\"?",
+      "range": {
+        "startLine": 1602,
+        "startChar": 101,
+        "endLine": 1602,
+        "endChar": 124
+      },
+      "revId": "91c1a50353138fe0ba44e4e643b1bc9bb62ce223",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
