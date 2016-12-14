@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9a23133a_b9533f57",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 875,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-14T19:04:33Z",
+      "side": 1,
+      "message": "Thanks!",
+      "parentUuid": "9a23133a_b96d7f43",
+      "revId": "d8ae61efce70df690c435f647765322f1c00af7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a23133a_b9f25f76",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 1
@@ -53,6 +71,24 @@
       "writtenOn": "2016-12-14T18:40:07Z",
       "side": 1,
       "message": "There\u0027s a ton of setup for this test, so I just modified the existing test. Ideally we would make a separate test for the retries. WDYT?",
+      "revId": "d8ae61efce70df690c435f647765322f1c00af7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a23133a_99f75b18",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1978,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-14T19:04:33Z",
+      "side": 1,
+      "message": "I think this is fine.",
+      "parentUuid": "9a23133a_59530387",
       "revId": "d8ae61efce70df690c435f647765322f1c00af7e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
