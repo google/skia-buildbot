@@ -35,7 +35,7 @@ import (
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/status/go/commit_cache"
+	"go.skia.org/infra/status/go/capacity"
 	"go.skia.org/infra/status/go/franken"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
@@ -57,27 +57,29 @@ const (
 
 var (
 	buildCache      *franken.BTCache                     = nil
+	buildDb         buildbot.DB                          = nil
+	capacityClient  *capacity.CapacityClient             = nil
 	commitCaches    map[string]*commit_cache.CommitCache = nil
 	commitsTemplate *template.Template                   = nil
-	buildDb         buildbot.DB                          = nil
 	dbClient        *influxdb.Client                     = nil
 	goldGMStatus    *polling_status.PollingStatus        = nil
-	goldSKPStatus   *polling_status.PollingStatus        = nil
 	goldImageStatus *polling_status.PollingStatus        = nil
+	goldSKPStatus   *polling_status.PollingStatus        = nil
 	perfStatus      *polling_status.PollingStatus        = nil
 	tasksPerCommit  *tasksPerCommitCache                 = nil
 )
 
 // flags
 var (
-	host               = flag.String("host", "localhost", "HTTP service host")
-	port               = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
-	useMetadata        = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
-	testing            = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
-	workdir            = flag.String("workdir", ".", "Directory to use for scratch work.")
-	resourcesDir       = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	buildbotDbHost     = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
-	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
+	host                      = flag.String("host", "localhost", "HTTP service host")
+	port                      = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
+	useMetadata               = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
+	testing                   = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
+	workdir                   = flag.String("workdir", ".", "Directory to use for scratch work.")
+	resourcesDir              = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	buildbotDbHost            = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
+	taskSchedulerDbUrl        = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
+	capacityRecalculatePeriod = flag.Duration("capacity_recalculate_period", 10*time.Minute, "How often to re-calculate capacity statistics.")
 
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
@@ -441,6 +443,15 @@ func infraHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func capacityStatsHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("capacityStatsHandler").Stop()
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(capacityClient.CapacityMetrics()); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
+		return
+	}
+}
+
 func perfJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(map[string]interface{}{"alerts": perfStatus}); err != nil {
@@ -522,6 +533,7 @@ func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", commitsHandler)
 	r.HandleFunc("/infra", infraHandler)
+	r.HandleFunc("/capacity/json", capacityStatsHandler)
 	r.HandleFunc("/json/goldStatus", goldJsonHandler)
 	r.HandleFunc("/json/perfAlerts", perfJsonHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
@@ -619,6 +631,9 @@ func main() {
 		glog.Fatalf("Failed to create build cache: %s", err)
 	}
 	buildCache = bc
+
+	capacityClient = capacity.New(tasksPerCommit.tcc, bc.GetTaskCache(), repos)
+	capacityClient.StartLoading(*capacityPeriod)
 
 	// Create the commit caches.
 	commitCaches = map[string]*commit_cache.CommitCache{}
