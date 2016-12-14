@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "7ab81ff6_38ece949",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-14T18:06:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1aaac39b_9dac0387",
+      "revId": "d15c90f3833910eba4531af61124d6e6c2ac27e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1aaac39b_40d0d0df",
         "filename": "status/go/franken/cache.go",
         "patchSetId": 3
@@ -42,6 +60,24 @@
         "endLine": 558,
         "endChar": 8
       },
+      "revId": "d15c90f3833910eba4531af61124d6e6c2ac27e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da4bcbfb_9b72eb4f",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 558,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-14T18:06:40Z",
+      "side": 1,
+      "message": "Removed and fixed the return value.  Originally the return value was sliced[0:n] which was a problem if there were fewer than n commits.",
+      "parentUuid": "1aaac39b_40d0d0df",
       "revId": "d15c90f3833910eba4531af61124d6e6c2ac27e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "7ab81ff6_d81ded7e",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 613,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-14T18:06:40Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "1aaac39b_00f40864",
+      "revId": "d15c90f3833910eba4531af61124d6e6c2ac27e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1aaac39b_80aff860",
         "filename": "status/go/status/main.go",
         "patchSetId": 3
@@ -94,6 +148,24 @@
     },
     {
       "key": {
+        "uuid": "fa4ecf0a_9c72e54f",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-14T18:06:40Z",
+      "side": 1,
+      "message": "Yeah, but we\u0027re already using buildbot terms everywhere else.  I can take care of this later when we convert everything to task-scheduler terms.",
+      "parentUuid": "1aaac39b_80aff860",
+      "revId": "d15c90f3833910eba4531af61124d6e6c2ac27e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1aaac39b_40b9f0a7",
         "filename": "status/go/status/main.go",
         "patchSetId": 3
@@ -111,6 +183,24 @@
         "endLine": 339,
         "endChar": 41
       },
+      "revId": "d15c90f3833910eba4531af61124d6e6c2ac27e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bac2976f_fa22e96b",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-14T18:06:40Z",
+      "side": 1,
+      "message": "We don\u0027t know what repo we\u0027re in here.",
+      "parentUuid": "1aaac39b_40b9f0a7",
       "revId": "d15c90f3833910eba4531af61124d6e6c2ac27e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
