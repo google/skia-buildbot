@@ -222,6 +222,24 @@
       "revId": "d15c90f3833910eba4531af61124d6e6c2ac27e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a23133a_d90cf3b6",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-14T21:01:47Z",
+      "side": 1,
+      "message": "Oh, I didn\u0027t realize that this endpoint also had repo in mux.Vars. Done.",
+      "parentUuid": "9a23133a_d98f1310",
+      "revId": "d15c90f3833910eba4531af61124d6e6c2ac27e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
