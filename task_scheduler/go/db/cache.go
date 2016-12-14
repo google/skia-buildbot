@@ -56,7 +56,7 @@ type TaskCache interface {
 
 	// GetTasksFromDateRange retrieves all tasks which were created in the given
 	// date range.
-	GetTasksFromDateRange(time.Time, time.Time) ([]*Task, error)
+	GetTasksFromDateRange(from time.Time, to time.Time) ([]*Task, error)
 
 	// KnownTaskName returns true iff the given task name has been seen
 	// before for a non-forced, non-tryjob run.
