@@ -867,6 +867,49 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, tasks []*db.Ta
 	return nil
 }
 
+// getTasksToUpdate updates blamelists and returns added and updated tasks to be
+// inserted into the DB. Items of candidates correspond to items of tasks at the
+// same index.
+func (s *TaskScheduler) getTasksToUpdate(candidates []*taskCandidate, tasks []*db.Task) ([]*db.Task, error) {
+	// Update blamelists in the DB.
+	byCandidateId := make(map[string]*db.Task, len(candidates))
+	tasksToInsert := make(map[string]*db.Task, len(candidates)*2)
+	for i, t := range tasks {
+		candidate := candidates[i]
+		byCandidateId[candidate.MakeId()] = t
+		tasksToInsert[t.Id] = t
+		// If we're stealing commits from another task, find it and adjust
+		// its blamelist.
+		if candidate.StealingFromId != "" {
+			var stealingFrom *db.Task
+			if _, err := parseId(candidate.StealingFromId); err == nil {
+				stealingFrom = byCandidateId[candidate.StealingFromId]
+				if stealingFrom == nil {
+					return nil, fmt.Errorf("Attempting to backfill a just-triggered candidate but can't find it: %q", candidate.StealingFromId)
+				}
+			} else {
+				var ok bool
+				stealingFrom, ok = tasksToInsert[candidate.StealingFromId]
+				if !ok {
+					stealingFrom, err = s.db.GetTaskById(candidate.StealingFromId)
+					if err != nil {
+						return nil, err
+					}
+				}
+			}
+			oldCommits := util.NewStringSet(stealingFrom.Commits)
+			stealing := util.NewStringSet(candidate.Commits)
+			stealingFrom.Commits = oldCommits.Complement(stealing).Keys()
+			tasksToInsert[stealingFrom.Id] = stealingFrom
+		}
+	}
+	rv := make([]*db.Task, 0, len(tasksToInsert))
+	for _, t := range tasksToInsert {
+		rv = append(rv, t)
+	}
+	return rv, nil
+}
+
 // scheduleTasks queries for free Swarming bots and triggers tasks according
 // to relative priorities in the queue. Caller must hold schedulingMtx.
 func (s *TaskScheduler) scheduleTasks(bots []*swarming_api.SwarmingRpcsBotInfo, queue []*taskCandidate) error {
@@ -887,48 +930,9 @@ func (s *TaskScheduler) scheduleTasks(bots []*swarming_api.SwarmingRpcsBotInfo, 
 	if err := s.triggerTasks(schedule, triggered); err != nil {
 		return err
 	}
-
-	// Update blamelists in the DB.
-	byCandidateId := make(map[string]*db.Task, len(schedule))
-	tasksToInsert := make(map[string]*db.Task, len(schedule)*2)
-	for i, t := range triggered {
-		candidate := schedule[i]
-		byCandidateId[candidate.MakeId()] = t
-		tasksToInsert[t.Id] = t
-		// If we're stealing commits from another task, find it and adjust
-		// its blamelist.
-		// TODO(borenet): We're retrieving a cached task which may have been
-		// changed since the cache was last updated. We need to handle that.
-		if candidate.StealingFromId != "" {
-			var stealingFrom *db.Task
-			if _, err := parseId(candidate.StealingFromId); err == nil {
-				stealingFrom = byCandidateId[candidate.StealingFromId]
-				if stealingFrom == nil {
-					return fmt.Errorf("Attempting to backfill a just-triggered candidate but can't find it: %q", candidate.StealingFromId)
-				}
-			} else {
-				var ok bool
-				stealingFrom, ok = tasksToInsert[candidate.StealingFromId]
-				if !ok {
-					stealingFrom, err = s.tCache.GetTask(candidate.StealingFromId)
-					if err != nil {
-						return err
-					}
-				}
-			}
-			oldCommits := util.NewStringSet(stealingFrom.Commits)
-			stealing := util.NewStringSet(t.Commits)
-			stealingFrom.Commits = oldCommits.Complement(stealing).Keys()
-			tasksToInsert[stealingFrom.Id] = stealingFrom
-		}
-	}
-	tasks := make([]*db.Task, 0, len(tasksToInsert))
-	for _, t := range tasksToInsert {
-		tasks = append(tasks, t)
-	}
-
-	// Insert the tasks into the database.
-	if err := s.db.PutTasks(tasks); err != nil {
+	if _, err := db.UpdateTasksWithRetries(s.db, func() ([]*db.Task, error) {
+		return s.getTasksToUpdate(schedule, triggered)
+	}); err != nil {
 		return err
 	}
 

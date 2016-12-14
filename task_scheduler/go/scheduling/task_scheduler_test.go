@@ -1778,6 +1778,22 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	assert.Nil(t, newTask)
 }
 
+// spyDB calls onPutTasks before delegating PutTask(s) to DB.
+type spyDB struct {
+	db.DB
+	onPutTasks func([]*db.Task)
+}
+
+func (s *spyDB) PutTask(task *db.Task) error {
+	s.onPutTasks([]*db.Task{task})
+	return s.DB.PutTask(task)
+}
+
+func (s *spyDB) PutTasks(tasks []*db.Task) error {
+	s.onPutTasks(tasks)
+	return s.DB.PutTasks(tasks)
+}
+
 func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
@@ -1959,6 +1975,34 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	}
 	assert.Equal(t, commits[expectIdx], s.queue[0].Revision)
 
+	retryCount := 0
+	causeConcurrentUpdate := func(tasks []*db.Task) {
+		// HACK(benjaminwagner): Filter out PutTask calls from
+		// updateUnfinishedTasks by looking for new tasks.
+		anyNew := false
+		for _, task := range tasks {
+			if util.TimeIsZero(task.DbModified) {
+				anyNew = true
+				break
+			}
+		}
+		if !anyNew {
+			return
+		}
+		if retryCount < 3 {
+			taskToUpdate := []*db.Task{t1, t2, t3}[retryCount]
+			retryCount++
+			taskInDb, err := d.GetTaskById(taskToUpdate.Id)
+			assert.NoError(t, err)
+			taskInDb.Status = db.TASK_STATUS_SUCCESS
+			assert.NoError(t, d.PutTask(taskInDb))
+		}
+	}
+	s.db = &spyDB{
+		DB:         d,
+		onPutTasks: causeConcurrentUpdate,
+	}
+
 	// Run again with 5 bots to check the case where we bisect the same
 	// task twice.
 	bot4 := makeBot("bot4", map[string]string{"pool": "Skia"})
@@ -1967,11 +2011,18 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	assert.NoError(t, s.MainLoop())
 	assert.NoError(t, s.tCache.Update())
 	assert.Equal(t, 0, len(s.queue))
+	assert.Equal(t, 3, retryCount)
 	tasks, err = s.tCache.GetTasksForCommits(repoName, commits)
 	assert.NoError(t, err)
 	for _, byName := range tasks {
 		for _, task := range byName {
 			assert.Equal(t, 1, len(task.Commits))
+			assert.Equal(t, task.Revision, task.Commits[0])
+			if util.In(task.Id, []string{t1.Id, t2.Id, t3.Id}) {
+				assert.Equal(t, db.TASK_STATUS_SUCCESS, task.Status)
+			} else {
+				assert.Equal(t, db.TASK_STATUS_PENDING, task.Status)
+			}
 		}
 	}
 }
@@ -2919,22 +2970,6 @@ func TestAddTasksFailure(t *testing.T) {
 	assertModifiedTasks(t, d, trackId, []*db.Task{toil2, duty2, duty3})
 }
 
-// spyDB calls onPutTasks before delegating PutTask(s) to DB.
-type spyDB struct {
-	db.DB
-	onPutTasks func([]*db.Task)
-}
-
-func (s *spyDB) PutTask(task *db.Task) error {
-	s.onPutTasks([]*db.Task{task})
-	return s.DB.PutTask(task)
-}
-
-func (s *spyDB) PutTasks(tasks []*db.Task) error {
-	s.onPutTasks(tasks)
-	return s.DB.PutTasks(tasks)
-}
-
 // AddTasks should retry on ErrConcurrentUpdate.
 func TestAddTasksRetries(t *testing.T) {
 	hashes, d, s, cleanup := setupAddTasksTest(t)
@@ -2996,6 +3031,10 @@ func TestAddTasksRetries(t *testing.T) {
 	}
 
 	assert.NoError(t, s.AddTasks(tasks))
+
+	assert.Equal(t, 2, retryCount["toil"])
+	assert.Equal(t, 3, retryCount["duty"])
+	assert.Equal(t, 4, retryCount["work"])
 
 	modified := []*db.Task{}
 	check := func(t2, t3, t4 *db.Task) {
