@@ -204,6 +204,24 @@
       "revId": "d15c90f3833910eba4531af61124d6e6c2ac27e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a23133a_d98f1310",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-14T18:14:52Z",
+      "side": 1,
+      "message": "LGTM as-is, but assuming previous code worked, repo :\u003d mux.Vars(r)[\"repo\"]",
+      "parentUuid": "bac2976f_fa22e96b",
+      "revId": "d15c90f3833910eba4531af61124d6e6c2ac27e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
