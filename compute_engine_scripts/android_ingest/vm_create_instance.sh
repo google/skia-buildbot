@@ -8,7 +8,7 @@ source vm_config.sh
 
 MACHINE_TYPE=n1-standard-1
 SOURCE_SNAPSHOT=skia-systemd-pushable-base
-SCOPES='https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/gerritcodereview'
+SCOPES='https://www.googleapis.com/auth/devstorage.full_control,https://www.googleapis.com/auth/gerritcodereview'
 IP_ADDRESS=104.154.112.97
 
 # Create a boot disk from the pushable base snapshot.
@@ -23,7 +23,7 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --machine-type $MACHINE_TYPE \
   --network "default" \
   --maintenance-policy "MIGRATE" \
-  --scopes $SCOPES \
+  --scopes "$SCOPES" \
   --tags "http-server,https-server" \
   --metadata-from-file "startup-script=startup-script.sh" \
   --metadata "owner_primary=jcgregorio,owner_secondary=stephana" \
