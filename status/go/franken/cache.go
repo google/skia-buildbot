@@ -41,7 +41,6 @@ const (
 	// BuilderComment.Id via lookup in an LRUCache. If a comment falls out of this
 	// cache, we can no longer delete that comment.
 	MAX_COMMENTS = 1000
-
 	// TASK_URL_FMT is a format string for the Swarming task URL. Parameter is
 	// task ID.
 	TASK_URL_FMT = "https://chromium-swarm.appspot.com/task?id=%s"
@@ -304,9 +303,7 @@ func (c *BTCache) taskToBuild(task *db.Task, loggedIn bool) *buildbot.Build {
 	case db.TASK_STATUS_MISHAP:
 		results = buildbot.BUILDBOT_EXCEPTION
 	}
-
 	buildSlave := DEFAULT_BUILD_SLAVE
-
 	taskUrlFmt := NOAUTH_TASK_URL_FMT
 	if loggedIn {
 		taskUrlFmt = TASK_URL_FMT
@@ -329,17 +326,14 @@ func (c *BTCache) taskToBuild(task *db.Task, loggedIn bool) *buildbot.Build {
 	} else {
 		glog.Errorf("Failed to encode properties: %s", err)
 	}
-
 	finished := time.Time{}
 	if task.Done() {
 		finished = task.Finished
 	}
-
 	comments := c.cachedTaskComments[task.Repo][task.Revision][task.Name]
 	if comments == nil {
 		comments = []*buildbot.BuildComment{}
 	}
-
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 	return &buildbot.Build{
@@ -367,17 +361,14 @@ func (c *BTCache) GetBuildsForCommits(repoName string, commits []string, loggedI
 	if len(commits) == 0 {
 		return map[string]map[string]*buildbot.BuildSummary{}, nil
 	}
-
 	buildResult, err := c.builds.GetBuildsForCommits(commits)
 	if err != nil {
 		return nil, err
 	}
-
 	taskResult, err := c.tasks.GetTasksForCommits(repoName, commits)
 	if err != nil {
 		return nil, err
 	}
-
 	for hash, taskMap := range taskResult {
 		if len(taskMap) == 0 {
 			continue
@@ -557,7 +548,6 @@ func (c *BTCache) getLastNCommits(r *repograph.Graph, n int) ([]*vcsinfo.LongCom
 		}
 		commit = p[0]
 	}
-
 	// Now find all commits newer than the current commit.
 	start := commit.Timestamp
 	commits := make([]*repograph.Commit, 0, 2*n)
@@ -570,10 +560,8 @@ func (c *BTCache) getLastNCommits(r *repograph.Graph, n int) ([]*vcsinfo.LongCom
 	}); err != nil {
 		return nil, err
 	}
-
 	// Sort the commits by timestamp, most recent first.
 	sort.Sort(repograph.CommitSlice(commits))
-
 	// Return the most-recent N commits.
 	rv := make([]*vcsinfo.LongCommit, 0, len(commits))
 	for _, c := range commits {
@@ -599,22 +587,18 @@ type CommitsData struct {
 func (c *BTCache) GetLastN(repo string, n int, loggedIn bool) (*CommitsData, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-
 	r, ok := c.repos[repo]
 	if !ok {
 		return nil, fmt.Errorf("No such repo: %s", repo)
 	}
-
 	commits, err := c.getLastNCommits(r, n)
 	if err != nil {
 		return nil, err
 	}
-
 	commitComments := c.cachedCommitComments[repo]
 	if commitComments == nil {
 		commitComments = map[string][]*buildbot.CommitComment{}
 	}
-
 	branches := r.Branches()
 	branchHeads := make([]*gitinfo.GitBranch, 0, len(branches))
 	for _, b := range branches {
@@ -623,7 +607,6 @@ func (c *BTCache) GetLastN(repo string, n int, loggedIn bool) (*CommitsData, err
 			Head: r.Get(b).Hash,
 		})
 	}
-
 	hashes := make([]string, 0, len(commits))
 	for _, c := range commits {
 		hashes = append(hashes, c.Hash)
@@ -632,7 +615,6 @@ func (c *BTCache) GetLastN(repo string, n int, loggedIn bool) (*CommitsData, err
 	if err != nil {
 		return nil, err
 	}
-
 	builders := c.GetBuildersComments()
 	return &CommitsData{
 		Comments:    commitComments,
@@ -671,4 +653,9 @@ func (c *BTCache) DeleteCommitComment(repo, commit string, id int64) error {
 		return err
 	}
 	return c.updateComments()
+}
+
+// GetTaskCache returns the underlying db.TaskCache.
+func (c *BTCache) GetTaskCache() db.TaskCache {
+	return c.tasks
 }
