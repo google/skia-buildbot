@@ -820,6 +820,7 @@ func (s *TaskScheduler) isolateCandidates(candidates []*taskCandidate) error {
 
 // triggerTasks triggers the given slice of tasks to run on Swarming.
 func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, tasks []*db.Task) error {
+	defer metrics2.FuncTimer().Stop()
 	var wg sync.WaitGroup
 	var mtx sync.Mutex
 	errs := []error{}
