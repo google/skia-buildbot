@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba0a97d0_c0a09246",
+        "filename": "res/imp/sort-toggle.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-15T15:50:12Z",
+      "side": 1,
+      "message": "This file LGTM but I could\u0027ve sworn Stephan already wrote something like this.",
+      "range": {
+        "startLine": 1,
+        "startChar": 3,
+        "endLine": 1,
+        "endChar": 4
+      },
+      "revId": "6eb5dc91f092fba8d20ad329cb6c86b79386add7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
