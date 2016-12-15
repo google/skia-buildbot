@@ -30,7 +30,7 @@
       ],
       "dimensions": [
         "pool:Skia",
-        "os:Ubuntu",
+        "os:Ubuntu-14.04",
         "gpu:none"
       ],
       "extra_args": [
@@ -62,7 +62,7 @@
       ],
       "dimensions": [
         "pool:Skia",
-        "os:Ubuntu",
+        "os:Ubuntu-14.04",
         "gpu:none"
       ],
       "extra_args": [
@@ -94,7 +94,7 @@
       ],
       "dimensions": [
         "pool:Skia",
-        "os:Ubuntu",
+        "os:Ubuntu-14.04",
         "gpu:none"
       ],
       "extra_args": [

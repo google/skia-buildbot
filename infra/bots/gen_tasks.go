@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	DEFAULT_OS = "Ubuntu"
+	DEFAULT_OS       = DEFAULT_OS_LINUX
+	DEFAULT_OS_LINUX = "Ubuntu-14.04"
 
 	// Pool for Skia bots.
 	POOL_SKIA = "Skia"
@@ -40,7 +41,7 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 		CipdPackages: []*specs.CipdPackage{b.MustGetCipdPackageFromAsset("go")},
 		Dimensions: []string{
 			"pool:Skia",
-			"os:Ubuntu",
+			fmt.Sprintf("os:%s", DEFAULT_OS_LINUX),
 			"gpu:none",
 		},
 		ExtraArgs: []string{
