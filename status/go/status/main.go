@@ -55,16 +55,17 @@ const (
 )
 
 var (
-	buildCache      *franken.BTCache              = nil
-	buildDb         buildbot.DB                   = nil
-	capacityClient  *capacity.CapacityClient      = nil
-	commitsTemplate *template.Template            = nil
-	dbClient        *influxdb.Client              = nil
-	goldGMStatus    *polling_status.PollingStatus = nil
-	goldImageStatus *polling_status.PollingStatus = nil
-	goldSKPStatus   *polling_status.PollingStatus = nil
-	perfStatus      *polling_status.PollingStatus = nil
-	tasksPerCommit  *tasksPerCommitCache          = nil
+	buildCache       *franken.BTCache              = nil
+	buildDb          buildbot.DB                   = nil
+	capacityClient   *capacity.CapacityClient      = nil
+	capacityTemplate *template.Template            = nil
+	commitsTemplate  *template.Template            = nil
+	dbClient         *influxdb.Client              = nil
+	goldGMStatus     *polling_status.PollingStatus = nil
+	goldImageStatus  *polling_status.PollingStatus = nil
+	goldSKPStatus    *polling_status.PollingStatus = nil
+	perfStatus       *polling_status.PollingStatus = nil
+	tasksPerCommit   *tasksPerCommitCache          = nil
 )
 
 // flags
@@ -110,6 +111,10 @@ func reloadTemplates() {
 	}
 	commitsTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/commits.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+	capacityTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/capacity.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 }
@@ -398,6 +403,20 @@ func infraHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func capacityHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("capacityHandler").Stop()
+	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in testing mode.
+	if *testing {
+		reloadTemplates()
+	}
+
+	if err := capacityTemplate.Execute(w, nil); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
+	}
+}
+
 func capacityStatsHandler(w http.ResponseWriter, r *http.Request) {
 	defer timer.New("capacityStatsHandler").Stop()
 	w.Header().Set("Content-Type", "application/json")
@@ -483,6 +502,7 @@ func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", commitsHandler)
 	r.HandleFunc("/infra", infraHandler)
+	r.HandleFunc("/capacity", capacityHandler)
 	r.HandleFunc("/capacity/json", capacityStatsHandler)
 	r.HandleFunc("/json/goldStatus", goldJsonHandler)
 	r.HandleFunc("/json/perfAlerts", perfJsonHandler)
