@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "ba0a97d0_1d14b703",
+        "filename": "status/res/imp/capacity-stats-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-15T15:43:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba0a97d0_ddf4ffd4",
+      "revId": "e3a8a8104c8a203721d76c15e278f5ce5940d82a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ba0a97d0_3d037bf2",
         "filename": "status/res/imp/capacity-stats-sk.html",
         "patchSetId": 5
@@ -42,6 +60,24 @@
         "endLine": 102,
         "endChar": 43
       },
+      "revId": "e3a8a8104c8a203721d76c15e278f5ce5940d82a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba0a97d0_fdfe238c",
+        "filename": "status/res/imp/capacity-stats-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-15T15:43:03Z",
+      "side": 1,
+      "message": "For a visual representation, see https://github.com/google/skia/graphs/commit-activity\n\nI\u0027ll add in the range you specified, since it seems to be quite close to reality.",
+      "parentUuid": "ba0a97d0_3d037bf2",
       "revId": "e3a8a8104c8a203721d76c15e278f5ce5940d82a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "ba0a97d0_dd035fc0",
+        "filename": "status/res/imp/capacity-stats-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-15T15:43:03Z",
+      "side": 1,
+      "message": "Added a TODO.\n\nFrom my notes this influxdb query computes it for android devices\nSELECT sum(\"value\")/(1000*60*60*24) FROM \"swarming.tasks.duration\" WHERE time \u003e now() - 24h AND \"app\" \u003d \u0027datahopper\u0027 AND \"host\" \u003d \u0027skia-datahopper2\u0027 AND \"dimension-os\"\u003d\u0027Android\u0027 GROUP BY  \"dimension-device_type\", \"bot-id\"",
+      "parentUuid": "ba0a97d0_1d0037e2",
+      "revId": "e3a8a8104c8a203721d76c15e278f5ce5940d82a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ba0a97d0_7d0df319",
         "filename": "status/res/imp/capacity-stats-sk.html",
         "patchSetId": 5
@@ -88,6 +142,24 @@
         "endLine": 114,
         "endChar": 30
       },
+      "revId": "e3a8a8104c8a203721d76c15e278f5ce5940d82a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba0a97d0_bdc66b5a",
+        "filename": "status/res/imp/capacity-stats-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-15T15:43:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba0a97d0_7d0df319",
       "revId": "e3a8a8104c8a203721d76c15e278f5ce5940d82a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -117,6 +189,24 @@
     },
     {
       "key": {
+        "uuid": "fa55efac_848b6673",
+        "filename": "status/res/imp/capacity-stats-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-15T15:43:03Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ba0a97d0_5de10f10",
+      "revId": "e3a8a8104c8a203721d76c15e278f5ce5940d82a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ba0a97d0_bd22eb6a",
         "filename": "status/res/imp/capacity-stats-sk.html",
         "patchSetId": 5
@@ -134,6 +224,24 @@
         "endLine": 337,
         "endChar": 26
       },
+      "revId": "e3a8a8104c8a203721d76c15e278f5ce5940d82a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa55efac_a490e29b",
+        "filename": "status/res/imp/capacity-stats-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-15T15:43:03Z",
+      "side": 1,
+      "message": "I just made the sort configurable.",
+      "parentUuid": "ba0a97d0_bd22eb6a",
       "revId": "e3a8a8104c8a203721d76c15e278f5ce5940d82a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
