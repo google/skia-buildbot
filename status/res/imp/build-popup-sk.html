@@ -24,8 +24,9 @@
         master:      String indicating the master of the build.
         number:      Number indicating the build number of this build.
         results:     Number indicating the result status code of the build.
-
-    buildbot_url_prefix: Prefix of the buildbot URL.
+        url:         URL of build details.
+        dashboardBuilderUrl: URL for "Other Tasks Like This"
+        slaveHostUrl: URL for "Bot"
 
     commit_details: Object whose keys are commit hashes and values are objects with the following attributes:
         shortAuthor:  String, shortened version of the commit author.
@@ -74,7 +75,7 @@
     <div class="horizontal layout wrap">
       <div class="flex">
         <h3>
-          <a target="_blank" href$="{{_makeBuildURL(build, buildbot_url_prefix)}}">
+          <a target="_blank" href$="[[build.url]]">
             <span>{{build.builder}}</span> #<span>{{build.number}}</span> <iron-icon icon="launch"></iron-icon>
           </a>
         </h3>
@@ -95,7 +96,7 @@
           <td>Failed steps:</td>
           <td>
             <template is="dom-repeat" items="{{build.failedSteps}}" as="step">
-              <a target="_blank" href$="{{_makeBuildStepLogURL(build, buildbot_url_prefix, step)}}">{{step}}</a><br>
+              <a target="_blank" href$="{{_makeBuildStepLogURL(build, step)}}">{{step}}</a><br>
             </template>
           </td>
         </tr>
@@ -103,7 +104,7 @@
       <tr>
         <td>Other Tasks Like This</td>
         <td>
-          <a target="_blank" rel="noopener" href$="{{_makeDashboardBuilderURL(build)}}">
+          <a target="_blank" rel="noopener" href$="[[build.dashboardBuilderUrl]]">
             <span>{{build.builder}}</span>
           </a>
         </td>
@@ -111,7 +112,7 @@
       <tr>
         <td>Bot</td>
         <td>
-          <a target="_blank" rel="noopener" href$="{{_makeSlaveHostURL(build)}}">
+          <a target="_blank" rel="noopener" href$="[[build.slaveHostUrl]]">
             [[build.buildslave]]
           </a>
         </td>
@@ -172,38 +173,17 @@
       _commentAdded: function() {
         window.location.href = window.location.href;
       },
-      _makeBuildURL: function(build, buildbot_url_prefix) {
-        if (build.url) {
-          return build.url;
-        } else {
-          return buildbot_url_prefix + 'builders/' + build.builder + '/builds/' + build.number;
-        }
-      },
       _buildResultStyle: function(build) {
         return 'color: ' + build.color;
       },
       _hasFailedSteps: function(build) {
         return build.failedSteps && build.failedSteps.length > 0;
       },
-      _makeDashboardBuilderURL: function(build) {
-        if (build.dashboardBuilderUrl) {
-          return build.dashboardBuilderUrl;
-        } else {
-          return '';
-        }
-      },
-      _makeSlaveHostURL: function(build) {
-        if (build.slaveHostUrl) {
-          return build.slaveHostUrl;
-        } else {
-          return '';
-        }
-      },
       _makeAddCommentURL: function(build, repo) {
         return '/json/' + repo + '/builds/' + build.master + '/' + build.builder + '/' + build.number + '/comments';
       },
-      _makeBuildStepLogURL: function(build, buildbot_url_prefix, step) {
-        return buildbot_url_prefix + 'builders/' + build.builder + '/builds/' + build.number + '/steps/' + step + '/logs/stdio';
+      _makeBuildStepLogURL: function(build, step) {
+        return build.url + '/steps/' + step + '/logs/stdio';
       },
       _makeCommitURL: function(c, repo_base) {
         return repo_base + c;

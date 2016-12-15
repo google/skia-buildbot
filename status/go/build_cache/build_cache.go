@@ -1,6 +1,7 @@
 package build_cache
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"sync"
@@ -33,6 +34,9 @@ const (
 
 	// Load all builds for this time period when starting up.
 	BUILD_LOADING_PERIOD = 14 * 24 * time.Hour
+
+	// Used for the third element of a property in Build.Properties.
+	PROPERTY_SOURCE = "BuildCache"
 )
 
 // BuildCache is a struct used for caching build data.
@@ -145,6 +149,19 @@ func (c *BuildCache) updateBuilderComments() error {
 
 // insert adds the given build to the cache. Assumes the caller holds a lock.
 func (c *BuildCache) insert(b *buildbot.Build) {
+	// Clear existing properties and set "task" properties in preparation
+	// for all of these becoming tasks.
+	b.Properties = [][]interface{}{
+		{"taskURL", fmt.Sprintf("https://internal.skia.org/builders/%s/builds/%d", b.Builder, b.Number), PROPERTY_SOURCE},
+		{"taskSpecTasklistURL", fmt.Sprintf("https://internal.skia.org/builders/%s", b.Builder), PROPERTY_SOURCE},
+	}
+	b.PropertiesStr = ""
+	if propBytes, err := json.Marshal(b.Properties); err == nil {
+		b.PropertiesStr = string(propBytes)
+	} else {
+		glog.Errorf("Failed to encode properties: %s", err)
+	}
+
 	idStr := string(b.Id())
 	c.byId[idStr] = b
 	summary := b.GetSummary()
