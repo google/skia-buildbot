@@ -2602,7 +2602,7 @@ func TestUpdateUnfinishedTasks(t *testing.T) {
 	testutils.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsTaskRequestMetadata{m1, m2}, got)
 
 	// Ensure that we update the tasks as expected.
-	assert.NoError(t, s.updateUnfinishedTasks(now))
+	assert.NoError(t, s.updateUnfinishedTasks())
 	for _, task := range tasks {
 		got, err := s.db.GetTaskById(task.Id)
 		assert.NoError(t, err)

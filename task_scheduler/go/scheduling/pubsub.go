@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 
 	"golang.org/x/net/context"
 
@@ -99,11 +98,10 @@ func RegisterPubSubServer(s *TaskScheduler, r *mux.Router) {
 			return
 		}
 
-		glog.Infof("Got task notification from Swarming: %s", t.SwarmingTaskId)
-		/*if err := s.updateTaskFromSwarming(t.SwarmingTaskId); err != nil {
+		if err := s.updateTaskFromSwarming(t.SwarmingTaskId); err != nil {
 			httputils.ReportError(w, r, err, "Failed to process Swarming task.")
 			return
-		}*/
+		}
 		w.WriteHeader(http.StatusOK)
 	}).Methods(http.MethodPost)
 }

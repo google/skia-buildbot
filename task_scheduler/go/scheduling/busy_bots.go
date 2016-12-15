@@ -55,7 +55,7 @@ func (b *busyBots) Filter(bots []*swarming_api.SwarmingRpcsBotInfo) []*swarming_
 }
 
 // RefreshTasks updates the contents of busyBots based on the cached tasks.
-func (b *busyBots) RefreshTasks(pending []*swarming_api.SwarmingRpcsTaskRequestMetadata) error {
+func (b *busyBots) RefreshTasks(pending []*swarming_api.SwarmingRpcsTaskRequestMetadata) {
 	b.mtx.Lock()
 	defer b.mtx.Unlock()
 
@@ -64,5 +64,4 @@ func (b *busyBots) RefreshTasks(pending []*swarming_api.SwarmingRpcsTaskRequestM
 		dims := swarming.TaskDimensionsToStringSlice(t.Request.Properties.Dimensions)
 		b.pendingTasks.Insert(dims, t.TaskId)
 	}
-	return nil
 }
