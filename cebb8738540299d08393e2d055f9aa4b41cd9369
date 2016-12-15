@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba0a97d0_c399bc0c",
+        "filename": "go/cq/cq.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-15T20:49:07Z",
+      "side": 1,
+      "message": "Please replace both constants with the versions from the common package.",
+      "range": {
+        "startLine": 23,
+        "startChar": 1,
+        "endLine": 23,
+        "endChar": 16
+      },
+      "revId": "cebb8738540299d08393e2d055f9aa4b41cd9369",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba0a97d0_a39e48f0",
+        "filename": "go/cq/cq.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-15T20:49:07Z",
+      "side": 1,
+      "message": "You can leave the constant here since it doesn\u0027t change.",
+      "range": {
+        "startLine": 77,
+        "startChar": 42,
+        "endLine": 77,
+        "endChar": 50
+      },
+      "revId": "cebb8738540299d08393e2d055f9aa4b41cd9369",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba0a97d0_63855098",
+        "filename": "status/res/imp/capacity-stats-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-15T20:49:07Z",
+      "side": 1,
+      "message": "Maybe, \"CQ attempts per commit\" ?",
+      "range": {
+        "startLine": 111,
+        "startChar": 28,
+        "endLine": 111,
+        "endChar": 63
+      },
+      "revId": "cebb8738540299d08393e2d055f9aa4b41cd9369",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
