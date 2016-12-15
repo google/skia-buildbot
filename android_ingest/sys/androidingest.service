@@ -8,7 +8,7 @@ ExecStart=/usr/local/bin/androidingest \
     --resources_dir=/usr/local/share/androidingest/  \
     --log_dir=/var/log/logserver \
     --work_root=/home/default/android-ingest-work \
-    --repo_url=/home/default/android-ingest-repo
+    --repo_url=https://skia.googlesource.com/git-master-skia
 
 Restart=always
 User=default
