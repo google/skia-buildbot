@@ -24,7 +24,8 @@
         var seconds = Math.random() * 2000;
         arr.push({
           task_name: "Foobar",
-          task_duration_ns: Math.floor(seconds * 1000000000)
+          task_duration_ns: Math.floor(seconds * 1000000000),
+          on_cq_also: Math.random() < .3,
         })
       }
       return arr;

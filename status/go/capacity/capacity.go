@@ -13,6 +13,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/cq"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -39,6 +40,7 @@ type taskData struct {
 type TaskDuration struct {
 	Name            string        `json:"task_name"`
 	AverageDuration time.Duration `json:"task_duration_ns"`
+	OnCQ            bool          `json:"on_cq_also"`
 }
 
 // BotConfig represents one bot config we test on. I.e. one group of dimensions that execute tasks.
@@ -52,14 +54,14 @@ type BotConfig struct {
 func (c *CapacityClient) QueryAll() error {
 	glog.Infoln("Recounting Capacity Stats")
 
-	// Fetch last 48 hours worth of tasks that TaskScheduler created.
+	// Fetch last 72 hours worth of tasks that TaskScheduler created.
 	now := time.Now()
-	before := now.Add(-48 * time.Hour)
+	before := now.Add(-72 * time.Hour)
 	tasks, err := c.tasks.GetTasksFromDateRange(before, now)
 	if err != nil {
 		return fmt.Errorf("Could not fetch tasks between %s and %s: %s", before, now, err)
 	}
-	glog.Infof("Found %d tasks in last 48 hours", len(tasks))
+	glog.Infof("Found %d tasks in last 72 hours", len(tasks))
 
 	// Go through all the tasks and group the durations and bot ids by task name
 	durations := make(map[string][]taskData)
@@ -90,6 +92,18 @@ func (c *CapacityClient) QueryAll() error {
 			Revision: master.Hash,
 		})
 	}
+
+	cqTasks, err := cq.GetSkiaCQTryBots()
+	if err != nil {
+		glog.Warningf("Could not get Skia CQ bots.  Continuing anyway.  %s", err)
+		cqTasks = []string{}
+	}
+	infraCQTasks, err := cq.GetSkiaInfraCQTryBots()
+	if err != nil {
+		glog.Warningf("Could not get Skia CQ bots.  Continuing anyway.  %s", err)
+		infraCQTasks = []string{}
+	}
+	cqTasks = append(cqTasks, infraCQTasks...)
 
 	glog.Infof("About to look up those tasks in %+v", tips)
 
@@ -137,6 +151,7 @@ func (c *CapacityClient) QueryAll() error {
 		config.TaskAverageDurations = append(config.TaskAverageDurations, TaskDuration{
 			Name:            taskName,
 			AverageDuration: avgDuration,
+			OnCQ:            util.In(taskName, cqTasks),
 		})
 		botConfigs[key] = config
 	}
