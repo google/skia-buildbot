@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba0a97d0_ddf4ffd4",
+        "filename": "status/res/imp/capacity-stats-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-15T14:42:00Z",
+      "side": 1,
+      "message": "Future request:  Can I request another input?  At the moment we\u0027re assuming that we need 100% backfill.  I\u0027m still a little hung up on whether that\u0027s something we really *need* as opposed to something that\u0027s nice to have.  IMO 50% backfill (2 commits / blamelist) is not much worse than 100% but might require significantly fewer bots.  Can we make the desired backfill % configurable?",
+      "range": {
+        "startLine": 101,
+        "startChar": 18,
+        "endLine": 101,
+        "endChar": 24
+      },
+      "revId": "e3a8a8104c8a203721d76c15e278f5ce5940d82a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba0a97d0_3d037bf2",
+        "filename": "status/res/imp/capacity-stats-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-15T14:42:00Z",
+      "side": 1,
+      "message": "Future request:  It should be pretty easy to compute stats and provide a typical range for a workday, eg. \"Commits per day (typically 15-35)\" or something.",
+      "range": {
+        "startLine": 102,
+        "startChar": 28,
+        "endLine": 102,
+        "endChar": 43
+      },
+      "revId": "e3a8a8104c8a203721d76c15e278f5ce5940d82a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba0a97d0_1d0037e2",
+        "filename": "status/res/imp/capacity-stats-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-15T14:42:00Z",
+      "side": 1,
+      "message": "Future request:  Both of the above would be great to calculate as well, just for our information, but then they could feed back here.",
+      "range": {
+        "startLine": 104,
+        "startChar": 28,
+        "endLine": 104,
+        "endChar": 60
+      },
+      "revId": "e3a8a8104c8a203721d76c15e278f5ce5940d82a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba0a97d0_7d0df319",
+        "filename": "status/res/imp/capacity-stats-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-15T14:42:00Z",
+      "side": 1,
+      "message": "Nit: Can we indicate that this is the estimated number of bots we think we need to reach 100% backfill?  I know what this means since we\u0027ve talked about it but \"Bot Estimate\" is not very clear.  eg. \"Required Bots (optimistic)\"",
+      "range": {
+        "startLine": 114,
+        "startChar": 27,
+        "endLine": 114,
+        "endChar": 30
+      },
+      "revId": "e3a8a8104c8a203721d76c15e278f5ce5940d82a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba0a97d0_5de10f10",
+        "filename": "status/res/imp/capacity-stats-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-15T14:42:00Z",
+      "side": 1,
+      "message": "This makes me sad.",
+      "range": {
+        "startLine": 144,
+        "startChar": 8,
+        "endLine": 144,
+        "endChar": 23
+      },
+      "revId": "e3a8a8104c8a203721d76c15e278f5ce5940d82a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
