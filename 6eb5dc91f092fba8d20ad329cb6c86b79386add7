@@ -22,6 +22,24 @@
       "revId": "6eb5dc91f092fba8d20ad329cb6c86b79386add7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba0a97d0_40676240",
+        "filename": "res/imp/sort-toggle.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-15T15:55:32Z",
+      "side": 1,
+      "message": "This is from Swarming.  It works better with \u003ctable\u003e than sort-sk does",
+      "parentUuid": "ba0a97d0_c0a09246",
+      "revId": "6eb5dc91f092fba8d20ad329cb6c86b79386add7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
