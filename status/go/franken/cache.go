@@ -672,3 +672,8 @@ func (c *BTCache) DeleteCommitComment(repo, commit string, id int64) error {
 	}
 	return c.updateComments()
 }
+
+// GetTaskCache returns the underlying db.TaskCache.
+func (c *BTCache) GetTaskCache() db.TaskCache {
+	return c.tasks
+}
