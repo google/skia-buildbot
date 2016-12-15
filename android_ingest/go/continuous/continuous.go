@@ -55,20 +55,25 @@ func (c *Process) Last() (int64, int64, string, error) {
 func (c *Process) Start() {
 	go func() {
 		t := metrics2.NewTimer("repobuilder")
+		liveness := metrics2.NewLiveness("last-successful-add")
+		failures := metrics2.GetCounter("process-failures", nil)
 		for _ = range time.Tick(time.Minute) {
 			t.Start()
 			buildid, _, _, err := c.repo.GetLast()
 			if err != nil {
+				failures.Inc(1)
 				glog.Errorf("Failed to get last buildid: %s", err)
 				continue
 			}
 			builds, err := c.api.List(c.branch, buildid)
 			if err != nil {
+				failures.Inc(1)
 				glog.Errorf("Failed to get buildids from api: %s", err)
 				continue
 			}
 			for _, b := range builds {
 				if err := c.repo.Add(b.BuildId, b.TS); err != nil {
+					failures.Inc(1)
 					glog.Errorf("Failed to add new buildid to repo: %s", err)
 					// Break since we don't want to add anymore buildids until this one
 					// lands successfully.
@@ -77,11 +82,13 @@ func (c *Process) Start() {
 				// Keep lookup.Cache up to date.
 				buildid, _, hash, err := c.repo.GetLast()
 				if err != nil {
+					failures.Inc(1)
 					glog.Errorf("Failed to lookup newly added buildid to repo: %s", err)
 					break
 				}
 				c.lookup.Add(buildid, hash)
 			}
+			liveness.Reset()
 			t.Stop()
 		}
 	}()

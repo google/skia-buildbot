@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/android_ingest/go/continuous"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metrics2"
 )
 
 const (
@@ -41,6 +42,8 @@ var (
 	local bool
 
 	process *continuous.Process
+
+	uploads *metrics2.Counter
 )
 
 // UploadHandler handles POSTs of images to be analyzed.
@@ -71,6 +74,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	if len(recent) > MAX_RECENT {
 		recent = recent[:MAX_RECENT]
 	}
+	uploads.Inc(1)
 }
 
 // IndexContent is the data passed to the index.html template.
@@ -123,4 +127,5 @@ func Init(dir string, isLocal bool, continuousProcess *continuous.Process) {
 	local = isLocal
 	process = continuousProcess
 	loadTemplates()
+	uploads = metrics2.GetCounter("uploads", nil)
 }
