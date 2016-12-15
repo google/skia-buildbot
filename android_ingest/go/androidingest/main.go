@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
@@ -59,6 +60,10 @@ func main() {
 	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope)
 	if err != nil {
 		glog.Fatalf("Unable to create authenticated client: %s", err)
+	}
+
+	if err := os.MkdirAll(*workRoot, 0755); err != nil {
+		glog.Fatalf("Failed to create directory %q: %s", *workRoot, err)
 	}
 
 	// The repo we're adding commits to.

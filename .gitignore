@@ -61,6 +61,7 @@ doc/res/css/docs.css
 doc/third_party
 alertserver/third_party
 status/third_party
+android_ingest/third_party
 res/imp/9/res
 res/imp/9/res/js
 res/imp/9/bower_components

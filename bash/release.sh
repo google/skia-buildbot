@@ -93,7 +93,7 @@ fi
 cat <<-EOF > ${ROOT}/DEBIAN/postinst
 #!/bin/bash
 INIT_SCRIPT="${INIT_SCRIPT}"
-set -e
+set -e -x
 if [ -e /bin/systemctl ]
 then
   /bin/systemctl daemon-reload
