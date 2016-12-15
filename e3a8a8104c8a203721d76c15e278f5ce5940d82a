@@ -43,6 +43,24 @@
     },
     {
       "key": {
+        "uuid": "ba0a97d0_e0af9630",
+        "filename": "status/res/imp/capacity-stats-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-15T15:50:12Z",
+      "side": 1,
+      "message": "Awesome, thanks!",
+      "parentUuid": "ba0a97d0_1d14b703",
+      "revId": "e3a8a8104c8a203721d76c15e278f5ce5940d82a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ba0a97d0_3d037bf2",
         "filename": "status/res/imp/capacity-stats-sk.html",
         "patchSetId": 5
@@ -78,6 +96,24 @@
       "side": 1,
       "message": "For a visual representation, see https://github.com/google/skia/graphs/commit-activity\n\nI\u0027ll add in the range you specified, since it seems to be quite close to reality.",
       "parentUuid": "ba0a97d0_3d037bf2",
+      "revId": "e3a8a8104c8a203721d76c15e278f5ce5940d82a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba0a97d0_40b5a27c",
+        "filename": "status/res/imp/capacity-stats-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-15T15:50:12Z",
+      "side": 1,
+      "message": "Right, I was thinking we could generate these stats dynamically, eg. from the last 2 weeks of work days.  That way, if the commit rate changes, our stats can change with them!",
+      "parentUuid": "ba0a97d0_fdfe238c",
       "revId": "e3a8a8104c8a203721d76c15e278f5ce5940d82a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
