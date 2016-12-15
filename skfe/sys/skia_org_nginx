@@ -561,6 +561,8 @@ server {
     # Disable content sniffing
     add_header X-Content-Type-Options nosniff;
 
+    client_max_body_size 50M;
+
     location / {
         proxy_pass http://skia-ctfe:8002;
     }
