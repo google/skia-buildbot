@@ -25,3 +25,26 @@ The incoming test data has the form:
 	},
 	"branch": "google-marlin-marlin-O"
 }
+
+Initializing the target repo
+============================
+
+To start with a new repo it must be initialized correctly, by commiting
+a BUILDID file that contains the initial buildid and timestamp that
+the repo should start from, with a correct subject. For example, you could
+populate BUILDID with the buildid 3529135, which has a timestamp of 1480456484.
+This means populating the BUILDID file with:
+
+   3529135 1480456484
+
+Then adding that file to the repo:
+
+   git add BUILDID
+
+Then commit with a subject message that is the redirector URL, i.e.
+append the buildid to "https://android-ingest.skia.org/r/", and use the
+flag --date and the environment variable GIT_COMMITTER_DATE to set
+both the author and commiter date to the matching timestamp.
+
+   GIT_COMMITTER_DATE=1480456484 git commit -m "https://android-ingest.skia.org/r/3529135" --date=1480456484
+
