@@ -293,7 +293,8 @@ func (c *BTCache) buildNumberToTaskId(num int) (string, error) {
 	return value.(string), nil
 }
 
-// taskToBuild generates a Build representing a Task.
+// taskToBuild generates a Build representing a Task. Assumes the caller holds
+// a lock.
 func (c *BTCache) taskToBuild(task *db.Task, loggedIn bool) *buildbot.Build {
 	results := buildbot.BUILDBOT_EXCEPTION
 	switch task.Status {
@@ -340,8 +341,6 @@ func (c *BTCache) taskToBuild(task *db.Task, loggedIn bool) *buildbot.Build {
 		comments = []*buildbot.BuildComment{}
 	}
 
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
 	return &buildbot.Build{
 		Builder:       taskNameToBuilderName(task.Name),
 		Master:        FAKE_MASTER,
@@ -364,6 +363,14 @@ func (c *BTCache) taskToBuild(task *db.Task, loggedIn bool) *buildbot.Build {
 // GetBuildsForCommits returns the build data and task data (as Builds) for the
 // given commits. See also BuildCache.GetBuildsForCommits.
 func (c *BTCache) GetBuildsForCommits(repoName string, commits []string, loggedIn bool) (map[string]map[string]*buildbot.BuildSummary, error) {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+	return c.getBuildsForCommits(repoName, commits, loggedIn)
+}
+
+// getBuildsForCommits returns the build data and task data (as Builds) for the
+// given commits. See also BuildCache.GetBuildsForCommits.
+func (c *BTCache) getBuildsForCommits(repoName string, commits []string, loggedIn bool) (map[string]map[string]*buildbot.BuildSummary, error) {
 	if len(commits) == 0 {
 		return map[string]map[string]*buildbot.BuildSummary{}, nil
 	}
@@ -430,11 +437,17 @@ func (c *BTCache) GetBuildsFromDateRange(from, to time.Time, loggedIn bool) ([]*
 }
 
 // GetBuildersComments returns comments for all builders and TaskSpecs (as
-// BuilderComment). See also BuildCache.GetBuildersComments.
+// BuilderComment). See also BuildCache.getBuildersComments.
 func (c *BTCache) GetBuildersComments() map[string][]*buildbot.BuilderComment {
-	buildResult := c.builds.GetBuildersComments()
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
+	return c.getBuildersComments()
+}
+
+// getBuildersComments returns comments for all builders and TaskSpecs (as
+// BuilderComment). See also BuildCache.getBuildersComments.
+func (c *BTCache) getBuildersComments() map[string][]*buildbot.BuilderComment {
+	buildResult := c.builds.GetBuildersComments()
 	for name, comments := range c.cachedTaskSpecComments {
 		buildResult[name] = comments
 	}
@@ -628,12 +641,12 @@ func (c *BTCache) GetLastN(repo string, n int, loggedIn bool) (*CommitsData, err
 	for _, c := range commits {
 		hashes = append(hashes, c.Hash)
 	}
-	builds, err := c.GetBuildsForCommits(repo, hashes, loggedIn)
+	builds, err := c.getBuildsForCommits(repo, hashes, loggedIn)
 	if err != nil {
 		return nil, err
 	}
 
-	builders := c.GetBuildersComments()
+	builders := c.getBuildersComments()
 	return &CommitsData{
 		Comments:    commitComments,
 		Commits:     commits,
