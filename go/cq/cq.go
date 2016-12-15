@@ -11,6 +11,7 @@ import (
 	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/metrics2"
@@ -19,7 +20,6 @@ import (
 
 const (
 	CQ_CFG_FILE_PATH = "infra/branch-config/cq.cfg"
-	SKIA_REPO        = "https://skia.googlesource.com/skia"
 
 	// Constants for in-flight metrics.
 	INFLIGHT_METRIC_NAME     = "in_flight"
@@ -62,8 +62,18 @@ type Client struct {
 
 // GetSkiaCQTryBots is a Skia implementation of GetCQTryBots.
 func GetSkiaCQTryBots() ([]string, error) {
+	return getCQTryBots(common.REPO_SKIA)
+}
+
+// GetSkiaInfraCQTryBots is a Skia Infra implementation of GetCQTryBots.
+func GetSkiaInfraCQTryBots() ([]string, error) {
+	return getCQTryBots(common.REPO_SKIA)
+}
+
+// getCQTryBots is a convenience method for the Skia and Skia Infra CQ TryBots.
+func getCQTryBots(repo string) ([]string, error) {
 	var buf bytes.Buffer
-	if err := gitiles.NewRepo(SKIA_REPO).ReadFile(CQ_CFG_FILE_PATH, &buf); err != nil {
+	if err := gitiles.NewRepo(repo).ReadFile(CQ_CFG_FILE_PATH, &buf); err != nil {
 		return nil, err
 	}
 	var cqCfg Config

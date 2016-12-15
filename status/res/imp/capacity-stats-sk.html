@@ -94,6 +94,7 @@
     <url-param-sk name="commits" value="{{commits_per_day}}" default="30"></url-param-sk>
     <url-param-sk name="optimistic" value="{{optimistic_util}}" default="90"></url-param-sk>
     <url-param-sk name="pessimistic" value="{{pessimistic_util}}" default="60"></url-param-sk>
+    <url-param-sk name="cq" value="{{cq_multiplier}}" default="1.5"></url-param-sk>
     <url-param-sk name="backfill" value="{{target_backfill}}" default="100"></url-param-sk>
     <url-param-sk name="sort" value="{{_sortStr}}" default="opt_est:desc"></url-param-sk>
 
@@ -107,6 +108,7 @@
 
       <div class="inputs horizontal layout">
         <paper-input label="Commits Per Day (typically 15-35)" value="{{commits_per_day}}"></paper-input>
+        <paper-input label="CQ attempts per commit" value="{{cq_multiplier}}"></paper-input>
         <!-- TODO(kjlubick) actually compute utilization (influxdb) and display the range here for reference.-->
         <paper-input label="Optimistic Utilization % Estimate" value="{{optimistic_util}}"></paper-input>
         <paper-input label="Pessimistic Utilization % Estimate" value="{{pessimistic_util}}"></paper-input>
@@ -125,6 +127,8 @@
             </th>
             <th>Minutes per Commit </th>
             <th>Tasks per Commit</th>
+            <th>Minutes per CQ run</th>
+            <th>Tasks on CQ</th>
             <th>Bot days of work / actual day</th>
             <th>Required Bots (optimistic)</th>
             <th>Required Bots (pessimistic)</th>
@@ -143,15 +147,17 @@
             <tr>
               <td><a href$="[[_taskLink(item)]]">[[_botConfig(item)]]</a></td>
               <td>[[_minutes(item.ms_per_commit)]]</td>
-              <td>[[_numTasks(item)]]</td>
-              <td>[[_botDays(item, commits_per_day, target_backfill)]]</td>
-              <td>[[_estimate(item, commits_per_day, optimistic_util, target_backfill)]]</td>
-              <td>[[_estimate(item, commits_per_day, pessimistic_util, target_backfill)]]</td>
-              <td class$="[[_class(item, commits_per_day, optimistic_util, pessimistic_util, target_backfill)]]">
-                [[_numBots(item)]]
+              <td>[[item.total_tasks]]</td>
+              <td>[[_minutes(item.ms_per_cq)]]</td>
+              <td>[[item.cq_tasks]]</td>
+              <td>[[_botDays(item, commits_per_day, cq_multiplier, target_backfill)]]</td>
+              <td>[[_estimate(item, commits_per_day, cq_multiplier, optimistic_util, target_backfill)]]</td>
+              <td>[[_estimate(item, commits_per_day, cq_multiplier, pessimistic_util, target_backfill)]]</td>
+              <td class$="[[_class(item, commits_per_day, cq_multiplier, optimistic_util, pessimistic_util, target_backfill)]]">
+                [[item.num_bots]]
               </td>
-              <td class$="[[_class(item, commits_per_day, optimistic_util, pessimistic_util, target_backfill)]]">
-                [[_weHave(item, commits_per_day, optimistic_util, target_backfill)]] %
+              <td class$="[[_class(item, commits_per_day, cq_multiplier, optimistic_util, pessimistic_util, target_backfill)]]">
+                [[_weHave(item, commits_per_day, cq_multiplier, optimistic_util, target_backfill)]] %
               </td>
             </tr>
           </template>
@@ -225,6 +231,9 @@
         commits_per_day: {
           type: Number,
         },
+        cq_multiplier: {
+          type: Number,
+        },
         optimistic_util: {
           type: Number,
         },
@@ -248,7 +257,7 @@
         },
       },
 
-      observers: ["_resort(commits_per_day,optimistic_util,pessimistic_util,target_backfill,_sortStr)"],
+      observers: ["_resort(commits_per_day, cq_multiplier, optimistic_util, pessimistic_util, target_backfill, _sortStr)"],
 
       ready: function() {
         sk.get("/capacity/json").then(JSON.parse).then(function(map){
@@ -268,12 +277,22 @@
               var val = d.substring(dim.length + 1);
               item[dim] = val;
             }
-            // preprocess total time per commit from nanoseconds to millis.
+            // preprocess total time per commit/cq from nanoseconds to millis.
             item.ms_per_commit = 0;
             item.task_times_ns = item.tasks || [];
+            item.total_tasks = 0;
+            item.cq_tasks = 0;
+            item.ms_per_cq = 0;
             for (var i = 0;i < item.tasks.length; i++) {
               item.ms_per_commit += item.tasks[i].task_duration_ns/1000000;
+              if (item.tasks[i].on_cq_also) {
+                item.cq_tasks++;
+                item.ms_per_cq += item.tasks[i].task_duration_ns/1000000;
+              }
+              item.total_tasks++;
             }
+            // preprocess num bots
+            item.num_bots = Object.keys(item.bots).length;
 
             arr.push(item);
           }
@@ -322,25 +341,31 @@
         return `OS: ${os}, ${rest}`;
       },
 
-      _botDays: function(item, commits_per_day, target_backfill) {
-        var days = (item.ms_per_commit * commits_per_day * target_backfill/100) / (24 * 60 * 60 * 1000)
+      _botDaysPrecise: function(item, commits_per_day, cq_multiplier, target_backfill) {
+        var days = (item.ms_per_commit * commits_per_day * target_backfill/100);
+        days += item.ms_per_cq * cq_multiplier * commits_per_day;
+        return days / (24 * 60 * 60 * 1000);
+      },
+
+      _botDays: function(item, commits_per_day, cq_multiplier, target_backfill) {
+        var days = this._botDaysPrecise(item, commits_per_day, cq_multiplier, target_backfill);
         return days.toFixed(1);
       },
 
-      _class: function(item, commits_per_day, optimistic_util, pessimistic_util, target_backfill) {
-        var pessimistic = this._estimate(item, commits_per_day, pessimistic_util, target_backfill);
-        var optimistic = this._estimate(item, commits_per_day, optimistic_util, target_backfill);
-        if (this._numBots(item) < optimistic) {
+      _class: function(item, commits_per_day, cq_multiplier, optimistic_util, pessimistic_util, target_backfill) {
+        var pessimistic = this._estimate(item, commits_per_day, cq_multiplier, pessimistic_util, target_backfill);
+        var optimistic = this._estimate(item, commits_per_day, cq_multiplier, optimistic_util, target_backfill);
+        if (item.num_bots < optimistic) {
           return "notEnough";
         }
-        if (this._numBots(item) > pessimistic) {
+        if (item.num_bots > pessimistic) {
           return "beatsPessimistic";
         }
         return "beatsOptimistic";
       },
 
-      _estimate: function(item, commits_per_day, util, target_backfill) {
-        var days = (item.ms_per_commit * commits_per_day * target_backfill/100) / (24 * 60 * 60 * 1000)
+      _estimate: function(item, commits_per_day, cq_multiplier, util, target_backfill) {
+        var days = this._botDaysPrecise(item, commits_per_day, cq_multiplier, target_backfill);
         return (days / (util/100)).toFixed(1);
       },
 
@@ -364,14 +389,6 @@
         return (ms/(60 * 1000)).toFixed(1);
       },
 
-      _numBots: function(item) {
-        return Object.keys(item.bots).length;
-      },
-
-      _numTasks: function(item) {
-        return item.task_times_ns.length;
-      },
-
       _resort: function() {
         this.$.list.render();
       },
@@ -385,8 +402,8 @@
           dir = -1;
         }
         if (this._sortOrder.name === "opt_est") {
-          var aVal = this._weHave(a, this.commits_per_day, this.optimistic_util, this.target_backfill);
-          var bVal = this._weHave(b, this.commits_per_day, this.optimistic_util, this.target_backfill);
+          var aVal = this._weHave(a, this.commits_per_day, this.cq_multiplier, this.optimistic_util, this.target_backfill);
+          var bVal = this._weHave(b, this.commits_per_day, this.cq_multiplier, this.optimistic_util, this.target_backfill);
           return dir * (bVal - aVal);
         }
         if (this._sortOrder.name === "bot_config") {
@@ -415,9 +432,9 @@
         return base;
       },
 
-      _weHave: function(item, commits_per_day, util, target_backfill) {
-        var est = this._estimate(item, commits_per_day, util, target_backfill);
-        return (100 * this._numBots(item) / est).toFixed(1);
+      _weHave: function(item, commits_per_day, cq_multiplier, util, target_backfill) {
+        var est = this._estimate(item, commits_per_day, cq_multiplier, util, target_backfill);
+        return (100 * item.num_bots / est).toFixed(1);
       }
     });
   })();
