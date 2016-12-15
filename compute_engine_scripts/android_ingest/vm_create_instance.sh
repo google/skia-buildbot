@@ -8,7 +8,7 @@ source vm_config.sh
 
 MACHINE_TYPE=n1-standard-1
 SOURCE_SNAPSHOT=skia-systemd-pushable-base
-SCOPES='https://www.googleapis.com/auth/devstorage.full_control'
+SCOPES='https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/gerritcodereview'
 IP_ADDRESS=104.154.112.97
 
 # Create a boot disk from the pushable base snapshot.
