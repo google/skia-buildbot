@@ -514,5 +514,13 @@
      "body": "",
      "mimetype": "video/webm",
      "responsetest": "nonZeroContenLength"
+   },
+   "android_ingest": {
+     "url": "https://android_ingest.skia.org",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": "",
+     "responsetest": ""
    }
 }
