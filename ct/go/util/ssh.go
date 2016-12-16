@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/crypto/ssh"
 )
@@ -77,7 +77,7 @@ func getKeyFile() (key ssh.Signer, err error) {
 // the sequential number of the worker for the WORKER_NUM_KEYWORD since it is a
 // common use case.
 func SshToBareMetalMachines(cmd string, workers []string, timeout time.Duration) (map[string]string, error) {
-	glog.Infof("Running \"%s\" on %s with timeout of %s", cmd, workers, timeout)
+	sklog.Infof("Running \"%s\" on %s with timeout of %s", cmd, workers, timeout)
 	numWorkers := len(workers)
 
 	// Ensure that the key file exists.
@@ -113,22 +113,22 @@ func SshToBareMetalMachines(cmd string, workers []string, timeout time.Duration)
 			updatedCmd := strings.Replace(cmd, WORKER_NUM_KEYWORD, strconv.Itoa(index+1), -1)
 			output, err := executeCmd(updatedCmd, hostname, config, timeout)
 			if err != nil {
-				glog.Errorf("Could not execute ssh cmd: %s", err)
+				sklog.Errorf("Could not execute ssh cmd: %s", err)
 			}
 			m.Lock()
 			defer m.Unlock()
 			workersWithOutputs[hostname] = output
 			delete(remainingWorkers, hostname)
-			glog.Infoln()
-			glog.Infof("[%d/%d] Worker %s has completed execution", numWorkers-len(remainingWorkers), numWorkers, hostname)
-			glog.Infof("Remaining workers: %v", remainingWorkers)
+			sklog.Infoln()
+			sklog.Infof("[%d/%d] Worker %s has completed execution", numWorkers-len(remainingWorkers), numWorkers, hostname)
+			sklog.Infof("Remaining workers: %v", remainingWorkers)
 		}(i, hostname)
 	}
 
 	wg.Wait()
-	glog.Infoln()
-	glog.Infof("Finished running \"%s\" on all %d workers", cmd, numWorkers)
-	glog.Info("========================================")
+	sklog.Infoln()
+	sklog.Infof("Finished running \"%s\" on all %d workers", cmd, numWorkers)
+	sklog.Info("========================================")
 
 	m.Lock()
 	defer m.Unlock()

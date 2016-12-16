@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/window"
@@ -50,7 +50,7 @@ func (c *jobCache) expireJobs(start time.Time) {
 		}
 	}
 	if expiredUnfinishedCount > 0 {
-		glog.Infof("Expired %d unfinished jobs created before %s.", expiredUnfinishedCount, start)
+		sklog.Infof("Expired %d unfinished jobs created before %s.", expiredUnfinishedCount, start)
 	}
 }
 
@@ -71,7 +71,7 @@ func (c *jobCache) expireAndUpdate(start time.Time, jobs []*db.Job) {
 	c.expireJobs(start)
 	for _, job := range jobs {
 		if job.Created.Before(start) {
-			glog.Warningf("Updated job %s after expired. getJobTimestamp returned %s. %#v", job.Id, job.Created, job)
+			sklog.Warningf("Updated job %s after expired. getJobTimestamp returned %s. %#v", job.Id, job.Created, job)
 		} else {
 			c.insertOrUpdateJob(job.Copy())
 		}
@@ -89,7 +89,7 @@ func (c *jobCache) reset() error {
 	}
 	now := time.Now()
 	start := c.timeWindow.Start()
-	glog.Infof("Reading Jobs from %s to %s.", start, now)
+	sklog.Infof("Reading Jobs from %s to %s.", start, now)
 	jobs, err := c.db.GetJobsFromDateRange(start, now)
 	if err != nil {
 		c.db.StopTrackingModifiedJobs(queryId)
@@ -107,7 +107,7 @@ func (c *jobCache) Update() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	if db.IsUnknownId(err) {
-		glog.Warningf("Connection to db lost; re-initializing cache from scratch.")
+		sklog.Warningf("Connection to db lost; re-initializing cache from scratch.")
 		if err := c.reset(); err != nil {
 			return err
 		}

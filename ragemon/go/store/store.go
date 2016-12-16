@@ -11,9 +11,9 @@ import (
 
 	"github.com/boltdb/bolt"
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/ragemon/go/ts"
 )
@@ -144,7 +144,7 @@ func closer(key, value interface{}) {
 	if db, ok := value.(*bolt.DB); ok {
 		util.Close(db)
 	} else {
-		glog.Errorf("Found a non-bolt.DB in the cache at key %q", key)
+		sklog.Errorf("Found a non-bolt.DB in the cache at key %q", key)
 	}
 }
 
@@ -190,7 +190,7 @@ func (s *StoreImpl) oneStep(now time.Time) []error {
 		db, err := s.getBoltDB(i, true)
 		if err != nil {
 			ret = append(ret, err)
-			glog.Errorf("Failed to get boltdb for index %d: %s ", i, err)
+			sklog.Errorf("Failed to get boltdb for index %d: %s ", i, err)
 			continue
 		}
 
@@ -220,7 +220,7 @@ func (s *StoreImpl) oneStep(now time.Time) []error {
 
 			if err := db.Update(add); err != nil {
 				ret = append(ret, err)
-				glog.Errorf("Failed to save tile %d: %s", i, err)
+				sklog.Errorf("Failed to save tile %d: %s", i, err)
 			}
 		}
 	}
@@ -248,7 +248,7 @@ func (s *StoreImpl) oneStep(now time.Time) []error {
 func (s *StoreImpl) background() {
 	for _ = range time.Tick(15 * time.Minute) {
 		if errors := s.oneStep(time.Now()); len(errors) != 0 {
-			glog.Errorf("Errors occured while writing: %v", errors)
+			sklog.Errorf("Errors occured while writing: %v", errors)
 		}
 	}
 }
@@ -268,7 +268,7 @@ func tileInfoFromBolt(db *bolt.DB) *TileInfo {
 			key := string(dup(bkey))
 			t, err := ts.NewFromData(rawValue)
 			if err != nil {
-				glog.Errorf("Failed to load points %q: %s", key, err)
+				sklog.Errorf("Failed to load points %q: %s", key, err)
 				continue
 			}
 			ret.set[key] = t
@@ -277,7 +277,7 @@ func tileInfoFromBolt(db *bolt.DB) *TileInfo {
 	}
 
 	if err := db.View(get); err != nil {
-		glog.Errorf("Failed to load matches from BoltDB: %s", err)
+		sklog.Errorf("Failed to load matches from BoltDB: %s", err)
 	}
 	return ret
 }
@@ -296,7 +296,7 @@ func New(dir string) (*StoreImpl, error) {
 	for i := currentTileIndex - 1; i <= currentTileIndex+1; i++ {
 		db, err := getBoltDBNoCache(dir, i)
 		if err != nil {
-			glog.Warningf("Failed to open tile %d: %s", i, err)
+			sklog.Warningf("Failed to open tile %d: %s", i, err)
 			tiles[i] = newTileInfo()
 			continue
 		} else {
@@ -355,7 +355,7 @@ func (s *StoreImpl) Add(points []Measurement) error {
 			tile.lastNewKey = time.Now()
 
 			if !query.ValidateKey(pt.Key) {
-				glog.Errorf("Got an invalid key: %q", pt.Key)
+				sklog.Errorf("Got an invalid key: %q", pt.Key)
 				continue
 			}
 			tile.set[pt.Key] = ts.New(pt.Point)
@@ -412,7 +412,7 @@ func (s *StoreImpl) Match(begin, end time.Time, q *query.Query) ts.TimeSeriesSet
 		} else {
 			db, err := s.getBoltDB(i, false)
 			if err != nil {
-				glog.Errorf("Failed to open BoltDB: %s", err)
+				sklog.Errorf("Failed to open BoltDB: %s", err)
 				continue
 			}
 			get := func(tx *bolt.Tx) error {
@@ -431,7 +431,7 @@ func (s *StoreImpl) Match(begin, end time.Time, q *query.Query) ts.TimeSeriesSet
 					key := string(dup(bkey))
 					matches, err := ts.PointsInRange(begin.Unix(), end.Unix(), rawValue)
 					if err != nil {
-						glog.Errorf("Failed to load matched points %q: %s", key, err)
+						sklog.Errorf("Failed to load matched points %q: %s", key, err)
 					} else {
 						addMatchesToTimeSeriesSet(ret, key, matches)
 					}
@@ -440,7 +440,7 @@ func (s *StoreImpl) Match(begin, end time.Time, q *query.Query) ts.TimeSeriesSet
 			}
 
 			if err := db.View(get); err != nil {
-				glog.Errorf("Failed to load match from BoltDB: %s", err)
+				sklog.Errorf("Failed to load match from BoltDB: %s", err)
 			}
 		}
 	}

@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/android_ingest/go/continuous"
 	"go.skia.org/infra/android_ingest/go/handlers"
 	"go.skia.org/infra/android_ingest/go/lookup"
@@ -18,6 +17,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/sklog"
 )
 
 // flags
@@ -50,42 +50,42 @@ func main() {
 		common.InitWithMetrics2("androidingest", influxHost, influxUser, influxPassword, influxDatabase, local)
 	}
 	if *workRoot == "" {
-		glog.Fatal("The --work_root flag must be supplied.")
+		sklog.Fatal("The --work_root flag must be supplied.")
 	}
 	if *repoUrl == "" {
-		glog.Fatal("The --repo_url flag must be supplied.")
+		sklog.Fatal("The --repo_url flag must be supplied.")
 	}
 
 	// Create a new auth'd client.
 	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope)
 	if err != nil {
-		glog.Fatalf("Unable to create authenticated client: %s", err)
+		sklog.Fatalf("Unable to create authenticated client: %s", err)
 	}
 
 	if err := os.MkdirAll(*workRoot, 0755); err != nil {
-		glog.Fatalf("Failed to create directory %q: %s", *workRoot, err)
+		sklog.Fatalf("Failed to create directory %q: %s", *workRoot, err)
 	}
 
 	// The repo we're adding commits to.
 	checkout, err := git.NewCheckout(*repoUrl, *workRoot)
 	if err != nil {
-		glog.Fatalf("Unable to create the checkout of %q at %q: %s", *repoUrl, *workRoot, err)
+		sklog.Fatalf("Unable to create the checkout of %q at %q: %s", *repoUrl, *workRoot, err)
 	}
 	if err := checkout.Update(); err != nil {
-		glog.Fatalf("Unable to update the checkout of %q at %q: %s", *repoUrl, *workRoot, err)
+		sklog.Fatalf("Unable to update the checkout of %q at %q: %s", *repoUrl, *workRoot, err)
 	}
 
 	// checkout isn't go routine safe, but lookup.New() only uses it in New(), so this
 	// is safe, i.e. when we later pass checkout to continuous.New().
 	lookup, err := lookup.New(checkout)
 	if err != nil {
-		glog.Fatalf("Failed to create buildid lookup cache: %s", err)
+		sklog.Fatalf("Failed to create buildid lookup cache: %s", err)
 	}
 
 	// Start process that adds buildids to the git repo.
 	process, err := continuous.New(*branch, checkout, lookup, client, *local)
 	if err != nil {
-		glog.Fatalf("Failed to start continuous process of adding new buildids to git repo: %s", err)
+		sklog.Fatalf("Failed to start continuous process of adding new buildids to git repo: %s", err)
 	}
 	process.Start()
 
@@ -94,7 +94,7 @@ func main() {
 		redirectURL = "https://android-ingest.skia.org/oauth2callback/"
 	}
 	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		glog.Fatalf("Failed to initialize the login system: %s", err)
+		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 	handlers.Init(*resourcesDir, *local, process)
 	r := mux.NewRouter()
@@ -106,6 +106,6 @@ func main() {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	glog.Infoln("Ready to serve.")
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infoln("Ready to serve.")
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

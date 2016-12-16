@@ -16,9 +16,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -219,10 +219,10 @@ type test struct {
 // Run executes the function for the given test and returns an error if it fails.
 func (t test) Run() error {
 	if !util.In(t.Type, testutils.TEST_TYPES) {
-		glog.Fatalf("Test %q has invalid type %q", t.Name, t.Type)
+		sklog.Fatalf("Test %q has invalid type %q", t.Name, t.Type)
 	}
 	if !testutils.ShouldRun(t.Type) {
-		glog.Infof("Not running %s tests; skipping %q", t.Type, t.Name)
+		sklog.Infof("Not running %s tests; skipping %q", t.Type, t.Name)
 		return nil
 	}
 
@@ -247,7 +247,7 @@ func main() {
 		}
 	}
 	if !ok {
-		glog.Errorf("Must provide --small, --medium, and/or --large. This will cause an error in the future.")
+		sklog.Errorf("Must provide --small, --medium, and/or --large. This will cause an error in the future.")
 	}
 
 	defer timer.New("Finished").Stop()
@@ -258,16 +258,16 @@ func main() {
 	// If we are running full tests make sure we have the latest
 	// pdfium_test installed.
 	if testutils.ShouldRun(testutils.MEDIUM_TEST) || testutils.ShouldRun(testutils.LARGE_TEST) {
-		glog.Info("Installing pdfium_test if necessary.")
+		sklog.Info("Installing pdfium_test if necessary.")
 		pdfiumInstall := path.Join(rootDir, "pdfium", "install_pdfium.sh")
 		if err := exec.Command(pdfiumInstall).Run(); err != nil {
-			glog.Fatalf("Failed to install pdfium_test: %v", err)
+			sklog.Fatalf("Failed to install pdfium_test: %v", err)
 		}
-		glog.Info("Latest pdfium_test installed successfully.")
+		sklog.Info("Latest pdfium_test installed successfully.")
 	}
 
 	// Gather all of the tests to run.
-	glog.Info("Searching for tests.")
+	sklog.Info("Searching for tests.")
 	tests := []*test{}
 
 	// Search for Python tests and Go dirs to test in the repo.
@@ -297,7 +297,7 @@ func main() {
 		}
 		return nil
 	}); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Other tests.
@@ -337,7 +337,7 @@ func main() {
 	})
 
 	// Run the tests.
-	glog.Infof("Found %d tests.", len(tests))
+	sklog.Infof("Found %d tests.", len(tests))
 	var mutex sync.Mutex
 	errors := map[string]error{}
 	var wg sync.WaitGroup
@@ -355,9 +355,9 @@ func main() {
 	wg.Wait()
 	if len(errors) > 0 {
 		for _, e := range errors {
-			glog.Error(e)
+			sklog.Error(e)
 		}
 		os.Exit(1)
 	}
-	glog.Info("All tests succeeded.")
+	sklog.Info("All tests succeeded.")
 }

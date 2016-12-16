@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 )
 
@@ -64,7 +64,7 @@ func NewMasterTileBuilder(db DB, git *gitinfo.GitInfo, tileSize int, evt *eventb
 		liveness := metrics2.NewLiveness("tile-refresh", map[string]string{"module": "tracedb"})
 		for _ = range time.Tick(TILE_REFRESH_DURATION) {
 			if err := ret.LoadTile(); err != nil {
-				glog.Errorf("Failed to refresh tile: %s", err)
+				sklog.Errorf("Failed to refresh tile: %s", err)
 			} else {
 				liveness.Reset()
 				evt.Publish(NEW_TILE_AVAILABLE_EVENT, ret.GetTile())
@@ -81,7 +81,7 @@ func NewMasterTileBuilder(db DB, git *gitinfo.GitInfo, tileSize int, evt *eventb
 func (t *masterTileBuilder) LoadTile() error {
 	// Build CommitIDs for the last INITIAL_TILE_SIZE commits to the repo.
 	if err := t.git.Update(true, false); err != nil {
-		glog.Errorf("Failed to update Git repo: %s", err)
+		sklog.Errorf("Failed to update Git repo: %s", err)
 	}
 	hashes := t.git.LastN(t.tileSize)
 	commitIDs := make([]*CommitID, 0, len(hashes))
