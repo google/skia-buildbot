@@ -6,7 +6,7 @@ import (
 
 	"go.skia.org/infra/go/metrics2"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 func oneStep(store IgnoreStore, metric *metrics2.Int64Metric) error {
@@ -39,7 +39,7 @@ func Init(store IgnoreStore) error {
 		for _ = range time.Tick(time.Minute) {
 			err = oneStep(store, numExpired)
 			if err != nil {
-				glog.Errorf("Failed one step of monitoring ignore rules: %s", err)
+				sklog.Errorf("Failed one step of monitoring ignore rules: %s", err)
 				continue
 			}
 			liveness.Reset()

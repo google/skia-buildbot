@@ -191,7 +191,7 @@ func main() {
 		sklog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}
 
-	err = sklog.InitCloudLogging(client, "rpi-master", "hotspare")
+	err = sklog.InitCloudLogging(client, "skolo-rpi-master", "hotspare")
 	if err != nil {
 		sklog.Fatalf("Could not setup cloud sklog: %s", err)
 	}

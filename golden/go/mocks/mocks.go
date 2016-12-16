@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/golden/go/diff"
@@ -131,7 +131,7 @@ func GetTileBuilderFromEnv(t assert.TestingT) tracedb.MasterTileBuilder {
 
 	git, err := gitinfo.CloneOrUpdate(gitURL, gitRepoDir, false)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	eventBus := eventbus.New(nil)

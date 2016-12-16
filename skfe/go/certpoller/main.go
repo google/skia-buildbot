@@ -22,9 +22,9 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
 )
 
 // cert contains information about one SSL certificate file.
@@ -50,7 +50,7 @@ func md5File(filename string) string {
 	err := cmd.Run()
 	if err != nil {
 		// We are OK to Fatal here because md5s will only be checked on startup.
-		glog.Fatalf("Failed to calculate md5sum for %s: %s", filename, err)
+		sklog.Fatalf("Failed to calculate md5sum for %s: %s", filename, err)
 	}
 	return strings.Split(out.String(), " ")[0]
 }
@@ -76,7 +76,7 @@ func get(client *http.Client, cert *cert) error {
 			// unchanged. Note that this can't happen the first time get() is called
 			// for each file as etag won't be set, so we'll fall through to the code
 			// below in that case.
-			glog.Infof("etag unchanged for %s: %s", cert.file, cert.etag)
+			sklog.Infof("etag unchanged for %s: %s", cert.file, cert.etag)
 			return nil
 		} else {
 			return fmt.Errorf("Unexpected status response: %d: %s", resp.StatusCode, resp.Status)
@@ -87,7 +87,7 @@ func get(client *http.Client, cert *cert) error {
 	if err != nil {
 		return fmt.Errorf("Failed to read metadata for %s: %s", cert.metadata, err)
 	}
-	glog.Infof("Read body for %s: len %d", cert.file, len(body))
+	sklog.Infof("Read body for %s: len %d", cert.file, len(body))
 
 	// Store the etag to be used for the next time through get().
 	cert.etag = resp.Header.Get("ETag")
@@ -97,7 +97,7 @@ func get(client *http.Client, cert *cert) error {
 		// Write out the file to a temp file then sudo mv it over to the right location.
 		f, err := ioutil.TempFile("", "certpoller")
 		if err != nil {
-			glog.Errorf("Failed to create tmp cert file for %s: %s", cert.metadata, err)
+			sklog.Errorf("Failed to create tmp cert file for %s: %s", cert.metadata, err)
 		}
 		n, err := f.Write(body)
 		if err != nil || n != len(body) {
@@ -113,7 +113,7 @@ func get(client *http.Client, cert *cert) error {
 			return fmt.Errorf("Failed to mv certfile into place for %s: %s", cert.metadata, err)
 		}
 	}
-	glog.Infof("Successfully wrote %s", cert.file)
+	sklog.Infof("Successfully wrote %s", cert.file)
 	return nil
 }
 
@@ -132,7 +132,7 @@ func main() {
 		}
 		err := get(client, c)
 		if err != nil {
-			glog.Fatalf("Failed to retrieve the cert %s: %s", c, err)
+			sklog.Fatalf("Failed to retrieve the cert %s: %s", c, err)
 		}
 		retVal = 0
 	}

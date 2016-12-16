@@ -15,11 +15,11 @@ import (
 	"path/filepath"
 
 	"cloud.google.com/go/storage"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/pdf"
 	"go.skia.org/infra/go/sharedconfig"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/config"
@@ -154,7 +154,7 @@ func (p *pdfProcessor) rasterizeAndUpload(dmResultName string, dmResults *goldin
 		pdfPath := filepath.Join(p.pdfCacheDir, pdfFileName)
 		if !fileutil.FileExists(pdfPath) {
 			if err = p.download(p.inImagesBucket, p.inImagesDir, pdfFileName, pdfPath); err != nil {
-				glog.Errorf("Unable to retrieve image: %s. Error: %s", pdfFileName, err)
+				sklog.Errorf("Unable to retrieve image: %s. Error: %s", pdfFileName, err)
 				continue
 			}
 		}
@@ -164,27 +164,27 @@ func (p *pdfProcessor) rasterizeAndUpload(dmResultName string, dmResults *goldin
 			tempName := filepath.Join(tempDir, fmt.Sprintf("rastering_%d_%d.%s", resultIdx, rasterIdx, PNG_EXT))
 			err := rasterizer.Rasterize(pdfPath, tempName)
 			if err != nil {
-				glog.Errorf("Rasterizing %s with %s failed: %s", filepath.Base(pdfPath), rasterizer.String(), err)
+				sklog.Errorf("Rasterizing %s with %s failed: %s", filepath.Base(pdfPath), rasterizer.String(), err)
 				continue
 			}
 
 			// Open the generated image and calculate the MD5.
 			file, err := os.Open(tempName)
 			if err != nil {
-				glog.Errorf("Unable to open generated image: %s", err)
+				sklog.Errorf("Unable to open generated image: %s", err)
 				continue
 			}
 
 			var buf bytes.Buffer
 			md5, err := util.MD5FromReader(file, &buf)
 			if err != nil {
-				glog.Errorf("Unable to calculate MD5 hash of file %s. Got error: %s", tempName, err)
+				sklog.Errorf("Unable to calculate MD5 hash of file %s. Got error: %s", tempName, err)
 				continue
 			}
 			digest := hex.EncodeToString(md5)
 			uploadFileName := fmt.Sprintf("%s.%s", digest, PNG_EXT)
 			if err := p.upload(p.outImagesBucket, p.outImagesDir, uploadFileName, bytes.NewBuffer(buf.Bytes())); err != nil {
-				glog.Errorf("Unable to upload file %s. Error: %s", uploadFileName, err)
+				sklog.Errorf("Unable to upload file %s. Error: %s", uploadFileName, err)
 				continue
 			}
 
@@ -257,7 +257,7 @@ func (p *pdfProcessor) download(bucket, dir, fileName, outputPath string) error 
 		return err
 	}
 
-	glog.Infof("Downloaded: %s/%s", bucket, objectPath)
+	sklog.Infof("Downloaded: %s/%s", bucket, objectPath)
 	return nil
 }
 
