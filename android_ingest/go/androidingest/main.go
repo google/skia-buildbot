@@ -203,6 +203,15 @@ func MainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// redirectHandler handles the links that we added to the git repo and redirects
+// them to the source android-build dashboard.
+func redirectHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	id := mux.Vars(r)["id"]
+
+	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/branches/%s/grid?head=%s&tail=%s", *branch, id, id), http.StatusFound)
+}
+
 func loadTemplates() {
 	templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
 		filepath.Join(*resourcesDir, "templates/index.html"),
@@ -231,6 +240,7 @@ func main() {
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 	r.HandleFunc("/upload", UploadHandler)
+	r.HandleFunc("/r/{id:[a-zA-Z0-9]+}", redirectHandler)
 	r.HandleFunc("/", MainHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
