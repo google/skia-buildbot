@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/data"
@@ -26,6 +25,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
 )
@@ -238,25 +238,25 @@ func (agg *Aggregator) scanForNewCandidates() {
 	alreadyFoundFuzzes := &SortedStringSlice{}
 	// time.Tick does not fire immediately, so we fire it manually once.
 	if err := agg.scanHelper(alreadyFoundFuzzes); err != nil {
-		glog.Errorf("Scanner terminated due to error: %v", err)
+		sklog.Errorf("Scanner terminated due to error: %v", err)
 		return
 	}
-	glog.Infof("Sleeping for %s, then waking up to find new crashes again", config.Aggregator.RescanPeriod)
+	sklog.Infof("Sleeping for %s, then waking up to find new crashes again", config.Aggregator.RescanPeriod)
 
 	t := time.Tick(config.Aggregator.RescanPeriod)
 	for {
 		select {
 		case <-t:
 			if err := agg.scanHelper(alreadyFoundFuzzes); err != nil {
-				glog.Errorf("Aggregator scanner terminated due to error: %s", err)
+				sklog.Errorf("Aggregator scanner terminated due to error: %s", err)
 				return
 			}
 			if err := collectFuzzerMetrics(); err != nil {
-				glog.Warningf("Encountered error getting fuzzer metrics: %s", err)
+				sklog.Warningf("Encountered error getting fuzzer metrics: %s", err)
 			}
-			glog.Infof("Sleeping for %s, then waking up to find new crashes again", config.Aggregator.RescanPeriod)
+			sklog.Infof("Sleeping for %s, then waking up to find new crashes again", config.Aggregator.RescanPeriod)
 		case <-agg.monitoringShutdown:
-			glog.Info("Aggregator scanner got signal to shut down")
+			sklog.Info("Aggregator scanner got signal to shut down")
 			return
 		}
 
@@ -276,7 +276,7 @@ func (agg *Aggregator) scanHelper(alreadyFoundFuzzes *SortedStringSlice) error {
 		// TODO(kjlubick), switch to using flock once afl-fuzz implements that upstream.
 		time.Sleep(time.Second)
 		metrics2.GetInt64Metric("fuzzer.fuzzes.newly-found", map[string]string{"category": category, "architecture": config.Generator.Architecture}).Update(int64(len(newlyFound)))
-		glog.Infof("%d newly found %s bad fuzzes", len(newlyFound), category)
+		sklog.Infof("%d newly found %s bad fuzzes", len(newlyFound), category)
 		for _, f := range newlyFound {
 			agg.forAnalysis <- analysisPackage{
 				FilePath: f,
@@ -307,7 +307,7 @@ func findBadFuzzPaths(category string, alreadyFoundFuzzes *SortedStringSlice) ([
 	scanPath := filepath.Join(config.Generator.AflOutputPath, category)
 	aflDir, err := os.Open(scanPath)
 	if os.IsNotExist(err) {
-		glog.Warningf("Path to scan %s does not exist.  Returning 0 found fuzzes", scanPath)
+		sklog.Warningf("Path to scan %s does not exist.  Returning 0 found fuzzes", scanPath)
 		return []string{}, nil
 	}
 	if err != nil {
@@ -374,7 +374,7 @@ func collectFuzzerMetrics() error {
 		for _, m := range aflMetrics {
 			r, err := regexp.Compile(m + `\s+:\s+(\d+)`)
 			if err != nil {
-				glog.Warningf("Had a problem compiling regexp for %s: %s", m, err)
+				sklog.Warningf("Had a problem compiling regexp for %s: %s", m, err)
 			}
 			aflRegexps = append(aflRegexps, r)
 		}
@@ -408,12 +408,12 @@ func collectFuzzerMetrics() error {
 func (agg *Aggregator) waitForAnalysis(identifier int) {
 	defer agg.aggregationWaitGroup.Done()
 	defer metrics2.GetCounter("analysis-process-count", nil).Dec(int64(1))
-	glog.Infof("Spawning analyzer %d", identifier)
+	sklog.Infof("Spawning analyzer %d", identifier)
 
 	// our own unique working folder
 	executableDir := filepath.Join(config.Aggregator.WorkingPath, fmt.Sprintf("analyzer%d", identifier))
 	if err := setupAnalysis(executableDir); err != nil {
-		glog.Errorf("Analyzer %d terminated due to error: %s", identifier, err)
+		sklog.Errorf("Analyzer %d terminated due to error: %s", identifier, err)
 		return
 	}
 	for {
@@ -423,11 +423,11 @@ func (agg *Aggregator) waitForAnalysis(identifier int) {
 			err := agg.analysisHelper(executableDir, badFuzz)
 			if err != nil {
 				atomic.AddInt64(&agg.analysisCount, int64(-1))
-				glog.Errorf("Analyzer %d terminated due to error: %s", identifier, err)
+				sklog.Errorf("Analyzer %d terminated due to error: %s", identifier, err)
 				return
 			}
 		case <-agg.aggregationShutdown:
-			glog.Infof("Analyzer %d recieved shutdown signal", identifier)
+			sklog.Infof("Analyzer %d recieved shutdown signal", identifier)
 			return
 		}
 	}
@@ -587,31 +587,31 @@ func (s *SortedStringSlice) Append(strs []string) {
 func (agg *Aggregator) waitForUploads(identifier int) {
 	defer agg.aggregationWaitGroup.Done()
 	defer metrics2.GetCounter("upload-process-count", nil).Dec(int64(1))
-	glog.Infof("Spawning uploader %d", identifier)
+	sklog.Infof("Spawning uploader %d", identifier)
 	for {
 		select {
 		case p := <-agg.forUpload:
 			atomic.AddInt64(&agg.uploadCount, int64(1))
 			if !agg.UploadGreyFuzzes && p.FuzzType == GREY_FUZZ {
-				glog.Infof("Skipping upload of grey fuzz %s", p.Data.Name)
+				sklog.Infof("Skipping upload of grey fuzz %s", p.Data.Name)
 				// We are skipping the bugReport, so increment the counts.
 				atomic.AddInt64(&agg.bugReportCount, int64(1))
 				continue
 			}
 			d, found := agg.deduplicators[p.Category]
 			if !found {
-				glog.Errorf("Problem in Uploader %d, no deduplicator found for category %q; %#v;", identifier, p.Category, agg.deduplicators)
+				sklog.Errorf("Problem in Uploader %d, no deduplicator found for category %q; %#v;", identifier, p.Category, agg.deduplicators)
 				return
 			}
 			if !agg.WatchForRegressions && p.FuzzType != GREY_FUZZ && !d.IsUnique(data.ParseReport(p.Data)) {
-				glog.Infof("Skipping upload of duplicate fuzz %s", p.Data.Name)
+				sklog.Infof("Skipping upload of duplicate fuzz %s", p.Data.Name)
 				agg.duplicateNames = append(agg.duplicateNames, p.Data.Name)
 				// We are skipping the bugReport, so increment the counts.
 				atomic.AddInt64(&agg.bugReportCount, int64(1))
 				continue
 			}
 			if err := agg.upload(p); err != nil {
-				glog.Errorf("Uploader %d terminated due to error: %s", identifier, err)
+				sklog.Errorf("Uploader %d terminated due to error: %s", identifier, err)
 				// We are skipping the bugReport, so increment the counts.
 				atomic.AddInt64(&agg.bugReportCount, int64(1))
 				return
@@ -625,7 +625,7 @@ func (agg *Aggregator) waitForUploads(identifier int) {
 				IsBadFuzz: p.FuzzType == BAD_FUZZ,
 			}
 		case <-agg.aggregationShutdown:
-			glog.Infof("Uploader %d recieved shutdown signal", identifier)
+			sklog.Infof("Uploader %d recieved shutdown signal", identifier)
 			return
 		}
 	}
@@ -634,7 +634,7 @@ func (agg *Aggregator) waitForUploads(identifier int) {
 // upload breaks apart the uploadPackage into its constituant parts and uploads them to GCS using
 // some helper methods.
 func (agg *Aggregator) upload(p uploadPackage) error {
-	glog.Infof("uploading %s with file %s and analysis bytes %d;%d;%d|%d;%d;%d", p.Data.Name, p.FilePath, len(p.Data.Debug.Asan), len(p.Data.Debug.Dump), len(p.Data.Debug.StdErr), len(p.Data.Release.Asan), len(p.Data.Release.Dump), len(p.Data.Release.StdErr))
+	sklog.Infof("uploading %s with file %s and analysis bytes %d;%d;%d|%d;%d;%d", p.Data.Name, p.FilePath, len(p.Data.Debug.Asan), len(p.Data.Debug.Dump), len(p.Data.Debug.StdErr), len(p.Data.Release.Asan), len(p.Data.Release.Dump), len(p.Data.Release.StdErr))
 	if p.FuzzType == GREY_FUZZ {
 		agg.greyNames = append(agg.greyNames, p.Data.Name)
 	} else {
@@ -701,16 +701,16 @@ func (agg *Aggregator) uploadString(p uploadPackage, fileName, contents string) 
 // them.  If any unrecoverable errors happen, this method terminates.
 func (agg *Aggregator) waitForBugReporting() {
 	defer agg.aggregationWaitGroup.Done()
-	glog.Info("Spawning bug reporting routine")
+	sklog.Info("Spawning bug reporting routine")
 	for {
 		select {
 		case p := <-agg.forBugReporting:
 			if err := agg.bugReportingHelper(p); err != nil {
-				glog.Errorf("Bug reporting terminated due to error: %s", err)
+				sklog.Errorf("Bug reporting terminated due to error: %s", err)
 				return
 			}
 		case <-agg.aggregationShutdown:
-			glog.Infof("Bug reporting routine recieved shutdown signal")
+			sklog.Infof("Bug reporting routine recieved shutdown signal")
 			return
 		}
 	}
@@ -720,9 +720,9 @@ func (agg *Aggregator) waitForBugReporting() {
 func (agg *Aggregator) bugReportingHelper(p bugReportingPackage) error {
 	defer atomic.AddInt64(&agg.bugReportCount, int64(1))
 	if agg.MakeBugOnBadFuzz && p.IsBadFuzz && common.Status(p.Data.Category) == common.STABLE_FUZZER {
-		glog.Infof("Creating bug for %s", p.Data.FuzzName)
+		sklog.Infof("Creating bug for %s", p.Data.FuzzName)
 		if err := agg.issueManager.CreateBadBugIssue(p.Data, "Crash found on 'stable' fuzzer"); err != nil {
-			glog.Errorf("Error while creating issue for bad fuzz: %s", err)
+			sklog.Errorf("Error while creating issue for bad fuzz: %s", err)
 		}
 	}
 	return nil
@@ -743,7 +743,7 @@ func (agg *Aggregator) monitorStatus(numAnalysisProcesses, numUploadProcesses in
 	for {
 		select {
 		case <-agg.monitoringShutdown:
-			glog.Info("aggregator monitor got signal to shut down")
+			sklog.Info("aggregator monitor got signal to shut down")
 			return
 		case <-t:
 			metrics2.GetInt64Metric("fuzzer.queue-size.analysis", nil).Update(int64(len(agg.forAnalysis)))
@@ -793,11 +793,11 @@ func (agg *Aggregator) WaitForEmptyQueues() {
 	uc := atomic.LoadInt64(&agg.uploadCount)
 	bc := atomic.LoadInt64(&agg.bugReportCount)
 	if a == 0 && u == 0 && b == 0 && ac == uc && uc == bc {
-		glog.Info("Queues were already empty")
+		sklog.Info("Queues were already empty")
 		return
 	}
 	t := time.Tick(config.Aggregator.StatusPeriod)
-	glog.Infof("Waiting %s for the aggregator's queues to be empty", config.Aggregator.StatusPeriod)
+	sklog.Infof("Waiting %s for the aggregator's queues to be empty", config.Aggregator.StatusPeriod)
 	hangCount := 0
 	for _ = range t {
 		a = len(agg.forAnalysis)
@@ -806,19 +806,19 @@ func (agg *Aggregator) WaitForEmptyQueues() {
 		ac = atomic.LoadInt64(&agg.analysisCount)
 		uc = atomic.LoadInt64(&agg.uploadCount)
 		bc = atomic.LoadInt64(&agg.bugReportCount)
-		glog.Infof("AnalysisQueue: %d, UploadQueue: %d, BugReportingQueue: %d", a, u, b)
-		glog.Infof("AnalysisTotal: %d, UploadTotal: %d, BugReportingTotal: %d", ac, uc, bc)
+		sklog.Infof("AnalysisQueue: %d, UploadQueue: %d, BugReportingQueue: %d", a, u, b)
+		sklog.Infof("AnalysisTotal: %d, UploadTotal: %d, BugReportingTotal: %d", ac, uc, bc)
 		if a == 0 && u == 0 && b == 0 && ac == uc && uc == bc {
 			break
 		}
 		// This prevents waiting forever if an upload crashes, aborts or otherwise hangs.
 		hangCount++
 		if hangCount >= HANG_THRESHOLD {
-			glog.Warningf("Was waiting for %d rounds and still wasn't done.  Quitting anyway.", hangCount)
+			sklog.Warningf("Was waiting for %d rounds and still wasn't done.  Quitting anyway.", hangCount)
 			break
 		}
 
-		glog.Infof("Waiting %s for the aggregator's queues to be empty", config.Aggregator.StatusPeriod)
+		sklog.Infof("Waiting %s for the aggregator's queues to be empty", config.Aggregator.StatusPeriod)
 	}
 	atomic.StoreInt64(&agg.analysisCount, int64(0))
 	atomic.StoreInt64(&agg.uploadCount, int64(0))

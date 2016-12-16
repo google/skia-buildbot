@@ -21,11 +21,11 @@ import (
 
 	"github.com/fiorix/go-web/autogzip"
 	"github.com/russross/blackfriday"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/doc/go/docset"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/sklog"
 )
 
 var (
@@ -64,7 +64,7 @@ func Init() {
 
 	err := docset.Init()
 	if err != nil {
-		glog.Fatalf("Failed to initialize docset: %s", err)
+		sklog.Fatalf("Failed to initialize docset: %s", err)
 	}
 	if *preview {
 		primary, err = docset.NewPreviewDocSet()
@@ -72,7 +72,7 @@ func Init() {
 		primary, err = docset.NewDocSet(*workDir, *docRepo)
 	}
 	if err != nil {
-		glog.Fatalf("Failed to load the docset: %s", err)
+		sklog.Fatalf("Failed to load the docset: %s", err)
 	}
 	if !*preview {
 		go docset.StartCleaner(*workDir)
@@ -89,7 +89,7 @@ type Content struct {
 // Handles servering all the processed Markdown documents
 // and other assetts in the doc repo.
 func mainHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Main Handler: %q\n", r.URL.Path)
+	sklog.Infof("Main Handler: %q\n", r.URL.Path)
 
 	// If the request begins with /_/ then it is an XHR request and we only need
 	// to return the content and not the surrounding markup.
@@ -141,14 +141,14 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/sitemap.txt" {
 		w.Header().Set("Content-Type", "text/plain")
 		if _, err := w.Write([]byte(d.SiteMap())); err != nil {
-			glog.Errorf("Failed to write sitemap.txt: %s", err)
+			sklog.Errorf("Failed to write sitemap.txt: %s", err)
 		}
 		return
 	}
 
 	filename, raw, err := d.RawFilename(r.URL.Path)
 	if err != nil {
-		glog.Infof("Request for unknown path: %s", r.URL.Path)
+		sklog.Infof("Request for unknown path: %s", r.URL.Path)
 		http.NotFound(w, r)
 		return
 	}
@@ -168,14 +168,14 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if raw {
 		if _, err := w.Write(b); err != nil {
-			glog.Errorf("Failed to write output: %s", err)
+			sklog.Errorf("Failed to write output: %s", err)
 			return
 		}
 	} else {
 		body := blackfriday.MarkdownCommon(b)
 		if bodyOnly {
 			if _, err := w.Write(body); err != nil {
-				glog.Errorf("Failed to write output: %s", err)
+				sklog.Errorf("Failed to write output: %s", err)
 				return
 			}
 		} else {
@@ -184,7 +184,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 				Nav:  d.Navigation(),
 			}
 			if err := indexTemplate.Execute(w, content); err != nil {
-				glog.Errorln("Failed to expand template:", err)
+				sklog.Errorln("Failed to expand template:", err)
 			}
 		}
 	}
@@ -207,6 +207,6 @@ func main() {
 	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
 
-	glog.Infoln("Ready to serve.")
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infoln("Ready to serve.")
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

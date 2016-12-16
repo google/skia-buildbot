@@ -9,11 +9,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/rietveld"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -96,7 +96,7 @@ func FromHash(vcs vcsinfo.VCS, hash string) (*CommitID, error) {
 		return nil, err
 	}
 	if !commit.Branches["master"] {
-		glog.Warningf("Commit %s is not in master branch.", hash)
+		sklog.Warningf("Commit %s is not in master branch.", hash)
 		return nil, ingestion.IgnoreResultsFileErr
 	}
 	offset, err := vcs.IndexOf(hash)
@@ -174,7 +174,7 @@ func (c *CommitIDLookup) warmCache() {
 	since := now.Add(-365 * 24 * time.Hour).Format("2006-01-02")
 	log, err := c.git.LogArgs("--since="+since, "--format=format:%ct %H %ae %s")
 	if err != nil {
-		glog.Errorf("Could not get log for --since=%q: %s", since, err)
+		sklog.Errorf("Could not get log for --since=%q: %s", since, err)
 		return
 	}
 
@@ -185,7 +185,7 @@ func (c *CommitIDLookup) warmCache() {
 	for _, s := range lines {
 		entry, err := parseLogLine(s, &index, c.git)
 		if err != nil {
-			glog.Errorf("Failed to parse git log line %q: %s", s, err)
+			sklog.Errorf("Failed to parse git log line %q: %s", s, err)
 			return
 		}
 		c.cache[index] = entry
