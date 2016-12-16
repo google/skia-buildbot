@@ -516,7 +516,7 @@
      "responsetest": "nonZeroContenLength"
    },
    "android_ingest": {
-     "url": "https://android_ingest.skia.org",
+     "url": "https://android-ingest.skia.org",
      "method": "GET",
      "expected": [200],
      "body": "",
