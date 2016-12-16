@@ -45,6 +45,29 @@
       "revId": "7e4673a636f3b187fdf88f8c1b22bd88c35cbad6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a3953bb_0c083794",
+        "filename": "status/res/imp/builder-popup-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-16T16:18:25Z",
+      "side": 1,
+      "message": "This made me laugh.",
+      "range": {
+        "startLine": 32,
+        "startChar": 167,
+        "endLine": 32,
+        "endChar": 187
+      },
+      "revId": "7e4673a636f3b187fdf88f8c1b22bd88c35cbad6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
