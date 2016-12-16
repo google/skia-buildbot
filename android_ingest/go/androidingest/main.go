@@ -1,16 +1,30 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"html/template"
+	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"cloud.google.com/go/storage"
+	"golang.org/x/net/context"
+	"google.golang.org/api/option"
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/android_ingest/go/continuous"
-	"go.skia.org/infra/android_ingest/go/handlers"
 	"go.skia.org/infra/android_ingest/go/lookup"
+	"go.skia.org/infra/android_ingest/go/parser"
+	"go.skia.org/infra/android_ingest/go/recent"
+	"go.skia.org/infra/android_ingest/go/upload"
 	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -18,6 +32,8 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/util"
 )
 
 // flags
@@ -32,31 +48,23 @@ var (
 	workRoot       = flag.String("work_root", "", "Directory location where all the work is done.")
 	repoUrl        = flag.String("repo_url", "", "URL of the git repo where buildids are to be stored.")
 	branch         = flag.String("branch", "git_master-skia", "The branch where to look for buildids.")
+	storageUrl     = flag.String("storage_url", "gs://skia-perf/android-ingest", "The GS URL of where to store the ingested perf data.")
 )
 
-func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
-	fileServer := http.FileServer(http.Dir(*resourcesDir))
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Cache-Control", "max-age=300")
-		fileServer.ServeHTTP(w, r)
-	}
-}
+var (
+	templates      *template.Template
+	bucket         *storage.BucketHandle
+	gcsPath        string
+	converter      *parser.Converter
+	process        *continuous.Process
+	recentRequests *recent.Recent
+	uploads        *metrics2.Counter
+	lookupCache    *lookup.Cache
+)
 
-func main() {
-	defer common.LogPanic()
-	if *local {
-		common.Init()
-	} else {
-		common.InitWithMetrics2("androidingest", influxHost, influxUser, influxPassword, influxDatabase, local)
-	}
-	if *workRoot == "" {
-		glog.Fatal("The --work_root flag must be supplied.")
-	}
-	if *repoUrl == "" {
-		glog.Fatal("The --repo_url flag must be supplied.")
-	}
-
-	// Create a new auth'd client.
+func Init() {
+	uploads = metrics2.GetCounter("uploads", nil)
+	// Create a new auth'd client for androidbuildinternal.
 	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope)
 	if err != nil {
 		glog.Fatalf("Unable to create authenticated client: %s", err)
@@ -77,13 +85,13 @@ func main() {
 
 	// checkout isn't go routine safe, but lookup.New() only uses it in New(), so this
 	// is safe, i.e. when we later pass checkout to continuous.New().
-	lookup, err := lookup.New(checkout)
+	lookupCache, err = lookup.New(checkout)
 	if err != nil {
 		glog.Fatalf("Failed to create buildid lookup cache: %s", err)
 	}
 
 	// Start process that adds buildids to the git repo.
-	process, err := continuous.New(*branch, checkout, lookup, client, *local)
+	process, err = continuous.New(*branch, checkout, lookupCache, client, *local)
 	if err != nil {
 		glog.Fatalf("Failed to start continuous process of adding new buildids to git repo: %s", err)
 	}
@@ -96,11 +104,132 @@ func main() {
 	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
 		glog.Fatalf("Failed to initialize the login system: %s", err)
 	}
-	handlers.Init(*resourcesDir, *local, process)
+
+	storageHttpClient, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
+	if err != nil {
+		glog.Fatalf("Problem setting up client OAuth: %s", err)
+	}
+	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(storageHttpClient))
+	if err != nil {
+		glog.Fatalf("Problem creating storage client: %s", err)
+	}
+	gsUrl, err := url.Parse(*storageUrl)
+	if err != nil {
+		glog.Fatalf("--storage_url value %q is not a valid URL: %s", *storageUrl, err)
+	}
+	bucket = storageClient.Bucket(gsUrl.Host)
+	gcsPath = gsUrl.Path
+	if strings.HasPrefix(gcsPath, "/") {
+		gcsPath = gcsPath[1:]
+	}
+
+	recentRequests = recent.New()
+
+	converter = parser.New(lookupCache, *branch)
+}
+
+func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
+	fileServer := http.FileServer(http.Dir(*resourcesDir))
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Cache-Control", "max-age=300")
+		fileServer.ServeHTTP(w, r)
+	}
+}
+
+// UploadHandler handles POSTs of images to be analyzed.
+func UploadHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse incoming JSON.
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to read body.")
+		return
+	}
+
+	// Convert to benchData.
+	buf := bytes.NewBuffer(b)
+	benchData, err := converter.Convert(buf)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to find valid incoming JSON.")
+		return
+	}
+
+	// Write the benchData out as JSON in the right spot in Google Storage.
+	writer := bucket.Object(upload.ObjectPath(benchData, gcsPath, time.Now().UTC())).NewWriter(context.Background())
+	if err := json.NewEncoder(writer).Encode(benchData); err != nil {
+		httputils.ReportError(w, r, err, "Failed to write converted JSON body.")
+		return
+	}
+	util.Close(writer)
+
+	// Store locally.
+	recentRequests.Add(b)
+
+	uploads.Inc(1)
+}
+
+// IndexContent is the data passed to the index.html template.
+type IndexContext struct {
+	Recent      []*recent.Request
+	LastBuildId int64
+}
+
+// MainHandler displays the main page with the last MAX_RECENT Requests.
+func MainHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	user := login.LoggedInAs(r)
+	if !*local && user == "" {
+		http.Redirect(w, r, login.LoginURL(w, r), http.StatusTemporaryRedirect)
+		return
+	}
+	if *local {
+		loadTemplates()
+	}
+
+	var lastBuildId int64 = -1
+	// process is nil when testing.
+	if process != nil {
+		lastBuildId, _, _, _ = process.Last()
+	}
+
+	indexContent := &IndexContext{
+		Recent:      recentRequests.List(),
+		LastBuildId: lastBuildId,
+	}
+
+	if err := templates.ExecuteTemplate(w, "index.html", indexContent); err != nil {
+		glog.Errorf("Failed to expand template: %s", err)
+	}
+}
+
+func loadTemplates() {
+	templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
+		filepath.Join(*resourcesDir, "templates/index.html"),
+
+		// Sub templates used by other templates.
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+}
+
+func main() {
+	defer common.LogPanic()
+	if *local {
+		common.Init()
+	} else {
+		common.InitWithMetrics2("androidingest", influxHost, influxUser, influxPassword, influxDatabase, local)
+	}
+	if *workRoot == "" {
+		glog.Fatal("The --work_root flag must be supplied.")
+	}
+	if *repoUrl == "" {
+		glog.Fatal("The --repo_url flag must be supplied.")
+	}
+
+	Init()
+
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
-	r.HandleFunc("/upload", handlers.UploadHandler)
-	r.HandleFunc("/", handlers.MainHandler)
+	r.HandleFunc("/upload", UploadHandler)
+	r.HandleFunc("/", MainHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
