@@ -194,6 +194,10 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 	if url != "" {
 		client := httputils.NewTimeoutClient()
 		resp, err := client.Get(url)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
 		defer util.Close(resp.Body)
 
 		// Copy the body out to a file.
