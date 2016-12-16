@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot/rpc"
+	"go.skia.org/infra/go/sklog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -26,7 +26,7 @@ func RunBuildServer(port string, db DB) (string, error) {
 	rpc.RegisterBuildbotDBServer(s, &rpcServer{db: db.(*localDB)})
 	go func() {
 		if err := s.Serve(lis); err != nil {
-			glog.Errorf("Failed to run RPC server: %s", err)
+			sklog.Errorf("Failed to run RPC server: %s", err)
 		}
 	}()
 	addrSplit := strings.Split(lis.Addr().String(), ":")

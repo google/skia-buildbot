@@ -7,7 +7,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/ptracestore"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 var vcs vcsinfo.VCS
@@ -36,7 +36,7 @@ func onestep() {
 	}
 	_, err := _new(colHeaders, commitIDs, matches, ptracestore.Default, nil, skip)
 	if err != nil {
-		glog.Errorf("Failed building the dataframe while warming: %s", err)
+		sklog.Errorf("Failed building the dataframe while warming: %s", err)
 	}
 
 }

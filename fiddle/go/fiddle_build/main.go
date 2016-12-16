@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fiddle/go/buildlib"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/sklog"
 )
 
 // flags
@@ -26,20 +26,20 @@ var (
 func main() {
 	common.Init()
 	if *fiddleRoot == "" {
-		glog.Fatal("The --fiddle_root flag is required.")
+		sklog.Fatal("The --fiddle_root flag is required.")
 	}
 	depotTools := filepath.Join(*fiddleRoot, "depot_tools")
 	repo, err := gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*fiddleRoot, "skia"), true)
 	if err != nil {
-		glog.Fatalf("Failed to clone Skia: %s", err)
+		sklog.Fatalf("Failed to clone Skia: %s", err)
 	}
 	b := buildskia.New(*fiddleRoot, depotTools, repo, buildlib.BuildLib, 2, time.Hour, true)
 	res, err := b.BuildLatestSkia(*force, *head, *installDeps)
 	if err != nil {
 		if err == buildskia.AlreadyExistsErr {
-			glog.Info("Checkout already exists, no work done.")
+			sklog.Info("Checkout already exists, no work done.")
 		} else {
-			glog.Fatalf("Failed to build latest skia: %s", err)
+			sklog.Fatalf("Failed to build latest skia: %s", err)
 		}
 	} else {
 		fmt.Printf("Built: %#v", *res)

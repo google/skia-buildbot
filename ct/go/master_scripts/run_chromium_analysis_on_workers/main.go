@@ -13,13 +13,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -58,21 +58,21 @@ func sendEmail(recipients []string, gs *util.GsUtil) {
 
 	if taskCompletedSuccessfully {
 		if viewActionMarkup, err = email.GetViewActionMarkup(outputLink, "View Results", "Direct link to the CSV results"); err != nil {
-			glog.Errorf("Failed to get view action markup: %s", err)
+			sklog.Errorf("Failed to get view action markup: %s", err)
 			return
 		}
 	} else {
 		emailSubject += " with failures"
 		failureHtml = util.GetFailureEmailHtml(*runID)
 		if viewActionMarkup, err = email.GetViewActionMarkup(util.GetMasterLogLink(*runID), "View Failure", "Direct link to the master log"); err != nil {
-			glog.Errorf("Failed to get view action markup: %s", err)
+			sklog.Errorf("Failed to get view action markup: %s", err)
 			return
 		}
 	}
 
 	totalArchivedWebpages, err := util.GetArchivesNum(gs, *benchmarkExtraArgs, *pagesetType)
 	if err != nil {
-		glog.Errorf("Error when calculating number of archives: %s", err)
+		sklog.Errorf("Error when calculating number of archives: %s", err)
 		totalArchivedWebpages = -1
 	}
 	archivedWebpagesText := ""
@@ -96,7 +96,7 @@ func sendEmail(recipients []string, gs *util.GsUtil) {
 	`
 	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, outputLink, archivedWebpagesText, chromiumPatchLink, catapultPatchLink, benchmarkPatchLink, customWebpagesLink, frontend.ChromiumAnalysisTasksWebapp)
 	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
-		glog.Errorf("Error while sending email: %s", err)
+		sklog.Errorf("Error while sending email: %s", err)
 		return
 	}
 }
@@ -117,13 +117,13 @@ func main() {
 	emailsArr := util.ParseEmails(*emails)
 	emailsArr = append(emailsArr, util.CtAdmins...)
 	if len(emailsArr) == 0 {
-		glog.Error("At least one email address must be specified")
+		sklog.Error("At least one email address must be specified")
 		return
 	}
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Errorf("Could not instantiate gsutil object: %s", err)
+		sklog.Errorf("Could not instantiate gsutil object: %s", err)
 		return
 	}
 
@@ -136,18 +136,18 @@ func main() {
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running chromium analysis task on workers")
-	defer glog.Flush()
+	defer sklog.Flush()
 
 	if *pagesetType == "" {
-		glog.Error("Must specify --pageset_type")
+		sklog.Error("Must specify --pageset_type")
 		return
 	}
 	if *benchmarkName == "" {
-		glog.Error("Must specify --benchmark_name")
+		sklog.Error("Must specify --benchmark_name")
 		return
 	}
 	if *runID == "" {
-		glog.Error("Must specify --run_id")
+		sklog.Error("Must specify --run_id")
 		return
 	}
 
@@ -160,7 +160,7 @@ func main() {
 	customWebpagesName := *runID + ".custom_webpages.csv"
 	for _, patchName := range []string{chromiumPatchName, catapultPatchName, benchmarkPatchName, customWebpagesName} {
 		if err := gs.UploadFile(patchName, os.TempDir(), remoteOutputDir); err != nil {
-			glog.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
+			sklog.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
 			return
 		}
 	}
@@ -172,11 +172,11 @@ func main() {
 	// Create the required chromium build.
 	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask("build_chromium", *runID, "chromium", *targetPlatform, []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName)}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
 	if err != nil {
-		glog.Errorf("Error encountered when swarming build repo task: %s", err)
+		sklog.Errorf("Error encountered when swarming build repo task: %s", err)
 		return
 	}
 	if len(chromiumBuilds) != 1 {
-		glog.Errorf("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
+		sklog.Errorf("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
 		return
 	}
 	chromiumBuild := chromiumBuilds[0]
@@ -199,11 +199,11 @@ func main() {
 	customWebPagesFilePath := filepath.Join(os.TempDir(), customWebpagesName)
 	numPages, err := util.GetNumPages(*pagesetType, customWebPagesFilePath)
 	if err != nil {
-		glog.Errorf("Error encountered when calculating number of pages: %s", err)
+		sklog.Errorf("Error encountered when calculating number of pages: %s", err)
 		return
 	}
 	if err := util.TriggerSwarmingTask(*pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numPages, isolateExtraArgs, workerDimensions); err != nil {
-		glog.Errorf("Error encountered when swarming tasks: %s", err)
+		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}
 
@@ -212,7 +212,7 @@ func main() {
 	pathToPyFiles := util.GetPathToPyFiles(false)
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv-pivot-table") {
 		if noOutputSlaves, err = util.MergeUploadCSVFiles(*runID, pathToPyFiles, gs, numPages, MAX_PAGES_PER_SWARMING_BOT, true /* handleStrings */); err != nil {
-			glog.Errorf("Unable to merge and upload CSV files for %s: %s", *runID, err)
+			sklog.Errorf("Unable to merge and upload CSV files for %s: %s", *runID, err)
 		}
 		// Cleanup created dir after the run completes.
 		defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))

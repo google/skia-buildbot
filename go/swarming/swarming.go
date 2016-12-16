@@ -13,10 +13,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/isolate"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -252,7 +252,7 @@ func (s *SwarmingClient) TriggerSwarmingTasks(tasksToHashes, dimensions, tags ma
 		if err := task.Trigger(s, hardTimeout, ioTimeout); err != nil {
 			return nil, fmt.Errorf("Could not trigger task %s: %s", taskName, err)
 		}
-		glog.Infof("Triggered the task: %v", task)
+		sklog.Infof("Triggered the task: %v", task)
 		tasks = append(tasks, task)
 	}
 
@@ -261,7 +261,7 @@ func (s *SwarmingClient) TriggerSwarmingTasks(tasksToHashes, dimensions, tags ma
 
 func (s *SwarmingClient) Cleanup() {
 	if err := os.RemoveAll(s.WorkDir); err != nil {
-		glog.Errorf("Could not cleanup swarming work dir: %s", err)
+		sklog.Errorf("Could not cleanup swarming work dir: %s", err)
 	}
 }
 
