@@ -63,6 +63,8 @@ var (
 )
 
 func Init() {
+	loadTemplates()
+
 	uploads = metrics2.GetCounter("uploads", nil)
 	// Create a new auth'd client for androidbuildinternal.
 	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope)
