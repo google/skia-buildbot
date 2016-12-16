@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a3953bb_c918d15f",
+        "filename": "status/res/imp/build-popup-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-16T14:27:15Z",
+      "side": 1,
+      "message": "Nice.",
+      "range": {
+        "startLine": 35,
+        "startChar": 510,
+        "endLine": 35,
+        "endChar": 553
+      },
+      "revId": "7e4673a636f3b187fdf88f8c1b22bd88c35cbad6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a3953bb_a9139d40",
+        "filename": "status/res/imp/build-popup-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-16T14:27:15Z",
+      "side": 1,
+      "message": "I\u0027m confused - where do these come from?  db.Task does not have these properties.",
+      "range": {
+        "startLine": 29,
+        "startChar": 8,
+        "endLine": 29,
+        "endChar": 20
+      },
+      "revId": "7e4673a636f3b187fdf88f8c1b22bd88c35cbad6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
