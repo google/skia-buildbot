@@ -164,6 +164,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Store locally.
 	recentRequests.Add(b)
 
+	loadTemplates()
+
 	uploads.Inc(1)
 }
 
