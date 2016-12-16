@@ -228,6 +228,10 @@ type RangeRequest struct {
 // cidRangeHandler accepts a POST'd JSON serialized RangeRequest
 // and returns a serialized JSON slice of cid.CommitDetails.
 func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.NotFound(w, r)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	rr := &RangeRequest{}
 	defer util.Close(r.Body)
@@ -364,8 +368,9 @@ func frameResultsHandler(w http.ResponseWriter, r *http.Request) {
 // countHandler takes the POST'd query and runs that against the current
 // dataframe and returns how many traces match the query.
 func countHandler(w http.ResponseWriter, r *http.Request) {
-	if *local {
-		loadTemplates()
+	if r.Method != "POST" {
+		http.NotFound(w, r)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := r.ParseForm(); err != nil {
@@ -394,6 +399,10 @@ func countHandler(w http.ResponseWriter, r *http.Request) {
 // cidHandler takes the POST'd list of dataframe.ColumnHeaders,
 // and returns a serialized slice of vcsinfo.ShortCommit's.
 func cidHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.NotFound(w, r)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	cids := []*cid.CommitID{}
 	if err := json.NewDecoder(r.Body).Decode(&cids); err != nil {
@@ -422,6 +431,10 @@ type ClusterStartResponse struct {
 // running routine is returned to be used in subsequent calls to
 // clusterStatusHandler to check on the status of the work.
 func clusterStartHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.NotFound(w, r)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 
 	req := &clustering2.ClusterRequest{}
@@ -490,6 +503,10 @@ func clusterStatusHandler(w http.ResponseWriter, r *http.Request) {
 //     "id": 123456,
 //   }
 func keysHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.NotFound(w, r)
+		return
+	}
 	defer util.Close(r.Body)
 	id, err := shortcut2.Insert(r.Body)
 	if err != nil {
@@ -698,6 +715,10 @@ type RegressionRangeResponse struct {
 //
 // Note that there will be nulls in the columns slice where no Regression have been found.
 func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.NotFound(w, r)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	rr := &RegressionRangeRequest{}
 	defer util.Close(r.Body)
