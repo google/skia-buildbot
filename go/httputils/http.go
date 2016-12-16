@@ -230,6 +230,7 @@ func LoggingGzipRequestResponse(h http.Handler) http.Handler {
 func LoggingRequestResponse(h http.Handler) http.Handler {
 	// Closure to capture the request.
 	f := func(w http.ResponseWriter, r *http.Request) {
+		glog.Infof("Incoming request: %s %s %#v ", r.URL.Path, r.Method, *(r.URL))
 		defer func() {
 			if err := recover(); err != nil {
 				const size = 64 << 10
@@ -238,7 +239,7 @@ func LoggingRequestResponse(h http.Handler) http.Handler {
 				glog.Errorf("panic serving %v: %v\n%s", r.URL.Path, err, buf)
 			}
 		}()
-		defer timer.New(fmt.Sprintf("Request: %s %s %#v Content Length: %d Latency:", r.URL.Path, r.Method, r.URL, r.ContentLength)).Stop()
+		defer timer.New(fmt.Sprintf("Request: %s Latency:", r.URL.Path)).Stop()
 		h.ServeHTTP(w, r)
 	}
 
