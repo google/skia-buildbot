@@ -289,9 +289,10 @@
         var visit = function(current) {
           visited[current] = true
           var myDepth = 0;
-          for (var i = 0; i < graph[current].length; i++) {
-            var dep = graph[current][i];
-            if (depth[dep] == undefined) {
+          var deps = graph[current] || [];
+          for (var i = 0; i < deps.length; i++) {
+            var dep = deps[i];
+            if (!depth[dep]) {
               visit(dep);
             }
             if (depth[dep] >= myDepth) {
