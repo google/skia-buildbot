@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/ingestion"
@@ -146,7 +146,7 @@ func (g *goldTrybotProcessor) getRietveldPatchset(issueID int64, patchsetID int6
 	// TODO(stephana): This should be a side effect of Rietveld to Gerrit transition.
 	// Remove once transition complete. In the meantime log a warning for ingestigation.
 	if issueID == 0 {
-		glog.Warningf("Received issue number 0 in file %s", name)
+		sklog.Warningf("Received issue number 0 in file %s", name)
 		return nil, ingestion.IgnoreResultsFileErr
 	}
 
@@ -168,7 +168,7 @@ func (g *goldTrybotProcessor) getRietveldPatchset(issueID int64, patchsetID int6
 
 		// This patchset is no longer available ignore the result file.
 		if !found {
-			glog.Warningf("Rietveld issue/patchset (%d/%d) does not exist.", issueID, patchsetID)
+			sklog.Warningf("Rietveld issue/patchset (%d/%d) does not exist.", issueID, patchsetID)
 			return nil, ingestion.IgnoreResultsFileErr
 		}
 		// We should not reach this point. Investigate manually if we do.

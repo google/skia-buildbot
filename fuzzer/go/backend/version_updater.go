@@ -5,13 +5,13 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/aggregator"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/generator"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
 )
@@ -53,7 +53,7 @@ func (v *VersionUpdater) UpdateToNewSkiaVersion(newHash string) error {
 
 	// Reanalyze all previous found fuzzes and restart with new version
 	if err := v.reanalyze(oldRevision); err != nil {
-		glog.Errorf("Problem reanalyzing and restarting aggregation pipeline: %s", err)
+		sklog.Errorf("Problem reanalyzing and restarting aggregation pipeline: %s", err)
 	}
 
 	for _, g := range v.generators {
@@ -67,7 +67,7 @@ func (v *VersionUpdater) UpdateToNewSkiaVersion(newHash string) error {
 		return fmt.Errorf("Could not update skia error: %s", err)
 	}
 
-	glog.Infof("We are updated to Skia revision %s", newHash)
+	sklog.Infof("We are updated to Skia revision %s", newHash)
 
 	return nil
 }
@@ -98,10 +98,10 @@ func (v *VersionUpdater) reanalyze(oldRevision string) error {
 		if err != nil {
 			return fmt.Errorf("Problem downloading all previous fuzzes: %s", err)
 		}
-		glog.Infof("There are %d bad fuzzes and %d grey fuzzes of category %s to rescan.", len(badFuzzPaths), len(greyFuzzPaths), category)
+		sklog.Infof("There are %d bad fuzzes and %d grey fuzzes of category %s to rescan.", len(badFuzzPaths), len(greyFuzzPaths), category)
 
 		if config.Common.ForceReanalysis {
-			glog.Infof("Deleting previous %s fuzz results", category)
+			sklog.Infof("Deleting previous %s fuzz results", category)
 			if err := gs.DeleteAllFilesInDir(v.storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/%s", category, oldRevision, config.Generator.Architecture), config.Aggregator.NumUploadProcesses); err != nil {
 				return fmt.Errorf("Could not delete previous fuzzes: %s", err)
 			}
@@ -113,7 +113,7 @@ func (v *VersionUpdater) reanalyze(oldRevision string) error {
 			uploadFuzzNames(v.storageClient, oldRevision, category, common.ExtractFuzzNamesFromPaths(badFuzzPaths), common.ExtractFuzzNamesFromPaths(greyFuzzPaths))
 		}
 		// Reanalyze and reupload the fuzzes, making a bug on regressions.
-		glog.Infof("Reanalyzing bad %s fuzzes", category)
+		sklog.Infof("Reanalyzing bad %s fuzzes", category)
 		v.aggregator.WatchForRegressions = false
 		v.aggregator.MakeBugOnBadFuzz = false
 		v.aggregator.UploadGreyFuzzes = true
@@ -122,7 +122,7 @@ func (v *VersionUpdater) reanalyze(oldRevision string) error {
 			v.aggregator.ForceAnalysis(name, category)
 		}
 		v.aggregator.WaitForEmptyQueues()
-		glog.Infof("Reanalyzing grey %s fuzzes", category)
+		sklog.Infof("Reanalyzing grey %s fuzzes", category)
 		v.aggregator.MakeBugOnBadFuzz = true
 		v.aggregator.WatchForRegressions = true
 		for _, name := range greyFuzzPaths {
@@ -133,7 +133,7 @@ func (v *VersionUpdater) reanalyze(oldRevision string) error {
 		v.aggregator.MakeBugOnBadFuzz = true
 		v.aggregator.UploadGreyFuzzes = false
 		bad, grey, deduped := v.aggregator.UploadedFuzzNames()
-		glog.Infof("Done reanalyzing %s.  Uploaded %d bad and %d grey fuzzes.  There were %d duplicate bad fuzzes that were skipped.", category, len(bad), len(grey), len(deduped))
+		sklog.Infof("Done reanalyzing %s.  Uploaded %d bad and %d grey fuzzes.  There were %d duplicate bad fuzzes that were skipped.", category, len(bad), len(grey), len(deduped))
 		metrics2.GetInt64Metric("fuzzer.fuzzes.status", map[string]string{"category": category, "architecture": config.Generator.Architecture, "status": "bad"}).Update(int64(len(bad)))
 		metrics2.GetInt64Metric("fuzzer.fuzzes.status", map[string]string{"category": category, "architecture": config.Generator.Architecture, "status": "grey"}).Update(int64(len(grey)))
 
@@ -141,7 +141,7 @@ func (v *VersionUpdater) reanalyze(oldRevision string) error {
 			uploadFuzzNames(v.storageClient, oldRevision, category, bad, grey)
 		}
 	}
-	glog.Info("All done reanlyzing fuzzes")
+	sklog.Info("All done reanlyzing fuzzes")
 
 	return nil
 }
@@ -199,9 +199,9 @@ func uploadFuzzNames(sc *storage.Client, oldRevision, category string, bad, grey
 	}
 
 	if err := uploadString("bad_fuzz_names.txt", strings.Join(bad, "|")); err != nil {
-		glog.Errorf("Problem uploading bad fuzz names: %s", err)
+		sklog.Errorf("Problem uploading bad fuzz names: %s", err)
 	}
 	if err := uploadString("grey_fuzz_names.txt", strings.Join(grey, "|")); err != nil {
-		glog.Errorf("Problem uploading grey fuzz names: %s", err)
+		sklog.Errorf("Problem uploading grey fuzz names: %s", err)
 	}
 }

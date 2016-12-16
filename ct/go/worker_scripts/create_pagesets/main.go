@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"strconv"
 
@@ -32,7 +32,7 @@ func createPagesets() error {
 		defer util.CleanTmpDir()
 	}
 	defer util.TimeTrack(time.Now(), "Creating Pagesets")
-	defer glog.Flush()
+	defer sklog.Flush()
 
 	// Delete and remake the local pagesets directory.
 	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
@@ -99,7 +99,7 @@ func createPagesets() error {
 func main() {
 	retCode := 0
 	if err := createPagesets(); err != nil {
-		glog.Errorf("Error while creating pagesets: %s", err)
+		sklog.Errorf("Error while creating pagesets: %s", err)
 		retCode = 255
 	}
 	os.Exit(retCode)

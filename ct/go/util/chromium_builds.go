@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildskia"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 
 	"strings"
@@ -88,7 +88,7 @@ func CreateChromiumBuildOnSwarming(runID, targetPlatform, chromiumHash, skiaHash
 	}
 	err = ExecuteCmd("python", syncArgs, []string{}, SYNC_SKIA_IN_CHROME_TIMEOUT, nil, nil)
 	if err != nil {
-		glog.Warning("There was an error. Deleting base directory and trying again.")
+		sklog.Warning("There was an error. Deleting base directory and trying again.")
 		util.RemoveAll(chromiumBuildDir)
 		util.MkdirAll(chromiumBuildDir, 0700)
 		err := ExecuteCmd("python", syncArgs, []string{}, SYNC_SKIA_IN_CHROME_TIMEOUT, nil,
@@ -285,7 +285,7 @@ func applyRepoPatches(chromiumSrcDir, runID string) error {
 func InstallChromeAPK(chromiumBuildName string) error {
 	// Install the APK on the Android device.
 	chromiumApk := filepath.Join(ChromiumBuildsDir, chromiumBuildName, ApkName)
-	glog.Infof("Installing the APK at %s", chromiumApk)
+	sklog.Infof("Installing the APK at %s", chromiumApk)
 	err := ExecuteCmd(BINARY_ADB, []string{"install", "-r", chromiumApk}, []string{},
 		ADB_INSTALL_TIMEOUT, nil, nil)
 	if err != nil {

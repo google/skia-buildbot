@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
@@ -43,7 +43,7 @@ func captureSkps() error {
 		defer util.CleanTmpDir()
 	}
 	defer util.TimeTrack(time.Now(), "Capturing SKPs")
-	defer glog.Flush()
+	defer sklog.Flush()
 
 	// Validate required arguments.
 	if *chromiumBuild == "" {
@@ -142,16 +142,16 @@ func captureSkps() error {
 				pagesetPath := filepath.Join(pathToPagesets, pagesetName)
 				decodedPageset, err := util.ReadPageset(pagesetPath)
 				if err != nil {
-					glog.Errorf("Could not read %s: %s", pagesetPath, err)
+					sklog.Errorf("Could not read %s: %s", pagesetPath, err)
 					continue
 				}
 
-				glog.Infof("===== Processing %s =====", pagesetPath)
+				sklog.Infof("===== Processing %s =====", pagesetPath)
 
 				skutil.LogErr(os.Chdir(pathToPyFiles))
 				index, ok := archivesToIndex[decodedPageset.ArchiveDataFile]
 				if !ok {
-					glog.Errorf("%s not found in the archivesToIndex map", decodedPageset.ArchiveDataFile)
+					sklog.Errorf("%s not found in the archivesToIndex map", decodedPageset.ArchiveDataFile)
 					continue
 				}
 				args := []string{
@@ -188,11 +188,11 @@ func captureSkps() error {
 						break
 					}
 					if i >= (retryAttempts - 1) {
-						glog.Errorf("%s failed inspite of 3 retries. Last error: %s", pagesetPath, err)
+						sklog.Errorf("%s failed inspite of 3 retries. Last error: %s", pagesetPath, err)
 						break
 					}
 					time.Sleep(time.Second)
-					glog.Warningf("Retrying due to error: %s", err)
+					sklog.Warningf("Retrying due to error: %s", err)
 				}
 
 				mutex.RUnlock()
@@ -233,7 +233,7 @@ func captureSkps() error {
 func main() {
 	retCode := 0
 	if err := captureSkps(); err != nil {
-		glog.Errorf("Error while capturing SKPs: %s", err)
+		sklog.Errorf("Error while capturing SKPs: %s", err)
 		retCode = 255
 	}
 	os.Exit(retCode)

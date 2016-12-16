@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"strings"
 
@@ -56,7 +56,7 @@ func runChromiumPerf() error {
 		defer util.CleanTmpDir()
 	}
 	defer util.TimeTrack(time.Now(), "Running Chromium Perf")
-	defer glog.Flush()
+	defer sklog.Flush()
 
 	// Validate required arguments.
 	if *chromiumBuildNoPatch == "" {
@@ -203,9 +203,9 @@ func runChromiumPerf() error {
 		// continue to be serial because it will help guard against
 		// crashes/flakiness/inconsistencies which are more prevalent in mobile runs.
 		numWorkers = 1
-		glog.Infoln("===== Going to run the task serially =====")
+		sklog.Infoln("===== Going to run the task serially =====")
 	} else {
-		glog.Infoln("===== Going to run the task with parallel chrome processes =====")
+		sklog.Infoln("===== Going to run the task with parallel chrome processes =====")
 	}
 
 	// Create channel that contains all pageset file names. This channel will
@@ -248,7 +248,7 @@ func runChromiumPerf() error {
 				mutex.RUnlock()
 
 				if timeoutTracker.Read() > MAX_ALLOWED_SEQUENTIAL_TIMEOUTS {
-					glog.Errorf("Ran into %d sequential timeouts. Something is wrong. Killing the goroutine.", MAX_ALLOWED_SEQUENTIAL_TIMEOUTS)
+					sklog.Errorf("Ran into %d sequential timeouts. Something is wrong. Killing the goroutine.", MAX_ALLOWED_SEQUENTIAL_TIMEOUTS)
 					return
 				}
 			}
@@ -283,7 +283,7 @@ func runChromiumPerf() error {
 func main() {
 	retCode := 0
 	if err := runChromiumPerf(); err != nil {
-		glog.Errorf("Error while running chromium perf: %s", err)
+		sklog.Errorf("Error while running chromium perf: %s", err)
 		retCode = 255
 	}
 	os.Exit(retCode)

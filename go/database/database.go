@@ -10,8 +10,8 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -138,13 +138,13 @@ func (c *DatabaseConfig) NewVersionedDB() (*VersionedDB, error) {
 	var err error
 	var DB *sql.DB = nil
 
-	glog.Infoln("Opening SQL database.")
+	sklog.Infoln("Opening SQL database.")
 	DB, err = sql.Open(DEFAULT_DRIVER, c.MySQLString())
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open connection to SQL server: %v", err)
 	}
 
-	glog.Infoln("Sending Ping.")
+	sklog.Infoln("Sending Ping.")
 	if err := DB.Ping(); err != nil {
 		return nil, fmt.Errorf("Failed to ping SQL server: %v", err)
 	}
@@ -164,16 +164,16 @@ func (c *DatabaseConfig) NewVersionedDB() (*VersionedDB, error) {
 	if err := result.checkVersionTable(); err != nil {
 		return nil, fmt.Errorf("Attempt to create version table returned: %v", err)
 	}
-	glog.Infoln("Version table OK.")
+	sklog.Infoln("Version table OK.")
 
 	// Ping the database occasionally to keep the connection fresh.
 	go func() {
 		c := time.Tick(1 * time.Minute)
 		for _ = range c {
 			if err := result.DB.Ping(); err != nil {
-				glog.Warningln("Database failed to respond:", err)
+				sklog.Warningln("Database failed to respond:", err)
 			}
-			glog.Infof("db: Successful ping")
+			sklog.Infof("db: Successful ping")
 		}
 	}()
 
@@ -189,7 +189,7 @@ func (vdb *VersionedDB) Close() error {
 // retrieve the current version of the database.
 func (vdb *VersionedDB) Migrate(targetVersion int) (rv error) {
 	if (targetVersion < 0) || (targetVersion > vdb.MaxDBVersion()) {
-		glog.Fatalf("Target db version must be in range: [0 .. %d]", vdb.MaxDBVersion())
+		sklog.Fatalf("Target db version must be in range: [0 .. %d]", vdb.MaxDBVersion())
 	}
 
 	currentVersion, err := vdb.DBVersion()
@@ -198,7 +198,7 @@ func (vdb *VersionedDB) Migrate(targetVersion int) (rv error) {
 	}
 
 	if currentVersion > vdb.MaxDBVersion() {
-		glog.Fatalf("Version table is out of date with current DB version.")
+		sklog.Fatalf("Version table is out of date with current DB version.")
 	}
 
 	if targetVersion == currentVersion {
@@ -215,12 +215,12 @@ func (vdb *VersionedDB) Migrate(targetVersion int) (rv error) {
 	// run through the transactions
 	runSteps := vdb.getMigrations(currentVersion, targetVersion)
 	if len(runSteps) == 0 {
-		glog.Fatalln("Unable to find migration steps.")
+		sklog.Fatalln("Unable to find migration steps.")
 	}
 
 	for _, step := range runSteps {
 		for _, stmt := range step {
-			glog.Infoln("EXECUTING: \n", stmt)
+			sklog.Infoln("EXECUTING: \n", stmt)
 			if _, err = txn.Exec(stmt); err != nil {
 				return err
 			}
@@ -260,12 +260,12 @@ func (vdb *VersionedDB) MaxDBVersion() int {
 func (vdb *VersionedDB) IsLatestVersion() bool {
 	dbVersion, err := vdb.DBVersion()
 	if err != nil {
-		glog.Errorf("Error retrieving db version: %s", err)
+		sklog.Errorf("Error retrieving db version: %s", err)
 		return false
 	}
 
 	if dbVersion != vdb.MaxDBVersion() {
-		glog.Infof("The current DB version is %d. The latest available version is %d", dbVersion, vdb.MaxDBVersion())
+		sklog.Infof("The current DB version is %d. The latest available version is %d", dbVersion, vdb.MaxDBVersion())
 		return false
 	}
 	return true

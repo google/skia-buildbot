@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -285,7 +285,7 @@ func (am *AlertManager) tick() error {
 // loop runs the AlertManager's main loop.
 func (am *AlertManager) loop() {
 	if err := am.tick(); err != nil {
-		glog.Error(err)
+		sklog.Error(err)
 	}
 	for _ = range time.Tick(am.tickInterval) {
 		select {
@@ -294,7 +294,7 @@ func (am *AlertManager) loop() {
 		default:
 		}
 		if err := am.tick(); err != nil {
-			glog.Error(err)
+			sklog.Error(err)
 		}
 	}
 }
