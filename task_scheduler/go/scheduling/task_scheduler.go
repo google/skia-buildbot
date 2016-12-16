@@ -1545,7 +1545,15 @@ func (s *TaskScheduler) updateTaskFromSwarming(swarmingTaskId string) error {
 	}
 	// Update the task in the DB.
 	if err := db.UpdateDBFromSwarmingTask(s.db, res); err != nil {
-		return fmt.Errorf("Failed to update task: %s", err)
+		if err == db.ErrNotFound {
+			id, err := swarming.GetTagValue(res, db.SWARMING_TAG_ID)
+			if err != nil {
+				id = "<MISSING ID TAG>"
+			}
+			glog.Errorf("Failed to update task %q: No such task ID: %q", swarmingTaskId, id)
+		} else {
+			return fmt.Errorf("Failed to update task %q: %s", swarmingTaskId, err)
+		}
 	}
 	return nil
 }
