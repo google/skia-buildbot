@@ -230,7 +230,6 @@ type RangeRequest struct {
 func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	rr := &RangeRequest{}
-	defer util.Close(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(rr); err != nil {
 		httputils.ReportError(w, r, err, "Failed to decode JSON.")
 		return
@@ -299,7 +298,6 @@ type FrameStartResponse struct {
 func frameStartHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	fr := &dataframe.FrameRequest{}
-	defer util.Close(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(fr); err != nil {
 		httputils.ReportError(w, r, err, "Failed to decode JSON.")
 		return
@@ -490,7 +488,6 @@ func clusterStatusHandler(w http.ResponseWriter, r *http.Request) {
 //     "id": 123456,
 //   }
 func keysHandler(w http.ResponseWriter, r *http.Request) {
-	defer util.Close(r.Body)
 	id, err := shortcut2.Insert(r.Body)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Error inserting shortcut.")
@@ -603,7 +600,6 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	tr := &TriageRequest{}
-	defer util.Close(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(tr); err != nil {
 		httputils.ReportError(w, r, err, "Failed to decode JSON.")
 		return
@@ -700,7 +696,6 @@ type RegressionRangeResponse struct {
 func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	rr := &RegressionRangeRequest{}
-	defer util.Close(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(rr); err != nil {
 		httputils.ReportError(w, r, err, "Failed to decode JSON.")
 		return
