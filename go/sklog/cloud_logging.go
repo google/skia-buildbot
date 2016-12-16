@@ -8,7 +8,6 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/go/util"
 	logging "google.golang.org/api/logging/v2beta1"
 )
 
@@ -18,7 +17,7 @@ import (
 // the resource field in the v2 LogEntry object. A monitored resource is an abstraction used to
 // characterize many kinds of objects in your cloud infrastructure."
 // We create a monitored resource of the generic type logging_log, aka "Log stream". This resource
-// takes one label: "name", which we supply with "skolo-" + logGrouping [see InitCloudLogging].
+// takes one label: "name", which we supply with logGrouping [see InitCloudLogging].
 
 // The MonitoredResource name is the first stage of grouping logs. For example, setting the
 // MonitoredResource's name based on the hostname (the default) forces the logs to be broken
@@ -33,14 +32,24 @@ import (
 const (
 	CLOUD_LOGGING_WRITE_SCOPE = logging.LoggingWriteScope
 	CLOUD_LOGGING_READ_SCOPE  = logging.LoggingReadScope
+
+	// time.RFC3339Nano only uses as many sub-second digits are required to
+	// represent the time, which makes it unsuitable for sorting. This
+	// format ensures that all 9 nanosecond digits are used, padding with
+	// zeroes if necessary.
+	RFC3339NanoZeroPad = "2006-01-02T15:04:05.000000000Z07:00"
+
+	// first string is defaultReport, second is logGrouping
+	CLOUD_LOGGING_URL_FORMAT = "https://console.cloud.google.com/logs/viewer?logName=projects%%2Fgoogle.com:skia-buildbots%%2Flogs%%2F%s&resource=logging_log%%2Fname%%2F%s"
 )
 
+// CLIENTS SHOULD NOT CALL InitCloudLogging directly. Instead use sklog_init.
 // InitCloudLogging initializes the module-level logger. logGrouping refers to the
 // MonitoredResource's name. If blank, logGrouping defaults to the machine's hostname.
 // defaultReportName refers to the default "virtual log file" name that Log Entries will be
 // associated with if no other reportName is given.. If an error is returned, cloud logging will not
 //  be used, instead glog will.
-func InitCloudLogging(c *http.Client, logGrouping, defaultReport string) error {
+func InitCloudLogging(c *http.Client, logGrouping, defaultReport string, metricsCallback MetricsCallback) error {
 	lc, err := logging.New(c)
 	if err != nil {
 		return fmt.Errorf("Problem setting up logging.Service: %s", err)
@@ -55,7 +64,7 @@ func InitCloudLogging(c *http.Client, logGrouping, defaultReport string) error {
 	r := &logging.MonitoredResource{
 		Type: "logging_log",
 		Labels: map[string]string{
-			"name": "skolo-" + logGrouping,
+			"name": logGrouping,
 		},
 	}
 	defaultReportName = defaultReport
@@ -64,6 +73,13 @@ func InitCloudLogging(c *http.Client, logGrouping, defaultReport string) error {
 		loggingResource: r,
 		hostname:        hostname,
 	}
+	if metricsCallback != nil {
+		sawLogWithSeverity = metricsCallback
+	}
+	url := fmt.Sprintf(CLOUD_LOGGING_URL_FORMAT, defaultReport, logGrouping)
+	glog.Infof("Cloud logging configured, see %s for rest of logs. This file will only contain errors invovled with cloud logging.", url)
+	// Make first cloud logging entry.
+	Info("Cloud logging configured.")
 	return nil
 }
 
@@ -160,7 +176,7 @@ func (c *logsClient) BatchCloudLog(reportName string, payloads ...*LogPayload) {
 				"hostname": c.hostname,
 			},
 			TextPayload: payload.Payload,
-			Timestamp:   payload.Time.Format(util.RFC3339NanoZeroPad),
+			Timestamp:   payload.Time.Format(RFC3339NanoZeroPad),
 			// Required. See comment in logsClient struct.
 			Resource: c.loggingResource,
 			Severity: payload.Severity,
@@ -171,12 +187,14 @@ func (c *logsClient) BatchCloudLog(reportName string, payloads ...*LogPayload) {
 		request := logging.WriteLogEntriesRequest{
 			Entries: entries,
 		}
-		glog.Infof("Sending log entry batch of %d", len(entries))
+		if len(entries) > 1 {
+			glog.Infof("Sending log entry batch of %d", len(entries))
+		}
 		if resp, err := c.service.Entries.Write(&request).Do(); err != nil {
 			// We can't use httputil.DumpResponse, because that doesn't accept *logging.WriteLogEntriesResponse
 			glog.Errorf("Problem writing logs \nLogPayloads:\n%v\nLogEntries:\n%v\nResponse:\n%v:\n%s", spew.Sdump(payloads), spew.Sdump(entries), spew.Sdump(resp), err)
-		} else {
-			glog.Infof("Response code %d", resp.HTTPStatusCode)
+		} else if resp.HTTPStatusCode != http.StatusOK {
+			glog.Warningf("Response code %d", resp.HTTPStatusCode)
 		}
 	}()
 

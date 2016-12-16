@@ -11,10 +11,10 @@ import (
 	"time"
 
 	cache "github.com/patrickmn/go-cache"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/rietveld"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
@@ -206,7 +206,7 @@ func (t *TrybotResults) getPatchsetDetails(issue *Issue, isGerrit bool) (map[int
 			defer wg.Done()
 			pSet, err := extractPatchsetDetails(intIssueID, pid)
 			if err != nil {
-				glog.Errorf("Error retrieving patchset %d: %s", pid, err)
+				sklog.Errorf("Error retrieving patchset %d: %s", pid, err)
 				return
 			}
 
@@ -306,7 +306,7 @@ func (t *TrybotResults) extractGerritPatchsetDetails(issueID, patchsetID int64) 
 	for _, build := range builds {
 		params := build.Parameters
 		if (params == nil) || (params.BuilderName == "") || (params.Properties.Master == "") {
-			glog.Errorf("Unable to find builder name or master for a build: %s", build.Id)
+			sklog.Errorf("Unable to find builder name or master for a build: %s", build.Id)
 			continue
 		}
 		builderName := build.Parameters.BuilderName
@@ -426,7 +426,7 @@ func (t *TrybotResults) getIssuesFromCommits(commits []*tracedb.CommitIDLong, is
 		// if the iid is not numeric it is wrong.
 		numIID, err := strconv.ParseInt(iid, 10, 64)
 		if err != nil {
-			glog.Errorf("Unable to parse issue id %s. Got error: %s", iid, err)
+			sklog.Errorf("Unable to parse issue id %s. Got error: %s", iid, err)
 			continue
 		}
 

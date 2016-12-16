@@ -17,9 +17,9 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/skia-dev/glog"
 	iexec "go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/storage/v1"
 )
@@ -80,7 +80,7 @@ func NewAllInfo(client *http.Client, store *storage.Service, serverNames []strin
 	go func() {
 		for _ = range time.Tick(1 * time.Minute) {
 			if err := a.step(); err != nil {
-				glog.Errorf("Failed to update AllInfo: %s", err)
+				sklog.Errorf("Failed to update AllInfo: %s", err)
 			}
 		}
 	}()
@@ -165,7 +165,7 @@ func allInstalled(client *http.Client, store *storage.Service, names []string) (
 	for _, name := range names {
 		p, err := InstalledForServer(client, store, name)
 		if err != nil {
-			glog.Errorf("Failed to retrieve remote package list: %s", err)
+			sklog.Errorf("Failed to retrieve remote package list: %s", err)
 		}
 		ret[name] = p
 	}
@@ -179,7 +179,7 @@ func safeGetTime(m map[string]string, key string) time.Time {
 	}
 	ret, err := time.Parse("2006-01-02T15:04:05Z", value)
 	if err != nil {
-		glog.Errorf("Failed to parse metadata datatime %s: %s", value, err)
+		sklog.Errorf("Failed to parse metadata datatime %s: %s", value, err)
 	}
 	return ret
 }
@@ -244,7 +244,7 @@ func AllAvailable(store *storage.Service) (map[string][]*Package, error) {
 		for _, o := range objs.Items {
 			key := safeGet(o.Metadata, "appname", "")
 			if key == "" {
-				glog.Errorf("Debian package without proper metadata: %s", o.Name)
+				sklog.Errorf("Debian package without proper metadata: %s", o.Name)
 				continue
 			}
 			p := &Package{
@@ -286,7 +286,7 @@ func AllAvailableApp(store *storage.Service, appName string) ([]*Package, error)
 		for _, o := range objs.Items {
 			key := safeGet(o.Metadata, "appname", "")
 			if key == "" {
-				glog.Errorf("Debian package without proper metadata: %s", o.Name)
+				sklog.Errorf("Debian package without proper metadata: %s", o.Name)
 				continue
 			}
 			p := &Package{
@@ -339,7 +339,7 @@ func InstalledForServer(client *http.Client, store *storage.Service, serverName 
 		return ret, fmt.Errorf("Failed to retrieve Google Storage metadata about packages file %q: %s", filename, err)
 	}
 
-	glog.Infof("Fetching: %s", obj.MediaLink)
+	sklog.Infof("Fetching: %s", obj.MediaLink)
 	req, err := gs.RequestForStorageURL(obj.MediaLink)
 	if err != nil {
 		return ret, fmt.Errorf("Failed to construct request object for media: %s", err)
@@ -401,7 +401,7 @@ func ToLocalFile(packages []string, filename string) error {
 
 // Install downloads and installs a debian package from Google Storage.
 func Install(client *http.Client, store *storage.Service, name string) error {
-	glog.Infof("Installing: %s", name)
+	sklog.Infof("Installing: %s", name)
 	obj, err := store.Objects.Get(bucketName, "debs/"+name).Do()
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve Google Storage metadata about debian package: %s", err)
@@ -435,10 +435,10 @@ func Install(client *http.Client, store *storage.Service, name string) error {
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	if err := cmd.Run(); err != nil {
-		glog.Errorf("Install package stdout: %s", out.String())
+		sklog.Errorf("Install package stdout: %s", out.String())
 		return fmt.Errorf("Failed to install package: %s", err)
 	}
-	glog.Infof("Install package stdout: %s", out.String())
+	sklog.Infof("Install package stdout: %s", out.String())
 	return nil
 }
 
@@ -451,7 +451,7 @@ func getDependencies(packageName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	glog.Infof("Got output for %s :\n\n%s", packageName, output)
+	sklog.Infof("Got output for %s :\n\n%s", packageName, output)
 
 	buf := bytes.NewBuffer([]byte(output))
 	scanner := bufio.NewScanner(buf)
@@ -477,12 +477,12 @@ func installDependencies(packageFileName string) error {
 			return fmt.Errorf("Unable to update package cache Got error  %s\n\n and output: %s\n\n", err, output)
 		}
 
-		glog.Infof("Installing via apt-get: %s", dependencies)
+		sklog.Infof("Installing via apt-get: %s", dependencies)
 		if output, err := iexec.RunSimple(fmt.Sprintf("sudo apt-get -y install %s", dependencies)); err != nil {
 			return fmt.Errorf("Unable to install dependencies for %s. Got error: \n %s \n\n and output:\n\n%s", packageFileName, err, output)
 		}
 	} else {
-		glog.Infof("No deps found.")
+		sklog.Infof("No deps found.")
 	}
 	return nil
 }

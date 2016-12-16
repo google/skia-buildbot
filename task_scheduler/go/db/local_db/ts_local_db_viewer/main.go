@@ -11,8 +11,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 )
@@ -31,29 +31,29 @@ func main() {
 
 	d, err := local_db.NewDB(local_db.DB_NAME, *dbfile)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	begin := time.Now().UTC().Add(-*period)
 	if *beginStr != "" {
 		parsed, err := time.Parse(time.RFC3339, *beginStr)
 		if err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 		begin = parsed.UTC()
 	}
 	end := begin.Add(*period)
 
-	glog.Infof("Reading tasks from %s to %s...", begin, end)
+	sklog.Infof("Reading tasks from %s to %s...", begin, end)
 	tasks, err := d.GetTasksFromDateRange(begin, end)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
-	glog.Infof("Reading jobs from %s to %s...", begin, end)
+	sklog.Infof("Reading jobs from %s to %s...", begin, end)
 	jobs, err := d.GetJobsFromDateRange(begin, end)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	v := struct {
@@ -70,10 +70,10 @@ func main() {
 
 	enc, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	if _, err := os.Stdout.Write(enc); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	fmt.Println()
 }

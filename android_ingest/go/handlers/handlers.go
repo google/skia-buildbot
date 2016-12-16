@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/android_ingest/go/continuous"
 	"go.skia.org/infra/go/httputils"
@@ -109,7 +109,7 @@ func MainHandler(w http.ResponseWriter, r *http.Request) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	if err := templates.ExecuteTemplate(w, "index.html", indexContent); err != nil {
-		glog.Errorf("Failed to expand template: %s", err)
+		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
 

@@ -14,6 +14,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -29,15 +30,15 @@ const (
 // Init runs commonly-used initialization metrics.
 func Init() {
 	flag.Parse()
-	defer glog.Flush()
+	defer sklog.Flush()
 	flag.VisitAll(func(f *flag.Flag) {
-		glog.Infof("Flags: --%s=%v", f.Name, f.Value)
+		sklog.Infof("Flags: --%s=%v", f.Name, f.Value)
 	})
 
 	// See skbug.com/4386 for details on why the below section exists.
-	glog.Info("Initializing logserver for log level INFO.")
-	glog.Warning("Initializing logserver for log level WARNING.")
-	glog.Error("Initializing logserver for log level ERROR.")
+	sklog.Info("Initializing logserver for log level INFO.")
+	sklog.Warning("Initializing logserver for log level WARNING.")
+	sklog.Error("Initializing logserver for log level ERROR.")
 
 	// Use all cores.
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -63,18 +64,18 @@ func InitExternalWithMetrics2(appName string, influxHost, influxUser, influxPass
 func StartMetrics2(appName string, influxHost, influxUser, influxPassword, influxDatabase *string, skipMetadata bool) {
 	influxClient, err := influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, skipMetadata)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	if err := metrics2.Init(appName, influxClient); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Start runtime metrics.
 	metrics2.RuntimeMetrics()
 }
 
-// LogPanic, when deferred from main, logs any panics and flush the log. Defer this function before
-//  any other defers.
+// LogPanic, when deferred from main, logs any panics and flush the log to local disk using glog.
+//  Defer this function before any other defers.
 func LogPanic() {
 	if r := recover(); r != nil {
 		glog.Fatal(r)
@@ -82,15 +83,15 @@ func LogPanic() {
 	glog.Flush()
 }
 
-// DecodeTomlFile decodes a TOML file into the passed in struct and logs it to glog.  If there is
+// DecodeTomlFile decodes a TOML file into the passed in struct and logs it to sklog.  If there is
 // an error, it panics.
 func DecodeTomlFile(filename string, configuration interface{}) {
 	if _, err := toml.DecodeFile(filename, configuration); err != nil {
-		glog.Fatalf("Failed to decode config file %s: %s", filename, err)
+		sklog.Fatalf("Failed to decode config file %s: %s", filename, err)
 	}
 
 	conf_str := spew.Sdump(configuration)
-	glog.Infof("Read TOML configuration from %s: %s", filename, conf_str)
+	sklog.Infof("Read TOML configuration from %s: %s", filename, conf_str)
 }
 
 // MultiString implements flag.Value, allowing it to be used as

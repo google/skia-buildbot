@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/ptracestore"
@@ -41,7 +41,7 @@ func NewRefresher(vcs vcsinfo.VCS, store ptracestore.PTraceStore, period time.Du
 
 func (f *Refresher) oneStep() error {
 	if err := f.vcs.Update(true, false); err != nil {
-		glog.Errorf("Failed to update repo: %s", err)
+		sklog.Errorf("Failed to update repo: %s", err)
 	}
 	newDf, err := New(f.vcs, f.store, nil)
 	if err != nil {
@@ -56,7 +56,7 @@ func (f *Refresher) oneStep() error {
 func (f *Refresher) refresh() {
 	for _ = range time.Tick(f.period) {
 		if err := f.oneStep(); err != nil {
-			glog.Errorf("Failed to refresh the DataFrame: %s", err)
+			sklog.Errorf("Failed to refresh the DataFrame: %s", err)
 		}
 	}
 }

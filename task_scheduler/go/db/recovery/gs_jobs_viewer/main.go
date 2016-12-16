@@ -16,9 +16,9 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/recovery"
 )
@@ -37,21 +37,21 @@ func main() {
 	// Authenticated HTTP client.
 	httpClient, err := auth.NewClient(true, "", auth.SCOPE_READ_ONLY)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	ctx := context.Background()
 	gsClient, err := storage.NewClient(ctx, option.WithHTTPClient(httpClient))
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	begin := time.Now().UTC().Add(-*period)
 
-	glog.Infof("Reading jobs since %s...", begin)
+	sklog.Infof("Reading jobs since %s...", begin)
 	jobsMap, err := recovery.RetrieveJobs(ctx, begin, gsClient, *gsBucket)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	jobs := make([]*db.Job, 0, len(jobsMap))
@@ -70,10 +70,10 @@ func main() {
 
 	enc, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	if _, err := os.Stdout.Write(enc); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	fmt.Fprintln(os.Stdout)
 }

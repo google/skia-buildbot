@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
@@ -27,6 +26,7 @@ import (
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/skiaversion"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
@@ -97,44 +97,44 @@ func main() {
 
 	v, err := skiaversion.GetVersion()
 	if err != nil {
-		glog.Fatalf("Unable to retrieve version: %s", err)
+		sklog.Fatalf("Unable to retrieve version: %s", err)
 	}
-	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
 	// Enable the memory profiler if memProfile was set.
 	// TODO(stephana): This should be moved to a HTTP endpoint that
 	// only responds to internal IP addresses/ports.
 	if *memProfile > 0 {
 		time.AfterFunc(*memProfile, func() {
-			glog.Infof("Writing Memory Profile")
+			sklog.Infof("Writing Memory Profile")
 			f, err := ioutil.TempFile("./", "memory-profile")
 			if err != nil {
-				glog.Fatalf("Unable to create memory profile file: %s", err)
+				sklog.Fatalf("Unable to create memory profile file: %s", err)
 			}
 			if err := pprof.WriteHeapProfile(f); err != nil {
-				glog.Fatalf("Unable to write memory profile file: %v", err)
+				sklog.Fatalf("Unable to write memory profile file: %v", err)
 			}
 			util.Close(f)
-			glog.Infof("Memory profile written to %s", f.Name())
+			sklog.Infof("Memory profile written to %s", f.Name())
 
 			os.Exit(0)
 		})
 	}
 
 	if *cpuProfile > 0 {
-		glog.Infof("Writing CPU Profile")
+		sklog.Infof("Writing CPU Profile")
 		f, err := ioutil.TempFile("./", "cpu-profile")
 		if err != nil {
-			glog.Fatalf("Unable to create cpu profile file: %s", err)
+			sklog.Fatalf("Unable to create cpu profile file: %s", err)
 		}
 
 		if err := pprof.StartCPUProfile(f); err != nil {
-			glog.Fatalf("Unable to write cpu profile file: %v", err)
+			sklog.Fatalf("Unable to write cpu profile file: %v", err)
 		}
 		time.AfterFunc(*cpuProfile, func() {
 			pprof.StopCPUProfile()
 			util.Close(f)
-			glog.Infof("CPU profile written to %s", f.Name())
+			sklog.Infof("CPU profile written to %s", f.Name())
 			os.Exit(0)
 		})
 	}
@@ -164,37 +164,37 @@ func main() {
 	// Get the client to be used to access GS and the Monorail issue tracker.
 	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, nil, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
-		glog.Fatalf("Failed to authenticate service account: %s", err)
+		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
 
 	// Get the expecations storage, the filediff storage and the tilestore.
 	diffStore, err := diffstore.New(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GS_IMG_DIR_NAME, *cacheSize)
 	if err != nil {
-		glog.Fatalf("Allocating DiffStore failed: %s", err)
+		sklog.Fatalf("Allocating DiffStore failed: %s", err)
 	}
 
 	if !*local {
 		if err := dbConf.GetPasswordFromMetadata(); err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 	}
 	vdb, err := dbConf.NewVersionedDB()
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	if !vdb.IsLatestVersion() {
-		glog.Fatal("Wrong DB version. Please updated to latest version.")
+		sklog.Fatal("Wrong DB version. Please updated to latest version.")
 	}
 
 	digestStore, err := digeststore.New(*storageDir)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	git, err := gitinfo.CloneOrUpdate(*gitRepoURL, *gitRepoDir, false)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	evt := eventbus.New(nil)
@@ -202,24 +202,24 @@ func main() {
 	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
 	gerritAPI, err := gerrit.NewGerrit(*gerritURL, "", httputils.NewTimeoutClient())
 	if err != nil {
-		glog.Fatalf("Failed to create Gerrit client: %s", err)
+		sklog.Fatalf("Failed to create Gerrit client: %s", err)
 	}
 
 	// Connect to traceDB and create the builders.
 	db, err := tracedb.NewTraceServiceDBFromAddress(*traceservice, types.GoldenTraceBuilder)
 	if err != nil {
-		glog.Fatalf("Failed to connect to tracedb: %s", err)
+		sklog.Fatalf("Failed to connect to tracedb: %s", err)
 	}
 
 	masterTileBuilder, err := tracedb.NewMasterTileBuilder(db, git, *nCommits, evt)
 	if err != nil {
-		glog.Fatalf("Failed to build trace/db.DB: %s", err)
+		sklog.Fatalf("Failed to build trace/db.DB: %s", err)
 	}
 	branchTileBuilder := tracedb.NewBranchTileBuilder(db, git, rietveldAPI, gerritAPI, evt)
 
 	ingestionStore, err := goldingestion.NewIngestionStore(*traceservice)
 	if err != nil {
-		glog.Fatalf("Unable to open ingestion store: %s", err)
+		sklog.Fatalf("Unable to open ingestion store: %s", err)
 	}
 	storages = &storage.Storage{
 		DiffStore:         diffStore,
@@ -238,17 +238,17 @@ func main() {
 	storages.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute))
 
 	if err := history.Init(storages, *nTilesToBackfill); err != nil {
-		glog.Fatalf("Unable to initialize history package: %s", err)
+		sklog.Fatalf("Unable to initialize history package: %s", err)
 	}
 
 	if err := ignore.Init(storages.IgnoreStore); err != nil {
-		glog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
+		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
 	}
 
 	// Rebuild the index every two minutes.
 	ixr, err = indexer.New(storages, 2*time.Minute)
 	if err != nil {
-		glog.Fatalf("Failed to create indexer: %s", err)
+		sklog.Fatalf("Failed to create indexer: %s", err)
 	}
 
 	if !*local {
@@ -259,7 +259,7 @@ func main() {
 
 	statusWatcher, err = status.New(storages)
 	if err != nil {
-		glog.Fatalf("Failed to initialize status watcher: %s", err)
+		sklog.Fatalf("Failed to initialize status watcher: %s", err)
 	}
 	mainTimer.Stop()
 
@@ -268,7 +268,7 @@ func main() {
 	// Set up the resource to serve the image files.
 	imgHandler, err := diffStore.ImageHandler(IMAGE_URL_PREFIX)
 	if err != nil {
-		glog.Fatalf("Unable to get image handler: %s", err)
+		sklog.Fatalf("Unable to get image handler: %s", err)
 	}
 	router.PathPrefix(IMAGE_URL_PREFIX).Handler(imgHandler)
 
@@ -321,6 +321,6 @@ func main() {
 	http.Handle("/", rootHandler)
 
 	// Start the server
-	glog.Infoln("Serving on http://127.0.0.1" + *port)
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infoln("Serving on http://127.0.0.1" + *port)
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

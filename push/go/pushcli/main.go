@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/packages"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/storage/v1"
@@ -48,7 +48,7 @@ func main() {
 	// Parse out the non-flag arguments.
 	args := flag.Args()
 	if len(args) != 2 {
-		glog.Errorf("Requires two arguments.  Saw %q\n", args)
+		sklog.Errorf("Requires two arguments.  Saw %q\n", args)
 		flag.Usage()
 		return
 	}
@@ -58,27 +58,27 @@ func main() {
 	// Create the needed clients.
 	client, err := auth.NewDefaultJWTServiceAccountClient(storage.DevstorageReadWriteScope, compute.ComputeReadonlyScope)
 	if err != nil {
-		glog.Fatalf("Failed to create authenticated HTTP client: %s\nDid you run get_service_account?", err)
+		sklog.Fatalf("Failed to create authenticated HTTP client: %s\nDid you run get_service_account?", err)
 	}
 	store, err := storage.New(client)
 	if err != nil {
-		glog.Fatalf("Failed to create storage service client: %s", err)
+		sklog.Fatalf("Failed to create storage service client: %s", err)
 	}
 	comp, err := compute.New(client)
 	if err != nil {
-		glog.Fatalf("Failed to create compute service client: %s", err)
+		sklog.Fatalf("Failed to create compute service client: %s", err)
 	}
 
 	servers, err := expand(appName, serverName)
 	if err != nil {
-		glog.Fatalf("Failed to enumerate servers: %s", err)
+		sklog.Fatalf("Failed to enumerate servers: %s", err)
 	}
 
-	glog.Infof("Installing %s to servers %q", appName, servers)
+	sklog.Infof("Installing %s to servers %q", appName, servers)
 
 	for _, s := range servers {
 		if err := installOnServer(client, store, comp, appName, s); err != nil {
-			glog.Fatalf(err.Error())
+			sklog.Fatalf(err.Error())
 		}
 	}
 }
@@ -105,14 +105,14 @@ func installOnServer(client *http.Client, store *storage.Service, comp *compute.
 	if err != nil {
 		return fmt.Errorf("Failed to get the current installed packages on %s: %s", serverName, err)
 	}
-	glog.Infof("Installed Packages on %s:\n%s", serverName, strings.Join(installed.Names, "\n"))
+	sklog.Infof("Installed Packages on %s:\n%s", serverName, strings.Join(installed.Names, "\n"))
 
 	// Get the sorted list of available versions of the given package.
 	available, err := packages.AllAvailableApp(store, appName)
 	if err != nil {
 		return fmt.Errorf("Failed to get the list of available versions for package %s: %s", appName, err)
 	}
-	glog.Infof("Available: %s", packages.PackageSlice(available).String())
+	sklog.Infof("Available: %s", packages.PackageSlice(available).String())
 
 	// By default roll to head, which is the first entry in the slice.
 	latest := available[0]
@@ -138,8 +138,8 @@ func installOnServer(client *http.Client, store *storage.Service, comp *compute.
 	}
 
 	if *dryrun {
-		glog.Info("Is in dry run mode.  Would be calling")
-		glog.Infof(`packages.PutInstalled(store, "%s", %q, %d)`, serverName, newInstalled, installed.Generation)
+		sklog.Info("Is in dry run mode.  Would be calling")
+		sklog.Infof(`packages.PutInstalled(store, "%s", %q, %d)`, serverName, newInstalled, installed.Generation)
 	} else {
 		// Write the new list of packages back to Google Storage.
 		if err := packages.PutInstalled(store, serverName, newInstalled, installed.Generation); err != nil {
@@ -151,18 +151,18 @@ func installOnServer(client *http.Client, store *storage.Service, comp *compute.
 	// package and avoid the 15s wait for pulld to poll and find the new package.
 	if ip, err := findIPAddress(comp, serverName); err == nil {
 		if *dryrun {
-			glog.Infof(`"client.Get(http://%s:10114/pullpullpull)"`, ip)
+			sklog.Infof(`"client.Get(http://%s:10114/pullpullpull)"`, ip)
 		} else {
-			glog.Infof("findIPAddress: %q", ip)
+			sklog.Infof("findIPAddress: %q", ip)
 			resp, err := client.Get(fmt.Sprintf("http://%s:10114/pullpullpull", ip))
 			if err != nil || resp == nil {
-				glog.Infof("Failed to trigger an instant pull for server %s: %v %v", serverName, err)
+				sklog.Infof("Failed to trigger an instant pull for server %s: %v %v", serverName, err)
 			} else {
 				util.Close(resp.Body)
 			}
 		}
 	} else {
-		glog.Warningf("Could not find ip address: %s", err)
+		sklog.Warningf("Could not find ip address: %s", err)
 	}
 
 	return nil
