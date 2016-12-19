@@ -140,10 +140,11 @@ then
   DATETIME=`date --utc "+%Y-%m-%dT%H:%M:%SZ"`
   HASH=`git rev-parse HEAD`
   USERID=${USER}@${HOSTNAME}
-  # Detect if we have unchecked in local changes, or if we are different from HEAD at origin/master.
+  # Detect if we have unchecked in local changes, or if we're not on the master
+  # branch (possibly at an older revision).
   git fetch
   if ! git diff-index --quiet HEAD -- || \
-    [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/master)" ] ; then
+    ! git merge-base --is-ancestor HEAD origin/master ; then
     DIRTY=true
   else
     DIRTY=false
