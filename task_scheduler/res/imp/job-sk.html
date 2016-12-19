@@ -292,7 +292,9 @@
           var deps = graph[current] || [];
           for (var i = 0; i < deps.length; i++) {
             var dep = deps[i];
-            if (!depth[dep]) {
+            // Visit the dep if we haven't yet. Its depth may be zero, so we have
+            // to explicitly use "depth[dep] == undefined" instead of "!depth[dep]"
+            if (depth[dep] == undefined) {
               visit(dep);
             }
             if (depth[dep] >= myDepth) {
