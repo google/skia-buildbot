@@ -292,7 +292,7 @@
           var deps = graph[current] || [];
           for (var i = 0; i < deps.length; i++) {
             var dep = deps[i];
-            if (!depth[dep]) {
+            if (depth[dep] == undefined) {
               visit(dep);
             }
             if (depth[dep] >= myDepth) {
