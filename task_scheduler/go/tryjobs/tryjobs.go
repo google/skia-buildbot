@@ -11,10 +11,10 @@ import (
 	"golang.org/x/net/context"
 
 	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -101,12 +101,12 @@ func NewTryJobIntegrator(apiUrl, bucket string, c *http.Client, d db.JobDB, w *w
 func (t *TryJobIntegrator) Start(ctx context.Context) {
 	go util.RepeatCtx(UPDATE_INTERVAL, ctx, func() {
 		if err := t.updateJobs(time.Now()); err != nil {
-			glog.Error(err)
+			sklog.Error(err)
 		}
 	})
 	go util.RepeatCtx(POLL_INTERVAL, ctx, func() {
 		if err := t.Poll(time.Now()); err != nil {
-			glog.Errorf("Failed to poll for new try jobs: %s", err)
+			sklog.Errorf("Failed to poll for new try jobs: %s", err)
 		}
 	})
 }
@@ -189,7 +189,7 @@ func (t *TryJobIntegrator) sendHeartbeats(now time.Time, jobs []*db.Job) error {
 				LeaseExpirationTs: expiration,
 			})
 		}
-		glog.Infof("Sending heartbeats for %d jobs...", len(jobs))
+		sklog.Infof("Sending heartbeats for %d jobs...", len(jobs))
 		resp, err := t.bb.HeartbeatBatch(&buildbucket_api.ApiHeartbeatBatchRequestMessage{
 			Heartbeats: heartbeats,
 		}).Do()
@@ -207,12 +207,12 @@ func (t *TryJobIntegrator) sendHeartbeats(now time.Time, jobs []*db.Job) error {
 			if result.Error != nil {
 				// Cancel the job.
 				// TODO(borenet): Should we return an error here?
-				glog.Errorf("Error sending heartbeat for job; canceling %q: %s", jobs[i].Id, result.Error.Message)
+				sklog.Errorf("Error sending heartbeat for job; canceling %q: %s", jobs[i].Id, result.Error.Message)
 				cancelJobs = append(cancelJobs, jobs[i])
 			}
 		}
 		if len(cancelJobs) > 0 {
-			glog.Errorf("Canceling %d jobs", len(cancelJobs))
+			sklog.Errorf("Canceling %d jobs", len(cancelJobs))
 			if err := t.localCancelJobs(cancelJobs); err != nil {
 				errs = append(errs, err)
 			}
@@ -228,7 +228,7 @@ func (t *TryJobIntegrator) sendHeartbeats(now time.Time, jobs []*db.Job) error {
 		send(jobs[:j])
 		jobs = jobs[j:]
 	}
-	glog.Infof("Finished sending heartbeats.")
+	sklog.Infof("Finished sending heartbeats.")
 	if len(errs) > 0 {
 		return fmt.Errorf("Got errors sending heartbeats: %v", errs)
 	}
@@ -271,7 +271,7 @@ func (t *TryJobIntegrator) localCancelJobs(jobs []*db.Job) error {
 }
 
 func (t *TryJobIntegrator) remoteCancelBuild(id int64, msg string) error {
-	glog.Errorf("Canceling Buildbucket build %d. Reason: %s", id, msg)
+	sklog.Errorf("Canceling Buildbucket build %d. Reason: %s", id, msg)
 	// TODO(borenet): We want to send the cancellation reason along to
 	// Buildbucket for debugging purposes.
 	resp, err := t.bb.Cancel(id).Do()
@@ -286,7 +286,7 @@ func (t *TryJobIntegrator) remoteCancelBuild(id int64, msg string) error {
 
 func (t *TryJobIntegrator) tryLeaseBuild(id int64, now time.Time) (int64, error) {
 	expiration := now.Add(LEASE_DURATION_INITIAL).Unix() * 1000000
-	glog.Infof("Attempting to lease build %d", id)
+	sklog.Infof("Attempting to lease build %d", id)
 	resp, err := t.bb.Lease(id, &buildbucket_api.ApiLeaseRequestBodyMessage{
 		LeaseExpirationTs: expiration,
 	}).Do()
@@ -370,7 +370,7 @@ func (t *TryJobIntegrator) Poll(now time.Time) error {
 	jobs := []*db.Job{}
 	errs := []error{}
 	for {
-		glog.Infof("Running 'peek'")
+		sklog.Infof("Running 'peek'")
 		resp, err := t.bb.Peek().Bucket(t.bucket).MaxBuilds(PEEK_MAX_BUILDS).StartCursor(cursor).Do()
 		if err != nil {
 			errs = append(errs, err)
@@ -470,7 +470,7 @@ func (t *TryJobIntegrator) jobFinished(j *db.Job) error {
 		}
 		if resp.Error != nil {
 			if resp.Error.Reason == BUILDBUCKET_API_ERROR_REASON_COMPLETED {
-				glog.Warningf("Sent success status for build %d after completion.", j.BuildbucketBuildId)
+				sklog.Warningf("Sent success status for build %d after completion.", j.BuildbucketBuildId)
 			} else {
 				return fmt.Errorf(resp.Error.Message)
 			}
@@ -491,7 +491,7 @@ func (t *TryJobIntegrator) jobFinished(j *db.Job) error {
 		}
 		if resp.Error != nil {
 			if resp.Error.Reason == BUILDBUCKET_API_ERROR_REASON_COMPLETED {
-				glog.Warningf("Sent failure status for build %d after completion.", j.BuildbucketBuildId)
+				sklog.Warningf("Sent failure status for build %d after completion.", j.BuildbucketBuildId)
 			} else {
 				return fmt.Errorf(resp.Error.Message)
 			}

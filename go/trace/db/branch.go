@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/golang/groupcache/lru"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/rietveld"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -104,9 +104,9 @@ func (b *tileBuilder) CachedTileFromCommits(commits []*CommitID) (*tiling.Tile, 
 	md5 := ""
 	if hashes, err := b.db.ListMD5(commits); err == nil {
 		md5 = strings.Join(hashes, "")
-		glog.Infof("Got md5: %s", md5)
+		sklog.Infof("Got md5: %s", md5)
 	} else {
-		glog.Errorf("Failed to load the md5 hashes for a slice of commits: %s", err)
+		sklog.Errorf("Failed to load the md5 hashes for a slice of commits: %s", err)
 	}
 
 	// Determine if we need to fetch a fresh tile from tracedb.
@@ -126,14 +126,14 @@ func (b *tileBuilder) CachedTileFromCommits(commits []*CommitID) (*tiling.Tile, 
 		}
 	}
 	if getFreshTile {
-		glog.Info("Tile is missing or expired.")
+		sklog.Info("Tile is missing or expired.")
 		tile, hashes, err := b.db.TileFromCommits(commits)
 		if err != nil {
 			return nil, fmt.Errorf("Unable to create fresh tile: %s", err)
 		}
 		md5 := strings.Join(hashes, "")
 		if md5 == "" {
-			glog.Errorf("Not caching, didn't get a valid set of hashes, is traceserverd out of date? : %s", key)
+			sklog.Errorf("Not caching, didn't get a valid set of hashes, is traceserverd out of date? : %s", key)
 		} else {
 			b.mutex.Lock()
 			b.tcache.Add(key, &cachedTile{
@@ -197,7 +197,7 @@ func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string)
 			issueInfo, err := b.getRietveldIssue(c.Source)
 			if err != nil {
 				// Only a warning since users can delete Rietveld issues.
-				glog.Warningf("Failed to get details for commit from Rietveld %s: %s", c.ID, err)
+				sklog.Warningf("Failed to get details for commit from Rietveld %s: %s", c.ID, err)
 				continue
 			}
 			c.Author = issueInfo.Owner
@@ -207,7 +207,7 @@ func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string)
 			changeInfo, err := b.getGerritIssue(c.Source)
 			if err != nil {
 				// Only a warning since users can delete Gerrit issues.
-				glog.Warningf("Failed to get details for commit from Gerrit %s: %s", c.ID, err)
+				sklog.Warningf("Failed to get details for commit from Gerrit %s: %s", c.ID, err)
 				continue
 			}
 
@@ -218,7 +218,7 @@ func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string)
 			// vcsinfo
 			details, err := b.vcs.Details(c.ID, true)
 			if err != nil {
-				glog.Errorf("Failed to get details for commit from Git %s: %s", c.ID, err)
+				sklog.Errorf("Failed to get details for commit from Git %s: %s", c.ID, err)
 				continue
 			}
 			c.Author = details.Author

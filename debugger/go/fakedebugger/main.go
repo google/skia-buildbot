@@ -9,9 +9,9 @@ import (
 	"runtime"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -78,7 +78,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	loadTemplates()
 	if err := templates.ExecuteTemplate(w, "index.html", map[string]string{"source": *source}); err != nil {
-		glog.Errorln("Failed to expand template:", err)
+		sklog.Errorln("Failed to expand template:", err)
 	}
 }
 
@@ -90,21 +90,21 @@ func imgHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to load image.")
 	}
 	if _, err := w.Write(b); err != nil {
-		glog.Errorf("Failed to write image: %s", err)
+		sklog.Errorf("Failed to write image: %s", err)
 	}
 }
 
 func infoHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if _, err := w.Write([]byte(INFO_JSON)); err != nil {
-		glog.Errorf("Failed to write response: %s", err)
+		sklog.Errorf("Failed to write response: %s", err)
 	}
 }
 
 func cmdHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if _, err := w.Write([]byte(CMD_JSON)); err != nil {
-		glog.Errorf("Failed to write response: %s", err)
+		sklog.Errorf("Failed to write response: %s", err)
 	}
 }
 
@@ -143,6 +143,6 @@ func main() {
 	router.HandleFunc("/new", skpHandler)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(router))
 
-	glog.Infoln("Ready to serve.")
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infoln("Ready to serve.")
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

@@ -19,7 +19,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
@@ -49,7 +49,7 @@ func captureSkpsFromPdfs() error {
 		defer util.CleanTmpDir()
 	}
 	defer util.TimeTrack(time.Now(), "Capturing SKPs from PDFs")
-	defer glog.Flush()
+	defer sklog.Flush()
 
 	// Validate required arguments.
 	if *runID == "" {
@@ -156,14 +156,14 @@ func captureSkpsFromPdfs() error {
 				pagesetPath := filepath.Join(pathToPagesets, pagesetName)
 				decodedPageset, err := util.ReadPageset(pagesetPath)
 				if err != nil {
-					glog.Errorf("Could not read %s: %s", pagesetPath, err)
+					sklog.Errorf("Could not read %s: %s", pagesetPath, err)
 					continue
 				}
 
-				glog.Infof("===== Processing %s =====", pagesetPath)
+				sklog.Infof("===== Processing %s =====", pagesetPath)
 
 				if strings.Contains(decodedPageset.UrlsList, ",") {
-					glog.Errorf("capture_skps_from_pdfs does not support multiple URLs in pagesets. Found in pageset %s", pagesetPath)
+					sklog.Errorf("capture_skps_from_pdfs does not support multiple URLs in pagesets. Found in pageset %s", pagesetPath)
 					continue
 				}
 				pdfURL := decodedPageset.UrlsList
@@ -172,7 +172,7 @@ func captureSkpsFromPdfs() error {
 
 				// Download PDF.
 				if err := downloadPDFs(pdfURL, index, pathToPdfs, httpTimeoutClient); err != nil {
-					glog.Errorf("Could not download %s: %s", pdfURL, err)
+					sklog.Errorf("Could not download %s: %s", pdfURL, err)
 					erroredPDFsMutex.Lock()
 					erroredPDFs = append(erroredPDFs, pdfURL)
 					erroredPDFsMutex.Unlock()
@@ -206,7 +206,7 @@ func captureSkpsFromPdfs() error {
 				//// Move generated SKPs into the pathToSKPs directory.
 				//skps, err := filepath.Glob(path.Join(pdfDirWithIndex, fmt.Sprintf("%s.*.skp", pdfBase)))
 				//if err != nil {
-				//	glog.Errorf("Found no SKPs for %s: %s", pdfBase, err)
+				//	sklog.Errorf("Found no SKPs for %s: %s", pdfBase, err)
 				//	erroredSKPs = append(erroredSKPs, pdfBase)
 				//	continue
 				//}
@@ -214,11 +214,11 @@ func captureSkpsFromPdfs() error {
 				//	skpBasename := path.Base(skp)
 				//	destDir := path.Join(pathToSkps, index)
 				//	if err := os.MkdirAll(destDir, 0700); err != nil {
-				//		glog.Errorf("Could not mkdir %s: %s", destDir, err)
+				//		sklog.Errorf("Could not mkdir %s: %s", destDir, err)
 				//	}
 				//	dest := path.Join(destDir, skpBasename)
 				//	if err := os.Rename(skp, dest); err != nil {
-				//		glog.Errorf("Could not move %s to %s: %s", skp, dest, err)
+				//		sklog.Errorf("Could not move %s to %s: %s", skp, dest, err)
 				//		continue
 				//	}
 				//}
@@ -263,15 +263,15 @@ func captureSkpsFromPdfs() error {
 
 	// Summarize errors.
 	if len(erroredPDFs) > 0 {
-		glog.Error("The Following URLs could not be downloaded as PDFs:")
+		sklog.Error("The Following URLs could not be downloaded as PDFs:")
 		for _, erroredPDF := range erroredPDFs {
-			glog.Errorf("\t%s", erroredPDF)
+			sklog.Errorf("\t%s", erroredPDF)
 		}
 	}
 	if len(erroredSKPs) > 0 {
-		glog.Error("The Following PDFs could not be converted to SKPs:")
+		sklog.Error("The Following PDFs could not be converted to SKPs:")
 		for _, erroredSKP := range erroredSKPs {
-			glog.Errorf("\t%s", erroredSKP)
+			sklog.Errorf("\t%s", erroredSKP)
 		}
 	}
 
@@ -326,7 +326,7 @@ func getPdfFileName(u string) (string, error) {
 func main() {
 	retCode := 0
 	if err := captureSkpsFromPdfs(); err != nil {
-		glog.Errorf("Error while capturing SKPs from PDFs: %s", err)
+		sklog.Errorf("Error while capturing SKPs from PDFs: %s", err)
 		retCode = 255
 	}
 	os.Exit(retCode)

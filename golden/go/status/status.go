@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -117,12 +117,12 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 			case <-tileStream:
 				tilePair, err := s.storages.GetLastTileTrimmed()
 				if err != nil {
-					glog.Errorf("Error retrieving tile: %s", err)
+					sklog.Errorf("Error retrieving tile: %s", err)
 					continue
 				}
 
 				if err := s.calcStatus(tilePair.Tile); err != nil {
-					glog.Errorf("Error calculating status: %s", err)
+					sklog.Errorf("Error calculating status: %s", err)
 				} else {
 					lastTilePair = tilePair
 					liveness.Reset()
@@ -130,7 +130,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 			case <-expChanges:
 				storage.DrainChangeChannel(expChanges)
 				if err := s.calcStatus(lastTilePair.Tile); err != nil {
-					glog.Errorf("Error calculating tile after expectation update: %s", err)
+					sklog.Errorf("Error calculating tile after expectation update: %s", err)
 				}
 				liveness.Reset()
 			}

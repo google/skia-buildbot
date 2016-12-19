@@ -108,7 +108,8 @@ def _CheckBannedGoAPIs(input_api, output_api):
     (r'\bhttp\.Post\b', 'NewTimeoutClient in go.skia.org/infra/go/httputils'),
     (r'\bhttp\.PostForm\b',
      'NewTimeoutClient in go.skia.org/infra/go/httputils'),
-    (r'\bgithub\.com/golang/glog\b', 'github.com/skia-dev/glog'),
+    (r'\bgithub\.com/golang/glog\b', 'go.skia.org/infra/go/sklog'),
+    (r'\bgithub\.com/skia-dev/glog\b', 'go.skia.org/infra/go/sklog'),
   ]
 
   compiled_replacements = []

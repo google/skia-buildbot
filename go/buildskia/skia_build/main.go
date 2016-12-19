@@ -10,10 +10,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/sklog"
 )
 
 // flags
@@ -30,23 +30,23 @@ var (
 func main() {
 	common.Init()
 	if *workRoot == "" {
-		glog.Fatal("The --work_root flag is required.")
+		sklog.Fatal("The --work_root flag is required.")
 	}
 	if *depotTools == "" {
-		glog.Fatal("The --depot_tools flag is required.")
+		sklog.Fatal("The --depot_tools flag is required.")
 	}
 	repo, err := gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*workRoot, "skia"), true)
 	if err != nil {
-		glog.Fatalf("Failed to clone Skia: %s", err)
+		sklog.Fatalf("Failed to clone Skia: %s", err)
 	}
 
 	b := buildskia.New(*workRoot, *depotTools, repo, nil, 2, time.Hour, *useGN)
 	res, err := b.BuildLatestSkia(*force, *head, *installDeps)
 	if err != nil {
 		if err == buildskia.AlreadyExistsErr {
-			glog.Info("Checkout already exists, no work done.")
+			sklog.Info("Checkout already exists, no work done.")
 		} else {
-			glog.Fatalf("Failed to build latest skia: %s", err)
+			sklog.Fatalf("Failed to build latest skia: %s", err)
 		}
 	} else {
 		fmt.Printf("Built: %#v", *res)

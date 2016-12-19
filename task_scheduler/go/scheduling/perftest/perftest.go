@@ -18,11 +18,11 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
@@ -34,19 +34,19 @@ import (
 
 func assertNoError(err error) {
 	if err != nil {
-		glog.Fatalf("Expected no error but got: %s", err.Error())
+		sklog.Fatalf("Expected no error but got: %s", err.Error())
 	}
 }
 
 func assertEqual(a, b interface{}) {
 	if a != b {
-		glog.Fatalf("Expected %v but got %v", a, b)
+		sklog.Fatalf("Expected %v but got %v", a, b)
 	}
 }
 
 func assertDeepEqual(a, b interface{}) {
 	if !reflect.DeepEqual(a, b) {
-		glog.Fatalf("Objects do not match: \na:\n%s\n\nb:\n%s\n", spew.Sprint(a), spew.Sprint(b))
+		sklog.Fatalf("Objects do not match: \na:\n%s\n\nb:\n%s\n", spew.Sprint(a), spew.Sprint(b))
 	}
 }
 
@@ -95,7 +95,7 @@ func makeDummyCommits(repoDir string, numCommits int) {
 
 func run(dir string, cmd ...string) {
 	if _, err := exec.RunCwd(dir, cmd...); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 }
 
@@ -113,7 +113,7 @@ func main() {
 	assertNoError(err)
 	defer func() {
 		if err := os.RemoveAll(workdir); err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 	}()
 	repoName := "skia.git"
@@ -310,7 +310,7 @@ func main() {
 		runTasks(bots)
 		unfinished, err := jCache.UnfinishedJobs()
 		assertNoError(err)
-		glog.Infof("Found %d unfinished jobs.", len(unfinished))
+		sklog.Infof("Found %d unfinished jobs.", len(unfinished))
 		if len(unfinished) == 0 {
 			tasks, err := tCache.GetTasksForCommits(repoName, commits)
 			assertNoError(err)
@@ -327,7 +327,7 @@ func main() {
 
 	// Start the profiler.
 	go func() {
-		glog.Fatal(http.ListenAndServe("localhost:6060", nil))
+		sklog.Fatal(http.ListenAndServe("localhost:6060", nil))
 	}()
 
 	// Actually run the test.
@@ -338,5 +338,5 @@ func main() {
 			break
 		}
 	}
-	glog.Infof("Finished in %d iterations.", i)
+	sklog.Infof("Finished in %d iterations.", i)
 }

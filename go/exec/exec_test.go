@@ -13,15 +13,15 @@ import (
 
 	"go.skia.org/infra/go/testutils"
 
-	"github.com/skia-dev/glog"
 	expect "github.com/stretchr/testify/assert"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/sklog"
 )
 
 // Copied from go.skia.org/infra/go/util/util.go to avoid recursive dependency.
 func RemoveAll(path string) {
 	if err := os.RemoveAll(path); err != nil {
-		glog.Errorf("Failed to RemoveAll(%s): %v", path, err)
+		sklog.Errorf("Failed to RemoveAll(%s): %v", path, err)
 	}
 }
 

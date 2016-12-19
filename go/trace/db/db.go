@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/golang/groupcache/lru"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/trace/service"
 	"golang.org/x/net/context"
@@ -154,11 +154,11 @@ func NewTraceServiceDB(conn *grpc.ClientConn, traceBuilder tiling.TraceBuilder) 
 			ret.clearMutex.Lock()
 			if len(ret.paramsCache) > MAX_ID_CACHED {
 				ret.paramsCache = map[string]map[string]string{}
-				glog.Warning("Had to clear paramsCache, this is unexpected. MAX_ID_CACHED too small?")
+				sklog.Warning("Had to clear paramsCache, this is unexpected. MAX_ID_CACHED too small?")
 			}
 			if len(ret.id64Cache) > MAX_ID_CACHED {
 				ret.id64Cache = map[uint64]string{}
-				glog.Warning("Had to clear id64Cache, this is unexpected. MAX_ID_CACHED too small?")
+				sklog.Warning("Had to clear id64Cache, this is unexpected. MAX_ID_CACHED too small?")
 			}
 			ret.clearMutex.Unlock()
 		}
@@ -364,7 +364,7 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, []string, 
 			ts.mutex.Lock()
 			for id64, rawValue := range ci.Values {
 				if rawValue == nil {
-					glog.Errorf("Got a nil rawValue in response: %s", err)
+					sklog.Errorf("Got a nil rawValue in response: %s", err)
 					continue
 				}
 				traceid := ts.id64Cache[id64]
@@ -376,7 +376,7 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, []string, 
 				}
 				tileMutex.Unlock()
 				if tr == nil {
-					glog.Errorf("Trace was still nil for key: %v", traceid)
+					sklog.Errorf("Trace was still nil for key: %v", traceid)
 					continue
 				}
 				if err := tr.SetAt(i, rawValue); err != nil {
@@ -400,7 +400,7 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, []string, 
 	default:
 	}
 
-	glog.Infof("Finished loading values. Starting to load Params.")
+	sklog.Infof("Finished loading values. Starting to load Params.")
 
 	// Now load the params for the traces.
 	traceids := []string{}
@@ -468,7 +468,7 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, []string, 
 	ts.mutex.Unlock()
 
 	// Rebuild the ParamSet.
-	glog.Infof("Finished loading params. Starting to rebuild ParamSet.")
+	sklog.Infof("Finished loading params. Starting to rebuild ParamSet.")
 	tiling.GetParamSet(tile.Traces, tile.ParamSet)
 	return tile, hash, nil
 }
