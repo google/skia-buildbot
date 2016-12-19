@@ -292,6 +292,12 @@
         this._addIronIcon(newCommits, "communication:chat", "tiny", function(commit){
           return commit.comments && commit.comments.length > 0;
         });
+        this._addIronIcon(newCommits, "icons:block", "tiny", function(commit){
+          if (commit.comments && commit.comments.length > 0) {
+            return commit.comments[commit.comments.length-1].ignoreFailure;
+          }
+          return false;
+        });
         var reverts = this._addIronIcon(newCommits, "icons:undo", "tiny revert", function(commit){
           var reverterCommit = reverted_map[commit.issue];
           return (reverterCommit !== undefined && reverterCommit.timestamp > commit.timestamp);
