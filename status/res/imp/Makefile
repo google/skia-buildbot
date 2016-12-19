@@ -16,7 +16,6 @@ default:
 # Run a local HTTP server for the demo pages.
 run:
 	# We download these here because the default target is called by unittests
-	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/commits-table-demo.json
 	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/commits-table-35-demo.json
 	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/commits-canvas-demo.json
 	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/autoroll-widget-demo.json
