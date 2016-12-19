@@ -5,10 +5,10 @@ import (
 	"os"
 	"path"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -39,19 +39,19 @@ func main() {
 
 	root, err := findCheckoutRoot()
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	buildbucket_dir := path.Join(root, "go", "buildbucket")
 	dst := path.Join(buildbucket_dir, path.Base(PROTO_FILE_PATH))
 
 	// Download the most recent version of the proto file.
 	if err := gitiles.NewRepo(PROTO_REPO).DownloadFile(PROTO_FILE_PATH, dst); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	defer util.Remove(dst)
 
 	// Regenerate project_cfg.pb.go from the .proto file.
 	if output, err := exec.RunCwd(buildbucket_dir, "protoc", "--go_out=plugins=grpc:.", dst, "--proto_path", buildbucket_dir); err != nil {
-		glog.Fatalf("Error: %s\n\n%s", err, output)
+		sklog.Fatalf("Error: %s\n\n%s", err, output)
 	}
 }

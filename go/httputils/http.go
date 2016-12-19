@@ -16,8 +16,8 @@ import (
 	// google-http-java-client.
 	"github.com/cenkalti/backoff"
 	"github.com/fiorix/go-web/autogzip"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 )
@@ -153,7 +153,7 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 		return nil
 	}
 	notifyFunc := func(err error, wait time.Duration) {
-		glog.Warningf("Got error: %s. Retrying HTTP request after sleeping for %s", err, wait)
+		sklog.Warningf("Got error: %s. Retrying HTTP request after sleeping for %s", err, wait)
 	}
 
 	if err := backoff.RetryNotify(roundTripOp, backOffClient, notifyFunc); err != nil {
@@ -169,7 +169,7 @@ func readAndClose(r io.ReadCloser) string {
 	if r != nil {
 		defer util.Close(r)
 		if b, err := ioutil.ReadAll(io.LimitReader(r, MAX_BYTES_IN_RESPONSE_BODY)); err != nil {
-			glog.Warningf("There was a potential problem reading the response body: %s", err)
+			sklog.Warningf("There was a potential problem reading the response body: %s", err)
 		} else {
 			return fmt.Sprintf("%q", string(b))
 		}
@@ -184,7 +184,7 @@ func readAndClose(r io.ReadCloser) string {
 // The message parameter is returned in the HTTP response. If it is not provided then
 // "Unknown error" will be returned instead.
 func ReportError(w http.ResponseWriter, r *http.Request, err error, message string) {
-	glog.Errorln(message, err)
+	sklog.Errorln(message, err)
 	if err != io.ErrClosedPipe {
 		httpErrMsg := message
 		if message == "" {
@@ -202,7 +202,7 @@ type responseProxy struct {
 
 func (rp *responseProxy) WriteHeader(code int) {
 	if !rp.wroteHeader {
-		glog.Infof("Response Code: %d", code)
+		sklog.Infof("Response Code: %d", code)
 		metrics2.GetCounter("http.response", map[string]string{"statuscode": strconv.Itoa(code)}).Inc(1)
 		rp.ResponseWriter.WriteHeader(code)
 		rp.wroteHeader = true
@@ -230,13 +230,13 @@ func LoggingGzipRequestResponse(h http.Handler) http.Handler {
 func LoggingRequestResponse(h http.Handler) http.Handler {
 	// Closure to capture the request.
 	f := func(w http.ResponseWriter, r *http.Request) {
-		glog.Infof("Incoming request: %s %s %#v ", r.URL.Path, r.Method, *(r.URL))
+		sklog.Infof("Incoming request: %s %s %#v ", r.URL.Path, r.Method, *(r.URL))
 		defer func() {
 			if err := recover(); err != nil {
 				const size = 64 << 10
 				buf := make([]byte, size)
 				buf = buf[:runtime.Stack(buf, false)]
-				glog.Errorf("panic serving %v: %v\n%s", r.URL.Path, err, buf)
+				sklog.Errorf("panic serving %v: %v\n%s", r.URL.Path, err, buf)
 			}
 		}()
 		defer timer.New(fmt.Sprintf("Request: %s Latency:", r.URL.Path)).Stop()

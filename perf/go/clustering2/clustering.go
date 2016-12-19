@@ -6,8 +6,8 @@ import (
 	"math/rand"
 	"sort"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/ctrace2"
@@ -153,7 +153,7 @@ func getParamSummaries(cluster []kmeans.Clusterable) map[string][]ValueWeight {
 		}
 		params, err := query.ParseKey(key)
 		if err != nil {
-			glog.Errorf("Invalid key found in Cluster: %s", err)
+			sklog.Errorf("Invalid key found in Cluster: %s", err)
 			continue
 		}
 		for k, v := range params {
@@ -308,7 +308,7 @@ func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshhold 
 	for i := 0; i < MAX_KMEANS_ITERATIONS; i++ {
 		centroids = kmeans.Do(observations, centroids, ctrace2.CalculateCentroid)
 		totalError := kmeans.TotalError(observations, centroids)
-		glog.Infof("Total Error: %f\n", totalError)
+		sklog.Infof("Total Error: %f\n", totalError)
 		if progress != nil {
 			progress(totalError)
 		}

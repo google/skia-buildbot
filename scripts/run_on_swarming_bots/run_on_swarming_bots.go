@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/satori/go.uuid"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 )
 
@@ -51,7 +51,7 @@ func main() {
 	common.Init()
 
 	if *script == "" {
-		glog.Fatal("--script is required.")
+		sklog.Fatal("--script is required.")
 	}
 	scriptName := path.Base(*script)
 	if *taskName == "" {
@@ -60,63 +60,63 @@ func main() {
 
 	dims, err := swarming.ParseDimensionFlags(dimensions)
 	if err != nil {
-		glog.Fatalf("Problem parsing dimensions: %s", err)
+		sklog.Fatalf("Problem parsing dimensions: %s", err)
 	}
 	dims["pool"] = *pool
 
 	*workdir, err = filepath.Abs(*workdir)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Authenticated HTTP client.
 	oauthCacheFile := path.Join(*workdir, "google_storage_token.data")
 	httpClient, err := auth.NewClient(true, oauthCacheFile, swarming.AUTH_SCOPE)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Swarming API client.
 	swarmApi, err := swarming.NewApiClient(httpClient)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Obtain the list of bots.
 	bots, err := swarmApi.ListBots(dims)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	swarming, err := swarming.NewSwarmingClient(*workdir)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Copy the script to the workdir.
 	dstScript := path.Join(*workdir, scriptName)
 	contents, err := ioutil.ReadFile(*script)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	if err := ioutil.WriteFile(dstScript, contents, 0644); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Create an isolate file.
 	isolateFile := path.Join(*workdir, TMP_ISOLATE_FILE_NAME)
 	if err := ioutil.WriteFile(isolateFile, []byte(fmt.Sprintf(TMP_ISOLATE_FILE_CONTENTS, scriptName, scriptName)), 0644); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Upload to isolate server.
 	isolated, err := swarming.CreateIsolatedGenJSON(isolateFile, *workdir, "linux", *taskName, map[string]string{}, []string{})
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	m, err := swarming.BatchArchiveTargets([]string{isolated}, 5*time.Minute)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	group := fmt.Sprintf("%s_%s", *taskName, uuid.NewV1())
 	tags := map[string]string{
@@ -134,11 +134,11 @@ func main() {
 				"id":   id,
 			}
 			if _, err := swarming.TriggerSwarmingTasks(m, dims, tags, 100, 120*time.Minute, 120*time.Minute, 120*time.Minute, false, false); err != nil {
-				glog.Fatal(err)
+				sklog.Fatal(err)
 			}
 		}(bot.BotId)
 	}
 	wg.Wait()
 	tasksLink := fmt.Sprintf("https://chromium-swarm.appspot.com/tasklist?f=group:%s", group)
-	glog.Infof("Triggered Swarming tasks. Visit this link to track progress:\n%s", tasksLink)
+	sklog.Infof("Triggered Swarming tasks. Visit this link to track progress:\n%s", tasksLink)
 }

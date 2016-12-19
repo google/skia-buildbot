@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -95,7 +95,7 @@ func NewClient(influxClient *influxdb.Client, defaultTags map[string]string, rep
 		for _ = range time.Tick(PUSH_FREQUENCY) {
 			byMeasurement, err := c.pushData()
 			if err != nil {
-				glog.Errorf("Failed to push data into InfluxDB: %s", err)
+				sklog.Errorf("Failed to push data into InfluxDB: %s", err)
 			} else {
 				total := int64(0)
 				for k, v := range byMeasurement {
@@ -138,7 +138,7 @@ func (c *Client) addPointAtTime(measurement string, tags map[string]string, valu
 	c.valuesMtx.Lock()
 	defer c.valuesMtx.Unlock()
 	if c.values == nil {
-		glog.Errorf("Metrics client not initialized; cannot add points.")
+		sklog.Errorf("Metrics client not initialized; cannot add points.")
 		return
 	}
 	if tags == nil {
@@ -152,7 +152,7 @@ func (c *Client) addPointAtTime(measurement string, tags map[string]string, valu
 		allTags[k] = v
 	}
 	if err := c.values.AddPoint(measurement, allTags, map[string]interface{}{"value": value}, ts); err != nil {
-		glog.Errorf("Failed to add data point: %s", err)
+		sklog.Errorf("Failed to add data point: %s", err)
 	}
 }
 
@@ -214,7 +214,7 @@ func (c *Client) Flush() error {
 // Flush pushes any queued data into InfluxDB.  It is meant to be deferred by short running apps.  Long running apps shouldn't worry about this as metrics2 will auto-push every so often.
 func Flush() {
 	if err := DefaultClient.Flush(); err != nil {
-		glog.Errorf("There was a problem while flushing metrics: %s", err)
+		sklog.Errorf("There was a problem while flushing metrics: %s", err)
 	}
 }
 
@@ -262,7 +262,7 @@ func (m *rawMetric) Delete() error {
 func makeMetricKey(measurement string, tags map[string]string) string {
 	md5, err := util.MD5Params(tags)
 	if err != nil {
-		glog.Errorf("Failed to encode measurement tags: %s", err)
+		sklog.Errorf("Failed to encode measurement tags: %s", err)
 	}
 	return fmt.Sprintf("%s_%s", measurement, md5)
 }

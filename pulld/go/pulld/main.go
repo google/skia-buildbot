@@ -56,7 +56,7 @@ var (
 	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
 	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 
-	cloudLoggingGroup = flag.String("cloud_logging_group", "rpi-master", "The log grouping to be used if cloud logging is configured (i.e. on_gce is false)")
+	cloudLoggingGroup = flag.String("cloud_logging_group", "skolo-rpi-master", "The log grouping to be used if cloud logging is configured (i.e. on_gce is false)")
 )
 
 type UnitStatusSlice []*systemd.UnitStatus
@@ -84,12 +84,13 @@ type ChangeResult struct {
 
 func initLogging() {
 	if !*onGCE {
+
 		client, err := auth.NewJWTServiceAccountClient("", *serviceAccountPath, nil, sklog.CLOUD_LOGGING_WRITE_SCOPE)
 		if err != nil {
 			sklog.Fatalf("Could not setup credentials: %s", err)
 		}
 
-		err = sklog.InitCloudLogging(client, *cloudLoggingGroup, "pulld-not-gce")
+		common.StartCloudLoggingWithClient(client, *cloudLoggingGroup, "pulld-not-gce")
 		if err != nil {
 			sklog.Fatalf("Could not setup cloud logging: %s", err)
 		}

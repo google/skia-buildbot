@@ -12,7 +12,6 @@ import (
 	"runtime/pprof"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/eventbus"
@@ -20,6 +19,7 @@ import (
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	_ "go.skia.org/infra/golden/go/goldingestion"
 	_ "go.skia.org/infra/golden/go/pdfingestion"
@@ -50,7 +50,7 @@ func main() {
 	if *nsqdAddress != "" {
 		globalEventBus, err = geventbus.NewNSQEventBus(*nsqdAddress)
 		if err != nil {
-			glog.Fatalf("Unable to connect to NSQ server at address %s: %s", *nsqdAddress, err)
+			sklog.Fatalf("Unable to connect to NSQ server at address %s: %s", *nsqdAddress, err)
 		}
 	}
 	evt := eventbus.New(globalEventBus)
@@ -58,18 +58,18 @@ func main() {
 	// Initialize oauth client and start the ingesters.
 	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, nil, storage.CloudPlatformScope)
 	if err != nil {
-		glog.Fatalf("Failed to auth: %s", err)
+		sklog.Fatalf("Failed to auth: %s", err)
 	}
 
 	// Start the ingesters.
 	config, err := sharedconfig.ConfigFromTomlFile(*configFilename)
 	if err != nil {
-		glog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
+		sklog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
 	}
 
 	ingesters, err := ingestion.IngestersFromConfig(config, client, evt)
 	if err != nil {
-		glog.Fatalf("Unable to instantiate ingesters: %s", err)
+		sklog.Fatalf("Unable to instantiate ingesters: %s", err)
 	}
 	for _, oneIngester := range ingesters {
 		oneIngester.Start()
@@ -78,16 +78,16 @@ func main() {
 	// Enable the memory profiler if memProfile was set.
 	if *memProfile > 0 {
 		writeProfileFn := func() {
-			glog.Infof("\nWriting Memory Profile")
+			sklog.Infof("\nWriting Memory Profile")
 			f, err := ioutil.TempFile("./", "memory-profile")
 			if err != nil {
-				glog.Fatalf("Unable to create memory profile file: %s", err)
+				sklog.Fatalf("Unable to create memory profile file: %s", err)
 			}
 			if err := pprof.WriteHeapProfile(f); err != nil {
-				glog.Fatalf("Unable to write memory profile file: %v", err)
+				sklog.Fatalf("Unable to write memory profile file: %v", err)
 			}
 			util.Close(f)
-			glog.Infof("Memory profile written to %s", f.Name())
+			sklog.Infof("Memory profile written to %s", f.Name())
 
 			os.Exit(0)
 		}
