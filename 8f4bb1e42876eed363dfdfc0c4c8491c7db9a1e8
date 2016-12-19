@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_2c955bcd",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "5a619bba_657a8d28",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_692d85c3",
         "filename": "go/common/common.go",
         "patchSetId": 10
@@ -42,6 +60,24 @@
         "endLine": 42,
         "endChar": 35
       },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_4c7e4f57",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_692d85c3",
       "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_cc891f48",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_4932c123",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_a93a5df2",
         "filename": "go/common/common.go",
         "patchSetId": 10
@@ -88,6 +142,24 @@
         "endLine": 66,
         "endChar": 28
       },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_ec8ce359",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_a93a5df2",
       "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -140,6 +212,42 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_ef51757f",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_acd6ebab",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_2c2c3b5d",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Done.  Since I added StartCloudLoggingWithClient, clients with custom log names can use that instead.",
+      "parentUuid": "9765aef7_2920adc1",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_29f9cd0b",
         "filename": "go/common/common.go",
         "patchSetId": 10
@@ -157,6 +265,24 @@
         "endLine": 107,
         "endChar": 20
       },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_cf4eb1df",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_29f9cd0b",
       "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -186,6 +312,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_0f4609c3",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "defaultReport will not always be the appname.  For example, the external logs typically have something like \"skolo-rpi-master\" as the logGrouping, but something like \"rpi-backup\" or \"hotspare\" or \"pulld-not-gce\" as the defaultReport",
+      "parentUuid": "5a619bba_65a1ad7a",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a619bba_c5ba79a3",
         "filename": "go/common/common.go",
         "patchSetId": 10
@@ -203,6 +347,24 @@
         "endLine": 119,
         "endChar": 112
       },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_ef3a9525",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Ack\n\nHaven\u0027t seen anything in my tests with fuzzer-fe.",
+      "parentUuid": "5a619bba_c5ba79a3",
       "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -232,6 +394,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_4fa52153",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Is it not the case that panics usually indicate \"exit ASAP\" and not \"exit after doing a http request\"?  I think we\u0027ll just make it clear to check the physical logs for any panics.",
+      "parentUuid": "9765aef7_8932f902",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_a935bdee",
         "filename": "go/common/common.go",
         "patchSetId": 10
@@ -255,6 +435,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_2faaed22",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_a935bdee",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_89e1d913",
         "filename": "go/metrics2/counter.go",
         "patchSetId": 10
@@ -266,6 +464,24 @@
       "writtenOn": "2016-12-19T18:46:50Z",
       "side": 1,
       "message": "This could cause infinite recursion, since sklog.Errorf calls the metricsCallback that common.StartCloudLoggingWithClient passes to sklog.InitCloudLogging, which calls metrics2.GetCounter.\n\nAlso, I wonder if this shouldn\u0027t be Fatalf?",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_cfd911de",
+        "filename": "go/metrics2/counter.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "IIRC, Joe\u0027s not a fan of Fatal calls anywhere that\u0027s not in the main.\n\nSwitched to a glog instead.",
+      "parentUuid": "9765aef7_89e1d913",
       "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -289,6 +505,24 @@
         "endLine": 50,
         "endChar": 52
       },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_6f722505",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_4927617d",
       "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -335,6 +569,42 @@
         "endLine": 52,
         "endChar": 88
       },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_8f6c3922",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_292c2d5d",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_6f9b4503",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_ec7bc328",
       "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -410,6 +680,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_af881db2",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_2c7c3bd3",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_890e79e4",
         "filename": "go/sklog/cloud_logging.go",
         "patchSetId": 10
@@ -427,6 +715,24 @@
         "endLine": 126,
         "endChar": 19
       },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_6f446595",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_890e79e4",
       "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -456,6 +762,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_4f49a1a9",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_49e2c1ed",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_69afc57d",
         "filename": "go/sklog/cloud_logging.go",
         "patchSetId": 10
@@ -473,6 +797,24 @@
         "endLine": 190,
         "endChar": 23
       },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_cf547140",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "9765aef7_69afc57d",
       "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -502,6 +844,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_afec9d4a",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_cc78ff2e",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_6c911332",
         "filename": "go/sklog/sklog.go",
         "patchSetId": 10
@@ -519,6 +879,24 @@
         "endLine": 96,
         "endChar": 28
       },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_2f3b0dde",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_6c911332",
       "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -548,6 +926,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_0f404954",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_0cc97748",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_acb70bb5",
         "filename": "go/sklog/sklog.go",
         "patchSetId": 10
@@ -571,6 +967,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_ef54d518",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_acb70bb5",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_ccd35fed",
         "filename": "go/sklog/sklog.go",
         "patchSetId": 10
@@ -588,6 +1002,24 @@
         "endLine": 128,
         "endChar": 35
       },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_cf511127",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T21:16:38Z",
+      "side": 1,
+      "message": "That\u0027s how it is intended to work.  Is that not the case?",
+      "parentUuid": "9765aef7_ccd35fed",
       "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
