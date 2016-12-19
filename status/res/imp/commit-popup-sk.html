@@ -70,6 +70,7 @@
         comments="[[commit.comments]]"
         add_comment_url="[[_makeCommentUrl(repo,commit)]]"
         on-submit="commentAdded"
+        extra_fields="[[_extra_fields]]"
         allow_add_comment
         allow_delete_comment>
     </comments-sk>
@@ -88,6 +89,17 @@
         },
         repo_base: {
           type: String,
+        },
+
+        _extra_fields: {
+          type: Array,
+          value: function(){
+            return [
+              { name: "ignoreFailure",
+                label: "Ignore Failure",
+                type: "bool"},
+            ];
+          },
         },
       },
 

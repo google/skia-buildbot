@@ -38,20 +38,20 @@
       }
     </style>
     <h3>
-      <a href$="{{_makeBuilderURL(buildbot_url_prefix,builder)}}" target="_blank">{{builder.builder}}</a>
+      <a href$="[[_makeBuilderURL(buildbot_url_prefix,builder)]]" target="_blank">[[builder.builder]]</a>
     </h3>
     <table>
       <tr>
         <td>Master:</td>
-        <td><a href$="{{_makeBuildMasterURL(buildbot_url_prefix,builder)}}" target="_blank">{{builder.master}}</a></td>
+        <td><a href$="[[_makeBuildMasterURL(buildbot_url_prefix,builder)]]" target="_blank">[[builder.master]]</a></td>
       </tr>
     </table>
     <hr/>
     <comments-sk
         comments="{{builder.comments}}"
-        add_comment_url="{{_makeAddCommentURL(builder,repo)}}"
+        add_comment_url="[[_makeAddCommentURL(builder,repo)]]"
         on-submit="_commentAdded"
-        extra_fields="{{_extra_fields}}"
+        extra_fields="[[_extra_fields]]"
         allow_add_comment
         allow_delete_comment
         allow_empty_comments>

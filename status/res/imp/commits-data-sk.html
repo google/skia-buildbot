@@ -359,7 +359,6 @@
         commits_map: {
           type: Object,
           notify:true,
-          computed:"_makeCommitsMap(commits)",
         },
         loading: {
           type: Number,
@@ -415,7 +414,7 @@
       },
 
       observers: [
-        "_parseData(_data, autoroll_current, autoroll_last)"
+        "_parseData(_data, autoroll_current, autoroll_last)",
       ],
 
       _computeURL: function(repo) {
@@ -432,13 +431,14 @@
 
       _makeCommitsMap: function(arr) {
         if (!arr || arr.length == 0) {
-          return {};
+          this.set("commits_map", {});
+          return;
         }
         var m = {};
         arr.forEach(function(c){
           m[c.hash] = c;
         });
-        return m;
+        this.set("commits_map", m);
       },
 
       _reload: function() {
@@ -485,6 +485,10 @@
           if (commit.isReland && findRevertedIssue(commit, 2)) {
               this.relanded_map[findRevertedIssue(commit, 2)] = commit;
           }
+          commit.ignoreFailure = commit.comments &&
+                                 commit.comments.length > 0 &&
+                                 commit.comments[commit.comments.length-1].ignoreFailure;
+
 
           commit.displayClass = {};
           for (var builder in build_details[commit.hash]) {
@@ -574,6 +578,7 @@
             commit.displayClass[builder] = classes;
           }
         }
+        this._makeCommitsMap(commits);
         this.builds = builds;
         this.set("build_details", build_details);
         this.set("builders", builders);
@@ -662,6 +667,20 @@
               if (!build.finished) {
                 continue;
               }
+              // If interesting is selected, compute ignoreFailure and skip this build if
+              // it belongs entirely to commits that have been ignored.
+              if (selected == FILTER_INTERESTING) {
+                var commits = build.commits || [];
+                var isIgnored = commits.length > 0;
+                commits.forEach(function(c){
+                  var o = this.commits_map[c];
+                  isIgnored = isIgnored && o && o.ignoreFailure;
+                }.bind(this));
+                if (isIgnored) {
+                  continue;
+                }
+              }
+
               if (build.results == BUILDBOT_RESULT_SUCCESS) {
                 succeeded = true;
               } else {
