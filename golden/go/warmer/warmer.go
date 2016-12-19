@@ -7,7 +7,7 @@ package warmer
 import (
 	"sync"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -38,7 +38,7 @@ func New(storages *storage.Storage) *Warmer {
 func (w *Warmer) Run(tile *tiling.Tile, summaries *summary.Summaries, tallies *tally.Tallies) {
 	exp, err := w.storages.ExpectationsStore.Get()
 	if err != nil {
-		glog.Errorf("warmer: Failed to get expectations: %s", err)
+		sklog.Errorf("warmer: Failed to get expectations: %s", err)
 	}
 
 	t := timer.New("warmer one loop")
@@ -70,13 +70,13 @@ func (w *Warmer) Run(tile *tiling.Tile, summaries *summary.Summaries, tallies *t
 	}
 
 	digests := traceDigests.Keys()
-	glog.Infof("FOUND %d digests to fetch.", len(digests))
+	sklog.Infof("FOUND %d digests to fetch.", len(digests))
 	w.storages.DiffStore.WarmDigests(diff.PRIORITY_BACKGROUND, digests)
 
 	// TODO(stephana): Re-enable this once we have figured out crashes.
 
 	// if err := warmTrybotDigests(storages, traceDigests); err != nil {
-	// 	glog.Errorf("Error retrieving trybot digests: %s", err)
+	// 	sklog.Errorf("Error retrieving trybot digests: %s", err)
 	// 	return
 	// }
 }
@@ -95,7 +95,7 @@ func warmTrybotDigests(storages *storage.Storage, traceDigests map[string]bool) 
 		go func(issueID string) {
 			_, tile, err := storages.TrybotResults.GetIssue(issueID, nil)
 			if err != nil {
-				glog.Errorf("Unable to retrieve issue %s. Got error: %s", issueID, err)
+				sklog.Errorf("Unable to retrieve issue %s. Got error: %s", issueID, err)
 				return
 			}
 
@@ -115,7 +115,7 @@ func warmTrybotDigests(storages *storage.Storage, traceDigests map[string]bool) 
 
 	wg.Wait()
 	digests := trybotDigests.Keys()
-	glog.Infof("FOUND %d trybot digests to fetch.", len(digests))
+	sklog.Infof("FOUND %d trybot digests to fetch.", len(digests))
 	storages.DiffStore.WarmDigests(diff.PRIORITY_BACKGROUND, digests)
 	return nil
 }

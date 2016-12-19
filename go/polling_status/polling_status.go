@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 // PollingStatus is a convenience struct used for periodically querying
@@ -30,7 +30,7 @@ func NewPollingStatus(poll func() (interface{}, error), frequency time.Duration)
 				return
 			case <-ticker:
 				if err := s.poll(); err != nil {
-					glog.Error(err)
+					sklog.Error(err)
 				}
 			}
 		}

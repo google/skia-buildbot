@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"strings"
 
@@ -53,7 +53,7 @@ func runChromiumAnalysis() error {
 		defer util.CleanTmpDir()
 	}
 	defer util.TimeTrack(time.Now(), "Running Chromium Analysis")
-	defer glog.Flush()
+	defer sklog.Flush()
 
 	// Validate required arguments.
 	if *chromiumBuild == "" {
@@ -73,7 +73,7 @@ func runChromiumAnalysis() error {
 	// Clean up any left over lock files from sync errors of previous runs.
 	err := os.Remove(filepath.Join(util.ChromiumSrcDir, ".git", "index.lock"))
 	if err != nil {
-		glog.Info("No index.lock file found.")
+		sklog.Info("No index.lock file found.")
 	}
 	// Parse out the Chromium and Skia hashes.
 	chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuild)
@@ -190,9 +190,9 @@ func runChromiumAnalysis() error {
 		// continue to be serial because it will help guard against
 		// crashes/flakiness/inconsistencies which are more prevalent in mobile runs.
 		numWorkers = 1
-		glog.Infoln("===== Going to run the task serially =====")
+		sklog.Infoln("===== Going to run the task serially =====")
 	} else {
-		glog.Infoln("===== Going to run the task with parallel chrome processes =====")
+		sklog.Infoln("===== Going to run the task with parallel chrome processes =====")
 	}
 
 	// Create channel that contains all pageset file names. This channel will
@@ -231,16 +231,16 @@ func runChromiumAnalysis() error {
 						timeoutTracker.Increment()
 					}
 					if i >= (retryAttempts - 1) {
-						glog.Errorf("%s failed inspite of 3 retries. Last error: %s", pagesetName, err)
+						sklog.Errorf("%s failed inspite of 3 retries. Last error: %s", pagesetName, err)
 						break
 					}
 					time.Sleep(time.Second)
-					glog.Warningf("Retrying due to error: %s", err)
+					sklog.Warningf("Retrying due to error: %s", err)
 				}
 				mutex.RUnlock()
 
 				if timeoutTracker.Read() > MAX_ALLOWED_SEQUENTIAL_TIMEOUTS {
-					glog.Errorf("Ran into %d sequential timeouts. Something is wrong. Killing the goroutine.", MAX_ALLOWED_SEQUENTIAL_TIMEOUTS)
+					sklog.Errorf("Ran into %d sequential timeouts. Something is wrong. Killing the goroutine.", MAX_ALLOWED_SEQUENTIAL_TIMEOUTS)
 					return
 				}
 			}
@@ -272,7 +272,7 @@ func runChromiumAnalysis() error {
 func main() {
 	retCode := 0
 	if err := runChromiumAnalysis(); err != nil {
-		glog.Errorf("Error while running chromium analysis: %s", err)
+		sklog.Errorf("Error while running chromium analysis: %s", err)
 		retCode = 255
 	}
 	os.Exit(retCode)

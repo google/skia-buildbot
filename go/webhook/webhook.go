@@ -8,8 +8,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -59,7 +59,7 @@ func InitRequestSaltFromMetadata() error {
 // error. Should be called once at startup.
 func MustInitRequestSaltFromMetadata() {
 	if err := InitRequestSaltFromMetadata(); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 }
 
@@ -80,7 +80,7 @@ func InitRequestSaltFromFile(filename string) error {
 // Should be called once at startup.
 func MustInitRequestSaltFromFile(filename string) {
 	if err := InitRequestSaltFromFile(filename); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 }
 

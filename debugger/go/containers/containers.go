@@ -14,11 +14,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/debugger/go/runner"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -101,7 +101,7 @@ func New(runner *runner.Runner) *Containers {
 		proxyurl := fmt.Sprintf("http://localhost:%d", port)
 		u, err := url.Parse(proxyurl)
 		if err != nil {
-			glog.Errorf("failed to parse url %q: %s", proxyurl, err)
+			sklog.Errorf("failed to parse url %q: %s", proxyurl, err)
 		}
 		c := &container{
 			port:  port,
@@ -149,7 +149,7 @@ func (s *Containers) startContainer(user string) error {
 		co.started = time.Now()
 		// This call to s.runner.Start() doesn't return until the container exits.
 		if err := s.runner.Start(co.port); err != nil {
-			glog.Errorf("Failed to start container at port %d: %s", co.port, err)
+			sklog.Errorf("Failed to start container at port %d: %s", co.port, err)
 		}
 		s.mutex.Lock()
 		defer s.mutex.Unlock()
@@ -168,7 +168,7 @@ func (s *Containers) startContainer(user string) error {
 		resp, err = client.Get(url)
 		if resp != nil && resp.Body != nil {
 			if err := resp.Body.Close(); err != nil {
-				glog.Errorf("Failed to close response while listing for skiaserve to start: %s", err)
+				sklog.Errorf("Failed to close response while listing for skiaserve to start: %s", err)
 			}
 		}
 		if err == nil {
@@ -281,7 +281,7 @@ func (s *Containers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Proxy.
-	glog.Infof("Proxying request: %s %s", r.URL, user)
+	sklog.Infof("Proxying request: %s %s", r.URL, user)
 	// If the request is a POST and we are at a non-zero instanceNum then pass in
 	// a recording response.  If the response is a 303 then we return a 303 with
 	// the  correct location URL, otherwise we return the response verbatim.
@@ -297,7 +297,7 @@ func (s *Containers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			if _, err := w.Write(rw.Body.Bytes()); err != nil {
-				glog.Errorf("Failed proxying a recorded response: %s", err)
+				sklog.Errorf("Failed proxying a recorded response: %s", err)
 			}
 		}
 	} else {
@@ -313,7 +313,7 @@ func (s *Containers) StopAll() {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	for _, co := range s.containers {
-		glog.Infof("Stopping container for user %q on port %d", co.user, co.port)
+		sklog.Infof("Stopping container for user %q on port %d", co.user, co.port)
 		runner.Stop(co.port)
 	}
 }

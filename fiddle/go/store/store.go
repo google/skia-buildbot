@@ -19,9 +19,9 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/golang/groupcache/lru"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fiddle/go/types"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
 	"google.golang.org/api/iterator"
@@ -133,7 +133,7 @@ func (s *Store) writeMediaFile(media Media, fiddleHash, runId, b64 string) error
 	// Only PNGs get stored in the cache.
 	if shouldBeCached(media) {
 		key := cacheKey(fiddleHash, media)
-		glog.Infof("Cache write: %s", key)
+		sklog.Infof("Cache write: %s", key)
 		if c, ok := s.cache.Get(key); !ok {
 			s.cache.Add(key, &cacheEntry{
 				runId: runId,
@@ -145,10 +145,10 @@ func (s *Store) writeMediaFile(media Media, fiddleHash, runId, b64 string) error
 					entry.body = body
 					entry.runId = runId
 				} else {
-					glog.Infof("Ran an older version of Skia, not caching: %v <= %v", runId, entry.runId)
+					sklog.Infof("Ran an older version of Skia, not caching: %v <= %v", runId, entry.runId)
 				}
 			} else {
-				glog.Errorf("Found a non-cacheEntry in the lru Cache: %v", reflect.TypeOf(c))
+				sklog.Errorf("Found a non-cacheEntry in the lru Cache: %v", reflect.TypeOf(c))
 			}
 		}
 	}
@@ -164,7 +164,7 @@ func (s *Store) writeMediaFile(media Media, fiddleHash, runId, b64 string) error
 		defer util.Close(w)
 		w.ObjectAttrs.ContentEncoding = p.contentType
 		if n, err := w.Write(body); err != nil {
-			glog.Errorf("There was a problem storing the media for %s. Uploaded %d bytes: %s", string(media), n, err)
+			sklog.Errorf("There was a problem storing the media for %s. Uploaded %d bytes: %s", string(media), n, err)
 		}
 	}()
 	return nil
@@ -312,7 +312,7 @@ func (s *Store) GetMedia(fiddleHash string, media Media) ([]byte, string, string
 	key := cacheKey(fiddleHash, media)
 	if c, ok := s.cache.Get(key); ok {
 		if entry, ok := c.(*cacheEntry); ok {
-			glog.Infof("Cache hit: %s", key)
+			sklog.Infof("Cache hit: %s", key)
 			return entry.body, mediaProps[media].contentType, mediaProps[media].filename, nil
 		}
 	}
@@ -412,7 +412,7 @@ func (s *Store) DownloadAllSourceImages(fiddleRoot string) error {
 		filename := strings.Split(obj.Name, "/")[1]
 		dstFullPath := filepath.Join(fiddleRoot, "images", filename)
 		if err := downloadSingleSourceImage(ctx, s.bucket, obj.Name, dstFullPath); err != nil {
-			glog.Errorf("Failed to download image %q: %s", obj.Name, err)
+			sklog.Errorf("Failed to download image %q: %s", obj.Name, err)
 		}
 	}
 	return nil
@@ -444,12 +444,12 @@ func (s *Store) ListSourceImages() ([]int, error) {
 		filename := strings.Split(obj.Name, "/")[1]
 		matches := sourceFileName.FindAllStringSubmatch(filename, -1)
 		if len(matches) != 1 || len(matches[0]) != 2 {
-			glog.Infof("Filename %s is not a source image.", filename)
+			sklog.Infof("Filename %s is not a source image.", filename)
 			continue
 		}
 		i, err := strconv.Atoi(matches[0][1])
 		if err != nil {
-			glog.Errorf("Failed to parse souce image filename: %s", err)
+			sklog.Errorf("Failed to parse souce image filename: %s", err)
 			continue
 		}
 		ret = append(ret, i)

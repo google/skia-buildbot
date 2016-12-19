@@ -13,9 +13,9 @@ import (
 	"sync"
 
 	"cloud.google.com/go/storage"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/rtcache"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"golang.org/x/net/context"
@@ -91,7 +91,7 @@ func (il *ImageLoader) Warm(priority int64, digests []string) {
 		go func(digest string) {
 			defer il.wg.Done()
 			if err := il.imageCache.Warm(priority, digest); err != nil {
-				glog.Errorf("Unable to retrive digest %s. Got error: %s", digest, err)
+				sklog.Errorf("Unable to retrive digest %s. Got error: %s", digest, err)
 			}
 		}(digest)
 	}
@@ -155,7 +155,7 @@ func (il *ImageLoader) PurgeImages(digests []string, purgeGS bool) error {
 		fName := fileutil.TwoLevelRadixPath(il.localImgDir, getDigestImageFileName(d))
 		if fileutil.FileExists(fName) {
 			if err := os.Remove(fName); err != nil {
-				glog.Errorf("Unable to remove image %s. Got error: %s", fName, err)
+				sklog.Errorf("Unable to remove image %s. Got error: %s", fName, err)
 			}
 		}
 	}
@@ -207,7 +207,7 @@ func (il *ImageLoader) saveImgInfoAsync(imageFileName string, imgBytes []byte) {
 	go func() {
 		defer il.wg.Done()
 		if err := saveFileRadixPath(il.localImgDir, imageFileName, bytes.NewBuffer(imgBytes)); err != nil {
-			glog.Error(err)
+			sklog.Error(err)
 		}
 	}()
 }
@@ -266,15 +266,15 @@ func (il *ImageLoader) downloadImgFromBucket(digest, bucketName string) ([]byte,
 		if err == nil {
 			break
 		}
-		glog.Errorf("Error fetching file for digest %s: %s", digest, err)
+		sklog.Errorf("Error fetching file for digest %s: %s", digest, err)
 	}
 
 	if err != nil {
-		glog.Errorf("Failed fetching file after %d attempts", MAX_URI_GET_TRIES)
+		sklog.Errorf("Failed fetching file after %d attempts", MAX_URI_GET_TRIES)
 		return nil, err
 	}
 
-	glog.Infof("Done downloading image for: %s. Length: %d", digest, buf.Len())
+	sklog.Infof("Done downloading image for: %s. Length: %d", digest, buf.Len())
 	return buf.Bytes(), err
 }
 
@@ -294,7 +294,7 @@ func (il *ImageLoader) removeImg(digest string) {
 
 		// Log an error and continue to the next bucket if we cannot delete the existing file.
 		if err := il.storageClient.Bucket(bucketName).Object(objLocation).Delete(ctx); err != nil {
-			glog.Errorf("Unable to delete existing object at %s. Got error: %s", objLocation, err)
+			sklog.Errorf("Unable to delete existing object at %s. Got error: %s", objLocation, err)
 			continue
 		}
 	}

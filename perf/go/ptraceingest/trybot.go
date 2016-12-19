@@ -3,7 +3,7 @@ package ptraceingest
 import (
 	"net/http"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/rietveld"
@@ -54,7 +54,7 @@ func (p *perfTrybotProcessor) Process(resultsFile ingestion.ResultFileLocation) 
 
 	// Ignore results from Gerrit for now.
 	if benchData.IsGerritIssue() {
-		glog.Infof("Ignoring Gerrit issue %s/%s for now.", benchData.Issue, benchData.PatchSet)
+		sklog.Infof("Ignoring Gerrit issue %s/%s for now.", benchData.Issue, benchData.PatchSet)
 		return ingestion.IgnoreResultsFileErr
 	}
 

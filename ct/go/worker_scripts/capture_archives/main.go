@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
@@ -40,7 +40,7 @@ func captureArchives() error {
 		defer util.CleanTmpDir()
 	}
 	defer util.TimeTrack(time.Now(), "Capturing Archives")
-	defer glog.Flush()
+	defer sklog.Flush()
 
 	// Reset the local chromium checkout.
 	if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
@@ -109,11 +109,11 @@ func captureArchives() error {
 				pagesetPath := filepath.Join(pathToPagesets, pagesetBaseName)
 				decodedPageset, err := util.ReadPageset(pagesetPath)
 				if err != nil {
-					glog.Errorf("Could not read %s: %s", pagesetPath, err)
+					sklog.Errorf("Could not read %s: %s", pagesetPath, err)
 					continue
 				}
 
-				glog.Infof("===== Processing %s =====", pagesetPath)
+				sklog.Infof("===== Processing %s =====", pagesetPath)
 				index := strconv.Itoa(pagesetsToIndex[path.Join(pathToPagesets, pagesetBaseName)])
 				archiveDataFile := addIndexInDataFileLocation(decodedPageset.ArchiveDataFile, index)
 				args := []string{
@@ -140,11 +140,11 @@ func captureArchives() error {
 						break
 					}
 					if i >= (retryAttempts - 1) {
-						glog.Errorf("%s failed inspite of 3 retries. Last error: %s", pagesetPath, err)
+						sklog.Errorf("%s failed inspite of 3 retries. Last error: %s", pagesetPath, err)
 						break
 					}
 					time.Sleep(time.Second)
-					glog.Warningf("Retrying due to error: %s", err)
+					sklog.Warningf("Retrying due to error: %s", err)
 				}
 				mutex.RUnlock()
 			}
@@ -185,7 +185,7 @@ func addIndexInDataFileLocation(originalDataFile string, index string) string {
 func main() {
 	retCode := 0
 	if err := captureArchives(); err != nil {
-		glog.Errorf("Error while capturing archives: %s", err)
+		sklog.Errorf("Error while capturing archives: %s", err)
 		retCode = 255
 	}
 	os.Exit(retCode)

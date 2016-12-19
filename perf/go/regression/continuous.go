@@ -3,9 +3,9 @@ package regression
 import (
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 )
@@ -51,7 +51,7 @@ func (c *Continuous) Run() {
 	clusteringLatency := metrics2.NewTimer("perf.clustering.latency", nil)
 
 	// TODO(jcgregorio) Add liveness metrics.
-	glog.Infof("Continuous starting.")
+	sklog.Infof("Continuous starting.")
 	for _ = range time.Tick(time.Minute) {
 		clusteringLatency.Start()
 		// Get the last NUM_COMMITS commits.
@@ -66,7 +66,7 @@ func (c *Continuous) Run() {
 			}
 			details, err := c.cidl.Lookup([]*cid.CommitID{id})
 			if err != nil {
-				glog.Errorf("Failed to look up commit %v: %s", *id, err)
+				sklog.Errorf("Failed to look up commit %v: %s", *id, err)
 				continue
 			}
 			for _, q := range c.queries {
@@ -77,10 +77,10 @@ func (c *Continuous) Run() {
 					Radius: RADIUS,
 					Query:  q,
 				}
-				glog.Infof("Continuous: Clustering at %s for %q", details[0].Message, q)
+				sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, q)
 				resp, err := clustering2.Run(req, c.git, c.cidl)
 				if err != nil {
-					glog.Errorf("Failed while clustering %v %s", *req, err)
+					sklog.Errorf("Failed while clustering %v %s", *req, err)
 					continue
 				}
 				// Update database if regression at the midpoint is found.
@@ -88,15 +88,15 @@ func (c *Continuous) Run() {
 					if cl.StepPoint.Offset == int64(commit.Index) {
 						if cl.StepFit.Status == clustering2.LOW {
 							if err := c.store.SetLow(details[0], q, resp.Frame, cl); err != nil {
-								glog.Errorf("Failed to save newly found cluster: %s", err)
+								sklog.Errorf("Failed to save newly found cluster: %s", err)
 							}
-							glog.Infof("Found Low regression at %s for %q: %v", details[0].Message, q, *cl.StepFit)
+							sklog.Infof("Found Low regression at %s for %q: %v", details[0].Message, q, *cl.StepFit)
 						}
 						if cl.StepFit.Status == clustering2.HIGH {
 							if err := c.store.SetHigh(details[0], q, resp.Frame, cl); err != nil {
-								glog.Errorf("Failed to save newly found cluster: %s", err)
+								sklog.Errorf("Failed to save newly found cluster: %s", err)
 							}
-							glog.Infof("Found High regression at %s for %q: %v", id.ID(), q, *cl.StepFit)
+							sklog.Infof("Found High regression at %s for %q: %v", id.ID(), q, *cl.StepFit)
 						}
 					}
 				}
@@ -107,7 +107,7 @@ func (c *Continuous) Run() {
 		if count, err := c.store.Untriaged(); err == nil {
 			newClustersGauge.Update(int64(count))
 		} else {
-			glog.Errorf("Failed to get untriaged count: %s", err)
+			sklog.Errorf("Failed to get untriaged count: %s", err)
 		}
 	}
 }

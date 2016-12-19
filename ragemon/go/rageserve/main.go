@@ -7,9 +7,9 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/ragemon/go/parser"
 	"go.skia.org/infra/ragemon/go/store"
@@ -51,11 +51,11 @@ func main() {
 	var err error
 	st, err = store.New(*storeDir)
 	if err != nil {
-		glog.Fatalf("Failed to create Store: %s", err)
+		sklog.Fatalf("Failed to create Store: %s", err)
 	}
 	r := mux.NewRouter()
 	r.HandleFunc("/new", postHandler)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	glog.Infoln("Ready to serve.")
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infoln("Ready to serve.")
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

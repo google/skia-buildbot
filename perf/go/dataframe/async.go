@@ -11,12 +11,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/calc"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/ptracestore"
@@ -186,7 +186,7 @@ func (fr *RunningFrameRequests) Response(id string) (*FrameResponse, error) {
 func (p *FrameRequestProcess) reportError(err error, message string) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
-	glog.Errorf("FrameRequest failed: %#v %s: %s", *(p.request), message, err)
+	sklog.Errorf("FrameRequest failed: %#v %s: %s", *(p.request), message, err)
 	p.message = message
 	p.state = PROCESS_ERROR
 	p.lastUpdate = time.Now()
@@ -293,7 +293,7 @@ func getCommitTimesForFile(begin, end string, filename string, git *gitinfo.GitI
 	// Now query for all the changes to the skp version over the given range of commits.
 	log, err := git.LogFine(begin+"^", end, "--format=format:%ct", "--", filename)
 	if err != nil {
-		glog.Errorf("Could not get skp log for %s..%s -- %q: %s", begin, end, filename, err)
+		sklog.Errorf("Could not get skp log for %s..%s -- %q: %s", begin, end, filename, err)
 		return ret
 	}
 
