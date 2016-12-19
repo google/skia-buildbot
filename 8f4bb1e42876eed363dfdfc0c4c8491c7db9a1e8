@@ -1,0 +1,596 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a619bba_657a8d28",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "IWBN in another CL to adjust the names and update the documentation of the Init methods. E.g.:\nInit -\u003e InitNoMetricsLocalLogging\nInitWithMetrics2 -\u003e InitLocalLogging\nInitWithCloudLogging -\u003e Init\nInitExternalWithMetrics2 -\u003e InitExternal",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 13
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_692d85c3",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "nit: s/logserver/logging/?",
+      "range": {
+        "startLine": 42,
+        "startChar": 26,
+        "endLine": 42,
+        "endChar": 35
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_4932c123",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "s/InitWithMetrics2/InitWithCloudLogging/",
+      "range": {
+        "startLine": 65,
+        "startChar": 3,
+        "endLine": 65,
+        "endChar": 19
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_a93a5df2",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "nit: slightly misleading name, since we\u0027ll still log to disk if this is true. If the limitation for StartCloudLogging is access to metadata, \"skipMetadata\" seems fine as a name; otherwise, \"local\" seems better to me.\n\nAlso, copy doc from InitWithMetrics2 above regarding influx* arguments.",
+      "range": {
+        "startLine": 66,
+        "startChar": 6,
+        "endLine": 66,
+        "endChar": 28
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_2920adc1",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "Can you give an example where appName and logName should be different? If not, let\u0027s make them the same.",
+      "range": {
+        "startLine": 67,
+        "startChar": 26,
+        "endLine": 67,
+        "endChar": 42
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_acd6ebab",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "nit: Maybe it\u0027s well-understood, but if not, mention in docs that InitWithCloudLogging must be called before the program creates any goroutines.\n\nSame for StartCloudLogging and StartCloudLoggingWithClient.",
+      "range": {
+        "startLine": 67,
+        "startChar": 5,
+        "endLine": 67,
+        "endChar": 25
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_29f9cd0b",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "s/StartCloudLogging/StartCloudLoggingWithClient/",
+      "range": {
+        "startLine": 107,
+        "startChar": 3,
+        "endLine": 107,
+        "endChar": 20
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a619bba_65a1ad7a",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "Depending on above, if this is always the app name, metrics2 will automatically add it to tags.",
+      "range": {
+        "startLine": 115,
+        "startChar": 76,
+        "endLine": 115,
+        "endChar": 103
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a619bba_c5ba79a3",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "This will perform 4 mutex lock/unlocks. We should watch carefully when deploying this CL to make sure it doesn\u0027t cause performance problems.",
+      "range": {
+        "startLine": 119,
+        "startChar": 2,
+        "endLine": 119,
+        "endChar": 112
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_8932f902",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "I expect people to be confused when they can\u0027t find the logs for their panics in cloud logging. We should either make this abundantly clear to the team or (add a TODO to) find a way to make this work for cloud logging (maybe handle panics in sklog.Fatal?).",
+      "range": {
+        "startLine": 126,
+        "startChar": 92,
+        "endLine": 126,
+        "endChar": 96
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_a935bdee",
+        "filename": "go/common/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "uber-nit: indentation",
+      "range": {
+        "startLine": 127,
+        "startChar": 3,
+        "endLine": 127,
+        "endChar": 4
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_89e1d913",
+        "filename": "go/metrics2/counter.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "This could cause infinite recursion, since sklog.Errorf calls the metricsCallback that common.StartCloudLoggingWithClient passes to sklog.InitCloudLogging, which calls metrics2.GetCounter.\n\nAlso, I wonder if this shouldn\u0027t be Fatalf?",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_4927617d",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 50,
+        "startChar": 51,
+        "endLine": 50,
+        "endChar": 52
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_ec7bc328",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "nit: Maybe it\u0027s well-understood, but if not, mention that this must be called before the program creates any goroutines.",
+      "range": {
+        "startLine": 52,
+        "startChar": 5,
+        "endLine": 52,
+        "endChar": 21
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_292c2d5d",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "nit: Document \"metricsCallback must not call any sklog functions.\"",
+      "range": {
+        "startLine": 52,
+        "startChar": 73,
+        "endLine": 52,
+        "endChar": 88
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_2c7c3bd3",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "nit: No longer true.",
+      "range": {
+        "startLine": 80,
+        "startChar": 63,
+        "endLine": 80,
+        "endChar": 127
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_29454d17",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "nit: Now that this isn\u0027t the final log entry, maybe make this stand out with\n\"\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\\nCloud logging configured, see %s for rest of logs.\\n\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\"",
+      "range": {
+        "startLine": 80,
+        "startChar": 13,
+        "endLine": 80,
+        "endChar": 63
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_29fe6d8d",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "typo involved",
+      "range": {
+        "startLine": 80,
+        "startChar": 99,
+        "endLine": 80,
+        "endChar": 107
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_890e79e4",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "nit: SetCloudLoggerForTesting?",
+      "range": {
+        "startLine": 126,
+        "startChar": 5,
+        "endLine": 126,
+        "endChar": 19
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_49e2c1ed",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 130,
+        "startChar": 44,
+        "endLine": 130,
+        "endChar": 45
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_69afc57d",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "nit: Seems like this is checked above.",
+      "range": {
+        "startLine": 190,
+        "startChar": 2,
+        "endLine": 190,
+        "endChar": 23
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_cc78ff2e",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "incomplete sentence",
+      "range": {
+        "startLine": 93,
+        "startChar": 3,
+        "endLine": 93,
+        "endChar": 25
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_6c911332",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "It seems likely that the goroutine created by logger.CloudLog will not finish before this panic. I.e., cloud logging won\u0027t see the fatal log message. We should fix Flush (see below) and call it here. x3",
+      "range": {
+        "startLine": 96,
+        "startChar": 1,
+        "endLine": 96,
+        "endChar": 28
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_0cc97748",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "We should wait for the goroutine in *logsClient.BatchCloudLog to finish here.",
+      "range": {
+        "startLine": 110,
+        "startChar": 1,
+        "endLine": 110,
+        "endChar": 76
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_acb70bb5",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 116,
+        "startChar": 18,
+        "endLine": 116,
+        "endChar": 20
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_ccd35fed",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T18:46:50Z",
+      "side": 1,
+      "message": "For *ln, I would expect all payloads to be in a single log entry, like fmt.Println.",
+      "range": {
+        "startLine": 128,
+        "startChar": 1,
+        "endLine": 128,
+        "endChar": 35
+      },
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
