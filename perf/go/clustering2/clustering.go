@@ -31,7 +31,7 @@ const (
 	// INTERESTING_THRESHHOLD is the threshhold value beyond which
 	// StepFit.Regression values become interesting, i.e. they may indicate real
 	// regressions or improvements.
-	INTERESTING_THRESHHOLD = 90.0
+	INTERESTING_THRESHHOLD = 50.0
 
 	LOW           = "Low"
 	HIGH          = "High"
