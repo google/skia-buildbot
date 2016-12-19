@@ -21,7 +21,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -44,12 +44,12 @@ func GetCTBareMetalWorkers() []string {
 
 func TimeTrack(start time.Time, name string) {
 	elapsed := time.Since(start)
-	glog.Infof("===== %s took %s =====", name, elapsed)
+	sklog.Infof("===== %s took %s =====", name, elapsed)
 }
 
 // ExecuteCmd executes the specified binary with the specified args and env. Stdout and Stderr are
 // written to stdout and stderr respectively if specified. If not specified then Stdout and Stderr
-// will be outputted only to glog.
+// will be outputted only to sklog.
 func ExecuteCmd(binary string, args, env []string, timeout time.Duration, stdout, stderr io.Writer) error {
 	return exec.Run(&exec.Command{
 		Name:        binary,
@@ -75,18 +75,18 @@ func SyncDir(dir string, revisions map[string]string) error {
 
 	for i := 0; i < MAX_SYNC_TRIES; i++ {
 		if i > 0 {
-			glog.Warningf("%d. retry for syncing %s", i, dir)
+			sklog.Warningf("%d. retry for syncing %s", i, dir)
 		}
 
 		err = syncDirStep(revisions)
 		if err == nil {
 			break
 		}
-		glog.Errorf("Error syncing %s", dir)
+		sklog.Errorf("Error syncing %s", dir)
 	}
 
 	if err != nil {
-		glog.Errorf("Failed to sync %s after %d attempts", dir, MAX_SYNC_TRIES)
+		sklog.Errorf("Failed to sync %s after %d attempts", dir, MAX_SYNC_TRIES)
 	}
 	return err
 }
@@ -211,8 +211,8 @@ func GetClosedChannelOfPagesets(fileInfos []os.FileInfo) chan string {
 // happening chrome zombie processes are periodically killed.
 func ChromeProcessesCleaner(locker sync.Locker, chromeCleanerTimer time.Duration) {
 	for _ = range time.Tick(chromeCleanerTimer) {
-		glog.Info("The chromeProcessesCleaner goroutine has started")
-		glog.Info("Waiting for all existing tasks to complete before killing zombie chrome processes")
+		sklog.Info("The chromeProcessesCleaner goroutine has started")
+		sklog.Info("Waiting for all existing tasks to complete before killing zombie chrome processes")
 		locker.Lock()
 		util.LogErr(ExecuteCmd("pkill", []string{"-9", "chrome"}, []string{}, PKILL_TIMEOUT, nil, nil))
 		locker.Unlock()
@@ -267,7 +267,7 @@ func ValidateSKPs(pathToSkps, pathToPyFiles string) error {
 			// Find the largest layer in this directory.
 			layerInfos, err := ioutil.ReadDir(filepath.Join(pathToSkps, index, skpName))
 			if err != nil {
-				glog.Errorf("Unable to read %s: %s", filepath.Join(pathToSkps, index, skpName), err)
+				sklog.Errorf("Unable to read %s: %s", filepath.Join(pathToSkps, index, skpName), err)
 			}
 			if len(layerInfos) > 0 {
 				largestLayerInfo := layerInfos[0]
@@ -284,7 +284,7 @@ func ValidateSKPs(pathToSkps, pathToPyFiles string) error {
 					util.Rename(layerPath, destSKP)
 					skps = append(skps, destSKP)
 				} else {
-					glog.Warningf("Skipping %s because size was less than 6000 bytes", skpName)
+					sklog.Warningf("Skipping %s because size was less than 6000 bytes", skpName)
 				}
 			}
 			// We extracted what we needed from the directory, now delete it.
@@ -301,7 +301,7 @@ func ValidateSKPs(pathToSkps, pathToPyFiles string) error {
 	}
 	close(skpsChannel)
 
-	glog.Info("Calling remove_invalid_skp.py")
+	sklog.Info("Calling remove_invalid_skp.py")
 	// Sync Skia tree.
 	util.LogErr(SyncDir(SkiaTreeDir, map[string]string{}))
 	// Build tools.
@@ -329,7 +329,7 @@ func ValidateSKPs(pathToSkps, pathToPyFiles string) error {
 					"--path_to_skp=" + skpPath,
 					"--path_to_skpinfo=" + pathToSKPInfo,
 				}
-				glog.Infof("Executing remove_invalid_skp.py with goroutine#%d", i+1)
+				sklog.Infof("Executing remove_invalid_skp.py with goroutine#%d", i+1)
 				// Execute the command with stdout not logged. It otherwise outputs
 				// tons of log msgs.
 				util.LogErr(exec.Run(&exec.Command{
@@ -423,14 +423,14 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 	failedTasksToHashes := map[string]string{}
 	for _, task := range tasks {
 		if _, _, err := task.Collect(s); err != nil {
-			glog.Errorf("task %s failed: %s", task.Title, err)
+			sklog.Errorf("task %s failed: %s", task.Title, err)
 			failedTasksToHashes[task.Title] = tasksToHashes[task.Title]
 			continue
 		}
 	}
 
 	if len(failedTasksToHashes) > 0 {
-		glog.Info("Retrying tasks that failed...")
+		sklog.Info("Retrying tasks that failed...")
 		retryTasks, err := s.TriggerSwarmingTasks(failedTasksToHashes, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true)
 		if err != nil {
 			return fmt.Errorf("Could not trigger swarming task: %s", err)
@@ -438,7 +438,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 		// Collect all tasks and log the ones that fail.
 		for _, task := range retryTasks {
 			if _, _, err := task.Collect(s); err != nil {
-				glog.Errorf("task %s failed inspite of a retry: %s", task.Title, err)
+				sklog.Errorf("task %s failed inspite of a retry: %s", task.Title, err)
 				continue
 			}
 		}
@@ -468,7 +468,7 @@ func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GsUtil, totalPages, nu
 		workerRemoteOutputPath := filepath.Join(BenchmarkRunsDir, runID, strconv.Itoa(startRange), "outputs", runID+".output")
 		respBody, err := gs.GetRemoteFileContents(workerRemoteOutputPath)
 		if err != nil {
-			glog.Errorf("Could not fetch %s: %s", workerRemoteOutputPath, err)
+			sklog.Errorf("Could not fetch %s: %s", workerRemoteOutputPath, err)
 			noOutputSlaves = append(noOutputSlaves, strconv.Itoa(i+1))
 			continue
 		}
@@ -488,7 +488,7 @@ func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GsUtil, totalPages, nu
 			return noOutputSlaves, fmt.Errorf("Unable to stat file %s: %s", workerLocalOutputPath, err)
 		}
 		if outputInfo.Size() <= 20 {
-			glog.Errorf("Output file was less than 20 bytes %s: %s", workerLocalOutputPath, err)
+			sklog.Errorf("Output file was less than 20 bytes %s: %s", workerLocalOutputPath, err)
 			noOutputSlaves = append(noOutputSlaves, strconv.Itoa(i+1))
 			continue
 		}
@@ -529,7 +529,7 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	if err != nil {
 		return fmt.Errorf("Could not read %s: %s", pagesetPath, err)
 	}
-	glog.Infof("===== Processing %s for %s =====", pagesetPath, runID)
+	sklog.Infof("===== Processing %s for %s =====", pagesetPath, runID)
 	benchmark, present := BenchmarksToTelemetryName[benchmarkName]
 	if !present {
 		// If it is custom benchmark use the entered benchmark name.
@@ -597,13 +597,13 @@ func MergeUploadCSVFilesOnWorkers(localOutputDir, pathToPyFiles, runID, remoteDi
 		outputFile := filepath.Join(localOutputDir, fileInfo.Name(), "results-pivot-table.csv")
 		newFile := filepath.Join(localOutputDir, fmt.Sprintf("%s.csv", fileInfo.Name()))
 		if err := os.Rename(outputFile, newFile); err != nil {
-			glog.Errorf("Could not rename %s to %s: %s", outputFile, newFile, err)
+			sklog.Errorf("Could not rename %s to %s: %s", outputFile, newFile, err)
 			continue
 		}
 		// Add the rank of the page to the CSV file.
 		headers, values, err := getRowsFromCSV(newFile)
 		if err != nil {
-			glog.Errorf("Could not read %s: %s", newFile, err)
+			sklog.Errorf("Could not read %s: %s", newFile, err)
 			continue
 		}
 		pageRank := fileInfo.Name()
@@ -615,7 +615,7 @@ func MergeUploadCSVFilesOnWorkers(localOutputDir, pathToPyFiles, runID, remoteDi
 			}
 		}
 		if err := writeRowsToCSV(newFile, headers, values); err != nil {
-			glog.Errorf("Could not write to %s: %s", newFile, err)
+			sklog.Errorf("Could not write to %s: %s", newFile, err)
 			continue
 		}
 	}

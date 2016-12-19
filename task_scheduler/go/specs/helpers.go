@@ -16,7 +16,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/common"
 )
@@ -79,7 +79,7 @@ func NewTasksCfgBuilder() (*TasksCfgBuilder, error) {
 func MustNewTasksCfgBuilder() *TasksCfgBuilder {
 	b, err := NewTasksCfgBuilder()
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	return b
 }
@@ -106,7 +106,7 @@ func (b *TasksCfgBuilder) AddTask(name string, t *TaskSpec) error {
 // MustAddTask adds a TaskSpec to the TasksCfgBuilder and panics on failure.
 func (b *TasksCfgBuilder) MustAddTask(name string, t *TaskSpec) {
 	if err := b.AddTask(name, t); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 }
 
@@ -122,7 +122,7 @@ func (b *TasksCfgBuilder) AddJob(name string, j *JobSpec) error {
 // MustAddJob adds a JobSpec to the TasksCfgBuilder and panics on failure.
 func (b *TasksCfgBuilder) MustAddJob(name string, j *JobSpec) {
 	if err := b.AddJob(name, j); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 }
 
@@ -155,7 +155,7 @@ func (b *TasksCfgBuilder) GetCipdPackageFromAsset(assetName string) (*CipdPackag
 func (b *TasksCfgBuilder) MustGetCipdPackageFromAsset(assetName string) *CipdPackage {
 	pkg, err := b.GetCipdPackageFromAsset(assetName)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	return pkg
 }
@@ -206,6 +206,6 @@ func (b *TasksCfgBuilder) Finish() error {
 // provided, verifies that the contents have not changed. Panics on failure.
 func (b *TasksCfgBuilder) MustFinish() {
 	if err := b.Finish(); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 }

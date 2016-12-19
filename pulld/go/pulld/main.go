@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/systemd"
@@ -56,7 +57,7 @@ var (
 	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
 	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 
-	cloudLoggingGroup = flag.String("cloud_logging_group", "rpi-master", "The log grouping to be used if cloud logging is configured (i.e. on_gce is false)")
+	cloudLoggingGroup = flag.String("cloud_logging_group", "skolo-rpi-master", "The log grouping to be used if cloud logging is configured (i.e. on_gce is false)")
 )
 
 type UnitStatusSlice []*systemd.UnitStatus
@@ -84,12 +85,22 @@ type ChangeResult struct {
 
 func initLogging() {
 	if !*onGCE {
+		// Since we are specifying the serviceAccountPath and the log names, we can't use common.StartCloudLogging
 		client, err := auth.NewJWTServiceAccountClient("", *serviceAccountPath, nil, sklog.CLOUD_LOGGING_WRITE_SCOPE)
 		if err != nil {
 			sklog.Fatalf("Could not setup credentials: %s", err)
 		}
 
-		err = sklog.InitCloudLogging(client, *cloudLoggingGroup, "pulld-not-gce")
+		initSeverities := []string{sklog.INFO, sklog.WARNING, sklog.ERROR}
+		for _, severity := range initSeverities {
+			metrics2.GetCounter("num_log_lines", map[string]string{"level": severity, "log_source": *cloudLoggingGroup}).Reset()
+		}
+
+		metricsCallback := func(severity string) {
+			metrics2.GetCounter("num_log_lines", map[string]string{"level": severity, "log_source": *cloudLoggingGroup}).Inc(1)
+		}
+
+		err = sklog.InitCloudLogging(client, *cloudLoggingGroup, "pulld-not-gce", metricsCallback)
 		if err != nil {
 			sklog.Fatalf("Could not setup cloud logging: %s", err)
 		}

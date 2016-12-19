@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/gitiles"
 )
@@ -29,11 +29,11 @@ func init() {
 	buf := bytes.NewBuffer(nil)
 	r := gitiles.NewRepo("https://skia.googlesource.com/skia")
 	if err := r.ReadFile("infra/bots/recipe_modules/builder_name_schema/builder_name_schema.json", buf); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	res := new(builderNameSchema)
 	if err := json.NewDecoder(buf).Decode(res); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	schema = res
 }

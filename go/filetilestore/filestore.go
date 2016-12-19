@@ -17,7 +17,7 @@ import (
 import (
 	// TODO(stephana): Replace with github.com/hashicorp/golang-lru
 	"github.com/golang/groupcache/lru"
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 )
@@ -85,7 +85,7 @@ func (store *FileTileStore) fileTileTemp(scale, index int) (*os.File, error) {
 // Put writes a tile to the drive, and also updates the cache entry for it
 // if one exists. It uses the mutex to ensure thread safety.
 func (store *FileTileStore) Put(scale, index int, tile *tiling.Tile) error {
-	glog.Info("Put()")
+	sklog.Info("Put()")
 	// Make sure the scale and tile index are correct.
 	if tile.Scale != scale || tile.TileIndex != index {
 		return fmt.Errorf("Tile scale %d and index %d do not match real tile scale %d and index %d", scale, index, tile.Scale, tile.TileIndex)
@@ -117,7 +117,7 @@ func (store *FileTileStore) Put(scale, index int, tile *tiling.Tile) error {
 	if err := os.MkdirAll(filepath.Dir(targetName), 0755); err != nil {
 		return fmt.Errorf("Error creating directory for tile %s: %s", targetName, err)
 	}
-	glog.Infof("Renaming: %q %q", f.Name(), targetName)
+	sklog.Infof("Renaming: %q %q", f.Name(), targetName)
 	if err := os.Rename(f.Name(), targetName); err != nil {
 		return fmt.Errorf("Failed to rename tile: %s", err)
 	}
@@ -152,7 +152,7 @@ func (store *FileTileStore) getLastTile(scale int) (*tiling.Tile, error) {
 	}
 	sort.Strings(matches)
 	lastTileName := filepath.Base(matches[len(matches)-1])
-	glog.Infof("Found the last tile: %s", lastTileName)
+	sklog.Infof("Found the last tile: %s", lastTileName)
 	tileIndex := strings.Split(lastTileName, ".")[0]
 	newIndex, err := strconv.ParseInt(tileIndex, 10, 64)
 	if err != nil {
@@ -297,7 +297,7 @@ func (store *FileTileStore) refreshLastTiles() {
 	// Read tile -1.
 	tile, err := store.getLastTile(0)
 	if err != nil {
-		glog.Warningf("Unable to retrieve last tile for scale %d: %s", 0, err)
+		sklog.Warningf("Unable to retrieve last tile for scale %d: %s", 0, err)
 		return
 	}
 	store.lock.Lock()

@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
@@ -23,6 +22,7 @@ import (
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"golang.org/x/net/context"
 	"google.golang.org/api/option"
@@ -75,67 +75,67 @@ func main() {
 	// Absolutify the workdir.
 	w, err := filepath.Abs(*workdir)
 	if err != nil {
-		glog.Fatal(w)
+		sklog.Fatal(w)
 	}
-	glog.Infof("Workdir is %s", w)
+	sklog.Infof("Workdir is %s", w)
 
 	// Authenticated HTTP client.
 	oauthCacheFile := path.Join(w, "google_storage_token.data")
 	httpClient, err := auth.NewClient(*local, oauthCacheFile, swarming.AUTH_SCOPE)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Swarming API client.
 	swarm, err := swarming.NewApiClient(httpClient)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Shared repo objects.
 	reposDir := path.Join(w, "repos")
 	if err := os.MkdirAll(reposDir, os.ModePerm); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	repos, err := repograph.NewMap([]string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, reposDir)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	if err := repos.Update(); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Data generation goroutines.
 	db, err := buildbot.NewLocalDB(path.Join(w, "buildbot.db"))
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Run a server for the buildbot data.
 	if _, err := buildbot.RunBuildServer(*grpcPort, db); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Swarming bots.
 	go func() {
 		oldMetrics := []*metrics2.Int64Metric{}
 		for _ = range time.Tick(2 * time.Minute) {
-			glog.Info("Loading Skia Swarming bot data.")
+			sklog.Info("Loading Skia Swarming bot data.")
 			skiaBots, err := swarm.ListSkiaBots()
 			if err != nil {
-				glog.Error(err)
+				sklog.Error(err)
 				continue
 			}
-			glog.Info("Loading SkiaTriggers Swarming bot data.")
+			sklog.Info("Loading SkiaTriggers Swarming bot data.")
 			skiaTriggers, err := swarm.ListSkiaTriggerBots()
 			if err != nil {
-				glog.Error(err)
+				sklog.Error(err)
 				continue
 			}
-			glog.Info("Loading CT Swarming bot data.")
+			sklog.Info("Loading CT Swarming bot data.")
 			ctBots, err := swarm.ListCTBots()
 			if err != nil {
-				glog.Error(err)
+				sklog.Error(err)
 				continue
 			}
 			bots := append(skiaBots, skiaTriggers...)
@@ -147,7 +147,7 @@ func main() {
 			failedDelete := []*metrics2.Int64Metric{}
 			for _, m := range oldMetrics {
 				if err := m.Delete(); err != nil {
-					glog.Warningf("Failed to delete metric: %s", err)
+					sklog.Warningf("Failed to delete metric: %s", err)
 					failedDelete = append(failedDelete, m)
 				}
 			}
@@ -157,7 +157,7 @@ func main() {
 			for _, bot := range bots {
 				last, err := time.Parse("2006-01-02T15:04:05", bot.LastSeenTs)
 				if err != nil {
-					glog.Error(err)
+					sklog.Error(err)
 					continue
 				}
 
@@ -196,13 +196,13 @@ func main() {
 			now := time.Now()
 			tasks, err := swarm.ListSkiaTasks(lastLoad, now)
 			if err != nil {
-				glog.Error(err)
+				sklog.Error(err)
 				continue
 			}
 			for id, _ := range revisitTasks {
 				task, err := swarm.GetTaskMetadata(id)
 				if err != nil {
-					glog.Error(err)
+					sklog.Error(err)
 					continue
 				}
 				tasks = append(tasks, task)
@@ -219,7 +219,7 @@ func main() {
 					// timestamp for all data points related to it.
 					createdTime, err := swarming.Created(task)
 					if err != nil {
-						glog.Errorf("Failed to parse Swarming task created timestamp: %s", err)
+						sklog.Errorf("Failed to parse Swarming task created timestamp: %s", err)
 						continue
 					}
 
@@ -233,24 +233,24 @@ func main() {
 						// This is an old-style task.
 						name, err = swarming.GetTagValue(task.TaskResult, "name")
 						if err != nil || name == "" {
-							glog.Errorf("Failed to find name for Swarming task: %v", task)
+							sklog.Errorf("Failed to find name for Swarming task: %v", task)
 							continue
 						}
 						builderName, err = swarming.GetTagValue(task.TaskResult, "buildername")
 						if err != nil || builderName == "" {
-							glog.Errorf("Failed to find buildername for Swarming task: %v", task)
+							sklog.Errorf("Failed to find buildername for Swarming task: %v", task)
 							continue
 						}
 						builderTags, err = buildbot.ParseBuilderName(builderName)
 						if err != nil {
-							glog.Errorf("Failed to parse builder name for Swarming task: %s", err)
+							sklog.Errorf("Failed to parse builder name for Swarming task: %s", err)
 							continue
 						}
 					} else if user == "skia-task-scheduler" {
 						// This is a new-style task.
 						builderName, err = swarming.GetTagValue(task.TaskResult, "sk_name")
 						if err != nil || builderName == "" {
-							glog.Errorf("Failed to find sk_name for Swarming task: %v", task)
+							sklog.Errorf("Failed to find sk_name for Swarming task: %v", task)
 							continue
 						}
 						name = builderName
@@ -260,7 +260,7 @@ func main() {
 						} else {
 							builderTags, err = buildbot.ParseBuilderName(builderName)
 							if err != nil {
-								glog.Errorf("Failed to parse builder name for Swarming task: %s", err)
+								sklog.Errorf("Failed to parse builder name for Swarming task: %s", err)
 								continue
 							}
 						}
@@ -287,19 +287,19 @@ func main() {
 						if task.TaskResult.PerformanceStats.IsolatedDownload != nil {
 							metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_DOWNLOAD, tags, int64(task.TaskResult.PerformanceStats.IsolatedDownload.Duration*float64(1000.0)), createdTime)
 						} else {
-							glog.Errorf("Swarming task is missing its IsolatedDownload section: %v", task.TaskResult)
+							sklog.Errorf("Swarming task is missing its IsolatedDownload section: %v", task.TaskResult)
 						}
 						if task.TaskResult.PerformanceStats.IsolatedUpload != nil {
 							metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_UPLOAD, tags, int64(task.TaskResult.PerformanceStats.IsolatedUpload.Duration*float64(1000.0)), createdTime)
 						} else {
-							glog.Errorf("Swarming task is missing its IsolatedUpload section: %v", task.TaskResult)
+							sklog.Errorf("Swarming task is missing its IsolatedUpload section: %v", task.TaskResult)
 						}
 					}
 
 					// Pending time in milliseconds.
 					startTime, err := swarming.Started(task)
 					if err != nil {
-						glog.Errorf("Failed to parse Swarming task started timestamp: %s", err)
+						sklog.Errorf("Failed to parse Swarming task started timestamp: %s", err)
 						continue
 					}
 					pendingMs := int64(startTime.Sub(createdTime).Seconds() * float64(1000.0))
@@ -318,13 +318,13 @@ func main() {
 		for _ = range time.Tick(5 * time.Minute) {
 			nSkia, err := repos[common.REPO_SKIA].Repo().NumCommits()
 			if err != nil {
-				glog.Errorf("Failed to get number of commits for Skia: %s", err)
+				sklog.Errorf("Failed to get number of commits for Skia: %s", err)
 			} else {
 				skiaGauge.Update(nSkia)
 			}
 			nInfra, err := repos[common.REPO_SKIA_INFRA].Repo().NumCommits()
 			if err != nil {
-				glog.Errorf("Failed to get number of commits for Infra: %s", err)
+				sklog.Errorf("Failed to get number of commits for Infra: %s", err)
 			} else {
 				infraGauge.Update(nInfra)
 			}
@@ -336,11 +336,11 @@ func main() {
 		lv := metrics2.NewLiveness("last-buildbot-db-backup", nil)
 		authClient, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_ONLY)
 		if err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 		gsClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(authClient))
 		if err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 		setLastBackupTime := func() error {
 			last := time.Time{}
@@ -352,22 +352,22 @@ func main() {
 				return err
 			}
 			lv.ManualReset(last)
-			glog.Infof("Last DB backup was %s.", last)
+			sklog.Infof("Last DB backup was %s.", last)
 			return nil
 		}
 		if err := setLastBackupTime(); err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 		for _ = range time.Tick(10 * time.Minute) {
 			if err := setLastBackupTime(); err != nil {
-				glog.Errorf("Failed to get last DB backup time: %s", err)
+				sklog.Errorf("Failed to get last DB backup time: %s", err)
 			}
 		}
 	}()
 
 	// Run a backup server.
 	go func() {
-		glog.Fatal(buildbot.RunBackupServer(db, *httpPort))
+		sklog.Fatal(buildbot.RunBackupServer(db, *httpPort))
 	}()
 
 	// Wait while the above goroutines generate data.

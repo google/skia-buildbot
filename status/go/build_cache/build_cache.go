@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/timer"
@@ -69,7 +69,7 @@ func NewBuildCache(db buildbot.DB) (*BuildCache, error) {
 	to := time.Now()
 	from := to.Add(BUILD_LOADING_CHUNK)
 	for time.Now().Sub(from) < BUILD_LOADING_PERIOD {
-		glog.Infof("Loading builds from %s to %s", from, to)
+		sklog.Infof("Loading builds from %s to %s", from, to)
 		builds, err := db.GetBuildsFromDateRange(from, to)
 		if err != nil {
 			return nil, err
@@ -86,7 +86,7 @@ func NewBuildCache(db buildbot.DB) (*BuildCache, error) {
 	go func() {
 		for _ = range time.Tick(time.Minute) {
 			if err := bc.update(); err != nil {
-				glog.Error(err)
+				sklog.Error(err)
 			}
 		}
 	}()
@@ -99,7 +99,7 @@ func (c *BuildCache) update() error {
 	builds, err := c.db.GetModifiedBuilds(c.dbId)
 	if err != nil {
 		if time.Now().Sub(c.lastLoad) >= 10*time.Minute {
-			glog.Errorf("Failed to GetModifiedBuilds. Attempting to re-establish connection to database.")
+			sklog.Errorf("Failed to GetModifiedBuilds. Attempting to re-establish connection to database.")
 			id, err := c.db.StartTrackingModifiedBuilds()
 			if err != nil {
 				return err
@@ -114,7 +114,7 @@ func (c *BuildCache) update() error {
 				return err
 			}
 			builds = append(b1, b2...)
-			glog.Errorf("Re-connected successfully.")
+			sklog.Errorf("Re-connected successfully.")
 		} else {
 			return err
 		}
@@ -187,7 +187,7 @@ func (c *BuildCache) evictExpiredBuilds() {
 	for _, id := range expiredIds {
 		c.delete(id)
 	}
-	glog.Infof("Deleted %d expired builds.", len(expiredIds))
+	sklog.Infof("Deleted %d expired builds.", len(expiredIds))
 }
 
 // updateWithBuilds inserts the given builds into the cache.
@@ -195,7 +195,7 @@ func (c *BuildCache) updateWithBuilds(builds []*buildbot.Build) error {
 	defer timer.New("  BuildCache locked").Stop()
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	glog.Infof("Inserting %d builds.", len(builds))
+	sklog.Infof("Inserting %d builds.", len(builds))
 	for _, b := range builds {
 		idStr := string(b.Id())
 		if c.get(idStr) != nil {

@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	lutil "github.com/syndtr/goleveldb/leveldb/util"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -92,7 +92,7 @@ func (i *info) Get(branch, target, buildID string) (*vcsinfo.ShortCommit, error)
 		branchtargets = append(branchtargets, branchtarget)
 		err := i.db.Put([]byte(TARGETS_KEY), []byte(strings.Join(branchtargets, " ")), nil)
 		if err != nil {
-			glog.Errorf("Failed to add new target %s: %s", branchtarget, err)
+			sklog.Errorf("Failed to add new target %s: %s", branchtarget, err)
 		}
 		// Always try to fetch the information from the Android Build API directly if
 		// we don't have it yet.
@@ -133,7 +133,7 @@ func (i *info) single_get(branch, target, buildID string) (*vcsinfo.ShortCommit,
 func (i *info) branchtargets() []string {
 	b, err := i.db.Get([]byte(TARGETS_KEY), nil)
 	if err != nil {
-		glog.Errorf("Failed to get TARGETS_KEY: %s", err)
+		sklog.Errorf("Failed to get TARGETS_KEY: %s", err)
 		return []string{}
 	}
 	parts := strings.Split(string(b), " ")
@@ -150,16 +150,16 @@ func (i *info) branchtargets() []string {
 func (i *info) store(branch, target, buildID string, commit *vcsinfo.ShortCommit) {
 	key, err := toKey(branch, target, buildID)
 	if err != nil {
-		glog.Errorf("store: invalid build ID %s: %s", key, err)
+		sklog.Errorf("store: invalid build ID %s: %s", key, err)
 		return
 	}
 	b, err := json.Marshal(commit)
 	if err != nil {
-		glog.Errorf("store: can't encode %#v: %s", commit, err)
+		sklog.Errorf("store: can't encode %#v: %s", commit, err)
 		return
 	}
 	if err := i.db.Put([]byte(key), b, nil); err != nil {
-		glog.Errorf("Failed to store commit: %s", err)
+		sklog.Errorf("Failed to store commit: %s", err)
 	}
 }
 
@@ -168,7 +168,7 @@ func (i *info) single_poll() {
 	for _, branchtarget := range i.branchtargets() {
 		parts := strings.Split(branchtarget, ":")
 		if len(parts) != 2 {
-			glog.Errorf("Found an invalid branchtarget: %s", branchtarget)
+			sklog.Errorf("Found an invalid branchtarget: %s", branchtarget)
 			continue
 		}
 		branch := parts[0]
@@ -184,7 +184,7 @@ func (i *info) single_poll() {
 		// Query for commits from latest to lastBuildID.
 		builds, err := i.commits.List(branch, target, lastBuildID)
 		if err != nil {
-			glog.Errorf("Failed to get commits for %s %s %s: %s", branch, target, lastBuildID, err)
+			sklog.Errorf("Failed to get commits for %s %s %s: %s", branch, target, lastBuildID, err)
 			continue
 		}
 		// Save each buildID we found.
@@ -204,7 +204,7 @@ func (i *info) single_poll() {
 			lastBuildID = strconv.Itoa(buildIDs[len(buildIDs)-1])
 			err := i.db.Put(lastBuildIDKey, []byte(lastBuildID), nil)
 			if err != nil {
-				glog.Errorf("Failed to write last build ID: %s", err)
+				sklog.Errorf("Failed to write last build ID: %s", err)
 			}
 		}
 	}
