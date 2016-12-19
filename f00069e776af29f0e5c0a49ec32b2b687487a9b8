@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9765aef7_8910b970",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T17:47:57Z",
+      "side": 1,
+      "message": "Why does this need to be like this?  What\u0027s going wrong?",
+      "range": {
+        "startLine": 295,
+        "startChar": 27,
+        "endLine": 295,
+        "endChar": 39
+      },
+      "revId": "f00069e776af29f0e5c0a49ec32b2b687487a9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
