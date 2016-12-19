@@ -51,7 +51,7 @@
   </style>
   <template>
     <div class="flex horizontal layout">
-      <paper-input value="[[_commentText]]" label="Comment" class="flex" on-change="_preventBubble"></paper-input>
+      <paper-input value="{{_commentText}}" label="Comment" class="flex" on-change="_preventBubble"></paper-input>
       <template is="dom-if" if="[[show_snooze]]">
         <paper-icon-button icon="icons:alarm" on-click="_snoozeDialog" title="Snooze and add comment"></paper-icon-button>
       </template>
