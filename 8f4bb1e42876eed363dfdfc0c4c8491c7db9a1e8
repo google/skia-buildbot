@@ -488,6 +488,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_0fcba9b2",
+        "filename": "go/metrics2/counter.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T21:38:02Z",
+      "side": 1,
+      "message": "nit: Add a comment so that someone doesn\u0027t come along and fix this to be sklog again.",
+      "parentUuid": "9765aef7_cfd911de",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_4927617d",
         "filename": "go/sklog/cloud_logging.go",
         "patchSetId": 10
@@ -692,6 +710,24 @@
       "side": 1,
       "message": "Done",
       "parentUuid": "9765aef7_2c7c3bd3",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_4faac1bc",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T21:38:02Z",
+      "side": 1,
+      "message": "Hmm, I meant that since lines 138-140 of sklog.go were added, the second sentence is no longer accurate. But I don\u0027t care much if you leave it as-is.",
+      "parentUuid": "9765aef7_af881db2",
       "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -944,6 +980,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_afb25d2b",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T21:38:02Z",
+      "side": 1,
+      "message": "nit: remove comment",
+      "parentUuid": "9765aef7_0f404954",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_acb70bb5",
         "filename": "go/sklog/sklog.go",
         "patchSetId": 10
@@ -1020,6 +1074,24 @@
       "side": 1,
       "message": "That\u0027s how it is intended to work.  Is that not the case?",
       "parentUuid": "9765aef7_ccd35fed",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_0f1de94a",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T21:38:02Z",
+      "side": 1,
+      "message": "It doesn\u0027t seem so to me...\n\nsklog.Infoln(\"foo\", \"bar\", \"baz\")\n\nturns into\n\nlog(INFO, defaultReportName, \"foo\", \"bar\", \"baz\")\n\nwhich means payloads :\u003d []interface{\"foo\", \"bar\", \"baz\"}, so it turns into\n\nlogToGlog(3, INFO, \"file.go:123 foo\")\nlogToGlog(3, INFO, \"file.go:123 bar\")\nlogToGlog(3, INFO, \"file.go:123 baz\")",
+      "parentUuid": "9765aef7_cf511127",
       "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
