@@ -867,10 +867,11 @@ func testCommitComments(t *testing.T, local bool) {
 
 	// Add a comment.
 	c1 := &CommitComment{
-		Commit:    c,
-		User:      u,
-		Timestamp: time.Now(),
-		Message:   "Here's a message!",
+		Commit:        c,
+		User:          u,
+		Timestamp:     time.Now(),
+		IgnoreFailure: true,
+		Message:       "Here's a message!",
 	}
 	assert.NoError(t, d.DB().PutCommitComment(c1))
 	c1.Id = 1

@@ -27,6 +27,7 @@ func TestCopyTaskSpecComment(t *testing.T) {
 func TestCopyCommitComment(t *testing.T) {
 	testutils.SmallTest(t)
 	v := makeCommitComment(1, 1, 1, time.Now())
+	v.IgnoreFailure = true
 	testutils.AssertCopy(t, v, v.Copy())
 }
 

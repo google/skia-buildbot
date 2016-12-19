@@ -209,11 +209,12 @@ func (c *BTCache) updateComments() error {
 					commitComments[comment.Repo] = commitMap
 				}
 				c := &buildbot.CommitComment{
-					Id:        comment.Timestamp.UnixNano(),
-					Commit:    comment.Revision,
-					User:      comment.User,
-					Timestamp: comment.Timestamp,
-					Message:   comment.Message,
+					Id:            comment.Timestamp.UnixNano(),
+					Commit:        comment.Revision,
+					User:          comment.User,
+					Timestamp:     comment.Timestamp,
+					IgnoreFailure: comment.IgnoreFailure,
+					Message:       comment.Message,
 				}
 				commitMap[comment.Revision] = append(commitMap[comment.Revision], c)
 			}
