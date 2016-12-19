@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/skia-dev/glog"
+
 	"go.skia.org/infra/go/util"
 )
 

@@ -9,8 +9,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/skia-dev/glog"
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/image/text"
 )
@@ -325,11 +325,11 @@ func loadBenchmarkImages() {
 	var err error
 	img1, err = OpenImage(filepath.Join(TESTDATA_DIR, "4029959456464745507.png"))
 	if err != nil {
-		glog.Fatal("Failed to open test file: ", err)
+		sklog.Fatal("Failed to open test file: ", err)
 	}
 	img2, err = OpenImage(filepath.Join(TESTDATA_DIR, "16465366847175223174.png"))
 	if err != nil {
-		glog.Fatal("Failed to open test file: ", err)
+		sklog.Fatal("Failed to open test file: ", err)
 	}
 }
 

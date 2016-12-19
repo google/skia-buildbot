@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/satori/go.uuid"
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 // modifiedData allows subscribers to keep track of DB entries that have been
@@ -44,7 +44,7 @@ func (m *modifiedData) clearExpiredSubscribers() {
 		m.mtx.Lock()
 		for id, t := range m.expiration {
 			if time.Now().After(t) {
-				glog.Warningf("Deleting expired subscriber with id %s; expiration time %s.", id, t)
+				sklog.Warningf("Deleting expired subscriber with id %s; expiration time %s.", id, t)
 				delete(m.data, id)
 				delete(m.expiration, id)
 			}
@@ -146,7 +146,7 @@ func (m *ModifiedTasks) GetModifiedTasksGOB(id string) (map[string][]byte, error
 func (m *ModifiedTasks) TrackModifiedTask(t *Task) {
 	var buf bytes.Buffer
 	if err := gob.NewEncoder(&buf).Encode(t); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	m.m.TrackModifiedEntries(map[string][]byte{t.Id: buf.Bytes()})
 }
@@ -203,7 +203,7 @@ func (m *ModifiedJobs) GetModifiedJobsGOB(id string) (map[string][]byte, error) 
 func (m *ModifiedJobs) TrackModifiedJob(j *Job) {
 	var buf bytes.Buffer
 	if err := gob.NewEncoder(&buf).Encode(j); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	m.m.TrackModifiedEntries(map[string][]byte{j.Id: buf.Bytes()})
 }

@@ -37,10 +37,8 @@ func main() {
 		sklog.Fatalf("Failed to create authenticated HTTP client: %s\nDid you run get_service_account?", err)
 	}
 
-	err = sklog.InitCloudLogging(client, "raspberry-pis", "cloudlogger")
-	if err != nil {
-		sklog.Fatalf("Could not setup cloud sklog: %s", err)
-	}
+	common.StartCloudLoggingWithClient(client, "skolo-raspberry-pis", "cloudlogger")
+
 	if err := logagents.SetPersistenceDir(*persistenceDir); err != nil {
 		sklog.Fatalf("Could not set Persistence Dir: %s", err)
 	}

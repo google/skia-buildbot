@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 )
@@ -37,43 +37,43 @@ func main() {
 	common.Init()
 
 	if *pool == "" {
-		glog.Fatal("--pool is required.")
+		sklog.Fatal("--pool is required.")
 	}
 
 	if *dimensions == nil && *includeBots == nil {
-		glog.Fatal("So one does not accidentally shutdown the entire pool, you must specify a dimension or an include rule.")
+		sklog.Fatal("So one does not accidentally shutdown the entire pool, you must specify a dimension or an include rule.")
 	}
 	requestedDims, err := swarming.ParseDimensionFlags(dimensions)
 	if err != nil {
-		glog.Fatalf("Problem parsing dimensions: %s", err)
+		sklog.Fatalf("Problem parsing dimensions: %s", err)
 	}
-	glog.Infof("Using dimensions: %q", requestedDims)
+	sklog.Infof("Using dimensions: %q", requestedDims)
 
 	includeRegs, err = parseRegex(*includeBots)
 	if err != nil {
-		glog.Fatalf("Invalid regexp detected in include_bot %q: %s", *includeBots, err)
+		sklog.Fatalf("Invalid regexp detected in include_bot %q: %s", *includeBots, err)
 	}
 	excludeRegs, err = parseRegex(*excludeBots)
 	if err != nil {
-		glog.Fatalf("Invalid regexp detected in exclude_bot %q: %s", *excludeBots, err)
+		sklog.Fatalf("Invalid regexp detected in exclude_bot %q: %s", *excludeBots, err)
 	}
 
 	*workdir, err = filepath.Abs(*workdir)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Authenticated HTTP client.
 	oauthCacheFile := path.Join(*workdir, "google_storage_token.data")
 	httpClient, err := auth.NewClient(true, oauthCacheFile, swarming.AUTH_SCOPE)
 	if err != nil {
-		glog.Fatalf("Could not authenticate. Did you get the swarming client_secret and put it in %s? : %s", *workdir, err)
+		sklog.Fatalf("Could not authenticate. Did you get the swarming client_secret and put it in %s? : %s", *workdir, err)
 	}
 
 	// Swarming API client.
 	swarmApi, err := swarming.NewApiClient(httpClient)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Obtain the list of bots in this pool.
@@ -81,7 +81,7 @@ func main() {
 		"pool": *pool,
 	})
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	logIfVerbose("%d bots in the pool", len(bots))
 
@@ -124,25 +124,25 @@ func main() {
 	}
 
 	if len(matched) == 0 {
-		glog.Infof("No matches.  Quitting.")
+		sklog.Infof("No matches.  Quitting.")
 		return
 	}
-	glog.Infof("The following bots will be scheduled for a graceful shutdown %q", matched)
+	sklog.Infof("The following bots will be scheduled for a graceful shutdown %q", matched)
 	if *dryrun {
-		glog.Error("Exiting because of dryrun mode")
+		sklog.Error("Exiting because of dryrun mode")
 		return
 	}
-	glog.Error("Continue?")
+	sklog.Error("Continue?")
 	if conf, err := askForConfirmation(); err != nil || !conf {
-		glog.Errorf("Not continuing (Error: %v)", err)
+		sklog.Errorf("Not continuing (Error: %v)", err)
 	}
 
 	for _, m := range matched {
 		if r, err := swarmApi.GracefullyShutdownBot(m); err != nil {
-			glog.Errorf("Problem shutting down %s: %s", m, err)
+			sklog.Errorf("Problem shutting down %s: %s", m, err)
 		} else {
 			logIfVerbose("Response from shutting down %s: %#v", m, r)
-			glog.Infof("Task for shutting down %s: https://chromium-swarm.appspot.com/task?id=%s", m, r.TaskId)
+			sklog.Infof("Task for shutting down %s: https://chromium-swarm.appspot.com/task?id=%s", m, r.TaskId)
 		}
 	}
 
@@ -158,14 +158,14 @@ func askForConfirmation() (bool, error) {
 	} else if response == "n" {
 		return false, nil
 	} else {
-		glog.Info("Please type 'y' or 'n' and then press enter:")
+		sklog.Info("Please type 'y' or 'n' and then press enter:")
 		return askForConfirmation()
 	}
 }
 
 func logIfVerbose(f string, args ...interface{}) {
 	if *verbose {
-		glog.Infof(f, args...)
+		sklog.Infof(f, args...)
 	}
 }
 

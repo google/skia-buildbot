@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/util"
@@ -93,11 +93,11 @@ func GetOrRegister(measurement string, tags map[string]string) (*Counter, error)
 	return ret, nil
 }
 
-// MustGetOrRegister is GetOrRegister that glog.Fatals if there was an error creating the metric.
+// MustGetOrRegister is GetOrRegister that sklog.Fatals if there was an error creating the metric.
 func MustGetOrRegister(measurement string, tags map[string]string) *Counter {
 	m, err := GetOrRegister(measurement, tags)
 	if err != nil {
-		glog.Fatalf("Failed to create Counter: %s", err)
+		sklog.Fatalf("Failed to create Counter: %s", err)
 	}
 	return m
 }
@@ -120,7 +120,7 @@ func oneStep() {
 	buf := bytes.NewBufferString(serializedBody())
 	resp, err := client.httpClient.Post(client.serverURL, "text/plain", buf)
 	if err != nil || resp.StatusCode >= 400 {
-		glog.Errorf("Error sending metrics to ragemon server: %s", err)
+		sklog.Errorf("Error sending metrics to ragemon server: %s", err)
 	}
 }
 
