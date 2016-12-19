@@ -9,6 +9,7 @@ import (
 	"path"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -3009,8 +3010,11 @@ func TestAddTasksRetries(t *testing.T) {
 		},
 	}
 
+	retryCountMtx := sync.Mutex{}
 	retryCount := map[string]int{}
 	causeConcurrentUpdate := func(tasks []*db.Task) {
+		retryCountMtx.Lock()
+		defer retryCountMtx.Unlock()
 		retryCount[tasks[0].Name]++
 		if tasks[0].Name == "toil" && retryCount["toil"] < 2 {
 			toil2.Started = time.Now().UTC()
@@ -3032,6 +3036,8 @@ func TestAddTasksRetries(t *testing.T) {
 
 	assert.NoError(t, s.AddTasks(tasks))
 
+	retryCountMtx.Lock()
+	defer retryCountMtx.Unlock()
 	assert.Equal(t, 2, retryCount["toil"])
 	assert.Equal(t, 3, retryCount["duty"])
 	assert.Equal(t, 4, retryCount["work"])
