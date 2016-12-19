@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -27,19 +28,20 @@ const (
 	SWARMING_STATE_RUNNING   = "RUNNING"
 	SWARMING_STATE_TIMED_OUT = "TIMED_OUT"
 
-	// Swarming tags added by Build Scheduler.
-	SWARMING_TAG_ALLOW_MILO     = "allow_milo"
-	SWARMING_TAG_FORCED_JOB_ID  = "sk_forced_job_id"
-	SWARMING_TAG_ID             = "sk_id"
-	SWARMING_TAG_ISSUE          = "sk_issue"
-	SWARMING_TAG_NAME           = "sk_name"
-	SWARMING_TAG_PARENT_TASK_ID = "sk_parent_task_id"
-	SWARMING_TAG_PATCHSET       = "sk_patchset"
-	SWARMING_TAG_PRIORITY       = "sk_priority"
-	SWARMING_TAG_REPO           = "sk_repo"
-	SWARMING_TAG_RETRY_OF       = "sk_retry_of"
-	SWARMING_TAG_REVISION       = "sk_revision"
-	SWARMING_TAG_SERVER         = "sk_issue_server"
+	// Swarming tags added by Task Scheduler.
+	SWARMING_TAG_ALLOW_MILO       = "allow_milo"
+	SWARMING_TAG_DIMENSION_PREFIX = "sk_dim_"
+	SWARMING_TAG_FORCED_JOB_ID    = "sk_forced_job_id"
+	SWARMING_TAG_ID               = "sk_id"
+	SWARMING_TAG_ISSUE            = "sk_issue"
+	SWARMING_TAG_NAME             = "sk_name"
+	SWARMING_TAG_PARENT_TASK_ID   = "sk_parent_task_id"
+	SWARMING_TAG_PATCHSET         = "sk_patchset"
+	SWARMING_TAG_PRIORITY         = "sk_priority"
+	SWARMING_TAG_REPO             = "sk_repo"
+	SWARMING_TAG_RETRY_OF         = "sk_retry_of"
+	SWARMING_TAG_REVISION         = "sk_revision"
+	SWARMING_TAG_SERVER           = "sk_issue_server"
 
 	// These two tags allow the swarming ui to point to the GoB repo
 	SWARMING_TAG_SOURCE_REVISION = "source_revision"
@@ -579,7 +581,7 @@ func TagsForTask(name, id string, priority float64, rs RepoState, retryOf string
 	}
 
 	for k, v := range dimensions {
-		key := fmt.Sprintf("sk_dim_%s", k)
+		key := fmt.Sprintf("%s%s", SWARMING_TAG_DIMENSION_PREFIX, k)
 		if _, ok := tags[key]; !ok {
 			tags[key] = v
 		} else {
@@ -595,4 +597,15 @@ func TagsForTask(name, id string, priority float64, rs RepoState, retryOf string
 		tagsList = append(tagsList, fmt.Sprintf("%s:%s", SWARMING_TAG_PARENT_TASK_ID, id))
 	}
 	return tagsList
+}
+
+// DimensionsFromTags returns a set of dimensions based on the given tags.
+func DimensionsFromTags(tags []string) []string {
+	rv := make([]string, 0, len(tags))
+	for _, t := range tags {
+		if strings.HasPrefix(t, SWARMING_TAG_DIMENSION_PREFIX) {
+			rv = append(rv, t[len(SWARMING_TAG_DIMENSION_PREFIX):])
+		}
+	}
+	return rv
 }

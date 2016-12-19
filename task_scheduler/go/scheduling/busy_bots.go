@@ -5,6 +5,7 @@ import (
 
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/trie"
+	"go.skia.org/infra/task_scheduler/go/db"
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 )
@@ -55,13 +56,13 @@ func (b *busyBots) Filter(bots []*swarming_api.SwarmingRpcsBotInfo) []*swarming_
 }
 
 // RefreshTasks updates the contents of busyBots based on the cached tasks.
-func (b *busyBots) RefreshTasks(pending []*swarming_api.SwarmingRpcsTaskRequestMetadata) {
+func (b *busyBots) RefreshTasks(pending []*swarming_api.SwarmingRpcsTaskResult) {
 	b.mtx.Lock()
 	defer b.mtx.Unlock()
 
 	b.pendingTasks = trie.New()
 	for _, t := range pending {
-		dims := swarming.TaskDimensionsToStringSlice(t.Request.Properties.Dimensions)
+		dims := db.DimensionsFromTags(t.Tags)
 		b.pendingTasks.Insert(dims, t.TaskId)
 	}
 }

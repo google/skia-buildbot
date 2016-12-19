@@ -117,7 +117,7 @@ func (c *TestClient) ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRp
 	return c.ListTasks(start, end, []string{"pool:Skia"}, "")
 }
 
-func (c *TestClient) ListTaskResults(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskResult, error) {
+func (c *TestClient) ListTaskResults(start, end time.Time, tags []string, state string, includePerformanceStats bool) ([]*swarming.SwarmingRpcsTaskResult, error) {
 	tasks, err := c.ListTasks(start, end, tags, state)
 	if err != nil {
 		return nil, err
