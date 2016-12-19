@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9765aef7_ecad0369",
+        "filename": "go/buildbot/buildbot.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-19T18:07:45Z",
+      "side": 1,
+      "message": "This field needs to be added to the Task Scheduler DB\u0027s CommitComment struct.",
+      "range": {
+        "startLine": 322,
+        "startChar": 1,
+        "endLine": 322,
+        "endChar": 14
+      },
+      "revId": "b4461a4a2a8d1486498b21c76747535a023fdef4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
