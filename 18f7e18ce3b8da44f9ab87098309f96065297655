@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9765aef7_2fc66dac",
+        "filename": "go/common/common.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T21:38:02Z",
+      "side": 1,
+      "message": "Nope. Please copy docs from InitWithMetrics2 rather than InitExternalWithMetrics2.",
+      "range": {
+        "startLine": 66,
+        "startChar": 29,
+        "endLine": 66,
+        "endChar": 67
+      },
+      "revId": "18f7e18ce3b8da44f9ab87098309f96065297655",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_cfb59117",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T21:38:02Z",
+      "side": 1,
+      "message": "nit: \"// See comment in BatchCloudLog.\"",
+      "revId": "18f7e18ce3b8da44f9ab87098309f96065297655",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
