@@ -143,9 +143,23 @@ then
   # Detect if we have unchecked in local changes, or if we're not on the master
   # branch (possibly at an older revision).
   git fetch
-  if ! git diff-index --quiet HEAD -- || \
-    ! git merge-base --is-ancestor HEAD origin/master ; then
+  # http://stackoverflow.com/questions/3801321/git-list-only-untracked-files-also-custom-commands
+  UNTRACKED="$(git ls-files --other --directory --exclude-standard)"
+  # diff-index requires update-index --refresh; see:
+  # https://stackoverflow.com/questions/36367190/git-diff-files-output-changes-after-git-status/36439778#36439778
+  git update-index --refresh
+  if ! git diff-index --quiet HEAD -- ; then
     DIRTY=true
+    echo "Setting DIRTY=true due to modified files:"
+    echo "$(git diff-index --name-status HEAD --)"
+  elif [[ "$UNTRACKED" != "" ]]; then
+    DIRTY=true
+    echo "Setting DIRTY=true due to untracked files:"
+    echo "$UNTRACKED"
+  elif ! git merge-base --is-ancestor HEAD origin/master ; then
+    DIRTY=true
+    echo "Setting DIRTY=true due to current branch: " \
+      "$(git rev-parse --abbrev-ref HEAD)"
   else
     DIRTY=false
   fi
