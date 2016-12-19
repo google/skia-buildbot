@@ -317,7 +317,8 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 	repo := getRepo(r)
 	commit := mux.Vars(r)["commit"]
 	comment := struct {
-		Comment string `json:"comment"`
+		Comment       string `json:"comment"`
+		IgnoreFailure bool   `json:"ignoreFailure"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
@@ -326,10 +327,11 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 	defer util.Close(r.Body)
 
 	c := buildbot.CommitComment{
-		Commit:    commit,
-		User:      login.LoggedInAs(r),
-		Timestamp: time.Now().UTC(),
-		Message:   comment.Comment,
+		Commit:        commit,
+		User:          login.LoggedInAs(r),
+		Timestamp:     time.Now().UTC(),
+		IgnoreFailure: comment.IgnoreFailure,
+		Message:       comment.Comment,
 	}
 	if err := buildCache.AddCommitComment(repo, &c); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add commit comment: %s", err))

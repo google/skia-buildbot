@@ -55,9 +55,10 @@ type CommitComment struct {
 	Revision string `json:"revision"`
 	// Timestamp is compared ignoring timezone. The timezone reflects User's
 	// location.
-	Timestamp time.Time `json:"time"`
-	User      string    `json:"user"`
-	Message   string    `json:"message"`
+	Timestamp     time.Time `json:"time"`
+	User          string    `json:"user"`
+	IgnoreFailure bool      `json:"ignoreFailure"`
+	Message       string    `json:"message"`
 }
 
 func (c CommitComment) Copy() *CommitComment {
