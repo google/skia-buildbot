@@ -315,11 +315,12 @@ type BuilderComment struct {
 
 // CommitComment contains a comment about a commit.
 type CommitComment struct {
-	Id        int64     `json:"id"`
-	Commit    string    `json:"commit"`
-	User      string    `json:"user"`
-	Timestamp time.Time `json:"time"`
-	Message   string    `json:"message"`
+	Id            int64     `json:"id"`
+	Commit        string    `json:"commit"`
+	User          string    `json:"user"`
+	Timestamp     time.Time `json:"time"`
+	IgnoreFailure bool      `json:"ignoreFailure"`
+	Message       string    `json:"message"`
 }
 
 // IsTrybot determines whether the given builder is a trybot.

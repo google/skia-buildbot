@@ -661,11 +661,12 @@ func (c *BTCache) AddCommitComment(repo string, comment *buildbot.CommitComment)
 	// Truncate the timestamp to milliseconds.
 	ts := comment.Timestamp.Round(time.Millisecond)
 	if err := c.commentDb.PutCommitComment(&db.CommitComment{
-		Repo:      repo,
-		Revision:  comment.Commit,
-		Timestamp: ts,
-		User:      comment.User,
-		Message:   comment.Message,
+		Repo:          repo,
+		Revision:      comment.Commit,
+		Timestamp:     ts,
+		User:          comment.User,
+		IgnoreFailure: comment.IgnoreFailure,
+		Message:       comment.Message,
 	}); err != nil {
 		return err
 	}

@@ -1195,11 +1195,12 @@ func makeTaskSpecComment(n int, repo int, name int, ts time.Time) *TaskSpecComme
 // repo, commit, and ts, and other fields based on n.
 func makeCommitComment(n int, repo int, commit int, ts time.Time) *CommitComment {
 	return &CommitComment{
-		Repo:      fmt.Sprintf("r%d", repo),
-		Revision:  fmt.Sprintf("c%d", commit),
-		Timestamp: ts,
-		User:      fmt.Sprintf("u%d", n),
-		Message:   fmt.Sprintf("m%d", n),
+		Repo:          fmt.Sprintf("r%d", repo),
+		Revision:      fmt.Sprintf("c%d", commit),
+		Timestamp:     ts,
+		User:          fmt.Sprintf("u%d", n),
+		IgnoreFailure: n>>1%2 == 0,
+		Message:       fmt.Sprintf("m%d", n),
 	}
 }
 
