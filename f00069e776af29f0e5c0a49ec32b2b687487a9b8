@@ -40,6 +40,24 @@
       "revId": "f00069e776af29f0e5c0a49ec32b2b687487a9b8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_e90735cc",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-19T17:51:11Z",
+      "side": 1,
+      "message": "Can you add a comment that this is needed because depth[dep] \u003d\u003d\u003d 0 sometimes?",
+      "parentUuid": "9765aef7_69f465af",
+      "revId": "f00069e776af29f0e5c0a49ec32b2b687487a9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
