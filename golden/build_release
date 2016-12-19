@@ -43,7 +43,7 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
   	DATABASE_HOST="173.194.254.28"
   	SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_stage"
     REDIRECT_URL="https://gold-staging.skia.org/oauth2callback/"
-    ADD_FLAGS="--backfill_tiles=2"
+    ADD_FLAGS="--backfill_tiles=2 --resources_dir=/usr/local/share/skiacorrectness/frontend"
     ;;
 
     # experimental android instance: uses the staging database server for now.
@@ -53,7 +53,7 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
     REDIRECT_URL="https://gold-android.skia.org/oauth2callback/"
     GS_BUCKETS="skia-android-dm"
     N_COMMITS="200"
-    ADD_FLAGS="--force_login --auth_whitelist=google.com"
+    ADD_FLAGS="--force_login --auth_whitelist=google.com --resources_dir=/usr/local/share/skiacorrectness/frontend"
     ;;
 
     # experimental blink instance: uses the staging database server for now.
@@ -61,6 +61,7 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
     DATABASE_HOST="173.194.254.28"
     SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_blink"
     REDIRECT_URL="https://gold-blink.skia.org/oauth2callback/"
+    ADD_FLAGS="--resources_dir=/usr/local/share/skiacorrectness/frontend"
     ;;
 
     *)
