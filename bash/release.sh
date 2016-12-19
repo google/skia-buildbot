@@ -144,7 +144,7 @@ then
   # branch (possibly at an older revision).
   git fetch
   # http://stackoverflow.com/questions/3801321/git-list-only-untracked-files-also-custom-commands
-  UNTRACKED="$(git ls-files --other --directory --exclude-standard)"
+  UNTRACKED="$(git ls-files --other --exclude-standard)"
   # diff-index requires update-index --refresh; see:
   # https://stackoverflow.com/questions/36367190/git-diff-files-output-changes-after-git-status/36439778#36439778
   git update-index --refresh
