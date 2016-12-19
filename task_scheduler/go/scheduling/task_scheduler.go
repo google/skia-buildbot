@@ -1215,7 +1215,7 @@ func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots) ([]*swarming_api.
 	// Query for free Swarming bots and pending Swarming tasks in all pools.
 	var wg sync.WaitGroup
 	bots := []*swarming_api.SwarmingRpcsBotInfo{}
-	pending := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
+	pending := []*swarming_api.SwarmingRpcsTaskResult{}
 	errs := []error{}
 	var mtx sync.Mutex
 	t := time.Time{}
@@ -1240,7 +1240,7 @@ func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots) ([]*swarming_api.
 		wg.Add(1)
 		go func(pool string) {
 			defer wg.Done()
-			t, err := s.ListTasks(t, t, []string{fmt.Sprintf("pool:%s", pool)}, "PENDING")
+			t, err := s.ListTaskResults(t, t, []string{fmt.Sprintf("pool:%s", pool)}, "PENDING", false)
 			mtx.Lock()
 			defer mtx.Unlock()
 			if err != nil {

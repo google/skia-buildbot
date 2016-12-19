@@ -79,7 +79,9 @@ type ApiClient interface {
 	// instances corresponding to the specified tags and within given time window.
 	// Specify time.Time{} for start and end if you do not want to restrict on
 	// time. Specify "" for state if you do not want to restrict on state.
-	ListTaskResults(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskResult, error)
+	// includePerformanceStats indicates whether or not to load performance
+	// information (eg. overhead) in addition to the normal task data.
+	ListTaskResults(start, end time.Time, tags []string, state string, includePerformanceStats bool) ([]*swarming.SwarmingRpcsTaskResult, error)
 
 	// CancelTask cancels the task with the given ID.
 	CancelTask(id string) error
@@ -182,7 +184,7 @@ func (c *apiClient) ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRpc
 	return c.ListTasks(start, end, []string{"pool:Skia"}, "")
 }
 
-func (c *apiClient) ListTaskResults(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskResult, error) {
+func (c *apiClient) ListTaskResults(start, end time.Time, tags []string, state string, includePerformanceStats bool) ([]*swarming.SwarmingRpcsTaskResult, error) {
 	tasks := []*swarming.SwarmingRpcsTaskResult{}
 	cursor := ""
 	for {
@@ -192,7 +194,7 @@ func (c *apiClient) ListTaskResults(start, end time.Time, tags []string, state s
 		}
 		list.Limit(100)
 		list.Tags(tags...)
-		list.IncludePerformanceStats(true)
+		list.IncludePerformanceStats(includePerformanceStats)
 		if !start.IsZero() {
 			list.Start(float64(start.Unix()))
 		}
@@ -255,7 +257,7 @@ func (c *apiClient) ListTasks(start, end time.Time, tags []string, state string)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		tasks, tasksErr = c.ListTaskResults(start, end, tags, state)
+		tasks, tasksErr = c.ListTaskResults(start, end, tags, state, true)
 	}()
 
 	var reqs []*swarming.SwarmingRpcsTaskRequest
