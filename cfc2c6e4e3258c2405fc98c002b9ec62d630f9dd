@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9765aef7_6ff58562",
+        "filename": "bash/release.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-19T20:25:07Z",
+      "side": 1,
+      "message": "I copied from the wrong stackoverflow answer. Facepalm.\nhttp://stackoverflow.com/questions/11021287/git-detect-if-there-are-untracked-files-quickly",
+      "revId": "cfc2c6e4e3258c2405fc98c002b9ec62d630f9dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
