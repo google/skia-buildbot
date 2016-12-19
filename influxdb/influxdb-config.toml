@@ -46,6 +46,7 @@ bind-address = ":8088"
   shard-writer-timeout = "5s"
   max-remote-write-connections = 3
   shard-mapper-timeout = "5s"
+  max-series-per-database = 3000000
 
 [retention]
   enabled = true
