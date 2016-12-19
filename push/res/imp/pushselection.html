@@ -124,7 +124,7 @@
     },
 
     warnIfDirty: function(dirty) {
-      return dirty ? 'warning' : ''
+      return dirty ? 'warning' : ' ';  // Don't return an empty string here, to force the icon to change.
     },
 
     linkToCommit: function(hash) {
