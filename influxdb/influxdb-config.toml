@@ -38,9 +38,9 @@ bind-address = ":8088"
   cache-snapshot-write-cold-duration = "1m0s"
   compact-full-write-cold-duration = "24h0m0s"
   max-points-per-block = 0
-  data-logging-enabled = true
+  trace-logging-enabled = false
 
-[cluster]
+[coordinator]
   force-remote-mapping = false
   write-timeout = "5s"
   shard-writer-timeout = "5s"
@@ -80,7 +80,7 @@ bind-address = ":8088"
   https-enabled = false
   #https-certificate = "/etc/ssl/influxdb.pem"
 
-[collectd]
+[[collectd]]
   enabled = false
   bind-address = ":25826"
   database = "collectd"
@@ -91,7 +91,7 @@ bind-address = ":8088"
   read-buffer = 0
   typesdb = "/usr/share/collectd/types.db"
 
-[opentsdb]
+[[opentsdb]]
   enabled = false
   bind-address = ":4242"
   database = "opentsdb"
