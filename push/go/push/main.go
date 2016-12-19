@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/systemd"
 	"go.skia.org/infra/go/util"
@@ -493,6 +494,43 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
+// oneStep does a single step of startDirtyMonitoring().
+func oneStep() {
+	count := int64(0)
+	allInstalled := packageInfo.AllInstalled()
+	allAvailable := packageInfo.AllAvailable()
+	for _, installed := range allInstalled {
+		for _, app := range installed.Names {
+			// app is the full versioned name of the installed app, we can find just
+			// the package name of the app by splitting off the stuff before the
+			// first "/".
+			parts := strings.Split(app, "/")
+			packageName := parts[0]
+			for _, version := range allAvailable[packageName] {
+				if version.Name == app {
+					if version.Dirty {
+						count++
+						break
+					}
+				}
+			}
+		}
+	}
+	glog.Infof("Finished oneStep: Found %d dirty packages running.", count)
+	metrics2.GetInt64Metric("dirty-packages", nil).Update(count)
+}
+
+// startDirtyMonitoring periodically checks the number of dirty packages being
+// used in prod and reports that number to Influx.
+//
+// This function doesn't return and should be launched as a Go routine.
+func startDirtyMonitoring() {
+	oneStep()
+	for _ = range time.Tick(time.Minute) {
+		oneStep()
+	}
+}
+
 func main() {
 	defer common.LogPanic()
 	common.InitWithMetrics2("push", influxHost, influxUser, influxPassword, influxDatabase, local)
@@ -506,6 +544,7 @@ func main() {
 		glog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
+	go startDirtyMonitoring()
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", mainHandler)
