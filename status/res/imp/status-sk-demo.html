@@ -31,8 +31,8 @@
       time: "2016-03-22T14:59:20.226445862Z",
       user: "bob@example.com",
     }
-    data.builds["e6d665e24feabf6c633452885910efd17e5f025e"]["Perf-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-CT_BENCH_10k_SKPs"].comments=[mockComment];
-    data.builds["6b4985c6d163e378551010eecd44abd4141ab4bc"]["Perf-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-CT_BENCH_10k_SKPs"].comments=[mockComment];
+   data.builds["113d05fa7b26797e3e468f78ea94a214476b63fb"]["Build-Mac-Clang-Arm7-Debug-iOS_NoBuildbot"].comments=[mockComment];
+
 
     var dataCalls = 0;
     // Send the data, then slightly change the builds for the update.
@@ -43,10 +43,6 @@
           dataCalls++;
           return request.respond(200, {}, JSON.stringify(data));
         }
-        // Finish one of the pending builds.
-        data.builds["e2a88f244a1eba029a815fdb3ec520af37707de2"]["Test-Android-GCC-Nexus6-GPU-Adreno420-Arm7-Debug"].finished=true;
-        data.builds["6599efffeef3168dfc68dca99c30454c5c23b859"]["Test-Android-GCC-Nexus6-GPU-Adreno420-Arm7-Debug"].finished=true;
-        data.builds["e7bbe0378233d16aa0921965f4a4ccc66b2eeec3"]["Test-Android-GCC-Nexus6-GPU-Adreno420-Arm7-Debug"].finished=true;
         return request.respond(200, {}, JSON.stringify(data));
     });
 
