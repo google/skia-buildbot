@@ -257,17 +257,17 @@ Displays the server configurations, along with the ability to modify application
 
     alarmIfNotLatest: function(installed) {
       if (!this.packageLookup[installed]) {
-        return '';
+        return ' '; // Don't return an empty string here, to force the icon to change.
       } else {
-        return this.packageLookup[installed].Latest ? '' : 'alarm';
+        return this.packageLookup[installed].Latest ? ' ' : 'alarm';
       }
     },
 
     warnIfDirty: function(installed) {
       if (!this.packageLookup[installed]) {
-        return '';
+        return ' '; // Don't return an empty string here, to force the icon to change.
       } else {
-        return this.packageLookup[installed].Dirty ? 'warning' : '';
+        return this.packageLookup[installed].Dirty ? 'warning' : ' ';
       }
     },
 
