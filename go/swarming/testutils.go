@@ -2,6 +2,8 @@ package swarming
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -9,6 +11,7 @@ import (
 
 	"github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/satori/go.uuid"
+	"github.com/skia-dev/glog"
 )
 
 type TestClient struct {
@@ -17,12 +20,16 @@ type TestClient struct {
 
 	taskList    []*swarming.SwarmingRpcsTaskRequestMetadata
 	taskListMtx sync.RWMutex
+
+	triggerFailure map[string]bool
+	triggerMtx     sync.Mutex
 }
 
 func NewTestClient() *TestClient {
 	return &TestClient{
-		botList:  []*swarming.SwarmingRpcsBotInfo{},
-		taskList: []*swarming.SwarmingRpcsTaskRequestMetadata{},
+		botList:        []*swarming.SwarmingRpcsBotInfo{},
+		taskList:       []*swarming.SwarmingRpcsTaskRequestMetadata{},
+		triggerFailure: map[string]bool{},
 	}
 }
 
@@ -127,9 +134,33 @@ func (c *TestClient) CancelTask(id string) error {
 	return nil
 }
 
+// md5Tags returns a MD5 hash of the task tags, excluding task ID.
+func md5Tags(tags []string) string {
+	filtered := make([]string, 0, len(tags))
+	for _, t := range tags {
+		if !strings.HasPrefix(t, "sk_id") {
+			filtered = append(filtered, t)
+		}
+	}
+	sort.Strings(filtered)
+	rv, err := util.MD5SSlice(filtered)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	return rv
+}
+
 // TriggerTask automatically appends its result to the mocked tasks set by
 // MockTasks.
 func (c *TestClient) TriggerTask(t *swarming.SwarmingRpcsNewTaskRequest) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+	c.triggerMtx.Lock()
+	defer c.triggerMtx.Unlock()
+	md5 := md5Tags(t.Tags)
+	if c.triggerFailure[md5] {
+		delete(c.triggerFailure, md5)
+		return nil, fmt.Errorf("Mocked trigger failure!")
+	}
+
 	createdTs := time.Now().UTC().Format(TIMESTAMP_FORMAT)
 	id := uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
 	rv := &swarming.SwarmingRpcsTaskRequestMetadata{
@@ -207,4 +238,12 @@ func (c *TestClient) DoMockTasks(f func(*swarming.SwarmingRpcsTaskRequestMetadat
 	for _, task := range c.taskList {
 		f(task)
 	}
+}
+
+// MockTriggerTaskFailure forces the next call to TriggerTask which matches
+// the given tags to fail.
+func (c *TestClient) MockTriggerTaskFailure(tags []string) {
+	c.triggerMtx.Lock()
+	defer c.triggerMtx.Unlock()
+	c.triggerFailure[md5Tags(tags)] = true
 }

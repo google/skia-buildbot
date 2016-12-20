@@ -818,98 +818,47 @@ func (s *TaskScheduler) isolateCandidates(candidates []*taskCandidate) error {
 	return nil
 }
 
-// triggerTasks triggers the given slice of tasks to run on Swarming.
-func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, tasks []*db.Task) error {
+// triggerTasks triggers the given slice of tasks to run on Swarming and returns
+// the candidates and tasks which successfully triggered. Logs an error for each
+// task which fails to trigger.
+func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, tasks []*db.Task) []*db.Task {
 	defer metrics2.FuncTimer().Stop()
 	var wg sync.WaitGroup
 	var mtx sync.Mutex
-	errs := []error{}
+	rv := make([]*db.Task, 0, len(tasks))
 	for i, t := range tasks {
 		candidate := candidates[i]
 		wg.Add(1)
 		go func(candidate *taskCandidate, t *db.Task) {
 			defer wg.Done()
 			if err := s.db.AssignId(t); err != nil {
-				mtx.Lock()
-				defer mtx.Unlock()
-				errs = append(errs, err)
+				sklog.Errorf("Failed to trigger task: %s", err)
 				return
 			}
 			req, err := candidate.MakeTaskRequest(t.Id)
 			if err != nil {
-				mtx.Lock()
-				defer mtx.Unlock()
-				errs = append(errs, err)
+				sklog.Errorf("Failed to trigger task: %s", err)
 				return
 			}
 			resp, err := s.swarming.TriggerTask(req)
 			if err != nil {
-				mtx.Lock()
-				defer mtx.Unlock()
-				errs = append(errs, err)
+				sklog.Errorf("Failed to trigger task: %s", err)
 				return
 			}
 			created, err := swarming.ParseTimestamp(resp.Request.CreatedTs)
 			if err != nil {
-				mtx.Lock()
-				defer mtx.Unlock()
-				errs = append(errs, fmt.Errorf("Failed to parse timestamp of created task: %s", err))
+				sklog.Errorf("Failed to trigger task: %s", err)
 				return
 			}
+			mtx.Lock()
+			defer mtx.Unlock()
 			t.Created = created
 			t.SwarmingTaskId = resp.TaskId
+			rv = append(rv, t)
 		}(candidate, t)
 	}
 	wg.Wait()
-	if len(errs) > 0 {
-		// TODO(borenet): We may have triggered some tasks; should we
-		// insert those into the DB?
-		return fmt.Errorf("Failed to trigger tasks; got errors: %v", errs)
-	}
-	return nil
-}
-
-// getTasksToUpdate updates blamelists and returns added and updated tasks to be
-// inserted into the DB. Items of candidates correspond to items of tasks at the
-// same index.
-func (s *TaskScheduler) getTasksToUpdate(candidates []*taskCandidate, tasks []*db.Task) ([]*db.Task, error) {
-	// Update blamelists in the DB.
-	byCandidateId := make(map[string]*db.Task, len(candidates))
-	tasksToInsert := make(map[string]*db.Task, len(candidates)*2)
-	for i, t := range tasks {
-		candidate := candidates[i]
-		byCandidateId[candidate.MakeId()] = t
-		tasksToInsert[t.Id] = t
-		// If we're stealing commits from another task, find it and adjust
-		// its blamelist.
-		if candidate.StealingFromId != "" {
-			var stealingFrom *db.Task
-			if _, err := parseId(candidate.StealingFromId); err == nil {
-				stealingFrom = byCandidateId[candidate.StealingFromId]
-				if stealingFrom == nil {
-					return nil, fmt.Errorf("Attempting to backfill a just-triggered candidate but can't find it: %q", candidate.StealingFromId)
-				}
-			} else {
-				var ok bool
-				stealingFrom, ok = tasksToInsert[candidate.StealingFromId]
-				if !ok {
-					stealingFrom, err = s.db.GetTaskById(candidate.StealingFromId)
-					if err != nil {
-						return nil, err
-					}
-				}
-			}
-			oldCommits := util.NewStringSet(stealingFrom.Commits)
-			stealing := util.NewStringSet(candidate.Commits)
-			stealingFrom.Commits = oldCommits.Complement(stealing).Keys()
-			tasksToInsert[stealingFrom.Id] = stealingFrom
-		}
-	}
-	rv := make([]*db.Task, 0, len(tasksToInsert))
-	for _, t := range tasksToInsert {
-		rv = append(rv, t)
-	}
-	return rv, nil
+	return rv
 }
 
 // scheduleTasks queries for free Swarming bots and triggers tasks according
@@ -925,16 +874,23 @@ func (s *TaskScheduler) scheduleTasks(bots []*swarming_api.SwarmingRpcsBotInfo, 
 	}
 
 	// Trigger tasks. Keep the Task instances in order.
-	triggered := make([]*db.Task, 0, len(schedule))
+	toTrigger := make([]*db.Task, 0, len(schedule))
 	for _, candidate := range schedule {
-		triggered = append(triggered, candidate.MakeTask())
+		toTrigger = append(toTrigger, candidate.MakeTask())
 	}
-	if err := s.triggerTasks(schedule, triggered); err != nil {
-		return err
+	triggered := s.triggerTasks(schedule, toTrigger)
+
+	// Insert the newly-triggered tasks into the DB.
+	insert := map[string]map[string][]*db.Task{}
+	for _, t := range triggered {
+		byRepo, ok := insert[t.Repo]
+		if !ok {
+			byRepo = map[string][]*db.Task{}
+			insert[t.Repo] = byRepo
+		}
+		byRepo[t.Name] = append(byRepo[t.Name], t)
 	}
-	if _, err := db.UpdateTasksWithRetries(s.db, func() ([]*db.Task, error) {
-		return s.getTasksToUpdate(schedule, triggered)
-	}); err != nil {
+	if err := s.AddTasks(insert); err != nil {
 		return err
 	}
 
