@@ -10,9 +10,9 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/data"
+	"go.skia.org/infra/go/sklog"
 )
 
 // FuzzPool has a staging copy of the FuzzReports and a Current copy.
@@ -136,12 +136,12 @@ func cloneReports(r data.SortedFuzzReports) data.SortedFuzzReports {
 
 	if err := enc.Encode(r); err != nil {
 		// This should never happen, but log it if it does
-		glog.Errorf("Error while cloning report: %v", err)
+		sklog.Errorf("Error while cloning report: %v", err)
 	}
 	var clone data.SortedFuzzReports
 	if err := dec.Decode(&clone); err != nil {
 		// This should never happen, but log it if it does
-		glog.Errorf("Error while cloning report: %v", err)
+		sklog.Errorf("Error while cloning report: %v", err)
 	}
 	return clone
 }

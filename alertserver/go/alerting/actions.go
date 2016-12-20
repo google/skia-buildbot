@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -78,14 +78,14 @@ func initEmail(auth *email.GMail) {
 		sendMessage := func(msg *AlertMessage) {
 			viewActionMarkup, err := email.GetViewActionMarkup(msg.AlertLink, "View Alert", "Link to the Alertserver")
 			if err != nil {
-				glog.Errorf("Failed to get view action markup: %s", err)
+				sklog.Errorf("Failed to get view action markup: %s", err)
 			}
 			if emailAuth != nil {
 				if err := emailAuth.SendWithMarkup(msg.SenderDisplayName, msg.To, msg.Subject, msg.Body, viewActionMarkup); err != nil {
-					glog.Errorf("Failed to send email: %s", err)
+					sklog.Errorf("Failed to send email: %s", err)
 				}
 			} else {
-				glog.Errorf("Email auth is nil! Cannot send email!")
+				sklog.Errorf("Email auth is nil! Cannot send email!")
 			}
 			recentlySent.Inc()
 		}
@@ -183,11 +183,11 @@ func NewEmailAction(to []string, str string) Action {
 type PrintAction struct{}
 
 func (a *PrintAction) Fire(alert *Alert) {
-	glog.Infof("ALERT FIRED (%s): %s", alert.Name, alert.Message)
+	sklog.Infof("ALERT FIRED (%s): %s", alert.Name, alert.Message)
 }
 
 func (a *PrintAction) Followup(alert *Alert, msg string) {
-	glog.Infof("ALERT FOLLOWUP (%s): %s", alert.Name, msg)
+	sklog.Infof("ALERT FOLLOWUP (%s): %s", alert.Name, msg)
 }
 
 func (a *PrintAction) String() string {

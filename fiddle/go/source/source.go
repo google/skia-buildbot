@@ -10,8 +10,8 @@ import (
 	"sort"
 
 	"github.com/nfnt/resize"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fiddle/go/store"
+	"go.skia.org/infra/go/sklog"
 )
 
 // Source handles the source images that may be used by fiddles.
@@ -61,7 +61,7 @@ func (s *Source) List() []int {
 func (s *Source) ListAsJSON() string {
 	b, err := json.Marshal(s.List())
 	if err != nil {
-		glog.Errorf("Failed to encode as JSON: %s", err)
+		sklog.Errorf("Failed to encode as JSON: %s", err)
 		return ""
 	}
 	return string(b)

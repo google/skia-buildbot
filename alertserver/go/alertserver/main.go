@@ -23,7 +23,7 @@ import (
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 import (
@@ -158,7 +158,7 @@ func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if err := alertManager.WriteActiveAlertsJson(w, makeAlertFilter(r)); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
+		sklog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 
@@ -176,7 +176,7 @@ func handleAlert(alertId int64, comment string, until int, w http.ResponseWriter
 	}
 
 	if action == "dismiss" {
-		glog.Infof("%s %d", action, alertId)
+		sklog.Infof("%s %d", action, alertId)
 		if err := alertManager.Dismiss(alertId, email, comment); err != nil {
 			httputils.ReportError(w, r, err, "Failed to dismiss alert.")
 			return
@@ -188,14 +188,14 @@ func handleAlert(alertId int64, comment string, until int, w http.ResponseWriter
 			return
 		}
 		until := time.Unix(int64(until), 0)
-		glog.Infof("%s %d until %v", action, alertId, until.String())
+		sklog.Infof("%s %d until %v", action, alertId, until.String())
 		if err := alertManager.Snooze(alertId, until, email, comment); err != nil {
 			httputils.ReportError(w, r, err, "Failed to snooze alert.")
 			return
 		}
 		return
 	} else if action == "unsnooze" {
-		glog.Infof("%s %d", action, alertId)
+		sklog.Infof("%s %d", action, alertId)
 		if err := alertManager.Unsnooze(alertId, email, comment); err != nil {
 			httputils.ReportError(w, r, err, "Failed to unsnooze alert.")
 			return
@@ -206,7 +206,7 @@ func handleAlert(alertId int64, comment string, until int, w http.ResponseWriter
 			httputils.ReportError(w, r, fmt.Errorf("Invalid comment text."), comment)
 			return
 		}
-		glog.Infof("%s %d: %s", action, alertId, comment)
+		sklog.Infof("%s %d: %s", action, alertId, comment)
 		if err := alertManager.AddComment(alertId, email, comment); err != nil {
 			httputils.ReportError(w, r, err, "Failed to add comment.")
 			return
@@ -294,7 +294,7 @@ func handleAlerts(w http.ResponseWriter, r *http.Request, title string, categori
 		Title:             title,
 	}
 	if err := alertsTemplate.Execute(w, inp); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
+		sklog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 
@@ -314,7 +314,7 @@ func rulesJsonHandler(w http.ResponseWriter, r *http.Request) {
 		Rules: rulesList,
 	}
 	if err := json.NewEncoder(w).Encode(&rules); err != nil {
-		glog.Error(err)
+		sklog.Error(err)
 	}
 }
 
@@ -327,7 +327,7 @@ func rulesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := rulesTemplate.Execute(w, struct{}{}); err != nil {
-		glog.Errorln("Failed to expand template:", err)
+		sklog.Errorln("Failed to expand template:", err)
 	}
 }
 
@@ -347,8 +347,8 @@ func runServer(serverURL string) {
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	glog.Infof("Ready to serve on %s", serverURL)
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infof("Ready to serve on %s", serverURL)
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
 
 func main() {
@@ -363,28 +363,28 @@ func main() {
 
 	v, err := skiaversion.GetVersion()
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
-	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
 	Init()
 	if *validateAndExit {
 		if _, err := rules.MakeRules(*alertsFile, nil, time.Second, nil, true); err != nil {
-			glog.Fatalf("Failed to set up rules: %v", err)
+			sklog.Fatalf("Failed to set up rules: %v", err)
 		}
 		return
 	}
 
 	parsedPollInterval, err := time.ParseDuration(*alertPollInterval)
 	if err != nil {
-		glog.Fatalf("Failed to parse -alertPollInterval: %s", *alertPollInterval)
+		sklog.Fatalf("Failed to parse -alertPollInterval: %s", *alertPollInterval)
 	}
 	if *testing {
 		*useMetadata = false
 	}
 	dbClient, err := influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
 	if err != nil {
-		glog.Fatalf("Failed to initialize InfluxDB client: %s", err)
+		sklog.Fatalf("Failed to initialize InfluxDB client: %s", err)
 	}
 	serverURL := "https://" + *host
 	if *testing {
@@ -393,11 +393,11 @@ func main() {
 
 	usr, err := user.Current()
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	tokenFile, err := filepath.Abs(usr.HomeDir + "/" + GMAIL_TOKEN_CACHE_FILE)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	// By default use a set of credentials setup for localhost access.
 	var cookieSalt = "notverysecret"
@@ -415,7 +415,7 @@ func main() {
 		cachedGMailToken := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CACHED_TOKEN))
 		err = ioutil.WriteFile(tokenFile, []byte(cachedGMailToken), os.ModePerm)
 		if err != nil {
-			glog.Fatalf("Failed to cache token: %s", err)
+			sklog.Fatalf("Failed to cache token: %s", err)
 		}
 	}
 	login.Init(clientID, clientSecret, redirectURL, cookieSalt, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST, false)
@@ -423,32 +423,32 @@ func main() {
 	var emailAuth *email.GMail
 	if !*testing {
 		if !*useMetadata && (emailClientId == "" || emailClientSecret == "") {
-			glog.Fatal("If -use_metadata=false, you must provide -email_clientid and -email_clientsecret")
+			sklog.Fatal("If -use_metadata=false, you must provide -email_clientid and -email_clientsecret")
 		}
 		emailAuth, err = email.NewGMail(emailClientId, emailClientSecret, tokenFile)
 		if err != nil {
-			glog.Fatalf("Failed to create email auth: %v", err)
+			sklog.Fatalf("Failed to create email auth: %v", err)
 		}
 	}
 
 	// Initialize the database.
 	if !*testing && *useMetadata {
 		if err := alertDBConf.GetPasswordFromMetadata(); err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 	}
 	if err := alertDBConf.InitDB(); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Create the AlertManager.
 	alertManager, err = alerting.MakeAlertManager(parsedPollInterval, emailAuth)
 	if err != nil {
-		glog.Fatalf("Failed to create AlertManager: %v", err)
+		sklog.Fatalf("Failed to create AlertManager: %v", err)
 	}
 	rulesList, err = rules.MakeRules(*alertsFile, dbClient, parsedPollInterval, alertManager, *testing)
 	if err != nil {
-		glog.Fatalf("Failed to set up rules: %v", err)
+		sklog.Fatalf("Failed to set up rules: %v", err)
 	}
 
 	runServer(serverURL)

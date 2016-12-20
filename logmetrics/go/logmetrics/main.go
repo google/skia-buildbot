@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/logmetrics/go/config"
 	"golang.org/x/net/context"
 	"google.golang.org/api/logging/v2beta1"
@@ -47,7 +47,7 @@ AND (timestamp > %q)`, metric.Filter, ts1, ts2)
 	for {
 		resp, err := loggingService.Entries.List(req).Fields("entries(timestamp),nextPageToken").Context(context.Background()).Do()
 		if err != nil {
-			glog.Errorf("Request Failed: %s", err)
+			sklog.Errorf("Request Failed: %s", err)
 			return
 		}
 		count += len(resp.Entries)
@@ -56,7 +56,7 @@ AND (timestamp > %q)`, metric.Filter, ts1, ts2)
 		}
 		req.PageToken = resp.NextPageToken
 	}
-	glog.Infof("Name: %s Count: %d QPS: %0.2f\n", metric.Name, count, float32(count)/60)
+	sklog.Infof("Name: %s Count: %d QPS: %0.2f\n", metric.Name, count, float32(count)/60)
 	metrics2.GetFloat64Metric(metric.Name, nil /* tags */).Update(float64(count) / 60)
 }
 
@@ -76,15 +76,15 @@ func main() {
 	}
 	client, err := auth.NewDefaultJWTServiceAccountClient(logging.LoggingReadScope)
 	if err != nil {
-		glog.Fatalf("Failed to create service account client: %s", err)
+		sklog.Fatalf("Failed to create service account client: %s", err)
 	}
 	loggingService, err = logging.New(client)
 	if err != nil {
-		glog.Fatalf("Failed to create logging client: %s", err)
+		sklog.Fatalf("Failed to create logging client: %s", err)
 	}
 	metrics, err = config.ReadMetrics(*metricsFilename)
 	if err != nil {
-		glog.Fatalf("Failed to read metrics file %q: %s", *metricsFilename, err)
+		sklog.Fatalf("Failed to read metrics file %q: %s", *metricsFilename, err)
 	}
 	if *validateOnly {
 		fmt.Printf("Successfully validated.\n")

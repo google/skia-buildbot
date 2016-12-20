@@ -42,7 +42,7 @@ func TestNoRollover(t *testing.T) {
 		t.Errorf("Unexpected call to readAndhashFile: %s", path)
 		return "", "", nil
 	}
-	logger.Reset()
+	logger.Flush()
 	assert.NoError(t, roll.Scan(logger))
 	// There are 3 new lines in pylog1.1
 	assert.Equal(t, 3, logger.Count())
@@ -83,7 +83,7 @@ func TestNoRollover2(t *testing.T) {
 		t.Errorf("Unexpected call to readAndhashFile: %s", path)
 		return "", "", nil
 	}
-	logger.Reset()
+	logger.Flush()
 	assert.NoError(t, roll.Scan(logger))
 	// There are 3 new lines in pylog1.1
 	assert.Equal(t, 3, logger.Count())
@@ -122,7 +122,7 @@ func TestRolloverToEmpty(t *testing.T) {
 		t.Errorf("Unexpected call to readAndhashFile: %s", path)
 		return "", "", nil
 	}
-	logger.Reset()
+	logger.Flush()
 	assert.NoError(t, roll.Scan(logger))
 	// There are 3 new lines in pylog1.1
 	assert.Equal(t, 3, logger.Count())
@@ -162,7 +162,7 @@ func TestRolloverWithNew(t *testing.T) {
 		t.Errorf("Unexpected call to readAndhashFile: %s", path)
 		return "", "", nil
 	}
-	logger.Reset()
+	logger.Flush()
 	assert.NoError(t, roll.Scan(logger))
 	// There are 3 new lines in pylog1.1 and 4 new lines in pylog 2.0
 	assert.Equal(t, 7, logger.Count())
@@ -228,7 +228,7 @@ func TestWritePersistence(t *testing.T) {
 		assert.Equal(t, false, rlog.IsFirstScan)
 		return nil
 	}
-	logger.Reset()
+	logger.Flush()
 	assert.NoError(t, roll.Scan(logger))
 	// There are 3 new lines in pylog1.1
 	assert.Equal(t, 3, logger.Count())
@@ -291,7 +291,7 @@ func (m *mockCloudLogger) Count() int {
 	return m.callCount
 }
 
-func (m *mockCloudLogger) Reset() {
+func (m *mockCloudLogger) Flush() {
 	m.callCount = 0
 }
 

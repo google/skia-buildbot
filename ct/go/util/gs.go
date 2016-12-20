@@ -14,9 +14,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	googleapi "google.golang.org/api/googleapi"
 	storage "google.golang.org/api/storage/v1"
@@ -59,20 +59,20 @@ func NewGsUtil(client *http.Client) (*GsUtil, error) {
 // finished with it.
 func getRespBody(res *storage.Object, client *http.Client) (io.ReadCloser, error) {
 	for i := 0; i < MAX_URI_GET_TRIES; i++ {
-		glog.Infof("Fetching: %s", res.Name)
+		sklog.Infof("Fetching: %s", res.Name)
 		request, err := gs.RequestForStorageURL(res.MediaLink)
 		if err != nil {
-			glog.Warningf("Unable to create Storage MediaURI request: %s\n", err)
+			sklog.Warningf("Unable to create Storage MediaURI request: %s\n", err)
 			continue
 		}
 
 		resp, err := client.Do(request)
 		if err != nil {
-			glog.Warningf("Unable to retrieve Storage MediaURI: %s", err)
+			sklog.Warningf("Unable to retrieve Storage MediaURI: %s", err)
 			continue
 		}
 		if resp.StatusCode != 200 {
-			glog.Warningf("Failed to retrieve: %d  %s", resp.StatusCode, resp.Status)
+			sklog.Warningf("Failed to retrieve: %d  %s", resp.StatusCode, resp.Status)
 			util.Close(resp.Body)
 			continue
 		}
@@ -152,7 +152,7 @@ func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 			defer wgConsumer.Done()
 			for obj := range chStorageObjects {
 				if err := downloadStorageObj(obj, gs.client, localDir, goroutineNum); err != nil {
-					glog.Errorf("Could not download storage object: %s", err)
+					sklog.Errorf("Could not download storage object: %s", err)
 					return
 				}
 				// Sleep for a second after downloading file to avoid bombarding Cloud
@@ -192,7 +192,7 @@ func downloadStorageObj(obj filePathToStorageObject, c *http.Client, localDir st
 	if _, err = io.Copy(out, respBody); err != nil {
 		return err
 	}
-	glog.Infof("Downloaded gs://%s/%s to %s with goroutine#%d", GSBucketName, result.Name, outputFile, goroutineNum)
+	sklog.Infof("Downloaded gs://%s/%s to %s with goroutine#%d", GSBucketName, result.Name, outputFile, goroutineNum)
 	return nil
 }
 
@@ -201,7 +201,7 @@ func downloadStorageObj(obj filePathToStorageObject, c *http.Client, localDir st
 func (gs *GsUtil) DownloadChromiumBuild(chromiumBuild string) error {
 	localDir := filepath.Join(ChromiumBuildsDir, chromiumBuild)
 	gsDir := filepath.Join(CHROMIUM_BUILDS_DIR_NAME, chromiumBuild)
-	glog.Infof("Downloading %s from Google Storage to %s", gsDir, localDir)
+	sklog.Infof("Downloading %s from Google Storage to %s", gsDir, localDir)
 	if err := gs.downloadRemoteDir(localDir, gsDir); err != nil {
 		return fmt.Errorf("Error downloading %s into %s: %s", gsDir, localDir, err)
 	}
@@ -248,10 +248,10 @@ func (gs *GsUtil) DeleteRemoteDir(gsDir string) error {
 			defer wgConsumer.Done()
 			for filePath := range chFilePaths {
 				if err := gs.service.Objects.Delete(GSBucketName, filePath).Do(); err != nil {
-					glog.Errorf("Goroutine#%d could not delete %s: %s", goroutineNum, filePath, err)
+					sklog.Errorf("Goroutine#%d could not delete %s: %s", goroutineNum, filePath, err)
 					return
 				}
-				glog.Infof("Deleted gs://%s/%s with goroutine#%d", GSBucketName, filePath, goroutineNum)
+				sklog.Infof("Deleted gs://%s/%s with goroutine#%d", GSBucketName, filePath, goroutineNum)
 				// Sleep for a second after deleting file to avoid bombarding Cloud
 				// storage.
 				time.Sleep(time.Second)
@@ -293,7 +293,7 @@ func (gs *GsUtil) UploadFile(fileName, localDir, gsDir string) error {
 	if _, err := gs.service.Objects.Insert(GSBucketName, object).Media(f, mediaOption).Do(); err != nil {
 		return fmt.Errorf("Objects.Insert failed: %s", err)
 	}
-	glog.Infof("Copied %s to %s", localFile, fmt.Sprintf("gs://%s/%s", GSBucketName, gsFile))
+	sklog.Infof("Copied %s to %s", localFile, fmt.Sprintf("gs://%s/%s", GSBucketName, gsFile))
 
 	// All objects uploaded to CT's bucket via this util must be readable by
 	// the google.com domain. This will be fine tuned later if required.
@@ -303,7 +303,7 @@ func (gs *GsUtil) UploadFile(fileName, localDir, gsDir string) error {
 	if _, err := gs.service.ObjectAccessControls.Insert(GSBucketName, gsFile, objectAcl).Do(); err != nil {
 		return fmt.Errorf("Could not update ACL of %s: %s", object.Name, err)
 	}
-	glog.Infof("Updated ACL of %s", fmt.Sprintf("gs://%s/%s", GSBucketName, gsFile))
+	sklog.Infof("Updated ACL of %s", fmt.Sprintf("gs://%s/%s", GSBucketName, gsFile))
 
 	return nil
 }
@@ -348,7 +348,7 @@ func (gs *GsUtil) DownloadSwarmingArtifacts(localDir, remoteDirName, pagesetType
 			defer wg.Done()
 			for remoteDir := range chRemoteDirs {
 				if err := gs.downloadFromSwarmingDir(remoteDir, gsDir, localDir, goroutineNum, &mtx, artifactToIndex); err != nil {
-					glog.Error(err)
+					sklog.Error(err)
 					return
 				}
 			}
@@ -408,7 +408,7 @@ func (gs *GsUtil) downloadFromSwarmingDir(remoteDir, gsDir, localDir string, run
 			if _, err = io.Copy(out, respBody); err != nil {
 				return err
 			}
-			glog.Infof("Downloaded gs://%s/%s to %s with id#%d", GSBucketName, result.Name, outputFile, runID)
+			sklog.Infof("Downloaded gs://%s/%s to %s with id#%d", GSBucketName, result.Name, outputFile, runID)
 			// Sleep for a second after downloading file to avoid bombarding Cloud
 			// storage.
 			time.Sleep(time.Second)
@@ -469,9 +469,9 @@ func (gs *GsUtil) UploadDir(localDir, gsDir string, cleanDir bool) error {
 		go func(goroutineNum int) {
 			defer wg.Done()
 			for filePath := range chFilePaths {
-				glog.Infof("Uploading %s to %s with goroutine#%d", filePath, gsDir, goroutineNum)
+				sklog.Infof("Uploading %s to %s with goroutine#%d", filePath, gsDir, goroutineNum)
 				if err := gs.UploadFile(filePath, localDir, gsDir); err != nil {
-					glog.Errorf("Goroutine#%d could not upload %s to %s: %s", goroutineNum, filePath, localDir, err)
+					sklog.Errorf("Goroutine#%d could not upload %s to %s: %s", goroutineNum, filePath, localDir, err)
 				}
 				// Sleep for a second after uploading file to avoid bombarding Cloud
 				// storage.

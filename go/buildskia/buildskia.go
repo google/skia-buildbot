@@ -14,10 +14,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/util/limitwriter"
 	"go.skia.org/infra/go/vcsinfo"
@@ -173,7 +173,7 @@ func GetSkiaBranches(client *http.Client) (map[string]Branch, error) {
 //
 // It returns an error on failure.
 func DownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, installDeps bool) (*vcsinfo.LongCommit, error) {
-	glog.Infof("Cloning Skia gitHash %s to %s, clean: %t", gitHash, path, clean)
+	sklog.Infof("Cloning Skia gitHash %s to %s, clean: %t", gitHash, path, clean)
 
 	if clean {
 		util.RemoveAll(filepath.Join(path))
@@ -245,7 +245,7 @@ func DownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, inst
 //
 // It returns an error on failure.
 func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, installDeps bool) (*vcsinfo.LongCommit, error) {
-	glog.Infof("Cloning Skia gitHash %s to %s, clean: %t", gitHash, path, clean)
+	sklog.Infof("Cloning Skia gitHash %s to %s, clean: %t", gitHash, path, clean)
 
 	if clean {
 		util.RemoveAll(filepath.Join(path))
@@ -268,7 +268,7 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 
 	if err := exec.Run(fetchCmd); err != nil {
 		// Failing to fetch might be because we already have Skia checked out here.
-		glog.Infof("Failed to fetch skia: %s", err)
+		sklog.Infof("Failed to fetch skia: %s", err)
 	}
 
 	repoPath := filepath.Join(path, "skia")
@@ -354,7 +354,7 @@ func GNGen(path, depotTools, outSubDir string, args []string) error {
 		LogStderr: true,
 		LogStdout: true,
 	}
-	glog.Infof("About to run: %#v", *genCmd)
+	sklog.Infof("About to run: %#v", *genCmd)
 
 	if err := exec.Run(genCmd); err != nil {
 		return fmt.Errorf("Failed gn gen: %s", err)
@@ -388,7 +388,7 @@ func GNNinjaBuild(path, depotToolsPath, outSubDir, target string, verbose bool) 
 		LogStderr:      true,
 		LogStdout:      verbose,
 	}
-	glog.Infof("About to run: %#v", *buildCmd)
+	sklog.Infof("About to run: %#v", *buildCmd)
 
 	if err := exec.Run(buildCmd); err != nil {
 		return buf.String(), fmt.Errorf("Failed compile: %s", err)
@@ -418,7 +418,7 @@ func NinjaBuild(skiaPath, depotToolsPath string, extraEnv []string, build Releas
 		LogStderr: true,
 		LogStdout: verbose,
 	}
-	glog.Infof("About to run: %#v", *buildCmd)
+	sklog.Infof("About to run: %#v", *buildCmd)
 
 	if err := exec.Run(buildCmd); err != nil {
 		return fmt.Errorf("Failed ninja build: %s", err)
@@ -450,7 +450,7 @@ func CMakeBuild(path, depotTools string, build ReleaseType) error {
 		LogStderr: true,
 		LogStdout: true,
 	}
-	glog.Infof("About to run: %#v", *buildCmd)
+	sklog.Infof("About to run: %#v", *buildCmd)
 
 	if err := exec.Run(buildCmd); err != nil {
 		return fmt.Errorf("Failed cmake build: %s", err)
@@ -512,7 +512,7 @@ func CMakeCompileAndLink(path, out string, filenames []string, extraIncludeDirs 
 		LogStderr:      true,
 		LogStdout:      true,
 	}
-	glog.Infof("About to run: %#v", *compileCmd)
+	sklog.Infof("About to run: %#v", *compileCmd)
 
 	if err := exec.Run(compileCmd); err != nil {
 		return buf.String(), fmt.Errorf("Failed compile: %s", err)
@@ -560,7 +560,7 @@ func CMakeCompile(path, out string, filenames []string, extraIncludeDirs []strin
 		LogStderr:   true,
 		LogStdout:   true,
 	}
-	glog.Infof("About to run: %#v", *compileCmd)
+	sklog.Infof("About to run: %#v", *compileCmd)
 
 	if err := exec.Run(compileCmd); err != nil {
 		return fmt.Errorf("Failed compile: %s", err)

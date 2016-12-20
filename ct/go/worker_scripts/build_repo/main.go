@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
@@ -33,7 +33,7 @@ func buildRepo() error {
 	defer common.LogPanic()
 	worker_common.Init()
 	defer util.TimeTrack(time.Now(), "Building Repo")
-	defer glog.Flush()
+	defer sklog.Flush()
 
 	if *outDir == "" {
 		return errors.New("Must specify --out")
@@ -118,7 +118,7 @@ func buildRepo() error {
 func main() {
 	retCode := 0
 	if err := buildRepo(); err != nil {
-		glog.Errorf("Error while building repo: %s", err)
+		sklog.Errorf("Error while building repo: %s", err)
 		retCode = 255
 	}
 	os.Exit(retCode)

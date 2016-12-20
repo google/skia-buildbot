@@ -11,10 +11,10 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fiddle/go/store"
 	"go.skia.org/infra/fiddle/go/types"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -43,7 +43,7 @@ func migrateCode(db *sql.DB, st *store.Store, ts time.Time, hash string) error {
 	if err := db.QueryRow("SELECT COUNT(*) FROM webtry").Scan(&count); err != nil {
 		return fmt.Errorf("Failed to retrieve try count: %s", err)
 	}
-	glog.Infof("Total fiddles: %d", count)
+	sklog.Infof("Total fiddles: %d", count)
 
 	// Migrating takes too long the MySQL connection fails, so just read all the data
 	// into memory and then write it out to Google Storage.
@@ -63,9 +63,9 @@ func migrateCode(db *sql.DB, st *store.Store, ts time.Time, hash string) error {
 		})
 	}
 	util.Close(rows)
-	glog.Infof("Loaded all fiddles.")
+	sklog.Infof("Loaded all fiddles.")
 	for i, f := range fiddles {
-		glog.Infof("Migrating %d", i)
+		sklog.Infof("Migrating %d", i)
 		options := types.Options{
 			Width:  f.Width,
 			Height: f.Height,
@@ -73,7 +73,7 @@ func migrateCode(db *sql.DB, st *store.Store, ts time.Time, hash string) error {
 		}
 		codeHash, err := st.Put(f.Code, options, hash, ts, nil)
 		if err != nil {
-			glog.Infof("Failed to write code for %s: %s\n: %s", codeHash, code, err)
+			sklog.Infof("Failed to write code for %s: %s\n: %s", codeHash, code, err)
 		}
 	}
 	return nil
@@ -82,18 +82,18 @@ func migrateCode(db *sql.DB, st *store.Store, ts time.Time, hash string) error {
 func main() {
 	common.Init()
 	if *gitHash == "" {
-		glog.Fatalf("The --git_hash flag is required.")
+		sklog.Fatalf("The --git_hash flag is required.")
 	}
 	db, err := sql.Open("mysql", fmt.Sprintf("webtry:%s@tcp(173.194.83.52:3306)/webtry?parseTime=true", *password))
 	if err != nil {
-		glog.Fatalf("ERROR: Failed to open connection to SQL server: %q\n", err)
+		sklog.Fatalf("ERROR: Failed to open connection to SQL server: %q\n", err)
 	}
 	st, err := store.New()
 	if err != nil {
-		glog.Fatalf("Failed to create connnetion to Google Storage: %s", err)
+		sklog.Fatalf("Failed to create connnetion to Google Storage: %s", err)
 	}
 	ts := time.Now()
 	if err := migrateCode(db, st, ts, *gitHash); err != nil {
-		glog.Fatalf("Migration failed: %s", err)
+		sklog.Fatalf("Migration failed: %s", err)
 	}
 }

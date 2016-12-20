@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/filetilestore"
 	"go.skia.org/infra/go/grpclog"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
@@ -31,8 +31,8 @@ func diff(tile *tiling.Tile, ts db.DB) error {
 		return err
 	}
 
-	glog.Infof("COMMIT ids:\n\n\n %s\n\n\n", spew.Sdump(commitIDs))
-	glog.Infof("LOADING tile")
+	sklog.Infof("COMMIT ids:\n\n\n %s\n\n\n", spew.Sdump(commitIDs))
+	sklog.Infof("LOADING tile")
 
 	traceDBTile, _, err := ts.TileFromCommits(commitIDs)
 	if err != nil {
@@ -42,15 +42,15 @@ func diff(tile *tiling.Tile, ts db.DB) error {
 	minLen := util.MinInt(len(commits), len(traceDBTile.Commits))
 	tdbTraces := traceDBTile.Traces
 
-	glog.Infof("Commits/traces in tilestore:  %d   -   %d", len(commits), len(tile.Traces))
-	glog.Infof("Commits/traces in tracedb  :  %d   -   %d", len(traceDBTile.Commits), len(tdbTraces))
+	sklog.Infof("Commits/traces in tilestore:  %d   -   %d", len(commits), len(tile.Traces))
+	sklog.Infof("Commits/traces in tracedb  :  %d   -   %d", len(traceDBTile.Commits), len(tdbTraces))
 
 	count := 0
 	matchingCount := 0
 	for traceID, trace := range tile.Traces {
 		_, ok := tdbTraces[traceID]
 		if !ok {
-			glog.Fatalf("Trace missing: %s", traceID)
+			sklog.Fatalf("Trace missing: %s", traceID)
 		}
 
 		v1 := trace.(*gtypes.GoldenTrace).Values[:minLen]
@@ -66,14 +66,14 @@ func diff(tile *tiling.Tile, ts db.DB) error {
 
 		}
 		if identicalCount != minLen {
-			glog.Infof("Trace differs by %d / %d / %.2f,  %v", identicalCount, minLen, float64(identicalCount)/float64(minLen), indices)
+			sklog.Infof("Trace differs by %d / %d / %.2f,  %v", identicalCount, minLen, float64(identicalCount)/float64(minLen), indices)
 		} else {
 			matchingCount++
 		}
 
 		count++
 	}
-	glog.Infof("Compared %d traces. Matching: %d", count, matchingCount)
+	sklog.Infof("Compared %d traces. Matching: %d", count, matchingCount)
 
 	return nil
 }
@@ -86,7 +86,7 @@ func main() {
 	fileTilestore := filetilestore.NewFileTileStore(*tilestore, "gold", time.Hour)
 	tile, err := fileTilestore.Get(0, -1)
 	if err != nil {
-		glog.Fatalf("Failed to load tile: %s", err)
+		sklog.Fatalf("Failed to load tile: %s", err)
 	}
 
 	// Trim to the last 50 commits.
@@ -95,25 +95,25 @@ func main() {
 	if end >= 49 {
 		begin = end - 49
 	}
-	glog.Infof("Loaded Tile")
+	sklog.Infof("Loaded Tile")
 	tile, err = tile.Trim(begin, end)
 
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(*address, grpc.WithInsecure())
 	if err != nil {
-		glog.Fatalf("did not connect: %v", err)
+		sklog.Fatalf("did not connect: %v", err)
 	}
 	defer util.Close(conn)
 
 	builder := gtypes.GoldenTraceBuilder
 
-	glog.Infof("START load tracedb.")
+	sklog.Infof("START load tracedb.")
 	ts, err := db.NewTraceServiceDB(conn, builder)
 	if err != nil {
 		log.Fatalf("Failed to create db.DB: %s", err)
 	}
-	glog.Infof("DONE load tracedb.")
+	sklog.Infof("DONE load tracedb.")
 	if err = diff(tile, ts); err != nil {
-		glog.Fatalf("Diff error: %s", err)
+		sklog.Fatalf("Diff error: %s", err)
 	}
 }

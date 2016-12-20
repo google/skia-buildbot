@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/human"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/trace/service"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
@@ -55,22 +55,22 @@ Commands:
             	The first commitid with an ID that begins with the value of --id
             	will be loaded and a sampling of 10 values will be displayed.
 
-  param_grep  Find parameter values that match a regular expression. 
-  						Flags: --begin --end --regex 
+  param_grep  Find parameter values that match a regular expression.
+  						Flags: --begin --end --regex
 
-	  					It loads all commits in the defined range and matches the 
-	  					parameter values of each trace in those commits against the 
+	  					It loads all commits in the defined range and matches the
+	  					parameter values of each trace in those commits against the
 	  					regular expression. For each commit it outputs the paramaters
-	  					and their values that match the regex. 
+	  					and their values that match the regex.
 
-  value_grep  Find commits where at least one value matches a regular expression. 
+  value_grep  Find commits where at least one value matches a regular expression.
   						Flags: --begin --end --regex --verbose
 
-	  					It loads all commits in the defined range and matches the 
-	  					values of each trace in those commits against the 
-	  					regular expression. For each commit it outputs the values of the 
-	  					"name" parameter across traces. 
-	  					This only makes sense for Gold data since the digests are stored 
+	  					It loads all commits in the defined range and matches the
+	  					values of each trace in those commits against the
+	  					regular expression. For each commit it outputs the values of the
+	  					"name" parameter across traces.
+	  					This only makes sense for Gold data since the digests are stored
 	  					strings.
 
 Examples:
@@ -134,7 +134,7 @@ func count(client traceservice.TraceServiceClient) {
 func list(client traceservice.TraceServiceClient) {
 	resp, err := _list(client)
 	if err != nil {
-		glog.Fatalf("Failed to retrieve the list: %s\n", err)
+		sklog.Fatalf("Failed to retrieve the list: %s\n", err)
 	}
 
 	for _, cid := range resp.Commitids {
@@ -156,7 +156,7 @@ func calcMD5FromValues(client traceservice.TraceServiceClient, cid *traceservice
 	req := &traceservice.GetValuesRequest{Commitid: cid}
 	resp, err := client.GetValues(context.Background(), req)
 	if err != nil {
-		glog.Fatalf("Failed to retrieve value: %s", err)
+		sklog.Fatalf("Failed to retrieve value: %s", err)
 	}
 
 	sortedStr := make([]string, 0, len(resp.Values))
@@ -169,7 +169,7 @@ func calcMD5FromValues(client traceservice.TraceServiceClient, cid *traceservice
 	for _, val := range sortedStr {
 		_, err := ret.Write([]byte(val))
 		if err != nil {
-			glog.Fatalf("Error writint to MD5: %s", err)
+			sklog.Fatalf("Error writint to MD5: %s", err)
 		}
 	}
 	return fmt.Sprintf("%x", ret.Sum(nil))
@@ -257,23 +257,23 @@ func sample(client traceservice.TraceServiceClient) {
 
 func param_grep(client traceservice.TraceServiceClient) {
 	if *regex == "" {
-		glog.Fatalf("No regex given for param_grep")
+		sklog.Fatalf("No regex given for param_grep")
 	}
 	r, err := regexp.Compile(*regex)
 	if err != nil {
-		glog.Fatalf("Invalid value for regex %q: %s\n", *regex, err)
+		sklog.Fatalf("Invalid value for regex %q: %s\n", *regex, err)
 	}
 
 	ctx := context.Background()
 	resp, err := _list(client)
 	if err != nil {
-		glog.Fatalf("Failed to retrieve the list: %s\n", err)
+		sklog.Fatalf("Failed to retrieve the list: %s\n", err)
 	}
 
 	for _, cid := range resp.Commitids {
 		traceIdsResp, err := client.GetValues(ctx, &traceservice.GetValuesRequest{Commitid: cid})
 		if err != nil {
-			glog.Errorf("Could not get trace ids: %s", err)
+			sklog.Errorf("Could not get trace ids: %s", err)
 			continue
 		}
 
@@ -284,7 +284,7 @@ func param_grep(client traceservice.TraceServiceClient) {
 
 		paramsResp, err := client.GetParams(ctx, &traceservice.GetParamsRequest{Traceids: traceIds})
 		if err != nil {
-			glog.Errorf("Unable to retrieve params for %s. Error: %s", cid, err)
+			sklog.Errorf("Unable to retrieve params for %s. Error: %s", cid, err)
 			continue
 		}
 
@@ -306,23 +306,23 @@ func param_grep(client traceservice.TraceServiceClient) {
 
 func value_grep(client traceservice.TraceServiceClient) {
 	if *regex == "" {
-		glog.Fatalf("No regex given for param_grep")
+		sklog.Fatalf("No regex given for param_grep")
 	}
 	r, err := regexp.Compile(*regex)
 	if err != nil {
-		glog.Fatalf("Invalid value for regex %q: %s\n", *regex, err)
+		sklog.Fatalf("Invalid value for regex %q: %s\n", *regex, err)
 	}
 
 	ctx := context.Background()
 	resp, err := _list(client)
 	if err != nil {
-		glog.Fatalf("Failed to retrieve the list: %s\n", err)
+		sklog.Fatalf("Failed to retrieve the list: %s\n", err)
 	}
 
 	for _, cid := range resp.Commitids {
 		traceIdsResp, err := client.GetValues(ctx, &traceservice.GetValuesRequest{Commitid: cid})
 		if err != nil {
-			glog.Errorf("Could not get trace ids: %s", err)
+			sklog.Errorf("Could not get trace ids: %s", err)
 			continue
 		}
 
@@ -342,7 +342,7 @@ func value_grep(client traceservice.TraceServiceClient) {
 
 		paramsResp, err := client.GetParams(ctx, &traceservice.GetParamsRequest{Traceids: traceIds})
 		if err != nil {
-			glog.Errorf("Unable to retrieve params for %s. Error: %s", cid, err)
+			sklog.Errorf("Unable to retrieve params for %s. Error: %s", cid, err)
 			continue
 		}
 
@@ -377,7 +377,7 @@ func main() {
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(*address, grpc.WithInsecure())
 	if err != nil {
-		glog.Fatalf("did not connect: %v", err)
+		sklog.Fatalf("did not connect: %v", err)
 	}
 	defer util.Close(conn)
 	client := traceservice.NewTraceServiceClient(conn)

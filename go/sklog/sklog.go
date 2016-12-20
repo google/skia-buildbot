@@ -25,12 +25,18 @@ const (
 	ALERT    = "ALERT"
 )
 
+type MetricsCallback func(severity string)
+
 var (
 	// The module-level logger.  If this is nil, we will just log using glog.
 	logger CloudLogger
 
 	// The module-level default report name.  See cloud_logging.go for more information.
 	defaultReportName string
+
+	// used to report metrics about logs seen so we can alert if many ERRORs are seen, for example.
+	// This is set up to break a dependency cycle, such that sklog does not depend on metrics2.
+	sawLogWithSeverity MetricsCallback = func(s string) {}
 )
 
 // These convenience methods will either make a Cloud Logging Entry using the current time and the
@@ -39,66 +45,82 @@ var (
 // because adding a newline to the end of a Cloud Logging Entry or a glog entry means nothing as all
 // logs are separate entries.
 func Info(msg ...interface{}) {
-	log(INFO, defaultReportName, msg...)
+	sawLogWithSeverity(INFO)
+	log(INFO, defaultReportName, fmt.Sprint(msg...))
 }
 
 func Infof(format string, v ...interface{}) {
+	sawLogWithSeverity(INFO)
 	log(INFO, defaultReportName, fmt.Sprintf(format, v...))
 }
 
 func Infoln(msg ...interface{}) {
-	log(INFO, defaultReportName, msg...)
+	sawLogWithSeverity(INFO)
+	log(INFO, defaultReportName, fmt.Sprintln(msg...))
 }
 
 func Warning(msg ...interface{}) {
-	log(WARNING, defaultReportName, msg...)
+	sawLogWithSeverity(WARNING)
+	log(WARNING, defaultReportName, fmt.Sprint(msg...))
 }
 
 func Warningf(format string, v ...interface{}) {
+	sawLogWithSeverity(WARNING)
 	log(WARNING, defaultReportName, fmt.Sprintf(format, v...))
 }
 
 func Warningln(msg ...interface{}) {
-	log(WARNING, defaultReportName, msg...)
+	sawLogWithSeverity(WARNING)
+	log(WARNING, defaultReportName, fmt.Sprintln(msg...))
 }
 
 func Error(msg ...interface{}) {
-	log(ERROR, defaultReportName, msg...)
+	sawLogWithSeverity(ERROR)
+	log(ERROR, defaultReportName, fmt.Sprint(msg...))
 }
 
 func Errorf(format string, v ...interface{}) {
+	sawLogWithSeverity(ERROR)
 	log(ERROR, defaultReportName, fmt.Sprintf(format, v...))
 }
 
 func Errorln(msg ...interface{}) {
-	log(ERROR, defaultReportName, msg...)
+	sawLogWithSeverity(ERROR)
+	log(ERROR, defaultReportName, fmt.Sprintln(msg...))
 }
 
 // Fatal* uses an ALERT Cloud Logging Severity and then panics, similar to glog.Fatalf()
+// In Fatal*, there is no callback to sawLogWithSeverity, as the program will soon exit
+// and the counter will be reset to 0.
 func Fatal(msg ...interface{}) {
-	log(ALERT, defaultReportName, msg...)
-	panic(fmt.Sprintln(msg...))
+	log(ALERT, defaultReportName, fmt.Sprint(msg...))
+	Flush()
+	panic(fmt.Sprint(msg...))
 }
 
 func Fatalf(format string, v ...interface{}) {
 	log(ALERT, defaultReportName, fmt.Sprintf(format, v...))
+	Flush()
 	panic(fmt.Sprintf(format, v...))
 }
 
 func Fatalln(msg ...interface{}) {
-	log(ALERT, defaultReportName, msg...)
+	log(ALERT, defaultReportName, fmt.Sprintln(msg...))
+	Flush()
 	panic(fmt.Sprintln(msg...))
 }
 
 func Flush() {
-	// Cloud logging should have nothing to flush.  We just need to flush glog.
+	if logger != nil {
+		logger.Flush()
+	}
 	glog.Flush()
 }
 
 // log creates a log entry.  This log entry is either sent to Cloud Logging or glog if the former is
 // not configured.  reportName is the "virtual log file" used by cloud logging.  reportName is
-// ignored by glog.Both logs include file and line information.
-func log(severity, reportName string, payloads ...interface{}) {
+// ignored by glog. Both logs include file and line information.
+func log(severity, reportName, payload string) {
 	_, file, line, ok := runtime.Caller(2)
 	if !ok {
 		file = "???"
@@ -109,17 +131,17 @@ func log(severity, reportName string, payloads ...interface{}) {
 			file = file[slash+1:]
 		}
 	}
-	for _, payload := range payloads {
-		prettyPayload := fmt.Sprintf("%s:%d %v", file, line, payload)
-		if logger == nil {
-			logToGlog(3, severity, payload)
-		} else {
-			logger.CloudLog(reportName, &LogPayload{
-				Time:     time.Now(),
-				Severity: severity,
-				Payload:  prettyPayload,
-			})
-		}
+	prettyPayload := fmt.Sprintf("%s:%d %v", file, line, payload)
+	if logger == nil {
+		logToGlog(3, severity, payload)
+	} else {
+		// TODO(kjlubick): After cloud logging has baked in a while, remove the backup log to glog
+		logToGlog(3, severity, payload)
+		logger.CloudLog(reportName, &LogPayload{
+			Time:     time.Now(),
+			Severity: severity,
+			Payload:  prettyPayload,
+		})
 	}
 }
 

@@ -21,7 +21,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/repograph"
@@ -32,6 +31,7 @@ import (
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/polling_status"
 	"go.skia.org/infra/go/skiaversion"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/status/go/capacity"
@@ -444,7 +444,7 @@ func goldJsonHandler(w http.ResponseWriter, r *http.Request) {
 		// "skp":   goldSKPStatus,
 		"image": goldImageStatus,
 	}); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
+		sklog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
 }
@@ -525,8 +525,8 @@ func runServer(serverURL string) {
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", addCommitCommentHandler).Methods("POST")
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments/{commentId:[0-9]+}", deleteCommitCommentHandler).Methods("DELETE")
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	glog.Infof("Ready to serve on %s", serverURL)
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infof("Ready to serve on %s", serverURL)
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
 
 func main() {
@@ -536,9 +536,9 @@ func main() {
 	common.InitWithMetrics2("status", influxHost, influxUser, influxPassword, influxDatabase, testing)
 	v, err := skiaversion.GetVersion()
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
-	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
 	Init()
 	if *testing {
@@ -552,19 +552,19 @@ func main() {
 	// Create buildbot remote DB.
 	buildDb, err = buildbot.NewRemoteDB(*buildbotDbHost)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Create remote Tasks DB.
 	taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Setup InfluxDB client.
 	dbClient, err = influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// By default use a set of credentials setup for localhost access.
@@ -582,20 +582,20 @@ func main() {
 	// Check out source code.
 	repos, err := repograph.NewMap([]string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, path.Join(*workdir, "repos"))
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
-	glog.Info("Checkout complete")
+	sklog.Info("Checkout complete")
 
 	// Cache for buildProgressHandler.
 	tasksPerCommit, err = newTasksPerCommitCache(*workdir, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, 14*24*time.Hour, context.Background())
 	if err != nil {
-		glog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
+		sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
 	}
 
 	// Create the build cache.
 	bc, err := franken.NewBTCache(repos, buildDb, taskDb)
 	if err != nil {
-		glog.Fatalf("Failed to create build cache: %s", err)
+		sklog.Fatalf("Failed to create build cache: %s", err)
 	}
 	buildCache = bc
 

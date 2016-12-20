@@ -9,7 +9,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/task_scheduler/go/window"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -251,12 +251,12 @@ func (c *taskCache) expireTasks(start time.Time) {
 
 		// Unfinished tasks.
 		if _, ok := c.unfinished[task.Id]; ok {
-			glog.Warningf("Found unfinished task that is so old it is being expired. %#v", task)
+			sklog.Warningf("Found unfinished task that is so old it is being expired. %#v", task)
 			delete(c.unfinished, task.Id)
 		}
 	}
 	if len(c.tasksByTime) > 0 {
-		glog.Warningf("All tasks expired because they are older than %s.", start)
+		sklog.Warningf("All tasks expired because they are older than %s.", start)
 		c.tasksByTime = nil
 	}
 }
@@ -370,7 +370,7 @@ func (c *taskCache) reset() error {
 	}
 	start := c.timeWindow.Start()
 	now := time.Now()
-	glog.Infof("Reading Tasks from %s to %s.", start, now)
+	sklog.Infof("Reading Tasks from %s to %s.", start, now)
 	tasks, err := c.db.GetTasksFromDateRange(start, now)
 	if err != nil {
 		c.db.StopTrackingModifiedTasks(queryId)
@@ -392,7 +392,7 @@ func (c *taskCache) Update() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	if IsUnknownId(err) {
-		glog.Warningf("Connection to db lost; re-initializing cache from scratch.")
+		sklog.Warningf("Connection to db lost; re-initializing cache from scratch.")
 		if err := c.reset(); err != nil {
 			return err
 		}
@@ -523,13 +523,13 @@ func (c *jobCache) expireJobs(start time.Time) {
 		}
 	}
 	if expiredUnfinishedCount > 0 {
-		glog.Infof("Expired %d unfinished jobs created before %s.", expiredUnfinishedCount, start)
+		sklog.Infof("Expired %d unfinished jobs created before %s.", expiredUnfinishedCount, start)
 	}
 	for repo, revMap := range c.triggeredForCommit {
 		for rev, _ := range revMap {
 			ts, err := c.getRevisionTimestamp(repo, rev)
 			if err != nil {
-				glog.Error(err)
+				sklog.Error(err)
 				continue
 			}
 			if ts.Before(start) {
@@ -568,7 +568,7 @@ func (c *jobCache) expireAndUpdate(start time.Time, jobs []*Job) {
 	for _, job := range jobs {
 		ts := c.getJobTimestamp(job)
 		if ts.Before(start) {
-			glog.Warningf("Updated job %s after expired. getJobTimestamp returned %s. %#v", job.Id, ts, job)
+			sklog.Warningf("Updated job %s after expired. getJobTimestamp returned %s. %#v", job.Id, ts, job)
 		} else {
 			c.insertOrUpdateJob(job.Copy())
 		}
@@ -586,7 +586,7 @@ func (c *jobCache) reset() error {
 	}
 	now := time.Now()
 	start := c.timeWindow.Start()
-	glog.Infof("Reading Jobs from %s to %s.", start, now)
+	sklog.Infof("Reading Jobs from %s to %s.", start, now)
 	jobs, err := c.db.GetJobsFromDateRange(start, now)
 	if err != nil {
 		c.db.StopTrackingModifiedJobs(queryId)
@@ -606,7 +606,7 @@ func (c *jobCache) Update() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	if IsUnknownId(err) {
-		glog.Warningf("Connection to db lost; re-initializing cache from scratch.")
+		sklog.Warningf("Connection to db lost; re-initializing cache from scratch.")
 		if err := c.reset(); err != nil {
 			return err
 		}

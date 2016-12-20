@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
@@ -25,6 +24,7 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/packages"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/systemd"
 	"go.skia.org/infra/go/util"
 	compute "google.golang.org/api/compute/v1"
@@ -109,32 +109,32 @@ func Init() {
 	var err error
 	config, err = packages.LoadPackageConfig(*configFilename)
 	if err != nil {
-		glog.Fatalf("Failed to load PackageConfig file: %s", err)
+		sklog.Fatalf("Failed to load PackageConfig file: %s", err)
 	}
 
 	serverNames = config.AllServerNames()
 
 	if client, err = auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_FULL_CONTROL, auth.SCOPE_GCE); err != nil {
-		glog.Fatalf("Failed to create authenticated HTTP client: %s", err)
+		sklog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}
 
 	fastClient = NewFastTimeoutClient()
 
 	if store, err = storage.New(client); err != nil {
-		glog.Fatalf("Failed to create storage service client: %s", err)
+		sklog.Fatalf("Failed to create storage service client: %s", err)
 	}
 	if comp, err = compute.New(client); err != nil {
-		glog.Fatalf("Failed to create compute service client: %s", err)
+		sklog.Fatalf("Failed to create compute service client: %s", err)
 	}
 	ip, err = NewIPAddresses(comp)
 	if err != nil {
-		glog.Fatalf("Failed to load IP addresses at startup: %s", err)
+		sklog.Fatalf("Failed to load IP addresses at startup: %s", err)
 	}
 
 	packages.SetBucketName(*bucketName)
 	packageInfo, err = packages.NewAllInfo(client, store, serverNames)
 	if err != nil {
-		glog.Fatalf("Failed to create packages.AllInfo at startup: %s", err)
+		sklog.Fatalf("Failed to create packages.AllInfo at startup: %s", err)
 	}
 }
 
@@ -152,7 +152,7 @@ func (i *IPAddresses) loadIPAddresses() error {
 	}
 	ip := map[string]string{}
 	for _, zone := range zones.Items {
-		glog.Infof("Zone: %s", zone.Name)
+		sklog.Infof("Zone: %s", zone.Name)
 		list, err := comp.Instances.List(*project, zone.Name).Do()
 		if err != nil {
 			return fmt.Errorf("Failed to list instances: %s", err)
@@ -202,7 +202,7 @@ func NewIPAddresses(comp *compute.Service) (*IPAddresses, error) {
 	go func() {
 		for _ = range time.Tick(time.Second * 60) {
 			if err := i.loadIPAddresses(); err != nil {
-				glog.Infof("Error refreshing IP address list: %s", err)
+				sklog.Infof("Error refreshing IP address list: %s", err)
 			}
 		}
 	}()
@@ -238,22 +238,22 @@ type PushNewPackage struct {
 func getStatus(server string) []*systemd.UnitStatus {
 	resp, err := fastClient.Get(fmt.Sprintf("http://%s:10114/_/list", ip.Resolve(server)))
 	if err != nil {
-		glog.Infof("Failed to get status of: %s", server)
+		sklog.Infof("Failed to get status of: %s", server)
 		return nil
 	}
 	defer util.Close(resp.Body)
 	if resp.StatusCode != 200 {
-		glog.Infof("Bad status code: %d %s", resp.StatusCode, server)
+		sklog.Infof("Bad status code: %d %s", resp.StatusCode, server)
 		return nil
 	}
 	dec := json.NewDecoder(resp.Body)
 
 	ret := []*systemd.UnitStatus{}
 	if err := dec.Decode(&ret); err != nil {
-		glog.Infof("Failed to decode: %s", err)
+		sklog.Infof("Failed to decode: %s", err)
 		return nil
 	}
-	glog.Infof("%s - %#v", server, ret)
+	sklog.Infof("%s - %#v", server, ret)
 	return ret
 }
 
@@ -380,14 +380,14 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 				}
 				newInstalled = append(newInstalled, goodName)
 			}
-			glog.Infof("Updating %s with %#v giving %#v", push.Server, push.Name, newInstalled)
+			sklog.Infof("Updating %s with %#v giving %#v", push.Server, push.Name, newInstalled)
 			if err := packageInfo.PutInstalled(push.Server, newInstalled, installedPackages.Generation); err != nil {
 				httputils.ReportError(w, r, err, "Failed to update server.")
 				return
 			}
 			resp, err := fastClient.Get(fmt.Sprintf("http://%s:10114/pullpullpull", push.Server))
 			if err != nil || resp == nil {
-				glog.Infof("Failed to trigger an instant pull for server %s: %v %v", push.Server, err, resp)
+				sklog.Infof("Failed to trigger an instant pull for server %s: %v %v", push.Server, err, resp)
 			} else {
 				util.Close(resp.Body)
 			}
@@ -405,7 +405,7 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 		Status:   serviceStatus(servers),
 	})
 	if err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
+		sklog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
 }
@@ -435,7 +435,7 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 	enc := json.NewEncoder(w)
 	err := enc.Encode(serviceStatus(servers))
 	if err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
+		sklog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
 }
@@ -469,7 +469,7 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if _, err := io.Copy(w, resp.Body); err != nil {
-		glog.Errorf("Failed to copy JSON error out: %s", err)
+		sklog.Errorf("Failed to copy JSON error out: %s", err)
 	}
 }
 
@@ -481,7 +481,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "text/html")
 		if err := indexTemplate.Execute(w, struct{}{}); err != nil {
-			glog.Errorln("Failed to expand template:", err)
+			sklog.Errorln("Failed to expand template:", err)
 		}
 	}
 }
@@ -516,7 +516,7 @@ func oneStep() {
 			}
 		}
 	}
-	glog.Infof("Finished oneStep: Found %d dirty packages running.", count)
+	sklog.Infof("Finished oneStep: Found %d dirty packages running.", count)
 	metrics2.GetInt64Metric("dirty-packages", nil).Update(count)
 }
 
@@ -541,7 +541,7 @@ func main() {
 		redirectURL = "https://push.skia.org/oauth2callback/"
 	}
 	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		glog.Fatalf("Failed to initialize the login system: %s", err)
+		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
 	go startDirtyMonitoring()
@@ -555,6 +555,6 @@ func main() {
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	glog.Infoln("Ready to serve.")
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infoln("Ready to serve.")
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 	storage "google.golang.org/api/storage/v1"
 
 	"go.skia.org/infra/go/auth"
@@ -108,7 +108,7 @@ func templateHandler(name string) http.HandlerFunc {
 			loadTemplates()
 		}
 		if err := templates.ExecuteTemplate(w, name, struct{}{}); err != nil {
-			glog.Errorln("Failed to expand template:", err)
+			sklog.Errorln("Failed to expand template:", err)
 		}
 	}
 }
@@ -125,13 +125,13 @@ func Init() {
 	var err error
 	git, err = gitinfo.CloneOrUpdate(*gitRepoURL, *gitRepoDir, false)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	ptracestore.Init(*ptraceStoreDir)
 
 	freshDataFrame, err = dataframe.NewRefresher(git, ptracestore.Default, time.Minute)
 	if err != nil {
-		glog.Fatalf("Failed to build the dataframe Refresher: %s", err)
+		sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
 	}
 
 	initIngestion()
@@ -179,13 +179,13 @@ func activityHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := templates.ExecuteTemplate(w, "activitylog.html", a); err != nil {
-		glog.Errorln("Failed to expand template:", err)
+		sklog.Errorln("Failed to expand template:", err)
 	}
 }
 
 // helpHandler handles the GET of the main page.
 func helpHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Help Handler: %q\n", r.URL.Path)
+	sklog.Infof("Help Handler: %q\n", r.URL.Path)
 	if *local {
 		loadTemplates()
 	}
@@ -193,7 +193,7 @@ func helpHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		ctx := calc.NewContext(nil)
 		if err := templates.ExecuteTemplate(w, "help.html", ctx); err != nil {
-			glog.Errorln("Failed to expand template:", err)
+			sklog.Errorln("Failed to expand template:", err)
 		}
 	}
 }
@@ -211,7 +211,7 @@ func initpageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		glog.Errorf("Failed to encode paramset: %s", err)
+		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
 }
 
@@ -279,7 +279,7 @@ func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		glog.Errorf("Failed to encode paramset: %s", err)
+		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
 }
 
@@ -312,7 +312,7 @@ func frameStartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		glog.Errorf("Failed to encode paramset: %s", err)
+		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
 }
 
@@ -342,7 +342,7 @@ func frameStatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		glog.Errorf("Failed to encode response: %s", err)
+		sklog.Errorf("Failed to encode response: %s", err)
 	}
 }
 
@@ -359,7 +359,7 @@ func frameResultsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(df); err != nil {
-		glog.Errorf("Failed to encode response: %s", err)
+		sklog.Errorf("Failed to encode response: %s", err)
 	}
 }
 
@@ -390,7 +390,7 @@ func countHandler(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(struct {
 		Count int `json:"count"`
 	}{Count: count}); err != nil {
-		glog.Errorf("Failed to encode paramset: %s", err)
+		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
 }
 
@@ -414,7 +414,7 @@ func cidHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		glog.Errorf("Failed to encode paramset: %s", err)
+		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
 }
 
@@ -444,7 +444,7 @@ func clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 		ID: clusterRequests.Add(req),
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		glog.Errorf("Failed to encode paramset: %s", err)
+		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
 }
 
@@ -482,7 +482,7 @@ func clusterStatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(status); err != nil {
-		glog.Errorf("Failed to encode paramset: %s", err)
+		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
 }
 
@@ -512,7 +512,7 @@ func keysHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(map[string]string{"id": id}); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
+		sklog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 
@@ -645,7 +645,7 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 		URL:    link,
 	}
 	if err := activitylog.Write(a); err != nil {
-		glog.Errorf("Failed to log activity: %s", err)
+		sklog.Errorf("Failed to log activity: %s", err)
 	}
 
 	resp := &TriageResponse{}
@@ -669,7 +669,7 @@ The suspect commit is:
 		resp.Bug = "https://bugs.chromium.org/p/skia/issues/entry?" + q.Encode()
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
+		sklog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 
@@ -785,7 +785,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		ret.Table = append(ret.Table, row)
 	}
 	if err := json.NewEncoder(w).Encode(ret); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
+		sklog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 
@@ -803,18 +803,18 @@ func initIngestion() {
 	// Initialize oauth client and start the ingesters.
 	client, err := auth.NewDefaultJWTServiceAccountClient(storage.CloudPlatformScope)
 	if err != nil {
-		glog.Fatalf("Failed to auth: %s", err)
+		sklog.Fatalf("Failed to auth: %s", err)
 	}
 
 	// Start the ingesters.
 	config, err := sharedconfig.ConfigFromTomlFile(*configFilename)
 	if err != nil {
-		glog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
+		sklog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
 	}
 
 	ingesters, err := ingestion.IngestersFromConfig(config, client, evt)
 	if err != nil {
-		glog.Fatalf("Unable to instantiate ingesters: %s", err)
+		sklog.Fatalf("Unable to instantiate ingesters: %s", err)
 	}
 	for _, oneIngester := range ingesters {
 		oneIngester.Start()
@@ -843,11 +843,11 @@ func main() {
 	Init()
 	if !*local {
 		if err := dbConf.GetPasswordFromMetadata(); err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 	}
 	if err := dbConf.InitDB(); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
@@ -855,7 +855,7 @@ func main() {
 		redirectURL = "https://perf.skia.org/oauth2callback/"
 	}
 	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		glog.Fatalf("Failed to initialize the login system: %s", err)
+		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
 	// Resources are served directly.
@@ -895,6 +895,6 @@ func main() {
 
 	http.Handle("/", httputils.LoggingGzipRequestResponse(router))
 
-	glog.Infoln("Ready to serve.")
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infoln("Ready to serve.")
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
