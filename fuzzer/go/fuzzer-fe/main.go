@@ -20,7 +20,6 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 	fcommon "go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/data"
@@ -39,6 +38,7 @@ import (
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skiaversion"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"golang.org/x/net/context"
@@ -134,21 +134,21 @@ func reloadTemplates() {
 func main() {
 	defer common.LogPanic()
 	// Calls flag.Parse()
-	common.InitWithMetrics2("fuzzer-fe", influxHost, influxUser, influxPassword, influxDatabase, local)
+	common.InitWithCloudLogging("fuzzer-fe", influxHost, influxUser, influxPassword, influxDatabase, local)
 
 	if err := writeFlagsToConfig(); err != nil {
-		glog.Fatalf("Problem with configuration: %s", err)
+		sklog.Fatalf("Problem with configuration: %s", err)
 	}
 
 	Init()
 
 	if err := setupOAuth(); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	go func() {
 		if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Common.SkiaRoot, &config.Common, !*local); err != nil {
-			glog.Fatalf("Problem downloading Skia: %s", err)
+			sklog.Fatalf("Problem downloading Skia: %s", err)
 		}
 
 		fuzzSyncer = syncer.New(storageClient)
@@ -156,16 +156,16 @@ func main() {
 
 		cache, err := fuzzcache.New(config.FrontEnd.BoltDBPath)
 		if err != nil {
-			glog.Fatalf("Could not create fuzz report cache at %s: %s", config.FrontEnd.BoltDBPath, err)
+			sklog.Fatalf("Could not create fuzz report cache at %s: %s", config.FrontEnd.BoltDBPath, err)
 		}
 		defer util.Close(cache)
 
 		if err := gsloader.LoadFromBoltDB(fuzzPool, cache); err != nil {
-			glog.Errorf("Could not load from boltdb.  Loading from source of truth anyway. %s", err)
+			sklog.Errorf("Could not load from boltdb.  Loading from source of truth anyway. %s", err)
 		}
 		gsLoader := gsloader.New(storageClient, cache, fuzzPool)
 		if err := gsLoader.LoadFreshFromGoogleStorage(); err != nil {
-			glog.Fatalf("Error loading in data from GCS: %s", err)
+			sklog.Fatalf("Error loading in data from GCS: %s", err)
 		}
 		fuzzSyncer.SetGSLoader(gsLoader)
 		updater := frontend.NewVersionUpdater(gsLoader, fuzzSyncer)
@@ -173,7 +173,7 @@ func main() {
 		versionWatcher.Start()
 
 		err = <-versionWatcher.Status
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}()
 	runServer()
 }
@@ -260,8 +260,8 @@ func runServer() {
 	rootHandler := login.ForceAuth(httputils.LoggingGzipRequestResponse(r), OAUTH2_CALLBACK_PATH)
 
 	http.Handle("/", rootHandler)
-	glog.Infof("Ready to serve on %s", serverURL)
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infof("Ready to serve on %s", serverURL)
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
 
 // indexHandler displays the index page, which has no real templating. The client side JS will
@@ -273,7 +273,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
 	if err := indexTemplate.Execute(w, nil); err != nil {
-		glog.Errorf("Failed to expand template: %v", err)
+		sklog.Errorf("Failed to expand template: %v", err)
 	}
 }
 
@@ -292,7 +292,7 @@ func detailsPageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := detailsTemplate.Execute(w, cat); err != nil {
-		glog.Errorf("Failed to expand template: %v", err)
+		sklog.Errorf("Failed to expand template: %v", err)
 	}
 }
 
@@ -305,7 +305,7 @@ func rollHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
 	if err := rollTemplate.Execute(w, nil); err != nil {
-		glog.Errorf("Failed to expand template: %v", err)
+		sklog.Errorf("Failed to expand template: %v", err)
 	}
 }
 
@@ -328,7 +328,7 @@ func summaryJSONHandler(w http.ResponseWriter, r *http.Request) {
 	summary := getSummary()
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(summary); err != nil {
-		glog.Errorf("Failed to write or encode output: %v", err)
+		sklog.Errorf("Failed to write or encode output: %v", err)
 		return
 	}
 }
@@ -412,7 +412,7 @@ func detailsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(reports); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
+		sklog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
 }
@@ -456,7 +456,7 @@ func fuzzHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", name)
 	n, err := w.Write(contents)
 	if err != nil || n != len(contents) {
-		glog.Errorf("Could only serve %d bytes of fuzz %s, not %d: %s", n, name, len(contents), err)
+		sklog.Errorf("Could only serve %d bytes of fuzz %s, not %d: %s", n, name, len(contents), err)
 		return
 	}
 }
@@ -493,7 +493,7 @@ func metadataHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", name)
 	n, err := w.Write(contents)
 	if err != nil || n != len(contents) {
-		glog.Errorf("Could only serve %d bytes of metadata %s, not %d: %s", n, name, len(contents), err)
+		sklog.Errorf("Could only serve %d bytes of metadata %s, not %d: %s", n, name, len(contents), err)
 		return
 	}
 }
@@ -531,7 +531,7 @@ func statusJSONHandler(w http.ResponseWriter, r *http.Request) {
 		if versionWatcher != nil {
 			if pending := versionWatcher.LastPendingHash; pending != "" {
 				if ci, err := getCommitInfo(pending); err != nil {
-					glog.Errorf("Problem getting git info about pending revision %s: %s", pending, err)
+					sklog.Errorf("Problem getting git info about pending revision %s: %s", pending, err)
 				} else {
 					s.Pending = &commit{
 						Hash:   ci.Hash,
@@ -543,7 +543,7 @@ func statusJSONHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(s); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
+		sklog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
 }
@@ -614,7 +614,7 @@ func updateRevision(w http.ResponseWriter, r *http.Request) {
 	}
 	user := login.LoggedInAs(r)
 
-	glog.Infof("User %s is trying to roll the fuzzer to revision %q", user, msg.Revision)
+	sklog.Infof("User %s is trying to roll the fuzzer to revision %q", user, msg.Revision)
 
 	if config.Common.SkiaVersion == nil || versionWatcher == nil || versionWatcher.LastCurrentHash == "" {
 		http.Error(w, "The fuzzer isn't finished booting up.  Try again later.", http.StatusServiceUnavailable)
@@ -643,9 +643,9 @@ func updateRevision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	glog.Infof("Turning the crank to revision %q", newInfo.Hash)
+	sklog.Infof("Turning the crank to revision %q", newInfo.Hash)
 	if err := frontend.UpdateVersionToFuzz(storageClient, config.GS.Bucket, newInfo.Hash); err != nil {
-		glog.Errorf("Could not turn the crank: %s", err)
+		sklog.Errorf("Could not turn the crank: %s", err)
 	} else {
 		versionWatcher.Recheck()
 	}

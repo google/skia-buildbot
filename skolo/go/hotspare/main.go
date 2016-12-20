@@ -191,10 +191,7 @@ func main() {
 		sklog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}
 
-	err = sklog.InitCloudLogging(client, "rpi-master", "hotspare")
-	if err != nil {
-		sklog.Fatalf("Could not setup cloud sklog: %s", err)
-	}
+	common.StartCloudLoggingWithClient(client, "skolo-rpi-master", "hotspare")
 
 	lt := NewVirtualIPManager(*livenessAddr, *livenessPeriod, *livenessTimeout, *livenessThreshold)
 	go lt.Run()

@@ -19,7 +19,6 @@ import (
 	"google.golang.org/api/option"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/android_ingest/go/continuous"
 	"go.skia.org/infra/android_ingest/go/lookup"
 	"go.skia.org/infra/android_ingest/go/parser"
@@ -33,6 +32,7 @@ import (
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -69,33 +69,33 @@ func Init() {
 	// Create a new auth'd client for androidbuildinternal.
 	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope)
 	if err != nil {
-		glog.Fatalf("Unable to create authenticated client: %s", err)
+		sklog.Fatalf("Unable to create authenticated client: %s", err)
 	}
 
 	if err := os.MkdirAll(*workRoot, 0755); err != nil {
-		glog.Fatalf("Failed to create directory %q: %s", *workRoot, err)
+		sklog.Fatalf("Failed to create directory %q: %s", *workRoot, err)
 	}
 
 	// The repo we're adding commits to.
 	checkout, err := git.NewCheckout(*repoUrl, *workRoot)
 	if err != nil {
-		glog.Fatalf("Unable to create the checkout of %q at %q: %s", *repoUrl, *workRoot, err)
+		sklog.Fatalf("Unable to create the checkout of %q at %q: %s", *repoUrl, *workRoot, err)
 	}
 	if err := checkout.Update(); err != nil {
-		glog.Fatalf("Unable to update the checkout of %q at %q: %s", *repoUrl, *workRoot, err)
+		sklog.Fatalf("Unable to update the checkout of %q at %q: %s", *repoUrl, *workRoot, err)
 	}
 
 	// checkout isn't go routine safe, but lookup.New() only uses it in New(), so this
 	// is safe, i.e. when we later pass checkout to continuous.New().
 	lookupCache, err = lookup.New(checkout)
 	if err != nil {
-		glog.Fatalf("Failed to create buildid lookup cache: %s", err)
+		sklog.Fatalf("Failed to create buildid lookup cache: %s", err)
 	}
 
 	// Start process that adds buildids to the git repo.
 	process, err = continuous.New(*branch, checkout, lookupCache, client, *local)
 	if err != nil {
-		glog.Fatalf("Failed to start continuous process of adding new buildids to git repo: %s", err)
+		sklog.Fatalf("Failed to start continuous process of adding new buildids to git repo: %s", err)
 	}
 	process.Start()
 
@@ -104,20 +104,20 @@ func Init() {
 		redirectURL = "https://android-ingest.skia.org/oauth2callback/"
 	}
 	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		glog.Fatalf("Failed to initialize the login system: %s", err)
+		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
 	storageHttpClient, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
 	if err != nil {
-		glog.Fatalf("Problem setting up client OAuth: %s", err)
+		sklog.Fatalf("Problem setting up client OAuth: %s", err)
 	}
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(storageHttpClient))
 	if err != nil {
-		glog.Fatalf("Problem creating storage client: %s", err)
+		sklog.Fatalf("Problem creating storage client: %s", err)
 	}
 	gsUrl, err := url.Parse(*storageUrl)
 	if err != nil {
-		glog.Fatalf("--storage_url value %q is not a valid URL: %s", *storageUrl, err)
+		sklog.Fatalf("--storage_url value %q is not a valid URL: %s", *storageUrl, err)
 	}
 	bucket = storageClient.Bucket(gsUrl.Host)
 	gcsPath = gsUrl.Path
@@ -199,7 +199,7 @@ func MainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := templates.ExecuteTemplate(w, "index.html", indexContent); err != nil {
-		glog.Errorf("Failed to expand template: %s", err)
+		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
 
@@ -229,10 +229,10 @@ func main() {
 		common.InitWithMetrics2("androidingest", influxHost, influxUser, influxPassword, influxDatabase, local)
 	}
 	if *workRoot == "" {
-		glog.Fatal("The --work_root flag must be supplied.")
+		sklog.Fatal("The --work_root flag must be supplied.")
 	}
 	if *repoUrl == "" {
-		glog.Fatal("The --repo_url flag must be supplied.")
+		sklog.Fatal("The --repo_url flag must be supplied.")
 	}
 
 	Init()
@@ -247,6 +247,6 @@ func main() {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	glog.Infoln("Ready to serve.")
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infoln("Ready to serve.")
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/skia-dev/glog"
+
 	"go.skia.org/infra/go/util"
 )
 
@@ -29,6 +30,8 @@ func (c *Client) GetCounter(name string, tagsList ...map[string]string) *Counter
 	tags["name"] = name
 	md5, err := util.MD5Params(tags)
 	if err != nil {
+		// This should not be sklog because sklog uses metrics2.Counter and we should avoid
+		// infinite recursion.
 		glog.Errorf("Failed to encode measurement tags: %s", err)
 	}
 	key := fmt.Sprintf("%s_%s", MEASUREMENT_COUNTER, md5)

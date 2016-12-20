@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/rtcache"
@@ -114,13 +114,13 @@ func (d *MemDiffStore) WarmDigests(priority int64, digests []string) {
 func (d *MemDiffStore) WarmDiffs(priority int64, leftDigests []string, rightDigests []string) {
 	priority = rtcache.PriorityTimeCombined(priority)
 	diffIDs := getDiffIds(leftDigests, rightDigests)
-	glog.Infof("Warming %d diffs", len(diffIDs))
+	sklog.Infof("Warming %d diffs", len(diffIDs))
 	d.wg.Add(len(diffIDs))
 	for _, id := range diffIDs {
 		go func(id string) {
 			defer d.wg.Done()
 			if err := d.diffMetricsCache.Warm(priority, id); err != nil {
-				glog.Errorf("Unable to warm diff %s. Got error: %s", id, err)
+				sklog.Errorf("Unable to warm diff %s. Got error: %s", id, err)
 			}
 		}(id)
 	}
@@ -148,7 +148,7 @@ func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []str
 				id := combineDigests(mainDigest, right)
 				ret, err := d.diffMetricsCache.Get(priority, id)
 				if err != nil {
-					glog.Errorf("Unable to calculate diff for %s. Got error: %s", id, err)
+					sklog.Errorf("Unable to calculate diff for %s. Got error: %s", id, err)
 					return
 				}
 				mutex.Lock()
@@ -233,7 +233,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 
 			if !m.imgLoader.IsOnDisk(digest) {
 				if _, err = m.imgLoader.Get(diff.PRIORITY_NOW, []string{digest}); err != nil {
-					glog.Errorf("Errorf retrieving digests: %s", digest)
+					sklog.Errorf("Errorf retrieving digests: %s", digest)
 					http.NotFound(w, r)
 					return
 				}
@@ -258,7 +258,7 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 
 	// Load it from disk cache if necessary.
 	if dm, err := d.metricsStore.loadDiffMetric(id); err != nil {
-		glog.Errorf("Error trying to load diff metric: %s", err)
+		sklog.Errorf("Error trying to load diff metric: %s", err)
 	} else if dm != nil {
 		return dm, nil
 	}
@@ -290,7 +290,7 @@ func (d *MemDiffStore) saveDiffInfoAsync(diffID, leftDigest, rightDigest string,
 	go func() {
 		defer d.wg.Done()
 		if err := d.metricsStore.saveDiffMetric(diffID, dr); err != nil {
-			glog.Errorf("Error saving diff metric: %s", err)
+			sklog.Errorf("Error saving diff metric: %s", err)
 		}
 	}()
 
@@ -298,7 +298,7 @@ func (d *MemDiffStore) saveDiffInfoAsync(diffID, leftDigest, rightDigest string,
 		defer d.wg.Done()
 		imageFileName := getDiffImgFileName(leftDigest, rightDigest)
 		if err := saveFileRadixPath(d.localDiffDir, imageFileName, bytes.NewBuffer(imgBytes)); err != nil {
-			glog.Error(err)
+			sklog.Error(err)
 		}
 	}()
 }

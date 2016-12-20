@@ -19,8 +19,8 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/skia-dev/glog"
 	"github.com/zeebo/bencode"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -43,7 +43,7 @@ const (
 	// represent the time, which makes it unsuitable for sorting. This
 	// format ensures that all 9 nanosecond digits are used, padding with
 	// zeroes if necessary.
-	RFC3339NanoZeroPad = "2006-01-02T15:04:05.000000000Z07:00"
+	RFC3339NanoZeroPad = sklog.RFC3339NanoZeroPad
 )
 
 var (
@@ -388,42 +388,42 @@ func KeysOfParamSet(set map[string][]string) []string {
 // Close wraps an io.Closer and logs an error if one is returned.
 func Close(c io.Closer) {
 	if err := c.Close(); err != nil {
-		glog.Errorf("Failed to Close(): %v", err)
+		sklog.Errorf("Failed to Close(): %v", err)
 	}
 }
 
 // RemoveAll removes the specified path and logs an error if one is returned.
 func RemoveAll(path string) {
 	if err := os.RemoveAll(path); err != nil {
-		glog.Errorf("Failed to RemoveAll(%s): %v", path, err)
+		sklog.Errorf("Failed to RemoveAll(%s): %v", path, err)
 	}
 }
 
 // Remove removes the specified file and logs an error if one is returned.
 func Remove(name string) {
 	if err := os.Remove(name); err != nil {
-		glog.Errorf("Failed to Remove(%s): %v", name, err)
+		sklog.Errorf("Failed to Remove(%s): %v", name, err)
 	}
 }
 
 // Rename renames the specified file and logs an error if one is returned.
 func Rename(oldpath, newpath string) {
 	if err := os.Rename(oldpath, newpath); err != nil {
-		glog.Errorf("Failed to Rename(%s, %s): %v", oldpath, newpath, err)
+		sklog.Errorf("Failed to Rename(%s, %s): %v", oldpath, newpath, err)
 	}
 }
 
 // Mkdir creates the specified path and logs an error if one is returned.
 func Mkdir(name string, perm os.FileMode) {
 	if err := os.Mkdir(name, perm); err != nil {
-		glog.Errorf("Failed to Mkdir(%s, %v): %v", name, perm, err)
+		sklog.Errorf("Failed to Mkdir(%s, %v): %v", name, perm, err)
 	}
 }
 
 // MkdirAll creates the specified path and logs an error if one is returned.
 func MkdirAll(name string, perm os.FileMode) {
 	if err := os.MkdirAll(name, perm); err != nil {
-		glog.Errorf("Failed to MkdirAll(%s, %v): %v", name, perm, err)
+		sklog.Errorf("Failed to MkdirAll(%s, %v): %v", name, perm, err)
 	}
 }
 
@@ -436,7 +436,7 @@ func LogErr(err error) {
 			errMsg = fmt.Sprintf("-called from: %s:%d", fileName, line)
 		}
 
-		glog.Errorf("Unexpected error %s: %s", errMsg, err)
+		sklog.Errorf("Unexpected error %s: %s", errMsg, err)
 	}
 }
 

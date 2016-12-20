@@ -10,12 +10,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/androidbuild"
 	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
 	storage "google.golang.org/api/storage/v1"
 )
 
@@ -37,8 +37,8 @@ func main() {
 
 	args := flag.Args()
 	if len(args) != 3 {
-		glog.Errorf("Expected arguments: branch target buildID")
-		glog.Errorf("i.e.:  git_master-skia razor-userdebug 1772442")
+		sklog.Errorf("Expected arguments: branch target buildID")
+		sklog.Errorf("i.e.:  git_master-skia razor-userdebug 1772442")
 		os.Exit(1)
 	}
 
@@ -46,29 +46,29 @@ func main() {
 	branch := args[0]
 	target := args[1]
 	buildID := args[2]
-	glog.Infof("Branch, target, buildID: %s, %s, %s", branch, target, buildID)
+	sklog.Infof("Branch, target, buildID: %s, %s, %s", branch, target, buildID)
 
 	// In this case we don't want a backoff transport since the Apiary backend
 	// seems to fail a lot, so we basically want to fall back to polling if a
 	// call fails.
 	client, err := auth.NewClientWithTransport(*local, OAUTH_CACHE_FILEPATH, CLIENT_SECRET_FILEPATH, &http.Transport{Dial: httputils.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope, storage.CloudPlatformScope)
 	if err != nil {
-		glog.Fatalf("Unable to create installed app oauth client:%s", err)
+		sklog.Fatalf("Unable to create installed app oauth client:%s", err)
 	}
 
 	f, err := androidbuild.New("/tmp/android-gold-ingest", client)
 	if err != nil {
-		glog.Fatalf("Failed to construct client: %s", err)
+		sklog.Fatalf("Failed to construct client: %s", err)
 	}
 	for {
 		r, err := f.Get(branch, target, buildID)
 		if err != nil {
-			glog.Errorf("Failed to get requested info: %s", err)
+			sklog.Errorf("Failed to get requested info: %s", err)
 			time.Sleep(1 * time.Minute)
 			continue
 		}
 		if r != nil {
-			glog.Infof("Successfully found: %#v", *r)
+			sklog.Infof("Successfully found: %#v", *r)
 		}
 
 		time.Sleep(1 * time.Minute)
