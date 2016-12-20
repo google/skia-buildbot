@@ -31,8 +31,9 @@ const (
 	API_URL_TESTING = "http://localhost:8008/api/buildbucket/v1/"
 
 	// Buildbucket buckets used for try jobs.
-	BUCKET_PRIMARY = "skia.primary"
-	BUCKET_TESTING = "skia.testing"
+	BUCKET_PRIMARY  = "skia.primary"
+	BUCKET_INTERNAL = "skia.internal"
+	BUCKET_TESTING  = "skia.testing"
 
 	// How often to send updates to Buildbucket.
 	UPDATE_INTERVAL = 30 * time.Second
