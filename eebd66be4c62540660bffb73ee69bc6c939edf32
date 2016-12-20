@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9765aef7_9d6c7322",
+        "filename": "go/swarming/testutils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-20T15:32:43Z",
+      "side": 1,
+      "message": "nit: c is unused (i.e. this doesn\u0027t need to be a method)",
+      "range": {
+        "startLine": 144,
+        "startChar": 5,
+        "endLine": 144,
+        "endChar": 20
+      },
+      "revId": "eebd66be4c62540660bffb73ee69bc6c939edf32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_5d771bf3",
+        "filename": "go/swarming/testutils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-20T15:32:43Z",
+      "side": 1,
+      "message": "nit: HasPrefix",
+      "range": {
+        "startLine": 147,
+        "startChar": 14,
+        "endLine": 147,
+        "endChar": 22
+      },
+      "revId": "eebd66be4c62540660bffb73ee69bc6c939edf32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_fd400f76",
+        "filename": "go/swarming/testutils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-20T15:32:43Z",
+      "side": 1,
+      "message": "nit: ISTM, at least for the test you\u0027re adding in this CL, that it would be just as good to match on a single tag, sk_revision. If this accepts just a single tag, we could use that as the key for c.triggerFailure, and we wouldn\u0027t need all the md5-related code.",
+      "range": {
+        "startLine": 250,
+        "startChar": 13,
+        "endLine": 250,
+        "endChar": 17
+      },
+      "revId": "eebd66be4c62540660bffb73ee69bc6c939edf32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_bd3a97f2",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 3133,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-20T15:32:43Z",
+      "side": 1,
+      "message": "nit: util.CopyStringSlice",
+      "range": {
+        "startLine": 3133,
+        "startChar": 1,
+        "endLine": 3133,
+        "endChar": 7
+      },
+      "revId": "eebd66be4c62540660bffb73ee69bc6c939edf32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
