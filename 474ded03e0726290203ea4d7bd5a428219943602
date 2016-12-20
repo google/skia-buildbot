@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9765aef7_1d2763cc",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-20T15:42:34Z",
+      "side": 1,
+      "message": "uber-nit: I liked having this before logger.Flush(), since it\u0027s less likely to hang or panic.",
+      "range": {
+        "startLine": 117,
+        "startChar": 1,
+        "endLine": 117,
+        "endChar": 13
+      },
+      "revId": "474ded03e0726290203ea4d7bd5a428219943602",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
