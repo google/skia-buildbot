@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
@@ -776,7 +776,7 @@ func CompareTest(ctq *CTQuery, storages *storage.Storage, idx *indexer.SearchInd
 			var err error
 			rows[idx].Values, total, err = getDiffs(storages.DiffStore, digest, columnDigests[digest].Keys(), ctq.ColumnsDir, ctq.Metric, ctq.ColumnQuery.Limit)
 			if err != nil {
-				glog.Errorf("Unable to calculate diff of row for digest %s. Got error: %s", digest, err)
+				sklog.Errorf("Unable to calculate diff of row for digest %s. Got error: %s", digest, err)
 			}
 			rowLenCh <- total
 		}(idx, rowElement.Digest)

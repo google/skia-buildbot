@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/aggregator"
 	"go.skia.org/infra/fuzzer/go/backend"
 	fcommon "go.skia.org/infra/fuzzer/go/common"
@@ -27,6 +26,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/sklog"
 	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 )
@@ -79,16 +79,16 @@ var (
 func main() {
 	defer common.LogPanic()
 	// Calls flag.Parse()
-	common.InitWithMetrics2("fuzzer-be", influxHost, influxUser, influxPassword, influxDatabase, local)
+	common.InitWithCloudLogging("fuzzer-be", influxHost, influxUser, influxPassword, influxDatabase, local)
 
 	if err := writeFlagsToConfig(); err != nil {
-		glog.Fatalf("Problem with configuration: %v", err)
+		sklog.Fatalf("Problem with configuration: %v", err)
 	}
 	if err := setupOAuth(); err != nil {
-		glog.Fatalf("Problem with OAuth: %s", err)
+		sklog.Fatalf("Problem with OAuth: %s", err)
 	}
 	if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Common.SkiaRoot, &config.Common, !*local); err != nil {
-		glog.Fatalf("Problem downloading Skia: %s", err)
+		sklog.Fatalf("Problem downloading Skia: %s", err)
 	}
 
 	generators := make([]*generator.Generator, 0, len(*fuzzesToRun))
@@ -104,50 +104,50 @@ func main() {
 		}
 	}
 	if totalCPUs := runtime.NumCPU(); neededCPUs > totalCPUs {
-		glog.Warningf("Going to run out of cpus to allocate to generator processes.  Needed at least %d, but only have %d.  Expect suboptimal performance", neededCPUs, totalCPUs)
+		sklog.Warningf("Going to run out of cpus to allocate to generator processes.  Needed at least %d, but only have %d.  Expect suboptimal performance", neededCPUs, totalCPUs)
 	} else {
-		glog.Infof("Going to allocate %d cpus (could go up to %d)", neededCPUs, totalCPUs)
+		sklog.Infof("Going to allocate %d cpus (could go up to %d)", neededCPUs, totalCPUs)
 	}
 
 	for _, category := range *fuzzesToRun {
 		gen := generator.New(category)
 
 		if err := gen.DownloadSeedFiles(storageClient); err != nil {
-			glog.Fatalf("Problem downloading seed files: %s", err)
+			sklog.Fatalf("Problem downloading seed files: %s", err)
 		}
 
 		// If we are reanalyzing, no point in running the generator first, just to stop it, nor
 		// is there reason to download all of the current fuzz reports.
 		if !*forceReanalysis {
-			glog.Infof("Starting %s generator with configuration %#v", category, config.Generator)
+			sklog.Infof("Starting %s generator with configuration %#v", category, config.Generator)
 			var err error
 			if err = gen.Start(); err != nil {
-				glog.Fatalf("Problem starting generator: %s", err)
+				sklog.Fatalf("Problem starting generator: %s", err)
 			}
-			glog.Infof("Downloading all bad %s fuzzes @%s to setup duplication detection", category, config.Common.SkiaVersion.Hash)
+			sklog.Infof("Downloading all bad %s fuzzes @%s to setup duplication detection", category, config.Common.SkiaVersion.Hash)
 			baseFolder := fmt.Sprintf("%s/%s/%s/bad", category, config.Common.SkiaVersion.Hash, config.Generator.Architecture)
 			if startingReports[category], err = fstorage.GetReportsFromGS(storageClient, baseFolder, category, config.Generator.Architecture, nil, config.Generator.NumDownloadProcesses); err != nil {
-				glog.Fatalf("Could not download previously found %s fuzzes for deduplication: %s", category, err)
+				sklog.Fatalf("Could not download previously found %s fuzzes for deduplication: %s", category, err)
 			}
 		} else {
-			glog.Infof("Skipping %s generator and deduplication setup because --force_reanalysis is enabled", category)
+			sklog.Infof("Skipping %s generator and deduplication setup because --force_reanalysis is enabled", category)
 		}
 		generators = append(generators, gen)
 	}
 
-	glog.Infof("Starting aggregator with configuration %#v", config.Aggregator)
+	sklog.Infof("Starting aggregator with configuration %#v", config.Aggregator)
 	agg, err := aggregator.StartAggregator(storageClient, issueManager, startingReports)
 	if err != nil {
-		glog.Fatalf("Could not start aggregator: %s", err)
+		sklog.Fatalf("Could not start aggregator: %s", err)
 	}
 
 	updater := backend.NewVersionUpdater(storageClient, agg, generators)
-	glog.Info("Starting version watcher")
+	sklog.Info("Starting version watcher")
 	watcher := fcommon.NewVersionWatcher(storageClient, config.Common.VersionCheckPeriod, updater.UpdateToNewSkiaVersion, nil)
 	watcher.Start()
 
 	err = <-watcher.Status
-	glog.Fatal(err)
+	sklog.Fatal(err)
 }
 
 func writeFlagsToConfig() error {

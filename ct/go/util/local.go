@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 func SetVarsForLocal() {
@@ -21,7 +21,7 @@ func SetVarsForLocal() {
 	realMyPathToCt, err1 := filepath.EvalSymlinks(myPathToCt)
 	realCtTreeDir, err2 := filepath.EvalSymlinks(CtTreeDir)
 	if err1 == nil && err2 == nil && realMyPathToCt != realCtTreeDir {
-		glog.Fatalf("Master and worker scripts believe CT tree is at %s, but it appears to actually be at %s. Did you set up a symlink?", realCtTreeDir, realMyPathToCt)
+		sklog.Fatalf("Master and worker scripts believe CT tree is at %s, but it appears to actually be at %s. Did you set up a symlink?", realCtTreeDir, realMyPathToCt)
 	}
 	GSBucketName = "cluster-telemetry-test"
 }

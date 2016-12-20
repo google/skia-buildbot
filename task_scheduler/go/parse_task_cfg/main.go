@@ -8,8 +8,8 @@ import (
 	"flag"
 	"io/ioutil"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
@@ -23,14 +23,14 @@ func main() {
 
 	b, err := ioutil.ReadFile(*cfgFile)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	cfg, err := specs.ParseTasksCfg(string(b))
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
-	glog.Infof("Task config:")
+	sklog.Infof("Task config:")
 	for name, t := range cfg.Tasks {
-		glog.Infof("  %s: %v", name, t)
+		sklog.Infof("  %s: %v", name, t)
 	}
 }

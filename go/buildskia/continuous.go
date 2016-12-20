@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -103,13 +103,13 @@ func New(workRoot, depotTools string, repo vcsinfo.VCS, perBuild PerBuild, prese
 
 func (b *ContinuousBuilder) singleBuildLatest() {
 	if err := b.repo.Update(true, true); err != nil {
-		glog.Errorf("Failed to update skia repo used to look up git hashes: %s", err)
+		sklog.Errorf("Failed to update skia repo used to look up git hashes: %s", err)
 		b.repoSyncFailures.Inc(1)
 	}
 	b.repoSyncFailures.Reset()
 	ci, err := b.BuildLatestSkia(false, false, false)
 	if err != nil {
-		glog.Errorf("Failed to build LKGR: %s", err)
+		sklog.Errorf("Failed to build LKGR: %s", err)
 		// Only measure real build failures, not a failure if LKGR hasn't updated.
 		if err != AlreadyExistsErr {
 			b.buildFailures.Inc(1)
@@ -118,7 +118,7 @@ func (b *ContinuousBuilder) singleBuildLatest() {
 	}
 	b.buildFailures.Reset()
 	b.buildLiveness.Reset()
-	glog.Infof("Successfully built: %s %s", ci.Hash, ci.Subject)
+	sklog.Infof("Successfully built: %s %s", ci.Hash, ci.Subject)
 }
 
 // Start the continuous build latest LKGR Go routine.
@@ -177,7 +177,7 @@ func (b *ContinuousBuilder) BuildLatestSkia(force bool, head bool, deps bool) (*
 	fi, err := os.Stat(checkout)
 	// If the file is present and a directory then only proceed if 'force' is true.
 	if err == nil && fi.IsDir() == true && !force {
-		glog.Infof("Dir already exists: %s", checkout)
+		sklog.Infof("Dir already exists: %s", checkout)
 		return nil, AlreadyExistsErr
 	}
 
@@ -223,7 +223,7 @@ func (b *ContinuousBuilder) BuildLatestSkia(force bool, head bool, deps bool) (*
 func (b *ContinuousBuilder) updateCurrent() {
 	fallback := &vcsinfo.LongCommit{ShortCommit: &vcsinfo.ShortCommit{Hash: "unknown"}}
 	if len(b.hashes) == 0 {
-		glog.Errorf("There are no hashes.")
+		sklog.Errorf("There are no hashes.")
 		if b.current == nil {
 			b.current = fallback
 		}
@@ -231,7 +231,7 @@ func (b *ContinuousBuilder) updateCurrent() {
 	}
 	details, err := b.repo.Details(b.hashes[len(b.hashes)-1], true)
 	if err != nil {
-		glog.Errorf("Unable to retrieve build info: %s", err)
+		sklog.Errorf("Unable to retrieve build info: %s", err)
 		if b.current == nil {
 			b.current = fallback
 		}
@@ -303,24 +303,24 @@ func (b *ContinuousBuilder) startDecimation() {
 	for _ = range time.Tick(DECIMATION_PERIOD) {
 		hashes, err := b.AvailableBuilds()
 		if err != nil {
-			glog.Errorf("Failed to get available builds while decimating: %s", err)
+			sklog.Errorf("Failed to get available builds while decimating: %s", err)
 			decimateFailures.Inc(1)
 			continue
 		}
 		keep, remove, err := decimate(hashes, b.repo, b.preserve)
 		if err != nil {
-			glog.Errorf("Failed to calc removals while decimating: %s", err)
+			sklog.Errorf("Failed to calc removals while decimating: %s", err)
 			decimateFailures.Inc(1)
 			continue
 		}
-		glog.Infof("Decimate: Keep %v Remove %v", keep, remove)
+		sklog.Infof("Decimate: Keep %v Remove %v", keep, remove)
 		for _, hash := range remove {
-			glog.Infof("Decimate: Beginning %s", hash)
+			sklog.Infof("Decimate: Beginning %s", hash)
 			if err := os.RemoveAll(filepath.Join(b.workRoot, "versions", hash)); err != nil {
-				glog.Errorf("Failed to remove directory for %s: %s", hash, err)
+				sklog.Errorf("Failed to remove directory for %s: %s", hash, err)
 				continue
 			}
-			glog.Infof("Decimate: Finished %s", hash)
+			sklog.Infof("Decimate: Finished %s", hash)
 		}
 		if err := b.writeNewGoodBuilds(keep); err != nil {
 			continue

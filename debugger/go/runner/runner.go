@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -76,7 +76,7 @@ func (c *Runner) Start(port int) error {
 	if err := exec.Run(runCmd); err != nil {
 		return fmt.Errorf("skaiserve failed to run %#v: %s", *runCmd, err)
 	}
-	glog.Infof("Returned from running skiaserve.")
+	sklog.Infof("Returned from running skiaserve.")
 	return nil
 }
 

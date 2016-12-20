@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/exec"
@@ -333,7 +333,7 @@ func (r *repoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryR
 	if len(bugs) > 0 {
 		args = append(args, "--bug", strings.Join(bugs, ","))
 	}
-	glog.Infof("Running command: roll-dep %s", strings.Join(args, " "))
+	sklog.Infof("Running command: roll-dep %s", strings.Join(args, " "))
 	if _, err := exec.RunCommand(&exec.Command{
 		Dir:  r.chromiumDir,
 		Env:  getEnv(r.depot_tools),

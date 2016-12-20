@@ -9,11 +9,11 @@ import (
 	"flag"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -43,7 +43,7 @@ func reportStats(device, serial, stat string, val interface{}) {
 			"serial": serial,
 			"stat":   stat,
 		}
-		glog.Infof("%s %v = %v", MEASUREMENT, tags, float)
+		sklog.Infof("%s %v = %v", MEASUREMENT, tags, float)
 		metrics2.GetFloat64Metric(MEASUREMENT, map[string]string{}).Update(float)
 		return
 	}
@@ -106,20 +106,20 @@ func main() {
 	common.InitWithMetrics2("android_stats", influxHost, influxUser, influxPassword, influxDatabase, local)
 
 	if *statsScript == "" {
-		glog.Fatal("You must provide --stats_script.")
+		sklog.Fatal("You must provide --stats_script.")
 	}
 
 	pollFreq, err := time.ParseDuration(*frequency)
 	if err != nil {
-		glog.Fatalf("Invalid value for frequency %q: %s", *frequency, err)
+		sklog.Fatalf("Invalid value for frequency %q: %s", *frequency, err)
 	}
 
 	if err := generateStats(); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	for _ = range time.Tick(pollFreq) {
 		if err := generateStats(); err != nil {
-			glog.Error(err)
+			sklog.Error(err)
 		}
 	}
 }
