@@ -126,19 +126,12 @@ func main() {
 				sklog.Error(err)
 				continue
 			}
-			sklog.Info("Loading SkiaTriggers Swarming bot data.")
-			skiaTriggers, err := swarm.ListSkiaTriggerBots()
-			if err != nil {
-				sklog.Error(err)
-				continue
-			}
 			sklog.Info("Loading CT Swarming bot data.")
 			ctBots, err := swarm.ListCTBots()
 			if err != nil {
 				sklog.Error(err)
 				continue
 			}
-			bots := append(skiaBots, skiaTriggers...)
 			bots = append(bots, ctBots...)
 
 			// Delete old metrics, replace with new ones. This fixes the case where
