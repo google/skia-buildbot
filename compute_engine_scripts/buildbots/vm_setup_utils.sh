@@ -140,9 +140,13 @@ function copy_files {
 function run_swarming_bootstrap {
   echo
   echo "===== Run Swarming Bootstrap ====="
+  swarming="https://chromium-swarm.appspot.com"
+  if [[ "$INSTANCE_NAME" = skia-i-* ]]; then
+    swarming="https://chrome-swarming.appspot.com"
+  fi
   $GCOMPUTE_CMD ssh --ssh_user=chrome-bot $INSTANCE_NAME \
     "sudo chmod 777 /b && mkdir /b/s && " \
-    "wget https://chromium-swarm.appspot.com/bot_code -O /b/s/swarming_bot.zip" \
+    "wget $swarming/bot_code -O /b/s/swarming_bot.zip" \
     || FAILED="$FAILED SwarmingBootstrap"
   echo
 }

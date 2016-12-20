@@ -11,10 +11,16 @@ sleep 10s
 cp /opt/.gitconfig /home/chrome-bot/.gitconfig
 cp /opt/.netrc /home/chrome-bot/.netrc
 
+host="$(hostname)"
+swarming="https://chromium-swarm.appspot.com"
+if [[ "$host" = skia-i-* ]]; then
+  swarming="https://chrome-swarming.appspot.com"
+fi
+
 if [ ! -d "/b/s" ]; then
   cd /b
   echo "Bootstrapping swarming, expect a reboot"
-  python -c "import urllib; exec urllib.urlopen('https://chromium-swarm.appspot.com/bootstrap').read()"
+  python -c "import urllib; exec urllib.urlopen('$swarming/bootstrap').read()"
 else
   echo "Starting swarming"
   /usr/bin/python /b/s/swarming_bot.zip start_bot &
