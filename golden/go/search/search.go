@@ -108,22 +108,50 @@ type CommitRange struct {
 	End   string
 }
 
+// TODO: filter within tests.
+const (
+	GROUP_TEST_MAX_COUNT = "count"
+)
+
+type Filter struct {
+	RGBAMax   int     `json:"rgbamax"`
+	DiffMax   float32 `json:"diffmax"`
+	GroupTest string  `json:"grouptest"`
+}
+
 // Query is the query that Search understands.
 type Query struct {
-	BlameGroupID   string      `json:"blame"`
-	Pos            bool        `json:"pos"`
-	Neg            bool        `json:"neg"`
-	Head           bool        `json:"head"`
-	Unt            bool        `json:"unt"`
-	IncludeIgnores bool        `json:"include"`
-	QueryStr       string      `json:"query"`
-	Query          url.Values  `json:"-"`
-	Issue          string      `json:"issue"`
-	PatchsetsStr   string      `json:"patchsets"` // Comma-separated list of patchsets.
-	Patchsets      []string    `json:"-"`
-	CommitRange    CommitRange `json:"-"`
-	Limit          int         `json:"limit"`
-	IncludeMaster  bool        `json:"master"` // Include digests also contained in master when searching Rietveld issues.
+	// Diff metric to use.
+	Metric string `json:"metric"`
+	Sort   string `json:"sort"`
+
+	// Blaming
+	BlameGroupID string `json:"blame"`
+
+	// Image classification
+	Pos            bool `json:"pos"`
+	Neg            bool `json:"neg"`
+	Head           bool `json:"head"`
+	Unt            bool `json:"unt"`
+	IncludeIgnores bool `json:"include"`
+
+	// URL encoded query string
+	QueryStr string     `json:"query"`
+	Query    url.Values `json:"-"`
+
+	// Trybot support.
+	Issue         string   `json:"issue"`
+	PatchsetsStr  string   `json:"patchsets"` // Comma-separated list of patchsets.
+	Patchsets     []string `json:"-"`
+	IncludeMaster bool     `json:"master"` // Include digests also contained in master when searching Rietveld issues.
+
+	// Filtering.
+	CommitRange CommitRange `json:"-"`
+	Filter      *Filter     `json:"filter"`
+
+	// Pagination.
+	Offset int `json:"offset"`
+	Limit  int `json:"limit"`
 }
 
 // SearchResponse is the standard search response. Depending on the query some fields
