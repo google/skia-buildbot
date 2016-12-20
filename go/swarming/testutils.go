@@ -68,12 +68,6 @@ func (c *TestClient) ListSkiaCTBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
 	})
 }
 
-func (c *TestClient) ListSkiaTriggerBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
-	return c.ListBots(map[string]string{
-		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_SKIA_TRIGGERS,
-	})
-}
-
 func (c *TestClient) ListCTBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
 	return c.ListBots(map[string]string{
 		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_CT,
