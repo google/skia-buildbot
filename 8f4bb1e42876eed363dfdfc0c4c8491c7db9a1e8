@@ -506,6 +506,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_1203d2c3",
+        "filename": "go/metrics2/counter.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-20T13:01:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_0fcba9b2",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_4927617d",
         "filename": "go/sklog/cloud_logging.go",
         "patchSetId": 10
@@ -998,6 +1016,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_f2071ecc",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-20T13:01:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_afb25d2b",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_acb70bb5",
         "filename": "go/sklog/sklog.go",
         "patchSetId": 10
@@ -1092,6 +1128,24 @@
       "side": 1,
       "message": "It doesn\u0027t seem so to me...\n\nsklog.Infoln(\"foo\", \"bar\", \"baz\")\n\nturns into\n\nlog(INFO, defaultReportName, \"foo\", \"bar\", \"baz\")\n\nwhich means payloads :\u003d []interface{\"foo\", \"bar\", \"baz\"}, so it turns into\n\nlogToGlog(3, INFO, \"file.go:123 foo\")\nlogToGlog(3, INFO, \"file.go:123 bar\")\nlogToGlog(3, INFO, \"file.go:123 baz\")",
       "parentUuid": "9765aef7_cf511127",
+      "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_d2041aca",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-20T13:01:31Z",
+      "side": 1,
+      "message": "Ah, the behavior you described is what I originally intended (for some unknown reason).  I changed it to follow what you described, condensing the messages using Sprint and Sprintln",
+      "parentUuid": "9765aef7_0f1de94a",
       "revId": "8f4bb1e42876eed363dfdfc0c4c8491c7db9a1e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
