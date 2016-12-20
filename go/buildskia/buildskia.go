@@ -266,9 +266,22 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 		LogStdout:   true,
 	}
 
+	syncCmd := &exec.Command{
+		Name:        filepath.Join(depotToolsPath, "gclient"),
+		Args:        []string{"sync"},
+		Dir:         path,
+		InheritPath: false,
+		Env:         env,
+		LogStderr:   true,
+		LogStdout:   true,
+	}
+
 	if err := exec.Run(fetchCmd); err != nil {
 		// Failing to fetch might be because we already have Skia checked out here.
-		sklog.Infof("Failed to fetch skia: %s", err)
+		sklog.Infof("Failed to fetch skia, going to try gclient sync instead: %s", err)
+		if err := exec.Run(syncCmd); err != nil {
+			return nil, fmt.Errorf("Failed syncing: %s", err)
+		}
 	}
 
 	repoPath := filepath.Join(path, "skia")
@@ -297,16 +310,7 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 		}
 	}
 
-	syncCmd := &exec.Command{
-		Name:        filepath.Join(depotToolsPath, "gclient"),
-		Args:        []string{"sync"},
-		Dir:         path,
-		InheritPath: false,
-		Env:         env,
-		LogStderr:   true,
-		LogStdout:   true,
-	}
-
+	// sync again
 	if err := exec.Run(syncCmd); err != nil {
 		return nil, fmt.Errorf("Failed syncing: %s", err)
 	}
