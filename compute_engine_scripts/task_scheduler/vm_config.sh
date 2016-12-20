@@ -20,6 +20,11 @@ case "$VM_ID" in
     IP_ADDRESS=104.154.112.128
     ;;
 
+  internal)
+    INSTANCE_NAME=skia-task-scheduler-internal
+    IP_ADDRESS=104.154.112.135
+    ;;
+
   stage)
     INSTANCE_NAME=skia-task-scheduler-stage
     IP_ADDRESS=104.154.112.129
