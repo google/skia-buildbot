@@ -22,6 +22,24 @@
       "revId": "760949caeac1b969528a2deb731175be6e3ab35c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_bd1f3720",
+        "filename": "compute_engine_scripts/prom/vm_config.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-12-20T16:20:54Z",
+      "side": 1,
+      "message": "fixed.",
+      "parentUuid": "9765aef7_1df643dd",
+      "revId": "760949caeac1b969528a2deb731175be6e3ab35c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
