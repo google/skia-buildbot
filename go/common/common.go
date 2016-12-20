@@ -24,10 +24,17 @@ const (
 	// Compute Engine project ID.
 	PROJECT_ID = "google.com:skia-buildbots"
 
-	REPO_SKIA       = "https://skia.googlesource.com/skia.git"
-	REPO_SKIA_INFRA = "https://skia.googlesource.com/buildbot.git"
+	REPO_SKIA               = "https://skia.googlesource.com/skia.git"
+	REPO_SKIA_INFRA         = "https://skia.googlesource.com/buildbot.git"
+	REPO_SKIA_INTERNAL_TEST = "https://skia.googlesource.com/internal_test.git"
 
 	SAMPLE_PERIOD = time.Minute
+)
+
+var (
+	PUBLIC_REPOS  = []string{REPO_SKIA, REPO_SKIA_INFRA}
+	PRIVATE_REPOS = []string{REPO_SKIA_INTERNAL_TEST}
+	ALL_REPOS     = append(PUBLIC_REPOS, PRIVATE_REPOS...)
 )
 
 // Init runs commonly-used initialization metrics.
