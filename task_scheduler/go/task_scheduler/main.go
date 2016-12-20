@@ -42,12 +42,6 @@ const (
 var (
 	// "Constants"
 
-	// REPOS are the repositories to query.
-	REPOS = []string{
-		common.REPO_SKIA,
-		common.REPO_SKIA_INFRA,
-	}
-
 	// PROJECT_REPO_MAPPING is a mapping of project names to repo URLs.
 	PROJECT_REPO_MAPPING = map[string]string{
 		"buildbot":     common.REPO_SKIA_INFRA,
@@ -72,9 +66,12 @@ var (
 	port           = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
 	dbPort         = flag.String("db_port", ":8008", "HTTP service port for the database RPC server (e.g., ':8008')")
 	local          = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
+	repoUrls       = common.NewMultiStringFlag("repo", common.PUBLIC_REPOS, "Repositories for which to schedule tasks.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
 	scoreDecay24Hr = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
+	swarmingPools  = common.NewMultiStringFlag("pool", swarming.POOLS_PUBLIC, "Which Swarming pools to use.")
 	timePeriod     = flag.String("timeWindow", "4d", "Time period to use.")
+	tryJobBucket   = flag.String("tryjob_bucket", tryjobs.BUCKET_PRIMARY, "Which Buildbucket bucket to use for try jobs.")
 	commitWindow   = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
 	gsBucket       = flag.String("gsBucket", "skia-task-scheduler", "Name of Google Cloud Storage bucket to use for backups and recovery.")
 	workdir        = flag.String("workdir", "workdir", "Working directory to use.")
@@ -434,7 +431,7 @@ func main() {
 	defer util.Close(d)
 
 	// Git repos.
-	repos, err = repograph.NewMap(REPOS, wdAbs)
+	repos, err = repograph.NewMap(*repoUrls, wdAbs)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -473,7 +470,7 @@ func main() {
 	if err := scheduling.InitPubSub(); err != nil {
 		sklog.Fatal(err)
 	}
-	ts, err = scheduling.NewTaskScheduler(d, period, *commitWindow, wdAbs, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, tryjobs.BUCKET_PRIMARY, PROJECT_REPO_MAPPING)
+	ts, err = scheduling.NewTaskScheduler(d, period, *commitWindow, wdAbs, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, PROJECT_REPO_MAPPING, *swarmingPools)
 	if err != nil {
 		sklog.Fatal(err)
 	}

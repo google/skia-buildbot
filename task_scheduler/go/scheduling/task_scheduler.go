@@ -48,8 +48,6 @@ const (
 
 var (
 	ERR_BLAMELIST_DONE = errors.New("ERR_BLAMELIST_DONE")
-
-	SWARMING_POOLS = []string{swarming.DIMENSION_POOL_VALUE_SKIA, swarming.DIMENSION_POOL_VALUE_SKIA_CT}
 )
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
@@ -59,7 +57,8 @@ type TaskScheduler struct {
 	db               db.DB
 	isolate          *isolate.Client
 	jCache           db.JobCache
-	lastScheduled    time.Time        // protected by queueMtx.
+	lastScheduled    time.Time // protected by queueMtx.
+	pools            []string
 	queue            []*taskCandidate // protected by queueMtx.
 	queueMtx         sync.RWMutex
 	repos            repograph.Map
@@ -73,7 +72,7 @@ type TaskScheduler struct {
 	workdir          string
 }
 
-func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string) (*TaskScheduler, error) {
+func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		return nil, err
@@ -112,6 +111,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir str
 		db:               d,
 		isolate:          isolateClient,
 		jCache:           jCache,
+		pools:            pools,
 		queue:            []*taskCandidate{},
 		queueMtx:         sync.RWMutex{},
 		repos:            repos,
@@ -1043,7 +1043,7 @@ func (s *TaskScheduler) MainLoop() error {
 		defer wg1.Done()
 
 		var err error
-		bots, err = getFreeSwarmingBots(s.swarming, s.busyBots)
+		bots, err = getFreeSwarmingBots(s.swarming, s.busyBots, s.pools)
 		if err != nil {
 			e1 = err
 			return
@@ -1209,7 +1209,7 @@ func testednessIncrease(blamelistLength, stoleFromBlamelistLength int) float64 {
 }
 
 // getFreeSwarmingBots returns a slice of free swarming bots.
-func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
+func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots, pools []string) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	// Query for free Swarming bots and pending Swarming tasks in all pools.
@@ -1219,7 +1219,7 @@ func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots) ([]*swarming_api.
 	errs := []error{}
 	var mtx sync.Mutex
 	t := time.Time{}
-	for _, pool := range SWARMING_POOLS {
+	for _, pool := range pools {
 		// Free bots.
 		wg.Add(1)
 		go func(pool string) {
