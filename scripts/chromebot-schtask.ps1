@@ -123,7 +123,12 @@ if (!(Test-Path ($startup_dir))) {
 banner "Start Swarming."
 $swarm_slave_dir = "c:\b\s"
 if (!(Test-Path ($swarm_slave_dir))) {
-  cmd /c "python -c `"import urllib; exec urllib.urlopen('https://chromium-swarm.appspot.com/bootstrap').read()`""
+  $swarming = "https://chromium-swarm.appspot.com"
+  $hostname =(cmd /c "hostname") | Out-String
+  if ($hostname.StartsWith("skia-i-")) {
+    $swarming = "https://chrome-swarming.appspot.com"
+  }
+  cmd /c "python -c `"import urllib; exec urllib.urlopen('" + $swarming + "/bootstrap').read()`""
 }
 
 banner "The Task ended"
