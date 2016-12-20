@@ -39,6 +39,8 @@ bind-address = ":8088"
   compact-full-write-cold-duration = "24h0m0s"
   max-points-per-block = 0
   trace-logging-enabled = false
+  max-series-per-database = 0
+  max-values-per-tag = 0
 
 [coordinator]
   force-remote-mapping = false
@@ -46,7 +48,6 @@ bind-address = ":8088"
   shard-writer-timeout = "5s"
   max-remote-write-connections = 3
   shard-mapper-timeout = "5s"
-  max-series-per-database = 3000000
 
 [retention]
   enabled = true
