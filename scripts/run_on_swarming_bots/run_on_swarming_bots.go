@@ -13,6 +13,7 @@ import (
 	"github.com/satori/go.uuid"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 )
@@ -23,7 +24,6 @@ import (
 
 const (
 	ISOLATE_DEFAULT_NAMESPACE = "default-gzip"
-	ISOLATE_SERVER            = "https://isolateserver.appspot.com"
 	TMP_ISOLATE_FILE_NAME     = "script.isolate"
 	TMP_ISOLATE_FILE_CONTENTS = `{
   'variables': {
@@ -77,7 +77,7 @@ func main() {
 	}
 
 	// Swarming API client.
-	swarmApi, err := swarming.NewApiClient(httpClient)
+	swarmApi, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -88,7 +88,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	swarming, err := swarming.NewSwarmingClient(*workdir)
+	swarming, err := swarming.NewSwarmingClient(*workdir, swarming.SWARMING_SERVER, isolate.ISOLATE_SERVER_URL)
 	if err != nil {
 		sklog.Fatal(err)
 	}

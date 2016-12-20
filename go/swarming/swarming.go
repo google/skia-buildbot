@@ -21,6 +21,7 @@ import (
 
 const (
 	SWARMING_SERVER          = "chromium-swarm.appspot.com"
+	SWARMING_SERVER_PRIVATE  = "chrome-swarming.appspot.com"
 	LUCI_CLIENT_REPO         = "https://github.com/luci/client-py"
 	RECOMMENDED_IO_TIMEOUT   = 20 * time.Minute
 	RECOMMENDED_HARD_TIMEOUT = 1 * time.Hour
@@ -31,6 +32,7 @@ const (
 type SwarmingClient struct {
 	WorkDir        string
 	isolateClient  *isolate.Client
+	isolateServer  string
 	SwarmingPy     string
 	SwarmingServer string
 }
@@ -65,7 +67,7 @@ func (t *SwarmingTask) Trigger(s *SwarmingClient, hardTimeout, ioTimeout time.Du
 	triggerArgs := []string{
 		"trigger",
 		"--swarming", s.SwarmingServer,
-		"--isolate-server", s.isolateClient.ServerUrl,
+		"--isolate-server", s.isolateServer,
 		"--priority", strconv.Itoa(t.Priority),
 		"--shards", strconv.Itoa(1),
 		"--task-name", t.Title,
@@ -111,7 +113,7 @@ func (t *SwarmingTask) Collect(s *SwarmingClient) (string, string, error) {
 	collectArgs := []string{
 		"collect",
 		"--json", dumpJSON,
-		"--swarming", SWARMING_SERVER,
+		"--swarming", s.SwarmingServer,
 		"--task-output-dir", t.OutputDir,
 		"--verbose",
 	}
@@ -148,7 +150,7 @@ func (t *SwarmingTask) Collect(s *SwarmingClient) (string, string, error) {
 
 // NewSwarmingClient returns an instance of Swarming populated with default
 // values.
-func NewSwarmingClient(workDir string) (*SwarmingClient, error) {
+func NewSwarmingClient(workDir, swarmingServer, isolateServer string) (*SwarmingClient, error) {
 	if _, err := os.Stat(workDir); os.IsNotExist(err) {
 		if err := os.MkdirAll(workDir, 0700); err != nil {
 			return nil, fmt.Errorf("Could not create %s: %s", workDir, err)
@@ -166,7 +168,7 @@ func NewSwarmingClient(workDir string) (*SwarmingClient, error) {
 	swarmingPy := path.Join(luciClient.Dir(), "swarming.py")
 
 	// Create an isolate client.
-	isolateClient, err := isolate.NewClient(workDir)
+	isolateClient, err := isolate.NewClient(workDir, isolateServer)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create isolate client: %s", err)
 	}
@@ -174,8 +176,9 @@ func NewSwarmingClient(workDir string) (*SwarmingClient, error) {
 	return &SwarmingClient{
 		WorkDir:        workDir,
 		isolateClient:  isolateClient,
+		isolateServer:  isolateServer,
 		SwarmingPy:     swarmingPy,
-		SwarmingServer: SWARMING_SERVER,
+		SwarmingServer: swarmingServer,
 	}, nil
 }
 
