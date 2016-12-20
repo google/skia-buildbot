@@ -71,7 +71,7 @@ func main() {
 	}
 
 	// Swarming API client.
-	swarmApi, err := swarming.NewApiClient(httpClient)
+	swarmApi, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER)
 	if err != nil {
 		sklog.Fatal(err)
 	}

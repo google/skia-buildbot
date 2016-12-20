@@ -182,9 +182,8 @@ func setup(t *testing.T) (*util.TempRepo, db.DB, *swarming.TestClient, *TaskSche
 	tr := util.NewTempRepo()
 	assert.NoError(t, os.Mkdir(path.Join(tr.Dir, TRIGGER_DIRNAME), os.ModePerm))
 	d := db.NewInMemoryDB()
-	isolateClient, err := isolate.NewClient(tr.Dir)
+	isolateClient, err := isolate.NewClient(tr.Dir, isolate.ISOLATE_SERVER_URL_FAKE)
 	assert.NoError(t, err)
-	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
 	urlMock := mockhttpclient.NewURLMock()
 	repo, err := repograph.NewGraph(repoName, tr.Dir)
@@ -1867,9 +1866,8 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (db.DB, *Task
 
 	// Setup the scheduler.
 	d := db.NewInMemoryDB()
-	isolateClient, err := isolate.NewClient(workdir)
+	isolateClient, err := isolate.NewClient(workdir, isolate.ISOLATE_SERVER_URL_FAKE)
 	assert.NoError(t, err)
-	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
 	repo, err := repograph.NewGraph(repoName, workdir)
 	assert.NoError(t, err)

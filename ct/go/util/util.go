@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 
@@ -365,7 +366,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 	if err != nil {
 		return fmt.Errorf("Could not get temp dir: %s", err)
 	}
-	s, err := swarming.NewSwarmingClient(workDir)
+	s, err := swarming.NewSwarmingClient(workDir, swarming.SWARMING_SERVER, isolate.ISOLATE_SERVER_URL)
 	if err != nil {
 		return fmt.Errorf("Could not instantiate swarming client: %s", err)
 	}
@@ -691,7 +692,7 @@ func TriggerBuildRepoSwarmingTask(taskName, runID, repo, targetPlatform string, 
 	if err != nil {
 		return nil, fmt.Errorf("Could not get temp dir: %s", err)
 	}
-	s, err := swarming.NewSwarmingClient(workDir)
+	s, err := swarming.NewSwarmingClient(workDir, swarming.SWARMING_SERVER, isolate.ISOLATE_SERVER_URL)
 	if err != nil {
 		return nil, fmt.Errorf("Could not instantiate swarming client: %s", err)
 	}
