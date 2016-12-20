@@ -542,6 +542,16 @@ func MD5Params(val map[string]string) (string, error) {
 	return fmt.Sprintf("%x", md5Writer.Sum(nil)), nil
 }
 
+// MD5SSlice returns the MD5 hash of the provided []string.
+func MD5SSlice(val []string) (string, error) {
+	md5Writer := md5.New()
+	enc := bencode.NewEncoder(md5Writer)
+	if err := enc.Encode(val); err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%x", md5Writer.Sum(nil)), nil
+}
+
 // Round rounds the given float64 to the nearest whole integer.
 func Round(v float64) float64 {
 	return math.Floor(v + float64(0.5))

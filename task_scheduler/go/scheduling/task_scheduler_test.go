@@ -1795,13 +1795,12 @@ func (s *spyDB) PutTasks(tasks []*db.Task) error {
 	return s.DB.PutTasks(tasks)
 }
 
-func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
+func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (db.DB, *TaskScheduler, *swarming.TestClient, []string, func(*db.Task), func()) {
 	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, workdir)
 	assert.NoError(t, os.Mkdir(path.Join(workdir, TRIGGER_DIRNAME), os.ModePerm))
 
 	run := func(dir string, cmd ...string) {
@@ -1909,15 +1908,24 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	commits, err := s.repos[repoName].Repo().RevList(fmt.Sprintf("%s..HEAD", head))
 	assert.Nil(t, err)
 	assert.Equal(t, 8, len(commits))
+	return d, s, swarmingClient, commits, mock, func() {
+		testutils.RemoveAll(t, workdir)
+	}
+}
+
+func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
+	d, s, swarmingClient, commits, mock, cleanup := testMultipleCandidatesBackfillingEachOtherSetup(t)
+	defer cleanup()
 
 	// Trigger builds simultaneously.
+	bot1 := makeBot("bot1", map[string]string{"pool": "Skia"})
 	bot2 := makeBot("bot2", map[string]string{"pool": "Skia"})
 	bot3 := makeBot("bot3", map[string]string{"pool": "Skia"})
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3})
 	assert.NoError(t, s.MainLoop())
 	assert.NoError(t, s.tCache.Update())
 	assert.Equal(t, 5, len(s.queue))
-	tasks, err = s.tCache.GetTasksForCommits(repoName, commits)
+	tasks, err := s.tCache.GetTasksForCommits(repoName, commits)
 	assert.NoError(t, err)
 
 	// If we're queueing correctly, we should've triggered tasks at
@@ -1944,20 +1952,15 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	mock(t3)
 
 	// Ensure that we got the blamelists right.
-	mkCopy := func(orig []string) []string {
-		rv := make([]string, len(orig))
-		copy(rv, orig)
-		return rv
-	}
 	var expect1, expect2, expect3 []string
 	if t3.Revision == commits[2] {
-		expect1 = mkCopy(commits[:2])
-		expect2 = mkCopy(commits[4:])
-		expect3 = mkCopy(commits[2:4])
+		expect1 = util.CopyStringSlice(commits[:2])
+		expect2 = util.CopyStringSlice(commits[4:])
+		expect3 = util.CopyStringSlice(commits[2:4])
 	} else {
-		expect1 = mkCopy(commits[:4])
-		expect2 = mkCopy(commits[4:6])
-		expect3 = mkCopy(commits[6:])
+		expect1 = util.CopyStringSlice(commits[:4])
+		expect2 = util.CopyStringSlice(commits[4:6])
+		expect3 = util.CopyStringSlice(commits[6:])
 	}
 	sort.Strings(expect1)
 	sort.Strings(expect2)
@@ -3072,4 +3075,74 @@ func TestAddTasksRetries(t *testing.T) {
 	check(duty2, duty3, duty4)
 	check(work2, work3, work4)
 	assertModifiedTasks(t, d, trackId, modified)
+}
+
+func TestTriggerTaskFailed(t *testing.T) {
+	// Verify that if one task out of a set fails to trigger, the others are
+	// still inserted into the DB and handled properly, eg. wrt. blamelists.
+	_, s, swarmingClient, commits, _, cleanup := testMultipleCandidatesBackfillingEachOtherSetup(t)
+	defer cleanup()
+
+	// Trigger three tasks. We should attempt to trigger tasks at
+	// commits[0], commits[4], and either commits[2] or commits[6]. Mock
+	// failure to trigger the task at commits[4] and ensure that the other
+	// two tasks get inserted with the correct blamelists.
+	bot1 := makeBot("bot1", map[string]string{"pool": "Skia"})
+	bot2 := makeBot("bot2", map[string]string{"pool": "Skia"})
+	bot3 := makeBot("bot3", map[string]string{"pool": "Skia"})
+	makeTags := func(commit string) []string {
+		return []string{
+			"sk_dim_pool:Skia",
+			"allow_milo:1",
+			"sk_retry_of:",
+			fmt.Sprintf("source_revision:%s", commit),
+			"source_repo:skia.git/+/%s",
+			"sk_repo:skia.git",
+			fmt.Sprintf("sk_revision:%s", commit),
+			"sk_forced_job_id:",
+			"sk_name:dummytask",
+			"sk_priority:1.000000",
+		}
+	}
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3})
+	swarmingClient.MockTriggerTaskFailure(makeTags(commits[4]))
+	assert.NoError(t, s.MainLoop())
+	assert.NoError(t, s.tCache.Update())
+	assert.Equal(t, 5, len(s.queue))
+	tasks, err := s.tCache.GetTasksForCommits(repoName, commits)
+	assert.NoError(t, err)
+
+	var t1, t2, t3 *db.Task
+	for _, byName := range tasks {
+		for _, task := range byName {
+			if task.Revision == commits[0] {
+				t1 = task
+			} else if task.Revision == commits[4] {
+				t2 = task
+			} else if task.Revision == commits[2] || task.Revision == commits[6] {
+				t3 = task
+			} else {
+				assert.FailNow(t, fmt.Sprintf("Task has unknown revision: %v", task))
+			}
+		}
+	}
+	assert.NotNil(t, t1)
+	assert.Nil(t, t2)
+	assert.NotNil(t, t3)
+
+	// Ensure that we got the blamelists right.
+	var expect1, expect3 []string
+	if t3.Revision == commits[2] {
+		expect1 = util.CopyStringSlice(commits[:2])
+		expect3 = util.CopyStringSlice(commits[2:])
+	} else {
+		expect1 = util.CopyStringSlice(commits[:6])
+		expect3 = util.CopyStringSlice(commits[6:])
+	}
+	sort.Strings(expect1)
+	sort.Strings(expect3)
+	sort.Strings(t1.Commits)
+	sort.Strings(t3.Commits)
+	testutils.AssertDeepEqual(t, expect1, t1.Commits)
+	testutils.AssertDeepEqual(t, expect3, t3.Commits)
 }
