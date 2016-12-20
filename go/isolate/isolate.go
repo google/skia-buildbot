@@ -21,15 +21,16 @@ import (
 )
 
 const (
-	DEFAULT_NAMESPACE      = "default-gzip"
-	FAKE_SERVER_URL        = "fake"
-	ISOLATE_EXE_SHA1       = "cf7c1fac12790056ac393774827a5720c7590bac"
-	ISOLATESERVER_EXE_SHA1 = "e45ffb5b03c3e94d07e4bbd1bda51b9f12590177"
-	ISOLATE_SERVER_URL     = "https://isolateserver.appspot.com"
-	ISOLATE_VERSION        = 1
-	GS_BUCKET              = "chromium-luci"
-	GS_SUBDIR              = ""
-	TASK_ID_TMPL           = "task_%s"
+	DEFAULT_NAMESPACE          = "default-gzip"
+	ISOLATE_EXE_SHA1           = "cf7c1fac12790056ac393774827a5720c7590bac"
+	ISOLATESERVER_EXE_SHA1     = "e45ffb5b03c3e94d07e4bbd1bda51b9f12590177"
+	ISOLATE_SERVER_URL         = "https://isolateserver.appspot.com"
+	ISOLATE_SERVER_URL_FAKE    = "fake"
+	ISOLATE_SERVER_URL_PRIVATE = "https://chrome-isolated.appspot.com"
+	ISOLATE_VERSION            = 1
+	GS_BUCKET                  = "chromium-luci"
+	GS_SUBDIR                  = ""
+	TASK_ID_TMPL               = "task_%s"
 )
 
 var (
@@ -44,12 +45,12 @@ type Client struct {
 	gs            *gs.DownloadHelper
 	isolate       string
 	isolateserver string
-	ServerUrl     string
+	serverUrl     string
 	workdir       string
 }
 
 // NewClient returns a Client instance.
-func NewClient(workdir string) (*Client, error) {
+func NewClient(workdir, server string) (*Client, error) {
 	s, err := storage.NewClient(context.Background())
 	if err != nil {
 		return nil, err
@@ -62,7 +63,7 @@ func NewClient(workdir string) (*Client, error) {
 		gs:            gs.NewDownloadHelper(s, GS_BUCKET, GS_SUBDIR, workdir),
 		isolate:       path.Join(workdir, "isolate"),
 		isolateserver: path.Join(workdir, "isolateserver"),
-		ServerUrl:     ISOLATE_SERVER_URL,
+		serverUrl:     server,
 		workdir:       absPath,
 	}
 	if err := c.gs.MaybeDownload("isolate", ISOLATE_EXE_SHA1); err != nil {
@@ -258,7 +259,7 @@ func addIsolatedIncludes(filepath string, includes []string) error {
 func (c *Client) BatchArchiveTasks(genJsonFiles []string, jsonOutput string) error {
 	cmd := []string{
 		c.isolate, "batcharchive", "--verbose",
-		"--isolate-server", c.ServerUrl,
+		"--isolate-server", c.serverUrl,
 	}
 	if jsonOutput != "" {
 		cmd = append(cmd, "--dump-json", jsonOutput)
@@ -323,7 +324,7 @@ func (c *Client) IsolateTasks(tasks []*Task) ([]string, error) {
 	// Re-upload the isolated files.
 	cmd := []string{
 		c.isolateserver, "archive", "--verbose",
-		"--isolate-server", c.ServerUrl,
+		"--isolate-server", c.serverUrl,
 	}
 	for _, f := range isolatedFiles {
 		cmd = append(cmd, "--files", f)

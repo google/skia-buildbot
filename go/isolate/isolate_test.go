@@ -20,9 +20,8 @@ func TestIsolateTasks(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
 
-	c, err := NewClient(workdir)
+	c, err := NewClient(workdir, ISOLATE_SERVER_URL_FAKE)
 	assert.NoError(t, err)
-	c.ServerUrl = FAKE_SERVER_URL
 
 	do := func(tasks []*Task, expectErr string) []string {
 		hashes, err := c.IsolateTasks(tasks)

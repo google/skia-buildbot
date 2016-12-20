@@ -269,9 +269,8 @@ func main() {
 	jCache, err := db.NewJobCache(d, w, dummyGetRevisionTimestamp)
 	assertNoError(err)
 
-	isolateClient, err := isolate.NewClient(workdir)
+	isolateClient, err := isolate.NewClient(workdir, isolate.ISOLATE_SERVER_URL_FAKE)
 	assertNoError(err)
-	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
 	s, err := scheduling.NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, workdir, repograph.Map{repoName: repo}, isolateClient, swarmingClient, http.DefaultClient, 0.9, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, map[string]string{"skia": repoName}, swarming.POOLS_PUBLIC)
 	assertNoError(err)
