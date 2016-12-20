@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/frontend"
@@ -44,7 +44,7 @@ func sendEmail(recipients []string) {
 	`
 	emailBody := fmt.Sprintf(bodyTemplate, util.GetSwarmingLogsLink(*runID), failureHtml, frontend.ChromiumBuildTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
-		glog.Errorf("Error while sending email: %s", err)
+		sklog.Errorf("Error while sending email: %s", err)
 		return
 	}
 }
@@ -64,7 +64,7 @@ func main() {
 	emailsArr := util.ParseEmails(*emails)
 	emailsArr = append(emailsArr, util.CtAdmins...)
 	if len(emailsArr) == 0 {
-		glog.Error("At least one email address must be specified")
+		sklog.Error("At least one email address must be specified")
 		return
 	}
 	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_builds.UpdateVars{}, *gaeTaskID))
@@ -74,14 +74,14 @@ func main() {
 	defer sendEmail(emailsArr)
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running build chromium")
-	defer glog.Flush()
+	defer sklog.Flush()
 
 	if *chromiumHash == "" {
-		glog.Error("Must specify --chromium_hash")
+		sklog.Error("Must specify --chromium_hash")
 		return
 	}
 	if *skiaHash == "" {
-		glog.Error("Must specify --skia_hash")
+		sklog.Error("Must specify --skia_hash")
 		return
 	}
 
@@ -92,11 +92,11 @@ func main() {
 	//       capture_skps tasks (which require that flag) specify runID as empty here.
 	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask("build_chromium", "", "chromium", "Linux", []string{*chromiumHash, *skiaHash}, []string{}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
 	if err != nil {
-		glog.Errorf("Error encountered when swarming build repo task: %s", err)
+		sklog.Errorf("Error encountered when swarming build repo task: %s", err)
 		return
 	}
 	if len(chromiumBuilds) != 1 {
-		glog.Errorf("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
+		sklog.Errorf("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
 		return
 	}
 

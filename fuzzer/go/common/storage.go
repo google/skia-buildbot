@@ -10,10 +10,10 @@ import (
 	"sync/atomic"
 
 	"cloud.google.com/go/storage"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/sklog"
 )
 
 // ExtractFuzzNameFromPath turns a path name into a fuzz name by stripping off all but the
@@ -101,16 +101,16 @@ func download(storageClient *storage.Client, toDownload <-chan string, downloadP
 		if !fileutil.FileExists(onDisk) {
 			contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, file)
 			if err != nil {
-				glog.Warningf("Problem downloading fuzz %s, continuing anyway: %s", file, err)
+				sklog.Warningf("Problem downloading fuzz %s, continuing anyway: %s", file, err)
 				continue
 			}
 			if err = ioutil.WriteFile(onDisk, contents, 0644); err != nil && !os.IsExist(err) {
-				glog.Warningf("Problem writing fuzz to %s, continuing anyway: %s", onDisk, err)
+				sklog.Warningf("Problem writing fuzz to %s, continuing anyway: %s", onDisk, err)
 			}
 		}
 		atomic.AddInt32(completedCounter, 1)
 		if *completedCounter%100 == 0 {
-			glog.Infof("%d fuzzes downloaded", *completedCounter)
+			sklog.Infof("%d fuzzes downloaded", *completedCounter)
 		}
 	}
 }

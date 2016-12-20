@@ -18,7 +18,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
@@ -389,7 +389,7 @@ func asPollerTask(otherTask task_common.Task) Task {
 	case *chromium_analysis.DBTask:
 		return &ChromiumAnalysisTask{DBTask: *t}
 	default:
-		glog.Errorf("Missing case for %T in asPollerTask", otherTask)
+		sklog.Errorf("Missing case for %T in asPollerTask", otherTask)
 		return nil
 	}
 }
@@ -411,7 +411,7 @@ func pollAndExecOnce() *sync.WaitGroup {
 	pending, err := frontend.GetOldestPendingTaskV2()
 	var wg sync.WaitGroup
 	if err != nil {
-		glog.Error(err)
+		sklog.Error(err)
 		return &wg
 	}
 	task := asPollerTask(pending)
@@ -430,24 +430,24 @@ func pollAndExecOnce() *sync.WaitGroup {
 	pickedUpTasks[fmt.Sprintf("%s.%d", taskName, id)] = "1"
 	tasksMtx.Unlock()
 
-	glog.Infof("Preparing to execute task %s %d", taskName, id)
+	sklog.Infof("Preparing to execute task %s %d", taskName, id)
 	if err = updateAndBuild(); err != nil {
-		glog.Error(err)
+		sklog.Error(err)
 		return &wg
 	}
-	glog.Infof("Executing task %s %d", taskName, id)
+	sklog.Infof("Executing task %s %d", taskName, id)
 	// Increment the WaitGroup counter.
 	wg.Add(1)
 	go func() {
 		// Decrement the counter when the goroutine completes.
 		defer wg.Done()
 		if err = task.Execute(); err == nil {
-			glog.Infof("Completed task %s %d", taskName, id)
+			sklog.Infof("Completed task %s %d", taskName, id)
 		} else {
-			glog.Errorf("Task %s %d failed: %v", taskName, id, err)
+			sklog.Errorf("Task %s %d failed: %v", taskName, id, err)
 			if !*dryRun {
 				if err := updateWebappTaskSetFailed(task); err != nil {
-					glog.Error(err)
+					sklog.Error(err)
 				}
 			}
 		}
@@ -469,7 +469,7 @@ func main() {
 
 	if *dryRun {
 		exec.SetRunForTesting(func(command *exec.Command) error {
-			glog.Infof("dry_run: %s", exec.DebugString(command))
+			sklog.Infof("dry_run: %s", exec.DebugString(command))
 			return nil
 		})
 	}

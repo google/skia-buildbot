@@ -12,9 +12,9 @@ import (
 	"path"
 	"testing"
 
-	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/image/text"
@@ -37,12 +37,12 @@ func md5OfFile(path string) (sum []byte, err error) {
 func filesEqual(path1, path2 string) bool {
 	checksum1, err := md5OfFile(path1)
 	if err != nil {
-		glog.Infof("%v\n", err)
+		sklog.Infof("%v\n", err)
 		return false
 	}
 	checksum2, err := md5OfFile(path2)
 	if err != nil {
-		glog.Infof("%v\n", err)
+		sklog.Infof("%v\n", err)
 		return false
 	}
 	return 0 == bytes.Compare(checksum1, checksum2)

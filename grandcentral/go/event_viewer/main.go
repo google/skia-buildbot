@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/geventbus"
 	"go.skia.org/infra/go/skiaversion"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/grandcentral/go/event"
 )
 
@@ -38,25 +38,25 @@ func main() {
 
 	v, err := skiaversion.GetVersion()
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
-	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
 	args := flag.Args()
-	glog.Infof("ARGS: %v", args)
+	sklog.Infof("ARGS: %v", args)
 	if len(args) != 1 {
-		glog.Infof("Wrong number of arguments. Needed exactly 1.")
+		sklog.Infof("Wrong number of arguments. Needed exactly 1.")
 		flag.Usage()
 		os.Exit(1)
 	}
 
 	if *nsqdAddress == "" {
-		glog.Fatal("Missing address of nsqd server.")
+		sklog.Fatal("Missing address of nsqd server.")
 	}
 
 	globalEventBus, err := geventbus.NewNSQEventBus(*nsqdAddress)
 	if err != nil {
-		glog.Fatalf("Unable to connect to NSQ server: %s", err)
+		sklog.Fatalf("Unable to connect to NSQ server: %s", err)
 	}
 
 	eventBus := eventbus.New(globalEventBus)
@@ -65,12 +65,12 @@ func main() {
 	case "bot":
 		filter := event.BotEventFilter().EventType(*botEventType).StepName(*botStepName)
 		eventBus.SubscribeAsync(event.BuildbotEvents(filter), func(evData interface{}) {
-			glog.Infof("Buildbot event:\n %v", evData)
+			sklog.Infof("Buildbot event:\n %v", evData)
 		})
 	case "storage":
 		eventBus.SubscribeAsync(event.StorageEvent(*gsBucket, *gsPrefix), func(evData interface{}) {
 			data := evData.(*event.GoogleStorageEventData)
-			glog.Infof("Google Storage notification from bucket\n %s:  %s : %s", data.Updated, data.Bucket, data.Name)
+			sklog.Infof("Google Storage notification from bucket\n %s:  %s : %s", data.Updated, data.Bucket, data.Name)
 		})
 	default:
 		flag.Usage()

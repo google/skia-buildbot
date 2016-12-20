@@ -12,10 +12,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/status/go/build_cache"
@@ -116,7 +116,7 @@ func NewBTCache(repos repograph.Map, buildDb buildbot.DB, taskDb db.RemoteDB) (*
 	go func() {
 		for _ = range time.Tick(time.Minute) {
 			if err := c.update(); err != nil {
-				glog.Error(err)
+				sklog.Error(err)
 			}
 		}
 	}()
@@ -144,7 +144,7 @@ func builderNameToTaskName(name string) (string, bool) {
 func (c *BTCache) commentId(comment interface{}) int64 {
 	var buf bytes.Buffer
 	if err := gob.NewEncoder(&buf).Encode(comment); err != nil {
-		glog.Error(err)
+		sklog.Error(err)
 		return -1
 	}
 	// Although the Id field is int64, we use int32 to avoid issues in Javascript.
@@ -276,7 +276,7 @@ func (c *BTCache) taskIdToBuildNumber(id string) int {
 	// Very hacky...
 	_, seq, err := local_db.ParseId(id)
 	if err != nil {
-		glog.Error(err)
+		sklog.Error(err)
 		return -1
 	}
 	num := int(seq)
@@ -329,7 +329,7 @@ func (c *BTCache) taskToBuild(task *db.Task, loggedIn bool) *buildbot.Build {
 	if propBytes, err := json.Marshal(properties); err == nil {
 		propertiesStr = string(propBytes)
 	} else {
-		glog.Errorf("Failed to encode properties: %s", err)
+		sklog.Errorf("Failed to encode properties: %s", err)
 	}
 
 	finished := time.Time{}

@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 
 	swarming "github.com/luci/luci-go/common/api/swarming/swarming/v1"
@@ -278,7 +278,7 @@ func (c *apiClient) ListTasks(start, end time.Time, tags []string, state string)
 
 	// Match requests to results.
 	if len(tasks) != len(reqs) {
-		glog.Warningf("Got different numbers of task requests and results.")
+		sklog.Warningf("Got different numbers of task requests and results.")
 	}
 	rv := make([]*swarming.SwarmingRpcsTaskRequestMetadata, 0, len(tasks))
 	for _, t := range tasks {
@@ -294,7 +294,7 @@ func (c *apiClient) ListTasks(start, end time.Time, tags []string, state string)
 			}
 		}
 		if data.Request == nil {
-			glog.Warningf("Failed to find request for task %s", data.TaskId)
+			sklog.Warningf("Failed to find request for task %s", data.TaskId)
 			continue
 		}
 		rv = append(rv, data)
@@ -342,7 +342,7 @@ func (c *apiClient) RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*swa
 		if retriesRE.FindString(tag) != "" {
 			n, err := strconv.Atoi(strings.Split(tag, ":")[1])
 			if err != nil {
-				glog.Errorf("retries value in %s is not numeric: %s", tag, err)
+				sklog.Errorf("retries value in %s is not numeric: %s", tag, err)
 				continue
 			}
 			newReq.Tags[i] = fmt.Sprintf("retries:%d", (n + 1))

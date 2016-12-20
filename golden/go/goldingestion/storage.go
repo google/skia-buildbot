@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/sharedb"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
 )
@@ -48,7 +48,7 @@ func (i *IngestionStore) Close() error {
 func (i *IngestionStore) IsIngested(ingesterID, master, builder string, buildNumber int64) bool {
 	resp, err := i.client.Get(i.ctx, &sharedb.GetRequest{Database: DB_NAME, Bucket: getBucketName(ingesterID), Key: getKey(master, builder, buildNumber)})
 	if err != nil {
-		glog.Errorf("Error querying ingestion store: %s", err)
+		sklog.Errorf("Error querying ingestion store: %s", err)
 		return false
 	}
 	return resp.Value != nil

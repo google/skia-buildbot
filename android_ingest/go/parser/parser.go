@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/perf/go/ingestcommon"
 )
@@ -131,14 +131,14 @@ func (c *Converter) Convert(incoming io.Reader) (*ingestcommon.BenchData, error)
 		for key, value := range metrics {
 			f, err := value.Float64()
 			if err != nil {
-				glog.Errorf("Couldn't parse %q as a float64: %s", value.String(), err)
+				sklog.Errorf("Couldn't parse %q as a float64: %s", value.String(), err)
 				continue
 			}
 			benchData.Results[test]["default"][key] = f
 		}
 		parts := strings.Split(test, "#")
 		if len(parts) != 2 {
-			glog.Errorf("Test name didn't have a single # separator: %q", test)
+			sklog.Errorf("Test name didn't have a single # separator: %q", test)
 			continue
 		}
 		benchData.Results[test]["default"]["options"] = map[string]string{

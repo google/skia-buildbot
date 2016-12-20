@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -139,7 +139,7 @@ func init() {
 func PrettifyCategory(category string) string {
 	f, found := fuzzers[category]
 	if !found {
-		glog.Errorf("Unknown category %s", category)
+		sklog.Errorf("Unknown category %s", category)
 		return FUZZER_NOT_FOUND
 	}
 	return f.PrettyName
@@ -148,7 +148,7 @@ func PrettifyCategory(category string) string {
 func ExtraBugLabels(category string) []string {
 	f, found := fuzzers[category]
 	if !found {
-		glog.Errorf("Unknown category %s", category)
+		sklog.Errorf("Unknown category %s", category)
 		return nil
 	}
 	return f.ExtraBugLabels
@@ -159,7 +159,7 @@ func ExtraBugLabels(category string) []string {
 func ReplicationArgs(category string) string {
 	f, found := fuzzers[category]
 	if !found {
-		glog.Errorf("Unknown category %s", category)
+		sklog.Errorf("Unknown category %s", category)
 		return FUZZER_NOT_FOUND
 	}
 	return strings.Join(f.ArgsAfterExecutable, " ")
@@ -175,7 +175,7 @@ func HasCategory(c string) bool {
 func Status(c string) string {
 	f, found := fuzzers[c]
 	if !found {
-		glog.Errorf("Unknown category %s", c)
+		sklog.Errorf("Unknown category %s", c)
 		return FUZZER_NOT_FOUND
 	}
 	return f.Status
@@ -185,7 +185,7 @@ func Status(c string) string {
 func Groomer(c string) string {
 	f, found := fuzzers[c]
 	if !found {
-		glog.Errorf("Unknown category %s", c)
+		sklog.Errorf("Unknown category %s", c)
 		return FUZZER_NOT_FOUND
 	}
 	return f.Groomer
@@ -206,7 +206,7 @@ func HasArchitecture(a string) bool {
 // numbers would come up in the stack traces.
 func SafeAtoi(n string) int {
 	if i, err := strconv.Atoi(n); err != nil {
-		glog.Errorf("Could not parse number from known digits %q: %v", n, err)
+		sklog.Errorf("Could not parse number from known digits %q: %v", n, err)
 		return 0
 	} else {
 		return i

@@ -3,8 +3,8 @@ package expstorage
 import (
 	"sync"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -242,13 +242,13 @@ func (m *MemExpectationsStore) RemoveChange(changedDigests map[string][]string) 
 
 // See ExpectationsStore interface.
 func (m *MemExpectationsStore) QueryLog(offset, size int, details bool) ([]*TriageLogEntry, int, error) {
-	glog.Fatal("MemExpectation store does not support querying the logs.")
+	sklog.Fatal("MemExpectation store does not support querying the logs.")
 	return nil, 0, nil
 }
 
 // See  ExpectationsStore interface.
 func (m *MemExpectationsStore) UndoChange(changeID int, userID string) (map[string]types.TestClassification, error) {
-	glog.Fatal("MemExpectation store does not support undo.")
+	sklog.Fatal("MemExpectation store does not support undo.")
 	return nil, nil
 }
 

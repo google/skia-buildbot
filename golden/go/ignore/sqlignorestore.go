@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/util"
@@ -102,7 +102,7 @@ func (m *SQLIgnoreStore) List(addCounts bool) ([]*IgnoreRule, error) {
 
 	if addCounts {
 		if err := m.addIgnoreCounts(result); err != nil {
-			glog.Errorf("Unable to add counts to ignore list result: %s", err)
+			sklog.Errorf("Unable to add counts to ignore list result: %s", err)
 		}
 	}
 

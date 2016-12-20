@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
 	"google.golang.org/api/iterator"
@@ -184,7 +184,7 @@ func deleteHelper(s *storage.Client, bucket string, wg *sync.WaitGroup, toDelete
 		if err := s.Bucket(bucket).Object(file).Delete(context.Background()); err != nil {
 			// Ignore 404 errors on deleting, as they are already gone.
 			if !strings.Contains(err.Error(), "statuscode 404") {
-				glog.Errorf("Problem deleting gs://%s/%s: %s", bucket, file, err)
+				sklog.Errorf("Problem deleting gs://%s/%s: %s", bucket, file, err)
 				atomic.AddInt32(errCount, 1)
 			}
 		}
@@ -212,7 +212,7 @@ func NewDownloadHelper(s *storage.Client, gsBucket, gsSubdir, workdir string) *D
 
 // Download downloads the given binary from Google Storage.
 func (d *DownloadHelper) Download(name, hash string) error {
-	glog.Infof("Downloading new binary for %s...", name)
+	sklog.Infof("Downloading new binary for %s...", name)
 	filepath := path.Join(d.workdir, name)
 	object := hash
 	if d.subdir != "" {
@@ -253,7 +253,7 @@ func (d *DownloadHelper) MaybeDownload(name, hash string) error {
 		return fmt.Errorf("Failed to stat %s: %s", filepath, err)
 	}
 	if info.Mode() != 0755 {
-		glog.Infof("Binary %s is not executable.", filepath)
+		sklog.Infof("Binary %s is not executable.", filepath)
 		return d.Download(name, hash)
 	}
 
@@ -264,7 +264,7 @@ func (d *DownloadHelper) MaybeDownload(name, hash string) error {
 	sha1sum := sha1.Sum(contents)
 	sha1str := fmt.Sprintf("%x", sha1sum)
 	if sha1str != hash {
-		glog.Infof("Binary %s is out of date:\nExpect: %s\nGot:    %s", filepath, hash, sha1str)
+		sklog.Infof("Binary %s is out of date:\nExpect: %s\nGot:    %s", filepath, hash, sha1str)
 		return d.Download(name, hash)
 	}
 	return nil

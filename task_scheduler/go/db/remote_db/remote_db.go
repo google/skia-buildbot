@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
@@ -343,17 +343,17 @@ func (c *client) doStopTrackingModifiedDataRequest(path, id string) {
 	params.Set("id", id)
 	req, err := http.NewRequest(http.MethodDelete, c.serverRoot+path+"?"+params.Encode(), nil)
 	if err != nil {
-		glog.Error(err)
+		sklog.Error(err)
 		return
 	}
 	r, err := c.client.Do(req)
 	if err != nil {
-		glog.Error(err)
+		sklog.Error(err)
 		return
 	}
 	defer util.Close(r.Body)
 	if err := interpretStatusCode(r); err != nil {
-		glog.Error(err)
+		sklog.Error(err)
 		return
 	}
 }

@@ -7,9 +7,9 @@ package main
 import (
 	"flag"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/db"
 )
 
@@ -28,31 +28,31 @@ func main() {
 
 	if *promptPassword {
 		if err := dbConf.PromptForPassword(); err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 	}
 	vdb, err := dbConf.NewVersionedDB()
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Get the current database version
 	maxDBVersion := vdb.MaxDBVersion()
-	glog.Infof("Latest database version: %d", maxDBVersion)
+	sklog.Infof("Latest database version: %d", maxDBVersion)
 
 	dbVersion, err := vdb.DBVersion()
 	if err != nil {
-		glog.Fatalf("Unable to retrieve database version. Error: %s", err)
+		sklog.Fatalf("Unable to retrieve database version. Error: %s", err)
 	}
-	glog.Infof("Current database version: %d", dbVersion)
+	sklog.Infof("Current database version: %d", dbVersion)
 
 	if dbVersion < maxDBVersion {
-		glog.Infof("Migrating to version: %d", maxDBVersion)
+		sklog.Infof("Migrating to version: %d", maxDBVersion)
 		err = vdb.Migrate(maxDBVersion)
 		if err != nil {
-			glog.Fatalf("Unable to retrieve database version. Error: %s", err)
+			sklog.Fatalf("Unable to retrieve database version. Error: %s", err)
 		}
 	}
 
-	glog.Infoln("Database migration finished.")
+	sklog.Infoln("Database migration finished.")
 }
