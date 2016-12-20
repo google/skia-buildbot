@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_72f44eaf",
+        "filename": "go/common/common.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-20T13:01:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_2fc66dac",
+      "revId": "18f7e18ce3b8da44f9ab87098309f96065297655",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_cfb59117",
         "filename": "go/sklog/cloud_logging.go",
         "patchSetId": 11
@@ -36,6 +54,24 @@
       "writtenOn": "2016-12-19T21:38:02Z",
       "side": 1,
       "message": "nit: \"// See comment in BatchCloudLog.\"",
+      "revId": "18f7e18ce3b8da44f9ab87098309f96065297655",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_32fed68d",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2016-12-20T13:01:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_cfb59117",
       "revId": "18f7e18ce3b8da44f9ab87098309f96065297655",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
