@@ -1,0 +1,19 @@
+[Unit]
+Description=Prometheus
+Requires=mnt-pd0.mount
+Wants=network-online.target
+After=mnt-pd0.mount network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/prometheus \
+    -config.file=/etc/prometheus/prometheus.yml \
+    -storage.local.path=/mnt/pd0/prometheus \
+    -web.listen-address=10116
+
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
