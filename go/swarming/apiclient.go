@@ -18,8 +18,7 @@ import (
 )
 
 const (
-	AUTH_SCOPE    = "https://www.googleapis.com/auth/userinfo.email"
-	API_BASE_PATH = "https://chromium-swarm.appspot.com/_ah/api/swarming/v1/"
+	AUTH_SCOPE = "https://www.googleapis.com/auth/userinfo.email"
 
 	DIMENSION_POOL_KEY                 = "pool"
 	DIMENSION_POOL_VALUE_SKIA          = "Skia"
@@ -35,6 +34,7 @@ const (
 var (
 	POOLS_PUBLIC  = []string{DIMENSION_POOL_VALUE_SKIA, DIMENSION_POOL_VALUE_SKIA_CT}
 	POOLS_PRIVATE = []string{DIMENSION_POOL_VALUE_SKIA_INTERNAL}
+	API_BASE_PATH = fmt.Sprintf("https://%s/_ah/api/swarming/v1/")
 
 	retriesRE = regexp.MustCompile("retries:([0-9])*")
 )
@@ -106,12 +106,12 @@ type apiClient struct {
 
 // NewApiClient returns an ApiClient instance which uses the given authenticated
 // http.Client.
-func NewApiClient(c *http.Client) (ApiClient, error) {
+func NewApiClient(c *http.Client, server string) (ApiClient, error) {
 	s, err := swarming.New(c)
 	if err != nil {
 		return nil, err
 	}
-	s.BasePath = API_BASE_PATH
+	s.BasePath = fmt.Sprintf(API_BASE_PATH, server)
 	return &apiClient{s}, nil
 }
 

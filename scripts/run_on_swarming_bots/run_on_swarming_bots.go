@@ -13,6 +13,7 @@ import (
 	"github.com/satori/go.uuid"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 )
@@ -77,7 +78,7 @@ func main() {
 	}
 
 	// Swarming API client.
-	swarmApi, err := swarming.NewApiClient(httpClient)
+	swarmApi, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -88,7 +89,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	swarming, err := swarming.NewSwarmingClient(*workdir)
+	swarming, err := swarming.NewSwarmingClient(*workdir, swarming.SWARMING_SERVER, isolate.ISOLATE_SERVER_URL)
 	if err != nil {
 		sklog.Fatal(err)
 	}

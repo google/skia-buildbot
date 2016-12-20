@@ -414,12 +414,13 @@ func main() {
 	}
 
 	// Initialize Isolate client.
-	isolateClient, err := isolate.NewClient(wdAbs)
+	isolateServerUrl := isolate.ISOLATE_SERVER_URL
+	if *local {
+		isolateServerUrl = isolate.ISOLATE_SERVER_URL_FAKE
+	}
+	isolateClient, err := isolate.NewClient(wdAbs, isolateServerUrl)
 	if err != nil {
 		sklog.Fatal(err)
-	}
-	if *local {
-		isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	}
 
 	// Initialize the database.
@@ -447,7 +448,7 @@ func main() {
 		go periodicallyUpdateMockTasksForTesting(swarmTestClient)
 		swarm = swarmTestClient
 	} else {
-		swarm, err = swarming.NewApiClient(httpClient)
+		swarm, err = swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER)
 		if err != nil {
 			sklog.Fatal(err)
 		}
