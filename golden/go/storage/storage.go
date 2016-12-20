@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/rietveld"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/golden/go/diff"
@@ -59,7 +59,7 @@ func (s *Storage) GetTileStreamNow(interval time.Duration) <-chan *types.TilePai
 		readOneTile := func() {
 			if tilePair, err := s.GetLastTileTrimmed(); err != nil {
 				// Log the error and send the best tile we have right now.
-				glog.Errorf("Error reading tile: %s", err)
+				sklog.Errorf("Error reading tile: %s", err)
 				if lastTile != nil {
 					retCh <- lastTile
 				}

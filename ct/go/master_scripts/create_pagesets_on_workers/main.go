@@ -9,12 +9,12 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -48,7 +48,7 @@ func sendEmail(recipients []string) {
 	`
 	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), failureHtml, frontend.AdminTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
-		glog.Errorf("Error while sending email: %s", err)
+		sklog.Errorf("Error while sending email: %s", err)
 		return
 	}
 }
@@ -68,7 +68,7 @@ func main() {
 	emailsArr := util.ParseEmails(*emails)
 	emailsArr = append(emailsArr, util.CtAdmins...)
 	if len(emailsArr) == 0 {
-		glog.Error("At least one email address must be specified")
+		sklog.Error("At least one email address must be specified")
 		return
 	}
 	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&admin_tasks.RecreatePageSetsUpdateVars{}, *gaeTaskID))
@@ -78,17 +78,17 @@ func main() {
 	defer sendEmail(emailsArr)
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Creating Pagesets on Workers")
-	defer glog.Flush()
+	defer sklog.Flush()
 
 	if *pagesetType == "" {
-		glog.Error("Must specify --pageset_type")
+		sklog.Error("Must specify --pageset_type")
 		return
 	}
 
 	// Empty the remote dir before the workers upload to it.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Error(err)
+		sklog.Error(err)
 		return
 	}
 	gsBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.PAGESETS_DIR_NAME, *pagesetType)
@@ -96,7 +96,7 @@ func main() {
 
 	// Archive, trigger and collect swarming tasks.
 	if err := util.TriggerSwarmingTask(*pagesetType, "create_pagesets", util.CREATE_PAGESETS_ISOLATE, *runID, 5*time.Hour, 1*time.Hour, util.ADMIN_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, map[string]string{}, util.GCE_WORKER_DIMENSIONS); err != nil {
-		glog.Errorf("Error encountered when swarming tasks: %s", err)
+		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}
 

@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -54,7 +54,7 @@ func (d *db) Close() error {
 func issueToRollKey(issue int64) []byte {
 	var buf bytes.Buffer
 	if err := binary.Write(&buf, binary.LittleEndian, issue); err != nil {
-		glog.Fatalf("Failed to serialize int64: %d", issue)
+		sklog.Fatalf("Failed to serialize int64: %d", issue)
 	}
 	return buf.Bytes()
 }

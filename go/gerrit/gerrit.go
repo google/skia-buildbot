@@ -19,9 +19,9 @@ import (
 	"time"
 
 	"github.com/golang/groupcache/lru"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -121,7 +121,7 @@ func NewGerrit(url, gitCookiesPath string, client *http.Client) (*Gerrit, error)
 func DefaultGitCookiesPath() string {
 	usr, err := user.Current()
 	if err != nil {
-		glog.Errorf("Unable to retrieve default git cookies path")
+		sklog.Errorf("Unable to retrieve default git cookies path")
 		return ""
 	}
 	return filepath.Join(usr.HomeDir, ".gitcookies")
@@ -133,7 +133,7 @@ func DefaultGitCookiesPath() string {
 func getCredentials(gitCookiesPath string) (map[string]string, error) {
 	// Set empty cookies if no path was given and issue a warning.
 	if gitCookiesPath == "" {
-		glog.Infof("Gerrit client initialized in read-only mode. ")
+		sklog.Infof("Gerrit client initialized in read-only mode. ")
 		return map[string]string{}, nil
 	}
 
@@ -513,13 +513,13 @@ func NewCodeReviewCache(gerritAPI *Gerrit, pollInterval time.Duration, cacheSize
 func (c *CodeReviewCache) Add(key int64, value *ChangeInfo) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	glog.Infof("\nAdding %d", key)
+	sklog.Infof("\nAdding %d", key)
 	c.cache.Add(key, value)
 }
 
 // Retrieve an issue from the cache.
 func (c *CodeReviewCache) Get(key int64) (*ChangeInfo, bool) {
-	glog.Infof("\nGetting: %d", key)
+	sklog.Infof("\nGetting: %d", key)
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	if val, ok := c.cache.Get(key); ok {
@@ -533,14 +533,14 @@ func (c *CodeReviewCache) poll() {
 	// Search for all keys that have changed in the last timeDelta duration.
 	issues, err := c.gerritAPI.Search(10000, SearchModifiedAfter(time.Now().Add(-c.timeDelta)))
 	if err != nil {
-		glog.Errorf("Error polling Gerrit: %s", err)
+		sklog.Errorf("Error polling Gerrit: %s", err)
 		return
 	}
 
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	for _, issue := range issues {
-		glog.Infof("\nRemoving: %d", issue.Issue)
+		sklog.Infof("\nRemoving: %d", issue.Issue)
 		c.cache.Remove(issue.Issue)
 	}
 }

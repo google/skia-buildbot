@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/golang/groupcache/lru"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -468,7 +468,7 @@ func (c *CodeReviewCache) poll() {
 	// Search for all keys that ahve changed in the last
 	keys, err := c.rietveldAPI.SearchKeys(10000, SearchModifiedAfter(time.Now().Add(-c.timeDelta)))
 	if err != nil {
-		glog.Errorf("Error polling Rietveld: %s", err)
+		sklog.Errorf("Error polling Rietveld: %s", err)
 		return
 	}
 

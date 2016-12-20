@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -161,7 +161,7 @@ func newCachingTokenSource(cacheFilePath string, ctx context.Context, config *oa
 	var err error
 
 	if cacheFilePath == "" {
-		glog.Warningf("cacheFilePath is empty. Not caching auth token.")
+		sklog.Warningf("cacheFilePath is empty. Not caching auth token.")
 	} else if _, err = os.Stat(cacheFilePath); err == nil {
 		// If the file exists. Load from disk.
 		f, err := os.Open(cacheFilePath)
@@ -194,7 +194,7 @@ func newCachingTokenSource(cacheFilePath string, ctx context.Context, config *oa
 		if err = saveToken(cacheFilePath, tok); err != nil {
 			return nil, err
 		}
-		glog.Infof("Token saved to %s", cacheFilePath)
+		sklog.Infof("Token saved to %s", cacheFilePath)
 	}
 
 	// We have a token at this point.

@@ -14,10 +14,10 @@ import (
 
 	"cloud.google.com/go/storage"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fiddle/go/store"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
 	"google.golang.org/api/option"
@@ -42,24 +42,24 @@ func migrateSources(db *sql.DB, st *storage.Client) error {
 		var image []byte
 		var create_ts time.Time
 		if err := rows.Scan(&id, &image, &create_ts); err != nil {
-			glog.Errorf("Failed to fetch image from database: %s", err)
+			sklog.Errorf("Failed to fetch image from database: %s", err)
 			continue
 		}
-		glog.Infof("Migrating %d", id)
+		sklog.Infof("Migrating %d", id)
 		if id > max {
 			max = id
 		}
 		w := bucket.Object(fmt.Sprintf("source/%d.png", id)).NewWriter(context.Background())
 		w.ObjectAttrs.ContentType = "image/png"
 		if _, err := w.Write(image); err != nil {
-			glog.Errorf("Failed to write %d: %s", id, err)
+			sklog.Errorf("Failed to write %d: %s", id, err)
 		}
 		util.Close(w)
 	}
 	w := bucket.Object("source/lastid.txt").NewWriter(context.Background())
 	w.ObjectAttrs.ContentType = "text/plain"
 	if _, err := w.Write([]byte(fmt.Sprintf("%d", max))); err != nil {
-		glog.Errorf("Failed to write lastid.txt: %s", err)
+		sklog.Errorf("Failed to write lastid.txt: %s", err)
 	}
 	util.Close(w)
 	return nil
@@ -68,21 +68,21 @@ func migrateSources(db *sql.DB, st *storage.Client) error {
 func main() {
 	common.Init()
 	if !*confirm {
-		glog.Fatalf("The --i_really_want_to_run_this_despite_the_consequences flag is required.")
+		sklog.Fatalf("The --i_really_want_to_run_this_despite_the_consequences flag is required.")
 	}
 	db, err := sql.Open("mysql", fmt.Sprintf("webtry:%s@tcp(173.194.83.52:3306)/webtry?parseTime=true", *password))
 	if err != nil {
-		glog.Fatalf("ERROR: Failed to open connection to SQL server: %q\n", err)
+		sklog.Fatalf("ERROR: Failed to open connection to SQL server: %q\n", err)
 	}
 	client, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
 	if err != nil {
-		glog.Fatalf("Problem setting up client OAuth: %s", err)
+		sklog.Fatalf("Problem setting up client OAuth: %s", err)
 	}
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
-		glog.Fatalf("Problem authenticating: %s", err)
+		sklog.Fatalf("Problem authenticating: %s", err)
 	}
 	if err := migrateSources(db, storageClient); err != nil {
-		glog.Fatalf("Migration failed: %s", err)
+		sklog.Fatalf("Migration failed: %s", err)
 	}
 }

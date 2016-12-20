@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/frontend/gsloader"
 	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -68,11 +68,11 @@ func (f *FuzzSyncer) Start() {
 
 // Refresh updates the LastCount with fresh data.  Any errors are logged.
 func (f *FuzzSyncer) Refresh() {
-	glog.Info("Counting bad and grey fuzzes")
+	sklog.Info("Counting bad and grey fuzzes")
 	currRevision := config.Common.SkiaVersion.Hash
 	prevRevision, err := f.getMostRecentOldRevision()
 	if err != nil {
-		glog.Infof("Problem getting most recent old version: %s", err)
+		sklog.Infof("Problem getting most recent old version: %s", err)
 		return
 	}
 	f.countMutex.Lock()
@@ -105,7 +105,7 @@ func (f *FuzzSyncer) Refresh() {
 	}
 
 	if err = f.updateLoadedBinaryFuzzes(allBadFuzzes.Keys()); err != nil {
-		glog.Errorf("Problem updating loaded binary fuzzes: %s", err)
+		sklog.Errorf("Problem updating loaded binary fuzzes: %s", err)
 	}
 }
 
@@ -115,7 +115,7 @@ func (f *FuzzSyncer) getMostRecentOldRevision() (string, error) {
 	var newestTime time.Time
 	newestHash := ""
 	findNewest := func(item *storage.ObjectAttrs) {
-		glog.Infof("%s: %s", item.Name, item.Updated)
+		sklog.Infof("%s: %s", item.Name, item.Updated)
 		if newestTime.Before(item.Updated) {
 			newestTime = item.Updated
 			newestHash = item.Name[strings.LastIndex(item.Name, "/")+1:]
@@ -124,7 +124,7 @@ func (f *FuzzSyncer) getMostRecentOldRevision() (string, error) {
 	if err := gs.AllFilesInDir(f.storageClient, config.GS.Bucket, "skia_version/old/", findNewest); err != nil {
 		return "", err
 	}
-	glog.Infof("Most recent old version found to be %s", newestHash)
+	sklog.Infof("Most recent old version found to be %s", newestHash)
 	return newestHash, nil
 }
 
@@ -137,7 +137,7 @@ func (f *FuzzSyncer) getOrLookUpFuzzNames(fuzzType, category, architecture, revi
 	// 5% of the time, we purge the cache
 	cachePurge := rand.Float32() > 0.95
 	if cachePurge {
-		glog.Info("Purging the cached fuzz names")
+		sklog.Info("Purging the cached fuzz names")
 		f.fuzzNameCache = make(map[string]util.StringSet)
 	}
 	if s, has := f.fuzzNameCache[key]; has {
@@ -160,11 +160,11 @@ func (f *FuzzSyncer) getFuzzNames(fuzzType, category, architecture, revision str
 	if names, err := gs.FileContentsFromGS(f.storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/%s/%s_fuzz_names.txt", category, revision, architecture, fuzzType)); err == nil {
 		return util.NewStringSet(strings.Split(string(names), "|")).Complement(emptyString)
 	} else {
-		glog.Infof("Could not find cached names, downloading them the long way, instead: %s", err)
+		sklog.Infof("Could not find cached names, downloading them the long way, instead: %s", err)
 	}
 
 	if names, err := common.GetAllFuzzNamesInFolder(f.storageClient, fmt.Sprintf("%s/%s/%s/%s", category, revision, architecture, fuzzType)); err != nil {
-		glog.Errorf("Problem fetching %s %s %s fuzzes at revision %s: %s", fuzzType, architecture, category, revision, err)
+		sklog.Errorf("Problem fetching %s %s %s fuzzes at revision %s: %s", fuzzType, architecture, category, revision, err)
 		return nil
 	} else {
 		return util.NewStringSet(names).Complement(emptyString)
@@ -175,7 +175,7 @@ func (f *FuzzSyncer) getFuzzNames(fuzzType, category, architecture, revision str
 // in the fuzz report tree / cache.
 func (f *FuzzSyncer) updateLoadedBinaryFuzzes(currentBadFuzzHashes []string) error {
 	if f.gsLoader == nil {
-		glog.Info("Skipping update because the cache hasn't been set yet")
+		sklog.Info("Skipping update because the cache hasn't been set yet")
 		return nil
 	}
 	prevBadFuzzNames, err := f.gsLoader.Cache.LoadFuzzNames(config.Common.SkiaVersion.Hash)
@@ -193,7 +193,7 @@ func (f *FuzzSyncer) updateLoadedBinaryFuzzes(currentBadFuzzHashes []string) err
 		newBinaryFuzzNames = append(newBinaryFuzzNames, h)
 	}
 
-	glog.Infof("%d newly found fuzzes from Google Storage.  Going to load them.", len(newBinaryFuzzNames))
+	sklog.Infof("%d newly found fuzzes from Google Storage.  Going to load them.", len(newBinaryFuzzNames))
 	if len(newBinaryFuzzNames) > 0 {
 		return f.gsLoader.LoadFuzzesFromGoogleStorage(newBinaryFuzzNames)
 	}

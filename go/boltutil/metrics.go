@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 )
 
 // TxStatsMetric contains sub-metrics for each field of the bolt.TxStats from
@@ -285,7 +285,7 @@ func NewDbMetricWithClient(c *metrics2.Client, d *bolt.DB, bucketNames []string,
 				return
 			case <-t:
 				if err := m.Update(); err != nil {
-					glog.Error(err)
+					sklog.Error(err)
 				} else {
 					m.Liveness.Reset()
 				}

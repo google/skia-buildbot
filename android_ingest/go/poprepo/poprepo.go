@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -90,7 +90,7 @@ func (p *PopRepo) Add(buildid int64, ts int64) error {
 			return
 		}
 		if err := p.checkout.Update(); err != nil {
-			glog.Errorf("While rolling back failed Add(): Unable to update the checkout at %q: %s", p.checkout.Dir(), err)
+			sklog.Errorf("While rolling back failed Add(): Unable to update the checkout at %q: %s", p.checkout.Dir(), err)
 		}
 	}()
 

@@ -10,7 +10,7 @@ import (
 	"os"
 	"unsafe"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -52,7 +52,7 @@ var (
 func deltaOffset(n int) int {
 	ret := int(math.Ceil(math.Log(float64(n))/math.Log(3) + 0.5))
 	if ret < 1 || ret > 7 {
-		glog.Fatalf("Input: %d", n)
+		sklog.Fatalf("Input: %d", n)
 	}
 	return ret - 1
 }
@@ -239,7 +239,7 @@ func GetNRGBA(img image.Image) *image.NRGBA {
 	case *image.RGBA:
 		for i := 0; i < len(t.Pix); i += 4 {
 			if t.Pix[i+3] != 0xff {
-				glog.Warning("Unexpected premultiplied image!")
+				sklog.Warning("Unexpected premultiplied image!")
 				return recode(img)
 			}
 		}

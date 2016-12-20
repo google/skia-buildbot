@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -89,7 +89,7 @@ func (mh *ModeHistory) CurrentMode() string {
 	if len(mh.history) > 0 {
 		return mh.history[0].Mode
 	} else {
-		glog.Errorf("Mode history is empty even after initialization!")
+		sklog.Errorf("Mode history is empty even after initialization!")
 		return MODE_STOPPED
 	}
 }

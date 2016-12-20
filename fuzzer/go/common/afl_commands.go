@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/config"
+	"go.skia.org/infra/go/sklog"
 )
 
 type AnalysisArgs []string
@@ -21,7 +21,7 @@ func AnalysisArgsFor(category string, pathToExecutable, pathToFile string) Analy
 	timeoutInSeconds := fmt.Sprintf("%ds", config.Aggregator.AnalysisTimeout/time.Second)
 	f, found := fuzzers[category]
 	if !found {
-		glog.Errorf("Unknown fuzz category %q", category)
+		sklog.Errorf("Unknown fuzz category %q", category)
 		return nil
 	}
 	cmd := append([]string{timeoutInSeconds, "catchsegv", pathToExecutable}, f.ArgsAfterExecutable...)
@@ -35,7 +35,7 @@ func AnalysisArgsFor(category string, pathToExecutable, pathToFile string) Analy
 func GenerationArgsFor(category, pathToExecutable, fuzzerName string, isMaster bool) GenerationArgs {
 	f, found := fuzzers[category]
 	if !found {
-		glog.Errorf("Unknown fuzz category %q", category)
+		sklog.Errorf("Unknown fuzz category %q", category)
 		return nil
 	}
 	masterFlag := "-M"

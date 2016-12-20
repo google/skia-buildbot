@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"cloud.google.com/go/storage"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/frontend/gsloader"
 	"go.skia.org/infra/fuzzer/go/frontend/syncer"
+	"go.skia.org/infra/go/sklog"
 	"golang.org/x/net/context"
 )
 
@@ -48,6 +48,6 @@ func UpdateVersionToFuzz(storageClient *storage.Client, bucket, version string) 
 	if err := w.Close(); err != nil {
 		return fmt.Errorf("Could not create version file %s : %s", newVersionFile, err)
 	}
-	glog.Infof("%s has been made.  The backend and frontend will eventually pick up this change (in that order).\n", newVersionFile)
+	sklog.Infof("%s has been made.  The backend and frontend will eventually pick up this change (in that order).\n", newVersionFile)
 	return nil
 }

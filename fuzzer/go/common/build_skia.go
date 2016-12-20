@@ -5,18 +5,18 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/sklog"
 )
 
 // BuildClangHarness builds the test harness for fuzzing using clang, pulling it from the executable
 // cache if possible.  It returns the path to the executable (which should be copied somewhere else)
 // and any error.
 func BuildClangHarness(buildType buildskia.ReleaseType, isClean bool) (string, error) {
-	glog.Infof("Building %s clang harness, or fetching from cache", buildType)
+	sklog.Infof("Building %s clang harness, or fetching from cache", buildType)
 	buildArgs := []string{
 		fmt.Sprintf("cc=%q", config.Common.ClangPath),
 		fmt.Sprintf("cxx=%q", config.Common.ClangPlusPlusPath),
@@ -28,7 +28,7 @@ func BuildClangHarness(buildType buildskia.ReleaseType, isClean bool) (string, e
 // from the executable cache if possible.  It returns the path to the executable (which should be
 // copied somewhere else) and any error.
 func BuildASANHarness(buildType buildskia.ReleaseType, isClean bool) (string, error) {
-	glog.Infof("Building %s ASAN harness, or fetching from cache", buildType)
+	sklog.Infof("Building %s ASAN harness, or fetching from cache", buildType)
 	buildArgs := []string{
 		fmt.Sprintf("cc=%q", config.Common.ClangPath),
 		fmt.Sprintf("cxx=%q", config.Common.ClangPlusPlusPath),
@@ -41,7 +41,7 @@ func BuildASANHarness(buildType buildskia.ReleaseType, isClean bool) (string, er
 // from the executable cache if possible.  It returns the path to the executable (which should be
 // copied somewhere else) and any error.
 func BuildFuzzingHarness(buildType buildskia.ReleaseType, isClean bool) (string, error) {
-	glog.Infof("Building %s fuzzing harness, or fetching from cache", buildType)
+	sklog.Infof("Building %s fuzzing harness, or fetching from cache", buildType)
 	buildArgs := []string{
 		fmt.Sprintf("cc=%q", filepath.Join(config.Generator.AflRoot, "afl-clang-fast")),
 		fmt.Sprintf("cxx=%q", filepath.Join(config.Generator.AflRoot, "afl-clang-fast++")),
@@ -82,7 +82,7 @@ func buildOrGetCachedHarness(buildName string, buildType buildskia.ReleaseType, 
 	cachedFile := filepath.Join(cache, buildName)
 	if info, err := os.Stat(cachedFile); err != nil {
 		if os.IsNotExist(err) {
-			glog.Infof("Did not find %s %s build for revision %s in cache.  Going to build it.", buildName, buildType, hashes[0])
+			sklog.Infof("Did not find %s %s build for revision %s in cache.  Going to build it.", buildName, buildType, hashes[0])
 			if builtExePath, err := buildHarness(buildType, isClean, buildArgs); err != nil {
 				return "", fmt.Errorf("There was a problem building: %s", err)
 			} else {
@@ -94,7 +94,7 @@ func buildOrGetCachedHarness(buildName string, buildType buildskia.ReleaseType, 
 	} else if info.IsDir() {
 		return "", fmt.Errorf("The cached executable %s was actually a directory.  This should not be the case", cachedFile)
 	} else {
-		glog.Infof("Found %s %s build for revision %s in cache", buildName, buildType, hashes[0])
+		sklog.Infof("Found %s %s build for revision %s in cache", buildName, buildType, hashes[0])
 		return cachedFile, nil
 	}
 }

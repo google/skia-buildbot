@@ -13,13 +13,13 @@ import (
 	"sync"
 
 	"cloud.google.com/go/storage"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sharedconfig"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	gc_event "go.skia.org/infra/grandcentral/go/event"
@@ -163,7 +163,7 @@ func (g *GoogleStorageSource) Poll(startTime, endTime int64) ([]ResultFileLocati
 		err := gs.AllFilesInDir(g.storageClient, g.bucket, dir, func(item *storage.ObjectAttrs) {
 			// TODO(stephana): remove this when we move away from the chromium-skia-gm bucket.
 			if strings.Contains(filepath.Base(item.Name), "uploading") {
-				glog.Warningf("Received temporary file from GS: %s", item.Name)
+				sklog.Warningf("Received temporary file from GS: %s", item.Name)
 			} else if validIngestionFile(item.Name) && (item.Updated.Unix() > startTime) {
 				retval = append(retval, newGSResultFileLocation(item, g.rootDir, g.storageClient))
 			}
@@ -184,7 +184,7 @@ func (g *GoogleStorageSource) EventChan() <-chan []ResultFileLocation {
 		if validIngestionFile(storageEv.Name) {
 			result, err := g.storageClient.Bucket(storageEv.Bucket).Object(storageEv.Name).Attrs(context.Background())
 			if err != nil {
-				glog.Errorf("Error retrievint obj attributes for %s/%s: %s", storageEv.Bucket, storageEv.Name, err)
+				sklog.Errorf("Error retrievint obj attributes for %s/%s: %s", storageEv.Bucket, storageEv.Name, err)
 				return
 			}
 			ch <- []ResultFileLocation{newGSResultFileLocation(result, g.rootDir, g.storageClient)}
@@ -233,18 +233,18 @@ func (g *gsResultFileLocation) Open() (io.ReadCloser, error) {
 		for i := 0; i < MAX_URI_GET_TRIES; i++ {
 			reader, err = g.storageClient.Bucket(g.bucket).Object(g.name).NewReader(context.Background())
 			if err != nil {
-				glog.Errorf("New reader failed for %s/%s: %s", g.bucket, g.name, err)
+				sklog.Errorf("New reader failed for %s/%s: %s", g.bucket, g.name, err)
 				continue
 			}
 
 			// Read the entire file into memory and return a buffer.
 			if g.content, err = ioutil.ReadAll(reader); err != nil {
-				glog.Errorf("Error reading content of %s/%s: %s", g.bucket, g.name, err)
+				sklog.Errorf("Error reading content of %s/%s: %s", g.bucket, g.name, err)
 				g.content = nil
 				continue
 			}
 
-			glog.Infof("GSFILE READ %s/%s", g.bucket, g.name)
+			sklog.Infof("GSFILE READ %s/%s", g.bucket, g.name)
 			break
 		}
 		if err != nil {
@@ -303,7 +303,7 @@ func (f *FileSystemSource) Poll(startTime, endTime int64) ([]ResultFileLocation,
 				if err != nil {
 					// We swallow the error to continue processing, but make sure it's
 					// shows up in the logs.
-					glog.Errorf("Error walking %s: %s", path, err)
+					sklog.Errorf("Error walking %s: %s", path, err)
 					return nil
 				}
 				if info.IsDir() {
@@ -314,7 +314,7 @@ func (f *FileSystemSource) Poll(startTime, endTime int64) ([]ResultFileLocation,
 				if validIngestionFile(path) && (updateTimestamp > startTime) {
 					rf, err := FileSystemResult(path, f.rootDir)
 					if err != nil {
-						glog.Errorf("Unable to create file system result: %s", err)
+						sklog.Errorf("Unable to create file system result: %s", err)
 						return nil
 					}
 					retval = append(retval, rf)
@@ -325,7 +325,7 @@ func (f *FileSystemSource) Poll(startTime, endTime int64) ([]ResultFileLocation,
 			// Only walk the tree if the top directory exists.
 			if fileutil.FileExists(dir) {
 				if err := filepath.Walk(dir, walkFn); err != nil {
-					glog.Infof("Unable to read the local dir %s: %s", dir, err)
+					sklog.Infof("Unable to read the local dir %s: %s", dir, err)
 					return
 				}
 			}

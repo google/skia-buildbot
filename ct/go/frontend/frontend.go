@@ -11,12 +11,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/ct/go/ctfe/pending_tasks"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	skutil "go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
@@ -52,7 +52,7 @@ var httpClient = httputils.NewTimeoutClient()
 func MustInit() {
 	err := webhook.InitRequestSaltFromFile(ctutil.WebhookRequestSaltPath)
 	if err != nil {
-		glog.Fatalf("Could not read salt from %s. %s Error was: %v",
+		sklog.Fatalf("Could not read salt from %s. %s Error was: %v",
 			ctutil.WebhookRequestSaltPath, ctutil.WEBHOOK_SALT_MSG, err)
 	}
 	initUrls(WEBAPP_ROOT_V2)
@@ -84,7 +84,7 @@ func initUrls(webapp_root string) {
 }
 
 func UpdateWebappTask(gaeTaskID int64, webappURL string, extraData map[string]string) error {
-	glog.Infof("Updating %s on %s with %s", gaeTaskID, webappURL, extraData)
+	sklog.Infof("Updating %s on %s with %s", gaeTaskID, webappURL, extraData)
 	pwdBytes, err := ioutil.ReadFile(ctutil.WebappPasswordPath)
 	if err != nil {
 		return fmt.Errorf("Could not read the webapp password file: %s", err)
@@ -129,7 +129,7 @@ func GetOldestPendingTaskV2() (task_common.Task, error) {
 
 func UpdateWebappTaskV2(vars task_common.UpdateTaskVars) error {
 	postUrl := WebappRoot + vars.UriPath()
-	glog.Infof("Updating %v on %s", vars, postUrl)
+	sklog.Infof("Updating %v on %s", vars, postUrl)
 
 	json, err := json.Marshal(vars)
 	if err != nil {

@@ -27,7 +27,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"go.skia.org/infra/go/androidbuild"
@@ -41,6 +40,7 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/webhook"
@@ -142,7 +142,7 @@ func buildFromCommit(build *androidbuildinternal.Build, commit *vcsinfo.ShortCom
 	if err == nil {
 		b.PropertiesStr = string(props)
 	} else {
-		glog.Errorf("Failed to encode properties: %s", err)
+		sklog.Errorf("Failed to encode properties: %s", err)
 	}
 	if build.Successful {
 		b.Results = buildbot.BUILDBOT_SUCCESS
@@ -175,14 +175,14 @@ func brokenOnMaster(buildService *androidbuildinternal.Service, target, buildID 
 func ingestBuild(build *buildbot.Build, commitHash, target string) error {
 	// Store build.Builder (the codename) with its pair build.Target.Name in a local leveldb to serve redirects.
 	if err := codenameDB.Put([]byte(build.Builder), []byte(target), nil); err != nil {
-		glog.Errorf("Failed to write codename to data store: %s", err)
+		sklog.Errorf("Failed to write codename to data store: %s", err)
 	}
 
 	buildNumber, err := db.GetBuildNumberForCommit(build.Master, build.Builder, commitHash)
 	if err != nil {
 		return fmt.Errorf("Failed to find the build in the database: %s", err)
 	}
-	glog.Infof("GetBuildNumberForCommit at hash: %s returned %d", commitHash, buildNumber)
+	sklog.Infof("GetBuildNumberForCommit at hash: %s returned %d", commitHash, buildNumber)
 	var existingBuild *buildbot.Build
 	if buildNumber != -1 {
 		existingBuild, err = db.GetBuildFromDB(build.Master, build.Builder, buildNumber)
@@ -202,11 +202,11 @@ func ingestBuild(build *buildbot.Build, commitHash, target string) error {
 			return fmt.Errorf("Failed to find next build number: %s", err)
 		}
 		build.Number = number + 1
-		glog.Infof("Writing new build to the database: %s %d", build.Builder, build.Number)
+		sklog.Infof("Writing new build to the database: %s %d", build.Builder, build.Number)
 	} else {
 		// If the state of the build has changed then write it to the buildbot database.
 		build.Number = buildNumber
-		glog.Infof("Writing updated build to the database: %s %d", build.Builder, build.Number)
+		sklog.Infof("Writing updated build to the database: %s %d", build.Builder, build.Number)
 	}
 	if err := buildbot.IngestBuild(db, build, repos); err != nil {
 		return fmt.Errorf("Failed to ingest build: %s", err)
@@ -216,17 +216,17 @@ func ingestBuild(build *buildbot.Build, commitHash, target string) error {
 
 // step does a single step in ingesting builds from tradefed and pushing the results into the buildbot database.
 func step(targets []string, buildService *androidbuildinternal.Service) {
-	glog.Infof("step: Begin")
+	sklog.Infof("step: Begin")
 
 	if err := repos.Update(); err != nil {
-		glog.Errorf("Failed to update repos: %s", err)
+		sklog.Errorf("Failed to update repos: %s", err)
 		return
 	}
 	// Loop over every target and look for skia commits in the builds.
 	for _, target := range targets {
 		r, err := buildService.Build.List().Branch(SKIA_BRANCH).BuildType("submitted").Target(target).ExtraFields("changeInfo").MaxResults(40).Do()
 		if err != nil {
-			glog.Errorf("Failed to load internal builds: %v", err)
+			sklog.Errorf("Failed to load internal builds: %v", err)
 			continue
 		}
 		// Iterate over the builds in reverse order so we ingest the earlier Git
@@ -234,14 +234,14 @@ func step(targets []string, buildService *androidbuildinternal.Service) {
 		for i := len(r.Builds) - 1; i >= 0; i-- {
 			b := r.Builds[i]
 			commits := androidbuild.CommitsFromChanges(b.Changes)
-			glog.Infof("Commits: %#v", commits)
+			sklog.Infof("Commits: %#v", commits)
 			if len(commits) > 0 {
 				// Only look at the first commit in the list. The commits always appear in reverse chronological order, so
 				// the 0th entry is the most recent commit.
 				c := commits[0]
 				// Create a buildbot.Build from the build info.
 				key, build := buildFromCommit(b, c)
-				glog.Infof("Key: %s Hash: %s", key, c.Hash)
+				sklog.Infof("Key: %s Hash: %s", key, c.Hash)
 
 				// If this was a failure then we need to check that there is a
 				// mirror failure on the main branch, at which point we will say
@@ -250,7 +250,7 @@ func step(targets []string, buildService *androidbuildinternal.Service) {
 					build.Results = buildbot.BUILDBOT_WARNINGS
 				}
 				if err := ingestBuild(build, c.Hash, target); err != nil {
-					glog.Error(err)
+					sklog.Error(err)
 				}
 			}
 			tradefedLiveness.Reset()
@@ -262,7 +262,7 @@ func step(targets []string, buildService *androidbuildinternal.Service) {
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	if _, err := w.Write([]byte("Nothing to see here.")); err != nil {
-		glog.Errorf("Failed to write response: %s", err)
+		sklog.Errorf("Failed to write response: %s", err)
 	}
 }
 
@@ -348,7 +348,7 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 		result = fmt.Sprintf(TEST_RESULTS_REDIRECT_TEMPLATE, target, link, link)
 	}
 	if result == "" {
-		glog.Errorf("No redirect for %#v", build)
+		sklog.Errorf("No redirect for %#v", build)
 		httputils.ReportError(w, r, nil, "No redirect for this build.")
 		return
 	}
@@ -415,7 +415,7 @@ func builderRedirectHandler(w http.ResponseWriter, r *http.Request) {
 		response = fmt.Sprintf(LAUNCH_CONTROL_BUILDER_REDIRECT_TEMPLATE, codename, target, target, target)
 	}
 	if _, err := w.Write([]byte(response)); err != nil {
-		glog.Errorf("Failed to write response: %s", err)
+		sklog.Errorf("Failed to write response: %s", err)
 	}
 }
 
@@ -425,13 +425,13 @@ func builderRedirectHandler(w http.ResponseWriter, r *http.Request) {
 func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := webhook.AuthenticateRequest(r)
 	if err != nil {
-		glog.Errorf("Failed authentication in ingestBuildHandler: %s", err)
+		sklog.Errorf("Failed authentication in ingestBuildHandler: %s", err)
 		httputils.ReportError(w, r, nil, "Failed authentication.")
 		return
 	}
 	vars := map[string]string{}
 	if err := json.Unmarshal(data, &vars); err != nil {
-		glog.Errorf("Failed to parse request: %s", err)
+		sklog.Errorf("Failed to parse request: %s", err)
 		httputils.ReportError(w, r, nil, "Failed to parse request.")
 		return
 	}
@@ -458,7 +458,7 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	buildbotResults, err := buildbot.ParseResultsString(status)
 	if err != nil {
-		glog.Errorf("Invalid status parameter: %s", err)
+		sklog.Errorf("Invalid status parameter: %s", err)
 		httputils.ReportError(w, r, nil, "Invalid status parameter.")
 		return
 	}
@@ -467,7 +467,7 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 		if t, err := strconv.ParseInt(startTimeStr, 10, 64); err == nil {
 			startTime = time.Unix(t, 0).UTC()
 		} else {
-			glog.Errorf("Invalid startTime parameter: %s", err)
+			sklog.Errorf("Invalid startTime parameter: %s", err)
 			httputils.ReportError(w, r, nil, "Invalid startTime parameter.")
 			return
 		}
@@ -477,7 +477,7 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 		if t, err := strconv.ParseInt(finishTimeStr, 10, 64); err == nil {
 			finishTime = time.Unix(t, 0).UTC()
 		} else {
-			glog.Errorf("Invalid finishTime parameter: %s", err)
+			sklog.Errorf("Invalid finishTime parameter: %s", err)
 			httputils.ReportError(w, r, nil, "Invalid finishTime parameter.")
 			return
 		}
@@ -505,7 +505,7 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 		if clNum, err := strconv.Atoi(cl); err == nil {
 			b.Properties = append(b.Properties, []interface{}{"changeListNumber", strconv.Itoa(clNum), "datahopper_internal"})
 		} else {
-			glog.Errorf("Invalid changeListNumber parameter: %s", err)
+			sklog.Errorf("Invalid changeListNumber parameter: %s", err)
 			httputils.ReportError(w, r, nil, "Invalid changeListNumber parameter.")
 			return
 		}
@@ -514,7 +514,7 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 		if url, err := url.Parse(link); err == nil {
 			b.Properties = append(b.Properties, []interface{}{"testResultsLink", url.String(), "datahopper_internal"})
 		} else {
-			glog.Errorf("Invalid testResultsLink parameter: %s", err)
+			sklog.Errorf("Invalid testResultsLink parameter: %s", err)
 			httputils.ReportError(w, r, nil, "Invalid testResultsLink parameter.")
 			return
 		}
@@ -524,14 +524,14 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		b.PropertiesStr = string(props)
 	} else {
-		glog.Errorf("Failed to encode properties: %s", err)
+		sklog.Errorf("Failed to encode properties: %s", err)
 	}
 	if err := repos.Update(); err != nil {
 		httputils.ReportError(w, r, err, "Failed to update repos.")
 		return
 	}
 	if err := ingestBuild(b, commitHash, target); err != nil {
-		glog.Errorf("Failed to ingest build: %s", err)
+		sklog.Errorf("Failed to ingest build: %s", err)
 		httputils.ReportError(w, r, nil, "Failed to ingest build.")
 		return
 	}
@@ -587,7 +587,7 @@ func startWebhookMetrics() {
 	go func() {
 		for _ = range time.Tick(common.SAMPLE_PERIOD) {
 			if err := updateWebhookMetrics(); err != nil {
-				glog.Errorf("Failed to update metrics: %s", err)
+				sklog.Errorf("Failed to update metrics: %s", err)
 				continue
 			}
 			metricLiveness.Reset()
@@ -607,25 +607,25 @@ func main() {
 		*targetList = metadata.Must(metadata.ProjectGet("datahopper_internal_targets"))
 	}
 	targets := strings.Split(*targetList, " ")
-	glog.Infof("Targets: %#v", targets)
+	sklog.Infof("Targets: %#v", targets)
 
 	codenameDB, err = leveldb.OpenFile(*codenameDbDir, nil)
 	if err != nil && errors.IsCorrupted(err) {
 		codenameDB, err = leveldb.RecoverFile(*codenameDbDir, nil)
 	}
 	if err != nil {
-		glog.Fatalf("Failed to open codename leveldb at %s: %s", *codenameDbDir, err)
+		sklog.Fatalf("Failed to open codename leveldb at %s: %s", *codenameDbDir, err)
 	}
 	// Initialize the buildbot database.
 	if *local {
 		db, err = buildbot.NewLocalDB(path.Join(*workdir, "buildbot.db"))
 		if err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 	} else {
 		db, err = buildbot.NewRemoteDB(*buildbotDbHost)
 		if err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 	}
 
@@ -634,7 +634,7 @@ func main() {
 		redirectURL = "https://internal.skia.org/oauth2callback/"
 	}
 	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		glog.Fatalf("Failed to initialize login system: %s", err)
+		sklog.Fatalf("Failed to initialize login system: %s", err)
 
 	}
 
@@ -647,7 +647,7 @@ func main() {
 	// Ensure Skia repo is cloned and updated.
 	repos, err = repograph.NewMap([]string{common.REPO_SKIA}, *workdir)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Initialize and start metrics.
@@ -658,21 +658,21 @@ func main() {
 
 	// Ingest Android framework builds.
 	go func() {
-		glog.Infof("Starting.")
+		sklog.Infof("Starting.")
 
 		// In this case we don't want a backoff transport since the Apiary backend
 		// seems to fail a lot, so we basically want to fall back to polling if a
 		// call fails.
 		client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope, storage.CloudPlatformScope)
 		if err != nil {
-			glog.Fatalf("Unable to create authenticated client: %s", err)
+			sklog.Fatalf("Unable to create authenticated client: %s", err)
 		}
 
 		buildService, err := androidbuildinternal.New(client)
 		if err != nil {
-			glog.Fatalf("Failed to obtain Android build service: %v", err)
+			sklog.Fatalf("Failed to obtain Android build service: %v", err)
 		}
-		glog.Infof("Ready to start loop.")
+		sklog.Infof("Ready to start loop.")
 		step(targets, buildService)
 		for _ = range time.Tick(*period) {
 			step(targets, buildService)
@@ -690,5 +690,5 @@ func main() {
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

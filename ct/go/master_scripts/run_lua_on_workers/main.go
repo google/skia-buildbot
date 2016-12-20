@@ -14,12 +14,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -67,7 +67,7 @@ func sendEmail(recipients []string) {
 	`
 	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, scriptOutputHtml, aggregatorOutputHtml, frontend.LuaTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
-		glog.Errorf("Error while sending email: %s", err)
+		sklog.Errorf("Error while sending email: %s", err)
 		return
 	}
 }
@@ -93,7 +93,7 @@ func main() {
 	emailsArr := util.ParseEmails(*emails)
 	emailsArr = append(emailsArr, util.CtAdmins...)
 	if len(emailsArr) == 0 {
-		glog.Error("At least one email address must be specified")
+		sklog.Error("At least one email address must be specified")
 		return
 	}
 	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&lua_scripts.UpdateVars{}, *gaeTaskID))
@@ -103,25 +103,25 @@ func main() {
 	defer sendEmail(emailsArr)
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running Lua script on workers")
-	defer glog.Flush()
+	defer sklog.Flush()
 
 	if *pagesetType == "" {
-		glog.Error("Must specify --pageset_type")
+		sklog.Error("Must specify --pageset_type")
 		return
 	}
 	if *chromiumBuild == "" {
-		glog.Error("Must specify --chromium_build")
+		sklog.Error("Must specify --chromium_build")
 		return
 	}
 	if *runID == "" {
-		glog.Error("Must specify --run_id")
+		sklog.Error("Must specify --run_id")
 		return
 	}
 
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Error(err)
+		sklog.Error(err)
 		return
 	}
 
@@ -130,7 +130,7 @@ func main() {
 	defer skutil.Remove(filepath.Join(os.TempDir(), luaScriptName))
 	luaScriptRemoteDir := filepath.Join(util.LuaRunsDir, *runID, "scripts")
 	if err := gs.UploadFile(luaScriptName, os.TempDir(), luaScriptRemoteDir); err != nil {
-		glog.Errorf("Could not upload %s to %s: %s", luaScriptName, luaScriptRemoteDir, err)
+		sklog.Errorf("Could not upload %s to %s: %s", luaScriptName, luaScriptRemoteDir, err)
 		return
 	}
 
@@ -144,7 +144,7 @@ func main() {
 		"RUN_ID":         *runID,
 	}
 	if err := util.TriggerSwarmingTask(*pagesetType, "run_lua", util.RUN_LUA_ISOLATE, *runID, 3*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, util.GCE_WORKER_DIMENSIONS); err != nil {
-		glog.Errorf("Error encountered when swarming tasks: %s", err)
+		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}
 
@@ -154,12 +154,12 @@ func main() {
 	// If the file already exists it could be that there is another lua task running on this machine.
 	// Wait for the file to be deleted within a deadline.
 	if err := waitForOutputFile(consolidatedLuaOutput); err != nil {
-		glog.Error(err)
+		sklog.Error(err)
 		return
 	}
 	defer skutil.Remove(consolidatedLuaOutput)
 	if err := ioutil.WriteFile(consolidatedLuaOutput, []byte{}, 0660); err != nil {
-		glog.Errorf("Could not create %s: %s", consolidatedLuaOutput, err)
+		sklog.Errorf("Could not create %s: %s", consolidatedLuaOutput, err)
 		return
 	}
 	for i := 1; i <= util.PagesetTypeToInfo[*pagesetType].NumPages/MAX_PAGES_PER_SWARMING_BOT; i++ {
@@ -167,18 +167,18 @@ func main() {
 		workerRemoteOutputPath := filepath.Join(util.LuaRunsDir, *runID, startRange, "outputs", *runID+".output")
 		respBody, err := gs.GetRemoteFileContents(workerRemoteOutputPath)
 		if err != nil {
-			glog.Errorf("Could not fetch %s: %s", workerRemoteOutputPath, err)
+			sklog.Errorf("Could not fetch %s: %s", workerRemoteOutputPath, err)
 			continue
 		}
 		defer skutil.Close(respBody)
 		out, err := os.OpenFile(consolidatedLuaOutput, os.O_RDWR|os.O_APPEND, 0660)
 		if err != nil {
-			glog.Errorf("Unable to open file %s: %s", consolidatedLuaOutput, err)
+			sklog.Errorf("Unable to open file %s: %s", consolidatedLuaOutput, err)
 			return
 		}
 		defer skutil.Close(out)
 		if _, err = io.Copy(out, respBody); err != nil {
-			glog.Errorf("Unable to write out %s to %s: %s", workerRemoteOutputPath, consolidatedLuaOutput, err)
+			sklog.Errorf("Unable to write out %s to %s: %s", workerRemoteOutputPath, consolidatedLuaOutput, err)
 			return
 		}
 	}
@@ -186,7 +186,7 @@ func main() {
 	consolidatedOutputRemoteDir := filepath.Join(util.LuaRunsDir, *runID, "consolidated_outputs")
 	luaOutputRemoteLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, consolidatedOutputRemoteDir, consolidatedFileName)
 	if err := gs.UploadFile(consolidatedFileName, os.TempDir(), consolidatedOutputRemoteDir); err != nil {
-		glog.Errorf("Unable to upload %s to %s: %s", consolidatedLuaOutput, consolidatedOutputRemoteDir, err)
+		sklog.Errorf("Unable to upload %s to %s: %s", consolidatedLuaOutput, consolidatedOutputRemoteDir, err)
 		return
 	}
 
@@ -197,7 +197,7 @@ func main() {
 	luaAggregatorFileInfo, err := os.Stat(luaAggregatorPath)
 	if !os.IsNotExist(err) && luaAggregatorFileInfo.Size() > 10 {
 		if err := gs.UploadFile(luaAggregatorName, os.TempDir(), luaScriptRemoteDir); err != nil {
-			glog.Errorf("Could not upload %s to %s: %s", luaAggregatorName, luaScriptRemoteDir, err)
+			sklog.Errorf("Could not upload %s to %s: %s", luaAggregatorName, luaScriptRemoteDir, err)
 			return
 		}
 		// Run the aggregator and save stdout.
@@ -207,23 +207,23 @@ func main() {
 		defer skutil.Close(luaAggregatorOutputFile)
 		defer skutil.Remove(luaAggregatorOutputFilePath)
 		if err != nil {
-			glog.Errorf("Could not create %s: %s", luaAggregatorOutputFilePath, err)
+			sklog.Errorf("Could not create %s: %s", luaAggregatorOutputFilePath, err)
 			return
 		}
 		err = util.ExecuteCmd(util.BINARY_LUA, []string{luaAggregatorPath}, []string{},
 			util.LUA_AGGREGATOR_TIMEOUT, luaAggregatorOutputFile, nil)
 		if err != nil {
-			glog.Errorf("Could not execute the lua aggregator %s: %s", luaAggregatorPath, err)
+			sklog.Errorf("Could not execute the lua aggregator %s: %s", luaAggregatorPath, err)
 			return
 		}
 		// Copy the aggregator output into Google Storage.
 		luaAggregatorOutputRemoteLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, consolidatedOutputRemoteDir, luaAggregatorOutputFileName)
 		if err := gs.UploadFile(luaAggregatorOutputFileName, os.TempDir(), consolidatedOutputRemoteDir); err != nil {
-			glog.Errorf("Unable to upload %s to %s: %s", luaAggregatorOutputFileName, consolidatedOutputRemoteDir, err)
+			sklog.Errorf("Unable to upload %s to %s: %s", luaAggregatorOutputFileName, consolidatedOutputRemoteDir, err)
 			return
 		}
 	} else {
-		glog.Info("A lua aggregator has not been specified.")
+		sklog.Info("A lua aggregator has not been specified.")
 	}
 
 	taskCompletedSuccessfully = true
@@ -242,7 +242,7 @@ func waitForOutputFile(luaOutput string) error {
 			if _, err := os.Stat(luaOutput); os.IsNotExist(err) {
 				return nil
 			}
-			glog.Infof("%s still exists. Waiting for the other lua task to complete.", luaOutput)
+			sklog.Infof("%s still exists. Waiting for the other lua task to complete.", luaOutput)
 		case <-deadlineTicker.C:
 			return fmt.Errorf("%s still existed after %v secs", luaOutput, deadline.Seconds())
 		}

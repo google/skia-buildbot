@@ -17,9 +17,9 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"golang.org/x/net/context"
@@ -112,7 +112,7 @@ func NewDBBackup(ctx context.Context, gsBucket string, db db.BackupDBCloser, nam
 	go util.RepeatCtx(10*time.Minute, b.ctx, b.updateMetrics)
 	go util.RepeatCtx(10*time.Second, b.ctx, func() {
 		if err := b.incrementalBackupStep(time.Now()); err != nil {
-			glog.Errorf("Incremental Job backup failed: %s", err)
+			sklog.Errorf("Incremental Job backup failed: %s", err)
 		}
 	})
 
@@ -150,24 +150,24 @@ func newGsDbBackupWithClient(ctx context.Context, gsBucket string, db db.BackupD
 		b.db.StopTrackingModifiedTasks(b.modifiedJobsId)
 		// TODO(benjaminwagner): Liveness doesn't have a Delete method.
 		//if err := b.lastDBBackupLiveness.Delete(); err != nil {
-		//	glog.Error(err)
+		//	sklog.Error(err)
 		//}
 		if err := b.recentDBBackupCount.Delete(); err != nil {
-			glog.Error(err)
+			sklog.Error(err)
 		}
 		// TODO(benjaminwagner): Liveness doesn't have a Delete method.
 		//if err := b.maybeBackupDBLiveness.Delete(); err != nil {
-		//	glog.Error(err)
+		//	sklog.Error(err)
 		//}
 		if err := b.jobBackupCount.Delete(); err != nil {
-			glog.Error(err)
+			sklog.Error(err)
 		}
 		// TODO(benjaminwagner): Liveness doesn't have a Delete method.
 		//if err := b.incrementalBackupLiveness.Delete(); err != nil {
-		//	glog.Error(err)
+		//	sklog.Error(err)
 		//}
 		if err := b.incrementalBackupResetCount.Delete(); err != nil {
-			glog.Error(err)
+			sklog.Error(err)
 		}
 	}()
 	return b, nil
@@ -196,10 +196,10 @@ func (b *gsDBBackup) getBackupMetrics(now time.Time) (time.Time, int64, error) {
 func (b *gsDBBackup) updateMetrics() {
 	last, count, err := b.getBackupMetrics(time.Now())
 	if err != nil {
-		glog.Errorf("Failed to get DB backup metrics: %s", err)
+		sklog.Errorf("Failed to get DB backup metrics: %s", err)
 	}
 	b.lastDBBackupLiveness.ManualReset(last)
-	glog.Infof("Last DB backup was %s.", last)
+	sklog.Infof("Last DB backup was %s.", last)
 	b.recentDBBackupCount.Update(count)
 }
 
@@ -283,7 +283,7 @@ func (b *gsDBBackup) backupDB(now time.Time, basename string) (err error) {
 
 	modTime, err := b.db.GetIncrementalBackupTime()
 	if err != nil {
-		glog.Warningf("Error getting DB incremental backup time; using current time instead. %s", err)
+		sklog.Warningf("Error getting DB incremental backup time; using current time instead. %s", err)
 		modTime = now
 	}
 	if err := b.writeDBBackupToFile(tempfilename); err != nil {
@@ -306,7 +306,7 @@ func immediateBackupBasename(now time.Time) string {
 
 // See documentation for DBBackup.ImmediateBackup.
 func (b *gsDBBackup) ImmediateBackup() error {
-	glog.Infof("Beginning manual DB backup.")
+	sklog.Infof("Beginning manual DB backup.")
 	now := time.Now()
 	return b.backupDB(now, immediateBackupBasename(now))
 }
@@ -372,33 +372,33 @@ func (b *gsDBBackup) maybeBackupDB(now time.Time) {
 	// or a previous automatic backup attempt.
 	basename, attemptCount, err := b.findAndParseTriggerFile()
 	if err != nil {
-		glog.Error(err)
+		sklog.Error(err)
 	}
 	if basename == "" {
 		return
 	}
 	attemptCount++
 	if attemptCount == 1 {
-		glog.Infof("Beginning automatic DB backup.")
+		sklog.Infof("Beginning automatic DB backup.")
 	} else {
-		glog.Infof("Retrying automatic DB backup -- attempt %d.", attemptCount)
+		sklog.Infof("Retrying automatic DB backup -- attempt %d.", attemptCount)
 	}
 	if err := b.backupDB(now, basename); err != nil {
-		glog.Errorf("Automatic DB backup failed: %s", err)
+		sklog.Errorf("Automatic DB backup failed: %s", err)
 		if attemptCount >= RETRY_COUNT {
-			glog.Errorf("Automatic DB backup failed after %d attempts. Retries exhausted.", attemptCount)
+			sklog.Errorf("Automatic DB backup failed after %d attempts. Retries exhausted.", attemptCount)
 			if err := b.deleteTriggerFile(basename); err != nil {
-				glog.Error(err)
+				sklog.Error(err)
 			}
 		} else {
 			if err := b.writeTriggerFile(basename, attemptCount); err != nil {
-				glog.Error(err)
+				sklog.Error(err)
 			}
 		}
 	} else {
-		glog.Infof("Completed automatic DB backup.")
+		sklog.Infof("Completed automatic DB backup.")
 		if err := b.deleteTriggerFile(basename); err != nil {
-			glog.Error(err)
+			sklog.Error(err)
 		}
 	}
 }
@@ -432,7 +432,7 @@ func (b *gsDBBackup) backupJob(now time.Time, id string, jobGob []byte) error {
 func (b *gsDBBackup) incrementalBackupStep(now time.Time) error {
 	jobs, err := b.db.GetModifiedJobsGOB(b.modifiedJobsId)
 	if db.IsUnknownId(err) {
-		glog.Errorf("incrementalBackupStep too slow; GetModifiedJobsGOB expired id: %s", b.modifiedJobsId)
+		sklog.Errorf("incrementalBackupStep too slow; GetModifiedJobsGOB expired id: %s", b.modifiedJobsId)
 		b.incrementalBackupResetCount.Inc(1)
 		id, startErr := b.db.StartTrackingModifiedJobs()
 		if startErr != nil {

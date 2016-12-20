@@ -9,10 +9,10 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/issues"
+	"go.skia.org/infra/go/sklog"
 )
 
 var (
@@ -37,7 +37,7 @@ func main() {
 
 	client, err := auth.NewDefaultJWTServiceAccountClient("https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
-		glog.Fatalf("Unable to create installed app oauth client:%s", err)
+		sklog.Fatalf("Unable to create installed app oauth client:%s", err)
 	}
 	tracker = issues.NewMonorailIssueTracker(client)
 	switch mode {
@@ -68,12 +68,12 @@ func handleQuery(args []string) {
 	query := args[0]
 	iss, err := tracker.FromQuery(query)
 	if err != nil {
-		glog.Errorf("Failed to retrieve issues: %s\n", err)
+		sklog.Errorf("Failed to retrieve issues: %s\n", err)
 		return
 	}
 	fmt.Printf("Found: %d\n", len(iss))
 	for _, issue := range iss {
-		glog.Infof("%20d %10s %s\n", issue.ID, issue.State, issue.Title)
+		sklog.Infof("%20d %10s %s\n", issue.ID, issue.State, issue.Title)
 	}
 }
 
@@ -83,7 +83,7 @@ func handleComment(args []string) {
 		Content: args[1],
 	}
 	if err := tracker.AddComment(id, comment); err != nil {
-		glog.Errorf("Failed to add comment: %s\n", err)
+		sklog.Errorf("Failed to add comment: %s\n", err)
 		return
 	}
 }
@@ -106,7 +106,7 @@ func handleCreate() {
 		Description: *description,
 	}
 	if err := tracker.AddIssue(req); err != nil {
-		glog.Errorf("Failed to add issue: %s", err)
+		sklog.Errorf("Failed to add issue: %s", err)
 	}
 }
 

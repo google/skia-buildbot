@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/git"
 )
@@ -79,7 +79,7 @@ func (c *Cache) parseLog(log string) error {
 		}
 		c.hashes[buildid] = hash
 	}
-	glog.Infof("Prepopulated lookup.Cache with %d buildids.", len(c.hashes))
+	sklog.Infof("Prepopulated lookup.Cache with %d buildids.", len(c.hashes))
 	return nil
 }
 

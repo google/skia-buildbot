@@ -12,13 +12,13 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/geventbus"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/skiaversion"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/grandcentral/go/event"
 )
@@ -48,7 +48,7 @@ Hello World
 </body>
 </html>
 `)); err != nil {
-		glog.Error(err)
+		sklog.Error(err)
 	}
 }
 
@@ -67,7 +67,7 @@ func googleStorageChangeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Log the result and fire an event.
-	glog.Infof("Google Storage notification from bucket \"%s\": %s", data.Bucket, data.Name)
+	sklog.Infof("Google Storage notification from bucket \"%s\": %s", data.Bucket, data.Name)
 	eventBus.Publish(event.GLOBAL_GOOGLE_STORAGE, data)
 }
 
@@ -93,8 +93,8 @@ func runServer(serverURL string) {
 	r.HandleFunc("/buildbot", buildbotEventHandler).Methods("POST")
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	glog.Infof("Ready to serve on %s", serverURL)
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infof("Ready to serve on %s", serverURL)
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
 
 func main() {
@@ -102,16 +102,16 @@ func main() {
 	common.InitWithMetrics2("grandcentral", influxHost, influxUser, influxPassword, influxDatabase, testing)
 	v, err := skiaversion.GetVersion()
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
-	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
 	if *nsqdAddress == "" {
-		glog.Fatal("Missing address of nsqd server.")
+		sklog.Fatal("Missing address of nsqd server.")
 	}
 	globalEventBus, err := geventbus.NewNSQEventBus(*nsqdAddress)
 	if err != nil {
-		glog.Fatalf("Unable to connect to NSQ server: %s", err)
+		sklog.Fatalf("Unable to connect to NSQ server: %s", err)
 	}
 	eventBus = eventbus.New(globalEventBus)
 

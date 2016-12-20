@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/util"
@@ -96,7 +96,7 @@ func (a *API) List(branch string, endBuildId int64) ([]Build, error) {
 // after a successful call into the api.
 func (a *API) onePage(branch string, endBuildId int64, collect map[int64]int64, pageToken string) (string, error) {
 	for i := 0; i < RETRIES; i++ {
-		glog.Infof("Querying for %q %d", branch, endBuildId)
+		sklog.Infof("Querying for %q %d", branch, endBuildId)
 		request := a.service.Build.List().BuildType("submitted").Branch(branch).MaxResults(PAGE_SIZE).Fields("builds(buildId,creationTimestamp),nextPageToken")
 		request.EndBuildId(fmt.Sprintf("%d", endBuildId))
 		if pageToken != "" {
@@ -104,7 +104,7 @@ func (a *API) onePage(branch string, endBuildId int64, collect map[int64]int64, 
 		}
 		resp, err := request.Do()
 		if err != nil {
-			glog.Infof("Call failed: %s", err)
+			sklog.Infof("Call failed: %s", err)
 			time.Sleep(SLEEP_DURATION)
 			continue
 		}
@@ -112,7 +112,7 @@ func (a *API) onePage(branch string, endBuildId int64, collect map[int64]int64, 
 			// Convert build.BuildId to int64.
 			buildId, err := strconv.ParseInt(build.BuildId, 10, 64)
 			if err != nil {
-				glog.Errorf("Got an invalid buildid %q: %s ", build.BuildId, err)
+				sklog.Errorf("Got an invalid buildid %q: %s ", build.BuildId, err)
 				continue
 			}
 			if ts, ok := collect[buildId]; !ok {

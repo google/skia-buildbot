@@ -8,7 +8,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
@@ -152,7 +152,7 @@ func (s *TaskScheduler) triggerPeriodicJobs() error {
 	}
 	// Trigger the periodic tasks.
 	for _, trigger := range triggers {
-		glog.Infof("Triggering %s tasks", trigger)
+		sklog.Infof("Triggering %s tasks", trigger)
 		jobs := []*db.Job{}
 		for rs, cfg := range cfgs {
 			for name, spec := range cfg.Jobs {

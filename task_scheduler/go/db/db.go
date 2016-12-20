@@ -5,7 +5,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -120,7 +120,7 @@ func UpdateTasksWithRetries(db TaskDB, f func() ([]*Task, error)) ([]*Task, erro
 			return nil, lastErr
 		}
 	}
-	glog.Warningf("UpdateWithRetries: %d consecutive ErrConcurrentUpdate.", NUM_RETRIES)
+	sklog.Warningf("UpdateWithRetries: %d consecutive ErrConcurrentUpdate.", NUM_RETRIES)
 	return nil, lastErr
 }
 
@@ -226,7 +226,7 @@ func UpdateJobsWithRetries(db JobDB, f func() ([]*Job, error)) ([]*Job, error) {
 			return nil, lastErr
 		}
 	}
-	glog.Warningf("UpdateWithRetries: %d consecutive ErrConcurrentUpdate.", NUM_RETRIES)
+	sklog.Warningf("UpdateWithRetries: %d consecutive ErrConcurrentUpdate.", NUM_RETRIES)
 	return nil, lastErr
 }
 

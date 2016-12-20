@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -85,11 +85,11 @@ func (orig *RepoComments) Copy() *RepoComments {
 	// TODO(benjaminwagner): Make this more efficient.
 	b := bytes.Buffer{}
 	if err := gob.NewEncoder(&b).Encode(orig); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	copy := RepoComments{}
 	if err := gob.NewDecoder(&b).Decode(&copy); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	return &copy
 }
@@ -279,7 +279,7 @@ func (b *CommentBox) PutTaskComment(c *TaskComment) error {
 	if err := b.write(); err != nil {
 		// If write returns an error, we must revert to previous.
 		if _, delErr := b.deleteTaskComment(c); delErr != nil {
-			glog.Warning("Unexpected error: %s", delErr)
+			sklog.Warning("Unexpected error: %s", delErr)
 		}
 		return err
 	}
@@ -298,7 +298,7 @@ func (b *CommentBox) DeleteTaskComment(c *TaskComment) error {
 		if err := b.write(); err != nil {
 			// If write returns an error, we must revert to previous.
 			if putErr := b.putTaskComment(existing); putErr != nil {
-				glog.Warning("Unexpected error: %s", putErr)
+				sklog.Warning("Unexpected error: %s", putErr)
 			}
 			return err
 		}
@@ -376,7 +376,7 @@ func (b *CommentBox) PutTaskSpecComment(c *TaskSpecComment) error {
 	if err := b.write(); err != nil {
 		// If write returns an error, we must revert to previous.
 		if _, delErr := b.deleteTaskSpecComment(c); delErr != nil {
-			glog.Warning("Unexpected error: %s", delErr)
+			sklog.Warning("Unexpected error: %s", delErr)
 		}
 		return err
 	}
@@ -395,7 +395,7 @@ func (b *CommentBox) DeleteTaskSpecComment(c *TaskSpecComment) error {
 		if err := b.write(); err != nil {
 			// If write returns an error, we must revert to previous.
 			if putErr := b.putTaskSpecComment(existing); putErr != nil {
-				glog.Warning("Unexpected error: %s", putErr)
+				sklog.Warning("Unexpected error: %s", putErr)
 			}
 			return err
 		}
@@ -473,7 +473,7 @@ func (b *CommentBox) PutCommitComment(c *CommitComment) error {
 	if err := b.write(); err != nil {
 		// If write returns an error, we must revert to previous.
 		if _, delErr := b.deleteCommitComment(c); delErr != nil {
-			glog.Warning("Unexpected error: %s", delErr)
+			sklog.Warning("Unexpected error: %s", delErr)
 		}
 		return err
 	}
@@ -492,7 +492,7 @@ func (b *CommentBox) DeleteCommitComment(c *CommitComment) error {
 		if err := b.write(); err != nil {
 			// If write returns an error, we must revert to previous.
 			if putErr := b.putCommitComment(existing); putErr != nil {
-				glog.Warning("Unexpected error: %s", putErr)
+				sklog.Warning("Unexpected error: %s", putErr)
 			}
 			return err
 		}

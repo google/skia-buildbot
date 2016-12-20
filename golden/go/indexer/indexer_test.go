@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/database/testutil"
 	"go.skia.org/infra/go/eventbus"
@@ -130,7 +130,7 @@ func BenchmarkIndexer(b *testing.B) {
 	changes, err := expStore.Get()
 	assert.NoError(b, err)
 
-	glog.Infof("Got %d tests", len(changes.Tests))
+	sklog.Infof("Got %d tests", len(changes.Tests))
 
 	// Wait for the indexTests to complete when we change the expectations.
 	var wg sync.WaitGroup

@@ -12,7 +12,6 @@ import (
 	"time"
 
 	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
-	"github.com/skia-dev/glog"
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/exec"
@@ -20,6 +19,7 @@ import (
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
@@ -283,11 +283,11 @@ func MockJobStarted(mock *mockhttpclient.URLMock, id int64, now time.Time, err e
 func serializeJob(j *db.Job) string {
 	jobBytes, err := json.Marshal(j)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	escape, err := json.Marshal(string(jobBytes))
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	return string(escape[1 : len(escape)-1])
 }

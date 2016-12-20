@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/human"
@@ -75,7 +75,7 @@ Flags:
 }
 
 func progress(step, totalSteps int) {
-	glog.Infof("Progress - %0.2f", 100.0*float32(step)/float32(totalSteps))
+	sklog.Infof("Progress - %0.2f", 100.0*float32(step)/float32(totalSteps))
 }
 
 // _df returns the DataFrame that matches the given query in the range of the
@@ -170,7 +170,7 @@ func main() {
 
 	git, err := gitinfo.CloneOrUpdate(*gitRepoURL, *gitRepoDir, false)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	ptracestore.Init(*ptraceStoreDir)

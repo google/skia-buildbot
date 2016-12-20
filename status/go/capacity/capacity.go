@@ -12,9 +12,9 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/cq"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -52,7 +52,7 @@ type BotConfig struct {
 
 // QueryAll updates the capacity metrics.
 func (c *CapacityClient) QueryAll() error {
-	glog.Infoln("Recounting Capacity Stats")
+	sklog.Infoln("Recounting Capacity Stats")
 
 	// Fetch last 72 hours worth of tasks that TaskScheduler created.
 	now := time.Now()
@@ -61,7 +61,7 @@ func (c *CapacityClient) QueryAll() error {
 	if err != nil {
 		return fmt.Errorf("Could not fetch tasks between %s and %s: %s", before, now, err)
 	}
-	glog.Infof("Found %d tasks in last 72 hours", len(tasks))
+	sklog.Infof("Found %d tasks in last 72 hours", len(tasks))
 
 	// Go through all the tasks and group the durations and bot ids by task name
 	durations := make(map[string][]taskData)
@@ -78,7 +78,7 @@ func (c *CapacityClient) QueryAll() error {
 		})
 	}
 
-	glog.Infof("From %d tasks, we saw %d unique task names", len(tasks), len(durations))
+	sklog.Infof("From %d tasks, we saw %d unique task names", len(tasks), len(durations))
 
 	// The db.Task structs don't have their dimensions, so we pull those off of the master
 	// branches of all the repos. If the dimensions were updated recently, this may lead
@@ -95,17 +95,17 @@ func (c *CapacityClient) QueryAll() error {
 
 	cqTasks, err := cq.GetSkiaCQTryBots()
 	if err != nil {
-		glog.Warningf("Could not get Skia CQ bots.  Continuing anyway.  %s", err)
+		sklog.Warningf("Could not get Skia CQ bots.  Continuing anyway.  %s", err)
 		cqTasks = []string{}
 	}
 	infraCQTasks, err := cq.GetSkiaInfraCQTryBots()
 	if err != nil {
-		glog.Warningf("Could not get Skia CQ bots.  Continuing anyway.  %s", err)
+		sklog.Warningf("Could not get Skia CQ bots.  Continuing anyway.  %s", err)
 		infraCQTasks = []string{}
 	}
 	cqTasks = append(cqTasks, infraCQTasks...)
 
-	glog.Infof("About to look up those tasks in %+v", tips)
+	sklog.Infof("About to look up those tasks in %+v", tips)
 
 	// botConfigs coalesces all dimension groups together. For example, all tests
 	// that require "device_type:flounder|device_os:N12345" will be grouped together,
@@ -124,7 +124,7 @@ func (c *CapacityClient) QueryAll() error {
 			}
 		}
 		if err != nil {
-			glog.Warningf("Could not find taskspec for %s", taskName)
+			sklog.Warningf("Could not find taskspec for %s", taskName)
 			continue
 		}
 		dims := taskSpec.Dimensions
@@ -147,7 +147,7 @@ func (c *CapacityClient) QueryAll() error {
 		if len(taskRuns) != 0 {
 			avgDuration /= time.Duration(len(taskRuns))
 		}
-		glog.Infof("Over %d runs, task %s took %s", len(taskRuns), taskName, avgDuration)
+		sklog.Infof("Over %d runs, task %s took %s", len(taskRuns), taskName, avgDuration)
 		config.TaskAverageDurations = append(config.TaskAverageDurations, TaskDuration{
 			Name:            taskName,
 			AverageDuration: avgDuration,
@@ -166,7 +166,7 @@ func (c *CapacityClient) StartLoading(interval time.Duration) {
 	go func() {
 		util.RepeatCtx(interval, context.Background(), func() {
 			if err := c.QueryAll(); err != nil {
-				glog.Errorf("There was a problem counting capacity stats")
+				sklog.Errorf("There was a problem counting capacity stats")
 			}
 		})
 	}()

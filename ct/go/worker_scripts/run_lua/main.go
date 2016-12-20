@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
@@ -35,7 +35,7 @@ func runLua() error {
 		defer util.CleanTmpDir()
 	}
 	defer util.TimeTrack(time.Now(), "Running Lua Scripts")
-	defer glog.Flush()
+	defer sklog.Flush()
 
 	if *chromiumBuild == "" {
 		return errors.New("Must specify --chromium_build")
@@ -123,7 +123,7 @@ func runLua() error {
 func main() {
 	retCode := 0
 	if err := runLua(); err != nil {
-		glog.Errorf("Error while running lua scripts: %s", err)
+		sklog.Errorf("Error while running lua scripts: %s", err)
 		retCode = 255
 	}
 	os.Exit(retCode)

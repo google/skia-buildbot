@@ -16,7 +16,7 @@ fi
 VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 
 FUZZER_SOURCE_SNAPSHOT=skia-systemd-pushable-base
-FUZZER_SCOPES='https://www.googleapis.com/auth/devstorage.read_write'
+FUZZER_SCOPES='https://www.googleapis.com/auth/devstorage.read_write,https://www.googleapis.com/auth/logging.write'
 
 FUZZER_FE_IP_ADDRESS=104.154.112.170
 FUZZER_FE_MACHINE_TYPE=n1-standard-8

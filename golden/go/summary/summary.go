@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -125,7 +125,7 @@ type TraceID struct {
 //
 func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []string, query url.Values, head bool) (map[string]*Summary, error) {
 	defer timer.New("CalcSummaries").Stop()
-	glog.Infof("CalcSummaries: head %v", head)
+	sklog.Infof("CalcSummaries: head %v", head)
 
 	ret := map[string]*Summary{}
 
@@ -266,7 +266,7 @@ func (s *Summaries) search(tile *tiling.Tile, query string, head bool, pos bool,
 	for key, _ := range matches {
 		testDigest := strings.Split(key, ":")
 		if len(testDigest) != 2 {
-			glog.Errorf("Invalid test name or digest value: %s", key)
+			sklog.Errorf("Invalid test name or digest value: %s", key)
 			continue
 		}
 		test := testDigest[0]
@@ -353,7 +353,7 @@ func diameter(digests []string, diffStore diff.DiffStore) int {
 			defer wg.Done()
 			dms, err := diffStore.Get(diff.PRIORITY_NOW, d1, d2)
 			if err != nil {
-				glog.Errorf("Unable to get diff: %s", err)
+				sklog.Errorf("Unable to get diff: %s", err)
 				return
 			}
 			localMax := 0

@@ -8,7 +8,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 // Point represents a single sample point.
@@ -171,7 +171,7 @@ func (t *TimeSeries) Add(pt Point) {
 	t.lock.Lock()
 	defer t.lock.Unlock()
 	if pt.Timestamp <= t.data[len(t.data)-1].Timestamp {
-		glog.Errorf("Received an out of order point %v", pt)
+		sklog.Errorf("Received an out of order point %v", pt)
 		return
 	}
 	t.data = append(t.data, pt)

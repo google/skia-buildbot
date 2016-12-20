@@ -3,8 +3,8 @@ package history
 import (
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -79,7 +79,7 @@ func (h *historian) start() error {
 			select {
 			case tilePair := <-tileStream:
 				if err := h.updateDigestInfo(tilePair.TileWithIgnores); err != nil {
-					glog.Errorf("Error calculating status: %s", err)
+					sklog.Errorf("Error calculating status: %s", err)
 					continue
 				} else {
 					lastTilePair = tilePair
@@ -87,7 +87,7 @@ func (h *historian) start() error {
 			case <-expChanges:
 				storage.DrainChangeChannel(expChanges)
 				if err := h.updateDigestInfo(lastTilePair.TileWithIgnores); err != nil {
-					glog.Errorf("Error calculating tile after expectation udpate: %s", err)
+					sklog.Errorf("Error calculating tile after expectation udpate: %s", err)
 					continue
 				}
 			}
@@ -108,14 +108,14 @@ func (h *historian) backFillDigestInfo(nDaysToBackfill int) {
 		endTS := time.Now()
 		tile, err := h.storages.GetTileFromTimeRange(startTS, endTS)
 		if err != nil {
-			glog.Errorf("Error retrieving tile for range %s - %s: %s", startTS, endTS, err)
+			sklog.Errorf("Error retrieving tile for range %s - %s: %s", startTS, endTS, err)
 			return
 		}
 
 		// Process the tile, but giving higher priority to digests from the
 		// latest tile.
 		if err = h.processTile(tile); err != nil {
-			glog.Errorf("Error processing tile: %s", err)
+			sklog.Errorf("Error processing tile: %s", err)
 		}
 	}()
 }

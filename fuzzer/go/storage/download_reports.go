@@ -7,11 +7,11 @@ import (
 	"sync/atomic"
 
 	"cloud.google.com/go/storage"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/data"
 	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/sklog"
 )
 
 // GetReportsFromGS fetches all fuzz reports in the baseFolder from Google Storage. It returns a
@@ -102,7 +102,7 @@ func fetchFuzzPackages(s *storage.Client, baseFolder, category, architecture str
 // emptyStringOnError returns a string of the passed in bytes or empty string if err is nil.
 func emptyStringOnError(b []byte, err error) string {
 	if err != nil {
-		glog.Warningf("Ignoring error when fetching file contents: %v", err)
+		sklog.Warningf("Ignoring error when fetching file contents: %v", err)
 		return ""
 	}
 	return string(b)
@@ -134,7 +134,7 @@ func download(s *storage.Client, toDownload <-chan fuzzPackage, reports chan<- d
 		reports <- data.ParseReport(p)
 		atomic.AddInt32(completedCounter, 1)
 		if *completedCounter%100 == 0 {
-			glog.Infof("%d fuzzes downloaded", *completedCounter)
+			sklog.Infof("%d fuzzes downloaded", *completedCounter)
 		}
 	}
 }

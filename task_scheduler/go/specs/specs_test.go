@@ -10,12 +10,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
 	exec_testutils "go.skia.org/infra/go/exec/testutils"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -102,7 +102,7 @@ func TestTaskSpecs(t *testing.T) {
 	total, countC1, countC2, countBuild, countTest, countPerf := 0, 0, 0, 0, 0, 0
 	for rs, byName := range specs {
 		for name, _ := range byName {
-			glog.Infof("%s %s", rs, name)
+			sklog.Infof("%s %s", rs, name)
 			total++
 			if rs.Revision == c1 {
 				countC1++

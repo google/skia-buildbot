@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 type FloatImage struct {
@@ -119,7 +119,7 @@ func (src *FloatImage) Dump(fname string) {
 		log.Fatal(err)
 	}
 	if err := png.Encode(file, img); err != nil {
-		glog.Errorf("Failed to encode: %s", err)
+		sklog.Errorf("Failed to encode: %s", err)
 	}
 }
 
@@ -130,6 +130,6 @@ func (src *FloatGrayImage) Dump(fname string) {
 		log.Fatal(err)
 	}
 	if err := png.Encode(file, img); err != nil {
-		glog.Errorf("Failed to encode: %s", err)
+		sklog.Errorf("Failed to encode: %s", err)
 	}
 }

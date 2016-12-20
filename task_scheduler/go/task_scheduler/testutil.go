@@ -6,8 +6,8 @@ import (
 	"time"
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -25,7 +25,7 @@ func mockSwarmingBotsForAllTasksForTesting(repos repograph.Map) []*swarming_api.
 	for _, repo := range repos {
 		branches, err := repo.Repo().Branches()
 		if err != nil {
-			glog.Error(err)
+			sklog.Error(err)
 			continue
 		}
 		for _, branch := range branches {
@@ -34,12 +34,12 @@ func mockSwarmingBotsForAllTasksForTesting(repos repograph.Map) []*swarming_api.
 			}
 			contents, err := repo.Repo().GetFile(specs.TASKS_CFG_FILE, branch.Head)
 			if err != nil {
-				glog.Error(err)
+				sklog.Error(err)
 				continue
 			}
 			cfg, err := specs.ParseTasksCfg(contents)
 			if err != nil {
-				glog.Error(err)
+				sklog.Error(err)
 				continue
 			}
 			for _, spec := range cfg.Tasks {

@@ -4,11 +4,11 @@ package timer
 import (
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 // Timer is for timing events. When finished the duration is reported
-// via glog.
+// via sklog.
 //
 // The standard way to use Timer is at the top of the func you
 // want to measure:
@@ -28,5 +28,5 @@ func New(name string) *Timer {
 }
 
 func (t Timer) Stop() {
-	glog.Infof("%s %v", t.Name, time.Now().Sub(t.Begin))
+	sklog.Infof("%s %v", t.Name, time.Now().Sub(t.Begin))
 }

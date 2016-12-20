@@ -6,13 +6,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/autoroll/go/autoroll_modes"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/rietveld"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -250,7 +250,7 @@ func (r *AutoRoller) SetEmails(e []string) {
 
 // closeIssue closes the given issue with the given message.
 func (r *AutoRoller) closeIssue(issue *autoroll.AutoRollIssue, result, msg string) error {
-	glog.Infof("Closing issue %d (result %q) with message: %s", issue.Issue, result, msg)
+	sklog.Infof("Closing issue %d (result %q) with message: %s", issue.Issue, result, msg)
 	if err := r.rietveld.Close(issue.Issue, msg); err != nil {
 		return err
 	}
@@ -263,7 +263,7 @@ func (r *AutoRoller) closeIssue(issue *autoroll.AutoRollIssue, result, msg strin
 
 // addIssueComment adds a comment to the given issue.
 func (r *AutoRoller) addIssueComment(issue *autoroll.AutoRollIssue, msg string) error {
-	glog.Infof("Adding comment to issue: %q", msg)
+	sklog.Infof("Adding comment to issue: %q", msg)
 	if err := r.rietveld.AddComment(issue.Issue, msg); err != nil {
 		return err
 	}
@@ -325,9 +325,9 @@ func (r *AutoRoller) updateCurrentRoll() error {
 	// repo so that we see the roll commit. This can take some time, so
 	// we have to repeatedly update until we see the commit.
 	if updated.Committed {
-		glog.Infof("Roll succeeded (%d); syncing the repo until it lands.", currentRoll.Issue)
+		sklog.Infof("Roll succeeded (%d); syncing the repo until it lands.", currentRoll.Issue)
 		for {
-			glog.Info("Syncing...")
+			sklog.Info("Syncing...")
 			if err := r.rm.ForceUpdate(); err != nil {
 				return err
 			}
@@ -413,7 +413,7 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 	// If so, leave it open and exit. If not, close it so that we can open another.
 	currentRoll := r.recent.CurrentRoll()
 	if currentRoll != nil {
-		glog.Infof("Found current roll: https://codereview.chromium.org/%d", currentRoll.Issue)
+		sklog.Infof("Found current roll: https://codereview.chromium.org/%d", currentRoll.Issue)
 
 		if r.isMode(autoroll_modes.MODE_DRY_RUN) {
 			if len(currentRoll.TryResults) > 0 && currentRoll.AllTrybotsFinished() {
@@ -423,7 +423,7 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 					result = autoroll.ROLL_RESULT_DRY_RUN_SUCCESS
 					status = STATUS_DRY_RUN_SUCCESS
 				}
-				glog.Infof("Dry run is finished: %v", currentRoll)
+				sklog.Infof("Dry run is finished: %v", currentRoll)
 				if currentRoll.RollingTo != r.rm.ChildHead() {
 					if err := r.closeIssue(currentRoll, result, fmt.Sprintf("Repo has passed %s; will open a new dry run.", currentRoll.RollingTo)); err != nil {
 						return STATUS_ERROR, err
@@ -446,23 +446,23 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 					}
 				} else {
 					// The dry run is finished but still good. Leave it open.
-					glog.Infof("Dry run is finished and still good.")
+					sklog.Infof("Dry run is finished and still good.")
 					return status, nil
 				}
 			} else {
 				if !currentRoll.CommitQueueDryRun {
 					// Set it to dry-run only.
-					glog.Infof("Setting dry-run bit on https://codereview.chromium.org/%d", currentRoll.Issue)
+					sklog.Infof("Setting dry-run bit on https://codereview.chromium.org/%d", currentRoll.Issue)
 					if err := r.setDryRun(currentRoll, true); err != nil {
 						return STATUS_ERROR, err
 					}
 				}
-				glog.Infof("Dry run still in progress.")
+				sklog.Infof("Dry run still in progress.")
 				return STATUS_DRY_RUN_IN_PROGRESS, nil
 			}
 		} else {
 			if currentRoll.CommitQueueDryRun {
-				glog.Infof("Unsetting dry run bit on https://codereview.chromium.org/%d", currentRoll.Issue)
+				sklog.Infof("Unsetting dry run bit on https://codereview.chromium.org/%d", currentRoll.Issue)
 				if err := r.setDryRun(currentRoll, false); err != nil {
 					return STATUS_ERROR, err
 				}
@@ -477,7 +477,7 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 				// If the CQ failed, close the issue.
 				// Special case: if the current roll was a dry run which succeeded, land it.
 				if currentRoll.Result == autoroll.ROLL_RESULT_DRY_RUN_SUCCESS {
-					glog.Infof("Dry run succeeded. Attempting to land.")
+					sklog.Infof("Dry run succeeded. Attempting to land.")
 					if err := r.setDryRun(currentRoll, false); err != nil {
 						return STATUS_ERROR, nil
 					}
@@ -499,7 +499,7 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 				}
 			} else {
 				// Current roll is still good.
-				glog.Infof("Roll is still active (%d): %s", currentRoll.Issue, currentRoll.Subject)
+				sklog.Infof("Roll is still active (%d): %s", currentRoll.Issue, currentRoll.Subject)
 				return STATUS_IN_PROGRESS, nil
 			}
 		}
@@ -507,13 +507,13 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 
 	// If we're stopped, exit.
 	if r.isMode(autoroll_modes.MODE_STOPPED) {
-		glog.Infof("Roller is stopped; not opening new rolls.")
+		sklog.Infof("Roller is stopped; not opening new rolls.")
 		return STATUS_STOPPED, nil
 	}
 
 	// If we're up-to-date, exit.
 	if r.rm.LastRollRev() == r.rm.ChildHead() {
-		glog.Infof("Repo is up-to-date.")
+		sklog.Infof("Repo is up-to-date.")
 		return STATUS_UP_TO_DATE, nil
 	}
 
@@ -526,7 +526,7 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 	if err != nil {
 		return STATUS_ERROR, fmt.Errorf("Failed to upload a new roll: %s", err)
 	}
-	glog.Infof("Uploaded new DEPS roll: %s/%d", autoroll.RIETVELD_URL, uploadedNum)
+	sklog.Infof("Uploaded new DEPS roll: %s/%d", autoroll.RIETVELD_URL, uploadedNum)
 	uploaded, err := r.retrieveRoll(uploadedNum)
 	if err != nil {
 		return STATUS_ERROR, fmt.Errorf("Failed to retrieve uploaded roll: %s", err)

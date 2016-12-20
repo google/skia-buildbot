@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
@@ -204,7 +204,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 			// individual tests that changed.
 			if tilePair != nil {
 				if err := ixr.indexTilePair(tilePair); err != nil {
-					glog.Errorf("Unable to index tile: %s", err)
+					sklog.Errorf("Unable to index tile: %s", err)
 				}
 			} else if len(testNames) > 0 {
 				ixr.indexTests(testNames)
@@ -237,7 +237,7 @@ func (ixr *Indexer) indexTests(testNames []string) {
 	}
 
 	if err := ixr.blamerNode.Trigger(newIdx); err != nil {
-		glog.Errorf("Error indexing tests: %v \n\n Got error: %s", testNames, err)
+		sklog.Errorf("Error indexing tests: %v \n\n Got error: %s", testNames, err)
 	}
 }
 

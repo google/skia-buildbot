@@ -49,7 +49,7 @@ import (
 
 	"go.skia.org/infra/go/util"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -59,8 +59,8 @@ const (
 var (
 	runFn func(command *Command) error = DefaultRun
 
-	WriteInfoLog  = WriteLog{LogFunc: glog.Infof}
-	WriteErrorLog = WriteLog{LogFunc: glog.Errorf}
+	WriteInfoLog  = WriteLog{LogFunc: sklog.Infof}
+	WriteErrorLog = WriteLog{LogFunc: sklog.Errorf}
 )
 
 // WriteLog implements the io.Writer interface and writes to the given log function.
@@ -197,7 +197,7 @@ func start(command *Command, cmd *osexec.Cmd) error {
 		if cmd.Dir != "" {
 			dirMsg = " with CWD " + cmd.Dir
 		}
-		glog.Infof("Executing '%s' (where %s is %s)%s", DebugString(command), command.Name, cmd.Path, dirMsg)
+		sklog.Infof("Executing '%s' (where %s is %s)%s", DebugString(command), command.Name, cmd.Path, dirMsg)
 	}
 	err := cmd.Start()
 	if err != nil {

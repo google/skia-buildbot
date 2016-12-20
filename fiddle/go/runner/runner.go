@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/fiddle/go/linenumbers"
 	"go.skia.org/infra/fiddle/go/types"
@@ -73,7 +73,7 @@ func WriteDrawCpp(checkout, fiddleRoot, code string, opts *types.Options, local 
 			return "", fmt.Errorf("Failed to create temp dir for draw.cpp: %s", err)
 		}
 		dstDir, err = ioutil.TempDir(tmpDir, "code")
-		glog.Infof("Created tmp dir: %s %s", dstDir, err)
+		sklog.Infof("Created tmp dir: %s %s", dstDir, err)
 		if err != nil {
 			return "", fmt.Errorf("Failed to create temp dir for draw.cpp: %s", err)
 		}
@@ -86,9 +86,9 @@ func WriteDrawCpp(checkout, fiddleRoot, code string, opts *types.Options, local 
 			}
 		}
 	}
-	glog.Infof("About to write to: %s", dstDir)
+	sklog.Infof("About to write to: %s", dstDir)
 	w, err := os.Create(filepath.Join(dstDir, "draw.cpp"))
-	glog.Infof("Create: %v %v", *w, err)
+	sklog.Infof("Create: %v %v", *w, err)
 	if err != nil {
 		return dstDir, fmt.Errorf("Failed to open destination: %s", err)
 	}
@@ -194,7 +194,7 @@ func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir st
 	// Parse the output into types.Result.
 	res := &types.Result{}
 	if err := json.Unmarshal(output.Bytes(), res); err != nil {
-		glog.Errorf("Received erroneous output: %q", output.String())
+		sklog.Errorf("Received erroneous output: %q", output.String())
 		return nil, fmt.Errorf("Failed to decode results from run: %s", err)
 	}
 	// TODO Clean up the tmp directory.

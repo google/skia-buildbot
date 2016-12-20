@@ -4,16 +4,20 @@ package common
 
 import (
 	"flag"
+	"net/http"
+	"os"
 	"runtime"
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/influxdb_init"
 	"go.skia.org/infra/go/metrics2"
 
 	"github.com/BurntSushi/toml"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -29,15 +33,15 @@ const (
 // Init runs commonly-used initialization metrics.
 func Init() {
 	flag.Parse()
-	defer glog.Flush()
+	defer sklog.Flush()
 	flag.VisitAll(func(f *flag.Flag) {
-		glog.Infof("Flags: --%s=%v", f.Name, f.Value)
+		sklog.Infof("Flags: --%s=%v", f.Name, f.Value)
 	})
 
 	// See skbug.com/4386 for details on why the below section exists.
-	glog.Info("Initializing logserver for log level INFO.")
-	glog.Warning("Initializing logserver for log level WARNING.")
-	glog.Error("Initializing logserver for log level ERROR.")
+	sklog.Info("Initializing logging for log level INFO.")
+	sklog.Warning("Initializing logging for log level WARNING.")
+	sklog.Error("Initializing logging for log level ERROR.")
 
 	// Use all cores.
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -58,23 +62,75 @@ func InitExternalWithMetrics2(appName string, influxHost, influxUser, influxPass
 	StartMetrics2(appName, influxHost, influxUser, influxPassword, influxDatabase, true)
 }
 
+// InitWithCloudLogging runs normal Init functions, and tracks runtime metrics. It uses Cloud Logging
+// if skipMetadata is false. The influx* arguments are ignored and read from metadata
+// unless *skipMetadata is true.
+// InitWithCloudLogging should be called before the program creates any go routines such that all
+// subsequent logs are properly sent to the Cloud.
+func InitWithCloudLogging(appName string, influxHost, influxUser, influxPassword, influxDatabase *string, skipMetadata *bool) {
+	Init()
+	StartMetrics2(appName, influxHost, influxUser, influxPassword, influxDatabase, *skipMetadata)
+	// disable cloud logging when run locally.
+	if !*skipMetadata {
+		StartCloudLogging(appName)
+	}
+}
+
 // StartMetrics2 starts tracking runtime metrics and sets up metrics push into InfluxDB. The
 // influx* arguments are ignored and read from metadata unless skipMetadata is true.
 func StartMetrics2(appName string, influxHost, influxUser, influxPassword, influxDatabase *string, skipMetadata bool) {
 	influxClient, err := influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, skipMetadata)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	if err := metrics2.Init(appName, influxClient); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Start runtime metrics.
 	metrics2.RuntimeMetrics()
 }
 
-// LogPanic, when deferred from main, logs any panics and flush the log. Defer this function before
-//  any other defers.
+// StartCloudLogging initializes cloud logging. It is assumed to be running in GCE where the
+// project metadata has the sklog.CLOUD_LOGGING_WRITE_SCOPE set. It exits fatally if anything
+// goes wrong. InitWithCloudLogging should be called before the program creates any go routines
+// such that all subsequent logs are properly sent to the Cloud.
+func StartCloudLogging(logName string) {
+	c, err := auth.NewDefaultJWTServiceAccountClient(sklog.CLOUD_LOGGING_WRITE_SCOPE)
+	if err != nil {
+		sklog.Fatalf("Problem getting authenticated client: %s", err)
+	}
+	hostname, err := os.Hostname()
+	if err != nil {
+		sklog.Fatalf("Could not get hostname: %s", err)
+	}
+
+	StartCloudLoggingWithClient(c, hostname, logName)
+}
+
+// StartCloudLoggingWithClient initializes cloud logging with the passed in params.
+// It is recommended clients only call this if they need to specially configure the params,
+// otherwise use StartCloudLogging or, better, InitWithCloudLogging.
+// StartCloudLoggingWithClient should be called before the program creates any go routines
+// such that all subsequent logs are properly sent to the Cloud.
+func StartCloudLoggingWithClient(authClient *http.Client, logGrouping, defaultReport string) {
+	// Initialize all severity counters to 0, otherwise uncommon logs (like Error), won't
+	// be in InfluxDB at all.
+	initSeverities := []string{sklog.INFO, sklog.WARNING, sklog.ERROR}
+	for _, severity := range initSeverities {
+		metrics2.GetCounter("num_log_lines", map[string]string{"level": severity, "log_source": defaultReport}).Reset()
+	}
+
+	metricsCallback := func(severity string) {
+		metrics2.GetCounter("num_log_lines", map[string]string{"level": severity, "log_source": defaultReport}).Inc(1)
+	}
+	if err := sklog.InitCloudLogging(authClient, logGrouping, defaultReport, metricsCallback); err != nil {
+		sklog.Fatal(err)
+	}
+}
+
+// LogPanic, when deferred from main, logs any panics and flush the log to local disk using glog.
+// Defer this function before any other defers.
 func LogPanic() {
 	if r := recover(); r != nil {
 		glog.Fatal(r)
@@ -82,15 +138,15 @@ func LogPanic() {
 	glog.Flush()
 }
 
-// DecodeTomlFile decodes a TOML file into the passed in struct and logs it to glog.  If there is
+// DecodeTomlFile decodes a TOML file into the passed in struct and logs it to sklog.  If there is
 // an error, it panics.
 func DecodeTomlFile(filename string, configuration interface{}) {
 	if _, err := toml.DecodeFile(filename, configuration); err != nil {
-		glog.Fatalf("Failed to decode config file %s: %s", filename, err)
+		sklog.Fatalf("Failed to decode config file %s: %s", filename, err)
 	}
 
 	conf_str := spew.Sdump(configuration)
-	glog.Infof("Read TOML configuration from %s: %s", filename, conf_str)
+	sklog.Infof("Read TOML configuration from %s: %s", filename, conf_str)
 }
 
 // MultiString implements flag.Value, allowing it to be used as

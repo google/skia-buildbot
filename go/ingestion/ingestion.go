@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sharedconfig"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -204,17 +204,17 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 				var startTime, endTime int64 = 0, 0
 				startTime, endTime, err := i.getCommitRangeOfInterest()
 				if err != nil {
-					glog.Errorf("Unable to retrieve the start and end time. Got error: %s", err)
+					sklog.Errorf("Unable to retrieve the start and end time. Got error: %s", err)
 					return
 				}
 
-				glog.Infof("Polling range: %s - %s", time.Unix(startTime, 0), time.Unix(endTime, 0))
+				sklog.Infof("Polling range: %s - %s", time.Unix(startTime, 0), time.Unix(endTime, 0))
 				// measure how long the polling takes.
 				resultFiles, err := source.Poll(startTime, endTime)
 				if err != nil {
 					// Indicate that there was an error in polling the source.
 					srcMetrics.pollError.Update(1)
-					glog.Errorf("Error polling data source '%s': %s", source.ID(), err)
+					sklog.Errorf("Error polling data source '%s': %s", source.ID(), err)
 					return
 				}
 
@@ -277,7 +277,7 @@ func (i *Ingester) inProcessedFiles(md5 string) bool {
 	}
 
 	if err := i.statusDB.View(getFn); err != nil {
-		glog.Errorf("Error reading from bucket %s: %s", PROCESSED_FILES_BUCKET, err)
+		sklog.Errorf("Error reading from bucket %s: %s", PROCESSED_FILES_BUCKET, err)
 	}
 	return ret
 }
@@ -300,13 +300,13 @@ func (i *Ingester) addToProcessedFiles(md5s []string) {
 	}
 
 	if err := i.statusDB.Update(updateFn); err != nil {
-		glog.Errorf("Error writing to bucket %s/%v: %s", PROCESSED_FILES_BUCKET, md5s, err)
+		sklog.Errorf("Error writing to bucket %s/%v: %s", PROCESSED_FILES_BUCKET, md5s, err)
 	}
 }
 
 // processResults ingests a set of result files.
 func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetrics *processMetrics) {
-	glog.Infof("Start ingester: %s", i.id)
+	sklog.Infof("Start ingester: %s", i.id)
 
 	var mutex sync.Mutex // Protects access to the following vars.
 	processedMD5s := make([]string, 0, len(resultFiles))
@@ -338,7 +338,7 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 					ignoredCounter++
 				} else {
 					errorCounter++
-					glog.Errorf("Failed to ingest %s: %s", resultLocation.Name(), err)
+					sklog.Errorf("Failed to ingest %s: %s", resultLocation.Name(), err)
 				}
 				return
 			}
@@ -367,16 +367,16 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 	// Notify the ingester that the batch has finished and cause it to reset its
 	// state and do any pending ingestion.
 	if err := i.processor.BatchFinished(); err != nil {
-		glog.Errorf("Batchfinished failed: %s", err)
+		sklog.Errorf("Batchfinished failed: %s", err)
 	} else {
 		i.addToProcessedFiles(processedMD5s)
 	}
 
 	// Make sure that the finish message is output after all processing messages
 	// are done.
-	glog.Flush()
-	glog.Infof("Finish ingester: %s", i.id)
-	glog.Flush()
+	sklog.Flush()
+	sklog.Infof("Finish ingester: %s", i.id)
+	sklog.Flush()
 }
 
 // saveFileAsync asynchronously saves the given result file to disk.
@@ -386,7 +386,7 @@ func (i *Ingester) saveFileAsync(resultFile ResultFileLocation) {
 		defer i.fileWriterWg.Done()
 		content := resultFile.Content()
 		if content == nil {
-			glog.Errorf("Received file to save without content.")
+			sklog.Errorf("Received file to save without content.")
 			return
 		}
 
@@ -394,18 +394,18 @@ func (i *Ingester) saveFileAsync(resultFile ResultFileLocation) {
 		targetDir, _ := filepath.Split(filePath)
 
 		if err := os.MkdirAll(targetDir, 0700); err != nil {
-			glog.Errorf("Unable to create directory %s. Got error: %s", targetDir, err)
+			sklog.Errorf("Unable to create directory %s. Got error: %s", targetDir, err)
 			return
 		}
 
 		f, err := os.Create(filePath)
 		if err != nil {
-			glog.Errorf("Unable to create file %s. Got error: %s", filePath, err)
+			sklog.Errorf("Unable to create file %s. Got error: %s", filePath, err)
 			return
 		}
 
 		if _, err := f.Write(content); err != nil {
-			glog.Errorf("Could not write file %s. Got error: %s", filePath, err)
+			sklog.Errorf("Could not write file %s. Got error: %s", filePath, err)
 			return
 		}
 	}()

@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/alertserver/go/alerting"
 	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/sklog"
 )
 
 /*
@@ -78,7 +78,7 @@ func (r *Rule) queryExecutionAlert(queryErr error, am Alerter) error {
 	}
 	name := "Failed to execute query"
 	msg := fmt.Sprintf("Failed to execute query for rule \"%s\": [ %s ]  The logs might provide more information: http://104.154.112.114:10115/alertserver.ERROR?page_y=end", r.Name, r.Query)
-	glog.Errorf("%s\nFull error:\n%v", msg, queryErr)
+	sklog.Errorf("%s\nFull error:\n%v", msg, queryErr)
 	return am.AddAlert(&alerting.Alert{
 		Name:        name,
 		Category:    alerting.INFRA_ALERT,
@@ -96,7 +96,7 @@ func (r *Rule) queryEvaluationAlert(queryErr error, am Alerter) error {
 	}
 	name := "Failed to evaluate query"
 	msg := fmt.Sprintf("Failed to evaluate query for rule \"%s\": [ %s ]", r.Name, r.Conditions)
-	glog.Errorf("%s\nFull error:\n%v", msg, queryErr)
+	sklog.Errorf("%s\nFull error:\n%v", msg, queryErr)
 	return am.AddAlert(&alerting.Alert{
 		Name:        name,
 		Category:    alerting.INFRA_ALERT,
@@ -318,11 +318,11 @@ func MakeRules(cfgFile string, dbClient *influxdb.Client, tickInterval time.Dura
 		rv = append(rv, r)
 		go func(rule *Rule) {
 			if err := rule.tick(am); err != nil {
-				glog.Error(err)
+				sklog.Error(err)
 			}
 			for _ = range time.Tick(tickInterval) {
 				if err := rule.tick(am); err != nil {
-					glog.Error(err)
+					sklog.Error(err)
 				}
 			}
 		}(r)

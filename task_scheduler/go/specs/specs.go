@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -567,7 +567,7 @@ func TempGitRepo(repo *git.Repo, rs db.RepoState) (rv *git.TempCheckout, rvErr e
 	}()
 
 	// Check out the correct commit.
-	glog.Infof("Checking out %s", rs.Revision)
+	sklog.Infof("Checking out %s", rs.Revision)
 	if _, err := c.Git("checkout", rs.Revision); err != nil {
 		return nil, err
 	}

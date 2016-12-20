@@ -17,12 +17,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -165,7 +165,7 @@ func (p FileInfoModifiedSlice) Less(i, j int) bool {
 	if iFileInfo.Mode()&os.ModeSymlink == os.ModeSymlink {
 		destFileInfo, err := getSymlinkFileInfo(iFileInfo)
 		if err != nil {
-			glog.Errorf("Could not follow %s: %s", iFileInfo.Name(), err)
+			sklog.Errorf("Could not follow %s: %s", iFileInfo.Name(), err)
 		} else {
 			iModTime = destFileInfo.ModTime()
 		}
@@ -176,7 +176,7 @@ func (p FileInfoModifiedSlice) Less(i, j int) bool {
 	if jFileInfo.Mode()&os.ModeSymlink == os.ModeSymlink {
 		destFileInfo, err := getSymlinkFileInfo(jFileInfo)
 		if err != nil {
-			glog.Errorf("Could not follow %s: %s", jFileInfo.Name(), err)
+			sklog.Errorf("Could not follow %s: %s", jFileInfo.Name(), err)
 		} else {
 			jModTime = destFileInfo.ModTime()
 		}
@@ -299,7 +299,7 @@ func writeFileInfo(w http.ResponseWriter, fileInfo os.FileInfo, maxFileName int)
 	if fileInfo.Mode()&os.ModeSymlink == os.ModeSymlink {
 		destFileInfo, err := getSymlinkFileInfo(fileInfo)
 		if err != nil {
-			glog.Errorf("Could not follow %s: %s", name, err)
+			sklog.Errorf("Could not follow %s: %s", name, err)
 		} else {
 			modTime = destFileInfo.ModTime()
 		}
@@ -328,7 +328,7 @@ func serveFile(w http.ResponseWriter, r *http.Request, fs http.FileSystem, name 
 			w.WriteHeader(http.StatusMovedPermanently)
 			return
 		}
-		glog.Infof("Dir List: %s", name)
+		sklog.Infof("Dir List: %s", name)
 		dirList(w, f)
 		return
 	}
@@ -346,7 +346,7 @@ func getAppAndLogLevel(fileInfo os.FileInfo) (string, string) {
 	if len(nameTokens) > 5 {
 		return nameTokens[0], nameTokens[4]
 	}
-	// Ignore symlinks and other logs not created by glog.
+	// Ignore symlinks and other logs not created by sklog.
 	return "", ""
 }
 
@@ -369,24 +369,24 @@ func getPreviousState() (map[string]fileState, map[string]int64, map[string]int6
 	}
 	f, err := os.Open(*stateFile)
 	if err != nil {
-		glog.Errorf("Failed to open old state file %s for reading: %s", *stateFile, err)
+		sklog.Errorf("Failed to open old state file %s for reading: %s", *stateFile, err)
 		// Delete it and return empty values.
 		if err := os.Remove(*stateFile); err != nil {
 			return nil, nil, nil, time.Time{}, fmt.Errorf("Could not delete old state file %s: %s", *stateFile, err)
 		}
-		glog.Errorf("Deleted old state file %s", *stateFile)
+		sklog.Errorf("Deleted old state file %s", *stateFile)
 		return map[string]fileState{}, map[string]int64{}, map[string]int64{}, time.Time{}, nil
 	}
 	defer util.Close(f)
 	state := &logserverState{}
 	dec := gob.NewDecoder(f)
 	if err := dec.Decode(state); err != nil {
-		glog.Errorf("Failed to decode old state file %s: %s", *stateFile, err)
+		sklog.Errorf("Failed to decode old state file %s: %s", *stateFile, err)
 		// Delete it and return empty values.
 		if err := os.Remove(*stateFile); err != nil {
 			return nil, nil, nil, time.Time{}, fmt.Errorf("Could not delete old state file %s: %s", *stateFile, err)
 		}
-		glog.Errorf("Deleted old state file %s", *stateFile)
+		sklog.Errorf("Deleted old state file %s", *stateFile)
 		return map[string]fileState{}, map[string]int64{}, map[string]int64{}, time.Time{}, nil
 	}
 	return state.FilesToState, state.AppLogLevelToSpace, state.AppLogLevelToCount, state.LastCompletedRun, nil
@@ -429,7 +429,7 @@ func getLineCount(path string) int64 {
 func dirWatcher(duration time.Duration, dir string) {
 	filesToState, appLogLevelToSpace, appLogLevelToCount, lastCompletedRun, err := getPreviousState()
 	if err != nil {
-		glog.Fatalf("Could get access previous state: %s", err)
+		sklog.Fatalf("Could get access previous state: %s", err)
 	}
 	appLogLevelToMetric := make(map[string]*metrics2.Int64Metric)
 	updatedFiles := false
@@ -444,7 +444,7 @@ func dirWatcher(duration time.Duration, dir string) {
 		}
 
 		if _, exists := filesToState[path]; !exists || fileInfo.ModTime().After(lastCompletedRun) {
-			glog.Infof("Processing %s", path)
+			sklog.Infof("Processing %s", path)
 			app, logLevel := getAppAndLogLevel(fileInfo)
 			if app != "" && logLevel != "" {
 				appLogLevel := fmt.Sprintf("%s.%s", app, logLevel)
@@ -465,8 +465,8 @@ func dirWatcher(duration time.Duration, dir string) {
 					newSpace = totalSize - fileState.Size
 				}
 
-				glog.Infof("Processed %d new lines", newLines)
-				glog.Infof("Processed %d new bytes", newSpace)
+				sklog.Infof("Processed %d new lines", newLines)
+				sklog.Infof("Processed %d new bytes", newSpace)
 
 				// Update the logs count metric.
 				appLogLevelToCount[appLogLevel] += newLines
@@ -485,15 +485,15 @@ func dirWatcher(duration time.Duration, dir string) {
 
 	for _ = range time.Tick(duration) {
 		if err := filepath.Walk(dir, markFn); err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 		deletedFiles := cleanupAppLogs(dir, appLogLevelToSpace, filesToState)
 		if updatedFiles || deletedFiles {
 			if err := writeCurrentState(filesToState, appLogLevelToSpace, appLogLevelToCount, time.Now()); err != nil {
-				glog.Fatalf("Could not write state: %s", err)
+				sklog.Fatalf("Could not write state: %s", err)
 			}
-			glog.Info(getPrettyMap(appLogLevelToCount, "AppLogLevels to their line counts"))
-			glog.Info(getPrettyMap(appLogLevelToSpace, "AppLogLevels to their disk space"))
+			sklog.Info(getPrettyMap(appLogLevelToCount, "AppLogLevels to their line counts"))
+			sklog.Info(getPrettyMap(appLogLevelToSpace, "AppLogLevels to their disk space"))
 		}
 		updatedFiles = false
 		lastCompletedRun = time.Now()
@@ -514,20 +514,20 @@ func cleanupAppLogs(dir string, appLogLevelToSpace map[string]int64, filesToStat
 	deletedFiles := false
 	for appLogLevel := range appLogLevelToSpace {
 		if appLogLevelToSpace[appLogLevel] > *appLogThreshold {
-			glog.Infof("App %s is above the threshold. Usage: %d. Threshold: %d", appLogLevel, appLogLevelToSpace[appLogLevel], *appLogThreshold)
+			sklog.Infof("App %s is above the threshold. Usage: %d. Threshold: %d", appLogLevel, appLogLevelToSpace[appLogLevel], *appLogThreshold)
 			tokens := strings.Split(appLogLevel, ".")
 			app := tokens[0]
 			logLevel := tokens[1]
 			logGlob := filepath.Join(dir, app+".*"+logLevel+".*")
 			matches, err := filepath.Glob(logGlob)
 			if err != nil {
-				glog.Fatalf("Could not glob for %s: %s", logGlob, err)
+				sklog.Fatalf("Could not glob for %s: %s", logGlob, err)
 			}
 			fileInfos := make([]os.FileInfo, len(matches))
 			for i, match := range matches {
 				fileInfo, err := os.Stat(match)
 				if err != nil {
-					glog.Fatalf("Could not stat %s: %s", match, err)
+					sklog.Fatalf("Could not stat %s: %s", match, err)
 				}
 				fileInfos[i] = fileInfo
 			}
@@ -538,18 +538,18 @@ func cleanupAppLogs(dir string, appLogLevelToSpace map[string]int64, filesToStat
 			index := 0
 			for appLogLevelToSpace[appLogLevel] > *appLogThreshold-*appLogThresholdBuffer {
 				if index+1 == len(fileInfos) {
-					glog.Warningf("App %s is above the threshold and has only one file remaining: %s. Not deleting it.", appLogLevel, fileInfos[index].Name())
+					sklog.Warningf("App %s is above the threshold and has only one file remaining: %s. Not deleting it.", appLogLevel, fileInfos[index].Name())
 					break
 				}
 				fileName := fileInfos[index].Name()
 				appLogLevelToSpace[appLogLevel] -= fileInfos[index].Size()
 				if err = os.Remove(filepath.Join(dir, fileName)); err != nil {
-					glog.Fatalf("Could not delete %s: %s", fileName, err)
+					sklog.Fatalf("Could not delete %s: %s", fileName, err)
 				}
 				// Remove the entry from the filesToState map.
 				delete(filesToState, filepath.Join(dir, fileName))
 				deletedFiles = true
-				glog.Infof("Deleted %s", fileName)
+				sklog.Infof("Deleted %s", fileName)
 				index++
 			}
 			// Just incase we delete a massive log file.
@@ -571,18 +571,18 @@ func cleanupAppLogs(dir string, appLogLevelToSpace map[string]int64, filesToStat
 func GoogleLoggingAuthInit() {
 	jwt, err := metadata.ProjectGet(metadata.JWT_SERVICE_ACCOUNT)
 	if err != nil {
-		glog.Warningf("Failed to download the jwt from metadata: %s", err)
+		sklog.Warningf("Failed to download the jwt from metadata: %s", err)
 		return
 	}
 	f, err := os.OpenFile("/etc/google/auth/application_default_credentials.json", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		glog.Warningf("Failed to open Logging credentials file for writing: %s", err)
+		sklog.Warningf("Failed to open Logging credentials file for writing: %s", err)
 		return
 	}
 	defer util.Close(f)
 	_, err = f.WriteString(jwt)
 	if err != nil {
-		glog.Warningf("Failed to write Logging credentials: %s", err)
+		sklog.Warningf("Failed to write Logging credentials: %s", err)
 		return
 	}
 	restartCmd := &exec.Command{
@@ -593,7 +593,7 @@ func GoogleLoggingAuthInit() {
 		LogStdout:   true,
 	}
 	if err = exec.Run(restartCmd); err != nil {
-		glog.Warningf("Failed to restart fluentd: %s", err)
+		sklog.Warningf("Failed to restart fluentd: %s", err)
 		return
 	}
 }
@@ -607,12 +607,12 @@ func main() {
 	}
 
 	if err := os.MkdirAll(*dir, 0777); err != nil {
-		glog.Fatalf("Failed to create dir for log files: %s", err)
+		sklog.Fatalf("Failed to create dir for log files: %s", err)
 	}
 
 	go dirWatcher(*dirWatchDuration, *dir)
 
 	http.Handle("/file_server/", http.StripPrefix("/file_server/", FileServer(http.Dir(*dir))))
 	http.HandleFunc("/", FileServerWrapperHandler)
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

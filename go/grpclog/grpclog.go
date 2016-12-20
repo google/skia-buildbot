@@ -1,33 +1,33 @@
 package grpclog
 
 import (
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 	grl "google.golang.org/grpc/grpclog"
 )
 
-// logger implements grpclog.Logger using glog.
+// logger implements grpclog.Logger using sklog.
 type logger struct{}
 
 func (g *logger) Fatal(args ...interface{}) {
-	glog.Fatal(args...)
+	sklog.Fatal(args...)
 }
 func (g *logger) Fatalf(format string, args ...interface{}) {
-	glog.Fatalf(format, args...)
+	sklog.Fatalf(format, args...)
 }
 func (g *logger) Fatalln(args ...interface{}) {
-	glog.Fatalln(args...)
+	sklog.Fatalln(args...)
 }
 func (g *logger) Print(args ...interface{}) {
-	glog.Info(args...)
+	sklog.Info(args...)
 }
 func (g *logger) Printf(format string, args ...interface{}) {
-	glog.Infof(format, args...)
+	sklog.Infof(format, args...)
 }
 func (g *logger) Println(args ...interface{}) {
-	glog.Infoln(args...)
+	sklog.Infoln(args...)
 }
 
-// Init sets up grpc logging using glog.
+// Init sets up grpc logging using sklog.
 func Init() {
 	grl.SetLogger(&logger{})
 }

@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -54,7 +54,7 @@ func sendEmail(recipients []string) {
 	`
 	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, frontend.CaptureSKPsTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
-		glog.Errorf("Error while sending email: %s", err)
+		sklog.Errorf("Error while sending email: %s", err)
 		return
 	}
 }
@@ -74,7 +74,7 @@ func main() {
 	emailsArr := util.ParseEmails(*emails)
 	emailsArr = append(emailsArr, util.CtAdmins...)
 	if len(emailsArr) == 0 {
-		glog.Error("At least one email address must be specified")
+		sklog.Error("At least one email address must be specified")
 		return
 	}
 	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&capture_skps.UpdateVars{}, *gaeTaskID))
@@ -86,18 +86,18 @@ func main() {
 
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running capture skps task on workers")
-	defer glog.Flush()
+	defer sklog.Flush()
 
 	if *pagesetType == "" {
-		glog.Error("Must specify --pageset_type")
+		sklog.Error("Must specify --pageset_type")
 		return
 	}
 	if *chromiumBuild == "" {
-		glog.Error("Must specify --chromium_build")
+		sklog.Error("Must specify --chromium_build")
 		return
 	}
 	if *runID == "" {
-		glog.Error("Must specify --run_id")
+		sklog.Error("Must specify --run_id")
 		return
 	}
 
@@ -118,17 +118,17 @@ func main() {
 		// TODO(rmistry): Replace the below block with:
 		// buildRemoteDir, err := util.TriggerBuildRepoSwarmingTask("build_pdfium", *runID, "pdfium", "Linux", []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName)}, /*singleBuild*/ true, 2*time.Hour, 1*time.Hour)
 		// if err != nil {
-		//	glog.Errorf("Error encountered when swarming build repo task: %s", err)
+		//	sklog.Errorf("Error encountered when swarming build repo task: %s", err)
 		//	return
 		// }
 		//
 		//// Sync PDFium and build pdfium_test binary which will be used by the worker script.
 		//if err := util.SyncDir(util.PDFiumTreeDir); err != nil {
-		//	glog.Errorf("Could not sync PDFium: %s", err)
+		//	sklog.Errorf("Could not sync PDFium: %s", err)
 		//	return
 		//}
 		//if err := util.BuildPDFium(); err != nil {
-		//	glog.Errorf("Could not build PDFium: %s", err)
+		//	sklog.Errorf("Could not build PDFium: %s", err)
 		//	return
 		//}
 		//// Copy pdfium_test to Google Storage.
@@ -137,11 +137,11 @@ func main() {
 		//// Instantiate GsUtil object.
 		//gs, err := util.NewGsUtil(nil)
 		//if err != nil {
-		//	glog.Error(err)
+		//	sklog.Error(err)
 		//	return
 		//}
 		//if err := gs.UploadFile(util.BINARY_PDFIUM_TEST, pdfiumLocalDir, pdfiumRemoteDir); err != nil {
-		//	glog.Errorf("Could not upload %s to %s: %s", util.BINARY_PDFIUM_TEST, pdfiumRemoteDir, err)
+		//	sklog.Errorf("Could not upload %s to %s: %s", util.BINARY_PDFIUM_TEST, pdfiumRemoteDir, err)
 		//	return
 		//}
 	}
@@ -149,7 +149,7 @@ func main() {
 	// Empty the remote dir before the workers upload to it.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Error(err)
+		sklog.Error(err)
 		return
 	}
 	skpGSBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.SKPS_DIR_NAME, *pagesetType, *chromiumBuild)
@@ -165,7 +165,7 @@ func main() {
 		"RUN_ID":         *runID,
 	}
 	if err := util.TriggerSwarmingTask(*pagesetType, "capture_skps", isolateFile, *runID, hardTimeout, ioTimeout, util.ADMIN_TASKS_PRIORITY, maxPages, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, workerDimensions); err != nil {
-		glog.Errorf("Error encountered when swarming tasks: %s", err)
+		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}
 

@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
@@ -339,7 +339,7 @@ func jsonIgnoresHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO(stephana): Wrap in response envelope if it makes sense !
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(ignores); err != nil {
-		glog.Errorf("Failed to write or encode result: %s", err)
+		sklog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
 
@@ -475,7 +475,7 @@ func jsonTriageHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to parse JSON request.")
 		return
 	}
-	glog.Infof("Triage request: %#v", req)
+	sklog.Infof("Triage request: %#v", req)
 
 	var tc map[string]types.TestClassification
 
@@ -526,7 +526,7 @@ func jsonTriageHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(map[string]string{}); err != nil {
-		glog.Errorf("Failed to write or encode result: %s", err)
+		sklog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
 
@@ -638,7 +638,7 @@ func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 		remaining := digests[i:len(digests)]
 		diffs, err := storages.DiffStore.Get(diff.PRIORITY_NOW, d.Digest, remaining)
 		if err != nil {
-			glog.Errorf("Failed to calculate differences: %s", err)
+			sklog.Errorf("Failed to calculate differences: %s", err)
 			continue
 		}
 		for otherDigest, diff := range diffs {
@@ -750,7 +750,7 @@ func jsonListTestsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	} else {
-		glog.Infof("%q %q %q", r.FormValue("query"), r.FormValue("include"), r.FormValue("head"))
+		sklog.Infof("%q %q %q", r.FormValue("query"), r.FormValue("include"), r.FormValue("head"))
 		sumMap, err := idx.CalcSummaries(nil, query.Query, query.IncludeIgnores, query.Head)
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to calculate summaries.")
@@ -767,7 +767,7 @@ func jsonListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(sumSlice); err != nil {
-		glog.Errorf("Failed to write or encode result: %s", err)
+		sklog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
 
@@ -976,7 +976,7 @@ func jsonParamsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(tilePair.Tile.ParamSet); err != nil {
-		glog.Errorf("Failed to write or encode result: %s", err)
+		sklog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
 
@@ -1000,11 +1000,11 @@ func textAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	for k, _ := range hashes {
 		if _, err := w.Write([]byte(k)); err != nil {
-			glog.Errorf("Failed to write or encode result: %s", err)
+			sklog.Errorf("Failed to write or encode result: %s", err)
 			return
 		}
 		if _, err := w.Write([]byte("\n")); err != nil {
-			glog.Errorf("Failed to write or encode result: %s", err)
+			sklog.Errorf("Failed to write or encode result: %s", err)
 			return
 		}
 	}

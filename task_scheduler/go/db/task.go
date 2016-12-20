@@ -15,7 +15,7 @@ import (
 	"go.skia.org/infra/go/util"
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -182,7 +182,7 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 
 	copy := orig.Copy()
 	if !reflect.DeepEqual(orig, copy) {
-		glog.Fatalf("Task.Copy is broken; original and copy differ:\n%#v\n%#v", orig, copy)
+		sklog.Fatalf("Task.Copy is broken; original and copy differ:\n%#v\n%#v", orig, copy)
 	}
 
 	// "Identity" fields stored in tags.
@@ -585,7 +585,7 @@ func TagsForTask(name, id string, priority float64, rs RepoState, retryOf string
 		if _, ok := tags[key]; !ok {
 			tags[key] = v
 		} else {
-			glog.Warningf("Duplicate dimension/tag %q.", k)
+			sklog.Warningf("Duplicate dimension/tag %q.", k)
 		}
 	}
 

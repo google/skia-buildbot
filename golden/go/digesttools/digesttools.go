@@ -4,7 +4,7 @@ package digesttools
 import (
 	"math"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/tally"
@@ -50,7 +50,7 @@ func ClosestDigest(test string, digest string, exp *expstorage.Expectations, tal
 	}
 
 	if diffMetrics, err := diffStore.Get(diff.PRIORITY_NOW, digest, selected); err != nil {
-		glog.Errorf("ClosestDigest: Failed to get diff: %s", err)
+		sklog.Errorf("ClosestDigest: Failed to get diff: %s", err)
 		return ret
 	} else {
 		for digest, diff := range diffMetrics {

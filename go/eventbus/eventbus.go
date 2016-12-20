@@ -3,8 +3,8 @@ package eventbus
 import (
 	"sync"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/geventbus"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -132,12 +132,12 @@ func (e *EventBus) publishEvent(topic string, arg interface{}, globally bool) {
 			go func() {
 				byteData, err := eventCodec.Encode(arg)
 				if err != nil {
-					glog.Errorf("Unable to encode event data for topic %s:  %s", topic, err)
+					sklog.Errorf("Unable to encode event data for topic %s:  %s", topic, err)
 					return
 				}
 
 				if err := e.globalEventBus.Publish(topic, byteData); err != nil {
-					glog.Errorf("Unable to publish global event for topic %s:  %s", topic, err)
+					sklog.Errorf("Unable to publish global event for topic %s:  %s", topic, err)
 				}
 			}()
 		}
@@ -165,7 +165,7 @@ func (e *EventBus) subscribeWithLock(topic string, callback CallbackFn) {
 		e.handlers[topic] = &topicHandler{callbacks: []CallbackFn{callback}}
 	}
 	if err := e.registerGlobalSubscription(topic); err != nil {
-		glog.Errorf("Unable to register for global event topic %s:  %s", topic, err)
+		sklog.Errorf("Unable to register for global event topic %s:  %s", topic, err)
 	}
 }
 
@@ -202,7 +202,7 @@ func (e *EventBus) registerGlobalSubscription(topic string) error {
 		// deserialize the instance.
 		inst, err := eventCodec.Decode(data)
 		if err != nil {
-			glog.Errorf("Error decoding global event for topic %s:  %s", topic, err)
+			sklog.Errorf("Error decoding global event for topic %s:  %s", topic, err)
 			return
 		}
 

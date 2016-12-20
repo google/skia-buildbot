@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
@@ -167,11 +167,11 @@ func getRevDataHandler(getLkgr func() (string, error), gitRepoUrl string, w http
 		if err != nil {
 			httputils.ReportError(w, r, nil, "Unable to retrieve LKGR revision")
 		}
-		glog.Infof("Retrieved LKGR commit hash: %s", lkgr)
+		sklog.Infof("Retrieved LKGR commit hash: %s", lkgr)
 		revString = lkgr
 	}
 	commitUrl := gitRepoUrl + revString + "?format=JSON"
-	glog.Infof("Reading revision detail from %s", commitUrl)
+	sklog.Infof("Reading revision detail from %s", commitUrl)
 	resp, err := httpClient.Get(commitUrl)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to retrieve revision detail")
@@ -204,7 +204,7 @@ func getRevDataHandler(getLkgr func() (string, error), gitRepoUrl string, w http
 
 // TODO(benjaminwagner): Seems to duplicate code in ct/go/util/chromium_builds.go.
 func getChromiumLkgr() (string, error) {
-	glog.Infof("Reading Chromium LKGR from %s", CHROMIUM_LKGR_URL)
+	sklog.Infof("Reading Chromium LKGR from %s", CHROMIUM_LKGR_URL)
 	resp, err := httpClient.Get(CHROMIUM_LKGR_URL)
 	if err != nil {
 		return "", err
@@ -268,7 +268,7 @@ func Validate(chromiumBuild DBTask) error {
 	buildCount := []int{}
 	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE chromium_rev = ? AND skia_rev = ? AND ts_completed IS NOT NULL AND failure = 0", db.TABLE_CHROMIUM_BUILD_TASKS)
 	if err := db.DB.Select(&buildCount, query, chromiumBuild.ChromiumRev, chromiumBuild.SkiaRev); err != nil || len(buildCount) < 1 || buildCount[0] == 0 {
-		glog.Info(err)
+		sklog.Info(err)
 		return fmt.Errorf("Unable to validate chromium_build parameter %v", chromiumBuild)
 	}
 	return nil

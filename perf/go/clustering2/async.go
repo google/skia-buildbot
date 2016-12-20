@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/query"
@@ -182,7 +182,7 @@ func (fr *RunningClusterRequests) Response(id string) (*ClusterResponse, error) 
 func (p *ClusterRequestProcess) reportError(err error, message string) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
-	glog.Errorf("ClusterRequest failed: %#v %s: %s", *(p.request), message, err)
+	sklog.Errorf("ClusterRequest failed: %#v %s: %s", *(p.request), message, err)
 	p.message = message
 	p.state = PROCESS_ERROR
 	p.lastUpdate = time.Now()
@@ -280,7 +280,7 @@ func (p *ClusterRequestProcess) Run() {
 	// on either side of the target commit.
 	df.FilterOut(tooMuchMissingData)
 	after := len(df.TraceSet)
-	glog.Infof("Filtered Traces: %d %d", before, after)
+	sklog.Infof("Filtered Traces: %d %d", before, after)
 
 	k := p.request.K
 	if k <= 0 || k > MAX_K {
@@ -294,7 +294,7 @@ func (p *ClusterRequestProcess) Run() {
 		//
 		k = int(math.Floor((40.0/30000.0)*float64(n) + 10))
 	}
-	glog.Infof("Clustering with K=%d", k)
+	sklog.Infof("Clustering with K=%d", k)
 	summary, err := CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.clusterProgress)
 	if err != nil {
 		p.reportError(err, "Invalid clustering.")

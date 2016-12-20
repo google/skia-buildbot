@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 var version *Version
@@ -37,14 +37,14 @@ func JsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	v, err := GetVersion()
 	if err != nil {
-		glog.Error(err)
+		sklog.Error(err)
 		v = &Version{
 			Commit: "(unknown)",
 			Date:   time.Time{},
 		}
 	}
 	if err := json.NewEncoder(w).Encode(v); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
+		sklog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
 }

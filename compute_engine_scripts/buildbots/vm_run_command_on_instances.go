@@ -7,8 +7,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/sklog"
 )
 
 /*
@@ -30,7 +30,7 @@ func main() {
 	common.Init()
 
 	if *cmd == "" {
-		glog.Fatalf("--cmd is required.")
+		sklog.Fatalf("--cmd is required.")
 	}
 
 	instances := []string{}
@@ -65,12 +65,12 @@ func main() {
 	for _, instanceName := range instances {
 		err, _ := errs[instanceName]
 		if *verbose || err != nil {
-			glog.Infof("========== %s ==========", instanceName)
+			sklog.Infof("========== %s ==========", instanceName)
 			if err != nil {
-				glog.Infof("Command failed: %s\n", err)
+				sklog.Infof("Command failed: %s\n", err)
 			}
-			glog.Infof(outputs[instanceName])
-			glog.Infof("====================================")
+			sklog.Infof(outputs[instanceName])
+			sklog.Infof("====================================")
 		}
 	}
 }

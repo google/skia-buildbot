@@ -8,8 +8,8 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/golang/groupcache/lru"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
 	"google.golang.org/api/option"
@@ -80,7 +80,7 @@ func (s *Store) Put(b []byte, hash, contentType, user string) error {
 func (s *Store) Get(hash string) ([]byte, string, error) {
 	if c, ok := s.cache.Get(hash); ok {
 		if b, ok := c.([]byte); ok {
-			glog.Infof("Cache hit: %s", hash)
+			sklog.Infof("Cache hit: %s", hash)
 			return b, "", nil
 		}
 	}

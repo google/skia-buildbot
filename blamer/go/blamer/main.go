@@ -9,9 +9,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/sklog"
 )
 
 // flags
@@ -38,7 +38,7 @@ func main() {
 	for i := 0; i < *num; i++ {
 		res, err := exec.RunSimple(fmt.Sprintf("git show HEAD~%d..HEAD~%d", i+1, i))
 		if err != nil {
-			glog.Fatalf("Failed to get the git info: %s", err)
+			sklog.Fatalf("Failed to get the git info: %s", err)
 		}
 		// Each response begins with "commit 3f61d....ffb2\n", so use
 		// that to slice out the git hash.
@@ -50,7 +50,7 @@ func main() {
 			if *verbose {
 				msg, err := exec.RunSimple(fmt.Sprintf("git show --no-patch %s", githash))
 				if err != nil {
-					glog.Fatalf("Failed to get commit details: %s", err)
+					sklog.Fatalf("Failed to get commit details: %s", err)
 				}
 				fmt.Printf("%s\n\n", msg)
 			} else {

@@ -11,7 +11,7 @@ import (
 	"path"
 	"sync"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/util"
@@ -50,7 +50,7 @@ func (c *Commit) GetParents() []*Commit {
 // ancestry of a given commit:
 //
 // commit.Recurse(func(c *Commit) (bool, error) {
-// 	glog.Info(c.Hash)
+// 	sklog.Info(c.Hash)
 // 	return true, nil
 // })
 func (c *Commit) Recurse(f func(*Commit) (bool, error)) error {
@@ -210,20 +210,20 @@ func (r *Graph) Update() error {
 	defer r.mtx.Unlock()
 
 	// Update the local copy.
-	glog.Infof("Updating repograph.Graph...")
+	sklog.Infof("Updating repograph.Graph...")
 	if err := r.repo.Update(); err != nil {
 		return fmt.Errorf("Failed to update repograph.Graph: %s", err)
 	}
 
 	// Obtain the list of branches.
-	glog.Info("  Getting branches...")
+	sklog.Info("  Getting branches...")
 	branches, err := r.repo.Branches()
 	if err != nil {
 		return fmt.Errorf("Failed to get branches for repograph.Graph: %s", err)
 	}
 
 	// Load new commits from the repo.
-	glog.Infof("  Loading commits...")
+	sklog.Infof("  Loading commits...")
 	for _, b := range branches {
 		// Shortcut: If we already have the head of this branch, don't
 		// bother loading commits.
@@ -253,7 +253,7 @@ func (r *Graph) Update() error {
 		// reachable from the new (eg. if commit history was modified),
 		// load ALL commits reachable from the branch head.
 		if len(commits) == 0 {
-			glog.Infof("  Branch %s is new or its history has changed; loading all commits.", b.Name)
+			sklog.Infof("  Branch %s is new or its history has changed; loading all commits.", b.Name)
 			commits, err = r.repo.RevList(b.Head)
 			if err != nil {
 				return fmt.Errorf("Failed to 'git rev-list' for repograph.Graph: %s", err)
@@ -275,7 +275,7 @@ func (r *Graph) Update() error {
 	r.branches = branches
 
 	// Write to the cache file.
-	glog.Infof("  Writing cache file...")
+	sklog.Infof("  Writing cache file...")
 	cacheFile := path.Join(r.repo.Dir(), CACHE_FILE)
 	f, err := os.Create(cacheFile)
 	if err != nil {
@@ -291,7 +291,7 @@ func (r *Graph) Update() error {
 	if err := f.Close(); err != nil {
 		return err
 	}
-	glog.Infof("  Done. Graph has %d commits.", len(r.commits))
+	sklog.Infof("  Done. Graph has %d commits.", len(r.commits))
 	return nil
 }
 
@@ -335,7 +335,7 @@ func (r *Graph) Get(ref string) *Commit {
 // example of printing out all of the commits in the repo:
 //
 // repo.RecurseAllBranches(func(c *Commit) (bool, error) {
-//      glog.Info(c.Hash)
+//      sklog.Info(c.Hash)
 //      return true, nil
 // })
 func (r *Graph) RecurseAllBranches(f func(*Commit) (bool, error)) error {

@@ -11,10 +11,10 @@ import (
 	"runtime/pprof"
 	"syscall"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/sharedb"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/trace/service"
 	"google.golang.org/grpc"
 )
@@ -36,12 +36,12 @@ func main() {
 	common.InitWithMetrics2(filepath.Base(os.Args[0]), influxHost, influxUser, influxPassword, influxDatabase, local)
 	ts, err := traceservice.NewTraceServiceServer(*db_file)
 	if err != nil {
-		glog.Fatalf("Failed to initialize the tracestore server: %s", err)
+		sklog.Fatalf("Failed to initialize the tracestore server: %s", err)
 	}
 
 	lis, err := net.Listen("tcp", *port)
 	if err != nil {
-		glog.Fatalf("failed to listen: %v", err)
+		sklog.Fatalf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
 	traceservice.RegisterTraceServiceServer(s, ts)
@@ -55,13 +55,13 @@ func main() {
 		if *cpuprofile != "" {
 			f, err := os.Create(*cpuprofile)
 			if err != nil {
-				glog.Fatalf("Failed to open profiling file: %s", err)
+				sklog.Fatalf("Failed to open profiling file: %s", err)
 			}
 			if err := pprof.StartCPUProfile(f); err != nil {
-				glog.Fatalf("Failed to start profiling: %s", err)
+				sklog.Fatalf("Failed to start profiling: %s", err)
 			}
 		}
-		glog.Fatalf("Failure while serving: %s", s.Serve(lis))
+		sklog.Fatalf("Failure while serving: %s", s.Serve(lis))
 	}()
 
 	// Handle SIGINT and SIGTERM.

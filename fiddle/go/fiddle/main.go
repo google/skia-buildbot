@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fiddle/go/buildlib"
 	"go.skia.org/infra/fiddle/go/named"
 	"go.skia.org/infra/fiddle/go/runner"
@@ -31,6 +30,7 @@ import (
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -178,7 +178,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	cp.Sources = src.ListAsJSON()
 	cp.Build = build.Current()
 	if err := templates.ExecuteTemplate(w, "index.html", cp); err != nil {
-		glog.Errorf("Failed to expand template: %s", err)
+		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
 
@@ -190,7 +190,7 @@ func failedHandler(w http.ResponseWriter, r *http.Request) {
 	failingMutex.Lock()
 	defer failingMutex.Unlock()
 	if err := templates.ExecuteTemplate(w, "failing.html", failingNamed); err != nil {
-		glog.Errorf("Failed to expand template: %s", err)
+		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
 
@@ -204,7 +204,7 @@ func namedHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to retrieve list of named fiddles.")
 	}
 	if err := templates.ExecuteTemplate(w, "named.html", named); err != nil {
-		glog.Errorf("Failed to expand template: %s", err)
+		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
 
@@ -214,7 +214,7 @@ func iframeHandle(w http.ResponseWriter, r *http.Request) {
 	fiddleHash, err := names.DereferenceID(id)
 	if err != nil {
 		http.NotFound(w, r)
-		glog.Errorf("Invalid id: %s", err)
+		sklog.Errorf("Invalid id: %s", err)
 		return
 	}
 	if *local {
@@ -232,7 +232,7 @@ func iframeHandle(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/html")
 	if err := templates.ExecuteTemplate(w, "iframe.html", context); err != nil {
-		glog.Errorf("Failed to expand template: %s", err)
+		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
 
@@ -242,7 +242,7 @@ func individualHandle(w http.ResponseWriter, r *http.Request) {
 	fiddleHash, err := names.DereferenceID(id)
 	if err != nil {
 		http.NotFound(w, r)
-		glog.Errorf("Invalid id: %s", err)
+		sklog.Errorf("Invalid id: %s", err)
 		return
 	}
 	if *local {
@@ -262,7 +262,7 @@ func individualHandle(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/html")
 	if err := templates.ExecuteTemplate(w, "index.html", context); err != nil {
-		glog.Errorf("Failed to expand template: %s", err)
+		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
 
@@ -289,18 +289,18 @@ func imageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		http.NotFound(w, r)
-		glog.Errorf("Invalid id: %s", err)
+		sklog.Errorf("Invalid id: %s", err)
 		return
 	}
 	body, contentType, _, err := fiddleStore.GetMedia(fiddleHash, media)
 	if err != nil {
 		http.NotFound(w, r)
-		glog.Errorf("Failed to retrieve media: %s", err)
+		sklog.Errorf("Failed to retrieve media: %s", err)
 		return
 	}
 	w.Header().Set("Content-Type", contentType)
 	if _, err := w.Write(body); err != nil {
-		glog.Errorf("Failed to write image: %s", err)
+		sklog.Errorf("Failed to write image: %s", err)
 	}
 }
 
@@ -316,19 +316,19 @@ func sourceHandler(w http.ResponseWriter, r *http.Request) {
 	i, err := strconv.Atoi(id)
 	if err != nil {
 		http.NotFound(w, r)
-		glog.Errorf("Invalid source id: %s", err)
+		sklog.Errorf("Invalid source id: %s", err)
 		return
 	}
 	b, ok := src.Thumbnail(i)
 	if !ok {
 		http.NotFound(w, r)
-		glog.Errorf("Unknown source id %s", id)
+		sklog.Errorf("Unknown source id %s", id)
 		return
 	}
 	w.Header().Add("Cache-Control", "max-age=360000")
 	w.Header().Set("Content-Type", "image/png")
 	if _, err := w.Write(b); err != nil {
-		glog.Errorf("Failed to write image: %s", err)
+		sklog.Errorf("Failed to write image: %s", err)
 		return
 	}
 }
@@ -345,9 +345,9 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to decode request.")
 		return
 	}
-	glog.Infof("Request: %#v", *req)
+	sklog.Infof("Request: %#v", *req)
 	current := build.Current()
-	glog.Infof("Building at: %s", current.Hash)
+	sklog.Infof("Building at: %s", current.Hash)
 	checkout := filepath.Join(*fiddleRoot, "versions", current.Hash)
 	tmpDir, err := runner.WriteDrawCpp(checkout, *fiddleRoot, req.Code, &req.Options, *local)
 	if err != nil {
@@ -356,7 +356,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	res, err := runner.Run(checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir)
 	if !*local && !*preserveTemp {
 		if err := os.RemoveAll(tmpDir); err != nil {
-			glog.Errorf("Failed to remove temp dir: %s", err)
+			sklog.Errorf("Failed to remove temp dir: %s", err)
 		}
 	}
 	if err != nil {
@@ -384,12 +384,12 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			line_num, err := strconv.Atoi(match[0][3])
 			if err != nil {
-				glog.Errorf("Failed to parse compiler output line number: %#v: %s", match, err)
+				sklog.Errorf("Failed to parse compiler output line number: %#v: %s", match, err)
 				continue
 			}
 			col_num, err := strconv.Atoi(match[0][4])
 			if err != nil {
-				glog.Errorf("Failed to parse compiler output column number: %#v: %s", match, err)
+				sklog.Errorf("Failed to parse compiler output column number: %#v: %s", match, err)
 				continue
 			}
 			resp.CompileErrors = append(resp.CompileErrors, CompileError{
@@ -410,7 +410,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if maybeSecViolation {
 		maybeSecViolations.Inc(1)
-		glog.Warningf("Attempted Security Container Violation for https://fiddle.skia.org/c/%s", fiddleHash)
+		sklog.Warningf("Attempted Security Container Violation for https://fiddle.skia.org/c/%s", fiddleHash)
 	}
 	runs.Inc(1)
 	resp.FiddleHash = fiddleHash
@@ -446,7 +446,7 @@ func templateHandler(name string) http.HandlerFunc {
 			loadTemplates()
 		}
 		if err := templates.ExecuteTemplate(w, name, struct{}{}); err != nil {
-			glog.Errorf("Failed to expand template: %s", err)
+			sklog.Errorf("Failed to expand template: %s", err)
 		}
 	}
 }
@@ -460,52 +460,52 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 func singleStepTryNamed() {
-	glog.Infoln("Begin: Try all named fiddles.")
+	sklog.Infoln("Begin: Try all named fiddles.")
 	namedFailures.Reset()
 	allNames, err := fiddleStore.ListAllNames()
 	if err != nil {
-		glog.Errorf("Failed to list all named fiddles: %s", err)
+		sklog.Errorf("Failed to list all named fiddles: %s", err)
 		return
 	}
 	failing := []store.Named{}
 	current := build.Current()
 	for _, name := range allNames {
-		glog.Infof("Trying: %s", name.Name)
+		sklog.Infof("Trying: %s", name.Name)
 		fiddleHash, err := names.DereferenceID("@" + name.Name)
 		if err != nil {
-			glog.Errorf("Can't dereference %s: %s", name.Name, err)
+			sklog.Errorf("Can't dereference %s: %s", name.Name, err)
 			continue
 		}
 		code, options, err := fiddleStore.GetCode(fiddleHash)
 		if err != nil {
-			glog.Errorf("Can't get code for %s: %s", name.Name, err)
+			sklog.Errorf("Can't get code for %s: %s", name.Name, err)
 			continue
 		}
 		checkout := filepath.Join(*fiddleRoot, "versions", current.Hash)
 		tmpDir, err := runner.WriteDrawCpp(checkout, *fiddleRoot, code, options, *local)
 		if err != nil {
-			glog.Errorf("Failed to write fiddle for %s: %s", name.Name, err)
+			sklog.Errorf("Failed to write fiddle for %s: %s", name.Name, err)
 			continue
 		}
 		res, err := runner.Run(checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir)
 		if err != nil {
-			glog.Errorf("Failed to run fiddle for %s: %s", name.Name, err)
+			sklog.Errorf("Failed to run fiddle for %s: %s", name.Name, err)
 			namedFailures.Inc(1)
 			failing = append(failing, name)
 			continue
 		}
 		if res.Compile.Errors != "" || res.Execute.Errors != "" {
-			glog.Errorf("Failed to compile or run the named fiddle: %s", name.Name)
+			sklog.Errorf("Failed to compile or run the named fiddle: %s", name.Name)
 			namedFailures.Inc(1)
 			failing = append(failing, name)
 		}
 		if !*local && !*preserveTemp {
 			if err := os.RemoveAll(tmpDir); err != nil {
-				glog.Errorf("Failed to remove temp dir: %s", err)
+				sklog.Errorf("Failed to remove temp dir: %s", err)
 			}
 		}
 	}
-	glog.Infof("The following named fiddles are failing: %v", failing)
+	sklog.Infof("The following named fiddles are failing: %v", failing)
 	tryNamedLiveness.Reset()
 	failingMutex.Lock()
 	defer failingMutex.Unlock()
@@ -535,28 +535,28 @@ func main() {
 		redirectURL = "https://fiddle.skia.org/oauth2callback/"
 	}
 	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		glog.Fatalf("Failed to initialize the login system: %s", err)
+		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 	if *fiddleRoot == "" {
-		glog.Fatal("The --fiddle_root flag is required.")
+		sklog.Fatal("The --fiddle_root flag is required.")
 	}
 	depotTools = filepath.Join(*fiddleRoot, "depot_tools")
 	loadTemplates()
 	var err error
 	repo, err = gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*fiddleRoot, "skia"), true)
 	if err != nil {
-		glog.Fatalf("Failed to clone Skia: %s", err)
+		sklog.Fatalf("Failed to clone Skia: %s", err)
 	}
 	fiddleStore, err = store.New()
 	if err != nil {
-		glog.Fatalf("Failed to connect to store: %s", err)
+		sklog.Fatalf("Failed to connect to store: %s", err)
 	}
 	if err := fiddleStore.DownloadAllSourceImages(*fiddleRoot); err != nil {
-		glog.Fatalf("Failed to download source images: %s", err)
+		sklog.Fatalf("Failed to download source images: %s", err)
 	}
 	src, err = source.New(fiddleStore)
 	if err != nil {
-		glog.Fatalf("Failed to initialize source images: %s", err)
+		sklog.Fatalf("Failed to initialize source images: %s", err)
 	}
 	names = named.New(fiddleStore)
 	build = buildskia.New(*fiddleRoot, depotTools, repo, buildlib.BuildLib, 64, *timeBetweenBuilds, true)
@@ -577,6 +577,6 @@ func main() {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	glog.Infoln("Ready to serve.")
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infoln("Ready to serve.")
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

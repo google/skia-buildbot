@@ -12,7 +12,7 @@ import (
 	"text/template"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
@@ -137,7 +137,7 @@ func Validate(skpRepository DBTask) error {
 	rowCount := []int{}
 	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE page_sets = ? AND chromium_rev = ? AND skia_rev = ? AND ts_completed IS NOT NULL AND failure = 0", db.TABLE_CAPTURE_SKPS_TASKS)
 	if err := db.DB.Select(&rowCount, query, skpRepository.PageSets, skpRepository.ChromiumRev, skpRepository.SkiaRev); err != nil || len(rowCount) < 1 || rowCount[0] == 0 {
-		glog.Info(err)
+		sklog.Info(err)
 		return fmt.Errorf("Unable to validate skp_repository parameter %v", skpRepository)
 	}
 	return nil

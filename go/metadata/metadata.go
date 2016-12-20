@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -96,7 +96,7 @@ func GetWithDefault(name, defaultValue string) string {
 	if ret, err := Get(name); err == nil {
 		return ret
 	} else {
-		glog.Warningf("Unable to obtain %q from metadata server: %v", name, err)
+		sklog.Warningf("Unable to obtain %q from metadata server: %v", name, err)
 		return defaultValue
 	}
 }
@@ -112,7 +112,7 @@ func ProjectGetWithDefault(name, defaultValue string) string {
 	if ret, err := ProjectGet(name); err == nil {
 		return ret
 	} else {
-		glog.Warningf("Unable to obtain %q from metadata server: %v", name, err)
+		sklog.Warningf("Unable to obtain %q from metadata server: %v", name, err)
 		return defaultValue
 	}
 }
@@ -121,14 +121,14 @@ func ProjectGetWithDefault(name, defaultValue string) string {
 func MustGet(keyname string) string {
 	value, err := Get(keyname)
 	if err != nil {
-		glog.Fatalf("Unable to obtain %q from metadata server: %s.", keyname, err)
+		sklog.Fatalf("Unable to obtain %q from metadata server: %s.", keyname, err)
 	}
 	return value
 }
 
 func Must(s string, err error) string {
 	if err != nil {
-		glog.Fatalf("Failed to read metadata: %s.", err)
+		sklog.Fatalf("Failed to read metadata: %s.", err)
 	}
 	return s
 }
@@ -137,6 +137,6 @@ func Must(s string, err error) string {
 // not running in GCE, this is the local machine.
 func NSQDTestServerAddr() string {
 	server := ProjectGetWithDefault(NSQ_TEST_SERVER, "127.0.0.1")
-	glog.Errorf("Got test NSQ server: %s", server)
+	sklog.Errorf("Got test NSQ server: %s", server)
 	return fmt.Sprintf("%s:4150", server)
 }

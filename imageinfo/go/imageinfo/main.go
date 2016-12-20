@@ -18,7 +18,6 @@ import (
 
 	"github.com/golang/groupcache/lru"
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
@@ -26,6 +25,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/util/limitwriter"
 	"go.skia.org/infra/imageinfo/go/store"
@@ -105,7 +105,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		LoggedIn: login.LoggedInAs(r) != "",
 	}
 	if err := templates.ExecuteTemplate(w, "index.html", context); err != nil {
-		glog.Errorf("Failed to expand template: %s", err)
+		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
 
@@ -160,7 +160,7 @@ func imageHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Add("Cache-Control", "max-age=360000")
 	if _, err := w.Write(b); err != nil {
-		glog.Errorf("Unable to write image: %s", err)
+		sklog.Errorf("Unable to write image: %s", err)
 		return
 	}
 }
@@ -186,7 +186,7 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		if err := os.RemoveAll(dir); err != nil {
-			glog.Errorf("Failed to clean up tmp dir: %s", err)
+			sklog.Errorf("Failed to clean up tmp dir: %s", err)
 		}
 	}()
 
@@ -253,9 +253,9 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 		LogStdout:      *verbose,
 		Quiet:          !*verbose,
 	}
-	glog.Infof("About to run: %#v", *visCmd)
+	sklog.Infof("About to run: %#v", *visCmd)
 	if err := exec.Run(visCmd); err != nil {
-		glog.Infof("Combined Output %s", buf.String())
+		sklog.Infof("Combined Output %s", buf.String())
 		httputils.ReportError(w, r, err, "Failed to execute colorspaceinfo.")
 		return
 	}
@@ -276,7 +276,7 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 		StdOut: buf.String(),
 	}
 	if err := templates.ExecuteTemplate(w, "info.html", cp); err != nil {
-		glog.Errorf("Failed to expand template: %s", err)
+		sklog.Errorf("Failed to expand template: %s", err)
 		return
 	}
 }
@@ -291,7 +291,7 @@ func visHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Cache-Control", "max-age=36000")
 	w.Header().Set("Content-Type", "image/png")
 	if _, err := w.Write(bytes.([]byte)); err != nil {
-		glog.Errorf("Failed to write image: %s", err)
+		sklog.Errorf("Failed to write image: %s", err)
 		return
 	}
 }
@@ -307,12 +307,12 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 // buildVisualize, given a directory that Skia is checked out into,
 // builds the specific targets we need for this application.
 func buildVisualize(checkout, depotTools string) error {
-	glog.Info("Starting GNGen")
+	sklog.Info("Starting GNGen")
 	if err := buildskia.GNGen(checkout, depotTools, "Release", []string{"is_official_build=true"}); err != nil {
 		return fmt.Errorf("Failed GN gen: %s", err)
 	}
 
-	glog.Info("Building colorspaceinfo")
+	sklog.Info("Building colorspaceinfo")
 	if msg, err := buildskia.GNNinjaBuild(checkout, depotTools, "Release", "colorspaceinfo", true); err != nil {
 		return fmt.Errorf("Failed ninja build of colorspaceinfo: %q %s", msg, err)
 	}
@@ -328,29 +328,29 @@ func main() {
 		common.InitWithMetrics2("imageinfo", influxHost, influxUser, influxPassword, influxDatabase, local)
 	}
 	if *workRoot == "" {
-		glog.Fatal("The --work_root flag is required.")
+		sklog.Fatal("The --work_root flag is required.")
 	}
 	if *depotTools == "" {
-		glog.Fatal("The --depot_tools flag is required.")
+		sklog.Fatal("The --depot_tools flag is required.")
 	}
 	if err := os.MkdirAll(filepath.Join(*workRoot, "tmp"), 0777); err != nil {
-		glog.Fatalf("Failed to create WORK_ROOT/tmp dir: %s", err)
+		sklog.Fatalf("Failed to create WORK_ROOT/tmp dir: %s", err)
 	}
 	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {
 		redirectURL = "https://imageinfo.skia.org/oauth2callback/"
 	}
 	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		glog.Fatalf("Failed to initialize the login system: %s", err)
+		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 	var err error
 	repo, err = gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*workRoot, "skia"), true)
 	if err != nil {
-		glog.Fatalf("Failed to clone Skia: %s", err)
+		sklog.Fatalf("Failed to clone Skia: %s", err)
 	}
 	imageStore, err = store.New()
 	if err != nil {
-		glog.Fatalf("Failed to connect to Google Storage: %s", err)
+		sklog.Fatalf("Failed to connect to Google Storage: %s", err)
 	}
 	build = buildskia.New(*workRoot, *depotTools, repo, buildVisualize, 3, *timeBetweenBuilds, true)
 	build.Start()
@@ -368,6 +368,6 @@ func main() {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	glog.Infoln("Ready to serve.")
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infoln("Ready to serve.")
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

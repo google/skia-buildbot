@@ -13,7 +13,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/repograph"
@@ -23,6 +22,7 @@ import (
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skiaversion"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/blacklist"
@@ -365,8 +365,8 @@ func runServer(serverURL string) {
 	scheduling.RegisterPubSubServer(ts, r)
 
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	glog.Infof("Ready to serve on %s", serverURL)
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infof("Ready to serve on %s", serverURL)
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
 
 // runDbServer listens on dbPort and responds to HTTP requests at path /db with
@@ -375,9 +375,9 @@ func runDbServer(taskDb db.RemoteDB) {
 	r := mux.NewRouter()
 	err := remote_db.RegisterServer(taskDb, r.PathPrefix("/db").Subrouter())
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
-	glog.Fatal(http.ListenAndServe(*dbPort, httputils.LoggingGzipRequestResponse(r)))
+	sklog.Fatal(http.ListenAndServe(*dbPort, httputils.LoggingGzipRequestResponse(r)))
 }
 
 func main() {
@@ -390,9 +390,9 @@ func main() {
 
 	v, err := skiaversion.GetVersion()
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
-	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
 	ctx, cancelFn := context.WithCancel(context.Background())
 	defer cancelFn()
@@ -400,26 +400,26 @@ func main() {
 	// Parse the time period.
 	period, err := human.ParseDuration(*timePeriod)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Get the absolute workdir.
 	wdAbs, err := filepath.Abs(*workdir)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Authenticated HTTP client.
 	oauthCacheFile := path.Join(wdAbs, "google_storage_token.data")
 	httpClient, err := auth.NewClient(*local, oauthCacheFile, swarming.AUTH_SCOPE, auth.SCOPE_READ_WRITE)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Initialize Isolate client.
 	isolateClient, err := isolate.NewClient(wdAbs)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	if *local {
 		isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
@@ -429,17 +429,17 @@ func main() {
 	// TODO(benjaminwagner): Create a signal handler which closes the DB.
 	d, err := local_db.NewDB(local_db.DB_NAME, path.Join(wdAbs, local_db.DB_FILENAME))
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	defer util.Close(d)
 
 	// Git repos.
 	repos, err = repograph.NewMap(REPOS, wdAbs)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	if err := repos.Update(); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Initialize Swarming client.
@@ -452,33 +452,33 @@ func main() {
 	} else {
 		swarm, err = swarming.NewApiClient(httpClient)
 		if err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 	}
 
 	// Start DB backup.
 	if *local && *gsBucket == "skia-task-scheduler" {
-		glog.Fatalf("Specify --gsBucket=dogben-test to run locally.")
+		sklog.Fatalf("Specify --gsBucket=dogben-test to run locally.")
 	}
 	// TODO(benjaminwagner): The storage client library already handles buffering
 	// and retrying requests, so we may not want to use BackoffTransport for the
 	// httpClient provided to NewDBBackup.
 	b, err := recovery.NewDBBackup(ctx, *gsBucket, d, local_db.DB_NAME, wdAbs, httpClient)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Create and start the task scheduler.
-	glog.Infof("Creating task scheduler.")
+	sklog.Infof("Creating task scheduler.")
 	if err := scheduling.InitPubSub(); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	ts, err = scheduling.NewTaskScheduler(d, period, *commitWindow, wdAbs, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, tryjobs.BUCKET_PRIMARY, PROJECT_REPO_MAPPING)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
-	glog.Infof("Created task scheduler. Starting loop.")
+	sklog.Infof("Created task scheduler. Starting loop.")
 	ts.Start(ctx, b.Tick)
 
 	// Start up the web server.
@@ -489,7 +489,7 @@ func main() {
 
 	var redirectURL = serverURL + "/oauth2callback/"
 	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	go runServer(serverURL)

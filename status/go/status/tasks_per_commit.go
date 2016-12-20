@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/util"
@@ -52,7 +52,7 @@ func newTasksPerCommitCache(workdir string, repoUrls []string, period time.Durat
 	}
 	go util.RepeatCtx(time.Minute, ctx, func() {
 		if err := c.update(); err != nil {
-			glog.Errorf("Failed to update tasksPerCommitCache: %s", err)
+			sklog.Errorf("Failed to update tasksPerCommitCache: %s", err)
 		}
 	})
 	return c, nil

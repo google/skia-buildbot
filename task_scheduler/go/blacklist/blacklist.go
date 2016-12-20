@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"sync"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/util"
@@ -239,7 +239,7 @@ func (r *Rule) matchTaskSpec(taskSpec string) bool {
 	for _, b := range r.TaskSpecPatterns {
 		match, err := regexp.MatchString(b, taskSpec)
 		if err != nil {
-			glog.Warningf("Rule regexp returned error for input %q: %s: %s", taskSpec, b, err)
+			sklog.Warningf("Rule regexp returned error for input %q: %s: %s", taskSpec, b, err)
 			return false
 		}
 		if match {

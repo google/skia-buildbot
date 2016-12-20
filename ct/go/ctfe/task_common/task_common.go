@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
@@ -300,7 +300,7 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	}
 	params.CountQuery = false
 	query, args := DBTaskQuery(prototype, params)
-	glog.Infof("Running %s", query)
+	sklog.Infof("Running %s", query)
 	data, err := prototype.Select(query, args...)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to query %s tasks", prototype.GetTaskName()))
@@ -310,7 +310,7 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	params.CountQuery = true
 	query, args = DBTaskQuery(prototype, params)
 	// Get the total count.
-	glog.Infof("Running %s", query)
+	sklog.Infof("Running %s", query)
 	countVal := []int{}
 	if err := db.DB.Select(&countVal, query, args...); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to query %s tasks", prototype.GetTaskName()))
@@ -508,7 +508,7 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	}
 	// Check result to ensure that the row was deleted.
 	if rowsDeleted, _ := result.RowsAffected(); rowsDeleted == 1 {
-		glog.Infof("%s task with ID %d deleted by %s", prototype.GetTaskName(), vars.Id, username)
+		sklog.Infof("%s task with ID %d deleted by %s", prototype.GetTaskName(), vars.Id, username)
 		return
 	}
 	// The code below determines the reason that no rows were deleted.
@@ -624,7 +624,7 @@ func getRietveldCLDetail(clURLString string) (clDetail, error) {
 	crURL := matches[1]
 	clString := matches[2]
 	detailJsonUrl := "https://codereview.chromium.org/api/" + clString
-	glog.Infof("Reading CL detail from %s", detailJsonUrl)
+	sklog.Infof("Reading CL detail from %s", detailJsonUrl)
 	detailResp, err := httpClient.Get(detailJsonUrl)
 	if err != nil {
 		return clDetail{}, fmt.Errorf("Unable to retrieve CL detail: %v", err)
@@ -654,7 +654,7 @@ func getRietveldCLPatch(detail clDetail, patchsetID int) (string, error) {
 		patchsetID = detail.Patchsets[len(detail.Patchsets)-1]
 	}
 	patchUrl := fmt.Sprintf("https://codereview.chromium.org/download/issue%d_%d.diff", detail.Issue, patchsetID)
-	glog.Infof("Downloading CL patch from %s", patchUrl)
+	sklog.Infof("Downloading CL patch from %s", patchUrl)
 	patchResp, err := httpClient.Get(patchUrl)
 	if err != nil {
 		return "", fmt.Errorf("Unable to retrieve CL patch: %v", err)
@@ -684,7 +684,7 @@ func gatherCLData(detail clDetail, patch string) (map[string]string, error) {
 	clData["url"] = detail.CodereviewURL
 	modifiedTime, err := time.Parse("2006-01-02 15:04:05.999999", detail.Modified)
 	if err != nil {
-		glog.Errorf("Unable to parse modified time for CL %d; input '%s', got %v", detail.Issue, detail.Modified, err)
+		sklog.Errorf("Unable to parse modified time for CL %d; input '%s', got %v", detail.Issue, detail.Modified, err)
 		clData["modified"] = ""
 	} else {
 		clData["modified"] = modifiedTime.UTC().Format(ctutil.TS_FORMAT)
@@ -700,7 +700,7 @@ func gatherCLData(detail clDetail, patch string) (map[string]string, error) {
 	case "catapult":
 		clData["catapult_patch"] = patch
 	default:
-		glog.Errorf("CL project is %s; only chromium, skia, catapult are supported.", detail.Project)
+		sklog.Errorf("CL project is %s; only chromium, skia, catapult are supported.", detail.Project)
 	}
 	return clData, nil
 }

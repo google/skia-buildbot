@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/go/buildskia"
@@ -16,6 +15,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 )
 
 type Generator struct {
@@ -37,7 +37,7 @@ func New(category string) *Generator {
 // config.Generator.AflOutputPath/[category].
 func (g *Generator) Start() error {
 	if config.Generator.SkipGeneration {
-		glog.Info("Skipping generation because flag was set.")
+		sklog.Info("Skipping generation because flag was set.")
 		return nil
 	}
 	executable, err := g.setup()
@@ -130,13 +130,13 @@ func (g *Generator) Clear() error {
 func (g *Generator) run(command *exec.Command) exec.Process {
 	p, status, err := exec.RunIndefinitely(command)
 	if err != nil {
-		glog.Errorf("Failed afl fuzzer command %#v: %s", command, err)
+		sklog.Errorf("Failed afl fuzzer command %#v: %s", command, err)
 		return nil
 	}
 	go func() {
 		err := <-status
 		g.fuzzProcessCount.Dec(int64(1))
-		glog.Infof(`[%s] afl fuzzer with args %q ended with error "%v".  There are %d fuzzers remaining`, g.Category, command.Args, err, g.fuzzProcessCount.Get())
+		sklog.Infof(`[%s] afl fuzzer with args %q ended with error "%v".  There are %d fuzzers remaining`, g.Category, command.Args, err, g.fuzzProcessCount.Get())
 	}()
 	return p
 }
@@ -144,16 +144,16 @@ func (g *Generator) run(command *exec.Command) exec.Process {
 // Stop terminates all afl-fuzz processes that were spawned, logging any errors. It also
 // sets some key metrics to 0, so the graphs at mon.skia.org reflect the stoppage.
 func (g *Generator) Stop() {
-	glog.Infof("Trying to stop %d fuzz processes", len(g.fuzzProcesses))
+	sklog.Infof("Trying to stop %d fuzz processes", len(g.fuzzProcesses))
 	metrics2.GetInt64Metric("fuzzer.stats.execs-per-sec", map[string]string{"category": g.Category}).Update(0)
 	metrics2.GetInt64Metric("fuzzer.stats.paths-total", map[string]string{"category": g.Category}).Update(0)
 	metrics2.GetInt64Metric("fuzzer.stats.cycles-done", map[string]string{"category": g.Category}).Update(0)
 	for _, p := range g.fuzzProcesses {
 		if p != nil {
 			if err := p.Kill(); err != nil {
-				glog.Warningf("[%s] Error while trying to kill afl process: %s", g.Category, err)
+				sklog.Warningf("[%s] Error while trying to kill afl process: %s", g.Category, err)
 			} else {
-				glog.Infof("[%s] Quietly shutdown fuzz process.", g.Category)
+				sklog.Infof("[%s] Quietly shutdown fuzz process.", g.Category)
 			}
 		}
 	}
@@ -187,12 +187,12 @@ func (g *Generator) DownloadSeedFiles(storageClient *storage.Client) error {
 		}
 		content, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, name)
 		if err != nil {
-			glog.Errorf("[%s] Problem downloading %s from Google Storage, continuing anyway", g.Category, item.Name)
+			sklog.Errorf("[%s] Problem downloading %s from Google Storage, continuing anyway", g.Category, item.Name)
 			return
 		}
 		fileName := filepath.Join(seedPath, strings.SplitAfter(name, gsFolder)[1])
 		if err = ioutil.WriteFile(fileName, content, 0644); err != nil && !os.IsExist(err) {
-			glog.Errorf("[%s] Problem creating binary seed file %s, continuing anyway", g.Category, fileName)
+			sklog.Errorf("[%s] Problem creating binary seed file %s, continuing anyway", g.Category, fileName)
 		}
 	})
 	return err

@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -124,6 +124,6 @@ func post(client *http.Client, dst string, request interface{}) error {
 	}
 	defer util.Close(resp.Body)
 	msg, err := ioutil.ReadAll(resp.Body)
-	glog.Infof("%s\n\nErr: %v", string(msg), err)
+	sklog.Infof("%s\n\nErr: %v", string(msg), err)
 	return nil
 }

@@ -5,12 +5,12 @@ import (
 	"sort"
 
 	"cloud.google.com/go/storage"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/frontend/fuzzcache"
 	"go.skia.org/infra/fuzzer/go/frontend/fuzzpool"
 	fstorage "go.skia.org/infra/fuzzer/go/storage"
+	"go.skia.org/infra/go/sklog"
 )
 
 // LoadFromBoltDB fills the given *fuzzpool.FuzzPool from FuzzReportCache associated with the given
@@ -19,11 +19,11 @@ import (
 // an error is returned.  We do not need to deduplicate on extraction because
 // the fuzzes were deduplicated on storage.
 func LoadFromBoltDB(pool *fuzzpool.FuzzPool, cache *fuzzcache.FuzzReportCache) error {
-	glog.Infof("Looking into cache for revision %s", config.Common.SkiaVersion.Hash)
+	sklog.Infof("Looking into cache for revision %s", config.Common.SkiaVersion.Hash)
 	if err := cache.LoadPool(pool, config.Common.SkiaVersion.Hash); err != nil {
 		return fmt.Errorf("Could not load from cache: %s", err)
 	}
-	glog.Infof("Loaded a fuzz pool of size %d", len(pool.Reports()))
+	sklog.Infof("Loaded a fuzz pool of size %d", len(pool.Reports()))
 	return nil
 }
 
@@ -67,7 +67,7 @@ func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 				g.Pool.AddFuzzReport(report)
 				b++
 			}
-			glog.Infof("%d bad fuzzes freshly loaded from gs://%s/%s", b, config.GS.Bucket, badPath)
+			sklog.Infof("%d bad fuzzes freshly loaded from gs://%s/%s", b, config.GS.Bucket, badPath)
 
 			greyPath := fmt.Sprintf("%s/%s/%s/grey", cat, revision, arch)
 			reports, err = fstorage.GetReportsFromGS(g.storageClient, greyPath, cat, arch, nil, config.FrontEnd.NumDownloadProcesses)
@@ -81,7 +81,7 @@ func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 				g.Pool.AddFuzzReport(report)
 				b++
 			}
-			glog.Infof("%d grey fuzzes freshly loaded from gs://%s/%s", b, config.GS.Bucket, greyPath)
+			sklog.Infof("%d grey fuzzes freshly loaded from gs://%s/%s", b, config.GS.Bucket, greyPath)
 		}
 	}
 	g.Pool.CurrentFromStaging()
@@ -116,7 +116,7 @@ func (g *GSLoader) LoadFuzzesFromGoogleStorage(whitelist []string) error {
 				g.Pool.AddFuzzReport(report)
 				b++
 			}
-			glog.Infof("%d bad fuzzes incrementally loaded from gs://%s/%s", b, config.GS.Bucket, badPath)
+			sklog.Infof("%d bad fuzzes incrementally loaded from gs://%s/%s", b, config.GS.Bucket, badPath)
 		}
 	}
 	// We must wait until after all the fuzzes are in staging, otherwise, we'll only have a partial update
@@ -124,7 +124,7 @@ func (g *GSLoader) LoadFuzzesFromGoogleStorage(whitelist []string) error {
 	g.Pool.ClearStaging()
 	oldBinaryFuzzNames, err := g.Cache.LoadFuzzNames(revision)
 	if err != nil {
-		glog.Warningf("Could not read old binary fuzz names from cache.  Continuing...", err)
+		sklog.Warningf("Could not read old binary fuzz names from cache.  Continuing...", err)
 		oldBinaryFuzzNames = []string{}
 	}
 	if err := g.Cache.StorePool(g.Pool, revision); err != nil {

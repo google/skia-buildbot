@@ -35,7 +35,7 @@ import (
 	"sync"
 
 	"github.com/satori/go.uuid"
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 // Type of the processing functio nin each node.
@@ -109,7 +109,7 @@ func (n *Node) Trigger(state interface{}) error {
 
 	if n.verbose {
 		n.dump(msg.id, "")
-		glog.Infof("Number of nodes to call: %d\n", nodesCalled)
+		sklog.Infof("Number of nodes to call: %d\n", nodesCalled)
 	}
 
 	// Trigger the execution and wait for all nodes to be visited.
@@ -134,7 +134,7 @@ func (n *Node) setName(name string) *Node {
 // dump outputs the input connections of this node and its
 // decendents. Only useful for debugging.
 func (n *Node) dump(msgID, indent string) {
-	glog.Infof("Node %s : %d\n", n.name, n.inputMap[msgID])
+	sklog.Infof("Node %s : %d\n", n.name, n.inputMap[msgID])
 	for _, child := range n.children {
 		child.dump(msgID, indent+"     ")
 	}
@@ -228,6 +228,6 @@ func (c *call) setErr(err error) {
 	select {
 	case c.errCh <- err:
 	default:
-		glog.Errorf("Error channel already set on call. Error: %s", err)
+		sklog.Errorf("Error channel already set on call. Error: %s", err)
 	}
 }

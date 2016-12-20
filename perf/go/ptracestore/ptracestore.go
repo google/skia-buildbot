@@ -13,7 +13,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/golang/groupcache/lru"
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vec32"
@@ -127,12 +127,12 @@ func (c *cacheEntry) Done() {
 // which is guaranteed since the cache is locked.
 func closer(key lru.Key, value interface{}) {
 	if entry, ok := value.(*cacheEntry); ok {
-		glog.Infof("Waiting: %v", key)
+		sklog.Infof("Waiting: %v", key)
 		entry.wg.Wait()
-		glog.Infof("Closing: %v", key)
+		sklog.Infof("Closing: %v", key)
 		util.Close(entry.db)
 	} else {
-		glog.Errorf("Found a non-bolt.DB in the cache at key %q", key)
+		sklog.Errorf("Found a non-bolt.DB in the cache at key %q", key)
 	}
 }
 
@@ -537,7 +537,7 @@ func (b *BoltTraceStore) Match(commitIDs []*cid.CommitID, matches KeyMatches, pr
 		}
 		entry, err := b.getBoltDB(tm.commitID, true)
 		if err == tileNotExist {
-			glog.Infof("Skipped non-existent db: %s", tm.commitID.Filename())
+			sklog.Infof("Skipped non-existent db: %s", tm.commitID.Filename())
 			continue
 		}
 		if err != nil {
@@ -558,12 +558,12 @@ var Default *BoltTraceStore
 
 func Init(dir string) {
 	if Default != nil {
-		glog.Fatalf("ptracestore should only be initialized once.")
+		sklog.Fatalf("ptracestore should only be initialized once.")
 	}
 	var err error
 	Default, err = New(dir)
 	if err != nil {
-		glog.Fatalf("ptracestore failed to init: %s", err)
+		sklog.Fatalf("ptracestore failed to init: %s", err)
 	}
 }
 

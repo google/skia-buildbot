@@ -5,7 +5,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 /*
@@ -85,6 +85,6 @@ func NewTempCheckout(repoUrl string) (*TempCheckout, error) {
 // Delete removes the TempCheckout's working directory.
 func (c *TempCheckout) Delete() {
 	if err := os.RemoveAll(path.Dir(c.Dir())); err != nil {
-		glog.Errorf("Failed to remove git.TempCheckout: %s", err)
+		sklog.Errorf("Failed to remove git.TempCheckout: %s", err)
 	}
 }

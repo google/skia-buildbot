@@ -9,10 +9,10 @@ import (
 	"html/template"
 	"strings"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -86,28 +86,28 @@ func main() {
 	common.Init()
 
 	if *emailTokenPath == "" {
-		glog.Error("Must specify --email_token_path")
+		sklog.Error("Must specify --email_token_path")
 		return
 	}
 
-	defer glog.Flush()
+	defer sklog.Flush()
 
 	client := httputils.NewTimeoutClient()
 	for _, shiftType := range allShiftTypes {
 
 		res, err := client.Get(shiftType.nextSheriffEndpoint)
 		if err != nil {
-			glog.Fatalf("Could not HTTP Get: %s", err)
+			sklog.Fatalf("Could not HTTP Get: %s", err)
 		}
 		defer util.Close(res.Body)
 
 		var jsonType map[string]interface{}
 		if err := json.NewDecoder(res.Body).Decode(&jsonType); err != nil {
-			glog.Fatalf("Could not unmarshal JSON: %s", err)
+			sklog.Fatalf("Could not unmarshal JSON: %s", err)
 		}
 		sheriffEmail, _ := jsonType["username"].(string)
 		if sheriffEmail == NO_SHERIFF {
-			glog.Infof("Skipping emailing %s because %s was specified", shiftType.shiftName, NO_SHERIFF)
+			sklog.Infof("Skipping emailing %s because %s was specified", shiftType.shiftName, NO_SHERIFF)
 			continue
 		}
 		sheriffUsername := strings.Split(string(sheriffEmail), "@")[0]
@@ -129,19 +129,19 @@ func main() {
 			ScheduleStart:    jsonType["schedule_start"].(string),
 			ScheduleEnd:      jsonType["schedule_end"].(string),
 		}); err != nil {
-			glog.Errorf("Failed to execute template: %s", err)
+			sklog.Errorf("Failed to execute template: %s", err)
 			return
 		}
 
 		emailSubject := fmt.Sprintf("%s is the next %s", sheriffUsername, shiftType.shiftName)
 		viewActionMarkup, err := email.GetViewActionMarkup(shiftType.schedulesLink, "View Schedule", "Direct link to the schedule")
 		if err != nil {
-			glog.Errorf("Failed to get view action markup: %s", err)
+			sklog.Errorf("Failed to get view action markup: %s", err)
 			return
 		}
 		senderDisplayName := fmt.Sprintf("%s Rotation", shiftType.shiftName)
 		if err := sendEmail([]string{sheriffEmail, EXTRA_RECIPIENT}, senderDisplayName, emailSubject, emailBytes.String(), viewActionMarkup); err != nil {
-			glog.Fatalf("Error sending email to sheriff: %s", err)
+			sklog.Fatalf("Error sending email to sheriff: %s", err)
 		}
 	}
 }

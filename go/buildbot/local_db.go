@@ -14,9 +14,9 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/gorilla/mux"
 	"github.com/satori/go.uuid"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -111,7 +111,7 @@ func key_COMMIT_COMMENTS_BY_COMMIT(commit string, id int64) []byte {
 func checkInterrupt(stop <-chan struct{}) error {
 	select {
 	case <-stop:
-		glog.Errorf("Transaction interrupted!")
+		sklog.Errorf("Transaction interrupted!")
 		return fmt.Errorf("Transaction was interrupted.")
 	default:
 		return nil
@@ -156,14 +156,14 @@ func (d *localDB) reportActiveTx() {
 	d.txMutex.RLock()
 	defer d.txMutex.RUnlock()
 	if len(d.txActive) == 0 {
-		glog.Infof("Active Transactions: (none)")
+		sklog.Infof("Active Transactions: (none)")
 		return
 	}
 	txs := make([]string, 0, len(d.txActive))
 	for id, name := range d.txActive {
 		txs = append(txs, fmt.Sprintf("  %d\t%s", id, name))
 	}
-	glog.Infof("Active Transactions:\n%s", strings.Join(txs, "\n"))
+	sklog.Infof("Active Transactions:\n%s", strings.Join(txs, "\n"))
 }
 
 // tx is a wrapper for a BoltDB transaction which tracks statistics.
@@ -490,7 +490,7 @@ func recordBuildIngestLatency(b *Build) {
 	latency := time.Now().Sub(b.Started)
 	if latency > INGEST_LATENCY_ALERT_THRESHOLD {
 		// This is probably going to trigger an alert. Log the build for debugging.
-		glog.Warningf("Build start to ingestion latency is greater than %s (%s): %s %s #%d", INGEST_LATENCY_ALERT_THRESHOLD, latency, b.Master, b.Builder, b.Number)
+		sklog.Warningf("Build start to ingestion latency is greater than %s (%s): %s %s #%d", INGEST_LATENCY_ALERT_THRESHOLD, latency, b.Master, b.Builder, b.Number)
 	}
 	metrics2.RawAddInt64PointAtTime("buildbot.ingest.latency", map[string]string{
 		"master":  b.Master,

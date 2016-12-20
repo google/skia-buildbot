@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
@@ -24,7 +24,7 @@ func main() {
 	common.Init()
 	out, err := util.SshToBareMetalMachines(*cmd, util.BareMetalSlaves, *timeout)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	if *printOutput {
 		for k, v := range out {

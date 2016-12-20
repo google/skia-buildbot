@@ -14,11 +14,11 @@ import (
 	"golang.org/x/net/context"
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/blacklist"
@@ -135,7 +135,7 @@ func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 	go util.RepeatCtx(5*time.Second, ctx, func() {
 		beforeMainLoop()
 		if err := s.MainLoop(); err != nil {
-			glog.Errorf("Failed to run the task scheduler: %s", err)
+			sklog.Errorf("Failed to run the task scheduler: %s", err)
 		} else {
 			lvScheduling.Reset()
 		}
@@ -143,7 +143,7 @@ func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 	lvUpdate := metrics2.NewLiveness("last-successful-tasks-update")
 	go util.RepeatCtx(5*time.Minute, ctx, func() {
 		if err := s.updateUnfinishedTasks(); err != nil {
-			glog.Errorf("Failed to run periodic tasks update: %s", err)
+			sklog.Errorf("Failed to run periodic tasks update: %s", err)
 		} else {
 			lvUpdate.Reset()
 		}
@@ -194,7 +194,7 @@ func (s *TaskScheduler) TriggerJob(repo, commit, jobName string) (string, error)
 	if err := s.db.PutJob(j); err != nil {
 		return "", err
 	}
-	glog.Infof("Created manually-triggered Job %q", j.Id)
+	sklog.Infof("Created manually-triggered Job %q", j.Id)
 	return j.Id, nil
 }
 
@@ -276,11 +276,11 @@ func ComputeBlamelist(cache db.TaskCache, repo *repograph.Graph, taskName, repoN
 			for _, name := range repo.Branches() {
 				if repo.Get(name).Hash == revision.Hash {
 					commitsBuf = append(commitsBuf[:0], revision)
-					glog.Warningf("Found too many commits for %s @ %s; is a branch head.", taskName, revision.Hash)
+					sklog.Warningf("Found too many commits for %s @ %s; is a branch head.", taskName, revision.Hash)
 					return false, ERR_BLAMELIST_DONE
 				}
 			}
-			glog.Warningf("Found too many commits for %s @ %s; not a branch head so returning empty.", taskName, revision.Hash)
+			sklog.Warningf("Found too many commits for %s @ %s; not a branch head so returning empty.", taskName, revision.Hash)
 			commitsBuf = commitsBuf[:0]
 			return false, ERR_BLAMELIST_DONE
 		}
@@ -366,7 +366,7 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(unfinishedJobs []*db.Job) (map
 			candidates[key] = c
 		}
 	}
-	glog.Infof("Found %d task candidates for %d unfinished jobs.", len(candidates), len(unfinishedJobs))
+	sklog.Infof("Found %d task candidates for %d unfinished jobs.", len(candidates), len(unfinishedJobs))
 	return candidates, nil
 }
 
@@ -380,7 +380,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 	for _, c := range preFilterCandidates {
 		// Reject blacklisted tasks.
 		if rule := s.bl.MatchRule(c.Name, c.Revision); rule != "" {
-			glog.Warningf("Skipping blacklisted task candidate: %s @ %s due to rule %q", c.Name, c.Revision, rule)
+			sklog.Warningf("Skipping blacklisted task candidate: %s @ %s due to rule %q", c.Name, c.Revision, rule)
 			continue
 		}
 
@@ -443,7 +443,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 		candidates[c.Name] = append(candidates[c.Name], c)
 		total++
 	}
-	glog.Infof("Filtered to %d candidates in %d spec categories.", total, len(candidatesBySpec))
+	sklog.Infof("Filtered to %d candidates in %d spec categories.", total, len(candidatesBySpec))
 	return candidatesBySpec, nil
 }
 
@@ -482,7 +482,7 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 		c.StealingFromId = stealingFrom.Id
 	}
 	if len(c.Commits) > 0 && !util.In(c.Revision, c.Commits) {
-		glog.Errorf("task candidate %s @ %s doesn't have its own revision in its blamelist: %v", c.Name, c.Revision, c.Commits)
+		sklog.Errorf("task candidate %s @ %s doesn't have its own revision in its blamelist: %v", c.Name, c.Revision, c.Commits)
 	}
 
 	if c.IsForceRun() {
@@ -498,7 +498,7 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 		// Treat retries as if they're new; don't use stealingFrom.Commits.
 		if c.RetryOf != "" {
 			if stealingFrom.Id != c.RetryOf && stealingFrom.ForcedJobId == "" {
-				glog.Errorf("Candidate %v is a retry of %s but is stealing commits from %s!", c.TaskKey, c.RetryOf, stealingFrom.Id)
+				sklog.Errorf("Candidate %v is a retry of %s but is stealing commits from %s!", c.TaskKey, c.RetryOf, stealingFrom.Id)
 			}
 		} else {
 			stoleFromCommits = len(stealingFrom.Commits)
@@ -620,7 +620,7 @@ func (s *TaskScheduler) recordCandidateMetrics(candidates map[string]map[string]
 			for _, c := range bySpec {
 				parseDims, err := swarming.ParseDimensions(c.TaskSpec.Dimensions)
 				if err != nil {
-					glog.Errorf("Failed to parse dimensions: %s", err)
+					sklog.Errorf("Failed to parse dimensions: %s", err)
 					continue
 				}
 				dims := make(map[string]string, len(parseDims))
@@ -630,7 +630,7 @@ func (s *TaskScheduler) recordCandidateMetrics(candidates map[string]map[string]
 				}
 				k, err := util.MD5Params(dims)
 				if err != nil {
-					glog.Errorf("Failed to create metrics key: %s", err)
+					sklog.Errorf("Failed to create metrics key: %s", err)
 					continue
 				}
 				dimensions[k] = dims
@@ -707,7 +707,7 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 	for _, c := range tasks {
 		// TODO(borenet): Make this threshold configurable.
 		if c.Score <= 0.0 {
-			glog.Warningf("candidate %s @ %s has a score of %2f; skipping (%d commits).", c.Name, c.Revision, c.Score, len(c.Commits))
+			sklog.Warningf("candidate %s @ %s has a score of %2f; skipping (%d commits).", c.Name, c.Revision, c.Score, len(c.Commits))
 			continue
 		}
 
@@ -965,7 +965,7 @@ func (s *TaskScheduler) scheduleTasks(bots []*swarming_api.SwarmingRpcsBotInfo, 
 	// loop which updates those candidates to use the IDs of the newly-
 	// inserted Tasks in the database rather than the candidate ID.
 
-	glog.Infof("Triggered %d tasks on %d bots.", len(schedule), len(bots))
+	sklog.Infof("Triggered %d tasks on %d bots.", len(schedule), len(bots))
 	return nil
 }
 
@@ -1032,7 +1032,7 @@ func (s *TaskScheduler) gatherNewJobs() error {
 func (s *TaskScheduler) MainLoop() error {
 	defer metrics2.FuncTimer().Stop()
 
-	glog.Infof("Task Scheduler updating...")
+	sklog.Infof("Task Scheduler updating...")
 
 	var e1, e2 error
 	var wg1, wg2 sync.WaitGroup
@@ -1088,7 +1088,7 @@ func (s *TaskScheduler) MainLoop() error {
 	}
 
 	// Regenerate the queue.
-	glog.Infof("Task Scheduler regenerating the queue...")
+	sklog.Infof("Task Scheduler regenerating the queue...")
 	queue, err := s.regenerateTaskQueue(now)
 	if err != nil {
 		return err
@@ -1099,7 +1099,7 @@ func (s *TaskScheduler) MainLoop() error {
 		return e1
 	}
 
-	glog.Infof("Task Scheduler scheduling tasks...")
+	sklog.Infof("Task Scheduler scheduling tasks...")
 	if err := s.scheduleTasks(bots, queue); err != nil {
 		return err
 	}
@@ -1143,7 +1143,7 @@ func (s *TaskScheduler) timeDecayForCommit(now time.Time, commit *repograph.Comm
 	}
 	rv := timeDecay24Hr(s.timeDecayAmt24Hr, now.Sub(commit.Timestamp))
 	if rv == 0.0 {
-		glog.Warningf("timeDecayForCommit is zero. Now: %s, Commit: %s ts %s, TimeDecay: %2f\nDetails: %v", now, commit.Hash, commit.Timestamp, s.timeDecayAmt24Hr, commit)
+		sklog.Warningf("timeDecayForCommit is zero. Now: %s, Commit: %s ts %s, TimeDecay: %2f\nDetails: %v", now, commit.Hash, commit.Timestamp, s.timeDecayAmt24Hr, commit)
 	}
 	return rv, nil
 }
@@ -1165,7 +1165,7 @@ func (ts *TaskScheduler) GetBlacklist() *blacklist.Blacklist {
 func testedness(n int) float64 {
 	if n < 0 {
 		// This should never happen.
-		glog.Errorf("Task score function got a blamelist with %d commits", n)
+		sklog.Errorf("Task score function got a blamelist with %d commits", n)
 		return -1.0
 	} else if n == 0 {
 		// Zero commits have zero testedness.
@@ -1291,7 +1291,7 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 	// Query Swarming for all unfinished tasks.
 	// TODO(borenet): This would be faster if Swarming had a
 	// get-multiple-tasks-by-ID endpoint.
-	glog.Infof("Querying Swarming for %d unfinished tasks.", len(tasks))
+	sklog.Infof("Querying Swarming for %d unfinished tasks.", len(tasks))
 	var wg sync.WaitGroup
 	errs := make([]error, len(tasks))
 	for i, t := range tasks {
@@ -1435,7 +1435,7 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(tasks []*db.Task) error {
 		}
 		task.Commits = commits
 		if len(task.Commits) > 0 && !util.In(task.Revision, task.Commits) {
-			glog.Errorf("task %s (%s @ %s) doesn't have its own revision in its blamelist: %v", task.Id, task.Name, task.Revision, task.Commits)
+			sklog.Errorf("task %s (%s @ %s) doesn't have its own revision in its blamelist: %v", task.Id, task.Name, task.Revision, task.Commits)
 		}
 		updatedTasks[task.Id] = task
 		cache.insert(task)
@@ -1520,7 +1520,7 @@ func (s *TaskScheduler) AddTasks(taskMap map[string]map[string][]*db.Task) error
 		rvErrs := []error{}
 		for err := range errs {
 			if !db.IsConcurrentUpdate(err) {
-				glog.Error(err)
+				sklog.Error(err)
 				rvErrs = append(rvErrs, err)
 			}
 		}
@@ -1550,7 +1550,7 @@ func (s *TaskScheduler) updateTaskFromSwarming(swarmingTaskId string) error {
 			if err != nil {
 				id = "<MISSING ID TAG>"
 			}
-			glog.Errorf("Failed to update task %q: No such task ID: %q", swarmingTaskId, id)
+			sklog.Errorf("Failed to update task %q: No such task ID: %q", swarmingTaskId, id)
 		} else {
 			return fmt.Errorf("Failed to update task %q: %s", swarmingTaskId, err)
 		}

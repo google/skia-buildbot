@@ -49,10 +49,7 @@ func main() {
 		sklog.Fatalf("Could not setup credentials: %s", err)
 	}
 
-	err = sklog.InitCloudLogging(client, "rpi-master", "rpi-backup")
-	if err != nil {
-		sklog.Fatalf("Could not setup cloud logging: %s", err)
-	}
+	common.StartCloudLoggingWithClient(client, "skolo-rpi-master", "rpi-backup")
 
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {

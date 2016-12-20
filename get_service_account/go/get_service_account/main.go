@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -51,7 +51,7 @@ type Item struct {
 func main() {
 	output, err := exec.RunSimple("gcloud --quiet compute project-info describe --format=json")
 	if err != nil {
-		glog.Fatalf("Failed to execute gcloud: %s", err)
+		sklog.Fatalf("Failed to execute gcloud: %s", err)
 	}
 	pi := &ProjectInfo{
 		CommonInstanceMetadata: Metadata{
@@ -59,7 +59,7 @@ func main() {
 		},
 	}
 	if err := json.Unmarshal([]byte(output), pi); err != nil {
-		glog.Fatalf("Failed to parse gcloud output: %s", err)
+		sklog.Fatalf("Failed to parse gcloud output: %s", err)
 	}
 	items := pi.CommonInstanceMetadata.Items
 	body := ""
@@ -70,9 +70,9 @@ func main() {
 		}
 	}
 	if body == "" {
-		glog.Fatalf("Failed to find the JST service account in the metadata.")
+		sklog.Fatalf("Failed to find the JST service account in the metadata.")
 	}
 	if err := ioutil.WriteFile(OUTPUT_FILENAME, []byte(body), 0600); err != nil {
-		glog.Fatalf("Failed to write %q: %s", OUTPUT_FILENAME, err)
+		sklog.Fatalf("Failed to write %q: %s", OUTPUT_FILENAME, err)
 	}
 }

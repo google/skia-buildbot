@@ -9,7 +9,7 @@ import (
 	"go.skia.org/infra/go/util"
 
 	"github.com/satori/go.uuid"
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 type inMemoryTaskDB struct {
@@ -71,7 +71,7 @@ func (db *inMemoryTaskDB) PutTasks(tasks []*Task) error {
 
 		if existing := db.tasks[task.Id]; existing != nil {
 			if !existing.DbModified.Equal(task.DbModified) {
-				glog.Warningf("Cached Task has been modified in the DB. Current:\n%v\nCached:\n%v", existing, task)
+				sklog.Warningf("Cached Task has been modified in the DB. Current:\n%v\nCached:\n%v", existing, task)
 				return ErrConcurrentUpdate
 			}
 		}
@@ -162,7 +162,7 @@ func (db *inMemoryJobDB) PutJobs(jobs []*Job) error {
 
 		if existing := db.jobs[job.Id]; existing != nil {
 			if !existing.DbModified.Equal(job.DbModified) {
-				glog.Warningf("Cached Job has been modified in the DB. Current:\n%v\nCached:\n%v", existing, job)
+				sklog.Warningf("Cached Job has been modified in the DB. Current:\n%v\nCached:\n%v", existing, job)
 				return ErrConcurrentUpdate
 			}
 		}

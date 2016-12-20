@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/influxdb"
@@ -76,7 +76,7 @@ func itoh(i int) string {
 func htoi(h string) int {
 	i, err := strconv.Atoi(h)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	return i
 }
@@ -151,15 +151,15 @@ func updateBlamelists(cache db.TaskCache, t *db.Task) ([]*db.Task, error) {
 // findApproxLatestCommit scans the DB backwards and returns the commit # of the
 // last-created task.
 func findApproxLatestCommit(d db.TaskDB) int {
-	glog.Infof("findApproxLatestCommit begin")
+	sklog.Infof("findApproxLatestCommit begin")
 	for t := time.Now(); t.After(epoch); t = t.Add(-24 * time.Hour) {
 		begin := t.Add(-24 * time.Hour)
-		glog.Infof("findApproxLatestCommit loading %s to %s", begin, t)
+		sklog.Infof("findApproxLatestCommit loading %s to %s", begin, t)
 		before := time.Now()
 		t, err := d.GetTasksFromDateRange(begin, t)
 		getTasksDur := time.Now().Sub(before)
 		if err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 		mReads.Lock()
 		if len(t) > 0 {
@@ -173,25 +173,25 @@ func findApproxLatestCommit(d db.TaskDB) int {
 			// Return revision of last task.
 			lastTask := t[len(t)-1]
 			i := htoi(lastTask.Revision)
-			glog.Infof("findApproxLatestCommit returning %d from %s", i, lastTask.Id)
+			sklog.Infof("findApproxLatestCommit returning %d from %s", i, lastTask.Id)
 			return i
 		}
 
 	}
-	glog.Infof("findApproxLatestCommit found empty DB")
+	sklog.Infof("findApproxLatestCommit found empty DB")
 	return 0
 }
 
 // putTasks inserts randomly-generated tasks into the DB. Does not return.
 func putTasks(d db.TaskDB) {
-	glog.Infof("putTasks begin")
+	sklog.Infof("putTasks begin")
 	w, err := window.New(4*24*time.Hour, 0, nil)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	cache, err := db.NewTaskCache(d, w)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	// If we're restarting, try to pick up where we left off.
 	currentCommit := findApproxLatestCommit(d)
@@ -199,10 +199,10 @@ func putTasks(d db.TaskDB) {
 	maxTasksPerIter := float64(kNumTaskNames * kNumRepos * kRecentCommitRange)
 	for {
 		if err := w.Update(); err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 		iterTasks := int(math.Max(0, math.Min(maxTasksPerIter, (rand.NormFloat64()+1)*meanTasksPerCommit)))
-		glog.Infof("Adding %d tasks with revisions %s - %s", iterTasks, itoh(currentCommit), itoh(currentCommit+kRecentCommitRange))
+		sklog.Infof("Adding %d tasks with revisions %s - %s", iterTasks, itoh(currentCommit), itoh(currentCommit+kRecentCommitRange))
 		for i := 0; i < iterTasks; i++ {
 			t := makeTask(currentCommit)
 			putTasksDur := time.Duration(0)
@@ -211,15 +211,15 @@ func putTasks(d db.TaskDB) {
 				putTasksDur += time.Now().Sub(before)
 				t := t.Copy()
 				if err := cache.Update(); err != nil {
-					glog.Fatal(err)
+					sklog.Fatal(err)
 				}
 				tasksToUpdate, err := updateBlamelists(cache, t)
 				if err != nil {
-					glog.Fatal(err)
+					sklog.Fatal(err)
 				}
 				before = time.Now()
 				if err := d.AssignId(t); err != nil {
-					glog.Fatal(err)
+					sklog.Fatal(err)
 				}
 				putTasksDur += time.Now().Sub(before)
 				t.Created = time.Now()
@@ -229,7 +229,7 @@ func putTasks(d db.TaskDB) {
 			})
 			putTasksDur += time.Now().Sub(before)
 			if err != nil {
-				glog.Fatal(err)
+				sklog.Fatal(err)
 			}
 			if len(updatedTasks) > 1 {
 				mInsertAndUpdates.Lock()
@@ -291,7 +291,7 @@ func (h *updateEntryHeap) Pop() interface{} {
 // updateTasks makes random updates to pending and running tasks in the DB. Does
 // not return.
 func updateTasks(d db.TaskDB) {
-	glog.Infof("updateTasks begin")
+	sklog.Infof("updateTasks begin")
 	updateQueue := updateEntryHeap{}
 	idMap := map[string]*updateEntry{}
 
@@ -318,7 +318,7 @@ func updateTasks(d db.TaskDB) {
 				heap.Fix(&updateQueue, entry.heapIndex)
 			}
 			if entry.heapIndex < 0 {
-				glog.Fatalf("you lose %#v %#v", entry, updateQueue)
+				sklog.Fatalf("you lose %#v %#v", entry, updateQueue)
 			}
 			idMap[task.Id] = entry
 		} else if entry != nil {
@@ -329,17 +329,17 @@ func updateTasks(d db.TaskDB) {
 
 	token, err := d.StartTrackingModifiedTasks()
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	// Initial read to find pending and running tasks.
 	for t := time.Now(); t.After(epoch); t = t.Add(-24 * time.Hour) {
 		begin := t.Add(-24 * time.Hour)
-		glog.Infof("updateTasks loading %s to %s", begin, t)
+		sklog.Infof("updateTasks loading %s to %s", begin, t)
 		before := time.Now()
 		t, err := d.GetTasksFromDateRange(begin, t)
 		getTasksDur := time.Now().Sub(before)
 		if err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 		mReads.Lock()
 		if len(t) > 0 {
@@ -353,18 +353,18 @@ func updateTasks(d db.TaskDB) {
 			freshenQueue(task)
 		}
 	}
-	glog.Infof("updateTasks finished loading; %d pending and running", len(idMap))
+	sklog.Infof("updateTasks finished loading; %d pending and running", len(idMap))
 	// Rate limit so we're not constantly taking locks for GetModifiedTasks.
 	for _ = range time.Tick(time.Millisecond) {
 		now := time.Now()
 		t, err := d.GetModifiedTasks(token)
 		if err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 		for _, task := range t {
 			freshenQueue(task)
 		}
-		glog.Infof("updateTasks performing updates; %d tasks on queue", len(updateQueue))
+		sklog.Infof("updateTasks performing updates; %d tasks on queue", len(updateQueue))
 		for len(updateQueue) > 0 && updateQueue[0].updateTime.Before(now) {
 			if time.Now().Sub(now) >= db.MODIFIED_DATA_TIMEOUT-5*time.Second {
 				break
@@ -400,14 +400,14 @@ func updateTasks(d db.TaskDB) {
 						task.IsolatedOutput = fmt.Sprintf("%x", rand.Int63())
 					}
 				default:
-					glog.Fatalf("Task %s in update queue has status %s. %#v", task.Id, task.Status, task)
+					sklog.Fatalf("Task %s in update queue has status %s. %#v", task.Id, task.Status, task)
 				}
 				before = time.Now()
 				return nil
 			})
 			putTasksDur += time.Now().Sub(before)
 			if err != nil {
-				glog.Fatal(err)
+				sklog.Fatal(err)
 			}
 			mUpdates.Lock()
 			updates++
@@ -419,7 +419,7 @@ func updateTasks(d db.TaskDB) {
 
 // readTasks reads the last hour of tasks every second. Does not return.
 func readTasks(d db.TaskDB) {
-	glog.Infof("readTasks begin")
+	sklog.Infof("readTasks begin")
 	var taskCount uint64 = 0
 	var readCount uint64 = 0
 	var totalDuration time.Duration = 0
@@ -429,7 +429,7 @@ func readTasks(d db.TaskDB) {
 		t, err := d.GetTasksFromDateRange(now.Add(-time.Hour), now)
 		dur := time.Now().Sub(now)
 		if err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 		taskCount += uint64(len(t))
 		readCount++
@@ -441,9 +441,9 @@ func readTasks(d db.TaskDB) {
 		if now.Sub(lastMessage) > time.Minute {
 			lastMessage = now
 			if readCount > 0 && totalDuration > 0 {
-				glog.Infof("readTasks %d tasks in last hour; %f reads/sec; %f tasks/sec", taskCount/readCount, float64(readCount)/totalDuration.Seconds(), float64(taskCount)/totalDuration.Seconds())
+				sklog.Infof("readTasks %d tasks in last hour; %f reads/sec; %f tasks/sec", taskCount/readCount, float64(readCount)/totalDuration.Seconds(), float64(taskCount)/totalDuration.Seconds())
 			} else {
-				glog.Fatalf("readTasks 0 reads in last minute")
+				sklog.Fatalf("readTasks 0 reads in last minute")
 			}
 			taskCount = 0
 			readCount = 0
@@ -496,7 +496,7 @@ func reportStats() {
 		lastReads = totalReads
 		curReadDur := totalReadDur - lastReadDur
 		lastReadDur = totalReadDur
-		glog.Infof("reportStats total; %d inserts %f/s; %d insert-and-updates %f/s; %d updates %f/s; %d reads %f/s", totalInserts, float64(totalInserts)/totalInsertDur.Seconds(), totalInsertAndUpdates, float64(totalInsertAndUpdates)/totalInsertAndUpdateDur.Seconds(), totalUpdates, float64(totalUpdates)/totalUpdateDur.Seconds(), totalReads, float64(totalReads)/totalReadDur.Seconds())
+		sklog.Infof("reportStats total; %d inserts %f/s; %d insert-and-updates %f/s; %d updates %f/s; %d reads %f/s", totalInserts, float64(totalInserts)/totalInsertDur.Seconds(), totalInsertAndUpdates, float64(totalInsertAndUpdates)/totalInsertAndUpdateDur.Seconds(), totalUpdates, float64(totalUpdates)/totalUpdateDur.Seconds(), totalReads, float64(totalReads)/totalReadDur.Seconds())
 		if curInsertDur.Nanoseconds() == 0 {
 			curInsertDur += time.Nanosecond
 		}
@@ -509,7 +509,7 @@ func reportStats() {
 		if curReadDur.Nanoseconds() == 0 {
 			curReadDur += time.Nanosecond
 		}
-		glog.Infof("reportStats current; %d inserts %f/s; %d insert-and-updates %f/s; %d updates %f/s; %d reads %f/s", curInserts, float64(curInserts)/curInsertDur.Seconds(), curInsertAndUpdates, float64(curInsertAndUpdates)/curInsertAndUpdateDur.Seconds(), curUpdates, float64(curUpdates)/curUpdateDur.Seconds(), curReads, float64(curReads)/curReadDur.Seconds())
+		sklog.Infof("reportStats current; %d inserts %f/s; %d insert-and-updates %f/s; %d updates %f/s; %d reads %f/s", curInserts, float64(curInserts)/curInsertDur.Seconds(), curInsertAndUpdates, float64(curInsertAndUpdates)/curInsertAndUpdateDur.Seconds(), curUpdates, float64(curUpdates)/curUpdateDur.Seconds(), curReads, float64(curReads)/curReadDur.Seconds())
 	}
 }
 
@@ -521,7 +521,7 @@ func main() {
 
 	d, err := local_db.NewDB("busywork", path.Join(*workdir, "busywork.bdb"))
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	go reportStats()

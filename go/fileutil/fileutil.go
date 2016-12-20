@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -28,7 +28,7 @@ func EnsureDirExists(dirPath string) (string, error) {
 // returns s otherwise it cause the program to stop with the error message.
 func Must(s string, err error) string {
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	return s
 }
@@ -37,7 +37,7 @@ func Must(s string, err error) string {
 func MustOpen(name string) *os.File {
 	f, err := os.Open(name)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	return f
 }
@@ -46,7 +46,7 @@ func MustOpen(name string) *os.File {
 func MustReaddir(dir *os.File) []os.FileInfo {
 	fi, err := dir.Readdir(-1)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	return fi
 }
@@ -57,7 +57,7 @@ func FileExists(path string) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
 	} else if err != nil {
-		glog.Error(err)
+		sklog.Error(err)
 		return false
 	}
 	return true

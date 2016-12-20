@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
@@ -43,7 +43,7 @@ func main() {
 	tile, expectations, ignoreStore := load()
 	tile = sampleTile(tile, *sampleSize, *query, *nTests)
 	writeSample(*outputFile, tile, expectations, ignoreStore)
-	glog.Infof("Finished.")
+	sklog.Infof("Finished.")
 }
 
 func sampleTile(tile *tiling.Tile, sampleSize int, queryStr string, nTests int) *tiling.Tile {
@@ -51,7 +51,7 @@ func sampleTile(tile *tiling.Tile, sampleSize int, queryStr string, nTests int) 
 	if queryStr != "" {
 		query, err := url.ParseQuery(queryStr)
 		if err != nil {
-			glog.Fatalf("Unable to parse querye '%s'. Got error: %s", queryStr, err)
+			sklog.Fatalf("Unable to parse querye '%s'. Got error: %s", queryStr, err)
 		}
 
 		newTraces := map[string]tiling.Trace{}
@@ -77,7 +77,7 @@ func sampleTile(tile *tiling.Tile, sampleSize int, queryStr string, nTests int) 
 			for _, traceID := range traceIDs {
 				newTraces[traceID] = tile.Traces[traceID]
 			}
-			glog.Infof("Included test/traces: %s/%d", testName, len(traceIDs))
+			sklog.Infof("Included test/traces: %s/%d", testName, len(traceIDs))
 			idx++
 			if idx >= nTests {
 				break
@@ -112,7 +112,7 @@ func writeSample(outputFileName string, tile *tiling.Tile, expectations *expstor
 	// Get the ignore rules.
 	var err error
 	if sample.IgnoreRules, err = ignoreStore.List(false); err != nil {
-		glog.Fatalf("Error retrieving ignore rules: %s", err)
+		sklog.Fatalf("Error retrieving ignore rules: %s", err)
 	}
 
 	// Write the sample to disk.
@@ -120,18 +120,18 @@ func writeSample(outputFileName string, tile *tiling.Tile, expectations *expstor
 	t := timer.New("Writing sample")
 	err = sample.Serialize(&buf)
 	if err != nil {
-		glog.Fatalf("Error serializing tile: %s", err)
+		sklog.Fatalf("Error serializing tile: %s", err)
 	}
 	t.Stop()
 
 	file, err := os.Create(outputFileName)
 	if err != nil {
-		glog.Fatalf("Unable to create file %s:  %s", outputFileName, err)
+		sklog.Fatalf("Unable to create file %s:  %s", outputFileName, err)
 	}
 	outputBuf := buf.Bytes()
 	_, err = file.Write(outputBuf)
 	if err != nil {
-		glog.Fatalf("Writing file %s. Got error: %s", outputFileName, err)
+		sklog.Fatalf("Writing file %s. Got error: %s", outputFileName, err)
 	}
 	util.Close(file)
 
@@ -139,7 +139,7 @@ func writeSample(outputFileName string, tile *tiling.Tile, expectations *expstor
 	t = timer.New("Reading back tile")
 	foundSample, err := serialize.DeserializeSample(bytes.NewBuffer(outputBuf))
 	if err != nil {
-		glog.Fatalf("Error deserializing sample: %s", err)
+		sklog.Fatalf("Error deserializing sample: %s", err)
 	}
 	t.Stop()
 
@@ -147,24 +147,24 @@ func writeSample(outputFileName string, tile *tiling.Tile, expectations *expstor
 	for id, trace := range sample.Tile.Traces {
 		foundTrace, ok := foundSample.Tile.Traces[id]
 		if !ok {
-			glog.Fatalf("Could not find trace with id: %s", id)
+			sklog.Fatalf("Could not find trace with id: %s", id)
 		}
 
 		if !reflect.DeepEqual(trace, foundTrace) {
-			glog.Fatalf("Traces do not match")
+			sklog.Fatalf("Traces do not match")
 		}
 	}
 
 	// Compare the expectaions and ignores
 	if !reflect.DeepEqual(sample.Expectations, foundSample.Expectations) {
-		glog.Fatalf("Expectations do not match")
+		sklog.Fatalf("Expectations do not match")
 	}
 
 	if !reflect.DeepEqual(sample.IgnoreRules, foundSample.IgnoreRules) {
-		glog.Fatalf("Ignore rules do not match")
+		sklog.Fatalf("Ignore rules do not match")
 	}
 
-	glog.Infof("File written successfully !")
+	sklog.Infof("File written successfully !")
 }
 
 // load retrieves the last tile, the expectations and the ignore store.
@@ -176,11 +176,11 @@ func load() (*tiling.Tile, *expstorage.Expectations, ignore.IgnoreStore) {
 	// Open the database
 	vdb, err := dbConf.NewVersionedDB()
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	if !vdb.IsLatestVersion() {
-		glog.Fatal("Wrong DB version. Please updated to latest version.")
+		sklog.Fatal("Wrong DB version. Please updated to latest version.")
 	}
 
 	evt := eventbus.New(nil)
@@ -189,19 +189,19 @@ func load() (*tiling.Tile, *expstorage.Expectations, ignore.IgnoreStore) {
 	// Check out the repository.
 	git, err := gitinfo.CloneOrUpdate(*gitRepoURL, *gitRepoDir, false)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Open the tracedb and load the latest tile.
 	// Connect to traceDB and create the builders.
 	tdb, err := tracedb.NewTraceServiceDBFromAddress(*traceservice, types.GoldenTraceBuilder)
 	if err != nil {
-		glog.Fatalf("Failed to connect to tracedb: %s", err)
+		sklog.Fatalf("Failed to connect to tracedb: %s", err)
 	}
 
 	masterTileBuilder, err := tracedb.NewMasterTileBuilder(tdb, git, *nCommits, evt)
 	if err != nil {
-		glog.Fatalf("Failed to build trace/db.DB: %s", err)
+		sklog.Fatalf("Failed to build trace/db.DB: %s", err)
 	}
 
 	storages := &storage.Storage{
@@ -215,7 +215,7 @@ func load() (*tiling.Tile, *expstorage.Expectations, ignore.IgnoreStore) {
 
 	expectations, err := expStore.Get()
 	if err != nil {
-		glog.Fatalf("Unable to get expecations: %s", err)
+		sklog.Fatalf("Unable to get expecations: %s", err)
 	}
 	return masterTileBuilder.GetTile(), expectations, storages.IgnoreStore
 }

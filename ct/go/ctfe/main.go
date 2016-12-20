@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
@@ -110,8 +110,8 @@ func runServer(serverURL string) {
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	glog.Infof("Ready to serve on %s", serverURL)
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infof("Ready to serve on %s", serverURL)
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
 
 // startCtfeMetrics registers metrics which indicate CT is running healthily
@@ -125,14 +125,14 @@ func startCtfeMetrics() {
 		for _ = range time.Tick(common.SAMPLE_PERIOD) {
 			pendingTaskCount, err := pending_tasks.GetPendingTaskCount()
 			if err != nil {
-				glog.Error(err)
+				sklog.Error(err)
 			} else {
 				pendingTasksGauge.Update(pendingTaskCount)
 			}
 
 			oldestPendingTask, err := pending_tasks.GetOldestPendingTask()
 			if err != nil {
-				glog.Error(err)
+				sklog.Error(err)
 			} else if oldestPendingTask == nil {
 				oldestPendingTaskAgeGauge.Update(0)
 				oldestPendingTaskStatusGauge.Update(0)
@@ -170,10 +170,10 @@ func repeatedTasksScheduler() {
 					Offset:         0,
 					Size:           task_common.MAX_PAGE_SIZE,
 				})
-			glog.Infof("Running %s", query)
+			sklog.Infof("Running %s", query)
 			data, err := prototype.Select(query, args...)
 			if err != nil {
-				glog.Errorf("Failed to query %s tasks: %v", prototype.GetTaskName(), err)
+				sklog.Errorf("Failed to query %s tasks: %v", prototype.GetTaskName(), err)
 				continue
 			}
 
@@ -186,7 +186,7 @@ func repeatedTasksScheduler() {
 				if scheduledTime.Before(cutOffTime) {
 					addTaskVars := task.GetPopulatedAddTaskVars()
 					if _, err := task_common.AddTask(addTaskVars); err != nil {
-						glog.Errorf("Failed to add task %v: %v", task, err)
+						sklog.Errorf("Failed to add task %v: %v", task, err)
 						continue
 					}
 
@@ -194,7 +194,7 @@ func repeatedTasksScheduler() {
 					taskVars.GetUpdateTaskCommonVars().Id = task.GetCommonCols().Id
 					taskVars.GetUpdateTaskCommonVars().ClearRepeatAfterDays()
 					if err := task_common.UpdateTask(taskVars, task.TableName()); err != nil {
-						glog.Errorf("Failed to update task %v: %v", task, err)
+						sklog.Errorf("Failed to update task %v: %v", task, err)
 						continue
 					}
 				}
@@ -218,9 +218,9 @@ func main() {
 	common.InitWithMetrics2("ctfe", influxHost, influxUser, influxPassword, influxDatabase, local)
 	v, err := skiaversion.GetVersion()
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
-	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
 	Init()
 	serverURL := "https://" + *host
@@ -246,16 +246,16 @@ func main() {
 		webhook.MustInitRequestSaltFromMetadata()
 	}
 
-	glog.Info("CloneOrUpdate complete")
+	sklog.Info("CloneOrUpdate complete")
 
 	// Initialize the ctfe database.
 	if !*local {
 		if err := dbConf.GetPasswordFromMetadata(); err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 	}
 	if err := dbConf.InitDB(); err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	startCtfeMetrics()

@@ -3,7 +3,7 @@ package goldingestion
 import (
 	"net/http"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
@@ -66,7 +66,7 @@ func (g *goldProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 	}
 
 	if !commit.Branches["master"] {
-		glog.Warningf("Commit %s is not in master branch.", commit.Hash)
+		sklog.Warningf("Commit %s is not in master branch.", commit.Hash)
 		return ingestion.IgnoreResultsFileErr
 	}
 
@@ -82,7 +82,7 @@ func (g *goldProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 	// If there was no problem and we have an ingestion store that record that we have processed that file.
 	if (err == nil) && (g.ingestionStore != nil) {
 		if err := g.ingestionStore.Add(config.CONSTRUCTOR_GOLD, dmResults.Master, dmResults.Builder, dmResults.BuildNumber); err != nil {
-			glog.Errorf("Error writing ingested build info: %s", err)
+			sklog.Errorf("Error writing ingested build info: %s", err)
 		}
 	}
 

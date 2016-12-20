@@ -18,7 +18,6 @@ import (
 
 	"github.com/fiorix/go-web/autogzip"
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/debugger/go/containers"
 	"go.skia.org/infra/debugger/go/runner"
 	"go.skia.org/infra/go/buildskia"
@@ -27,6 +26,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -74,7 +74,7 @@ func templateHandler(name string) http.HandlerFunc {
 			loadTemplates()
 		}
 		if err := templates.ExecuteTemplate(w, name, struct{}{}); err != nil {
-			glog.Errorln("Failed to expand template:", err)
+			sklog.Errorln("Failed to expand template:", err)
 		}
 	}
 }
@@ -86,7 +86,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if !*hosted || login.LoggedInAs(r) == "" {
 		if err := templates.ExecuteTemplate(w, "index.html", nil); err != nil {
-			glog.Errorf("Failed to expand template: %s", err)
+			sklog.Errorf("Failed to expand template: %s", err)
 		}
 	} else {
 		co.ServeHTTP(w, r)
@@ -103,7 +103,7 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := templates.ExecuteTemplate(w, "admin.html", co.DescribeAll()); err != nil {
-		glog.Errorf("Failed to expand template: %s", err)
+		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
 
@@ -122,7 +122,7 @@ func loadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if login.LoggedInAs(r) == "" {
 		if err := templates.ExecuteTemplate(w, "index.html", nil); err != nil {
-			glog.Errorf("Failed to expand template: %s", err)
+			sklog.Errorf("Failed to expand template: %s", err)
 		}
 		return
 	}
@@ -200,12 +200,12 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 func buildSkiaServe(checkout, depotTools string) error {
-	glog.Info("Starting GNGen")
+	sklog.Info("Starting GNGen")
 	if err := buildskia.GNGen(checkout, depotTools, "Release", []string{"is_official_build=true"}); err != nil {
 		return fmt.Errorf("Failed GN gen: %s", err)
 	}
 
-	glog.Info("Building skiaserve")
+	sklog.Info("Building skiaserve")
 	if msg, err := buildskia.GNNinjaBuild(checkout, depotTools, "Release", "skiaserve", true); err != nil {
 		return fmt.Errorf("Failed ninja build of skiaserve: %q %s", msg, err)
 	}
@@ -226,7 +226,7 @@ func cleanShutdown() {
 	// process fails to stop.
 	signal.Notify(c, syscall.SIGTERM)
 	s := <-c
-	glog.Infof("Orderly shutdown after receiving signal: %s", s)
+	sklog.Infof("Orderly shutdown after receiving signal: %s", s)
 	co.StopAll()
 	// In theory all the containers should be exiting by now, but let's wait a
 	// little before exiting ourselves.
@@ -239,10 +239,10 @@ func main() {
 	common.InitWithMetrics2("debugger", influxHost, influxUser, influxPassword, influxDatabase, local)
 	if *hosted {
 		if *workRoot == "" {
-			glog.Fatal("The --work_root flag is required.")
+			sklog.Fatal("The --work_root flag is required.")
 		}
 		if *depotTools == "" {
-			glog.Fatal("The --depot_tools flag is required.")
+			sklog.Fatal("The --depot_tools flag is required.")
 		}
 	}
 	Init()
@@ -253,13 +253,13 @@ func main() {
 			redirectURL = "https://debugger.skia.org/oauth2callback/"
 		}
 		if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-			glog.Fatalf("Failed to initialize the login system: %s", err)
+			sklog.Fatalf("Failed to initialize the login system: %s", err)
 		}
 
 		var err error
 		repo, err = gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*workRoot, "skia"), true)
 		if err != nil {
-			glog.Fatalf("Failed to clone Skia: %s", err)
+			sklog.Fatalf("Failed to clone Skia: %s", err)
 		}
 		build = buildskia.New(*workRoot, *depotTools, repo, buildSkiaServe, 64, *timeBetweenBuilds, true)
 		build.Start()
@@ -292,6 +292,6 @@ func main() {
 
 	http.Handle("/", httputils.LoggingRequestResponse(router))
 
-	glog.Infoln("Ready to serve.")
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infoln("Ready to serve.")
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

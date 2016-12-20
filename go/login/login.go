@@ -37,9 +37,9 @@ import (
 	"time"
 
 	"github.com/gorilla/securecookie"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -119,7 +119,7 @@ func LoginURL(w http.ResponseWriter, r *http.Request) string {
 	if err != nil || session.Value == "" {
 		state, err = util.GenerateID()
 		if err != nil {
-			glog.Errorf("Failed to create a session token: %s", err)
+			sklog.Errorf("Failed to create a session token: %s", err)
 			return ""
 		}
 		cookie := &http.Cookie{
@@ -264,7 +264,7 @@ func setSkIDCookieValue(w http.ResponseWriter, value *Session) {
 //
 // to revoke any grants they make.
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("LogoutHandler\n")
+	sklog.Infof("LogoutHandler\n")
 	setSkIDCookieValue(w, &Session{})
 	http.Redirect(w, r, r.FormValue("redirect"), 302)
 }
@@ -273,7 +273,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 // the callback URL registered in the APIs Console. In this case
 // "/oauth2callback".
 func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("OAuth2CallbackHandler\n")
+	sklog.Infof("OAuth2CallbackHandler\n")
 	cookie, err := r.Cookie(SESSION_COOKIE_NAME)
 	if err != nil || cookie.Value == "" {
 		http.Error(w, "Invalid session state.", 500)
@@ -294,7 +294,7 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		if hash == expectedHash {
 			redirect = url
 		} else {
-			glog.Warning("Got an invalid redirect: %s != %s", hash, expectedHash)
+			sklog.Warning("Got an invalid redirect: %s != %s", hash, expectedHash)
 		}
 	}
 	if state != cookie.Value {
@@ -303,10 +303,10 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	code := r.FormValue("code")
-	glog.Infof("Code: %s ", code[:5])
+	sklog.Infof("Code: %s ", code[:5])
 	token, err := oauthConfig.Exchange(oauth2.NoContext, code)
 	if err != nil {
-		glog.Errorf("Failed to authenticate: %s", err)
+		sklog.Errorf("Failed to authenticate: %s", err)
 		http.Error(w, "Failed to authenticate.", 500)
 		return
 	}
@@ -332,14 +332,14 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	middle := segments[1] + strings.Repeat("=", padding)
 	b, err := base64.URLEncoding.DecodeString(middle)
 	if err != nil {
-		glog.Errorf("Failed to base64 decode middle part of token: %s From: %#v", middle, segments)
+		sklog.Errorf("Failed to base64 decode middle part of token: %s From: %#v", middle, segments)
 		http.Error(w, "Failed to base64 decode id_token.", 500)
 		return
 	}
 	// Finally decode the JSON.
 	decoded := &decodedIDToken{}
 	if err := json.Unmarshal(b, decoded); err != nil {
-		glog.Errorf("Failed to JSON decode token: %s", string(b))
+		sklog.Errorf("Failed to JSON decode token: %s", string(b))
 		http.Error(w, "Failed to JSON decode id_token.", 500)
 		return
 	}
@@ -375,7 +375,7 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 // }
 //
 func StatusHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("StatusHandler\n")
+	sklog.Infof("StatusHandler\n")
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	email, id := UserIdentifiers(r)
@@ -391,7 +391,7 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		IsAGoogler: IsGoogler(r),
 	}
 	if err := enc.Encode(body); err != nil {
-		glog.Errorf("Failed to encode Login status to JSON: %s", err)
+		sklog.Errorf("Failed to encode Login status to JSON: %s", err)
 	}
 }
 
@@ -400,7 +400,7 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 func GetHttpClient(r *http.Request) *http.Client {
 	s, err := getSession(r)
 	if err != nil {
-		glog.Errorf("Failed to get session state; falling back to default http client.")
+		sklog.Errorf("Failed to get session state; falling back to default http client.")
 		return &http.Client{}
 	}
 	return oauthConfig.Client(oauth2.NoContext, s.Token)
@@ -416,7 +416,7 @@ func ForceAuth(h http.Handler, oauthCallbackPath string) http.Handler {
 			// If this is not the oauth callback then redirect.
 			if !strings.HasPrefix(r.URL.Path, oauthCallbackPath) {
 				redirectUrl := LoginURL(w, r)
-				glog.Infof("Redirect URL: %s", redirectUrl)
+				sklog.Infof("Redirect URL: %s", redirectUrl)
 				if redirectUrl == "" {
 					httputils.ReportError(w, r, fmt.Errorf("Unable to get redirect URL."), "Redirect to login failed:")
 					return

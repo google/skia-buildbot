@@ -9,7 +9,7 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
@@ -62,6 +62,6 @@ func BenchmarkHistory(b *testing.B) {
 	for _, val := range runtimes {
 		avg += val
 	}
-	glog.Infof("Average lookup time: %.3fus", float64(avg)/float64(len(runtimes)))
-	glog.Infof("Number of lookups  : %d", len(runtimes))
+	sklog.Infof("Average lookup time: %.3fus", float64(avg)/float64(len(runtimes)))
+	sklog.Infof("Number of lookups  : %d", len(runtimes))
 }

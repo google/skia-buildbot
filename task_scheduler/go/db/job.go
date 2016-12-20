@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -274,7 +274,7 @@ func (j *Job) DeriveStatus() JobStatus {
 		// Our inner function doesn't return errors, and
 		// TraverseDependencies doesn't return errors of its own, so
 		// this should be safe.
-		glog.Errorf("Got error traversing Job dependencies: %s", err)
+		sklog.Errorf("Got error traversing Job dependencies: %s", err)
 		return JOB_STATUS_IN_PROGRESS
 	}
 	return worstStatus

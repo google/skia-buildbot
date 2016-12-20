@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/db"
@@ -30,7 +30,7 @@ func (a *Activity) Date() string {
 // Input is in types.Activity format, but ID and TS are ignored. Instead, always
 // use autoincrement ID and the current timestamp for the new record.
 func Write(r *Activity) error {
-	glog.Infof("Write activity: %s\n", r)
+	sklog.Infof("Write activity: %s\n", r)
 	if r.UserID == "" || r.Action == "" {
 		return fmt.Errorf("Activity UserID and Action cannot be empty: %v\n", r)
 	}
@@ -51,7 +51,7 @@ func GetRecent(n int) ([]*Activity, error) {
 		return nil, fmt.Errorf("Failed to read from database: %s", err)
 	}
 	defer util.Close(rows)
-	glog.Infoln("Processing activity rows.")
+	sklog.Infoln("Processing activity rows.")
 	for rows.Next() {
 		var id int
 		var timestamp int64

@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
@@ -248,12 +248,12 @@ func getBuildFromMaster(master, builder string, buildNumber int, repos repograph
 	build.fixup()
 	if build.Repository == "" {
 		// Attempt to determine the repository.
-		glog.Infof("No repository set for %s #%d; attempting to find it.", build.Builder, build.Number)
+		sklog.Infof("No repository set for %s #%d; attempting to find it.", build.Builder, build.Number)
 		_, r, _, err := repos.FindCommit(build.GotRevision)
 		if err != nil {
-			glog.Warningf("Unable to find repo for commit %s; %s", build.GotRevision, err)
+			sklog.Warningf("Unable to find repo for commit %s; %s", build.GotRevision, err)
 		} else {
-			glog.Infof("Found %s for %s", r, build.GotRevision)
+			sklog.Infof("Found %s for %s", r, build.GotRevision)
 			build.Repository = r
 		}
 	}
@@ -346,7 +346,7 @@ func IngestBuild(db DB, b *Build, repos repograph.Map) error {
 
 		// Log the case where we found no revisions for the build.
 		if !(IsTrybot(b.Builder) || strings.Contains(b.Builder, "Housekeeper")) && len(b.Commits) == 0 {
-			glog.Infof("Got build with 0 revs: %s #%d GotRev=%s", b.Builder, b.Number, b.GotRevision)
+			sklog.Infof("Got build with 0 revs: %s #%d GotRev=%s", b.Builder, b.Number, b.GotRevision)
 		}
 
 		// Insert the build.
@@ -520,7 +520,7 @@ func getUningestedBuilds(db DB, m string) (map[string][]int, error) {
 	unprocessed := map[string][]int{}
 	for b, r := range ranges {
 		if r.End < r.Start {
-			glog.Warningf("Cannot create slice of builds to ingest for %q; invalid range (%d, %d)", b, r.Start, r.End)
+			sklog.Warningf("Cannot create slice of builds to ingest for %q; invalid range (%d, %d)", b, r.Start, r.End)
 			continue
 		}
 		builds := make([]int, r.End-r.Start)
@@ -537,7 +537,7 @@ func getUningestedBuilds(db DB, m string) (map[string][]int, error) {
 // ingestNewBuilds finds the set of uningested builds and ingests them.
 func ingestNewBuilds(db DB, m string, repos repograph.Map) error {
 	defer metrics2.FuncTimer().Stop()
-	glog.Infof("Ingesting builds for %s", m)
+	sklog.Infof("Ingesting builds for %s", m)
 	// TODO(borenet): Investigate the use of channels here. We should be
 	// able to start ingesting builds as the data becomes available rather
 	// than waiting until the end.
@@ -561,19 +561,19 @@ func ingestNewBuilds(db DB, m string, repos repograph.Map) error {
 	for b, w := range buildsToProcess {
 		for _, n := range w {
 			if BUILD_BLACKLIST[b][n] {
-				glog.Warningf("Skipping blacklisted build: %s # %d", b, n)
+				sklog.Warningf("Skipping blacklisted build: %s # %d", b, n)
 				continue
 			}
 			if IsTrybot(b) {
 				continue
 			}
-			glog.Infof("Ingesting build: %s, %s, %d", m, b, n)
+			sklog.Infof("Ingesting build: %s, %s, %d", m, b, n)
 			build, err := retryGetBuildFromMaster(m, b, n, repos)
 			if err != nil {
 				// If we couldn't get the build from the master after multiple
 				// tries, assume that the build has somehow disappeared and
 				// skip it.
-				glog.Errorf("Failed to retrieve build from master; skipping: %s", err)
+				sklog.Errorf("Failed to retrieve build from master; skipping: %s", err)
 				continue
 			}
 			if err := IngestBuild(db, build, repos); err != nil {
@@ -589,7 +589,7 @@ func ingestNewBuilds(db DB, m string, repos repograph.Map) error {
 		}
 		return fmt.Errorf(msg)
 	}
-	glog.Infof("Done ingesting builds for %s", m)
+	sklog.Infof("Done ingesting builds for %s", m)
 	return nil
 }
 
@@ -623,7 +623,7 @@ func IngestNewBuildsLoop(db DB, repos repograph.Map) error {
 		for _ = range time.Tick(10 * time.Second) {
 			failedUpdate := false
 			if err := repos.Update(); err != nil {
-				glog.Errorf("Failed to update repo: %s", err)
+				sklog.Errorf("Failed to update repo: %s", err)
 				failedUpdate = true
 			}
 			if failedUpdate {
@@ -635,7 +635,7 @@ func IngestNewBuildsLoop(db DB, repos repograph.Map) error {
 				go func(master string) {
 					defer wg.Done()
 					if err := ingestNewBuilds(cache, master, repos); err != nil {
-						glog.Errorf("Failed to ingest new builds: %s", err)
+						sklog.Errorf("Failed to ingest new builds: %s", err)
 					} else {
 						lv[master].Reset()
 					}

@@ -8,7 +8,7 @@ import (
 	"flag"
 	"os"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
@@ -42,7 +42,7 @@ func Init() {
 			Stderr:      nil,
 		}); err != nil {
 			// CT's baremetal machines will already have an active display 0.
-			glog.Infof("Could not run Xvfb on Display 0: %s", err)
+			sklog.Infof("Could not run Xvfb on Display 0: %s", err)
 		}
 	}
 }

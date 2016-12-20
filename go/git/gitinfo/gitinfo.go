@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -74,13 +74,13 @@ func CloneOrUpdate(repoUrl, dir string, allBranches bool) (*GitInfo, error) {
 func (g *GitInfo) Update(pull, allBranches bool) error {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
-	glog.Info("Beginning Update.")
+	sklog.Info("Beginning Update.")
 	if pull {
 		if _, err := exec.RunCwd(g.dir, "git", "pull"); err != nil {
 			return fmt.Errorf("Failed to sync to HEAD: %s", err)
 		}
 	}
-	glog.Info("Finished pull.")
+	sklog.Info("Finished pull.")
 	var hashes []string
 	var timestamps map[string]time.Time
 	var err error
@@ -89,7 +89,7 @@ func (g *GitInfo) Update(pull, allBranches bool) error {
 	} else {
 		hashes, timestamps, err = readCommitsFromGit(g.dir, "HEAD")
 	}
-	glog.Infof("Finished reading commits: %s", g.dir)
+	sklog.Infof("Finished reading commits: %s", g.dir)
 	if err != nil {
 		return fmt.Errorf("Failed to read commits from: %s : %s", g.dir, err)
 	}

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/cq"
@@ -50,12 +50,12 @@ func monitorStatsForInFlightCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit
 	for _ = range time.Tick(time.Duration(IN_FLIGHT_POLL_TIME)) {
 		dryRunChanges, err := gerritClient.Search(MAX_CLS_PER_POLL, gerrit.SearchStatus("open"), gerrit.SearchProject("skia"), gerrit.SearchLabel(gerrit.COMMITQUEUE_LABEL, "1"))
 		if err != nil {
-			glog.Errorf("Error searching for open changes with dry run in Gerrit: %s", err)
+			sklog.Errorf("Error searching for open changes with dry run in Gerrit: %s", err)
 			continue
 		}
 		cqChanges, err := gerritClient.Search(MAX_CLS_PER_POLL, gerrit.SearchStatus("open"), gerrit.SearchProject("skia"), gerrit.SearchLabel(gerrit.COMMITQUEUE_LABEL, "2"))
 		if err != nil {
-			glog.Errorf("Error searching for open changes waiting for CQ in Gerrit: %s", err)
+			sklog.Errorf("Error searching for open changes waiting for CQ in Gerrit: %s", err)
 			continue
 		}
 
@@ -66,7 +66,7 @@ func monitorStatsForInFlightCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit
 
 		for _, change := range changes {
 			if err := cqClient.ReportCQStats(change.Issue); err != nil {
-				glog.Errorf("Could not get CQ stats for %d: %s", change.Issue, err)
+				sklog.Errorf("Could not get CQ stats for %d: %s", change.Issue, err)
 				continue
 			}
 		}
@@ -107,7 +107,7 @@ func monitorStatsForLandedCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit) 
 		t_delta := time.Now().Add(-AFTER_COMMIT_POLL_TIME).Add(-2 * time.Minute)
 		changes, err := gerritClient.Search(MAX_CLS_PER_POLL, gerrit.SearchModifiedAfter(t_delta), gerrit.SearchStatus("merged"), gerrit.SearchProject("skia"))
 		if err != nil {
-			glog.Errorf("Error searching for merged changes in Gerrit: %s", err)
+			sklog.Errorf("Error searching for merged changes in Gerrit: %s", err)
 			continue
 		}
 		for _, change := range changes {
@@ -115,7 +115,7 @@ func monitorStatsForLandedCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit) 
 				continue
 			}
 			if err := cqClient.ReportCQStats(change.Issue); err != nil {
-				glog.Errorf("Could not get CQ stats for %d: %s", change.Issue, err)
+				sklog.Errorf("Could not get CQ stats for %d: %s", change.Issue, err)
 				continue
 			}
 		}
@@ -127,7 +127,7 @@ func monitorStatsForLandedCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit) 
 func refreshCQTryBots(cqClient *cq.Client) {
 	for _ = range time.Tick(time.Duration(REFRESH_CQ_TRYBOTS_TIME)) {
 		if err := cqClient.RefreshCQTryBots(); err != nil {
-			glog.Errorf("Error refresing CQ trybots: %s", err)
+			sklog.Errorf("Error refresing CQ trybots: %s", err)
 		}
 	}
 }
@@ -139,11 +139,11 @@ func main() {
 	httpClient := httputils.NewTimeoutClient()
 	gerritClient, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", httpClient)
 	if err != nil {
-		glog.Fatalf("Failed to create Gerrit client: %s", err)
+		sklog.Fatalf("Failed to create Gerrit client: %s", err)
 	}
 	cqClient, err := cq.NewClient(gerritClient, cq.GetSkiaCQTryBots, METRIC_NAME)
 	if err != nil {
-		glog.Fatalf("Failed to create CQ client: %s", err)
+		sklog.Fatalf("Failed to create CQ client: %s", err)
 	}
 
 	// Periodically refresh slice of trybots to make sure any changes to cq.cfg

@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 
@@ -55,32 +55,32 @@ func main() {
 	common.Init()
 
 	if _, ok := supportedCmds[*cmd]; !ok {
-		glog.Fatalf("--cmd must be one of %v", supportedCmds)
+		sklog.Fatalf("--cmd must be one of %v", supportedCmds)
 	}
 	if tags.String() == "" {
-		glog.Fatal("Atleast one --tag is required.")
+		sklog.Fatal("Atleast one --tag is required.")
 	}
 	if *pool == "" {
-		glog.Fatal("--pool is required.")
+		sklog.Fatal("--pool is required.")
 	}
 
 	var err error
 	*workdir, err = filepath.Abs(*workdir)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Authenticated HTTP client.
 	oauthCacheFile := path.Join(*workdir, "google_storage_token.data")
 	httpClient, err := auth.NewClient(true, oauthCacheFile, swarming.AUTH_SCOPE)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Swarming API client.
 	swarmApi, err := swarming.NewApiClient(httpClient)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Obtain the list of tasks.
@@ -90,27 +90,27 @@ func main() {
 	}
 	tasks, err := swarmApi.ListTasks(time.Time{}, time.Time{}, tagsWithPool, *state)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	if len(tasks) == 0 {
-		glog.Info("Found no matching tasks.")
+		sklog.Info("Found no matching tasks.")
 		return
 	}
 
 	if *cmd == LIST_CMD {
-		glog.Infof("Found %d tasks...", len(tasks))
+		sklog.Infof("Found %d tasks...", len(tasks))
 		for _, t := range tasks {
-			glog.Infof("  %s", getTaskStr(t))
+			sklog.Infof("  %s", getTaskStr(t))
 		}
-		glog.Infof("Listed %d tasks.", len(tasks))
+		sklog.Infof("Listed %d tasks.", len(tasks))
 
 	} else if *cmd == CANCEL_CMD {
 		resp, err := displayTasksAndConfirm(tasks, "canceling")
 		if err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 		if resp {
-			glog.Infof("Starting cancelation of %d tasks...", len(tasks))
+			sklog.Infof("Starting cancelation of %d tasks...", len(tasks))
 			tasksChannel := getClosedTasksChannel(tasks, false /* dedupNames */)
 			var wg sync.WaitGroup
 			// Loop through workers in the worker pool.
@@ -124,26 +124,26 @@ func main() {
 
 					for t := range tasksChannel {
 						if err := swarmApi.CancelTask(t.TaskId); err != nil {
-							glog.Errorf("Could not delete %s: %s", getTaskStr(t), err)
+							sklog.Errorf("Could not delete %s: %s", getTaskStr(t), err)
 							continue
 						}
-						glog.Infof("Deleted  %s", getTaskStr(t))
+						sklog.Infof("Deleted  %s", getTaskStr(t))
 					}
 				}()
 			}
 			// Wait for all spawned goroutines to complete
 			wg.Wait()
 
-			glog.Infof("Cancelled %d tasks.", len(tasks))
+			sklog.Infof("Cancelled %d tasks.", len(tasks))
 		}
 
 	} else if *cmd == RETRY_CMD {
 		resp, err := displayTasksAndConfirm(tasks, "retrying")
 		if err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 		if resp {
-			glog.Infof("Starting retries of %d tasks...", len(tasks))
+			sklog.Infof("Starting retries of %d tasks...", len(tasks))
 			tasksChannel := getClosedTasksChannel(tasks, true /* dedupNames */)
 
 			var wg sync.WaitGroup
@@ -158,29 +158,29 @@ func main() {
 
 					for t := range tasksChannel {
 						if _, err := swarmApi.RetryTask(t); err != nil {
-							glog.Errorf("Could not retry %s: %s", getTaskStr(t), err)
+							sklog.Errorf("Could not retry %s: %s", getTaskStr(t), err)
 							continue
 						}
-						glog.Infof("Retried  %s", getTaskStr(t))
+						sklog.Infof("Retried  %s", getTaskStr(t))
 					}
 				}()
 			}
 			// Wait for all spawned goroutines to complete
 			wg.Wait()
 
-			glog.Infof("Retried %d tasks.", len(tasks))
+			sklog.Infof("Retried %d tasks.", len(tasks))
 		}
 	} else if *cmd == STDOUT_CMD {
 		resp, err := displayTasksAndConfirm(tasks, "downloading stdout")
 		if err != nil {
-			glog.Fatal(err)
+			sklog.Fatal(err)
 		}
 		if resp {
-			glog.Infof("Starting downloading from %d tasks...", len(tasks))
+			sklog.Infof("Starting downloading from %d tasks...", len(tasks))
 			tasksChannel := getClosedTasksChannel(tasks, false /* dedupNames */)
 			outDir := filepath.Join(*workdir, "stdout")
 			if err := os.MkdirAll(outDir, 0755); err != nil {
-				glog.Fatal(err)
+				sklog.Fatal(err)
 			}
 
 			var wg sync.WaitGroup
@@ -196,32 +196,32 @@ func main() {
 					for t := range tasksChannel {
 						stdout, err := swarmApi.GetStdoutOfTask(t.TaskId)
 						if err != nil {
-							glog.Errorf("Could not download from %s: %s", getTaskStr(t), err)
+							sklog.Errorf("Could not download from %s: %s", getTaskStr(t), err)
 							continue
 						}
 						destFile := filepath.Join(outDir, fmt.Sprintf("%s-%s.txt", t.Request.Name, t.TaskId))
 						if err := ioutil.WriteFile(destFile, []byte(stdout.Output), 0644); err != nil {
-							glog.Errorf("Could not write log to %s: %s", destFile, err)
+							sklog.Errorf("Could not write log to %s: %s", destFile, err)
 							continue
 						}
-						glog.Infof("Downloaded from %s", getTaskStr(t))
+						sklog.Infof("Downloaded from %s", getTaskStr(t))
 					}
 				}()
 			}
 			// Wait for all spawned goroutines to complete
 			wg.Wait()
 
-			glog.Infof("Downloaded stdout from %d tasks into %s.", len(tasks), outDir)
+			sklog.Infof("Downloaded stdout from %d tasks into %s.", len(tasks), outDir)
 		}
 	}
 }
 
 func displayTasksAndConfirm(tasks []*swarmingapi.SwarmingRpcsTaskRequestMetadata, verb string) (bool, error) {
-	glog.Infof("Found %d tasks. Displaying the first %d:", len(tasks), CONFIRMATION_DISPLAY_LIMIT)
+	sklog.Infof("Found %d tasks. Displaying the first %d:", len(tasks), CONFIRMATION_DISPLAY_LIMIT)
 	for _, t := range tasks[:util.MinInt(CONFIRMATION_DISPLAY_LIMIT, len(tasks))] {
-		glog.Infof("  %s", getTaskStr(t))
+		sklog.Infof("  %s", getTaskStr(t))
 	}
-	glog.Infof("Would you like to proceed with %s %d tasks? ('y' or 'n')", verb, len(tasks))
+	sklog.Infof("Would you like to proceed with %s %d tasks? ('y' or 'n')", verb, len(tasks))
 	return askForConfirmation()
 }
 
@@ -235,7 +235,7 @@ func askForConfirmation() (bool, error) {
 	} else if response == "n" {
 		return false, nil
 	} else {
-		glog.Info("Please type 'y' or 'n' and then press enter:")
+		sklog.Info("Please type 'y' or 'n' and then press enter:")
 		return askForConfirmation()
 	}
 }
@@ -251,7 +251,7 @@ func getClosedTasksChannel(tasks []*swarmingapi.SwarmingRpcsTaskRequestMetadata,
 		if dedupNames {
 			if _, ok := taskNames[t.Request.Name]; ok {
 				// Already encountered this task. Continue.
-				glog.Errorf("Found another %s: %s", t.Request.Name, t.TaskId)
+				sklog.Errorf("Found another %s: %s", t.Request.Name, t.TaskId)
 				continue
 			}
 		}

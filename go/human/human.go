@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 const MIN_TICKS = 2
@@ -112,7 +112,7 @@ func TickMarks(timestamps []int64, in *time.Location) []*Tick {
 	}
 	ret := []*Tick{}
 	if len(timestamps) < 2 {
-		glog.Warning("Insufficient number of commits: %d", len(timestamps))
+		sklog.Warning("Insufficient number of commits: %d", len(timestamps))
 		return ret
 	}
 
@@ -121,7 +121,7 @@ func TickMarks(timestamps []int64, in *time.Location) []*Tick {
 	duration := end.Sub(begin)
 	op, err := opFromHours(duration)
 	if err != nil {
-		glog.Errorf("Failed to calculate tickmarks for: %s %s: %s", begin, end, err)
+		sklog.Errorf("Failed to calculate tickmarks for: %s %s: %s", begin, end, err)
 		return ret
 	}
 	last := op(begin)
@@ -143,7 +143,7 @@ func TickMarks(timestamps []int64, in *time.Location) []*Tick {
 func FlotTickMarks(ts []int64) []interface{} {
 	loc, err := time.LoadLocation("America/New_York")
 	if err != nil {
-		glog.Errorf("Failed to load the timezone: %s", err)
+		sklog.Errorf("Failed to load the timezone: %s", err)
 		return []interface{}{}
 	}
 	return ToFlot(TickMarks(ts, loc))

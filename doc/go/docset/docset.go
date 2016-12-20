@@ -57,12 +57,12 @@ import (
 	"time"
 
 	"github.com/golang/groupcache/lru"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/doc/go/config"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -217,7 +217,7 @@ func NewDocSetForIssue(workDir, repo string, issue int64) (*DocSet, error) {
 				return nil, err
 			}
 			if err := os.RemoveAll(repoDir); err != nil {
-				glog.Errorf("Failed to remove %q: %s", repoDir, err)
+				sklog.Errorf("Failed to remove %q: %s", repoDir, err)
 			}
 			return nil, fmt.Errorf("Failed to create new doc set: %s", err)
 		}
@@ -311,7 +311,7 @@ var siteMapTemplate = template.Must(template.New("SITENODE").Parse(`https://skia
 func nodeToSite(n *node, depth int) string {
 	b := &bytes.Buffer{}
 	if err := siteMapTemplate.Execute(b, n); err != nil {
-		glog.Errorf("Failed to expand: %s", err)
+		sklog.Errorf("Failed to expand: %s", err)
 		return ""
 	}
 	return b.String()
@@ -341,7 +341,7 @@ func buildSiteMap(n *node) string {
 func nodeToHTML(n *node, depth int) string {
 	b := &bytes.Buffer{}
 	if err := navTemplate.Execute(b, n); err != nil {
-		glog.Errorf("Failed to expand: %s", err)
+		sklog.Errorf("Failed to expand: %s", err)
 		return ""
 	}
 	return b.String()
@@ -420,12 +420,12 @@ func walk(root, path string) (*node, error) {
 			metaPath := filepath.Join(path, fi.Name())
 			f, err := os.Open(metaPath)
 			if err != nil {
-				glog.Warningf("Failed to open %q: %s", metaPath, err)
+				sklog.Warningf("Failed to open %q: %s", metaPath, err)
 				continue
 			}
 			dec := json.NewDecoder(f)
 			if err := dec.Decode(m); err != nil {
-				glog.Warningf("Failed to decode %q: %s", metaPath, err)
+				sklog.Warningf("Failed to decode %q: %s", metaPath, err)
 			}
 		}
 	}
@@ -463,9 +463,9 @@ func walk(root, path string) (*node, error) {
 }
 
 func printnode(n *node, depth int) {
-	glog.Infof("Node: %*s%#v\n", depth*2, "", n.Index)
+	sklog.Infof("Node: %*s%#v\n", depth*2, "", n.Index)
 	for _, f := range n.Files {
-		glog.Infof("File: %*s%#v\n", (depth+1)*2, "", *f)
+		sklog.Infof("File: %*s%#v\n", (depth+1)*2, "", *f)
 	}
 	for _, d := range n.Dirs {
 		printnode(d, depth+1)
@@ -515,34 +515,34 @@ var issueAndPatch = regexp.MustCompile("([0-9]+)-[0-9]+")
 // StartCleaner is a process that periodically checks the status of every issue
 // that has been previewed and removes all the local files for closed issues.
 func StartCleaner(workDir string) {
-	glog.Info("Starting Cleaner")
+	sklog.Info("Starting Cleaner")
 	for _ = range time.Tick(config.REFRESH) {
 		// TODO (stephana): The extra 'patches' directory should go away after
 		// one of the path segments is removed in docserver/main.go or
 		// NewDocsetForIssue.
 		matches, err := filepath.Glob(workDir + "/patches/patches/*")
-		glog.Infof("Matches: %v", matches)
+		sklog.Infof("Matches: %v", matches)
 		if err != nil {
-			glog.Errorf("Failed to retrieve list of patched checkouts: %s", err)
+			sklog.Errorf("Failed to retrieve list of patched checkouts: %s", err)
 			continue
 		}
 		for _, filename := range matches {
 			_, file := filepath.Split(filename)
-			glog.Info(file)
+			sklog.Info(file)
 			m := issueAndPatch.FindStringSubmatch(file)
 			if len(m) < 2 {
 				continue
 			}
 			issue, err := strconv.ParseInt(m[1], 10, 64)
 			if err != nil {
-				glog.Errorf("Failed to parse %q as int: %s", m[1], err)
+				sklog.Errorf("Failed to parse %q as int: %s", m[1], err)
 				continue
 			}
 			info, err := gc.GetIssueProperties(issue)
 			// Delete closed and missing issues.
 			if err != nil || info.Committed {
 				if err := os.RemoveAll(filename); err != nil {
-					glog.Errorf("Failed to remove %q: %s", filename, err)
+					sklog.Errorf("Failed to remove %q: %s", filename, err)
 				}
 			}
 		}
@@ -613,14 +613,14 @@ func (p navEntrySlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 func readTitle(filename, def string) string {
 	f, err := os.Open(filename)
 	if err != nil {
-		glog.Warningf("Failed to open file %s: %s", filename, err)
+		sklog.Warningf("Failed to open file %s: %s", filename, err)
 		return def
 	}
 	defer util.Close(f)
 	reader := bufio.NewReader(f)
 	title, err := reader.ReadString('\n')
 	if err != nil {
-		glog.Warningf("Failed to read title %s: %s", filename, err)
+		sklog.Warningf("Failed to read title %s: %s", filename, err)
 	}
 	return strings.TrimSpace(title)
 }

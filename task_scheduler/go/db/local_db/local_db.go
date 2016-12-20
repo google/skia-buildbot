@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/boltutil"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
@@ -254,14 +254,14 @@ func (d *localDB) reportActiveTx() {
 	d.txMutex.RLock()
 	defer d.txMutex.RUnlock()
 	if len(d.txActive) == 0 {
-		glog.Infof("%s Active Transactions: (none)", d.name)
+		sklog.Infof("%s Active Transactions: (none)", d.name)
 		return
 	}
 	txs := make([]string, 0, len(d.txActive))
 	for id, name := range d.txActive {
 		txs = append(txs, fmt.Sprintf("  %d\t%s", id, name))
 	}
-	glog.Infof("%s Active Transactions:\n%s", d.name, strings.Join(txs, "\n"))
+	sklog.Infof("%s Active Transactions:\n%s", d.name, strings.Join(txs, "\n"))
 }
 
 // tx is a wrapper for a BoltDB transaction which tracks statistics.
@@ -572,7 +572,7 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 						if err := gob.NewDecoder(bytes.NewReader(serialized)).Decode(&existing); err != nil {
 							return err
 						}
-						glog.Warningf("Cached Task has been modified in the DB. Current:\n%#v\nCached:\n%#v", existing, t)
+						sklog.Warningf("Cached Task has been modified in the DB. Current:\n%#v\nCached:\n%#v", existing, t)
 						return db.ErrConcurrentUpdate
 					}
 				}
@@ -751,7 +751,7 @@ func (d *localDB) PutJobs(jobs []*db.Job) error {
 						if err := gob.NewDecoder(bytes.NewReader(serialized)).Decode(&existing); err != nil {
 							return err
 						}
-						glog.Warningf("Cached Job has been modified in the DB. Current:\n%#v\nCached:\n%#v", existing, job)
+						sklog.Warningf("Cached Job has been modified in the DB. Current:\n%#v\nCached:\n%#v", existing, job)
 						return db.ErrConcurrentUpdate
 					}
 				}

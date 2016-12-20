@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/androidbuildinternal/v2beta1"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -71,7 +71,7 @@ func (a *androidCommits) findCommitsPage(branch, target, endBuildID string, ret 
 	// We explicitly don't use exponential backoff since that increases the
 	// likelihood of getting a bad response.
 	for i := 0; i < NUM_RETRIES; i++ {
-		glog.Infof("Querying for %q %q %q", branch, target, endBuildID)
+		sklog.Infof("Querying for %q %q %q", branch, target, endBuildID)
 		request := a.service.Build.List().Successful(true).BuildType("submitted").Branch(branch).Target(target).ExtraFields("changeInfo").MaxResults(PAGE_SIZE)
 		if pageToken != "" {
 			request.PageToken(pageToken)
@@ -81,24 +81,24 @@ func (a *androidCommits) findCommitsPage(branch, target, endBuildID string, ret 
 		}
 		resp, err := request.Do()
 		if err != nil {
-			glog.Infof("Call failed: %s", err)
+			sklog.Infof("Call failed: %s", err)
 			time.Sleep(SLEEP_DURATION * time.Second)
 			continue
 		}
 		if len(resp.Builds) == 0 {
-			glog.Infof("No builds in response.")
+			sklog.Infof("No builds in response.")
 			time.Sleep(SLEEP_DURATION * time.Second)
 			continue
 		}
 		if len(resp.Builds[0].Changes) == 0 {
-			glog.Infof("No Changes in builds.")
+			sklog.Infof("No Changes in builds.")
 			time.Sleep(SLEEP_DURATION * time.Second)
 			continue
 		}
-		glog.Infof("Success after %d attempts.", i+1)
+		sklog.Infof("Success after %d attempts.", i+1)
 
 		for _, buildInfo := range resp.Builds {
-			glog.Infof("BuildID: %s : %s", buildInfo.BuildId, buildInfo.Target.Name)
+			sklog.Infof("BuildID: %s : %s", buildInfo.BuildId, buildInfo.Target.Name)
 		}
 
 		for _, build := range resp.Builds {

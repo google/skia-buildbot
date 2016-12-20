@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/android_ingest/go/buildapi"
 	"go.skia.org/infra/android_ingest/go/lookup"
@@ -62,19 +62,19 @@ func (c *Process) Start() {
 			buildid, _, _, err := c.repo.GetLast()
 			if err != nil {
 				failures.Inc(1)
-				glog.Errorf("Failed to get last buildid: %s", err)
+				sklog.Errorf("Failed to get last buildid: %s", err)
 				continue
 			}
 			builds, err := c.api.List(c.branch, buildid)
 			if err != nil {
 				failures.Inc(1)
-				glog.Errorf("Failed to get buildids from api: %s", err)
+				sklog.Errorf("Failed to get buildids from api: %s", err)
 				continue
 			}
 			for _, b := range builds {
 				if err := c.repo.Add(b.BuildId, b.TS); err != nil {
 					failures.Inc(1)
-					glog.Errorf("Failed to add new buildid to repo: %s", err)
+					sklog.Errorf("Failed to add new buildid to repo: %s", err)
 					// Break since we don't want to add anymore buildids until this one
 					// lands successfully.
 					break
@@ -83,7 +83,7 @@ func (c *Process) Start() {
 				buildid, _, hash, err := c.repo.GetLast()
 				if err != nil {
 					failures.Inc(1)
-					glog.Errorf("Failed to lookup newly added buildid to repo: %s", err)
+					sklog.Errorf("Failed to lookup newly added buildid to repo: %s", err)
 					break
 				}
 				c.lookup.Add(buildid, hash)

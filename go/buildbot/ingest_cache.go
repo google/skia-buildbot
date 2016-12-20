@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 // ingestCache is an implementation of the DB interface used for inserting
@@ -34,7 +34,7 @@ func newIngestCache(db *localDB) *ingestCache {
 	go func() {
 		for _ = range time.Tick(time.Second) {
 			if err := c.insertBuilds(); err != nil {
-				glog.Errorf("Failed to insert builds: %s", err)
+				sklog.Errorf("Failed to insert builds: %s", err)
 			}
 		}
 	}()
@@ -48,7 +48,7 @@ func (c *ingestCache) insertBuilds() error {
 	if len(c.builds) == 0 {
 		return nil
 	}
-	glog.Infof("Inserting %d builds.", len(c.builds))
+	sklog.Infof("Inserting %d builds.", len(c.builds))
 	builds := make([]*Build, 0, len(c.builds))
 	for _, b := range c.builds {
 		builds = append(builds, b)

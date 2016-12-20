@@ -16,13 +16,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -102,7 +102,7 @@ func readConfigFiles(filenames string) (Probes, error) {
 		for k, v := range *p {
 			if f, ok := responseTesters[v.ResponseTestName]; ok {
 				v.responseTest = f
-				glog.Infof("Found a request test for %s", k)
+				sklog.Infof("Found a request test for %s", k)
 			}
 			allProbes[k] = v
 		}
@@ -147,10 +147,10 @@ func skfiddleJSONGood(r io.Reader, headers http.Header) bool {
 		CompileErrors: []interface{}{},
 	}
 	if err := dec.Decode(&s); err != nil {
-		glog.Warningf("Failed to decode skfiddle JSON: %#v %s", s, err)
+		sklog.Warningf("Failed to decode skfiddle JSON: %#v %s", s, err)
 		return false
 	}
-	glog.Infof("%#v", s)
+	sklog.Infof("%#v", s)
 	return len(s.CompileErrors) == 0
 }
 
@@ -161,10 +161,10 @@ func skfiddleJSONBad(r io.Reader, headers http.Header) bool {
 		CompileErrors: []interface{}{},
 	}
 	if err := dec.Decode(&s); err != nil {
-		glog.Warningf("Failed to decode skfiddle JSON: %#v %s", s, err)
+		sklog.Warningf("Failed to decode skfiddle JSON: %#v %s", s, err)
 		return false
 	}
-	glog.Infof("%#v", s)
+	sklog.Infof("%#v", s)
 	return len(s.CompileErrors) != 0
 }
 
@@ -277,18 +277,18 @@ func monitorIssueTracker(c *http.Client) {
 		for _, issue := range issueStatus {
 			resp, err := c.Get(issue.URL)
 			if err != nil {
-				glog.Errorf("Failed to retrieve response from %s: %s", issue.URL, err)
+				sklog.Errorf("Failed to retrieve response from %s: %s", issue.URL, err)
 				continue
 			}
 			jsonResp := map[string]int64{}
 			dec := json.NewDecoder(resp.Body)
 			if err := dec.Decode(&jsonResp); err != nil {
-				glog.Warningf("Failed to decode JSON response: %s", err)
+				sklog.Warningf("Failed to decode JSON response: %s", err)
 				util.Close(resp.Body)
 				continue
 			}
 			issue.Metric.Update(jsonResp["totalResults"])
-			glog.Infof("Num Issues: %s - %d", issue.Name, jsonResp["totalResults"])
+			sklog.Infof("Num Issues: %s - %d", issue.Name, jsonResp["totalResults"])
 			if err == nil && resp.Body != nil {
 				util.Close(resp.Body)
 			}
@@ -301,7 +301,7 @@ func probeOneRound(cfg Probes, c *http.Client) {
 	var resp *http.Response
 	var begin time.Time
 	for name, probe := range cfg {
-		glog.Infof("Probe: %s Starting fail value: %d", name, probe.failure.Get())
+		sklog.Infof("Probe: %s Starting fail value: %d", name, probe.failure.Get())
 		begin = time.Now()
 		var err error
 		if probe.Method == "GET" {
@@ -311,13 +311,13 @@ func probeOneRound(cfg Probes, c *http.Client) {
 		} else if probe.Method == "POST" {
 			resp, err = c.Post(probe.URL, probe.MimeType, strings.NewReader(probe.Body))
 		} else {
-			glog.Errorf("Error: unknown method: %s", probe.Method)
+			sklog.Errorf("Error: unknown method: %s", probe.Method)
 			continue
 		}
 		d := time.Since(begin)
 		probe.latency.Update(d.Nanoseconds() / int64(time.Millisecond))
 		if err != nil {
-			glog.Warningf("Failed to make request: Name: %s URL: %s Error: %s", name, probe.URL, err)
+			sklog.Warningf("Failed to make request: Name: %s URL: %s Error: %s", name, probe.URL, err)
 			probe.failure.Update(1)
 			continue
 		}
@@ -331,12 +331,12 @@ func probeOneRound(cfg Probes, c *http.Client) {
 		// TODO(jcgregorio) Save the last N responses and present them in a web UI.
 
 		if !In(resp.StatusCode, probe.Expected) {
-			glog.Warningf("Got wrong status code: Name %s Got %d Want %v", name, resp.StatusCode, probe.Expected)
+			sklog.Warningf("Got wrong status code: Name %s Got %d Want %v", name, resp.StatusCode, probe.Expected)
 			probe.failure.Update(1)
 			continue
 		}
 		if !responseTestResults {
-			glog.Warningf("Response test failed: Name: %s %#v", name, probe)
+			sklog.Warningf("Response test failed: Name: %s %#v", name, probe)
 			probe.failure.Update(1)
 			continue
 		}
@@ -351,7 +351,7 @@ func main() {
 
 	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
-		glog.Fatalf("Failed to create client for talking to the issue tracker: %s", err)
+		sklog.Fatalf("Failed to create client for talking to the issue tracker: %s", err)
 	}
 	go monitorIssueTracker(client)
 
@@ -360,9 +360,9 @@ func main() {
 	// TODO(jcgregorio) Monitor config file and reload if it changes.
 	cfg, err := readConfigFiles(*config)
 	if err != nil {
-		glog.Fatalln("Failed to read config file: ", err)
+		sklog.Fatalln("Failed to read config file: ", err)
 	}
-	glog.Infoln("Successfully read config file.")
+	sklog.Infoln("Successfully read config file.")
 	// Register counters for each probe.
 	for name, probe := range cfg {
 		probe.failure = metrics2.GetInt64Metric("prober", map[string]string{"type": "failure", "probename": name})

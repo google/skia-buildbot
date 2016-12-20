@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/autoroll/go/autoroller"
 	"go.skia.org/infra/go/auth"
@@ -142,7 +142,7 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 	// is a logged-in Googler.
 	status := arb.GetStatus(login.IsGoogler(r))
 	if err := json.NewEncoder(w).Encode(&status); err != nil {
-		glog.Error(err)
+		sklog.Error(err)
 	}
 }
 
@@ -161,7 +161,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		ProjectUser: arb.User(),
 	}
 	if err := mainTemplate.Execute(w, mainPage); err != nil {
-		glog.Errorln("Failed to expand template:", err)
+		sklog.Errorln("Failed to expand template:", err)
 	}
 }
 
@@ -176,8 +176,8 @@ func runServer(serverURL string) {
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	glog.Infof("Ready to serve on %s", serverURL)
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infof("Ready to serve on %s", serverURL)
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
 
 func main() {
@@ -187,9 +187,9 @@ func main() {
 
 	v, err := skiaversion.GetVersion()
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
-	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
 	if *local {
 		*useMetadata = false
@@ -198,26 +198,26 @@ func main() {
 	// Create the Rietveld client.
 	client, err := auth.NewClientFromIdAndSecret(rietveld.CLIENT_ID, rietveld.CLIENT_SECRET, path.Join(*workdir, "oauth_cache"), rietveld.OAUTH_SCOPES...)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 	r := rietveld.New(RIETVELD_URL, client)
 
 	// Retrieve the list of extra CQ trybots.
 	// TODO(borenet): Make this editable on the web front-end.
 	cqExtraTrybots := getCQExtraTrybots()
-	glog.Infof("CQ extra trybots: %s", cqExtraTrybots)
+	sklog.Infof("CQ extra trybots: %s", cqExtraTrybots)
 
 	// Retrieve the initial email list.
 	emails, err := getSheriff()
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
-	glog.Infof("Sheriff: %s", strings.Join(emails, ", "))
+	sklog.Infof("Sheriff: %s", strings.Join(emails, ", "))
 
 	// Start the autoroller.
 	arb, err = autoroller.NewAutoRoller(*workdir, *childPath, cqExtraTrybots, emails, r, time.Minute, 15*time.Minute, *depot_tools)
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
 
 	// Feed AutoRoll stats into InfluxDB.
@@ -237,7 +237,7 @@ func main() {
 		for _ = range time.Tick(30 * time.Minute) {
 			emails, err := getSheriff()
 			if err != nil {
-				glog.Errorf("Failed to retrieve current sheriff: %s", err)
+				sklog.Errorf("Failed to retrieve current sheriff: %s", err)
 			} else {
 				arb.SetEmails(emails)
 			}

@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 )
 
 // unzip unzips the file given in src into the 'dest' directory.
@@ -60,10 +60,10 @@ type TempRepo struct {
 func NewTempRepoFrom(zipfile string) *TempRepo {
 	tmpdir, err := ioutil.TempDir("", "skiaperf")
 	if err != nil {
-		glog.Fatalln("Failed to create testing Git repo:", err)
+		sklog.Fatalln("Failed to create testing Git repo:", err)
 	}
 	if err := unzip(zipfile, tmpdir); err != nil {
-		glog.Fatalln("Failed to unzip testing Git repo:", err)
+		sklog.Fatalln("Failed to unzip testing Git repo:", err)
 	}
 	return &TempRepo{Dir: tmpdir}
 }
@@ -80,6 +80,6 @@ func NewTempRepo() *TempRepo {
 // Cleanup cleans up the temporary repo.
 func (t *TempRepo) Cleanup() {
 	if err := os.RemoveAll(t.Dir); err != nil {
-		glog.Fatalln("Failed to clean up after test:", err)
+		sklog.Fatalln("Failed to clean up after test:", err)
 	}
 }

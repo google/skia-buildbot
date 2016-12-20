@@ -3,7 +3,7 @@ package ptraceingest
 import (
 	"strings"
 
-	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/util"
@@ -44,12 +44,12 @@ func getValueMap(b *ingestcommon.BenchData) map[string]float32 {
 				key["sub_result"] = k
 				floatVal, ok := vi.(float64)
 				if !ok {
-					glog.Errorf("Found a non-float64 in %v", result)
+					sklog.Errorf("Found a non-float64 in %v", result)
 					continue
 				}
 				keyString, err := query.MakeKey(query.ForceValid(key))
 				if err != nil {
-					glog.Errorf("Invalid structured key %v: %s", key, err)
+					sklog.Errorf("Invalid structured key %v: %s", key, err)
 					continue
 				}
 				ret[keyString] = float32(floatVal)

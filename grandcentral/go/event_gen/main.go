@@ -4,11 +4,11 @@ import (
 	"flag"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/geventbus"
 	"go.skia.org/infra/go/skiaversion"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/grandcentral/go/event"
 )
 
@@ -23,17 +23,17 @@ func main() {
 
 	v, err := skiaversion.GetVersion()
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
-	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
 	if *nsqdAddress == "" {
-		glog.Fatal("Missing address of nsqd server.")
+		sklog.Fatal("Missing address of nsqd server.")
 	}
 
 	globalEventBus, err := geventbus.NewNSQEventBus(*nsqdAddress)
 	if err != nil {
-		glog.Fatalf("Unable to connect to NSQ server: %s", err)
+		sklog.Fatalf("Unable to connect to NSQ server: %s", err)
 	}
 
 	eventBus := eventbus.New(globalEventBus)
@@ -46,6 +46,6 @@ func main() {
 			Updated: time.Now().String(),
 		}
 		eventBus.Publish(event.GLOBAL_GOOGLE_STORAGE, evData)
-		glog.Infof("Sent Event: %#v ", evData)
+		sklog.Infof("Sent Event: %#v ", evData)
 	}
 }

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fiddle/go/store"
+	"go.skia.org/infra/go/sklog"
 )
 
 var (
@@ -81,9 +81,9 @@ func (n *Named) Add(name, hash, user string, overwrite bool) error {
 			// Don't bother writing if the hash is already correct.
 			return nil
 		}
-		glog.Infof("Named Fiddle Changed: %s %s -> %s by %s", name, oldHash, hash, user)
+		sklog.Infof("Named Fiddle Changed: %s %s -> %s by %s", name, oldHash, hash, user)
 	} else {
-		glog.Infof("Named Fiddle Created: %s %s by %s", name, hash, user)
+		sklog.Infof("Named Fiddle Created: %s %s by %s", name, hash, user)
 	}
 	if err := n.st.WriteName(name, hash, user); err != nil {
 		return fmt.Errorf("Failed to write name: %s", err)

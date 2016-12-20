@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -29,7 +29,7 @@ func StorageEvent(bucket, prefix string) string {
 	eventbus.RegisterSubTopic(GLOBAL_GOOGLE_STORAGE, subTopic, func(eventData interface{}) bool {
 		gsEvent, ok := eventData.(*GoogleStorageEventData)
 		if !ok {
-			glog.Errorf("Received data that was not an instance of GoogleStorageEventData.")
+			sklog.Errorf("Received data that was not an instance of GoogleStorageEventData.")
 			return false
 		}
 
@@ -138,7 +138,7 @@ func BuildbotEvents(botFilter *BotFilter) string {
 	eventbus.RegisterSubTopic(GLOBAL_BUILDBOT, subTopic, func(eventData interface{}) bool {
 		e, ok := eventData.(*BuildbotEventData)
 		if !ok {
-			glog.Errorf("Received data that was not an instance of BuildbotEventData.")
+			sklog.Errorf("Received data that was not an instance of BuildbotEventData.")
 			return false
 		}
 		return botFilter.filter(e)
