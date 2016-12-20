@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_1d79a3a2",
+        "filename": "go/swarming/testutils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-20T18:18:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_9d6c7322",
+      "revId": "eebd66be4c62540660bffb73ee69bc6c939edf32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_5d771bf3",
         "filename": "go/swarming/testutils.go",
         "patchSetId": 2
@@ -42,6 +60,24 @@
         "endLine": 147,
         "endChar": 22
       },
+      "revId": "eebd66be4c62540660bffb73ee69bc6c939edf32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_dd5aeb38",
+        "filename": "go/swarming/testutils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-20T18:18:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_5d771bf3",
       "revId": "eebd66be4c62540660bffb73ee69bc6c939edf32",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_9d6473fb",
+        "filename": "go/swarming/testutils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-20T18:18:06Z",
+      "side": 1,
+      "message": "That\u0027s true.  But I think it\u0027d be a little awkward if we wanted to use this again later.",
+      "parentUuid": "9765aef7_fd400f76",
+      "revId": "eebd66be4c62540660bffb73ee69bc6c939edf32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_bd3a97f2",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 2
@@ -88,6 +142,24 @@
         "endLine": 3133,
         "endChar": 7
       },
+      "revId": "eebd66be4c62540660bffb73ee69bc6c939edf32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_7d93ffab",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 3133,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-20T18:18:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_bd3a97f2",
       "revId": "eebd66be4c62540660bffb73ee69bc6c939edf32",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
