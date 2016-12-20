@@ -1,0 +1,28 @@
+[Unit]
+Description=Internal Task Scheduler for Skia
+Requires=mnt-pd0.mount
+Wants=network-online.target
+After=mnt-pd0.mount network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/task_scheduler \
+    --gsBucket=skia-task-scheduler-internal \
+    --host=104.154.112.135 \
+    --influxdb_host=skia-monitoring:10117 \
+    --influxdb_database=skmetrics \
+    --isolate_server=https://chrome-isolated.appspot.com \
+    --log_dir=/var/log/logserver \
+    --log_max_size=10485760 \
+    --repo=https://skia.googlesource.com/internal_test.git \
+    --resources_dir=/usr/local/share/task-scheduler/ \
+    --swarming_server=chrome-swarming.appspot.com \
+    --workdir=/mnt/pd0/task_scheduler_workdir
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/mnt/pd0/depot_tools
+Environment=TMPDIR=/mnt/pd0/tmp
+
+[Install]
+WantedBy=multi-user.target
