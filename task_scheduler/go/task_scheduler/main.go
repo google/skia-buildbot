@@ -65,11 +65,13 @@ var (
 	host           = flag.String("host", "localhost", "HTTP service host")
 	port           = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
 	dbPort         = flag.String("db_port", ":8008", "HTTP service port for the database RPC server (e.g., ':8008')")
+	isolateServer  = flag.String("isolate_server", isolate.ISOLATE_SERVER_URL, "Which Isolate server to use.")
 	local          = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
 	repoUrls       = common.NewMultiStringFlag("repo", common.PUBLIC_REPOS, "Repositories for which to schedule tasks.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
 	scoreDecay24Hr = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
 	swarmingPools  = common.NewMultiStringFlag("pool", swarming.POOLS_PUBLIC, "Which Swarming pools to use.")
+	swarmingServer = flag.String("swarming_server", swarming.SWARMING_SERVER, "Which Swarming server to use.")
 	timePeriod     = flag.String("timeWindow", "4d", "Time period to use.")
 	tryJobBucket   = flag.String("tryjob_bucket", tryjobs.BUCKET_PRIMARY, "Which Buildbucket bucket to use for try jobs.")
 	commitWindow   = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
@@ -414,7 +416,7 @@ func main() {
 	}
 
 	// Initialize Isolate client.
-	isolateServerUrl := isolate.ISOLATE_SERVER_URL
+	isolateServerUrl := *isolateServer
 	if *local {
 		isolateServerUrl = isolate.ISOLATE_SERVER_URL_FAKE
 	}
@@ -448,7 +450,7 @@ func main() {
 		go periodicallyUpdateMockTasksForTesting(swarmTestClient)
 		swarm = swarmTestClient
 	} else {
-		swarm, err = swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER)
+		swarm, err = swarming.NewApiClient(httpClient, *swarmingServer)
 		if err != nil {
 			sklog.Fatal(err)
 		}
