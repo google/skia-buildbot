@@ -23,14 +23,14 @@ const (
 type Liveness struct {
 	cancelFn             func()
 	lastSuccessfulUpdate time.Time
-	m                    *Int64Metric
+	m                    Int64MetricI
 	mtx                  sync.Mutex
 }
 
 // NewLiveness creates a new Liveness metric helper. The current value is
 // reported at the given frequency; if the report frequency is zero, the value
 // is only reported when it changes.
-func (c *Client) NewLiveness(name string, tagsList ...map[string]string) *Liveness {
+func (c *Client) NewLiveness(name string, tagsList ...map[string]string) LivenessI {
 	// Make a copy of the tags and add the name.
 	tags := util.AddParams(map[string]string{}, tagsList...)
 	tags["name"] = name
@@ -48,7 +48,7 @@ func (c *Client) NewLiveness(name string, tagsList ...map[string]string) *Livene
 // NewLiveness creates a new Liveness metric helper using the default client.
 // The current value is reported at the given frequency; if the report frequency
 // is zero, the value is only reported when it changes.
-func NewLiveness(name string, tags ...map[string]string) *Liveness {
+func NewLiveness(name string, tags ...map[string]string) LivenessI {
 	return DefaultClient.NewLiveness(name, tags...)
 }
 
