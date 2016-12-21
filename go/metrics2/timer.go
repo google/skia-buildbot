@@ -18,7 +18,7 @@ const (
 // single data point when Stop() is called.
 type Timer struct {
 	begin time.Time
-	m     *Int64MeanMetric
+	m     *int64MeanMetric
 }
 
 // NewTimer creates and returns a new started timer.
@@ -27,7 +27,7 @@ func (c *Client) NewTimer(name string, tagsList ...map[string]string) *Timer {
 	tags := util.AddParams(map[string]string{}, tagsList...)
 	tags["name"] = name
 	ret := &Timer{
-		m: c.GetInt64MeanMetric(MEASUREMENT_TIMER, tags),
+		m: c.getInt64MeanMetric(MEASUREMENT_TIMER, tags),
 	}
 	ret.Start()
 	return ret

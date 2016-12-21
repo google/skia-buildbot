@@ -467,11 +467,11 @@ type tags map[string]string
 // We have one instance for polled result files and one for files that were
 // delievered via events.
 type processMetrics struct {
-	totalFilesGauge *metrics2.Int64Metric
-	processedGauge  *metrics2.Int64Metric
-	ignoredGauge    *metrics2.Int64Metric
-	errorGauge      *metrics2.Int64Metric
-	liveness        *metrics2.Liveness
+	totalFilesGauge metrics2.Int64MetricI
+	processedGauge  metrics2.Int64MetricI
+	ignoredGauge    metrics2.Int64MetricI
+	errorGauge      metrics2.Int64MetricI
+	liveness        metrics2.LivenessI
 }
 
 // newProcessMetrics instantiates the metrics to track processing and registers them
@@ -489,10 +489,10 @@ func newProcessMetrics(id, subtype string) *processMetrics {
 
 // sourceMetrics tracks metrics for one input source.
 type sourceMetrics struct {
-	liveness       *metrics2.Liveness
+	liveness       metrics2.LivenessI
 	pollTimer      *metrics2.Timer
-	pollError      *metrics2.Int64Metric
-	eventsReceived *metrics2.Int64Metric
+	pollError      metrics2.Int64MetricI
+	eventsReceived metrics2.Int64MetricI
 }
 
 // newSourceMetrics instantiates a set of metrics for an input source.
