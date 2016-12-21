@@ -1180,9 +1180,10 @@ func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots, pools []string) (
 		wg.Add(1)
 		go func(pool string) {
 			defer wg.Done()
-			b, err := s.ListBots(map[string]string{
-				swarming.DIMENSION_POOL_KEY: pool,
-			})
+			call := s.SwarmingService().Bots.List()
+			call.Dimensions(fmt.Sprintf("%s:%s", swarming.DIMENSION_POOL_KEY, pool))
+			call.IsBusy("FALSE")
+			b, err := s.ProcessBotsListCall(call)
 			mtx.Lock()
 			defer mtx.Unlock()
 			if err != nil {
