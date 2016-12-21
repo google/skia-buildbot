@@ -20,7 +20,7 @@ import (
 
 type Generator struct {
 	Category         string
-	fuzzProcessCount *metrics2.Counter
+	fuzzProcessCount metrics2.Counter
 	fuzzProcesses    []exec.Process
 }
 
