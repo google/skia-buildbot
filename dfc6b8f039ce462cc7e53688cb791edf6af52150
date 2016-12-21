@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9765aef7_12dd0dca",
+        "filename": "alertserver/go/rules/rules_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-12-21T16:29:56Z",
+      "side": 1,
+      "message": "Can we switch the errors to make \u003c\u003d1.6 the exception and name the extra field something like ExpectedErr1_6?",
+      "range": {
+        "startLine": 169,
+        "startChar": 2,
+        "endLine": 169,
+        "endChar": 14
+      },
+      "revId": "dfc6b8f039ce462cc7e53688cb791edf6af52150",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
