@@ -20,6 +20,101 @@ const (
 	PUSH_FREQUENCY           = time.Minute
 )
 
+type TimerI interface {
+	// Start starts or resets the timer.
+	Start()
+
+	// Stop stops the timer and reports the elapsed time.
+	Stop()
+}
+
+type LivenessI interface {
+	// Delete removes the Liveness from metrics.
+	Delete() error
+
+	// Get returns the current value of the Liveness.
+	Get() int64
+
+	// ManualReset sets the last-successful-update time of the Liveness to a specific value. Useful for tracking processes whose lifetimes are outside of that of the current process, but should not be needed in most cases.
+	ManualReset(lastSuccessfulUpdate time.Time)
+
+	// Reset should be called when some work has been successfully completed.
+	Reset()
+}
+
+type Int64MetricI interface {
+	// Delete removes the metric from its Client's registry.
+	Delete() error
+
+	// Get returns the current value of the metric.
+	Get() int64
+
+	// Update adds a data point to the metric.
+	Update(v int64)
+}
+
+type Float64MetricI interface {
+	// Delete removes the metric from its Client's registry.
+	Delete() error
+
+	// Get returns the current value of the metric.
+	Get() float64
+
+	// Update adds a data point to the metric.
+	Update(v float64)
+}
+
+type CounterI interface {
+	// Dec decrements the counter by the given quantity.
+	Dec(i int64)
+
+	// Delete removes the counter from metrics.
+	Delete() error
+
+	// Get returns the current value in the counter.
+	Get() int64
+
+	// Inc increments the counter by the given quantity.
+	Inc(i int64)
+
+	// Reset sets the counter to zero.
+	Reset()
+}
+
+type BoolMetricI interface {
+	// Delete removes the metric from its Client's registry.
+	Delete() error
+
+	// Get returns the current value of the metric.
+	Get() bool
+
+	// Update adds a data point to the metric.
+	Update(v bool)
+}
+
+type ClientI interface {
+	// Flush pushes any queued data into InfluxDB immediately. Long running apps shouldn't worry about this as Client will auto-push every so often.
+	Flush() error
+
+	// GetBoolMetric returns a BoolMetric instance. The current value is reported at the given frequency; if the report frequency is zero, the value is only reported when it changes.
+	GetBoolMetric(measurement string, tags ...map[string]string) BoolMetricI
+
+	// GetCounter creates or retrieves a Counter with the given name and tag set and returns it.
+	GetCounter(name string, tagsList ...map[string]string) CounterI
+
+	// GetFloat64Metric returns a Float64Metric instance. The current value is
+	GetFloat64Metric(measurement string, tags ...map[string]string) Float64MetricI
+
+	// GetInt64Metric returns an Int64Metric instance.
+	GetInt64Metric(measurement string, tags ...map[string]string) Int64MetricI
+
+	// NewLiveness creates a new Liveness metric helper. The current value is reported at the given frequency; if the report frequency is zero, the value is only reported when it changes.
+	NewLiveness(name string, tagsList ...map[string]string) LivenessI
+
+	// NewTimer creates and returns a new started timer.
+	NewTimer(name string, tagsList ...map[string]string) TimerI
+}
+
 var (
 	DefaultClient *Client = &Client{
 		aggMetrics:      map[string]*aggregateMetric{},
@@ -339,3 +434,11 @@ func (c *Client) deleteAggregateMetric(key string) error {
 	}
 	return nil
 }
+
+var _ ClientI = (*Client)(nil)
+var _ BoolMetricI = (*BoolMetric)(nil)
+var _ CounterI = (*Counter)(nil)
+var _ Float64MetricI = (*Float64Metric)(nil)
+var _ Int64MetricI = (*Int64Metric)(nil)
+var _ LivenessI = (*Liveness)(nil)
+var _ TimerI = (*Timer)(nil)
