@@ -32,7 +32,6 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/webhook"
@@ -228,17 +227,10 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
-	// By default use a set of credentials setup for localhost access.
-	var cookieSalt = "notverysecret"
-	var clientID = "31977622648-1873k0c1e5edaka4adpv1ppvhr5id3qm.apps.googleusercontent.com"
-	var clientSecret = "cw0IosPu4yjaG2KWmppj2guj"
-	var redirectURL = serverURL + "/oauth2callback/"
-	if !*local {
-		cookieSalt = metadata.Must(metadata.ProjectGet(metadata.COOKIESALT))
-		clientID = metadata.Must(metadata.ProjectGet(metadata.CLIENT_ID))
-		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
+	redirectURL := serverURL + "/oauth2callback/"
+	if err := login.Init(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
+		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
-	login.Init(clientID, clientSecret, redirectURL, cookieSalt, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST, *local)
 
 	if *local {
 		webhook.InitRequestSaltForTesting()

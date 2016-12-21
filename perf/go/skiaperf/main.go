@@ -850,11 +850,11 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
+	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {
 		redirectURL = "https://perf.skia.org/oauth2callback/"
 	}
-	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
+	if err := login.Init(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 

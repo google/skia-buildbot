@@ -336,11 +336,11 @@ func main() {
 	if err := os.MkdirAll(filepath.Join(*workRoot, "tmp"), 0777); err != nil {
 		sklog.Fatalf("Failed to create WORK_ROOT/tmp dir: %s", err)
 	}
-	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
+	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {
 		redirectURL = "https://imageinfo.skia.org/oauth2callback/"
 	}
-	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
+	if err := login.Init(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 	var err error

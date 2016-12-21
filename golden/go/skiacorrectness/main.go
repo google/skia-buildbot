@@ -147,19 +147,13 @@ func main() {
 	}
 
 	// Set up login
-	// TODO (stephana): Factor out to go/login/login.go and removed hard coded
-	// values.
-	var cookieSalt = "notverysecret"
-	var clientID = "31977622648-ubjke2f3staq6ouas64r31h8f8tcbiqp.apps.googleusercontent.com"
-	var clientSecret = "rK-kRY71CXmcg0v9I9KIgWci"
-	var useRedirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
-	if !*local {
-		cookieSalt = metadata.Must(metadata.ProjectGet(metadata.COOKIESALT))
-		clientID = metadata.Must(metadata.ProjectGet(metadata.CLIENT_ID))
-		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
-		useRedirectURL = *redirectURL
+	useRedirectURL := *redirectURL
+	if *local {
+		useRedirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	}
-	login.Init(clientID, clientSecret, useRedirectURL, cookieSalt, login.DEFAULT_SCOPE, *authWhiteList, *local)
+	if err := login.Init(useRedirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
+		sklog.Fatalf("Failed to initialize the login system: %s", err)
+	}
 
 	// Get the client to be used to access GS and the Monorail issue tracker.
 	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, nil, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
