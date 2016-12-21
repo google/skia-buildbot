@@ -163,9 +163,10 @@ func TestEmptyResultsOk(t *testing.T) {
 func TestRuleParsing(t *testing.T) {
 	testutils.SmallTest(t)
 	type parseCase struct {
-		Name        string
-		Input       string
-		ExpectedErr error
+		Name         string
+		Input        string
+		ExpectedErr  error
+		ExpectedErr2 error
 	}
 	cases := []parseCase{
 		parseCase{
@@ -305,6 +306,9 @@ actions = ["Print"]
 auto-dismiss = false
 `,
 			ExpectedErr: fmt.Errorf("Failed to evaluate condition \"x > a\": eval:1:5: undeclared name: a"),
+			// TODO(kjlubick): This behaves differently on golang 1.7 vs 1.6.
+			// Consolidate this once all the bots are updated.
+			ExpectedErr2: fmt.Errorf("Failed to evaluate condition \"x > a\": Unknown error"),
 		},
 		parseCase{
 			Name: "BadVariables, 'z' isn't defined",
@@ -423,7 +427,13 @@ nag = "1h10m"
 			actualErrStr = err.Error()
 		}
 		if actualErrStr != expectedErrStr {
-			t.Errorf(errorStr, c.Name, expectedErrStr, actualErrStr)
+			if c.ExpectedErr2 == nil {
+				t.Errorf(errorStr, c.Name, expectedErrStr, actualErrStr)
+			} else {
+				if expectedError2 := c.ExpectedErr2.Error(); actualErrStr != expectedError2 {
+					t.Errorf(errorStr, c.Name, expectedErrStr+"[ or ]"+expectedError2, actualErrStr)
+				}
+			}
 		}
 	}
 }
