@@ -64,20 +64,20 @@ func (m *aggregateMetric) Delete() error {
 	return client.deleteAggregateMetric(key)
 }
 
-// Int64MeanMetric is a metric whose data is aggregated over the sampling period
+// int64MeanMetric is a metric whose data is aggregated over the sampling period
 // using an arithmetic mean.
-type Int64MeanMetric struct {
+type int64MeanMetric struct {
 	*aggregateMetric
 }
 
-// GetInt64MeanMetric returns an Int64MeanMetric instance.
-func (c *Client) GetInt64MeanMetric(measurement string, tags ...map[string]string) *Int64MeanMetric {
-	return &Int64MeanMetric{
+// getInt64MeanMetric returns an int64MeanMetric instance.
+func (c *Client) getInt64MeanMetric(measurement string, tags ...map[string]string) *int64MeanMetric {
+	return &int64MeanMetric{
 		c.getAggregateMetric(measurement, tags, meanInt64),
 	}
 }
 
-// GetInt64MeanMetric returns an Int64MeanMetric instance using the default client.
-func GetInt64MeanMetric(measurement string, tags ...map[string]string) *Int64MeanMetric {
-	return DefaultClient.GetInt64MeanMetric(measurement, tags...)
+// getInt64MeanMetric returns an Int64MeanMetric instance using the default client.
+func getInt64MeanMetric(measurement string, tags ...map[string]string) *int64MeanMetric {
+	return DefaultClient.getInt64MeanMetric(measurement, tags...)
 }
