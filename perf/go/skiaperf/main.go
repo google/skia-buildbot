@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.skia.org/infra/go/sklog"
 	storage "google.golang.org/api/storage/v1"
 
@@ -857,6 +858,11 @@ func main() {
 	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
+
+	// Serve metrics off a different port.
+	r := mux.NewRouter()
+	r.Handle("/metrics", promhttp.Handler())
+	go sklog.Fatal(http.ListenAndServe(":10110", r))
 
 	// Resources are served directly.
 	router := mux.NewRouter()
