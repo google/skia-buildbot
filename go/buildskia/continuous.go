@@ -54,9 +54,9 @@ type ContinuousBuilder struct {
 	preserve   int
 	useGn      bool
 
-	buildFailures    *metrics2.Counter
-	buildLiveness    *metrics2.Liveness
-	repoSyncFailures *metrics2.Counter
+	buildFailures    metrics2.Counter
+	buildLiveness    metrics2.Liveness
+	repoSyncFailures metrics2.Counter
 
 	timeBetweenBuilds time.Duration
 

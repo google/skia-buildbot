@@ -51,7 +51,7 @@ type AutoRoller struct {
 	includeCommitLog bool
 	emailMtx         sync.RWMutex
 	lastError        error
-	liveness         *metrics2.Liveness
+	liveness         metrics2.Liveness
 	modeHistory      *autoroll_modes.ModeHistory
 	modeMtx          sync.Mutex
 	mtx              sync.RWMutex
