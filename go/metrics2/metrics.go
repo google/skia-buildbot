@@ -20,17 +20,113 @@ const (
 	PUSH_FREQUENCY           = time.Minute
 )
 
+type Timer interface {
+	// Start starts or resets the timer.
+	Start()
+
+	// Stop stops the timer and reports the elapsed time.
+	Stop()
+}
+
+type Liveness interface {
+	// Delete removes the Liveness from metrics.
+	Delete() error
+
+	// Get returns the current value of the Liveness.
+	Get() int64
+
+	// ManualReset sets the last-successful-update time of the Liveness to a specific value. Useful for tracking processes whose lifetimes are outside of that of the current process, but should not be needed in most cases.
+	ManualReset(lastSuccessfulUpdate time.Time)
+
+	// Reset should be called when some work has been successfully completed.
+	Reset()
+}
+
+type Int64Metric interface {
+	// Delete removes the metric from its Client's registry.
+	Delete() error
+
+	// Get returns the current value of the metric.
+	Get() int64
+
+	// Update adds a data point to the metric.
+	Update(v int64)
+}
+
+type Float64Metric interface {
+	// Delete removes the metric from its Client's registry.
+	Delete() error
+
+	// Get returns the current value of the metric.
+	Get() float64
+
+	// Update adds a data point to the metric.
+	Update(v float64)
+}
+
+type Counter interface {
+	// Dec decrements the counter by the given quantity.
+	Dec(i int64)
+
+	// Delete removes the counter from metrics.
+	Delete() error
+
+	// Get returns the current value in the counter.
+	Get() int64
+
+	// Inc increments the counter by the given quantity.
+	Inc(i int64)
+
+	// Reset sets the counter to zero.
+	Reset()
+}
+
+type BoolMetric interface {
+	// Delete removes the metric from its Client's registry.
+	Delete() error
+
+	// Get returns the current value of the metric.
+	Get() bool
+
+	// Update adds a data point to the metric.
+	Update(v bool)
+}
+
+type Client interface {
+	// Flush pushes any queued data into InfluxDB immediately. Long running apps shouldn't worry about this as Client will auto-push every so often.
+	Flush() error
+
+	// GetBoolMetric returns a BoolMetric instance. The current value is reported at the given frequency; if the report frequency is zero, the value is only reported when it changes.
+	GetBoolMetric(measurement string, tags ...map[string]string) BoolMetric
+
+	// GetCounter creates or retrieves a Counter with the given name and tag set and returns it.
+	GetCounter(name string, tagsList ...map[string]string) Counter
+
+	// GetFloat64Metric returns a Float64Metric instance. The current value is
+	GetFloat64Metric(measurement string, tags ...map[string]string) Float64Metric
+
+	// GetInt64Metric returns an Int64Metric instance.
+	GetInt64Metric(measurement string, tags ...map[string]string) Int64Metric
+
+	// NewLiveness creates a new Liveness metric helper. The current value is reported at the given frequency; if the report frequency is zero, the value is only reported when it changes.
+	NewLiveness(name string, tagsList ...map[string]string) Liveness
+
+	// NewTimer creates and returns a new started timer.
+	NewTimer(name string, tagsList ...map[string]string) Timer
+}
+
 var (
-	DefaultClient *Client = &Client{
+	defaultInfluxClient *influxClient = &influxClient{
 		aggMetrics:      map[string]*aggregateMetric{},
-		counters:        map[string]*Counter{},
+		counters:        map[string]*counter{},
 		metrics:         map[string]*rawMetric{},
 		reportFrequency: time.Minute,
 	}
+	DefaultClient Client = defaultInfluxClient
 )
 
 // Init() initializes the metrics package.
-func Init(appName string, influxClient *influxdb.Client) error {
+func Init(appName string, influxDbClient *influxdb.Client) error {
 	hostName, err := os.Hostname()
 	if err != nil {
 		return fmt.Errorf("Unable to retrieve hostname: %s", err)
@@ -39,31 +135,35 @@ func Init(appName string, influxClient *influxdb.Client) error {
 		"app":  appName,
 		"host": hostName,
 	}
-	c, err := NewClient(influxClient, tags, DEFAULT_REPORT_FREQUENCY)
+	clientI, err := NewClient(influxDbClient, tags, DEFAULT_REPORT_FREQUENCY)
 	if err != nil {
 		return err
 	}
-	// Some metrics may already be registered with DefaultClient. Copy them
+	c := clientI.(*influxClient)
+	// Some metrics may already be registered with defaultInfluxClient. Copy them
 	// over.
-	c.aggMetrics = DefaultClient.aggMetrics
-	c.counters = DefaultClient.counters
-	c.metrics = DefaultClient.metrics
+	c.aggMetrics = defaultInfluxClient.aggMetrics
+	c.counters = defaultInfluxClient.counters
+	c.metrics = defaultInfluxClient.metrics
 
 	// Set the default client.
 	DefaultClient = c
+	defaultInfluxClient = c
 	return nil
 }
 
-// Client is a struct used for communicating with an InfluxDB instance.
-type Client struct {
+// influxClient is a struct used for communicating with an InfluxDB instance.
+//
+// It implements Client.
+type influxClient struct {
 	aggMetrics    map[string]*aggregateMetric
 	aggMetricsMtx sync.Mutex
 
-	counters    map[string]*Counter
+	counters    map[string]*counter
 	countersMtx sync.Mutex
 
-	influxClient *influxdb.Client
-	defaultTags  map[string]string
+	influxDbClient *influxdb.Client
+	defaultTags    map[string]string
 
 	metrics    map[string]*rawMetric
 	metricsMtx sync.Mutex
@@ -77,15 +177,15 @@ type Client struct {
 // defaultTags specifies a set of default tag keys and values which are applied
 // to all data points. reportFrequency specifies how often metrics should create
 // data points.
-func NewClient(influxClient *influxdb.Client, defaultTags map[string]string, reportFrequency time.Duration) (*Client, error) {
-	values, err := influxClient.NewBatchPoints()
+func NewClient(influxDbClient *influxdb.Client, defaultTags map[string]string, reportFrequency time.Duration) (Client, error) {
+	values, err := influxDbClient.NewBatchPoints()
 	if err != nil {
 		return nil, err
 	}
-	c := &Client{
+	c := &influxClient{
 		aggMetrics:      map[string]*aggregateMetric{},
-		counters:        map[string]*Counter{},
-		influxClient:    influxClient,
+		counters:        map[string]*counter{},
+		influxDbClient:  influxDbClient,
 		defaultTags:     defaultTags,
 		metrics:         map[string]*rawMetric{},
 		reportFrequency: reportFrequency,
@@ -116,7 +216,7 @@ func NewClient(influxClient *influxdb.Client, defaultTags map[string]string, rep
 }
 
 // collectMetrics collects data points from all raw metrics.
-func (c *Client) collectMetrics() {
+func (c *influxClient) collectMetrics() {
 	c.metricsMtx.Lock()
 	defer c.metricsMtx.Unlock()
 	for _, m := range c.metrics {
@@ -125,7 +225,7 @@ func (c *Client) collectMetrics() {
 }
 
 // collectAggregateMetrics collects data points from all aggregate metrics.
-func (c *Client) collectAggregateMetrics() {
+func (c *influxClient) collectAggregateMetrics() {
 	c.aggMetricsMtx.Lock()
 	defer c.aggMetricsMtx.Unlock()
 	for _, m := range c.aggMetrics {
@@ -134,7 +234,7 @@ func (c *Client) collectAggregateMetrics() {
 }
 
 // addPointAtTime adds a data point with the given timestamp.
-func (c *Client) addPointAtTime(measurement string, tags map[string]string, value interface{}, ts time.Time) {
+func (c *influxClient) addPointAtTime(measurement string, tags map[string]string, value interface{}, ts time.Time) {
 	c.valuesMtx.Lock()
 	defer c.valuesMtx.Unlock()
 	if c.values == nil {
@@ -157,23 +257,25 @@ func (c *Client) addPointAtTime(measurement string, tags map[string]string, valu
 }
 
 // addPoint adds a data point.
-func (c *Client) addPoint(measurement string, tags map[string]string, value interface{}) {
+func (c *influxClient) addPoint(measurement string, tags map[string]string, value interface{}) {
 	c.addPointAtTime(measurement, tags, value, time.Now())
 }
 
 // RawAddInt64PointAtTime adds an int64 data point to the default client at the
 // given time. When possible, use one of the helpers instead.
 func RawAddInt64PointAtTime(measurement string, tags map[string]string, value int64, ts time.Time) {
-	DefaultClient.addPointAtTime(measurement, tags, value, ts)
+	if defaultInfluxClient != nil {
+		defaultInfluxClient.addPointAtTime(measurement, tags, value, ts)
+	}
 }
 
 // pushData pushes all queued data into InfluxDB.
-func (c *Client) pushData() (map[string]int64, error) {
+func (c *influxClient) pushData() (map[string]int64, error) {
 	c.valuesMtx.Lock()
 	defer c.valuesMtx.Unlock()
 
 	// Always clear out the values after pushing, even if we failed.
-	newValues, err := c.influxClient.NewBatchPoints()
+	newValues, err := c.influxDbClient.NewBatchPoints()
 	if err != nil {
 		return nil, err
 	}
@@ -181,12 +283,12 @@ func (c *Client) pushData() (map[string]int64, error) {
 		c.values = newValues
 	}()
 
-	if c.influxClient == nil {
+	if c.influxDbClient == nil {
 		return nil, fmt.Errorf("InfluxDB client is nil! Cannot push data. Did you initialize the metrics2 package?")
 	}
 
 	// Push the points.
-	if err := c.influxClient.WriteBatch(c.values); err != nil {
+	if err := c.influxDbClient.WriteBatch(c.values); err != nil {
 		return nil, err
 	}
 
@@ -202,7 +304,7 @@ func (c *Client) pushData() (map[string]int64, error) {
 }
 
 // Flush pushes any queued data into InfluxDB immediately. Long running apps shouldn't worry about this as Client will auto-push every so often.
-func (c *Client) Flush() error {
+func (c *influxClient) Flush() error {
 	c.collectMetrics()
 	c.collectAggregateMetrics()
 	if _, err := c.pushData(); err != nil {
@@ -220,7 +322,7 @@ func Flush() {
 
 // rawMetric is a metric which has no explicit type.
 type rawMetric struct {
-	client      *Client
+	client      *influxClient
 	key         string
 	measurement string
 	mtx         sync.RWMutex
@@ -269,7 +371,7 @@ func makeMetricKey(measurement string, tags map[string]string) string {
 
 // getRawMetric creates or retrieves a metric with the given measurement name
 // and tag set and returns it.
-func (c *Client) getRawMetric(measurement string, tagsList []map[string]string, initial interface{}) *rawMetric {
+func (c *influxClient) getRawMetric(measurement string, tagsList []map[string]string, initial interface{}) *rawMetric {
 	c.metricsMtx.Lock()
 	defer c.metricsMtx.Unlock()
 
@@ -292,7 +394,7 @@ func (c *Client) getRawMetric(measurement string, tagsList []map[string]string, 
 
 // getAggregateMetric creates or retrieves an aggregateMetric with the given
 // measurement name and tag set and returns it.
-func (c *Client) getAggregateMetric(measurement string, tagsList []map[string]string, aggFn func([]interface{}) interface{}) *aggregateMetric {
+func (c *influxClient) getAggregateMetric(measurement string, tagsList []map[string]string, aggFn func([]interface{}) interface{}) *aggregateMetric {
 	c.aggMetricsMtx.Lock()
 	defer c.aggMetricsMtx.Unlock()
 
@@ -315,7 +417,7 @@ func (c *Client) getAggregateMetric(measurement string, tagsList []map[string]st
 }
 
 // deleteRawMetric removes the given raw metric.
-func (c *Client) deleteRawMetric(key string) error {
+func (c *influxClient) deleteRawMetric(key string) error {
 	c.metricsMtx.Lock()
 	defer c.metricsMtx.Unlock()
 
@@ -328,7 +430,7 @@ func (c *Client) deleteRawMetric(key string) error {
 }
 
 // deleteAggregateMetric removes the given aggregate metric.
-func (c *Client) deleteAggregateMetric(key string) error {
+func (c *influxClient) deleteAggregateMetric(key string) error {
 	c.aggMetricsMtx.Lock()
 	defer c.aggMetricsMtx.Unlock()
 
@@ -339,3 +441,12 @@ func (c *Client) deleteAggregateMetric(key string) error {
 	}
 	return nil
 }
+
+// Validate that the concrete structs faithfully implement their respective interfaces.
+var _ Client = (*influxClient)(nil)
+var _ BoolMetric = (*boolMetric)(nil)
+var _ Counter = (*counter)(nil)
+var _ Float64Metric = (*float64Metric)(nil)
+var _ Int64Metric = (*int64Metric)(nil)
+var _ Liveness = (*liveness)(nil)
+var _ Timer = (*timer)(nil)

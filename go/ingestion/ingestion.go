@@ -112,7 +112,7 @@ type Ingester struct {
 	eventProcessMetrics *processMetrics
 
 	// processTimer measure the overall time it takes to process a set of files.
-	processTimer *metrics2.Timer
+	processTimer metrics2.Timer
 
 	// fileWriterWg allows to synchronize file writes - testing only.
 	fileWriterWg sync.WaitGroup
@@ -467,11 +467,11 @@ type tags map[string]string
 // We have one instance for polled result files and one for files that were
 // delievered via events.
 type processMetrics struct {
-	totalFilesGauge *metrics2.Int64Metric
-	processedGauge  *metrics2.Int64Metric
-	ignoredGauge    *metrics2.Int64Metric
-	errorGauge      *metrics2.Int64Metric
-	liveness        *metrics2.Liveness
+	totalFilesGauge metrics2.Int64Metric
+	processedGauge  metrics2.Int64Metric
+	ignoredGauge    metrics2.Int64Metric
+	errorGauge      metrics2.Int64Metric
+	liveness        metrics2.Liveness
 }
 
 // newProcessMetrics instantiates the metrics to track processing and registers them
@@ -489,10 +489,10 @@ func newProcessMetrics(id, subtype string) *processMetrics {
 
 // sourceMetrics tracks metrics for one input source.
 type sourceMetrics struct {
-	liveness       *metrics2.Liveness
-	pollTimer      *metrics2.Timer
-	pollError      *metrics2.Int64Metric
-	eventsReceived *metrics2.Int64Metric
+	liveness       metrics2.Liveness
+	pollTimer      metrics2.Timer
+	pollError      metrics2.Int64Metric
+	eventsReceived metrics2.Int64Metric
 }
 
 // newSourceMetrics instantiates a set of metrics for an input source.
