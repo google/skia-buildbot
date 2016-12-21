@@ -30,7 +30,7 @@ var (
 	totalGauge        = metrics2.GetInt64Metric(METRIC_TOTAL, nil)
 
 	// Gauges to track counts of digests by corpus / label
-	corpusGauges = map[string]map[types.Label]*metrics2.Int64Metric{}
+	corpusGauges = map[string]map[types.Label]metrics2.Int64Metric{}
 )
 
 // GUIStatus reflects the current rebaseline status. In particular whether
@@ -181,7 +181,7 @@ func (s *StatusWatcher) calcStatus(tile *tiling.Tile) error {
 			}
 
 			if _, ok := corpusGauges[corpus]; !ok {
-				corpusGauges[corpus] = map[types.Label]*metrics2.Int64Metric{
+				corpusGauges[corpus] = map[types.Label]metrics2.Int64Metric{
 					types.UNTRIAGED: metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": types.UNTRIAGED.String(), "corpus": corpus}),
 					types.POSITIVE:  metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": types.POSITIVE.String(), "corpus": corpus}),
 					types.NEGATIVE:  metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": types.NEGATIVE.String(), "corpus": corpus}),

@@ -80,8 +80,8 @@ type Probe struct {
 	ResponseTestName string `json:"responsetest"`
 
 	responseTest ResponseTester
-	failure      *metrics2.Int64Metric
-	latency      *metrics2.Int64Metric // Latency in ms.
+	failure      metrics2.Int64Metric
+	latency      metrics2.Int64Metric // Latency in ms.
 }
 
 // Probes is all the probes that are to be run.
@@ -252,7 +252,7 @@ func monitorIssueTracker(c *http.Client) {
 	// the count of all issues with a status of "New".
 	type IssueStatus struct {
 		Name   string
-		Metric *metrics2.Int64Metric
+		Metric metrics2.Int64Metric
 		URL    string
 	}
 
