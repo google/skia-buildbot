@@ -16,6 +16,7 @@ ExecStart=/usr/local/bin/task_scheduler \
     --repo=https://skia.googlesource.com/internal_test.git \
     --resources_dir=/usr/local/share/task-scheduler/ \
     --swarming_server=chrome-swarming.appspot.com \
+    --tryjob_bucket=skia.internal \
     --workdir=/mnt/pd0/task_scheduler_workdir
 Restart=always
 User=default
