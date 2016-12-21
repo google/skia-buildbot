@@ -161,8 +161,11 @@ func (r *Rule) evaluate(xf []float64) (bool, error) {
 		if err != nil {
 			return false, fmt.Errorf("Failed to evaluate condition %q: %s", condition, err)
 		}
+		if tv.Type == nil {
+			return false, fmt.Errorf("Failed to evaluate condition %q: Unknown error", condition)
+		}
 		if tv.Type.String() != "untyped bool" {
-			return false, fmt.Errorf("Rule \"%v\" does not return boolean type.", condition)
+			return false, fmt.Errorf("Rule %q does not return boolean type.", condition)
 		}
 		result = constant.BoolVal(tv.Value) && result
 	}
