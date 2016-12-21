@@ -128,22 +128,22 @@ The main application element for the Skia Debugger.
       padding: 0;
     }
 
-    #gpuBatchBounds,
+    #gpuOpBounds,
     paper-toggle-button {
       margin: 0.5em 1em;
     }
 
-    .opBoundColor {
+    .gpuDrawBoundColor {
       color: #E31A1C;
       opacity: 0.75;
     }
 
-    .otherBoundColor {
+    .gpuOpBoundColor {
       color: #FF7F00;
       opacity: 0.75;
     }
 
-    .totalBoundColor {
+    .gpuTotalOpColor {
       color: #6A3D9A;
       opacity: 0.75;
     }
@@ -292,7 +292,7 @@ The main application element for the Skia Debugger.
       <div class="layout horizontal" hidden="[[ skp_not_loaded ]]">
         <div id=left class$="layout vertical flex-{{ _leftRatio }}">
           <div class="layout horizontal end-justified">
-            <paper-icon-button class=resizer on-tap=_smallerLeft icon="arrow-back" title="Shrink the command panel."></paper-icon-button>
+            <paper-icon-button class=resizer on-change=_smallerLeft icon="arrow-back" title="Shrink the command panel."></paper-icon-button>
           </div>
           <div class="layout horizontal">
             <paper-input id="fast" on-change="_fastFilter" label="Filter
@@ -335,7 +335,7 @@ The main application element for the Skia Debugger.
         <div id=right class$="layout vertical flex-2">
           <div class="layout horizontal">
             <paper-toggle-button on-iron-change="_gpuChange" id=gpu checked="{{_gpuChecked(_cmd.mode)}}">GPU</paper-toggle-button>
-            <paper-checkbox disabled="{{_gpuNotChecked(_cmd.mode)}}" checked="{{_isTrue(_cmd.drawGpuBatchBounds)}}" id=gpuBatchBounds on-tap="_gpuBatchBounds">Display Batch Bounds</paper-checkbox>
+            <paper-checkbox disabled="{{_gpuNotChecked(_cmd.mode)}}" checked="{{_isTrue(_cmd.drawGpuOpBounds)}}" id=gpuOpBounds on-change="_gpuOpBounds">Display GPU Op Bounds</paper-checkbox>
           </div>
           <details-sk>
             <summary-sk>
@@ -355,14 +355,14 @@ The main application element for the Skia Debugger.
             <paper-checkbox id=textBounds on-tap="_textBoundsHandler">Show Text Bounds</paper-checkbox>
             <dbg-info-sk info="{{ info }}"></dbg-info-sk>
           </details-sk>
-          <details-sk id=batchBoundsLegend class=hidden>
+          <details-sk id=gpuOpBoundsLegend class=hidden>
             <summary-sk>
-              Batch Bounds Legend
+              GPU Op Bounds Legend
             </summary-sk>
             <table class=shortcuts>
-              <tr><td class=opBoundColor>Bounds for the current op.</td></tr>
-              <tr><td class=otherBoundColor>Bounds for other ops in the same batch.</td></tr>
-              <tr><td class=totalBoundColor>Total bounds of the current batch.</td></tr>
+              <tr><td class=gpuDrawBoundColor>Bounds for the current draw.</td></tr>
+              <tr><td class=gpuOpBoundColor>Individual bounds for other draws in the same op.</td></tr>
+              <tr><td class=gpuTotalOpColor>Total bounds of the current op.</td></tr>
             </table>
           </details-sk>
           <details-sk id=histogram class="hidden">
@@ -646,21 +646,21 @@ The main application element for the Skia Debugger.
         return s.length == 0;
       },
 
-      _gpuBatchBounds: function(e) {
+      _gpuOpBounds: function(e) {
         // Ignore if this._cmd hasn't been loaded yet.
         if (!this._cmd) {
           return
         }
-        this.$.batchBoundsLegend.classList.toggle("hidden", !this.$.gpuBatchBounds.checked);
+        this.$.gpuOpBoundsLegend.classList.toggle("hidden", !this.$.gpuOpBounds.checked);
         // Don't do anything if the toggle and the mode already agree.
-        if (this.$.gpuBatchBounds.checked === this._cmd.drawGpuBatchBounds) {
+        if (this.$.gpuOpBounds.checked === this._cmd.drawGpuOpBounds) {
           return
         }
-        sk.post("./batchBounds/" + (this.$.gpuBatchBounds.checked ? 1 : 0), "").then(function() {
+        sk.post("./gpuOpBounds/" + (this.$.gpuOpBounds.checked ? 1 : 0), "").then(function() {
           // Reloads the image and the JSON for all the commands.
           this._refreshPage();
         }.bind(this)).catch(function(err) {
-          this.$.gpuBatchBounds.checked = !this.$.gpuBatchBounds.checked;
+          this.$.gpuOpBounds.checked = !this.$.gpuOpBounds.checked;
           sk.errorMessage(err);
         }.bind(this));
       },
