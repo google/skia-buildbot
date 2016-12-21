@@ -5,15 +5,22 @@ type Int64Metric struct {
 	*rawMetric
 }
 
+// getInt64Metric returns an Int64Metric instance.
+func (c *influxClient) getInt64Metric(measurement string, tags ...map[string]string) *Int64Metric {
+	return &Int64Metric{
+		c.getRawMetric(measurement, tags, int64(0)),
+	}
+}
+
 // GetInt64Metric returns an Int64Metric instance.
-func (c *Client) GetInt64Metric(measurement string, tags ...map[string]string) *Int64Metric {
+func (c *influxClient) GetInt64Metric(measurement string, tags ...map[string]string) Int64MetricI {
 	return &Int64Metric{
 		c.getRawMetric(measurement, tags, int64(0)),
 	}
 }
 
 // GetInt64Metric returns an Int64Metric instance using the default client.
-func GetInt64Metric(measurement string, tags ...map[string]string) *Int64Metric {
+func GetInt64Metric(measurement string, tags ...map[string]string) Int64MetricI {
 	return DefaultClient.GetInt64Metric(measurement, tags...)
 }
 
@@ -33,14 +40,14 @@ type Float64Metric struct {
 }
 
 // GetFloat64Metric returns a Float64Metric instance. The current value is
-func (c *Client) GetFloat64Metric(measurement string, tags ...map[string]string) *Float64Metric {
+func (c *influxClient) GetFloat64Metric(measurement string, tags ...map[string]string) Float64MetricI {
 	return &Float64Metric{
 		c.getRawMetric(measurement, tags, float64(0)),
 	}
 }
 
 // GetFloat64Metric returns a Float64Metric instance using the default client.
-func GetFloat64Metric(measurement string, tags ...map[string]string) *Float64Metric {
+func GetFloat64Metric(measurement string, tags ...map[string]string) Float64MetricI {
 	return DefaultClient.GetFloat64Metric(measurement, tags...)
 }
 
@@ -62,7 +69,7 @@ type BoolMetric struct {
 // GetBoolMetric returns a BoolMetric instance. The current value is reported
 // at the given frequency; if the report frequency is zero, the value is only
 // reported when it changes.
-func (c *Client) GetBoolMetric(measurement string, tags ...map[string]string) *BoolMetric {
+func (c *influxClient) GetBoolMetric(measurement string, tags ...map[string]string) BoolMetricI {
 	return &BoolMetric{
 		c.getRawMetric(measurement, tags, false),
 	}
@@ -71,7 +78,7 @@ func (c *Client) GetBoolMetric(measurement string, tags ...map[string]string) *B
 // GetBoolMetric returns a BoolMetric instance using the default client. The
 // current value is reported at the given frequency; if the report frequency is
 // zero, the value is only reported when it changes.
-func GetBoolMetric(measurement string, tags ...map[string]string) *BoolMetric {
+func GetBoolMetric(measurement string, tags ...map[string]string) BoolMetricI {
 	return DefaultClient.GetBoolMetric(measurement, tags...)
 }
 

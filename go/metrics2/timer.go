@@ -18,23 +18,23 @@ const (
 // single data point when Stop() is called.
 type Timer struct {
 	begin time.Time
-	m     *Int64MeanMetric
+	m     *int64MeanMetric
 }
 
 // NewTimer creates and returns a new started timer.
-func (c *Client) NewTimer(name string, tagsList ...map[string]string) *Timer {
+func (c *influxClient) NewTimer(name string, tagsList ...map[string]string) TimerI {
 	// Make a copy of the tags and add the name.
 	tags := util.AddParams(map[string]string{}, tagsList...)
 	tags["name"] = name
 	ret := &Timer{
-		m: c.GetInt64MeanMetric(MEASUREMENT_TIMER, tags),
+		m: c.getInt64MeanMetric(MEASUREMENT_TIMER, tags),
 	}
 	ret.Start()
 	return ret
 }
 
 // NewTimer creates and returns a new Timer using the default client.
-func NewTimer(name string, tags ...map[string]string) *Timer {
+func NewTimer(name string, tags ...map[string]string) TimerI {
 	return DefaultClient.NewTimer(name, tags...)
 }
 
@@ -60,7 +60,7 @@ func (t *Timer) Stop() {
 //    ...
 // }
 //
-func FuncTimer() *Timer {
+func FuncTimer() TimerI {
 	pc, _, _, _ := runtime.Caller(1)
 	f := runtime.FuncForPC(pc)
 	split := strings.Split(f.Name(), ".")

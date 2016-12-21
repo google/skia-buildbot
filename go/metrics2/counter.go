@@ -21,7 +21,7 @@ type Counter struct {
 
 // GetCounter creates or retrieves a Counter with the given name and tag set and
 // returns it.
-func (c *Client) GetCounter(name string, tagsList ...map[string]string) *Counter {
+func (c *influxClient) GetCounter(name string, tagsList ...map[string]string) CounterI {
 	c.countersMtx.Lock()
 	defer c.countersMtx.Unlock()
 
@@ -38,7 +38,7 @@ func (c *Client) GetCounter(name string, tagsList ...map[string]string) *Counter
 	m, ok := c.counters[key]
 	if !ok {
 		m = &Counter{
-			m: c.GetInt64Metric(MEASUREMENT_COUNTER, tags),
+			m: c.getInt64Metric(MEASUREMENT_COUNTER, tags),
 		}
 		c.counters[key] = m
 	}
@@ -46,7 +46,7 @@ func (c *Client) GetCounter(name string, tagsList ...map[string]string) *Counter
 }
 
 // GetCounter creates and returns a new Counter using the default client.
-func GetCounter(name string, tags map[string]string) *Counter {
+func GetCounter(name string, tags map[string]string) CounterI {
 	return DefaultClient.GetCounter(name, tags)
 }
 
