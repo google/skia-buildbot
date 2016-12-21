@@ -95,14 +95,38 @@ type Session struct {
 	Token     *oauth2.Token
 }
 
-// Init must be called before any other methods.
+// Init must be called before any other login methods.
 //
-// The Client ID, Client Secret, and Redirect URL are listed in the Google
-// Developers Console. The authWhiteList is the space separated list of domains
-// and email addresses that are allowed to log in.
-func Init(clientID, clientSecret, redirectURL, salt string, scopes []string, authWhiteList string, local bool) {
-	cookieSalt = salt
-	secureCookie = securecookie.New([]byte(salt), nil)
+// The function first tries to load the cookie salt, client id, and client
+// secret from GCE project level metadata. If that fails it looks for a
+// "client_secret.json" file in the current directory to extract the client id
+// and client secret from. If both of those fail then it returns an error.
+//
+// The authWhiteList is the space separated list of domains and email addresses
+// that are allowed to log in. The authWhiteList will be overwritten from
+// GCE instance level metadata if present.
+func Init(redirectURL string, scopes []string, authWhiteList string) error {
+	cookieSalt, clientID, clientSecret := tryLoadingFromMetadata()
+	if clientID == "" {
+		b, err := ioutil.ReadFile("client_secret.json")
+		if err != nil {
+			return fmt.Errorf("Failed to read from metadata and from client_secret.json file: %s", err)
+		}
+		config, err := google.ConfigFromJSON(b)
+		if err != nil {
+			return fmt.Errorf("Failed to read from metadata and decode client_secret.json file: %s", err)
+		}
+		clientID = config.ClientID
+		clientSecret = config.ClientSecret
+	}
+	initLogin(clientID, clientSecret, redirectURL, cookieSalt, scopes, authWhiteList)
+	return nil
+}
+
+// initLogin sets the params.  It should only be called directly for testing purposes.
+// Clients should use Init().
+func initLogin(clientID, clientSecret, redirectURL, cookieSalt string, scopes []string, authWhiteList string) {
+	secureCookie = securecookie.New([]byte(cookieSalt), nil)
 	oauthConfig.ClientID = clientID
 	oauthConfig.ClientSecret = clientSecret
 	oauthConfig.RedirectURL = redirectURL
@@ -474,40 +498,4 @@ func tryLoadingFromMetadata() (string, string, string) {
 		return DEFAULT_COOKIE_SALT, "", ""
 	}
 	return cookieSalt, clientID, clientSecret
-}
-
-// InitFromMetadataOrJSON must be called before any other login methods.
-//
-// InitFromMetadataOrJSON will eventually replace all instances of Init, at
-// which point it will be renamed back to Init().
-//
-// The function first tries to load the cookie salt, client id, and client
-// secret from GCE project level metadata. If that fails it looks for a
-// "client_secret.json" file in the current directory to extract the client id
-// and client secret from. If both of those fail then it returns an error.
-//
-// The authWhiteList is the space separated list of domains and email addresses
-// that are allowed to log in. The authWhiteList will be overwritten from
-// GCE instance level metadata if present.
-func InitFromMetadataOrJSON(redirectURL string, scopes []string, authWhiteList string) error {
-	cookieSalt, clientID, clientSecret := tryLoadingFromMetadata()
-	if clientID == "" {
-		b, err := ioutil.ReadFile("client_secret.json")
-		if err != nil {
-			return fmt.Errorf("Failed to read from metadata and from client_secret.json file: %s", err)
-		}
-		config, err := google.ConfigFromJSON(b)
-		if err != nil {
-			return fmt.Errorf("Failed to read from metadata and decode client_secret.json file: %s", err)
-		}
-		clientID = config.ClientID
-		clientSecret = config.ClientSecret
-	}
-	secureCookie = securecookie.New([]byte(cookieSalt), nil)
-	oauthConfig.ClientID = clientID
-	oauthConfig.ClientSecret = clientSecret
-	oauthConfig.RedirectURL = redirectURL
-	oauthConfig.Scopes = scopes
-	setActiveWhitelists(authWhiteList)
-	return nil
 }

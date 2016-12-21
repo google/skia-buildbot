@@ -399,17 +399,11 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	// By default use a set of credentials setup for localhost access.
-	var cookieSalt = "notverysecret"
-	var clientID = "31977622648-1873k0c1e5edaka4adpv1ppvhr5id3qm.apps.googleusercontent.com"
-	var clientSecret = "cw0IosPu4yjaG2KWmppj2guj"
-	var redirectURL = serverURL + "/oauth2callback/"
-	var emailClientId = *emailClientIdFlag
-	var emailClientSecret = *emailClientSecretFlag
+
+	redirectURL := serverURL + "/oauth2callback/"
+	emailClientId := *emailClientIdFlag
+	emailClientSecret := *emailClientSecretFlag
 	if *useMetadata {
-		cookieSalt = metadata.Must(metadata.ProjectGet(metadata.COOKIESALT))
-		clientID = metadata.Must(metadata.ProjectGet(metadata.CLIENT_ID))
-		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
 		emailClientId = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
 		emailClientSecret = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_SECRET))
 		cachedGMailToken := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CACHED_TOKEN))
@@ -418,7 +412,9 @@ func main() {
 			sklog.Fatalf("Failed to cache token: %s", err)
 		}
 	}
-	login.Init(clientID, clientSecret, redirectURL, cookieSalt, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST, false)
+	if err := login.Init(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
+		sklog.Fatalf("Failed to initialize the login system: %s", err)
+	}
 
 	var emailAuth *email.GMail
 	if !*testing {

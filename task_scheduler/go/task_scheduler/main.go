@@ -490,8 +490,8 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
-	var redirectURL = serverURL + "/oauth2callback/"
-	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
+	redirectURL := serverURL + "/oauth2callback/"
+	if err := login.Init(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
 		sklog.Fatal(err)
 	}
 
