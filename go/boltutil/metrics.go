@@ -16,33 +16,33 @@ import (
 // for per-Tx TxStats.
 type TxStatsMetric struct {
 	// Page statistics.
-	PageCount *metrics2.Int64Metric // number of page allocations
-	PageAlloc *metrics2.Int64Metric // total bytes allocated
+	PageCount metrics2.Int64Metric // number of page allocations
+	PageAlloc metrics2.Int64Metric // total bytes allocated
 
 	// Cursor statistics.
-	CursorCount *metrics2.Int64Metric // number of cursors created
+	CursorCount metrics2.Int64Metric // number of cursors created
 
 	// Node statistics
-	NodeCount *metrics2.Int64Metric // number of node allocations
-	NodeDeref *metrics2.Int64Metric // number of node dereferences
+	NodeCount metrics2.Int64Metric // number of node allocations
+	NodeDeref metrics2.Int64Metric // number of node dereferences
 
 	// Rebalance statistics.
-	Rebalance     *metrics2.Int64Metric // number of node rebalances
-	RebalanceTime *metrics2.Int64Metric // total time spent rebalancing
+	Rebalance     metrics2.Int64Metric // number of node rebalances
+	RebalanceTime metrics2.Int64Metric // total time spent rebalancing
 
 	// Split/Spill statistics.
-	Split     *metrics2.Int64Metric // number of nodes split
-	Spill     *metrics2.Int64Metric // number of nodes spilled
-	SpillTime *metrics2.Int64Metric // total time spent spilling
+	Split     metrics2.Int64Metric // number of nodes split
+	Spill     metrics2.Int64Metric // number of nodes spilled
+	SpillTime metrics2.Int64Metric // total time spent spilling
 
 	// Write statistics.
-	Write     *metrics2.Int64Metric // number of writes performed
-	WriteTime *metrics2.Int64Metric // total time spent writing to disk
+	Write     metrics2.Int64Metric // number of writes performed
+	WriteTime metrics2.Int64Metric // total time spent writing to disk
 }
 
 // newTxStatsMetric initializes a TxStatsMetric. tags should include "database"
 // but should not include "metric".
-func newTxStatsMetric(c *metrics2.Client, tags ...map[string]string) *TxStatsMetric {
+func newTxStatsMetric(c metrics2.Client, tags ...map[string]string) *TxStatsMetric {
 	return &TxStatsMetric{
 		PageCount:     c.GetInt64Metric("db", append(tags, map[string]string{"metric": "PageCount"})...),
 		PageAlloc:     c.GetInt64Metric("db", append(tags, map[string]string{"metric": "PageAllocBytes"})...),
@@ -75,7 +75,7 @@ func (m *TxStatsMetric) Update(cur bolt.TxStats) {
 	m.WriteTime.Update(cur.WriteTime.Nanoseconds())
 }
 
-func deleteAll(metrics ...*metrics2.Int64Metric) error {
+func deleteAll(metrics ...metrics2.Int64Metric) error {
 	for _, metric := range metrics {
 		if err := metric.Delete(); err != nil {
 			return err
@@ -106,21 +106,21 @@ func (m *TxStatsMetric) Delete() error {
 // NewDbMetric.
 type DbStatsMetric struct {
 	// Freelist stats
-	FreePageN     *metrics2.Int64Metric // total number of free pages on the freelist
-	PendingPageN  *metrics2.Int64Metric // total number of pending pages on the freelist
-	FreeAlloc     *metrics2.Int64Metric // total bytes allocated in free pages
-	FreelistInuse *metrics2.Int64Metric // total bytes used by the freelist
+	FreePageN     metrics2.Int64Metric // total number of free pages on the freelist
+	PendingPageN  metrics2.Int64Metric // total number of pending pages on the freelist
+	FreeAlloc     metrics2.Int64Metric // total bytes allocated in free pages
+	FreelistInuse metrics2.Int64Metric // total bytes used by the freelist
 
 	// Transaction stats
-	TxN     *metrics2.Int64Metric // total number of started read transactions
-	OpenTxN *metrics2.Int64Metric // number of currently open read transactions
+	TxN     metrics2.Int64Metric // total number of started read transactions
+	OpenTxN metrics2.Int64Metric // number of currently open read transactions
 
 	TxStatsMetric *TxStatsMetric // global, ongoing stats.
 }
 
 // newDbStatsMetric initializes a DbStatsMetric. tags should include "database"
 // but should not include "metric".
-func newDbStatsMetric(c *metrics2.Client, tags ...map[string]string) *DbStatsMetric {
+func newDbStatsMetric(c metrics2.Client, tags ...map[string]string) *DbStatsMetric {
 	return &DbStatsMetric{
 		FreePageN:     c.GetInt64Metric("db", append(tags, map[string]string{"metric": "FreePageCount"})...),
 		PendingPageN:  c.GetInt64Metric("db", append(tags, map[string]string{"metric": "PendingPageCount"})...),
@@ -162,30 +162,30 @@ func (m *DbStatsMetric) Delete() error {
 // Create via NewDbMetric.
 type BucketStatsMetric struct {
 	// Page count statistics.
-	BranchPageN     *metrics2.Int64Metric // number of logical branch pages
-	BranchOverflowN *metrics2.Int64Metric // number of physical branch overflow pages
-	LeafPageN       *metrics2.Int64Metric // number of logical leaf pages
-	LeafOverflowN   *metrics2.Int64Metric // number of physical leaf overflow pages
+	BranchPageN     metrics2.Int64Metric // number of logical branch pages
+	BranchOverflowN metrics2.Int64Metric // number of physical branch overflow pages
+	LeafPageN       metrics2.Int64Metric // number of logical leaf pages
+	LeafOverflowN   metrics2.Int64Metric // number of physical leaf overflow pages
 
 	// Tree statistics.
-	KeyN  *metrics2.Int64Metric // number of keys/value pairs
-	Depth *metrics2.Int64Metric // number of levels in B+tree
+	KeyN  metrics2.Int64Metric // number of keys/value pairs
+	Depth metrics2.Int64Metric // number of levels in B+tree
 
 	// Page size utilization.
-	BranchAlloc *metrics2.Int64Metric // bytes allocated for physical branch pages
-	BranchInuse *metrics2.Int64Metric // bytes actually used for branch data
-	LeafAlloc   *metrics2.Int64Metric // bytes allocated for physical leaf pages
-	LeafInuse   *metrics2.Int64Metric // bytes actually used for leaf data
+	BranchAlloc metrics2.Int64Metric // bytes allocated for physical branch pages
+	BranchInuse metrics2.Int64Metric // bytes actually used for branch data
+	LeafAlloc   metrics2.Int64Metric // bytes allocated for physical leaf pages
+	LeafInuse   metrics2.Int64Metric // bytes actually used for leaf data
 
 	// Bucket statistics
-	BucketN           *metrics2.Int64Metric // total number of buckets including the top bucket
-	InlineBucketN     *metrics2.Int64Metric // total number of inlined buckets
-	InlineBucketInuse *metrics2.Int64Metric // bytes used for inlined buckets (also accounted for in LeafInuse)
+	BucketN           metrics2.Int64Metric // total number of buckets including the top bucket
+	InlineBucketN     metrics2.Int64Metric // total number of inlined buckets
+	InlineBucketInuse metrics2.Int64Metric // bytes used for inlined buckets (also accounted for in LeafInuse)
 }
 
 // newBucketStatsMetric initializes a BucketStatsMetric. tags should include
 // "database" and "bucket-path" but not "metric".
-func newBucketStatsMetric(c *metrics2.Client, tags ...map[string]string) *BucketStatsMetric {
+func newBucketStatsMetric(c metrics2.Client, tags ...map[string]string) *BucketStatsMetric {
 	return &BucketStatsMetric{
 		BranchPageN:       c.GetInt64Metric("db", append(tags, map[string]string{"metric": "BranchPageCount"})...),
 		BranchOverflowN:   c.GetInt64Metric("db", append(tags, map[string]string{"metric": "BranchOverflowCount"})...),
@@ -242,7 +242,7 @@ func (m *BucketStatsMetric) Delete() error {
 // DbMetric gathers and reports a number of statistics about a BoltDB using the
 // metrics2 package.
 type DbMetric struct {
-	Liveness           *metrics2.Liveness
+	Liveness           metrics2.Liveness
 	DbStatsMetric      *DbStatsMetric
 	BucketStatsMetrics map[string]*BucketStatsMetric
 	db                 *bolt.DB
@@ -255,12 +255,12 @@ type DbMetric struct {
 // "metric" or "bucket-path". Returns an error if the initial update fails for
 // any reason.
 func NewDbMetric(d *bolt.DB, bucketNames []string, tags ...map[string]string) (*DbMetric, error) {
-	return NewDbMetricWithClient(metrics2.DefaultClient, d, bucketNames, tags...)
+	return NewDbMetricWithClient(metrics2.GetDefaultClient(), d, bucketNames, tags...)
 }
 
 // NewDbMetricWithClient is the same as NewDbMetric, but uses the specified
 // metrics2.Client rather than the default client.
-func NewDbMetricWithClient(c *metrics2.Client, d *bolt.DB, bucketNames []string, tags ...map[string]string) (*DbMetric, error) {
+func NewDbMetricWithClient(c metrics2.Client, d *bolt.DB, bucketNames []string, tags ...map[string]string) (*DbMetric, error) {
 	m := &DbMetric{
 		Liveness:           c.NewLiveness("DbMetric", tags...),
 		DbStatsMetric:      newDbStatsMetric(c, tags...),

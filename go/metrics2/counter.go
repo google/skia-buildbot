@@ -13,15 +13,15 @@ const (
 	MEASUREMENT_COUNTER = "counter"
 )
 
-// Counter is a struct used for tracking metrics which increment or decrement.
-type Counter struct {
-	m   *Int64Metric
+// counter implements Counter.
+type counter struct {
+	m   *int64Metric
 	mtx sync.Mutex
 }
 
 // GetCounter creates or retrieves a Counter with the given name and tag set and
 // returns it.
-func (c *Client) GetCounter(name string, tagsList ...map[string]string) *Counter {
+func (c *influxClient) GetCounter(name string, tagsList ...map[string]string) Counter {
 	c.countersMtx.Lock()
 	defer c.countersMtx.Unlock()
 
@@ -37,8 +37,8 @@ func (c *Client) GetCounter(name string, tagsList ...map[string]string) *Counter
 	key := fmt.Sprintf("%s_%s", MEASUREMENT_COUNTER, md5)
 	m, ok := c.counters[key]
 	if !ok {
-		m = &Counter{
-			m: c.GetInt64Metric(MEASUREMENT_COUNTER, tags),
+		m = &counter{
+			m: c.getInt64Metric(MEASUREMENT_COUNTER, tags),
 		}
 		c.counters[key] = m
 	}
@@ -46,40 +46,40 @@ func (c *Client) GetCounter(name string, tagsList ...map[string]string) *Counter
 }
 
 // GetCounter creates and returns a new Counter using the default client.
-func GetCounter(name string, tags map[string]string) *Counter {
-	return DefaultClient.GetCounter(name, tags)
+func GetCounter(name string, tags map[string]string) Counter {
+	return defaultClient.GetCounter(name, tags)
 }
 
 // Inc increments the counter by the given quantity.
-func (c *Counter) Inc(i int64) {
+func (c *counter) Inc(i int64) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	c.m.Update(c.m.Get() + i)
 }
 
 // Dec decrements the counter by the given quantity.
-func (c *Counter) Dec(i int64) {
+func (c *counter) Dec(i int64) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	c.m.Update(c.m.Get() - i)
 }
 
 // Reset sets the counter to zero.
-func (c *Counter) Reset() {
+func (c *counter) Reset() {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	c.m.Update(0)
 }
 
 // Get returns the current value in the counter.
-func (c *Counter) Get() int64 {
+func (c *counter) Get() int64 {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	return c.m.Get()
 }
 
 // Delete removes the counter from metrics.
-func (c *Counter) Delete() error {
+func (c *counter) Delete() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	c.m.client.countersMtx.Lock()
