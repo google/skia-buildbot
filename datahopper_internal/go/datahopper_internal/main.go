@@ -104,7 +104,7 @@ var (
 
 	// ingestBuildWebhookLiveness maps a target codename to a metric for the time since last
 	// successful build ingestion.
-	ingestBuildWebhookLiveness = map[string]*metrics2.Liveness{}
+	ingestBuildWebhookLiveness = map[string]metrics2.Liveness{}
 )
 
 // isFinished returns true if the Build has finished running.

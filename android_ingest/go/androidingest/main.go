@@ -58,7 +58,7 @@ var (
 	converter      *parser.Converter
 	process        *continuous.Process
 	recentRequests *recent.Recent
-	uploads        *metrics2.Counter
+	uploads        metrics2.Counter
 	lookupCache    *lookup.Cache
 )
 

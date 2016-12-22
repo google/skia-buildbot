@@ -615,7 +615,7 @@ func IngestNewBuildsLoop(db DB, repos repograph.Map) error {
 		return fmt.Errorf("Can only ingest builds with a local DB instance.")
 	}
 	cache := newIngestCache(local)
-	lv := map[string]*metrics2.Liveness{}
+	lv := map[string]metrics2.Liveness{}
 	for _, m := range MASTER_NAMES {
 		lv[m] = metrics2.NewLiveness("buildbot-ingest", map[string]string{"master": m})
 	}

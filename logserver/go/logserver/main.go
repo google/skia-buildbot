@@ -431,7 +431,7 @@ func dirWatcher(duration time.Duration, dir string) {
 	if err != nil {
 		sklog.Fatalf("Could get access previous state: %s", err)
 	}
-	appLogLevelToMetric := make(map[string]*metrics2.Int64Metric)
+	appLogLevelToMetric := make(map[string]metrics2.Int64Metric)
 	updatedFiles := false
 	markFn := func(path string, fileInfo os.FileInfo, err error) error {
 		if err != nil {

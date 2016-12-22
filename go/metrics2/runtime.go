@@ -9,7 +9,7 @@ const (
 	RUNTIME_STATS_FREQUENCY = time.Minute
 )
 
-func newRuntimeStat(metric string) *Int64Metric {
+func newRuntimeStat(metric string) Int64Metric {
 	return GetInt64Metric("runtime-metrics", map[string]string{"metric": metric})
 }
 

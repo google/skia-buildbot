@@ -209,7 +209,7 @@ type localDB struct {
 
 	// tx fields contain metrics on the number of active transactions. Protected
 	// by txMutex.
-	txCount  *metrics2.Counter
+	txCount  metrics2.Counter
 	txNextId int64
 	txActive map[int64]string
 	txMutex  sync.RWMutex

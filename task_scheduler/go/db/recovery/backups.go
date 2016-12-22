@@ -77,20 +77,20 @@ type gsDBBackup struct {
 	modifiedJobsId string
 	// lastDBBackupLiveness records the modified time of the most recent DB
 	// backup.
-	lastDBBackupLiveness *metrics2.Liveness
+	lastDBBackupLiveness metrics2.Liveness
 	// recentDBBackupCount records the number of DB backups in the last 24 hours.
-	recentDBBackupCount *metrics2.Int64Metric
+	recentDBBackupCount metrics2.Int64Metric
 	// maybeBackupDBLiveness records whether maybeBackupDB is being called.
-	maybeBackupDBLiveness *metrics2.Liveness
+	maybeBackupDBLiveness metrics2.Liveness
 	// jobBackupCount records the number of jobs backed up since the gsDBBackup
 	// was created.
-	jobBackupCount *metrics2.Counter
+	jobBackupCount metrics2.Counter
 	// incrementalBackupLiveness tracks whether incrementalBackupStep is running
 	// successfully.
-	incrementalBackupLiveness *metrics2.Liveness
+	incrementalBackupLiveness metrics2.Liveness
 	// incrementalBackupResetCount records the number of times GetModifiedJobsGOB
 	// returned ErrUnknownId since the last successful DB backup.
-	incrementalBackupResetCount *metrics2.Counter
+	incrementalBackupResetCount metrics2.Counter
 }
 
 // NewDBBackup creates a DBBackup.

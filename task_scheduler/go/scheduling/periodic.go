@@ -35,7 +35,7 @@ const (
 type periodicTriggerMetrics struct {
 	jsonFile      string
 	LastTriggered map[string]time.Time `json:"last_triggered"`
-	metrics       map[string]*metrics2.Liveness
+	metrics       map[string]metrics2.Liveness
 }
 
 // newPeriodicTriggerMetrics returns a periodicTriggerMetrics instance,
@@ -55,7 +55,7 @@ func newPeriodicTriggerMetrics(workdir string) (*periodicTriggerMetrics, error) 
 		rv.LastTriggered = map[string]time.Time{}
 	}
 	rv.jsonFile = jsonFile
-	rv.metrics = make(map[string]*metrics2.Liveness, len(rv.LastTriggered))
+	rv.metrics = make(map[string]metrics2.Liveness, len(rv.LastTriggered))
 	for trigger, last := range rv.LastTriggered {
 		lv := metrics2.NewLiveness(PERIODIC_TRIGGER_MEASUREMENT, map[string]string{
 			"trigger": trigger,

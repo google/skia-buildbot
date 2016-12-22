@@ -9,7 +9,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
-func oneStep(store IgnoreStore, metric *metrics2.Int64Metric) error {
+func oneStep(store IgnoreStore, metric metrics2.Int64Metric) error {
 	list, err := store.List(false)
 	if err != nil {
 		return err

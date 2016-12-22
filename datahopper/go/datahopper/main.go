@@ -118,7 +118,7 @@ func main() {
 
 	// Swarming bots.
 	go func() {
-		oldMetrics := []*metrics2.Int64Metric{}
+		oldMetrics := []metrics2.Int64Metric{}
 		for _ = range time.Tick(2 * time.Minute) {
 			sklog.Info("Loading Skia Swarming bot data.")
 			skiaBots, err := swarm.ListSkiaBots()
@@ -137,14 +137,14 @@ func main() {
 			// Delete old metrics, replace with new ones. This fixes the case where
 			// bots are removed but their metrics hang around, or where dimensions
 			// change resulting in duplicate metrics with the same bot ID.
-			failedDelete := []*metrics2.Int64Metric{}
+			failedDelete := []metrics2.Int64Metric{}
 			for _, m := range oldMetrics {
 				if err := m.Delete(); err != nil {
 					sklog.Warningf("Failed to delete metric: %s", err)
 					failedDelete = append(failedDelete, m)
 				}
 			}
-			oldMetrics = append([]*metrics2.Int64Metric{}, failedDelete...)
+			oldMetrics = append([]metrics2.Int64Metric{}, failedDelete...)
 
 			now := time.Now()
 			for _, bot := range bots {

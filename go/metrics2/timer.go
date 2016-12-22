@@ -13,38 +13,36 @@ const (
 	NAME_FUNC_TIMER   = "func-timer"
 )
 
-// Timer is a struct used for measuring elapsed time. Unlike the other metrics
-// helpers, Timer does not continuously report data; instead, it reports a
-// single data point when Stop() is called.
-type Timer struct {
+// timer implements Timer.
+type timer struct {
 	begin time.Time
-	m     *Int64MeanMetric
+	m     *int64MeanMetric
 }
 
 // NewTimer creates and returns a new started timer.
-func (c *Client) NewTimer(name string, tagsList ...map[string]string) *Timer {
+func (c *influxClient) NewTimer(name string, tagsList ...map[string]string) Timer {
 	// Make a copy of the tags and add the name.
 	tags := util.AddParams(map[string]string{}, tagsList...)
 	tags["name"] = name
-	ret := &Timer{
-		m: c.GetInt64MeanMetric(MEASUREMENT_TIMER, tags),
+	ret := &timer{
+		m: c.getInt64MeanMetric(MEASUREMENT_TIMER, tags),
 	}
 	ret.Start()
 	return ret
 }
 
 // NewTimer creates and returns a new Timer using the default client.
-func NewTimer(name string, tags ...map[string]string) *Timer {
-	return DefaultClient.NewTimer(name, tags...)
+func NewTimer(name string, tags ...map[string]string) Timer {
+	return defaultClient.NewTimer(name, tags...)
 }
 
 // Start starts or resets the timer.
-func (t *Timer) Start() {
+func (t *timer) Start() {
 	t.begin = time.Now()
 }
 
 // Stop stops the timer and reports the elapsed time.
-func (t *Timer) Stop() {
+func (t *timer) Stop() {
 	v := int64(time.Now().Sub(t.begin))
 	t.m.update(v)
 }
@@ -60,7 +58,7 @@ func (t *Timer) Stop() {
 //    ...
 // }
 //
-func FuncTimer() *Timer {
+func FuncTimer() Timer {
 	pc, _, _, _ := runtime.Caller(1)
 	f := runtime.FuncForPC(pc)
 	split := strings.Split(f.Name(), ".")

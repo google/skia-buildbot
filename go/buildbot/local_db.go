@@ -122,7 +122,7 @@ func checkInterrupt(stop <-chan struct{}) error {
 type localDB struct {
 	db *bolt.DB
 
-	txCount  *metrics2.Counter
+	txCount  metrics2.Counter
 	txNextId int64
 	txActive map[int64]string
 	txMutex  sync.RWMutex
