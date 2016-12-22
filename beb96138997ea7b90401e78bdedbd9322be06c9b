@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_cbd69cad",
+        "filename": "go/metrics2/metric_helpers.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-12-22T14:59:39Z",
+      "side": 1,
+      "message": "One returns the Int64Metric, and the other returns the private *int64Metric, the latter is used in Counter.",
+      "parentUuid": "9765aef7_ab9b684a",
+      "revId": "beb96138997ea7b90401e78bdedbd9322be06c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_ebd3a0ec",
         "filename": "go/metrics2/metrics.go",
         "patchSetId": 14
@@ -48,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_4b4e2cb4",
+        "filename": "go/metrics2/metrics.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-12-22T14:59:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_ebd3a0ec",
+      "revId": "beb96138997ea7b90401e78bdedbd9322be06c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_6bbfb092",
         "filename": "go/metrics2/metrics.go",
         "patchSetId": 14
@@ -65,6 +101,24 @@
         "endLine": 96,
         "endChar": 46
       },
+      "revId": "beb96138997ea7b90401e78bdedbd9322be06c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_2b53f859",
+        "filename": "go/metrics2/metrics.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-12-22T14:59:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_6bbfb092",
       "revId": "beb96138997ea7b90401e78bdedbd9322be06c9b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -117,6 +171,60 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_6b321024",
+        "filename": "go/metrics2/metrics.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-12-22T14:59:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_4bc4ec32",
+      "revId": "beb96138997ea7b90401e78bdedbd9322be06c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_0b583470",
+        "filename": "go/metrics2/metrics.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-12-22T14:59:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_4bc4ec32",
+      "revId": "beb96138997ea7b90401e78bdedbd9322be06c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_4b274ce4",
+        "filename": "go/metrics2/metrics.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-12-22T14:59:39Z",
+      "side": 1,
+      "message": "\u003e If the docstring is obvious based on the function name, no need to document. However, is there somewhere in this package that \"measurement\" and \"tags\" are documented?\n\n\ndocs.go has that info.",
+      "parentUuid": "9765aef7_abb488b0",
+      "revId": "beb96138997ea7b90401e78bdedbd9322be06c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_cbb7bcb4",
         "filename": "go/metrics2/metrics.go",
         "patchSetId": 14
@@ -134,6 +242,24 @@
         "endLine": 105,
         "endChar": 75
       },
+      "revId": "beb96138997ea7b90401e78bdedbd9322be06c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_2b2c18c4",
+        "filename": "go/metrics2/metrics.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-12-22T14:59:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_cbb7bcb4",
       "revId": "beb96138997ea7b90401e78bdedbd9322be06c9b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -163,6 +289,24 @@
     },
     {
       "key": {
+        "uuid": "9765aef7_8b166472",
+        "filename": "go/metrics2/metrics.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-12-22T14:59:39Z",
+      "side": 1,
+      "message": "Renaming and pruning of the interfaces is planned for a follow-up CL.",
+      "parentUuid": "9765aef7_6be8d09a",
+      "revId": "beb96138997ea7b90401e78bdedbd9322be06c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9765aef7_4b162cc3",
         "filename": "go/metrics2/timer.go",
         "patchSetId": 14
@@ -180,6 +324,24 @@
         "endLine": 16,
         "endChar": 2
       },
+      "revId": "beb96138997ea7b90401e78bdedbd9322be06c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_6b49f0a9",
+        "filename": "go/metrics2/timer.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-12-22T14:59:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9765aef7_4b162cc3",
       "revId": "beb96138997ea7b90401e78bdedbd9322be06c9b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
