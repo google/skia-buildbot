@@ -60,34 +60,3 @@ func (m *float64Metric) Get() float64 {
 func (m *float64Metric) Update(v float64) {
 	m.update(v)
 }
-
-// boolMetric implements BoolMetric.
-type boolMetric struct {
-	*rawMetric
-}
-
-// GetBoolMetric returns a BoolMetric instance. The current value is reported
-// at the given frequency; if the report frequency is zero, the value is only
-// reported when it changes.
-func (c *influxClient) GetBoolMetric(measurement string, tags ...map[string]string) BoolMetric {
-	return &boolMetric{
-		c.getRawMetric(measurement, tags, false),
-	}
-}
-
-// GetBoolMetric returns a BoolMetric instance using the default client. The
-// current value is reported at the given frequency; if the report frequency is
-// zero, the value is only reported when it changes.
-func GetBoolMetric(measurement string, tags ...map[string]string) BoolMetric {
-	return defaultClient.GetBoolMetric(measurement, tags...)
-}
-
-// Get returns the current value of the metric.
-func (m *boolMetric) Get() bool {
-	return m.get().(bool)
-}
-
-// Update adds a data point to the metric.
-func (m *boolMetric) Update(v bool) {
-	m.update(v)
-}
