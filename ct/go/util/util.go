@@ -561,9 +561,12 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	if benchmarkExtraArgs != "" {
 		args = append(args, strings.Fields(benchmarkExtraArgs)...)
 	}
+	timeoutSecs := PagesetTypeToInfo[pagesetType].RunChromiumPerfTimeoutSecs
 	if repeatBenchmark > 0 {
 		// Add the number of times to repeat.
 		args = append(args, fmt.Sprintf("--page-repeat=%d", repeatBenchmark))
+		// Increase the timeoutSecs if repeats are used.
+		timeoutSecs = timeoutSecs * repeatBenchmark
 	}
 	// Add browserArgs if not empty to args.
 	if browserExtraArgs != "" {
@@ -574,7 +577,6 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 		fmt.Sprintf("PYTHONPATH=%s:%s:%s:%s:$PYTHONPATH", pathToPagesets, TelemetryBinariesDir, TelemetrySrcDir, CatapultSrcDir),
 		"DISPLAY=:0",
 	}
-	timeoutSecs := PagesetTypeToInfo[pagesetType].RunChromiumPerfTimeoutSecs
 	if err := ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
 		if targetPlatform == PLATFORM_ANDROID {
 			// Kill the port-forwarder to start from a clean slate.
