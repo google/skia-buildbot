@@ -94,25 +94,10 @@ type Counter interface {
 	Reset()
 }
 
-// BoolMetric is a metric which reports a boolean value.
-type BoolMetric interface {
-	// Delete removes the metric from its Client's registry.
-	Delete() error
-
-	// Get returns the current value of the metric.
-	Get() bool
-
-	// Update adds a data point to the metric.
-	Update(v bool)
-}
-
 // Client represents a set of metrics.
 type Client interface {
 	// Flush pushes any queued data immediately. Long running apps shouldn't worry about this as Client will auto-push every so often.
 	Flush() error
-
-	// GetBoolMetric returns a BoolMetric instance.
-	GetBoolMetric(measurement string, tags ...map[string]string) BoolMetric
 
 	// GetCounter creates or retrieves a Counter with the given name and tag set and returns it.
 	GetCounter(name string, tagsList ...map[string]string) Counter
@@ -468,7 +453,6 @@ func (c *influxClient) deleteAggregateMetric(key string) error {
 
 // Validate that the concrete structs faithfully implement their respective interfaces.
 var _ Client = (*influxClient)(nil)
-var _ BoolMetric = (*boolMetric)(nil)
 var _ Counter = (*counter)(nil)
 var _ Float64Metric = (*float64Metric)(nil)
 var _ Int64Metric = (*int64Metric)(nil)
