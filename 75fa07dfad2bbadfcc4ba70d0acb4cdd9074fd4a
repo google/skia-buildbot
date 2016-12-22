@@ -22,6 +22,24 @@
       "revId": "75fa07dfad2bbadfcc4ba70d0acb4cdd9074fd4a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_26668f46",
+        "filename": "ct/go/worker_scripts/run_chromium_analysis/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-12-22T18:29:10Z",
+      "side": 0,
+      "message": "Yea, I just thought that it was weird it was using -1 here.",
+      "parentUuid": "9765aef7_86777bf2",
+      "revId": "75fa07dfad2bbadfcc4ba70d0acb4cdd9074fd4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
