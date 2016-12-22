@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9765aef7_ab9b684a",
+        "filename": "go/metrics2/metric_helpers.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-22T13:06:15Z",
+      "side": 1,
+      "message": "Why do we need both?",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 1
+      },
+      "revId": "beb96138997ea7b90401e78bdedbd9322be06c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_6bbfb092",
+        "filename": "go/metrics2/metrics.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-22T13:06:15Z",
+      "side": 1,
+      "message": "nit: s/InfluxDB/permanent storage/",
+      "range": {
+        "startLine": 96,
+        "startChar": 38,
+        "endLine": 96,
+        "endChar": 46
+      },
+      "revId": "beb96138997ea7b90401e78bdedbd9322be06c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_4bc4ec32",
+        "filename": "go/metrics2/metrics.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-22T13:06:15Z",
+      "side": 1,
+      "message": "Doesn\u0027t seem to be accurate. Same for NewLiveness.",
+      "range": {
+        "startLine": 99,
+        "startChar": 49,
+        "endLine": 99,
+        "endChar": 179
+      },
+      "revId": "beb96138997ea7b90401e78bdedbd9322be06c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_abb488b0",
+        "filename": "go/metrics2/metrics.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-22T13:06:15Z",
+      "side": 1,
+      "message": "If the docstring is obvious based on the function name, no need to document. However, is there somewhere in this package that \"measurement\" and \"tags\" are documented?\n\nSame comment for other methods.",
+      "range": {
+        "startLine": 99,
+        "startChar": 1,
+        "endLine": 99,
+        "endChar": 48
+      },
+      "revId": "beb96138997ea7b90401e78bdedbd9322be06c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_cbb7bcb4",
+        "filename": "go/metrics2/metrics.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-22T13:06:15Z",
+      "side": 1,
+      "message": "incomplete sentence",
+      "range": {
+        "startLine": 105,
+        "startChar": 56,
+        "endLine": 105,
+        "endChar": 75
+      },
+      "revId": "beb96138997ea7b90401e78bdedbd9322be06c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9765aef7_6be8d09a",
+        "filename": "go/metrics2/metrics.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-22T13:06:15Z",
+      "side": 1,
+      "message": "Is there a difference between the \"New*\" methods and the \"Get*\" methods? If not, maybe in another CL we could rename them. If so, maybe document what happens when I create two Liveness or two Timer with the same name and tags (or say \"Don\u0027t do that.\")",
+      "range": {
+        "startLine": 112,
+        "startChar": 1,
+        "endLine": 112,
+        "endChar": 4
+      },
+      "revId": "beb96138997ea7b90401e78bdedbd9322be06c9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
