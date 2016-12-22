@@ -26,9 +26,9 @@ should be your primary mode of interacting with metrics.
 
 Metrics2 provides a few typed metrics helpers which behave similarly to
 go_metrics.GetOrRegisterGauge: once registered, the metric contains a single
-value which is pushed into InfluxDB at regular intervals.  The value can be
-changed by calling Update() on the Metric.  The metrics are stored in a sort of
-registry so that you don’t need to keep the object around and can just do:
+value which are reported at regular intervals.  The value can be changed by
+calling Update() on the Metric. The metrics are stored in a sort of registry
+so that you don’t need to keep the object around and can just do:
 metrics2.GetInt64Metric(metric, tags).Update(value).
 
 ### Counter
@@ -36,7 +36,7 @@ metrics2.GetInt64Metric(metric, tags).Update(value).
 Counter in the metrics2 package behaves similarly to those from go-metrics
 except that there is no GetOrRegisterCounter equivalent.  Instead, you should
 call metrics2.GetCounter(name, tags), hold on to the returned struct instance
-and call Inc(), Dec(), etc, on it as desired.  Note that Counter requires a
+and call Inc(), Dec(), etc, on it as desired. Note that Counter requires a
 name and not a measurement, because the measurement is always “counter”, and
 the provided name is inserted as a tag.
 
@@ -53,12 +53,12 @@ always “liveness”, and the provided name is inserted as a tag.
 Timer in metrics2 behaves similarly to the old metrics timer, except that you
 provide a name and tags instead of a metric.  Call metrics2.NewTimer(name,
 tags) to start the timer and call Stop() on the instance to measure the
-duration and push a data point into InfluxDB.  Timer does not behave like a
-Gauge, in that it does not push values at regular intervals.  Instead, it only
-pushes a value when Stop() is called.  Be aware of this when creating alerts
-based on timers, since data points will not be evenly spaced and may not exist
-for a time period.  Timer requires a name and not a measurement, because the
-measurement is always “timer” and the provided name is inserted as a tag.
+duration and report the duration. Timer does not behave like a Gauge, in that
+it does not push values at regular intervals.  Instead, it only pushes a value
+when Stop() is called.  Be aware of this when creating alerts based on timers,
+since data points will not be evenly spaced and may not exist for a time
+period.  Timer requires a name and not a measurement, because the measurement
+is always “timer” and the provided name is inserted as a tag.
 
 ### FuncTimer
 
