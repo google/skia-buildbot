@@ -2197,8 +2197,8 @@ func TestTrybots(t *testing.T) {
 			Issue:    "10001",
 			Patchset: "20002",
 		},
-		Repo:     rs1.Repo,
-		Revision: rs1.Revision,
+		Repo:     rs2.Repo,
+		Revision: rs2.Revision,
 	}
 	b.ParametersJson = testutils.MarshalJSON(t, tryjobs.Params(t, testTask, "skia", rs.Revision, rs.Server, rs.Issue, rs.Patchset))
 	tryjobs.MockPeek(mock, []*buildbucket_api.ApiBuildMessage{b}, now, "", "", nil)
@@ -2233,6 +2233,7 @@ func TestTrybots(t *testing.T) {
 		}
 		for _, task := range tasks {
 			assert.Equal(t, rs, task.RepoState)
+			assert.Equal(t, 0, len(task.Commits))
 			task.Status = db.TASK_STATUS_SUCCESS
 			task.Finished = now
 			task.IsolatedOutput = "abc123"

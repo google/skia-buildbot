@@ -1377,6 +1377,10 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(tasks []*db.Task) error {
 				return err
 			}
 		}
+		if task.IsTryJob() {
+			updatedTasks[task.Id] = task
+			continue
+		}
 		// Compute blamelist.
 		revision := repo.Get(task.Revision)
 		if revision == nil {
