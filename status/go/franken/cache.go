@@ -396,6 +396,9 @@ func (c *BTCache) getBuildsForCommits(repoName string, commits []string, loggedI
 			buildResult[hash] = buildMap
 		}
 		for name, task := range taskMap {
+			if task.IsTryJob() {
+				continue
+			}
 			builder := taskNameToBuilderName(name)
 			buildMap[builder] = c.taskToBuild(task, loggedIn).GetSummary()
 		}
@@ -430,7 +433,7 @@ func (c *BTCache) GetBuildsFromDateRange(from, to time.Time, loggedIn bool) ([]*
 	}
 	// TODO(benjaminwagner): Does anyone care if the return value is sorted?
 	for _, task := range taskResult {
-		if task.Done() {
+		if task.Done() && !task.IsTryJob() {
 			buildResult = append(buildResult, c.taskToBuild(task, loggedIn))
 		}
 	}
