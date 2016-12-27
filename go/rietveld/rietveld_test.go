@@ -10,7 +10,9 @@ import (
 )
 
 // Basic test to make sure we can retrieve issues from Rietveld.
-func TestRietveld(t *testing.T) {
+// Note: Below test is disabled because it expects 5 issues to be modified in
+//       the last hour. This is not always true.
+func SKIP_TestRietveld(t *testing.T) {
 	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
