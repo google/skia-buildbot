@@ -47,7 +47,7 @@ func (v *VersionUpdater) UpdateToNewSkiaVersion(newHash string) error {
 	}
 
 	// sync skia to version, which sets config.Common.SkiaVersion
-	if err := common.DownloadSkia(newHash, config.Common.SkiaRoot, &config.Common, false); err != nil {
+	if err := common.DownloadSkia(newHash, config.Common.SkiaRoot, &config.Common, true); err != nil {
 		return fmt.Errorf("Could not sync skia to %s: %s", newHash, err)
 	}
 

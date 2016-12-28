@@ -14,11 +14,11 @@ default: all
 all: clean_webtools core_js elements_html skiaversion frontend backend update
 
 fe_release: all
-	./build_fe_release "$(MESSAGE)"
+	./build_fe_release "`git log -n1 --format=%s`"
 
 be_release: all
-	CONFIG=1 ./build_be_release "$(MESSAGE)"
-	CONFIG=2 ./build_be_release "$(MESSAGE)"
+	CONFIG=1 ./build_be_release "`git log -n1 --format=%s`"
+	CONFIG=2 ./build_be_release "`git log -n1 --format=%s`"
 
 release: all fe_release be_release
 	echo
