@@ -268,7 +268,7 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 
 	if err := exec.Run(fetchCmd); err != nil {
 		// Failing to fetch might be because we already have Skia checked out here.
-		sklog.Infof("Failed to fetch skia: %s", err)
+		sklog.Warningf("Failed to fetch skia: %s", err)
 	}
 
 	repoPath := filepath.Join(path, "skia")
