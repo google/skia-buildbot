@@ -52,6 +52,7 @@ func (g *Generator) Start() error {
 		LogStdout: true,
 		LogStderr: true,
 		Env:       []string{"AFL_SKIP_CPUFREQ=true"}, // Avoids a warning afl-fuzz spits out about dynamic scaling of cpu frequency
+		Verbose:   exec.Debug,
 	}
 	if config.Generator.WatchAFL {
 		masterCmd.Stdout = os.Stdout
@@ -79,6 +80,7 @@ func (g *Generator) Start() error {
 			LogStdout: true,
 			LogStderr: true,
 			Env:       []string{"AFL_SKIP_CPUFREQ=true"}, // Avoids a warning afl-fuzz spits out about dynamic scaling of cpu frequency
+			Verbose:   exec.Debug,
 		}
 		g.fuzzProcesses = append(g.fuzzProcesses, g.run(slaveCmd))
 	}

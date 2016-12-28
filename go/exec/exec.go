@@ -56,6 +56,14 @@ const (
 	TIMEOUT_ERROR_PREFIX = "Command killed since it took longer than"
 )
 
+type Verbosity int
+
+const (
+	Info Verbosity = iota
+	Debug
+	Silent
+)
+
 var (
 	runFn func(command *Command) error = DefaultRun
 
@@ -108,7 +116,7 @@ type Command struct {
 	// Time limit to wait for the command to finish. No limit if not specified.
 	Timeout time.Duration
 	// Whether to log when the command starts.
-	Quiet bool
+	Verbose Verbosity
 }
 
 type Process interface {
@@ -192,12 +200,17 @@ func createCmd(command *Command) *osexec.Cmd {
 }
 
 func start(command *Command, cmd *osexec.Cmd) error {
-	if !command.Quiet {
+	if command.Verbose != Silent {
 		dirMsg := ""
 		if cmd.Dir != "" {
 			dirMsg = " with CWD " + cmd.Dir
 		}
-		sklog.Infof("Executing '%s' (where %s is %s)%s", DebugString(command), command.Name, cmd.Path, dirMsg)
+		if command.Verbose == Info {
+			sklog.Infof("Executing '%s' (where %s is %s)%s", DebugString(command), command.Name, cmd.Path, dirMsg)
+		} else if command.Verbose == Debug {
+			sklog.Debugf("Executing '%s' (where %s is %s)%s", DebugString(command), command.Name, cmd.Path, dirMsg)
+		}
+
 	}
 	err := cmd.Start()
 	if err != nil {
@@ -274,8 +287,8 @@ func (command *Command) Run() error {
 func runSimpleCommand(command *Command) (string, error) {
 	output := bytes.Buffer{}
 	command.CombinedOutput = &output
-	// Setting Quiet to maintain previous behavior.
-	command.Quiet = true
+	// Setting Verbose to Silent to maintain previous behavior.
+	command.Verbose = Silent
 	err := Run(command)
 	result := string(output.Bytes())
 	if err != nil {
