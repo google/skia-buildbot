@@ -41,9 +41,23 @@ var (
 
 // These convenience methods will either make a Cloud Logging Entry using the current time and the
 // default report name associated with the CloudLogger or log to glog if Cloud Logging is not
-// configured.  They match the glog interface.  Info and Infoln do the same thing (as do all pairs),
-// because adding a newline to the end of a Cloud Logging Entry or a glog entry means nothing as all
-// logs are separate entries.
+// configured.  They are a superset of the glog interface.  Info and Infoln do the same thing
+// (as do all pairs), because adding a newline to the end of a Cloud Logging Entry or a glog entry
+// means nothing as all logs are separate entries.
+func Debug(msg ...interface{}) {
+	sawLogWithSeverity(DEBUG)
+	log(DEBUG, defaultReportName, fmt.Sprint(msg...))
+}
+
+func Debugf(format string, v ...interface{}) {
+	sawLogWithSeverity(DEBUG)
+	log(DEBUG, defaultReportName, fmt.Sprintf(format, v...))
+}
+
+func Debugln(msg ...interface{}) {
+	sawLogWithSeverity(DEBUG)
+	log(DEBUG, defaultReportName, fmt.Sprintln(msg...))
+}
 func Info(msg ...interface{}) {
 	sawLogWithSeverity(INFO)
 	log(INFO, defaultReportName, fmt.Sprint(msg...))
@@ -135,8 +149,13 @@ func log(severity, reportName, payload string) {
 	if logger == nil {
 		logToGlog(3, severity, payload)
 	} else {
-		// TODO(kjlubick): After cloud logging has baked in a while, remove the backup log to glog
-		logToGlog(3, severity, payload)
+		// TODO(kjlubick): After cloud logging has baked in a while, remove the backup logs to glog
+		if severity != ALERT {
+			// ALERT, aka, Fatal* will be logged to glog after the call to CloudLog.
+			// If we called logToGlog with alert, it will die before reporting the fatal
+			// to CloudLog.
+			logToGlog(3, severity, payload)
+		}
 		logger.CloudLog(reportName, &LogPayload{
 			Time:     time.Now(),
 			Severity: severity,
@@ -149,6 +168,8 @@ func log(severity, reportName, payload string) {
 // Severity and msg (message) are self explanatory.
 func logToGlog(depth int, severity string, msg interface{}) {
 	switch severity {
+	case DEBUG:
+		glog.InfoDepth(depth, msg)
 	case INFO:
 		glog.InfoDepth(depth, msg)
 	case WARNING:

@@ -73,7 +73,7 @@ func commit(repoDir, message string) {
 		Env:         []string{fmt.Sprintf("GIT_AUTHOR_DATE=%d +0000", commitDate.Unix()), fmt.Sprintf("GIT_COMMITTER_DATE=%d +0000", commitDate.Unix())},
 		InheritPath: true,
 		Dir:         repoDir,
-		Quiet:       true,
+		Verbose:     exec.Silent,
 	}))
 	commitDate = commitDate.Add(10 * time.Second)
 }
