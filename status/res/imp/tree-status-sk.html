@@ -36,7 +36,7 @@
   <template>
     <style>
       a {
-        color: #FFFFFF;
+        color: inherit;
       }
     </style>
     <iron-ajax
@@ -91,7 +91,7 @@
 
       // output
       open: {
-        type: Boolean,
+        type: String,
         computed: "_getStatus(_bannerStatus)",
         notify: true,
       },
@@ -163,9 +163,9 @@
 
     _getStatus: function(status) {
       if (!status || !status.general_state) {
-        return true;
+        return "open";
       }
-      return status.general_state === "open";
+      return status.general_state;
     },
 
     _getTime: function(status) {
