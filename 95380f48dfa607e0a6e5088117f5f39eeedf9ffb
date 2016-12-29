@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d760061e_68cbe7b1",
+        "filename": "status/res/imp/status-sk-demo.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-12-29T20:55:22Z",
+      "side": 1,
+      "message": "nit: out of date",
+      "range": {
+        "startLine": 79,
+        "startChar": 5,
+        "endLine": 79,
+        "endChar": 66
+      },
+      "revId": "95380f48dfa607e0a6e5088117f5f39eeedf9ffb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
