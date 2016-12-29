@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d760061e_28556fde",
+        "filename": "status/res/imp/status-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2016-12-29T21:42:31Z",
+      "side": 1,
+      "message": "nit: target\u003d\"_blank\" should have rel\u003d\"noopener noreferrer\"\n\nSee\nhttps://www.jitbit.com/alexblog/256-targetblank---the-most-underestimated-vulnerability-ever/\n\nWe link to our own sites which we trust, but I think it\u0027s something we should start doing as a good practice.",
+      "range": {
+        "startLine": 214,
+        "startChar": 53,
+        "endLine": 214,
+        "endChar": 60
+      },
+      "revId": "c9a203901f30aeb71c4b2f48c47ab00a8c2f8985",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
