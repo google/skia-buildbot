@@ -667,9 +667,9 @@
               if (!build.finished) {
                 continue;
               }
-              // If interesting is selected, compute ignoreFailure and skip this build if
-              // it belongs entirely to commits that have been ignored.
-              if (selected == FILTER_INTERESTING) {
+              // If interesting or "failing w/o comment" is selected, compute ignoreFailure
+              // and skip this build if it belongs entirely to commits that have been ignored.
+              if (selected === FILTER_INTERESTING || selected === FILTER_FAIL_NO_COMMENT) {
                 var commits = build.commits || [];
                 var isIgnored = commits.length > 0;
                 commits.forEach(function(c){
