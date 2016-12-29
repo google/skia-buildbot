@@ -542,6 +542,7 @@ func performAnalysis(workingDirPath, executableName, pathToFile, category string
 		Dir:         workingDirPath,
 		InheritPath: true,
 		Env:         []string{common.ASAN_OPTIONS},
+		Verbose:     exec.Debug,
 	}
 
 	//errors are fine/expected from this, as we are dealing with bad fuzzes

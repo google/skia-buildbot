@@ -236,6 +236,11 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 	buf := bytes.Buffer{}
 	comb := limitwriter.New(&buf, 64*1024)
 
+	verbosity := exec.Info
+	if !*verbose {
+		verbosity = exec.Silent
+	}
+
 	// Run colorspaceinfo.
 	visCmd := &exec.Command{
 		Name: exe,
@@ -251,7 +256,7 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 		InheritPath:    true,
 		LogStderr:      true,
 		LogStdout:      *verbose,
-		Quiet:          !*verbose,
+		Verbose:        verbosity,
 	}
 	sklog.Infof("About to run: %#v", *visCmd)
 	if err := exec.Run(visCmd); err != nil {
