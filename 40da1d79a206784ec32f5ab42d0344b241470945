@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d760061e_2dcbc164",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-12-29T14:56:34Z",
+      "side": 1,
+      "message": "// to ClougLog?",
+      "revId": "40da1d79a206784ec32f5ab42d0344b241470945",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
