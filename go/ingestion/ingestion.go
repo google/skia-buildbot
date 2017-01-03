@@ -23,10 +23,11 @@ const PROCESSED_FILES_BUCKET = "processed_files"
 
 // Tag names used to collect metrics.
 const (
-	MEASUREMENT_INGESTION = "ingestion"
-	TAG_INGESTION_METRIC  = "metric"
-	TAG_INGESTER_ID       = "ingester"
-	TAG_INGESTER_SOURCE   = "source"
+	MEASUREMENT_INGESTION       = "ingestion"
+	MEASUREMENT_INGESTION_TIMER = "ingestion_timer"
+	TAG_INGESTION_METRIC        = "metric"
+	TAG_INGESTER_ID             = "ingester"
+	TAG_INGESTER_SOURCE         = "source"
 
 	POLL_CHUNK_SIZE = 50
 )
@@ -503,7 +504,7 @@ func newSourceMetrics(id string, sources []Source) []*sourceMetrics {
 		srcTags := tags{TAG_INGESTER_SOURCE: source.ID()}
 		ret[idx] = &sourceMetrics{
 			liveness:       metrics2.NewLiveness(id, srcTags, tags{TAG_INGESTION_METRIC: "src-last-run"}),
-			pollTimer:      metrics2.NewTimer(MEASUREMENT_INGESTION, commonTags, srcTags, tags{TAG_INGESTION_METRIC: "poll_timer"}),
+			pollTimer:      metrics2.NewTimer(MEASUREMENT_INGESTION_TIMER, commonTags, srcTags, tags{TAG_INGESTION_METRIC: "poll_timer"}),
 			pollError:      metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, srcTags, tags{TAG_INGESTION_METRIC: "poll_error"}),
 			eventsReceived: metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, srcTags, tags{TAG_INGESTION_METRIC: "events"}),
 		}
