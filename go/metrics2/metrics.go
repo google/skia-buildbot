@@ -66,6 +66,12 @@ type Float64Metric interface {
 	Update(v float64)
 }
 
+// Float64SummaryMetric is a metric which reports a summary of many float64 values.
+type Float64SummaryMetric interface {
+	// Observe adds a data point to the metric.
+	Observe(v float64)
+}
+
 // Counter is a struct used for tracking metrics which increment or decrement.
 type Counter interface {
 	// Dec decrements the counter by the given quantity.
@@ -97,6 +103,9 @@ type Client interface {
 
 	// GetInt64Metric returns an Int64Metric instance.
 	GetInt64Metric(measurement string, tags ...map[string]string) Int64Metric
+
+	// GetFloat64SummaryMetric returns an Float64SummaryMetric instance.
+	GetFloat64SummaryMetric(measurement string, tags ...map[string]string) Float64SummaryMetric
 
 	// NewLiveness creates a new Liveness metric helper.
 	NewLiveness(name string, tagsList ...map[string]string) Liveness
