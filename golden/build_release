@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ALL_IDS="prod stage android blink"
+ALL_IDS="prod stage pdfium"
 print_usage() {
     echo "Usage: $0 MESSAGE INSTANCE_ID"
     echo "     MESSAGE     is the message to be included in the release package."
@@ -46,22 +46,14 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
     ADD_FLAGS="--backfill_tiles=2 --resources_dir=/usr/local/share/skiacorrectness/frontend"
     ;;
 
-    # experimental android instance: uses the staging database server for now.
-    android)
-    DATABASE_HOST="173.194.254.28"
-    SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_android"
-    REDIRECT_URL="https://gold-android.skia.org/oauth2callback/"
-    GS_BUCKETS="skia-android-dm"
+    # pdfium instance
+    pdfium)
+  	DATABASE_HOST="173.194.104.24"
+    SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_pdfium"
+    REDIRECT_URL="https://pdfium-gold.skia.org/oauth2callback/"
+    GS_BUCKETS="skia-pdfium-dm"
     N_COMMITS="200"
-    ADD_FLAGS="--force_login --auth_whitelist=google.com --resources_dir=/usr/local/share/skiacorrectness/frontend"
-    ;;
-
-    # experimental blink instance: uses the staging database server for now.
-    blink)
-    DATABASE_HOST="173.194.254.28"
-    SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_blink"
-    REDIRECT_URL="https://gold-blink.skia.org/oauth2callback/"
-    ADD_FLAGS="--resources_dir=/usr/local/share/skiacorrectness/frontend"
+    ADD_FLAGS="--backfill_tiles=2 --resources_dir=/usr/local/share/skiacorrectness/frontend"
     ;;
 
     *)
