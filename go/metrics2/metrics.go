@@ -163,7 +163,9 @@ func Init(appName string, influxDbClient *influxdb.Client) error {
 func InitPrometheus(port string) {
 	r := mux.NewRouter()
 	r.Handle("/metrics", promhttp.Handler())
-	go sklog.Fatal(http.ListenAndServe(":10110", r))
+	go func() {
+		sklog.Fatal(http.ListenAndServe(":10110", r))
+	}()
 	defaultClient = newPromClient()
 	defaultInfluxClient = nil
 }
