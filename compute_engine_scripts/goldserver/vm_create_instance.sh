@@ -29,7 +29,7 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --address $GOLD_IP_ADDRESS
 
 # Wait until the instance is up.
-until nc -w 1 -z $IP_ADDRESS 22; do
+until nc -w 1 -z $GOLD_IP_ADDRESS 22; do
     echo "Waiting for VM to come up."
     sleep 2
 done
