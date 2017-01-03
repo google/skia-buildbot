@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -115,10 +116,12 @@ type promClient struct {
 
 func newPromClient() *promClient {
 	return &promClient{
-		int64GaugeVecs:   map[string]*prometheus.GaugeVec{},
-		int64Gauges:      map[string]*promInt64{},
-		float64GaugeVecs: map[string]*prometheus.GaugeVec{},
-		float64Gauges:    map[string]*promFloat64{},
+		int64GaugeVecs:     map[string]*prometheus.GaugeVec{},
+		int64Gauges:        map[string]*promInt64{},
+		float64GaugeVecs:   map[string]*prometheus.GaugeVec{},
+		float64Gauges:      map[string]*promFloat64{},
+		float64SummaryVecs: map[string]*prometheus.SummaryVec{},
+		float64Summaries:   map[string]*promFloat64Summary{},
 	}
 }
 
@@ -154,6 +157,8 @@ func (p *promClient) commonGet(measurement string, tags ...map[string]string) (s
 
 func (p *promClient) GetInt64Metric(name string, tags ...map[string]string) Int64Metric {
 	measurement, cleanTags, keys, gaugeKey, gaugeVecKey := p.commonGet(name, tags...)
+
+	sklog.Debugf("GetInt64Metric: %s %s", gaugeKey, gaugeVecKey)
 
 	p.int64Mutex.Lock()
 	ret, ok := p.int64Gauges[gaugeKey]
@@ -204,6 +209,8 @@ func (p *promClient) GetCounter(name string, tags ...map[string]string) Counter 
 func (p *promClient) GetFloat64Metric(name string, tags ...map[string]string) Float64Metric {
 	measurement, cleanTags, keys, gaugeKey, gaugeVecKey := p.commonGet(name, tags...)
 
+	sklog.Debugf("GetFloat64Metric: %s %s", gaugeKey, gaugeVecKey)
+
 	p.float64Mutex.Lock()
 	ret, ok := p.float64Gauges[gaugeKey]
 	p.float64Mutex.Unlock()
@@ -246,6 +253,7 @@ func (p *promClient) GetFloat64Metric(name string, tags ...map[string]string) Fl
 func (p *promClient) GetFloat64SummaryMetric(name string, tags ...map[string]string) Float64SummaryMetric {
 	measurement, cleanTags, keys, summaryKey, summaryVecKey := p.commonGet(name, tags...)
 
+	sklog.Debugf("GetFloat64SummaryMetric: %s %s", summaryKey, summaryVecKey)
 	p.float64SummaryMutex.Lock()
 	ret, ok := p.float64Summaries[summaryKey]
 	p.float64SummaryMutex.Unlock()
@@ -266,12 +274,13 @@ func (p *promClient) GetFloat64SummaryMetric(name string, tags ...map[string]str
 				Name:       measurement,
 				Help:       measurement,
 				Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+				MaxAge:     time.Minute * 10,
 			},
 			keys,
 		)
 		err := prometheus.Register(summaryVec)
 		if err != nil {
-			sklog.Fatalf("Failed to register %q: %s", measurement, err)
+			sklog.Fatalf("Failed to register %q %v: %s", measurement, cleanTags, err)
 		}
 		p.float64SummaryVecs[summaryVecKey] = summaryVec
 	}

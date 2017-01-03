@@ -105,7 +105,7 @@ func (mt *muxTimer) Start() {
 
 func (mt *muxTimer) Stop() {
 	for _, t := range mt.timers {
-		t.Start()
+		t.Stop()
 	}
 }
 
