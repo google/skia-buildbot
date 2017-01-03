@@ -16,24 +16,19 @@ const (
 // timer implements Timer.
 type timer struct {
 	begin time.Time
-	m     *int64MeanMetric
+	m     Float64SummaryMetric
 }
 
 // NewTimer creates and returns a new started timer.
-func (c *influxClient) NewTimer(name string, tagsList ...map[string]string) Timer {
+func newTimer(c Client, name string, tagsList ...map[string]string) Timer {
 	// Make a copy of the tags and add the name.
 	tags := util.AddParams(map[string]string{}, tagsList...)
 	tags["name"] = name
 	ret := &timer{
-		m: c.getInt64MeanMetric(MEASUREMENT_TIMER, tags),
+		m: c.GetFloat64SummaryMetric(MEASUREMENT_TIMER, tagsList...),
 	}
 	ret.Start()
 	return ret
-}
-
-// NewTimer creates and returns a new Timer using the default client.
-func NewTimer(name string, tags ...map[string]string) Timer {
-	return defaultClient.NewTimer(name, tags...)
 }
 
 // Start starts or resets the timer.
@@ -43,8 +38,13 @@ func (t *timer) Start() {
 
 // Stop stops the timer and reports the elapsed time.
 func (t *timer) Stop() {
-	v := int64(time.Now().Sub(t.begin))
-	t.m.update(v)
+	v := float64(time.Now().Sub(t.begin))
+	t.m.Observe(v)
+}
+
+// NewTimer creates and returns a new Timer using the default client.
+func NewTimer(name string, tags ...map[string]string) Timer {
+	return defaultClient.NewTimer(name, tags...)
 }
 
 // FuncTimer is specifically intended for measuring the duration of functions.
@@ -70,3 +70,6 @@ func FuncTimer() Timer {
 	}
 	return NewTimer(NAME_FUNC_TIMER, map[string]string{"package": pkg, "func": fn})
 }
+
+// Verify that timer implements the Timer interface.
+var _ Timer = (*timer)(nil)
