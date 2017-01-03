@@ -74,7 +74,7 @@ var (
 	swarmingServer = flag.String("swarming_server", swarming.SWARMING_SERVER, "Which Swarming server to use.")
 	timePeriod     = flag.String("timeWindow", "4d", "Time period to use.")
 	tryJobBucket   = flag.String("tryjob_bucket", tryjobs.BUCKET_PRIMARY, "Which Buildbucket bucket to use for try jobs.")
-	commitWindow   = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
+	commitWindow   = flag.Int("commitWindow", 35, "Minimum number of recent commits to keep in the timeWindow.")
 	gsBucket       = flag.String("gsBucket", "skia-task-scheduler", "Name of Google Cloud Storage bucket to use for backups and recovery.")
 	workdir        = flag.String("workdir", "workdir", "Working directory to use.")
 
