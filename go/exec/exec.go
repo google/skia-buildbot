@@ -47,9 +47,8 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/util"
-
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 const (

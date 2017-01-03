@@ -135,17 +135,8 @@ func Flush() {
 // not configured.  reportName is the "virtual log file" used by cloud logging.  reportName is
 // ignored by glog. Both logs include file and line information.
 func log(severity, reportName, payload string) {
-	_, file, line, ok := runtime.Caller(2)
-	if !ok {
-		file = "???"
-		line = 1
-	} else {
-		slash := strings.LastIndex(file, "/")
-		if slash >= 0 {
-			file = file[slash+1:]
-		}
-	}
-	prettyPayload := fmt.Sprintf("%s:%d %v", file, line, payload)
+	stacks := CallStack(5, 3)
+	prettyPayload := fmt.Sprintf("%s %v", stacks[0].String(), payload)
 	if logger == nil {
 		logToGlog(3, severity, payload)
 	} else {
@@ -156,10 +147,18 @@ func log(severity, reportName, payload string) {
 			// to CloudLog.
 			logToGlog(3, severity, payload)
 		}
+		stack := map[string]string{
+			"stacktrace_0": stacks[0].String(),
+			"stacktrace_1": stacks[1].String(),
+			"stacktrace_2": stacks[2].String(),
+			"stacktrace_3": stacks[3].String(),
+			"stacktrace_4": stacks[4].String(),
+		}
 		logger.CloudLog(reportName, &LogPayload{
-			Time:     time.Now(),
-			Severity: severity,
-			Payload:  prettyPayload,
+			Time:        time.Now(),
+			Severity:    severity,
+			Payload:     prettyPayload,
+			ExtraLabels: stack,
 		})
 	}
 }
@@ -181,4 +180,48 @@ func logToGlog(depth int, severity string, msg interface{}) {
 	default:
 		glog.ErrorDepth(depth, msg)
 	}
+}
+
+type StackTrace struct {
+	File string
+	Line int
+}
+
+func (st *StackTrace) String() string {
+	return fmt.Sprintf("%s:%d", st.File, st.Line)
+}
+
+// CallStack returns a slice of StackTrace representing the current stack trace.
+// The lines returned start at the depth specified by startAt: 1 means the call to CallStack,
+// 2 means CallStack's caller, 3 means CallStack's caller's caller and so on, height means how
+// many lines to include, counting deeper into the stack. If there aren't enough lines, a dummy
+// value is used instead.
+// Suppose the stacktrace looks like:
+// sklog.go:300  <- the call to runtime.Caller in sklog.CallStack
+// alpha.go:123
+// beta.go:456
+// gamma.go:789
+// delta.go:123
+// main.go: 70
+// A typical call may look like sklog.CallStack(2, 6), which returns
+// [{File:alpha.go, Line:123}, {File:beta.go, Line:456},...,
+//  {File:main.go, Line:70}, {File:???, Line:1}], omitting the not-helpful reference to
+// CallStack and padding the response with a dummy value, since the stack was not tall enough to
+// show 6 items, starting at the second one.
+func CallStack(height, startAt int) []StackTrace {
+	stack := []StackTrace{}
+	for i := 0; i < height; i++ {
+		_, file, line, ok := runtime.Caller(startAt + i)
+		if !ok {
+			file = "???"
+			line = 1
+		} else {
+			slash := strings.LastIndex(file, "/")
+			if slash >= 0 {
+				file = file[slash+1:]
+			}
+		}
+		stack = append(stack, StackTrace{File: file, Line: line})
+	}
+	return stack
 }
