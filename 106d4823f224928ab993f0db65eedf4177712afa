@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d760061e_3f5002d5",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-03T13:57:41Z",
+      "side": 1,
+      "message": "and so on, height\n\nAlso include in the comments an example stack trace line and how it gets truncated.",
+      "revId": "106d4823f224928ab993f0db65eedf4177712afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
