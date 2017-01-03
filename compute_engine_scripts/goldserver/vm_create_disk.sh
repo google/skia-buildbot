@@ -11,4 +11,4 @@ source vm_config.sh
 gcloud compute --project $PROJECT_ID disks create $GOLD_DATA_DISK_NAME \
   --size $GOLD_DATA_DISK_SIZE \
   --zone $ZONE \
-  --type "pd-standard"
+  --type "pd-ssd"
