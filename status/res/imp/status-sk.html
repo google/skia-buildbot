@@ -53,29 +53,21 @@
           background-color: transparent;
           font-family: sans-serif;
         };
-
-        login-sk{
-          --login-sk-color: white;
-        };
+        --status-sk-header-color: #66A61E;
+        --status-sk-icon-color: #E6AB02;
+        --status-sk-text-color: white;
       }
       app-sk {
         --app-sk-toolbar: {
-          color: #FFFFFF;
+          color: var(--status-sk-text-color);
           font-size: 15px;
           font-family: sans-serif;
           text-align: center;
 
-          background-color: #66A61E;
+          background-color: var(--status-sk-header-color);
         };
-      }
-      app-sk.closed {
-        --app-sk-toolbar: {
-          color: #FFFFFF;
-          font-size: 15px;
-          font-family: sans-serif;
-          text-align: center;
-
-          background-color: #D95F02;
+        login-sk{
+          --login-sk-color: var(--status-sk-text-color);
         };
       }
 
@@ -85,7 +77,7 @@
       }
 
       paper-button.roles {
-        color:#FFFFFF;
+        color:var(--status-sk-text-color);
         text-transform: none;
       }
       paper-button.roles>iron-icon {
@@ -121,6 +113,19 @@
         top:10px;
         left:174px;
         right:0;
+      }
+
+      a {
+        color:var(--status-sk-text-color);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      #infobar iron-icon {
+        color: var(--status-sk-icon-color);
       }
 
       h1 {
@@ -206,22 +211,22 @@
       </alert-widget-sk>
 
       <div id="infobar" class="bottom horizontal layout flex shrinkable" toolbar>
-        <a href="http://skia-tree-status.appspot.com/sheriff" target="_blank" class="inherit">
+        <a href="http://skia-tree-status.appspot.com/sheriff" target="_blank" rel="noopener noreferrer">
         <paper-button id="sheriff-button" class="roles" title="The current Skia sheriff"><iron-icon icon="icons:star"></iron-icon>
             Sheriff: [[sheriff]]
           </paper-button>
         </a>
-        <a href="http://skia-tree-status.appspot.com/gpu-sheriff" target="_blank" class="inherit">
+        <a href="http://skia-tree-status.appspot.com/gpu-sheriff" target="_blank" rel="noopener noreferrer">
         <paper-button id="wrangler-button" class="roles" title="The current GPU wranger"><iron-icon icon="icons:gesture"></iron-icon>
             Wrangler: [[wrangler]]
           </paper-button>
         </a>
-        <a href="http://skia-tree-status.appspot.com/robocop" target="_blank" class="inherit">
+        <a href="http://skia-tree-status.appspot.com/robocop" target="_blank" rel="noopener noreferrer">
         <paper-button id="robocop-button" class="roles" title="The current Android robocop"><iron-icon icon="icons:android"></iron-icon>
             Robocop: [[robocop]]
           </paper-button>
         </a>
-        <a href="http://skia-tree-status.appspot.com/trooper" target="_blank" class="inherit">
+        <a href="http://skia-tree-status.appspot.com/trooper" target="_blank" rel="noopener noreferrer">
         <paper-button id="trooper-button" class="roles" title="The current Infra trooper"><iron-icon icon="hardware:sim-card"></iron-icon>
             Trooper: [[trooper]]
           </paper-button>
@@ -368,13 +373,20 @@
     },
 
     _treeOpen: function(open) {
-      // This cannot be simply done with a binding to the app-sk's class$= because
-      // the updateStyles must be called after adding the class to appropriately set
-      // the toolbar's color using the css variables.
-      if (open) {
-        this.$.app.classList.remove("closed");
+      // updateStyles must be called after setting these to make sure they
+      // propagate through all the children.
+      if (open === "open") {
+        this.customStyle["--status-sk-icon-color"] = "#E6AB02";
+        this.customStyle["--status-sk-text-color"] = "white";
+        this.customStyle["--status-sk-header-color"] = "#66A61E";
+      } else if (open === "caution") {
+        this.customStyle["--status-sk-icon-color"] = "#9b9b9b";
+        this.customStyle["--status-sk-text-color"] = "black";
+        this.customStyle["--status-sk-header-color"] = "#eeb000";
       } else {
-        this.$.app.classList.add("closed");
+        this.customStyle["--status-sk-icon-color"] = "#E6AB02";
+        this.customStyle["--status-sk-text-color"] = "white";
+        this.customStyle["--status-sk-header-color"] = "#D95F02";
       }
       Polymer.updateStyles();
 
@@ -382,7 +394,14 @@
       var link = document.createElement("link");
       link.id = "dynamicFavicon";
       link.rel = "shortcut icon";
-      link.href = open ? "/res/img/favicon-open.ico" : "/res/img/favicon-closed.ico";
+      if (open === "open") {
+        link.href = "/res/img/favicon-open.ico";
+      } else if (open === "caution") {
+        link.href = "/res/img/favicon-caution.ico";
+      } else {
+        link.href = "/res/img/favicon-closed.ico";
+      }
+
       var head = document.getElementsByTagName("head")[0];
       var oldIcon = document.getElementById(link.id);
       if (oldIcon) {
