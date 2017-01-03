@@ -70,8 +70,12 @@ type int64MeanMetric struct {
 	*aggregateMetric
 }
 
+func (i *int64MeanMetric) Observe(f float64) {
+	i.update(int64(f))
+}
+
 // getInt64MeanMetric returns an int64MeanMetric instance.
-func (c *influxClient) getInt64MeanMetric(measurement string, tags ...map[string]string) *int64MeanMetric {
+func (c *influxClient) GetFloat64SummaryMetric(measurement string, tags ...map[string]string) Float64SummaryMetric {
 	return &int64MeanMetric{
 		c.getAggregateMetric(measurement, tags, meanInt64),
 	}
