@@ -38,11 +38,14 @@
   <template>
     <style>
       a {
-        color: inherit;
+        color: var(--status-sk-text-color);
         text-decoration: none;
       }
+      a:hover {
+        text-decoration: underline;
+      }
       iron-icon{
-        color: #E6AB02;
+        color: var(--status-sk-icon-color);
       }
       paper-button {
         text-transform: none;

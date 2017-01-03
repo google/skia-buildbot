@@ -46,7 +46,7 @@
 
       /* Icons can't have text on them, so we super-impose the text on top of it using CSS.*/
       #numAlerts {
-        color: #FFFFFF;
+        color: var(--status-sk-text-color);
         position: absolute;
         left: 21px;
         top: 2px;
@@ -62,15 +62,10 @@
       }
 
       .alerting > paper-icon-button {
-        background-color: #E6AB02;
+        background-color: var(--status-sk-icon-color);
         border-radius: 23px;
         /* Animation has been disabled temporarily as it appears to cause a rendering bug in Chrome
         TODO(kjlubick) Find replicating case and file bug. */
-        /*animation: pulse 0.6s infinite linear;*/
-      }
-
-      .alerting > #numAlerts {
-        color: #D95F02;
         /*animation: pulse 0.6s infinite linear;*/
       }
 

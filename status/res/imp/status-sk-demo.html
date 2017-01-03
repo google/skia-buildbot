@@ -72,14 +72,20 @@
     });
 
     var openMessage = {"username": "alice@google.com", "date": "2016-02-26 13:01:28.174970", "message": "Skynet quelled, now open", "can_commit_freely": true, "general_state": "open"};
+    var cautionMessage = {"username": "alice@google.com", "date": "2016-02-27 16:01:28.174970", "message": "Be careful", "can_commit_freely": false, "general_state": "caution"};
     var closedMessage = {"username": "alice@google.com", "date": "2016-02-28 01:01:28.174970", "message": "Closed for master restart", "can_commit_freely": false, "general_state": "closed"};
     var statusCalls = 0;
 
-    // Say the tree is open, then after one request, it is closed.
+    // Say the tree is open, then after one request, it is caution,
+    // then after the second request, it is closed.
     server.respondWith("GET","https://skia-tree-status.appspot.com/banner-status?format=json", function(request){
         if (statusCalls === 0) {
           statusCalls++;
           return request.respond(200, {}, JSON.stringify(openMessage));
+        }
+        if (statusCalls === 1) {
+          statusCalls++;
+          return request.respond(200, {}, JSON.stringify(cautionMessage));
         }
         return request.respond(200, {}, JSON.stringify(closedMessage));
     });

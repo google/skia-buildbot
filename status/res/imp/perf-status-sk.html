@@ -26,10 +26,10 @@
   <template>
     <style>
       a {
-        color: #FFFFFF;
+        color: var(--status-sk-text-color);
         text-decoration: none;
       }
-      a.corpus:hover {
+      a:hover {
         text-decoration: underline;
       }
       .label {
@@ -37,12 +37,12 @@
         text-transform: none;
       }
       .value {
-        background-color: #E6AB02;
+        background-color: var(--status-sk-icon-color);
         border-radius: 3px;
         padding: 5px;
       }
       iron-icon {
-        color: #E6AB02;
+        color: var(--status-sk-icon-color);
       }
     </style>
 
