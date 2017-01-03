@@ -20,7 +20,7 @@ GOLD_SOURCE_IMAGE="skia-systemd-pushable-base"
 
 case "$VM_ID" in
   prod)
-    GOLD_MACHINE_TYPE=n1-highmem-16
+    GOLD_MACHINE_TYPE=n1-highmem-32
     GOLD_IP_ADDRESS=104.154.112.104
     GOLD_DATA_DISK_SIZE="2TB"
     ;;
@@ -32,16 +32,9 @@ case "$VM_ID" in
     GOLD_DATA_DISK_SIZE="500GB"
     ;;
 
-  android)
+  pdfium)
     GOLD_MACHINE_TYPE=n1-highmem-16
     GOLD_IP_ADDRESS=104.154.112.106
-    GOLD_DATA_DISK_SIZE="500GB"
-    GOLD_SCOPES="$GOLD_SCOPES,https://www.googleapis.com/auth/androidbuild.internal"
-    ;;
-
-  blink)
-    GOLD_MACHINE_TYPE=n1-highmem-16
-    GOLD_IP_ADDRESS=104.154.112.107
     GOLD_DATA_DISK_SIZE="500GB"
     ;;
 
@@ -55,7 +48,7 @@ case "$VM_ID" in
 
   *)
     # There must be a target instance id provided.
-    echo "Usage: $0 {prod | stage | android | blink | testinstance}"
+    echo "Usage: $0 {prod | stage | pdfium | testinstance}"
     echo "   An instance id must be provided as the first argument."
     exit 1
     ;;
@@ -67,3 +60,6 @@ VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 
 # The name of instance where gold is running on.
 INSTANCE_NAME=${VM_NAME_BASE}-gold-$VM_ID
+
+# The name of the data disk
+GOLD_DATA_DISK_NAME=${INSTANCE_NAME}-data
