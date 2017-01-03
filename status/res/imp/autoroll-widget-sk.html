@@ -36,7 +36,7 @@
 
 <dom-module id="autoroll-widget-sk">
   <template>
-    <style>
+    <style include="iron-flex iron-flex-alignment">
       a {
         color: var(--status-sk-text-color);
         text-decoration: none;
@@ -65,18 +65,25 @@
     <timer-sk period="[[reload]]" on-trigger="_reload">
 
     <a href="https://autoroll.skia.org" target="_blank" class="inherit">
-      <paper-button>
-        <div class="horizontal layout center">
+      <div class="horizontal layout center">
+        <!-- Show the icons for the last 5 rolls-->
+        <template is="dom-repeat"
+            items="[[_truncate(_roll_status.recent,5)]]" as="result">
           <iron-icon
               id="statusIndicator"
-              icon="[[_statusIcon(_roll_status)]]">
+              icon="[[_statusIcon(result)]]">
           </iron-icon>
-          <div id="textContainer">
-            Roll: [[_roll_status.status]]<br/>
-            Last: [[_roll_status.lastRoll.result]]
-          </div>
-        </div>
-      </paper-button>
+        </template>
+        <iron-icon
+            id="statusIndicator"
+            icon="icons:more-horiz">
+        </iron-icon>
+      </div>
+      <div id="textContainer">
+        Roll: [[_roll_status.status]]<br/>
+        Last: [[_roll_status.lastRoll.result]]
+        [[_humanDiff(_roll_status.lastRoll.modified)]] ago
+      </div>
     </a>
   </template>
   <script>
@@ -130,18 +137,26 @@
       };
     },
 
+    _humanDiff: function(timeString) {
+      return sk.human.diffDate(timeString);
+    },
+
     _reload: function() {
       this.$.status.generateRequest();
     },
 
     _statusIcon:function(status) {
-      if (!status || !status.status || status.status == "stopped") {
+      if (!status || !status.result || status.result == "stopped") {
         return "icons:error";
       }
-      if (status.status == "in progress") {
+      if (status.result == "in progress") {
         return "icons:autorenew";
       }
       return "icons:check-circle";
+    },
+
+    _truncate(arr,len) {
+      return (arr && arr.slice && arr.slice(0,len)) || [];
     }
 
   });
