@@ -112,8 +112,11 @@ type LogPayload struct {
 	Payload string
 	// Time is the when the log happened.
 	Time time.Time
-	// Severity is one of the strings found in this file.
+	// Severity is one of the strings found in this package, such as DEBUG, ALERT, etc.
 	Severity string
+	// Any additional labels to be added to this Log Entry. hostname is already included.
+	// These labels can be searched on.
+	ExtraLabels map[string]string
 }
 
 type logsClient struct {
@@ -174,6 +177,12 @@ func (c *logsClient) BatchCloudLog(reportName string, payloads ...*LogPayload) {
 
 	entries := make([]*logging.LogEntry, 0, len(payloads))
 	for _, payload := range payloads {
+		labels := map[string]string{
+			"hostname": c.hostname,
+		}
+		for k, v := range payload.ExtraLabels {
+			labels[k] = v
+		}
 		log := logging.LogEntry{
 			// The LogName is the second stage of grouping, after MonitoredResource name. The first
 			// part of the following string is boilerplate to tell cloud logging what project this is.
@@ -184,9 +193,7 @@ func (c *logsClient) BatchCloudLog(reportName string, payloads ...*LogPayload) {
 			// Labels allow for a third stage of grouping, after MonitoredResource name and LogName.
 			// These are strictly optional and can be different from LogEntry to LogEntry. There is no
 			// automatic coalescing of logs based on Labels, but they can be filtered upon.
-			Labels: map[string]string{
-				"hostname": c.hostname,
-			},
+			Labels:      labels,
 			TextPayload: payload.Payload,
 			Timestamp:   payload.Time.Format(RFC3339NanoZeroPad),
 			// Required. See comment in logsClient struct.
