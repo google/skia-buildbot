@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d760061e_9ffe768b",
+        "filename": "status/res/imp/status-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-03T14:18:32Z",
+      "side": 1,
+      "message": "noopener is only really useful if the link address is generated from user content, which isn\u0027t the case here.",
+      "revId": "bec0785b96ced7e1a5a5263553fdcff522797c65",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
