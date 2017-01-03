@@ -7,7 +7,7 @@
 set -x
 
 if [ "$#" -ne 2 ]; then
-    echo "Usage: <prod|stage|android|blink> white_list_file"
+    echo "Usage: <prod|stage|pdfium> white_list_file"
     exit 1
 fi
 

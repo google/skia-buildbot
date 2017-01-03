@@ -146,15 +146,15 @@ server {
     return 301 https://gold-staging.skia.org$request_uri;
 }
 
-#####   gold-android.skia.org   #####################
+#####   pdfium-gold.skia.org   #####################
 server {
     listen      443;
-    server_name gold-android.skia.org;
+    server_name pdfium-gold.skia.org;
 
     ssl on;
 
-    access_log /var/log/nginx/gold-android.access.log;
-    error_log /var/log/nginx/gold-android.error.log error;
+    access_log /var/log/nginx/pdfium-gold.access.log;
+    error_log /var/log/nginx/pdfium-gold.error.log error;
 
     # Enforce browser XSS protection
     add_header X-XSS-Protection "1; mode=block";
@@ -162,38 +162,13 @@ server {
     add_header X-Content-Type-Options nosniff;
 
     location / {
-        proxy_pass http://skia-gold-android:8001;
+        proxy_pass http://skia-gold-pdfium:8001;
     }
 }
 server {
     listen      80;
-    server_name gold-android.skia.org;
-    return 301 https://gold-android.skia.org$request_uri;
-}
-
-#####   gold-blink.skia.org   #####################
-server {
-    listen      443;
-    server_name gold-blink.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/gold-blink.access.log;
-    error_log /var/log/nginx/gold-blink.error.log error;
-
-    # Enforce browser XSS protection
-    add_header X-XSS-Protection "1; mode=block";
-    # Disable content sniffing
-    add_header X-Content-Type-Options nosniff;
-
-    location / {
-        proxy_pass http://skia-gold-blink:8001;
-    }
-}
-server {
-    listen      80;
-    server_name gold-blink.skia.org;
-    return 301 https://gold-blink.skia.org$request_uri;
+    server_name pdfium-gold.skia.org;
+    return 301 https://pdfium-gold.skia.org$request_uri;
 }
 
 #####   alerts.skia.org   ###########################
