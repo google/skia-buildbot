@@ -280,7 +280,6 @@ func ComputeBlamelist(cache db.TaskCache, repo *repograph.Graph, taskName, repoN
 					return false, ERR_BLAMELIST_DONE
 				}
 			}
-			sklog.Warningf("Found too many commits for %s @ %s; not a branch head so returning empty.", taskName, revision.Hash)
 			commitsBuf = commitsBuf[:0]
 			return false, ERR_BLAMELIST_DONE
 		}
@@ -1098,9 +1097,11 @@ func (s *TaskScheduler) timeDecayForCommit(now time.Time, commit *repograph.Comm
 		return 1.0, nil
 	}
 	rv := timeDecay24Hr(s.timeDecayAmt24Hr, now.Sub(commit.Timestamp))
-	if rv == 0.0 {
-		sklog.Warningf("timeDecayForCommit is zero. Now: %s, Commit: %s ts %s, TimeDecay: %2f\nDetails: %v", now, commit.Hash, commit.Timestamp, s.timeDecayAmt24Hr, commit)
-	}
+	// TODO(benjaminwagner): Change to an exponential decay to prevent
+	// zero/negative scores.
+	//if rv == 0.0 {
+	//	sklog.Warningf("timeDecayForCommit is zero. Now: %s, Commit: %s ts %s, TimeDecay: %2f\nDetails: %v", now, commit.Hash, commit.Timestamp, s.timeDecayAmt24Hr, commit)
+	//}
 	return rv, nil
 }
 
