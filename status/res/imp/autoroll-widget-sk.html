@@ -146,13 +146,16 @@
     },
 
     _statusIcon:function(status) {
-      if (!status || !status.result || status.result == "stopped") {
+      if (!status || !status.result) {
         return "icons:error";
       }
-      if (status.result == "in progress") {
+      if (status.result === "in progress") {
         return "icons:autorenew";
       }
-      return "icons:check-circle";
+      if (status.result === "succeeded") {
+        return "icons:check-circle";
+      }
+      return "icons:error";
     },
 
     _truncate(arr,len) {
