@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d760061e_ab18545c",
+        "filename": "prometheus/sys/alertmanager.yml",
+        "patchSetId": 12
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-04T22:09:20Z",
+      "side": 1,
+      "message": "These don\u0027t work yet, that\u0027s a later CL.",
+      "revId": "c88f30b9be4b89c3f4aab00f2834302072b8be80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
