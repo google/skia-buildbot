@@ -8,10 +8,10 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/skia-dev/glog"
 )
 
 var (
@@ -165,7 +165,6 @@ func (p *promClient) commonGet(measurement string, tags ...map[string]string) (s
 
 func (p *promClient) GetInt64Metric(name string, tags ...map[string]string) Int64Metric {
 	measurement, cleanTags, keys, gaugeKey, gaugeVecKey := p.commonGet(name, tags...)
-	sklog.Debugf("GetInt64Metric: %s %s", gaugeKey, gaugeVecKey)
 
 	p.int64Mutex.Lock()
 	ret, ok := p.int64Gauges[gaugeKey]
@@ -191,13 +190,13 @@ func (p *promClient) GetInt64Metric(name string, tags ...map[string]string) Int6
 		)
 		err := prometheus.Register(gaugeVec)
 		if err != nil {
-			sklog.Fatalf("Failed to register %q: %s", measurement, err)
+			glog.Fatalf("Failed to register %q: %s", measurement, err)
 		}
 		p.int64GaugeVecs[gaugeVecKey] = gaugeVec
 	}
 	gauge, err := gaugeVec.GetMetricWith(prometheus.Labels(cleanTags))
 	if err != nil {
-		sklog.Fatalf("Failed to get gauge: %s", err)
+		glog.Fatalf("Failed to get gauge: %s", err)
 	}
 	ret = &promInt64{
 		gauge: gauge,
@@ -215,7 +214,6 @@ func (p *promClient) GetCounter(name string, tags ...map[string]string) Counter 
 
 func (p *promClient) GetFloat64Metric(name string, tags ...map[string]string) Float64Metric {
 	measurement, cleanTags, keys, gaugeKey, gaugeVecKey := p.commonGet(name, tags...)
-	sklog.Debugf("GetFloat64Metric: %s %s", gaugeKey, gaugeVecKey)
 
 	p.float64Mutex.Lock()
 	ret, ok := p.float64Gauges[gaugeKey]
@@ -241,13 +239,13 @@ func (p *promClient) GetFloat64Metric(name string, tags ...map[string]string) Fl
 		)
 		err := prometheus.Register(gaugeVec)
 		if err != nil {
-			sklog.Fatalf("Failed to register %q: %s", measurement, err)
+			glog.Fatalf("Failed to register %q: %s", measurement, err)
 		}
 		p.float64GaugeVecs[gaugeVecKey] = gaugeVec
 	}
 	gauge, err := gaugeVec.GetMetricWith(prometheus.Labels(cleanTags))
 	if err != nil {
-		sklog.Fatalf("Failed to get gauge: %s", err)
+		glog.Fatalf("Failed to get gauge: %s", err)
 	}
 	ret = &promFloat64{
 		gauge: gauge,
@@ -258,7 +256,6 @@ func (p *promClient) GetFloat64Metric(name string, tags ...map[string]string) Fl
 
 func (p *promClient) GetFloat64SummaryMetric(name string, tags ...map[string]string) Float64SummaryMetric {
 	measurement, cleanTags, keys, summaryKey, summaryVecKey := p.commonGet(name, tags...)
-	sklog.Debugf("GetFloat64SummaryMetric: %s %s", summaryKey, summaryVecKey)
 
 	p.float64SummaryMutex.Lock()
 	ret, ok := p.float64Summaries[summaryKey]
@@ -285,13 +282,13 @@ func (p *promClient) GetFloat64SummaryMetric(name string, tags ...map[string]str
 		)
 		err := prometheus.Register(summaryVec)
 		if err != nil {
-			sklog.Fatalf("Failed to register %q %v: %s", measurement, cleanTags, err)
+			glog.Fatalf("Failed to register %q %v: %s", measurement, cleanTags, err)
 		}
 		p.float64SummaryVecs[summaryVecKey] = summaryVec
 	}
 	summary, err := summaryVec.GetMetricWith(prometheus.Labels(cleanTags))
 	if err != nil {
-		sklog.Fatalf("Failed to get summary: %s", err)
+		glog.Fatalf("Failed to get summary: %s", err)
 	}
 	ret = &promFloat64Summary{
 		summary: summary,
