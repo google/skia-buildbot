@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d760061e_70910932",
+        "filename": "go/metrics2/metrics.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-04T12:49:33Z",
+      "side": 1,
+      "message": "[optional] InitBoth -\u003e InitPromInflux to make it explicit what it is initializing.",
+      "revId": "145cdd99878dfadd5a06b0adc47ca03e25008401",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d760061e_108375ef",
+        "filename": "go/metrics2/mux.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-04T12:49:33Z",
+      "side": 1,
+      "message": "\"can be used to multiplex x Clients\" (could be more or less than 2).",
+      "revId": "145cdd99878dfadd5a06b0adc47ca03e25008401",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d760061e_50968d2b",
+        "filename": "go/metrics2/prom.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-04T12:49:33Z",
+      "side": 1,
+      "message": "Should this instead raise an error?",
+      "revId": "145cdd99878dfadd5a06b0adc47ca03e25008401",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
