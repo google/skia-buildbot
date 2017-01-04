@@ -1,0 +1,38 @@
+GitRepoDir     = "/mnt/pd0/pdfium_gold/skiarepo"           # Directory location for the Skia repo.
+GitRepoURL     = "https://pdfium.googlesource.com/pdfium"  # URL location for the repo.
+
+[Ingesters]
+  ### Pdfium Gold ingester ############################################################
+  [Ingesters.pdfium-gold]
+  RunEvery       = "5m"
+  NCommits       = 75
+  MinDays        = 3
+  StatusDir      = "/mnt/pd0/pdfium_gold/ingest_status"
+  MetricName     = "pdfium-gold-ingest"
+  LocalCache     = true
+
+    [[Ingesters.pdfium-gold.Sources]]
+    Bucket         = "skia-pdfium-gm"
+    Dir            = "dm-json-v1"
+
+    [Ingesters.pdfium-gold.ExtraParams]
+    TraceService   = "localhost:10001"
+
+
+  ### Pdfium Gold trybot ingester #####################################################
+  [Ingesters.pdfium-gold-trybot]
+  RunEvery       = "5m"
+  NCommits       = 10
+  MinDays        = 7
+  StatusDir      = "/mnt/pd0/pdfium_gold/ingest_status"
+  MetricName     = "pdfium-gold-ingest-trybot"
+  LocalCache     = true
+
+    [[Ingesters.pdfium-gold-trybot.Sources]]
+    Bucket         = "skia-pdfium-gm"
+    Dir            = "trybot/dm-json-v1"
+
+    [Ingesters.gold-trybot.ExtraParams]
+    TraceService   = "localhost:10001"
+    RietveldCodeReviewURL = "https://codereview.chromium.org"
+    GerritCodeReviewURL = "https://pdfium-review.googlesource.com"
