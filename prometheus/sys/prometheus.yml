@@ -26,6 +26,10 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:10116']
 
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['localhost:10117']
+
   - job_name: 'skia-perf'
     static_configs:
       - targets: ['skia-perf:10110']

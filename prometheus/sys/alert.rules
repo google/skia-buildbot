@@ -1,7 +1,7 @@
 ALERT InstanceDown
   IF up == 0
   FOR 5m
-  LABELS { category = "infra" }
+  LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     summary = "Instance {{ $labels.instance }} down",
     description = "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes.",
@@ -10,7 +10,7 @@ ALERT InstanceDown
 ALERT TooManyGoRoutines
   IF go_goroutines > 3000
   FOR 2m
-  LABELS { category = "infra" }
+  LABELS { category = "infra", severity = "warning"}
   ANNOTATIONS {
     summary = "Too many Go routines in {{ $labels.job }}",
     description = "Too many Go routines in {{ $labels.job }} running on {{ $labels.instance }}."
@@ -19,7 +19,7 @@ ALERT TooManyGoRoutines
 ALERT PerfAlert
   IF perf_clustering_untriaged > 0
   FOR 2m
-  LABELS { category = "general" }
+  LABELS { category = "general", severity = "warning" }
   ANNOTATIONS {
     summary = "One or more untriaged clusters.",
     description = "At least one untriaged perf cluster has been found. Please visit https://perf.skia.org/t/ to triage."

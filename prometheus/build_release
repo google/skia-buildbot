@@ -1,8 +1,8 @@
 #!/bin/bash
 # Builds and uploads a debian package for Grafana config.
 APPNAME=prometheus
-DESCRIPTION="Prometheus monitoring"
-SYSTEMD=prometheus.service
+DESCRIPTION="Prometheus monitoring and alerting."
+SYSTEMD="prometheus.service alertmanager.service"
 
 set -x -e
 
@@ -12,13 +12,14 @@ copy_release_files()
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
 
-${INSTALL} --mode=755 -T ${GOPATH}/bin/prometheus ${ROOT}/usr/local/bin/prometheus
-${INSTALL} --mode=755 -T ${GOPATH}/bin/promtool   ${ROOT}/usr/local/bin/promtool
-${INSTALL} --mode=644 -T ./sys/prometheus.service ${ROOT}/etc/systemd/system/prometheus.service
-${INSTALL} --mode=644 -T ./sys/prometheus.yml     ${ROOT}/etc/prometheus/prometheus.yml
-${INSTALL} --mode=644 -T ./sys/alert.rules        ${ROOT}/etc/prometheus/alert.rules
+${INSTALL} --mode=755 -T ${GOPATH}/bin/prometheus   ${ROOT}/usr/local/bin/prometheus
+${INSTALL} --mode=755 -T ${GOPATH}/bin/promtool     ${ROOT}/usr/local/bin/promtool
+${INSTALL} --mode=755 -T ./tmp/alertmanager         ${ROOT}/usr/local/bin/alertmanager
+${INSTALL} --mode=644 -T ./sys/prometheus.service   ${ROOT}/etc/systemd/system/prometheus.service
+${INSTALL} --mode=644 -T ./sys/alertmanager.service ${ROOT}/etc/systemd/system/alertmanager.service
 
-${INSTALL_DIR} --mode=777                         ${ROOT}/mnt/pd0/prometheus
+${INSTALL_DIR} --mode=777                           ${ROOT}/mnt/pd0/prometheus
+${INSTALL_DIR} --mode=777                           ${ROOT}/mnt/pd0/alertmanager
 }
 
 source ../bash/release.sh
