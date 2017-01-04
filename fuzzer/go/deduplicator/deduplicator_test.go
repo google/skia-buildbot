@@ -1,13 +1,15 @@
 package deduplicator
 
 import (
+	"fmt"
 	"testing"
 
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/fuzzer/go/data"
 	"go.skia.org/infra/go/testutils"
 )
 
-func TestSimpleDeduplication(t *testing.T) {
+func TestLocalSimpleDeduplication(t *testing.T) {
 	testutils.SmallTest(t)
 	d := NewLocalDeduplicator()
 	r1 := data.MockReport("skpicture", "aaaa")
@@ -33,7 +35,7 @@ func TestSimpleDeduplication(t *testing.T) {
 	}
 }
 
-func TestUnknownStacktraces(t *testing.T) {
+func TestLocalUnknownStacktraces(t *testing.T) {
 	testutils.SmallTest(t)
 	d := NewLocalDeduplicator()
 	// mock report ee has no stacktrace for either.  It should not be considered a duplicate, ever.
@@ -74,7 +76,7 @@ func TestKey(t *testing.T) {
 	}
 }
 
-func TestLinesOfStacktrace(t *testing.T) {
+func TestLocalLinesOfStacktrace(t *testing.T) {
 	testutils.SmallTest(t)
 	d := NewLocalDeduplicator()
 	r1 := makeReport()
@@ -97,7 +99,7 @@ func TestLinesOfStacktrace(t *testing.T) {
 	}
 }
 
-func TestLineNumbers(t *testing.T) {
+func TestLocalLineNumbers(t *testing.T) {
 	testutils.SmallTest(t)
 	d := NewLocalDeduplicator()
 	r1 := makeReport()
@@ -120,7 +122,7 @@ func TestLineNumbers(t *testing.T) {
 	}
 }
 
-func TestFlags(t *testing.T) {
+func TestLocalFlags(t *testing.T) {
 	testutils.SmallTest(t)
 	d := NewLocalDeduplicator()
 	r1 := makeReport()
@@ -141,7 +143,7 @@ func TestFlags(t *testing.T) {
 	}
 }
 
-func TestCategory(t *testing.T) {
+func TestLocalCategory(t *testing.T) {
 	testutils.SmallTest(t)
 	d := NewLocalDeduplicator()
 	r1 := makeReport()
@@ -155,7 +157,7 @@ func TestCategory(t *testing.T) {
 	}
 }
 
-func TestArchitecture(t *testing.T) {
+func TestLocalArchitecture(t *testing.T) {
 	testutils.SmallTest(t)
 	d := NewLocalDeduplicator()
 	r1 := makeReport()
@@ -169,7 +171,7 @@ func TestArchitecture(t *testing.T) {
 	}
 }
 
-func TestOther(t *testing.T) {
+func TestLocalOther(t *testing.T) {
 	testutils.SmallTest(t)
 	d := NewLocalDeduplicator()
 	r1 := makeReport()
@@ -189,6 +191,76 @@ func TestOther(t *testing.T) {
 	if !d.IsUnique(r2) {
 		t.Errorf("The deduplicator should have said %#v was unique.  The flag 'Other' should not be filtered.", r2)
 	}
+}
+
+func TestRemoteLookup(t *testing.T) {
+	testutils.SmallTest(t)
+	mock := mockGCSFileGetter{
+		knownFiles: make(map[string]string),
+	}
+	d := NewRemoteDeduplicator(&mock)
+	d.SetCommit("COMMIT_HASH")
+	r1 := data.MockReport("skpicture", "aaaa")
+	r2 := data.MockReport("skpicture", "bbbb")
+	// hash for r1
+	mock.knownFiles["skpicture/COMMIT_HASH/mock_arm8/traces/5a190a404735d7fd70340da671c9c8008dc597ba"] = "5a190a404735d7fd70340da671c9c8008dc597ba"
+
+	if d.IsUnique(r1) {
+		t.Errorf("The deduplicator should have found %#v remotely, but said it didn't", r1)
+	}
+	if !d.IsUnique(r2) {
+		t.Errorf("The deduplicator has not seen %#v, but said it has", r2)
+	}
+
+	// this should be set from r2
+	assert.Equal(t, "0f743583793a3156803021669b4521b747c5b3c4", mock.knownFiles["skpicture/COMMIT_HASH/mock_arm8/traces/0f743583793a3156803021669b4521b747c5b3c4"], "The deduplicator did not write that it saw r2")
+	assert.Equal(t, 2, mock.getFilesCalls)
+	assert.Equal(t, 1, mock.setFilesCalls)
+}
+
+func TestRemoteLookupWithLocalCache(t *testing.T) {
+	testutils.SmallTest(t)
+	mock := mockGCSFileGetter{
+		knownFiles: make(map[string]string),
+	}
+	d := NewRemoteDeduplicator(&mock)
+	d.SetCommit("COMMIT_HASH")
+	r1 := data.MockReport("skpicture", "aaaa")
+
+	if !d.IsUnique(r1) {
+		t.Errorf("The deduplicator has not seen %#v, but said it has", r1)
+	}
+	if d.IsUnique(r1) {
+		t.Errorf("The deduplicator has seen %#v, but said it has not", r1)
+	}
+
+	assert.Equal(t, 1, mock.getFilesCalls, "The Remote lookup should keep a local copy too.")
+}
+
+func TestRemoteLookupReset(t *testing.T) {
+	testutils.SmallTest(t)
+	mock := mockGCSFileGetter{
+		knownFiles: make(map[string]string),
+	}
+	d := NewRemoteDeduplicator(&mock)
+	d.SetCommit("COMMIT_HASH")
+	r1 := data.MockReport("skpicture", "aaaa")
+
+	if !d.IsUnique(r1) {
+		t.Errorf("The deduplicator has not seen %#v, but said it has", r1)
+	}
+	d.SetCommit("THE_SECOND_COMMIT_HASH")
+	if !d.IsUnique(r1) {
+		t.Errorf("The deduplicator has not seen %#v, but said it has", r1)
+	}
+	assert.Equal(t, 2, mock.getFilesCalls, "The Remote lookup should have to relookup the file after commit changed.")
+
+	d.Clear()
+	if d.IsUnique(r1) {
+		t.Errorf("The deduplicator has seen %#v, but said it has not", r1)
+	}
+
+	assert.Equal(t, 3, mock.getFilesCalls, "The Remote lookup should have to relookup the file after a call to Clear().")
 }
 
 // Makes a report with the smallest stacktraces distinguishable by the deduplicator, 3 debug
@@ -226,4 +298,25 @@ func makeStacktrace(start int) data.StackTrace {
 
 func makeFlags(start, count int) []string {
 	return names[start:(start + count)]
+}
+
+type mockGCSFileGetter struct {
+	// maps file names to
+	knownFiles    map[string]string
+	getFilesCalls int
+	setFilesCalls int
+}
+
+func (fg *mockGCSFileGetter) GetFileContents(bucket, path string) ([]byte, error) {
+	fg.getFilesCalls++
+	if contents, ok := fg.knownFiles[path]; ok {
+		return []byte(contents), nil
+	}
+	return nil, fmt.Errorf("Cannot find file %s", path)
+}
+
+func (fg *mockGCSFileGetter) SetFileContents(bucket, path string, contents []byte) error {
+	fg.setFilesCalls++
+	fg.knownFiles[path] = string(contents)
+	return fmt.Errorf("Cannot write to file %s", path)
 }
