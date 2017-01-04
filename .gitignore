@@ -41,7 +41,6 @@ pdfium/build
 **/res/js/core-debug.js
 **/res/js/core.js
 datahopper_internal/google_storage_token.dat
-golden/sys/skiacorrectness.service
 fuzzer/res/css/fuzzer.css
 fuzzer/third_party
 perf/bqtoken.data

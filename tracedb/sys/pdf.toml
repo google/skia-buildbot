@@ -1,11 +1,11 @@
-GitRepoDir     = "/mnt/pd0/gold/skiarepo"            
+GitRepoDir     = "/mnt/pd0/gold/skiarepo"
 GitRepoURL     = "https://skia.googlesource.com/skia"
 
 [Ingesters]
 	[Ingesters.pdf]
-	RunEvery       = "15m"                
-	NCommits       = 100                  
-	MinDays        = 21                   
+	RunEvery       = "15m"
+	NCommits       = 100
+	MinDays        = 21
 	StatusDir      = "/mnt/pd0/pdf/ingest_status"
 	MetricName     = "pdf-raster"
   LocalCache     = true

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ALL_IDS="prod stage android blink"
+ALL_IDS="prod stage pdfium"
 print_usage() {
     echo "Usage: $0 MESSAGE INSTANCE_ID"
     echo "     MESSAGE     is the message to be included in the release package."
@@ -28,46 +28,10 @@ if [ "$TARGET_INSTANCE_IDS" = "all" ]; then
 fi
 
 for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
-  echo "Building $INSTANCE_ID package."
-  case "$INSTANCE_ID" in
-    # prod instance
-    prod)
-  	DATABASE_HOST="173.194.104.24"
-  	SKIACORRECTNESS_DATABASE_NAME="skiacorrectness"
-    REDIRECT_URL="https://gold.skia.org/oauth2callback/"
-    ADD_FLAGS="--backfill_tiles=2 --resources_dir=/usr/local/share/skiacorrectness/frontend"
-  	;;
-
-    # stage instance
-    stage)
-  	DATABASE_HOST="173.194.254.28"
-  	SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_stage"
-    REDIRECT_URL="https://gold-staging.skia.org/oauth2callback/"
-    ADD_FLAGS="--backfill_tiles=2 --resources_dir=/usr/local/share/skiacorrectness/frontend"
-    ;;
-
-    # experimental android instance: uses the staging database server for now.
-    android)
-    DATABASE_HOST="173.194.254.28"
-    SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_android"
-    REDIRECT_URL="https://gold-android.skia.org/oauth2callback/"
-    GS_BUCKETS="skia-android-dm"
-    N_COMMITS="200"
-    ADD_FLAGS="--force_login --auth_whitelist=google.com --resources_dir=/usr/local/share/skiacorrectness/frontend"
-    ;;
-
-    # experimental blink instance: uses the staging database server for now.
-    blink)
-    DATABASE_HOST="173.194.254.28"
-    SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_blink"
-    REDIRECT_URL="https://gold-blink.skia.org/oauth2callback/"
-    ADD_FLAGS="--resources_dir=/usr/local/share/skiacorrectness/frontend"
-    ;;
-
-    *)
+  SERVICE_FILE="./sys/$INSTANCE_ID-skiacorrectness.service"
+  if [ ! -f ${SERVICE_FILE} ]; then 
       print_usage
-  	;;
-  esac
+  fi
 
   # Builds and uploads a debian package for skiacorrectness.
   APPNAME=skiacorrectness-$INSTANCE_ID
@@ -82,34 +46,22 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
   {
   set -e
 
-  CORR_SED="s#<<REPLACE_DATABASE_HOST>>#$DATABASE_HOST#g"
-  CORR_SED="$CORR_SED;s#<<REPLACE_DATABASE_NAME>>#$SKIACORRECTNESS_DATABASE_NAME#g"
-  CORR_SED="$CORR_SED;s#<<REPLACE_REDIRECT_URL>>#$REDIRECT_URL#g"
-  CORR_SED="$CORR_SED;s#<<REPLACE_GS_BUCKETS>>#$GS_BUCKETS#g"
-  CORR_SED="$CORR_SED;s#<<REPLACE_N_COMMITS>>#$N_COMMITS#g"
-  CORR_SED="$CORR_SED;s#<<REPLACE_ADD_FLAGS>>#$ADD_FLAGS#g"
-
-  # Generate the init file for skiacorrectness.
-  sed "$CORR_SED" \
-      ./sys/skiacorrectness.service.template > ./sys/skiacorrectness.service
-
   INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
   INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
 
-  ${INSTALL} --mode=755 -T ${GOPATH}/bin/correctness_migratedb    ${ROOT}/usr/local/bin/correctness_migratedb
-  ${INSTALL} --mode=755 -T ${GOPATH}/bin/skiacorrectness          ${ROOT}/usr/local/bin/skiacorrectness
-  ${INSTALL} --mode=755 -T ${GOPATH}/bin/perf_migratedb           ${ROOT}/usr/local/bin/perf_migratedb
+  ${INSTALL}     --mode=755 -T ${GOPATH}/bin/correctness_migratedb ${ROOT}/usr/local/bin/correctness_migratedb
+  ${INSTALL}     --mode=755 -T ${GOPATH}/bin/skiacorrectness       ${ROOT}/usr/local/bin/skiacorrectness
 
-  ${INSTALL_DIR} --mode=755                                       ${ROOT}/usr/local/share/skiacorrectness/frontend/res/img
-  ${INSTALL}     --mode=644 ./frontend/res/img/favicon.ico        ${ROOT}/usr/local/share/skiacorrectness/frontend/res/img/favicon.ico
+  ${INSTALL_DIR} --mode=755                                        ${ROOT}/usr/local/share/skiacorrectness/frontend/res/img
+  ${INSTALL}     --mode=644 ./frontend/res/img/favicon.ico         ${ROOT}/usr/local/share/skiacorrectness/frontend/res/img/favicon.ico
 
-  ${INSTALL_DIR} --mode=755                                       ${ROOT}/usr/local/share/skiacorrectness/frontend/res/js
-  ${INSTALL}     --mode=644 ./frontend/res/js/core.js             ${ROOT}/usr/local/share/skiacorrectness/frontend/res/js/core.js
+  ${INSTALL_DIR} --mode=755                                        ${ROOT}/usr/local/share/skiacorrectness/frontend/res/js
+  ${INSTALL}     --mode=644 ./frontend/res/js/core.js              ${ROOT}/usr/local/share/skiacorrectness/frontend/res/js/core.js
 
-  ${INSTALL_DIR} --mode=755                                       ${ROOT}/usr/local/share/skiacorrectness/frontend/res/vul
-  ${INSTALL}     --mode=644 ./frontend/res/vul/elements.html      ${ROOT}/usr/local/share/skiacorrectness/frontend/res/vul/elements.html
-  ${INSTALL}     --mode=644 ./frontend/index.html                 ${ROOT}/usr/local/share/skiacorrectness/frontend/index.html
-  ${INSTALL} --mode=644 -T ./sys/${CORRECTNESS_APPNAME}.service   ${ROOT}/etc/systemd/system/${CORRECTNESS_APPNAME}.service
+  ${INSTALL_DIR} --mode=755                                        ${ROOT}/usr/local/share/skiacorrectness/frontend/res/vul
+  ${INSTALL}     --mode=644 ./frontend/res/vul/elements.html       ${ROOT}/usr/local/share/skiacorrectness/frontend/res/vul/elements.html
+  ${INSTALL}     --mode=644 ./frontend/index.html                  ${ROOT}/usr/local/share/skiacorrectness/frontend/index.html
+  ${INSTALL}     --mode=644 -T $SERVICE_FILE                       ${ROOT}/etc/systemd/system/${CORRECTNESS_APPNAME}.service
   }
 
   source ../bash/release.sh
