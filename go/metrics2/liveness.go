@@ -1,6 +1,7 @@
 package metrics2
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -10,7 +11,8 @@ import (
 )
 
 const (
-	MEASUREMENT_LIVENESS = "liveness"
+	LIVENESS_REPORT_FREQUENCY = time.Minute
+	MEASUREMENT_LIVENESS      = "liveness"
 )
 
 // liveness implements Liveness.
@@ -21,29 +23,29 @@ type liveness struct {
 	mtx                  sync.Mutex
 }
 
-// NewLiveness creates a new Liveness metric helper. The current value is
+// newLiveness creates a new Liveness metric helper. The current value is
 // reported at the given frequency; if the report frequency is zero, the value
 // is only reported when it changes.
-func (c *influxClient) NewLiveness(name string, tagsList ...map[string]string) Liveness {
+func newLiveness(c Client, name string, makeUnique bool, tagsList ...map[string]string) Liveness {
 	// Make a copy of the tags and add the name.
 	tags := util.AddParams(map[string]string{}, tagsList...)
 	tags["name"] = name
+
+	measurement := MEASUREMENT_LIVENESS
+	if makeUnique {
+		measurement = fmt.Sprintf("%s_%s_s", MEASUREMENT_LIVENESS, name)
+		tags["type"] = MEASUREMENT_LIVENESS
+	}
+
 	ctx, cancelFn := context.WithCancel(context.Background())
 	l := &liveness{
 		cancelFn:             cancelFn,
 		lastSuccessfulUpdate: time.Now(),
-		m:                    c.GetInt64Metric(MEASUREMENT_LIVENESS, tags),
+		m:                    c.GetInt64Metric(measurement, tags),
 		mtx:                  sync.Mutex{},
 	}
-	go util.RepeatCtx(c.reportFrequency, ctx, l.update)
+	go util.RepeatCtx(LIVENESS_REPORT_FREQUENCY, ctx, l.update)
 	return l
-}
-
-// NewLiveness creates a new Liveness metric helper using the default client.
-// The current value is reported at the given frequency; if the report frequency
-// is zero, the value is only reported when it changes.
-func NewLiveness(name string, tags ...map[string]string) Liveness {
-	return defaultClient.NewLiveness(name, tags...)
 }
 
 // getLocked returns the current value of the Liveness. Assumes the caller holds a lock.
@@ -85,10 +87,12 @@ func (l *liveness) ManualReset(lastSuccessfulUpdate time.Time) {
 	l.updateLocked()
 }
 
-// Delete removes the Liveness from metrics.
-func (l *liveness) Delete() error {
-	l.mtx.Lock()
-	defer l.mtx.Unlock()
-	l.cancelFn()
-	return l.m.Delete()
+// NewLiveness creates a new Liveness metric helper using the default client.
+// The current value is reported at the given frequency; if the report frequency
+// is zero, the value is only reported when it changes.
+func NewLiveness(name string, tags ...map[string]string) Liveness {
+	return defaultClient.NewLiveness(name, tags...)
 }
+
+// Validate that the concrete liveness faithfully implements the Liveness interface.
+var _ Liveness = (*liveness)(nil)

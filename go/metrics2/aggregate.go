@@ -64,15 +64,20 @@ func (m *aggregateMetric) Delete() error {
 	return client.deleteAggregateMetric(key)
 }
 
-// int64MeanMetric is a metric whose data is aggregated over the sampling period
-// using an arithmetic mean.
-type int64MeanMetric struct {
+// float64SummaryMetric implements Float64SummaryMetric.
+type float64SummaryMetric struct {
 	*aggregateMetric
 }
 
-// getInt64MeanMetric returns an int64MeanMetric instance.
-func (c *influxClient) getInt64MeanMetric(measurement string, tags ...map[string]string) *int64MeanMetric {
-	return &int64MeanMetric{
+func (i *float64SummaryMetric) Observe(f float64) {
+	i.update(int64(f))
+}
+
+func (c *influxClient) GetFloat64SummaryMetric(measurement string, tags ...map[string]string) Float64SummaryMetric {
+	return &float64SummaryMetric{
 		c.getAggregateMetric(measurement, tags, meanInt64),
 	}
 }
+
+// Validate that float64SummaryMetric faithfully implements the Float64SummaryMetric interface.
+var _ Float64SummaryMetric = (*float64SummaryMetric)(nil)
