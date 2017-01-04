@@ -41,6 +41,18 @@ func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, queries []str
 	}
 }
 
+func (c *Continuous) reportUntriaged(newClustersGauge metrics2.Int64Metric) {
+	go func() {
+		for _ = range time.Tick(time.Minute) {
+			if count, err := c.store.Untriaged(); err == nil {
+				newClustersGauge.Update(int64(count))
+			} else {
+				sklog.Errorf("Failed to get untriaged count: %s", err)
+			}
+		}
+	}()
+}
+
 // Run starts the continuous running of clustering over the last NUM_COMMITS
 // commits.
 //
@@ -52,6 +64,7 @@ func (c *Continuous) Run() {
 
 	// TODO(jcgregorio) Add liveness metrics.
 	sklog.Infof("Continuous starting.")
+	c.reportUntriaged(newClustersGauge)
 	for _ = range time.Tick(time.Minute) {
 		clusteringLatency.Start()
 		// Get the last NUM_COMMITS commits.
@@ -104,10 +117,5 @@ func (c *Continuous) Run() {
 		}
 		clusteringLatency.Stop()
 		runsCounter.Inc(1)
-		if count, err := c.store.Untriaged(); err == nil {
-			newClustersGauge.Update(int64(count))
-		} else {
-			sklog.Errorf("Failed to get untriaged count: %s", err)
-		}
 	}
 }
