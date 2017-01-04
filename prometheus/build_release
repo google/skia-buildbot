@@ -16,6 +16,7 @@ ${INSTALL} --mode=755 -T ${GOPATH}/bin/prometheus ${ROOT}/usr/local/bin/promethe
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/promtool   ${ROOT}/usr/local/bin/promtool
 ${INSTALL} --mode=644 -T ./sys/prometheus.service ${ROOT}/etc/systemd/system/prometheus.service
 ${INSTALL} --mode=644 -T ./sys/prometheus.yml     ${ROOT}/etc/prometheus/prometheus.yml
+${INSTALL} --mode=644 -T ./sys/alert.rules        ${ROOT}/etc/prometheus/alert.rules
 
 ${INSTALL_DIR} --mode=777                         ${ROOT}/mnt/pd0/prometheus
 }
