@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d760061e_10c1b53d",
+        "filename": "go/metrics2/prom.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-04T18:24:22Z",
+      "side": 1,
+      "message": "Why not use glog?",
+      "range": {
+        "startLine": 193,
+        "startChar": 3,
+        "endLine": 193,
+        "endChar": 6
+      },
+      "revId": "b7d2b58aecda7af52ebbe4c979fd7bb8937654e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
