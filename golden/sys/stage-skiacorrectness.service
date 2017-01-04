@@ -16,13 +16,13 @@ ExecStart=/usr/local/bin/skiacorrectness  \
     --storage_dir=${DATA_DIR}/datastore  \
     --oauth_cache_file=${DATA_DIR}/correctness-google_storage_token.data  \
     --resources_dir=${RESOURCE_DIR}  \
-    --db_host=<<REPLACE_DATABASE_HOST>>  \
-    --db_name=<<REPLACE_DATABASE_NAME>>  \
-    --redirect_url=<<REPLACE_REDIRECT_URL>>  \
-    --gs_buckets=<<REPLACE_GS_BUCKETS>>   \
-    --n_commits=<<REPLACE_N_COMMITS>>   \
+    --db_host=173.194.254.28  \
+    --db_name=skiacorrectness_stage  \
+    --redirect_url=https://gold-staging.skia.org/oauth2callback/  \
+    --gs_buckets=skia-infra-gm,chromium-skia-gm   \
+    --n_commits=100   \
     --cache_size=20 \
-    <<REPLACE_ADD_FLAGS>>
+    --backfill_tiles=2 --resources_dir=/usr/local/share/skiacorrectness/frontend
 
 Restart=always
 User=default
