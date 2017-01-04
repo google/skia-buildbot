@@ -3,8 +3,12 @@ package metrics2
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/sklog"
@@ -29,9 +33,6 @@ type Timer interface {
 // successfully. Every liveness metric should have a corresponding alert set up that
 // will fire of the time-since-last-successful-update metric gets too large.
 type Liveness interface {
-	// Delete removes the Liveness from metrics.
-	Delete() error
-
 	// Get returns the current value of the Liveness.
 	Get() int64
 
@@ -66,6 +67,12 @@ type Float64Metric interface {
 	Update(v float64)
 }
 
+// Float64SummaryMetric is a metric which reports a summary of many float64 values.
+type Float64SummaryMetric interface {
+	// Observe adds a data point to the metric.
+	Observe(v float64)
+}
+
 // Counter is a struct used for tracking metrics which increment or decrement.
 type Counter interface {
 	// Dec decrements the counter by the given quantity.
@@ -97,6 +104,9 @@ type Client interface {
 
 	// GetInt64Metric returns an Int64Metric instance.
 	GetInt64Metric(measurement string, tags ...map[string]string) Int64Metric
+
+	// GetFloat64SummaryMetric returns an Float64SummaryMetric instance.
+	GetFloat64SummaryMetric(measurement string, tags ...map[string]string) Float64SummaryMetric
 
 	// NewLiveness creates a new Liveness metric helper.
 	NewLiveness(name string, tagsList ...map[string]string) Liveness
@@ -144,6 +154,37 @@ func Init(appName string, influxDbClient *influxdb.Client) error {
 	// Set the default client.
 	defaultClient = c
 	defaultInfluxClient = c
+	return nil
+}
+
+// InitPrometheus initializes metrics to be reported to Prometheus.
+//
+// port - string, The port on which to serve the metrics, e.g. ":10110".
+func InitPrometheus(port string) {
+	r := mux.NewRouter()
+	r.Handle("/metrics", promhttp.Handler())
+	go func() {
+		sklog.Fatal(http.ListenAndServe(":10110", r))
+	}()
+	defaultClient = newPromClient()
+	defaultInfluxClient = nil
+}
+
+// InitPromInflux initializes metrics to be reported to both InfluxDB and Prometheus.
+//
+// port - string, The port on which to serve the metrics, e.g. ":10110".
+func InitPromInflux(appName string, influxDbClient *influxdb.Client, port string) error {
+	if err := Init(appName, influxDbClient); err != nil {
+		return fmt.Errorf("Failed to Init Influx metrics: %s", err)
+	}
+	influxClient := defaultClient
+	InitPrometheus(port)
+	promClient := defaultClient
+	var err error
+	defaultClient, err = newMuxClient([]Client{promClient, influxClient})
+	if err != nil {
+		return fmt.Errorf("Failed to create MuxClient: %s", err)
+	}
 	return nil
 }
 

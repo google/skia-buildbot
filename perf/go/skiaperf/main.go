@@ -17,6 +17,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/influxdb_init"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	storage "google.golang.org/api/storage/v1"
 
@@ -70,6 +72,7 @@ var (
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	promPort       = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
 	ptraceStoreDir = flag.String("ptrace_store_dir", "/tmp/ptracestore", "The directory where the ptracestore tiles are stored.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
@@ -838,7 +841,14 @@ func main() {
 	// Setup DB flags.
 	dbConf := idb.DBConfigFromFlags()
 
-	common.InitWithMetrics2("skiaperf", influxHost, influxUser, influxPassword, influxDatabase, local)
+	common.Init()
+	influxClient, err := influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *local)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	if err := metrics2.InitPromInflux("skiaperf", influxClient, *promPort); err != nil {
+		sklog.Fatal(err)
+	}
 
 	Init()
 	if !*local {

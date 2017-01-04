@@ -267,10 +267,16 @@ func (c *influxClient) deleteAggregateMetric(key string) error {
 	return nil
 }
 
+func (c *influxClient) NewLiveness(name string, tagsList ...map[string]string) Liveness {
+	return newLiveness(c, name, false, tagsList...)
+}
+
+func (c *influxClient) NewTimer(name string, tagsList ...map[string]string) Timer {
+	return newTimer(c, name, false, tagsList...)
+}
+
 // Validate that the concrete structs faithfully implement their respective interfaces.
 var _ Client = (*influxClient)(nil)
 var _ Counter = (*counter)(nil)
 var _ Float64Metric = (*float64Metric)(nil)
 var _ Int64Metric = (*int64Metric)(nil)
-var _ Liveness = (*liveness)(nil)
-var _ Timer = (*timer)(nil)
