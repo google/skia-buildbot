@@ -1,0 +1,19 @@
+[Unit]
+Description=Pdfium Gold traceserver
+Requires=mnt-pd0.mount
+Wants=network-online.target
+After=mnt-pd0.mount network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/pdfium_gold_traceserver \
+    --db_file=/mnt/pd0/pdfium_gold/traceserver/pdfium_gold_traces.db \
+    --sharedb_dir=/mnt/pd0/pdfium_gold/traceserver/sharedb-data \
+    --port=:10001 \
+    --log_dir=/var/log/logserver
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
