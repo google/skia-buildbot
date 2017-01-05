@@ -19,6 +19,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/login"
 )
 
 var (
@@ -266,9 +267,10 @@ func getRecreateWebpageArchivesTasksHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func AddHandlers(r *mux.Router) {
-	r.HandleFunc("/"+ctfeutil.ADMIN_TASK_URI, addTaskView).Methods("GET")
-	r.HandleFunc("/"+ctfeutil.RECREATE_PAGE_SETS_RUNS_URI, recreatePageSetsRunsHistoryView).Methods("GET")
-	r.HandleFunc("/"+ctfeutil.RECREATE_WEBPAGE_ARCHIVES_RUNS_URI, recreateWebpageArchivesRunsHistoryView).Methods("GET")
+	r.Handle("/"+ctfeutil.ADMIN_TASK_URI, login.ForceAuth(http.HandlerFunc(addTaskView), ctfeutil.OAUTH2_CALLBACK_PATH)).Methods("GET")
+	r.Handle("/"+ctfeutil.RECREATE_PAGE_SETS_RUNS_URI, login.ForceAuth(http.HandlerFunc(recreatePageSetsRunsHistoryView), ctfeutil.OAUTH2_CALLBACK_PATH)).Methods("GET")
+	r.Handle("/"+ctfeutil.RECREATE_WEBPAGE_ARCHIVES_RUNS_URI, login.ForceAuth(http.HandlerFunc(recreateWebpageArchivesRunsHistoryView), ctfeutil.OAUTH2_CALLBACK_PATH)).Methods("GET")
+
 	r.HandleFunc("/"+ctfeutil.ADD_RECREATE_PAGE_SETS_TASK_POST_URI, addRecreatePageSetsTaskHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.ADD_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, addRecreateWebpageArchivesTaskHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.GET_RECREATE_PAGE_SETS_TASKS_POST_URI, getRecreatePageSetsTasksHandler).Methods("POST")
