@@ -22,7 +22,6 @@ import (
 const (
 	CHROMIUM_PERF_URI                  = "chromium_perf/"
 	CHROMIUM_PERF_RUNS_URI             = "chromium_perf_runs/"
-	GET_CHROMIUM_PERF_RUN_STATUS_URI   = "get_chromium_perf_run_status"
 	ADD_CHROMIUM_PERF_TASK_POST_URI    = "_/add_chromium_perf_task"
 	GET_CHROMIUM_PERF_TASKS_POST_URI   = "_/get_chromium_perf_tasks"
 	UPDATE_CHROMIUM_PERF_TASK_POST_URI = "_/update_chromium_perf_task"

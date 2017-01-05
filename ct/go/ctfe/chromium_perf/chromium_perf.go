@@ -239,10 +239,6 @@ func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}
 	return clauses, args, nil
 }
 
-func getTaskStatusHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.GetTaskStatusHandler(&DBTask{}, w, r)
-}
-
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.UpdateTaskHandler(&UpdateVars{}, db.TABLE_CHROMIUM_PERF_TASKS, w, r)
 }
@@ -263,7 +259,6 @@ func AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", addTaskView).Methods("GET")
 	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_URI, addTaskView).Methods("GET")
 	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_RUNS_URI, runsHistoryView).Methods("GET")
-	r.HandleFunc("/"+ctfeutil.GET_CHROMIUM_PERF_RUN_STATUS_URI, getTaskStatusHandler).Methods("GET")
 	r.HandleFunc("/"+ctfeutil.ADD_CHROMIUM_PERF_TASK_POST_URI, addTaskHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.GET_CHROMIUM_PERF_TASKS_POST_URI, getTasksHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.UPDATE_CHROMIUM_PERF_TASK_POST_URI, updateTaskHandler).Methods("POST")
