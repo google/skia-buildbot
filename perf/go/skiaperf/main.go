@@ -849,9 +849,6 @@ func main() {
 	if err := metrics2.InitPromInflux("skiaperf", influxClient, *promPort); err != nil {
 		sklog.Fatal(err)
 	}
-	if !*local {
-		common.StartCloudLogging("skiaperf")
-	}
 
 	Init()
 	if !*local {
