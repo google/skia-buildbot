@@ -9,6 +9,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/skia-dev/glog"
+	"golang.org/x/net/context"
 	logging "google.golang.org/api/logging/v2beta1"
 )
 
@@ -42,6 +43,9 @@ const (
 
 	// first string is defaultReport, second is logGrouping
 	CLOUD_LOGGING_URL_FORMAT = "https://console.cloud.google.com/logs/viewer?logName=projects%%2Fgoogle.com:skia-buildbots%%2Flogs%%2F%s&resource=logging_log%%2Fname%%2F%s"
+
+	// Timeout for making the WriteLogEntriesRequest request.
+	WRITE_LOG_ENTRIES_REQUEST_TIMEOUT = 100 * time.Millisecond
 )
 
 // CLIENTS SHOULD NOT CALL InitCloudLogging directly. Instead use common.InitWithCloudLogging.
@@ -218,7 +222,9 @@ func (c *logsClient) BatchCloudLog(reportName string, payloads ...*LogPayload) {
 		if len(entries) > 1 {
 			glog.Infof("Sending log entry batch of %d", len(entries))
 		}
-		if resp, err := c.service.Entries.Write(&request).Do(); err != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), WRITE_LOG_ENTRIES_REQUEST_TIMEOUT)
+		defer cancel()
+		if resp, err := c.service.Entries.Write(&request).Context(ctx).Do(); err != nil {
 			// We can't use httputil.DumpResponse, because that doesn't accept *logging.WriteLogEntriesResponse
 			glog.Errorf("Problem writing logs \nLogPayloads:\n%v\nLogEntries:\n%v\nResponse:\n%v:\n%s", spew.Sdump(payloads), spew.Sdump(entries), spew.Sdump(resp), err)
 		} else if resp.HTTPStatusCode != http.StatusOK {
