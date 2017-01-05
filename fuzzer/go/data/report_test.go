@@ -1,9 +1,9 @@
 package data
 
 import (
-	"reflect"
 	"testing"
 
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -25,7 +25,15 @@ func TestSortedFuzzReports(t *testing.T) {
 		// just add them in already sorted order
 		b = append(b, MockReport("skpicture", key))
 	}
-	if !reflect.DeepEqual(a, b) {
-		t.Errorf("Expected: %#v\n, but was: %#v", a, b)
-	}
+
+	assert.Equal(t, b, a, "SortedFuzzReports Not Sorted")
+
+	// test replace
+	r := MockReport("skpicture", "hhhh")
+	r.FuzzName = "cccc"
+	assert.NotEqual(t, r, a[2], "Reports shouldn't be equal yet")
+
+	a.Append(r)
+	assert.Equal(t, 7, len(a), "Replacing shouldn't have changed the size")
+	assert.Equal(t, r, a[2], "Report 'cccc' should have been overwritten")
 }

@@ -88,7 +88,7 @@ func (p *FuzzPool) FindFuzzDetailForFuzz(name string) (data.FuzzReport, error) {
 	i := sort.Search(len(p.Current), func(j int) bool {
 		return p.Current[j].FuzzName >= name
 	})
-	if i >= len(p.Current) {
+	if i >= len(p.Current) || p.Current[i].FuzzName != name {
 		return data.FuzzReport{}, fmt.Errorf("Fuzz with name %s not found", name)
 	}
 	return p.Current[i], nil
