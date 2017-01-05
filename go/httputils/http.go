@@ -26,6 +26,9 @@ const (
 	DIAL_TIMEOUT    = time.Minute
 	REQUEST_TIMEOUT = 5 * time.Minute
 
+	FAST_DIAL_TIMEOUT    = 50 * time.Millisecond
+	FAST_REQUEST_TIMEOUT = 100 * time.Millisecond
+
 	// Exponential backoff defaults.
 	INITIAL_INTERVAL     = 500 * time.Millisecond
 	RANDOMIZATION_FACTOR = 0.5
@@ -41,6 +44,11 @@ func DialTimeout(network, addr string) (net.Conn, error) {
 	return net.DialTimeout(network, addr, DIAL_TIMEOUT)
 }
 
+// FastDialTimeout is a dialer that sets a timeout.
+func FastDialTimeout(network, addr string) (net.Conn, error) {
+	return net.DialTimeout(network, addr, FAST_DIAL_TIMEOUT)
+}
+
 // NewTimeoutClient creates a new http.Client with both a dial timeout and a
 // request timeout.
 func NewTimeoutClient() *http.Client {
@@ -49,6 +57,17 @@ func NewTimeoutClient() *http.Client {
 			Dial: DialTimeout,
 		},
 		Timeout: REQUEST_TIMEOUT,
+	}
+}
+
+// NewFastTimeoutClient creates a new http.Client with both a dial timeout and a
+// request timeout.
+func NewFastTimeoutClient() *http.Client {
+	return &http.Client{
+		Transport: &http.Transport{
+			Dial: FastDialTimeout,
+		},
+		Timeout: FAST_REQUEST_TIMEOUT,
 	}
 }
 

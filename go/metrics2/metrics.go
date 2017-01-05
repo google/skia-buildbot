@@ -9,9 +9,9 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/influxdb"
-	"go.skia.org/infra/go/sklog"
 )
 
 // Timer is a struct used for measuring elapsed time. Unlike the other metrics
@@ -164,7 +164,7 @@ func InitPrometheus(port string) {
 	r := mux.NewRouter()
 	r.Handle("/metrics", promhttp.Handler())
 	go func() {
-		sklog.Fatal(http.ListenAndServe(":10110", r))
+		glog.Fatal(http.ListenAndServe(":10110", r))
 	}()
 	defaultClient = newPromClient()
 	defaultInfluxClient = nil
@@ -210,7 +210,7 @@ func NewClient(influxDbClient *influxdb.Client, defaultTags map[string]string, r
 		for _ = range time.Tick(PUSH_FREQUENCY) {
 			byMeasurement, err := c.pushData()
 			if err != nil {
-				sklog.Errorf("Failed to push data into InfluxDB: %s", err)
+				glog.Errorf("Failed to push data into InfluxDB: %s", err)
 			} else {
 				total := int64(0)
 				for k, v := range byMeasurement {
