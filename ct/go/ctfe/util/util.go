@@ -13,6 +13,8 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/gorilla/mux"
+
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
@@ -86,13 +88,17 @@ const (
 	PAGE_SETS_PARAMETERS_POST_URI = "_/page_sets/"
 	CL_DATA_POST_URI              = "_/cl_data"
 	BENCHMARKS_PLATFORMS_POST_URI = "_/benchmarks_platforms/"
+
+	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
 )
+
+var DomainsWithViewAccess = []string{"google.com"}
 
 // Function to run before executing a template.
 var PreExecuteTemplateHook = func() {}
 
 func UserHasEditRights(r *http.Request) bool {
-	return strings.HasSuffix(login.LoggedInAs(r), "@google.com") || strings.HasSuffix(login.LoggedInAs(r), "@chromium.org")
+	return strings.HasSuffix(login.LoggedInAs(r), "@google.com")
 }
 
 func UserHasAdminRights(r *http.Request) bool {
@@ -157,4 +163,8 @@ func GetQualifiedCustomWebpages(customWebpages, benchmarkArgs string) ([]string,
 		}
 	}
 	return qualifiedWebpages, nil
+}
+
+func AddForceLoginHandler(r *mux.Router, path, httpMethod string, handlerFunc http.HandlerFunc) {
+	r.Handle(path, login.ForceAuth(handlerFunc, OAUTH2_CALLBACK_PATH)).Methods(httpMethod)
 }

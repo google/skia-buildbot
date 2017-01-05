@@ -256,12 +256,15 @@ func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddHandlers(r *mux.Router) {
-	r.HandleFunc("/", addTaskView).Methods("GET")
-	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_URI, addTaskView).Methods("GET")
-	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_RUNS_URI, runsHistoryView).Methods("GET")
-	r.HandleFunc("/"+ctfeutil.ADD_CHROMIUM_PERF_TASK_POST_URI, addTaskHandler).Methods("POST")
-	r.HandleFunc("/"+ctfeutil.GET_CHROMIUM_PERF_TASKS_POST_URI, getTasksHandler).Methods("POST")
+	ctfeutil.AddForceLoginHandler(r, "/", "GET", addTaskView)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.CHROMIUM_PERF_URI, "GET", addTaskView)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.CHROMIUM_PERF_RUNS_URI, "GET", runsHistoryView)
+
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.ADD_CHROMIUM_PERF_TASK_POST_URI, "POST", addTaskHandler)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.GET_CHROMIUM_PERF_TASKS_POST_URI, "POST", getTasksHandler)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.DELETE_CHROMIUM_PERF_TASK_POST_URI, "POST", deleteTaskHandler)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.REDO_CHROMIUM_PERF_TASK_POST_URI, "POST", redoTaskHandler)
+
+	// Do not add force login handler for update methods. They use webhooks for authentication.
 	r.HandleFunc("/"+ctfeutil.UPDATE_CHROMIUM_PERF_TASK_POST_URI, updateTaskHandler).Methods("POST")
-	r.HandleFunc("/"+ctfeutil.DELETE_CHROMIUM_PERF_TASK_POST_URI, deleteTaskHandler).Methods("POST")
-	r.HandleFunc("/"+ctfeutil.REDO_CHROMIUM_PERF_TASK_POST_URI, redoTaskHandler).Methods("POST")
 }
