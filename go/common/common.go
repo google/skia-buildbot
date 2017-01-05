@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb_init"
 	"go.skia.org/infra/go/metrics2"
 
@@ -103,7 +104,10 @@ func StartMetrics2(appName string, influxHost, influxUser, influxPassword, influ
 // goes wrong. InitWithCloudLogging should be called before the program creates any go routines
 // such that all subsequent logs are properly sent to the Cloud.
 func StartCloudLogging(logName string) {
-	c, err := auth.NewDefaultJWTServiceAccountClient(sklog.CLOUD_LOGGING_WRITE_SCOPE)
+	transport := &http.Transport{
+		Dial: httputils.FastDialTimeout,
+	}
+	c, err := auth.NewJWTServiceAccountClient("", "", transport, sklog.CLOUD_LOGGING_WRITE_SCOPE)
 	if err != nil {
 		sklog.Fatalf("Problem getting authenticated client: %s", err)
 	}

@@ -5,8 +5,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/skia-dev/glog"
+
 	"go.skia.org/infra/go/influxdb"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -59,7 +60,7 @@ func (c *influxClient) addPointAtTime(measurement string, tags map[string]string
 	c.valuesMtx.Lock()
 	defer c.valuesMtx.Unlock()
 	if c.values == nil {
-		sklog.Errorf("Metrics client not initialized; cannot add points.")
+		glog.Errorf("Metrics client not initialized; cannot add points.")
 		return
 	}
 	if tags == nil {
@@ -73,7 +74,7 @@ func (c *influxClient) addPointAtTime(measurement string, tags map[string]string
 		allTags[k] = v
 	}
 	if err := c.values.AddPoint(measurement, allTags, map[string]interface{}{"value": value}, ts); err != nil {
-		sklog.Errorf("Failed to add data point: %s", err)
+		glog.Errorf("Failed to add data point: %s", err)
 	}
 }
 
@@ -141,7 +142,7 @@ func (c *influxClient) Flush() error {
 // Flush pushes any queued data into InfluxDB.  It is meant to be deferred by short running apps.  Long running apps shouldn't worry about this as metrics2 will auto-push every so often.
 func Flush() {
 	if err := defaultClient.Flush(); err != nil {
-		sklog.Errorf("There was a problem while flushing metrics: %s", err)
+		glog.Errorf("There was a problem while flushing metrics: %s", err)
 	}
 }
 
@@ -189,7 +190,7 @@ func (m *rawMetric) Delete() error {
 func makeMetricKey(measurement string, tags map[string]string) string {
 	md5, err := util.MD5Params(tags)
 	if err != nil {
-		sklog.Errorf("Failed to encode measurement tags: %s", err)
+		glog.Errorf("Failed to encode measurement tags: %s", err)
 	}
 	return fmt.Sprintf("%s_%s", measurement, md5)
 }
