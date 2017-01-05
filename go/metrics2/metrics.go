@@ -164,7 +164,7 @@ func InitPrometheus(port string) {
 	r := mux.NewRouter()
 	r.Handle("/metrics", promhttp.Handler())
 	go func() {
-		glog.Fatal(http.ListenAndServe(":10110", r))
+		glog.Fatal(http.ListenAndServe(port, r))
 	}()
 	defaultClient = newPromClient()
 	defaultInfluxClient = nil

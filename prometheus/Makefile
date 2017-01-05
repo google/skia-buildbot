@@ -1,5 +1,6 @@
 build:
-	go get -u github.com/prometheus/prometheus/cmd/...
+	go install -v ./go/webhook_email_proxy
+	# go get -u github.com/prometheus/prometheus/cmd/...
 
 push:
 	promtool check-config sys/prometheus.yml
