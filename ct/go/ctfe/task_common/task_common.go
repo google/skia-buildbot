@@ -217,48 +217,6 @@ func DBTaskQuery(prototype Task, params QueryParams) (string, []interface{}) {
 	return query, args
 }
 
-func GetTaskStatusHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
-	taskID := r.FormValue("task_id")
-	if taskID == "" {
-		httputils.ReportError(w, r, nil, "Missing required parameter task_id")
-		return
-	}
-
-	rowQuery := fmt.Sprintf("SELECT * FROM %s WHERE id = ?", prototype.TableName())
-	data, err := prototype.Select(rowQuery, taskID)
-	if err != nil {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Could not find the specified %s task", prototype.GetTaskName()))
-		return
-	}
-	tasks := AsTaskSlice(data)
-	if len(tasks) == 0 {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Could not find the specified %s task", prototype.GetTaskName()))
-		return
-	}
-
-	status := "Pending"
-	resultsLink := tasks[0].GetResultsLink()
-	if tasks[0].GetCommonCols().TsCompleted.Valid {
-		status = "Completed"
-		if tasks[0].GetCommonCols().Failure.Valid && tasks[0].GetCommonCols().Failure.Bool {
-			status += " with failures"
-		}
-	} else if tasks[0].GetCommonCols().TsStarted.Valid {
-		status = "Started"
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	jsonResponse := map[string]interface{}{
-		"taskID":      taskID,
-		"status":      status,
-		"resultsLink": resultsLink,
-	}
-	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode JSON")
-		return
-	}
-}
-
 func HasPageSetsColumn(prototype Task) bool {
 	v := reflect.Indirect(reflect.ValueOf(prototype))
 	if v.Kind() != reflect.Struct {
