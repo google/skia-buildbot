@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/login"
 )
 
 var (
@@ -232,8 +233,9 @@ func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddHandlers(r *mux.Router) {
-	r.HandleFunc("/"+ctfeutil.CHROMIUM_ANALYSIS_URI, addTaskView).Methods("GET")
-	r.HandleFunc("/"+ctfeutil.CHROMIUM_ANALYSIS_RUNS_URI, runsHistoryView).Methods("GET")
+	r.Handle("/"+ctfeutil.CHROMIUM_ANALYSIS_URI, login.ForceAuth(http.HandlerFunc(addTaskView), ctfeutil.OAUTH2_CALLBACK_PATH)).Methods("GET")
+	r.Handle("/"+ctfeutil.CHROMIUM_ANALYSIS_RUNS_URI, login.ForceAuth(http.HandlerFunc(runsHistoryView), ctfeutil.OAUTH2_CALLBACK_PATH)).Methods("GET")
+
 	r.HandleFunc("/"+ctfeutil.ADD_CHROMIUM_ANALYSIS_TASK_POST_URI, addTaskHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.GET_CHROMIUM_ANALYSIS_TASKS_POST_URI, getTasksHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.UPDATE_CHROMIUM_ANALYSIS_TASK_POST_URI, updateTaskHandler).Methods("POST")

@@ -26,6 +26,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/login"
 )
 
 var (
@@ -179,9 +180,9 @@ func pendingTasksView(w http.ResponseWriter, r *http.Request) {
 
 func AddHandlers(r *mux.Router) {
 	// Runs history handlers.
-	r.HandleFunc("/"+ctfeutil.RUNS_HISTORY_URI, runsHistoryView).Methods("GET")
+	r.Handle("/"+ctfeutil.RUNS_HISTORY_URI, login.ForceAuth(http.HandlerFunc(runsHistoryView), ctfeutil.OAUTH2_CALLBACK_PATH)).Methods("GET")
 
 	// Task Queue handlers.
-	r.HandleFunc("/"+ctfeutil.PENDING_TASKS_URI, pendingTasksView).Methods("GET")
+	r.Handle("/"+ctfeutil.PENDING_TASKS_URI, login.ForceAuth(http.HandlerFunc(pendingTasksView), ctfeutil.OAUTH2_CALLBACK_PATH)).Methods("GET")
 	r.HandleFunc("/"+ctfeutil.GET_OLDEST_PENDING_TASK_URI, getOldestPendingTaskHandler).Methods("GET")
 }

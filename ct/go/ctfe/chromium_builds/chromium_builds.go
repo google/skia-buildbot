@@ -29,6 +29,7 @@ import (
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/login"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -275,8 +276,9 @@ func Validate(chromiumBuild DBTask) error {
 }
 
 func AddHandlers(r *mux.Router) {
-	r.HandleFunc("/"+ctfeutil.CHROMIUM_BUILD_URI, addTaskView).Methods("GET")
-	r.HandleFunc("/"+ctfeutil.CHROMIUM_BUILD_RUNS_URI, runsHistoryView).Methods("GET")
+	r.Handle("/"+ctfeutil.CHROMIUM_BUILD_URI, login.ForceAuth(http.HandlerFunc(addTaskView), ctfeutil.OAUTH2_CALLBACK_PATH)).Methods("GET")
+	r.Handle("/"+ctfeutil.CHROMIUM_BUILD_RUNS_URI, login.ForceAuth(http.HandlerFunc(runsHistoryView), ctfeutil.OAUTH2_CALLBACK_PATH)).Methods("GET")
+
 	r.HandleFunc("/"+ctfeutil.CHROMIUM_REV_DATA_POST_URI, getChromiumRevDataHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.SKIA_REV_DATA_POST_URI, getSkiaRevDataHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.ADD_CHROMIUM_BUILD_TASK_POST_URI, addTaskHandler).Methods("POST")
