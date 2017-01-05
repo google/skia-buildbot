@@ -1,4 +1,4 @@
-GitRepoDir     = "/mnt/pd0/pdfium_gold/skiarepo"           # Directory location for the Skia repo.
+GitRepoDir     = "/mnt/pd0/pdfium_gold/pdfium_repo"           # Directory location for the Skia repo.
 GitRepoURL     = "https://pdfium.googlesource.com/pdfium"  # URL location for the repo.
 
 [Ingesters]
