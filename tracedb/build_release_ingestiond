@@ -4,18 +4,20 @@ APPNAME="ingestiond"
 SYSTEMD="gold-ingestion.service pdf-ingestion.service pdfium-gold-ingestion.service"
 DESCRIPTION="Ingestion services."
 
-# Install pdfium_test if necessary. This will do nothing if the latest version 
+# Install pdfium_test if necessary. This will do nothing if the latest version
 # of pdfium_test is already installed.
 ../pdfium/install_pdfium.sh
 
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
+set -e
+
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
 ${INSTALL}     --mode=755 -T ${GOPATH}/bin/pdfium_test      ${ROOT}/usr/local/bin/pdfium_test
 ${INSTALL_DIR} --mode=777                                   ${ROOT}/mnt/pd0/gold/skiarepo
-${INSTALL_DIR} --mode=777                                   ${ROOT}/mnt/pd0/pdfium_gold/skiarepo
+${INSTALL_DIR} --mode=777                                   ${ROOT}/mnt/pd0/pdfium_gold/pdfium_repo
 ${INSTALL_DIR} --mode=777                                   ${ROOT}/mnt/pd0/pdf
 ${INSTALL_DIR} --mode=777                                   ${ROOT}/mnt/pd0/pdf/cache
 
@@ -23,7 +25,7 @@ ${INSTALL}     --mode=644 -T ./sys/gold-ingestion.service   ${ROOT}/etc/systemd/
 ${INSTALL}     --mode=644 -T ./sys/pdfium-gold-ingestion.service   ${ROOT}/etc/systemd/system/pdfium-gold-ingestion.service
 ${INSTALL}     --mode=644 -T ./sys/pdf-ingestion.service    ${ROOT}/etc/systemd/system/pdf-ingestion.service
 ${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion   ${ROOT}/usr/local/bin/gold_ingestion
-${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion   ${ROOT}/usr/local/bin/pdfium-gold_ingestion
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion   ${ROOT}/usr/local/bin/pdfium_gold_ingestion
 ${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion   ${ROOT}/usr/local/bin/pdf_ingestion
 ${INSTALL}     --mode=644 -T ./sys/gold.toml                ${ROOT}/etc/gold_ingestion/config.toml
 ${INSTALL}     --mode=644 -T ./sys/pdfium-gold.toml         ${ROOT}/etc/pdfium_gold_ingestion/config.toml
