@@ -85,6 +85,7 @@ func getIntParam(name string, r *http.Request) (*int, error) {
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
+	// rmistry
 	http.Redirect(w, r, login.LoginURL(w, r), http.StatusFound)
 	return
 }
@@ -104,7 +105,7 @@ func runServer(serverURL string) {
 
 	// Common handlers used by different pages.
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
-	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	r.HandleFunc(ctfeutil.OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 	r.HandleFunc("/login/", loginHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
@@ -227,8 +228,9 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
-	redirectURL := serverURL + "/oauth2callback/"
-	if err := login.Init(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
+	redirectURL := serverURL + ctfeutil.OAUTH2_CALLBACK_PATH
+	// rmistry
+	if err := login.Init(redirectURL, login.DEFAULT_SCOPE, "google.com"); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
