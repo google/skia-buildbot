@@ -376,7 +376,13 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(activeUserDomainWhiteList) > 0 && !activeUserDomainWhiteList[parts[1]] && !activeUserEmailWhiteList[email] {
-		http.Error(w, "Accounts from your domain are not allowed or your email address is not white listed.", 500)
+		//http.Error(w, "<html>Accounts from your domain are not allowed or your email address is not white listed. <a href='www.google.com'>Go back</a>.</html>", 500)
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.WriteHeader(500)
+		fmt.Fprintln(w, "<html>Accounts from your domain are not allowed or your email address is not white listed. <a href='http://www.google.com'>Go back</a>.</html>")
+		fmt.Println("LOGIN ERROR!!!!!!!")
+		fmt.Println(redirect)
 		return
 	}
 	s := Session{
