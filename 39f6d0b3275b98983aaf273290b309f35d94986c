@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "578ed681_52669246",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-06T21:24:46Z",
+      "side": 1,
+      "message": "No, because I use it as an int later to set the size of the buffer.",
+      "parentUuid": "578ed681_f24b06ca",
+      "revId": "39f6d0b3275b98983aaf273290b309f35d94986c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "578ed681_12d7aaaa",
         "filename": "go/sklog/cloud_logging.go",
         "patchSetId": 5
@@ -42,6 +60,24 @@
         "endLine": 221,
         "endChar": 35
       },
+      "revId": "39f6d0b3275b98983aaf273290b309f35d94986c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_d29a82fe",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-06T21:24:46Z",
+      "side": 1,
+      "message": "Do\u0027h, good catch.",
+      "parentUuid": "578ed681_12d7aaaa",
       "revId": "39f6d0b3275b98983aaf273290b309f35d94986c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "578ed681_12624a20",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-06T21:24:46Z",
+      "side": 1,
+      "message": "/me shakes fist at sync.WaitGroup...\n\nOK, fixed by passing in a completion channel to the channel.",
+      "parentUuid": "578ed681_b2aede33",
+      "revId": "39f6d0b3275b98983aaf273290b309f35d94986c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "578ed681_72b15691",
         "filename": "go/sklog/cloud_logging.go",
         "patchSetId": 5
@@ -88,6 +142,24 @@
         "endLine": 260,
         "endChar": 42
       },
+      "revId": "39f6d0b3275b98983aaf273290b309f35d94986c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b7e1d242_42a5b287",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-06T21:24:46Z",
+      "side": 1,
+      "message": "yes, fixed above.",
+      "parentUuid": "578ed681_72b15691",
       "revId": "39f6d0b3275b98983aaf273290b309f35d94986c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
