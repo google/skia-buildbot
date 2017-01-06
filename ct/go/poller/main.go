@@ -408,7 +408,12 @@ func updateWebappTaskSetFailed(task Task) error {
 // WaitGroup of the goroutine is returned to the caller. The caller can then call
 // wg.Wait() if they would like to wait for the task to finish.
 func pollAndExecOnce() *sync.WaitGroup {
+	fmt.Println("HERE HERE HERE HERE")
+	fmt.Println("HERE HERE HERE HERE")
+	fmt.Println("HERE HERE HERE HERE")
 	pending, err := frontend.GetOldestPendingTaskV2()
+	fmt.Println(pending)
+	sklog.Fatal("DONE!")
 	var wg sync.WaitGroup
 	if err != nil {
 		sklog.Error(err)
