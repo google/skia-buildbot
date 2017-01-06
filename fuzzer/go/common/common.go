@@ -117,13 +117,6 @@ var fuzzers = map[string]FuzzerInfo{
 		ExtraBugLabels:      []string{},
 		ArgsAfterExecutable: []string{"--type", "sksl2glsl", "--bytes"},
 	},
-	"skpicture": {
-		PrettyName:          "SkPicture",
-		Status:              EXPERIMENTAL_FUZZER,
-		Groomer:             UNCLAIMED,
-		ExtraBugLabels:      nil,
-		ArgsAfterExecutable: []string{"--type", "skp", "--bytes"},
-	},
 }
 
 // FUZZ_CATEGORIES is an alphabetized list of known fuzz categories.
