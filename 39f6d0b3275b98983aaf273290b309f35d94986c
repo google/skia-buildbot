@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "578ed681_f24b06ca",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-06T20:55:23Z",
+      "side": 1,
+      "message": "Can we just make this a time.Duration?  i.e. encode the unit in the variable?",
+      "range": {
+        "startLine": 54,
+        "startChar": 11,
+        "endLine": 54,
+        "endChar": 22
+      },
+      "revId": "39f6d0b3275b98983aaf273290b309f35d94986c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_12d7aaaa",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-06T20:55:23Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this write to c.payloadCh?",
+      "range": {
+        "startLine": 221,
+        "startChar": 2,
+        "endLine": 221,
+        "endChar": 35
+      },
+      "revId": "39f6d0b3275b98983aaf273290b309f35d94986c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_b2aede33",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-06T20:55:23Z",
+      "side": 1,
+      "message": "From the docs \". If a WaitGroup is reused to wait for several independent sets of events, new Add calls must happen after all previous Wait calls have returned. \"\n\nIsn\u0027t this problematic?  i.e. \nCall to Flush() // hits wait\nCall to Flush() // Add() called before previous wait has happened?",
+      "range": {
+        "startLine": 228,
+        "startChar": 1,
+        "endLine": 228,
+        "endChar": 12
+      },
+      "revId": "39f6d0b3275b98983aaf273290b309f35d94986c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_72b15691",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-06T20:55:23Z",
+      "side": 1,
+      "message": "Couldn\u0027t there be a race condition here where something gets added to c.buffer between lines 237 and 248?  Or, at least between 242 and 248?",
+      "range": {
+        "startLine": 260,
+        "startChar": 3,
+        "endLine": 260,
+        "endChar": 42
+      },
+      "revId": "39f6d0b3275b98983aaf273290b309f35d94986c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
