@@ -16,6 +16,24 @@
       "revId": "41ee9b471c02d9b320c587da3596a5ad958a1458",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_4f5eed2f",
+        "filename": "prometheus/go/webhook_email_proxy/main.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-06T17:48:52Z",
+      "side": 1,
+      "message": "Once I get the domain name and proxy all set up I will come back and do that.",
+      "parentUuid": "578ed681_0f4f8583",
+      "revId": "41ee9b471c02d9b320c587da3596a5ad958a1458",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
