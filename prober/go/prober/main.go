@@ -38,15 +38,10 @@ var (
 
 	// responseTesters is a mapping of names to functions that test response bodies.
 	responseTesters = map[string]ResponseTester{
-		"ctfeCLDataJSON":              ctfeCLDataJSON,
-		"ctfeBenchmarksPlatformsJSON": ctfeBenchmarksPlatformsJSON,
-		"ctfeGetTasksJSON":            ctfeGetTasksJSON,
-		"ctfeGetTasksNonEmptyJSON":    ctfeGetTasksNonEmptyJSON,
-		"ctfeRevDataJSON":             ctfeRevDataJSON,
-		"nonZeroContenLength":         nonZeroContenLength,
-		"skfiddleJSONBad":             skfiddleJSONBad,
-		"skfiddleJSONGood":            skfiddleJSONGood,
-		"validJSON":                   validJSON,
+		"nonZeroContenLength": nonZeroContenLength,
+		"skfiddleJSONBad":     skfiddleJSONBad,
+		"skfiddleJSONGood":    skfiddleJSONGood,
+		"validJSON":           validJSON,
 	}
 )
 
@@ -190,59 +185,6 @@ func hasKeys(obj map[string]interface{}, keys []string) bool {
 		}
 	}
 	return true
-}
-
-// ctfeBenchmarksPlatformsJSON tests that the response contains valid JSON with the keys
-// expected by ct/templates/chromium_perf.html and ct/templates/chromium_analysis.html.
-func ctfeBenchmarksPlatformsJSON(r io.Reader, headers http.Header) bool {
-	return hasKeys(decodeJSONObject(r), []string{"benchmarks", "platforms"})
-}
-
-// ctfeCLDataJSON tests that the response contains valid JSON with the keys expected by
-// ct/res/imp/chromium-perf-sk.html.
-func ctfeCLDataJSON(r io.Reader, headers http.Header) bool {
-	return hasKeys(decodeJSONObject(r), []string{"subject", "modified", "catapult_patch", "chromium_patch", "skia_patch", "url"})
-}
-
-// ctfeGetTasksJSONObject tests that obj has the attributes expected by
-// ct/res/imp/pending-tasks-sk.html and ct/res/imp/*-runs-sk.html. Returns false if obj is nil.
-func ctfeGetTasksJSONObject(obj map[string]interface{}, headers http.Header) bool {
-	if !hasKeys(obj, []string{"data", "permissions", "pagination"}) {
-		return false
-	}
-	data, dataOk := obj["data"].([]interface{})
-	permissions, permissionsOk := obj["permissions"].([]interface{})
-	if !dataOk || !permissionsOk || len(data) != len(permissions) {
-		return false
-	}
-	// TODO(benjaminwagner): Other checks required?
-	return true
-}
-
-// ctfeGetTasksJSON tests that the response contains valid JSON and satisfies
-// ctfeGetTasksJSONObject.
-func ctfeGetTasksJSON(r io.Reader, headers http.Header) bool {
-	return ctfeGetTasksJSONObject(decodeJSONObject(r), headers)
-}
-
-// ctfeGetTasksNonEmptyJSON tests the same as ctfeGetTasksJSON and also checks that there is at
-// least one task present.
-func ctfeGetTasksNonEmptyJSON(r io.Reader, headers http.Header) bool {
-	obj := decodeJSONObject(r)
-	if !ctfeGetTasksJSONObject(obj, headers) {
-		return false
-	}
-	data := obj["data"].([]interface{})
-	if len(data) < 1 {
-		return false
-	}
-	return true
-}
-
-// ctfeRevDataJSON tests that the response contains valid JSON with the keys expected by
-// ct/res/imp/chromium-builds-sk.html.
-func ctfeRevDataJSON(r io.Reader, headers http.Header) bool {
-	return hasKeys(decodeJSONObject(r), []string{"commit", "author", "committer"})
 }
 
 // monitorIssueTracker reads the counts for all the types of issues in the Skia

@@ -374,122 +374,107 @@
    "ctfe_benchmarks_platforms": {
      "url": "https://ct.skia.org/_/benchmarks_platforms/",
      "method": "POST",
-     "expected": [200],
+     "expected": [307],
      "body": "",
-     "mimetype": "application/json",
-     "responsetest": "ctfeBenchmarksPlatformsJSON"
+     "mimetype": "application/json"
    },
    "ctfe_rietveld_cl_data": {
      "url": "https://ct.skia.org/_/cl_data?cl=https://codereview.chromium.org/1330473002",
      "method": "POST",
-     "expected": [200],
+     "expected": [307],
      "body": "",
-     "mimetype": "application/json",
-     "responsetest": "ctfeCLDataJSON"
+     "mimetype": "application/json"
    },
    "ctfe_gerrit_cl_data": {
      "url": "https://ct.skia.org/_/cl_data?cl=https://chromium-review.googlesource.com/c/398078/",
      "method": "POST",
-     "expected": [200],
+     "expected": [307],
      "body": "",
-     "mimetype": "application/json",
-     "responsetest": "ctfeCLDataJSON"
+     "mimetype": "application/json"
    },
    "ctfe_chromium_rev_data": {
      "url": "https://ct.skia.org/_/chromium_rev_data?rev=LKGR",
      "method": "POST",
-     "expected": [200],
+     "expected": [307],
      "body": "",
-     "mimetype": "application/json",
-     "responsetest": "ctfeRevDataJSON"
+     "mimetype": "application/json"
    },
    "ctfe_skia_rev_data": {
      "url": "https://ct.skia.org/_/skia_rev_data?rev=LKGR",
      "method": "POST",
-     "expected": [200],
+     "expected": [307],
      "body": "",
-     "mimetype": "application/json",
-     "responsetest": "ctfeRevDataJSON"
+     "mimetype": "application/json"
    },
    "ctfe_get_chromium_analysis_tasks": {
      "url": "https://ct.skia.org/_/get_chromium_analysis_tasks?size=2",
      "method": "POST",
-     "expected": [200],
+     "expected": [307],
      "body": "",
-     "mimetype": "application/json",
-     "responsetest": "ctfeGetTasksJSON"
+     "mimetype": "application/json"
    },
    "ctfe_get_chromium_perf_tasks": {
      "url": "https://ct.skia.org/_/get_chromium_perf_tasks?size=2",
      "method": "POST",
-     "expected": [200],
+     "expected": [307],
      "body": "",
-     "mimetype": "application/json",
-     "responsetest": "ctfeGetTasksJSON"
+     "mimetype": "application/json"
    },
    "ctfe_get_capture_skp_tasks": {
      "url": "https://ct.skia.org/_/get_capture_skp_tasks?size=2",
      "method": "POST",
-     "expected": [200],
+     "expected": [307],
      "body": "",
-     "mimetype": "application/json",
-     "responsetest": "ctfeGetTasksJSON"
+     "mimetype": "application/json"
    },
    "ctfe_get_lua_script_tasks": {
      "url": "https://ct.skia.org/_/get_lua_script_tasks?size=2",
      "method": "POST",
-     "expected": [200],
+     "expected": [307],
      "body": "",
-     "mimetype": "application/json",
-     "responsetest": "ctfeGetTasksJSON"
+     "mimetype": "application/json"
    },
    "ctfe_get_chromium_build_tasks": {
      "url": "https://ct.skia.org/_/get_chromium_build_tasks?size=2",
      "method": "POST",
-     "expected": [200],
+     "expected": [307],
      "body": "",
-     "mimetype": "application/json",
-     "responsetest": "ctfeGetTasksJSON"
+     "mimetype": "application/json"
    },
    "ctfe_get_recreate_page_sets_tasks": {
      "url": "https://ct.skia.org/_/get_recreate_page_sets_tasks?size=2",
      "method": "POST",
-     "expected": [200],
+     "expected": [307],
      "body": "",
-     "mimetype": "application/json",
-     "responsetest": "ctfeGetTasksJSON"
+     "mimetype": "application/json"
    },
    "ctfe_get_recreate_webpage_archives_tasks": {
      "url": "https://ct.skia.org/_/get_recreate_webpage_archives_tasks?size=2",
      "method": "POST",
-     "expected": [200],
+     "expected": [307],
      "body": "",
-     "mimetype": "application/json",
-     "responsetest": "ctfeGetTasksJSON"
+     "mimetype": "application/json"
    },
    "ctfe_get_oldest_pending_task": {
      "url": "https://ct.skia.org/_/get_oldest_pending_task",
      "method": "GET",
-     "expected": [200],
+     "expected": [500],
      "body": "",
-     "mimetype": "application/json",
-     "responsetest": "validJSON"
+     "mimetype": "application/json"
    },
    "ctfe_any_skp_repository_available": {
      "url": "https://ct.skia.org/_/get_capture_skp_tasks?size=1&successful=true",
      "method": "POST",
-     "expected": [200],
+     "expected": [307],
      "body": "",
-     "mimetype": "application/json",
-     "responsetest": "ctfeGetTasksNonEmptyJSON"
+     "mimetype": "application/json"
    },
    "ctfe_any_chromium_builds_available": {
      "url": "https://ct.skia.org/_/get_chromium_build_tasks?size=1&successful=true",
      "method": "POST",
-     "expected": [200],
+     "expected": [307],
      "body": "",
-     "mimetype": "application/json",
-     "responsetest": "ctfeGetTasksNonEmptyJSON"
+     "mimetype": "application/json"
    },
    "task_scheduler": {
      "url": "https://task-scheduler.skia.org",
