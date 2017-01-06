@@ -115,7 +115,17 @@ func UpdateWebappTask(gaeTaskID int64, webappURL string, extraData map[string]st
 // Common functions
 
 func GetOldestPendingTaskV2() (task_common.Task, error) {
-	resp, err := httpClient.Get(GetOldestPendingTaskWebapp)
+	req, err := http.NewRequest("GET", GetOldestPendingTaskWebapp, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Could not create HTTP request: %s", err)
+	}
+	hash, err := webhook.ComputeAuthHashBase64([]byte{})
+	if err != nil {
+		return nil, fmt.Errorf("Could not compute authentication hash: %s", err)
+	}
+	req.Header.Set(webhook.REQUEST_AUTH_HASH_HEADER, hash)
+	client := httputils.NewTimeoutClient()
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
