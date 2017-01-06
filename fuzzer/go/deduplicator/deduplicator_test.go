@@ -9,7 +9,7 @@ import (
 
 func TestSimpleDeduplication(t *testing.T) {
 	testutils.SmallTest(t)
-	d := New()
+	d := NewLocalDeduplicator()
 	r1 := data.MockReport("skpicture", "aaaa")
 	r2 := data.MockReport("skpicture", "bbbb")
 	// mock report ffff and aaaa are the same, except for the name.
@@ -35,7 +35,7 @@ func TestSimpleDeduplication(t *testing.T) {
 
 func TestUnknownStacktraces(t *testing.T) {
 	testutils.SmallTest(t)
-	d := New()
+	d := NewLocalDeduplicator()
 	// mock report ee has no stacktrace for either.  It should not be considered a duplicate, ever.
 	r1 := data.MockReport("skpicture", "eeee")
 	if !d.IsUnique(r1) {
@@ -76,7 +76,7 @@ func TestKey(t *testing.T) {
 
 func TestLinesOfStacktrace(t *testing.T) {
 	testutils.SmallTest(t)
-	d := New()
+	d := NewLocalDeduplicator()
 	r1 := makeReport()
 	r2 := makeReport()
 	r2.DebugStackTrace.Frames = append(r2.DebugStackTrace.Frames, data.StackTraceFrame{})
@@ -99,7 +99,7 @@ func TestLinesOfStacktrace(t *testing.T) {
 
 func TestLineNumbers(t *testing.T) {
 	testutils.SmallTest(t)
-	d := New()
+	d := NewLocalDeduplicator()
 	r1 := makeReport()
 	r2 := makeReport()
 	r2.DebugStackTrace.Frames[0].LineNumber = 9999
@@ -122,7 +122,7 @@ func TestLineNumbers(t *testing.T) {
 
 func TestFlags(t *testing.T) {
 	testutils.SmallTest(t)
-	d := New()
+	d := NewLocalDeduplicator()
 	r1 := makeReport()
 	r2 := makeReport()
 	r2.ReleaseFlags = makeFlags(4, 2)
@@ -143,7 +143,7 @@ func TestFlags(t *testing.T) {
 
 func TestCategory(t *testing.T) {
 	testutils.SmallTest(t)
-	d := New()
+	d := NewLocalDeduplicator()
 	r1 := makeReport()
 	r2 := makeReport()
 	r2.FuzzCategory = "something else"
@@ -157,7 +157,7 @@ func TestCategory(t *testing.T) {
 
 func TestArchitecture(t *testing.T) {
 	testutils.SmallTest(t)
-	d := New()
+	d := NewLocalDeduplicator()
 	r1 := makeReport()
 	r2 := makeReport()
 	r2.FuzzArchitecture = "something else"
@@ -171,7 +171,7 @@ func TestArchitecture(t *testing.T) {
 
 func TestOther(t *testing.T) {
 	testutils.SmallTest(t)
-	d := New()
+	d := NewLocalDeduplicator()
 	r1 := makeReport()
 	r1.DebugFlags = append(r1.DebugFlags, "Other")
 	r2 := makeReport()

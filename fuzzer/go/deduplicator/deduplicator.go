@@ -10,24 +10,30 @@ import (
 
 const _MAX_STACKTRACE_LINES = 4
 
-type Deduplicator struct {
+type Deduplicator interface {
+	Clear()
+	IsUnique(report data.FuzzReport) bool
+}
+
+// localDeduplicator keeps a local cache of keys based on what has been passed to IsUnique
+type localDeduplicator struct {
 	seen  map[string]bool
 	mutex sync.Mutex
 }
 
-func New() *Deduplicator {
-	return &Deduplicator{
+func NewLocalDeduplicator() Deduplicator {
+	return &localDeduplicator{
 		seen: make(map[string]bool),
 	}
 }
 
-func (d *Deduplicator) Clear() {
+func (d *localDeduplicator) Clear() {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
 	d.seen = make(map[string]bool)
 }
 
-func (d *Deduplicator) IsUnique(report data.FuzzReport) bool {
+func (d *localDeduplicator) IsUnique(report data.FuzzReport) bool {
 	// Empty stacktraces should be manually deduplicated.
 	if report.DebugStackTrace.IsEmpty() && report.ReleaseStackTrace.IsEmpty() {
 		return true

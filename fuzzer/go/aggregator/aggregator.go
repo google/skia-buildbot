@@ -12,7 +12,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -64,7 +63,7 @@ type Aggregator struct {
 	forBugReporting chan bugReportingPackage
 
 	// maps category to its deduplicator
-	deduplicators map[string]*deduplicator.Deduplicator
+	deduplicators map[string]deduplicator.Deduplicator
 
 	// The shutdown channels are used to signal shutdowns.  There are two groups, to
 	// allow for a softer, cleaner shutdown w/ minimal lost work.
@@ -74,12 +73,6 @@ type Aggregator struct {
 	monitoringWaitGroup  *sync.WaitGroup
 	aggregationShutdown  chan bool
 	aggregationWaitGroup *sync.WaitGroup
-	// These three counts are used to determine if there is any pending work.
-	// There is no pending work if all three of these values are equal and the
-	// work queues are empty.
-	analysisCount  int64
-	uploadCount    int64
-	bugReportCount int64
 
 	greyNames      []string
 	badNames       []string
@@ -87,9 +80,9 @@ type Aggregator struct {
 }
 
 const (
-	BAD_FUZZ       = "bad"
-	GREY_FUZZ      = "grey"
-	HANG_THRESHOLD = 20
+	BAD_FUZZ        = "bad"
+	GREY_FUZZ       = "grey"
+	EMPTY_THRESHOLD = 5
 )
 
 var (
@@ -132,14 +125,14 @@ func StartAggregator(s *storage.Client, im *issues.IssuesManager, startingReport
 		forBugReporting:    make(chan bugReportingPackage, 10000),
 		MakeBugOnBadFuzz:   true,
 		UploadGreyFuzzes:   false,
-		deduplicators:      make(map[string]*deduplicator.Deduplicator),
+		deduplicators:      make(map[string]deduplicator.Deduplicator),
 		monitoringShutdown: make(chan bool, 2),
 		// aggregationShutdown needs to be created with a calculated capacity in start
 	}
 
 	// preload the deduplicator
 	for _, category := range config.Generator.FuzzesToGenerate {
-		d := deduplicator.New()
+		d := deduplicator.NewLocalDeduplicator()
 		for report := range startingReports[category] {
 			d.IsUnique(report)
 		}
@@ -156,9 +149,6 @@ func (agg *Aggregator) start() error {
 	// Set the wait groups to fresh
 	agg.monitoringWaitGroup = &sync.WaitGroup{}
 	agg.aggregationWaitGroup = &sync.WaitGroup{}
-	atomic.StoreInt64(&agg.analysisCount, int64(0))
-	atomic.StoreInt64(&agg.uploadCount, int64(0))
-	atomic.StoreInt64(&agg.bugReportCount, int64(0))
 
 	if err := agg.buildAnalysisBinaries(); err != nil {
 		return err
@@ -419,10 +409,8 @@ func (agg *Aggregator) waitForAnalysis(identifier int) {
 	for {
 		select {
 		case badFuzz := <-agg.forAnalysis:
-			atomic.AddInt64(&agg.analysisCount, int64(1))
 			err := agg.analysisHelper(executableDir, badFuzz)
 			if err != nil {
-				atomic.AddInt64(&agg.analysisCount, int64(-1))
 				sklog.Errorf("Analyzer %d terminated due to error: %s", identifier, err)
 				return
 			}
@@ -592,11 +580,8 @@ func (agg *Aggregator) waitForUploads(identifier int) {
 	for {
 		select {
 		case p := <-agg.forUpload:
-			atomic.AddInt64(&agg.uploadCount, int64(1))
 			if !agg.UploadGreyFuzzes && p.FuzzType == GREY_FUZZ {
 				sklog.Infof("Skipping upload of grey fuzz %s", p.Data.Name)
-				// We are skipping the bugReport, so increment the counts.
-				atomic.AddInt64(&agg.bugReportCount, int64(1))
 				continue
 			}
 			d, found := agg.deduplicators[p.Category]
@@ -607,14 +592,10 @@ func (agg *Aggregator) waitForUploads(identifier int) {
 			if !agg.WatchForRegressions && p.FuzzType != GREY_FUZZ && !d.IsUnique(data.ParseReport(p.Data)) {
 				sklog.Infof("Skipping upload of duplicate fuzz %s", p.Data.Name)
 				agg.duplicateNames = append(agg.duplicateNames, p.Data.Name)
-				// We are skipping the bugReport, so increment the counts.
-				atomic.AddInt64(&agg.bugReportCount, int64(1))
 				continue
 			}
 			if err := agg.upload(p); err != nil {
 				sklog.Errorf("Uploader %d terminated due to error: %s", identifier, err)
-				// We are skipping the bugReport, so increment the counts.
-				atomic.AddInt64(&agg.bugReportCount, int64(1))
 				return
 			}
 			agg.forBugReporting <- bugReportingPackage{
@@ -719,7 +700,6 @@ func (agg *Aggregator) waitForBugReporting() {
 
 // bugReportingHelper is a helper function to report bugs if the aggregator is configured to.
 func (agg *Aggregator) bugReportingHelper(p bugReportingPackage) error {
-	defer atomic.AddInt64(&agg.bugReportCount, int64(1))
 	if agg.MakeBugOnBadFuzz && p.IsBadFuzz && common.Status(p.Data.Category) == common.STABLE_FUZZER {
 		sklog.Infof("Creating bug for %s", p.Data.FuzzName)
 		if err := agg.issueManager.CreateBadBugIssue(p.Data, "Crash found on 'stable' fuzzer"); err != nil {
@@ -784,46 +764,24 @@ func (agg *Aggregator) RestartAnalysis() error {
 // WaitForEmptyQueues will return once there is nothing more in the analysis-upload-report
 // pipeline, waiting in increments of config.Aggregator.StatusPeriod until it is done.
 func (agg *Aggregator) WaitForEmptyQueues() {
-	// Wait one second before doing anything for any newly queued tasks
-	time.Sleep(time.Second)
-
-	a := len(agg.forAnalysis)
-	u := len(agg.forUpload)
-	b := len(agg.forBugReporting)
-	ac := atomic.LoadInt64(&agg.analysisCount)
-	uc := atomic.LoadInt64(&agg.uploadCount)
-	bc := atomic.LoadInt64(&agg.bugReportCount)
-	if a == 0 && u == 0 && b == 0 && ac == uc && uc == bc {
-		sklog.Info("Queues were already empty")
-		return
-	}
-	t := time.Tick(config.Aggregator.StatusPeriod)
-	sklog.Infof("Waiting %s for the aggregator's queues to be empty", config.Aggregator.StatusPeriod)
-	hangCount := 0
-	for _ = range t {
-		a = len(agg.forAnalysis)
-		u = len(agg.forUpload)
-		b = len(agg.forBugReporting)
-		ac = atomic.LoadInt64(&agg.analysisCount)
-		uc = atomic.LoadInt64(&agg.uploadCount)
-		bc = atomic.LoadInt64(&agg.bugReportCount)
+	emptyCount := 0
+	for _ = range time.Tick(config.Aggregator.StatusPeriod) {
+		a := len(agg.forAnalysis)
+		u := len(agg.forUpload)
+		b := len(agg.forBugReporting)
 		sklog.Infof("AnalysisQueue: %d, UploadQueue: %d, BugReportingQueue: %d", a, u, b)
-		sklog.Infof("AnalysisTotal: %d, UploadTotal: %d, BugReportingTotal: %d", ac, uc, bc)
-		if a == 0 && u == 0 && b == 0 && ac == uc && uc == bc {
-			break
-		}
-		// This prevents waiting forever if an upload crashes, aborts or otherwise hangs.
-		hangCount++
-		if hangCount >= HANG_THRESHOLD {
-			sklog.Warningf("Was waiting for %d rounds and still wasn't done.  Quitting anyway.", hangCount)
-			break
+		if a == 0 && u == 0 && b == 0 {
+			emptyCount++
+			if emptyCount >= EMPTY_THRESHOLD {
+				break
+			}
+		} else {
+			// reset the counter, there was likely a pending task we didn't see.
+			emptyCount = 0
 		}
 
-		sklog.Infof("Waiting %s for the aggregator's queues to be empty", config.Aggregator.StatusPeriod)
+		sklog.Infof("Waiting %s for the aggregator's queues to be empty %d more times", config.Aggregator.StatusPeriod, EMPTY_THRESHOLD-emptyCount)
 	}
-	atomic.StoreInt64(&agg.analysisCount, int64(0))
-	atomic.StoreInt64(&agg.uploadCount, int64(0))
-	atomic.StoreInt64(&agg.bugReportCount, int64(0))
 }
 
 // ForceAnalysis directly adds the given path to the analysis queue, where it will be analyzed,
