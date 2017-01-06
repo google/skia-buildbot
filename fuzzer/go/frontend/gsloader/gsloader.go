@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"sort"
 
-	"cloud.google.com/go/storage"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/frontend/fuzzcache"
 	"go.skia.org/infra/fuzzer/go/frontend/fuzzpool"
-	fstorage "go.skia.org/infra/fuzzer/go/storage"
+	"go.skia.org/infra/fuzzer/go/storage"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -27,19 +26,23 @@ func LoadFromBoltDB(pool *fuzzpool.FuzzPool, cache *fuzzcache.FuzzReportCache) e
 	return nil
 }
 
+type GSLoaderGCSClient interface {
+	storage.GCSReportGetter
+}
+
 // GSLoader is a struct that handles downloading fuzzes from Google Storage.
 type GSLoader struct {
-	storageClient *storage.Client
-	Cache         *fuzzcache.FuzzReportCache
-	Pool          *fuzzpool.FuzzPool
+	client GSLoaderGCSClient
+	Cache  *fuzzcache.FuzzReportCache
+	Pool   *fuzzpool.FuzzPool
 }
 
 // New creates a GSLoader and returns it.
-func New(s *storage.Client, c *fuzzcache.FuzzReportCache, p *fuzzpool.FuzzPool) *GSLoader {
+func New(g GSLoaderGCSClient, c *fuzzcache.FuzzReportCache, p *fuzzpool.FuzzPool) *GSLoader {
 	return &GSLoader{
-		storageClient: s,
-		Cache:         c,
-		Pool:          p,
+		client: g,
+		Cache:  c,
+		Pool:   p,
 	}
 }
 
@@ -56,7 +59,7 @@ func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 	for _, arch := range common.ARCHITECTURES {
 		for _, cat := range common.FUZZ_CATEGORIES {
 			badPath := fmt.Sprintf("%s/%s/%s/bad", cat, revision, arch)
-			reports, err := fstorage.GetReportsFromGS(g.storageClient, badPath, cat, arch, nil, config.FrontEnd.NumDownloadProcesses)
+			reports, err := g.client.GetReportsFromGS(badPath, cat, arch, nil, config.FrontEnd.NumDownloadProcesses)
 			if err != nil {
 				return err
 			}
@@ -70,7 +73,7 @@ func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 			sklog.Infof("%d bad fuzzes freshly loaded from gs://%s/%s", b, config.GS.Bucket, badPath)
 
 			greyPath := fmt.Sprintf("%s/%s/%s/grey", cat, revision, arch)
-			reports, err = fstorage.GetReportsFromGS(g.storageClient, greyPath, cat, arch, nil, config.FrontEnd.NumDownloadProcesses)
+			reports, err = g.client.GetReportsFromGS(greyPath, cat, arch, nil, config.FrontEnd.NumDownloadProcesses)
 			if err != nil {
 				return err
 			}
@@ -105,7 +108,7 @@ func (g *GSLoader) LoadFuzzesFromGoogleStorage(whitelist []string) error {
 	for _, arch := range common.ARCHITECTURES {
 		for _, cat := range common.FUZZ_CATEGORIES {
 			badPath := fmt.Sprintf("%s/%s/%s/bad", cat, revision, arch)
-			reports, err := fstorage.GetReportsFromGS(g.storageClient, badPath, cat, arch, whitelist, config.FrontEnd.NumDownloadProcesses)
+			reports, err := g.client.GetReportsFromGS(badPath, cat, arch, whitelist, config.FrontEnd.NumDownloadProcesses)
 			if err != nil {
 				return err
 			}
