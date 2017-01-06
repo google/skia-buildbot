@@ -10,10 +10,10 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
+	fstorage "go.skia.org/infra/fuzzer/go/storage"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 )
@@ -162,10 +162,15 @@ func (g *Generator) Stop() {
 	g.fuzzProcesses = nil
 }
 
+type DownloadSeedFilesGCSClient interface {
+	fstorage.GCSFolderOperator
+	fstorage.GCSFileGetter
+}
+
 // DownloadSeedFiles downloads the seed files stored in Google Storage to be used by afl-fuzz.  It
 // places them in config.Generator.FuzzSamples/[category] after cleaning the folder out. It returns
 // an error on failure.
-func (g *Generator) DownloadSeedFiles(storageClient *storage.Client) error {
+func (g *Generator) DownloadSeedFiles(gcsClient DownloadSeedFilesGCSClient) error {
 	seedPath := filepath.Join(config.Generator.FuzzSamples, g.Category)
 	if err := os.RemoveAll(seedPath); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("Could not clean binary seed path %s: %s", seedPath, err)
@@ -181,13 +186,13 @@ func (g *Generator) DownloadSeedFiles(storageClient *storage.Client) error {
 	}
 	gsFolder := fmt.Sprintf("samples/%s/", cat)
 
-	err := gs.AllFilesInDir(storageClient, config.GS.Bucket, gsFolder, func(item *storage.ObjectAttrs) {
+	err := gcsClient.ExecuteOnAllFilesInFolder(gsFolder, func(item *storage.ObjectAttrs) {
 		name := item.Name
 		// skip the parent folder
 		if name == gsFolder {
 			return
 		}
-		content, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, name)
+		content, err := gcsClient.GetFileContents(name)
 		if err != nil {
 			sklog.Errorf("[%s] Problem downloading %s from Google Storage, continuing anyway", g.Category, item.Name)
 			return

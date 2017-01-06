@@ -2,6 +2,7 @@ package deduplicator
 
 import (
 	"fmt"
+	"io"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
@@ -307,7 +308,7 @@ type mockGCSFileGetter struct {
 	setFilesCalls int
 }
 
-func (fg *mockGCSFileGetter) GetFileContents(bucket, path string) ([]byte, error) {
+func (fg *mockGCSFileGetter) GetFileContents(path string) ([]byte, error) {
 	fg.getFilesCalls++
 	if contents, ok := fg.knownFiles[path]; ok {
 		return []byte(contents), nil
@@ -315,8 +316,12 @@ func (fg *mockGCSFileGetter) GetFileContents(bucket, path string) ([]byte, error
 	return nil, fmt.Errorf("Cannot find file %s", path)
 }
 
-func (fg *mockGCSFileGetter) SetFileContents(bucket, path string, contents []byte) error {
+func (fg *mockGCSFileGetter) SetFileContents(path, encoding string, contents []byte) error {
 	fg.setFilesCalls++
 	fg.knownFiles[path] = string(contents)
 	return fmt.Errorf("Cannot write to file %s", path)
+}
+
+func (fg *mockGCSFileGetter) FileWriter(path, encoding string) io.WriteCloser {
+	panic("Should not be called")
 }
