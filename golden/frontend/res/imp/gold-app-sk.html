@@ -25,6 +25,7 @@
 <link rel="import" href="trybot-page-sk.html" />
 <link rel="import" href="failures-page-sk.html" />
 <link rel="import" href="search-page-sk.html" />
+<link rel="import" href="newsearch-page-sk.html" />
 <link rel="import" href="triagelog-page-sk.html" />
 <link rel="import" href="help-page-sk.html" />
 <link rel="import" href="detail-page-sk.html" />
@@ -80,6 +81,9 @@
           <section data-route="search">
             <search-page-sk></search-page-sk>
           </section>
+          <section data-route="newsearch">
+            <newsearch-page-sk></newsearch-page-sk>
+          </section>
           <section data-route="triagelog">
             <triagelog-page-sk></triagelog-page-sk>
           </section>
@@ -125,6 +129,7 @@
         this._setRoute('/trybot', 'trybot');
         this._setRoute('/failures', 'failures');
         this._setRoute('/search', 'search');
+        this._setRoute('/newsearch', 'newsearch');
         this._setRoute('/triagelog', 'triagelog');
         this._setRoute('/help', 'help');
         this._setRoute('/detail', 'detail');
