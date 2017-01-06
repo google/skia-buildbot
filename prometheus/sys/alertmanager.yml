@@ -1,9 +1,3 @@
-global:
-  # The auth token for Hipchat.
-  hipchat_auth_token: '1234556789'
-  # Alternative host for Hipchat.
-  hipchat_url: 'https://hipchat.foobar.org/'
-
 # The directory from which notification templates are read.
 templates:
 - '/etc/alertmanager/template/*.tmpl'
@@ -56,8 +50,8 @@ inhibit_rules:
 receivers:
 - name: 'skiabot'
   webhook_configs:
-    - url: 'http://localhost:9999/'
+    - url: 'http://localhost:9999/alertmanager?email=jcgregorio@google.com'
 
 - name: 'general'
   webhook_configs:
-    - url: 'http://localhost:9999/'
+    - url: 'http://localhost:9999/alertmanager?email=jcgregorio@google.com'

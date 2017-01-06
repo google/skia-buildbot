@@ -1,0 +1,18 @@
+[Unit]
+Description=Webhook Email Proxy Service
+Requires=mnt-pd0.mount
+Wants=network-online.target
+After=mnt-pd0.mount network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/webhook_email_proxy \
+    --log_dir=/var/log/logserver  \
+    --prom_port=:10111
+
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

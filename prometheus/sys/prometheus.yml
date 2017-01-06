@@ -14,6 +14,11 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:10117']
 
+  - job_name: 'webhook-email-proxy'
+    static_configs:
+      - targets: ['localhost:10111']
+
   - job_name: 'skia-perf'
     static_configs:
       - targets: ['skia-perf:10110']
+

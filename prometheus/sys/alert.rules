@@ -16,7 +16,7 @@ ALERT TooManyGoRoutines
     description = "Too many Go routines in {{ $labels.job }} running on {{ $labels.instance }}."
   }
 
-ALERT PerfAlert
+ALERT PerfUntriagedClusters
   IF perf_clustering_untriaged > 0
   FOR 2m
   LABELS { category = "general", severity = "warning" }
