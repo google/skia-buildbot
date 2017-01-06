@@ -275,13 +275,16 @@ func Validate(chromiumBuild DBTask) error {
 }
 
 func AddHandlers(r *mux.Router) {
-	r.HandleFunc("/"+ctfeutil.CHROMIUM_BUILD_URI, addTaskView).Methods("GET")
-	r.HandleFunc("/"+ctfeutil.CHROMIUM_BUILD_RUNS_URI, runsHistoryView).Methods("GET")
-	r.HandleFunc("/"+ctfeutil.CHROMIUM_REV_DATA_POST_URI, getChromiumRevDataHandler).Methods("POST")
-	r.HandleFunc("/"+ctfeutil.SKIA_REV_DATA_POST_URI, getSkiaRevDataHandler).Methods("POST")
-	r.HandleFunc("/"+ctfeutil.ADD_CHROMIUM_BUILD_TASK_POST_URI, addTaskHandler).Methods("POST")
-	r.HandleFunc("/"+ctfeutil.GET_CHROMIUM_BUILD_TASKS_POST_URI, getTasksHandler).Methods("POST")
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.CHROMIUM_BUILD_URI, "GET", addTaskView)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.CHROMIUM_BUILD_RUNS_URI, "GET", runsHistoryView)
+
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.CHROMIUM_REV_DATA_POST_URI, "POST", getChromiumRevDataHandler)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.SKIA_REV_DATA_POST_URI, "POST", getSkiaRevDataHandler)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.ADD_CHROMIUM_BUILD_TASK_POST_URI, "POST", addTaskHandler)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.GET_CHROMIUM_BUILD_TASKS_POST_URI, "POST", getTasksHandler)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.DELETE_CHROMIUM_BUILD_TASK_POST_URI, "POST", deleteTaskHandler)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.REDO_CHROMIUM_BUILD_TASK_POST_URI, "POST", redoTaskHandler)
+
+	// Do not add force login handler for update methods. They use webhooks for authentication.
 	r.HandleFunc("/"+ctfeutil.UPDATE_CHROMIUM_BUILD_TASK_POST_URI, updateTaskHandler).Methods("POST")
-	r.HandleFunc("/"+ctfeutil.DELETE_CHROMIUM_BUILD_TASK_POST_URI, deleteTaskHandler).Methods("POST")
-	r.HandleFunc("/"+ctfeutil.REDO_CHROMIUM_BUILD_TASK_POST_URI, redoTaskHandler).Methods("POST")
 }
