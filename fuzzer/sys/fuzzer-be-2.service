@@ -25,7 +25,6 @@ ExecStart=/usr/local/bin/fuzzer-be \
   --analysis_processes=24 \
   --upload_processes=32 \
   --download_processes=32 \
-  --fuzz_to_run=skpicture \
   --fuzz_to_run=sksl2glsl
 Restart=always
 User=default
