@@ -179,9 +179,11 @@ func pendingTasksView(w http.ResponseWriter, r *http.Request) {
 
 func AddHandlers(r *mux.Router) {
 	// Runs history handlers.
-	r.HandleFunc("/"+ctfeutil.RUNS_HISTORY_URI, runsHistoryView).Methods("GET")
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.RUNS_HISTORY_URI, "GET", runsHistoryView)
 
 	// Task Queue handlers.
-	r.HandleFunc("/"+ctfeutil.PENDING_TASKS_URI, pendingTasksView).Methods("GET")
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.PENDING_TASKS_URI, "GET", pendingTasksView)
+
+	// TODO(rmistry): Update the below to use webhooks for authentication.
 	r.HandleFunc("/"+ctfeutil.GET_OLDEST_PENDING_TASK_URI, getOldestPendingTaskHandler).Methods("GET")
 }
