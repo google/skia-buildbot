@@ -1,5 +1,11 @@
 build:
+	go install -v ./go/webhook_email_proxy
+
+prom:
 	go get -u github.com/prometheus/prometheus/cmd/...
+
+testgo:
+	go test -v ./...
 
 push:
 	promtool check-config sys/prometheus.yml
@@ -7,7 +13,7 @@ push:
 	go install -v ../push/go/pushcli
 	pushcli prometheus-config skia-prom
 
-push_binaries: build alertmanager
+push_binaries: build prom alertmanager
 	promtool check-config sys/prometheus.yml
 	./build_release "`git log -n1 --format=%s`"
 	go install -v ../push/go/pushcli
