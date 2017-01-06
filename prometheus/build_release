@@ -2,7 +2,7 @@
 # Builds and uploads a debian package for Grafana config.
 APPNAME=prometheus
 DESCRIPTION="Prometheus monitoring and alerting."
-SYSTEMD="prometheus.service alertmanager.service"
+SYSTEMD="prometheus.service alertmanager.service webhook-email-proxy.service"
 
 set -x -e
 
@@ -12,14 +12,16 @@ copy_release_files()
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
 
-${INSTALL} --mode=755 -T ${GOPATH}/bin/prometheus   ${ROOT}/usr/local/bin/prometheus
-${INSTALL} --mode=755 -T ${GOPATH}/bin/promtool     ${ROOT}/usr/local/bin/promtool
-${INSTALL} --mode=755 -T ./tmp/alertmanager         ${ROOT}/usr/local/bin/alertmanager
-${INSTALL} --mode=644 -T ./sys/prometheus.service   ${ROOT}/etc/systemd/system/prometheus.service
-${INSTALL} --mode=644 -T ./sys/alertmanager.service ${ROOT}/etc/systemd/system/alertmanager.service
+${INSTALL} --mode=755 -T ${GOPATH}/bin/prometheus          ${ROOT}/usr/local/bin/prometheus
+${INSTALL} --mode=755 -T ${GOPATH}/bin/webhook_email_proxy ${ROOT}/usr/local/bin/webhook_email_proxy
+${INSTALL} --mode=755 -T ${GOPATH}/bin/promtool            ${ROOT}/usr/local/bin/promtool
+${INSTALL} --mode=755 -T ./tmp/alertmanager                ${ROOT}/usr/local/bin/alertmanager
+${INSTALL} --mode=644 -T ./sys/prometheus.service          ${ROOT}/etc/systemd/system/prometheus.service
+${INSTALL} --mode=644 -T ./sys/alertmanager.service        ${ROOT}/etc/systemd/system/alertmanager.service
+${INSTALL} --mode=644 -T ./sys/webhook-email-proxy.service ${ROOT}/etc/systemd/system/webhook-email-proxy.service
 
-${INSTALL_DIR} --mode=777                           ${ROOT}/mnt/pd0/prometheus
-${INSTALL_DIR} --mode=777                           ${ROOT}/mnt/pd0/alertmanager
+${INSTALL_DIR} --mode=777                                  ${ROOT}/mnt/pd0/prometheus
+${INSTALL_DIR} --mode=777                                  ${ROOT}/mnt/pd0/alertmanager
 }
 
 source ../bash/release.sh
