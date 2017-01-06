@@ -35,17 +35,23 @@ const (
 	CLOUD_LOGGING_WRITE_SCOPE = logging.LoggingWriteScope
 	CLOUD_LOGGING_READ_SCOPE  = logging.LoggingReadScope
 
-	// time.RFC3339Nano only uses as many sub-second digits are required to
-	// represent the time, which makes it unsuitable for sorting. This
-	// format ensures that all 9 nanosecond digits are used, padding with
-	// zeroes if necessary.
+	// RFC3339NanoZeroPad fixes time.RFC3339Nano which only uses as many
+	// sub-second digits are required to represent the time, which makes it
+	// unsuitable for sorting.  This format ensures that all 9 nanosecond digits
+	// are used, padding with zeroes if necessary.
 	RFC3339NanoZeroPad = "2006-01-02T15:04:05.000000000Z07:00"
 
-	// first string is defaultReport, second is logGrouping
+	// CLOUD_LOGGING_URL_FORMAT is the URL, where first string is defaultReport, second is logGrouping
 	CLOUD_LOGGING_URL_FORMAT = "https://console.cloud.google.com/logs/viewer?logName=projects%%2Fgoogle.com:skia-buildbots%%2Flogs%%2F%s&resource=logging_log%%2Fname%%2F%s"
 
-	// Timeout for making the WriteLogEntriesRequest request.
+	// WRITE_LOG_ENTRIES_REQUEST_TIMEOUT is the Timeout for making the WriteLogEntriesRequest request.
 	WRITE_LOG_ENTRIES_REQUEST_TIMEOUT = 100 * time.Millisecond
+
+	// MAX_QPS_LOG is the max number of log lines we expect to generate per second.
+	MAX_QPS_LOG = 10000
+
+	// LOG_WRITE_SECONDS is the time between batch writes to cloud logging, in seconds.
+	LOG_WRITE_SECONDS = 5
 )
 
 // CLIENTS SHOULD NOT CALL InitCloudLogging directly. Instead use common.InitWithCloudLogging.
@@ -76,11 +82,7 @@ func InitCloudLogging(c *http.Client, logGrouping, defaultReport string, metrics
 		},
 	}
 	defaultReportName = defaultReport
-	logger = &logsClient{
-		service:         lc,
-		loggingResource: r,
-		hostname:        hostname,
-	}
+	logger = newLogsClient(lc, hostname, r)
 	if metricsCallback != nil {
 		sawLogWithSeverity = metricsCallback
 	}
@@ -123,6 +125,7 @@ type LogPayload struct {
 	ExtraLabels map[string]string
 }
 
+// logsClient implements the CloudLogger interface.
 type logsClient struct {
 	// An authenticated connection to the cloud logging API.
 	service *logging.Service
@@ -131,7 +134,37 @@ type logsClient struct {
 	// A MonitoredResource to associate all Log Entries with. See top of file for more information.
 	loggingResource *logging.MonitoredResource
 
+	// A cancellable context.
+	ctx context.Context
+
+	// The cancel func for the context.
+	cancel context.CancelFunc
+
+	// A sync.WaitGroup to wait for background to end.
+	wg sync.WaitGroup
+
+	// A buffered input channel of LogEntry.
+	payloadCh chan *LogPayload
+
+	buffer []*LogPayload
+
 	outstandingLogs sync.RWMutex
+}
+
+func newLogsClient(service *logging.Service, hostname string, loggingResource *logging.MonitoredResource) *logsClient {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	logger := &logsClient{
+		ctx:             ctx,
+		cancel:          cancel,
+		service:         service,
+		payloadCh:       make(chan *LogPayload, MAX_QPS_LOG),
+		buffer:          make([]*LogPayload, LOG_WRITE_SECONDS*MAX_QPS_LOG),
+		loggingResource: loggingResource,
+		hostname:        hostname,
+	}
+	go logger.background()
+	return logger
 }
 
 // CloudLoggingInstance returns the module-level cloud logger.
@@ -143,18 +176,6 @@ func CloudLoggingInstance() CloudLogger {
 // reporting errors. This should be used only for mocking.
 func SetCloudLoggerForTesting(c CloudLogger) {
 	logger = c
-}
-
-// See description on CloudLogger Interface.
-func CloudLog(reportName string, payload *LogPayload) {
-	if payload == nil {
-		return
-	}
-	if logger == nil {
-		logToGlog(2, payload.Severity, payload.Payload)
-	} else {
-		logger.CloudLog(reportName, payload)
-	}
 }
 
 // CloudLogError writes an error to CloudLogging if the global logger has been set.
@@ -170,6 +191,19 @@ func (c *logsClient) CloudLog(reportName string, payload *LogPayload) {
 		return
 	}
 	c.BatchCloudLog(reportName, payload)
+}
+
+func (c *logsClient) background() {
+	defer c.wg.Done()
+
+	select {
+	case <-time.Tick(LOG_WRITE_SECONDS * time.Second):
+		// push batch
+	case <-c.ctx.Done():
+		// push batch
+	case logPayload := <-c.payloadCh:
+		c.buffer = append(c.buffer, logPayload)
+	}
 }
 
 // See documentation on interface.
@@ -236,6 +270,10 @@ func (c *logsClient) BatchCloudLog(reportName string, payloads ...*LogPayload) {
 // Flush waits until all outstanding cloud logging pushes are done.
 // See comment in BatchCloudLog
 func (c *logsClient) Flush() {
+	c.cancel()
 	c.outstandingLogs.Lock()
 	c.outstandingLogs.Unlock()
 }
+
+// Validate that the concrete structs faithfully implement their respective interfaces.
+var _ CloudLogger = (*logsClient)(nil)
