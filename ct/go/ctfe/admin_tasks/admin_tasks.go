@@ -266,17 +266,20 @@ func getRecreateWebpageArchivesTasksHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func AddHandlers(r *mux.Router) {
-	r.HandleFunc("/"+ctfeutil.ADMIN_TASK_URI, addTaskView).Methods("GET")
-	r.HandleFunc("/"+ctfeutil.RECREATE_PAGE_SETS_RUNS_URI, recreatePageSetsRunsHistoryView).Methods("GET")
-	r.HandleFunc("/"+ctfeutil.RECREATE_WEBPAGE_ARCHIVES_RUNS_URI, recreateWebpageArchivesRunsHistoryView).Methods("GET")
-	r.HandleFunc("/"+ctfeutil.ADD_RECREATE_PAGE_SETS_TASK_POST_URI, addRecreatePageSetsTaskHandler).Methods("POST")
-	r.HandleFunc("/"+ctfeutil.ADD_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, addRecreateWebpageArchivesTaskHandler).Methods("POST")
-	r.HandleFunc("/"+ctfeutil.GET_RECREATE_PAGE_SETS_TASKS_POST_URI, getRecreatePageSetsTasksHandler).Methods("POST")
-	r.HandleFunc("/"+ctfeutil.GET_RECREATE_WEBPAGE_ARCHIVES_TASKS_POST_URI, getRecreateWebpageArchivesTasksHandler).Methods("POST")
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.ADMIN_TASK_URI, "GET", addTaskView)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.RECREATE_PAGE_SETS_RUNS_URI, "GET", recreatePageSetsRunsHistoryView)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.RECREATE_WEBPAGE_ARCHIVES_RUNS_URI, "GET", recreateWebpageArchivesRunsHistoryView)
+
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.ADD_RECREATE_PAGE_SETS_TASK_POST_URI, "POST", addRecreatePageSetsTaskHandler)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.ADD_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, "POST", addRecreateWebpageArchivesTaskHandler)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.GET_RECREATE_PAGE_SETS_TASKS_POST_URI, "POST", getRecreatePageSetsTasksHandler)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.GET_RECREATE_WEBPAGE_ARCHIVES_TASKS_POST_URI, "POST", getRecreateWebpageArchivesTasksHandler)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.DELETE_RECREATE_PAGE_SETS_TASK_POST_URI, "POST", deleteRecreatePageSetsTaskHandler)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.DELETE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, "POST", deleteRecreateWebpageArchivesTaskHandler)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.REDO_RECREATE_PAGE_SETS_TASK_POST_URI, "POST", redoRecreatePageSetsTaskHandler)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.REDO_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, "POST", redoRecreateWebpageArchivesTaskHandler)
+
+	// Do not add force login handler for update methods. They use webhooks for authentication.
 	r.HandleFunc("/"+ctfeutil.UPDATE_RECREATE_PAGE_SETS_TASK_POST_URI, updateRecreatePageSetsTaskHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, updateRecreateWebpageArchivesTaskHandler).Methods("POST")
-	r.HandleFunc("/"+ctfeutil.DELETE_RECREATE_PAGE_SETS_TASK_POST_URI, deleteRecreatePageSetsTaskHandler).Methods("POST")
-	r.HandleFunc("/"+ctfeutil.DELETE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, deleteRecreateWebpageArchivesTaskHandler).Methods("POST")
-	r.HandleFunc("/"+ctfeutil.REDO_RECREATE_PAGE_SETS_TASK_POST_URI, redoRecreatePageSetsTaskHandler).Methods("POST")
-	r.HandleFunc("/"+ctfeutil.REDO_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, redoRecreateWebpageArchivesTaskHandler).Methods("POST")
 }
