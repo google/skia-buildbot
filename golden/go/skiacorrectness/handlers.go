@@ -229,6 +229,31 @@ func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func jsonNewSearchHandler(w http.ResponseWriter, r *http.Request) {
+	query := search.Query{Limit: 50}
+	if err := parseQuery(r, &query); err != nil {
+		httputils.ReportError(w, r, err, "Search for digests failed.")
+		return
+	}
+
+	searchResponse, err := searchAPI.Search(&query)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Search for digests failed.")
+		return
+	}
+	sendJsonResponse(w, &NewSearchResult{
+		Digests: searchResponse.Digests,
+		Commits: searchResponse.Commits,
+	})
+}
+
+// SearchResult encapsulates the results of a search request.
+type NewSearchResult struct {
+	Digests    []*search.SRDigest `json:"digests"`
+	Commits    []*tiling.Commit   `json:"commits"`
+	NumMatches int
+}
+
 // SearchResult encapsulates the results of a search request.
 type SearchResult struct {
 	Digests    []*search.Digest   `json:"digests"`
