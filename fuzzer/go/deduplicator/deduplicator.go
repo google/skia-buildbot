@@ -12,11 +12,13 @@ const _MAX_STACKTRACE_LINES = 4
 
 type Deduplicator interface {
 	Clear()
+	SetCommit(string)
 	IsUnique(report data.FuzzReport) bool
 }
 
 // localDeduplicator keeps a local cache of keys based on what has been passed to IsUnique
 type localDeduplicator struct {
+	// maps keys to true/false
 	seen  map[string]bool
 	mutex sync.Mutex
 }
@@ -31,6 +33,10 @@ func (d *localDeduplicator) Clear() {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
 	d.seen = make(map[string]bool)
+}
+
+func (d *localDeduplicator) SetCommit(c string) {
+	d.Clear()
 }
 
 func (d *localDeduplicator) IsUnique(report data.FuzzReport) bool {
