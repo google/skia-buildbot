@@ -14,19 +14,18 @@ import (
 	"sync"
 	"time"
 
-	"cloud.google.com/go/storage"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/data"
 	"go.skia.org/infra/fuzzer/go/deduplicator"
 	"go.skia.org/infra/fuzzer/go/issues"
+	"go.skia.org/infra/fuzzer/go/storage"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"golang.org/x/net/context"
 )
 
 // Aggregator is a key part of the fuzzing operation
@@ -50,7 +49,7 @@ type Aggregator struct {
 	// if we are changing versions.
 	UploadGreyFuzzes bool
 
-	storageClient *storage.Client
+	gcsClient AggregatorGCSClient
 
 	issueManager *issues.IssuesManager
 
@@ -92,6 +91,10 @@ var (
 	ASAN_RELEASE  = common.TEST_HARNESS_NAME + "_asan_release"
 )
 
+type AggregatorGCSClient interface {
+	storage.GCSFileSetter
+}
+
 // analysisPackage is a struct containing all the pieces of a fuzz needed to analyse it.
 type analysisPackage struct {
 	FilePath string
@@ -116,9 +119,9 @@ type bugReportingPackage struct {
 
 // StartAggregator creates and starts a Aggregator.
 // If there is a problem starting up, an error is returned.  Other errors will be logged.
-func StartAggregator(s *storage.Client, im *issues.IssuesManager, startingReports map[string]<-chan data.FuzzReport) (*Aggregator, error) {
+func StartAggregator(s AggregatorGCSClient, im *issues.IssuesManager, startingReports map[string]<-chan data.FuzzReport) (*Aggregator, error) {
 	b := Aggregator{
-		storageClient:      s,
+		gcsClient:          s,
 		issueManager:       im,
 		forAnalysis:        make(chan analysisPackage, 10000),
 		forUpload:          make(chan uploadPackage, 10000),
@@ -648,11 +651,11 @@ func (agg *Aggregator) upload(p uploadPackage) error {
 // goes wrong.
 func (agg *Aggregator) uploadBinaryFromDisk(p uploadPackage, fileName, filePath string) error {
 	name := fmt.Sprintf("%s/%s/%s/%s/%s/%s", p.Category, config.Common.SkiaVersion.Hash, config.Generator.Architecture, p.FuzzType, p.Data.Name, fileName)
-	w := agg.storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
-	defer util.Close(w)
+
 	// We set the encoding to avoid accidental crashes if Chrome were to try to render a fuzzed png
 	// or svg or something.
-	w.ObjectAttrs.ContentEncoding = "application/octet-stream"
+	w := agg.gcsClient.FileWriter(name, "application/octet-stream")
+	defer util.Close(w)
 
 	f, err := os.Open(filePath)
 	if err != nil {
@@ -669,14 +672,7 @@ func (agg *Aggregator) uploadBinaryFromDisk(p uploadPackage, fileName, filePath 
 // anything goes wrong.
 func (agg *Aggregator) uploadString(p uploadPackage, fileName, contents string) error {
 	name := fmt.Sprintf("%s/%s/%s/%s/%s/%s", p.Category, config.Common.SkiaVersion.Hash, config.Generator.Architecture, p.FuzzType, p.Data.Name, fileName)
-	w := agg.storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
-	defer util.Close(w)
-	w.ObjectAttrs.ContentEncoding = "text/plain"
-
-	if n, err := w.Write([]byte(contents)); err != nil {
-		return fmt.Errorf("There was a problem uploading %s.  Only uploaded %d bytes: %s", name, n, err)
-	}
-	return nil
+	return agg.gcsClient.SetFileContents(name, "text/plain", []byte(contents))
 }
 
 // waitForUploads waits for uploadPackages to be sent through the forUpload channel and then uploads

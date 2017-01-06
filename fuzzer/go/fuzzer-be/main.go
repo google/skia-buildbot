@@ -87,7 +87,9 @@ func main() {
 	if err := setupOAuth(); err != nil {
 		sklog.Fatalf("Problem with OAuth: %s", err)
 	}
-	if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Common.SkiaRoot, &config.Common, !*local); err != nil {
+	gcsClient := fstorage.NewFuzzerGCSClient(storageClient, config.GS.Bucket)
+
+	if err := fcommon.DownloadSkiaVersionForFuzzing(gcsClient, config.Common.SkiaRoot, &config.Common, !*local); err != nil {
 		sklog.Fatalf("Problem downloading Skia: %s", err)
 	}
 
@@ -112,7 +114,7 @@ func main() {
 	for _, category := range *fuzzesToRun {
 		gen := generator.New(category)
 
-		if err := gen.DownloadSeedFiles(storageClient); err != nil {
+		if err := gen.DownloadSeedFiles(gcsClient); err != nil {
 			sklog.Fatalf("Problem downloading seed files: %s", err)
 		}
 
@@ -126,7 +128,7 @@ func main() {
 			}
 			sklog.Infof("Downloading all bad %s fuzzes @%s to setup duplication detection", category, config.Common.SkiaVersion.Hash)
 			baseFolder := fmt.Sprintf("%s/%s/%s/bad", category, config.Common.SkiaVersion.Hash, config.Generator.Architecture)
-			if startingReports[category], err = fstorage.GetReportsFromGS(storageClient, baseFolder, category, config.Generator.Architecture, nil, config.Generator.NumDownloadProcesses); err != nil {
+			if startingReports[category], err = gcsClient.GetReportsFromGS(baseFolder, category, config.Generator.Architecture, nil, config.Generator.NumDownloadProcesses); err != nil {
 				sklog.Fatalf("Could not download previously found %s fuzzes for deduplication: %s", category, err)
 			}
 		} else {
@@ -136,14 +138,14 @@ func main() {
 	}
 
 	sklog.Infof("Starting aggregator with configuration %#v", config.Aggregator)
-	agg, err := aggregator.StartAggregator(storageClient, issueManager, startingReports)
+	agg, err := aggregator.StartAggregator(gcsClient, issueManager, startingReports)
 	if err != nil {
 		sklog.Fatalf("Could not start aggregator: %s", err)
 	}
 
-	updater := backend.NewVersionUpdater(storageClient, agg, generators)
+	updater := backend.NewVersionUpdater(gcsClient, agg, generators)
 	sklog.Info("Starting version watcher")
-	watcher := fcommon.NewVersionWatcher(storageClient, config.Common.VersionCheckPeriod, updater.UpdateToNewSkiaVersion, nil)
+	watcher := fcommon.NewVersionWatcher(gcsClient, config.Common.VersionCheckPeriod, updater.UpdateToNewSkiaVersion, nil)
 	watcher.Start()
 
 	err = <-watcher.Status
