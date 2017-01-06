@@ -26,6 +26,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/webhook"
 )
 
 var (
@@ -139,6 +140,17 @@ func DecodeTask(taskJson io.Reader) (task_common.Task, error) {
 }
 
 func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
+	data, err := webhook.AuthenticateRequest(r)
+	if err != nil {
+		if data == nil {
+			httputils.ReportError(w, r, err, "Failed to read update request")
+			return
+		}
+		if !ctfeutil.UserHasAdminRights(r) {
+			httputils.ReportError(w, r, err, "Failed authentication")
+			return
+		}
+	}
 	w.Header().Set("Content-Type", "application/json")
 
 	oldestTask, err := GetOldestPendingTask()
@@ -184,6 +196,6 @@ func AddHandlers(r *mux.Router) {
 	// Task Queue handlers.
 	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.PENDING_TASKS_URI, "GET", pendingTasksView)
 
-	// TODO(rmistry): Update the below to use webhooks for authentication.
+	// Do not add force login handler for getOldestPendingTaskHandler. It uses webhooks for authentication.
 	r.HandleFunc("/"+ctfeutil.GET_OLDEST_PENDING_TASK_URI, getOldestPendingTaskHandler).Methods("GET")
 }
