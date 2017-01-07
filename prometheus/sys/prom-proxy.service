@@ -1,0 +1,21 @@
+[Unit]
+Description=Prometheus Auth Proxy
+Requires=mnt-pd0.mount
+Wants=network-online.target
+After=mnt-pd0.mount network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/prom_proxy_with_auth \
+    --log_dir=/var/log/logserver  \
+    --target_port=:10116 \
+    --domain=prom.skia.org \
+    --prom_port=:10120 \
+    --port=:11000
+
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
