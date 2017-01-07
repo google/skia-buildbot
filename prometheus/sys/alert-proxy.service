@@ -1,0 +1,21 @@
+[Unit]
+Description=Prometheus AlertManager Auth Proxy
+Requires=mnt-pd0.mount
+Wants=network-online.target
+After=mnt-pd0.mount network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/alert_proxy_with_auth \
+    --log_dir=/var/log/logserver  \
+    --target_port=:10117 \
+    --domain=promalerts.skia.org \
+    --prom_port=:10121 \
+    --port=:11001
+
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

@@ -1,5 +1,6 @@
 build:
 	go install -v ./go/webhook_email_proxy
+	go install -v ./go/proxy_with_auth
 
 prom:
 	go get -u github.com/prometheus/prometheus/cmd/...
