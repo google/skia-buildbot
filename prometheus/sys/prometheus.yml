@@ -18,7 +18,14 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:10111']
 
+  - job_name: 'prom-proxy'
+    static_configs:
+      - targets: ['localhost:10120']
+
+  - job_name: 'alert-proxy'
+    static_configs:
+      - targets: ['localhost:10121']
+
   - job_name: 'skia-perf'
     static_configs:
       - targets: ['skia-perf:10110']
-

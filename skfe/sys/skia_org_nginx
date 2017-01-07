@@ -801,3 +801,59 @@ server {
     server_name task-scheduler.skia.org;
     return 301 https://task-scheduler.skia.org$request_uri;
 }
+
+#####   prom.skia.org   ###########################
+server {
+    listen      443;
+    server_name prom.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/prom.access.log;
+    error_log /var/log/nginx/prom.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
+    client_max_body_size 500M;
+
+    location / {
+        proxy_pass http://skia-prom:11000;
+    }
+}
+
+server {
+    listen      80;
+    server_name prom.skia.org;
+    return 301 https://prom.skia.org$request_uri;
+}
+
+#####   promalerts.skia.org   ###########################
+server {
+    listen      443;
+    server_name promalerts.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/promalerts.access.log;
+    error_log /var/log/nginx/promalerts.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
+    client_max_body_size 500M;
+
+    location / {
+        proxy_pass http://skia-prom:11001;
+    }
+}
+
+server {
+    listen      80;
+    server_name promalerts.skia.org;
+    return 301 https://promalerts.skia.org$request_uri;
+}
