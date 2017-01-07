@@ -850,6 +850,8 @@ func main() {
 		sklog.Fatal(err)
 	}
 
+	common.StartCloudLogging("skiaperf")
+
 	Init()
 	if !*local {
 		if err := dbConf.GetPasswordFromMetadata(); err != nil {
