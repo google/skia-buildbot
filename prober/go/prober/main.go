@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/influxdb_init"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -30,6 +31,7 @@ var (
 	config   = flag.String("config", "probers.json", "Comma separated names of prober config files.")
 	runEvery = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
 	testing  = flag.Bool("testing", false, "Set to true for local testing.")
+	promPort = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
 
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
@@ -289,7 +291,17 @@ func probeOneRound(cfg Probes, c *http.Client) {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics2("probeserver", influxHost, influxUser, influxPassword, influxDatabase, testing)
+
+	common.Init()
+	influxClient, err := influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	if err := metrics2.InitPromInflux("probeserver", influxClient, *promPort); err != nil {
+		sklog.Fatal(err)
+	}
+
+	common.StartCloudLogging("probeserver")
 
 	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
