@@ -25,3 +25,11 @@ ALERT PerfUntriagedClusters
     description = "At least one untriaged perf cluster has been found. Please visit https://perf.skia.org/t/ to triage."
   }
 
+ALERT ProbeFailure
+  IF prober{type="failure"} > 0
+  FOR 5m
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    summary = "Probe failed {{ $labels.probename }}",
+    description = "Endpoint {{ $labels.probename }} has failed to respond in at least 5 minutes. See https://github.com/google/skia-buildbot/search?q={{ $labels.probename }}+filename%3Aprobers.json for the endpoint URL."
+  }

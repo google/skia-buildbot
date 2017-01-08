@@ -2,11 +2,16 @@ rule_files:
   - "alert.rules"
 
 scrape_configs:
-  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
-  - job_name: 'prometheus'
+  - job_name: 'skia-perf'
+    static_configs:
+      - targets: ['skia-perf:10110']
 
-    # metrics_path defaults to '/metrics'
-    # scheme defaults to 'http'.
+  - job_name: 'proberd'
+    static_configs:
+      - targets: ['skia-monitoring:10110']
+
+  # Prometheus self monitoring.
+  - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:10116']
 
@@ -26,6 +31,3 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:10121']
 
-  - job_name: 'skia-perf'
-    static_configs:
-      - targets: ['skia-perf:10110']

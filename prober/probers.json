@@ -507,5 +507,21 @@
      "body": "",
      "mimetype": "",
      "responsetest": ""
+   },
+   "prom": {
+     "url": "https://prom.skia.org/metrics",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": "",
+     "responsetest": ""
+   },
+   "promstatus": {
+     "url": "https://promalerts.skia.org/metrics",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": "",
+     "responsetest": ""
    }
 }
