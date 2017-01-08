@@ -6,7 +6,7 @@ After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/webhook_email_proxy \
-    --log_dir=/var/log/logserver  \
+    --logtostderr \
     --prom_port=:10111
 
 Restart=always

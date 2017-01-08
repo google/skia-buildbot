@@ -6,7 +6,7 @@ After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/alert_proxy_with_auth \
-    --log_dir=/var/log/logserver  \
+    --logtostderr \
     --target_port=:10117 \
     --domain=promalerts.skia.org \
     --prom_port=:10121 \
