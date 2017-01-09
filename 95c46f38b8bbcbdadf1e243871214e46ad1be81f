@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "578ed681_439c8642",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-09T18:11:36Z",
+      "side": 1,
+      "message": "nit: no longer needed?",
+      "range": {
+        "startLine": 415,
+        "startChar": 59,
+        "endLine": 415,
+        "endChar": 78
+      },
+      "revId": "95c46f38b8bbcbdadf1e243871214e46ad1be81f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_83a26e7f",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 461,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-09T18:11:36Z",
+      "side": 1,
+      "message": "nit: add a new field to httputils.BackOffConfig?",
+      "range": {
+        "startLine": 458,
+        "startChar": 0,
+        "endLine": 461,
+        "endChar": 3
+      },
+      "revId": "95c46f38b8bbcbdadf1e243871214e46ad1be81f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_239f023a",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 462,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-09T18:11:36Z",
+      "side": 1,
+      "message": "nit: don\u0027t need GS auth here",
+      "range": {
+        "startLine": 462,
+        "startChar": 103,
+        "endLine": 462,
+        "endChar": 124
+      },
+      "revId": "95c46f38b8bbcbdadf1e243871214e46ad1be81f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
