@@ -175,6 +175,12 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 	if s == nil {
 		return false, fmt.Errorf("Missing TaskResult. %v", s)
 	}
+
+	// Swarming TaskId.
+	if orig.SwarmingTaskId != s.TaskId {
+		return false, ErrUnknownId
+	}
+
 	tags, err := swarming.ParseTags(s.Tags)
 	if err != nil {
 		return false, err
@@ -243,13 +249,6 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 		}
 	} else {
 		return false, fmt.Errorf("Unable to parse task creation time for task %s. %v %v", orig.Id, err, orig)
-	}
-
-	// Swarming TaskId.
-	if copy.SwarmingTaskId == "" {
-		copy.SwarmingTaskId = s.TaskId
-	} else if copy.SwarmingTaskId != s.TaskId {
-		return false, fmt.Errorf("Swarming task ID does not match for task %s. Was %s, now %s. %v", orig.Id, orig.SwarmingTaskId, s.TaskId, orig)
 	}
 
 	// Status.
