@@ -1,0 +1,19 @@
+[Unit]
+Description=Authenticated proxy.
+Requires=mnt-pd0.mount
+Wants=network-online.target
+After=mnt-pd0.mount network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/corpproxy \
+    --log_dir=/var/log/logserver  \
+    --prom_port=:10110 \
+    --port=:8000
+
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
