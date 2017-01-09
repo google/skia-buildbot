@@ -55,6 +55,9 @@ const (
 
 	// DEFAULT_ADMIN_WHITELIST is the white list of users we consider admins when we can't retrieve the whitelist from metadata.
 	DEFAULT_ADMIN_WHITELIST = "benjaminwagner@google.com borenet@google.com jcgregorio@google.com kjlubick@google.com rmistry@google.com stephana@google.com"
+
+	// COOKIE_DOMAIN is the domain that are cookies attached to.
+	COOKIE_DOMAIN = "skia.org"
 )
 
 var (
@@ -150,6 +153,7 @@ func LoginURL(w http.ResponseWriter, r *http.Request) string {
 			Name:     SESSION_COOKIE_NAME,
 			Value:    state,
 			Path:     "/",
+			Domain:   domainFromHost(r.Host),
 			HttpOnly: true,
 			Expires:  time.Now().Add(365 * 24 * time.Hour),
 		}
@@ -180,8 +184,18 @@ func LoginURL(w http.ResponseWriter, r *http.Request) string {
 
 	// Only retrieve an online access token, i.e. no refresh token. And when we
 	// go through the approval flow again don't stop if they've already approved
-	// once.
-	return oauthConfig.AuthCodeURL(state, oauth2.AccessTypeOnline, oauth2.SetAuthURLParam("approval_prompt", "auto"))
+	// once, unless they have a valid token but aren't in the whitelist,
+	// in which case we want to use ApprovalForce so they get the chance
+	// to pick a different account to log in with.
+	opts := []oauth2.AuthCodeOption{oauth2.AccessTypeOnline}
+	s, err := getSession(r)
+	if err == nil && !inWhitelist(s.Email) {
+		opts = append(opts, oauth2.ApprovalForce)
+	} else {
+		opts = append(opts, oauth2.SetAuthURLParam("approval_prompt", "auto"))
+	}
+	return oauthConfig.AuthCodeURL(state, opts...)
+
 }
 
 func getSession(r *http.Request) (*Session, error) {
@@ -204,6 +218,9 @@ func getSession(r *http.Request) (*Session, error) {
 func LoggedInAs(r *http.Request) string {
 	s, err := getSession(r)
 	if err != nil {
+		return ""
+	}
+	if !inWhitelist(s.Email) {
 		return ""
 	}
 	return s.Email
@@ -254,8 +271,20 @@ type decodedIDToken struct {
 	ID    string `json:"sub"`
 }
 
+// domainFromHost returns the value to use in the cookie Domain field based on
+// the requests Host value.
+func domainFromHost(fullhost string) string {
+	// Split host and port.
+	parts := strings.Split(fullhost, ":")
+	host := parts[0]
+	if host == "localhost" {
+		return host
+	}
+	return COOKIE_DOMAIN
+}
+
 // CookieFor creates an encoded Cookie for the given user id.
-func CookieFor(value *Session) (*http.Cookie, error) {
+func CookieFor(value *Session, r *http.Request) (*http.Cookie, error) {
 	encoded, err := secureCookie.Encode(COOKIE_NAME, value)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to encode cookie")
@@ -264,13 +293,14 @@ func CookieFor(value *Session) (*http.Cookie, error) {
 		Name:     COOKIE_NAME,
 		Value:    encoded,
 		Path:     "/",
+		Domain:   domainFromHost(r.Host),
 		HttpOnly: true,
 		Expires:  time.Now().Add(365 * 24 * time.Hour),
 	}, nil
 }
 
-func setSkIDCookieValue(w http.ResponseWriter, value *Session) {
-	cookie, err := CookieFor(value)
+func setSkIDCookieValue(w http.ResponseWriter, r *http.Request, value *Session) {
+	cookie, err := CookieFor(value, r)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("%s", err), 500)
 		return
@@ -289,7 +319,7 @@ func setSkIDCookieValue(w http.ResponseWriter, value *Session) {
 // to revoke any grants they make.
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("LogoutHandler\n")
-	setSkIDCookieValue(w, &Session{})
+	setSkIDCookieValue(w, r, &Session{})
 	http.Redirect(w, r, r.FormValue("redirect"), 302)
 }
 
@@ -375,7 +405,7 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(activeUserDomainWhiteList) > 0 && !activeUserDomainWhiteList[parts[1]] && !activeUserEmailWhiteList[email] {
+	if !inWhitelist(email) {
 		http.Error(w, "Accounts from your domain are not allowed or your email address is not white listed.", 500)
 		return
 	}
@@ -385,8 +415,22 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		AuthScope: strings.Join(oauthConfig.Scopes, " "),
 		Token:     token,
 	}
-	setSkIDCookieValue(w, &s)
+	setSkIDCookieValue(w, r, &s)
 	http.Redirect(w, r, redirect, 302)
+}
+
+// inWhitelist returns true if the given email address matches either the
+// domain or the user whitelist.
+func inWhitelist(email string) bool {
+	parts := strings.Split(email, "@")
+	if len(parts) != 2 {
+		return false
+	}
+
+	if len(activeUserDomainWhiteList) > 0 && !activeUserDomainWhiteList[parts[1]] && !activeUserEmailWhiteList[email] {
+		return false
+	}
+	return true
 }
 
 // StatusHandler returns the login status of the user as JSON that looks like:
