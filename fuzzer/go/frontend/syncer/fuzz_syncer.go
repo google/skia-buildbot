@@ -12,7 +12,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/frontend/gsloader"
-	"go.skia.org/infra/go/gs"
+	fstorage "go.skia.org/infra/fuzzer/go/storage"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -23,7 +23,7 @@ import (
 //regressions.  Clients should look at LastCount for the most recent result of the counts.
 type FuzzSyncer struct {
 	countMutex    sync.Mutex
-	storageClient *storage.Client
+	gcsClient     FuzzSyncerGCSClient
 	gsLoader      *gsloader.GSLoader
 	lastCount     map[string]FuzzCount      // maps category->FuzzCount
 	fuzzNameCache map[string]util.StringSet // maps key->FuzzNames
@@ -38,10 +38,16 @@ type FuzzCount struct {
 	ThisRegression int `json:"thisRegressionCount"`
 }
 
+type FuzzSyncerGCSClient interface {
+	fstorage.GCSFileGetter
+	fstorage.GCSFuzzNameGetter
+	fstorage.GCSFolderOperator
+}
+
 // NewFuzzSyncer creates a FuzzSyncer and returns it.
-func New(s *storage.Client) *FuzzSyncer {
+func New(gcsClient FuzzSyncerGCSClient) *FuzzSyncer {
 	return &FuzzSyncer{
-		storageClient: s,
+		gcsClient:     gcsClient,
 		lastCount:     make(map[string]FuzzCount),
 		fuzzNameCache: make(map[string]util.StringSet),
 	}
@@ -121,7 +127,7 @@ func (f *FuzzSyncer) getMostRecentOldRevision() (string, error) {
 			newestHash = item.Name[strings.LastIndex(item.Name, "/")+1:]
 		}
 	}
-	if err := gs.AllFilesInDir(f.storageClient, config.GS.Bucket, "skia_version/old/", findNewest); err != nil {
+	if err := f.gcsClient.ExecuteOnAllFilesInFolder("skia_version/old/", findNewest); err != nil {
 		return "", err
 	}
 	sklog.Infof("Most recent old version found to be %s", newestHash)
@@ -157,13 +163,13 @@ func (f *FuzzSyncer) getFuzzNames(fuzzType, category, architecture, revision str
 	// Sometimes fuzzes with the name "" show up, and we don't want that.
 	emptyString := util.NewStringSet([]string{""})
 	// The file stored, if it exists, is a pipe separated list.
-	if names, err := gs.FileContentsFromGS(f.storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/%s/%s_fuzz_names.txt", category, revision, architecture, fuzzType)); err == nil {
+	if names, err := f.gcsClient.GetFileContents(fmt.Sprintf("%s/%s/%s/%s_fuzz_names.txt", category, revision, architecture, fuzzType)); err == nil {
 		return util.NewStringSet(strings.Split(string(names), "|")).Complement(emptyString)
 	} else {
 		sklog.Infof("Could not find cached names, downloading them the long way, instead: %s", err)
 	}
 
-	if names, err := common.GetAllFuzzNamesInFolder(f.storageClient, fmt.Sprintf("%s/%s/%s/%s", category, revision, architecture, fuzzType)); err != nil {
+	if names, err := f.gcsClient.GetAllFuzzNamesInFolder(fmt.Sprintf("%s/%s/%s/%s", category, revision, architecture, fuzzType)); err != nil {
 		sklog.Errorf("Problem fetching %s %s %s fuzzes at revision %s: %s", fuzzType, architecture, category, revision, err)
 		return nil
 	} else {

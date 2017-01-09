@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/frontend/gsloader"
 	"go.skia.org/infra/fuzzer/go/frontend/syncer"
 	"go.skia.org/infra/fuzzer/go/issues"
+	fstorage "go.skia.org/infra/fuzzer/go/storage"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
@@ -145,13 +146,14 @@ func main() {
 	if err := setupOAuth(); err != nil {
 		sklog.Fatal(err)
 	}
+	gcsClient := fstorage.NewFuzzerGCSClient(storageClient, config.GS.Bucket)
 
 	go func() {
-		if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Common.SkiaRoot, &config.Common, !*local); err != nil {
+		if err := fcommon.DownloadSkiaVersionForFuzzing(gcsClient, config.Common.SkiaRoot, &config.Common, !*local); err != nil {
 			sklog.Fatalf("Problem downloading Skia: %s", err)
 		}
 
-		fuzzSyncer = syncer.New(storageClient)
+		fuzzSyncer = syncer.New(gcsClient)
 		fuzzSyncer.Start()
 
 		cache, err := fuzzcache.New(config.FrontEnd.BoltDBPath)
@@ -163,13 +165,13 @@ func main() {
 		if err := gsloader.LoadFromBoltDB(fuzzPool, cache); err != nil {
 			sklog.Errorf("Could not load from boltdb.  Loading from source of truth anyway. %s", err)
 		}
-		gsLoader := gsloader.New(storageClient, cache, fuzzPool)
+		gsLoader := gsloader.New(gcsClient, cache, fuzzPool)
 		if err := gsLoader.LoadFreshFromGoogleStorage(); err != nil {
 			sklog.Fatalf("Error loading in data from GCS: %s", err)
 		}
 		fuzzSyncer.SetGSLoader(gsLoader)
 		updater := frontend.NewVersionUpdater(gsLoader, fuzzSyncer)
-		versionWatcher = fcommon.NewVersionWatcher(storageClient, config.Common.VersionCheckPeriod, nil, updater.HandleCurrentVersion)
+		versionWatcher = fcommon.NewVersionWatcher(gcsClient, config.Common.VersionCheckPeriod, nil, updater.HandleCurrentVersion)
 		versionWatcher.Start()
 
 		err = <-versionWatcher.Status
