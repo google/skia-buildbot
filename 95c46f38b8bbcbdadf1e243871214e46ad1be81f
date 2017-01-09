@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "578ed681_e3e25abd",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-09T18:26:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "578ed681_439c8642",
+      "revId": "95c46f38b8bbcbdadf1e243871214e46ad1be81f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "578ed681_83a26e7f",
         "filename": "task_scheduler/go/task_scheduler/main.go",
         "patchSetId": 2
@@ -48,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "b7e71224_f16c2946",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 461,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-09T18:26:25Z",
+      "side": 1,
+      "message": "I don\u0027t see a clean way to do that without changing the API.  All of httputils.BackOffConfig\u0027s members are private, so I can\u0027t just call httputils.NewConfiguredBackOffTransport with my own config.   I guess I could add httputils.DefaultBackoffConfig and then add the dial timeout as a public member of BackOffConfig?",
+      "parentUuid": "578ed681_83a26e7f",
+      "revId": "95c46f38b8bbcbdadf1e243871214e46ad1be81f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "578ed681_239f023a",
         "filename": "task_scheduler/go/task_scheduler/main.go",
         "patchSetId": 2
@@ -65,6 +101,24 @@
         "endLine": 462,
         "endChar": 124
       },
+      "revId": "95c46f38b8bbcbdadf1e243871214e46ad1be81f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_03e8be99",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 462,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-09T18:26:25Z",
+      "side": 1,
+      "message": "Done. Didn\u0027t realize this was GS related since it came from auth.go...",
+      "parentUuid": "578ed681_239f023a",
       "revId": "95c46f38b8bbcbdadf1e243871214e46ad1be81f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
