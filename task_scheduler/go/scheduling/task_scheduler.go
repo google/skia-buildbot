@@ -1512,6 +1512,20 @@ func (s *TaskScheduler) updateTaskFromSwarming(swarmingTaskId string) error {
 				id = "<MISSING ID TAG>"
 			}
 			sklog.Errorf("Failed to update task %q: No such task ID: %q", swarmingTaskId, id)
+		} else if err == db.ErrUnknownId {
+			expectedSwarmingTaskId := "<unknown>"
+			id, err := swarming.GetTagValue(res, db.SWARMING_TAG_ID)
+			if err != nil {
+				id = "<MISSING ID TAG>"
+			} else {
+				t, err := s.db.GetTaskById(id)
+				if err != nil {
+					sklog.Errorf("Failed to update task %q; mismatched ID and failed to retrieve task from DB: %s", swarmingTaskId, err)
+				} else {
+					expectedSwarmingTaskId = t.SwarmingTaskId
+				}
+			}
+			sklog.Errorf("Failed to update task %q: Task %s has a different Swarming task ID associated with it: %s", swarmingTaskId, id, expectedSwarmingTaskId)
 		} else {
 			return fmt.Errorf("Failed to update task %q: %s", swarmingTaskId, err)
 		}
