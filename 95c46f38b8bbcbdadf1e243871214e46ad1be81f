@@ -84,6 +84,24 @@
     },
     {
       "key": {
+        "uuid": "578ed681_834fceda",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 461,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-09T18:46:18Z",
+      "side": 1,
+      "message": "Hmm, I bet those fields were supposed to be public...",
+      "parentUuid": "b7e71224_f16c2946",
+      "revId": "95c46f38b8bbcbdadf1e243871214e46ad1be81f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "578ed681_239f023a",
         "filename": "task_scheduler/go/task_scheduler/main.go",
         "patchSetId": 2
