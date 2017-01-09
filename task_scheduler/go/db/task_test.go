@@ -150,7 +150,7 @@ func TestUpdateFromSwarmingMismatched(t *testing.T) {
 
 	s.CreatedTs = now.Format(swarming.TIMESTAMP_FORMAT)
 	s.TaskId = "D"
-	testError(s, "Swarming task ID does not match")
+	testError(s, ErrUnknownId.Error())
 
 	// Unchanged.
 	testutils.AssertDeepEqual(t, task, copy)
@@ -160,7 +160,9 @@ func TestUpdateFromSwarmingMismatched(t *testing.T) {
 func TestUpdateFromSwarmingInit(t *testing.T) {
 	testutils.SmallTest(t)
 	now := time.Now().UTC().Round(time.Microsecond)
-	task1 := &Task{}
+	task1 := &Task{
+		SwarmingTaskId: "E",
+	}
 	s := &swarming_api.SwarmingRpcsTaskResult{
 		TaskId: "E",
 		// Include both AbandonedTs and CompletedTs to test that CompletedTs takes
@@ -210,7 +212,9 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 	})
 
 	// Repeat to get Finished from AbandonedTs.
-	task2 := &Task{}
+	task2 := &Task{
+		SwarmingTaskId: "E",
+	}
 	s.CompletedTs = ""
 	s.State = SWARMING_STATE_EXPIRED
 	changed2, err2 := task2.UpdateFromSwarming(s)
@@ -455,9 +459,10 @@ func TestUpdateDBFromSwarmingTask(t *testing.T) {
 			Name:        "B",
 			ForcedJobId: "G",
 		},
-		Commits:       []string{"D", "Z"},
-		Status:        TASK_STATUS_PENDING,
-		ParentTaskIds: []string{"E", "F"},
+		Commits:        []string{"D", "Z"},
+		Status:         TASK_STATUS_PENDING,
+		ParentTaskIds:  []string{"E", "F"},
+		SwarmingTaskId: "E",
 	}
 	assert.NoError(t, db.AssignId(task))
 
@@ -548,9 +553,10 @@ func TestUpdateDBFromSwarmingTaskTryJob(t *testing.T) {
 			Name:        "B",
 			ForcedJobId: "G",
 		},
-		Commits:       []string{"D", "Z"},
-		Status:        TASK_STATUS_PENDING,
-		ParentTaskIds: []string{"E", "F"},
+		Commits:        []string{"D", "Z"},
+		Status:         TASK_STATUS_PENDING,
+		ParentTaskIds:  []string{"E", "F"},
+		SwarmingTaskId: "E",
 	}
 	assert.NoError(t, db.AssignId(task))
 

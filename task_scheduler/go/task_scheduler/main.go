@@ -5,10 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"net"
 	"net/http"
 	"path"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -410,7 +412,7 @@ func main() {
 
 	// Authenticated HTTP client.
 	oauthCacheFile := path.Join(wdAbs, "google_storage_token.data")
-	httpClient, err := auth.NewClient(*local, oauthCacheFile, swarming.AUTH_SCOPE, auth.SCOPE_READ_WRITE)
+	httpClient, err := auth.NewClient(*local, oauthCacheFile, auth.SCOPE_READ_WRITE)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -453,7 +455,15 @@ func main() {
 		go periodicallyUpdateMockTasksForTesting(swarmTestClient)
 		swarm = swarmTestClient
 	} else {
-		swarm, err = swarming.NewApiClient(httpClient, *swarmingServer)
+		tp := httputils.NewBackOffTransport().(*httputils.BackOffTransport)
+		tp.Transport.Dial = func(network, addr string) (net.Conn, error) {
+			return net.DialTimeout(network, addr, 3*time.Minute)
+		}
+		swarmClient, err := auth.NewClientWithTransport(*local, oauthCacheFile, "", tp, swarming.AUTH_SCOPE)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		swarm, err = swarming.NewApiClient(swarmClient, *swarmingServer)
 		if err != nil {
 			sklog.Fatal(err)
 		}
