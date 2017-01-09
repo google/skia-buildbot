@@ -120,7 +120,12 @@ func TestGetRepo(t *testing.T) {
 
 	url, r, err := trybots.getRepo(patchProject)
 	assert.NoError(t, err)
-	assert.Equal(t, repoName, url)
+	repo := "none"
+	for k, _ := range trybots.rm {
+		repo = k
+		break
+	}
+	assert.Equal(t, repo, url)
 	assert.NotNil(t, r)
 
 	_, _, err = trybots.getRepo("bogus")
