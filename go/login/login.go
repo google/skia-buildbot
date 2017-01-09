@@ -72,6 +72,7 @@ var (
 		RedirectURL:  "http://localhost:8000/oauth2callback/",
 	}
 
+	// TODO(jcgregorio) - Make check in LoggedInAs, add force flag if logged in, and set Domain to chopped .skia.org.
 	// activeUserDomainWhiteList is the list of domains that are allowed to
 	// log in.
 	activeUserDomainWhiteList map[string]bool
@@ -180,8 +181,18 @@ func LoginURL(w http.ResponseWriter, r *http.Request) string {
 
 	// Only retrieve an online access token, i.e. no refresh token. And when we
 	// go through the approval flow again don't stop if they've already approved
-	// once.
-	return oauthConfig.AuthCodeURL(state, oauth2.AccessTypeOnline, oauth2.SetAuthURLParam("approval_prompt", "auto"))
+	// once, unless they have a valid token but aren't in the whitelist,
+	// in which case we want to use ApprovalForce so they get the chance
+	// to pick a different account to log in with.
+	opts := []oauth2.AuthCodeOption{oauth2.AccessTypeOnline}
+	s, err := getSession(r)
+	if err == nil && !inWhitelist(s.Email) {
+		opts = append(opts, oauth2.ApprovalForce)
+	} else {
+		opts = append(opts, oauth2.SetAuthURLParam("approval_prompt", "auto"))
+	}
+	return oauthConfig.AuthCodeURL(state, opts...)
+
 }
 
 func getSession(r *http.Request) (*Session, error) {
@@ -204,6 +215,9 @@ func getSession(r *http.Request) (*Session, error) {
 func LoggedInAs(r *http.Request) string {
 	s, err := getSession(r)
 	if err != nil {
+		return ""
+	}
+	if !inWhitelist(s.Email) {
 		return ""
 	}
 	return s.Email
@@ -375,7 +389,7 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(activeUserDomainWhiteList) > 0 && !activeUserDomainWhiteList[parts[1]] && !activeUserEmailWhiteList[email] {
+	if !inWhitelist(email) {
 		http.Error(w, "Accounts from your domain are not allowed or your email address is not white listed.", 500)
 		return
 	}
@@ -387,6 +401,20 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	setSkIDCookieValue(w, &s)
 	http.Redirect(w, r, redirect, 302)
+}
+
+// inWhitelist returns true if the given email address matches either the
+// domain or the user whitelist.
+func inWhitelist(email string) bool {
+	parts := strings.Split(email, "@")
+	if len(parts) != 2 {
+		return false
+	}
+
+	if len(activeUserDomainWhiteList) > 0 && !activeUserDomainWhiteList[parts[1]] && !activeUserEmailWhiteList[email] {
+		return false
+	}
+	return true
 }
 
 // StatusHandler returns the login status of the user as JSON that looks like:

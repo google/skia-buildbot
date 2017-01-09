@@ -28,6 +28,7 @@ func TestLoginURL(t *testing.T) {
 	}
 	url := LoginURL(w, r)
 	assert.Contains(t, w.HeaderMap.Get("Set-Cookie"), SESSION_COOKIE_NAME, "Session cookie should be set.")
+	assert.Contains(t, url, "approval_prompt=auto", "Not forced into prompt.")
 	cookie := &http.Cookie{
 		Name:  SESSION_COOKIE_NAME,
 		Value: "some-random-state",
@@ -52,7 +53,7 @@ func TestLoggedInAs(t *testing.T) {
 	assert.Equal(t, LoggedInAs(r), "", "No skid cookie means not logged in.")
 
 	s := Session{
-		Email:     "fred@example.com",
+		Email:     "fred@chromium.org",
 		ID:        "12345",
 		AuthScope: DEFAULT_SCOPE[0],
 		Token:     nil,
@@ -62,5 +63,16 @@ func TestLoggedInAs(t *testing.T) {
 		t.Fatal(err)
 	}
 	r.AddCookie(cookie)
-	assert.Equal(t, LoggedInAs(r), "fred@example.com", "Correctly get logged in email.")
+	assert.Equal(t, LoggedInAs(r), "fred@chromium.org", "Correctly get logged in email.")
+	w := httptest.NewRecorder()
+	url := LoginURL(w, r)
+	assert.Contains(t, url, "approval_prompt=auto", "Not forced into prompt.")
+
+	delete(activeUserDomainWhiteList, "chromium.org")
+	assert.Equal(t, LoggedInAs(r), "", "Not in the domain whitelist.")
+	url = LoginURL(w, r)
+	assert.Contains(t, url, "approval_prompt=force", "Force into prompt.")
+
+	activeUserEmailWhiteList["fred@chromium.org"] = true
+	assert.Equal(t, LoggedInAs(r), "fred@chromium.org", "Found in the email whitelist.")
 }
