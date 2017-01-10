@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "578ed681_69ae4966",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 593,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-10T12:47:13Z",
+      "side": 1,
+      "message": "Sure, can you point me to where those steps are suggested?",
+      "parentUuid": "578ed681_a9c3d12a",
+      "revId": "48dd4f711024e1222128902b241457acc2f1e72f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "578ed681_69a5e987",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 3
