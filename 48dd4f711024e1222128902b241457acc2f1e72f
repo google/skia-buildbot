@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "578ed681_89a28d7f",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 593,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-10T12:26:03Z",
+      "side": 1,
+      "message": "Why remove this comment?",
+      "revId": "48dd4f711024e1222128902b241457acc2f1e72f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_69a5e987",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 603,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-10T12:26:03Z",
+      "side": 1,
+      "message": "Why remove this comment?",
+      "revId": "48dd4f711024e1222128902b241457acc2f1e72f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
