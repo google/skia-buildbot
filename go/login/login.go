@@ -162,10 +162,12 @@ func LoginURL(w http.ResponseWriter, r *http.Request) string {
 		state = session.Value
 	}
 
+	sklog.Infof("Request URL: %#v", r.URL)
 	redirect := r.Referer()
 	if redirect == "" {
-		redirect = "/"
+		redirect = "https://" + r.Host + r.RequestURI
 	}
+	sklog.Infof("redirect URL: %q", redirect)
 	// Append the current URL to the state, in a way that's safe from tampering,
 	// so that we can use it on the rebound. So the state we pass in has the
 	// form:
