@@ -164,7 +164,11 @@ func LoginURL(w http.ResponseWriter, r *http.Request) string {
 
 	redirect := r.Referer()
 	if redirect == "" {
-		redirect = "/"
+		// If we don't have a referrer then we need to construct the URL to
+		// bounce back to. This only works if r.Host is set correctly, which
+		// it should be as long as 'proxy_set_header Host $host;' is set for
+		// the nginx server config.
+		redirect = "https://" + r.Host + r.RequestURI
 	}
 	// Append the current URL to the state, in a way that's safe from tampering,
 	// so that we can use it on the rebound. So the state we pass in has the

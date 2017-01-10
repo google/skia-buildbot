@@ -37,6 +37,7 @@ server {
 
     location / {
         proxy_pass http://skia-docs:8000;
+        proxy_set_header Host $host;
     }
 }
 
@@ -63,6 +64,7 @@ server {
 
     location / {
         proxy_pass http://skia-perf:8000;
+        proxy_set_header Host $host;
     }
 }
 server {
@@ -88,6 +90,7 @@ server {
 
     location / {
         proxy_pass http://skia-android-ingest:8000;
+        proxy_set_header Host $host;
     }
 }
 server {
@@ -113,6 +116,7 @@ server {
 
     location / {
         proxy_pass http://skia-gold-prod:8001;
+        proxy_set_header Host $host;
     }
 }
 server {
@@ -138,6 +142,7 @@ server {
 
     location / {
         proxy_pass http://skia-gold-stage:8001;
+        proxy_set_header Host $host;
     }
 }
 server {
@@ -163,6 +168,7 @@ server {
 
     location / {
         proxy_pass http://skia-gold-pdfium:8001;
+        proxy_set_header Host $host;
     }
 }
 server {
@@ -188,6 +194,7 @@ server {
 
     location / {
         proxy_pass http://skia-alerts:8001;
+        proxy_set_header Host $host;
     }
 }
 server {
@@ -213,6 +220,7 @@ server {
 
     location / {
         proxy_pass http://skia-autoroll:8000;
+        proxy_set_header Host $host;
     }
 }
 server {
@@ -238,6 +246,7 @@ server {
 
     location / {
         proxy_pass http://catapult-autoroll:8000;
+        proxy_set_header Host $host;
     }
 }
 server {
@@ -263,6 +272,7 @@ server {
 
     location / {
         proxy_pass http://nacl-autoroll:8000;
+        proxy_set_header Host $host;
     }
 }
 server {
@@ -288,6 +298,7 @@ server {
 
     location / {
         proxy_pass http://pdfium-autoroll:8000;
+        proxy_set_header Host $host;
     }
 }
 server {
@@ -313,6 +324,7 @@ server {
 
     location / {
         proxy_pass http://skia-monitoring:8000;
+        proxy_set_header Host $host;
     }
 }
 
@@ -340,6 +352,7 @@ server {
 
     location / {
         proxy_pass http://skia-monitoring:10117;
+        proxy_set_header Host $host;
         # Skolo primary public IP TODO(kjlubick) Remove after transition
         allow 216.239.33.118/32;
         # Skolo secondary public IP TODO(kjlubick) Remove after transition
@@ -370,6 +383,7 @@ server {
 
     location / {
         proxy_pass http://skia-push:8000;
+        proxy_set_header Host $host;
     }
 }
 server {
@@ -395,6 +409,7 @@ server {
 
     location / {
         proxy_pass http://skia-fiddle:8000;
+        proxy_set_header Host $host;
     }
 }
 server {
@@ -422,6 +437,7 @@ server {
 
     location / {
         proxy_pass http://skia-imageinfo:8000;
+        proxy_set_header Host $host;
     }
 }
 server {
@@ -447,6 +463,7 @@ server {
 
     location / {
         proxy_pass http://skia-fuzzer-fe:8001;
+        proxy_set_header Host $host;
     }
 }
 server {
@@ -492,6 +509,7 @@ server {
 
     location / {
         proxy_pass http://skia-status:8002;
+        proxy_set_header Host $host;
     }
 }
 server {
@@ -540,6 +558,7 @@ server {
 
     location / {
         proxy_pass http://skia-ctfe:8002;
+        proxy_set_header Host $host;
     }
 }
 server {
@@ -691,6 +710,7 @@ server {
         # keep sending undelivered events.
         error_page 502 504 =200 @empty;
         proxy_pass http://skia-grandcentral:8002;
+        proxy_set_header Host $host;
     }
 
     location @empty {
@@ -720,6 +740,7 @@ server {
 
     location / {
         proxy_pass http://skia-internal:8000;
+        proxy_set_header Host $host;
     }
 }
 
@@ -748,6 +769,7 @@ server {
 
     location / {
         proxy_pass http://skia-debugger:8000;
+        proxy_set_header Host $host;
     }
 }
 
@@ -794,6 +816,7 @@ server {
 
     location / {
         proxy_pass http://skia-task-scheduler:8000;
+        proxy_set_header Host $host;
     }
 }
 server {
@@ -821,6 +844,7 @@ server {
 
     location / {
         proxy_pass http://skia-prom:11000;
+        proxy_set_header Host $host;
     }
 }
 
@@ -849,6 +873,7 @@ server {
 
     location / {
         proxy_pass http://skia-prom:11001;
+        proxy_set_header Host $host;
     }
 }
 
@@ -857,3 +882,33 @@ server {
     server_name promalerts.skia.org;
     return 301 https://promalerts.skia.org$request_uri;
 }
+
+#####   proxy.skia.org   ###########################
+server {
+    listen      443;
+    server_name ~^[a-zA-Z0-9-]+proxy\.skia\.org$;
+
+    ssl on;
+
+    access_log /var/log/nginx/proxy.access.log;
+    error_log /var/log/nginx/proxy.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
+    client_max_body_size 500M;
+
+    location / {
+        proxy_pass http://skia-proxy:8000;
+        proxy_set_header Host $host;
+    }
+}
+
+server {
+    listen      80;
+    server_name ~^[a-zA-Z0-9-]+proxy\.skia\.org$;
+    return 301 https://$server_name$request_uri;
+}
+
