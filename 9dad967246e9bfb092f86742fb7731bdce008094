@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "578ed681_8407d43b",
+        "filename": "compute_engine_scripts/proxy/vm_config.sh",
+        "patchSetId": 15
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-10T16:45:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "578ed681_09e8dd99",
+      "revId": "9dad967246e9bfb092f86742fb7731bdce008094",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "578ed681_a9dc3100",
         "filename": "compute_engine_scripts/proxy/vm_create_instance.sh",
         "patchSetId": 15
@@ -30,6 +48,24 @@
       "writtenOn": "2017-01-10T12:56:58Z",
       "side": 1,
       "message": "Nit: Do we need 4 cores for a proxy, or is 2 sufficient? (just curious, its not like we are crunched for cores)",
+      "revId": "9dad967246e9bfb092f86742fb7731bdce008094",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_c424fcd7",
+        "filename": "compute_engine_scripts/proxy/vm_create_instance.sh",
+        "patchSetId": 15
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-10T16:45:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "578ed681_a9dc3100",
       "revId": "9dad967246e9bfb092f86742fb7731bdce008094",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
