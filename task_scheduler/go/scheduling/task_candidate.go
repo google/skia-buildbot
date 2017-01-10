@@ -146,7 +146,7 @@ func replaceVars(c *taskCandidate, s string) string {
 }
 
 // MakeTaskRequest creates a SwarmingRpcsNewTaskRequest object from the taskCandidate.
-func (c *taskCandidate) MakeTaskRequest(id string) (*swarming_api.SwarmingRpcsNewTaskRequest, error) {
+func (c *taskCandidate) MakeTaskRequest(id, isolateServer string) (*swarming_api.SwarmingRpcsNewTaskRequest, error) {
 	var cipdInput *swarming_api.SwarmingRpcsCipdInput
 	if len(c.TaskSpec.CipdPackages) > 0 {
 		cipdInput = &swarming_api.SwarmingRpcsCipdInput{
@@ -214,7 +214,7 @@ func (c *taskCandidate) MakeTaskRequest(id string) (*swarming_api.SwarmingRpcsNe
 			ExtraArgs:            extraArgs,
 			InputsRef: &swarming_api.SwarmingRpcsFilesRef{
 				Isolated:       c.IsolatedInput,
-				Isolatedserver: isolate.ISOLATE_SERVER_URL,
+				Isolatedserver: isolateServer,
 				Namespace:      isolate.DEFAULT_NAMESPACE,
 			},
 			IoTimeoutSecs: ioTimeoutSecs,

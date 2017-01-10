@@ -834,7 +834,7 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, tasks []*db.Ta
 				sklog.Errorf("Failed to trigger task: %s", err)
 				return
 			}
-			req, err := candidate.MakeTaskRequest(t.Id)
+			req, err := candidate.MakeTaskRequest(t.Id, s.isolate.ServerURL())
 			if err != nil {
 				sklog.Errorf("Failed to trigger task: %s", err)
 				return

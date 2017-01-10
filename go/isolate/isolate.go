@@ -81,6 +81,11 @@ func (c *Client) Close() error {
 	return c.gs.Close()
 }
 
+// ServerURL return the Isolate server URL.
+func (c *Client) ServerURL() string {
+	return c.serverUrl
+}
+
 // Task is a description of the necessary inputs to isolate a task.
 type Task struct {
 	// BaseDir is the directory in which the files to be isolated reside.
