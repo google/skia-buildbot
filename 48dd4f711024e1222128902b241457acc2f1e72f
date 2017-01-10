@@ -91,6 +91,24 @@
     },
     {
       "key": {
+        "uuid": "578ed681_e90b199b",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 593,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-10T12:58:05Z",
+      "side": 1,
+      "message": "Thanks, added comments.",
+      "parentUuid": "578ed681_49b585aa",
+      "revId": "48dd4f711024e1222128902b241457acc2f1e72f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "578ed681_69a5e987",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 3
