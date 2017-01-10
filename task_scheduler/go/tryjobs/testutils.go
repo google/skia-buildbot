@@ -68,10 +68,6 @@ var (
 		Repo:     repoName,
 		Revision: "master",
 	}
-
-	projectRepoMapping = map[string]string{
-		patchProject: repoName,
-	}
 )
 
 func MockOutExec() {
@@ -102,6 +98,13 @@ func setup(t *testing.T) (*TryJobIntegrator, *mockhttpclient.URLMock, func()) {
 	gb.Add(tasksJson, testTasksCfg)
 	gb.Commit()
 
+	// Create a ref for a fake patch.
+	gb.CreateBranchTrackBranch("fake-patch", "master")
+	patchCommit := gb.CommitGen("patch_file.txt")
+	abbrev := rs.Issue[len(rs.Issue)-2:]
+	gb.UpdateRef(fmt.Sprintf("refs/changes/%s/%s/%s", abbrev, rs.Issue, rs.Patchset), patchCommit)
+
+	// Create repo map.
 	tmpDir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
@@ -109,7 +112,7 @@ func setup(t *testing.T) (*TryJobIntegrator, *mockhttpclient.URLMock, func()) {
 	assert.NoError(t, err)
 
 	rm := repograph.Map{
-		repoName: repo,
+		gb.Dir(): repo,
 	}
 
 	// Set up other TryJobIntegrator inputs.
@@ -119,6 +122,9 @@ func setup(t *testing.T) (*TryJobIntegrator, *mockhttpclient.URLMock, func()) {
 	d, err := local_db.NewDB("tasks_db", path.Join(tmpDir, "tasks.db"))
 	assert.NoError(t, err)
 	mock := mockhttpclient.NewURLMock()
+	projectRepoMapping := map[string]string{
+		patchProject: gb.Dir(),
+	}
 	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, mock.Client(), d, window, projectRepoMapping, rm, taskCfgCache)
 	assert.NoError(t, err)
 

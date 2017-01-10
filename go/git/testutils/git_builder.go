@@ -173,6 +173,13 @@ func (g *GitBuilder) Reset(args ...string) {
 	g.push()
 }
 
+// UpdateRef runs "git update-ref" in the repo.
+func (g *GitBuilder) UpdateRef(args ...string) {
+	cmd := append([]string{"git", "update-ref"}, args...)
+	g.run(cmd...)
+	g.push()
+}
+
 // GitSetup adds commits to the Git repo managed by g.
 //
 // The repo layout looks like this:
