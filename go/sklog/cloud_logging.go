@@ -53,6 +53,50 @@ const (
 	LOG_WRITE_SECONDS = 5
 )
 
+func PreInitCloudLogging(logGrouping, defaultReport string) error {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return fmt.Errorf("Could not get hostname: %s", err)
+	}
+	if logGrouping == "" {
+		logGrouping = hostname
+	}
+	r := &logging.MonitoredResource{
+		Type: "logging_log",
+		Labels: map[string]string{
+			"name": logGrouping,
+		},
+	}
+	defaultReportName = defaultReport
+	logger = newLogsClient(nil, hostname, r)
+	return nil
+}
+
+func PostInitCloudLogging(c *http.Client, metricsCallback MetricsCallback) error {
+	lc, err := logging.New(c)
+	if err != nil {
+		return fmt.Errorf("Problem setting up logging.Service: %s", err)
+	}
+	logger.(*logsClient).service = lc
+	if metricsCallback != nil {
+		sawLogWithSeverity = metricsCallback
+	}
+	url := fmt.Sprintf(CLOUD_LOGGING_URL_FORMAT, defaultReportName, logger.(*logsClient).loggingResource.Labels["name"])
+	glog.Infof(`=====================================================
+Cloud logging configured, see %s for rest of logs. This file will only contain errors involved with cloud logging/metrics.
+=====================================================`, url)
+	// Make first cloud logging entry.
+	Info("Cloud logging configured.")
+	return nil
+}
+
+func AbandonCloudLogging() {
+	if lc, ok := logger.(*logsClient); ok {
+		lc.Abort()
+	}
+	logger = nil
+}
+
 // CLIENTS SHOULD NOT CALL InitCloudLogging directly. Instead use common.InitWithCloudLogging.
 // InitCloudLogging initializes the module-level logger. logGrouping refers to the
 // MonitoredResource's name. If blank, logGrouping defaults to the machine's hostname.
@@ -138,6 +182,8 @@ type logsClient struct {
 	// complete.
 	flush chan chan struct{}
 
+	abort chan chan struct{}
+
 	// A buffered input channel of LogEntry.
 	payloadCh chan *logging.LogEntry
 
@@ -149,6 +195,7 @@ type logsClient struct {
 func newLogsClient(service *logging.Service, hostname string, loggingResource *logging.MonitoredResource) *logsClient {
 	logger := &logsClient{
 		flush:           make(chan chan struct{}),
+		abort:           make(chan chan struct{}),
 		service:         service,
 		payloadCh:       make(chan *logging.LogEntry, MAX_QPS_LOG),
 		buffer:          make([]*logging.LogEntry, 0, LOG_WRITE_SECONDS*MAX_QPS_LOG),
@@ -227,7 +274,19 @@ func (c *logsClient) Flush() {
 	<-ch
 }
 
+func (c *logsClient) Abort() {
+	ch := make(chan struct{})
+	c.abort <- ch
+	<-ch
+	for _ = range c.payloadCh {
+	}
+	close(c.payloadCh)
+}
+
 func (c *logsClient) pushBatch() {
+	if c.service == nil {
+		return
+	}
 	request := logging.WriteLogEntriesRequest{
 		Entries: c.buffer,
 	}
@@ -253,6 +312,9 @@ func (c *logsClient) background() {
 		case ch := <-c.flush:
 			c.pushBatch()
 			close(ch)
+		case ch := <-c.abort:
+			close(ch)
+			return
 		case logPayload := <-c.payloadCh:
 			c.buffer = append(c.buffer, logPayload)
 		}
