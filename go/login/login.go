@@ -50,6 +50,9 @@ const (
 	SESSION_COOKIE_NAME = "sksession"
 	DEFAULT_COOKIE_SALT = "notverysecret"
 
+	// DEFAULT_REDIRECT_URL is the redirect URL to use if Init is called with DEFAULT_DOMAIN_WHITELIST.
+	DEFAULT_REDIRECT_URL = "https://skia.org/oauth2callback/"
+
 	// DEFAULT_DOMAIN_WHITELIST is a white list of domains we use frequently.
 	DEFAULT_DOMAIN_WHITELIST = "google.com chromium.org skia.org"
 
@@ -87,6 +90,7 @@ var (
 	// allowed to perform admin tasks.
 	activeAdminEmailWhiteList map[string]bool
 
+	// DEFAULT_SCOPE is the scope we request when logging in.
 	DEFAULT_SCOPE = []string{"email"}
 )
 
@@ -106,9 +110,8 @@ type Session struct {
 // and client secret from. If both of those fail then it returns an error.
 //
 // The authWhiteList is the space separated list of domains and email addresses
-// that are allowed to log in. The authWhiteList will be overwritten from
-// GCE instance level metadata if present.
-func Init(redirectURL string, scopes []string, authWhiteList string) error {
+// that are allowed to log in.
+func Init(redirectURL string, authWhiteList string) error {
 	cookieSalt, clientID, clientSecret := tryLoadingFromMetadata()
 	if clientID == "" {
 		b, err := ioutil.ReadFile("client_secret.json")
@@ -122,7 +125,7 @@ func Init(redirectURL string, scopes []string, authWhiteList string) error {
 		clientID = config.ClientID
 		clientSecret = config.ClientSecret
 	}
-	initLogin(clientID, clientSecret, redirectURL, cookieSalt, scopes, authWhiteList)
+	initLogin(clientID, clientSecret, redirectURL, cookieSalt, DEFAULT_SCOPE, authWhiteList)
 	return nil
 }
 
@@ -518,10 +521,8 @@ func splitAuthWhiteList(whiteList string) (map[string]bool, map[string]bool) {
 }
 
 // setActiveWhitelists initializes activeDomainWhiteList and
-// activeEmailWhiteList from instance metadata; or if metadata is not available,
-// from authWhiteList.
+// activeEmailWhiteList from authWhiteList.
 func setActiveWhitelists(authWhiteList string) {
-	authWhiteList = metadata.GetWithDefault(metadata.AUTH_WHITE_LIST, authWhiteList)
 	activeUserDomainWhiteList, activeUserEmailWhiteList = splitAuthWhiteList(authWhiteList)
 	adminWhiteList := metadata.ProjectGetWithDefault(metadata.ADMIN_WHITE_LIST, DEFAULT_ADMIN_WHITELIST)
 	_, activeAdminEmailWhiteList = splitAuthWhiteList(adminWhiteList)

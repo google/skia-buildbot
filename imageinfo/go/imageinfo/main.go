@@ -345,7 +345,7 @@ func main() {
 	if !*local {
 		redirectURL = "https://imageinfo.skia.org/oauth2callback/"
 	}
-	if err := login.Init(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
+	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 	var err error

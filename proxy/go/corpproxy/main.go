@@ -69,15 +69,14 @@ func main() {
 	metrics2.InitPrometheus(*promPort)
 	common.StartCloudLogging(filepath.Base(os.Args[0]))
 
-	redirectURL := "https://auth-proxy.skia.org/oauth2callback/"
+	redirectURL := login.DEFAULT_REDIRECT_URL
 	if *local {
-		redirectURL = fmt.Sprintf("https://localhost%s/oauth2callback/", *port)
+		redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	}
-	if err := login.Init(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
+	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
 	http.HandleFunc("/", mainHandler)
-	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
