@@ -13,6 +13,7 @@ ExecStart=/usr/local/bin/task_scheduler \
     --isolate_server=https://chrome-isolated.appspot.com \
     --log_dir=/var/log/logserver \
     --log_max_size=10485760 \
+    --pool=SkiaInternal \
     --repo=https://skia.googlesource.com/internal_test.git \
     --resources_dir=/usr/local/share/task-scheduler/ \
     --swarming_server=chrome-swarming.appspot.com \
