@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "578ed681_499ca542",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 593,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-10T12:28:43Z",
+      "side": 1,
+      "message": "It was only there to remind me of the ref format.  I included it by accident last time.",
+      "parentUuid": "578ed681_89a28d7f",
+      "revId": "48dd4f711024e1222128902b241457acc2f1e72f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "578ed681_69a5e987",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 3
@@ -30,6 +48,24 @@
       "writtenOn": "2017-01-10T12:26:03Z",
       "side": 1,
       "message": "Why remove this comment?",
+      "revId": "48dd4f711024e1222128902b241457acc2f1e72f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_e9b9d9ae",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 603,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-10T12:28:43Z",
+      "side": 1,
+      "message": "Because that\u0027s not really what we\u0027re doing here.  We\u0027re keeping the code state the same while switching back to the \"patch\" branch.",
+      "parentUuid": "578ed681_69a5e987",
       "revId": "48dd4f711024e1222128902b241457acc2f1e72f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
