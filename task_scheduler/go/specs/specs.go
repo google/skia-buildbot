@@ -579,7 +579,8 @@ func TempGitRepo(repo *git.Repo, rs db.RepoState) (rv *git.TempCheckout, rvErr e
 
 	// Apply a patch if necessary.
 	if rs.IsTryJob() {
-		if _, err := c.Git("checkout", "-b", "patch"); err != nil {
+		branchName := "patch"
+		if _, err := c.Git("checkout", "-b", branchName); err != nil {
 			return nil, err
 		}
 		server := strings.TrimRight(rs.Server, "/")
@@ -589,12 +590,24 @@ func TempGitRepo(repo *git.Repo, rs db.RepoState) (rv *git.TempCheckout, rvErr e
 				return nil, err
 			}
 		} else {
-			patchUrl := fmt.Sprintf("%s/c/%s/%s", server, rs.Issue, rs.Patchset)
-			if _, err := c.Git("cl", "patch", "--gerrit", patchUrl); err != nil {
+			// Follow Gerrit's suggested flow for fetching a change:
+			// https://gerrit-review.googlesource.com/Documentation/intro-user.html#fetch-change
+			// $ git fetch https://gerrithost/myProject refs/changes/74/67374/2
+			// $ git checkout FETCH_HEAD
+			abbrev := rs.Issue[len(rs.Issue)-2:]
+			ref := fmt.Sprintf("refs/changes/%s/%s/%s", abbrev, rs.Issue, rs.Patchset)
+			if _, err := c.Git("fetch", rs.Repo, ref); err != nil {
 				return nil, err
 			}
-			// Un-commit the applied patch.
-			if _, err := c.Git("reset", "HEAD^"); err != nil {
+			if _, err := c.Git("checkout", "FETCH_HEAD"); err != nil {
+				return nil, err
+			}
+			// Switch back to the "patch" branch while leaving the
+			// code state intact. This gets us to our desired end
+			// state: on the "patch" branch whose HEAD is at the
+			// desired commit, with the patch applied but not
+			// committed.
+			if _, err := c.Git("reset", branchName); err != nil {
 				return nil, err
 			}
 		}
