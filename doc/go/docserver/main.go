@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -203,7 +204,16 @@ func main() {
 	common.InitWithMetrics2("docserver", influxHost, influxUser, influxPassword, influxDatabase, local)
 	Init()
 
+	redirectURL := login.DEFAULT_REDIRECT_URL
+	if *local {
+		redirectURL = fmt.Sprintf("https://localhost%s/oauth2callback/", *port)
+	}
+	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
+		sklog.Fatalf("Failed to initialize the login system: %s", err)
+	}
+
 	// Resources are served directly.
+	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
 

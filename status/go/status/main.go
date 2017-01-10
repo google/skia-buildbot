@@ -568,7 +568,7 @@ func main() {
 
 	// By default use a set of credentials setup for localhost access.
 	redirectURL := serverURL + OAUTH2_CALLBACK_PATH
-	if err := login.Init(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
+	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 

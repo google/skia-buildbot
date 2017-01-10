@@ -151,7 +151,8 @@ func main() {
 	if *local {
 		useRedirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	}
-	if err := login.Init(useRedirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
+	authWhiteList := metadata.GetWithDefault(metadata.AUTH_WHITE_LIST, login.DEFAULT_DOMAIN_WHITELIST)
+	if err := login.Init(useRedirectURL, authWhiteList); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
