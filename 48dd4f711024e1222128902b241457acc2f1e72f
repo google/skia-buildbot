@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "578ed681_a9c3d12a",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 593,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-10T12:30:40Z",
+      "side": 1,
+      "message": "Could you add a comment saying that the following steps do the fetch and check suggested by Gerrit to download a patch? (or whatever better wording you come up with).",
+      "parentUuid": "578ed681_499ca542",
+      "revId": "48dd4f711024e1222128902b241457acc2f1e72f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "578ed681_69a5e987",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 3
