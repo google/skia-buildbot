@@ -280,11 +280,11 @@ Displays the server configurations, along with the ability to modify application
     },
 
     monURI: function(name) {
-      return "http://" + this.ip[name] + ":10114";
+      return "https://" + name + "-10114-proxy.skia.org";
     },
 
     logsURI: function(name) {
-      return "http://" + this.ip[name] + ":10115";
+      return "https://" + name + "-10115-proxy.skia.org";
     },
 
   });
