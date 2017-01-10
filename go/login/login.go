@@ -87,6 +87,7 @@ var (
 	// allowed to perform admin tasks.
 	activeAdminEmailWhiteList map[string]bool
 
+	// DEFAULT_SCOPE is the scope we request when logging in.
 	DEFAULT_SCOPE = []string{"email"}
 )
 
@@ -108,7 +109,7 @@ type Session struct {
 // The authWhiteList is the space separated list of domains and email addresses
 // that are allowed to log in. The authWhiteList will be overwritten from
 // GCE instance level metadata if present.
-func Init(redirectURL string, scopes []string, authWhiteList string) error {
+func Init(redirectURL string, authWhiteList string) error {
 	cookieSalt, clientID, clientSecret := tryLoadingFromMetadata()
 	if clientID == "" {
 		b, err := ioutil.ReadFile("client_secret.json")
@@ -122,7 +123,7 @@ func Init(redirectURL string, scopes []string, authWhiteList string) error {
 		clientID = config.ClientID
 		clientSecret = config.ClientSecret
 	}
-	initLogin(clientID, clientSecret, redirectURL, cookieSalt, scopes, authWhiteList)
+	initLogin(clientID, clientSecret, redirectURL, cookieSalt, DEFAULT_SCOPE, authWhiteList)
 	return nil
 }
 
@@ -517,7 +518,6 @@ func splitAuthWhiteList(whiteList string) (map[string]bool, map[string]bool) {
 // activeEmailWhiteList from instance metadata; or if metadata is not available,
 // from authWhiteList.
 func setActiveWhitelists(authWhiteList string) {
-	authWhiteList = metadata.GetWithDefault(metadata.AUTH_WHITE_LIST, authWhiteList)
 	activeUserDomainWhiteList, activeUserEmailWhiteList = splitAuthWhiteList(authWhiteList)
 	adminWhiteList := metadata.ProjectGetWithDefault(metadata.ADMIN_WHITE_LIST, DEFAULT_ADMIN_WHITELIST)
 	_, activeAdminEmailWhiteList = splitAuthWhiteList(adminWhiteList)
