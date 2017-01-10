@@ -9,14 +9,19 @@ BOWER_DIR=third_party/bower_components
 
 VULCANIZE1=true
 
-default: core_js elements_html
+build: core_js elements_html
 	go install -v ./go/push
 	go install -v ./go/pushcli
 
-release: default
+release: build
 	./build_pushd_release "$(MESSAGE)"
 
-.PHONY: debug
+push: build
+	./build_pushd_release "`git log -n1 --format=%s`"
+	pushcli pushd skia-push
+
 debug: clean_webtools debug_core_js debug_elements_html
+
+.PHONY: build release push debug
 
 include ../webtools/webtools.mk
