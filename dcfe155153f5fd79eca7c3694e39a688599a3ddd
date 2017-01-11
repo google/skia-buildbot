@@ -181,6 +181,24 @@
     },
     {
       "key": {
+        "uuid": "578ed681_b12b3346",
+        "filename": "go/gs/storage.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-11T19:49:44Z",
+      "side": 1,
+      "message": "Agreed that they are novel interfaces, but they still need docs, i.e. what are they, why are they, how are they to be used.",
+      "parentUuid": "578ed681_1149dfaa",
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "578ed681_f1e21bbd",
         "filename": "go/mockgcsclient/mock_gcs_client.go",
         "patchSetId": 3
