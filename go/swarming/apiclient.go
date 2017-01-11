@@ -48,6 +48,11 @@ type ApiClient interface {
 	// corresponding to the Swarming bots matching the requested dimensions.
 	ListBots(dimensions map[string]string) ([]*swarming.SwarmingRpcsBotInfo, error)
 
+	// ListFreeBots returns a slice of swarming.SwarmingRpcsBotInfo instances
+	// corresponding to the free, alive, and not-quarantined bots in the
+	// given pool.
+	ListFreeBots(pool string) ([]*swarming.SwarmingRpcsBotInfo, error)
+
 	// ListSkiaBots returns a slice of swarming.SwarmingRpcsBotInfo instances
 	// corresponding to the Skia Swarming bots.
 	ListSkiaBots() ([]*swarming.SwarmingRpcsBotInfo, error)
@@ -137,17 +142,29 @@ func (c *apiClient) ListCTBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
 	})
 }
 
+func (c *apiClient) ListFreeBots(pool string) ([]*swarming.SwarmingRpcsBotInfo, error) {
+	call := c.s.Bots.List()
+	call.Dimensions(fmt.Sprintf("%s:%s", DIMENSION_POOL_KEY, pool))
+	call.IsBusy("FALSE")
+	call.IsDead("FALSE")
+	call.Quarantined("FALSE")
+	return ProcessBotsListCall(call)
+}
+
 func (c *apiClient) ListBots(dimensions map[string]string) ([]*swarming.SwarmingRpcsBotInfo, error) {
+	call := c.s.Bots.List()
+	dimensionStrs := make([]string, 0, len(dimensions))
+	for k, v := range dimensions {
+		dimensionStrs = append(dimensionStrs, fmt.Sprintf("%s:%s", k, v))
+	}
+	call.Dimensions(dimensionStrs...)
+	return ProcessBotsListCall(call)
+}
+
+func ProcessBotsListCall(call *swarming.BotsListCall) ([]*swarming.SwarmingRpcsBotInfo, error) {
 	bots := []*swarming.SwarmingRpcsBotInfo{}
 	cursor := ""
 	for {
-		call := c.s.Bots.List()
-		dimensionStrs := make([]string, 0, len(dimensions))
-		for k, v := range dimensions {
-			dimensionStrs = append(dimensionStrs, fmt.Sprintf("%s:%s", k, v))
-		}
-		call.Dimensions(dimensionStrs...)
-		call.Limit(100)
 		if cursor != "" {
 			call.Cursor(cursor)
 		}
