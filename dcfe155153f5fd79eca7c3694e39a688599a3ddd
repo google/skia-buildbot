@@ -130,6 +130,24 @@
     },
     {
       "key": {
+        "uuid": "578ed681_ac1d1ada",
+        "filename": "fuzzer/go/deduplicator/remotededuplicator.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-11T20:58:58Z",
+      "side": 1,
+      "message": "Hysterical Raisins.  I\u0027ll group them up.",
+      "parentUuid": "578ed681_0c0c66b2",
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "578ed681_51b527aa",
         "filename": "fuzzer/go/storage/client.go",
         "patchSetId": 3
