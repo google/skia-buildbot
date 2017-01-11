@@ -53,6 +53,43 @@ const (
 	LOG_WRITE_SECONDS = 5
 )
 
+func PreInitCloudLogging(logGrouping, defaultReport string) error {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return fmt.Errorf("Could not get hostname: %s", err)
+	}
+	if logGrouping == "" {
+		logGrouping = hostname
+	}
+	r := &logging.MonitoredResource{
+		Type: "logging_log",
+		Labels: map[string]string{
+			"name": logGrouping,
+		},
+	}
+	defaultReportName = defaultReport
+	logger = newLogsClient(nil, hostname, r)
+	return nil
+}
+
+func PostInitCloudLogging(c *http.Client, metricsCallback MetricsCallback) error {
+	lc, err := logging.New(c)
+	if err != nil {
+		return fmt.Errorf("Problem setting up logging.Service: %s", err)
+	}
+	logger.(*logsClient).service = lc
+	if metricsCallback != nil {
+		sawLogWithSeverity = metricsCallback
+	}
+	url := fmt.Sprintf(CLOUD_LOGGING_URL_FORMAT, defaultReportName, logger.(*logsClient).loggingResource.Labels["name"])
+	glog.Infof(`=====================================================
+Cloud logging configured, see %s for rest of logs. This file will only contain errors involved with cloud logging/metrics.
+=====================================================`, url)
+	// Make first cloud logging entry.
+	Info("Cloud logging configured.")
+	return nil
+}
+
 // CLIENTS SHOULD NOT CALL InitCloudLogging directly. Instead use common.InitWithCloudLogging.
 // InitCloudLogging initializes the module-level logger. logGrouping refers to the
 // MonitoredResource's name. If blank, logGrouping defaults to the machine's hostname.
@@ -228,6 +265,9 @@ func (c *logsClient) Flush() {
 }
 
 func (c *logsClient) pushBatch() {
+	if c.service == nil {
+		return
+	}
 	request := logging.WriteLogEntriesRequest{
 		Entries: c.buffer,
 	}
