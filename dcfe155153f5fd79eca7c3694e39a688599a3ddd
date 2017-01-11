@@ -140,6 +140,29 @@
     },
     {
       "key": {
+        "uuid": "578ed681_91638f34",
+        "filename": "go/gs/storage.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-01-11T18:37:16Z",
+      "side": 1,
+      "message": "Probably not all, but many of the interfaces and functions should have documentation or at least refer to the original interface definitions. This is not just for this line but across this CL\u0027s. \nEven if you mock a well known interface it should give some reference what that interface is.",
+      "range": {
+        "startLine": 18,
+        "startChar": 5,
+        "endLine": 18,
+        "endChar": 15
+      },
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "578ed681_f1e21bbd",
         "filename": "go/mockgcsclient/mock_gcs_client.go",
         "patchSetId": 3
