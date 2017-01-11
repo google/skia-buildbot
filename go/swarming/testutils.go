@@ -63,6 +63,22 @@ func (c *TestClient) ListBots(dimensions map[string]string) ([]*swarming.Swarmin
 	return rv, nil
 }
 
+func (c *TestClient) ListFreeBots(pool string) ([]*swarming.SwarmingRpcsBotInfo, error) {
+	bots, err := c.ListBots(map[string]string{
+		DIMENSION_POOL_KEY: pool,
+	})
+	if err != nil {
+		return nil, err
+	}
+	rv := make([]*swarming.SwarmingRpcsBotInfo, 0, len(bots))
+	for _, b := range bots {
+		if !b.Quarantined && !b.IsDead && b.TaskId == "" {
+			rv = append(rv, b)
+		}
+	}
+	return rv, nil
+}
+
 func (c *TestClient) ListSkiaBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
 	return c.ListBots(map[string]string{
 		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_SKIA,
