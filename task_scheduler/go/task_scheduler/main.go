@@ -46,9 +46,10 @@ var (
 
 	// PROJECT_REPO_MAPPING is a mapping of project names to repo URLs.
 	PROJECT_REPO_MAPPING = map[string]string{
-		"buildbot":     common.REPO_SKIA_INFRA,
-		"skia":         common.REPO_SKIA,
-		"skiabuildbot": common.REPO_SKIA_INFRA,
+		"buildbot":      common.REPO_SKIA_INFRA,
+		"internal_test": common.REPO_SKIA_INTERNAL_TEST,
+		"skia":          common.REPO_SKIA,
+		"skiabuildbot":  common.REPO_SKIA_INFRA,
 	}
 
 	// Task Scheduler instance.
