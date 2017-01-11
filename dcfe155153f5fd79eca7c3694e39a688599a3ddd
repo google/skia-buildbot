@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "578ed681_31b8a3a3",
+        "filename": "fuzzer/go/aggregator/aggregator.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-11T17:50:39Z",
+      "side": 1,
+      "message": "Eventually, if this goes well, the main function will create a NewFuzzerGCSClient() and pass it into all its children, instead of passing in the storage.Client().  For now, I just wrap it before passing it in so as to have a smaller, more reviewable diff.",
+      "range": {
+        "startLine": 136,
+        "startChar": 12,
+        "endLine": 136,
+        "endChar": 60
+      },
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_11bf9f92",
+        "filename": "fuzzer/go/deduplicator/deduplicator_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-11T17:50:39Z",
+      "side": 1,
+      "message": "This makes sure all the calls were made at least once that are defined with On() - if one goes unused, the test fails.",
+      "range": {
+        "startLine": 200,
+        "startChar": 7,
+        "endLine": 200,
+        "endChar": 27
+      },
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_f1b9bbae",
+        "filename": "fuzzer/go/deduplicator/deduplicator_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-11T17:50:39Z",
+      "side": 1,
+      "message": "The first arg to On is the method name, the rest are the expected args.  See below that one can use mock.AnythingOfType() or mock.Anything() if that is not important (or covered by other tests, for example).",
+      "range": {
+        "startLine": 207,
+        "startChar": 1,
+        "endLine": 207,
+        "endChar": 23
+      },
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_519c4742",
+        "filename": "fuzzer/go/deduplicator/remotededuplicator.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-11T17:50:39Z",
+      "side": 1,
+      "message": "The previous way to implement this would have involved passing the struct *storage.Client directly into here.  Instead, we create an interface composed of methods from gs (the common gs implementation) and fuzzer/go/storage (for fuzzer specific gcs code).  \n\nThis is also an explicit way of specifying what RemoteDeduplicator needs to do with GCS.",
+      "range": {
+        "startLine": 29,
+        "startChar": 27,
+        "endLine": 29,
+        "endChar": 64
+      },
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_51b527aa",
+        "filename": "fuzzer/go/storage/client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-11T17:50:39Z",
+      "side": 1,
+      "message": "The fuzzer-specific client embeds the general client and extends it for fuzzer specific code (which currently lives in fuzzer/go/storage/download_reports.go, and in other places)",
+      "range": {
+        "startLine": 16,
+        "startChar": 5,
+        "endLine": 16,
+        "endChar": 20
+      },
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_11e8ff99",
+        "filename": "fuzzer/go/tests/mock_storage.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-11T17:50:39Z",
+      "side": 1,
+      "message": "Just like there is a fuzzer-specific gcsclient, there is a fuzzer-specific mock gcsclient too.",
+      "range": {
+        "startLine": 12,
+        "startChar": 5,
+        "endLine": 12,
+        "endChar": 23
+      },
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_f1e21bbd",
+        "filename": "go/mockgcsclient/mock_gcs_client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-11T17:50:39Z",
+      "side": 1,
+      "message": "This mock object has the boilerplate for all the common GCS calls.  This boiler plate can be overridden by test-specific or instance-specific mocks, as needed.",
+      "range": {
+        "startLine": 14,
+        "startChar": 5,
+        "endLine": 14,
+        "endChar": 18
+      },
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
