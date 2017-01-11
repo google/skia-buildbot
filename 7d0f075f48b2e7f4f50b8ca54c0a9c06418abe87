@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "578ed681_b121f3b8",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1226,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-11T18:51:00Z",
+      "side": 1,
+      "message": "redundant?",
+      "range": {
+        "startLine": 1215,
+        "startChar": 0,
+        "endLine": 1226,
+        "endChar": 2
+      },
+      "revId": "7d0f075f48b2e7f4f50b8ca54c0a9c06418abe87",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
