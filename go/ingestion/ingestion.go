@@ -163,8 +163,10 @@ func (i *Ingester) Start() {
 		for {
 			select {
 			case resultFiles = <-pollChan:
+				sklog.Info("pollChan")
 				useMetrics = i.pollProcessMetrics
 			case resultFiles = <-eventChan:
+				sklog.Info("eventChan")
 				useMetrics = i.eventProcessMetrics
 			case <-doneCh:
 				return
@@ -374,9 +376,7 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 
 	// Make sure that the finish message is output after all processing messages
 	// are done.
-	sklog.Flush()
 	sklog.Infof("Finish ingester: %s", i.id)
-	sklog.Flush()
 }
 
 // saveFileAsync asynchronously saves the given result file to disk.
