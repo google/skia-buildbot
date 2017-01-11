@@ -199,6 +199,24 @@
     },
     {
       "key": {
+        "uuid": "578ed681_913cef81",
+        "filename": "go/gs/storage.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-11T20:16:23Z",
+      "side": 1,
+      "message": "Yep, as I mentioned when I sent out the CL, I\u0027ll add docs once y\u0027all think this looks okay.",
+      "parentUuid": "578ed681_b12b3346",
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "578ed681_f1e21bbd",
         "filename": "go/mockgcsclient/mock_gcs_client.go",
         "patchSetId": 3
