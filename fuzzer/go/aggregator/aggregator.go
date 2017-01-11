@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/data"
 	"go.skia.org/infra/fuzzer/go/deduplicator"
 	"go.skia.org/infra/fuzzer/go/issues"
+	fstorage "go.skia.org/infra/fuzzer/go/storage"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
@@ -132,7 +133,8 @@ func StartAggregator(s *storage.Client, im *issues.IssuesManager, startingReport
 
 	// preload the deduplicator
 	for _, category := range config.Generator.FuzzesToGenerate {
-		d := deduplicator.NewLocalDeduplicator()
+		client := fstorage.NewFuzzerGCSClient(s, config.GS.Bucket)
+		d := deduplicator.NewRemoteDeduplicator(client)
 		for report := range startingReports[category] {
 			d.IsUnique(report)
 		}
