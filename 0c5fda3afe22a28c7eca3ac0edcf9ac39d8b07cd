@@ -22,6 +22,24 @@
       "revId": "0c5fda3afe22a28c7eca3ac0edcf9ac39d8b07cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_712cebab",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-11T18:52:35Z",
+      "side": 0,
+      "message": "Yes.",
+      "parentUuid": "578ed681_11047f32",
+      "revId": "0c5fda3afe22a28c7eca3ac0edcf9ac39d8b07cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

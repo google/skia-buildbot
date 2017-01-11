@@ -22,6 +22,24 @@
       "revId": "7d0f075f48b2e7f4f50b8ca54c0a9c06418abe87",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_313663fa",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1226,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-11T18:52:35Z",
+      "side": 1,
+      "message": "Yes, but left as a failsafe just in case the API does something dumb.",
+      "parentUuid": "578ed681_b121f3b8",
+      "revId": "7d0f075f48b2e7f4f50b8ca54c0a9c06418abe87",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
