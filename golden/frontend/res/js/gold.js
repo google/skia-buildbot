@@ -13,6 +13,11 @@ var gold = gold || {};
   // Constants for status values.
   gold.POSITIVE = 'positive',
   gold.NEGATIVE = 'negative';
+
+  gold.REF_NEG   = "neg";
+  gold.REF_POS   = "pos";
+  gold.REF_TRACE = "trace";
+
   // ISSUE_TRACKER_URL is the url of the monorail issue tracker.
   var ISSUE_TRACKER_URL = "https://bugs.chromium.org/p/skia/issues/";
 

@@ -1,4 +1,4 @@
-<!-- The <digest-details-sk> custom element declaration.
+<!-- The <newdigest-details-sk> custom element declaration.
 
   Displays the details about a digest.
 
@@ -34,7 +34,7 @@
        }
 
     zoom-clicked - This event is triggered when the user clicks on the 'zoom'
-      button. The 'detail' in the event is the digest-details-sk object.
+      button. The 'detail' in the event is the newdigest-details-sk object.
 
     clear - Clears the current digest shown.
 
@@ -60,7 +60,7 @@
 <link rel="import" href="commits-dialog-sk.html">
 <link rel="import" href="shared-styles.html">
 
-<dom-module id="digest-details-sk">
+<dom-module id="newdigest-details-sk">
   <template>
     <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
     <style include="shared-styles"></style>
@@ -181,10 +181,9 @@
               <div>
                 <a href$="{{_diffPageUrl(details, _right)}}">Diff Details</a>
               </div>
-              <div>
-                Diff: <span>{{_fixedPercent(_diff.diff)}}</span>%
-              </div>
-              <div>Max RGBA: [<span>{{_diff.maxRGBA}}</span>]</div>
+              <div>Diff Metric: <span>{{_fixedMetric(_diff, metric)}}</span></div>
+              <div>Diff %: <span>{{_fixedPercent(_diff)}}</span></div>
+              <div>Max RGBA: [<span>{{_diff.maxRGBADiffs}}</span>]</div>
             </div>
             <triage-sk value="{{details.status}}"
                        id="triageControls"
@@ -283,7 +282,7 @@
   </template>
   <script>
     Polymer({
-      is: 'digest-details-sk',
+      is: 'newdigest-details-sk',
 
       properties: {
         mode: {
@@ -314,6 +313,10 @@
         embedded: {
           type: Boolean,
           value: false
+        },
+
+        metric: {
+          type: String,
         },
 
         _negIsClosest: {
@@ -431,38 +434,15 @@
       },
 
       _setRightFromDetails: function(detailsView) {
-        var status = "";
-        var foundDiff = null;
-
-        this._right = null;
         this._negIsClosest = false;
+        this._right = null;
         this._diff = null;
         this._rightParamTitle = '';
-        if (!detailsView) {
-          var pos = this.details.diff.pos;
-          var neg = this.details.diff.neg;
-          if (pos && neg) {
-            if (neg.closest.diff < pos.closest.diff) {
-              foundDiff = neg;
-              status = gold.NEGATIVE;
-            } else {
-              foundDiff = pos;
-              status = gold.POSITIVE;
-            }
-          } else if (pos) {
-            foundDiff = pos;
-            status = gold.POSITIVE;
-          } else if (neg) {
-            foundDiff = neg;
-            status = gold.NEGATIVE;
-          }
-
-          if (foundDiff) {
-            this._negIsClosest = (status === gold.NEGATIVE);
-            this._right = this._digestFromDiff(this.details.test, foundDiff, status);
-            this._diff = foundDiff.closest;
-            this._rightParamTitle = 'Closest ' + this._statusStr(this._negIsClosest);
-          }
+        if (!detailsView && this.details.closestRef) {
+          this._negIsClosest = (this.details.closestRef === gold.REF_NEG);
+          this._right = this.details.refDiffs[this.details.closestRef];
+          this._diff = this._right;
+          this._rightParamTitle = 'Closest ' + this._statusStr(this._negIsClosest);
         }
 
         // Set the blame, dots, dotlegend
@@ -474,10 +454,10 @@
         return (this._right) ? ((this._negIsClosest) ? gold.NEGATIVE : gold.POSITIVE) : null;
       },
 
-      _digestFromDiff: function(test, diff, status) {
+      _digestFromDiff: function(test, refDiff, status) {
         return {
           test: test,
-          digest: diff.closest.digest,
+          digest: refDiff.digest,
           status: status,
           paramset: diff.paramset
         };
@@ -525,8 +505,12 @@
 
       _imageInfoHref: gold.imageInfoHref,
 
-      _fixedPercent: function (i) {
-        return (typeof(i) === 'number') ? i.toFixed(2) : '';
+      _fixedPercent: function (refDiff) {
+        return (refDiff) ? refDiff.pixelDiffPercent.toFixed(2) : '';
+      },
+
+      _fixedMetric: function (refDiff, metric) {
+        return (refDiff) ? refDiff.diffs[metric].toFixed(2) : '';
       },
 
       _diffPageUrl: function (left, right) {

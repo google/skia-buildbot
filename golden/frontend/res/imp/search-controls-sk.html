@@ -20,6 +20,7 @@
 
       orientation - Orientation of the controls. Values: 'horizontal', 'vertical'
       disabled - Boolean to indicate whether to disable all the controls.
+      beta - Boolean to enable beta-level functions.
 
     Events:
       'state-change' - Fired when the state of the query changes and
@@ -85,7 +86,7 @@
                         title="Filter Traces"><iron-icon icon="image:tune"></iron-icon></paper-button>
         </div>
         <!-- TODO(stephana): Enable filter button when backend is ready -->
-        <div class="buttonContainer" style="display:none;">
+        <div class="buttonContainer" hidden$="{{!beta}}">
           <paper-button id="filterButton" class$="topControl" raised disabled="[[disabled]]"
                         title="Metrics Filter"><iron-icon icon="icons:filter-list"></iron-icon></paper-button>
         </div>
@@ -113,6 +114,11 @@
           },
 
           disabled: {
+            type: Boolean,
+            value: false
+          },
+
+          beta: {
             type: Boolean,
             value: false
           }
@@ -144,6 +150,7 @@
 
         setParamSet: function(params) {
           this.$.queryDialog.queryEle.setParamSet(params);
+          this.$.filterDialog.setParamSet(params);
         },
 
         _handleQueryEdit: function(ev) {
