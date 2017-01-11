@@ -163,6 +163,24 @@
     },
     {
       "key": {
+        "uuid": "578ed681_1149dfaa",
+        "filename": "go/gs/storage.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-11T18:42:35Z",
+      "side": 1,
+      "message": "So, there aren\u0027t any original interfaces, AFAIK.  https://godoc.org/cloud.google.com/go/storage has no Interfaces defined.\n\nThese are just interfaces I created to encapsulate common functionality, i.e. common tasks one would need when working wiht cloud storage.",
+      "parentUuid": "578ed681_91638f34",
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "578ed681_f1e21bbd",
         "filename": "go/mockgcsclient/mock_gcs_client.go",
         "patchSetId": 3
