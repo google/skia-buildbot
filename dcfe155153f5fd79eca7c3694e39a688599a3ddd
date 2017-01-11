@@ -94,6 +94,24 @@
     },
     {
       "key": {
+        "uuid": "578ed681_ac799a32",
+        "filename": "fuzzer/go/deduplicator/remotededuplicator.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-11T20:50:19Z",
+      "side": 1,
+      "message": "I don\u0027t really see an advantage to splitting the interfaces up so that they each have only one method.",
+      "parentUuid": "578ed681_519c4742",
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "578ed681_51b527aa",
         "filename": "fuzzer/go/storage/client.go",
         "patchSetId": 3
@@ -211,6 +229,46 @@
       "side": 1,
       "message": "Yep, as I mentioned when I sent out the CL, I\u0027ll add docs once y\u0027all think this looks okay.",
       "parentUuid": "578ed681_b12b3346",
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_6c83b2ef",
+        "filename": "go/gs/storage.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-11T20:50:19Z",
+      "side": 1,
+      "message": "I don\u0027t think it\u0027s worth the extra complexity of having both non-Context and with-Context methods. Once you get used to it, passing around the context isn\u0027t so bad.\n\nnit: ctx is normally the first arg.",
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_8ca5b68a",
+        "filename": "go/gs/storage.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-11T20:50:19Z",
+      "side": 1,
+      "message": "nit: s/ExecuteOn//\n\nnit: I\u0027m not a fan of referring to the prefix as a folder or dir, unless this method automatically adds a slash at the end when it\u0027s missing.\n\nnit: GS docs tend to use the term directory rather than folder, e.g. https://cloud.google.com/storage/docs/naming#object-considerations",
+      "range": {
+        "startLine": 41,
+        "startChar": 1,
+        "endLine": 41,
+        "endChar": 29
+      },
       "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
