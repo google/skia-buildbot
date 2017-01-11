@@ -102,6 +102,21 @@ type Session struct {
 	Token     *oauth2.Token
 }
 
+// SimpleInitMust initializes the login system for the default case, which uses
+// DEFAULT_REDIRECT_URL in prod along with the DEFAULT_DOMAIN_WHITELIST and
+// uses a localhost'port' redirect URL if 'local' is true.
+//
+// If an error occurs then the function fails fatally.
+func SimpleInitMust(port string, local bool) {
+	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", port)
+	if !local {
+		redirectURL = DEFAULT_REDIRECT_URL
+	}
+	if err := Init(redirectURL, DEFAULT_DOMAIN_WHITELIST); err != nil {
+		sklog.Fatalf("Failed to initialize the login system: %s", err)
+	}
+}
+
 // Init must be called before any other login methods.
 //
 // The function first tries to load the cookie salt, client id, and client
