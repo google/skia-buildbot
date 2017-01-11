@@ -177,8 +177,6 @@ func (p *promClient) GetInt64Metric(name string, tags ...map[string]string) Int6
 	// Didn't find the metric, so we need to look for a GaugeVec to create it under.
 	p.int64Mutex.Lock()
 	gaugeVec, ok := p.int64GaugeVecs[gaugeVecKey]
-	p.int64Mutex.Unlock()
-
 	if !ok {
 		// Register a new gauge vec.
 		gaugeVec = prometheus.NewGaugeVec(
@@ -194,6 +192,8 @@ func (p *promClient) GetInt64Metric(name string, tags ...map[string]string) Int6
 		}
 		p.int64GaugeVecs[gaugeVecKey] = gaugeVec
 	}
+	p.int64Mutex.Unlock()
+
 	gauge, err := gaugeVec.GetMetricWith(prometheus.Labels(cleanTags))
 	if err != nil {
 		glog.Fatalf("Failed to get gauge: %s", err)
@@ -226,8 +226,6 @@ func (p *promClient) GetFloat64Metric(name string, tags ...map[string]string) Fl
 	// Didn't find the metric, so we need to look for a GaugeVec to create it under.
 	p.float64Mutex.Lock()
 	gaugeVec, ok := p.float64GaugeVecs[gaugeVecKey]
-	p.float64Mutex.Unlock()
-
 	if !ok {
 		// Register a new gauge vec.
 		gaugeVec = prometheus.NewGaugeVec(
@@ -243,6 +241,8 @@ func (p *promClient) GetFloat64Metric(name string, tags ...map[string]string) Fl
 		}
 		p.float64GaugeVecs[gaugeVecKey] = gaugeVec
 	}
+	p.float64Mutex.Unlock()
+
 	gauge, err := gaugeVec.GetMetricWith(prometheus.Labels(cleanTags))
 	if err != nil {
 		glog.Fatalf("Failed to get gauge: %s", err)
@@ -268,8 +268,6 @@ func (p *promClient) GetFloat64SummaryMetric(name string, tags ...map[string]str
 	// Didn't find the metric, so we need to look for a SummaryVec to create it under.
 	p.float64SummaryMutex.Lock()
 	summaryVec, ok := p.float64SummaryVecs[summaryVecKey]
-	p.float64SummaryMutex.Unlock()
-
 	if !ok {
 		// Register a new summary vec.
 		summaryVec = prometheus.NewSummaryVec(
@@ -286,6 +284,8 @@ func (p *promClient) GetFloat64SummaryMetric(name string, tags ...map[string]str
 		}
 		p.float64SummaryVecs[summaryVecKey] = summaryVec
 	}
+	p.float64SummaryMutex.Unlock()
+
 	summary, err := summaryVec.GetMetricWith(prometheus.Labels(cleanTags))
 	if err != nil {
 		glog.Fatalf("Failed to get summary: %s", err)
