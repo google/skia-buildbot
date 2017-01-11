@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/mock"
 	"go.skia.org/infra/fuzzer/go/data"
 	"go.skia.org/infra/go/testutils"
 )
@@ -195,72 +195,92 @@ func TestLocalOther(t *testing.T) {
 
 func TestRemoteLookup(t *testing.T) {
 	testutils.SmallTest(t)
-	mock := mockGCSFileGetter{
-		knownFiles: make(map[string]string),
-	}
-	d := NewRemoteDeduplicator(&mock)
+	mock := new(mockGCSClient)
+	defer mock.AssertExpectations(t)
+
+	d := NewRemoteDeduplicator(mock)
 	d.SetCommit("COMMIT_HASH")
 	r1 := data.MockReport("skpicture", "aaaa")
 	r2 := data.MockReport("skpicture", "bbbb")
 	// hash for r1
-	mock.knownFiles["skpicture/COMMIT_HASH/mock_arm8/traces/5a190a404735d7fd70340da671c9c8008dc597ba"] = "5a190a404735d7fd70340da671c9c8008dc597ba"
+	mock.On("GetFileContents", "skpicture/COMMIT_HASH/mock_arm8/traces/5a190a404735d7fd70340da671c9c8008dc597ba").Return([]byte("5a190a404735d7fd70340da671c9c8008dc597ba"), nil)
 
 	if d.IsUnique(r1) {
 		t.Errorf("The deduplicator should have found %#v remotely, but said it didn't", r1)
 	}
+	mock.On("GetFileContents", "skpicture/COMMIT_HASH/mock_arm8/traces/0f743583793a3156803021669b4521b747c5b3c4").Return([]byte(nil), fmt.Errorf("Not found"))
+
+	mock.On("SetFileContents", "skpicture/COMMIT_HASH/mock_arm8/traces/0f743583793a3156803021669b4521b747c5b3c4", []byte("0f743583793a3156803021669b4521b747c5b3c4")).Return(nil)
 	if !d.IsUnique(r2) {
 		t.Errorf("The deduplicator has not seen %#v, but said it has", r2)
 	}
 
-	// this should be set from r2
-	assert.Equal(t, "0f743583793a3156803021669b4521b747c5b3c4", mock.knownFiles["skpicture/COMMIT_HASH/mock_arm8/traces/0f743583793a3156803021669b4521b747c5b3c4"], "The deduplicator did not write that it saw r2")
-	assert.Equal(t, 2, mock.getFilesCalls)
-	assert.Equal(t, 1, mock.setFilesCalls)
+	mock.AssertNumberOfCalls(t, "GetFileContents", 2)
+	mock.AssertNumberOfCalls(t, "SetFileContents", 1)
 }
 
 func TestRemoteLookupWithLocalCache(t *testing.T) {
 	testutils.SmallTest(t)
-	mock := mockGCSFileGetter{
-		knownFiles: make(map[string]string),
-	}
-	d := NewRemoteDeduplicator(&mock)
+	mock := new(mockGCSClient)
+	defer mock.AssertExpectations(t)
+
+	d := NewRemoteDeduplicator(mock)
 	d.SetCommit("COMMIT_HASH")
 	r1 := data.MockReport("skpicture", "aaaa")
 
-	if !d.IsUnique(r1) {
-		t.Errorf("The deduplicator has not seen %#v, but said it has", r1)
+	mock.On("GetFileContents", "skpicture/COMMIT_HASH/mock_arm8/traces/5a190a404735d7fd70340da671c9c8008dc597ba").Return([]byte("5a190a404735d7fd70340da671c9c8008dc597ba"), nil)
+
+	if d.IsUnique(r1) {
+		t.Errorf("The deduplicator has seen %#v, but said it has not", r1)
+	}
+	if d.IsUnique(r1) {
+		t.Errorf("The deduplicator has seen %#v, but said it has not", r1)
 	}
 	if d.IsUnique(r1) {
 		t.Errorf("The deduplicator has seen %#v, but said it has not", r1)
 	}
 
-	assert.Equal(t, 1, mock.getFilesCalls, "The Remote lookup should keep a local copy too.")
+	// The Remote lookup should keep a local copy too.
+	mock.AssertNumberOfCalls(t, "GetFileContents", 1)
 }
 
 func TestRemoteLookupReset(t *testing.T) {
 	testutils.SmallTest(t)
-	mock := mockGCSFileGetter{
-		knownFiles: make(map[string]string),
-	}
-	d := NewRemoteDeduplicator(&mock)
+	mock := new(mockGCSClient)
+	//defer mock.AssertExpectations(t)
+
+	d := NewRemoteDeduplicator(mock)
 	d.SetCommit("COMMIT_HASH")
 	r1 := data.MockReport("skpicture", "aaaa")
+
+	// rubber stamp succeed
+	mock.TestData()["CheckArgs_SetFileContents"] = false
+	mock.On("SetFileContents").Return(nil)
+
+	mock.On("GetFileContents", "skpicture/COMMIT_HASH/mock_arm8/traces/5a190a404735d7fd70340da671c9c8008dc597ba").Return([]byte(nil), fmt.Errorf("Not found"))
 
 	if !d.IsUnique(r1) {
 		t.Errorf("The deduplicator has not seen %#v, but said it has", r1)
 	}
+	mock.On("GetFileContents", "skpicture/THE_SECOND_COMMIT_HASH/mock_arm8/traces/5a190a404735d7fd70340da671c9c8008dc597ba").Return([]byte(nil), fmt.Errorf("Not found")).Once()
+
 	d.SetCommit("THE_SECOND_COMMIT_HASH")
 	if !d.IsUnique(r1) {
 		t.Errorf("The deduplicator has not seen %#v, but said it has", r1)
 	}
-	assert.Equal(t, 2, mock.getFilesCalls, "The Remote lookup should have to relookup the file after commit changed.")
+	// The Remote lookup should have to relookup the file after commit changed.
+	mock.AssertNumberOfCalls(t, "GetFileContents", 2)
+
+	mock.On("GetFileContents", "skpicture/THE_SECOND_COMMIT_HASH/mock_arm8/traces/5a190a404735d7fd70340da671c9c8008dc597ba").Return([]byte("5a190a404735d7fd70340da671c9c8008dc597ba"), nil)
 
 	d.Clear()
 	if d.IsUnique(r1) {
 		t.Errorf("The deduplicator has seen %#v, but said it has not", r1)
 	}
 
-	assert.Equal(t, 3, mock.getFilesCalls, "The Remote lookup should have to relookup the file after a call to Clear().")
+	// The Remote lookup should have to relookup the file after a call to Clear()
+	mock.AssertNumberOfCalls(t, "GetFileContents", 3)
+	mock.AssertNumberOfCalls(t, "SetFileContents", 2)
 }
 
 // Makes a report with the smallest stacktraces distinguishable by the deduplicator, 3 debug
@@ -300,23 +320,20 @@ func makeFlags(start, count int) []string {
 	return names[start:(start + count)]
 }
 
-type mockGCSFileGetter struct {
-	// maps file names to
-	knownFiles    map[string]string
-	getFilesCalls int
-	setFilesCalls int
+type mockGCSClient struct {
+	mock.Mock
 }
 
-func (fg *mockGCSFileGetter) GetFileContents(bucket, path string) ([]byte, error) {
-	fg.getFilesCalls++
-	if contents, ok := fg.knownFiles[path]; ok {
-		return []byte(contents), nil
+func (m *mockGCSClient) GetFileContents(path string) ([]byte, error) {
+	args := m.Called(path)
+	return args.Get(0).([]byte), args.Error(1)
+}
+
+func (m *mockGCSClient) SetFileContents(path string, contents []byte) error {
+	if enabled, ok := m.TestData()["CheckArgs_SetFileContents"].(bool); ok && !enabled {
+		args := m.Called()
+		return args.Error(0)
 	}
-	return nil, fmt.Errorf("Cannot find file %s", path)
-}
-
-func (fg *mockGCSFileGetter) SetFileContents(bucket, path string, contents []byte) error {
-	fg.setFilesCalls++
-	fg.knownFiles[path] = string(contents)
-	return fmt.Errorf("Cannot write to file %s", path)
+	args := m.Called(path, contents)
+	return args.Error(0)
 }

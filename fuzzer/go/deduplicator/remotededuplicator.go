@@ -5,22 +5,18 @@ import (
 	"fmt"
 	"sync"
 
-	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/data"
+	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
-type GCSFileGetter interface {
-	GetFileContents(bucket, path string) ([]byte, error)
-}
-
 type GCSFileSetter interface {
-	SetFileContents(bucket, path string, contents []byte) error
+	SetFileContents(path string, contents []byte) error
 }
 
 type RemoteDeduplicatorGCSClient interface {
-	GCSFileGetter
+	gs.FileGetter
 	GCSFileSetter
 }
 
@@ -69,12 +65,12 @@ func (d *remoteDeduplicator) IsUnique(report data.FuzzReport) bool {
 	if d.seen[gcsPath] {
 		return false
 	}
+	// cache it, because we've seen it now.
+	d.seen[gcsPath] = true
 
-	if _, err := d.gcsClient.GetFileContents(config.GS.Bucket, gcsPath); err != nil {
+	if _, err := d.gcsClient.GetFileContents(gcsPath); err != nil {
 		// It doesn't exist, so we haven't seen it before.
-		// cache it
-		d.seen[gcsPath] = true
-		if err = d.gcsClient.SetFileContents(config.GS.Bucket, gcsPath, []byte(k)); err != nil {
+		if err = d.gcsClient.SetFileContents(gcsPath, []byte(k)); err != nil {
 			sklog.Warningf("Error while writing to deduplication %s", err)
 		}
 
