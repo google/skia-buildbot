@@ -219,6 +219,23 @@
       "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "578ed681_91138f1e",
+        "filename": "go/mockgcsclient/mock_gcs_client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-11T19:54:38Z",
+      "side": 1,
+      "message": "Add lines to confirm that MockGCSClient implements the interfaces you expect:\n\nvar _ gs.FileGetter \u003d (*MockGCSClient)(nil)\n\nDo this everywhere you implement an interface.",
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
