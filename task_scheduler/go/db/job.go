@@ -33,7 +33,7 @@ const (
 	JOB_STATUS_CANCELED JobStatus = "CANCELED"
 
 	// JOB_URL_TMPL is a template for Job URLs.
-	JOB_URL_TMPL = "https://task-scheduler.skia.org/job/%s"
+	JOB_URL_TMPL = "%s/job/%s"
 
 	// MAX_TASK_ATTEMPTS is the maximum number of attempts we'll make of
 	// each TaskSpec in a Job.
@@ -202,8 +202,8 @@ func (j *Job) MakeTaskKey(taskName string) TaskKey {
 }
 
 // URL returns a URL for the Job.
-func (j *Job) URL() string {
-	return fmt.Sprintf(JOB_URL_TMPL, j.Id)
+func (j *Job) URL(taskSchedulerHost string) string {
+	return fmt.Sprintf(JOB_URL_TMPL, taskSchedulerHost, j.Id)
 }
 
 // TraverseDependencies traces the dependency graph of the Job, calling the

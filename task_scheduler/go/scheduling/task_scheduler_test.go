@@ -191,7 +191,7 @@ func setup(t *testing.T) (*util.TempRepo, db.DB, *swarming.TestClient, *TaskSche
 	repos := repograph.Map{
 		repoName: repo,
 	}
-	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, tr.Dir, repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC)
+	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, tr.Dir, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC)
 	assert.NoError(t, err)
 	return tr, d, swarmingClient, s, urlMock
 }
@@ -1874,7 +1874,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (db.DB, *Task
 	repos := repograph.Map{
 		repoName: repo,
 	}
-	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, workdir, repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC)
+	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC)
 	assert.NoError(t, err)
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
