@@ -37,6 +37,17 @@ var (
 	// used to report metrics about logs seen so we can alert if many ERRORs are seen, for example.
 	// This is set up to break a dependency cycle, such that sklog does not depend on metrics2.
 	sawLogWithSeverity MetricsCallback = func(s string) {}
+
+	// AllSeverities is the list of all severities that sklog supports.
+	AllSeverities = []string{
+		DEBUG,
+		INFO,
+		NOTICE,
+		WARNING,
+		ERROR,
+		CRITICAL,
+		ALERT,
+	}
 )
 
 // These convenience methods will either make a Cloud Logging Entry using the current time and the

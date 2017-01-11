@@ -17,8 +17,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/go/influxdb_init"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	storage "google.golang.org/api/storage/v1"
 
@@ -841,16 +839,12 @@ func main() {
 	// Setup DB flags.
 	dbConf := idb.DBConfigFromFlags()
 
-	common.Init()
-	influxClient, err := influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *local)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	if err := metrics2.InitPromInflux("skiaperf", influxClient, *promPort); err != nil {
-		sklog.Fatal(err)
-	}
-
-	common.StartCloudLogging("skiaperf")
+	common.InitWithMust(
+		"skiaperf",
+		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
 
 	Init()
 	if !*local {
