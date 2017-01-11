@@ -53,20 +53,10 @@ const (
 	LOG_WRITE_SECONDS = 5
 )
 
-// CLIENTS SHOULD NOT CALL InitCloudLogging directly. Instead use common.InitWithCloudLogging.
-// InitCloudLogging initializes the module-level logger. logGrouping refers to the
-// MonitoredResource's name. If blank, logGrouping defaults to the machine's hostname.
-// defaultReportName refers to the default "virtual log file" name that Log Entries will be
-// associated with if no other reportName is given. If an error is returned, cloud logging will not
-//  be used, instead glog will.
-// metricsCallback should not call any sklog.* methods, to avoid infinite recursion.
-// InitCloudLogging should be called before the program creates any go routines
-// such that all subsequent logs are properly sent to the Cloud.
-func InitCloudLogging(c *http.Client, logGrouping, defaultReport string, metricsCallback MetricsCallback) error {
-	lc, err := logging.New(c)
-	if err != nil {
-		return fmt.Errorf("Problem setting up logging.Service: %s", err)
-	}
+// PreInitCloudLogging does the first step in initializing cloud logging.
+//
+// CLIENTS SHOULD NOT CALL PreInitCloudLogging directly. Instead use common.InitWith().
+func PreInitCloudLogging(logGrouping, defaultReport string) error {
 	hostname, err := os.Hostname()
 	if err != nil {
 		return fmt.Errorf("Could not get hostname: %s", err)
@@ -81,17 +71,45 @@ func InitCloudLogging(c *http.Client, logGrouping, defaultReport string, metrics
 		},
 	}
 	defaultReportName = defaultReport
-	logger = newLogsClient(lc, hostname, r)
+	logger = newLogsClient(nil, hostname, r)
+	return nil
+}
+
+// PostInitCloudLogging finishes initializing cloud logging.
+//
+// CLIENTS SHOULD NOT CALL PostInitCloudLogging directly. Instead use common.InitWith().
+func PostInitCloudLogging(c *http.Client, metricsCallback MetricsCallback) error {
+	lc, err := logging.New(c)
+	if err != nil {
+		return fmt.Errorf("Problem setting up logging.Service: %s", err)
+	}
+	logger.(*logsClient).service = lc
 	if metricsCallback != nil {
 		sawLogWithSeverity = metricsCallback
 	}
-	url := fmt.Sprintf(CLOUD_LOGGING_URL_FORMAT, defaultReport, logGrouping)
+	url := fmt.Sprintf(CLOUD_LOGGING_URL_FORMAT, defaultReportName, logger.(*logsClient).loggingResource.Labels["name"])
 	glog.Infof(`=====================================================
 Cloud logging configured, see %s for rest of logs. This file will only contain errors involved with cloud logging/metrics.
 =====================================================`, url)
 	// Make first cloud logging entry.
 	Info("Cloud logging configured.")
 	return nil
+}
+
+// CLIENTS SHOULD NOT CALL InitCloudLogging directly. Instead use common.InitWithCloudLogging.
+// InitCloudLogging initializes the module-level logger. logGrouping refers to the
+// MonitoredResource's name. If blank, logGrouping defaults to the machine's hostname.
+// defaultReportName refers to the default "virtual log file" name that Log Entries will be
+// associated with if no other reportName is given. If an error is returned, cloud logging will not
+//  be used, instead glog will.
+// metricsCallback should not call any sklog.* methods, to avoid infinite recursion.
+// InitCloudLogging should be called before the program creates any go routines
+// such that all subsequent logs are properly sent to the Cloud.
+func InitCloudLogging(c *http.Client, logGrouping, defaultReport string, metricsCallback MetricsCallback) error {
+	if err := PreInitCloudLogging(logGrouping, defaultReport); err != nil {
+		return err
+	}
+	return PostInitCloudLogging(c, metricsCallback)
 }
 
 // A CloudLogger interacts with the CloudLogging api
@@ -228,6 +246,10 @@ func (c *logsClient) Flush() {
 }
 
 func (c *logsClient) pushBatch() {
+	// Bail out if the cloud logging service is not finished initializing.
+	if c.service == nil {
+		return
+	}
 	request := logging.WriteLogEntriesRequest{
 		Entries: c.buffer,
 	}
