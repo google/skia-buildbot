@@ -125,7 +125,7 @@ func setup(t *testing.T) (*TryJobIntegrator, *mockhttpclient.URLMock, func()) {
 	projectRepoMapping := map[string]string{
 		patchProject: gb.Dir(),
 	}
-	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, mock.Client(), d, window, projectRepoMapping, rm, taskCfgCache)
+	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake.host", mock.Client(), d, window, projectRepoMapping, rm, taskCfgCache)
 	assert.NoError(t, err)
 
 	MockOutExec()

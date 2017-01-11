@@ -68,6 +68,7 @@ type TryJobIntegrator struct {
 	bb                 *buildbucket_api.Service
 	bucket             string
 	db                 db.JobDB
+	host               string
 	jCache             *jobCache
 	projectRepoMapping map[string]string
 	rm                 repograph.Map
@@ -75,7 +76,7 @@ type TryJobIntegrator struct {
 }
 
 // NewTryJobIntegrator returns a TryJobIntegrator instance.
-func NewTryJobIntegrator(apiUrl, bucket string, c *http.Client, d db.JobDB, w *window.Window, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache *specs.TaskCfgCache) (*TryJobIntegrator, error) {
+func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB, w *window.Window, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache *specs.TaskCfgCache) (*TryJobIntegrator, error) {
 	bb, err := buildbucket_api.New(c)
 	if err != nil {
 		return nil, err
@@ -89,6 +90,7 @@ func NewTryJobIntegrator(apiUrl, bucket string, c *http.Client, d db.JobDB, w *w
 		bb:                 bb,
 		bucket:             bucket,
 		db:                 d,
+		host:               host,
 		jCache:             cache,
 		projectRepoMapping: projectRepoMapping,
 		rm:                 rm,
@@ -434,7 +436,7 @@ func (t *TryJobIntegrator) Poll(now time.Time) error {
 func (t *TryJobIntegrator) jobStarted(j *db.Job) error {
 	resp, err := t.bb.Start(j.BuildbucketBuildId, &buildbucket_api.ApiStartRequestBodyMessage{
 		LeaseKey: j.BuildbucketLeaseKey,
-		Url:      j.URL(),
+		Url:      j.URL(t.host),
 	}).Do()
 	if err != nil {
 		return err
@@ -464,7 +466,7 @@ func (t *TryJobIntegrator) jobFinished(j *db.Job) error {
 		resp, err := t.bb.Succeed(j.BuildbucketBuildId, &buildbucket_api.ApiSucceedRequestBodyMessage{
 			LeaseKey:          j.BuildbucketLeaseKey,
 			ResultDetailsJson: string(b),
-			Url:               j.URL(),
+			Url:               j.URL(t.host),
 		}).Do()
 		if err != nil {
 			return err
@@ -485,7 +487,7 @@ func (t *TryJobIntegrator) jobFinished(j *db.Job) error {
 			FailureReason:     failureReason,
 			LeaseKey:          j.BuildbucketLeaseKey,
 			ResultDetailsJson: string(b),
-			Url:               j.URL(),
+			Url:               j.URL(t.host),
 		}).Do()
 		if err != nil {
 			return err
