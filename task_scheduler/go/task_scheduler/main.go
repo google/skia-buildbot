@@ -337,9 +337,11 @@ func jobHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := struct {
-		JobId string
+		JobId          string
+		SwarmingServer string
 	}{
-		JobId: id,
+		JobId:          id,
+		SwarmingServer: *swarmingServer,
 	}
 	if err := jobTemplate.Execute(w, page); err != nil {
 		httputils.ReportError(w, r, err, "Failed to execute template.")
@@ -487,7 +489,11 @@ func main() {
 	if err := scheduling.InitPubSub(); err != nil {
 		sklog.Fatal(err)
 	}
-	ts, err = scheduling.NewTaskScheduler(d, period, *commitWindow, wdAbs, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, PROJECT_REPO_MAPPING, *swarmingPools)
+	serverURL := "https://" + *host
+	if *local {
+		serverURL = "http://" + *host + *port
+	}
+	ts, err = scheduling.NewTaskScheduler(d, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, PROJECT_REPO_MAPPING, *swarmingPools)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -496,11 +502,6 @@ func main() {
 	ts.Start(ctx, b.Tick)
 
 	// Start up the web server.
-	serverURL := "https://" + *host
-	if *local {
-		serverURL = "http://" + *host + *port
-	}
-
 	redirectURL := serverURL + "/oauth2callback/"
 	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
 		sklog.Fatal(err)

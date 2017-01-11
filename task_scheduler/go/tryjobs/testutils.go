@@ -125,7 +125,7 @@ func setup(t *testing.T) (*TryJobIntegrator, *mockhttpclient.URLMock, func()) {
 	projectRepoMapping := map[string]string{
 		patchProject: gb.Dir(),
 	}
-	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, mock.Client(), d, window, projectRepoMapping, rm, taskCfgCache)
+	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, window, projectRepoMapping, rm, taskCfgCache)
 	assert.NoError(t, err)
 
 	MockOutExec()
@@ -301,7 +301,7 @@ func serializeJob(j *db.Job) string {
 func MockJobSuccess(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expectErr error, dontCareRequest bool) {
 	req := mockhttpclient.DONT_CARE_REQUEST
 	if !dontCareRequest {
-		req = []byte(fmt.Sprintf("{\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"job\\\":%s}\",\"url\":\"https://task-scheduler.skia.org/job/%s\"}\n", j.BuildbucketLeaseKey, serializeJob(j), j.Id))
+		req = []byte(fmt.Sprintf("{\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"job\\\":%s}\",\"url\":\"fake-server/job/%s\"}\n", j.BuildbucketLeaseKey, serializeJob(j), j.Id))
 	}
 	resp := []byte("{}")
 	if expectErr != nil {
@@ -311,7 +311,7 @@ func MockJobSuccess(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expe
 }
 
 func MockJobFailure(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expectErr error) {
-	req := []byte(fmt.Sprintf("{\"failure_reason\":\"BUILD_FAILURE\",\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"job\\\":%s}\",\"url\":\"https://task-scheduler.skia.org/job/%s\"}\n", j.BuildbucketLeaseKey, serializeJob(j), j.Id))
+	req := []byte(fmt.Sprintf("{\"failure_reason\":\"BUILD_FAILURE\",\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"job\\\":%s}\",\"url\":\"fake-server/job/%s\"}\n", j.BuildbucketLeaseKey, serializeJob(j), j.Id))
 	resp := []byte("{}")
 	if expectErr != nil {
 		resp = []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", expectErr.Error()))
@@ -320,7 +320,7 @@ func MockJobFailure(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expe
 }
 
 func MockJobMishap(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expectErr error) {
-	req := []byte(fmt.Sprintf("{\"failure_reason\":\"INFRA_FAILURE\",\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"job\\\":%s}\",\"url\":\"https://task-scheduler.skia.org/job/%s\"}\n", j.BuildbucketLeaseKey, serializeJob(j), j.Id))
+	req := []byte(fmt.Sprintf("{\"failure_reason\":\"INFRA_FAILURE\",\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"job\\\":%s}\",\"url\":\"fake-server/job/%s\"}\n", j.BuildbucketLeaseKey, serializeJob(j), j.Id))
 	resp := []byte("{}")
 	if expectErr != nil {
 		resp = []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", expectErr.Error()))

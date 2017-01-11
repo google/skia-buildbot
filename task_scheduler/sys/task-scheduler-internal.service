@@ -7,7 +7,7 @@ After=mnt-pd0.mount network-online.target
 [Service]
 ExecStart=/usr/local/bin/task_scheduler \
     --gsBucket=skia-task-scheduler-internal \
-    --host=104.154.112.135 \
+    --host=skia-task-scheduler-internal-8000-proxy.skia.org \
     --influxdb_host=skia-monitoring:10117 \
     --influxdb_database=skmetrics \
     --isolate_server=https://chrome-isolated.appspot.com \
