@@ -188,6 +188,33 @@ func InitPromInflux(appName string, influxDbClient *influxdb.Client, port string
 	return nil
 }
 
+// InitPromMaybeInflux initalizes Prometheus metrics and also checks if
+// InfluxDB metrics are also being used, and if so then metrics are sent to
+// both metrics packages.
+//
+// CLIENTS SHOULD NOT CALL InitPromMaybeInflux directly. Instead use common.InitWith().
+func InitPromMaybeInflux(port string) error {
+	// We always start with influx as the defaultClient, but if it's
+	// not been initialized with a working client by now we know that
+	// we aren't using influx, so we can just overwrite the default client,
+	// otherwise we need to construct a mux client that records the metrics
+	// into both prom and influx.
+	if inf, ok := defaultClient.(*influxClient); ok && inf.influxDbClient == nil {
+		InitPrometheus(port)
+	} else {
+		influxClient := defaultClient
+		InitPrometheus(port)
+
+		promClient := defaultClient
+		var err error
+		defaultClient, err = newMuxClient([]Client{promClient, influxClient})
+		if err != nil {
+			return fmt.Errorf("Failed to create MuxClient: %s", err)
+		}
+	}
+	return nil
+}
+
 // NewClient returns a Client which uses the given influxdb.Client to push data.
 // defaultTags specifies a set of default tag keys and values which are applied
 // to all data points. reportFrequency specifies how often metrics should create
