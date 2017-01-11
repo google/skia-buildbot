@@ -862,13 +862,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
-	if !*local {
-		redirectURL = login.DEFAULT_REDIRECT_URL
-	}
-	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		sklog.Fatalf("Failed to initialize the login system: %s", err)
-	}
+	login.SimpleInitMust(*port, *local)
 
 	// Resources are served directly.
 	router := mux.NewRouter()
