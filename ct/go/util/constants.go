@@ -154,7 +154,7 @@ const (
 	CHROMIUM_PERF_ISOLATE          = "chromium_perf.isolate"
 	BUILD_REPO_ISOLATE             = "build_repo.isolate"
 	// Swarming links and params.
-	SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE   = "https://chromium-swarm.appspot.com/tasklist?l=500&c=name&c=created_ts&c=bot&c=duration&c=state&f=runid:%s"
+	SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE   = "https://chrome-swarming.appspot.com/tasklist?l=500&c=name&c=created_ts&c=bot&c=duration&c=state&f=runid:%s"
 	SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE = SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE + "&f=name:%s"
 	// Priorities
 	USER_TASKS_PRIORITY  = swarming.RECOMMENDED_PRIORITY

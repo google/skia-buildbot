@@ -72,7 +72,7 @@ class TestCsvComparer(unittest.TestCase):
         chromium_hash='abcdefg1234567',
         skia_hash='tuvwxyz1234567',
         missing_output_slaves='1 3 100',
-        logs_link_prefix=('https://chromium-swarm.appspot.com/tasklist?'
+        logs_link_prefix=('https://chrome-swarming.appspot.com/tasklist?'
                           'l=500&f=runid:testing&f=name:perf_task_'),
         description='E2EComparerWithDiscardOutliers',
         total_archives='',
