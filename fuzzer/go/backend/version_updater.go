@@ -9,7 +9,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/generator"
-	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -102,7 +102,7 @@ func (v *VersionUpdater) reanalyze(oldRevision string) error {
 
 		if config.Common.ForceReanalysis {
 			sklog.Infof("Deleting previous %s fuzz results", category)
-			if err := gs.DeleteAllFilesInDir(v.storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/%s", category, oldRevision, config.Generator.Architecture), config.Aggregator.NumUploadProcesses); err != nil {
+			if err := gcs.DeleteAllFilesInDir(v.storageClient, config.GCS.Bucket, fmt.Sprintf("%s/%s/%s", category, oldRevision, config.Generator.Architecture), config.Aggregator.NumUploadProcesses); err != nil {
 				return fmt.Errorf("Could not delete previous fuzzes: %s", err)
 			}
 		}
@@ -162,10 +162,10 @@ func downloadAllBadAndGreyFuzzes(commitHash, category string, storageClient *sto
 // skia_version/current.  It also removes all pending versions.
 func (v *VersionUpdater) replaceCurrentSkiaVersionWith(oldHash, newHash string) error {
 	// delete all pending requests
-	if err := gs.DeleteAllFilesInDir(v.storageClient, config.GS.Bucket, "skia_version/pending/", 1); err != nil {
+	if err := gcs.DeleteAllFilesInDir(v.storageClient, config.GCS.Bucket, "skia_version/pending/", 1); err != nil {
 		return err
 	}
-	if err := gs.DeleteAllFilesInDir(v.storageClient, config.GS.Bucket, "skia_version/current/", 1); err != nil {
+	if err := gcs.DeleteAllFilesInDir(v.storageClient, config.GCS.Bucket, "skia_version/current/", 1); err != nil {
 		return err
 	}
 	if err := v.touch(fmt.Sprintf("skia_version/current/%s", newHash)); err != nil {
@@ -176,7 +176,7 @@ func (v *VersionUpdater) replaceCurrentSkiaVersionWith(oldHash, newHash string) 
 
 // touch creates an empty file in Google Storage of the given name.
 func (v *VersionUpdater) touch(file string) error {
-	w := v.storageClient.Bucket(config.GS.Bucket).Object(file).NewWriter(context.Background())
+	w := v.storageClient.Bucket(config.GCS.Bucket).Object(file).NewWriter(context.Background())
 	if err := w.Close(); err != nil {
 		return fmt.Errorf("Could not touch version file %s : %s", file, err)
 	}
@@ -188,7 +188,7 @@ func (v *VersionUpdater) touch(file string) error {
 func uploadFuzzNames(sc *storage.Client, oldRevision, category string, bad, grey []string) {
 	uploadString := func(fileName, contents string) error {
 		name := fmt.Sprintf("%s/%s/%s/%s", category, oldRevision, config.Generator.Architecture, fileName)
-		w := sc.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
+		w := sc.Bucket(config.GCS.Bucket).Object(name).NewWriter(context.Background())
 		defer util.Close(w)
 		w.ObjectAttrs.ContentEncoding = "text/plain"
 

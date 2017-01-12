@@ -211,7 +211,7 @@ func (p *pdfProcessor) rasterizeAndUpload(dmResultName string, dmResults *goldin
 	return p.upload(p.outJsonBucket, p.outJsonDir, dmResultName, bytes.NewBuffer(jsonBytes))
 }
 
-// resultExists checks if the given file in the given bucket and directory exists in GS.
+// resultExists checks if the given file in the given bucket and directory exists in GCS.
 func (p *pdfProcessor) resultExists(bucket, dir, fileName string) bool {
 	objPath := dir + "/" + fileName
 	_, err := p.storageClient.Bucket(bucket).Object(objPath).Attrs(context.Background())
@@ -221,7 +221,7 @@ func (p *pdfProcessor) resultExists(bucket, dir, fileName string) bool {
 	return true
 }
 
-// upload stores the content of the given reader in bucket/dir/fileName in GS. It will
+// upload stores the content of the given reader in bucket/dir/fileName in GCS. It will
 // not upload the file if it already exists.
 func (p *pdfProcessor) upload(bucket, dir, fileName string, r io.Reader) error {
 	objectPath := dir + "/" + fileName
@@ -231,7 +231,7 @@ func (p *pdfProcessor) upload(bucket, dir, fileName string, r io.Reader) error {
 	return err
 }
 
-// download fetches the content of the given location in GS and stores it at the given
+// download fetches the content of the given location in GCS and stores it at the given
 // output path.
 func (p *pdfProcessor) download(bucket, dir, fileName, outputPath string) error {
 	objectPath := dir + "/" + fileName

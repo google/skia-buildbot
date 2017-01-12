@@ -1,5 +1,5 @@
 // Package gs implements utility for accessing data in Google Storage.
-package gs
+package gcs
 
 import (
 	"crypto/sha1"
@@ -45,7 +45,7 @@ func lastDate(year int, month time.Month) int {
 //
 // The returning directories cover the range till the date of startTS, and may
 // be precise to the hour.
-func GetLatestGSDirs(startTS int64, endTS int64, bsSubdir string) []string {
+func GetLatestGCSDirs(startTS int64, endTS int64, bsSubdir string) []string {
 	startTime := time.Unix(startTS, 0).UTC()
 	startYear, startMonth, startDay := startTime.Date()
 	endTime := time.Unix(endTS, 0).UTC()
@@ -120,8 +120,8 @@ func RequestForStorageURL(url string) (*http.Request, error) {
 	return r, nil
 }
 
-// FileContentsFromGS returns the contents of a file in the given bucket or an error.
-func FileContentsFromGS(s *storage.Client, bucketName, fileName string) ([]byte, error) {
+// FileContentsFromGCS returns the contents of a file in the given bucket or an error.
+func FileContentsFromGCS(s *storage.Client, bucketName, fileName string) ([]byte, error) {
 	response, err := s.Bucket(bucketName).Object(fileName).NewReader(context.Background())
 	if err != nil {
 		return nil, err

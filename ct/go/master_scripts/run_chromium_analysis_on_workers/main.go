@@ -49,7 +49,7 @@ var (
 	outputLink         = util.MASTER_LOGSERVER_LINK
 )
 
-func sendEmail(recipients []string, gs *util.GsUtil) {
+func sendEmail(recipients []string, gs *util.GcsUtil) {
 	// Send completion email.
 	emailSubject := fmt.Sprintf("Cluster telemetry chromium analysis task has completed (%s)", *runID)
 	failureHtml := ""
@@ -120,8 +120,8 @@ func main() {
 		sklog.Error("At least one email address must be specified")
 		return
 	}
-	// Instantiate GsUtil object.
-	gs, err := util.NewGsUtil(nil)
+	// Instantiate GcsUtil object.
+	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
 		sklog.Errorf("Could not instantiate gsutil object: %s", err)
 		return
@@ -164,10 +164,10 @@ func main() {
 			return
 		}
 	}
-	chromiumPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, chromiumPatchName)
-	catapultPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, catapultPatchName)
-	benchmarkPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, benchmarkPatchName)
-	customWebpagesLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, customWebpagesName)
+	chromiumPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, chromiumPatchName)
+	catapultPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, catapultPatchName)
+	benchmarkPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, benchmarkPatchName)
+	customWebpagesLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, customWebpagesName)
 
 	// Create the required chromium build.
 	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask("build_chromium", *runID, "chromium", *targetPlatform, []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName)}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
@@ -219,7 +219,7 @@ func main() {
 	}
 
 	// Construct the output link.
-	outputLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, util.BenchmarkRunsDir, *runID, "consolidated_outputs", *runID+".output")
+	outputLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, util.BenchmarkRunsDir, *runID, "consolidated_outputs", *runID+".output")
 
 	// Display the no output slaves.
 	for _, noOutputSlave := range noOutputSlaves {

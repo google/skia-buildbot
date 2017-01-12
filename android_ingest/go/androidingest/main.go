@@ -48,7 +48,7 @@ var (
 	workRoot       = flag.String("work_root", "", "Directory location where all the work is done.")
 	repoUrl        = flag.String("repo_url", "", "URL of the git repo where buildids are to be stored.")
 	branch         = flag.String("branch", "git_master-skia", "The branch where to look for buildids.")
-	storageUrl     = flag.String("storage_url", "gs://skia-perf/android-ingest", "The GS URL of where to store the ingested perf data.")
+	storageUrl     = flag.String("storage_url", "gs://skia-perf/android-ingest", "The GCS URL of where to store the ingested perf data.")
 )
 
 var (

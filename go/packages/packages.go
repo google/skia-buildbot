@@ -18,7 +18,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	iexec "go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/storage/v1"
@@ -340,7 +340,7 @@ func InstalledForServer(client *http.Client, store *storage.Service, serverName 
 	}
 
 	sklog.Infof("Fetching: %s", obj.MediaLink)
-	req, err := gs.RequestForStorageURL(obj.MediaLink)
+	req, err := gcs.RequestForStorageURL(obj.MediaLink)
 	if err != nil {
 		return ret, fmt.Errorf("Failed to construct request object for media: %s", err)
 	}
@@ -406,7 +406,7 @@ func Install(client *http.Client, store *storage.Service, name string) error {
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve Google Storage metadata about debian package: %s", err)
 	}
-	req, err := gs.RequestForStorageURL(obj.MediaLink)
+	req, err := gcs.RequestForStorageURL(obj.MediaLink)
 	if err != nil {
 		return fmt.Errorf("Failed to construct request object for media: %s", err)
 	}

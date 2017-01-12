@@ -1,4 +1,4 @@
-// Implementation of backing up a DB to Google Cloud Storage (GS).
+// Implementation of backing up a DB to Google Cloud Storage (GCS).
 package recovery
 
 import (
@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -29,7 +29,7 @@ import (
 
 const (
 	// DB_BACKUP_DIR is the prefix of the object name to store DB backups in the
-	// GS bucket.
+	// GCS bucket.
 	DB_BACKUP_DIR = "db-backup"
 	// DB_FILE_NAME_EXTENSION is added to the base filename.
 	DB_FILE_NAME_EXTENSION = "bdb"
@@ -42,7 +42,7 @@ const (
 	RETRY_COUNT = 3
 
 	// JOB_BACKUP_DIR is the prefix of the object name to store incremental Job
-	// backups in the GS bucket.
+	// backups in the GCS bucket.
 	JOB_BACKUP_DIR = "job-backup"
 	// JOB_FILE_NAME_EXTENSION is added to the base filename.
 	JOB_FILE_NAME_EXTENSION = "gob"
@@ -62,7 +62,7 @@ type DBBackup interface {
 
 // gsDBBackup implements DBBackup.
 type gsDBBackup struct {
-	// gsBucket specifies the GS bucket (for testing).
+	// gsBucket specifies the GCS bucket (for testing).
 	gsBucket string
 	// gsClient accesses gsBucket.
 	gsClient *storage.Client
@@ -96,7 +96,7 @@ type gsDBBackup struct {
 // NewDBBackup creates a DBBackup.
 //  - ctx can be used to stop any background processes as well as to interrupt
 //    Tick or ImmediateBackup.
-//  - gsBucket is the GS bucket to store backups.
+//  - gsBucket is the GCS bucket to store backups.
 //  - db is the DB to back up.
 //  - authClient is a client authenticated with auth.SCOPE_READ_WRITE.
 func NewDBBackup(ctx context.Context, gsBucket string, db db.BackupDBCloser, name string, workdir string, authClient *http.Client) (DBBackup, error) {
@@ -119,7 +119,7 @@ func NewDBBackup(ctx context.Context, gsBucket string, db db.BackupDBCloser, nam
 	return b, nil
 }
 
-// newGsDbBackupWithClient is the same as NewDBBackup but takes a GS client for
+// newGsDbBackupWithClient is the same as NewDBBackup but takes a GCS client for
 // testing and does not start the metrics goroutine or the incremental backup
 // goroutine.
 func newGsDbBackupWithClient(ctx context.Context, gsBucket string, db db.BackupDBCloser, name string, workdir string, gsClient *storage.Client) (*gsDBBackup, error) {
@@ -180,7 +180,7 @@ func (b *gsDBBackup) getBackupMetrics(now time.Time) (time.Time, int64, error) {
 	lastTime := time.Time{}
 	var count int64 = 0
 	countAfter := now.Add(-24 * time.Hour)
-	err := gs.AllFilesInDir(b.gsClient, b.gsBucket, DB_BACKUP_DIR, func(item *storage.ObjectAttrs) {
+	err := gcs.AllFilesInDir(b.gsClient, b.gsBucket, DB_BACKUP_DIR, func(item *storage.ObjectAttrs) {
 		if item.Updated.After(lastTime) {
 			lastTime = item.Updated
 		}
@@ -225,7 +225,7 @@ func (b *gsDBBackup) writeDBBackupToFile(filename string) error {
 	return err
 }
 
-// uploadFile gzips and writes the given file as the given object name to GS.
+// uploadFile gzips and writes the given file as the given object name to GCS.
 func uploadFile(ctx context.Context, filename string, bucket *storage.BucketHandle, objectname string, modTime time.Time) (err error) {
 	fileR, openErr := os.Open(filename)
 	if openErr != nil {
@@ -237,7 +237,7 @@ func uploadFile(ctx context.Context, filename string, bucket *storage.BucketHand
 	return upload(ctx, fileR, bucket, objectname, modTime)
 }
 
-// upload gzips and writes the given content as the given object name to GS.
+// upload gzips and writes the given content as the given object name to GCS.
 func upload(ctx context.Context, content io.Reader, bucket *storage.BucketHandle, objectname string, modTime time.Time) (err error) {
 	objW := bucket.Object(objectname).NewWriter(ctx)
 	defer func() {
@@ -410,25 +410,25 @@ func (b *gsDBBackup) Tick() {
 	b.maybeBackupDB(now)
 }
 
-// formatJobObjectName returns the GS object name for a Job with the given id
+// formatJobObjectName returns the GCS object name for a Job with the given id
 // being uploaded at the given time.
 func formatJobObjectName(ts time.Time, id string) string {
 	return fmt.Sprintf("%s/%s/%s.%s", JOB_BACKUP_DIR, ts.UTC().Format("2006/01/02"), id, JOB_FILE_NAME_EXTENSION)
 }
 
-// parseIdFromJobObjectName returns the Job ID from a GS object name formatted
+// parseIdFromJobObjectName returns the Job ID from a GCS object name formatted
 // with formatJobObjectName.
 func parseIdFromJobObjectName(name string) string {
 	return strings.TrimSuffix(path.Base(name), "."+JOB_FILE_NAME_EXTENSION)
 }
 
-// backupJob writes the given bytes to GS under the given Job id.
+// backupJob writes the given bytes to GCS under the given Job id.
 func (b *gsDBBackup) backupJob(now time.Time, id string, jobGob []byte) error {
 	bucket := b.gsClient.Bucket(b.gsBucket)
 	return upload(b.ctx, bytes.NewReader(jobGob), bucket, formatJobObjectName(now, id), now)
 }
 
-// incrementalBackupStep writes all recently modified Jobs to GS.
+// incrementalBackupStep writes all recently modified Jobs to GCS.
 func (b *gsDBBackup) incrementalBackupStep(now time.Time) error {
 	jobs, err := b.db.GetModifiedJobsGOB(b.modifiedJobsId)
 	if db.IsUnknownId(err) {
@@ -475,7 +475,7 @@ func (b *gsDBBackup) incrementalBackupStep(now time.Time) error {
 	}
 }
 
-// downloadGOB reads and GOB-decodes the given object from GS.
+// downloadGOB reads and GOB-decodes the given object from GCS.
 func downloadGOB(ctx context.Context, bucket *storage.BucketHandle, objectname string, dst interface{}) error {
 	objR, err := bucket.Object(objectname).NewReader(ctx)
 	if err != nil {
@@ -484,8 +484,8 @@ func downloadGOB(ctx context.Context, bucket *storage.BucketHandle, objectname s
 	// As long as we can decode the object, we don't care if Close returns an
 	// error.
 	defer util.Close(objR)
-	// GS will transparently decompress gzip unless the client specifies
-	// "Accept-Encoding: gzip". Unfortunately, the Go GS client library does not
+	// GCS will transparently decompress gzip unless the client specifies
+	// "Accept-Encoding: gzip". Unfortunately, the Go GCS client library does not
 	// provide a way to specify Accept-Encoding, so the file will be decompressed
 	// on the server side. See https://cloud.google.com/storage/docs/transcoding
 	if err := gob.NewDecoder(objR).Decode(dst); err != nil {

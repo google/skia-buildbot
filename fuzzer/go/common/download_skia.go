@@ -61,7 +61,7 @@ func revisionHelper(storageClient *storage.Client, prefix string) (string, time.
 		return "", time.Time{}, fmt.Errorf("Storage service cannot be nil!")
 	}
 	q := &storage.Query{Prefix: prefix}
-	it := storageClient.Bucket(config.GS.Bucket).Objects(context.Background(), q)
+	it := storageClient.Bucket(config.GCS.Bucket).Objects(context.Background(), q)
 	for obj, err := it.Next(); err != iterator.Done; obj, err = it.Next() {
 		if err != nil {
 			return "", time.Time{}, err

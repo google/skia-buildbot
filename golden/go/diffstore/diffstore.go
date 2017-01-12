@@ -25,8 +25,8 @@ const (
 	// DEFAULT_DIFFIMG_DIR_NAME is the directory where the diff images are stored.
 	DEFAULT_DIFFIMG_DIR_NAME = "diffs"
 
-	// DEFAULT_GS_IMG_DIR_NAME is the default image directory in GS.
-	DEFAULT_GS_IMG_DIR_NAME = "dm-images-v1"
+	// DEFAULT_GCS_IMG_DIR_NAME is the default image directory in GCS.
+	DEFAULT_GCS_IMG_DIR_NAME = "dm-images-v1"
 
 	// DEFAULT_TEMPFILE_DIR_NAME is the name of the temp directory.
 	DEFAULT_TEMPFILE_DIR_NAME = "__temp"
@@ -95,7 +95,7 @@ func New(client *http.Client, baseDir string, gsBucketNames []string, gsImageBas
 }
 
 // WarmDigests fetches images based on the given list of digests. It does
-// not cache the images but makes sure they are downloaded fromm GS.
+// not cache the images but makes sure they are downloaded from GCS.
 func (d *MemDiffStore) WarmDigests(priority int64, digests []string) {
 	missingDigests := make([]string, 0, len(digests))
 	for _, digest := range digests {
@@ -167,7 +167,7 @@ func (m *MemDiffStore) UnavailableDigests() map[string]*diff.DigestFailure {
 }
 
 // PurgeDigests implements the DiffStore interface.
-func (m *MemDiffStore) PurgeDigests(digests []string, purgeGS bool) error {
+func (m *MemDiffStore) PurgeDigests(digests []string, purgeGCS bool) error {
 	// We remove the given digests from the various places where they might
 	// be stored. None of the purge steps should return an error if the digests
 	// related information is missing. So any error indicates a bigger problem in the
@@ -175,8 +175,8 @@ func (m *MemDiffStore) PurgeDigests(digests []string, purgeGS bool) error {
 	// by hand. Since we remove the digests from the failureStore last, we will
 	// not loose the vital information of what digests failed in the first place.
 
-	// Remove the images from, the iamge cache, disk and GS if necessary.
-	if err := m.imgLoader.PurgeImages(digests, purgeGS); err != nil {
+	// Remove the images from, the iamge cache, disk and GCS if necessary.
+	if err := m.imgLoader.PurgeImages(digests, purgeGCS); err != nil {
 		return err
 	}
 

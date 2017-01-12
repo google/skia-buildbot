@@ -126,7 +126,7 @@ func main() {
 			}
 			sklog.Infof("Downloading all bad %s fuzzes @%s to setup duplication detection", category, config.Common.SkiaVersion.Hash)
 			baseFolder := fmt.Sprintf("%s/%s/%s/bad", category, config.Common.SkiaVersion.Hash, config.Generator.Architecture)
-			if startingReports[category], err = fstorage.GetReportsFromGS(storageClient, baseFolder, category, config.Generator.Architecture, nil, config.Generator.NumDownloadProcesses); err != nil {
+			if startingReports[category], err = fstorage.GetReportsFromGCS(storageClient, baseFolder, category, config.Generator.Architecture, nil, config.Generator.NumDownloadProcesses); err != nil {
 				sklog.Fatalf("Could not download previously found %s fuzzes for deduplication: %s", category, err)
 			}
 		} else {
@@ -197,7 +197,7 @@ func writeFlagsToConfig() error {
 	config.Generator.NumDownloadProcesses = *downloadProcesses
 	config.Generator.SkipGeneration = *skipGeneration
 
-	config.GS.Bucket = *bucket
+	config.GCS.Bucket = *bucket
 	config.Aggregator.FuzzPath, err = fileutil.EnsureDirExists(*fuzzPath)
 	if err != nil {
 		return err

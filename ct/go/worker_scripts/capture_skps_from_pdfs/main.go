@@ -59,8 +59,8 @@ func captureSkpsFromPdfs() error {
 		return errors.New("Must specify --chromium_build")
 	}
 
-	// Instantiate GsUtil object.
-	gs, err := util.NewGsUtil(nil)
+	// Instantiate GcsUtil object.
+	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
 		return err
 	}

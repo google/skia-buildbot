@@ -865,9 +865,9 @@ func jsonClearFailureHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Unable to decode digest list.")
 		return
 	}
-	purgeGS := r.URL.Query().Get("purge") == "true"
+	purgeGCS := r.URL.Query().Get("purge") == "true"
 
-	if err := storages.DiffStore.PurgeDigests(digests, purgeGS); err != nil {
+	if err := storages.DiffStore.PurgeDigests(digests, purgeGCS); err != nil {
 		httputils.ReportError(w, r, err, "Unable to clear digests.")
 	}
 	jsonListFailureHandler(w, r)

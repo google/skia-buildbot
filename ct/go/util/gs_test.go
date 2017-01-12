@@ -14,7 +14,7 @@ import (
 func Auth_TestDownloadSwarmingArtifacts(t *testing.T) {
 	testPagesetsDirName := filepath.Join("unit-tests", "util", "page_sets")
 
-	gs, err := NewGsUtil(nil)
+	gs, err := NewGcsUtil(nil)
 	assert.NoError(t, err)
 
 	localDir, err := ioutil.TempDir("", "util_test_")
