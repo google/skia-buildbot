@@ -27,14 +27,18 @@
 
 <link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="bower_components/paper-button/paper-button.html">
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
 <link rel="import" href="bower_components/paper-slider/paper-slider.html">
 
+<link rel="import" href="select-popup-sk.html">
+
 <dom-module id="filter-dialog-sk">
   <template>
-    <style>
+     <style include="iron-flex iron-flex-alignment">
       paper-slider {
         width: 25em;
         margin-top: 0;
@@ -47,52 +51,133 @@
         font-weight: bold;
         font-size: 110%;
       }
+
+      .selectItem {
+        padding: 1em;
+      }
+
+      .selectLabel {
+        font-weight: bold;
+        width:15em;
+      }
     </style>
     <paper-dialog id="filterDialog">
-      <h3>Filter By Maximum Values</h3>
-      <div class="sliderHeader">RGBA</div>
-      <paper-slider value="{{_curr.rgbamax}}" min="0" max="255" editable></paper-slider>
-      <div class="sliderHeader">Pixels</div>
-      <paper-slider value="{{_curr.pixelmax}}" min="0" max="5000" editable></paper-slider>
-      <div class="sliderHeader">Diff</div>
-      <paper-slider value="{{_curr.diffmax}}" min="0" max="1" step="0.05" editable></paper-slider>
-      <div class="buttons">
-        <paper-button id="editButton" raised dialog-dismiss>Filter</paper-button>
+      <div class="horizontal layout">
+        <div class="vertical layout">
+          <div class="selectItem">
+            <!-- Note:The values of the dropdown need to match the metric ids on the backend -->
+            <span class="selectLabel">Diff Metric:</span>
+            <paper-dropdown-menu class="diffMetricSelect" no-label-float>
+              <paper-listbox id="diffMetric" class="dropdown-content" selected="{{_curr.metric}}" attr-for-selected="value">
+                <template is='dom-repeat' items='{{ _metrics }}'>
+                  <paper-item value="[[item]]">[[item]]</paper-item>
+                </template>
+              </paper-listbox>
+            </paper-dropdown-menu>
+            <div>
+              <template is='dom-repeat' items='{{ _curr.match }}'>
+                <div>[[item]]</div>
+              </template>
+            </div>
+          </div>
+          <div class="selectItem">
+            <span class="selectLabel">Match:</span>
+            <select-popup-sk id="paramsSelect"></select-popup-sk>
+          </div>
+          <div>
+            <span class="selectLabel">Group By Test:</span>
+            <paper-dropdown-menu class="groupTestSelect" no-label-float>
+              <paper-listbox id="groupTest" class="dropdown-content" selected="{{_curr.fgrouptest}}" attr-for-selected="value">
+                <paper-item value=""></paper-item>
+                <template is='dom-repeat' items='{{ _groupTests }}'>
+                  <paper-item value="[[item]]">[[item]]</paper-item>
+                </template>
+              </paper-listbox>
+            </paper-dropdown-menu>
+          </div>
+        </div>
+        <div class="vertical layout">
+          <h3>Filter By Maximum Values</h3>
+          <div class="sliderHeader">RGBA</div>
+          <paper-slider value="{{_curr.frgbamax}}" min="0" max="255" editable></paper-slider>
+          <div class="sliderHeader">Diff</div>
+          <paper-slider value="{{_curr.fdiffmax}}" min="0" max="1" step="0.05" editable></paper-slider>
+          <div class="buttons">
+            <paper-button id="editButton" raised dialog-dismiss>Filter</paper-button>
+          </div>
+        </div>
       </div>
     </paper-dialog>
   </template>
   <script>
-    Polymer({
-      is: "filter-dialog-sk",
+    (function() {
+      // The fields we are interested in.
+      var filterFields = [
+        "metric",
+        "sort",
+        "match",
+        "fbegin",
+        "fend",
+        "frgbamax",
+        "fdiffmax",
+        "fgrouptest"
+      ];
 
-      properties: {
-        _curr: {
-          type: Object
-        }
-      },
+      Polymer({
+        is: "filter-dialog-sk",
 
-      ready: function() {
-        this.listen(this.$.editButton, 'tap', '_handleEditButton');
-      },
+        properties: {
+          _curr: {
+            type: Object
+          }
+        },
 
-      open: function() {
-        this.set('_curr', this._value);
-        this.$.filterDialog.open();
-      },
+        ready: function() {
+          this.listen(this.$.editButton, 'tap', '_handleEditButton');
+          this.listen(this.$.paramsSelect, 'changed-selection', '_handleMatchChanged');
+          this.set('_metrics', gold.allMetrics.slice());
+          this.set('_groupTests', gold.groupTestOps.slice());
+        },
 
-      close: function() {
-        this.$.filterDialog.close();
-      },
+        open: function() {
+          this.set('_curr', sk.object.shallowCopy(this._value));
+          this.$.filterDialog.open();
+        },
 
-      setValue: function(newVal) {
-        this._value = sk.object.shallowCopy(newVal);
-      },
+        close: function() {
+          this.$.filterDialog.close();
+        },
 
-      _handleEditButton: function(ev) {
-        ev.stopPropagation();
-        this._value = sk.object.shallowCopy(this._curr);
-        this.fire('edit', sk.object.shallowCopy(this._curr));
-      }
-    });
+        setParamSet: function(params) {
+          this.$.paramsSelect.setParamSet(params);
+        },
+
+        setValue: function(newVal) {
+          // Extract the fields we are interested in.
+          var value = {};
+          for(i=0; i < filterFields.length; i++) {
+            var f = filterFields[i];
+            if (newVal.hasOwnProperty(f)) {
+              if (Array.isArray(newVal[f])) {
+                value[f] = newVal[f].slice();
+              } else {
+                value[f] = newVal[f];
+              }
+            }
+          }
+          this.$.paramsSelect.setSelection(value.match);
+          this._value = value;
+        },
+
+        _handleEditButton: function(ev) {
+          this._value = sk.object.shallowCopy(this._curr);
+          this.fire('edit', sk.object.shallowCopy(this._curr));
+        },
+
+        _handleMatchChanged: function(ev) {
+          this._curr.match = ev.detail;
+        },
+      });
+    })();
   </script>
 </dom-module>
