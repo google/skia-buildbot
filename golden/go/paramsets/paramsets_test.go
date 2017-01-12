@@ -59,10 +59,10 @@ func TestParamset(t *testing.T) {
 	byTrace := byTraceForTile(tile, tallies)
 
 	// Test that we are robust to traces appearing in tallies, but not in the tile, and vice-versa.
-	assert.Equal(t, byTrace["foo:bbb"]["config"], []string{"8888"})
+	assert.Equal(t, byTrace["foo"]["bbb"]["config"], []string{"8888"})
 
-	assert.Equal(t, byTrace["foo:aaa"]["name"], []string{"foo"})
-	got := byTrace["foo:aaa"]["config"]
+	assert.Equal(t, byTrace["foo"]["aaa"]["name"], []string{"foo"})
+	got := byTrace["foo"]["aaa"]["config"]
 	sort.Strings(got)
 	assert.Equal(t, got, []string{"565", "8888"})
 
