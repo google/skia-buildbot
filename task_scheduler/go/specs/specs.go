@@ -580,11 +580,11 @@ func TempGitRepo(repo *git.Repo, rs db.RepoState) (rv *git.TempCheckout, rvErr e
 	// Apply a patch if necessary.
 	if rs.IsTryJob() {
 		branchName := "patch"
-		if _, err := c.Git("checkout", "-b", branchName); err != nil {
-			return nil, err
-		}
 		server := strings.TrimRight(rs.Server, "/")
 		if strings.Contains(rs.Server, "codereview.chromium") {
+			if _, err := c.Git("checkout", "-b", branchName); err != nil {
+				return nil, err
+			}
 			patchUrl := fmt.Sprintf("%s/%s/#ps%s", server, rs.Issue, rs.Patchset)
 			if _, err := c.Git("cl", "patch", "--rietveld", "--no-commit", patchUrl); err != nil {
 				return nil, err
@@ -602,12 +602,19 @@ func TempGitRepo(repo *git.Repo, rs db.RepoState) (rv *git.TempCheckout, rvErr e
 			if _, err := c.Git("checkout", "FETCH_HEAD"); err != nil {
 				return nil, err
 			}
-			// Switch back to the "patch" branch while leaving the
-			// code state intact. This gets us to our desired end
+			// Create a new branch at the patch ref.
+			if _, err := c.Git("checkout", "-b", branchName); err != nil {
+				return nil, err
+			}
+			// Rebase the branch onto the desired base commit.
+			if _, err := c.Git("rebase", rs.Revision); err != nil {
+				return nil, err
+			}
+			// Uncommit the patch. This gets us to our desired end
 			// state: on the "patch" branch whose HEAD is at the
 			// desired commit, with the patch applied but not
 			// committed.
-			if _, err := c.Git("reset", branchName); err != nil {
+			if _, err := c.Git("reset", rs.Revision); err != nil {
 				return nil, err
 			}
 		}
