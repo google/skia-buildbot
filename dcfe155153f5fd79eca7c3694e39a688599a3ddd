@@ -288,6 +288,24 @@
     },
     {
       "key": {
+        "uuid": "43f0d99f_0da9b121",
+        "filename": "go/gs/storage.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-12T19:40:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "578ed681_6c83b2ef",
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "578ed681_8ca5b68a",
         "filename": "go/gs/storage.go",
         "patchSetId": 3
@@ -305,6 +323,24 @@
         "endLine": 41,
         "endChar": 29
       },
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43f0d99f_2da46d49",
+        "filename": "go/gs/storage.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-12T19:40:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "578ed681_8ca5b68a",
       "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -345,6 +381,24 @@
       "writtenOn": "2017-01-11T19:54:38Z",
       "side": 1,
       "message": "Add lines to confirm that MockGCSClient implements the interfaces you expect:\n\nvar _ gs.FileGetter \u003d (*MockGCSClient)(nil)\n\nDo this everywhere you implement an interface.",
+      "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43f0d99f_30b3264e",
+        "filename": "go/mockgcsclient/mock_gcs_client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-12T19:40:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "578ed681_91138f1e",
       "revId": "dcfe155153f5fd79eca7c3694e39a688599a3ddd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
