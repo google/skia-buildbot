@@ -109,7 +109,10 @@ func templateHandler(name string) http.HandlerFunc {
 		if *local {
 			loadTemplates()
 		}
-		if err := templates.ExecuteTemplate(w, name, struct{}{}); err != nil {
+		context := map[string]string{
+			"git_repo_url": *gitRepoURL,
+		}
+		if err := templates.ExecuteTemplate(w, name, context); err != nil {
 			sklog.Errorln("Failed to expand template:", err)
 		}
 	}
