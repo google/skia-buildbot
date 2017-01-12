@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "43f0d99f_cdecc9d6",
+        "filename": "compute_engine_scripts/android_perf/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-12T17:06:44Z",
+      "side": 1,
+      "message": "Adroid -\u003e Android",
+      "revId": "252965ca606c490b7a4ec4f43317ac0068201014",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43f0d99f_2dc90d5f",
+        "filename": "compute_engine_scripts/android_perf/vm_config.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-12T17:06:44Z",
+      "side": 1,
+      "message": "skia-perf -\u003e skia-android-perf",
+      "revId": "252965ca606c490b7a4ec4f43317ac0068201014",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43f0d99f_edef05c8",
+        "filename": "compute_engine_scripts/android_perf/vm_config.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-12T17:06:44Z",
+      "side": 1,
+      "message": "Nit: 2017",
+      "revId": "252965ca606c490b7a4ec4f43317ac0068201014",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43f0d99f_0dced166",
+        "filename": "compute_engine_scripts/android_perf/vm_config.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-12T17:06:44Z",
+      "side": 1,
+      "message": "Skia -\u003e Android ?",
+      "revId": "252965ca606c490b7a4ec4f43317ac0068201014",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
