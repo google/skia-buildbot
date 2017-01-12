@@ -23,7 +23,6 @@ import (
 )
 
 const (
-	WEBAPP_ROOT    = "https://skia-tree-status.appspot.com/skia-telemetry/"
 	WEBAPP_ROOT_V2 = "https://ct.skia.org/"
 )
 
