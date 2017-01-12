@@ -49,6 +49,7 @@ var (
 		"buildbot":      common.REPO_SKIA_INFRA,
 		"internal_test": common.REPO_SKIA_INTERNAL_TEST,
 		"skia":          common.REPO_SKIA,
+		"skia-recipes":  common.REPO_SKIA_RECIPES,
 		"skiabuildbot":  common.REPO_SKIA_INFRA,
 	}
 
