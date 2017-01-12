@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "43f0d99f_73713849",
+        "filename": "ct/go/master_scripts/capture_skps_on_workers/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-12T21:08:29Z",
+      "side": 1,
+      "message": "Your find-and-replace does not seem to be working correctly. Let me know when you have a new patch set and I\u0027ll review.",
+      "range": {
+        "startLine": 158,
+        "startChar": 5,
+        "endLine": 158,
+        "endChar": 7
+      },
+      "revId": "ff62a4a759530ebd20e651ff0ee03ccf3c656867",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
