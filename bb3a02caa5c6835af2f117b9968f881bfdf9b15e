@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "43f0d99f_b00ef6e9",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-12T20:50:54Z",
+      "side": 1,
+      "message": "We should probably call c.timeWindow.TestTime(repo, ts) instead, where repo is the key of c.knownTaskNames.",
+      "range": {
+        "startLine": 225,
+        "startChar": 6,
+        "endLine": 225,
+        "endChar": 30
+      },
+      "revId": "bb3a02caa5c6835af2f117b9968f881bfdf9b15e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43f0d99f_50e192dd",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-12T20:50:54Z",
+      "side": 1,
+      "message": "Probably not. Here\u0027s a diff:\n\ndiff --git a/task_scheduler/go/db/cache.go b/task_scheduler/go/db/cache.go\nindex eb3d3e8a6..de8ac762c 100644\n--- a/task_scheduler/go/db/cache.go\n+++ b/task_scheduler/go/db/cache.go\n@@ -68,9 +68,6 @@ type TaskCache interface {\n \n        // Update loads new tasks from the database.\n        Update() error\n-\n-       // Start returns the beginning of the cached time window.\n-       Start() time.Time\n }\n \n type taskCache struct {\n@@ -405,11 +402,6 @@ func (c *taskCache) Update() error {\n        return nil\n }\n \n-// See documentation for TaskCache interface.\n-func (c *taskCache) Start() time.Time {\n-       return c.timeWindow.Start()\n-}\n-\n // NewTaskCache returns a local cache which provides more convenient views of\n // task data than the database can provide.\n func NewTaskCache(db TaskReader, timeWindow *window.Window) (TaskCache, error) {\ndiff --git a/task_scheduler/go/scheduling/cache_wrapper.go b/task_scheduler/go/scheduling/cache_wrapper.go\nindex a73923eeb..d568a028e 100644\n--- a/task_scheduler/go/scheduling/cache_wrapper.go\n+++ b/task_scheduler/go/scheduling/cache_wrapper.go\n@@ -74,11 +74,6 @@ func (c *cacheWrapper) Update() error {\n        return fmt.Errorf(\"cacheWrapper.Update not implemented.\")\n }\n \n-// See documentation for TaskCache interface.\n-func (c *cacheWrapper) Start() time.Time {\n-       return c.c.Start()\n-}\n-\n // insert adds a task to the cacheWrapper\u0027s fake layer so that it will be\n // included in query results but not actually inserted into the DB.\n func (c *cacheWrapper) insert(t *db.Task) {\ndiff --git a/task_scheduler/go/scheduling/task_scheduler.go b/task_scheduler/go/scheduling/task_scheduler.go\nindex b6de47b4d..c94beafbe 100644\n--- a/task_scheduler/go/scheduling/task_scheduler.go\n+++ b/task_scheduler/go/scheduling/task_scheduler.go\n@@ -1364,7 +1364,6 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(tasks []*db.Task) error {\n        if !ok {\n                return fmt.Errorf(\"No such repo: %s\", repoName)\n        }\n-       start :\u003d cache.Start()\n        commitsBuf :\u003d make([]*repograph.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)\n        updatedTasks :\u003d map[string]*db.Task{}\n        for _, task :\u003d range tasks {\n@@ -1385,8 +1384,8 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(tasks []*db.Task) error {\n                if revision \u003d\u003d nil {\n                        return fmt.Errorf(\"No such commit %s in %s.\", task.Revision, task.Repo)\n                }\n-               if revision.Timestamp.Before(start) {\n-                       return fmt.Errorf(\"Can not add task %s with revision %s (at %s) before cache start %s.\", task.Id, task.Revision, revision.Timestamp, start)\n+               if !s.window.TestCommit(revision) {\n+                       return fmt.Errorf(\"Can not add task %s with revision %s (at %s) outside cache window.\", task.Id, task.Revision, revision.Timestamp)\n                }\n                commits, stealingFrom, err :\u003d ComputeBlamelist(cache, repo, task.Name, task.Repo, revision, commitsBuf)\n                if err !\u003d nil {",
+      "revId": "bb3a02caa5c6835af2f117b9968f881bfdf9b15e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43f0d99f_b047160e",
+        "filename": "task_scheduler/go/window/window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-12T20:50:54Z",
+      "side": 1,
+      "message": "nit: maybe add a method repograph.Commit.RepoURL? Then this method only needs the Commit arg.",
+      "range": {
+        "startLine": 95,
+        "startChar": 28,
+        "endLine": 95,
+        "endChar": 60
+      },
+      "revId": "bb3a02caa5c6835af2f117b9968f881bfdf9b15e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43f0d99f_90449a0a",
+        "filename": "task_scheduler/go/window/window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-12T20:50:54Z",
+      "side": 1,
+      "message": "w.mtx.RLock()",
+      "range": {
+        "startLine": 114,
+        "startChar": 1,
+        "endLine": 114,
+        "endChar": 23
+      },
+      "revId": "bb3a02caa5c6835af2f117b9968f881bfdf9b15e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
