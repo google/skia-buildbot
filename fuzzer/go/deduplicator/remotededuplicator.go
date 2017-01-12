@@ -5,24 +5,13 @@ import (
 	"fmt"
 	"sync"
 
-	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/data"
+	"go.skia.org/infra/fuzzer/go/storage"
+	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/net/context"
 )
-
-type GCSFileGetter interface {
-	GetFileContents(bucket, path string) ([]byte, error)
-}
-
-type GCSFileSetter interface {
-	SetFileContents(bucket, path string, contents []byte) error
-}
-
-type RemoteDeduplicatorGCSClient interface {
-	GCSFileGetter
-	GCSFileSetter
-}
 
 type remoteDeduplicator struct {
 	// maps gcs paths [including the hash of the keys] to true/false
@@ -30,10 +19,10 @@ type remoteDeduplicator struct {
 
 	commit    string
 	mutex     sync.Mutex
-	gcsClient RemoteDeduplicatorGCSClient
+	gcsClient storage.FuzzerGCSClient
 }
 
-func NewRemoteDeduplicator(gcsClient RemoteDeduplicatorGCSClient) Deduplicator {
+func NewRemoteDeduplicator(gcsClient storage.FuzzerGCSClient) Deduplicator {
 	return &remoteDeduplicator{
 		seen:      make(map[string]bool),
 		gcsClient: gcsClient,
@@ -52,6 +41,8 @@ func (d *remoteDeduplicator) SetCommit(c string) {
 	d.commit = c
 }
 
+var FILE_WRITE_OPTS = gs.FileWriteOptions{ContentEncoding: "text/plain"}
+
 func (d *remoteDeduplicator) IsUnique(report data.FuzzReport) bool {
 	// Empty stacktraces should be manually deduplicated.
 	if report.DebugStackTrace.IsEmpty() && report.ReleaseStackTrace.IsEmpty() {
@@ -69,12 +60,13 @@ func (d *remoteDeduplicator) IsUnique(report data.FuzzReport) bool {
 	if d.seen[gcsPath] {
 		return false
 	}
+	// cache it, because we've seen it now.
+	d.seen[gcsPath] = true
 
-	if _, err := d.gcsClient.GetFileContents(config.GS.Bucket, gcsPath); err != nil {
+	if _, err := d.gcsClient.GetFileContents(context.Background(), gcsPath); err != nil {
 		// It doesn't exist, so we haven't seen it before.
-		// cache it
-		d.seen[gcsPath] = true
-		if err = d.gcsClient.SetFileContents(config.GS.Bucket, gcsPath, []byte(k)); err != nil {
+
+		if err = d.gcsClient.SetFileContents(context.Background(), gcsPath, FILE_WRITE_OPTS, []byte(k)); err != nil {
 			sklog.Warningf("Error while writing to deduplication %s", err)
 		}
 
