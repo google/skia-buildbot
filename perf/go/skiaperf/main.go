@@ -60,14 +60,15 @@ var (
 
 // flags
 var (
-	configFilename = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
 	clusterQueries = flag.String("cluster_queries", "source_type=skp&sub_result=min_ms source_type=svg&sub_result=min_ms source_type=image&sub_result=min_ms", "A space separated list of queries we want to cluster over.")
+	configFilename = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
 	gitRepoDir     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	gitRepoURL     = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	internalOnly   = flag.Bool("internal_only", false, "Require the user to be logged in to see any page.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort       = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
@@ -834,6 +835,18 @@ func oldAlertsHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/t/", http.StatusMovedPermanently)
 }
 
+// internalOnlyHandler wraps the handler with a handler that only allows
+// authenticated access, with the exception of the /oauth2callback/ handler.
+func internalOnlyHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/oauth2callback/" || login.LoggedInAs(r) != "" {
+			h.ServeHTTP(w, r)
+		} else {
+			http.Redirect(w, r, login.LoginURL(w, r), http.StatusTemporaryRedirect)
+		}
+	})
+}
+
 func main() {
 	defer common.LogPanic()
 	// Setup DB flags.
@@ -877,6 +890,7 @@ func main() {
 	router.PathPrefix("/activitylog/").HandlerFunc(activityHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
+	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 
 	// JSON handlers.
 	router.HandleFunc("/_/initpage/", initpageHandler)
@@ -892,7 +906,12 @@ func main() {
 	router.HandleFunc("/_/reg/", regressionRangeHandler)
 	router.HandleFunc("/_/triage/", triageHandler)
 
-	http.Handle("/", httputils.LoggingGzipRequestResponse(router))
+	var h http.Handler = router
+	if *internalOnly {
+		h = internalOnlyHandler(h)
+	}
+	h = httputils.LoggingGzipRequestResponse(h)
+	http.Handle("/", h)
 
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
