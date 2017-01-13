@@ -6,15 +6,15 @@ import (
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/fuzzer/go/common"
-	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/gcs"
 	"golang.org/x/net/context"
 )
 
 // FuzzerGCSClient is the interface for all fuzzer-specific Google Cloud Storage (GCS)
-// interactions. It embeds gs.GCSClient to extend that functionality.
+// interactions. It embeds gcs.GCSClient to extend that functionality.
 // See also go/fuzzer/tests.NewMockGCSClient() for a mock.
 type FuzzerGCSClient interface {
-	gs.GCSClient
+	gcs.GCSClient
 	// GetAllFuzzNamesInFolder returns all the fuzz names in a given GCS folder.  It basically
 	// returns a list of all files that don't end with a .dump or .err, or error
 	// if there was a problem.
@@ -22,11 +22,11 @@ type FuzzerGCSClient interface {
 }
 
 type fuzzerclient struct {
-	gs.GCSClient
+	gcs.GCSClient
 }
 
 func NewFuzzerGCSClient(s *storage.Client, bucket string) FuzzerGCSClient {
-	return &fuzzerclient{gs.NewGCSClient(s, bucket)}
+	return &fuzzerclient{gcs.NewGCSClient(s, bucket)}
 }
 
 func (g *fuzzerclient) GetAllFuzzNamesInFolder(name string) (hashes []string, err error) {

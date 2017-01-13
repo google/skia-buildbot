@@ -9,7 +9,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
@@ -118,11 +118,11 @@ func TestPDFProcessor(t *testing.T) {
 	assert.Equal(t, len(foundDMResults.Results), foundIdx)
 }
 
-// deleteFolderContent removes all content ing the given GS bucket/foldername.
+// deleteFolderContent removes all content ing the given GCS bucket/foldername.
 func deleteFolderContent(t *testing.T, bucket, folderName string, client *http.Client) {
 	ctx := context.Background()
 	cStorage, err := storage.NewClient(ctx, option.WithHTTPClient(client))
 	assert.NoError(t, err)
 
-	assert.NoError(t, gs.DeleteAllFilesInDir(cStorage, bucket, folderName, 1))
+	assert.NoError(t, gcs.DeleteAllFilesInDir(cStorage, bucket, folderName, 1))
 }

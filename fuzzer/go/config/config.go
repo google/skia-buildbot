@@ -37,7 +37,7 @@ type frontendConfig struct {
 	FuzzSyncPeriod       time.Duration
 }
 
-type gsConfig struct {
+type gcsConfig struct {
 	Bucket string
 }
 
@@ -57,7 +57,7 @@ type commonConfig struct {
 
 var Generator = generatorConfig{}
 var Aggregator = aggregatorConfig{}
-var GS = gsConfig{}
+var GCS = gcsConfig{}
 var Common = commonConfig{}
 var FrontEnd = frontendConfig{}
 

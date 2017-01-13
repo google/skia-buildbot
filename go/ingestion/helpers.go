@@ -15,8 +15,8 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/gitinfo"
-	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
@@ -157,15 +157,15 @@ func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Clien
 
 // See Source interface.
 func (g *GoogleStorageSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
-	dirs := gs.GetLatestGSDirs(startTime, endTime, g.rootDir)
+	dirs := gcs.GetLatestGCSDirs(startTime, endTime, g.rootDir)
 	retval := []ResultFileLocation{}
 	for _, dir := range dirs {
-		err := gs.AllFilesInDir(g.storageClient, g.bucket, dir, func(item *storage.ObjectAttrs) {
+		err := gcs.AllFilesInDir(g.storageClient, g.bucket, dir, func(item *storage.ObjectAttrs) {
 			// TODO(stephana): remove this when we move away from the chromium-skia-gm bucket.
 			if strings.Contains(filepath.Base(item.Name), "uploading") {
 				sklog.Warningf("Received temporary file from GS: %s", item.Name)
 			} else if validIngestionFile(item.Name) && (item.Updated.Unix() > startTime) {
-				retval = append(retval, newGSResultFileLocation(item, g.rootDir, g.storageClient))
+				retval = append(retval, newGCSResultFileLocation(item, g.rootDir, g.storageClient))
 			}
 		})
 
@@ -187,7 +187,7 @@ func (g *GoogleStorageSource) EventChan() <-chan []ResultFileLocation {
 				sklog.Errorf("Error retrievint obj attributes for %s/%s: %s", storageEv.Bucket, storageEv.Name, err)
 				return
 			}
-			ch <- []ResultFileLocation{newGSResultFileLocation(result, g.rootDir, g.storageClient)}
+			ch <- []ResultFileLocation{newGCSResultFileLocation(result, g.rootDir, g.storageClient)}
 		}
 	})
 	return ch
@@ -209,7 +209,7 @@ type gsResultFileLocation struct {
 	content       []byte
 }
 
-func newGSResultFileLocation(result *storage.ObjectAttrs, rootDir string, storageClient *storage.Client) ResultFileLocation {
+func newGCSResultFileLocation(result *storage.ObjectAttrs, rootDir string, storageClient *storage.Client) ResultFileLocation {
 	return &gsResultFileLocation{
 		bucket:        result.Bucket,
 		name:          result.Name,
@@ -244,7 +244,7 @@ func (g *gsResultFileLocation) Open() (io.ReadCloser, error) {
 				continue
 			}
 
-			sklog.Infof("GSFILE READ %s/%s", g.bucket, g.name)
+			sklog.Infof("GCSFILE READ %s/%s", g.bucket, g.name)
 			break
 		}
 		if err != nil {
@@ -293,9 +293,9 @@ func NewFileSystemSource(baseName, rootDir string) (Source, error) {
 func (f *FileSystemSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
 	retval := []ResultFileLocation{}
 
-	// although GetLatestGSDirs is in the "gs" package, there's nothing specific about
+	// although GetLatestGCSDirs is in the "gcs" package, there's nothing specific about
 	// its operation that makes it not re-usable here.
-	dirs := gs.GetLatestGSDirs(startTime, endTime, f.rootDir)
+	dirs := gcs.GetLatestGCSDirs(startTime, endTime, f.rootDir)
 	for _, dir := range dirs {
 		// Inject dir into a closure.
 		func(dir string) {

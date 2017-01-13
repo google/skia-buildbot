@@ -50,8 +50,8 @@ func runLua() error {
 	// Build tools.
 	skutil.LogErr(util.BuildSkiaTools())
 
-	// Instantiate GsUtil object.
-	gs, err := util.NewGsUtil(nil)
+	// Instantiate GcsUtil object.
+	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
 		return err
 	}

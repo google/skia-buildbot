@@ -26,14 +26,14 @@ import (
 	"go.skia.org/infra/fuzzer/go/frontend"
 	"go.skia.org/infra/fuzzer/go/frontend/fuzzcache"
 	"go.skia.org/infra/fuzzer/go/frontend/fuzzpool"
-	"go.skia.org/infra/fuzzer/go/frontend/gsloader"
+	"go.skia.org/infra/fuzzer/go/frontend/gcsloader"
 	"go.skia.org/infra/fuzzer/go/frontend/syncer"
 	"go.skia.org/infra/fuzzer/go/issues"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/gitinfo"
-	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
@@ -160,14 +160,14 @@ func main() {
 		}
 		defer util.Close(cache)
 
-		if err := gsloader.LoadFromBoltDB(fuzzPool, cache); err != nil {
+		if err := gcsloader.LoadFromBoltDB(fuzzPool, cache); err != nil {
 			sklog.Errorf("Could not load from boltdb.  Loading from source of truth anyway. %s", err)
 		}
-		gsLoader := gsloader.New(storageClient, cache, fuzzPool)
+		gsLoader := gcsloader.New(storageClient, cache, fuzzPool)
 		if err := gsLoader.LoadFreshFromGoogleStorage(); err != nil {
 			sklog.Fatalf("Error loading in data from GCS: %s", err)
 		}
-		fuzzSyncer.SetGSLoader(gsLoader)
+		fuzzSyncer.SetGCSLoader(gsLoader)
 		updater := frontend.NewVersionUpdater(gsLoader, fuzzSyncer)
 		versionWatcher = fcommon.NewVersionWatcher(storageClient, config.Common.VersionCheckPeriod, nil, updater.HandleCurrentVersion)
 		versionWatcher.Start()
@@ -200,7 +200,7 @@ func writeFlagsToConfig() error {
 	config.Common.ClangPlusPlusPath = *clangPlusPlusPath
 	config.Common.DepotToolsPath = *depotToolsPath
 
-	config.GS.Bucket = *bucket
+	config.GCS.Bucket = *bucket
 	config.FrontEnd.NumDownloadProcesses = *downloadProcesses
 	config.FrontEnd.FuzzSyncPeriod = *fuzzSyncPeriod
 	return nil
@@ -447,7 +447,7 @@ func fuzzHandler(w http.ResponseWriter, r *http.Request) {
 		badOrGrey = "grey"
 	}
 
-	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/%s/%s/%s/%s", fuzz.FuzzCategory, config.Common.SkiaVersion.Hash, fuzz.FuzzArchitecture, badOrGrey, fuzz.FuzzName, fuzz.FuzzName))
+	contents, err := gcs.FileContentsFromGCS(storageClient, config.GCS.Bucket, fmt.Sprintf("%s/%s/%s/%s/%s/%s", fuzz.FuzzCategory, config.Common.SkiaVersion.Hash, fuzz.FuzzArchitecture, badOrGrey, fuzz.FuzzName, fuzz.FuzzName))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fuzz not found")
 		return
@@ -484,7 +484,7 @@ func metadataHandler(w http.ResponseWriter, r *http.Request) {
 		badOrGrey = "grey"
 	}
 
-	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/%s/%s/%s/%s", fuzz.FuzzCategory, config.Common.SkiaVersion.Hash, fuzz.FuzzArchitecture, badOrGrey, fuzz.FuzzName, name))
+	contents, err := gcs.FileContentsFromGCS(storageClient, config.GCS.Bucket, fmt.Sprintf("%s/%s/%s/%s/%s/%s", fuzz.FuzzCategory, config.Common.SkiaVersion.Hash, fuzz.FuzzArchitecture, badOrGrey, fuzz.FuzzName, name))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fuzz metadata not found")
 		return
@@ -644,7 +644,7 @@ func updateRevision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sklog.Infof("Turning the crank to revision %q", newInfo.Hash)
-	if err := frontend.UpdateVersionToFuzz(storageClient, config.GS.Bucket, newInfo.Hash); err != nil {
+	if err := frontend.UpdateVersionToFuzz(storageClient, config.GCS.Bucket, newInfo.Hash); err != nil {
 		sklog.Errorf("Could not turn the crank: %s", err)
 	} else {
 		versionWatcher.Recheck()

@@ -156,14 +156,14 @@ func main() {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
-	// Get the client to be used to access GS and the Monorail issue tracker.
+	// Get the client to be used to access GCS and the Monorail issue tracker.
 	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, nil, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
 
 	// Get the expecations storage, the filediff storage and the tilestore.
-	diffStore, err := diffstore.New(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GS_IMG_DIR_NAME, *cacheSize)
+	diffStore, err := diffstore.New(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize)
 	if err != nil {
 		sklog.Fatalf("Allocating DiffStore failed: %s", err)
 	}

@@ -18,8 +18,8 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -337,7 +337,7 @@ func main() {
 		}
 		setLastBackupTime := func() error {
 			last := time.Time{}
-			if err := gs.AllFilesInDir(gsClient, "skia-buildbots", "db_backup", func(item *storage.ObjectAttrs) {
+			if err := gcs.AllFilesInDir(gsClient, "skia-buildbots", "db_backup", func(item *storage.ObjectAttrs) {
 				if item.Updated.After(last) {
 					last = item.Updated
 				}

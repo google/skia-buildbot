@@ -19,7 +19,7 @@ func (m MockDiffStore) ImageHandler(urlPrefix string) (http.Handler, error)     
 func (m MockDiffStore) WarmDigests(priority int64, digests []string)                          {}
 func (m MockDiffStore) WarmDiffs(priority int64, leftDigests []string, rightDigests []string) {}
 func (m MockDiffStore) UnavailableDigests() map[string]*diff.DigestFailure                    { return nil }
-func (m MockDiffStore) PurgeDigests(digests []string, purgeGS bool) error                     { return nil }
+func (m MockDiffStore) PurgeDigests(digests []string, purgeGCS bool) error                    { return nil }
 
 // Get always finds that digest "eee" is closest to dMain.
 func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[string]*diff.DiffMetrics, error) {

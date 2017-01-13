@@ -12,8 +12,8 @@ import (
 
 	"go.skia.org/infra/go/database/testutil"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/gitinfo"
-	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
@@ -59,7 +59,7 @@ func TestIndexer(t *testing.T) {
 	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
-	err := gs.DownloadTestDataFile(t, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
+	err := gcs.DownloadTestDataFile(t, gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
 	assert.NoError(t, err, "Unable to download testdata.")
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 

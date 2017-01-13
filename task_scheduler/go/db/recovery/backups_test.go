@@ -111,7 +111,7 @@ func (tdb *testDB) GetIncrementalBackupTime() (time.Time, error) {
 	return tdb.ts.UTC(), nil
 }
 
-// getMockedDBBackup returns a gsDBBackup that handles GS requests with mockMux.
+// getMockedDBBackup returns a gsDBBackup that handles GCS requests with mockMux.
 // If mockMux is nil, an empty mux.Router is used. WriteBackup will write
 // TEST_DB_CONTENT.
 func getMockedDBBackup(t *testing.T, mockMux *mux.Router) (*gsDBBackup, context.CancelFunc) {
@@ -145,14 +145,14 @@ func getMockedDBBackupWithContent(t *testing.T, mockMux *mux.Router, content io.
 	}
 }
 
-// object represents a GS object for makeObjectResponse and makeObjectsResponse.
+// object represents a GCS object for makeObjectResponse and makeObjectsResponse.
 type object struct {
 	bucket string
 	name   string
 	time   time.Time
 }
 
-// makeObjectResponse generates the JSON representation of a GS object.
+// makeObjectResponse generates the JSON representation of a GCS object.
 func makeObjectResponse(obj object) string {
 	timeStr := obj.time.UTC().Format(time.RFC3339)
 	return fmt.Sprintf(`{
@@ -172,7 +172,7 @@ func makeObjectResponse(obj object) string {
 }`, obj.bucket, obj.name, obj.name, obj.bucket, timeStr, timeStr)
 }
 
-// makeObjectsResponse generates the JSON representation of an array of GS
+// makeObjectsResponse generates the JSON representation of an array of GCS
 // objects.
 func makeObjectsResponse(objs []object) string {
 	jsObjs := make([]string, 0, len(objs))
@@ -187,7 +187,7 @@ func makeObjectsResponse(objs []object) string {
 }`, strings.Join(jsObjs, ",\n"))
 }
 
-// gsRoute returns the mux.Route for the GS server.
+// gsRoute returns the mux.Route for the GCS server.
 func gsRoute(mockMux *mux.Router) *mux.Route {
 	return mockMux.Schemes("https").Host("www.googleapis.com")
 }
@@ -382,7 +382,7 @@ func addMultipartHandler(t *testing.T, r *mux.Router, actualBytesGzip map[string
 		})
 }
 
-// upload should upload data to GS.
+// upload should upload data to GCS.
 func TestUpload(t *testing.T) {
 	testutils.SmallTest(t)
 	now := time.Now().Round(time.Second)
@@ -407,7 +407,7 @@ func TestUpload(t *testing.T) {
 	assert.Equal(t, TEST_DB_CONTENT, string(actualBytes))
 }
 
-// upload may fail if the GS request fails.
+// upload may fail if the GCS request fails.
 func TestUploadError(t *testing.T) {
 	testutils.SmallTest(t)
 	now := time.Now()
@@ -430,7 +430,7 @@ func TestUploadError(t *testing.T) {
 	assert.Contains(t, err.Error(), "got HTTP response code 418 with body: I don't like your poem.")
 }
 
-// uploadFile should upload a file to GS.
+// uploadFile should upload a file to GCS.
 func TestUploadFile(t *testing.T) {
 	testutils.SmallTest(t)
 	tempdir, err := ioutil.TempDir("", "backups_test")
@@ -481,7 +481,7 @@ func TestUploadFileNoFile(t *testing.T) {
 	assert.Contains(t, err.Error(), "Unable to read temporary backup file")
 }
 
-// backupDB should create a GS object with the gzipped contents of the DB.
+// backupDB should create a GCS object with the gzipped contents of the DB.
 func TestBackupDB(t *testing.T) {
 	testutils.SmallTest(t)
 	var expectedBytes []byte
@@ -909,7 +909,7 @@ func makeExistingJob(now time.Time, id string) *db.Job {
 	return job
 }
 
-// backupJob should create a GS object with the gzipped bytes.
+// backupJob should create a GCS object with the gzipped bytes.
 func TestBackupJob(t *testing.T) {
 	testutils.SmallTest(t)
 	now := time.Now()
@@ -1228,7 +1228,7 @@ func addGetJobGOBHandler(t *testing.T, r *mux.Router, job *db.Job) {
 	addGetObjectHandler(t, r, formatJobObjectName(job.DbModified, job.Id), buf.Bytes())
 }
 
-// downloadGOB should download data from GS.
+// downloadGOB should download data from GCS.
 func TestDownloadGOB(t *testing.T) {
 	testutils.SmallTest(t)
 
@@ -1325,7 +1325,7 @@ func assertJobMapsEqual(t *testing.T, expected map[string]*db.Job, actual map[st
 	}
 }
 
-// RetrieveJobs should download Jobs for the requested period from GS.
+// RetrieveJobs should download Jobs for the requested period from GCS.
 func TestRetrieveJobsSimple(t *testing.T) {
 	testutils.SmallTest(t)
 
@@ -1351,7 +1351,7 @@ func TestRetrieveJobsSimple(t *testing.T) {
 	assertJobMapsEqual(t, expectedJobs, actualJobs)
 }
 
-// RetrieveJobs should download Jobs for the requested period from GS where the
+// RetrieveJobs should download Jobs for the requested period from GCS where the
 // Jobs span multiple directories.
 func TestRetrieveJobsMultipleDirs(t *testing.T) {
 	testutils.MediumTest(t) // GOB encoding and decoding takes time.
@@ -1386,7 +1386,7 @@ func TestRetrieveJobsMultipleDirs(t *testing.T) {
 	assertJobMapsEqual(t, expectedJobs, actualJobs)
 }
 
-// RetrieveJobs should download Jobs for the requested period from GS when there
+// RetrieveJobs should download Jobs for the requested period from GCS when there
 // are older versions for the same Job.
 func TestRetrieveJobsMultipleVersions(t *testing.T) {
 	testutils.MediumTest(t) // GOB encoding and decoding takes time.
@@ -1451,7 +1451,7 @@ func TestRetrieveJobsMultipleVersions(t *testing.T) {
 	assertJobMapsEqual(t, expectedJobs, actualJobs)
 }
 
-// RetrieveJobs should give a sensible error if unable to list Jobs in GS.
+// RetrieveJobs should give a sensible error if unable to list Jobs in GCS.
 func TestRetrieveJobsErrorListingJobs(t *testing.T) {
 	testutils.SmallTest(t)
 
@@ -1471,7 +1471,7 @@ func TestRetrieveJobsErrorListingJobs(t *testing.T) {
 }
 
 // RetrieveJobs should give a sensible error if unable to download a Job from
-// GS.
+// GCS.
 func TestRetrieveJobsErrorDownloading(t *testing.T) {
 	testutils.SmallTest(t)
 

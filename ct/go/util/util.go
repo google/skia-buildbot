@@ -457,7 +457,7 @@ func GetPathToPyFiles(runOnSwarming bool) string {
 	}
 }
 
-func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GsUtil, totalPages, numPerWorker int, handleStrings bool) ([]string, error) {
+func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GcsUtil, totalPages, numPerWorker int, handleStrings bool) ([]string, error) {
 	localOutputDir := filepath.Join(StorageDir, BenchmarkRunsDir, runID)
 	util.MkdirAll(localOutputDir, 0700)
 	noOutputSlaves := []string{}
@@ -587,7 +587,7 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	return nil
 }
 
-func MergeUploadCSVFilesOnWorkers(localOutputDir, pathToPyFiles, runID, remoteDir string, gs *GsUtil, startRange int, handleStrings bool) error {
+func MergeUploadCSVFilesOnWorkers(localOutputDir, pathToPyFiles, runID, remoteDir string, gs *GcsUtil, startRange int, handleStrings bool) error {
 	// Move all results into a single directory.
 	fileInfos, err := ioutil.ReadDir(localOutputDir)
 	if err != nil {
@@ -748,7 +748,7 @@ func TriggerBuildRepoSwarmingTask(taskName, runID, repo, targetPlatform string, 
 	return strings.Split(string(contents), ","), nil
 }
 
-func DownloadPatch(localPath, remotePath string, gs *GsUtil) (int64, error) {
+func DownloadPatch(localPath, remotePath string, gs *GcsUtil) (int64, error) {
 	respBody, err := gs.GetRemoteFileContents(remotePath)
 	if err != nil {
 		return -1, fmt.Errorf("Could not fetch %s: %s", remotePath, err)
@@ -787,7 +787,7 @@ func RemoveCatapultLockFiles(catapultSrcDir string) error {
 	return filepath.Walk(catapultSrcDir, visit)
 }
 
-func DownloadAndApplyPatch(patchName, localDir, remotePatchesDir, checkout string, gs *GsUtil) error {
+func DownloadAndApplyPatch(patchName, localDir, remotePatchesDir, checkout string, gs *GcsUtil) error {
 	patchLocalPath := filepath.Join(localDir, patchName)
 	patchRemotePath := filepath.Join(remotePatchesDir, patchName)
 	written, err := DownloadPatch(patchLocalPath, patchRemotePath, gs)
@@ -805,7 +805,7 @@ func DownloadAndApplyPatch(patchName, localDir, remotePatchesDir, checkout strin
 
 // GetArchivesNum returns the number of archives for the specified pagesetType.
 // -1 is returned if USE_LIVE_SITES_FLAGS is specified or if there is an error.
-func GetArchivesNum(gs *GsUtil, benchmarkArgs, pagesetType string) (int, error) {
+func GetArchivesNum(gs *GcsUtil, benchmarkArgs, pagesetType string) (int, error) {
 	if strings.Contains(benchmarkArgs, USE_LIVE_SITES_FLAGS) {
 		return -1, nil
 	}

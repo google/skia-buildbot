@@ -118,8 +118,8 @@ func main() {
 		return
 	}
 
-	// Instantiate GsUtil object.
-	gs, err := util.NewGsUtil(nil)
+	// Instantiate GcsUtil object.
+	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
 		sklog.Error(err)
 		return
@@ -184,7 +184,7 @@ func main() {
 	}
 	// Copy the consolidated file into Google Storage.
 	consolidatedOutputRemoteDir := filepath.Join(util.LuaRunsDir, *runID, "consolidated_outputs")
-	luaOutputRemoteLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, consolidatedOutputRemoteDir, consolidatedFileName)
+	luaOutputRemoteLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, consolidatedOutputRemoteDir, consolidatedFileName)
 	if err := gs.UploadFile(consolidatedFileName, os.TempDir(), consolidatedOutputRemoteDir); err != nil {
 		sklog.Errorf("Unable to upload %s to %s: %s", consolidatedLuaOutput, consolidatedOutputRemoteDir, err)
 		return
@@ -217,7 +217,7 @@ func main() {
 			return
 		}
 		// Copy the aggregator output into Google Storage.
-		luaAggregatorOutputRemoteLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, consolidatedOutputRemoteDir, luaAggregatorOutputFileName)
+		luaAggregatorOutputRemoteLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, consolidatedOutputRemoteDir, luaAggregatorOutputFileName)
 		if err := gs.UploadFile(luaAggregatorOutputFileName, os.TempDir(), consolidatedOutputRemoteDir); err != nil {
 			sklog.Errorf("Unable to upload %s to %s: %s", luaAggregatorOutputFileName, consolidatedOutputRemoteDir, err)
 			return

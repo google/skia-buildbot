@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/util"
 
 	"cloud.google.com/go/storage"
@@ -28,8 +28,8 @@ const (
 	ISOLATE_SERVER_URL_FAKE    = "fake"
 	ISOLATE_SERVER_URL_PRIVATE = "https://chrome-isolated.appspot.com"
 	ISOLATE_VERSION            = 1
-	GS_BUCKET                  = "chromium-luci"
-	GS_SUBDIR                  = ""
+	GCS_BUCKET                 = "chromium-luci"
+	GCS_SUBDIR                 = ""
 	TASK_ID_TMPL               = "task_%s"
 )
 
@@ -42,7 +42,7 @@ var (
 
 // Client is a Skia-specific wrapper around the Isolate executable.
 type Client struct {
-	gs            *gs.DownloadHelper
+	gcs           *gcs.DownloadHelper
 	isolate       string
 	isolateserver string
 	serverUrl     string
@@ -60,16 +60,16 @@ func NewClient(workdir, server string) (*Client, error) {
 		return nil, err
 	}
 	c := &Client{
-		gs:            gs.NewDownloadHelper(s, GS_BUCKET, GS_SUBDIR, workdir),
+		gcs:           gcs.NewDownloadHelper(s, GCS_BUCKET, GCS_SUBDIR, workdir),
 		isolate:       path.Join(workdir, "isolate"),
 		isolateserver: path.Join(workdir, "isolateserver"),
 		serverUrl:     server,
 		workdir:       absPath,
 	}
-	if err := c.gs.MaybeDownload("isolate", ISOLATE_EXE_SHA1); err != nil {
+	if err := c.gcs.MaybeDownload("isolate", ISOLATE_EXE_SHA1); err != nil {
 		return nil, fmt.Errorf("Unable to create isolate client; failed to download isolate binary: %s", err)
 	}
-	if err := c.gs.MaybeDownload("isolateserver", ISOLATESERVER_EXE_SHA1); err != nil {
+	if err := c.gcs.MaybeDownload("isolateserver", ISOLATESERVER_EXE_SHA1); err != nil {
 		return nil, fmt.Errorf("Unable to create isolate client; failed to download isolateserver binary: %s", err)
 	}
 
@@ -78,7 +78,7 @@ func NewClient(workdir, server string) (*Client, error) {
 
 // Close should be called when finished using the Client.
 func (c *Client) Close() error {
-	return c.gs.Close()
+	return c.gcs.Close()
 }
 
 // ServerURL return the Isolate server URL.

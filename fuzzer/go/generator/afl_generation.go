@@ -13,7 +13,7 @@ import (
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 )
@@ -181,13 +181,13 @@ func (g *Generator) DownloadSeedFiles(storageClient *storage.Client) error {
 	}
 	gsFolder := fmt.Sprintf("samples/%s/", cat)
 
-	err := gs.AllFilesInDir(storageClient, config.GS.Bucket, gsFolder, func(item *storage.ObjectAttrs) {
+	err := gcs.AllFilesInDir(storageClient, config.GCS.Bucket, gsFolder, func(item *storage.ObjectAttrs) {
 		name := item.Name
 		// skip the parent folder
 		if name == gsFolder {
 			return
 		}
-		content, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, name)
+		content, err := gcs.FileContentsFromGCS(storageClient, config.GCS.Bucket, name)
 		if err != nil {
 			sklog.Errorf("[%s] Problem downloading %s from Google Storage, continuing anyway", g.Category, item.Name)
 			return

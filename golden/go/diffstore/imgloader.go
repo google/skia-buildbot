@@ -32,16 +32,16 @@ const (
 
 // ImageLoader facilitates to continously download images and cache them in RAM.
 type ImageLoader struct {
-	// client is the Google storage client to local content form GS.
+	// storageClient is the Google client to local content from GCS.
 	storageClient *storage.Client
 
 	// localImgDir is the local directory where images should be written to.
 	localImgDir string
 
-	// gsBucketNames is the list of GS bucket where images are stored.
+	// gsBucketNames is the list of GCS bucket where images are stored.
 	gsBucketNames []string
 
-	// gsImageBaseDir is the GS directory (prefix) where images are stored.
+	// gsImageBaseDir is the GCS directory (prefix) where images are stored.
 	gsImageBaseDir string
 
 	// imageCache caches and calculates images.
@@ -150,7 +150,7 @@ func (il *ImageLoader) IsOnDisk(digest string) bool {
 }
 
 // PurgeImages removes the images that correspond to the given digests.
-func (il *ImageLoader) PurgeImages(digests []string, purgeGS bool) error {
+func (il *ImageLoader) PurgeImages(digests []string, purgeGCS bool) error {
 	for _, d := range digests {
 		fName := fileutil.TwoLevelRadixPath(il.localImgDir, getDigestImageFileName(d))
 		if fileutil.FileExists(fName) {
@@ -160,7 +160,7 @@ func (il *ImageLoader) PurgeImages(digests []string, purgeGS bool) error {
 		}
 	}
 
-	if purgeGS {
+	if purgeGCS {
 		for _, d := range digests {
 			il.removeImg(d)
 		}
@@ -278,7 +278,7 @@ func (il *ImageLoader) downloadImgFromBucket(digest, bucketName string) ([]byte,
 	return buf.Bytes(), err
 }
 
-// removeImg removes the image that corresponds to the given digest from GS.
+// removeImg removes the image that corresponds to the given digest from GCS.
 func (il *ImageLoader) removeImg(digest string) {
 	ctx := context.Background()
 	for _, bucketName := range il.gsBucketNames {

@@ -1,4 +1,4 @@
-package gsloader
+package gcsloader
 
 import (
 	"fmt"
@@ -27,16 +27,16 @@ func LoadFromBoltDB(pool *fuzzpool.FuzzPool, cache *fuzzcache.FuzzReportCache) e
 	return nil
 }
 
-// GSLoader is a struct that handles downloading fuzzes from Google Storage.
-type GSLoader struct {
+// GCSLoader is a struct that handles downloading fuzzes from Google Storage.
+type GCSLoader struct {
 	storageClient *storage.Client
 	Cache         *fuzzcache.FuzzReportCache
 	Pool          *fuzzpool.FuzzPool
 }
 
-// New creates a GSLoader and returns it.
-func New(s *storage.Client, c *fuzzcache.FuzzReportCache, p *fuzzpool.FuzzPool) *GSLoader {
-	return &GSLoader{
+// New creates a GCSLoader and returns it.
+func New(s *storage.Client, c *fuzzcache.FuzzReportCache, p *fuzzpool.FuzzPool) *GCSLoader {
+	return &GCSLoader{
 		storageClient: s,
 		Cache:         c,
 		Pool:          p,
@@ -48,7 +48,7 @@ func New(s *storage.Client, c *fuzzcache.FuzzReportCache, p *fuzzpool.FuzzPool) 
 // are written over, including in the cache.
 // Upon completion, the full results are cached to a boltDB instance and moved from staging
 // to the current copy.
-func (g *GSLoader) LoadFreshFromGoogleStorage() error {
+func (g *GCSLoader) LoadFreshFromGoogleStorage() error {
 	revision := config.Common.SkiaVersion.Hash
 	g.Pool.ClearStaging()
 	fuzzNames := make([]string, 0, 100)
@@ -56,7 +56,7 @@ func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 	for _, arch := range common.ARCHITECTURES {
 		for _, cat := range common.FUZZ_CATEGORIES {
 			badPath := fmt.Sprintf("%s/%s/%s/bad", cat, revision, arch)
-			reports, err := fstorage.GetReportsFromGS(g.storageClient, badPath, cat, arch, nil, config.FrontEnd.NumDownloadProcesses)
+			reports, err := fstorage.GetReportsFromGCS(g.storageClient, badPath, cat, arch, nil, config.FrontEnd.NumDownloadProcesses)
 			if err != nil {
 				return err
 			}
@@ -67,10 +67,10 @@ func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 				g.Pool.AddFuzzReport(report)
 				b++
 			}
-			sklog.Infof("%d bad fuzzes freshly loaded from gs://%s/%s", b, config.GS.Bucket, badPath)
+			sklog.Infof("%d bad fuzzes freshly loaded from gs://%s/%s", b, config.GCS.Bucket, badPath)
 
 			greyPath := fmt.Sprintf("%s/%s/%s/grey", cat, revision, arch)
-			reports, err = fstorage.GetReportsFromGS(g.storageClient, greyPath, cat, arch, nil, config.FrontEnd.NumDownloadProcesses)
+			reports, err = fstorage.GetReportsFromGCS(g.storageClient, greyPath, cat, arch, nil, config.FrontEnd.NumDownloadProcesses)
 			if err != nil {
 				return err
 			}
@@ -81,7 +81,7 @@ func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 				g.Pool.AddFuzzReport(report)
 				b++
 			}
-			sklog.Infof("%d grey fuzzes freshly loaded from gs://%s/%s", b, config.GS.Bucket, greyPath)
+			sklog.Infof("%d grey fuzzes freshly loaded from gs://%s/%s", b, config.GCS.Bucket, greyPath)
 		}
 	}
 	g.Pool.CurrentFromStaging()
@@ -96,7 +96,7 @@ func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 // and loads them into memory (as staging). These fuzzes represent the newly found bad fuzzes
 // that have been uploaded by the various generators/aggregators. After loading them, it
 // updates the cache and moves them from staging to the current copy.
-func (g *GSLoader) LoadFuzzesFromGoogleStorage(whitelist []string) error {
+func (g *GCSLoader) LoadFuzzesFromGoogleStorage(whitelist []string) error {
 	revision := config.Common.SkiaVersion.Hash
 	g.Pool.StagingFromCurrent()
 	sort.Strings(whitelist)
@@ -105,7 +105,7 @@ func (g *GSLoader) LoadFuzzesFromGoogleStorage(whitelist []string) error {
 	for _, arch := range common.ARCHITECTURES {
 		for _, cat := range common.FUZZ_CATEGORIES {
 			badPath := fmt.Sprintf("%s/%s/%s/bad", cat, revision, arch)
-			reports, err := fstorage.GetReportsFromGS(g.storageClient, badPath, cat, arch, whitelist, config.FrontEnd.NumDownloadProcesses)
+			reports, err := fstorage.GetReportsFromGCS(g.storageClient, badPath, cat, arch, whitelist, config.FrontEnd.NumDownloadProcesses)
 			if err != nil {
 				return err
 			}
@@ -116,7 +116,7 @@ func (g *GSLoader) LoadFuzzesFromGoogleStorage(whitelist []string) error {
 				g.Pool.AddFuzzReport(report)
 				b++
 			}
-			sklog.Infof("%d bad fuzzes incrementally loaded from gs://%s/%s", b, config.GS.Bucket, badPath)
+			sklog.Infof("%d bad fuzzes incrementally loaded from gs://%s/%s", b, config.GCS.Bucket, badPath)
 		}
 	}
 	// We must wait until after all the fuzzes are in staging, otherwise, we'll only have a partial update

@@ -57,8 +57,8 @@ func captureArchives() error {
 	skutil.MkdirAll(pathToArchives, 0700)
 	defer skutil.RemoveAll(pathToArchives)
 
-	// Instantiate GsUtil object.
-	gs, err := util.NewGsUtil(nil)
+	// Instantiate GcsUtil object.
+	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
 		return err
 	}

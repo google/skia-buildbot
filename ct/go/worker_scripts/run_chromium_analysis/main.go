@@ -97,8 +97,8 @@ func runChromiumAnalysis() error {
 	// Clean up any leftover "pseudo_lock" files from catapult repo.
 	skutil.LogErr(util.RemoveCatapultLockFiles(util.CatapultSrcDir))
 
-	// Instantiate GsUtil object.
-	gs, err := util.NewGsUtil(nil)
+	// Instantiate GcsUtil object.
+	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
 		return err
 	}

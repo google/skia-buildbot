@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	googleapi "google.golang.org/api/googleapi"
@@ -30,18 +30,18 @@ const (
 	DELETE_GOROUTINE_POOL_SIZE = 1000
 )
 
-type GsUtil struct {
+type GcsUtil struct {
 	// The client used to connect to Google Storage.
 	client  *http.Client
 	service *storage.Service
 }
 
-// NewGsUtil initializes and returns a utility for CT interations with Google
+// NewGcsUtil initializes and returns a utility for CT interations with Google
 // Storage. If client is nil then auth.NewClient is invoked.
-func NewGsUtil(client *http.Client) (*GsUtil, error) {
+func NewGcsUtil(client *http.Client) (*GcsUtil, error) {
 	if client == nil {
 		var err error
-		client, err = auth.NewClientWithTransport(true, GSTokenPath, ClientSecretPath, nil, auth.SCOPE_FULL_CONTROL)
+		client, err = auth.NewClientWithTransport(true, GCSTokenPath, ClientSecretPath, nil, auth.SCOPE_FULL_CONTROL)
 		if err != nil {
 			return nil, err
 		}
@@ -51,16 +51,16 @@ func NewGsUtil(client *http.Client) (*GsUtil, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create interface to Google Storage: %s", err)
 	}
-	return &GsUtil{client: client, service: service}, nil
+	return &GcsUtil{client: client, service: service}, nil
 }
 
-// Returns the response body of the specified GS object. Tries MAX_URI_GET_TRIES
+// Returns the response body of the specified GCS object. Tries MAX_URI_GET_TRIES
 // times if download is unsuccessful. Client must close the response body when
 // finished with it.
 func getRespBody(res *storage.Object, client *http.Client) (io.ReadCloser, error) {
 	for i := 0; i < MAX_URI_GET_TRIES; i++ {
 		sklog.Infof("Fetching: %s", res.Name)
-		request, err := gs.RequestForStorageURL(res.MediaLink)
+		request, err := gcs.RequestForStorageURL(res.MediaLink)
 		if err != nil {
 			sklog.Warningf("Unable to create Storage MediaURI request: %s\n", err)
 			continue
@@ -81,12 +81,12 @@ func getRespBody(res *storage.Object, client *http.Client) (io.ReadCloser, error
 	return nil, fmt.Errorf("Failed fetching file after %d attempts", MAX_URI_GET_TRIES)
 }
 
-// Returns the response body of the specified GS file. Client must close the
+// Returns the response body of the specified GCS file. Client must close the
 // response body when finished with it.
-func (gs *GsUtil) GetRemoteFileContents(filePath string) (io.ReadCloser, error) {
-	res, err := gs.service.Objects.Get(GSBucketName, filePath).Do()
+func (gs *GcsUtil) GetRemoteFileContents(filePath string) (io.ReadCloser, error) {
+	res, err := gs.service.Objects.Get(GCSBucketName, filePath).Do()
 	if err != nil {
-		return nil, fmt.Errorf("Could not get %s from GS: %s", filePath, err)
+		return nil, fmt.Errorf("Could not get %s from GCS: %s", filePath, err)
 	}
 	return getRespBody(res, gs.client)
 }
@@ -99,7 +99,7 @@ type filePathToStorageObject struct {
 // downloadRemoteDir downloads the specified Google Storage dir to the specified
 // local dir. The local dir will be emptied and recreated. Handles multiple levels
 // of directories.
-func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
+func (gs *GcsUtil) downloadRemoteDir(localDir, gsDir string) error {
 	// Empty the local dir.
 	util.RemoveAll(localDir)
 	// Create the local dir.
@@ -114,7 +114,7 @@ func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 	go func() {
 		defer wgPopulator.Done()
 		defer close(chStorageObjects)
-		req := gs.service.Objects.List(GSBucketName).Prefix(gsDir + "/")
+		req := gs.service.Objects.List(GCSBucketName).Prefix(gsDir + "/")
 		for req != nil {
 			resp, err := req.Do()
 			if err != nil {
@@ -164,7 +164,7 @@ func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 
 	wgPopulator.Wait()
 	wgConsumer.Wait()
-	// Check if there was an error listing the GS dir.
+	// Check if there was an error listing the GCS dir.
 	select {
 	case err, ok := <-errPopulator:
 		if ok {
@@ -192,13 +192,13 @@ func downloadStorageObj(obj filePathToStorageObject, c *http.Client, localDir st
 	if _, err = io.Copy(out, respBody); err != nil {
 		return err
 	}
-	sklog.Infof("Downloaded gs://%s/%s to %s with goroutine#%d", GSBucketName, result.Name, outputFile, goroutineNum)
+	sklog.Infof("Downloaded gs://%s/%s to %s with goroutine#%d", GCSBucketName, result.Name, outputFile, goroutineNum)
 	return nil
 }
 
 // DownloadChromiumBuild downloads the specified Chromium build from Google
 // Storage to a local dir.
-func (gs *GsUtil) DownloadChromiumBuild(chromiumBuild string) error {
+func (gs *GcsUtil) DownloadChromiumBuild(chromiumBuild string) error {
 	localDir := filepath.Join(ChromiumBuildsDir, chromiumBuild)
 	gsDir := filepath.Join(CHROMIUM_BUILDS_DIR_NAME, chromiumBuild)
 	sklog.Infof("Downloading %s from Google Storage to %s", gsDir, localDir)
@@ -211,8 +211,8 @@ func (gs *GsUtil) DownloadChromiumBuild(chromiumBuild string) error {
 	return nil
 }
 
-func (gs *GsUtil) DeleteRemoteDir(gsDir string) error {
-	// The channel where the GS filepaths to be deleted will be sent to.
+func (gs *GcsUtil) DeleteRemoteDir(gsDir string) error {
+	// The channel where the GCS filepaths to be deleted will be sent to.
 	chFilePaths := make(chan string, DELETE_GOROUTINE_POOL_SIZE)
 
 	// Kick off one goroutine to populate the channel.
@@ -222,7 +222,7 @@ func (gs *GsUtil) DeleteRemoteDir(gsDir string) error {
 	go func() {
 		defer wgPopulator.Done()
 		defer close(chFilePaths)
-		req := gs.service.Objects.List(GSBucketName).Prefix(gsDir + "/")
+		req := gs.service.Objects.List(GCSBucketName).Prefix(gsDir + "/")
 		for req != nil {
 			resp, err := req.Do()
 			if err != nil {
@@ -247,11 +247,11 @@ func (gs *GsUtil) DeleteRemoteDir(gsDir string) error {
 		go func(goroutineNum int) {
 			defer wgConsumer.Done()
 			for filePath := range chFilePaths {
-				if err := gs.service.Objects.Delete(GSBucketName, filePath).Do(); err != nil {
+				if err := gs.service.Objects.Delete(GCSBucketName, filePath).Do(); err != nil {
 					sklog.Errorf("Goroutine#%d could not delete %s: %s", goroutineNum, filePath, err)
 					return
 				}
-				sklog.Infof("Deleted gs://%s/%s with goroutine#%d", GSBucketName, filePath, goroutineNum)
+				sklog.Infof("Deleted gs://%s/%s with goroutine#%d", GCSBucketName, filePath, goroutineNum)
 				// Sleep for a second after deleting file to avoid bombarding Cloud
 				// storage.
 				time.Sleep(time.Second)
@@ -261,7 +261,7 @@ func (gs *GsUtil) DeleteRemoteDir(gsDir string) error {
 
 	wgPopulator.Wait()
 	wgConsumer.Wait()
-	// Check if there was an error listing the GS dir.
+	// Check if there was an error listing the GCS dir.
 	select {
 	case err, ok := <-errPopulator:
 		if ok {
@@ -274,7 +274,7 @@ func (gs *GsUtil) DeleteRemoteDir(gsDir string) error {
 
 // UploadFile uploads the specified file to the remote dir in Google Storage. It
 // also sets the appropriate ACLs on the uploaded file.
-func (gs *GsUtil) UploadFile(fileName, localDir, gsDir string) error {
+func (gs *GcsUtil) UploadFile(fileName, localDir, gsDir string) error {
 	localFile := filepath.Join(localDir, fileName)
 	gsFile := filepath.Join(gsDir, fileName)
 	object := &storage.Object{Name: gsFile}
@@ -290,26 +290,26 @@ func (gs *GsUtil) UploadFile(fileName, localDir, gsDir string) error {
 		return fmt.Errorf("Error stating %s: %s", localFile, err)
 	}
 	mediaOption := googleapi.ChunkSize(int(fi.Size()))
-	if _, err := gs.service.Objects.Insert(GSBucketName, object).Media(f, mediaOption).Do(); err != nil {
+	if _, err := gs.service.Objects.Insert(GCSBucketName, object).Media(f, mediaOption).Do(); err != nil {
 		return fmt.Errorf("Objects.Insert failed: %s", err)
 	}
-	sklog.Infof("Copied %s to %s", localFile, fmt.Sprintf("gs://%s/%s", GSBucketName, gsFile))
+	sklog.Infof("Copied %s to %s", localFile, fmt.Sprintf("gs://%s/%s", GCSBucketName, gsFile))
 
 	// All objects uploaded to CT's bucket via this util must be readable by
 	// the google.com domain. This will be fine tuned later if required.
 	objectAcl := &storage.ObjectAccessControl{
-		Bucket: GSBucketName, Entity: "domain-google.com", Object: gsFile, Role: "READER",
+		Bucket: GCSBucketName, Entity: "domain-google.com", Object: gsFile, Role: "READER",
 	}
-	if _, err := gs.service.ObjectAccessControls.Insert(GSBucketName, gsFile, objectAcl).Do(); err != nil {
+	if _, err := gs.service.ObjectAccessControls.Insert(GCSBucketName, gsFile, objectAcl).Do(); err != nil {
 		return fmt.Errorf("Could not update ACL of %s: %s", object.Name, err)
 	}
-	sklog.Infof("Updated ACL of %s", fmt.Sprintf("gs://%s/%s", GSBucketName, gsFile))
+	sklog.Infof("Updated ACL of %s", fmt.Sprintf("gs://%s/%s", GCSBucketName, gsFile))
 
 	return nil
 }
 
 // UploadSwarmingArtifact uploads the specified local artifacts to Google Storage.
-func (gs *GsUtil) UploadSwarmingArtifacts(dirName, pagesetType string) error {
+func (gs *GcsUtil) UploadSwarmingArtifacts(dirName, pagesetType string) error {
 	localDir := path.Join(StorageDir, dirName, pagesetType)
 	gsDir := path.Join(SWARMING_DIR_NAME, dirName, pagesetType)
 
@@ -321,7 +321,7 @@ func (gs *GsUtil) UploadSwarmingArtifacts(dirName, pagesetType string) error {
 // downloads the contents of those directories into a local directory without the numerical
 // subdirs.
 // Returns the ranking/index of the downloaded artifact.
-func (gs *GsUtil) DownloadSwarmingArtifacts(localDir, remoteDirName, pagesetType string, startRange, num int) (map[string]int, error) {
+func (gs *GcsUtil) DownloadSwarmingArtifacts(localDir, remoteDirName, pagesetType string, startRange, num int) (map[string]int, error) {
 	// Empty the local dir.
 	util.RemoveAll(localDir)
 	// Create the local dir.
@@ -362,8 +362,8 @@ func (gs *GsUtil) DownloadSwarmingArtifacts(localDir, remoteDirName, pagesetType
 }
 
 // GetRemoteDirCount returns the number of objects in the specified dir.
-func (gs *GsUtil) GetRemoteDirCount(gsDir string) (int, error) {
-	req := gs.service.Objects.List(GSBucketName).Prefix(gsDir + "/")
+func (gs *GcsUtil) GetRemoteDirCount(gsDir string) (int, error) {
+	req := gs.service.Objects.List(GCSBucketName).Prefix(gsDir + "/")
 	count := 0
 	for req != nil {
 		resp, err := req.Do()
@@ -380,8 +380,8 @@ func (gs *GsUtil) GetRemoteDirCount(gsDir string) (int, error) {
 	return count, nil
 }
 
-func (gs *GsUtil) downloadFromSwarmingDir(remoteDir, gsDir, localDir string, runID int, mtx *sync.Mutex, artifactToIndex map[string]int) error {
-	req := gs.service.Objects.List(GSBucketName).Prefix(remoteDir + "/")
+func (gs *GcsUtil) downloadFromSwarmingDir(remoteDir, gsDir, localDir string, runID int, mtx *sync.Mutex, artifactToIndex map[string]int) error {
+	req := gs.service.Objects.List(GCSBucketName).Prefix(remoteDir + "/")
 	for req != nil {
 		resp, err := req.Do()
 		if err != nil {
@@ -408,7 +408,7 @@ func (gs *GsUtil) downloadFromSwarmingDir(remoteDir, gsDir, localDir string, run
 			if _, err = io.Copy(out, respBody); err != nil {
 				return err
 			}
-			sklog.Infof("Downloaded gs://%s/%s to %s with id#%d", GSBucketName, result.Name, outputFile, runID)
+			sklog.Infof("Downloaded gs://%s/%s to %s with id#%d", GCSBucketName, result.Name, outputFile, runID)
 			// Sleep for a second after downloading file to avoid bombarding Cloud
 			// storage.
 			time.Sleep(time.Second)
@@ -426,7 +426,7 @@ func (gs *GsUtil) downloadFromSwarmingDir(remoteDir, gsDir, localDir string, run
 }
 
 // UploadDir uploads the specified local dir into the specified Google Storage dir.
-func (gs *GsUtil) UploadDir(localDir, gsDir string, cleanDir bool) error {
+func (gs *GcsUtil) UploadDir(localDir, gsDir string, cleanDir bool) error {
 	if cleanDir {
 		// Empty the remote dir before uploading to it.
 		util.LogErr(gs.DeleteRemoteDir(gsDir))
@@ -486,7 +486,7 @@ func (gs *GsUtil) UploadDir(localDir, gsDir string, cleanDir bool) error {
 // DownloadRemoteFile downloads the specified remote path into the specified local file.
 // This function has been tested to download very large files (~33GB).
 // TODO(rmistry): Update all code that downloads remote files to use this method.
-func (gs *GsUtil) DownloadRemoteFile(remotePath, localPath string) error {
+func (gs *GcsUtil) DownloadRemoteFile(remotePath, localPath string) error {
 	respBody, err := gs.GetRemoteFileContents(remotePath)
 	if err != nil {
 		return err

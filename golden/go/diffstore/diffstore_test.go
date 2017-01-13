@@ -26,7 +26,7 @@ func TestDiffStore(t *testing.T) {
 	client, tile := getSetupAndTile(t, baseDir)
 	defer testutils.RemoveAll(t, baseDir)
 
-	diffStore, err := New(client, baseDir, []string{TEST_GS_BUCKET_NAME}, TEST_GS_IMAGE_DIR, 10)
+	diffStore, err := New(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 

@@ -7,7 +7,7 @@ import (
 
 	"go.skia.org/infra/fuzzer/go/data"
 	"go.skia.org/infra/fuzzer/go/storage"
-	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
@@ -41,7 +41,7 @@ func (d *remoteDeduplicator) SetCommit(c string) {
 	d.commit = c
 }
 
-var FILE_WRITE_OPTS = gs.FileWriteOptions{ContentEncoding: "text/plain"}
+var FILE_WRITE_OPTS = gcs.FileWriteOptions{ContentEncoding: "text/plain"}
 
 func (d *remoteDeduplicator) IsUnique(report data.FuzzReport) bool {
 	// Empty stacktraces should be manually deduplicated.

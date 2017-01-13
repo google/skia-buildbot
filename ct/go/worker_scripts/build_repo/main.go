@@ -39,8 +39,8 @@ func buildRepo() error {
 		return errors.New("Must specify --out")
 	}
 
-	// Instantiate GsUtil object.
-	gs, err := util.NewGsUtil(nil)
+	// Instantiate GcsUtil object.
+	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
 		return err
 	}
@@ -90,8 +90,8 @@ func buildRepo() error {
 		// Copy pdfium_test to Google Storage.
 		pdfiumLocalDir := path.Join(util.PDFiumTreeDir, "out", "Debug")
 		pdfiumRemoteDir := path.Join(util.BINARIES_DIR_NAME, *runID)
-		// Instantiate GsUtil object.
-		gs, err := util.NewGsUtil(nil)
+		// Instantiate GcsUtil object.
+		gs, err := util.NewGcsUtil(nil)
 		if err != nil {
 			return err
 		}

@@ -133,7 +133,7 @@ func StartAggregator(s *storage.Client, im *issues.IssuesManager, startingReport
 
 	// preload the deduplicator
 	for _, category := range config.Generator.FuzzesToGenerate {
-		client := fstorage.NewFuzzerGCSClient(s, config.GS.Bucket)
+		client := fstorage.NewFuzzerGCSClient(s, config.GCS.Bucket)
 		d := deduplicator.NewRemoteDeduplicator(client)
 		for report := range startingReports[category] {
 			d.IsUnique(report)
@@ -650,7 +650,7 @@ func (agg *Aggregator) upload(p uploadPackage) error {
 // goes wrong.
 func (agg *Aggregator) uploadBinaryFromDisk(p uploadPackage, fileName, filePath string) error {
 	name := fmt.Sprintf("%s/%s/%s/%s/%s/%s", p.Category, config.Common.SkiaVersion.Hash, config.Generator.Architecture, p.FuzzType, p.Data.Name, fileName)
-	w := agg.storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
+	w := agg.storageClient.Bucket(config.GCS.Bucket).Object(name).NewWriter(context.Background())
 	defer util.Close(w)
 	// We set the encoding to avoid accidental crashes if Chrome were to try to render a fuzzed png
 	// or svg or something.
@@ -671,7 +671,7 @@ func (agg *Aggregator) uploadBinaryFromDisk(p uploadPackage, fileName, filePath 
 // anything goes wrong.
 func (agg *Aggregator) uploadString(p uploadPackage, fileName, contents string) error {
 	name := fmt.Sprintf("%s/%s/%s/%s/%s/%s", p.Category, config.Common.SkiaVersion.Hash, config.Generator.Architecture, p.FuzzType, p.Data.Name, fileName)
-	w := agg.storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
+	w := agg.storageClient.Bucket(config.GCS.Bucket).Object(name).NewWriter(context.Background())
 	defer util.Close(w)
 	w.ObjectAttrs.ContentEncoding = "text/plain"
 

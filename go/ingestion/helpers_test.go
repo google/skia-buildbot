@@ -10,14 +10,14 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/testutils"
 )
 
 const (
 
-	// TEST_GS_DIR is the directory from where to fetch GS test data.
-	TEST_GS_DIR = "ingest-testdata/dm-json-v1"
+	// TEST_GCS_DIR is the directory from where to fetch GCS test data.
+	TEST_GCS_DIR = "ingest-testdata/dm-json-v1"
 
 	// TEST_DATA_DIR  is the directory with data used for local ingest.
 	TEST_DATA_DIR = "./testdata/local-ingest-test"
@@ -43,7 +43,7 @@ func TestGoogleStorageSource(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	evt := eventbus.New(nil)
-	src, err := NewGoogleStorageSource("gs-test-src", gs.TEST_DATA_BUCKET, TEST_GS_DIR, http.DefaultClient, evt)
+	src, err := NewGoogleStorageSource("gs-test-src", gcs.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient, evt)
 	assert.NoError(t, err)
 	testSource(t, src)
 }
@@ -52,7 +52,7 @@ func TestFileSystemResultFileLocations(t *testing.T) {
 	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
-	err := gs.DownloadTestDataArchive(t, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
+	err := gcs.DownloadTestDataArchive(t, gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
@@ -66,10 +66,10 @@ func TestCompareSources(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	evt := eventbus.New(nil)
-	gsSource, err := NewGoogleStorageSource("gs-test-src", gs.TEST_DATA_BUCKET, TEST_GS_DIR, http.DefaultClient, evt)
+	gsSource, err := NewGoogleStorageSource("gs-test-src", gcs.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient, evt)
 	assert.NoError(t, err)
 
-	err = gs.DownloadTestDataArchive(t, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
+	err = gcs.DownloadTestDataArchive(t, gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 

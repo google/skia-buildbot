@@ -11,7 +11,7 @@ const (
 	MASTER_NAME                  = "build101-m5"
 	NUM_BARE_METAL_MACHINES  int = 100
 	BARE_METAL_NAME_TEMPLATE     = "build%d-m5"
-	GS_HTTP_LINK                 = "https://storage.cloud.google.com/"
+	GCS_HTTP_LINK                = "https://storage.cloud.google.com/"
 	CT_EMAIL_DISPLAY_NAME        = "Cluster Telemetry"
 
 	// File names and dir names.
@@ -174,7 +174,7 @@ type PagesetTypeInfo struct {
 
 var (
 	CtUser          = "chrome-bot"
-	GSBucketName    = "cluster-telemetry"
+	GCSBucketName   = "cluster-telemetry"
 	BareMetalSlaves = GetCTBareMetalWorkers()
 
 	// Email address of cluster telemetry admins. They will be notified everytime
@@ -193,7 +193,7 @@ var (
 	CatapultSrcDir         = filepath.Join(ChromiumSrcDir, RelativeCatapultSrcDir)
 	TaskFileDir            = filepath.Join(StorageDir, "current_task")
 	ClientSecretPath       = filepath.Join(StorageDir, "client_secret.json")
-	GSTokenPath            = filepath.Join(StorageDir, "google_storage_token.data")
+	GCSTokenPath           = filepath.Join(StorageDir, "google_storage_token.data")
 	EmailTokenPath         = filepath.Join(StorageDir, "email.data")
 	WebappPasswordPath     = filepath.Join(StorageDir, "webapp.data")
 	// Salt used to authenticate webhook requests, base64-encoded. See WEBHOOK_SALT_MSG.
