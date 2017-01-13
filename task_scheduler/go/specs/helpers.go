@@ -14,11 +14,17 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/common"
+)
+
+const (
+	// Name of the Go program which calls these helpers.
+	GEN_TASKS_GO = "gen_tasks.go"
 )
 
 var (
@@ -28,22 +34,25 @@ var (
 
 // getCheckoutRoot returns the path of the root of the checkout.
 func getCheckoutRoot() (string, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
+	pcs := make([]uintptr, 32)
+	num := runtime.Callers(1, pcs)
+	// num-1 is the bottom of the stack, which is runtime.goexit.
+	// num-2 is runtime.main.
+	// num-3 is the main function itself in gen_tasks.go.
+	pc := pcs[num-3]
+	fn := runtime.FuncForPC(pc)
+	if fn == nil {
+		return "", fmt.Errorf("Failed to get func for %d", pc)
 	}
-	for {
-		if _, err := os.Stat(cwd); err != nil {
-			return "", err
-		}
-		s, err := os.Stat(path.Join(cwd, ".git"))
-		if err == nil && s.IsDir() {
-			// TODO(borenet): Should we verify that this is the
-			// correct checkout and not something else?
-			return cwd, nil
-		}
-		cwd = filepath.Clean(path.Join(cwd, ".."))
+	file, _ := fn.FileLine(pc)
+	if filepath.Base(file) != GEN_TASKS_GO {
+		return "", fmt.Errorf("Failed to find repository root; main() is in a file other than %s", GEN_TASKS_GO)
 	}
+	if _, err := os.Stat(file); err != nil {
+		return "", fmt.Errorf("Failed to find repository root: %s", err)
+	}
+	// Trim infra/bots/gen_tasks.go to obtain the repo root.
+	return filepath.Dir(filepath.Dir(filepath.Dir(file))), nil
 }
 
 // TasksCfgBuilder is a helper struct used for building a TasksCfg.
