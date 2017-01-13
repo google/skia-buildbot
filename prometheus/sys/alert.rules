@@ -17,12 +17,21 @@ ALERT TooManyGoRoutines
   }
 
 ALERT PerfUntriagedClusters
-  IF perf_clustering_untriaged > 0
+  IF perf_clustering_untriaged{job="skia-perf"} > 0
   FOR 2m
   LABELS { category = "general", severity = "warning" }
   ANNOTATIONS {
     summary = "One or more untriaged clusters.",
     description = "At least one untriaged perf cluster has been found. Please visit https://perf.skia.org/t/ to triage."
+  }
+
+ALERT AndroidPerfUntriagedClusters
+  IF perf_clustering_untriaged{job="skia-android-perf"} > 0
+  FOR 2m
+  LABELS { category = "general", severity = "warning", specialroute = "android" }
+  ANNOTATIONS {
+    summary = "One or more untriaged clusters.",
+    description = "At least one untriaged perf cluster has been found. Please visit https://android-perf.skia.org/t/ to triage."
   }
 
 ALERT ProbeFailure
