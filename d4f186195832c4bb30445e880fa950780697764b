@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "43f0d99f_96bf726c",
+        "filename": "task_scheduler/go/specs/helpers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-13T14:11:06Z",
+      "side": 1,
+      "message": "Take a look at what Ravi did to get the path of the current .go file here: https://skia.googlesource.com/buildbot/+/236626e1bad1f363b63c7db4b47117343fad6295/ct/go/util/util.go#455",
+      "revId": "d4f186195832c4bb30445e880fa950780697764b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
