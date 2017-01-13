@@ -348,7 +348,7 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(unfinishedJobs []*db.Job) (map
 	// Get the repo+commit+taskspecs for each job.
 	candidates := map[db.TaskKey]*taskCandidate{}
 	for _, j := range unfinishedJobs {
-		if !s.window.TestTime(j.Created) {
+		if !s.window.TestTime(j.Repo, j.Created) {
 			continue
 		}
 		for tsName, _ := range j.Dependencies {
@@ -465,7 +465,7 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 	}
 	var stealingFrom *db.Task
 	var commits []string
-	if revision.Timestamp.Before(s.window.Start()) {
+	if !s.window.TestTime(c.Repo, revision.Timestamp) {
 		// If the commit has scrolled out of our window, don't bother computing
 		// a blamelist.
 		commits = []string{}
@@ -932,7 +932,7 @@ func (s *TaskScheduler) gatherNewJobs() error {
 	newJobs := []*db.Job{}
 	for repoUrl, r := range s.repos {
 		if err := r.RecurseAllBranches(func(c *repograph.Commit) (bool, error) {
-			if !s.window.TestCommit(c) {
+			if !s.window.TestCommit(repoUrl, c) {
 				return false, nil
 			}
 			scheduled, err := s.jCache.ScheduledJobsForCommit(repoUrl, c.Hash)
@@ -1364,7 +1364,6 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(tasks []*db.Task) error {
 	if !ok {
 		return fmt.Errorf("No such repo: %s", repoName)
 	}
-	start := cache.Start()
 	commitsBuf := make([]*repograph.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
 	updatedTasks := map[string]*db.Task{}
 	for _, task := range tasks {
@@ -1385,8 +1384,8 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(tasks []*db.Task) error {
 		if revision == nil {
 			return fmt.Errorf("No such commit %s in %s.", task.Revision, task.Repo)
 		}
-		if revision.Timestamp.Before(start) {
-			return fmt.Errorf("Can not add task %s with revision %s (at %s) before cache start %s.", task.Id, task.Revision, revision.Timestamp, start)
+		if !s.window.TestTime(task.Repo, revision.Timestamp) {
+			return fmt.Errorf("Can not add task %s with revision %s (at %s) before window start.", task.Id, task.Revision, revision.Timestamp)
 		}
 		commits, stealingFrom, err := ComputeBlamelist(cache, repo, task.Name, task.Repo, revision, commitsBuf)
 		if err != nil {

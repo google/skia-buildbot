@@ -68,9 +68,6 @@ type TaskCache interface {
 
 	// Update loads new tasks from the database.
 	Update() error
-
-	// Start returns the beginning of the cached time window.
-	Start() time.Time
 }
 
 type taskCache struct {
@@ -215,18 +212,19 @@ func (c *taskCache) removeFromTasksByCommit(task *Task) {
 
 }
 
-// expireTasks removes data from c whose Created time is before start. Assumes
-// the caller holds a lock. This is a helper for expireAndUpdate.
-func (c *taskCache) expireTasks(start time.Time) {
-	for _, nameMap := range c.knownTaskNames {
+// expireTasks removes data from c whose Created time is before the beginning
+// of the Window. Assumes the caller holds a lock. This is a helper for
+// expireAndUpdate.
+func (c *taskCache) expireTasks() {
+	for repoUrl, nameMap := range c.knownTaskNames {
 		for name, ts := range nameMap {
-			if ts.Before(start) {
+			if !c.timeWindow.TestTime(repoUrl, ts) {
 				delete(nameMap, name)
 			}
 		}
 	}
 	for i, task := range c.tasksByTime {
-		if !task.Created.Before(start) {
+		if c.timeWindow.TestTime(task.Repo, task.Created) {
 			c.tasksByTime = c.tasksByTime[i:]
 			return
 		}
@@ -256,7 +254,7 @@ func (c *taskCache) expireTasks(start time.Time) {
 		}
 	}
 	if len(c.tasksByTime) > 0 {
-		sklog.Warningf("All tasks expired because they are older than %s.", start)
+		sklog.Warningf("All tasks expired because they are outside the window.")
 		c.tasksByTime = nil
 	}
 }
@@ -347,13 +345,13 @@ func (c *taskCache) insertOrUpdateTask(task *Task) {
 	}
 }
 
-// expireAndUpdate removes Tasks before start from the cache and inserts the
+// expireAndUpdate removes Tasks outside the window from the cache and inserts
 // new/updated tasks into the cache. Assumes the caller holds a lock. Assumes
 // tasks are sorted by Created timestamp.
-func (c *taskCache) expireAndUpdate(start time.Time, tasks []*Task) {
-	c.expireTasks(start)
+func (c *taskCache) expireAndUpdate(tasks []*Task) {
+	c.expireTasks()
 	for _, t := range tasks {
-		if !t.Created.Before(start) {
+		if c.timeWindow.TestTime(t.Repo, t.Created) {
 			c.insertOrUpdateTask(t.Copy())
 		}
 	}
@@ -368,7 +366,7 @@ func (c *taskCache) reset() error {
 	if err != nil {
 		return err
 	}
-	start := c.timeWindow.Start()
+	start := c.timeWindow.EarliestStart()
 	now := time.Now()
 	sklog.Infof("Reading Tasks from %s to %s.", start, now)
 	tasks, err := c.db.GetTasksFromDateRange(start, now)
@@ -382,7 +380,7 @@ func (c *taskCache) reset() error {
 	c.tasksByCommit = map[string]map[string]map[string]*Task{}
 	c.tasksByKey = map[TaskKey]map[string]*Task{}
 	c.unfinished = map[string]*Task{}
-	c.expireAndUpdate(start, tasks)
+	c.expireAndUpdate(tasks)
 	return nil
 }
 
@@ -400,14 +398,8 @@ func (c *taskCache) Update() error {
 	} else if err != nil {
 		return err
 	}
-	start := c.timeWindow.Start()
-	c.expireAndUpdate(start, newTasks)
+	c.expireAndUpdate(newTasks)
 	return nil
-}
-
-// See documentation for TaskCache interface.
-func (c *taskCache) Start() time.Time {
-	return c.timeWindow.Start()
 }
 
 // NewTaskCache returns a local cache which provides more convenient views of
@@ -511,10 +503,10 @@ func (c *jobCache) UnfinishedJobs() ([]*Job, error) {
 // expireJobs removes data from c where getJobTimestamp or getRevisionTimestamp
 // is before start. Assumes the caller holds a lock. This is a helper for
 // expireAndUpdate.
-func (c *jobCache) expireJobs(start time.Time) {
+func (c *jobCache) expireJobs() {
 	expiredUnfinishedCount := 0
 	for _, job := range c.jobs {
-		if c.getJobTimestamp(job).Before(start) {
+		if !c.timeWindow.TestTime(job.Repo, c.getJobTimestamp(job)) {
 			delete(c.jobs, job.Id)
 			delete(c.unfinished, job.Id)
 			if !job.Done() {
@@ -523,7 +515,7 @@ func (c *jobCache) expireJobs(start time.Time) {
 		}
 	}
 	if expiredUnfinishedCount > 0 {
-		sklog.Infof("Expired %d unfinished jobs created before %s.", expiredUnfinishedCount, start)
+		sklog.Infof("Expired %d unfinished jobs created before window.", expiredUnfinishedCount)
 	}
 	for repo, revMap := range c.triggeredForCommit {
 		for rev, _ := range revMap {
@@ -532,7 +524,7 @@ func (c *jobCache) expireJobs(start time.Time) {
 				sklog.Error(err)
 				continue
 			}
-			if ts.Before(start) {
+			if !c.timeWindow.TestTime(repo, ts) {
 				delete(revMap, rev)
 			}
 		}
@@ -561,13 +553,13 @@ func (c *jobCache) insertOrUpdateJob(job *Job) {
 	}
 }
 
-// expireAndUpdate removes Jobs before start from the cache and inserts the
+// expireAndUpdate removes Jobs before the window and inserts the
 // new/updated jobs into the cache. Assumes the caller holds a lock.
-func (c *jobCache) expireAndUpdate(start time.Time, jobs []*Job) {
-	c.expireJobs(start)
+func (c *jobCache) expireAndUpdate(jobs []*Job) {
+	c.expireJobs()
 	for _, job := range jobs {
 		ts := c.getJobTimestamp(job)
-		if ts.Before(start) {
+		if !c.timeWindow.TestTime(job.Repo, ts) {
 			sklog.Warningf("Updated job %s after expired. getJobTimestamp returned %s. %#v", job.Id, ts, job)
 		} else {
 			c.insertOrUpdateJob(job.Copy())
@@ -585,7 +577,7 @@ func (c *jobCache) reset() error {
 		return err
 	}
 	now := time.Now()
-	start := c.timeWindow.Start()
+	start := c.timeWindow.EarliestStart()
 	sklog.Infof("Reading Jobs from %s to %s.", start, now)
 	jobs, err := c.db.GetJobsFromDateRange(start, now)
 	if err != nil {
@@ -596,7 +588,7 @@ func (c *jobCache) reset() error {
 	c.jobs = map[string]*Job{}
 	c.triggeredForCommit = map[string]map[string]bool{}
 	c.unfinished = map[string]*Job{}
-	c.expireAndUpdate(start, jobs)
+	c.expireAndUpdate(jobs)
 	return nil
 }
 
@@ -614,7 +606,7 @@ func (c *jobCache) Update() error {
 	} else if err != nil {
 		return err
 	}
-	c.expireAndUpdate(c.timeWindow.Start(), newJobs)
+	c.expireAndUpdate(newJobs)
 	return nil
 }
 

@@ -388,7 +388,7 @@ func TestTaskCacheExpiration(t *testing.T) {
 	period := 10 * time.Minute
 	w, err := window.New(period, 0, nil)
 	assert.NoError(t, err)
-	timeStart := w.Start()
+	timeStart := w.EarliestStart()
 
 	// Make a bunch of tasks with various timestamps.
 	mk := func(mins int, name string, blame []string) *Task {
@@ -726,7 +726,7 @@ func TestJobCacheExpiration(t *testing.T) {
 	period := 10 * time.Minute
 	w, err := window.New(period, 0, nil)
 	assert.NoError(t, err)
-	timeStart := w.Start()
+	timeStart := w.EarliestStart()
 
 	getRevisionTimestamp := func(repo, rev string) (time.Time, error) {
 		assert.Equal(t, DEFAULT_TEST_REPO, repo)
@@ -812,7 +812,7 @@ func TestJobCacheGetRevisionTimestampError(t *testing.T) {
 	period := 10 * time.Minute
 	w, err := window.New(period, 0, nil)
 	assert.NoError(t, err)
-	timeStart := w.Start()
+	timeStart := w.EarliestStart()
 
 	enableTransientError := false
 
