@@ -16,6 +16,24 @@
       "revId": "f55de3c6519db66e1bb2a05854d85fec2b1feb16",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43f0d99f_4186e23f",
+        "filename": "perf/build_android_release",
+        "patchSetId": 10
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-13T18:07:24Z",
+      "side": 1,
+      "message": "Yeah, it\u0027s easier to leave it all the same since they\u0027re running on different instances.",
+      "parentUuid": "43f0d99f_216476c8",
+      "revId": "f55de3c6519db66e1bb2a05854d85fec2b1feb16",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
