@@ -47,7 +47,7 @@ func createPagesets() error {
 	userAgent := pagesetTypeInfo.UserAgent
 
 	// Download the CSV file from Google Storage.
-	gs, err := util.NewGsUtil(nil)
+	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
 		return err
 	}

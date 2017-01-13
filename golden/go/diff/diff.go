@@ -151,10 +151,10 @@ type DiffStore interface {
 	UnavailableDigests() map[string]*DigestFailure
 
 	// PurgeDigests removes all information related to the indicated digests
-	// (image, diffmetric) from local caches. If purgeGS is true it will also
+	// (image, diffmetric) from local caches. If purgeGCS is true it will also
 	// purge the digests image from Google storage, forcing that the digest
 	// be re-uploaded by the build bots.
-	PurgeDigests(digests []string, purgeGS bool) error
+	PurgeDigests(digests []string, purgeGCS bool) error
 }
 
 // OpenImage is a utility function that opens the specified file and returns an

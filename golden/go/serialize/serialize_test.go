@@ -7,7 +7,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
@@ -140,7 +140,7 @@ func TestSerializeTile(t *testing.T) {
 	testutils.LargeTest(t)
 	testDataDir := TEST_DATA_DIR
 	testutils.RemoveAll(t, testDataDir)
-	assert.NoError(t, gs.DownloadTestDataFile(t, TEST_DATA_STORAGE_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH))
+	assert.NoError(t, gcs.DownloadTestDataFile(t, TEST_DATA_STORAGE_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH))
 	defer testutils.RemoveAll(t, testDataDir)
 	tile := mocks.NewMockTileBuilderFromJson(t, TEST_DATA_PATH).GetTile()
 

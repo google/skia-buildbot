@@ -11,20 +11,20 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
-	"go.skia.org/infra/fuzzer/go/frontend/gsloader"
-	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/fuzzer/go/frontend/gcsloader"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
 // FuzzSyncer is a struct that will fetch the bad/grey fuzzes from GCS at discrete intervals.
 // Once started, it will occasionally wake up and download any new fuzzes from GCS using the
-// supplied gsloader. It looks at both the current revision and the previous revision to count
+// supplied gcsloader. It looks at both the current revision and the previous revision to count
 //regressions.  Clients should look at LastCount for the most recent result of the counts.
 type FuzzSyncer struct {
 	countMutex    sync.Mutex
 	storageClient *storage.Client
-	gsLoader      *gsloader.GSLoader
+	gcsLoader     *gcsloader.GCSLoader
 	lastCount     map[string]FuzzCount      // maps category->FuzzCount
 	fuzzNameCache map[string]util.StringSet // maps key->FuzzNames
 }
@@ -47,10 +47,10 @@ func New(s *storage.Client) *FuzzSyncer {
 	}
 }
 
-// SetGSLoader sets this objects GSLoader, allowing it to fetch the new fuzzes it finds
+// SetGCSLoader sets this objects GCSLoader, allowing it to fetch the new fuzzes it finds
 // and update the fuzzes displayed to users.
-func (f *FuzzSyncer) SetGSLoader(g *gsloader.GSLoader) {
-	f.gsLoader = g
+func (f *FuzzSyncer) SetGCSLoader(g *gcsloader.GCSLoader) {
+	f.gcsLoader = g
 }
 
 // Start updates the LastCount and starts a timer with a period of config.FrontEnd.FuzzSyncPeriod.
@@ -110,7 +110,7 @@ func (f *FuzzSyncer) Refresh() {
 }
 
 // getMostRecentOldRevision finds the most recently updated revision used.
-// It searches the GS bucket under skia_version/old/  An error is returned if there is one.
+// It searches the GCS bucket under skia_version/old/  An error is returned if there is one.
 func (f *FuzzSyncer) getMostRecentOldRevision() (string, error) {
 	var newestTime time.Time
 	newestHash := ""
@@ -121,7 +121,7 @@ func (f *FuzzSyncer) getMostRecentOldRevision() (string, error) {
 			newestHash = item.Name[strings.LastIndex(item.Name, "/")+1:]
 		}
 	}
-	if err := gs.AllFilesInDir(f.storageClient, config.GS.Bucket, "skia_version/old/", findNewest); err != nil {
+	if err := gcs.AllFilesInDir(f.storageClient, config.GCS.Bucket, "skia_version/old/", findNewest); err != nil {
 		return "", err
 	}
 	sklog.Infof("Most recent old version found to be %s", newestHash)
@@ -157,7 +157,7 @@ func (f *FuzzSyncer) getFuzzNames(fuzzType, category, architecture, revision str
 	// Sometimes fuzzes with the name "" show up, and we don't want that.
 	emptyString := util.NewStringSet([]string{""})
 	// The file stored, if it exists, is a pipe separated list.
-	if names, err := gs.FileContentsFromGS(f.storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/%s/%s_fuzz_names.txt", category, revision, architecture, fuzzType)); err == nil {
+	if names, err := gcs.FileContentsFromGCS(f.storageClient, config.GCS.Bucket, fmt.Sprintf("%s/%s/%s/%s_fuzz_names.txt", category, revision, architecture, fuzzType)); err == nil {
 		return util.NewStringSet(strings.Split(string(names), "|")).Complement(emptyString)
 	} else {
 		sklog.Infof("Could not find cached names, downloading them the long way, instead: %s", err)
@@ -171,14 +171,14 @@ func (f *FuzzSyncer) getFuzzNames(fuzzType, category, architecture, revision str
 	}
 }
 
-// updateLoadedBinaryFuzzes uses gsLoader to download the fuzzes that are currently not
+// updateLoadedBinaryFuzzes uses gcsLoader to download the fuzzes that are currently not
 // in the fuzz report tree / cache.
 func (f *FuzzSyncer) updateLoadedBinaryFuzzes(currentBadFuzzHashes []string) error {
-	if f.gsLoader == nil {
+	if f.gcsLoader == nil {
 		sklog.Info("Skipping update because the cache hasn't been set yet")
 		return nil
 	}
-	prevBadFuzzNames, err := f.gsLoader.Cache.LoadFuzzNames(config.Common.SkiaVersion.Hash)
+	prevBadFuzzNames, err := f.gcsLoader.Cache.LoadFuzzNames(config.Common.SkiaVersion.Hash)
 	if err != nil {
 		return fmt.Errorf("Could not load previous fuzz hashes from cache at revision %s: %s", config.Common.SkiaVersion.Hash, err)
 	}
@@ -195,7 +195,7 @@ func (f *FuzzSyncer) updateLoadedBinaryFuzzes(currentBadFuzzHashes []string) err
 
 	sklog.Infof("%d newly found fuzzes from Google Storage.  Going to load them.", len(newBinaryFuzzNames))
 	if len(newBinaryFuzzNames) > 0 {
-		return f.gsLoader.LoadFuzzesFromGoogleStorage(newBinaryFuzzNames)
+		return f.gcsLoader.LoadFuzzesFromGoogleStorage(newBinaryFuzzNames)
 	}
 	return nil
 }

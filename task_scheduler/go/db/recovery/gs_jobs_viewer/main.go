@@ -1,4 +1,4 @@
-// Read Job GOBs from GS and write as JSON.
+// Read Job GOBs from GCS and write as JSON.
 //
 // Example:
 //   gs_jobs_viewer
@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	gsBucket = flag.String("bucket", "skia-task-scheduler", "GS bucket to read.")
+	gsBucket = flag.String("bucket", "skia-task-scheduler", "GCS bucket to read.")
 	period   = flag.Duration("period", 24*time.Hour, "Duration of time range to read.")
 )
 

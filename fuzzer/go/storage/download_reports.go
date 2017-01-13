@@ -10,16 +10,16 @@ import (
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/data"
-	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
 )
 
-// GetReportsFromGS fetches all fuzz reports in the baseFolder from Google Storage. It returns a
+// GetReportsFromGCS fetches all fuzz reports in the baseFolder from Google Storage. It returns a
 // channel through which all reports will be sent. The channel will be closed when finished. An
 // optional whitelist can be included, in which case only the fuzzes whose names are on the list
 // will be downloaded.  The category is needed to properly parse the downloaded files to make
 // the FuzzReports.  The downloading will use as many processes as specified, to speed things up.
-func GetReportsFromGS(s *storage.Client, baseFolder, category, architecture string, whitelist []string, processes int) (<-chan data.FuzzReport, error) {
+func GetReportsFromGCS(s *storage.Client, baseFolder, category, architecture string, whitelist []string, processes int) (<-chan data.FuzzReport, error) {
 	reports := make(chan data.FuzzReport, 10000)
 
 	fuzzPackages, err := fetchFuzzPackages(s, baseFolder, category, architecture)
@@ -120,14 +120,14 @@ func download(s *storage.Client, toDownload <-chan fuzzPackage, reports chan<- d
 			FuzzCategory:     job.FuzzCategory,
 			FuzzArchitecture: job.FuzzArchitecture,
 			Debug: data.OutputFiles{
-				Asan:   emptyStringOnError(gs.FileContentsFromGS(s, config.GS.Bucket, job.DebugASANName)),
-				Dump:   emptyStringOnError(gs.FileContentsFromGS(s, config.GS.Bucket, job.DebugDumpName)),
-				StdErr: emptyStringOnError(gs.FileContentsFromGS(s, config.GS.Bucket, job.DebugErrName)),
+				Asan:   emptyStringOnError(gcs.FileContentsFromGCS(s, config.GCS.Bucket, job.DebugASANName)),
+				Dump:   emptyStringOnError(gcs.FileContentsFromGCS(s, config.GCS.Bucket, job.DebugDumpName)),
+				StdErr: emptyStringOnError(gcs.FileContentsFromGCS(s, config.GCS.Bucket, job.DebugErrName)),
 			},
 			Release: data.OutputFiles{
-				Asan:   emptyStringOnError(gs.FileContentsFromGS(s, config.GS.Bucket, job.ReleaseASANName)),
-				Dump:   emptyStringOnError(gs.FileContentsFromGS(s, config.GS.Bucket, job.ReleaseDumpName)),
-				StdErr: emptyStringOnError(gs.FileContentsFromGS(s, config.GS.Bucket, job.ReleaseErrName)),
+				Asan:   emptyStringOnError(gcs.FileContentsFromGCS(s, config.GCS.Bucket, job.ReleaseASANName)),
+				Dump:   emptyStringOnError(gcs.FileContentsFromGCS(s, config.GCS.Bucket, job.ReleaseDumpName)),
+				StdErr: emptyStringOnError(gcs.FileContentsFromGCS(s, config.GCS.Bucket, job.ReleaseErrName)),
 			},
 		}
 

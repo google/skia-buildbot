@@ -18,5 +18,5 @@ func (m *MockGCSClient) GetAllFuzzNamesInFolder(name string) ([]string, error) {
 	return args.Get(0).([]string), args.Error(1)
 }
 
-// Make sure MockGCSClient fulfills gs.GCSClient
+// Make sure MockGCSClient fulfills gcs.GCSClient
 var _ storage.FuzzerGCSClient = (*MockGCSClient)(nil)

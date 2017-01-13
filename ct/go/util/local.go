@@ -23,5 +23,5 @@ func SetVarsForLocal() {
 	if err1 == nil && err2 == nil && realMyPathToCt != realCtTreeDir {
 		sklog.Fatalf("Master and worker scripts believe CT tree is at %s, but it appears to actually be at %s. Did you set up a symlink?", realCtTreeDir, realMyPathToCt)
 	}
-	GSBucketName = "cluster-telemetry-test"
+	GCSBucketName = "cluster-telemetry-test"
 }

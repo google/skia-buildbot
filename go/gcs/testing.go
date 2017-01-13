@@ -1,4 +1,4 @@
-package gs
+package gcs
 
 import (
 	"archive/tar"
@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	// GS bucket where we store test data. Add a folder to this bucket
+	// GCS bucket where we store test data. Add a folder to this bucket
 	// with the tests for a particular component.
 	TEST_DATA_BUCKET = "skia-infra-testdata"
 )
@@ -32,7 +32,7 @@ func getStorangeItem(bucket, gsPath string) (*storage.Reader, error) {
 }
 
 // DownloadTestDataFile downloads a file with test data from Google Storage.
-// The uriPath identifies what to download from the test bucket in GS.
+// The uriPath identifies what to download from the test bucket in GCS.
 // The content must be publicly accessible.
 // The file will be downloaded and stored at provided target
 // path (regardless of what the original name is).

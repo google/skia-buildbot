@@ -119,9 +119,9 @@ func CreateChromiumBuildOnSwarming(runID, targetPlatform, chromiumHash, skiaHash
 	}
 
 	// Upload to Google Storage.
-	gs, err := NewGsUtil(nil)
+	gs, err := NewGcsUtil(nil)
 	if err != nil {
-		return "", "", fmt.Errorf("Could not create GS object: %s", err)
+		return "", "", fmt.Errorf("Could not create GCS object: %s", err)
 	}
 	if err := uploadChromiumBuild(filepath.Join(chromiumBuildDir, "src", "out", "Release"), filepath.Join(CHROMIUM_BUILDS_DIR_NAME, googleStorageDirName), targetPlatform, gs); err != nil {
 		return "", "", fmt.Errorf("There was an error uploaded the chromium build dir %s: %s", filepath.Join(chromiumBuildDir, "src", "out", "Release"), err)
@@ -169,7 +169,7 @@ func getChromiumHash() (string, error) {
 	return tokens[0], nil
 }
 
-func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GsUtil) error {
+func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GcsUtil) error {
 	localUploadDir := localOutDir
 	if targetPlatform == "Android" {
 		localUploadDir = filepath.Join(localUploadDir, "apks")

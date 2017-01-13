@@ -6,7 +6,7 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
-	"go.skia.org/infra/fuzzer/go/frontend/gsloader"
+	"go.skia.org/infra/fuzzer/go/frontend/gcsloader"
 	"go.skia.org/infra/fuzzer/go/frontend/syncer"
 	"go.skia.org/infra/go/sklog"
 	"golang.org/x/net/context"
@@ -16,15 +16,15 @@ import (
 // for the frontend.
 // It will handle both a pending change and a current change.
 type VersionUpdater struct {
-	gsLoader *gsloader.GSLoader
-	syncer   *syncer.FuzzSyncer
+	gcsLoader *gcsloader.GCSLoader
+	syncer    *syncer.FuzzSyncer
 }
 
 // NewVersionUpdater returns a VersionUpdater.
-func NewVersionUpdater(g *gsloader.GSLoader, syncer *syncer.FuzzSyncer) *VersionUpdater {
+func NewVersionUpdater(g *gcsloader.GCSLoader, syncer *syncer.FuzzSyncer) *VersionUpdater {
 	return &VersionUpdater{
-		gsLoader: g,
-		syncer:   syncer,
+		gcsLoader: g,
+		syncer:    syncer,
 	}
 }
 
@@ -35,7 +35,7 @@ func (v *VersionUpdater) HandleCurrentVersion(currentHash string) error {
 	if err := common.DownloadSkia(currentHash, config.Common.SkiaRoot, &config.Common, false); err != nil {
 		return fmt.Errorf("Could not update Skia to current version %s: %s", currentHash, err)
 	}
-	if err := v.gsLoader.LoadFreshFromGoogleStorage(); err != nil {
+	if err := v.gcsLoader.LoadFreshFromGoogleStorage(); err != nil {
 		return fmt.Errorf("Had problems fetching new fuzzes from GCS: %s", err)
 	}
 	v.syncer.Refresh()

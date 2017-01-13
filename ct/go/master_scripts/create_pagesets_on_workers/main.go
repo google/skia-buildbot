@@ -86,7 +86,7 @@ func main() {
 	}
 
 	// Empty the remote dir before the workers upload to it.
-	gs, err := util.NewGsUtil(nil)
+	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
 		sklog.Error(err)
 		return

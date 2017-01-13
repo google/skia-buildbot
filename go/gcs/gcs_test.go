@@ -1,4 +1,4 @@
-package gs
+package gcs
 
 import (
 	"crypto/sha1"
@@ -29,11 +29,11 @@ func compareStringSlices(a, b []string) bool {
 	return true
 }
 
-func TestGetLatestGSDirs(t *testing.T) {
+func TestGetLatestGCSDirs(t *testing.T) {
 	testutils.SmallTest(t)
 	startTS := time.Date(1970, time.November, 29, 13, 45, 20, 67, time.UTC).Unix()
 	endTS := time.Date(1972, time.February, 2, 3, 45, 20, 67, time.UTC).Unix()
-	results := GetLatestGSDirs(startTS, endTS, "prefix")
+	results := GetLatestGCSDirs(startTS, endTS, "prefix")
 	expected := []string{
 		"prefix/1970/11/29",
 		"prefix/1970/11/30",
@@ -47,7 +47,7 @@ func TestGetLatestGSDirs(t *testing.T) {
 		"prefix/1972/02/02/03",
 	}
 	if !compareStringSlices(results, expected) {
-		t.Errorf("GetLatestGSDirs unexpected results! Got:\n%s\nWant:\n%s", results, expected)
+		t.Errorf("GetLatestGCSDirs unexpected results! Got:\n%s\nWant:\n%s", results, expected)
 	}
 }
 

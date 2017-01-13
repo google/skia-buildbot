@@ -134,8 +134,8 @@ func main() {
 		//// Copy pdfium_test to Google Storage.
 		//pdfiumLocalDir := path.Join(util.PDFiumTreeDir, "out", "Debug")
 		//pdfiumRemoteDir := path.Join(util.BINARIES_DIR_NAME, *chromiumBuild)
-		//// Instantiate GsUtil object.
-		//gs, err := util.NewGsUtil(nil)
+		//// Instantiate GcsUtil object.
+		//gs, err := util.NewGcsUtil(nil)
 		//if err != nil {
 		//	sklog.Error(err)
 		//	return
@@ -147,13 +147,13 @@ func main() {
 	}
 
 	// Empty the remote dir before the workers upload to it.
-	gs, err := util.NewGsUtil(nil)
+	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
 		sklog.Error(err)
 		return
 	}
-	skpGSBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.SKPS_DIR_NAME, *pagesetType, *chromiumBuild)
-	skutil.LogErr(gs.DeleteRemoteDir(skpGSBaseDir))
+	skpGCSBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.SKPS_DIR_NAME, *pagesetType, *chromiumBuild)
+	skutil.LogErr(gs.DeleteRemoteDir(skpGCSBaseDir))
 	if strings.Contains(strings.ToUpper(*pagesetType), "PDF") {
 		pdfGSBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.PDFS_DIR_NAME, *pagesetType, *chromiumBuild)
 		skutil.LogErr(gs.DeleteRemoteDir(pdfGSBaseDir))

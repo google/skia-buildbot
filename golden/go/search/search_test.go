@@ -11,7 +11,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
@@ -54,7 +54,7 @@ func TestCompareTests(t *testing.T) {
 	const MAX_DIM = 999999999999
 	var HEAD = true
 
-	storages, idx, tile := getStoragesIndexTile(t, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
+	storages, idx, tile := getStoragesIndexTile(t, gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
 
 	// testNameSet collects all test names and the set of digests for
 	// each test to establish a ground truth for the search below.
@@ -180,7 +180,7 @@ func testCompTest(t *testing.T, maxLimit, maxRowLimit int, testNameSet map[strin
 }
 
 func getStoragesIndexTile(t *testing.T, bucket, storagePath, outputPath string) (*storage.Storage, *indexer.SearchIndex, *tiling.Tile) {
-	err := gs.DownloadTestDataFile(t, bucket, storagePath, outputPath)
+	err := gcs.DownloadTestDataFile(t, bucket, storagePath, outputPath)
 	assert.NoError(t, err, "Unable to download testdata.")
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 

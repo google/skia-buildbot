@@ -13,7 +13,7 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -46,7 +46,7 @@ func GetAllFuzzNamesInFolder(s *storage.Client, name string) (hashes []string, e
 		hashes = append(hashes, fuzzHash)
 	}
 
-	if err = gs.AllFilesInDir(s, config.GS.Bucket, name, filter); err != nil {
+	if err = gcs.AllFilesInDir(s, config.GCS.Bucket, name, filter); err != nil {
 		return hashes, fmt.Errorf("Problem getting fuzzes from folder %s: %s", name, err)
 	}
 	return hashes, nil
@@ -81,7 +81,7 @@ func DownloadAllFuzzes(s *storage.Client, downloadPath, category, revision, arch
 		fuzzPaths = append(fuzzPaths, filepath.Join(downloadPath, fuzzHash))
 		toDownload <- item.Name
 	}
-	if err := gs.AllFilesInDir(s, config.GS.Bucket, fmt.Sprintf("%s/%s/%s/%s", category, revision, architecture, fuzzType), download); err != nil {
+	if err := gcs.AllFilesInDir(s, config.GCS.Bucket, fmt.Sprintf("%s/%s/%s/%s", category, revision, architecture, fuzzType), download); err != nil {
 		return nil, fmt.Errorf("Problem iterating through all files: %s", err)
 	}
 	close(toDownload)
@@ -100,7 +100,7 @@ func download(storageClient *storage.Client, toDownload <-chan string, downloadP
 		hash := file[strings.LastIndex(file, "/")+1:]
 		onDisk := filepath.Join(downloadPath, hash)
 		if !fileutil.FileExists(onDisk) {
-			contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, file)
+			contents, err := gcs.FileContentsFromGCS(storageClient, config.GCS.Bucket, file)
 			if err != nil {
 				sklog.Warningf("Problem downloading fuzz %s, continuing anyway: %s", file, err)
 				continue
