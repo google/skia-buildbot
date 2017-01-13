@@ -3,6 +3,9 @@
   <head>
     <title>Skia Performance Monitoring</title>
     {{template "header.html" .}}
+    <script type="text/javascript" charset="utf-8">
+      sk.app_config.git_repo_url = {{.git_repo_url}}
+    </script>
   </head>
   <body>
     <perf-scaffold-sk>

@@ -109,7 +109,10 @@ func templateHandler(name string) http.HandlerFunc {
 		if *local {
 			loadTemplates()
 		}
-		if err := templates.ExecuteTemplate(w, name, struct{}{}); err != nil {
+		context := map[string]string{
+			"git_repo_url": *gitRepoURL,
+		}
+		if err := templates.ExecuteTemplate(w, name, context); err != nil {
 			sklog.Errorln("Failed to expand template:", err)
 		}
 	}
@@ -138,7 +141,7 @@ func Init() {
 
 	initIngestion()
 	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
-	cidl = cid.New(git, rietveldAPI)
+	cidl = cid.New(git, rietveldAPI, *gitRepoURL)
 
 	frameRequests = dataframe.NewRunningFrameRequests(git)
 	clusterRequests = clustering2.NewRunningClusterRequests(git, cidl)
