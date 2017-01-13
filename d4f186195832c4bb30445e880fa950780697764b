@@ -52,6 +52,24 @@
       "revId": "d4f186195832c4bb30445e880fa950780697764b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43f0d99f_d65f3a1d",
+        "filename": "task_scheduler/go/specs/helpers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-13T15:42:27Z",
+      "side": 1,
+      "message": "Okay, patch set 2 uses runtime.Callers to find the gen_tasks.go file and obtain the repo root from there.",
+      "parentUuid": "43f0d99f_f67a36d2",
+      "revId": "d4f186195832c4bb30445e880fa950780697764b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
