@@ -78,6 +78,24 @@
     },
     {
       "key": {
+        "uuid": "43f0d99f_16db82d1",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-13T14:16:41Z",
+      "side": 1,
+      "message": "Well, the interesting part of the diff is to change \"if revision.Timestamp.Before(start) {\" to \"if !s.window.TestCommit(revision) {\", but yes, remove the Start() method (or change it to accept repo).",
+      "parentUuid": "8369f1e6_2182fbeb",
+      "revId": "bb3a02caa5c6835af2f117b9968f881bfdf9b15e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "43f0d99f_b047160e",
         "filename": "task_scheduler/go/window/window.go",
         "patchSetId": 1
@@ -113,6 +131,24 @@
       "side": 1,
       "message": "None of the GitDir-based structs actually store the remote repo URL, so I\u0027d have to pipe that all the way through, which I\u0027d prefer not to do.  It\u0027s nice to keep GitDir really lightweight.",
       "parentUuid": "43f0d99f_b047160e",
+      "revId": "bb3a02caa5c6835af2f117b9968f881bfdf9b15e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43f0d99f_76d006aa",
+        "filename": "task_scheduler/go/window/window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-13T14:16:41Z",
+      "side": 1,
+      "message": "Ah, sorry, I was confused.",
+      "parentUuid": "43f0d99f_f64eb6d0",
       "revId": "bb3a02caa5c6835af2f117b9968f881bfdf9b15e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
