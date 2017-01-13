@@ -43,20 +43,19 @@ var (
 
 // flags
 var (
+	bucketName            = flag.String("bucket_name", "skia-push", "The name of the Google Storage bucket that contains push packages and info.")
+	cloudLoggingGroup     = flag.String("cloud_logging_group", "skolo-rpi-master", "The log grouping to be used if cloud logging is configured (i.e. on_gce is false)")
+	influxDatabase        = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	influxHost            = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxPassword        = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxUser            = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	installedPackagesFile = flag.String("installed_packages_file", "installed_packages.json", "Path to the file where to cache the list of installed debs.")
 	local                 = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	onGCE                 = flag.Bool("on_gce", true, "Running on GCE.  Could be running on some external machine, e.g. in the Skolo.")
 	port                  = flag.String("port", ":10114", "HTTP service address (e.g., ':8000')")
+	promPort              = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	serviceAccountPath    = flag.String("service_account_path", "", "Path to the service account.  Can be empty string to use defaults or project metadata")
-	bucketName            = flag.String("bucket_name", "skia-push", "The name of the Google Storage bucket that contains push packages and info.")
-
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
-
-	cloudLoggingGroup = flag.String("cloud_logging_group", "skolo-rpi-master", "The log grouping to be used if cloud logging is configured (i.e. on_gce is false)")
 )
 
 type UnitStatusSlice []*systemd.UnitStatus
@@ -82,18 +81,15 @@ type ChangeResult struct {
 	Result string `json:"result"`
 }
 
-func initLogging() {
-	if !*onGCE {
+func initExternalLogging() {
+	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountPath, nil, sklog.CLOUD_LOGGING_WRITE_SCOPE)
+	if err != nil {
+		sklog.Fatalf("Could not setup credentials: %s", err)
+	}
 
-		client, err := auth.NewJWTServiceAccountClient("", *serviceAccountPath, nil, sklog.CLOUD_LOGGING_WRITE_SCOPE)
-		if err != nil {
-			sklog.Fatalf("Could not setup credentials: %s", err)
-		}
-
-		common.StartCloudLoggingWithClient(client, *cloudLoggingGroup, "pulld-not-gce")
-		if err != nil {
-			sklog.Fatalf("Could not setup cloud logging: %s", err)
-		}
+	common.StartCloudLoggingWithClient(client, *cloudLoggingGroup, "pulld-not-gce")
+	if err != nil {
+		sklog.Fatalf("Could not setup cloud logging: %s", err)
 	}
 }
 
@@ -327,11 +323,16 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	defer common.LogPanic()
-	flag.Parse()
-	initLogging()
 	if *onGCE {
-		common.InitWithMetrics2("pulld", influxHost, influxUser, influxPassword, influxDatabase, local)
+		common.InitWithMust(
+			"pulld",
+			common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
+			common.PrometheusOpt(promPort),
+			common.CloudLoggingOpt(),
+		)
 	} else {
+		flag.Parse()
+		initExternalLogging()
 		common.InitExternalWithMetrics2("pulld-not-gce", influxHost, influxUser, influxPassword, influxDatabase)
 	}
 	Init()
