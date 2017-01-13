@@ -7,10 +7,10 @@ After=mnt-pd0.mount network-online.target
 [Service]
 ExecStart=/usr/local/bin/prom_proxy_with_auth \
     --log_dir=/var/log/logserver  \
-    --target_port=:10116 \
+    --target_port=:8000 \
     --domain=prom.skia.org \
-    --prom_port=:10120 \
-    --port=:11000
+    --prom_port=:20002 \
+    --port=:8002
 
 Restart=always
 User=default

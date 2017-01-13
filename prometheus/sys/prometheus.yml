@@ -27,20 +27,21 @@ scrape_configs:
   # Prometheus self monitoring.
   - job_name: 'prometheus'
     static_configs:
-      - targets: ['skia-prom:10116']
+      - targets: ['skia-prom:8000']
 
   - job_name: 'alertmanager'
     static_configs:
-      - targets: ['skia-prom:10117']
-
-  - job_name: 'webhook-email-proxy'
-    static_configs:
-      - targets: ['skia-prom:10111']
+      - targets: ['skia-prom:8001']
 
   - job_name: 'prom-proxy'
     static_configs:
-      - targets: ['skia-prom:10120']
+      - targets: ['skia-prom:20002']
 
   - job_name: 'alert-proxy'
     static_configs:
-      - targets: ['skia-prom:10121']
+      - targets: ['skia-prom:20003']
+
+  - job_name: 'webhook-email-proxy'
+    static_configs:
+      - targets: ['skia-prom:20004']
+
