@@ -40,6 +40,12 @@ push: build
 	go install -v ../push/go/pushcli
 	pushcli skiaperfd skia-perf
 
+.PHONY: push_android
+push: build
+	./build_android_release "`git log -n1 --format=%s`"
+	go install -v ../push/go/pushcli
+	pushcli android-skiaperfd skia-android-perf
+
 .PHONY: logs
 logs:
 	go install -v ../logserver/go/logserver
