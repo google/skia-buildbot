@@ -348,7 +348,7 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(unfinishedJobs []*db.Job) (map
 	// Get the repo+commit+taskspecs for each job.
 	candidates := map[db.TaskKey]*taskCandidate{}
 	for _, j := range unfinishedJobs {
-		if !s.window.TestTime(j.Created) {
+		if !s.window.TestTime(j.Repo, j.Created) {
 			continue
 		}
 		for tsName, _ := range j.Dependencies {
@@ -465,7 +465,7 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 	}
 	var stealingFrom *db.Task
 	var commits []string
-	if revision.Timestamp.Before(s.window.Start()) {
+	if !s.window.TestTime(c.Repo, revision.Timestamp) {
 		// If the commit has scrolled out of our window, don't bother computing
 		// a blamelist.
 		commits = []string{}
@@ -932,7 +932,7 @@ func (s *TaskScheduler) gatherNewJobs() error {
 	newJobs := []*db.Job{}
 	for repoUrl, r := range s.repos {
 		if err := r.RecurseAllBranches(func(c *repograph.Commit) (bool, error) {
-			if !s.window.TestCommit(c) {
+			if !s.window.TestCommit(repoUrl, c) {
 				return false, nil
 			}
 			scheduled, err := s.jCache.ScheduledJobsForCommit(repoUrl, c.Hash)
