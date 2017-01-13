@@ -1,5 +1,6 @@
 package common
 
+// TODO(kjlubick): Move this to package storage, where possible/reasonable.
 import (
 	"fmt"
 	"io/ioutil"
