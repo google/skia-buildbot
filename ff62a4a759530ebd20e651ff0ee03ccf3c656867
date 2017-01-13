@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "43f0d99f_7655a631",
+        "filename": "ct/go/master_scripts/capture_skps_on_workers/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-13T15:03:57Z",
+      "side": 1,
+      "message": "nit: either revert this change or also change pdfGSBaseDir",
+      "range": {
+        "startLine": 155,
+        "startChar": 1,
+        "endLine": 155,
+        "endChar": 14
+      },
+      "revId": "ff62a4a759530ebd20e651ff0ee03ccf3c656867",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "43f0d99f_73713849",
         "filename": "ct/go/master_scripts/capture_skps_on_workers/main.go",
         "patchSetId": 1
@@ -18,6 +41,47 @@
         "startChar": 5,
         "endLine": 158,
         "endChar": 7
+      },
+      "revId": "ff62a4a759530ebd20e651ff0ee03ccf3c656867",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43f0d99f_1650a241",
+        "filename": "ct/go/master_scripts/capture_skps_on_workers/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-13T15:03:57Z",
+      "side": 1,
+      "message": "Discussed in person. Full find-and-replace is too large a yak, so focused on APIs and documentation, not local vars.",
+      "parentUuid": "43f0d99f_73713849",
+      "revId": "ff62a4a759530ebd20e651ff0ee03ccf3c656867",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43f0d99f_f63fd6f1",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-13T15:03:57Z",
+      "side": 1,
+      "message": "needs fixed",
+      "range": {
+        "startLine": 296,
+        "startChar": 40,
+        "endLine": 296,
+        "endChar": 44
       },
       "revId": "ff62a4a759530ebd20e651ff0ee03ccf3c656867",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
