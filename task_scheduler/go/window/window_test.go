@@ -24,14 +24,15 @@ func TestWindowNoRepos(t *testing.T) {
 	startTs := int64(1480434267192070480)
 	assert.Equal(t, startTs, start.UnixNano())
 	assert.NoError(t, w.UpdateWithTime(now))
-	assert.Equal(t, startTs, w.Start().UnixNano())
+	repo := "..."
+	assert.Equal(t, startTs, w.Start(repo).UnixNano())
 
-	assert.False(t, w.TestTime(time.Unix(0, 0)))
-	assert.False(t, w.TestTime(time.Time{}))
-	assert.True(t, w.TestTime(time.Now()))
-	assert.True(t, w.TestTime(time.Unix(0, startTs))) // Inclusive.
-	assert.True(t, w.TestTime(time.Unix(0, startTs+1)))
-	assert.False(t, w.TestTime(time.Unix(0, startTs-1)))
+	assert.False(t, w.TestTime(repo, time.Unix(0, 0)))
+	assert.False(t, w.TestTime(repo, time.Time{}))
+	assert.True(t, w.TestTime(repo, time.Now()))
+	assert.True(t, w.TestTime(repo, time.Unix(0, startTs))) // Inclusive.
+	assert.True(t, w.TestTime(repo, time.Unix(0, startTs+1)))
+	assert.False(t, w.TestTime(repo, time.Unix(0, startTs-1)))
 }
 
 // setupRepo initializes a temporary Git repo with the given number of commits.
@@ -158,14 +159,10 @@ func TestWindowMultiRepo(t *testing.T) {
 		assert.Equal(t, expect, actual)
 	}
 
-	// The last 6 commits are in the window. Since the commits for each repo
-	// start at the same time and are spaced equally, the last 6 commits in
-	// the repo with fewer commits (repo2) will be earlier than those of the
-	// repo with more commits (repo1). Therefore, the window will include
-	// the last 6 commits of repo2 and the last 10+6=16 commits of repo1.
+	// The last 6 commits of each repo should be in the Window.
 	test(url1, commits1[0], false)
-	test(url1, commits1[3], false)
-	test(url1, commits1[4], true)
+	test(url1, commits1[13], false)
+	test(url1, commits1[14], true)
 	test(url1, commits1[19], true)
 
 	test(url2, commits2[0], false)

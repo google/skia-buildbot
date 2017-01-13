@@ -37,12 +37,12 @@ func (c *jobCache) GetActiveTryJobs() ([]*db.Job, error) {
 }
 
 // expireJobs removes data from c where getJobTimestamp or getRevisionTimestamp
-// is before start. Assumes the caller holds a lock. This is a helper for
-// expireAndUpdate.
-func (c *jobCache) expireJobs(start time.Time) {
+// is outside of the Window. Assumes the caller holds a lock. This is a helper
+// for expireAndUpdate.
+func (c *jobCache) expireJobs() {
 	expiredUnfinishedCount := 0
 	for _, job := range c.activeTryJobs {
-		if job.Created.Before(start) {
+		if !c.timeWindow.TestTime(job.Repo, job.Created) {
 			delete(c.activeTryJobs, job.Id)
 			if !job.Done() {
 				expiredUnfinishedCount++
@@ -50,7 +50,7 @@ func (c *jobCache) expireJobs(start time.Time) {
 		}
 	}
 	if expiredUnfinishedCount > 0 {
-		sklog.Infof("Expired %d unfinished jobs created before %s.", expiredUnfinishedCount, start)
+		sklog.Infof("Expired %d unfinished jobs created before the window.", expiredUnfinishedCount)
 	}
 }
 
@@ -65,12 +65,12 @@ func (c *jobCache) insertOrUpdateJob(job *db.Job) {
 	}
 }
 
-// expireAndUpdate removes Jobs before start from the cache and inserts the
+// expireAndUpdate removes Jobs before the Window and inserts the
 // new/updated jobs into the cache. Assumes the caller holds a lock.
-func (c *jobCache) expireAndUpdate(start time.Time, jobs []*db.Job) {
-	c.expireJobs(start)
+func (c *jobCache) expireAndUpdate(jobs []*db.Job) {
+	c.expireJobs()
 	for _, job := range jobs {
-		if job.Created.Before(start) {
+		if !c.timeWindow.TestTime(job.Repo, job.Created) {
 			sklog.Warningf("Updated job %s after expired. getJobTimestamp returned %s. %#v", job.Id, job.Created, job)
 		} else {
 			c.insertOrUpdateJob(job.Copy())
@@ -88,7 +88,7 @@ func (c *jobCache) reset() error {
 		return err
 	}
 	now := time.Now()
-	start := c.timeWindow.Start()
+	start := c.timeWindow.EarliestStart()
 	sklog.Infof("Reading Jobs from %s to %s.", start, now)
 	jobs, err := c.db.GetJobsFromDateRange(start, now)
 	if err != nil {
@@ -97,7 +97,7 @@ func (c *jobCache) reset() error {
 	}
 	c.activeTryJobs = map[string]*db.Job{}
 	c.queryId = queryId
-	c.expireAndUpdate(start, jobs)
+	c.expireAndUpdate(jobs)
 	return nil
 }
 
@@ -115,7 +115,7 @@ func (c *jobCache) Update() error {
 	} else if err != nil {
 		return err
 	}
-	c.expireAndUpdate(c.timeWindow.Start(), newJobs)
+	c.expireAndUpdate(newJobs)
 	return nil
 }
 
