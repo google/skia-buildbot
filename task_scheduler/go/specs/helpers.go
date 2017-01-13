@@ -36,11 +36,23 @@ func getCheckoutRoot() (string, error) {
 		if _, err := os.Stat(cwd); err != nil {
 			return "", err
 		}
-		s, err := os.Stat(path.Join(cwd, ".git"))
+		// TODO(borenet): Should we verify that this is the
+		// correct checkout and not something else?
+
+		// Check for infra/bots dir.
+		s, err := os.Stat(path.Join(cwd, "infra", "bots"))
 		if err == nil && s.IsDir() {
-			// TODO(borenet): Should we verify that this is the
-			// correct checkout and not something else?
 			return cwd, nil
+		}
+		// Check for .git dir.
+		s, err = os.Stat(path.Join(cwd, ".git"))
+		if err == nil && s.IsDir() {
+			return cwd, nil
+		}
+
+		// Stop if we're at the filesystem root.
+		if cwd == string(filepath.Separator) {
+			return "", fmt.Errorf("Unable to find repository root.")
 		}
 		cwd = filepath.Clean(path.Join(cwd, ".."))
 	}
