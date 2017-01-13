@@ -16,6 +16,24 @@
       "revId": "d4f186195832c4bb30445e880fa950780697764b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43f0d99f_d6e0da78",
+        "filename": "task_scheduler/go/specs/helpers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-13T14:23:56Z",
+      "side": 1,
+      "message": "I\u0027d need the path to gen_tasks.go, and the skip number would vary depending on whether gen_tasks.go called NewTasksCfgBuilder or MustNewTasksCfgBuilder.  I\u0027m not sure how to jump all the way up to main(), but that would work if it can be done.",
+      "parentUuid": "43f0d99f_96bf726c",
+      "revId": "d4f186195832c4bb30445e880fa950780697764b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
