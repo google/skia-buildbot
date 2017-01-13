@@ -70,6 +70,24 @@
       "revId": "d4f186195832c4bb30445e880fa950780697764b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43f0d99f_b6c6ee98",
+        "filename": "task_scheduler/go/specs/helpers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-13T15:53:52Z",
+      "side": 1,
+      "message": "Sorry, \"Ack\" meant, \"Great, you took a look. PS1 still LGTM.\"\n\nI would expect that the call stack above main() could change based on the Go version, so PS2 seems less reliable.\n\nIf you want to use runtime functions to get the file, I would suggest making getCheckoutRoot public and call it directly from main so that the call stack offset is constant. Alternatively, iterate over pcs looking for a function in GEN_TASKS_GO. Or just revert to PS1.",
+      "parentUuid": "43f0d99f_d65f3a1d",
+      "revId": "d4f186195832c4bb30445e880fa950780697764b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
