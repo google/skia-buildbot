@@ -37,7 +37,6 @@ this.sk = this.sk || function() {
 
   var sk = {};
 
-
   /**
    * clearChildren removes all children of the passed in node.
    */
