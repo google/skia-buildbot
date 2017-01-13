@@ -111,7 +111,7 @@ func TestLookup(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	lookup := New(git, review)
+	lookup := New(git, review, "https://skia.googlesource.com/skia")
 	assert.NotNil(t, lookup)
 
 	cids := []*CommitID{

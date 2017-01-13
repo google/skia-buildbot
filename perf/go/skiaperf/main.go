@@ -138,7 +138,7 @@ func Init() {
 
 	initIngestion()
 	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
-	cidl = cid.New(git, rietveldAPI)
+	cidl = cid.New(git, rietveldAPI, *gitRepoURL)
 
 	frameRequests = dataframe.NewRunningFrameRequests(git)
 	clusterRequests = clustering2.NewRunningClusterRequests(git, cidl)

@@ -10,6 +10,7 @@ MACHINE_TYPE=n1-standard-32
 SOURCE_SNAPSHOT=skia-systemd-pushable-base
 SCOPES='https://www.googleapis.com/auth/devstorage.full_control'
 DISK_NAME="$INSTANCE_NAME-ssd-data"
+IP_ADDRESS=104.154.112.137
 
 # Create a boot disk from the pushable base snapshot.
 gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME \
@@ -35,10 +36,11 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --metadata "owner_primary=jcgregorio,owner_secondary=stephana" \
   --disk name=${INSTANCE_NAME},device-name=${INSTANCE_NAME},mode=rw,boot=yes,auto-delete=yes \
   --disk name=${DISK_NAME},device-name=${DISK_NAME},mode=rw,boot=no \
+  --address=$IP_ADDRESS
 
 # Wait until the instance is up.
 while true; do
-  sleep 2
+  sleep 10
   # Pull out the status of the instance.
   STATUS=`gcloud compute --project $PROJECT_ID instances describe $INSTANCE_NAME --zone $ZONE | grep "^status:" | sed s/status://g`
   if [ $STATUS="RUNNING" ]; then

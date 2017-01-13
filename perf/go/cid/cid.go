@@ -128,6 +128,8 @@ type CommitIDLookup struct {
 	// cache information about commits to "master", by their offset from the
 	// first commit.
 	cache map[int]*cacheEntry
+
+	gitRepoURL string
 }
 
 // parseLogLine parses a single log line from running git log
@@ -192,11 +194,12 @@ func (c *CommitIDLookup) warmCache() {
 	}
 }
 
-func New(git *gitinfo.GitInfo, rv *rietveld.Rietveld) *CommitIDLookup {
+func New(git *gitinfo.GitInfo, rv *rietveld.Rietveld, gitRepoURL string) *CommitIDLookup {
 	cidl := &CommitIDLookup{
-		git:   git,
-		rv:    rv,
-		cache: map[int]*cacheEntry{},
+		git:        git,
+		rv:         rv,
+		cache:      map[int]*cacheEntry{},
+		gitRepoURL: gitRepoURL,
 	}
 	cidl.warmCache()
 	return cidl
@@ -246,7 +249,7 @@ func (c *CommitIDLookup) Lookup(cids []*CommitID) ([]*CommitDetail, error) {
 					CommitID:  *cid,
 					Author:    entry.author,
 					Message:   fmt.Sprintf("%.7s - %s - %.40s", entry.hash, human.Duration(now.Sub(time.Unix(entry.ts, 0))), entry.subject),
-					URL:       fmt.Sprintf("https://skia.googlesource.com/skia/+/%s", entry.hash),
+					URL:       fmt.Sprintf("%s/+/%s", c.gitRepoURL, entry.hash),
 					Hash:      entry.hash,
 					Timestamp: entry.ts,
 				}
@@ -259,7 +262,7 @@ func (c *CommitIDLookup) Lookup(cids []*CommitID) ([]*CommitDetail, error) {
 					CommitID:  *cid,
 					Author:    lc.Author,
 					Message:   fmt.Sprintf("%.7s - %s - %.28s", lc.Hash, human.Duration(now.Sub(lc.Timestamp)), lc.ShortCommit.Subject),
-					URL:       fmt.Sprintf("https://skia.googlesource.com/skia/+/%s", lc.Hash),
+					URL:       fmt.Sprintf("%s/+/%s", c.gitRepoURL, lc.Hash),
 					Hash:      lc.Hash,
 					Timestamp: lc.Timestamp.Unix(),
 				}
