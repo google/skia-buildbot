@@ -53,7 +53,7 @@ var (
 	local                 = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	onGCE                 = flag.Bool("on_gce", true, "Running on GCE.  Could be running on some external machine, e.g. in the Skolo.")
 	port                  = flag.String("port", ":10114", "HTTP service address (e.g., ':8000')")
-	promPort              = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	promPort              = flag.String("prom_port", ":11000", "Metrics service address (e.g., ':10110')")
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	serviceAccountPath    = flag.String("service_account_path", "", "Path to the service account.  Can be empty string to use defaults or project metadata")
 )

@@ -2,32 +2,45 @@ rule_files:
   - "alert.rules"
 
 scrape_configs:
-  - job_name: 'skia-perf'
+  - job_name: 'skiaperfd'
     static_configs:
-      - targets: ['skia-perf:10110']
+      - targets: ['skia-perf:20000']
+      - targets: ['skia-android-perf:20000']
+
+  - job_name: 'androidingest'
+    static_configs:
+      - targets: ['skia-android-ingest:20000']
 
   - job_name: 'proberd'
     static_configs:
       - targets: ['skia-monitoring:10110']
 
+  - job_name: 'pulld'
+    static_configs:
+      - targets: ['skia-android-ingest:11000']
+      - targets: ['skia-android-perf:11000']
+      - targets: ['skia-monitoring:11000']
+      - targets: ['skia-perf:11000']
+      - targets: ['skia-prom:11000']
+
+
   # Prometheus self monitoring.
   - job_name: 'prometheus'
     static_configs:
-      - targets: ['localhost:10116']
+      - targets: ['skia-prom:10116']
 
   - job_name: 'alertmanager'
     static_configs:
-      - targets: ['localhost:10117']
+      - targets: ['skia-prom:10117']
 
   - job_name: 'webhook-email-proxy'
     static_configs:
-      - targets: ['localhost:10111']
+      - targets: ['skia-prom:10111']
 
   - job_name: 'prom-proxy'
     static_configs:
-      - targets: ['localhost:10120']
+      - targets: ['skia-prom:10120']
 
   - job_name: 'alert-proxy'
     static_configs:
-      - targets: ['localhost:10121']
-
+      - targets: ['skia-prom:10121']
