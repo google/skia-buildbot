@@ -53,13 +53,13 @@ inhibit_rules:
 receivers:
 - name: 'skiabot'
   webhook_configs:
-    - url: 'http://localhost:9999/alertmanager?email=jcgregorio@google.com'
+    - url: 'http://localhost:8004/alertmanager?email=jcgregorio@google.com'
 
 - name: 'general'
   webhook_configs:
-    - url: 'http://localhost:9999/alertmanager?email=jcgregorio@google.com'
+    - url: 'http://localhost:8004/alertmanager?email=jcgregorio@google.com'
 
 - name: 'android'
   webhook_configs:
-    - url: 'http://localhost:9999/alertmanager?email=skia-android%2Bperf@google.com'
+    - url: 'http://localhost:8004/alertmanager?email=skia-android%2Bperf@google.com'
 

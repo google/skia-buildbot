@@ -8,7 +8,7 @@ After=mnt-pd0.mount network-online.target
 ExecStart=/usr/local/bin/alertmanager \
     -config.file=/etc/alertmanager/alertmanager.yml \
     -storage.path=/mnt/pd0/alertmanager \
-    -web.listen-address=:10117
+    -web.listen-address=:8001
 
 Restart=always
 User=default

@@ -870,7 +870,7 @@ server {
     client_max_body_size 500M;
 
     location / {
-        proxy_pass http://skia-prom:11000;
+        proxy_pass http://skia-prom:8002;
         proxy_set_header Host $host;
     }
 }
@@ -899,7 +899,7 @@ server {
     client_max_body_size 500M;
 
     location / {
-        proxy_pass http://skia-prom:11001;
+        proxy_pass http://skia-prom:8003;
         proxy_set_header Host $host;
     }
 }
