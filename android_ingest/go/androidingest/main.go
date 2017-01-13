@@ -38,17 +38,18 @@ import (
 
 // flags
 var (
+	branch         = flag.String("branch", "git_master-skia", "The branch where to look for buildids.")
 	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	workRoot       = flag.String("work_root", "", "Directory location where all the work is done.")
+	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	repoUrl        = flag.String("repo_url", "", "URL of the git repo where buildids are to be stored.")
-	branch         = flag.String("branch", "git_master-skia", "The branch where to look for buildids.")
+	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	storageUrl     = flag.String("storage_url", "gs://skia-perf/android-ingest", "The GCS URL of where to store the ingested perf data.")
+	workRoot       = flag.String("work_root", "", "Directory location where all the work is done.")
 )
 
 var (
@@ -223,11 +224,12 @@ func loadTemplates() {
 
 func main() {
 	defer common.LogPanic()
-	if *local {
-		common.Init()
-	} else {
-		common.InitWithMetrics2("androidingest", influxHost, influxUser, influxPassword, influxDatabase, local)
-	}
+	common.InitWithMust(
+		"androidingest",
+		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
 	if *workRoot == "" {
 		sklog.Fatal("The --work_root flag must be supplied.")
 	}
