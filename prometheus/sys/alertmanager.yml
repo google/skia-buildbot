@@ -21,7 +21,7 @@ route:
 
   # If an alert has successfully been sent, wait 'repeat_interval' to
   # resend them.
-  repeat_interval: 1h
+  repeat_interval: 4h
 
   # A default receiver
   receiver: skiabot
@@ -31,6 +31,9 @@ route:
 
   # The child route trees.
   routes:
+  - match:
+      specialroute: android
+    receiver: android
   - match:
       category: general
     receiver: general
@@ -55,3 +58,8 @@ receivers:
 - name: 'general'
   webhook_configs:
     - url: 'http://localhost:9999/alertmanager?email=jcgregorio@google.com'
+
+- name: 'android'
+  webhook_configs:
+    - url: 'http://localhost:9999/alertmanager?email=skia-android%2Bperf@google.com'
+
