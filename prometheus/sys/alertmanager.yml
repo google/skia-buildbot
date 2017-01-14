@@ -61,5 +61,5 @@ receivers:
 
 - name: 'android'
   webhook_configs:
-    - url: 'http://localhost:8004/alertmanager?email=skia-android%2Bperf@google.com'
+    - url: 'http://localhost:8004/alertmanager?email=skia-android@google.com'
 

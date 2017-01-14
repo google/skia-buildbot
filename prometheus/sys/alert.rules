@@ -17,7 +17,7 @@ ALERT TooManyGoRoutines
   }
 
 ALERT PerfUntriagedClusters
-  IF perf_clustering_untriaged{job="skia-perf"} > 0
+  IF perf_clustering_untriaged{instance="skia-perf:20000"} > 0
   FOR 2m
   LABELS { category = "general", severity = "warning" }
   ANNOTATIONS {
@@ -26,7 +26,7 @@ ALERT PerfUntriagedClusters
   }
 
 ALERT AndroidPerfUntriagedClusters
-  IF perf_clustering_untriaged{job="skia-android-perf"} > 0
+  IF perf_clustering_untriaged{instance="skia-android-perf:20000"} > 0
   FOR 2m
   LABELS { category = "general", severity = "warning", specialroute = "android" }
   ANNOTATIONS {
