@@ -1,4 +1,4 @@
-// webhook_email_proxy takes POST'd JSON requests from the Prometheus
+// webhook_proxy takes POST'd JSON requests from various sources, such as Prometheus
 // AlertManager and turns them into outgoing emails.
 package main
 
@@ -12,12 +12,12 @@ import (
 	"path/filepath"
 
 	"github.com/gorilla/mux"
+	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/prometheus/go/alertmanager"
 )
@@ -32,7 +32,8 @@ var (
 	emailClientIdFlag     = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
 	emailClientSecretFlag = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
 	local                 = flag.Bool("local", false, "Running locally, not in prod.")
-	port                  = flag.String("port", "localhost:9999", "HTTP service port (e.g., ':8001')")
+	port                  = flag.String("port", "localhost:8004", "HTTP service port (e.g., ':8001')")
+	publicPort            = flag.String("public_port", ":8005", "HTTP service port (e.g., ':8001')")
 	promPort              = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
 )
 
@@ -59,11 +60,50 @@ func alertManagerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
+  Requests have URL paths that look like:
+
+	  token=ESZ...t3V7GCc&response_url=https://some_domain.com
+
+  The token needs to match the token we expect. We can POST to the webhook
+	at the response_url to respond to the given message.
+
+	The body looks like:
+
+	{
+	 "name": "some opaque room name",
+	 "sender": {
+		 "name": "opaque user id",
+		 "displayName": "Joe Gregorio",
+		 "avatarUrl": "some url"
+	 },
+	 "createTime": "2017-01-15T16:21:32.252123Z",
+	 "text": "/ack a new test of the bot"
+ }
+
+ Note that the text includes the trigger phrase for the bot.
+ It is up to the creator of the trigger text to make sure
+ the trigger regex starts with "^".
+
+*/
+func publicWebhookHandler(w http.ResponseWriter, r *http.Request) {
+	sklog.Infof("Webhook: URL %#v Host: %q  URI: %q", *(r.URL), r.Host, r.RequestURI)
+	b, err := ioutil.ReadAll(r.Body)
+	if err == nil {
+		sklog.Infof("Body: %q", string(b))
+	} else {
+		sklog.Errorf("Error reading webhook body: %s", err)
+	}
+}
+
 func main() {
 	defer common.LogPanic()
 
-	common.Init()
-	metrics2.InitPrometheus(*promPort)
+	common.InitWithMust(
+		"webhook_proxy",
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
 
 	usr, err := user.Current()
 	if err != nil {
@@ -102,5 +142,11 @@ func main() {
 	http.Handle("/", httputils.LoggingGzipRequestResponse(router))
 
 	sklog.Infoln("Ready to serve.")
-	sklog.Fatal(http.ListenAndServe(*port, nil))
+	go func() {
+		sklog.Fatal(http.ListenAndServe(*port, nil))
+	}()
+
+	r := mux.NewRouter()
+	r.HandleFunc("/h", publicWebhookHandler).Methods("POST")
+	glog.Fatal(http.ListenAndServe(*publicPort, httputils.LoggingGzipRequestResponse(r)))
 }
