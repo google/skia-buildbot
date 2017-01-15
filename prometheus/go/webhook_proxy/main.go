@@ -1,4 +1,4 @@
-// webhook_email_proxy takes POST'd JSON requests from the Prometheus
+// webhook_proxy takes POST'd JSON requests from various sources, such as Prometheus
 // AlertManager and turns them into outgoing emails.
 package main
 

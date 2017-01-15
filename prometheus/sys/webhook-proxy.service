@@ -5,7 +5,7 @@ Wants=network-online.target
 After=mnt-pd0.mount network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/webhook_email_proxy \
+ExecStart=/usr/local/bin/webhook_proxy \
     --log_dir=/var/log/logserver  \
     --port=:8004 \
     --prom_port=:20004
