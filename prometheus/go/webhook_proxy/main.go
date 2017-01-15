@@ -1,4 +1,4 @@
-// webhook_email_proxy takes POST'd JSON requests from the Prometheus
+// webhook_proxy takes POST'd JSON requests from various sources, such as Prometheus
 // AlertManager and turns them into outgoing emails.
 package main
 
@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 
 	"github.com/gorilla/mux"
+	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
@@ -32,7 +33,8 @@ var (
 	emailClientIdFlag     = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
 	emailClientSecretFlag = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
 	local                 = flag.Bool("local", false, "Running locally, not in prod.")
-	port                  = flag.String("port", "localhost:9999", "HTTP service port (e.g., ':8001')")
+	port                  = flag.String("port", "localhost:8004", "HTTP service port (e.g., ':8001')")
+	publicPort            = flag.String("public_port", ":8005", "HTTP service port (e.g., ':8001')")
 	promPort              = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
 )
 
@@ -56,6 +58,16 @@ func alertManagerHandler(w http.ResponseWriter, r *http.Request) {
 	if err := emailAuth.Send(FROM_ADDRESS, to, subject, body); err != nil {
 		httputils.ReportError(w, r, err, "Failed to send outgoing email.")
 		return
+	}
+}
+
+func publicWebhookHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Webhook: URL %#v Host: %q  URI: %q", *(r.URL), r.Host, r.RequestURI)
+	b, err := ioutil.ReadAll(r.Body)
+	if err == nil {
+		glog.Infof("Body: %q", string(b))
+	} else {
+		glog.Errorf("Error reading webhook body: %s", err)
 	}
 }
 
@@ -102,5 +114,11 @@ func main() {
 	http.Handle("/", httputils.LoggingGzipRequestResponse(router))
 
 	sklog.Infoln("Ready to serve.")
-	sklog.Fatal(http.ListenAndServe(*port, nil))
+	go func() {
+		sklog.Fatal(http.ListenAndServe(*port, nil))
+	}()
+
+	r := mux.NewRouter()
+	r.HandleFunc("/h", publicWebhookHandler).Methods("POST")
+	glog.Fatal(http.ListenAndServe(*publicPort, httputils.LoggingGzipRequestResponse(r)))
 }
