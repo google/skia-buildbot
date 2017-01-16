@@ -45,6 +45,29 @@
       "revId": "3ce9fb3bd39e26a01e15f1484ff8fabc21a47611",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "036b4132_4986256e",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-16T23:29:00Z",
+      "side": 1,
+      "message": "I\u0027m wondering if it would be better to drop source altogether, so that in JS the properties could be accessed as \"task.Properties.name\" (as opposed to \"task.Properties[\u0027source.name\u0027]\").",
+      "range": {
+        "startLine": 148,
+        "startChar": 8,
+        "endLine": 148,
+        "endChar": 32
+      },
+      "revId": "3ce9fb3bd39e26a01e15f1484ff8fabc21a47611",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
