@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"reflect"
+	"sync"
 
 	"go.skia.org/infra/go/util"
 )
@@ -45,8 +46,9 @@ const (
 //    res3, _ := m.Client().Get("https://www.google.com")
 //    body3, _ := ioutil.ReadAll(res3.Body)  // body3 == []byte("Here's a response.")
 type URLMock struct {
-	mockAlways map[string]MockDialogue
-	mockOnce   map[string][]MockDialogue
+	mockAlways  map[string]MockDialogue
+	mockOnceMtx sync.Mutex
+	mockOnce    map[string][]MockDialogue
 }
 
 var DONT_CARE_REQUEST = []byte{0, 1, 2, 3, 4}
@@ -171,6 +173,8 @@ func (m *URLMock) Mock(url string, md MockDialogue) {
 // Mocks specified this way are independent of those specified using Mock(),
 // except that those specified using MockOnce() take precedence when present.
 func (m *URLMock) MockOnce(url string, md MockDialogue) {
+	m.mockOnceMtx.Lock()
+	defer m.mockOnceMtx.Unlock()
 	if _, ok := m.mockOnce[url]; !ok {
 		m.mockOnce[url] = []MockDialogue{}
 	}
@@ -189,6 +193,9 @@ func (m *URLMock) Client() *http.Client {
 func (m *URLMock) RoundTrip(r *http.Request) (*http.Response, error) {
 	url := r.URL.String()
 	var md *MockDialogue
+	// Unlock not deferred because we want to be able to handle multiple
+	// requests simultaneously.
+	m.mockOnceMtx.Lock()
 	if resps, ok := m.mockOnce[url]; ok {
 		if resps != nil && len(resps) > 0 {
 			md = &resps[0]
@@ -197,6 +204,7 @@ func (m *URLMock) RoundTrip(r *http.Request) (*http.Response, error) {
 	} else if data, ok := m.mockAlways[url]; ok {
 		md = &data
 	}
+	m.mockOnceMtx.Unlock()
 	if md == nil {
 		return nil, fmt.Errorf("Unknown URL %q", url)
 	}
@@ -206,6 +214,8 @@ func (m *URLMock) RoundTrip(r *http.Request) (*http.Response, error) {
 // Empty returns true iff all of the URLs registered via MockOnce() have been
 // used.
 func (m *URLMock) Empty() bool {
+	m.mockOnceMtx.Lock()
+	defer m.mockOnceMtx.Unlock()
 	for _, resps := range m.mockOnce {
 		if resps != nil && len(resps) > 0 {
 			return false
