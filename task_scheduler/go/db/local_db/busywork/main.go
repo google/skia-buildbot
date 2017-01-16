@@ -189,7 +189,7 @@ func putTasks(d db.TaskDB) {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	cache, err := db.NewTaskCache(d, w)
+	cache, err := db.NewTaskCache(d, w, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}

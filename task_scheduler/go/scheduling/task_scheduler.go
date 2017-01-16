@@ -84,7 +84,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, ho
 	}
 
 	// Create caches.
-	tCache, err := db.NewTaskCache(d, w)
+	tCache, err := db.NewTaskCache(d, w, false)
 	if err != nil {
 		return nil, err
 	}

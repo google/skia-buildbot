@@ -38,7 +38,7 @@ func TestTaskCache(t *testing.T) {
 	// Create the cache. Ensure that the existing task is present.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewTaskCache(db, w)
+	c, err := NewTaskCache(db, w, false)
 	assert.NoError(t, err)
 	testGetTasksForCommits(t, c, t1)
 
@@ -67,12 +67,102 @@ func TestTaskCache(t *testing.T) {
 	}, tasks)
 }
 
+// assertTasksNotCached checks that none of tasks are retrievable from c.
+func assertTasksNotCached(t *testing.T, c TaskCache, tasks []*Task) {
+	byTimeTasks, err := c.GetTasksFromDateRange(time.Date(1900, time.January, 1, 0, 0, 0, 0, time.UTC), time.Date(9999, time.January, 1, 0, 0, 0, 0, time.UTC))
+	assert.NoError(t, err)
+
+	unfinishedTasks, err := c.UnfinishedTasks()
+	assert.NoError(t, err)
+	for _, task := range tasks {
+		_, err := c.GetTask(task.Id)
+		assert.Error(t, err)
+		assert.True(t, IsNotFound(err))
+		for _, commit := range task.Commits {
+			found, err := c.GetTaskForCommit(DEFAULT_TEST_REPO, commit, task.Name)
+			assert.NoError(t, err)
+			assert.Nil(t, found)
+			tasks, err := c.GetTasksForCommits(DEFAULT_TEST_REPO, []string{commit})
+			assert.NoError(t, err)
+			_, ok := tasks[commit][task.Name]
+			assert.False(t, ok)
+		}
+		for _, other := range byTimeTasks {
+			if task.Id == other.Id {
+				t.Errorf("Found unexpected task %v in GetTasksFromDateRange.", task)
+			}
+		}
+		for _, other := range unfinishedTasks {
+			if task.Id == other.Id {
+				t.Errorf("Found unexpected task %v in UnfinishedTasks.", task)
+			}
+		}
+	}
+}
+
+func TestTaskCacheIncludeFake(t *testing.T) {
+	testutils.SmallTest(t)
+	db := NewInMemoryTaskDB()
+
+	// Pre-load a real task and a fake task into the DB.
+	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
+	real1 := makeTask(startTime, []string{"a", "b", "c", "d"})
+	fake1 := makeTask(startTime, []string{"a", "b", "c", "d"})
+	fake1.Fake = true
+	fake1.Name = "Fake-Task"
+	assert.NoError(t, db.PutTasks([]*Task{real1, fake1}))
+
+	// Create caches that include and exclude fake tasks. Check for expected tasks.
+	w, err := window.New(time.Hour, 0, nil)
+	assert.NoError(t, err)
+	realCache, err := NewTaskCache(db, w, false)
+	allCache, err := NewTaskCache(db, w, true)
+	assert.NoError(t, err)
+	testGetTasksForCommits(t, realCache, real1)
+	assertTasksNotCached(t, realCache, []*Task{fake1})
+	testGetTasksForCommits(t, allCache, real1)
+	testGetTasksForCommits(t, allCache, fake1)
+
+	// Add a new real and fake task.
+	real2 := makeTask(startTime.Add(time.Minute), []string{"e"})
+	fake2 := makeTask(startTime.Add(time.Minute), []string{"e"})
+	fake2.Fake = true
+	fake2.Name = "Fake-Task"
+	assert.NoError(t, db.PutTasks([]*Task{real2, fake2}))
+	assert.NoError(t, realCache.Update())
+	assert.NoError(t, allCache.Update())
+
+	// Check for expected tasks.
+	testGetTasksForCommits(t, realCache, real1)
+	testGetTasksForCommits(t, realCache, real2)
+	assertTasksNotCached(t, realCache, []*Task{fake1, fake2})
+	testGetTasksForCommits(t, allCache, real1)
+	testGetTasksForCommits(t, allCache, real2)
+	testGetTasksForCommits(t, allCache, fake1)
+	testGetTasksForCommits(t, allCache, fake2)
+	assert.True(t, realCache.KnownTaskName(real1.Repo, real1.Name))
+	assert.False(t, realCache.KnownTaskName(fake1.Repo, fake1.Name))
+	assert.True(t, fakeCache.KnownTaskName(real1.Repo, real1.Name))
+	assert.True(t, fakeCache.KnownTaskName(fake1.Repo, fake1.Name))
+
+	// Expire real1 and fake1. Check that real2 and fake2 are still cached as
+	// appropriate.
+	assert.NoError(t, w.UpdateWithTime(real1.Created.Add(time.Hour).Add(time.Nanosecond)))
+	assert.NoError(t, realCache.Update())
+	assert.NoError(t, allCache.Update())
+	assertTasksNotCached(t, realCache, []*Task{real1, fake1, fake2})
+	testGetTasksForCommits(t, realCache, real2)
+	assertTasksNotCached(t, realCache, []*Task{real1, fake1})
+	testGetTasksForCommits(t, allCache, real2)
+	testGetTasksForCommits(t, allCache, fake2)
+}
+
 func TestTaskCacheKnownTaskName(t *testing.T) {
 	testutils.SmallTest(t)
 	db := NewInMemoryTaskDB()
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewTaskCache(db, w)
+	c, err := NewTaskCache(db, w, false)
 	assert.NoError(t, err)
 
 	// Try jobs don't count toward KnownTaskName.
@@ -92,11 +182,18 @@ func TestTaskCacheKnownTaskName(t *testing.T) {
 	assert.NoError(t, c.Update())
 	assert.False(t, c.KnownTaskName(t2.Repo, t2.Name))
 
-	// Normal task.
+	// Fake tasks should be ignored.
 	t3 := makeTask(startTime, []string{"a", "b", "c", "d"})
+	t3.Fake = true
 	assert.NoError(t, db.PutTask(t3))
 	assert.NoError(t, c.Update())
-	assert.True(t, c.KnownTaskName(t3.Repo, t3.Name))
+	assert.False(t, c.KnownTaskName(t3.Repo, t3.Name))
+
+	// Normal task.
+	t4 := makeTask(startTime, []string{"a", "b", "c", "d"})
+	assert.NoError(t, db.PutTask(t4))
+	assert.NoError(t, c.Update())
+	assert.True(t, c.KnownTaskName(t4.Repo, t4.Name))
 }
 
 func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
@@ -111,7 +208,7 @@ func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 	// Create the cache.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewTaskCache(db, w)
+	c, err := NewTaskCache(db, w, false)
 	assert.NoError(t, err)
 
 	// Insert two more tasks. Ensure at least 1 nanosecond between task Created
@@ -202,7 +299,7 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 	// Create the cache.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewTaskCache(db, w)
+	c, err := NewTaskCache(db, w, false)
 	assert.NoError(t, err)
 
 	// Check that there's no conflict among the tasks in different repos.
@@ -258,12 +355,19 @@ func TestTaskCacheReset(t *testing.T) {
 	t1 := makeTask(startTime, []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
+	// Add a fake task to test that it's ignored.
+	fakeTask := makeTask(startTime, []string{"a", "b", "c", "d"})
+	fakeTask.Fake = true
+	fakeTask.Name = "Fake-Task"
+	assert.NoError(t, db.PutTask(fakeTask))
+
 	// Create the cache. Ensure that the existing task is present.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewTaskCache(db, w)
+	c, err := NewTaskCache(db, w, false)
 	assert.NoError(t, err)
 	testGetTasksForCommits(t, c, t1)
+	assertTasksNotCached(t, c, []*Task{fakeTask})
 
 	// Pretend the DB connection is lost.
 	db.StopTrackingModifiedTasks(c.(*taskCache).queryId)
@@ -277,6 +381,7 @@ func TestTaskCacheReset(t *testing.T) {
 	assert.NoError(t, c.Update())
 	testGetTasksForCommits(t, c, t1)
 	testGetTasksForCommits(t, c, t2)
+	assertTasksNotCached(t, c, []*Task{fakeTask})
 }
 
 func TestTaskCacheUnfinished(t *testing.T) {
@@ -292,7 +397,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	// Create the cache. Ensure that the existing task is present.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewTaskCache(db, w)
+	c, err := NewTaskCache(db, w, false)
 	assert.NoError(t, err)
 	tasks, err := c.UnfinishedTasks()
 	assert.NoError(t, err)
@@ -345,40 +450,7 @@ func assertTaskInSlice(t *testing.T, task *Task, slice []*Task) {
 			return
 		}
 	}
-	t.Fatalf("Did not find task %v in %s.", task, slice)
-}
-
-// assertTasksNotCached checks that none of tasks are retrievable from c.
-func assertTasksNotCached(t *testing.T, c TaskCache, tasks []*Task) {
-	byTimeTasks, err := c.GetTasksFromDateRange(time.Date(1900, time.January, 1, 0, 0, 0, 0, time.UTC), time.Date(9999, time.January, 1, 0, 0, 0, 0, time.UTC))
-	assert.NoError(t, err)
-
-	unfinishedTasks, err := c.UnfinishedTasks()
-	assert.NoError(t, err)
-	for _, task := range tasks {
-		_, err := c.GetTask(task.Id)
-		assert.Error(t, err)
-		assert.True(t, IsNotFound(err))
-		for _, commit := range task.Commits {
-			found, err := c.GetTaskForCommit(DEFAULT_TEST_REPO, commit, task.Name)
-			assert.NoError(t, err)
-			assert.Nil(t, found)
-			tasks, err := c.GetTasksForCommits(DEFAULT_TEST_REPO, []string{commit})
-			assert.NoError(t, err)
-			_, ok := tasks[commit][task.Name]
-			assert.False(t, ok)
-		}
-		for _, other := range byTimeTasks {
-			if task.Id == other.Id {
-				t.Errorf("Found unexpected task %v in GetTasksFromDateRange.", task)
-			}
-		}
-		for _, other := range unfinishedTasks {
-			if task.Id == other.Id {
-				t.Errorf("Found unexpected task %v in UnfinishedTasks.", task)
-			}
-		}
-	}
+	t.Fatalf("Did not find task %v in %v.", task, slice)
 }
 
 func TestTaskCacheExpiration(t *testing.T) {
@@ -409,7 +481,7 @@ func TestTaskCacheExpiration(t *testing.T) {
 	assert.NoError(t, db.PutTasks(tasks))
 
 	// Create the cache.
-	c, err := NewTaskCache(db, w)
+	c, err := NewTaskCache(db, w, false)
 	assert.NoError(t, err)
 
 	{
