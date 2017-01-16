@@ -94,7 +94,7 @@ func NewBTCache(repos repograph.Map, buildDb buildbot.DB, taskDb db.RemoteDB) (*
 	if err != nil {
 		return nil, err
 	}
-	tasks, err := db.NewTaskCache(taskDb, w)
+	tasks, err := db.NewTaskCache(taskDb, w, true)
 	if err != nil {
 		return nil, err
 	}
