@@ -1341,6 +1341,7 @@ func TestRetrieveJobsSimple(t *testing.T) {
 	allJobsByDir[path.Dir(formatJobObjectName(job2.DbModified, job2.Id))] = []*db.Job{job2}
 	expectedJobs[job2.Id] = job2.Copy()
 
+	t.Log(allJobsByDir)
 	r := mux.NewRouter()
 	addGetJobGOBsHandlers(t, r, allJobsByDir)
 	b, cancel := getMockedDBBackup(t, r)

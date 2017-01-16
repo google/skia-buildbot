@@ -71,7 +71,8 @@ type TaskCache interface {
 }
 
 type taskCache struct {
-	db TaskReader
+	db          TaskReader
+	includeFake bool
 	// map[repo_name][task_spec_name]Task.Created for most recent Task.
 	knownTaskNames map[string]map[string]time.Time
 	mtx            sync.RWMutex
@@ -351,7 +352,7 @@ func (c *taskCache) insertOrUpdateTask(task *Task) {
 func (c *taskCache) expireAndUpdate(tasks []*Task) {
 	c.expireTasks()
 	for _, t := range tasks {
-		if c.timeWindow.TestTime(t.Repo, t.Created) {
+		if c.timeWindow.TestTime(t.Repo, t.Created) && (c.includeFake || !t.Fake) {
 			c.insertOrUpdateTask(t.Copy())
 		}
 	}
@@ -404,10 +405,11 @@ func (c *taskCache) Update() error {
 
 // NewTaskCache returns a local cache which provides more convenient views of
 // task data than the database can provide.
-func NewTaskCache(db TaskReader, timeWindow *window.Window) (TaskCache, error) {
+func NewTaskCache(db TaskReader, timeWindow *window.Window, includeFake bool) (TaskCache, error) {
 	tc := &taskCache{
-		db:         db,
-		timeWindow: timeWindow,
+		db:          db,
+		includeFake: includeFake,
+		timeWindow:  timeWindow,
 	}
 	if err := tc.reset(); err != nil {
 		return nil, err

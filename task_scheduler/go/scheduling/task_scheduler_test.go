@@ -891,7 +891,7 @@ func TestComputeBlamelist(t *testing.T) {
 
 	d := db.NewInMemoryTaskDB()
 	w, err := window.New(time.Hour, 0, nil)
-	cache, err := db.NewTaskCache(d, w)
+	cache, err := db.NewTaskCache(d, w, true)
 	assert.NoError(t, err)
 
 	// The test repo is laid out like this:

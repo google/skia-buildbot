@@ -46,6 +46,10 @@ const (
 	// These two tags allow the swarming ui to point to the GoB repo
 	SWARMING_TAG_SOURCE_REVISION = "source_revision"
 	SWARMING_TAG_SOURCE_REPO     = "source_repo"
+
+	// TASK_SCHEDULER_PROPERTY_SOURCE is the <source> of Task.Properties
+	// keys reserved for Task Scheduler.
+	TASK_SCHEDULER_PROPERTY_SOURCE = "task-scheduler"
 )
 
 type TaskStatus string
@@ -118,6 +122,9 @@ type Task struct {
 	// of the associated Swarming task.
 	DbModified time.Time
 
+	// Fake indicates this task represents a roll or other process that occurs per-revision, not a Swarming task.
+	Fake bool
+
 	// Finished is the time the task stopped running or expired from the queue, or
 	//  zero if the task is pending or running.
 	Finished time.Time
@@ -135,6 +142,11 @@ type Task struct {
 
 	// ParentTaskIds are IDs of tasks which satisfied this task's dependencies.
 	ParentTaskIds []string
+
+	// Properties contains key-value pairs from external sources. Key format
+	// is "<source>.<property name>". Value can be any UTF-8 string; please
+	// use base64 encoding for binary data.
+	Properties map[string]string
 
 	// RetryOf is the ID of the task which this task is a retry of, if any.
 	RetryOf string
@@ -360,10 +372,12 @@ func (t *Task) Copy() *Task {
 		Commits:        commits,
 		Created:        t.Created,
 		DbModified:     t.DbModified,
+		Fake:           t.Fake,
 		Finished:       t.Finished,
 		Id:             t.Id,
 		IsolatedOutput: t.IsolatedOutput,
 		ParentTaskIds:  parentTaskIds,
+		Properties:     util.CopyStringMap(t.Properties),
 		RetryOf:        t.RetryOf,
 		Started:        t.Started,
 		Status:         t.Status,
