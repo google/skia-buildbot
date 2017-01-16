@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "036b4132_2943a956",
+        "filename": "task_scheduler/go/db/cache_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-16T21:44:55Z",
+      "side": 1,
+      "message": "Moved from below, unmodified.",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 101,
+        "endChar": 1
+      },
+      "revId": "3ce9fb3bd39e26a01e15f1484ff8fabc21a47611",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "036b4132_4938e5ee",
+        "filename": "task_scheduler/go/db/cache_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 453,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-16T21:44:55Z",
+      "side": 1,
+      "message": "\u0027go vet\u0027 complained.",
+      "range": {
+        "startLine": 453,
+        "startChar": 35,
+        "endLine": 453,
+        "endChar": 37
+      },
+      "revId": "3ce9fb3bd39e26a01e15f1484ff8fabc21a47611",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
