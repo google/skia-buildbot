@@ -226,6 +226,7 @@ func getSession(r *http.Request) (*Session, error) {
 		return nil, err
 	}
 	var s Session
+	sklog.Infof("Cookie is: %v\n", cookie)
 	if err := secureCookie.Decode(COOKIE_NAME, cookie.Value, &s); err != nil {
 		return nil, err
 	}
