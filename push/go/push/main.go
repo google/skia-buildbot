@@ -63,17 +63,17 @@ var (
 
 // flags
 var (
-	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	configFilename = flag.String("config_filename", "skiapush.conf", "Config filename.")
-	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	project        = flag.String("project", "google.com:skia-buildbots", "The Google Compute Engine project.")
 	bucketName     = flag.String("bucket_name", "skia-push", "The name of the Google Storage bucket that contains push packages and info.")
-
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	configFilename = flag.String("config_filename", "skiapush.conf", "Config filename.")
 	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	project        = flag.String("project", "google.com:skia-buildbots", "The Google Compute Engine project.")
+	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
 
 func loadTemplates() {
@@ -533,16 +533,15 @@ func startDirtyMonitoring() {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics2("push", influxHost, influxUser, influxPassword, influxDatabase, local)
-	Init()
+	common.InitWithMust(
+		"push",
+		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
+	login.SimpleInitMust(*port, *local)
 
-	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
-	if !*local {
-		redirectURL = "https://push.skia.org/oauth2callback/"
-	}
-	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		sklog.Fatalf("Failed to initialize the login system: %s", err)
-	}
+	Init()
 
 	go startDirtyMonitoring()
 	r := mux.NewRouter()
