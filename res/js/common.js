@@ -37,6 +37,11 @@ this.sk = this.sk || function() {
 
   var sk = {};
 
+  /**
+   * app_config is a place for applications to store app specific
+   * configuration variables.
+  **/
+  sk.app_config = {};
 
   /**
    * clearChildren removes all children of the passed in node.
