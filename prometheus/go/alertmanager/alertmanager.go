@@ -34,10 +34,17 @@ const (
   {{end}}
 </table>
 `
+
+	alert_chat = `Alerts: {{range .GroupLabels}}{{.}}{{end}}
+  {{range .Alerts}}
+    {{.Labels.alertname}} {{.Labels.severity}} {{.Status}} {{.Annotations.description}}
+  {{end}}
+`
 )
 
 var (
 	emailTemplate = template.Must(template.New("alert_email").Parse(alert_email))
+	chatTemplate  = template.Must(template.New("alert_chat").Parse(alert_chat))
 	loc           *time.Location
 )
 
@@ -97,4 +104,37 @@ func Email(r io.Reader) (string, string, error) {
 		return "", "", fmt.Errorf("Failed to template alert: %s", err)
 	}
 	return b.String(), subject, nil
+}
+
+// Chat returns the body of a chat message to send for the given alerts.
+func Chat(r io.Reader) (string, error) {
+	request := AlertManagerRequest{}
+	if err := json.NewDecoder(r).Decode(&request); err != nil {
+		return "", fmt.Errorf("Failed to decode incoming AlertManagerRequest: %s", err)
+	}
+
+	ts := time.Now()
+	alertnames := []string{}
+	for _, alert := range request.Alerts {
+		alertnames = append(alertnames, alert.Labels["alertname"])
+		if alert.StartsAt.Before(ts) {
+			ts = alert.StartsAt
+		}
+	}
+	if loc == nil {
+		var err error
+		loc, err = time.LoadLocation("America/New_York")
+		if err != nil {
+			sklog.Errorf("Failed to load time location: %s", err)
+		}
+	}
+	if loc != nil {
+		ts = ts.In(loc)
+	}
+
+	var b bytes.Buffer
+	if err := chatTemplate.Execute(&b, request); err != nil {
+		return "", fmt.Errorf("Failed to template alert: %s", err)
+	}
+	return b.String(), nil
 }
