@@ -134,9 +134,9 @@ type Task struct {
 	// ParentTaskIds are IDs of tasks which satisfied this task's dependencies.
 	ParentTaskIds []string
 
-	// Properties contains key-value pairs from external sources. Key can be any
-	// string, but preferably a JavaScript identifier. Value can be any UTF-8
-	// string; please use base64 encoding for binary data.
+	// Properties contains key-value pairs from external sources. Both key and
+	// value must be UTF-8 strings. Prefer a JavaScript identifier for key. Use
+	// base64 encoding for binary data.
 	Properties map[string]string
 
 	// RetryOf is the ID of the task which this task is a retry of, if any.
