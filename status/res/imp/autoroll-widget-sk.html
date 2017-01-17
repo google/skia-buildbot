@@ -18,6 +18,7 @@
   Properties:
     // input
     reload: Number, How often (in seconds) to reload the autoroll status.
+    name: String, name of the autoroller. Eg: Chromium, Android, Catapult, etc
 
     // output
     status: Object, contains:
@@ -80,6 +81,7 @@
         </iron-icon>
       </div>
       <div id="textContainer">
+        [[name]]
         Roll: [[_roll_status.status]]<br/>
         Last: [[_roll_status.lastRoll.result]]
         [[_humanDiff(_roll_status.lastRoll.modified)]] ago
@@ -95,6 +97,10 @@
       reload: {
         type: Number,
         value: 60,
+      },
+      name: {
+        type: String,
+        value: "",
       },
 
       // output

@@ -36,6 +36,7 @@
 <link rel="import" href="/res/common/imp/url-params-sk.html">
 
 <link rel="import" href="alert-widget-sk.html">
+<link rel="import" href="android-autoroll-widget-sk.html">
 <link rel="import" href="autoroll-widget-sk.html">
 <link rel="import" href="commits-table-sk.html">
 <link rel="import" href="commits-canvas-sk.html">
@@ -186,8 +187,13 @@
 
       <h1 class="shrinkable" toolbar>[[repo]] Status</h1>
 
+      <android-autoroll-widget-sk title="Android DEPS roll status" class="shrinkable" rtoolbar
+        reload="[[reload]]">
+      </android-autoroll-widget-sk>
+
       <autoroll-widget-sk title="Skia DEPS roll status" class="shrinkable" rtoolbar
         reload="[[reload]]"
+        name="Cr"
 
         status="{{autoroll_status}}">
       </autoroll-widget-sk>

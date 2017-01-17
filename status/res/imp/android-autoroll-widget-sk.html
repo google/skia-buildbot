@@ -1,0 +1,121 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <android-autoroll-widget-sk>
+
+  This element occasionally polls the status of the android autoroller and
+  displays the status.
+
+  TODO(rmistry): This is currently similar to autoroll-widget-sk.html. When
+  android-roller.skia.org is created, delete android-autoroll-widget-sk.html and
+  reuse autoroll-widget-sk.html for displaying roll status on the status page.
+
+  To use this file import it:
+
+    <link href="/res/imp/android-autoroll-widget-sk.html" rel="import" />
+
+  Usage:
+
+    <android-autoroll-widget-sk></android-autoroll-widget-sk>
+
+  Properties:
+    // input
+    reload: Number, How often (in seconds) to reload the autoroll status.
+-->
+
+<link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="/res/common/imp/timer-sk.html">
+
+<dom-module id="android-autoroll-widget-sk">
+  <template>
+    <style>
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      iron-icon{
+        color: #E6AB02;
+      }
+      paper-button {
+        text-transform: none;
+      }
+      #textContainer {
+        margin-left: 8px;
+        text-align: left;
+      }
+    </style>
+
+    <iron-ajax
+      id="current_status"
+      auto url="https://storage.googleapis.com/skia-android-autoroller/current-roll"
+      handle-as="text"
+      last-response="{{_current_roll_status}}">
+    </iron-ajax>
+    <iron-ajax
+      id="last_status"
+      auto url="https://storage.googleapis.com/skia-android-autoroller/last-roll"
+      handle-as="text"
+      last-response="{{_last_roll_status}}">
+    </iron-ajax>
+    <timer-sk period="[[reload]]" on-trigger="_reload">
+
+    <a href="https://chromegw.corp.google.com/i/client.skia.internal/console" target="_blank" class="inherit">
+      <paper-button>
+        <div class="horizontal layout center">
+          <iron-icon
+              id="statusIndicator"
+              icon="[[_statusIcon(_current_roll_status)]]">
+          </iron-icon>
+          <div id="textContainer">
+            Android Roll: [[_current_roll_status]]<br/>
+            Last: [[_last_roll_status]]
+          </div>
+        </div>
+      </paper-button>
+    </a>
+  </template>
+  <script>
+  Polymer({
+    is:"android-autoroll-widget-sk",
+
+    properties: {
+      // input
+      reload: {
+        type: Number,
+        value: 60,
+      },
+
+      // private
+      _current_roll_status: {
+        type: String,
+        value: "",
+      },
+      _last_roll_status: {
+        type: String,
+        value: "",
+      },
+    },
+
+    _reload: function() {
+      this.$.current_status.generateRequest();
+      this.$.last_status.generateRequest();
+    },
+
+    _statusIcon:function(status) {
+      if (!status || status.trim() == "failed") {
+        return "icons:error";
+      }
+      if (status.trim() == "in progress") {
+        return "icons:autorenew";
+      }
+      return "icons:check-circle";
+    }
+
+  });
+  </script>
+</dom-module>
