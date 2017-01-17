@@ -27,8 +27,8 @@ type builderNameSchema struct {
 
 func init() {
 	buf := bytes.NewBuffer(nil)
-	r := gitiles.NewRepo("https://skia.googlesource.com/skia")
-	if err := r.ReadFile("infra/bots/recipe_modules/builder_name_schema/builder_name_schema.json", buf); err != nil {
+	r := gitiles.NewRepo("https://skia.googlesource.com/skia-recipes")
+	if err := r.ReadFile("recipe_modules/builder_name_schema/builder_name_schema.json", buf); err != nil {
 		sklog.Fatal(err)
 	}
 	res := new(builderNameSchema)
