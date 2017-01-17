@@ -15,7 +15,7 @@ about [the GOPATH environment variable](https://golang.org/doc/code.html#GOPATH)
 $GOPATH/bin comes before /usr/bin in your PATH. If you have GOPATH set, run:
 
 ```
-$ go get -u go.skia.org/infra/...
+$ go get -u -t go.skia.org/infra/...
 ```
 
 This fetches the repository into your $GOPATH directory along with all the
@@ -75,5 +75,5 @@ Install [Cloud SDK](https://cloud.google.com/sdk/).
 Use this command to run the presubmit tests:
 
 ```
-$ ./run_unittests --short
+$ ./run_unittests --small
 ```

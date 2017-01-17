@@ -50,10 +50,6 @@ push_android: build
 logs:
 	go install -v ../logserver/go/logserver
 
-.PHONY: tool
-tool:
-	go install -v ./go/tiletool
-
 .PHONY: perf_migratedb
 perf_migratedb:
 	go install -v ./go/perf_migratedb
@@ -63,7 +59,7 @@ perf_migratedb:
 debug: clean_webtools debug_core_js debug_elements_html
 
 .PHONY: all
-all: build tool logs perf_migratedb
+all: build logs perf_migratedb
 
 .PHONY: tags
 tags:
