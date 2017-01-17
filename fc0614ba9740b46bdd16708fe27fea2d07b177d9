@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "036b4132_c9a775f7",
+        "filename": "task_scheduler/go/db/cache_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-17T02:26:48Z",
+      "side": 1,
+      "message": "\u0027go vet\u0027 complained",
+      "range": {
+        "startLine": 370,
+        "startChar": 35,
+        "endLine": 370,
+        "endChar": 37
+      },
+      "revId": "fc0614ba9740b46bdd16708fe27fea2d07b177d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
