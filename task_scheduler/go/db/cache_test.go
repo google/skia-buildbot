@@ -258,12 +258,21 @@ func TestTaskCacheReset(t *testing.T) {
 	t1 := makeTask(startTime, []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
+	// Add a pending task with no swarming ID to test that it won't appear
+	// in UnfinishedTasks.
+	fakeTask := makeTask(startTime, []string{"a", "b", "c", "d"})
+	fakeTask.Name = "Fake-Task"
+	fakeTask.SwarmingTaskId = ""
+	assert.True(t, fakeTask.Fake())
+	assert.NoError(t, db.PutTask(fakeTask))
+
 	// Create the cache. Ensure that the existing task is present.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
 	c, err := NewTaskCache(db, w)
 	assert.NoError(t, err)
 	testGetTasksForCommits(t, c, t1)
+	testGetTasksForCommits(t, c, fakeTask)
 
 	// Pretend the DB connection is lost.
 	db.StopTrackingModifiedTasks(c.(*taskCache).queryId)
@@ -277,6 +286,12 @@ func TestTaskCacheReset(t *testing.T) {
 	assert.NoError(t, c.Update())
 	testGetTasksForCommits(t, c, t1)
 	testGetTasksForCommits(t, c, t2)
+	testGetTasksForCommits(t, c, fakeTask)
+	unfinished, err := c.UnfinishedTasks()
+	assert.NoError(t, err)
+	for _, task := range unfinished {
+		assert.NotEqual(t, fakeTask.Id, task.Id)
+	}
 }
 
 func TestTaskCacheUnfinished(t *testing.T) {
@@ -288,6 +303,12 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	t1 := makeTask(startTime, []string{"a"})
 	assert.False(t, t1.Done())
 	assert.NoError(t, db.PutTask(t1))
+
+	// Add a pending task with no swarming ID to test that it won't appear
+	// in UnfinishedTasks.
+	fakeTask := makeTask(startTime, []string{"b"})
+	fakeTask.SwarmingTaskId = ""
+	assert.NoError(t, db.PutTask(fakeTask))
 
 	// Create the cache. Ensure that the existing task is present.
 	w, err := window.New(time.Hour, 0, nil)
@@ -345,7 +366,7 @@ func assertTaskInSlice(t *testing.T, task *Task, slice []*Task) {
 			return
 		}
 	}
-	t.Fatalf("Did not find task %v in %s.", task, slice)
+	t.Fatalf("Did not find task %v in %v.", task, slice)
 }
 
 // assertTasksNotCached checks that none of tasks are retrievable from c.
