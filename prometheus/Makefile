@@ -1,5 +1,5 @@
 build:
-	go install -v ./go/webhook_email_proxy
+	go install -v ./go/webhook_proxy
 	go install -v ./go/proxy_with_auth
 
 prom:
