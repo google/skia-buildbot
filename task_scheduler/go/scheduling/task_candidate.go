@@ -146,7 +146,7 @@ func replaceVars(c *taskCandidate, s string) string {
 }
 
 // MakeTaskRequest creates a SwarmingRpcsNewTaskRequest object from the taskCandidate.
-func (c *taskCandidate) MakeTaskRequest(id, isolateServer string) (*swarming_api.SwarmingRpcsNewTaskRequest, error) {
+func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (*swarming_api.SwarmingRpcsNewTaskRequest, error) {
 	var cipdInput *swarming_api.SwarmingRpcsCipdInput
 	if len(c.TaskSpec.CipdPackages) > 0 {
 		cipdInput = &swarming_api.SwarmingRpcsCipdInput{
@@ -219,10 +219,9 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer string) (*swarming_api
 			},
 			IoTimeoutSecs: ioTimeoutSecs,
 		},
-		PubsubAuthToken: "", // TODO(borenet)
-		PubsubTopic:     PUBSUB_TOPIC_SWARMING_TASKS_FULL,
-		Tags:            db.TagsForTask(c.Name, id, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds),
-		User:            "skia-task-scheduler",
+		PubsubTopic: pubSubTopic,
+		Tags:        db.TagsForTask(c.Name, id, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds),
+		User:        "skia-task-scheduler",
 	}, nil
 }
 
