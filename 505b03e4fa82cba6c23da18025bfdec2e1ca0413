@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "036b4132_45436155",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-18T12:11:28Z",
+      "side": 1,
+      "message": "Should this be:\n\nif !task.Done() \u0026\u0026 !task.Fake() {\n\n?",
+      "range": {
+        "startLine": 331,
+        "startChar": 0,
+        "endLine": 332,
+        "endChar": 29
+      },
+      "revId": "505b03e4fa82cba6c23da18025bfdec2e1ca0413",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
