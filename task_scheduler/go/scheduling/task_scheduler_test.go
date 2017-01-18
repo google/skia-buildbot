@@ -97,6 +97,7 @@ func makeTask(name, repo, revision string) *db.Task {
 			},
 			Name: name,
 		},
+		SwarmingTaskId: "swarmid",
 	}
 }
 
@@ -2583,9 +2584,15 @@ func TestUpdateUnfinishedTasks(t *testing.T) {
 		Status:         db.TASK_STATUS_PENDING,
 		SwarmingTaskId: "swarmt3",
 	}
+	// Include a fake task to ensure it's ignored.
+	t4 := &db.Task{
+		Id:      "t4",
+		Created: now.Add(-time.Minute),
+		Status:  db.TASK_STATUS_PENDING,
+	}
 
 	// Insert the tasks into the DB.
-	tasks := []*db.Task{t1, t2, t3}
+	tasks := []*db.Task{t1, t2, t3, t4}
 	assert.NoError(t, s.db.PutTasks(tasks))
 	assert.NoError(t, s.tCache.Update())
 

@@ -71,6 +71,9 @@ func (c *CapacityClient) QueryAll() error {
 		if !task.Done() {
 			continue
 		}
+		if task.Fake() {
+			continue
+		}
 		duration := task.Finished.Sub(task.Started)
 		durations[task.Name] = append(durations[task.Name], taskData{
 			Duration: duration,

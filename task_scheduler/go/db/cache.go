@@ -63,7 +63,7 @@ type TaskCache interface {
 	KnownTaskName(string, string) bool
 
 	// UnfinishedTasks returns a list of tasks which were not finished at
-	// the time of the last cache update.
+	// the time of the last cache update. Fake tasks are not included.
 	UnfinishedTasks() ([]*Task, error)
 
 	// Update loads new tasks from the database.
@@ -327,7 +327,7 @@ func (c *taskCache) insertOrUpdateTask(task *Task) {
 	}
 
 	// Unfinished tasks.
-	if !task.Done() {
+	if !task.Done() && !task.Fake() {
 		c.unfinished[task.Id] = task
 	} else if isUpdate {
 		delete(c.unfinished, task.Id)

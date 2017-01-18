@@ -24,7 +24,8 @@ func makeTask(ts time.Time, commits []string) *Task {
 			},
 			Name: "Test-Task",
 		},
-		Commits: commits,
+		Commits:        commits,
+		SwarmingTaskId: "swarmid",
 	}
 }
 

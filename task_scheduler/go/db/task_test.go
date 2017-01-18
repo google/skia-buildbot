@@ -659,6 +659,10 @@ func TestCopyTask(t *testing.T) {
 		Id:             "42",
 		IsolatedOutput: "lonely-result",
 		ParentTaskIds:  []string{"38", "39", "40"},
+		Properties: map[string]string{
+			"color":   "blue",
+			"awesome": "true",
+		},
 		RetryOf:        "41",
 		Started:        now.Add(time.Minute),
 		Status:         TASK_STATUS_MISHAP,
