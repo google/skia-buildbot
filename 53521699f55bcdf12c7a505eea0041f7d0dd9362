@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "036b4132_4591a1a5",
+        "filename": "res/imp/commit.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-18T12:48:07Z",
+      "side": 1,
+      "message": "You may consider adding documentation about \"This assumes a googlesource repo, to which things will be appended\".\n\nAlternatively, what we do on luci-py is have the string be a templating string:\ncommit_template:\"https://skia.googlesource.com/skia/c/%s\"\nlog_template:\"https://skia.googlesource.com/skia/log/%s\"\n\nThis would be a touch more forward looking as we don\u0027t have to rely on the URL always be created by appending.",
+      "range": {
+        "startLine": 8,
+        "startChar": 36,
+        "endLine": 8,
+        "endChar": 46
+      },
+      "revId": "53521699f55bcdf12c7a505eea0041f7d0dd9362",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
