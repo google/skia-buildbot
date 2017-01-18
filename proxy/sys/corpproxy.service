@@ -5,9 +5,7 @@ After=network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/corpproxy \
-    --log_dir=/var/log/logserver  \
-    --prom_port=:10110 \
-    --port=:8000
+    --logtostderr
 
 Restart=always
 User=default
