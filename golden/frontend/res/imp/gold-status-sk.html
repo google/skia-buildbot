@@ -87,7 +87,7 @@
           </paper-tabs>
         </div>
         <div class="statusEntry">
-          <a href$="https://skia.googlesource.com/skia/+/{{status.lastCommit.hash}}" target="_blank">
+          <a href$="{{_commitURL(status.lastCommit.hash)}}" target="_blank">
              Last Commit: {{_lastCommitText(status)}}
           </a>
         </div>
@@ -172,6 +172,11 @@
         }
         var idx = val.indexOf('(');
         return val.substring(0, (idx === -1) ? val.length : idx);
+      },
+
+      // _commitURL returns the repository url for the given hash.
+      _commitURL: function(hash) {
+        return sk.app_config.baseRepoURL + "/+/" + hash;
       }
     });
   </script>
