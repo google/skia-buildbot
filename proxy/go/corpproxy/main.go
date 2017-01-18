@@ -6,20 +6,17 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"os"
-	"path/filepath"
 	"regexp"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 )
 
 var (
 	local    = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port     = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	promPort = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
+	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 )
 
 var (
@@ -65,17 +62,14 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	defer common.LogPanic()
-	common.Init()
-	metrics2.InitPrometheus(*promPort)
-	common.StartCloudLogging(filepath.Base(os.Args[0]))
 
-	redirectURL := login.DEFAULT_REDIRECT_URL
-	if *local {
-		redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
-	}
-	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		sklog.Fatalf("Failed to initialize the login system: %s", err)
-	}
+	common.InitWithMust(
+		"corpproxy",
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
+
+	login.SimpleInitMust(*port, *local)
 
 	http.HandleFunc("/", mainHandler)
 	sklog.Fatal(http.ListenAndServe(*port, nil))

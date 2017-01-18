@@ -19,6 +19,10 @@ scrape_configs:
     static_configs:
       - targets: ['skia-push:20000']
 
+  - job_name: 'corpproxy'
+    static_configs:
+      - targets: ['skia-proxy:20000']
+
   - job_name: 'pulld'
     static_configs:
       - targets: ['skia-android-ingest:11000']
@@ -27,6 +31,7 @@ scrape_configs:
       - targets: ['skia-perf:11000']
       - targets: ['skia-prom:11000']
       - targets: ['skia-push:11000']
+      - targets: ['skia-proxy:11000']
 
 
   # Prometheus self monitoring.
