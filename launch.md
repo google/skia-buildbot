@@ -82,7 +82,7 @@ If you add any critical TODOs while you're coding, file a blocking bug for the i
     - Ideally, probe all public HTML pages and all nullipotent JSON
       endpoints. You can write functions in `prober/go/prober/main.go` to check
       the response body if desired.
-    - Probe `<instance name>:10114` to confirm that pulld is running and
+    - Probe `<instance name>:10000` to confirm that pulld is running and
       `<instance name>:10115` to confirm the logserverd is running. (Note that
       these are GCE instance names, not DNS names.)
 

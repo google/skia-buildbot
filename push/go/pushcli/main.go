@@ -151,10 +151,10 @@ func installOnServer(client *http.Client, store *storage.Service, comp *compute.
 	// package and avoid the 15s wait for pulld to poll and find the new package.
 	if ip, err := findIPAddress(comp, serverName); err == nil {
 		if *dryrun {
-			sklog.Infof(`"client.Get(http://%s:10114/pullpullpull)"`, ip)
+			sklog.Infof(`"client.Get(http://%s:10000/pullpullpull)"`, ip)
 		} else {
 			sklog.Infof("findIPAddress: %q", ip)
-			resp, err := client.Get(fmt.Sprintf("http://%s:10114/pullpullpull", ip))
+			resp, err := client.Get(fmt.Sprintf("http://%s:10000/pullpullpull", ip))
 			if err != nil || resp == nil {
 				sklog.Infof("Failed to trigger an instant pull for server %s: %v %v", serverName, err)
 			} else {

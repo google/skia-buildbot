@@ -183,28 +183,28 @@
      "mimetype": ""
    },
    "skiadocslogs": {
-     "url": "http://skia-docs:10114",
+     "url": "http://skia-docs:10115",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiamonitoringlogs": {
-     "url": "http://skia-monitoring:10114",
+     "url": "http://skia-monitoring:10115",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiaperflogs": {
-     "url": "http://skia-perf:10114",
+     "url": "http://skia-perf:10115",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiapushlogs": {
-     "url": "http://skia-push:10114",
+     "url": "http://skia-push:10115",
      "method": "GET",
      "expected": [200],
      "body": "",
@@ -225,7 +225,7 @@
      "mimetype": ""
    },
    "internal_pulld": {
-     "url": "http://skia-internal:10114",
+     "url": "http://skia-internal:10000",
      "method": "GET",
      "expected": [200],
      "body": "",
@@ -253,7 +253,7 @@
      "mimetype": ""
    },
    "skia_ctfe_pulld": {
-     "url": "http://skia-ctfe:10114",
+     "url": "http://skia-ctfe:10000",
      "method": "GET",
      "expected": [200],
      "body": "",
