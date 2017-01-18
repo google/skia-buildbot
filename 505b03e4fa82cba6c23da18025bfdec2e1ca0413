@@ -22,6 +22,24 @@
       "revId": "505b03e4fa82cba6c23da18025bfdec2e1ca0413",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "036b4132_a0bec370",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-18T15:21:14Z",
+      "side": 1,
+      "message": "Done. Also updated doc for UnfinishedTasks().",
+      "parentUuid": "036b4132_45436155",
+      "revId": "505b03e4fa82cba6c23da18025bfdec2e1ca0413",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
