@@ -22,6 +22,24 @@
       "revId": "cc44af08355363116b52fbcc1bc82da4d2971487",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "036b4132_80faa7fd",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1518,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-18T15:45:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "036b4132_256585f6",
+      "revId": "cc44af08355363116b52fbcc1bc82da4d2971487",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
