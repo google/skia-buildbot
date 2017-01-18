@@ -127,14 +127,17 @@ type Task struct {
 	Id string
 
 	// IsolatedOutput is the isolated hash of any outputs produced by this Task.
-	// Filled in when the task is completed. We assume the isolate server is
-	// isolate.ISOLATE_SERVER_URL and the namespace is isolate.DEFAULT_NAMESPACE.
-	// This field will not be set if the Task does not correspond to a Swarming
-	// task.
+	// Filled in when the task is completed. This field will not be set if the
+	// Task does not correspond to a Swarming task.
 	IsolatedOutput string
 
 	// ParentTaskIds are IDs of tasks which satisfied this task's dependencies.
 	ParentTaskIds []string
+
+	// Properties contains key-value pairs from external sources. Key can be any
+	// string, but preferably a JavaScript identifier. Value can be any UTF-8
+	// string; please use base64 encoding for binary data.
+	Properties map[string]string
 
 	// RetryOf is the ID of the task which this task is a retry of, if any.
 	RetryOf string
@@ -164,11 +167,12 @@ type Task struct {
 // UpdateFromSwarming sets or initializes t from data in s. If any changes were
 // made to t, returns true.
 //
+// Returns ErrUnknownId if the SwarmingTaskId does not match.
+//
 // If empty, sets t.Id, t.Name, t.Repo, and t.Revision from s's tags named
 // SWARMING_TAG_ID, SWARMING_TAG_NAME, SWARMING_TAG_REPO, and
-// SWARMING_TAG_REVISION, sets t.Created from s.CreatedTs, and sets
-// t.SwarmingTaskId from s.TaskId. If these fields are non-empty, returns an
-// error if they do not match.
+// SWARMING_TAG_REVISION, and sets t.Created from s.CreatedTs. If these fields
+// are non-empty, returns an error if they do not match.
 //
 // Always sets t.Status, t.Started, t.Finished, and t.IsolatedOutput based on s.
 func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bool, error) {
@@ -349,6 +353,11 @@ func (t *Task) Done() bool {
 	return t.Status != TASK_STATUS_PENDING && t.Status != TASK_STATUS_RUNNING
 }
 
+// Fake returns whether this Task does not correspond to a Swarming task.
+func (t *Task) Fake() bool {
+	return t.SwarmingTaskId == ""
+}
+
 func (t *Task) Success() bool {
 	return t.Status == TASK_STATUS_SUCCESS
 }
@@ -364,6 +373,7 @@ func (t *Task) Copy() *Task {
 		Id:             t.Id,
 		IsolatedOutput: t.IsolatedOutput,
 		ParentTaskIds:  parentTaskIds,
+		Properties:     util.CopyStringMap(t.Properties),
 		RetryOf:        t.RetryOf,
 		Started:        t.Started,
 		Status:         t.Status,
