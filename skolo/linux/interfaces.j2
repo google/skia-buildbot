@@ -1,0 +1,10 @@
+# interfaces(5) file used by ifup(8) and ifdown(8)
+auto lo
+iface lo inet loopback
+
+auto {{interface}}
+iface {{interface}} inet static
+  address {{ip_address}}
+  netmask {{netmask}}
+  gateway {{gateway}}
+  dns-nameservers 8.8.8.8 8.8.4.4

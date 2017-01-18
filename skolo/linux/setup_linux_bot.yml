@@ -1,0 +1,89 @@
+---
+- hosts: all
+  remote_user: chrome-bot
+  become_user: root
+  become: yes
+  become_method: sudo
+  vars:
+    # override with --extra-vars "netmask=255.255.255.0"
+    netmask: "255.255.255.0"
+    gateway: "192.168.1.1"
+
+    interface_templ: "./interfaces.j2"
+    expanded_interface: "/etc/network/interfaces"
+
+  vars_prompt:
+    - name: "interface"
+      prompt: "What is ethernet interface?  If you don't know, run ifconfig first"
+      private: no
+    - name: "ip_address"
+      prompt: "What should the static ip address of this machine be?"
+      private: no
+
+  tasks:
+    - name: Update and Upgrade
+      apt: upgrade=dist update_cache=yes
+    - name: Install openssh-server
+      apt: name=openssh-server
+
+    # These are needed to run swarming
+    - name: Install libssl-dev
+      apt: name=libssl-dev
+    - name: Install openssl
+      apt: name=openssl
+    - name: Install time
+      apt: name=time
+    - name: Install build-essential
+      apt: name=build-essential
+    - name: Install swig
+      apt: name=swig
+    - name: Install python-m2crypto
+      apt: name=python-m2crypto
+    - name: Install ntpdate
+      apt: name=ntpdate
+    - name: Install python-pip
+      apt: name=python-pip
+
+    # These are needed to run our swarming tests
+
+    # These are needed for general use
+    - name: Install git
+      apt: name=git
+
+    - name: generate chrome-bot ssh
+      user: name=chrome-bot generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa
+
+    - name: create /b
+      file:
+        state: directory
+        path: /b
+        mode: 0777
+        owner: root
+        group: root
+
+    - name: Touch .boto
+      file:
+        path: /home/chrome-bot/.boto
+        owner: chrome-bot
+        group: chrome-bot
+        state: touch
+        mode: 0644
+
+    - name: make sudo reboot passwordless
+      lineinfile: dest=/etc/sudoers line="chrome-bot ALL=NOPASSWD:/sbin/shutdown -r now"
+
+      # This takes the pre-existing /etc/network/interfaces template
+      # (which is a jinja2 template, as per ansible spec) and fills in
+      # the ip address, network, and gateway.
+    - name: generating /etc/network/interfaces
+      template:
+        src: "{{interface_templ}}"
+        dest: "{{expanded_interface}}"
+        owner: root
+        group: root
+        mode: 0644
+        force: yes
+        backup: yes
+
+    - name: disable wifi
+      command: nmcli radio wifi off
