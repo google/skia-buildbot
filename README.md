@@ -12,7 +12,7 @@ https://skia.googlesource.com/buildbot. Although it is possible to check out
 this repository directly with git clone or using gclient fetch, it is preferred to use go get so
 that the code is arranged correctly for Go. If this is your first time working on Go code, read
 about [the GOPATH environment variable](https://golang.org/doc/code.html#GOPATH). Make sure that
-$GOPATH/bin comes before /usr/bin in your PATH. If you have GOPATH set, run:
+$GOPATH/bin comes before /usr/bin in your PATH. Then run:
 
 ```
 $ go get -u -t go.skia.org/infra/...
@@ -24,7 +24,7 @@ Note: go.skia.org is a custom import path and will only work if used like the ex
 [here](http://golang.org/cmd/go/#hdr-Remote_import_paths).
 
 Install [Node.js](https://nodejs.org/en/download/) (not as root) and add the bin dir to your
-path. Optionally run `npm install npm -g`, as suggested by the
+PATH. Optionally run `npm install npm -g`, as suggested by the
 [npm getting started doc](https://docs.npmjs.com/getting-started/installing-node#updating-npm).
 
 Install other dependencies:
@@ -77,3 +77,13 @@ Use this command to run the presubmit tests:
 ```
 $ ./run_unittests --small
 ```
+
+Submitting changes
+==================
+
+To submit changes,
+install [depot_tools](http://www.chromium.org/developers/how-tos/install-depot-tools). You can learn
+more about using depot_tools from
+the
+[tutorial](http://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html),
+but you should ignore the "Getting the code" section for this repo.

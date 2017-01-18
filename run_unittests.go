@@ -304,10 +304,33 @@ func main() {
 	tests = append(tests, cmdTest([]string{"go", "vet", "./..."}, ".", "go vet", testutils.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"errcheck", "-ignore", ":Close", "go.skia.org/infra/..."}, ".", "errcheck", testutils.MEDIUM_TEST))
 	tests = append(tests, polylintTests()...)
-	tests = append(tests, cmdTest([]string{"python", "infra/bots/recipes.py", "simulation_test"}, ".", "recipe simulation test", testutils.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"go", "run", "infra/bots/gen_tasks.go", "--test"}, ".", "gen_tasks.go --test", testutils.SMALL_TEST))
-	tests = append(tests, cmdTest([]string{"python", "infra/bots/check_cq_cfg.py"}, ".", "check CQ config", testutils.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"python", "go/testutils/uncategorized_tests.py"}, ".", "uncategorized tests", testutils.SMALL_TEST))
+
+	// check_cq_cfg.py depends on infra/bots/.recipe_deps, which is fetched
+	// by the simulation_test.
+	simulationTestCmd := []string{"python", "infra/bots/recipes.py", "simulation_test"}
+	checkCQConfigCmd := []string{"python", "infra/bots/check_cq_cfg.py"}
+	tests = append(tests, &test{
+		Name: "recipe simulation test & check CQ config",
+		Cmd:  strings.Join(simulationTestCmd, " ") + " && " + strings.Join(checkCQConfigCmd, " "),
+		run: func() (error, string) {
+			if _, err := exec.LookPath("python"); err != nil {
+				return fmt.Errorf(ERR_NEED_INSTALL, "python", err), ""
+			}
+			command1 := exec.Command(simulationTestCmd[0], simulationTestCmd[1:]...)
+			command1.Dir = "."
+			output1, err1 := command1.CombinedOutput()
+			if err1 != nil {
+				return err1, string(output1)
+			}
+			command2 := exec.Command(checkCQConfigCmd[0], checkCQConfigCmd[1:]...)
+			command2.Dir = "."
+			output2, err2 := command2.CombinedOutput()
+			return err2, string(output2)
+		},
+		Type: testutils.MEDIUM_TEST,
+	})
 
 	goimportsCmd := []string{"goimports", "-l", "."}
 	tests = append(tests, &test{
