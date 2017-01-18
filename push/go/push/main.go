@@ -236,7 +236,7 @@ type PushNewPackage struct {
 // getStatus returns a populated []*systemd.UnitStatus for the given server, one for each
 // push managed service, and nil if the information wasn't able to be retrieved.
 func getStatus(server string) []*systemd.UnitStatus {
-	resp, err := fastClient.Get(fmt.Sprintf("http://%s:10114/_/list", ip.Resolve(server)))
+	resp, err := fastClient.Get(fmt.Sprintf("http://%s:10000/_/list", ip.Resolve(server)))
 	if err != nil {
 		sklog.Infof("Failed to get status of: %s", server)
 		return nil
@@ -385,7 +385,7 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 				httputils.ReportError(w, r, err, "Failed to update server.")
 				return
 			}
-			resp, err := fastClient.Get(fmt.Sprintf("http://%s:10114/pullpullpull", push.Server))
+			resp, err := fastClient.Get(fmt.Sprintf("http://%s:10000/pullpullpull", push.Server))
 			if err != nil || resp == nil {
 				sklog.Infof("Failed to trigger an instant pull for server %s: %v %v", push.Server, err, resp)
 			} else {
@@ -456,7 +456,7 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 	action := r.Form.Get("action")
 	name := r.Form.Get("name")
 	machine := ip.Resolve(r.Form.Get("machine"))
-	url := fmt.Sprintf("http://%s:10114/_/change?name=%s&action=%s", machine, name, action)
+	url := fmt.Sprintf("http://%s:10000/_/change?name=%s&action=%s", machine, name, action)
 	resp, err := fastClient.Post(url, "", nil)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to reach %s: %v %s", machine, resp, err))
