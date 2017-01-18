@@ -3083,6 +3083,175 @@ func TestAddTasksRetries(t *testing.T) {
 	assertModifiedTasks(t, d, trackId, modified)
 }
 
+func TestValidateTask(t *testing.T) {
+	tr, _, _, s, _ := setup(t)
+	defer tr.Cleanup()
+
+	test := func(task *db.Task, msg string) {
+		err := s.ValidateAndAddTask(task)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), msg)
+	}
+
+	tmpl := makeTask("Fake-Name", repoName, c1)
+	tmpl.SwarmingTaskId = ""
+	tmpl.Properties = map[string]string{
+		"barnDoor": "open",
+	}
+
+	{
+		task := tmpl.Copy()
+		task.Name = ""
+		test(task, "TaskKey is not valid")
+	}
+	{
+		task := tmpl.Copy()
+		task.Id = "AlreadyExists"
+		test(task, "Can not specify Id when adding task")
+	}
+	{
+		task := tmpl.Copy()
+		task.IsolatedOutput = "loneliness"
+		test(task, "Can not specify Swarming info")
+	}
+	{
+		task := tmpl.Copy()
+		task.SwarmingBotId = "skynet"
+		test(task, "Can not specify Swarming info")
+	}
+	{
+		task := tmpl.Copy()
+		task.SwarmingTaskId = "1"
+		test(task, "Only fake tasks supported currently")
+	}
+	{
+		task := tmpl.Copy()
+		task.Properties = map[string]string{
+			"\xc3\x28Door": "open",
+		}
+		test(task, "Invalid property key")
+	}
+	{
+		task := tmpl.Copy()
+		task.Properties = map[string]string{
+			"barnDoor": "\xc3\x28",
+		}
+		test(task, "Invalid property value")
+	}
+	{
+		task := tmpl.Copy()
+		task.Revision = "abc123"
+		test(task, "failed to check out RepoState")
+	}
+	{
+		task := tmpl.Copy()
+		task.Name = buildTask
+		test(task, "Can not add a fake task for a real task spec")
+	}
+	// Verify success.
+	err := s.ValidateAndAddTask(tmpl)
+	assert.NoError(t, err)
+}
+
+func TestAddTask(t *testing.T) {
+	tr, d, _, s, _ := setup(t)
+	defer tr.Cleanup()
+
+	track, err := d.StartTrackingModifiedTasks()
+	assert.NoError(t, err)
+
+	// Add first task with Created set.
+	task1 := makeTask("Fake-Name", repoName, c2)
+	task1.SwarmingTaskId = ""
+	task1.Properties = map[string]string{
+		"barnDoor": "open",
+	}
+	task1.Status = db.TASK_STATUS_SUCCESS
+	expected1 := task1.Copy()
+	err = s.ValidateAndAddTask(task1)
+	assert.NoError(t, err)
+
+	// Check updated task.
+	assert.NotEqual(t, "", task1.Id)
+	assert.False(t, util.TimeIsZero(task1.DbModified))
+	expected1.Id = task1.Id
+	expected1.DbModified = task1.DbModified
+	expected1.Commits = []string{c2}
+	testutils.AssertDeepEqual(t, expected1, task1)
+
+	// Add commits on master.
+	repoDir := path.Join(tr.Dir, repoName)
+	exec_testutils.Run(t, repoDir, "git", "checkout", "master")
+	makeDummyCommits(t, repoDir, 2, "master")
+	assert.NoError(t, s.updateRepos())
+	commits, err := s.repos[repoName].Repo().RevList("HEAD")
+	assert.NoError(t, err)
+
+	// Add second task with Created unset; Commits set incorrectly.
+	task2 := makeTask("Fake-Name", repoName, commits[0])
+	task2.SwarmingTaskId = ""
+	task2.Properties = map[string]string{
+		"barnDoor": "closed",
+	}
+	task2.Status = db.TASK_STATUS_RUNNING
+	task2.Commits = []string{c1, c2}
+	expected2 := task2.Copy()
+	err = s.ValidateAndAddTask(task2)
+	assert.NoError(t, err)
+
+	// Check updated task.
+	assert.NotEqual(t, "", task2.Id)
+	assert.False(t, util.TimeIsZero(task2.DbModified))
+	assert.False(t, util.TimeIsZero(task2.Created))
+	expected2.Id = task2.Id
+	expected2.DbModified = task2.DbModified
+	expected2.Created = task2.Created
+	expected2.Commits = []string{commits[0], commits[1]}
+	sort.Strings(task2.Commits)
+	sort.Strings(expected2.Commits)
+	testutils.AssertDeepEqual(t, expected2, task2)
+
+	// Backfill.
+	task3 := makeTask("Fake-Name", repoName, commits[1])
+	task3.SwarmingTaskId = ""
+	task3.Properties = map[string]string{
+		"barnDoor": "closed",
+	}
+	task3.Status = db.TASK_STATUS_MISHAP
+	expected3 := task3.Copy()
+	err = s.ValidateAndAddTask(task3)
+	assert.NoError(t, err)
+
+	// Check updated task.
+	assert.NotEqual(t, "", task3.Id)
+	assert.False(t, util.TimeIsZero(task3.DbModified))
+	expected3.Id = task3.Id
+	expected3.DbModified = task3.DbModified
+	expected3.Commits = []string{commits[1]}
+	testutils.AssertDeepEqual(t, expected3, task3)
+
+	// Check DB.
+	tasks, err := d.GetModifiedTasks(track)
+	assert.NoError(t, err)
+	var actual1, actual2, actual3 *db.Task
+	for _, task := range tasks {
+		switch task.Id {
+		case task1.Id:
+			actual1 = task
+		case task2.Id:
+			actual2 = task
+		case task3.Id:
+			actual3 = task
+		}
+	}
+	testutils.AssertDeepEqual(t, expected1, actual1)
+	assert.True(t, actual2.DbModified.After(task2.DbModified))
+	expected2.DbModified = actual2.DbModified
+	expected2.Commits = []string{commits[0]}
+	testutils.AssertDeepEqual(t, expected2, actual2)
+	testutils.AssertDeepEqual(t, expected3, actual3)
+}
+
 func TestTriggerTaskFailed(t *testing.T) {
 	// Verify that if one task out of a set fails to trigger, the others are
 	// still inserted into the DB and handled properly, eg. wrt. blamelists.
