@@ -1,4 +1,4 @@
-// webhook_email_proxy takes POST'd JSON requests from the Prometheus
+// webhook_proxy takes POST'd JSON requests from various sources, such as Prometheus
 // AlertManager and turns them into outgoing emails.
 package main
 
@@ -12,14 +12,15 @@ import (
 	"path/filepath"
 
 	"github.com/gorilla/mux"
+	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/prometheus/go/alertmanager"
+	"go.skia.org/infra/prometheus/go/bot"
 )
 
 const (
@@ -32,7 +33,8 @@ var (
 	emailClientIdFlag     = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
 	emailClientSecretFlag = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
 	local                 = flag.Bool("local", false, "Running locally, not in prod.")
-	port                  = flag.String("port", "localhost:9999", "HTTP service port (e.g., ':8001')")
+	port                  = flag.String("port", "localhost:8004", "HTTP service port (e.g., ':8001')")
+	publicPort            = flag.String("public_port", ":8005", "HTTP service port (e.g., ':8001')")
 	promPort              = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
 )
 
@@ -40,7 +42,7 @@ var (
 	emailAuth *email.GMail
 )
 
-func alertManagerHandler(w http.ResponseWriter, r *http.Request) {
+func emailHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse the list of email addresses out of the url query params, i.e. ?email=foo@example.com&email=bar@example.org.
 	to := r.URL.Query()["email"]
 	if len(to) == 0 {
@@ -59,11 +61,49 @@ func alertManagerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func chatHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse the chat room name out of the url query params, i.e. ?room=skiabot_alerts.
+	to := r.URL.Query().Get("room")
+	if to == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Missing room in URL: %q", r.RequestURI), "Chat room name missing.")
+		return
+	}
+
+	// Compose the message.
+	body, err := alertmanager.Chat(r.Body)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode outgoing chat.")
+		return
+	}
+
+	// Send the message to the chat room.
+	if err := bot.Send(body, to); err != nil {
+		httputils.ReportError(w, r, err, "Failed to send outgoing chat.")
+		return
+	}
+}
+
+func publicWebhookHandler(w http.ResponseWriter, r *http.Request) {
+	botName := mux.Vars(r)["bot"]
+	sklog.Infof("Webhook: Bot: %q URL %#v Host: %q  URI: %q", botName, *(r.URL), r.Host, r.RequestURI)
+	b, err := ioutil.ReadAll(r.Body)
+	if err == nil {
+		sklog.Infof("Body: %q", string(b))
+	} else {
+		sklog.Errorf("Error reading webhook body: %s", err)
+	}
+}
+
 func main() {
 	defer common.LogPanic()
 
-	common.Init()
-	metrics2.InitPrometheus(*promPort)
+	common.InitWithMust(
+		"webhook_proxy",
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
+
+	bot.Init()
 
 	usr, err := user.Current()
 	if err != nil {
@@ -97,10 +137,17 @@ func main() {
 	// Resources are served directly.
 	router := mux.NewRouter()
 
-	router.HandleFunc("/alertmanager", alertManagerHandler).Methods("POST")
+	router.HandleFunc("/email", emailHandler).Methods("POST")
+	router.HandleFunc("/chat", chatHandler).Methods("POST")
 
 	http.Handle("/", httputils.LoggingGzipRequestResponse(router))
 
 	sklog.Infoln("Ready to serve.")
-	sklog.Fatal(http.ListenAndServe(*port, nil))
+	go func() {
+		sklog.Fatal(http.ListenAndServe(*port, nil))
+	}()
+
+	r := mux.NewRouter()
+	r.HandleFunc("/h/{bot}", publicWebhookHandler).Methods("POST")
+	glog.Fatal(http.ListenAndServe(*publicPort, httputils.LoggingGzipRequestResponse(r)))
 }
