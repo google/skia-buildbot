@@ -248,29 +248,33 @@ func (c *logsClient) Flush() {
 func (c *logsClient) pushBatch() {
 	// Bail out if the cloud logging service is not finished initializing.
 	if c.service == nil {
+		glog.Infof("Logging service is still nil.\n")
 		return
 	}
 	request := logging.WriteLogEntriesRequest{
 		Entries: c.buffer,
 	}
 	if len(c.buffer) > 0 {
-		glog.Infof("Sending log entry batch of %d", len(c.buffer))
+		glog.Infof("Sending log entry batch of %d\n", len(c.buffer))
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), WRITE_LOG_ENTRIES_REQUEST_TIMEOUT)
 	defer cancel()
 	if resp, err := c.service.Entries.Write(&request).Context(ctx).Do(); err != nil {
 		// We can't use httputil.DumpResponse, because that doesn't accept *logging.WriteLogEntriesResponse
-		glog.Errorf("Problem writing logs \nResponse:\n%v:\n%s", spew.Sdump(resp), err)
+		glog.Errorf("Problem writing logs \nResponse:\n%v:\n%s\n", spew.Sdump(resp), err)
 	} else if resp.HTTPStatusCode != http.StatusOK {
-		glog.Warningf("Response code %d", resp.HTTPStatusCode)
+		glog.Errorf("Response code %d\n", resp.HTTPStatusCode)
 	}
+	glog.Infof("Finished Flush.\n")
+
 	c.buffer = c.buffer[:0]
 }
 
 func (c *logsClient) background() {
+	ticker := time.NewTicker(LOG_WRITE_SECONDS * time.Second)
 	for {
 		select {
-		case <-time.Tick(LOG_WRITE_SECONDS * time.Second):
+		case <-ticker.C:
 			c.pushBatch()
 		case ch := <-c.flush:
 			c.pushBatch()
