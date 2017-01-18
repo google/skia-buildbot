@@ -248,6 +248,7 @@ func (c *logsClient) Flush() {
 func (c *logsClient) pushBatch() {
 	// Bail out if the cloud logging service is not finished initializing.
 	if c.service == nil {
+		glog.Infof("Logging service is still nil.")
 		return
 	}
 	request := logging.WriteLogEntriesRequest{
@@ -262,15 +263,18 @@ func (c *logsClient) pushBatch() {
 		// We can't use httputil.DumpResponse, because that doesn't accept *logging.WriteLogEntriesResponse
 		glog.Errorf("Problem writing logs \nResponse:\n%v:\n%s", spew.Sdump(resp), err)
 	} else if resp.HTTPStatusCode != http.StatusOK {
-		glog.Warningf("Response code %d", resp.HTTPStatusCode)
+		glog.Errorf("Response code %d", resp.HTTPStatusCode)
 	}
+	glog.Infof("Finished Flush.")
+
 	c.buffer = c.buffer[:0]
 }
 
 func (c *logsClient) background() {
+	ticker := time.NewTicker(LOG_WRITE_SECONDS * time.Second)
 	for {
 		select {
-		case <-time.Tick(LOG_WRITE_SECONDS * time.Second):
+		case <-ticker.C:
 			c.pushBatch()
 		case ch := <-c.flush:
 			c.pushBatch()
