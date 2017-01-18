@@ -22,6 +22,24 @@
       "revId": "53521699f55bcdf12c7a505eea0041f7d0dd9362",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "036b4132_60b84b28",
+        "filename": "res/imp/commit.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-01-18T15:59:42Z",
+      "side": 1,
+      "message": "Added a documentation. I would prefer sticking with the assumption of a googlesource repo for now. That way I don\u0027t have to anticipate what future URLs look like. \nNow that the overall structure is in place, changing the app_config values is very simple and I\u0027d rather do it when we actually have another repo to deal with.",
+      "parentUuid": "036b4132_4591a1a5",
+      "revId": "53521699f55bcdf12c7a505eea0041f7d0dd9362",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
