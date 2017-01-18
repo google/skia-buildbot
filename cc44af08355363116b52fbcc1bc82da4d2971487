@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "036b4132_256585f6",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1518,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-18T12:39:22Z",
+      "side": 1,
+      "message": "Please say that it\u0027s invalid because it\u0027s not a UTF-8 string.",
+      "range": {
+        "startLine": 1518,
+        "startChar": 22,
+        "endLine": 1518,
+        "endChar": 46
+      },
+      "revId": "cc44af08355363116b52fbcc1bc82da4d2971487",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
