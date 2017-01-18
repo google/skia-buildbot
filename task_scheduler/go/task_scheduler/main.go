@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -27,6 +28,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/webhook"
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
@@ -350,6 +352,39 @@ func jobHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// jsonAddTaskHandler parses a Task as JSON from the request and calls
+// TaskScheduler.ValidateAndAddTask, returning the updated Task as JSON.
+func jsonAddTaskHandler(w http.ResponseWriter, r *http.Request) {
+	data, err := webhook.AuthenticateRequest(r)
+	if err != nil {
+		if data == nil {
+			httputils.ReportError(w, r, err, "Failed to read add task request")
+			return
+		}
+		if !login.IsAdmin(r) {
+			httputils.ReportError(w, r, err, "Failed authentication")
+			return
+		}
+	}
+
+	var task db.Task
+	if err := json.NewDecoder(bytes.NewReader(data)).Decode(&task); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
+		return
+	}
+
+	if err := ts.ValidateAndAddTask(&task); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add task: %s", err))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(task); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
+		return
+	}
+}
+
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
@@ -359,6 +394,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/json/blacklist", jsonBlacklistHandler).Methods(http.MethodPost, http.MethodDelete)
 	r.HandleFunc("/json/job/{id}", jsonJobHandler)
 	r.HandleFunc("/json/job/{id}/cancel", jsonCancelJobHandler).Methods(http.MethodPost)
+	r.HandleFunc("/json/task", jsonAddTaskHandler).Methods(http.MethodPost)
 	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods(http.MethodPost)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
@@ -506,6 +542,12 @@ func main() {
 	redirectURL := serverURL + "/oauth2callback/"
 	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
 		sklog.Fatal(err)
+	}
+
+	if *local {
+		webhook.InitRequestSaltForTesting()
+	} else {
+		webhook.MustInitRequestSaltFromMetadata()
 	}
 
 	go runServer(serverURL)

@@ -10,6 +10,7 @@ import (
 	"sort"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"golang.org/x/net/context"
 
@@ -1491,6 +1492,59 @@ func (s *TaskScheduler) AddTasks(taskMap map[string]map[string][]*db.Task) error
 		return fmt.Errorf("AddTasks: %d consecutive ErrConcurrentUpdate", db.NUM_RETRIES)
 	}
 	return nil
+}
+
+// ValidateAndAddTask inserts the given task into the TaskDB, updating
+// blamelists. Checks that the task has a valid repo, revision, name, etc. The
+// task should have all fields initialized except for Commits and Id, which must
+// be empty. Updates existing Tasks' blamelists, if needed. May modify Commits
+// and Id on error.
+func (s *TaskScheduler) ValidateAndAddTask(task *db.Task) error {
+	if !task.TaskKey.Valid() {
+		return fmt.Errorf("TaskKey is not valid.")
+	}
+	if task.Id != "" {
+		return fmt.Errorf("Can not specify Id when adding task. Got: %q", task.Id)
+	}
+	if task.Fake() {
+		if task.IsolatedOutput != "" || task.SwarmingBotId != "" || task.SwarmingTaskId != "" {
+			return fmt.Errorf("Can not specify Swarming info for a fake task.")
+		}
+	} else {
+		return fmt.Errorf("Only fake tasks supported currently.")
+	}
+	for key, value := range task.Properties {
+		if !utf8.ValidString(key) {
+			return fmt.Errorf("Invalid property key -- must be valid UTF8: %q", key)
+		}
+		if !utf8.ValidString(value) {
+			return fmt.Errorf("Invalid property value -- must be valid UTF8 or base64-encoded: %q", value)
+		}
+	}
+
+	// Check RepoState and TaskSpec.
+	taskCfg, err := s.taskCfgCache.ReadTasksCfg(task.RepoState)
+	if err != nil {
+		return err
+	}
+	_, taskSpecExists := taskCfg.Tasks[task.Name]
+	if taskSpecExists {
+		return fmt.Errorf("Can not add a fake task for a real task spec.")
+	}
+
+	if util.TimeIsZero(task.Created) {
+		task.Created = time.Now().UTC()
+	}
+	if len(task.Commits) > 0 {
+		sklog.Warning("Ignoring Commits in ValidateAndAddTask. %v", task)
+	}
+	task.Commits = nil
+
+	return s.AddTasks(map[string]map[string][]*db.Task{
+		task.Repo: map[string][]*db.Task{
+			task.Name: []*db.Task{task},
+		},
+	})
 }
 
 // updateTaskFromSwarming loads the given Swarming task ID from Swarming and

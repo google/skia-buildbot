@@ -1,4 +1,8 @@
 // Utility methods for implementing authenticated webhooks.
+//
+// All requests must either be over a private channel (e.g. https) or must be
+// idempotent and return no data. Requests sent via an open channel (e.g. http)
+// could be resent by an attacker.
 package webhook
 
 import (
