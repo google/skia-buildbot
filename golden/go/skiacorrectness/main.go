@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -13,6 +14,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
@@ -299,7 +301,26 @@ func main() {
 
 	// For everything else serve the same markup.
 	indexFile := *resourcesDir + "/index.html"
+	indexTemplate := template.Must(template.New("").ParseFiles(indexFile)).Lookup("index.html")
+
+	// appConfig is injected into the header of the index file.
+	appConfig := &struct {
+		BaseRepoURL string `json:"baseRepoURL"`
+	}{
+		BaseRepoURL: *gitRepoURL,
+	}
+
 	router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+
+		// Reload the template if we are running locally.
+		if *local {
+			indexTemplate = template.Must(template.New("").ParseFiles(indexFile)).Lookup("index.html")
+		}
+		if err := indexTemplate.Execute(w, appConfig); err != nil {
+			glog.Errorln("Failed to expand template:", err)
+		}
+
 		http.ServeFile(w, r, indexFile)
 	})
 

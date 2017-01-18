@@ -12,8 +12,11 @@
     selector - The iron-selector element that wraps the commits.
 
     mailbox - The sk.Mailbox name to listen for the data to populate
-      the element. This is in addition to the 'commits' mailbox 
-      described below. 
+      the element. This is in addition to the 'commits' mailbox
+      described below.
+
+    repo - The URL of the underlying git repo. This assumes a
+           googlesource repo when deriving URLs from this value.
 
   Methods:
     setCommitInfo - Sets the commit info, an array of *types.Commit. See the
@@ -92,7 +95,7 @@
     </template>
     <iron-selector id=selector>
       <template is="dom-repeat" items="{{_commitinfo}}" as="c">
-        <commit-sk data-hash$="{{c.hash}}" hash="{{c.hash}}" commit="{{c}}"></commit-sk>
+        <commit-sk data-hash$="{{c.hash}}" hash="{{c.hash}}" commit="{{c}}" repo="{{repo}}"></commit-sk>
       </template>
     </iron-selector>
   </template>
@@ -115,6 +118,11 @@
         mailbox: {
           value: "",
           reflectToAttribute: true
+        },
+        repo: {
+          type: String,
+          value: "https://skia.googlesource.com/skia",
+          notify: true
         }
       },
 
@@ -163,7 +171,7 @@
           var lastHash = this._commitinfo[0].hash;
           this._firstHash = this._commitinfo[this._commitinfo.length - 1].hash;
           if (!this._commitinfo[0].message) {
-            var url = 'https://skia.googlesource.com/skia/+log/' + this._firstHash + '~' + 1 + '..' + lastHash + '?format=json';
+            var url = this.repo + '/+log/' + this._firstHash + '~' + 1 + '..' + lastHash + '?format=json';
             // The git hashes are in time order, but not contiguous, so request
             // the log range and them populate messages by matching git hashes.
             sk.get(url).then(this._removeSecurityHeader).then(JSON.parse).then(function (json) {

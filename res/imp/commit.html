@@ -5,6 +5,8 @@
   Attributes:
     hash - The git commit hash to display.
     commit - The serialized types.Commit that corresponds to the given hash.
+    repo - The URL of the underlying git repo. This assumes a
+           googlesource repo when deriving URLs from this value.
 
   Events:
     None.
@@ -41,7 +43,7 @@
 
 <dom-module id="commit-sk">
   <template>
-    <pre><span>{{_trimPad(commit.author)}}</span> <span>{{_humanize(commit.commit_time)}}</span> <span><a href$="{{_commitHref(commit)}}" target="_blank">{{_trunc(commit.hash)}}</a></span> <span>{{_trimNewline(commit.message)}}</span></pre>
+    <pre><span>{{_trimPad(commit.author)}}</span> <span>{{_humanize(commit.commit_time)}}</span> <span><a href$="{{_commitHref(commit, repo)}}" target="_blank">{{_trunc(commit.hash)}}</a></span> <span>{{_trimNewline(commit.message)}}</span></pre>
   </template>
 </dom-module>
 
@@ -58,7 +60,11 @@
       },
       commit: {
         type: Object,
-        value: null,
+        value: null
+      },
+      repo: {
+        type: String,
+        value: "https://skia.googlesource.com/skia"
       }
     },
 
@@ -125,11 +131,11 @@
       return sk.human.diffDate(s * 1000);
     },
 
-    _commitHref: function (c) {
-      if (!c) {
+    _commitHref: function (c, repo) {
+      if (!c || !repo) {
         return "";
       }
-      return 'https://skia.googlesource.com/skia/+/' + c.hash;
+      return repo + '/+/' + c.hash;
     },
 
     _trunc: function (s) {
