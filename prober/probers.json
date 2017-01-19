@@ -203,13 +203,6 @@
      "body": "",
      "mimetype": ""
    },
-   "skiapushlogs": {
-     "url": "http://skia-push:10115",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
    "skiafiddlelogs": {
      "url": "http://skia-fiddle:10115",
      "method": "GET",
