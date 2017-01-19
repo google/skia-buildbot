@@ -56,8 +56,8 @@ func main() {
 
 	// Limit total CPU seconds.
 	rLimit := &syscall.Rlimit{
-		Cur: 10,
-		Max: 10,
+		Cur: 20,
+		Max: 20,
 	}
 	if err := syscall.Setrlimit(syscall.RLIMIT_CPU, rLimit); err != nil {
 		fmt.Println("Error Setting Rlimit ", err)
