@@ -59,6 +59,12 @@ var (
 
 	// packageInfo is a cache of info about packages.
 	packageInfo *packages.AllInfo
+
+	// mutex protects currentStatus
+	mutex sync.Mutex
+
+	// The current status of all the units.
+	currentStatus map[string]*systemd.UnitStatus
 )
 
 // flags
@@ -430,13 +436,32 @@ func serversFromAllInstalled(allInstalled map[string]*packages.Installed) Server
 // statusHandler handles the GET of the JSON for each service's status.
 func statusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
-	servers := serversFromAllInstalled(packageInfo.AllInstalled())
 	enc := json.NewEncoder(w)
-	err := enc.Encode(serviceStatus(servers))
+	err := enc.Encode(getCurrentStatus())
 	if err != nil {
 		sklog.Errorf("Failed to write or encode output: %s", err)
 		return
+	}
+}
+
+func getCurrentStatus() map[string]*systemd.UnitStatus {
+	mutex.Lock()
+	defer mutex.Unlock()
+	return currentStatus
+}
+
+func stepStatus() {
+	servers := serversFromAllInstalled(packageInfo.AllInstalled())
+	updatedStatus := serviceStatus(servers)
+	mutex.Lock()
+	defer mutex.Unlock()
+	currentStatus = updatedStatus
+}
+
+func startStatusUpdate() {
+	stepStatus()
+	for _ = range time.Tick(5 * time.Second) {
+		stepStatus()
 	}
 }
 
@@ -544,6 +569,7 @@ func main() {
 	Init()
 
 	go startDirtyMonitoring()
+	go startStatusUpdate()
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", mainHandler)
