@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "284bc29d_1f38a70d",
+        "filename": "README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-19T14:48:45Z",
+      "side": 1,
+      "message": "Huh? Why?  We should probably point to the Skia doc for contributors, eg https://skia.org/dev/contrib/submit",
+      "range": {
+        "startLine": 89,
+        "startChar": 4,
+        "endLine": 89,
+        "endChar": 52
+      },
+      "revId": "cd0088d68e3df7fc69e58476239f4fadd224b371",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_df12bf7d",
+        "filename": "run_unittests.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-19T14:48:45Z",
+      "side": 1,
+      "message": "Another option is to have check_cq_config look for a depot_tools install using a fallback chain and then fail out if not present, eg:\n\n1. If we\u0027re a bot (ie. CHROME_HEADLESS\u003d1), use the DEPOT_TOOLS environment variable.\n2. If \"gclient\" is in the path, use its parent dir.\n3. If infra/bots/.recipe_deps/depot_tools is present, use that.",
+      "range": {
+        "startLine": 310,
+        "startChar": 1,
+        "endLine": 311,
+        "endChar": 27
+      },
+      "revId": "cd0088d68e3df7fc69e58476239f4fadd224b371",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_df3d9ffa",
+        "filename": "run_unittests.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-19T14:48:45Z",
+      "side": 1,
+      "message": "Personally, I really prefer exec.RunCwd:\n\noutput1, err1 :\u003d exec.RunCwd(\".\", simulationTestCmd...)\n...",
+      "range": {
+        "startLine": 321,
+        "startChar": 3,
+        "endLine": 323,
+        "endChar": 45
+      },
+      "revId": "cd0088d68e3df7fc69e58476239f4fadd224b371",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
