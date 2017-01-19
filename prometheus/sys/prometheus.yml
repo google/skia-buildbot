@@ -2,14 +2,13 @@ rule_files:
   - "alert.rules"
 
 scrape_configs:
-  - job_name: 'skiaperfd'
-    static_configs:
-      - targets: ['skia-perf:20000']
-      - targets: ['skia-android-perf:20000']
-
   - job_name: 'androidingest'
     static_configs:
       - targets: ['skia-android-ingest:20000']
+
+  - job_name: 'corpproxy'
+    static_configs:
+      - targets: ['skia-proxy:20000']
 
   - job_name: 'proberd'
     static_configs:
@@ -19,20 +18,46 @@ scrape_configs:
     static_configs:
       - targets: ['skia-push:20000']
 
-  - job_name: 'corpproxy'
+  - job_name: 'skiaperfd'
     static_configs:
-      - targets: ['skia-proxy:20000']
+      - targets: ['skia-perf:20000']
+      - targets: ['skia-android-perf:20000']
 
   - job_name: 'pulld'
     static_configs:
+      - targets: ['catapult-autoroll:11000']
+      - targets: ['nacl-autoroll:11000']
+      - targets: ['pdfium-autoroll:11000']
+      - targets: ['skia-alerts:11000']
       - targets: ['skia-android-ingest:11000']
       - targets: ['skia-android-perf:11000']
+      - targets: ['skia-autoroll:11000']
+      - targets: ['skia-cq-watcher:11000']
+      - targets: ['skia-datahopper2:11000']
+      - targets: ['skia-debugger:11000']
+      - targets: ['skia-docs:11000']
+      - targets: ['skia-fiddle:11000']
+      - targets: ['skia-fuzzer-be-1:11000']
+      - targets: ['skia-fuzzer-be-2:11000']
+      - targets: ['skia-fuzzer-fe:11000']
+      - targets: ['skia-gold-pdfium:11000']
+      - targets: ['skia-gold-prod:11000']
+      - targets: ['skia-gold-stage:11000']
+      - targets: ['skia-grandcentral:11000']
+      - targets: ['skia-imageinfo:11000']
+      - targets: ['skia-internal:11000']
+      - targets: ['skia-monitoring:11000']
       - targets: ['skia-monitoring:11000']
       - targets: ['skia-perf:11000']
       - targets: ['skia-prom:11000']
-      - targets: ['skia-push:11000']
       - targets: ['skia-proxy:11000']
-
+      - targets: ['skia-push:11000']
+      - targets: ['skia-skfe-1:11000']
+      - targets: ['skia-skfe-2:11000']
+      - targets: ['skia-status:11000']
+      - targets: ['skia-task-scheduler-internal:11000']
+      - targets: ['skia-task-scheduler:11000']
+      - targets: ['skia-tracedb:11000']
 
   # Prometheus self monitoring.
   - job_name: 'prometheus'
@@ -51,7 +76,7 @@ scrape_configs:
     static_configs:
       - targets: ['skia-prom:20003']
 
-  - job_name: 'webhook-email-proxy'
+  - job_name: 'webhook-proxy'
     static_configs:
       - targets: ['skia-prom:20004']
 
