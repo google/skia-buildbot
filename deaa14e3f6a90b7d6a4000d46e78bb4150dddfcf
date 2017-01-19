@@ -16,6 +16,24 @@
       "revId": "deaa14e3f6a90b7d6a4000d46e78bb4150dddfcf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_a526c4d4",
+        "filename": "tracedb/go/skia_ingestion/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-01-19T21:27:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "284bc29d_25947427",
+      "revId": "deaa14e3f6a90b7d6a4000d46e78bb4150dddfcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
