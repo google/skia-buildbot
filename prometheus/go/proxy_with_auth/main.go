@@ -13,15 +13,14 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 )
 
 var (
+	local      = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port       = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort   = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
 	targetPort = flag.String("target_port", ":10116", "The port we are proxying to.")
-	domain     = flag.String("domain", "prom.skia.org", "What is the domain name we are serving.")
 )
 
 type Proxy struct {
@@ -45,19 +44,16 @@ func (p Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	defer common.LogPanic()
-	common.Init()
-	metrics2.InitPrometheus(*promPort)
-
-	common.StartCloudLogging(filepath.Base(os.Args[0]))
+	common.InitWithMust(
+		filepath.Base(os.Args[0]),
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
+	login.SimpleInitMust(*port, *local)
 
 	target, err := url.Parse(fmt.Sprintf("http://localhost%s", *targetPort))
 	if err != nil {
 		sklog.Fatalf("Unable to parse target URL %q: %s", targetPort, err)
-	}
-
-	redirectURL := fmt.Sprintf("https://%s/oauth2callback/", *domain)
-	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
 	http.Handle("/", NewProxy(target))
