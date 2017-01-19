@@ -393,39 +393,6 @@ func jsonTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// jsonUpdateTaskHandler parses a Task as JSON from the request and calls
-// TaskScheduler.ValidateAndUpdateTask, returning the updated Task as JSON.
-func jsonUpdateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	data, err := webhook.AuthenticateRequest(r)
-	if err != nil {
-		if data == nil {
-			httputils.ReportError(w, r, err, "Failed to read add task request")
-			return
-		}
-		if !login.IsAdmin(r) {
-			httputils.ReportError(w, r, err, "Failed authentication")
-			return
-		}
-	}
-
-	var task db.Task
-	if err := json.NewDecoder(bytes.NewReader(data)).Decode(&task); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
-		return
-	}
-
-	if err := ts.ValidateAndUpdateTask(&task); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add task: %s", err))
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(task); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
-		return
-	}
-}
-
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
