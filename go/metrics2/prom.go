@@ -201,7 +201,10 @@ func (p *promClient) GetInt64Metric(name string, tags ...map[string]string) Int6
 	ret = &promInt64{
 		gauge: gauge,
 	}
+
+	p.int64Mutex.Lock()
 	p.int64Gauges[gaugeKey] = ret
+	p.int64Mutex.Unlock()
 	return ret
 }
 
@@ -293,7 +296,10 @@ func (p *promClient) GetFloat64SummaryMetric(name string, tags ...map[string]str
 	ret = &promFloat64Summary{
 		summary: summary,
 	}
+
+	p.float64SummaryMutex.Lock()
 	p.float64Summaries[summaryKey] = ret
+	p.float64SummaryMutex.Unlock()
 	return ret
 }
 

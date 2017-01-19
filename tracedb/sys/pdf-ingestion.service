@@ -7,7 +7,8 @@ After=mnt-pd0.mount network-online.target
 [Service]
 ExecStart=/usr/local/bin/pdf_ingestion \
     --config_filename=/etc/pdf_ingestion/config.toml \
-    --log_dir=/var/log/logserver
+    --log_dir=/var/log/logserver \
+    --prom_port=:20002
 Restart=always
 User=default
 Group=default
