@@ -10,7 +10,6 @@ import (
 	"sort"
 	"sync"
 	"time"
-	"unicode/utf8"
 
 	"golang.org/x/net/context"
 
@@ -1500,26 +1499,14 @@ func (s *TaskScheduler) AddTasks(taskMap map[string]map[string][]*db.Task) error
 // be empty. Updates existing Tasks' blamelists, if needed. May modify Commits
 // and Id on error.
 func (s *TaskScheduler) ValidateAndAddTask(task *db.Task) error {
-	if !task.TaskKey.Valid() {
-		return fmt.Errorf("TaskKey is not valid.")
-	}
 	if task.Id != "" {
 		return fmt.Errorf("Can not specify Id when adding task. Got: %q", task.Id)
 	}
-	if task.Fake() {
-		if task.IsolatedOutput != "" || task.SwarmingBotId != "" || task.SwarmingTaskId != "" {
-			return fmt.Errorf("Can not specify Swarming info for a fake task.")
-		}
-	} else {
-		return fmt.Errorf("Only fake tasks supported currently.")
+	if err := task.Validate(); err != nil {
+		return err
 	}
-	for key, value := range task.Properties {
-		if !utf8.ValidString(key) {
-			return fmt.Errorf("Invalid property key -- must be valid UTF8: %q", key)
-		}
-		if !utf8.ValidString(value) {
-			return fmt.Errorf("Invalid property value -- must be valid UTF8 or base64-encoded: %q", value)
-		}
+	if !task.Fake() {
+		return fmt.Errorf("Only fake tasks supported currently.")
 	}
 
 	// Check RepoState and TaskSpec.
@@ -1545,6 +1532,50 @@ func (s *TaskScheduler) ValidateAndAddTask(task *db.Task) error {
 			task.Name: []*db.Task{task},
 		},
 	})
+}
+
+// ValidateAndUpdateTask modifies the given task in the TaskDB. Ensures the
+// task's blamelist, repo, revision, etc. do not change. The task should have
+// all fields initialized.
+func (s *TaskScheduler) ValidateAndUpdateTask(task *db.Task) error {
+	return validateAndUpdateTask(s.db, task)
+}
+
+// validateAndUpdateTask implements ValidateAndUpdateTask. Function instead of
+// method for easier testing.
+func validateAndUpdateTask(d db.TaskDB, task *db.Task) error {
+	if task.Id == "" {
+		return fmt.Errorf("Must specify Id when updating task.")
+	}
+	if err := task.Validate(); err != nil {
+		return err
+	}
+	if !task.Fake() {
+		return fmt.Errorf("Only fake tasks supported currently.")
+	}
+
+	old, err := d.GetTaskById(task.Id)
+	if err != nil {
+		return err
+	} else if old == nil {
+		return fmt.Errorf("No such task %q.", task.Id)
+	}
+	if !old.Fake() {
+		return fmt.Errorf("Can not overwrite real task with fake task.")
+	}
+	if !old.DbModified.Equal(task.DbModified) {
+		return db.ErrConcurrentUpdate
+	}
+	if !old.Created.Equal(task.Created) {
+		return fmt.Errorf("Illegal update: Created time changed.")
+	}
+	if old.TaskKey != task.TaskKey {
+		return fmt.Errorf("Illegal update: TaskKey changed.")
+	}
+	if !util.SSliceEqual(old.Commits, util.CopyStringSlice(task.Commits)) {
+		return fmt.Errorf("Illegal update: Commits changed.")
+	}
+	return d.PutTask(task)
 }
 
 // updateTaskFromSwarming loads the given Swarming task ID from Swarming and

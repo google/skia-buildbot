@@ -352,9 +352,50 @@ func jobHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// jsonAddTaskHandler parses a Task as JSON from the request and calls
-// TaskScheduler.ValidateAndAddTask, returning the updated Task as JSON.
-func jsonAddTaskHandler(w http.ResponseWriter, r *http.Request) {
+// jsonTaskHandler parses a Task as JSON from the request and calls
+// TaskScheduler.ValidateAnd(Add|Update)Task, returning the updated Task as
+// JSON.
+func jsonTaskHandler(w http.ResponseWriter, r *http.Request) {
+	data, err := webhook.AuthenticateRequest(r)
+	if err != nil {
+		if data == nil {
+			httputils.ReportError(w, r, err, "Failed to read request")
+			return
+		}
+		if !login.IsAdmin(r) {
+			httputils.ReportError(w, r, err, "Failed authentication")
+			return
+		}
+	}
+
+	var task db.Task
+	if err := json.NewDecoder(bytes.NewReader(data)).Decode(&task); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		if err := ts.ValidateAndAddTask(&task); err != nil {
+			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add task: %s", err))
+			return
+		}
+	} else {
+		if err := ts.ValidateAndUpdateTask(&task); err != nil {
+			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to update task: %s", err))
+			return
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(task); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
+		return
+	}
+}
+
+// jsonUpdateTaskHandler parses a Task as JSON from the request and calls
+// TaskScheduler.ValidateAndUpdateTask, returning the updated Task as JSON.
+func jsonUpdateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := webhook.AuthenticateRequest(r)
 	if err != nil {
 		if data == nil {
@@ -373,7 +414,7 @@ func jsonAddTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := ts.ValidateAndAddTask(&task); err != nil {
+	if err := ts.ValidateAndUpdateTask(&task); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add task: %s", err))
 		return
 	}
@@ -394,7 +435,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/json/blacklist", jsonBlacklistHandler).Methods(http.MethodPost, http.MethodDelete)
 	r.HandleFunc("/json/job/{id}", jsonJobHandler)
 	r.HandleFunc("/json/job/{id}/cancel", jsonCancelJobHandler).Methods(http.MethodPost)
-	r.HandleFunc("/json/task", jsonAddTaskHandler).Methods(http.MethodPost)
+	r.HandleFunc("/json/task", jsonTaskHandler).Methods(http.MethodPost, http.MethodPut)
 	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods(http.MethodPost)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
