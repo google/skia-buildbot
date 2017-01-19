@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "284bc29d_1f9267ac",
+        "filename": "alertserver/alerts.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-19T15:11:37Z",
+      "side": 1,
+      "message": "Remove \"and\"",
+      "range": {
+        "startLine": 467,
+        "startChar": 59,
+        "endLine": 467,
+        "endChar": 62
+      },
+      "revId": "3b70a72186cc5a083c33eeb69761e2e7ea23a182",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
