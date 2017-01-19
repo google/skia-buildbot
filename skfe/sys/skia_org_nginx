@@ -910,7 +910,40 @@ server {
     return 301 https://promalerts.skia.org$request_uri;
 }
 
+#####   webhooks.skia.org   ###########################
+server {
+    listen      443;
+    server_name webhooks.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/webhooks.access.log;
+    error_log /var/log/nginx/webhooks.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
+    client_max_body_size 500M;
+
+    location / {
+        proxy_pass http://skia-prom:8005;
+        proxy_set_header Host $host;
+    }
+}
+
+server {
+    listen      80;
+    server_name webhooks.skia.org;
+    return 301 https://webhooks.skia.org$request_uri;
+}
+
 #####   proxy.skia.org   ###########################
+#
+# proxy.skia.org is different than most other rules because it matches regexs
+# on the first part of the host.
+#
 server {
     listen      443;
     server_name ~^[a-zA-Z0-9-]+proxy\.skia\.org$;
