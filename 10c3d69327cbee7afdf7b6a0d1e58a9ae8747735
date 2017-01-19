@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "284bc29d_5f9a2fb2",
+        "filename": "skolo/linux/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-19T15:23:59Z",
+      "side": 1,
+      "message": "I had hoped so, but I think it depends.  E.g. the nucs use eno1, the shuttles have enp5s0, etc\n\nI think it\u0027s better to not. and just require a manual entry.",
+      "parentUuid": "284bc29d_ff617be5",
+      "revId": "10c3d69327cbee7afdf7b6a0d1e58a9ae8747735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "284bc29d_7fbc4b1a",
         "filename": "skolo/linux/README.md",
         "patchSetId": 3
@@ -42,6 +60,24 @@
         "endLine": 13,
         "endChar": 66
       },
+      "revId": "10c3d69327cbee7afdf7b6a0d1e58a9ae8747735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_bfaed3d4",
+        "filename": "skolo/linux/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-01-19T15:23:59Z",
+      "side": 1,
+      "message": "I think that\u0027s a great idea.  https://bugs.chromium.org/p/skia/issues/detail?id\u003d6135",
+      "parentUuid": "284bc29d_7fbc4b1a",
       "revId": "10c3d69327cbee7afdf7b6a0d1e58a9ae8747735",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
