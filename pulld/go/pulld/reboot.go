@@ -29,6 +29,7 @@ func rebootMonitoringInit() {
 	})
 	go func() {
 		for _ = range time.Tick(time.Minute) {
+			sklog.Infof("Reboot check.")
 			_, err := os.Stat("/var/run/reboot-required")
 			if err == nil {
 				reboot.Update(1)
