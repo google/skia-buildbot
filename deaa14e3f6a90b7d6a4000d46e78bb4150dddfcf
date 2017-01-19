@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "284bc29d_25947427",
+        "filename": "tracedb/go/skia_ingestion/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-19T19:42:16Z",
+      "side": 1,
+      "message": "Each of the ingestion .service files should set different ports, :20000, :20001, etc for --prom_port, otherwise there will be conflicts.",
+      "revId": "deaa14e3f6a90b7d6a4000d46e78bb4150dddfcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
