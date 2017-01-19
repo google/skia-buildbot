@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "284bc29d_1f3ee72b",
+        "filename": "prometheus/go/alertmanager/alertmanager.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-19T14:04:09Z",
+      "side": 1,
+      "message": "Looks like this block is the same or very similar to the one in Email(r io.Reader), can we extract it out?\nAlso would it help to have a mutex in there to protect loc?",
+      "revId": "0ebbbcaf52cf13c0a900ef1c63abe314d6f70446",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_bf2c13ff",
+        "filename": "prometheus/go/bot/bot.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-19T14:04:09Z",
+      "side": 1,
+      "message": "Would it be more descriptive to call this a chat bot?\nShould this go in go.skia.org/infra/go/chatbot so that other frameworks could use it as well?",
+      "revId": "0ebbbcaf52cf13c0a900ef1c63abe314d6f70446",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_9f2957ef",
+        "filename": "prometheus/go/bot/bot.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-19T14:04:09Z",
+      "side": 1,
+      "message": "If we do keep it in infra/go/ then would be useful to make this name configurable.",
+      "revId": "0ebbbcaf52cf13c0a900ef1c63abe314d6f70446",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
