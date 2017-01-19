@@ -24,7 +24,7 @@ GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the re
     Dir            = "pdf/dm-json-v1"
 
     [Ingesters.gold.ExtraParams]
-    TraceService   = "localhost:10000"
+    TraceService   = "localhost:9090"
 
 
   ### Gold trybot ingester #####################################################
@@ -45,6 +45,6 @@ GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the re
     Dir            = "trybot/dm-json-v1"
 
     [Ingesters.gold-trybot.ExtraParams]
-    TraceService   = "localhost:10000"
+    TraceService   = "localhost:9090"
     RietveldCodeReviewURL = "https://codereview.chromium.org"
     GerritCodeReviewURL = "https://skia-review.googlesource.com"

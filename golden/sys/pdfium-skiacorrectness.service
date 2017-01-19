@@ -10,7 +10,7 @@ Environment=DATA_DIR=/mnt/pd0/data  \
 ExecStart=/usr/local/bin/skiacorrectness  \
     --port=:8001  \
     --log_dir=/var/log/logserver  \
-    --trace_service=skia-tracedb:10001 \
+    --trace_service=skia-tracedb:9091 \
     --git_repo_url=https://pdfium.googlesource.com/pdfium \
     --git_repo_dir=${DATA_DIR}/gold/pdfium_repo \
     --image_dir=${DATA_DIR}/imageStore  \

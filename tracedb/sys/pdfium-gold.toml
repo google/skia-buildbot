@@ -33,6 +33,6 @@ GitRepoURL     = "https://pdfium.googlesource.com/pdfium"  # URL location for th
     Dir            = "trybot/dm-json-v1"
 
     [Ingesters.gold-trybot.ExtraParams]
-    TraceService   = "localhost:10001"
+    TraceService   = "localhost:9091"
     RietveldCodeReviewURL = "https://codereview.chromium.org"
     GerritCodeReviewURL = "https://pdfium-review.googlesource.com"
