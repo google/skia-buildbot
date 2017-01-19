@@ -679,6 +679,57 @@ func TestCopyTask(t *testing.T) {
 	testutils.AssertCopy(t, v, v.Copy())
 }
 
+func TestValidateTask(t *testing.T) {
+	testutils.SmallTest(t)
+
+	test := func(task *Task, msg string) {
+		err := task.Validate()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), msg)
+		assert.False(t, task.Valid())
+	}
+
+	tmpl := makeTask(time.Now(), []string{"a"})
+	tmpl.SwarmingTaskId = ""
+	tmpl.Properties = map[string]string{
+		"barnDoor": "open",
+	}
+
+	{
+		task := tmpl.Copy()
+		task.Name = ""
+		test(task, "TaskKey is not valid")
+	}
+	{
+		task := tmpl.Copy()
+		task.IsolatedOutput = "loneliness"
+		test(task, "Can not specify Swarming info")
+	}
+	{
+		task := tmpl.Copy()
+		task.SwarmingBotId = "skynet"
+		test(task, "Can not specify Swarming info")
+	}
+	{
+		task := tmpl.Copy()
+		task.Properties = map[string]string{
+			"\xc3\x28Door": "open",
+		}
+		test(task, "Invalid property key")
+	}
+	{
+		task := tmpl.Copy()
+		task.Properties = map[string]string{
+			"barnDoor": "\xc3\x28",
+		}
+		test(task, "Invalid property value")
+	}
+	// Verify success.
+	err := tmpl.Validate()
+	assert.NoError(t, err)
+	assert.True(t, tmpl.Valid())
+}
+
 // Test that sort.Sort(TaskSlice(...)) works correctly.
 func TestTaskSort(t *testing.T) {
 	testutils.SmallTest(t)

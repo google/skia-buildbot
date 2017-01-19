@@ -3083,7 +3083,7 @@ func TestAddTasksRetries(t *testing.T) {
 	assertModifiedTasks(t, d, trackId, modified)
 }
 
-func TestValidateTask(t *testing.T) {
+func TestValidateTaskForAdd(t *testing.T) {
 	tr, _, _, s, _ := setup(t)
 	defer tr.Cleanup()
 
@@ -3095,15 +3095,7 @@ func TestValidateTask(t *testing.T) {
 
 	tmpl := makeTask("Fake-Name", repoName, c1)
 	tmpl.SwarmingTaskId = ""
-	tmpl.Properties = map[string]string{
-		"barnDoor": "open",
-	}
 
-	{
-		task := tmpl.Copy()
-		task.Name = ""
-		test(task, "TaskKey is not valid")
-	}
 	{
 		task := tmpl.Copy()
 		task.Id = "AlreadyExists"
@@ -3111,32 +3103,13 @@ func TestValidateTask(t *testing.T) {
 	}
 	{
 		task := tmpl.Copy()
-		task.IsolatedOutput = "loneliness"
-		test(task, "Can not specify Swarming info")
-	}
-	{
-		task := tmpl.Copy()
-		task.SwarmingBotId = "skynet"
-		test(task, "Can not specify Swarming info")
+		task.Name = ""
+		test(task, "TaskKey is not valid")
 	}
 	{
 		task := tmpl.Copy()
 		task.SwarmingTaskId = "1"
 		test(task, "Only fake tasks supported currently")
-	}
-	{
-		task := tmpl.Copy()
-		task.Properties = map[string]string{
-			"\xc3\x28Door": "open",
-		}
-		test(task, "Invalid property key")
-	}
-	{
-		task := tmpl.Copy()
-		task.Properties = map[string]string{
-			"barnDoor": "\xc3\x28",
-		}
-		test(task, "Invalid property value")
 	}
 	{
 		task := tmpl.Copy()
@@ -3250,6 +3223,120 @@ func TestAddTask(t *testing.T) {
 	expected2.Commits = []string{commits[0]}
 	testutils.AssertDeepEqual(t, expected2, actual2)
 	testutils.AssertDeepEqual(t, expected3, actual3)
+}
+
+func TestValidateTaskForUpdate(t *testing.T) {
+	testutils.SmallTest(t)
+
+	d := db.NewInMemoryDB()
+
+	orig := makeTask("Fake-Name", repoName, c1)
+	orig.SwarmingTaskId = ""
+	orig.Commits = []string{c1, c2}
+	assert.NoError(t, d.PutTask(orig))
+
+	real := makeTask(buildTask, repoName, c1)
+	assert.NoError(t, d.PutTask(real))
+
+	test := func(task *db.Task, msg string) {
+		err := validateAndUpdateTask(d, task)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), msg)
+	}
+
+	{
+		task := orig.Copy()
+		task.Id = ""
+		test(task, "Must specify Id when updating task")
+	}
+	{
+		task := orig.Copy()
+		task.Name = ""
+		test(task, "TaskKey is not valid")
+	}
+	{
+		task := orig.Copy()
+		task.SwarmingTaskId = "1"
+		test(task, "Only fake tasks supported currently")
+	}
+	{
+		task := orig.Copy()
+		task.Id = "abc123"
+		test(task, "No such task")
+	}
+	{
+		task := real.Copy()
+		task.SwarmingTaskId = ""
+		test(task, "Can not overwrite real task with fake task")
+	}
+	{
+		task := orig.Copy()
+		task.DbModified = task.DbModified.Add(-time.Minute)
+		err := validateAndUpdateTask(d, task)
+		assert.Error(t, err)
+		assert.True(t, db.IsConcurrentUpdate(err))
+	}
+	{
+		task := orig.Copy()
+		task.Created = task.Created.Add(time.Minute)
+		test(task, "Illegal update")
+	}
+	{
+		task := orig.Copy()
+		task.Revision = "abc123"
+		test(task, "Illegal update")
+	}
+	{
+		task := orig.Copy()
+		task.Name = buildTask
+		test(task, "Illegal update")
+	}
+	{
+		task := orig.Copy()
+		task.Commits = []string{c1}
+		test(task, "Illegal update")
+	}
+	// Verify success.
+	assert.NoError(t, validateAndUpdateTask(d, orig))
+}
+
+func TestUpdateTask(t *testing.T) {
+	testutils.SmallTest(t)
+
+	d := db.NewInMemoryDB()
+
+	task := makeTask("Fake-Name", repoName, c2)
+	task.SwarmingTaskId = ""
+	task.Commits = []string{c1, c2}
+	task.Properties = map[string]string{
+		"barnDoor": "open",
+	}
+	task.Started = time.Now()
+	task.Status = db.TASK_STATUS_RUNNING
+	assert.NoError(t, d.PutTask(task))
+
+	track, err := d.StartTrackingModifiedTasks()
+	assert.NoError(t, err)
+
+	task.Commits = []string{c2, c1}
+	task.Finished = time.Now()
+	task.Properties["barnDoor"] = "closed"
+	task.Properties["yourHorsesHeld"] = "true"
+	task.Started = time.Now().Add(-time.Minute)
+	task.Status = db.TASK_STATUS_SUCCESS
+	expected := task.Copy()
+
+	assert.NoError(t, validateAndUpdateTask(d, task))
+
+	assert.True(t, expected.DbModified.Before(task.DbModified))
+	expected.DbModified = task.DbModified
+	testutils.AssertDeepEqual(t, expected, task)
+
+	// Check DB.
+	tasks, err := d.GetModifiedTasks(track)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(tasks))
+	testutils.AssertDeepEqual(t, expected, tasks[0])
 }
 
 func TestTriggerTaskFailed(t *testing.T) {

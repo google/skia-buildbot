@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
@@ -381,6 +382,31 @@ func (t *Task) Copy() *Task {
 		SwarmingTaskId: t.SwarmingTaskId,
 		TaskKey:        t.TaskKey.Copy(),
 	}
+}
+
+// Validate returns an error if the task is not valid.
+func (task *Task) Validate() error {
+	if !task.TaskKey.Valid() {
+		return fmt.Errorf("TaskKey is not valid.")
+	}
+	if task.Fake() && !(task.IsolatedOutput == "" && task.SwarmingBotId == "" && task.SwarmingTaskId == "") {
+		return fmt.Errorf("Can not specify Swarming info for a fake task.")
+	}
+	for key, value := range task.Properties {
+		if !utf8.ValidString(key) {
+			return fmt.Errorf("Invalid property key -- must be valid UTF8: %q", key)
+		}
+		if !utf8.ValidString(value) {
+			return fmt.Errorf("Invalid property value -- must be valid UTF8 or base64-encoded: %q", value)
+		}
+	}
+	return nil
+}
+
+// Valid returns true if Validate() does not return an error. Hides
+// task.TaskKey.Valid to prevent confusion.
+func (task *Task) Valid() bool {
+	return task.Validate() == nil
 }
 
 // TaskSummary is a subset of the information found in a Task.
