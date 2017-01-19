@@ -5,5 +5,5 @@ default:
 	go install -v ./go/skia_ingestion
 	go install -v ./go/difftile
 	cp $(GOPATH)/bin/skia_ingestion $(GOPATH)/bin/gold_ingestion
+	cp $(GOPATH)/bin/skia_ingestion $(GOPATH)/bin/pdfium_gold_ingestion
 	cp $(GOPATH)/bin/skia_ingestion $(GOPATH)/bin/pdf_ingestion
-	
