@@ -24,7 +24,7 @@ func main() {
 	// Set up flags.
 	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_ROOT, db.PROD_DB_NAME, db.MigrationSteps())
 
-	// Global init to initialize glog and parse arguments.
+	// Global init to initialize logging and parse arguments.
 	common.Init()
 
 	v, err := skiaversion.GetVersion()

@@ -32,6 +32,7 @@ var (
 	configFilename     = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
 	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
 	nsqdAddress        = flag.String("nsqd", "", "Address and port of nsqd instance.")
+	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	influxHost         = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxUser         = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	influxPassword     = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
@@ -42,7 +43,13 @@ var (
 func main() {
 	defer common.LogPanic()
 	_, appName := filepath.Split(os.Args[0])
-	common.InitWithMetrics2(appName, influxHost, influxUser, influxPassword, influxDatabase, local)
+
+	// Global init to initialize influx, prometheus and cloud logging.
+	common.InitWithMust(appName,
+		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
 
 	// If no nsqd servers is defines, we simply don't have gloabl events.
 	var globalEventBus geventbus.GlobalEventBus = nil
