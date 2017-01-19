@@ -9,9 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEmailBody(t *testing.T) {
-	testutils.SmallTest(t)
-	r := `{
+var (
+	r = `{
   "receiver": "general",
   "status": "firing",
   "alerts": [
@@ -51,7 +50,10 @@ func TestEmailBody(t *testing.T) {
   },
   "externalURL": "http://jcgregorio.cnc.corp.google.com:10117"
 }`
+)
 
+func TestEmailBody(t *testing.T) {
+	testutils.SmallTest(t)
 	expectedBody := `<b>Alerts</b>: PerfAlert <br><br>
 
 <table border="0" cellspacing="5" cellpadding="5">
@@ -64,8 +66,8 @@ func TestEmailBody(t *testing.T) {
   
     <tr>
       <td>PerfAlert</td>
-      <td>warning</td>
-      <td>firing</td>
+      <td>Warning</td>
+      <td>Firing</td>
       <td>At least one untriaged perf cluster has been found. Please visit https://perf.skia.org/t/ to triage.</td>
     </tr>
   
@@ -77,4 +79,17 @@ func TestEmailBody(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedBody, body)
 	assert.Equal(t, expectedSubject, subject)
+}
+
+func TestChatlBody(t *testing.T) {
+	testutils.SmallTest(t)
+
+	expectedBody := `*PerfAlert*
+
+   *Firing* (Warning) At least one untriaged perf cluster has been found. Please visit https://perf.skia.org/t/ to triage.
+`
+
+	body, err := Chat(bytes.NewBufferString(r))
+	assert.NoError(t, err)
+	assert.Equal(t, expectedBody, body)
 }

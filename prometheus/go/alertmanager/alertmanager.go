@@ -34,18 +34,32 @@ const (
   {{end}}
 </table>
 `
+
+	alert_chat = `*{{range .GroupLabels}}{{.}}{{end}}*
+{{range .Alerts}}
+   *{{.Status}}* ({{.Labels.severity}}) {{.Annotations.description}}
+{{end}}`
 )
 
 var (
 	emailTemplate = template.Must(template.New("alert_email").Parse(alert_email))
+	chatTemplate  = template.Must(template.New("alert_chat").Parse(alert_chat))
 	loc           *time.Location
 )
 
+func init() {
+	var err error
+	loc, err = time.LoadLocation("America/New_York")
+	if err != nil {
+		sklog.Errorf("Failed to load time location: %s", err)
+	}
+}
+
 // AlertManagerRequest is used to parse the incoming JSON.
 type AlertManagerRequest struct {
-	Receiver string  `json:"receiver"`
-	Status   string  `json:"status"`
-	Alerts   []Alert `json:"alerts"`
+	Receiver string   `json:"receiver"`
+	Status   string   `json:"status"`
+	Alerts   []*Alert `json:"alerts"`
 
 	GroupLabels       map[string]string `json:"groupLabels"`
 	CommonLabels      map[string]string `json:"commonLabels"`
@@ -65,36 +79,63 @@ type Alert struct {
 	GeneratorURL string    `json:"generatorURL"`
 }
 
-// Email returns the body and subject of an email to send for the given alerts.
-func Email(r io.Reader) (string, string, error) {
-	request := AlertManagerRequest{}
-	if err := json.NewDecoder(r).Decode(&request); err != nil {
-		return "", "", fmt.Errorf("Failed to decode incoming AlertManagerRequest: %s", err)
+// caps fixes capitalization in some fields.
+func caps(a *AlertManagerRequest) *AlertManagerRequest {
+	a.Status = strings.Title(a.Status)
+	for _, alert := range a.Alerts {
+		alert.Status = strings.Title(alert.Status)
+		if severity, ok := alert.Labels["severity"]; ok {
+			alert.Labels["severity"] = strings.Title(severity)
+		}
+	}
+	return a
+}
+
+func extractRequest(r io.Reader) (*AlertManagerRequest, []string, time.Time, error) {
+	request := &AlertManagerRequest{}
+	if err := json.NewDecoder(r).Decode(request); err != nil {
+		return nil, nil, time.Time{}, fmt.Errorf("Failed to decode incoming AlertManagerRequest: %s", err)
 	}
 
-	ts := time.Now()
+	startTime := time.Now()
 	alertnames := []string{}
 	for _, alert := range request.Alerts {
 		alertnames = append(alertnames, alert.Labels["alertname"])
-		if alert.StartsAt.Before(ts) {
-			ts = alert.StartsAt
-		}
-	}
-	if loc == nil {
-		var err error
-		loc, err = time.LoadLocation("America/New_York")
-		if err != nil {
-			sklog.Errorf("Failed to load time location: %s", err)
+		if alert.StartsAt.Before(startTime) {
+			startTime = alert.StartsAt
 		}
 	}
 	if loc != nil {
-		ts = ts.In(loc)
+		startTime = startTime.In(loc)
+	}
+	return caps(request), alertnames, startTime, nil
+}
+
+// Email returns the body and subject of an email to send for the given alerts.
+func Email(r io.Reader) (string, string, error) {
+	request, alertnames, startTime, err := extractRequest(r)
+	if err != nil {
+		return "", "", fmt.Errorf("Failed to extract request from JSON: %s", err)
 	}
 
-	subject := fmt.Sprintf("Alert: %s started at %s", strings.Join(alertnames, " "), ts.Format("3:04pm MST (2 Jan 2006)"))
+	subject := fmt.Sprintf("Alert: %s started at %s", strings.Join(alertnames, " "), startTime.Format("3:04pm MST (2 Jan 2006)"))
 	var b bytes.Buffer
 	if err := emailTemplate.Execute(&b, request); err != nil {
 		return "", "", fmt.Errorf("Failed to template alert: %s", err)
 	}
 	return b.String(), subject, nil
+}
+
+// Chat returns the body of a chat message to send for the given alerts.
+func Chat(r io.Reader) (string, error) {
+	request, _, _, err := extractRequest(r)
+	if err != nil {
+		return "", fmt.Errorf("Failed to extract request from JSON: %s", err)
+	}
+
+	var b bytes.Buffer
+	if err := chatTemplate.Execute(&b, request); err != nil {
+		return "", fmt.Errorf("Failed to template alert: %s", err)
+	}
+	return b.String(), nil
 }
