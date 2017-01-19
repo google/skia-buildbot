@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "284bc29d_c50b1049",
+        "filename": "task_scheduler/go/scheduling/pubsub.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-19T21:03:23Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 148
+      },
+      "revId": "01762f1de97a1ffcc90faba9a43c89fac881e3bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_251d9493",
+        "filename": "task_scheduler/go/scheduling/pubsub.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-19T21:03:23Z",
+      "side": 1,
+      "message": "Won\u0027t this be incorrect for internal?",
+      "range": {
+        "startLine": 91,
+        "startChar": 14,
+        "endLine": 91,
+        "endChar": 37
+      },
+      "revId": "01762f1de97a1ffcc90faba9a43c89fac881e3bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_65279ce5",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 536,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-19T21:03:23Z",
+      "side": 1,
+      "message": "Need to use PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL",
+      "range": {
+        "startLine": 536,
+        "startChar": 216,
+        "endLine": 536,
+        "endChar": 232
+      },
+      "revId": "01762f1de97a1ffcc90faba9a43c89fac881e3bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
