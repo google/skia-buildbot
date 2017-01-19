@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "284bc29d_ff617be5",
+        "filename": "skolo/linux/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-01-19T15:14:24Z",
+      "side": 1,
+      "message": "On a stock linux install, could we assume it\u0027s eth0 ?",
+      "range": {
+        "startLine": 11,
+        "startChar": 9,
+        "endLine": 11,
+        "endChar": 40
+      },
+      "revId": "10c3d69327cbee7afdf7b6a0d1e58a9ae8747735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_7fbc4b1a",
+        "filename": "skolo/linux/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-01-19T15:14:24Z",
+      "side": 1,
+      "message": "Just a thought. \nFor the future I think it would be useful to have a host/ip file that lists all of out hosts and their IP addresses. \nTo add a new host you would then: \n- make a new entry \u003chost_ip_entry\u003e to the file \n- call the ansible script with an addtional argument (if that\u0027s possible) that just names the host IP entry\n\nThat way we could quickly rebuild the entire fleet without having to manually keep track of the database. We could also generate a hosts file in the jumphost that makes ssh\u0027ing easier.",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 66
+      },
+      "revId": "10c3d69327cbee7afdf7b6a0d1e58a9ae8747735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
