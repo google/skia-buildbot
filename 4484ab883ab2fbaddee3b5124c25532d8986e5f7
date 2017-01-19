@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "284bc29d_7f2d6bcb",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-19T14:42:09Z",
+      "side": 1,
+      "message": "Oops, this shouldn\u0027t be here. Will delete in another CL.",
+      "range": {
+        "startLine": 398,
+        "startChar": 5,
+        "endLine": 398,
+        "endChar": 26
+      },
+      "revId": "4484ab883ab2fbaddee3b5124c25532d8986e5f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
