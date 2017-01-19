@@ -320,8 +320,6 @@ func main() {
 		if err := indexTemplate.Execute(w, appConfig); err != nil {
 			glog.Errorln("Failed to expand template:", err)
 		}
-
-		http.ServeFile(w, r, indexFile)
 	})
 
 	// Add the necessary middleware and have the router handle all requests.
