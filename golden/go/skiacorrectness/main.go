@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
@@ -63,6 +62,7 @@ var (
 	nTilesToBackfill   = flag.Int("backfill_tiles", 0, "Number of tiles to backfill in our history of tiles.")
 	oauthCacheFile     = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
 	port               = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	redirectURL        = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 	resourcesDir       = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
 	rietveldURL        = flag.String("rietveld_url", "https://codereview.chromium.org/", "URL of the Rietveld instance where we retrieve CL metadata.")
@@ -94,8 +94,12 @@ func main() {
 	// Setup DB flags.
 	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME, db.MigrationSteps())
 
-	// Global init to initialize
-	common.InitWithMetrics2("skiacorrectness", influxHost, influxUser, influxPassword, influxDatabase, local)
+	// Global init to initialize influx, prometheus and cloud logging.
+	common.InitWithMust("skiacorrectness",
+		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
 
 	v, err := skiaversion.GetVersion()
 	if err != nil {
@@ -318,7 +322,7 @@ func main() {
 			indexTemplate = template.Must(template.New("").ParseFiles(indexFile)).Lookup("index.html")
 		}
 		if err := indexTemplate.Execute(w, appConfig); err != nil {
-			glog.Errorln("Failed to expand template:", err)
+			sklog.Errorln("Failed to expand template:", err)
 		}
 	})
 
