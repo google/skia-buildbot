@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "284bc29d_df30ff0b",
+        "filename": "prometheus/go/alertmanager/alertmanager.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-19T15:32:24Z",
+      "side": 1,
+      "message": "Extracted.\n\nAlso moved loc initialization to init() avoiding the need for a mutex.",
+      "parentUuid": "284bc29d_1f3ee72b",
+      "revId": "0ebbbcaf52cf13c0a900ef1c63abe314d6f70446",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "284bc29d_bf2c13ff",
         "filename": "prometheus/go/bot/bot.go",
         "patchSetId": 18
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "284bc29d_3f3f63da",
+        "filename": "prometheus/go/bot/bot.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-19T15:32:24Z",
+      "side": 1,
+      "message": "Moved.",
+      "parentUuid": "284bc29d_bf2c13ff",
+      "revId": "0ebbbcaf52cf13c0a900ef1c63abe314d6f70446",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "284bc29d_9f2957ef",
         "filename": "prometheus/go/bot/bot.go",
         "patchSetId": 18
@@ -47,6 +83,24 @@
       "writtenOn": "2017-01-19T14:04:09Z",
       "side": 1,
       "message": "If we do keep it in infra/go/ then would be useful to make this name configurable.",
+      "revId": "0ebbbcaf52cf13c0a900ef1c63abe314d6f70446",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_1f44275d",
+        "filename": "prometheus/go/bot/bot.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-19T15:32:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "284bc29d_9f2957ef",
       "revId": "0ebbbcaf52cf13c0a900ef1c63abe314d6f70446",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
