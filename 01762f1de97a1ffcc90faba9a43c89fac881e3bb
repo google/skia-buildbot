@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "284bc29d_5087bc3b",
+        "filename": "task_scheduler/go/scheduling/pubsub.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-20T13:53:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "284bc29d_c50b1049",
+      "revId": "01762f1de97a1ffcc90faba9a43c89fac881e3bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "284bc29d_251d9493",
         "filename": "task_scheduler/go/scheduling/pubsub.go",
         "patchSetId": 2
@@ -48,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "284bc29d_107c145d",
+        "filename": "task_scheduler/go/scheduling/pubsub.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-20T13:53:30Z",
+      "side": 1,
+      "message": "I\u0027ve specified the same push URL for both servers.  I wanted them to be the same, although I guess it wouldn\u0027t hurt if they were different.",
+      "parentUuid": "284bc29d_251d9493",
+      "revId": "01762f1de97a1ffcc90faba9a43c89fac881e3bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "284bc29d_65279ce5",
         "filename": "task_scheduler/go/task_scheduler/main.go",
         "patchSetId": 2
@@ -65,6 +101,24 @@
         "endLine": 536,
         "endChar": 232
       },
+      "revId": "01762f1de97a1ffcc90faba9a43c89fac881e3bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_90814427",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 536,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-20T13:53:30Z",
+      "side": 1,
+      "message": "Changed to provide the fully-qualified topic name at the API call so that it isn\u0027t required here.",
+      "parentUuid": "284bc29d_65279ce5",
       "revId": "01762f1de97a1ffcc90faba9a43c89fac881e3bb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
