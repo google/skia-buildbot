@@ -5,7 +5,8 @@ After=network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/prober \
-    --log_dir=/var/log/logserver \
+    --prom_port=:20000 \
+    --logtostderr \
     --config=/etc/skiaprober/probers.json
 Restart=always
 User=default

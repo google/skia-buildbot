@@ -20,24 +20,26 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
-	"go.skia.org/infra/go/influxdb_init"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
+// flags
 var (
-	config   = flag.String("config", "probers.json", "Comma separated names of prober config files.")
-	runEvery = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
-	testing  = flag.Bool("testing", false, "Set to true for local testing.")
-	promPort = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
-
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	config         = flag.String("config", "probers.json", "Comma separated names of prober config files.")
 	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	promPort       = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
+	runEvery       = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
+	testing        = flag.Bool("testing", false, "Set to true for local testing.")
+)
 
+var (
 	// responseTesters is a mapping of names to functions that test response bodies.
 	responseTesters = map[string]ResponseTester{
 		"nonZeroContenLength": nonZeroContenLength,
@@ -291,17 +293,12 @@ func probeOneRound(cfg Probes, c *http.Client) {
 
 func main() {
 	defer common.LogPanic()
-
-	common.Init()
-	influxClient, err := influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	if err := metrics2.InitPromInflux("probeserver", influxClient, *promPort); err != nil {
-		sklog.Fatal(err)
-	}
-
-	common.StartCloudLogging("probeserver")
+	common.InitWithMust(
+		"probeserver",
+		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
 
 	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
