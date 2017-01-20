@@ -59,6 +59,7 @@ type TaskScheduler struct {
 	jCache           db.JobCache
 	lastScheduled    time.Time // protected by queueMtx.
 	pools            []string
+	pubsubTopic      string
 	queue            []*taskCandidate // protected by queueMtx.
 	queueMtx         sync.RWMutex
 	repos            repograph.Map
@@ -72,7 +73,7 @@ type TaskScheduler struct {
 	workdir          string
 }
 
-func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string) (*TaskScheduler, error) {
+func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic string) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		return nil, err
@@ -112,6 +113,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, ho
 		isolate:          isolateClient,
 		jCache:           jCache,
 		pools:            pools,
+		pubsubTopic:      pubsubTopic,
 		queue:            []*taskCandidate{},
 		queueMtx:         sync.RWMutex{},
 		repos:            repos,
@@ -834,7 +836,7 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, tasks []*db.Ta
 				sklog.Errorf("Failed to trigger task: %s", err)
 				return
 			}
-			req, err := candidate.MakeTaskRequest(t.Id, s.isolate.ServerURL())
+			req, err := candidate.MakeTaskRequest(t.Id, s.isolate.ServerURL(), s.pubsubTopic)
 			if err != nil {
 				sklog.Errorf("Failed to trigger task: %s", err)
 				return

@@ -84,6 +84,9 @@ var (
 	gsBucket       = flag.String("gsBucket", "skia-task-scheduler", "Name of Google Cloud Storage bucket to use for backups and recovery.")
 	workdir        = flag.String("workdir", "workdir", "Working directory to use.")
 
+	pubsubTopicName      = flag.String("pubsub_topic", scheduling.PUBSUB_TOPIC_SWARMING_TASKS, "Pub/Sub topic to use for Swarming tasks.")
+	pubsubSubscriberName = flag.String("pubub_subscriber", scheduling.PUBSUB_SUBSCRIBER_TASK_SCHEDULER, "Pub/Sub subscriber name.")
+
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
@@ -531,14 +534,14 @@ func main() {
 
 	// Create and start the task scheduler.
 	sklog.Infof("Creating task scheduler.")
-	if err := scheduling.InitPubSub(); err != nil {
-		sklog.Fatal(err)
-	}
 	serverURL := "https://" + *host
 	if *local {
 		serverURL = "http://" + *host + *port
 	}
-	ts, err = scheduling.NewTaskScheduler(d, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, PROJECT_REPO_MAPPING, *swarmingPools)
+	if err := scheduling.InitPubSub(serverURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
+		sklog.Fatal(err)
+	}
+	ts, err = scheduling.NewTaskScheduler(d, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName)
 	if err != nil {
 		sklog.Fatal(err)
 	}
