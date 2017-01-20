@@ -84,6 +84,24 @@
     },
     {
       "key": {
+        "uuid": "284bc29d_2b556564",
+        "filename": "task_scheduler/go/scheduling/pubsub.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-20T15:00:05Z",
+      "side": 1,
+      "message": "Ah, ok. nit: don\u0027t use PUBSUB_TOPIC_SWARMING_TASKS when defining PUSH_URL_SWARMING_TASKS, since they\u0027re not really related.",
+      "parentUuid": "284bc29d_107c145d",
+      "revId": "01762f1de97a1ffcc90faba9a43c89fac881e3bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "284bc29d_65279ce5",
         "filename": "task_scheduler/go/task_scheduler/main.go",
         "patchSetId": 2
