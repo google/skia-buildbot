@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -57,8 +58,13 @@ func InitPubSub(serverUrl, topicName, subscriberName string) error {
 		return err
 	}
 	if !exists {
+		endpoint := serverUrl
+		if !strings.HasSuffix(endpoint, "/") {
+			endpoint += "/"
+		}
+		endpoint += PUSH_URL_SWARMING_TASKS
 		c := &pubsub.PushConfig{
-			Endpoint: fmt.Sprintf("%s/%s", serverUrl, PUSH_URL_SWARMING_TASKS),
+			Endpoint: endpoint,
 		}
 		if _, err := client.CreateSubscription(ctx, subName, topic, 20*time.Second, c); err != nil {
 			return err
