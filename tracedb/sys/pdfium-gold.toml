@@ -3,7 +3,7 @@ GitRepoURL     = "https://pdfium.googlesource.com/pdfium"  # URL location for th
 
 [Ingesters]
   ### Pdfium Gold ingester ############################################################
-  [Ingesters.pdfium-gold]
+  [Ingesters.gold]
   RunEvery       = "5m"
   NCommits       = 75
   MinDays        = 3
@@ -11,16 +11,16 @@ GitRepoURL     = "https://pdfium.googlesource.com/pdfium"  # URL location for th
   MetricName     = "pdfium-gold-ingest"
   LocalCache     = true
 
-    [[Ingesters.pdfium-gold.Sources]]
+    [[Ingesters.gold.Sources]]
     Bucket         = "skia-pdfium-gm"
     Dir            = "dm-json-v1"
 
-    [Ingesters.pdfium-gold.ExtraParams]
-    TraceService   = "localhost:10001"
+    [Ingesters.gold.ExtraParams]
+    TraceService   = "localhost:9091"
 
 
   ### Pdfium Gold trybot ingester #####################################################
-  [Ingesters.pdfium-gold-trybot]
+  [Ingesters.gold-trybot]
   RunEvery       = "5m"
   NCommits       = 10
   MinDays        = 7
@@ -28,7 +28,7 @@ GitRepoURL     = "https://pdfium.googlesource.com/pdfium"  # URL location for th
   MetricName     = "pdfium-gold-ingest-trybot"
   LocalCache     = true
 
-    [[Ingesters.pdfium-gold-trybot.Sources]]
+    [[Ingesters.gold-trybot.Sources]]
     Bucket         = "skia-pdfium-gm"
     Dir            = "trybot/dm-json-v1"
 
