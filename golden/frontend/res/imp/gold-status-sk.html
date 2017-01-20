@@ -105,7 +105,7 @@
         },
         corpus: {
           type: String,
-          value: "gm",
+          value: sk.app_config.defaultCorpus,
           notify: true,
           reflectToAttribute: true
         }
@@ -118,7 +118,7 @@
       },
 
       setCorpus: function(corpus) {
-        if (this.corpus == corpus) {
+        if (this.corpus === corpus) {
           return;
         }
         this._noFire = true;
@@ -147,17 +147,17 @@
 
       // Load or reload the listing.
       _reload: function() {
-        var that = this;
         sk.get("/json/trstatus").then(JSON.parse).then(function (json) {
-          if (JSON.stringify(json) != JSON.stringify(that.status)) {
-            that.status = json;
+          if (JSON.stringify(json) != JSON.stringify(this.status)) {
+            this.status = json;
           }
-          that.async(that._reload, 3000);
-        }).catch(function(errorMessage) {
-          that.status = null;
+
+          this.async(this._reload, 3000);
+        }.bind(this)).catch(function(errorMessage) {
+          this.status = null;
           console.log("Status Error:", errorMessage);
-          that.async(that._reload, 3000);
-        });
+          this.async(this._reload, 3000);
+        }.bind(this));
       },
 
       _lastCommitText: function(status) {
