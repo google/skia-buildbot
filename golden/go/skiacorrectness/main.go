@@ -52,6 +52,7 @@ var (
 	cacheSize          = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
 	cpuProfile         = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
 	doOauth            = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
+	defaultCorpus      = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
 	forceLogin         = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
 	gsBucketNames      = flag.String("gs_buckets", "skia-infra-gm,chromium-skia-gm", "Comma-separated list of google storage bucket that hold uploaded images.")
 	imageDir           = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
@@ -309,9 +310,11 @@ func main() {
 
 	// appConfig is injected into the header of the index file.
 	appConfig := &struct {
-		BaseRepoURL string `json:"baseRepoURL"`
+		BaseRepoURL   string `json:"baseRepoURL"`
+		DefaultCorpus string `json:"defaultCorpus"`
 	}{
-		BaseRepoURL: *gitRepoURL,
+		BaseRepoURL:   *gitRepoURL,
+		DefaultCorpus: *defaultCorpus,
 	}
 
 	router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
