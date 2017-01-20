@@ -19,6 +19,8 @@ import (
 var (
 	httpTriggerCh = make(chan bool, 1)
 
+	metadataTriggerCh = make(chan bool, 1)
+
 	store *storage.Service
 )
 
@@ -98,6 +100,28 @@ func containsPulld(packages []string) bool {
 	return false
 }
 
+// metadataWait waits for the instance level metadata 'pushrev' to change, at
+// which point the server should check for new versions of apps to install.
+func metadataWait() {
+	for {
+		req, err := http.NewRequest("GET", "http://metadata.google.internal/computeMetadata/v1/instance/attributes/pushrev?wait_for_change=true", nil)
+		if err != nil {
+			sklog.Errorf("Failed to create request", err)
+			continue
+		}
+		req.Header.Set("Metadata-Flavor", "Google")
+		// We use the default client which should never timeout.
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil || resp.StatusCode != 200 {
+			sklog.Errorf("wait_for_change failed: %s %v", err, *resp)
+			time.Sleep(time.Minute)
+			continue
+		}
+		metadataTriggerCh <- true
+		sklog.Infof("Pull triggered via metadata.")
+	}
+}
+
 // pullHandler triggers a pull when /pullpullpull is requested.
 func pullHandler(w http.ResponseWriter, r *http.Request) {
 	httpTriggerCh <- true
@@ -123,13 +147,16 @@ func pullInit(serviceAccountPath string) {
 		sklog.Fatalf("Failed to create storage service client: %s", err)
 	}
 
+	go metadataWait()
+
 	step(client, store, hostname)
-	timeCh := time.Tick(time.Second * 60)
+	timeCh := time.Tick(5 * time.Minute)
 	go func() {
 		for {
 			select {
 			case <-timeCh:
 			case <-httpTriggerCh:
+			case <-metadataTriggerCh:
 			}
 			step(client, store, hostname)
 		}
