@@ -870,6 +870,10 @@ server {
     location / {
         deny all;
     }
+    location /google2c59f97e1ced9fdc.html {
+        proxy_pass http://skia-task-scheduler-internal:8000;
+        proxy_set_header Host $host;
+    }
     location /pubsub/ {
         proxy_pass http://skia-task-scheduler-internal:8000;
         proxy_set_header Host $host;
