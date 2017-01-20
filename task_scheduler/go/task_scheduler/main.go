@@ -18,6 +18,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
@@ -532,6 +533,12 @@ func main() {
 		sklog.Fatal(err)
 	}
 
+	// Find depot_tools.
+	depotTools, err := depot_tools.Find()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
 	// Create and start the task scheduler.
 	sklog.Infof("Creating task scheduler.")
 	serverURL := "https://" + *host
@@ -541,7 +548,7 @@ func main() {
 	if err := scheduling.InitPubSub(serverURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
 		sklog.Fatal(err)
 	}
-	ts, err = scheduling.NewTaskScheduler(d, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName)
+	ts, err = scheduling.NewTaskScheduler(d, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools)
 	if err != nil {
 		sklog.Fatal(err)
 	}
