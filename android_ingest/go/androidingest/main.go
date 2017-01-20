@@ -100,14 +100,6 @@ func Init() {
 	}
 	process.Start()
 
-	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
-	if !*local {
-		redirectURL = "https://android-ingest.skia.org/oauth2callback/"
-	}
-	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		sklog.Fatalf("Failed to initialize the login system: %s", err)
-	}
-
 	storageHttpClient, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
 	if err != nil {
 		sklog.Fatalf("Problem setting up client OAuth: %s", err)
@@ -226,7 +218,6 @@ func main() {
 	defer common.LogPanic()
 	common.InitWithMust(
 		"androidingest",
-		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)
@@ -236,6 +227,7 @@ func main() {
 	if *repoUrl == "" {
 		sklog.Fatal("The --repo_url flag must be supplied.")
 	}
+	login.SimpleInitMust(*port, *local)
 
 	Init()
 
