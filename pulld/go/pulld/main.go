@@ -344,7 +344,6 @@ func main() {
 	r.HandleFunc("/", mainHandler).Methods("GET")
 	r.HandleFunc("/_/list", listHandler).Methods("GET")
 	r.HandleFunc("/_/change", changeHandler).Methods("POST")
-	r.HandleFunc("/pullpullpull", pullHandler)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
