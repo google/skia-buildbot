@@ -85,7 +85,7 @@ var (
 	workdir        = flag.String("workdir", "workdir", "Working directory to use.")
 
 	pubsubTopicName      = flag.String("pubsub_topic", scheduling.PUBSUB_TOPIC_SWARMING_TASKS, "Pub/Sub topic to use for Swarming tasks.")
-	pubsubSubscriberName = flag.String("pubub_subscriber", scheduling.PUBSUB_SUBSCRIBER_TASK_SCHEDULER, "Pub/Sub subscriber name.")
+	pubsubSubscriberName = flag.String("pubsub_subscriber", scheduling.PUBSUB_SUBSCRIBER_TASK_SCHEDULER, "Pub/Sub subscriber name.")
 
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
