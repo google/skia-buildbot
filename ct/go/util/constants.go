@@ -14,6 +14,8 @@ const (
 	GCS_HTTP_LINK                = "https://storage.cloud.google.com/"
 	CT_EMAIL_DISPLAY_NAME        = "Cluster Telemetry"
 
+	GMAIL_CACHED_TOKEN = "ct_gmail_cached_token"
+
 	// File names and dir names.
 	CHROMIUM_BUILDS_DIR_NAME         = "chromium_builds"
 	PAGESETS_DIR_NAME                = "page_sets"
@@ -134,8 +136,6 @@ const (
 	// Poller
 	MAKE_ALL_TIMEOUT = 15 * time.Minute
 
-	WEBHOOK_SALT_MSG = `For prod, set this file to the value of GCE metadata key webhook_request_salt or call webhook.MustInitRequestSaltFromMetadata() if running in GCE. For testing, run 'echo -n "notverysecret" | base64 -w 0 > /b/storage/webhook_salt.data' or call frontend.InitForTesting().`
-
 	// Swarming constants.
 	SWARMING_DIR_NAME               = "swarming"
 	SWARMING_POOL                   = "CT"
@@ -154,7 +154,7 @@ const (
 	CHROMIUM_PERF_ISOLATE          = "chromium_perf.isolate"
 	BUILD_REPO_ISOLATE             = "build_repo.isolate"
 	// Swarming links and params.
-	SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE   = "https://chromium-swarm.appspot.com/tasklist?l=500&c=name&c=created_ts&c=bot&c=duration&c=state&f=runid:%s"
+	SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE   = "https://chrome-swarm.appspot.com/tasklist?l=500&c=name&c=created_ts&c=bot&c=duration&c=state&f=runid:%s"
 	SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE = SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE + "&f=name:%s"
 	// Priorities
 	USER_TASKS_PRIORITY  = swarming.RECOMMENDED_PRIORITY
@@ -179,7 +179,7 @@ var (
 
 	// Email address of cluster telemetry admins. They will be notified everytime
 	// a task has started and completed.
-	CtAdmins = []string{"rmistry@google.com", "benjaminwagner@google.com"}
+	CtAdmins = []string{"rmistry@google.com"}
 
 	// Names of local directories and files.
 	StorageDir             = filepath.Join("/", "b", STORAGE_DIR_NAME)
@@ -192,21 +192,18 @@ var (
 	RelativeCatapultSrcDir = filepath.Join("third_party", "catapult")
 	CatapultSrcDir         = filepath.Join(ChromiumSrcDir, RelativeCatapultSrcDir)
 	TaskFileDir            = filepath.Join(StorageDir, "current_task")
-	ClientSecretPath       = filepath.Join(StorageDir, "client_secret.json")
-	GCSTokenPath           = filepath.Join(StorageDir, "google_storage_token.data")
-	EmailTokenPath         = filepath.Join(StorageDir, "email.data")
-	WebappPasswordPath     = filepath.Join(StorageDir, "webapp.data")
-	// Salt used to authenticate webhook requests, base64-encoded. See WEBHOOK_SALT_MSG.
-	WebhookRequestSaltPath = filepath.Join(StorageDir, "webhook_salt.data")
-	PagesetsDir            = filepath.Join(StorageDir, PAGESETS_DIR_NAME)
-	WebArchivesDir         = filepath.Join(StorageDir, WEB_ARCHIVES_DIR_NAME)
-	PdfsDir                = filepath.Join(StorageDir, PDFS_DIR_NAME)
-	SkpsDir                = filepath.Join(StorageDir, SKPS_DIR_NAME)
-	GLogDir                = filepath.Join(StorageDir, "glog")
-	ApkName                = "ChromePublic.apk"
-	SkiaTreeDir            = filepath.Join(RepoDir, "trunk")
-	PDFiumTreeDir          = filepath.Join(RepoDir, "pdfium")
-	CtTreeDir              = filepath.Join(RepoDir, "go", "src", "go.skia.org", "infra", "ct")
+	// ClientSecretPath       = filepath.Join(StorageDir, "client_secret.json")        // left
+	GCSTokenPath   = filepath.Join(StorageDir, "google_storage_token.data") // left // lets just see what happens with this
+	EmailTokenPath = filepath.Join(StorageDir, "email.data")                // done via metadata
+	PagesetsDir    = filepath.Join(StorageDir, PAGESETS_DIR_NAME)
+	WebArchivesDir = filepath.Join(StorageDir, WEB_ARCHIVES_DIR_NAME)
+	PdfsDir        = filepath.Join(StorageDir, PDFS_DIR_NAME)
+	SkpsDir        = filepath.Join(StorageDir, SKPS_DIR_NAME)
+	GLogDir        = filepath.Join(StorageDir, "glog")
+	ApkName        = "ChromePublic.apk"
+	SkiaTreeDir    = filepath.Join(RepoDir, "trunk")
+	PDFiumTreeDir  = filepath.Join(RepoDir, "pdfium")
+	CtTreeDir      = filepath.Join(RepoDir, "go", "src", "go.skia.org", "infra", "ct")
 
 	// Names of remote directories and files.
 	BinariesDir             = filepath.Join(BINARIES_DIR_NAME)
