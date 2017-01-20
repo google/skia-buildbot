@@ -10,6 +10,7 @@ ExecStart=/usr/local/bin/prometheus \
     -storage.local.path=/mnt/pd0/prometheus \
     --alertmanager.url=http://localhost:8001 \
     -log.level=info \
+    -web.external-url=https://prom.skia.org \
     -web.listen-address=:8000
 
 Restart=always
