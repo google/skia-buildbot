@@ -265,8 +265,6 @@ func (c *logsClient) pushBatch() {
 	} else if resp.HTTPStatusCode != http.StatusOK {
 		glog.Errorf("Response code %d", resp.HTTPStatusCode)
 	}
-	glog.Infof("Finished Flush.")
-
 	c.buffer = c.buffer[:0]
 }
 

@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/push/go/trigger"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/storage/v1"
 )
@@ -56,7 +56,7 @@ func main() {
 	serverName := args[1] // "skia-debugger" or "*"
 
 	// Create the needed clients.
-	client, err := auth.NewDefaultJWTServiceAccountClient(storage.DevstorageReadWriteScope, compute.ComputeReadonlyScope)
+	client, err := auth.NewDefaultJWTServiceAccountClient(storage.DevstorageReadWriteScope, compute.CloudPlatformScope)
 	if err != nil {
 		sklog.Fatalf("Failed to create authenticated HTTP client: %s\nDid you run get_service_account?", err)
 	}
@@ -138,7 +138,7 @@ func installOnServer(client *http.Client, store *storage.Service, comp *compute.
 	}
 
 	if *dryrun {
-		sklog.Info("Is in dry run mode.  Would be calling")
+		sklog.Info("Is in dry run mode. Would be calling")
 		sklog.Infof(`packages.PutInstalled(store, "%s", %q, %d)`, serverName, newInstalled, installed.Generation)
 	} else {
 		// Write the new list of packages back to Google Storage.
@@ -147,45 +147,30 @@ func installOnServer(client *http.Client, store *storage.Service, comp *compute.
 		}
 	}
 
-	// If we are on the right network we can ping pulld to install the new
-	// package and avoid the 15s wait for pulld to poll and find the new package.
-	if ip, err := findIPAddress(comp, serverName); err == nil {
-		if *dryrun {
-			sklog.Infof(`"client.Get(http://%s:10000/pullpullpull)"`, ip)
-		} else {
-			sklog.Infof("findIPAddress: %q", ip)
-			resp, err := client.Get(fmt.Sprintf("http://%s:10000/pullpullpull", ip))
-			if err != nil || resp == nil {
-				sklog.Infof("Failed to trigger an instant pull for server %s: %v %v", serverName, err)
-			} else {
-				util.Close(resp.Body)
-			}
-		}
-	} else {
-		sklog.Warningf("Could not find ip address: %s", err)
+	zone, err := findZone(comp, serverName)
+	if err != nil {
+		sklog.Warningf("Could not find zone: %s", err)
+		return nil
+	}
+
+	if err := trigger.ByMetadata(comp, *project, latest.Name, serverName, zone); err != nil {
+		sklog.Warningf("Could not trigger package load via metadata: %s", err)
 	}
 
 	return nil
 }
 
-// findIPAddress returns the ip address of the server with the given name.
-func findIPAddress(comp *compute.Service, name string) (string, error) {
+// findZone returns the zone of the server with the given name.
+func findZone(comp *compute.Service, name string) (string, error) {
 	// We have to look in each zone for the server with the given name.
 	zones, err := comp.Zones.List(*project).Do()
 	if err != nil {
 		return "", fmt.Errorf("Failed to list zones: %s", err)
 	}
 	for _, zone := range zones.Items {
-		item, err := comp.Instances.Get(*project, zone.Name, name).Do()
-		if err != nil {
-			continue
-		}
-		for _, nif := range item.NetworkInterfaces {
-			for _, acc := range nif.AccessConfigs {
-				if strings.HasPrefix(strings.ToLower(acc.Name), "external") {
-					return acc.NatIP, nil
-				}
-			}
+		_, err := comp.Instances.Get(*project, zone.Name, name).Do()
+		if err == nil {
+			return zone.Name, nil
 		}
 	}
 	return "", fmt.Errorf("Couldn't find an instance named: %s", name)

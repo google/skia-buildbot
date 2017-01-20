@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/systemd"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/push/go/trigger"
 	compute "google.golang.org/api/compute/v1"
 	storage "google.golang.org/api/storage/v1"
 )
@@ -39,7 +40,7 @@ var (
 	config packages.PackageConfig
 
 	// ip keeps an updated map from server name to public IP address.
-	ip *IPAddresses
+	ip *Zones
 
 	// serverNames is a list of server names (GCE DNS names) we are managing.
 	// Extracted from 'config'.
@@ -132,7 +133,7 @@ func Init() {
 	if comp, err = compute.New(client); err != nil {
 		sklog.Fatalf("Failed to create compute service client: %s", err)
 	}
-	ip, err = NewIPAddresses(comp)
+	ip, err = NewZones(comp)
 	if err != nil {
 		sklog.Fatalf("Failed to load IP addresses at startup: %s", err)
 	}
@@ -144,19 +145,19 @@ func Init() {
 	}
 }
 
-// IPAddresses keeps track of the external IP addresses of each server.
-type IPAddresses struct {
-	ip    map[string]string
+// Zones keeps track of the zone of each server.
+type Zones struct {
+	zone  map[string]string
 	comp  *compute.Service
 	mutex sync.Mutex
 }
 
-func (i *IPAddresses) loadIPAddresses() error {
+func (i *Zones) load() error {
+	zoneMap := map[string]string{}
 	zones, err := comp.Zones.List(*project).Do()
 	if err != nil {
 		return fmt.Errorf("Failed to list zones: %s", err)
 	}
-	ip := map[string]string{}
 	for _, zone := range zones.Items {
 		sklog.Infof("Zone: %s", zone.Name)
 		list, err := comp.Instances.List(*project, zone.Name).Do()
@@ -164,50 +165,30 @@ func (i *IPAddresses) loadIPAddresses() error {
 			return fmt.Errorf("Failed to list instances: %s", err)
 		}
 		for _, item := range list.Items {
-			for _, nif := range item.NetworkInterfaces {
-				for _, acc := range nif.AccessConfigs {
-					if strings.HasPrefix(strings.ToLower(acc.Name), "external") {
-						ip[item.Name] = acc.NatIP
-					}
-				}
-			}
+			zoneMap[item.Name] = zone.Name
 		}
 	}
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
 
-	i.ip = ip
+	i.zone = zoneMap
 	return nil
 }
 
-// Get returns the current set of external IP addresses for servers.
-func (i *IPAddresses) Get() map[string]string {
-	i.mutex.Lock()
-	defer i.mutex.Unlock()
-
-	return i.ip
+func (i *Zones) Zone(server string) string {
+	return i.zone[server]
 }
 
-// Resolve the server name to an ip address, but only if running locally.
-func (i *IPAddresses) Resolve(server string) string {
-	serverName := server
-	if ipaddr, ok := i.Get()[server]; ok && *local {
-		serverName = ipaddr
-	}
-	return serverName
-}
-
-func NewIPAddresses(comp *compute.Service) (*IPAddresses, error) {
-	i := &IPAddresses{
-		ip:   map[string]string{},
+func NewZones(comp *compute.Service) (*Zones, error) {
+	i := &Zones{
 		comp: comp,
 	}
-	if err := i.loadIPAddresses(); err != nil {
+	if err := i.load(); err != nil {
 		return nil, err
 	}
 	go func() {
 		for _ = range time.Tick(time.Second * 60) {
-			if err := i.loadIPAddresses(); err != nil {
+			if err := i.load(); err != nil {
 				sklog.Infof("Error refreshing IP address list: %s", err)
 			}
 		}
@@ -242,7 +223,7 @@ type PushNewPackage struct {
 // getStatus returns a populated []*systemd.UnitStatus for the given server, one for each
 // push managed service, and nil if the information wasn't able to be retrieved.
 func getStatus(server string) []*systemd.UnitStatus {
-	resp, err := fastClient.Get(fmt.Sprintf("http://%s:10000/_/list", ip.Resolve(server)))
+	resp, err := fastClient.Get(fmt.Sprintf("http://%s:10000/_/list", server))
 	if err != nil {
 		sklog.Infof("Failed to get status of: %s", server)
 		return nil
@@ -311,7 +292,6 @@ func appNames(installed []string) []string {
 type AllUI struct {
 	Servers  ServersUI                      `json:"servers"`
 	Packages map[string][]*packages.Package `json:"packages"`
-	IP       map[string]string              `json:"ip"`
 	Status   map[string]*systemd.UnitStatus `json:"status"`
 }
 
@@ -391,11 +371,9 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 				httputils.ReportError(w, r, err, "Failed to update server.")
 				return
 			}
-			resp, err := fastClient.Get(fmt.Sprintf("http://%s:10000/pullpullpull", push.Server))
-			if err != nil || resp == nil {
-				sklog.Infof("Failed to trigger an instant pull for server %s: %v %v", push.Server, err, resp)
-			} else {
-				util.Close(resp.Body)
+
+			if err := trigger.ByMetadata(comp, *project, push.Name, push.Server, ip.Zone(push.Server)); err != nil {
+				sklog.Warningf("Could not trigger package load via metadata: %s", err)
 			}
 			allInstalled[push.Server].Names = newInstalled
 		}
@@ -407,7 +385,6 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 	err := enc.Encode(AllUI{
 		Servers:  servers,
 		Packages: allAvailable,
-		IP:       ip.Get(),
 		Status:   serviceStatus(servers),
 	})
 	if err != nil {
@@ -480,7 +457,7 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	action := r.Form.Get("action")
 	name := r.Form.Get("name")
-	machine := ip.Resolve(r.Form.Get("machine"))
+	machine := r.Form.Get("machine")
 	url := fmt.Sprintf("http://%s:10000/_/change?name=%s&action=%s", machine, name, action)
 	resp, err := fastClient.Post(url, "", nil)
 	if err != nil {
