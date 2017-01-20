@@ -17,15 +17,17 @@ import (
 	"google.golang.org/api/logging/v2beta1"
 )
 
-var (
+var ( // flags
 	influxDatabase  = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 	influxHost      = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxPassword  = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
 	influxUser      = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	metricsFilename = flag.String("metrics_filename", "metrics.toml", "The file with all the metrics and their filters.")
+	promPort        = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	validateOnly    = flag.Bool("validate_only", false, "Exits after successfully reading the config file.")
-
+)
+var (
 	loggingService *logging.Service
 	metrics        []config.Metric
 )
@@ -69,11 +71,12 @@ func step() {
 
 func main() {
 	defer common.LogPanic()
-	if *local {
-		common.Init()
-	} else {
-		common.InitWithMetrics2("logmetrics", influxHost, influxUser, influxPassword, influxDatabase, local)
-	}
+	common.InitWithMust(
+		"logmetrics",
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
+
 	client, err := auth.NewDefaultJWTServiceAccountClient(logging.LoggingReadScope)
 	if err != nil {
 		sklog.Fatalf("Failed to create service account client: %s", err)
