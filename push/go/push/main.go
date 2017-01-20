@@ -147,11 +147,13 @@ func Init() {
 // IPAddresses keeps track of the external IP addresses of each server.
 type IPAddresses struct {
 	ip    map[string]string
+	zone  map[string]string
 	comp  *compute.Service
 	mutex sync.Mutex
 }
 
 func (i *IPAddresses) loadIPAddresses() error {
+	zoneMap := map[string]string{}
 	zones, err := comp.Zones.List(*project).Do()
 	if err != nil {
 		return fmt.Errorf("Failed to list zones: %s", err)
@@ -168,6 +170,7 @@ func (i *IPAddresses) loadIPAddresses() error {
 				for _, acc := range nif.AccessConfigs {
 					if strings.HasPrefix(strings.ToLower(acc.Name), "external") {
 						ip[item.Name] = acc.NatIP
+						zoneMap[item.Name] = zone.Name
 					}
 				}
 			}
@@ -177,6 +180,7 @@ func (i *IPAddresses) loadIPAddresses() error {
 	defer i.mutex.Unlock()
 
 	i.ip = ip
+	i.zone = zoneMap
 	return nil
 }
 
@@ -195,6 +199,10 @@ func (i *IPAddresses) Resolve(server string) string {
 		serverName = ipaddr
 	}
 	return serverName
+}
+
+func (i *IPAddresses) Zone(server string) string {
+	return i.zone[server]
 }
 
 func NewIPAddresses(comp *compute.Service) (*IPAddresses, error) {
@@ -391,6 +399,22 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 				httputils.ReportError(w, r, err, "Failed to update server.")
 				return
 			}
+			// Tell pulld a new version is available by updating instance metadata.
+			md := &compute.Metadata{
+				Items: []*compute.MetadataItems{
+					&compute.MetadataItems{
+						Key:   "pushrev",
+						Value: &push.Name,
+					},
+				},
+			}
+			_, err := comp.Instances.SetMetadata(*project, ip.Zone(push.Server), push.Server, md).Do()
+			if err != nil {
+				sklog.Warningf("Failed to set pushrev for server instance %q: %s", push.Server, err)
+			}
+
+			// Tell pulld a new version is available by updating hitting its /pullpullpull endpoint.
+			// TODO(jcgregorio) This is a legacy operation and should be removed once all pulld instances support notification via metadata.
 			resp, err := fastClient.Get(fmt.Sprintf("http://%s:10000/pullpullpull", push.Server))
 			if err != nil || resp == nil {
 				sklog.Infof("Failed to trigger an instant pull for server %s: %v %v", push.Server, err, resp)

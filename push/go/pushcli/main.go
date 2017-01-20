@@ -56,7 +56,7 @@ func main() {
 	serverName := args[1] // "skia-debugger" or "*"
 
 	// Create the needed clients.
-	client, err := auth.NewDefaultJWTServiceAccountClient(storage.DevstorageReadWriteScope, compute.ComputeReadonlyScope)
+	client, err := auth.NewDefaultJWTServiceAccountClient(storage.DevstorageReadWriteScope, compute.CloudPlatformScope)
 	if err != nil {
 		sklog.Fatalf("Failed to create authenticated HTTP client: %s\nDid you run get_service_account?", err)
 	}
@@ -147,33 +147,62 @@ func installOnServer(client *http.Client, store *storage.Service, comp *compute.
 		}
 	}
 
+	ip, zone, err := findIPAddress(comp, serverName)
+	if err != nil {
+		sklog.Warningf("Could not find ip address: %s", err)
+		return nil
+	}
+
+	// Tell pulld a new version is available by updating instance metadata.
+	inst, err := comp.Instances.Get(*project, zone, serverName).Do()
+	if err != nil {
+		sklog.Warningf("Could not find metadata fingerprint address: %s", err)
+		return nil
+	}
+	pushrev := fmt.Sprintf("%d", latest.Name)
+	found = false
+	for _, it := range inst.Metadata.Items {
+		if it.Key == "pushrev" {
+			it.Value = &pushrev
+			found = true
+		}
+	}
+	if !found {
+		inst.Metadata.Items = append(inst.Metadata.Items,
+			&compute.MetadataItems{
+				Key:   "pushrev",
+				Value: &pushrev,
+			})
+	}
+	op, err := comp.Instances.SetMetadata(*project, zone, serverName, inst.Metadata).Do()
+	sklog.Infof("%#v %s", *op, err)
+	if err != nil || op.HTTPStatusCode != 200 {
+		sklog.Warningf("Failed to set pushrev for server instance %q: %s", serverName, err)
+	}
+
 	// If we are on the right network we can ping pulld to install the new
 	// package and avoid the 15s wait for pulld to poll and find the new package.
-	if ip, err := findIPAddress(comp, serverName); err == nil {
-		if *dryrun {
-			sklog.Infof(`"client.Get(http://%s:10000/pullpullpull)"`, ip)
-		} else {
-			sklog.Infof("findIPAddress: %q", ip)
-			resp, err := client.Get(fmt.Sprintf("http://%s:10000/pullpullpull", ip))
-			if err != nil || resp == nil {
-				sklog.Infof("Failed to trigger an instant pull for server %s: %v %v", serverName, err)
-			} else {
-				util.Close(resp.Body)
-			}
-		}
+	if *dryrun {
+		sklog.Infof(`"client.Get(http://%s:10000/pullpullpull)"`, ip)
 	} else {
-		sklog.Warningf("Could not find ip address: %s", err)
+		sklog.Infof("findIPAddress: %q", ip)
+		resp, err := client.Get(fmt.Sprintf("http://%s:10000/pullpullpull", ip))
+		if err != nil || resp == nil {
+			sklog.Infof("Failed to trigger an instant pull for server %s: %v %v", serverName, err)
+		} else {
+			util.Close(resp.Body)
+		}
 	}
 
 	return nil
 }
 
 // findIPAddress returns the ip address of the server with the given name.
-func findIPAddress(comp *compute.Service, name string) (string, error) {
+func findIPAddress(comp *compute.Service, name string) (string, string, error) {
 	// We have to look in each zone for the server with the given name.
 	zones, err := comp.Zones.List(*project).Do()
 	if err != nil {
-		return "", fmt.Errorf("Failed to list zones: %s", err)
+		return "", "", fmt.Errorf("Failed to list zones: %s", err)
 	}
 	for _, zone := range zones.Items {
 		item, err := comp.Instances.Get(*project, zone.Name, name).Do()
@@ -183,10 +212,10 @@ func findIPAddress(comp *compute.Service, name string) (string, error) {
 		for _, nif := range item.NetworkInterfaces {
 			for _, acc := range nif.AccessConfigs {
 				if strings.HasPrefix(strings.ToLower(acc.Name), "external") {
-					return acc.NatIP, nil
+					return acc.NatIP, zone.Name, nil
 				}
 			}
 		}
 	}
-	return "", fmt.Errorf("Couldn't find an instance named: %s", name)
+	return "", "", fmt.Errorf("Couldn't find an instance named: %s", name)
 }
