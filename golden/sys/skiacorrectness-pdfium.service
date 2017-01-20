@@ -7,7 +7,7 @@ After=network-online.target
 Environment=DATA_DIR=/mnt/pd0/data  \
   RESOURCE_DIR=/usr/local/share/skiacorrectness  \
 
-ExecStart=/usr/local/bin/skiacorrectness  \
+ExecStart=/usr/local/bin/skiacorrectness-pdfium  \
     --port=:8001  \
     --log_dir=/var/log/logserver  \
     --trace_service=skia-tracedb:9091 \

@@ -96,7 +96,8 @@ func main() {
 	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME, db.MigrationSteps())
 
 	// Global init to initialize influx, prometheus and cloud logging.
-	common.InitWithMust("skiacorrectness",
+	_, appName := filepath.Split(os.Args[0])
+	common.InitWithMust(appName,
 		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
