@@ -24,7 +24,6 @@ import (
 	"go.skia.org/infra/doc/go/docset"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
 )
@@ -37,17 +36,14 @@ var (
 
 // flags
 var (
-	docRepo        = flag.String("doc_repo", "https://skia.googlesource.com/skia", "The directory to check out the doc repo into.")
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	preview        = flag.Bool("preview", false, "Preview markdown changes to a local repo. Doesn't do pulls.")
-	refresh        = flag.Duration("refresh", 5*time.Minute, "The duration between doc git repo refreshes.")
-	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	workDir        = flag.String("work_dir", "/tmp", "The directory to check out the doc repo into.")
+	docRepo      = flag.String("doc_repo", "https://skia.googlesource.com/skia", "The directory to check out the doc repo into.")
+	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	preview      = flag.Bool("preview", false, "Preview markdown changes to a local repo. Doesn't do pulls.")
+	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	refresh      = flag.Duration("refresh", 5*time.Minute, "The duration between doc git repo refreshes.")
+	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	workDir      = flag.String("work_dir", "/tmp", "The directory to check out the doc repo into.")
 )
 
 func loadTemplates() {
@@ -201,16 +197,14 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics2("docserver", influxHost, influxUser, influxPassword, influxDatabase, local)
-	Init()
+	common.InitWithMust(
+		"docserver",
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
+	login.SimpleInitMust(*port, *local)
 
-	redirectURL := login.DEFAULT_REDIRECT_URL
-	if *local {
-		redirectURL = fmt.Sprintf("https://localhost%s/oauth2callback/", *port)
-	}
-	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		sklog.Fatalf("Failed to initialize the login system: %s", err)
-	}
+	Init()
 
 	// Resources are served directly.
 	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
