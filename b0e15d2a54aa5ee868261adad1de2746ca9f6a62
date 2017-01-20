@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "284bc29d_ebcc1db9",
+        "filename": "push/go/push/main.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-20T16:22:28Z",
+      "side": 1,
+      "message": "Looks like the comment needs to be updated.",
+      "revId": "b0e15d2a54aa5ee868261adad1de2746ca9f6a62",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_6b9acdb2",
+        "filename": "push/go/pushcli/main.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-20T16:22:28Z",
+      "side": 1,
+      "message": "This returns the name of the zone now?",
+      "revId": "b0e15d2a54aa5ee868261adad1de2746ca9f6a62",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
