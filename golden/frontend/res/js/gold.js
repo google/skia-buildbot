@@ -354,6 +354,7 @@ var gold = gold || {};
 
     // _addCorpus injects the corpus into the query string of a query object.
     _addCorpus: function(state) {
+      debugger;
       var params = sk.query.toParamSet(state.query);
       if ((!params["source_type]"]) && this._statusElement) {
         params["source_type"] = [this._statusElement.corpus];
