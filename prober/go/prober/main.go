@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
-	"go.skia.org/infra/go/influxdb_init"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -291,17 +290,12 @@ func probeOneRound(cfg Probes, c *http.Client) {
 
 func main() {
 	defer common.LogPanic()
-
-	common.Init()
-	influxClient, err := influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	if err := metrics2.InitPromInflux("probeserver", influxClient, *promPort); err != nil {
-		sklog.Fatal(err)
-	}
-
-	common.StartCloudLogging("probeserver")
+	common.InitWithMust(
+		"probeserver",
+		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
 
 	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
