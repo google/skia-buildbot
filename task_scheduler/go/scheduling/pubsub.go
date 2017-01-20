@@ -16,18 +16,17 @@ import (
 )
 
 const (
-	PUBSUB_TOPIC_SWARMING_TASKS       = "swarming-tasks"
-	PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL = "projects/%s/topics/%s"
-)
-
-var (
-	PUBSUB_TOPICS                    = []string{PUBSUB_TOPIC_SWARMING_TASKS}
-	PUBSUB_TOPIC_SWARMING_TASKS_FULL = fmt.Sprintf(PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, PUBSUB_TOPIC_SWARMING_TASKS)
+	PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL         = "projects/%s/topics/%s"
+	PUBSUB_SUBSCRIBER_TASK_SCHEDULER          = "task-scheduler"
+	PUBSUB_SUBSCRIBER_TASK_SCHEDULER_INTERNAL = "task-scheduler-internal"
+	PUBSUB_TOPIC_SWARMING_TASKS               = "swarming-tasks"
+	PUBSUB_TOPIC_SWARMING_TASKS_INTERNAL      = "swarming-tasks-internal"
+	PUSH_URL_SWARMING_TASKS                   = "/pubsub/swarming-tasks"
 )
 
 // InitPubSub ensures that the pub/sub topics and subscriptions needed by the
 // TaskScheduler exist.
-func InitPubSub() error {
+func InitPubSub(serverUrl, topicName, subscriberName string) error {
 	ctx := context.Background()
 
 	// Create a client.
@@ -36,34 +35,33 @@ func InitPubSub() error {
 		return err
 	}
 
-	// Create topics and subscriptions if necessary.
-	for _, topicName := range PUBSUB_TOPICS {
-		// Topic.
-		topic := client.Topic(topicName)
-		exists, err := topic.Exists(ctx)
-		if err != nil {
-			return err
-		}
-		if !exists {
-			if _, err := client.CreateTopic(ctx, topicName); err != nil {
-				return err
-			}
-		}
+	// Create topic and subscription if necessary.
 
-		// Subscription.
-		subName := fmt.Sprintf("task_scheduler+%s", topicName)
-		sub := client.Subscription(subName)
-		exists, err = sub.Exists(ctx)
-		if err != nil {
+	// Topic.
+	topic := client.Topic(topicName)
+	exists, err := topic.Exists(ctx)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		if _, err := client.CreateTopic(ctx, topicName); err != nil {
 			return err
 		}
-		if !exists {
-			c := &pubsub.PushConfig{
-				Endpoint: fmt.Sprintf("https://task-scheduler.skia.org/pubsub/%s", topicName),
-			}
-			if _, err := client.CreateSubscription(ctx, subName, topic, 20*time.Second, c); err != nil {
-				return err
-			}
+	}
+
+	// Subscription.
+	subName := fmt.Sprintf("%s+%s", subscriberName, topicName)
+	sub := client.Subscription(subName)
+	exists, err = sub.Exists(ctx)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		c := &pubsub.PushConfig{
+			Endpoint: fmt.Sprintf("%s/%s", serverUrl, PUSH_URL_SWARMING_TASKS),
+		}
+		if _, err := client.CreateSubscription(ctx, subName, topic, 20*time.Second, c); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -84,14 +82,13 @@ type PubSubTaskMessage struct {
 // RegisterPubSubServer adds handler to r that handle pub/sub push
 // notifications.
 func RegisterPubSubServer(s *TaskScheduler, r *mux.Router) {
-	r.HandleFunc(fmt.Sprintf("/pubsub/%s", PUBSUB_TOPIC_SWARMING_TASKS), func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc(PUSH_URL_SWARMING_TASKS, func(w http.ResponseWriter, r *http.Request) {
 		var req PubSubRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			httputils.ReportError(w, r, err, "Failed to decode request body.")
 			return
 		}
 
-		// TODO(borenet): Ensure that the auth token is correct.
 		var t PubSubTaskMessage
 		if err := json.Unmarshal(req.Message.Data, &t); err != nil {
 			httputils.ReportError(w, r, err, "Failed to decode PubSubTaskMessage.")
