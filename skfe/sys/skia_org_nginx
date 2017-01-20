@@ -852,6 +852,35 @@ server {
     return 301 https://task-scheduler.skia.org$request_uri;
 }
 
+#####   task-scheduler-internal.skia.org   ###########################
+server {
+    listen      443;
+    server_name task-scheduler-internal.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/task-scheduler-internal.access.log;
+    error_log /var/log/nginx/task-scheduler-internal.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
+    location / {
+        deny all;
+    }
+    location /pubsub/ {
+        proxy_pass http://skia-task-scheduler-internal:8000;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name task-scheduler-internal.skia.org;
+    return 301 https://task-scheduler-internal.skia.org$request_uri;
+}
+
 #####   prom.skia.org   ###########################
 server {
     listen      443;
