@@ -5,11 +5,7 @@ import (
 	"net/http"
 
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/indexer"
-	"go.skia.org/infra/golden/go/status"
-	"go.skia.org/infra/golden/go/storage"
 )
 
 // TODO(stephana): Simplify
@@ -25,14 +21,6 @@ type ResponseEnvelope struct {
 	Status     int                           `json:"status"`
 	Pagination *httputils.ResponsePagination `json:"pagination"`
 }
-
-var (
-	// Module level variables that need to be accessible to handler.go.
-	storages      *storage.Storage
-	statusWatcher *status.StatusWatcher
-	ixr           *indexer.Indexer
-	issueTracker  issues.IssueTracker
-)
 
 // setJSONHeaders sets secure headers for JSON responses.
 func setJSONHeaders(w http.ResponseWriter) {

@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/pdag"
+	"go.skia.org/infra/golden/go/stats"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
@@ -39,6 +40,7 @@ type SearchIndex struct {
 	paramsetSummary *paramsets.ParamSummary
 	blamer          *blame.Blamer
 	warmer          *warmer.Warmer
+	stat            *stats.Statistician
 
 	// Used by the pdag pipeline.
 	testNames []string
@@ -47,7 +49,7 @@ type SearchIndex struct {
 // newSearchIndex creates a new instance of SearchIndex. It is not intended to
 // be used outside of this package. SearchIndex instances are created by the
 // Indexer and retrieved via GetIndex().
-func newSearchIndex(storages *storage.Storage, tilePair *types.TilePair) *SearchIndex {
+func newSearchIndex(storages *storage.Storage, tilePair *types.TilePair, stat *stats.Statistician) *SearchIndex {
 	return &SearchIndex{
 		tilePair:        tilePair,
 		tallies:         tally.New(),
@@ -55,6 +57,7 @@ func newSearchIndex(storages *storage.Storage, tilePair *types.TilePair) *Search
 		paramsetSummary: paramsets.New(),
 		blamer:          blame.New(storages),
 		warmer:          warmer.New(storages),
+		stat:            stat,
 	}
 }
 
@@ -110,6 +113,7 @@ func (idx *SearchIndex) GetBlame(test, digest string, commits []*tiling.Commit) 
 // of it.
 type Indexer struct {
 	storages   *storage.Storage
+	stat       *stats.Statistician
 	pipeline   *pdag.Node
 	blamerNode *pdag.Node
 	lastIndex  *SearchIndex
@@ -120,9 +124,10 @@ type Indexer struct {
 // New returns a new Indexer instance. It synchronously indexes the initiallly
 // available tile. If the indexing fails an error is returned.
 // The provided interval defines how often the index should be refreshed.
-func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
+func New(storages *storage.Storage, stat *stats.Statistician, interval time.Duration) (*Indexer, error) {
 	ret := &Indexer{
 		storages: storages,
+		stat:     stat,
 	}
 
 	// Set up the processing pipeline.
@@ -219,7 +224,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 func (ixr *Indexer) indexTilePair(tilePair *types.TilePair) error {
 	defer timer.New("indexTilePair").Stop()
 	// Create a new index from the given tile.
-	return ixr.pipeline.Trigger(newSearchIndex(ixr.storages, tilePair))
+	return ixr.pipeline.Trigger(newSearchIndex(ixr.storages, tilePair, ixr.stat))
 }
 
 // indexTest creates an updated index by indexing the given list of tests.
@@ -286,5 +291,11 @@ func calcBlame(state interface{}) error {
 func runWarmer(state interface{}) error {
 	idx := state.(*SearchIndex)
 	go idx.warmer.Run(idx.tilePair.TileWithIgnores, idx.summaries, idx.tallies)
+	return nil
+}
+
+func calcStats(state interface{}) error {
+	idx := state.(*SearchIndex)
+	go idx.stat.CalculateTileStats(idx.tilePair.TileWithIgnores)
 	return nil
 }

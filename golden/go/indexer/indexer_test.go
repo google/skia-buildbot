@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/mocks"
+	"go.skia.org/infra/golden/go/stats"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -78,7 +79,8 @@ func TestIndexer(t *testing.T) {
 		EventBus:  eventBus,
 	}
 
-	ixr, err := New(storages, time.Minute)
+	stat := stats.NewStatistician()
+	ixr, err := New(storages, stat, time.Minute)
 	assert.NoError(t, err)
 
 	idxOne := ixr.GetIndex()
@@ -121,9 +123,11 @@ func BenchmarkIndexer(b *testing.B) {
 	storages, expStore := setupStorages(b)
 	defer testutils.RemoveAll(b, REPO_DIR)
 
+	stat := stats.NewStatistician()
+
 	// Build the initial index.
 	b.ResetTimer()
-	_, err := New(storages, time.Minute*15)
+	_, err := New(storages, stat, time.Minute*15)
 	assert.NoError(b, err)
 
 	// Update the expectations.

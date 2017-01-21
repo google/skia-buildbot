@@ -39,6 +39,7 @@ import (
 	"go.skia.org/infra/golden/go/history"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/stats"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/trybot"
@@ -85,6 +86,15 @@ const (
 
 	// OAUTH2_CALLBACK_PATH is callback endpoint used for the Oauth2 flow.
 	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
+)
+
+var (
+	// Module level variables that need to be accessible to handler.go.
+	storages      *storage.Storage
+	statusWatcher *status.StatusWatcher
+	ixr           *indexer.Indexer
+	issueTracker  issues.IssueTracker
+	stat          *stats.Statistician
 )
 
 func main() {
@@ -223,6 +233,10 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Unable to open ingestion store: %s", err)
 	}
+
+	// Initialize the central statistician object.
+	stat := stats.NewStatistician()
+
 	storages = &storage.Storage{
 		DiffStore:         diffStore,
 		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt),
@@ -248,7 +262,7 @@ func main() {
 	}
 
 	// Rebuild the index every two minutes.
-	ixr, err = indexer.New(storages, 2*time.Minute)
+	ixr, err = indexer.New(storages, stat, 2*time.Minute)
 	if err != nil {
 		sklog.Fatalf("Failed to create indexer: %s", err)
 	}
@@ -303,6 +317,7 @@ func main() {
 	router.HandleFunc("/json/trybot", jsonListTrybotsHandler).Methods("GET")
 	router.HandleFunc("/json/failure", jsonListFailureHandler).Methods("GET")
 	router.HandleFunc("/json/failure/clear", jsonClearFailureHandler).Methods("POST")
+	router.HandleFunc("/json/stats", jsonStatsHandler).Methods("GET")
 
 	// For everything else serve the same markup.
 	indexFile := *resourcesDir + "/index.html"
