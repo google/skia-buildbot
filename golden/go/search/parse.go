@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -117,6 +118,13 @@ func (v *Validation) StrValue(name string, val *string, options []string, defaul
 	if !util.In(*val, options) {
 		*v = append(*v, fmt.Sprintf("Field '%s' needs to be one of '%s'", name, strings.Join(options, ",")))
 	}
+}
+
+// StrFormValue does the same as StrValue but extracts the given name from
+// the request via r.FormValue(..).
+func (v *Validation) StrFormValue(r *http.Request, name string, val *string, options []string, defaultVal string) {
+	*val = r.FormValue(name)
+	v.StrValue(name, val, options, defaultVal)
 }
 
 // Errors returns a concatination of all error values accumulated in validation or nil
