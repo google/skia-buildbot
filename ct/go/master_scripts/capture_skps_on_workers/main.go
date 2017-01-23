@@ -103,7 +103,8 @@ func main() {
 
 	isolateFile := util.CAPTURE_SKPS_ISOLATE
 	maxPages := MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS
-	workerDimensions := util.GOLO_WORKER_DIMENSIONS
+	// workerDimensions := util.GOLO_WORKER_DIMENSIONS
+	workerDimensions := util.GCE_WORKER_DIMENSIONS
 	hardTimeout := 3 * time.Hour
 	ioTimeout := 1 * time.Hour
 	if strings.Contains(strings.ToUpper(*pagesetType), "PDF") {
@@ -158,13 +159,15 @@ func main() {
 		pdfGSBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.PDFS_DIR_NAME, *pagesetType, *chromiumBuild)
 		skutil.LogErr(gs.DeleteRemoteDir(pdfGSBaseDir))
 	}
+	//return // TODO(rmistry): Remove this!
 
 	// Archive, trigger and collect swarming tasks.
 	isolateExtraArgs := map[string]string{
 		"CHROMIUM_BUILD": *chromiumBuild,
 		"RUN_ID":         *runID,
 	}
-	if err := util.TriggerSwarmingTask(*pagesetType, "capture_skps", isolateFile, *runID, hardTimeout, ioTimeout, util.ADMIN_TASKS_PRIORITY, maxPages, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, workerDimensions); err != nil {
+	//if err := util.TriggerSwarmingTask(*pagesetType, "capture_skps", isolateFile, *runID, hardTimeout, ioTimeout, util.ADMIN_TASKS_PRIORITY, maxPages, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, workerDimensions); err != nil {
+	if err := util.TriggerSwarmingTask(*pagesetType, "capture_skps", isolateFile, *runID, hardTimeout, ioTimeout, util.ADMIN_TASKS_PRIORITY, maxPages, 10, isolateExtraArgs, workerDimensions); err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}

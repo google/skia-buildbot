@@ -29,6 +29,10 @@ ctfe_debug: res/css/ctfe.css debug skiaversion ctfe_migratedb
 ctfe_release: ctfe
 	./build_ctfe_release "$(MESSAGE)"
 
+.PHONY: ctmaster_release
+ctmaster_release: all
+	./build_ctmaster_release "$(MESSAGE)"
+
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html

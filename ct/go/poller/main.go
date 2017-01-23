@@ -116,14 +116,16 @@ func updateAndBuild() error {
 	if err != nil {
 		return err
 	}
-	return exec.Run(&exec.Command{
-		Name:      "make",
-		Args:      []string{"all"},
-		Dir:       makefilePath,
-		Timeout:   ctutil.MAKE_ALL_TIMEOUT,
-		LogStdout: true,
-		LogStderr: true,
-	})
+	// TODO(rmistry): Undo this.
+	return nil
+	//return exec.Run(&exec.Command{
+	//	Name:      "make",
+	//	Args:      []string{"all"},
+	//	Dir:       makefilePath,
+	//	Timeout:   ctutil.MAKE_ALL_TIMEOUT,
+	//	LogStdout: true,
+	//	LogStderr: true,
+	//})
 }
 
 // Specifies the methods that poll requires for each type of task.
