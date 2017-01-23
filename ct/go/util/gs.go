@@ -41,7 +41,7 @@ type GcsUtil struct {
 func NewGcsUtil(client *http.Client) (*GcsUtil, error) {
 	if client == nil {
 		var err error
-		client, err = auth.NewClientWithTransport(true, GCSTokenPath, ClientSecretPath, nil, auth.SCOPE_FULL_CONTROL)
+		client, err = auth.NewClientWithTransport(false, GCSTokenPath, "", nil, auth.SCOPE_FULL_CONTROL)
 		if err != nil {
 			return nil, err
 		}

@@ -366,7 +366,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 	if err != nil {
 		return fmt.Errorf("Could not get temp dir: %s", err)
 	}
-	s, err := swarming.NewSwarmingClient(workDir, swarming.SWARMING_SERVER, isolate.ISOLATE_SERVER_URL)
+	s, err := swarming.NewSwarmingClient(workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
 	if err != nil {
 		return fmt.Errorf("Could not instantiate swarming client: %s", err)
 	}
@@ -374,8 +374,10 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 	// Create isolated.gen.json files from tasks.
 	genJSONs := []string{}
 	// Get path to isolate files.
-	_, currentFile, _, _ := runtime.Caller(0)
-	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
+	//_, currentFile, _, _ := runtime.Caller(0)
+	// TODO(rmistry): Uncomment
+	// pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
+	pathToIsolates := "/b/skia-repo/go/src/go.skia.org/infra/ct/isolates"
 	numTasks := int(math.Ceil(float64(numPages) / float64(maxPagesPerBot)))
 	for i := 1; i <= numTasks; i++ {
 		isolateArgs := map[string]string{
@@ -694,15 +696,16 @@ func TriggerBuildRepoSwarmingTask(taskName, runID, repo, targetPlatform string, 
 	if err != nil {
 		return nil, fmt.Errorf("Could not get temp dir: %s", err)
 	}
-	s, err := swarming.NewSwarmingClient(workDir, swarming.SWARMING_SERVER, isolate.ISOLATE_SERVER_URL)
+	s, err := swarming.NewSwarmingClient(workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
 	if err != nil {
 		return nil, fmt.Errorf("Could not instantiate swarming client: %s", err)
 	}
 	defer s.Cleanup()
 	// Create isolated.gen.json.
 	// Get path to isolate files.
-	_, currentFile, _, _ := runtime.Caller(0)
-	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
+	//_, currentFile, _, _ := runtime.Caller(0)
+	pathToIsolates := "/b/skia-repo/go/src/go.skia.org/infra/ct/isolates"
+	//pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
 	isolateArgs := map[string]string{
 		"RUN_ID":          runID,
 		"REPO":            repo,
