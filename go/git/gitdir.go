@@ -107,8 +107,8 @@ func (g GitDir) RevParse(args ...string) (string, error) {
 }
 
 // RevList runs "git rev-list <name>" and returns a slice of commit hashes.
-func (g GitDir) RevList(name string) ([]string, error) {
-	out, err := g.Git("rev-list", name)
+func (g GitDir) RevList(args ...string) ([]string, error) {
+	out, err := g.Git(append([]string{"rev-list"}, args...)...)
 	if err != nil {
 		return nil, err
 	}
