@@ -100,24 +100,13 @@ func (b *Blacklist) addRule(r *Rule) error {
 	return nil
 }
 
-// findCommit finds the repo for the given commit.
-func findCommit(c string, repos repograph.Map) (string, error) {
-	for repoName, r := range repos {
-		commit := r.Get(c)
-		if commit != nil && commit.Hash == c {
-			return repoName, nil
-		}
-	}
-	return "", fmt.Errorf("Could not find commit %s in any repo.", c)
-}
-
 // NewCommitRangeRule creates a new Rule which covers a range of commits.
 func NewCommitRangeRule(name, user, description string, taskSpecPatterns []string, startCommit, endCommit string, repos repograph.Map) (*Rule, error) {
-	repoName, err := findCommit(startCommit, repos)
+	_, repoName, _, err := repos.FindCommit(startCommit)
 	if err != nil {
 		return nil, err
 	}
-	repo2, err := findCommit(endCommit, repos)
+	_, repo2, _, err := repos.FindCommit(endCommit)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +211,7 @@ func ValidateRule(r *Rule, repos repograph.Map) error {
 		return fmt.Errorf("Rules must include a taskSpec pattern and/or a commit/range.")
 	}
 	for _, c := range r.Commits {
-		if _, err := findCommit(c, repos); err != nil {
+		if _, _, _, err := repos.FindCommit(c); err != nil {
 			return err
 		}
 	}
