@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "284bc29d_c6fb134e",
+        "filename": "go/depot_tools/depot_tools.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-23T15:51:21Z",
+      "side": 1,
+      "message": "golang exec.LookPath?\n\n(Sorry, I probably should have named go.skia.org/infra/go/exec skexec.)",
+      "range": {
+        "startLine": 27,
+        "startChar": 1,
+        "endLine": 27,
+        "endChar": 53
+      },
+      "revId": "5f141b4d1e0863d5808cef304a36b32053011d9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_66395f43",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-23T15:51:21Z",
+      "side": 1,
+      "message": "Just to be clear, we\u0027ll need to commit a CL that makes this test pass shortly after committing this CL.",
+      "revId": "5f141b4d1e0863d5808cef304a36b32053011d9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_46b383ac",
+        "filename": "task_scheduler/go/specs/testutils/testutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-23T15:51:21Z",
+      "side": 1,
+      "message": "I don\u0027t see what this is protecting.",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 29
+      },
+      "revId": "5f141b4d1e0863d5808cef304a36b32053011d9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_e6c1efe3",
+        "filename": "task_scheduler/go/specs/testutils/testutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-23T15:51:21Z",
+      "side": 1,
+      "message": "IMO, it would be better to fail the test. I assume we have depot_tools everywhere we\u0027ll run this test.",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 23
+      },
+      "revId": "5f141b4d1e0863d5808cef304a36b32053011d9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
