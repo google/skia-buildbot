@@ -241,7 +241,7 @@ func (r *Graph) Update() error {
 					return err
 				}
 				if anc {
-					commits, err = r.repo.RevList(fmt.Sprintf("%s..%s", old.Head, b.Head))
+					commits, err = r.repo.RevList("--topo-order", fmt.Sprintf("%s..%s", old.Head, b.Head))
 					if err != nil {
 						return err
 					}
@@ -254,7 +254,7 @@ func (r *Graph) Update() error {
 		// load ALL commits reachable from the branch head.
 		if len(commits) == 0 {
 			sklog.Infof("  Branch %s is new or its history has changed; loading all commits.", b.Name)
-			commits, err = r.repo.RevList(b.Head)
+			commits, err = r.repo.RevList("--topo-order", b.Head)
 			if err != nil {
 				return fmt.Errorf("Failed to 'git rev-list' for repograph.Graph: %s", err)
 			}
