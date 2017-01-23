@@ -48,6 +48,7 @@ import (
 
 // Command line flags.
 var (
+	appTitle           = flag.String("app_title", "Skia Gold", "Title of the deployed up on the front end.")
 	authWhiteList      = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 	cacheSize          = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
 	cpuProfile         = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
@@ -72,6 +73,7 @@ var (
 	gitRepoDir         = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	gitRepoURL         = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
+	showBotProgress    = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
 	traceservice       = flag.String("trace_service", "localhost:10000", "The address of the traceservice endpoint.")
 
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
@@ -311,11 +313,15 @@ func main() {
 
 	// appConfig is injected into the header of the index file.
 	appConfig := &struct {
-		BaseRepoURL   string `json:"baseRepoURL"`
-		DefaultCorpus string `json:"defaultCorpus"`
+		BaseRepoURL     string `json:"baseRepoURL"`
+		DefaultCorpus   string `json:"defaultCorpus"`
+		ShowBotProgress bool   `json:"showBotProgress"`
+		Title           string `json:"title"`
 	}{
-		BaseRepoURL:   *gitRepoURL,
-		DefaultCorpus: *defaultCorpus,
+		BaseRepoURL:     *gitRepoURL,
+		DefaultCorpus:   *defaultCorpus,
+		ShowBotProgress: *showBotProgress,
+		Title:           *appTitle,
 	}
 
 	router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

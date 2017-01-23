@@ -25,7 +25,9 @@ ExecStart=/usr/local/bin/skiacorrectness-pdfium  \
     --n_commits=100   \
     --cache_size=20 \
     --backfill_tiles=2 \
-    --resources_dir=/usr/local/share/skiacorrectness/frontend
+    --resources_dir=/usr/local/share/skiacorrectness/frontend \
+    --show_bot_progress=false \
+    --app_title="Pdfium Gold"
 
 Restart=always
 User=default
