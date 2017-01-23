@@ -55,6 +55,7 @@ type TaskScheduler struct {
 	bl               *blacklist.Blacklist
 	busyBots         *busyBots
 	db               db.DB
+	gitCacheDir      string
 	isolate          *isolate.Client
 	jCache           db.JobCache
 	lastScheduled    time.Time // protected by queueMtx.
@@ -95,6 +96,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, ho
 		return nil, err
 	}
 
+	gitCacheDir := path.Join(workdir, "cache")
 	taskCfgCache := specs.NewTaskCfgCache(repos)
 	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, host, c, d, w, projectRepoMapping, repos, taskCfgCache)
 	if err != nil {
@@ -110,6 +112,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, ho
 		bl:               bl,
 		busyBots:         newBusyBots(),
 		db:               d,
+		gitCacheDir:      gitCacheDir,
 		isolate:          isolateClient,
 		jCache:           jCache,
 		pools:            pools,
@@ -756,11 +759,7 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 // taskCandidates.
 func (s *TaskScheduler) isolateTasks(rs db.RepoState, candidates []*taskCandidate) error {
 	// Create and check out a temporary repo.
-	repo, ok := s.repos[rs.Repo]
-	if !ok {
-		return fmt.Errorf("Unknown repo: %q", rs.Repo)
-	}
-	c, err := specs.TempGitRepo(repo.Repo(), rs)
+	c, err := specs.TempGitRepo(s.repos[rs.Repo].Repo(), rs)
 	if err != nil {
 		return err
 	}
