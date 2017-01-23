@@ -65,6 +65,24 @@
     },
     {
       "key": {
+        "uuid": "e860cae6_b24f3928",
+        "filename": "task_scheduler/go/specs/testutils/testutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-23T21:19:32Z",
+      "side": 1,
+      "message": "This is to enable reuse of a depot_tools checkout in the final case, where we can\u0027t find it and have to check it out.",
+      "parentUuid": "284bc29d_46b383ac",
+      "revId": "5f141b4d1e0863d5808cef304a36b32053011d9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "284bc29d_e6c1efe3",
         "filename": "task_scheduler/go/specs/testutils/testutils.go",
         "patchSetId": 1
@@ -82,6 +100,24 @@
         "endLine": 41,
         "endChar": 23
       },
+      "revId": "5f141b4d1e0863d5808cef304a36b32053011d9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e860cae6_9209d5e4",
+        "filename": "task_scheduler/go/specs/testutils/testutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-23T21:19:32Z",
+      "side": 1,
+      "message": "It\u0027s not always in PATH, particularly on the bots, but we could probably do a better job of making that the case.",
+      "parentUuid": "284bc29d_e6c1efe3",
       "revId": "5f141b4d1e0863d5808cef304a36b32053011d9c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
