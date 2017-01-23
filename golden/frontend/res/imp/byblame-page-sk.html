@@ -80,7 +80,7 @@
 
             <template is="dom-if" if="{{!_noBlames(item)}}">
               <h3>Blame</h3>
-              <commits-panel-sk mailbox="{{item.groupID}}" progress repo="[[_repo]]"></commits-panel-sk>
+              <commits-panel-sk mailbox="{{item.groupID}}" progress="[[_showProgress]]" repo="[[_repo]]"></commits-panel-sk>
             </template>
 
             <h3>Tests Affected</h3>
@@ -120,6 +120,10 @@
         _repo: {
           type: String,
           value: sk.app_config.baseRepoURL
+        },
+        _showProgress: {
+          type: Boolean,
+          value: sk.app_config.showBotProgress
         }
       },
 
