@@ -14,7 +14,6 @@ import (
 	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/buildbucket"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/jsonutils"
@@ -28,7 +27,6 @@ import (
 )
 
 const (
-	repoName     = "skia.git"
 	testTasksCfg = `{
   "tasks": {
     "fake-task1": {
@@ -53,41 +51,24 @@ const (
     }
   }
 }`
-	rietveldUrl  = "https://codereview.chromium.org/"
-	gerritUrl    = "https://skia-review.googlesource.com/"
-	patchProject = "skia"
+	rietveldUrl    = "https://codereview.chromium.org/"
+	gerritUrl      = "https://skia-review.googlesource.com/"
+	gerritIssue    = "2112"
+	gerritPatchset = "3"
+	patchProject   = "skia"
 )
 
 var (
-	rs = db.RepoState{
-		Patch: db.Patch{
-			Server:   gerritUrl,
-			Issue:    "2112",
-			Patchset: "3",
-		},
-		Repo:     repoName,
-		Revision: "master",
+	gerritPatch = db.Patch{
+		Server:   gerritUrl,
+		Issue:    gerritIssue,
+		Patchset: gerritPatchset,
 	}
 )
 
-func MockOutExec() {
-	// Mock out exec.Run because "git cl patch" doesn't work with fake
-	// issues.
-	exec.SetRunForTesting(func(c *exec.Command) error {
-		if c.Name == "git" && len(c.Args) >= 2 {
-			if c.Args[0] == "cl" && c.Args[1] == "patch" {
-				return nil
-			} else if c.Args[0] == "reset" && c.Args[1] == "HEAD^" {
-				return nil
-			}
-		}
-		return exec.DefaultRun(c)
-	})
-}
-
 // setup prepares the tests to run. Returns the created temporary dir,
 // TryJobIntegrator instance, and URLMock instance.
-func setup(t *testing.T) (*TryJobIntegrator, *mockhttpclient.URLMock, func()) {
+func setup(t *testing.T) (*TryJobIntegrator, *git_testutils.GitBuilder, *mockhttpclient.URLMock, func()) {
 	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
@@ -98,22 +79,21 @@ func setup(t *testing.T) (*TryJobIntegrator, *mockhttpclient.URLMock, func()) {
 	gb.Add(tasksJson, testTasksCfg)
 	gb.Commit()
 
+	rs := db.RepoState{
+		Patch:    gerritPatch,
+		Repo:     gb.RepoUrl(),
+		Revision: "master",
+	}
+
 	// Create a ref for a fake patch.
-	gb.CreateBranchTrackBranch("fake-patch", "master")
-	patchCommit := gb.CommitGen("patch_file.txt")
-	abbrev := rs.Issue[len(rs.Issue)-2:]
-	gb.UpdateRef(fmt.Sprintf("refs/changes/%s/%s/%s", abbrev, rs.Issue, rs.Patchset), patchCommit)
+	gb.CreateFakeGerritCLGen(rs.Issue, rs.Patchset)
 
 	// Create repo map.
 	tmpDir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
-	repo, err := repograph.NewGraph(gb.Dir(), tmpDir)
+	rm, err := repograph.NewMap([]string{gb.RepoUrl()}, tmpDir)
 	assert.NoError(t, err)
-
-	rm := repograph.Map{
-		gb.Dir(): repo,
-	}
 
 	// Set up other TryJobIntegrator inputs.
 	window, err := window.New(time.Hour, 100, rm)
@@ -123,15 +103,12 @@ func setup(t *testing.T) (*TryJobIntegrator, *mockhttpclient.URLMock, func()) {
 	assert.NoError(t, err)
 	mock := mockhttpclient.NewURLMock()
 	projectRepoMapping := map[string]string{
-		patchProject: gb.Dir(),
+		patchProject: gb.RepoUrl(),
 	}
 	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, window, projectRepoMapping, rm, taskCfgCache)
 	assert.NoError(t, err)
 
-	MockOutExec()
-
-	return integrator, mock, func() {
-		exec.SetRunForTesting(exec.DefaultRun)
+	return integrator, gb, mock, func() {
 		testutils.RemoveAll(t, tmpDir)
 		gb.Cleanup()
 	}
@@ -155,13 +132,11 @@ func Params(t *testing.T, builder, project, revision, server, issue, patchset st
 		p.Properties.Rietveld = server
 		p.Properties.RietveldIssue = jsonutils.Number(issueInt)
 		p.Properties.RietveldPatchset = jsonutils.Number(patchsetInt)
-	} else if server == gerritUrl {
+	} else {
 		p.Properties.PatchStorage = "gerrit"
-		p.Properties.Gerrit = gerritUrl
+		p.Properties.Gerrit = server
 		p.Properties.GerritIssue = jsonutils.Number(issueInt)
 		p.Properties.GerritPatchset = patchset
-	} else {
-		assert.FailNow(t, "Invalid server")
 	}
 	return p
 }
@@ -174,12 +149,12 @@ func Build(t *testing.T, now time.Time) *buildbucket_api.ApiBuildMessage {
 		Id:                rand.Int63(),
 		LeaseExpirationTs: now.Add(LEASE_DURATION_INITIAL).Unix() * 1000000,
 		LeaseKey:          987654321,
-		ParametersJson:    testutils.MarshalJSON(t, Params(t, "fake-job", patchProject, rs.Revision, rs.Server, rs.Issue, rs.Patchset)),
+		ParametersJson:    testutils.MarshalJSON(t, Params(t, "fake-job", patchProject, "master", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset)),
 		Status:            "SCHEDULED",
 	}
 }
 
-func tryjob() *db.Job {
+func tryjob(repoName string) *db.Job {
 	return &db.Job{
 		BuildbucketBuildId:  rand.Int63(),
 		BuildbucketLeaseKey: rand.Int63(),

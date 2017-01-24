@@ -51,6 +51,11 @@ func (g *GitBuilder) Dir() string {
 	return g.dir
 }
 
+// RepoUrl returns a git-friendly URL for the repo.
+func (g *GitBuilder) RepoUrl() string {
+	return fmt.Sprintf("file://%s", g.Dir())
+}
+
 func (g *GitBuilder) run(cmd ...string) string {
 	output, err := exec.RunCwd(g.dir, cmd...)
 	assert.NoError(g.t, err)
@@ -66,7 +71,12 @@ func (g *GitBuilder) runCommand(cmd *exec.Command) string {
 }
 
 func (g *GitBuilder) write(filepath, contents string) {
-	assert.NoError(g.t, ioutil.WriteFile(path.Join(g.dir, filepath), []byte(contents), os.ModePerm))
+	fullPath := path.Join(g.dir, filepath)
+	dir := path.Dir(fullPath)
+	if dir != "" {
+		assert.NoError(g.t, os.MkdirAll(dir, os.ModePerm))
+	}
+	assert.NoError(g.t, ioutil.WriteFile(fullPath, []byte(contents), os.ModePerm))
 }
 
 func (g *GitBuilder) push() {
@@ -138,7 +148,7 @@ func (g *GitBuilder) CommitGenMsg(file, msg string) string {
 // CreateBranchTrackBranch creates a new branch tracking an existing branch,
 // checks out the new branch, and pushes the new branch.
 func (g *GitBuilder) CreateBranchTrackBranch(newBranch, existingBranch string) {
-	g.run("git", "checkout", "-t", "-b", newBranch, existingBranch)
+	g.run("git", "checkout", "-b", newBranch, "-t", existingBranch)
 	g.branch = newBranch
 	g.push()
 }
@@ -178,6 +188,17 @@ func (g *GitBuilder) UpdateRef(args ...string) {
 	cmd := append([]string{"git", "update-ref"}, args...)
 	g.run(cmd...)
 	g.push()
+}
+
+// CreateFakeGerritCLGen creates a Gerrit-like ref so that it can be applied like
+// a CL on a trybot.
+func (g *GitBuilder) CreateFakeGerritCLGen(issue, patchset string) {
+	currentBranch := strings.TrimSpace(g.run("git", "rev-parse", "--abbrev-ref", "HEAD"))
+	g.CreateBranchTrackBranch("fake-patch", "master")
+	patchCommit := g.CommitGen("somefile")
+	g.UpdateRef(fmt.Sprintf("refs/changes/%s/%s/%s", issue[len(issue)-2:], issue, patchset), patchCommit)
+	g.CheckoutBranch(currentBranch)
+	g.run("git", "branch", "-D", "fake-patch")
 }
 
 // GitSetup adds commits to the Git repo managed by g.

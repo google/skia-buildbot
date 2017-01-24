@@ -7,8 +7,9 @@ import (
 	"testing"
 
 	"go.skia.org/infra/go/git/repograph"
+	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/util"
 
 	assert "github.com/stretchr/testify/require"
 )
@@ -159,19 +160,85 @@ func TestRules(t *testing.T) {
 	}
 }
 
+func setupTestRepo(t *testing.T) (*git_testutils.GitBuilder, []string) {
+	gb := git_testutils.GitInit(t)
+	commits := []string{}
+
+	/*
+	   * commit 8
+	   |
+	   *   commit 7
+	   |\  Merge: 4 6
+	   | |
+	   | |     Merge branch 'mybranch'
+	   | |
+	   | * commit 6
+	   | |
+	   | * commit 5
+	   | |
+	   * | commit 4
+	   | |
+	   * | commit 3
+	   | |
+	   * | commit 2
+	   |/
+	   * commit 1
+	   |
+	   * commit 0
+	*/
+
+	// 0
+	gb.Add("a.txt", "")
+	commits = append(commits, gb.Commit())
+
+	// 1
+	gb.Add("a.txt", "\n")
+	commits = append(commits, gb.Commit())
+
+	// 2
+	gb.Add("a.txt", "\n\n")
+	commits = append(commits, gb.Commit())
+
+	// 3
+	gb.Add("a.txt", "\n\n\n")
+	commits = append(commits, gb.Commit())
+
+	// 4
+	gb.Add("a.txt", "\n\n\n\n")
+	commits = append(commits, gb.Commit())
+
+	// 5
+	gb.CreateBranchAtCommit("mybranch", commits[1])
+	gb.Add("b.txt", "\n\n")
+	commits = append(commits, gb.Commit())
+
+	// 6
+	gb.Add("b.txt", "\n\n\n")
+	commits = append(commits, gb.Commit())
+
+	// 7
+	gb.CheckoutBranch("master")
+	commits = append(commits, gb.MergeBranch("mybranch"))
+
+	// 8
+	gb.Add("a.txt", "\n\n\n\n\n")
+	commits = append(commits, gb.Commit())
+
+	return gb, commits
+}
+
 func TestValidation(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	// Setup.
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
-	remote := path.Join(tr.Dir, "skia.git")
+	gb, commits := setupTestRepo(t)
+	defer gb.Cleanup()
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	repos := repograph.Map{}
-	repo, err := repograph.NewGraph(remote, tmp)
+	repo, err := repograph.NewGraph(gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
-	repos[remote] = repo
+	repos[gb.RepoUrl()] = repo
 
 	// Test.
 	tests := []struct {
@@ -260,9 +327,7 @@ func TestValidation(t *testing.T) {
 				AddedBy:          "test@google.com",
 				Name:             "My rule",
 				TaskSpecPatterns: []string{},
-				Commits: []string{
-					"06eb2a58139d3ff764f10232d5c8f9362d55e20f",
-				},
+				Commits:          commits[8:9],
 			},
 			expect: nil,
 			msg:    "One commit",
@@ -273,10 +338,10 @@ func TestValidation(t *testing.T) {
 				Name:             "My rule",
 				TaskSpecPatterns: []string{},
 				Commits: []string{
-					"06eb2a58139d3ff764f10232d5c8f9362d55",
+					commits[8][:38],
 				},
 			},
-			expect: fmt.Errorf("Could not find commit %s in any repo.", "06eb2a58139d3ff764f10232d5c8f9362d55"),
+			expect: fmt.Errorf("Unable to find commit %s in any repo.", commits[8][:38]),
 			msg:    "Invalid commit",
 		},
 		{
@@ -284,19 +349,14 @@ func TestValidation(t *testing.T) {
 				AddedBy:          "test@google.com",
 				Name:             "My rule",
 				TaskSpecPatterns: []string{},
-				Commits: []string{
-					"051955c355eb742550ddde4eccc3e90b6dc5b887",
-					"4b822ebb7cedd90acbac6a45b897438746973a87",
-					"d74dfd42a48325ab2f3d4a97278fc283036e0ea4",
-					"6d4811eddfa637fac0852c3a0801b773be1f260d",
-					"67635e7015d74b06c00154f7061987f426349d9f",
-				},
+				Commits:          commits[0:5],
 			},
 			expect: nil,
 			msg:    "Five commits",
 		},
 	}
 	for _, test := range tests {
+		sklog.Infof(test.msg)
 		assert.Equal(t, test.expect, ValidateRule(&test.rule, repos), test.msg)
 	}
 }
@@ -304,16 +364,15 @@ func TestValidation(t *testing.T) {
 func TestCommitRange(t *testing.T) {
 	testutils.MediumTest(t)
 	// Setup.
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
-	remote := path.Join(tr.Dir, "skia.git")
+	gb, commits := setupTestRepo(t)
+	defer gb.Cleanup()
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	repos := repograph.Map{}
-	repo, err := repograph.NewGraph(remote, tmp)
+	repo, err := repograph.NewGraph(gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
-	repos[remote] = repo
+	repos[gb.RepoUrl()] = repo
 	f := path.Join(tmp, "blacklist.json")
 	b, err := FromFile(f)
 	assert.NoError(t, err)
@@ -321,8 +380,8 @@ func TestCommitRange(t *testing.T) {
 	// Test.
 
 	// Create a commit range rule.
-	startCommit := "051955c355eb742550ddde4eccc3e90b6dc5b887"
-	endCommit := "d30286d2254716d396073c177a754f9e152bbb52"
+	startCommit := commits[0]
+	endCommit := commits[6]
 	rule, err := NewCommitRangeRule("commit range", "test@google.com", "...", []string{}, startCommit, endCommit, repos)
 	assert.NoError(t, err)
 	err = b.AddRule(rule, repos)
@@ -330,9 +389,9 @@ func TestCommitRange(t *testing.T) {
 
 	// Ensure that we got the expected list of commits.
 	assert.Equal(t, []string{
-		"8d2d1247ef5d2b8a8d3394543df6c12a85881296",
-		"4b822ebb7cedd90acbac6a45b897438746973a87",
-		"051955c355eb742550ddde4eccc3e90b6dc5b887",
+		commits[5],
+		commits[1],
+		commits[0],
 	}, b.Rules["commit range"].Commits)
 
 	// Test a few commits.
@@ -357,12 +416,12 @@ func TestCommitRange(t *testing.T) {
 			msg:    "endCommit does not match",
 		},
 		{
-			commit: "4b822ebb7cedd90acbac6a45b897438746973a87",
+			commit: commits[1],
 			expect: true,
 			msg:    "middle of range matches",
 		},
 		{
-			commit: "06eb2a58139d3ff764f10232d5c8f9362d55e20f",
+			commit: commits[8],
 			expect: false,
 			msg:    "out of range does not match",
 		},
