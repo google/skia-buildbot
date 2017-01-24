@@ -16,6 +16,23 @@
       "revId": "daf9e0b4d13550c3f6bd0f90c3a615f7ad0afe1e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2831a59b_8b2b28e6",
+        "filename": "compute_engine_scripts/buildbots/vm_setup_utils.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T20:01:09Z",
+      "side": 1,
+      "message": "Ack",
+      "revId": "daf9e0b4d13550c3f6bd0f90c3a615f7ad0afe1e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
