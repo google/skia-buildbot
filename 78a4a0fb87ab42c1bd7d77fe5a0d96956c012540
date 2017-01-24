@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "af5977d3_c9ff9c11",
+        "filename": "skolo/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-24T22:32:29Z",
+      "side": 1,
+      "message": "Shouldn\u0027t running get_serivce_account also be done for router_backup_release?",
+      "revId": "78a4a0fb87ab42c1bd7d77fe5a0d96956c012540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
