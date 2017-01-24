@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "284bc29d_37f13faf",
+        "filename": "go/depot_tools/depot_tools.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T16:43:29Z",
+      "side": 1,
+      "message": "Should this use golang exec.LookPath?",
+      "range": {
+        "startLine": 27,
+        "startChar": 17,
+        "endLine": 27,
+        "endChar": 28
+      },
+      "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_d7f3bbb6",
+        "filename": "go/util/util.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T16:43:29Z",
+      "side": 1,
+      "message": "unused?",
+      "range": {
+        "startLine": 121,
+        "startChar": 5,
+        "endLine": 121,
+        "endChar": 16
+      },
+      "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_f7f6b7a8",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T16:43:29Z",
+      "side": 1,
+      "message": "I think it would be useful to make an interface for specs.TempGitRepo, e.g.:\n\ntype Checkouter interface {\n  Checkout(rs db.RepoState) (*git.TempCheckout, error)\n}\nand pass this in to TaskScheduler. You can then easily mock it instead of downloading all of depot_tools for each TS test and parsing command lines in tests. Also, it will be easier to think about more complex implementations (e.g. worker pools) if TempGitRepo is an interface rather than a function.",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 24
+      },
+      "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_77c8e759",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 586,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T16:43:29Z",
+      "side": 1,
+      "message": "Doesn\u0027t errcheck yell at you for this?\n\nEither way, we should check that Close doesn\u0027t return an error. (Unfortunately, reading the source code, it doesn\u0027t appear that os.File.Close can be called multiple times, so defer probably won\u0027t work here.)\n\nAlternatively, use ioutil.WriteFile.",
+      "range": {
+        "startLine": 586,
+        "startChar": 8,
+        "endLine": 586,
+        "endChar": 17
+      },
+      "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_77b107ec",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 633,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T16:43:29Z",
+      "side": 1,
+      "message": "nit: Maybe say why this matters.",
+      "range": {
+        "startLine": 632,
+        "startChar": 4,
+        "endLine": 633,
+        "endChar": 20
+      },
+      "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_f7a4f7a8",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 636,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T16:43:29Z",
+      "side": 1,
+      "message": "TempCheckout.Delete will delete this directory, so tmp will never get cleaned up.",
+      "range": {
+        "startLine": 636,
+        "startChar": 21,
+        "endLine": 636,
+        "endChar": 48
+      },
+      "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_72663595",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T16:43:29Z",
+      "side": 1,
+      "message": "nit: defer testutils.RemoveAll(t, tmp)",
+      "range": {
+        "startLine": 299,
+        "startChar": 1,
+        "endLine": 299,
+        "endChar": 4
+      },
+      "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_928e6112",
+        "filename": "task_scheduler/go/specs/testutils/testutils.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T16:43:29Z",
+      "side": 1,
+      "message": "Would git.NewRepo work?",
+      "range": {
+        "startLine": 40,
+        "startChar": 11,
+        "endLine": 40,
+        "endChar": 26
+      },
+      "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_f2a2458a",
+        "filename": "task_scheduler/go/specs/testutils/testutils.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T16:43:29Z",
+      "side": 1,
+      "message": "Do we need to do c.Update() first?",
+      "range": {
+        "startLine": 42,
+        "startChar": 8,
+        "endLine": 42,
+        "endChar": 15
+      },
+      "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
