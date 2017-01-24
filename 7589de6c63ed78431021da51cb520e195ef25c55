@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d6a42da_442b5552",
+        "filename": "compute_engine_scripts/compute_engine_cfg.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-24T21:16:13Z",
+      "side": 1,
+      "message": "Why not just move this to line 50 and make the else an elif for VM_IS_SKIA_INTERNAL. That will match the same style as VM_IS_SKIA_CTBOT and VM_IS_CTBOT.",
+      "revId": "7589de6c63ed78431021da51cb520e195ef25c55",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
