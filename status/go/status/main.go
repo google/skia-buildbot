@@ -9,7 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"path"
+	//"path"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -18,15 +18,15 @@ import (
 	"time"
 	"unicode"
 
-	"golang.org/x/net/context"
+	//"golang.org/x/net/context"
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/git/repograph"
+	//"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
-	"go.skia.org/infra/go/influxdb_init"
+	//"go.skia.org/infra/go/influxdb_init"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/polling_status"
 	"go.skia.org/infra/go/skiaversion"
@@ -36,7 +36,7 @@ import (
 	"go.skia.org/infra/status/go/capacity"
 	"go.skia.org/infra/status/go/franken"
 	"go.skia.org/infra/task_scheduler/go/db"
-	"go.skia.org/infra/task_scheduler/go/db/remote_db"
+	//"go.skia.org/infra/task_scheduler/go/db/remote_db"
 )
 
 const (
@@ -548,57 +548,57 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
-	// Create buildbot remote DB.
-	buildDb, err = buildbot.NewRemoteDB(*buildbotDbHost)
-	if err != nil {
-		sklog.Fatal(err)
-	}
+	//// Create buildbot remote DB.
+	//buildDb, err = buildbot.NewRemoteDB(*buildbotDbHost)
+	//if err != nil {
+	//	sklog.Fatal(err)
+	//}
 
-	// Create remote Tasks DB.
-	taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl)
-	if err != nil {
-		sklog.Fatal(err)
-	}
+	//// Create remote Tasks DB.
+	//taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl)
+	//if err != nil {
+	//	sklog.Fatal(err)
+	//}
 
-	// Setup InfluxDB client.
-	dbClient, err = influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
-	if err != nil {
-		sklog.Fatal(err)
-	}
+	//// Setup InfluxDB client.
+	//dbClient, err = influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
+	//if err != nil {
+	//	sklog.Fatal(err)
+	//}
 
 	// By default use a set of credentials setup for localhost access.
-	redirectURL := serverURL + OAUTH2_CALLBACK_PATH
-	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		sklog.Fatalf("Failed to initialize the login system: %s", err)
-	}
+	//redirectURL := serverURL + OAUTH2_CALLBACK_PATH
+	//if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
+	//	sklog.Fatalf("Failed to initialize the login system: %s", err)
+	//}
 
-	// Check out source code.
-	repos, err := repograph.NewMap([]string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, path.Join(*workdir, "repos"))
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	sklog.Info("Checkout complete")
+	//// Check out source code.
+	//repos, err := repograph.NewMap([]string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, path.Join(*workdir, "repos"))
+	//if err != nil {
+	//	sklog.Fatal(err)
+	//}
+	//sklog.Info("Checkout complete")
 
-	// Cache for buildProgressHandler.
-	tasksPerCommit, err = newTasksPerCommitCache(*workdir, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, 14*24*time.Hour, context.Background())
-	if err != nil {
-		sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
-	}
+	//// Cache for buildProgressHandler.
+	//tasksPerCommit, err = newTasksPerCommitCache(*workdir, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, 14*24*time.Hour, context.Background())
+	//if err != nil {
+	//	sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
+	//}
 
-	// Create the build cache.
-	bc, err := franken.NewBTCache(repos, buildDb, taskDb)
-	if err != nil {
-		sklog.Fatalf("Failed to create build cache: %s", err)
-	}
-	buildCache = bc
+	//// Create the build cache.
+	//bc, err := franken.NewBTCache(repos, buildDb, taskDb)
+	//if err != nil {
+	//	sklog.Fatalf("Failed to create build cache: %s", err)
+	//}
+	//buildCache = bc
 
-	capacityClient = capacity.New(tasksPerCommit.tcc, bc.GetTaskCache(), repos)
-	capacityClient.StartLoading(*capacityRecalculateInterval)
+	//capacityClient = capacity.New(tasksPerCommit.tcc, bc.GetTaskCache(), repos)
+	//capacityClient.StartLoading(*capacityRecalculateInterval)
 
-	// Load Perf and Gold data in a loop.
-	perfStatus = dbClient.Int64PollingStatus("skmetrics", PERF_STATUS_QUERY, time.Minute)
-	goldGMStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), time.Minute)
-	goldImageStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), time.Minute)
+	//// Load Perf and Gold data in a loop.
+	//perfStatus = dbClient.Int64PollingStatus("skmetrics", PERF_STATUS_QUERY, time.Minute)
+	//goldGMStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), time.Minute)
+	//goldImageStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), time.Minute)
 
 	// Run the server.
 	runServer(serverURL)
