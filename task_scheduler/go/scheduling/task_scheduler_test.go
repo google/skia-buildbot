@@ -189,7 +189,8 @@ func setup(t *testing.T) (*git_testutils.GitBuilder, db.DB, *swarming.TestClient
 	projectRepoMapping := map[string]string{
 		"skia": gb.RepoUrl(),
 	}
-	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "")
+	depotTools := specs_testutils.GetDepotTools(t)
+	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools)
 	assert.NoError(t, err)
 	return gb, d, swarmingClient, s, urlMock, func() {
 		testutils.RemoveAll(t, tmp)
@@ -1854,7 +1855,6 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (*git_testuti
 		},
 	}
 	cfgStr := testutils.MarshalJSON(t, cfg)
-	assert.NoError(t, err)
 	gb.Add(specs.TASKS_CFG_FILE, cfgStr)
 	gb.Commit()
 
@@ -1868,7 +1868,8 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (*git_testuti
 	projectRepoMapping := map[string]string{
 		"skia": gb.RepoUrl(),
 	}
-	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "")
+	depotTools := specs_testutils.GetDepotTools(t)
+	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools)
 	assert.NoError(t, err)
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
@@ -3112,7 +3113,7 @@ func TestValidateTaskForAdd(t *testing.T) {
 	{
 		task := tmpl.Copy()
 		task.Revision = "abc123"
-		test(task, "failed to check out RepoState")
+		test(task, "error: pathspec 'abc123' did not match any file(s) known to git.")
 	}
 	{
 		task := tmpl.Copy()
