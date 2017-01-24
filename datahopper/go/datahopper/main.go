@@ -6,7 +6,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -31,6 +30,7 @@ import (
 const (
 	MEASUREMENT_SWARM_BOTS_LAST_SEEN          = "swarming.bots.last-seen"
 	MEASUREMENT_SWARM_BOTS_QUARANTINED        = "swarming.bots.quarantined"
+	MEASUREMENT_SWARM_TASKS_RUNNING           = "swarming.tasks.running"
 	MEASUREMENT_SWARM_TASKS_DURATION          = "swarming.tasks.duration"
 	MEASUREMENT_SWARM_TASKS_OVERHEAD_BOT      = "swarming.tasks.overhead.bot"
 	MEASUREMENT_SWARM_TASKS_OVERHEAD_DOWNLOAD = "swarming.tasks.overhead.download"
@@ -155,10 +155,13 @@ func main() {
 				}
 
 				tags := map[string]string{
-					"bot": bot.BotId,
+					"bot":  bot.BotId,
+					"pool": "",
 				}
 				for _, d := range bot.Dimensions {
-					tags[fmt.Sprintf("dimension-%s", d.Key)] = strings.Join(d.Value, ",")
+					if d.Key == "pool" {
+						tags["pool"] = strings.Join(d.Value, ",")
+					}
 				}
 
 				// Bot last seen <duration> ago.
@@ -180,8 +183,7 @@ func main() {
 
 	// Swarming tasks.
 	go func() {
-		// Initial query: load data from the past 2 hours.
-		lastLoad := time.Now().Add(-2 * time.Hour)
+		lastLoad := time.Now().Add(-2 * time.Minute)
 
 		revisitTasks := map[string]bool{}
 
@@ -192,6 +194,19 @@ func main() {
 				sklog.Error(err)
 				continue
 			}
+
+			// Count the number of tasks in each state.
+			counts := map[string]int64{}
+			for _, t := range tasks {
+				counts[t.TaskResult.State] += 1
+			}
+
+			// Report the number of running tasks as a metric.
+			for state, count := range counts {
+				skiaGauge := metrics2.GetInt64Metric(MEASUREMENT_SWARM_TASKS_RUNNING, map[string]string{"pool": "Skia", "state": state})
+				skiaGauge.Update(count)
+			}
+
 			for id, _ := range revisitTasks {
 				task, err := swarm.GetTaskMetadata(id)
 				if err != nil {
@@ -219,7 +234,6 @@ func main() {
 					// Find the tags for the task, including ID, name, dimensions,
 					// and components of the builder name.
 					var builderName string
-					var builderTags map[string]string
 					var name string
 					user, err := swarming.GetTagValue(task.TaskResult, "user")
 					if err != nil || user == "" {
@@ -234,11 +248,6 @@ func main() {
 							sklog.Errorf("Failed to find buildername for Swarming task: %v", task)
 							continue
 						}
-						builderTags, err = buildbot.ParseBuilderName(builderName)
-						if err != nil {
-							sklog.Errorf("Failed to parse builder name for Swarming task: %s", err)
-							continue
-						}
 					} else if user == "skia-task-scheduler" {
 						// This is a new-style task.
 						builderName, err = swarming.GetTagValue(task.TaskResult, "sk_name")
@@ -247,32 +256,21 @@ func main() {
 							continue
 						}
 						name = builderName
-						if strings.HasPrefix(name, "Upload") {
-							// These bots are "special".
-							builderTags = map[string]string{}
-						} else {
-							builderTags, err = buildbot.ParseBuilderName(builderName)
-							if err != nil {
-								sklog.Errorf("Failed to parse builder name for Swarming task: %s", err)
-								continue
-							}
-						}
 					}
 
 					tags := map[string]string{
 						"bot-id":    task.TaskResult.BotId,
-						"task-id":   task.TaskId,
 						"task-name": name,
+						"pool":      "Skia",
 					}
-					for _, d := range task.Request.Properties.Dimensions {
-						tags[fmt.Sprintf("dimension-%s", d.Key)] = d.Value
-					}
-					for k, v := range builderTags {
-						tags[k] = v
-					}
+					// Turns tags into key and store meas + count for all the metrics below.
+					// Once we finish the loop then report the metrics.
 
 					// Task duration in milliseconds.
-					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_DURATION, tags, int64(task.TaskResult.Duration*float64(1000.0)), createdTime)
+
+					// Should really be summing up all such values and reporting that.
+					// Also record number of metrics.
+					metrics2.GetInt64Metric(MEASUREMENT_SWARM_TASKS_DURATION, tags).Update(int64(task.TaskResult.Duration * float64(1000.0)))
 
 					if task.TaskResult.PerformanceStats != nil {
 						// Overhead stats, in milliseconds.
