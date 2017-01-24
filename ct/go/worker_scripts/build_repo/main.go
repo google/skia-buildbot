@@ -90,11 +90,6 @@ func buildRepo() error {
 		// Copy pdfium_test to Google Storage.
 		pdfiumLocalDir := path.Join(util.PDFiumTreeDir, "out", "Debug")
 		pdfiumRemoteDir := path.Join(util.BINARIES_DIR_NAME, *runID)
-		// Instantiate GcsUtil object.
-		gs, err := util.NewGcsUtil(nil)
-		if err != nil {
-			return err
-		}
 		if err := gs.UploadFile(util.BINARY_PDFIUM_TEST, pdfiumLocalDir, pdfiumRemoteDir); err != nil {
 			return fmt.Errorf("Could not upload %s to %s: %s", util.BINARY_PDFIUM_TEST, pdfiumRemoteDir, err)
 		}
