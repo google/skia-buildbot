@@ -1,0 +1,228 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "284bc29d_3c076694",
+        "filename": "go/git/testutils/git_builder.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T00:13:13Z",
+      "side": 1,
+      "message": "nit: CreateGerritCLGen? (\"Upload\" in particular is confusing.)",
+      "range": {
+        "startLine": 195,
+        "startChar": 21,
+        "endLine": 195,
+        "endChar": 39
+      },
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_bcfb764e",
+        "filename": "task_scheduler/go/blacklist/blacklist_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T00:13:13Z",
+      "side": 1,
+      "message": "nit: might be easier to follow to use the index in commits rather than letters.",
+      "range": {
+        "startLine": 168,
+        "startChar": 13,
+        "endLine": 168,
+        "endChar": 14
+      },
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_5c507274",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T00:13:13Z",
+      "side": 1,
+      "message": "Do you mind changing GitBuilder so that \"dir string\" -\u003e \"Dir GitDir\"?",
+      "range": {
+        "startLine": 60,
+        "startChar": 0,
+        "endLine": 62,
+        "endChar": 2
+      },
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_5c7cf2d3",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T00:13:13Z",
+      "side": 1,
+      "message": "nit: repograph.NewMap",
+      "range": {
+        "startLine": 182,
+        "startChar": 0,
+        "endLine": 186,
+        "endChar": 2
+      },
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_9c867ab4",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T00:13:13Z",
+      "side": 1,
+      "message": "nit: Maybe also return rs1 from getC1?",
+      "range": {
+        "startLine": 263,
+        "startChar": 7,
+        "endLine": 263,
+        "endChar": 12
+      },
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_dc98020a",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1887,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T00:13:13Z",
+      "side": 1,
+      "message": "nit: testutils.MarshalJSON",
+      "range": {
+        "startLine": 1886,
+        "startChar": 1,
+        "endLine": 1887,
+        "endChar": 23
+      },
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_9c9f9af2",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1930,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T00:13:13Z",
+      "side": 1,
+      "message": "nit: redundant (although it might be better to leave this here and remove it from makeDummyCommits instead)",
+      "range": {
+        "startLine": 1930,
+        "startChar": 1,
+        "endLine": 1930,
+        "endChar": 28
+      },
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_dc43e2a9",
+        "filename": "task_scheduler/go/scheduling/testdata/testrepo.zip",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T00:13:13Z",
+      "side": 1,
+      "message": "Hooray! I never liked the magical, unreviewable testrepo.zip.",
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_bc40969e",
+        "filename": "task_scheduler/go/specs/testutils/testutils.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T00:13:13Z",
+      "side": 1,
+      "message": "nit: Document these return values.",
+      "range": {
+        "startLine": 24,
+        "startChar": 61,
+        "endLine": 24,
+        "endChar": 75
+      },
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_fcc85e04",
+        "filename": "task_scheduler/go/specs/testutils/testutils.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T00:13:13Z",
+      "side": 1,
+      "message": "Please use CommitMsgAt instead.",
+      "range": {
+        "startLine": 113,
+        "startChar": 1,
+        "endLine": 113,
+        "endChar": 28
+      },
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
