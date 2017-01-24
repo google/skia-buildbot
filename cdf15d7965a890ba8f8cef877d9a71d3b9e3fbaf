@@ -25,6 +25,23 @@
     },
     {
       "key": {
+        "uuid": "f879420b_3902055a",
+        "filename": "go/depot_tools/depot_tools.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T18:38:52Z",
+      "side": 1,
+      "message": "Done",
+      "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "284bc29d_d7f3bbb6",
         "filename": "go/util/util.go",
         "patchSetId": 3
@@ -42,6 +59,23 @@
         "endLine": 121,
         "endChar": 16
       },
+      "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "09421e83_2b6ad886",
+        "filename": "go/util/util.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T18:38:52Z",
+      "side": 1,
+      "message": "Done",
       "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -71,6 +105,23 @@
     },
     {
       "key": {
+        "uuid": "b11905b6_1069bedc",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T18:38:52Z",
+      "side": 1,
+      "message": "How would this work?  In most cases we\u0027d still need to end up with an actual checkout, or else whatever we\u0027re using it for will fail.  With the updates in the last CL, we can now easily create RepoStates which can be synced, including Gerrit CLs, so there\u0027s not as much need for mocking, except maybe for speeding up the test.",
+      "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "284bc29d_77c8e759",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 3
@@ -88,6 +139,23 @@
         "endLine": 586,
         "endChar": 17
       },
+      "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4d1fd1a0_0e414ae1",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 586,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T18:38:52Z",
+      "side": 1,
+      "message": "Changed to ioutil.WriteFile.",
       "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -117,6 +185,23 @@
     },
     {
       "key": {
+        "uuid": "af696556_6159b1a2",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 633,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T18:38:52Z",
+      "side": 1,
+      "message": "Done",
+      "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "284bc29d_f7a4f7a8",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 3
@@ -134,6 +219,23 @@
         "endLine": 636,
         "endChar": 48
       },
+      "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "893efb5b_7321960b",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 636,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T18:38:52Z",
+      "side": 1,
+      "message": "Fixed by passing in the tmp dir.",
       "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -163,6 +265,23 @@
     },
     {
       "key": {
+        "uuid": "7d48a7e2_514f0db0",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T18:38:52Z",
+      "side": 1,
+      "message": "Done",
+      "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "284bc29d_928e6112",
         "filename": "task_scheduler/go/specs/testutils/testutils.go",
         "patchSetId": 3
@@ -186,6 +305,23 @@
     },
     {
       "key": {
+        "uuid": "19d0bf53_6df70c85",
+        "filename": "task_scheduler/go/specs/testutils/testutils.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T18:38:52Z",
+      "side": 1,
+      "message": "No, since we want to use files checked in to depot_tools.",
+      "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "284bc29d_f2a2458a",
         "filename": "task_scheduler/go/specs/testutils/testutils.go",
         "patchSetId": 3
@@ -203,6 +339,23 @@
         "endLine": 42,
         "endChar": 15
       },
+      "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f167b3a9_4f1debd2",
+        "filename": "task_scheduler/go/specs/testutils/testutils.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T18:38:52Z",
+      "side": 1,
+      "message": "Sure, added.",
       "revId": "cdf15d7965a890ba8f8cef877d9a71d3b9e3fbaf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
