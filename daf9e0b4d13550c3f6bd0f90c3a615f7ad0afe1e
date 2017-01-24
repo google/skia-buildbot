@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9d1127a6_3dbc1a49",
+        "filename": "compute_engine_scripts/buildbots/vm_setup_utils.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-24T19:55:39Z",
+      "side": 1,
+      "message": "I noticed that /etc/rc.local in the image tries to create and use /b/swarm_slave. This ensures that /b/s is used instead.\nWill not be required the next time the image is updated.",
+      "revId": "daf9e0b4d13550c3f6bd0f90c3a615f7ad0afe1e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
