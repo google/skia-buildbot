@@ -22,6 +22,24 @@
       "revId": "b159a677948e82d785a076b68d520535f7d4e981",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "284bc29d_b74f0f28",
+        "filename": "status/res/imp/android-autoroll-widget-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-24T15:48:24Z",
+      "side": 1,
+      "message": "Yep, copied with some modifications specific to the android autoroller json file.",
+      "parentUuid": "284bc29d_372adf48",
+      "revId": "b159a677948e82d785a076b68d520535f7d4e981",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
