@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8affe6ca_3bddd08c",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T20:08:48Z",
+      "side": 1,
+      "message": "nit: Is this now misnamed / should we just pass workdir to NewTaskCfgCache?",
+      "range": {
+        "startLine": 101,
+        "startChar": 1,
+        "endLine": 101,
+        "endChar": 43
+      },
+      "revId": "5677a4a659af0017947a1cccabc9a728fc79d0f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "de530fe6_5bdb1376",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T20:08:48Z",
+      "side": 1,
+      "message": "Should this be outside of the func?",
+      "range": {
+        "startLine": 324,
+        "startChar": 0,
+        "endLine": 358,
+        "endChar": 12
+      },
+      "revId": "5677a4a659af0017947a1cccabc9a728fc79d0f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "83fc9227_a8cbc53c",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 590,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-24T20:08:48Z",
+      "side": 1,
+      "message": "Maybe in a future CL we could keep a directory of checkouts per worker and use Cleanup, if that\u0027s a perf win.",
+      "range": {
+        "startLine": 590,
+        "startChar": 2,
+        "endLine": 590,
+        "endChar": 27
+      },
+      "revId": "5677a4a659af0017947a1cccabc9a728fc79d0f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
