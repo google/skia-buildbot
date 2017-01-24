@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"path"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -76,7 +78,7 @@ func TestTaskSpecs(t *testing.T) {
 		gb.RepoUrl(): repo,
 	}
 
-	cache := NewTaskCfgCache(repos)
+	cache := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), tmp)
 
 	rs1 := db.RepoState{
 		Repo:     gb.RepoUrl(),
@@ -136,7 +138,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
 	}
-	cache := NewTaskCfgCache(repos)
+	cache := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), path.Join(tmp, "cache"))
 
 	// Load configs into the cache.
 	rs1 := db.RepoState{
@@ -294,9 +296,14 @@ PROJECT: skia`)
 	return gb, c1, c2
 }
 
-func tempGitRepoTests(t *testing.T, repo *git.Repo, cases map[db.RepoState]error) {
+func tempGitRepoTests(t *testing.T, cases map[db.RepoState]error) {
+	tmp, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmp)
+	cacheDir := path.Join(tmp, "cache")
+	depotTools := specs_testutils.GetDepotTools(t)
 	for rs, expectErr := range cases {
-		c, err := TempGitRepo(repo, rs)
+		c, err := tempGitRepo(rs, depotTools, cacheDir, tmp)
 		if expectErr != nil {
 			assert.Error(t, err)
 			if expectErr != ERR_DONT_CARE {
@@ -337,25 +344,21 @@ func TestTempGitRepo(t *testing.T) {
 	gb, c1, c2 := tempGitRepoSetup(t)
 	defer gb.Cleanup()
 
-	repo := &git.Repo{
-		GitDir: git.GitDir(gb.Dir()),
-	}
-
 	cases := map[db.RepoState]error{
 		{
-			Repo:     gb.Dir(),
+			Repo:     gb.RepoUrl(),
 			Revision: c1,
 		}: nil,
 		{
-			Repo:     gb.Dir(),
+			Repo:     gb.RepoUrl(),
 			Revision: c2,
 		}: nil,
 		{
-			Repo:     gb.Dir(),
+			Repo:     gb.RepoUrl(),
 			Revision: "bogusRev",
 		}: ERR_DONT_CARE,
 	}
-	tempGitRepoTests(t, repo, cases)
+	tempGitRepoTests(t, cases)
 }
 
 func TestTempGitRepoPatch(t *testing.T) {
@@ -368,10 +371,6 @@ func TestTempGitRepoPatch(t *testing.T) {
 	patchset := "3"
 	gb.CreateFakeGerritCLGen(issue, patchset)
 
-	repo := &git.Repo{
-		GitDir: git.GitDir(gb.Dir()),
-	}
-
 	cases := map[db.RepoState]error{
 		{
 			Patch: db.Patch{
@@ -379,11 +378,45 @@ func TestTempGitRepoPatch(t *testing.T) {
 				Issue:    issue,
 				Patchset: patchset,
 			},
-			Repo:     gb.Dir(),
+			Repo:     gb.RepoUrl(),
 			Revision: c2,
 		}: nil,
 	}
-	tempGitRepoTests(t, repo, cases)
+	tempGitRepoTests(t, cases)
+}
+
+func TestTempGitRepoParallel(t *testing.T) {
+	testutils.LargeTest(t)
+	testutils.SkipIfShort(t)
+
+	gb, c1, _ := specs_testutils.SetupTestRepo(t)
+	defer gb.Cleanup()
+
+	tmp, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmp)
+
+	repos, err := repograph.NewMap([]string{gb.RepoUrl()}, tmp)
+	assert.NoError(t, err)
+
+	cache := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), tmp)
+
+	rs := db.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: c1,
+	}
+
+	var wg sync.WaitGroup
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			assert.NoError(t, cache.TempGitRepo(rs, func(g *git.TempCheckout) error {
+				return nil
+			}))
+		}()
+	}
+	wg.Wait()
 }
 
 func TestGetTaskSpecDAG(t *testing.T) {

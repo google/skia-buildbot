@@ -10,8 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/sklog"
-
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/util"
@@ -20,6 +19,8 @@ import (
 
 const (
 	ISSUE_SHORT_LENGTH = 2
+
+	NUM_WORKERS = 10
 
 	TASKS_CFG_FILE = "infra/bots/tasks.json"
 
@@ -258,25 +259,45 @@ func (j *JobSpec) GetTaskSpecDAG(cfg *TasksCfg) (map[string][]string, error) {
 // periodically call Cleanup() to remove old entries.
 type TaskCfgCache struct {
 	cache           map[db.RepoState]*TasksCfg
+	depotToolsDir   string
 	mtx             sync.Mutex
 	recentCommits   map[string]time.Time
 	recentJobSpecs  map[string]time.Time
 	recentMtx       sync.RWMutex
 	recentTaskSpecs map[string]time.Time
 	repos           repograph.Map
+	queue           chan func(int)
+	workdir         string
 }
 
 // NewTaskCfgCache returns a TaskCfgCache instance.
-func NewTaskCfgCache(repos repograph.Map) *TaskCfgCache {
-	return &TaskCfgCache{
+func NewTaskCfgCache(repos repograph.Map, depotToolsDir, workdir string) *TaskCfgCache {
+	c := &TaskCfgCache{
 		cache:           map[db.RepoState]*TasksCfg{},
+		depotToolsDir:   depotToolsDir,
 		mtx:             sync.Mutex{},
 		recentCommits:   map[string]time.Time{},
 		recentJobSpecs:  map[string]time.Time{},
 		recentMtx:       sync.RWMutex{},
 		recentTaskSpecs: map[string]time.Time{},
 		repos:           repos,
+		queue:           make(chan func(int)),
+		workdir:         workdir,
 	}
+	for i := 0; i < NUM_WORKERS; i++ {
+		go func(i int) {
+			for f := range c.queue {
+				f(i)
+			}
+		}(i)
+	}
+	return c
+}
+
+// Close frees up resources used by the TaskCfgCache.
+func (c *TaskCfgCache) Close() error {
+	close(c.queue)
+	return nil
 }
 
 // readTasksCfg reads the task cfg file from the given repo and returns it.
@@ -296,25 +317,26 @@ func (c *TaskCfgCache) readTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 	if !ok {
 		return nil, fmt.Errorf("Unknown repo %q", rs.Repo)
 	}
-	checkout, err := TempGitRepo(r.Repo(), rs)
-	if err != nil {
-		return nil, fmt.Errorf("Could not read task cfg; failed to check out RepoState %s: %s", rs, err)
-	}
-	defer checkout.Delete()
-
-	cfg, err := ReadTasksCfg(checkout.Dir())
-	if err != nil {
-		// The tasks.cfg file may not exist for a particular commit.
-		if strings.Contains(err.Error(), "does not exist in") || strings.Contains(err.Error(), "exists on disk, but not in") || strings.Contains(err.Error(), "no such file or directory") {
-			// In this case, use an empty config.
-			cfg = &TasksCfg{
-				Tasks: map[string]*TaskSpec{},
+	var cfg *TasksCfg
+	if err := c.TempGitRepo(rs, func(checkout *git.TempCheckout) error {
+		var err error
+		cfg, err = ReadTasksCfg(checkout.Dir())
+		if err != nil {
+			// The tasks.cfg file may not exist for a particular commit.
+			if strings.Contains(err.Error(), "does not exist in") || strings.Contains(err.Error(), "exists on disk, but not in") || strings.Contains(err.Error(), "no such file or directory") {
+				// In this case, use an empty config.
+				cfg = &TasksCfg{
+					Tasks: map[string]*TaskSpec{},
+				}
+			} else {
+				return err
 			}
-		} else {
-			return nil, err
 		}
+		c.cache[rs] = cfg
+		return nil
+	}); err != nil {
+		return nil, err
 	}
-	c.cache[rs] = cfg
 
 	// Write the commit and task specs into the recent lists.
 	c.recentMtx.Lock()
@@ -553,72 +575,106 @@ func findCycles(tasks map[string]*TaskSpec, jobs map[string]*JobSpec) error {
 }
 
 // TempGitRepo creates a git repository in a temporary directory, gets it into
+// the given RepoState, and runs the given function inside the repo dir.
+//
+// This method uses a worker pool; if all workers are busy, it will block until
+// one is free.
+func (c *TaskCfgCache) TempGitRepo(rs db.RepoState, fn func(*git.TempCheckout) error) error {
+	rvErr := make(chan error)
+	c.queue <- func(workerId int) {
+		tmp, err := ioutil.TempDir("", "")
+		if err != nil {
+			rvErr <- err
+			return
+		}
+		defer util.RemoveAll(tmp)
+		cacheDir := path.Join(c.workdir, "cache", fmt.Sprintf("%d", workerId))
+		gr, err := tempGitRepo(rs, c.depotToolsDir, cacheDir, tmp)
+		if err != nil {
+			rvErr <- err
+			return
+		}
+		defer gr.Delete()
+		rvErr <- fn(gr)
+	}
+	return <-rvErr
+}
+
+// tempGitRepo creates a git repository in a temporary directory, gets it into
 // the given RepoState, and returns its location.
-func TempGitRepo(repo *git.Repo, rs db.RepoState) (rv *git.TempCheckout, rvErr error) {
-	c, err := repo.TempCheckout()
+func tempGitRepo(rs db.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
+	// Run bot_update to obtain a checkout of the repo and its DEPS.
+	botUpdatePath := path.Join(depotToolsDir, "recipe_modules", "bot_update", "resources", "bot_update.py")
+	projectName := strings.TrimSuffix(path.Base(rs.Repo), ".git")
+	spec := fmt.Sprintf("cache_dir = '%s'\nsolutions = [{'deps_file': '.DEPS.git', 'managed': False, 'name': '%s', 'url': '%s'}]", gitCacheDir, projectName, rs.Repo)
+	revMap := map[string]string{
+		projectName: "got_revision",
+	}
+
+	revisionMappingFile := path.Join(tmp, "revision_mapping")
+	revMapBytes, err := json.Marshal(revMap)
 	if err != nil {
 		return nil, err
 	}
-
-	defer func() {
-		if rvErr != nil {
-			c.Delete()
-		}
-	}()
-
-	// Check out the correct commit.
-	sklog.Infof("Checking out %s", rs.Revision)
-	if _, err := c.Git("checkout", rs.Revision); err != nil {
+	if err := ioutil.WriteFile(revisionMappingFile, revMapBytes, os.ModePerm); err != nil {
 		return nil, err
 	}
 
-	// Write a dummy .gclient file in the parent of the checkout.
-	if err := ioutil.WriteFile(path.Join(c.Dir(), "..", ".gclient"), []byte(""), os.ModePerm); err != nil {
-		return nil, err
+	outputJson := path.Join(tmp, "output_json")
+	cmd := []string{
+		"python", "-u", botUpdatePath,
+		"--spec", spec,
+		"--patch_root", projectName,
+		"--revision_mapping_file", revisionMappingFile,
+		"--git-cache-dir", gitCacheDir,
+		"--output_json", outputJson,
+		"--revision", fmt.Sprintf("%s@%s", projectName, rs.Revision),
+		"--output_manifest",
 	}
-
-	// Apply a patch if necessary.
 	if rs.IsTryJob() {
-		branchName := "patch"
-		server := strings.TrimRight(rs.Server, "/")
 		if strings.Contains(rs.Server, "codereview.chromium") {
-			if _, err := c.Git("checkout", "-b", branchName); err != nil {
-				return nil, err
-			}
-			patchUrl := fmt.Sprintf("%s/%s/#ps%s", server, rs.Issue, rs.Patchset)
-			if _, err := c.Git("cl", "patch", "--rietveld", "--no-commit", patchUrl); err != nil {
-				return nil, err
-			}
+			cmd = append(cmd, []string{
+				"--issue", rs.Issue,
+				"--patchset", rs.Patchset,
+			}...)
 		} else {
-			// Follow Gerrit's suggested flow for fetching a change:
-			// https://gerrit-review.googlesource.com/Documentation/intro-user.html#fetch-change
-			// $ git fetch https://gerrithost/myProject refs/changes/74/67374/2
-			// $ git checkout FETCH_HEAD
-			abbrev := rs.Issue[len(rs.Issue)-2:]
-			ref := fmt.Sprintf("refs/changes/%s/%s/%s", abbrev, rs.Issue, rs.Patchset)
-			if _, err := c.Git("fetch", rs.Repo, ref); err != nil {
-				return nil, err
-			}
-			if _, err := c.Git("checkout", "FETCH_HEAD"); err != nil {
-				return nil, err
-			}
-			// Create a new branch at the patch ref.
-			if _, err := c.Git("checkout", "-b", branchName); err != nil {
-				return nil, err
-			}
-			// Rebase the branch onto the desired base commit.
-			if _, err := c.Git("rebase", rs.Revision); err != nil {
-				return nil, err
-			}
-			// Uncommit the patch. This gets us to our desired end
-			// state: on the "patch" branch whose HEAD is at the
-			// desired commit, with the patch applied but not
-			// committed.
-			if _, err := c.Git("reset", rs.Revision); err != nil {
-				return nil, err
-			}
+			gerritRef := fmt.Sprintf("refs/changes/%s/%s/%s", rs.Issue[len(rs.Issue)-2:], rs.Issue, rs.Patchset)
+			cmd = append(cmd, []string{
+				"--gerrit_repo", rs.Repo,
+				"--gerrit_ref", gerritRef,
+			}...)
 		}
 	}
+	if _, err := exec.RunCommand(&exec.Command{
+		Name: cmd[0],
+		Args: cmd[1:],
+		Dir:  tmp,
+		Env: []string{
+			fmt.Sprintf("PATH=%s:%s", depotToolsDir, os.Getenv("PATH")),
+		},
+		InheritEnv: true,
+	}); err != nil {
+		return nil, err
+	}
 
-	return c, nil
+	// bot_update points the upstream to a local cache. Point back to the
+	// "real" upstream, in case the caller cares about the remote URL. Note
+	// that this doesn't change the remote URLs for the DEPS.
+	co := &git.TempCheckout{
+		GitDir: git.GitDir(path.Join(tmp, projectName)),
+	}
+	if _, err := co.Git("remote", "set-url", "origin", rs.Repo); err != nil {
+		return nil, err
+	}
+
+	// Self-check.
+	head, err := co.RevParse("HEAD")
+	if err != nil {
+		return nil, err
+	}
+	if head != rs.Revision {
+		return nil, fmt.Errorf("TempGitRepo ended up at the wrong revision. Wanted %q but got %q", rs.Revision, head)
+	}
+
+	return co, nil
 }

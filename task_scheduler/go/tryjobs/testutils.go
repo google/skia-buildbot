@@ -23,10 +23,12 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	specs_testutils "go.skia.org/infra/task_scheduler/go/specs/testutils"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 const (
+	repoBaseName = "skia.git"
 	testTasksCfg = `{
   "tasks": {
     "fake-task1": {
@@ -98,7 +100,7 @@ func setup(t *testing.T) (*TryJobIntegrator, *git_testutils.GitBuilder, *mockhtt
 	// Set up other TryJobIntegrator inputs.
 	window, err := window.New(time.Hour, 100, rm)
 	assert.NoError(t, err)
-	taskCfgCache := specs.NewTaskCfgCache(rm)
+	taskCfgCache := specs.NewTaskCfgCache(rm, specs_testutils.GetDepotTools(t), path.Join(tmpDir, "cache"))
 	d, err := local_db.NewDB("tasks_db", path.Join(tmpDir, "tasks.db"))
 	assert.NoError(t, err)
 	mock := mockhttpclient.NewURLMock()

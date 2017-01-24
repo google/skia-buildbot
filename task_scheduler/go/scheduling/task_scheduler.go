@@ -15,6 +15,7 @@ import (
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
@@ -55,6 +56,7 @@ type TaskScheduler struct {
 	bl               *blacklist.Blacklist
 	busyBots         *busyBots
 	db               db.DB
+	depotToolsDir    string
 	isolate          *isolate.Client
 	jCache           db.JobCache
 	lastScheduled    time.Time // protected by queueMtx.
@@ -73,7 +75,7 @@ type TaskScheduler struct {
 	workdir          string
 }
 
-func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic string) (*TaskScheduler, error) {
+func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		return nil, err
@@ -95,7 +97,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, ho
 		return nil, err
 	}
 
-	taskCfgCache := specs.NewTaskCfgCache(repos)
+	taskCfgCache := specs.NewTaskCfgCache(repos, depotTools, path.Join(workdir, "taskCfgCache"))
 	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, host, c, d, w, projectRepoMapping, repos, taskCfgCache)
 	if err != nil {
 		return nil, err
@@ -110,6 +112,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, ho
 		bl:               bl,
 		busyBots:         newBusyBots(),
 		db:               d,
+		depotToolsDir:    depotTools,
 		isolate:          isolateClient,
 		jCache:           jCache,
 		pools:            pools,
@@ -756,30 +759,26 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 // taskCandidates.
 func (s *TaskScheduler) isolateTasks(rs db.RepoState, candidates []*taskCandidate) error {
 	// Create and check out a temporary repo.
-	c, err := specs.TempGitRepo(s.repos[rs.Repo].Repo(), rs)
-	if err != nil {
-		return err
-	}
-	defer c.Delete()
-
-	// Isolate the tasks.
-	infraBotsDir := path.Join(c.Dir(), "infra", "bots")
-	baseDir := path.Dir(c.Dir())
-	tasks := make([]*isolate.Task, 0, len(candidates))
-	for _, c := range candidates {
-		tasks = append(tasks, c.MakeIsolateTask(infraBotsDir, baseDir))
-	}
-	hashes, err := s.isolate.IsolateTasks(tasks)
-	if err != nil {
-		return err
-	}
-	if len(hashes) != len(candidates) {
-		return fmt.Errorf("IsolateTasks returned incorrect number of hashes.")
-	}
-	for i, c := range candidates {
-		c.IsolatedInput = hashes[i]
-	}
-	return nil
+	return s.taskCfgCache.TempGitRepo(rs, func(c *git.TempCheckout) error {
+		// Isolate the tasks.
+		infraBotsDir := path.Join(c.Dir(), "infra", "bots")
+		baseDir := path.Dir(c.Dir())
+		tasks := make([]*isolate.Task, 0, len(candidates))
+		for _, c := range candidates {
+			tasks = append(tasks, c.MakeIsolateTask(infraBotsDir, baseDir))
+		}
+		hashes, err := s.isolate.IsolateTasks(tasks)
+		if err != nil {
+			return err
+		}
+		if len(hashes) != len(candidates) {
+			return fmt.Errorf("IsolateTasks returned incorrect number of hashes.")
+		}
+		for i, c := range candidates {
+			c.IsolatedInput = hashes[i]
+		}
+		return nil
+	})
 }
 
 // isolateCandidates uploads inputs for the taskCandidates to the Isolate server.
