@@ -25,6 +25,23 @@
     },
     {
       "key": {
+        "uuid": "89690ec6_2caae46f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T20:47:18Z",
+      "side": 1,
+      "message": "Sure, I passed in a special subdir just to be sure nothing steps on anything else, but we no longer need gitCacheDir at all in this file.",
+      "revId": "5677a4a659af0017947a1cccabc9a728fc79d0f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "de530fe6_5bdb1376",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 4
@@ -48,6 +65,23 @@
     },
     {
       "key": {
+        "uuid": "5bc61909_693ca531",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T20:47:18Z",
+      "side": 1,
+      "message": "Whoops, yes.",
+      "revId": "5677a4a659af0017947a1cccabc9a728fc79d0f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "83fc9227_a8cbc53c",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 4
@@ -65,6 +99,23 @@
         "endLine": 590,
         "endChar": 27
       },
+      "revId": "5677a4a659af0017947a1cccabc9a728fc79d0f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "75e76be9_6c06e32d",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 590,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T20:47:18Z",
+      "side": 1,
+      "message": "Agreed.  Hopefully it won\u0027t be too important thanks to the git cache, but we may still need it.",
       "revId": "5677a4a659af0017947a1cccabc9a728fc79d0f1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
