@@ -4,38 +4,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"path"
-	"regexp"
 	"strings"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	exec_testutils "go.skia.org/infra/go/exec/testutils"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	specs_testutils "go.skia.org/infra/task_scheduler/go/specs/testutils"
 )
 
-const (
-	// The test repo has two commits. The first commit adds a tasks.cfg file
-	// with two task specs: a build task and a test task, the test task
-	// depending on the build task. The second commit adds a perf task spec,
-	// which also depends on the build task. Therefore, there are five total
-	// possible tasks we could run:
-	//
-	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
-	//
-	c1        = "10ca3b86bac8991967ebe15cc89c22fd5396a77b"
-	c2        = "d4fa60ab35c99c886220c4629c36b9785cc89c8b"
-	buildTask = "Build-Ubuntu-GCC-Arm7-Release-Android"
-	testTask  = "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
-	perfTask  = "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
-	repoName  = "skia.git"
+var (
+	// Use this as an expected error when you don't care about the actual
+	// error which is returned.
+	ERR_DONT_CARE = fmt.Errorf("DONTCARE")
 )
 
 func TestCopyTaskSpec(t *testing.T) {
@@ -74,26 +60,30 @@ func TestCopyJobSpec(t *testing.T) {
 }
 
 func TestTaskSpecs(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+	gb, c1, c2 := specs_testutils.SetupTestRepo(t)
+	defer gb.Cleanup()
 
-	repoUrl := path.Join(tr.Dir, repoName)
-	repo, err := repograph.NewGraph(repoUrl, tr.Dir)
+	tmp, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmp)
+
+	repo, err := repograph.NewGraph(gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	repos := repograph.Map{
-		repoUrl: repo,
+		gb.RepoUrl(): repo,
 	}
+
 	cache := NewTaskCfgCache(repos)
 
 	rs1 := db.RepoState{
-		Repo:     repoUrl,
+		Repo:     gb.RepoUrl(),
 		Revision: c1,
 	}
 	rs2 := db.RepoState{
-		Repo:     repoUrl,
+		Repo:     gb.RepoUrl(),
 		Revision: c2,
 	}
 	specs, err := cache.GetTaskSpecsForRepoStates([]db.RepoState{rs1, rs2})
@@ -131,27 +121,30 @@ func TestTaskSpecs(t *testing.T) {
 }
 
 func TestTaskCfgCacheCleanup(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+	gb, c1, c2 := specs_testutils.SetupTestRepo(t)
+	defer gb.Cleanup()
 
-	repoUrl := path.Join(tr.Dir, repoName)
-	repo, err := repograph.NewGraph(repoUrl, tr.Dir)
+	tmp, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmp)
+
+	repo, err := repograph.NewGraph(gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	repos := repograph.Map{
-		repoUrl: repo,
+		gb.RepoUrl(): repo,
 	}
 	cache := NewTaskCfgCache(repos)
 
 	// Load configs into the cache.
 	rs1 := db.RepoState{
-		Repo:     repoUrl,
+		Repo:     gb.RepoUrl(),
 		Revision: c1,
 	}
 	rs2 := db.RepoState{
-		Repo:     repoUrl,
+		Repo:     gb.RepoUrl(),
 		Revision: c2,
 	}
 	_, err = cache.GetTaskSpecsForRepoStates([]db.RepoState{rs1, rs2})
@@ -159,12 +152,14 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	assert.Equal(t, 2, len(cache.cache))
 
 	// Cleanup, with a period intentionally designed to remove c1 but not c2.
-	r, err := git.NewRepo(repoUrl, tr.Dir)
+	r, err := git.NewRepo(gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	d1, err := r.Details(c1)
 	assert.NoError(t, err)
-	// c1 and c2 are about 5 seconds apart.
-	period := time.Now().Sub(d1.Timestamp) - 2*time.Second
+	d2, err := r.Details(c2)
+	diff := d2.Timestamp.Sub(d1.Timestamp)
+	now := time.Now()
+	period := now.Sub(d2.Timestamp) + (diff / 2)
 	assert.NoError(t, cache.Cleanup(period))
 	assert.Equal(t, 1, len(cache.cache))
 }
@@ -299,11 +294,14 @@ PROJECT: skia`)
 	return gb, c1, c2
 }
 
-func tempGitRepoTests(t *testing.T, repo *repograph.Graph, cases map[db.RepoState]error) {
+func tempGitRepoTests(t *testing.T, repo *git.Repo, cases map[db.RepoState]error) {
 	for rs, expectErr := range cases {
-		c, err := TempGitRepo(repo.Repo(), rs)
+		c, err := TempGitRepo(repo, rs)
 		if expectErr != nil {
-			assert.EqualError(t, err, expectErr.Error())
+			assert.Error(t, err)
+			if expectErr != ERR_DONT_CARE {
+				assert.EqualError(t, err, expectErr.Error())
+			}
 		} else {
 			defer c.Delete()
 			assert.NoError(t, err)
@@ -335,68 +333,53 @@ func tempGitRepoTests(t *testing.T, repo *repograph.Graph, cases map[db.RepoStat
 }
 
 func TestTempGitRepo(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	gb, c1, c2 := tempGitRepoSetup(t)
 	defer gb.Cleanup()
 
-	tmpDir, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, tmpDir)
-	repo, err := repograph.NewGraph(gb.Dir(), tmpDir)
-	assert.NoError(t, err)
+	repo := &git.Repo{
+		GitDir: git.GitDir(gb.Dir()),
+	}
 
 	cases := map[db.RepoState]error{
 		{
-			Repo:     repo.Repo().Dir(),
+			Repo:     gb.Dir(),
 			Revision: c1,
 		}: nil,
 		{
-			Repo:     repo.Repo().Dir(),
+			Repo:     gb.Dir(),
 			Revision: c2,
 		}: nil,
 		{
-			Repo:     repo.Repo().Dir(),
+			Repo:     gb.Dir(),
 			Revision: "bogusRev",
-		}: fmt.Errorf("Command exited with exit status 1: git checkout bogusRev; Stdout+Stderr:\nerror: pathspec 'bogusRev' did not match any file(s) known to git.\n"),
+		}: ERR_DONT_CARE,
 	}
 	tempGitRepoTests(t, repo, cases)
 }
 
 func TestTempGitRepoPatch(t *testing.T) {
-	testutils.MediumTest(t)
-	t.Skip("This test uploads to production servers. Don't run it by default.")
+	testutils.LargeTest(t)
 
 	gb, _, c2 := tempGitRepoSetup(t)
 	defer gb.Cleanup()
 
-	gb.AddGen("somefile")
-	exec_testutils.Run(t, gb.Dir(), "git", "commit", "-m", "commit")
+	issue := "12345"
+	patchset := "3"
+	gb.CreateFakeGerritCLGen(issue, patchset)
 
-	exec_testutils.Run(t, gb.Dir(), "git", "cl", "upload", "--bypass-hooks", "--rietveld", "-m", "test", "-f")
-	output := exec_testutils.Run(t, gb.Dir(), "git", "cl", "issue")
-	m := regexp.MustCompile(`Issue number: (\d+)`).FindStringSubmatch(output)
-	assert.Equal(t, 2, len(m))
-	rvIssue := m[1]
-
-	tmpDir, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, tmpDir)
-	repo, err := repograph.NewGraph(gb.Dir(), tmpDir)
-	assert.NoError(t, err)
-
-	// TODO(borenet): Also upload to Gerrit and verify that we can apply
-	// those patches successfully as well. This is difficult because it's
-	// hard to trick git-cl into uploading to a particular Gerrit instance
-	// from a dummy repo.
+	repo := &git.Repo{
+		GitDir: git.GitDir(gb.Dir()),
+	}
 
 	cases := map[db.RepoState]error{
 		{
 			Patch: db.Patch{
-				Server:   "https://codereview.chromium.org",
-				Issue:    rvIssue,
-				Patchset: "1",
+				Server:   gb.RepoUrl(),
+				Issue:    issue,
+				Patchset: patchset,
 			},
-			Repo:     repo.Repo().Dir(),
+			Repo:     gb.Dir(),
 			Revision: c2,
 		}: nil,
 	}

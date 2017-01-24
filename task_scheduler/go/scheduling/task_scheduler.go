@@ -756,11 +756,7 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 // taskCandidates.
 func (s *TaskScheduler) isolateTasks(rs db.RepoState, candidates []*taskCandidate) error {
 	// Create and check out a temporary repo.
-	repo, ok := s.repos[rs.Repo]
-	if !ok {
-		return fmt.Errorf("Unknown repo: %q", rs.Repo)
-	}
-	c, err := specs.TempGitRepo(repo.Repo(), rs)
+	c, err := specs.TempGitRepo(s.repos[rs.Repo].Repo(), rs)
 	if err != nil {
 		return err
 	}
