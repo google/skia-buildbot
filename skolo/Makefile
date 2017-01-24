@@ -17,16 +17,26 @@ hotspare_push: hotspare
 
 .PHONY: backup
 backup:
-	go install -v ./go/rpi-backup
+	go install -v ./go/file-backup
 
-.PHONY: backup_release
-backup_release: backup
-	./build_release_backup "$(MESSAGE)"
+.PHONY: rpi_backup_release
+rpi_backup_release: backup
+	./build_release_rpi_backup "$(MESSAGE)"
 
-.PHONY: backup_push
-backup_push: backup
+.PHONY: rpi_backup_push
+rpi_backup_push: backup
 	go install -v ../push/go/pushcli
-	./build_release_backup "`git log -n1 --format=%s`"
+	./build_release_rpi_backup "`git log -n1 --format=%s`"
+	pushcli rpi-backup skia-rpi-master
+
+.PHONY: router_backup_release
+router_backup_release: backup
+	./build_release_router_backup "$(MESSAGE)"
+
+.PHONY: router_backup_push
+router_backup_push: backup
+	go install -v ../push/go/pushcli
+	./build_release_router_backup "`git log -n1 --format=%s`"
 	pushcli rpi-backup skia-rpi-master
 
 .PHONY: cloudlogger
