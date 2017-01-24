@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "681cdaaf_e9f89153",
+        "filename": "go/git/testutils/git_builder.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T13:11:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "284bc29d_3c076694",
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "284bc29d_bcfb764e",
         "filename": "task_scheduler/go/blacklist/blacklist_test.go",
         "patchSetId": 8
@@ -42,6 +60,24 @@
         "endLine": 168,
         "endChar": 14
       },
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "681cdaaf_2950e973",
+        "filename": "task_scheduler/go/blacklist/blacklist_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T13:11:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "284bc29d_bcfb764e",
       "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "681cdaaf_a9f4d911",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T13:11:55Z",
+      "side": 1,
+      "message": "Unfortunately, some of the tests in the go/git package use GitBuilder, so having GitBuilder depend on anything in go/git creates a circular dependency.",
+      "parentUuid": "284bc29d_5c507274",
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "284bc29d_5c7cf2d3",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 8
@@ -88,6 +142,24 @@
         "endLine": 186,
         "endChar": 2
       },
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "681cdaaf_69330164",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T13:11:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "284bc29d_5c7cf2d3",
       "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -117,6 +189,24 @@
     },
     {
       "key": {
+        "uuid": "681cdaaf_49d605a8",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T13:11:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "284bc29d_9c867ab4",
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "284bc29d_dc98020a",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 8
@@ -140,6 +230,24 @@
     },
     {
       "key": {
+        "uuid": "681cdaaf_699f81f3",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1887,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T13:11:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "284bc29d_dc98020a",
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "284bc29d_9c9f9af2",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 8
@@ -157,6 +265,24 @@
         "endLine": 1930,
         "endChar": 28
       },
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "681cdaaf_294aa992",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1930,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T13:11:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "284bc29d_9c9f9af2",
       "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -203,6 +329,24 @@
     },
     {
       "key": {
+        "uuid": "681cdaaf_a94339aa",
+        "filename": "task_scheduler/go/specs/testutils/testutils.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T13:11:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "284bc29d_bc40969e",
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "284bc29d_fcc85e04",
         "filename": "task_scheduler/go/specs/testutils/testutils.go",
         "patchSetId": 8
@@ -220,6 +364,24 @@
         "endLine": 113,
         "endChar": 28
       },
+      "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "681cdaaf_8908fd4d",
+        "filename": "task_scheduler/go/specs/testutils/testutils.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-24T13:11:55Z",
+      "side": 1,
+      "message": "We add all of these nice helpers, and I just forget to use them.",
+      "parentUuid": "284bc29d_fcc85e04",
       "revId": "1ae86f5a400eafe980cab27d14967e9047b70471",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
