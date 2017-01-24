@@ -33,13 +33,16 @@
 
 <dom-module id="android-autoroll-widget-sk">
   <template>
-    <style>
+    <style include="iron-flex iron-flex-alignment">
       a {
-        color: inherit;
+        color: var(--status-sk-text-color);
         text-decoration: none;
       }
+      a:hover {
+        text-decoration: underline;
+      }
       iron-icon{
-        color: #E6AB02;
+        color: var(--status-sk-icon-color);
       }
       paper-button {
         text-transform: none;
@@ -51,32 +54,33 @@
     </style>
 
     <iron-ajax
-      id="current_status"
-      auto url="https://storage.googleapis.com/skia-android-autoroller/current-roll"
-      handle-as="text"
-      last-response="{{_current_roll_status}}">
-    </iron-ajax>
-    <iron-ajax
-      id="last_status"
-      auto url="https://storage.googleapis.com/skia-android-autoroller/last-roll"
-      handle-as="text"
-      last-response="{{_last_roll_status}}">
+      id="roll_status"
+      auto url="https://storage.googleapis.com/skia-android-autoroller/roll-status.json"
+      handle-as="json"
+      last-response="{{_roll_status}}">
     </iron-ajax>
     <timer-sk period="[[reload]]" on-trigger="_reload">
 
     <a href="https://uberchromegw.corp.google.com/i/client.skia.internal/console" target="_blank" class="inherit">
-      <paper-button>
-        <div class="horizontal layout center">
+      <div class="horizontal layout center">
+        <!-- Show the icons for the last 5 rolls-->
+        <template is="dom-repeat"
+            items="[[_roll_status.rolls]]" as="result">
           <iron-icon
               id="statusIndicator"
-              icon="[[_statusIcon(_current_roll_status)]]">
+              icon="[[_statusIcon(result.status)]]">
           </iron-icon>
-          <div id="textContainer">
-            Android Roll: [[_current_roll_status]]<br/>
-            Last: [[_last_roll_status]]
-          </div>
-        </div>
-      </paper-button>
+        </template>
+        <iron-icon
+            id="statusIndicator"
+            icon="icons:more-horiz">
+        </iron-icon>
+      </div>
+      <div id="textContainer">
+        Android Roll: [[_roll_status.rolls.0.status]]<br/>
+        Last: [[_roll_status.rolls.1.status]]
+        [[_humanDiff(_roll_status.rolls.1.landed)]] ago
+      </div>
     </a>
   </template>
   <script>
@@ -91,19 +95,20 @@
       },
 
       // private
-      _current_roll_status: {
-        type: String,
-        value: "",
-      },
-      _last_roll_status: {
-        type: String,
-        value: "",
+      _roll_status: {
+        type: Object,
+        value: function() {
+          return {};
+        },
       },
     },
 
+    _humanDiff: function(timeString) {
+      return sk.human.diffDate(timeString);
+    },
+
     _reload: function() {
-      this.$.current_status.generateRequest();
-      this.$.last_status.generateRequest();
+      this.$.roll_status.generateRequest();
     },
 
     _statusIcon:function(status) {
