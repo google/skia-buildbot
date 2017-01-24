@@ -39,6 +39,7 @@ import (
 	"go.skia.org/infra/golden/go/history"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/trybot"
@@ -256,6 +257,11 @@ func main() {
 		sklog.Fatalf("Failed to create indexer: %s", err)
 	}
 
+	searchAPI, err = search.NewSearchAPI(storages, ixr)
+	if err != nil {
+		sklog.Fatalf("Failed to create instance of search API: %s", err)
+	}
+
 	if !*local {
 		*issueTrackerKey = metadata.Must(metadata.ProjectGet(metadata.APIKEY))
 	}
@@ -307,6 +313,9 @@ func main() {
 	router.HandleFunc("/json/failure", jsonListFailureHandler).Methods("GET")
 	router.HandleFunc("/json/failure/clear", jsonClearFailureHandler).Methods("POST")
 
+	// New endpoints
+	router.HandleFunc("/json/newsearch", jsonNewSearchHandler).Methods("GET")
+
 	// For everything else serve the same markup.
 	indexFile := *resourcesDir + "/index.html"
 	indexTemplate := template.Must(template.New("").ParseFiles(indexFile)).Lookup("index.html")
@@ -333,6 +342,7 @@ func main() {
 		}
 		if err := indexTemplate.Execute(w, appConfig); err != nil {
 			sklog.Errorln("Failed to expand template:", err)
+			return
 		}
 	})
 

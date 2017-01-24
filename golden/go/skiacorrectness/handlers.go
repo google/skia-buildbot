@@ -10,7 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/mux"
+	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/httputils"
@@ -227,6 +229,31 @@ func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
 		Commits: searchResponse.Commits,
 		Issue:   adaptIssueResponse(searchResponse.IssueResponse),
 	})
+}
+
+func jsonNewSearchHandler(w http.ResponseWriter, r *http.Request) {
+	query := search.Query{Limit: 50}
+	if err := parseQuery(r, &query); err != nil {
+		httputils.ReportError(w, r, err, "Search for digests failed.")
+		return
+	}
+
+	searchResponse, err := searchAPI.Search(&query)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Search for digests failed.")
+		return
+	}
+	sendJsonResponse(w, &NewSearchResult{
+		Digests: searchResponse.Digests,
+		Commits: searchResponse.Commits,
+	})
+}
+
+// SearchResult encapsulates the results of a search request.
+type NewSearchResult struct {
+	Digests    []*search.SRDigest `json:"digests"`
+	Commits    []*tiling.Commit   `json:"commits"`
+	NumMatches int
 }
 
 // SearchResult encapsulates the results of a search request.
@@ -811,8 +838,25 @@ func parseQuery(r *http.Request, query *search.Query) error {
 
 	// Parse out the patchsets.
 	if temp := r.FormValue("patchsets"); temp != "" {
-		patchsets := strings.Split(temp, ",")
-		query.Patchsets = patchsets
+		query.Patchsets = strings.Split(temp, ",")
+	}
+
+	// Parse the list of fields that need to match and ensure the
+	// test name is in it.
+	var ok bool
+	if query.Match, ok = r.Form["match"]; ok {
+		if !util.In(types.PRIMARY_KEY_FIELD, query.Match) {
+			query.Match = append(query.Match, types.PRIMARY_KEY_FIELD)
+		}
+	} else {
+		query.Match = []string{types.PRIMARY_KEY_FIELD}
+	}
+
+	validate := search.Validation{}
+	validate.StrFormValue(r, "metric", &query.Metric, diff.GetDiffMetricIDs(), diff.METRIC_COMBINED)
+	validate.StrFormValue(r, "sort", &query.Sort, []string{search.SORT_DESC, search.SORT_ASC}, search.SORT_DESC)
+	if err := validate.Errors(); err != nil {
+		return err
 	}
 
 	query.BlameGroupID = r.FormValue("blame")
@@ -823,6 +867,9 @@ func parseQuery(r *http.Request, query *search.Query) error {
 	query.IncludeIgnores = r.FormValue("include") == "true"
 	query.Issue = r.FormValue("issue")
 	query.IncludeMaster = r.FormValue("master") == "true"
+	query.FRef = r.FormValue("fref") == "true"
+
+	glog.Infof("\n\nQUERY: %s\n\n\n", spew.Sprint(query))
 
 	return nil
 }
