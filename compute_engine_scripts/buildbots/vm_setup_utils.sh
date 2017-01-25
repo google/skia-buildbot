@@ -145,8 +145,8 @@ function run_swarming_bootstrap {
     swarming="https://chrome-swarming.appspot.com"
   fi
   $GCOMPUTE_CMD ssh --ssh_user=chrome-bot $INSTANCE_NAME \
-    "sudo chmod 777 /b && mkdir /b/s && " \
-    "wget $swarming/bot_code -O /b/s/swarming_bot.zip" \
+    "sudo chmod 777 /b && mkdir -p /b/swarm_slave && " \
+    "wget $swarming/bot_code -O /b/swarm_slave/swarming_bot.zip" \
     || FAILED="$FAILED SwarmingBootstrap"
   echo
 }
