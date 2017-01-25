@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -40,12 +39,9 @@ const (
 // flags
 var (
 	depotTools        = flag.String("depot_tools", "", "Directory location where depot_tools is installed.")
-	influxDatabase    = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
-	influxHost        = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxPassword    = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxUser        = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port              = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	timeBetweenBuilds = flag.Duration("time_between_builds", time.Hour, "How long to wait between building LKGR of Skia.")
 	verbose           = flag.Bool("verbose", false, "Verbose logging.")
@@ -327,11 +323,12 @@ func buildVisualize(checkout, depotTools string) error {
 
 func main() {
 	defer common.LogPanic()
-	if *local {
-		common.Init()
-	} else {
-		common.InitWithMetrics2("imageinfo", influxHost, influxUser, influxPassword, influxDatabase, local)
-	}
+	common.InitWithMust(
+		"imageinfo",
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
+	login.SimpleInitMust(*port, *local)
 	if *workRoot == "" {
 		sklog.Fatal("The --work_root flag is required.")
 	}
@@ -340,13 +337,6 @@ func main() {
 	}
 	if err := os.MkdirAll(filepath.Join(*workRoot, "tmp"), 0777); err != nil {
 		sklog.Fatalf("Failed to create WORK_ROOT/tmp dir: %s", err)
-	}
-	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
-	if !*local {
-		redirectURL = "https://imageinfo.skia.org/oauth2callback/"
-	}
-	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 	var err error
 	repo, err = gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*workRoot, "skia"), true)
