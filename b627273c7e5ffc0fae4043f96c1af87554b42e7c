@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "65909eb8_bf93444a",
+        "filename": "push/skiapush.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-25T19:31:44Z",
+      "side": 1,
+      "message": "If you start off will cloudlogging for ct-masterd then you won\u0027t need logserverd.",
+      "revId": "b627273c7e5ffc0fae4043f96c1af87554b42e7c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
