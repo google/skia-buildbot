@@ -22,6 +22,23 @@
       "revId": "a83f6c58a9b494fed2a5f51f0d72b35d531df293",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f8e10ff_a03b3104",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-25T18:53:33Z",
+      "side": 0,
+      "message": "Dimensions change per bot, and the Prom client lib enforces that each metric has a stable set of tags.",
+      "revId": "a83f6c58a9b494fed2a5f51f0d72b35d531df293",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

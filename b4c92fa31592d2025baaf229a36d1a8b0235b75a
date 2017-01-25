@@ -19,6 +19,23 @@
     },
     {
       "key": {
+        "uuid": "3fd9304b_d2461bf9",
+        "filename": "datahopper/go/accum/accum.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-25T18:53:33Z",
+      "side": 1,
+      "message": "This doesn\u0027t return the mean, it returns the values and the count as separate metrics, if we find a use for this kind of metric again I can raise it up into go/metrics2 as its own type of metric.",
+      "revId": "b4c92fa31592d2025baaf229a36d1a8b0235b75a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9c6e0208_9283f983",
         "filename": "datahopper/go/datahopper/main.go",
         "patchSetId": 6
@@ -36,6 +53,23 @@
         "endLine": 194,
         "endChar": 36
       },
+      "revId": "b4c92fa31592d2025baaf229a36d1a8b0235b75a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "31667e15_377f0e9b",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-25T18:53:33Z",
+      "side": 1,
+      "message": "Ack",
       "revId": "b4c92fa31592d2025baaf229a36d1a8b0235b75a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -62,6 +96,23 @@
       "revId": "b4c92fa31592d2025baaf229a36d1a8b0235b75a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52ea08bb_dab40bc5",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-01-25T18:53:33Z",
+      "side": 1,
+      "message": "Done",
+      "revId": "b4c92fa31592d2025baaf229a36d1a8b0235b75a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
