@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2879c5e5_f7b0a638",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-25T17:39:45Z",
+      "side": 0,
+      "message": "Since we\u0027re tagging by bot ID, what do we gain by not including the dimensions?",
+      "range": {
+        "startLine": 160,
+        "startChar": 4,
+        "endLine": 161,
+        "endChar": 74
+      },
+      "revId": "a83f6c58a9b494fed2a5f51f0d72b35d531df293",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
