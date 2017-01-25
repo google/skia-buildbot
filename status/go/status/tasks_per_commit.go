@@ -9,7 +9,8 @@ import (
 
 	"golang.org/x/net/context"
 
-	"go.skia.org/infra/go/depot_tools"
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/git/repograph"
@@ -44,12 +45,15 @@ func newTasksPerCommitCache(workdir string, repoUrls []string, period time.Durat
 	if err != nil {
 		return nil, err
 	}
-	depotTools, err := depot_tools.Find()
+	depotTools, err := git.NewCheckout(common.REPO_DEPOT_TOOLS, wd)
 	if err != nil {
 		return nil, err
 	}
+	if err := depotTools.Update(); err != nil {
+		return nil, err
+	}
 	gitCache := path.Join(wd, "cache")
-	tcc := specs.NewTaskCfgCache(repos, depotTools, gitCache)
+	tcc := specs.NewTaskCfgCache(repos, depotTools.Dir(), gitCache)
 	c := &tasksPerCommitCache{
 		cached: map[db.RepoState]int{},
 		period: period,
