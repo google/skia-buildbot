@@ -39,6 +39,23 @@
       "revId": "8a4147db7c89ec4cca92edc9f72d7ab0aa185894",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "39308ce9_1d8599e0",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 2
+      },
+      "lineNbr": 876,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-25T13:58:46Z",
+      "side": 1,
+      "message": "Is there a way to apply this rule to all servers without copy/paste?  ie. can we have a \"server_name *\" rule?  Then we\u0027d never have to do anything on our side for site verification.",
+      "revId": "8a4147db7c89ec4cca92edc9f72d7ab0aa185894",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
