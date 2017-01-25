@@ -1,3 +1,4 @@
+# General
 ALERT InstanceDown
   IF up == 0
   FOR 5m
@@ -16,6 +17,16 @@ ALERT TooManyGoRoutines
     description = "Too many Go routines in {{ $labels.job }} running on {{ $labels.instance }}."
   }
 
+ALERT ProbeFailure
+  IF prober{type="failure"} > 0
+  FOR 5m
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    summary = "Probe failed {{ $labels.probename }}",
+    description = "Endpoint {{ $labels.probename }} has failed to respond in at least 5 minutes. See https://github.com/google/skia-buildbot/search?q={{ $labels.probename }}+filename%3Aprobers.json for the endpoint URL."
+  }
+
+# Perf
 ALERT PerfUntriagedClusters
   IF perf_clustering_untriaged{instance="skia-perf:20000"} > 0
   FOR 2m
@@ -50,11 +61,28 @@ ALERT PerfIngestErrorTooHigh
     description = "Perf ingestion error rate too high. See https://prom.skia.org/graph?g0.range_input=1h&g0.expr=rate(ingestion%7Bmetric%3D%22errors%22%7D%5B5m%5D)&g0.tab=0"
   }
 
-ALERT ProbeFailure
-  IF prober{type="failure"} > 0
+# For fiddle, debugger, and imageinfo.
+
+ALERT BuildsFailed
+  IF builds_failed >= 2
   FOR 5m
-  LABELS { category = "infra", severity = "critical" }
+  LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
-    summary = "Probe failed {{ $labels.probename }}",
-    description = "Endpoint {{ $labels.probename }} has failed to respond in at least 5 minutes. See https://github.com/google/skia-buildbot/search?q={{ $labels.probename }}+filename%3Aprobers.json for the endpoint URL."
+    description = "Build for {{ $labels.job }} has failed for the last 2 chrome DEPS rolls. https://skia.googlesource.com/buildbot/+/master/{{ $labels.job }}/PROD.md#build_fail"
+  }
+
+ALERT SyncFailed
+  IF repo_sync_failed >= 2
+  FOR 5m
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    description = "Sync for {{ $labels.job }} has failed 2 times in a row. https://skia.googlesource.com/buildbot/+/master/{{ $labels.job }}/PROD.md#sync_fail"
+  }
+
+ALERT NamedFiddles
+  IF named_failures > 0
+  FOR 5m
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    description = "See https://fiddle.skia.org/f/ and https://skia.googlesource.com/buildbot/+/master/fiddle/PROD.md#named_fail"
   }
