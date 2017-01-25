@@ -1,0 +1,17 @@
+[Unit]
+Description=Backs up the router config to Google Storage
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/router-backup \
+  --log_dir=/var/log/logserver \
+  --influxdb_database=skmetrics \
+  --influxdb_host=https://metrics.skia.org \
+  --gce_bucket skia-backups\
+  --gce_folder router_config \
+  --remote_file_path "admin@192.168.1.1:/config/config.boot" \
+  --metric_name router-backup \
+  --service_account_path=/usr/local/share/router-backup/service-account.json
+User=chrome-bot
+Group=chrome-bot
