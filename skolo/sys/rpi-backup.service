@@ -8,7 +8,10 @@ ExecStart=/usr/local/bin/rpi-backup \
   --log_dir=/var/log/logserver \
   --influxdb_database=skmetrics \
   --influxdb_host=https://metrics.skia.org \
-  --img_path /opt/rpi_img/prod.img \
-  --service_account_path=/home/chrome-bot/service-account.json
+  --gce_bucket skia-images\
+  --gce_folder Swarming \
+  --local_file_path /opt/rpi_img/prod.img \
+  --metric_name rpi-backup \
+  --service_account_path=/usr/local/share/rpi-backup/service-account.json
 User=chrome-bot
 Group=chrome-bot
