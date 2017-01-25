@@ -56,6 +56,7 @@ var (
 	promPort              = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	serviceAccountPath    = flag.String("service_account_path", "", "Path to the service account.  Can be empty string to use defaults or project metadata")
+	pullPeriod            = flag.Duration("pull_period", 5*time.Minute, "How often to check the configuration. On GCE, the metadata update will likely happen first")
 )
 
 type UnitStatusSlice []*systemd.UnitStatus
@@ -323,6 +324,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	defer common.LogPanic()
+	flag.Parse()
 	if *onGCE {
 		common.InitWithMust(
 			"pulld",
@@ -331,7 +333,6 @@ func main() {
 			common.CloudLoggingOpt(),
 		)
 	} else {
-		flag.Parse()
 		initExternalLogging()
 		common.InitExternalWithMetrics2("pulld-not-gce", influxHost, influxUser, influxPassword, influxDatabase)
 	}
