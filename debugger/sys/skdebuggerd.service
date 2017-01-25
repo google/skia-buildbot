@@ -7,7 +7,7 @@ After=network-online.target
 ExecStart=/usr/local/bin/skdebugger \
     --resources_dir=/usr/local/share/skdebugger/  \
     --image_dir=/mnt/pd0/container \
-    --log_dir=/var/log/logserver \
+    --logtostderr \
     --work_root=/mnt/pd0/debugger \
     --depot_tools=/mnt/pd0/depot_tools \
     --hosted \

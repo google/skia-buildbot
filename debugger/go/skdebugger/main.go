@@ -24,7 +24,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -34,16 +33,13 @@ import (
 var (
 	depotTools        = flag.String("depot_tools", "", "Directory location where depot_tools is installed.")
 	hosted            = flag.Bool("hosted", false, "True if skdebugger should build and run local skiaserve instances itself.")
-	influxDatabase    = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
-	influxHost        = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxPassword    = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxUser        = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	imageDir          = flag.String("image_dir", "", "Directory location of the container.")
 	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port              = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	timeBetweenBuilds = flag.Duration("time_between_builds", time.Hour, "How long to wait between building LKGR of Skia.")
 	workRoot          = flag.String("work_root", "", "Directory location where all the work is done.")
-	imageDir          = flag.String("image_dir", "", "Directory location of the container.")
 )
 
 var (
@@ -236,7 +232,12 @@ func cleanShutdown() {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics2("debugger", influxHost, influxUser, influxPassword, influxDatabase, local)
+	common.InitWithMust(
+		"debugger",
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
+
 	if *hosted {
 		if *workRoot == "" {
 			sklog.Fatal("The --work_root flag is required.")
@@ -248,13 +249,7 @@ func main() {
 	Init()
 
 	if *hosted {
-		redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
-		if !*local {
-			redirectURL = "https://debugger.skia.org/oauth2callback/"
-		}
-		if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-			sklog.Fatalf("Failed to initialize the login system: %s", err)
-		}
+		login.SimpleInitMust(*port, *local)
 
 		var err error
 		repo, err = gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*workRoot, "skia"), true)

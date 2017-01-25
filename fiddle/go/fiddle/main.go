@@ -4,7 +4,6 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	"html/template"
 	ttemplate "html/template"
 	"net/http"
@@ -27,7 +26,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -42,11 +40,8 @@ const (
 // flags
 var (
 	fiddleRoot        = flag.String("fiddle_root", "", "Directory location where all the work is done.")
-	influxDatabase    = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
-	influxHost        = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxPassword    = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxUser        = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	port              = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	preserveTemp      = flag.Bool("preserve_temp", false, "If true then preserve the build artifacts in the fiddle/tmp directory. Used for debugging only.")
 	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
@@ -525,18 +520,13 @@ func StartTryNamed() {
 
 func main() {
 	defer common.LogPanic()
-	if *local {
-		common.Init()
-	} else {
-		common.InitWithMetrics2("fiddle", influxHost, influxUser, influxPassword, influxDatabase, local)
-	}
-	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
-	if !*local {
-		redirectURL = "https://fiddle.skia.org/oauth2callback/"
-	}
-	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		sklog.Fatalf("Failed to initialize the login system: %s", err)
-	}
+	common.InitWithMust(
+		"fiddle",
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
+	login.SimpleInitMust(*port, *local)
+
 	if *fiddleRoot == "" {
 		sklog.Fatal("The --fiddle_root flag is required.")
 	}

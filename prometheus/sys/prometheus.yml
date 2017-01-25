@@ -10,9 +10,21 @@ scrape_configs:
     static_configs:
       - targets: ['skia-proxy:20000']
 
+  - job_name: 'debugger'
+    static_configs:
+      - targets: ['skia-debugger:20000']
+
   - job_name: 'docserver'
     static_configs:
       - targets: ['skia-docs:20000']
+
+  - job_name: 'fiddle'
+    static_configs:
+      - targets: ['skia-fiddle:20000']
+
+  - job_name: 'imageinfo'
+    static_configs:
+      - targets: ['skia-imageinfo:20000']
 
   - job_name: 'proberd'
     static_configs:
