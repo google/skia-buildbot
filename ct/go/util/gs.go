@@ -40,10 +40,15 @@ type GcsUtil struct {
 // Storage. If client is nil then auth.NewClient is invoked.
 func NewGcsUtil(client *http.Client) (*GcsUtil, error) {
 	if client == nil {
-		var err error
-		client, err = auth.NewClientWithTransport(true, GCSTokenPath, ClientSecretPath, nil, auth.SCOPE_FULL_CONTROL)
-		if err != nil {
-			return nil, err
+		var authErr error
+		// If ClientSecretPath exists then assume that we do not get tokens from metadata.
+		if _, err := os.Stat(ClientSecretPath); err == nil {
+			client, err = auth.NewClientWithTransport(true, GCSTokenPath, ClientSecretPath, nil, auth.SCOPE_FULL_CONTROL)
+		} else {
+			client, err = auth.NewClientWithTransport(false, GCSTokenPath, "", nil, auth.SCOPE_FULL_CONTROL)
+		}
+		if authErr != nil {
+			return nil, authErr
 		}
 	}
 	client.Timeout = HTTP_CLIENT_TIMEOUT

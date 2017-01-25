@@ -7,14 +7,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
-	"strconv"
-	"strings"
 
 	"go.skia.org/infra/ct/go/ctfe/pending_tasks"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
-	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -49,11 +45,7 @@ var httpClient = httputils.NewTimeoutClient()
 
 // Initializes *Webapp URLs above and sets up authentication credentials for UpdateWebappTaskV2.
 func MustInit() {
-	err := webhook.InitRequestSaltFromFile(ctutil.WebhookRequestSaltPath)
-	if err != nil {
-		sklog.Fatalf("Could not read salt from %s. %s Error was: %v",
-			ctutil.WebhookRequestSaltPath, ctutil.WEBHOOK_SALT_MSG, err)
-	}
+	webhook.MustInitRequestSaltFromMetadata()
 	initUrls(WEBAPP_ROOT_V2)
 }
 
@@ -80,35 +72,6 @@ func initUrls(webapp_root string) {
 	ChromiumBuildTasksWebapp = webapp_root + ctfeutil.CHROMIUM_BUILD_URI
 	UpdateChromiumBuildTasksWebapp = webapp_root + ctfeutil.UPDATE_CHROMIUM_BUILD_TASK_POST_URI
 	GetOldestPendingTaskWebapp = webapp_root + ctfeutil.GET_OLDEST_PENDING_TASK_URI
-}
-
-func UpdateWebappTask(gaeTaskID int64, webappURL string, extraData map[string]string) error {
-	sklog.Infof("Updating %s on %s with %s", gaeTaskID, webappURL, extraData)
-	pwdBytes, err := ioutil.ReadFile(ctutil.WebappPasswordPath)
-	if err != nil {
-		return fmt.Errorf("Could not read the webapp password file: %s", err)
-	}
-	pwd := strings.TrimSpace(string(pwdBytes))
-	postData := url.Values{}
-	postData.Set("key", strconv.FormatInt(gaeTaskID, 10))
-	postData.Add("password", pwd)
-	for k, v := range extraData {
-		postData.Add(k, v)
-	}
-	req, err := http.NewRequest("POST", webappURL, strings.NewReader(postData.Encode()))
-	if err != nil {
-		return fmt.Errorf("Could not create HTTP request: %s", err)
-	}
-	client := httputils.NewTimeoutClient()
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("Could not update webapp task: %s", err)
-	}
-	defer util.Close(resp.Body)
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Could not update webapp task, response status code was %d: %s", resp.StatusCode, err)
-	}
-	return nil
 }
 
 // Common functions
