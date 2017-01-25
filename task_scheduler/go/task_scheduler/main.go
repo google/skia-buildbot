@@ -397,6 +397,10 @@ func jsonTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func googleVerificationHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("google-site-verification: google2c59f97e1ced9fdc.html"))
+}
+
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
@@ -409,6 +413,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/json/task", jsonTaskHandler).Methods(http.MethodPost, http.MethodPut)
 	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods(http.MethodPost)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
+	r.HandleFunc("/google2c59f97e1ced9fdc.html", googleVerificationHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
 	r.HandleFunc("/logout/", login.LogoutHandler)
