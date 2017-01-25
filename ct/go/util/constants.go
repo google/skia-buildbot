@@ -14,6 +14,8 @@ const (
 	GCS_HTTP_LINK                = "https://storage.cloud.google.com/"
 	CT_EMAIL_DISPLAY_NAME        = "Cluster Telemetry"
 
+	GMAIL_CACHED_TOKEN = "ct_gmail_cached_token"
+
 	// File names and dir names.
 	CHROMIUM_BUILDS_DIR_NAME         = "chromium_builds"
 	PAGESETS_DIR_NAME                = "page_sets"
@@ -134,8 +136,6 @@ const (
 	// Poller
 	MAKE_ALL_TIMEOUT = 15 * time.Minute
 
-	WEBHOOK_SALT_MSG = `For prod, set this file to the value of GCE metadata key webhook_request_salt or call webhook.MustInitRequestSaltFromMetadata() if running in GCE. For testing, run 'echo -n "notverysecret" | base64 -w 0 > /b/storage/webhook_salt.data' or call frontend.InitForTesting().`
-
 	// Swarming constants.
 	SWARMING_DIR_NAME               = "swarming"
 	SWARMING_POOL                   = "CT"
@@ -195,9 +195,6 @@ var (
 	ClientSecretPath       = filepath.Join(StorageDir, "client_secret.json")
 	GCSTokenPath           = filepath.Join(StorageDir, "google_storage_token.data")
 	EmailTokenPath         = filepath.Join(StorageDir, "email.data")
-	WebappPasswordPath     = filepath.Join(StorageDir, "webapp.data")
-	// Salt used to authenticate webhook requests, base64-encoded. See WEBHOOK_SALT_MSG.
-	WebhookRequestSaltPath = filepath.Join(StorageDir, "webhook_salt.data")
 	PagesetsDir            = filepath.Join(StorageDir, PAGESETS_DIR_NAME)
 	WebArchivesDir         = filepath.Join(StorageDir, WEB_ARCHIVES_DIR_NAME)
 	PdfsDir                = filepath.Join(StorageDir, PDFS_DIR_NAME)
