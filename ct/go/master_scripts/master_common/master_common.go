@@ -23,9 +23,7 @@ func Init() {
 }
 
 func InitWithMetrics2(appName string, influxHost, influxUser, influxPassword, influxDatabase *string) {
-	// Minor hack: pass true for local param to avoid attempting to read the influx* params from GCE metadata.
-	alwaysUseGivenInfluxCredentials := true
-	common.InitWithMetrics2(appName, influxHost, influxUser, influxPassword, influxDatabase, &alwaysUseGivenInfluxCredentials)
+	common.InitWithMetrics2(appName, influxHost, influxUser, influxPassword, influxDatabase, Local)
 	initRest()
 }
 
@@ -35,5 +33,6 @@ func initRest() {
 		util.SetVarsForLocal()
 	} else {
 		frontend.MustInit()
+		util.MailInit()
 	}
 }

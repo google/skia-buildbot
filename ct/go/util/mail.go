@@ -3,10 +3,29 @@ package util
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"strings"
 
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/metadata"
+
+	"go.skia.org/infra/go/sklog"
 )
+
+var (
+	emailClientId     string
+	emailClientSecret string
+)
+
+func MailInit() {
+	emailClientId = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
+	emailClientSecret = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_SECRET))
+	cachedGMailToken := metadata.Must(metadata.ProjectGet(GMAIL_CACHED_TOKEN))
+	if err := ioutil.WriteFile(EmailTokenPath, []byte(cachedGMailToken), os.ModePerm); err != nil {
+		sklog.Fatalf("Failed to cache token: %s", err)
+	}
+}
 
 // ParseEmails returns an array containing emails from the provided comma
 // separated emails string.
@@ -20,10 +39,7 @@ func ParseEmails(emails string) []string {
 
 // SendEmail sends an email with the specified header and body to the recipients.
 func SendEmail(recipients []string, subject, body string) error {
-	gmail, err := email.NewGMail(
-		"292895568497-u2m421dk2htq171bfodi9qoqtb5smuea.apps.googleusercontent.com",
-		"jv-g54CaPS783QV6H8SdagYn",
-		EmailTokenPath)
+	gmail, err := email.NewGMail(emailClientId, emailClientSecret, EmailTokenPath)
 	if err != nil {
 		return fmt.Errorf("Could not initialize gmail object: %s", err)
 	}
@@ -39,10 +55,7 @@ func SendEmail(recipients []string, subject, body string) error {
 // Documentation about markups supported in gmail are here: https://developers.google.com/gmail/markup/
 // A go-to action example is here: https://developers.google.com/gmail/markup/reference/go-to-action
 func SendEmailWithMarkup(recipients []string, subject, body, markup string) error {
-	gmail, err := email.NewGMail(
-		"292895568497-u2m421dk2htq171bfodi9qoqtb5smuea.apps.googleusercontent.com",
-		"jv-g54CaPS783QV6H8SdagYn",
-		EmailTokenPath)
+	gmail, err := email.NewGMail(emailClientId, emailClientSecret, EmailTokenPath)
 	if err != nil {
 		return fmt.Errorf("Could not initialize gmail object: %s", err)
 	}
