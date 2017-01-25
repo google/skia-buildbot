@@ -110,7 +110,10 @@ func metadataWait() {
 		// We use the default client which should never timeout.
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil || resp.StatusCode != 200 {
-			sklog.Errorf("wait_for_change failed: %s %v", err, *resp)
+			sklog.Errorf("wait_for_change failed: %s", err)
+			if resp != nil {
+				sklog.Errorf("Response: %+v", *resp)
+			}
 			time.Sleep(time.Minute)
 			continue
 		}
@@ -137,10 +140,12 @@ func pullInit(serviceAccountPath string) {
 		sklog.Fatalf("Failed to create storage service client: %s", err)
 	}
 
-	go metadataWait()
+	if *onGCE {
+		go metadataWait()
+	}
 
 	step(client, store, hostname)
-	timeCh := time.Tick(5 * time.Minute)
+	timeCh := time.Tick(*pullPeriod)
 	go func() {
 		for {
 			select {
