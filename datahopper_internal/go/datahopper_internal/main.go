@@ -1,5 +1,5 @@
 /*
-	Funnels data from Google-internal sources into the buildbot database.
+	Funnels data from Google-internal sources into the buildbot and task scheduler databases.
 
   Android builds continuously in tradefed at the master branch with the latest roll of Skia. There
   is also another branch 'git_master-skia' which contains the HEAD of Skia instead of the last roll
@@ -19,9 +19,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -44,6 +46,8 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/webhook"
+	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	storage "google.golang.org/api/storage/v1"
 )
 
@@ -62,13 +66,15 @@ const (
 
 // flags
 var (
-	buildbotDbHost = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
-	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	workdir        = flag.String("workdir", ".", "Working directory used by data processors.")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	targetList     = flag.String("targets", "", "The targets to monitor, a space separated list.")
-	codenameDbDir  = flag.String("codename_db_dir", "codenames", "The location of the leveldb database that holds the mappings between targets and their codenames.")
-	period         = flag.Duration("period", 5*time.Minute, "The time between ingestion runs.")
+	buildbotDbHost     = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
+	taskSchedulerUrl   = flag.String("task_scheduler_url", "https://skia-task-scheduler:8000/json/task", "URL for the task scheduler JSON API POST/PUT handlers.")
+	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
+	port               = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	workdir            = flag.String("workdir", ".", "Working directory used by data processors.")
+	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	targetList         = flag.String("targets", "", "The targets to monitor, a space separated list.")
+	codenameDbDir      = flag.String("codename_db_dir", "codenames", "The location of the leveldb database that holds the mappings between targets and their codenames.")
+	period             = flag.Duration("period", 5*time.Minute, "The time between ingestion runs.")
 
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
@@ -83,8 +89,11 @@ var (
 	// codenameDB is a leveldb to store codenames and their deobfuscated counterparts.
 	codenameDB *leveldb.DB
 
-	// db is a buildbot.DB instance used for ingesting build data.
-	db buildbot.DB
+	// buildbotDB is a buildbot.DB instance used for ingesting build data.
+	buildbotDB buildbot.DB
+
+	// taskDB is a remote db.TaskReader used for looking up previously-added tasks by ID.
+	taskDB db.TaskReader
 
 	// repos provides information about the Git repositories in workdir.
 	repos repograph.Map
@@ -105,6 +114,8 @@ var (
 	// ingestBuildWebhookLiveness maps a target codename to a metric for the time since last
 	// successful build ingestion.
 	ingestBuildWebhookLiveness = map[string]metrics2.Liveness{}
+
+	httpClient = httputils.NewTimeoutClient()
 )
 
 // isFinished returns true if the Build has finished running.
@@ -178,18 +189,19 @@ func ingestBuild(build *buildbot.Build, commitHash, target string) error {
 		sklog.Errorf("Failed to write codename to data store: %s", err)
 	}
 
-	buildNumber, err := db.GetBuildNumberForCommit(build.Master, build.Builder, commitHash)
+	buildNumber, err := buildbotDB.GetBuildNumberForCommit(build.Master, build.Builder, commitHash)
 	if err != nil {
 		return fmt.Errorf("Failed to find the build in the database: %s", err)
 	}
 	sklog.Infof("GetBuildNumberForCommit at hash: %s returned %d", commitHash, buildNumber)
 	var existingBuild *buildbot.Build
 	if buildNumber != -1 {
-		existingBuild, err = db.GetBuildFromDB(build.Master, build.Builder, buildNumber)
+		existingBuild, err = buildbotDB.GetBuildFromDB(build.Master, build.Builder, buildNumber)
 		if err != nil {
 			return fmt.Errorf("Failed to retrieve build from database: %s", err)
 		}
 	}
+	taskId := ""
 	if existingBuild == nil {
 		// This is a new build we've never seen before, so add it to the buildbot database.
 
@@ -197,7 +209,7 @@ func ingestBuild(build *buildbot.Build, commitHash, target string) error {
 		// after borenet's "giant datahopper change."
 
 		// First calculate a new unique build.Number.
-		number, err := db.GetMaxBuildNumber(build.Master, build.Builder)
+		number, err := buildbotDB.GetMaxBuildNumber(build.Master, build.Builder)
 		if err != nil {
 			return fmt.Errorf("Failed to find next build number: %s", err)
 		}
@@ -206,12 +218,124 @@ func ingestBuild(build *buildbot.Build, commitHash, target string) error {
 	} else {
 		// If the state of the build has changed then write it to the buildbot database.
 		build.Number = buildNumber
+		// Retrieve Task ID from existingBuild.
+		if id, err := existingBuild.GetStringProperty("taskId"); err == nil {
+			taskId = id
+		}
 		sklog.Infof("Writing updated build to the database: %s %d", build.Builder, build.Number)
 	}
-	if err := buildbot.IngestBuild(db, build, repos); err != nil {
+	if taskId == "" {
+		taskId, err = addTask(build)
+		if err != nil {
+			return err
+		}
+	} else {
+		if err := updateTask(taskId, build); err != nil {
+			return err
+		}
+	}
+	// Save task ID in build.Properties.
+	build.Properties = append(build.Properties, []interface{}{"taskId", taskId, "datahopper_internal"})
+	props, err := json.Marshal(build.Properties)
+	if err == nil {
+		build.PropertiesStr = string(props)
+	} else {
+		sklog.Errorf("Failed to encode properties: %s", err)
+	}
+	if err := buildbot.IngestBuild(buildbotDB, build, repos); err != nil {
 		return fmt.Errorf("Failed to ingest build: %s", err)
 	}
 	return nil
+}
+
+// taskStatus determines a db.TaskStatus equivalent to build's current status.
+func taskStatus(build *buildbot.Build) db.TaskStatus {
+	if build.IsFinished() {
+		switch build.Results {
+		case buildbot.BUILDBOT_SUCCESS, buildbot.BUILDBOT_WARNINGS:
+			return db.TASK_STATUS_SUCCESS
+		case buildbot.BUILDBOT_FAILURE:
+			return db.TASK_STATUS_FAILURE
+		case buildbot.BUILDBOT_EXCEPTION:
+			return db.TASK_STATUS_MISHAP
+		}
+	} else if build.IsStarted() {
+		return db.TASK_STATUS_RUNNING
+	}
+	return db.TASK_STATUS_PENDING
+}
+
+// doTaskRequest adds/updates task using a POST/PUT request to Task Scheduler.
+func doTaskRequest(method string, task *db.Task) error {
+	data, err := json.Marshal(task)
+	if err != nil {
+		return fmt.Errorf("Failed to marshal task %v: %s", task, err)
+	}
+	req, err := webhook.NewRequest(method, *taskSchedulerUrl, data)
+	if err != nil {
+		return fmt.Errorf("Could not create HTTP request: %s", err)
+	}
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("%s request failed: %s", method, err)
+	}
+	defer util.Close(resp.Body)
+	if resp.StatusCode != 200 {
+		response, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("Request Failed; response status code was %d: %s", resp.StatusCode, response)
+	}
+	var newTask *db.Task
+	if err := json.NewDecoder(resp.Body).Decode(&newTask); err != nil {
+		return fmt.Errorf("Unable to parse response from %s: %s", *taskSchedulerUrl, err)
+	}
+	*task = *newTask
+	return nil
+}
+
+// setTaskFromBuild sets relevant fields of task based on build.
+func setTaskFromBuild(task *db.Task, build *buildbot.Build) {
+	task.Finished = build.Finished
+	task.Name = build.Builder
+	task.Properties = map[string]string{
+		"buildbotBuilder": build.Builder,
+		"buildbotMaster":  build.Master,
+		"buildbotNumber":  strconv.Itoa(build.Number),
+		"url":             fmt.Sprintf("https://internal.skia.org/builders/%s/builds/%d", build.Builder, build.Number),
+	}
+	task.Repo = build.Repository
+	task.Revision = build.GotRevision
+	task.Started = build.Started
+	task.Status = taskStatus(build)
+}
+
+// addTask adds a task corresponding to build to the Task Scheduler DB, and returns the task ID.
+func addTask(build *buildbot.Build) (string, error) {
+	task := &db.Task{}
+	setTaskFromBuild(task, build)
+	sklog.Infof("Adding task corresponding to build %s %d: %v", build.Builder, build.Number, task)
+	if err := doTaskRequest(http.MethodPost, task); err != nil {
+		return "", err
+	}
+	return task.Id, nil
+}
+
+// updateTask modifies the task with the given id based on build.
+func updateTask(id string, build *buildbot.Build) error {
+	task, err := taskDB.GetTaskById(id)
+	if err != nil {
+		return err
+	} else if task == nil {
+		return fmt.Errorf("Can not find task %s for build %s %d!", id, build.Builder, build.Number)
+	}
+	orig := task.Copy()
+	setTaskFromBuild(task, build)
+	if reflect.DeepEqual(orig, task) {
+		sklog.Infof("No changes for task %s corresponding to build %s %d", id, build.Builder, build.Number)
+		return nil
+	}
+
+	sklog.Infof("Updating task %s corresponding to build %s %d", id, build.Builder, build.Number)
+	return doTaskRequest(http.MethodPut, task)
 }
 
 // step does a single step in ingesting builds from tradefed and pushing the results into the buildbot database.
@@ -334,7 +458,7 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Not a valid build number.")
 		return
 	}
-	build, err := db.GetBuildFromDB(FAKE_MASTER, string(codename), buildNumber)
+	build, err := buildbotDB.GetBuildFromDB(FAKE_MASTER, string(codename), buildNumber)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Could not find a matching build.")
 	}
@@ -554,7 +678,7 @@ func updateWebhookMetrics() error {
 	for codename, _ := range ingestBuildWebhookCodenames {
 		var untestedCommitInfo *repograph.Commit = nil
 		if err := repo.Get("master").Recurse(func(c *repograph.Commit) (bool, error) {
-			buildNumber, err := db.GetBuildNumberForCommit(FAKE_MASTER, codename, c.Hash)
+			buildNumber, err := buildbotDB.GetBuildNumberForCommit(FAKE_MASTER, codename, c.Hash)
 			if err != nil {
 				return false, err
 			}
@@ -618,15 +742,21 @@ func main() {
 	}
 	// Initialize the buildbot database.
 	if *local {
-		db, err = buildbot.NewLocalDB(path.Join(*workdir, "buildbot.db"))
+		buildbotDB, err = buildbot.NewLocalDB(path.Join(*workdir, "buildbot.db"))
 		if err != nil {
 			sklog.Fatal(err)
 		}
 	} else {
-		db, err = buildbot.NewRemoteDB(*buildbotDbHost)
+		buildbotDB, err = buildbot.NewRemoteDB(*buildbotDbHost)
 		if err != nil {
 			sklog.Fatal(err)
 		}
+	}
+
+	// Create remote Tasks DB.
+	taskDB, err = remote_db.NewClient(*taskSchedulerDbUrl)
+	if err != nil {
+		sklog.Fatal(err)
 	}
 
 	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)

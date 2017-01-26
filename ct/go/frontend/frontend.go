@@ -2,11 +2,9 @@
 package frontend
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 
 	"go.skia.org/infra/ct/go/ctfe/pending_tasks"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
@@ -77,15 +75,10 @@ func initUrls(webapp_root string) {
 // Common functions
 
 func GetOldestPendingTaskV2() (task_common.Task, error) {
-	req, err := http.NewRequest("GET", GetOldestPendingTaskWebapp, nil)
+	req, err := webhook.NewRequest("GET", GetOldestPendingTaskWebapp, []byte{})
 	if err != nil {
 		return nil, fmt.Errorf("Could not create HTTP request: %s", err)
 	}
-	hash, err := webhook.ComputeAuthHashBase64([]byte{})
-	if err != nil {
-		return nil, fmt.Errorf("Could not compute authentication hash: %s", err)
-	}
-	req.Header.Set(webhook.REQUEST_AUTH_HASH_HEADER, hash)
 	client := httputils.NewTimeoutClient()
 	resp, err := client.Do(req)
 	if err != nil {
@@ -107,15 +100,10 @@ func UpdateWebappTaskV2(vars task_common.UpdateTaskVars) error {
 	if err != nil {
 		return fmt.Errorf("Failed to marshal %v: %s", vars, err)
 	}
-	req, err := http.NewRequest("POST", postUrl, bytes.NewReader(json))
+	req, err := webhook.NewRequest("POST", postUrl, json)
 	if err != nil {
 		return fmt.Errorf("Could not create HTTP request: %s", err)
 	}
-	hash, err := webhook.ComputeAuthHashBase64(json)
-	if err != nil {
-		return fmt.Errorf("Could not compute authentication hash: %s", err)
-	}
-	req.Header.Set(webhook.REQUEST_AUTH_HASH_HEADER, hash)
 	client := httputils.NewTimeoutClient()
 	resp, err := client.Do(req)
 	if err != nil {

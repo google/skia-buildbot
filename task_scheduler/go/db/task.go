@@ -120,7 +120,7 @@ type Task struct {
 	DbModified time.Time
 
 	// Finished is the time the task stopped running or expired from the queue, or
-	//  zero if the task is pending or running.
+	// zero if the task is pending or running.
 	Finished time.Time
 
 	// Id is a generated unique identifier for this Task instance. Must be

@@ -6,6 +6,7 @@
 package webhook
 
 import (
+	"bytes"
 	"crypto/sha512"
 	"encoding/base64"
 	"fmt"
@@ -98,6 +99,21 @@ func ComputeAuthHashBase64(data []byte) (string, error) {
 	data = append(data, requestSalt...)
 	hash := sha512.Sum512(data)
 	return base64.StdEncoding.EncodeToString(hash[:]), nil
+}
+
+// NewRequest is similar to http.NewRequest, but adds the REQUEST_AUTH_HASH_HEADER for
+// authentication.
+func NewRequest(method, urlStr string, body []byte) (*http.Request, error) {
+	req, err := http.NewRequest(method, urlStr, bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	hash, err := ComputeAuthHashBase64(body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set(REQUEST_AUTH_HASH_HEADER, hash)
+	return req, nil
 }
 
 // Authenticates a webhook request.
