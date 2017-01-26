@@ -22,6 +22,23 @@
       "revId": "951901b1aa567ac76708d89e88e3564a0cbadefc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11a78961_26c9936b",
+        "filename": "ct/maintenance.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-26T17:37:09Z",
+      "side": 0,
+      "message": "I need to look at the script in detail, it may still be useful to setting up golo CT machines.",
+      "revId": "951901b1aa567ac76708d89e88e3564a0cbadefc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
