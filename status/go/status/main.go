@@ -457,6 +457,11 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get the number of finished tasks for the requested commit.
 	hash := r.FormValue("commit")
+	if !util.ValidateCommit(hash) {
+		err := fmt.Errorf("%q is not a valid commit hash.", hash)
+		httputils.ReportError(w, r, err, err.Error())
+		return
+	}
 	repo := getRepo(r)
 	builds, err := buildCache.GetBuildsForCommit(repo, hash, login.IsGoogler(r))
 	if err != nil {

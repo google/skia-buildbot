@@ -732,3 +732,18 @@ func CookieDomainMatch(domainA, domainB string) bool {
 	}
 	return false
 }
+
+// ValidateCommit returns true iff the given commit hash looks valid. Does not
+// perform any check as to whether the commit means anything in a particular
+// repository.
+func ValidateCommit(hash string) bool {
+	if len(hash) != 40 {
+		return false
+	}
+	for _, char := range hash {
+		if !((char >= '0' && char <= '9') || (char >= 'a' && char <= 'f') || (char >= 'A' && char <= 'F')) {
+			return false
+		}
+	}
+	return true
+}
