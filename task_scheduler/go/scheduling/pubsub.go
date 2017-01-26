@@ -22,7 +22,7 @@ const (
 	PUBSUB_SUBSCRIBER_TASK_SCHEDULER_INTERNAL = "task-scheduler-internal"
 	PUBSUB_TOPIC_SWARMING_TASKS               = "swarming-tasks"
 	PUBSUB_TOPIC_SWARMING_TASKS_INTERNAL      = "swarming-tasks-internal"
-	PUSH_URL_SWARMING_TASKS                   = "/pubsub/swarming-tasks"
+	PUSH_URL_SWARMING_TASKS                   = "pubsub/swarming-tasks"
 )
 
 // InitPubSub ensures that the pub/sub topics and subscriptions needed by the
@@ -88,7 +88,7 @@ type PubSubTaskMessage struct {
 // RegisterPubSubServer adds handler to r that handle pub/sub push
 // notifications.
 func RegisterPubSubServer(s *TaskScheduler, r *mux.Router) {
-	r.HandleFunc(PUSH_URL_SWARMING_TASKS, func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/"+PUSH_URL_SWARMING_TASKS, func(w http.ResponseWriter, r *http.Request) {
 		var req PubSubRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			httputils.ReportError(w, r, err, "Failed to decode request body.")

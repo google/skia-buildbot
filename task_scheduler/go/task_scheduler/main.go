@@ -11,6 +11,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"golang.org/x/net/context"
@@ -397,6 +398,14 @@ func jsonTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func googleVerificationHandler(w http.ResponseWriter, r *http.Request) {
+	if _, err := w.Write([]byte("google-site-verification: google2c59f97e1ced9fdc.html")); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to write response: %s", err))
+		return
+	}
+
+}
+
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
@@ -409,6 +418,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/json/task", jsonTaskHandler).Methods(http.MethodPost, http.MethodPut)
 	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods(http.MethodPost)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
+	r.HandleFunc("/google2c59f97e1ced9fdc.html", googleVerificationHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
 	r.HandleFunc("/logout/", login.LogoutHandler)
@@ -545,7 +555,11 @@ func main() {
 	if *local {
 		serverURL = "http://" + *host + *port
 	}
-	if err := scheduling.InitPubSub(serverURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
+	pubsubServerURL := serverURL
+	if strings.Contains(serverURL, "proxy") {
+		pubsubServerURL = "https://task-scheduler-internal.skia.org"
+	}
+	if err := scheduling.InitPubSub(pubsubServerURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
 		sklog.Fatal(err)
 	}
 	ts, err = scheduling.NewTaskScheduler(d, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools)
