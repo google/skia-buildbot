@@ -6,6 +6,10 @@ scrape_configs:
     static_configs:
       - targets: ['skia-android-ingest:20000']
 
+  - job_name: 'collectd'
+    static_configs:
+      - targets: ['skia-monitoring:20002']
+
   - job_name: 'corpproxy'
     static_configs:
       - targets: ['skia-proxy:20000']

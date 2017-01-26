@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds and uploads a debian package for Grafana config.
+# Builds and uploads a debian package for Prometheus config.
 APPNAME=prometheus-config
 DESCRIPTION="Prometheus monitoring and alerting config files only."
 SYSTEMD="prometheus.service alertmanager.service"

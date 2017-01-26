@@ -122,7 +122,7 @@ bind-address = ":8088"
   #purge-interval = "1h0m0s"
 
 [[graphite]]
-  enabled = true
+  enabled = false
   database = "graphite"
   bind-address = ":2003"
   protocol = "tcp"
