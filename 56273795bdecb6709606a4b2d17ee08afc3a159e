@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fe783d1c_ad494fb6",
+        "filename": "datahopper_internal/go/datahopper_internal/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-26T16:16:42Z",
+      "side": 1,
+      "message": "nit: This name is a little confusing, but no others come to mind.",
+      "range": {
+        "startLine": 256,
+        "startChar": 5,
+        "endLine": 256,
+        "endChar": 16
+      },
+      "revId": "56273795bdecb6709606a4b2d17ee08afc3a159e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f50e1e2_4da5dc6f",
+        "filename": "datahopper_internal/go/datahopper_internal/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-26T16:16:42Z",
+      "side": 1,
+      "message": "So this will be the second time we run IngestBuild for this build on this cycle, right?  Why?",
+      "revId": "56273795bdecb6709606a4b2d17ee08afc3a159e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c488fee4_4ca6b607",
+        "filename": "datahopper_internal/go/datahopper_internal/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-26T16:16:42Z",
+      "side": 1,
+      "message": "Can we wrap this in a \"propertiesForBuild\" function or something?  Better yet, a updateTaskFromBuild function:\n\nfunc updateTaskFromBuild(b *Build, t *Task) { ... }\n\nfunc updateTask (...) {\n  task :\u003d ...\n  updateTaskFromBuild(b, task)\n  return taskRequest(...)\n}\n\nfunc addOrUpdateTask(...) {\n  task :\u003d \u0026Task{}\n  updateTaskFromBuild(b, task)\n  ...\n}",
+      "range": {
+        "startLine": 343,
+        "startChar": 0,
+        "endLine": 348,
+        "endChar": 2
+      },
+      "revId": "56273795bdecb6709606a4b2d17ee08afc3a159e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
