@@ -259,6 +259,7 @@ Master logs are available
 
 ### Workers
 
+TODO(rmistry): Update all of this!!!!!!!!!!
 Worker scripts are normally automatically updated and run via the master
 scripts. However, from time to time, it may be necessary to perform maintenance
 tasks on all worker machines. In this case, the `run_command` master script can
@@ -273,6 +274,7 @@ performing maintenance on the workers.
 
 ### Logserver
 
+# RMISTRY DELETE
 In order to serve
 [the master and worker logs](https://uberchromegw.corp.google.com/i/skia-ct-master/all_logs),
 each CT machine runs logserver and logserver_proxy. There are entries in the
