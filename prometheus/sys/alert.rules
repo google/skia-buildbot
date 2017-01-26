@@ -26,6 +26,30 @@ ALERT ProbeFailure
     description = "Endpoint {{ $labels.probename }} has failed to respond in at least 5 minutes. See https://github.com/google/skia-buildbot/search?q={{ $labels.probename }}+filename%3Aprobers.json for the endpoint URL."
   }
 
+ALERT RebootRequired
+  IF reboot_required_i > 0
+  FOR 5m
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    description = "Instance {{ $label.host }} needs rebooting. Owner(s): {{ $label.owners }}. See https://mon.skia.org/dashboard/db/reboots-required for the full list of instances that need rebooting.",
+  }
+
+ALERT DiskSpaceLow
+  IF df_complex_free{resource="df-boot",host!~".*rpi-.+"} < 1e9
+  FOR 5m
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    description = "Low Root Disk Space on {{ $label.host }}.",
+  }
+
+ALERT DiskSpaceLow
+  IF df_complex_free{resource="df-mnt-pd0|df-mnt-dds0"} < 1e10
+  FOR 5m
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    description = "Low Disk Space on {{ $label.host }} on disk {{ $label.resource }}.",
+  }
+
 # Perf
 ALERT PerfUntriagedClusters
   IF perf_clustering_untriaged{instance="skia-perf:20000"} > 0
