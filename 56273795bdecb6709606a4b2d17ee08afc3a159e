@@ -42,6 +42,23 @@
     },
     {
       "key": {
+        "uuid": "66b3be57_ab5e2208",
+        "filename": "datahopper_internal/go/datahopper_internal/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-26T17:32:22Z",
+      "side": 1,
+      "message": "I need to be able to look up tasks by Builder and Number. This is the simplest way to do that.",
+      "revId": "56273795bdecb6709606a4b2d17ee08afc3a159e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c488fee4_4ca6b607",
         "filename": "datahopper_internal/go/datahopper_internal/main.go",
         "patchSetId": 2
