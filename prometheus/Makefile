@@ -25,4 +25,8 @@ alertmanager:
 	curl -L https://github.com/prometheus/alertmanager/releases/download/v0.5.1/alertmanager-0.5.1.linux-amd64.tar.gz  | tar zxC ./tmp --overwrite -f -
 	cp ./tmp/alertmanager-0.5.1.linux-amd64/alertmanager ./tmp/alertmanager
 
-.PHONY: build push alertmanager
+graphite_exporter:
+	go get -u github.com/prometheus/graphite_exporter
+	cd ${GOPATH}/src/github.com/prometheus/graphite_exporter; make
+
+.PHONY: build push push_binaries alertmanager graphite_exporter
