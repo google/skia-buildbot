@@ -21,8 +21,6 @@ SKIA_BOT_MACHINE_TYPE = os.environ.get(
 # Options are Linux and Windows.
 VM_INSTANCE_OS = os.environ.get('VM_INSTANCE_OS', 'Linux')
 IP_ADDRESS_WITHOUT_MACHINE_PART = '104.154.112'
-VM_BOT_NAME = 'skia-vm'
-PERSISTENT_DISK_NAME = 'skia-disk'
 VM_PERSISTENT_DISK_SIZE_GB = os.environ.get('VM_PERSISTENT_DISK_SIZE_GB', 300)
 # If this is true then the VM instances will automatically try to connect to the
 # buildbot master.
@@ -36,6 +34,9 @@ VM_IS_SKIA_CTBOT = os.environ.get('VM_IS_SKIA_CTBOT', 0)
 # These bots are used as workers by the CT framework.
 VM_IS_CTBOT = os.environ.get('VM_IS_CTBOT', 0)
 
+# If this is true then the VM is created in the SkiaInternal pool.
+VM_IS_SKIA_INTERNAL = os.environ.get('VM_IS_SKIA_INTERNAL', 0)
+
 # The Project ID is found in the Compute tab of the dev console.
 # https://console.developers.google.com/project/31977622648
 PROJECT_ID = 'google.com:skia-buildbots'
@@ -46,11 +47,13 @@ PROJECT_ID = 'google.com:skia-buildbots'
 # We flip the default one as required by PCRs in bigcluster.
 ZONE_TAG = os.environ.get('ZONE_TAG', 'c')
 
+VM_BOT_NAME = 'skia-vm'
+PERSISTENT_DISK_NAME = 'skia-disk'
 if VM_IS_SKIA_CTBOT:
   # Use skia-ct prefix. Swarming uses this prefix to put them in the 'SkiaCT' pool.
   VM_BOT_NAME = 'skia-ct-vm'
   VM_PERSISTENT_DISK_SIZE_GB = 3000
-if VM_IS_CTBOT:
+elif VM_IS_CTBOT:
   # Use ct prefix. Swarming uses this prefix to put them in the 'CT' pool.
   VM_BOT_NAME = 'ct-vm'
   PERSISTENT_DISK_NAME = 'ct-disk'
@@ -58,6 +61,9 @@ if VM_IS_CTBOT:
   # https://gcpquotatool.googleplex.com/requests?request=ahlzfmdvb2dsZS5jb206Z2NwcXVvdGF0b29sci4LEghDdXN0b21lchiAgICAhN6GCgwLEgxRdW90YVJlcXVlc3QYgICAgIC5hAoM
   ZONE_TAG = 'b'
   IP_ADDRESS_WITHOUT_MACHINE_PART = '104.154.123'
+elif VM_IS_SKIA_INTERNAL:
+  VM_BOT_NAME = 'skia-i-vm'
+  PERSISTENT_DISK_NAME = 'skia-i-disk'
 
 ZONE = 'us-central1-%s' % ZONE_TAG
 
