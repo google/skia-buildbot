@@ -205,87 +205,27 @@ link from [push](https://push.skia.org/).
 
 ### Master
 
-The poller and master scripts run on build101-m5 in the Chrome Golo. See below
-for how to access the Golo.
+The poller and master scripts run on skia-ct-master in the skia-buildbots
+Google cloud project. See
+[here](https://skia.googlesource.com/buildbot/+/master/compute_engine_scripts/ct_master/)
+for how the GCE instance is setup and
+[here](https://skia.googlesource.com/buildbot/+/master/ct/sys/ct-masterd.service)
+for how the poller is started.
 
-There is a script named `setup_cluster_telemetry_machine.sh` on build101-m5 (and
-checked into git in the tools directory) that will set up the machine for
-running the poller and master scripts. It's unlikely that you will need to run
-this script now that the machine is set up, and the script is currently
-out-of-date. There are a few files that the script does not create
-automatically:
+To stop the poller safely, check that the CTFE task queue is empty and then
+stop ct-masterd in skia-ct-master on push.
 
-- /b/storage/webhook_salt.data: Set this file to the value of
-  [GCE metadata key webhook_request_salt](https://console.cloud.google.com/project/31977622648/compute/metadata).
-- /b/storage/influxdb_password.txt: Set this file to the value of
-  [GCE metadata key influxdb_password](https://console.cloud.google.com/project/31977622648/compute/metadata).
-- /b/storage/email.data and /b/storage/google_storage_token.data: Sign in to
-  `skia.buildbots@gmail.com` in your browser using the password stored in
-  [Valentine](https://valentine.corp.google.com/) as
-  "skia.buildbots@gmail.com". Then run one of the master scripts,
-  e.g. `build_chromium`. Follow the prompts in the output, once to authenticate
-  for email and once to authenticate to Google Storage.
-
-There are several aliases in .bashrc on build101-m5 that are useful for
-maintenance. If the poller is not running (check using `ps x | grep poller`),
-run `start_poller` to update the code from the infra Git repo and start the
-poller. The definition of `start_poller` is currently:
-
-```
-start_poller () {
-  cd /b/skia-repo/go/src/go.skia.org/infra/ct/
-  git pull
-  make all
-  nohup poller --log_dir=/b/storage/glog \
-    --influxdb_host=https://metrics.skia.org \
-    --influxdb_name=<from metadata> \
-    --influxdb_password="$(cat /b/storage/influxdb_password.txt)" \
-    --influxdb_database=skmetrics &
-}
-```
-
-find `influxdb_name` in
-[GCE metadata](https://console.cloud.google.com/project/31977622648/compute/metadata).
-
-To stop the poller safely, check that the CTFE task queue is empty and check
-with `pstree <PID of poller>` to verify that there are no master scripts
-running, then kill the poller process.
-
-As mentioned above, changes to master scripts and worker scripts will be picked
+Changes to master scripts and worker scripts will be picked
 up for the next task execution after the change is committed.
-
-Master logs are available
-[here](https://uberchromegw.corp.google.com/i/skia-ct-master/).
 
 ### Workers
 
 Worker scripts are normally automatically updated and run via the master
 scripts. However, from time to time, it may be necessary to perform maintenance
-tasks on all worker machines. In this case, the `run_command` master script can
-be used to run a command on all worker machines:
-```
-ssh build101-m5.golo
-run_command --cmd 'echo "Hello World!"' --logtostderr=true --timeout=60m
-```
-
-You will likely want to follow the procedure above to stop the poller before
-performing maintenance on the workers.
-
-### Logserver
-
-In order to serve
-[the master and worker logs](https://uberchromegw.corp.google.com/i/skia-ct-master/all_logs),
-each CT machine runs logserver and logserver_proxy. There are entries in the
-crontab for each machine to start logserver and logserver_proxy every 5 minutes
-(no-op if already running). The code for logserver is under ../logserver and the
-code for logserver_proxy is under go/master_scripts/logserver_proxy.
-
-You can update logserver by doing something like:
-```
-ssh build101-m5.golo
-cd /b/skia-repo/go/src/go.skia.org/infra/logserver; go get -u ./...; make; killall logserver
-run_command --cmd 'cd /b/skia-repo/go/src/go.skia.org/infra/logserver; go get -u ./...; make; killall logserver' --logtostderr=true --timeout=60m
-```
+tasks on all worker machines. In this case, the
+[run_on_swarming_bots](https://skia.googlesource.com/buildbot/+/master/scripts/run_on_swarming_bots/)
+script can be used to update all
+[CT bots](https://chrome-swarming.appspot.com/botlist?c=id&c=os&c=task&c=status&f=pool%3ACT&l=1000&s=id%3Aasc).
 
 ## Other maintenance
 
