@@ -33,16 +33,6 @@ const (
 	REMOVE_INVALID_SKPS_WORKER_POOL = 20
 )
 
-// GetCTBareMetalWorkers returns an array of all CT bare-metal workers in the Cluster
-// Telemetry Golo.
-func GetCTBareMetalWorkers() []string {
-	workers := make([]string, NUM_BARE_METAL_MACHINES)
-	for i := 0; i < NUM_BARE_METAL_MACHINES; i++ {
-		workers[i] = fmt.Sprintf(BARE_METAL_NAME_TEMPLATE, i+1)
-	}
-	return workers
-}
-
 func TimeTrack(start time.Time, name string) {
 	elapsed := time.Since(start)
 	sklog.Infof("===== %s took %s =====", name, elapsed)
@@ -172,12 +162,6 @@ func CleanTmpDir() {
 	for _, f := range files {
 		util.RemoveAll(filepath.Join(os.TempDir(), f.Name()))
 	}
-}
-
-// Get a direct link to the log of this task on the master's logserver.
-func GetMasterLogLink(runID string) string {
-	programName := filepath.Base(os.Args[0])
-	return fmt.Sprintf("%s/%s.%s.%s.log.INFO.%s", MASTER_LOGSERVER_LINK, programName, MASTER_NAME, CtUser, runID)
 }
 
 func GetTimeFromTs(formattedTime string) time.Time {

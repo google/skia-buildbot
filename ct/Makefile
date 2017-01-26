@@ -40,10 +40,6 @@ debug: clean_webtools debug_core_js debug_elements_html
 include ../webtools/webtools.mk
 
 # Master scripts.
-.PHONY: run_command
-run_command:
-	go install -v ./go/master_scripts/run_command/
-
 .PHONY: build_chromium
 build_chromium:
 	go install -v ./go/master_scripts/build_chromium/
@@ -71,10 +67,6 @@ run_chromium_perf_on_workers:
 .PHONY: run_chromium_analysis_on_workers
 run_chromium_analysis_on_workers:
 	go install -v ./go/master_scripts/run_chromium_analysis_on_workers/
-
-.PHONY: logserver_proxy
-logserver_proxy:
-	go install -v ./go/master_scripts/logserver_proxy/
 
 # Worker scripts.
 .PHONY: create_pagesets
@@ -123,10 +115,10 @@ test:
 	go test ./go/...
 
 .PHONY: master_scripts
-master_scripts: run_command build_chromium \
+master_scripts: build_chromium \
 	create_pagesets_on_workers capture_archives_on_workers \
 	run_lua_on_workers capture_skps_on_workers \
-	run_chromium_perf_on_workers logserver_proxy poller \
+	run_chromium_perf_on_workers poller \
         run_chromium_analysis_on_workers
 
 .PHONY: worker_scripts

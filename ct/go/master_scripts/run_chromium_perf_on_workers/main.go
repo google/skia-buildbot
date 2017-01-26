@@ -70,7 +70,7 @@ func sendEmail(recipients []string) {
 	} else {
 		emailSubject += " with failures"
 		failureHtml = util.GetFailureEmailHtml(*runID)
-		if viewActionMarkup, err = email.GetViewActionMarkup(util.GetMasterLogLink(*runID), "View Failure", "Direct link to the master log"); err != nil {
+		if viewActionMarkup, err = email.GetViewActionMarkup(fmt.Sprintf(util.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, *runID), "View Failure", "Direct link to the swarming logs"); err != nil {
 			sklog.Errorf("Failed to get view action markup: %s", err)
 			return
 		}

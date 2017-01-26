@@ -69,14 +69,13 @@ func SendEmailWithMarkup(recipients []string, subject, body, markup string) erro
 func GetFailureEmailHtml(runID string) string {
 	return fmt.Sprintf(
 		"<br/>There were <b>failures</b> in the run. "+
-			"Please check the master log <a href='%s'>here</a> and the logs of triggered swarming tasks <a href='%s'>here</a>."+
+			"Please check the logs of triggered swarming tasks <a href='%s'>here</a>."+
 			"<br/>Contact the admins %s for assistance.<br/><br/>",
-		GetMasterLogLink(runID), fmt.Sprintf(SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID), CtAdmins)
+		fmt.Sprintf(SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID), CtAdmins)
 }
 
 func SendTaskStartEmail(recipients []string, taskName, runID, description string) error {
 	emailSubject := fmt.Sprintf("%s cluster telemetry task has started (%s)", taskName, runID)
-	masterLogLink := GetMasterLogLink(runID)
 	swarmingLogsLink := fmt.Sprintf(SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID)
 
 	viewActionMarkup, err := email.GetViewActionMarkup(swarmingLogsLink, "View Logs", "Direct link to the swarming logs")
@@ -90,11 +89,10 @@ func SendTaskStartEmail(recipients []string, taskName, runID, description string
 	bodyTemplate := `
 	The %s queued task has started.<br/>
 	%s
-	You can watch the logs of the master <a href="%s">here</a> and the logs of triggered swarming tasks <a href="%s">here</a>.<br/>
-	<b>Note:</b> Must be on Google corp to access the master logs.<br/><br/>
+	You can watch the logs of triggered swarming tasks <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, taskName, descriptionHtml, masterLogLink, swarmingLogsLink)
+	emailBody := fmt.Sprintf(bodyTemplate, taskName, descriptionHtml, swarmingLogsLink)
 	if err := SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		return fmt.Errorf("Error while sending task start email: %s", err)
 	}

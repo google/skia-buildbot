@@ -8,11 +8,8 @@ import (
 )
 
 const (
-	MASTER_NAME                  = "build101-m5"
-	NUM_BARE_METAL_MACHINES  int = 100
-	BARE_METAL_NAME_TEMPLATE     = "build%d-m5"
-	GCS_HTTP_LINK                = "https://storage.cloud.google.com/"
-	CT_EMAIL_DISPLAY_NAME        = "Cluster Telemetry"
+	GCS_HTTP_LINK         = "https://storage.cloud.google.com/"
+	CT_EMAIL_DISPLAY_NAME = "Cluster Telemetry"
 
 	GMAIL_CACHED_TOKEN = "ct_gmail_cached_token"
 
@@ -173,9 +170,8 @@ type PagesetTypeInfo struct {
 }
 
 var (
-	CtUser          = "chrome-bot"
-	GCSBucketName   = "cluster-telemetry"
-	BareMetalSlaves = GetCTBareMetalWorkers()
+	CtUser        = "chrome-bot"
+	GCSBucketName = "cluster-telemetry"
 
 	// Email address of cluster telemetry admins. They will be notified everytime
 	// a task has started and completed.

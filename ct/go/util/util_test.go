@@ -1,7 +1,6 @@
 package util
 
 import (
-	"fmt"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -15,21 +14,6 @@ const (
 	TEST_FILE_NAME          = "testingtesting"
 	GS_TEST_TIMESTAMP_VALUE = "123"
 )
-
-func TestGetCTBareMetalWorkers(t *testing.T) {
-	testutils.SmallTest(t)
-	workers := GetCTBareMetalWorkers()
-	for i := 0; i < NUM_BARE_METAL_MACHINES; i++ {
-		assert.Equal(t, fmt.Sprintf(BARE_METAL_NAME_TEMPLATE, i+1), workers[i])
-	}
-}
-
-func TestGetMasterLogLink(t *testing.T) {
-	testutils.SmallTest(t)
-	expectedLink := fmt.Sprintf("%s/util.test.%s.%s.log.INFO.rmistry-1440425450.02", MASTER_LOGSERVER_LINK, MASTER_NAME, CtUser)
-	actualLink := GetMasterLogLink("rmistry-1440425450.02")
-	assert.Equal(t, expectedLink, actualLink)
-}
 
 func TestGetStartRange(t *testing.T) {
 	testutils.SmallTest(t)
