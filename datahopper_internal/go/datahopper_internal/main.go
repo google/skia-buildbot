@@ -67,7 +67,7 @@ const (
 // flags
 var (
 	buildbotDbHost     = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
-	taskSchedulerUrl   = flag.String("task_scheduler_url", "https://skia-task-scheduler:8000/json/task", "URL for the task scheduler JSON API POST/PUT handlers.")
+	taskSchedulerUrl   = flag.String("task_scheduler_url", "http://skia-task-scheduler:8000/json/task", "URL for the task scheduler JSON API POST/PUT handlers.")
 	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
 	port               = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	workdir            = flag.String("workdir", ".", "Working directory used by data processors.")
