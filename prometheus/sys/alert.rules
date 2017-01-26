@@ -35,7 +35,7 @@ ALERT RebootRequired
   }
 
 ALERT DiskSpaceLow
-  IF df_complex_free{resource="df-boot",host!~".*rpi-.+"} < 1e9
+  IF df_complex_free{resource="df-root",host!~".*rpi-.+"} < 1e9
   FOR 5m
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
