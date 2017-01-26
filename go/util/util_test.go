@@ -466,3 +466,19 @@ func TestCookieDomainMatch(t *testing.T) {
 		assert.Equal(t, tc.Match, CookieDomainMatch(tc.DomainA, tc.DomainB))
 	}
 }
+
+func TestValidateCommit(t *testing.T) {
+	testutils.SmallTest(t)
+	tc := map[string]bool{
+		"":       false,
+		"abc123": false,
+		"abcde12345abcde12345abcde12345abcde12345":  true,
+		"abcde12345abcde12345abcde12345abcde1234":   false,
+		"abcde12345abcde12345abcde12345abcde123456": false,
+		"abcde12345abcde12345abcde12345abcde1234g":  false,
+		"abcde12345abcde12345abcde12345abcde1234 ":  false,
+	}
+	for input, expect := range tc {
+		assert.Equal(t, ValidateCommit(input), expect)
+	}
+}
