@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "73e2b6a7_aa09fbb4",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 462,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-26T15:55:05Z",
+      "side": 1,
+      "message": "nit: httputils.ReportError(w, r, nil, fmt.Sprintf(\"%q is not a valid commit hash.\", hash))",
+      "range": {
+        "startLine": 461,
+        "startChar": 2,
+        "endLine": 462,
+        "endChar": 47
+      },
+      "revId": "08444150de347ec586a1d212358235deea9ceb9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
