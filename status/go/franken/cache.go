@@ -309,18 +309,25 @@ func (c *BTCache) taskToBuild(task *db.Task, loggedIn bool) *buildbot.Build {
 
 	buildSlave := DEFAULT_BUILD_SLAVE
 
-	taskUrlFmt := NOAUTH_TASK_URL_FMT
+	taskURL := fmt.Sprintf(NOAUTH_TASK_URL_FMT, task.SwarmingTaskId)
 	if loggedIn {
-		taskUrlFmt = TASK_URL_FMT
+		taskURL = fmt.Sprintf(TASK_URL_FMT, task.SwarmingTaskId)
+	}
+	if url, ok := task.Properties["url"]; ok {
+		taskURL = url
+	}
+	tasklistURL := fmt.Sprintf(TASKLIST_URL_FMT, db.SWARMING_TAG_NAME, task.Name)
+	if task.Fake() {
+		tasklistURL = fmt.Sprintf("https://internal.skia.org/builders/%s", task.Name)
 	}
 	properties := [][]interface{}{
-		{"taskURL", fmt.Sprintf(taskUrlFmt, task.SwarmingTaskId), PROPERTY_SOURCE},
-		{"taskRetryURL", fmt.Sprintf(TASK_TRIGGER_URL_FMT, task.Name, task.Revision), PROPERTY_SOURCE},
-		{"taskSpecTasklistURL", fmt.Sprintf(TASKLIST_URL_FMT, db.SWARMING_TAG_NAME, task.Name), PROPERTY_SOURCE},
+		{"taskURL", taskURL, PROPERTY_SOURCE},
+		{"taskSpecTasklistURL", tasklistURL, PROPERTY_SOURCE},
 	}
-	if task.SwarmingBotId != "" {
+	if !task.Fake() {
 		buildSlave = task.SwarmingBotId
 		properties = append(properties, [][]interface{}{
+			{"taskRetryURL", fmt.Sprintf(TASK_TRIGGER_URL_FMT, task.Name, task.Revision), PROPERTY_SOURCE},
 			{"botTasklistURL", fmt.Sprintf(TASKLIST_URL_FMT, "id", task.SwarmingBotId), PROPERTY_SOURCE},
 			{"botDetailURL", fmt.Sprintf(BOT_DETAIL_URL_FMT, task.SwarmingBotId), PROPERTY_SOURCE},
 		}...)

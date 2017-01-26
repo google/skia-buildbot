@@ -79,11 +79,13 @@
           </a>
         </h3>
       </div>
-      <div>
-        <a href$="[[build.retryUrl]]" target="_blank" class="retry">
+      <template is="dom-if" if="[[build.retryUrl]]">
+        <div>
+          <a href$="[[build.retryUrl]]" target="_blank" class="retry">
             <paper-button raised class="colored" role="button">Re-run Job</paper-button>
-        </a>
-      </div>
+          </a>
+        </div>
+      </template>
     </div>
     <table>
       <tr>
@@ -207,9 +209,6 @@
       },
       _makeCommitURL: function(c, repo_base) {
         return repo_base + c;
-      },
-      _makeRetryURL: function(build){
-        return build.retryUrl;
       },
       _buildResultString: function(build) {
         return build.finished ? build.results == 0 ? 'success' : build.results == 1 ? 'success' : build.results == 3 ? 'success' : build.results == 2 ? 'failed' : build.results == 4 ? 'exception' : 'exception' : 'running';
