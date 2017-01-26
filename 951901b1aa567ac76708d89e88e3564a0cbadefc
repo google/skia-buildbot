@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e7a2dc15_262720a3",
+        "filename": "ct/maintenance.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-26T17:30:00Z",
+      "side": 0,
+      "message": "Should delete this file?",
+      "range": {
+        "startLine": 211,
+        "startChar": 25,
+        "endLine": 211,
+        "endChar": 59
+      },
+      "revId": "951901b1aa567ac76708d89e88e3564a0cbadefc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9e90771e_4e2c6f9c",
+        "filename": "ct/maintenance.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-26T17:30:00Z",
+      "side": 1,
+      "message": "We should figure out how to make skia-ct-master rebootable/restartable at any time.",
+      "range": {
+        "startLine": 215,
+        "startChar": 0,
+        "endLine": 216,
+        "endChar": 42
+      },
+      "revId": "c5e206ad46b90ae597a701f7eb6abb7aa76b3343",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
