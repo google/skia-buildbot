@@ -93,6 +93,23 @@
     },
     {
       "key": {
+        "uuid": "3ec07759_900798ff",
+        "filename": "datahopper_internal/go/datahopper_internal/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-26T19:23:17Z",
+      "side": 1,
+      "message": "Ah, I see. Done. It\u0027s now possible that if there\u0027s a partial failure, there will be a task pointing to a non-existent build, but I doubt it will be a problem.",
+      "revId": "56273795bdecb6709606a4b2d17ee08afc3a159e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c488fee4_4ca6b607",
         "filename": "datahopper_internal/go/datahopper_internal/main.go",
         "patchSetId": 2
