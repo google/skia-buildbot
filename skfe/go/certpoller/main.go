@@ -119,7 +119,11 @@ func get(client *http.Client, cert *cert) error {
 
 func main() {
 	defer common.LogPanic()
-	common.Init()
+	common.InitWithMust(
+		"certpoller",
+		common.CloudLoggingOpt(),
+	)
+
 	client := httputils.NewTimeoutClient()
 	retVal := 255
 
