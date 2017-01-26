@@ -303,6 +303,7 @@ func (c *TaskCfgCache) Close() error {
 type cacheEntry struct {
 	c   *TaskCfgCache
 	cfg *TasksCfg
+	err error
 	mtx sync.Mutex
 	rs  db.RepoState
 }
@@ -312,6 +313,9 @@ func (e *cacheEntry) Get() (*TasksCfg, error) {
 	defer e.mtx.Unlock()
 	if e.cfg != nil {
 		return e.cfg, nil
+	}
+	if e.err != nil {
+		return nil, e.err
 	}
 
 	// We haven't seen this RepoState before, or it's scrolled out of our
@@ -339,6 +343,9 @@ func (e *cacheEntry) Get() (*TasksCfg, error) {
 		}
 		return nil
 	}); err != nil {
+		if strings.Contains(err.Error(), "error: Failed to merge in the changes.") {
+			e.err = err
+		}
 		return nil, err
 	}
 	e.cfg = cfg
