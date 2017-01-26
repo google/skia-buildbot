@@ -4,7 +4,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/graphite-exporter \
+ExecStart=/usr/local/bin/graphite_exporter \
     -web.listen-address=:20002 \
     -graphite.listen-address=:2003 \
     -graphite.mapping-config=/etc/graphite-exporter/graphite-exporter.conf \
