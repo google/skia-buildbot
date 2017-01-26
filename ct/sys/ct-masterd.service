@@ -4,8 +4,11 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/ct_master \
-    --log_dir=/var/log/logserver
+Environment="GOPATH=/b/skia-repo/go/" "PATH=/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/b/skia-repo/go/bin"
+ExecStart=/b/skia-repo/go/bin/poller --log_dir=/var/log/logserver \
+  --influxdb_host=skia-monitoring:10117 \
+  --influxdb_name=root \
+  --influxdb_database=skmetrics
 Restart=always
 User=default
 Group=default
