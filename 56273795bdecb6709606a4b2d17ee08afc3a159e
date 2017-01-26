@@ -25,6 +25,23 @@
     },
     {
       "key": {
+        "uuid": "6b6c442d_0ca848b5",
+        "filename": "datahopper_internal/go/datahopper_internal/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-26T18:11:59Z",
+      "side": 1,
+      "message": "I made it worse. :-)",
+      "revId": "56273795bdecb6709606a4b2d17ee08afc3a159e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7f50e1e2_4da5dc6f",
         "filename": "datahopper_internal/go/datahopper_internal/main.go",
         "patchSetId": 2
@@ -76,6 +93,23 @@
         "endLine": 348,
         "endChar": 2
       },
+      "revId": "56273795bdecb6709606a4b2d17ee08afc3a159e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3290372_8bcede68",
+        "filename": "datahopper_internal/go/datahopper_internal/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-26T18:11:59Z",
+      "side": 1,
+      "message": "Done. I decided to leave Created empty, which means task scheduler will set it to the current time.",
       "revId": "56273795bdecb6709606a4b2d17ee08afc3a159e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
