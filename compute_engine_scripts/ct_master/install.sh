@@ -18,12 +18,4 @@ sudo apt-get --assume-yes install golang-go
 
 # Checkout the Skia infra repo.
 cd /b/skia-repo
-go get -u -t go.skia.org/infra/...
-
-# Start the CT poller.
-cd /b/skia-repo/go/src/go.skia.org/infra/ct/
-make all
-nohup poller --log_dir=/b/storage/glog \
-  --influxdb_host=skia-monitoring:10117 \
-  --influxdb_name=root \
-  --influxdb_database=skmetrics &
+GOPATH=/b/skia-repo/go/ go get -u -t go.skia.org/infra/...

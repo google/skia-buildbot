@@ -1,0 +1,13 @@
+#! /bin/bash
+
+# Checkout the Skia infra repo.
+cd /b/skia-repo
+go get -u -t go.skia.org/infra/...
+
+# Start the CT poller.
+cd /b/skia-repo/go/src/go.skia.org/infra/ct/
+make all
+poller --log_dir=/b/storage/glog \
+  --influxdb_host=skia-monitoring:10117 \
+  --influxdb_name=root \
+  --influxdb_database=skmetrics
