@@ -258,7 +258,7 @@ func (j *JobSpec) GetTaskSpecDAG(cfg *TasksCfg) (map[string][]string, error) {
 // TaskCfgCache is a struct used for caching tasks cfg files. The user should
 // periodically call Cleanup() to remove old entries.
 type TaskCfgCache struct {
-	cache           map[db.RepoState]*TasksCfg
+	cache           map[db.RepoState]*cacheEntry
 	depotToolsDir   string
 	mtx             sync.Mutex
 	recentCommits   map[string]time.Time
@@ -273,7 +273,7 @@ type TaskCfgCache struct {
 // NewTaskCfgCache returns a TaskCfgCache instance.
 func NewTaskCfgCache(repos repograph.Map, depotToolsDir, workdir string) *TaskCfgCache {
 	c := &TaskCfgCache{
-		cache:           map[db.RepoState]*TasksCfg{},
+		cache:           map[db.RepoState]*cacheEntry{},
 		depotToolsDir:   depotToolsDir,
 		mtx:             sync.Mutex{},
 		recentCommits:   map[string]time.Time{},
@@ -300,25 +300,30 @@ func (c *TaskCfgCache) Close() error {
 	return nil
 }
 
-// readTasksCfg reads the task cfg file from the given repo and returns it.
-// Stores a cache of already-read task cfg files. Syncs the repo and reads the
-// file if needed. Assumes the caller holds c.mtx.
-func (c *TaskCfgCache) readTasksCfg(rs db.RepoState) (*TasksCfg, error) {
-	rv, ok := c.cache[rs]
-	if ok {
-		return rv, nil
+type cacheEntry struct {
+	c   *TaskCfgCache
+	cfg *TasksCfg
+	mtx sync.Mutex
+	rs  db.RepoState
+}
+
+func (e *cacheEntry) Get() (*TasksCfg, error) {
+	e.mtx.Lock()
+	defer e.mtx.Unlock()
+	if e.cfg != nil {
+		return e.cfg, nil
 	}
 
 	// We haven't seen this RepoState before, or it's scrolled out of our
 	// window. Read it.
 	// Point the upstream to a local source of truth to eliminate network
 	// latency.
-	r, ok := c.repos[rs.Repo]
+	r, ok := e.c.repos[e.rs.Repo]
 	if !ok {
-		return nil, fmt.Errorf("Unknown repo %q", rs.Repo)
+		return nil, fmt.Errorf("Unknown repo %q", e.rs.Repo)
 	}
 	var cfg *TasksCfg
-	if err := c.TempGitRepo(rs, func(checkout *git.TempCheckout) error {
+	if err := e.c.TempGitRepo(e.rs, func(checkout *git.TempCheckout) error {
 		var err error
 		cfg, err = ReadTasksCfg(checkout.Dir())
 		if err != nil {
@@ -332,34 +337,47 @@ func (c *TaskCfgCache) readTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 				return err
 			}
 		}
-		c.cache[rs] = cfg
 		return nil
 	}); err != nil {
 		return nil, err
 	}
+	e.cfg = cfg
 
 	// Write the commit and task specs into the recent lists.
-	c.recentMtx.Lock()
-	defer c.recentMtx.Unlock()
-	d := r.Get(rs.Revision)
+	// TODO(borenet): The below should probably go elsewhere.
+	e.c.recentMtx.Lock()
+	defer e.c.recentMtx.Unlock()
+	d := r.Get(e.rs.Revision)
 	if d == nil {
-		return nil, fmt.Errorf("Unknown revision %s in %s", rs.Revision, rs.Repo)
+		return nil, fmt.Errorf("Unknown revision %s in %s", e.rs.Revision, e.rs.Repo)
 	}
 	ts := d.Timestamp
-	if ts.After(c.recentCommits[rs.Revision]) {
-		c.recentCommits[rs.Revision] = ts
+	if ts.After(e.c.recentCommits[e.rs.Revision]) {
+		e.c.recentCommits[e.rs.Revision] = ts
 	}
 	for name, _ := range cfg.Tasks {
-		if ts.After(c.recentTaskSpecs[name]) {
-			c.recentTaskSpecs[name] = ts
+		if ts.After(e.c.recentTaskSpecs[name]) {
+			e.c.recentTaskSpecs[name] = ts
 		}
 	}
 	for name, _ := range cfg.Jobs {
-		if ts.After(c.recentJobSpecs[name]) {
-			c.recentJobSpecs[name] = ts
+		if ts.After(e.c.recentJobSpecs[name]) {
+			e.c.recentJobSpecs[name] = ts
 		}
 	}
 	return cfg, nil
+}
+
+func (c *TaskCfgCache) getEntry(rs db.RepoState) *cacheEntry {
+	rv, ok := c.cache[rs]
+	if !ok {
+		rv = &cacheEntry{
+			c:  c,
+			rs: rs,
+		}
+		c.cache[rs] = rv
+	}
+	return rv
 }
 
 // ReadTasksCfg reads the task cfg file from the given RepoState and returns it.
@@ -367,27 +385,49 @@ func (c *TaskCfgCache) readTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 // file if needed.
 func (c *TaskCfgCache) ReadTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 	c.mtx.Lock()
-	defer c.mtx.Unlock()
-	return c.readTasksCfg(rs)
+	entry := c.getEntry(rs)
+	c.mtx.Unlock()
+	return entry.Get()
 }
 
 // GetTaskSpecsForRepoStates returns a set of TaskSpecs for each of the
 // given set of RepoStates, keyed by RepoState and TaskSpec name.
 func (c *TaskCfgCache) GetTaskSpecsForRepoStates(rs []db.RepoState) (map[db.RepoState]map[string]*TaskSpec, error) {
 	c.mtx.Lock()
-	defer c.mtx.Unlock()
-	rv := map[db.RepoState]map[string]*TaskSpec{}
+	entries := make(map[db.RepoState]*cacheEntry, len(rs))
 	for _, s := range rs {
-		cfg, err := c.readTasksCfg(s)
-		if err != nil {
-			return nil, err
-		}
-		// Make a copy of the task specs.
-		subMap := make(map[string]*TaskSpec, len(cfg.Tasks))
-		for name, task := range cfg.Tasks {
-			subMap[name] = task.Copy()
-		}
-		rv[s] = subMap
+		entries[s] = c.getEntry(s)
+	}
+	c.mtx.Unlock()
+
+	var m sync.Mutex
+	var wg sync.WaitGroup
+	rv := make(map[db.RepoState]map[string]*TaskSpec, len(rs))
+	errs := []error{}
+	for s, entry := range entries {
+		wg.Add(1)
+		go func(s db.RepoState, entry *cacheEntry) {
+			defer wg.Done()
+			cfg, err := entry.Get()
+			if err != nil {
+				m.Lock()
+				defer m.Unlock()
+				errs = append(errs, err)
+				return
+			}
+			// Make a copy of the task specs.
+			subMap := make(map[string]*TaskSpec, len(cfg.Tasks))
+			for name, task := range cfg.Tasks {
+				subMap[name] = task.Copy()
+			}
+			m.Lock()
+			defer m.Unlock()
+			rv[s] = subMap
+		}(s, entry)
+	}
+	wg.Wait()
+	if len(errs) > 0 {
+		return nil, fmt.Errorf("Errors loading task cfgs: %v", errs)
 	}
 	return rv, nil
 }
@@ -395,10 +435,7 @@ func (c *TaskCfgCache) GetTaskSpecsForRepoStates(rs []db.RepoState) (map[db.Repo
 // GetTaskSpec returns the TaskSpec at the given RepoState, or an error if no
 // such TaskSpec exists.
 func (c *TaskCfgCache) GetTaskSpec(rs db.RepoState, name string) (*TaskSpec, error) {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-
-	cfg, err := c.readTasksCfg(rs)
+	cfg, err := c.ReadTasksCfg(rs)
 	if err != nil {
 		return nil, err
 	}
@@ -412,10 +449,7 @@ func (c *TaskCfgCache) GetTaskSpec(rs db.RepoState, name string) (*TaskSpec, err
 // GetJobSpec returns the JobSpec at the given RepoState, or an error if no such
 // JobSpec exists.
 func (c *TaskCfgCache) GetJobSpec(rs db.RepoState, name string) (*JobSpec, error) {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-
-	cfg, err := c.readTasksCfg(rs)
+	cfg, err := c.ReadTasksCfg(rs)
 	if err != nil {
 		return nil, err
 	}
