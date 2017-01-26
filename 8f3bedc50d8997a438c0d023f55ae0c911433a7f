@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f8302051_0906227f",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 559,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-26T14:49:01Z",
+      "side": 1,
+      "message": "seems hacky. LGTM",
+      "range": {
+        "startLine": 559,
+        "startChar": 4,
+        "endLine": 559,
+        "endChar": 40
+      },
+      "revId": "8f3bedc50d8997a438c0d023f55ae0c911433a7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
