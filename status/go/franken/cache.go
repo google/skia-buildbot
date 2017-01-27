@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"hash/fnv"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 
@@ -25,8 +24,6 @@ import (
 )
 
 const (
-	// Builder names are generated from Task Spec names by appending this suffix.
-	TASK_SPEC_BUILDER_SUFFIX = "_NoBuildbot"
 	// When no swarming slave has been assigned, we use this for Build.BuildSlave.
 	DEFAULT_BUILD_SLAVE = "task_scheduler"
 	// Used for Build.Master.
@@ -66,7 +63,6 @@ type BTCache struct {
 	repos     repograph.Map
 	tasks     db.TaskCache
 	commentDb db.CommentDB
-	builds    *build_cache.BuildCache
 	// taskNumberCache maps Build.Number for a Build generated from a Task to
 	// Task.Id.
 	taskNumberCache util.LRUCache
@@ -87,9 +83,9 @@ type BTCache struct {
 	cachedTaskSpecComments map[string][]*buildbot.BuilderComment
 }
 
-// NewBTCache creates a combined Build and Task cache for the given repos,
-// pulling data from the given buildDb and taskDb.
-func NewBTCache(repos repograph.Map, buildDb buildbot.DB, taskDb db.RemoteDB) (*BTCache, error) {
+// NewBTCache creates a BTCache for the given repos, pulling data from the given
+// taskDb.
+func NewBTCache(repos repograph.Map, taskDb db.RemoteDB) (*BTCache, error) {
 	w, err := window.New(build_cache.BUILD_LOADING_PERIOD, 0, nil)
 	if err != nil {
 		return nil, err
@@ -98,15 +94,10 @@ func NewBTCache(repos repograph.Map, buildDb buildbot.DB, taskDb db.RemoteDB) (*
 	if err != nil {
 		return nil, err
 	}
-	builds, err := build_cache.NewBuildCache(buildDb)
-	if err != nil {
-		return nil, err
-	}
 	c := &BTCache{
 		repos:           repos,
 		tasks:           tasks,
 		commentDb:       taskDb,
-		builds:          builds,
 		taskNumberCache: util.NewMemLRUCache(MAX_TASKS),
 		commentIdCache:  util.NewMemLRUCache(MAX_COMMENTS),
 	}
@@ -121,22 +112,6 @@ func NewBTCache(repos repograph.Map, buildDb buildbot.DB, taskDb db.RemoteDB) (*
 		}
 	}()
 	return c, nil
-}
-
-// taskNameToBuilderName generates a Builder name from a TaskSpec name.
-func taskNameToBuilderName(name string) string {
-	return name + TASK_SPEC_BUILDER_SUFFIX
-}
-
-// builderNameToTaskName returns the TaskSpec name if the given Builder name was
-// generated from a TaskSpec name. Otherwise returns name. The second return
-// value is true if a TaskSpec name, false if a Builder name.
-func builderNameToTaskName(name string) (string, bool) {
-	if strings.HasSuffix(name, TASK_SPEC_BUILDER_SUFFIX) {
-		return name[:len(name)-len(TASK_SPEC_BUILDER_SUFFIX)], true
-	} else {
-		return name, false
-	}
 }
 
 // commentId generates a number to use as BuildComment.Id or BuilderComment.Id,
@@ -245,14 +220,13 @@ func (c *BTCache) updateComments() error {
 				nameMap[comment.Name] = buildComments
 			}
 		}
-		for _, comments := range rc.TaskSpecComments {
-			builderName := taskNameToBuilderName(comments[0].Name)
-			builderComments := taskSpecComments[builderName]
+		for name, comments := range rc.TaskSpecComments {
+			builderComments := taskSpecComments[name]
 			for _, tsc := range comments {
 				id := c.commentId(tsc)
 				builderComments = append(builderComments, &buildbot.BuilderComment{
 					Id:            id,
-					Builder:       builderName,
+					Builder:       name,
 					User:          tsc.User,
 					Timestamp:     tsc.Timestamp,
 					Flaky:         tsc.Flaky,
@@ -260,7 +234,7 @@ func (c *BTCache) updateComments() error {
 					Message:       tsc.Message,
 				})
 			}
-			taskSpecComments[builderName] = builderComments
+			taskSpecComments[name] = builderComments
 		}
 	}
 	c.mutex.Lock()
@@ -353,7 +327,7 @@ func (c *BTCache) taskToBuild(task *db.Task, loggedIn bool) *buildbot.Build {
 	}
 
 	return &buildbot.Build{
-		Builder:       taskNameToBuilderName(task.Name),
+		Builder:       task.Name,
 		Master:        FAKE_MASTER,
 		Number:        c.taskIdToBuildNumber(task.Id),
 		BuildSlave:    buildSlave,
@@ -386,10 +360,7 @@ func (c *BTCache) getBuildsForCommits(repoName string, commits []string, loggedI
 		return map[string]map[string]*buildbot.BuildSummary{}, nil
 	}
 
-	buildResult, err := c.builds.GetBuildsForCommits(commits)
-	if err != nil {
-		return nil, err
-	}
+	buildResult := map[string]map[string]*buildbot.BuildSummary{}
 
 	taskResult, err := c.tasks.GetTasksForCommits(repoName, commits)
 	if err != nil {
@@ -409,8 +380,7 @@ func (c *BTCache) getBuildsForCommits(repoName string, commits []string, loggedI
 			if task.IsTryJob() {
 				continue
 			}
-			builder := taskNameToBuilderName(name)
-			buildMap[builder] = c.taskToBuild(task, loggedIn).GetSummary()
+			buildMap[name] = c.taskToBuild(task, loggedIn).GetSummary()
 		}
 	}
 	return buildResult, nil
@@ -433,10 +403,7 @@ func (c *BTCache) GetBuildsForCommit(repoName, hash string, loggedIn bool) ([]*b
 // GetBuildsFromDateRange returns builds and tasks (as Builds) within the given
 // date range. See also BuildCache.GetBuildsFromDateRange.
 func (c *BTCache) GetBuildsFromDateRange(from, to time.Time, loggedIn bool) ([]*buildbot.Build, error) {
-	buildResult, err := c.builds.GetBuildsFromDateRange(from, to)
-	if err != nil {
-		return nil, err
-	}
+	buildResult := []*buildbot.Build{}
 	taskResult, err := c.tasks.GetTasksFromDateRange(from, to)
 	if err != nil {
 		return nil, err
@@ -461,7 +428,7 @@ func (c *BTCache) GetBuildersComments() map[string][]*buildbot.BuilderComment {
 // getBuildersComments returns comments for all builders and TaskSpecs (as
 // BuilderComment). See also BuildCache.getBuildersComments.
 func (c *BTCache) getBuildersComments() map[string][]*buildbot.BuilderComment {
-	buildResult := c.builds.GetBuildersComments()
+	buildResult := map[string][]*buildbot.BuilderComment{}
 	for name, comments := range c.cachedTaskSpecComments {
 		buildResult[name] = comments
 	}
@@ -470,105 +437,85 @@ func (c *BTCache) getBuildersComments() map[string][]*buildbot.BuilderComment {
 
 // AddBuilderComment adds a comment for either the given builder or a TaskSpec
 // if builder represents a Task name. See also BuildCache.AddBuilderComment.
-func (c *BTCache) AddBuilderComment(builder string, comment *buildbot.BuilderComment) error {
-	name, isTask := builderNameToTaskName(builder)
-	if isTask {
-		repo := ""
-		for repoName, _ := range c.repos {
-			if c.tasks.KnownTaskName(repoName, name) {
-				repo = repoName
-				break
-			}
+func (c *BTCache) AddBuilderComment(name string, comment *buildbot.BuilderComment) error {
+	repo := ""
+	for repoName, _ := range c.repos {
+		if c.tasks.KnownTaskName(repoName, name) {
+			repo = repoName
+			break
 		}
-		if repo == "" {
-			return fmt.Errorf("Unknown TaskSpec %q (derived from %q)", name, builder)
-		}
-		taskSpecComment := &db.TaskSpecComment{
-			Repo:          repo,
-			Name:          name,
-			Timestamp:     comment.Timestamp,
-			User:          comment.User,
-			Flaky:         comment.Flaky,
-			IgnoreFailure: comment.IgnoreFailure,
-			Message:       comment.Message,
-		}
-		if err := c.commentDb.PutTaskSpecComment(taskSpecComment); err != nil {
-			return err
-		}
-		return c.updateComments()
-	} else {
-		return c.builds.AddBuilderComment(builder, comment)
 	}
+	if repo == "" {
+		return fmt.Errorf("Unknown TaskSpec %q", name)
+	}
+	taskSpecComment := &db.TaskSpecComment{
+		Repo:          repo,
+		Name:          name,
+		Timestamp:     comment.Timestamp,
+		User:          comment.User,
+		Flaky:         comment.Flaky,
+		IgnoreFailure: comment.IgnoreFailure,
+		Message:       comment.Message,
+	}
+	if err := c.commentDb.PutTaskSpecComment(taskSpecComment); err != nil {
+		return err
+	}
+	return c.updateComments()
 }
 
 // DeleteBuilderComment deletes the given comment, which could represent either
 // a BuilderComment or a TaskSpecComment. See also
 // BuildCache.DeleteBuilderComment.
 func (c *BTCache) DeleteBuilderComment(builder string, commentId int64) error {
-	_, isTask := builderNameToTaskName(builder)
-	if isTask {
-		taskSpecComment, err := c.taskSpecCommentForId(commentId)
-		if err != nil {
-			return err
-		}
-		if err := c.commentDb.DeleteTaskSpecComment(taskSpecComment); err != nil {
-			return err
-		}
-		return c.updateComments()
-	} else {
-		return c.builds.DeleteBuilderComment(builder, commentId)
+	taskSpecComment, err := c.taskSpecCommentForId(commentId)
+	if err != nil {
+		return err
 	}
+	if err := c.commentDb.DeleteTaskSpecComment(taskSpecComment); err != nil {
+		return err
+	}
+	return c.updateComments()
 }
 
 // AddBuildComment adds the given comment as a TaskComment if builder represents
 // a Task name, or as a BuildComment. See also BuildCache.AddBuildComment.
-func (c *BTCache) AddBuildComment(master, builder string, number int, comment *buildbot.BuildComment) error {
-	name, isTask := builderNameToTaskName(builder)
-	if isTask {
-		taskId, err := c.buildNumberToTaskId(number)
-		if err != nil {
-			return err
-		}
-		task, err := c.tasks.GetTask(taskId)
-		if err != nil {
-			return err
-		}
-		if name != task.Name {
-			return fmt.Errorf("Inconsistent Task name; expected %q, got %q", task.Name, name)
-		}
-		taskComment := &db.TaskComment{
-			Repo:      task.Repo,
-			Revision:  task.Revision,
-			Name:      task.Name,
-			Timestamp: comment.Timestamp,
-			User:      comment.User,
-			Message:   comment.Message,
-		}
-		if err := c.commentDb.PutTaskComment(taskComment); err != nil {
-			return err
-		}
-		return c.updateComments()
-	} else {
-		return c.builds.AddBuildComment(master, builder, number, comment)
+func (c *BTCache) AddBuildComment(master, name string, number int, comment *buildbot.BuildComment) error {
+	taskId, err := c.buildNumberToTaskId(number)
+	if err != nil {
+		return err
 	}
+	task, err := c.tasks.GetTask(taskId)
+	if err != nil {
+		return err
+	}
+	if name != task.Name {
+		return fmt.Errorf("Inconsistent Task name; expected %q, got %q", task.Name, name)
+	}
+	taskComment := &db.TaskComment{
+		Repo:      task.Repo,
+		Revision:  task.Revision,
+		Name:      task.Name,
+		Timestamp: comment.Timestamp,
+		User:      comment.User,
+		Message:   comment.Message,
+	}
+	if err := c.commentDb.PutTaskComment(taskComment); err != nil {
+		return err
+	}
+	return c.updateComments()
 }
 
 // DeleteBuildComment deletes the given comment, which could represent either a
 // BuildComment or a TaskComment. See also BuildCache.DeleteBuildComment.
 func (c *BTCache) DeleteBuildComment(master, builder string, number int, commentId int64) error {
-	_, isTask := builderNameToTaskName(builder)
-	if isTask {
-		taskComment, err := c.taskCommentForId(commentId)
-		if err != nil {
-			return err
-		}
-		if err := c.commentDb.DeleteTaskComment(taskComment); err != nil {
-			return err
-		}
-		return c.updateComments()
-	} else {
-		return c.builds.DeleteBuildComment(master, builder, number, commentId)
+	taskComment, err := c.taskCommentForId(commentId)
+	if err != nil {
+		return err
 	}
+	if err := c.commentDb.DeleteTaskComment(taskComment); err != nil {
+		return err
+	}
+	return c.updateComments()
 }
 
 // getLastNCommits returns the last N commits in the given repo.

@@ -75,7 +75,6 @@ var (
 	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	workdir                     = flag.String("workdir", ".", "Directory to use for scratch work.")
 	resourcesDir                = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	buildbotDbHost              = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
 	taskSchedulerDbUrl          = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
 	capacityRecalculateInterval = flag.Duration("capacity_recalculate_interval", 10*time.Minute, "How often to re-calculate capacity statistics.")
 
@@ -552,12 +551,6 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
-	// Create buildbot remote DB.
-	buildDb, err = buildbot.NewRemoteDB(*buildbotDbHost)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-
 	// Create remote Tasks DB.
 	taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl)
 	if err != nil {
@@ -590,7 +583,7 @@ func main() {
 	}
 
 	// Create the build cache.
-	bc, err := franken.NewBTCache(repos, buildDb, taskDb)
+	bc, err := franken.NewBTCache(repos, taskDb)
 	if err != nil {
 		sklog.Fatalf("Failed to create build cache: %s", err)
 	}
