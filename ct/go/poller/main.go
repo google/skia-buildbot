@@ -45,8 +45,6 @@ var (
 	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
 	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 	pollInterval   = flag.Duration("poll_interval", 30*time.Second, "How often to poll CTFE for new pending tasks.")
-	// Value of --log_dir flag to pass to subcommands. Will be set in main.
-	logDir = "/b/storage/glog"
 	// Mutex that controls updating and building of the local checkout.
 	repoMtx = sync.Mutex{}
 	// Map that holds all picked up tasks. Used to ensure same task is not picked up more than once.
@@ -182,7 +180,7 @@ func (task *ChromiumAnalysisTask) Execute() error {
 			"--target_platform=" + task.Platform,
 			"--run_on_gce=" + strconv.FormatBool(task.RunOnGCE),
 			"--run_id=" + runId,
-			"--log_dir=" + logDir,
+			"--logtostderr",
 			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
@@ -230,7 +228,7 @@ func (task *ChromiumPerfTask) Execute() error {
 			"--run_in_parallel=" + strconv.FormatBool(task.RunInParallel),
 			"--target_platform=" + task.Platform,
 			"--run_id=" + runId,
-			"--log_dir=" + logDir,
+			"--logtostderr",
 			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
@@ -255,7 +253,7 @@ func (task *CaptureSkpsTask) Execute() error {
 			"--chromium_build=" + chromiumBuildDir,
 			"--target_platform=Linux",
 			"--run_id=" + runId,
-			"--log_dir=" + logDir,
+			"--logtostderr",
 			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
@@ -296,7 +294,7 @@ func (task *LuaScriptTask) Execute() error {
 			"--pageset_type=" + task.PageSets,
 			"--chromium_build=" + chromiumBuildDir,
 			"--run_id=" + runId,
-			"--log_dir=" + logDir,
+			"--logtostderr",
 			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
@@ -319,7 +317,7 @@ func (task *ChromiumBuildTask) Execute() error {
 			"--target_platform=Linux",
 			"--chromium_hash=" + task.ChromiumRev,
 			"--skia_hash=" + task.SkiaRev,
-			"--log_dir=" + logDir,
+			"--logtostderr",
 			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
@@ -340,7 +338,7 @@ func (task *RecreatePageSetsTask) Execute() error {
 			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
 			"--run_id=" + runId,
 			"--pageset_type=" + task.PageSets,
-			"--log_dir=" + logDir,
+			"--logtostderr",
 			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
@@ -361,7 +359,7 @@ func (task *RecreateWebpageArchivesTask) Execute() error {
 			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
 			"--run_id=" + runId,
 			"--pageset_type=" + task.PageSets,
-			"--log_dir=" + logDir,
+			"--logtostderr",
 			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
@@ -462,10 +460,6 @@ func pollAndExecOnce() *sync.WaitGroup {
 func main() {
 	defer common.LogPanic()
 	master_common.InitWithMetrics2("ct-poller", influxHost, influxUser, influxPassword, influxDatabase)
-
-	if logDirFlag := flag.Lookup("log_dir"); logDirFlag != nil {
-		logDir = logDirFlag.Value.String()
-	}
 
 	if *dryRun {
 		exec.SetRunForTesting(func(command *exec.Command) error {

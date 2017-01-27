@@ -130,7 +130,7 @@ To run the master poller in dry-run mode (not very useful), run
 make poller && poller --local=true \
   --alsologtostderr \
   --dry_run \
-  --log_dir=/b/storage/glog \
+  --logtostderr \
   --influxdb_host=http://localhost:10117 \
   --influxdb_database=skmetrics
 ```
@@ -164,7 +164,7 @@ You can run the poller as:
 ```
 make poller && poller --local=true \
   --alsologtostderr \
-  --log_dir=/b/storage/glog \
+  --logtostderr \
   --influxdb_host=http://localhost:10117 \
   --influxdb_database=skmetrics
 ```
