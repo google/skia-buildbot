@@ -93,6 +93,6 @@ echo "     Here is an example of running a master script:"
 echo '     $ cd /b/skia-repo/go/src/go.skia.org/infra/ct'
 echo '     $ make all'
 echo '     $ RUN_ID="setup_local-$(date '"'"'+%s'"'"')"'
-echo '     $ run_chromium_perf_on_workers --emails=$USER@google.com --gae_task_id=0 --run_id=${RUN_ID} --pageset_type=Dummy1k --benchmark_name=rasterize_and_record_micro --log_dir=/b/storage/glog --log_id=${RUN_ID} --local=true --alsologtostderr'
+echo '     $ run_chromium_perf_on_workers --emails=$USER@google.com --gae_task_id=0 --run_id=${RUN_ID} --pageset_type=Dummy1k --benchmark_name=rasterize_and_record_micro --log_id=${RUN_ID} --local=true --alsologtostderr'
 echo "     (run_chromium_perf_on_workers will fail when it can't find a patch, but as long as it fails after requesting a Gmail auth token and Google Storage auth token, it's ok.)"
 

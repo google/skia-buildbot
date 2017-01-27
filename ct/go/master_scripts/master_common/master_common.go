@@ -17,13 +17,13 @@ var (
 	localFrontend = flag.String("local_frontend", "http://localhost:8000/", "When local is true, base URL where CTFE is running.")
 )
 
-func Init() {
-	common.Init()
+func Init(appName string) {
+	common.InitWithMust(appName, common.CloudLoggingOpt())
 	initRest()
 }
 
 func InitWithMetrics2(appName string, influxHost, influxUser, influxPassword, influxDatabase *string) {
-	common.InitWithMetrics2(appName, influxHost, influxUser, influxPassword, influxDatabase, Local)
+	common.InitWithCloudLogging(appName, influxHost, influxUser, influxPassword, influxDatabase, Local)
 	initRest()
 }
 

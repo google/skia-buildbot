@@ -108,7 +108,7 @@ func updateWebappTask() {
 
 func main() {
 	defer common.LogPanic()
-	master_common.Init()
+	master_common.Init("run_chromium_perf")
 
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)

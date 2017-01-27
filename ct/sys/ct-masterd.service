@@ -5,7 +5,7 @@ After=network-online.target
 
 [Service]
 Environment="GOPATH=/b/skia-repo/go/" "PATH=/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/b/skia-repo/go/bin"
-ExecStart=/b/skia-repo/go/bin/poller --log_dir=/var/log/logserver \
+ExecStart=/b/skia-repo/go/bin/poller --logtostderr \
   --influxdb_host=skia-monitoring:10117 \
   --influxdb_name=root \
   --influxdb_database=skmetrics
