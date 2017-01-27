@@ -23,8 +23,8 @@ func main() {
 	// Set up flags.
 	dbConf := db.DBConfigFromFlags()
 
-	// Global init to initialize glog and parse arguments.
-	common.Init()
+	// Global init to initialize cloud logging and parse arguments.
+	common.InitWithMust("ctfe_migratedb", common.CloudLoggingOpt())
 
 	if *promptPassword {
 		if err := dbConf.PromptForPassword(); err != nil {
