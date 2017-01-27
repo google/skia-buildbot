@@ -215,7 +215,7 @@ func main() {
 		}
 	}
 
-	common.InitWithMetrics2("ctfe", influxHost, influxUser, influxPassword, influxDatabase, local)
+	common.InitWithCloudLogging("ctfe", influxHost, influxUser, influxPassword, influxDatabase, local)
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		sklog.Fatal(err)
