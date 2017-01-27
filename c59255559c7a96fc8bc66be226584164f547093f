@@ -22,6 +22,23 @@
       "revId": "c59255559c7a96fc8bc66be226584164f547093f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab7f7e0b_8de8936b",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-27T16:29:06Z",
+      "side": 1,
+      "message": "IMO, not worth fixing. This is likely to be something completely different with internal task scheduler.",
+      "revId": "c59255559c7a96fc8bc66be226584164f547093f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
