@@ -20,7 +20,7 @@ import (
 const (
 	ISSUE_SHORT_LENGTH = 2
 
-	NUM_WORKERS = 10
+	DEFAULT_NUM_WORKERS = 10
 
 	TASKS_CFG_FILE = "infra/bots/tasks.json"
 
@@ -271,7 +271,7 @@ type TaskCfgCache struct {
 }
 
 // NewTaskCfgCache returns a TaskCfgCache instance.
-func NewTaskCfgCache(repos repograph.Map, depotToolsDir, workdir string) *TaskCfgCache {
+func NewTaskCfgCache(repos repograph.Map, depotToolsDir, workdir string, numWorkers int) *TaskCfgCache {
 	c := &TaskCfgCache{
 		cache:           map[db.RepoState]*cacheEntry{},
 		depotToolsDir:   depotToolsDir,
@@ -284,7 +284,7 @@ func NewTaskCfgCache(repos repograph.Map, depotToolsDir, workdir string) *TaskCf
 		queue:           make(chan func(int)),
 		workdir:         workdir,
 	}
-	for i := 0; i < NUM_WORKERS; i++ {
+	for i := 0; i < numWorkers; i++ {
 		go func(i int) {
 			for f := range c.queue {
 				f(i)

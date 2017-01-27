@@ -78,7 +78,7 @@ func TestTaskSpecs(t *testing.T) {
 		gb.RepoUrl(): repo,
 	}
 
-	cache := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), tmp)
+	cache := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), tmp, DEFAULT_NUM_WORKERS)
 
 	rs1 := db.RepoState{
 		Repo:     gb.RepoUrl(),
@@ -138,7 +138,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
 	}
-	cache := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), path.Join(tmp, "cache"))
+	cache := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), path.Join(tmp, "cache"), DEFAULT_NUM_WORKERS)
 
 	// Load configs into the cache.
 	rs1 := db.RepoState{
@@ -399,7 +399,7 @@ func TestTempGitRepoParallel(t *testing.T) {
 	repos, err := repograph.NewMap([]string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 
-	cache := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), tmp)
+	cache := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), tmp, DEFAULT_NUM_WORKERS)
 
 	rs := db.RepoState{
 		Repo:     gb.RepoUrl(),
