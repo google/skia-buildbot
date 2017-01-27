@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f07cdc4c_44f8baa6",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-27T16:27:15Z",
+      "side": 1,
+      "message": "Is this name locked in?  I\u0027d like to use the newer terminology if possible.",
+      "range": {
+        "startLine": 322,
+        "startChar": 55,
+        "endLine": 322,
+        "endChar": 63
+      },
+      "revId": "c59255559c7a96fc8bc66be226584164f547093f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
