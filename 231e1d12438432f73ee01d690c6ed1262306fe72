@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b74d142a_1c1f3f03",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 1
+      },
+      "lineNbr": 564,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-30T18:02:24Z",
+      "side": 1,
+      "message": "Will this work?  My hope is that this enforces that only logged-in Googlers can access the server.",
+      "range": {
+        "startLine": 564,
+        "startChar": 3,
+        "endLine": 564,
+        "endChar": 67
+      },
+      "revId": "231e1d12438432f73ee01d690c6ed1262306fe72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da634433_4ecf9519",
+        "filename": "status/sys/status-internal.service",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-30T18:02:24Z",
+      "side": 1,
+      "message": "Using the public DB for now, until I make the actual changes on the server to do the right thing.",
+      "revId": "231e1d12438432f73ee01d690c6ed1262306fe72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
