@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "f4551416_945d9b18",
+        "filename": "push/skiapush.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-30T18:37:01Z",
+      "side": 1,
+      "message": "Should this be servers.skia-status-internal ?",
+      "revId": "231e1d12438432f73ee01d690c6ed1262306fe72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b74d142a_1c1f3f03",
         "filename": "skfe/sys/skia_org_nginx",
         "patchSetId": 1
@@ -19,6 +36,40 @@
         "endLine": 564,
         "endChar": 67
       },
+      "revId": "231e1d12438432f73ee01d690c6ed1262306fe72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11dff300_e7cd283f",
+        "filename": "status/build_internal_release",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-30T18:37:01Z",
+      "side": 1,
+      "message": "nit: \"provides internal status information\"",
+      "revId": "231e1d12438432f73ee01d690c6ed1262306fe72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3eb9c3b_2d18f003",
+        "filename": "status/sys/status-internal.service",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-30T18:37:01Z",
+      "side": 1,
+      "message": "Nit: Internal status page for Skia",
       "revId": "231e1d12438432f73ee01d690c6ed1262306fe72",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
