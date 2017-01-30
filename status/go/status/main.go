@@ -9,6 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -570,7 +571,11 @@ func main() {
 	}
 
 	// Check out source code.
-	repos, err := repograph.NewMap([]string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, path.Join(*workdir, "repos"))
+	reposDir := path.Join(*workdir, "repos")
+	if err := os.MkdirAll(reposDir, os.ModePerm); err != nil {
+		sklog.Fatal(err)
+	}
+	repos, err := repograph.NewMap([]string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, reposDir)
 	if err != nil {
 		sklog.Fatal(err)
 	}
