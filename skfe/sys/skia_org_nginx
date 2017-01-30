@@ -561,8 +561,7 @@ server {
     add_header X-Content-Type-Options nosniff;
 
     location / {
-        proxy_pass http://skia-status-internal-8002-proxy.skia.org;
-        proxy_set_header Host $host;
+        proxy_pass https://skia-status-internal-8002-proxy.skia.org;
     }
 }
 server {
