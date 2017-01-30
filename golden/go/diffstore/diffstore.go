@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/rtcache"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/validation"
 )
 
 const (
@@ -226,7 +227,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 			// Make sure the file exists. If not fetch it.Should be the exception.
 			_, fName := filepath.Split(path)
 			digest := strings.TrimRight(fName, "."+IMG_EXTENSION)
-			if digest == "" {
+			if !validation.IsValidDigest(digest) {
 				http.NotFound(w, r)
 				return
 			}
@@ -237,6 +238,13 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 					http.NotFound(w, r)
 					return
 				}
+			}
+		} else {
+			_, fName := filepath.Split(path)
+			left, right := splitDiffImgFileName(fName)
+			if !validation.IsValidDigest(left) || !validation.IsValidDigest(right) {
+				http.NotFound(w, r)
+				return
 			}
 		}
 
@@ -308,6 +316,15 @@ func getDiffBasename(d1, d2 string) string {
 		return fmt.Sprintf("%s-%s", d1, d2)
 	}
 	return fmt.Sprintf("%s-%s", d2, d1)
+}
+
+func splitDiffImgFileName(fName string) (string, string) {
+	combined := strings.TrimRight(fName, "."+IMG_EXTENSION)
+	digests := strings.Split(combined, "-")
+	if len(digests) != 2 {
+		return "", ""
+	}
+	return digests[0], digests[1]
 }
 
 func getDiffImgFileName(digest1, digest2 string) string {
