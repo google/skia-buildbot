@@ -76,7 +76,7 @@ const (
 	MASTER_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
 
 	// Default browser args when running benchmarks.
-	DEFAULT_BROWSER_ARGS = "--disable-setuid-sandbox"
+	DEFAULT_BROWSER_ARGS = ""
 
 	// Use live sites flag.
 	USE_LIVE_SITES_FLAGS = "--use-live-sites"

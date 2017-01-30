@@ -119,7 +119,6 @@ func captureArchives() error {
 				args := []string{
 					recordWprBinary,
 					util.CAPTURE_ARCHIVES_DEFAULT_CT_BENCHMARK,
-					"--extra-browser-args=--disable-setuid-sandbox",
 					"--browser=reference",
 					"--user-agent=" + decodedPageset.UserAgent,
 					"--urls-list=" + decodedPageset.UrlsList,

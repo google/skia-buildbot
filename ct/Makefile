@@ -153,21 +153,21 @@ e2e_tests:
 	@echo
 
 	@echo "Running smoothness"
-	go run go/worker_scripts/run_benchmark/main.go --worker_num=1 --pageset_type=Dummy1k --chromium_build=38517cc-d7e49ce -logtostderr --run_id=rmistry123 --benchmark_name=smoothness --browser_extra_args="--disable-setuid-sandbox" --repeat_benchmark=2 --target_platform=Linux
+	go run go/worker_scripts/run_benchmark/main.go --worker_num=1 --pageset_type=Dummy1k --chromium_build=38517cc-d7e49ce -logtostderr --run_id=rmistry123 --benchmark_name=smoothness --repeat_benchmark=2 --target_platform=Linux
 	@echo "Completed smoothness. Sleeping for 15 seconds and continuing."
 	sleep 15
 	@echo
 	@echo
 
 	@echo "Running rasterize_and_record_micro"
-	go run go/worker_scripts/run_benchmark/main.go --worker_num=1 --pageset_type=Dummy1k --chromium_build=38517cc-d7e49ce -logtostderr --run_id=rmistry123 --benchmark_name=rasterize_and_record_micro --browser_extra_args="--disable-setuid-sandbox" --repeat_benchmark=2 --target_platform=Linux
+	go run go/worker_scripts/run_benchmark/main.go --worker_num=1 --pageset_type=Dummy1k --chromium_build=38517cc-d7e49ce -logtostderr --run_id=rmistry123 --benchmark_name=rasterize_and_record_micro --repeat_benchmark=2 --target_platform=Linux
 	@echo "Completed rasterize_and_record_micro. Sleeping for 15 seconds and continuing."
 	sleep 15
 	@echo
 	@echo
 
 	@echo "Running repaint"
-	go run go/worker_scripts/run_benchmark/main.go --worker_num=1 --pageset_type=Dummy1k --chromium_build=38517cc-d7e49ce -logtostderr --run_id=rmistry123 --benchmark_name=repaint --browser_extra_args="--disable-setuid-sandbox" --repeat_benchmark=2 --target_platform=Linux
+	go run go/worker_scripts/run_benchmark/main.go --worker_num=1 --pageset_type=Dummy1k --chromium_build=38517cc-d7e49ce -logtostderr --run_id=rmistry123 --benchmark_name=repaint --repeat_benchmark=2 --target_platform=Linux
 	@echo "Completed repaint. Sleeping for 15 seconds and continuing."
 	sleep 15
 	@echo
