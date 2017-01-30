@@ -545,6 +545,33 @@ server {
     return 301 https://status.skia.org$request_uri;
 }
 
+#####   status-internal.skia.org   ###########################
+server {
+    listen      443;
+    server_name status-internal.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/status-internal.access.log;
+    error_log /var/log/nginx/status-internal.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
+    location / {
+        proxy_pass http://skia-status-internal-8002-proxy.skia.org;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name status-internal.skia.org;
+    return 301 https://status-internal.skia.org$request_uri;
+}
+
+
 #####   go.skia.org   ###########################
 server {
     listen      443;

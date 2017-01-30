@@ -13,5 +13,21 @@ if [ $? != "0" ]; then
   exit 1
 fi
 
-# The name of instance where Skia Status is running.
-INSTANCE_NAME=skia-status
+VM_ID=${VM_ID:-prod}
+case "$VM_ID" in
+  prod)
+    INSTANCE_NAME=skia-status
+    IP_ADDRESS=104.154.112.113
+    ;;
+
+  internal)
+    INSTANCE_NAME=skia-status-internal
+    IP_ADDRESS=104.154.112.138
+    ;;
+
+  *)
+    echo "Invalid instance name '${VM_ID}'"
+    exit 1
+    ;;
+
+esac
