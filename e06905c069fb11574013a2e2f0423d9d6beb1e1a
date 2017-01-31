@@ -25,6 +25,23 @@
     },
     {
       "key": {
+        "uuid": "ac7b2da8_232de843",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-31T18:21:55Z",
+      "side": 1,
+      "message": "Changed the constant to MAX_COMMITS_TO_LOAD and made main.go point here.",
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8bd031a0_4239af91",
         "filename": "status/go/status/main.go",
         "patchSetId": 2
@@ -45,6 +62,23 @@
       "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f7294222_7f89c74b",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-31T18:21:55Z",
+      "side": 1,
+      "message": "Done",
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +105,23 @@
     },
     {
       "key": {
+        "uuid": "3d028d7f_0ab0812a",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-31T18:21:55Z",
+      "side": 1,
+      "message": "Not sure about redirecting but we could certainly add a mirror.",
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "299215a3_bd1bdf8c",
         "filename": "status/go/status/main.go",
         "patchSetId": 2
@@ -88,6 +139,23 @@
         "endLine": 152,
         "endChar": 36
       },
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "296dfbc5_24b1056f",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-31T18:21:55Z",
+      "side": 1,
+      "message": "I don\u0027t think we need to worry about collisions.  Changed to iterate over *repoUrls, but that\u0027s the same as the keys for the repos map.",
       "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -134,6 +202,23 @@
     },
     {
       "key": {
+        "uuid": "67eb30e5_0210211a",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-31T18:21:55Z",
+      "side": 1,
+      "message": "SGTM, done.",
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "91fce54c_fb3109ff",
         "filename": "status/go/status/main.go",
         "patchSetId": 2
@@ -157,6 +242,23 @@
     },
     {
       "key": {
+        "uuid": "31aa7ffb_027414dd",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-31T18:21:55Z",
+      "side": 1,
+      "message": "Done",
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e2f1e52a_8250636f",
         "filename": "status/go/status/main.go",
         "patchSetId": 2
@@ -174,6 +276,23 @@
         "endLine": 216,
         "endChar": 46
       },
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0829ae68_385316d0",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-31T18:21:55Z",
+      "side": 1,
+      "message": "Changed repoNameToUrl not to include the requested repoName.",
       "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -237,6 +356,40 @@
     },
     {
       "key": {
+        "uuid": "0acf627e_441a8387",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 612,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-31T18:21:55Z",
+      "side": 1,
+      "message": "Sure, but every time I have to figure out what each server needs in order to work properly.  IMO it\u0027s nicer to be able to start up a server in test mode and not need to bring up others as well.",
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "148013da_59d8b337",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 612,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-31T18:21:55Z",
+      "side": 1,
+      "message": "Done",
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "921f11e3_4555a103",
         "filename": "status/res/imp/status-menu-section-sk.html",
         "patchSetId": 2
@@ -260,6 +413,23 @@
     },
     {
       "key": {
+        "uuid": "159d6751_5f35257c",
+        "filename": "status/res/imp/status-menu-section-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-31T18:21:55Z",
+      "side": 1,
+      "message": "Done",
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bb21db5f_3721fafd",
         "filename": "status/templates/capacity.html",
         "patchSetId": 2
@@ -280,6 +450,23 @@
       "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99f1ca7c_4c980a61",
+        "filename": "status/templates/capacity.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-31T18:21:55Z",
+      "side": 1,
+      "message": "Done",
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
