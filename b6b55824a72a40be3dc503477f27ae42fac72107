@@ -22,6 +22,23 @@
       "revId": "b6b55824a72a40be3dc503477f27ae42fac72107",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "daa2a726_f18aa439",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-01-31T15:45:19Z",
+      "side": 1,
+      "message": "-j N     run N jobs in parallel [default\u003d50, derived from CPUs available]\n(very likely unnecessary to specify it at all but does not hurt)",
+      "revId": "b6b55824a72a40be3dc503477f27ae42fac72107",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
