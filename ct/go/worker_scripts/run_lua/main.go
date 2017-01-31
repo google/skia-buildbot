@@ -48,7 +48,9 @@ func runLua() error {
 	skutil.LogErr(util.SyncDir(util.SkiaTreeDir, map[string]string{}))
 
 	// Build lua_pictures.
-	skutil.LogErr(util.BuildSkiaLuaPictures())
+	if err := util.BuildSkiaLuaPictures(); err != nil {
+		return err
+	}
 
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)

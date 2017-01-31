@@ -108,7 +108,7 @@ func BuildSkiaSKPInfo() error {
 	util.LogErr(ExecuteCmd("bin/fetch-gn", []string{}, []string{}, FETCH_GN_TIMEOUT, nil,
 		nil))
 	// Run "gn gen out/Release --args=...".
-	if err := ExecuteCmd("buildtools/linux64/gn", []string{"gen", "out/Release", "--args='is_debug=false'"}, os.Environ(), GN_GEN_TIMEOUT, nil, nil); err != nil {
+	if err := ExecuteCmd("buildtools/linux64/gn", []string{"gen", "out/Release", "--args=is_debug=false"}, os.Environ(), GN_GEN_TIMEOUT, nil, nil); err != nil {
 		return fmt.Errorf("Error while running gn: %s", err)
 	}
 	// Run "ninja -C out/Release -j100 skpinfo".
@@ -126,7 +126,7 @@ func BuildSkiaLuaPictures() error {
 	util.LogErr(ExecuteCmd("bin/fetch-gn", []string{}, []string{}, FETCH_GN_TIMEOUT, nil,
 		nil))
 	// Run "gn gen out/Release --args=...".
-	if err := ExecuteCmd("buildtools/linux64/gn", []string{"gen", "out/Release", "--args='is_debug=false skia_use_lua=true'"}, os.Environ(), GN_GEN_TIMEOUT, nil, nil); err != nil {
+	if err := ExecuteCmd("buildtools/linux64/gn", []string{"gen", "out/Release", "--args=is_debug=false skia_use_lua=true"}, os.Environ(), GN_GEN_TIMEOUT, nil, nil); err != nil {
 		return fmt.Errorf("Error while running gn: %s", err)
 	}
 	// Run "ninja -C out/Release -j100 lua_pictures".
