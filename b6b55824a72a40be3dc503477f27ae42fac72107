@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "39f7b20b_d99c0ff3",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-31T15:41:44Z",
+      "side": 1,
+      "message": "Does this mean \"Use 100 threads\"?",
+      "range": {
+        "startLine": 116,
+        "startChar": 40,
+        "endLine": 116,
+        "endChar": 45
+      },
+      "revId": "b6b55824a72a40be3dc503477f27ae42fac72107",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
