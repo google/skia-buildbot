@@ -18,6 +18,7 @@
     repo: String, The name of the repo that should be shown.
     repo_base: String, the base url to which a commit hash or branch name can
         be appended, such that the url will link to the source code at that head.
+    repos: Array of repo names.
 
   Methods:
     None.
@@ -186,9 +187,9 @@
         header_responsive_height="56px"
         logged_in_email="{{email}}"
         narrow="{{narrow}}">
-      <status-menu-section-sk navigation></status-menu-section-sk>
+      <status-menu-section-sk repos="[[repos]]" navigation></status-menu-section-sk>
 
-      <h1 class="shrinkable" toolbar>[[repo]] Status</h1>
+      <h1 class="shrinkable" toolbar>Status: [[repo]]</h1>
 
       <android-autoroll-widget-sk title="Android DEPS roll status" class="shrinkable" rtoolbar
         reload="[[reload]]">
@@ -320,6 +321,9 @@
       },
       repo_base: {
         type: String,
+      },
+      repos: {
+        type: Array,
       },
 
       // private

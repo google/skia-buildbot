@@ -6,9 +6,17 @@
 
   </head>
   <body>
-    <status-sk
-        repo="{{.Repo}}"
-        repo_base="{{.RepoBase}}">
-    </status-sk>
+    <status-sk></status-sk>
   </body>
+  <script>
+    var repos = [
+      {{range .Repos}}
+        "{{.}}",
+      {{end}}
+    ];
+    var elem = document.getElementsByTagName("status-sk")[0];
+    elem.repo = "{{.Repo}}";
+    elem.repo_base = "{{.RepoBase}}";
+    elem.repos = repos;
+  </script>
 </html>
