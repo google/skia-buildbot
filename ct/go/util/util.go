@@ -109,7 +109,25 @@ func BuildSkiaTools() error {
 		nil))
 	// Build tools.
 	return ExecuteCmd(BINARY_MAKE, []string{"tools", "BUILDTYPE=Release"},
-		[]string{"GYP_DEFINES=\"skia_warnings_as_errors=0\""}, MAKE_TOOLS_TIMEOUT, nil, nil)
+		[]string{"GYP_DEFINES=\"skia_warnings_as_errors=0\""}, BUILD_LUA_PICTURES_TIMEOUT, nil, nil)
+}
+
+// BuildLuaPictures builds "lua_pictures" in the Skia trunk directory.
+func BuildSkiaLuaPictures() error {
+	if err := os.Chdir(SkiaTreeDir); err != nil {
+		return fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
+	}
+	// Run "bin/fetch-gn".
+	util.LogErr(ExecuteCmd("bin/fetch-gn", []string{}, []string{}, BUILD_LUA_PICTURES_TIMEOUT, nil,
+		nil))
+	// Run "gn gen out/Release --args=...".
+	if err := ExecuteCmd("buildtools/linux64/gn", []string{"gen", "out/Release", "--args='is_debug=false skia_use_lua=true'"}, os.Environ(), BUILD_LUA_PICTURES_TIMEOUT, nil, nil); err != nil {
+		return fmt.Errorf("Error while running gn: %s", err)
+	}
+	// Run "ninja -C out/Release -j100 lua_pictures".
+	// Use the full system env when building.
+	args := []string{"-C", "out/Release", "-j100", "lua_pictures"}
+	return ExecuteCmd(filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
 }
 
 // BuildPDFium builds "pdfium_test" in the PDFium repo directory.

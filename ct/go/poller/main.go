@@ -460,6 +460,7 @@ func pollAndExecOnce() *sync.WaitGroup {
 func main() {
 	defer common.LogPanic()
 	master_common.InitWithMetrics2("ct-poller", influxHost, influxUser, influxPassword, influxDatabase)
+	sklog.Info("TESTING TESTING TESTING")
 
 	if *dryRun {
 		exec.SetRunForTesting(func(command *exec.Command) error {
