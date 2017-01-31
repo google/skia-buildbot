@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "01bd2df6_f18d8e18",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-31T16:08:10Z",
+      "side": 1,
+      "message": "This won\u0027t work for the internal status, since it doesn\u0027t look at the Skia repo.  We need to choose a sensible default for each server, either here or by making the \"/\" endpoint redirect to \"/repo/%s\"  for the default repo.",
+      "range": {
+        "startLine": 154,
+        "startChar": 0,
+        "endLine": 155,
+        "endChar": 20
+      },
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92d152a9_9fcab0ef",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 612,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-01-31T16:08:10Z",
+      "side": 1,
+      "message": "This makes the table empty but prevents having to somehow connect to a production task scheduler DB.",
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
