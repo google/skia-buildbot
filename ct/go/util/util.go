@@ -99,17 +99,40 @@ func syncDirStep(revisions map[string]string) error {
 	return nil
 }
 
-// BuildSkiaTools builds "tools" in the Skia trunk directory.
-func BuildSkiaTools() error {
+// BuildSkiaSKPInfo builds "skpinfo" in the Skia trunk directory.
+func BuildSkiaSKPInfo() error {
 	if err := os.Chdir(SkiaTreeDir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
 	}
-	// Run "make clean".
-	util.LogErr(ExecuteCmd(BINARY_MAKE, []string{"clean"}, []string{}, MAKE_CLEAN_TIMEOUT, nil,
+	// Run "bin/fetch-gn".
+	util.LogErr(ExecuteCmd("bin/fetch-gn", []string{}, []string{}, FETCH_GN_TIMEOUT, nil,
 		nil))
-	// Build tools.
-	return ExecuteCmd(BINARY_MAKE, []string{"tools", "BUILDTYPE=Release"},
-		[]string{"GYP_DEFINES=\"skia_warnings_as_errors=0\""}, MAKE_TOOLS_TIMEOUT, nil, nil)
+	// Run "gn gen out/Release --args=...".
+	if err := ExecuteCmd("buildtools/linux64/gn", []string{"gen", "out/Release", "--args='is_debug=false'"}, os.Environ(), GN_GEN_TIMEOUT, nil, nil); err != nil {
+		return fmt.Errorf("Error while running gn: %s", err)
+	}
+	// Run "ninja -C out/Release -j100 skpinfo".
+	// Use the full system env when building.
+	args := []string{"-C", "out/Release", "-j100", BINARY_SKPINFO}
+	return ExecuteCmd(filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
+}
+
+// BuildSkiaLuaPictures builds "lua_pictures" in the Skia trunk directory.
+func BuildSkiaLuaPictures() error {
+	if err := os.Chdir(SkiaTreeDir); err != nil {
+		return fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
+	}
+	// Run "bin/fetch-gn".
+	util.LogErr(ExecuteCmd("bin/fetch-gn", []string{}, []string{}, FETCH_GN_TIMEOUT, nil,
+		nil))
+	// Run "gn gen out/Release --args=...".
+	if err := ExecuteCmd("buildtools/linux64/gn", []string{"gen", "out/Release", "--args='is_debug=false skia_use_lua=true'"}, os.Environ(), GN_GEN_TIMEOUT, nil, nil); err != nil {
+		return fmt.Errorf("Error while running gn: %s", err)
+	}
+	// Run "ninja -C out/Release -j100 lua_pictures".
+	// Use the full system env when building.
+	args := []string{"-C", "out/Release", "-j100", BINARY_LUA_PICTURES}
+	return ExecuteCmd(filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
 }
 
 // BuildPDFium builds "pdfium_test" in the PDFium repo directory.
@@ -290,11 +313,11 @@ func ValidateSKPs(pathToSkps, pathToPyFiles string) error {
 	// Sync Skia tree.
 	util.LogErr(SyncDir(SkiaTreeDir, map[string]string{}))
 	// Build tools.
-	util.LogErr(BuildSkiaTools())
+	util.LogErr(BuildSkiaSKPInfo())
 	// Run remove_invalid_skp.py in parallel goroutines.
 	// Construct path to the python script.
 	pathToRemoveSKPs := filepath.Join(pathToPyFiles, "remove_invalid_skp.py")
-	pathToSKPInfo := filepath.Join(SkiaTreeDir, "out", "Release", "skpinfo")
+	pathToSKPInfo := filepath.Join(SkiaTreeDir, "out", "Release", BINARY_SKPINFO)
 
 	var wg sync.WaitGroup
 

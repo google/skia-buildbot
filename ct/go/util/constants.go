@@ -49,9 +49,9 @@ const (
 	BINARY_RECORD_WPR    = "record_wpr"
 	BINARY_RUN_BENCHMARK = "run_benchmark"
 	BINARY_GCLIENT       = "gclient"
-	BINARY_MAKE          = "make"
 	BINARY_NINJA         = "ninja"
 	BINARY_LUA_PICTURES  = "lua_pictures"
+	BINARY_SKPINFO       = "skpinfo"
 	BINARY_ADB           = "adb"
 	BINARY_GIT           = "git"
 	BINARY_MAIL          = "mail"
@@ -89,14 +89,12 @@ const (
 
 	PKILL_TIMEOUT       = 5 * time.Minute
 	HTTP_CLIENT_TIMEOUT = 30 * time.Minute
+	FETCH_GN_TIMEOUT    = 2 * time.Minute
+	GN_GEN_TIMEOUT      = 2 * time.Minute
 
 	// util.SyncDir
 	GIT_PULL_TIMEOUT     = 10 * time.Minute
 	GCLIENT_SYNC_TIMEOUT = 15 * time.Minute
-
-	// util.BuildSkiaTools
-	MAKE_CLEAN_TIMEOUT = 5 * time.Minute
-	MAKE_TOOLS_TIMEOUT = 15 * time.Minute
 
 	// util.ResetCheckout
 	GIT_RESET_TIMEOUT = 5 * time.Minute
