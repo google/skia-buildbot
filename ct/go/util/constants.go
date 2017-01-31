@@ -94,9 +94,8 @@ const (
 	GIT_PULL_TIMEOUT     = 10 * time.Minute
 	GCLIENT_SYNC_TIMEOUT = 15 * time.Minute
 
-	// util.BuildSkiaTools
-	MAKE_CLEAN_TIMEOUT = 5 * time.Minute
-	MAKE_TOOLS_TIMEOUT = 15 * time.Minute
+	// util.BuildSkiaLuaPictures and util.BuildSkia.....
+	BUILD_LUA_PICTURES_TIMEOUT = 15 * time.Minute
 
 	// util.ResetCheckout
 	GIT_RESET_TIMEOUT = 5 * time.Minute
