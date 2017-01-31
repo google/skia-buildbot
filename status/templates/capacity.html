@@ -6,6 +6,16 @@
 
   </head>
   <body>
-    <capacity-stats-sk></capacity-stats-sk>
+    <capacity-stats-sk repos="{{.Repos}}"></capacity-stats-sk>
   </body>
+  <script>
+    var repos = [
+      {{range .Repos}}
+        "{{.}}",
+      {{end}}
+    ];
+    var elem = document.getElementsByTagName("capacity-stats-sk")[0];
+    elem.repos = repos;
+  </script>
+
 </html>

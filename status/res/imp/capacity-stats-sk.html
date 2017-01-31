@@ -7,7 +7,7 @@
   This is a top level element.
 
   Properties:
-    None.
+    repos: Array of repo names.
 
   Methods:
     None.
@@ -102,7 +102,7 @@
         mode="waterfall"
         tall_class="tall"
         responsive_width="800px">
-      <status-menu-section-sk navigation></status-menu-section-sk>
+      <status-menu-section-sk repos="[[repos]]" navigation></status-menu-section-sk>
 
       <h1 header>Capacity Statistics for Skia Bots</h1>
 
@@ -231,6 +231,12 @@
     Polymer({
       is: 'capacity-stats-sk',
       properties: {
+        // input.
+        repos: {
+          type: Array,
+        },
+
+        // output.
         commits_per_day: {
           type: Number,
         },
