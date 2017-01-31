@@ -115,7 +115,8 @@ type bugReportingPackage struct {
 	IsBadFuzz bool
 }
 
-// StartAggregator creates and starts a Aggregator.
+// StartAggregator creates and starts a Aggregator based on the Skia Revision in
+// config.Common.SkiaVersion.Hash.
 // If there is a problem starting up, an error is returned.  Other errors will be logged.
 func StartAggregator(s *storage.Client, im *issues.IssuesManager, startingReports map[string]<-chan data.FuzzReport) (*Aggregator, error) {
 	b := Aggregator{
@@ -135,6 +136,7 @@ func StartAggregator(s *storage.Client, im *issues.IssuesManager, startingReport
 	for _, category := range config.Generator.FuzzesToGenerate {
 		client := fstorage.NewFuzzerGCSClient(s, config.GCS.Bucket)
 		d := deduplicator.NewRemoteDeduplicator(client)
+		d.SetRevision(config.Common.SkiaVersion.Hash)
 		for report := range startingReports[category] {
 			d.IsUnique(report)
 		}
@@ -754,11 +756,13 @@ func (agg *Aggregator) ShutDown() {
 	agg.aggregationWaitGroup.Wait()
 }
 
-// RestartAnalysis restarts the shut down aggregator.  Anything that is in the scanning directory
-// should be cleared out, lest it be rescanned/analyzed.
+// RestartAnalysis restarts the shut down aggregator, assuming that config.Common.SkiaVersion.Hash
+// is updated to the desired revision of Skia that should be analyzied.
+// Anything that is in the scanning directory should be cleared out,
+// lest it be rescanned/analyzed.
 func (agg *Aggregator) RestartAnalysis() error {
 	for _, d := range agg.deduplicators {
-		d.Clear()
+		d.SetRevision(config.Common.SkiaVersion.Hash)
 	}
 	return agg.start()
 }
