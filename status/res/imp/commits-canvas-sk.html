@@ -155,7 +155,7 @@
       this.row = row;
       this.column = -1;
       this.label = [];
-      this.parents = commitInfo.parent;
+      this.parents = commitInfo.parent || [];
 
       // The color for this commit.
       this.color = function() {

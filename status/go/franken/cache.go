@@ -26,6 +26,8 @@ import (
 const (
 	// When no swarming slave has been assigned, we use this for Build.BuildSlave.
 	DEFAULT_BUILD_SLAVE = "task_scheduler"
+	// The default number of commits we'll want to load on the page.
+	DEFAULT_COMMITS_TO_LOAD = 35
 	// Used for Build.Master.
 	FAKE_MASTER = "fake_master.task_scheduler"
 	// Used for the third element of a property in Build.Properties.
@@ -86,7 +88,7 @@ type BTCache struct {
 // NewBTCache creates a BTCache for the given repos, pulling data from the given
 // taskDb.
 func NewBTCache(repos repograph.Map, taskDb db.RemoteDB) (*BTCache, error) {
-	w, err := window.New(build_cache.BUILD_LOADING_PERIOD, 0, nil)
+	w, err := window.New(build_cache.BUILD_LOADING_PERIOD, DEFAULT_COMMITS_TO_LOAD, repos)
 	if err != nil {
 		return nil, err
 	}
