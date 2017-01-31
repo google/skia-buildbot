@@ -30,6 +30,8 @@ const (
 	FAKE_MASTER = "fake_master.task_scheduler"
 	// Used for the third element of a property in Build.Properties.
 	PROPERTY_SOURCE = "BTCache"
+	// The maximum number of commits we'll want to load on the page.
+	MAX_COMMITS_TO_LOAD = 100
 	// MAX_TASKS is the number of tasks we can find via Build.Number via lookup in
 	// an LRUCache. If a task falls out of this cache, we can no longer add
 	// comments to that task.
@@ -86,7 +88,7 @@ type BTCache struct {
 // NewBTCache creates a BTCache for the given repos, pulling data from the given
 // taskDb.
 func NewBTCache(repos repograph.Map, taskDb db.RemoteDB) (*BTCache, error) {
-	w, err := window.New(build_cache.BUILD_LOADING_PERIOD, 0, nil)
+	w, err := window.New(build_cache.BUILD_LOADING_PERIOD, MAX_COMMITS_TO_LOAD, repos)
 	if err != nil {
 		return nil, err
 	}

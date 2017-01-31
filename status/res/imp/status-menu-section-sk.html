@@ -15,7 +15,7 @@
     <status-menu-section-sk></status-menu-section-sk>
 
   Attributes:
-    None
+    repos: Array of repo names.
 
   Events:
     None
@@ -36,8 +36,9 @@
       font-family: sans-serif;
     }
     </style>
-    <menu-item-sk label="Status Home" url="/" icon="icons:home"></menu-item-sk>
-    <menu-item-sk label="Infra Status" url="/infra" icon="icons:settings"></menu-item-sk>
+    <template is="dom-repeat" items="[[repos]]" as="repo">
+      <menu-item-sk label="Repo: [[repo]]" url="/repo/[[repo]]" icon="icons:dashboard"></menu-item-sk>
+    </template>
     <menu-item-sk label="Swarming Bots" url="https://goto.google.com/skbl" icon="device:devices"></menu-item-sk>
     <menu-item-sk label="Capacity Stats" url="/capacity" icon="device:widgets"></menu-item-sk>
 
@@ -53,6 +54,14 @@
     <menu-item-sk label="Code" url="https://skia.googlesource.com/skia" icon="icons:folder"></menu-item-sk>
   </template>
   <script>
-    Polymer({is: "status-menu-section-sk"});
+    Polymer({
+      is: "status-menu-section-sk",
+      properties: {
+        // input
+        repos: {
+          type: Array,
+        },
+      }
+    });
   </script>
 </dom-module>
