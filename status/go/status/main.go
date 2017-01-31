@@ -77,6 +77,8 @@ var (
 	workdir                     = flag.String("workdir", ".", "Directory to use for scratch work.")
 	repoUrls                    = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
 	resourcesDir                = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	swarmingUrl                 = flag.String("swarming_url", "https://chromium-swarm.appspot.com", "URL of the Swarming server.")
+	taskSchedulerUrl            = flag.String("task_scheduler_url", "https://task-scheduler.skia.org", "URL of the Task Scheduler server.")
 	taskSchedulerDbUrl          = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
 	capacityRecalculateInterval = flag.Duration("capacity_recalculate_interval", 10*time.Minute, "How often to re-calculate capacity statistics.")
 
@@ -652,7 +654,7 @@ func main() {
 	}
 
 	// Create the build cache.
-	bc, err := franken.NewBTCache(repos, taskDb)
+	bc, err := franken.NewBTCache(repos, taskDb, *swarmingUrl, *taskSchedulerUrl)
 	if err != nil {
 		sklog.Fatalf("Failed to create build cache: %s", err)
 	}

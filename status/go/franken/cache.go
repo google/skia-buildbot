@@ -41,21 +41,22 @@ const (
 	// cache, we can no longer delete that comment.
 	MAX_COMMENTS = 1000
 
-	// TASK_URL_FMT is a format string for the Swarming task URL. Parameter is
-	// task ID.
-	TASK_URL_FMT = "https://chromium-swarm.appspot.com/task?id=%s"
+	// TASK_URL_FMT is a format string for the Swarming task URL. Parameters are
+	// the Swarming server URL and the task ID.
+	TASK_URL_FMT = "%s/task?id=%s"
 	// NOAUTH_TASK_URL_FMT is a format string for the Swarming task URL that is
 	// available to users that are not logged in. Parameter is task ID.
 	NOAUTH_TASK_URL_FMT = "https://luci-milo.appspot.com/swarming/task/%s"
 	// TASK_TRIGGER_URL_FMT is a format string for triggering a Task with task
-	// scheduler. Parameters are task spec name and commit hash.
-	TASK_TRIGGER_URL_FMT = "https://task-scheduler.skia.org/trigger?submit=true&job=%s&commit=%s"
+	// scheduler. Parameters are the Task Scheduler URL, task spec name and
+	// commit hash.
+	TASK_TRIGGER_URL_FMT = "%s/trigger?submit=true&job=%s&commit=%s"
 	// TASKLIST_URL_FMT is a format string for the Swarming tasklist URL.
-	// Parameters are a single tag key and value.
-	TASKLIST_URL_FMT = "https://chromium-swarm.appspot.com/tasklist?c=name&c=state&c=created_ts&c=duration&c=completed_ts&c=source_revision&f=%s%%3A%s&l=50&s=created_ts%%3Adesc"
+	// Parameters are the Swarming server URL and a single tag key and value.
+	TASKLIST_URL_FMT = "%s/tasklist?c=name&c=state&c=created_ts&c=duration&c=completed_ts&c=source_revision&f=%s%%3A%s&l=50&s=created_ts%%3Adesc"
 	// BOT_DETAIL_URL_FMT is a format string for the Swarming bot detail URL.
-	// Parameter is bot name.
-	BOT_DETAIL_URL_FMT = "https://chromium-swarm.appspot.com/bot?id=%s"
+	// Parameters are the Swarming server URL and a bot name.
+	BOT_DETAIL_URL_FMT = "%s/bot?id=%s"
 )
 
 // BTCache is API-compatible with BuildCache, but also includes Tasks.
@@ -83,11 +84,14 @@ type BTCache struct {
 	// cachedTaskSpecComments contains BuilderComments generated from the latest
 	// TaskSpecComments. map[BuilderName][]BuilderComment
 	cachedTaskSpecComments map[string][]*buildbot.BuilderComment
+
+	swarmingUrl      string
+	taskSchedulerUrl string
 }
 
 // NewBTCache creates a BTCache for the given repos, pulling data from the given
 // taskDb.
-func NewBTCache(repos repograph.Map, taskDb db.RemoteDB) (*BTCache, error) {
+func NewBTCache(repos repograph.Map, taskDb db.RemoteDB, swarmingUrl, taskSchedulerUrl string) (*BTCache, error) {
 	w, err := window.New(build_cache.BUILD_LOADING_PERIOD, MAX_COMMITS_TO_LOAD, repos)
 	if err != nil {
 		return nil, err
@@ -97,11 +101,13 @@ func NewBTCache(repos repograph.Map, taskDb db.RemoteDB) (*BTCache, error) {
 		return nil, err
 	}
 	c := &BTCache{
-		repos:           repos,
-		tasks:           tasks,
-		commentDb:       taskDb,
-		taskNumberCache: util.NewMemLRUCache(MAX_TASKS),
-		commentIdCache:  util.NewMemLRUCache(MAX_COMMENTS),
+		repos:            repos,
+		tasks:            tasks,
+		commentDb:        taskDb,
+		taskNumberCache:  util.NewMemLRUCache(MAX_TASKS),
+		commentIdCache:   util.NewMemLRUCache(MAX_COMMENTS),
+		swarmingUrl:      swarmingUrl,
+		taskSchedulerUrl: taskSchedulerUrl,
 	}
 	if err := c.update(); err != nil {
 		return nil, err
@@ -287,12 +293,12 @@ func (c *BTCache) taskToBuild(task *db.Task, loggedIn bool) *buildbot.Build {
 
 	taskURL := fmt.Sprintf(NOAUTH_TASK_URL_FMT, task.SwarmingTaskId)
 	if loggedIn {
-		taskURL = fmt.Sprintf(TASK_URL_FMT, task.SwarmingTaskId)
+		taskURL = fmt.Sprintf(TASK_URL_FMT, c.swarmingUrl, task.SwarmingTaskId)
 	}
 	if url, ok := task.Properties["url"]; ok {
 		taskURL = url
 	}
-	tasklistURL := fmt.Sprintf(TASKLIST_URL_FMT, db.SWARMING_TAG_NAME, task.Name)
+	tasklistURL := fmt.Sprintf(TASKLIST_URL_FMT, c.swarmingUrl, db.SWARMING_TAG_NAME, task.Name)
 	if task.Fake() {
 		// TODO(benjaminwagner): How to generalize?
 		tasklistURL = fmt.Sprintf("https://internal.skia.org/builders/%s", task.Name)
@@ -302,13 +308,13 @@ func (c *BTCache) taskToBuild(task *db.Task, loggedIn bool) *buildbot.Build {
 		{"taskSpecTasklistURL", tasklistURL, PROPERTY_SOURCE},
 	}
 	if !task.Fake() {
-		properties = append(properties, []interface{}{"taskRetryURL", fmt.Sprintf(TASK_TRIGGER_URL_FMT, task.Name, task.Revision), PROPERTY_SOURCE})
+		properties = append(properties, []interface{}{"taskRetryURL", fmt.Sprintf(TASK_TRIGGER_URL_FMT, c.taskSchedulerUrl, task.Name, task.Revision), PROPERTY_SOURCE})
 	}
 	if task.SwarmingBotId != "" {
 		buildSlave = task.SwarmingBotId
 		properties = append(properties, [][]interface{}{
-			{"botTasklistURL", fmt.Sprintf(TASKLIST_URL_FMT, "id", task.SwarmingBotId), PROPERTY_SOURCE},
-			{"botDetailURL", fmt.Sprintf(BOT_DETAIL_URL_FMT, task.SwarmingBotId), PROPERTY_SOURCE},
+			{"botTasklistURL", fmt.Sprintf(TASKLIST_URL_FMT, c.swarmingUrl, "id", task.SwarmingBotId), PROPERTY_SOURCE},
+			{"botDetailURL", fmt.Sprintf(BOT_DETAIL_URL_FMT, c.swarmingUrl, task.SwarmingBotId), PROPERTY_SOURCE},
 		}...)
 	}
 	propertiesStr := ""
