@@ -14,10 +14,11 @@ import (
 )
 
 type remoteDeduplicator struct {
-	// maps gcs paths [including the hash of the keys] to true/false
+	// seen maps gcs paths [including the hash of the keys] to true/false
 	seen map[string]bool
 
-	commit    string
+	// revision is the Skia revision that the deduplicator remembers
+	revision  string
 	mutex     sync.Mutex
 	gcsClient storage.FuzzerGCSClient
 }
@@ -29,16 +30,12 @@ func NewRemoteDeduplicator(gcsClient storage.FuzzerGCSClient) Deduplicator {
 	}
 }
 
-func (d *remoteDeduplicator) Clear() {
+func (d *remoteDeduplicator) SetRevision(r string) {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
+	d.revision = r
+	// clear out everything we have seen thus far.
 	d.seen = make(map[string]bool)
-}
-
-func (d *remoteDeduplicator) SetCommit(c string) {
-	d.mutex.Lock()
-	defer d.mutex.Unlock()
-	d.commit = c
 }
 
 var FILE_WRITE_OPTS = gcs.FileWriteOptions{ContentEncoding: "text/plain"}
@@ -55,9 +52,10 @@ func (d *remoteDeduplicator) IsUnique(report data.FuzzReport) bool {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
 	k := hash(key(report))
-	gcsPath := fmt.Sprintf("%s/%s/%s/traces/%s", report.FuzzCategory, d.commit, report.FuzzArchitecture, k)
+	gcsPath := fmt.Sprintf("%s/%s/%s/traces/%s", report.FuzzCategory, d.revision, report.FuzzArchitecture, k)
 
 	if d.seen[gcsPath] {
+		sklog.Debugf("%s has already been seen", gcsPath)
 		return false
 	}
 	// cache it, because we've seen it now.

@@ -202,7 +202,7 @@ func TestRemoteLookup(t *testing.T) {
 	defer m.AssertExpectations(t)
 
 	d := NewRemoteDeduplicator(m)
-	d.SetCommit("COMMIT_HASH")
+	d.SetRevision("COMMIT_HASH")
 	r1 := data.MockReport("skpicture", "aaaa")
 	r2 := data.MockReport("skpicture", "bbbb")
 	// hash for r1
@@ -228,7 +228,7 @@ func TestRemoteLookupWithLocalCache(t *testing.T) {
 	defer m.AssertExpectations(t)
 
 	d := NewRemoteDeduplicator(m)
-	d.SetCommit("COMMIT_HASH")
+	d.SetRevision("COMMIT_HASH")
 	r1 := data.MockReport("skpicture", "aaaa")
 
 	m.On("GetFileContents", ctx, "skpicture/COMMIT_HASH/mock_arm8/traces/5a190a404735d7fd70340da671c9c8008dc597ba").Return([]byte("5a190a404735d7fd70340da671c9c8008dc597ba"), nil)
@@ -253,7 +253,7 @@ func TestRemoteLookupReset(t *testing.T) {
 	defer m.AssertExpectations(t)
 
 	d := NewRemoteDeduplicator(m)
-	d.SetCommit("COMMIT_HASH")
+	d.SetRevision("COMMIT_HASH")
 	r1 := data.MockReport("skpicture", "aaaa")
 
 	// AnythingofType("[]byte") doesn't work because https://github.com/stretchr/testify/issues/387
@@ -266,22 +266,12 @@ func TestRemoteLookupReset(t *testing.T) {
 	}
 	m.On("GetFileContents", ctx, "skpicture/THE_SECOND_COMMIT_HASH/mock_arm8/traces/5a190a404735d7fd70340da671c9c8008dc597ba").Return([]byte(nil), fmt.Errorf("Not found")).Once()
 
-	d.SetCommit("THE_SECOND_COMMIT_HASH")
+	d.SetRevision("THE_SECOND_COMMIT_HASH")
 	if !d.IsUnique(r1) {
 		t.Errorf("The deduplicator has not seen %#v, but said it has", r1)
 	}
 	// The Remote lookup should have to relookup the file after commit changed.
 	m.AssertNumberOfCalls(t, "GetFileContents", 2)
-
-	m.On("GetFileContents", ctx, "skpicture/THE_SECOND_COMMIT_HASH/mock_arm8/traces/5a190a404735d7fd70340da671c9c8008dc597ba").Return([]byte("5a190a404735d7fd70340da671c9c8008dc597ba"), nil)
-
-	d.Clear()
-	if d.IsUnique(r1) {
-		t.Errorf("The deduplicator has seen %#v, but said it has not", r1)
-	}
-
-	// The Remote lookup should have to relookup the file after a call to Clear()
-	m.AssertNumberOfCalls(t, "GetFileContents", 3)
 	m.AssertNumberOfCalls(t, "SetFileContents", 2)
 }
 

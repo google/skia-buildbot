@@ -147,9 +147,6 @@ func (g *Generator) run(command *exec.Command) exec.Process {
 // sets some key metrics to 0, so the graphs at mon.skia.org reflect the stoppage.
 func (g *Generator) Stop() {
 	sklog.Infof("Trying to stop %d fuzz processes", len(g.fuzzProcesses))
-	metrics2.GetInt64Metric("fuzzer.stats.execs-per-sec", map[string]string{"category": g.Category}).Update(0)
-	metrics2.GetInt64Metric("fuzzer.stats.paths-total", map[string]string{"category": g.Category}).Update(0)
-	metrics2.GetInt64Metric("fuzzer.stats.cycles-done", map[string]string{"category": g.Category}).Update(0)
 	for _, p := range g.fuzzProcesses {
 		if p != nil {
 			if err := p.Kill(); err != nil {
@@ -160,6 +157,16 @@ func (g *Generator) Stop() {
 		}
 	}
 	g.fuzzProcesses = nil
+
+	// Get rid of stats file to avoid old stats from being picked up by the aggregator
+	statsFile := filepath.Join(config.Generator.AflOutputPath, g.Category, "fuzzer0", "fuzzer_stats")
+	if err := os.Remove(statsFile); err != nil {
+		sklog.Warningf("Could not clear out old fuzzer_stats file %s: %s", statsFile, err)
+	}
+
+	metrics2.GetInt64Metric("fuzzer.stats.execs-per-sec", map[string]string{"category": g.Category}).Update(0)
+	metrics2.GetInt64Metric("fuzzer.stats.paths-total", map[string]string{"category": g.Category}).Update(0)
+	metrics2.GetInt64Metric("fuzzer.stats.cycles-done", map[string]string{"category": g.Category}).Update(0)
 }
 
 // DownloadSeedFiles downloads the seed files stored in Google Storage to be used by afl-fuzz.  It

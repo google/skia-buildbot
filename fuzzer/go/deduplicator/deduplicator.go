@@ -11,8 +11,9 @@ import (
 const _MAX_STACKTRACE_LINES = 4
 
 type Deduplicator interface {
-	Clear()
-	SetCommit(string)
+	// Deduplicators are based on the Skia revision being analyzed. To clear out a deduplicator,
+	// set the commit to something else.
+	SetRevision(string)
 	IsUnique(report data.FuzzReport) bool
 }
 
@@ -29,14 +30,10 @@ func NewLocalDeduplicator() Deduplicator {
 	}
 }
 
-func (d *localDeduplicator) Clear() {
+func (d *localDeduplicator) SetRevision(r string) {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
 	d.seen = make(map[string]bool)
-}
-
-func (d *localDeduplicator) SetCommit(c string) {
-	d.Clear()
 }
 
 func (d *localDeduplicator) IsUnique(report data.FuzzReport) bool {
