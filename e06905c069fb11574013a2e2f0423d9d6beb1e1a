@@ -2,6 +2,98 @@
   "comments": [
     {
       "key": {
+        "uuid": "4a0e4026_b22c5384",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-31T17:43:13Z",
+      "side": 1,
+      "message": "Don\u0027t we want this to be MAX_COMMITS_TO_LOAD? It seems to be limited to 100 somewhere.",
+      "range": {
+        "startLine": 91,
+        "startChar": 56,
+        "endLine": 91,
+        "endChar": 79
+      },
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8bd031a0_4239af91",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-31T17:43:13Z",
+      "side": 1,
+      "message": "typo short",
+      "range": {
+        "startLine": 142,
+        "startChar": 27,
+        "endLine": 142,
+        "endChar": 31
+      },
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "479a5d61_5f71494f",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-31T17:43:13Z",
+      "side": 1,
+      "message": "How hard would it be to rename the repo and add a redirect from the old name? Does GoB support that at all?",
+      "range": {
+        "startLine": 144,
+        "startChar": 4,
+        "endLine": 144,
+        "endChar": 57
+      },
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "299215a3_bd1bdf8c",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-31T17:43:13Z",
+      "side": 1,
+      "message": "nit: maybe mention that if there are multiple repos with the same nickname, result is undefined? Or maybe iterate over *repoUrls rather than repos?",
+      "range": {
+        "startLine": 151,
+        "startChar": 0,
+        "endLine": 152,
+        "endChar": 36
+      },
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "01bd2df6_f18d8e18",
         "filename": "status/go/status/main.go",
         "patchSetId": 2
@@ -25,6 +117,69 @@
     },
     {
       "key": {
+        "uuid": "9ef59132_a2d3cd42",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-31T17:43:13Z",
+      "side": 1,
+      "message": "Can we just use the first of *repoUrls? I think it\u0027s a good idea to redirect also.",
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91fce54c_fb3109ff",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-31T17:43:13Z",
+      "side": 1,
+      "message": "nit: Rather than alphabetical order, could we use the order of *repoUrls?",
+      "range": {
+        "startLine": 188,
+        "startChar": 1,
+        "endLine": 188,
+        "endChar": 24
+      },
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2f1e52a_8250636f",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-31T17:43:13Z",
+      "side": 1,
+      "message": "Echoing user input could be used for XSS. Several instances in this file.",
+      "range": {
+        "startLine": 216,
+        "startChar": 35,
+        "endLine": 216,
+        "endChar": 46
+      },
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "92d152a9_9fcab0ef",
         "filename": "status/go/status/main.go",
         "patchSetId": 2
@@ -36,6 +191,92 @@
       "writtenOn": "2017-01-31T16:08:10Z",
       "side": 1,
       "message": "This makes the table empty but prevents having to somehow connect to a production task scheduler DB.",
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cd91c1f_c5d3ac1a",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 612,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-31T17:43:13Z",
+      "side": 1,
+      "message": "sgtm, but it\u0027s pretty easy to start task-scheduler locally. This is what I do:\nmkdir /usr/local/google/tmp/task_scheduler/\nmkdir /usr/local/google/tmp/task_scheduler/trigger-backup\npushd task_scheduler \u0026\u0026 make all \u0026\u0026 popd \u0026\u0026 task_scheduler --alsologtostderr --local --gsBucket\u003ddogben-test --workdir /usr/local/google/tmp/task_scheduler/",
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c35ff54_feff06ea",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 612,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-31T17:43:13Z",
+      "side": 1,
+      "message": "nit: missing defer Close",
+      "range": {
+        "startLine": 612,
+        "startChar": 16,
+        "endLine": 612,
+        "endChar": 30
+      },
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "921f11e3_4555a103",
+        "filename": "status/res/imp/status-menu-section-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-31T17:43:13Z",
+      "side": 1,
+      "message": "nit: Remove this?",
+      "range": {
+        "startLine": 39,
+        "startChar": 4,
+        "endLine": 39,
+        "endChar": 79
+      },
+      "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb21db5f_3721fafd",
+        "filename": "status/templates/capacity.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-01-31T17:43:13Z",
+      "side": 1,
+      "message": "nit: Why do we need this if it\u0027s set in JS below?",
+      "range": {
+        "startLine": 9,
+        "startChar": 22,
+        "endLine": 9,
+        "endChar": 41
+      },
       "revId": "e06905c069fb11574013a2e2f0423d9d6beb1e1a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
