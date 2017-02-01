@@ -32,19 +32,15 @@ import (
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metrics2"
 	skutil "go.skia.org/infra/go/util"
 )
 
 // flags
 var (
-	dryRun         = flag.Bool("dry_run", false, "If true, just log the commands that would be executed; don't actually execute the commands. Still polls CTFE for pending tasks, but does not post updates.")
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
-	pollInterval   = flag.Duration("poll_interval", 30*time.Second, "How often to poll CTFE for new pending tasks.")
+	dryRun       = flag.Bool("dry_run", false, "If true, just log the commands that would be executed; don't actually execute the commands. Still polls CTFE for pending tasks, but does not post updates.")
+	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	pollInterval = flag.Duration("poll_interval", 30*time.Second, "How often to poll CTFE for new pending tasks.")
 	// Mutex that controls updating and building of the local checkout.
 	repoMtx = sync.Mutex{}
 	// Map that holds all picked up tasks. Used to ensure same task is not picked up more than once.
@@ -459,7 +455,7 @@ func pollAndExecOnce() *sync.WaitGroup {
 
 func main() {
 	defer common.LogPanic()
-	master_common.InitWithMetrics2("ct-poller", influxHost, influxUser, influxPassword, influxDatabase)
+	master_common.InitWithMetrics2("ct-poller", promPort)
 
 	if *dryRun {
 		exec.SetRunForTesting(func(command *exec.Command) error {
