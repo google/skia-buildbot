@@ -87,3 +87,8 @@
 
     - name: disable wifi
       command: nmcli radio wifi off
+
+    - name: enable auto-login
+      lineinfile: dest=/etc/lightdm/lightdm.conf.d/50-myconfig.conf line="[SeatDefaults]"
+      lineinfile: dest=/etc/lightdm/lightdm.conf.d/50-myconfig.conf line="autologin-user=chrome-bot"
+
