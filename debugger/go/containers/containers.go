@@ -28,7 +28,7 @@ const (
 
 	// START_PORT Is the beginning of the range of ports the skiaserve instances
 	// will communicate on.
-	START_PORT = 20000
+	START_PORT = 30000
 
 	// START_WAIT_NUM poll the newly started skiaserve this many times before giving up.
 	START_WAIT_NUM = 50
