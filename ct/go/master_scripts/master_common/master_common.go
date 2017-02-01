@@ -22,8 +22,8 @@ func Init(appName string) {
 	initRest()
 }
 
-func InitWithMetrics2(appName string, influxHost, influxUser, influxPassword, influxDatabase *string) {
-	common.InitWithCloudLogging(appName, influxHost, influxUser, influxPassword, influxDatabase, Local)
+func InitWithMetrics2(appName string, promPort *string) {
+	common.InitWithMust(appName, common.PrometheusOpt(promPort), common.CloudLoggingOpt())
 	initRest()
 }
 
