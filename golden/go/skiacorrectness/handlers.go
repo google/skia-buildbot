@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/validation"
 )
 
 const (
@@ -280,8 +281,8 @@ func jsonDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	test := r.Form.Get("test")
 	digest := r.Form.Get("digest")
-	if test == "" || digest == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Some query parameters are missing: %q %q", test, digest), "Missing query parameters.")
+	if test == "" || !validation.IsValidDigest(digest) {
+		httputils.ReportError(w, r, fmt.Errorf("Some query parameters are wrong or missing: %q %q", test, digest), "Missing query parameters.")
 		return
 	}
 
@@ -303,8 +304,8 @@ func jsonDiffHandler(w http.ResponseWriter, r *http.Request) {
 	test := r.Form.Get("test")
 	left := r.Form.Get("left")
 	right := r.Form.Get("right")
-	if test == "" || left == "" || right == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Some query parameters are missing: %q %q %q", test, left, right), "Missing query parameters.")
+	if test == "" || !validation.IsValidDigest(left) || !validation.IsValidDigest(right) {
+		httputils.ReportError(w, r, fmt.Errorf("Some query parameters are missing or wrong: %q %q %q", test, left, right), "Missing query parameters.")
 		return
 	}
 
