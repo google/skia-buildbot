@@ -130,9 +130,7 @@ To run the master poller in dry-run mode (not very useful), run
 make poller && poller --local=true \
   --alsologtostderr \
   --dry_run \
-  --logtostderr \
-  --influxdb_host=http://localhost:10117 \
-  --influxdb_database=skmetrics
+  --logtostderr
 ```
 
 To run master scripts locally, you may want to modify the code to skip steps or
