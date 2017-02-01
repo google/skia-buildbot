@@ -30,7 +30,7 @@ gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME \
 
 # Create a large data disk.
 gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME"-data" \
-  --size "50" \
+  --size "100" \
   --zone $ZONE \
   --type "pd-standard"
 
