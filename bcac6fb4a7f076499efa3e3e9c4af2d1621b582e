@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c30ab606_50eab9e7",
+        "filename": "skolo/linux/setup_linux_bot.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-01T15:35:57Z",
+      "side": 1,
+      "message": "lineinfile can\u0027t be \"stacked\" this way.\n\nI just learned about blockinfile, which would be better: http://docs.ansible.com/ansible/blockinfile_module.html#blockinfile\n\n- name: enable auto-login\n  blockinfile:\n    path: dest\u003d/etc/lightdm/lightdm.conf.d/50-myconfig.conf\n    block: |\n      [SeatDefaults]\n      autologin-user\u003dchrome-bot",
+      "revId": "bcac6fb4a7f076499efa3e3e9c4af2d1621b582e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
