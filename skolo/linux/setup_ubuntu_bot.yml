@@ -4,21 +4,6 @@
   become_user: root
   become: yes
   become_method: sudo
-  vars:
-    # override with --extra-vars "netmask=255.255.255.0"
-    netmask: "255.255.255.0"
-    gateway: "192.168.1.1"
-
-    interface_templ: "./interfaces.j2"
-    expanded_interface: "/etc/network/interfaces"
-
-  vars_prompt:
-    - name: "interface"
-      prompt: "What is ethernet interface?  If you don't know, run ifconfig first"
-      private: no
-    - name: "ip_address"
-      prompt: "What should the static ip address of this machine be?"
-      private: no
 
   tasks:
     - name: Update and Upgrade
@@ -72,25 +57,13 @@
     - name: make sudo reboot passwordless
       lineinfile: dest=/etc/sudoers line="chrome-bot ALL=NOPASSWD:/sbin/shutdown -r now"
 
-      # This takes the pre-existing /etc/network/interfaces template
-      # (which is a jinja2 template, as per ansible spec) and fills in
-      # the ip address, network, and gateway.
-    - name: generating /etc/network/interfaces
-      template:
-        src: "{{interface_templ}}"
-        dest: "{{expanded_interface}}"
-        owner: root
-        group: root
-        mode: 0644
-        force: yes
-        backup: yes
-
     - name: disable wifi
       command: nmcli radio wifi off
 
     - name: enable auto-login
       blockinfile:
-        path: dest=/etc/lightdm/lightdm.conf.d/50-myconfig.conf
+        dest: /etc/lightdm/lightdm.conf.d/50-myconfig.conf
+        create: yes
         block: |
           [SeatDefaults]
           autologin-user=chrome-bot
