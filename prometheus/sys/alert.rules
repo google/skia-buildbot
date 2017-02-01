@@ -66,6 +66,16 @@ ALERT DiskSpaceLow
     description = "Free space has fallen below 100MB on {{ $labels.host }} drive {{ $labels.resource}}.",
   }
 
+# CT
+ALERT CTPollerHealthCheck
+  IF healthy{instance="skia-ct-master:20000",job="ct-poller"} != 1
+  FOR 5m
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    summary = "CT poller healthy check failed.",
+    description = "CT poller health check is failing. https://skia.googlesource.com/buildbot/+/master/ct/PROD.md#ct_poller_health_check."
+  }
+
 # Perf
 ALERT PerfUntriagedClusters
   IF perf_clustering_untriaged{instance="skia-perf:20000"} > 0
