@@ -26,8 +26,8 @@ var (
 	test = flag.Bool("test", false, "Run in test mode: verify that the output hasn't changed.")
 )
 
-// getCheckoutRoot returns the path of the root of the checkout.
-func getCheckoutRoot() (string, error) {
+// GetCheckoutRoot returns the path of the root of the checkout.
+func GetCheckoutRoot() (string, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return "", err
@@ -60,6 +60,7 @@ func getCheckoutRoot() (string, error) {
 
 // TasksCfgBuilder is a helper struct used for building a TasksCfg.
 type TasksCfgBuilder struct {
+	assetsDir    string
 	cfg          *TasksCfg
 	cipdPackages map[string]*CipdPackage
 	root         string
@@ -75,7 +76,7 @@ func NewTasksCfgBuilder() (*TasksCfgBuilder, error) {
 		Tasks: map[string]*TaskSpec{},
 	}
 
-	root, err := getCheckoutRoot()
+	root, err := GetCheckoutRoot()
 	if err != nil {
 		return nil, err
 	}
@@ -99,6 +100,11 @@ func MustNewTasksCfgBuilder() *TasksCfgBuilder {
 // CheckoutRoot returns the path to the root of the client checkout.
 func (b *TasksCfgBuilder) CheckoutRoot() string {
 	return b.root
+}
+
+// SetAssetsDir sets the directory path used for assets.
+func (b *TasksCfgBuilder) SetAssetsDir(assetsDir string) {
+	b.assetsDir = assetsDir
 }
 
 // AddTask adds a TaskSpec to the TasksCfgBuilder. Returns an error if the
@@ -144,7 +150,11 @@ func (b *TasksCfgBuilder) GetCipdPackageFromAsset(assetName string) (*CipdPackag
 	if pkg, ok := b.cipdPackages[assetName]; ok {
 		return pkg, nil
 	}
-	versionFile := path.Join(b.root, "infra", "bots", "assets", assetName, "VERSION")
+	assetsDir := b.assetsDir
+	if assetsDir == "" {
+		assetsDir = path.Join(b.root, "infra", "bots", "assets")
+	}
+	versionFile := path.Join(assetsDir, assetName, "VERSION")
 	contents, err := ioutil.ReadFile(versionFile)
 	if err != nil {
 		return nil, err
