@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/rtcache"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/validation"
 )
 
 const (
@@ -222,11 +223,12 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 			return
 		}
 
+		// Get the file name that was requested and validate it.
+		_, fName := filepath.Split(path)
 		if dir == DEFAULT_IMG_DIR_NAME {
 			// Make sure the file exists. If not fetch it.Should be the exception.
-			_, fName := filepath.Split(path)
 			digest := strings.TrimRight(fName, "."+IMG_EXTENSION)
-			if digest == "" {
+			if !validation.IsValidDigest(digest) {
 				http.NotFound(w, r)
 				return
 			}
@@ -237,6 +239,12 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 					http.NotFound(w, r)
 					return
 				}
+			}
+		} else {
+			left, right := splitDiffImgFileName(fName)
+			if !validation.IsValidDigest(left) || !validation.IsValidDigest(right) {
+				http.NotFound(w, r)
+				return
 			}
 		}
 
@@ -308,6 +316,20 @@ func getDiffBasename(d1, d2 string) string {
 		return fmt.Sprintf("%s-%s", d1, d2)
 	}
 	return fmt.Sprintf("%s-%s", d2, d1)
+}
+
+// splitDiffImgFileName splits a diff image file name that was previously
+// created with getDiffImgFileName and returns the two digests that
+// were compared to create the diff image. It returns two empty strings
+// if the given string does not match the expected structure, but does
+// not validate the digests in any way.
+func splitDiffImgFileName(fName string) (string, string) {
+	combined := strings.TrimRight(fName, "."+IMG_EXTENSION)
+	digests := strings.Split(combined, "-")
+	if len(digests) != 2 {
+		return "", ""
+	}
+	return digests[0], digests[1]
 }
 
 func getDiffImgFileName(digest1, digest2 string) string {
