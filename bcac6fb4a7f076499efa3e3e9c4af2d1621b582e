@@ -16,6 +16,23 @@
       "revId": "bcac6fb4a7f076499efa3e3e9c4af2d1621b582e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7703e98a_35f2756f",
+        "filename": "skolo/linux/setup_linux_bot.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-01T15:38:59Z",
+      "side": 1,
+      "message": "Done /shruggie",
+      "revId": "bcac6fb4a7f076499efa3e3e9c4af2d1621b582e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
