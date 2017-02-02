@@ -18,6 +18,10 @@ scrape_configs:
     static_configs:
       - targets: ['skia-ct-master:20000']
 
+  - job_name: 'ctfe'
+    static_configs:
+      - targets: ['skia-ctfe:20000']
+
   - job_name: 'debugger'
     static_configs:
       - targets: ['skia-debugger:20000']
