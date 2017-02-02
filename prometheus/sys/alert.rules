@@ -68,7 +68,7 @@ ALERT DiskSpaceLow
 
 # CT
 ALERT CTPollerHealthCheck
-  IF healthy{instance="skia-ct-master:20000",job="ct-poller"} != 1
+  IF healthy{instance="skia-ct-master:20000",job="ct-poller"} < 1
   FOR 5m
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
