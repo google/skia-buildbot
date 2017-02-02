@@ -31,7 +31,6 @@ import (
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
@@ -41,10 +40,7 @@ import (
 // flags
 var (
 	host                   = flag.String("host", "localhost", "HTTP service host")
-	influxHost             = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser             = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword         = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxDatabase         = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	promPort               = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 	port                   = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	local                  = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	workdir                = flag.String("workdir", ".", "Directory to use for scratch work.")
@@ -215,7 +211,7 @@ func main() {
 		}
 	}
 
-	common.InitWithCloudLogging("ctfe", influxHost, influxUser, influxPassword, influxDatabase, local)
+	common.InitWithMust("ctfe", common.PrometheusOpt(promPort), common.CloudLoggingOpt())
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		sklog.Fatal(err)

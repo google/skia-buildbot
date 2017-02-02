@@ -73,9 +73,7 @@ make ctfe_debug && ctfe --local=true \
   --ctfe_db_host=localhost \
   --port=:8000 \
   --ctfe_db_user=readwrite \
-  --host=<your hostname>.cnc.corp.google.com \
-  --influxdb_host=localhost:10117 \
-  --influxdb_database=skmetrics
+  --host=<your hostname>.cnc.corp.google.com
 ```
 
 You can then access the server at [localhost:8000](http://localhost:8000/) or
@@ -89,33 +87,7 @@ To test prober config changes, edit the config in ../prober/probers.json to
 point to localhost:8000, then run `make && prober --alsologtostderr
 --use_metadata=false` from ../prober/.
 
-To check metrics from a locally running server or prober, run:
-
-```
-influx --port 10117
-> use skmetrics
-> show measurements
-> select * from "num-pending-tasks";
-```
-
-replacing the value within quotes with whichever measurement you have changed.
-
-To test alert config changes:
-
-1. Run `make migratedb && alertserver_migratedb --db_host=localhost
-   --logtostderr` from ../alertserver/.
-2. Edit the config in ../alertserver/alerts.cfg to make the measurement names
-   match what you see in InfluxDB (you may need to comment out measurements that
-   don't exist in your local InfluxDB).
-3. Run:
-
-```
-make all && alertserver --alsologtostderr --testing \
-  --use_metadata=false \
-  --alert_db_host localhost \
-  --influxdb_host localhost:10117 \
-  --influxdb_database=skmetrics
-```
+To check metrics from a locally running server or prober, use Prometheus.
 
 ### Master
 
@@ -162,9 +134,7 @@ You can run the poller as:
 ```
 make poller && poller --local=true \
   --alsologtostderr \
-  --logtostderr \
-  --influxdb_host=http://localhost:10117 \
-  --influxdb_database=skmetrics
+  --logtostderr
 ```
 
 ### Workers
