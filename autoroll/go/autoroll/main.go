@@ -50,8 +50,9 @@ var (
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
 	childName      = flag.String("childName", "Skia", "Name of the project to roll.")
-	childPath      = flag.String("childPath", "src/third_party/skia", "Path within Chromium repo of the project to roll.")
+	childPath      = flag.String("childPath", "src/third_party/skia", "Path within parent repo of the project to roll.")
 	cqExtraTrybots = flag.String("cqExtraTrybots", "", "Comma-separated list of trybots to run.")
+	parentRepo     = flag.String("parent_repo", common.REPO_CHROMIUM, "Repo to roll into.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	sheriff        = flag.String("sheriff", "", "Email address to CC on rolls, or URL from which to obtain such an email address.")
 	depot_tools    = flag.String("depot_tools", "", "Path to the depot_tools installation. If empty, assumes depot_tools is in PATH.")
@@ -214,7 +215,7 @@ func main() {
 	sklog.Infof("Sheriff: %s", strings.Join(emails, ", "))
 
 	// Start the autoroller.
-	arb, err = autoroller.NewAutoRoller(*workdir, *childPath, cqExtraTrybots, emails, r, time.Minute, 15*time.Minute, *depot_tools)
+	arb, err = autoroller.NewAutoRoller(*workdir, *parentRepo, *childPath, cqExtraTrybots, emails, r, time.Minute, 15*time.Minute, *depot_tools)
 	if err != nil {
 		sklog.Fatal(err)
 	}
