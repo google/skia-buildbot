@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "10f394e5_01cec966",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-02-02T18:36:08Z",
+      "side": 1,
+      "message": "The \u0027summary\u0027 is currently unused in the Dynamite alerts, just FYI.",
+      "revId": "27c79feea01faa033d1eb81a1dae1cb3e3153e2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
