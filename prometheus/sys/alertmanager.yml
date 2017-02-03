@@ -53,10 +53,12 @@ inhibit_rules:
 receivers:
 - name: 'skiabot'
   webhook_configs:
+    - send_resolved: false
     - url: 'http://localhost:8004/chat?room=skiabot_alerts'
 
 - name: 'general'
   webhook_configs:
+    - send_resolved: false
     - url: 'http://localhost:8004/chat?room=skiabot_alerts'
 
 - name: 'android'
