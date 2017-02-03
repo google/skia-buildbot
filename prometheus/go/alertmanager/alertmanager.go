@@ -36,9 +36,12 @@ const (
 `
 
 	alert_chat = `*{{range .GroupLabels}}{{.}}{{end}}*
-{{range .Alerts}}
-   *{{.Status}}* ({{.Labels.severity}}) {{.Annotations.description}}
-{{end}}`
+{{ $length := len .Alerts}} {{ if eq $length 1 }}
+	*{{.Alerts index 0 .Status}}* ({{.Alerts index 0 .Labels.severity}}) {{.Alerts index 0 .Annotations.description}}
+{{ else }}
+	*{{.Alerts index 0 .Status}}* {{.Alerts index 0 .Labels.description}}
+  Total Alerts Firing: {{len .Alerts}}
+{{ end }}`
 )
 
 var (
@@ -95,6 +98,10 @@ func extractRequest(r io.Reader) (*AlertManagerRequest, []string, time.Time, err
 	request := &AlertManagerRequest{}
 	if err := json.NewDecoder(r).Decode(request); err != nil {
 		return nil, nil, time.Time{}, fmt.Errorf("Failed to decode incoming AlertManagerRequest: %s", err)
+	}
+	sklog.Infof("AlertManagerRequest: %v", *request)
+	for _, a := range request.Alerts {
+		sklog.Infof("Alert: %v", *a)
 	}
 
 	startTime := time.Now()
