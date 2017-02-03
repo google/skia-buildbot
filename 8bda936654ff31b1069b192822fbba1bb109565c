@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cb9a77cd_fde64b7f",
+        "filename": "golden/frontend/res/imp/failures-page-sk-demo.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-03T20:34:40Z",
+      "side": 1,
+      "message": "nit: trailing spaces",
+      "range": {
+        "startLine": 16,
+        "startChar": 30,
+        "endLine": 16,
+        "endChar": 31
+      },
+      "revId": "8bda936654ff31b1069b192822fbba1bb109565c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "656c5c42_c00235ca",
+        "filename": "golden/frontend/res/imp/failures-page-sk-demo.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-03T20:34:40Z",
+      "side": 1,
+      "message": "leftover from testing?  (Also, Today I Learned about the debugger keyword)",
+      "range": {
+        "startLine": 25,
+        "startChar": 6,
+        "endLine": 25,
+        "endChar": 14
+      },
+      "revId": "8bda936654ff31b1069b192822fbba1bb109565c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59caf347_05983d23",
+        "filename": "golden/frontend/res/imp/failures-page-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-03T20:34:40Z",
+      "side": 1,
+      "message": "This does not seem to be used anywhere.",
+      "range": {
+        "startLine": 50,
+        "startChar": 45,
+        "endLine": 50,
+        "endChar": 54
+      },
+      "revId": "8bda936654ff31b1069b192822fbba1bb109565c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
