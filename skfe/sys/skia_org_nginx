@@ -561,7 +561,8 @@ server {
     add_header X-Content-Type-Options nosniff;
 
     location / {
-        proxy_pass https://skia-status-internal-8002-proxy.skia.org;
+        proxy_pass http://skia-proxy:8000;
+        proxy_set_header Host skia-status-internal-8002-proxy;
     }
 }
 server {
@@ -894,7 +895,7 @@ server {
     add_header X-Content-Type-Options nosniff;
 
     location / {
-        deny all;
+        proxy_pass https://skia-task-scheduler-internal-8000-proxy.skia.org;
     }
     location /google2c59f97e1ced9fdc.html {
         add_header Content-Type text/html;
