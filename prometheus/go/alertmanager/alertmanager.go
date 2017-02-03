@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/skia-dev/glog"
+
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -36,8 +38,9 @@ const (
 `
 
 	alert_chat = `*{{range .GroupLabels}}{{.}}{{end}}*
+{{len .Alerts}} Firing
 {{range .Alerts}}
-   *{{.Status}}* ({{.Labels.severity}}) {{.Annotations.description}}
+   *{{.Status}}*
 {{end}}`
 )
 
@@ -95,6 +98,10 @@ func extractRequest(r io.Reader) (*AlertManagerRequest, []string, time.Time, err
 	request := &AlertManagerRequest{}
 	if err := json.NewDecoder(r).Decode(request); err != nil {
 		return nil, nil, time.Time{}, fmt.Errorf("Failed to decode incoming AlertManagerRequest: %s", err)
+	}
+	glog.Infof("AlertManagerRequest: %v", *request)
+	for _, a := range request.Alerts {
+		glog.Infof("Alert: %v", *a)
 	}
 
 	startTime := time.Now()
