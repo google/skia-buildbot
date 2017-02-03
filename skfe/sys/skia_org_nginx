@@ -561,8 +561,7 @@ server {
     add_header X-Content-Type-Options nosniff;
 
     location / {
-        proxy_pass http://skia-proxy:8000;
-        proxy_set_header Host skia-status-internal-8002-proxy;
+        proxy_pass https://skia-status-internal-8002-proxy.skia.org;
     }
 }
 server {
@@ -894,6 +893,9 @@ server {
     # Disable content sniffing
     add_header X-Content-Type-Options nosniff;
 
+    location / {
+        deny all;
+    }
     location /google2c59f97e1ced9fdc.html {
         add_header Content-Type text/html;
         return 200 'google-site-verification: google2c59f97e1ced9fdc.html';
@@ -901,10 +903,6 @@ server {
     location /pubsub/ {
         proxy_pass http://skia-task-scheduler-internal:8000;
         proxy_set_header Host $host;
-    }
-    location / {
-        proxy_pass http://skia-proxy:8000;
-        proxy_set_header Host skia-task-scheduler-internal-8002-proxy;
     }
 }
 server {
