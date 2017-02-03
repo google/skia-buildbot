@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0415905d_66ba8c9c",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 1
+      },
+      "lineNbr": 906,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-03T20:04:25Z",
+      "side": 1,
+      "message": "Is this recursively substituted, or does this cause skfe to make http connections to itself? If the latter, might be worthwhile doing the substitution manually (also for skia-internal):\n        proxy_pass http://skia-proxy:8000;\n        proxy_set_header Host skia-status-internal-8002-proxy;",
+      "range": {
+        "startLine": 904,
+        "startChar": 0,
+        "endLine": 906,
+        "endChar": 5
+      },
+      "revId": "1d6dddab7ae00eceed476f1f20fc6772638e4ff9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
