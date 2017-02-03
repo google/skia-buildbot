@@ -60,6 +60,9 @@ var (
 	// Task Scheduler instance.
 	ts *scheduling.TaskScheduler
 
+	// Task Scheduler database.
+	tsDb db.BackupDBCloser
+
 	// Git repo objects.
 	repos repograph.Map
 
@@ -398,6 +401,26 @@ func jsonTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// jsonJobSearchHandler allows for searching Jobs based on various parameters.
+func jsonJobSearchHandler(w http.ResponseWriter, r *http.Request) {
+	var params db.JobSearchParams
+	defer util.Close(r.Body)
+	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
+		return
+	}
+	jobs, err := db.SearchJobs(tsDb, &params)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to search for jobs.")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(jobs); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
+		return
+	}
+}
+
 func googleVerificationHandler(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write([]byte("google-site-verification: google2c59f97e1ced9fdc.html")); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to write response: %s", err))
@@ -415,6 +438,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/json/blacklist", jsonBlacklistHandler).Methods(http.MethodPost, http.MethodDelete)
 	r.HandleFunc("/json/job/{id}", jsonJobHandler)
 	r.HandleFunc("/json/job/{id}/cancel", jsonCancelJobHandler).Methods(http.MethodPost)
+	r.HandleFunc("/json/jobs/search", jsonJobSearchHandler)
 	r.HandleFunc("/json/task", jsonTaskHandler).Methods(http.MethodPost, http.MethodPut)
 	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods(http.MethodPost)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
@@ -491,11 +515,11 @@ func main() {
 
 	// Initialize the database.
 	// TODO(benjaminwagner): Create a signal handler which closes the DB.
-	d, err := local_db.NewDB(local_db.DB_NAME, path.Join(wdAbs, local_db.DB_FILENAME))
+	tsDb, err = local_db.NewDB(local_db.DB_NAME, path.Join(wdAbs, local_db.DB_FILENAME))
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	defer util.Close(d)
+	defer util.Close(tsDb)
 
 	// Git repos.
 	if *repoUrls == nil {
@@ -538,7 +562,7 @@ func main() {
 	// TODO(benjaminwagner): The storage client library already handles buffering
 	// and retrying requests, so we may not want to use BackoffTransport for the
 	// httpClient provided to NewDBBackup.
-	b, err := recovery.NewDBBackup(ctx, *gsBucket, d, local_db.DB_NAME, wdAbs, httpClient)
+	b, err := recovery.NewDBBackup(ctx, *gsBucket, tsDb, local_db.DB_NAME, wdAbs, httpClient)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -562,7 +586,7 @@ func main() {
 	if err := scheduling.InitPubSub(pubsubServerURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
 		sklog.Fatal(err)
 	}
-	ts, err = scheduling.NewTaskScheduler(d, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools)
+	ts, err = scheduling.NewTaskScheduler(tsDb, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -583,7 +607,7 @@ func main() {
 	}
 
 	go runServer(serverURL)
-	go runDbServer(d)
+	go runDbServer(tsDb)
 
 	// Run indefinitely, responding to HTTP requests.
 	select {}

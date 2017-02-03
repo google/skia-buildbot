@@ -13,10 +13,8 @@ import (
 	"go.skia.org/infra/go/testutils"
 )
 
-func TestJobCopy(t *testing.T) {
-	testutils.SmallTest(t)
-	now := time.Now()
-	v := &Job{
+func makeFullJob(now time.Time) *Job {
+	return &Job{
 		BuildbucketBuildId:  12345,
 		BuildbucketLeaseKey: 987,
 		Created:             now.Add(time.Nanosecond),
@@ -39,6 +37,11 @@ func TestJobCopy(t *testing.T) {
 			}},
 		},
 	}
+}
+
+func TestJobCopy(t *testing.T) {
+	testutils.SmallTest(t)
+	v := makeFullJob(time.Now())
 	testutils.AssertCopy(t, v, v.Copy())
 }
 
