@@ -11,6 +11,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"golang.org/x/net/context"
@@ -578,7 +579,11 @@ func main() {
 	if *local {
 		serverURL = "http://" + *host + *port
 	}
-	if err := scheduling.InitPubSub(serverURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
+	pubsubServerURL := serverURL
+	if strings.Contains(serverURL, "proxy") {
+		pubsubServerURL = "https://task-scheduler-internal.skia.org"
+	}
+	if err := scheduling.InitPubSub(pubsubServerURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
 		sklog.Fatal(err)
 	}
 	ts, err = scheduling.NewTaskScheduler(tsDb, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools)
