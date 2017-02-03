@@ -22,6 +22,24 @@
       "revId": "1d6dddab7ae00eceed476f1f20fc6772638e4ff9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "825d1d90_738f00cc",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 1
+      },
+      "lineNbr": 906,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-03T20:16:09Z",
+      "side": 1,
+      "message": "My guess is the latter, but I don\u0027t know enough about nginx to say for sure.  Changed as suggested.",
+      "parentUuid": "0415905d_66ba8c9c",
+      "revId": "1d6dddab7ae00eceed476f1f20fc6772638e4ff9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
