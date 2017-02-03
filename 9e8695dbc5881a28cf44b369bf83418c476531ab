@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "03492fe7_de809a3b",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-03T18:53:14Z",
+      "side": 1,
+      "message": "Done. Had to use a *bool.",
+      "parentUuid": "f4bda2b5_ca959356",
+      "revId": "9e8695dbc5881a28cf44b369bf83418c476531ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0888ca99_ac4fb191",
         "filename": "task_scheduler/go/db/db.go",
         "patchSetId": 1
@@ -42,6 +60,24 @@
         "endLine": 303,
         "endChar": 12
       },
+      "revId": "9e8695dbc5881a28cf44b369bf83418c476531ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b54b5b20_2c5f990c",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-03T18:53:14Z",
+      "side": 1,
+      "message": "Just to make the important lines line up.",
+      "parentUuid": "0888ca99_ac4fb191",
       "revId": "9e8695dbc5881a28cf44b369bf83418c476531ab",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
