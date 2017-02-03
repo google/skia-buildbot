@@ -894,7 +894,7 @@ server {
     add_header X-Content-Type-Options nosniff;
 
     location / {
-        deny all;
+        proxy_pass https://skia-task-scheduler-internal-8000-proxy.skia.org;
     }
     location /google2c59f97e1ced9fdc.html {
         add_header Content-Type text/html;
