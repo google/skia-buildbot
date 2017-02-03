@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fad19c53_02f57b4a",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 1
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-03T21:27:53Z",
+      "side": 1,
+      "message": "Did you mean to revert this?",
+      "range": {
+        "startLine": 564,
+        "startChar": 0,
+        "endLine": 565,
+        "endChar": 62
+      },
+      "revId": "5b8c9dc06ba4a8ed44ac511fa3b111cc558e601b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
