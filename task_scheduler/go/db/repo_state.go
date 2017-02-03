@@ -2,9 +2,9 @@ package db
 
 // Patch describes a patch which may be applied to a code checkout.
 type Patch struct {
-	Issue    string
-	Patchset string
-	Server   string
+	Issue    string `json:"issue"`
+	Patchset string `json:"patchset"`
+	Server   string `json:"server"`
 }
 
 // Copy returns a copy of the Patch.
@@ -32,8 +32,8 @@ func (p Patch) Full() bool {
 // repo.
 type RepoState struct {
 	Patch
-	Repo     string
-	Revision string
+	Repo     string `json:"repo"`
+	Revision string `json:"revision"`
 }
 
 // Copy returns a copy of the RepoState.
