@@ -163,3 +163,30 @@ ALERT NamedFiddles
   ANNOTATIONS {
     description = "See https://fiddle.skia.org/f/ and https://skia.googlesource.com/buildbot/+/master/fiddle/PROD.md#named_fail"
   }
+
+# datahopper_internal
+
+ALERT Google3AutorollStalled
+  IF datahopper_internal_ingest_build_webhook_oldest_untested_commit_age/60/60 > 3
+  FOR 2m
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    description = "Commit has not been picked up by Google3-Autoroller for over three hours. https://sites.google.com/a/google.com/skia-infrastructure/docs/google3-autoroller."
+  }
+
+ALERT DatahopperInternalUpdateWebhookMetrics
+  IF liveness_ingest_build_webhook_oldest_untested_commit_age_metric_s/60 > 10
+  FOR 2m
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    description = "datahopper_internal goroutine for updateWebhookMetrics is dead or failing."
+  }
+
+ALERT TooManyGoRoutines
+  IF go_goroutines{instance="skia-internal:20000",job="datahopper_internal"} > 100
+  FOR 2m
+  LABELS { category = "infra", severity = "warning"}
+  ANNOTATIONS {
+    summary = "Too many Go routines in {{ $labels.job }}",
+    description = "Too many Go routines in {{ $labels.job }} running on {{ $labels.instance }}."
+  }
