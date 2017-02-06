@@ -2,6 +2,7 @@ package httputils
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -318,4 +319,24 @@ func getPositiveInt(query url.Values, param string, defaultVal int) (int, error)
 		return defaultVal, nil
 	}
 	return val, nil
+}
+
+// ParseFormValues reads form values from the http.Request and sets them on the
+// given struct. Follows JSON decoding rules.
+func ParseFormValues(r *http.Request, rv interface{}) error {
+	if err := r.ParseForm(); err != nil {
+		return err
+	}
+	// Take the first value for each key.
+	m := make(map[string]string, len(r.Form))
+	for k, v := range r.Form {
+		m[k] = v[0]
+	}
+
+	// Decode using the json package.
+	b, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(b, rv)
 }
