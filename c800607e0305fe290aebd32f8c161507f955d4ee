@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "721f1cb1_dc2f50a7",
+        "filename": "push/skiapush.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-06T18:18:48Z",
+      "side": 0,
+      "message": "Are we ready to remove this entirely?  I still find the cloud logging extremely hard to use compared to the logserver.",
+      "range": {
+        "startLine": 237,
+        "startChar": 5,
+        "endLine": 237,
+        "endChar": 15
+      },
+      "revId": "c800607e0305fe290aebd32f8c161507f955d4ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
