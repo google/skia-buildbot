@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "f2ee698f_ced96b59",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-06T20:22:07Z",
+      "side": 1,
+      "message": "Deep sigh.  Do you want me to rename everything from underscores to camel case?",
+      "parentUuid": "e1ca61d0_d3c7e3c9",
+      "revId": "2dba7936470028d95c5a807ad14d08b64c34a964",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c3809751_dcec5cf4",
         "filename": "task_scheduler/res/imp/task-scheduler-status-sk-demo.html",
         "patchSetId": 1
@@ -42,6 +60,24 @@
         "endLine": 29,
         "endChar": 118
       },
+      "revId": "2dba7936470028d95c5a807ad14d08b64c34a964",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "adf703fc_a72a4c42",
+        "filename": "task_scheduler/res/imp/task-scheduler-status-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-06T20:22:07Z",
+      "side": 1,
+      "message": "I\u0027m actually not sure where \"author\" came from in the first place, as it\u0027s not a field of taskCandidate. Removed, and restructured the whole thing for readability.",
+      "parentUuid": "c3809751_dcec5cf4",
       "revId": "2dba7936470028d95c5a807ad14d08b64c34a964",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
