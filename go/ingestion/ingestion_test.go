@@ -24,15 +24,10 @@ const RFLOCATION_CONTENT = "result file content"
 
 func TestPollingIngester(t *testing.T) {
 	testutils.SmallTest(t)
-	testIngester(t, LOCAL_STATUS_DIR+"-polling", false)
+	testIngester(t, LOCAL_STATUS_DIR+"-polling")
 }
 
-func TestEventIngester(t *testing.T) {
-	testutils.SmallTest(t)
-	testIngester(t, LOCAL_STATUS_DIR+"-events", true)
-}
-
-func testIngester(t *testing.T, statusDir string, asEvents bool) {
+func testIngester(t *testing.T, statusDir string) {
 	defer util.RemoveAll(statusDir)
 
 	now := time.Now()
@@ -47,11 +42,7 @@ func testIngester(t *testing.T, statusDir string, asEvents bool) {
 		assert.NotEqual(t, "", h)
 	}
 
-	useNCommits := -1
-	if asEvents {
-		useNCommits = totalCommits / 2
-	}
-	sources := []Source{MockSource(t, vcs, useNCommits)}
+	sources := []Source{MockSource(t, vcs)}
 
 	// Instantiate the mock processor.
 	collected := map[string]int{}
@@ -156,13 +147,10 @@ func rfLocation(t time.Time, fname string) ResultFileLocation {
 
 // mock source
 type mockSource struct {
-	data          []ResultFileLocation
-	nEventCommits int
+	data []ResultFileLocation
 }
 
-// If the nEventCommits > 0 then it indicates to use events and send
-// that number of result files.
-func MockSource(t *testing.T, vcs vcsinfo.VCS, nEventCommits int) Source {
+func MockSource(t *testing.T, vcs vcsinfo.VCS) Source {
 	hashes := vcs.From(time.Unix(0, 0))
 	ret := make([]ResultFileLocation, 0, len(hashes))
 	for _, h := range hashes {
@@ -171,36 +159,16 @@ func MockSource(t *testing.T, vcs vcsinfo.VCS, nEventCommits int) Source {
 		ret = append(ret, rfLocation(detail.Timestamp, fmt.Sprintf("result-file-%s", h)))
 	}
 	return &mockSource{
-		data:          ret,
-		nEventCommits: nEventCommits,
+		data: ret,
 	}
 }
 
 func (m *mockSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
-	if m.nEventCommits <= 0 {
-		startIdx := sort.Search(len(m.data), func(i int) bool { return m.data[i].TimeStamp() >= startTime })
-		endIdx := startIdx
-		for ; (endIdx < len(m.data)) && (m.data[endIdx].TimeStamp() <= endTime); endIdx++ {
-		}
-		return m.data[startIdx:endIdx], nil
+	startIdx := sort.Search(len(m.data), func(i int) bool { return m.data[i].TimeStamp() >= startTime })
+	endIdx := startIdx
+	for ; (endIdx < len(m.data)) && (m.data[endIdx].TimeStamp() <= endTime); endIdx++ {
 	}
-	return []ResultFileLocation{}, nil
-}
-
-func (m *mockSource) EventChan() <-chan []ResultFileLocation {
-	if m.nEventCommits > 0 {
-		ch := make(chan []ResultFileLocation)
-		go func() {
-			for _, oneEntry := range m.data[len(m.data)-m.nEventCommits:] {
-				go func(entry ResultFileLocation) {
-					ch <- []ResultFileLocation{entry}
-				}(oneEntry)
-				time.Sleep(time.Millisecond)
-			}
-		}()
-		return ch
-	}
-	return nil
+	return m.data[startIdx:endIdx], nil
 }
 
 func (m mockSource) ID() string {
