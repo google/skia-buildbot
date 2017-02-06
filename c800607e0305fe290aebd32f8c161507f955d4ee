@@ -22,6 +22,24 @@
       "revId": "c800607e0305fe290aebd32f8c161507f955d4ee",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d1cbb9e_5933aa32",
+        "filename": "push/skiapush.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-02-06T18:28:41Z",
+      "side": 0,
+      "message": "Personally I am ready to move 100% to cloud logging, I find it much more convenient, faster, and much easier to filter.",
+      "parentUuid": "721f1cb1_dc2f50a7",
+      "revId": "c800607e0305fe290aebd32f8c161507f955d4ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
