@@ -43,6 +43,24 @@
     },
     {
       "key": {
+        "uuid": "b625a0b8_b3b1036b",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-06T20:49:07Z",
+      "side": 1,
+      "message": "/shrug I went with camel case for property names in https://skia-review.googlesource.com/c/7604/, but our current JS is almost 50/50 split between camel case and snake case.",
+      "parentUuid": "f2ee698f_ced96b59",
+      "revId": "2dba7936470028d95c5a807ad14d08b64c34a964",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c3809751_dcec5cf4",
         "filename": "task_scheduler/res/imp/task-scheduler-status-sk-demo.html",
         "patchSetId": 1
