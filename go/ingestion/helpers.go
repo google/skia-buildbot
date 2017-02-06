@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
-	gc_event "go.skia.org/infra/grandcentral/go/event"
 	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 )
@@ -178,19 +177,7 @@ func (g *GoogleStorageSource) Poll(startTime, endTime int64) ([]ResultFileLocati
 
 // See Source interface.
 func (g *GoogleStorageSource) EventChan() <-chan []ResultFileLocation {
-	ch := make(chan []ResultFileLocation)
-	g.evt.SubscribeAsync(gc_event.StorageEvent(g.bucket, g.rootDir), func(eventData interface{}) {
-		storageEv := eventData.(*gc_event.GoogleStorageEventData)
-		if validIngestionFile(storageEv.Name) {
-			result, err := g.storageClient.Bucket(storageEv.Bucket).Object(storageEv.Name).Attrs(context.Background())
-			if err != nil {
-				sklog.Errorf("Error retrievint obj attributes for %s/%s: %s", storageEv.Bucket, storageEv.Name, err)
-				return
-			}
-			ch <- []ResultFileLocation{newGCSResultFileLocation(result, g.rootDir, g.storageClient)}
-		}
-	})
-	return ch
+	return nil
 }
 
 // See Source interface.

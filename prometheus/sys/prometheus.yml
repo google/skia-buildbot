@@ -79,7 +79,6 @@ scrape_configs:
       - targets: ['skia-gold-pdfium:11000']
       - targets: ['skia-gold-prod:11000']
       - targets: ['skia-gold-stage:11000']
-      - targets: ['skia-grandcentral:11000']
       - targets: ['skia-imageinfo:11000']
       - targets: ['skia-internal:11000']
       - targets: ['skia-monitoring:11000']
