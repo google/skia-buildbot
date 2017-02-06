@@ -9,8 +9,7 @@ ExecStart=/usr/local/bin/autoroll \
     --host=catapult-roll.skia.org \
     --influxdb_database=skmetrics \
     --influxdb_host=skia-monitoring:10117 \
-    --log_dir=/var/log/logserver \
-    --log_max_size=10485760 \
+    --logtostderr \
     --workdir=/mnt/pd0/autoroll_workdir \
     --childName=Catapult \
     --childPath=src/third_party/catapult \
