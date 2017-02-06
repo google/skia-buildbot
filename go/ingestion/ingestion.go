@@ -45,11 +45,6 @@ type Source interface {
 	// timestamps in milliseconds.
 	Poll(startTime, endTime int64) ([]ResultFileLocation, error)
 
-	// EventChan returns a channel that sends lists of result files when they
-	// are ready for processing. If this source does not support events it should
-	// return nil.
-	EventChan() <-chan []ResultFileLocation
-
 	// ID returns a unique identifier for this source.
 	ID() string
 }
@@ -229,35 +224,6 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 				srcMetrics.pollTimer.Stop()
 			})
 		}(source, i.srcMetrics[idx], i.doneCh)
-
-		if ch := source.EventChan(); ch != nil {
-			go func(ch <-chan []ResultFileLocation, doneCh <-chan bool, srcMetrics *sourceMetrics) {
-				queue := rflQueue{}
-				for {
-					// If the queue is not empty, try to send the data while we wait for more data.
-					if len(queue) > 0 {
-						select {
-						case eventChan <- queue:
-							srcMetrics.eventsReceived.Update(int64(len(queue)))
-							queue.clear()
-						case results := <-ch:
-							queue.push(results)
-						case <-doneCh:
-							return
-						}
-					} else {
-						// if the queue is empty we just wait for data.
-						select {
-						case results := <-ch:
-							queue.push(results)
-						case <-doneCh:
-							return
-						}
-
-					}
-				}
-			}(ch, i.doneCh, i.srcMetrics[idx])
-		}
 	}
 	return pollChan, eventChan
 }
