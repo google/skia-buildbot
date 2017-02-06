@@ -20,16 +20,16 @@ import (
 
 // taskCandidate is a struct used for determining which tasks to schedule.
 type taskCandidate struct {
-	Commits        []string
-	IsolatedInput  string
-	IsolatedHashes []string
-	JobCreated     time.Time
-	ParentTaskIds  []string
-	RetryOf        string
-	Score          float64
-	StealingFromId string
+	Commits        []string  `json:"commits"`
+	IsolatedInput  string    `json:"isolated_input"`
+	IsolatedHashes []string  `json:"isolated_hashes"`
+	JobCreated     time.Time `json:"job_created"`
+	ParentTaskIds  []string  `json:"parent_task_ids"`
+	RetryOf        string    `json:"retry_of"`
+	Score          float64   `json:"score"`
+	StealingFromId string    `json:"stealing_from_id"`
 	db.TaskKey
-	TaskSpec *specs.TaskSpec
+	TaskSpec *specs.TaskSpec `json:"task_spec"`
 }
 
 // Copy returns a copy of the taskCandidate.
