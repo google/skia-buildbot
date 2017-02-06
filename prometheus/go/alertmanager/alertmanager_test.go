@@ -86,7 +86,7 @@ func TestChatlBody(t *testing.T) {
 
 	expectedBody := `*PerfAlert*
 
-   *Firing* (Warning) At least one untriaged perf cluster has been found. Please visit https://perf.skia.org/t/ to triage.
+  *Firing* (Warning) At least one untriaged perf cluster has been found. Please visit https://perf.skia.org/t/ to triage.
 `
 
 	body, err := Chat(bytes.NewBufferString(r))
