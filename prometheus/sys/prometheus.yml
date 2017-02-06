@@ -6,6 +6,13 @@ scrape_configs:
     static_configs:
       - targets: ['skia-android-ingest:20000']
 
+  - job_name: 'autoroll'
+    static_configs:
+      - targets: ['skia-autoroll:20000']
+      - targets: ['catapult-autoroll:20000']
+      - targets: ['nacl-autoroll:20000']
+      - targets: ['pdfium-autoroll:20000']
+
   - job_name: 'collectd'
     static_configs:
       - targets: ['skia-monitoring:20002']

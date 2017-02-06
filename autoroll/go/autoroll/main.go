@@ -44,22 +44,22 @@ var (
 
 // flags
 var (
-	host           = flag.String("host", "localhost", "HTTP service host")
-	port           = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
-	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
 	childName      = flag.String("childName", "Skia", "Name of the project to roll.")
 	childPath      = flag.String("childPath", "src/third_party/skia", "Path within Chromium repo of the project to roll.")
 	cqExtraTrybots = flag.String("cqExtraTrybots", "", "Comma-separated list of trybots to run.")
+	depot_tools    = flag.String("depot_tools", "", "Path to the depot_tools installation. If empty, assumes depot_tools is in PATH.")
+	host           = flag.String("host", "localhost", "HTTP service host")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port           = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
+	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	sheriff        = flag.String("sheriff", "", "Email address to CC on rolls, or URL from which to obtain such an email address.")
-	depot_tools    = flag.String("depot_tools", "", "Path to the depot_tools installation. If empty, assumes depot_tools is in PATH.")
-
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
+	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
 )
 
 func getSheriff() ([]string, error) {
@@ -164,7 +164,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func runServer(serverURL string) {
+func runServer() {
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", mainHandler)
@@ -175,13 +175,18 @@ func runServer(serverURL string) {
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	sklog.Infof("Ready to serve on %s", serverURL)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics2("autoroll", influxHost, influxUser, influxPassword, influxDatabase, local)
+	common.InitWithMust(
+		"autoroll",
+		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
+
 	Init()
 
 	v, err := skiaversion.GetVersion()
@@ -243,16 +248,7 @@ func main() {
 		}
 	}()
 
-	serverURL := "https://" + *host
-	if *local {
-		serverURL = "http://" + *host + *port
-	}
+	login.SimpleInitMust(*port, *local)
 
-	redirectURL := serverURL + "/oauth2callback/"
-
-	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		sklog.Fatalf("Failed to initialize the login system: %s", err)
-	}
-
-	runServer(serverURL)
+	runServer()
 }
