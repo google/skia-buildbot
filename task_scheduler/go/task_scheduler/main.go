@@ -403,9 +403,8 @@ func jsonTaskHandler(w http.ResponseWriter, r *http.Request) {
 // jsonJobSearchHandler allows for searching Jobs based on various parameters.
 func jsonJobSearchHandler(w http.ResponseWriter, r *http.Request) {
 	var params db.JobSearchParams
-	defer util.Close(r.Body)
-	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
+	if err := httputils.ParseFormValues(r, &params); err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse request parameters.")
 		return
 	}
 	jobs, err := db.SearchJobs(tsDb, &params)
