@@ -67,19 +67,19 @@ const (
 // flags
 var (
 	buildbotDbHost     = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
-	taskSchedulerUrl   = flag.String("task_scheduler_url", "http://skia-task-scheduler:8000/json/task", "URL for the task scheduler JSON API POST/PUT handlers.")
-	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
-	port               = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	workdir            = flag.String("workdir", ".", "Working directory used by data processors.")
-	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	targetList         = flag.String("targets", "", "The targets to monitor, a space separated list.")
 	codenameDbDir      = flag.String("codename_db_dir", "codenames", "The location of the leveldb database that holds the mappings between targets and their codenames.")
+	influxDatabase     = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	influxHost         = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxPassword     = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxUser         = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	period             = flag.Duration("period", 5*time.Minute, "The time between ingestion runs.")
-
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	port               = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	targetList         = flag.String("targets", "", "The targets to monitor, a space separated list.")
+	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
+	taskSchedulerUrl   = flag.String("task_scheduler_url", "http://skia-task-scheduler:8000/json/task", "URL for the task scheduler JSON API POST/PUT handlers.")
+	workdir            = flag.String("workdir", ".", "Working directory used by data processors.")
 )
 
 var (
@@ -724,8 +724,12 @@ func main() {
 
 	var err error
 
-	// Global init to initialize glog and parse arguments.
-	common.InitWithMetrics2("datahopper_internal", influxHost, influxUser, influxPassword, influxDatabase, local)
+	common.InitWithMust(
+		"datahopper_internal",
+		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
 
 	if !*local {
 		*targetList = metadata.Must(metadata.ProjectGet("datahopper_internal_targets"))
@@ -759,14 +763,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
-	if !*local {
-		redirectURL = "https://internal.skia.org/oauth2callback/"
-	}
-	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		sklog.Fatalf("Failed to initialize login system: %s", err)
-
-	}
+	login.SimpleInitMust(*port, *local)
 
 	if *local {
 		webhook.InitRequestSaltForTesting()
