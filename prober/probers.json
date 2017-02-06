@@ -441,13 +441,6 @@
      "body": "",
      "mimetype": "application/json"
    },
-   "ctfe_get_oldest_pending_task": {
-     "url": "https://ct.skia.org/_/get_oldest_pending_task",
-     "method": "GET",
-     "expected": [500],
-     "body": "",
-     "mimetype": "application/json"
-   },
    "ctfe_any_skp_repository_available": {
      "url": "https://ct.skia.org/_/get_capture_skp_tasks?size=1&successful=true",
      "method": "POST",
