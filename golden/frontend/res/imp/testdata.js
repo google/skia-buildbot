@@ -18269,3 +18269,29 @@ testdata.trybotResults = {
     "url": "https://codereview.chromium.org/1953533002"
   }
 };
+
+testdata.failures = {
+  "count": 4,
+  "failures": [
+    {
+    "digest": "bbbbbb3ef66d2f13135849b4b615ffd2",
+    "reason": "http_error",
+    "ts": 1485896155884
+    },
+    {
+    "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "reason": "http_error",
+    "ts": 1485895953676
+    },
+    {
+    "digest": "768566a6a13e170e6fb161a11685facd",
+    "reason": "http_error",
+    "ts": 1484331213427
+    },
+    {
+    "digest": "52837a541c663c77a87282bea3d7f509",
+    "reason": "http_error",
+    "ts": 1484242980090
+    }
+  ]
+};
