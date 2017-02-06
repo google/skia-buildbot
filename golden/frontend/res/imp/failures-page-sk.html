@@ -1,19 +1,122 @@
-<!--
-  TODO(stephana): Place holder for old page to be ported over. 
+<!-- The <failures-page-sk> custom element declaration.
+
+  The failures-page-sk custom element renders the list of digests that could
+  not be downloaded or decoded.
+
+  Attributes: None
+
+  Events: None
+
+  Methods: None
+
 -->
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="activity-sk.html">
+<link rel="import" href="shared-styles.html">
 
 <dom-module id="failures-page-sk">
   <template>
-   TODO failures
+    <style include="shared-styles"></style>
+    <style include="iron-flex iron-flex-alignment">
+      .digestHeader,
+      .dateTimeHeader,
+      .reasonHeader {
+        font-weight: bold;
+      }
+
+      .digestHeader,
+      .digestValue {
+        width: 20em;
+      }
+
+      .dateTimeHeader,
+      .dateTimeValue {
+        width: 15em;
+      }
+
+      .reasonHeader,
+      .reasonValue {
+        width: 12em;
+      }
+
+      .headerContainer {
+        padding-top: 2em;
+      }
+    </style>
+    <h2>Digest Failures</h2>
+    <activity-sk id="activityFailures"></activity-sk>
+    <table class="headerContainer">
+      <thead>
+        <tr>
+          <td class="dateTimeHeader">Date/Time</td>
+          <td class="digestHeader">Digest</td>
+          <td class="reasonHeader">Reason</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+        </tr>
+
+        <template is="dom-repeat" items="[[_failureSummary.failures]]" as="entry">
+          <tr>
+            <td class="dateTimeValue">[[_toLocalDate(entry.ts)]]</td>
+            <td class="digestValue"><a href$="[[_imgHref(entry)]]" target="_blank" rel="noopener">[[entry.digest]]</a></td>
+            <td class="reasonValue">[[entry.reason]]</td>
+            <td><paper-button on-tap="_handleClear" title="Remove from server cache" data-digestid$="[[entry.digest]]">Clear</paper-button></td>
+            <td><paper-button on-tap="_handlePurge" title="Remove from cache and Google storage" data-digestid$="[[entry.digest]]">Purge</paper-button></td>
+          </tr>
+        </template>
+      </thead>
+    </table>
   </template>
   <script>
     Polymer({
-      is: "failures-page-sk",
+      is: 'failures-page-sk',
 
-      pageSelected: function(routeName) {
+      properties: {
+        _failureSummary: {
+          type: Object,
+        }
       },
 
-      pageDeselected: function() {
+      pageSelected: function() {
+        // Fetch the list of failures from the backend.
+        var url = '/json/failure';
+        gold.loadWithActivity(this, url, this.$.activityFailures, '_failureSummary');
+      },
+
+      pageDeselected: function() {},
+
+      // _clear removes a failure entry from the backend. If gsPurge is true it will
+      // cause the backend to also remove the digest from Google Storage.
+      _clear: function (event, gsPurge) {
+        var url = '/json/failure/clear' + ((gsPurge) ? '?purge=true':'');
+        var digests = [event.target.dataset.digestid];
+        this.$.activityFailures.startSpinner("Loading...");
+        sk.post(url, JSON.stringify(digests)).then(JSON.parse).then(function(json){
+          this.set('_failureSummary', json);
+          this.$.activityFailures.stopSpinner();
+        }.bind(this)).catch(function(err) {
+          this.$.activityFailures.stopSpinner();
+          sk.errorMessage(err);
+        }.bind(this));
+      },
+
+      _handleClear: function (event) {
+        this._clear(event, false);
+      },
+
+      _handlePurge: function (event) {
+        this._clear(event, true);
+      },
+
+      _toLocalDate: function (timeStampSec) {
+        return new Date(timeStampSec * 1000).toLocaleString();
+      },
+
+      _imgHref: function (entry) {
+        return gold.imgHref(entry.digest);
       }
     });
   </script>
