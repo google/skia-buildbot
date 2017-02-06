@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e1ca61d0_d3c7e3c9",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-06T19:05:40Z",
+      "side": 1,
+      "message": "nit: should be buildbucketBuildId according to https://google.github.io/styleguide/javascriptguide.xml#Naming (linked to from https://skia.googlesource.com/buildbot/+/master/STYLEGUIDE.md)",
+      "range": {
+        "startLine": 96,
+        "startChar": 33,
+        "endLine": 96,
+        "endChar": 53
+      },
+      "revId": "2dba7936470028d95c5a807ad14d08b64c34a964",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3809751_dcec5cf4",
+        "filename": "task_scheduler/res/imp/task-scheduler-status-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-06T19:05:40Z",
+      "side": 1,
+      "message": "I don\u0027t see where Author is modified in this CL.",
+      "range": {
+        "startLine": 29,
+        "startChar": 112,
+        "endLine": 29,
+        "endChar": 118
+      },
+      "revId": "2dba7936470028d95c5a807ad14d08b64c34a964",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
