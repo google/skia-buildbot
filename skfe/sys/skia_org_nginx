@@ -556,7 +556,10 @@ server {
     error_log /var/log/nginx/status-internal.error.log error;
 
     # Enforce browser XSS protection
-    add_header X-XSS-Protection "1; mode=block";
+    # This header is added by the proxy; adding it again causes
+    # it to get mangled and reset to the default by the browser.
+    #add_header X-XSS-Protection "1; mode=block";
+
     # Disable content sniffing
     add_header X-Content-Type-Options nosniff;
 
@@ -889,7 +892,10 @@ server {
     error_log /var/log/nginx/task-scheduler-internal.error.log error;
 
     # Enforce browser XSS protection
-    add_header X-XSS-Protection "1; mode=block";
+    # This header is added by the proxy; adding it again causes
+    # it to get mangled and reset to the default by the browser.
+    #add_header X-XSS-Protection "1; mode=block";
+
     # Disable content sniffing
     add_header X-Content-Type-Options nosniff;
 
