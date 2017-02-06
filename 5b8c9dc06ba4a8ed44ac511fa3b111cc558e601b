@@ -22,6 +22,24 @@
       "revId": "5b8c9dc06ba4a8ed44ac511fa3b111cc558e601b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d88bc98d_88fabefd",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 1
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-06T12:37:12Z",
+      "side": 1,
+      "message": "Nope. My Git-magic did not work as expected.",
+      "parentUuid": "fad19c53_02f57b4a",
+      "revId": "5b8c9dc06ba4a8ed44ac511fa3b111cc558e601b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
