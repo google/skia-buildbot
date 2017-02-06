@@ -16,6 +16,24 @@
       "revId": "27c79feea01faa033d1eb81a1dae1cb3e3153e2d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96a858d7_7f987f94",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-02-06T14:37:07Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "10f394e5_01cec966",
+      "revId": "27c79feea01faa033d1eb81a1dae1cb3e3153e2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
