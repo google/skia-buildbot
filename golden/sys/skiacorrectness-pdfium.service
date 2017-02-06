@@ -27,7 +27,8 @@ ExecStart=/usr/local/bin/skiacorrectness-pdfium  \
     --backfill_tiles=2 \
     --resources_dir=/usr/local/share/skiacorrectness/frontend \
     --show_bot_progress=false \
-    --app_title="Pdfium Gold"
+    --app_title="Pdfium Gold" \
+    --prom_port=:20001
 
 Restart=always
 User=default
