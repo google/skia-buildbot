@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"go.skia.org/infra/go/util"
@@ -117,6 +119,47 @@ func (v *Validation) StrValue(name string, val *string, options []string, defaul
 	if !util.In(*val, options) {
 		*v = append(*v, fmt.Sprintf("Field '%s' needs to be one of '%s'", name, strings.Join(options, ",")))
 	}
+}
+
+// StrFormValue does the same as StrValue but extracts the given name from
+// the request via r.FormValue(..).
+func (v *Validation) StrFormValue(r *http.Request, name string, val *string, options []string, defaultVal string) {
+	*val = r.FormValue(name)
+	v.StrValue(name, val, options, defaultVal)
+}
+
+func (v *Validation) Float32Value(name string, strVal string, val *float32, defaultVal float32) {
+	if strVal == "" {
+		*val = defaultVal
+		return
+	}
+
+	tempVal, err := strconv.ParseFloat(strVal, 32)
+	if err != nil {
+		*v = append(*v, fmt.Sprintf("Field '%s' is not a valid float: %s", name, err))
+	}
+	*val = float32(tempVal)
+}
+
+func (v *Validation) Int32Value(name string, strVal string, val *int32, defaultVal int32) {
+	if strVal == "" {
+		*val = defaultVal
+		return
+	}
+
+	tempVal, err := strconv.ParseInt(strVal, 10, 32)
+	if err != nil {
+		*v = append(*v, fmt.Sprintf("Field '%s' is not a valid int: %s", name, err))
+	}
+	*val = int32(tempVal)
+}
+
+func (v *Validation) Float32FormValue(r *http.Request, name string, val *float32, defaultVal float32) {
+	v.Float32Value(name, r.FormValue(name), val, defaultVal)
+}
+
+func (v *Validation) Int32FormValue(r *http.Request, name string, val *int32, defaultVal int32) {
+	v.Int32Value(name, r.FormValue(name), val, defaultVal)
 }
 
 // Errors returns a concatination of all error values accumulated in validation or nil

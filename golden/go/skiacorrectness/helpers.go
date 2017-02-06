@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 )
@@ -32,6 +33,7 @@ var (
 	statusWatcher *status.StatusWatcher
 	ixr           *indexer.Indexer
 	issueTracker  issues.IssueTracker
+	searchAPI     *search.SearchAPI
 )
 
 // setJSONHeaders sets secure headers for JSON responses.
