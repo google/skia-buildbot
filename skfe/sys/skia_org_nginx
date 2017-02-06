@@ -746,38 +746,6 @@ server {
     return 301 https://reviews.skia.org$request_uri;
 }
 
-#####   grandcentral.skia.org   ###########################
-server {
-    listen      443;
-    server_name grandcentral.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/grand-central.access.log;
-    error_log /var/log/nginx/grand-central.error.log error;
-
-    # Enforce browser XSS protection
-    add_header X-XSS-Protection "1; mode=block";
-    # Disable content sniffing
-    add_header X-Content-Type-Options nosniff;
-
-    location / {
-        # Return 200 if the backend is down so we avoid Google Storage to
-        # keep sending undelivered events.
-        error_page 502 504 =200 @empty;
-        proxy_pass http://skia-grandcentral:8002;
-        proxy_set_header Host $host;
-    }
-
-    location @empty {
-        return 200 '';
-    }
-}
-server {
-    listen      80;
-    server_name grandcentral.skia.org;
-    return 301 https://grandcentral.skia.org$request_uri;
-}
 
 #####   internal.skia.org   ###########################
 server {
