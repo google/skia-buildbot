@@ -104,20 +104,20 @@
         <div class="tr"><div class="td">Duration</div><div class="td">[[_duration]]</div></div>
         <div class="tr">
           <div class="td">Repo</div>
-          <div class="td"><a href$="[[_job.Repo]]" target="_blank">[[_job.Repo]]</a></div>
+          <div class="td"><a href$="[[_job.repo]]" target="_blank">[[_job.repo]]</a></div>
         </div>
         <div class="tr">
           <div class="td">Revision</div>
-          <div class="td"><a href$="[[_revisionLink]]" target="_blank">[[_job.Revision]]</a></div>
+          <div class="td"><a href$="[[_revisionLink]]" target="_blank">[[_job.revision]]</a></div>
         </div>
         <template is="dom-if" if="[[_isTryJob]]">
           <div class="tr">
             <div class="td">Codereview Link</div>
             <div class="td"><a href$="[[_codereviewLink]]" target="_blank">[[_codereviewLink]]</a></div>
           </div>
-          <div class="tr"><div class="td">Codereview Server</div><div class="td">[[_job.Server]]</div></div>
-          <div class="tr"><div class="td">Issue</div><div class="td">[[_job.Issue]]</div></div>
-          <div class="tr"><div class="td">Patchset</div><div class="td">[[_job.Patchset]]</div></div>
+          <div class="tr"><div class="td">Codereview Server</div><div class="td">[[_job.server]]</div></div>
+          <div class="tr"><div class="td">Issue</div><div class="td">[[_job.issue]]</div></div>
+          <div class="tr"><div class="td">Patchset</div><div class="td">[[_job.patchset]]</div></div>
         </template>
         <div class="tr"><div class="td">Manually forced</div><div class="td">[[_job.IsForce]]</div></div>
       </div>
@@ -217,10 +217,10 @@
       },
 
       _computeCodereviewLink: function(job) {
-        if (job.Server.indexOf("codereview.chromium") != -1) {
-          return job.Server + "/" + job.Issue + "/#ps" + job.Patchset;
+        if (job.server.indexOf("codereview.chromium") != -1) {
+          return job.server + "/" + job.issue + "/#ps" + job.patchset;
         } else {
-          return job.Server + "/c/" + job.Issue + "/" + job.Patchset;
+          return job.server + "/c/" + job.issue + "/" + job.patchset;
         }
       },
 
@@ -238,12 +238,12 @@
       },
 
       _computeIsTryJob: function(job) {
-        return job.Server != "" && job.Issue != "" && job.Patchset != "";
+        return job.server != "" && job.issue != "" && job.patchset != "";
       },
 
       _computeRevisionLink: function(job) {
         // This assumes we use Gitiles, but that's a safe assumption for now.
-        return job.Repo + "/+/" + job.Revision;
+        return job.repo + "/+/" + job.revision;
       },
 
       _computeStatusText: function(job) {
