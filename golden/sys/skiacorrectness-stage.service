@@ -22,8 +22,10 @@ ExecStart=/usr/local/bin/skiacorrectness-stage \
     --gs_buckets=skia-infra-gm,chromium-skia-gm   \
     --n_commits=100   \
     --cache_size=20 \
-    --backfill_tiles=2 --resources_dir=/usr/local/share/skiacorrectness/frontend \
-    --app_title="Staging Gold"
+    --backfill_tiles=2 \
+    --resources_dir=/usr/local/share/skiacorrectness/frontend \
+    --app_title='Staging Gold' \
+    --prom_port=:20001
 
 Restart=always
 User=default
