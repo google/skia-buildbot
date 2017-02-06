@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "41a15620_091e5a6a",
+        "filename": "prometheus/go/alertmanager/alertmanager.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-02-06T15:14:23Z",
+      "side": 1,
+      "message": "Intentional logging.",
+      "revId": "0a0188baaa06fa77cc64a9a48638334a3a2ecaa1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
