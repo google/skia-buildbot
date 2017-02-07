@@ -68,6 +68,7 @@ var (
 	forceReanalysis = flag.Bool("force_reanalysis", false, "(debug only) If the fuzzes should be downloaded, re-analyzed, (deleted from GCS), and reuploaded.")
 	verboseBuilds   = flag.Bool("verbose_builds", false, "If output from ninja and gyp should be printed to stdout.")
 	local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	promPort        = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 )
 
 var (
@@ -79,7 +80,12 @@ var (
 func main() {
 	defer common.LogPanic()
 	// Calls flag.Parse()
-	common.InitWithCloudLogging("fuzzer-be", influxHost, influxUser, influxPassword, influxDatabase, local)
+	common.InitWithMust(
+		"fuzzer-be",
+		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
 
 	if err := writeFlagsToConfig(); err != nil {
 		sklog.Fatalf("Problem with configuration: %v", err)

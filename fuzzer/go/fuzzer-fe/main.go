@@ -85,6 +85,7 @@ var (
 	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	boltDBPath   = flag.String("bolt_db_path", "fuzzer-db", "The path to the bolt db to be used as a local cache.")
+	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 
 	// OAUTH params
 	authWhiteList = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
@@ -134,7 +135,12 @@ func reloadTemplates() {
 func main() {
 	defer common.LogPanic()
 	// Calls flag.Parse()
-	common.InitWithCloudLogging("fuzzer-fe", influxHost, influxUser, influxPassword, influxDatabase, local)
+	common.InitWithMust(
+		"fuzzer-fe",
+		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
 
 	if err := writeFlagsToConfig(); err != nil {
 		sklog.Fatalf("Problem with configuration: %s", err)
