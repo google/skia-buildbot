@@ -5,7 +5,7 @@ After=network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/fuzzer-be \
-  --log_dir=/var/log/logserver \
+  --logtostderr \
   --influxdb_database=skmetrics \
   --influxdb_host=skia-monitoring:10117 \
   --skia_root=/mnt/ssd0/skia-be \

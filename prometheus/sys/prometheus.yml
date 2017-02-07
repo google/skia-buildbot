@@ -49,6 +49,15 @@ scrape_configs:
     static_configs:
       - targets: ['skia-fiddle:20000']
 
+  - job_name: 'fuzzer-be'
+    static_configs:
+      - targets: ['skia-fuzzer-be-1:20000']
+      - targets: ['skia-fuzzer-be-2:20000']
+
+  - job_name: 'fuzzer-fe'
+    static_configs:
+      - targets: ['skia-fuzzer-fe:20000']
+
   - job_name: 'imageinfo'
     static_configs:
       - targets: ['skia-imageinfo:20000']
