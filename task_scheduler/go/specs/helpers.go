@@ -16,6 +16,8 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/pmezard/go-difflib/difflib"
+
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/common"
@@ -214,7 +216,27 @@ func (b *TasksCfgBuilder) Finish() error {
 			return err
 		}
 		if !bytes.Equal(expect, enc) {
-			return fmt.Errorf("Expected no changes, but changes were found!")
+			diff, err := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
+				A:        difflib.SplitLines(string(expect)),
+				B:        difflib.SplitLines(string(enc)),
+				FromFile: "Expected",
+				ToFile:   "Actual",
+				Context:  3,
+				Eol:      "\n",
+			})
+			if err != nil {
+				diff = fmt.Sprintf("<failed to obtain diff: %s>", err)
+			}
+			return fmt.Errorf(`Expected no changes, but changes were found:
+
+%s
+
+
+You may need to run:
+
+	$ go run infra/bots/gen_tasks.go
+
+`, diff)
 		}
 	} else {
 		if err := ioutil.WriteFile(outFile, enc, os.ModePerm); err != nil {
@@ -228,6 +250,7 @@ func (b *TasksCfgBuilder) Finish() error {
 // provided, verifies that the contents have not changed. Panics on failure.
 func (b *TasksCfgBuilder) MustFinish() {
 	if err := b.Finish(); err != nil {
-		sklog.Fatal(err)
+		sklog.Error(err)
+		os.Exit(1)
 	}
 }
