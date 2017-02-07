@@ -69,7 +69,7 @@ func (g *Generator) Start() error {
 		fuzzCount = 4
 	}
 
-	g.fuzzProcessCount = metrics2.GetCounter("afl-fuzz-process-count", map[string]string{"category": g.Category, "architecture": config.Generator.Architecture})
+	g.fuzzProcessCount = metrics2.GetCounter("afl-fuzz-process-count", map[string]string{"fuzz_category": g.Category, "architecture": config.Generator.Architecture})
 	g.fuzzProcessCount.Inc(int64(fuzzCount))
 	for i := 1; i < fuzzCount; i++ {
 		fuzzerName := fmt.Sprintf("fuzzer%d", i)
@@ -164,9 +164,9 @@ func (g *Generator) Stop() {
 		sklog.Warningf("Could not clear out old fuzzer_stats file %s: %s", statsFile, err)
 	}
 
-	metrics2.GetInt64Metric("fuzzer.stats.execs-per-sec", map[string]string{"category": g.Category}).Update(0)
-	metrics2.GetInt64Metric("fuzzer.stats.paths-total", map[string]string{"category": g.Category}).Update(0)
-	metrics2.GetInt64Metric("fuzzer.stats.cycles-done", map[string]string{"category": g.Category}).Update(0)
+	metrics2.GetInt64Metric("fuzzer.stats.execs-per-sec", map[string]string{"fuzz_category": g.Category}).Update(0)
+	metrics2.GetInt64Metric("fuzzer.stats.paths-total", map[string]string{"fuzz_category": g.Category}).Update(0)
+	metrics2.GetInt64Metric("fuzzer.stats.cycles-done", map[string]string{"fuzz_category": g.Category}).Update(0)
 }
 
 // DownloadSeedFiles downloads the seed files stored in Google Storage to be used by afl-fuzz.  It
