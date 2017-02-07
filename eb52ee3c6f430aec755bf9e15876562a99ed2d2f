@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "40b0aaff_52079837",
+        "filename": "ct/res/imp/chromium-perf-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-07T17:44:20Z",
+      "side": 1,
+      "message": "nit: don\u0027t change selection if it\u0027s valid",
+      "range": {
+        "startLine": 289,
+        "startChar": 41,
+        "endLine": 289,
+        "endChar": 44
+      },
+      "revId": "eb52ee3c6f430aec755bf9e15876562a99ed2d2f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
