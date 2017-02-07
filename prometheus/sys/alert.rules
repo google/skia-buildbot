@@ -28,7 +28,6 @@ ALERT ProbeFailure
 
 ALERT RebootRequired
   IF reboot_required_i > 0
-  FOR 5m
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     description = "Instance {{ $labels.host }} needs rebooting. Owner(s): {{ $labels.owners }}. See https://mon.skia.org/dashboard/db/reboots-required for the full list of instances that need rebooting.",
@@ -106,7 +105,6 @@ ALERT CTFEErrorRate
 # Perf
 ALERT PerfUntriagedClusters
   IF perf_clustering_untriaged{instance="skia-perf:20000"} > 0
-  FOR 2m
   LABELS { category = "general", severity = "warning" }
   ANNOTATIONS {
     summary = "One or more untriaged clusters.",
@@ -115,7 +113,6 @@ ALERT PerfUntriagedClusters
 
 ALERT AndroidPerfUntriagedClusters
   IF perf_clustering_untriaged{instance="skia-android-perf:20000"} > 0
-  FOR 2m
   LABELS { category = "general", severity = "warning", specialroute = "android" }
   ANNOTATIONS {
     summary = "One or more untriaged clusters.",
@@ -124,7 +121,6 @@ ALERT AndroidPerfUntriagedClusters
 
 ALERT AndroidIngestFailures
   IF rate(process_failures[2m]) > 0.1
-  FOR 2m
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     description = "Error rate for processing buildids is too high. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#process_failures."
@@ -132,7 +128,6 @@ ALERT AndroidIngestFailures
 
 ALERT PerfIngestErrorTooHigh
   IF rate(ingestion{metric="errors"}[5m]) > 1
-  FOR 2m
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     description = "Perf ingestion error rate too high. See https://prom.skia.org/graph?g0.range_input=1h&g0.expr=rate(ingestion%7Bmetric%3D%22errors%22%7D%5B5m%5D)&g0.tab=0"
@@ -142,7 +137,6 @@ ALERT PerfIngestErrorTooHigh
 
 ALERT BuildsFailed
   IF builds_failed >= 2
-  FOR 5m
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     description = "Build for {{ $labels.job }} has failed for the last 2 chrome DEPS rolls. https://skia.googlesource.com/buildbot/+/master/{{ $labels.job }}/PROD.md#build_fail"
@@ -150,7 +144,6 @@ ALERT BuildsFailed
 
 ALERT SyncFailed
   IF repo_sync_failed >= 2
-  FOR 5m
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     description = "Sync for {{ $labels.job }} has failed 2 times in a row. https://skia.googlesource.com/buildbot/+/master/{{ $labels.job }}/PROD.md#sync_fail"
@@ -158,7 +151,6 @@ ALERT SyncFailed
 
 ALERT NamedFiddles
   IF named_failures > 0
-  FOR 5m
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     description = "See https://fiddle.skia.org/f/ and https://skia.googlesource.com/buildbot/+/master/fiddle/PROD.md#named_fail"
@@ -168,7 +160,6 @@ ALERT NamedFiddles
 
 ALERT Google3AutorollStalled
   IF datahopper_internal_ingest_build_webhook_oldest_untested_commit_age/60/60 > 3
-  FOR 2m
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     description = "Commit has not been picked up by Google3-Autoroller for over three hours. https://sites.google.com/a/google.com/skia-infrastructure/docs/google3-autoroller."
@@ -176,7 +167,6 @@ ALERT Google3AutorollStalled
 
 ALERT DatahopperInternalUpdateWebhookMetrics
   IF liveness_ingest_build_webhook_oldest_untested_commit_age_metric_s/60 > 10
-  FOR 2m
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     description = "datahopper_internal goroutine for updateWebhookMetrics is dead or failing."
@@ -187,6 +177,23 @@ ALERT TooManyGoRoutines
   FOR 2m
   LABELS { category = "infra", severity = "warning"}
   ANNOTATIONS {
-    summary = "Too many Go routines in {{ $labels.job }}",
     description = "Too many Go routines in {{ $labels.job }} running on {{ $labels.instance }}."
   }
+
+# Swarming
+
+ALERT BotMissing
+  IF swarming_bots_last_seen/1024/1024/1024/60 > 15
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "Swarming bot {{ $labels.bot }} is missing. https://chromium-swarm.appspot.com/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
+  }
+
+ALERT BotQuarantined
+  IF swarming_bots_quarantined == 1
+  FOR 10m
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "Swarming bot {{ $labels.bot }} is quarantined. https://chromium-swarm.appspot.com/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
+  }
+
