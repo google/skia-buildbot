@@ -9,50 +9,50 @@
   <script type="text/javascript" charset="utf-8">
     // job1 represents real task data.
     var job1 = {
-        "BuildbucketBuildId": 0,
-        "BuildbucketLeaseKey": 0,
-        "Created": "2016-10-10T15:56:13.393516175-04:00",
-        "DbModified": "2016-10-10T19:56:44.572122663Z",
-        "Dependencies": {
+        "buildbucketBuildId": 0,
+        "buildbucketLeaseKey": 0,
+        "created": "2016-10-10T15:56:13.393516175-04:00",
+        "dbModified": "2016-10-10T19:56:44.572122663Z",
+        "dependencies": {
             "Build-Ubuntu-GCC-x86_64-Release-GN": null,
             "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": ["Build-Ubuntu-GCC-x86_64-Release-GN"],
             "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": ["Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN"],
         },
-        "Finished": "2016-10-11T15:30:45.22367Z",
-        "Id": "20161010T195613.393516175Z_0000000000000048",
-        "IsForce": false,
-        "Name": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN",
-        "Priority": 0.8,
+        "finished": "2016-10-11T15:30:45.22367Z",
+        "id": "20161010T195613.393516175Z_0000000000000048",
+        "isForce": false,
+        "name": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN",
+        "priority": 0.8,
         "issue": "2410843002",
         "patchset": "1",
         "server": "https://codereview.chromium.org",
         "repo": "https://skia.googlesource.com/skia.git",
         "revision": "6ca48820407244bbdeb8f9e0ed7d76dd94270460",
-        "Status": "SUCCESS",
-        "Tasks": {
+        "status": "SUCCESS",
+        "tasks": {
             "Build-Ubuntu-GCC-x86_64-Release-GN": [{
-                "Id": "20161011T152315.308660290Z_0000000000000a40",
-                "Status": "SUCCESS",
-                "SwarmingTaskId": "31cd28b854e04d10",
+                "id": "20161011T152315.308660290Z_0000000000000a40",
+                "status": "SUCCESS",
+                "swarmingTaskId": "31cd28b854e04d10",
             }],
             "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": [{
-                "Id": "20161011T152506.638634008Z_0000000000000a41",
-                "Status": "SUCCESS",
-                "SwarmingTaskId": "31cd2a6aef2ec410",
+                "id": "20161011T152506.638634008Z_0000000000000a41",
+                "status": "SUCCESS",
+                "swarmingTaskId": "31cd2a6aef2ec410",
             }],
             "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": [{
-                "Id": "20161011T152813.960219550Z_0000000000000a42",
-                "Status": "SUCCESS",
-                "SwarmingTaskId": "31cd2d46acc0e110",
+                "id": "20161011T152813.960219550Z_0000000000000a42",
+                "status": "SUCCESS",
+                "swarmingTaskId": "31cd2d46acc0e110",
             }],
         },
     };
 
     // job2 is fake data but is more visually interesting.
     var job2 = {
-        "Created": (new Date(new Date().getTime() - 5000000)).toUTCString(),
-        "DbModified": "2016-10-10T19:56:44.572122663Z",
-        "Dependencies": {
+        "created": (new Date(new Date().getTime() - 5000000)).toUTCString(),
+        "dbModified": "2016-10-10T19:56:44.572122663Z",
+        "dependencies": {
           "F": ["E"],
           "E": ["B"],
           "D": ["B"],
@@ -60,46 +60,46 @@
           "B": ["A"],
           "A": [],
         },
-        "Finished": "",
-        "Id": "20161010T195613.393516175Z_0000000000000048",
-        "IsForce": false,
-        "Name": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN",
-        "Priority": 0.8,
+        "finished": "",
+        "id": "20161010T195613.393516175Z_0000000000000048",
+        "isForce": false,
+        "name": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN",
+        "priority": 0.8,
         "issue": "2410843002",
         "patchset": "1",
         "server": "https://codereview.chromium.org",
         "repo": "https://skia.googlesource.com/skia.git",
         "revision": "6ca48820407244bbdeb8f9e0ed7d76dd94270460",
-        "Status": "",
-        "Tasks": {
-          "A": [{ 
-            "Id": "A1",
-            "Status": "SUCCESS",
-            "SwarmingTaskId": "31cd28b854e04d10",
+        "status": "",
+        "tasks": {
+          "A": [{
+            "id": "A1",
+            "status": "SUCCESS",
+            "swarmingTaskId": "31cd28b854e04d10",
           }],
-          "B": [{ 
-            "Id": "B1",
-            "Status": "FAILURE",
-            "SwarmingTaskId": "31cd28b854e04d10",
+          "B": [{
+            "id": "B1",
+            "status": "FAILURE",
+            "swarmingTaskId": "31cd28b854e04d10",
           }, {
-            "Id": "B2",
-            "Status": "SUCCESS",
-            "SwarmingTaskId": "31cd28b854e04d10",
+            "id": "B2",
+            "status": "SUCCESS",
+            "swarmingTaskId": "31cd28b854e04d10",
           }],
           "C": [{
-            "Id": "C1",
-            "Status": "SUCCESS",
-            "SwarmingTaskId": "31cd28b854e04d10",
+            "id": "C1",
+            "status": "SUCCESS",
+            "swarmingTaskId": "31cd28b854e04d10",
           }],
           "D": [{
-            "Id": "D1",
-            "Status": "",
-            "SwarmingTaskId": "31cd28b854e04d10",
+            "id": "D1",
+            "status": "",
+            "swarmingTaskId": "31cd28b854e04d10",
           }],
           "E": [{
-            "Id": "E1",
-            "Status": "RUNNING",
-            "SwarmingTaskId": "31cd28b854e04d10",
+            "id": "E1",
+            "status": "RUNNING",
+            "swarmingTaskId": "31cd28b854e04d10",
           }],
         },
     };
@@ -126,8 +126,8 @@
         if (url.indexOf("job1") == -1) {
           j = job2;
         }
-        j.Status = "CANCELED";
-        j.Finished = (new Date()).toISOString();
+        j.status = "CANCELED";
+        j.finished = (new Date()).toISOString();
         resolve(JSON.stringify(j));
       });
     };

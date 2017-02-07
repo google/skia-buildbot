@@ -71,8 +71,8 @@ const (
 // than one Task may have the same TaskKey, eg. in the case of retries.
 type TaskKey struct {
 	RepoState
-	Name        string
-	ForcedJobId string
+	Name        string `json:"name"`
+	ForcedJobId string `json:"forcedJobId"`
 }
 
 // Copy returns a copy of the TaskKey.
@@ -109,55 +109,55 @@ func (k TaskKey) IsForceRun() bool {
 type Task struct {
 	// Commits are the commits which were tested in this Task. The list may
 	// change due to backfilling/bisecting.
-	Commits []string
+	Commits []string `json:"commits"`
 
 	// Created is the creation timestamp.
-	Created time.Time
+	Created time.Time `json:"created"`
 
 	// DbModified is the time of the last successful call to TaskDB.PutTask/s for this
 	// Task, or zero if the task is new. It is not related to the ModifiedTs time
 	// of the associated Swarming task.
-	DbModified time.Time
+	DbModified time.Time `json:"dbModified"`
 
 	// Finished is the time the task stopped running or expired from the queue, or
 	// zero if the task is pending or running.
-	Finished time.Time
+	Finished time.Time `json:"finished"`
 
 	// Id is a generated unique identifier for this Task instance. Must be
 	// URL-safe.
-	Id string
+	Id string `json:"id"`
 
 	// IsolatedOutput is the isolated hash of any outputs produced by this Task.
 	// Filled in when the task is completed. This field will not be set if the
 	// Task does not correspond to a Swarming task.
-	IsolatedOutput string
+	IsolatedOutput string `json:"isolatedOutput"`
 
 	// ParentTaskIds are IDs of tasks which satisfied this task's dependencies.
-	ParentTaskIds []string
+	ParentTaskIds []string `json:"parentTaskIds"`
 
 	// Properties contains key-value pairs from external sources. Both key and
 	// value must be UTF-8 strings. Prefer a JavaScript identifier for key. Use
 	// base64 encoding for binary data.
-	Properties map[string]string
+	Properties map[string]string `json:"properties"`
 
 	// RetryOf is the ID of the task which this task is a retry of, if any.
-	RetryOf string
+	RetryOf string `json:"retryOf"`
 
 	// Started is the time the task started running, or zero if the task is
 	// pending, or the same as Finished if the task never ran.
-	Started time.Time
+	Started time.Time `json:"started"`
 
 	// Status is the current task status, default TASK_STATUS_PENDING.
-	Status TaskStatus
+	Status TaskStatus `json:"status"`
 
 	// SwarmingBotId is the ID of the Swarming slave that ran this task. This
 	// field will not be set if the Task does not correspond to a Swarming task or
 	// if the task is still pending.
-	SwarmingBotId string
+	SwarmingBotId string `json:"swarmingBotId"`
 
 	// SwarmingTaskId is the Swarming task ID. This field will not be set if the
 	// Task does not correspond to a Swarming task.
-	SwarmingTaskId string
+	SwarmingTaskId string `json:"swarmingTaskId"`
 
 	// TaskKey is a struct which describes aspects of the Task related
 	// to the current state of the repo when it ran, and about the Task
@@ -411,9 +411,9 @@ func (task *Task) Valid() bool {
 
 // TaskSummary is a subset of the information found in a Task.
 type TaskSummary struct {
-	Id             string
-	Status         TaskStatus
-	SwarmingTaskId string
+	Id             string     `json:"id"`
+	Status         TaskStatus `json:"status"`
+	SwarmingTaskId string     `json:"swarmingTaskId"`
 }
 
 // MakeTaskSummary creates a TaskSummary from the Task instance.

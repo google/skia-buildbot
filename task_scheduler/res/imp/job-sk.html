@@ -84,22 +84,22 @@
         <div class="flex">
           <h2>Job Information</h2>
         </div>
-        <template is="dom-if" if="[[!_job.Status]]">
+        <template is="dom-if" if="[[!_job.status]]">
           <div>
             <paper-button raised id="cancelButton" on-tap="_cancelJob">Cancel</paper-button>
           </div>
         </template>
       </div>
       <div class="table">
-        <div class="tr"><div class="td">ID</div><div class="td">[[_job.Id]]</div></div>
-        <div class="tr"><div class="td">Name</div><div class="td">[[_job.Name]]</div></div>
+        <div class="tr"><div class="td">ID</div><div class="td">[[_job.id]]</div></div>
+        <div class="tr"><div class="td">Name</div><div class="td">[[_job.name]]</div></div>
         <div class="tr">
           <div class="td">Status</div>
           <div class="td" style$="background-color:[[_statusColor]]">[[_statusText]]</div>
         </div>
-        <div class="tr"><div class="td">Created</div><div class="td"><human-date-sk date="[[_job.Created]]"></human-date-sk></div></div>
-        <template is="dom-if" if="[[_job.Status]]">
-          <div class="tr"><div class="td">Finished</div><div class="td"><human-date-sk date="[[_job.Finished]]"></human-date-sk></div></div>
+        <div class="tr"><div class="td">Created</div><div class="td"><human-date-sk date="[[_job.created]]"></human-date-sk></div></div>
+        <template is="dom-if" if="[[_job.status]]">
+          <div class="tr"><div class="td">Finished</div><div class="td"><human-date-sk date="[[_job.finished]]"></human-date-sk></div></div>
         </template>
         <div class="tr"><div class="td">Duration</div><div class="td">[[_duration]]</div></div>
         <div class="tr">
@@ -119,7 +119,7 @@
           <div class="tr"><div class="td">Issue</div><div class="td">[[_job.issue]]</div></div>
           <div class="tr"><div class="td">Patchset</div><div class="td">[[_job.patchset]]</div></div>
         </template>
-        <div class="tr"><div class="td">Manually forced</div><div class="td">[[_job.IsForce]]</div></div>
+        <div class="tr"><div class="td">Manually forced</div><div class="td">[[_job.isForce]]</div></div>
       </div>
     </div>
 
@@ -201,14 +201,14 @@
           this.set("_job", json);
           this._computeTasksGraph();
           // If the job is finished, don't reload.
-          if (this._job.Status != "") {
+          if (this._job.status != "") {
             this.set("_reload", -1);
           }
         }.bind(this)).catch(sk.errorMessage);
       },
 
       _cancelJob: function() {
-        var url = "/json/job/" + this._job.Id + "/cancel";
+        var url = "/json/job/" + this._job.id + "/cancel";
         console.log("Canceling Job: " + url);
         sk.post(url).then(JSON.parse).then(function(json) {
           this.set("_job", json);
@@ -228,9 +228,9 @@
         if (!job) {
           return "???";
         }
-        var start = new Date(job.Created);
-        var end = new Date(job.Finished);
-        if (job.Status == "") {
+        var start = new Date(job.created);
+        var end = new Date(job.finished);
+        if (job.status == "") {
           end = new Date();
         }
         var duration = (end.getTime() - start.getTime()) / 1000;
@@ -247,10 +247,10 @@
       },
 
       _computeStatusText: function(job) {
-        if (!job || job.Status == undefined || job.Status == null) {
+        if (!job || job.status == undefined || job.status == null) {
           return "unknown";
         }
-        var textColor = jobStatusToTextColor[job.Status];
+        var textColor = jobStatusToTextColor[job.status];
         if (!textColor || textColor.length != 2) {
           return "unknown";
         }
@@ -258,10 +258,10 @@
       },
 
       _computeStatusColor: function(job) {
-        if (!job || job.Status == undefined || job.Status == null) {
+        if (!job || job.status == undefined || job.status == null) {
           return "rgb(255, 255, 255)";
         }
-        var textColor = jobStatusToTextColor[job.Status];
+        var textColor = jobStatusToTextColor[job.status];
         if (!textColor || textColor.length != 2) {
           return "rgb(255, 255, 255)";
         }
@@ -269,8 +269,8 @@
       },
 
       _computeTasksGraph: function() {
-        var taskData = this._job.Tasks;
-        var graph = this._job.Dependencies;
+        var taskData = this._job.tasks;
+        var graph = this._job.dependencies;
         var taskLinkUrlPrefix = "https://luci-milo.appspot.com/swarming/task/";
         if ($$$("login-sk").email &&
             $$$("login-sk").email.endsWith("@google.com")) {
@@ -472,7 +472,7 @@
               .attr("rx", "4")
               .attr("ry", "4");
         taskLinks.attr("href", function(data) {
-            return taskLinkUrlPrefix + data.task.SwarmingTaskId;
+            return taskLinkUrlPrefix + data.task.swarming_task_id;
         });
         taskLinks.exit().remove();
         var taskRects = svg.selectAll("rect.task").data(tasks);
@@ -482,7 +482,7 @@
           .attr("width", function(data) { return data.width; })
           .attr("height", function(data) { return data.height; })
           .attr("style", function(data) {
-              var color = taskStatusToTextColor[data.task.Status][1];
+              var color = taskStatusToTextColor[data.task.status][1];
               return "stroke: black;"
                    + "fill: " + color + ";";
           });
