@@ -180,6 +180,15 @@ ALERT TooManyGoRoutines
     description = "Too many Go routines in {{ $labels.job }} running on {{ $labels.instance }}."
   }
 
+# Datahopper
+
+ALERT DatahopperErrorRate
+  IF rate(num_log_lines{level="ERROR",log_source="datahopper"}[10m]) > 5
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "The error rate for datahopper is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2Fskia-datahopper2&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fdatahopper"
+  }
+
 # Swarming
 
 ALERT BotMissing
