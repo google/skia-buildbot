@@ -1,11 +1,12 @@
-#!/bin/sh
+#!/bin/bash
 
-# Hack to get swarming access to /b
-sudo chmod 777 /b
+# Found as /opt/start_swarming. Called by /etc/init.d/start-swarming so it can be run
+# as user chrome-bot (swarming doesn't like being run as root).
+# Logs will be found in /var/log/startup.(log|err)
 
-# Wait 10s to make sure ssl is fully booted.  Otherwise, we get an error
+# Wait 20s to make sure ssl is fully booted.  Otherwise, we may get an error
 # when trying to download the bootstrap code.
-sleep 10s
+sleep 20s
 
 # Copy authentication to home directory
 cp /opt/.gitconfig /home/chrome-bot/.gitconfig
@@ -19,7 +20,7 @@ fi
 
 if [ ! -d "/b/s" ]; then
   cd /b
-  echo "Bootstrapping swarming, expect a reboot"
+  echo "Bootstrapping $swarming, expect a reboot"
   python -c "import urllib; exec urllib.urlopen('$swarming/bootstrap').read()"
 else
   echo "Starting swarming"

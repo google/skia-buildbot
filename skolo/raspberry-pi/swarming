@@ -1,5 +1,7 @@
-#!/bin/sh
-# /etc/init.d/swarming
+#!/bin/bash
+# found as /etc/init.d/start-swarming
+# Logs will be found in /var/log/startup.(log|err)
+
 ### BEGIN INIT INFO
 # Provides:          swarming
 # Required-Start:    $remote_fs $syslog
