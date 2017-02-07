@@ -108,6 +108,9 @@
         <td>Repeat each page</td>
         <td>
           <iron-selector attr-for-selected="id" id="repeat_runs" selected="3" class="short-field">
+            <div id="100">100</div>
+            <div id="50">50</div>
+            <div id="25">25</div>
             <div id="3">3</div>
             <div id="2">2</div>
             <div id="1">1</div>
@@ -278,13 +281,26 @@
        this.$.custom_webpages.addEventListener('click', function(e) {
          // Do not display the pagesets selector if custom webpages is open.
          that.$.page_sets.hidden = that.$.custom_webpages.webpagesOpened;
+         // Display larger repeat options if custom webpages is open.
+         that.displayLargerRepeats(that.$.custom_webpages.webpagesOpened);
          if (!that.$.custom_webpages.webpagesOpened) {
            // Clear out webpages if it is no longer open.
            that.$.custom_webpages.webpages = '';
+           if (['100', '50', '25'].includes(that.$.repeat_runs.selected)) {
+             that.$.repeat_runs.selected = '3';
+           }
          }
        });
        this.platformChanged();
        this.setRunInParallel();
+       // Display larger repeat options if custom webpages is open.
+       this.displayLargerRepeats(that.$.custom_webpages.webpagesOpened);
+     },
+
+     displayLargerRepeats: function(display) {
+         document.getElementById('100').hidden = !display;
+         document.getElementById('50').hidden = !display;
+         document.getElementById('25').hidden = !display;
      },
 
      getPlatformDesc: function(platform) {
