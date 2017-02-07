@@ -123,7 +123,7 @@ Displays the server configurations, along with the ability to modify application
           <h2>{{server.Name}}</h2>
           <paper-button raised data-action="start"
                         data-name="reboot.target"
-                        data-server$="[[server.Name]]">Reboot</paper-button>
+                        data-server$="[[server.Name]]">RebootAAA</paper-button>
           [<a target=_blank href$="{{monURI(server.Name)}}">mon</a>]
           [<a target=_blank href$="{{logsURI(server.Name)}}">logs</a>]
           <table>
@@ -242,6 +242,23 @@ Displays the server configurations, along with the ability to modify application
     // that appears before the first '/'.
     prefixOf: function(s) {
       return s.split('/')[0];
+    },
+
+    // filtered uses the text entered in xyz to filter down servers.
+    filtered: function(servers) {
+     // Ravi
+      console.log($$$('#filterMe').value);
+      var filteredServers = [];
+      for (var i in servers) {
+        var tokens = servers[i].Name.split('-');
+        for (tokenIndex in tokens) {
+          if (tokens[tokenIndex].indexOf('autoroll') == 0) {
+            filteredServers.push(servers[i]);
+            break;
+          }
+        }
+      }
+      return filteredServers;
     },
 
     // fullHash is a utility function used in templates to extract the full git hash
