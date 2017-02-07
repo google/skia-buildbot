@@ -849,6 +849,9 @@ func jsonListFailureHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sort.Sort(sort.Reverse(diff.DigestFailureSlice(ret.DigestFailures)))
+
+	// Limit the errors to the last 50 errors.
+	ret.DigestFailures = ret.DigestFailures[:50]
 	sendJsonResponse(w, &ret)
 }
 
