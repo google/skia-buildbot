@@ -258,7 +258,7 @@ func runServer() {
 	r.HandleFunc("/json/details", detailsJSONHandler)
 	r.HandleFunc("/json/status", statusJSONHandler)
 	r.HandleFunc(`/fuzz/{name:[0-9a-f]+}`, fuzzHandler)
-	r.HandleFunc(`/metadata/{name:[0-9a-f]+_(debug|release)\.(err|dump|asan)}`, metadataHandler)
+	r.HandleFunc(`/metadata/{name:[0-9a-f]+_(?:debug|release)\.(?:err|dump|asan)}`, metadataHandler)
 	r.HandleFunc("/newBug", newBugHandler)
 	r.HandleFunc("/roll", rollHandler)
 	r.HandleFunc("/roll/revision", updateRevision)
