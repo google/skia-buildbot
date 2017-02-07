@@ -206,3 +206,41 @@ ALERT BotQuarantined
     description = "Swarming bot {{ $labels.bot }} is quarantined. https://chromium-swarm.appspot.com/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
   }
 
+# Fuzzer
+
+ALERT FuzzerUploadQueue
+  IF fuzzer_queue_size_upload > 90
+  FOR 2m
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "Fuzzer upload queue has been very full on {{ $labels.host }}. https://skia.googlesource.com/buildbot/+/master/fuzzer/PROD.md#full_upload"
+  }
+
+ALERT FuzzerAnalysisQueue
+  IF fuzzer_queue_size_analysis > 9000
+  FOR 2m
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "Fuzzer analysis queue has been very full on {{ $labels.host }}. https://skia.googlesource.com/buildbot/+/master/fuzzer/PROD.md#full_analysis"
+  }
+
+ALERT FuzzerNonUseful
+  IF max_over_time(fuzzer_stats_paths_total[1h]) < 20
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "The {{ $labels.fuzz_category }} generator hasn't made much progress fuzzing on {{ $labels.host }}. Perhaps it is misconfigured? https://skia.googlesource.com/buildbot/+/master/fuzzer/PROD.md#useless_fuzzer"
+  }
+
+ALERT FuzzerStaleVersion
+  IF fuzzer_version_age{type="current"}/60/60/24 > 10
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "The Fuzzer hasn't rolled its version forward in 10 days.  Roll it forward on fuzzer.skia.org https://skia.googlesource.com/buildbot/+/master/fuzzer/PROD.md#stale_version"
+  }
+
+ALERT FuzzerSlowRoll
+  IF fuzzer_version_age{type="pending"}/60/60 > 2
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "The fuzzer hasn't finished rolling its version forward in 2 hours.  Something might be wrong.  https://skia.googlesource.com/buildbot/+/master/fuzzer/PROD.md#broken_roll"
+  }
