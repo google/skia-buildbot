@@ -13,7 +13,7 @@ cp /opt/.netrc /home/chrome-bot/.netrc
 
 host="$(hostname)"
 swarming="https://chromium-swarm.appspot.com"
-if [[ "$host" = skia-i-* ]]; then
+if [[ "$host" = skia-rpi-i-* ]]; then
   swarming="https://chrome-swarming.appspot.com"
 fi
 
