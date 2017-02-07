@@ -18,10 +18,10 @@
     // input
     last_scheduled: String, Time of the last task scheduling
     top_candidates: Array of Objects indicating the next candidates for scheduling:
-        Commit: String, commit hash
-        TaskSpec: String, task_spec name
-        Repo: String, Repository in which the given commit lives
-        Score: Number, score of the task candidate
+        commit: String, commit hash
+        taskSpec: String, task spec name
+        repo: String, Repository in which the given commit lives
+        score: Number, score of the task candidate
 
   Methods:
     None.
@@ -83,9 +83,9 @@
             </div>
             <template is="dom-repeat" items="{{top_candidates}}">
               <div class="tr">
-                <div class="td">{{item.TaskSpec}}</div>
-                <div class="td">{{item.Commit}}</div>
-                <div class="td">{{item.Score}}</div>
+                <div class="td">{{item.taskSpec}}</div>
+                <div class="td">{{item.commit}}</div>
+                <div class="td">{{item.score}}</div>
               </div>
             </template>
           </div>

@@ -93,57 +93,57 @@ func JobStatusFromTaskStatus(s TaskStatus) JobStatus {
 type Job struct {
 	// BuildbucketBuildId is the ID of the Buildbucket build with which this
 	// Job is associated, if one exists.
-	BuildbucketBuildId int64
+	BuildbucketBuildId int64 `json:"buildbucketBuildId"`
 
 	// BuildbucketLeaseKey is the lease key for running a Buildbucket build.
 	// TODO(borenet): Maybe this doesn't belong in the DB.
-	BuildbucketLeaseKey int64
+	BuildbucketLeaseKey int64 `json:"buildbucketLeaseKey"`
 
 	// Created is the creation timestamp. This property should never change
 	// for a given Job instance.
-	Created time.Time
+	Created time.Time `json:"created"`
 
 	// DbModified is the time of the last successful call to JobDB.PutJob/s
 	// for this Job, or zero if the job is new.
-	DbModified time.Time
+	DbModified time.Time `json:"dbModified"`
 
 	// Dependencies maps out the DAG of TaskSpec names upon which this Job
 	// depends. Keys are TaskSpec names and values are slices of TaskSpec
 	// names indicating which TaskSpecs that TaskSpec depends on. This
 	// property should never change for a given Job instance.
-	Dependencies map[string][]string
+	Dependencies map[string][]string `json:"dependencies"`
 
 	// Finished is the time at which all of the Job's dependencies finished,
 	// successfully or not.
-	Finished time.Time
+	Finished time.Time `json:"finished"`
 
 	// Id is a unique identifier for the Job. This property should never
 	// change for a given Job instance, after its initial insertion into the
 	// DB.
-	Id string
+	Id string `json:"id"`
 
 	// IsForce indicates whether this is a manually-triggered Job, as
 	// opposed to a normally scheduled one, or a try job.
-	IsForce bool
+	IsForce bool `json:"isForce"`
 
 	// Name is a human-friendly descriptive name for the Job. All Jobs
 	// generated from the same JobSpec have the same name. This property
 	// should never change for a given Job instance.
-	Name string
+	Name string `json:"name"`
 
 	// Priority is an indicator of the relative priority of this Job.
-	Priority float64
+	Priority float64 `json:"priority"`
 
 	// RepoState is the current state of the repository for this Job.
 	RepoState
 
 	// Status is the current Job status, default JOB_STATUS_IN_PROGRESS.
-	Status JobStatus
+	Status JobStatus `json:"status"`
 
 	// Tasks are the Task instances which satisfied the dependencies of
 	// the Job. Keys are TaskSpec names and values are slices of TaskSummary
 	// instances describing the Tasks.
-	Tasks map[string][]*TaskSummary
+	Tasks map[string][]*TaskSummary `json:"tasks"`
 }
 
 // Copy returns a copy of the Job.
