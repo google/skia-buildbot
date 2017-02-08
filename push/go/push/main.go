@@ -120,8 +120,11 @@ func Init() {
 	}
 
 	serverNames = config.AllServerNames()
+	fmt.Println("HEREHERE")
+	fmt.Println(serverNames)
 
-	if client, err = auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_FULL_CONTROL, auth.SCOPE_GCE); err != nil {
+	if client, err = auth.NewClientWithTransport(true, "/b/storage/google_storage_token.data", "/b/storage/client_secret.json", nil, auth.SCOPE_FULL_CONTROL); err != nil {
+		//if client, err = auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_FULL_CONTROL, auth.SCOPE_GCE); err != nil {
 		sklog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}
 
@@ -133,10 +136,10 @@ func Init() {
 	if comp, err = compute.New(client); err != nil {
 		sklog.Fatalf("Failed to create compute service client: %s", err)
 	}
-	ip, err = NewZones(comp)
-	if err != nil {
-		sklog.Fatalf("Failed to load IP addresses at startup: %s", err)
-	}
+	//ip, err = NewZones(comp)
+	//if err != nil {
+	//	sklog.Fatalf("Failed to load IP addresses at startup: %s", err)
+	//}
 
 	packages.SetBucketName(*bucketName)
 	packageInfo, err = packages.NewAllInfo(client, store, serverNames)
@@ -535,13 +538,13 @@ func startDirtyMonitoring() {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMust(
-		"push",
-		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
-	)
-	login.SimpleInitMust(*port, *local)
+	//common.InitWithMust(
+	//	"push",
+	//	common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
+	//	common.PrometheusOpt(promPort),
+	//	common.CloudLoggingOpt(),
+	//)
+	//login.SimpleInitMust(*port, *local)
 
 	Init()
 
