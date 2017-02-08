@@ -5,7 +5,7 @@ After=network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/cq_watcher \
-    --log_dir=/var/log/logserver
+    --logtostderr
 Restart=always
 User=default
 Group=default
