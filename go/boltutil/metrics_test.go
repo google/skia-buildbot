@@ -56,7 +56,7 @@ func TestDbMetric(t *testing.T) {
 		localSeenMetrics := []string{}
 		for _, p := range bp.Points() {
 			t.Log(p.String())
-			if p.Name() != "db" {
+			if !util.In(p.Name(), []string{"bolt_bucket", "bolt_db", "bolt_tx"}) {
 				continue
 			}
 			tags := p.Tags()
