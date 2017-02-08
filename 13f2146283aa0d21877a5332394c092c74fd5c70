@@ -16,6 +16,24 @@
       "revId": "13f2146283aa0d21877a5332394c092c74fd5c70",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab94fa93_233dc450",
+        "filename": "tracedb/go/skia_ingestion/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-02-08T20:07:21Z",
+      "side": 1,
+      "message": "Only after the alerts have been migrated to Prometheus.",
+      "parentUuid": "2a99d60e_bc01a08b",
+      "revId": "13f2146283aa0d21877a5332394c092c74fd5c70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
