@@ -21,19 +21,25 @@ import (
 
 // flags
 var (
-	db_file        = flag.String("db_file", "", "The name of the BoltDB file that will store the traces.")
-	port           = flag.String("port", ":9090", "The port to serve the gRPC endpoint on.")
 	cpuprofile     = flag.String("cpuprofile", "", "Write cpu profile to file.")
-	sharedbDir     = flag.String("sharedb_dir", "", "Directory used by shareDB. If empty shareDB service will not enabled.")
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	db_file        = flag.String("db_file", "", "The name of the BoltDB file that will store the traces.")
 	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port           = flag.String("port", ":9090", "The port to serve the gRPC endpoint on.")
+	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	sharedbDir     = flag.String("sharedb_dir", "", "Directory used by shareDB. If empty shareDB service will not enabled.")
 )
 
 func main() {
-	common.InitWithMetrics2(filepath.Base(os.Args[0]), influxHost, influxUser, influxPassword, influxDatabase, local)
+	common.InitWithMust(filepath.Base(os.Args[0]),
+		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
+
 	ts, err := traceservice.NewTraceServiceServer(*db_file)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize the tracestore server: %s", err)

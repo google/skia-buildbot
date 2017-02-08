@@ -8,7 +8,6 @@ After=mnt-pd0.mount network-online.target
 ExecStart=/usr/local/bin/skiaperf  \
     --resources_dir=/usr/local/share/skiaperf/  \
     --git_repo_dir=/mnt/pd0/skiaperf/repo  \
-    --log_dir=/var/log/logserver  \
     --config_filename=/etc/skiaperf/ingest.toml \
     --logtostderr \
     --ptrace_store_dir=/mnt/pd0/skiaperf/store
