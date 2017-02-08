@@ -134,7 +134,7 @@ func refreshCQTryBots(cqClient *cq.Client) {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics2(METRIC_NAME, influxHost, influxUser, influxPassword, influxDatabase, testing)
+	common.InitWithCloudLogging(METRIC_NAME, influxHost, influxUser, influxPassword, influxDatabase, testing)
 
 	httpClient := httputils.NewTimeoutClient()
 	gerritClient, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", httpClient)
