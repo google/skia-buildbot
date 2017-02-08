@@ -58,17 +58,22 @@ scrape_configs:
     static_configs:
       - targets: ['skia-fuzzer-fe:20000']
 
+  - job_name: 'ingestion'
+    static_configs:
+      - targets: ['skia-tracedb:20000']
+      - targets: ['skia-tracedb:20001']
+
   - job_name: 'imageinfo'
     static_configs:
       - targets: ['skia-imageinfo:20000']
 
-  - job_name: 'proberd'
-    static_configs:
-      - targets: ['skia-monitoring:20000']
-
   - job_name: 'logmetrics'
     static_configs:
       - targets: ['skia-monitoring:20001']
+
+  - job_name: 'proberd'
+    static_configs:
+      - targets: ['skia-monitoring:20000']
 
   - job_name: 'push'
     static_configs:
@@ -78,6 +83,13 @@ scrape_configs:
     static_configs:
       - targets: ['skia-perf:20000']
       - targets: ['skia-android-perf:20000']
+
+  - job_name: 'traceserver'
+    static_configs:
+      - targets: ['skia-tracedb:20002']
+      - targets: ['skia-tracedb:20003']
+
+# pulld for every server.
 
   - job_name: 'pulld'
     static_configs:
