@@ -266,19 +266,27 @@ Displays the server configurations, along with the ability to modify application
         if (filterBy == "") {
           return true;
         }
-        // Try to match the complete prefix.
+        // Try to match the server name prefix.
         if (server.Name.indexOf(filterBy) == 0) {
           return findMatchingServers;
         }
-        // Now try to match the prefix of all tokens.
+        // Now try to match the prefix of all server name tokens.
         var tokens = server.Name.split('-');
-        for (tokenIndex in tokens) {
+        for (var tokenIndex in tokens) {
           if (tokens[tokenIndex].indexOf(filterBy) == 0) {
             return findMatchingServers;
           }
         }
+        // Now try to match the app name prefix.
+        for (var installedIndex in server.Installed) {
+          var installed = server.Installed[installedIndex];
+          var appName = this.prefixOf(installed);
+          if (appName.indexOf(filterBy) == 0) {
+            return findMatchingServers;
+          }
+        }
         return !findMatchingServers;
-      };
+      }.bind(this);
     },
 
     // prefixOf is a helper used in templates that returns all the text
