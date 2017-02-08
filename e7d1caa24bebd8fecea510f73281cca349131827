@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "89255954_fbce4df7",
+        "filename": "compute_engine_scripts/buildbots/vm_config.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-08T19:18:44Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "942c2524_69cf9d81",
+      "revId": "e7d1caa24bebd8fecea510f73281cca349131827",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7b631f48_9b09fa4a",
         "filename": "compute_engine_scripts/buildbots/vm_setup_utils.sh",
         "patchSetId": 1
@@ -36,6 +54,24 @@
         "endLine": 139,
         "endChar": 73
       },
+      "revId": "e7d1caa24bebd8fecea510f73281cca349131827",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "026bd4e5_5272cc13",
+        "filename": "compute_engine_scripts/buildbots/vm_setup_utils.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-08T19:18:44Z",
+      "side": 1,
+      "message": "It was for debugging. Removed.",
+      "parentUuid": "7b631f48_9b09fa4a",
       "revId": "e7d1caa24bebd8fecea510f73281cca349131827",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
