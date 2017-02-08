@@ -188,7 +188,7 @@ func (p *promClient) GetInt64Metric(name string, tags ...map[string]string) Int6
 		)
 		err := prometheus.Register(gaugeVec)
 		if err != nil {
-			glog.Fatalf("Failed to register %q: %s", measurement, err)
+			glog.Fatalf("Failed to register %q: %s -- for %s", measurement, err, gaugeVec)
 		}
 		p.int64GaugeVecs[gaugeVecKey] = gaugeVec
 	}

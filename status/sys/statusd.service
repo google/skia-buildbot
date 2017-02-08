@@ -5,8 +5,7 @@ After=network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/status \
-    --log_dir=/var/log/logserver \
-    --log_max_size=10485760 \
+    --logtostderr \
     --workdir=/mnt/pd0/status_workdir \
     --use_metadata=true \
     --host=status.skia.org \
