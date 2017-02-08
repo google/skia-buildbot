@@ -88,7 +88,7 @@ func New(client *http.Client, baseDir string, gsBucketNames []string, gsImageBas
 		metricsStore: mStore,
 	}
 
-	if ret.diffMetricsCache, err = rtcache.New(ret.diffMetricsWorker, diffCacheCount, runtime.NumCPU()); err != nil {
+	if ret.diffMetricsCache, err = rtcache.New(ret.diffMetricsWorker, diffCacheCount, runtime.NumCPU(), 0); err != nil {
 		return nil, err
 	}
 

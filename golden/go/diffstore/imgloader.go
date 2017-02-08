@@ -74,7 +74,7 @@ func newImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []s
 	}
 
 	// Set up the work queues that balance the load.
-	if ret.imageCache, err = rtcache.New(ret.imageLoadWorker, maxCacheSize, N_IMG_WORKERS); err != nil {
+	if ret.imageCache, err = rtcache.New(ret.imageLoadWorker, maxCacheSize, N_IMG_WORKERS, 0); err != nil {
 		return nil, err
 	}
 	return ret, nil
@@ -180,6 +180,7 @@ func (il *ImageLoader) imageLoadWorker(priority int64, digest string) (interface
 			util.LogErr(il.failureStore.addDigestFailure(diff.NewDigestFailure(digest, diff.CORRUPTED)))
 			return nil, err
 		}
+		il.failureStore.purgeDigestFailures([]string{digest})
 		return img, err
 	}
 

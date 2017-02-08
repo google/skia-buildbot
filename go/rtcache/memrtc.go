@@ -23,23 +23,25 @@ const (
 
 // MemReadThroughCache implements the ReadThroughCache interface.
 type MemReadThroughCache struct {
-	workerFn       ReadThroughFunc      // worker function to create the items.
-	cache          *lru.Cache           // caches the items in RAM.
-	errCache       *ttlcache.Cache      // caches errors for a limited time.
-	pQ             *priorityQueue       // priority queue to order item generation.
-	pqItemLookup   map[string]*workItem // lookup items by id in pQ.
-	inProgress     map[string]*workItem // items that are currently being generated.
-	mutex          sync.Mutex           // protecs all members of this instance.
-	emptyCond      *sync.Cond           // used to synchronize workers when the queue is empty.
-	finishedCh     chan bool            // closing this signals go-routines to shut down.
-	wg             sync.WaitGroup       // allows to synchronize go-routines during shutdown.
-	activeWorkerCh chan bool            // records the workers that are currently running.
+	workerFn           ReadThroughFunc      // worker function to create the items.
+	cache              *lru.Cache           // caches the items in RAM.
+	errCache           *ttlcache.Cache      // caches errors for a limited time.
+	pQ                 *priorityQueue       // priority queue to order item generation.
+	pqItemLookup       map[string]*workItem // lookup items by id in pQ.
+	inProgress         map[string]*workItem // items that are currently being generated.
+	mutex              sync.Mutex           // protecs all members of this instance.
+	emptyCond          *sync.Cond           // used to synchronize workers when the queue is empty.
+	finishedCh         chan bool            // closing this signals go-routines to shut down.
+	wg                 sync.WaitGroup       // allows to synchronize go-routines during shutdown.
+	activeWorkerCh     chan bool            // records the workers that are currently running.
+	cacheErrorDuration time.Duration        // duration for which to cache errors.
 }
 
 // New returns a new instance of ReadThroughCache that is stored in RAM.
 // nWorkers defines the number of concurrent workers that call wokerFn when
-// requested items are not in RAM.
-func New(workerFn ReadThroughFunc, maxSize int, nWorkers int) (ReadThroughCache, error) {
+// requested items are not in RAM. cacheErrorDuration sets how long errors
+// should be cached, 0 disables error caching.
+func New(workerFn ReadThroughFunc, maxSize int, nWorkers int, cacheErrorDuration time.Duration) (ReadThroughCache, error) {
 	// if maxSize is <= 0 then we don't cache at all. But lru.Cache will not
 	// limit the cache if the size is 0. So we cache 1 element.
 	if maxSize <= 0 {
@@ -52,14 +54,15 @@ func New(workerFn ReadThroughFunc, maxSize int, nWorkers int) (ReadThroughCache,
 	}
 
 	ret := &MemReadThroughCache{
-		workerFn:       workerFn,
-		cache:          lruCache,
-		errCache:       ttlcache.New(DEFAULT_ERRCACHE_EXPIRATION_TIME, ERRCACHE_CLEANUP_TIME),
-		pQ:             &priorityQueue{},
-		inProgress:     map[string]*workItem{},
-		pqItemLookup:   map[string]*workItem{},
-		finishedCh:     make(chan bool),
-		activeWorkerCh: make(chan bool, nWorkers),
+		workerFn:           workerFn,
+		cache:              lruCache,
+		errCache:           ttlcache.New(cacheErrorDuration, ERRCACHE_CLEANUP_TIME),
+		pQ:                 &priorityQueue{},
+		inProgress:         map[string]*workItem{},
+		pqItemLookup:       map[string]*workItem{},
+		finishedCh:         make(chan bool),
+		activeWorkerCh:     make(chan bool, nWorkers),
+		cacheErrorDuration: cacheErrorDuration,
 	}
 	ret.emptyCond = sync.NewCond(&ret.mutex)
 	ret.startWorker()
@@ -116,8 +119,10 @@ func (m *MemReadThroughCache) getOrEnqueue(priority int64, id string) (interface
 	}
 
 	// Check if it's in the error cache.
-	if err, ok := m.errCache.Get(id); ok {
-		return nil, err.(error), nil
+	if m.cacheErrorDuration > 0 {
+		if err, ok := m.errCache.Get(id); ok {
+			return nil, err.(error), nil
+		}
 	}
 
 	// Check if it's in already in progress, if not add it to the work queue.
@@ -179,7 +184,9 @@ func (m *MemReadThroughCache) saveResult(wi *workItem, result interface{}, err e
 	m.mutex.Lock()
 
 	if err != nil {
-		m.errCache.Set(wi.id, err, DEFAULT_ERRCACHE_EXPIRATION_TIME)
+		if m.cacheErrorDuration > 0 {
+			m.errCache.Set(wi.id, err, DEFAULT_ERRCACHE_EXPIRATION_TIME)
+		}
 		result = err
 	} else {
 		m.cache.Add(wi.id, result)

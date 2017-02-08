@@ -61,7 +61,7 @@ func TestReadThroughCache(t *testing.T) {
 	}
 
 	// create a worker queue for a given type
-	q, err := New(worker, 10000, runtime.NumCPU()-2)
+	q, err := New(worker, 10000, runtime.NumCPU()-2, DEFAULT_ERRCACHE_EXPIRATION_TIME)
 	assert.NoError(t, err)
 
 	// make sure all results arrive.
@@ -131,7 +131,7 @@ func TestErrHandling(t *testing.T) {
 	}
 
 	testID := "id-1"
-	q, err := New(errWorker, 10000, runtime.NumCPU())
+	q, err := New(errWorker, 10000, runtime.NumCPU(), DEFAULT_ERRCACHE_EXPIRATION_TIME)
 	assert.NoError(t, err)
 	_, err = q.Get(1, testID)
 	assert.Error(t, err)
