@@ -182,27 +182,6 @@
      "body": "",
      "mimetype": ""
    },
-   "skiadocslogs": {
-     "url": "http://skia-docs:10115",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "skiamonitoringlogs": {
-     "url": "http://skia-monitoring:10115",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "skiaperflogs": {
-     "url": "http://skia-perf:10115",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
    "internal_main": {
      "url": "http://skia-internal:8000",
      "method": "GET",
