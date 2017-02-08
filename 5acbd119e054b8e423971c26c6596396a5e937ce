@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "93d592ec_e2455314",
+        "filename": "golden/frontend/res/imp/failures-page-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-08T20:26:34Z",
+      "side": 1,
+      "message": "Is this now ms since the epoch?  If so, please rename it.",
+      "range": {
+        "startLine": 145,
+        "startChar": 24,
+        "endLine": 145,
+        "endChar": 36
+      },
+      "revId": "5acbd119e054b8e423971c26c6596396a5e937ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
