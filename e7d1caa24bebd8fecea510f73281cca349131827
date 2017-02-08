@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "942c2524_69cf9d81",
+        "filename": "compute_engine_scripts/buildbots/vm_config.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-02-08T17:48:47Z",
+      "side": 1,
+      "message": "I\u0027ll have to fix the CT bots flow.",
+      "revId": "e7d1caa24bebd8fecea510f73281cca349131827",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b631f48_9b09fa4a",
+        "filename": "compute_engine_scripts/buildbots/vm_setup_utils.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-02-08T17:48:47Z",
+      "side": 1,
+      "message": "Intentional?",
+      "range": {
+        "startLine": 139,
+        "startChar": 62,
+        "endLine": 139,
+        "endChar": 73
+      },
+      "revId": "e7d1caa24bebd8fecea510f73281cca349131827",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
