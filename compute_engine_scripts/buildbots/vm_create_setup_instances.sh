@@ -59,14 +59,6 @@ else
   exit 1
 fi
 
-# Check that all required files exist.
-for REQUIRED_FILE in ${REQUIRED_FILES_FOR_BOTS[@]}; do
-  if [ ! -f $REQUIRED_FILE ]; then
-    echo "Please create $REQUIRED_FILE!"
-    exit 1
-  fi
-done
-
 # Create all requested instances.
 for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
   INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
