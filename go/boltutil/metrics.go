@@ -44,18 +44,18 @@ type TxStatsMetric struct {
 // but should not include "metric".
 func newTxStatsMetric(c metrics2.Client, tags ...map[string]string) *TxStatsMetric {
 	return &TxStatsMetric{
-		PageCount:     c.GetInt64Metric("db", append(tags, map[string]string{"metric": "PageCount"})...),
-		PageAlloc:     c.GetInt64Metric("db", append(tags, map[string]string{"metric": "PageAllocBytes"})...),
-		CursorCount:   c.GetInt64Metric("db", append(tags, map[string]string{"metric": "CursorCount"})...),
-		NodeCount:     c.GetInt64Metric("db", append(tags, map[string]string{"metric": "NodeCount"})...),
-		NodeDeref:     c.GetInt64Metric("db", append(tags, map[string]string{"metric": "NodeDerefCount"})...),
-		Rebalance:     c.GetInt64Metric("db", append(tags, map[string]string{"metric": "RebalanceCount"})...),
-		RebalanceTime: c.GetInt64Metric("db", append(tags, map[string]string{"metric": "RebalanceNs"})...),
-		Split:         c.GetInt64Metric("db", append(tags, map[string]string{"metric": "SplitCount"})...),
-		Spill:         c.GetInt64Metric("db", append(tags, map[string]string{"metric": "SpillCount"})...),
-		SpillTime:     c.GetInt64Metric("db", append(tags, map[string]string{"metric": "SpillNs"})...),
-		Write:         c.GetInt64Metric("db", append(tags, map[string]string{"metric": "WriteCount"})...),
-		WriteTime:     c.GetInt64Metric("db", append(tags, map[string]string{"metric": "WriteNs"})...),
+		PageCount:     c.GetInt64Metric("bolt_tx", append(tags, map[string]string{"metric": "PageCount"})...),
+		PageAlloc:     c.GetInt64Metric("bolt_tx", append(tags, map[string]string{"metric": "PageAllocBytes"})...),
+		CursorCount:   c.GetInt64Metric("bolt_tx", append(tags, map[string]string{"metric": "CursorCount"})...),
+		NodeCount:     c.GetInt64Metric("bolt_tx", append(tags, map[string]string{"metric": "NodeCount"})...),
+		NodeDeref:     c.GetInt64Metric("bolt_tx", append(tags, map[string]string{"metric": "NodeDerefCount"})...),
+		Rebalance:     c.GetInt64Metric("bolt_tx", append(tags, map[string]string{"metric": "RebalanceCount"})...),
+		RebalanceTime: c.GetInt64Metric("bolt_tx", append(tags, map[string]string{"metric": "RebalanceNs"})...),
+		Split:         c.GetInt64Metric("bolt_tx", append(tags, map[string]string{"metric": "SplitCount"})...),
+		Spill:         c.GetInt64Metric("bolt_tx", append(tags, map[string]string{"metric": "SpillCount"})...),
+		SpillTime:     c.GetInt64Metric("bolt_tx", append(tags, map[string]string{"metric": "SpillNs"})...),
+		Write:         c.GetInt64Metric("bolt_tx", append(tags, map[string]string{"metric": "WriteCount"})...),
+		WriteTime:     c.GetInt64Metric("bolt_tx", append(tags, map[string]string{"metric": "WriteNs"})...),
 	}
 }
 
@@ -122,12 +122,12 @@ type DbStatsMetric struct {
 // but should not include "metric".
 func newDbStatsMetric(c metrics2.Client, tags ...map[string]string) *DbStatsMetric {
 	return &DbStatsMetric{
-		FreePageN:     c.GetInt64Metric("db", append(tags, map[string]string{"metric": "FreePageCount"})...),
-		PendingPageN:  c.GetInt64Metric("db", append(tags, map[string]string{"metric": "PendingPageCount"})...),
-		FreeAlloc:     c.GetInt64Metric("db", append(tags, map[string]string{"metric": "FreeAllocBytes"})...),
-		FreelistInuse: c.GetInt64Metric("db", append(tags, map[string]string{"metric": "FreelistInuseBytes"})...),
-		TxN:           c.GetInt64Metric("db", append(tags, map[string]string{"metric": "TxCount"})...),
-		OpenTxN:       c.GetInt64Metric("db", append(tags, map[string]string{"metric": "OpenTxCount"})...),
+		FreePageN:     c.GetInt64Metric("bolt_db", append(tags, map[string]string{"metric": "FreePageCount"})...),
+		PendingPageN:  c.GetInt64Metric("bolt_db", append(tags, map[string]string{"metric": "PendingPageCount"})...),
+		FreeAlloc:     c.GetInt64Metric("bolt_db", append(tags, map[string]string{"metric": "FreeAllocBytes"})...),
+		FreelistInuse: c.GetInt64Metric("bolt_db", append(tags, map[string]string{"metric": "FreelistInuseBytes"})...),
+		TxN:           c.GetInt64Metric("bolt_db", append(tags, map[string]string{"metric": "TxCount"})...),
+		OpenTxN:       c.GetInt64Metric("bolt_db", append(tags, map[string]string{"metric": "OpenTxCount"})...),
 		TxStatsMetric: newTxStatsMetric(c, tags...),
 	}
 }
@@ -187,19 +187,19 @@ type BucketStatsMetric struct {
 // "database" and "bucket-path" but not "metric".
 func newBucketStatsMetric(c metrics2.Client, tags ...map[string]string) *BucketStatsMetric {
 	return &BucketStatsMetric{
-		BranchPageN:       c.GetInt64Metric("db", append(tags, map[string]string{"metric": "BranchPageCount"})...),
-		BranchOverflowN:   c.GetInt64Metric("db", append(tags, map[string]string{"metric": "BranchOverflowCount"})...),
-		LeafPageN:         c.GetInt64Metric("db", append(tags, map[string]string{"metric": "LeafPageCount"})...),
-		LeafOverflowN:     c.GetInt64Metric("db", append(tags, map[string]string{"metric": "LeafOverflowCount"})...),
-		KeyN:              c.GetInt64Metric("db", append(tags, map[string]string{"metric": "KeyCount"})...),
-		Depth:             c.GetInt64Metric("db", append(tags, map[string]string{"metric": "DepthCount"})...),
-		BranchAlloc:       c.GetInt64Metric("db", append(tags, map[string]string{"metric": "BranchAllocBytes"})...),
-		BranchInuse:       c.GetInt64Metric("db", append(tags, map[string]string{"metric": "BranchInuseBytes"})...),
-		LeafAlloc:         c.GetInt64Metric("db", append(tags, map[string]string{"metric": "LeafAllocBytes"})...),
-		LeafInuse:         c.GetInt64Metric("db", append(tags, map[string]string{"metric": "LeafInuseBytes"})...),
-		BucketN:           c.GetInt64Metric("db", append(tags, map[string]string{"metric": "BucketCount"})...),
-		InlineBucketN:     c.GetInt64Metric("db", append(tags, map[string]string{"metric": "InlineBucketCount"})...),
-		InlineBucketInuse: c.GetInt64Metric("db", append(tags, map[string]string{"metric": "InlineBucketInuseBytes"})...),
+		BranchPageN:       c.GetInt64Metric("bolt_bucket", append(tags, map[string]string{"metric": "BranchPageCount"})...),
+		BranchOverflowN:   c.GetInt64Metric("bolt_bucket", append(tags, map[string]string{"metric": "BranchOverflowCount"})...),
+		LeafPageN:         c.GetInt64Metric("bolt_bucket", append(tags, map[string]string{"metric": "LeafPageCount"})...),
+		LeafOverflowN:     c.GetInt64Metric("bolt_bucket", append(tags, map[string]string{"metric": "LeafOverflowCount"})...),
+		KeyN:              c.GetInt64Metric("bolt_bucket", append(tags, map[string]string{"metric": "KeyCount"})...),
+		Depth:             c.GetInt64Metric("bolt_bucket", append(tags, map[string]string{"metric": "DepthCount"})...),
+		BranchAlloc:       c.GetInt64Metric("bolt_bucket", append(tags, map[string]string{"metric": "BranchAllocBytes"})...),
+		BranchInuse:       c.GetInt64Metric("bolt_bucket", append(tags, map[string]string{"metric": "BranchInuseBytes"})...),
+		LeafAlloc:         c.GetInt64Metric("bolt_bucket", append(tags, map[string]string{"metric": "LeafAllocBytes"})...),
+		LeafInuse:         c.GetInt64Metric("bolt_bucket", append(tags, map[string]string{"metric": "LeafInuseBytes"})...),
+		BucketN:           c.GetInt64Metric("bolt_bucket", append(tags, map[string]string{"metric": "BucketCount"})...),
+		InlineBucketN:     c.GetInt64Metric("bolt_bucket", append(tags, map[string]string{"metric": "InlineBucketCount"})...),
+		InlineBucketInuse: c.GetInt64Metric("bolt_bucket", append(tags, map[string]string{"metric": "InlineBucketInuseBytes"})...),
 	}
 }
 
