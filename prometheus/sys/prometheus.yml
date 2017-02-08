@@ -79,6 +79,11 @@ scrape_configs:
       - targets: ['skia-perf:20000']
       - targets: ['skia-android-perf:20000']
 
+  - job_name: 'status'
+    static_configs:
+      - targets: ['skia-status:20000']
+      - targets: ['skia-status-internal:20000']
+
   - job_name: 'pulld'
     static_configs:
       - targets: ['catapult-autoroll:11000']
