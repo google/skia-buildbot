@@ -117,23 +117,30 @@ function checkout_skia_repos {
   echo
 }
 
+function download_file {
+  DOWNLOAD_URL="gs://skia-buildbots/artifacts"
+  if [ "$VM_IS_INTERNAL" = 1 ]; then
+    DOWNLOAD_URL="gs://skia-buildbots/artifacts_internal"
+  fi
+  echo
+  echo "===== Downloading $1 ====="
+  $GCOMPUTE_CMD ssh --ssh_user=chrome-bot $INSTANCE_NAME \
+    "gsutil cp gs://skia-buildbots/artifacts/$1 ~" \
+    || FAILED="$FAILED Download $1"
+  echo
+}
+
 function copy_files {
   echo
   echo "===== Copying over required files. ====="
-    for REQUIRED_FILE in ${REQUIRED_FILES_FOR_BOTS[@]}; do
-      $GCOMPUTE_CMD push --ssh_user=chrome-bot $INSTANCE_NAME \
-        $REQUIRED_FILE /home/chrome-bot/
-      $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-        $REQUIRED_FILE /home/$PROJECT_USER/
-      $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-        $REQUIRED_FILE /home/$PROJECT_USER/storage/
-      $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-        $REQUIRED_FILE /home/$PROJECT_USER/storage/skia-repo/
-    done
     # TODO(rmistry): This was added because ~/.boto is part of the disk image.
     # It won't be next time the buildbot image is captured, so remove this line
     # at that time.
     $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME "rm -f .boto"
+
+    for REQUIRED_FILE in ${REQUIRED_FILES_FOR_BOTS[@]}; do
+      download_file $REQUIRED_FILE
+    done
   echo
 }
 
