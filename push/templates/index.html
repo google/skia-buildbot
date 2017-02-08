@@ -68,7 +68,7 @@
           <paper-spinner id="spinner"></paper-spinner>
         </div>
         <div>
-          <paper-input label="Filter servers" id="filter-servers"></paper-input>
+          <paper-input label="Filter servers/apps" id="filter-servers"></paper-input>
         </div>
         <login-sk></login-sk>
       </paper-toolbar>
@@ -136,6 +136,13 @@
         $$$('#filter-servers').addEventListener('input', function() {
           $$$('push-server-sk').filterText = $$$('#filter-servers').value;
         });
+
+        // Check to see if filter param was specified.
+        var params = sk.query.toParamSet(window.location.search.substring(1));
+        if (params['filter']) {
+          $$$('#filter-servers').value = params['filter'][0];
+          $$$('push-server-sk').filterText = params['filter'][0];
+        }
       })();
     </script>
   </body>
