@@ -63,6 +63,10 @@
           <button id="refresh" on-tap="refreshPackages">Refresh Packages</button>
           <paper-spinner id="spinner"></paper-spinner>
         </div>
+        <div>
+          <paper-input label="Input label" id="filterMe"></paper-input>
+          <div id='server-count'></div>
+        </div>
         <login-sk></login-sk>
       </paper-toolbar>
 
@@ -124,6 +128,11 @@
             sk.errorMessage(msg);
             $$$('#spinner').active = false;
           });
+        });
+
+        $$$('#filterMe').addEventListener('change', function() {
+          $$$('push-server-sk').filterText = $$$('#filterMe').value;
+          console.log($$$('push-server-sk').displayedCount);
         });
       })();
     </script>

@@ -51,6 +51,7 @@
       <div id=scrollable>
         <iron-selector id=newChoice>
           <template is="dom-repeat" items$="{{choices}}">
+            Choice
             <div class=pushSelection data-name$="{{item.Name}}">
               <iron-icon icon$="{{checkIfInstalled(choice, item.Name)}}" title="Currently installed"></iron-icon>
               <a target=_blank href="{{linkToCommit(item.Hash)}}">{{short(item.Hash)}}</a>

@@ -118,12 +118,13 @@ Displays the server configurations, along with the ability to modify application
     <confirm-dialog-sk id="reboot_confirm_dialog"></confirm-dialog-sk>
 
     <div on-tap="editClicked">
-      <template is="dom-repeat" items="{{servers}}" as=server>
+      <h2>{{displayedCount}}</h2>
+      <template is="dom-repeat" items="{{filter(servers,filterText)}}" as=server id="displayed-servers" rendered-item-count="{{displayedCount}}">
         <section>
           <h2>{{server.Name}}</h2>
           <paper-button raised data-action="start"
                         data-name="reboot.target"
-                        data-server$="[[server.Name]]">Reboot</paper-button>
+                        data-server$="[[server.Name]]">RebootAAA</paper-button>
           [<a target=_blank href$="{{monURI(server.Name)}}">mon</a>]
           [<a target=_blank href$="{{logsURI(server.Name)}}">logs</a>]
           <table>
@@ -179,6 +180,14 @@ Displays the server configurations, along with the ability to modify application
       server: {
         type: String,
         value: '',
+      },
+      filterText: {
+        type: String,
+        value: '',
+      },
+      displayedCount: {
+        type: Number,
+        value: 0,
       }
     },
 
@@ -236,6 +245,36 @@ Displays the server configurations, along with the ability to modify application
           latest = false;
         });
       }
+    },
+
+    filter: function(servers, filterText) {
+      if (filterText == "") {
+        return servers;
+      }
+      var filteredServers = [];                                             
+      for (var i in servers) {                                              
+        // Try to match the complete prefix.                                
+        if (servers[i].Name.indexOf(filterText) == 0) {                    
+          filteredServers.push(servers[i]);                                 
+          break;                                                            
+        }                                                                   
+        // Try to match the prefix of all tokens.                           
+        var tokens = servers[i].Name.split('-');                            
+        for (tokenIndex in tokens) {                                        
+          if (tokens[tokenIndex].indexOf(filterText) == 0) {               
+            filteredServers.push(servers[i]);                               
+            break;                                                          
+          }                                                                 
+        }                                                                   
+      }
+      return filteredServers;
+    },
+
+    // getDisplayAndServerCount returns a text of the format "xx/yy" where xx
+    // is the number of servers displayed on the page (due to the filterText)
+    // and yy is the total number of servers.
+    getDisplayAndServerCount: function() {
+      console.log($$$('displayed-servers').items);
     },
 
     // prefixOf is a helper used in templates that returns all the text

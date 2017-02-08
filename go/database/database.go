@@ -44,6 +44,8 @@ func ConfigFromPrefixedFlags(defaultHost string, defaultPort int, defaultUser, d
 	c := DatabaseConfig{
 		MigrationSteps: migrationSteps,
 	}
+	fmt.Println("YYYYYYYY")
+	fmt.Println(prefix)
 	flag.StringVar(&c.Host, prefix+"db_host", defaultHost, "Hostname of the MySQL database server.")
 	flag.IntVar(&c.Port, prefix+"db_port", defaultPort, "Port number of the MySQL database.")
 	flag.StringVar(&c.User, prefix+"db_user", defaultUser, "MySQL user name.")
@@ -143,6 +145,7 @@ func (c *DatabaseConfig) NewVersionedDB() (*VersionedDB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open connection to SQL server: %v", err)
 	}
+	fmt.Println(c.MySQLString())
 
 	sklog.Infoln("Sending Ping.")
 	if err := DB.Ping(); err != nil {

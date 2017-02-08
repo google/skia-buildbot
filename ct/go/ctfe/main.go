@@ -42,7 +42,7 @@ var (
 	host                   = flag.String("host", "localhost", "HTTP service host")
 	promPort               = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 	port                   = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
-	local                  = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	local                  = flag.Bool("local", true, "Running locally if true. As opposed to in production.")
 	workdir                = flag.String("workdir", ".", "Directory to use for scratch work.")
 	resourcesDir           = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	tasksSchedulerWaitTime = flag.Duration("tasks_scheduler_wait_time", 5*time.Minute, "How often the repeated tasks scheduler should run.")
@@ -211,7 +211,8 @@ func main() {
 		}
 	}
 
-	common.InitWithMust("ctfe", common.PrometheusOpt(promPort), common.CloudLoggingOpt())
+	//common.InitWithMust("ctfe", common.PrometheusOpt(promPort), common.CloudLoggingOpt())
+	common.InitWithMust("ctfe")
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		sklog.Fatal(err)
@@ -229,6 +230,8 @@ func main() {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
+	fmt.Println("XXXXXXXXXXXXXXXX")
+	fmt.Println(*local)
 	if *local {
 		webhook.InitRequestSaltForTesting()
 	} else {
