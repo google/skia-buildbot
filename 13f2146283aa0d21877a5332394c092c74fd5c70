@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2a99d60e_bc01a08b",
+        "filename": "tracedb/go/skia_ingestion/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-08T19:57:18Z",
+      "side": 1,
+      "message": "Shouldn\u0027t influx go away ?",
+      "revId": "13f2146283aa0d21877a5332394c092c74fd5c70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
