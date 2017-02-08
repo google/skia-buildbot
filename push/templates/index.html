@@ -8,6 +8,10 @@
     <style is="custom-style" type="text/css" media="screen">
       :root {
         --default-primary-color: #1f78b4;
+        paper-input {
+          --paper-input-container-color: white;
+          --paper-input-container-input-color: white;
+        }
       }
     </style>
 
@@ -62,6 +66,9 @@
         <div>
           <button id="refresh" on-tap="refreshPackages">Refresh Packages</button>
           <paper-spinner id="spinner"></paper-spinner>
+        </div>
+        <div>
+          <paper-input label="Filter servers" id="filter-servers"></paper-input>
         </div>
         <login-sk></login-sk>
       </paper-toolbar>
@@ -124,6 +131,10 @@
             sk.errorMessage(msg);
             $$$('#spinner').active = false;
           });
+        });
+
+        $$$('#filter-servers').addEventListener('input', function() {
+          $$$('push-server-sk').filterText = $$$('#filter-servers').value;
         });
       })();
     </script>

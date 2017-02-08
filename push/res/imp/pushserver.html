@@ -80,6 +80,12 @@ Displays the server configurations, along with the ability to modify application
       padding-right: 1em;
     }
 
+    h3 {
+      margin-left: 1em;
+      color: #1f78b4;
+      display: inline;
+    }
+
     .appName {
       padding-right: 2em;
       width: 15em;
@@ -118,7 +124,10 @@ Displays the server configurations, along with the ability to modify application
     <confirm-dialog-sk id="reboot_confirm_dialog"></confirm-dialog-sk>
 
     <div on-tap="editClicked">
-      <template is="dom-repeat" items="{{servers}}" as=server>
+      <h3>Displaying {{displayedCount}} out of {{servers.length}} servers</h3>
+      <br/><br/><br/>
+      <template is="dom-repeat" items="{{servers}}" as=server rendered-item-count="{{displayedCount}}"
+                filter={{_filterServers(filterText)}}>
         <section>
           <h2>{{server.Name}}</h2>
           <paper-button raised data-action="start"
@@ -179,6 +188,14 @@ Displays the server configurations, along with the ability to modify application
       server: {
         type: String,
         value: '',
+      },
+      filterText: {
+        type: String,
+        value: '',
+      },
+      displayedCount: {
+        type: Number,
+        value: 0,
       }
     },
 
@@ -236,6 +253,32 @@ Displays the server configurations, along with the ability to modify application
           latest = false;
         });
       }
+    },
+
+    _filterServers: function(filterText) {
+      return function(server) {
+        var findMatchingServers = true;
+        var filterBy = filterText;
+        if (filterBy.startsWith('^')) {
+          findMatchingServers = false;
+          filterBy = filterBy.substring(1);
+        }
+        if (filterBy == "") {
+          return true;
+        }
+        // Try to match the complete prefix.
+        if (server.Name.indexOf(filterBy) == 0) {
+          return findMatchingServers;
+        }
+        // Now try to match the prefix of all tokens.
+        var tokens = server.Name.split('-');
+        for (tokenIndex in tokens) {
+          if (tokens[tokenIndex].indexOf(filterBy) == 0) {
+            return findMatchingServers;
+          }
+        }
+        return !findMatchingServers;
+      };
     },
 
     // prefixOf is a helper used in templates that returns all the text
