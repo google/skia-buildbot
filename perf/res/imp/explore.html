@@ -553,6 +553,19 @@
       this._lines = [];
     },
 
+    // When Remove Highlighted or Highlighted Only are pressed then create a
+    // shortcut for just the traces that are displayed.
+    _reShortCut: function(keys) {
+        var state = {
+          keys: keys,
+        };
+        sk.post('/_/keys/', JSON.stringify(state)).then(JSON.parse).then(function (json) {
+          this.state.keys = json.id;
+          this.state.formulas = [];
+          this.state.queries = [];
+        }.bind(this));
+    },
+
     _removeHighlighted: function() {
       var ids = this.$.plot.highlighted();
       Array.prototype.push.apply(this._hidden, ids);
@@ -573,6 +586,7 @@
       this._lines = toadd;
       this.$.plot.removeAll();
       this.$.plot.addLines(toadd);
+      this._reShortCut(Object.keys(toadd));
     },
 
     _highlightedOnly: function() {
@@ -595,6 +609,7 @@
       this._lines = toadd;
       this.$.plot.removeAll();
       this.$.plot.addLines(toadd);
+      this._reShortCut(Object.keys(toadd));
     },
 
     _clearHighlights: function() {
