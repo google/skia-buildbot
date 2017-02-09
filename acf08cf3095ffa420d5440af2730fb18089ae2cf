@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2f4f3b99_9b33e30d",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-09T14:43:31Z",
+      "side": 1,
+      "message": "Is there any danger that this will bloat out of control in an endless series of retries?",
+      "revId": "acf08cf3095ffa420d5440af2730fb18089ae2cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
