@@ -41,15 +41,16 @@ window.addEventListener("WebComponentsReady", function(e) {
   var newRow = document.createElement("tr");
   newRow.className = "outline";
   newRow.id="extra_location";
-  botTable.children[0].appendChild(newRow);
+  var tbody = botTable.getElementsByTagName("tbody")[0];
+  tbody.appendChild(newRow);
   newRow = document.createElement("tr");
   newRow.className = "outline";
   newRow.id="extra_ssh";
-  botTable.children[0].appendChild(newRow);
+  tbody.appendChild(newRow);
   newRow = document.createElement("tr");
   newRow.className = "outline";
   newRow.id="extra_ifBroken";
-  botTable.children[0].appendChild(newRow);
+  tbody.appendChild(newRow);
 
   window.setInterval(function(){
     var id = document.getElementById("input").value;
@@ -80,7 +81,7 @@ window.addEventListener("WebComponentsReady", function(e) {
     }
     for (r in botMapping.useJumphost) {
       if (id.match(r)) {
-        ssh = `ssh -t -t chrome-bot@$JUMPHOST_IP "${state.ip}"`;
+        ssh = `ssh -t -t chrome-bot@$JUMPHOST_IP "ssh chrome-bot@${state.ip}"`;
         break;
       }
     }
