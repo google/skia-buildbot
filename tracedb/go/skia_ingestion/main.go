@@ -28,16 +28,16 @@ import (
 
 // Command line flags.
 var (
-	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	configFilename     = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
-	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
+	influxDatabase     = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	influxHost         = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxPassword     = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxUser         = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 	nsqdAddress        = flag.String("nsqd", "", "Address and port of nsqd instance.")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	influxHost         = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser         = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword     = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxDatabase     = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
-	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
+	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
 )
 
 func main() {
