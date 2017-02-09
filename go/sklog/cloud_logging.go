@@ -51,6 +51,9 @@ const (
 
 	// LOG_WRITE_SECONDS is the time between batch writes to cloud logging, in seconds.
 	LOG_WRITE_SECONDS = 5
+
+	// MAX_LOG_SIZE is the max number of log entries we keep locally.
+	MAX_LOG_SIZE = LOG_WRITE_SECONDS * MAX_QPS_LOG
 )
 
 // PreInitCloudLogging does the first step in initializing cloud logging.
@@ -262,8 +265,12 @@ func (c *logsClient) pushBatch() {
 	if resp, err := c.service.Entries.Write(&request).Context(ctx).Do(); err != nil {
 		// We can't use httputil.DumpResponse, because that doesn't accept *logging.WriteLogEntriesResponse
 		glog.Errorf("Problem writing logs \nResponse:\n%v:\n%s", spew.Sdump(resp), err)
+		c.buffer = c.buffer[:MAX_LOG_SIZE]
+		return
 	} else if resp.HTTPStatusCode != http.StatusOK {
 		glog.Errorf("Response code %d", resp.HTTPStatusCode)
+		c.buffer = c.buffer[:MAX_LOG_SIZE]
+		return
 	}
 	c.buffer = c.buffer[:0]
 }
