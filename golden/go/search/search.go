@@ -104,26 +104,51 @@ type Digest struct {
 //
 // Currently unimplemented in search.
 type CommitRange struct {
-	Begin string
-	End   string
 }
+
+// TODO: filter within tests.
+const (
+	GROUP_TEST_MAX_COUNT = "count"
+)
 
 // Query is the query that Search understands.
 type Query struct {
-	BlameGroupID   string      `json:"blame"`
-	Pos            bool        `json:"pos"`
-	Neg            bool        `json:"neg"`
-	Head           bool        `json:"head"`
-	Unt            bool        `json:"unt"`
-	IncludeIgnores bool        `json:"include"`
-	QueryStr       string      `json:"query"`
-	Query          url.Values  `json:"-"`
-	Issue          string      `json:"issue"`
-	PatchsetsStr   string      `json:"patchsets"` // Comma-separated list of patchsets.
-	Patchsets      []string    `json:"-"`
-	CommitRange    CommitRange `json:"-"`
-	Limit          int         `json:"limit"`
-	IncludeMaster  bool        `json:"master"` // Include digests also contained in master when searching Rietveld issues.
+	// Diff metric to use.
+	Metric string   `json:"metric"`
+	Sort   string   `json:"sort"`
+	Match  []string `json:"match"`
+
+	// Blaming
+	BlameGroupID string `json:"blame"`
+
+	// Image classification
+	Pos            bool `json:"pos"`
+	Neg            bool `json:"neg"`
+	Head           bool `json:"head"`
+	Unt            bool `json:"unt"`
+	IncludeIgnores bool `json:"include"`
+
+	// URL encoded query string
+	QueryStr string     `json:"query"`
+	Query    url.Values `json:"-"`
+
+	// Trybot support.
+	Issue         string   `json:"issue"`
+	PatchsetsStr  string   `json:"patchsets"` // Comma-separated list of patchsets.
+	Patchsets     []string `json:"-"`
+	IncludeMaster bool     `json:"master"` // Include digests also contained in master when searching Rietveld issues.
+
+	// Filtering.
+	FCommitBegin string  `json:"fbegin"`     // Start commit
+	FCommitEnd   string  `json:"fend"`       // End commit
+	FRGBAMax     int32   `json:"frgbamax"`   // Max RGBA delta
+	FDiffMax     float32 `json:"fdiffmax"`   // Max diff according to metric
+	FGroupTest   string  `json:"fgrouptest"` // Op within grouped by test.
+	FRef         bool    `json:"fref"`       // Only digests with reference.
+
+	// Pagination.
+	Offset int `json:"offset"`
+	Limit  int `json:"limit"`
 }
 
 // SearchResponse is the standard search response. Depending on the query some fields
