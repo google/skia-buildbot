@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5c23790b_da042362",
+        "filename": "cq_watcher/go/cq_watcher/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-02-09T16:08:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "14c0e07b_fc3c9f72",
+      "revId": "d0becdc42abb2883bac01fcb5b8e31e2f8dbd554",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6a60c11d_e6454135",
         "filename": "go/cq/cq.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2017-02-09T15:59:55Z",
       "side": 1,
       "message": "This will cause each metric value to create a new metric trace, which isn\u0027t what you want.",
+      "revId": "d0becdc42abb2883bac01fcb5b8e31e2f8dbd554",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ecde734_c6865cf6",
+        "filename": "go/cq/cq.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-02-09T16:08:46Z",
+      "side": 1,
+      "message": "I removed the time tags, I\u0027m not sure why I had them there in the first place.",
+      "parentUuid": "6a60c11d_e6454135",
       "revId": "d0becdc42abb2883bac01fcb5b8e31e2f8dbd554",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
