@@ -1,7 +1,7 @@
 {
-   "name": "Notifications for Skia Developers",
-   "version": "1.2",
-   "description": "Notifications for Skia Developers.",
+   "name": "Assorted Tools for Skia Developers",
+   "version": "1.3",
+   "description": "Assorted Tools for Skia Developers.",
    "permissions": [
      "notifications",
      "storage",
@@ -18,6 +18,23 @@
      "default_popup": "popup.html",
      "default_icon": "pencil16.png"
    },
+   "content_scripts": [
+    {
+      "matches": ["https://chromium-swarm.appspot.com/task?*"],
+      "css": ["styles.css"],
+      "js": [
+        "tasks.js"
+      ]
+    },
+    {
+      "matches": ["https://chromium-swarm.appspot.com/bot?*"],
+      "css": ["styles.css"],
+      "js": [
+        "bot_mapping.js",
+        "bots.js"
+      ]
+    }
+  ],
    "icons": {
      "16": "pencil16.png",
      "48": "pencil48.png",
