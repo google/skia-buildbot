@@ -244,3 +244,20 @@ ALERT FuzzerSlowRoll
   ANNOTATIONS {
     description = "The fuzzer hasn't finished rolling its version forward in 2 hours.  Something might be wrong.  https://skia.googlesource.com/buildbot/+/master/fuzzer/PROD.md#broken_roll"
   }
+
+# Gold
+
+ALERT GoldIngestionStalled
+  IF liveness_gold_s{metric="since-last-run",source="poll"} > 750
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "At least two rounds of gold ingestion have failed back to back for {{ $labels.corpus }}. See https://mon.skia.org/dashboard/db/ingestion.",
+  }
+
+ALERT GoldIngestionErrorRate
+  IF rate(num_log_lines{level="ERROR",job="ingestion"}[2m]) > 1
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "The error rate for Gold Ingestion {{ $labels.corpus }} is too high. See See https://mon.skia.org/dashboard/db/ingestion.",
+  }
+
