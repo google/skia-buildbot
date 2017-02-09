@@ -102,6 +102,34 @@ ALERT CTFEErrorRate
     description = "The error rate for CTFE is too high. See cloud logging for skia-ctfe."
   }
 
+# CQ Watcher
+ALERT CQWatcherCLsCount
+  IF cq_watcher_in_flight_waiting_in_cq{instance="skia-cq-watcher:20000",job="cq_watcher"} >= 10
+  FOR 5m
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    summary = "Too many CLs in CQ.",
+    description = "There are 10 CLs or more in Skia's CL. https://skia.googlesource.com/buildbot/+/master/cq_watcher/PROD.md#too_many_cls"
+  }
+
+ALERT CQWatcherTrybotDuration
+  IF cq_watcher_in_flight_trybot_duration{instance="skia-cq-watcher:20000",job="cq_watcher"} >= 2700
+  FOR 5m
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    summary = "CQ trybot running for too long.",
+    description = "{{ $labels.trybot }} in https://skia-review.googlesource.com/c/{{ $labels.issue }}/{{ $labels.patchset }} ran longer than 45 mins. https://skia.googlesource.com/buildbot/+/master/cq_watcher/PROD.md#trybot_duration_beyond_threshold"
+  }
+
+ALERT CQWatcherTrybotsCount
+  IF cq_watcher_in_flight_trybot_num{instance="skia-cq-watcher:20000",job="cq_watcher"} > 35
+  FOR 5m
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    summary = "Too many CQ trybots triggered by CL.",
+    description = "There are more than 35 CQ trybots triggered by https://skia-review.googlesource.com/c/{{ $labels.issue }}/{{ $labels.patchset }} https://skia.googlesource.com/buildbot/+/master/cq_watcher/PROD.md#too_many_trybots_triggered"
+  }
+
 # Perf
 ALERT PerfUntriagedClusters
   IF perf_clustering_untriaged{instance="skia-perf:20000"} > 0
