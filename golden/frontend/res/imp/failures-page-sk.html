@@ -45,30 +45,44 @@
       .headerContainer {
         padding-top: 2em;
       }
+
+      .bulkButtons {
+        padding: 1em 0 1em 0;
+      }
     </style>
     <h2>Digest Failures</h2>
     <activity-sk id="activityFailures"></activity-sk>
-    <table class="headerContainer">
-      <thead>
-        <tr>
-          <td class="dateTimeHeader">Date/Time</td>
-          <td class="digestHeader">Digest</td>
-          <td class="reasonHeader">Reason</td>
-          <td>&nbsp;</td>
-          <td>&nbsp;</td>
-        </tr>
-
-        <template is="dom-repeat" items="[[_failureSummary.failures]]" as="entry">
+    <template is="dom-if" if="[[_emptyResponse(_failureSummary)]]">
+      <div class="emptyResponse">No failure records found.</div>
+    </template>
+    <template is="dom-if" if="[[_nonEmptyResponse(_failureSummary)]]">
+      <div>Showing the most recent [[_failureSummary.failures.length]] of [[_failureSummary.count]] failures.</div>
+      <div class="bulkButtons">
+        <paper-button raised on-tap="_handleClearAll" title="Remove from server cache">Clear All</paper-button>
+        <paper-button raised on-tap="_handlePurgeAll" title="Remove from cache and Google storage">Purge All</paper-button>
+      </div>
+      <table class="headerContainer">
+        <thead>
           <tr>
-            <td class="dateTimeValue">[[_toLocalDate(entry.ts)]]</td>
-            <td class="digestValue"><a href$="[[_imgHref(entry)]]" target="_blank" rel="noopener">[[entry.digest]]</a></td>
-            <td class="reasonValue">[[entry.reason]]</td>
-            <td><paper-button on-tap="_handleClear" title="Remove from server cache" data-digestid$="[[entry.digest]]">Clear</paper-button></td>
-            <td><paper-button on-tap="_handlePurge" title="Remove from cache and Google storage" data-digestid$="[[entry.digest]]">Purge</paper-button></td>
+            <td class="dateTimeHeader">Date/Time</td>
+            <td class="digestHeader">Digest</td>
+            <td class="reasonHeader">Reason</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
           </tr>
-        </template>
-      </thead>
-    </table>
+
+          <template is="dom-repeat" items="[[_failureSummary.failures]]" as="entry">
+            <tr>
+              <td class="dateTimeValue">[[_toLocalDate(entry.ts)]]</td>
+              <td class="digestValue"><a href$="[[_imgHref(entry)]]" target="_blank" rel="noopener">[[entry.digest]]</a></td>
+              <td class="reasonValue">[[entry.reason]]</td>
+              <td><paper-button on-tap="_handleClear" title="Remove from server cache" data-digestid$="[[entry.digest]]">Clear</paper-button></td>
+              <td><paper-button on-tap="_handlePurge" title="Remove from cache and Google storage" data-digestid$="[[entry.digest]]">Purge</paper-button></td>
+            </tr>
+          </template>
+        </thead>
+      </table>
+    </template>
   </template>
   <script>
     Polymer({
@@ -77,6 +91,7 @@
       properties: {
         _failureSummary: {
           type: Object,
+          value: null
         }
       },
 
@@ -90,9 +105,8 @@
 
       // _clear removes a failure entry from the backend. If gsPurge is true it will
       // cause the backend to also remove the digest from Google Storage.
-      _clear: function (event, gsPurge) {
+      _clear: function (digests, gsPurge) {
         var url = '/json/failure/clear' + ((gsPurge) ? '?purge=true':'');
-        var digests = [event.target.dataset.digestid];
         this.$.activityFailures.startSpinner("Loading...");
         sk.post(url, JSON.stringify(digests)).then(JSON.parse).then(function(json){
           this.set('_failureSummary', json);
@@ -103,20 +117,44 @@
         }.bind(this));
       },
 
+      _clearAll: function(gsPurge) {
+        var digests = [];
+        for(var i=0; i < this._failureSummary.failures.length; i++) {
+          digests.push(this._failureSummary.failures[i].digest);
+        }
+        this._clear(digests, gsPurge);
+      },
+
       _handleClear: function (event) {
-        this._clear(event, false);
+        this._clear([event.target.dataset.digestid], false);
       },
 
       _handlePurge: function (event) {
-        this._clear(event, true);
+        this._clear([event.target.dataset.digestid], true);
       },
 
-      _toLocalDate: function (timeStampSec) {
-        return new Date(timeStampSec * 1000).toLocaleString();
+      _handleClearAll: function(event) {
+        this._clearAll(false);
+      },
+
+      _handlePurgeAll: function() {
+        this._clearAll(true);
+      },
+
+      _toLocalDate: function (timeStampMs) {
+        return new Date(timeStampMs).toLocaleString();
       },
 
       _imgHref: function (entry) {
         return gold.imgHref(entry.digest);
+      },
+
+      _emptyResponse: function(failureSummary) {
+        return failureSummary && failureSummary.count === 0;
+      },
+
+      _nonEmptyResponse: function(failureSummary) {
+        return failureSummary && !this._emptyResponse(failureSummary);
       }
     });
   </script>

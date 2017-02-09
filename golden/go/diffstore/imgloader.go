@@ -102,6 +102,12 @@ func (il *ImageLoader) sync() {
 	il.wg.Wait()
 }
 
+// errResult is a helper type to capture error information in Get(...).
+type errResult struct {
+	err    error
+	digest string
+}
+
 // Get returns the images identified by digests and returns it as an NRGBA image.
 // Priority determines the order in which multiple concurrent calls are processed.
 // func (il *ImageLoader) Get(priority int64, digests []string) (*image.NRGBA, error) {
@@ -116,7 +122,7 @@ func (il *ImageLoader) sync() {
 func (il *ImageLoader) Get(priority int64, digests []string) ([]*image.NRGBA, error) {
 	// Parallel load the requested images.
 	result := make([]*image.NRGBA, len(digests))
-	errCh := make(chan error, len(digests))
+	errCh := make(chan errResult, len(digests))
 	var wg sync.WaitGroup
 	wg.Add(len(digests))
 	for idx, digest := range digests {
@@ -124,7 +130,7 @@ func (il *ImageLoader) Get(priority int64, digests []string) ([]*image.NRGBA, er
 			defer wg.Done()
 			img, err := il.imageCache.Get(priority, digest)
 			if err != nil {
-				errCh <- err
+				errCh <- errResult{err: err, digest: digest}
 			} else {
 				result[idx] = img.(*image.NRGBA)
 			}
@@ -134,9 +140,12 @@ func (il *ImageLoader) Get(priority int64, digests []string) ([]*image.NRGBA, er
 	if len(errCh) > 0 {
 		close(errCh)
 		var msg bytes.Buffer
-		for err := range errCh {
-			_, _ = msg.WriteString(err.Error())
+		for errRet := range errCh {
+			_, _ = msg.WriteString(errRet.err.Error())
 			_, _ = msg.WriteString("\n")
+
+			// This captures the edge case when the error is cached in the image loader.
+			util.LogErr(il.failureStore.addDigestFailureIfNew(diff.NewDigestFailure(errRet.digest, diff.OTHER)))
 		}
 		return nil, errors.New(msg.String())
 	}
@@ -180,6 +189,7 @@ func (il *ImageLoader) imageLoadWorker(priority int64, digest string) (interface
 			util.LogErr(il.failureStore.addDigestFailure(diff.NewDigestFailure(digest, diff.CORRUPTED)))
 			return nil, err
 		}
+		util.LogErr(il.failureStore.purgeDigestFailures([]string{digest}))
 		return img, err
 	}
 
