@@ -16,6 +16,24 @@
       "revId": "acf08cf3095ffa420d5440af2730fb18089ae2cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80d30e63_a3ef8eae",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-02-09T14:52:32Z",
+      "side": 1,
+      "message": "Good point, logs to write are now constantly trimmed back to a max size.\n\nI keep older logs because they might contain data that would help debug the issue of logs not writing, if this situation happened.",
+      "parentUuid": "2f4f3b99_9b33e30d",
+      "revId": "acf08cf3095ffa420d5440af2730fb18089ae2cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
