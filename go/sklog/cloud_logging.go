@@ -262,8 +262,10 @@ func (c *logsClient) pushBatch() {
 	if resp, err := c.service.Entries.Write(&request).Context(ctx).Do(); err != nil {
 		// We can't use httputil.DumpResponse, because that doesn't accept *logging.WriteLogEntriesResponse
 		glog.Errorf("Problem writing logs \nResponse:\n%v:\n%s", spew.Sdump(resp), err)
+		return
 	} else if resp.HTTPStatusCode != http.StatusOK {
 		glog.Errorf("Response code %d", resp.HTTPStatusCode)
+		return
 	}
 	c.buffer = c.buffer[:0]
 }
