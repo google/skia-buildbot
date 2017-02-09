@@ -11,8 +11,7 @@ ExecStart=/usr/local/bin/task_scheduler \
     --influxdb_host=skia-monitoring:10117 \
     --influxdb_database=skmetrics \
     --isolate_server=https://chrome-isolated.appspot.com \
-    --log_dir=/var/log/logserver \
-    --log_max_size=10485760 \
+    --logtostderr \
     --pool=SkiaInternal \
     --pubsub_topic=swarming-tasks-internal \
     --pubsub_subscriber=task-scheduler-internal \

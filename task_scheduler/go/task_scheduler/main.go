@@ -87,6 +87,7 @@ var (
 	commitWindow   = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
 	gsBucket       = flag.String("gsBucket", "skia-task-scheduler", "Name of Google Cloud Storage bucket to use for backups and recovery.")
 	workdir        = flag.String("workdir", "workdir", "Working directory to use.")
+	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 
 	pubsubTopicName      = flag.String("pubsub_topic", scheduling.PUBSUB_TOPIC_SWARMING_TASKS, "Pub/Sub topic to use for Swarming tasks.")
 	pubsubSubscriberName = flag.String("pubsub_subscriber", scheduling.PUBSUB_SUBSCRIBER_TASK_SCHEDULER, "Pub/Sub subscriber name.")
@@ -469,7 +470,12 @@ func main() {
 	defer common.LogPanic()
 
 	// Global init.
-	common.InitWithMetrics2(APP_NAME, influxHost, influxUser, influxPassword, influxDatabase, local)
+	common.InitWithMust(
+		APP_NAME,
+		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
 
 	reloadTemplates()
 
@@ -589,10 +595,7 @@ func main() {
 	ts.Start(ctx, b.Tick)
 
 	// Start up the web server.
-	redirectURL := serverURL + "/oauth2callback/"
-	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		sklog.Fatal(err)
-	}
+	login.SimpleInitMust(*port, *local)
 
 	if *local {
 		webhook.InitRequestSaltForTesting()

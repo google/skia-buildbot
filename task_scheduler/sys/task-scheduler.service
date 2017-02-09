@@ -7,8 +7,7 @@ After=mnt-pd0.mount network-online.target
 [Service]
 ExecStart=/usr/local/bin/task_scheduler \
     --host=task-scheduler.skia.org \
-    --log_dir=/var/log/logserver \
-    --log_max_size=10485760 \
+    --logtostderr \
     --workdir=/mnt/pd0/task_scheduler_workdir \
     --influxdb_host=skia-monitoring:10117 \
     --influxdb_database=skmetrics \
