@@ -13,17 +13,12 @@ import (
 	"go.skia.org/infra/go/cq"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metrics2"
 )
 
 var (
-	testing = flag.Bool("testing", false, "Set to true for local testing.")
-
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	testing  = flag.Bool("testing", false, "Set to true for local testing.")
+	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 )
 
 const (
@@ -45,8 +40,8 @@ const (
 // * How long CQ trybots have been running for.
 // * How many CQ trybots have been triggered.
 func monitorStatsForInFlightCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit) {
-	liveness := metrics2.NewLiveness(fmt.Sprintf("%s.%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME))
-	cqMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s.%s.%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_WAITING_IN_CQ))
+	liveness := metrics2.NewLiveness(fmt.Sprintf("%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME))
+	cqMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_WAITING_IN_CQ))
 	for _ = range time.Tick(time.Duration(IN_FLIGHT_POLL_TIME)) {
 		dryRunChanges, err := gerritClient.Search(MAX_CLS_PER_POLL, gerrit.SearchStatus("open"), gerrit.SearchProject("skia"), gerrit.SearchLabel(gerrit.COMMITQUEUE_LABEL, "1"))
 		if err != nil {
@@ -73,7 +68,6 @@ func monitorStatsForInFlightCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit
 		// If no CLs are currently in the CQ then report dummy data to prevent
 		// "Failed to execute query for rule..." failures in the alertserver.
 		if len(changes) == 0 {
-			currentTime := time.Now()
 			dummyIssue := "0"
 			dummyPatchsetId := "0"
 			dummyTrybot := "DummyTrybot"
@@ -82,12 +76,14 @@ func monitorStatsForInFlightCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit
 				"patchset": dummyPatchsetId,
 				"trybot":   dummyTrybot,
 			}
-			metrics2.RawAddInt64PointAtTime(fmt.Sprintf("%s.%s.%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_TRYBOT_DURATION), durationTags, 0, currentTime)
+			inflightTrybotDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_TRYBOT_DURATION), durationTags)
+			inflightTrybotDurationMetric.Update(0)
 			numTags := map[string]string{
 				"issue":    dummyIssue,
 				"patchset": dummyPatchsetId,
 			}
-			metrics2.RawAddInt64PointAtTime(fmt.Sprintf("%s.%s.%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_TRYBOT_NUM), numTags, 0, currentTime)
+			trybotNumDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_TRYBOT_NUM), numTags)
+			trybotNumDurationMetric.Update(0)
 		}
 		liveness.Reset()
 	}
@@ -99,7 +95,7 @@ func monitorStatsForInFlightCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit
 // * The total time the CL spent waiting for CQ trybots to complete.
 // * The time each CQ trybot took to complete.
 func monitorStatsForLandedCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit) {
-	liveness := metrics2.NewLiveness(fmt.Sprintf("%s.%s", METRIC_NAME, cq.LANDED_METRIC_NAME))
+	liveness := metrics2.NewLiveness(fmt.Sprintf("%s_%s", METRIC_NAME, cq.LANDED_METRIC_NAME))
 	previousPollChanges := []*gerrit.ChangeInfo{}
 	for _ = range time.Tick(time.Duration(AFTER_COMMIT_POLL_TIME)) {
 		// Add a short (2 min) buffer to overlap with the last poll to make sure
@@ -134,7 +130,7 @@ func refreshCQTryBots(cqClient *cq.Client) {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithCloudLogging(METRIC_NAME, influxHost, influxUser, influxPassword, influxDatabase, testing)
+	common.InitWithMust(METRIC_NAME, common.PrometheusOpt(promPort), common.CloudLoggingOpt())
 
 	httpClient := httputils.NewTimeoutClient()
 	gerritClient, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", httpClient)
