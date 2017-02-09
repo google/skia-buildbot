@@ -2,9 +2,7 @@
 auto lo
 iface lo inet loopback
 
-auto {{interface}}
-iface {{interface}} inet static
-  address {{ip_address}}
-  netmask {{netmask}}
-  gateway {{gateway}}
-  dns-nameservers 8.8.8.8 8.8.4.4
+auto {{ interface }}
+iface {{ interface }} inet dhcp
+pre-up /sbin/ethtool -s {{ interface }} speed 100 duplex full
+pre-up /sbin/ethtool -A {{ interface }} rx off tx off autoneg off

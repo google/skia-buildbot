@@ -5,6 +5,15 @@
   become: yes
   become_method: sudo
 
+  vars:
+    interface_templ: "./interfaces.j2"
+    expanded_interface: "/etc/network/interfaces"
+
+  vars_prompt:
+    - name: "interface"
+      prompt: "What is ethernet interface?  If you don't know, run ifconfig first"
+      private: no
+
   tasks:
     - name: Update and Upgrade
       apt: upgrade=dist update_cache=yes
@@ -67,4 +76,17 @@
         block: |
           [SeatDefaults]
           autologin-user=chrome-bot
+
+      # This takes the pre-existing /etc/network/interfaces template
+      # (which is a jinja2 template, as per ansible spec) and fills in
+      # the interface name.
+    - name: disable ethernet flow control
+      template:
+        src: "{{interface_templ}}"
+        dest: "{{expanded_interface}}"
+        owner: root
+        group: root
+        mode: 0644
+        force: yes
+        backup: yes
 
