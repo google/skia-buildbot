@@ -29,6 +29,10 @@ scrape_configs:
     static_configs:
       - targets: ['skia-ctfe:20000']
 
+  - job_name: 'cq_watcher'
+    static_configs:
+      - targets: ['skia-cq-watcher:20000']
+
   - job_name: 'debugger'
     static_configs:
       - targets: ['skia-debugger:20000']

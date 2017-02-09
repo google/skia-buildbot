@@ -177,13 +177,15 @@ func (c *Client) ReportCQStatsForLandedCL(change, patchsetId int64, cqBuilds []*
 		}
 
 		durationTags := map[string]string{
-			"issue":    fmt.Sprintf("%d", change),
-			"patchset": fmt.Sprintf("%d", patchsetId),
-			"trybot":   b.Parameters.BuilderName,
+			"issue":          fmt.Sprintf("%d", change),
+			"patchset":       fmt.Sprintf("%d", patchsetId),
+			"trybot":         b.Parameters.BuilderName,
+			"completed_time": completedTime.String(),
 		}
 		duration := int64(completedTime.Sub(createdTime).Seconds())
 		sklog.Infof("\t%s was created at %s and completed at %s. Total duration: %d", b.Parameters.BuilderName, createdTime, completedTime, duration)
-		metrics2.RawAddInt64PointAtTime(fmt.Sprintf("%s.%s.%s", c.metricName, LANDED_METRIC_NAME, LANDED_TRYBOT_DURATION), durationTags, duration, completedTime)
+		landedTrybotDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s.%s.%s", c.metricName, LANDED_METRIC_NAME, LANDED_TRYBOT_DURATION), durationTags)
+		landedTrybotDurationMetric.Update(duration)
 
 		if duration > maximumTrybotDuration {
 			maximumTrybotDuration = duration
@@ -193,9 +195,12 @@ func (c *Client) ReportCQStatsForLandedCL(change, patchsetId int64, cqBuilds []*
 	sklog.Infof("\tMaximum trybot duration: %d", maximumTrybotDuration)
 	sklog.Infof("\tFurthest completion time: %s", endTimeOfCQBots)
 	totalDurationTags := map[string]string{
-		"issue":    fmt.Sprintf("%d", change),
-		"patchset": fmt.Sprintf("%d", patchsetId)}
-	metrics2.RawAddInt64PointAtTime(fmt.Sprintf("%s.%s.%s", c.metricName, LANDED_METRIC_NAME, LANDED_TOTAL_DURATION), totalDurationTags, maximumTrybotDuration, endTimeOfCQBots)
+		"issue":            fmt.Sprintf("%d", change),
+		"patchset":         fmt.Sprintf("%d", patchsetId),
+		"end_time_cq_bots": endTimeOfCQBots.String(),
+	}
+	landedTotalDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s.%s.%s", c.metricName, LANDED_METRIC_NAME, LANDED_TOTAL_DURATION), totalDurationTags)
+	landedTotalDurationMetric.Update(maximumTrybotDuration)
 }
 
 // ReportCQStatsForInFlightCL reports the following metrics for the specified
@@ -222,7 +227,9 @@ func (c *Client) ReportCQStatsForInFlightCL(issue, patchsetId int64, cqBuilds []
 			"patchset": fmt.Sprintf("%d", patchsetId),
 			"trybot":   b.Parameters.BuilderName,
 		}
-		metrics2.RawAddInt64PointAtTime(fmt.Sprintf("%s.%s.%s", c.metricName, INFLIGHT_METRIC_NAME, INFLIGHT_TRYBOT_DURATION), durationTags, duration, currentTime)
+		inflightTrybotDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s.%s.%s", c.metricName, INFLIGHT_METRIC_NAME, INFLIGHT_TRYBOT_DURATION), durationTags)
+		inflightTrybotDurationMetric.Update(duration)
+
 	}
 	cqTryBotsMutex.RLock()
 	sklog.Infof("\t%d CQ bots have been triggered by %d/%d. There are %d CQ bots in cq.cfg", totalTriggeredCQBots, issue, patchsetId, len(c.cqTryBots))
@@ -231,7 +238,8 @@ func (c *Client) ReportCQStatsForInFlightCL(issue, patchsetId int64, cqBuilds []
 		"issue":    fmt.Sprintf("%d", issue),
 		"patchset": fmt.Sprintf("%d", patchsetId),
 	}
-	metrics2.RawAddInt64PointAtTime(fmt.Sprintf("%s.%s.%s", c.metricName, INFLIGHT_METRIC_NAME, INFLIGHT_TRYBOT_NUM), numTags, int64(totalTriggeredCQBots), currentTime)
+	trybotNumDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s.%s.%s", c.metricName, INFLIGHT_METRIC_NAME, INFLIGHT_TRYBOT_NUM), numTags)
+	trybotNumDurationMetric.Update(int64(totalTriggeredCQBots))
 }
 
 func (c *Client) isCQTryBot(builderName string) bool {
