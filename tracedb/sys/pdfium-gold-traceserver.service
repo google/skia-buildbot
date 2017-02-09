@@ -9,7 +9,8 @@ ExecStart=/usr/local/bin/pdfium_gold_traceserver \
     --db_file=/mnt/pd0/pdfium_gold/traceserver/pdfium_gold_traces.db \
     --sharedb_dir=/mnt/pd0/pdfium_gold/traceserver/sharedb-data \
     --port=:9091 \
-    --log_dir=/var/log/logserver
+    --prom_port=:20003 \
+    --logtostderr
 Restart=always
 User=default
 Group=default
