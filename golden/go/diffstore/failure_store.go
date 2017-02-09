@@ -40,8 +40,11 @@ type failureStore struct {
 	// cachedFailures caches all failures for fast lookup.
 	cachedFailures map[string]*diff.DigestFailure
 
-	// mutex protects cachedFailures.
-	mutex sync.RWMutex
+	// dbMutex protects changes to the database.
+	dbMutex sync.Mutex
+
+	// cacheMutex protects cachedFailures.
+	cacheMutex sync.RWMutex
 }
 
 // newFailureStore returns a new instance of failureStore that opens a database in the given directory.
@@ -75,14 +78,27 @@ func newFailureStore(baseDir string) (*failureStore, error) {
 
 // unavailableDigests returns the current list of unavailable digests for fast lookup.
 func (f *failureStore) unavailableDigests() map[string]*diff.DigestFailure {
-	f.mutex.RLock()
-	defer f.mutex.RUnlock()
+	f.cacheMutex.RLock()
+	defer f.cacheMutex.RUnlock()
 	return f.cachedFailures
+}
+
+// addDigestFailureIfNew adds a digest failure to the database only if the
+// there is no failure recorded for the given digest.
+func (f *failureStore) addDigestFailureIfNew(failure *diff.DigestFailure) error {
+	unavailable := f.unavailableDigests()
+	if _, ok := unavailable[failure.Digest]; !ok {
+		return f.addDigestFailure(failure)
+	}
+	return nil
 }
 
 // addDigestFailure adds a digest failure to the database or updates an
 // existing failure.
 func (f *failureStore) addDigestFailure(failure *diff.DigestFailure) error {
+	f.dbMutex.Lock()
+	defer f.dbMutex.Unlock()
+
 	inputRecs := []boltutil.Record{&digestFailureRec{DigestFailure: failure}}
 	updateFn := func(tx *bolt.Tx, result []boltutil.Record) error {
 		if result[0] != nil {
@@ -105,6 +121,21 @@ func (f *failureStore) addDigestFailure(failure *diff.DigestFailure) error {
 
 // purgeDigestFailures removes the failures identified by digests from the database.
 func (f *failureStore) purgeDigestFailures(digests []string) error {
+	f.dbMutex.Lock()
+	defer f.dbMutex.Unlock()
+
+	targets := make([]string, 0, len(digests))
+	unavailable := f.unavailableDigests()
+	for _, d := range digests {
+		if _, ok := unavailable[d]; ok {
+			targets = append(targets, d)
+		}
+	}
+
+	if len(targets) == 0 {
+		return nil
+	}
+
 	if err := f.store.Delete(digests); err != nil {
 		return err
 	}
@@ -114,7 +145,6 @@ func (f *failureStore) purgeDigestFailures(digests []string) error {
 
 // loadDigestFailures loads all digest failures into memory and updates the current cache.
 func (f *failureStore) loadDigestFailures() error {
-
 	allFailures, _, err := f.store.List(0, -1)
 	if err != nil {
 		return err
@@ -126,8 +156,8 @@ func (f *failureStore) loadDigestFailures() error {
 		ret[failure.Digest] = failure.DigestFailure
 	}
 
-	f.mutex.Lock()
-	defer f.mutex.Unlock()
+	f.cacheMutex.Lock()
+	defer f.cacheMutex.Unlock()
 	f.cachedFailures = ret
 	return nil
 }
