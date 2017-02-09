@@ -71,7 +71,7 @@ func (h *historian) start() error {
 	if err := h.updateDigestInfo(lastTilePair.TileWithIgnores); err != nil {
 		return err
 	}
-	liveness := metrics2.NewLiveness("gold.digest-history-monitoring")
+	liveness := metrics2.GetDefaultClient().NewLiveness("gold.digest-history-monitoring")
 
 	// Keep processing tiles and feed them into the process channel.
 	go func() {
