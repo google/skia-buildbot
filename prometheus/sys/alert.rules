@@ -273,6 +273,63 @@ ALERT FuzzerSlowRoll
     description = "The fuzzer hasn't finished rolling its version forward in 2 hours.  Something might be wrong.  https://skia.googlesource.com/buildbot/+/master/fuzzer/PROD.md#broken_roll"
   }
 
+# Status
+
+ALERT StatusLatency
+  IF prober{probename="skiastatus_json",type="latency"} / 1024 > 1
+  FOR 2m
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "The JSON endpoint at https://status.skia.org/json/skia/commits/ took more than 1s to respond."
+  }
+
+# Prober
+
+ALERT ProberLiveness
+  IF liveness_probes_s/60 > 10
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "Probing has failed to run in at least 10 minutes."
+  }
+
+ALERT IssueTrackerLiveness
+  IF liveness_issue_tracker_s/60 > 30
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "Issue tracker ingestion has failed to run in at least 30 minutes."
+  }
+
+# Autoroller
+
+ALERT SkiaAutoRoll
+  IF autoroll_last_roll_result{child_path="src/third_party/skia"} == 0
+  FOR 10m
+  LABELS { category = "general", severity = "warning" }
+  ANNOTATIONS {
+    description = "The last DEPS roll attempt for Skia failed. https://skia.googlesource.com/buildbot/+/master/autoroll/PROD.md#autoroll_failed."
+  }
+
+ALERT SkiaAutoRoll24H
+  IF liveness_last_autoroll_landed_s{child_path="src/third_party/skia"}/60/60 > 24
+  LABELS { category = "general", severity = "warning" }
+  ANNOTATIONS {
+    description = "The last-landed AutoRoll for Skia was over 24h ago. https://skia.googlesource.com/buildbot/+/master/autoroll/PROD.md#no_rolls_24h."
+  }
+
+ALERT AutoRollLatency
+  IF prober{type="latency",probename=~".*autoroll"} > 200
+  FOR 10m
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "The endpoint for {{ $labels.probename }} took more than 200ms to respond. https://skia.googlesource.com/buildbot/+/master/autoroll/PROD.md#http_latency."
+  }
+
+ALERT AutoRollErrorRate
+  IF rate(num_log_lines{level="ERROR",log_source="autoroll"}[10m]) > 5
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    description = "The error rate for autoroll on {{ $labels.instance }} is too high. https://skia.googlesource.com/buildbot/+/master/autoroll/PROD.md#error_rate."
+  }
 # Gold
 
 ALERT GoldIngestionStalled
