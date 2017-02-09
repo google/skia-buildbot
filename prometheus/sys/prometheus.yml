@@ -95,6 +95,11 @@ scrape_configs:
       - targets: ['skia-perf:20000']
       - targets: ['skia-android-perf:20000']
 
+  - job_name: 'status'
+    static_configs:
+      - targets: ['skia-status:20000']
+      - targets: ['skia-status-internal:20000']
+
   - job_name: 'traceserver'
     static_configs:
       - targets: ['skia-tracedb:20003']
@@ -105,7 +110,6 @@ scrape_configs:
           corpus: gold
 
 # pulld for every server.
-
   - job_name: 'pulld'
     static_configs:
       - targets: ['catapult-autoroll:11000']

@@ -70,17 +70,18 @@ var (
 
 // flags
 var (
+	capacityRecalculateInterval = flag.Duration("capacity_recalculate_interval", 10*time.Minute, "How often to re-calculate capacity statistics.")
 	host                        = flag.String("host", "localhost", "HTTP service host")
 	port                        = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
-	useMetadata                 = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
-	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
-	workdir                     = flag.String("workdir", ".", "Directory to use for scratch work.")
+	promPort                    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	repoUrls                    = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
 	resourcesDir                = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	swarmingUrl                 = flag.String("swarming_url", "https://chromium-swarm.appspot.com", "URL of the Swarming server.")
-	taskSchedulerUrl            = flag.String("task_scheduler_url", "https://task-scheduler.skia.org", "URL of the Task Scheduler server.")
 	taskSchedulerDbUrl          = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
-	capacityRecalculateInterval = flag.Duration("capacity_recalculate_interval", 10*time.Minute, "How often to re-calculate capacity statistics.")
+	taskSchedulerUrl            = flag.String("task_scheduler_url", "https://task-scheduler.skia.org", "URL of the Task Scheduler server.")
+	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
+	useMetadata                 = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
+	workdir                     = flag.String("workdir", ".", "Directory to use for scratch work.")
 
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
@@ -590,7 +591,13 @@ func main() {
 	defer common.LogPanic()
 	// Setup flags.
 
-	common.InitWithMetrics2("status", influxHost, influxUser, influxPassword, influxDatabase, testing)
+	common.InitWithMust(
+		"status",
+		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, testing),
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
+
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		sklog.Fatal(err)
@@ -627,11 +634,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	// By default use a set of credentials setup for localhost access.
-	redirectURL := serverURL + OAUTH2_CALLBACK_PATH
-	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		sklog.Fatalf("Failed to initialize the login system: %s", err)
-	}
+	login.SimpleInitMust(*port, *testing)
 
 	// Check out source code.
 	reposDir := path.Join(*workdir, "repos")
