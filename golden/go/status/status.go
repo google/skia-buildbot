@@ -22,17 +22,6 @@ const (
 	METRIC_CORPUS = "gold.status.by-corpus"
 )
 
-var (
-	// Gauges to track overall digests with different labels.
-	allUntriagedGauge = metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.UNTRIAGED.String()})
-	allPositiveGauge  = metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.POSITIVE.String()})
-	allNegativeGauge  = metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.NEGATIVE.String()})
-	totalGauge        = metrics2.GetInt64Metric(METRIC_TOTAL, nil)
-
-	// Gauges to track counts of digests by corpus / label
-	corpusGauges = map[string]map[types.Label]metrics2.Int64Metric{}
-)
-
 // GUIStatus reflects the current rebaseline status. In particular whether
 // HEAD is baselined and how many untriaged and negative digests there
 // currently are.
@@ -73,14 +62,27 @@ func (c CorpusStatusSorter) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
 
 type StatusWatcher struct {
 	storages *storage.Storage
+	current  *GUIStatus
+	mutex    sync.Mutex
 
-	current *GUIStatus
-	mutex   sync.Mutex
+	// Gauges to track overall digests with different labels.
+	allUntriagedGauge metrics2.Int64Metric
+	allPositiveGauge  metrics2.Int64Metric
+	allNegativeGauge  metrics2.Int64Metric
+	totalGauge        metrics2.Int64Metric
+
+	// Gauges to track counts of digests by corpus / label
+	corpusGauges map[string]map[types.Label]metrics2.Int64Metric
 }
 
 func New(storages *storage.Storage) (*StatusWatcher, error) {
 	ret := &StatusWatcher{
-		storages: storages,
+		storages:          storages,
+		allUntriagedGauge: metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.UNTRIAGED.String()}),
+		allPositiveGauge:  metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.POSITIVE.String()}),
+		allNegativeGauge:  metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.NEGATIVE.String()}),
+		totalGauge:        metrics2.GetInt64Metric(METRIC_TOTAL, nil),
+		corpusGauges:      map[string]map[types.Label]metrics2.Int64Metric{},
 	}
 
 	if err := ret.calcAndWatchStatus(); err != nil {
@@ -180,8 +182,8 @@ func (s *StatusWatcher) calcStatus(tile *tiling.Tile) error {
 				types.UNTRIAGED: map[string]bool{},
 			}
 
-			if _, ok := corpusGauges[corpus]; !ok {
-				corpusGauges[corpus] = map[types.Label]metrics2.Int64Metric{
+			if _, ok := s.corpusGauges[corpus]; !ok {
+				s.corpusGauges[corpus] = map[types.Label]metrics2.Int64Metric{
 					types.UNTRIAGED: metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": types.UNTRIAGED.String(), "corpus": corpus}),
 					types.POSITIVE:  metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": types.POSITIVE.String(), "corpus": corpus}),
 					types.NEGATIVE:  metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": types.NEGATIVE.String(), "corpus": corpus}),
@@ -227,14 +229,14 @@ func (s *StatusWatcher) calcStatus(tile *tiling.Tile) error {
 		allNegativeCount += negativeCount
 		allPositiveCount += positiveCount
 
-		corpusGauges[corpus][types.POSITIVE].Update(int64(positiveCount))
-		corpusGauges[corpus][types.NEGATIVE].Update(int64(negativeCount))
-		corpusGauges[corpus][types.UNTRIAGED].Update(int64(untriagedCount))
+		s.corpusGauges[corpus][types.POSITIVE].Update(int64(positiveCount))
+		s.corpusGauges[corpus][types.NEGATIVE].Update(int64(negativeCount))
+		s.corpusGauges[corpus][types.UNTRIAGED].Update(int64(untriagedCount))
 	}
-	allUntriagedGauge.Update(int64(allUntriagedCount))
-	allPositiveGauge.Update(int64(allPositiveCount))
-	allNegativeGauge.Update(int64(allNegativeCount))
-	totalGauge.Update(int64(allUntriagedCount + allPositiveCount + allNegativeCount))
+	s.allUntriagedGauge.Update(int64(allUntriagedCount))
+	s.allPositiveGauge.Update(int64(allPositiveCount))
+	s.allNegativeGauge.Update(int64(allNegativeCount))
+	s.totalGauge.Update(int64(allUntriagedCount + allPositiveCount + allNegativeCount))
 
 	sort.Sort(CorpusStatusSorter(corpStatus))
 
