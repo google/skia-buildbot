@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "767108a0_248cee32",
+        "filename": "golden/go/history/history.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-02-10T15:01:51Z",
+      "side": 1,
+      "message": "GetDefaultClient() shouldn\u0027t be needed. I\u0027d like to make it go away once we get to zero callers.",
+      "revId": "a5cb6d172fe4ba03bc9741e51039398bb2be0af3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
