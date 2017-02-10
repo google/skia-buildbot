@@ -8,6 +8,7 @@ import (
 	"path"
 	"reflect"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -611,6 +612,20 @@ func (s *TaskScheduler) processTaskCandidates(candidates map[string]map[string][
 	return rvCandidates, nil
 }
 
+// flatten all the dimensions in 'dims' into a single valued map.
+func flatten(dims map[string]string) map[string]string {
+	keys := make([]string, 0, len(dims))
+	for key, _ := range dims {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	ret := make([]string, 0, 2*len(dims))
+	for _, key := range keys {
+		ret = append(ret, key, dims[key])
+	}
+	return map[string]string{"dimensions": strings.Join(ret, " ")}
+}
+
 // recordCandidateMetrics generates metrics for candidates by dimension sets.
 func (s *TaskScheduler) recordCandidateMetrics(candidates map[string]map[string][]*taskCandidate) {
 	defer metrics2.FuncTimer().Stop()
@@ -643,9 +658,8 @@ func (s *TaskScheduler) recordCandidateMetrics(candidates map[string]map[string]
 		}
 	}
 	// Report the data.
-	now := time.Now()
 	for k, count := range counts {
-		metrics2.RawAddInt64PointAtTime(MEASUREMENT_TASK_CANDIDATE_COUNT, dimensions[k], count, now)
+		metrics2.GetInt64Metric(MEASUREMENT_TASK_CANDIDATE_COUNT, flatten(dimensions[k])).Update(count)
 	}
 }
 
