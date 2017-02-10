@@ -227,8 +227,7 @@ ALERT BotMissing
   }
 
 ALERT BotQuarantined
-  IF swarming_bots_quarantined == 1
-  FOR 10m
+  IF avg_over_time(swarming_bots_quarantined[10m]) >= 1
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
     description = "Swarming bot {{ $labels.bot }} is quarantined. https://chromium-swarm.appspot.com/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
