@@ -74,6 +74,7 @@ type RunResults struct {
 	CompileErrors []CompileError `json:"compile_errors"`
 	RunTimeError  string         `json:"runtime_error"`
 	FiddleHash    string         `json:"fiddleHash"`
+	TextOutput    string         `json:"text_output"`
 }
 
 var (
