@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d4035693_0af3b782",
+        "filename": "skolo/go/powercycle/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-10T20:56:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5bde208b_ebdfcabb",
+      "range": {
+        "startLine": 22,
+        "startChar": 15,
+        "endLine": 22,
+        "endChar": 27
+      },
+      "revId": "4922035bb1e79ba971643bda4d87723d9d21e8df",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e57566df_9a9f58a6",
         "filename": "skolo/go/powercycle/mpower.go",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "f8b744bb_e6065508",
+        "filename": "skolo/go/powercycle/mpower.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-10T20:56:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e57566df_9a9f58a6",
+      "range": {
+        "startLine": 29,
+        "startChar": 1,
+        "endLine": 29,
+        "endChar": 3
+      },
+      "revId": "4922035bb1e79ba971643bda4d87723d9d21e8df",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c858f633_8cbe9ffa",
         "filename": "skolo/go/powercycle/mpower.go",
         "patchSetId": 4
@@ -59,6 +107,30 @@
       "writtenOn": "2017-02-10T20:47:34Z",
       "side": 1,
       "message": "What\u0027s with the commented out stuff?",
+      "range": {
+        "startLine": 84,
+        "startChar": 2,
+        "endLine": 84,
+        "endChar": 7
+      },
+      "revId": "4922035bb1e79ba971643bda4d87723d9d21e8df",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ebfa4b3e_572c419a",
+        "filename": "skolo/go/powercycle/mpower.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-10T20:56:31Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "c858f633_8cbe9ffa",
       "range": {
         "startLine": 84,
         "startChar": 2,
