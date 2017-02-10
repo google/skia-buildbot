@@ -16,6 +16,24 @@
       "revId": "a5cb6d172fe4ba03bc9741e51039398bb2be0af3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ac897e8b_3d432d7c",
+        "filename": "golden/go/history/history.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-10T15:54:24Z",
+      "side": 1,
+      "message": "SGTM. Done.",
+      "parentUuid": "767108a0_248cee32",
+      "revId": "a5cb6d172fe4ba03bc9741e51039398bb2be0af3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
