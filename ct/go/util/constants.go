@@ -32,6 +32,9 @@ const (
 	// Limit the number of times CT tries to get a remote file before giving up.
 	MAX_URI_GET_TRIES = 4
 
+	// The limit under which run_benchmark raises errors.
+	MAX_REPEAT_PAGES_LIMIT_TO_RAISE_ERRORS = 6
+
 	// Pageset types supported by CT.
 	PAGESET_TYPE_ALL           = "All"
 	PAGESET_TYPE_100k          = "100k"

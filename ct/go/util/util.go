@@ -589,7 +589,12 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 			// Kill the port-forwarder to start from a clean slate.
 			util.LogErr(ExecuteCmd("pkill", []string{"-f", "forwarder_host"}, []string{}, PKILL_TIMEOUT, nil, nil))
 		}
-		return fmt.Errorf("Run benchmark command failed with: %s", err)
+		// Do not raise errors and retry benchmark runs if more than
+		// MAX_REPEAT_PAGES_LIMIT_TO_RAISE_ERRORS repeats are specified. This is
+		// to avoid task timeouts when high repeats (25/50/100) are specified.
+		if repeatBenchmark <= MAX_REPEAT_PAGES_LIMIT_TO_RAISE_ERRORS {
+			return fmt.Errorf("Run benchmark command failed with: %s", err)
+		}
 	}
 	return nil
 }
