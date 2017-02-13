@@ -27,7 +27,7 @@ const (
 	PREFIX = `#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = %s; // Either a string, or 0.
-  return DrawOptions(%d, %d, true, true, true, true, %v, %v, path);
+  return DrawOptions(%d, %d, true, true, true, true, %v, %v, %v, path);
 }
 
 %s
@@ -49,7 +49,7 @@ func prepCodeToCompile(fiddleRoot, code string, opts *types.Options) string {
 		filename := fmt.Sprintf("%d.png", opts.Source)
 		sourceImage = fmt.Sprintf("%q", filepath.Join(fiddleRoot, "images", filename))
 	}
-	return fmt.Sprintf(PREFIX, sourceImage, opts.Width, opts.Height, opts.SRGB, opts.F16, code)
+	return fmt.Sprintf(PREFIX, sourceImage, opts.Width, opts.Height, opts.SRGB, opts.F16, opts.TextOnly, code)
 }
 
 // WriteDrawCpp takes the given code, modifies it so that it can be compiled
@@ -193,6 +193,7 @@ func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir st
 	}
 	// Parse the output into types.Result.
 	res := &types.Result{}
+	sklog.Infof("Output: %q", output.String())
 	if err := json.Unmarshal(output.Bytes(), res); err != nil {
 		sklog.Errorf("Received erroneous output: %q", output.String())
 		return nil, fmt.Errorf("Failed to decode results from run: %s", err)
