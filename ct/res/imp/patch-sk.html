@@ -22,7 +22,7 @@
 <dom-module id="patch-sk">
   <style>
     paper-input {
-      width: 20em;
+      width: 25em;
     }
 
     .long-field {
@@ -62,7 +62,7 @@
       <tr>
         <td class="cl-label">CL:</td>
         <td>
-          <paper-input value="{{cl}}" maxlength="60"></paper-input>
+          <paper-input value="{{cl}}" label="Please paste a complete Rietveld/Gerrit URL" no-label-float></paper-input>
           <a href="javascript:void(0);" id="patch_expander">
             <iron-icon icon="{{patchExpanderIcon(patchOpened)}}"></iron-icon>
             Specify patch manually</a>
