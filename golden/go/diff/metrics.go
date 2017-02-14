@@ -8,6 +8,7 @@ import (
 const (
 	METRIC_COMBINED = "combined"
 	METRIC_PERCENT  = "percent"
+	METRIC_PIXEL    = "pixel"
 )
 
 // MetricsFn is the signature a custom diff metric has to implmente.
@@ -17,6 +18,7 @@ type MetricFn func(*DiffMetrics, *image.NRGBA, *image.NRGBA) float32
 var metrics = map[string]MetricFn{
 	METRIC_COMBINED: combinedDiffMetric,
 	METRIC_PERCENT:  percentDiffMetric,
+	METRIC_PIXEL:    pixelDiffMetric,
 }
 
 // diffMetricIds contains the ids of all diff metrics.
@@ -72,4 +74,9 @@ func combinedDiffMetric(basic *DiffMetrics, one *image.NRGBA, two *image.NRGBA) 
 // percentDiffMetric returns pixel percent as the metric. Implements the MetricFn signature.
 func percentDiffMetric(basic *DiffMetrics, one *image.NRGBA, two *image.NRGBA) float32 {
 	return basic.PixelDiffPercent
+}
+
+// pixelDiffMetric returns the number of different pixels as the metric. Implements the MetricFn signature.
+func pixelDiffMetric(basic *DiffMetrics, one *image.NRGBA, two *image.NRGBA) float32 {
+	return float32(basic.NumDiffPixels)
 }
