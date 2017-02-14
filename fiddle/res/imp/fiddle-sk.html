@@ -27,6 +27,8 @@
 <link rel="stylesheet" href="/res/common/css/md.css" type="text/css" media="all">
 <link rel="import" href="/res/common/imp/details-summary.html">
 <link rel="import" href="/res/common/imp/toggle.html">
+
+<link rel="import" href="/res/imp/text-src.html">
 <dom-module id="fiddle-sk">
   <style>
     #namer,
@@ -114,14 +116,32 @@
       display: inline-block;
     }
 
+    #textonly {
+      display: block;
+    }
+
+    .textoutput {
+      box-shadow: 10px 10px 24px 5px rgba(214,214,214,1);
+      padding: 0.8em;
+      font-family: monospace;
+      border: solid lightgray 1px;
+      color: darkgreen;
+      margin-bottom: 3em;
+    }
+
+    .hint {
+      color: #666;
+    }
+
   </style>
   <template>
     <template is="dom-if" if="{{display_options}}">
       <details-sk>
         <summary-sk>Options</summary-sk>
         <div class=options>
-          <paper-input label="Width" size=5 auto-validate allowed-pattern="[0-9]" value="{{width}}"></paper-input>
-          <paper-input label="Height" size=5 auto-validate allowed-pattern="[0-9]" value="{{height}}"></paper-input>
+          <paper-checkbox id=textonly title="A text-only fiddle." checked="{{textonly}}">Text Only <span class=hint>[Use SkDebugf()]</span></paper-checkbox>
+          <paper-input label="Width" size=5 auto-validate allowed-pattern="[0-9]" value="{{width}}" disabled="[[textonly]]"></paper-input>
+          <paper-input label="Height" size=5 auto-validate allowed-pattern="[0-9]" value="{{height}}" disabled="[[textonly]]"></paper-input>
           <pre class=source-select>SkBitmap source;
 sk_sp&lt;SkImage> image;
           </pre>
@@ -171,7 +191,7 @@ sk_sp&lt;SkImage> image;
       <h2>Runtime Errors</h2>
       <div>{{_runtime_error}}</div>
     </template>
-    <template is="dom-if" if="{{_hasImages(fiddlehash, _compile_errors, _runtime_error)}}">
+    <template is="dom-if" if="{{_hasImages(fiddlehash, _compile_errors, _runtime_error, textonly)}}">
       <div id=results class="horizontal layout">
         <div class="vertical layout center-justified">
           <img src="/i/{{fiddlehash}}_raster.png" width="{{width}}" height="{{height}}">
@@ -206,6 +226,12 @@ sk_sp&lt;SkImage> image;
         </div>
       </div>
     </template>
+    <template is="dom-if" if="{{textonly}}">
+      <h2>Output</h2>
+      <div class=textoutput>
+        <text-src src="/i/[[fiddlehash]].txt"></text-src>
+      </div>
+    </template>
   </template>
 </dom-module>
 
@@ -222,6 +248,11 @@ sk_sp&lt;SkImage> image;
       height: {
         type: Number,
         value: 256,
+        reflectToAttribute: true,
+      },
+      textonly: {
+        type: Boolean,
+        value: false,
         reflectToAttribute: true,
       },
       source: {
@@ -305,6 +336,7 @@ sk_sp&lt;SkImage> image;
           width: +this.width,
           height: +this.height,
           source: +this.source,
+          textOnly: this.textonly,
         }
       };
       for (key in extra) {
@@ -340,8 +372,8 @@ sk_sp&lt;SkImage> image;
       });
     },
 
-    _hasImages: function(fiddlehash, compile_errors, runtime_error) {
-      return fiddlehash != "" && runtime_error == "" && (compile_errors.length == 0);
+    _hasImages: function(fiddlehash, compile_errors, runtime_error, textonly) {
+      return !textonly && fiddlehash != "" && runtime_error == "" && (compile_errors.length == 0);
     },
 
     _hasCompileErrors: function(compile_errors) {

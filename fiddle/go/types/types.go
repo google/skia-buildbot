@@ -35,18 +35,20 @@ type Output struct {
 	Gpu    string `json:"Gpu"`
 	Pdf    string `json:"Pdf"`
 	Skp    string `json:"Skp"`
+	Text   string `json:"Text"`
 }
 
 // Options are the users options they can select when running a fiddle that
 // will cause it to produce different output.
 //
-// If new fields are added make sure to update ComputeHash.
+// If new fields are added make sure to update ComputeHash and go/store.
 type Options struct {
-	Width  int  `json:"width"`
-	Height int  `json:"height"`
-	Source int  `json:"source"`
-	SRGB   bool `json:"srgb"`
-	F16    bool `json:"f16"`
+	Width    int  `json:"width"`
+	Height   int  `json:"height"`
+	Source   int  `json:"source"`
+	SRGB     bool `json:"srgb"`
+	F16      bool `json:"f16"`
+	TextOnly bool `json:"textOnly"`
 }
 
 // ComputeHash calculates the fiddleHash for the given code and options.
@@ -65,6 +67,9 @@ func (o *Options) ComputeHash(code string) (string, error) {
 	}
 	if o.SRGB || o.F16 {
 		out = append(out, fmt.Sprintf("// SRGB: %v, %v", o.SRGB, o.F16))
+	}
+	if o.TextOnly {
+		out = append(out, fmt.Sprintf("// TextOnly: %v", o.TextOnly))
 	}
 	for _, line := range lines {
 		if strings.Contains(line, "%:") {

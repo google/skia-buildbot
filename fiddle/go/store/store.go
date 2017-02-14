@@ -35,10 +35,11 @@ const (
 
 	// *_METADATA are the keys used to store the metadata values in Google
 	// Storage.
-	USER_METADATA   = "user"
-	WIDTH_METADATA  = "width"
-	HEIGHT_METADATA = "height"
-	SOURCE_METADATA = "source"
+	USER_METADATA     = "user"
+	WIDTH_METADATA    = "width"
+	HEIGHT_METADATA   = "height"
+	SOURCE_METADATA   = "source"
+	TEXTONLY_METADATA = "textOnly"
 )
 
 // Media is the type of outputs we can get from running a fiddle.
@@ -50,6 +51,7 @@ const (
 	GPU     Media = "GPU"
 	PDF     Media = "PDF"
 	SKP     Media = "SKP"
+	TXT     Media = "TXT"
 	UNKNOWN Media = ""
 )
 
@@ -65,6 +67,7 @@ var (
 		GPU: props{filename: "gpu.png", contentType: "image/png"},
 		PDF: props{filename: "pdf.pdf", contentType: "application/pdf"},
 		SKP: props{filename: "skp.skp", contentType: "application/octet-stream"},
+		TXT: props{filename: "txt.txt", contentType: "text/plain"},
 	}
 
 	// sourceFileName parses a souce image filename as stored in Google Storage.
@@ -118,7 +121,7 @@ func New() (*Store, error) {
 //    runId - A unique identifier for the specific run (git checkout of Skia).
 //    b64 - The contents of the media file base64 encoded.
 func (s *Store) writeMediaFile(media Media, fiddleHash, runId, b64 string) error {
-	if b64 == "" {
+	if b64 == "" && media != TXT {
 		return fmt.Errorf("An empty file is not a valid %s file.", string(media))
 	}
 	p := mediaProps[media]
@@ -205,9 +208,10 @@ func (s *Store) Put(code string, options types.Options, gitHash string, ts time.
 	defer util.Close(w)
 	w.ObjectAttrs.ContentEncoding = "text/plain"
 	w.ObjectAttrs.Metadata = map[string]string{
-		WIDTH_METADATA:  fmt.Sprintf("%d", options.Width),
-		HEIGHT_METADATA: fmt.Sprintf("%d", options.Height),
-		SOURCE_METADATA: fmt.Sprintf("%d", options.Source),
+		WIDTH_METADATA:    fmt.Sprintf("%d", options.Width),
+		HEIGHT_METADATA:   fmt.Sprintf("%d", options.Height),
+		SOURCE_METADATA:   fmt.Sprintf("%d", options.Source),
+		TEXTONLY_METADATA: fmt.Sprintf("%v", options.TextOnly),
 	}
 	if n, err := w.Write([]byte(code)); err != nil {
 		return "", fmt.Errorf("There was a problem storing the code. Uploaded %d bytes: %s", n, err)
@@ -216,7 +220,7 @@ func (s *Store) Put(code string, options types.Options, gitHash string, ts time.
 	if results == nil {
 		return fiddleHash, nil
 	}
-	if err := s.PutMedia(fiddleHash, gitHash, ts, results); err != nil {
+	if err := s.PutMedia(options, fiddleHash, gitHash, ts, results); err != nil {
 		return fiddleHash, err
 	}
 	return fiddleHash, nil
@@ -241,24 +245,31 @@ func (s *Store) Put(code string, options types.Options, gitHash string, ts time.
 // If results is nil then only the code is written.
 //
 // Returns the fiddleHash.
-func (s *Store) PutMedia(fiddleHash string, gitHash string, ts time.Time, results *types.Result) error {
+func (s *Store) PutMedia(options types.Options, fiddleHash string, gitHash string, ts time.Time, results *types.Result) error {
 	// Write each of the media files.
 	runId := fmt.Sprintf("%s:%s", ts.UTC().Format(time.RFC3339), gitHash)
-	err := s.writeMediaFile(CPU, fiddleHash, runId, results.Execute.Output.Raster)
-	if err != nil {
-		return err
-	}
-	err = s.writeMediaFile(GPU, fiddleHash, runId, results.Execute.Output.Gpu)
-	if err != nil {
-		return err
-	}
-	err = s.writeMediaFile(PDF, fiddleHash, runId, results.Execute.Output.Pdf)
-	if err != nil {
-		return err
-	}
-	err = s.writeMediaFile(SKP, fiddleHash, runId, results.Execute.Output.Skp)
-	if err != nil {
-		return err
+	if options.TextOnly {
+		err := s.writeMediaFile(TXT, fiddleHash, runId, results.Execute.Output.Text)
+		if err != nil {
+			return err
+		}
+	} else {
+		err := s.writeMediaFile(CPU, fiddleHash, runId, results.Execute.Output.Raster)
+		if err != nil {
+			return err
+		}
+		err = s.writeMediaFile(GPU, fiddleHash, runId, results.Execute.Output.Gpu)
+		if err != nil {
+			return err
+		}
+		err = s.writeMediaFile(PDF, fiddleHash, runId, results.Execute.Output.Pdf)
+		if err != nil {
+			return err
+		}
+		err = s.writeMediaFile(SKP, fiddleHash, runId, results.Execute.Output.Skp)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -295,17 +306,18 @@ func (s *Store) GetCode(fiddleHash string) (string, *types.Options, error) {
 		return "", nil, fmt.Errorf("Failed to parse options source: %s", err)
 	}
 	options := &types.Options{
-		Width:  width,
-		Height: height,
-		Source: source,
+		Width:    width,
+		Height:   height,
+		Source:   source,
+		TextOnly: attr.Metadata[TEXTONLY_METADATA] == "true",
 	}
 	return string(b), options, nil
 }
 
 // GetMedia returns the file, content-type, filename, and error for a given fiddle hash and type of media.
 //
-//    media - The type of the file to write.
 //    fiddleHash - The hash of the fiddle.
+//    media - The type of the file to read.
 //
 // Returns the media file contents as a byte slice, the content-type, and the filename of the media.
 func (s *Store) GetMedia(fiddleHash string, media Media) ([]byte, string, string, error) {
