@@ -29,6 +29,7 @@ var (
 		"_gpu.png":    store.GPU,
 		".pdf":        store.PDF,
 		".skp":        store.SKP,
+		".txt":        store.TXT,
 	}
 )
 

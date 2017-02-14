@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/sklog"
 )
 
 // flags
@@ -107,9 +108,11 @@ func main() {
 		Timeout:     20 * time.Second,
 	}
 	if err := exec.Run(runCmd); err != nil {
+		sklog.Errorf("Failed to run: %s", err)
 		res.Execute.Errors = err.Error()
 	}
 	if res.Execute.Errors != "" && stderr.String() != "" {
+		sklog.Errorf("Found stderr output: %q", stderr.String())
 		res.Execute.Errors += "\n"
 	}
 	res.Execute.Errors += stderr.String()
