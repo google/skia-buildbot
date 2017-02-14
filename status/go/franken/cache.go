@@ -31,7 +31,7 @@ const (
 	// Used for the third element of a property in Build.Properties.
 	PROPERTY_SOURCE = "BTCache"
 	// The maximum number of commits we'll want to load on the page.
-	MAX_COMMITS_TO_LOAD = 100
+	MAX_COMMITS_TO_LOAD = 250
 	// MAX_TASKS is the number of tasks we can find via Build.Number via lookup in
 	// an LRUCache. If a task falls out of this cache, we can no longer add
 	// comments to that task.
