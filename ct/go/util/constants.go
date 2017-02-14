@@ -135,7 +135,7 @@ const (
 	SWARMING_DIR_NAME               = "swarming"
 	SWARMING_POOL                   = "CT"
 	BUILD_OUTPUT_FILENAME           = "build_remote_dirs.txt"
-	MAX_SWARMING_HARD_TIMEOUT_HOURS = 24
+	MAX_SWARMING_HARD_TIMEOUT_HOURS = 2 * 24
 	// Timeouts.
 	BATCHARCHIVE_TIMEOUT = 10 * time.Minute
 	XVFB_TIMEOUT         = 5 * time.Minute
