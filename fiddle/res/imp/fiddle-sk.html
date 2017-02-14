@@ -121,12 +121,13 @@
     }
 
     .textoutput {
-      box-shadow: 10px 10px 24px 5px rgba(214,214,214,1);
+      box-shadow: 2px 2px 5px gray;
       padding: 0.8em;
       font-family: monospace;
       border: solid lightgray 1px;
       color: darkgreen;
-      margin-bottom: 3em;
+      margin-bottom: 1em;
+      width: 56em;
     }
 
     .hint {
@@ -155,20 +156,20 @@ sk_sp&lt;SkImage> image;
     </template>
     <content></content>
     <div id=submit>
-      <button class=action on-tap="_run">Run</button>
-      <paper-spinner id=running></paper-spinner>
-      <template is="dom-if" if="{{bug_link}}">
-        <a id=bug target=_blank href$="{{_bugLink(fiddlehash)}}">File Bug</a>
-      </template>
       <template is="dom-if" if="{{embed_button}}">
+        <button class=action on-tap="_run">Run</button>
+        <paper-spinner></paper-spinner>
+
+        <template is="dom-if" if="{{bug_link}}">
+          <a id=bug target=_blank href$="{{_bugLink(fiddlehash)}}">File Bug</a>
+        </template>
         <toggle-display-sk>Embed</toggle-display-sk>
         <div id=embedder>
           <h3>Embed as an iframe:</h3>
-          <input type="text" readonly size=150 value="&lt;iframe src='https://fiddle.skia.org/iframe/{{fiddlehash}}' width='900' height='550' style='border: solid #00a 1px; border-radius: 5px;'/>">
+          <input type="text" readonly size=150 value="&lt;iframe src='https://fiddle.skia.org/iframe/{{fiddlehash}}' style='border: none; width: 60em; height: 20em;'>&lt;/iframe> ">
           <p>Embed as an image with a backlink:</p>
           <input type="text" readonly size=150 value="&lt;a href='https://fiddle.skia.org/c/{{fiddlehash}}'>&lt;img src='https://fiddle.skia.org/i/{{fiddlehash}}_raster.png'>&lt;/a>">
         </div>
-      </template>
         <toggle-display-sk disabled$={{_not_logged_in}}>Name</toggle-display-sk>
         <div id=namer>
           <h3>Create a name for this fiddle:</h3>
@@ -177,6 +178,7 @@ sk_sp&lt;SkImage> image;
           <paper-checkbox id=overwrite title="Overwrite the existing name if one exists.">Overwrite</paper-checkbox>
           <button class=save on-tap="_submit_name" disabled="{{_isEmpty(_name)}}">Save</button>
         </div>
+      </template>
 
     </div>
     <div on-tap="_errSelect">
@@ -195,42 +197,54 @@ sk_sp&lt;SkImage> image;
       <div id=results class="horizontal layout">
         <div class="vertical layout center-justified">
           <img src="/i/{{fiddlehash}}_raster.png" width="{{width}}" height="{{height}}">
-          <p>
-            CPU
-            <a href="https://imageinfo.skia.org/info?url=https://fiddle.skia.org/i/{{fiddlehash}}_raster.png"
-               title="Inspect the image in https://imageinfo.skia.org."
-               target=_blank
-               >
-               <iron-icon icon="pageview"></iron-icon></a>
-          </p>
+          <template is="dom-if" if="{{embed_button}}">
+            <p>
+              CPU
+              <a href="https://imageinfo.skia.org/info?url=https://fiddle.skia.org/i/{{fiddlehash}}_raster.png"
+                 title="Inspect the image in https://imageinfo.skia.org."
+                 target=_blank
+                 >
+                 <iron-icon icon="pageview"></iron-icon></a>
+            </p>
+          </template>
         </div>
-        <div class="vertical layout center-justified">
-          <img src="/i/{{fiddlehash}}_gpu.png" width="{{width}}" height="{{height}}">
-          <p>
-            GPU
-            <a href="https://imageinfo.skia.org/info?url=https://fiddle.skia.org/i/{{fiddlehash}}_gpu.png"
-               title="Inspect the image in https://imageinfo.skia.org."
-               target=_blank
-              >
-              <iron-icon icon="pageview"></iron-icon></a>
-          </p>
-        </div>
-        <div class="vertical layout center">
-          <a href="/i/{{fiddlehash}}.pdf">PDF</a>
-        </div>
-        <div class="vertical layout center">
-          <a href="/i/{{fiddlehash}}.skp">SKP</a>
-        </div>
-        <div class="vertical layout center" hidden$={{_not_logged_in}} >
-          <a href="https://debugger.skia.org/loadfrom?url=https://fiddle.skia.org/i/{{fiddlehash}}.skp">Debug</a>
-        </div>
+        <template is="dom-if" if="{{embed_button}}">
+          <div class="vertical layout center-justified">
+            <img src="/i/{{fiddlehash}}_gpu.png" width="{{width}}" height="{{height}}">
+            <p>
+              GPU
+              <a href="https://imageinfo.skia.org/info?url=https://fiddle.skia.org/i/{{fiddlehash}}_gpu.png"
+                 title="Inspect the image in https://imageinfo.skia.org."
+                 target=_blank
+                >
+                <iron-icon icon="pageview"></iron-icon></a>
+            </p>
+          </div>
+          <div class="vertical layout center">
+            <a href="/i/{{fiddlehash}}.pdf">PDF</a>
+          </div>
+          <div class="vertical layout center">
+            <a href="/i/{{fiddlehash}}.skp">SKP</a>
+          </div>
+          <div class="vertical layout center" hidden$={{_not_logged_in}} >
+            <a href="https://debugger.skia.org/loadfrom?url=https://fiddle.skia.org/i/{{fiddlehash}}.skp">Debug</a>
+          </div>
+        </template>
       </div>
     </template>
     <template is="dom-if" if="{{textonly}}">
-      <h2>Output</h2>
+      <template is="dom-if" if="{{embed_button}}">
+        <h2>Output</h2>
+      </template>
       <div class=textoutput>
         <text-src src="/i/[[fiddlehash]].txt"></text-src>
       </div>
+    </template>
+
+    <template is="dom-if" if="{{_not(embed_button)}}">
+      <button class=action on-tap="_run">Run</button>
+      <paper-spinner></paper-spinner>
+      <a href="https://fiddle.skia.org/c/{{fiddlehash}}" target=_blank">Pop-out</a>
     </template>
   </template>
 </dom-module>
@@ -329,7 +343,9 @@ sk_sp&lt;SkImage> image;
 
     _run_impl: function(extra) {
       this.fiddlehash = "";
-      this.$.running.active = true;
+      $$("paper-spinner").forEach(function(s) {
+        s.active = true;
+      }, this);
       body = {
         code: $$$('textarea', this).value,
         options: {
@@ -346,14 +362,20 @@ sk_sp&lt;SkImage> image;
         this.fiddlehash = json.fiddleHash;
         this._compile_errors = json.compile_errors || [];
         this._runtime_error = json.runtime_error || "";
-        this.$.running.active = false;
+        $$("paper-spinner").forEach(function(s) {
+          s.active = false;
+        }, this);
         this.fire("fiddle-success", json.fiddleHash);
         this._compile_errors.forEach(function(err) {
           this._editor.setErrorLine(+err.line);
         }.bind(this));
-        this.$.overwrite.checked = false;
+        if (this.$.overwrite) {
+          this.$.overwrite.checked = false;
+        }
       }.bind(this)).catch(function(err) {
-        this.$.running.active = false;
+        $$("paper-spinner").forEach(function(s) {
+          s.active = false;
+        }, this);
         sk.errorMessage(err);
       }.bind(this));
     },
@@ -383,6 +405,10 @@ sk_sp&lt;SkImage> image;
     _isEmpty: function(name) {
       return name == "";
     },
+
+    _not: function(b) {
+      return !b;
+    }
 
   });
 </script>
