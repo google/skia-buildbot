@@ -31,6 +31,10 @@ const (
 	LANDED_METRIC_NAME     = "after_commit"
 	LANDED_TRYBOT_DURATION = "trybot_duration"
 	LANDED_TOTAL_DURATION  = "total_duration"
+
+	// Thresholds after which errors are logged.
+	CQ_TRYBOT_DURATION_SECS_THRESHOLD = 2700
+	CQ_TRYBOTS_COUNT_THRESHOLD        = 35
 )
 
 var (
@@ -151,9 +155,9 @@ func (c *Client) ReportCQStats(change int64) error {
 	sklog.Infof("Starting processing %s. Merged status: %t", gerritURL, changeInfo.Committed)
 
 	if changeInfo.Committed {
-		c.ReportCQStatsForLandedCL(change, latestPatchsetId, cqBuilds)
+		c.ReportCQStatsForLandedCL(cqBuilds, gerritURL)
 	} else {
-		c.ReportCQStatsForInFlightCL(change, latestPatchsetId, cqBuilds)
+		c.ReportCQStatsForInFlightCL(cqBuilds, gerritURL)
 	}
 	return nil
 }
@@ -162,14 +166,14 @@ func (c *Client) ReportCQStats(change int64) error {
 // change and patchsetID:
 // * The total time the change spent waiting for CQ trybots to complete.
 // * The time each CQ trybot took to complete.
-func (c *Client) ReportCQStatsForLandedCL(change, patchsetId int64, cqBuilds []*buildbucket.Build) {
+func (c *Client) ReportCQStatsForLandedCL(cqBuilds []*buildbucket.Build, gerritURL string) {
 	endTimeOfCQBots := time.Time{}
 	maximumTrybotDuration := int64(0)
 	for _, b := range cqBuilds {
 		createdTime := time.Time(b.Created).UTC()
 		completedTime := time.Time(b.Completed).UTC()
 		if (completedTime == time.Time{}.UTC()) {
-			sklog.Warningf("\tSkipping %s. The correct completed time has not shown up in Buildbucket yet.", b.Parameters.BuilderName)
+			sklog.Warningf("Skipping %s on %s. The correct completed time has not shown up in Buildbucket yet.", b.Parameters.BuilderName, gerritURL)
 			continue
 		}
 		if endTimeOfCQBots.Before(completedTime) {
@@ -177,12 +181,10 @@ func (c *Client) ReportCQStatsForLandedCL(change, patchsetId int64, cqBuilds []*
 		}
 
 		durationTags := map[string]string{
-			"issue":    fmt.Sprintf("%d", change),
-			"patchset": fmt.Sprintf("%d", patchsetId),
-			"trybot":   b.Parameters.BuilderName,
+			"trybot": b.Parameters.BuilderName,
 		}
 		duration := int64(completedTime.Sub(createdTime).Seconds())
-		sklog.Infof("\t%s was created at %s and completed at %s. Total duration: %d", b.Parameters.BuilderName, createdTime, completedTime, duration)
+		sklog.Infof("%s was created at %s by %s and completed at %s. Total duration: %d", b.Parameters.BuilderName, createdTime, gerritURL, completedTime, duration)
 		landedTrybotDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", c.metricName, LANDED_METRIC_NAME, LANDED_TRYBOT_DURATION), durationTags)
 		landedTrybotDurationMetric.Update(duration)
 
@@ -191,13 +193,9 @@ func (c *Client) ReportCQStatsForLandedCL(change, patchsetId int64, cqBuilds []*
 		}
 	}
 
-	sklog.Infof("\tMaximum trybot duration: %d", maximumTrybotDuration)
-	sklog.Infof("\tFurthest completion time: %s", endTimeOfCQBots)
-	totalDurationTags := map[string]string{
-		"issue":    fmt.Sprintf("%d", change),
-		"patchset": fmt.Sprintf("%d", patchsetId),
-	}
-	landedTotalDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", c.metricName, LANDED_METRIC_NAME, LANDED_TOTAL_DURATION), totalDurationTags)
+	sklog.Infof("Maximum trybot duration for %s: %d", gerritURL, maximumTrybotDuration)
+	sklog.Infof("Furthest completion time for %s: %s", gerritURL, endTimeOfCQBots)
+	landedTotalDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", c.metricName, LANDED_METRIC_NAME, LANDED_TOTAL_DURATION), map[string]string{})
 	landedTotalDurationMetric.Update(maximumTrybotDuration)
 }
 
@@ -205,7 +203,7 @@ func (c *Client) ReportCQStatsForLandedCL(change, patchsetId int64, cqBuilds []*
 // change and patchsetID:
 // * How long CQ trybots have been running for.
 // * How many CQ trybots have been triggered.
-func (c *Client) ReportCQStatsForInFlightCL(issue, patchsetId int64, cqBuilds []*buildbucket.Build) {
+func (c *Client) ReportCQStatsForInFlightCL(cqBuilds []*buildbucket.Build, gerritURL string) {
 	totalTriggeredCQBots := int(0)
 	currentTime := time.Now()
 	for _, b := range cqBuilds {
@@ -219,24 +217,22 @@ func (c *Client) ReportCQStatsForInFlightCL(issue, patchsetId int64, cqBuilds []
 		}
 
 		duration := int64(currentTime.Sub(createdTime).Seconds())
-		sklog.Infof("\t%s was created at %s and is running after %d seconds", b.Parameters.BuilderName, createdTime, duration)
 		durationTags := map[string]string{
-			"issue":    fmt.Sprintf("%d", issue),
-			"patchset": fmt.Sprintf("%d", patchsetId),
-			"trybot":   b.Parameters.BuilderName,
+			"trybot": b.Parameters.BuilderName,
+		}
+		if duration > CQ_TRYBOT_DURATION_SECS_THRESHOLD {
+			sklog.Errorf("CQTrybotDurationError: %s was triggered by %s and is still running after %d seconds. Threshold is %d seconds.", b.Parameters.BuilderName, gerritURL, duration, CQ_TRYBOT_DURATION_SECS_THRESHOLD)
 		}
 		inflightTrybotDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", c.metricName, INFLIGHT_METRIC_NAME, INFLIGHT_TRYBOT_DURATION), durationTags)
 		inflightTrybotDurationMetric.Update(duration)
 
 	}
 	cqTryBotsMutex.RLock()
-	sklog.Infof("\t%d CQ bots have been triggered by %d/%d. There are %d CQ bots in cq.cfg", totalTriggeredCQBots, issue, patchsetId, len(c.cqTryBots))
 	cqTryBotsMutex.RUnlock()
-	numTags := map[string]string{
-		"issue":    fmt.Sprintf("%d", issue),
-		"patchset": fmt.Sprintf("%d", patchsetId),
+	if totalTriggeredCQBots > CQ_TRYBOTS_COUNT_THRESHOLD {
+		sklog.Errorf("CQCLsCountError: %d trybots have been triggered by %s. Threshold is %d trybots.", totalTriggeredCQBots, gerritURL, CQ_TRYBOTS_COUNT_THRESHOLD)
 	}
-	trybotNumDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", c.metricName, INFLIGHT_METRIC_NAME, INFLIGHT_TRYBOT_NUM), numTags)
+	trybotNumDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", c.metricName, INFLIGHT_METRIC_NAME, INFLIGHT_TRYBOT_NUM), map[string]string{})
 	trybotNumDurationMetric.Update(int64(totalTriggeredCQBots))
 }
 

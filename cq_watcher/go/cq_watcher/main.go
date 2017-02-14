@@ -68,21 +68,12 @@ func monitorStatsForInFlightCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit
 		// If no CLs are currently in the CQ then report dummy data to prevent
 		// "Failed to execute query for rule..." failures in the alertserver.
 		if len(changes) == 0 {
-			dummyIssue := "0"
-			dummyPatchsetId := "0"
-			dummyTrybot := "DummyTrybot"
 			durationTags := map[string]string{
-				"issue":    dummyIssue,
-				"patchset": dummyPatchsetId,
-				"trybot":   dummyTrybot,
+				"trybot": "DummyTrybot",
 			}
 			inflightTrybotDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_TRYBOT_DURATION), durationTags)
 			inflightTrybotDurationMetric.Update(0)
-			numTags := map[string]string{
-				"issue":    dummyIssue,
-				"patchset": dummyPatchsetId,
-			}
-			trybotNumDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_TRYBOT_NUM), numTags)
+			trybotNumDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_TRYBOT_NUM), map[string]string{})
 			trybotNumDurationMetric.Update(0)
 		}
 		liveness.Reset()
@@ -123,7 +114,7 @@ func monitorStatsForLandedCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit) 
 func refreshCQTryBots(cqClient *cq.Client) {
 	for _ = range time.Tick(time.Duration(REFRESH_CQ_TRYBOTS_TIME)) {
 		if err := cqClient.RefreshCQTryBots(); err != nil {
-			sklog.Errorf("Error refresing CQ trybots: %s", err)
+			sklog.Errorf("Error refreshing CQ trybots: %s", err)
 		}
 	}
 }
