@@ -1,7 +1,8 @@
 [Unit]
 Description=Status page for Skia
+Requires=mnt-pd0.mount
 Wants=network-online.target
-After=network-online.target
+After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/status \
@@ -18,6 +19,7 @@ Restart=always
 User=default
 Group=default
 LimitNOFILE=10000
+Environment=TMPDIR=/mnt/pd0/tmp
 
 [Install]
 WantedBy=multi-user.target
