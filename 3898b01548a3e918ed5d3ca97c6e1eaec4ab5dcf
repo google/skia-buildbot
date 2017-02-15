@@ -1,0 +1,222 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "407c0990_b7b6c0ac",
+        "filename": "golden/go/paramsets/paramsets_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-15T13:47:04Z",
+      "side": 1,
+      "message": "Should you add more assertions to reflect the new layout?",
+      "range": {
+        "startLine": 69,
+        "startChar": 27,
+        "endLine": 69,
+        "endChar": 28
+      },
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32efb4ca_9f738a51",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-15T13:47:04Z",
+      "side": 1,
+      "message": "more yields than this limit",
+      "range": {
+        "startLine": 20,
+        "startChar": 55,
+        "endLine": 20,
+        "endChar": 66
+      },
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6864d69c_2eb82a59",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-15T13:47:04Z",
+      "side": 1,
+      "message": "What is the range on nDigests?  Are we ever worried about it being very large and crashing things?",
+      "range": {
+        "startLine": 225,
+        "startChar": 8,
+        "endLine": 225,
+        "endChar": 16
+      },
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bee420dc_9ab24229",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-15T13:47:04Z",
+      "side": 1,
+      "message": "Wrap this comment to 100 chars.",
+      "range": {
+        "startLine": 311,
+        "startChar": 79,
+        "endLine": 311,
+        "endChar": 85
+      },
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4fc2dc13_b7ec6fdf",
+        "filename": "golden/go/search/new_search_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-15T13:47:04Z",
+      "side": 1,
+      "message": "Should this be a SmallTest or MediumTest?",
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3a688aa_3784598c",
+        "filename": "golden/go/search/refs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-15T13:47:04Z",
+      "side": 1,
+      "message": "Dangling comment?",
+      "range": {
+        "startLine": 24,
+        "startChar": 42,
+        "endLine": 24,
+        "endChar": 47
+      },
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ac12651_c26b0c26",
+        "filename": "golden/go/search/refs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-15T13:47:04Z",
+      "side": 1,
+      "message": "Some of the vocabulary words here make it hard for me to understand what is going on.  Is there a spot to lookup what some of these terms mean, like \"reference diffs\"?",
+      "range": {
+        "startLine": 39,
+        "startChar": 30,
+        "endLine": 39,
+        "endChar": 45
+      },
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4652e7fb_6b1b4e78",
+        "filename": "golden/go/search/refs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-15T13:47:04Z",
+      "side": 1,
+      "message": "Digests",
+      "range": {
+        "startLine": 82,
+        "startChar": 6,
+        "endLine": 82,
+        "endChar": 12
+      },
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2acb7183_bc617f5d",
+        "filename": "golden/go/search/refs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-15T13:47:04Z",
+      "side": 1,
+      "message": "This is a lot of parameters.  Would it make sense to use a parameter object in some way?  I.e. is some subset of these grouped together a lot such that it would make sense to put them in a struct for neater method declarations?\n\nOr would that introduce more clumsiness than it saves?",
+      "range": {
+        "startLine": 85,
+        "startChar": 40,
+        "endLine": 85,
+        "endChar": 211
+      },
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d18a2220_b9571420",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-15T13:47:04Z",
+      "side": 1,
+      "message": "You are leaving in Rietveld support?",
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
