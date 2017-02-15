@@ -234,6 +234,7 @@ func (r *Graph) Update() error {
 		// Load all commits on this branch.
 		// First, try to load only new commits on this branch.
 		var commits []string
+		newBranch := true
 		for _, old := range r.branches {
 			if old.Name == b.Name {
 				anc, err := r.repo.IsAncestor(old.Head, b.Head)
@@ -245,6 +246,7 @@ func (r *Graph) Update() error {
 					if err != nil {
 						return err
 					}
+					newBranch = false
 				}
 				break
 			}
@@ -252,7 +254,7 @@ func (r *Graph) Update() error {
 		// If this is a new branch, or if the old branch head is not
 		// reachable from the new (eg. if commit history was modified),
 		// load ALL commits reachable from the branch head.
-		if len(commits) == 0 {
+		if newBranch {
 			sklog.Infof("  Branch %s is new or its history has changed; loading all commits.", b.Name)
 			commits, err = r.repo.RevList("--topo-order", b.Head)
 			if err != nil {
