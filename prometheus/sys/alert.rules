@@ -275,8 +275,7 @@ ALERT FuzzerSlowRoll
 # Status
 
 ALERT StatusLatency
-  IF prober{probename="skiastatus_json",type="latency"} / 1024 > 1
-  FOR 2m
+  IF avg_over_time(prober{probename="skiastatus_json",type="latency"}[10m])/1024  > 2
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
     description = "The JSON endpoint at https://status.skia.org/json/skia/commits/ took more than 1s to respond."
