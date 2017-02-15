@@ -21,6 +21,7 @@ Restart=always
 User=default
 Group=default
 LimitNOFILE=10000
+Environment=TMPDIR=/mnt/pd0/tmp
 
 [Install]
 WantedBy=multi-user.target
