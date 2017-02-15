@@ -4,6 +4,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"html/template"
 	ttemplate "html/template"
 	"net/http"
@@ -58,7 +59,7 @@ type FiddleContext struct {
 	Code      string              `json:"code"`
 	Name      string              `json:"name"`      // In a request can be the name to create for this fiddle.
 	Overwrite bool                `json:"overwrite"` // In a request, should a name be overwritten if it already exists.
-	Options   types.Options
+	Options   types.Options       `json:"options"`
 }
 
 // CompileError is a single line of compiler error output, along with the line
@@ -231,29 +232,51 @@ func iframeHandle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// individualHandle handles permalinks to individual fiddles.
-func individualHandle(w http.ResponseWriter, r *http.Request) {
+func loadContext(w http.ResponseWriter, r *http.Request) (*FiddleContext, error) {
 	id := mux.Vars(r)["id"]
 	fiddleHash, err := names.DereferenceID(id)
 	if err != nil {
-		http.NotFound(w, r)
-		sklog.Errorf("Invalid id: %s", err)
-		return
+		return nil, fmt.Errorf("Invalid id: %s", err)
 	}
 	if *local {
 		loadTemplates()
 	}
 	code, options, err := fiddleStore.GetCode(fiddleHash)
 	if err != nil {
-		http.NotFound(w, r)
-		return
+		return nil, fmt.Errorf("Fiddle not found.")
 	}
-	context := &FiddleContext{
+	return &FiddleContext{
 		Build:   build.Current(),
 		Sources: src.ListAsJSON(),
 		Hash:    id,
 		Code:    code,
 		Options: *options,
+	}, nil
+}
+
+// embedHandle returns a JSON description of a fiddle.
+func embedHandle(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	context, err := loadContext(w, r)
+	if err != nil {
+		http.NotFound(w, r)
+		sklog.Errorf("Failed to load context: %s", err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(context); err != nil {
+		httputils.ReportError(w, r, err, "Failed to JSON Encode response.")
+	}
+}
+
+// individualHandle handles permalinks to individual fiddles.
+func individualHandle(w http.ResponseWriter, r *http.Request) {
+	context, err := loadContext(w, r)
+	if err != nil {
+		http.NotFound(w, r)
+		sklog.Errorf("Failed to load context: %s", err)
+		return
 	}
 	w.Header().Set("Content-Type", "text/html")
 	if err := templates.ExecuteTemplate(w, "index.html", context); err != nil {
@@ -329,6 +352,12 @@ func sourceHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func runHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Add("Access-Control-Allow-Methods", "POST, GET")
+	if r.Method == "OPTIONS" {
+		return
+	}
 	resp := RunResults{
 		CompileErrors: []CompileError{},
 		FiddleHash:    "",
@@ -450,6 +479,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", "max-age=300")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
 		fileServer.ServeHTTP(w, r)
 	}
 }
@@ -551,11 +581,12 @@ func main() {
 	names = named.New(fiddleStore)
 	build = buildskia.New(*fiddleRoot, depotTools, repo, buildlib.BuildLib, 64, *timeBetweenBuilds, true)
 	build.Start()
-	StartTryNamed()
+	//StartTryNamed()
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 	r.HandleFunc("/i/{id:[@0-9a-zA-Z._]+}", imageHandler)
 	r.HandleFunc("/c/{id:[@0-9a-zA-Z_]+}", individualHandle)
+	r.HandleFunc("/e/{id:[@0-9a-zA-Z_]+}", embedHandle)
 	r.HandleFunc("/iframe/{id:[@0-9a-zA-Z_]+}", iframeHandle)
 	r.HandleFunc("/s/{id:[0-9]+}", sourceHandler)
 	r.HandleFunc("/f/", failedHandler)

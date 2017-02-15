@@ -27,6 +27,7 @@
 <link rel="stylesheet" href="/res/common/css/md.css" type="text/css" media="all">
 <link rel="import" href="/res/common/imp/details-summary.html">
 <link rel="import" href="/res/common/imp/toggle.html">
+<link rel="import" href="/res/common/imp/login.html">
 
 <link rel="import" href="/res/imp/text-src.html">
 <dom-module id="fiddle-sk">
@@ -148,7 +149,7 @@ sk_sp&lt;SkImage> image;
           </pre>
           <iron-selector selected="{{source}}" attr-for-selected="name" class="layout horizontal wrap">
             <template is="dom-repeat" items="{{sources}}">
-              <img width=64 height=64 name="{{item}}" src="/s/{{item}}">
+              <img width=64 height=64 name="{{item}}" src="[[domain]]/s/{{item}}">
             </template>
           </iron-selector>
         </div>
@@ -167,8 +168,10 @@ sk_sp&lt;SkImage> image;
         <div id=embedder>
           <h3>Embed as an iframe:</h3>
           <input type="text" readonly size=150 value="&lt;iframe src='https://fiddle.skia.org/iframe/{{fiddlehash}}' style='border: none; width: 60em; height: 20em;'>&lt;/iframe> ">
-          <p>Embed as an image with a backlink:</p>
+          <h3>Embed as an image with a backlink:</h3>
           <input type="text" readonly size=150 value="&lt;a href='https://fiddle.skia.org/c/{{fiddlehash}}'>&lt;img src='https://fiddle.skia.org/i/{{fiddlehash}}_raster.png'>&lt;/a>">
+          <h3>Embed as custom element (skia.org only):</h3>
+          <input type="text" readonly size=150 value="&lt;fiddle-embed name='{{fiddlehash}}'>&lt;/fiddle-embed> ">
         </div>
         <toggle-display-sk disabled$={{_not_logged_in}}>Name</toggle-display-sk>
         <div id=namer>
@@ -196,7 +199,7 @@ sk_sp&lt;SkImage> image;
     <template is="dom-if" if="{{_hasImages(fiddlehash, _compile_errors, _runtime_error, textonly)}}">
       <div id=results class="horizontal layout">
         <div class="vertical layout center-justified">
-          <img src="/i/{{fiddlehash}}_raster.png" width="{{width}}" height="{{height}}">
+          <img src="[[domain]]/i/{{fiddlehash}}_raster.png" width="{{width}}" height="{{height}}">
           <template is="dom-if" if="{{embed_button}}">
             <p>
               CPU
@@ -210,7 +213,7 @@ sk_sp&lt;SkImage> image;
         </div>
         <template is="dom-if" if="{{embed_button}}">
           <div class="vertical layout center-justified">
-            <img src="/i/{{fiddlehash}}_gpu.png" width="{{width}}" height="{{height}}">
+            <img src="[[domain]]/i/{{fiddlehash}}_gpu.png" width="{{width}}" height="{{height}}">
             <p>
               GPU
               <a href="https://imageinfo.skia.org/info?url=https://fiddle.skia.org/i/{{fiddlehash}}_gpu.png"
@@ -221,10 +224,10 @@ sk_sp&lt;SkImage> image;
             </p>
           </div>
           <div class="vertical layout center">
-            <a href="/i/{{fiddlehash}}.pdf">PDF</a>
+            <a href="[[domain]]/i/{{fiddlehash}}.pdf">PDF</a>
           </div>
           <div class="vertical layout center">
-            <a href="/i/{{fiddlehash}}.skp">SKP</a>
+            <a href="[[domain]]/i/{{fiddlehash}}.skp">SKP</a>
           </div>
           <div class="vertical layout center" hidden$={{_not_logged_in}} >
             <a href="https://debugger.skia.org/loadfrom?url=https://fiddle.skia.org/i/{{fiddlehash}}.skp">Debug</a>
@@ -237,7 +240,7 @@ sk_sp&lt;SkImage> image;
         <h2>Output</h2>
       </template>
       <div class=textoutput>
-        <text-src src="/i/[[fiddlehash]].txt"></text-src>
+        <text-src src="[[domain]]/i/[[fiddlehash]].txt"></text-src>
       </div>
     </template>
 
@@ -280,6 +283,11 @@ sk_sp&lt;SkImage> image;
         reflectToAttribute: true,
       },
       fiddlehash: {
+        type: String,
+        value: "",
+        reflectToAttribute: true,
+      },
+      domain: {
         type: String,
         value: "",
         reflectToAttribute: true,
@@ -343,7 +351,7 @@ sk_sp&lt;SkImage> image;
 
     _run_impl: function(extra) {
       this.fiddlehash = "";
-      $$("paper-spinner").forEach(function(s) {
+      $$("paper-spinner", this).forEach(function(s) {
         s.active = true;
       }, this);
       body = {
@@ -358,11 +366,11 @@ sk_sp&lt;SkImage> image;
       for (key in extra) {
         body[key] = extra[key];
       }
-      sk.post("/_/run", JSON.stringify(body)).then(JSON.parse).then(function(json) {
+      sk.post(this.domain + "/_/run", JSON.stringify(body)).then(JSON.parse).then(function(json) {
         this.fiddlehash = json.fiddleHash;
         this._compile_errors = json.compile_errors || [];
         this._runtime_error = json.runtime_error || "";
-        $$("paper-spinner").forEach(function(s) {
+        $$("paper-spinner", this).forEach(function(s) {
           s.active = false;
         }, this);
         this.fire("fiddle-success", json.fiddleHash);
@@ -373,7 +381,7 @@ sk_sp&lt;SkImage> image;
           this.$.overwrite.checked = false;
         }
       }.bind(this)).catch(function(err) {
-        $$("paper-spinner").forEach(function(s) {
+        $$("paper-spinner", this).forEach(function(s) {
           s.active = false;
         }, this);
         sk.errorMessage(err);

@@ -15,6 +15,10 @@
 
     setCursor(row, col) - Indicates there is an error at
       row and column.
+
+    textAreaChanged() - Call if the textarea content was set
+      programmatically.
+
 -->
 
 <dom-module id="textarea-numbers-sk">
@@ -74,13 +78,13 @@
     ready: function() {
       this._hasErrors = true;
       this._textarea = $$$('textarea', this);
-      this._textAreaChanged();
-      this._textarea.addEventListener("change", this._textAreaChanged.bind(this));
-      this._textarea.addEventListener("paste", this._textAreaChanged.bind(this));
-      this._textarea.addEventListener("input", this._textAreaChanged.bind(this));
+      this.textAreaChanged();
+      this._textarea.addEventListener("change", this.textAreaChanged.bind(this));
+      this._textarea.addEventListener("paste", this.textAreaChanged.bind(this));
+      this._textarea.addEventListener("input", this.textAreaChanged.bind(this));
     },
 
-    _textAreaChanged: function() {
+    textAreaChanged: function() {
       var n = this._textarea.value.split("\n").length;
       this._textarea.rows = n;
       r = [];
