@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d84fb3a_f79661b3",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-02-15T14:02:19Z",
+      "side": 1,
+      "message": "at least",
+      "revId": "a3ba2193ffe6d20cc16555bfd8ff86e781b0e7f6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
