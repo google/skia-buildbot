@@ -117,7 +117,7 @@ ALERT CQWatcherTrybotDuration
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     summary = "CQ trybot running for too long.",
-    description = "{{ $labels.trybot }} ran longer than 45 mins. https://skia.googlesource.com/buildbot/+/master/cq_watcher/PROD.md#trybot_duration_beyond_threshold"
+    description = "{{ $labels.trybot }} ran longer than 45 mins. https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#trybot_duration_beyond_threshold"
   }
 
 ALERT CQWatcherTrybotsCount
