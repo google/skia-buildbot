@@ -9,6 +9,7 @@ import (
 
 	"go.skia.org/infra/go/sklog"
 
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/golden/go/blame"
@@ -95,8 +96,13 @@ func (idx *SearchIndex) CalcSummaries(testNames []string, query url.Values, incl
 }
 
 // Proxy to paramsets.Get
-func (idx *SearchIndex) GetParamsetSummary(test, digest string, includeIgnores bool) map[string][]string {
+func (idx *SearchIndex) GetParamsetSummary(test, digest string, includeIgnores bool) paramtools.ParamSet {
 	return idx.paramsetSummary.Get(test, digest, includeIgnores)
+}
+
+// Proxy to paramsets.GetByTest
+func (idx *SearchIndex) GetParamsetSummaryByTest(includeIgnores bool) map[string]map[string]paramtools.ParamSet {
+	return idx.paramsetSummary.GetByTest(includeIgnores)
 }
 
 // Proxy to blame.Blamer.GetBlame.

@@ -2,9 +2,9 @@
 package paramsets
 
 import (
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -13,35 +13,36 @@ import (
 // It is not thread safe. The client of this package needs to make sure there
 // are no conflicts.
 type ParamSummary struct {
-	// map [test:digest] paramset.
-	byTrace               map[string]map[string][]string
-	byTraceIncludeIgnored map[string]map[string][]string
+	// map [test]map[digest] paramset.
+	byTrace               map[string]map[string]paramtools.ParamSet
+	byTraceIncludeIgnored map[string]map[string]paramtools.ParamSet
 }
 
 // byTraceForTile calculates all the paramsets from the given tile and tallies.
-func byTraceForTile(tile *tiling.Tile, traceTally map[string]tally.Tally) map[string]map[string][]string {
-	ret := map[string]map[string][]string{}
+func byTraceForTile(tile *tiling.Tile, traceTally map[string]tally.Tally) map[string]map[string]paramtools.ParamSet {
+	ret := map[string]map[string]paramtools.ParamSet{}
 
 	for id, t := range traceTally {
 		if tr, ok := tile.Traces[id]; ok {
 			test := tr.Params()[types.PRIMARY_KEY_FIELD]
-			for digest, _ := range t {
-				key := test + ":" + digest
-				if _, ok := ret[key]; !ok {
-					ret[key] = map[string][]string{}
+			for digest := range t {
+				if foundTest, ok := ret[test]; !ok {
+					ret[test] = map[string]paramtools.ParamSet{digest: paramtools.NewParamSet(tr.Params())}
+				} else if foundDigest, ok := foundTest[digest]; !ok {
+					foundTest[digest] = paramtools.NewParamSet(tr.Params())
+				} else {
+					foundDigest.AddParams(tr.Params())
 				}
-				util.AddParamsToParamSet(ret[key], tr.Params())
 			}
 		}
 	}
-
 	return ret
 }
 
 // oneStep does a single step, calculating all the paramsets from the latest tile and tallies.
 //
 // Returns the paramsets for both the tile with and without ignored traces included.
-func oneStep(tilePair *types.TilePair, tallies *tally.Tallies) (map[string]map[string][]string, map[string]map[string][]string) {
+func oneStep(tilePair *types.TilePair, tallies *tally.Tallies) (map[string]map[string]paramtools.ParamSet, map[string]map[string]paramtools.ParamSet) {
 	defer timer.New("paramsets").Stop()
 	return byTraceForTile(tilePair.Tile, tallies.ByTrace()), byTraceForTile(tilePair.TileWithIgnores, tallies.ByTrace())
 }
@@ -59,8 +60,22 @@ func (s *ParamSummary) Calculate(tilePair *types.TilePair, tallies *tally.Tallie
 // Get returns the paramset for the given digest. If 'include' is true
 // then the paramset is calculated including ignored traces.
 func (s *ParamSummary) Get(test, digest string, include bool) map[string][]string {
+	useMap := s.byTrace
 	if include {
-		return s.byTraceIncludeIgnored[test+":"+digest]
+		useMap = s.byTraceIncludeIgnored
 	}
-	return s.byTrace[test+":"+digest]
+
+	if foundTest, ok := useMap[test]; ok {
+		return foundTest[digest]
+	}
+	return nil
+}
+
+// GetByTest returns the parameter sets organized by tests and digests:
+//      map[test_name]map[digest]ParamSet
+func (s *ParamSummary) GetByTest(includeIngores bool) map[string]map[string]paramtools.ParamSet {
+	if includeIngores {
+		return s.byTraceIncludeIgnored
+	}
+	return s.byTrace
 }

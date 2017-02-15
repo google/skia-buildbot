@@ -54,31 +54,8 @@ func TestCompareTests(t *testing.T) {
 	const MAX_DIM = 999999999999
 	var HEAD = true
 
-	storages, idx, tile := getStoragesIndexTile(t, gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
-
-	// testNameSet collects all test names and the set of digests for
-	// each test to establish a ground truth for the search below.
-	testNameSet := map[string]util.StringSet{}
-	for _, trace := range tile.Traces {
-		testName := trace.Params()[types.PRIMARY_KEY_FIELD]
-		if _, ok := testNameSet[testName]; !ok {
-			testNameSet[testName] = util.StringSet{}
-		}
-		vals := trace.(*types.GoldenTrace).Values
-		if HEAD {
-			foundVals := []string{}
-			for i := len(vals) - 1; i >= 0; i-- {
-				if vals[i] != types.MISSING_DIGEST {
-					foundVals = vals[i:]
-					break
-				}
-			}
-			vals = foundVals
-		}
-
-		testNameSet[testName].AddLists(vals)
-		delete(testNameSet[testName], types.MISSING_DIGEST)
-	}
+	storages, idx, tile, _ := getStoragesIndexTile(t, gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
+	testNameSet, _ := findTests(tile, HEAD)
 
 	ctQuery := &CTQuery{
 		RowQuery: &Query{
@@ -179,7 +156,7 @@ func testCompTest(t *testing.T, maxLimit, maxRowLimit int, testNameSet map[strin
 	}
 }
 
-func getStoragesIndexTile(t *testing.T, bucket, storagePath, outputPath string) (*storage.Storage, *indexer.SearchIndex, *tiling.Tile) {
+func getStoragesIndexTile(t *testing.T, bucket, storagePath, outputPath string) (*storage.Storage, *indexer.SearchIndex, *tiling.Tile, *indexer.Indexer) {
 	err := gcs.DownloadTestDataFile(t, bucket, storagePath, outputPath)
 	assert.NoError(t, err, "Unable to download testdata.")
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
@@ -207,7 +184,7 @@ func getStoragesIndexTile(t *testing.T, bucket, storagePath, outputPath string) 
 	assert.NoError(t, err)
 	idx := ixr.GetIndex()
 	tile := idx.GetTile(false)
-	return storages, idx, tile
+	return storages, idx, tile, ixr
 }
 
 func loadSample(t assert.TestingT, fileName string) *serialize.Sample {
@@ -218,4 +195,37 @@ func loadSample(t assert.TestingT, fileName string) *serialize.Sample {
 	assert.NoError(t, err)
 
 	return sample
+}
+
+// testNameSet collects all test names and the set of digests for
+// each test to establish a ground truth for the search below.
+func findTests(tile *tiling.Tile, head bool) (map[string]util.StringSet, int) {
+	testNameSet := map[string]util.StringSet{}
+	for _, trace := range tile.Traces {
+		testName := trace.Params()[types.PRIMARY_KEY_FIELD]
+		if _, ok := testNameSet[testName]; !ok {
+			testNameSet[testName] = util.StringSet{}
+		}
+		vals := trace.(*types.GoldenTrace).Values
+		if head {
+			foundVals := []string{}
+			for i := len(vals) - 1; i >= 0; i-- {
+				if vals[i] != types.MISSING_DIGEST {
+					foundVals = vals[i:]
+					break
+				}
+			}
+			vals = foundVals
+		}
+
+		testNameSet[testName].AddLists(vals)
+		delete(testNameSet[testName], types.MISSING_DIGEST)
+	}
+
+	total := 0
+	for _, digests := range testNameSet {
+		total += len(digests)
+	}
+
+	return testNameSet, total
 }
