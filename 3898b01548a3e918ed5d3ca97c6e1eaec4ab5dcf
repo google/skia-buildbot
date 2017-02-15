@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "c81021bb_37a4b520",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-15T16:33:24Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "c369e176_c7c6e650",
+      "range": {
+        "startLine": 225,
+        "startChar": 8,
+        "endLine": 225,
+        "endChar": 16
+      },
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bee420dc_9ab24229",
         "filename": "golden/go/search/new_search.go",
         "patchSetId": 6
@@ -219,6 +243,24 @@
       "side": 1,
       "message": "testGivenQuery is intended to be called repeatedly from TestSearchAPI. \nI opted for keeping the tests simple and make the end to end work first. \nI will expand these tests before new search implementation is put into general production. \nAdded TODO to reflect that.",
       "parentUuid": "4fc2dc13_b7ec6fdf",
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25cdf8e4_903dc5c9",
+        "filename": "golden/go/search/new_search_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-15T16:33:24Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "fcbd09e4_cd790137",
       "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -401,6 +443,30 @@
       "side": 1,
       "message": "I think I would do that if it was a public function. Since it\u0027s an internal helper function \nI accepted the clumsiness, since it\u0027s just there to avoid writing the same loop twice.",
       "parentUuid": "2acb7183_bc617f5d",
+      "range": {
+        "startLine": 85,
+        "startChar": 40,
+        "endLine": 85,
+        "endChar": 211
+      },
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f99e8d6_75d695b8",
+        "filename": "golden/go/search/refs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-15T16:33:24Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "b4c5d69c_7a8a1ab2",
       "range": {
         "startLine": 85,
         "startChar": 40,
