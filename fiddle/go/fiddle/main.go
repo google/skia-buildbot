@@ -450,6 +450,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", "max-age=300")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
 		fileServer.ServeHTTP(w, r)
 	}
 }
