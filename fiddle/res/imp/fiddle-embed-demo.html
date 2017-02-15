@@ -1,0 +1,91 @@
+<html>
+<head>
+  <title>fiddle-embed demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/common/js/common.js"></script>
+  <script type="text/javascript" charset="utf-8">
+    (function () {
+      var text_body = {
+           "build":{
+                   "hash":"c43559e6e6bd403c5f3abc46a33e996498eef63f",
+                   "author":"Mike Klein (mtklein@chromium.org)",
+                   "subject":"Remove returns at end of stage splices.",
+                   "parent":[
+                              "4b66512a6384d32c1a89396bd4a229c03cce67a0"
+                           ],
+                   "body":"Returns?  Where we're going, we don't need returns.\n\nI have discovered a truly marvelous alternative, a description of which\nthis code review is too narrow to contain.\n\nChange-Id: I13fb36eb75771bc691d8187dddd876efcebc57d6\nReviewed-on: https://skia-review.googlesource.com/8480\nReviewed-by: Herb Derby \u003cherb@google.com\u003e\nReviewed-by: Mike Klein \u003cmtklein@chromium.org\u003e\nCommit-Queue: Mike Klein \u003cmtklein@chromium.org\u003e\n",
+                   "timestamp":"2017-02-14T23:34:34Z"
+                },
+           "sources":"[1,2,3,4,5,6]",
+           "fiddlehash":"@text_only",
+           "code":"void draw(SkCanvas* canvas) {\n    SkDebugf(\"Hello World!\");\n}",
+           "name":"",
+           "overwrite":false,
+           "options":{
+                   "width":256,
+                   "height":256,
+                   "source":0,
+                   "srgb":false,
+                   "f16":false,
+                   "textOnly":true
+                }
+      };
+
+      var image_body = {
+        "build":{
+          "hash":"0168e0442e00a42d8367422542033bc8a1ac9efe",
+          "author":"Kevin Lubick (kjlubick@google.com)",
+          "subject":"Add a way to compute the code coverage of fuzzers",
+          "parent":[
+            "c43559e6e6bd403c5f3abc46a33e996498eef63f"
+          ],
+          "body":"This also fixes bin/coverage.\n\nfuzz/coverage borrows heavily from bin/coverage.\nBUG=skia:\n\nChange-Id: I9e353d1f5ea3bca1d57d66b1c1ecabc6f9b23cee\nReviewed-on: https://skia-review.googlesource.com/8414\nReviewed-by: Joe Gregorio \u003cjcgregorio@google.com\u003e\nCommit-Queue: Kevin Lubick \u003ckjlubick@google.com\u003e\n",
+          "timestamp":"2017-02-15T13:19:40Z"
+        },
+        "sources":"[1,2,3,4,5,6]",
+        "fiddlehash":"@default",
+        "code":"void draw(SkCanvas* canvas) {\n    SkPaint p;\n    p.setColor(SK_ColorRED);\n    p.setAntiAlias(true);\n    p.setStyle(SkPaint::kStroke_Style);\n    p.setStrokeWidth(10);\n\n    canvas-\u003edrawLine(20, 20, 236, 236, p);\n}",
+        "name":"",
+        "overwrite":false,
+        "options":{
+          "width":256,
+          "height":256,
+          "source":0,
+          "srgb":false,
+          "f16":false,
+          "textOnly":false
+        }
+      };
+
+      sk.get = function(url) {
+        console.log(url)
+        if (url.indexOf(".txt") != -1) {
+          return new Promise(function (resolve, reject) {
+            resolve("Hello World!");
+          });
+        }
+        if (url.indexOf('@default') != -1) {
+          return new Promise(function (resolve, reject) {
+            resolve(JSON.stringify(image_body));
+          });
+        } else {
+          return new Promise(function (resolve, reject) {
+            resolve(JSON.stringify(text_body));
+          });
+        }
+      };
+    })();
+  </script>
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel=import href="/res/imp/bower_components/polymer/polymer.html">
+  <link rel=import href="fiddle-embed.html">
+</head>
+<body>
+  <h1>Fiddle Embed Text Only</h1>
+  <fiddle-embed name="@text_only"></fiddle-embed>
+  <h1>Fiddle Embed Images</h1>
+  <fiddle-embed name="@default"></fiddle-embed>
+</body>
+</html>
