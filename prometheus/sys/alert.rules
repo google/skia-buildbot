@@ -113,21 +113,19 @@ ALERT CQWatcherCLsCount
   }
 
 ALERT CQWatcherTrybotDuration
-  IF cq_watcher_in_flight_trybot_duration{instance="skia-cq-watcher:20000",job="cq_watcher"} >= 2700
-  FOR 5m
+  IF max_over_time(cq_watcher_in_flight_trybot_duration{instance="skia-cq-watcher:20000",job="cq_watcher"}[20m]) > 2700
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     summary = "CQ trybot running for too long.",
-    description = "{{ $labels.trybot }} in https://skia-review.googlesource.com/c/{{ $labels.issue }}/{{ $labels.patchset }} ran longer than 45 mins. https://skia.googlesource.com/buildbot/+/master/cq_watcher/PROD.md#trybot_duration_beyond_threshold"
+    description = "{{ $labels.trybot }} ran longer than 45 mins. https://skia.googlesource.com/buildbot/+/master/cq_watcher/PROD.md#trybot_duration_beyond_threshold"
   }
 
 ALERT CQWatcherTrybotsCount
-  IF cq_watcher_in_flight_trybot_num{instance="skia-cq-watcher:20000",job="cq_watcher"} > 35
-  FOR 5m
+  IF max_over_time(cq_watcher_in_flight_trybot_num{instance="skia-cq-watcher:20000",job="cq_watcher"}[20m]) > 35
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     summary = "Too many CQ trybots triggered by CL.",
-    description = "There are more than 35 CQ trybots triggered by https://skia-review.googlesource.com/c/{{ $labels.issue }}/{{ $labels.patchset }} https://skia.googlesource.com/buildbot/+/master/cq_watcher/PROD.md#too_many_trybots_triggered"
+    description = "There are more than 35 CQ trybots triggered by at least one CL. https://skia.googlesource.com/buildbot/+/master/cq_watcher/PROD.md#too_many_trybots_triggered"
   }
 
 # Perf
