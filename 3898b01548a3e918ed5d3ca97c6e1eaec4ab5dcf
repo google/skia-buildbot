@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d54a6d93_7cd1c93b",
+        "filename": "golden/go/paramsets/paramsets_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-15T16:29:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "407c0990_b7b6c0ac",
+      "range": {
+        "startLine": 69,
+        "startChar": 27,
+        "endLine": 69,
+        "endChar": 28
+      },
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "32efb4ca_9f738a51",
         "filename": "golden/go/search/new_search.go",
         "patchSetId": 6
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "87619dd3_ea0ef938",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-15T16:29:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "32efb4ca_9f738a51",
+      "range": {
+        "startLine": 20,
+        "startChar": 55,
+        "endLine": 20,
+        "endChar": 66
+      },
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6864d69c_2eb82a59",
         "filename": "golden/go/search/new_search.go",
         "patchSetId": 6
@@ -59,6 +107,30 @@
       "writtenOn": "2017-02-15T13:47:04Z",
       "side": 1,
       "message": "What is the range on nDigests?  Are we ever worried about it being very large and crashing things?",
+      "range": {
+        "startLine": 225,
+        "startChar": 8,
+        "endLine": 225,
+        "endChar": 16
+      },
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c369e176_c7c6e650",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-15T16:29:06Z",
+      "side": 1,
+      "message": "You are correct, that number is essentially unbound and could be all unique digests in the current tile. \nCurrently that is about 30k. The GetRefDiffs below potentially triggers O(nDigests^2) go-routines further down the stack. \nMost of those will be cached, but we have seen 650k active go-routines in Gold. The cores were maxed out and the system got slower, but remained responsive at all times and eventually the go-routine count got down ~80 again.",
+      "parentUuid": "6864d69c_2eb82a59",
       "range": {
         "startLine": 225,
         "startChar": 8,
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "52287fa7_44b6902e",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-15T16:29:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bee420dc_9ab24229",
+      "range": {
+        "startLine": 311,
+        "startChar": 79,
+        "endLine": 311,
+        "endChar": 85
+      },
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4fc2dc13_b7ec6fdf",
         "filename": "golden/go/search/new_search_test.go",
         "patchSetId": 6
@@ -105,6 +201,24 @@
       "writtenOn": "2017-02-15T13:47:04Z",
       "side": 1,
       "message": "Should this be a SmallTest or MediumTest?",
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fcbd09e4_cd790137",
+        "filename": "golden/go/search/new_search_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-15T16:29:06Z",
+      "side": 1,
+      "message": "testGivenQuery is intended to be called repeatedly from TestSearchAPI. \nI opted for keeping the tests simple and make the end to end work first. \nI will expand these tests before new search implementation is put into general production. \nAdded TODO to reflect that.",
+      "parentUuid": "4fc2dc13_b7ec6fdf",
       "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "d425ad0a_9d91b9c0",
+        "filename": "golden/go/search/refs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-15T16:29:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b3a688aa_3784598c",
+      "range": {
+        "startLine": 24,
+        "startChar": 42,
+        "endLine": 24,
+        "endChar": 47
+      },
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac12651_c26b0c26",
         "filename": "golden/go/search/refs.go",
         "patchSetId": 6
@@ -145,6 +283,30 @@
       "writtenOn": "2017-02-15T13:47:04Z",
       "side": 1,
       "message": "Some of the vocabulary words here make it hard for me to understand what is going on.  Is there a spot to lookup what some of these terms mean, like \"reference diffs\"?",
+      "range": {
+        "startLine": 39,
+        "startChar": 30,
+        "endLine": 39,
+        "endChar": 45
+      },
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eff539fe_45736764",
+        "filename": "golden/go/search/refs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-15T16:29:06Z",
+      "side": 1,
+      "message": "I added an overview of that the concepts on top of the file.",
+      "parentUuid": "7ac12651_c26b0c26",
       "range": {
         "startLine": 39,
         "startChar": 30,
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "fc24c514_c3dfd9c6",
+        "filename": "golden/go/search/refs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-15T16:29:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4652e7fb_6b1b4e78",
+      "range": {
+        "startLine": 82,
+        "startChar": 6,
+        "endLine": 82,
+        "endChar": 12
+      },
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2acb7183_bc617f5d",
         "filename": "golden/go/search/refs.go",
         "patchSetId": 6
@@ -203,6 +389,30 @@
     },
     {
       "key": {
+        "uuid": "b4c5d69c_7a8a1ab2",
+        "filename": "golden/go/search/refs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-15T16:29:06Z",
+      "side": 1,
+      "message": "I think I would do that if it was a public function. Since it\u0027s an internal helper function \nI accepted the clumsiness, since it\u0027s just there to avoid writing the same loop twice.",
+      "parentUuid": "2acb7183_bc617f5d",
+      "range": {
+        "startLine": 85,
+        "startChar": 40,
+        "endLine": 85,
+        "endChar": 211
+      },
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d18a2220_b9571420",
         "filename": "golden/go/search/search.go",
         "patchSetId": 6
@@ -214,6 +424,24 @@
       "writtenOn": "2017-02-15T13:47:04Z",
       "side": 1,
       "message": "You are leaving in Rietveld support?",
+      "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "89f00e41_bb68c5c6",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-15T16:29:06Z",
+      "side": 1,
+      "message": "For now, I would like to keep it, since we have other teams starting to use Gold and they might not be as far along as we are. I\u0027ll remove it as soon as we are sure it\u0027s gone in all the places we care about.",
+      "parentUuid": "d18a2220_b9571420",
       "revId": "3898b01548a3e918ed5d3ca97c6e1eaec4ab5dcf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
