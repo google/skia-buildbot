@@ -1,0 +1,80 @@
+<!-- The <fiddle-embed> custom element declaration.
+
+  A control for embedding a fiddle as a custom element
+  on a different domain.
+
+  Attributes:
+    name - The name/fiddlehash of the fiddle.
+
+  Events:
+    None.
+
+  Methods:
+    None.
+-->
+
+<link rel=import href="fiddle-sk.html">
+<link rel=import href="textarea-numbers.html">
+<dom-module id="fiddle-embed">
+  <style>
+      textarea {
+        padding: 0.5em;
+        font-family: monospace;
+        display: block;
+        border: none;
+        margin-left: 5em;
+        resize: none;
+        outline: none;
+        background: #eee;
+        font-size: 13px;
+      }
+  </style>
+  <template>
+    <fiddle-sk
+      width="[[context.options.width]]"
+      height="[[context.options.height]]"
+      source="[[context.options.source]]"
+      fiddlehash="[[context.fiddlehash]]"
+      sources="[[context.sources]]"
+      textonly="[[context.options.textOnly]]"
+      domain="https://fiddle.skia.org"
+      >
+      <textarea-numbers-sk id=numbers>
+        <textarea spellcheck="false" rows="15" cols="80">[[context.code]]</textarea>
+      </textarea-numbers-sk>
+    </fiddle-sk>
+    <error-toast-sk></error-toast-sk>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "fiddle-embed",
+
+    properties: {
+      name: {
+        type: String,
+        value: "",
+        reflectToAttribute: true,
+        observer: "_nameChange",
+      },
+      context: {
+        type: Object,
+        value: function() { return {}; },
+      }
+    },
+
+    _nameChange: function() {
+      if (this.name == "") {
+        return
+      }
+      sk.get("https://fiddle.skia.org/e/"+this.name).then(JSON.parse).then(function(json) {
+        // Force skip dirty checking.
+        this.context = {};
+        this.context = json;
+        this.$.numbers.textAreaChanged();
+      }.bind(this));
+    },
+
+  });
+</script>

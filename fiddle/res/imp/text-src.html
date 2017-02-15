@@ -37,7 +37,7 @@
     },
 
     srcChange: function() {
-      if (this.src == "" || this.src[0] != "/") {
+      if (this.src == "") {
         return
       }
       sk.get(this.src).then(function(text) {
