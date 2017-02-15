@@ -72,7 +72,7 @@ ALERT CTPollerHealthCheck
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     summary = "CT poller healthy check failed.",
-    description = "CT poller health check is failing. https://skia.googlesource.com/buildbot/+/master/ct/PROD.md#ct_poller_health_check."
+    description = "CT poller health check is failing. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ct_poller_health_check."
   }
 
 ALERT CTFEPendingTaskCount
@@ -81,7 +81,7 @@ ALERT CTFEPendingTaskCount
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     summary = "CTFE pending task count too high.",
-    description = "There are a lot of CTFE pending tasks. https://skia.googlesource.com/buildbot/+/master/ct/PROD.md#ctfe_pending_tasks"
+    description = "There are a lot of CTFE pending tasks. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ctfe_pending_tasks"
   }
 
 ALERT CTFEPendingTaskStatus
@@ -90,7 +90,7 @@ ALERT CTFEPendingTaskStatus
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     summary = "CTFE pending task not running.",
-    description = "A task has been waiting to be executed for a while and it's still not started. https://skia.googlesource.com/buildbot/+/master/ct/PROD.md#ctfe_pending_tasks"
+    description = "A task has been waiting to be executed for a while and it's still not started. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ctfe_pending_tasks"
   }
 
 ALERT CTFEErrorRate
@@ -109,7 +109,7 @@ ALERT CQWatcherCLsCount
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     summary = "Too many CLs in CQ.",
-    description = "There are 10 CLs or more in Skia's CL. https://skia.googlesource.com/buildbot/+/master/cq_watcher/PROD.md#too_many_cls"
+    description = "There are 10 CLs or more in Skia's CL. https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_cls"
   }
 
 ALERT CQWatcherTrybotDuration
@@ -125,7 +125,7 @@ ALERT CQWatcherTrybotsCount
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     summary = "Too many CQ trybots triggered by CL.",
-    description = "There are more than 35 CQ trybots triggered by at least one CL. https://skia.googlesource.com/buildbot/+/master/cq_watcher/PROD.md#too_many_trybots_triggered"
+    description = "There are more than 35 CQ trybots triggered by at least one CL. https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_trybots_triggered"
   }
 
 # Perf
@@ -165,21 +165,21 @@ ALERT BuildsFailed
   IF builds_failed >= 2
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
-    description = "Build for {{ $labels.job }} has failed for the last 2 chrome DEPS rolls. https://skia.googlesource.com/buildbot/+/master/{{ $labels.job }}/PROD.md#build_fail"
+    description = "Build for {{ $labels.job }} has failed for the last 2 chrome DEPS rolls. https://skia.googlesource.com/buildbot/%2B/master/{{ $labels.job }}/PROD.md#build_fail"
   }
 
 ALERT SyncFailed
   IF repo_sync_failed >= 2
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
-    description = "Sync for {{ $labels.job }} has failed 2 times in a row. https://skia.googlesource.com/buildbot/+/master/{{ $labels.job }}/PROD.md#sync_fail"
+    description = "Sync for {{ $labels.job }} has failed 2 times in a row. https://skia.googlesource.com/buildbot/%2B/master/{{ $labels.job }}/PROD.md#sync_fail"
   }
 
 ALERT NamedFiddles
   IF named_failures > 0
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
-    description = "See https://fiddle.skia.org/f/ and https://skia.googlesource.com/buildbot/+/master/fiddle/PROD.md#named_fail"
+    description = "See https://fiddle.skia.org/f/ and https://skia.googlesource.com/buildbot/%2B/master/fiddle/PROD.md#named_fail"
   }
 
 # datahopper_internal
@@ -238,7 +238,7 @@ ALERT FuzzerUploadQueue
   FOR 2m
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    description = "Fuzzer upload queue has been very full on {{ $labels.host }}. https://skia.googlesource.com/buildbot/+/master/fuzzer/PROD.md#full_upload"
+    description = "Fuzzer upload queue has been very full on {{ $labels.host }}. https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#full_upload"
   }
 
 ALERT FuzzerAnalysisQueue
@@ -246,28 +246,28 @@ ALERT FuzzerAnalysisQueue
   FOR 2m
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    description = "Fuzzer analysis queue has been very full on {{ $labels.host }}. https://skia.googlesource.com/buildbot/+/master/fuzzer/PROD.md#full_analysis"
+    description = "Fuzzer analysis queue has been very full on {{ $labels.host }}. https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#full_analysis"
   }
 
 ALERT FuzzerNonUseful
   IF max_over_time(fuzzer_stats_paths_total[1h]) < 20
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    description = "The {{ $labels.fuzz_category }} generator hasn't made much progress fuzzing on {{ $labels.host }}. Perhaps it is misconfigured? https://skia.googlesource.com/buildbot/+/master/fuzzer/PROD.md#useless_fuzzer"
+    description = "The {{ $labels.fuzz_category }} generator hasn't made much progress fuzzing on {{ $labels.host }}. Perhaps it is misconfigured? https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#useless_fuzzer"
   }
 
 ALERT FuzzerStaleVersion
   IF fuzzer_version_age{type="current"}/60/60/24 > 10
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    description = "The Fuzzer hasn't rolled its version forward in 10 days.  Roll it forward on fuzzer.skia.org https://skia.googlesource.com/buildbot/+/master/fuzzer/PROD.md#stale_version"
+    description = "The Fuzzer hasn't rolled its version forward in 10 days.  Roll it forward on fuzzer.skia.org https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#stale_version"
   }
 
 ALERT FuzzerSlowRoll
   IF fuzzer_version_age{type="pending"}/60/60 > 2
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    description = "The fuzzer hasn't finished rolling its version forward in 2 hours.  Something might be wrong.  https://skia.googlesource.com/buildbot/+/master/fuzzer/PROD.md#broken_roll"
+    description = "The fuzzer hasn't finished rolling its version forward in 2 hours.  Something might be wrong.  https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#broken_roll"
   }
 
 # Status
@@ -302,14 +302,14 @@ ALERT SkiaAutoRoll
   FOR 10m
   LABELS { category = "general", severity = "warning" }
   ANNOTATIONS {
-    description = "The last DEPS roll attempt for Skia failed. https://skia.googlesource.com/buildbot/+/master/autoroll/PROD.md#autoroll_failed."
+    description = "The last DEPS roll attempt for Skia failed. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#autoroll_failed."
   }
 
 ALERT SkiaAutoRoll24H
   IF liveness_last_autoroll_landed_s{child_path="src/third_party/skia"}/60/60 > 24
   LABELS { category = "general", severity = "warning" }
   ANNOTATIONS {
-    description = "The last-landed AutoRoll for Skia was over 24h ago. https://skia.googlesource.com/buildbot/+/master/autoroll/PROD.md#no_rolls_24h."
+    description = "The last-landed AutoRoll for Skia was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h."
   }
 
 ALERT AutoRollLatency
@@ -317,14 +317,14 @@ ALERT AutoRollLatency
   FOR 10m
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    description = "The endpoint for {{ $labels.probename }} took more than 200ms to respond. https://skia.googlesource.com/buildbot/+/master/autoroll/PROD.md#http_latency."
+    description = "The endpoint for {{ $labels.probename }} took more than 200ms to respond. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#http_latency."
   }
 
 ALERT AutoRollErrorRate
   IF rate(num_log_lines{level="ERROR",log_source="autoroll"}[10m]) > 5
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
-    description = "The error rate for autoroll on {{ $labels.instance }} is too high. https://skia.googlesource.com/buildbot/+/master/autoroll/PROD.md#error_rate."
+    description = "The error rate for autoroll on {{ $labels.instance }} is too high. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate."
   }
 # Gold
 
