@@ -472,7 +472,7 @@
               .attr("rx", "4")
               .attr("ry", "4");
         taskLinks.attr("href", function(data) {
-            return taskLinkUrlPrefix + data.task.swarming_task_id;
+            return taskLinkUrlPrefix + data.task.swarmingTaskId;
         });
         taskLinks.exit().remove();
         var taskRects = svg.selectAll("rect.task").data(tasks);
