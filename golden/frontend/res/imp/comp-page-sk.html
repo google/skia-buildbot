@@ -192,15 +192,11 @@
   </template>
   <script>
     (function() {
-
-      // Default values for match selection.
-      var defaultMatchConfigs = ["gamma_correct", "name"];
-
       // The current state of the page.
       var defaultQuery = {
         rowQuery: null,
         columnQuery: null,
-        match: defaultMatchConfigs,
+        match: gold.DEFAULT_MATCH_CONFIGS,
         sortRows: "",
         rowsDir: "",
         sortColumns: "",
@@ -272,7 +268,7 @@
 
         pageSelected: function(ctx) {
           this._query = sk.object.shallowCopy(defaultQuery);
-          this._query.match = defaultMatchConfigs.slice();
+          this._query.match = gold.DEFAULT_MATCH_CONFIGS.slice()
 
           // Use the _state variable to as the row query and reflect the URL parameters.
           this._initState(ctx, this._getDefaultStateWithCorpus(defaultRowQuery));
