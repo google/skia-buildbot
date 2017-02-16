@@ -22,6 +22,30 @@
       "revId": "9b83147e7a29408a5ca2938d88b9bcc81149ff44",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "79785cf1_edc5e4e8",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-16T15:04:23Z",
+      "side": 1,
+      "message": "I vote to keep the bug open to discuss what the \"real\" fix should be.",
+      "parentUuid": "a7f9fefe_f718c264",
+      "range": {
+        "startLine": 263,
+        "startChar": 58,
+        "endLine": 263,
+        "endChar": 91
+      },
+      "revId": "9b83147e7a29408a5ca2938d88b9bcc81149ff44",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
