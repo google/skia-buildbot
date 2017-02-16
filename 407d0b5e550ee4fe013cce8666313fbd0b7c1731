@@ -46,6 +46,30 @@
       "revId": "407d0b5e550ee4fe013cce8666313fbd0b7c1731",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81c110ab_99b11ae2",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-16T16:14:51Z",
+      "side": 1,
+      "message": "Oh, I see, \"git merge-base --is-ancestor abc abc\" is true.  How much time was the rev-list call wasting?  IIRC rev-list is fairly fast, and if we are indeed up to date, then we\u0027ll cut off at the first commit on line 269.",
+      "parentUuid": "8b208634_319c9718",
+      "range": {
+        "startLine": 257,
+        "startChar": 5,
+        "endLine": 257,
+        "endChar": 14
+      },
+      "revId": "407d0b5e550ee4fe013cce8666313fbd0b7c1731",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
