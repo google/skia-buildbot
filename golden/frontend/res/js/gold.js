@@ -13,31 +13,81 @@ var gold = gold || {};
   // Constants for status values.
   gold.POSITIVE = 'positive',
   gold.NEGATIVE = 'negative';
+  gold.UNTRIAGED = 'untriage';
+
+  // Reference diffs.
+  gold.REF_NEG   = "neg";
+  gold.REF_POS   = "pos";
+  gold.REF_TRACE = "trace";
+
+  // Metric values.
+	gold.METRIC_COMBINED = "combined";
+	gold.METRIC_PERCENT  = "percent";
+	gold.METRIC_PIXEL    = "pixel";
+  gold.allMetrics = [
+    gold.METRIC_COMBINED,
+    gold.METRIC_PERCENT,
+    gold.METRIC_PIXEL,
+  ];
+
+  // Default values for match selection.
+  gold.DEFAULT_MATCH_CONFIGS = ["gamma_correct", "name"];
+
+  // Operators to apply to images grouped by test.
+  gold.GROUP_TEST_MAX_COUNT = "count"    // Most often occuring digest.
+  gold.groupTestOps = [
+    gold.GROUP_TEST_MAX_COUNT,
+  ];
+
   // ISSUE_TRACKER_URL is the url of the monorail issue tracker.
   var ISSUE_TRACKER_URL = "https://bugs.chromium.org/p/skia/issues/";
 
-  gold.UNTRIAGED = 'untriage';
-
-  // Costants for sort order in the compare view.
+  // Costants for sort order.
   gold.SORT_ASC = "asc";
   gold.SORT_DESC = "desc";
 
   // Default values for the search controls.
   gold.defaultSearchState = {
-     // Note: query is a URL encoded query over the test parameters
-     // The fields of query are not fixed but change over time. This requires
-     // to encode/decode a query in a separate step when encoding/decoding
-     // this entire object.
-     query:   "",
-     head:    true,
-     include: false,
-     pos: false,
-     neg: false,
-     unt: true,
-     blame: "",
-     limit: 50,
-     issue: "",
-     patchsets: ""
+    // The metric to use.
+    metric: gold.METRIC_COMBINED,
+
+    // Sort order.
+    sort: gold.SORT_DESC,
+
+    // Configs that need to match during comparisons.
+    match: gold.DEFAULT_MATCH_CONFIGS,
+
+    // Note: query is a URL encoded query over the test parameters
+    // The fields of query are not fixed but change over time. This requires
+    // to encode/decode a query in a separate step when encoding/decoding
+    // this entire object.
+    query:   "",
+    head:    true,
+    include: false,
+    pos: false,
+    neg: false,
+    unt: true,
+    blame: "",
+    limit: 50,
+    issue: "",
+    patchsets: "",
+
+    // Filter options.
+    // Begin and end commits. Must be valid commits.
+    fbegin: "",
+    fend: "",
+
+    // Select max RGBA difference.
+    frgbamax: -1,
+
+    // Select max difference.
+    fdiffmax: -1,
+
+    // Group by test and select a specific digest.
+    fgrouptest: "",
+
+    // Only include images that have a reference.
+    fref: false
   };
 
   // Default values for the search query of the by-blame-page.
@@ -59,11 +109,10 @@ var gold = gold || {};
   };
 
   // Table that maps reference point ids to readable titles.
-  gold.diffTitles = {
-    "tpos" : "Trace positive",
-    "pos" : "Closest Positive",
-    "neg" : "Closest Negative"
-  };
+  gold.diffTitles = {}
+  gold.diffTitles[gold.REF_TRACE] = "Trace previously";
+  gold.diffTitles[gold.REF_POS] = "Closest Positive";
+  gold.diffTitles[gold.REF_NEG] = "Closest Negative";
 
   // Return a title for the given reference point id.
   gold.getDiffTitle = function(diffType) {
