@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c33341b8_31707fbf",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-16T13:31:46Z",
+      "side": 1,
+      "message": "I\u0027m feeling foggy, but I don\u0027t understand how this is different from what was already here.  commits is set whenever newBranch is set, so isn\u0027t this the same as before with an extra variable?",
+      "range": {
+        "startLine": 257,
+        "startChar": 5,
+        "endLine": 257,
+        "endChar": 14
+      },
+      "revId": "407d0b5e550ee4fe013cce8666313fbd0b7c1731",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
