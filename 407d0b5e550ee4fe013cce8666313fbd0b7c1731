@@ -22,6 +22,30 @@
       "revId": "407d0b5e550ee4fe013cce8666313fbd0b7c1731",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b208634_319c9718",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-16T14:46:47Z",
+      "side": 1,
+      "message": "I tried to explain in the commit message -- not sure if you missed it or if it didn\u0027t make sense.\n\n\u0027r.repo.RevList(\"--topo-order\", fmt.Sprintf(\"%s..%s\", old.Head, b.Head))\u0027 will return an empty slice when old.Head \u003d\u003d b.Head.\n\nThere are a few other ways I could have made this fix, but this seemed simplest/clearest.",
+      "parentUuid": "c33341b8_31707fbf",
+      "range": {
+        "startLine": 257,
+        "startChar": 5,
+        "endLine": 257,
+        "endChar": 14
+      },
+      "revId": "407d0b5e550ee4fe013cce8666313fbd0b7c1731",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
