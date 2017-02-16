@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a7f9fefe_f718c264",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-16T14:58:32Z",
+      "side": 1,
+      "message": "Is it ever feasible to report MAX_LOG_SIZE (50000) logs in 1 second?  If not, I would prefer to decrease LOG_WRITE_SECONDS or increase WRITE_LOG_ENTRIES_REQUEST_TIMEOUT",
+      "range": {
+        "startLine": 263,
+        "startChar": 58,
+        "endLine": 263,
+        "endChar": 91
+      },
+      "revId": "9b83147e7a29408a5ca2938d88b9bcc81149ff44",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
