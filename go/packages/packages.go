@@ -379,6 +379,9 @@ func FromLocalFile(filename string) ([]string, error) {
 	dec := json.NewDecoder(f)
 	value := []string{}
 	if err := dec.Decode(&value); err != nil {
+		if err := os.Remove(filename); err != nil {
+			sklog.Warningf("Error when trying to remove malformed JSON packages file: %s", err)
+		}
 		return nil, fmt.Errorf("Failed to decode packages file: %s", err)
 	}
 	return value, nil
