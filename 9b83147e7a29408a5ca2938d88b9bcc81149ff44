@@ -46,6 +46,30 @@
       "revId": "9b83147e7a29408a5ca2938d88b9bcc81149ff44",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "18bf3bcd_c8acd4cd",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-02-16T15:11:32Z",
+      "side": 1,
+      "message": "Oh, yeah, the write timeout was 1s regardless of MAX_LOG_SIZE, so I have now also changed the code so the write timeout is also 5s. PTAL.",
+      "parentUuid": "79785cf1_edc5e4e8",
+      "range": {
+        "startLine": 263,
+        "startChar": 58,
+        "endLine": 263,
+        "endChar": 91
+      },
+      "revId": "9b83147e7a29408a5ca2938d88b9bcc81149ff44",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
