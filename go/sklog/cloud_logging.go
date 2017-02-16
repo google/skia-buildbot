@@ -265,7 +265,8 @@ func (c *logsClient) pushBatch() {
 	if resp, err := c.service.Entries.Write(&request).Context(ctx).Do(); err != nil {
 		// We can't use httputil.DumpResponse, because that doesn't accept *logging.WriteLogEntriesResponse
 		glog.Errorf("Problem writing logs \nResponse:\n%v:\n%s", spew.Sdump(resp), err)
-		c.buffer = c.buffer[:MAX_LOG_SIZE]
+		// If we timed out on writing then drop the logs. https://bug.skia.org/6246
+		c.buffer = c.buffer[:0]
 		return
 	} else if resp.HTTPStatusCode != http.StatusOK {
 		glog.Errorf("Response code %d", resp.HTTPStatusCode)
