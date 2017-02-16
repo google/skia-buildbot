@@ -4,7 +4,11 @@ package git
 	Thin wrapper around a local Git repo.
 */
 
-import "fmt"
+import (
+	"fmt"
+
+	"go.skia.org/infra/go/sklog"
+)
 
 // Repo is a struct used for managing a local git repo.
 type Repo struct {
@@ -28,6 +32,7 @@ func (r *Repo) Update() error {
 	if err != nil {
 		return fmt.Errorf("Failed to update Repo: %s; output:\n%s", err, out)
 	}
+	sklog.Debugf("DEBUG: output of 'git remote update':\n%s", out)
 	return nil
 }
 
