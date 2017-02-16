@@ -555,14 +555,12 @@ func (c *jobCache) insertOrUpdateJob(job *Job) {
 
 // expireAndUpdate removes Jobs before the window and inserts the
 // new/updated jobs into the cache. Assumes the caller holds a lock.
-func (c *jobCache) expireAndUpdate(jobs []*Job, isReset bool) {
+func (c *jobCache) expireAndUpdate(jobs []*Job) {
 	c.expireJobs()
 	for _, job := range jobs {
 		ts := c.getJobTimestamp(job)
 		if !c.timeWindow.TestTime(job.Repo, ts) {
-			if !isReset {
-				sklog.Warningf("Updated job %s after expired. getJobTimestamp returned %s. %#v", job.Id, ts, job)
-			}
+			sklog.Warningf("Updated job %s after expired. getJobTimestamp returned %s. %#v", job.Id, ts, job)
 		} else {
 			c.insertOrUpdateJob(job.Copy())
 		}
@@ -590,7 +588,7 @@ func (c *jobCache) reset() error {
 	c.jobs = map[string]*Job{}
 	c.triggeredForCommit = map[string]map[string]bool{}
 	c.unfinished = map[string]*Job{}
-	c.expireAndUpdate(jobs, true)
+	c.expireAndUpdate(jobs)
 	return nil
 }
 
@@ -608,7 +606,7 @@ func (c *jobCache) Update() error {
 	} else if err != nil {
 		return err
 	}
-	c.expireAndUpdate(newJobs, false)
+	c.expireAndUpdate(newJobs)
 	return nil
 }
 
