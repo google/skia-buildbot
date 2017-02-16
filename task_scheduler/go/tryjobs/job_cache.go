@@ -71,7 +71,7 @@ func (c *jobCache) expireAndUpdate(jobs []*db.Job) {
 	c.expireJobs()
 	for _, job := range jobs {
 		if !c.timeWindow.TestTime(job.Repo, job.Created) {
-			sklog.Warningf("Updated job %s after expired. getJobTimestamp returned %s. %#v", job.Id, job.Created, job)
+			//sklog.Warningf("Updated job %s after expired. getJobTimestamp returned %s. %#v", job.Id, job.Created, job)
 		} else {
 			c.insertOrUpdateJob(job.Copy())
 		}
