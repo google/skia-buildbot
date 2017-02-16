@@ -9,7 +9,7 @@ var elem = document.getElementById("status_sk");
 elem.last_scheduled = "{{.LastScheduled}}";
 elem.top_candidates = [
   {{range .TopCandidates}}
-    {"TaskSpec": "{{.Name}}", "Commit": "{{.Revision}}", "Score": "{{.Score}}"},
+    {"taskSpec": "{{.Name}}", "commit": "{{.Revision}}", "score": "{{.Score}}"},
   {{end}}
 ];
 </script>
