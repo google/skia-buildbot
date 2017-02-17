@@ -26,12 +26,6 @@ REQUIRED_FILES_FOR_WIN_BOTS=(win-chrome-bot.txt \
                              .gitconfig \
                              .netrc)
 
-REQUIRED_FILES_FOR_CT_BOTS=(/tmp/.gitconfig \
-                            /tmp/.boto \
-                            /tmp/.netrc \
-                            /tmp/google_storage_token.data \
-                            /tmp/client_secret.json)
-
 GCOMPUTE_CMD="$GCUTIL --project=$PROJECT_ID"
 GCOMPUTE_SSH_CMD="$GCOMPUTE_CMD ssh --zone=$ZONE --ssh_user=$PROJECT_USER"
 
