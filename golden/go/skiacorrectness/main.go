@@ -355,6 +355,9 @@ func main() {
 	}
 
 	// The jsonStatusHandler is being polled, so we exclude it from logging.
+	// We also enable it to be accessed from everywhere.
+	// corsMiddleWare := handlers.CORS(handlers.AllowedOrigins([]string{"*"}))
+	// http.Handle("/json/trstatus", corsMiddleWare(http.HandlerFunc(jsonStatusHandler)))
 	http.HandleFunc("/json/trstatus", jsonStatusHandler)
 	http.Handle("/", rootHandler)
 

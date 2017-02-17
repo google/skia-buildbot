@@ -607,6 +607,13 @@ func filterDigests(filter, queryString, testName string, e types.TestClassificat
 
 // jsonStatusHandler returns the current status of with respect to HEAD.
 func jsonStatusHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "OPTIONS" {
+		sklog.Infof("OPTIONS CALLED !!!!")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
+		w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Add("Access-Control-Allow-Methods", "POST, GET")
+		return
+	}
 	sendJsonResponse(w, statusWatcher.GetStatus())
 }
 
