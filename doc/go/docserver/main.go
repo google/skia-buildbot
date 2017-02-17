@@ -207,6 +207,8 @@ func main() {
 	Init()
 
 	// Resources are served directly.
+	http.HandleFunc("/logout/", login.LogoutHandler)
+	http.HandleFunc("/loginstatus/", login.StatusHandler)
 	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
