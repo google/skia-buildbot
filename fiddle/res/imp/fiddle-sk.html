@@ -129,6 +129,8 @@
       color: darkgreen;
       margin-bottom: 1em;
       width: 56em;
+      font-family: monospace;
+      font-size: 13px;
     }
 
     .hint {
@@ -240,7 +242,7 @@ sk_sp&lt;SkImage> image;
         <h2>Output</h2>
       </template>
       <div class=textoutput>
-        <text-src src="[[domain]]/i/[[fiddlehash]].txt"></text-src>
+        <text-src src="[[_textURL(domain, fiddlehash)]]"></text-src>
       </div>
     </template>
 
@@ -416,6 +418,13 @@ sk_sp&lt;SkImage> image;
 
     _not: function(b) {
       return !b;
+    },
+
+    _textURL: function(domain, fiddlehash) {
+      if (fiddlehash == "") {
+        return "";
+      }
+      return domain + "/i/" + fiddlehash + ".txt";
     }
 
   });
