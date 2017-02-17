@@ -342,3 +342,96 @@ ALERT GoldIngestionErrorRate
     description = "The error rate for Gold Ingestion {{ $labels.corpus }} is too high. See See https://mon.skia.org/dashboard/db/ingestion.",
   }
 
+# Task Scheduler
+
+ALERT TaskSchedulerLiveness
+  IF liveness_last_successful_task_scheduling_s/60 > 10
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "Task Scheduler Failing ({{ $labels.instance }})",
+    description = "{{ $labels.instance }} has failed to schedule for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#scheduling_failed"
+  }
+
+ALERT TaskSchedulerLatency
+  IF prober{type="latency",probename="task_scheduler"} > 300
+  FOR 10m
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "Task Scheduler HTTP Latency",
+    description = "The endpoint for {{ $labels.probename }} took more than 300ms to respond. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#http_latency"
+  }
+
+ALERT TaskSchedulerErrorRate
+  IF rate(num_log_lines{level="ERROR",log_source="task_scheduler"}[2m]) > 0.1
+  FOR 2m
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    summary = "Task Scheduler Error Rate ({{ $labels.instance }})",
+    description = "The error rate for task_scheduler on {{ $labels.instance }} is too high. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#error_rate"
+  }
+
+ALERT TaskSchedulerDBBackup
+  IF liveness_last_db_backup_s/60/60 > 25
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "Task Scheduler DB backup ({{ $labels.instance }})",
+    description = "The last Task Scheduler DB backup on {{ $labels.instance }} was more than 25 hours ago. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#old_db_backup"
+  }
+
+ALERT TaskSchedulerExtraDBBackups
+  IF recent_db_backup_count > 9
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "Task Scheduler extra DB backups ({{ $labels.instance }})",
+    description = "There are too many recent Task Scheduler DB backups for {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#too_many_recent_db_backups"
+  }
+
+ALERT TaskSchedulerDBBackupTrigger
+  IF liveness_db_backup_maybe_backup_db_s/60 > 10
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "Task Scheduler DB backup trigger ({{ $labels.instance }})",
+    description = "The last time we checked for a Task Scheduler DB backup trigger file on {{ $labels.instance }} was more than 10 minutes ago. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#db_backup_trigger_liveness"
+  }
+
+ALERT TaskSchedulerIncrementalBackup
+  IF liveness_incremental_backup_s/60 > 10
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "Task Scheduler incremental backup ({{ $labels.instance }})",
+    description = "The last time a Task Scheduler incremental backup succeeded on {{ $labels.instance }} was more than 10 minutes ago. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#incremental_backup_liveness"
+  }
+
+ALERT TaskSchedulerIncrementalBackupReset
+  IF incremental_backup_reset > 0
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "Task Scheduler incremental backup reset ({{ $labels.instance }})",
+    description = "Task Scheduler modified job tracking for incremental backups has been reset since last full backup on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#incremental_backup_reset"
+  }
+
+ALERT TaskSchedulerDBFreePages
+  IF bolt_db{metric="FreePageCount",database="task_scheduler_db"} > 150
+  FOR 1h
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "Task Scheduler DB excess free pages ({{ $labels.instance }})",
+    description = "There are a large number of free pages in the Task Scheduler DB on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#db_too_many_free_pages"
+  }
+
+ALERT TaskSchedulerNightlyTrigger
+  IF liveness_task_scheduler_periodic_trigger_s{trigger="nightly"}/60/60 > 25
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "Task Scheduler Nightly Trigger ({{ $labels.instance }})",
+    description = "The Task Scheduler's nightly trigger has not run in over 25 hours on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#trigger_nightly"
+  }
+
+ALERT TaskSchedulerWeeklyTrigger
+  IF liveness_task_scheduler_periodic_trigger_s{trigger="weekly"}/60/60/24 > 8
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "Task Scheduler Weekly Trigger ({{ $labels.instance }})",
+    description = "The Task Scheduler's weekly trigger has not run in over 8 days on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#trigger_weekly"
+  }
+
