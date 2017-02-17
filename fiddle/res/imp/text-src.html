@@ -14,8 +14,20 @@
 -->
 
 <dom-module id="text-src">
+  <style>
+    .output {
+      margin: 0;
+      padding: 0;
+      background: white;
+      color: darkgreen;
+      width: 56em;
+      overflow-x: auto;
+      font-family: monospace;
+      font-size: 13px;
+    }
+  </style>
   <template>
-    <pre>[[ _text ]]</pre>
+    <pre class=output>[[ _text ]]</pre>
   </template>
 </dom-module>
 
@@ -37,12 +49,15 @@
     },
 
     srcChange: function() {
-      if (this.src == "") {
+      console.log("Before: ", this.src);
+      if (this.src == "" || this.src.indexOf("/") == -1) {
         return
       }
       sk.get(this.src).then(function(text) {
+        console.log(this.src);
         this._text = text;
       }.bind(this)).catch(function() {
+        console.log(this.src);
         this._text = "";
       }.bind(this));
     },
