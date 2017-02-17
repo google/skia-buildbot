@@ -43,7 +43,8 @@ def git_checkout(api, url, dest, ref=None):
   """Create a git checkout of the given repo in dest."""
   if api.path.exists(dest.join('.git')):
     # Already have a git checkout. Ensure that the correct remote is set.
-    git(api, 'remote', 'set-url', 'origin', INFRA_GIT_URL, cwd=dest)
+    with api.step.context({'cwd': dest}):
+      git(api, 'remote', 'set-url', 'origin', INFRA_GIT_URL)
   else:
     # Clone the repo
     git(api, 'clone', INFRA_GIT_URL, dest)
@@ -52,10 +53,11 @@ def git_checkout(api, url, dest, ref=None):
   ref = ref or REF_ORIGIN_MASTER
   if ref == REF_HEAD:
     ref = REF_ORIGIN_MASTER
-  git(api, 'fetch', 'origin', cwd=dest)
-  git(api, 'clean', '-d', '-f', cwd=dest)
-  git(api, 'checkout', 'master', cwd=dest)
-  git(api, 'reset', '--hard', ref, cwd=dest)
+  with api.step.context({'cwd': dest}):
+    git(api, 'fetch', 'origin')
+    git(api, 'clean', '-d', '-f')
+    git(api, 'checkout', 'master')
+    git(api, 'reset', '--hard', ref)
 
   api.path['checkout'] = dest
 
@@ -79,20 +81,20 @@ def git_checkout(api, url, dest, ref=None):
         api.bot_update._patchset,
     )
 
-  api.bot_update.ensure_checkout(
-      gclient_config=gclient_cfg,
-      cwd=dirname)
+  with api.step.context({'cwd': dirname}):
+    api.bot_update.ensure_checkout(gclient_config=gclient_cfg)
 
-  # Fix the remote URL, since bot_update switches it to the cached repo.
-  git(api, 'remote', 'set-url', 'origin', INFRA_GIT_URL, cwd=dest)
+  with api.step.context({'cwd': dest}):
+    # Fix the remote URL, since bot_update switches it to the cached repo.
+    git(api, 'remote', 'set-url', 'origin', INFRA_GIT_URL)
 
-  # Re-checkout master, since bot_update detaches us. We already set master
-  # to the correct commit, and any applied patch should not have been committed,
-  # so this should be safe.
-  git(api, 'checkout', 'master', cwd=dest)
+    # Re-checkout master, since bot_update detaches us. We already set master
+    # to the correct commit, and any applied patch should not have been committed,
+    # so this should be safe.
+    git(api, 'checkout', 'master')
 
-  # "git status" just to sanity check.
-  git(api, 'status', cwd=dest)
+    # "git status" just to sanity check.
+    git(api, 'status')
 
 
 def RunSteps(api):
@@ -124,8 +126,8 @@ def RunSteps(api):
          'PATH': api.path.pathsep.join([
              str(go_bin), str(go_dir.join('bin')), '%(PATH)s'])}
   api.step('which go', cmd=['which', 'go'], env=env)
-  api.step('update_deps', cmd=['go', 'get', '-u', '-t', './...'],
-           cwd=infra_dir, env=env)
+  with api.step.context({'cwd': infra_dir}):
+    api.step('update_deps', cmd=['go', 'get', '-u', '-t', './...'], env=env)
 
   # Checkout AGAIN to undo whatever `go get -u` did to the infra repo.
   git_checkout(
@@ -136,27 +138,27 @@ def RunSteps(api):
 
   # Set got_revision.
   test_data = lambda: api.raw_io.test_api.stream_output('abc123')
-  rev_parse = git(api, 'rev-parse', 'HEAD',
-                  cwd=infra_dir, stdout=api.raw_io.output(),
-                  step_test_data=test_data)
+  with api.step.context({'cwd': infra_dir}):
+    rev_parse = git(api, 'rev-parse', 'HEAD',
+                    stdout=api.raw_io.output(),
+                    step_test_data=test_data)
   rev_parse.presentation.properties['got_revision'] = rev_parse.stdout.strip()
 
   # More prerequisites.
-  api.step(
-      'install goimports',
-      cmd=['go', 'get', 'golang.org/x/tools/cmd/goimports'],
-      cwd=infra_dir,
-      env=env)
-  api.step(
-      'install errcheck',
-      cmd=['go', 'get', 'github.com/kisielk/errcheck'],
-      cwd=infra_dir,
-      env=env)
-  api.step(
-      'setup database',
-      cmd=['./setup_test_db'],
-      cwd=infra_dir.join('go', 'database'),
-      env=env)
+  with api.step.context({'cwd': infra_dir}):
+    api.step(
+        'install goimports',
+        cmd=['go', 'get', 'golang.org/x/tools/cmd/goimports'],
+        env=env)
+    api.step(
+        'install errcheck',
+        cmd=['go', 'get', 'github.com/kisielk/errcheck'],
+        env=env)
+  with api.step.context({'cwd': infra_dir.join('go', 'database')}):
+    api.step(
+        'setup database',
+        cmd=['./setup_test_db'],
+        env=env)
 
   # Run tests.
   buildslave = api.properties['slavename']
@@ -174,7 +176,8 @@ def RunSteps(api):
     cmd.append('--medium')
   else:
     cmd.append('--small')
-  api.step('run_unittests', cmd, cwd=infra_dir, env=env)
+  with api.step.context({'cwd': infra_dir}):
+    api.step('run_unittests', cmd, env=env)
 
 
 def GenTests(api):
