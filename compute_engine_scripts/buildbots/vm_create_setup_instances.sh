@@ -19,7 +19,6 @@ if [ "$VM_INSTANCE_OS" == "Linux" ]; then
   fi
   if [ "$VM_IS_CTBOT" = 1 ]; then
     SKIA_BOT_MACHINE_TYPE="n1-highmem-2"
-    REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_CT_BOTS[@]}
   fi
 elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
   SKIA_BOT_IMAGE_NAME=$SKIA_BOT_WIN_IMAGE_NAME
@@ -191,7 +190,7 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
     fi
 
     if [ "$VM_IS_CTBOT" = 1 ]; then
-      copy_ct_files
+      copy_files
 
       setup_ct_swarming_bot
     fi
