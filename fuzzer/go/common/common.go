@@ -96,6 +96,20 @@ var fuzzers = map[string]FuzzerInfo{
 		ExtraBugLabels:      []string{"Area-ImageDecoder"},
 		ArgsAfterExecutable: []string{"--type", "icc", "--bytes"},
 	},
+	"path_deserialize": {
+		PrettyName:          "SkPath deserialize",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "reed",
+		ExtraBugLabels:      nil,
+		ArgsAfterExecutable: []string{"--type", "path_deserialize", "--bytes"},
+	},
+	"region_deserialize": {
+		PrettyName:          "SkRegion deserialize",
+		Status:              STABLE_FUZZER,
+		Groomer:             "halcanary",
+		ExtraBugLabels:      nil,
+		ArgsAfterExecutable: []string{"--type", "region_deserialize", "--bytes"},
+	},
 	"skcodec_scale": {
 		PrettyName:          "SkCodec (Scaling)",
 		Status:              STABLE_FUZZER,
