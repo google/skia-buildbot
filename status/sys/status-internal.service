@@ -1,7 +1,8 @@
 [Unit]
 Description=Internal status page for Skia
+Requires=mnt-pd0.mount
 Wants=network-online.target
-After=network-online.target
+After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/status \
