@@ -51,26 +51,25 @@
 
     <iron-ajax
       id="status"
-      auto url="/json/goldStatus"
+      auto url="[[_goldUrl]]/json/trstatus"
       handle-as="json"
       timeout="30000"
-      last-response="{{_goldStatus}}">
+      last-response="{{_goldStatus}}"
+      on-response="_handleResponse">
     </iron-ajax>
 
     <timer-sk period="[[reload]]" on-trigger="_reload">
 
-    <a href="https://gold.skia.org" target="_blank">
-      <paper-button>
-        <iron-icon icon="image:collections"></iron-icon>
-        <template is="dom-repeat" items="{{_objToArr(_goldStatus)}}" as="c">
-          <a class="corpus" href$="{{_getLink(c)}}" target="_blank">
-            <span class="label">{{c.label}}</span>
-            <span class="value">{{c.value}}</span>
-          </a>
-        </template>
-      </paper-button>
+    <a href$="_goldUrl" target="_blank">
+      <paper-button><iron-icon icon="image:collections"></iron-icon></paper-button>
     </a>
 
+    <template is="dom-repeat" items="{{_objToArr(_goldStatus)}}" as="c">
+      <a class="corpus" href$="{{_getLink(c)}}" target="_blank">
+        <span class="label">{{c.name}}</span>
+        <span class="value">{{c.untriagedCount}}</span>
+      </a>
+    </template>
   </template>
   <script>
   Polymer({
@@ -80,17 +79,36 @@
       // input
       reload: {
         type: Number,
-        value: 60,
+        value: 10,
       },
 
       // private
       _goldStatus: {
         type: Object,
+      },
+
+      _goldUrl: {
+        type: String,
+        value: "https://gold.skia.org"
       }
     },
 
     _reload: function(){
-      this.$.status.generateRequest();
+      // debugger;
+      // sk.get(this._goldUrl+"/json/trstatus").then(JSON.parse).then(function (json) {
+      //   debugger;
+      //   this.set('_goldStatus', json);
+      // }.bind(this)).catch(function(errorMessage) {
+      //   debugger;
+      //   console.log("Status Error:", errorMessage);
+      // }.bind(this));
+
+      // this.$.status.generateRequest();
+    },
+
+    _handleResponse: function(ev) {
+      // debugger;
+      // this.set('_goldStatus', ev.detail.response);
     },
 
     _getLink: function(corpus) {
@@ -101,6 +119,8 @@
     },
 
     _objToArr: function(obj) {
+      debugger;
+      return (obj && obj.corpStatus) ? obj.corpStatus : [];
       var arr = [];
       for (c in obj) {
         arr.push({"label":c, "value":obj[c]});
