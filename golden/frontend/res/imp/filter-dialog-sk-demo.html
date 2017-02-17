@@ -7,6 +7,8 @@
   <script src="../../node_modules/native-promise-only/npo.js"></script>
   <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <script src="../common/js/common.js"></script>
+  <script src="../js/gold.js"></script>
+  <script src="testdata.js"></script>
 
   <link rel="import" href="bower_components/polymer/polymer.html">
   <link rel="import" href="filter-dialog-sk.html">
@@ -38,10 +40,14 @@
 
           ready: function() {
             var filter = {
-              rgbamax: 200,
-              pixelmax: 10,
-              diffmax: 300
+              metric: "combined",
+              frgbamax: -1,
+              fdiffmax: -1,
+              fgrouptest: "",
+              match: ["name", "gamma_correct"],
+              fref: false,
             };
+            this.$.filterDialog.setParamSet(testdata.paramSet);
             this.$.filterDialog.setValue(filter);
             this.listen(this.$.filterDialog, 'edit', '_handleEditEvent');
           },
