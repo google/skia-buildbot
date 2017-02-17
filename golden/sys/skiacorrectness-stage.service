@@ -24,7 +24,7 @@ ExecStart=/usr/local/bin/skiacorrectness-stage \
     --cache_size=20 \
     --backfill_tiles=2 \
     --resources_dir=/usr/local/share/skiacorrectness/frontend \
-    --app_title='Staging Gold' \
+    --app_title=Staging_Gold \
     --prom_port=:20001
 
 Restart=always
