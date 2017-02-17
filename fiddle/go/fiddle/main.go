@@ -300,6 +300,7 @@ func individualHandle(w http.ResponseWriter, r *http.Request) {
 //   /i/@some_name.pdf
 //   /i/@some_name.skp
 func imageHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Access-Control-Allow-Origin", "*")
 	id := mux.Vars(r)["id"]
 	fiddleHash, media, err := names.DereferenceImageID(id)
 	if fiddleHash == id {
@@ -330,6 +331,7 @@ func imageHandler(w http.ResponseWriter, r *http.Request) {
 //
 // Where NNN is the id of the source image.
 func sourceHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Access-Control-Allow-Origin", "*")
 	id := mux.Vars(r)["id"]
 	i, err := strconv.Atoi(id)
 	if err != nil {
