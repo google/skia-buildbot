@@ -328,6 +328,34 @@ ALERT AutoRollErrorRate
   }
 # Gold
 
+ALERT GoldUntriaged
+  IF gold_status_by_corpus{type="untriaged",instance="skia-gold-prod:20001"} > 0
+  LABELS { category = "general", severity = "warning" }
+  ANNOTATIONS {
+    description = "At least one untriaged GM has been found. Please visit https://gold.skia.org/ to triage.",
+  }
+
+ALERT GoldExpiredIgnores
+  IF gold_num_expired_ignore_rules{instance="skia-gold-prod:20001"} > 0
+  LABELS { category = "general", severity = "warning" }
+  ANNOTATIONS {
+    description = "At least one expired ignore rule has been found. Please visit https://gold.skia.org/ignores to delete or extend.",
+  }
+
+ALERT GoldIgnoreMonitoring
+  IF liveness_gold_expired_ignore_rules_monitoring_s{instance="skia-gold-prod:20001"} > 200
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "At least two rounds of monitoring for expired ignore rules have failed back to back.",
+  }
+
+ALERT GoldErrorRate
+  IF rate(num_log_lines{level="ERROR",job="gold"}[2m]) > 1
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "The error rate for Gold {{ $labels.instance }} is too high.",
+  }
+
 ALERT GoldIngestionStalled
   IF liveness_gold_s{metric="since-last-run",source="poll"} > 750
   LABELS { category = "infra", severity = "critical"}
