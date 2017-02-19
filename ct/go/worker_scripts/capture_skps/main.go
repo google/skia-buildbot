@@ -158,7 +158,7 @@ func captureSkps() error {
 					filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
 					util.BenchmarksToTelemetryName[util.BENCHMARK_SKPICTURE_PRINTER],
 					"--also-run-disabled-tests",
-					"--page-repeat=1", // Only need one run for SKPs.
+					"--pageset-repeat=1", // Only need one run for SKPs.
 					"--skp-outdir=" + path.Join(pathToSkps, strconv.Itoa(index)),
 					"--extra-browser-args=" + util.DEFAULT_BROWSER_ARGS,
 					"--user-agent=" + decodedPageset.UserAgent,
