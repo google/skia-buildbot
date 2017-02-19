@@ -571,7 +571,7 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	timeoutSecs := PagesetTypeToInfo[pagesetType].RunChromiumPerfTimeoutSecs
 	if repeatBenchmark > 0 {
 		// Add the number of times to repeat.
-		args = append(args, fmt.Sprintf("--page-repeat=%d", repeatBenchmark))
+		args = append(args, fmt.Sprintf("--pageset-repeat=%d", repeatBenchmark))
 		// Increase the timeoutSecs if repeats are used.
 		timeoutSecs = timeoutSecs * repeatBenchmark
 	}
