@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "31de77b9_8eed6dc5",
+        "filename": "status/res/imp/gold-status-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-20T13:42:39Z",
+      "side": 1,
+      "message": "Trailing space",
+      "range": {
+        "startLine": 39,
+        "startChar": 30,
+        "endLine": 39,
+        "endChar": 31
+      },
+      "revId": "c2c8b6d2f01f76c63942c4ff900e771f0c252305",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00ed8b71_a200c82d",
+        "filename": "status/res/imp/gold-status-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-20T13:42:39Z",
+      "side": 1,
+      "message": "nit: one-way bindings",
+      "range": {
+        "startLine": 62,
+        "startChar": 30,
+        "endLine": 62,
+        "endChar": 32
+      },
+      "revId": "c2c8b6d2f01f76c63942c4ff900e771f0c252305",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
