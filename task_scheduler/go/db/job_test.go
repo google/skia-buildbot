@@ -195,6 +195,7 @@ func TestJobDeriveStatus(t *testing.T) {
 
 	// Or, maybe the first task failed, but we still have a retry.
 	t1.Status = TASK_STATUS_FAILURE
+	t1.MaxAttempts = 2
 	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
 
 	// Or maybe it was a mishap, but we still have a retry.

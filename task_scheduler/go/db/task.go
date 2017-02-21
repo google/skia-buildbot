@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -31,6 +32,7 @@ const (
 
 	// Swarming tags added by Task Scheduler.
 	SWARMING_TAG_ALLOW_MILO       = "allow_milo"
+	SWARMING_TAG_ATTEMPT          = "sk_attempt"
 	SWARMING_TAG_DIMENSION_PREFIX = "sk_dim_"
 	SWARMING_TAG_FORCED_JOB_ID    = "sk_forced_job_id"
 	SWARMING_TAG_ID               = "sk_id"
@@ -107,6 +109,9 @@ func (k TaskKey) IsForceRun() bool {
 //     reused.
 //   - Add any new fields to the Copy() method.
 type Task struct {
+	// Attempt is the attempt number of this task, starting with zero.
+	Attempt int
+
 	// Commits are the commits which were tested in this Task. The list may
 	// change due to backfilling/bisecting.
 	Commits []string `json:"commits"`
@@ -131,6 +136,9 @@ type Task struct {
 	// Filled in when the task is completed. This field will not be set if the
 	// Task does not correspond to a Swarming task.
 	IsolatedOutput string `json:"isolatedOutput"`
+
+	// MaxAttempts is the maximum number of attempts for this TaskSpec.
+	MaxAttempts int `json:"max_attempts"`
 
 	// ParentTaskIds are IDs of tasks which satisfied this task's dependencies.
 	ParentTaskIds []string `json:"parentTaskIds"`
@@ -227,6 +235,18 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 	}
 	if err := checkOrSetFromTag(SWARMING_TAG_REVISION, &copy.Revision, "Revision"); err != nil {
 		return false, err
+	}
+	attempt := fmt.Sprintf("%d", copy.Attempt)
+	if err := checkOrSetFromTag(SWARMING_TAG_ATTEMPT, &attempt, "Attempt"); err != nil {
+		return false, err
+	}
+	attemptInt, err := strconv.ParseInt(attempt, 10, 32)
+	if err != nil {
+		return false, fmt.Errorf("Failed to ParseInt: %s", err)
+	}
+	copy.Attempt = int(attemptInt)
+	if orig.Attempt != 0 && copy.Attempt != orig.Attempt {
+		return false, fmt.Errorf("Attempt does not match for task %s. Was %d now %d. %v %v", orig.Id, orig.Attempt, copy.Attempt, orig, s)
 	}
 
 	// Optional try job tags.
@@ -367,12 +387,14 @@ func (t *Task) Copy() *Task {
 	commits := util.CopyStringSlice(t.Commits)
 	parentTaskIds := util.CopyStringSlice(t.ParentTaskIds)
 	return &Task{
+		Attempt:        t.Attempt,
 		Commits:        commits,
 		Created:        t.Created,
 		DbModified:     t.DbModified,
 		Finished:       t.Finished,
 		Id:             t.Id,
 		IsolatedOutput: t.IsolatedOutput,
+		MaxAttempts:    t.MaxAttempts,
 		ParentTaskIds:  parentTaskIds,
 		Properties:     util.CopyStringMap(t.Properties),
 		RetryOf:        t.RetryOf,
@@ -411,7 +433,9 @@ func (task *Task) Valid() bool {
 
 // TaskSummary is a subset of the information found in a Task.
 type TaskSummary struct {
+	Attempt        int        `json:"attempt"`
 	Id             string     `json:"id"`
+	MaxAttempts    int        `json:"max_attempts"`
 	Status         TaskStatus `json:"status"`
 	SwarmingTaskId string     `json:"swarmingTaskId"`
 }
@@ -419,7 +443,9 @@ type TaskSummary struct {
 // MakeTaskSummary creates a TaskSummary from the Task instance.
 func (t *Task) MakeTaskSummary() *TaskSummary {
 	return &TaskSummary{
+		Attempt:        t.Attempt,
 		Id:             t.Id,
+		MaxAttempts:    t.MaxAttempts,
 		Status:         t.Status,
 		SwarmingTaskId: t.SwarmingTaskId,
 	}
@@ -428,7 +454,9 @@ func (t *Task) MakeTaskSummary() *TaskSummary {
 // Copy returns a copy of the TaskSummary.
 func (t *TaskSummary) Copy() *TaskSummary {
 	return &TaskSummary{
+		Attempt:        t.Attempt,
 		Id:             t.Id,
+		MaxAttempts:    t.MaxAttempts,
 		Status:         t.Status,
 		SwarmingTaskId: t.SwarmingTaskId,
 	}
@@ -596,9 +624,10 @@ func (d *TaskDecoder) Result() ([]*Task, error) {
 }
 
 // TagsForTask returns the tags which should be set for a Task.
-func TagsForTask(name, id string, priority float64, rs RepoState, retryOf string, dimensions map[string]string, forcedJobId string, parentTaskIds []string) []string {
+func TagsForTask(name, id string, attempt int, priority float64, rs RepoState, retryOf string, dimensions map[string]string, forcedJobId string, parentTaskIds []string) []string {
 	tags := map[string]string{
 		SWARMING_TAG_ALLOW_MILO:      "1",
+		SWARMING_TAG_ATTEMPT:         fmt.Sprintf("%d", attempt),
 		SWARMING_TAG_FORCED_JOB_ID:   forcedJobId,
 		SWARMING_TAG_NAME:            name,
 		SWARMING_TAG_ID:              id,

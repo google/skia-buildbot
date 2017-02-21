@@ -20,6 +20,7 @@ import (
 
 // taskCandidate is a struct used for determining which tasks to schedule.
 type taskCandidate struct {
+	Attempt        int       `json:"attempt"`
 	Commits        []string  `json:"commits"`
 	IsolatedInput  string    `json:"isolatedInput"`
 	IsolatedHashes []string  `json:"isolatedHashes"`
@@ -35,6 +36,7 @@ type taskCandidate struct {
 // Copy returns a copy of the taskCandidate.
 func (c *taskCandidate) Copy() *taskCandidate {
 	return &taskCandidate{
+		Attempt:        c.Attempt,
 		Commits:        util.CopyStringSlice(c.Commits),
 		IsolatedInput:  c.IsolatedInput,
 		IsolatedHashes: util.CopyStringSlice(c.IsolatedHashes),
@@ -84,9 +86,15 @@ func (c *taskCandidate) MakeTask() *db.Task {
 	copy(commits, c.Commits)
 	parentTaskIds := make([]string, len(c.ParentTaskIds))
 	copy(parentTaskIds, c.ParentTaskIds)
+	maxAttempts := c.TaskSpec.MaxAttempts
+	if maxAttempts == 0 {
+		maxAttempts = specs.DEFAULT_TASK_SPEC_MAX_ATTEMPTS
+	}
 	return &db.Task{
+		Attempt:       c.Attempt,
 		Commits:       commits,
 		Id:            "", // Filled in when the task is inserted into the DB.
+		MaxAttempts:   maxAttempts,
 		ParentTaskIds: parentTaskIds,
 		RetryOf:       c.RetryOf,
 		TaskKey:       c.TaskKey.Copy(),
@@ -221,7 +229,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 			IoTimeoutSecs: ioTimeoutSecs,
 		},
 		PubsubTopic: fmt.Sprintf(PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, pubSubTopic),
-		Tags:        db.TagsForTask(c.Name, id, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds),
+		Tags:        db.TagsForTask(c.Name, id, c.Attempt, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds),
 		User:        "skia-task-scheduler",
 	}, nil
 }

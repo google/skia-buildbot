@@ -989,6 +989,7 @@ func TestComputeBlamelist(t *testing.T) {
 				},
 				Name: name,
 			},
+			TaskSpec: &specs.TaskSpec{},
 		}
 		task := c.MakeTask()
 		task.Commits = commits
@@ -2042,6 +2043,10 @@ func TestSchedulingRetry(t *testing.T) {
 	assert.Equal(t, 1, len(tasks))
 	t1 := tasks[0]
 	assert.NotNil(t, t1)
+	// Ensure c2, not c1.
+	assert.NotEqual(t, c1, t1.Revision)
+	c2 := t1.Revision
+
 	// Forcibly add a second build task at c1.
 	t2 := t1.Copy()
 	t2.Id = "t2Id"
@@ -2059,25 +2064,31 @@ func TestSchedulingRetry(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 
 	// Cycle. Ensure that we schedule a retry of t1.
-	assert.NoError(t, s.MainLoop())
-	assert.NoError(t, s.tCache.Update())
-	tasks, err = s.tCache.UnfinishedTasks()
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(tasks))
-	t3 := tasks[0]
-	assert.NotNil(t, t3)
-	assert.Equal(t, t1.Id, t3.RetryOf)
+	prev := t1
+	i := 1
+	for {
+		assert.NoError(t, s.MainLoop())
+		assert.NoError(t, s.tCache.Update())
+		tasks, err = s.tCache.UnfinishedTasks()
+		assert.NoError(t, err)
+		if len(tasks) == 0 {
+			break
+		}
+		assert.Equal(t, 1, len(tasks))
+		retry := tasks[0]
+		assert.NotNil(t, retry)
+		assert.Equal(t, prev.Id, retry.RetryOf)
+		assert.Equal(t, i, retry.Attempt)
+		assert.Equal(t, c2, retry.Revision)
+		retry.Status = db.TASK_STATUS_FAILURE
+		retry.Finished = time.Now()
+		assert.NoError(t, d.PutTask(retry))
+		assert.NoError(t, s.tCache.Update())
 
-	// The retry failed. Ensure that we don't schedule another.
-	t3.Status = db.TASK_STATUS_FAILURE
-	t3.Finished = time.Now()
-	assert.NoError(t, d.PutTask(t3))
-	assert.NoError(t, s.tCache.Update())
-	assert.NoError(t, s.MainLoop())
-	assert.NoError(t, s.tCache.Update())
-	tasks, err = s.tCache.UnfinishedTasks()
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(tasks))
+		prev = retry
+		i++
+	}
+	assert.Equal(t, 5, i)
 }
 
 func TestParentTaskId(t *testing.T) {
@@ -3359,6 +3370,7 @@ func TestTriggerTaskFailed(t *testing.T) {
 	bot3 := makeBot("bot3", map[string]string{"pool": "Skia"})
 	makeTags := func(commit string) []string {
 		return []string{
+			"sk_attempt:0",
 			"sk_dim_pool:Skia",
 			"allow_milo:1",
 			"sk_retry_of:",
