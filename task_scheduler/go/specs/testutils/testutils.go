@@ -98,6 +98,7 @@ func SetupTestRepo(t *testing.T) (*git_testutils.GitBuilder, string, string) {
       "dependencies": [],
       "dimensions": ["pool:Skia", "os:Ubuntu"],
       "isolate": "compile_skia.isolate",
+      "max_attempts": 5,
       "priority": 0.8
     },
     "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
@@ -155,6 +156,7 @@ func SetupTestRepo(t *testing.T) (*git_testutils.GitBuilder, string, string) {
       "dependencies": [],
       "dimensions": ["pool:Skia", "os:Ubuntu"],
       "isolate": "compile_skia.isolate",
+      "max_attempts": 5,
       "priority": 0.8
     },
     "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {

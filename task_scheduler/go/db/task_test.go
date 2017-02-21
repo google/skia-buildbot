@@ -652,12 +652,14 @@ func TestCopyTask(t *testing.T) {
 	testutils.SmallTest(t)
 	now := time.Now()
 	v := &Task{
+		Attempt:        3,
 		Commits:        []string{"a", "b"},
 		Created:        now.Add(time.Nanosecond),
 		DbModified:     now.Add(time.Millisecond),
 		Finished:       now.Add(time.Second),
 		Id:             "42",
 		IsolatedOutput: "lonely-result",
+		MaxAttempts:    2,
 		ParentTaskIds:  []string{"38", "39", "40"},
 		Properties: map[string]string{
 			"color":   "blue",
@@ -853,7 +855,9 @@ func TestTaskDecoderError(t *testing.T) {
 func TestCopyTaskSummary(t *testing.T) {
 	testutils.SmallTest(t)
 	v := &TaskSummary{
+		Attempt:        1,
 		Id:             "123",
+		MaxAttempts:    2,
 		Status:         TASK_STATUS_FAILURE,
 		SwarmingTaskId: "abc123",
 	}

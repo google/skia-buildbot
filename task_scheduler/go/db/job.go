@@ -253,8 +253,11 @@ func (j *Job) DeriveStatus() JobStatus {
 		// retrying of failed Tasks. We should not return a "failed"
 		// result if we still have retry attempts remaining or if we've
 		// already retried and succeeded.
-
-		canRetry := len(tasks) < MAX_TASK_ATTEMPTS
+		maxAttempts := tasks[0].MaxAttempts
+		if maxAttempts == 0 {
+			maxAttempts = MAX_TASK_ATTEMPTS
+		}
+		canRetry := len(tasks) < maxAttempts
 		bestStatus := JOB_STATUS_MISHAP
 		for _, t := range tasks {
 			status := JobStatusFromTaskStatus(t.Status)
