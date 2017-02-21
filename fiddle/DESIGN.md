@@ -280,5 +280,12 @@ Systemd-nspawn is launched from fiddle\_run.
 rlimits - Used to limit the resources the running code can get access to, for
 example runtime is limited to 10s of CPU. The limits are set in fiddle\_run.
 
+Backups
+-------
+
+A backup of all the named fiddles from gs://skia-fiddle/named
+to gs://skia-fiddle-backup takes placed on a daily basis. See:
+
+https://console.cloud.google.com/storage/transfer?project=google.com:skia-buildbots
 
 
