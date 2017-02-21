@@ -395,7 +395,6 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 		} else if !in {
 			continue
 		}
-
 		// We shouldn't duplicate pending, in-progress,
 		// or successfully completed tasks.
 		prevTasks, err := s.tCache.GetTasksByKey(&c.TaskKey)
@@ -415,10 +414,25 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 			if previous.Success() {
 				continue
 			}
-			// Only retry a task once.
-			if previous.RetryOf != "" {
+			// The attempt counts are only valid if the previous
+			// attempt we're looking at is the last attempt for this
+			// TaskSpec. Fortunately, TaskCache.GetTasksByKey sorts
+			// by creation time, and we've selected the last of the
+			// results.
+			maxAttempts := c.TaskSpec.MaxAttempts
+			if maxAttempts == 0 {
+				maxAttempts = specs.DEFAULT_TASK_SPEC_MAX_ATTEMPTS
+			}
+			// Special case for tasks created before arbitrary
+			// numbers of attempts were possible.
+			previousAttempt := previous.Attempt
+			if previousAttempt == 0 && previous.RetryOf != "" {
+				previousAttempt = 1
+			}
+			if previousAttempt >= maxAttempts-1 {
 				continue
 			}
+			c.Attempt = previousAttempt + 1
 			c.RetryOf = previous.Id
 		}
 

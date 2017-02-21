@@ -20,7 +20,8 @@ import (
 const (
 	ISSUE_SHORT_LENGTH = 2
 
-	DEFAULT_NUM_WORKERS = 10
+	DEFAULT_TASK_SPEC_MAX_ATTEMPTS = db.DEFAULT_MAX_TASK_ATTEMPTS
+	DEFAULT_NUM_WORKERS            = 10
 
 	TASKS_CFG_FILE = "infra/bots/tasks.json"
 
@@ -132,6 +133,10 @@ type TaskSpec struct {
 	// Isolate is the name of the isolate file used by this task.
 	Isolate string `json:"isolate"`
 
+	// MaxAttempts is the maximum number of attempts for this TaskSpec. If
+	// zero, DEFAULT_TASK_SPEC_MAX_ATTEMPTS is used.
+	MaxAttempts int `json:"max_attempts,omitempty"`
+
 	// Priority indicates the relative priority of the task, with 0 < p <= 1
 	Priority float64 `json:"priority"`
 }
@@ -186,6 +191,7 @@ func (t *TaskSpec) Copy() *TaskSpec {
 		ExtraArgs:        extraArgs,
 		IoTimeout:        t.IoTimeout,
 		Isolate:          t.Isolate,
+		MaxAttempts:      t.MaxAttempts,
 		Priority:         t.Priority,
 	}
 }

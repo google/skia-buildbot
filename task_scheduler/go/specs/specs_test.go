@@ -46,6 +46,7 @@ func TestCopyTaskSpec(t *testing.T) {
 		ExtraArgs:        []string{"--do-really-awesome-stuff"},
 		IoTimeout:        10 * time.Minute,
 		Isolate:          "abc123",
+		MaxAttempts:      5,
 		Priority:         19.0,
 	}
 	testutils.AssertCopy(t, v, v.Copy())

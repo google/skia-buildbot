@@ -35,9 +35,9 @@ const (
 	// JOB_URL_TMPL is a template for Job URLs.
 	JOB_URL_TMPL = "%s/job/%s"
 
-	// MAX_TASK_ATTEMPTS is the maximum number of attempts we'll make of
-	// each TaskSpec in a Job.
-	MAX_TASK_ATTEMPTS = 2
+	// DEFAULT_MAX_TASK_ATTEMPTS is the maximum number of attempts we'll
+	// make of each TaskSpec in a Job.
+	DEFAULT_MAX_TASK_ATTEMPTS = 2
 )
 
 var (
@@ -253,8 +253,11 @@ func (j *Job) DeriveStatus() JobStatus {
 		// retrying of failed Tasks. We should not return a "failed"
 		// result if we still have retry attempts remaining or if we've
 		// already retried and succeeded.
-
-		canRetry := len(tasks) < MAX_TASK_ATTEMPTS
+		maxAttempts := tasks[0].MaxAttempts
+		if maxAttempts == 0 {
+			maxAttempts = DEFAULT_MAX_TASK_ATTEMPTS
+		}
+		canRetry := len(tasks) < maxAttempts
 		bestStatus := JOB_STATUS_MISHAP
 		for _, t := range tasks {
 			status := JobStatusFromTaskStatus(t.Status)
