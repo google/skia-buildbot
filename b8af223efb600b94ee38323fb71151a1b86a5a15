@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e8159d6d_abf2243c",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-21T18:44:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e88dc683_861e9094",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 22
+      },
+      "revId": "b8af223efb600b94ee38323fb71151a1b86a5a15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "560eb048_a7848c6b",
         "filename": "task_scheduler/go/db/task.go",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2017-02-21T18:22:37Z",
       "side": 1,
       "message": "nit: t.Attempt will be zero for tasks loaded from the DB that don\u0027t have this field. However, this should be 1 if t.RetryOf is not empty.",
+      "range": {
+        "startLine": 446,
+        "startChar": 18,
+        "endLine": 446,
+        "endChar": 27
+      },
+      "revId": "b8af223efb600b94ee38323fb71151a1b86a5a15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0c2404ee_10676766",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 446,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-21T18:44:16Z",
+      "side": 1,
+      "message": "Agreed.  I don\u0027t think this is the right place for that logic though.  Possibly in the task decoder?  Worst case, we leave this out and we may get an extra retry here or there until everything rolls over.",
+      "parentUuid": "560eb048_a7848c6b",
       "range": {
         "startLine": 446,
         "startChar": 18,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1857d748_520d2f27",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 448,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-21T18:44:16Z",
+      "side": 1,
+      "message": "Same answer as above.",
+      "parentUuid": "9cfd3548_389ecb3e",
+      "range": {
+        "startLine": 448,
+        "startChar": 18,
+        "endLine": 448,
+        "endChar": 31
+      },
+      "revId": "b8af223efb600b94ee38323fb71151a1b86a5a15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "101664cc_e77ec1cd",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2017-02-21T18:22:37Z",
       "side": 1,
       "message": "Use sklog, not glog.",
+      "range": {
+        "startLine": 18,
+        "startChar": 1,
+        "endLine": 18,
+        "endChar": 27
+      },
+      "revId": "b8af223efb600b94ee38323fb71151a1b86a5a15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39e8138c_32040abd",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-21T18:44:16Z",
+      "side": 1,
+      "message": "Yuck. Forgot I left all of this debug logging.",
+      "parentUuid": "101664cc_e77ec1cd",
       "range": {
         "startLine": 18,
         "startChar": 1,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "b6ca4e08_4a696b2d",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-21T18:44:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "edeb19a1_8ef264ea",
+      "range": {
+        "startLine": 432,
+        "startChar": 6,
+        "endLine": 432,
+        "endChar": 22
+      },
+      "revId": "b8af223efb600b94ee38323fb71151a1b86a5a15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "714e645a_0e79ef94",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -128,6 +248,30 @@
       "writtenOn": "2017-02-21T18:22:37Z",
       "side": 1,
       "message": "The -1 here causes a mismatch between what the log message says and what the code does.",
+      "range": {
+        "startLine": 433,
+        "startChar": 77,
+        "endLine": 433,
+        "endChar": 90
+      },
+      "revId": "b8af223efb600b94ee38323fb71151a1b86a5a15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85801668_0512156a",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-21T18:44:16Z",
+      "side": 1,
+      "message": "Removed the log.",
+      "parentUuid": "714e645a_0e79ef94",
       "range": {
         "startLine": 433,
         "startChar": 77,
