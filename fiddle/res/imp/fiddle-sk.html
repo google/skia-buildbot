@@ -347,7 +347,7 @@ sk_sp&lt;SkImage> image;
     _submit_name: function() {
       this._run_impl({
         name: this._name,
-        overwrite: this.$.overwrite.checked,
+        overwrite: $$$('#overwrite', this).checked,
       });
     },
 
@@ -379,9 +379,7 @@ sk_sp&lt;SkImage> image;
         this._compile_errors.forEach(function(err) {
           this._editor.setErrorLine(+err.line);
         }.bind(this));
-        if (this.$.overwrite) {
-          this.$.overwrite.checked = false;
-        }
+        $$$('#overwrite', this).checked = false;
       }.bind(this)).catch(function(err) {
         $$("paper-spinner", this).forEach(function(s) {
           s.active = false;
