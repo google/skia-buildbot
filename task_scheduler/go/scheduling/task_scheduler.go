@@ -15,6 +15,7 @@ import (
 	"golang.org/x/net/context"
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
+	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -395,7 +396,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 		} else if !in {
 			continue
 		}
-
+		glog.Infof("Candidate %s @ %s", c.Name, c.Revision)
 		// We shouldn't duplicate pending, in-progress,
 		// or successfully completed tasks.
 		prevTasks, err := s.tCache.GetTasksByKey(&c.TaskKey)
@@ -409,17 +410,32 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 			previous = prevTasks[len(prevTasks)-1]
 		}
 		if previous != nil {
+			glog.Infof("Found prev: %v", previous)
 			if previous.Status == db.TASK_STATUS_PENDING || previous.Status == db.TASK_STATUS_RUNNING {
+				glog.Infof("... pending or running")
 				continue
 			}
 			if previous.Success() {
+				glog.Infof("... success")
 				continue
 			}
-			// Only retry a task once.
-			if previous.RetryOf != "" {
+			// The attempt counts are only valid if the previous
+			// attempt we're looking at is the last attempt for this
+			// TaskSpec. Fortunately, TaskCache.GetTasksByKey sorts
+			// by creation time, and we've selected the last of the
+			// results.
+			maxAttempts := c.TaskSpec.MaxAttempts
+			if maxAttempts == 0 {
+				glog.Infof("Using default max attempts")
+				maxAttempts = specs.DEFAULT_TASK_SPEC_MAX_ATTEMPTS
+			}
+			if previous.Attempt >= maxAttempts-1 {
+				glog.Infof("... exceeded max attempts (%d >= %d - 1)", previous.Attempt, maxAttempts-1)
 				continue
 			}
+			c.Attempt = previous.Attempt + 1
 			c.RetryOf = previous.Id
+			glog.Infof("Candidate is a retry of %s; attempt %d", c.RetryOf, c.Attempt)
 		}
 
 		// Don't consider candidates whose dependencies are not met.
