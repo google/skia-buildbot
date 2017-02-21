@@ -64,7 +64,7 @@ func buildOrGetCachedHarness(buildName string, buildType buildskia.ReleaseType, 
 	}
 	// This makes crashing because we ran out of memory or because someone called SK_ABORT turn
 	// into an exit(1), so we don't count it as a "crash".
-	buildArgs = append(buildArgs, "is_fuzzing=true")
+	buildArgs = append(buildArgs, `extra_cflags=["-DIS_FUZZING"]`)
 
 	d := filepath.Join(config.Common.SkiaRoot, "skia")
 	gi, err := gitinfo.NewGitInfo(d, false, false)
