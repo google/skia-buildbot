@@ -37,7 +37,7 @@ const (
 
 	// MAX_TASK_ATTEMPTS is the maximum number of attempts we'll make of
 	// each TaskSpec in a Job.
-	MAX_TASK_ATTEMPTS = 2
+	MAX_TASK_ATTEMPTS = 1
 )
 
 var (
