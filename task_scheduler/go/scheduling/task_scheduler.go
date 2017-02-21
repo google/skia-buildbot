@@ -518,6 +518,12 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 	}
 	score *= decay
 
+	priority := c.TaskSpec.Priority
+	if priority <= 0 {
+		priority = 1
+	}
+	score *= priority
+
 	c.Score = score
 	return nil
 }
