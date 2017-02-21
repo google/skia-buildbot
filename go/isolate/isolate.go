@@ -22,8 +22,8 @@ import (
 
 const (
 	DEFAULT_NAMESPACE          = "default-gzip"
-	ISOLATE_EXE_SHA1           = "3c3d1bff685b4875937af0771f2f5b1c6a705a11"
-	ISOLATESERVER_EXE_SHA1     = "23dfc04c65f2ddf2f8dc8dce0fcdcf57ed6b98a3"
+	ISOLATE_EXE_SHA1           = "1cd40344ace06a5d4d85cfb429e8aacd0263b11d"
+	ISOLATESERVER_EXE_SHA1     = "c9f7f0163ddc7f1b05a893904ab8d3d81848a48e"
 	ISOLATE_SERVER_URL         = "https://isolateserver.appspot.com"
 	ISOLATE_SERVER_URL_FAKE    = "fake"
 	ISOLATE_SERVER_URL_PRIVATE = "https://chrome-isolated.appspot.com"
@@ -277,6 +277,21 @@ func (c *Client) BatchArchiveTasks(genJsonFiles []string, jsonOutput string) err
 	return nil
 }
 
+// ExpArchiveTasks runs `isolate exparchive` on each of the JSON files.
+func (c *Client) ExpArchiveTasks(genJsonFiles []string) error {
+	for _, f := range genJsonFiles {
+		cmd := []string{
+			c.isolate, "exparchive", "--verbose",
+			"--isolate-server", c.serverUrl, f,
+		}
+		output, err := exec.RunCwd(c.workdir, cmd...)
+		if err != nil {
+			return fmt.Errorf("Failed to run isolate: %s\nOutput:\n%s", err, output)
+		}
+	}
+	return nil
+}
+
 // IsolateTasks uploads the necessary inputs for the task to the isolate server
 // and returns the isolated hashes.
 func (c *Client) IsolateTasks(tasks []*Task) ([]string, error) {
@@ -312,7 +327,7 @@ func (c *Client) IsolateTasks(tasks []*Task) ([]string, error) {
 	}
 
 	// Isolate the tasks.
-	if err := c.BatchArchiveTasks(genJsonFiles, ""); err != nil {
+	if err := c.ExpArchiveTasks(genJsonFiles); err != nil {
 		return nil, err
 	}
 
