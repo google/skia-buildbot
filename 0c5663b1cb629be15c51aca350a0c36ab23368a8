@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "145e2723_12debe69",
+        "filename": "flakiness/go/flakiness/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-22T21:05:41Z",
+      "side": 1,
+      "message": "nit: might as well be 0",
+      "range": {
+        "startLine": 67,
+        "startChar": 41,
+        "endLine": 67,
+        "endChar": 43
+      },
+      "revId": "0c5663b1cb629be15c51aca350a0c36ab23368a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

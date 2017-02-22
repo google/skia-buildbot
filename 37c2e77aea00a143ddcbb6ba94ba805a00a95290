@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "e5d0c86b_371f3ed5",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-22T21:05:41Z",
+      "side": 1,
+      "message": "I just mean that I very much doubt we would ever look for flakes across different task specs. Given that, why not simplify the code by looking at only one task spec at a time?",
+      "parentUuid": "57acea96_69d39822",
+      "range": {
+        "startLine": 19,
+        "startChar": 5,
+        "endLine": 19,
+        "endChar": 12
+      },
+      "revId": "37c2e77aea00a143ddcbb6ba94ba805a00a95290",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6fdb0d2d_69f51dce",
         "filename": "flakiness/go/analysis/analysis.go",
         "patchSetId": 2
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "I don\u0027t know what you\u0027re getting at here.",
       "parentUuid": "6fdb0d2d_69f51dce",
+      "range": {
+        "startLine": 105,
+        "startChar": 7,
+        "endLine": 105,
+        "endChar": 31
+      },
+      "revId": "37c2e77aea00a143ddcbb6ba94ba805a00a95290",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d187445a_f7b8028e",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-22T21:05:41Z",
+      "side": 1,
+      "message": "If you\u0027re looking at a 15-minute window, then there will be very few tasks where both the task creation time and the task\u0027s revision is within that window. But I don\u0027t think it\u0027s worth worrying about.",
+      "parentUuid": "585b5f02_b69f69d9",
       "range": {
         "startLine": 105,
         "startChar": 7,
@@ -143,6 +191,30 @@
     },
     {
       "key": {
+        "uuid": "2682251b_07146ab2",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-22T21:05:41Z",
+      "side": 1,
+      "message": "Ah, got it. Maybe add a comment?",
+      "parentUuid": "e6296ffd_a967b930",
+      "range": {
+        "startLine": 151,
+        "startChar": 0,
+        "endLine": 153,
+        "endChar": 7
+      },
+      "revId": "37c2e77aea00a143ddcbb6ba94ba805a00a95290",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3be94f33_671ed1c1",
         "filename": "flakiness/go/analysis/analysis.go",
         "patchSetId": 2
@@ -178,6 +250,30 @@
       "side": 1,
       "message": "Ah, good point. Done.",
       "parentUuid": "3be94f33_671ed1c1",
+      "range": {
+        "startLine": 204,
+        "startChar": 0,
+        "endLine": 210,
+        "endChar": 3
+      },
+      "revId": "37c2e77aea00a143ddcbb6ba94ba805a00a95290",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7e032b7c_018975bb",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-22T21:05:41Z",
+      "side": 1,
+      "message": "It\u0027s still possible that seq[0].Revision is not the revert, but the revert is somewhere in seq[0].Commits.",
+      "parentUuid": "2bf2daa5_7d9d535a",
       "range": {
         "startLine": 204,
         "startChar": 0,
