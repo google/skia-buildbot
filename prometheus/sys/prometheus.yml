@@ -177,3 +177,10 @@ scrape_configs:
     static_configs:
       - targets: ['skia-prom:20004']
 
+  # Gateways
+  - job_name: 'pushgateway'
+    honor_labels: true
+    static_configs:
+      - targets: ['localhost:20006']
+
+
