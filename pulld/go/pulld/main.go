@@ -328,13 +328,15 @@ func main() {
 	if *onGCE {
 		common.InitWithMust(
 			"pulld",
-			common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
 			common.PrometheusOpt(promPort),
 			common.CloudLoggingOpt(),
 		)
 	} else {
-		initExternalLogging()
-		common.InitExternalWithMetrics2("pulld-not-gce", influxHost, influxUser, influxPassword, influxDatabase)
+		common.InitWithMust(
+			"pulld-not-gce",
+			common.PrometheusOpt(promPort),
+			common.CloudLoggingJWTOpt(*serviceAccountPath),
+		)
 	}
 	Init()
 	pullInit(*serviceAccountPath)
