@@ -1,4 +1,4 @@
-<!-- The <digest-details-sk> custom element declaration.
+<!-- The <newdigest-details-sk> custom element declaration.
 
   Displays the details about a digest.
 
@@ -16,11 +16,11 @@
               and 'diff' contains diff information. Any 'diff' field within
               'details' is ignored.
 
-    details - An serialization of a search.Digest.
-    right - A serialization of search.Digest.
-    diff - A serialization of diff.
-    commits - A list of commits that 'details' refers to.
-    embedded - Boolean flag that indicates that this is embedded as an
+    details - Object, a deserialized instance of search.SRDigest.
+    right - Object, a deserialized instance of search.SRDigest.
+    diff - Object, a deserialized instance of search.SRDiffDigest.
+    commits - Array, a list of commits that 'details' refers to.
+    embedded - Boolean, a flag that indicates that this is embedded as an
                auxiliary view and some field like title should be omitted.
 
   Events:
@@ -34,7 +34,8 @@
        }
 
     zoom-clicked - This event is triggered when the user clicks on the 'zoom'
-      button. The 'detail' in the event is the digest-details-sk object.
+      button. The 'detail' in the event is the object expected by the
+      multi-zoom-sk element.
 
     clear - Clears the current digest shown.
 
@@ -60,7 +61,7 @@
 <link rel="import" href="commits-dialog-sk.html">
 <link rel="import" href="shared-styles.html">
 
-<dom-module id="digest-details-sk">
+<dom-module id="newdigest-details-sk">
   <template>
     <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
     <style include="shared-styles"></style>
@@ -153,43 +154,48 @@
         margin-bottom: 0.5em;
         white-space: nowrap;
       }
+
+      .metricHead {
+        min-width: 12em;
+      }
+
     </style>
-    <div class="horizontal layout wrap" hidden$="{{_noData(details)}}">
+    <div class="horizontal layout wrap" hidden$="[[_noData(details)]]">
       <div class="vertical layout leftCol">
         <div class="horizontal layout">
-          <div class="flex self-start testHeader" hidden$="{{embedded}}">Test: {{details.test}}</div>
+          <div class="flex self-start testHeader" hidden$="[[embedded]]">Test: [[details.test]]</div>
 
           <!-- Links to Grid and Cluster. -->
-          <div id="links" hidden$="{{embedded}}">
-            <span><a href$="{{_cmpUrl(details.test)}}"><iron-icon icon="apps"></iron-icon></a></span>
-            <span><a href$="{{_clusterUrl(details.test)}}"><iron-icon icon="radio-button-unchecked"></iron-icon></a></span>
+          <div id="links" hidden$="[[embedded]]">
+            <span><a href$="[[_cmpUrl(details.test)]]"><iron-icon icon="apps"></iron-icon></a></span>
+            <span><a href$="[[_clusterUrl(details.test)]]"><iron-icon icon="radio-button-unchecked"></iron-icon></a></span>
           </div>
 
         </div>
         <div class="horizontal layout">
-          <div class="flex self-start testHeader">Left: {{details.digest}}</div>
-          <div class="flex self-start testHeader" hidden$="{{!_hasRight(_right)}}">Right: {{_right.digest}}</div>
+          <div class="flex self-start testHeader">Left: [[details.digest]]</div>
+          <div class="flex self-start testHeader" hidden$="[[!_hasRight(_right)]]">Right: [[_right.digest]]</div>
         </div>
         <div class="horizontal layout">
-          <div class="vertical layout" id="warning" hidden$="{{!_negIsClosest}}">
+          <div class="vertical layout" id="warning" hidden$="[[!_negIsClosest]]">
             Closest Image Is Negative!
           </div>
 
           <!-- Triage Controls -->
           <div class="vertical layout triageInfo">
-            <div hidden$="{{!_hasRight(_right)}}">
+            <div hidden$="[[!_hasRight(_right)]]">
               <div>
-                <a href$="{{_diffPageUrl(details, _right)}}">Diff Details</a>
+                <a href$="[[_diffPageUrl(details, _right)]]">Diff Details</a>
               </div>
-              <div>
-                Diff: <span>{{_fixedPercent(_diff.diff)}}</span>%
-              </div>
-              <div>Max RGBA: [<span>{{_diff.maxRGBA}}</span>]</div>
+              <div><span class="metricHead">Diff Metric:</span> <span>[[_fixedMetric(_diff, metric)]]</span></div>
+              <div><span class="metricHead">Diff %:</span> <span>[[_fixedPercent(_diff)]]</span></div>
+              <div><span class="metricHead">Pixels:</span> [[_diff.numDiffPixels]]</div>
+              <div><span class="metricHead">Max RGBA:</span> [<span>[[_diff.maxRGBADiffs]]</span>]</div>
             </div>
             <triage-sk value="{{details.status}}"
                        id="triageControls"
-                       data-digest$="{{details.digest}}"
-                       data-test$="{{details.test}}">
+                       data-digest$="[[details.digest]]"
+                       data-test$="[[details.test]]">
             </triage-sk>
           </div>
 
@@ -199,43 +205,43 @@
               <div class="vertical layout untriagedImage">
                 <div class="horizontal layout">
                   <div class="preview">
-                    <img src$="{{_digestHref(details.digest)}}">
+                    <img src$="[[_digestHref(details.digest)]]">
                   </div>
                   <div class="vertical layout justified">
-                    <a target="_blank" href$="{{_digestHref(details.digest)}}" rel="noopener">
+                    <a target="_blank" href$="[[_digestHref(details.digest)]]" rel="noopener">
                       <iron-icon icon="open-in-new"></iron-icon>
                     </a>
 
-                    <a target="_blank" href$="{{_imageInfoHref(details.digest)}}" rel="noopener">
+                    <a target="_blank" href$="[[_imageInfoHref(details.digest)]]" rel="noopener">
                       <iron-icon icon="icons:info-outline"></iron-icon>
                     </a>
 
                   </div>
                 </div>
                 <div>
-                  <span hidden$="{{_hideDotsBlame(details)}}">
+                  <span hidden$="[[_hideDotsBlame(details)]]">
                     <svg width="10" height="10" viewBox="-1 -1 2 2">
                       <circle cx="0" cy="0" r="0.3" class="status0"></circle>
                     </svg>
                   </span>
-                  <a href$="{{_detailHref(details.digest)}}" target="_blank">
-                    {{_leftParamTitle}}
+                  <a href$="[[_detailHref(details.digest)]]" target="_blank">
+                    [[_leftParamTitle]]
                   </a>
                 </div>
               </div>
 
-              <div class="horizontal layout center" hidden$="{{_hideNegPosFound(_right)}}">
+              <div class="horizontal layout center" hidden$="[[_hideNegPosFound(_right)]]">
                 <div class="noCompare">
                   <strong>No Positive or Negative Digests Found.</strong>
                 </div>
               </div>
 
-              <div class="horizontal layout" hidden$="{{!_hasRight(_right)}}">
+              <div class="horizontal layout" hidden$="[[!_hasRight(_right)]]">
                 <!-- diff image -->
                 <div class="preview">
-                  <img src$="{{_diffImgHref}}">
+                  <img src$="[[_diffImgHref]]">
                 </div>
-                <a href$="{{_diffImgHref}}" target="_blank" >
+                <a href$="[[_diffImgHref]]" target="_blank" >
                   <iron-icon icon="open-in-new"></iron-icon>
                 </a>
 
@@ -243,14 +249,14 @@
                 <div class="vertical layout center untriagedImage">
                   <div class="horizontal layout">
                     <div class="preview">
-                      <img src$="{{_digestHref(_right.digest)}}">
+                      <img src$="[[_digestHref(_right.digest)]]">
                     </div>
-                    <a href$="{{_digestHref(_right.digest)}}" target="_blank">
+                    <a href$="[[_digestHref(_right.digest)]]" target="_blank">
                       <iron-icon icon="open-in-new"></iron-icon>
                     </a>
                   </div>
-                  <a href$="{{_detailHref(_right.digest)}}" target="_blank">
-                    {{_rightParamTitle}}
+                  <a href$="[[_detailHref(_right.digest)]]" target="_blank">
+                    [[_rightParamTitle]]
                   </a>
                 </div>
               </div>
@@ -260,7 +266,7 @@
         </div>
 
         <!-- dots, dot-legend and blame -->
-        <div class="vertical layout dotInfo" hidden$="{{_hideDotsBlame(details)}}">
+        <div class="vertical layout dotInfo" hidden$="[[_hideDotsBlame(details)]]">
           <dots-sk id="dots"></dots-sk>
           <dot-legend-sk id="dotlegend"
                          test="{{details.test}}"
@@ -283,7 +289,7 @@
   </template>
   <script>
     Polymer({
-      is: 'digest-details-sk',
+      is: 'newdigest-details-sk',
 
       properties: {
         mode: {
@@ -314,6 +320,10 @@
         embedded: {
           type: Boolean,
           value: false
+        },
+
+        metric: {
+          type: String,
         },
 
         _negIsClosest: {
@@ -431,38 +441,15 @@
       },
 
       _setRightFromDetails: function(detailsView) {
-        var status = "";
-        var foundDiff = null;
-
-        this._right = null;
         this._negIsClosest = false;
+        this._right = null;
         this._diff = null;
         this._rightParamTitle = '';
-        if (!detailsView) {
-          var pos = this.details.diff.pos;
-          var neg = this.details.diff.neg;
-          if (pos && neg) {
-            if (neg.closest.diff < pos.closest.diff) {
-              foundDiff = neg;
-              status = gold.NEGATIVE;
-            } else {
-              foundDiff = pos;
-              status = gold.POSITIVE;
-            }
-          } else if (pos) {
-            foundDiff = pos;
-            status = gold.POSITIVE;
-          } else if (neg) {
-            foundDiff = neg;
-            status = gold.NEGATIVE;
-          }
-
-          if (foundDiff) {
-            this._negIsClosest = (status === gold.NEGATIVE);
-            this._right = this._digestFromDiff(this.details.test, foundDiff, status);
-            this._diff = foundDiff.closest;
-            this._rightParamTitle = 'Closest ' + this._statusStr(this._negIsClosest);
-          }
+        if (!detailsView && this.details.closestRef) {
+          this._negIsClosest = (this.details.closestRef === gold.REF_NEG);
+          this._right = this.details.refDiffs[this.details.closestRef];
+          this._diff = this._right;
+          this._rightParamTitle = 'Closest ' + this._statusStr(this._negIsClosest);
         }
 
         // Set the blame, dots, dotlegend
@@ -474,10 +461,10 @@
         return (this._right) ? ((this._negIsClosest) ? gold.NEGATIVE : gold.POSITIVE) : null;
       },
 
-      _digestFromDiff: function(test, diff, status) {
+      _digestFromDiff: function(test, refDiff, status) {
         return {
           test: test,
-          digest: diff.closest.digest,
+          digest: refDiff.digest,
           status: status,
           paramset: diff.paramset
         };
@@ -497,6 +484,9 @@
             paramTitles.push(this._rightParamTitle);
           }
         }
+
+        // TODO(stephana): Remove the forced re-render of _diff by cleaning up how
+        // the properties are set outside this function.
         if (this._diff) {
           this.set('_diff', this._diff);
         }
@@ -525,8 +515,12 @@
 
       _imageInfoHref: gold.imageInfoHref,
 
-      _fixedPercent: function (i) {
-        return (typeof(i) === 'number') ? i.toFixed(2) : '';
+      _fixedPercent: function (refDiff) {
+        return (refDiff) ? refDiff.pixelDiffPercent.toFixed(2) : '';
+      },
+
+      _fixedMetric: function (refDiff, metric) {
+        return (refDiff && metric) ? refDiff.diffs[metric].toFixed(2) : '';
       },
 
       _diffPageUrl: function (left, right) {
@@ -551,10 +545,6 @@
 
       _statusStr: function(_negIsClosest) {
         return _negIsClosest ? 'Negative' : 'Positive';
-      },
-
-      _noPosNeg: function (closest) {
-        return !closest || !closest.closest || (closest.closest.digest != '');
       },
 
       _cmpUrl: function (test) {
