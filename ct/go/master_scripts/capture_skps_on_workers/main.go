@@ -123,7 +123,7 @@ func main() {
 		// }
 		//
 		//// Sync PDFium and build pdfium_test binary which will be used by the worker script.
-		//if err := util.SyncDir(util.PDFiumTreeDir); err != nil {
+		//if err := util.SyncDir(util.PDFiumTreeDir, []string{}); err != nil {
 		//	sklog.Errorf("Could not sync PDFium: %s", err)
 		//	return
 		//}
