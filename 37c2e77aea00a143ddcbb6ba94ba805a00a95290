@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "57acea96_69d39822",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-22T20:42:56Z",
+      "side": 1,
+      "message": "I\u0027m not sure that this would be cleaner in terms of the code.  The hard one is still findTaskSequences, for which we need the TaskCache\u0027s tasks-by-blamelist functionality.  I guess I could duplicate that behavior and then not need the TaskCache.  In that case it\u0027d be easy to separate by repo and task spec.",
+      "parentUuid": "b5bd93d2_cf6a36aa",
+      "range": {
+        "startLine": 19,
+        "startChar": 5,
+        "endLine": 19,
+        "endChar": 12
+      },
+      "revId": "37c2e77aea00a143ddcbb6ba94ba805a00a95290",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6fdb0d2d_69f51dce",
         "filename": "flakiness/go/analysis/analysis.go",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2017-02-22T19:34:02Z",
       "side": 1,
       "message": "I could quibble, but if the time range is large enough, it doesn\u0027t really matter.",
+      "range": {
+        "startLine": 105,
+        "startChar": 7,
+        "endLine": 105,
+        "endChar": 31
+      },
+      "revId": "37c2e77aea00a143ddcbb6ba94ba805a00a95290",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "585b5f02_b69f69d9",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-22T20:42:56Z",
+      "side": 1,
+      "message": "I don\u0027t know what you\u0027re getting at here.",
+      "parentUuid": "6fdb0d2d_69f51dce",
       "range": {
         "startLine": 105,
         "startChar": 7,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "e6296ffd_a967b930",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-22T20:42:56Z",
+      "side": 1,
+      "message": "Tasks shared by multiple branches, eg.\n\nA - B - C - D\n          \\ E\n\nWe want [ABC, BCD, BCE].  This check prevents us from getting ABC twice.",
+      "parentUuid": "88f58809_004ca7e6",
+      "range": {
+        "startLine": 151,
+        "startChar": 0,
+        "endLine": 153,
+        "endChar": 7
+      },
+      "revId": "37c2e77aea00a143ddcbb6ba94ba805a00a95290",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3be94f33_671ed1c1",
         "filename": "flakiness/go/analysis/analysis.go",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2017-02-22T19:34:02Z",
       "side": 1,
       "message": "FWIW, I think this is too narrow. We want to ignore this sequence if *any* of seq[2].Commits reverts *any* of seq[1].Commits.",
+      "range": {
+        "startLine": 204,
+        "startChar": 0,
+        "endLine": 210,
+        "endChar": 3
+      },
+      "revId": "37c2e77aea00a143ddcbb6ba94ba805a00a95290",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2bf2daa5_7d9d535a",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-22T20:42:56Z",
+      "side": 1,
+      "message": "Ah, good point. Done.",
+      "parentUuid": "3be94f33_671ed1c1",
       "range": {
         "startLine": 204,
         "startChar": 0,
