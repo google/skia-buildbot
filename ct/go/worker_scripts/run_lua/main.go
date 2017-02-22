@@ -44,8 +44,8 @@ func runLua() error {
 		return errors.New("Must specify --run_id")
 	}
 
-	// Sync Skia tree.
-	skutil.LogErr(util.SyncDir(util.SkiaTreeDir, map[string]string{}))
+	// Sync Skia tree. Specify --nohooks otherwise this step could log errors.
+	skutil.LogErr(util.SyncDir(util.SkiaTreeDir, map[string]string{}, []string{"--nohooks"}))
 
 	// Build lua_pictures.
 	if err := util.BuildSkiaLuaPictures(); err != nil {
