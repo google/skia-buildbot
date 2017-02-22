@@ -87,17 +87,20 @@
       service: {
         type: String,
         value: "",
-        observer: 'subscribe',
       },
     },
 
+    observers: [
+      'subscribe(machine, service)'
+    ],
+
     ready: function() {
-      this.subscribe();
+      this.subscribe(this.machine, this.service);
     },
 
-    subscribe: function() {
+    subscribe: function(machine, service) {
       this.value = {};
-      sk.Mailbox.subscribe(this.machine+":"+this.service, function(value) {
+      sk.Mailbox.subscribe(machine+":"+service, function(value) {
         this.value =  value;
       }.bind(this));
     },
