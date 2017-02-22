@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b5bd93d2_cf6a36aa",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-22T19:34:02Z",
+      "side": 1,
+      "message": "Might be cleaner to have one Results per (repo, taskSpec). Move byTaskSpec from DefinitelyFlaky to Analyze, and only pass in the tasks for a single (repo, taskSpec) to InfraFailures(), DefinitelyFlaky(), and MaybeFlaky().",
+      "range": {
+        "startLine": 19,
+        "startChar": 5,
+        "endLine": 19,
+        "endChar": 12
+      },
+      "revId": "37c2e77aea00a143ddcbb6ba94ba805a00a95290",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6fdb0d2d_69f51dce",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-22T19:34:02Z",
+      "side": 1,
+      "message": "I could quibble, but if the time range is large enough, it doesn\u0027t really matter.",
+      "range": {
+        "startLine": 105,
+        "startChar": 7,
+        "endLine": 105,
+        "endChar": 31
+      },
+      "revId": "37c2e77aea00a143ddcbb6ba94ba805a00a95290",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88f58809_004ca7e6",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-22T19:34:02Z",
+      "side": 1,
+      "message": "I don\u0027t see how this can occur.",
+      "range": {
+        "startLine": 151,
+        "startChar": 0,
+        "endLine": 153,
+        "endChar": 7
+      },
+      "revId": "37c2e77aea00a143ddcbb6ba94ba805a00a95290",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3be94f33_671ed1c1",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-22T19:34:02Z",
+      "side": 1,
+      "message": "FWIW, I think this is too narrow. We want to ignore this sequence if *any* of seq[2].Commits reverts *any* of seq[1].Commits.",
+      "range": {
+        "startLine": 204,
+        "startChar": 0,
+        "endLine": 210,
+        "endChar": 3
+      },
+      "revId": "37c2e77aea00a143ddcbb6ba94ba805a00a95290",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
