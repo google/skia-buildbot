@@ -15,7 +15,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/go-systemd/dbus"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
@@ -80,18 +79,6 @@ func loadResouces() {
 // ChangeResult is the serialized JSON response from changeHandler.
 type ChangeResult struct {
 	Result string `json:"result"`
-}
-
-func initExternalLogging() {
-	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountPath, nil, sklog.CLOUD_LOGGING_WRITE_SCOPE)
-	if err != nil {
-		sklog.Fatalf("Could not setup credentials: %s", err)
-	}
-
-	common.StartCloudLoggingWithClient(client, *cloudLoggingGroup, "pulld-not-gce")
-	if err != nil {
-		sklog.Fatalf("Could not setup cloud logging: %s", err)
-	}
 }
 
 func Init() {
@@ -328,13 +315,15 @@ func main() {
 	if *onGCE {
 		common.InitWithMust(
 			"pulld",
-			common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
 			common.PrometheusOpt(promPort),
 			common.CloudLoggingOpt(),
 		)
 	} else {
-		initExternalLogging()
-		common.InitExternalWithMetrics2("pulld-not-gce", influxHost, influxUser, influxPassword, influxDatabase)
+		common.InitWithMust(
+			"pulld-not-gce",
+			common.PrometheusOpt(promPort),
+			common.CloudLoggingJWTOpt(*serviceAccountPath),
+		)
 	}
 	Init()
 	pullInit(*serviceAccountPath)
