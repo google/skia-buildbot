@@ -1,5 +1,5 @@
 <!--
-  The <search-page-sk> custom element declaration.
+  The <newsearch-page-sk> custom element declaration.
 
   Shows the results of a search request.
   It sends the query string as a JSON request to the
@@ -35,16 +35,16 @@
 
 <link rel="import" href="activity-sk.html">
 <link rel=import href="detail-list-sk.html">
-<link rel=import href="digest-details-sk.html">
+<link rel=import href="newdigest-details-sk.html">
 <link rel=import href="search-controls-sk.html">
 <link rel=import href="trybot-controls-sk.html">
 <link rel="import" href="../common/imp/triage-sk.html">
 
-<dom-module id="search-page-sk">
+<dom-module id="newsearch-page-sk">
   <template>
     <style include="iron-flex iron-flex-alignment"></style>
     <style include="shared-styles">
-      digest-details-sk {
+      newdigest-details-sk {
         display: block;
         box-shadow: 3px 3px 6px 1px rgba(133,133,133,1);
         margin-top: 1em;
@@ -57,7 +57,7 @@
         padding-right: 0;
       }
 
-      digest-details-sk[data-focus] {
+      newdigest-details-sk[data-focus] {
         box-shadow: 3px 3px 6px 5px #FF7F00;
       }
 
@@ -107,43 +107,55 @@
       #closestButton[raised]:hover {
         background: #ddd;
       }
+
+      .searchResponse {
+        padding: 1em;
+        margin: 1em 1em 1em 0;
+        border: 1px solid #555555;
+      }
     </style>
 
-    <div class="searchPageWrapper">
+    <div class="searchPageWrapper layout vertical">
       <activity-sk id="activityBar" busy="{{_hideAll}}"></activity-sk>
       <div class="layout horizontal">
-          <search-controls-sk id="searchControls"></search-controls-sk>
+          <search-controls-sk id="searchControls" beta></search-controls-sk>
           <div>
-            <paper-button id="triggerSearchButton" raised disabled="{{_hideAll}}">Search</paper-button>
+            <paper-button id="triggerSearchButton" raised disabled="[[_hideAll]]">Search</paper-button>
           </div>
 
           <paper-menu-button close-on-activate no-animations class="actionMenu">
             <paper-button class="dropdown-trigger actionButton" raised>Actions</paper-button>
             <paper-menu class="dropdown-content">
-              <paper-item on-tap="_handleSwitchToByTest">Switch To Test View</paper-item>
-              <paper-item on-tap="_handleBulkButton">Bulk Triage</paper-item>
-              <paper-item on-tap="_handleNewSearchButton">Beta Search</paper-item>
-              <paper-item on-tap="_openHelpDialog">Help</paper-item>
+              <paper-item id="actionTestView">Switch To Test View</paper-item>
+              <paper-item id="actionBulkTriage">Bulk Triage</paper-item>
+              <paper-item id="actionLegacySearch">Legacy Search</paper-item>
+              <paper-item id="actionHelpDialog">Help</paper-item>
             </paper-menu>
           </paper-menu-button>
+      </div>
 
+      <div class="searchResponse" hidden$="[[_noResult(_allData)]]">
+        Displaying: [[_allData.size]] / [[_allData.digests.length]] @ [[_allData.offset]]<br>
+        UniqueTests: [[_uniqueTests.length]] <br>
+        UniqueTests All: [[_uniqueTestsAll.length]]<br>
       </div>
       <trybot-controls-sk id="trybotControls"></trybot-controls-sk>
 
-      <div hidden$="{{_hideAll}}">
-        <div id="missing" hidden$="{{_nonEmptyResult(data)}}">
+      <div hidden$="[[_hideAll]]">
+        <div id="missing" hidden$="[[_nonEmptyResult(data)]]">
           No digests match your query.
         </div>
-        <div hidden$="{{_emptyResult(data)}}">
+        <div hidden$="[[_emptyResult(data)]]">
           <detail-list-sk id="detailList">
-            <template is="dom-repeat" items="{{data.digests}}">
-              <digest-details-sk
-                      id$="{{_entryId(item)}}"
+            <template is="dom-repeat" items="[[data.digests]]">
+              <newdigest-details-sk
+                      id$="[[_entryId(item)]]"
                       mode="list"
                       triage
                       details="[[item]]"
-                      commits="[[data.commits]]">
-              </digest-details-sk>
+                      commits="[[data.commits]]"
+                      metric="[[_state.metric]]">
+              </newdigest-details-sk>
             </template>
           </detail-list-sk>
         </div>
@@ -153,10 +165,12 @@
       <h2>Bulk Triage</h2>
       <p>Assign the status to all images on this page at once.</p>
       <div class="layout horizontal">
-        <triage-sk value="{{_bulkStatus}}" id="triageControls"></triage-sk>
+        <triage-sk value="[[_bulkStatus]]" id="triageControls"></triage-sk>
         <paper-button id="closestButton" on-tap="_handleClosestButton" title="Assign status of closest image">
           <iron-icon icon="icons:view-agenda"></iron-icon>
         </paper-button>
+      </div>
+      <div>
       </div>
       <div class="buttons">
         <paper-button raise dialog-dismiss>Cancel</paper-button>
@@ -167,7 +181,7 @@
   </template>
   <script>
     Polymer({
-      is: "search-page-sk",
+      is: "newsearch-page-sk",
 
       behaviors: [gold.PageStateBehavior],
 
@@ -186,11 +200,17 @@
 
       ready: function() {
         this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
-        this.listen(this.$.triggerSearchButton, 'click', '_handleSearchButton');
+        this.listen(this.$.triggerSearchButton, 'tap', '_handleSearchButton');
+        this.listen(this.$.actionTestView, 'tap', '_handleSwitchToByTest');
+        this.listen(this.$.actionBulkTriage, 'tap', '_handleBulkButton');
+        this.listen(this.$.actionLegacySearch, 'tap', '_handleLegacySearchButton');
+        this.listen(this.$.actionHelpDialog, 'tap', '_openHelpDialog');
         this._setDefaultState(gold.defaultSearchState, false);
       },
 
       pageSelected: function(ctx) {
+        this.set('data', {});
+        this.set('_allData', {});
         this.$.detailList.startUse();
 
         // Initialize the state and set values of the controls.
@@ -228,8 +248,8 @@
         this.$.bulkDialog.open();
       },
 
-      _handleNewSearchButton: function(ev) {
-        this._redirectToState({}, "/newsearch");
+      _handleLegacySearchButton: function(ev) {
+        this._redirectToState({}, "/search");
       },
 
       _handleClosestButton: function(ev) {
@@ -275,9 +295,17 @@
 
       _load: function() {
         var q = window.location.search;
-        this.$.activityBar.startSpinner("Loading ...");
-        sk.get("/json/search" + q).then(JSON.parse).then(function (json) {
-          this.set('data', json);
+        sk.get("/json/newsearch" + q).then(JSON.parse).then(function (json) {
+          // Split out the digests that are being displayed and keep a copy
+          // of all digests that matched the query.
+          var displayData = sk.object.shallowCopy(json);
+          displayData.digests = displayData.digests.slice(json.offset, json.offset+json.size);
+          this.set('_allData', json);
+
+          this.set('_uniqueTestsAll', this._getUniqueTests(json.digests));
+          this.set('_uniqueTests', this._getUniqueTests(displayData.digests));
+
+          this.set('data', displayData);
           this.$.trybotControls.setIssue(json.issue);
           this.$.activityBar.stopSpinner();
         }.bind(this)).catch(function(e) {
@@ -286,7 +314,17 @@
         }.bind(this));
       },
 
+      _getUniqueTests: function(digests) {
+        var unique = {};
+        for(var i=0; i < digests.length; i++) {
+          unique[digests[i].test] = true;
+        }
+        return Object.keys(unique);
+      },
+
       _loadParamset: function() {
+        this.$.activityBar.startSpinner("Loading ...");
+
         // If we already have a paramset then trigger load right away.
         // TODO(stephana): Improve this so that we load the paramset with the
         // data.
@@ -318,6 +356,10 @@
       // Returns true if there was a query and the result is empty.
       _emptyResult: function(data) {
         return !data.digests || data.digests.length === 0;
+      },
+
+      _noResult: function(data) {
+        return !data.digests;
       }
     });
   </script>
