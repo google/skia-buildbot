@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ba3dc5db_ec621bb0",
+        "filename": "golden/frontend/res/imp/filter-dialog-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-22T21:45:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c622edc0_f838b1c3",
+      "range": {
+        "startLine": 29,
+        "startChar": 40,
+        "endLine": 29,
+        "endChar": 74
+      },
+      "revId": "6fecc62cb3662816a05bdbcd87826c92f01cef4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7f422788_0ea802fd",
         "filename": "golden/frontend/res/imp/filter-dialog-sk.html",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "6fecc62cb3662816a05bdbcd87826c92f01cef4b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cb16b71_ba885403",
+        "filename": "golden/frontend/res/imp/filter-dialog-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-22T21:45:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7f422788_0ea802fd",
+      "range": {
+        "startLine": 75,
+        "startChar": 49,
+        "endLine": 75,
+        "endChar": 51
+      },
+      "revId": "6fecc62cb3662816a05bdbcd87826c92f01cef4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "22ebafab_09c6543d",
+        "filename": "golden/frontend/res/imp/filter-dialog-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-22T21:45:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8ce9811b_3c50dd53",
+      "range": {
+        "startLine": 176,
+        "startChar": 14,
+        "endLine": 176,
+        "endChar": 15
+      },
+      "revId": "6fecc62cb3662816a05bdbcd87826c92f01cef4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2639e121_56b6a5d6",
         "filename": "golden/frontend/res/imp/gold-app-sk.html",
         "patchSetId": 3
@@ -91,6 +163,30 @@
       "revId": "6fecc62cb3662816a05bdbcd87826c92f01cef4b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b13aafa4_c8cc4524",
+        "filename": "golden/frontend/res/imp/gold-app-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-22T21:45:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2639e121_56b6a5d6",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 2
+      },
+      "revId": "6fecc62cb3662816a05bdbcd87826c92f01cef4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "fed2c405_f38ce37c",
+        "filename": "golden/frontend/res/imp/newdigest-details-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-22T21:45:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0aeda512_25867b62",
+      "range": {
+        "startLine": 20,
+        "startChar": 11,
+        "endLine": 20,
+        "endChar": 13
+      },
+      "revId": "6fecc62cb3662816a05bdbcd87826c92f01cef4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1f40cb27_47a4ef32",
         "filename": "golden/frontend/res/imp/newdigest-details-sk.html",
         "patchSetId": 3
@@ -137,6 +257,30 @@
       "revId": "6fecc62cb3662816a05bdbcd87826c92f01cef4b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e8dac4c_8de57dfc",
+        "filename": "golden/frontend/res/imp/newdigest-details-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-22T21:45:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1f40cb27_47a4ef32",
+      "range": {
+        "startLine": 37,
+        "startChar": 46,
+        "endLine": 37,
+        "endChar": 67
+      },
+      "revId": "6fecc62cb3662816a05bdbcd87826c92f01cef4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "ec6332b3_c99e38b2",
+        "filename": "golden/frontend/res/imp/newdigest-details-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-22T21:45:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "48adad23_617ff0b6",
+      "range": {
+        "startLine": 162,
+        "startChar": 46,
+        "endLine": 162,
+        "endChar": 52
+      },
+      "revId": "6fecc62cb3662816a05bdbcd87826c92f01cef4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b9ac946c_b7d3adcf",
         "filename": "golden/frontend/res/imp/newdigest-details-sk.html",
         "patchSetId": 3
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "0bd8ff2c_4d8b1032",
+        "filename": "golden/frontend/res/imp/newdigest-details-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-22T21:45:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b9ac946c_b7d3adcf",
+      "range": {
+        "startLine": 165,
+        "startChar": 79,
+        "endLine": 165,
+        "endChar": 81
+      },
+      "revId": "6fecc62cb3662816a05bdbcd87826c92f01cef4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8c86df92_75134b52",
         "filename": "golden/frontend/res/imp/newdigest-details-sk.html",
         "patchSetId": 3
@@ -197,6 +389,30 @@
       "writtenOn": "2017-02-16T20:31:57Z",
       "side": 1,
       "message": "Isn\u0027t this a no-op?",
+      "range": {
+        "startLine": 486,
+        "startChar": 8,
+        "endLine": 488,
+        "endChar": 9
+      },
+      "revId": "6fecc62cb3662816a05bdbcd87826c92f01cef4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3690424e_bbb0ac2e",
+        "filename": "golden/frontend/res/imp/newdigest-details-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-22T21:45:39Z",
+      "side": 1,
+      "message": "Not entirely. Using this.set(...) forces the set values to be reevaluated for rendering in the template. \nAdded a TODO to remove this before this replaces the current UI.",
+      "parentUuid": "8c86df92_75134b52",
       "range": {
         "startLine": 486,
         "startChar": 8,
@@ -232,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "2909695f_fb9eadda",
+        "filename": "golden/frontend/res/imp/newdigest-details-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 547,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-22T21:45:39Z",
+      "side": 1,
+      "message": "Turns out that was dead code. Removed.",
+      "parentUuid": "9fad242e_37b8d809",
+      "range": {
+        "startLine": 547,
+        "startChar": 48,
+        "endLine": 547,
+        "endChar": 77
+      },
+      "revId": "6fecc62cb3662816a05bdbcd87826c92f01cef4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f695aa4e_da5bace9",
         "filename": "golden/frontend/res/imp/newsearch-page-sk.html",
         "patchSetId": 3
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "d35311b1_28545910",
+        "filename": "golden/frontend/res/imp/newsearch-page-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-22T21:45:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f695aa4e_da5bace9",
+      "range": {
+        "startLine": 123,
+        "startChar": 68,
+        "endLine": 123,
+        "endChar": 70
+      },
+      "revId": "6fecc62cb3662816a05bdbcd87826c92f01cef4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0a8b6214_95de4271",
         "filename": "golden/frontend/res/imp/newsearch-page-sk.html",
         "patchSetId": 3
@@ -266,6 +530,30 @@
       "writtenOn": "2017-02-16T20:31:57Z",
       "side": 1,
       "message": "What are your thoughts on consistency with these listeners?  Either all of them in the html or all of them in the ready()",
+      "range": {
+        "startLine": 131,
+        "startChar": 26,
+        "endLine": 131,
+        "endChar": 60
+      },
+      "revId": "6fecc62cb3662816a05bdbcd87826c92f01cef4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1fc614c6_7af3a784",
+        "filename": "golden/frontend/res/imp/newsearch-page-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-02-22T21:45:39Z",
+      "side": 1,
+      "message": "I agree that they should be consistent. I would prefer that in HTML, but that is not always possible. So I moved them to the ready function.",
+      "parentUuid": "0a8b6214_95de4271",
       "range": {
         "startLine": 131,
         "startChar": 26,
