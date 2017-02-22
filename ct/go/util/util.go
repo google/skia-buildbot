@@ -58,7 +58,7 @@ func ExecuteCmd(binary string, args, env []string, timeout time.Duration, stdout
 // SyncDir runs "git pull" and "gclient sync" on the specified directory.
 // The revisions map enforces revision/hash for the solutions with the format
 // branch@rev.
-func SyncDir(dir string, revisions map[string]string) error {
+func SyncDir(dir string, revisions map[string]string, additionalArgs []string) error {
 	err := os.Chdir(dir)
 	if err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
@@ -69,7 +69,7 @@ func SyncDir(dir string, revisions map[string]string) error {
 			sklog.Warningf("%d. retry for syncing %s", i, dir)
 		}
 
-		err = syncDirStep(revisions)
+		err = syncDirStep(revisions, additionalArgs)
 		if err == nil {
 			break
 		}
@@ -82,12 +82,13 @@ func SyncDir(dir string, revisions map[string]string) error {
 	return err
 }
 
-func syncDirStep(revisions map[string]string) error {
+func syncDirStep(revisions map[string]string, additionalArgs []string) error {
 	err := ExecuteCmd(BINARY_GIT, []string{"pull"}, []string{}, GIT_PULL_TIMEOUT, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Error running git pull: %s", err)
 	}
 	syncCmd := []string{"sync", "--force"}
+	syncCmd = append(syncCmd, additionalArgs...)
 	for branch, rev := range revisions {
 		syncCmd = append(syncCmd, "--revision")
 		syncCmd = append(syncCmd, fmt.Sprintf("%s@%s", branch, rev))
@@ -310,8 +311,8 @@ func ValidateSKPs(pathToSkps, pathToPyFiles string) error {
 	close(skpsChannel)
 
 	sklog.Info("Calling remove_invalid_skp.py")
-	// Sync Skia tree.
-	util.LogErr(SyncDir(SkiaTreeDir, map[string]string{}))
+	// Sync Skia tree. Specify --nohooks otherwise this step could log errors.
+	util.LogErr(SyncDir(SkiaTreeDir, map[string]string{}, []string{"--nohooks"}))
 	// Build tools.
 	util.LogErr(BuildSkiaSKPInfo())
 	// Run remove_invalid_skp.py in parallel goroutines.
