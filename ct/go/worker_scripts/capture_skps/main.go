@@ -61,7 +61,7 @@ func captureSkps() error {
 		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
 	// Sync the local chromium checkout.
-	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{}); err != nil {
+	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{}, []string{}); err != nil {
 		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
 	}
 

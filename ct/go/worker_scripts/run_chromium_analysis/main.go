@@ -78,7 +78,7 @@ func runChromiumAnalysis() error {
 	// Parse out the Chromium and Skia hashes.
 	chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuild)
 	// Sync the local chromium checkout.
-	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{"src": chromiumHash}); err != nil {
+	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{"src": chromiumHash}, []string{}); err != nil {
 		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
 	}
 
