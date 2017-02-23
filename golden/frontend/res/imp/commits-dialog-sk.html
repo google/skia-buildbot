@@ -2,7 +2,7 @@
 
   An element to display information on one or more commits.
 
-  Listens for 'commit-selected' events on it's parent element and then displays
+  Listens for 'show-commits' events on it's parent element and then displays
   the info it receives in each event. Relies upon e.detail containing a
   serialized slice of types.Commit that could have made up that dot.
 
@@ -36,6 +36,7 @@
       }
     </style>
     <paper-dialog id="commitsDialog">
+
       <h1>Commit(s)</h1>
       <commits-panel-sk id="commitsPanel" repo="{{_repo}}"></commits-panel-sk>
       <div class="buttons">
@@ -55,11 +56,14 @@
       },
 
       ready: function () {
-        this.listen(this.parentElement, 'commit-selected', '_handleCommitSelected');
-        this.$.commitsDialog.positionTarget = document.body;
+        this.listen(this.parentElement, 'show-commits', '_handleCommitSelected');
+        this.listen(this.$.commitsPanel, 'commits-loaded', '_handleCommitsLoaded');
+
+        // this.$.commitsDialog.positionTarget = document.body;
       },
 
       _handleCommitSelected: function(ev) {
+        debugger;
         this.setCommitInfo(ev.detail);
       },
 
@@ -68,9 +72,11 @@
           this.$.commitsDialog.close();
         }
         this.$.commitsPanel.setCommitInfo(commitInfo);
+      },
+
+      _handleCommitsLoaded: function(ev) {
         this.$.commitsDialog.open();
       }
-
     });
   </script>
 </dom-module>

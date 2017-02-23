@@ -190,6 +190,7 @@
               $$('commit-sk', this).forEach(function(ele) {
                 ele.refresh();
               });
+              this.fire('commits-loaded', {});
             }.bind(this)).catch(sk.errorMessage);
           }
           if (this.progress) {
