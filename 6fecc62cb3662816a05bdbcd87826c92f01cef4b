@@ -425,6 +425,30 @@
     },
     {
       "key": {
+        "uuid": "861ea3d4_d3959e8f",
+        "filename": "golden/frontend/res/imp/newdigest-details-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-02-23T12:14:17Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3690424e_bbb0ac2e",
+      "range": {
+        "startLine": 486,
+        "startChar": 8,
+        "endLine": 488,
+        "endChar": 9
+      },
+      "revId": "6fecc62cb3662816a05bdbcd87826c92f01cef4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9fad242e_37b8d809",
         "filename": "golden/frontend/res/imp/newdigest-details-sk.html",
         "patchSetId": 3
