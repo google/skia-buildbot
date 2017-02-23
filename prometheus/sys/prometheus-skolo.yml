@@ -1,0 +1,12 @@
+scrape_configs:
+# pulld for every server.
+  - job_name: 'pulld-not-gce'
+    static_configs:
+      - targets: ['localhost:20000']
+
+  # Prometheus self monitoring.
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:8000']
+
+

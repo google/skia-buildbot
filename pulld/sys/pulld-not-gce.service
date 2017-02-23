@@ -7,9 +7,8 @@ After=network-online.target
 ExecStart=/usr/local/bin/pulld-not-gce \
   --port=:10114 \
   --on_gce=false \
-  --log_dir=/var/log/logserver \
   --resources_dir=/usr/local/share/pulld-not-gce/ \
-  --log_dir=/var/log/logserver \
+  --logtostderr \
   --influxdb_database=skmetrics \
   --influxdb_host=https://metrics.skia.org \
   --installed_packages_file=/var/pulld-not-gce/installed_packages.json \
