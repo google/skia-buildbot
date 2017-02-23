@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "48db2d44_ec5390a3",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 561,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-23T16:25:38Z",
+      "side": 1,
+      "message": "Won\u0027t these be overwritten by processTaskCandidate below?",
+      "range": {
+        "startLine": 559,
+        "startChar": 0,
+        "endLine": 561,
+        "endChar": 44
+      },
+      "revId": "566184775a0d4742fb7fda7b4e69bee848023e2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
