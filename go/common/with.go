@@ -126,7 +126,11 @@ func (o *cloudLoggingInitOpt) init(appName string) error {
 	transport := &http.Transport{
 		Dial: httputils.FastDialTimeout,
 	}
-	c, err := auth.NewJWTServiceAccountClient("", *(o.serviceAccountPath), transport, sklog.CLOUD_LOGGING_WRITE_SCOPE)
+	path := ""
+	if o.serviceAccountPath != nil {
+		path = *(o.serviceAccountPath)
+	}
+	c, err := auth.NewJWTServiceAccountClient("", path, transport, sklog.CLOUD_LOGGING_WRITE_SCOPE)
 	if err != nil {
 		return fmt.Errorf("Problem getting authenticated client: %s", err)
 	}
