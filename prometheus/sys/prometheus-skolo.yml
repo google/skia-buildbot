@@ -13,7 +13,10 @@ scrape_configs:
   - job_name: 'file-backup'
     static_configs:
       - targets: ['192.168.1.99:20001']
+        labels:
+          backup: rpi
       - targets: ['192.168.1.99:20002']
+          backup: router
 
   - job_name: 'hotspare'
     static_configs:
