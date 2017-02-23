@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7dd67625_f6bbedda",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-23T14:58:59Z",
+      "side": 1,
+      "message": "nit: I usually just say this as \"map[repository URL][task spec name]*Results\"",
+      "range": {
+        "startLine": 38,
+        "startChar": 25,
+        "endLine": 39,
+        "endChar": 72
+      },
+      "revId": "ff9e2c07aeb0cd1594a61b90a80c97bbc855ef4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f608aa2_c1f09cb3",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-23T14:58:59Z",
+      "side": 1,
+      "message": "nit: maybe Warningf or even Infof",
+      "range": {
+        "startLine": 115,
+        "startChar": 10,
+        "endLine": 115,
+        "endChar": 16
+      },
+      "revId": "ff9e2c07aeb0cd1594a61b90a80c97bbc855ef4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "426456cc_3bb55a74",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-02-23T14:58:59Z",
+      "side": 1,
+      "message": "nit: use util.StringSet; replace double loop with wasRevert :\u003d len(revertedCommits.Intersect(util.NewStringSet(seq[1].Commits))) \u003e 0",
+      "range": {
+        "startLine": 259,
+        "startChar": 21,
+        "endLine": 259,
+        "endChar": 31
+      },
+      "revId": "ff9e2c07aeb0cd1594a61b90a80c97bbc855ef4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
