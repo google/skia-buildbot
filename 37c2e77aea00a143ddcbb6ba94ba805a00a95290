@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "11418590_057763f0",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-23T13:37:27Z",
+      "side": 1,
+      "message": "Okay, changed to key by repo and task spec.  Replicated the by-blamelist mapping of the cache so it\u0027s no longer needed.",
+      "parentUuid": "e5d0c86b_371f3ed5",
+      "range": {
+        "startLine": 19,
+        "startChar": 5,
+        "endLine": 19,
+        "endChar": 12
+      },
+      "revId": "37c2e77aea00a143ddcbb6ba94ba805a00a95290",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6fdb0d2d_69f51dce",
         "filename": "flakiness/go/analysis/analysis.go",
         "patchSetId": 2
@@ -132,6 +156,30 @@
       "side": 1,
       "message": "If you\u0027re looking at a 15-minute window, then there will be very few tasks where both the task creation time and the task\u0027s revision is within that window. But I don\u0027t think it\u0027s worth worrying about.",
       "parentUuid": "585b5f02_b69f69d9",
+      "range": {
+        "startLine": 105,
+        "startChar": 7,
+        "endLine": 105,
+        "endChar": 31
+      },
+      "revId": "37c2e77aea00a143ddcbb6ba94ba805a00a95290",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "736e7e8c_219832d0",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-23T13:37:27Z",
+      "side": 1,
+      "message": "Gotcha.  I\u0027m thinking we use a window of at least 24 hours.",
+      "parentUuid": "d187445a_f7b8028e",
       "range": {
         "startLine": 105,
         "startChar": 7,
@@ -215,6 +263,30 @@
     },
     {
       "key": {
+        "uuid": "d32d52d3_b49b33d3",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-23T13:37:27Z",
+      "side": 1,
+      "message": "Added a few comments, since this code is a little hard to follow.",
+      "parentUuid": "2682251b_07146ab2",
+      "range": {
+        "startLine": 151,
+        "startChar": 0,
+        "endLine": 153,
+        "endChar": 7
+      },
+      "revId": "37c2e77aea00a143ddcbb6ba94ba805a00a95290",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3be94f33_671ed1c1",
         "filename": "flakiness/go/analysis/analysis.go",
         "patchSetId": 2
@@ -274,6 +346,30 @@
       "side": 1,
       "message": "It\u0027s still possible that seq[0].Revision is not the revert, but the revert is somewhere in seq[0].Commits.",
       "parentUuid": "2bf2daa5_7d9d535a",
+      "range": {
+        "startLine": 204,
+        "startChar": 0,
+        "endLine": 210,
+        "endChar": 3
+      },
+      "revId": "37c2e77aea00a143ddcbb6ba94ba805a00a95290",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6019a7c5_59aa714d",
+        "filename": "flakiness/go/analysis/analysis.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-23T13:37:27Z",
+      "side": 1,
+      "message": "Okay, actually done.",
+      "parentUuid": "7e032b7c_018975bb",
       "range": {
         "startLine": 204,
         "startChar": 0,
