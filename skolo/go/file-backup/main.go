@@ -98,7 +98,7 @@ func main() {
 	common.InitWithMust(
 		"file-backup",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingJWTOpt(*serviceAccountPath),
+		common.CloudLoggingJWTOpt(serviceAccountPath),
 	)
 
 	if *localFilePath == "" && *remoteFilePath == "" {

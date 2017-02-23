@@ -322,7 +322,7 @@ func main() {
 		common.InitWithMust(
 			"pulld-not-gce",
 			common.PrometheusOpt(promPort),
-			common.CloudLoggingJWTOpt(*serviceAccountPath),
+			common.CloudLoggingJWTOpt(serviceAccountPath),
 		)
 	}
 	Init()

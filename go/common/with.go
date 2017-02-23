@@ -93,7 +93,7 @@ func (b *baseInitOpt) order() int {
 
 // cloudLoggingInitOpt implements Opt for cloud logging.
 type cloudLoggingInitOpt struct {
-	serviceAccountPath string
+	serviceAccountPath *string
 }
 
 // CloudLoggingOpt creates an Opt to initialize cloud logging when passed to InitWith().
@@ -106,7 +106,7 @@ func CloudLoggingOpt() Opt {
 // CloudLoggingJWTOpt creates an Opt to initialize cloud logging when passed to InitWith().
 //
 // Instead of using metadata, this uses a local service account file.
-func CloudLoggingJWTOpt(serviceAccountPath string) Opt {
+func CloudLoggingJWTOpt(serviceAccountPath *string) Opt {
 	return &cloudLoggingInitOpt{
 		serviceAccountPath: serviceAccountPath,
 	}
@@ -126,7 +126,7 @@ func (o *cloudLoggingInitOpt) init(appName string) error {
 	transport := &http.Transport{
 		Dial: httputils.FastDialTimeout,
 	}
-	c, err := auth.NewJWTServiceAccountClient("", o.serviceAccountPath, transport, sklog.CLOUD_LOGGING_WRITE_SCOPE)
+	c, err := auth.NewJWTServiceAccountClient("", *(o.serviceAccountPath), transport, sklog.CLOUD_LOGGING_WRITE_SCOPE)
 	if err != nil {
 		return fmt.Errorf("Problem getting authenticated client: %s", err)
 	}
