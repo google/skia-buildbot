@@ -1,8 +1,7 @@
 #!/bin/bash
 # Builds and uploads a debian package for rpi-backup.
 APPNAME=rpi-backup
-SYSTEMD="${APPNAME}.service ${APPNAME}.timer"
-SYSTEMD_TIMER=${APPNAME}.timer
+SYSTEMD="${APPNAME}.service"
 DESCRIPTION="backup the rpi image to GS"
 
 # Copy files into the right locations in ${ROOT}.
@@ -12,7 +11,6 @@ INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/file-backup  ${ROOT}/usr/local/bin/${APPNAME}
 ${INSTALL} --mode=644 -T ./sys/${APPNAME}.service  ${ROOT}/etc/systemd/system/${APPNAME}.service
-${INSTALL} --mode=644 -T ./sys/${APPNAME}.timer    ${ROOT}/etc/systemd/system/${APPNAME}.timer
 ${INSTALL} --mode=644 -T ./service-account.json   ${ROOT}/usr/local/share/${APPNAME}/service-account.json
 }
 

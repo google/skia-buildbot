@@ -10,6 +10,15 @@ scrape_configs:
         labels:
           instance_name: master
 
+  - job_name: 'file-backup'
+    static_configs:
+      - targets: ['192.168.1.99:20001']
+      - targets: ['192.168.1.99:20002']
+
+  - job_name: 'hotspare'
+    static_configs:
+      - targets: ['192.168.1.99:20003']
+
   # Prometheus self monitoring.
   - job_name: 'prometheus'
     static_configs:

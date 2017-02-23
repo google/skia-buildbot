@@ -5,13 +5,14 @@ After=network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/rpi-backup \
-  --log_dir=/var/log/logserver \
-  --influxdb_database=skmetrics \
-  --influxdb_host=https://metrics.skia.org \
+  --logtostderr \
+  --prom_port=:20001 \
   --gce_bucket skia-images\
   --gce_folder Swarming \
   --local_file_path /opt/rpi_img/prod.img \
   --metric_name rpi-backup \
   --service_account_path=/usr/local/share/rpi-backup/service-account.json
+
+Restart=always
 User=chrome-bot
 Group=chrome-bot
