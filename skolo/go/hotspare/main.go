@@ -182,7 +182,7 @@ func main() {
 	common.InitWithMust(
 		"hotspare",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingJWTOpt(*serviceAccountPath),
+		common.CloudLoggingJWTOpt(serviceAccountPath),
 	)
 
 	lt := NewVirtualIPManager(*livenessAddr, *livenessPeriod, *livenessTimeout, *livenessThreshold)
