@@ -23,6 +23,12 @@ push_binaries: build prom alertmanager pushgateway
 	go install -v ../push/go/pushcli
 	pushcli prometheus skia-prom
 
+push_skolo: build prom
+	promtool check-config sys/prometheus-skolo.yml
+	./build_skolo_release "`git log -n1 --format=%s`"
+	go install -v ../push/go/pushcli
+	pushcli prometheus-skolo skia-jumphost
+
 push_graphite_exporter: graphite_exporter
 	./build_graphite_exporter_release "`git log -n1 --format=%s`"
 	go install -v ../push/go/pushcli
