@@ -226,6 +226,17 @@ func (m *URLMock) Empty() bool {
 	return true
 }
 
+// List returns the list of all URLs registered via MockOnce.
+func (m *URLMock) List() []string {
+	rv := []string{}
+	for url, resps := range m.mockOnce {
+		if resps != nil && len(resps) > 0 {
+			rv = append(rv, url)
+		}
+	}
+	return rv
+}
+
 // respBodyCloser is a wrapper which lets us pretend to implement io.ReadCloser
 // by wrapping a bytes.Reader.
 type respBodyCloser struct {

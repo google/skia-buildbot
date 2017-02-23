@@ -51,7 +51,7 @@ type RepoManager interface {
 	LastRollRev() string
 	RolledPast(string) bool
 	ChildHead() string
-	CreateNewRoll([]string, string, bool) (int64, error)
+	CreateNewRoll([]string, string, bool, bool) (int64, error)
 	User() string
 }
 
@@ -286,7 +286,7 @@ func (r *repoManager) cleanChromium() error {
 
 // CreateNewRoll creates and uploads a new DEPS roll to the given commit.
 // Returns the issue number of the uploaded roll.
-func (r *repoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (r *repoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryRun, gerrit bool) (int64, error) {
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 
@@ -368,6 +368,9 @@ http://www.chromium.org/developers/tree-sheriffs/sheriff-details-chromium#TOC-Fa
 		uploadCmd.Args = append(uploadCmd.Args, "--cq-dry-run")
 	} else {
 		uploadCmd.Args = append(uploadCmd.Args, "--use-commit-queue")
+	}
+	if gerrit {
+		uploadCmd.Args = append(uploadCmd.Args, "--gerrit")
 	}
 	tbr := "\nTBR="
 	if emails != nil && len(emails) > 0 {
