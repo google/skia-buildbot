@@ -319,6 +319,7 @@ ALERT AutoRollErrorRate
   ANNOTATIONS {
     description = "The error rate for autoroll on {{ $labels.instance }} is too high. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate."
   }
+
 # Gold
 
 ALERT GoldUntriaged
@@ -456,3 +457,25 @@ ALERT TaskSchedulerWeeklyTrigger
     description = "The Task Scheduler's weekly trigger has not run in over 8 days on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#trigger_weekly"
   }
 
+# Skolo
+
+ALERT BackupRouterConfig
+  IF avg_over_time(skolo_router_backup_backup_size[25h]) == 0
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "The router config has not been backed up in at least 25 hours. http://go/skolo-maintenance",
+  }
+
+ALERT BackupRpiConfig
+  IF avg_over_time(skolo_rpi_backup_backup_size[25h]) == 0
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "The rpi image has not been backed up in at least 25 hours. http://go/skolo-maintenance",
+  }
+
+ALERT RpiMaster
+  IF max_over_time(skolo_hotspare_consecutive_failures[10m]) > 600
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "skia-rpi-master-spare has been active for more than 10 minutes. Something is probably wrong with skia-rpi-master. http://go/skolo-maintenance.",
+  }
