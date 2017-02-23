@@ -40,7 +40,7 @@
       padding-top: 20px;
     }
 
-    .first-svg {
+    .left-padded {
       padding-left: 20px;
     }
 
@@ -61,19 +61,19 @@
 
   <body>
     <div class="alerts-link">
-      <a href="https://alerts.skia.org/infra" target="_blank">Go to Alerts Page</a>
-      <span id="login-status"></span>
+      <a href="https://promalerts.skia.org/#/alerts" target="_blank">Go to Alerts Page</a>
     </div>
+    <br/>
     <table id="extra-info">
       <tr>
         <td>
-          Trooper:<span id="current-trooper"></span>
+          Trooper: <span id="current-trooper"></span>
         </td>
         <td>
-          Sheriff:<span id="current-sheriff"></span>
+          Sheriff: <span id="current-sheriff"></span>
         </td>
         <td>
-          <span id="snoozed-alerts"></span>
+          Silenced Alerts: <a href="https://promalerts.skia.org/#/silences" target="_blank"><span id="silenced-alerts"></span></a>
         </td>
       </tr>
     </table>
