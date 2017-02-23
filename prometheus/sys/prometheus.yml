@@ -156,10 +156,15 @@ scrape_configs:
       - targets: ['skia-task-scheduler:11000']
       - targets: ['skia-tracedb:11000']
 
+  - job_name: 'pulld-not-gce'
+    static_configs:
+      - targets: ['localhost:12000']
+
   # Prometheus self monitoring.
   - job_name: 'prometheus'
     static_configs:
       - targets: ['skia-prom:8000']
+      - targets: ['skia-prom:12000']
 
   - job_name: 'alertmanager'
     static_configs:
@@ -183,4 +188,17 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:20006']
 
+  # Federation
+  - job_name: 'federate'
+    scrape_interval: 30s
 
+    honor_labels: true
+    metrics_path: '/federate'
+
+    params:
+      'match[]':
+        - '{__name__=~"job:.*"}'
+
+    static_configs:
+      - targets:
+        - 'localhost:12000'
