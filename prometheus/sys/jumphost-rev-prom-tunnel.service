@@ -1,0 +1,21 @@
+[Unit]
+Description=ssh tunnel to skia-prom for prom metrics federation.
+Wants=network-online.target
+Wants=sshd.service
+
+[Service]
+Environment=HOME=/home/chrome-bot
+# Start a tunnel that forwards requests to skia-prom:12000 to skia-jumphost:8000,
+# which is where the Promtheus instance runs on the jumphost.
+ExecStart=/home/chrome-bot/google-cloud-sdk/bin/gcloud compute ssh default@skia-prom \
+    --zone=us-central1-c \
+    --ssh-flag="-NT -R 12000:localhost:8000"
+
+RestartSec=3
+Restart=always
+User=chrome-bot
+Group=chrome-bot
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
