@@ -534,7 +534,6 @@ func startDirtyMonitoring() {
 }
 
 func main() {
-	defer common.LogPanic()
 	common.InitWithMust(
 		"push",
 		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
