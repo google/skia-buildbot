@@ -1,0 +1,21 @@
+[Unit]
+Description=ssh tunnel to skia-prom for push prom metrics.
+Wants=network-online.target
+Wants=sshd.service
+
+[Service]
+Environment=HOME=/home/chrome-bot
+
+# Start a tunnel that forwards requests to skia-jumphost:20006 to skia-prom:20006.
+ExecStart=/home/chrome-bot/google-cloud-sdk/bin/gcloud compute ssh default@skia-prom \
+    --zone=us-central1-c \
+    --ssh-flag="-NT -L 20006:*:20006"
+
+RestartSec=3
+Restart=always
+User=chrome-bot
+Group=chrome-bot
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
