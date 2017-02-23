@@ -183,4 +183,19 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:20006']
 
+  # Federation
+  - job_name: 'federate'
+    scrape_interval: 30s
 
+    honor_labels: true
+    metrics_path: '/federate'
+
+    params:
+      'match[]':
+        - '{job=~".+"}'
+
+    static_configs:
+      - targets:
+        - 'localhost:12000'
+        labels:
+          federated: skolo
