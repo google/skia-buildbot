@@ -139,7 +139,7 @@ func (r *mockRepoManager) mockChildHead(hash string) {
 
 // CreateNewRoll pretends to create a new DEPS roll from the mocked repo,
 // returning the fake issue number set by the test.
-func (r *mockRepoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (r *mockRepoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryRun, gerrit bool) (int64, error) {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	return r.mockIssueNumber, nil
@@ -372,7 +372,7 @@ func checkStatus(t *testing.T, r *AutoRoller, rv *mockRietveld, rm *mockRepoMana
 // setup initializes a fake AutoRoller for testing. It returns the working
 // directory, AutoRoller instance, URLMock for faking HTTP requests, and an
 // rietveld.Issue representing the first CL that was uploaded by the AutoRoller.
-func setup(t *testing.T) (string, *AutoRoller, *mockRepoManager, *mockRietveld, *rietveld.Issue) {
+func setup(t *testing.T, gerrit bool) (string, *AutoRoller, *mockRepoManager, *mockRietveld, *rietveld.Issue) {
 	testutils.SkipIfShort(t)
 
 	// Setup mocks.
@@ -402,7 +402,7 @@ func setup(t *testing.T) (string, *AutoRoller, *mockRepoManager, *mockRietveld, 
 	roll1 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), noTrybots, false)
 
 	// Create the roller.
-	roller, err := NewAutoRoller(workdir, "src/third_party/skia", "", []string{}, rv.r, time.Hour, time.Hour, "depot_tools")
+	roller, err := NewAutoRoller(workdir, "src/third_party/skia", "", []string{}, rv.r, nil, time.Hour, time.Hour, "depot_tools", gerrit)
 	assert.NoError(t, err)
 
 	// Verify that the bot ran successfully.
@@ -411,12 +411,12 @@ func setup(t *testing.T) (string, *AutoRoller, *mockRepoManager, *mockRietveld, 
 	return workdir, roller, rm, rv, roll1
 }
 
-// TestAutoRollBasic ensures that the typical function of the AutoRoller works
+// testAutoRollBasic ensures that the typical function of the AutoRoller works
 // as expected.
-func TestAutoRollBasic(t *testing.T) {
+func testAutoRollBasic(t *testing.T, gerrit bool) {
 	testutils.MediumTest(t)
 	// setup will initialize the roller and upload a CL.
-	workdir, roller, rm, rv, roll1 := setup(t)
+	workdir, roller, rm, rv, roll1 := setup(t, gerrit)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -445,12 +445,12 @@ func TestAutoRollBasic(t *testing.T) {
 	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll2, noTrybots, false)
 }
 
-// TestAutoRollStop ensures that we can properly stop and restart the
+// testAutoRollStop ensures that we can properly stop and restart the
 // AutoRoller.
-func TestAutoRollStop(t *testing.T) {
+func testAutoRollStop(t *testing.T, gerrit bool) {
 	testutils.MediumTest(t)
 	// setup will initialize the roller and upload a CL.
-	workdir, roller, rm, rv, roll1 := setup(t)
+	workdir, roller, rm, rv, roll1 := setup(t, gerrit)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -496,10 +496,10 @@ func TestAutoRollStop(t *testing.T) {
 	checkStatus(t, roller, rv, rm, STATUS_STOPPED, nil, nil, false, roll2, noTrybots, false)
 }
 
-// TestAutoRollDryRun ensures that the Dry Run functionalify works as expected.
-func TestAutoRollDryRun(t *testing.T) {
+// testAutoRollDryRun ensures that the Dry Run functionalify works as expected.
+func testAutoRollDryRun(t *testing.T, gerrit bool) {
 	testutils.MediumTest(t)
-	workdir, roller, rm, rv, roll1 := setup(t)
+	workdir, roller, rm, rv, roll1 := setup(t, gerrit)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -592,14 +592,14 @@ func TestAutoRollDryRun(t *testing.T) {
 	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll3, trybots3, false, roll2, trybots2, true)
 }
 
-// TestAutoRollCommitDescRace ensures that we correctly handle the case in which
+// testAutoRollCommitDescRace ensures that we correctly handle the case in which
 // a roll CL lands but is not yet updated with the "Committed: ..." string in
 // the CL description when the roller sees it next. In this case, we expect the
 // roller to query the commit queue directly to determine whether it landed the
 // CL.
-func TestAutoRollCommitDescRace(t *testing.T) {
+func testAutoRollCommitDescRace(t *testing.T, gerrit bool) {
 	testutils.MediumTest(t)
-	workdir, roller, rm, rv, roll1 := setup(t)
+	workdir, roller, rm, rv, roll1 := setup(t, gerrit)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -650,13 +650,13 @@ func TestAutoRollCommitDescRace(t *testing.T) {
 	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll1, trybots, false)
 }
 
-// TestAutoRollCommitLandRace ensures that we correctly handle the case in which
+// testAutoRollCommitLandRace ensures that we correctly handle the case in which
 // a roll CL succeeds, is closed by the CQ, but does not show up in the repo by
 // the time we check for it. In this case, we expect the roller to repeatedly
 // sync the code, waiting for the commit to show up.
-func TestAutoRollCommitLandRace(t *testing.T) {
+func testAutoRollCommitLandRace(t *testing.T, gerrit bool) {
 	testutils.LargeTest(t)
-	workdir, roller, rm, rv, roll1 := setup(t)
+	workdir, roller, rm, rv, roll1 := setup(t, gerrit)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -706,11 +706,11 @@ func TestAutoRollCommitLandRace(t *testing.T) {
 	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll1, trybots, false)
 }
 
-// TestAutoRollThrottle ensures that we properly throttle the roller so that it
+// testAutoRollThrottle ensures that we properly throttle the roller so that it
 // doesn't upload new CLs over and over.
-func TestAutoRollThrottle(t *testing.T) {
+func testAutoRollThrottle(t *testing.T, gerrit bool) {
 	testutils.MediumTest(t)
-	workdir, roller, rm, rv, roll1 := setup(t)
+	workdir, roller, rm, rv, roll1 := setup(t, gerrit)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -739,3 +739,51 @@ func TestAutoRollThrottle(t *testing.T) {
 	roll3.Closed = true // The roller should have closed this CL.
 	checkStatus(t, roller, rv, rm, STATUS_THROTTLED, nil, nil, false, roll3, noTrybots, false)
 }
+
+func TestAutoRollBasicRietveld(t *testing.T) {
+	testAutoRollBasic(t, false)
+}
+
+func TestAutoRollStopRietveld(t *testing.T) {
+	testAutoRollStop(t, false)
+}
+
+func TestAutoRollDryRunRietveld(t *testing.T) {
+	testAutoRollDryRun(t, false)
+}
+
+func TestAutoRollCommitDescRaceRietveld(t *testing.T) {
+	testAutoRollCommitDescRace(t, false)
+}
+
+func TestAutoRollCommitLandRaceRietveld(t *testing.T) {
+	testAutoRollCommitLandRace(t, false)
+}
+
+func TestAutoRollThrottleRietveld(t *testing.T) {
+	testAutoRollThrottle(t, false)
+}
+
+/*func TestAutoRollBasicGerrit(t *testing.T) {
+	testAutoRollBasic(t, true)
+}
+
+func TestAutoRollStopGerrit(t *testing.T) {
+	testAutoRollStop(t, true)
+}
+
+func TestAutoRollDryRunGerrit(t *testing.T) {
+	testAutoRollDryRun(t, true)
+}
+
+func TestAutoRollCommitDescRaceGerrit(t *testing.T) {
+	testAutoRollCommitDescRace(t, true)
+}
+
+func TestAutoRollCommitLandRaceGerrit(t *testing.T) {
+	testAutoRollCommitLandRace(t, true)
+}
+
+func TestAutoRollThrottleGerrit(t *testing.T) {
+	testAutoRollThrottle(t, true)
+}*/
