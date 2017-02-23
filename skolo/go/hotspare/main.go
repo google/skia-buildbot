@@ -11,10 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 )
@@ -34,10 +32,7 @@ var (
 	syncRemotePath = flag.String("sync_remote_path", "", `Where the image is stored on the remote machine.  This should include ip address.  E.g. "192.168.1.198:/opt/rpi_img/prod.img"`)
 	syncLocalPath  = flag.String("sync_local_path", "/opt/rpi_img/prod.img", "Where the image is stored on the local disk.")
 
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 
 	startServingPlaybook = flag.String("start_serving_playbook", "", "The Ansible playbook that, when run locally, will start serving the image.  This should be idempotent.")
 	stopServingPlaybook  = flag.String("stop_serving_playbook", "", "The Ansible playbook that, when run locally, will stop serving the image.  This should be idempotent.")
@@ -184,14 +179,11 @@ func reloadImage() {
 
 func main() {
 	defer common.LogPanic()
-	common.InitExternalWithMetrics2("hotspare", influxHost, influxUser, influxPassword, influxDatabase)
-
-	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountPath, nil, sklog.CLOUD_LOGGING_WRITE_SCOPE)
-	if err != nil {
-		sklog.Fatalf("Failed to create authenticated HTTP client: %s", err)
-	}
-
-	common.StartCloudLoggingWithClient(client, "skolo-rpi-master", "hotspare")
+	common.InitWithMust(
+		"hotspare",
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingJWTOpt(*serviceAccountPath),
+	)
 
 	lt := NewVirtualIPManager(*livenessAddr, *livenessPeriod, *livenessTimeout, *livenessThreshold)
 	go lt.Run()

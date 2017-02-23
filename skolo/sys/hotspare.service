@@ -5,9 +5,8 @@ After=network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/hotspare \
-  --log_dir=/var/log/logserver \
-  --influxdb_database=skmetrics \
-  --influxdb_host=https://metrics.skia.org \
+  --logtostderr \
+  --prom_port=:20003 \
   --virtual_interface "enp5s0:0" \
   --sync_period "10m" \
   --virtual_ip "192.168.1.100" \
@@ -17,6 +16,7 @@ ExecStart=/usr/local/bin/hotspare \
   --start_serving_playbook=/usr/local/share/hotspare/start_serving_image.yml \
   --stop_serving_playbook=/usr/local/share/hotspare/stop_serving_image.yml \
   --service_account_path=/home/chrome-bot/service-account.json
+
 Restart=always
 User=chrome-bot
 Group=chrome-bot

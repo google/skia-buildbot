@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -28,46 +27,19 @@ import (
 )
 
 var (
-	serviceAccountPath = flag.String("service_account_path", "", "Path to the service account.  Can be empty string to use defaults or project metadata")
 	gceBucket          = flag.String("gce_bucket", "skia-backups", "GCS Bucket backups should be stored in")
 	gceFolder          = flag.String("gce_folder", "Swarming", "Folder in the bucket that should hold the backup files")
 	localFilePath      = flag.String("local_file_path", "", "Where the file is stored locally on disk. Cannot use with remote_file_path")
-	remoteFilePath     = flag.String("remote_file_path", "", "Remote location for a file, to be used by remote_copy_command.  E.g. foo@127.0.0.1:/etc/bar.conf Cannot use with local_file_path")
+	metricName         = flag.String("metric_name", "rpi-backup", "The metric name that should be used when reporting the size to metrics.")
+	period             = flag.Duration("period", 24*time.Hour, "How often to do the file backup.")
+	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	remoteCopyCommand  = flag.String("remote_copy_command", "scp", "rsync or scp.  The router does not have rsync installed.")
-
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
-	metricName     = flag.String("metric_name", "rpi-backup", "The metric name that should be used when reporting the size to metrics.")
+	remoteFilePath     = flag.String("remote_file_path", "", "Remote location for a file, to be used by remote_copy_command.  E.g. foo@127.0.0.1:/etc/bar.conf Cannot use with local_file_path")
+	serviceAccountPath = flag.String("service_account_path", "", "Path to the service account.  Can be empty string to use defaults or project metadata")
 )
 
-func main() {
-	defer common.LogPanic()
-	common.InitExternalWithMetrics2("file-backup", influxHost, influxUser, influxPassword, influxDatabase)
-	defer metrics2.Flush()
-	if *localFilePath == "" && *remoteFilePath == "" {
-		sklog.Fatalf("You must specify a file location")
-	}
-	if *localFilePath != "" && *remoteFilePath != "" {
-		sklog.Fatalf("You must specify a local_file_path OR a remote_file_path, not both")
-	}
-
-	// We use the plain old http Transport, because the default one doesn't like uploading big files.
-	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountPath, &http.Transport{Dial: httputils.DialTimeout}, auth.SCOPE_READ_WRITE, sklog.CLOUD_LOGGING_WRITE_SCOPE)
-	if err != nil {
-		sklog.Fatalf("Could not setup credentials: %s", err)
-	}
-
-	common.StartCloudLoggingWithClient(client, "skolo-rpi-master", "file-backup")
-
+func step(storageClient *storage.Client) {
 	sklog.Infof("Running backup for %s", *metricName)
-
-	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
-	if err != nil {
-		sklog.Fatalf("Could not authenticate to GCS: %s", err)
-	}
-
 	if *remoteFilePath != "" {
 		// If backing up a remote file, copy it here first, then pretend it is a local file.
 		dir, err := ioutil.TempDir("", "backups")
@@ -119,5 +91,36 @@ func main() {
 	}
 
 	sklog.Infof("Upload complete")
-	sklog.Flush()
+}
+
+func main() {
+	defer common.LogPanic()
+	common.InitWithMust(
+		"file-backup",
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingJWTOpt(*serviceAccountPath),
+	)
+
+	if *localFilePath == "" && *remoteFilePath == "" {
+		sklog.Fatalf("You must specify a file location")
+	}
+	if *localFilePath != "" && *remoteFilePath != "" {
+		sklog.Fatalf("You must specify a local_file_path OR a remote_file_path, not both")
+	}
+
+	// We use the plain old http Transport, because the default one doesn't like uploading big files.
+	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountPath, &http.Transport{Dial: httputils.DialTimeout}, auth.SCOPE_READ_WRITE, sklog.CLOUD_LOGGING_WRITE_SCOPE)
+	if err != nil {
+		sklog.Fatalf("Could not setup credentials: %s", err)
+	}
+
+	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	if err != nil {
+		sklog.Fatalf("Could not authenticate to GCS: %s", err)
+	}
+
+	step(storageClient)
+	for _ = range time.Tick(*period) {
+		step(storageClient)
+	}
 }
