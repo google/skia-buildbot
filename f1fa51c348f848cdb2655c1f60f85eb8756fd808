@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "53663d27_88896ed0",
+        "filename": "autoroll/go/autoroller/roller_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 789,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-02-23T15:12:17Z",
+      "side": 1,
+      "message": "I have no idea how to test this...",
+      "range": {
+        "startLine": 767,
+        "startChar": 0,
+        "endLine": 789,
+        "endChar": 3
+      },
+      "revId": "f1fa51c348f848cdb2655c1f60f85eb8756fd808",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
