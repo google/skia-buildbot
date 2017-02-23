@@ -547,6 +547,21 @@ func (s *TaskScheduler) processTaskCandidates(candidates map[string]map[string][
 			wg.Add(1)
 			go func(candidates []*taskCandidate) {
 				defer wg.Done()
+				if !s.tCache.KnownTaskName(candidates[0].Repo, candidates[0].Name) {
+					// If this is the first time we've seen this task spec,
+					// Only trigger it at the revision which introduced it.
+					var first *taskCandidate
+					repo := s.repos[candidates[0].Repo]
+					for _, candidate := range candidates {
+						if first == nil || repo.Get(candidate.Revision).Timestamp.Before(repo.Get(first.Revision).Timestamp) {
+							first = candidate
+						}
+						candidate.Score = 0.0
+					}
+					first.Score = CANDIDATE_SCORE_FORCE_RUN
+					return
+				}
+
 				cache := newCacheWrapper(s.tCache)
 				commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
 				for {
