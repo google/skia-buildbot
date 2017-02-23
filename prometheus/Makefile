@@ -10,6 +10,7 @@ testgo:
 
 validate:
 	promtool check-config sys/prometheus.yml
+	promtool check-config sys/prometheus-skolo.yml
 
 push:
 	promtool check-config sys/prometheus.yml
