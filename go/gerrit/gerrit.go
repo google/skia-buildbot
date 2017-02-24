@@ -30,12 +30,26 @@ var (
 )
 
 const (
-	TIME_FORMAT      = "2006-01-02 15:04:05.999999"
-	GERRIT_SKIA_URL  = "https://skia-review.googlesource.com"
-	MAX_GERRIT_LIMIT = 500
+	TIME_FORMAT         = "2006-01-02 15:04:05.999999"
+	GERRIT_CHROMIUM_URL = "https://chromium-review.googlesource.com"
+	GERRIT_SKIA_URL     = "https://skia-review.googlesource.com"
+	MAX_GERRIT_LIMIT    = 500
+
+	CHANGE_STATUS_ABANDONED = "ABANDONED"
+	CHANGE_STATUS_DRAFT     = "DRAFT"
+	CHANGE_STATUS_MERGED    = "MERGED"
+	CHANGE_STATUS_NEW       = "NEW"
 
 	CODEREVIEW_LABEL  = "Code-Review"
 	COMMITQUEUE_LABEL = "Commit-Queue"
+
+	CODEREVIEW_LABEL_DISAPPROVE = -1
+	CODEREVIEW_LABEL_NONE       = 0
+	CODEREVIEW_LABEL_APPROVE    = 1
+
+	COMMITQUEUE_LABEL_NONE    = 0
+	COMMITQUEUE_LABEL_DRY_RUN = 1
+	COMMITQUEUE_LABEL_SUBMIT  = 2
 )
 
 // ChangeInfo contains information about a Gerrit issue.
@@ -57,6 +71,14 @@ type ChangeInfo struct {
 	Issue           int64                  `json:"_number"`
 	Labels          map[string]*LabelEntry `json:"labels"`
 	Owner           *Owner                 `json:"owner"`
+	Status          string                 `json:"status"`
+}
+
+// IsClosed returns true iff the issue corresponding to the ChangeInfo is
+// abandoned or merged.
+func (c ChangeInfo) IsClosed() bool {
+	return (c.Status == CHANGE_STATUS_ABANDONED ||
+		c.Status == CHANGE_STATUS_MERGED)
 }
 
 // Owner gathers the owner information of a ChangeInfo instance. Some fields ommitted.
@@ -282,29 +304,29 @@ func (g *Gerrit) AddComment(issue *ChangeInfo, message string) error {
 // Utility methods for interacting with the COMMITQUEUE_LABEL.
 
 func (g *Gerrit) SendToDryRun(issue *ChangeInfo, message string) error {
-	return g.setReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: 1})
+	return g.setReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN})
 }
 
 func (g *Gerrit) SendToCQ(issue *ChangeInfo, message string) error {
-	return g.setReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: 2})
+	return g.setReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT})
 }
 
 func (g *Gerrit) RemoveFromCQ(issue *ChangeInfo, message string) error {
-	return g.setReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: 0})
+	return g.setReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE})
 }
 
 // Utility methods for interacting with the CODEREVIEW_LABEL.
 
 func (g *Gerrit) Approve(issue *ChangeInfo, message string) error {
-	return g.setReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: 1})
+	return g.setReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_APPROVE})
 }
 
 func (g *Gerrit) NoScore(issue *ChangeInfo, message string) error {
-	return g.setReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: 0})
+	return g.setReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_NONE})
 }
 
 func (g *Gerrit) DisApprove(issue *ChangeInfo, message string) error {
-	return g.setReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: -1})
+	return g.setReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_DISAPPROVE})
 }
 
 // Abandon abandons the issue with the given message.

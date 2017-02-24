@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/autoroll/go/autoroller"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
@@ -48,6 +49,7 @@ var (
 	childPath      = flag.String("childPath", "src/third_party/skia", "Path within Chromium repo of the project to roll.")
 	cqExtraTrybots = flag.String("cqExtraTrybots", "", "Comma-separated list of trybots to run.")
 	depot_tools    = flag.String("depot_tools", "", "Path to the depot_tools installation. If empty, assumes depot_tools is in PATH.")
+	doGerrit       = flag.Bool("gerrit", false, "Upload to Gerrit instead of Rietveld.")
 	host           = flag.String("host", "localhost", "HTTP service host")
 	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
@@ -199,12 +201,21 @@ func main() {
 		*useMetadata = false
 	}
 
-	// Create the Rietveld client.
-	client, err := auth.NewClientFromIdAndSecret(rietveld.CLIENT_ID, rietveld.CLIENT_SECRET, path.Join(*workdir, "oauth_cache"), rietveld.OAUTH_SCOPES...)
-	if err != nil {
-		sklog.Fatal(err)
+	// Create the code review API client.
+	var r *rietveld.Rietveld
+	var g *gerrit.Gerrit
+	if *doGerrit {
+		g, err = gerrit.NewGerrit(gerrit.GERRIT_CHROMIUM_URL, "/usr/local/google/home/borenet/.gitcookies", nil)
+		if err != nil {
+			sklog.Fatalf("Failed to create Gerrit client: %s", err)
+		}
+	} else {
+		client, err := auth.NewClientFromIdAndSecret(rietveld.CLIENT_ID, rietveld.CLIENT_SECRET, path.Join(*workdir, "oauth_cache"), rietveld.OAUTH_SCOPES...)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		r = rietveld.New(RIETVELD_URL, client)
 	}
-	r := rietveld.New(RIETVELD_URL, client)
 
 	// Retrieve the list of extra CQ trybots.
 	// TODO(borenet): Make this editable on the web front-end.
@@ -219,7 +230,7 @@ func main() {
 	sklog.Infof("Sheriff: %s", strings.Join(emails, ", "))
 
 	// Start the autoroller.
-	arb, err = autoroller.NewAutoRoller(*workdir, *childPath, cqExtraTrybots, emails, r, time.Minute, 15*time.Minute, *depot_tools)
+	arb, err = autoroller.NewAutoRoller(*workdir, *childPath, cqExtraTrybots, emails, r, g, time.Minute, 15*time.Minute, *depot_tools, *doGerrit)
 	if err != nil {
 		sklog.Fatal(err)
 	}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"strings"
 	"sync"
 	"testing"
@@ -15,13 +16,17 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/testutils"
 )
 
-const COMMITTED_STR = "Committed: https://chromium.googlesource.com/chromium/src/+/fd01dc2938"
+const (
+	COMMITTED_STR   = "Committed: https://chromium.googlesource.com/chromium/src/+/fd01dc2938"
+	FAKE_GERRIT_URL = "https://fake-skia-review.googlesource.com"
+)
 
 var noTrybots = []*buildbucket.Build{}
 
@@ -139,7 +144,7 @@ func (r *mockRepoManager) mockChildHead(hash string) {
 
 // CreateNewRoll pretends to create a new DEPS roll from the mocked repo,
 // returning the fake issue number set by the test.
-func (r *mockRepoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (r *mockRepoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryRun, gerrit bool) (int64, error) {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	return r.mockIssueNumber, nil
@@ -164,7 +169,7 @@ func (r *mockRepoManager) mockChildCommit(hash string) {
 
 // rollerWillUpload sets up expectations for the roller to upload a CL. Returns
 // a rietveld.Issue representing the new, in-progress DEPS roll.
-func (r *mockRepoManager) rollerWillUpload(rv *mockRietveld, from, to string, tryResults []*buildbucket.Build, dryRun bool) *rietveld.Issue {
+func (r *mockRepoManager) rollerWillUpload(rv *mockCodereview, from, to string, tryResults []*buildbucket.Build, dryRun bool) *rietveld.Issue {
 	emails := []string{"test-sheriff@google.com"}
 	// Rietveld API only has millisecond precision.
 	now := time.Now().UTC().Round(time.Millisecond)
@@ -200,22 +205,26 @@ func (r *mockRepoManager) User() string {
 	return "test_user"
 }
 
-// mockRietveld is a struct used for faking responses from Rietveld.
-type mockRietveld struct {
+// mockCodereview is a struct used for faking responses from Rietveld.
+type mockCodereview struct {
 	fakeIssueNum int64
+	g            *gerrit.Gerrit
 	r            *rietveld.Rietveld
 	t            *testing.T
 	urlMock      *mockhttpclient.URLMock
 }
 
 // assertMocksEmpty asserts that all of the URLs in the URLMock have been used.
-func (r *mockRietveld) assertMocksEmpty() {
-	assert.True(r.t, r.urlMock.Empty())
+func (r *mockCodereview) assertMocksEmpty() {
+	assert.True(r.t, r.urlMock.Empty(), fmt.Sprintf("URLS:\n%s", strings.Join(r.urlMock.List(), "\n")))
 }
 
 // mockTrybotResults sets up a fake response to a request for trybot results.
-func (r *mockRietveld) mockTrybotResults(issue *rietveld.Issue, results []*buildbucket.Build) {
+func (r *mockCodereview) mockTrybotResults(issue *rietveld.Issue, results []*buildbucket.Build) {
 	url := fmt.Sprintf("https://cr-buildbucket.appspot.com/api/buildbucket/v1/search?tag=buildset%%3Apatch%%2Frietveld%%2Fcodereview.chromium.org%%2F%d%%2F1", issue.Issue)
+	if r.g != nil {
+		url = fmt.Sprintf("https://cr-buildbucket.appspot.com/api/buildbucket/v1/search?tag=buildset%%3Apatch%%2Fgerrit%%2Ffake-skia-review.googlesource.com%%2F%d%%2F1", issue.Issue)
+	}
 	serialized, err := json.Marshal(struct {
 		Builds []*buildbucket.Build
 	}{
@@ -225,25 +234,73 @@ func (r *mockRietveld) mockTrybotResults(issue *rietveld.Issue, results []*build
 	r.urlMock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
 }
 
-// updateIssue inserts or updates the issue in the mockRietveld.
-func (r *mockRietveld) updateIssue(issue *rietveld.Issue, tryResults []*buildbucket.Build) {
-	url := fmt.Sprintf("%s/api/%d?messages=true", autoroll.RIETVELD_URL, issue.Issue)
-	serialized, err := json.Marshal(issue)
-	assert.NoError(r.t, err)
-	r.urlMock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
+// updateIssue inserts or updates the issue in the mockCodereview.
+func (r *mockCodereview) updateIssue(issue *rietveld.Issue, tryResults []*buildbucket.Build) {
+	if r.g != nil {
+		url := fmt.Sprintf("%s/changes/%d/detail?o=ALL_REVISIONS", r.g.Url(0), issue.Issue)
+		revisions := make(map[string]*gerrit.Revision, len(issue.Patchsets))
+		for _, ps := range issue.Patchsets {
+			revisions[fmt.Sprintf("%d", ps)] = &gerrit.Revision{
+				Number: ps,
+			}
+		}
+		changeInfo := &gerrit.ChangeInfo{
+			Created:       issue.Created,
+			CreatedString: issue.Created.Format(gerrit.TIME_FORMAT),
+			Issue:         issue.Issue,
+			Labels: map[string]*gerrit.LabelEntry{
+				gerrit.CODEREVIEW_LABEL:  &gerrit.LabelEntry{},
+				gerrit.COMMITQUEUE_LABEL: &gerrit.LabelEntry{},
+			},
+			Revisions:     revisions,
+			Subject:       issue.Subject,
+			Updated:       issue.Modified,
+			UpdatedString: issue.Modified.Format(gerrit.TIME_FORMAT),
+		}
+		if issue.Committed {
+			changeInfo.Committed = true
+			changeInfo.Status = gerrit.CHANGE_STATUS_MERGED
+			changeInfo.Submitted = changeInfo.Updated
+			changeInfo.SubmittedString = changeInfo.UpdatedString
+		}
+		if issue.CommitQueueDryRun {
+			changeInfo.Labels[gerrit.COMMITQUEUE_LABEL].All = []*gerrit.LabelDetail{
+				&gerrit.LabelDetail{
+					Value: gerrit.COMMITQUEUE_LABEL_DRY_RUN,
+				},
+			}
+		} else if issue.CommitQueue {
+			changeInfo.Labels[gerrit.COMMITQUEUE_LABEL].All = []*gerrit.LabelDetail{
+				&gerrit.LabelDetail{
+					Value: gerrit.COMMITQUEUE_LABEL_SUBMIT,
+				},
+			}
+		}
+		serialized, err := json.Marshal(changeInfo)
+		assert.NoError(r.t, err)
+		serialized = append([]byte("abcd\n"), serialized...)
+		r.urlMock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
+	} else {
+		url := fmt.Sprintf("%s/api/%d?messages=true", autoroll.RIETVELD_URL, issue.Issue)
+		serialized, err := json.Marshal(issue)
+		assert.NoError(r.t, err)
+		r.urlMock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
+	}
 	r.mockTrybotResults(issue, tryResults)
 
 	// If necessary, fake the CQ status URL. This is used whenever the rietveld package
 	// cannot find the "Committed: ..." string within the CL description.
-	if !strings.Contains(issue.Description, COMMITTED_STR) {
-		cqUrl := fmt.Sprintf(rietveld.CQ_STATUS_URL, issue.Issue, issue.Patchsets[len(issue.Patchsets)-1])
-		r.urlMock.MockOnce(cqUrl, mockhttpclient.MockGetDialogue([]byte(fmt.Sprintf("{\"success\":%v}", false))))
+	if r.g == nil {
+		if !strings.Contains(issue.Description, COMMITTED_STR) {
+			cqUrl := fmt.Sprintf(rietveld.CQ_STATUS_URL, issue.Issue, issue.Patchsets[len(issue.Patchsets)-1])
+			r.urlMock.MockOnce(cqUrl, mockhttpclient.MockGetDialogue([]byte(fmt.Sprintf("{\"success\":%v}", false))))
+		}
 	}
 }
 
 // modify changes the last-modified timestamp of the roll and updates it in the
-// mockRietveld.
-func (r *mockRietveld) modify(issue *rietveld.Issue, tryResults []*buildbucket.Build) {
+// mockCodereview.
+func (r *mockCodereview) modify(issue *rietveld.Issue, tryResults []*buildbucket.Build) {
 	now := time.Now().UTC().Round(time.Millisecond)
 	issue.Modified = now
 	issue.ModifiedString = now.Format(rietveld.TIME_FORMAT)
@@ -251,25 +308,38 @@ func (r *mockRietveld) modify(issue *rietveld.Issue, tryResults []*buildbucket.B
 }
 
 // rollerWillCloseIssue sets expectations for the roller to close the issue.
-func (r *mockRietveld) rollerWillCloseIssue(issue *rietveld.Issue) {
-	p := mockhttpclient.MockPostDialogue("application/x-www-form-urlencoded", mockhttpclient.DONT_CARE_REQUEST, []byte{})
-	r.urlMock.MockOnce(fmt.Sprintf("%s/%d/publish", autoroll.RIETVELD_URL, issue.Issue), p)
-	r.urlMock.MockOnce(fmt.Sprintf("%s/%d/close", autoroll.RIETVELD_URL, issue.Issue), p)
+func (r *mockCodereview) rollerWillCloseIssue(issue *rietveld.Issue) {
+	if r.g != nil {
+		p := mockhttpclient.MockPostDialogue("application/json", mockhttpclient.DONT_CARE_REQUEST, []byte{})
+		url := fmt.Sprintf("%s/a/changes/%d/abandon", r.g.Url(0), issue.Issue)
+		r.urlMock.MockOnce(url, p)
+	} else {
+		p := mockhttpclient.MockPostDialogue("application/x-www-form-urlencoded", mockhttpclient.DONT_CARE_REQUEST, []byte{})
+		r.urlMock.MockOnce(fmt.Sprintf("%s/%d/publish", autoroll.RIETVELD_URL, issue.Issue), p)
+		r.urlMock.MockOnce(fmt.Sprintf("%s/%d/close", autoroll.RIETVELD_URL, issue.Issue), p)
+	}
 }
 
 // rollerWillSwitchDryRun sets expectations for the roller to switch the issue
 // into or out of dry run mode.
-func (r *mockRietveld) rollerWillSwitchDryRun(issue *rietveld.Issue, tryResults []*buildbucket.Build, dryRun bool) {
+func (r *mockCodereview) rollerWillSwitchDryRun(issue *rietveld.Issue, tryResults []*buildbucket.Build, dryRun bool) {
 	r.updateIssue(issue, tryResults) // Initial issue update.
-	p := mockhttpclient.MockPostDialogue("application/x-www-form-urlencoded", mockhttpclient.DONT_CARE_REQUEST, []byte{})
-	r.urlMock.MockOnce(fmt.Sprintf("%s/%d/edit_flags", autoroll.RIETVELD_URL, issue.Issue), p)
-	r.urlMock.MockOnce(fmt.Sprintf("%s/%d/edit_flags", autoroll.RIETVELD_URL, issue.Issue), p)
-	issue.CommitQueueDryRun = dryRun
-	r.updateIssue(issue, tryResults) // Update the issue after setting flags.
+	if r.g != nil {
+		p := mockhttpclient.MockPostDialogue("application/json", mockhttpclient.DONT_CARE_REQUEST, []byte{})
+		r.urlMock.MockOnce(fmt.Sprintf("%s/a/changes/%d/revisions/%d/review", r.g.Url(0), issue.Issue, issue.Patchsets[len(issue.Patchsets)-1]), p)
+		issue.CommitQueueDryRun = dryRun
+		r.updateIssue(issue, tryResults)
+	} else {
+		p := mockhttpclient.MockPostDialogue("application/x-www-form-urlencoded", mockhttpclient.DONT_CARE_REQUEST, []byte{})
+		r.urlMock.MockOnce(fmt.Sprintf("%s/%d/edit_flags", autoroll.RIETVELD_URL, issue.Issue), p)
+		r.urlMock.MockOnce(fmt.Sprintf("%s/%d/edit_flags", autoroll.RIETVELD_URL, issue.Issue), p)
+		issue.CommitQueueDryRun = dryRun
+		r.updateIssue(issue, tryResults) // Update the issue after setting flags.
+	}
 }
 
 // pretendDryRunFinished sets expectations for when the dry run has finished.
-func (r *mockRietveld) pretendDryRunFinished(issue *rietveld.Issue, tryResults []*buildbucket.Build, success bool) {
+func (r *mockCodereview) pretendDryRunFinished(issue *rietveld.Issue, tryResults []*buildbucket.Build, success bool) {
 	result := autoroll.TRYBOT_RESULT_FAILURE
 	if success {
 		result = autoroll.TRYBOT_RESULT_SUCCESS
@@ -284,8 +354,13 @@ func (r *mockRietveld) pretendDryRunFinished(issue *rietveld.Issue, tryResults [
 
 	// The roller will add a comment to the issue and close it if the dry run failed.
 	if success {
-		p := mockhttpclient.MockPostDialogue("application/x-www-form-urlencoded", mockhttpclient.DONT_CARE_REQUEST, []byte{})
-		r.urlMock.MockOnce(fmt.Sprintf("%s/%d/publish", autoroll.RIETVELD_URL, issue.Issue), p)
+		if r.g != nil {
+			p := mockhttpclient.MockPostDialogue("application/json", mockhttpclient.DONT_CARE_REQUEST, []byte{})
+			r.urlMock.MockOnce(fmt.Sprintf("%s/a/changes/%d/revisions/%d/review", r.g.Url(0), issue.Issue, issue.Patchsets[len(issue.Patchsets)-1]), p)
+		} else {
+			p := mockhttpclient.MockPostDialogue("application/x-www-form-urlencoded", mockhttpclient.DONT_CARE_REQUEST, []byte{})
+			r.urlMock.MockOnce(fmt.Sprintf("%s/%d/publish", autoroll.RIETVELD_URL, issue.Issue), p)
+		}
 		r.updateIssue(issue, tryResults) // Update the issue after adding a comment.
 	} else {
 		r.rollerWillCloseIssue(issue)
@@ -293,16 +368,16 @@ func (r *mockRietveld) pretendDryRunFinished(issue *rietveld.Issue, tryResults [
 }
 
 // pretendRollFailed changes the roll to appear to have failed in the
-// mockRietveld.
-func (r *mockRietveld) pretendRollFailed(issue *rietveld.Issue, tryResults []*buildbucket.Build) {
+// mockCodereview.
+func (r *mockCodereview) pretendRollFailed(issue *rietveld.Issue, tryResults []*buildbucket.Build) {
 	issue.CommitQueue = false
 	issue.CommitQueueDryRun = false
 	r.modify(issue, tryResults)
 }
 
 // pretendRollLanded changes the roll to appear to have succeeded in the
-// mockRietveld.
-func (r *mockRietveld) pretendRollLanded(rm *mockRepoManager, issue *rietveld.Issue, tryResults []*buildbucket.Build) {
+// mockCodereview.
+func (r *mockCodereview) pretendRollLanded(rm *mockRepoManager, issue *rietveld.Issue, tryResults []*buildbucket.Build) {
 	// Determine what revision we rolled to.
 	m := autoroll.ROLL_REV_REGEX.FindStringSubmatch(issue.Subject)
 	assert.NotNil(r.t, m)
@@ -322,14 +397,14 @@ func (r *mockRietveld) pretendRollLanded(rm *mockRepoManager, issue *rietveld.Is
 }
 
 // nextIssueNum provides auto-incrementing fake issue numbers.
-func (r *mockRietveld) nextIssueNum() int64 {
+func (r *mockCodereview) nextIssueNum() int64 {
 	n := r.fakeIssueNum
 	r.fakeIssueNum++
 	return n
 }
 
 // checkStatus verifies that we get the expected status from the roller.
-func checkStatus(t *testing.T, r *AutoRoller, rv *mockRietveld, rm *mockRepoManager, expectedStatus string, current *rietveld.Issue, currentTrybots []*buildbucket.Build, currentDryRun bool, last *rietveld.Issue, lastTrybots []*buildbucket.Build, lastDryRun bool) {
+func checkStatus(t *testing.T, r *AutoRoller, rv *mockCodereview, rm *mockRepoManager, expectedStatus string, current *rietveld.Issue, currentTrybots []*buildbucket.Build, currentDryRun bool, last *rietveld.Issue, lastTrybots []*buildbucket.Build, lastDryRun bool) {
 	rv.assertMocksEmpty()
 	rm.assertForceUpdate()
 	s := r.GetStatus(true)
@@ -372,15 +447,30 @@ func checkStatus(t *testing.T, r *AutoRoller, rv *mockRietveld, rm *mockRepoMana
 // setup initializes a fake AutoRoller for testing. It returns the working
 // directory, AutoRoller instance, URLMock for faking HTTP requests, and an
 // rietveld.Issue representing the first CL that was uploaded by the AutoRoller.
-func setup(t *testing.T) (string, *AutoRoller, *mockRepoManager, *mockRietveld, *rietveld.Issue) {
+func setup(t *testing.T, doGerrit bool) (string, *AutoRoller, *mockRepoManager, *mockCodereview, *rietveld.Issue) {
 	testutils.SkipIfShort(t)
 
 	// Setup mocks.
 	urlMock := mockhttpclient.NewURLMock()
-	urlMock.Mock(fmt.Sprintf("%s/xsrf_token", autoroll.RIETVELD_URL), mockhttpclient.MockGetDialogue([]byte("abc123")))
-	rv := &mockRietveld{
+
+	workdir, err := ioutil.TempDir("", "test_autoroll_mode_")
+	assert.NoError(t, err)
+
+	var r *rietveld.Rietveld
+	var g *gerrit.Gerrit
+	if doGerrit {
+		gitcookies := path.Join(workdir, "gitcookies_fake")
+		assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
+		g, err = gerrit.NewGerrit(FAKE_GERRIT_URL, gitcookies, urlMock.Client())
+		assert.NoError(t, err)
+	} else {
+		urlMock.Mock(fmt.Sprintf("%s/xsrf_token", autoroll.RIETVELD_URL), mockhttpclient.MockGetDialogue([]byte("abc123")))
+		r = rietveld.New(autoroll.RIETVELD_URL, urlMock.Client())
+	}
+	rv := &mockCodereview{
 		fakeIssueNum: 10001,
-		r:            rietveld.New(autoroll.RIETVELD_URL, urlMock.Client()),
+		g:            g,
+		r:            r,
 		t:            t,
 		urlMock:      urlMock,
 	}
@@ -389,9 +479,6 @@ func setup(t *testing.T) (string, *AutoRoller, *mockRepoManager, *mockRietveld, 
 	repo_manager.NewRepoManager = func(workdir, childPath string, frequency time.Duration, depot_tools string) (repo_manager.RepoManager, error) {
 		return rm, nil
 	}
-
-	workdir, err := ioutil.TempDir("", "test_autoroll_mode_")
-	assert.NoError(t, err)
 
 	// Set up more test data.
 	initialCommit := "abc1231010101010101010101010101010101010"
@@ -402,7 +489,7 @@ func setup(t *testing.T) (string, *AutoRoller, *mockRepoManager, *mockRietveld, 
 	roll1 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), noTrybots, false)
 
 	// Create the roller.
-	roller, err := NewAutoRoller(workdir, "src/third_party/skia", "", []string{}, rv.r, time.Hour, time.Hour, "depot_tools")
+	roller, err := NewAutoRoller(workdir, "src/third_party/skia", "", []string{}, r, g, time.Hour, time.Hour, "depot_tools", doGerrit)
 	assert.NoError(t, err)
 
 	// Verify that the bot ran successfully.
@@ -411,12 +498,12 @@ func setup(t *testing.T) (string, *AutoRoller, *mockRepoManager, *mockRietveld, 
 	return workdir, roller, rm, rv, roll1
 }
 
-// TestAutoRollBasic ensures that the typical function of the AutoRoller works
+// testAutoRollBasic ensures that the typical function of the AutoRoller works
 // as expected.
-func TestAutoRollBasic(t *testing.T) {
+func testAutoRollBasic(t *testing.T, gerrit bool) {
 	testutils.MediumTest(t)
 	// setup will initialize the roller and upload a CL.
-	workdir, roller, rm, rv, roll1 := setup(t)
+	workdir, roller, rm, rv, roll1 := setup(t, gerrit)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -445,12 +532,12 @@ func TestAutoRollBasic(t *testing.T) {
 	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll2, noTrybots, false)
 }
 
-// TestAutoRollStop ensures that we can properly stop and restart the
+// testAutoRollStop ensures that we can properly stop and restart the
 // AutoRoller.
-func TestAutoRollStop(t *testing.T) {
+func testAutoRollStop(t *testing.T, gerrit bool) {
 	testutils.MediumTest(t)
 	// setup will initialize the roller and upload a CL.
-	workdir, roller, rm, rv, roll1 := setup(t)
+	workdir, roller, rm, rv, roll1 := setup(t, gerrit)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -496,10 +583,10 @@ func TestAutoRollStop(t *testing.T) {
 	checkStatus(t, roller, rv, rm, STATUS_STOPPED, nil, nil, false, roll2, noTrybots, false)
 }
 
-// TestAutoRollDryRun ensures that the Dry Run functionalify works as expected.
-func TestAutoRollDryRun(t *testing.T) {
+// testAutoRollDryRun ensures that the Dry Run functionalify works as expected.
+func testAutoRollDryRun(t *testing.T, gerrit bool) {
 	testutils.MediumTest(t)
-	workdir, roller, rm, rv, roll1 := setup(t)
+	workdir, roller, rm, rv, roll1 := setup(t, gerrit)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -599,7 +686,7 @@ func TestAutoRollDryRun(t *testing.T) {
 // CL.
 func TestAutoRollCommitDescRace(t *testing.T) {
 	testutils.MediumTest(t)
-	workdir, roller, rm, rv, roll1 := setup(t)
+	workdir, roller, rm, rv, roll1 := setup(t, false)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -650,13 +737,13 @@ func TestAutoRollCommitDescRace(t *testing.T) {
 	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll1, trybots, false)
 }
 
-// TestAutoRollCommitLandRace ensures that we correctly handle the case in which
+// testAutoRollCommitLandRace ensures that we correctly handle the case in which
 // a roll CL succeeds, is closed by the CQ, but does not show up in the repo by
 // the time we check for it. In this case, we expect the roller to repeatedly
 // sync the code, waiting for the commit to show up.
-func TestAutoRollCommitLandRace(t *testing.T) {
+func testAutoRollCommitLandRace(t *testing.T, gerrit bool) {
 	testutils.LargeTest(t)
-	workdir, roller, rm, rv, roll1 := setup(t)
+	workdir, roller, rm, rv, roll1 := setup(t, gerrit)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -706,11 +793,11 @@ func TestAutoRollCommitLandRace(t *testing.T) {
 	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll1, trybots, false)
 }
 
-// TestAutoRollThrottle ensures that we properly throttle the roller so that it
+// testAutoRollThrottle ensures that we properly throttle the roller so that it
 // doesn't upload new CLs over and over.
-func TestAutoRollThrottle(t *testing.T) {
+func testAutoRollThrottle(t *testing.T, gerrit bool) {
 	testutils.MediumTest(t)
-	workdir, roller, rm, rv, roll1 := setup(t)
+	workdir, roller, rm, rv, roll1 := setup(t, gerrit)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -738,4 +825,44 @@ func TestAutoRollThrottle(t *testing.T) {
 	assert.NoError(t, roller.doAutoRoll())
 	roll3.Closed = true // The roller should have closed this CL.
 	checkStatus(t, roller, rv, rm, STATUS_THROTTLED, nil, nil, false, roll3, noTrybots, false)
+}
+
+func TestAutoRollBasicRietveld(t *testing.T) {
+	testAutoRollBasic(t, false)
+}
+
+func TestAutoRollStopRietveld(t *testing.T) {
+	testAutoRollStop(t, false)
+}
+
+func TestAutoRollDryRunRietveld(t *testing.T) {
+	testAutoRollDryRun(t, false)
+}
+
+func TestAutoRollCommitLandRaceRietveld(t *testing.T) {
+	testAutoRollCommitLandRace(t, false)
+}
+
+func TestAutoRollThrottleRietveld(t *testing.T) {
+	testAutoRollThrottle(t, false)
+}
+
+func TestAutoRollBasicGerrit(t *testing.T) {
+	testAutoRollBasic(t, true)
+}
+
+func TestAutoRollStopGerrit(t *testing.T) {
+	testAutoRollStop(t, true)
+}
+
+func TestAutoRollDryRunGerrit(t *testing.T) {
+	testAutoRollDryRun(t, true)
+}
+
+func TestAutoRollCommitLandRaceGerrit(t *testing.T) {
+	testAutoRollCommitLandRace(t, true)
+}
+
+func TestAutoRollThrottleGerrit(t *testing.T) {
+	testAutoRollThrottle(t, true)
 }

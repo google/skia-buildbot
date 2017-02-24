@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/util"
 )
@@ -136,6 +137,60 @@ func (i *AutoRollIssue) Copy() *AutoRollIssue {
 		Subject:           i.Subject,
 		TryResults:        tryResultsCpy,
 	}
+}
+
+// ToGerritChangeInfo returns a GerritChangeInfo instance based on the
+// AutoRollIssue.
+func (a *AutoRollIssue) ToGerritChangeInfo() (*gerrit.ChangeInfo, error) {
+	patchsets := make([]*gerrit.Revision, 0, len(a.Patchsets))
+	for _, ps := range a.Patchsets {
+		patchsets = append(patchsets, &gerrit.Revision{
+			ID: fmt.Sprintf("%d", ps),
+		})
+	}
+	return &gerrit.ChangeInfo{
+		ChangeId:  fmt.Sprintf("%d", a.Issue),
+		Patchsets: patchsets,
+	}, nil
+}
+
+// FromGerritChangeInfo returns an AutoRollIssue instance based on the given
+// gerrit.ChangeInfo.
+func FromGerritChangeInfo(i *gerrit.ChangeInfo, fullHashFn func(string) (string, error)) (*AutoRollIssue, error) {
+	cq := false
+	dryRun := false
+	for _, lb := range i.Labels[gerrit.COMMITQUEUE_LABEL].All {
+		if lb.Value == gerrit.COMMITQUEUE_LABEL_DRY_RUN {
+			cq = true
+			dryRun = true
+		} else if lb.Value == gerrit.COMMITQUEUE_LABEL_SUBMIT {
+			cq = true
+		}
+	}
+
+	ps := make([]int64, 0, len(i.Patchsets))
+	for _, p := range i.Patchsets {
+		ps = append(ps, p.Number)
+	}
+	roll := &AutoRollIssue{
+		Closed:            i.IsClosed(),
+		Committed:         i.Committed,
+		CommitQueue:       cq,
+		CommitQueueDryRun: dryRun,
+		Created:           i.Created,
+		Issue:             i.Issue,
+		Modified:          i.Updated,
+		Patchsets:         ps,
+		Subject:           i.Subject,
+	}
+	roll.Result = rollResult(roll)
+	from, to, err := rollRev(roll.Subject, fullHashFn)
+	if err != nil {
+		return nil, err
+	}
+	roll.RollingFrom = from
+	roll.RollingTo = to
+	return roll, nil
 }
 
 // FromRietveldIssue returns an AutoRollIssue instance based on the given
@@ -269,6 +324,21 @@ func TryResultFromBuildbucket(b *buildbucket.Build) (*TryResult, error) {
 	}, nil
 }
 
+// TryResultsFromBuildbucket returns a slice of TryResults based on a slice of
+// buildbucket.Builds.
+func TryResultsFromBuildbucket(tries []*buildbucket.Build) ([]*TryResult, error) {
+	res := make([]*TryResult, 0, len(tries))
+	for _, t := range tries {
+		tryResult, err := TryResultFromBuildbucket(t)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, tryResult)
+	}
+	sort.Sort(tryResultSlice(res))
+	return res, nil
+}
+
 // Finished returns true iff the trybot is done running.
 func (t TryResult) Finished() bool {
 	return t.Status == TRYBOT_STATUS_COMPLETED
@@ -340,14 +410,14 @@ func GetTryResults(r *rietveld.Rietveld, roll *AutoRollIssue) ([]*TryResult, err
 	if err != nil {
 		return nil, err
 	}
-	res := make([]*TryResult, 0, len(tries))
-	for _, t := range tries {
-		tryResult, err := TryResultFromBuildbucket(t)
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, tryResult)
+	return TryResultsFromBuildbucket(tries)
+}
+
+// GetTryResultsFromGerrit returns trybot results for the given roll.
+func GetTryResultsFromGerrit(g *gerrit.Gerrit, roll *AutoRollIssue) ([]*TryResult, error) {
+	tries, err := g.GetTrybotResults(roll.Issue, roll.Patchsets[0])
+	if err != nil {
+		return nil, err
 	}
-	sort.Sort(tryResultSlice(res))
-	return res, nil
+	return TryResultsFromBuildbucket(tries)
 }
