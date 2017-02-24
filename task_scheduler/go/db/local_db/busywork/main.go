@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
@@ -27,13 +26,9 @@ import (
 
 var (
 	// Flags.
-	local   = flag.Bool("local", true, "Whether we're running on a dev machine vs in production.")
-	workdir = flag.String("workdir", "workdir", "Working directory to use.")
-
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	local    = flag.Bool("local", true, "Whether we're running on a dev machine vs in production.")
+	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	workdir  = flag.String("workdir", "workdir", "Working directory to use.")
 
 	// Counters.
 	inserts            = 0
@@ -517,7 +512,11 @@ func main() {
 	defer common.LogPanic()
 
 	// Global init.
-	common.InitWithMetrics2("busywork", influxHost, influxUser, influxPassword, influxDatabase, local)
+	common.InitWithMust(
+		"busywork",
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
 
 	d, err := local_db.NewDB("busywork", path.Join(*workdir, "busywork.bdb"))
 	if err != nil {

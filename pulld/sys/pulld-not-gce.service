@@ -9,8 +9,6 @@ ExecStart=/usr/local/bin/pulld-not-gce \
   --on_gce=false \
   --resources_dir=/usr/local/share/pulld-not-gce/ \
   --logtostderr \
-  --influxdb_database=skmetrics \
-  --influxdb_host=https://metrics.skia.org \
   --installed_packages_file=/var/pulld-not-gce/installed_packages.json \
   --pull_period 1m \
   --service_account_path=/usr/local/share/pulld-not-gce/service-account.json

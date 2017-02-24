@@ -6,8 +6,6 @@ After=network-online.target
 [Service]
 ExecStart=/usr/local/bin/alertserver \
     --use_metadata=true \
-    --influxdb_host=skia-monitoring:10117 \
-    --influxdb_database=skmetrics \
     --alerts_file=/etc/skiaalertserver/alerts.cfg \
     --host=alerts.skia.org \
     --log_dir=/var/log/logserver \
