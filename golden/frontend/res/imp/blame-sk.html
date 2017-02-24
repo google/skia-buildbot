@@ -19,6 +19,9 @@
           b: true,
         }
 
+    show-commits - An event is fired when a commit is clicked. The
+      detail contains a list of the commits that should be shown.
+
   Methods:
     None.
 -->
@@ -51,8 +54,8 @@
         <template is="dom-if" if="{{_hasValue(value)}}">
           <div class="header">Blame</div>
           <template is="dom-repeat" items="{{value.freq}}" as="b">
-            <div class="commitEntry" on-mouseover="_hoverHandler" 
-                 on-mouseout="_hoverHandler" 
+            <div class="commitEntry" on-mouseover="_hoverHandler"
+                 on-mouseout="_hoverHandler"
                  on-click="_clickHandler" data-idx$="{{b}}">
               <span>{{_humanDiffDate(commits, b)}}</span> - <span>{{_author(commits, b)}}</span>
             </div>
@@ -77,7 +80,7 @@
           type: Array,
           value: function () { return []; }
         },
-        
+
         value: {
           type: Object,
           value: function () { return {}; },
@@ -88,7 +91,7 @@
         e.stopPropagation();
         var targetEle = e.target;
         if (targetEle.nodeName !== 'DIV') {
-          targetEle = targetEle.parentElement; 
+          targetEle = targetEle.parentElement;
         }
 
         var detail = {
@@ -103,10 +106,10 @@
         e.stopPropagation();
         var targetEle = e.target;
         if (targetEle.nodeName !== 'DIV') {
-          targetEle = targetEle.parentElement; 
+          targetEle = targetEle.parentElement;
         }
         var commitInfo = [this.commits[parseInt(targetEle.dataset.idx)]];
-        this.fire('commit-selected', commitInfo);
+        this.fire('show-commits', commitInfo);
       },
 
       _humanDiffDate: function (commits, b) {

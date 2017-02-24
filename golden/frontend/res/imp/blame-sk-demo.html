@@ -11,14 +11,14 @@
 
   <link rel="import" href="bower_components/polymer/polymer.html">
   <link rel="import" href="blame-sk.html">
-  
+
 </head>
 <body>
   <h1>blame-sk demo</h1>
 
   <dom-module id="main-document-element">
     <template>
-      <blame-sk id="oldBlames" value="{{oldBlameDist}}" commits="{{commits}}"></blame-sk> 
+      <blame-sk id="oldBlames" value="{{oldBlameDist}}" commits="{{commits}}"></blame-sk>
       <blame-sk value="{{newBlameDist}}" commits="{{commits}}"></blame-sk><br>
 
       Event: {{eventInfo}}
@@ -48,20 +48,20 @@
 
           ready: function() {
             this.listen(this.$.oldBlames, 'hover-blame', '_handleEvent');
-            this.listen(this.$.oldBlames, 'commit-selected', '_handleEvent');
+            this.listen(this.$.oldBlames, 'show-commits', '_handleEvent');
           },
 
           _handleEvent: function(e) {
-            e.stopPropagation(); 
-            this.eventInfo = e.type + " : " + JSON.stringify(e); 
+            e.stopPropagation();
+            this.eventInfo = e.type + " : " + JSON.stringify(e);
           }
         });
       });
 
     </script>
   </dom-module>
-  
-  <!-- Instantite the element defined above --> 
+
+  <!-- Instantite the element defined above -->
   <main-document-element></main-document-element>
 
 </body>
