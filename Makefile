@@ -17,10 +17,6 @@ golden:
 perf:
 	cd perf && $(MAKE) all
 
-.PHONY: alertserver
-alertserver:
-	cd alertserver && $(MAKE) all
-
 .PHONY: autoroll
 autoroll:
 	cd autoroll && $(MAKE) all
@@ -70,7 +66,7 @@ task_scheduler:
 	cd task_scheduler && $(MAKE) all
 
 .PHONY: all
-all: alertserver autoroll datahopper datahopper_internal golden perf sharedgo logserver ct ctfe cq_watcher status task_scheduler tags
+all: autoroll datahopper datahopper_internal golden perf sharedgo logserver ct ctfe cq_watcher status task_scheduler tags
 
 .PHONY: tags
 tags:

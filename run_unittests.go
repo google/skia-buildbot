@@ -64,7 +64,6 @@ var (
 
 	POLYMER_PATHS = []string{
 		"res/imp",
-		"alertserver/res/imp",
 		"autoroll/res/imp",
 		"fuzzer/res/imp",
 		"status/res/imp",
