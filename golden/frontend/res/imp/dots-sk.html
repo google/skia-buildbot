@@ -9,7 +9,7 @@
     None.
 
   Events:
-    commit-selected - Event generated when a dot is clicked.
+    show-commits - Event generated when a dot is clicked.
       e.detail contains a slice of commits that could have
       made up that dot.
 
@@ -83,7 +83,7 @@
 
       properties: {
         value: {
-          type: Object, 
+          type: Object,
           value: function() { return { tileSize: 0, traces: [] }; }
         }
       },
@@ -92,10 +92,10 @@
         this.commits = [];
 
         // Keep track of the last element hovered over to reduce the number of
-        // events we generate. Used by _onMouseOver. 
+        // events we generate. Used by _onMouseOver.
         this.hoverElement =  null;
         this.listen(this.$.dots, 'mouseover', '_onMouseOver');
-        this.listen(this.$.dots, 'click', '_onClick'); 
+        this.listen(this.$.dots, 'click', '_onClick');
       },
 
       setValue: function(value) {
@@ -104,13 +104,13 @@
         }
 
         this.value = value;
-        var width = value.tileSize * 10 + 20; 
+        var width = value.tileSize * 10 + 20;
         var height = (value.traces.length + 2) * 10;
 
         var svg = d3.select(this.$.dots)
           .attr("width", width)
           .attr("height", height)
-          .attr("viewBox", "-1 -1 "+(value.tileSize+1) + " " + (value.traces.length+1)); 
+          .attr("viewBox", "-1 -1 "+(value.tileSize+1) + " " + (value.traces.length+1));
 
         var g = svg.selectAll('g')
           .data(value.traces)
@@ -183,30 +183,30 @@
 
           var commitinfo = this.commits.slice(firstCommit, x+1);
           commitinfo.reverse();
-          this.fire('commit-selected', commitinfo);
+          this.fire('show-commits', commitinfo);
         }
       },
 
       _getTraces: function(value) {
-        return (value && value.traces) ? (value.traces) : []; 
+        return (value && value.traces) ? (value.traces) : [];
       },
 
       _width: function(value) {return value.tileSize * 10 + 20; },
-      
+
       _height: function(value) { return (value.traces.length+2)*10; },
-      
-      _vbWidth: function(value) { 
-        return value.tileSize+1; 
+
+      _vbWidth: function(value) {
+        return value.tileSize+1;
       },
 
-      _vbHeight: function(value) { 
-        return value.traces.length+1; 
+      _vbHeight: function(value) {
+        return value.traces.length+1;
       },
-      
-      _firstX: function(d) { return d[0].x; }, 
-      
-      _firstY: function(d) { return d[0].y; }, 
-      
+
+      _firstX: function(d) { return d[0].x; },
+
+      _firstY: function(d) { return d[0].y; },
+
       _lastX:  function(d) { return d[trace.data.length-1].x; }
     });
   </script>

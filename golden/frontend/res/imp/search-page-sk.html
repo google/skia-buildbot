@@ -275,7 +275,6 @@
 
       _load: function() {
         var q = window.location.search;
-        this.$.activityBar.startSpinner("Loading ...");
         sk.get("/json/search" + q).then(JSON.parse).then(function (json) {
           this.set('data', json);
           this.$.trybotControls.setIssue(json.issue);
@@ -287,6 +286,8 @@
       },
 
       _loadParamset: function() {
+        this.$.activityBar.startSpinner("Loading ...");
+
         // If we already have a paramset then trigger load right away.
         // TODO(stephana): Improve this so that we load the paramset with the
         // data.

@@ -12,7 +12,7 @@
 
   <link rel="import" href="bower_components/polymer/polymer.html">
   <link rel="import" href="dots-sk.html">
-  
+
 </head>
 <body>
   <h1>dots-sk demo</h1>
@@ -32,30 +32,30 @@
           is: 'main-document-element',
 
           ready: function() {
-            var el = this.$.firstDots; 
+            var el = this.$.firstDots;
 
-            el.setValue(testdata.traces); 
+            el.setValue(testdata.traces);
             el.setCommits(testdata.commits);
 
             this.async(function() {
-              el.highlight(0, true); 
-            }, 3000); 
+              el.highlight(0, true);
+            }, 3000);
 
-            this.listen(el, 'commit-selected', '_handler');
+            this.listen(el, 'show-commits', '_handler');
             this.listen(el, 'hover', '_handler');
           },
 
           _handler: function(e) {
-            console.log("Received event: " + e.type); 
-            this.eventData = e.type + " :: " + JSON.stringify(e.detail); 
+            console.log("Received event: " + e.type);
+            this.eventData = e.type + " :: " + JSON.stringify(e.detail);
             e.stopPropagation();
           }
         });
       });
     </script>
   </dom-module>
-  
-  <!-- Instantite the element defined above --> 
+
+  <!-- Instantite the element defined above -->
   <main-document-element></main-document-element>
 
 </body>
