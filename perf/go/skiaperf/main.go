@@ -214,6 +214,7 @@ func alertsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Add("Access-Control-Allow-Origin", "*")
 	resp := AlertsStatus{
 		Alerts: count,
 	}
