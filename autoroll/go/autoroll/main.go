@@ -205,7 +205,7 @@ func main() {
 	var r *rietveld.Rietveld
 	var g *gerrit.Gerrit
 	if *doGerrit {
-		g, err = gerrit.NewGerrit(gerrit.GERRIT_CHROMIUM_URL, "/usr/local/google/home/borenet/.gitcookies", nil)
+		g, err = gerrit.NewGerrit(gerrit.GERRIT_CHROMIUM_URL, path.Join(*workdir, ".gitcookies"), nil)
 		if err != nil {
 			sklog.Fatalf("Failed to create Gerrit client: %s", err)
 		}
