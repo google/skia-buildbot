@@ -32,8 +32,6 @@
     var version = {"commit":"3e0fcf9b99baf4256851a6767bc6955266fc2369","date":"2016-02-19T13:57:18-05:00"};
     server.respondWith("GET","/json/version", JSON.stringify(version));
 
-    var gold = {"gm":82,"image":0};
-    server.respondWith("GET","/json/goldStatus", JSON.stringify(gold));
     var perf = {"alerts":1};
     server.respondWith("GET","/json/perfAlerts", JSON.stringify(perf));
 
