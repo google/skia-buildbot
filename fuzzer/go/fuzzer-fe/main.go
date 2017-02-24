@@ -35,7 +35,6 @@ import (
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
@@ -75,11 +74,6 @@ var (
 
 var (
 	// web server params
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
-
 	host         = flag.String("host", "localhost", "HTTP service host")
 	port         = flag.String("port", ":8001", "HTTP service port (e.g., ':8002')")
 	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
@@ -137,7 +131,6 @@ func main() {
 	// Calls flag.Parse()
 	common.InitWithMust(
 		"fuzzer-fe",
-		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)

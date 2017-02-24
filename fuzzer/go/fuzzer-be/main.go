@@ -25,7 +25,6 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/sklog"
 	"golang.org/x/net/context"
 	"google.golang.org/api/option"
@@ -58,11 +57,6 @@ var (
 	statusPeriod         = flag.Duration("status_period", 60*time.Second, `The time period used to report the status of the aggregation/analysis/upload queue. `)
 	analysisTimeout      = flag.Duration("analysis_timeout", 5*time.Second, `The maximum time an analysis should run.`)
 
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
-
 	watchAFL        = flag.Bool("watch_afl", false, "(debug only) If the afl master's output should be piped to stdout.")
 	skipGeneration  = flag.Bool("skip_generation", false, "(debug only) If the generation step should be disabled.")
 	forceReanalysis = flag.Bool("force_reanalysis", false, "(debug only) If the fuzzes should be downloaded, re-analyzed, (deleted from GCS), and reuploaded.")
@@ -82,7 +76,6 @@ func main() {
 	// Calls flag.Parse()
 	common.InitWithMust(
 		"fuzzer-be",
-		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)

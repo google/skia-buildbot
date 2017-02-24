@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/geventbus"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
@@ -29,10 +28,6 @@ import (
 // Command line flags.
 var (
 	configFilename     = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
-	influxDatabase     = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
-	influxHost         = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxPassword     = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxUser         = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 	nsqdAddress        = flag.String("nsqd", "", "Address and port of nsqd instance.")
@@ -44,9 +39,8 @@ func main() {
 	defer common.LogPanic()
 	_, appName := filepath.Split(os.Args[0])
 
-	// Global init to initialize influx, prometheus and cloud logging.
+	// Global init to initialize prometheus and cloud logging.
 	common.InitWithMust(appName,
-		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)

@@ -593,7 +593,6 @@ func main() {
 
 	common.InitWithMust(
 		"status",
-		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, testing),
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)
