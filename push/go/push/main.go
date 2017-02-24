@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/packages"
@@ -72,10 +71,6 @@ var (
 var (
 	bucketName     = flag.String("bucket_name", "skia-push", "The name of the Google Storage bucket that contains push packages and info.")
 	configFilename = flag.String("config_filename", "skiapush.conf", "Config filename.")
-	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	project        = flag.String("project", "google.com:skia-buildbots", "The Google Compute Engine project.")
@@ -523,7 +518,7 @@ func oneStep() {
 }
 
 // startDirtyMonitoring periodically checks the number of dirty packages being
-// used in prod and reports that number to Influx.
+// used in prod and reports that number to metrics.
 //
 // This function doesn't return and should be launched as a Go routine.
 func startDirtyMonitoring() {
@@ -536,7 +531,6 @@ func startDirtyMonitoring() {
 func main() {
 	common.InitWithMust(
 		"push",
-		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)

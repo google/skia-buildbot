@@ -1,5 +1,5 @@
 // logmetrics runs queries over all the data store in Google Logging and then
-// pushes those counts into influxdb.
+// pushes those counts into metrics.
 package main
 
 import (
@@ -9,7 +9,6 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/logmetrics/go/config"
@@ -19,10 +18,6 @@ import (
 
 // flags
 var (
-	influxDatabase  = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
-	influxHost      = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxPassword  = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxUser      = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	metricsFilename = flag.String("metrics_filename", "metrics.toml", "The file with all the metrics and their filters.")
 	promPort        = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
