@@ -1,2 +1,0 @@
-STDERR=/var/log/logserver/influxdb.ERROR
-STDOUT=/var/log/logserver/influxdb.INFO
