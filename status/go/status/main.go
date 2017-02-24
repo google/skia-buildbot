@@ -61,9 +61,6 @@ var (
 	capacityTemplate *template.Template            = nil
 	commitsTemplate  *template.Template            = nil
 	dbClient         *influxdb.Client              = nil
-	goldGMStatus     *polling_status.PollingStatus = nil
-	goldImageStatus  *polling_status.PollingStatus = nil
-	goldSKPStatus    *polling_status.PollingStatus = nil
 	perfStatus       *polling_status.PollingStatus = nil
 	tasksPerCommit   *tasksPerCommitCache          = nil
 )
@@ -486,19 +483,6 @@ func perfJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func goldJsonHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(map[string]interface{}{
-		"gm": goldGMStatus,
-		// Uncomment once we track SKP's again.
-		// "skp":   goldSKPStatus,
-		"image": goldImageStatus,
-	}); err != nil {
-		sklog.Errorf("Failed to write or encode output: %s", err)
-		return
-	}
-}
-
 // buildProgressHandler returns the number of finished builds at the given
 // commit, compared to that of an older commit.
 func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
@@ -564,7 +548,6 @@ func runServer(serverURL string) {
 	r.HandleFunc("/repo/{repo}", statusHandler)
 	r.HandleFunc("/capacity", capacityHandler)
 	r.HandleFunc("/capacity/json", capacityStatsHandler)
-	r.HandleFunc("/json/goldStatus", goldJsonHandler)
 	r.HandleFunc("/json/perfAlerts", perfJsonHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/json/{repo}/buildProgress", buildProgressHandler)
@@ -668,8 +651,6 @@ func main() {
 
 	// Load Perf and Gold data in a loop.
 	perfStatus = dbClient.Int64PollingStatus("skmetrics", PERF_STATUS_QUERY, time.Minute)
-	goldGMStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), time.Minute)
-	goldImageStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), time.Minute)
 
 	// Run the server.
 	runServer(serverURL)
