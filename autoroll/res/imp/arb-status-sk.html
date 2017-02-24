@@ -203,6 +203,11 @@
           value: null,
           readOnly: true,
         },
+        gerritUrl: {
+          type: String,
+          value: "",
+          readOnly: true,
+        },
         lastRoll: {
           type: Object,
           value: null,
@@ -224,7 +229,7 @@
         },
         _rollUserURL: {
           type: String,
-          computed: "_computeRollUserURL(rollUser)",
+          computed: "_computeRollUserURL(rollUser,gerritUrl)",
         },
         initialSelectedMode: {
           type: Number,
@@ -298,6 +303,9 @@
       },
 
       _computeRollUserURL: function(rollUser) {
+        if (this.gerritUrl) {
+          return this.gerritUrl + "/q/owner:" + rollUser;
+        }
         return "https://codereview.chromium.org/user/" + rollUser;
       },
 
@@ -307,6 +315,9 @@
 
       _issueURL: function(issue) {
         if (issue) {
+          if (this.gerritUrl) {
+            return this.gerritUrl + "/c/" + issue.issue;
+          }
           return "https://codereview.chromium.org/" + issue.issue;
         }
       },
@@ -392,6 +403,7 @@
       _update: function(json) {
         this._setCurrentRoll(json.currentRoll);
         this._setError(json.error);
+        this._setGerritUrl(json.gerritUrl);
         this._setLastRoll(json.lastRoll);
         this._setMode(json.mode);
         this._setRecent(json.recent);
