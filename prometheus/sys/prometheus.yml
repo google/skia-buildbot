@@ -126,7 +126,6 @@ scrape_configs:
       - targets: ['catapult-autoroll:11000']
       - targets: ['nacl-autoroll:11000']
       - targets: ['pdfium-autoroll:11000']
-      - targets: ['skia-alerts:11000']
       - targets: ['skia-android-ingest:11000']
       - targets: ['skia-android-perf:11000']
       - targets: ['skia-autoroll:11000']
