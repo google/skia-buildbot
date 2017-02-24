@@ -214,15 +214,7 @@ server {
     access_log /var/log/nginx/alerts.access.log;
     error_log /var/log/nginx/alerts.error.log error;
 
-    # Enforce browser XSS protection
-    add_header X-XSS-Protection "1; mode=block";
-    # Disable content sniffing
-    add_header X-Content-Type-Options nosniff;
-
-    location / {
-        proxy_pass http://skia-alerts:8001;
-        proxy_set_header Host $host;
-    }
+    rewrite ^ https://promalerts.skia.org redirect;
 }
 server {
     listen      80;
