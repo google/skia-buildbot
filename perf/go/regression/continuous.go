@@ -41,6 +41,10 @@ func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, queries []str
 	}
 }
 
+func (c *Continuous) Untriaged() (int, error) {
+	return c.store.Untriaged()
+}
+
 func (c *Continuous) reportUntriaged(newClustersGauge metrics2.Int64Metric) {
 	go func() {
 		for _ = range time.Tick(time.Minute) {

@@ -88,6 +88,8 @@ var (
 	clusterRequests *clustering2.RunningClusterRequests
 
 	regStore *regression.Store
+
+	continuous *regression.Continuous
 )
 
 func loadTemplates() {
@@ -147,7 +149,8 @@ func Init() {
 
 	// Start running continuous clustering looking for regressions.
 	queries := strings.Split(*clusterQueries, " ")
-	go regression.NewContinuous(git, cidl, queries, regStore).Run()
+	continuous = regression.NewContinuous(git, cidl, queries, regStore)
+	go continuous.Run()
 }
 
 // activityHandler serves the HTML for the /activitylog/ page.
@@ -197,6 +200,25 @@ func helpHandler(w http.ResponseWriter, r *http.Request) {
 		if err := templates.ExecuteTemplate(w, "help.html", ctx); err != nil {
 			sklog.Errorln("Failed to expand template:", err)
 		}
+	}
+}
+
+type AlertsStatus struct {
+	Alerts int `json:"alerts"`
+}
+
+func alertsHandler(w http.ResponseWriter, r *http.Request) {
+	count, err := continuous.Untriaged()
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to load untriaged count.")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	resp := AlertsStatus{
+		Alerts: count,
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
 }
 
@@ -905,6 +927,7 @@ func main() {
 	router.HandleFunc("/_/cluster/status/{id:[a-zA-Z0-9]+}", clusterStatusHandler)
 	router.HandleFunc("/_/reg/", regressionRangeHandler)
 	router.HandleFunc("/_/triage/", triageHandler)
+	router.HandleFunc("/_/alerts/", alertsHandler)
 
 	var h http.Handler = router
 	if *internalOnly {
