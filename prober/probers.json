@@ -64,21 +64,6 @@
      "body": "",
      "mimetype": ""
    },
-   "skiaalerts": {
-     "url": "https://alerts.skia.org",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "skiaalerts_json": {
-     "url": "https://alerts.skia.org/json/alerts/",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": "application/json",
-     "responsetest": "validJSON"
-   },
    "skiaautoroll": {
      "url": "https://autoroll.skia.org",
      "method": "GET",
