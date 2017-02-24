@@ -26,10 +26,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/influxdb"
-	"go.skia.org/infra/go/influxdb_init"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/polling_status"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
@@ -45,24 +42,18 @@ const (
 	DEFAULT_COMMITS_TO_LOAD = 50
 	SKIA_REPO               = "skia"
 	INFRA_REPO              = "infra"
-	// The from clause needs to be in double quotes and the where clauses need to be
-	// in single quotes because InfluxDB is quite particular about these things.
-	GOLD_STATUS_QUERY_TMPL = `select value from "gold.status.by-corpus" WHERE time > now() - 1h and host='skia-gold-prod' AND app='skiacorrectness' AND type='untriaged' AND corpus='%s' ORDER BY time DESC LIMIT 1`
-	PERF_STATUS_QUERY      = `select value from "perf.clustering.untriaged" where time > now() - 1h and app='skiaperf' and host='skia-perf' order by time desc limit 1`
 
 	// OAUTH2_CALLBACK_PATH is callback endpoint used for the Oauth2 flow.
 	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
 )
 
 var (
-	buildCache       *franken.BTCache              = nil
-	buildDb          buildbot.DB                   = nil
-	capacityClient   *capacity.CapacityClient      = nil
-	capacityTemplate *template.Template            = nil
-	commitsTemplate  *template.Template            = nil
-	dbClient         *influxdb.Client              = nil
-	perfStatus       *polling_status.PollingStatus = nil
-	tasksPerCommit   *tasksPerCommitCache          = nil
+	buildCache       *franken.BTCache         = nil
+	buildDb          buildbot.DB              = nil
+	capacityClient   *capacity.CapacityClient = nil
+	capacityTemplate *template.Template       = nil
+	commitsTemplate  *template.Template       = nil
+	tasksPerCommit   *tasksPerCommitCache     = nil
 )
 
 // flags
@@ -79,11 +70,6 @@ var (
 	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	useMetadata                 = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	workdir                     = flag.String("workdir", ".", "Directory to use for scratch work.")
-
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 
 	repos repograph.Map
 )
@@ -475,14 +461,6 @@ func capacityStatsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func perfJsonHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(map[string]interface{}{"alerts": perfStatus}); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to report Perf status: %v", err))
-		return
-	}
-}
-
 // buildProgressHandler returns the number of finished builds at the given
 // commit, compared to that of an older commit.
 func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
@@ -548,7 +526,6 @@ func runServer(serverURL string) {
 	r.HandleFunc("/repo/{repo}", statusHandler)
 	r.HandleFunc("/capacity", capacityHandler)
 	r.HandleFunc("/capacity/json", capacityStatsHandler)
-	r.HandleFunc("/json/perfAlerts", perfJsonHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/json/{repo}/buildProgress", buildProgressHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
@@ -576,7 +553,6 @@ func main() {
 
 	common.InitWithMust(
 		"status",
-		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, testing),
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)
@@ -611,12 +587,6 @@ func main() {
 		}
 	}
 
-	// Setup InfluxDB client.
-	dbClient, err = influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-
 	login.SimpleInitMust(*port, *testing)
 
 	// Check out source code.
@@ -648,9 +618,6 @@ func main() {
 
 	capacityClient = capacity.New(tasksPerCommit.tcc, bc.GetTaskCache(), repos)
 	capacityClient.StartLoading(*capacityRecalculateInterval)
-
-	// Load Perf and Gold data in a loop.
-	perfStatus = dbClient.Int64PollingStatus("skmetrics", PERF_STATUS_QUERY, time.Minute)
 
 	// Run the server.
 	runServer(serverURL)
