@@ -21,7 +21,6 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
@@ -76,11 +75,6 @@ var (
 	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
 	showBotProgress    = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
 	traceservice       = flag.String("trace_service", "localhost:10000", "The address of the traceservice endpoint.")
-
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
 const (
@@ -98,10 +92,9 @@ func main() {
 	// Setup DB flags.
 	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME, db.MigrationSteps())
 
-	// Global init to initialize influx, prometheus and cloud logging.
+	// Global init to initialize prometheus and cloud logging.
 	_, appName := filepath.Split(os.Args[0])
 	common.InitWithMust(appName,
-		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)
