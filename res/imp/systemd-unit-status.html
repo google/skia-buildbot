@@ -44,7 +44,7 @@
       width: 4em;
     }
     #state {
-      width: 10em;
+      width: 6em;
     }
     .running {
       color: #44AA99;
@@ -64,7 +64,6 @@
   </style>
   <template>
     <div class="layout horizontal wrap">
-      <div id=machine>[[machine]]</div>
       <div id=service>[[service]]</div>
       <div id=uptime>[[uptimeOf(value.props.ExecMainStartTimestamp)]]</div>
       <div id=state class$="[[value.status.SubState]]">[[value.status.SubState]]</div>
