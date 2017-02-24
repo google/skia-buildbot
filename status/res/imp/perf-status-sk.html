@@ -48,7 +48,7 @@
 
     <iron-ajax
       id="status"
-      auto url="/json/perfAlerts"
+      auto url="https://perf.skia.org/_/alerts/"
       handle-as="json"
       timeout="30000"
       last-response="{{_perfAlerts}}">
@@ -56,7 +56,7 @@
 
     <timer-sk period="[[reload]]" on-trigger="_reload">
 
-    <a href="https://perf.skia.org/alerts/" target="_blank">
+    <a href="https://perf.skia.org/t/" target="_blank">
       <paper-button>
         <iron-icon icon="icons:trending-up"></iron-icon>
         <span class="label">perf alerts</span>
