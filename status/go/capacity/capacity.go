@@ -1,6 +1,6 @@
 package capacity
 
-// This package makes multiple queries to InfluxDB to get metrics that allow
+// This package makes multiple queries to TaskScheduler to get metrics that allow
 // us to gauge theoretical capacity needs. Presently, the last 3 days worth of
 // swarming data is used as the basis for these metrics.
 
@@ -19,6 +19,8 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
+
+const CAPACITY_MEASUREMENT_WINDOW = 72 * time.Hour
 
 type CapacityClient struct {
 	tcc   *specs.TaskCfgCache
@@ -56,7 +58,7 @@ func (c *CapacityClient) QueryAll() error {
 
 	// Fetch last 72 hours worth of tasks that TaskScheduler created.
 	now := time.Now()
-	before := now.Add(-72 * time.Hour)
+	before := now.Add(-CAPACITY_MEASUREMENT_WINDOW)
 	tasks, err := c.tasks.GetTasksFromDateRange(before, now)
 	if err != nil {
 		return fmt.Errorf("Could not fetch tasks between %s and %s: %s", before, now, err)

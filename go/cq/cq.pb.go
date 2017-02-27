@@ -17,12 +17,12 @@ It has these top-level messages:
 package cq
 
 import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
+import json "encoding/json"
 import math "math"
 
-// Reference imports to suppress errors if they are not otherwise used.
+// Reference proto, json, and math imports to suppress error if they are not otherwise used.
 var _ = proto.Marshal
-var _ = fmt.Errorf
+var _ = &json.SyntaxError{}
 var _ = math.Inf
 
 // This message describes a Commit Queue configuration. The config file cq.cfg
@@ -579,3 +579,6 @@ type Verifiers_SignCLAVerifier struct {
 func (m *Verifiers_SignCLAVerifier) Reset()         { *m = Verifiers_SignCLAVerifier{} }
 func (m *Verifiers_SignCLAVerifier) String() string { return proto.CompactTextString(m) }
 func (*Verifiers_SignCLAVerifier) ProtoMessage()    {}
+
+func init() {
+}
