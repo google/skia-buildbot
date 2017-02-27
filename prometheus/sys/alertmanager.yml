@@ -13,11 +13,11 @@ route:
   # 'group_wait' to send the initial notification.  This way ensures that you
   # get multiple alerts for the same group that start firing shortly after
   # another are batched together on the first notification.
-  group_wait: 2m
+  group_wait: 5m
 
   # When the first notification was sent, wait 'group_interval' to send a batch
   # of new alerts that started firing for that group.
-  group_interval: 10m
+  group_interval: 10s
 
   # If an alert has successfully been sent, wait 'repeat_interval' to
   # resend them.
