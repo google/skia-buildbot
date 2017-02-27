@@ -16,18 +16,18 @@ done
 
 # create frontend instance
 # local-ssd is 375 GB
-gcloud compute --project $PROJECT_ID instances create $FUZZER_FE_INSTANCE_NAME \
-  --zone $ZONE \
-  --machine-type $FUZZER_FE_MACHINE_TYPE \
-  --local-ssd interface=SCSI \
-  --network "default" \
-  --maintenance-policy "MIGRATE" \
-  --scopes $FUZZER_SCOPES \
-  --tags "http-server,https-server" \
-  --metadata-from-file "startup-script=startup-script.sh" \
-  --metadata "owner_primary=kjlubick,owner_secondary=jcgregorio" \
-  --disk "name=${FUZZER_FE_INSTANCE_NAME},device-name=${FUZZER_FE_INSTANCE_NAME},mode=rw,boot=yes,auto-delete=yes" \
-  --address $FUZZER_FE_IP_ADDRESS
+# gcloud compute --project $PROJECT_ID instances create $FUZZER_FE_INSTANCE_NAME \
+#   --zone $ZONE \
+#   --machine-type $FUZZER_FE_MACHINE_TYPE \
+#   --local-ssd interface=SCSI \
+#   --network "default" \
+#   --maintenance-policy "MIGRATE" \
+#   --scopes $FUZZER_SCOPES \
+#   --tags "http-server,https-server" \
+#   --metadata-from-file "startup-script=startup-script.sh" \
+#   --metadata "owner_primary=kjlubick,owner_secondary=jcgregorio" \
+#   --disk "name=${FUZZER_FE_INSTANCE_NAME},device-name=${FUZZER_FE_INSTANCE_NAME},mode=rw,boot=yes,auto-delete=yes" \
+#   --address $FUZZER_FE_IP_ADDRESS
 
 # create backend instances
 i=0
