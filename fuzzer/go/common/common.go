@@ -96,12 +96,33 @@ var fuzzers = map[string]FuzzerInfo{
 		ExtraBugLabels:      []string{"Area-ImageDecoder"},
 		ArgsAfterExecutable: []string{"--type", "icc", "--bytes"},
 	},
+	"n32_canvas": {
+		PrettyName:          "Canvas calls to raster n32 backend",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "halcanary",
+		ExtraBugLabels:      nil,
+		ArgsAfterExecutable: []string{"--type", "n32_canvas", "--bytes"},
+	},
+	"null_canvas": {
+		PrettyName:          "Canvas calls to null canvas backend",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "halcanary",
+		ExtraBugLabels:      nil,
+		ArgsAfterExecutable: []string{"--type", "null_canvas", "--bytes"},
+	},
 	"path_deserialize": {
 		PrettyName:          "SkPath deserialize",
 		Status:              EXPERIMENTAL_FUZZER,
 		Groomer:             "reed",
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "path_deserialize", "--bytes"},
+	},
+	"pdf_canvas": {
+		PrettyName:          "Canvas calls to PDF backend",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "halcanary",
+		ExtraBugLabels:      nil,
+		ArgsAfterExecutable: []string{"--type", "pdf_canvas", "--bytes"},
 	},
 	"region_deserialize": {
 		PrettyName:          "SkRegion deserialize",
