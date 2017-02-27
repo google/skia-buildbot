@@ -209,6 +209,9 @@ func (o *promInitOpt) preinit(appName string) error {
 
 func (o *promInitOpt) init(appName string) error {
 	glog.Info("prom init")
+
+	// App uptime.
+	_ = metrics2.NewLiveness("uptime", nil)
 	return nil
 }
 
