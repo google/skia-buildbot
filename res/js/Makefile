@@ -7,6 +7,7 @@ node_modules/karma/bin/karma:
 
 .PHONY: test
 test: node_modules/karma/bin/karma
+	which google-chrome
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" \
 		node_modules/karma/bin/karma start karma.conf.js
 
