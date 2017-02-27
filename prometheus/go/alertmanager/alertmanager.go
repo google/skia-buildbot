@@ -35,14 +35,14 @@ const (
 </table>
 `
 
-	alert_chat = `*{{range .GroupLabels}}{{.}}{{end}}*{{ $length := len .Alerts}}{{with index .Alerts 0}}
-{{ if eq $length 1 }}
+	alert_chat = `*{{range .GroupLabels}}{{.}}{{end}}*{{ $length := len .Alerts}}{{with index .Alerts 0}}{{ if eq $length 1 }}
   *{{.Status}}* ({{.Labels.severity}}) {{.Annotations.description}}
-{{ else }}
-  *Total Alerts Firing*: {{$length}}
+{{ else }} *Total Alerts Firing*: {{$length}}
 
   *{{.Status}}* {{.Annotations.description}}
-{{end}}{{end}}`
+
+{{end}} {{end}} {{ if ne $length 1 }} {{range .Alerts}}{{.Annotations.abbr}} {{end}}
+{{end}}`
 )
 
 var (
