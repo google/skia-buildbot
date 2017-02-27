@@ -1,10 +1,11 @@
 {
    "name": "Alerts for Skia Troopers",
-   "version": "2.2",
+   "version": "3.0",
    "description": "Alerts for Skia Troopers.",
    "permissions": [
      "cookies",
-     "*://alerts.skia.org/*"
+     "*://skia.org/*",
+     "*://promalerts.skia.org/*"
    ],
    "background": {
      "scripts": ["background.js"]
