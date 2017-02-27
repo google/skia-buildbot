@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fdc812f7_790b1c5f",
+        "filename": "chromeextensions/skia-trooper/popup.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-02-27T14:46:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8ae11362_fe6c59b5",
+      "range": {
+        "startLine": 117,
+        "startChar": 39,
+        "endLine": 117,
+        "endChar": 41
+      },
+      "revId": "e633d6717cd7cbb3d5d3069f3f6c8031abee3571",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "009a1159_c556b06d",
         "filename": "chromeextensions/skia-trooper/popup.js",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "e633d6717cd7cbb3d5d3069f3f6c8031abee3571",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c0d1a76_2b262d28",
+        "filename": "chromeextensions/skia-trooper/popup.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-02-27T14:46:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "009a1159_c556b06d",
+      "range": {
+        "startLine": 155,
+        "startChar": 14,
+        "endLine": 155,
+        "endChar": 34
+      },
+      "revId": "e633d6717cd7cbb3d5d3069f3f6c8031abee3571",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
