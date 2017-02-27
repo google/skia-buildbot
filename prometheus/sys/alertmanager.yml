@@ -57,7 +57,7 @@ receivers:
 
 - name: 'general'
   webhook_configs:
-    - url: 'http://localhost:8004/chat?room=skiabot_alerts'
+    - url: 'http://localhost:8004/chat?room=general_alerts'
 
 - name: 'android'
   webhook_configs:
