@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0e150ca9_5a37bb9f",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-02-27T19:16:44Z",
+      "side": 1,
+      "message": "Might be useful to add a direct link to https://push.skia.org/",
+      "revId": "1be563b778ea8e1fc1e6c3d977efca1af352b940",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
