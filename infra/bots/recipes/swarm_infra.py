@@ -176,8 +176,11 @@ def RunSteps(api):
     cmd.append('--medium')
   else:
     cmd.append('--small')
-  with api.step.context({'cwd': infra_dir}):
-    api.step('run_unittests', cmd, env=env)
+  with api.step.context({'cwd': infra_dir.join('res', 'js')}):
+    api.step('npm', ['npm', 'install'], env=env)
+    api.step('test', ['xvfb-run', '--auto-servernum', '--server-args', '"-screen 0 1280x1024x24"',
+                      'node_modules/karma/bin/karma', '--no-single-run', 'start', 'karma.conf.js'], env=env)
+    #api.step('run_unittests', cmd, env=env)
 
 
 def GenTests(api):
