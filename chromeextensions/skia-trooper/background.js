@@ -4,17 +4,30 @@
 
 function updateIcon() {
   var xmlHttp = new XMLHttpRequest();
-  xmlHttp.open("GET", "https://alerts.skia.org/json/alerts/", true);
+  xmlHttp.open("GET", "https://promalerts.skia.org/api/v1/alerts/groups", true);
   xmlHttp.timeout = 5000;
   xmlHttp.onload = function(e) {
     if (xmlHttp.readyState === XMLHttpRequest.DONE && xmlHttp.status === 200) {
-      var alerts = JSON.parse(xmlHttp.responseText);
       var numActiveInfraAlerts = 0;
-      for (var i = 0; i < alerts.length; i++) {
-        if (alerts[i]["category"] == "infra" && alerts[i]["snoozedUntil"] == 0) {
-          numActiveInfraAlerts++;
+
+      var resp = JSON.parse(xmlHttp.responseText);
+      var alertGroups = resp.data;
+      alertGroups.forEach(function(alertGroup) {
+        if (!alertGroup.blocks) {
+          return;
         }
-      }
+        alertGroup.blocks.forEach(function(block) {
+          block.alerts.forEach(function(al) {
+            if (al.labels.category != "infra") {
+              return;
+            }
+            if (al.silenced) {
+              return;
+            }
+            numActiveInfraAlerts++;
+          });
+        });
+      });
       chrome.browserAction.setIcon({path:"bell.png"});
       chrome.browserAction.setTitle({title:"Alerts for Skia Troopers"});
       chrome.browserAction.setBadgeText({text: String(numActiveInfraAlerts)});
