@@ -30,7 +30,4 @@ func RuntimeMetrics() {
 			numGoroutine.Update(int64(runtime.NumGoroutine()))
 		}
 	}()
-
-	// App uptime.
-	_ = NewLiveness("uptime", nil)
 }
