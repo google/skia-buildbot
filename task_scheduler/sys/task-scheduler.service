@@ -9,8 +9,6 @@ ExecStart=/usr/local/bin/task_scheduler \
     --host=task-scheduler.skia.org \
     --logtostderr \
     --workdir=/mnt/pd0/task_scheduler_workdir \
-    --influxdb_host=skia-monitoring:10117 \
-    --influxdb_database=skmetrics \
     --resources_dir=/usr/local/share/task-scheduler/
 Restart=always
 User=default

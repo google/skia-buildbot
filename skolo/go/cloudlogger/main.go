@@ -7,37 +7,28 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/skolo/go/logagents"
 	"go.skia.org/infra/skolo/go/logparser"
 )
 
 var (
-	rolloverLogs   = common.NewMultiStringFlag("rollover_logs", nil, "A set of log file paths that may roll over.  e.g. supply run_isolated.log to monitor run_isolated.log and run_isolated.log.1")
-	persistenceDir = flag.String("persistence_dir", "/var/cloudlogger", "The directory in which persistence data regarding the logging progress should be kept.")
-
-	pollPeriod = flag.Duration("poll_period", 1*time.Minute, `The period used to poll the log files`)
-
-	influxHost         = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser         = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword     = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxDatabase     = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	persistenceDir     = flag.String("persistence_dir", "/var/cloudlogger", "The directory in which persistence data regarding the logging progress should be kept.")
+	pollPeriod         = flag.Duration("poll_period", 1*time.Minute, `The period used to poll the log files`)
+	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	rolloverLogs       = common.NewMultiStringFlag("rollover_logs", nil, "A set of log file paths that may roll over.  e.g. supply run_isolated.log to monitor run_isolated.log and run_isolated.log.1")
 	serviceAccountPath = flag.String("service_account_path", "", "Path to the service account.  Can be empty string to use defaults or project metadata")
 )
 
 func main() {
 	defer common.LogPanic()
-	common.InitExternalWithMetrics2("cloudlogger", influxHost, influxUser, influxPassword, influxDatabase)
 
-	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountPath, nil, sklog.CLOUD_LOGGING_WRITE_SCOPE)
-	if err != nil {
-		sklog.Fatalf("Failed to create authenticated HTTP client: %s\nDid you run get_service_account?", err)
-	}
-
-	common.StartCloudLoggingWithClient(client, "skolo-raspberry-pis", "cloudlogger")
+	common.InitWithMust(
+		"cloudlogger",
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingJWTOpt(serviceAccountPath),
+	)
 
 	if err := logagents.SetPersistenceDir(*persistenceDir); err != nil {
 		sklog.Fatalf("Could not set Persistence Dir: %s", err)

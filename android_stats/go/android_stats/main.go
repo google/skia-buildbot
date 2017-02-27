@@ -11,7 +11,6 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 )
@@ -23,12 +22,8 @@ const (
 var (
 	frequency   = flag.String("frequency", "1m", "How often to send data.")
 	local       = flag.Bool("local", false, "Whether or not we're running in local testing mode.")
+	promPort    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	statsScript = flag.String("stats_script", "", "Script to run which generates stats.")
-
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
 // reportStats drills down recursively until it hits a non-map value,
@@ -56,7 +51,7 @@ func reportStats(device, serial, stat string, val interface{}) {
 }
 
 // generateStats runs the statistics generation script, parses its output, and
-// reports the data into InfluxDB.
+// reports the data into metrics.
 //
 // The script produces data in this format:
 // {
@@ -103,7 +98,11 @@ func generateStats() error {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics2("android_stats", influxHost, influxUser, influxPassword, influxDatabase, local)
+	common.InitWithMust(
+		"android_stats",
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
 
 	if *statsScript == "" {
 		sklog.Fatal("You must provide --stats_script.")

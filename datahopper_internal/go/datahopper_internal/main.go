@@ -38,7 +38,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/metrics2"
@@ -68,10 +67,6 @@ const (
 var (
 	buildbotDbHost     = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
 	codenameDbDir      = flag.String("codename_db_dir", "codenames", "The location of the leveldb database that holds the mappings between targets and their codenames.")
-	influxDatabase     = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
-	influxHost         = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxPassword     = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxUser         = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	period             = flag.Duration("period", 5*time.Minute, "The time between ingestion runs.")
 	port               = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
@@ -726,7 +721,6 @@ func main() {
 
 	common.InitWithMust(
 		"datahopper_internal",
-		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)
