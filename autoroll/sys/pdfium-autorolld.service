@@ -7,8 +7,6 @@ After=network-online.target
 ExecStart=/usr/local/bin/autoroll \
     --use_metadata=true \
     --host=pdfium-roll.skia.org \
-    --influxdb_database=skmetrics \
-    --influxdb_host=skia-monitoring:10117 \
     --logtostderr \
     --workdir=/mnt/pd0/autoroll_workdir \
     --childName=PDFium \

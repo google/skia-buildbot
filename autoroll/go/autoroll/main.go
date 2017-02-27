@@ -25,7 +25,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/rietveld"
@@ -51,10 +50,6 @@ var (
 	depot_tools    = flag.String("depot_tools", "", "Path to the depot_tools installation. If empty, assumes depot_tools is in PATH.")
 	doGerrit       = flag.Bool("gerrit", false, "Upload to Gerrit instead of Rietveld.")
 	host           = flag.String("host", "localhost", "HTTP service host")
-	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port           = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -184,7 +179,6 @@ func main() {
 	defer common.LogPanic()
 	common.InitWithMust(
 		"autoroll",
-		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)
@@ -235,7 +229,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	// Feed AutoRoll stats into InfluxDB.
+	// Feed AutoRoll stats into metrics.
 	go func() {
 		for _ = range time.Tick(time.Minute) {
 			status := arb.GetStatus(false)

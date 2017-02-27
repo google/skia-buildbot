@@ -6,8 +6,6 @@ After=network-online.target
 [Service]
 ExecStart=/usr/local/bin/fuzzer-be \
   --logtostderr \
-  --influxdb_database=skmetrics \
-  --influxdb_host=skia-monitoring:10117 \
   --skia_root=/mnt/ssd0/skia-be \
   --clang_path=/usr/bin/clang \
   --clang_p_p_path=/usr/bin/clang++ \

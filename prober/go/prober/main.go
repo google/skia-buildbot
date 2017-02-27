@@ -1,6 +1,6 @@
 // Prober is an HTTP prober that periodically sends out HTTP requests to specified
 // endpoints and reports if the returned results match the expectations. The results
-// of the probe, including latency, are recored in InfluxDB using the Carbon protocol.
+// of the probe, including latency, are recored in metrics2.
 // See probers.json as an example of the config file format.
 package main
 
@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -28,15 +27,11 @@ import (
 
 // flags
 var (
-	config         = flag.String("config", "probers.json", "Comma separated names of prober config files.")
-	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
-	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	promPort       = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
-	runEvery       = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
-	testing        = flag.Bool("testing", false, "Set to true for local testing.")
+	config   = flag.String("config", "probers.json", "Comma separated names of prober config files.")
+	local    = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	promPort = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
+	runEvery = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
+	testing  = flag.Bool("testing", false, "Set to true for local testing.")
 )
 
 var (
@@ -295,7 +290,6 @@ func main() {
 	defer common.LogPanic()
 	common.InitWithMust(
 		"probeserver",
-		common.InfluxOpt(influxHost, influxUser, influxPassword, influxDatabase, local),
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)
