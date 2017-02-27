@@ -41,9 +41,7 @@ type Config struct {
 	Verifiers *Verifiers `protobuf:"bytes,3,opt,name=verifiers" json:"verifiers,omitempty"`
 	// URL of the CQ status app to push updates to.
 	CqStatusUrl *string `protobuf:"bytes,4,opt,name=cq_status_url" json:"cq_status_url,omitempty"`
-	// When true, hash of the commit is not posted by CQ. This is used for
-	// projects using gnumbd as latter publishes actual hash later. Default value
-	// is false.
+	// DO NOT USE. Kept here for validator error messages.
 	HideRefInCommittedMsg *bool `protobuf:"varint,5,opt,name=hide_ref_in_committed_msg" json:"hide_ref_in_committed_msg,omitempty"`
 	// Delay between commit bursts in seconds. Default value is 480.
 	CommitBurstDelay *int32 `protobuf:"varint,6,opt,name=commit_burst_delay" json:"commit_burst_delay,omitempty"`
@@ -55,18 +53,17 @@ type Config struct {
 	InProduction *bool `protobuf:"varint,8,opt,name=in_production" json:"in_production,omitempty"`
 	// Configuration options for Rietveld code review.
 	Rietveld *Rietveld `protobuf:"bytes,9,opt,name=rietveld" json:"rietveld,omitempty"`
-	// EXPERIMENTAL! Configuration options for Gerrit code review.
-	// TODO(tandrii): update this doc (GERRIT).
+	// Configuration options for Gerrit code review.
 	Gerrit *Gerrit `protobuf:"bytes,15,opt,name=gerrit" json:"gerrit,omitempty"`
 	// This can be used to override the Git repository URL used to checkout and
 	// commit changes on CQ host. This should only be used in case, when the
 	// source repository is not supported by luci-config (e.g. GitHub).
 	GitRepoUrl *string `protobuf:"bytes,10,opt,name=git_repo_url" json:"git_repo_url,omitempty"`
-	// Target ref to commit to. This can be used to specify a different ref than
-	// the one where the luci config is located. This is useful, e.g. for projects
-	// that use gnumbd where CQ should commit into a pending ref.
+	// DO NOT USE. Kept here for validator error messages
+	// and internal CQ usage (and insanity).
+	// TODO(tandrii): clean insanity internally and update this message.
 	TargetRef *string `protobuf:"bytes,11,opt,name=target_ref" json:"target_ref,omitempty"`
-	// Deprecated. URL of the SVN repository. We are deprecating SVN support.
+	// DO NOT USE. Kept here for validator error messages.
 	SvnRepoUrl *string `protobuf:"bytes,12,opt,name=svn_repo_url" json:"svn_repo_url,omitempty"`
 	// If present, the CQ will refrain from processing any commits whose start
 	// time is >= this time.
@@ -181,11 +178,7 @@ func (m *Config) GetDrainingStartTime() string {
 type Rietveld struct {
 	// Required. URL of the codereview site.
 	Url *string `protobuf:"bytes,1,opt,name=url" json:"url,omitempty"`
-	// List of regular expressions used to check if CL's base URL should be
-	// processed by this CQ. This may be useful if a single branch has multiple
-	// sub-directories that are handled by different CQs. When no regular
-	// expressions are specified, the regular expression '.*', which matches any
-	// directory, is used.
+	// DO NOT USE. Kept here for validator error messages.
 	ProjectBases     []string `protobuf:"bytes,2,rep,name=project_bases" json:"project_bases,omitempty"`
 	XXX_unrecognized []byte   `json:"-"`
 }
@@ -208,14 +201,9 @@ func (m *Rietveld) GetProjectBases() []string {
 	return nil
 }
 
-// Gerrit CQ is EXPERIMENTAL! See http://crbug.com/493899 for more info.
-//
 // Unlike Rietveld, Gerrit doesn't need a separate url.
 // Instead, the git_repo_url must be specified on the Gerrit instance,
 // and CQ will deduce Gerrit url from it.
-//
-// TODO(tandrii): support Rietveld and Gerrit at the same time.
-// This basically requires to start two CQ instances, instead of one.
 //
 // For example, if https://chromium.googlesource.com/infra/infra.git is your
 // repo url provided in `git_repo_url` above, then
@@ -228,14 +216,20 @@ func (m *Rietveld) GetProjectBases() []string {
 // see it. This will come handy to enable and customize the CQ-related workflows
 // for your project.
 type Gerrit struct {
-	// Optional. If set, tells CQ vote on a given label to mark result of CQ run.
-	// The vote is either -1 if failed or 1 on success, and will be given on
+	// Optional. If set, tells CQ to vote on a given label to mark result of CQ
+	// run.  The vote is either -1 if failed or 1 on success, and will be given on
 	// non-dry runs only.
 	// This vote can then be used in Gerrit's rule for submitting issues, so as to
 	// require CQ run. CQ will attempt to submit issue only after setting this
 	// label.
-	CqVerifiedLabel  *string `protobuf:"bytes,1,opt,name=cq_verified_label" json:"cq_verified_label,omitempty"`
-	XXX_unrecognized []byte  `json:"-"`
+	CqVerifiedLabel *string `protobuf:"bytes,1,opt,name=cq_verified_label" json:"cq_verified_label,omitempty"`
+	// Optional and only allowed if cq_verified_label is set. Default: False.
+	// If set, tells CQ to vote on the Verified label even on dry run.
+	// This is useful if CQ has no presubmit builders, as dry run would be
+	// totally equivalent to full run, except that CQ won't try to actually submit
+	// the code.
+	DryRunSetsCqVerifiedLabel *bool  `protobuf:"varint,2,opt,name=dry_run_sets_cq_verified_label" json:"dry_run_sets_cq_verified_label,omitempty"`
+	XXX_unrecognized          []byte `json:"-"`
 }
 
 func (m *Gerrit) Reset()         { *m = Gerrit{} }
@@ -249,15 +243,29 @@ func (m *Gerrit) GetCqVerifiedLabel() string {
 	return ""
 }
 
+func (m *Gerrit) GetDryRunSetsCqVerifiedLabel() bool {
+	if m != nil && m.DryRunSetsCqVerifiedLabel != nil {
+		return *m.DryRunSetsCqVerifiedLabel
+	}
+	return false
+}
+
 // Verifiers are various types of checks that a Commit Queue performs on a CL.
 // All verifiers must pass in order for a CL to be landed. Configuration file
 // describes types of verifiers that should be applied to each CL and their
 // parameters.
 type Verifiers struct {
-	// This verifier is used to ensure that an LGTM was posted to the code review
-	// site from a valid project committer.
-	// This verifier is not supported with Gerrit.
+	// [Rietveld only] This verifier is used to ensure that an LGTM was posted to
+	// the code review site from a valid project committer. It also validates
+	// ability of non-committers to trigger CQ, which for Gerrit is done by
+	// GerritCQAbilityVerifier.
 	ReviewerLgtm *Verifiers_ReviewerLgtmVerifier `protobuf:"bytes,1,opt,name=reviewer_lgtm" json:"reviewer_lgtm,omitempty"`
+	// [Gerrit only] GerritCQAbilityVerifier ensures that a user who triggered
+	// this CQ attempt has actually rights to do so based on 3 factors:
+	//  * membership of the user in committers & dryrunners group,
+	//  * the state of CL/patchset on which CQ is triggered,
+	//  * relationship of the user to the CL.
+	GerritCqAbility *Verifiers_GerritCQAbilityVerifier `protobuf:"bytes,5,opt,name=gerrit_cq_ability" json:"gerrit_cq_ability,omitempty"`
 	// This verifier is used to check tree status before committing a CL. If the
 	// tree is closed, then the verifier will wait until it is reopened.
 	TreeStatus *Verifiers_TreeStatusLgtmVerifier `protobuf:"bytes,2,opt,name=tree_status" json:"tree_status,omitempty"`
@@ -279,6 +287,13 @@ func (*Verifiers) ProtoMessage()    {}
 func (m *Verifiers) GetReviewerLgtm() *Verifiers_ReviewerLgtmVerifier {
 	if m != nil {
 		return m.ReviewerLgtm
+	}
+	return nil
+}
+
+func (m *Verifiers) GetGerritCqAbility() *Verifiers_GerritCQAbilityVerifier {
+	if m != nil {
+		return m.GerritCqAbility
 	}
 	return nil
 }
@@ -351,6 +366,37 @@ func (m *Verifiers_ReviewerLgtmVerifier) GetNoLgtmMsg() string {
 }
 
 func (m *Verifiers_ReviewerLgtmVerifier) GetDryRunAccessList() string {
+	if m != nil && m.DryRunAccessList != nil {
+		return *m.DryRunAccessList
+	}
+	return ""
+}
+
+type Verifiers_GerritCQAbilityVerifier struct {
+	// Required. Name of the chrome-infra-auth group, which contains the list of
+	// identities authorized to trigger CQ runs on any CLs in this project.
+	CommitterList *string `protobuf:"bytes,1,opt,name=committer_list" json:"committer_list,omitempty"`
+	// Optional, but strongly recommended. Name of the chrome-infra-auth group,
+	// which contains the list of identities authorized to trigger CQ dry run
+	// on Gerrit CLs they own (not to be confused with OWNER files) even if CL
+	// hasn't been approved.
+	// This is usually the same group as tryjob-access.
+	DryRunAccessList *string `protobuf:"bytes,4,opt,name=dry_run_access_list" json:"dry_run_access_list,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (m *Verifiers_GerritCQAbilityVerifier) Reset()         { *m = Verifiers_GerritCQAbilityVerifier{} }
+func (m *Verifiers_GerritCQAbilityVerifier) String() string { return proto.CompactTextString(m) }
+func (*Verifiers_GerritCQAbilityVerifier) ProtoMessage()    {}
+
+func (m *Verifiers_GerritCQAbilityVerifier) GetCommitterList() string {
+	if m != nil && m.CommitterList != nil {
+		return *m.CommitterList
+	}
+	return ""
+}
+
+func (m *Verifiers_GerritCQAbilityVerifier) GetDryRunAccessList() string {
 	if m != nil && m.DryRunAccessList != nil {
 		return *m.DryRunAccessList
 	}
