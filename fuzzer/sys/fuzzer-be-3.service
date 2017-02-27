@@ -1,0 +1,37 @@
+[Unit]
+Description=Fuzzer backend
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/fuzzer-be \
+  --logtostderr \
+  --influxdb_database=skmetrics \
+  --influxdb_host=skia-monitoring:10117 \
+  --skia_root=/mnt/ssd0/skia-be \
+  --clang_path=/usr/bin/clang \
+  --clang_p_p_path=/usr/bin/clang++ \
+  --depot_tools_path=/mnt/ssd0/depot_tools \
+  --afl_root=/mnt/ssd0/afl \
+  --afl_output_path=/mnt/ssd0/fuzzes/afl-out \
+  --fuzz_samples=/mnt/ssd0/fuzzes/samples \
+  --generator_working_dir=/mnt/ssd0/generator-wd \
+  --aggregator_working_dir=/mnt/ssd0/aggregator-wd \
+  --executable_cache_path=/mnt/ssd0/executable_cache \
+  --fuzz_path=/mnt/ssd0/fuzzes \
+  --status_period=10s \
+  --architecture=linux_x64 \
+  --binary_fuzz_processes=8 \
+  --analysis_processes=24 \
+  --upload_processes=32 \
+  --download_processes=32 \
+  --fuzz_to_run=pdf_canvas \
+  --fuzz_to_run=n32_canvas \
+  --fuzz_to_run=null_canvas
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

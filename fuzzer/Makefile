@@ -19,6 +19,7 @@ fe_release: all
 be_release: all
 	CONFIG=1 ./build_be_release "`git log -n1 --format=%s`"
 	CONFIG=2 ./build_be_release "`git log -n1 --format=%s`"
+	CONFIG=3 ./build_be_release "`git log -n1 --format=%s`"
 
 release: all fe_release be_release
 	echo
