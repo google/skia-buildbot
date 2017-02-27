@@ -65,6 +65,13 @@ ALERT DiskSpaceLow
     description = "Free space has fallen below 100MB on {{ $labels.host }} drive {{ $labels.resource}}.",
   }
 
+ALERT DirtyPackages
+  IF avg_over_time(dirty_packages[25h]) > 1
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    description = "One or more dirty packages have been running for more than 24 hours. https://push.skia.org",
+  }
+
 # CT
 ALERT CTPollerHealthCheck
   IF healthy{instance="skia-ct-master:20000",job="ct-poller"} != 1
