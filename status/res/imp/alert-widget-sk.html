@@ -185,6 +185,8 @@
         else {
         url += "?excludeCategory=infra";
       }
+      /*
+      TODO(jcgregorio) Re-enable with calls to Prometheus.
       sk.get(url).then(JSON.parse).then(function(alerts) {
         this.set("_allAlerts", alerts);
         this.async(this._reload, this.reload*1000);
@@ -192,6 +194,7 @@
         sk.errorMessage(err);
         this.async(this._reload, this.reload*1000);
       }.bind(this));
+      */
     },
 
     _statusIcon:function(status) {
