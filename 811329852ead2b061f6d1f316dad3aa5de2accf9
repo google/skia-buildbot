@@ -22,6 +22,30 @@
       "revId": "811329852ead2b061f6d1f316dad3aa5de2accf9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25aba529_56d8301d",
+        "filename": "go/metrics2/counter.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-02-28T20:46:30Z",
+      "side": 1,
+      "message": "The code deleted here is just the influx impl, the prom impl is here:\n\n  https://github.com/google/skia-buildbot/blob/master/go/metrics2/prom.go#L84\n\nI could move GetCounter into metrics_utils.go which may make more sense.",
+      "parentUuid": "5f7ac464_3453444a",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 16
+      },
+      "revId": "811329852ead2b061f6d1f316dad3aa5de2accf9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
