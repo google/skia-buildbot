@@ -26,12 +26,6 @@ const (
 	GMAIL_CLIENT_ID     = "gmail_clientid"
 	GMAIL_CLIENT_SECRET = "gmail_clientsecret"
 
-	// INFLUXDB_* values are used for accessing InfluxDB.
-	INFLUXDB_NAME     = "influxdb_name"
-	INFLUXDB_PASSWORD = "influxdb_password"
-	INFLUXDB_HOST     = "influxdb_host"
-	INFLUXDB_DATABASE = "influxdb_database"
-
 	// DATABASE_RW_PASSWORD and DATABASE_ROOT_PASSWORD are the MySQL Database passwords for the
 	// readwrite and root user respectively.
 	DATABASE_RW_PASSWORD   = "database_readwrite"
