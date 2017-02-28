@@ -67,15 +67,4 @@ functions.  It does not accept any parameters because it automatically fills in
 the function name and package name in the tags.  Just do defer
 metrics2.FuncTimer().Stop() at the beginning of the function.
 
-Raw Data Insertion
-------------------
-
-In addition to the above helpers, you can also insert data directly, without
-the use of a helper.  There is a single function, RawAddInt64PointAtTime, which
-may be called to add a single point with a given measurement name, tag set, and
-timestamp.  This is useful for event-based measurements, or when none of the
-above helpers are appropriate.  You should avoid using this unless you
-absolutely need it, since it does not play by the same rules as the other
-metrics types.
-
 */

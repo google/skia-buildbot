@@ -18,7 +18,7 @@ The client_id and client_secret come from here:
 
 Look for the Client ID that has a Redirect URI for mon.skia.org.
 
-For 'cookiesalt' and the influx db values search for 'skiamonitor' in valentine.
+For 'cookiesalt' search for 'skiamonitor' in valentine.
 
 The gmail_clientid and gmail_clientsecret come from here:
 

@@ -2,16 +2,12 @@
 package metrics2
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/skia-dev/glog"
-
-	"go.skia.org/infra/go/influxdb"
 )
 
 // Timer is a struct used for measuring elapsed time. Unlike the other metrics
@@ -116,45 +112,12 @@ type Client interface {
 }
 
 var (
-	defaultInfluxClient *influxClient = &influxClient{
-		aggMetrics:      map[string]*aggregateMetric{},
-		counters:        map[string]*counter{},
-		metrics:         map[string]*rawMetric{},
-		reportFrequency: time.Minute,
-	}
-	defaultClient Client = defaultInfluxClient
+	defaultClient Client = newPromClient()
 )
 
 // GetDefaultClient returns the default Client.
 func GetDefaultClient() Client {
 	return defaultClient
-}
-
-// Init() initializes the metrics package.
-func Init(appName string, influxDbClient *influxdb.Client) error {
-	hostName, err := os.Hostname()
-	if err != nil {
-		return fmt.Errorf("Unable to retrieve hostname: %s", err)
-	}
-	tags := map[string]string{
-		"app":  appName,
-		"host": hostName,
-	}
-	clientI, err := NewClient(influxDbClient, tags, DEFAULT_REPORT_FREQUENCY)
-	if err != nil {
-		return err
-	}
-	c := clientI.(*influxClient)
-	// Some metrics may already be registered with defaultInfluxClient. Copy them
-	// over.
-	c.aggMetrics = defaultInfluxClient.aggMetrics
-	c.counters = defaultInfluxClient.counters
-	c.metrics = defaultInfluxClient.metrics
-
-	// Set the default client.
-	defaultClient = c
-	defaultInfluxClient = c
-	return nil
 }
 
 // InitPrometheus initializes metrics to be reported to Prometheus.
@@ -166,93 +129,4 @@ func InitPrometheus(port string) {
 	go func() {
 		glog.Fatal(http.ListenAndServe(port, r))
 	}()
-	defaultClient = newPromClient()
-	defaultInfluxClient = nil
-}
-
-// InitPromInflux initializes metrics to be reported to both InfluxDB and Prometheus.
-//
-// port - string, The port on which to serve the metrics, e.g. ":10110".
-func InitPromInflux(appName string, influxDbClient *influxdb.Client, port string) error {
-	if err := Init(appName, influxDbClient); err != nil {
-		return fmt.Errorf("Failed to Init Influx metrics: %s", err)
-	}
-	influxClient := defaultClient
-	InitPrometheus(port)
-	promClient := defaultClient
-	var err error
-	defaultClient, err = newMuxClient([]Client{promClient, influxClient})
-	if err != nil {
-		return fmt.Errorf("Failed to create MuxClient: %s", err)
-	}
-	return nil
-}
-
-// InitPromMaybeInflux initalizes Prometheus metrics and also checks if
-// InfluxDB metrics are also being used, and if so then metrics are sent to
-// both metrics packages.
-//
-// CLIENTS SHOULD NOT CALL InitPromMaybeInflux directly. Instead use common.InitWith().
-func InitPromMaybeInflux(port string) error {
-	// We always start with influx as the defaultClient, but if it's
-	// not been initialized with a working client by now we know that
-	// we aren't using influx, so we can just overwrite the default client,
-	// otherwise we need to construct a mux client that records the metrics
-	// into both prom and influx.
-	if inf, ok := defaultClient.(*influxClient); ok && inf.influxDbClient == nil {
-		InitPrometheus(port)
-	} else {
-		influxClient := defaultClient
-		InitPrometheus(port)
-
-		promClient := defaultClient
-		var err error
-		defaultClient, err = newMuxClient([]Client{promClient, influxClient})
-		if err != nil {
-			return fmt.Errorf("Failed to create MuxClient: %s", err)
-		}
-	}
-	return nil
-}
-
-// NewClient returns a Client which uses the given influxdb.Client to push data.
-// defaultTags specifies a set of default tag keys and values which are applied
-// to all data points. reportFrequency specifies how often metrics should create
-// data points.
-func NewClient(influxDbClient *influxdb.Client, defaultTags map[string]string, reportFrequency time.Duration) (Client, error) {
-	values, err := influxDbClient.NewBatchPoints()
-	if err != nil {
-		return nil, err
-	}
-	c := &influxClient{
-		aggMetrics:      map[string]*aggregateMetric{},
-		counters:        map[string]*counter{},
-		influxDbClient:  influxDbClient,
-		defaultTags:     defaultTags,
-		metrics:         map[string]*rawMetric{},
-		reportFrequency: reportFrequency,
-		values:          values,
-	}
-	go func() {
-		for _ = range time.Tick(PUSH_FREQUENCY) {
-			byMeasurement, err := c.pushData()
-			if err != nil {
-				glog.Errorf("Failed to push data into InfluxDB: %s", err)
-			} else {
-				total := int64(0)
-				for k, v := range byMeasurement {
-					c.GetInt64Metric("metrics.points-pushed.by-measurement", map[string]string{"measurement": k}).Update(v)
-					total += v
-				}
-				c.GetInt64Metric("metrics.points-pushed.total", nil).Update(total)
-			}
-		}
-	}()
-	go func() {
-		for _ = range time.Tick(reportFrequency) {
-			c.collectMetrics()
-			c.collectAggregateMetrics()
-		}
-	}()
-	return c, nil
 }

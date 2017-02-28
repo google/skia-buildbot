@@ -20,7 +20,7 @@
 # If BYPASS_GENERATION is set then we know that the caller has created or
 # copied in the debian file themselves, and we are to use it as-is. This is
 # useful in cases where we are installing software that the author has already
-# provided a debian package for, for example influxdb.
+# provided a debian package for, for example grafana.
 #
 # BYPASS_UPLOAD
 # -------------

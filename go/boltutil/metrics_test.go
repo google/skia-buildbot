@@ -3,14 +3,10 @@ package boltutil
 import (
 	"io/ioutil"
 	"path/filepath"
-	"sync"
 	"testing"
-	"time"
 
 	"github.com/boltdb/bolt"
-	influx_client "github.com/skia-dev/influxdb/client/v2"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -18,6 +14,7 @@ import (
 
 func TestDbMetric(t *testing.T) {
 	testutils.SmallTest(t)
+
 	tmpdir, err := ioutil.TempDir("", "TestDbMetric")
 	assert.NoError(t, err)
 	defer util.RemoveAll(tmpdir)
@@ -46,56 +43,16 @@ func TestDbMetric(t *testing.T) {
 		return nil
 	}))
 
-	appname := "TestDbMetricABC"
 	database := "TestDbMetricDEF"
 
-	mtx := sync.Mutex{} // Protects seenMetrics.
-	seenMetrics := map[string]bool{}
-
-	checkBatchPoints := func(bp influx_client.BatchPoints) error {
-		localSeenMetrics := []string{}
-		for _, p := range bp.Points() {
-			t.Log(p.String())
-			if !util.In(p.Name(), []string{"bolt_bucket", "bolt_db", "bolt_tx"}) {
-				continue
-			}
-			tags := p.Tags()
-			assert.Equal(t, appname, tags["appname"])
-			assert.Equal(t, database, tags["database"])
-			metricName := tags["metric"]
-			assert.NotEqual(t, "", metricName)
-			localSeenMetrics = append(localSeenMetrics, metricName)
-			if metricName == "KeyCount" {
-				bucket, ok := tags["bucket-path"]
-				assert.True(t, ok)
-				localSeenMetrics = append(localSeenMetrics, metricName+bucket)
-				assert.True(t, bucket == "A" || bucket == "B")
-			}
-			// BoldDB updates Stats asynchronously, so we can't assert on the values of the metrics.
-		}
-		mtx.Lock()
-		defer mtx.Unlock()
-		for _, m := range localSeenMetrics {
-			seenMetrics[m] = true
-		}
-		return nil
-	}
-
-	testInfluxClient := influxdb.NewTestClientWithMockWrite(checkBatchPoints)
-	client, err := metrics2.NewClient(testInfluxClient, map[string]string{"appname": appname}, time.Millisecond)
-	assert.NoError(t, err)
-
+	client := metrics2.GetDefaultClient()
 	m, err := NewDbMetricWithClient(client, boltdb, []string{"A", "B"}, map[string]string{"database": database})
 	assert.NoError(t, err)
 
-	assert.NoError(t, client.Flush())
-
-	mtx.Lock()
-	assert.True(t, len(seenMetrics) > 0)
-	for _, metric := range []string{"TxCount", "WriteCount", "WriteNs", "KeyCountA", "KeyCountB"} {
-		assert.True(t, seenMetrics[metric], "Still missing %q", metric)
-	}
-	mtx.Unlock()
+	assert.NotZero(t, client.GetInt64Metric("bolt_tx", map[string]string{"metric": "WriteCount", "database": database}).Get())
+	assert.NotZero(t, client.GetInt64Metric("bolt_tx", map[string]string{"metric": "WriteNs", "database": database}).Get())
+	assert.Equal(t, int64(2), client.GetInt64Metric("bolt_bucket", map[string]string{"metric": "KeyCount", "database": database, "bucket_path": "A"}).Get())
+	assert.Equal(t, int64(1), client.GetInt64Metric("bolt_bucket", map[string]string{"metric": "KeyCount", "database": database, "bucket_path": "B"}).Get())
 
 	assert.NoError(t, m.Delete())
 }

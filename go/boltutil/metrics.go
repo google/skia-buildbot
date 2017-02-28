@@ -9,6 +9,10 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
+const (
+	DEFAULT_REPORT_FREQUENCY = time.Minute
+)
+
 // TxStatsMetric contains sub-metrics for each field of the bolt.TxStats from
 // bolt.DB.Stats(). Create via NewDbMetric.
 //
@@ -278,7 +282,7 @@ func NewDbMetricWithClient(c metrics2.Client, d *bolt.DB, bucketNames []string, 
 	}
 	m.Liveness.Reset()
 	go func() {
-		t := time.Tick(metrics2.DEFAULT_REPORT_FREQUENCY)
+		t := time.Tick(DEFAULT_REPORT_FREQUENCY)
 		for {
 			select {
 			case <-m.stop:

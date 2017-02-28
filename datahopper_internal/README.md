@@ -18,9 +18,6 @@ service account.
 
 ### Running locally
 
-You will need to install InfluxDB locally and configure it using the
-configuration in ../influxdb/influxdb-config.toml.
-
 You will also need a file named "service-account.json" in the CWD containing the
 value of the
 [GCE metadata key jwt_service_account](https://console.cloud.google.com/project/31977622648/compute/metadata).

@@ -354,7 +354,7 @@ server {
 }
 
 #####   metrics.skia.org   ###########################
-# This rule allows Skolo and Golo bots to report influxdb metrics over https.
+# This rule allows Skolo and Golo bots to report graphite metrics over https.
 server {
     listen      443;
     server_name metrics.skia.org;

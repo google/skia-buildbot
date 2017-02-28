@@ -10,7 +10,7 @@ import (
 )
 
 // rebootMonitoringInit checks once a minute if the machine needs to be
-// rebooted and stuffs that information into influx.
+// rebooted and stuffs that information into metrics.
 func rebootMonitoringInit() {
 	name, err := os.Hostname()
 	if err != nil {

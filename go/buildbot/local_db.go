@@ -483,28 +483,10 @@ func deleteBuild(tx *bolt.Tx, id BuildID) error {
 	return nil
 }
 
-// recordBuildIngestLatency pushes the latency between the time that the build
-// started and the time when it was first ingested into metrics.
-func recordBuildIngestLatency(b *Build) {
-	// Measure the time between build start and first DB insertion.
-	latency := time.Now().Sub(b.Started)
-	if latency > INGEST_LATENCY_ALERT_THRESHOLD {
-		// This is probably going to trigger an alert. Log the build for debugging.
-		sklog.Warningf("Build start to ingestion latency is greater than %s (%s): %s %s #%d", INGEST_LATENCY_ALERT_THRESHOLD, latency, b.Master, b.Builder, b.Number)
-	}
-	metrics2.RawAddInt64PointAtTime("buildbot.ingest.latency", map[string]string{
-		"master":  b.Master,
-		"builder": b.Builder,
-		"number":  strconv.Itoa(b.Number),
-	}, int64(latency), time.Now())
-}
-
 // putBuild inserts the build into the database, replacing any previous version.
 func (d *localDB) putBuild(tx *bolt.Tx, b *Build) error {
 	id := b.Id()
-	if tx.Bucket(BUCKET_BUILDS).Get(id) == nil {
-		recordBuildIngestLatency(b)
-	} else {
+	if tx.Bucket(BUCKET_BUILDS).Get(id) != nil {
 		if err := deleteBuild(tx, id); err != nil {
 			return err
 		}
@@ -516,9 +498,7 @@ func (d *localDB) putBuild(tx *bolt.Tx, b *Build) error {
 func (d *localDB) putBuilds(tx *bolt.Tx, builds []*Build) error {
 	for _, b := range builds {
 		id := b.Id()
-		if tx.Bucket(BUCKET_BUILDS).Get(id) == nil {
-			recordBuildIngestLatency(b)
-		} else {
+		if tx.Bucket(BUCKET_BUILDS).Get(id) != nil {
 			if err := deleteBuild(tx, id); err != nil {
 				return err
 			}
