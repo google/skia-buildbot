@@ -6,12 +6,19 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/testutils"
 )
 
 func TestTrybotResults(t *testing.T) {
 	testutils.SmallTest(t)
+	port := ":0"
+	common.InitWithMust(
+		"autoroll",
+		common.PrometheusOpt(&port),
+	)
+
 	// Create a fake roll with one in-progress trybot.
 	roll := &AutoRollIssue{
 		Closed:            false,

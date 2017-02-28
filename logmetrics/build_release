@@ -1,7 +1,7 @@
 #!/bin/bash
 # Builds and uploads a debian package for logmetrics.
 APPNAME=logmetrics
-DESCRIPTION="Application to create influxdb metrics from logs queries."
+DESCRIPTION="Application to create metrics from logs queries."
 SYSTEMD=${APPNAME}.service
 
 # Copy files into the right locations in ${ROOT}.
