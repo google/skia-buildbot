@@ -12,6 +12,7 @@ import (
 
 func TestTrybotResults(t *testing.T) {
 	testutils.SmallTest(t)
+
 	// Create a fake roll with one in-progress trybot.
 	roll := &AutoRollIssue{
 		Closed:            false,
