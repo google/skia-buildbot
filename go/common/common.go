@@ -12,7 +12,6 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/influxdb_init"
 	"go.skia.org/infra/go/metrics2"
 
 	"github.com/BurntSushi/toml"
@@ -57,50 +56,6 @@ func Init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
-// InitWithMetrics2 runs normal Init functions as well as tracking runtime metrics.
-// It sets up metrics push into InfluxDB. The influx* arguments are ignored and read from metadata
-// unless *skipMetadata is true.
-func InitWithMetrics2(appName string, influxHost, influxUser, influxPassword, influxDatabase *string, skipMetadata *bool) {
-	Init()
-	StartMetrics2(appName, influxHost, influxUser, influxPassword, influxDatabase, *skipMetadata)
-}
-
-// InitExternalWithMetrics2 runs normal Init functions as well as tracking runtime metrics.
-// It sets up metrics push into InfluxDB. The influx* arguments are always used.
-func InitExternalWithMetrics2(appName string, influxHost, influxUser, influxPassword, influxDatabase *string) {
-	Init()
-	StartMetrics2(appName, influxHost, influxUser, influxPassword, influxDatabase, true)
-}
-
-// InitWithCloudLogging runs normal Init functions, and tracks runtime metrics. It uses Cloud Logging
-// if skipMetadata is false. The influx* arguments are ignored and read from metadata
-// unless *skipMetadata is true.
-// InitWithCloudLogging should be called before the program creates any go routines such that all
-// subsequent logs are properly sent to the Cloud.
-func InitWithCloudLogging(appName string, influxHost, influxUser, influxPassword, influxDatabase *string, skipMetadata *bool) {
-	Init()
-	StartMetrics2(appName, influxHost, influxUser, influxPassword, influxDatabase, *skipMetadata)
-	// disable cloud logging when run locally.
-	if !*skipMetadata {
-		StartCloudLogging(appName)
-	}
-}
-
-// StartMetrics2 starts tracking runtime metrics and sets up metrics push into InfluxDB. The
-// influx* arguments are ignored and read from metadata unless skipMetadata is true.
-func StartMetrics2(appName string, influxHost, influxUser, influxPassword, influxDatabase *string, skipMetadata bool) {
-	influxClient, err := influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, skipMetadata)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	if err := metrics2.Init(appName, influxClient); err != nil {
-		sklog.Fatal(err)
-	}
-
-	// Start runtime metrics.
-	metrics2.RuntimeMetrics()
-}
-
 // StartCloudLogging initializes cloud logging. It is assumed to be running in GCE where the
 // project metadata has the sklog.CLOUD_LOGGING_WRITE_SCOPE set. It exits fatally if anything
 // goes wrong. InitWithCloudLogging should be called before the program creates any go routines
@@ -128,7 +83,7 @@ func StartCloudLogging(logName string) {
 // such that all subsequent logs are properly sent to the Cloud.
 func StartCloudLoggingWithClient(authClient *http.Client, logGrouping, defaultReport string) {
 	// Initialize all severity counters to 0, otherwise uncommon logs (like Error), won't
-	// be in InfluxDB at all.
+	// be in metrics at all.
 	initSeverities := []string{sklog.INFO, sklog.WARNING, sklog.ERROR}
 	for _, severity := range initSeverities {
 		metrics2.GetCounter("num_log_lines", map[string]string{"level": severity, "log_source": defaultReport}).Reset()
