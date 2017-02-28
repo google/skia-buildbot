@@ -159,7 +159,7 @@ func PrometheusOpt(port *string) Opt {
 
 func (o *promInitOpt) preinit(appName string) error {
 	glog.Info("prom preinit")
-	return metrics2.InitPromMaybeInflux(*o.port)
+	return metrics2.InitPrometheus(*o.port)
 }
 
 func (o *promInitOpt) init(appName string) error {
