@@ -83,19 +83,27 @@ func (m *promFloat64Summary) Observe(v float64) {
 
 // promCounter implements the Counter interface.
 type promCounter struct {
-	promInt64
+	pi *promInt64
+}
+
+func (pc *promCounter) Get() int64 {
+	return pc.pi.Get()
 }
 
 func (pc *promCounter) Inc(i int64) {
-	pc.Update(pc.Get() + i)
+	pc.pi.Update(pc.pi.Get() + i)
 }
 
 func (pc *promCounter) Dec(i int64) {
-	pc.Update(pc.Get() - i)
+	pc.pi.Update(pc.pi.Get() - i)
 }
 
 func (pc *promCounter) Reset() {
-	pc.Update(0)
+	pc.pi.Update(0)
+}
+
+func (pc *promCounter) Delete() error {
+	return nil
 }
 
 // promClient implements the Client interface.
@@ -211,7 +219,7 @@ func (p *promClient) GetInt64Metric(name string, tags ...map[string]string) Int6
 func (p *promClient) GetCounter(name string, tags ...map[string]string) Counter {
 	i64 := p.GetInt64Metric(name, tags...)
 	return &promCounter{
-		promInt64: *(i64.(*promInt64)),
+		pi: (i64.(*promInt64)),
 	}
 }
 
