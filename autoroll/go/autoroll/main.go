@@ -60,6 +60,19 @@ var (
 )
 
 func getSheriff() ([]string, error) {
+	emails, err := getSheriffHelper()
+	if err != nil {
+		return nil, err
+	}
+	if *doGerrit {
+		for i, s := range emails {
+			emails[i] = strings.Replace(s, "google.com", "chromium.org", 1)
+		}
+	}
+	return emails, nil
+}
+
+func getSheriffHelper() ([]string, error) {
 	// If the passed-in sheriff doesn't look like a URL, it's probably an
 	// email address. Use it directly.
 	if _, err := url.ParseRequestURI(*sheriff); err != nil {
