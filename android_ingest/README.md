@@ -48,3 +48,6 @@ both the author and commiter date to the matching timestamp.
 
    GIT_COMMITTER_DATE=1480456484 git commit -m "https://android-ingest.skia.org/r/3529135" --date=1480456484
 
+Use the Android Build API via API's Explorer to find recent build ids:
+
+   https://developers.google.com/apis-explorer/#p/androidbuildinternal/v2beta1/androidbuildinternal.build.list
