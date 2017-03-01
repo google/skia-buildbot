@@ -97,18 +97,18 @@ var fuzzers = map[string]FuzzerInfo{
 		ArgsAfterExecutable: []string{"--type", "icc", "--bytes"},
 	},
 	"n32_canvas": {
-		PrettyName:          "Canvas calls to raster n32 backend",
+		PrettyName:          "Canvas to raster n32 backend",
 		Status:              EXPERIMENTAL_FUZZER,
 		Groomer:             "halcanary",
 		ExtraBugLabels:      nil,
-		ArgsAfterExecutable: []string{"--type", "n32_canvas", "--bytes"},
+		ArgsAfterExecutable: []string{"--type", "api", "--name", "RasterN32Canvas", "--bytes"},
 	},
 	"null_canvas": {
-		PrettyName:          "Canvas calls to null canvas backend",
+		PrettyName:          "Canvas to null canvas backend",
 		Status:              EXPERIMENTAL_FUZZER,
 		Groomer:             "halcanary",
 		ExtraBugLabels:      nil,
-		ArgsAfterExecutable: []string{"--type", "null_canvas", "--bytes"},
+		ArgsAfterExecutable: []string{"--type", "api", "--name", "NullCanvas", "--bytes"},
 	},
 	"path_deserialize": {
 		PrettyName:          "SkPath deserialize",
@@ -118,11 +118,11 @@ var fuzzers = map[string]FuzzerInfo{
 		ArgsAfterExecutable: []string{"--type", "path_deserialize", "--bytes"},
 	},
 	"pdf_canvas": {
-		PrettyName:          "Canvas calls to PDF backend",
+		PrettyName:          "Canvas to PDF backend",
 		Status:              EXPERIMENTAL_FUZZER,
 		Groomer:             "halcanary",
 		ExtraBugLabels:      nil,
-		ArgsAfterExecutable: []string{"--type", "pdf_canvas", "--bytes"},
+		ArgsAfterExecutable: []string{"--type", "api", "--name", "PDFCanvas", "--bytes"},
 	},
 	"region_deserialize": {
 		PrettyName:          "SkRegion deserialize",
