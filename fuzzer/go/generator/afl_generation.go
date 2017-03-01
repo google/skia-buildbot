@@ -181,10 +181,16 @@ func (g *Generator) DownloadSeedFiles(storageClient *storage.Client) error {
 		return fmt.Errorf("Could not create binary seed path %s: %s", seedPath, err)
 	}
 
-	// API fuzzes can all share the same seeds, as they are just random numbers
+	// API fuzzers can all share the same seeds, as they are just random numbers.
+	// EXCEPTION: Canvas fuzzers are pretty slow, so they have their own set of seeds that gets
+	// the fuzzer going much faster. It saves about 3 hours of startup work every time the fuzzers
+	// are restarted.
 	cat := g.Category
 	if strings.HasPrefix(cat, "api_") {
 		cat = "api"
+	}
+	if strings.HasSuffix(cat, "_canvas") {
+		cat = "canvas"
 	}
 	gsFolder := fmt.Sprintf("samples/%s/", cat)
 
