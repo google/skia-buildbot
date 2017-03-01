@@ -57,6 +57,7 @@ scrape_configs:
     static_configs:
       - targets: ['skia-fuzzer-be-1:20000']
       - targets: ['skia-fuzzer-be-2:20000']
+      - targets: ['skia-fuzzer-be-3:20000']
 
   - job_name: 'fuzzer-fe'
     static_configs:
@@ -136,6 +137,7 @@ scrape_configs:
       - targets: ['skia-fiddle:11000']
       - targets: ['skia-fuzzer-be-1:11000']
       - targets: ['skia-fuzzer-be-2:11000']
+      - targets: ['skia-fuzzer-be-3:11000']
       - targets: ['skia-fuzzer-fe:11000']
       - targets: ['skia-gold-pdfium:11000']
       - targets: ['skia-gold-prod:11000']

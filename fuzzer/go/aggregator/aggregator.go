@@ -269,7 +269,7 @@ func (agg *Aggregator) scanHelper(alreadyFoundFuzzes *SortedStringSlice) error {
 		// we have references to where the crashes will be.
 		// TODO(kjlubick), switch to using flock once afl-fuzz implements that upstream.
 		time.Sleep(time.Second)
-		metrics2.GetInt64Metric("fuzzer.fuzzes.newly-found", map[string]string{"category": category, "architecture": config.Generator.Architecture}).Update(int64(len(newlyFound)))
+		metrics2.GetInt64Metric("fuzzer.fuzzes.newly-found", map[string]string{"fuzz_category": category, "architecture": config.Generator.Architecture}).Update(int64(len(newlyFound)))
 		sklog.Infof("%d newly found %s bad fuzzes", len(newlyFound), category)
 		for _, f := range newlyFound {
 			agg.forAnalysis <- analysisPackage{
@@ -388,7 +388,7 @@ func collectFuzzerMetrics() error {
 			}
 			metric := fmt.Sprintf("fuzzer.stats.%s", strings.Replace(m, "_", "-", -1))
 			if match := r.FindStringSubmatch(contents); match != nil {
-				metrics2.GetInt64Metric(metric, map[string]string{"category": category, "architecture": config.Generator.Architecture}).Update(int64(common.SafeAtoi(match[1])))
+				metrics2.GetInt64Metric(metric, map[string]string{"fuzz_category": category, "architecture": config.Generator.Architecture}).Update(int64(common.SafeAtoi(match[1])))
 			}
 		}
 	}
