@@ -151,7 +151,7 @@ func TestChatlBody(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedBody, body)
 
-	expectedBody2 := `*PerfAlert* *Total Alerts Firing*: 2
+	expectedBody2 := `*PerfAlert* [2]
 
   *Firing* At least one untriaged perf cluster has been found. Please visit https://perf.skia.org/t/ to triage.
 

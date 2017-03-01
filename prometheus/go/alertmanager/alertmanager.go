@@ -37,7 +37,7 @@ const (
 
 	alert_chat = `*{{range .GroupLabels}}{{.}}{{end}}*{{ $length := len .Alerts}}{{with index .Alerts 0}}{{ if eq $length 1 }}
   *{{.Status}}* ({{.Labels.severity}}) {{.Annotations.description}}
-{{ else }} *Total Alerts Firing*: {{$length}}
+{{ else }} [{{$length}}]
 
   *{{.Status}}* {{.Annotations.description}}
 
