@@ -58,7 +58,7 @@ func ExecuteCmd(binary string, args, env []string, timeout time.Duration, stdout
 // SyncDir runs "git pull" and "gclient sync" on the specified directory.
 // The revisions map enforces revision/hash for the solutions with the format
 // branch@rev.
-func SyncDir(dir string, revisions map[string]string, additionalArgs []string) error {
+func SyncDir(dir string, revisions map[string]string) error {
 	err := os.Chdir(dir)
 	if err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
@@ -69,7 +69,7 @@ func SyncDir(dir string, revisions map[string]string, additionalArgs []string) e
 			sklog.Warningf("%d. retry for syncing %s", i, dir)
 		}
 
-		err = syncDirStep(revisions, additionalArgs)
+		err = syncDirStep(revisions)
 		if err == nil {
 			break
 		}
@@ -82,13 +82,12 @@ func SyncDir(dir string, revisions map[string]string, additionalArgs []string) e
 	return err
 }
 
-func syncDirStep(revisions map[string]string, additionalArgs []string) error {
+func syncDirStep(revisions map[string]string) error {
 	err := ExecuteCmd(BINARY_GIT, []string{"pull"}, []string{}, GIT_PULL_TIMEOUT, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Error running git pull: %s", err)
 	}
 	syncCmd := []string{"sync", "--force"}
-	syncCmd = append(syncCmd, additionalArgs...)
 	for branch, rev := range revisions {
 		syncCmd = append(syncCmd, "--revision")
 		syncCmd = append(syncCmd, fmt.Sprintf("%s@%s", branch, rev))
@@ -311,8 +310,8 @@ func ValidateSKPs(pathToSkps, pathToPyFiles string) error {
 	close(skpsChannel)
 
 	sklog.Info("Calling remove_invalid_skp.py")
-	// Sync Skia tree. Specify --nohooks otherwise this step could log errors.
-	util.LogErr(SyncDir(SkiaTreeDir, map[string]string{}, []string{"--nohooks"}))
+	// Sync Skia tree.
+	util.LogErr(SyncDir(SkiaTreeDir, map[string]string{}))
 	// Build tools.
 	util.LogErr(BuildSkiaSKPInfo())
 	// Run remove_invalid_skp.py in parallel goroutines.
@@ -525,6 +524,15 @@ func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GcsUtil, totalPages, n
 	return noOutputSlaves, nil
 }
 
+// getRepeatValue returns the defaultValue if "--pageset-repeat" is not specified in benchmarkArgs.
+func GetRepeatValue(benchmarkArgs []string, defaultValue string) {
+	// TODO(rmistry): Make it a constant like USE_LIVE_SITES.
+	// Implement this function.
+	// Add tests.
+	// Submit and test e2e.
+
+}
+
 func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBuildName, chromiumBinary, runID, browserExtraArgs, benchmarkName, targetPlatform, benchmarkExtraArgs, pagesetType string, repeatBenchmark int) error {
 	pagesetBaseName := filepath.Base(fileInfoName)
 	if filepath.Ext(pagesetBaseName) == ".pyc" {
@@ -570,8 +578,8 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 		args = append(args, strings.Fields(benchmarkExtraArgs)...)
 	}
 	timeoutSecs := PagesetTypeToInfo[pagesetType].RunChromiumPerfTimeoutSecs
-	if repeatBenchmark > 0 {
-		// Add the number of times to repeat.
+	// Add the number of times to repeat only if pageset-repeat has not been explicitly specified in benchmarkExtraArgs.
+	if repeatBenchmark > 0 && strings.Contains(benchmarkExtraArgs, "--pageset-repeat") {
 		args = append(args, fmt.Sprintf("--pageset-repeat=%d", repeatBenchmark))
 		// Increase the timeoutSecs if repeats are used.
 		timeoutSecs = timeoutSecs * repeatBenchmark
