@@ -83,7 +83,7 @@ func (m *promFloat64Summary) Observe(v float64) {
 
 // promCounter implements the Counter interface.
 type promCounter struct {
-	promInt64
+	*promInt64
 }
 
 func (pc *promCounter) Inc(i int64) {
@@ -211,7 +211,7 @@ func (p *promClient) GetInt64Metric(name string, tags ...map[string]string) Int6
 func (p *promClient) GetCounter(name string, tags ...map[string]string) Counter {
 	i64 := p.GetInt64Metric(name, tags...)
 	return &promCounter{
-		promInt64: *(i64.(*promInt64)),
+		promInt64: (i64.(*promInt64)),
 	}
 }
 

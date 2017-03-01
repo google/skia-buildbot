@@ -85,6 +85,7 @@ func TestCounter(t *testing.T) {
 	assert.NotNil(t, g)
 
 	g.Inc(3)
+	g = c.GetCounter("c", map[string]string{"some_key": "some-value"})
 	assert.Equal(t, int64(3), g.Get())
 
 	g.Dec(2)
