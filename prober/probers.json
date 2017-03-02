@@ -60,7 +60,7 @@
    "skiamonitor": {
      "url": "https://mon.skia.org",
      "method": "GET",
-     "expected": [200],
+     "expected": [302],
      "body": "",
      "mimetype": ""
    },
@@ -127,7 +127,7 @@
    "skiastatus": {
      "url": "https://status.skia.org",
      "method": "GET",
-     "expected": [200],
+     "expected": [302],
      "body": "",
      "mimetype": ""
    },
@@ -149,14 +149,14 @@
    "skfe-1": {
      "url": "http://skia-skfe-1",
      "method": "GET",
-     "expected": [200],
+     "expected": [301],
      "body": "",
      "mimetype": ""
    },
    "skfe-2": {
      "url": "http://skia-skfe-2",
      "method": "GET",
-     "expected": [200],
+     "expected": [301],
      "body": "",
      "mimetype": ""
    },
@@ -181,122 +181,115 @@
      "body": "",
      "mimetype": ""
    },
-   "skia_ctfe_pulld": {
-     "url": "http://skia-ctfe:10000",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
    "ctfe": {
      "url": "https://ct.skia.org",
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },
    "ctfe_chromium_analysis": {
      "url": "https://ct.skia.org/chromium_analysis/",
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },
    "ctfe_chromium_perf": {
      "url": "https://ct.skia.org/chromium_perf/",
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },
    "ctfe_capture_skps": {
      "url": "https://ct.skia.org/capture_skps/",
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },
    "ctfe_lua_script": {
      "url": "https://ct.skia.org/lua_script/",
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },
    "ctfe_chromium_builds": {
      "url": "https://ct.skia.org/chromium_builds/",
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },
    "ctfe_admin_tasks": {
      "url": "https://ct.skia.org/admin_tasks/",
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },
    "ctfe_queue": {
      "url": "https://ct.skia.org/queue/",
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },
    "ctfe_history": {
      "url": "https://ct.skia.org/history/",
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },
    "ctfe_chromium_analysis_runs": {
      "url": "https://ct.skia.org/chromium_analysis_runs/",
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },
    "ctfe_chromium_perf_runs": {
      "url": "https://ct.skia.org/chromium_perf_runs/",
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },
    "ctfe_capture_skp_runs": {
      "url": "https://ct.skia.org/capture_skp_runs/",
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },
    "ctfe_lua_script_runs": {
      "url": "https://ct.skia.org/lua_script_runs/",
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },
    "ctfe_chromium_builds_runs": {
      "url": "https://ct.skia.org/chromium_builds_runs/",
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },
    "ctfe_recreate_page_sets_runs": {
      "url": "https://ct.skia.org/recreate_page_sets_runs/",
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },
    "ctfe_recreate_webpage_archives_runs": {
      "url": "https://ct.skia.org/recreate_webpage_archives_runs/",
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },
@@ -425,25 +418,27 @@
    "android_ingest": {
      "url": "https://android-ingest.skia.org",
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": "",
      "responsetest": ""
    },
    "prom": {
-     "url": "https://prom.skia.org/metrics",
+     "url": "https://prom.skia.org/",
      "method": "GET",
-     "expected": [200],
+     "expected": [303],
      "body": "",
      "mimetype": "",
      "responsetest": ""
    },
-   "promstatus": {
-     "url": "https://promalerts.skia.org/metrics",
+   "promalerts": {
+     "url": "https://promalerts.skia.org/",
      "method": "GET",
-     "expected": [200],
+     "expected": [303],
      "body": "",
      "mimetype": "",
      "responsetest": ""
    }
+}
+
 }
