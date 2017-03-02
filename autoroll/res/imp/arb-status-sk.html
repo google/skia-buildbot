@@ -315,6 +315,11 @@
 
       _issueURL: function(issue) {
         if (issue) {
+          // TODO(borenet): Remove this hack after all rollers are on Gerrit
+          // and are stable.
+          if (issue.issue > 1000000000) {
+            return "https://codereview.chromium.org/" + issue.issue;
+          }
           if (this.gerritUrl) {
             return this.gerritUrl + "/c/" + issue.issue;
           }
