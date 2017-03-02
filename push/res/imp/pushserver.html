@@ -145,6 +145,7 @@ Displays the server configurations, along with the ability to modify application
                 <td><span class=appName><a href$="https://github.com/google/skia-buildbot/compare/{{fullHash(installed)}}...HEAD">{{short(installed)}}</a></span></td>
                 <td><iron-icon icon$="{{alarmIfNotLatest(installed)}}" title="Out of date."></iron-icon></td>
                 <td><iron-icon icon$="{{warnIfDirty(installed)}}" title="Uncommited changes when the package was built."></iron-icon></td>
+                <td><a href$="{{logsFullURI(server.Name,installed)}}">logs</a></td>
                 <td>
                   <table>
                     <template is="dom-repeat" items="{{servicesOf(installed)}}" as="service">
@@ -334,7 +335,12 @@ Displays the server configurations, along with the ability to modify application
     },
 
     logsURI: function(name) {
-      return "https://" + name + "-10115-proxy.skia.org";
+      return "https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=200&expandAll=false&resource=logging_log%2Fname%2F" + name;
+    },
+
+    logsFullURI: function(name, installed) {
+      var app = installed.split('/')[0];
+      return "https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=200&expandAll=false&resource=logging_log%2Fname%2F" + name + "&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F" + app;
     },
 
   });
