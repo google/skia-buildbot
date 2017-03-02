@@ -248,10 +248,6 @@ type RangeRequest struct {
 // cidRangeHandler accepts a POST'd JSON serialized RangeRequest
 // and returns a serialized JSON slice of cid.CommitDetails.
 func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.NotFound(w, r)
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
 	rr := &RangeRequest{}
 	if err := json.NewDecoder(r.Body).Decode(rr); err != nil {
@@ -326,6 +322,19 @@ func frameStartHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to decode JSON.")
 		return
 	}
+	// Remove all empty queries.
+	q := []string{}
+	for _, s := range fr.Queries {
+		if strings.TrimSpace(s) != "" {
+			q = append(q, s)
+		}
+	}
+	fr.Queries = q
+
+	if len(fr.Formulas) == 0 && len(fr.Queries) == 0 && fr.Keys == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Invalid query."), "Empty queries are not allowed.")
+		return
+	}
 
 	resp := FrameStartResponse{
 		ID: frameRequests.Add(fr),
@@ -386,10 +395,6 @@ func frameResultsHandler(w http.ResponseWriter, r *http.Request) {
 // countHandler takes the POST'd query and runs that against the current
 // dataframe and returns how many traces match the query.
 func countHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.NotFound(w, r)
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := r.ParseForm(); err != nil {
 		httputils.ReportError(w, r, err, "Invalid URL query.")
@@ -417,10 +422,6 @@ func countHandler(w http.ResponseWriter, r *http.Request) {
 // cidHandler takes the POST'd list of dataframe.ColumnHeaders,
 // and returns a serialized slice of vcsinfo.ShortCommit's.
 func cidHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.NotFound(w, r)
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
 	cids := []*cid.CommitID{}
 	if err := json.NewDecoder(r.Body).Decode(&cids); err != nil {
@@ -449,10 +450,6 @@ type ClusterStartResponse struct {
 // running routine is returned to be used in subsequent calls to
 // clusterStatusHandler to check on the status of the work.
 func clusterStartHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.NotFound(w, r)
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
 
 	req := &clustering2.ClusterRequest{}
@@ -521,10 +518,6 @@ func clusterStatusHandler(w http.ResponseWriter, r *http.Request) {
 //     "id": 123456,
 //   }
 func keysHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.NotFound(w, r)
-		return
-	}
 	id, err := shortcut2.Insert(r.Body)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Error inserting shortcut.")
@@ -632,10 +625,6 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to triage.")
 		return
 	}
-	if r.Method != "POST" {
-		http.NotFound(w, r)
-		return
-	}
 	tr := &TriageRequest{}
 	if err := json.NewDecoder(r.Body).Decode(tr); err != nil {
 		httputils.ReportError(w, r, err, "Failed to decode JSON.")
@@ -731,10 +720,6 @@ type RegressionRangeResponse struct {
 //
 // Note that there will be nulls in the columns slice where no Regression have been found.
 func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.NotFound(w, r)
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
 	rr := &RegressionRangeRequest{}
 	if err := json.NewDecoder(r.Body).Decode(rr); err != nil {
@@ -911,17 +896,17 @@ func main() {
 
 	// JSON handlers.
 	router.HandleFunc("/_/initpage/", initpageHandler)
-	router.HandleFunc("/_/cidRange/", cidRangeHandler)
-	router.HandleFunc("/_/count/", countHandler)
-	router.HandleFunc("/_/cid/", cidHandler)
-	router.HandleFunc("/_/keys/", keysHandler)
-	router.HandleFunc("/_/frame/start", frameStartHandler)
-	router.HandleFunc("/_/frame/status/{id:[a-zA-Z0-9]+}", frameStatusHandler)
-	router.HandleFunc("/_/frame/results/{id:[a-zA-Z0-9]+}", frameResultsHandler)
-	router.HandleFunc("/_/cluster/start", clusterStartHandler)
-	router.HandleFunc("/_/cluster/status/{id:[a-zA-Z0-9]+}", clusterStatusHandler)
-	router.HandleFunc("/_/reg/", regressionRangeHandler)
-	router.HandleFunc("/_/triage/", triageHandler)
+	router.HandleFunc("/_/cidRange/", cidRangeHandler).Methods("POST")
+	router.HandleFunc("/_/count/", countHandler).Methods("POST")
+	router.HandleFunc("/_/cid/", cidHandler).Methods("POST")
+	router.HandleFunc("/_/keys/", keysHandler).Methods("POST")
+	router.HandleFunc("/_/frame/start", frameStartHandler).Methods("POST")
+	router.HandleFunc("/_/frame/status/{id:[a-zA-Z0-9]+}", frameStatusHandler).Methods("GET")
+	router.HandleFunc("/_/frame/results/{id:[a-zA-Z0-9]+}", frameResultsHandler).Methods("GET")
+	router.HandleFunc("/_/cluster/start", clusterStartHandler).Methods("POST")
+	router.HandleFunc("/_/cluster/status/{id:[a-zA-Z0-9]+}", clusterStatusHandler).Methods("GET")
+	router.HandleFunc("/_/reg/", regressionRangeHandler).Methods("POST")
+	router.HandleFunc("/_/triage/", triageHandler).Methods("POST")
 	router.HandleFunc("/_/alerts/", alertsHandler)
 
 	var h http.Handler = router
