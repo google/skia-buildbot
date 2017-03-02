@@ -166,8 +166,10 @@ def RunSteps(api):
   karma_port = '9876'
   if m and len(m.groups()) > 0:
     karma_port = '15%s' % m.groups()[0]
-  env['KARMA_PORT'] = karma_port
-  env['DEPOT_TOOLS'] = api.path['depot_tools']
+  env['SUDO_COMMAND'] = None
+  env['SUDO_GID'] = None
+  env['SUDO_UID'] = None
+  env['SUDO_USER'] = None
 
   cmd = ['go', 'run', './run_unittests.go', '--alsologtostderr']
   if 'Large' in api.properties['buildername']:
