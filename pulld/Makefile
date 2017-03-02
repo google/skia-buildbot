@@ -22,7 +22,7 @@ release_not_gce: default
 
 # You should run make release first
 push_everywhere:
-	pushcli pulld "*"
+	pushcli --alsologtostderr --config_filename=../push/skiapush.conf pulld "*"
 
 
 .PHONY: debug
