@@ -4,6 +4,7 @@ AutoRoll Production Manual
 General information about the AutoRoller is available in the
 [README](./README.md).
 
+The AutoRoller requires that gitcookies are in metadata under the key gitcookies_$INSTANCE_NAME.
 
 Alerts
 ======
