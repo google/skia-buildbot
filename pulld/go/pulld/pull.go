@@ -8,6 +8,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -19,6 +20,8 @@ var (
 	metadataTriggerCh = make(chan bool, 1)
 
 	store *storage.Service
+
+	failedInstallCounter = metrics2.GetCounter("pulld_failed_install", nil)
 )
 
 // differences returns all strings that appear in server but not local.
@@ -65,6 +68,7 @@ func step(client *http.Client, store *storage.Service, hostname string) {
 			continue
 		}
 		if err := packages.Install(client, store, name); err != nil {
+			failedInstallCounter.Inc(1)
 			sklog.Errorf("Failed to install package %s: %s", name, err)
 			// Pop last name from 'installed' then rewrite the file since the
 			// install failed.
