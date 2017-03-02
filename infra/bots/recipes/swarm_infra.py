@@ -168,6 +168,7 @@ def RunSteps(api):
     karma_port = '15%s' % m.groups()[0]
   env['KARMA_PORT'] = karma_port
   env['DEPOT_TOOLS'] = api.path['depot_tools']
+  env['TMPDIR'] = None
 
   cmd = ['go', 'run', './run_unittests.go', '--alsologtostderr']
   if 'Large' in api.properties['buildername']:
