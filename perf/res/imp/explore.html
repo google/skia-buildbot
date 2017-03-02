@@ -223,11 +223,6 @@
           keys: "",  // The id of the shortcut to a list of trace keys.
         }; },
       },
-      // The ids of all the traces that have been hidden.
-      _hidden: {
-        type: Array,
-        value: function() { return []; },
-      },
       // The [begin, end] timestamps of the region
       // that the user is zoomed in on.
       _zoomRange: {
@@ -387,7 +382,6 @@
         end: this.state.end,
         formulas: this.state.formulas,
         queries: this.state.queries,
-        hidden: this._hidden,
         keys: this.state.keys,
       };
       var switchToTab = body.formulas.length > 0 || body.queries.length > 0 || body.keys != "";
@@ -548,32 +542,46 @@
       this.state.formulas = [];
       this.state.queries = [];
       this.state.keys = "";
-      this._hidden = [];
       this.$.plot.removeAll();
       this._lines = [];
     },
 
     // When Remove Highlighted or Highlighted Only are pressed then create a
     // shortcut for just the traces that are displayed.
+    //
+    // Note that removing a trace doesn't work if the trace came from a
+    // formula that returns multiple traces. This is a known issue that
+    // isn't currently worth solving.
     _reShortCut: function(keys) {
+        if (keys.length == 0) {
+          this.state.keys = "";
+          this.state.queries = [];
+          return
+        }
         var state = {
           keys: keys,
         };
         sk.post('/_/keys/', JSON.stringify(state)).then(JSON.parse).then(function (json) {
           this.state.keys = json.id;
-          this.state.formulas = [];
           this.state.queries = [];
         }.bind(this));
     },
 
     _removeHighlighted: function() {
       var ids = this.$.plot.highlighted();
-      Array.prototype.push.apply(this._hidden, ids);
-      var toadd = [];
+      var toadd = {};
+      var toShortcut = [];
 
       Object.keys(this._dataframe.traceset).forEach(function(key) {
-        if (this._hidden.indexOf(key) != -1) {
+        if (ids.indexOf(key) != -1) {
+          // Detect if it is a formula being removed.
+          if (this.state.formulas.indexOf(key) != -1) {
+            this.state.formulas.splice(this.state.formulas.indexOf(key), 1)
+          }
           return
+        }
+        if (key[0] == ",") {
+          toShortcut.push(key);
         }
         var values = [];
         this._dataframe.traceset[key].forEach(function(y, x) {
@@ -586,17 +594,24 @@
       this._lines = toadd;
       this.$.plot.removeAll();
       this.$.plot.addLines(toadd);
-      this._reShortCut(Object.keys(toadd));
+      this._reShortCut(toShortcut);
     },
 
     _highlightedOnly: function() {
       var ids = this.$.plot.highlighted();
-      var toadd = [];
+      var toadd = {};
+      var toShortcut = [];
 
       Object.keys(this._dataframe.traceset).forEach(function(key) {
         if (ids.indexOf(key) == -1 && !key.startsWith("special")) {
-          this._hidden.push(key);
+          // Detect if it is a formula being removed.
+          if (this.state.formulas.indexOf(key) != -1) {
+            this.state.formulas.splice(this.state.formulas.indexOf(key), 1)
+          }
           return
+        }
+        if (key[0] == ",") {
+          toShortcut.push(key);
         }
         var values = [];
         this._dataframe.traceset[key].forEach(function(y, x) {
@@ -609,7 +624,7 @@
       this._lines = toadd;
       this.$.plot.removeAll();
       this.$.plot.addLines(toadd);
-      this._reShortCut(Object.keys(toadd));
+      this._reShortCut(toShortcut);
     },
 
     _clearHighlights: function() {
