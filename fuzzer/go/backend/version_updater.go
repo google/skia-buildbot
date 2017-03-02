@@ -134,8 +134,8 @@ func (v *VersionUpdater) reanalyze(oldRevision string) error {
 		v.aggregator.UploadGreyFuzzes = false
 		bad, grey, deduped := v.aggregator.UploadedFuzzNames()
 		sklog.Infof("Done reanalyzing %s.  Uploaded %d bad and %d grey fuzzes.  There were %d duplicate bad fuzzes that were skipped.", category, len(bad), len(grey), len(deduped))
-		metrics2.GetInt64Metric("fuzzer.fuzzes.status", map[string]string{"category": category, "architecture": config.Generator.Architecture, "status": "bad"}).Update(int64(len(bad)))
-		metrics2.GetInt64Metric("fuzzer.fuzzes.status", map[string]string{"category": category, "architecture": config.Generator.Architecture, "status": "grey"}).Update(int64(len(grey)))
+		metrics2.GetInt64Metric("fuzzer_fuzzes_status", map[string]string{"category": category, "architecture": config.Generator.Architecture, "status": "bad"}).Update(int64(len(bad)))
+		metrics2.GetInt64Metric("fuzzer_fuzzes_status", map[string]string{"category": category, "architecture": config.Generator.Architecture, "status": "grey"}).Update(int64(len(grey)))
 
 		if config.Common.ForceReanalysis {
 			uploadFuzzNames(v.storageClient, oldRevision, category, bad, grey)
