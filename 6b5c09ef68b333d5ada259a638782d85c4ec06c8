@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd9d4b17_9b24901c",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-03-02T19:44:58Z",
+      "side": 1,
+      "message": "TODO(borenet): Remove after all rollers are on Gerrit for a few days. ?",
+      "revId": "6b5c09ef68b333d5ada259a638782d85c4ec06c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
