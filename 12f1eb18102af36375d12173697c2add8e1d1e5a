@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0924d78e_2a4c935e",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 532,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-02T18:12:29Z",
+      "side": 1,
+      "message": "Also possible for this to be whitespace?",
+      "range": {
+        "startLine": 532,
+        "startChar": 49,
+        "endLine": 532,
+        "endChar": 50
+      },
+      "revId": "12f1eb18102af36375d12173697c2add8e1d1e5a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
