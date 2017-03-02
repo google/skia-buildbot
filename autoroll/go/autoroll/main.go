@@ -8,8 +8,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
+	"os/user"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -18,6 +21,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/autoroll/go/autoroller"
@@ -206,6 +210,24 @@ func main() {
 
 	if *local {
 		*useMetadata = false
+	}
+	if *useMetadata {
+		// Get .gitcookies from metadata.
+		hostname, err := os.Hostname()
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		user, err := user.Current()
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		gitcookies, err := metadata.ProjectGet(fmt.Sprintf("gitcookies_%s", hostname))
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		if err := ioutil.WriteFile(path.Join(user.HomeDir, ".gitcookies"), []byte(gitcookies), 0600); err != nil {
+			sklog.Fatal(err)
+		}
 	}
 
 	// Create the code review API client.
