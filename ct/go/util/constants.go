@@ -80,6 +80,8 @@ const (
 
 	// Use live sites flag.
 	USE_LIVE_SITES_FLAGS = "--use-live-sites"
+	// Pageset repeat flag.
+	PAGESET_REPEAT_FLAG = "--pageset-repeat"
 
 	// Defaults for custom webpages.
 	DEFAULT_CUSTOM_PAGE_USERAGENT   = "desktop"
