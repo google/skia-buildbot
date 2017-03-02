@@ -29,3 +29,15 @@ func TestGetPathToPyFiles(t *testing.T) {
 	nonSwarmingPath := GetPathToPyFiles(false)
 	assert.True(t, strings.HasSuffix(nonSwarmingPath, filepath.Join("src", "go.skia.org", "infra", "ct", "py")))
 }
+
+func TestGetRepeatValue(t *testing.T) {
+	testutils.SmallTest(t)
+	assert.Equal(t, 4, GetRepeatValue("--pageset-repeat=4", 1))
+	assert.Equal(t, 4, GetRepeatValue("--pageset-repeat 4", 1))
+	// Use first value if multiple are specified.
+	assert.Equal(t, 4, GetRepeatValue("--pageset-repeat=4 --pageset-repeat=3", 1))
+	// Test that default value gets returned.
+	assert.Equal(t, 2, GetRepeatValue("", 2))
+	assert.Equal(t, 2, GetRepeatValue("--pageset-repeatsssss=4", 2))
+	assert.Equal(t, 2, GetRepeatValue("--somethingelse", 2))
+}
