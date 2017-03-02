@@ -377,6 +377,9 @@
     _rangeChangeImpl: function(begin, end) {
       this.state.begin = begin;
       this.state.end = end;
+      if (this.state.formulas.length == 0 && this.state.queries.length == 0 && this.state.keys == "") {
+        return
+      }
       var body = {
         begin: this.state.begin,
         end: this.state.end,
@@ -499,7 +502,10 @@
     },
 
     _add: function() {
-      var q = this.$.query.current_query;
+      var q = this.$.query.current_query.trim();
+      if (q == "") {
+        return
+      }
       if (this.state.queries.indexOf(q) == -1) {
         this.state.queries.push(q);
       }
@@ -638,6 +644,9 @@
 
     _addCalculated: function() {
       var f = this.$.formula.value;
+      if (f.trim() == "") {
+        return
+      }
       if (this.state.formulas.indexOf(f) == -1) {
         this.state.formulas.push(f);
       }
@@ -700,7 +709,7 @@
           sk.get("/_/frame/results/"+this._requestId).then(JSON.parse).then(function(json) {
             cb(json);
             this._catch(json.msg);
-          }.bind(this)).catch(this._catch);
+          }.bind(this)).catch(this._catch.bind(this));
         }
       }.bind(this)).catch(this._catch.bind(this));
     },
