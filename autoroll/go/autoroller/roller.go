@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	ROLL_ATTEMPT_THROTTLE_TIME = 10 * time.Minute
+	ROLL_ATTEMPT_THROTTLE_TIME = 30 * time.Minute
 	ROLL_ATTEMPT_THROTTLE_NUM  = 3
 
 	STATUS_DRY_RUN_FAILURE     = "dry run failed"
