@@ -77,6 +77,7 @@ func getEnv(depotTools string) []string {
 	return []string{
 		fmt.Sprintf("PATH=%s:%s", depotTools, os.Getenv("PATH")),
 		fmt.Sprintf("HOME=%s", os.Getenv("HOME")),
+		fmt.Sprintf("SKIP_GCE_AUTH_FOR_GIT=1"),
 	}
 }
 
