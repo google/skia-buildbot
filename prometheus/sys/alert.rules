@@ -77,6 +77,14 @@ ALERT DirtyPackages
     description = "One or more dirty packages have been running for more than 24 hours. https://push.skia.org",
   }
 
+ALERT PackageInstall
+  IF rate(pulld_failed_install[10m]) > 1
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    abbr = "{{ $labels.host }}",
+    description = "Package failing to install via pulld on {{ $labels.host }}.",
+  }
+
 # CT
 ALERT CTPollerHealthCheck
   IF healthy{instance="skia-ct-master:20000",job="ct-poller"} != 1
