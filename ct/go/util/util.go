@@ -525,6 +525,15 @@ func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GcsUtil, totalPages, n
 	return noOutputSlaves, nil
 }
 
+// getRepeatValue returns the defaultValue if "--pageset-repeat" is not specified in benchmarkArgs.
+func GetRepeatValue(benchmarkArgs []string, defaultValue string) {
+	// TODO(rmistry): Make it a constant like USE_LIVE_SITES.
+	// Implement this function.
+	// Add tests.
+	// Submit and test e2e.
+
+}
+
 func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBuildName, chromiumBinary, runID, browserExtraArgs, benchmarkName, targetPlatform, benchmarkExtraArgs, pagesetType string, repeatBenchmark int) error {
 	pagesetBaseName := filepath.Base(fileInfoName)
 	if filepath.Ext(pagesetBaseName) == ".pyc" {
@@ -570,8 +579,8 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 		args = append(args, strings.Fields(benchmarkExtraArgs)...)
 	}
 	timeoutSecs := PagesetTypeToInfo[pagesetType].RunChromiumPerfTimeoutSecs
-	if repeatBenchmark > 0 {
-		// Add the number of times to repeat.
+	// Add the number of times to repeat only if pageset-repeat has not been explicitly specified in benchmarkExtraArgs.
+	if repeatBenchmark > 0 && strings.Contains(benchmarkExtraArgs, "--pageset-repeat") {
 		args = append(args, fmt.Sprintf("--pageset-repeat=%d", repeatBenchmark))
 		// Increase the timeoutSecs if repeats are used.
 		timeoutSecs = timeoutSecs * repeatBenchmark
