@@ -286,6 +286,10 @@ func probeOneRound(cfg Probes, c *http.Client) {
 	}
 }
 
+func neverFollow(req *http.Request, via []*http.Request) error {
+	return http.ErrUseLastResponse
+}
+
 func main() {
 	defer common.LogPanic()
 	common.InitWithMust(
@@ -319,7 +323,8 @@ func main() {
 		Transport: &http.Transport{
 			Dial: dialTimeout,
 		},
-		Timeout: REQUEST_TIMEOUT,
+		Timeout:       REQUEST_TIMEOUT,
+		CheckRedirect: neverFollow,
 	}
 	probeOneRound(cfg, c)
 	for _ = range time.Tick(*runEvery) {
