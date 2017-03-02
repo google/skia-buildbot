@@ -269,7 +269,7 @@ func (agg *Aggregator) scanHelper(alreadyFoundFuzzes *SortedStringSlice) error {
 		// we have references to where the crashes will be.
 		// TODO(kjlubick), switch to using flock once afl-fuzz implements that upstream.
 		time.Sleep(time.Second)
-		metrics2.GetInt64Metric("fuzzer.fuzzes.newly-found", map[string]string{"fuzz_category": category, "architecture": config.Generator.Architecture}).Update(int64(len(newlyFound)))
+		metrics2.GetInt64Metric("fuzzer_fuzzes_newly_found", map[string]string{"fuzz_category": category, "architecture": config.Generator.Architecture}).Update(int64(len(newlyFound)))
 		sklog.Infof("%d newly found %s bad fuzzes", len(newlyFound), category)
 		for _, f := range newlyFound {
 			agg.forAnalysis <- analysisPackage{
@@ -386,7 +386,7 @@ func collectFuzzerMetrics() error {
 			if r == nil {
 				continue
 			}
-			metric := fmt.Sprintf("fuzzer.stats.%s", strings.Replace(m, "_", "-", -1))
+			metric := fmt.Sprintf("fuzzer_stats_%s", m)
 			if match := r.FindStringSubmatch(contents); match != nil {
 				metrics2.GetInt64Metric(metric, map[string]string{"fuzz_category": category, "architecture": config.Generator.Architecture}).Update(int64(common.SafeAtoi(match[1])))
 			}
@@ -731,9 +731,9 @@ func (agg *Aggregator) monitorStatus(numAnalysisProcesses, numUploadProcesses in
 			sklog.Info("aggregator monitor got signal to shut down")
 			return
 		case <-t:
-			metrics2.GetInt64Metric("fuzzer.queue-size.analysis", nil).Update(int64(len(agg.forAnalysis)))
-			metrics2.GetInt64Metric("fuzzer.queue-size.upload", nil).Update(int64(len(agg.forUpload)))
-			metrics2.GetInt64Metric("fuzzer.queue-size.bug-report", nil).Update(int64(len(agg.forBugReporting)))
+			metrics2.GetInt64Metric("fuzzer_queue_size_analysis", nil).Update(int64(len(agg.forAnalysis)))
+			metrics2.GetInt64Metric("fuzzer_queue_size_upload", nil).Update(int64(len(agg.forUpload)))
+			metrics2.GetInt64Metric("fuzzer_queue_size_bug-report", nil).Update(int64(len(agg.forBugReporting)))
 		}
 	}
 }

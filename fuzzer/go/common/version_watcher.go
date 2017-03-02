@@ -87,7 +87,7 @@ func (vw *VersionWatcher) check() {
 	}
 
 	if !lastUpdated.IsZero() {
-		metrics2.GetInt64Metric("fuzzer.version.age", map[string]string{"type": "current"}).Update(int64(time.Since(lastUpdated) / time.Second))
+		metrics2.GetInt64Metric("fuzzer_version_age", map[string]string{"type": "current"}).Update(int64(time.Since(lastUpdated) / time.Second))
 	}
 
 	if config.Common.ForceReanalysis {
@@ -121,7 +121,7 @@ func (vw *VersionWatcher) check() {
 	}
 
 	if !lastUpdated.IsZero() {
-		metrics2.GetInt64Metric("fuzzer.version.age", map[string]string{"type": "pending"}).Update(int64(time.Since(lastUpdated) / time.Second))
+		metrics2.GetInt64Metric("fuzzer_version_age", map[string]string{"type": "pending"}).Update(int64(time.Since(lastUpdated) / time.Second))
 	}
 }
 
