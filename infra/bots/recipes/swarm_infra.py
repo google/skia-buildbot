@@ -168,6 +168,17 @@ def RunSteps(api):
     karma_port = '15%s' % m.groups()[0]
   env['KARMA_PORT'] = karma_port
   env['DEPOT_TOOLS'] = api.path['depot_tools']
+  env['TMPDIR'] = ''
+  env['MAIL'] = ''
+  env['NO_GCE_CHECK'] = ''
+  env['PYTHONIOENCODING'] = ''
+  env['SHLVL'] = ''
+  env['SUDO_COMMAND'] = ''
+  env['SUDO_GID'] = ''
+  env['SUDO_UID'] = ''
+  env['SUDO_USER'] = ''
+  env['TERM'] = ''
+  env['_'] = ''
 
   cmd = ['go', 'run', './run_unittests.go', '--alsologtostderr']
   if 'Large' in api.properties['buildername']:
@@ -176,8 +187,15 @@ def RunSteps(api):
     cmd.append('--medium')
   else:
     cmd.append('--small')
-  with api.step.context({'cwd': infra_dir}):
-    api.step('run_unittests', cmd, env=env)
+  with api.step.context({'cwd': infra_dir.join('res', 'js')}):
+    api.step('chrome', ['xvfb-run', '--auto-servernum', '--server-args', '"-screen 0 1280x1024x24"', 'google-chrome', '--user-data-dir=/tmp/karma-4633399', '--no-default-browser-check', '--no-first-run', '--disable-default-apps', '--disable-popup-blocking', '--disable-translate', 'http://localhost:9876/?id=4633399'], env=env)
+
+    #api.step('npm', ['npm', 'install'], env=env)
+    #api.step('test', ['xvfb-run', '--auto-servernum', '--server-args', '"-screen 0 1280x1024x24"',
+    #                  'node_modules/karma/bin/karma', '--no-single-run', 'start', '--log-level=debug',
+    #                  'karma.conf.js'], env=env)
+
+    #api.step('run_unittests', cmd, env=env)
 
 
 def GenTests(api):
