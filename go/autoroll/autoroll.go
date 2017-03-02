@@ -44,7 +44,7 @@ const (
 )
 
 var (
-	ROLL_REV_REGEX = regexp.MustCompile("Roll .+ ([0-9a-zA-Z]+)\\.\\.([0-9a-zA-Z]+) \\(\\d+ commit.*\\)\\.")
+	ROLL_REV_REGEX = regexp.MustCompile("Roll .+ ([0-9a-zA-Z]+)\\.\\.([0-9a-zA-Z]+) \\(\\d+ commit.*\\)\\.*")
 
 	OPEN_ROLL_VALID_RESULTS = []string{
 		ROLL_RESULT_DRY_RUN_FAILURE,
