@@ -364,12 +364,17 @@ func ValidateSKPs(pathToSkps, pathToPyFiles string) error {
 }
 
 // GetStartRange returns the range worker should start processing at based on its num and how many
-// artifacts it is allowed to process.
-func GetStartRange(workerNum, artifactsPerWorker int) int {
-	return ((workerNum - 1) * artifactsPerWorker) + 1
+// pages it is allowed to process.
+func GetStartRange(workerNum, numPagesPerBot int) int {
+	return ((workerNum - 1) * numPagesPerBot) + 1
 }
 
-func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs, dimensions map[string]string) error {
+// GetNumPagesPerBot returns the number of web pages each worker should process.
+func GetNumPagesPerBot(repeatValue, maxPagesPerBot int) int {
+	return int(math.Ceil(float64(maxPagesPerBot) / float64(repeatValue)))
+}
+
+func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs, dimensions map[string]string, repeatValue int) error {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir("", "swarming_work_")
 	if err != nil {
@@ -385,11 +390,12 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 	// Get path to isolate files.
 	_, currentFile, _, _ := runtime.Caller(0)
 	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
-	numTasks := int(math.Ceil(float64(numPages) / float64(maxPagesPerBot)))
+	numPagesPerBot := GetNumPagesPerBot(repeatValue, maxPagesPerBot)
+	numTasks := int(math.Ceil(float64(numPages) / float64(numPagesPerBot)))
 	for i := 1; i <= numTasks; i++ {
 		isolateArgs := map[string]string{
-			"START_RANGE":  strconv.Itoa(GetStartRange(i, maxPagesPerBot)),
-			"NUM":          strconv.Itoa(maxPagesPerBot),
+			"START_RANGE":  strconv.Itoa(GetStartRange(i, numPagesPerBot)),
+			"NUM":          strconv.Itoa(numPagesPerBot),
 			"PAGESET_TYPE": pagesetType,
 		}
 		// Add isolateExtraArgs (if specified) into the isolateArgs.
