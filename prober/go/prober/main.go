@@ -286,11 +286,6 @@ func probeOneRound(cfg Probes, c *http.Client) {
 	}
 }
 
-// neverFollow is used to direct the http.Client to never follow HTTP redirects.
-func neverFollow(req *http.Request, via []*http.Request) error {
-	return http.ErrUseLastResponse
-}
-
 func main() {
 	defer common.LogPanic()
 	common.InitWithMust(
@@ -319,13 +314,12 @@ func main() {
 		probe.latency = metrics2.GetInt64Metric("prober", map[string]string{"type": "latency", "probename": name})
 	}
 
-	// Create a client that uses our dialer with a timeout and never follows redirects.
+	// Create a client that uses our dialer with a timeout.
 	c := &http.Client{
 		Transport: &http.Transport{
 			Dial: dialTimeout,
 		},
-		Timeout:       REQUEST_TIMEOUT,
-		CheckRedirect: neverFollow,
+		Timeout: REQUEST_TIMEOUT,
 	}
 	probeOneRound(cfg, c)
 	for _ = range time.Tick(*runEvery) {
