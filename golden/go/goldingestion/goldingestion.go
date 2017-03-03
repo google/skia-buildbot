@@ -1,12 +1,14 @@
 package goldingestion
 
 import (
+	"fmt"
 	"net/http"
 
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
+	"go.skia.org/infra/go/timer"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/config"
@@ -55,6 +57,7 @@ func (g *goldProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 		return err
 	}
 
+	t := timer.New(fmt.Sprintf("Reading %s", resultsFile.Name()))
 	dmResults, err := ParseDMResultsFromReader(r, resultsFile.Name())
 	if err != nil {
 		return err
@@ -64,12 +67,14 @@ func (g *goldProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 	if err != nil {
 		return err
 	}
+	t.Stop()
 
 	if !commit.Branches["master"] {
 		sklog.Warningf("Commit %s is not in master branch.", commit.Hash)
 		return ingestion.IgnoreResultsFileErr
 	}
 
+	t = timer.New(fmt.Sprintf("Writing %s", resultsFile.Name()))
 	// Add the column to the trace db.
 	cid, err := g.extractID(commit, dmResults)
 	if err != nil {
@@ -78,9 +83,10 @@ func (g *goldProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 
 	// Write the result to the tracedb.
 	err = g.traceDB.Add(cid, dmResults.getTraceDBEntries())
+	t.Stop()
 
 	// If there was no problem and we have an ingestion store that record that we have processed that file.
-	if (err == nil) && (g.ingestionStore != nil) {
+	if (err == nil) && (g.ingestionStore != nil) && false {
 		if err := g.ingestionStore.Add(config.CONSTRUCTOR_GOLD, dmResults.Master, dmResults.Builder, dmResults.BuildNumber); err != nil {
 			sklog.Errorf("Error writing ingested build info: %s", err)
 		}

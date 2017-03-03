@@ -28,7 +28,7 @@ const (
 	TAG_INGESTER_ID       = "ingester"
 	TAG_INGESTER_SOURCE   = "source"
 
-	POLL_CHUNK_SIZE = 50
+	POLL_CHUNK_SIZE = 5
 )
 
 var (
@@ -103,9 +103,6 @@ type Ingester struct {
 	// pollProcessMetrics capture metrics from processing polled result files.
 	pollProcessMetrics *processMetrics
 
-	// eventProcessMetrics capture metrics from processing result files delivered by events from sources.
-	eventProcessMetrics *processMetrics
-
 	// processTimer measure the overall time it takes to process a set of files.
 	processTimer metrics2.Timer
 
@@ -143,14 +140,13 @@ func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, v
 // setupMetrics instantiates and registers the metrics instances used by the Ingester.
 func (i *Ingester) setupMetrics() {
 	i.pollProcessMetrics = newProcessMetrics(i.id, "poll")
-	i.eventProcessMetrics = newProcessMetrics(i.id, "event")
 	i.srcMetrics = newSourceMetrics(i.id, i.sources)
 	i.processTimer = metrics2.NewTimer("ingestion.process", map[string]string{"id": i.id})
 }
 
 // Start starts the ingester in a new goroutine.
 func (i *Ingester) Start() {
-	pollChan, eventChan := i.getInputChannels()
+	pollChan := i.getInputChannels()
 	go func(doneCh <-chan bool) {
 		var resultFiles []ResultFileLocation = nil
 		var useMetrics *processMetrics
@@ -159,12 +155,11 @@ func (i *Ingester) Start() {
 			select {
 			case resultFiles = <-pollChan:
 				useMetrics = i.pollProcessMetrics
-			case resultFiles = <-eventChan:
-				useMetrics = i.eventProcessMetrics
 			case <-doneCh:
 				return
 			}
 			i.processResults(resultFiles, useMetrics)
+			// runtime.GC()
 		}
 	}(i.doneCh)
 }
@@ -187,13 +182,14 @@ func (q *rflQueue) clear() {
 	*q = rflQueue{}
 }
 
-func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []ResultFileLocation) {
+func (i *Ingester) getInputChannels() <-chan []ResultFileLocation {
 	pollChan := make(chan []ResultFileLocation)
-	eventChan := make(chan []ResultFileLocation)
 	i.doneCh = make(chan bool)
 
 	for idx, source := range i.sources {
 		go func(source Source, srcMetrics *sourceMetrics, doneCh <-chan bool) {
+			backFillerStarted := false
+
 			util.Repeat(i.runEvery, doneCh, func() {
 				srcMetrics.pollTimer.Start()
 				var startTime, endTime int64 = 0, 0
@@ -222,10 +218,17 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 				}
 				srcMetrics.liveness.Reset()
 				srcMetrics.pollTimer.Stop()
+
+				// Start the backfiller.
+				if !backFillerStarted {
+					backFillerStarted = true
+					startBackFiller(source, pollChan, doneCh, startTime, 3600*24, time.Minute)
+					sklog.Infof("\n\n\n\nStarted backfiller.\n\n\n\n")
+				}
 			})
 		}(source, i.srcMetrics[idx], i.doneCh)
 	}
-	return pollChan, eventChan
+	return pollChan
 }
 
 // inProcessedFiles returns true if the given md5 hash is in the list of
@@ -272,7 +275,7 @@ func (i *Ingester) addToProcessedFiles(md5s []string) {
 
 // processResults ingests a set of result files.
 func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetrics *processMetrics) {
-	sklog.Infof("Start ingester: %s", i.id)
+	sklog.Infof("Start ingester: %s with %d result files.", i.id, len(resultFiles))
 
 	var mutex sync.Mutex // Protects access to the following vars.
 	processedMD5s := make([]string, 0, len(resultFiles))

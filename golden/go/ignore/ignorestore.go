@@ -81,9 +81,9 @@ type MemIgnoreStore struct {
 	revision int64
 }
 
-func NewMemIgnoreStore() IgnoreStore {
+func NewMemIgnoreStore(ignoreRules ...*IgnoreRule) IgnoreStore {
 	return &MemIgnoreStore{
-		rules: []*IgnoreRule{},
+		rules: ignoreRules,
 	}
 }
 

@@ -30,9 +30,11 @@ var (
 
 func main() {
 	common.InitWithMust(filepath.Base(os.Args[0]),
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
-	)
+		common.PrometheusOpt(promPort))
+	// common.InitWithMust(filepath.Base(os.Args[0]),
+	// 	common.PrometheusOpt(promPort),
+	// 	common.CloudLoggingOpt(),
+	// )
 
 	ts, err := traceservice.NewTraceServiceServer(*db_file)
 	if err != nil {

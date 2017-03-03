@@ -40,10 +40,11 @@ func main() {
 	_, appName := filepath.Split(os.Args[0])
 
 	// Global init to initialize prometheus and cloud logging.
-	common.InitWithMust(appName,
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
-	)
+	common.InitWithMust(appName, common.PrometheusOpt(promPort))
+	// common.InitWithMust(appName,
+	// 	common.PrometheusOpt(promPort),
+	// 	common.CloudLoggingOpt(),
+	// )
 
 	// If no nsqd servers is defines, we simply don't have gloabl events.
 	var globalEventBus geventbus.GlobalEventBus = nil
