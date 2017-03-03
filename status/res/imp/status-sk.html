@@ -36,7 +36,6 @@
 <link rel="import" href="/res/common/imp/app-sk.html">
 <link rel="import" href="/res/common/imp/url-params-sk.html">
 
-<link rel="import" href="alert-widget-sk.html">
 <link rel="import" href="android-autoroll-widget-sk.html">
 <link rel="import" href="autoroll-widget-sk.html">
 <link rel="import" href="commits-table-sk.html">
@@ -91,10 +90,6 @@
       }
       autoroll-widget-sk {
         margin-right: 25px;
-      }
-      alert-widget-sk {
-        margin-right: 5px;
-        margin-left: 15px;
       }
 
       #mainContent {
@@ -211,12 +206,6 @@
         robocop="{{robocop}}"
         trooper="{{trooper}}">
       </tree-status-sk>
-
-      <!-- JSON arrays requires double quotes to be valid -->
-      <alert-widget-sk rtoolbar
-        reload="[[reload]]"
-        repo="[[repo]]">
-      </alert-widget-sk>
 
       <div id="infobar" class="bottom horizontal layout flex shrinkable" toolbar>
         <a href="http://skia-tree-status.appspot.com/sheriff" target="_blank" rel="noopener noreferrer">
