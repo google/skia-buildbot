@@ -267,6 +267,7 @@ type TaskCfgCache struct {
 	cache           map[db.RepoState]*cacheEntry
 	depotToolsDir   string
 	mtx             sync.Mutex
+	newTasksCache   map[db.RepoState]util.StringSet
 	recentCommits   map[string]time.Time
 	recentJobSpecs  map[string]time.Time
 	recentMtx       sync.RWMutex
@@ -281,6 +282,7 @@ func NewTaskCfgCache(repos repograph.Map, depotToolsDir, workdir string, numWork
 	c := &TaskCfgCache{
 		cache:           map[db.RepoState]*cacheEntry{},
 		depotToolsDir:   depotToolsDir,
+		newTasksCache:   map[db.RepoState]util.StringSet{},
 		mtx:             sync.Mutex{},
 		recentCommits:   map[string]time.Time{},
 		recentJobSpecs:  map[string]time.Time{},
@@ -459,6 +461,56 @@ func (c *TaskCfgCache) GetTaskSpec(rs db.RepoState, name string) (*TaskSpec, err
 	return t.Copy(), nil
 }
 
+func (c *TaskCfgCache) NewTaskSpecs(rss []db.RepoState) (map[db.RepoState]util.StringSet, error) {
+	rv := make(map[db.RepoState]util.StringSet, len(rss))
+	todoParents := make(map[db.RepoState][]db.RepoState, 0)
+	allTodoRs := []db.RepoState{}
+	c.mtx.Lock()
+	for _, rs := range rss {
+		val, ok := c.newTasksCache[rs]
+		if ok {
+			rv[rs] = val.Copy()
+		} else {
+			allTodoRs = append(allTodoRs, rs)
+			parents, err := rs.Parents(c.repos)
+			if err != nil {
+				c.mtx.Unlock()
+				return nil, err
+			}
+			allTodoRs = append(allTodoRs, parents...)
+			todoParents[rs] = parents
+		}
+	}
+	c.mtx.Unlock()
+	if len(todoParents) == 0 {
+		return rv, nil
+	}
+	taskSpecs, err := c.GetTaskSpecsForRepoStates(allTodoRs)
+	if err != nil {
+		return nil, err
+	}
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	for cur, parents := range todoParents {
+		newTasks := util.NewStringSet()
+		for task, _ := range taskSpecs[cur] {
+			existsInAllParents := true
+			for _, parent := range parents {
+				if _, ok := taskSpecs[parent][task]; !ok {
+					existsInAllParents = false
+					break
+				}
+			}
+			if !existsInAllParents {
+				newTasks[task] = true
+			}
+		}
+		c.newTasksCache[cur] = newTasks.Copy()
+		rv[cur] = newTasks
+	}
+	return rv, nil
+}
+
 // GetJobSpec returns the JobSpec at the given RepoState, or an error if no such
 // JobSpec exists.
 func (c *TaskCfgCache) GetJobSpec(rs db.RepoState, name string) (*JobSpec, error) {
@@ -505,16 +557,15 @@ func (c *TaskCfgCache) Cleanup(period time.Duration) error {
 	defer c.mtx.Unlock()
 	periodStart := time.Now().Add(-period)
 	for repoState, _ := range c.cache {
-		repo, ok := c.repos[repoState.Repo]
-		if !ok {
-			return fmt.Errorf("Unknown repo: %q", repoState.Repo)
-		}
-		details := repo.Get(repoState.Revision)
-		if details == nil {
-			return fmt.Errorf("Unknown revision %s in %s", repoState.Revision, repoState.Repo)
-		}
-		if details.Timestamp.Before(periodStart) {
+		details, err := repoState.GetCommit(c.repos)
+		if err != nil || details.Timestamp.Before(periodStart) {
 			delete(c.cache, repoState)
+		}
+	}
+	for repoState, _ := range c.newTasksCache {
+		details, err := repoState.GetCommit(c.repos)
+		if err != nil || details.Timestamp.Before(periodStart) {
+			delete(c.newTasksCache, repoState)
 		}
 	}
 	c.recentMtx.Lock()

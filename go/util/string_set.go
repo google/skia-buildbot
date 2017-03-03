@@ -19,6 +19,17 @@ func NewStringSet(lists ...[]string) StringSet {
 	return ret
 }
 
+func (s StringSet) Copy() StringSet {
+	if s == nil {
+		return nil
+	}
+	ret := make(StringSet, len(s))
+	for k, v := range s {
+		ret[k] = v
+	}
+	return ret
+}
+
 // Keys returns the keys of a StringSet
 func (s StringSet) Keys() []string {
 	ret := make([]string, 0, len(s))
