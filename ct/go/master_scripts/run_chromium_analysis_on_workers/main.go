@@ -211,7 +211,7 @@ func main() {
 	noOutputSlaves := []string{}
 	pathToPyFiles := util.GetPathToPyFiles(false)
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv-pivot-table") {
-		if noOutputSlaves, err = util.MergeUploadCSVFiles(*runID, pathToPyFiles, gs, numPages, MAX_PAGES_PER_SWARMING_BOT, true /* handleStrings */); err != nil {
+		if noOutputSlaves, err = util.MergeUploadCSVFiles(*runID, pathToPyFiles, gs, numPages, MAX_PAGES_PER_SWARMING_BOT, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1)); err != nil {
 			sklog.Errorf("Unable to merge and upload CSV files for %s: %s", *runID, err)
 		}
 		// Cleanup created dir after the run completes.

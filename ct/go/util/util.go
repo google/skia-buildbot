@@ -472,14 +472,15 @@ func GetPathToPyFiles(runOnSwarming bool) string {
 	}
 }
 
-func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GcsUtil, totalPages, numPerWorker int, handleStrings bool) ([]string, error) {
+func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GcsUtil, totalPages, maxPagesPerBot int, handleStrings bool, repeatValue int) ([]string, error) {
 	localOutputDir := filepath.Join(StorageDir, BenchmarkRunsDir, runID)
 	util.MkdirAll(localOutputDir, 0700)
 	noOutputSlaves := []string{}
 	// Copy outputs from all slaves locally.
-	numTasks := int(math.Ceil(float64(totalPages) / float64(numPerWorker)))
+	numPagesPerBot := GetNumPagesPerBot(repeatValue, maxPagesPerBot)
+	numTasks := int(math.Ceil(float64(totalPages) / float64(numPagesPerBot)))
 	for i := 0; i < numTasks; i++ {
-		startRange := (i * numPerWorker) + 1
+		startRange := GetStartRange(i, numPagesPerBot)
 		workerLocalOutputPath := filepath.Join(localOutputDir, strconv.Itoa(startRange)+".csv")
 		workerRemoteOutputPath := filepath.Join(BenchmarkRunsDir, runID, strconv.Itoa(startRange), "outputs", runID+".output")
 		respBody, err := gs.GetRemoteFileContents(workerRemoteOutputPath)
