@@ -66,8 +66,8 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
-func NewAutoRoller(workdir, childPath, cqExtraTrybots string, emails []string, rietveld *rietveld.Rietveld, gerrit *gerrit.Gerrit, tickFrequency, repoFrequency time.Duration, depot_tools string, doGerrit bool) (*AutoRoller, error) {
-	rm, err := repo_manager.NewRepoManager(workdir, childPath, repoFrequency, depot_tools)
+func NewAutoRoller(workdir, parentRepo, childPath, cqExtraTrybots string, emails []string, rietveld *rietveld.Rietveld, gerrit *gerrit.Gerrit, tickFrequency, repoFrequency time.Duration, depot_tools string, doGerrit bool) (*AutoRoller, error) {
+	rm, err := repo_manager.NewRepoManager(workdir, parentRepo, childPath, repoFrequency, depot_tools)
 	if err != nil {
 		return nil, err
 	}

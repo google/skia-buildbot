@@ -25,15 +25,13 @@ const (
 	GCLIENT  = "gclient"
 	ROLL_DEP = "roll-dep"
 
-	REPO_CHROMIUM = "https://chromium.googlesource.com/chromium/src.git"
-
 	TMPL_CQ_INCLUDE_TRYBOTS = "CQ_INCLUDE_TRYBOTS=%s"
 )
 
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewRepoManager func(string, string, time.Duration, string) (RepoManager, error) = NewDefaultRepoManager
+	NewRepoManager func(string, string, string, time.Duration, string) (RepoManager, error) = NewDefaultRepoManager
 
 	DEPOT_TOOLS_AUTH_USER_REGEX = regexp.MustCompile(fmt.Sprintf("Logged in to %s as ([\\w-]+).", autoroll.RIETVELD_URL))
 )
@@ -57,19 +55,20 @@ type RepoManager interface {
 
 // repoManager is a struct used by AutoRoller for managing checkouts.
 type repoManager struct {
-	chromiumDir       string
-	chromiumParentDir string
-	depot_tools       string
-	gclient           string
-	infoMtx           sync.RWMutex
-	lastRollRev       string
-	repoMtx           sync.RWMutex
-	rollDep           string
-	childDir          string
-	childHead         string
-	childPath         string
-	childRepo         *gitinfo.GitInfo
-	user              string
+	depot_tools string
+	gclient     string
+	infoMtx     sync.RWMutex
+	lastRollRev string
+	repoMtx     sync.RWMutex
+	rollDep     string
+	childDir    string
+	childHead   string
+	childPath   string
+	childRepo   *gitinfo.GitInfo
+	parentDir   string
+	parentRepo  string
+	user        string
+	workdir     string
 }
 
 // getEnv returns the environment used for most commands.
@@ -100,7 +99,7 @@ func getDepotToolsUser(depotTools string) (string, error) {
 
 // NewDefaultRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func NewDefaultRepoManager(workdir, childPath string, frequency time.Duration, depot_tools string) (RepoManager, error) {
+func NewDefaultRepoManager(workdir, parentRepo, childPath string, frequency time.Duration, depot_tools string) (RepoManager, error) {
 	gclient := GCLIENT
 	rollDep := ROLL_DEP
 	if depot_tools != "" {
@@ -108,8 +107,9 @@ func NewDefaultRepoManager(workdir, childPath string, frequency time.Duration, d
 		rollDep = path.Join(depot_tools, rollDep)
 	}
 
-	chromiumParentDir := path.Join(workdir, "chromium")
-	chromiumDir := path.Join(chromiumParentDir, "src")
+	wd := path.Join(workdir, "repo_manager")
+	parentBase := strings.TrimSuffix(path.Base(parentRepo), ".git")
+	parentDir := path.Join(wd, parentBase)
 
 	user, err := getDepotToolsUser(depot_tools)
 	if err != nil {
@@ -117,15 +117,16 @@ func NewDefaultRepoManager(workdir, childPath string, frequency time.Duration, d
 	}
 
 	r := &repoManager{
-		chromiumDir:       chromiumDir,
-		chromiumParentDir: chromiumParentDir,
-		depot_tools:       depot_tools,
-		gclient:           gclient,
-		rollDep:           rollDep,
-		childDir:          path.Join(chromiumParentDir, childPath),
-		childPath:         childPath,
-		childRepo:         nil, // This will be filled in on the first update.
-		user:              user,
+		depot_tools: depot_tools,
+		gclient:     gclient,
+		rollDep:     rollDep,
+		childDir:    path.Join(wd, childPath),
+		childPath:   childPath,
+		childRepo:   nil, // This will be filled in on the first update.
+		parentDir:   parentDir,
+		parentRepo:  parentRepo,
+		user:        user,
+		workdir:     wd,
 	}
 	if err := r.update(); err != nil {
 		return nil, err
@@ -144,36 +145,36 @@ func (r *repoManager) update() error {
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 
-	// Create the chromium parent directory if needed.
-	if _, err := os.Stat(r.chromiumParentDir); err != nil {
-		if err := os.MkdirAll(r.chromiumParentDir, 0755); err != nil {
+	// Create the working directory if needed.
+	if _, err := os.Stat(r.workdir); err != nil {
+		if err := os.MkdirAll(r.workdir, 0755); err != nil {
 			return err
 		}
 	}
 
-	if _, err := os.Stat(path.Join(r.chromiumDir, ".git")); err == nil {
-		if err := r.cleanChromium(); err != nil {
+	if _, err := os.Stat(path.Join(r.parentDir, ".git")); err == nil {
+		if err := r.cleanParent(); err != nil {
 			return err
 		}
 		// Update the repo.
-		if _, err := exec.RunCwd(r.chromiumDir, "git", "fetch"); err != nil {
+		if _, err := exec.RunCwd(r.parentDir, "git", "fetch"); err != nil {
 			return err
 		}
-		if _, err := exec.RunCwd(r.chromiumDir, "git", "reset", "--hard", "origin/master"); err != nil {
+		if _, err := exec.RunCwd(r.parentDir, "git", "reset", "--hard", "origin/master"); err != nil {
 			return err
 		}
 	}
 
 	if _, err := exec.RunCommand(&exec.Command{
-		Dir:  r.chromiumParentDir,
+		Dir:  r.workdir,
 		Env:  getEnv(r.depot_tools),
 		Name: r.gclient,
-		Args: []string{"config", REPO_CHROMIUM},
+		Args: []string{"config", r.parentRepo},
 	}); err != nil {
 		return err
 	}
 	if _, err := exec.RunCommand(&exec.Command{
-		Dir:  r.chromiumParentDir,
+		Dir:  r.workdir,
 		Env:  getEnv(r.depot_tools),
 		Name: r.gclient,
 		Args: []string{"sync", "--nohooks"},
@@ -215,7 +216,7 @@ func (r *repoManager) ForceUpdate() error {
 
 // getLastRollRev returns the commit hash of the last-completed DEPS roll.
 func (r *repoManager) getLastRollRev() (string, error) {
-	output, err := exec.RunCwd(r.chromiumDir, r.gclient, "revinfo")
+	output, err := exec.RunCwd(r.parentDir, r.gclient, "revinfo")
 	if err != nil {
 		return "", err
 	}
@@ -224,12 +225,12 @@ func (r *repoManager) getLastRollRev() (string, error) {
 		if strings.HasPrefix(s, r.childPath) {
 			subs := strings.Split(s, "@")
 			if len(subs) != 2 {
-				return "", fmt.Errorf("Failed to parse output of `gclient revinfo`")
+				return "", fmt.Errorf("Failed to parse output of `gclient revinfo`:\n\n%s\n", output)
 			}
 			return subs[1], nil
 		}
 	}
-	return "", fmt.Errorf("Failed to parse output of `gclient revinfo`")
+	return "", fmt.Errorf("Failed to parse output of `gclient revinfo`:\n\n%s\n", output)
 }
 
 // FullChildHash returns the full hash of the given short hash or ref in the
@@ -264,18 +265,18 @@ func (r *repoManager) ChildHead() string {
 	return r.childHead
 }
 
-// cleanChromium forces the Chromium checkout into a clean state.
-func (r *repoManager) cleanChromium() error {
-	if _, err := exec.RunCwd(r.chromiumDir, "git", "clean", "-d", "-f", "-f"); err != nil {
+// cleanParent forces the parent checkout into a clean state.
+func (r *repoManager) cleanParent() error {
+	if _, err := exec.RunCwd(r.parentDir, "git", "clean", "-d", "-f", "-f"); err != nil {
 		return err
 	}
-	_, _ = exec.RunCwd(r.chromiumDir, "git", "rebase", "--abort")
-	if _, err := exec.RunCwd(r.chromiumDir, "git", "checkout", "origin/master", "-f"); err != nil {
+	_, _ = exec.RunCwd(r.parentDir, "git", "rebase", "--abort")
+	if _, err := exec.RunCwd(r.parentDir, "git", "checkout", "origin/master", "-f"); err != nil {
 		return err
 	}
-	_, _ = exec.RunCwd(r.chromiumDir, "git", "branch", "-D", DEPS_ROLL_BRANCH)
+	_, _ = exec.RunCwd(r.parentDir, "git", "branch", "-D", DEPS_ROLL_BRANCH)
 	if _, err := exec.RunCommand(&exec.Command{
-		Dir:  r.chromiumDir,
+		Dir:  r.workdir,
 		Env:  getEnv(r.depot_tools),
 		Name: r.gclient,
 		Args: []string{"revert", "--nohooks"},
@@ -292,23 +293,23 @@ func (r *repoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryR
 	defer r.repoMtx.Unlock()
 
 	// Clean the checkout, get onto a fresh branch.
-	if err := r.cleanChromium(); err != nil {
+	if err := r.cleanParent(); err != nil {
 		return 0, err
 	}
-	if _, err := exec.RunCwd(r.chromiumDir, "git", "checkout", "-b", DEPS_ROLL_BRANCH, "-t", "origin/master", "-f"); err != nil {
+	if _, err := exec.RunCwd(r.parentDir, "git", "checkout", "-b", DEPS_ROLL_BRANCH, "-t", "origin/master", "-f"); err != nil {
 		return 0, err
 	}
 
 	// Defer some more cleanup.
 	defer func() {
-		util.LogErr(r.cleanChromium())
+		util.LogErr(r.cleanParent())
 	}()
 
 	// Create the roll CL.
-	if _, err := exec.RunCwd(r.chromiumDir, "git", "config", "user.name", autoroll.ROLL_AUTHOR); err != nil {
+	if _, err := exec.RunCwd(r.parentDir, "git", "config", "user.name", autoroll.ROLL_AUTHOR); err != nil {
 		return 0, err
 	}
-	if _, err := exec.RunCwd(r.chromiumDir, "git", "config", "user.email", autoroll.ROLL_AUTHOR); err != nil {
+	if _, err := exec.RunCwd(r.parentDir, "git", "config", "user.email", autoroll.ROLL_AUTHOR); err != nil {
 		return 0, err
 	}
 
@@ -336,7 +337,7 @@ func (r *repoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryR
 	}
 	sklog.Infof("Running command: roll-dep %s", strings.Join(args, " "))
 	if _, err := exec.RunCommand(&exec.Command{
-		Dir:  r.chromiumDir,
+		Dir:  r.parentDir,
 		Env:  getEnv(r.depot_tools),
 		Name: r.rollDep,
 		Args: args,
@@ -344,7 +345,7 @@ func (r *repoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryR
 		return 0, err
 	}
 	// Build the commit message, starting with the message provided by roll-dep.
-	commitMsg, err := exec.RunCwd(r.chromiumDir, "git", "log", "-n1", "--format=%B", "HEAD")
+	commitMsg, err := exec.RunCwd(r.parentDir, "git", "log", "-n1", "--format=%B", "HEAD")
 	if err != nil {
 		return 0, err
 	}
@@ -360,7 +361,7 @@ http://www.chromium.org/developers/tree-sheriffs/sheriff-details-chromium#TOC-Fa
 		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
 	}
 	uploadCmd := &exec.Command{
-		Dir:  r.chromiumDir,
+		Dir:  r.parentDir,
 		Env:  getEnv(r.depot_tools),
 		Name: "git",
 		Args: []string{"cl", "upload", "--bypass-hooks", "-f"},
@@ -395,7 +396,7 @@ http://www.chromium.org/developers/tree-sheriffs/sheriff-details-chromium#TOC-Fa
 	defer util.RemoveAll(tmp)
 	jsonFile := path.Join(tmp, "issue.json")
 	if _, err := exec.RunCommand(&exec.Command{
-		Dir:  r.chromiumDir,
+		Dir:  r.parentDir,
 		Env:  getEnv(r.depot_tools),
 		Name: "git",
 		Args: []string{"cl", "issue", fmt.Sprintf("--json=%s", jsonFile)},
