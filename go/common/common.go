@@ -22,6 +22,7 @@ const (
 	// Compute Engine project ID.
 	PROJECT_ID = "google.com:skia-buildbots"
 
+	REPO_CHROMIUM           = "https://chromium.googlesource.com/chromium/src.git"
 	REPO_DEPOT_TOOLS        = "https://chromium.googlesource.com/chromium/tools/depot_tools.git"
 	REPO_SKIA               = "https://skia.googlesource.com/skia.git"
 	REPO_SKIA_INFRA         = "https://skia.googlesource.com/buildbot.git"

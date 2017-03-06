@@ -476,7 +476,7 @@ func setup(t *testing.T, doGerrit bool) (string, *AutoRoller, *mockRepoManager, 
 	}
 
 	rm := &mockRepoManager{t: t}
-	repo_manager.NewRepoManager = func(workdir, childPath string, frequency time.Duration, depot_tools string) (repo_manager.RepoManager, error) {
+	repo_manager.NewRepoManager = func(workdir, parentRepo, childPath string, frequency time.Duration, depot_tools string) (repo_manager.RepoManager, error) {
 		return rm, nil
 	}
 
@@ -489,7 +489,7 @@ func setup(t *testing.T, doGerrit bool) (string, *AutoRoller, *mockRepoManager, 
 	roll1 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), noTrybots, false)
 
 	// Create the roller.
-	roller, err := NewAutoRoller(workdir, "src/third_party/skia", "", []string{}, r, g, time.Hour, time.Hour, "depot_tools", doGerrit)
+	roller, err := NewAutoRoller(workdir, "parent.git", "src/third_party/skia", "", []string{}, r, g, time.Hour, time.Hour, "depot_tools", doGerrit)
 	assert.NoError(t, err)
 
 	// Verify that the bot ran successfully.
