@@ -309,7 +309,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 // builds the specific targets we need for this application.
 func buildVisualize(checkout, depotTools string) error {
 	sklog.Info("Starting GNGen")
-	if err := buildskia.GNGen(checkout, depotTools, "Release", []string{"is_official_build=true"}); err != nil {
+	if err := buildskia.GNGen(checkout, depotTools, "Release", []string{"is_debug=false"}); err != nil {
 		return fmt.Errorf("Failed GN gen: %s", err)
 	}
 
