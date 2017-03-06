@@ -5,6 +5,7 @@ scrape_configs:
   - job_name: 'androidingest'
     static_configs:
       - targets: ['skia-android-ingest:20000']
+      - targets: ['skia-android-ingest:20001']
 
   - job_name: 'autoroll'
     static_configs:

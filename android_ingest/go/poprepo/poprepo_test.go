@@ -42,7 +42,7 @@ func TestAdd(t *testing.T) {
 	err = checkout.Cleanup()
 	assert.NoError(t, err)
 
-	p := NewPopRepo(checkout, true)
+	p := NewPopRepo(checkout, true, "android-ingest")
 	assert.NoError(t, err)
 
 	_, err = p.checkout.Git("config", "user.email", "tester@example.com")
