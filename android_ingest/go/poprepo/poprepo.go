@@ -35,9 +35,10 @@ type PopRepoI interface {
 
 // PopRepo implements PopRepoI.
 type PopRepo struct {
-	checkout *git.Checkout
-	workdir  string
-	local    bool
+	checkout  *git.Checkout
+	workdir   string
+	local     bool
+	subdomain string
 }
 
 // NewPopRepo returns a *PopRepo that writes and reads BuildIds into the
@@ -45,11 +46,12 @@ type PopRepo struct {
 //
 // If not 'local' then the HOME environment variable is set for running on the
 // server.
-func NewPopRepo(checkout *git.Checkout, local bool) *PopRepo {
+func NewPopRepo(checkout *git.Checkout, local bool, subdomain string) *PopRepo {
 	return &PopRepo{
-		checkout: checkout,
-		workdir:  checkout.Dir(),
-		local:    local,
+		checkout:  checkout,
+		workdir:   checkout.Dir(),
+		local:     local,
+		subdomain: subdomain,
 	}
 }
 
@@ -98,7 +100,7 @@ func (p *PopRepo) Add(buildid int64, ts int64) error {
 	output := bytes.Buffer{}
 	cmd := exec.Command{
 		Name:           "git",
-		Args:           []string{"commit", "-m", fmt.Sprintf("https://android-ingest.skia.org/r/%d", buildid), fmt.Sprintf("--date=%d", ts)},
+		Args:           []string{"commit", "-m", fmt.Sprintf("https://%s.skia.org/r/%d", p.subdomain, buildid), fmt.Sprintf("--date=%d", ts)},
 		Env:            []string{fmt.Sprintf("GIT_COMMITTER_DATE=%d", ts)},
 		Dir:            p.checkout.Dir(),
 		CombinedOutput: &output,
