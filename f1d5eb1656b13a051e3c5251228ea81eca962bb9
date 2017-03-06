@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c214c37c_814033dc",
+        "filename": "ct/res/imp/chromium-perf-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-06T17:20:46Z",
+      "side": 1,
+      "message": "Should we just remove this?",
+      "range": {
+        "startLine": 117,
+        "startChar": 10,
+        "endLine": 121,
+        "endChar": 26
+      },
+      "revId": "f1d5eb1656b13a051e3c5251228ea81eca962bb9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
