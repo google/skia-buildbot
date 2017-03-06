@@ -70,8 +70,9 @@ Function addToRegistryPath($dir) {
 }
 
 banner "Add to registry PATH"
-addToRegistryPath "$userDir\depot_tools"
 addToRegistryPath "$userDir\depot_tools\python276_bin\Scripts"
+addToRegistryPath "$userDir\depot_tools\python276_bin"
+addToRegistryPath "$userDir\depot_tools"
 addToRegistryPath "C:\Program` Files` (x86)\CMake\bin"
 
 banner "Set up Auto-Logon"
