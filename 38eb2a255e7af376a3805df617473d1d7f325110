@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "445787d9_6e505684",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 483,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-03-06T15:29:32Z",
+      "side": 1,
+      "message": "This change fixes this line.",
+      "revId": "38eb2a255e7af376a3805df617473d1d7f325110",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
