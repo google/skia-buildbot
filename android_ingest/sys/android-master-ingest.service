@@ -9,6 +9,7 @@ ExecStart=/usr/local/bin/android-master-ingest \
     --logtostderr \
     --port=:8001 \
     --prom_port=:20001 \
+    --storage_url=gs://skia-perf/android-master-ingest \
     --work_root=/home/default/android-master-ingest-work \
     --subdomain=android-master-ingest \
     --branch=git_master \
