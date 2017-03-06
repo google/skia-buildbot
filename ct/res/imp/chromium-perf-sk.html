@@ -38,6 +38,10 @@
       width: 5em;
     }
 
+    .smaller-font {
+      font-size: 80%;
+    }
+
     iron-selector.long-field > div {
       width: 40em;
     }
@@ -106,23 +110,6 @@
 
       <tr>
         <td>
-          Repeat each page<br/>
-          Documentation is <a href="https://docs.google.com/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit?pli=1#heading=h.qtj3zmsd8p00">here</a>
-        </td>
-        <td>
-          <iron-selector attr-for-selected="id" id="repeat_runs" selected="3" class="short-field">
-            <div id="100">100</div>
-            <div id="50">50</div>
-            <div id="25">25</div>
-            <div id="3">3</div>
-            <div id="2">2</div>
-            <div id="1">1</div>
-          </iron-selector>
-        </td>
-      </tr>
-
-      <tr>
-        <td>
            Run in Parallel<br/>
            Read about the trade-offs <a href="https://docs.google.com/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit?pli=1#heading=h.xz46aihphb8z">here</a>
         </td>
@@ -137,7 +124,8 @@
       <tr>
         <td>Benchmark Arguments</td>
         <td>
-          <paper-input value="--output-format=csv-pivot-table" id="benchmark_args"></paper-input>
+          <paper-input value="--output-format=csv-pivot-table --pageset-repeat=3" id="benchmark_args" class="long-field"></paper-input>
+          <span class="smaller-font"><b>Note:</b> Change the --pageset-repeat value if you would like lower/higher repeats of each web page. 1 will be used if the argument is removed.</span>
         </td>
       </tr>
 
@@ -284,26 +272,13 @@
        this.$.custom_webpages.addEventListener('click', function(e) {
          // Do not display the pagesets selector if custom webpages is open.
          that.$.page_sets.hidden = that.$.custom_webpages.webpagesOpened;
-         // Display larger repeat options if custom webpages is open.
-         that.displayLargerRepeats(that.$.custom_webpages.webpagesOpened);
          if (!that.$.custom_webpages.webpagesOpened) {
            // Clear out webpages if it is no longer open.
            that.$.custom_webpages.webpages = '';
-           if (['100', '50', '25'].includes(that.$.repeat_runs.selected)) {
-             that.$.repeat_runs.selected = '3';
-           }
          }
        });
        this.platformChanged();
        this.setRunInParallel();
-       // Display larger repeat options if custom webpages is open.
-       this.displayLargerRepeats(that.$.custom_webpages.webpagesOpened);
-     },
-
-     displayLargerRepeats: function(display) {
-         document.getElementById('100').hidden = !display;
-         document.getElementById('50').hidden = !display;
-         document.getElementById('25').hidden = !display;
      },
 
      getPlatformDesc: function(platform) {
@@ -375,13 +350,25 @@
        this.$.confirm_dialog.close()
      },
 
+     getRepeatValue: function() {
+       // If "--pageset-repeat" is specified in benchmark args then use that
+       // value else use "1".
+       var rx = /--pageset-repeat[ =](\d+)/gm
+       var m = rx.exec(this.$.benchmark_args.value);
+       if (m) {
+         return m[1];
+       } else {
+         return "1";
+       }
+     },
+
      queueTask: function() {
        var params = {};
        params["benchmark"] = this.selectedBenchmarkName;
        params["platform"] = this.$.target_platform.selected;
        params["page_sets"] = this.$.page_sets.selected;
        params["custom_webpages"] = this.$.custom_webpages.webpages;
-       params["repeat_runs"] = this.$.repeat_runs.selected;
+       params["repeat_runs"] = this.getRepeatValue();
        params["run_in_parallel"] = this.$.run_in_parallel.selected;
        params["benchmark_args"] = this.$.benchmark_args.value;
        params["browser_args_nopatch"] = this.$.browser_args_nopatch.value;
