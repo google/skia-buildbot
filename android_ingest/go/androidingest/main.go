@@ -213,7 +213,7 @@ func loadTemplates() {
 func main() {
 	defer common.LogPanic()
 	common.InitWithMust(
-		"androidingest",
+		os.Args[0],
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)
