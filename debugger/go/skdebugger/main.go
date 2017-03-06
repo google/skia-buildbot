@@ -197,7 +197,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 
 func buildSkiaServe(checkout, depotTools string) error {
 	sklog.Info("Starting GNGen")
-	if err := buildskia.GNGen(checkout, depotTools, "Release", []string{"is_official_build=true"}); err != nil {
+	if err := buildskia.GNGen(checkout, depotTools, "Release", []string{"is_debug=false"}); err != nil {
 		return fmt.Errorf("Failed GN gen: %s", err)
 	}
 
