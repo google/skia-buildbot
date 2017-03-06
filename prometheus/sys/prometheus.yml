@@ -102,6 +102,7 @@ scrape_configs:
     static_configs:
       - targets: ['skia-perf:20000']
       - targets: ['skia-android-perf:20000']
+      - targets: ['skia-android-master-perf:20000']
 
   - job_name: 'status'
     static_configs:
@@ -130,6 +131,7 @@ scrape_configs:
       - targets: ['pdfium-autoroll:11000']
       - targets: ['skia-android-ingest:11000']
       - targets: ['skia-android-perf:11000']
+      - targets: ['skia-android-master-perf:11000']
       - targets: ['skia-autoroll:11000']
       - targets: ['skia-cq-watcher:11000']
       - targets: ['skia-datahopper2:11000']
