@@ -45,6 +45,7 @@ var (
 	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	storageUrl   = flag.String("storage_url", "gs://skia-perf/android-ingest", "The GCS URL of where to store the ingested perf data.")
 	workRoot     = flag.String("work_root", "", "Directory location where all the work is done.")
+	subdomain    = flag.String("subdomain", "android-ingest", "The subdomain [foo].skia.org of where this app is running.")
 )
 
 var (
@@ -89,7 +90,7 @@ func Init() {
 	}
 
 	// Start process that adds buildids to the git repo.
-	process, err = continuous.New(*branch, checkout, lookupCache, client, *local)
+	process, err = continuous.New(*branch, checkout, lookupCache, client, *local, *subdomain)
 	if err != nil {
 		sklog.Fatalf("Failed to start continuous process of adding new buildids to git repo: %s", err)
 	}
