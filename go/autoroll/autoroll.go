@@ -94,9 +94,6 @@ func (i *AutoRollIssue) Validate() error {
 		if i.Result == ROLL_RESULT_IN_PROGRESS {
 			return fmt.Errorf("AutoRollIssue cannot have a Result of %q if it is Closed.", ROLL_RESULT_IN_PROGRESS)
 		}
-		//if i.CommitQueue {
-		//	return errors.New("AutoRollIssue cannot be marked CommitQueue if it is Closed.")
-		//}
 	} else {
 		if i.Committed {
 			return errors.New("AutoRollIssue cannot be Committed without being Closed.")
