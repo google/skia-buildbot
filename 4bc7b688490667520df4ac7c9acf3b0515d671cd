@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "23d48d41_d723fdc7",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 475,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-06T15:24:40Z",
+      "side": 1,
+      "message": "ubernit: maybe keep maxPagesPerBot and repeatValue next to each other",
+      "range": {
+        "startLine": 475,
+        "startChar": 78,
+        "endLine": 475,
+        "endChar": 134
+      },
+      "revId": "4bc7b688490667520df4ac7c9acf3b0515d671cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
