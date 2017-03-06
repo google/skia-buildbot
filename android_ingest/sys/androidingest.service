@@ -6,7 +6,7 @@ After=network-online.target
 [Service]
 ExecStart=/usr/local/bin/androidingest \
     --resources_dir=/usr/local/share/androidingest/  \
-    --log_dir=/var/log/logserver \
+    --logtostderr \
     --work_root=/home/default/android-ingest-work \
     --subdomain=android-ingest \
     --repo_url=https://skia.googlesource.com/git-master-skia

@@ -6,7 +6,7 @@ After=network-online.target
 [Service]
 ExecStart=/usr/local/bin/android-master-ingest \
     --resources_dir=/usr/local/share/androidingest/  \
-    --log_dir=/var/log/logserver \
+    --logtostderr \
     --port=:8001 \
     --prom_port=:20001 \
     --work_root=/home/default/android-master-ingest-work \
