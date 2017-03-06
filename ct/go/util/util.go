@@ -479,14 +479,14 @@ func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GcsUtil, totalPages, m
 	// Copy outputs from all slaves locally.
 	numPagesPerBot := GetNumPagesPerBot(repeatValue, maxPagesPerBot)
 	numTasks := int(math.Ceil(float64(totalPages) / float64(numPagesPerBot)))
-	for i := 0; i < numTasks; i++ {
+	for i := 1; i <= numTasks; i++ {
 		startRange := GetStartRange(i, numPagesPerBot)
 		workerLocalOutputPath := filepath.Join(localOutputDir, strconv.Itoa(startRange)+".csv")
 		workerRemoteOutputPath := filepath.Join(BenchmarkRunsDir, runID, strconv.Itoa(startRange), "outputs", runID+".output")
 		respBody, err := gs.GetRemoteFileContents(workerRemoteOutputPath)
 		if err != nil {
 			sklog.Errorf("Could not fetch %s: %s", workerRemoteOutputPath, err)
-			noOutputSlaves = append(noOutputSlaves, strconv.Itoa(i+1))
+			noOutputSlaves = append(noOutputSlaves, strconv.Itoa(i))
 			continue
 		}
 		defer util.Close(respBody)
@@ -506,7 +506,7 @@ func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GcsUtil, totalPages, m
 		}
 		if outputInfo.Size() <= 20 {
 			sklog.Errorf("Output file was less than 20 bytes %s: %s", workerLocalOutputPath, err)
-			noOutputSlaves = append(noOutputSlaves, strconv.Itoa(i+1))
+			noOutputSlaves = append(noOutputSlaves, strconv.Itoa(i))
 			continue
 		}
 	}
