@@ -9,9 +9,15 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"reflect"
 	"runtime"
+	"strings"
+	"sync"
 	"testing"
+	"time"
+
+	"go.skia.org/infra/go/sklog"
 
 	"github.com/davecgh/go-spew/spew"
 	assert "github.com/stretchr/testify/require"
@@ -28,6 +34,7 @@ var (
 	medium        = flag.Bool(MEDIUM_TEST, false, "Whether or not to run medium tests.")
 	large         = flag.Bool(LARGE_TEST, false, "Whether or not to run large tests.")
 	uncategorized = flag.Bool("uncategorized", false, "Only run uncategorized tests.")
+	outDir        = flag.String("out-json-dir", "", "Directory in which to write output. MUST BE ABSOLUTE.")
 
 	// DEFAULT_RUN indicates whether the given test type runs by default
 	// when no filter flag is specified.
@@ -47,6 +54,10 @@ var (
 		MEDIUM_TEST,
 		LARGE_TEST,
 	}
+
+	// testTimes records the timings of all tests.
+	testTimes    = map[string]map[string]time.Duration{}
+	testTimesMtx = sync.Mutex{}
 )
 
 // ShouldRun determines whether the test should run based on the provided flags.
@@ -71,32 +82,88 @@ func ShouldRun(testType string) bool {
 	return false
 }
 
+// testTimer is a struct used for timing the duration of tests.
+type testTimer struct {
+	fn    string
+	pkg   string
+	size  string
+	start time.Time
+	t     *testing.T
+}
+
+// Done stops the clock on the timer and records the duration of the test.
+func (t *testTimer) Done() {
+	duration := time.Now().Sub(t.start)
+	sklog.Infof("%s %s %d", t.fn, duration, os.Getpid)
+	testTimesMtx.Lock()
+	defer testTimesMtx.Unlock()
+	m, ok := testTimes[t.size]
+	if !ok {
+		m = map[string]time.Duration{}
+		testTimes[t.size] = m
+	}
+	m[fmt.Sprintf("%s.%s", t.pkg, t.fn)] = duration
+	if *outDir != "" {
+		wd, err := filepath.Abs(*outDir)
+		assert.NoError(t.t, err)
+		assert.NoError(t.t, os.MkdirAll(wd, os.ModePerm))
+		f := path.Join(wd, fmt.Sprintf("%s.json", strings.Replace(t.pkg, "/", "_", -1)))
+		b, err := json.Marshal(testTimes)
+		assert.NoError(t.t, err)
+		assert.NoError(t.t, ioutil.WriteFile(f, b, os.ModePerm))
+	}
+}
+
+// newTestTimer returns a testTimer instance. It is intended to be called by
+// one of the <size>Test functions below.
+func newTestTimer(t *testing.T, size string) *testTimer {
+	pc, _, _, _ := runtime.Caller(2)
+	f := runtime.FuncForPC(pc)
+	split := strings.Split(f.Name(), ".")
+	fn := "unknown"
+	pkg := "unknown"
+	if len(split) >= 2 {
+		fn = split[len(split)-1]
+		pkg = strings.Join(split[:len(split)-1], ".")
+	}
+	return &testTimer{
+		fn:    fn,
+		pkg:   pkg,
+		size:  size,
+		start: time.Now(),
+		t:     t,
+	}
+}
+
 // SmallTest is a function which should be called at the beginning of a small
 // test: A test (under 2 seconds) with no dependencies on external databases,
 // networks, etc.
-func SmallTest(t *testing.T) {
+func SmallTest(t *testing.T) *testTimer {
 	if !ShouldRun(SMALL_TEST) {
 		t.Skip("Not running small tests.")
 	}
+	return newTestTimer(t, SMALL_TEST)
 }
 
 // MediumTest is a function which should be called at the beginning of an
 // medium-sized test: a test (2-15 seconds) which has dependencies on external
 // databases, networks, etc.
-func MediumTest(t *testing.T) {
+func MediumTest(t *testing.T) *testTimer {
 	if !ShouldRun(MEDIUM_TEST) {
 		t.Skip("Not running medium tests.")
 	}
+	return newTestTimer(t, MEDIUM_TEST)
 }
 
 // LargeTest is a function which should be called at the beginning of a large
 // test: a test (> 15 seconds) with significant reliance on external
 // dependencies which makes it too slow or flaky to run as part of the normal
 // test suite.
-func LargeTest(t *testing.T) {
+func LargeTest(t *testing.T) *testTimer {
 	if !ShouldRun(LARGE_TEST) {
 		t.Skip("Not running large tests.")
 	}
+	return newTestTimer(t, LARGE_TEST)
 }
 
 // SkipIfShort causes the test to be skipped when running with -short.
