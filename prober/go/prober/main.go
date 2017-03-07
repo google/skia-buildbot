@@ -56,7 +56,7 @@ type ResponseTester func(io.Reader, http.Header) bool
 // Probe is a single endpoint we are probing.
 type Probe struct {
 	// URL is the HTTP URL to probe.
-	URL string `json:"url"`
+	URLs []string `json:"urls"`
 
 	// Method is the HTTP method to use when probing.
 	Method string `json:"method"`
@@ -74,8 +74,10 @@ type Probe struct {
 	ResponseTestName string `json:"responsetest"`
 
 	responseTest ResponseTester
-	failure      metrics2.Int64Metric
-	latency      metrics2.Int64Metric // Latency in ms.
+
+	//      map[url]metric.
+	failure map[string]metrics2.Int64Metric
+	latency map[string]metrics2.Int64Metric // Latency in ms.
 }
 
 // Probes is all the probes that are to be run.
@@ -94,6 +96,8 @@ func readConfigFiles(filenames string) (Probes, error) {
 			return nil, fmt.Errorf("Failed to decode JSON in config file: %s", err)
 		}
 		for k, v := range *p {
+			v.failure = map[string]metrics2.Int64Metric{}
+			v.latency = map[string]metrics2.Int64Metric{}
 			if f, ok := responseTesters[v.ResponseTestName]; ok {
 				v.responseTest = f
 				sklog.Infof("Found a request test for %s", k)
@@ -242,47 +246,49 @@ func probeOneRound(cfg Probes, c *http.Client) {
 	var resp *http.Response
 	var begin time.Time
 	for name, probe := range cfg {
-		sklog.Infof("Probe: %s Starting fail value: %d", name, probe.failure.Get())
-		begin = time.Now()
-		var err error
-		if probe.Method == "GET" {
-			resp, err = c.Get(probe.URL)
-		} else if probe.Method == "HEAD" {
-			resp, err = c.Head(probe.URL)
-		} else if probe.Method == "POST" {
-			resp, err = c.Post(probe.URL, probe.MimeType, strings.NewReader(probe.Body))
-		} else {
-			sklog.Errorf("Error: unknown method: %s", probe.Method)
-			continue
-		}
-		d := time.Since(begin)
-		probe.latency.Update(d.Nanoseconds() / int64(time.Millisecond))
-		if err != nil {
-			sklog.Warningf("Failed to make request: Name: %s URL: %s Error: %s", name, probe.URL, err)
-			probe.failure.Update(1)
-			continue
-		}
-		responseTestResults := true
-		if probe.responseTest != nil && resp.Body != nil {
-			responseTestResults = probe.responseTest(resp.Body, resp.Header)
-		}
-		if resp.Body != nil {
-			util.Close(resp.Body)
-		}
-		// TODO(jcgregorio) Save the last N responses and present them in a web UI.
+		for _, url := range probe.URLs {
+			sklog.Infof("Probe: %s Starting fail value: %d", name, probe.failure[url].Get())
+			begin = time.Now()
+			var err error
+			if probe.Method == "GET" {
+				resp, err = c.Get(url)
+			} else if probe.Method == "HEAD" {
+				resp, err = c.Head(url)
+			} else if probe.Method == "POST" {
+				resp, err = c.Post(url, probe.MimeType, strings.NewReader(probe.Body))
+			} else {
+				sklog.Errorf("Error: unknown method: %s", probe.Method)
+				continue
+			}
+			d := time.Since(begin)
+			probe.latency[url].Update(d.Nanoseconds() / int64(time.Millisecond))
+			if err != nil {
+				sklog.Warningf("Failed to make request: Name: %s URL: %s Error: %s", name, url, err)
+				probe.failure[url].Update(1)
+				continue
+			}
+			responseTestResults := true
+			if probe.responseTest != nil && resp.Body != nil {
+				responseTestResults = probe.responseTest(resp.Body, resp.Header)
+			}
+			if resp.Body != nil {
+				util.Close(resp.Body)
+			}
+			// TODO(jcgregorio) Save the last N responses and present them in a web UI.
 
-		if !In(resp.StatusCode, probe.Expected) {
-			sklog.Warningf("Got wrong status code: Name %s Got %d Want %v", name, resp.StatusCode, probe.Expected)
-			probe.failure.Update(1)
-			continue
-		}
-		if !responseTestResults {
-			sklog.Warningf("Response test failed: Name: %s %#v", name, probe)
-			probe.failure.Update(1)
-			continue
-		}
+			if !In(resp.StatusCode, probe.Expected) {
+				sklog.Warningf("Got wrong status code: Name %s Got %d Want %v", name, resp.StatusCode, probe.Expected)
+				probe.failure[url].Update(1)
+				continue
+			}
+			if !responseTestResults {
+				sklog.Warningf("Response test failed: Name: %s %#v", name, probe)
+				probe.failure[url].Update(1)
+				continue
+			}
 
-		probe.failure.Update(0)
+			probe.failure[url].Update(0)
+		}
 	}
 }
 
@@ -310,8 +316,10 @@ func main() {
 	sklog.Infoln("Successfully read config file.")
 	// Register counters for each probe.
 	for name, probe := range cfg {
-		probe.failure = metrics2.GetInt64Metric("prober", map[string]string{"type": "failure", "probename": name})
-		probe.latency = metrics2.GetInt64Metric("prober", map[string]string{"type": "latency", "probename": name})
+		for _, url := range probe.URLs {
+			probe.failure[url] = metrics2.GetInt64Metric("prober", map[string]string{"type": "failure", "probename": name, "url": url})
+			probe.latency[url] = metrics2.GetInt64Metric("prober", map[string]string{"type": "latency", "probename": name, "url": url})
+		}
 	}
 
 	// Create a client that uses our dialer with a timeout.
