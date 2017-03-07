@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b908a6c0_5849b7d7",
+        "filename": "go/git/testutils/git_builder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-07T12:51:57Z",
+      "side": 1,
+      "message": "Might as well rename them in the code, right?",
+      "range": {
+        "startLine": 212,
+        "startChar": 43,
+        "endLine": 212,
+        "endChar": 48
+      },
+      "revId": "b1b038dde5a63b2b41086079116fa72e9fdfabb7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "73450c13_65b4b6bb",
+        "filename": "task_scheduler/go/db/repo_state_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-07T12:51:57Z",
+      "side": 1,
+      "message": "Can we also add an assert.NotNil(t, graphCommit) here?",
+      "range": {
+        "startLine": 78,
+        "startChar": 3,
+        "endLine": 78,
+        "endChar": 14
+      },
+      "revId": "b1b038dde5a63b2b41086079116fa72e9fdfabb7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
