@@ -264,9 +264,12 @@ func (j *JobSpec) GetTaskSpecDAG(cfg *TasksCfg) (map[string][]string, error) {
 // TaskCfgCache is a struct used for caching tasks cfg files. The user should
 // periodically call Cleanup() to remove old entries.
 type TaskCfgCache struct {
-	cache           map[db.RepoState]*cacheEntry
-	depotToolsDir   string
-	mtx             sync.Mutex
+	// protected by mtx
+	cache         map[db.RepoState]*cacheEntry
+	depotToolsDir string
+	mtx           sync.RWMutex
+	// protected by mtx
+	addedTasksCache map[db.RepoState]util.StringSet
 	recentCommits   map[string]time.Time
 	recentJobSpecs  map[string]time.Time
 	recentMtx       sync.RWMutex
@@ -281,7 +284,8 @@ func NewTaskCfgCache(repos repograph.Map, depotToolsDir, workdir string, numWork
 	c := &TaskCfgCache{
 		cache:           map[db.RepoState]*cacheEntry{},
 		depotToolsDir:   depotToolsDir,
-		mtx:             sync.Mutex{},
+		addedTasksCache: map[db.RepoState]util.StringSet{},
+		mtx:             sync.RWMutex{},
 		recentCommits:   map[string]time.Time{},
 		recentJobSpecs:  map[string]time.Time{},
 		recentMtx:       sync.RWMutex{},
@@ -459,6 +463,70 @@ func (c *TaskCfgCache) GetTaskSpec(rs db.RepoState, name string) (*TaskSpec, err
 	return t.Copy(), nil
 }
 
+// GetAddedTaskSpecsForRepoStates returns a mapping from each input RepoState to
+// the set of task names that were added at that RepoState.
+func (c *TaskCfgCache) GetAddedTaskSpecsForRepoStates(rss []db.RepoState) (map[db.RepoState]util.StringSet, error) {
+	rv := make(map[db.RepoState]util.StringSet, len(rss))
+	// todoParents collects the RepoStates in rss that are not in
+	// c.addedTasksCache. We also save the RepoStates' parents so we don't
+	// have to recompute them later.
+	todoParents := make(map[db.RepoState][]db.RepoState, 0)
+	// allTodoRs collects the RepoStates for which we need to look up
+	// TaskSpecs.
+	allTodoRs := []db.RepoState{}
+	if err := func() error {
+		c.mtx.RLock()
+		defer c.mtx.RUnlock()
+		for _, rs := range rss {
+			val, ok := c.addedTasksCache[rs]
+			if ok {
+				rv[rs] = val.Copy()
+			} else {
+				allTodoRs = append(allTodoRs, rs)
+				parents, err := rs.Parents(c.repos)
+				if err != nil {
+					return err
+				}
+				allTodoRs = append(allTodoRs, parents...)
+				todoParents[rs] = parents
+			}
+		}
+		return nil
+	}(); err != nil {
+		return nil, err
+	}
+	if len(todoParents) == 0 {
+		return rv, nil
+	}
+	taskSpecs, err := c.GetTaskSpecsForRepoStates(allTodoRs)
+	if err != nil {
+		return nil, err
+	}
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	for cur, parents := range todoParents {
+		addedTasks := util.NewStringSet()
+		for task, _ := range taskSpecs[cur] {
+			// If this revision has no parents, the task spec is added by this
+			// revision.
+			addedByCur := len(parents) == 0
+			for _, parent := range parents {
+				if _, ok := taskSpecs[parent][task]; !ok {
+					// If missing in parrent, the task spec is added by this revision.
+					addedByCur = true
+					break
+				}
+			}
+			if addedByCur {
+				addedTasks[task] = true
+			}
+		}
+		c.addedTasksCache[cur] = addedTasks.Copy()
+		rv[cur] = addedTasks
+	}
+	return rv, nil
+}
+
 // GetJobSpec returns the JobSpec at the given RepoState, or an error if no such
 // JobSpec exists.
 func (c *TaskCfgCache) GetJobSpec(rs db.RepoState, name string) (*JobSpec, error) {
@@ -505,16 +573,15 @@ func (c *TaskCfgCache) Cleanup(period time.Duration) error {
 	defer c.mtx.Unlock()
 	periodStart := time.Now().Add(-period)
 	for repoState, _ := range c.cache {
-		repo, ok := c.repos[repoState.Repo]
-		if !ok {
-			return fmt.Errorf("Unknown repo: %q", repoState.Repo)
-		}
-		details := repo.Get(repoState.Revision)
-		if details == nil {
-			return fmt.Errorf("Unknown revision %s in %s", repoState.Revision, repoState.Repo)
-		}
-		if details.Timestamp.Before(periodStart) {
+		details, err := repoState.GetCommit(c.repos)
+		if err != nil || details.Timestamp.Before(periodStart) {
 			delete(c.cache, repoState)
+		}
+	}
+	for repoState, _ := range c.addedTasksCache {
+		details, err := repoState.GetCommit(c.repos)
+		if err != nil || details.Timestamp.Before(periodStart) {
+			delete(c.addedTasksCache, repoState)
 		}
 	}
 	c.recentMtx.Lock()

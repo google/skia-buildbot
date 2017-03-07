@@ -1,5 +1,11 @@
 package db
 
+import (
+	"fmt"
+
+	"go.skia.org/infra/go/git/repograph"
+)
+
 // Patch describes a patch which may be applied to a code checkout.
 type Patch struct {
 	Issue    string `json:"issue"`
@@ -53,4 +59,42 @@ func (s RepoState) Valid() bool {
 // IsTryJob returns true iff the RepoState includes a patch.
 func (s RepoState) IsTryJob() bool {
 	return s.Patch.Full()
+}
+
+// GetCommit returns the repograph.Commit referenced by s, or an error if it
+// can't be found.
+func (s RepoState) GetCommit(repos repograph.Map) (*repograph.Commit, error) {
+	repo, ok := repos[s.Repo]
+	if !ok {
+		return nil, fmt.Errorf("Unknown repo: %q", s.Repo)
+	}
+	commit := repo.Get(s.Revision)
+	if commit == nil {
+		return nil, fmt.Errorf("Unknown revision %q in %q", s.Revision, s.Repo)
+	}
+	return commit, nil
+}
+
+// Parents returns RepoStates referencing the "parents" of s. For try jobs, the
+// parent is the base RepoState without a Patch. Otherwise, the parents
+// reference the parent commits of s.Revision.
+func (s RepoState) Parents(repos repograph.Map) ([]RepoState, error) {
+	if s.IsTryJob() {
+		rv := s.Copy()
+		rv.Patch = Patch{}
+		return []RepoState{rv}, nil
+	}
+	commit, err := s.GetCommit(repos)
+	if err != nil {
+		return nil, err
+	}
+	parents := commit.GetParents()
+	rv := make([]RepoState, 0, len(parents))
+	for _, parent := range parents {
+		rv = append(rv, RepoState{
+			Repo:     s.Repo,
+			Revision: parent.Hash,
+		})
+	}
+	return rv, nil
 }

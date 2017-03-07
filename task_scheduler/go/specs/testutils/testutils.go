@@ -146,64 +146,90 @@ func SetupTestRepo(t *testing.T) (*git_testutils.GitBuilder, string, string) {
 
 	// Commit 2.
 	gb.Add("infra/bots/tasks.json", `{
+  "jobs": {
+    "Build-Ubuntu-GCC-Arm7-Release-Android": {
+      "priority": 0.8,
+      "tasks": [
+        "Build-Ubuntu-GCC-Arm7-Release-Android"
+      ]
+    },
+    "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
+      "priority": 0.8,
+      "tasks": [
+        "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
+      ]
+    },
+    "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
+      "priority": 0.8,
+      "tasks": [
+        "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
+      ]
+    }
+  },
   "tasks": {
     "Build-Ubuntu-GCC-Arm7-Release-Android": {
-      "cipd_packages": [{
-        "name": "android_sdk",
-        "path": "android_sdk",
-        "version": "version:0"
-      }],
-      "dependencies": [],
-      "dimensions": ["pool:Skia", "os:Ubuntu"],
+      "cipd_packages": [
+        {
+          "name": "android_sdk",
+          "path": "android_sdk",
+          "version": "version:0"
+        }
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Ubuntu"
+      ],
       "isolate": "compile_skia.isolate",
       "max_attempts": 5,
       "priority": 0.8
     },
-    "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
-      "cipd_packages": [{
-        "name": "skimage",
-        "path": "skimage",
-        "version": "version:0"
-      },
-      {
-        "name": "skp",
-        "path": "skp",
-        "version": "version:0"
-      }],
-      "dependencies": ["Build-Ubuntu-GCC-Arm7-Release-Android"],
-      "dimensions": ["pool:Skia", "os:Android", "device_type:grouper"],
-      "isolate": "test_skia.isolate",
-      "priority": 0.8
-    },
     "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
-      "cipd_packages": [{
-        "name": "skimage",
-        "path": "skimage",
-        "version": "version:0"
-      },
-      {
-        "name": "skp",
-        "path": "skp",
-        "version": "version:0"
-      }],
-      "dependencies": ["Build-Ubuntu-GCC-Arm7-Release-Android"],
-      "dimensions": ["pool:Skia", "os:Android", "device_type:grouper"],
+      "cipd_packages": [
+        {
+          "name": "skimage",
+          "path": "skimage",
+          "version": "version:0"
+        },
+        {
+          "name": "skp",
+          "path": "skp",
+          "version": "version:0"
+        }
+      ],
+      "dependencies": [
+        "Build-Ubuntu-GCC-Arm7-Release-Android"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Android",
+        "device_type:grouper"
+      ],
       "isolate": "perf_skia.isolate",
       "priority": 0.8
-    }
-  },
-  "jobs": {
-    "Build-Ubuntu-GCC-Arm7-Release-Android": {
-      "priority": 0.8,
-      "tasks": ["Build-Ubuntu-GCC-Arm7-Release-Android"]
-    },
-    "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
-      "priority": 0.8,
-      "tasks": ["Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"]
     },
     "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
-      "priority": 0.8,
-      "tasks": ["Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"]
+      "cipd_packages": [
+        {
+          "name": "skimage",
+          "path": "skimage",
+          "version": "version:0"
+        },
+        {
+          "name": "skp",
+          "path": "skp",
+          "version": "version:0"
+        }
+      ],
+      "dependencies": [
+        "Build-Ubuntu-GCC-Arm7-Release-Android"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Android",
+        "device_type:grouper"
+      ],
+      "isolate": "test_skia.isolate",
+      "priority": 0.8
     }
   }
 }`)

@@ -19,6 +19,19 @@ func NewStringSet(lists ...[]string) StringSet {
 	return ret
 }
 
+// Copy returns a copy of the StringSet such that reflect.DeepEqual returns true
+// for the original and copy. In particular, preserves nil input.
+func (s StringSet) Copy() StringSet {
+	if s == nil {
+		return nil
+	}
+	ret := make(StringSet, len(s))
+	for k, v := range s {
+		ret[k] = v
+	}
+	return ret
+}
+
 // Keys returns the keys of a StringSet
 func (s StringSet) Keys() []string {
 	ret := make([]string, 0, len(s))
