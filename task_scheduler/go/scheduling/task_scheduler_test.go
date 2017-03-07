@@ -170,7 +170,7 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task, dims map[s
 
 // Common setup for TaskScheduler tests.
 func setup(t *testing.T) (*git_testutils.GitBuilder, db.DB, *swarming.TestClient, *TaskScheduler, *mockhttpclient.URLMock, func()) {
-	testutils.LargeTest(t)
+	defer testutils.LargeTest(t).Done()
 	testutils.SkipIfShort(t)
 
 	gb, _, _ := specs_testutils.SetupTestRepo(t)
@@ -753,7 +753,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 }
 
 func TestTestedness(t *testing.T) {
-	testutils.SmallTest(t)
+	defer testutils.SmallTest(t).Done()
 	tc := []struct {
 		in  int
 		out float64
@@ -793,7 +793,7 @@ func TestTestedness(t *testing.T) {
 }
 
 func TestTestednessIncrease(t *testing.T) {
-	testutils.SmallTest(t)
+	defer testutils.SmallTest(t).Done()
 	tc := []struct {
 		a   int
 		b   int
@@ -894,7 +894,7 @@ func TestTestednessIncrease(t *testing.T) {
 }
 
 func TestComputeBlamelist(t *testing.T) {
-	testutils.LargeTest(t)
+	defer testutils.LargeTest(t).Done()
 	testutils.SkipIfShort(t)
 
 	// Setup.
@@ -1136,7 +1136,7 @@ func TestComputeBlamelist(t *testing.T) {
 }
 
 func TestTimeDecay24Hr(t *testing.T) {
-	testutils.SmallTest(t)
+	defer testutils.SmallTest(t).Done()
 	tc := []struct {
 		decayAmt24Hr float64
 		elapsed      time.Duration
@@ -1394,7 +1394,7 @@ func makeSwarmingBot(id string, dims []string) *swarming_api.SwarmingRpcsBotInfo
 }
 
 func TestGetCandidatesToSchedule(t *testing.T) {
-	testutils.MediumTest(t)
+	defer testutils.MediumTest(t).Done()
 	// Empty lists.
 	rv := getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{})
 	assert.Equal(t, 0, len(rv))
@@ -1814,7 +1814,7 @@ func (s *spyDB) PutTasks(tasks []*db.Task) error {
 }
 
 func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (*git_testutils.GitBuilder, db.DB, *TaskScheduler, *swarming.TestClient, []string, func(*db.Task), func()) {
-	testutils.LargeTest(t)
+	defer testutils.LargeTest(t).Done()
 	testutils.SkipIfShort(t)
 
 	gb := git_testutils.GitInit(t)
@@ -3237,7 +3237,7 @@ func TestAddTask(t *testing.T) {
 }
 
 func TestValidateTaskForUpdate(t *testing.T) {
-	testutils.SmallTest(t)
+	defer testutils.SmallTest(t).Done()
 
 	d := db.NewInMemoryDB()
 
@@ -3315,7 +3315,7 @@ func TestValidateTaskForUpdate(t *testing.T) {
 }
 
 func TestUpdateTask(t *testing.T) {
-	testutils.SmallTest(t)
+	defer testutils.SmallTest(t).Done()
 
 	d := db.NewInMemoryDB()
 
