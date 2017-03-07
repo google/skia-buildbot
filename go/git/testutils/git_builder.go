@@ -205,17 +205,18 @@ func (g *GitBuilder) CreateFakeGerritCLGen(issue, patchset string) {
 //
 // The repo layout looks like this:
 //
-// c1--c2------c4--c5--
-//       \-c3-----/
+// older           newer
+// c0--c1------c3--c4--
+//       \-c2-----/
 //
-// Returns the commit hashes in order from c1-c5.
+// Returns the commit hashes in order from c0-c4.
 func GitSetup(g *GitBuilder) []string {
+	c0 := g.CommitGen("myfile.txt")
 	c1 := g.CommitGen("myfile.txt")
-	c2 := g.CommitGen("myfile.txt")
 	g.CreateBranchTrackBranch("branch2", "origin/master")
-	c3 := g.CommitGen("anotherfile.txt")
+	c2 := g.CommitGen("anotherfile.txt")
 	g.CheckoutBranch("master")
-	c4 := g.CommitGen("myfile.txt")
-	c5 := g.MergeBranch("branch2")
-	return []string{c1, c2, c3, c4, c5}
+	c3 := g.CommitGen("myfile.txt")
+	c4 := g.MergeBranch("branch2")
+	return []string{c0, c1, c2, c3, c4}
 }

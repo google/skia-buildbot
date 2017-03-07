@@ -249,3 +249,10 @@ func MarshalJSON(t *testing.T, i interface{}) string {
 	assert.NoError(t, err)
 	return string(b)
 }
+
+// MarshalIndentJSON encodes the given interface to an indented JSON string.
+func MarshalIndentJSON(t *testing.T, i interface{}) string {
+	b, err := json.MarshalIndent(i, "", "  ")
+	assert.NoError(t, err)
+	return string(b)
+}

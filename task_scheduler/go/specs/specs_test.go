@@ -1,7 +1,6 @@
 package specs
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"path"
@@ -123,6 +122,117 @@ func TestTaskSpecs(t *testing.T) {
 	assert.Equal(t, 5, total)
 }
 
+func TestAddedTaskSpecs(t *testing.T) {
+	testutils.LargeTest(t)
+	testutils.SkipIfShort(t)
+
+	gb, c1, c2 := specs_testutils.SetupTestRepo(t)
+	defer gb.Cleanup()
+
+	tmp, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmp)
+
+	repo, err := repograph.NewGraph(gb.RepoUrl(), tmp)
+	assert.NoError(t, err)
+	repos := repograph.Map{
+		gb.RepoUrl(): repo,
+	}
+
+	cache := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), tmp, DEFAULT_NUM_WORKERS)
+
+	rs1 := db.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: c1,
+	}
+	rs2 := db.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: c2,
+	}
+
+	addedTaskSpecs, err := cache.GetAddedTaskSpecsForRepoStates([]db.RepoState{rs1, rs2})
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(addedTaskSpecs[rs1]))
+	assert.True(t, addedTaskSpecs[rs1][specs_testutils.BuildTask])
+	assert.True(t, addedTaskSpecs[rs1][specs_testutils.TestTask])
+	assert.Equal(t, 1, len(addedTaskSpecs[rs2]))
+	assert.True(t, addedTaskSpecs[rs2][specs_testutils.PerfTask])
+
+	// c3 adds Beer and Belch (names chosen to avoid merge conficts)
+	gb.CreateBranchTrackBranch("branchy-mcbranch-face", "master")
+	cfg, err := ReadTasksCfg(gb.Dir())
+	assert.NoError(t, err)
+	cfg.Jobs["Beer"] = &JobSpec{TaskSpecs: []string{"Belch"}}
+	cfg.Tasks["Beer"] = &TaskSpec{
+		Dependencies: []string{specs_testutils.BuildTask},
+		Isolate:      "swarm_recipe.isolate",
+	}
+	cfg.Tasks["Belch"] = &TaskSpec{
+		Dependencies: []string{"Beer"},
+		Isolate:      "swarm_recipe.isolate",
+	}
+	gb.Add("infra/bots/tasks.json", testutils.MarshalIndentJSON(t, cfg))
+	c3 := gb.Commit()
+
+	// c4 removes Perf
+	gb.CheckoutBranch("master")
+	cfg, err = ReadTasksCfg(gb.Dir())
+	assert.NoError(t, err)
+	delete(cfg.Jobs, specs_testutils.PerfTask)
+	delete(cfg.Tasks, specs_testutils.PerfTask)
+	gb.Add("infra/bots/tasks.json", testutils.MarshalIndentJSON(t, cfg))
+	c4 := gb.Commit()
+
+	// c5 merges c3 and c4
+	c5 := gb.MergeBranch("branchy-mcbranch-face")
+
+	// c6 adds back Perf
+	cfg, err = ReadTasksCfg(gb.Dir())
+	assert.NoError(t, err)
+	cfg.Jobs[specs_testutils.PerfTask] = &JobSpec{TaskSpecs: []string{specs_testutils.PerfTask}}
+	cfg.Tasks[specs_testutils.PerfTask] = &TaskSpec{
+		Dependencies: []string{specs_testutils.BuildTask},
+		Isolate:      "swarm_recipe.isolate",
+	}
+	gb.Add("infra/bots/tasks.json", testutils.MarshalIndentJSON(t, cfg))
+	c6 := gb.Commit()
+
+	rs3 := db.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: c3,
+	}
+	rs4 := db.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: c4,
+	}
+	rs5 := db.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: c5,
+	}
+	rs6 := db.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: c6,
+	}
+
+	assert.NoError(t, repos.Update())
+	addedTaskSpecs, err = cache.GetAddedTaskSpecsForRepoStates([]db.RepoState{rs1, rs2, rs3, rs4, rs5, rs6})
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(addedTaskSpecs[rs1]))
+	assert.True(t, addedTaskSpecs[rs1][specs_testutils.BuildTask])
+	assert.True(t, addedTaskSpecs[rs1][specs_testutils.TestTask])
+	assert.Equal(t, 1, len(addedTaskSpecs[rs2]))
+	assert.True(t, addedTaskSpecs[rs2][specs_testutils.PerfTask])
+	assert.Equal(t, 2, len(addedTaskSpecs[rs3]))
+	assert.True(t, addedTaskSpecs[rs3]["Beer"])
+	assert.True(t, addedTaskSpecs[rs3]["Belch"])
+	assert.Equal(t, 0, len(addedTaskSpecs[rs4]))
+	assert.Equal(t, 2, len(addedTaskSpecs[rs5]))
+	assert.True(t, addedTaskSpecs[rs5]["Beer"])
+	assert.True(t, addedTaskSpecs[rs5]["Belch"])
+	assert.Equal(t, 1, len(addedTaskSpecs[rs2]))
+	assert.True(t, addedTaskSpecs[rs2][specs_testutils.PerfTask])
+}
+
 func TestTaskCfgCacheCleanup(t *testing.T) {
 	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
@@ -153,6 +263,9 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	_, err = cache.GetTaskSpecsForRepoStates([]db.RepoState{rs1, rs2})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(cache.cache))
+	_, err = cache.GetAddedTaskSpecsForRepoStates([]db.RepoState{rs1, rs2})
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(cache.addedTasksCache))
 
 	// Cleanup, with a period intentionally designed to remove c1 but not c2.
 	r, err := git.NewRepo(gb.RepoUrl(), tmp)
@@ -165,6 +278,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	period := now.Sub(d2.Timestamp) + (diff / 2)
 	assert.NoError(t, cache.Cleanup(period))
 	assert.Equal(t, 1, len(cache.cache))
+	assert.Equal(t, 1, len(cache.addedTasksCache))
 }
 
 // makeTasksCfg generates a JSON representation of a TasksCfg based on the given
@@ -190,9 +304,7 @@ func makeTasksCfg(t *testing.T, tasks, jobs map[string][]string) string {
 		Tasks: taskSpecs,
 		Jobs:  jobSpecs,
 	}
-	c, err := json.Marshal(&cfg)
-	assert.NoError(t, err)
-	return string(c)
+	return testutils.MarshalIndentJSON(t, &cfg)
 }
 
 func TestTasksCircularDependency(t *testing.T) {

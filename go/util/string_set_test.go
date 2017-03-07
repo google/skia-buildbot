@@ -20,6 +20,32 @@ func TestStringSets(t *testing.T) {
 	assert.Equal(t, []string{"abc"}, NewStringSet([]string{"abc", "abc", "abc"}).Keys())
 }
 
+func TestStringSetCopy(t *testing.T) {
+	testutils.SmallTest(t)
+	someKeys := []string{"gamma", "beta", "alpha"}
+	orig := NewStringSet(someKeys)
+	copy := orig.Copy()
+
+	delete(orig, "alpha")
+	orig["mu"] = true
+
+	assert.True(t, copy["alpha"])
+	assert.True(t, copy["beta"])
+	assert.True(t, copy["gamma"])
+	assert.False(t, copy["mu"])
+
+	delete(copy, "beta")
+	copy["nu"] = true
+
+	assert.False(t, orig["alpha"])
+	assert.True(t, orig["beta"])
+	assert.True(t, orig["gamma"])
+	assert.True(t, orig["mu"])
+	assert.False(t, orig["nu"])
+
+	assert.Nil(t, (StringSet(nil)).Copy())
+}
+
 func TestStringSetKeys(t *testing.T) {
 	testutils.SmallTest(t)
 	expectedKeys := []string{"gamma", "beta", "alpha"}
