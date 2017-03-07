@@ -42,7 +42,7 @@ func TestBoltDBStoreAndRetrieve(t *testing.T) {
 }
 
 func TestBoltDBDoesNotExist(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	deleteBeforeTest(t)
 	db, err := New(TEST_DB_PATH)
 	if err != nil {

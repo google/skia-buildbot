@@ -73,7 +73,7 @@ func TestDMResults(t *testing.T) {
 
 // Tests the processor in conjunction with the vcs.
 func TestGoldProcessor(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 
 	// Set up mock VCS and run a servcer with the given data directory.
 	vcs := ingestion.MockVCS(TEST_COMMITS)
