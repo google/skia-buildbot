@@ -121,6 +121,15 @@ func TestTaskSpecs(t *testing.T) {
 	assert.Equal(t, 2, countTest)
 	assert.Equal(t, 1, countPerf)
 	assert.Equal(t, 5, total)
+
+	addedTaskSpecs, err := cache.GetAddedTaskSpecsForRepoStates([]db.RepoState{rs1, rs2})
+	assert.NoError(t, err)
+	assert.True(t, addedTaskSpecs[rs1][specs_testutils.BuildTask])
+	assert.False(t, addedTaskSpecs[rs2][specs_testutils.BuildTask])
+	assert.True(t, addedTaskSpecs[rs1][specs_testutils.TestTask])
+	assert.False(t, addedTaskSpecs[rs2][specs_testutils.TestTask])
+	assert.False(t, addedTaskSpecs[rs1][specs_testutils.PerfTask])
+	assert.True(t, addedTaskSpecs[rs2][specs_testutils.PerfTask])
 }
 
 func TestTaskCfgCacheCleanup(t *testing.T) {
@@ -153,6 +162,9 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	_, err = cache.GetTaskSpecsForRepoStates([]db.RepoState{rs1, rs2})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(cache.cache))
+	_, err = cache.GetAddedTaskSpecsForRepoStates([]db.RepoState{rs1, rs2})
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(cache.addedTasksCache))
 
 	// Cleanup, with a period intentionally designed to remove c1 but not c2.
 	r, err := git.NewRepo(gb.RepoUrl(), tmp)
@@ -165,6 +177,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	period := now.Sub(d2.Timestamp) + (diff / 2)
 	assert.NoError(t, cache.Cleanup(period))
 	assert.Equal(t, 1, len(cache.cache))
+	assert.Equal(t, 1, len(cache.addedTasksCache))
 }
 
 // makeTasksCfg generates a JSON representation of a TasksCfg based on the given
