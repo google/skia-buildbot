@@ -9,7 +9,7 @@ Environment=DATA_DIR=/mnt/pd0/data  \
 
 ExecStart=/usr/local/bin/skiacorrectness-stage \
     --port=:8001  \
-    --log_dir=/var/log/logserver  \
+    --logtostderr \
     --trace_service=skia-tracedb:9090 \
     --git_repo_dir=${DATA_DIR}/gold/skia \
     --image_dir=${DATA_DIR}/imageStore  \

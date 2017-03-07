@@ -57,43 +57,43 @@ If you add any critical TODOs while you're coding, file a blocking bug for the i
   to your binary (the `host` flag is not necessary if you do not use the login
   package):
 ```
---log_dir=/var/log/logserver
---graphite_server=skia-monitoring:2003
---host=<DNS name>.skia.org
+--logtostderr
 ```
-- Add your server to `push/skiapush.conf` and include `logserverd`, `pulld`, and
+- Add your server to `push/skiapush.conf` and include `pulld`, and
   the name given to your package in your `build_release` script. Commit the
   change, build a new `push` release, push `pushd`, run your build_release
   script, and push any out-of-date packages to your instance.
+- Add metrics endpoints to `prometheus/sys/prometheus.yml` for both the app
+  and `pulld` if this is a new server instance.
 - Add configuration for your service's domain name to
   `skfe/sys/skia_org_nginx`. Commit the change, build a new `skfe` release, and
   push `skfe-config` to `skfe-1` and `-2`. Your service is now live on the
   Internet.
 - Add prober rules to `prober/probers.json`.
 
-    - Ideally, probe all public HTML pages and all nullipotent JSON
-      endpoints. You can write functions in `prober/go/prober/main.go` to check
-      the response body if desired.
-    - Probe `<instance name>:10000` to confirm that pulld is running and
-      `<instance name>:10115` to confirm the logserverd is running. (Note that
-      these are GCE instance names, not DNS names.)
+    - Ideally, probe all public HTML pages and all nullipotent JSON endpoints.
+      You can write functions in `prober/go/prober/main.go` to check the
+      response body if desired.
 
 - Add additional stats gathering to your program using
   `go.skia.org/infra/go/metrics2`, e.g. to ensure liveness/heartbeat of any
   background processes. You can add stats to see graphs on
-  [mon.skia.org](https://mon.skia.org/) even if you do not plan to write alerts
-  for these stats.
+  [mon.skia.org](https://mon.skia.org/) even if you do not plan to write
+  alerts for these stats.
 
-- Add alert rules to `alertserver/alerts.cfg`. Examples:
-
+- Add alert rules to `prometheus/sys/alert.rules`. The alerts may link
+  to a production manual, PROD.md, checked into the application source
+  directory. Examples:
     - All prober rules.
     - Additional stats from metrics2.
+
+- Some general metrics apply to all instances and may not need to be added
+  explicitly for your application, such as:
     - Too many goroutines.
     - Free disk space on the instance and any attached disks.
 
 - Test prober rules and stats locally using a `prober` running locally and
   checking the probers `/metrics` page. Build a new `prober` release and push
-  `prober`. Build a new `alertserver` release and push `alertserverd`. Check
-  that alerts are working correctly.
+  `prober`. Push prometheus and check that alerts are working correctly.
 - Tell people about your new service.
 - Be prepared for bug reports. :-)
