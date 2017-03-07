@@ -1331,17 +1331,27 @@ func TestRetrieveJobsSimple(t *testing.T) {
 
 	now := time.Now().Round(time.Second)
 	since := now.Add(-1 * time.Hour)
-	allJobsByDir := map[string][]*db.Job{}
 	expectedJobs := map[string]*db.Job{}
 
 	job1 := makeExistingJob(since.Add(-10*time.Minute), "before")
-	allJobsByDir[path.Dir(formatJobObjectName(job1.DbModified, job1.Id))] = []*db.Job{job1}
+	job1dir := path.Dir(formatJobObjectName(job1.DbModified, job1.Id))
 
 	job2 := makeExistingJob(since.Add(10*time.Minute), "after")
-	allJobsByDir[path.Dir(formatJobObjectName(job2.DbModified, job2.Id))] = []*db.Job{job2}
+	job2dir := path.Dir(formatJobObjectName(job2.DbModified, job2.Id))
 	expectedJobs[job2.Id] = job2.Copy()
 
 	r := mux.NewRouter()
+	allJobsByDir := map[string][]*db.Job{}
+	if job1dir == job2dir {
+		allJobsByDir[job1dir] = []*db.Job{job1, job2}
+	} else {
+		allJobsByDir[job1dir] = []*db.Job{job1}
+		allJobsByDir[job2dir] = []*db.Job{job2}
+	}
+	nowdir := path.Dir(formatJobObjectName(time.Now(), "dummy"))
+	if job2dir != nowdir {
+		allJobsByDir[nowdir] = []*db.Job{}
+	}
 	addGetJobGOBsHandlers(t, r, allJobsByDir)
 	b, cancel := getMockedDBBackup(t, r)
 	defer cancel()
