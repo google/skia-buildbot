@@ -1,13 +1,13 @@
 {
    "skfiddle": {
-     "url": "https://fiddle.skia.org",
+     "urls": ["https://fiddle.skia.org"],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skfiddle_compile_bad": {
-     "url": "https://fiddle.skia.org/_/run",
+     "urls": ["https://fiddle.skia.org/_/run"],
      "method": "POST",
      "expected": [200],
      "body": "{\"code\":\"void draw(SkCanvas* canvas)\",\"name\":\"\",\"options\":{\"width\":256,\"height\":256}}",
@@ -15,7 +15,7 @@
      "responsetest":"skfiddleJSONBad"
    },
    "skfiddle_compile_good": {
-     "url": "https://fiddle.skia.org/_/run",
+     "urls": ["https://fiddle.skia.org/_/run"],
      "method": "POST",
      "expected": [200],
      "body": "{\"code\":\"void draw(SkCanvas* canvas) {SkPaint p;canvas->drawLine(0, 0, 10, 10, p);}\",\"options\":{\"width\":10,\"height\":10}}",
@@ -23,101 +23,66 @@
      "responsetest":"skfiddleJSONGood"
    },
    "imageinfo": {
-     "url": "https://imageinfo.skia.org",
+     "urls": ["https://imageinfo.skia.org"],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "debugger": {
-     "url": "https://debugger.skia.org",
+     "urls": ["https://debugger.skia.org"],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiaperf": {
-     "url": "https://perf.skia.org/e/",
+     "urls": ["https://perf.skia.org/e/"],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiagold": {
-     "url": "https://gold.skia.org",
+     "urls": ["https://gold.skia.org"],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiagold_hashes": {
-     "url": "https://gold.skia.org/_/hashes",
+     "urls": ["https://gold.skia.org/_/hashes"],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": "text/plain"
    },
    "skiamonitor": {
-     "url": "https://mon.skia.org",
+     "urls": ["https://mon.skia.org"],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-   "skiaautoroll": {
-     "url": "https://autoroll.skia.org",
+   "autoroll": {
+     "urls": [
+       "https://autoroll.skia.org",
+       "https://catapult-roll.skia.org",
+       "https://nacl-roll.skia.org",
+       "https://pdfium-roll.skia.org"
+     ],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-   "skiaautoroll_json": {
-     "url": "https://autoroll.skia.org/json/status",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": "application/json",
-     "responsetest": "validJSON"
-   },
-   "catapult_autoroll": {
-     "url": "https://catapult-roll.skia.org",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "catapult_autoroll_json": {
-     "url": "https://catapult-roll.skia.org/json/status",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": "application/json",
-     "responsetest": "validJSON"
-   },
-   "nacl_autoroll": {
-     "url": "https://nacl-roll.skia.org",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "nacl_autoroll_json": {
-     "url": "https://nacl-roll.skia.org/json/status",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": "application/json",
-     "responsetest": "validJSON"
-   },
-   "pdfium-autoroll": {
-     "url": "https://pdfium-roll.skia.org",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "pdfium-autoroll_json": {
-     "url": "https://pdfium-roll.skia.org/json/status",
+   "autoroll_json": {
+     "urls": [
+       "https://autoroll.skia.org/json/status",
+       "https://catapult-roll.skia.org/json/status",
+       "https://nacl-roll.skia.org/json/status",
+       "https://pdfium-roll.skia.org/json/status"
+     ],
      "method": "GET",
      "expected": [200],
      "body": "",
@@ -125,14 +90,14 @@
      "responsetest": "validJSON"
    },
    "skiastatus": {
-     "url": "https://status.skia.org",
+     "urls": ["https://status.skia.org"],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiastatus_json": {
-     "url": "https://status.skia.org/json/skia/commits/",
+     "urls": ["https://status.skia.org/json/skia/commits/"],
      "method": "GET",
      "expected": [200],
      "body": "",
@@ -140,282 +105,105 @@
      "responsetest": "validJSON"
    },
    "skiapush": {
-     "url": "https://push.skia.org",
+     "urls": ["https://push.skia.org"],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skfe-1": {
-     "url": "http://skia-skfe-1",
+     "urls": ["http://skia-skfe-1"],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skfe-2": {
-     "url": "http://skia-skfe-2",
+     "urls": ["http://skia-skfe-2"],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiadev": {
-     "url": "https://skia.org",
+     "urls": ["https://skia.org"],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "internal_main": {
-     "url": "http://skia-internal:8000",
+     "urls": ["http://skia-internal:8000"],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "internal_public": {
-     "url": "https://internal.skia.org",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "skia_ctfe_pulld": {
-     "url": "http://skia-ctfe:10000",
+     "urls": ["https://internal.skia.org"],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "ctfe": {
-     "url": "https://ct.skia.org",
+     "urls": [
+       "https://ct.skia.org",
+       "https://ct.skia.org/chromium_analysis/",
+       "https://ct.skia.org/chromium_perf/",
+       "https://ct.skia.org/capture_skps/",
+       "https://ct.skia.org/lua_script/",
+       "https://ct.skia.org/chromium_builds/",
+       "https://ct.skia.org/admin_tasks/",
+       "https://ct.skia.org/queue/",
+       "https://ct.skia.org/history/",
+       "https://ct.skia.org/chromium_analysis_runs/",
+       "https://ct.skia.org/chromium_perf_runs/",
+       "https://ct.skia.org/capture_skp_runs/",
+       "https://ct.skia.org/lua_script_runs/",
+       "https://ct.skia.org/chromium_builds_runs/",
+       "https://ct.skia.org/recreate_page_sets_runs/",
+       "https://ct.skia.org/recreate_webpage_archives_runs/"
+     ],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-   "ctfe_chromium_analysis": {
-     "url": "https://ct.skia.org/chromium_analysis/",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "ctfe_chromium_perf": {
-     "url": "https://ct.skia.org/chromium_perf/",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "ctfe_capture_skps": {
-     "url": "https://ct.skia.org/capture_skps/",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "ctfe_lua_script": {
-     "url": "https://ct.skia.org/lua_script/",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "ctfe_chromium_builds": {
-     "url": "https://ct.skia.org/chromium_builds/",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "ctfe_admin_tasks": {
-     "url": "https://ct.skia.org/admin_tasks/",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "ctfe_queue": {
-     "url": "https://ct.skia.org/queue/",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "ctfe_history": {
-     "url": "https://ct.skia.org/history/",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "ctfe_chromium_analysis_runs": {
-     "url": "https://ct.skia.org/chromium_analysis_runs/",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "ctfe_chromium_perf_runs": {
-     "url": "https://ct.skia.org/chromium_perf_runs/",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "ctfe_capture_skp_runs": {
-     "url": "https://ct.skia.org/capture_skp_runs/",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "ctfe_lua_script_runs": {
-     "url": "https://ct.skia.org/lua_script_runs/",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "ctfe_chromium_builds_runs": {
-     "url": "https://ct.skia.org/chromium_builds_runs/",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "ctfe_recreate_page_sets_runs": {
-     "url": "https://ct.skia.org/recreate_page_sets_runs/",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "ctfe_recreate_webpage_archives_runs": {
-     "url": "https://ct.skia.org/recreate_webpage_archives_runs/",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "ctfe_benchmarks_platforms": {
-     "url": "https://ct.skia.org/_/benchmarks_platforms/",
-     "method": "POST",
-     "expected": [307],
-     "body": "",
-     "mimetype": "application/json"
-   },
-   "ctfe_rietveld_cl_data": {
-     "url": "https://ct.skia.org/_/cl_data?cl=https://codereview.chromium.org/1330473002",
-     "method": "POST",
-     "expected": [307],
-     "body": "",
-     "mimetype": "application/json"
-   },
-   "ctfe_gerrit_cl_data": {
-     "url": "https://ct.skia.org/_/cl_data?cl=https://chromium-review.googlesource.com/c/398078/",
-     "method": "POST",
-     "expected": [307],
-     "body": "",
-     "mimetype": "application/json"
-   },
-   "ctfe_chromium_rev_data": {
-     "url": "https://ct.skia.org/_/chromium_rev_data?rev=LKGR",
-     "method": "POST",
-     "expected": [307],
-     "body": "",
-     "mimetype": "application/json"
-   },
-   "ctfe_skia_rev_data": {
-     "url": "https://ct.skia.org/_/skia_rev_data?rev=LKGR",
-     "method": "POST",
-     "expected": [307],
-     "body": "",
-     "mimetype": "application/json"
-   },
-   "ctfe_get_chromium_analysis_tasks": {
-     "url": "https://ct.skia.org/_/get_chromium_analysis_tasks?size=2",
-     "method": "POST",
-     "expected": [307],
-     "body": "",
-     "mimetype": "application/json"
-   },
-   "ctfe_get_chromium_perf_tasks": {
-     "url": "https://ct.skia.org/_/get_chromium_perf_tasks?size=2",
-     "method": "POST",
-     "expected": [307],
-     "body": "",
-     "mimetype": "application/json"
-   },
-   "ctfe_get_capture_skp_tasks": {
-     "url": "https://ct.skia.org/_/get_capture_skp_tasks?size=2",
-     "method": "POST",
-     "expected": [307],
-     "body": "",
-     "mimetype": "application/json"
-   },
-   "ctfe_get_lua_script_tasks": {
-     "url": "https://ct.skia.org/_/get_lua_script_tasks?size=2",
-     "method": "POST",
-     "expected": [307],
-     "body": "",
-     "mimetype": "application/json"
-   },
-   "ctfe_get_chromium_build_tasks": {
-     "url": "https://ct.skia.org/_/get_chromium_build_tasks?size=2",
-     "method": "POST",
-     "expected": [307],
-     "body": "",
-     "mimetype": "application/json"
-   },
-   "ctfe_get_recreate_page_sets_tasks": {
-     "url": "https://ct.skia.org/_/get_recreate_page_sets_tasks?size=2",
-     "method": "POST",
-     "expected": [307],
-     "body": "",
-     "mimetype": "application/json"
-   },
-   "ctfe_get_recreate_webpage_archives_tasks": {
-     "url": "https://ct.skia.org/_/get_recreate_webpage_archives_tasks?size=2",
-     "method": "POST",
-     "expected": [307],
-     "body": "",
-     "mimetype": "application/json"
-   },
-   "ctfe_any_skp_repository_available": {
-     "url": "https://ct.skia.org/_/get_capture_skp_tasks?size=1&successful=true",
-     "method": "POST",
-     "expected": [307],
-     "body": "",
-     "mimetype": "application/json"
-   },
-   "ctfe_any_chromium_builds_available": {
-     "url": "https://ct.skia.org/_/get_chromium_build_tasks?size=1&successful=true",
+   "ctfe_post": {
+     "urls": [
+       "https://ct.skia.org/_/cl_data?cl=https://codereview.chromium.org/1330473002",
+       "https://ct.skia.org/_/cl_data?cl=https://chromium-review.googlesource.com/c/398078/",
+       "https://ct.skia.org/_/chromium_rev_data?rev=LKGR",
+       "https://ct.skia.org/_/skia_rev_data?rev=LKGR",
+       "https://ct.skia.org/_/get_chromium_analysis_tasks?size=2",
+       "https://ct.skia.org/_/get_chromium_perf_tasks?size=2",
+       "https://ct.skia.org/_/get_capture_skp_tasks?size=2",
+       "https://ct.skia.org/_/get_lua_script_tasks?size=2",
+       "https://ct.skia.org/_/get_chromium_build_tasks?size=2",
+       "https://ct.skia.org/_/get_recreate_page_sets_tasks?size=2",
+       "https://ct.skia.org/_/get_recreate_webpage_archives_tasks?size=2",
+       "https://ct.skia.org/_/get_capture_skp_tasks?size=1&successful=true",
+       "https://ct.skia.org/_/get_chromium_build_tasks?size=1&successful=true"
+     ],
      "method": "POST",
      "expected": [307],
      "body": "",
      "mimetype": "application/json"
    },
    "task_scheduler": {
-     "url": "https://task-scheduler.skia.org",
+     "urls": ["https://task-scheduler.skia.org"],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": "",
      "responsetest": "nonZeroContenLength"
    },
-   "timelapse_camera_1": {
-     "url": "https://storage.googleapis.com/skia-timelapse/public/today_1.webm",
-     "method": "HEAD",
-     "expected": [200],
-     "body": "",
-     "mimetype": "video/webm",
-     "responsetest": "nonZeroContenLength"
-   },
-   "timelapse_camera_2": {
-     "url": "https://storage.googleapis.com/skia-timelapse/public/today_2.webm",
+   "timelapse_camera": {
+     "urls": [
+       "https://storage.googleapis.com/skia-timelapse/public/today_1.webm",
+       "https://storage.googleapis.com/skia-timelapse/public/today_2.webm"
+     ],
      "method": "HEAD",
      "expected": [200],
      "body": "",
@@ -423,7 +211,7 @@
      "responsetest": "nonZeroContenLength"
    },
    "android_ingest": {
-     "url": "https://android-ingest.skia.org",
+     "urls": ["https://android-ingest.skia.org"],
      "method": "GET",
      "expected": [200],
      "body": "",
@@ -431,7 +219,7 @@
      "responsetest": ""
    },
    "prom": {
-     "url": "https://prom.skia.org/metrics",
+     "urls": ["https://prom.skia.org/metrics"],
      "method": "GET",
      "expected": [200],
      "body": "",
@@ -439,7 +227,7 @@
      "responsetest": ""
    },
    "promstatus": {
-     "url": "https://promalerts.skia.org/metrics",
+     "urls": ["https://promalerts.skia.org/metrics"],
      "method": "GET",
      "expected": [200],
      "body": "",
