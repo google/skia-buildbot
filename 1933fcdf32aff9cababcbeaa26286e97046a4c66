@@ -22,6 +22,30 @@
       "revId": "1933fcdf32aff9cababcbeaa26286e97046a4c66",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8352a9ca_4b378917",
+        "filename": "golden/sys/skiacorrectness-pdfium.service",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-03-07T17:28:13Z",
+      "side": 1,
+      "message": "--alsologtostderr logs to standard error as well as files, but we don\u0027t want any logging to files.",
+      "parentUuid": "603d3c87_08925046",
+      "range": {
+        "startLine": 12,
+        "startChar": 6,
+        "endLine": 12,
+        "endChar": 17
+      },
+      "revId": "1933fcdf32aff9cababcbeaa26286e97046a4c66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
