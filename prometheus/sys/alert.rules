@@ -22,8 +22,8 @@ ALERT ProbeFailure
   FOR 5m
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
-    abbr = "{{ $labels.probename }}",
-    description = "Endpoint {{ $labels.probename }} has failed to respond in at least 5 minutes. See https://github.com/google/skia-buildbot/search?q={{ $labels.probename }}+filename%3Aprobers.json for the endpoint URL."
+    abbr = "{{ $labels.probename }} {{ $labels.url }}",
+    description = "Endpoint {{ $labels.probename }} {{ $labels.url }} has failed to respond in at least 5 minutes. See https://github.com/google/skia-buildbot/search?q={{ $labels.probename }}+filename%3Aprobers.json for the endpoint URL."
   }
 
 ALERT RebootRequired
@@ -330,11 +330,11 @@ ALERT SkiaAutoRoll24H
   }
 
 ALERT AutoRollLatency
-  IF prober{type="latency",probename=~".*autoroll"} > 200
+  IF prober{type="latency",probename="autoroll"} > 200
   FOR 10m
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    description = "The endpoint for {{ $labels.probename }} took more than 200ms to respond. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#http_latency."
+    description = "The endpoint for {{ $labels.probename }} {{ $labels.url }} took more than 200ms to respond. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#http_latency."
   }
 
 ALERT AutoRollErrorRate
