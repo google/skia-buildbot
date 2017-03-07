@@ -9,7 +9,7 @@ Environment=DATA_DIR=/mnt/pd0/data  \
 
 ExecStart=/usr/local/bin/skiacorrectness-pdfium  \
     --port=:8001  \
-    --log_dir=/var/log/logserver  \
+    --logtostderr \
     --trace_service=skia-tracedb:9091 \
     --git_repo_url=https://pdfium.googlesource.com/pdfium \
     --default_corpus=pdfium \

@@ -5,8 +5,7 @@ After=network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/datahopper \
-    --log_dir=/var/log/logserver \
-    --log_max_size=10485760 \
+    --logtostderr \
     --workdir=/mnt/pd0/datahopper_workdir \
     --grpc_port=:8000 \
     --http_port=:8001

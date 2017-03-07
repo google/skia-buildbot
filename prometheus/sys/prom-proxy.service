@@ -6,7 +6,7 @@ After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/prom_proxy_with_auth \
-    --log_dir=/var/log/logserver  \
+    --logtostderr \
     --target_port=:8000 \
     --prom_port=:20002 \
     --port=:8002
