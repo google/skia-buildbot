@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "603d3c87_08925046",
+        "filename": "golden/sys/skiacorrectness-pdfium.service",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-07T16:25:12Z",
+      "side": 1,
+      "message": "Don\u0027t we want --alsologtostderr ?",
+      "range": {
+        "startLine": 12,
+        "startChar": 6,
+        "endLine": 12,
+        "endChar": 17
+      },
+      "revId": "1933fcdf32aff9cababcbeaa26286e97046a4c66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
