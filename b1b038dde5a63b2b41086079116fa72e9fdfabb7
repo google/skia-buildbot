@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "06dc511f_eb026e4c",
+        "filename": "go/git/testutils/git_builder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-07T16:27:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b908a6c0_5849b7d7",
+      "range": {
+        "startLine": 212,
+        "startChar": 43,
+        "endLine": 212,
+        "endChar": 48
+      },
+      "revId": "b1b038dde5a63b2b41086079116fa72e9fdfabb7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "73450c13_65b4b6bb",
         "filename": "task_scheduler/go/db/repo_state_test.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "b1b038dde5a63b2b41086079116fa72e9fdfabb7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d698fa89_d21d221d",
+        "filename": "task_scheduler/go/db/repo_state_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-07T16:27:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "73450c13_65b4b6bb",
+      "range": {
+        "startLine": 78,
+        "startChar": 3,
+        "endLine": 78,
+        "endChar": 14
+      },
+      "revId": "b1b038dde5a63b2b41086079116fa72e9fdfabb7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
