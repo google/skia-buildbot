@@ -1,0 +1,15 @@
+[mpower]
+  [mpower.01]
+  address = "192.168.2.212:22"
+  user = "ubnt"
+
+  [mpower.01.ports]
+  skia-e-linux-001 = 1
+	skia-e-linux-002 = 2
+	skia-e-linux-003 = 3
+	skia-e-linux-004 = 4
+	test-relay = 5
+
+[edgeswitch]
+  [edgeswitch.rr-01-01]
+  ip = "192.168.1.40:22"
