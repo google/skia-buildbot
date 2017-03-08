@@ -255,6 +255,14 @@ func ResetChromiumCheckout(chromiumSrcDir string) error {
 	return nil
 }
 
+func CleanupLockFile(chromiumSrcDir string) {
+	// Clean up any left over lock files from sync errors of previous runs.
+	err := os.Remove(filepath.Join(chromiumSrcDir, ".git", "index.lock"))
+	if err != nil {
+		sklog.Info("No index.lock file found.")
+	}
+}
+
 func applyRepoPatches(chromiumSrcDir, runID string) error {
 	// Apply Skia patch if it exists.
 	skiaDir := filepath.Join(chromiumSrcDir, "third_party", "skia")
