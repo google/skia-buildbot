@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c67bcc03_13c808af",
+        "filename": "go/testutils/testutils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-08T16:11:08Z",
+      "side": 1,
+      "message": "The documentation above suggests that the directory has to be absolute. IMO this should test whether the path is indeed absolute and I would also make it a requirement that it already exists. Otherwise there is the danger that it creates a directory in an unintended place.",
+      "range": {
+        "startLine": 104,
+        "startChar": 0,
+        "endLine": 106,
+        "endChar": 51
+      },
+      "revId": "0906de928586e0516cbcf661b4c89349b53e7a41",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad0d20ad_d44a09fe",
+        "filename": "go/testutils/testutils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-08T16:11:08Z",
+      "side": 1,
+      "message": "If I parse this correctly, wouldn\u0027t this overwrite the file based on the package name every time a test finishes ?",
+      "range": {
+        "startLine": 104,
+        "startChar": 0,
+        "endLine": 110,
+        "endChar": 58
+      },
+      "revId": "0906de928586e0516cbcf661b4c89349b53e7a41",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aefd856d_c7a2d5ec",
+        "filename": "go/testutils/testutils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-08T16:11:08Z",
+      "side": 1,
+      "message": "Can you add a comment about what you are extracting here ? Alternatively you could add descriptions to the fields above.",
+      "range": {
+        "startLine": 117,
+        "startChar": 0,
+        "endLine": 125,
+        "endChar": 2
+      },
+      "revId": "0906de928586e0516cbcf661b4c89349b53e7a41",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
