@@ -146,6 +146,10 @@
         this.$.desc.focus();
         return;
       }
+      if ($$$("drawer-sk").sizeOfUserQueue > 1) {
+         console.log('ITS MORE!!!!!!!!!!!!!');
+         return;
+      }
       this.$.confirm_dialog.open()
     },
 

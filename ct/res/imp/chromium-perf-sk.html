@@ -342,6 +342,9 @@
          this.$.benchmark_name.focus();
          return;
        }
+       if (ctfe.moreThanOneActiveTask($$$("login-sk").email, "/_/get_chromium_perf_tasks")) {
+         return;
+       }
        this.$.confirm_dialog.open()
      },
 

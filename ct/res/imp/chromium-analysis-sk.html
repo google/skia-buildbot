@@ -335,6 +335,9 @@
          this.$.desc.focus();
          return;
        }
+       if (ctfe.moreThanOneActiveTask($$$("login-sk").email, "/_/get_chromium_analysis_tasks")) {
+         return;
+       }
        this.$.confirm_dialog.open()
      },
 

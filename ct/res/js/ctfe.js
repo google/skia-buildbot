@@ -163,6 +163,28 @@ this.ctfe = this.ctfe || function() {
   }
 
   /**
+   * Returns true if user has more than 1 active task.
+   */
+  ctfe.moreThanOneActiveTask = function(username, getTasksUrl) {
+    var queryParams = {
+      "size": 1,
+      "not_completed": true,
+      "username": username,
+    }
+    var queryStr = "?" + sk.query.fromObject(queryParams);
+    return sk.post(getTasksUrl + queryStr)
+        .then(JSON.parse)
+        .then(function (json) {
+          if (json.pagination.total > 1) {
+            sk.errorMessage("You have " + json.pagination.total + " currently running tasks. " +
+                            "Please wait for them to complete before scheduling more CT tasks.");
+          }
+          console.log(json.pagination.total > 1);
+          return json.pagination.total > 1;
+        });
+  }
+
+  /**
    * Returns a string that describes the specified CLs.
    **/
   ctfe.getDescriptionOfCls = function(chromiumClDesc, skiaClDesc, catapultClDesc) {

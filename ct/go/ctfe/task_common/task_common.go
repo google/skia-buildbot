@@ -754,8 +754,41 @@ func benchmarksPlatformsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func userTasksCountHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	fmt.Println("HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE ")
+	fmt.Println(r.FormValue("username"))
+	fmt.Println("HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE ")
+
+	rowQuery := fmt.Sprintf("SELECT * FROM %s WHERE id = ? AND ts_completed IS NOT NULL", prototype.TableName())
+	binds := []interface{}{vars.Id}
+	data, err := prototype.Select(rowQuery, binds...)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Unable to find requested task.")
+		return
+	}
+	tasks := AsTaskSlice(data)
+	if len(tasks) != 1 {
+		httputils.ReportError(w, r, err, "Unable to find requested task.")
+		return
+	}
+
+	addTaskVars := tasks[0].GetPopulatedAddTaskVars()
+
+	data := map[string]interface{}{
+		"benchmarks": ctutil.SupportedBenchmarks,
+		"platforms":  ctutil.SupportedPlatformsToDesc,
+	}
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		return
+	}
+}
+
 func AddHandlers(r *mux.Router) {
 	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.PAGE_SETS_PARAMETERS_POST_URI, "POST", pageSetsHandler)
 	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.CL_DATA_POST_URI, "POST", getCLHandler)
 	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.BENCHMARKS_PLATFORMS_POST_URI, "POST", benchmarksPlatformsHandler)
+	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.USER_TASKS_COUNT_POST_URL, "POST", userTasksCountHandler)
 }
