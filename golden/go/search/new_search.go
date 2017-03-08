@@ -168,6 +168,24 @@ func (s *srIntermediate) Add(traceID string, trace tiling.Trace) {
 // filterTile iterates over the tile and accumulates the traces
 // that match the given query creating the initial search result.
 func (s *SearchAPI) filterTile(q *Query, idx *indexer.SearchIndex) (map[string]map[string]*srIntermediate, error) {
+	acceptFn := nil
+	if q.FGroupTest == GROUP_TEST_MAX_COUNT {
+		maxDigestsByTest := idx.MaxDigestsByTest()
+		acceptFn := mother
+
+		for testName, digestInfo := range inter {
+			maxCount := -1
+			maxDigest := ""
+			for digest := range digestInfo {
+				if talliesByTest[testName][digest] > maxCount {
+					maxCount = talliesByTest[testName][digest]
+					maxDigest = digest
+				}
+			}
+			inter[testName] = map[string]*srIntermediate{maxDigest: inter[testName][maxDigest]}
+		}
+	}
+
 	// Add digest/trace to the result.
 	ret := map[string]map[string]*srIntermediate{}
 	addFn := func(test, digest, traceID string, trace tiling.Trace, accptRet interface{}) {

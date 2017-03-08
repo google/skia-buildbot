@@ -6,6 +6,7 @@ import (
 
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -16,8 +17,9 @@ type Tally map[string]int
 // It is not thread safe. The client of this package needs to make sure there
 // are no conflicts.
 type Tallies struct {
-	traceTally map[string]Tally
-	testTally  map[string]Tally
+	traceTally      map[string]Tally
+	testTally       map[string]Tally
+	maxCountsByTest map[string]util.StringSet
 }
 
 // New creates a new Tallies object.
@@ -27,14 +29,19 @@ func New() *Tallies {
 
 // Calculate sets the tallies for the given tile.
 func (t *Tallies) Calculate(tile *tiling.Tile) {
-	trace, test := tallyTile(tile)
+	trace, test, maxCountsByTest := tallyTile(tile)
 	t.traceTally = trace
 	t.testTally = test
+	t.maxCountsByTest = maxCountsByTest
 }
 
 // ByTest returns Tally's indexed by test name.
 func (t *Tallies) ByTest() map[string]Tally {
 	return t.testTally
+}
+
+func (t *Tallies) MaxDigestsByTest() map[string]util.StringSet {
+	return t.maxCountsByTest
 }
 
 // ByTrace returns Tally's index by trace id.
@@ -69,7 +76,7 @@ func tallyBy(tile *tiling.Tile, traceTally map[string]Tally, query url.Values) T
 }
 
 // tallyTile computes a map[tracename]Tally and map[testname]Tally from the given Tile.
-func tallyTile(tile *tiling.Tile) (map[string]Tally, map[string]Tally) {
+func tallyTile(tile *tiling.Tile) (map[string]Tally, map[string]Tally, map[string]util.StringSet) {
 	defer timer.New("tally").Stop()
 	traceTally := map[string]Tally{}
 	testTally := map[string]Tally{}
@@ -104,5 +111,22 @@ func tallyTile(tile *tiling.Tile) (map[string]Tally, map[string]Tally) {
 			testTally[testName] = cp
 		}
 	}
-	return traceTally, testTally
+
+	maxCountsByTest := make(map[string]util.StringSet, len(testTally))
+	for testName, tally := range testTally {
+		maxCount := 0
+		for _, count := range tally {
+			if count > maxCount {
+				maxCount = count
+			}
+		}
+		maxCountsByTest[testName] = util.StringSet{}
+		for digest, count := range tally {
+			if count == maxCount {
+				maxCountsByTest[testName][digest] = true
+			}
+		}
+	}
+
+	return traceTally, testTally, maxCountsByTest
 }
