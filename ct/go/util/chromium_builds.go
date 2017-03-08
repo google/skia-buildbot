@@ -238,6 +238,11 @@ func getTruncatedHash(commitHash string) string {
 }
 
 func ResetChromiumCheckout(chromiumSrcDir string) error {
+	// Clean up any left over lock files from sync errors of previous runs.
+	err := os.Remove(filepath.Join(chromiumSrcDir, ".git", "index.lock"))
+	if err != nil {
+		sklog.Info("No index.lock file found.")
+	}
 	// Reset Skia.
 	skiaDir := filepath.Join(chromiumSrcDir, "third_party", "skia")
 	if err := ResetCheckout(skiaDir); err != nil {

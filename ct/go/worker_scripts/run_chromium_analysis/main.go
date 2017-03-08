@@ -70,11 +70,6 @@ func runChromiumAnalysis() error {
 	if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
 		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
-	// Clean up any left over lock files from sync errors of previous runs.
-	err := os.Remove(filepath.Join(util.ChromiumSrcDir, ".git", "index.lock"))
-	if err != nil {
-		sklog.Info("No index.lock file found.")
-	}
 	// Parse out the Chromium and Skia hashes.
 	chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuild)
 	// Sync the local chromium checkout.
