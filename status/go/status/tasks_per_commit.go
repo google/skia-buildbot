@@ -53,7 +53,10 @@ func newTasksPerCommitCache(workdir string, repoUrls []string, period time.Durat
 		return nil, err
 	}
 	gitCache := path.Join(wd, "cache")
-	tcc := specs.NewTaskCfgCache(repos, depotTools.Dir(), gitCache, 3)
+	tcc, err := specs.NewTaskCfgCache(repos, depotTools.Dir(), gitCache, 3)
+	if err != nil {
+		return nil, err
+	}
 	c := &tasksPerCommitCache{
 		cached: map[db.RepoState]int{},
 		period: period,

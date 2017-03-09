@@ -78,7 +78,8 @@ func TestTaskSpecs(t *testing.T) {
 		gb.RepoUrl(): repo,
 	}
 
-	cache := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), tmp, DEFAULT_NUM_WORKERS)
+	cache, err := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), tmp, DEFAULT_NUM_WORKERS)
+	assert.NoError(t, err)
 
 	rs1 := db.RepoState{
 		Repo:     gb.RepoUrl(),
@@ -139,7 +140,8 @@ func TestAddedTaskSpecs(t *testing.T) {
 		gb.RepoUrl(): repo,
 	}
 
-	cache := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), tmp, DEFAULT_NUM_WORKERS)
+	cache, err := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), tmp, DEFAULT_NUM_WORKERS)
+	assert.NoError(t, err)
 
 	rs1 := db.RepoState{
 		Repo:     gb.RepoUrl(),
@@ -249,7 +251,8 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
 	}
-	cache := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), path.Join(tmp, "cache"), DEFAULT_NUM_WORKERS)
+	cache, err := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), path.Join(tmp, "cache"), DEFAULT_NUM_WORKERS)
+	assert.NoError(t, err)
 
 	// Load configs into the cache.
 	rs1 := db.RepoState{
@@ -512,7 +515,8 @@ func TestTempGitRepoParallel(t *testing.T) {
 	repos, err := repograph.NewMap([]string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 
-	cache := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), tmp, DEFAULT_NUM_WORKERS)
+	cache, err := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), tmp, DEFAULT_NUM_WORKERS)
+	assert.NoError(t, err)
 
 	rs := db.RepoState{
 		Repo:     gb.RepoUrl(),
@@ -562,4 +566,58 @@ func TestGetTaskSpecDAG(t *testing.T) {
 		"f": []string{"c"},
 		"g": []string{"d", "e", "f"},
 	}, []string{"a", "g"})
+}
+
+func TestTaskCfgCacheSerialization(t *testing.T) {
+	testutils.LargeTest(t)
+	testutils.SkipIfShort(t)
+
+	gb, c1, _ := specs_testutils.SetupTestRepo(t)
+	defer gb.Cleanup()
+
+	tmp, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmp)
+
+	repos, err := repograph.NewMap([]string{gb.RepoUrl()}, tmp)
+	assert.NoError(t, err)
+
+	c, err := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), tmp, DEFAULT_NUM_WORKERS)
+	assert.NoError(t, err)
+
+	check := func() {
+		c2, err := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), tmp, DEFAULT_NUM_WORKERS)
+		assert.NoError(t, err)
+
+		// We can't use reflect.DeepEqual on channels, so temporarily
+		// nil out the channels for comparison.
+		c.mtx.Lock()
+		defer c.mtx.Unlock()
+		c2.mtx.Lock()
+		defer c2.mtx.Unlock()
+		c1Queue := c.queue
+		c2Queue := c2.queue
+		c.queue = nil
+		c2.queue = nil
+		testutils.AssertDeepEqual(t, c, c2)
+		c.queue = c1Queue
+		c2.queue = c2Queue
+	}
+
+	// Empty cache.
+	check()
+
+	// Insert one commit's worth of specs into the cache.
+	_, err = c.ReadTasksCfg(db.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: c1,
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(c.cache))
+	check()
+
+	// Cleanup() the cache to remove the entries.
+	assert.NoError(t, c.Cleanup(time.Duration(0)))
+	assert.Equal(t, 0, len(c.cache))
+	check()
 }
