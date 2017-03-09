@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f1dc9cca_b8df5b7a",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 416,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-09T17:28:26Z",
+      "side": 1,
+      "message": "I\u0027m not a huge fan of writing here.  Isn\u0027t writing after Cleanup frequent enough?\n\nAlso, write expects both e.c.mtx and e.c.recentMtx to be locked, but it appears only e.c.recentMtx is locked at this point.",
+      "range": {
+        "startLine": 416,
+        "startChar": 13,
+        "endLine": 416,
+        "endChar": 24
+      },
+      "revId": "1f7b5e650a11b9dc85103e1788ee34be64ebac5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3f738d1_ed85a368",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 638,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-09T17:28:26Z",
+      "side": 1,
+      "message": "nit: mention c.mtx and c.recentMtx explicitly",
+      "range": {
+        "startLine": 638,
+        "startChar": 69,
+        "endLine": 638,
+        "endChar": 75
+      },
+      "revId": "1f7b5e650a11b9dc85103e1788ee34be64ebac5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e46c7fe8_0d801ca1",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 644,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-09T17:28:26Z",
+      "side": 1,
+      "message": "nit: best not to ignore Close RV when writing",
+      "range": {
+        "startLine": 644,
+        "startChar": 1,
+        "endLine": 644,
+        "endChar": 20
+      },
+      "revId": "1f7b5e650a11b9dc85103e1788ee34be64ebac5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c0c9753_51003bdd",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 602,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-09T17:28:26Z",
+      "side": 1,
+      "message": "nit: seems a bit more white-box than necessary",
+      "range": {
+        "startLine": 594,
+        "startChar": 0,
+        "endLine": 602,
+        "endChar": 37
+      },
+      "revId": "1f7b5e650a11b9dc85103e1788ee34be64ebac5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
