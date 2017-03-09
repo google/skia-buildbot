@@ -93,6 +93,23 @@ func (c *Commit) recurse(f func(*Commit) (bool, error), visited map[*Commit]bool
 	return nil
 }
 
+// HasAncestor returns true iff the given commit is an ancestor of this commit.
+func (c *Commit) HasAncestor(other string) bool {
+	found := false
+	if err := c.Recurse(func(commit *Commit) (bool, error) {
+		if commit.Hash == other {
+			found = true
+			return false, nil
+		}
+		return true, nil
+	}); err != nil {
+		// Our function doesn't return an error, so we shouldn't hit
+		// this case.
+		sklog.Errorf("Error in Commit.Recurse: %s", err)
+	}
+	return found
+}
+
 // Helpers for sorting.
 type CommitSlice []*Commit
 
