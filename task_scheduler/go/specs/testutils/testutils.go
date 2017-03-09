@@ -95,7 +95,6 @@ func SetupTestRepo(t *testing.T) (*git_testutils.GitBuilder, string, string) {
         "path": "android_sdk",
         "version": "version:0"
       }],
-      "dependencies": [],
       "dimensions": ["pool:Skia", "os:Ubuntu"],
       "isolate": "compile_skia.isolate",
       "max_attempts": 5,

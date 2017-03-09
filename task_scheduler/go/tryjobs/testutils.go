@@ -100,7 +100,8 @@ func setup(t *testing.T) (*TryJobIntegrator, *git_testutils.GitBuilder, *mockhtt
 	// Set up other TryJobIntegrator inputs.
 	window, err := window.New(time.Hour, 100, rm)
 	assert.NoError(t, err)
-	taskCfgCache := specs.NewTaskCfgCache(rm, specs_testutils.GetDepotTools(t), path.Join(tmpDir, "cache"), specs.DEFAULT_NUM_WORKERS)
+	taskCfgCache, err := specs.NewTaskCfgCache(rm, specs_testutils.GetDepotTools(t), path.Join(tmpDir, "cache"), specs.DEFAULT_NUM_WORKERS)
+	assert.NoError(t, err)
 	d, err := local_db.NewDB("tasks_db", path.Join(tmpDir, "tasks.db"))
 	assert.NoError(t, err)
 	mock := mockhttpclient.NewURLMock()

@@ -1,6 +1,7 @@
 package specs
 
 import (
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -267,6 +268,7 @@ type TaskCfgCache struct {
 	// protected by mtx
 	cache         map[db.RepoState]*cacheEntry
 	depotToolsDir string
+	file          string
 	mtx           sync.RWMutex
 	// protected by mtx
 	addedTasksCache map[db.RepoState]util.StringSet
@@ -279,20 +281,49 @@ type TaskCfgCache struct {
 	workdir         string
 }
 
+// gobTaskCfgCache is a struct used for (de)serializing TaskCfgCache instance.
+type gobTaskCfgCache struct {
+	AddedTasksCache map[db.RepoState]util.StringSet
+	Cache           map[db.RepoState]*cacheEntry
+	RecentCommits   map[string]time.Time
+	RecentJobSpecs  map[string]time.Time
+	RecentTaskSpecs map[string]time.Time
+}
+
 // NewTaskCfgCache returns a TaskCfgCache instance.
-func NewTaskCfgCache(repos repograph.Map, depotToolsDir, workdir string, numWorkers int) *TaskCfgCache {
+func NewTaskCfgCache(repos repograph.Map, depotToolsDir, workdir string, numWorkers int) (*TaskCfgCache, error) {
+	file := path.Join(workdir, "taskCfgCache.gob")
 	c := &TaskCfgCache{
-		cache:           map[db.RepoState]*cacheEntry{},
-		depotToolsDir:   depotToolsDir,
-		addedTasksCache: map[db.RepoState]util.StringSet{},
-		mtx:             sync.RWMutex{},
-		recentCommits:   map[string]time.Time{},
-		recentJobSpecs:  map[string]time.Time{},
-		recentMtx:       sync.RWMutex{},
-		recentTaskSpecs: map[string]time.Time{},
-		repos:           repos,
-		queue:           make(chan func(int)),
-		workdir:         workdir,
+		depotToolsDir: depotToolsDir,
+		file:          file,
+		queue:         make(chan func(int)),
+		repos:         repos,
+		workdir:       workdir,
+	}
+	f, err := os.Open(file)
+	if err == nil {
+		var gobCache gobTaskCfgCache
+		if err := gob.NewDecoder(f).Decode(&gobCache); err != nil {
+			util.Close(f)
+			return nil, err
+		}
+		util.Close(f)
+		c.addedTasksCache = gobCache.AddedTasksCache
+		c.cache = gobCache.Cache
+		c.recentCommits = gobCache.RecentCommits
+		c.recentJobSpecs = gobCache.RecentJobSpecs
+		c.recentTaskSpecs = gobCache.RecentTaskSpecs
+		for _, e := range c.cache {
+			e.c = c
+		}
+	} else if !os.IsNotExist(err) {
+		return nil, fmt.Errorf("Failed to read cache file: %s", err)
+	} else {
+		c.cache = map[db.RepoState]*cacheEntry{}
+		c.addedTasksCache = map[db.RepoState]util.StringSet{}
+		c.recentCommits = map[string]time.Time{}
+		c.recentJobSpecs = map[string]time.Time{}
+		c.recentTaskSpecs = map[string]time.Time{}
 	}
 	for i := 0; i < numWorkers; i++ {
 		go func(i int) {
@@ -301,7 +332,7 @@ func NewTaskCfgCache(repos repograph.Map, depotToolsDir, workdir string, numWork
 			}
 		}(i)
 	}
-	return c
+	return c, nil
 }
 
 // Close frees up resources used by the TaskCfgCache.
@@ -312,32 +343,32 @@ func (c *TaskCfgCache) Close() error {
 
 type cacheEntry struct {
 	c   *TaskCfgCache
-	cfg *TasksCfg
-	err error
+	Cfg *TasksCfg
+	Err error
 	mtx sync.Mutex
-	rs  db.RepoState
+	Rs  db.RepoState
 }
 
 func (e *cacheEntry) Get() (*TasksCfg, error) {
 	e.mtx.Lock()
 	defer e.mtx.Unlock()
-	if e.cfg != nil {
-		return e.cfg, nil
+	if e.Cfg != nil {
+		return e.Cfg, nil
 	}
-	if e.err != nil {
-		return nil, e.err
+	if e.Err != nil {
+		return nil, e.Err
 	}
 
 	// We haven't seen this RepoState before, or it's scrolled out of our
 	// window. Read it.
 	// Point the upstream to a local source of truth to eliminate network
 	// latency.
-	r, ok := e.c.repos[e.rs.Repo]
+	r, ok := e.c.repos[e.Rs.Repo]
 	if !ok {
-		return nil, fmt.Errorf("Unknown repo %q", e.rs.Repo)
+		return nil, fmt.Errorf("Unknown repo %q", e.Rs.Repo)
 	}
 	var cfg *TasksCfg
-	if err := e.c.TempGitRepo(e.rs, func(checkout *git.TempCheckout) error {
+	if err := e.c.TempGitRepo(e.Rs, func(checkout *git.TempCheckout) error {
 		var err error
 		cfg, err = ReadTasksCfg(checkout.Dir())
 		if err != nil {
@@ -354,23 +385,23 @@ func (e *cacheEntry) Get() (*TasksCfg, error) {
 		return nil
 	}); err != nil {
 		if strings.Contains(err.Error(), "error: Failed to merge in the changes.") {
-			e.err = err
+			e.Err = err
 		}
 		return nil, err
 	}
-	e.cfg = cfg
+	e.Cfg = cfg
 
 	// Write the commit and task specs into the recent lists.
 	// TODO(borenet): The below should probably go elsewhere.
 	e.c.recentMtx.Lock()
 	defer e.c.recentMtx.Unlock()
-	d := r.Get(e.rs.Revision)
+	d := r.Get(e.Rs.Revision)
 	if d == nil {
-		return nil, fmt.Errorf("Unknown revision %s in %s", e.rs.Revision, e.rs.Repo)
+		return nil, fmt.Errorf("Unknown revision %s in %s", e.Rs.Revision, e.Rs.Repo)
 	}
 	ts := d.Timestamp
-	if ts.After(e.c.recentCommits[e.rs.Revision]) {
-		e.c.recentCommits[e.rs.Revision] = ts
+	if ts.After(e.c.recentCommits[e.Rs.Revision]) {
+		e.c.recentCommits[e.Rs.Revision] = ts
 	}
 	for name, _ := range cfg.Tasks {
 		if ts.After(e.c.recentTaskSpecs[name]) {
@@ -382,7 +413,9 @@ func (e *cacheEntry) Get() (*TasksCfg, error) {
 			e.c.recentJobSpecs[name] = ts
 		}
 	}
-	return cfg, nil
+	e.c.mtx.Lock()
+	defer e.c.mtx.Unlock()
+	return cfg, e.c.write()
 }
 
 func (c *TaskCfgCache) getEntry(rs db.RepoState) *cacheEntry {
@@ -390,7 +423,7 @@ func (c *TaskCfgCache) getEntry(rs db.RepoState) *cacheEntry {
 	if !ok {
 		rv = &cacheEntry{
 			c:  c,
-			rs: rs,
+			Rs: rs,
 		}
 		c.cache[rs] = rv
 	}
@@ -601,7 +634,28 @@ func (c *TaskCfgCache) Cleanup(period time.Duration) error {
 			delete(c.recentJobSpecs, k)
 		}
 	}
-	return nil
+	return c.write()
+}
+
+// write writes the TaskCfgCache to a file. Assumes the caller holds both c.mtx
+// and c.recentMtx.
+func (c *TaskCfgCache) write() error {
+	f, err := os.Create(c.file)
+	if err != nil {
+		return err
+	}
+	gobCache := gobTaskCfgCache{
+		AddedTasksCache: c.addedTasksCache,
+		Cache:           c.cache,
+		RecentCommits:   c.recentCommits,
+		RecentJobSpecs:  c.recentJobSpecs,
+		RecentTaskSpecs: c.recentTaskSpecs,
+	}
+	if err := gob.NewEncoder(f).Encode(&gobCache); err != nil {
+		util.Close(f)
+		return err
+	}
+	return f.Close()
 }
 
 func stringMapKeys(m map[string]time.Time) []string {
