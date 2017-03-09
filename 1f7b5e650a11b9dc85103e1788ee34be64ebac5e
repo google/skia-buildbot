@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2cb9ea7d_7fd18db5",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 416,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-09T20:33:05Z",
+      "side": 1,
+      "message": "Totally depends on the caller.  Seems like the time spent in write() should be small enough not to notice.  Actually, I can\u0027t seem to find where the scheduler calls TaskCfgCache.Cleanup()?  Fixed the missing lock.",
+      "parentUuid": "f1dc9cca_b8df5b7a",
+      "range": {
+        "startLine": 416,
+        "startChar": 13,
+        "endLine": 416,
+        "endChar": 24
+      },
+      "revId": "1f7b5e650a11b9dc85103e1788ee34be64ebac5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f3f738d1_ed85a368",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "1f7b5e650a11b9dc85103e1788ee34be64ebac5e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a1a337a_0d4a1986",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 638,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-09T20:33:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f3f738d1_ed85a368",
+      "range": {
+        "startLine": 638,
+        "startChar": 69,
+        "endLine": 638,
+        "endChar": 75
+      },
+      "revId": "1f7b5e650a11b9dc85103e1788ee34be64ebac5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "698fee6c_1f9b7521",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 644,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-09T20:33:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e46c7fe8_0d801ca1",
+      "range": {
+        "startLine": 644,
+        "startChar": 1,
+        "endLine": 644,
+        "endChar": 20
+      },
+      "revId": "1f7b5e650a11b9dc85103e1788ee34be64ebac5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1c0c9753_51003bdd",
         "filename": "task_scheduler/go/specs/specs_test.go",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2017-03-09T17:28:26Z",
       "side": 1,
       "message": "nit: seems a bit more white-box than necessary",
+      "range": {
+        "startLine": 594,
+        "startChar": 0,
+        "endLine": 602,
+        "endChar": 37
+      },
+      "revId": "1f7b5e650a11b9dc85103e1788ee34be64ebac5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f6a217f_a8bd96b8",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 602,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-09T20:33:05Z",
+      "side": 1,
+      "message": "I don\u0027t really see a way around it.  The two queues have to have the same pointer value, or AssertDeepEqual fails.",
+      "parentUuid": "1c0c9753_51003bdd",
       "range": {
         "startLine": 594,
         "startChar": 0,
