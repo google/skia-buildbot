@@ -146,7 +146,13 @@
           keys: e.detail.keys,
         };
         sk.post('/_/keys/', JSON.stringify(state)).then(JSON.parse).then(function (json) {
-          window.open('/e/?keys=' + json.id + '&begin=' + e.detail.begin + '&end=' + e.detail.end, '_blank');
+          var query = {
+            keys:       json.id,
+            begin:      e.detail.begin,
+            end:        e.detail.end,
+            xbaroffset: e.detail.xbar.offset
+          };
+          window.open('/e/?' + sk.query.fromObject(query), '_blank');
         }.bind(this));
       },
 

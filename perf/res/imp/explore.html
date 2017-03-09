@@ -221,6 +221,7 @@
           formulas: [],
           queries: [],
           keys: "",  // The id of the shortcut to a list of trace keys.
+          xbaroffset: -1, // The offset of the commit in the repo.
         }; },
       },
       // The [begin, end] timestamps of the region
@@ -493,6 +494,25 @@
         bands.push([json.skps[i-1], json.skps[i]]);
       }
       this.$.plot.setBanding(bands);
+
+      // Populate the xbar if present.
+      if (this.state.xbaroffset != -1) {
+        var xbaroffset = this.state.xbaroffset;
+        var xbar = -1;
+        this._dataframe.header.forEach(function(h, i) {
+          if (h.offset == xbaroffset) {
+            xbar = i;
+          }
+        });
+        if (xbar != -1) {
+          this.$.plot.setXBar(xbar);
+        } else {
+          this.$.plot.clearXBar();
+        }
+      } else {
+        this.$.plot.clearXBar();
+      }
+
 
       // Populate the paramset element.
       this.$.paramset.setParamSets([dataframe.paramset]);
