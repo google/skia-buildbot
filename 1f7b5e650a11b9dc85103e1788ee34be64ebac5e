@@ -187,6 +187,30 @@
       "revId": "1f7b5e650a11b9dc85103e1788ee34be64ebac5e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "53644a2f_3e4d0dfc",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 602,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-09T20:49:54Z",
+      "side": 1,
+      "message": "Sorry, I mean AssertDeepEqual itself seems a bit more white-box than necessary.",
+      "parentUuid": "6f6a217f_a8bd96b8",
+      "range": {
+        "startLine": 594,
+        "startChar": 0,
+        "endLine": 602,
+        "endChar": 37
+      },
+      "revId": "1f7b5e650a11b9dc85103e1788ee34be64ebac5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
