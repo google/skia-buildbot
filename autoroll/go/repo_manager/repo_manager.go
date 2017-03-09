@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/autoroll"
@@ -24,6 +25,9 @@ const (
 
 	GCLIENT  = "gclient"
 	ROLL_DEP = "roll-dep"
+
+	ROLL_STRATEGY_BATCH  = "batch"
+	ROLL_STRATEGY_SINGLE = "single"
 
 	TMPL_CQ_INCLUDE_TRYBOTS = "CQ_INCLUDE_TRYBOTS=%s"
 )
@@ -47,9 +51,9 @@ type RepoManager interface {
 	ForceUpdate() error
 	FullChildHash(string) (string, error)
 	LastRollRev() string
-	RolledPast(string) bool
+	RolledPast(string) (bool, error)
 	ChildHead() string
-	CreateNewRoll([]string, string, bool, bool) (int64, error)
+	CreateNewRoll(string, []string, string, bool, bool) (int64, error)
 	User() string
 }
 
@@ -249,13 +253,10 @@ func (r *repoManager) LastRollRev() string {
 }
 
 // RolledPast determines whether DEPS has rolled past the given commit.
-func (r *repoManager) RolledPast(hash string) bool {
+func (r *repoManager) RolledPast(hash string) (bool, error) {
 	r.repoMtx.RLock()
 	defer r.repoMtx.RUnlock()
-	if _, err := exec.RunCwd(r.childDir, "git", "merge-base", "--is-ancestor", hash, r.lastRollRev); err != nil {
-		return false
-	}
-	return true
+	return git.GitDir(r.childDir).IsAncestor(hash, r.lastRollRev)
 }
 
 // ChildHead returns the current child origin/master branch head.
@@ -288,7 +289,7 @@ func (r *repoManager) cleanParent() error {
 
 // CreateNewRoll creates and uploads a new DEPS roll to the given commit.
 // Returns the issue number of the uploaded roll.
-func (r *repoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryRun, gerrit bool) (int64, error) {
+func (r *repoManager) CreateNewRoll(strategy string, emails []string, cqExtraTrybots string, dryRun, gerrit bool) (int64, error) {
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 
@@ -306,6 +307,19 @@ func (r *repoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryR
 	}()
 
 	// Create the roll CL.
+
+	// Determine what commit we're rolling to.
+	cr := r.childRepo
+	commits, err := cr.RevList(fmt.Sprintf("%s..%s", r.lastRollRev, r.childHead))
+	if err != nil {
+		return 0, fmt.Errorf("Failed to list revisions: %s", err)
+	}
+	rollTo := r.childHead
+	if strategy == ROLL_STRATEGY_SINGLE {
+		rollTo = commits[len(commits)-1]
+		commits = commits[len(commits)-1:]
+	}
+
 	if _, err := exec.RunCwd(r.parentDir, "git", "config", "user.name", autoroll.ROLL_AUTHOR); err != nil {
 		return 0, err
 	}
@@ -315,11 +329,6 @@ func (r *repoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryR
 
 	// Find Chromium bugs.
 	bugs := []string{}
-	cr := r.childRepo
-	commits, err := cr.RevList(fmt.Sprintf("%s..%s", r.lastRollRev, r.childHead))
-	if err != nil {
-		return 0, fmt.Errorf("Failed to list revisions: %s", err)
-	}
 	for _, c := range commits {
 		d, err := cr.Details(c, false)
 		if err != nil {
@@ -331,7 +340,8 @@ func (r *repoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryR
 		}
 	}
 
-	args := []string{r.childPath, r.childHead}
+	// Run roll-dep.
+	args := []string{r.childPath, "--roll-to", rollTo}
 	if len(bugs) > 0 {
 		args = append(args, "--bug", strings.Join(bugs, ","))
 	}

@@ -110,14 +110,14 @@ func (r *mockRepoManager) mockLastRollRev(last string) {
 
 // RolledPast determines whether DEPS has rolled past the given commit in the
 // mocked repo.
-func (r *mockRepoManager) RolledPast(hash string) bool {
+func (r *mockRepoManager) RolledPast(hash string) (bool, error) {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	rv, ok := r.rolledPast[hash]
 	if !ok {
 		r.t.Fatal(fmt.Sprintf("Unknown hash: %s", hash))
 	}
-	return rv
+	return rv, nil
 }
 
 // mockRolledPast pretends that the DEPS has rolled past the given commit.
@@ -144,7 +144,7 @@ func (r *mockRepoManager) mockChildHead(hash string) {
 
 // CreateNewRoll pretends to create a new DEPS roll from the mocked repo,
 // returning the fake issue number set by the test.
-func (r *mockRepoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryRun, gerrit bool) (int64, error) {
+func (r *mockRepoManager) CreateNewRoll(strategy string, emails []string, cqExtraTrybots string, dryRun, gerrit bool) (int64, error) {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	return r.mockIssueNumber, nil
@@ -447,7 +447,7 @@ func checkStatus(t *testing.T, r *AutoRoller, rv *mockCodereview, rm *mockRepoMa
 // setup initializes a fake AutoRoller for testing. It returns the working
 // directory, AutoRoller instance, URLMock for faking HTTP requests, and an
 // rietveld.Issue representing the first CL that was uploaded by the AutoRoller.
-func setup(t *testing.T, doGerrit bool) (string, *AutoRoller, *mockRepoManager, *mockCodereview, *rietveld.Issue) {
+func setup(t *testing.T, strategy string, doGerrit bool) (string, *AutoRoller, *mockRepoManager, *mockCodereview, *rietveld.Issue) {
 	testutils.SkipIfShort(t)
 
 	// Setup mocks.
@@ -489,7 +489,7 @@ func setup(t *testing.T, doGerrit bool) (string, *AutoRoller, *mockRepoManager, 
 	roll1 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), noTrybots, false)
 
 	// Create the roller.
-	roller, err := NewAutoRoller(workdir, "parent.git", "src/third_party/skia", "", []string{}, r, g, time.Hour, time.Hour, "depot_tools", doGerrit)
+	roller, err := NewAutoRoller(workdir, "parent.git", "src/third_party/skia", "", []string{}, r, g, time.Hour, time.Hour, "depot_tools", doGerrit, strategy)
 	assert.NoError(t, err)
 
 	// Verify that the bot ran successfully.
@@ -503,7 +503,7 @@ func setup(t *testing.T, doGerrit bool) (string, *AutoRoller, *mockRepoManager, 
 func testAutoRollBasic(t *testing.T, gerrit bool) {
 	testutils.MediumTest(t)
 	// setup will initialize the roller and upload a CL.
-	workdir, roller, rm, rv, roll1 := setup(t, gerrit)
+	workdir, roller, rm, rv, roll1 := setup(t, repo_manager.ROLL_STRATEGY_BATCH, gerrit)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -537,7 +537,7 @@ func testAutoRollBasic(t *testing.T, gerrit bool) {
 func testAutoRollStop(t *testing.T, gerrit bool) {
 	testutils.MediumTest(t)
 	// setup will initialize the roller and upload a CL.
-	workdir, roller, rm, rv, roll1 := setup(t, gerrit)
+	workdir, roller, rm, rv, roll1 := setup(t, repo_manager.ROLL_STRATEGY_BATCH, gerrit)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -586,7 +586,7 @@ func testAutoRollStop(t *testing.T, gerrit bool) {
 // testAutoRollDryRun ensures that the Dry Run functionalify works as expected.
 func testAutoRollDryRun(t *testing.T, gerrit bool) {
 	testutils.MediumTest(t)
-	workdir, roller, rm, rv, roll1 := setup(t, gerrit)
+	workdir, roller, rm, rv, roll1 := setup(t, repo_manager.ROLL_STRATEGY_BATCH, gerrit)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -686,7 +686,7 @@ func testAutoRollDryRun(t *testing.T, gerrit bool) {
 // CL.
 func TestAutoRollCommitDescRace(t *testing.T) {
 	testutils.MediumTest(t)
-	workdir, roller, rm, rv, roll1 := setup(t, false)
+	workdir, roller, rm, rv, roll1 := setup(t, repo_manager.ROLL_STRATEGY_BATCH, false)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -743,7 +743,7 @@ func TestAutoRollCommitDescRace(t *testing.T) {
 // sync the code, waiting for the commit to show up.
 func testAutoRollCommitLandRace(t *testing.T, gerrit bool) {
 	testutils.LargeTest(t)
-	workdir, roller, rm, rv, roll1 := setup(t, gerrit)
+	workdir, roller, rm, rv, roll1 := setup(t, repo_manager.ROLL_STRATEGY_BATCH, gerrit)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -797,7 +797,7 @@ func testAutoRollCommitLandRace(t *testing.T, gerrit bool) {
 // doesn't upload new CLs over and over.
 func testAutoRollThrottle(t *testing.T, gerrit bool) {
 	testutils.MediumTest(t)
-	workdir, roller, rm, rv, roll1 := setup(t, gerrit)
+	workdir, roller, rm, rv, roll1 := setup(t, repo_manager.ROLL_STRATEGY_BATCH, gerrit)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -827,6 +827,61 @@ func testAutoRollThrottle(t *testing.T, gerrit bool) {
 	checkStatus(t, roller, rv, rm, STATUS_THROTTLED, nil, nil, false, roll3, noTrybots, false)
 }
 
+// testAutoRollSingle ensures that the one-at-a-time mode works as expected.
+// This is more of a sanity check, since the actual behavior is done in the
+// RepoManager.
+func testAutoRollSingle(t *testing.T, gerrit bool) {
+	testutils.MediumTest(t)
+	// setup will initialize the roller and upload a CL.
+	workdir, roller, rm, rv, roll1 := setup(t, repo_manager.ROLL_STRATEGY_SINGLE, gerrit)
+	defer func() {
+		assert.NoError(t, roller.Close())
+		assert.NoError(t, os.RemoveAll(workdir))
+	}()
+	c2 := "1111111111111111111111111111111111111111"
+	c3 := "2222222222222222222222222222222222222222"
+	rm.mockChildCommit(c2)
+	rm.mockChildCommit(c3)
+
+	fullHash := func(c string) (string, error) {
+		if strings.HasPrefix(c2, c) {
+			return c2, nil
+		}
+		if strings.HasPrefix(c3, c) {
+			return c3, nil
+		}
+		return c, nil
+	}
+
+	check := func(i *rietveld.Issue, c string) {
+		ari, err := autoroll.FromRietveldIssue(i, fullHash)
+		assert.NoError(t, err)
+		assert.Equal(t, c, ari.RollingTo)
+	}
+
+	// Verify that roll1 has a single commit.
+	check(roll1, "def456101010") // From setup()
+
+	// The roll landed, but we still have commits to roll.
+	rv.pretendRollLanded(rm, roll1, noTrybots)
+	roll2 := rm.rollerWillUpload(rv, rm.LastRollRev(), c2, noTrybots, false)
+	assert.NoError(t, roller.doAutoRoll())
+	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll2, noTrybots, false, roll1, noTrybots, false)
+	check(roll2, c2)
+
+	// Land, upload, repeat until up-to-date.
+	rv.pretendRollLanded(rm, roll2, noTrybots)
+	roll3 := rm.rollerWillUpload(rv, rm.LastRollRev(), c3, noTrybots, false)
+	assert.NoError(t, roller.doAutoRoll())
+	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll3, noTrybots, false, roll2, noTrybots, false)
+	check(roll3, c3)
+
+	// The roll succeeded. Verify that we're up-to-date.
+	rv.pretendRollLanded(rm, roll3, noTrybots)
+	assert.NoError(t, roller.doAutoRoll())
+	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll3, noTrybots, false)
+}
+
 func TestAutoRollBasicRietveld(t *testing.T) {
 	testAutoRollBasic(t, false)
 }
@@ -847,6 +902,10 @@ func TestAutoRollThrottleRietveld(t *testing.T) {
 	testAutoRollThrottle(t, false)
 }
 
+func TestAutoRollSingleRietveld(t *testing.T) {
+	testAutoRollSingle(t, false)
+}
+
 func TestAutoRollBasicGerrit(t *testing.T) {
 	testAutoRollBasic(t, true)
 }
@@ -865,4 +924,8 @@ func TestAutoRollCommitLandRaceGerrit(t *testing.T) {
 
 func TestAutoRollThrottleGerrit(t *testing.T) {
 	testAutoRollThrottle(t, true)
+}
+
+func TestAutoRollSingleGerrit(t *testing.T) {
+	testAutoRollSingle(t, true)
 }

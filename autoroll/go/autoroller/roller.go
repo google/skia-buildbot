@@ -63,10 +63,11 @@ type AutoRoller struct {
 	rietveld         *rietveld.Rietveld
 	runningMtx       sync.Mutex
 	status           *autoRollStatusCache
+	strategy         string
 }
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
-func NewAutoRoller(workdir, parentRepo, childPath, cqExtraTrybots string, emails []string, rietveld *rietveld.Rietveld, gerrit *gerrit.Gerrit, tickFrequency, repoFrequency time.Duration, depot_tools string, doGerrit bool) (*AutoRoller, error) {
+func NewAutoRoller(workdir, parentRepo, childPath, cqExtraTrybots string, emails []string, rietveld *rietveld.Rietveld, gerrit *gerrit.Gerrit, tickFrequency, repoFrequency time.Duration, depot_tools string, doGerrit bool, strategy string) (*AutoRoller, error) {
 	rm, err := repo_manager.NewRepoManager(workdir, parentRepo, childPath, repoFrequency, depot_tools)
 	if err != nil {
 		return nil, err
@@ -95,6 +96,7 @@ func NewAutoRoller(workdir, parentRepo, childPath, cqExtraTrybots string, emails
 		rietveld:         rietveld,
 		rm:               rm,
 		status:           &autoRollStatusCache{},
+		strategy:         strategy,
 	}
 
 	// Cycle once to fill out the current status.
@@ -376,7 +378,11 @@ func (r *AutoRoller) updateCurrentRoll() error {
 			if err := r.rm.ForceUpdate(); err != nil {
 				return err
 			}
-			if r.rm.RolledPast(currentRoll.RollingTo) {
+			rolledPast, err := r.rm.RolledPast(currentRoll.RollingTo)
+			if err != nil {
+				return err
+			}
+			if rolledPast {
 				break
 			}
 			time.Sleep(10 * time.Second)
@@ -560,15 +566,21 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 				if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, "Roll has been open for over 24 hours; closing."); err != nil {
 					return STATUS_ERROR, err
 				}
-			} else if r.rm.RolledPast(currentRoll.RollingTo) {
-				// If we've already rolled past the target revision, close the issue
-				if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("Already rolled past %s; closing this roll.", currentRoll.RollingTo)); err != nil {
+			} else {
+				rolledPast, err := r.rm.RolledPast(currentRoll.RollingTo)
+				if err != nil {
 					return STATUS_ERROR, err
 				}
-			} else {
-				// Current roll is still good.
-				sklog.Infof("Roll is still active (%d): %s", currentRoll.Issue, currentRoll.Subject)
-				return STATUS_IN_PROGRESS, nil
+				if rolledPast {
+					// If we've already rolled past the target revision, close the issue
+					if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("Already rolled past %s; closing this roll.", currentRoll.RollingTo)); err != nil {
+						return STATUS_ERROR, err
+					}
+				} else {
+					// Current roll is still good.
+					sklog.Infof("Roll is still active (%d): %s", currentRoll.Issue, currentRoll.Subject)
+					return STATUS_IN_PROGRESS, nil
+				}
 			}
 		}
 	}
@@ -580,7 +592,8 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 	}
 
 	// If we're up-to-date, exit.
-	if r.rm.LastRollRev() == r.rm.ChildHead() {
+	childHead := r.rm.ChildHead()
+	if r.rm.LastRollRev() == childHead {
 		sklog.Infof("Repo is up-to-date.")
 		return STATUS_UP_TO_DATE, nil
 	}
@@ -590,7 +603,7 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 		return STATUS_THROTTLED, nil
 	}
 	r.attemptCounter.Inc()
-	uploadedNum, err := r.rm.CreateNewRoll(r.GetEmails(), r.cqExtraTrybots, r.isMode(autoroll_modes.MODE_DRY_RUN), r.doGerrit)
+	uploadedNum, err := r.rm.CreateNewRoll(r.strategy, r.GetEmails(), r.cqExtraTrybots, r.isMode(autoroll_modes.MODE_DRY_RUN), r.doGerrit)
 	if err != nil {
 		return STATUS_ERROR, fmt.Errorf("Failed to upload a new roll: %s", err)
 	}

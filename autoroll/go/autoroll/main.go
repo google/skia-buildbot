@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/autoroll/go/autoroller"
+	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
@@ -60,6 +61,7 @@ var (
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	sheriff        = flag.String("sheriff", "", "Email address to CC on rolls, or URL from which to obtain such an email address.")
+	strategy       = flag.String("strategy", repo_manager.ROLL_STRATEGY_BATCH, "DEPS roll strategy; how many commits should be rolled at once.")
 	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
 )
@@ -260,7 +262,7 @@ func main() {
 	sklog.Infof("Sheriff: %s", strings.Join(emails, ", "))
 
 	// Start the autoroller.
-	arb, err = autoroller.NewAutoRoller(*workdir, *parentRepo, *childPath, cqExtraTrybots, emails, r, g, time.Minute, 15*time.Minute, *depot_tools, *doGerrit)
+	arb, err = autoroller.NewAutoRoller(*workdir, *parentRepo, *childPath, cqExtraTrybots, emails, r, g, time.Minute, 15*time.Minute, *depot_tools, *doGerrit, *strategy)
 	if err != nil {
 		sklog.Fatal(err)
 	}
