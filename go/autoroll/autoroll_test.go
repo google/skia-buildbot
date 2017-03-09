@@ -25,7 +25,7 @@ func TestTrybotResults(t *testing.T) {
 		Subject:           "Roll src/third_party/skia abc123..def456 (3 commits).",
 	}
 	roll.Result = rollResult(roll)
-	from, to, err := rollRev(roll.Subject, func(h string) (string, error) {
+	from, to, err := RollRev(roll.Subject, func(h string) (string, error) {
 		return h, nil
 	})
 	assert.NoError(t, err)

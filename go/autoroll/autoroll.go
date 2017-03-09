@@ -181,7 +181,7 @@ func FromGerritChangeInfo(i *gerrit.ChangeInfo, fullHashFn func(string) (string,
 		Subject:           i.Subject,
 	}
 	roll.Result = rollResult(roll)
-	from, to, err := rollRev(roll.Subject, fullHashFn)
+	from, to, err := RollRev(roll.Subject, fullHashFn)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func FromRietveldIssue(i *rietveld.Issue, fullHashFn func(string) (string, error
 		Subject:           i.Subject,
 	}
 	roll.Result = rollResult(roll)
-	from, to, err := rollRev(roll.Subject, fullHashFn)
+	from, to, err := RollRev(roll.Subject, fullHashFn)
 	if err != nil {
 		return nil, err
 	}
@@ -226,8 +226,8 @@ func rollResult(roll *AutoRollIssue) string {
 	return ROLL_RESULT_IN_PROGRESS
 }
 
-// rollRev returns the commit the given roll is rolling from and to.
-func rollRev(subject string, fullHashFn func(string) (string, error)) (string, string, error) {
+// RollRev returns the commit the given roll is rolling from and to.
+func RollRev(subject string, fullHashFn func(string) (string, error)) (string, string, error) {
 	matches := ROLL_REV_REGEX.FindStringSubmatch(subject)
 	if matches == nil {
 		return "", "", fmt.Errorf("No roll revision found in %q", subject)
