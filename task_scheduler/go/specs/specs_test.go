@@ -572,7 +572,7 @@ func TestTaskCfgCacheSerialization(t *testing.T) {
 	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
-	gb, c1, _ := specs_testutils.SetupTestRepo(t)
+	gb, c1, c2 := specs_testutils.SetupTestRepo(t)
 	defer gb.Cleanup()
 
 	tmp, err := ioutil.TempDir("", "")
@@ -620,4 +620,17 @@ func TestTaskCfgCacheSerialization(t *testing.T) {
 	assert.NoError(t, c.Cleanup(time.Duration(0)))
 	assert.Equal(t, 0, len(c.cache))
 	check()
+
+	// Insert an error into the cache.
+	rs2 := db.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: c2,
+	}
+	c.cache[rs2] = &cacheEntry{
+		c:   c,
+		Cfg: nil,
+		Err: "fail!",
+		Rs:  rs2,
+	}
+	assert.NoError(t, c.write())
 }
