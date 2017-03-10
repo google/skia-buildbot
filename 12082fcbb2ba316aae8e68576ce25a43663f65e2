@@ -22,6 +22,30 @@
       "revId": "12082fcbb2ba316aae8e68576ce25a43663f65e2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3200571f_9a62434a",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 815,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-10T20:19:42Z",
+      "side": 1,
+      "message": "Removed and changed the function to return an error when rs.IsTryJob().  Also removed the .gclient file bit above, since it\u0027s not necessary.",
+      "parentUuid": "30d55ddc_058e5978",
+      "range": {
+        "startLine": 815,
+        "startChar": 1,
+        "endLine": 815,
+        "endChar": 19
+      },
+      "revId": "12082fcbb2ba316aae8e68576ce25a43663f65e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
