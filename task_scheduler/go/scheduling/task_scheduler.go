@@ -790,7 +790,7 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 // taskCandidates.
 func (s *TaskScheduler) isolateTasks(rs db.RepoState, candidates []*taskCandidate) error {
 	// Create and check out a temporary repo.
-	return s.taskCfgCache.TempGitRepo(rs, func(c *git.TempCheckout) error {
+	return s.taskCfgCache.TempGitRepo(rs, true, func(c *git.TempCheckout) error {
 		// Isolate the tasks.
 		infraBotsDir := path.Join(c.Dir(), "infra", "bots")
 		baseDir := path.Dir(c.Dir())
