@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "30d55ddc_058e5978",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 815,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-10T18:59:55Z",
+      "side": 1,
+      "message": "Seems like this will never be true.",
+      "range": {
+        "startLine": 815,
+        "startChar": 1,
+        "endLine": 815,
+        "endChar": 19
+      },
+      "revId": "12082fcbb2ba316aae8e68576ce25a43663f65e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
