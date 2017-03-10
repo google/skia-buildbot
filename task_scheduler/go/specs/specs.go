@@ -50,6 +50,10 @@ var (
 	PLACEHOLDER_ISOLATED_OUTDIR   = "${ISOLATED_OUTDIR}"
 )
 
+func init() {
+	gob.Register(fmt.Errorf(""))
+}
+
 // ParseTasksCfg parses the given task cfg file contents and returns the config.
 func ParseTasksCfg(contents string) (*TasksCfg, error) {
 	var rv TasksCfg
@@ -640,6 +644,10 @@ func (c *TaskCfgCache) Cleanup(period time.Duration) error {
 // write writes the TaskCfgCache to a file. Assumes the caller holds both c.mtx
 // and c.recentMtx.
 func (c *TaskCfgCache) write() error {
+	dir := path.Dir(c.file)
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		return err
+	}
 	f, err := os.Create(c.file)
 	if err != nil {
 		return err
