@@ -372,7 +372,7 @@ func (e *cacheEntry) Get() (*TasksCfg, error) {
 		return nil, fmt.Errorf("Unknown repo %q", e.Rs.Repo)
 	}
 	var cfg *TasksCfg
-	if err := e.c.TempGitRepo(e.Rs, func(checkout *git.TempCheckout) error {
+	if err := e.c.TempGitRepo(e.Rs, e.Rs.IsTryJob(), func(checkout *git.TempCheckout) error {
 		var err error
 		cfg, err = ReadTasksCfg(checkout.Dir())
 		if err != nil {
@@ -755,17 +755,28 @@ func findCycles(tasks map[string]*TaskSpec, jobs map[string]*JobSpec) error {
 //
 // This method uses a worker pool; if all workers are busy, it will block until
 // one is free.
-func (c *TaskCfgCache) TempGitRepo(rs db.RepoState, fn func(*git.TempCheckout) error) error {
+func (c *TaskCfgCache) TempGitRepo(rs db.RepoState, botUpdate bool, fn func(*git.TempCheckout) error) error {
 	rvErr := make(chan error)
 	c.queue <- func(workerId int) {
-		tmp, err := ioutil.TempDir("", "")
-		if err != nil {
-			rvErr <- err
-			return
+		var gr *git.TempCheckout
+		var err error
+		if botUpdate {
+			tmp, err := ioutil.TempDir("", "")
+			if err != nil {
+				rvErr <- err
+				return
+			}
+			defer util.RemoveAll(tmp)
+			cacheDir := path.Join(c.workdir, "cache", fmt.Sprintf("%d", workerId))
+			gr, err = tempGitRepoBotUpdate(rs, c.depotToolsDir, cacheDir, tmp)
+		} else {
+			repo, ok := c.repos[rs.Repo]
+			if !ok {
+				rvErr <- fmt.Errorf("Unknown repo: %s", rs.Repo)
+				return
+			}
+			gr, err = tempGitRepo(repo.Repo(), rs)
 		}
-		defer util.RemoveAll(tmp)
-		cacheDir := path.Join(c.workdir, "cache", fmt.Sprintf("%d", workerId))
-		gr, err := tempGitRepo(rs, c.depotToolsDir, cacheDir, tmp)
 		if err != nil {
 			rvErr <- err
 			return
@@ -778,7 +789,33 @@ func (c *TaskCfgCache) TempGitRepo(rs db.RepoState, fn func(*git.TempCheckout) e
 
 // tempGitRepo creates a git repository in a temporary directory, gets it into
 // the given RepoState, and returns its location.
-func tempGitRepo(rs db.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
+func tempGitRepo(repo *git.Repo, rs db.RepoState) (rv *git.TempCheckout, rvErr error) {
+	if rs.IsTryJob() {
+		return nil, fmt.Errorf("specs.tempGitRepo does not apply patches, and should not be called for try jobs.")
+	}
+
+	c, err := repo.TempCheckout()
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if rvErr != nil {
+			c.Delete()
+		}
+	}()
+
+	// Check out the correct commit.
+	if _, err := c.Git("checkout", rs.Revision); err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
+// tempGitRepoBotUpdate creates a git repository in a temporary directory, gets it into
+// the given RepoState, and returns its location.
+func tempGitRepoBotUpdate(rs db.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
 	// Run bot_update to obtain a checkout of the repo and its DEPS.
 	botUpdatePath := path.Join(depotToolsDir, "recipe_modules", "bot_update", "resources", "bot_update.py")
 	projectName := strings.TrimSuffix(path.Base(rs.Repo), ".git")
