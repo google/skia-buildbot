@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
@@ -368,7 +369,7 @@ func (e *cacheEntry) Get() (*TasksCfg, error) {
 		return nil, fmt.Errorf("Unknown repo %q", e.Rs.Repo)
 	}
 	var cfg *TasksCfg
-	if err := e.c.TempGitRepo(e.Rs, func(checkout *git.TempCheckout) error {
+	if err := e.c.TempGitRepo(e.Rs, e.Rs.IsTryJob(), func(checkout *git.TempCheckout) error {
 		var err error
 		cfg, err = ReadTasksCfg(checkout.Dir())
 		if err != nil {
@@ -640,6 +641,12 @@ func (c *TaskCfgCache) Cleanup(period time.Duration) error {
 // write writes the TaskCfgCache to a file. Assumes the caller holds both c.mtx
 // and c.recentMtx.
 func (c *TaskCfgCache) write() error {
+	dir := path.Dir(c.file)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+			return err
+		}
+	}
 	f, err := os.Create(c.file)
 	if err != nil {
 		return err
@@ -747,17 +754,28 @@ func findCycles(tasks map[string]*TaskSpec, jobs map[string]*JobSpec) error {
 //
 // This method uses a worker pool; if all workers are busy, it will block until
 // one is free.
-func (c *TaskCfgCache) TempGitRepo(rs db.RepoState, fn func(*git.TempCheckout) error) error {
+func (c *TaskCfgCache) TempGitRepo(rs db.RepoState, botUpdate bool, fn func(*git.TempCheckout) error) error {
 	rvErr := make(chan error)
 	c.queue <- func(workerId int) {
-		tmp, err := ioutil.TempDir("", "")
-		if err != nil {
-			rvErr <- err
-			return
+		var gr *git.TempCheckout
+		var err error
+		if botUpdate {
+			tmp, err := ioutil.TempDir("", "")
+			if err != nil {
+				rvErr <- err
+				return
+			}
+			defer util.RemoveAll(tmp)
+			cacheDir := path.Join(c.workdir, "cache", fmt.Sprintf("%d", workerId))
+			gr, err = tempGitRepoBotUpdate(rs, c.depotToolsDir, cacheDir, tmp)
+		} else {
+			repo, ok := c.repos[rs.Repo]
+			if !ok {
+				rvErr <- fmt.Errorf("Unknown repo: %s", rs.Repo)
+				return
+			}
+			gr, err = tempGitRepo(repo.Repo(), rs)
 		}
-		defer util.RemoveAll(tmp)
-		cacheDir := path.Join(c.workdir, "cache", fmt.Sprintf("%d", workerId))
-		gr, err := tempGitRepo(rs, c.depotToolsDir, cacheDir, tmp)
 		if err != nil {
 			rvErr <- err
 			return
@@ -770,7 +788,78 @@ func (c *TaskCfgCache) TempGitRepo(rs db.RepoState, fn func(*git.TempCheckout) e
 
 // tempGitRepo creates a git repository in a temporary directory, gets it into
 // the given RepoState, and returns its location.
-func tempGitRepo(rs db.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
+func tempGitRepo(repo *git.Repo, rs db.RepoState) (rv *git.TempCheckout, rvErr error) {
+	c, err := repo.TempCheckout()
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if rvErr != nil {
+			c.Delete()
+		}
+	}()
+
+	// Check out the correct commit.
+	sklog.Infof("Checking out %s", rs.Revision)
+	if _, err := c.Git("checkout", rs.Revision); err != nil {
+		return nil, err
+	}
+
+	// Write a dummy .gclient file in the parent of the checkout.
+	if err := ioutil.WriteFile(path.Join(c.Dir(), "..", ".gclient"), []byte(""), os.ModePerm); err != nil {
+		return nil, err
+	}
+
+	// Apply a patch if necessary.
+	if rs.IsTryJob() {
+		branchName := "patch"
+		server := strings.TrimRight(rs.Server, "/")
+		if strings.Contains(rs.Server, "codereview.chromium") {
+			if _, err := c.Git("checkout", "-b", branchName); err != nil {
+				return nil, err
+			}
+			patchUrl := fmt.Sprintf("%s/%s/#ps%s", server, rs.Issue, rs.Patchset)
+			if _, err := c.Git("cl", "patch", "--rietveld", "--no-commit", patchUrl); err != nil {
+				return nil, err
+			}
+		} else {
+			// Follow Gerrit's suggested flow for fetching a change:
+			// https://gerrit-review.googlesource.com/Documentation/intro-user.html#fetch-change
+			// $ git fetch https://gerrithost/myProject refs/changes/74/67374/2
+			// $ git checkout FETCH_HEAD
+			abbrev := rs.Issue[len(rs.Issue)-2:]
+			ref := fmt.Sprintf("refs/changes/%s/%s/%s", abbrev, rs.Issue, rs.Patchset)
+			if _, err := c.Git("fetch", rs.Repo, ref); err != nil {
+				return nil, err
+			}
+			if _, err := c.Git("checkout", "FETCH_HEAD"); err != nil {
+				return nil, err
+			}
+			// Create a new branch at the patch ref.
+			if _, err := c.Git("checkout", "-b", branchName); err != nil {
+				return nil, err
+			}
+			// Rebase the branch onto the desired base commit.
+			if _, err := c.Git("rebase", rs.Revision); err != nil {
+				return nil, err
+			}
+			// Uncommit the patch. This gets us to our desired end
+			// state: on the "patch" branch whose HEAD is at the
+			// desired commit, with the patch applied but not
+			// committed.
+			if _, err := c.Git("reset", rs.Revision); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return c, nil
+}
+
+// tempGitRepoBotUpdate creates a git repository in a temporary directory, gets it into
+// the given RepoState, and returns its location.
+func tempGitRepoBotUpdate(rs db.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
 	// Run bot_update to obtain a checkout of the repo and its DEPS.
 	botUpdatePath := path.Join(depotToolsDir, "recipe_modules", "bot_update", "resources", "bot_update.py")
 	projectName := strings.TrimSuffix(path.Base(rs.Repo), ".git")

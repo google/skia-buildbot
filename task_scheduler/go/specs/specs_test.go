@@ -412,14 +412,14 @@ PROJECT: skia`)
 	return gb, c1, c2
 }
 
-func tempGitRepoTests(t *testing.T, cases map[db.RepoState]error) {
+func tempGitRepoBotUpdateTests(t *testing.T, cases map[db.RepoState]error) {
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	cacheDir := path.Join(tmp, "cache")
 	depotTools := specs_testutils.GetDepotTools(t)
 	for rs, expectErr := range cases {
-		c, err := tempGitRepo(rs, depotTools, cacheDir, tmp)
+		c, err := tempGitRepoBotUpdate(rs, depotTools, cacheDir, tmp)
 		if expectErr != nil {
 			assert.Error(t, err)
 			if expectErr != ERR_DONT_CARE {
@@ -474,7 +474,7 @@ func TestTempGitRepo(t *testing.T) {
 			Revision: "bogusRev",
 		}: ERR_DONT_CARE,
 	}
-	tempGitRepoTests(t, cases)
+	tempGitRepoBotUpdateTests(t, cases)
 }
 
 func TestTempGitRepoPatch(t *testing.T) {
@@ -498,7 +498,7 @@ func TestTempGitRepoPatch(t *testing.T) {
 			Revision: c2,
 		}: nil,
 	}
-	tempGitRepoTests(t, cases)
+	tempGitRepoBotUpdateTests(t, cases)
 }
 
 func TestTempGitRepoParallel(t *testing.T) {
@@ -528,7 +528,7 @@ func TestTempGitRepoParallel(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			assert.NoError(t, cache.TempGitRepo(rs, func(g *git.TempCheckout) error {
+			assert.NoError(t, cache.TempGitRepo(rs, true, func(g *git.TempCheckout) error {
 				return nil
 			}))
 		}()
