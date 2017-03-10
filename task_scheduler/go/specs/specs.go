@@ -50,10 +50,6 @@ var (
 	PLACEHOLDER_ISOLATED_OUTDIR   = "${ISOLATED_OUTDIR}"
 )
 
-func init() {
-	gob.Register(fmt.Errorf(""))
-}
-
 // ParseTasksCfg parses the given task cfg file contents and returns the config.
 func ParseTasksCfg(contents string) (*TasksCfg, error) {
 	var rv TasksCfg
@@ -348,7 +344,7 @@ func (c *TaskCfgCache) Close() error {
 type cacheEntry struct {
 	c   *TaskCfgCache
 	Cfg *TasksCfg
-	Err error
+	Err string
 	mtx sync.Mutex
 	Rs  db.RepoState
 }
@@ -359,8 +355,8 @@ func (e *cacheEntry) Get() (*TasksCfg, error) {
 	if e.Cfg != nil {
 		return e.Cfg, nil
 	}
-	if e.Err != nil {
-		return nil, e.Err
+	if e.Err != "" {
+		return nil, fmt.Errorf(e.Err)
 	}
 
 	// We haven't seen this RepoState before, or it's scrolled out of our
@@ -389,7 +385,7 @@ func (e *cacheEntry) Get() (*TasksCfg, error) {
 		return nil
 	}); err != nil {
 		if strings.Contains(err.Error(), "error: Failed to merge in the changes.") {
-			e.Err = err
+			e.Err = err.Error()
 		}
 		return nil, err
 	}
