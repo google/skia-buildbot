@@ -912,24 +912,24 @@ func TestComputeBlamelist(t *testing.T) {
 
 	// The test repo is laid out like this:
 	//
-	// *   O (HEAD, master, Case #10)
+	// *   O (HEAD, master, Case #9)
 	// *   N
-	// *   M (Case #11)
+	// *   M (Case #10)
 	// *   L
-	// *   K (Case #7)
-	// *   J (Case #6)
+	// *   K (Case #6)
+	// *   J (Case #5)
 	// |\
 	// | * I
-	// | * H (Case #5)
+	// | * H (Case #4)
 	// * | G
-	// * | F (Case #4)
-	// * | E (Case #9)
+	// * | F (Case #3)
+	// * | E (Case #8, previously #7)
 	// |/
-	// *   D (Case #3)
-	// *   C (Case #2)
+	// *   D (Case #2)
+	// *   C (Case #1)
 	// ...
-	// *   B (Case #1)
-	// *   A (Case #0)
+	// *   B (Case #0)
+	// *   A
 	//
 	hashes := map[string]string{}
 	commit := func(file, name string) {
@@ -948,8 +948,14 @@ func TestComputeBlamelist(t *testing.T) {
 	}
 
 	name := "Test-Ubuntu12-ShuttleA-GTX660-x86-Release"
-	repo, err := repograph.NewGraph(gb.RepoUrl(), tmp)
+
+	repos, err := repograph.NewMap([]string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
+	repo := repos[gb.RepoUrl()]
+	depotTools := specs_testutils.GetDepotTools(t)
+	tcc, err := specs.NewTaskCfgCache(repos, depotTools, tmp, 1)
+	assert.NoError(t, err)
+
 	ids := []string{}
 	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
 	test := func(tc *testCase) {
@@ -963,7 +969,7 @@ func TestComputeBlamelist(t *testing.T) {
 		// Ensure that we get the expected blamelist.
 		revision := repo.Get(tc.Revision)
 		assert.NotNil(t, revision)
-		commits, stoleFrom, err := ComputeBlamelist(cache, repo, name, gb.RepoUrl(), revision, commitsBuf)
+		commits, stoleFrom, err := ComputeBlamelist(cache, repo, name, gb.RepoUrl(), revision, commitsBuf, tcc)
 		if tc.Revision == "" {
 			assert.Error(t, err)
 			return
@@ -1017,36 +1023,27 @@ func TestComputeBlamelist(t *testing.T) {
 
 	// Test cases. Each test case builds on the previous cases.
 
-	// 0. First task of this spec, not at a branch head. Blamelist should be
-	// empty.
-	test(&testCase{
-		Revision:     hashes["A"],
-		Expected:     []string{},
-		StoleFromIdx: -1,
-	})
-
-	// 1. The first task, at HEAD.
+	// 0. The first task, at HEAD.
 	test(&testCase{
 		Revision:     hashes["B"],
-		Expected:     []string{hashes["B"]}, // Task #1 is limited to a single commit.
+		Expected:     []string{hashes["B"], hashes["A"]},
 		StoleFromIdx: -1,
 	})
 
-	// The above used a special case of "commit has no parents". Test the
-	// other (blamelist too long) case by creating a bunch of commits.
+	// Test the blamelist too long case by creating a bunch of commits.
 	for i := 0; i < MAX_BLAMELIST_COMMITS+1; i++ {
 		commit(f, "C")
 	}
 	commit(f, "D")
 
-	// 2. Blamelist too long, not a branch head.
+	// 1. Blamelist too long, not a branch head.
 	test(&testCase{
 		Revision:     hashes["C"],
-		Expected:     []string{},
+		Expected:     []string{hashes["C"]},
 		StoleFromIdx: -1,
 	})
 
-	// 3. Blamelist too long, is a branch head.
+	// 2. Blamelist too long, is a branch head.
 	test(&testCase{
 		Revision:     hashes["D"],
 		Expected:     []string{hashes["D"]},
@@ -1066,51 +1063,51 @@ func TestComputeBlamelist(t *testing.T) {
 	hashes["J"] = gb.MergeBranch("otherbranch")
 	commit(f, "K")
 
-	// 4. On a linear set of commits, with at least one previous task.
+	// 3. On a linear set of commits, with at least one previous task.
 	test(&testCase{
 		Revision:     hashes["F"],
 		Expected:     []string{hashes["E"], hashes["F"]},
 		StoleFromIdx: -1,
 	})
-	// 5. The first task on a new branch.
+	// 4. The first task on a new branch.
 	test(&testCase{
 		Revision:     hashes["H"],
 		Expected:     []string{hashes["H"]},
 		StoleFromIdx: -1,
 	})
-	// 6. After a merge.
+	// 5. After a merge.
 	test(&testCase{
 		Revision:     hashes["J"],
 		Expected:     []string{hashes["G"], hashes["I"], hashes["J"]},
 		StoleFromIdx: -1,
 	})
-	// 7. One last "normal" task.
+	// 6. One last "normal" task.
 	test(&testCase{
 		Revision:     hashes["K"],
 		Expected:     []string{hashes["K"]},
 		StoleFromIdx: -1,
 	})
-	// 8. Steal commits from a previously-ingested task.
+	// 7. Steal commits from a previously-ingested task.
 	test(&testCase{
 		Revision:     hashes["E"],
 		Expected:     []string{hashes["E"]},
-		StoleFromIdx: 4,
+		StoleFromIdx: 3,
 	})
 
-	// Ensure that task #8 really stole the commit from #4.
-	task, err := cache.GetTask(ids[4])
+	// Ensure that task #8 really stole the commit from #3.
+	task, err := cache.GetTask(ids[3])
 	assert.NoError(t, err)
 	assert.False(t, util.In(hashes["E"], task.Commits), fmt.Sprintf("Expected not to find %s in %v", hashes["E"], task.Commits))
 
-	// 9. Retry #8.
+	// 8. Retry #7.
 	test(&testCase{
 		Revision:     hashes["E"],
 		Expected:     []string{hashes["E"]},
-		StoleFromIdx: 8,
+		StoleFromIdx: 7,
 	})
 
-	// Ensure that task #9 really stole the commit from #8.
-	task, err = cache.GetTask(ids[8])
+	// Ensure that task #8 really stole the commit from #7.
+	task, err = cache.GetTask(ids[7])
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(task.Commits))
 
@@ -1120,18 +1117,18 @@ func TestComputeBlamelist(t *testing.T) {
 	commit(f, "N")
 	commit(f, "O")
 
-	// 10. Not really a test case, but setting up for #11.
+	// 9. Not really a test case, but setting up for #10.
 	test(&testCase{
 		Revision:     hashes["O"],
 		Expected:     []string{hashes["L"], hashes["M"], hashes["N"], hashes["O"]},
 		StoleFromIdx: -1,
 	})
 
-	// 11. Steal *two* commits from #10.
+	// 10. Steal *two* commits from #9.
 	test(&testCase{
 		Revision:     hashes["M"],
 		Expected:     []string{hashes["L"], hashes["M"]},
-		StoleFromIdx: 10,
+		StoleFromIdx: 9,
 	})
 }
 
