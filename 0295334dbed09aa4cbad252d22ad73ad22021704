@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fd4b3559_d3991a76",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-13T17:43:43Z",
+      "side": 1,
+      "message": "It seems more useful to be able to put whatever struct you want in here.  I don\u0027t have a good usage example yet, so I\u0027m not super sure about whether it\u0027s *needed*.",
+      "parentUuid": "206c7df0_89192f9c",
+      "revId": "0295334dbed09aa4cbad252d22ad73ad22021704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1277d255_2d708176",
         "filename": "go/metrics2/events/events.go",
         "patchSetId": 2
@@ -39,6 +57,30 @@
       "revId": "0295334dbed09aa4cbad252d22ad73ad22021704",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f050b32f_640b1a23",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-13T17:43:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1277d255_2d708176",
+      "range": {
+        "startLine": 103,
+        "startChar": 8,
+        "endLine": 103,
+        "endChar": 51
+      },
+      "revId": "0295334dbed09aa4cbad252d22ad73ad22021704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
