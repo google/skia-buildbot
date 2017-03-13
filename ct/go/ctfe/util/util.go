@@ -88,6 +88,7 @@ const (
 	PAGE_SETS_PARAMETERS_POST_URI = "_/page_sets/"
 	CL_DATA_POST_URI              = "_/cl_data"
 	BENCHMARKS_PLATFORMS_POST_URI = "_/benchmarks_platforms/"
+	USER_TASKS_COUNT_POST_URL     = "_/user_tasks_count"
 
 	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
 )
