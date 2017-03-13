@@ -536,6 +536,41 @@ func TestTempGitRepoParallel(t *testing.T) {
 	wg.Wait()
 }
 
+func TestTempGitRepoErr(t *testing.T) {
+	testutils.LargeTest(t)
+	testutils.SkipIfShort(t)
+
+	gb, c1, _ := specs_testutils.SetupTestRepo(t)
+	defer gb.Cleanup()
+
+	tmp, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmp)
+
+	repos, err := repograph.NewMap([]string{gb.RepoUrl()}, tmp)
+	assert.NoError(t, err)
+
+	cache, err := NewTaskCfgCache(repos, specs_testutils.GetDepotTools(t), tmp, DEFAULT_NUM_WORKERS)
+	assert.NoError(t, err)
+
+	// bot_update will fail to apply the issue if we don't fake it in Git.
+	rs := db.RepoState{
+		Patch: db.Patch{
+			Issue:    "my-issue",
+			Patchset: "my-patchset",
+			Server:   "my-server",
+		},
+		Repo:     gb.RepoUrl(),
+		Revision: c1,
+	}
+	assert.Error(t, cache.TempGitRepo(rs, true, func(c *git.TempCheckout) error {
+		// This may fail with a nil pointer dereference due to a nil
+		// git.TempCheckout.
+		assert.FailNow(t, "We should not have gotten here.")
+		return nil
+	}))
+}
+
 func TestGetTaskSpecDAG(t *testing.T) {
 	testutils.SmallTest(t)
 	test := func(dag map[string][]string, jobDeps []string) {

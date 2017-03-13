@@ -54,13 +54,18 @@ var (
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
-	bl               *blacklist.Blacklist
-	busyBots         *busyBots
-	db               db.DB
-	depotToolsDir    string
-	isolate          *isolate.Client
-	jCache           db.JobCache
-	lastScheduled    time.Time // protected by queueMtx.
+	bl            *blacklist.Blacklist
+	busyBots      *busyBots
+	db            db.DB
+	depotToolsDir string
+	isolate       *isolate.Client
+	jCache        db.JobCache
+	lastScheduled time.Time // protected by queueMtx.
+
+	// TODO(benjaminwagner): newTasks probably belongs in the TaskCfgCache.
+	newTasks    map[db.RepoState]util.StringSet
+	newTasksMtx sync.RWMutex
+
 	pools            []string
 	pubsubTopic      string
 	queue            []*taskCandidate // protected by queueMtx.
@@ -119,6 +124,8 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, ho
 		depotToolsDir:    depotTools,
 		isolate:          isolateClient,
 		jCache:           jCache,
+		newTasks:         map[db.RepoState]util.StringSet{},
+		newTasksMtx:      sync.RWMutex{},
 		pools:            pools,
 		pubsubTopic:      pubsubTopic,
 		queue:            []*taskCandidate{},
@@ -251,20 +258,7 @@ func (s *TaskScheduler) CancelJob(id string) (*db.Job, error) {
 //   - repoName:   Name of the repository for the task.
 //   - revision:   Revision at which the task would run.
 //   - commitsBuf: Buffer for use as scratch space.
-func ComputeBlamelist(cache db.TaskCache, repo *repograph.Graph, taskName, repoName string, revision *repograph.Commit, commitsBuf []*repograph.Commit) ([]string, *db.Task, error) {
-	// If this is the first invocation of a given task spec, don't bother
-	// searching for commits. We only want to trigger new bots at branch
-	// heads, so if the passed-in revision is a branch head, return it as
-	// the blamelist, otherwise return an empty blamelist.
-	if !cache.KnownTaskName(repoName, taskName) {
-		for _, name := range repo.Branches() {
-			if repo.Get(name).Hash == revision.Hash {
-				return []string{revision.Hash}, nil, nil
-			}
-		}
-		return []string{}, nil, nil
-	}
-
+func ComputeBlamelist(cache db.TaskCache, repo *repograph.Graph, taskName, repoName string, revision *repograph.Commit, commitsBuf []*repograph.Commit, newTasks map[db.RepoState]util.StringSet) ([]string, *db.Task, error) {
 	commitsBuf = commitsBuf[:0]
 	var stealFrom *db.Task
 
@@ -276,20 +270,10 @@ func ComputeBlamelist(cache db.TaskCache, repo *repograph.Graph, taskName, repoN
 			return false, err
 		}
 
-		// Shortcut in case we missed this case before; if this is the
-		// first invocation of a given task spec, don't bother searching
-		// for commits. We only want to trigger new bots at branch
-		// heads, so if the passed-in revision is a branch head, return
-		// it as the blamelist, otherwise return an empty blamelist.
-		if stealFrom == nil && (len(commitsBuf) > MAX_BLAMELIST_COMMITS || (len(commit.Parents) == 0 && prev == nil)) {
-			for _, name := range repo.Branches() {
-				if repo.Get(name).Hash == revision.Hash {
-					commitsBuf = append(commitsBuf[:0], revision)
-					sklog.Warningf("Found too many commits for %s @ %s; is a branch head.", taskName, revision.Hash)
-					return false, ERR_BLAMELIST_DONE
-				}
-			}
-			commitsBuf = commitsBuf[:0]
+		// If the blamelist is too large, just use a single commit.
+		if len(commitsBuf) > MAX_BLAMELIST_COMMITS {
+			commitsBuf = append(commitsBuf[:0], revision)
+			sklog.Warningf("Found too many commits for %s @ %s; using single-commit blamelist.", taskName, revision.Hash)
 			return false, ERR_BLAMELIST_DONE
 		}
 
@@ -334,6 +318,16 @@ func ComputeBlamelist(cache db.TaskCache, repo *repograph.Graph, taskName, repoN
 
 		// Add the commit.
 		commitsBuf = append(commitsBuf, commit)
+
+		// If the task is new at this commit, stop now.
+		rs := db.RepoState{
+			Repo:     repoName,
+			Revision: commit.Hash,
+		}
+		if newTasks[rs][taskName] {
+			sklog.Infof("Task Spec %s was added in %s; stopping blamelist calculation.", taskName, commit.Hash)
+			return false, nil
+		}
 
 		// Recurse on the commit's parents.
 		return true, nil
@@ -494,7 +488,7 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 		commits = []string{}
 	} else {
 		var err error
-		commits, stealingFrom, err = ComputeBlamelist(cache, repo, c.Name, c.Repo, revision, commitsBuf)
+		commits, stealingFrom, err = ComputeBlamelist(cache, repo, c.Name, c.Repo, revision, commitsBuf, s.newTasks)
 		if err != nil {
 			return err
 		}
@@ -542,6 +536,15 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 // Process the task candidates.
 func (s *TaskScheduler) processTaskCandidates(candidates map[string]map[string][]*taskCandidate, now time.Time) ([]*taskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
+
+	// Get newly-added task specs by repo state.
+	if err := s.updateAddedTaskSpecs(); err != nil {
+		return nil, err
+	}
+
+	s.newTasksMtx.RLock()
+	defer s.newTasksMtx.RUnlock()
+
 	processed := make(chan *taskCandidate)
 	errs := make(chan error)
 	wg := sync.WaitGroup{}
@@ -1011,6 +1014,34 @@ func (s *TaskScheduler) gatherNewJobs() error {
 	return s.jCache.Update()
 }
 
+// updateAddedTaskSpecs updates the mapping of RepoStates to the new task specs
+// they added.
+func (s *TaskScheduler) updateAddedTaskSpecs() error {
+	repoStates := []db.RepoState{}
+	for repoUrl, r := range s.repos {
+		if err := r.RecurseAllBranches(func(c *repograph.Commit) (bool, error) {
+			if !s.window.TestCommit(repoUrl, c) {
+				return false, nil
+			}
+			repoStates = append(repoStates, db.RepoState{
+				Repo:     repoUrl,
+				Revision: c.Hash,
+			})
+			return true, nil
+		}); err != nil {
+			return err
+		}
+	}
+	newTasks, err := s.taskCfgCache.GetAddedTaskSpecsForRepoStates(repoStates)
+	if err != nil {
+		return err
+	}
+	s.newTasksMtx.Lock()
+	defer s.newTasksMtx.Unlock()
+	s.newTasks = newTasks
+	return nil
+}
+
 // MainLoop runs a single end-to-end task scheduling loop.
 func (s *TaskScheduler) MainLoop() error {
 	defer metrics2.FuncTimer().Stop()
@@ -1392,6 +1423,7 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(tasks []*db.Task) error {
 	if !ok {
 		return fmt.Errorf("No such repo: %s", repoName)
 	}
+
 	commitsBuf := make([]*repograph.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
 	updatedTasks := map[string]*db.Task{}
 	for _, task := range tasks {
@@ -1415,7 +1447,7 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(tasks []*db.Task) error {
 		if !s.window.TestTime(task.Repo, revision.Timestamp) {
 			return fmt.Errorf("Can not add task %s with revision %s (at %s) before window start.", task.Id, task.Revision, revision.Timestamp)
 		}
-		commits, stealingFrom, err := ComputeBlamelist(cache, repo, task.Name, task.Repo, revision, commitsBuf)
+		commits, stealingFrom, err := ComputeBlamelist(cache, repo, task.Name, task.Repo, revision, commitsBuf, s.newTasks)
 		if err != nil {
 			return err
 		}
@@ -1472,6 +1504,9 @@ func (s *TaskScheduler) AddTasks(taskMap map[string]map[string][]*db.Task) error
 			}] = true
 		}
 	}
+
+	s.newTasksMtx.RLock()
+	defer s.newTasksMtx.RUnlock()
 
 	for i := 0; i < db.NUM_RETRIES; i++ {
 		if len(queue) == 0 {

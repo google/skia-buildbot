@@ -757,9 +757,9 @@ func (c *TaskCfgCache) TempGitRepo(rs db.RepoState, botUpdate bool, fn func(*git
 		var gr *git.TempCheckout
 		var err error
 		if botUpdate {
-			tmp, err := ioutil.TempDir("", "")
-			if err != nil {
-				rvErr <- err
+			tmp, err2 := ioutil.TempDir("", "")
+			if err2 != nil {
+				rvErr <- err2
 				return
 			}
 			defer util.RemoveAll(tmp)

@@ -274,7 +274,7 @@ func (t *TryJobIntegrator) localCancelJobs(jobs []*db.Job) error {
 }
 
 func (t *TryJobIntegrator) remoteCancelBuild(id int64, msg string) error {
-	sklog.Errorf("Canceling Buildbucket build %d. Reason: %s", id, msg)
+	sklog.Warningf("Canceling Buildbucket build %d. Reason: %s", id, msg)
 	// TODO(borenet): We want to send the cancellation reason along to
 	// Buildbucket for debugging purposes.
 	resp, err := t.bb.Cancel(id).Do()
