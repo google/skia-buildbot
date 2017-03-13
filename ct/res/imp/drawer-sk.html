@@ -91,6 +91,10 @@
         type: Number,
         value: 0,
       },
+      sizeOfUserQueue: {
+        type: Number,
+        value: 0,
+      },
       taskDescriptors: {
          type: Array,
          value: function() {
@@ -116,6 +120,7 @@
     ready: function() {
       this.initSelected();
       this.initSizeOfQueue();
+      this.initSizeOfUserQueue();
     },
 
     initSizeOfQueue: function() {
@@ -127,6 +132,20 @@
       this.taskDescriptors.forEach(function(obj) {
          sk.post(obj.get_url + queryStr).then(JSON.parse).then(function(json) {
            this.sizeOfQueue += json.pagination.total;
+         }.bind(this)).catch(sk.errorMessage);
+       }.bind(this));
+    },
+
+    initSizeOfUserQueue: function() {
+      var queryParams = {
+         "size": 1,
+         "not_completed": true,
+         "user": $$$("login-sk").email,
+      }
+      var queryStr = "?" + sk.query.fromObject(queryParams);
+      this.taskDescriptors.forEach(function(obj) {
+         sk.post(obj.get_url + queryStr).then(JSON.parse).then(function(json) {
+           this.sizeOfUserQueue += json.pagination.total;
          }.bind(this)).catch(sk.errorMessage);
        }.bind(this));
     },
