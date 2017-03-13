@@ -158,11 +158,11 @@ ALERT PerfUntriagedClusters
   }
 
 ALERT AndroidPerfUntriagedClusters
-  IF perf_clustering_untriaged{instance="skia-android-perf:20000"} > 0
+  IF perf_clustering_untriaged{instance=~"skia-android.*:20000"} > 0
   LABELS { category = "general", severity = "warning", specialroute = "android" }
   ANNOTATIONS {
     summary = "One or more untriaged clusters.",
-    description = "At least one untriaged perf cluster has been found. Please visit https://android-perf.skia.org/t/ to triage."
+    description = "At least one untriaged perf cluster has been found. Please visit https://{{ $labels.subdomain }}.skia.org/t/ to triage."
   }
 
 ALERT AndroidIngestFailures
