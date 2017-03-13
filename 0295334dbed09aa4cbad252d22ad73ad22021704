@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "52afcb56_cce81664",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-03-13T18:11:50Z",
+      "side": 1,
+      "message": "I\u0027d rather have it simple now (int64) and then add the generality later if it\u0027s needed.",
+      "parentUuid": "fd4b3559_d3991a76",
+      "revId": "0295334dbed09aa4cbad252d22ad73ad22021704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1277d255_2d708176",
         "filename": "go/metrics2/events/events.go",
         "patchSetId": 2
