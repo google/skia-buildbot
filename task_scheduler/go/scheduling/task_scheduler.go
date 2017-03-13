@@ -251,20 +251,7 @@ func (s *TaskScheduler) CancelJob(id string) (*db.Job, error) {
 //   - repoName:   Name of the repository for the task.
 //   - revision:   Revision at which the task would run.
 //   - commitsBuf: Buffer for use as scratch space.
-func ComputeBlamelist(cache db.TaskCache, repo *repograph.Graph, taskName, repoName string, revision *repograph.Commit, commitsBuf []*repograph.Commit) ([]string, *db.Task, error) {
-	// If this is the first invocation of a given task spec, don't bother
-	// searching for commits. We only want to trigger new bots at branch
-	// heads, so if the passed-in revision is a branch head, return it as
-	// the blamelist, otherwise return an empty blamelist.
-	if !cache.KnownTaskName(repoName, taskName) {
-		for _, name := range repo.Branches() {
-			if repo.Get(name).Hash == revision.Hash {
-				return []string{revision.Hash}, nil, nil
-			}
-		}
-		return []string{}, nil, nil
-	}
-
+func ComputeBlamelist(cache db.TaskCache, repo *repograph.Graph, taskName, repoName string, revision *repograph.Commit, commitsBuf []*repograph.Commit, newTasks map[db.RepoState]util.StringSet) ([]string, *db.Task, error) {
 	commitsBuf = commitsBuf[:0]
 	var stealFrom *db.Task
 
@@ -276,20 +263,10 @@ func ComputeBlamelist(cache db.TaskCache, repo *repograph.Graph, taskName, repoN
 			return false, err
 		}
 
-		// Shortcut in case we missed this case before; if this is the
-		// first invocation of a given task spec, don't bother searching
-		// for commits. We only want to trigger new bots at branch
-		// heads, so if the passed-in revision is a branch head, return
-		// it as the blamelist, otherwise return an empty blamelist.
-		if stealFrom == nil && (len(commitsBuf) > MAX_BLAMELIST_COMMITS || (len(commit.Parents) == 0 && prev == nil)) {
-			for _, name := range repo.Branches() {
-				if repo.Get(name).Hash == revision.Hash {
-					commitsBuf = append(commitsBuf[:0], revision)
-					sklog.Warningf("Found too many commits for %s @ %s; is a branch head.", taskName, revision.Hash)
-					return false, ERR_BLAMELIST_DONE
-				}
-			}
-			commitsBuf = commitsBuf[:0]
+		// If the blamelist is too large, just use a single commit.
+		if len(commitsBuf) > MAX_BLAMELIST_COMMITS {
+			commitsBuf = append(commitsBuf[:0], revision)
+			sklog.Warningf("Found too many commits for %s @ %s; using single-commit blamelist.", taskName, revision.Hash)
 			return false, ERR_BLAMELIST_DONE
 		}
 
@@ -334,6 +311,16 @@ func ComputeBlamelist(cache db.TaskCache, repo *repograph.Graph, taskName, repoN
 
 		// Add the commit.
 		commitsBuf = append(commitsBuf, commit)
+
+		// If the task is new at this commit, stop now.
+		rs := db.RepoState{
+			Repo:     repoName,
+			Revision: commit.Hash,
+		}
+		if newTasks[rs][taskName] {
+			sklog.Infof("Task Spec %s was added in %s; stopping blamelist calculation.", taskName, commit.Hash)
+			return false, nil
+		}
 
 		// Recurse on the commit's parents.
 		return true, nil
@@ -471,7 +458,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 
 // processTaskCandidate computes the remaining information about the task
 // candidate, eg. blamelists and scoring.
-func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*repograph.Commit) error {
+func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*repograph.Commit, newTasks map[db.RepoState]util.StringSet) error {
 	if c.IsTryJob() {
 		c.Score = CANDIDATE_SCORE_TRY_JOB + now.Sub(c.JobCreated).Hours()
 		return nil
@@ -494,7 +481,7 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 		commits = []string{}
 	} else {
 		var err error
-		commits, stealingFrom, err = ComputeBlamelist(cache, repo, c.Name, c.Repo, revision, commitsBuf)
+		commits, stealingFrom, err = ComputeBlamelist(cache, repo, c.Name, c.Repo, revision, commitsBuf, newTasks)
 		if err != nil {
 			return err
 		}
@@ -542,6 +529,24 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 // Process the task candidates.
 func (s *TaskScheduler) processTaskCandidates(candidates map[string]map[string][]*taskCandidate, now time.Time) ([]*taskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
+	repoStatesMap := map[db.RepoState]bool{}
+	for _, byRepo := range candidates {
+		for _, bySpec := range byRepo {
+			for _, c := range bySpec {
+				if !c.IsTryJob() {
+					repoStatesMap[c.RepoState] = true
+				}
+			}
+		}
+	}
+	repoStates := make([]db.RepoState, 0, len(repoStatesMap))
+	for rs, _ := range repoStatesMap {
+		repoStates = append(repoStates, rs)
+	}
+	newTasks, err := s.taskCfgCache.GetAddedTaskSpecsForRepoStates(repoStates)
+	if err != nil {
+		return nil, err
+	}
 	processed := make(chan *taskCandidate)
 	errs := make(chan error)
 	wg := sync.WaitGroup{}
@@ -558,7 +563,7 @@ func (s *TaskScheduler) processTaskCandidates(candidates map[string]map[string][
 					var best *taskCandidate
 					for i, candidate := range candidates {
 						c := candidate.Copy()
-						if err := s.processTaskCandidate(c, now, cache, commitsBuf); err != nil {
+						if err := s.processTaskCandidate(c, now, cache, commitsBuf, newTasks); err != nil {
 							errs <- err
 							return
 						}
@@ -1392,6 +1397,22 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(tasks []*db.Task) error {
 	if !ok {
 		return fmt.Errorf("No such repo: %s", repoName)
 	}
+
+	repoStatesMap := map[db.RepoState]bool{}
+	for _, task := range tasks {
+		if !task.IsTryJob() {
+			repoStatesMap[task.RepoState] = true
+		}
+	}
+	repoStates := make([]db.RepoState, 0, len(repoStatesMap))
+	for rs, _ := range repoStatesMap {
+		repoStates = append(repoStates, rs)
+	}
+	newTasks, err := s.taskCfgCache.GetAddedTaskSpecsForRepoStates(repoStates)
+	if err != nil {
+		return err
+	}
+
 	commitsBuf := make([]*repograph.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
 	updatedTasks := map[string]*db.Task{}
 	for _, task := range tasks {
@@ -1415,7 +1436,7 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(tasks []*db.Task) error {
 		if !s.window.TestTime(task.Repo, revision.Timestamp) {
 			return fmt.Errorf("Can not add task %s with revision %s (at %s) before window start.", task.Id, task.Revision, revision.Timestamp)
 		}
-		commits, stealingFrom, err := ComputeBlamelist(cache, repo, task.Name, task.Repo, revision, commitsBuf)
+		commits, stealingFrom, err := ComputeBlamelist(cache, repo, task.Name, task.Repo, revision, commitsBuf, newTasks)
 		if err != nil {
 			return err
 		}
