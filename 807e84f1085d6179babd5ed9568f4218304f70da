@@ -22,6 +22,30 @@
       "revId": "807e84f1085d6179babd5ed9568f4218304f70da",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3191873_e600770f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1617,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-13T18:15:47Z",
+      "side": 1,
+      "message": "I don\u0027t think so.  Pending time should be essentially zero, so to try to make the distinction on Status/whatever doesn\u0027t make a lot of sense when the update interval is a minute or so.  Also, I don\u0027t think we get pubsub messages for \"okay, I actually added the task to the queue.\", ie. nil -\u003e PENDING.  I think the ones causing all of the errors are the PENDING-\u003eRUNNING when the task gets picked up before we\u0027re done triggering a bunch of tasks.",
+      "parentUuid": "b2180b77_19c8f802",
+      "range": {
+        "startLine": 1617,
+        "startChar": 4,
+        "endLine": 1617,
+        "endChar": 26
+      },
+      "revId": "807e84f1085d6179babd5ed9568f4218304f70da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
