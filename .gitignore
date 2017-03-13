@@ -72,3 +72,4 @@ tracedb/local_perf.toml
 fiddle/fiddle_secwrap
 fiddle/res/css
 prometheus/tmp
+**/.vscode
