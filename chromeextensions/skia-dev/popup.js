@@ -43,7 +43,7 @@
   }
 
   function setPerfAlerts() {
-    var perfURL = 'https://status.skia.org/json/perfAlerts';
+    var perfURL = 'https://perf.skia.org/_/alerts/';
     sk.get(perfURL).then(function(resp) {
       var numAlerts = JSON.parse(resp).alerts;
       document.getElementById('perf-alerts').innerHTML =
@@ -54,42 +54,75 @@
   }
 
   function setGoldAlerts() {
-    var goldURL = 'https://status.skia.org/json/goldStatus';
+    var goldURL = 'https://gold.skia.org/json/trstatus';
     sk.get(goldURL).then(function(resp) {
       var json = JSON.parse(resp);
-      document.getElementById('gm-alerts').innerHTML =
-          linkify(json.gm, 'https://gold.skia.org/list?query=source_type%3Dgm');
-      document.getElementById('image-alerts').innerHTML =
-          linkify(json.image, 'https://gold.skia.org/list?query=source_type%3Dimage');
+      json.corpStatus.forEach(function(stat) {
+        if (stat.name == "gm") {
+          document.getElementById('gm-alerts').innerHTML =
+              linkify(stat.untriagedCount, 'https://gold.skia.org/list?query=source_type%3Dgm');
+        } else if (stat.name == "image") {
+          document.getElementById('image-alerts').innerHTML =
+              linkify(stat.untriagedCount, 'https://gold.skia.org/list?query=source_type%3Dimage');
+        }
+      });
     }).catch(function() {
       document.getElementById('errors').innerHTML += 'Error connecting to goldStatus</br>';
     });
   }
 
-  function setRollStatus() {
+  function setCrRollStatus() {
     var rollURL = 'https://autoroll.skia.org/json/status';
     sk.get(rollURL).then(function(resp) {
       var json = JSON.parse(resp);
       var currentStatus = json.currentRoll ? json.currentRoll.result : 'up to date';
-      document.getElementById('current-roll').innerHTML =
+      document.getElementById('current-cr-roll').innerHTML =
           linkify(currentStatus, 'https://autoroll.skia.org/');
-      document.getElementById('last-roll').innerHTML =
+      document.getElementById('last-cr-roll').innerHTML =
           linkify(json.lastRoll.result, 'https://autoroll.skia.org/');
     }).catch(function() {
-      document.getElementById('errors').innerHTML += 'Error connecting to autoroller</br>';
+      document.getElementById('errors').innerHTML += 'Error connecting to Cr autoroller</br>';
+    });
+  }
+
+  function setAndroidRollStatus() {
+    var rollURL = 'https://storage.googleapis.com/skia-android-autoroller/roll-status.json';
+    sk.get(rollURL).then(function(resp) {
+      var rolls = JSON.parse(resp).rolls;
+      var currentStatus = rolls[0].status === 'succeeded' ? 'up to date' : rolls[0].status;
+      var linkToRolls = 'https://googleplex-android-review.git.corp.google.com/q/' +
+                        'owner:31977622648%40project.gserviceaccount.com';
+      document.getElementById('current-android-roll').innerHTML =
+          linkify(currentStatus, linkToRolls);
+      document.getElementById('last-android-roll').innerHTML =
+          linkify(rolls[1].status, linkToRolls);
+    }).catch(function() {
+      document.getElementById('errors').innerHTML += 'Error connecting to Android autoroller</br>';
     });
   }
 
   function setInfraAlerts() {
-    var alertsURL = 'https://alerts.skia.org/json/alerts/';
+    var alertsURL = 'https://promalerts.skia.org/api/v1/alerts/groups';
     sk.get(alertsURL).then(function(resp) {
-      var alerts = JSON.parse(resp);
       var activeInfraAlerts = 0;
-      for (var i = 0; i < alerts.length; i++) {
-        if (alerts[i]['category'] == 'infra' && alerts[i]['snoozedUntil'] == 0) {
-          activeInfraAlerts++;
+      var json = JSON.parse(resp);
+      var alertGroups = json.data;
+      alertGroups.forEach(function(alertGroup) {
+        if (!alertGroup.blocks) {
+          return;
         }
-      }
+        alertGroup.blocks.forEach(function(block) {
+          block.alerts.forEach(function(al) {
+            if (al.labels.category != "infra") {
+              return;
+            }
+            if (al.silenced) {
+              return;
+            }
+            activeInfraAlerts++;
+          });
+        });
+      });
       document.getElementById('infra-alerts').innerHTML =
         linkify(activeInfraAlerts, 'http://alerts.skia.org/infra');
     }).catch(function() {
@@ -141,7 +174,8 @@
     setTrooperSheriffRobocopWrangler();
     setPerfAlerts();
     setGoldAlerts();
-    setRollStatus();
+    setCrRollStatus();
+    setAndroidRollStatus();
     setInfraAlerts();
     // addMasterStatusRows();
   }
