@@ -187,6 +187,30 @@
       "revId": "93659bb89cb827ad6a5c231a87562ca697cf329e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0974dccf_6bba1ccd",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 937,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-13T19:10:10Z",
+      "side": 1,
+      "message": "Don\u0027t worry about it. I don\u0027t understand why you have \"previously #7\" here, except to indicate why #7 is missing. But since you renumbered all of them, why keep a gap at #7?",
+      "parentUuid": "22edf553_18e9d4c7",
+      "range": {
+        "startLine": 937,
+        "startChar": 20,
+        "endLine": 937,
+        "endChar": 33
+      },
+      "revId": "93659bb89cb827ad6a5c231a87562ca697cf329e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

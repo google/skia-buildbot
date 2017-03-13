@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4be125f5_a93549dc",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-13T19:10:10Z",
+      "side": 1,
+      "message": "LGTM as-is, but it seems like this belongs in TaskCfgCache; e.g. GetAddedTaskSpecsInWindow. Maybe add a TODO(benjaminwagner)?",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 30
+      },
+      "revId": "2f6eb2aa1054cc2dabc066ad80a792f05589ccea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ace1c3d1_92993872",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1424,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-13T19:10:10Z",
+      "side": 1,
+      "message": "Could we move this to AddTasks? Otherwise no point in using goroutines in AddTasks.",
+      "range": {
+        "startLine": 1423,
+        "startChar": 0,
+        "endLine": 1424,
+        "endChar": 30
+      },
+      "revId": "2f6eb2aa1054cc2dabc066ad80a792f05589ccea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
