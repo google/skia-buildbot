@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "6a7f94be_23631e5a",
+        "filename": "compute_engine_scripts/android_master_perf/vm_config.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-03-13T18:14:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f29a763d_7d7b43f3",
+      "revId": "105ec73fbab69aa69b274772d16533a1af1273b2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e8d687c6_3afa345e",
         "filename": "compute_engine_scripts/android_master_perf/vm_create_instance.sh",
         "patchSetId": 1
@@ -33,6 +51,24 @@
       "revId": "105ec73fbab69aa69b274772d16533a1af1273b2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37c00d61_b913e4b7",
+        "filename": "compute_engine_scripts/android_master_perf/vm_create_instance.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-03-13T18:14:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e8d687c6_3afa345e",
+      "revId": "105ec73fbab69aa69b274772d16533a1af1273b2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
