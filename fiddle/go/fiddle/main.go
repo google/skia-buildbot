@@ -583,7 +583,7 @@ func main() {
 	names = named.New(fiddleStore)
 	build = buildskia.New(*fiddleRoot, depotTools, repo, buildlib.BuildLib, 64, *timeBetweenBuilds, true)
 	build.Start()
-	//StartTryNamed()
+	StartTryNamed()
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 	r.HandleFunc("/i/{id:[@0-9a-zA-Z._]+}", imageHandler)
