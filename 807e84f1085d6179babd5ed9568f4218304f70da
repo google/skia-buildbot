@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b2180b77_19c8f802",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1617,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-13T18:01:08Z",
+      "side": 1,
+      "message": "Do we care about PENDING vs. RUNNING?",
+      "range": {
+        "startLine": 1617,
+        "startChar": 4,
+        "endLine": 1617,
+        "endChar": 26
+      },
+      "revId": "807e84f1085d6179babd5ed9568f4218304f70da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
