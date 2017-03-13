@@ -102,7 +102,11 @@ scrape_configs:
     static_configs:
       - targets: ['skia-perf:20000']
       - targets: ['skia-android-perf:20000']
+        labels:
+          subdomain: android-perf
       - targets: ['skia-android-master-perf:20000']
+        labels:
+          subdomain: android-master-perf
 
   - job_name: 'status'
     static_configs:
