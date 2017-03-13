@@ -38,7 +38,7 @@
     }
     #info-table td {
       padding: 7px 10px;
-      width: 33%;
+      width: 25%;
       text-align: center;
       border: 1px solid black;
     }
@@ -70,16 +70,14 @@
     <br/>
     <table id="info-table">
       <tr>
-        <td colspan=3>
+        <td colspan=4>
           <span id="tree-status"></div>
         </td>
       </tr>
       <tr>
-        <td colspan=3>
-          Skia Sheriff: <span id="current-sheriff"></div>
+        <td>
+          Sheriff: <span id="current-sheriff"></div>
         </td>
-      </tr>
-      <tr>
         <td>
           Trooper: <span id="current-trooper"></span>
         </td>
@@ -95,21 +93,27 @@
           Perf Alerts: <span id="perf-alerts"></span>
         </td>
         <td>
-          Failing GMs: <span id="gm-alerts"></span>
+          Untriaged GMs: <span id="gm-alerts"></span>
         </td>
         <td>
-          Failing Images: <span id="image-alerts"></span>
+          Untriaged Images: <span id="image-alerts"></span>
+        </td>
+        <td>
+          Infra Alerts: <span id="infra-alerts"></span>
         </td>
       </tr>
       <tr>
-        <td>
-          Current Roll: <span id="current-roll"></span>
+        <td colspan=2>
+          <b>Chromium Roll</b>
+          <br/>
+          Current: <span id="current-cr-roll"></span>
+          Last: <span id="last-cr-roll"></span>
         </td>
-        <td>
-          Last Roll: <span id="last-roll"></span>
-        </td>
-        <td>
-          Active Infra Alerts: <span id="infra-alerts"></span>
+        <td colspan=2>
+          <b>Android Roll</b>
+          <br/>
+          Current: <span id="current-android-roll"></span>
+          Last: <span id="last-android-roll"></span>
         </td>
       </tr>
     </table>
