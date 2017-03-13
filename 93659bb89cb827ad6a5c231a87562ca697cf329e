@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "32ac2c1f_af035cf7",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 546,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-13T18:54:32Z",
+      "side": 1,
+      "message": "See below.",
+      "parentUuid": "74d0ce2a_513a688a",
+      "range": {
+        "startLine": 546,
+        "startChar": 1,
+        "endLine": 546,
+        "endChar": 75
+      },
+      "revId": "93659bb89cb827ad6a5c231a87562ca697cf329e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "582c537e_6ec4d335",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2017-03-13T17:57:00Z",
       "side": 1,
       "message": "I don\u0027t think this will work correctly. Suppose len(tasks)\u003d\u003d1, there are no existing tasks for this task spec, and the CL adding the task spec was before HEAD (\u003d\u003dtasks[0].Revision). Then newTasks will be empty, and we\u0027ll end up with len(tasks[0].Commits)\u003d\u003d1, due to the blamelist reaching MAX_BLAMELIST_COMMITS. This will cause the same effect we saw in skia:5877.",
+      "range": {
+        "startLine": 1411,
+        "startChar": 1,
+        "endLine": 1411,
+        "endChar": 75
+      },
+      "revId": "93659bb89cb827ad6a5c231a87562ca697cf329e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e90604ac_83cd33e4",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1411,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-13T18:54:32Z",
+      "side": 1,
+      "message": "Oh, right.  That was dumb.  We need to just use the most recent N commits for newTasks, or do the time window thing.",
+      "parentUuid": "582c537e_6ec4d335",
       "range": {
         "startLine": 1411,
         "startChar": 1,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "8767b34b_d67ebc3d",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 611,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-13T18:54:32Z",
+      "side": 1,
+      "message": "Fair enough.  Just made it empty.",
+      "parentUuid": "81048dd0_16a8336b",
+      "range": {
+        "startLine": 611,
+        "startChar": 1,
+        "endLine": 611,
+        "endChar": 91
+      },
+      "revId": "93659bb89cb827ad6a5c231a87562ca697cf329e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "35c0d406_061241fa",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 4
@@ -82,6 +154,30 @@
       "writtenOn": "2017-03-13T17:57:00Z",
       "side": 1,
       "message": "nit: Is there a reason to keep it 8 if you\u0027re renumbering all the cases?",
+      "range": {
+        "startLine": 937,
+        "startChar": 20,
+        "endLine": 937,
+        "endChar": 33
+      },
+      "revId": "93659bb89cb827ad6a5c231a87562ca697cf329e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "22edf553_18e9d4c7",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 937,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-13T18:54:32Z",
+      "side": 1,
+      "message": "I\u0027m sorry, I don\u0027t understand what you\u0027re asking.",
+      "parentUuid": "35c0d406_061241fa",
       "range": {
         "startLine": 937,
         "startChar": 20,

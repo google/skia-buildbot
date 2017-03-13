@@ -22,6 +22,30 @@
       "revId": "17bd7e529343eeb3ae8bedda9bda32a86b425495",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b68c68ac_5a68e42b",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-13T18:54:32Z",
+      "side": 0,
+      "message": "Yeah. With this new behavior the first run will be at tip of tree and the blamelist will include all commits up through the one which added the task spec.",
+      "parentUuid": "6644e08f_301485b7",
+      "range": {
+        "startLine": 255,
+        "startChar": 0,
+        "endLine": 267,
+        "endChar": 0
+      },
+      "revId": "17bd7e529343eeb3ae8bedda9bda32a86b425495",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
