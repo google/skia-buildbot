@@ -608,7 +608,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 	}
 	assert.NoError(t, s.processTaskCandidate(c, now, cache, commitsBuf))
 	assert.Equal(t, CANDIDATE_SCORE_FORCE_RUN+2.0, c.Score)
-	assert.Equal(t, 1, len(c.Commits))
+	assert.Equal(t, 2, len(c.Commits))
 
 	// All other candidates have a blamelist and a time-decayed score.
 	c = &taskCandidate{
@@ -621,7 +621,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 	}
 	assert.NoError(t, s.processTaskCandidate(c, now, cache, commitsBuf))
 	assert.True(t, c.Score > 0)
-	assert.Equal(t, 1, len(c.Commits))
+	assert.Equal(t, 2, len(c.Commits))
 
 	// Now, replace the time window to ensure that this next candidate runs
 	// at a commit outside the window. Ensure that it gets the correct
@@ -658,13 +658,21 @@ func TestProcessTaskCandidates(t *testing.T) {
 			assert.Nil(t, c.Commits)
 		} else if c.IsForceRun() {
 			assert.True(t, c.Score > CANDIDATE_SCORE_FORCE_RUN)
-			assert.Equal(t, 1, len(c.Commits))
+			assert.Equal(t, 2, len(c.Commits))
 		} else if c.Revision == rs2.Revision {
-			assert.True(t, c.Score >= 0)
-			assert.True(t, len(c.Commits) > 0)
+			if c.Name == specs_testutils.PerfTask {
+				assert.Equal(t, 2.0, c.Score)
+				assert.Equal(t, 1, len(c.Commits))
+			} else if c.Name == specs_testutils.BuildTask {
+				assert.Equal(t, 0.0, c.Score) // Already covered by the forced job.
+				assert.Equal(t, 1, len(c.Commits))
+			} else {
+				assert.Equal(t, 3.5, c.Score)
+				assert.Equal(t, 2, len(c.Commits))
+			}
 		} else {
-			assert.Equal(t, c.Score, -1.0)
-			assert.Equal(t, len(c.Commits), 0)
+			assert.Equal(t, 0.5, c.Score) // These will be backfills.
+			assert.Equal(t, 1, len(c.Commits))
 		}
 	}
 
@@ -912,24 +920,24 @@ func TestComputeBlamelist(t *testing.T) {
 
 	// The test repo is laid out like this:
 	//
-	// *   O (HEAD, master, Case #10)
+	// *   O (HEAD, master, Case #9)
 	// *   N
-	// *   M (Case #11)
+	// *   M (Case #10)
 	// *   L
-	// *   K (Case #7)
-	// *   J (Case #6)
+	// *   K (Case #6)
+	// *   J (Case #5)
 	// |\
 	// | * I
-	// | * H (Case #5)
+	// | * H (Case #4)
 	// * | G
-	// * | F (Case #4)
-	// * | E (Case #9)
+	// * | F (Case #3)
+	// * | E (Case #8, previously #7)
 	// |/
-	// *   D (Case #3)
-	// *   C (Case #2)
+	// *   D (Case #2)
+	// *   C (Case #1)
 	// ...
-	// *   B (Case #1)
-	// *   A (Case #0)
+	// *   B (Case #0)
+	// *   A
 	//
 	hashes := map[string]string{}
 	commit := func(file, name string) {
@@ -948,8 +956,14 @@ func TestComputeBlamelist(t *testing.T) {
 	}
 
 	name := "Test-Ubuntu12-ShuttleA-GTX660-x86-Release"
-	repo, err := repograph.NewGraph(gb.RepoUrl(), tmp)
+
+	repos, err := repograph.NewMap([]string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
+	repo := repos[gb.RepoUrl()]
+	depotTools := specs_testutils.GetDepotTools(t)
+	tcc, err := specs.NewTaskCfgCache(repos, depotTools, tmp, 1)
+	assert.NoError(t, err)
+
 	ids := []string{}
 	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
 	test := func(tc *testCase) {
@@ -960,10 +974,18 @@ func TestComputeBlamelist(t *testing.T) {
 			assert.NotEqual(t, h, "")
 		}
 
+		newTasks, err := tcc.GetAddedTaskSpecsForRepoStates([]db.RepoState{
+			db.RepoState{
+				Repo:     gb.RepoUrl(),
+				Revision: tc.Revision,
+			},
+		})
+		assert.NoError(t, err)
+
 		// Ensure that we get the expected blamelist.
 		revision := repo.Get(tc.Revision)
 		assert.NotNil(t, revision)
-		commits, stoleFrom, err := ComputeBlamelist(cache, repo, name, gb.RepoUrl(), revision, commitsBuf)
+		commits, stoleFrom, err := ComputeBlamelist(cache, repo, name, gb.RepoUrl(), revision, commitsBuf, newTasks)
 		if tc.Revision == "" {
 			assert.Error(t, err)
 			return
@@ -1017,36 +1039,27 @@ func TestComputeBlamelist(t *testing.T) {
 
 	// Test cases. Each test case builds on the previous cases.
 
-	// 0. First task of this spec, not at a branch head. Blamelist should be
-	// empty.
-	test(&testCase{
-		Revision:     hashes["A"],
-		Expected:     []string{},
-		StoleFromIdx: -1,
-	})
-
-	// 1. The first task, at HEAD.
+	// 0. The first task, at HEAD.
 	test(&testCase{
 		Revision:     hashes["B"],
-		Expected:     []string{hashes["B"]}, // Task #1 is limited to a single commit.
+		Expected:     []string{hashes["B"], hashes["A"]},
 		StoleFromIdx: -1,
 	})
 
-	// The above used a special case of "commit has no parents". Test the
-	// other (blamelist too long) case by creating a bunch of commits.
+	// Test the blamelist too long case by creating a bunch of commits.
 	for i := 0; i < MAX_BLAMELIST_COMMITS+1; i++ {
 		commit(f, "C")
 	}
 	commit(f, "D")
 
-	// 2. Blamelist too long, not a branch head.
+	// 1. Blamelist too long, not a branch head.
 	test(&testCase{
 		Revision:     hashes["C"],
-		Expected:     []string{},
+		Expected:     []string{hashes["C"]},
 		StoleFromIdx: -1,
 	})
 
-	// 3. Blamelist too long, is a branch head.
+	// 2. Blamelist too long, is a branch head.
 	test(&testCase{
 		Revision:     hashes["D"],
 		Expected:     []string{hashes["D"]},
@@ -1066,51 +1079,51 @@ func TestComputeBlamelist(t *testing.T) {
 	hashes["J"] = gb.MergeBranch("otherbranch")
 	commit(f, "K")
 
-	// 4. On a linear set of commits, with at least one previous task.
+	// 3. On a linear set of commits, with at least one previous task.
 	test(&testCase{
 		Revision:     hashes["F"],
 		Expected:     []string{hashes["E"], hashes["F"]},
 		StoleFromIdx: -1,
 	})
-	// 5. The first task on a new branch.
+	// 4. The first task on a new branch.
 	test(&testCase{
 		Revision:     hashes["H"],
 		Expected:     []string{hashes["H"]},
 		StoleFromIdx: -1,
 	})
-	// 6. After a merge.
+	// 5. After a merge.
 	test(&testCase{
 		Revision:     hashes["J"],
 		Expected:     []string{hashes["G"], hashes["I"], hashes["J"]},
 		StoleFromIdx: -1,
 	})
-	// 7. One last "normal" task.
+	// 6. One last "normal" task.
 	test(&testCase{
 		Revision:     hashes["K"],
 		Expected:     []string{hashes["K"]},
 		StoleFromIdx: -1,
 	})
-	// 8. Steal commits from a previously-ingested task.
+	// 7. Steal commits from a previously-ingested task.
 	test(&testCase{
 		Revision:     hashes["E"],
 		Expected:     []string{hashes["E"]},
-		StoleFromIdx: 4,
+		StoleFromIdx: 3,
 	})
 
-	// Ensure that task #8 really stole the commit from #4.
-	task, err := cache.GetTask(ids[4])
+	// Ensure that task #8 really stole the commit from #3.
+	task, err := cache.GetTask(ids[3])
 	assert.NoError(t, err)
 	assert.False(t, util.In(hashes["E"], task.Commits), fmt.Sprintf("Expected not to find %s in %v", hashes["E"], task.Commits))
 
-	// 9. Retry #8.
+	// 8. Retry #7.
 	test(&testCase{
 		Revision:     hashes["E"],
 		Expected:     []string{hashes["E"]},
-		StoleFromIdx: 8,
+		StoleFromIdx: 7,
 	})
 
-	// Ensure that task #9 really stole the commit from #8.
-	task, err = cache.GetTask(ids[8])
+	// Ensure that task #8 really stole the commit from #7.
+	task, err = cache.GetTask(ids[7])
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(task.Commits))
 
@@ -1120,18 +1133,18 @@ func TestComputeBlamelist(t *testing.T) {
 	commit(f, "N")
 	commit(f, "O")
 
-	// 10. Not really a test case, but setting up for #11.
+	// 9. Not really a test case, but setting up for #10.
 	test(&testCase{
 		Revision:     hashes["O"],
 		Expected:     []string{hashes["L"], hashes["M"], hashes["N"], hashes["O"]},
 		StoleFromIdx: -1,
 	})
 
-	// 11. Steal *two* commits from #10.
+	// 10. Steal *two* commits from #9.
 	test(&testCase{
 		Revision:     hashes["M"],
 		Expected:     []string{hashes["L"], hashes["M"]},
-		StoleFromIdx: 10,
+		StoleFromIdx: 9,
 	})
 }
 
@@ -1255,28 +1268,18 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	testSort()
 
 	// Since we haven't run any task yet, we should have the two Build
-	// tasks. The one at HEAD should have a single-commit blamelist and a
-	// score of 2.0. The other should have no commits in its blamelist and
-	// a score of -1.0.
-	for _, c := range queue {
-		assert.Equal(t, specs_testutils.BuildTask, c.Name)
-		if c.Revision == c1 {
-			assert.Equal(t, 0, len(c.Commits))
-			assert.Equal(t, -1.0, c.Score)
-		} else {
-			assert.Equal(t, []string{c.Revision}, c.Commits)
-			assert.Equal(t, 2.0, c.Score)
-		}
-	}
+	// tasks. The one at HEAD should have a two-commit blamelist and a
+	// score of 3.5. The other should have one commit in its blamelist and
+	// a score of 0.5.
+	assert.Equal(t, specs_testutils.BuildTask, queue[0].Name)
+	assert.Equal(t, []string{c2, c1}, queue[0].Commits)
+	assert.Equal(t, 3.5, queue[0].Score)
+	assert.Equal(t, specs_testutils.BuildTask, queue[1].Name)
+	assert.Equal(t, []string{c1}, queue[1].Commits)
+	assert.Equal(t, 0.5, queue[1].Score)
 
-	// Insert the first task, even though it scored lower.
-	var t1 *db.Task
-	for _, c := range queue { // Order not guaranteed; find the right candidate.
-		if c.Revision == c1 {
-			t1 = makeTask(c.Name, c.Repo, c.Revision)
-			break
-		}
-	}
+	// Insert the task at c1, even though it scored lower.
+	t1 := makeTask(queue[1].Name, queue[1].Repo, queue[1].Revision)
 	assert.NotNil(t, t1)
 	t1.Status = db.TASK_STATUS_SUCCESS
 	t1.IsolatedOutput = "fake isolated hash"
@@ -1293,8 +1296,8 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	testSort()
 	for _, c := range queue {
 		if c.Name == specs_testutils.TestTask {
-			assert.Equal(t, -1.0, c.Score)
-			assert.Equal(t, 0, len(c.Commits))
+			assert.Equal(t, 2.0, c.Score)
+			assert.Equal(t, 1, len(c.Commits))
 		} else {
 			assert.Equal(t, c.Name, specs_testutils.BuildTask)
 			assert.Equal(t, 2.0, c.Score)
@@ -1329,22 +1332,25 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	for i, c := range queue {
 		if c.Name == specs_testutils.PerfTask {
 			perfIdx = i
-		}
-		if c.Revision == c2 {
+			assert.Equal(t, c2, c.Revision)
 			assert.Equal(t, 2.0, c.Score)
 			assert.Equal(t, []string{c.Revision}, c.Commits)
 		} else {
 			assert.Equal(t, c.Name, specs_testutils.TestTask)
-			assert.Equal(t, -1.0, c.Score)
-			assert.Equal(t, 0, len(c.Commits))
+			if c.Revision == c2 {
+				assert.Equal(t, 3.5, c.Score)
+				assert.Equal(t, []string{c2, c1}, c.Commits)
+			} else {
+				assert.Equal(t, 0.5, c.Score)
+				assert.Equal(t, []string{c.Revision}, c.Commits)
+			}
 		}
 	}
 	assert.True(t, perfIdx > -1)
 
-	// Run the Test task at tip of tree, but make its blamelist cover both
-	// commits.
+	// Run the Test task at tip of tree; its blamelist covers both commits.
 	t3 := makeTask(specs_testutils.TestTask, gb.RepoUrl(), c2)
-	t3.Commits = append(t3.Commits, c1)
+	t3.Commits = []string{c2, c1}
 	t3.Status = db.TASK_STATUS_SUCCESS
 	t3.IsolatedOutput = "fake isolated hash"
 	assert.NoError(t, d.PutTask(t3))
@@ -1537,17 +1543,11 @@ func TestSchedulingE2E(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.GetTasksForCommits(gb.RepoUrl(), []string{c1, c2})
 	assert.NoError(t, err)
-	var t1 *db.Task
-	for _, v := range tasks {
-		for _, t := range v {
-			t1 = t
-			break
-		}
-	}
+	t1 := tasks[c2][specs_testutils.BuildTask]
 	assert.NotNil(t, t1)
 	assert.Equal(t, c2, t1.Revision)
 	assert.Equal(t, specs_testutils.BuildTask, t1.Name)
-	assert.Equal(t, []string{c2}, t1.Commits)
+	assert.Equal(t, []string{c2, c1}, t1.Commits)
 	assert.Equal(t, 1, len(s.queue))
 
 	// The task is complete.
@@ -1565,6 +1565,10 @@ func TestSchedulingE2E(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.GetTasksForCommits(gb.RepoUrl(), []string{c1, c2})
 	assert.NoError(t, err)
+	for _, c := range t1.Commits {
+		expect[c][t1.Name] = t1
+	}
+	testutils.AssertDeepEqual(t, expect, tasks)
 	expectLen := 3 // One remaining build task, plus one test task and one perf task.
 	assert.Equal(t, expectLen, len(s.queue))
 
@@ -1577,45 +1581,68 @@ func TestSchedulingE2E(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 	_, err = s.tCache.GetTasksForCommits(gb.RepoUrl(), []string{c1, c2})
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(s.queue)) // One remaining build task.
+	assert.Equal(t, 0, len(s.queue))
 
-	// The test task and perf task should have triggered.
+	// The build, test, and perf tasks should have triggered.
 	var t2 *db.Task
 	var t3 *db.Task
+	var t4 *db.Task
 	tasks, err = s.tCache.GetTasksForCommits(gb.RepoUrl(), []string{c1, c2})
 	assert.NoError(t, err)
-	for _, v := range tasks {
-		for _, task := range v {
-			assert.Equal(t, c2, task.Revision)
-			assert.Equal(t, []string{c2}, task.Commits)
-			if task.Name == specs_testutils.TestTask {
-				assert.Nil(t, t2)
-				t2 = task
-			} else if task.Name == specs_testutils.PerfTask {
-				assert.Nil(t, t3)
-				t3 = task
-			} else {
-				// The previously-finished build task.
+	assert.Equal(t, 2, len(tasks))
+	for commit, v := range tasks {
+		if commit == c1 {
+			// Build task at c1 and test task at c2 whose blamelist also has c1.
+			assert.Equal(t, 2, len(v))
+			for _, task := range v {
+				if task.Revision != commit {
+					continue
+				}
 				assert.Equal(t, specs_testutils.BuildTask, task.Name)
+				assert.Nil(t, t4)
+				t4 = task
+				assert.Equal(t, c1, task.Revision)
+				assert.Equal(t, []string{c1}, task.Commits)
+			}
+		} else {
+			assert.Equal(t, 3, len(v))
+			for _, task := range v {
+				if task.Name == specs_testutils.TestTask {
+					assert.Nil(t, t2)
+					t2 = task
+					assert.Equal(t, c2, task.Revision)
+					assert.Equal(t, []string{c2, c1}, task.Commits)
+				} else if task.Name == specs_testutils.PerfTask {
+					assert.Nil(t, t3)
+					t3 = task
+					assert.Equal(t, c2, task.Revision)
+					assert.Equal(t, []string{c2}, task.Commits)
+				} else {
+					// This is the first task we triggered.
+					assert.Equal(t, specs_testutils.BuildTask, task.Name)
+				}
 			}
 		}
 	}
 	assert.NotNil(t, t2)
 	assert.NotNil(t, t3)
-	t2.Status = db.TASK_STATUS_SUCCESS
-	t2.Finished = time.Now()
-	t2.IsolatedOutput = "abc123"
+	assert.NotNil(t, t4)
+	t4.Status = db.TASK_STATUS_SUCCESS
+	t4.Finished = time.Now()
+	t4.IsolatedOutput = "abc123"
 
-	// No new bots free; only the remaining build task should be in the queue.
+	// No new bots free; only the remaining test task should be in the queue.
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{})
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{
 		makeSwarmingRpcsTaskRequestMetadata(t, t2, linuxTaskDims),
 		makeSwarmingRpcsTaskRequestMetadata(t, t3, linuxTaskDims),
+		makeSwarmingRpcsTaskRequestMetadata(t, t4, linuxTaskDims),
 	}
 	swarmingClient.MockTasks(mockTasks)
+	assert.NoError(t, s.updateUnfinishedTasks())
 	assert.NoError(t, s.MainLoop())
 	assert.NoError(t, s.tCache.Update())
-	expectLen = 1 // Build task from c1
+	expectLen = 1 // Test task from c1
 	assert.Equal(t, expectLen, len(s.queue))
 
 	// Finish the other task.
@@ -1634,11 +1661,11 @@ func TestSchedulingE2E(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.GetTasksForCommits(gb.RepoUrl(), []string{c1, c2})
 	assert.NoError(t, err)
-	assert.Equal(t, 0, len(tasks[c1]))
+	assert.Equal(t, 2, len(tasks[c1]))
 	assert.Equal(t, 3, len(tasks[c2]))
-	assert.Equal(t, 1, len(s.queue)) // build task from c1.
+	assert.Equal(t, 0, len(s.queue))
 
-	// Mark everything as finished. Ensure that the queue still ends up (almost) empty.
+	// Mark everything as finished. Ensure that the queue still ends up empty.
 	tasksList := []*db.Task{}
 	for _, v := range tasks {
 		for _, task := range v {
@@ -1656,8 +1683,9 @@ func TestSchedulingE2E(t *testing.T) {
 	}
 	swarmingClient.MockTasks(mockTasks)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3, bot4})
+	assert.NoError(t, s.updateUnfinishedTasks())
 	assert.NoError(t, s.MainLoop())
-	assert.Equal(t, 1, len(s.queue))
+	assert.Equal(t, 0, len(s.queue))
 }
 
 func makeDummyCommits(gb *git_testutils.GitBuilder, numCommits int) {
@@ -1682,7 +1710,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 	tasks, err := s.tCache.GetTasksForCommits(gb.RepoUrl(), []string{c1, c2})
 	assert.NoError(t, err)
-	assert.Equal(t, 0, len(tasks[c1]))
+	assert.Equal(t, 1, len(tasks[c1]))
 	assert.Equal(t, 1, len(tasks[c2]))
 
 	// Finish the one task.
@@ -2034,8 +2062,7 @@ func TestSchedulingRetry(t *testing.T) {
 
 	// Run the available compile task at c2.
 	bot1 := makeBot("bot1", linuxTaskDims)
-	bot2 := makeBot("bot2", linuxTaskDims)
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
 	assert.NoError(t, s.MainLoop())
 	assert.NoError(t, s.tCache.Update())
 	tasks, err := s.tCache.UnfinishedTasks()
@@ -2052,6 +2079,7 @@ func TestSchedulingRetry(t *testing.T) {
 	t2.Id = "t2Id"
 	t2.Revision = c1
 	t2.Commits = []string{c1}
+	t1.Commits = []string{c2}
 
 	// One task successful, the other not.
 	t1.Status = db.TASK_STATUS_FAILURE
@@ -2097,8 +2125,7 @@ func TestParentTaskId(t *testing.T) {
 
 	// Run the available compile task at c2.
 	bot1 := makeBot("bot1", linuxTaskDims)
-	bot2 := makeBot("bot2", linuxTaskDims)
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
 	assert.NoError(t, s.MainLoop())
 	assert.NoError(t, s.tCache.Update())
 	tasks, err := s.tCache.UnfinishedTasks()
@@ -2194,10 +2221,10 @@ func TestTrybots(t *testing.T) {
 		assert.NoError(t, d.PutTasks(tasks))
 		assert.NoError(t, s.tCache.Update())
 	}
-	assert.Equal(t, 3, n)
+	assert.Equal(t, 5, n)
 	jobs, err := s.jCache.UnfinishedJobs()
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(jobs)) // Jobs at c1 never finish.
+	assert.Equal(t, 0, len(jobs))
 
 	// Create a try job.
 	issue := "10001"
@@ -2225,7 +2252,7 @@ func TestTrybots(t *testing.T) {
 	assert.NoError(t, s.jCache.Update())
 	jobs, err = s.jCache.UnfinishedJobs()
 	assert.NoError(t, err)
-	assert.Equal(t, 3, len(jobs))
+	assert.Equal(t, 1, len(jobs))
 	var tryJob *db.Job
 	for _, j := range jobs {
 		if j.IsTryJob() {
@@ -2260,7 +2287,7 @@ func TestTrybots(t *testing.T) {
 
 	// Some final checks.
 	assert.NoError(t, s.jCache.Update())
-	assert.Equal(t, 5, n)
+	assert.Equal(t, 7, n)
 	tryJob, err = s.jCache.GetJob(tryJob.Id)
 	assert.NoError(t, err)
 	assert.True(t, tryJob.IsTryJob())
@@ -2268,7 +2295,7 @@ func TestTrybots(t *testing.T) {
 	assert.True(t, tryJob.Finished.After(tryJob.Created))
 	jobs, err = s.jCache.UnfinishedJobs()
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(jobs)) // Jobs at c1 never finish.
+	assert.Equal(t, 0, len(jobs))
 }
 
 func TestGetTasksForJob(t *testing.T) {
@@ -2392,6 +2419,7 @@ func TestGetTasksForJob(t *testing.T) {
 	t2.IsolatedOutput = "abc"
 	assert.NoError(t, d.PutTask(t2))
 	assert.NoError(t, s.tCache.Update())
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{})
 	assert.NoError(t, s.MainLoop())
 	assert.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.UnfinishedTasks()
@@ -3162,7 +3190,7 @@ func TestAddTask(t *testing.T) {
 	assert.False(t, util.TimeIsZero(task1.DbModified))
 	expected1.Id = task1.Id
 	expected1.DbModified = task1.DbModified
-	expected1.Commits = []string{c2}
+	expected1.Commits = []string{c2, c1}
 	testutils.AssertDeepEqual(t, expected1, task1)
 
 	// Add commits on master.
