@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "206c7df0_89192f9c",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-03-13T17:17:07Z",
+      "side": 1,
+      "message": "Do we need this generality, or can this be simplified to float64 or int64?",
+      "revId": "0295334dbed09aa4cbad252d22ad73ad22021704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1277d255_2d708176",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-03-13T17:17:07Z",
+      "side": 1,
+      "message": "Make this a type.",
+      "range": {
+        "startLine": 103,
+        "startChar": 8,
+        "endLine": 103,
+        "endChar": 51
+      },
+      "revId": "0295334dbed09aa4cbad252d22ad73ad22021704",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
