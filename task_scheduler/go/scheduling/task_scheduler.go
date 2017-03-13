@@ -1614,6 +1614,10 @@ func (s *TaskScheduler) updateTaskFromSwarming(swarmingTaskId string) error {
 	if err != nil {
 		return err
 	}
+	// Skip unfinished tasks.
+	if res.CompletedTs == "" {
+		return nil
+	}
 	// Update the task in the DB.
 	if err := db.UpdateDBFromSwarmingTask(s.db, res); err != nil {
 		if err == db.ErrNotFound {
