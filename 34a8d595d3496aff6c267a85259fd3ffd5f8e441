@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1040ee0d_381c809b",
+        "filename": "skolo/go/powercycle/edgeswitch.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-14T12:20:40Z",
+      "side": 1,
+      "message": "I take it we have to exit once to get out of configure and a second time to get out of ssh?",
+      "range": {
+        "startLine": 85,
+        "startChar": 2,
+        "endLine": 85,
+        "endChar": 8
+      },
+      "revId": "34a8d595d3496aff6c267a85259fd3ffd5f8e441",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9aff5bce_7d847620",
+        "filename": "skolo/go/powercycle/example.toml",
+        "patchSetId": 6
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-14T12:20:40Z",
+      "side": 1,
+      "message": "This isn\u0027t needed, right?",
+      "revId": "34a8d595d3496aff6c267a85259fd3ffd5f8e441",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
