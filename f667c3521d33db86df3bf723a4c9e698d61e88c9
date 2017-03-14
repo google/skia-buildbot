@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6717c76a_52a3090d",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-14T12:58:45Z",
+      "side": 1,
+      "message": "local_db is a conceptually higher level package. This should not depend on it. TIMESTAMP_FORMAT and maybe encodeKey/decodeKey should be factored out in a shared package.",
+      "range": {
+        "startLine": 24,
+        "startChar": 1,
+        "endLine": 24,
+        "endChar": 50
+      },
+      "revId": "f667c3521d33db86df3bf723a4c9e698d61e88c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b5f3428_7cc2d01b",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-14T12:58:45Z",
+      "side": 1,
+      "message": "Nit: this should be in the block above with \".../x/net/context\".",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 25
+      },
+      "revId": "f667c3521d33db86df3bf723a4c9e698d61e88c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e6934cb_303b3eff",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-14T12:58:45Z",
+      "side": 1,
+      "message": "The arguments need to be documented and how they relate to each other.",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 60
+      },
+      "revId": "f667c3521d33db86df3bf723a4c9e698d61e88c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "24e6534a_eb110845",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-14T12:58:45Z",
+      "side": 1,
+      "message": "I don\u0027t understand the motivation for spreading the DB logic across two types. \nEventMetrics creates the database, but EventStream writes to it. \nWhy not have one type that deals with nothing but storing events in a database and \na second type (on top of the first one) that calculates aggregated metrics.",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 62
+      },
+      "revId": "f667c3521d33db86df3bf723a4c9e698d61e88c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
