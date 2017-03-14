@@ -7,6 +7,8 @@ DESCRIPTION="A local cache of the Grafana debian package."
 # copying in the .deb file to be managed.
 BYPASS_GENERATION=true
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {

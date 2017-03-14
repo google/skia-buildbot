@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x -e
+
 ALL_IDS="prod stage pdfium"
 print_usage() {
     echo "Usage: $0 MESSAGE INSTANCE_ID"

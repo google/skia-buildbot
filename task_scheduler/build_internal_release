@@ -4,6 +4,8 @@ APPNAME=task-scheduler-internal
 SYSTEMD=task-scheduler-internal.service
 DESCRIPTION="Internal Task Scheduler for Skia."
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {

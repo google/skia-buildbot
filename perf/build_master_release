@@ -6,6 +6,8 @@ SYSTEMD="${APPNAME}.service"
 
 DEPENDS=git
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {

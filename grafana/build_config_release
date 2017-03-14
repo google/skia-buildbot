@@ -4,6 +4,8 @@ APPNAME=grafana-configd
 DESCRIPTION="Configuration for Grafana"
 SYSTEMD=grafana-server.service
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {

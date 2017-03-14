@@ -4,6 +4,8 @@ APPNAME=ct-masterd
 DESCRIPTION="Application to run the Cluster Telemetry master."
 SYSTEMD=${APPNAME}.service
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {

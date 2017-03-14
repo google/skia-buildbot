@@ -4,6 +4,8 @@ APPNAME=fiddle
 SYSTEMD=${APPNAME}.service
 DESCRIPTION="Application for running Skia C++ code on the web."
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {

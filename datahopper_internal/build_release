@@ -4,6 +4,8 @@ APPNAME=datahopper-internald
 SYSTEMD=${APPNAME}.service
 DESCRIPTION="Program which ingests internal build data into the buildbot database."
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {

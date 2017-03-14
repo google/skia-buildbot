@@ -4,6 +4,8 @@ APPNAME=rpi-backup
 SYSTEMD="${APPNAME}.service"
 DESCRIPTION="backup the rpi image to GS"
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {

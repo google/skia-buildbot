@@ -5,6 +5,8 @@ DESCRIPTION="Service which triggers weekly task-scheduler jobs."
 SYSTEMD="${APPNAME}.service ${APPNAME}.timer"
 SYSTEMD_TIMER=${APPNAME}.timer
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
