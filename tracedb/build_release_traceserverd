@@ -4,10 +4,11 @@ APPNAME="traceserverd"
 SYSTEMD="gold-traceserver.service pdfium-gold-traceserver.service"
 DESCRIPTION="Traceserver datastores for Gold and Pdfium-Gold traces."
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
-set -e
 
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"

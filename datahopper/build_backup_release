@@ -5,6 +5,8 @@ DESCRIPTION="Service which performs backups of the buildbot database."
 SYSTEMD=${APPNAME}.service
 SYSTEMD_TIMER=${APPNAME}.timer
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {

@@ -4,6 +4,8 @@ APPNAME=task-scheduler
 SYSTEMD=${APPNAME}.service
 DESCRIPTION="Task scheduler for Skia."
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {

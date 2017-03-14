@@ -8,6 +8,8 @@ scripts and other tasks using multiple repository patches through Alexa’s top 
 performance of their patch against the top subset of the internet on both \
 Desktop and Android. This package contains the frontend running on GCE."
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {

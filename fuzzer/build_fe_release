@@ -4,6 +4,8 @@ APPNAME=fuzzer-fe
 SYSTEMD="fuzzer-fe.service"
 DESCRIPTION="The Skia Fuzzer constantly fuzzes Skia through binary and api fuzzes.  This package contains the frontend, meant to run on GCE."
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {

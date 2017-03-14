@@ -4,6 +4,8 @@ APPNAME=hotspare
 SYSTEMD=${APPNAME}.service
 DESCRIPTION="Application to allow rpi-master to failover to a hot spare."
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {

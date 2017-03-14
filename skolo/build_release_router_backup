@@ -4,6 +4,8 @@ APPNAME=router-backup
 SYSTEMD="${APPNAME}.service"
 DESCRIPTION="backup the router config to GS"
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {

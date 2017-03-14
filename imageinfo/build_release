@@ -4,6 +4,8 @@ APPNAME=imageinfo
 SYSTEMD=${APPNAME}.service
 DESCRIPTION="Skia imageinfo extracts interesting info from an image."
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {

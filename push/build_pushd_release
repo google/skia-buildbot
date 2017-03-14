@@ -4,6 +4,8 @@ APPNAME=pushd
 SYSTEMD=${APPNAME}.service
 DESCRIPTION="Application to push updates for applications."
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {

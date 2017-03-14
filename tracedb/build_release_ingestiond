@@ -4,6 +4,8 @@ APPNAME="ingestiond"
 SYSTEMD="gold-ingestion.service pdf-ingestion.service pdfium-gold-ingestion.service"
 DESCRIPTION="Ingestion services."
 
+set -x -e
+
 # Install pdfium_test if necessary. This will do nothing if the latest version
 # of pdfium_test is already installed.
 ../pdfium/install_pdfium.sh
@@ -11,7 +13,6 @@ DESCRIPTION="Ingestion services."
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
-set -e
 
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"

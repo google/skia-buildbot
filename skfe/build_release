@@ -8,6 +8,8 @@ SYSTEMD="nginx.service google-fluentd.service"
 SYSTEMD_TIMER="${SETUP_APPNAME}.service ${LOGROTATE_APPNAME}.timer"
 DESCRIPTION="The local config files for nginx serving *.skia.org"
 
+set -x -e
+
 # nginx is installed by the setup script.
 #TODO(kjlubick) Figure out why this is doesn't work anymore.
 #DEPENDS=nginx

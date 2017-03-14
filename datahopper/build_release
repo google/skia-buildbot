@@ -4,6 +4,8 @@ APPNAME=datahopperd
 DESCRIPTION="Program which ingests data into InfluxDB and MySQL."
 SYSTEMD=${APPNAME}.service
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {

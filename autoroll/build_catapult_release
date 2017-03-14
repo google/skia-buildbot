@@ -4,6 +4,8 @@ APPNAME=catapult-autorolld
 DESCRIPTION="Controls DEPS rolls into Chrome."
 SYSTEMD=${APPNAME}.service
 
+set -x -e
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
