@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d1f6c2f9_0c8b0d53",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-14T19:55:43Z",
+      "side": 1,
+      "message": "I just copied it here, since it\u0027s really an implementation detail in either package.",
+      "parentUuid": "6717c76a_52a3090d",
+      "range": {
+        "startLine": 24,
+        "startChar": 1,
+        "endLine": 24,
+        "endChar": 50
+      },
+      "revId": "f667c3521d33db86df3bf723a4c9e698d61e88c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9b5f3428_7cc2d01b",
         "filename": "go/metrics2/events/events.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "f667c3521d33db86df3bf723a4c9e698d61e88c9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "acb8cd5b_cf72329e",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-14T19:55:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9b5f3428_7cc2d01b",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 25
+      },
+      "revId": "f667c3521d33db86df3bf723a4c9e698d61e88c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "0d29dbdf_1e5e9b01",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-14T19:55:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4e6934cb_303b3eff",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 60
+      },
+      "revId": "f667c3521d33db86df3bf723a4c9e698d61e88c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "24e6534a_eb110845",
         "filename": "go/metrics2/events/events.go",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2017-03-14T12:58:45Z",
       "side": 1,
       "message": "I don\u0027t understand the motivation for spreading the DB logic across two types. \nEventMetrics creates the database, but EventStream writes to it. \nWhy not have one type that deals with nothing but storing events in a database and \na second type (on top of the first one) that calculates aggregated metrics.",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 62
+      },
+      "revId": "f667c3521d33db86df3bf723a4c9e698d61e88c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "497f90ca_2f40254f",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-14T19:55:43Z",
+      "side": 1,
+      "message": "Split the DB stuff into its own struct.  eventDB does DB, EventMetrics does metrics while using eventDB, and eventStream helps reduce the number of arguments with a reusable struct.",
+      "parentUuid": "24e6534a_eb110845",
       "range": {
         "startLine": 56,
         "startChar": 0,
