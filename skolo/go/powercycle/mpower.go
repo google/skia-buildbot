@@ -14,30 +14,12 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// TODO(stephana): Replace the hard coded configuration with a way
-// to parse configuration files that describe the devices attached
-// to the mPower strip.
-var mPowerConfig = &MPowerConfig{
-	address: "192.168.2.212:22",
-	user:    "ubnt",
-	devPortMap: map[string]int{
-		"skia-e-linux-001": 1,
-		"skia-e-linux-002": 2,
-		"skia-e-linux-003": 3,
-		"skia-e-linux-004": 4,
-		"test-relay":       5,
-		"not-used-6":       6,
-		"not-used-7":       7,
-		"not-used-8":       8,
-	},
-}
-
 // MPowerConfig contains the necessary parameters to connect
 // and control an mPowerPro power strip.
 type MPowerConfig struct {
-	address    string         // IP address and port of the device, i.e. 192.168.1.33:22
-	user       string         // User of the ssh connection
-	devPortMap map[string]int // Mapping between device name and port on the power strip.
+	Address    string         `toml:"address"` // IP address and port of the device, i.e. 192.168.1.33:22
+	User       string         `toml:"user"`    // User of the ssh connection
+	DevPortMap map[string]int `toml:"ports"`   // Mapping between device name and port on the power strip.
 }
 
 // Constants used to access the Ubiquiti mPower Pro.
@@ -47,6 +29,9 @@ const (
 
 	// String template to address a relay.
 	MPOWER_RELAY = "relay%d"
+
+	// Number of seconds to wait between turn off and on.
+	MPOWER_DELAY = 5
 
 	// Values to write to the relay file to disable/enable ports.
 	PORT_OFF = 0
@@ -61,13 +46,14 @@ var POWER_VALUES = map[string]int{
 
 // MPowerClient implements the DeviceGroup interface.
 type MPowerClient struct {
-	client    *ssh.Client
-	deviceIDs []string
+	client       *ssh.Client
+	deviceIDs    []string
+	mPowerConfig *MPowerConfig
 }
 
 // NewMPowerClient returns a new instance of DeviceGroup for the
 // mPowerPro power strip.
-func NewMPowerClient() (DeviceGroup, error) {
+func NewMPowerClient(mPowerConfig *MPowerConfig) (DeviceGroup, error) {
 	key, err := ioutil.ReadFile(os.ExpandEnv("${HOME}/.ssh/id_rsa"))
 	if err != nil {
 		return nil, fmt.Errorf("Unable to read private key: %v", err)
@@ -82,7 +68,7 @@ func NewMPowerClient() (DeviceGroup, error) {
 	sklog.Infof("Parsed private key")
 
 	sshConfig := &ssh.ClientConfig{
-		User: mPowerConfig.user,
+		User: mPowerConfig.User,
 		Auth: []ssh.AuthMethod{ssh.PublicKeys(signer)},
 		Config: ssh.Config{
 			Ciphers: []string{"aes128-cbc", "3des-cbc", "aes256-cbc",
@@ -92,22 +78,23 @@ func NewMPowerClient() (DeviceGroup, error) {
 
 	sklog.Infof("Signed private key")
 
-	client, err := ssh.Dial("tcp", mPowerConfig.address, sshConfig)
+	client, err := ssh.Dial("tcp", mPowerConfig.Address, sshConfig)
 	if err != nil {
 		return nil, err
 	}
 
 	sklog.Infof("Dial successful")
 
-	devIDs := make([]string, 0, len(mPowerConfig.devPortMap))
-	for id := range mPowerConfig.devPortMap {
+	devIDs := make([]string, 0, len(mPowerConfig.DevPortMap))
+	for id := range mPowerConfig.DevPortMap {
 		devIDs = append(devIDs, id)
 	}
 	sort.Strings(devIDs)
 
 	ret := &MPowerClient{
-		client:    client,
-		deviceIDs: devIDs,
+		client:       client,
+		deviceIDs:    devIDs,
+		mPowerConfig: mPowerConfig,
 	}
 
 	if err := ret.ping(); err != nil {
@@ -128,13 +115,13 @@ func (m *MPowerClient) PowerCycle(devID string) error {
 		return fmt.Errorf("Unknown device ID: %s", devID)
 	}
 
-	port := mPowerConfig.devPortMap[devID]
+	port := m.mPowerConfig.DevPortMap[devID]
 	if err := m.setPortValue(port, PORT_OFF); err != nil {
 		return err
 	}
 
-	sklog.Infof("Switched port %d off. Waiting for 10 seconds.", port)
-	time.Sleep(10 * time.Second)
+	sklog.Infof("Switched port %d off. Waiting for %d seconds.", port, MPOWER_DELAY)
+	time.Sleep(MPOWER_DELAY * time.Second)
 	if err := m.setPortValue(port, PORT_ON); err != nil {
 		return err
 	}
