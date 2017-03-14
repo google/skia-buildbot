@@ -62,4 +62,5 @@ receivers:
 - name: 'android'
   webhook_configs:
     - url: 'http://localhost:8004/email?email=skia-android@google.com'
+      send_resolved: false
 
