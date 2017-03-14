@@ -3,12 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+)
+
+var (
+	configFile = flag.String("conf", "./powercycle.toml", "TOML file with device configuration.")
+	listDev    = flag.Bool("list_devices", false, "List the available devices.")
 )
 
 // DeviceGroup describes a set of devices that can all be
@@ -27,17 +31,15 @@ type DeviceGroup interface {
 }
 
 func main() {
-	devGroup, err := NewMPowerClient()
+	common.Init()
+	devGroup, err := DeviceGroupFromTomlFile(*configFile)
 	if err != nil {
-		log.Fatalf("Unable to create mPower client. Got error: %s", err)
+		sklog.Fatalf("Unable to parse config file.  Got error: %s", err)
 	}
 
-	// Set up an extended usage function.
-	flag.Usage = func() {
+	if *listDev {
 		printHelp(os.Args[0], devGroup)
 	}
-
-	common.Init()
 
 	// No device id given.
 	args := flag.Args()
