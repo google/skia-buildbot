@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "29a89631_445e7d82",
+        "filename": "status/res/imp/capacity-stats-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-15T17:23:13Z",
+      "side": 1,
+      "message": "580",
+      "range": {
+        "startLine": 231,
+        "startChar": 41,
+        "endLine": 231,
+        "endChar": 45
+      },
+      "revId": "c29b896ad82a6b6d413400cf02a65ffbd9b651bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
