@@ -1,0 +1,62 @@
+<!-- The <json-source> custom element declaration.
+
+  Attributes:
+  Events:
+  Methods:
+-->
+
+<dom-module id="json-source">
+  <style>
+  </style>
+  <template>
+    <button on-click="_loadSource">View Source File</button>
+    <code id=display></code>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "json-source",
+
+    properties: {
+      cid: {
+        type: Object,
+        value: function() { return {}; },
+        reflectToAttribute: false,
+        observer: "_clear",
+      },
+      traceid: {
+        type: String,
+        value: "",
+        reflectToAttribute: false,
+        observer: "_clear",
+      },
+    },
+
+    _loadSource: function() {
+      if (this.traceid == "") {
+        return
+      }
+      if (this.cid.offset == undefined) {
+        return
+      }
+      var body = {
+        offset: this.cid.offset,
+        source: this.cid.source,
+        traceid: this.traceid,
+      };
+      sk.post("/_/details/", JSON.stringify(body)).then(JSON.parse).then(function(json){
+        this.$.textContent = JSON.stringify(json, nil, "  ");
+      }.bind(this)).catch(sk.errorMessage);
+    },
+
+    _clear: function() {
+        this.$.textContent = "";
+    },
+
+    ready: function() {
+    },
+
+  });
+</script>
+
