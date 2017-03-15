@@ -17,6 +17,7 @@ VM_ID="$1"
 MACHINE_TYPE=n1-standard-2
 SOURCE_SNAPSHOT=skia-systemd-pushable-base
 SCOPES='https://www.googleapis.com/auth/devstorage.full_control,https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile'
+STARTUP_SCRIPT_TEMPLATE=default-startup-script.sh.template
 
 
 # The name of instance where the autoroller is running.
@@ -41,6 +42,7 @@ case "$VM_ID" in
     INSTANCE_NAME=android-autoroll
     IP_ADDRESS=104.154.123.206
     SCOPES="$SCOPES,https://www.googleapis.com/auth/androidbuild.internal,https://www.googleapis.com/auth/gerritcodereview"
+    STARTUP_SCRIPT_TEMPLATE=android-startup-script.sh.template
     ;;
   *)
     # Must provide a target instance id.
@@ -53,5 +55,5 @@ esac
 
 DATA_DISK_NAME="$INSTANCE_NAME-data"
 
-# Remove the startup script and generate a new one with the right disk name.
-sed "s/DATA_DISK_NAME/${DATA_DISK_NAME}/g" startup-script.sh.template > startup-script.sh
+# Copy the startup script template over.
+cp $STARTUP_SCRIPT_TEMPLATE startup-script.sh
