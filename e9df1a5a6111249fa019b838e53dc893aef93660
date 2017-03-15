@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2ff06277_ca82b300",
+        "filename": "prometheus/go/absent/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-03-15T16:51:02Z",
+      "side": 1,
+      "message": "The generated file might look more evenly spaced if we used tabs everywhere here or just used spaces.",
+      "revId": "e9df1a5a6111249fa019b838e53dc893aef93660",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
