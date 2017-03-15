@@ -108,6 +108,10 @@ func (e *EdgeSwitchClient) newClient() (*ssh.Client, error) {
 	sshConfig := &ssh.ClientConfig{
 		User: DEFAULT_USER,
 		Auth: []ssh.AuthMethod{ssh.Password(DEFAULT_USER)},
+		Config: ssh.Config{
+			Ciphers: []string{"aes128-cbc", "3des-cbc", "aes256-cbc",
+				"twofish256-cbc", "twofish-cbc", "twofish128-cbc", "blowfish-cbc"},
+		},
 	}
 
 	client, err := ssh.Dial("tcp", e.conf.Address, sshConfig)
