@@ -16,6 +16,24 @@
       "revId": "e9df1a5a6111249fa019b838e53dc893aef93660",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6bfb951f_3519f0dc",
+        "filename": "prometheus/go/absent/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-03-15T17:22:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2ff06277_ca82b300",
+      "revId": "e9df1a5a6111249fa019b838e53dc893aef93660",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
