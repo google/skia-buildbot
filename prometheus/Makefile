@@ -1,6 +1,8 @@
 build:
 	go install -v ./go/webhook_proxy
 	go install -v ./go/proxy_with_auth
+	go install -v ./go/absent
+	absent
 
 prom:
 	go get -u github.com/prometheus/prometheus/cmd/...
@@ -9,10 +11,12 @@ testgo:
 	go test -v ./...
 
 validate:
+	absent
 	promtool check-config sys/prometheus.yml
 	promtool check-config sys/prometheus-skolo.yml
 
 push:
+	absent
 	promtool check-config sys/prometheus.yml
 	./build_config_release "`git log -n1 --format=%s`"
 	go install -v ../push/go/pushcli
