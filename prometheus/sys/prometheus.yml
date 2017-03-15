@@ -1,5 +1,6 @@
 rule_files:
   - "alert.rules"
+  - "absent.rules"
 
 scrape_configs:
   - job_name: 'androidingest'
