@@ -1,6 +1,8 @@
 build:
 	go install -v ./go/webhook_proxy
 	go install -v ./go/proxy_with_auth
+	go install -v ./go/absent
+	absent
 
 prom:
 	go get -u github.com/prometheus/prometheus/cmd/...
@@ -8,18 +10,17 @@ prom:
 testgo:
 	go test -v ./...
 
-validate:
+validate: build
+	absent
 	promtool check-config sys/prometheus.yml
 	promtool check-config sys/prometheus-skolo.yml
 
-push:
-	promtool check-config sys/prometheus.yml
+push: validate
 	./build_config_release "`git log -n1 --format=%s`"
 	go install -v ../push/go/pushcli
 	pushcli prometheus-config skia-prom
 
-push_binaries: build prom alertmanager pushgateway
-	promtool check-config sys/prometheus.yml
+push_binaries: build prom alertmanager pushgateway validate
 	./build_release "`git log -n1 --format=%s`"
 	go install -v ../push/go/pushcli
 	pushcli prometheus skia-prom
@@ -50,4 +51,4 @@ graphite_exporter:
 	cd ${GOPATH}/src/github.com/prometheus/graphite_exporter; make
 
 
-.PHONY: build push push_binaries alertmanager graphite_exporter
+.PHONY: build push push_binaries alertmanager graphite_exporter validate
