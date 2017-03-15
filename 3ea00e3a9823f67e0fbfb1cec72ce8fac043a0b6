@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "03dc082c_2be0fc64",
+        "filename": "go/metrics2/events/db.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-15T15:14:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5d2d772e_8c2798f7",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 72
+      },
+      "revId": "3ea00e3a9823f67e0fbfb1cec72ce8fac043a0b6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "54abc936_8f705833",
         "filename": "go/metrics2/events/db.go",
         "patchSetId": 6
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "cd4b0a7d_7d308f25",
+        "filename": "go/metrics2/events/db.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-15T15:14:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "54abc936_8f705833",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 56
+      },
+      "revId": "3ea00e3a9823f67e0fbfb1cec72ce8fac043a0b6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dcf7c9a9_9450e10b",
         "filename": "go/metrics2/events/db.go",
         "patchSetId": 6
@@ -91,6 +139,30 @@
       "revId": "3ea00e3a9823f67e0fbfb1cec72ce8fac043a0b6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8237728a_305cce20",
+        "filename": "go/metrics2/events/db.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-15T15:14:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dcf7c9a9_9450e10b",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 95
+      },
+      "revId": "3ea00e3a9823f67e0fbfb1cec72ce8fac043a0b6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
