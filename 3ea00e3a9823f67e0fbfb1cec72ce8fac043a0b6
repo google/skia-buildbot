@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1c5c48e4_6f5a6b2c",
+        "filename": "go/metrics2/events/db.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-15T14:06:45Z",
+      "side": 1,
+      "message": "Why not make this a Public function and have EventMetrics accept an instance of it. \nYou could also define an EventDB interface and have that being used by EventMetrics. \nThe benefit of a public function would be that I could create a program to traverse the \ndatabase independently of metrics.",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 52
+      },
+      "revId": "3ea00e3a9823f67e0fbfb1cec72ce8fac043a0b6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d2d772e_8c2798f7",
+        "filename": "go/metrics2/events/db.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-15T14:06:45Z",
+      "side": 1,
+      "message": "How about changing this to something like \n\nfunc (m *eventDB) Insert(stream string, ts time.Time, eventData []byte) error {\n\nand the Event type to something like \n\ntype Event struct {\n   TimeStamp  time.Time\n   Stream string \n   Data []byte \n}\n\nAnd then change GetRange to \n\nfunc (m *eventDB) GetRange(stream string, start, end time.Time) (*Event, error) {",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 72
+      },
+      "revId": "3ea00e3a9823f67e0fbfb1cec72ce8fac043a0b6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54abc936_8f705833",
+        "filename": "go/metrics2/events/db.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-15T14:06:45Z",
+      "side": 1,
+      "message": "Nit: You could change change \u0027InsertAt\u0027 to \u0027Insert\u0027 and this to \u0027Append\u0027",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 56
+      },
+      "revId": "3ea00e3a9823f67e0fbfb1cec72ce8fac043a0b6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dcf7c9a9_9450e10b",
+        "filename": "go/metrics2/events/db.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-15T14:06:45Z",
+      "side": 1,
+      "message": "Nit: This could just be called \u0027Range\u0027",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 95
+      },
+      "revId": "3ea00e3a9823f67e0fbfb1cec72ce8fac043a0b6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
