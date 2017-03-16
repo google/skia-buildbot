@@ -122,9 +122,12 @@
       },
 
       _trigger_jobs: function() {
-        var data = {
-          "jobs": this._selected_job_specs,
-          "commit": this._selected_commit,
+        var data = [];
+        for (var i = 0; i < this._selected_job_specs.length; i++) {
+          data.push({
+            "name": this._selected_job_specs[i],
+            "commit": this._selected_commit,
+          });
         };
         var str = JSON.stringify(data);
         this._loading = true;
