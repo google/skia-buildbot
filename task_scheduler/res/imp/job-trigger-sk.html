@@ -31,7 +31,6 @@
 <link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="/res/common/imp/autocomplete-input-sk.html">
 <link rel="import" href="/res/common/imp/input-list-sk.html">
-<link rel="import" href="/res/common/imp/url-params-sk.html">
 
 <dom-module id="job-trigger-sk">
   <template>
@@ -46,21 +45,24 @@
       font-size: 16px;
     }
     </style>
-    <url-param-sk name="job" value="{{_selected_job_specs}}" default="[]" multi></url-param-sk>
-    <url-param-sk name="commit" value="{{_selected_commit}}" default=""></url-param-sk>
     <div hidden$="{{_loading}}">
-      <input-list-sk
-          autocomplete="[[job_specs]]"
-          id="job_specs_input"
-          heading="jobs"
-          values="{{_selected_job_specs}}"></input-list-sk>
-      <div class="container">
-        <h2>Commit</h2>
-        <autocomplete-input-sk
-            autocomplete="[[commits]]"
-            id="commit_input"
-            value="{{_selected_commit}}"></autocomplete-input-sk>
-      </div>
+      <template is="dom-repeat" items="[[_jobs]]">
+        <div class="container">
+          <h2>Job</h2>
+          <autocomplete-input-sk
+              autocomplete="[[job_specs]]"
+              id="job_specs_input"
+              value="{{item.name}}"
+              on-change="_jobs_changed"></autocomplete-input-sk>
+          <h2>Commit</h2>
+          <autocomplete-input-sk
+              autocomplete="[[commits]]"
+              id="commit_input"
+              value="{{item.commit}}"
+              on-change="_jobs_changed"></autocomplete-input-sk>
+        </div>
+      </template>
+      <paper-icon-button icon="add" on-click="_add_job" raised></paper-icon-button>
       <paper-button on-click="_trigger_jobs" raised>Trigger Jobs</paper-button>
       <div id="triggered_container" hidden$="{{_hide_triggered_container(_triggered.*)}}" class="container">
         <h2>Triggered Jobs</h2>
@@ -93,11 +95,11 @@
           type: Boolean,
           value: false,
         },
-        _selected_job_specs: {
+        _jobs: {
           type: Array,
-        },
-        _selected_commit: {
-          type: String,
+          value: function() {
+            return [];
+          },
         },
         _triggered: {
           type: Array,
@@ -107,31 +109,74 @@
         },
       },
 
+      observers: [
+        "_jobs_changed(_jobs.*)",
+      ],
+
       ready: function() {
+        var params = sk.query.toParamSet(window.location.search.substring(1));
+
+        // Parse jobs.
+        if (params["job"] && params["job"].length > 0) {
+          for (var i = 0; i < params["job"].length; i++) {
+            var split = params["job"][i].split("@");
+            if (split.length != 2) {
+              sk.errorMessage("Invalid job parameter: " + params["job"][i]);
+              continue
+            }
+            this.push("_jobs", {"name": split[0], "commit": split[1]});
+          }
+        }
+        if (this._jobs.length == 0) {
+          this.push("_jobs", {"name": "", "commit": ""});
+        }
+
         // If "submit=true" is in the URL params, immediately attempt to trigger
         // the jobs, and, on success, close the window.
-        var params = sk.query.toParamSet(window.location.search.substring(1));
         if (params["submit"] && params["submit"].length > 0 && params["submit"][0] == "true") {
           this._immediate = true;
           this._trigger_jobs();
         }
       },
 
+      _jobs_changed: function() {
+        var params = sk.query.toParamSet(window.location.search.substring(1));
+        delete params["job"];
+        params["job"] = [];
+        for (var i = 0; i < this._jobs.length; i++) {
+          params["job"].push(this._jobs[i].name + "@" + this._jobs[i].commit);
+        }
+        var newUrl = window.location.href.split("?")[0] + "?" + sk.query.fromParamSet(params);
+        window.history.replaceState("", "", newUrl);
+      },
+
       _hide_triggered_container: function() {
         return !(this._triggered && this._triggered.length > 0);
       },
 
+      _add_job: function() {
+        this.push("_jobs", {});
+      },
+
       _trigger_jobs: function() {
-        var data = {
-          "jobs": this._selected_job_specs,
-          "commit": this._selected_commit,
+        var data = [];
+        for (var i = 0; i < this._jobs.length; i++) {
+          var job = this._jobs[i];
+          if (!job.name) {
+            sk.errorMessage("Job name is required.");
+            return;
+          }
+          if (!job.commit) {
+            sk.errorMessage("Commit is required.");
+            return;
+          }
+          data.push(job);
         };
         var str = JSON.stringify(data);
         this._loading = true;
         sk.post("/json/trigger", str).then(function(resp) {
-          this._selected_job_specs = [];
-          this._selected_commit = [];
-          this._triggered = JSON.parse(resp);
+          this.set("_jobs", [{}]);
+          this.set("_triggered", JSON.parse(resp));
           this._loading = false;
           if (this._immediate) {
             window.close();
