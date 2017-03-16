@@ -130,6 +130,10 @@ func (m *MPowerClient) PowerCycle(devID string) error {
 	return nil
 }
 
+func (m *MPowerClient) PowerUsage() (*GroupPowerUsage, error) {
+	return &GroupPowerUsage{}, nil
+}
+
 // ping issues a command to the device to verify that the
 // connection works.
 func (m *MPowerClient) ping() error {

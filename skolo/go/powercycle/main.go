@@ -1,9 +1,13 @@
 package main
 
 import (
+	"encoding/csv"
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
+	"sort"
+	"time"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
@@ -11,8 +15,10 @@ import (
 )
 
 var (
-	configFile = flag.String("conf", "./powercycle.toml", "TOML file with device configuration.")
-	listDev    = flag.Bool("list_devices", false, "List the available devices.")
+	configFile  = flag.String("conf", "./powercycle.toml", "TOML file with device configuration.")
+	powerCycle  = flag.Bool("power_cycle", true, "Powercycle the given dives.")
+	listDev     = flag.Bool("list_devices", false, "List the available devices.")
+	powerOutput = flag.String("power_output", "", "Filename where to write power stats.")
 )
 
 // DeviceGroup describes a set of devices that can all be
@@ -28,6 +34,19 @@ type DeviceGroup interface {
 	// be chosen by the implemenation to ensure that all residual charges
 	// leave the device.
 	PowerCycle(devID string) error
+
+	PowerUsage() (*GroupPowerUsage, error)
+}
+
+type GroupPowerUsage struct {
+	TS    time.Time
+	Stats map[string]*PowerStat
+}
+
+type PowerStat struct {
+	Ampere float32
+	Volt   float32
+	Watt   float32
 }
 
 func main() {
@@ -39,6 +58,8 @@ func main() {
 
 	if *listDev {
 		printHelp(os.Args[0], devGroup)
+	} else if *powerOutput != "" {
+		tailPower(devGroup, *powerOutput)
 	}
 
 	// No device id given.
@@ -76,4 +97,69 @@ func printHelp(appName string, devGroup DeviceGroup) {
 	flag.PrintDefaults()
 	fmt.Fprintf(os.Stderr, "\n\n")
 	os.Exit(1)
+}
+
+func tailPower(devGroup DeviceGroup, outputPath string) {
+	f, err := os.Create(outputPath)
+	if err != nil {
+		sklog.Fatalf("Unable to open file '%s': Go error: %s", outputPath, err)
+	}
+	writer := csv.NewWriter(f)
+
+	// Catch Ctrl-C to flush the file.
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		<-c
+		sklog.Infof("Closing cvs file.")
+		sklog.Flush()
+		writer.Flush()
+		util.LogErr(f.Close())
+		os.Exit(0)
+	}()
+
+	var ids []string = nil
+	for range time.Tick(time.Second * 2) {
+		// get power stats
+		powerStats, err := devGroup.PowerUsage()
+		if err != nil {
+			sklog.Errorf("Error getting power stats: %s", err)
+			continue
+		}
+
+		if ids == nil {
+			ids = make([]string, 0, len(powerStats.Stats))
+			for id := range powerStats.Stats {
+				ids = append(ids, id)
+			}
+			sort.Strings(ids)
+
+			recs := make([]string, 0, len(ids)*3+1)
+			recs = append(recs, "time")
+			for _, id := range ids {
+				recs = append(recs, id+"-A")
+				recs = append(recs, id+"-V")
+				recs = append(recs, id+"-W")
+			}
+			writer.Write(recs)
+		}
+
+		recs := make([]string, 0, len(ids)*3+1)
+		recs = append(recs, powerStats.TS.String())
+		var stats *PowerStat
+		var ok bool
+		for _, id := range ids {
+			stats, ok = powerStats.Stats[id]
+			if !ok {
+				sklog.Errorf("Unable to find expected id: %s", id)
+				break
+			}
+			recs = append(recs, fmt.Sprintf("%5.3f", stats.Ampere))
+			recs = append(recs, fmt.Sprintf("%5.3f", stats.Volt))
+			recs = append(recs, fmt.Sprintf("%5.3f", stats.Watt))
+		}
+		if ok {
+			writer.Write(recs)
+		}
+	}
 }
