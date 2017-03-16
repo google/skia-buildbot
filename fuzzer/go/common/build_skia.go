@@ -65,6 +65,9 @@ func buildOrGetCachedHarness(buildName string, buildType buildskia.ReleaseType, 
 	// This makes crashing because we ran out of memory or because someone called SK_ABORT turn
 	// into an exit(1), so we don't count it as a "crash".
 	buildArgs = append(buildArgs, `extra_cflags=["-DIS_FUZZING"]`)
+	// System freetype has many MSAN-like bugs, which can throw off our fuzzer. Build our own
+	// (newer) freetype to minimize these.
+	buildArgs = append(buildArgs, "skia_use_system_freetype2=false")
 
 	d := filepath.Join(config.Common.SkiaRoot, "skia")
 	gi, err := gitinfo.NewGitInfo(d, false, false)
