@@ -17,7 +17,6 @@ ${INSTALL} --mode=644 -T ./res/vul/elements.html   ${ROOT}/usr/local/share/${APP
 ${INSTALL} --mode=644 -T ./res/js/core.js          ${ROOT}/usr/local/share/${APPNAME}/res/js/core.js
 ${INSTALL} --mode=644 -T ./templates/header.html   ${ROOT}/usr/local/share/${APPNAME}/templates/header.html
 ${INSTALL} --mode=644 -T ./templates/index.html    ${ROOT}/usr/local/share/${APPNAME}/templates/index.html
-${INSTALL} --mode=644 -T ./templates/titlebar.html ${ROOT}/usr/local/share/${APPNAME}/templates/titlebar.html	
 }
 
 source ../bash/release.sh
