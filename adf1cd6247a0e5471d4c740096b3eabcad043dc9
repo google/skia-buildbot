@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aa768ee2_b0313b19",
+        "filename": "skolo/go/powercycle/edgeswitch.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-16T14:25:18Z",
+      "side": 1,
+      "message": "strings.Fields will trim the spaces for you, so this call is unneeded: https://golang.org/pkg/strings/#Fields",
+      "range": {
+        "startLine": 115,
+        "startChar": 35,
+        "endLine": 115,
+        "endChar": 44
+      },
+      "revId": "adf1cd6247a0e5471d4c740096b3eabcad043dc9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
