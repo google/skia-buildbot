@@ -29,6 +29,7 @@
 <link rel="import" href="/res/imp/commit-detail-panel.html" />
 <link rel="import" href="/res/imp/highlight.html" />
 <link rel="import" href="/res/imp/day-range.html" />
+<link rel="import" href="/res/imp/json-source.html" />
 
 <dom-module id="explore-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
@@ -49,6 +50,9 @@
       display: inline-block;
       margin: 0.5em;
       overflow-y: auto;
+    }
+
+    #paramset {
       height: 480px;
     }
 
@@ -181,7 +185,10 @@
             <paramset-sk id=paramset class=hidden clickable-values></paramset-sk>
             <div id=details class="layout horizontal wrap hidden">
               <paramset-sk id=simple_paramset clickable-values></paramset-sk>
-              <commit-detail-panel-sk id=commits></commit-detail-panel-sk>
+              <div class="layout vertical">
+                <commit-detail-panel-sk id=commits></commit-detail-panel-sk>
+                <json-source id=jsonsource></json-source>
+              </div>
             </div>
           </div>
         </div>
@@ -331,6 +338,8 @@
           this.$.commitsTab.disabled = false;
           this.$.simple_paramset.setParamSets([paramset]);
           this.$.detailtab.selected = 2;
+          this.$.jsonsource.cid = commits[0];
+          this.$.jsonsource.traceid = e.detail.id;
         }.bind(this)).catch(sk.errorMessage);
       }.bind(this));
 
