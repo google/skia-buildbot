@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dd05769f_cd8df90d",
+        "filename": "skolo/go/powercycle/edgeswitch.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-16T14:42:02Z",
+      "side": 0,
+      "message": "It turns out that was not necessary (added in a previous CL).",
+      "range": {
+        "startLine": 111,
+        "startChar": 0,
+        "endLine": 114,
+        "endChar": 4
+      },
+      "revId": "fed703aa91845e8ef6acd424c9ac1a48dcd03341",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
