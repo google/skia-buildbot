@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fe5d91e1_773ccf63",
+        "filename": "task_scheduler/res/imp/job-trigger-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-16T20:55:25Z",
+      "side": 1,
+      "message": "Are you sure sk.stateReflector won\u0027t work for what you\u0027re trying to do here?",
+      "range": {
+        "startLine": 117,
+        "startChar": 0,
+        "endLine": 132,
+        "endChar": 9
+      },
+      "revId": "3dcf1ebbd9cc6b74ee2d5cd7f6ba869c6d611f0b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
