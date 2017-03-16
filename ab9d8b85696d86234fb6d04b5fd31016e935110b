@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fe48ef06_763c1d10",
+        "filename": "task_scheduler/res/imp/job-trigger-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-16T19:48:25Z",
+      "side": 1,
+      "message": "nit: for/of? https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...of",
+      "range": {
+        "startLine": 126,
+        "startChar": 8,
+        "endLine": 126,
+        "endChar": 67
+      },
+      "revId": "ab9d8b85696d86234fb6d04b5fd31016e935110b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
