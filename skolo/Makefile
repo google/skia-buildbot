@@ -42,7 +42,17 @@ router_backup_release: backup service_account
 router_backup_push: backup service_account
 	go install -v ../push/go/pushcli
 	./build_release_router_backup "`git log -n1 --format=%s`"
-	pushcli rpi-backup skia-rpi-master
+	pushcli router-backup skia-rpi-master
+
+.PHONY: powercycle_backup_release
+powercycle_backup_release: backup service_account
+	./build_release_powercycle_backup "$(MESSAGE)"
+
+.PHONY: powercycle_backup_push
+powercycle_backup_push: backup service_account
+	go install -v ../push/go/pushcli
+	./build_release_powercycle_backup "`git log -n1 --format=%s`"
+	pushcli powercycle-backup skia-jumphost
 
 .PHONY: cloudlogger
 cloudlogger:

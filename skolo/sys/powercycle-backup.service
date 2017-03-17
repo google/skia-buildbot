@@ -1,0 +1,18 @@
+[Unit]
+Description=Backs up the power-cycle config to Google Storage
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/powercycle-backup \
+  --logtostderr \
+  --prom_port=:20001 \
+  --gce_bucket skia-backups\
+  --gce_folder powercycle_config \
+  --local_file_path /home/chrome-bot/powercycle.toml \
+  --metric_name powercycle-backup \
+  --service_account_path=/usr/local/share/powercycle-backup/service-account.json
+
+Restart=always
+User=chrome-bot
+Group=chrome-bot
