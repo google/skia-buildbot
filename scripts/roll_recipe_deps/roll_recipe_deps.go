@@ -44,17 +44,15 @@ var (
 	// RECIPES_PY_PATH indicates where in the given repo the recipes.py
 	// file lives.
 	RECIPES_PY_PATH = map[string]string{
-		common.REPO_SKIA:         "infra/bots/recipes.py",
-		common.REPO_SKIA_INFRA:   "infra/bots/recipes.py",
-		common.REPO_SKIA_RECIPES: "recipes.py",
+		common.REPO_SKIA:       "infra/bots/recipes.py",
+		common.REPO_SKIA_INFRA: "infra/bots/recipes.py",
 	}
 
 	// REPOS maps out the recipe dependency relationship between
 	// repositories.
 	REPOS = map[string][]string{
-		common.REPO_SKIA_INFRA:   []string{},
-		common.REPO_SKIA_RECIPES: []string{},
-		common.REPO_SKIA:         []string{common.REPO_SKIA_RECIPES},
+		common.REPO_SKIA_INFRA: []string{},
+		common.REPO_SKIA:       []string{},
 	}
 )
 
