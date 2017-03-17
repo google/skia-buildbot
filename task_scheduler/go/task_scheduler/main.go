@@ -247,23 +247,23 @@ func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var msg struct {
-		Jobs   []string `json:"jobs"`
-		Commit string   `json:"commit"`
+	var msg []struct {
+		Name   string `json:"name"`
+		Commit string `json:"commit"`
 	}
 	defer util.Close(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
 		return
 	}
-	_, repoName, _, err := repos.FindCommit(msg.Commit)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Unable to find the given commit in any repo.")
-		return
-	}
-	ids := make([]string, 0, len(msg.Jobs))
-	for _, j := range msg.Jobs {
-		id, err := ts.TriggerJob(repoName, msg.Commit, j)
+	ids := make([]string, 0, len(msg))
+	for _, j := range msg {
+		_, repoName, _, err := repos.FindCommit(j.Commit)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Unable to find the given commit in any repo.")
+			return
+		}
+		id, err := ts.TriggerJob(repoName, j.Commit, j.Name)
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to trigger jobs.")
 			return

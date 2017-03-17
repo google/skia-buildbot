@@ -50,7 +50,7 @@ const (
 	// TASK_TRIGGER_URL_FMT is a format string for triggering a Task with task
 	// scheduler. Parameters are the Task Scheduler URL, task spec name and
 	// commit hash.
-	TASK_TRIGGER_URL_FMT = "%s/trigger?submit=true&job=%s&commit=%s"
+	TASK_TRIGGER_URL_FMT = "%s/trigger?submit=true&job=%s@%s"
 	// TASKLIST_URL_FMT is a format string for the Swarming tasklist URL.
 	// Parameters are the Swarming server URL and a single tag key and value.
 	TASKLIST_URL_FMT = "%s/tasklist?c=name&c=state&c=created_ts&c=duration&c=completed_ts&c=source_revision&f=%s%%3A%s&l=50&s=created_ts%%3Adesc"

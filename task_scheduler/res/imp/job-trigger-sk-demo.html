@@ -12,17 +12,20 @@
       return new Promise(function (resolve, reject) {
         var data = JSON.parse(body);
         setTimeout(function() {
-          if (!data["jobs"] || data["jobs"].length < 1) {
-            reject("No job_specs specified!");
-          } else if (!data["commit"] || data["commit"].length != 40) {
-            reject("No valid commit specified!");
-          } else {
-            var jobs = [];
-            for (var i = 0; i < data["jobs"].length; i++) {
-              jobs.push("id" + i);
-            }
-            resolve(JSON.stringify(jobs));
+          if (data.length < 1) {
+            reject("No jobs specified!");
           }
+          var jobs = [];
+          for (var i = 0; i < data.length; i++) {
+            if (!data[i].commit) {
+              reject("No commit specified!");
+            }
+            if (!data[i].name) {
+              reject("No job name specified!")
+            }
+            jobs.push("id" + i);
+          }
+          resolve(JSON.stringify(jobs));
         }, 3000);
       });
     }
