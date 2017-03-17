@@ -46,6 +46,30 @@
       "revId": "3dcf1ebbd9cc6b74ee2d5cd7f6ba869c6d611f0b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52552196_65c7e19d",
+        "filename": "task_scheduler/res/imp/job-trigger-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-17T12:20:22Z",
+      "side": 1,
+      "message": "Ok, it doesn\u0027t seem to handle sub-objects at all. +jcgregorio in case we\u0027re missing something.",
+      "parentUuid": "6ac09ea3_cbe70957",
+      "range": {
+        "startLine": 117,
+        "startChar": 0,
+        "endLine": 132,
+        "endChar": 9
+      },
+      "revId": "3dcf1ebbd9cc6b74ee2d5cd7f6ba869c6d611f0b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
