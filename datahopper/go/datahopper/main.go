@@ -14,6 +14,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/datahopper/go/accum"
+	"go.skia.org/infra/datahopper/go/time_to_bot_coverage"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
@@ -350,6 +351,9 @@ func main() {
 	if err := StartJobMetrics(*workdir, *taskSchedulerDbUrl, context.Background()); err != nil {
 		sklog.Fatal(err)
 	}
+
+	// Generate "time to X% bot coverage" metrics.
+	time_to_bot_coverage.Start(*taskSchedulerDbUrl, *workdir, db, context.Background())
 
 	// Run a backup server.
 	go func() {
