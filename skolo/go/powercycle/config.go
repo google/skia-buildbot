@@ -47,12 +47,12 @@ func (a *aggregatedDevGroup) DeviceIDs() []string {
 }
 
 // PowerCycle, see the DeviceGroup interface.
-func (a *aggregatedDevGroup) PowerCycle(devID string) error {
+func (a *aggregatedDevGroup) PowerCycle(devID string, delayOverride time.Duration) error {
 	dev, ok := a.idDevGroupMap[devID]
 	if !ok {
 		return fmt.Errorf("Unknown device id: %s", devID)
 	}
-	return dev.PowerCycle(devID)
+	return dev.PowerCycle(devID, delayOverride)
 }
 
 func (a *aggregatedDevGroup) PowerUsage() (*GroupPowerUsage, error) {

@@ -76,7 +76,12 @@ func (e *EdgeSwitchClient) DeviceIDs() []string {
 }
 
 // PowerCycle, see the DeviceGroup interface.
-func (e *EdgeSwitchClient) PowerCycle(devID string) error {
+func (e *EdgeSwitchClient) PowerCycle(devID string, delayOverride time.Duration) error {
+	delay := EDGE_SWITCH_DELAY * time.Second
+	if delayOverride > 0 {
+		delay = delayOverride
+	}
+
 	port, ok := e.conf.DevPortMap[devID]
 	if !ok {
 		return fmt.Errorf("Invalid port: %d", port)
@@ -87,7 +92,7 @@ func (e *EdgeSwitchClient) PowerCycle(devID string) error {
 		return err
 	}
 
-	time.Sleep(EDGE_SWITCH_DELAY * time.Second)
+	time.Sleep(delay)
 
 	if err := e.turnOnPort(port); err != nil {
 		return err
