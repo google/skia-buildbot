@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/BurntSushi/toml"
+	"go.skia.org/infra/go/sklog"
 )
 
 // Config is the overall structure to aggregate configuration options
@@ -51,6 +53,24 @@ func (a *aggregatedDevGroup) PowerCycle(devID string) error {
 		return fmt.Errorf("Unknown device id: %s", devID)
 	}
 	return dev.PowerCycle(devID)
+}
+
+func (a *aggregatedDevGroup) PowerUsage() (*GroupPowerUsage, error) {
+	ret := &GroupPowerUsage{
+		TS: time.Now(),
+	}
+	ret.Stats = map[string]*PowerStat{}
+	for _, dev := range a.idDevGroupMap {
+		devStats, err := dev.PowerUsage()
+		if err != nil {
+			sklog.Errorf("Error getting power stats: %s", err)
+			continue
+		}
+		for id, stat := range devStats.Stats {
+			ret.Stats[id] = stat
+		}
+	}
+	return ret, nil
 }
 
 // DeviceGroupFromTomlFile parses a TOML file and instantiates the

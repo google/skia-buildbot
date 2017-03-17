@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"io"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -33,12 +35,14 @@ type EdgeSwitchConfig struct {
 // EdgeSwitchClient allows to control a single EdgeSwitch and
 // implements the DeviceGroup interface.
 type EdgeSwitchClient struct {
-	conf *EdgeSwitchConfig
+	conf       *EdgeSwitchConfig
+	portDevMap map[int]string
+	devIDs     []string
 }
 
 // NewEdgeSwitchClient connects to the EdgeSwitch identified by the given
 // configuration and returns a new instane of EdgeSwitchClient.
-func NewEdgeSwitchClient(conf *EdgeSwitchConfig) (*EdgeSwitchClient, error) {
+func NewEdgeSwitchClient(conf *EdgeSwitchConfig) (DeviceGroup, error) {
 	ret := &EdgeSwitchClient{
 		conf: conf,
 	}
@@ -46,17 +50,29 @@ func NewEdgeSwitchClient(conf *EdgeSwitchConfig) (*EdgeSwitchClient, error) {
 	if err := ret.ping(); err != nil {
 		return nil, err
 	}
+
+	// Build the dev-port mappings. Ensure each device and port occur only once.
+	devIDSet := make(util.StringSet, len(conf.DevPortMap))
+	ret.portDevMap = make(map[int]string, len(conf.DevPortMap))
+	for id, port := range conf.DevPortMap {
+		if devIDSet[id] {
+			return nil, fmt.Errorf("Device '%s' occurs more than once.", id)
+		}
+		if _, ok := ret.portDevMap[port]; ok {
+			return nil, fmt.Errorf("Port '%d' specified more than once.", port)
+		}
+		devIDSet[id] = true
+		ret.portDevMap[port] = id
+	}
+	ret.devIDs = devIDSet.Keys()
+	sort.Strings(ret.devIDs)
+
 	return ret, nil
 }
 
 // DeviceIDs, see the DeviceGroup interface.
 func (e *EdgeSwitchClient) DeviceIDs() []string {
-	ret := make([]string, 0, len(e.conf.DevPortMap))
-	for id := range e.conf.DevPortMap {
-		ret = append(ret, id)
-	}
-	sort.Strings(ret)
-	return ret
+	return e.devIDs
 }
 
 // PowerCycle, see the DeviceGroup interface.
@@ -77,6 +93,72 @@ func (e *EdgeSwitchClient) PowerCycle(devID string) error {
 		return err
 	}
 	return nil
+}
+
+// PowerUsage, see the DeviceGroup interface.
+func (e *EdgeSwitchClient) PowerUsage() (*GroupPowerUsage, error) {
+	outputLines, err := e.execCmds([]string{
+		"show poe status all",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	ret := &GroupPowerUsage{
+		TS: time.Now(),
+	}
+	ret.Stats = make(map[string]*PowerStat, len(outputLines))
+	// only consider lines like:
+	// Intf      Detection      Class   Consumed(W) Voltage(V) Current(mA) Temperature(C)
+	// 0/6       Good           Class3         1.93      52.82       36.62             45
+	for _, oneLine := range outputLines {
+		fields := strings.Fields(oneLine)
+		if (len(fields) < 7) || (len(fields[0]) < 3) || (fields[0][1] != '/') {
+			continue
+		}
+
+		stat := &PowerStat{}
+		var err error = nil
+		last := len(fields)
+		stat.Ampere = parseFloat(&err, fields[last-2])
+		stat.Volt = parseFloat(&err, fields[last-3])
+		stat.Watt = parseFloat(&err, fields[last-4])
+		port := parseInt(&err, fields[0][2:])
+
+		if err != nil {
+			sklog.Errorf("Error: %s", err)
+			continue
+		}
+
+		devID, ok := e.portDevMap[port]
+
+		if !ok {
+			continue
+		}
+
+		sklog.Infof("Found port %d and dev '%s'", port, devID)
+		ret.Stats[devID] = stat
+	}
+
+	return ret, nil
+}
+
+func parseFloat(err *error, strVal string) float32 {
+	if *err != nil {
+		return 0
+	}
+	var ret float64
+	ret, *err = strconv.ParseFloat(strVal, 32)
+	return float32(ret)
+}
+
+func parseInt(err *error, strVal string) int {
+	if *err != nil {
+		return 0
+	}
+	var ret int64
+	ret, *err = strconv.ParseInt(strVal, 10, 32)
+	return int(ret)
 }
 
 // turnOffPort disables PoE at the given port.
@@ -108,10 +190,6 @@ func (e *EdgeSwitchClient) newClient() (*ssh.Client, error) {
 	sshConfig := &ssh.ClientConfig{
 		User: DEFAULT_USER,
 		Auth: []ssh.AuthMethod{ssh.Password(DEFAULT_USER)},
-		Config: ssh.Config{
-			Ciphers: []string{"aes128-cbc", "3des-cbc", "aes256-cbc",
-				"twofish256-cbc", "twofish-cbc", "twofish128-cbc", "blowfish-cbc"},
-		},
 	}
 
 	client, err := ssh.Dial("tcp", e.conf.Address, sshConfig)
