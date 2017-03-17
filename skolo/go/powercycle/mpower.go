@@ -31,7 +31,7 @@ const (
 	MPOWER_RELAY = "relay%d"
 
 	// Number of seconds to wait between turn off and on.
-	MPOWER_DELAY = 5
+	MPOWER_DELAY = 10
 
 	// Values to write to the relay file to disable/enable ports.
 	PORT_OFF = 0
@@ -110,7 +110,12 @@ func (m *MPowerClient) DeviceIDs() []string {
 }
 
 // PowerCycle, see PowerCycle interface.
-func (m *MPowerClient) PowerCycle(devID string) error {
+func (m *MPowerClient) PowerCycle(devID string, delayOverride time.Duration) error {
+	delay := MPOWER_DELAY * time.Second
+	if delayOverride > 0 {
+		delayOverride = delay
+	}
+
 	if !util.In(devID, m.deviceIDs) {
 		return fmt.Errorf("Unknown device ID: %s", devID)
 	}
@@ -121,7 +126,7 @@ func (m *MPowerClient) PowerCycle(devID string) error {
 	}
 
 	sklog.Infof("Switched port %d off. Waiting for %d seconds.", port, MPOWER_DELAY)
-	time.Sleep(MPOWER_DELAY * time.Second)
+	time.Sleep(delay)
 	if err := m.setPortValue(port, PORT_ON); err != nil {
 		return err
 	}
