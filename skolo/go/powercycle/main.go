@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
@@ -12,6 +13,7 @@ import (
 
 var (
 	configFile = flag.String("conf", "./powercycle.toml", "TOML file with device configuration.")
+	delay      = flag.Int("delay", 0, "Any value > 0 overrides the default duration (in sec) between turning the port off and on.")
 	listDev    = flag.Bool("list_devices", false, "List the available devices.")
 )
 
@@ -24,10 +26,10 @@ type DeviceGroup interface {
 	DeviceIDs() []string
 
 	// PowerCycle turns the device off for a reasonable amount of time
-	// (i.e. 10 seconds) and then turns it back on. The duration should
-	// be chosen by the implemenation to ensure that all residual charges
-	// leave the device.
-	PowerCycle(devID string) error
+	// (i.e. 10 seconds) and then turns it back on. If delayOverride
+	// is larger than zero it overrides the default delay between
+	// turning the port off and on again.
+	PowerCycle(devID string, delayOverride time.Duration) error
 }
 
 func main() {
@@ -56,7 +58,7 @@ func main() {
 	}
 
 	for _, deviceID := range args {
-		if err := devGroup.PowerCycle(deviceID); err != nil {
+		if err := devGroup.PowerCycle(deviceID, time.Duration(*delay)*time.Second); err != nil {
 			sklog.Fatalf("Unable to power cycle device %s. Got error: %s", deviceID, err)
 		}
 
