@@ -626,6 +626,14 @@
         });
         toadd[key] = values;
       }.bind(this));
+
+      // Remove the traces from the traceset so they don't reappear.
+      ids.forEach(function(key) {
+        if (this._dataframe.traceset[key] != undefined) {
+          delete this._dataframe.traceset[key];
+        }
+      }.bind(this));
+
       this._lines = toadd;
       this.$.plot.removeAll();
       this.$.plot.addLines(toadd);
@@ -635,6 +643,7 @@
     _highlightedOnly: function() {
       var ids = this.$.plot.highlighted();
       var toadd = {};
+      var toremove = [];
       var toShortcut = [];
 
       Object.keys(this._dataframe.traceset).forEach(function(key) {
@@ -642,6 +651,8 @@
           // Detect if it is a formula being removed.
           if (this.state.formulas.indexOf(key) != -1) {
             this.state.formulas.splice(this.state.formulas.indexOf(key), 1)
+          } else {
+            toremove.push(key);
           }
           return
         }
@@ -656,6 +667,14 @@
         });
         toadd[key] = values;
       }.bind(this));
+
+      // Remove the traces from the traceset so they don't reappear.
+      Object.keys(this._dataframe.traceset).forEach(function(key) {
+        if (key in toremove) {
+          delete this._dataframe.traceset[key];
+        }
+      }.bind(this));
+
       this._lines = toadd;
       this.$.plot.removeAll();
       this.$.plot.addLines(toadd);
