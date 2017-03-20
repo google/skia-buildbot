@@ -97,9 +97,6 @@
         },
         _jobs: {
           type: Array,
-          value: function() {
-            return [];
-          },
         },
         _triggered: {
           type: Array,
@@ -114,9 +111,9 @@
       ],
 
       ready: function() {
-        var params = sk.query.toParamSet(window.location.search.substring(1));
-
         // Parse jobs.
+        var params = sk.query.toParamSet(window.location.search.substring(1));
+        var jobs = [];
         if (params["job"] && params["job"].length > 0) {
           for (var i = 0; i < params["job"].length; i++) {
             var split = params["job"][i].split("@");
@@ -124,12 +121,13 @@
               sk.errorMessage("Invalid job parameter: " + params["job"][i]);
               continue
             }
-            this.push("_jobs", {"name": split[0], "commit": split[1]});
+            jobs.push({"name": split[0], "commit": split[1]});
           }
         }
-        if (this._jobs.length == 0) {
-          this.push("_jobs", {"name": "", "commit": ""});
+        if (jobs.length == 0) {
+          jobs.push({"name": "", "commit": ""});
         }
+        this.set("_jobs", jobs);
 
         // If "submit=true" is in the URL params, immediately attempt to trigger
         // the jobs, and, on success, close the window.
@@ -155,7 +153,7 @@
       },
 
       _add_job: function() {
-        this.push("_jobs", {});
+        this.push("_jobs", {"name": "", "commit": ""});
       },
 
       _trigger_jobs: function() {
