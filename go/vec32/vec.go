@@ -139,6 +139,33 @@ func Mean(xs []float32) float32 {
 	}
 }
 
+// MeanMissing calculates and returns the Mean value of the given []float32.
+//
+// Returns MISSING_DATA_SENTINEL for an array with all MISSING_DATA_SENTINEL values.
+func MeanMissing(xs []float32) float32 {
+	total := float32(0.0)
+	n := 0
+	for _, v := range xs {
+		if v != MISSING_DATA_SENTINEL {
+			total += v
+			n++
+		}
+	}
+	if n == 0 {
+		return MISSING_DATA_SENTINEL
+	} else {
+		return total / float32(n)
+	}
+}
+
+func FillMeanMissing(a []float32) {
+	value := MeanMissing(a)
+	// Now fill.
+	for i, _ := range a {
+		a[i] = value
+	}
+}
+
 // SSE calculates and returns the sum squared error from the given base of []float32.
 //
 // Returns 0 for an array with no non-MISSING_DATA_SENTINEL values.

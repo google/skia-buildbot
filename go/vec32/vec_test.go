@@ -211,5 +211,40 @@ func TestSSE(t *testing.T) {
 			t.Errorf("SSE(%v, %f) Got %v Want %v", tc.Slice, tc.Base, got, want)
 		}
 	}
+}
 
+func TestFillMeanMissing(t *testing.T) {
+	testutils.SmallTest(t)
+	testCases := []struct {
+		Slice []float32
+		Mean  []float32
+	}{
+		{
+			Slice: []float32{1, 2, e, 0},
+			Mean:  []float32{1.0, 1.0, 1.0, 1.0},
+		},
+		{
+			Slice: []float32{e, e, e, e},
+			Mean:  []float32{e, e, e, e},
+		},
+		{
+			Slice: []float32{e},
+			Mean:  []float32{e},
+		},
+		{
+			Slice: []float32{},
+			Mean:  []float32{},
+		},
+		{
+			Slice: []float32{2.0},
+			Mean:  []float32{2.0},
+		},
+	}
+	for _, tc := range testCases {
+		v := Dup(tc.Slice)
+		FillMeanMissing(v)
+		if got, want := v, tc.Mean; !vecNear(got, want) {
+			t.Errorf("Mean(%v) Got %v Want %v", tc.Slice, got, want)
+		}
+	}
 }
