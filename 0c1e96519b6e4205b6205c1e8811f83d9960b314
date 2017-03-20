@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e724d081_eaeeb3a5",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-20T16:39:51Z",
+      "side": 1,
+      "message": "Maybe only SUCCESS and FAILURE?",
+      "range": {
+        "startLine": 50,
+        "startChar": 7,
+        "endLine": 50,
+        "endChar": 18
+      },
+      "revId": "0c1e96519b6e4205b6205c1e8811f83d9960b314",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e66293f_3564e07b",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-20T16:39:51Z",
+      "side": 1,
+      "message": "Maybe same as above? Not sure about MISHAP, but we probably don\u0027t want to count CANCELED.",
+      "range": {
+        "startLine": 73,
+        "startChar": 7,
+        "endLine": 73,
+        "endChar": 18
+      },
+      "revId": "0c1e96519b6e4205b6205c1e8811f83d9960b314",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c52518a5_76020b0c",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-20T16:39:51Z",
+      "side": 1,
+      "message": "I\u0027m guessing that using this as the timestamp will confuse people, but I don\u0027t have a better suggestion.",
+      "range": {
+        "startLine": 109,
+        "startChar": 14,
+        "endLine": 109,
+        "endChar": 25
+      },
+      "revId": "0c1e96519b6e4205b6205c1e8811f83d9960b314",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "413b424f_4ea7056c",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-20T16:39:51Z",
+      "side": 1,
+      "message": "This is selecting jobs based on creation time, but you want to see all jobs modified in this time period.",
+      "range": {
+        "startLine": 132,
+        "startChar": 13,
+        "endLine": 132,
+        "endChar": 55
+      },
+      "revId": "0c1e96519b6e4205b6205c1e8811f83d9960b314",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f089ac34_fdaf5c74",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-20T16:39:51Z",
+      "side": 1,
+      "message": "Since the period given to RepeatCtx is the same as MODIFIED_DATA_TIMEOUT, seems like this would occur ~50% of the time. Maybe don\u0027t bother with GetModifiedJobs?",
+      "range": {
+        "startLine": 145,
+        "startChar": 1,
+        "endLine": 145,
+        "endChar": 25
+      },
+      "revId": "0c1e96519b6e4205b6205c1e8811f83d9960b314",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f1d45db_2f7afd90",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-20T16:39:51Z",
+      "side": 1,
+      "message": "I\u0027m guessing you need to close the BoltDB somewhere. I can\u0027t say for sure, but when I was trying to diagnose slowness in BoltDB, one issue seemed to be failing to close the DB. (I believe defers are triggered for SIGINT.)",
+      "range": {
+        "startLine": 162,
+        "startChar": 1,
+        "endLine": 162,
+        "endChar": 59
+      },
+      "revId": "0c1e96519b6e4205b6205c1e8811f83d9960b314",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
