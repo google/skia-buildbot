@@ -308,7 +308,6 @@ func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshhold 
 	for i := 0; i < MAX_KMEANS_ITERATIONS; i++ {
 		centroids = kmeans.Do(observations, centroids, ctrace2.CalculateCentroid)
 		totalError := kmeans.TotalError(observations, centroids)
-		sklog.Infof("Total Error: %f\n", totalError)
 		if progress != nil {
 			progress(totalError)
 		}
