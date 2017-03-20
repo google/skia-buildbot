@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "54fff079_b401dcf1",
+        "filename": "perf/go/ptracestore/ptracestore.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-03-20T16:01:57Z",
+      "side": 1,
+      "message": "sklog\u0027s are intentionally being left in for now.",
+      "revId": "c12033d14c54968ef4d497790497fda3589d552c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
