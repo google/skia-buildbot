@@ -231,6 +231,7 @@ func serialize(i interface{}) ([]byte, error) {
 }
 
 func (b *BoltTraceStore) Add(commitID *cid.CommitID, values map[string]float32, sourceFile string) error {
+	sklog.Infof("Ingesting source file: %q", sourceFile)
 	index := commitID.Offset % constants.COMMITS_PER_TILE
 	entry, err := b.getBoltDB(commitID, false)
 	if err != nil {
@@ -249,6 +250,7 @@ func (b *BoltTraceStore) Add(commitID *cid.CommitID, values map[string]float32, 
 		if err != nil {
 			return fmt.Errorf("Failed to get source index: %s", err)
 		}
+		sklog.Infof("lastSourceIndex: %d", lastSourceIndex)
 
 		// Write the source.
 		if err := t.Put(uint64ToBytes(lastSourceIndex), []byte(sourceFile)); err != nil {
@@ -358,24 +360,30 @@ func (b *BoltTraceStore) Details(commitID *cid.CommitID, traceID string) (string
 		if value.Index == -1 {
 			return fmt.Errorf("Value not found: %q in %q", traceID, commitID.Filename())
 		}
+		sklog.Infof("value.Index: %d", value.Index)
 
 		// Read the source.
 		rawSource := s.Get([]byte(traceID))
+		sklog.Infof("Source 1 len: %d", len(rawSource))
 		if rawSource == nil {
 			return fmt.Errorf("Source not found.")
 		}
 		rawSource = dup(rawSource)
+		sklog.Infof("Source 2 len: %d", len(rawSource))
 		buf = bytes.NewBuffer(rawSource)
 		source := sourceValue{
 			Index: -1,
 		}
+		sklog.Infof("localIndex: %d", localIndex)
 		var sourceIndex uint64
 		for {
 			err := binary.Read(buf, binary.LittleEndian, &source)
 			if err != nil {
+				sklog.Infof("Failed binary.Read: %s", err)
 				break
 			}
-			if value.Index == localIndex {
+			sklog.Infof("source: %v", source)
+			if source.Index == localIndex {
 				sourceIndex = source.Source
 				// Don't break, we want the last value for index.
 			}
@@ -383,6 +391,8 @@ func (b *BoltTraceStore) Details(commitID *cid.CommitID, traceID string) (string
 		if value.Index == -1 {
 			return fmt.Errorf("Source not found: %q in %q", traceID, commitID.Filename())
 		}
+
+		sklog.Infof("sourceIndex: %d", sourceIndex)
 
 		// Read the sourceFullname.
 		sourceRet = string(sl.Get(uint64ToBytes(sourceIndex)))
