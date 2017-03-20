@@ -1,7 +1,7 @@
 #!/bin/bash
 # Builds and uploads a debian package for pulld .
 APPNAME=pulld-not-gce
-SYSTEMD="${APPNAME}.service jumphost-pulld-tunnel.service"
+SYSTEMD="${APPNAME}.service"
 SYSTEMD_TIMER=""
 DESCRIPTION="Application to pull push-controlled applications. Also allows viewing those applications status."
 
