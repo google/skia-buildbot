@@ -49,7 +49,7 @@ type Item struct {
 }
 
 func main() {
-	output, err := exec.RunSimple("gcloud --quiet compute project-info describe --format=json")
+	output, err := exec.RunSimple("gcloud --quiet compute project-info describe --format=json --project google.com:skia-buildbots")
 	if err != nil {
 		sklog.Fatalf("Failed to execute gcloud: %s", err)
 	}
