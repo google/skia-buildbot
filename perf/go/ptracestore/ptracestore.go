@@ -231,6 +231,7 @@ func serialize(i interface{}) ([]byte, error) {
 }
 
 func (b *BoltTraceStore) Add(commitID *cid.CommitID, values map[string]float32, sourceFile string) error {
+	sklog.Infof("Ingesting source file: %q", sourceFile)
 	index := commitID.Offset % constants.COMMITS_PER_TILE
 	entry, err := b.getBoltDB(commitID, false)
 	if err != nil {
@@ -249,6 +250,7 @@ func (b *BoltTraceStore) Add(commitID *cid.CommitID, values map[string]float32, 
 		if err != nil {
 			return fmt.Errorf("Failed to get source index: %s", err)
 		}
+		sklog.Infof("lastSourceIndex: %d", lastSourceIndex)
 
 		// Write the source.
 		if err := t.Put(uint64ToBytes(lastSourceIndex), []byte(sourceFile)); err != nil {
@@ -373,9 +375,10 @@ func (b *BoltTraceStore) Details(commitID *cid.CommitID, traceID string) (string
 		for {
 			err := binary.Read(buf, binary.LittleEndian, &source)
 			if err != nil {
+				sklog.Infof("Failed binary.Read: %s", err)
 				break
 			}
-			if value.Index == localIndex {
+			if source.Index == localIndex {
 				sourceIndex = source.Source
 				// Don't break, we want the last value for index.
 			}

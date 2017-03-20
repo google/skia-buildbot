@@ -244,7 +244,7 @@ func (g *gsResultFileLocation) Open() (io.ReadCloser, error) {
 
 // See ResultFileLocation interface.
 func (g *gsResultFileLocation) Name() string {
-	return g.relativeName
+	return fmt.Sprintf("gs://%s/%s", g.bucket, g.name)
 }
 
 // See ResultFileLocation interface.

@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -16,9 +17,13 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/net/context"
+
+	storage "cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
+	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/sklog"
-	storage "google.golang.org/api/storage/v1"
+	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/calc"
@@ -85,6 +90,8 @@ var (
 	regStore *regression.Store
 
 	continuous *regression.Continuous
+
+	storageClient *storage.Client
 )
 
 func loadTemplates() {
@@ -794,6 +801,64 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// DetailsRequest is for deserializing incoming POST requests
+// in detailsHandler.
+type DetailsRequest struct {
+	CID     cid.CommitID `json:"cid"`
+	TraceID string       `json:"traceid"`
+}
+
+func detailsHandler(w http.ResponseWriter, r *http.Request) {
+	includeResults := r.FormValue("results") != "false"
+	w.Header().Set("Content-Type", "application/json")
+	dr := &DetailsRequest{}
+	if err := json.NewDecoder(r.Body).Decode(dr); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		return
+	}
+	name, _, err := ptracestore.Default.Details(&dr.CID, dr.TraceID)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to load details")
+		return
+	}
+	u, err := url.Parse(name)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse source file location.")
+		return
+	}
+	if u.Host == "" || u.Path == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Invalid source location: %q", name), "Invalid source location.")
+		return
+	}
+	sklog.Infof("Host: %q Path: %q", u.Host, u.Path)
+	reader, err := storageClient.Bucket(u.Host).Object(u.Path[1:]).NewReader(context.Background())
+	defer util.Close(reader)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to get reader for source file location")
+		return
+	}
+	if includeResults {
+		if _, err := io.Copy(w, reader); err != nil {
+			glog.Errorf("Failed to copy JSON file to HTTP stream: %s", err)
+		}
+	} else {
+		res := map[string]interface{}{}
+		if err := json.NewDecoder(reader).Decode(&res); err != nil {
+			httputils.ReportError(w, r, err, "Failed to decode JSON source file")
+			return
+		}
+		delete(res, "results")
+		if b, err := json.MarshalIndent(res, "", "  "); err != nil {
+			httputils.ReportError(w, r, err, "Failed to re-encode JSON source file")
+			return
+		} else {
+			if _, err := w.Write(b); err != nil {
+				glog.Errorf("Failed to write JSON source file: %s", err)
+			}
+		}
+	}
+}
+
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -806,9 +871,14 @@ func initIngestion() {
 	evt := eventbus.New(nil)
 
 	// Initialize oauth client and start the ingesters.
-	client, err := auth.NewDefaultJWTServiceAccountClient(storage.CloudPlatformScope)
+	client, err := auth.NewDefaultJWTServiceAccountClient(storage.ScopeReadWrite)
 	if err != nil {
 		sklog.Fatalf("Failed to auth: %s", err)
+	}
+
+	storageClient, err = storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	if err != nil {
+		glog.Fatalf("Failed to create a Google Storage API client: %s", err)
 	}
 
 	// Start the ingesters.
@@ -908,6 +978,7 @@ func main() {
 	router.HandleFunc("/_/reg/", regressionRangeHandler).Methods("POST")
 	router.HandleFunc("/_/triage/", triageHandler).Methods("POST")
 	router.HandleFunc("/_/alerts/", alertsHandler)
+	router.HandleFunc("/_/details/", detailsHandler).Methods("POST")
 
 	var h http.Handler = router
 	if *internalOnly {
