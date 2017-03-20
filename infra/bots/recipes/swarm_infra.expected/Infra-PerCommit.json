@@ -95,6 +95,7 @@
       "GIT_HTTP_LOW_SPEED_TIME": "300",
       "PATH": "%(PATH)s:RECIPE_PACKAGE_REPO[depot_tools]"
     },
+    "infra_step": true,
     "name": "bot_update",
     "~followup_annotations": [
       "@@@STEP_TEXT@Some step text@@@",
@@ -156,6 +157,7 @@
       "which",
       "go"
     ],
+    "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
     "env": {
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
@@ -257,6 +259,7 @@
       "GIT_HTTP_LOW_SPEED_TIME": "300",
       "PATH": "%(PATH)s:RECIPE_PACKAGE_REPO[depot_tools]"
     },
+    "infra_step": true,
     "name": "bot_update (2)",
     "~followup_annotations": [
       "@@@STEP_TEXT@Some step text@@@",
