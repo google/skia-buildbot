@@ -125,9 +125,9 @@ def RunSteps(api):
          'GIT_USER_AGENT': 'git/1.9.1',  # I don't think this version matters.
          'PATH': api.path.pathsep.join([
              str(go_bin), str(go_dir.join('bin')), '%(PATH)s'])}
-  api.step('which go', cmd=['which', 'go'], env=env)
-  with api.step.context({'cwd': infra_dir}):
-    api.step('update_deps', cmd=['go', 'get', '-u', '-t', './...'], env=env)
+  with api.step.context({'cwd': infra_dir, 'env': env}):
+    api.step('which go', cmd=['which', 'go'])
+    api.step('update_deps', cmd=['go', 'get', '-u', '-t', './...'])
 
   # Checkout AGAIN to undo whatever `go get -u` did to the infra repo.
   git_checkout(
@@ -145,20 +145,17 @@ def RunSteps(api):
   rev_parse.presentation.properties['got_revision'] = rev_parse.stdout.strip()
 
   # More prerequisites.
-  with api.step.context({'cwd': infra_dir}):
+  with api.step.context({'cwd': infra_dir, 'env': env}):
     api.step(
         'install goimports',
-        cmd=['go', 'get', 'golang.org/x/tools/cmd/goimports'],
-        env=env)
+        cmd=['go', 'get', 'golang.org/x/tools/cmd/goimports'])
     api.step(
         'install errcheck',
-        cmd=['go', 'get', 'github.com/kisielk/errcheck'],
-        env=env)
-  with api.step.context({'cwd': infra_dir.join('go', 'database')}):
+        cmd=['go', 'get', 'github.com/kisielk/errcheck'])
+  with api.step.context({'cwd': infra_dir.join('go', 'database'), 'env': env}):
     api.step(
         'setup database',
-        cmd=['./setup_test_db'],
-        env=env)
+        cmd=['./setup_test_db'])
 
   # Run tests.
   buildslave = api.properties['slavename']
@@ -179,8 +176,8 @@ def RunSteps(api):
     cmd.append('--medium')
   else:
     cmd.append('--small')
-  with api.step.context({'cwd': infra_dir}):
-    api.step('run_unittests', cmd, env=env)
+  with api.step.context({'cwd': infra_dir, 'env': env}):
+    api.step('run_unittests', cmd)
 
 
 def GenTests(api):
