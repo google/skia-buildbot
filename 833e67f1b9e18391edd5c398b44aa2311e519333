@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b19ef75b_cc6eaaa7",
+        "filename": "status/res/imp/capacity-stats-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-20T16:16:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3bb52dfc_41c26e5b",
+      "range": {
+        "startLine": 184,
+        "startChar": 28,
+        "endLine": 184,
+        "endChar": 41
+      },
+      "revId": "833e67f1b9e18391edd5c398b44aa2311e519333",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ee170b11_c7184385",
         "filename": "status/res/imp/capacity-stats-sk.html",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "833e67f1b9e18391edd5c398b44aa2311e519333",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f744a254_56fe20b7",
+        "filename": "status/res/imp/capacity-stats-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-20T16:16:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ee170b11_c7184385",
+      "range": {
+        "startLine": 185,
+        "startChar": 32,
+        "endLine": 185,
+        "endChar": 35
+      },
+      "revId": "833e67f1b9e18391edd5c398b44aa2311e519333",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
