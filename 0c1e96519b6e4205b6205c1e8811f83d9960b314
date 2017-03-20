@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "6291f0bb_57cdfa9a",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-20T18:22:28Z",
+      "side": 1,
+      "message": "nit: I would expect to be able to determine the success rate as 1 minus (the failure-rate metric + the mishap-rate metric), but this is a bit misleading, given that many jobs never finish.",
+      "parentUuid": "86949f53_842290a9",
+      "range": {
+        "startLine": 73,
+        "startChar": 7,
+        "endLine": 73,
+        "endChar": 18
+      },
+      "revId": "0c1e96519b6e4205b6205c1e8811f83d9960b314",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c52518a5_76020b0c",
         "filename": "datahopper/go/datahopper/jobs.go",
         "patchSetId": 5

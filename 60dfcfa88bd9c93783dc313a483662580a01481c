@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "89c3b721_b909b366",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-20T18:22:28Z",
+      "side": 1,
+      "message": "nit: inaccurate",
+      "range": {
+        "startLine": 153,
+        "startChar": 23,
+        "endLine": 153,
+        "endChar": 39
+      },
+      "revId": "60dfcfa88bd9c93783dc313a483662580a01481c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "acd06bc1_e9a7bf1a",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-20T18:22:28Z",
+      "side": 1,
+      "message": "Sorry if this is overly nitpicky, but if we\u0027re going to load all of the jobs we care about from remote_db, couldn\u0027t we get rid of the event DB? In particular, NewEventMetrics really only uses the Range method of EventDB, which could be implemented with a simple caching wrapper around remote_db.",
+      "range": {
+        "startLine": 185,
+        "startChar": 13,
+        "endLine": 185,
+        "endChar": 30
+      },
+      "revId": "60dfcfa88bd9c93783dc313a483662580a01481c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "22299b50_a5ffe472",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-20T18:22:28Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be outside RepeatCtx? (Sorry, missed this before.)",
+      "range": {
+        "startLine": 207,
+        "startChar": 2,
+        "endLine": 207,
+        "endChar": 15
+      },
+      "revId": "60dfcfa88bd9c93783dc313a483662580a01481c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ce90e6e_484cfa7e",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-20T18:22:28Z",
+      "side": 1,
+      "message": "nit: the context-y way of doing this would be:\nctx, cancel :\u003d context.WithCancel(context.Background())\nif err :\u003d StartJobMetrics(*workdir, *taskSchedulerDbUrl, ctx); err !\u003d nil {\n  sklog.Fatal(err)\n}\ndefer cancel()",
+      "range": {
+        "startLine": 351,
+        "startChar": 0,
+        "endLine": 355,
+        "endChar": 21
+      },
+      "revId": "60dfcfa88bd9c93783dc313a483662580a01481c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
