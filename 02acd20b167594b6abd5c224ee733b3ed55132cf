@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "86226e3f_a8906bc5",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-21T17:04:42Z",
+      "side": 1,
+      "message": "Not sure how much extra load this will put on the DB. We may need to copy/paste from GetTasksFromDateRange in task_scheduler/go/db/cache.go to make GetJobsFromDateRange.",
+      "range": {
+        "startLine": 51,
+        "startChar": 16,
+        "endLine": 51,
+        "endChar": 48
+      },
+      "revId": "02acd20b167594b6abd5c224ee733b3ed55132cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cfd8d2b1_f4941bf7",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-21T17:04:42Z",
+      "side": 1,
+      "message": "You previously had one stream per job name, which would provide job-specific stats. Now we have one overall job stream, so we only have overall stats. Is that intended?",
+      "range": {
+        "startLine": 159,
+        "startChar": 6,
+        "endLine": 159,
+        "endChar": 36
+      },
+      "revId": "02acd20b167594b6abd5c224ee733b3ed55132cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
