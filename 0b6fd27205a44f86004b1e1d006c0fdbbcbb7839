@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ce46b178_3c36ff82",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 780,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-21T15:15:33Z",
+      "side": 1,
+      "message": "\u003d\u003d\u003d",
+      "range": {
+        "startLine": 780,
+        "startChar": 30,
+        "endLine": 780,
+        "endChar": 32
+      },
+      "revId": "0b6fd27205a44f86004b1e1d006c0fdbbcbb7839",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d118fcb_32feac27",
+        "filename": "status/res/imp/commits-table-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-21T15:15:33Z",
+      "side": 1,
+      "message": "Add  rel\u003dnoopener to both links",
+      "range": {
+        "startLine": 151,
+        "startChar": 56,
+        "endLine": 151,
+        "endChar": 58
+      },
+      "revId": "0b6fd27205a44f86004b1e1d006c0fdbbcbb7839",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67e4a09f_342eaa46",
+        "filename": "status/res/imp/commits-table-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-21T15:15:33Z",
+      "side": 1,
+      "message": "purple_builds.*\n\nWhenever you are binding to an array, you will want to use .* to make sure it is recomputed on *every* update to the array.",
+      "range": {
+        "startLine": 289,
+        "startChar": 60,
+        "endLine": 289,
+        "endChar": 73
+      },
+      "revId": "0b6fd27205a44f86004b1e1d006c0fdbbcbb7839",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "26978ef8_8fcbb645",
+        "filename": "status/res/imp/commits-table-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-21T15:15:33Z",
+      "side": 1,
+      "message": "!\u003d\u003d",
+      "range": {
+        "startLine": 319,
+        "startChar": 17,
+        "endLine": 319,
+        "endChar": 18
+      },
+      "revId": "0b6fd27205a44f86004b1e1d006c0fdbbcbb7839",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
