@@ -113,6 +113,11 @@
             min-width: 300px;
           };
       }
+
+      a.nodecorate {
+        color: #000000;
+        text-decoration: none;
+      }
     </style>
 
     <div>
@@ -143,6 +148,18 @@
           <div class="tooltip" title$="{{_getPrettyFilterText('search')}}">
             <iron-icon icon="icons:help" class="helpicon"></iron-icon>
           </div>
+          <a href$="{{_trigger_job_url}}" target="_blank" class="nodecorate" rel="noopener">
+            <paper-button raised>
+              <iron-icon icon="icons:add"></iron-icon>
+              Trigger a Job
+            </paper-button>
+          </a>
+          <a href$="{{_retry_purple_url}}" target="_blank" class="nodecorate" rel="noopener">
+            <paper-button raised>
+              <iron-icon icon="icons:autorenew"></iron-icon>
+              Re-Run Purple Jobs
+            </paper-button>
+          </a>
         </div>
       </div>
 
@@ -220,6 +237,9 @@
         num_builders: {
           type: Number,
         },
+        purple_builds: {
+          type: Array,
+        },
         relanded_map: {
           type: Object,
         },
@@ -231,6 +251,9 @@
         },
         reverted_map: {
           type: Object,
+        },
+        task_scheduler_url: {
+          type: String,
         },
         time_points: {
           type: Object,
@@ -261,13 +284,21 @@
             return ["author", "subject"];
           }
         },
+        _retry_purple_url: {
+          type: String,
+          computed: "_getRetryPurpleUrl(task_scheduler_url, purple_builds.*)",
+        },
         _short_filters: {
           type: Array,
           value: function(){
             // "search" is omitted because it is drawn seperately, being a paper-input and all.
             return ["interesting","failures","comments","nocomment","all"];
           }
-        }
+        },
+        _trigger_job_url: {
+          type: String,
+          computed: "_getTriggerJobUrl(task_scheduler_url)",
+        },
       },
 
       _getPrettyCommitLabel: function(key) {
@@ -280,6 +311,19 @@
       _getPrettyFilterText: function(key) {
         // index 0 is the short name, index 1 is the description
         return PRETTY_FILTER_LABELS[key][1];
+      },
+      _getRetryPurpleUrl: function() {
+        var url = this.task_scheduler_url + "/trigger?";
+        for (var i = 0; i < this.purple_builds.length; i++) {
+          url += "job=" + this.purple_builds[i];
+          if (i !== this.purple_builds.length - 1) {
+            url += "&";
+          }
+        }
+        return url;
+      },
+      _getTriggerJobUrl: function() {
+        return this.task_scheduler_url + "/trigger";
       },
 
       _setFilterToSearch: function() {

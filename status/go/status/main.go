@@ -195,10 +195,17 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, err.Error())
 		return
 	}
-	rv, err := buildCache.GetLastN(repoUrl, commitsToLoad, login.IsGoogler(r))
+	bc, err := buildCache.GetLastN(repoUrl, commitsToLoad, login.IsGoogler(r))
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load commits from cache: %v", err))
 		return
+	}
+	rv := struct {
+		*franken.CommitsData
+		TaskSchedulerUrl string `json:"task_scheduler_url"`
+	}{
+		CommitsData:      bc,
+		TaskSchedulerUrl: *taskSchedulerUrl,
 	}
 	if err := json.NewEncoder(w).Encode(rv); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))

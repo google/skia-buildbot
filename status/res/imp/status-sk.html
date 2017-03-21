@@ -31,6 +31,7 @@
 <link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="/res/imp/bower_components/iron-icons/hardware-icons.html">
 <link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
+<link rel="import" href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="/res/common/imp/app-sk.html">
@@ -255,10 +256,12 @@
             highlighted_commit_hashes="[[highlighted_commit_hashes]]"
             logged_in="[[logged_in]]"
             num_builders="[[num_builders]]"
+            purple_builds="[[purple_builds]]"
             relanded_map="[[relanded_map]]"
             repo="[[repo]]"
             repo_base="[[repo_base]]"
             reverted_map="[[reverted_map]]"
+            task_scheduler_url="[[task_scheduler_url]]"
             time_points="[[time_points]]"
 
             commit_label="{{label}}"
@@ -286,8 +289,10 @@
             commits_map="{{commits_map}}"
             loading="{{loading}}"
             num_builders="{{num_builders}}"
+            purple_builds="{{purple_builds}}"
             relanded_map="{{relanded_map}}"
             reverted_map="{{reverted_map}}"
+            task_scheduler_url="{{task_scheduler_url}}"
             time_points="{{time_points}}">
         </commits-data-sk>
 
@@ -409,7 +414,6 @@
       }
       head.appendChild(link);
     },
-
   });
   </script>
 </dom-module>
