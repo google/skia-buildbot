@@ -63,7 +63,7 @@ type metric struct {
 // events.
 type EventMetrics struct {
 	db      EventDB
-	metrics []*metric
+	metrics map[string]map[time.Duration][]*metric
 	mtx     sync.Mutex
 }
 
@@ -71,7 +71,7 @@ type EventMetrics struct {
 func NewEventMetrics(db EventDB) (*EventMetrics, error) {
 	return &EventMetrics{
 		db:      db,
-		metrics: []*metric{},
+		metrics: map[string]map[time.Duration][]*metric{},
 		mtx:     sync.Mutex{},
 	}, nil
 }
@@ -124,16 +124,17 @@ func (m *EventMetrics) AggregateMetric(stream string, tags map[string]string, pe
 	}
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
-	m.metrics = append(m.metrics, mx)
+	byPeriod, ok := m.metrics[stream]
+	if !ok {
+		byPeriod = map[time.Duration][]*metric{}
+		m.metrics[stream] = byPeriod
+	}
+	byPeriod[period] = append(byPeriod[period], mx)
 	return nil
 }
 
 // updateMetric updates the value for a single metric.
-func (m *EventMetrics) updateMetric(now time.Time, mx *metric) error {
-	ev, err := m.db.Range(mx.stream, now.Add(-mx.period), now)
-	if err != nil {
-		return err
-	}
+func (m *EventMetrics) updateMetric(ev []*Event, mx *metric) error {
 	v, err := mx.agg(ev)
 	if err != nil {
 		return err
@@ -148,10 +149,19 @@ func (m *EventMetrics) updateMetrics(now time.Time) error {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 	errs := []error{}
-	for _, mx := range m.metrics {
-		if err := m.updateMetric(now, mx); err != nil {
-			errs = append(errs, err)
-			continue
+	for stream, byPeriod := range m.metrics {
+		for period, metrics := range byPeriod {
+			ev, err := m.db.Range(stream, now.Add(-period), now)
+			if err != nil {
+				errs = append(errs, err)
+				continue
+			}
+			for _, mx := range metrics {
+				if err := m.updateMetric(ev, mx); err != nil {
+					errs = append(errs, err)
+					continue
+				}
+			}
 		}
 	}
 	if len(errs) > 0 {
@@ -170,9 +180,13 @@ func (m *EventMetrics) LogMetrics() {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 	sklog.Infof("Current event metrics values:")
-	for _, mx := range m.metrics {
-		v := metrics2.GetFloat64Metric(mx.measurement, mx.tags).Get()
-		sklog.Infof("  %s %v: %f", mx.measurement, mx.tags, v)
+	for _, byPeriod := range m.metrics {
+		for _, metrics := range byPeriod {
+			for _, mx := range metrics {
+				v := metrics2.GetFloat64Metric(mx.measurement, mx.tags).Get()
+				sklog.Infof("  %s %v: %f", mx.measurement, mx.tags, v)
+			}
+		}
 	}
 }
 
