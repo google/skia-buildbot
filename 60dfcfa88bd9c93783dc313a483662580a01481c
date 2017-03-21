@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "a14fe763_9c95678d",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-21T14:00:15Z",
+      "side": 1,
+      "message": "D\u0027oh.  Yeah, that makes things a LOT simpler.  Changed to add a thin wrapper around RemoteDB which implements events.EventDB.",
+      "parentUuid": "acd06bc1_e9a7bf1a",
+      "range": {
+        "startLine": 185,
+        "startChar": 13,
+        "endLine": 185,
+        "endChar": 30
+      },
+      "revId": "60dfcfa88bd9c93783dc313a483662580a01481c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "22299b50_a5ffe472",
         "filename": "datahopper/go/datahopper/jobs.go",
         "patchSetId": 6
