@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b39c55c1_bc604b34",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-21T17:24:14Z",
+      "side": 1,
+      "message": "Yuck, that\u0027s a good point.",
+      "parentUuid": "86226e3f_a8906bc5",
+      "range": {
+        "startLine": 51,
+        "startChar": 16,
+        "endLine": 51,
+        "endChar": 48
+      },
+      "revId": "02acd20b167594b6abd5c224ee733b3ed55132cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "cfd8d2b1_f4941bf7",
         "filename": "datahopper/go/datahopper/jobs.go",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2017-03-21T17:04:42Z",
       "side": 1,
       "message": "You previously had one stream per job name, which would provide job-specific stats. Now we have one overall job stream, so we only have overall stats. Is that intended?",
+      "range": {
+        "startLine": 159,
+        "startChar": 6,
+        "endLine": 159,
+        "endChar": 36
+      },
+      "revId": "02acd20b167594b6abd5c224ee733b3ed55132cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1db37647_4910cb13",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-21T17:24:14Z",
+      "side": 1,
+      "message": "Whoops, I\u0027m still reeling from recipe rolls.  It got lost in translation.  I\u0027m going to cache the jobs so that we don\u0027t perform a whole bunch of DB queries, but I also made some changes to the events package to minimize the number of DB queries we perform, in the case of multiple metrics on the same stream+period.  Otherwise, since we want a different stream per job name, we\u0027d end up performing ~200 (job names) x 2 (time periods) x 3 (metrics) requests. O_O",
+      "parentUuid": "cfd8d2b1_f4941bf7",
       "range": {
         "startLine": 159,
         "startChar": 6,
