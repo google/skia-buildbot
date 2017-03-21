@@ -491,7 +491,7 @@ func (TraceCovFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 }
 
 func (TraceCovFunc) Describe() string {
-	return `Computes the std dev for all the values in a trace and return a trace where every value is that stddev.`
+	return `Computes the Coefficient of Variation for all the values in a trace and return a trace where every value is that CoV.`
 }
 
 var traceCovFunc = TraceCovFunc{}
