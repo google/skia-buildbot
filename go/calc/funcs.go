@@ -393,3 +393,37 @@ func (LogFunc) Describe() string {
 }
 
 var logFunc = LogFunc{}
+
+type TraceAveFunc struct{}
+
+// traceAveFunc implements Func and Computes the mean for all the values in a trace and return a trace where every value is that mean.
+//
+// vec32.MISSING_DATA_SENTINEL values are not taken into account for the ave. If the entire vector is vec32.MISSING_DATA_SENTINEL then
+// the result is also all vec32.MISSING_DATA_SENTINEL.
+func (TraceAveFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+	if len(node.Args) != 1 {
+		return nil, fmt.Errorf("trace_ave() takes a single argument.")
+	}
+	if node.Args[0].Typ != NodeFunc {
+		return nil, fmt.Errorf("trace_ave() takes a function argument.")
+	}
+	rows, err := node.Args[0].Eval(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("trace_ave() failed evaluating argument: %s", err)
+	}
+
+	ret := Rows{}
+	for key, r := range rows {
+		row := vec32.Dup(r)
+		vec32.FillMeanMissing(row)
+		ret["trace_ave("+key+")"] = row
+	}
+
+	return ret, nil
+}
+
+func (TraceAveFunc) Describe() string {
+	return `Computes the mean for all the values in a trace and return a trace where every value is that mean.`
+}
+
+var traceAveFunc = TraceAveFunc{}
