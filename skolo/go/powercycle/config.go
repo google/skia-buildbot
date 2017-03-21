@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"sort"
 	"time"
 
-	"github.com/BurntSushi/toml"
+	yaml "gopkg.in/yaml.v2"
+
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -13,10 +16,10 @@ import (
 // for different device types.
 type Config struct {
 	// MPower aggregates all mPower configurations.
-	MPower map[string]*MPowerConfig `toml:"mpower"`
+	MPower map[string]*MPowerConfig `yaml:"mpower"`
 
 	// EdgeSwitch aggregates all EdgeSwitch configurations.
-	EdgeSwitch map[string]*EdgeSwitchConfig `toml:"edgeswitch"`
+	EdgeSwitch map[string]*EdgeSwitchConfig `yaml:"edgeswitch"`
 }
 
 // aggregatedDevGroup implements the DeviceGroup interface and allows
@@ -73,17 +76,28 @@ func (a *aggregatedDevGroup) PowerUsage() (*GroupPowerUsage, error) {
 	return ret, nil
 }
 
-// DeviceGroupFromTomlFile parses a TOML file and instantiates the
+// DeviceGroupFromYamlFile parses a TOML file and instantiates the
 // defined devices.
-func DeviceGroupFromTomlFile(path string) (DeviceGroup, error) {
+func DeviceGroupFromYamlFile(path string) (DeviceGroup, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
+	yamlBytes, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
+
 	conf := &Config{}
-	if _, err := toml.DecodeFile(path, conf); err != nil {
+	if err := yaml.Unmarshal(yamlBytes, conf); err != nil {
 		return nil, err
 	}
 
 	ret := &aggregatedDevGroup{
 		idDevGroupMap: map[string]DeviceGroup{},
 	}
+
 	// Add the mpower devices.
 	for _, c := range conf.MPower {
 		mp, err := NewMPowerClient(c)
