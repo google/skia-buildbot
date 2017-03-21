@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c581cc66_637eeb99",
+        "filename": "go/calc/funcs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 494,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-03-21T14:58:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a4fef5bd_602b9190",
+      "range": {
+        "startLine": 494,
+        "startChar": 18,
+        "endLine": 494,
+        "endChar": 29
+      },
+      "revId": "f0041e6b230ee81c7147ce8345d5cb34b8bbab1c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "579c2332_e7d02cc7",
         "filename": "go/vec32/vec.go",
         "patchSetId": 3
