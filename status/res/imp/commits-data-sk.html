@@ -369,6 +369,10 @@
           type: Number,
           notify:true,
         },
+        purple_builds: {
+          type: Array,
+          notify: true,
+        },
         relanded_map: {
           type: Object,
           value: function() {
@@ -382,6 +386,10 @@
             return {};
           },
           notify:true,
+        },
+        task_scheduler_url: {
+          type: String,
+          notify: true,
         },
         time_points: {
           type: Object,
@@ -456,6 +464,7 @@
           data.commits[i].comments = data.comments[data.commits[i].hash] || [];
         }
         this.lastLoaded = new Date().toLocaleTimeString();
+        this.task_scheduler_url = data.task_scheduler_url;
 
         var commits = data.commits;
 
@@ -737,6 +746,7 @@
 
         var categories = {};
         var categoryList = [];
+        var purpleBuilds = [];
         for (var i = 0; i < filteredBuilders.length; i++) {
           var builderName = filteredBuilders[i];
           var category = this.builders[builderName].category;
@@ -763,9 +773,18 @@
           }
           categories[category].subcategories[subcategory].builders.push(builderName);
           categories[category].colspan++;
+
+          // Find any purple builds for this builder.
+          for (var buildNum in this.builds[builderName]) {
+            var build = this.builds[builderName][buildNum];
+            if (build.results === BUILDBOT_RESULT_EXCEPTION) {
+              purpleBuilds.push(builderName + "@" + build.got_revision);
+            }
+          }
         }
         this.set("categories", categories);
         this.set("category_list", categoryList);
+        this.set("purple_builds", purpleBuilds);
         console.timeEnd("filterBuilders");
       },
 
