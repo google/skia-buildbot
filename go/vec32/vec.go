@@ -139,6 +139,69 @@ func Mean(xs []float32) float32 {
 	}
 }
 
+// MeanMissing calculates and returns the Mean value of the given []float32.
+//
+// Returns MISSING_DATA_SENTINEL for an array with all MISSING_DATA_SENTINEL values.
+func MeanMissing(xs []float32) float32 {
+	total := float32(0.0)
+	n := 0
+	for _, v := range xs {
+		if v != MISSING_DATA_SENTINEL {
+			total += v
+			n++
+		}
+	}
+	if n == 0 {
+		return MISSING_DATA_SENTINEL
+	} else {
+		return total / float32(n)
+	}
+}
+
+// FillMeanMissing fills the slice with the mean of all the values in the slice
+// using MeanMissing.
+func FillMeanMissing(a []float32) {
+	value := MeanMissing(a)
+	// Now fill.
+	for i, _ := range a {
+		a[i] = value
+	}
+}
+
+// FillStdDev fills the slice with the Standard Deviation of the values in the slice.
+//
+// If slice is filled with only MISSING_DATA_SENTINEL then the slice will be
+// filled with MISSING_DATA_SENTINEL.
+func FillStdDev(a []float32) {
+	_, stddev, err := MeanAndStdDev(a)
+	if err != nil {
+		stddev = MISSING_DATA_SENTINEL
+	}
+	// Now fill.
+	for i, _ := range a {
+		a[i] = stddev
+	}
+}
+
+// FillCov fills the slice with the Coefficient of Variation of the values in the slice.
+//
+// If the mean is 0 or the slice is filled with only MISSING_DATA_SENTINEL then
+// the slice will be filled with MISSING_DATA_SENTINEL.
+func FillCov(a []float32) {
+	mean, stddev, err := MeanAndStdDev(a)
+	cov := MISSING_DATA_SENTINEL
+	if err == nil {
+		cov = stddev / mean
+	}
+	if math.IsNaN(float64(cov)) {
+		cov = MISSING_DATA_SENTINEL
+	}
+	// Now fill.
+	for i, _ := range a {
+		a[i] = cov
+	}
+}
+
 // SSE calculates and returns the sum squared error from the given base of []float32.
 //
 // Returns 0 for an array with no non-MISSING_DATA_SENTINEL values.

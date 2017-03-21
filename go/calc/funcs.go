@@ -393,3 +393,105 @@ func (LogFunc) Describe() string {
 }
 
 var logFunc = LogFunc{}
+
+type TraceAveFunc struct{}
+
+// traceAveFunc implements Func and Computes the mean for all the values in a trace and return a trace where every value is that mean.
+//
+// vec32.MISSING_DATA_SENTINEL values are not taken into account for the ave. If the entire vector is vec32.MISSING_DATA_SENTINEL then
+// the result is also all vec32.MISSING_DATA_SENTINEL.
+func (TraceAveFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+	if len(node.Args) != 1 {
+		return nil, fmt.Errorf("trace_ave() takes a single argument.")
+	}
+	if node.Args[0].Typ != NodeFunc {
+		return nil, fmt.Errorf("trace_ave() takes a function argument.")
+	}
+	rows, err := node.Args[0].Eval(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("trace_ave() failed evaluating argument: %s", err)
+	}
+
+	ret := Rows{}
+	for key, r := range rows {
+		row := vec32.Dup(r)
+		vec32.FillMeanMissing(row)
+		ret["trace_ave("+key+")"] = row
+	}
+
+	return ret, nil
+}
+
+func (TraceAveFunc) Describe() string {
+	return `Computes the mean for all the values in a trace and return a trace where every value is that mean.`
+}
+
+var traceAveFunc = TraceAveFunc{}
+
+type TraceStdDevFunc struct{}
+
+// traceStdDevFunc implements Func and Computes the std dev for all the values in a trace and return a trace where every value is that std dev.
+//
+// vec32.MISSING_DATA_SENTINEL values are not taken into account for the ave. If the entire vector is vec32.MISSING_DATA_SENTINEL then
+// the result is also all vec32.MISSING_DATA_SENTINEL.
+func (TraceStdDevFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+	if len(node.Args) != 1 {
+		return nil, fmt.Errorf("trace_stddev() takes a single argument.")
+	}
+	if node.Args[0].Typ != NodeFunc {
+		return nil, fmt.Errorf("trace_stddev() takes a function argument.")
+	}
+	rows, err := node.Args[0].Eval(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("trace_stddev() failed evaluating argument: %s", err)
+	}
+
+	ret := Rows{}
+	for key, r := range rows {
+		row := vec32.Dup(r)
+		vec32.FillStdDev(row)
+		ret["trace_stddev("+key+")"] = row
+	}
+
+	return ret, nil
+}
+
+func (TraceStdDevFunc) Describe() string {
+	return `Computes the std dev for all the values in a trace and return a trace where every value is that stddev.`
+}
+
+var traceStdDevFunc = TraceStdDevFunc{}
+
+type TraceCovFunc struct{}
+
+// traceCovFunc implements Func and Computes the Coefficient of Variation (std dev)/mean for all the values in a trace and return a trace where every value is the CoV.
+//
+// vec32.MISSING_DATA_SENTINEL values are not taken into account for the ave. If the entire vector is vec32.MISSING_DATA_SENTINEL then
+// the result is also all vec32.MISSING_DATA_SENTINEL.
+func (TraceCovFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+	if len(node.Args) != 1 {
+		return nil, fmt.Errorf("trace_cov() takes a single argument.")
+	}
+	if node.Args[0].Typ != NodeFunc {
+		return nil, fmt.Errorf("trace_cov() takes a function argument.")
+	}
+	rows, err := node.Args[0].Eval(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("trace_cov() failed evaluating argument: %s", err)
+	}
+
+	ret := Rows{}
+	for key, r := range rows {
+		row := vec32.Dup(r)
+		vec32.FillCov(row)
+		ret["trace_cov("+key+")"] = row
+	}
+
+	return ret, nil
+}
+
+func (TraceCovFunc) Describe() string {
+	return `Computes the std dev for all the values in a trace and return a trace where every value is that stddev.`
+}
+
+var traceCovFunc = TraceCovFunc{}

@@ -205,7 +205,7 @@ func lexNumber(l *lexer) stateFn {
 func lexIdentifier(l *lexer) stateFn {
 	for {
 		r := l.next()
-		if !unicode.IsLetter(rune(r)) && !unicode.IsDigit(rune(r)) {
+		if !unicode.IsLetter(rune(r)) && !unicode.IsDigit(rune(r)) && r != '_' {
 			l.backUp()
 			break
 		}
