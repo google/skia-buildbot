@@ -17,9 +17,9 @@ import (
 // MPowerConfig contains the necessary parameters to connect
 // and control an mPowerPro power strip.
 type MPowerConfig struct {
-	Address    string         `toml:"address"` // IP address and port of the device, i.e. 192.168.1.33:22
-	User       string         `toml:"user"`    // User of the ssh connection
-	DevPortMap map[string]int `toml:"ports"`   // Mapping between device name and port on the power strip.
+	Address    string         `yaml:"address"` // IP address and port of the device, i.e. 192.168.1.33:22
+	User       string         `yaml:"user"`    // User of the ssh connection
+	DevPortMap map[string]int `yaml:"ports"`   // Mapping between device name and port on the power strip.
 }
 
 // Constants used to access the Ubiquiti mPower Pro.

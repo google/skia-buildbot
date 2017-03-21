@@ -20,7 +20,7 @@ const (
 )
 
 var (
-	configFile  = flag.String("conf", "./powercycle.toml", "TOML file with device configuration.")
+	configFile  = flag.String("conf", "./powercycle.yaml", "YAML file with device configuration.")
 	delay       = flag.Int("delay", 0, "Any value > 0 overrides the default duration (in sec) between turning the port off and on.")
 	listDev     = flag.Bool("list_devices", false, "List the available devices and exit.")
 	powerCycle  = flag.Bool("power_cycle", true, "Powercycle the given devices.")
@@ -64,7 +64,7 @@ type PowerStat struct {
 
 func main() {
 	common.Init()
-	devGroup, err := DeviceGroupFromTomlFile(*configFile)
+	devGroup, err := DeviceGroupFromYamlFile(*configFile)
 	if err != nil {
 		sklog.Fatalf("Unable to parse config file.  Got error: %s", err)
 	}
