@@ -67,7 +67,7 @@ func (c *Converter) Convert(incoming io.Reader) (*ingestcommon.BenchData, error)
 	}
 	sklog.Infof("POST for buildid: %s branch: %s", in.BuildId, in.Branch)
 	if in.Branch != c.branch {
-		return nil, fmt.Errorf("Found data for a branch we weren't expecting: Got %q Want %q", in.Branch, c.branch)
+		return nil, fmt.Errorf("Found data for a branch we weren't expecting: Got %q Want %q at BuildID: %s", in.Branch, c.branch, in.BuildId)
 	}
 	buildid, err := strconv.ParseInt(in.BuildId, 10, 64)
 	if err != nil {
