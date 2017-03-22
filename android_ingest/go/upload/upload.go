@@ -21,6 +21,6 @@ func ObjectPath(benchData *ingestcommon.BenchData, gcsPath string, now time.Time
 			keyparts = append(keyparts, k, v)
 		}
 	}
-	filename := fmt.Sprintf("%s_%s.json", benchData.Hash, strings.Join(keyparts, "_"))
+	filename := fmt.Sprintf("%s_%s_%d.json", benchData.Hash, strings.Join(keyparts, "_"), now.UnixNano())
 	return filepath.Join(gcsPath, now.Format("2006/01/02/15/"), filename)
 }

@@ -146,8 +146,13 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Write the benchData out as JSON in the right spot in Google Storage.
 	writer := bucket.Object(upload.ObjectPath(benchData, gcsPath, time.Now().UTC())).NewWriter(context.Background())
-	if err := json.NewEncoder(writer).Encode(benchData); err != nil {
-		httputils.ReportError(w, r, err, "Failed to write converted JSON body.")
+	b, err = json.MarshalIndent(benchData, "", "  ")
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode benchData as JSON.")
+		return
+	}
+	if _, err := writer.Write(b); err != nil {
+		httputils.ReportError(w, r, err, "Failed to write JSON body.")
 		return
 	}
 	util.Close(writer)
