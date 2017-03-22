@@ -59,3 +59,14 @@
       file: path=/etc/ansible/ansible.cfg mode=0777 state=touch
     - lineinfile: dest=/etc/ansible/ansible.cfg line="[defaults]"
     - lineinfile: dest=/etc/ansible/ansible.cfg line="host_key_checking = False" insertafter="\[defaults\]"
+
+    - name: Make convenient ~/start_serving_image script
+      lineinfile:
+        dest: /home/chromebot/start_serving_image
+        mode: 0755
+        owner: chrome-bot
+        group: chrome-bot
+        state: present
+        line: 'ansible-playbook -i "localhost," -c local ./skia-buildbot/skolo/raspberry-pi/start_serving_image.yml -v'
+        create: yes
+
