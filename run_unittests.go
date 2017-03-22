@@ -7,14 +7,19 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
+	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
@@ -68,6 +73,16 @@ var (
 		"fuzzer/res/imp",
 		"status/res/imp",
 	}
+
+	// goTestRegexp is a regular expression used for finding the durations
+	// of tests.
+	goTestRegexp = regexp.MustCompile("--- (\\w+):\\s+(\\w+)\\s+\\((.+)\\)")
+
+	// Flags.
+
+	// writeTimings is a file in which to write the test timings in JSON
+	// format.
+	writeTimings = flag.String("write_timings", "", "JSON file in which to write the test timings.")
 )
 
 // cmdTest returns a test which runs a command and fails if the command fails.
@@ -158,7 +173,8 @@ func polylintTestsForDir(cwd string, fileNames ...string) []*test {
 	return tests
 }
 
-// findPolymerFiles returns all files that probably contain polymer content (i.e. end with sk.html) in a given directory.
+// findPolymerFiles returns all files that probably contain polymer content
+// (i.e. end with sk.html) in a given directory.
 func findPolymerFiles(dirPath string) []string {
 	dir := fileutil.MustOpen(dirPath)
 	files := make([]string, 0)
@@ -183,7 +199,26 @@ func polylintTests() []*test {
 func goTest(cwd string, testType string, args ...string) *test {
 	cmd := []string{"go", "test", "-v", "./go/...", "-parallel", "1"}
 	cmd = append(cmd, args...)
-	return cmdTest(cmd, cwd, fmt.Sprintf("go tests (%s) in %s", testType, cwd), testType)
+	t := cmdTest(cmd, cwd, fmt.Sprintf("go tests (%s) in %s", testType, cwd), testType)
+	t.duration = func() map[string]time.Duration {
+		rv := map[string]time.Duration{}
+		split := strings.Split(t.output, "\n")
+		for _, line := range split {
+			m := goTestRegexp.FindStringSubmatch(line)
+			if len(m) == 4 {
+				if m[1] == "PASS" || m[1] == "FAIL" {
+					d, err := time.ParseDuration(m[3])
+					if err != nil {
+						sklog.Errorf("Got invalid test duration: %q", m[3])
+						continue
+					}
+					rv[m[2]] = d
+				}
+			}
+		}
+		return rv
+	}
+	return t
 }
 
 // goTestSmall returns a test which runs `go test --small` in the given cwd.
@@ -209,14 +244,17 @@ func pythonTest(testPath string) *test {
 
 // test is a struct which represents a single test to run.
 type test struct {
-	Name string
-	Cmd  string
-	run  func() (error, string)
-	Type string
+	Name      string
+	Cmd       string
+	duration  func() map[string]time.Duration
+	output    string
+	run       func() (error, string)
+	totalTime time.Duration
+	Type      string
 }
 
 // Run executes the function for the given test and returns an error if it fails.
-func (t test) Run() error {
+func (t *test) Run() error {
 	if !util.In(t.Type, testutils.TEST_TYPES) {
 		sklog.Fatalf("Test %q has invalid type %q", t.Name, t.Type)
 	}
@@ -225,12 +263,24 @@ func (t test) Run() error {
 		return nil
 	}
 
-	defer timer.New(t.Name).Stop()
+	started := time.Now()
+	defer func() {
+		t.totalTime = time.Now().Sub(started)
+	}()
 	err, output := t.run()
 	if err != nil {
 		return fmt.Errorf(TEST_FAILURE, t.Name, t.Cmd, err, output)
 	}
+	t.output = output
 	return nil
+}
+
+// Duration returns the duration(s) of the test(s) which ran.
+func (t *test) Duration() map[string]time.Duration {
+	if t.duration == nil {
+		return map[string]time.Duration{t.Name: t.totalTime}
+	}
+	return t.duration()
 }
 
 // Find and run tests.
@@ -352,6 +402,28 @@ func main() {
 		}(t)
 	}
 	wg.Wait()
+
+	// Collect test durations.
+	durations := map[string]time.Duration{}
+	for _, t := range tests {
+		for k, v := range t.Duration() {
+			if _, ok := durations[k]; ok {
+				sklog.Errorf("Duplicate test name %q; not keeping timing.", k)
+				continue
+			}
+			durations[k] = v
+		}
+	}
+	if *writeTimings != "" {
+		b, err := json.MarshalIndent(durations, "", "  ")
+		if err != nil {
+			errors["encode output"] = err
+		} else {
+			if err := ioutil.WriteFile(*writeTimings, b, os.ModePerm); err != nil {
+				errors["write output"] = err
+			}
+		}
+	}
 	if len(errors) > 0 {
 		for _, e := range errors {
 			sklog.Error(e)
