@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a2d9b44e_f44da260",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-22T15:06:23Z",
+      "side": 1,
+      "message": "nit: Maybe just use TIME_PERIODS[len(TIME_PERIODS)-1] and document that TIME_PERIODS must be sorted.",
+      "range": {
+        "startLine": 71,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 2
+      },
+      "revId": "bf35ccd09b91048faf608c816b67d41b0f8083c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3d6db2b_ad5c893b",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-22T15:06:23Z",
+      "side": 1,
+      "message": "Seems like metrics is uninitialized.",
+      "range": {
+        "startLine": 194,
+        "startChar": 9,
+        "endLine": 194,
+        "endChar": 19
+      },
+      "revId": "bf35ccd09b91048faf608c816b67d41b0f8083c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
