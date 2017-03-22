@@ -65,6 +65,10 @@ func (c *Converter) Convert(incoming io.Reader) (*ingestcommon.BenchData, error)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse during convert: %s", err)
 	}
+	sklog.Infof("POST for buildid: %s branch: %s", in.BuildId, in.Branch)
+	if in.Branch != c.branch {
+		return nil, fmt.Errorf("Found data for a branch we weren't expecting %q: %s", in.Branch, err)
+	}
 	buildid, err := strconv.ParseInt(in.BuildId, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse buildid %q: %s", in.BuildId, err)
@@ -72,9 +76,6 @@ func (c *Converter) Convert(incoming io.Reader) (*ingestcommon.BenchData, error)
 	hash, err := c.lookup.Lookup(buildid)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to find matching hash for buildid %d: %s", buildid, err)
-	}
-	if in.Branch != c.branch {
-		return nil, fmt.Errorf("Found data for a branch we weren't expecting %q: %s", in.Branch, err)
 	}
 
 	// Convert Incoming into ingestcommon.BenchData, i.e. convert the following:
