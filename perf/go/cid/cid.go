@@ -248,7 +248,7 @@ func (c *CommitIDLookup) Lookup(cids []*CommitID) ([]*CommitDetail, error) {
 				ret[i] = &CommitDetail{
 					CommitID:  *cid,
 					Author:    entry.author,
-					Message:   fmt.Sprintf("%.7s - %s - %.40s", entry.hash, human.Duration(now.Sub(time.Unix(entry.ts, 0))), entry.subject),
+					Message:   fmt.Sprintf("%.7s - %s - %.50s", entry.hash, human.Duration(now.Sub(time.Unix(entry.ts, 0))), entry.subject),
 					URL:       fmt.Sprintf("%s/+/%s", c.gitRepoURL, entry.hash),
 					Hash:      entry.hash,
 					Timestamp: entry.ts,
@@ -261,7 +261,7 @@ func (c *CommitIDLookup) Lookup(cids []*CommitID) ([]*CommitDetail, error) {
 				ret[i] = &CommitDetail{
 					CommitID:  *cid,
 					Author:    lc.Author,
-					Message:   fmt.Sprintf("%.7s - %s - %.28s", lc.Hash, human.Duration(now.Sub(lc.Timestamp)), lc.ShortCommit.Subject),
+					Message:   fmt.Sprintf("%.7s - %s - %.50s", lc.Hash, human.Duration(now.Sub(lc.Timestamp)), lc.ShortCommit.Subject),
 					URL:       fmt.Sprintf("%s/+/%s", c.gitRepoURL, lc.Hash),
 					Hash:      lc.Hash,
 					Timestamp: lc.Timestamp.Unix(),
