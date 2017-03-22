@@ -157,7 +157,7 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 		}
 		resp, err = t.Transport.RoundTrip(req)
 		if err != nil {
-			return fmt.Errorf("Error while making the round trip: %s", err)
+			return fmt.Errorf("Error while making the round trip to %s: %s", req.URL, err)
 		}
 		if resp != nil {
 			if resp.StatusCode >= 500 && resp.StatusCode <= 599 {
