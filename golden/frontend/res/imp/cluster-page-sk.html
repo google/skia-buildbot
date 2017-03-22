@@ -45,17 +45,21 @@
       .searchControlsWrapper {
         padding: 1em 0 0 1em;
       }
+
+      .clusterRendering {
+        min-width: 500pt;
+      }
     </style>
     <div class="vertical layout">
     <div class="searchControlsWrapper">
       <search-controls-sk id="searchControls"></search-controls-sk>
     </div>
     <div id="clusterContainer" class="horizontal layout">
-      <div class="flex">
+      <div class="clusterRendering">
         <activity-sk id="activityMain"></activity-sk>
         <cluster-sk id="clusterView" disabled="{{_zooming}}"></cluster-sk>
       </div>
-      <div class="flex">
+      <div>
         <paper-tabs id="tabs" selected={{_currentTab}}>
           <paper-tab>Parameters</paper-tab>
           <paper-tab>Details</paper-tab>
