@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "075dac26_79dbf16c",
+        "filename": "task_scheduler/go/scheduling/pubsub.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-22T15:26:19Z",
+      "side": 1,
+      "message": "Why is that?  I don\u0027t know if Cloud PubSub would respect those, but StatusTooManyRequests might cause the messages to be throttled, which we don\u0027t want.  Changed to StatusServiceUnavailable.",
+      "parentUuid": "8df62cf4_06d8b7ac",
+      "range": {
+        "startLine": 108,
+        "startChar": 22,
+        "endLine": 108,
+        "endChar": 38
+      },
+      "revId": "51a84ba326d6240f288d9a3669b29e0b7f899f44",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "65a2a2d8_065f8e4a",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2017-03-22T15:16:39Z",
       "side": 1,
       "message": "Can we remove this now?",
+      "range": {
+        "startLine": 1654,
+        "startChar": 0,
+        "endLine": 1657,
+        "endChar": 2
+      },
+      "revId": "51a84ba326d6240f288d9a3669b29e0b7f899f44",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a167d822_fba7d81a",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1657,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-22T15:26:19Z",
+      "side": 1,
+      "message": "I\u0027d rather not.  Otherwise we\u0027re going to be doing a lot more DB transactions for very little benefit.",
+      "parentUuid": "65a2a2d8_065f8e4a",
       "range": {
         "startLine": 1654,
         "startChar": 0,
@@ -68,6 +116,30 @@
       "revId": "51a84ba326d6240f288d9a3669b29e0b7f899f44",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "be651fa0_4fe0e146",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1670,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-22T15:26:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c059b4a0_bbe5c602",
+      "range": {
+        "startLine": 1670,
+        "startChar": 32,
+        "endLine": 1670,
+        "endChar": 43
+      },
+      "revId": "51a84ba326d6240f288d9a3669b29e0b7f899f44",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
