@@ -1,5 +1,5 @@
 ---
-- hosts: 127.0.0.1
+- hosts: all
   connection: local
   remote_user: chrome-bot
   become_user: root

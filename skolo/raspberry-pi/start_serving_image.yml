@@ -1,5 +1,5 @@
 ---
-- hosts: 127.0.0.1
+- hosts: all
   connection: local
   remote_user: chrome-bot
   become_user: root
@@ -28,5 +28,5 @@
     - lineinfile: dest=/etc/cron.d/opt_raspberrypi_root line="* * * * * root /bin/mount {{nfs_mount_point}}/root" create=yes state=present
 
     # Remount these at startup
-    - lineinfile: dest=/etc/rc.local line="mount {{nfs_mount_point}}/root" insertbefore="exit 0"
-    - lineinfile: dest=/etc/rc.local line="mount {{nfs_mount_point}}/boot" insertbefore="exit 0"
+    - lineinfile: dest=/etc/rc.local line="mount {{nfs_mount_point}}/root" insertbefore="exit 0" create=yes
+    - lineinfile: dest=/etc/rc.local line="mount {{nfs_mount_point}}/boot" insertbefore="exit 0" create=yes

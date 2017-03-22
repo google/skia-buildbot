@@ -17,7 +17,7 @@ The basic setup looks like:
 ![master-design](../img/master-design.png)
 
 The master and the spare can theoretically be run on any OS that supports NSF mounting and systemd.
-They are currently running Ubuntu 16.04.  16.04 is the first LTS release that supports systemd.
+They are currently running Ubuntu 16.10.  16.04 was the first LTS release that supports systemd.
 Make the username chrome-bot and use the buildbot password from Valentine.
 The hostnames should be skia-rpi-master and skia-rpi-master-spare.
 ```
@@ -30,12 +30,13 @@ ansible-playbook -i "localhost," -c local setup_master.yml
 
 # If you were setting up the spare, you would use spare.interfaces
 sudo cp master.interfaces /etc/network/interfaces
-sudo chmod 644 /etc/network/interfaces
+sudo chmod 0644 /etc/network/interfaces
 ```
 At this point, the steps get a bit hard to script, but we are nearly done.
-Generate a service-account.json and put it in /home/chrome-bot.
 Bootstrap pulld by downloading a recent .deb and installing it with `sudo dpkg -i pulld.deb`
 I also suggest putting the jump host's ssh public key in ~/.ssh/authorized_keys.
+
+If the device has built in wifi, we want to disable it with `sudo nmcli radio wifi off`
 
 
 ## Loading a pre-existing image
