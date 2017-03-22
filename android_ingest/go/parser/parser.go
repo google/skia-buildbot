@@ -3,9 +3,11 @@
 package parser
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"strconv"
 	"strings"
 
@@ -61,7 +63,12 @@ func New(lookup Lookup, branch string) *Converter {
 
 // Covert the serialize *Incoming JSON into an *ingestcommon.BenchData.
 func (c *Converter) Convert(incoming io.Reader) (*ingestcommon.BenchData, error) {
-	in, err := Parse(incoming)
+	b, err := ioutil.ReadAll(incoming)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to read during convert: %s", err)
+	}
+	reader := bytes.NewReader(b)
+	in, err := Parse(reader)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse during convert: %s", err)
 	}
@@ -146,6 +153,9 @@ func (c *Converter) Convert(incoming io.Reader) (*ingestcommon.BenchData, error)
 			"name":    parts[0],
 			"subtest": parts[1],
 		}
+	}
+	if len(benchData.Results) == 0 {
+		sklog.Warningf("Failed to extract any data from incoming file: %q", string(b))
 	}
 
 	return benchData, nil
