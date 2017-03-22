@@ -7,14 +7,19 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
+	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
@@ -68,6 +73,16 @@ var (
 		"fuzzer/res/imp",
 		"status/res/imp",
 	}
+
+	// goTestRegexp is a regular expression used for finding the durations
+	// of tests.
+	goTestRegexp = regexp.MustCompile("--- (\\w+):\\s+(\\w+)\\s+\\((.+)\\)")
+
+	// Flags.
+
+	// writeTimings is a file in which to write the test timings in JSON
+	// format.
+	writeTimings = flag.String("write_timings", "", "JSON file in which to write the test timings.")
 )
 
 // cmdTest returns a test which runs a command and fails if the command fails.
@@ -75,7 +90,7 @@ func cmdTest(cmd []string, cwd, name, testType string) *test {
 	return &test{
 		Name: name,
 		Cmd:  strings.Join(cmd, " "),
-		run: func() (error, string) {
+		run: func() (string, error) {
 			command := exec.Command(cmd[0], cmd[1:]...)
 			if cwd != "" {
 				command.Dir = cwd
@@ -83,10 +98,10 @@ func cmdTest(cmd []string, cwd, name, testType string) *test {
 			output, err := command.CombinedOutput()
 			if err != nil {
 				if _, err2 := exec.LookPath(cmd[0]); err2 != nil {
-					return fmt.Errorf(ERR_NEED_INSTALL, cmd[0], err), string(output)
+					return string(output), fmt.Errorf(ERR_NEED_INSTALL, cmd[0], err)
 				}
 			}
-			return err, string(output)
+			return string(output), err
 		},
 		Type: testType,
 	}
@@ -97,14 +112,14 @@ func polylintTest(cwd, fileName string) *test {
 	return &test{
 		Name: fmt.Sprintf("polylint in %s", filepath.Join(cwd, fileName)),
 		Cmd:  strings.Join(cmd, " "),
-		run: func() (error, string) {
+		run: func() (string, error) {
 			command := exec.Command(cmd[0], cmd[1:]...)
 			outputBytes, err := command.Output()
 			if err != nil {
 				if _, err2 := exec.LookPath(cmd[0]); err2 != nil {
-					return fmt.Errorf(ERR_NEED_INSTALL, cmd[0], err), string(outputBytes)
+					return string(outputBytes), fmt.Errorf(ERR_NEED_INSTALL, cmd[0], err)
 				}
-				return err, string(outputBytes)
+				return string(outputBytes), err
 			}
 
 			unresolvedProblems := ""
@@ -113,7 +128,7 @@ func polylintTest(cwd, fileName string) *test {
 			for s := bufio.NewScanner(bytes.NewBuffer(outputBytes)); s.Scan(); {
 				badFileLine := s.Text()
 				if !s.Scan() {
-					return fmt.Errorf("Unexpected end of polylint output after %q:\n%s", badFileLine, string(outputBytes)), string(outputBytes)
+					return string(outputBytes), fmt.Errorf("Unexpected end of polylint output after %q:\n%s", badFileLine, string(outputBytes))
 				}
 				problemLine := s.Text()
 				if !strings.Contains(unresolvedProblems, badFileLine) {
@@ -123,9 +138,9 @@ func polylintTest(cwd, fileName string) *test {
 			}
 
 			if unresolvedProblems == "" {
-				return nil, ""
+				return "", nil
 			}
-			return fmt.Errorf("%d unresolved polylint problems:\n%s\n", count, unresolvedProblems), ""
+			return "", fmt.Errorf("%d unresolved polylint problems:\n%s\n", count, unresolvedProblems)
 		},
 		Type: testutils.LARGE_TEST,
 	}
@@ -144,8 +159,8 @@ func polylintTestsForDir(cwd string, fileNames ...string) []*test {
 			&test{
 				Name: filepath.Join(cwd, "make"),
 				Cmd:  filepath.Join(cwd, "make"),
-				run: func() (error, string) {
-					return fmt.Errorf("Could not build Polymer files in %s: %s", cwd, err), ""
+				run: func() (string, error) {
+					return "", fmt.Errorf("Could not build Polymer files in %s: %s", cwd, err)
 				},
 				Type: testutils.LARGE_TEST,
 			},
@@ -158,7 +173,8 @@ func polylintTestsForDir(cwd string, fileNames ...string) []*test {
 	return tests
 }
 
-// findPolymerFiles returns all files that probably contain polymer content (i.e. end with sk.html) in a given directory.
+// findPolymerFiles returns all files that probably contain polymer content
+// (i.e. end with sk.html) in a given directory.
 func findPolymerFiles(dirPath string) []string {
 	dir := fileutil.MustOpen(dirPath)
 	files := make([]string, 0)
@@ -183,7 +199,29 @@ func polylintTests() []*test {
 func goTest(cwd string, testType string, args ...string) *test {
 	cmd := []string{"go", "test", "-v", "./go/...", "-parallel", "1"}
 	cmd = append(cmd, args...)
-	return cmdTest(cmd, cwd, fmt.Sprintf("go tests (%s) in %s", testType, cwd), testType)
+	t := cmdTest(cmd, cwd, fmt.Sprintf("go tests (%s) in %s", testType, cwd), testType)
+
+	// Go tests print out their own timings. Parse them to obtain individual
+	// test times.
+	t.duration = func() map[string]time.Duration {
+		rv := map[string]time.Duration{}
+		split := strings.Split(t.output, "\n")
+		for _, line := range split {
+			m := goTestRegexp.FindStringSubmatch(line)
+			if len(m) == 4 {
+				if m[1] == "PASS" || m[1] == "FAIL" {
+					d, err := time.ParseDuration(m[3])
+					if err != nil {
+						sklog.Errorf("Got invalid test duration: %q", m[3])
+						continue
+					}
+					rv[m[2]] = d
+				}
+			}
+		}
+		return rv
+	}
+	return t
 }
 
 // goTestSmall returns a test which runs `go test --small` in the given cwd.
@@ -209,14 +247,32 @@ func pythonTest(testPath string) *test {
 
 // test is a struct which represents a single test to run.
 type test struct {
+	// Name is the human-friendly name of the test.
 	Name string
-	Cmd  string
-	run  func() (error, string)
+
+	// Cmd is the command to run.
+	Cmd string
+
+	// duration is a function which returns the duration(s) of the test(s).
+	duration func() map[string]time.Duration
+
+	// output contains the output from the command. It is only populated
+	// after Run() is called.
+	output string
+
+	// run is a function used to run the test. It returns any error and the
+	// output of the test.
+	run func() (string, error)
+
+	// totalTime is the duration of the test, populated after Run().
+	totalTime time.Duration
+
+	// Type is the small/medium/large categorization of the test.
 	Type string
 }
 
 // Run executes the function for the given test and returns an error if it fails.
-func (t test) Run() error {
+func (t *test) Run() error {
 	if !util.In(t.Type, testutils.TEST_TYPES) {
 		sklog.Fatalf("Test %q has invalid type %q", t.Name, t.Type)
 	}
@@ -225,12 +281,24 @@ func (t test) Run() error {
 		return nil
 	}
 
-	defer timer.New(t.Name).Stop()
-	err, output := t.run()
+	started := time.Now()
+	defer func() {
+		t.totalTime = time.Now().Sub(started)
+	}()
+	output, err := t.run()
 	if err != nil {
 		return fmt.Errorf(TEST_FAILURE, t.Name, t.Cmd, err, output)
 	}
+	t.output = output
 	return nil
+}
+
+// Duration returns the duration(s) of the test(s) which ran.
+func (t *test) Duration() map[string]time.Duration {
+	if t.duration == nil {
+		return map[string]time.Duration{t.Name: t.totalTime}
+	}
+	return t.duration()
 }
 
 // Find and run tests.
@@ -312,24 +380,24 @@ func main() {
 	tests = append(tests, &test{
 		Name: "goimports",
 		Cmd:  strings.Join(goimportsCmd, " "),
-		run: func() (error, string) {
+		run: func() (string, error) {
 			command := exec.Command(goimportsCmd[0], goimportsCmd[1:]...)
 			output, err := command.Output()
 			outStr := strings.Trim(string(output), "\n")
 			if err != nil {
 				if _, err2 := exec.LookPath(goimportsCmd[0]); err2 != nil {
-					return fmt.Errorf(ERR_NEED_INSTALL, goimportsCmd[0], err), outStr
+					return outStr, fmt.Errorf(ERR_NEED_INSTALL, goimportsCmd[0], err)
 				}
 				// Sometimes goimports returns exit code 2, but gives no reason.
 				if outStr != "" {
-					return err, fmt.Sprintf("goimports output: %q", outStr)
+					return fmt.Sprintf("goimports output: %q", outStr), err
 				}
 			}
 			diffFiles := strings.Split(outStr, "\n")
 			if len(diffFiles) > 0 && !(len(diffFiles) == 1 && diffFiles[0] == "") {
-				return fmt.Errorf("goimports found diffs in the following files:\n  - %s", strings.Join(diffFiles, ",\n  - ")), outStr
+				return outStr, fmt.Errorf("goimports found diffs in the following files:\n  - %s", strings.Join(diffFiles, ",\n  - "))
 			}
-			return nil, ""
+			return "", nil
 
 		},
 		Type: testutils.MEDIUM_TEST,
@@ -352,6 +420,28 @@ func main() {
 		}(t)
 	}
 	wg.Wait()
+
+	// Collect test durations.
+	durations := map[string]time.Duration{}
+	for _, t := range tests {
+		for k, v := range t.Duration() {
+			if _, ok := durations[k]; ok {
+				sklog.Errorf("Duplicate test name %q; not keeping timing.", k)
+				continue
+			}
+			durations[k] = v
+		}
+	}
+	if *writeTimings != "" {
+		b, err := json.MarshalIndent(durations, "", "  ")
+		if err != nil {
+			errors["encode output"] = err
+		} else {
+			if err := ioutil.WriteFile(*writeTimings, b, os.ModePerm); err != nil {
+				errors["write output"] = err
+			}
+		}
+	}
 	if len(errors) > 0 {
 		for _, e := range errors {
 			sklog.Error(e)
