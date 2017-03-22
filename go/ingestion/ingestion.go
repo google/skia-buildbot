@@ -213,6 +213,7 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 					return
 				}
 
+				sklog.Infof("Sending pollChan from %s for %d files.", source.ID(), len(resultFiles))
 				// Indicate that the polling was successful.
 				srcMetrics.pollError.Update(0)
 				for len(resultFiles) > 0 {
@@ -272,7 +273,6 @@ func (i *Ingester) addToProcessedFiles(md5s []string) {
 
 // processResults ingests a set of result files.
 func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetrics *processMetrics) {
-	sklog.Infof("Start ingester: %s", i.id)
 
 	var mutex sync.Mutex // Protects access to the following vars.
 	processedMD5s := make([]string, 0, len(resultFiles))
@@ -337,12 +337,6 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 	} else {
 		i.addToProcessedFiles(processedMD5s)
 	}
-
-	// Make sure that the finish message is output after all processing messages
-	// are done.
-	sklog.Flush()
-	sklog.Infof("Finish ingester: %s", i.id)
-	sklog.Flush()
 }
 
 // saveFileAsync asynchronously saves the given result file to disk.
