@@ -14,11 +14,13 @@ const (
 )
 
 type (
-	NodeType      int
-	RowsFromQuery func(q string) (Rows, error)
-)
+	// Rows are what calculations operate over.
+	//        map[group]map[traceid][]float32
+	Rows map[string]map[string][]float32
 
-type Rows map[string][]float32
+	NodeType      int
+	RowsFromQuery func(q, groupby string) (Rows, error)
+)
 
 func newRow(rows Rows) []float32 {
 	if len(rows) == 0 {
