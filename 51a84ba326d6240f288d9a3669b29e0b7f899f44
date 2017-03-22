@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9f41d9e2_6c4e0a03",
+        "filename": "task_scheduler/go/scheduling/pubsub.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-22T16:45:28Z",
+      "side": 1,
+      "message": "Sorry, I should have mentioned that this doesn\u0027t matter at all.\n\nPubSub treats any non-2xx response the same way -- it throttles the QPS by half.\n\nBadRequest means the client provided a malformed request, which isn\u0027t really appropriate. I could imagine seeing that error code in the logs and thinking something is wrong with the request, when that isn\u0027t the case. Other than that, it doesn\u0027t matter.",
+      "parentUuid": "075dac26_79dbf16c",
+      "range": {
+        "startLine": 108,
+        "startChar": 22,
+        "endLine": 108,
+        "endChar": 38
+      },
+      "revId": "51a84ba326d6240f288d9a3669b29e0b7f899f44",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "65a2a2d8_065f8e4a",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
