@@ -39,11 +39,12 @@ const (
 
 // flags
 var (
-	grpcPort = flag.String("grpc_port", ":8000", "Port on which to run the buildbot data gRPC server.")
-	httpPort = flag.String("http_port", ":8001", "Port on which to run the HTTP server.")
-	local    = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	workdir  = flag.String("workdir", ".", "Working directory used by data processors.")
+	grpcPort           = flag.String("grpc_port", ":8000", "Port on which to run the buildbot data gRPC server.")
+	httpPort           = flag.String("http_port", ":8001", "Port on which to run the HTTP server.")
+	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
+	workdir            = flag.String("workdir", ".", "Working directory used by data processors.")
 )
 
 var (
@@ -344,6 +345,11 @@ func main() {
 			}
 		}
 	}()
+
+	// Jobs metrics.
+	if err := StartJobMetrics(*taskSchedulerDbUrl, context.Background()); err != nil {
+		sklog.Fatal(err)
+	}
 
 	// Run a backup server.
 	go func() {
