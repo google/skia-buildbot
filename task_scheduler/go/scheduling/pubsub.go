@@ -101,10 +101,11 @@ func RegisterPubSubServer(s *TaskScheduler, r *mux.Router) {
 			return
 		}
 
-		if err := s.updateTaskFromSwarming(t.SwarmingTaskId); err != nil {
-			httputils.ReportError(w, r, err, "Failed to process Swarming task.")
-			return
+		ack := s.updateTaskFromSwarmingPubSub(t.SwarmingTaskId)
+		if ack {
+			w.WriteHeader(http.StatusOK)
+		} else {
+			w.WriteHeader(http.StatusServiceUnavailable)
 		}
-		w.WriteHeader(http.StatusOK)
 	}).Methods(http.MethodPost)
 }

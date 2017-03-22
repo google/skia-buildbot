@@ -1642,16 +1642,18 @@ func validateAndUpdateTask(d db.TaskDB, task *db.Task) error {
 }
 
 // updateTaskFromSwarming loads the given Swarming task ID from Swarming and
-// updates the associated db.Task in the database.
-func (s *TaskScheduler) updateTaskFromSwarming(swarmingTaskId string) error {
+// updates the associated db.Task in the database. Returns a bool indicating
+// whether the pubsub message should be acknowledged.
+func (s *TaskScheduler) updateTaskFromSwarmingPubSub(swarmingTaskId string) bool {
 	// Obtain the Swarming task data.
 	res, err := s.swarming.SwarmingService().Task.Result(swarmingTaskId).Do()
 	if err != nil {
-		return err
+		sklog.Errorf("pubsub: Failed to retrieve task from Swarming: %s", err)
+		return true
 	}
 	// Skip unfinished tasks.
 	if res.CompletedTs == "" {
-		return nil
+		return true
 	}
 	// Update the task in the DB.
 	if err := db.UpdateDBFromSwarmingTask(s.db, res); err != nil {
@@ -1660,7 +1662,17 @@ func (s *TaskScheduler) updateTaskFromSwarming(swarmingTaskId string) error {
 			if err != nil {
 				id = "<MISSING ID TAG>"
 			}
+			created, err := swarming.ParseTimestamp(res.CreatedTs)
+			if err != nil {
+				sklog.Errorf("Failed to parse timestamp: %s; %s", res.CreatedTs, err)
+				return true
+			}
+			if time.Now().Sub(created) < 2*time.Minute {
+				sklog.Infof("Failed to update task %q: No such task ID: %q. Less than two minutes old; try again later.", swarmingTaskId, id)
+				return false
+			}
 			sklog.Errorf("Failed to update task %q: No such task ID: %q", swarmingTaskId, id)
+			return true
 		} else if err == db.ErrUnknownId {
 			expectedSwarmingTaskId := "<unknown>"
 			id, err := swarming.GetTagValue(res, db.SWARMING_TAG_ID)
@@ -1670,14 +1682,17 @@ func (s *TaskScheduler) updateTaskFromSwarming(swarmingTaskId string) error {
 				t, err := s.db.GetTaskById(id)
 				if err != nil {
 					sklog.Errorf("Failed to update task %q; mismatched ID and failed to retrieve task from DB: %s", swarmingTaskId, err)
+					return true
 				} else {
 					expectedSwarmingTaskId = t.SwarmingTaskId
 				}
 			}
 			sklog.Errorf("Failed to update task %q: Task %s has a different Swarming task ID associated with it: %s", swarmingTaskId, id, expectedSwarmingTaskId)
+			return true
 		} else {
-			return fmt.Errorf("Failed to update task %q: %s", swarmingTaskId, err)
+			sklog.Errorf("Failed to update task %q: %s", swarmingTaskId, err)
+			return true
 		}
 	}
-	return nil
+	return true
 }
