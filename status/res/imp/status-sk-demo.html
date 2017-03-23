@@ -31,7 +31,7 @@
       time: "2016-03-22T14:59:20.226445862Z",
       user: "bob@example.com",
     }
-   data.builds["113d05fa7b26797e3e468f78ea94a214476b63fb"]["Build-Mac-Clang-Arm7-Debug-iOS_NoBuildbot"].comments=[mockComment];
+   data.builds["3849b64cbbdb7db6d5d4af44479b2d7c5bf5e6c7"]["Perf-Android-Clang-PixelC-GPU-TegraX1-arm64-Release-Android_Skpbench"].comments=[mockComment];
 
 
     var dataCalls = 0;
@@ -61,6 +61,8 @@
     server.respondWith("GET","https://gold.skia.org/json/trstatus", JSON.stringify(gold));
     var perf = {"alerts":1};
     server.respondWith("GET","/json/perfAlerts", JSON.stringify(perf));
+
+    server.respondWith("POST", "https://task-scheduler.skia.org/json/trigger", JSON.stringify(["id1", "id2"]));
 
 
     // Mocked external requests
