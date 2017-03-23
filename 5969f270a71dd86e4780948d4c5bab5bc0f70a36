@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bf29e3a5_465c5b91",
+        "filename": "golden/frontend/res/imp/newsearch-page-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-23T13:34:56Z",
+      "side": 1,
+      "message": "It does not appear you use data in this function.",
+      "range": {
+        "startLine": 371,
+        "startChar": 24,
+        "endLine": 371,
+        "endChar": 28
+      },
+      "revId": "5969f270a71dd86e4780948d4c5bab5bc0f70a36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
