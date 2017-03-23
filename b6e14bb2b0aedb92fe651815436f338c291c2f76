@@ -45,6 +45,30 @@
       "revId": "b6e14bb2b0aedb92fe651815436f338c291c2f76",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59a3e9c2_e9cf50f9",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-03-23T18:22:32Z",
+      "side": 1,
+      "message": "Yes, because we should only have one login cookie from skia.org for all sub-domains.",
+      "parentUuid": "6d9618c8_7d9c925b",
+      "range": {
+        "startLine": 248,
+        "startChar": 1,
+        "endLine": 248,
+        "endChar": 25
+      },
+      "revId": "b6e14bb2b0aedb92fe651815436f338c291c2f76",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
