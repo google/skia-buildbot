@@ -392,6 +392,7 @@ func (r *AutoRoller) updateCurrentRoll() error {
 	return r.recent.Update(updated)
 }
 
+// TODO(rmistry): Things have to change here.
 // retrieveRoll obtains the given DEPS roll from the codereview server.
 func (r *AutoRoller) retrieveRoll(issueNum int64) (*autoroll.AutoRollIssue, error) {
 	var a *autoroll.AutoRollIssue
