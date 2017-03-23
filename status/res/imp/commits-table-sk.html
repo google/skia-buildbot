@@ -154,12 +154,10 @@
               Trigger a Job
             </paper-button>
           </a>
-          <a href$="{{_retry_purple_url}}" target="_blank" class="nodecorate" rel="noopener">
-            <paper-button raised>
-              <iron-icon icon="icons:autorenew"></iron-icon>
-              Re-Run Purple Jobs
-            </paper-button>
-          </a>
+          <paper-button raised on-click="_retryPurpleBuilds">
+            <iron-icon icon="icons:autorenew"></iron-icon>
+            Re-Run Purple Jobs
+          </paper-button>
         </div>
       </div>
 
@@ -284,10 +282,6 @@
             return ["author", "subject"];
           }
         },
-        _retry_purple_url: {
-          type: String,
-          computed: "_getRetryPurpleUrl(task_scheduler_url, purple_builds.*)",
-        },
         _short_filters: {
           type: Array,
           value: function(){
@@ -312,8 +306,22 @@
         // index 0 is the short name, index 1 is the description
         return PRETTY_FILTER_LABELS[key][1];
       },
-      _getRetryPurpleUrl: function() {
-        var url = this.task_scheduler_url + "/trigger?";
+      _getTriggerJobUrl: function() {
+        return this.task_scheduler_url + "/trigger";
+      },
+
+      _retryPurpleBuilds: function() {
+        var url = this.task_scheduler_url + "/json/trigger";
+        var body = JSON.stringify(this.purple_builds);
+        console.log("POST " + url + ": " + body);
+        sk.post(url, body).then(JSON.parse).then(function(jobIds) {
+          // TODO(borenet): Display a list of triggered tasks.
+          for (var i = 0; i < jobIds.length; i++) {
+            console.log("Triggered job: " + jobIds[i]);
+          }
+        }.bind(this), function(err) {
+          sk.errorMessage("Failed to trigger tasks: " + err);
+        });
         for (var i = 0; i < this.purple_builds.length; i++) {
           url += "job=" + this.purple_builds[i];
           if (i !== this.purple_builds.length - 1) {
@@ -321,9 +329,6 @@
           }
         }
         return url;
-      },
-      _getTriggerJobUrl: function() {
-        return this.task_scheduler_url + "/trigger";
       },
 
       _setFilterToSearch: function() {
