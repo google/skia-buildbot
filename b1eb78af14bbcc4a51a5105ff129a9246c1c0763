@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "af8a2fcb_461e47e1",
+        "filename": "status/res/imp/commits-table-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-23T19:38:32Z",
+      "side": 1,
+      "message": "That\u0027s good.  Having to use functions results in less-readable code.",
+      "parentUuid": "e820db86_7324aa5a",
+      "range": {
+        "startLine": 170,
+        "startChar": 19,
+        "endLine": 170,
+        "endChar": 62
+      },
+      "revId": "b1eb78af14bbcc4a51a5105ff129a9246c1c0763",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "365e5638_322a93db",
         "filename": "status/res/imp/commits-table-sk.html",
         "patchSetId": 2
@@ -93,6 +117,30 @@
       "revId": "b1eb78af14bbcc4a51a5105ff129a9246c1c0763",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d400305c_238e3320",
+        "filename": "status/res/imp/commits-table-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-23T19:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "365e5638_322a93db",
+      "range": {
+        "startLine": 310,
+        "startChar": 19,
+        "endLine": 310,
+        "endChar": 24
+      },
+      "revId": "b1eb78af14bbcc4a51a5105ff129a9246c1c0763",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
