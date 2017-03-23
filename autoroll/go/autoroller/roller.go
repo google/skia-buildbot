@@ -305,6 +305,7 @@ func (r *AutoRoller) addIssueComment(issue *autoroll.AutoRollIssue, msg string) 
 	return r.recent.Update(updated)
 }
 
+// rmistry: CHANGE CHANGE CHANGE
 // setDryRun sets the CQ dry run bit on the issue.
 func (r *AutoRoller) setDryRun(issue *autoroll.AutoRollIssue, dryRun bool) error {
 	if r.doGerrit {
@@ -404,6 +405,7 @@ func (r *AutoRoller) retrieveRoll(issueNum int64) (*autoroll.AutoRollIssue, erro
 		if err != nil {
 			return nil, fmt.Errorf("Failed to convert issue format: %s", err)
 		}
+		// rmistry: Change
 		tryResults, err := autoroll.GetTryResultsFromGerrit(r.gerrit, a)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to retrieve try results: %s", err)
@@ -473,6 +475,7 @@ func (r *AutoRoller) makeRollResult(roll *autoroll.AutoRollIssue) string {
 	return autoroll.ROLL_RESULT_FAILURE
 }
 
+// rmistry: Logs of things need to change here.
 // doAutoRollInner does the actual work of the AutoRoll.
 func (r *AutoRoller) doAutoRollInner() (string, error) {
 	r.runningMtx.Lock()

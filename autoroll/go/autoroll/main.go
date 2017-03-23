@@ -72,6 +72,7 @@ func getSheriff() ([]string, error) {
 		return nil, err
 	}
 	if *doGerrit {
+		// rmistry: Skip this hack for Android.
 		for i, s := range emails {
 			emails[i] = strings.Replace(s, "google.com", "chromium.org", 1)
 		}
@@ -237,6 +238,7 @@ func main() {
 	var r *rietveld.Rietveld
 	var g *gerrit.Gerrit
 	if *doGerrit {
+		// rmistry: Change the below and reuse it!
 		g, err = gerrit.NewGerrit(gerrit.GERRIT_CHROMIUM_URL, path.Join(*workdir, ".gitcookies"), nil)
 		if err != nil {
 			sklog.Fatalf("Failed to create Gerrit client: %s", err)
@@ -261,6 +263,7 @@ func main() {
 	}
 	sklog.Infof("Sheriff: %s", strings.Join(emails, ", "))
 
+	// rmistry: This is where it starts!
 	// Start the autoroller.
 	arb, err = autoroller.NewAutoRoller(*workdir, *parentRepo, *childPath, cqExtraTrybots, emails, r, g, time.Minute, 15*time.Minute, *depot_tools, *doGerrit, *strategy)
 	if err != nil {
