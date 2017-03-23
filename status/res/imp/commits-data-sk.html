@@ -778,7 +778,14 @@
           for (var buildNum in this.builds[builderName]) {
             var build = this.builds[builderName][buildNum];
             if (build.results === BUILDBOT_RESULT_EXCEPTION) {
-              purpleBuilds.push(builderName + "@" + build.got_revision);
+              // TODO(borenet): This is a bit of a hack.
+              // Jobs are named after build, test, or perf tasks, but not
+              // uploads. If this is an upload, trim the prefix.
+              var jobName = builderName;
+              if (jobName.startsWith("Upload-")) {
+                jobName = jobName.substring("Upload-".length);
+              }
+              purpleBuilds.push(jobName + "@" + build.got_revision);
             }
           }
         }
