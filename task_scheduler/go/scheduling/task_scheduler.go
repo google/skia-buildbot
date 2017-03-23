@@ -1312,12 +1312,12 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 		wg.Add(1)
 		go func(idx int, t *db.Task) {
 			defer wg.Done()
-			swarmTask, err := s.swarming.GetTaskMetadata(t.SwarmingTaskId)
+			swarmTask, err := s.swarming.GetTask(t.SwarmingTaskId, false)
 			if err != nil {
 				errs[idx] = fmt.Errorf("Failed to update unfinished task; failed to get updated task from swarming: %s", err)
 				return
 			}
-			if err := db.UpdateDBFromSwarmingTask(s.db, swarmTask.TaskResult); err != nil {
+			if err := db.UpdateDBFromSwarmingTask(s.db, swarmTask); err != nil {
 				errs[idx] = fmt.Errorf("Failed to update unfinished task: %s", err)
 				return
 			}
@@ -1646,7 +1646,7 @@ func validateAndUpdateTask(d db.TaskDB, task *db.Task) error {
 // whether the pubsub message should be acknowledged.
 func (s *TaskScheduler) updateTaskFromSwarmingPubSub(swarmingTaskId string) bool {
 	// Obtain the Swarming task data.
-	res, err := s.swarming.SwarmingService().Task.Result(swarmingTaskId).Do()
+	res, err := s.swarming.GetTask(swarmingTaskId, false)
 	if err != nil {
 		sklog.Errorf("pubsub: Failed to retrieve task from Swarming: %s", err)
 		return true

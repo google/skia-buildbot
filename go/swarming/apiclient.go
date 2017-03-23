@@ -98,7 +98,7 @@ type ApiClient interface {
 
 	// GetTask returns a swarming.SwarmingRpcsTaskResult instance
 	// corresponding to the given Swarming task.
-	GetTask(id string) (*swarming.SwarmingRpcsTaskResult, error)
+	GetTask(id string, includePerformanceStats bool) (*swarming.SwarmingRpcsTaskResult, error)
 
 	// GetTaskMetadata returns a swarming.SwarmingRpcsTaskRequestMetadata instance
 	// corresponding to the given Swarming task.
@@ -366,9 +366,9 @@ func (c *apiClient) RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*swa
 	return c.TriggerTask(newReq)
 }
 
-func (c *apiClient) GetTask(id string) (*swarming.SwarmingRpcsTaskResult, error) {
+func (c *apiClient) GetTask(id string, includePerformanceStats bool) (*swarming.SwarmingRpcsTaskResult, error) {
 	call := c.s.Task.Result(id)
-	call.IncludePerformanceStats(true)
+	call.IncludePerformanceStats(includePerformanceStats)
 	return call.Do()
 }
 
@@ -381,7 +381,7 @@ func (c *apiClient) GetTaskMetadata(id string) (*swarming.SwarmingRpcsTaskReques
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		task, taskErr = c.GetTask(id)
+		task, taskErr = c.GetTask(id, true)
 	}()
 
 	// Get the task request.

@@ -212,7 +212,7 @@ func (c *TestClient) RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*sw
 	})
 }
 
-func (c *TestClient) GetTask(id string) (*swarming.SwarmingRpcsTaskResult, error) {
+func (c *TestClient) GetTask(id string, includePerformanceStats bool) (*swarming.SwarmingRpcsTaskResult, error) {
 	m, err := c.GetTaskMetadata(id)
 	if err != nil {
 		return nil, err
