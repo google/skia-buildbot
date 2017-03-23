@@ -173,8 +173,7 @@ func getCredentials(gitCookiesPath string) (map[string]string, error) {
 		tokens := strings.Split(line, "\t")
 		domain, xpath, key, value := tokens[0], tokens[2], tokens[5], tokens[6]
 		if xpath == "/" && key == "o" {
-			auth := strings.SplitN(value, "=", 2)
-			gitCookies[domain] = fmt.Sprintf("%s:%s", auth[0], auth[1])
+			gitCookies[domain] = value
 		}
 	}
 	return gitCookies, nil
@@ -338,10 +337,79 @@ func (g *Gerrit) Abandon(issue *ChangeInfo, message string) error {
 }
 
 func (g *Gerrit) get(suburl string, rv interface{}) error {
-	resp, err := g.client.Get(g.url + suburl)
+	// ADDED AAAAAAAA
+	req, err := http.NewRequest("GET", g.url+"/a"+suburl, nil)
+	fmt.Println("URL IS")
+	fmt.Println(g.url + suburl)
 	if err != nil {
+		return err
+	}
+	u, err := url.Parse(g.url)
+	if err != nil {
+		return err
+	}
+
+	auth := ""
+	for d, a := range g.cookies {
+		if util.CookieDomainMatch(u.Host, d) {
+			auth = a
+			cookie := http.Cookie{
+				Name:  "o",
+				Value: a,
+			}
+			req.AddCookie(&cookie)
+			break
+		}
+	}
+	if auth == "" {
+		return ErrCookiesMissing
+	}
+
+	//// rmistry experimenting with cookies here!!!!!!!!!!!
+	//cookie := http.Cookie{
+	//	Name:  "o",
+	//	Value: "git-rmistry.google.com=1/rhwxMcMtDeBjKZpg2wmXd880h9O6ZZ3iAyVaAcdCNBGlYK2ygZccWa64XeomPET0",
+	//}
+	//req.AddCookie(&cookie)
+
+	/*
+			type Cookie struct {
+			Name  string
+			Value string
+
+			Path       string    // optional
+			Domain     string    // optional
+			Expires    time.Time // optional
+			RawExpires string    // for reading cookies only
+
+			// MaxAge=0 means no 'Max-Age' attribute specified.
+			// MaxAge<0 means delete cookie now, equivalently 'Max-Age: 0'
+			// MaxAge>0 means Max-Age attribute present and given in seconds
+			MaxAge   int
+			Secure   bool
+			HttpOnly bool
+			Raw      string
+			Unparsed []string // Raw text of unparsed attribute-value pairs
+		}
+	*/
+
+	// rmistry
+	//req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(auth)))
+	//req.Header.Set("Cookie", "o="+auth)
+	//req.Header.Set("Cookie", "o=git-rmistry.google.com=1/rhwxMcMtDeBjKZpg2wmXd880h9O6ZZ3iAyVaAcdCNBGlYK2ygZccWa64XeomPET0")
+	req.Header.Set("Content-Type", "application/json")
+	// req.Header.Set("Accept-Encoding", "gzip, deflate, compress")
+	// req.Header.Set("Accept", "*/*")
+	resp, err := g.client.Do(req)
+	if err != nil {
+		//return err
 		return fmt.Errorf("Failed to GET %s: %s", g.url+suburl, err)
 	}
+
+	//resp, err := g.client.Get(g.url + suburl)
+	//if err != nil {
+	//	return fmt.Errorf("Failed to GET %s: %s", g.url+suburl, err)
+	//}
 	if resp.StatusCode == 404 {
 		return fmt.Errorf("Not a valid Issue %s", g.url+suburl)
 	}
@@ -356,6 +424,7 @@ func (g *Gerrit) get(suburl string, rv interface{}) error {
 
 	// Strip off the XSS protection chars.
 	parts := strings.SplitN(string(body), "\n", 2)
+	fmt.Println(string(body))
 
 	if len(parts) != 2 {
 		return fmt.Errorf("Reponse invalid format.")
@@ -383,6 +452,7 @@ func (g *Gerrit) post(suburl string, postData interface{}) error {
 	auth := ""
 	for d, a := range g.cookies {
 		if util.CookieDomainMatch(u.Host, d) {
+			fmt.Println("FOUND AUTH!!!!!!")
 			auth = a
 			break
 		}
@@ -390,6 +460,7 @@ func (g *Gerrit) post(suburl string, postData interface{}) error {
 	if auth == "" {
 		return ErrCookiesMissing
 	}
+	// rmistry
 	req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(auth)))
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := g.client.Do(req)
@@ -426,6 +497,13 @@ func SearchOwner(name string) *SearchTerm {
 	return &SearchTerm{
 		Key:   "owner",
 		Value: name,
+	}
+}
+
+func SearchCommit(commit string) *SearchTerm {
+	return &SearchTerm{
+		Key:   "commit",
+		Value: commit,
 	}
 }
 
