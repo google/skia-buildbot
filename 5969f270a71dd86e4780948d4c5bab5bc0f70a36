@@ -22,6 +22,30 @@
       "revId": "5969f270a71dd86e4780948d4c5bab5bc0f70a36",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b12b2e9f_5caa15db",
+        "filename": "golden/frontend/res/imp/newsearch-page-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-23T14:20:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bf29e3a5_465c5b91",
+      "range": {
+        "startLine": 371,
+        "startChar": 24,
+        "endLine": 371,
+        "endChar": 28
+      },
+      "revId": "5969f270a71dd86e4780948d4c5bab5bc0f70a36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
