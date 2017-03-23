@@ -1,14 +1,26 @@
 package ptraceingest
 
 import (
+	"fmt"
 	"strings"
 
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vec32"
 
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/ingestcommon"
 )
+
+func addValueAtKey(ret map[string]float32, subResult string, key map[string]string, value float32) error {
+	key["sub_result"] = subResult
+	keyString, err := query.MakeKey(query.ForceValid(key))
+	if err != nil {
+		return fmt.Errorf("Invalid structured key %v: %s", key, err)
+	}
+	ret[keyString] = value
+	return nil
+}
 
 // getValueMap returns a map[string]float32 of trace keys and their new values
 // from the given BenchData.
@@ -38,7 +50,26 @@ func getValueMap(b *ingestcommon.BenchData) map[string]float32 {
 			}
 
 			for k, vi := range result {
-				if k == "options" || k == "samples" {
+				if k == "options" {
+					continue
+				}
+				if k == "samples" {
+					if slice, ok := vi.([]interface{}); ok {
+						samples := []float32{}
+						for _, vi := range slice {
+							if floatVal, ok := vi.(float64); ok {
+								samples = append(samples, float32(floatVal))
+							}
+						}
+						mean, stddev, err := vec32.MeanAndStdDev(samples)
+						cov := vec32.MISSING_DATA_SENTINEL
+						if err == nil {
+							cov = stddev / mean
+						}
+						if err := addValueAtKey(ret, "cov", key, cov); err != nil {
+							sklog.Warningf("Failed to add 'cov': %s", err)
+						}
+					}
 					continue
 				}
 				key["sub_result"] = k
@@ -47,12 +78,9 @@ func getValueMap(b *ingestcommon.BenchData) map[string]float32 {
 					sklog.Errorf("Found a non-float64 in %v", result)
 					continue
 				}
-				keyString, err := query.MakeKey(query.ForceValid(key))
-				if err != nil {
-					sklog.Errorf("Invalid structured key %v: %s", key, err)
-					continue
+				if err := addValueAtKey(ret, k, key, float32(floatVal)); err != nil {
+					sklog.Warningf("Failed to add %s: %s", k, err)
 				}
-				ret[keyString] = float32(floatVal)
 			}
 		}
 	}
