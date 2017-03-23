@@ -7,7 +7,7 @@ After=network-online.target
 ExecStart=/usr/local/bin/hotspare \
   --logtostderr \
   --prom_port=:20003 \
-  --virtual_interface "enp5s0:0" \
+  --virtual_interface "eno1:0" \
   --sync_period "10m" \
   --virtual_ip "192.168.1.100" \
   --liveness_addr "192.168.1.99:2049" \
@@ -15,7 +15,7 @@ ExecStart=/usr/local/bin/hotspare \
   --sync_local_path "/opt/rpi_img/prod.img" \
   --start_serving_playbook=/usr/local/share/hotspare/start_serving_image.yml \
   --stop_serving_playbook=/usr/local/share/hotspare/stop_serving_image.yml \
-  --service_account_path=/home/chrome-bot/service-account.json
+  --service_account_path=/usr/local/share/hotspare/service-account.json
 
 Restart=always
 User=chrome-bot
