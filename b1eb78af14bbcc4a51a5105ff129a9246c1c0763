@@ -22,6 +22,53 @@
       "revId": "b1eb78af14bbcc4a51a5105ff129a9246c1c0763",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17e18520_c7676ca0",
+        "filename": "status/res/imp/commits-table-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-23T19:34:11Z",
+      "side": 1,
+      "message": "Yeah, it\u0027s not supposed to work. A function should work though.",
+      "parentUuid": "9c07a5bf_eee5d58a",
+      "range": {
+        "startLine": 170,
+        "startChar": 19,
+        "endLine": 170,
+        "endChar": 62
+      },
+      "revId": "b1eb78af14bbcc4a51a5105ff129a9246c1c0763",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "365e5638_322a93db",
+        "filename": "status/res/imp/commits-table-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-23T19:34:11Z",
+      "side": 1,
+      "message": "nit: s/tasks/jobs/",
+      "range": {
+        "startLine": 310,
+        "startChar": 19,
+        "endLine": 310,
+        "endChar": 24
+      },
+      "revId": "b1eb78af14bbcc4a51a5105ff129a9246c1c0763",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
