@@ -32,6 +32,7 @@
 <link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="bower_components/paper-button/paper-button.html">
 <link rel="import" href="bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
 
 <link rel="import" href="activity-sk.html">
 <link rel=import href="detail-list-sk.html">
@@ -170,10 +171,10 @@
           <iron-icon icon="icons:view-agenda"></iron-icon>
         </paper-button>
       </div>
-      <div>
+      <div hidden$="[[_noMore(_allData)]]">
+        <paper-toggle-button checked="{{_triageAll}}">Triage all [[_allData.digests.length]].</paper-toggle-button>
       </div>
       <div class="buttons">
-        &quot;{{_bulkStatus}}&quot;
         <paper-button raise dialog-dismiss>Cancel</paper-button>
         <paper-button raise dialog-dismiss on-tap="_doBulkTriage" disabled="[[!_bulkStatus]]">Triage</paper-button>
       </div>
@@ -191,11 +192,14 @@
           type: Object,
           value: function() { return {}; }
         },
-
         _bulkStatus: {
           type: String,
           value: "",
           observer: "_handleBulkStatusChanged"
+        },
+        _triageAll: {
+          type: Boolean,
+          value: false
         }
       },
 
@@ -246,6 +250,7 @@
 
       _handleBulkButton: function(ev) {
         this.set("_bulkStatus", "");
+        this.set("_triageAll", false);
         this.$.bulkDialog.open();
       },
 
@@ -267,7 +272,7 @@
 
       _doBulkTriage: function(ev) {
         var targetStatus = this.$.triageControls.value;
-        var digests = this.data.digests;
+        var digests = (this._triageAll) ? this._allData.digests : this.data.digests;
         var triageList = [];
         if (targetStatus === '=') {
           for(var i=0; i < digests.length; i++) {
@@ -361,6 +366,10 @@
 
       _noResult: function(data) {
         return !data.digests;
+      },
+
+      _noMore: function(allData) {
+        return (allData.digests && allData.digests.length <= allData.size);
       }
     });
   </script>
