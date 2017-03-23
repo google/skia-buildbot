@@ -51,10 +51,14 @@
 <link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="/res/imp/bower_components/iron-icons/communication-icons.html">
 <link rel="import" href="/res/imp/bower_components/iron-icons/image-icons.html">
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
+<link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <link rel="import" href="/res/imp/bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="/res/imp/bower_components/paper-radio-button/paper-radio-button.html">
-<link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
+
+
+<link rel="import" href="/res/common/imp/confirm-dialog-sk.html">
 
 <link rel="import" href="commits-table-d3-sk.html">
 
@@ -120,6 +124,7 @@
       }
     </style>
 
+    <confirm-dialog-sk id="confirm_dialog"></confirm-dialog-sk>
     <div>
       <div id="filterWrapper">
         <div class="filters">
@@ -154,12 +159,19 @@
               Trigger a Job
             </paper-button>
           </a>
-          <a href$="{{_retry_purple_url}}" target="_blank" class="nodecorate" rel="noopener">
-            <paper-button raised>
-              <iron-icon icon="icons:autorenew"></iron-icon>
-              Re-Run Purple Jobs
-            </paper-button>
-          </a>
+          <paper-button raised on-click="_retryPurpleBuilds">
+            <iron-icon icon="icons:autorenew"></iron-icon>
+            Re-Run Purple Jobs
+          </paper-button>
+          <paper-dialog id="triggered_jobs_dialog" modal>
+            <h2>Triggered Jobs</h2>
+            <template is="dom-repeat" items="[[_triggered_jobs]]">
+              <p>
+                <a href$="[[task_scheduler_url]]/job/[[item]]" target="_blank" rel="noopener">[[item]]</a>
+              </p>
+            </template>
+            <paper-button dialog-confirm id="confirm_button" autofocus>Dismiss</paper-button>
+          </paper-dialog>
         </div>
       </div>
 
@@ -284,10 +296,6 @@
             return ["author", "subject"];
           }
         },
-        _retry_purple_url: {
-          type: String,
-          computed: "_getRetryPurpleUrl(task_scheduler_url, purple_builds.*)",
-        },
         _short_filters: {
           type: Array,
           value: function(){
@@ -298,6 +306,12 @@
         _trigger_job_url: {
           type: String,
           computed: "_getTriggerJobUrl(task_scheduler_url)",
+        },
+        _triggered_jobs: {
+          type: Array,
+          value: function() {
+            return [];
+          },
         },
       },
 
@@ -312,18 +326,22 @@
         // index 0 is the short name, index 1 is the description
         return PRETTY_FILTER_LABELS[key][1];
       },
-      _getRetryPurpleUrl: function() {
-        var url = this.task_scheduler_url + "/trigger?";
-        for (var i = 0; i < this.purple_builds.length; i++) {
-          url += "job=" + this.purple_builds[i];
-          if (i !== this.purple_builds.length - 1) {
-            url += "&";
-          }
-        }
-        return url;
-      },
       _getTriggerJobUrl: function() {
         return this.task_scheduler_url + "/trigger";
+      },
+
+      _retryPurpleBuilds: function() {
+        var msg = "This will trigger " + this.purple_builds.length + " jobs. Proceed?";
+        $$$('confirm-dialog-sk').open(msg).then(function() {
+          var url = this.task_scheduler_url + "/json/trigger";
+          var body = JSON.stringify(this.purple_builds);
+          sk.post(url, body).then(JSON.parse).then(function(jobIds) {
+            this.set("_triggered_jobs", jobIds);
+            this.$.triggered_jobs_dialog.open();
+          }.bind(this), function(err) {
+            sk.errorMessage("Failed to trigger tasks: " + err);
+          });
+        }.bind(this), function(){});
       },
 
       _setFilterToSearch: function() {

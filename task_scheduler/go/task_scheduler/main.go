@@ -241,6 +241,10 @@ func jsonBlacklistHandler(w http.ResponseWriter, r *http.Request) {
 
 func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*.skia.org")
+	if r.Method == "OPTIONS" {
+		return
+	}
 	if !login.IsGoogler(r) {
 		errStr := "Cannot trigger tasks; user is not a logged-in Googler."
 		httputils.ReportError(w, r, fmt.Errorf(errStr), errStr)
@@ -433,7 +437,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/json/job/{id}/cancel", jsonCancelJobHandler).Methods(http.MethodPost)
 	r.HandleFunc("/json/jobs/search", jsonJobSearchHandler)
 	r.HandleFunc("/json/task", jsonTaskHandler).Methods(http.MethodPost, http.MethodPut)
-	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods(http.MethodPost)
+	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/google2c59f97e1ced9fdc.html", googleVerificationHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))

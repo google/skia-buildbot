@@ -785,7 +785,7 @@
               if (jobName.startsWith("Upload-")) {
                 jobName = jobName.substring("Upload-".length);
               }
-              purpleBuilds.push(jobName + "@" + build.got_revision);
+              purpleBuilds.push({"name": jobName, "commit": build.got_revision});
             }
           }
         }
