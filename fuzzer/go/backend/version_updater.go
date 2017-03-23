@@ -4,29 +4,28 @@ import (
 	"fmt"
 	"strings"
 
-	"cloud.google.com/go/storage"
 	"go.skia.org/infra/fuzzer/go/aggregator"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/generator"
+	"go.skia.org/infra/fuzzer/go/storage"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
 )
 
 // VersionUpdater is a struct that will handle the updating from one version to fuzz to another
 // for the backend. It expects to have UpdateToNewSkiaVersion called with the new hash to update.
 type VersionUpdater struct {
-	storageClient *storage.Client
+	storageClient storage.FuzzerGCSClient
 	aggregator    *aggregator.Aggregator
 	// There is one of these for every fuzz category.
 	generators []*generator.Generator
 }
 
 // NewVersionUpdater creates a VersionUpdater
-func NewVersionUpdater(s *storage.Client, agg *aggregator.Aggregator, g []*generator.Generator) *VersionUpdater {
+func NewVersionUpdater(s storage.FuzzerGCSClient, agg *aggregator.Aggregator, g []*generator.Generator) *VersionUpdater {
 	return &VersionUpdater{
 		storageClient: s,
 		aggregator:    agg,
@@ -38,7 +37,7 @@ func NewVersionUpdater(s *storage.Client, agg *aggregator.Aggregator, g []*gener
 // It will stop the Generator, pause the Aggregator, update to the new version, re-scan all previous
 // fuzzes and then start the Generator and the Aggregator again.  It re-uses the Aggregator pipeline
 // to do the re-analysis.
-func (v *VersionUpdater) UpdateToNewSkiaVersion(newHash string) error {
+func (v *VersionUpdater) UpdateToNewSkiaVersion(newRevision string) error {
 	oldRevision := config.Common.SkiaVersion.Hash
 
 	// stop all afl-fuzz processes
@@ -47,8 +46,8 @@ func (v *VersionUpdater) UpdateToNewSkiaVersion(newHash string) error {
 	}
 
 	// sync skia to version, which sets config.Common.SkiaVersion
-	if err := common.DownloadSkia(newHash, config.Common.SkiaRoot, &config.Common, true); err != nil {
-		return fmt.Errorf("Could not sync skia to %s: %s", newHash, err)
+	if err := common.DownloadSkia(newRevision, config.Common.SkiaRoot, &config.Common, true); err != nil {
+		return fmt.Errorf("Could not sync skia to %s: %s", newRevision, err)
 	}
 
 	// Reanalyze all previous found fuzzes and restart with new version
@@ -67,7 +66,7 @@ func (v *VersionUpdater) UpdateToNewSkiaVersion(newHash string) error {
 		return fmt.Errorf("Could not update skia error: %s", err)
 	}
 
-	sklog.Infof("We are updated to Skia revision %s", newHash)
+	sklog.Infof("We are updated to Skia revision %s", newRevision)
 
 	return nil
 }
@@ -102,7 +101,7 @@ func (v *VersionUpdater) reanalyze(oldRevision string) error {
 
 		if config.Common.ForceReanalysis {
 			sklog.Infof("Deleting previous %s fuzz results", category)
-			if err := gcs.DeleteAllFilesInDir(v.storageClient, config.GCS.Bucket, fmt.Sprintf("%s/%s/%s", category, oldRevision, config.Generator.Architecture), config.Aggregator.NumUploadProcesses); err != nil {
+			if err := v.storageClient.DeleteAllFilesInFolder(fmt.Sprintf("%s/%s/%s", category, oldRevision, config.Generator.Architecture), config.Aggregator.NumUploadProcesses); err != nil {
 				return fmt.Errorf("Could not delete previous fuzzes: %s", err)
 			}
 		}
@@ -148,52 +147,43 @@ func (v *VersionUpdater) reanalyze(oldRevision string) error {
 
 // downloadAllBadAndGreyFuzzes downloads just the fuzzes from a commit in GCS. It uses multiple
 // processes to do so and puts them in config.Aggregator.FuzzPath/[category].
-func downloadAllBadAndGreyFuzzes(commitHash, category string, storageClient *storage.Client) (badFuzzPaths []string, greyFuzzPaths []string, err error) {
+func downloadAllBadAndGreyFuzzes(commitHash, category string, storageClient storage.FuzzerGCSClient) (badFuzzPaths []string, greyFuzzPaths []string, err error) {
 
-	bad, err := common.DownloadAllFuzzes(storageClient, config.Aggregator.FuzzPath, category, commitHash, config.Generator.Architecture, "bad", config.Generator.NumDownloadProcesses)
+	bad, err := storageClient.DownloadAllFuzzes(config.Aggregator.FuzzPath, category, commitHash, config.Generator.Architecture, "bad", config.Generator.NumDownloadProcesses)
 	if err != nil {
 		return nil, nil, err
 	}
-	grey, err := common.DownloadAllFuzzes(storageClient, config.Aggregator.FuzzPath, category, commitHash, config.Generator.Architecture, "grey", config.Generator.NumDownloadProcesses)
+	grey, err := storageClient.DownloadAllFuzzes(config.Aggregator.FuzzPath, category, commitHash, config.Generator.Architecture, "grey", config.Generator.NumDownloadProcesses)
 	return bad, grey, err
 }
 
-// replaceCurrentSkiaVersionWith puts the oldHash in skia_version/old and the newHash in
+// replaceCurrentSkiaVersionWith puts the oldHash in skia_version/old and the newRevision in
 // skia_version/current.  It also removes all pending versions.
-func (v *VersionUpdater) replaceCurrentSkiaVersionWith(oldHash, newHash string) error {
+func (v *VersionUpdater) replaceCurrentSkiaVersionWith(oldHash, newRevision string) error {
 	// delete all pending requests
-	if err := gcs.DeleteAllFilesInDir(v.storageClient, config.GCS.Bucket, "skia_version/pending/", 1); err != nil {
-		return err
-	}
-	if err := gcs.DeleteAllFilesInDir(v.storageClient, config.GCS.Bucket, "skia_version/current/", 1); err != nil {
-		return err
-	}
-	if err := v.touch(fmt.Sprintf("skia_version/current/%s", newHash)); err != nil {
-		return err
-	}
-	return v.touch(fmt.Sprintf("skia_version/old/%s", oldHash))
-}
-
-// touch creates an empty file in Google Storage of the given name.
-func (v *VersionUpdater) touch(file string) error {
-	w := v.storageClient.Bucket(config.GCS.Bucket).Object(file).NewWriter(context.Background())
-	if err := w.Close(); err != nil {
-		return fmt.Errorf("Could not touch version file %s : %s", file, err)
-	}
-	return nil
+	// if err := gcs.DeleteAllFilesInDir(v.storageClient, config.GCS.Bucket, "skia_version/pending/", 1); err != nil {
+	// 	return err
+	// }
+	// if err := gcs.DeleteAllFilesInDir(v.storageClient, config.GCS.Bucket, "skia_version/current/", 1); err != nil {
+	// 	return err
+	// }
+	// if err := v.touch(fmt.Sprintf("skia_version/current/%s", newRevision)); err != nil {
+	// 	return err
+	// }
+	// return v.touch(fmt.Sprintf("skia_version/old/%s", oldHash))
+	// TODO(kjlubick): Deal with the rolling logic
+	return fmt.Errorf("Not implemented")
 }
 
 // uploadFuzzNames creates two files in the /category/revision/architecture folder that contain all
 // of the bad fuzz names and the grey fuzz names that are in this folder
-func uploadFuzzNames(sc *storage.Client, oldRevision, category string, bad, grey []string) {
+func uploadFuzzNames(sc storage.FuzzerGCSClient, oldRevision, category string, bad, grey []string) {
 	uploadString := func(fileName, contents string) error {
 		name := fmt.Sprintf("%s/%s/%s/%s", category, oldRevision, config.Generator.Architecture, fileName)
-		w := sc.Bucket(config.GCS.Bucket).Object(name).NewWriter(context.Background())
-		defer util.Close(w)
-		w.ObjectAttrs.ContentEncoding = "text/plain"
+		opts := gcs.FileWriteOptions{ContentEncoding: "text/plain"}
 
-		if n, err := w.Write([]byte(contents)); err != nil {
-			return fmt.Errorf("There was a problem uploading %s.  Only uploaded %d bytes: %s", name, n, err)
+		if err := sc.SetFileContents(context.Background(), name, opts, []byte(contents)); err != nil {
+			return fmt.Errorf("There was a problem uploading %s. %s", name, err)
 		}
 		return nil
 	}
