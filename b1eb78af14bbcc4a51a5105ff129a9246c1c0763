@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "e820db86_7324aa5a",
+        "filename": "status/res/imp/commits-table-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-03-23T19:35:57Z",
+      "side": 1,
+      "message": "It didn\u0027t work in Polymer 1.0, but later versions added it back in.",
+      "parentUuid": "17e18520_c7676ca0",
+      "range": {
+        "startLine": 170,
+        "startChar": 19,
+        "endLine": 170,
+        "endChar": 62
+      },
+      "revId": "b1eb78af14bbcc4a51a5105ff129a9246c1c0763",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "365e5638_322a93db",
         "filename": "status/res/imp/commits-table-sk.html",
         "patchSetId": 2
