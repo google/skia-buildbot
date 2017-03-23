@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c07a5bf_eee5d58a",
+        "filename": "status/res/imp/commits-table-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-23T19:14:02Z",
+      "side": 1,
+      "message": "I seem to remember that this type of thing is illegal, but it worked for me locally...",
+      "range": {
+        "startLine": 170,
+        "startChar": 19,
+        "endLine": 170,
+        "endChar": 62
+      },
+      "revId": "b1eb78af14bbcc4a51a5105ff129a9246c1c0763",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
