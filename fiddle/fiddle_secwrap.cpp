@@ -44,10 +44,10 @@ static bool install_syscall_filter() {
         ALLOW_SYSCALL(fstatfs),
         ALLOW_SYSCALL(readlink),
         ALLOW_SYSCALL(fadvise64),
+        ALLOW_SYSCALL(clock_gettime),
         /*
         The set of sycall's needed if running against an NVIDIA GPU, YMMV.
         ALLOW_SYSCALL(mremap),
-        ALLOW_SYSCALL(clock_gettime),
         ALLOW_SYSCALL(statfs),
         ALLOW_SYSCALL(readlink),
         ALLOW_SYSCALL(getpid),
@@ -55,7 +55,7 @@ static bool install_syscall_filter() {
         TRACE_SYSCALL(execve),
         TRACE_OPENS_FOR_READS_ONLY(open, 1),
         TRACE_OPENS_FOR_READS_ONLY(openat, 2),
-        //TRACE_ALL,
+        TRACE_ALL,
         KILL_PROCESS,
     };
     struct sock_fprog prog = {
@@ -90,8 +90,8 @@ static void setLimits() {
      struct rlimit n;
 
      // Limit to 5 seconds of CPU.
-     n.rlim_cur = 5;
-     n.rlim_max = 5;
+     n.rlim_cur = 25;
+     n.rlim_max = 25;
      if (setrlimit(RLIMIT_CPU, &n)) {
          perror("setrlimit(RLIMIT_CPU)");
      }
@@ -214,6 +214,7 @@ int do_trace(pid_t child, char *allowed_exec) {
                         break;
                     }
                 }
+
                 if (!okay) {
                     perror( name );
                     CHILD_FAIL( "Invalid open." );

@@ -391,6 +391,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	maybeSecViolation := false
 	if res.Execute.Errors != "" {
+		sklog.Infof("Execution errors: %q", res.Execute.Errors)
 		maybeSecViolation = true
 		resp.RunTimeError = "Failed to run, possibly violated security container."
 	}

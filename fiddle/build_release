@@ -1,4 +1,4 @@
-#!/bin/bash
+bin/bash
 # Builds and uploads a debian package for fiddle.
 APPNAME=fiddle
 SYSTEMD=${APPNAME}.service
@@ -19,7 +19,6 @@ ${INSTALL} --mode=755 -T  fiddle_secwrap             ${ROOT}/mnt/pd0/fiddle/bin/
 ${INSTALL_DIR} --mode=755 ${ROOT}/usr/local/share/fiddle/templates
 ${INSTALL} --mode=644     ./templates/*              ${ROOT}/usr/local/share/fiddle/templates
 ${INSTALL} --mode=644 -T  ./res/js/core.js           ${ROOT}/usr/local/share/fiddle/res/js/core.js
-${INSTALL} --mode=644 -T  ./res/css/codemirror.css   ${ROOT}/usr/local/share/fiddle/res/css/codemirror.css
 ${INSTALL} --mode=644 -T  ./res/vul/elements.html    ${ROOT}/usr/local/share/fiddle/res/vul/elements.html
 }
 
