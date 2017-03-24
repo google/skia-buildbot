@@ -31,7 +31,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/metrics2"
+	//"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/util"
@@ -49,21 +49,22 @@ var (
 
 // flags
 var (
-	childName      = flag.String("childName", "Skia", "Name of the project to roll.")
-	childPath      = flag.String("childPath", "src/third_party/skia", "Path within parent repo of the project to roll.")
-	cqExtraTrybots = flag.String("cqExtraTrybots", "", "Comma-separated list of trybots to run.")
-	depot_tools    = flag.String("depot_tools", "", "Path to the depot_tools installation. If empty, assumes depot_tools is in PATH.")
-	doGerrit       = flag.Bool("gerrit", false, "Upload to Gerrit instead of Rietveld.")
-	host           = flag.String("host", "localhost", "HTTP service host")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	parentRepo     = flag.String("parent_repo", common.REPO_CHROMIUM, "Repo to roll into.")
-	port           = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
-	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	sheriff        = flag.String("sheriff", "", "Email address to CC on rolls, or URL from which to obtain such an email address.")
-	strategy       = flag.String("strategy", repo_manager.ROLL_STRATEGY_BATCH, "DEPS roll strategy; how many commits should be rolled at once.")
-	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
-	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
+	childName       = flag.String("childName", "Skia", "Name of the project to roll.")
+	childPath       = flag.String("childPath", "src/third_party/skia", "Path within parent repo of the project to roll.")
+	cqExtraTrybots  = flag.String("cqExtraTrybots", "", "Comma-separated list of trybots to run.")
+	depot_tools     = flag.String("depot_tools", "", "Path to the depot_tools installation. If empty, assumes depot_tools is in PATH.")
+	doGerrit        = flag.Bool("gerrit", false, "Upload to Gerrit instead of Rietveld.")
+	host            = flag.String("host", "localhost", "HTTP service host")
+	local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	parentRepo      = flag.String("parent_repo", common.REPO_CHROMIUM, "Repo to roll into.")
+	port            = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
+	promPort        = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	resourcesDir    = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	sheriff         = flag.String("sheriff", "", "Email address to CC on rolls, or URL from which to obtain such an email address.")
+	strategy        = flag.String("strategy", repo_manager.ROLL_STRATEGY_BATCH, "DEPS roll strategy; how many commits should be rolled at once.")
+	useMetadata     = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
+	workdir         = flag.String("workdir", ".", "Directory to use for scratch work.")
+	rollIntoAndroid = flag.Bool("roll_into_android", false, "Roll into Android; not into Chromium.")
 )
 
 func getSheriff() ([]string, error) {
@@ -71,7 +72,7 @@ func getSheriff() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	if *doGerrit {
+	if *doGerrit && !*rollIntoAndroid {
 		for i, s := range emails {
 			emails[i] = strings.Replace(s, "google.com", "chromium.org", 1)
 		}
@@ -197,18 +198,18 @@ func runServer() {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMust(
-		"autoroll",
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
-	)
+	fmt.Println("XXXXXXXXXXXXXXXx")
+	common.InitWithMust("autoroll")
+	// common.InitWithMust("autoroll", common.PrometheusOpt(promPort), common.CloudLoggingOpt())
 
 	Init()
 
+	fmt.Println("DONT DONE DONE1")
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	fmt.Println("DONT DONE DONE2")
 	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
 	if *local {
@@ -220,15 +221,11 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		user, err := user.Current()
-		if err != nil {
-			sklog.Fatal(err)
-		}
 		gitcookies, err := metadata.ProjectGet(fmt.Sprintf("gitcookies_%s", hostname))
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		if err := ioutil.WriteFile(path.Join(user.HomeDir, ".gitcookies"), []byte(gitcookies), 0600); err != nil {
+		if err := ioutil.WriteFile(path.Join(*workdir, ".gitcookies"), []byte(gitcookies), 0600); err != nil {
 			sklog.Fatal(err)
 		}
 	}
@@ -237,9 +234,30 @@ func main() {
 	var r *rietveld.Rietveld
 	var g *gerrit.Gerrit
 	if *doGerrit {
-		g, err = gerrit.NewGerrit(gerrit.GERRIT_CHROMIUM_URL, path.Join(*workdir, ".gitcookies"), nil)
-		if err != nil {
-			sklog.Fatalf("Failed to create Gerrit client: %s", err)
+		gitCookiePath := filepath.Join(*workdir, ".gitcookies")
+		if *rollIntoAndroid {
+			if !*local {
+				usr, err := user.Current()
+				if err != nil {
+					sklog.Fatal(err)
+				}
+				// Android roller uses the gitcookie created by gcompute-tools/git-cookie-authdaemon.
+				// TODO(rmistry): Turn this on via the GCE setup script so that it exists right when the instances comes up?
+				gitCookiePath = filepath.Join(usr.HomeDir, ".git-credential-cache", "cookie")
+			}
+			// TODO(rmistry): Get from metadata.
+			fmt.Println(gitCookiePath)
+			g, err = gerrit.NewGerrit("https://googleplex-android-review.googlesource.com", gitCookiePath, nil)
+			if err != nil {
+				sklog.Fatalf("Failed to create Gerrit client: %s", err)
+			}
+			// Internal instance requires GETs to be authenticated.
+			g.TurnOnAuthenticatedGets()
+		} else {
+			g, err = gerrit.NewGerrit(gerrit.GERRIT_CHROMIUM_URL, gitCookiePath, nil)
+			if err != nil {
+				sklog.Fatalf("Failed to create Gerrit client: %s", err)
+			}
 		}
 	} else {
 		client, err := auth.NewClientFromIdAndSecret(rietveld.CLIENT_ID, rietveld.CLIENT_SECRET, path.Join(*workdir, "oauth_cache"), rietveld.OAUTH_SCOPES...)
@@ -262,7 +280,7 @@ func main() {
 	sklog.Infof("Sheriff: %s", strings.Join(emails, ", "))
 
 	// Start the autoroller.
-	arb, err = autoroller.NewAutoRoller(*workdir, *parentRepo, *childPath, cqExtraTrybots, emails, r, g, time.Minute, 15*time.Minute, *depot_tools, *doGerrit, *strategy)
+	arb, err = autoroller.NewAutoRoller(*workdir, *parentRepo, *childPath, cqExtraTrybots, emails, r, g, time.Minute, 15*time.Minute, *depot_tools, *doGerrit, *rollIntoAndroid, *strategy)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -270,12 +288,12 @@ func main() {
 	// Feed AutoRoll stats into metrics.
 	go func() {
 		for _ = range time.Tick(time.Minute) {
-			status := arb.GetStatus(false)
-			v := int64(0)
-			if status.LastRoll != nil && status.LastRoll.Closed && status.LastRoll.Committed {
-				v = int64(1)
-			}
-			metrics2.GetInt64Metric("autoroll.last-roll-result", map[string]string{"child-path": *childPath}).Update(v)
+			//status := arb.GetStatus(false)
+			//v := int64(0)
+			//if status.LastRoll != nil && status.LastRoll.Closed && status.LastRoll.Committed {
+			//	v = int64(1)
+			//}
+			//metrics2.GetInt64Metric("autoroll.last-roll-result", map[string]string{"child-path": *childPath}).Update(v)
 		}
 	}()
 
