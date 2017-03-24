@@ -156,12 +156,23 @@ func (a *AutoRollIssue) ToGerritChangeInfo() (*gerrit.ChangeInfo, error) {
 func FromGerritChangeInfo(i *gerrit.ChangeInfo, fullHashFn func(string) (string, error)) (*AutoRollIssue, error) {
 	cq := false
 	dryRun := false
-	for _, lb := range i.Labels[gerrit.COMMITQUEUE_LABEL].All {
-		if lb.Value == gerrit.COMMITQUEUE_LABEL_DRY_RUN {
-			cq = true
-			dryRun = true
-		} else if lb.Value == gerrit.COMMITQUEUE_LABEL_SUBMIT {
-			cq = true
+	if _, ok := i.Labels[gerrit.AUTOSUBMIT_LABEL]; ok {
+		for _, lb := range i.Labels[gerrit.AUTOSUBMIT_LABEL].All {
+			if lb.Value == gerrit.AUTOSUBMIT_LABEL_NONE {
+				cq = true
+				dryRun = true
+			} else if lb.Value == gerrit.AUTOSUBMIT_LABEL_SUBMIT {
+				cq = true
+			}
+		}
+	} else {
+		for _, lb := range i.Labels[gerrit.COMMITQUEUE_LABEL].All {
+			if lb.Value == gerrit.COMMITQUEUE_LABEL_DRY_RUN {
+				cq = true
+				dryRun = true
+			} else if lb.Value == gerrit.COMMITQUEUE_LABEL_SUBMIT {
+				cq = true
+			}
 		}
 	}
 
@@ -180,11 +191,14 @@ func FromGerritChangeInfo(i *gerrit.ChangeInfo, fullHashFn func(string) (string,
 		Patchsets:         ps,
 		Subject:           i.Subject,
 	}
+	fmt.Println("HERE 2")
 	roll.Result = rollResult(roll)
+	fmt.Println("HERE 3")
 	from, to, err := RollRev(roll.Subject, fullHashFn)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("HERE 4")
 	roll.RollingFrom = from
 	roll.RollingTo = to
 	return roll, nil
@@ -226,6 +240,7 @@ func rollResult(roll *AutoRollIssue) string {
 	return ROLL_RESULT_IN_PROGRESS
 }
 
+// rmistry: This needs to be fixed!!!!!
 // RollRev returns the commit the given roll is rolling from and to.
 func RollRev(subject string, fullHashFn func(string) (string, error)) (string, string, error) {
 	matches := ROLL_REV_REGEX.FindStringSubmatch(subject)
