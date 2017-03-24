@@ -57,8 +57,8 @@ func main() {
 
 	// Limit total CPU seconds.
 	rLimit := &syscall.Rlimit{
-		Cur: 20,
-		Max: 20,
+		Cur: 30,
+		Max: 30,
 	}
 	if err := syscall.Setrlimit(syscall.RLIMIT_CPU, rLimit); err != nil {
 		fmt.Println("Error Setting Rlimit ", err)
@@ -120,7 +120,9 @@ func main() {
 		if res.Execute.Errors != "" {
 			res.Execute.Errors += "\n"
 		}
+		res.Execute.Errors += "Failed to decode JSON output from fiddle.\n"
 		res.Execute.Errors += err.Error()
+		res.Execute.Errors += fmt.Sprintf("\nOutput was %q", stdout.Bytes())
 	}
 
 	serializeOutput(res)
