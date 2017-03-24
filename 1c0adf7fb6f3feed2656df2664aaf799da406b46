@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0b2016c4_b728de47",
+        "filename": "datahopper/go/time_to_bot_coverage/time_to_bot_coverage.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-24T15:21:03Z",
+      "side": 1,
+      "message": "Could you add a description of what this package does ? \nCan you choose a simpler name?  time_to_bot_coverage despite it\u0027s length is not an intuitive IMO.",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 28
+      },
+      "revId": "1c0adf7fb6f3feed2656df2664aaf799da406b46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
