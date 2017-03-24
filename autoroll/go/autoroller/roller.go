@@ -67,8 +67,14 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
-func NewAutoRoller(workdir, parentRepo, childPath, cqExtraTrybots string, emails []string, rietveld *rietveld.Rietveld, gerrit *gerrit.Gerrit, tickFrequency, repoFrequency time.Duration, depot_tools string, doGerrit bool, strategy string) (*AutoRoller, error) {
-	rm, err := repo_manager.NewRepoManager(workdir, parentRepo, childPath, repoFrequency, depot_tools)
+func NewAutoRoller(workdir, parentRepo, childPath, cqExtraTrybots string, emails []string, rietveld *rietveld.Rietveld, gerrit *gerrit.Gerrit, tickFrequency, repoFrequency time.Duration, depot_tools string, doGerrit, rollIntoAndroid bool, strategy string) (*AutoRoller, error) {
+	var err error
+	var rm repo_manager.RepoManager
+	if rollIntoAndroid {
+		rm, err = repo_manager.NewAndroidRepoManager(workdir, childPath, repoFrequency, gerrit)
+	} else {
+		rm, err = repo_manager.NewRepoManager(workdir, parentRepo, childPath, repoFrequency, depot_tools, gerrit)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -104,11 +110,12 @@ func NewAutoRoller(workdir, parentRepo, childPath, cqExtraTrybots string, emails
 		return nil, err
 	}
 
-	go func() {
-		for _ = range time.Tick(tickFrequency) {
-			util.LogErr(arb.doAutoRoll())
-		}
-	}()
+	// rmistry: Temp removing this
+	//go func() {
+	//	for _ = range time.Tick(tickFrequency) {
+	//		util.LogErr(arb.doAutoRoll())
+	//	}
+	//}()
 
 	return arb, nil
 }
@@ -305,6 +312,7 @@ func (r *AutoRoller) addIssueComment(issue *autoroll.AutoRollIssue, msg string) 
 	return r.recent.Update(updated)
 }
 
+// rmistry: CHANGE CHANGE CHANGE
 // setDryRun sets the CQ dry run bit on the issue.
 func (r *AutoRoller) setDryRun(issue *autoroll.AutoRollIssue, dryRun bool) error {
 	if r.doGerrit {
@@ -313,11 +321,11 @@ func (r *AutoRoller) setDryRun(issue *autoroll.AutoRollIssue, dryRun bool) error
 			return fmt.Errorf("Failed to convert issue to Gerrit ChangeInfo: %s", err)
 		}
 		if dryRun {
-			if err := r.gerrit.SendToDryRun(info, ""); err != nil {
+			if err := r.rm.SendToGerritDryRun(info, ""); err != nil {
 				return err
 			}
 		} else {
-			if err := r.gerrit.SendToCQ(info, ""); err != nil {
+			if err := r.rm.SendToGerritCQ(info, ""); err != nil {
 				return err
 			}
 		}
@@ -395,19 +403,31 @@ func (r *AutoRoller) updateCurrentRoll() error {
 // retrieveRoll obtains the given DEPS roll from the codereview server.
 func (r *AutoRoller) retrieveRoll(issueNum int64) (*autoroll.AutoRollIssue, error) {
 	var a *autoroll.AutoRollIssue
+	fmt.Println("ABOUT TO GO INSIDE THE METHOD!")
+	fmt.Println(r)
+	fmt.Println(r.doGerrit)
+	fmt.Println(r.gerrit)
 	if r.doGerrit {
+		fmt.Println("Calling issue properties")
 		info, err := r.gerrit.GetIssueProperties(issueNum)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to get issue properties: %s", err)
 		}
+		fmt.Println("End of calling issue properties")
 		a, err = autoroll.FromGerritChangeInfo(info, r.rm.FullChildHash)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to convert issue format: %s", err)
 		}
+		fmt.Println("End of from gerrit changeifo")
+		// rmistry: Change
+		fmt.Println("Calling Get TryResults from Gerrit")
 		tryResults, err := autoroll.GetTryResultsFromGerrit(r.gerrit, a)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to retrieve try results: %s", err)
 		}
+		fmt.Println("FOUND THEsE TRYRESULTS")
+		fmt.Println(tryResults)
+		fmt.Println("DONE CALLING IT!")
 		a.TryResults = tryResults
 	} else {
 		issue, err := r.rietveld.GetIssueProperties(issueNum, true)
@@ -473,6 +493,7 @@ func (r *AutoRoller) makeRollResult(roll *autoroll.AutoRollIssue) string {
 	return autoroll.ROLL_RESULT_FAILURE
 }
 
+// rmistry: THIS IS THE PLACE WHERE THINGS NEED TO CHANGE!!
 // doAutoRollInner does the actual work of the AutoRoll.
 func (r *AutoRoller) doAutoRollInner() (string, error) {
 	r.runningMtx.Lock()
@@ -608,17 +629,22 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 		return STATUS_ERROR, fmt.Errorf("Failed to upload a new roll: %s", err)
 	}
 	sklog.Infof("Uploaded new DEPS roll: %s", r.issueUrl(uploadedNum))
+	fmt.Println("00000000000")
 	uploaded, err := r.retrieveRoll(uploadedNum)
+	fmt.Println("00000000000")
 	if err != nil {
 		return STATUS_ERROR, fmt.Errorf("Failed to retrieve uploaded roll: %s", err)
 	}
+	fmt.Println("111111111111")
 	if err := r.recent.Add(uploaded); err != nil {
 		return STATUS_ERROR, fmt.Errorf("Failed to insert uploaded roll into database: %s", err)
 	}
+	fmt.Println("2222222222222")
 
 	if r.isMode(autoroll_modes.MODE_DRY_RUN) {
 		return STATUS_DRY_RUN_IN_PROGRESS, nil
 	}
+	fmt.Println("3333333333")
 	return STATUS_IN_PROGRESS, nil
 }
 
@@ -630,5 +656,8 @@ func (r *AutoRoller) issueUrl(num int64) string {
 }
 
 func (r *AutoRoller) User() string {
+	fmt.Println("GETTING THE USER")
+	fmt.Println(r)
+	fmt.Println(r.rm)
 	return r.rm.User()
 }
