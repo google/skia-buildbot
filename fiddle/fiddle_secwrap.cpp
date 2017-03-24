@@ -214,10 +214,13 @@ int do_trace(pid_t child, char *allowed_exec) {
                         break;
                     }
                 }
+
+                /*
                 if (!okay) {
                     perror( name );
                     CHILD_FAIL( "Invalid open." );
                 }
+                */
                 free(name);
             } else if (syscall == SYS_openat) {
                 char *name = read_string( child, regs.rsi );
