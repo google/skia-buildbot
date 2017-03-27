@@ -335,7 +335,7 @@
         $$$('confirm-dialog-sk').open(msg).then(function() {
           var url = this.task_scheduler_url + "/json/trigger";
           var body = JSON.stringify(this.purple_builds);
-          sk.post(url, body).then(JSON.parse).then(function(jobIds) {
+          sk.post(url, body, null, true).then(JSON.parse).then(function(jobIds) {
             this.set("_triggered_jobs", jobIds);
             this.$.triggered_jobs_dialog.open();
           }.bind(this), function(err) {
