@@ -241,7 +241,7 @@ func jsonBlacklistHandler(w http.ResponseWriter, r *http.Request) {
 
 func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*.skia.org")
+	w.Header().Set("Access-Control-Allow-Origin", "https://status.skia.org")
 	if r.Method == "OPTIONS" {
 		return
 	}
