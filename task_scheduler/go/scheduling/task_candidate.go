@@ -230,7 +230,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 		},
 		PubsubTopic: fmt.Sprintf(PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, pubSubTopic),
 		Tags:        db.TagsForTask(c.Name, id, c.Attempt, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds),
-		User:        "skia-task-scheduler",
+		User:        "skiabot@google.com",
 	}, nil
 }
 
