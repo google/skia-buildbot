@@ -27,7 +27,7 @@ debug: clean_webtools debug_core_js debug_elements_html
 
 include ../webtools/webtools.mk
 
-release: autoroll catapult_release nacl_release pdfium_release skia_release
+release: autoroll catapult_release nacl_release pdfium_release skia_release skia_internal_release
 
 catapult_release: autoroll
 	./build_catapult_release "$(MESSAGE)"
@@ -40,3 +40,6 @@ pdfium_release: autoroll
 
 skia_release: autoroll
 	./build_skia_release "$(MESSAGE)"
+
+skia_internal_release: autoroll
+	./build_skia_internal_release "$(MESSAGE)"
