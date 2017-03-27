@@ -61,6 +61,17 @@ func TestConvert(t *testing.T) {
 	assert.Equal(t, "marlin-userdebug", benchData.Key["build_flavor"])
 }
 
+func TestConvert2(t *testing.T) {
+	testutils.SmallTest(t)
+	c := New(lookupMockGood{}, "google-angler-angler-O")
+	r := bytes.NewBufferString(INCOMING2)
+	benchData, err := c.Convert(r)
+	assert.NoError(t, err)
+	assert.Equal(t, "8dcc84f7dc8523dd90501a4feb1f632808337c34", benchData.Hash)
+	assert.Len(t, benchData.Results, 1)
+	assert.Equal(t, 5439.620216, benchData.Results["coremark"]["default"]["score"])
+}
+
 func TestConvertFailHashLookup(t *testing.T) {
 	testutils.SmallTest(t)
 	c := New(lookupMockBad{}, "google-marlin-marlin-O")
