@@ -52,6 +52,10 @@
 # identified in SYSTEMD are enabled, but not restarted.
 # This is useful if a service needs to install a package via apt-get.
 # With this delay a systemd unit is triggered after the package is installed.
+#
+# UDEV_RELOAD
+# -----------
+# If defined the post-install script will reload the udev rules.
 
 set -x
 
@@ -120,6 +124,13 @@ then
   service $INIT_SCRIPT start
 fi
 EOF
+
+if [ -n "${UDEV_RELOAD}" ]; then
+  cat <<-EOF >> ${ROOT}/DEBIAN/postinst
+/sbin/udevadm control --reload-rules
+EOF
+fi
+
 chmod 755 ${ROOT}/DEBIAN/postinst
 
 copy_release_files
