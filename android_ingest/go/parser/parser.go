@@ -9,7 +9,6 @@ import (
 	"io"
 	"io/ioutil"
 	"strconv"
-	"strings"
 
 	"go.skia.org/infra/go/sklog"
 
@@ -144,15 +143,6 @@ func (c *Converter) Convert(incoming io.Reader) (*ingestcommon.BenchData, error)
 				continue
 			}
 			benchData.Results[test]["default"][key] = f
-		}
-		parts := strings.Split(test, "#")
-		if len(parts) != 2 {
-			sklog.Errorf("Test name didn't have a single # separator: %q", test)
-			continue
-		}
-		benchData.Results[test]["default"]["options"] = map[string]string{
-			"name":    parts[0],
-			"subtest": parts[1],
 		}
 	}
 	if len(benchData.Results) == 0 {
