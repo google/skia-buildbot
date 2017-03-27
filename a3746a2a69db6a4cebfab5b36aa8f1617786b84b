@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "33c484b3_3ee078be",
+        "filename": "compute_engine_scripts/docs/vm_create_instance.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-27T16:12:35Z",
+      "side": 1,
+      "message": "nit: IIRC, one of these lines will warn about how args are specified. Maybe take this opportunity to fix it?",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 89
+      },
+      "revId": "a3746a2a69db6a4cebfab5b36aa8f1617786b84b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "920e3d1e_9d597949",
+        "filename": "compute_engine_scripts/docs/vm_create_instance.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-03-27T16:12:35Z",
+      "side": 1,
+      "message": "Should this be skia-docs-data?",
+      "range": {
+        "startLine": 61,
+        "startChar": 38,
+        "endLine": 61,
+        "endChar": 47
+      },
+      "revId": "a3746a2a69db6a4cebfab5b36aa8f1617786b84b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
