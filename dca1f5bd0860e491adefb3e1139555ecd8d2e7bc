@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "46b26f10_aa396245",
+        "filename": "res/js/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-03-27T16:22:01Z",
+      "side": 1,
+      "message": "Why not add withCredentials to sk.get()?",
+      "revId": "dca1f5bd0860e491adefb3e1139555ecd8d2e7bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
