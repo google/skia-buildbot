@@ -22,6 +22,30 @@
       "revId": "1c0adf7fb6f3feed2656df2664aaf799da406b46",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b77e57fd_18f403b4",
+        "filename": "datahopper/go/time_to_bot_coverage/time_to_bot_coverage.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-27T17:59:48Z",
+      "side": 1,
+      "message": "Any suggestions?  I can\u0027t think of anything shorter than \"time to X% bot coverage\" which appropriately describes what this does.",
+      "parentUuid": "0b2016c4_b728de47",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 28
+      },
+      "revId": "1c0adf7fb6f3feed2656df2664aaf799da406b46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
