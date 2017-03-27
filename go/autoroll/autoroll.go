@@ -153,15 +153,31 @@ func (a *AutoRollIssue) ToGerritChangeInfo() (*gerrit.ChangeInfo, error) {
 
 // FromGerritChangeInfo returns an AutoRollIssue instance based on the given
 // gerrit.ChangeInfo.
-func FromGerritChangeInfo(i *gerrit.ChangeInfo, fullHashFn func(string) (string, error)) (*AutoRollIssue, error) {
+//rmistry: come back here.
+func FromGerritChangeInfo(i *gerrit.ChangeInfo, fullHashFn func(string) (string, error), rollIntoAndroid bool) (*AutoRollIssue, error) {
 	cq := false
 	dryRun := false
-	for _, lb := range i.Labels[gerrit.COMMITQUEUE_LABEL].All {
-		if lb.Value == gerrit.COMMITQUEUE_LABEL_DRY_RUN {
-			cq = true
-			dryRun = true
-		} else if lb.Value == gerrit.COMMITQUEUE_LABEL_SUBMIT {
-			cq = true
+	fmt.Println("WHAT RE THE LABELS HERE!?????????????")
+	fmt.Println(i.Labels)
+	if rollIntoAndroid {
+		if _, ok := i.Labels[gerrit.AUTOSUBMIT_LABEL]; ok {
+			for _, lb := range i.Labels[gerrit.AUTOSUBMIT_LABEL].All {
+				if lb.Value == gerrit.AUTOSUBMIT_LABEL_NONE {
+					cq = true
+					dryRun = true
+				} else if lb.Value == gerrit.AUTOSUBMIT_LABEL_SUBMIT {
+					cq = true
+				}
+			}
+		}
+	} else {
+		for _, lb := range i.Labels[gerrit.COMMITQUEUE_LABEL].All {
+			if lb.Value == gerrit.COMMITQUEUE_LABEL_DRY_RUN {
+				cq = true
+				dryRun = true
+			} else if lb.Value == gerrit.COMMITQUEUE_LABEL_SUBMIT {
+				cq = true
+			}
 		}
 	}
 
@@ -180,11 +196,14 @@ func FromGerritChangeInfo(i *gerrit.ChangeInfo, fullHashFn func(string) (string,
 		Patchsets:         ps,
 		Subject:           i.Subject,
 	}
+	fmt.Println("HERE 2")
 	roll.Result = rollResult(roll)
+	fmt.Println("HERE 3")
 	from, to, err := RollRev(roll.Subject, fullHashFn)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("HERE 4")
 	roll.RollingFrom = from
 	roll.RollingTo = to
 	return roll, nil

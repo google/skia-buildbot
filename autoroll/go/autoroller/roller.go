@@ -64,11 +64,18 @@ type AutoRoller struct {
 	runningMtx       sync.Mutex
 	status           *autoRollStatusCache
 	strategy         string
+	rollIntoAndroid  bool
 }
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
-func NewAutoRoller(workdir, parentRepo, childPath, cqExtraTrybots string, emails []string, rietveld *rietveld.Rietveld, gerrit *gerrit.Gerrit, tickFrequency, repoFrequency time.Duration, depot_tools string, doGerrit bool, strategy string) (*AutoRoller, error) {
-	rm, err := repo_manager.NewRepoManager(workdir, parentRepo, childPath, repoFrequency, depot_tools)
+func NewAutoRoller(workdir, parentRepo, childPath, cqExtraTrybots string, emails []string, rietveld *rietveld.Rietveld, gerrit *gerrit.Gerrit, tickFrequency, repoFrequency time.Duration, depot_tools string, doGerrit, rollIntoAndroid bool, strategy string) (*AutoRoller, error) {
+	var err error
+	var rm repo_manager.RepoManager
+	if rollIntoAndroid {
+		rm, err = repo_manager.NewAndroidRepoManager(workdir, childPath, repoFrequency, gerrit)
+	} else {
+		rm, err = repo_manager.NewRepoManager(workdir, parentRepo, childPath, repoFrequency, depot_tools, gerrit)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -97,6 +104,7 @@ func NewAutoRoller(workdir, parentRepo, childPath, cqExtraTrybots string, emails
 		rm:               rm,
 		status:           &autoRollStatusCache{},
 		strategy:         strategy,
+		rollIntoAndroid:  rollIntoAndroid,
 	}
 
 	// Cycle once to fill out the current status.
@@ -305,19 +313,22 @@ func (r *AutoRoller) addIssueComment(issue *autoroll.AutoRollIssue, msg string) 
 	return r.recent.Update(updated)
 }
 
+// rmistry: CHANGE CHANGE CHANGE
 // setDryRun sets the CQ dry run bit on the issue.
 func (r *AutoRoller) setDryRun(issue *autoroll.AutoRollIssue, dryRun bool) error {
 	if r.doGerrit {
+		fmt.Println("IN SET DRY RUN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+		fmt.Println(dryRun)
 		info, err := issue.ToGerritChangeInfo()
 		if err != nil {
 			return fmt.Errorf("Failed to convert issue to Gerrit ChangeInfo: %s", err)
 		}
 		if dryRun {
-			if err := r.gerrit.SendToDryRun(info, ""); err != nil {
+			if err := r.rm.SendToGerritDryRun(info, ""); err != nil {
 				return err
 			}
 		} else {
-			if err := r.gerrit.SendToCQ(info, ""); err != nil {
+			if err := r.rm.SendToGerritCQ(info, ""); err != nil {
 				return err
 			}
 		}
@@ -395,19 +406,32 @@ func (r *AutoRoller) updateCurrentRoll() error {
 // retrieveRoll obtains the given DEPS roll from the codereview server.
 func (r *AutoRoller) retrieveRoll(issueNum int64) (*autoroll.AutoRollIssue, error) {
 	var a *autoroll.AutoRollIssue
+	fmt.Println("ABOUT TO GO INSIDE THE METHOD!")
+	fmt.Println(r)
+	fmt.Println(r.doGerrit)
+	fmt.Println(r.gerrit)
 	if r.doGerrit {
+		fmt.Println("Calling issue properties")
 		info, err := r.gerrit.GetIssueProperties(issueNum)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to get issue properties: %s", err)
 		}
-		a, err = autoroll.FromGerritChangeInfo(info, r.rm.FullChildHash)
+		fmt.Println("End of calling issue properties")
+		fmt.Println(info)
+		fmt.Println(r.rm)
+		a, err = autoroll.FromGerritChangeInfo(info, r.rm.FullChildHash, r.rollIntoAndroid)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to convert issue format: %s", err)
 		}
+		fmt.Println("End of from gerrit changeifo")
+		fmt.Println("Calling Get TryResults from Gerrit")
 		tryResults, err := autoroll.GetTryResultsFromGerrit(r.gerrit, a)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to retrieve try results: %s", err)
 		}
+		fmt.Println("FOUND THEsE TRYRESULTS")
+		fmt.Println(tryResults)
+		fmt.Println("DONE CALLING IT!")
 		a.TryResults = tryResults
 	} else {
 		issue, err := r.rietveld.GetIssueProperties(issueNum, true)
@@ -473,6 +497,55 @@ func (r *AutoRoller) makeRollResult(roll *autoroll.AutoRollIssue) string {
 	return autoroll.ROLL_RESULT_FAILURE
 }
 
+func (r *AutoRoller) isRollDone(roll *autoroll.AutoRollIssue) bool {
+	if r.rollIntoAndroid {
+		i, err := r.gerrit.GetIssueProperties(roll.Issue)
+		util.LogErr(err)
+		fmt.Println("IN ISROLLDONE")
+		fmt.Println(i.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL])
+		if _, ok := i.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL]; ok {
+			for _, lb := range i.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL].All {
+				if lb.Value != 0 {
+					return true
+				}
+			}
+		}
+		return false
+
+		//for _, lb := range i.Labels[gerrit.PRESUBMIT_VERIFIED].All {
+		//	if lb.Value == gerrit.AUTOSUBMIT_LABEL_NONE {
+		//		cq = true
+		//		dryRun = true
+		//	} else if lb.Value == gerrit.AUTOSUBMIT_LABEL_SUBMIT {
+		//		cq = true
+		//	}
+		//}
+	}
+	return len(roll.TryResults) > 0 && roll.AllTrybotsFinished()
+}
+
+// rmistry: Need to somehow combine this with the above function!
+// rmistry: This function is not tested with failures yet.
+func (r *AutoRoller) isRollSuccessful(roll *autoroll.AutoRollIssue) bool {
+	if r.rollIntoAndroid {
+		i, err := r.gerrit.GetIssueProperties(roll.Issue)
+		util.LogErr(err)
+		for _, lb := range i.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL].All {
+			if lb.Value == -1 {
+				return false
+			}
+		}
+		return true
+	}
+
+	return roll.AllTrybotsSucceeded()
+}
+
+// TODO LIST
+// rmistry: THIS IS THE PLACE WHERE THINGS NEED TO CHANGE!!
+// rmistry: Implement setDryRun.
+// rmistry: Make it fail by trying to make it commit.
+// rmistry: To make it succeed will have to stop the other roller :/
 // doAutoRollInner does the actual work of the AutoRoll.
 func (r *AutoRoller) doAutoRollInner() (string, error) {
 	r.runningMtx.Lock()
@@ -490,10 +563,11 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 		sklog.Infof("Found current roll: %s", r.issueUrl(currentRoll.Issue))
 
 		if r.isMode(autoroll_modes.MODE_DRY_RUN) {
-			if len(currentRoll.TryResults) > 0 && currentRoll.AllTrybotsFinished() {
+			fmt.Println("MODE IS DRY RUN!")
+			if r.isRollDone(currentRoll) {
 				result := autoroll.ROLL_RESULT_DRY_RUN_FAILURE
 				status := STATUS_DRY_RUN_FAILURE
-				if currentRoll.AllTrybotsSucceeded() {
+				if r.isRollSuccessful(currentRoll) {
 					result = autoroll.ROLL_RESULT_DRY_RUN_SUCCESS
 					status = STATUS_DRY_RUN_SUCCESS
 				}
@@ -535,6 +609,8 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 				return STATUS_DRY_RUN_IN_PROGRESS, nil
 			}
 		} else {
+			fmt.Println("IN THIS ELSE!!!!!!!!!!!!!!!!!!!!!!!!!!")
+			fmt.Println(currentRoll.CommitQueueDryRun)
 			if currentRoll.CommitQueueDryRun {
 				sklog.Infof("Unsetting dry run bit on https://codereview.chromium.org/%d", currentRoll.Issue)
 				if err := r.setDryRun(currentRoll, false); err != nil {
@@ -630,5 +706,8 @@ func (r *AutoRoller) issueUrl(num int64) string {
 }
 
 func (r *AutoRoller) User() string {
+	fmt.Println("GETTING THE USER")
+	fmt.Println(r)
+	fmt.Println(r.rm)
 	return r.rm.User()
 }
