@@ -813,7 +813,7 @@ func tempGitRepo(repo *git.Repo, rs db.RepoState) (rv *git.TempCheckout, rvErr e
 // the given RepoState, and returns its location.
 func tempGitRepoBotUpdate(rs db.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
 	// Run bot_update to obtain a checkout of the repo and its DEPS.
-	botUpdatePath := path.Join(depotToolsDir, "recipe_modules", "bot_update", "resources", "bot_update.py")
+	botUpdatePath := path.Join(depotToolsDir, "recipes", "recipe_modules", "bot_update", "resources", "bot_update.py")
 	projectName := strings.TrimSuffix(path.Base(rs.Repo), ".git")
 	spec := fmt.Sprintf("cache_dir = '%s'\nsolutions = [{'deps_file': '.DEPS.git', 'managed': False, 'name': '%s', 'url': '%s'}]", gitCacheDir, projectName, rs.Repo)
 	revMap := map[string]string{
