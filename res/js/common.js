@@ -130,7 +130,7 @@ this.sk = this.sk || function() {
 
   // Returns a Promise that uses XMLHttpRequest to make a request with the given
   // method to the given URL with the given headers and body.
-  sk.request = function(method, url, body, headers) {
+  sk.request = function(method, url, body, headers, withCredentials) {
     // Return a new promise.
     return new Promise(function(resolve, reject) {
       // Do the usual XHR stuff
@@ -140,6 +140,10 @@ this.sk = this.sk || function() {
         for (var k in headers) {
           req.setRequestHeader(k, headers[k]);
         }
+      }
+
+      if (withCredentials) {
+        req.withCredentials = true;
       }
 
       req.onload = function() {
@@ -171,25 +175,25 @@ this.sk = this.sk || function() {
   }
 
   // Returns a Promise that uses XMLHttpRequest to make a request to the given URL.
-  sk.get = function(url) {
-    return sk.request('GET', url);
+  sk.get = function(url, withCredentials) {
+    return sk.request('GET', url, null, withCredentials);
   }
 
 
   // Returns a Promise that uses XMLHttpRequest to make a POST request to the
   // given URL with the given JSON body. The content_type is optional and
   // defaults to "application/json".
-  sk.post = function(url, body, content_type) {
+  sk.post = function(url, body, content_type, withCredentials) {
     if (!content_type) {
       content_type = "application/json";
     }
-    return sk.request('POST', url, body, {"Content-Type": content_type});
+    return sk.request('POST', url, body, {"Content-Type": content_type}, withCredentials);
   }
 
   // Returns a Promise that uses XMLHttpRequest to make a DELETE request to the
   // given URL.
-  sk.delete = function(url, body) {
-    return sk.request('DELETE', url, body);
+  sk.delete = function(url, body, withCredentials) {
+    return sk.request('DELETE', url, body, withCredentials);
   }
 
   // A Promise that resolves when DOMContentLoaded has fired.
