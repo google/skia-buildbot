@@ -22,6 +22,19 @@ func TestParse(t *testing.T) {
 	assert.Equal(t, 8.4, f)
 }
 
+func TestParse2(t *testing.T) {
+	testutils.SmallTest(t)
+	r := bytes.NewBufferString(INCOMING2)
+	in, err := Parse(r)
+	assert.NoError(t, err)
+	assert.Equal(t, "google-angler-angler-O", in.Branch)
+	assert.Len(t, in.Metrics, 1)
+	f, err := in.Metrics["coremark"]["score"].Float64()
+	assert.NoError(t, err)
+	assert.Equal(t, 5439.620216, f)
+	assert.Equal(t, "coremarkcom.google.android.performance.CoreMarkTest#coremark", in.ResultsName)
+}
+
 type lookupMockGood struct {
 }
 
@@ -176,4 +189,16 @@ const INCOMING = `{
 		}
 	},
 	"branch": "google-marlin-marlin-O"
+}`
+
+const INCOMING2 = `{
+   "build_id" : "3842951",
+   "metrics" : {
+      "coremark" : {
+         "score" : "5439.620216"
+      }
+   },
+   "results_name" : "coremarkcom.google.android.performance.CoreMarkTest#coremark",
+   "build_flavor" : "angler-userdebug",
+   "branch" : "google-angler-angler-O"
 }`

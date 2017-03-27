@@ -22,6 +22,7 @@ type Incoming struct {
 	BuildId     string `json:"build_id"`
 	BuildFlavor string `json:"build_flavor"`
 	Branch      string `json:"branch"`
+	ResultsName string `json:"results_name"`
 
 	// Metrics is a map[test name]map[metric]value, where value
 	// is a string encoded float, thus the use of json.Number.
@@ -72,7 +73,7 @@ func (c *Converter) Convert(incoming io.Reader) (*ingestcommon.BenchData, error)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse during convert: %s", err)
 	}
-	sklog.Infof("POST for buildid: %s branch: %s flavor: %s num metrics: %d", in.BuildId, in.Branch, in.BuildFlavor, len(in.Metrics))
+	sklog.Infof("POST for buildid: %s branch: %s flavor: %s results_name: %s num metrics: %d", in.BuildId, in.Branch, in.BuildFlavor, in.ResultsName, len(in.Metrics))
 	if in.Branch != c.branch {
 		return nil, fmt.Errorf("Found data for a branch we weren't expecting: Got %q Want %q at BuildID: %s", in.Branch, c.branch, in.BuildId)
 	}
