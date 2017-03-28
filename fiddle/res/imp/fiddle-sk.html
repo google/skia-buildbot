@@ -379,7 +379,10 @@ sk_sp&lt;SkImage> image;
         this._compile_errors.forEach(function(err) {
           this._editor.setErrorLine(+err.line);
         }.bind(this));
-        $$$('#overwrite', this).checked = false;
+        var overwrite = $$$('#overwrite', this);
+        if (overwrite) {
+          overwrite.checked = false;
+        }
       }.bind(this)).catch(function(err) {
         $$("paper-spinner", this).forEach(function(s) {
           s.active = false;
