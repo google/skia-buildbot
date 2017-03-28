@@ -18,7 +18,7 @@ ${INSTALL} --mode=644 -T ./res/js/core.js          ${ROOT}/usr/local/share/skiad
 ${INSTALL} --mode=644 -T ./res/img/logo.png        ${ROOT}/usr/local/share/skiadocserver/res/img/logo.png
 ${INSTALL} --mode=644 -T ./res/css/docs.css        ${ROOT}/usr/local/share/skiadocserver/res/css/docs.css
 ${INSTALL} --mode=644 -T ./templates/index.html    ${ROOT}/usr/local/share/skiadocserver/templates/index.html
-${INSTALL_DIR} --mode=777                          ${ROOT}/var/docserver/repo
+${INSTALL_DIR} --mode=777                          ${ROOT}/mnt/pd0/docserver/repo
 }
 
 source ../bash/release.sh
