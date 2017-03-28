@@ -16,7 +16,9 @@ const (
 
 	// How many commits we consider before and after a target commit when
 	// clustering. This means clustering will occur over 2*RADIUS+1 commits.
-	RADIUS = 5
+	//
+	// Remember to change the state.radius default value in cluster-page-sk to match this value.
+	RADIUS = 7
 )
 
 // Continuous is used to run clustering on the last NUM_COMMITS commits and
