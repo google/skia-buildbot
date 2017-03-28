@@ -40,16 +40,24 @@ const (
 	CHANGE_STATUS_MERGED    = "MERGED"
 	CHANGE_STATUS_NEW       = "NEW"
 
-	CODEREVIEW_LABEL  = "Code-Review"
-	COMMITQUEUE_LABEL = "Commit-Queue"
-
+	// Gerrit labels.
+	CODEREVIEW_LABEL            = "Code-Review"
 	CODEREVIEW_LABEL_DISAPPROVE = -1
 	CODEREVIEW_LABEL_NONE       = 0
 	CODEREVIEW_LABEL_APPROVE    = 1
 
+	// Chromium specific labels.
+	COMMITQUEUE_LABEL         = "Commit-Queue"
 	COMMITQUEUE_LABEL_NONE    = 0
 	COMMITQUEUE_LABEL_DRY_RUN = 1
 	COMMITQUEUE_LABEL_SUBMIT  = 2
+
+	// Android specific labels.
+	AUTOSUBMIT_LABEL         = "Autosubmit"
+	AUTOSUBMIT_LABEL_NONE    = 0
+	AUTOSUBMIT_LABEL_SUBMIT  = 1
+	PRESUBMIT_READY_LABEL    = "Presubmit-Ready"
+	PRESUBMIT_VERIFIED_LABEL = "Presubmit-Verified"
 )
 
 // ChangeInfo contains information about a Gerrit issue.
@@ -109,10 +117,11 @@ type Revision struct {
 
 // Gerrit is an object used for iteracting with the issue tracker.
 type Gerrit struct {
-	client            *http.Client
-	buildbucketClient *buildbucket.Client
-	url               string
-	cookies           map[string]string
+	client               *http.Client
+	buildbucketClient    *buildbucket.Client
+	url                  string
+	cookies              map[string]string
+	useAuthenticatedGets bool
 }
 
 // NewGerrit returns a new Gerrit instance. If gitCookiesPath is empty the
@@ -173,8 +182,7 @@ func getCredentials(gitCookiesPath string) (map[string]string, error) {
 		tokens := strings.Split(line, "\t")
 		domain, xpath, key, value := tokens[0], tokens[2], tokens[5], tokens[6]
 		if xpath == "/" && key == "o" {
-			auth := strings.SplitN(value, "=", 2)
-			gitCookies[domain] = fmt.Sprintf("%s:%s", auth[0], auth[1])
+			gitCookies[domain] = value
 		}
 	}
 	return gitCookies, nil
@@ -183,6 +191,12 @@ func getCredentials(gitCookiesPath string) (map[string]string, error) {
 func parseTime(t string) time.Time {
 	parsed, _ := time.Parse(TIME_FORMAT, t)
 	return parsed
+}
+
+// TurnOnAuthenticatedGets makes all GET requests contain authentication
+// cookies. By default only POST requests are automatically authenticated.
+func (g *Gerrit) TurnOnAuthenticatedGets() {
+	g.useAuthenticatedGets = true
 }
 
 // Url returns the url of the Gerrit issue identified by issueID or the
@@ -287,7 +301,7 @@ func (g *Gerrit) GetPatch(issue int64, revision string) (string, error) {
 // setReview calls the Set Review endpoint of the Gerrit API to add messages and/or set labels for
 // the latest patchset.
 // API documentation: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#set-review
-func (g *Gerrit) setReview(issue *ChangeInfo, message string, labels map[string]interface{}) error {
+func (g *Gerrit) SetReview(issue *ChangeInfo, message string, labels map[string]interface{}) error {
 	postData := map[string]interface{}{
 		"message": message,
 		"labels":  labels,
@@ -298,35 +312,35 @@ func (g *Gerrit) setReview(issue *ChangeInfo, message string, labels map[string]
 
 // AddComment adds a message to the issue.
 func (g *Gerrit) AddComment(issue *ChangeInfo, message string) error {
-	return g.setReview(issue, message, map[string]interface{}{})
+	return g.SetReview(issue, message, map[string]interface{}{})
 }
 
 // Utility methods for interacting with the COMMITQUEUE_LABEL.
 
 func (g *Gerrit) SendToDryRun(issue *ChangeInfo, message string) error {
-	return g.setReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN})
+	return g.SetReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN})
 }
 
 func (g *Gerrit) SendToCQ(issue *ChangeInfo, message string) error {
-	return g.setReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT})
+	return g.SetReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT})
 }
 
 func (g *Gerrit) RemoveFromCQ(issue *ChangeInfo, message string) error {
-	return g.setReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE})
+	return g.SetReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE})
 }
 
 // Utility methods for interacting with the CODEREVIEW_LABEL.
 
 func (g *Gerrit) Approve(issue *ChangeInfo, message string) error {
-	return g.setReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_APPROVE})
+	return g.SetReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_APPROVE})
 }
 
 func (g *Gerrit) NoScore(issue *ChangeInfo, message string) error {
-	return g.setReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_NONE})
+	return g.SetReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_NONE})
 }
 
 func (g *Gerrit) DisApprove(issue *ChangeInfo, message string) error {
-	return g.setReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_DISAPPROVE})
+	return g.SetReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_DISAPPROVE})
 }
 
 // Abandon abandons the issue with the given message.
@@ -337,8 +351,44 @@ func (g *Gerrit) Abandon(issue *ChangeInfo, message string) error {
 	return g.post(fmt.Sprintf("/a/changes/%s/abandon", issue.ChangeId), postData)
 }
 
+func (g *Gerrit) addAuthenticationCookie(req *http.Request) error {
+	u, err := url.Parse(g.url)
+	if err != nil {
+		return err
+	}
+
+	auth := ""
+	for d, a := range g.cookies {
+		if util.CookieDomainMatch(u.Host, d) {
+			auth = a
+			cookie := http.Cookie{Name: "o", Value: a}
+			req.AddCookie(&cookie)
+			break
+		}
+	}
+	if auth == "" {
+		return ErrCookiesMissing
+	}
+	return nil
+}
+
 func (g *Gerrit) get(suburl string, rv interface{}) error {
-	resp, err := g.client.Get(g.url + suburl)
+	getURL := g.url + suburl
+	if g.useAuthenticatedGets {
+		getURL = g.url + "/a" + suburl
+	}
+	req, err := http.NewRequest("GET", getURL, nil)
+	if err != nil {
+		return err
+	}
+
+	if g.useAuthenticatedGets {
+		if err := g.addAuthenticationCookie(req); err != nil {
+			return err
+		}
+	}
+
+	resp, err := g.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Failed to GET %s: %s", g.url+suburl, err)
 	}
@@ -376,21 +426,9 @@ func (g *Gerrit) post(suburl string, postData interface{}) error {
 		return err
 	}
 
-	u, err := url.Parse(g.url)
-	if err != nil {
+	if err := g.addAuthenticationCookie(req); err != nil {
 		return err
 	}
-	auth := ""
-	for d, a := range g.cookies {
-		if util.CookieDomainMatch(u.Host, d) {
-			auth = a
-			break
-		}
-	}
-	if auth == "" {
-		return ErrCookiesMissing
-	}
-	req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(auth)))
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := g.client.Do(req)
 	if err != nil {
@@ -426,6 +464,13 @@ func SearchOwner(name string) *SearchTerm {
 	return &SearchTerm{
 		Key:   "owner",
 		Value: name,
+	}
+}
+
+func SearchCommit(commit string) *SearchTerm {
+	return &SearchTerm{
+		Key:   "commit",
+		Value: commit,
 	}
 }
 
@@ -468,6 +513,33 @@ func queryString(terms []*SearchTerm) string {
 		q = append(q, fmt.Sprintf("%s:%s", t.Key, t.Value))
 	}
 	return strings.Join(q, " ")
+}
+
+// Sets a topic on the Gerrit change with the provided hash.
+func (g *Gerrit) SetTopic(topic string, changeNum int64) error {
+	putData := map[string]interface{}{
+		"topic": topic,
+	}
+	b, err := json.Marshal(putData)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/a/changes/%d/topic", g.url, changeNum), bytes.NewBuffer(b))
+	if err != nil {
+		return err
+	}
+	if err := g.addAuthenticationCookie(req); err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := g.client.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Got status %s (%d)", resp.Status, resp.StatusCode)
+	}
+	return nil
 }
 
 // Search returns a slice of Issues which fit the given criteria.
