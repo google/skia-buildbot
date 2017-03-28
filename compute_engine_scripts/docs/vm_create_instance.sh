@@ -27,7 +27,7 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --network "default" \
   --maintenance-policy "MIGRATE" \
   --scopes $SCOPES \
-  --tags "http-server" "https-server" \
+  --tags http-server,https-server \
   --metadata "owner_primary=jcgregorio" \
   --disk name=$INSTANCE_NAME,device-name=${INSTANCE_NAME},mode=rw,boot=yes,auto-delete=yes \
   --disk name=${INSTANCE_NAME}-data,device-name=${INSTANCE_NAME}-data,mode=rw,boot=no \
