@@ -1,5 +1,5 @@
 .PHONY: all
-all: hotspare backup cloudlogger
+all: hotspare backup cloudlogger powercycle
 
 .PHONY: hotspare
 hotspare:
@@ -62,6 +62,10 @@ cloudlogger:
 cloudlogger_release: service_account
 	GOOS=linux GOARCH=arm GOARM=7 go build -o out/cloudlogger -v ./go/cloudlogger
 	./build_release_cloudlogger "$(MESSAGE)"
+
+.PHONY: powercycle
+powercycle:
+	go install -v ./go/powercycle
 
 .PHONY: android_watchdog
 android_watchdog:
