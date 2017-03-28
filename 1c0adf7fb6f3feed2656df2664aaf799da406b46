@@ -46,6 +46,30 @@
       "revId": "1c0adf7fb6f3feed2656df2664aaf799da406b46",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8fbd4fbe_59b38911",
+        "filename": "datahopper/go/time_to_bot_coverage/time_to_bot_coverage.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-28T12:24:51Z",
+      "side": 1,
+      "message": "Changed to bot_metrics.  Added a brief description.",
+      "parentUuid": "b77e57fd_18f403b4",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 28
+      },
+      "revId": "1c0adf7fb6f3feed2656df2664aaf799da406b46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
