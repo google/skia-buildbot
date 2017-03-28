@@ -5,7 +5,7 @@ After=network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/docserver \
-  --work_dir=/var/docserver/repo \
+  --work_dir=/mnt/pd0/docserver/repo \
   --logtostderr \
   --resources_dir=/usr/local/share/skiadocserver/
 Restart=always
