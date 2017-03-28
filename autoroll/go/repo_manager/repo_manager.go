@@ -16,6 +16,7 @@ import (
 
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/util"
 )
@@ -35,7 +36,7 @@ const (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewRepoManager func(string, string, string, time.Duration, string) (RepoManager, error) = NewDefaultRepoManager
+	NewRepoManager func(string, string, string, time.Duration, string, *gerrit.Gerrit) (RepoManager, error) = NewDEPSRepoManager
 
 	DEPOT_TOOLS_AUTH_USER_REGEX = regexp.MustCompile(fmt.Sprintf("Logged in to %s as ([\\w-]+).", autoroll.RIETVELD_URL))
 )
@@ -55,6 +56,8 @@ type RepoManager interface {
 	ChildHead() string
 	CreateNewRoll(string, []string, string, bool, bool) (int64, error)
 	User() string
+	SendToGerritCQ(*gerrit.ChangeInfo, string) error
+	SendToGerritDryRun(*gerrit.ChangeInfo, string) error
 }
 
 // repoManager is a struct used by AutoRoller for managing checkouts.
@@ -73,6 +76,7 @@ type repoManager struct {
 	parentRepo  string
 	user        string
 	workdir     string
+	g           *gerrit.Gerrit
 }
 
 // getEnv returns the environment used for most commands.
@@ -101,9 +105,9 @@ func getDepotToolsUser(depotTools string) (string, error) {
 	return m[1], nil
 }
 
-// NewDefaultRepoManager returns a RepoManager instance which operates in the given
+// NewDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func NewDefaultRepoManager(workdir, parentRepo, childPath string, frequency time.Duration, depot_tools string) (RepoManager, error) {
+func NewDEPSRepoManager(workdir, parentRepo, childPath string, frequency time.Duration, depot_tools string, g *gerrit.Gerrit) (RepoManager, error) {
 	gclient := GCLIENT
 	rollDep := ROLL_DEP
 	if depot_tools != "" {
@@ -131,6 +135,7 @@ func NewDefaultRepoManager(workdir, parentRepo, childPath string, frequency time
 		parentRepo:  parentRepo,
 		user:        user,
 		workdir:     wd,
+		g:           g,
 	}
 	if err := r.update(); err != nil {
 		return nil, err
@@ -426,4 +431,12 @@ http://www.chromium.org/developers/tree-sheriffs/sheriff-details-chromium#TOC-Fa
 
 func (r *repoManager) User() string {
 	return r.user
+}
+
+func (r *repoManager) SendToGerritCQ(change *gerrit.ChangeInfo, comment string) error {
+	return r.g.SendToCQ(change, "")
+}
+
+func (r *repoManager) SendToGerritDryRun(change *gerrit.ChangeInfo, comment string) error {
+	return r.g.SendToDryRun(change, "")
 }
