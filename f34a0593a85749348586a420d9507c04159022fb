@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a6b79de7_b40da049",
+        "filename": "skolo/ios/README.md",
+        "patchSetId": 8
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-28T18:40:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1e4092a0_4e125cdb",
+      "range": {
+        "startLine": 12,
+        "startChar": 10,
+        "endLine": 12,
+        "endChar": 17
+      },
+      "revId": "f34a0593a85749348586a420d9507c04159022fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f7be7318_8caddb4f",
         "filename": "skolo/ios/build.sh",
         "patchSetId": 8
@@ -45,6 +69,30 @@
       "revId": "f34a0593a85749348586a420d9507c04159022fb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df5623f3_db64766a",
+        "filename": "skolo/ios/build.sh",
+        "patchSetId": 8
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-28T18:40:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f7be7318_8caddb4f",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 4
+      },
+      "revId": "f34a0593a85749348586a420d9507c04159022fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
