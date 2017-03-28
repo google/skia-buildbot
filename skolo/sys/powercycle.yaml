@@ -1,0 +1,56 @@
+mpower:
+  mpower.01:
+    address: "192.168.1.43:22"
+    user: "ubnt"
+    ports:
+      skia-rpi-049-nxplayer: 1
+      skia-rpi-050-nxplayer: 2
+      skia-rpi-051-nxplayer: 3
+      skia-rpi-052-nxplayer: 4
+      skia-rpi-053-nxplayer: 5
+      skia-rpi-054-nxplayer: 6
+      skia-rpi-055-nxplayer: 7
+
+  mpower.02:
+    address: "192.168.2.226:22"
+    user: "ubnt"
+    ports:
+      skia-e-linux-001: 1
+      skia-e-linux-002: 2
+      skia-e-linux-003: 3
+      skia-e-linux-004: 4
+      mp-2-test-relay: 5
+
+  mpower.03:
+    address: "192.168.2.212:22"
+    user: "ubnt"
+    ports:
+      skia-e-linux-013: 1
+      skia-e-linux-014: 2
+      skia-e-linux-015: 3
+      skia-e-linux-016: 4
+      skia-e-linux-017: 5
+      skia-e-linux-018: 6
+      test-relay: 7
+
+edgeswitch:
+  edgeswitch.01:
+    address: "192.168.1.41:22"
+    ports:
+      skia-rpi-113: 18
+      skia-rpi-114: 17
+      skia-rpi-115: 12
+      skia-rpi-116: 13
+      skia-rpi-117: 16
+      skia-rpi-118: 15
+      skia-rpi-119: 14
+      skia-rpi-120: 11
+      skia-rpi-121: 10
+      skia-rpi-122: 9
+      skia-rpi-123: 8
+      skia-rpi-124: 7
+      skia-rpi-125: 6
+      skia-rpi-126: 5
+      skia-rpi-127: 4
+      skia-rpi-128: 3
+      skia-rpi-TEST: 23
