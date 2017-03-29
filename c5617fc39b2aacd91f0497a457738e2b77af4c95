@@ -46,6 +46,30 @@
       "revId": "c5617fc39b2aacd91f0497a457738e2b77af4c95",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd290b9f_56de1fe2",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-29T15:15:39Z",
+      "side": 1,
+      "message": "I guess I was thinking to do anonymous requests if gitcookies aren\u0027t provided, otherwise always do authenticated requests.",
+      "parentUuid": "2873199c_8f426b1e",
+      "range": {
+        "startLine": 189,
+        "startChar": 12,
+        "endLine": 189,
+        "endChar": 74
+      },
+      "revId": "c5617fc39b2aacd91f0497a457738e2b77af4c95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
