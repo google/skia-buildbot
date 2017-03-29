@@ -23,7 +23,7 @@ func skipTestIfRequired(t *testing.T) {
 	testutils.SkipIfShort(t)
 }
 
-func TestGerritSearch(t *testing.T) {
+func TestGerritOwnerModifiedSearch(t *testing.T) {
 	skipTestIfRequired(t)
 
 	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
@@ -144,8 +144,8 @@ func TestSendToCQ(t *testing.T) {
 	err = api.SendToCQ(changeInfo, "Sending to CQ")
 	assert.NoError(t, err)
 
-	// Wait for a second for the above to take place.
-	time.Sleep(time.Second)
+	// Wait for a few seconds for the above to take place.
+	time.Sleep(5 * time.Second)
 
 	// Verify that the change was sent to CQ.
 	changeInfo, err = api.GetIssueProperties(2370)
