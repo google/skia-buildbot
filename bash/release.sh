@@ -69,6 +69,9 @@ then
     exit 1
 fi
 
+# Get the current architecture.
+ARCH=`dpkg --print-architecture`
+
 # Create all directories here, so their perms can be set correctly.
 mkdir --parents ${ROOT}/DEBIAN
 
@@ -82,7 +85,7 @@ cat <<-EOF > ${ROOT}/DEBIAN/control
 	Package: skia-${APPNAME}
 	Version: 1.0
 	Depends: ${DEPENDS}
-	Architecture: amd64
+	Architecture: ${ARCH}
 	Maintainer: ${USERNAME}@${HOST}
 	Priority: optional
 	Description: ${DESCRIPTION}
