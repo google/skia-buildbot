@@ -14,6 +14,12 @@ if [ $? != "0" ]; then
 fi
 
 VM_ID="$1"
+MACHINE_TYPE=n1-standard-2
+SOURCE_SNAPSHOT=skia-systemd-pushable-base
+SCOPES='https://www.googleapis.com/auth/devstorage.full_control,https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile'
+STARTUP_SCRIPT_TEMPLATE=default-startup-script.sh.template
+DATA_DISK_SIZE_GB=64
+
 
 # The name of instance where the autoroller is running.
 case "$VM_ID" in
@@ -37,20 +43,24 @@ case "$VM_ID" in
     INSTANCE_NAME=pdfium-autoroll
     IP_ADDRESS=104.154.123.210
     ;;
+  android)
+    INSTANCE_NAME=android-autoroll
+    IP_ADDRESS=104.154.123.206
+    SCOPES="$SCOPES,https://www.googleapis.com/auth/androidbuild.internal,https://www.googleapis.com/auth/gerritcodereview"
+    STARTUP_SCRIPT_TEMPLATE=android-startup-script.sh.template
+    MACHINE_TYPE=n1-highmem-16
+    DATA_DISK_SIZE_GB=512
+    ;;
   *)
     # Must provide a target instance id.
-    echo "Usage: $0 {skia | skia-internal | catapult | nacl | pdfium}"
+    echo "Usage: $0 {skia | skia-internal | catapult | nacl | pdfium | android}"
     echo "   An instance id must be provided as the first argument."
     exit 1
     ;;
 
 esac
 
-MACHINE_TYPE=n1-standard-2
-SOURCE_SNAPSHOT=skia-systemd-pushable-base
-SCOPES='https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
-
 DATA_DISK_NAME="$INSTANCE_NAME-data"
 
-# Remove the startup script and generate a new one with the right disk name.
-sed "s/DATA_DISK_NAME/${DATA_DISK_NAME}/g" startup-script.sh.template > startup-script.sh
+# Copy the startup script template over.
+cp $STARTUP_SCRIPT_TEMPLATE startup-script.sh
