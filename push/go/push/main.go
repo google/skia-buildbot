@@ -18,6 +18,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
@@ -65,6 +66,10 @@ var (
 
 	// The current status of all the units.
 	currentStatus map[string]*systemd.UnitStatus
+)
+
+const (
+	CHAT_MSG = `%s pushed %s to %s`
 )
 
 // flags
@@ -138,6 +143,8 @@ func Init() {
 	if err != nil {
 		sklog.Fatalf("Failed to create packages.AllInfo at startup: %s", err)
 	}
+
+	chatbot.Init("push.skia.org")
 }
 
 // Zones keeps track of the zone of each server.
@@ -365,6 +372,10 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 			if err := packageInfo.PutInstalled(push.Server, newInstalled, installedPackages.Generation); err != nil {
 				httputils.ReportError(w, r, err, "Failed to update server.")
 				return
+			}
+			body := fmt.Sprintf(CHAT_MSG, login.LoggedInAs(r), appName, push.Server)
+			if err := chatbot.Send(body, "push"); err != nil {
+				sklog.Warningf("Failed to send chat notification: %s", err)
 			}
 
 			if err := trigger.ByMetadata(comp, *project, push.Name, push.Server, ip.Zone(push.Server)); err != nil {
