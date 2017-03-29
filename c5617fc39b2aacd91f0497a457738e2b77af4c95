@@ -70,6 +70,30 @@
       "revId": "c5617fc39b2aacd91f0497a457738e2b77af4c95",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4472b63_6b093ee5",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-03-29T16:38:00Z",
+      "side": 1,
+      "message": "That would work. The current flow is that whenever we need to do authenticated access then check to see if cookies exist. If they do not then throw an error. The flow would need to change. Leaving it alone for now.",
+      "parentUuid": "dd290b9f_56de1fe2",
+      "range": {
+        "startLine": 189,
+        "startChar": 12,
+        "endLine": 189,
+        "endChar": 74
+      },
+      "revId": "c5617fc39b2aacd91f0497a457738e2b77af4c95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
