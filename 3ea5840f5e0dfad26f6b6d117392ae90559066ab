@@ -46,6 +46,30 @@
       "revId": "3ea5840f5e0dfad26f6b6d117392ae90559066ab",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d89585d2_f457125c",
+        "filename": "compute_engine_scripts/autoroll/vm_config.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-29T18:09:54Z",
+      "side": 1,
+      "message": "Scratches head...",
+      "parentUuid": "3344a9b2_b7a01c11",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 45
+      },
+      "revId": "3ea5840f5e0dfad26f6b6d117392ae90559066ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
