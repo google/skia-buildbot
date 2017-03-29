@@ -5,15 +5,21 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os/user"
 	"strings"
 
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/push/go/trigger"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/storage/v1"
+)
+
+const (
+	CHAT_MSG = `%s pushed %s to %s`
 )
 
 var (
@@ -68,6 +74,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create compute service client: %s", err)
 	}
+	chatbot.Init("pushcli")
 
 	servers, err := expand(appName, serverName)
 	if err != nil {
@@ -145,6 +152,35 @@ func installOnServer(client *http.Client, store *storage.Service, comp *compute.
 		if err := packages.PutInstalled(store, serverName, newInstalled, installed.Generation); err != nil {
 			return fmt.Errorf("Failed to write updated package for %s: %s", appName, err)
 		}
+	}
+
+	// We are running locally, so we need to use the Compute API to read the
+	// values of project level metadata. This closure will be passed to
+	// chatbot.SendUsingMetadataGet().
+	metadataGet := func(key string, defaultValue string) string {
+		prj, err := comp.Projects.Get(*project).Do()
+		if err != nil {
+			sklog.Warningf("Failed to retrieve metadata needed for chatbot: %s", err)
+			return ""
+		} else {
+			ret := ""
+			for _, item := range prj.CommonInstanceMetadata.Items {
+				if item.Key == chatbot.BOT_WEBHOOK_METADATA_KEY {
+					ret = *item.Value
+				}
+			}
+			return ret
+		}
+	}
+
+	username := ""
+	userinfo, err := user.Current()
+	if err == nil {
+		username = userinfo.Username
+	}
+	body := fmt.Sprintf(CHAT_MSG, username, appName, serverName)
+	if err := chatbot.SendUsingMetadataGet(body, "push", metadataGet); err != nil {
+		sklog.Warningf("Failed to send chat notification: %s", err)
 	}
 
 	zone, err := findZone(comp, serverName)
