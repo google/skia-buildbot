@@ -12,7 +12,7 @@ IN_DIR="$(pwd)/out"
 OUT_DIR="usr/local"
 
 # Make sure we restart udev rules and bypass the upload.
-UDEV_RELOAD=True
+UDEV_LIB_RELOAD=True
 BYPASS_UPLOAD=True
 
 # Copy files into the right locations in ${ROOT}.
@@ -67,8 +67,8 @@ ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libplist.so.3                     ${R
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libplist++.a                      ${ROOT}/${OUT_DIR}/lib/libplist++.a
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libplist.a                        ${ROOT}/${OUT_DIR}/lib/libplist.a
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libplist.so.3.0.0                 ${ROOT}/${OUT_DIR}/lib/libplist.so.3.0.0
-${INSTALL}     --mode=755 -T ${IN_DIR}/udev-rules/39-usbmuxd.rules           ${ROOT}/etc/udev/rules.d/39-usbmuxd.rules
-${INSTALL}     --mode=755 -T ${IN_DIR}/systemd/usbmuxd.service               ${ROOT}/etc/systemd/system/usbmuxd.service
+${INSTALL}     --mode=644 -T ${IN_DIR}/udev-rules/39-usbmuxd.rules           ${ROOT}/etc/udev/rules.d/39-usbmuxd.rules
+${INSTALL}     --mode=644 -T ${IN_DIR}/systemd/usbmuxd.service               ${ROOT}/etc/systemd/system/usbmuxd.service
 }
 
 source ../../bash/release.sh
