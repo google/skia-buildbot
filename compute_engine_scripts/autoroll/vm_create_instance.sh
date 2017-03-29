@@ -25,7 +25,7 @@ gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME \
 
 # Create a large data disk.
 gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME"-data" \
-  --size "64" \
+  --size $DATA_DISK_SIZE_GB \
   --zone $ZONE \
   --type "pd-standard"
 
@@ -36,11 +36,11 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --network "default" \
   --maintenance-policy "MIGRATE" \
   --scopes $SCOPES \
-  --tags "http-server" "https-server" \
+  --tags "http-server,https-server" \
   --metadata-from-file "startup-script=startup-script.sh" \
   --metadata "owner_primary=borenet,owner_secondary=rmistry" \
-  --disk name=${INSTANCE_NAME}      device-name=${INSTANCE_NAME}      "mode=rw" "boot=yes" "auto-delete=yes" \
-  --disk name=${INSTANCE_NAME}-data device-name=${INSTANCE_NAME}-data "mode=rw" "boot=no" \
+  --disk name=${INSTANCE_NAME},device-name=${INSTANCE_NAME},"mode=rw","boot=yes","auto-delete=yes" \
+  --disk name=${INSTANCE_NAME}-data,device-name=${INSTANCE_NAME}-data,"mode=rw","boot=no" \
   --address=$IP_ADDRESS
 
 # Wait until the instance is up.
