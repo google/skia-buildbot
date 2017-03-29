@@ -459,6 +459,13 @@ func SearchOwner(name string) *SearchTerm {
 	}
 }
 
+func SearchCommit(commit string) *SearchTerm {
+	return &SearchTerm{
+		Key:   "commit",
+		Value: commit,
+	}
+}
+
 func SearchStatus(status string) *SearchTerm {
 	return &SearchTerm{
 		Key:   "status",
