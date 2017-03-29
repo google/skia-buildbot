@@ -16,6 +16,24 @@
       "revId": "ad4ba097c304beba24c39f01aeba75af34363664",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d6ca1dd_470f6f26",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-03-29T17:14:04Z",
+      "side": 1,
+      "message": "No, looks like git-cl is going to use ~/.gitcookies, so we might as well standardize on that.",
+      "parentUuid": "a75f67a2_8612c6c6",
+      "revId": "ad4ba097c304beba24c39f01aeba75af34363664",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
