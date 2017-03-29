@@ -14,17 +14,13 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
-const (
-	// Delay in seconds between polls to retrieve power usage data.
-	POWER_POLL_DELAY = 2
-)
-
 var (
 	configFile  = flag.String("conf", "./powercycle.yaml", "YAML file with device configuration.")
 	delay       = flag.Int("delay", 0, "Any value > 0 overrides the default duration (in sec) between turning the port off and on.")
 	listDev     = flag.Bool("list_devices", false, "List the available devices and exit.")
 	powerCycle  = flag.Bool("power_cycle", true, "Powercycle the given devices.")
 	powerOutput = flag.String("power_output", "", "Continously poll power usage and write it to the given file. Press ^C to exit.")
+	sampleRate  = flag.Int("power_sample_rate", 2, "Time delay between capturing power usage.")
 )
 
 // DeviceGroup describes a set of devices that can all be
@@ -72,7 +68,10 @@ func main() {
 	if *listDev {
 		listDevices(devGroup, 0)
 	} else if *powerOutput != "" {
-		tailPower(devGroup, *powerOutput)
+		if *sampleRate <= 0 {
+			sklog.Fatal("Non-positive sample rate provided.")
+		}
+		tailPower(devGroup, *powerOutput, *sampleRate)
 	}
 
 	// No device id given.
@@ -114,7 +113,7 @@ func listDevices(devGroup DeviceGroup, exitCode int) {
 
 // tailPower continually polls the power usage and writes the values in
 // a CSV file.
-func tailPower(devGroup DeviceGroup, outputPath string) {
+func tailPower(devGroup DeviceGroup, outputPath string, sampleRateSec int) {
 	f, err := os.Create(outputPath)
 	if err != nil {
 		sklog.Fatalf("Unable to open file '%s': Go error: %s", outputPath, err)
@@ -134,7 +133,7 @@ func tailPower(devGroup DeviceGroup, outputPath string) {
 	}()
 
 	var ids []string = nil
-	for range time.Tick(time.Second * POWER_POLL_DELAY) {
+	for range time.Tick(time.Second * time.Duration(sampleRateSec)) {
 		// get power stats
 		powerStats, err := devGroup.PowerUsage()
 		if err != nil {
