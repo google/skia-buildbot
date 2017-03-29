@@ -266,7 +266,7 @@ func (g *Gerrit) GetPatch(issue int64, revision string) (string, error) {
 		return "", fmt.Errorf("Failed to GET %s: %s", url, err)
 	}
 	if resp.StatusCode == 404 {
-		return "", fmt.Errorf("Not a valid Issue %s", url)
+		return "", fmt.Errorf("Issue not found: %s", url)
 	}
 	if resp.StatusCode >= 400 {
 		return "", fmt.Errorf("Error retrieving %s: %d %s", url, resp.StatusCode, resp.Status)
@@ -385,7 +385,7 @@ func (g *Gerrit) get(suburl string, rv interface{}) error {
 		return fmt.Errorf("Failed to GET %s: %s", g.url+suburl, err)
 	}
 	if resp.StatusCode == 404 {
-		return fmt.Errorf("Not a valid Issue %s", g.url+suburl)
+		return fmt.Errorf("Issue not found: %s", g.url+suburl)
 	}
 	if resp.StatusCode >= 400 {
 		return fmt.Errorf("Error retrieving %s: %d %s", g.url+suburl, resp.StatusCode, resp.Status)

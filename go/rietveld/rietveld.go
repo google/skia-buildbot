@@ -260,7 +260,7 @@ func (r *Rietveld) get(suburl string, rv interface{}) error {
 		return fmt.Errorf("Failed to GET %s: %s", r.url+suburl, err)
 	}
 	if resp.StatusCode == 404 {
-		return fmt.Errorf("Not a valid Issue %s", r.url+suburl)
+		return fmt.Errorf("Issue not found: %s", r.url+suburl)
 	}
 	if resp.StatusCode >= 400 {
 		return fmt.Errorf("Error retrieving %s: %d %s", r.url+suburl, resp.StatusCode, resp.Status)

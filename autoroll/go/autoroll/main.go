@@ -72,8 +72,10 @@ func getSheriff() ([]string, error) {
 		return nil, err
 	}
 	if *doGerrit {
-		for i, s := range emails {
-			emails[i] = strings.Replace(s, "google.com", "chromium.org", 1)
+		if strings.Contains(*parentRepo, "chromium") {
+			for i, s := range emails {
+				emails[i] = strings.Replace(s, "google.com", "chromium.org", 1)
+			}
 		}
 	}
 	return emails, nil
@@ -214,13 +216,16 @@ func main() {
 	if *local {
 		*useMetadata = false
 	}
+
+	user, err := user.Current()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	gitcookiesPath := path.Join(user.HomeDir, ".gitcookies")
+
 	if *useMetadata {
 		// Get .gitcookies from metadata.
 		hostname, err := os.Hostname()
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		user, err := user.Current()
 		if err != nil {
 			sklog.Fatal(err)
 		}
@@ -228,7 +233,7 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		if err := ioutil.WriteFile(path.Join(user.HomeDir, ".gitcookies"), []byte(gitcookies), 0600); err != nil {
+		if err := ioutil.WriteFile(gitcookiesPath, []byte(gitcookies), 0600); err != nil {
 			sklog.Fatal(err)
 		}
 	}
@@ -237,10 +242,15 @@ func main() {
 	var r *rietveld.Rietveld
 	var g *gerrit.Gerrit
 	if *doGerrit {
-		g, err = gerrit.NewGerrit(gerrit.GERRIT_CHROMIUM_URL, path.Join(*workdir, ".gitcookies"), nil)
+		gerritUrl := gerrit.GERRIT_CHROMIUM_URL
+		if strings.Contains(*parentRepo, "skia") {
+			gerritUrl = gerrit.GERRIT_SKIA_URL
+		}
+		g, err = gerrit.NewGerrit(gerritUrl, gitcookiesPath, nil)
 		if err != nil {
 			sklog.Fatalf("Failed to create Gerrit client: %s", err)
 		}
+		g.TurnOnAuthenticatedGets()
 	} else {
 		client, err := auth.NewClientFromIdAndSecret(rietveld.CLIENT_ID, rietveld.CLIENT_SECRET, path.Join(*workdir, "oauth_cache"), rietveld.OAUTH_SCOPES...)
 		if err != nil {
