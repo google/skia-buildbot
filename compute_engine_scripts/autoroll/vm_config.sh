@@ -14,10 +14,6 @@ if [ $? != "0" ]; then
 fi
 
 VM_ID="$1"
-MACHINE_TYPE=n1-standard-2
-SOURCE_SNAPSHOT=skia-systemd-pushable-base
-SCOPES='https://www.googleapis.com/auth/devstorage.full_control,https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile'
-
 
 # The name of instance where the autoroller is running.
 case "$VM_ID" in
@@ -37,19 +33,18 @@ case "$VM_ID" in
     INSTANCE_NAME=pdfium-autoroll
     IP_ADDRESS=104.154.123.210
     ;;
-  android)
-    INSTANCE_NAME=android-autoroll
-    IP_ADDRESS=104.154.123.206
-    SCOPES="$SCOPES,https://www.googleapis.com/auth/androidbuild.internal,https://www.googleapis.com/auth/gerritcodereview"
-    ;;
   *)
     # Must provide a target instance id.
-    echo "Usage: $0 {skia | catapult | nacl | pdfium | android}"
+    echo "Usage: $0 {skia | catapult | nacl | pdfium}"
     echo "   An instance id must be provided as the first argument."
     exit 1
     ;;
 
 esac
+
+MACHINE_TYPE=n1-standard-2
+SOURCE_SNAPSHOT=skia-systemd-pushable-base
+SCOPES='https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
 
 DATA_DISK_NAME="$INSTANCE_NAME-data"
 

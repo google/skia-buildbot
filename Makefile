@@ -17,13 +17,13 @@ golden:
 perf:
 	cd perf && $(MAKE) all
 
-.PHONY: autoroll
-autoroll:
-	cd autoroll && $(MAKE) all
+.PHONY: alertserver
+alertserver:
+	cd alertserver && $(MAKE) all
 
-.PHONY: cq_watcher
-cq_watcher:
-	cd cq_watcher && $(MAKE) default
+.PHONY: build_scheduler
+build_scheduler:
+	cd build_scheduler && $(MAKE) all
 
 .PHONY: datahopper
 datahopper:
@@ -61,12 +61,8 @@ fuzzer:
 skolo:
 	cd skolo && $(MAKE) all
 
-.PHONY: task_scheduler
-task_scheduler:
-	cd task_scheduler && $(MAKE) all
-
 .PHONY: all
-all: autoroll datahopper datahopper_internal golden perf sharedgo logserver ct ctfe cq_watcher status task_scheduler tags
+all: alertserver build_scheduler datahopper datahopper_internal golden perf sharedgo logserver ct ctfe status tags
 
 .PHONY: tags
 tags:
