@@ -22,6 +22,30 @@
       "revId": "3ea5840f5e0dfad26f6b6d117392ae90559066ab",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3344a9b2_b7a01c11",
+        "filename": "compute_engine_scripts/autoroll/vm_config.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-03-29T18:06:26Z",
+      "side": 1,
+      "message": "The startup script did not have \"DATA_DISK_NAME\".",
+      "parentUuid": "c90ce66b_c80a90f8",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 45
+      },
+      "revId": "3ea5840f5e0dfad26f6b6d117392ae90559066ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
