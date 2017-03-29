@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a75f67a2_8612c6c6",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-03-29T17:07:29Z",
+      "side": 1,
+      "message": "Should this be *workdir instead of user.HomeDir ?",
+      "revId": "ad4ba097c304beba24c39f01aeba75af34363664",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
