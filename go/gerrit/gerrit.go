@@ -40,16 +40,24 @@ const (
 	CHANGE_STATUS_MERGED    = "MERGED"
 	CHANGE_STATUS_NEW       = "NEW"
 
-	CODEREVIEW_LABEL  = "Code-Review"
-	COMMITQUEUE_LABEL = "Commit-Queue"
-
+	// Gerrit labels.
+	CODEREVIEW_LABEL            = "Code-Review"
 	CODEREVIEW_LABEL_DISAPPROVE = -1
 	CODEREVIEW_LABEL_NONE       = 0
 	CODEREVIEW_LABEL_APPROVE    = 1
 
+	// Chromium specific labels.
+	COMMITQUEUE_LABEL         = "Commit-Queue"
 	COMMITQUEUE_LABEL_NONE    = 0
 	COMMITQUEUE_LABEL_DRY_RUN = 1
 	COMMITQUEUE_LABEL_SUBMIT  = 2
+
+	// Android specific labels.
+	AUTOSUBMIT_LABEL         = "Autosubmit"
+	AUTOSUBMIT_LABEL_NONE    = 0
+	AUTOSUBMIT_LABEL_SUBMIT  = 1
+	PRESUBMIT_READY_LABEL    = "Presubmit-Ready"
+	PRESUBMIT_VERIFIED_LABEL = "Presubmit-Verified"
 )
 
 // ChangeInfo contains information about a Gerrit issue.
@@ -505,6 +513,33 @@ func queryString(terms []*SearchTerm) string {
 		q = append(q, fmt.Sprintf("%s:%s", t.Key, t.Value))
 	}
 	return strings.Join(q, " ")
+}
+
+// Sets a topic on the Gerrit change with the provided hash.
+func (g *Gerrit) SetTopic(topic string, changeNum int64) error {
+	putData := map[string]interface{}{
+		"topic": topic,
+	}
+	b, err := json.Marshal(putData)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/a/changes/%d/topic", g.url, changeNum), bytes.NewBuffer(b))
+	if err != nil {
+		return err
+	}
+	if err := g.addAuthenticationCookie(req); err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := g.client.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Got status %s (%d)", resp.Status, resp.StatusCode)
+	}
+	return nil
 }
 
 // Search returns a slice of Issues which fit the given criteria.
