@@ -39,6 +39,15 @@ func Init(name string) {
 
 // Send the 'body' as a message to the given chat 'room' name.
 func Send(body string, room string) error {
+	return SendUsingMetadataGet(body, room, metadata.ProjectGetWithDefault)
+}
+
+// GetWithDefault is a func that returns metadata.
+type GetWithDefault func(key string, defaultValue string) string
+
+// SendUsingMetadataGet is just like Send(), but the metadata retrieved is
+// abstracted.
+func SendUsingMetadataGet(body string, room string, metadataGet GetWithDefault) error {
 	// First look up the chat room webhook address as stored in project level
 	// metadata.  The list of supported webhooks is stored at
 	// BOT_WEBHOOK_METADATA_KEY in the metadata, and is a multiline string of the
@@ -51,7 +60,7 @@ func Send(body string, room string) error {
 	// Note that we load the metadata every time through this func, since loading
 	// metadata is very fast, and we expect the message rate to be very low. This
 	// ensures we always have a fresh set of bots.
-	botWebhooks := metadata.ProjectGetWithDefault(BOT_WEBHOOK_METADATA_KEY, "")
+	botWebhooks := metadataGet(BOT_WEBHOOK_METADATA_KEY, "")
 	if botWebhooks == "" {
 		return fmt.Errorf("Failed to find project metadata for %s", BOT_WEBHOOK_METADATA_KEY)
 	}
