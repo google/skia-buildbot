@@ -507,6 +507,33 @@ func queryString(terms []*SearchTerm) string {
 	return strings.Join(q, " ")
 }
 
+// Sets a topic on the Gerrit change with the provided hash.
+func (g *Gerrit) SetTopic(topic string, changeNum int64) error {
+	putData := map[string]interface{}{
+		"topic": topic,
+	}
+	b, err := json.Marshal(putData)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/a/changes/%d/topic", g.url, changeNum), bytes.NewBuffer(b))
+	if err != nil {
+		return err
+	}
+	if err := g.addAuthenticationCookie(req); err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := g.client.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Got status %s (%d)", resp.Status, resp.StatusCode)
+	}
+	return nil
+}
+
 // Search returns a slice of Issues which fit the given criteria.
 func (g *Gerrit) Search(limit int, terms ...*SearchTerm) ([]*ChangeInfo, error) {
 	var issues changeListSortable
