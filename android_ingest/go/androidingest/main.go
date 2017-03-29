@@ -127,12 +127,18 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
+func badRequest(w http.ResponseWriter, r *http.Request, err error, message string) {
+	sklog.Errorln(message, err)
+	w.WriteHeader(http.StatusBadRequest)
+	fmt.Fprintf(w, "%s: %s", message, err)
+}
+
 // UploadHandler handles POSTs of images to be analyzed.
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse incoming JSON.
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to read body.")
+		badRequest(w, r, err, "Failed to read body.")
 		return
 	}
 
@@ -140,7 +146,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	buf := bytes.NewBuffer(b)
 	benchData, err := converter.Convert(buf)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to find valid incoming JSON.")
+		badRequest(w, r, err, "Failed to find valid incoming JSON.")
 		return
 	}
 
@@ -148,11 +154,11 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	writer := bucket.Object(upload.ObjectPath(benchData, gcsPath, time.Now().UTC(), b)).NewWriter(context.Background())
 	b, err = json.MarshalIndent(benchData, "", "  ")
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode benchData as JSON.")
+		badRequest(w, r, err, "Failed to encode benchData as JSON.")
 		return
 	}
 	if _, err := writer.Write(b); err != nil {
-		httputils.ReportError(w, r, err, "Failed to write JSON body.")
+		badRequest(w, r, err, "Failed to write JSON body.")
 		return
 	}
 	util.Close(writer)
