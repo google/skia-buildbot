@@ -12,7 +12,7 @@ IN_DIR="$(pwd)/out"
 OUT_DIR="usr/local"
 
 # Make sure we restart udev rules and bypass the upload.
-UDEV_RELOAD=True
+UDEV_LIB_RELOAD=True
 BYPASS_UPLOAD=True
 
 # Copy files into the right locations in ${ROOT}.
