@@ -46,6 +46,28 @@ func TestGerritOwnerModifiedSearch(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestGerritCommitSearch(t *testing.T) {
+	skipTestIfRequired(t)
+
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	assert.NoError(t, err)
+	api.TurnOnAuthenticatedGets()
+
+	issues, err := api.Search(1, SearchCommit("a2eb235a16ed430896cc54989e683cf930319eb7"))
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(issues))
+
+	for _, issue := range issues {
+		details, err := api.GetIssueProperties(issue.Issue)
+		assert.NoError(t, err)
+		assert.Equal(t, 5, len(details.Patchsets))
+		assert.Equal(t, "rmistry@google.com", details.Owner.Email)
+		assert.Equal(t, "I37876c6f62c85d0532b22dcf8bea8b4e7f4147c0", details.ChangeId)
+		assert.True(t, details.Committed)
+		assert.Equal(t, "Skia Gerrit 10k!", details.Subject)
+	}
+}
+
 // It is a little different to test the poller. Enable this to turn on the
 // poller and test removing issues from it.
 func GerritPollerTest(t *testing.T) {
