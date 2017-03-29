@@ -166,8 +166,8 @@ func TestSendToCQ(t *testing.T) {
 	err = api.SendToCQ(changeInfo, "Sending to CQ")
 	assert.NoError(t, err)
 
-	// Wait for a few seconds for the above to take place.
-	time.Sleep(5 * time.Second)
+	// Wait for a second for the above to take place.
+	time.Sleep(time.Second)
 
 	// Verify that the change was sent to CQ.
 	changeInfo, err = api.GetIssueProperties(2370)
