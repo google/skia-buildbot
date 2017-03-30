@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5d645da9_4dda7f61",
+        "filename": "skolo/ios/client/ios.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-30T17:06:40Z",
+      "side": 1,
+      "message": "Python style is to use single quotes where possible.",
+      "range": {
+        "startLine": 19,
+        "startChar": 35,
+        "endLine": 19,
+        "endChar": 36
+      },
+      "revId": "a472efadf67b67512731684224fb1e62f51adfcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2430119f_54f5bc49",
+        "filename": "skolo/ios/client/ios.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-30T17:06:40Z",
+      "side": 1,
+      "message": "If this is going to be moved into skia_mobile, perhaps we name it something like get_ios_ids so it\u0027s not ambiguous with android device?",
+      "range": {
+        "startLine": 28,
+        "startChar": 4,
+        "endLine": 28,
+        "endChar": 18
+      },
+      "revId": "a472efadf67b67512731684224fb1e62f51adfcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4ae4c64_f59cbba5",
+        "filename": "skolo/ios/client/ios.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-30T17:06:40Z",
+      "side": 1,
+      "message": "consider kv.get(\u0027ImagePresent\u0027, \u0027false\u0027) to avoid KeyError",
+      "range": {
+        "startLine": 65,
+        "startChar": 11,
+        "endLine": 65,
+        "endChar": 29
+      },
+      "revId": "a472efadf67b67512731684224fb1e62f51adfcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c68fab2_776a8f82",
+        "filename": "skolo/ios/client/ios.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-30T17:06:40Z",
+      "side": 1,
+      "message": "Wrap to 80 columns.  Also other places, if needed.",
+      "range": {
+        "startLine": 68,
+        "startChar": 9,
+        "endLine": 68,
+        "endChar": 13
+      },
+      "revId": "a472efadf67b67512731684224fb1e62f51adfcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87327b94_0b5d625c",
+        "filename": "skolo/ios/client/ios.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-30T17:06:40Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 119,
+        "startChar": 64,
+        "endLine": 119,
+        "endChar": 66
+      },
+      "revId": "a472efadf67b67512731684224fb1e62f51adfcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ee9bc41_6de7f638",
+        "filename": "skolo/ios/client/test_ios.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-30T17:06:40Z",
+      "side": 1,
+      "message": "Is this meant to just be a small wrapper/main for ios.py, or an actual unit test?  It seems to be the former, so perhaps add a comment clarifying that?",
+      "revId": "a472efadf67b67512731684224fb1e62f51adfcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
