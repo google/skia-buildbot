@@ -38,11 +38,11 @@ def ios_get_device_ids():
 
 def ios_get_devices():
   """ Returns instances of IOSDevice for each attached device."""
-  return [IOSDevice(x) for x in get_device_ids()]
+  return [IOSDevice(x) for x in ios_get_device_ids()]
 
 class IOSDevice(object):
-  def __init__(self, id):
-    self._id = id
+  def __init__(self, dev_id):
+    self._id = dev_id
     self._setup_device()
 
   def get_state(self):
@@ -66,7 +66,7 @@ class IOSDevice(object):
       # Mount the developer image.
       img, imgSig = self._get_dev_image()
       cmd = 'ideviceimagemounter -u %s %s %s' % (self._id, img, imgSig)
-      kv = _get_kv_pairs(_run_cmd(tmpl % ))
+      kv = _get_kv_pairs(_run_cmd(cmd))
       assert(kv['Status'] == 'Complete')
 
     # Install the provisioning profile.
@@ -96,9 +96,9 @@ def _get_kv_pairs(output):
   ret = {}
   for line in output.splitlines():
     if not line.startswith(' '):
-    parts = [x.strip() for x in line.strip().split(':', 1)]
-    if (len(parts) == 2) and parts[0] not in IGNORE_FIELDS and parts[1]:
-      ret[parts[0]] = parts[1]
+      parts = [x.strip() for x in line.strip().split(':', 1)]
+      if (len(parts) == 2) and parts[0] not in IGNORE_FIELDS and parts[1]:
+        ret[parts[0]] = parts[1]
   return ret
 
 def _run_ret_value(cmd):
@@ -117,12 +117,12 @@ def _run_cmd(cmd):
   retry = 0
   while True:
     try:
-    args = cmd.strip().split()
-    output = subprocess.check_output(args, stderr=sys.stderr)
-    return output
+      args = cmd.strip().split()
+      output = subprocess.check_output(args, stderr=sys.stderr)
+      return output
     except subprocess.CalledProcessError:
-    retry += 1
-    if retry >= RETRIES:
-      raise
-    time.sleep(backoff)
-    backoff *= 2
+      retry += 1
+      if retry >= RETRIES:
+        raise
+      time.sleep(backoff)
+      backoff *= 2
