@@ -69,6 +69,9 @@ then
     exit 1
 fi
 
+# Get the current architecture.
+ARCH=`dpkg --print-architecture`
+
 # Create all directories here, so their perms can be set correctly.
 mkdir --parents ${ROOT}/DEBIAN
 
@@ -82,7 +85,7 @@ cat <<-EOF > ${ROOT}/DEBIAN/control
 	Package: skia-${APPNAME}
 	Version: 1.0
 	Depends: ${DEPENDS}
-	Architecture: amd64
+	Architecture: ${ARCH}
 	Maintainer: ${USERNAME}@${HOST}
 	Priority: optional
 	Description: ${DESCRIPTION}
@@ -130,6 +133,16 @@ if [ -n "${UDEV_LIB_RELOAD}" ]; then
   cat <<-EOF >> ${ROOT}/DEBIAN/postinst
 /sbin/udevadm control --reload-rules
 ldconfig
+
+# add the usb group and user if they don't exist.
+if ! getent group plugdev >/dev/null; then
+        echo "Adding group plugdev"
+        sudo addgroup --system plugdev
+fi
+if ! getent passwd usbmux >/dev/null; then
+        echo "Adding user usbmux"
+        sudo adduser --system --ingroup plugdev --no-create-home --gecos "usbmux daemon" usbmux
+fi
 EOF
 fi
 
