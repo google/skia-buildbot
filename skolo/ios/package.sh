@@ -10,9 +10,10 @@ SYSTEMD="usbmuxd.service"
 DESCRIPTION="Latest versions of libimobiledevice and related tools."
 IN_DIR="$(pwd)/out"
 OUT_DIR="usr/local"
+ASSET_DIR="assets"
 
 # Make sure we restart udev rules and bypass the upload.
-UDEV_RELOAD=True
+UDEV_LIB_RELOAD=True
 BYPASS_UPLOAD=True
 
 # Copy files into the right locations in ${ROOT}.
@@ -67,8 +68,12 @@ ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libplist.so.3                     ${R
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libplist++.a                      ${ROOT}/${OUT_DIR}/lib/libplist++.a
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libplist.a                        ${ROOT}/${OUT_DIR}/lib/libplist.a
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libplist.so.3.0.0                 ${ROOT}/${OUT_DIR}/lib/libplist.so.3.0.0
-${INSTALL}     --mode=755 -T ${IN_DIR}/udev-rules/39-usbmuxd.rules           ${ROOT}/etc/udev/rules.d/39-usbmuxd.rules
-${INSTALL}     --mode=755 -T ${IN_DIR}/systemd/usbmuxd.service               ${ROOT}/etc/systemd/system/usbmuxd.service
+${INSTALL}     --mode=644 -T ${IN_DIR}/udev-rules/39-usbmuxd.rules           ${ROOT}/etc/udev/rules.d/39-usbmuxd.rules
+${INSTALL}     --mode=644 -T ${IN_DIR}/systemd/usbmuxd.service               ${ROOT}/etc/systemd/system/usbmuxd.service
+
+# Recursively install the assets.
+find ${ASSET_DIR} -type d -exec ${INSTALL_DIR} --mode=755 ${ROOT}/usr/local/share/{} \;
+find ${ASSET_DIR} -type f -exec ${INSTALL} --mode=644 -T {}  ${ROOT}/usr/local/share/{} \;
 }
 
 source ../../bash/release.sh
