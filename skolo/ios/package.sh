@@ -2,7 +2,7 @@
 
 set -x -e
 
-APPNAME=skia-imobiledevice
+APPNAME=imobiledevice
 SERVICE_FILE="path-to-service-file.service"
 
 # Builds and uploads a debian package for skiacorrectness.
