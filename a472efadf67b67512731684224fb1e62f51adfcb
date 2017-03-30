@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ad8ae108_4d1c7952",
+        "filename": "skolo/ios/client/ios.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-30T18:47:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5d645da9_4dda7f61",
+      "range": {
+        "startLine": 19,
+        "startChar": 35,
+        "endLine": 19,
+        "endChar": 36
+      },
+      "revId": "a472efadf67b67512731684224fb1e62f51adfcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2430119f_54f5bc49",
         "filename": "skolo/ios/client/ios.py",
         "patchSetId": 6
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "6098ca81_62e04c10",
+        "filename": "skolo/ios/client/ios.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-30T18:47:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2430119f_54f5bc49",
+      "range": {
+        "startLine": 28,
+        "startChar": 4,
+        "endLine": 28,
+        "endChar": 18
+      },
+      "revId": "a472efadf67b67512731684224fb1e62f51adfcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d4ae4c64_f59cbba5",
         "filename": "skolo/ios/client/ios.py",
         "patchSetId": 6
@@ -59,6 +107,30 @@
       "writtenOn": "2017-03-30T17:06:40Z",
       "side": 1,
       "message": "consider kv.get(\u0027ImagePresent\u0027, \u0027false\u0027) to avoid KeyError",
+      "range": {
+        "startLine": 65,
+        "startChar": 11,
+        "endLine": 65,
+        "endChar": 29
+      },
+      "revId": "a472efadf67b67512731684224fb1e62f51adfcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69ea479a_8afab3c0",
+        "filename": "skolo/ios/client/ios.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-30T18:47:08Z",
+      "side": 1,
+      "message": "For now I\u0027d like to keep this fragile. I think I\u0027ll want to handle this in the calling function to capture the case\nwhere I know a device is attached for some reason it\u0027s not functioning properly. \nIf it makes sense I will add the robust \u0027get\u0027 down the line.",
+      "parentUuid": "d4ae4c64_f59cbba5",
       "range": {
         "startLine": 65,
         "startChar": 11,
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "0b211888_7910ea1b",
+        "filename": "skolo/ios/client/ios.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-30T18:47:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2c68fab2_776a8f82",
+      "range": {
+        "startLine": 68,
+        "startChar": 9,
+        "endLine": 68,
+        "endChar": 13
+      },
+      "revId": "a472efadf67b67512731684224fb1e62f51adfcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "87327b94_0b5d625c",
         "filename": "skolo/ios/client/ios.py",
         "patchSetId": 6
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "cf10a7ad_91ccff87",
+        "filename": "skolo/ios/client/ios.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-30T18:47:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "87327b94_0b5d625c",
+      "range": {
+        "startLine": 119,
+        "startChar": 64,
+        "endLine": 119,
+        "endChar": 66
+      },
+      "revId": "a472efadf67b67512731684224fb1e62f51adfcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0ee9bc41_6de7f638",
         "filename": "skolo/ios/client/test_ios.py",
         "patchSetId": 6
@@ -131,6 +251,24 @@
       "revId": "a472efadf67b67512731684224fb1e62f51adfcb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "55811d75_0c735506",
+        "filename": "skolo/ios/client/test_ios.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-03-30T18:47:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0ee9bc41_6de7f638",
+      "revId": "a472efadf67b67512731684224fb1e62f51adfcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
