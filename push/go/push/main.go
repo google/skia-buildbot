@@ -464,6 +464,12 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 	action := r.Form.Get("action")
 	name := r.Form.Get("name")
 	machine := r.Form.Get("machine")
+	if action == "start" && name == "reboot.target" {
+		body := fmt.Sprintf("%s rebooted %s", login.LoggedInAs(r), machine)
+		if err := chatbot.Send(body, "push"); err != nil {
+			sklog.Warningf("Failed to send chat notification: %s", err)
+		}
+	}
 	url := fmt.Sprintf("http://%s:10000/_/change?name=%s&action=%s", machine, name, action)
 	resp, err := fastClient.Post(url, "", nil)
 	if err != nil {
