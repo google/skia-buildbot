@@ -19,6 +19,9 @@
     setParamset(p) -  A serialized paramtools.ParamSet, that is the source
       of the options for the query.
 
+    setKeyOrder(s) - An array of strings, the keys in the order they should
+      appear. All keys not in the key order will be present after and in
+      alphabetical order.
 -->
 
 <link rel="stylesheet" href="/res/common/css/md.css">
@@ -99,7 +102,6 @@
         value: "",
         reflectToAttribute: true,
       },
-
       // A serialized paramtools.ParamSet, which we are building a query around.
       //
       // Might contain a subset of _originalParamset if filtering has been applied.
@@ -143,6 +145,11 @@
         type: Object,
         value: function() { return {}; },
       },
+      // The order for some or all of the keys. An array of strings.
+      _key_order: {
+        type: Array,
+        value: [],
+      }
     },
 
     setCurrentQuery: function(s) {
@@ -157,9 +164,23 @@
       this._recalcKeys();
     },
 
+    setKeyOrder: function(key_order) {
+      this._key_order = key_order;
+    },
+
     _recalcKeys: function() {
       var keys = Object.keys(this._paramset);
       keys.sort();
+      // Pull out all the keys that appear in _key_order to be pushed
+      // to the front of the list, store them in 'pre'.
+      var pre = [];
+      this._key_order.forEach(function(key) {
+        var index = keys.indexOf(key);
+        if (index != -1) {
+          pre.push(keys.splice(index, 1)[0]);
+        }
+      }.bind(this));
+      keys = pre.concat(keys);
       this.set("_keys", keys);
       this.$.keys.selectedIndex = -1;
       this.set("_values", []);

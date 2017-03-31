@@ -74,6 +74,7 @@ var (
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	ptraceStoreDir = flag.String("ptrace_store_dir", "/tmp/ptracestore", "The directory where the ptracestore tiles are stored.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	keyOrder       = flag.String("key_order", "test,sub_result", "The order that keys should be presented in for searching. All keys that don't appear here will appear after, in alphabetical order.")
 )
 
 var (
@@ -107,13 +108,28 @@ func loadTemplates() {
 	))
 }
 
+// SkPerfConfig is the configuration data that will appear
+// in Javascript under the sk.perf variable.
+type SkPerfConfig struct {
+	Radius   int      `json:"radius"`    // The number of commits when doing clustering.
+	KeyOrder []string `json:"key_order"` // The order of the keys to appear first in query2-sk elements.
+}
+
 func templateHandler(name string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		if *local {
 			loadTemplates()
 		}
-		if err := templates.ExecuteTemplate(w, name, struct{}{}); err != nil {
+		context := SkPerfConfig{
+			Radius:   regression.RADIUS,
+			KeyOrder: strings.Split(*keyOrder, ","),
+		}
+		b, err := json.MarshalIndent(context, "", "  ")
+		if err != nil {
+			sklog.Errorf("Failed to JSON encode sk.perf context: %s", err)
+		}
+		if err := templates.ExecuteTemplate(w, name, map[string]template.JS{"context": template.JS(string(b))}); err != nil {
 			sklog.Errorln("Failed to expand template:", err)
 		}
 	}

@@ -32,10 +32,10 @@ function $$$(query, ele) {
 }
 
 
-this.sk = this.sk || function() {
-  "use strict";
+this.sk = this.sk || {};
 
-  var sk = {};
+(function(sk) {
+  "use strict";
 
   /**
    * app_config is a place for applications to store app specific
@@ -933,5 +933,4 @@ this.sk = this.sk || function() {
     };
   }
 
-  return sk;
-}();
+})(sk);
