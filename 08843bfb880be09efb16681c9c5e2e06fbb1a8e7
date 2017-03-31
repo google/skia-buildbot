@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "93c21b79_e4e6b62d",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-31T19:58:56Z",
+      "side": 1,
+      "message": "related, that is, caused by the same commit.  Related failures will have been broken in the same or close range...",
+      "range": {
+        "startLine": 13,
+        "startChar": 70,
+        "endLine": 13,
+        "endChar": 78
+      },
+      "revId": "08843bfb880be09efb16681c9c5e2e06fbb1a8e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "085a8e83_a4e776c0",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-31T19:58:56Z",
+      "side": 1,
+      "message": "commit",
+      "range": {
+        "startLine": 20,
+        "startChar": 16,
+        "endLine": 20,
+        "endChar": 22
+      },
+      "revId": "08843bfb880be09efb16681c9c5e2e06fbb1a8e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1173acb5_a5a3e814",
+        "filename": "status/go/find_breaks/failures.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-31T19:58:56Z",
+      "side": 1,
+      "message": "Add a comment regarding the fact  that commits are given to be in chronological order and mention that index 0 is the oldest (?) commit",
+      "range": {
+        "startLine": 59,
+        "startChar": 43,
+        "endLine": 59,
+        "endChar": 50
+      },
+      "revId": "08843bfb880be09efb16681c9c5e2e06fbb1a8e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d2436eeb_131a4c59",
+        "filename": "status/go/find_breaks/failures_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-31T19:58:56Z",
+      "side": 1,
+      "message": "Why is this commented out?  Same below.",
+      "range": {
+        "startLine": 75,
+        "startChar": 1,
+        "endLine": 75,
+        "endChar": 9
+      },
+      "revId": "08843bfb880be09efb16681c9c5e2e06fbb1a8e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ac9c2ebe_bd6267ce",
+        "filename": "status/go/find_breaks/slice.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-31T19:58:56Z",
+      "side": 1,
+      "message": "larger slice of what?  I got lost in this sentence - too many \"slice\"",
+      "range": {
+        "startLine": 3,
+        "startChar": 53,
+        "endLine": 3,
+        "endChar": 65
+      },
+      "revId": "08843bfb880be09efb16681c9c5e2e06fbb1a8e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c2d805f3_d0b312b8",
+        "filename": "status/go/find_breaks/slice_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-03-31T19:58:56Z",
+      "side": 1,
+      "message": "IIUC, these would be commit hashes in the \"real\" code?",
+      "range": {
+        "startLine": 71,
+        "startChar": 16,
+        "endLine": 71,
+        "endChar": 17
+      },
+      "revId": "08843bfb880be09efb16681c9c5e2e06fbb1a8e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
