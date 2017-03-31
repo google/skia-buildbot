@@ -17,9 +17,6 @@ import (
 
 const (
 
-	// K is the k in k-means.
-	K = 50
-
 	// MAX_KMEANS_ITERATIONS is the maximum number of k-means iterations to run.
 	MAX_KMEANS_ITERATIONS = 100
 
@@ -251,6 +248,11 @@ func getClusterSummaries(observations []kmeans.Clusterable, centroids []kmeans.C
 	allClusters, _ := kmeans.GetClusters(observations, centroids)
 
 	for i, cluster := range allClusters {
+		// If a cluster stepFit exceeds the threshhold then widen
+		// the range in steps of +/-5, average all the traces with
+		// the IDs of the traces in the cluster, and then cacl stepFit
+		// for that new wider range. Record all of these values.
+
 		// cluster is just an array of the observations for a given cluster.
 		// Drop the first value which is the centroid.
 		cluster = cluster[1:]
