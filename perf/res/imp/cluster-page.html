@@ -148,7 +148,7 @@
           end: Math.floor(Date.now()/1000),
           source: "",
           offset: -1,
-          radius: 7,
+          radius: sk.perf.radius,
           query: "",
           k: 0,
         }; },
@@ -176,6 +176,7 @@
 
     ready: function() {
       sk.get("/_/initpage/").then(JSON.parse).then(function(json) {
+        this.$.query.setKeyOrder(sk.perf.key_order);
         this.$.query.setParamset(json.dataframe.paramset);
       }.bind(this)).catch(sk.errorMessage);
 

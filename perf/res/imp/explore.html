@@ -259,6 +259,7 @@
         var header = json.dataframe.header;
         this.state.begin = this.$.range.begin = header[0].timestamp;
         this.state.end   = this.$.range.end   = header[header.length-1].timestamp+1;
+        this.$.query.setKeyOrder(sk.perf.key_order);
         this.$.query.setParamset(json.dataframe.paramset);
 
         // Remove the paramset so it doesn't get displayed in the Params tab.
