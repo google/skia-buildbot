@@ -161,6 +161,13 @@ func (g *GitBuilder) CreateBranchAtCommit(name, commit string) {
 	g.push()
 }
 
+// CreateOrphanBranch creates a new orphan branch.
+func (g *GitBuilder) CreateOrphanBranch(newBranch string) {
+	g.run("git", "checkout", "--orphan", newBranch)
+	g.branch = newBranch
+	// Can't push, since the branch doesn't currently point to any commit.
+}
+
 // CheckoutBranch checks out the given branch.
 func (g *GitBuilder) CheckoutBranch(name string) {
 	g.run("git", "checkout", name)
@@ -171,7 +178,7 @@ func (g *GitBuilder) CheckoutBranch(name string) {
 // current branch. Returns the hash of the new commit.
 func (g *GitBuilder) MergeBranch(name string) string {
 	assert.NotEqual(g.t, g.branch, name, "Can't merge a branch into itself.")
-	g.run("git", "merge", name)
+	g.run("git", "merge", name, "--allow-unrelated-histories")
 	g.push()
 	return g.lastCommitHash()
 }
