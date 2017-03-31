@@ -16,6 +16,11 @@ ASSET_DIR="assets"
 UDEV_LIB_RELOAD=True
 BYPASS_UPLOAD=True
 
+# Fix the paths in the config files.
+sed -i "s+${IN_DIR}/sbin+/usr/local/sbin+g" ${IN_DIR}/systemd/usbmuxd.service
+sed -i "s+${IN_DIR}/var/run+/var/run+g"     ${IN_DIR}/systemd/usbmuxd.service
+sed -i "s+${IN_DIR}/sbin+/usr/local/sbin+g" ${IN_DIR}/udev-rules/*.rules
+
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
@@ -49,22 +54,18 @@ ${INSTALL}     --mode=755 -T ${IN_DIR}/bin/ideviceenterrecovery       ${ROOT}/${
 
 ${INSTALL_DIR} --mode=755                                             ${ROOT}/${OUT_DIR}/lib
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libplist++.a               ${ROOT}/${OUT_DIR}/lib/libplist++.a
-${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libplist++.la              ${ROOT}/${OUT_DIR}/lib/libplist++.la
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libplist++.so              ${ROOT}/${OUT_DIR}/lib/libplist++.so
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libplist++.so.3            ${ROOT}/${OUT_DIR}/lib/libplist++.so.3
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libplist++.so.3.0.0        ${ROOT}/${OUT_DIR}/lib/libplist++.so.3.0.0
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libplist.a                 ${ROOT}/${OUT_DIR}/lib/libplist.a
-${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libplist.la                ${ROOT}/${OUT_DIR}/lib/libplist.la
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libplist.so                ${ROOT}/${OUT_DIR}/lib/libplist.so
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libplist.so.3              ${ROOT}/${OUT_DIR}/lib/libplist.so.3
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libplist.so.3.0.0          ${ROOT}/${OUT_DIR}/lib/libplist.so.3.0.0
-${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libusbmuxd.la              ${ROOT}/${OUT_DIR}/lib/libusbmuxd.la
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libusbmuxd.so.4            ${ROOT}/${OUT_DIR}/lib/libusbmuxd.so.4
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libusbmuxd.a               ${ROOT}/${OUT_DIR}/lib/libusbmuxd.a
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libusbmuxd.so              ${ROOT}/${OUT_DIR}/lib/libusbmuxd.so
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libusbmuxd.so.4.0.0        ${ROOT}/${OUT_DIR}/lib/libusbmuxd.so.4.0.0
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libimobiledevice.a         ${ROOT}/${OUT_DIR}/lib/libimobiledevice.a
-${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libimobiledevice.la        ${ROOT}/${OUT_DIR}/lib/libimobiledevice.la
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libimobiledevice.so        ${ROOT}/${OUT_DIR}/lib/libimobiledevice.so
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libimobiledevice.so.6      ${ROOT}/${OUT_DIR}/lib/libimobiledevice.so.6
 ${INSTALL}     --mode=644 -T ${IN_DIR}/lib/libimobiledevice.so.6.0.0  ${ROOT}/${OUT_DIR}/lib/libimobiledevice.so.6.0.0
