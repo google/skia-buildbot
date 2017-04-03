@@ -101,11 +101,11 @@ func rangeImpl(resp []*vcsinfo.IndexCommit, skip int) ([]*ColumnHeader, []*cid.C
 
 // lastN returns the slices of ColumnHeader and cid.CommitID that are
 // needed by DataFrame and ptracestore.PTraceStore, respectively. The slices
-// are for the last 50 commits in the repo.
+// are for the last N commits in the repo.
 //
 // Returns 0 for 'skip', the number of commits skipped.
-func lastN(vcs vcsinfo.VCS) ([]*ColumnHeader, []*cid.CommitID, int) {
-	return rangeImpl(vcs.LastNIndex(DEFAULT_NUM_COMMITS), 0)
+func lastN(vcs vcsinfo.VCS, n int) ([]*ColumnHeader, []*cid.CommitID, int) {
+	return rangeImpl(vcs.LastNIndex(n), 0)
 }
 
 // getRange returns the slices of ColumnHeader and cid.CommitID that are
@@ -145,7 +145,13 @@ func _new(colHeaders []*ColumnHeader, commitIDs []*cid.CommitID, matches ptraces
 // New returns a populated DataFrame of the last 50 commits given the 'vcs' and
 // 'store', or a non-nil error if there was a failure retrieving the traces.
 func New(vcs vcsinfo.VCS, store ptracestore.PTraceStore, progress ptracestore.Progress) (*DataFrame, error) {
-	colHeaders, commitIDs, skip := lastN(vcs)
+	return NewN(vcs, store, progress, DEFAULT_NUM_COMMITS)
+}
+
+// NewN returns a populated DataFrame of the last N commits given the 'vcs' and
+// 'store', or a non-nil error if there was a failure retrieving the traces.
+func NewN(vcs vcsinfo.VCS, store ptracestore.PTraceStore, progress ptracestore.Progress, n int) (*DataFrame, error) {
+	colHeaders, commitIDs, skip := lastN(vcs, n)
 	matches := func(key string) bool {
 		return true
 	}

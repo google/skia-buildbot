@@ -66,15 +66,16 @@ var (
 var (
 	clusterQueries = flag.String("cluster_queries", "source_type=skp&sub_result=min_ms source_type=svg&sub_result=min_ms source_type=image&sub_result=min_ms", "A space separated list of queries we want to cluster over.")
 	configFilename = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
+	dataFrameSize  = flag.Int("dataframe_size", dataframe.DEFAULT_NUM_COMMITS, "The number of commits to include in the default dataframe.")
 	gitRepoDir     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	gitRepoURL     = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 	internalOnly   = flag.Bool("internal_only", false, "Require the user to be logged in to see any page.")
+	keyOrder       = flag.String("key_order", "build_flavor,test,sub_result", "The order that keys should be presented in for searching. All keys that don't appear here will appear after, in alphabetical order.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	ptraceStoreDir = flag.String("ptrace_store_dir", "/tmp/ptracestore", "The directory where the ptracestore tiles are stored.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	keyOrder       = flag.String("key_order", "build_flavor,test,sub_result", "The order that keys should be presented in for searching. All keys that don't appear here will appear after, in alphabetical order.")
 )
 
 var (
@@ -151,7 +152,7 @@ func Init() {
 	}
 	ptracestore.Init(*ptraceStoreDir)
 
-	freshDataFrame, err = dataframe.NewRefresher(git, ptracestore.Default, time.Minute)
+	freshDataFrame, err = dataframe.NewRefresher(git, ptracestore.Default, time.Minute, *dataFrameSize)
 	if err != nil {
 		sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
 	}
