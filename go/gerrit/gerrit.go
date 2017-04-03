@@ -115,6 +115,26 @@ type Revision struct {
 	Created       time.Time `json:"-"`
 }
 
+type GerritInterface interface {
+	TurnOnAuthenticatedGets()
+	Url(int64) string
+	ExtractIssue(string) (string, bool)
+	GetIssueProperties(int64) (*ChangeInfo, error)
+	GetPatch(int64, string) (string, error)
+	SetReview(*ChangeInfo, string, map[string]interface{}) error
+	AddComment(*ChangeInfo, string) error
+	SendToDryRun(*ChangeInfo, string) error
+	SendToCQ(*ChangeInfo, string) error
+	RemoveFromCQ(*ChangeInfo, string) error
+	Approve(*ChangeInfo, string) error
+	NoScore(*ChangeInfo, string) error
+	DisApprove(*ChangeInfo, string) error
+	Abandon(*ChangeInfo, string) error
+	SetTopic(string, int64) error
+	Search(int, ...*SearchTerm) ([]*ChangeInfo, error)
+	GetTrybotResults(int64, int64) ([]*buildbucket.Build, error)
+}
+
 // Gerrit is an object used for iteracting with the issue tracker.
 type Gerrit struct {
 	client               *http.Client
