@@ -247,7 +247,7 @@ func initpageHandler(w http.ResponseWriter, r *http.Request) {
 		Header:   df.Header,
 		ParamSet: df.ParamSet,
 		TraceSet: ptracestore.TraceSet{},
-	}, git, false)
+	}, git, false, r.FormValue("tz"))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load init data.")
 		return
