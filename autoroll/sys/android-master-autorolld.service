@@ -1,0 +1,25 @@
+[Unit]
+Description=Skia into Android master AutoRoll Bot
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/autoroll \
+    --use_metadata=true \
+    --host=android-roll.skia.org \
+    --logtostderr \
+    --workdir=/mnt/pd0/autoroll_workdir \
+    --childName="Skia into Android master" \
+    --childPath=external/skia \
+    --resources_dir=/usr/local/share/autoroll/ \
+    --sheriff=https://skia-tree-status.appspot.com/current-robocop \
+    --gerrit \
+    --roll_into_android=true \
+    --parent_repo=android
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
