@@ -255,7 +255,8 @@
       this.ZERO_NAME = "special_zero";
 
       // Populate the query element.
-      sk.get("/_/initpage/").then(JSON.parse).then(function(json) {
+      var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      sk.get("/_/initpage/?tz=" + tz).then(JSON.parse).then(function(json) {
         var header = json.dataframe.header;
         this.state.begin = this.$.range.begin = header[0].timestamp;
         this.state.end   = this.$.range.end   = header[header.length-1].timestamp+1;
@@ -723,18 +724,20 @@
     // Requests a new dataframe, where body is a serialized FrameRequest:
     //
     // {
-    //    begin: 1448325780,
-    //    end:   1476706336,
-    //    formulas : ["ave(filter("name=desk_nytimes.skp&sub_result=min_ms"))"],
-    //    hidden : [],
-    //    queries : [
+    //    begin:    1448325780,
+    //    end:      1476706336,
+    //    formulas: ["ave(filter("name=desk_nytimes.skp&sub_result=min_ms"))"],
+    //    hidden:   [],
+    //    queries:  [
     //        "name=AndroidCodec_01_original.jpg_SampleSize8",
     //        "name=AndroidCodec_1.bmp_SampleSize8"],
+    //    tz:       "America/New_York"
     // };
     //
     // The 'cb' callback function will be called with the decoded JSON body
     // of the response once it's available.
     _requestFrame: function(body, cb) {
+      body.tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       if (this._requestId != "") {
         sk.errorMessage("There is a pending query already running.");
         return

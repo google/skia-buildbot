@@ -140,8 +140,13 @@ func TickMarks(timestamps []int64, in *time.Location) []*Tick {
 // expects for a value for tick marks.
 //
 // If an error occurs the tick list will be empty.
-func FlotTickMarks(ts []int64) []interface{} {
-	loc, err := time.LoadLocation("America/New_York")
+//
+// tz is the timezone, and can be the empty string if the default (Eastern) timezone is acceptable.
+func FlotTickMarks(ts []int64, tz string) []interface{} {
+	if tz == "" {
+		tz = "America/New_York"
+	}
+	loc, err := time.LoadLocation(tz)
 	if err != nil {
 		sklog.Errorf("Failed to load the timezone: %s", err)
 		return []interface{}{}

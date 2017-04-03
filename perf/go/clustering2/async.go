@@ -55,6 +55,7 @@ type ClusterRequest struct {
 	Radius int    `json:"radius"`
 	Query  string `json:"query"`
 	K      int    `json:"k"`
+	TZ     string `json:"tz"`
 }
 
 func (c *ClusterRequest) Id() string {
@@ -302,7 +303,7 @@ func (p *ClusterRequestProcess) Run() {
 	}
 
 	df.TraceSet = ptracestore.TraceSet{}
-	frame, err := dataframe.ResponseFromDataFrame(df, p.git, false)
+	frame, err := dataframe.ResponseFromDataFrame(df, p.git, false, p.request.TZ)
 	if err != nil {
 		p.reportError(err, "Failed to convert DataFrame to FrameResponse.")
 		return

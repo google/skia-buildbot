@@ -51,6 +51,7 @@ type FrameRequest struct {
 	Queries  []string `json:"queries"`  // The queries to perform encoded as a URL query.
 	Hidden   []string `json:"hidden"`   // The ids of traces to remove from the response.
 	Keys     string   `json:"keys"`     // The id of a list of keys stored via shortcut2.
+	TZ       string   `json:"tz"`       // The timezone the request is from. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat/resolvedOptions
 }
 
 func (f *FrameRequest) Id() string {
@@ -273,7 +274,7 @@ func (p *FrameRequestProcess) Run() {
 		df = NewHeaderOnly(p.git, begin, end, true)
 	}
 
-	resp, err := ResponseFromDataFrame(df, p.git, true)
+	resp, err := ResponseFromDataFrame(df, p.git, true, p.request.TZ)
 	if err != nil {
 		p.reportError(err, "Failed to get ticks or skps.")
 		return
@@ -355,13 +356,15 @@ func getSkps(headers []*ColumnHeader, git *gitinfo.GitInfo) ([]int, error) {
 // ResponseFromDataFrame fills out the rest of a FrameResponse for the given DataFrame.
 //
 // If truncate is true then the number of traces returned is limited.
-func ResponseFromDataFrame(df *DataFrame, git *gitinfo.GitInfo, truncate bool) (*FrameResponse, error) {
+//
+// tz is the timezone, and can be the empty string if the default (Eastern) timezone is acceptable.
+func ResponseFromDataFrame(df *DataFrame, git *gitinfo.GitInfo, truncate bool, tz string) (*FrameResponse, error) {
 	// Calculate the human ticks based on the column headers.
 	ts := []int64{}
 	for _, c := range df.Header {
 		ts = append(ts, c.Timestamp)
 	}
-	ticks := human.FlotTickMarks(ts)
+	ticks := human.FlotTickMarks(ts, tz)
 
 	// Determine where SKP changes occurred.
 	skps, err := getSkps(df.Header, git)

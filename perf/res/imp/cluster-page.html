@@ -175,7 +175,8 @@
     },
 
     ready: function() {
-      sk.get("/_/initpage/").then(JSON.parse).then(function(json) {
+      var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      sk.get("/_/initpage/?tz=" + tz).then(JSON.parse).then(function(json) {
         this.$.query.setKeyOrder(sk.perf.key_order);
         this.$.query.setParamset(json.dataframe.paramset);
       }.bind(this)).catch(sk.errorMessage);
@@ -216,6 +217,7 @@
         radius: +this.state.radius,
         query: this.state.query,
         k: +this.state.k,
+        tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
       };
       this._summaries = [];
       this.$.results.render();
