@@ -75,6 +75,7 @@ var (
 	ptraceStoreDir = flag.String("ptrace_store_dir", "/tmp/ptracestore", "The directory where the ptracestore tiles are stored.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	keyOrder       = flag.String("key_order", "test,sub_result", "The order that keys should be presented in for searching. All keys that don't appear here will appear after, in alphabetical order.")
+	dataFrameSize  = flag.Int("dataframe_size", dataframe.DEFAULT_NUM_COMMITS, "The number of commits to include in the default dataframe.")
 )
 
 var (
@@ -151,7 +152,7 @@ func Init() {
 	}
 	ptracestore.Init(*ptraceStoreDir)
 
-	freshDataFrame, err = dataframe.NewRefresher(git, ptracestore.Default, time.Minute)
+	freshDataFrame, err = dataframe.NewRefresher(git, ptracestore.Default, time.Minute, *dataFrameSize)
 	if err != nil {
 		sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
 	}
