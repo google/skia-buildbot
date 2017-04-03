@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ab078677_e14fb134",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-03T12:53:06Z",
+      "side": 1,
+      "message": "Added another sentence. WDYT?",
+      "parentUuid": "93c21b79_e4e6b62d",
+      "range": {
+        "startLine": 13,
+        "startChar": 70,
+        "endLine": 13,
+        "endChar": 78
+      },
+      "revId": "08843bfb880be09efb16681c9c5e2e06fbb1a8e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "085a8e83_a4e776c0",
         "filename": "status/go/find_breaks/failure_groups.go",
         "patchSetId": 9
@@ -45,6 +69,30 @@
       "revId": "08843bfb880be09efb16681c9c5e2e06fbb1a8e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3e60a09_cd98a407",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-03T12:53:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "085a8e83_a4e776c0",
+      "range": {
+        "startLine": 20,
+        "startChar": 16,
+        "endLine": 20,
+        "endChar": 22
+      },
+      "revId": "08843bfb880be09efb16681c9c5e2e06fbb1a8e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "25515287_338cccaa",
+        "filename": "status/go/find_breaks/failures.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-03T12:53:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1173acb5_a5a3e814",
+      "range": {
+        "startLine": 59,
+        "startChar": 43,
+        "endLine": 59,
+        "endChar": 50
+      },
+      "revId": "08843bfb880be09efb16681c9c5e2e06fbb1a8e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d2436eeb_131a4c59",
         "filename": "status/go/find_breaks/failures_test.go",
         "patchSetId": 9
@@ -82,6 +154,30 @@
       "writtenOn": "2017-03-31T19:58:56Z",
       "side": 1,
       "message": "Why is this commented out?  Same below.",
+      "range": {
+        "startLine": 75,
+        "startChar": 1,
+        "endLine": 75,
+        "endChar": 9
+      },
+      "revId": "08843bfb880be09efb16681c9c5e2e06fbb1a8e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1ac0af2_66342524",
+        "filename": "status/go/find_breaks/failures_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-03T12:53:06Z",
+      "side": 1,
+      "message": "I was playing with different values for the failure IDs.  Uncommented.",
+      "parentUuid": "d2436eeb_131a4c59",
       "range": {
         "startLine": 75,
         "startChar": 1,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "8ff58165_85eed1ff",
+        "filename": "status/go/find_breaks/slice.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-03T12:53:06Z",
+      "side": 1,
+      "message": "Reworded. WDYT?",
+      "parentUuid": "ac9c2ebe_bd6267ce",
+      "range": {
+        "startLine": 3,
+        "startChar": 53,
+        "endLine": 3,
+        "endChar": 65
+      },
+      "revId": "08843bfb880be09efb16681c9c5e2e06fbb1a8e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c2d805f3_d0b312b8",
         "filename": "status/go/find_breaks/slice_test.go",
         "patchSetId": 9
@@ -128,6 +248,30 @@
       "writtenOn": "2017-03-31T19:58:56Z",
       "side": 1,
       "message": "IIUC, these would be commit hashes in the \"real\" code?",
+      "range": {
+        "startLine": 71,
+        "startChar": 16,
+        "endLine": 71,
+        "endChar": 17
+      },
+      "revId": "08843bfb880be09efb16681c9c5e2e06fbb1a8e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d344c366_4f7eb66f",
+        "filename": "status/go/find_breaks/slice_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-03T12:53:06Z",
+      "side": 1,
+      "message": "Correct, although the slice type doesn\u0027t really care, as long as it\u0027s an ordered slice of unique strings.",
+      "parentUuid": "c2d805f3_d0b312b8",
       "range": {
         "startLine": 71,
         "startChar": 16,
