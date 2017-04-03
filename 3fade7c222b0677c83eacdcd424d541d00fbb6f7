@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3369e3a1_7f884581",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 42
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-03T18:17:21Z",
+      "side": 1,
+      "message": "This and the below are kind of awkward.  Can we move this to near line 257?  Or at least make this something like:\n\nandroidInternalGerritUrl :\u003d \"127.0.0.1\"\nif *useMetadata {\n    ...\n    androidInternalGerritUrl, err \u003d metadata.ProjectGet(\"android_internal_gerrit_url\")\n...\n}\n\n?",
+      "range": {
+        "startLine": 243,
+        "startChar": 2,
+        "endLine": 243,
+        "endChar": 64
+      },
+      "revId": "3fade7c222b0677c83eacdcd424d541d00fbb6f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4636b4f7_f16f0537",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 42
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-03T18:17:21Z",
+      "side": 1,
+      "message": "IMO this should either be a member function of the Gerrit struct or we pass in the repo URL.",
+      "range": {
+        "startLine": 46,
+        "startChar": 12,
+        "endLine": 46,
+        "endChar": 55
+      },
+      "revId": "3fade7c222b0677c83eacdcd424d541d00fbb6f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "44cd42bb_e7ef9149",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 42
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-03T18:17:21Z",
+      "side": 1,
+      "message": "Just curious, why this instead of a local \"git rev-parse origin/master\"?",
+      "range": {
+        "startLine": 148,
+        "startChar": 28,
+        "endLine": 148,
+        "endChar": 114
+      },
+      "revId": "3fade7c222b0677c83eacdcd424d541d00fbb6f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d8b80d5_23902383",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 42
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-03T18:17:21Z",
+      "side": 1,
+      "message": "This assumes that the local working copy is at the tip of the branch.  Is that a safe assumption?  I thought there was a repo manifest file which we could read?",
+      "range": {
+        "startLine": 158,
+        "startChar": 28,
+        "endLine": 158,
+        "endChar": 85
+      },
+      "revId": "3fade7c222b0677c83eacdcd424d541d00fbb6f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "725424af_6c3b29fd",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 42
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-03T18:17:21Z",
+      "side": 1,
+      "message": "I\u0027m not familiar with the rest of this, so just assuming it\u0027s correct...",
+      "range": {
+        "startLine": 314,
+        "startChar": 1,
+        "endLine": 314,
+        "endChar": 106
+      },
+      "revId": "3fade7c222b0677c83eacdcd424d541d00fbb6f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "be988813_9c54ea3f",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 42
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-03T18:17:21Z",
+      "side": 1,
+      "message": "I didn\u0027t read this file closely, assuming that it\u0027s pretty much copy/pasted from repo_manager.go.  Let me know if that\u0027s incorrect.",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 20
+      },
+      "revId": "3fade7c222b0677c83eacdcd424d541d00fbb6f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
