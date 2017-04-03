@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2586ff48_5a72625f",
+        "filename": "perf/go/dataframe/dataframe.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-03T16:35:55Z",
+      "side": 1,
+      "message": "New can instead:\nreturn NewN(... DEFAULT_NUM_COMMITS)",
+      "revId": "4f47742195a9f18ca75beec5fe038186e2e1a09e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
