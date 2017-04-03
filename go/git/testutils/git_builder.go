@@ -12,6 +12,7 @@ import (
 	"github.com/satori/go.uuid"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -161,6 +162,13 @@ func (g *GitBuilder) CreateBranchAtCommit(name, commit string) {
 	g.push()
 }
 
+// CreateOrphanBranch creates a new orphan branch.
+func (g *GitBuilder) CreateOrphanBranch(newBranch string) {
+	g.run("git", "checkout", "--orphan", newBranch)
+	g.branch = newBranch
+	// Can't push, since the branch doesn't currently point to any commit.
+}
+
 // CheckoutBranch checks out the given branch.
 func (g *GitBuilder) CheckoutBranch(name string) {
 	g.run("git", "checkout", name)
@@ -171,7 +179,13 @@ func (g *GitBuilder) CheckoutBranch(name string) {
 // current branch. Returns the hash of the new commit.
 func (g *GitBuilder) MergeBranch(name string) string {
 	assert.NotEqual(g.t, g.branch, name, "Can't merge a branch into itself.")
-	g.run("git", "merge", name)
+	cmd := []string{"git", "merge", name}
+	major, minor, err := git_common.Version()
+	assert.NoError(g.t, err)
+	if (major == 2 && minor >= 9) || major > 2 {
+		cmd = append(cmd, "--allow-unrelated-histories")
+	}
+	g.run(cmd...)
 	g.push()
 	return g.lastCommitHash()
 }
