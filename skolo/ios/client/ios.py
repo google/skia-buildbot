@@ -43,17 +43,20 @@ def ios_get_devices():
 class IOSDevice(object):
   def __init__(self, dev_id):
     self._id = dev_id
-    self._setup_device()
 
   def get_state(self):
     """Returns a dictionary to be used"""
     return _get_kv_pairs(_run_cmd('ideviceinfo -u %s' % self._id))
 
+  def get_battery_state(self):
+    cmd = "ideviceinfo -u %s -q %s" % (self._id, 'com.apple.mobile.battery')
+    return _get_kv_pairs(_run_cmd(cmd))
+
   def reboot(self):
     """Reboots the device."""
     _run_cmd('idevicediagnostics restart -u %s' % self._id)
 
-  def _setup_device(self):
+  def get_ready(self):
     """Does all the necessary setup to run apps on the device."""
     # Pair the device with the host.
     ret = _run_ret_value('idevicepair -u %s validate' % self._id)

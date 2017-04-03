@@ -30,6 +30,7 @@ class IOSDeviceCase(unittest.TestCase):
   def _get_device(self):
     device = ios.ios_get_devices()
     self.assertEqual(1, len(device))
+    device[0].get_ready()
     return device[0]
 
 def main():
