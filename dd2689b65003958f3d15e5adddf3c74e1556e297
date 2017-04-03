@@ -1,0 +1,533 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "de416f7f_d5ad6caf",
+        "filename": "go/git/git_common/git_common_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "Is this intentional?",
+      "range": {
+        "startLine": 15,
+        "startChar": 1,
+        "endLine": 15,
+        "endChar": 36
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e46e21f7_710af4fa",
+        "filename": "status/go/find_breaks/commit_slices.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "nit: is it obvious that the resulting slices will be in reverse chronological order?",
+      "range": {
+        "startLine": 10,
+        "startChar": 76,
+        "endLine": 11,
+        "endChar": 51
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3126c379_fbe29a5c",
+        "filename": "status/go/find_breaks/commit_slices.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "seems to be copy/pasted without edit.",
+      "range": {
+        "startLine": 44,
+        "startChar": 3,
+        "endLine": 45,
+        "endChar": 75
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea97734b_64fc121d",
+        "filename": "status/go/find_breaks/commit_slices.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "Multiple branches could point to the same commit, resulting in duplicates in rv. Do we care?",
+      "range": {
+        "startLine": 65,
+        "startChar": 19,
+        "endLine": 65,
+        "endChar": 34
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1c18985_8079622f",
+        "filename": "status/go/find_breaks/commit_slices.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "nit: Maybe move to util?",
+      "range": {
+        "startLine": 71,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 3
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e310254_be76c840",
+        "filename": "status/go/find_breaks/commit_slices_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "nit: document",
+      "range": {
+        "startLine": 16,
+        "startChar": 5,
+        "endLine": 16,
+        "endChar": 16
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4981fe1e_333922c3",
+        "filename": "status/go/find_breaks/commit_slices_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "nit: could add CommitGenMsgAt method",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 29
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8fbf455d_d02221dc",
+        "filename": "status/go/find_breaks/commit_slices_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "Should GitBuilder.MergeBranch do this automatically? I can\u0027t think of a case where that\u0027s not what we would want.",
+      "range": {
+        "startLine": 158,
+        "startChar": 12,
+        "endLine": 158,
+        "endChar": 63
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68912da3_1f3b898f",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "nit: I think in the long run we\u0027ll want two different structs, one with slices and the other with []string.",
+      "range": {
+        "startLine": 48,
+        "startChar": 23,
+        "endLine": 48,
+        "endChar": 30
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "279ce828_a7cba03b",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "nit: doc out-of-date",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 29
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aab4e787_3fe61a16",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "nit: typo",
+      "range": {
+        "startLine": 95,
+        "startChar": 7,
+        "endLine": 95,
+        "endChar": 14
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6912792f_6f49153c",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "We should keep this in mind to avoid splintering FailureGroups when they are about to fall out of the window. It\u0027s probably good enough to generate FailureGroups for a larger window and then prune those that are before a smaller window.",
+      "range": {
+        "startLine": 96,
+        "startChar": 21,
+        "endLine": 98,
+        "endChar": 71
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "348d1646_a843e9f8",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "nit: ISTM that if g.fixedIn is empty and f.fixedIn is not, or vice-versa, the result should be the non-empty slice.",
+      "range": {
+        "startLine": 108,
+        "startChar": 1,
+        "endLine": 108,
+        "endChar": 40
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c7859cf_9891b96b",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "I don\u0027t understand this.\n\nIt seems you are trying to find all possible groupings of failures, since whether or not maybeMerge merges depends on the order of previous merges. However, in order to do that, you would need to iterate over all possible permutations of failures, since B.maybeMerge(A).maybeMerge(C) could give different results from B.maybeMerge(C).maybeMerge(A).\n\nAlso, it seems like rather than generating all possible groupings, we really want to partition failures into groups, i.e. no two groups should contain the same failure. However, the deduplication below doesn\u0027t achieve that -- it only deduplicates identical groups.",
+      "range": {
+        "startLine": 151,
+        "startChar": 0,
+        "endLine": 157,
+        "endChar": 3
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7df79558_5a2cc76b",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "nit: maybe document that end should be \"now.\"",
+      "range": {
+        "startLine": 182,
+        "startChar": 75,
+        "endLine": 182,
+        "endChar": 88
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29ce8535_f1d9a99e",
+        "filename": "status/go/find_breaks/failures.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "nit: I think this function will be simpler if you only look at t.Revision and ignore t.Commits, since there will always be gaps when using t.Commits. You would need to change the loop below to iterate backwards over commits. Essentially, this would adjust blamelists as if pending/running/mishap tasks had never been created.\n\nDoing this would eliminate the special wildcard handling, and also eliminate the fix-ups after makeSlice(t.Commits, commits).",
+      "range": {
+        "startLine": 64,
+        "startChar": 20,
+        "endLine": 64,
+        "endChar": 29
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e4c3ec9c_ce368dcb",
+        "filename": "status/go/find_breaks/failures.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "nit: I think it would be easier (and possibly more correct) to just ignore mishaps in findFailures, just like running and pending. Mishaps are basically the same as pending/running, in that the success/failure status is \"don\u0027t know.\"",
+      "range": {
+        "startLine": 127,
+        "startChar": 0,
+        "endLine": 139,
+        "endChar": 48
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d9c187d_f65addb9",
+        "filename": "status/go/find_breaks/failures.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "I don\u0027t think we want to set lastFailed here. (I wrote a long explanation, and then hit discard thinking I was wrong, and now I don\u0027t feel like typing it again. Just ask me if it\u0027s not clear -- it\u0027s easier to whiteboard anyway.)",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 145,
+        "endChar": 4
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "09f13fe4_327c63a7",
+        "filename": "status/go/find_breaks/find_breaks.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "It\u0027s hard for me to consider this CL on its own without understanding the eventual goal. My gut feeling is that implementing find_breaks without considering flakes and using only blamelists will not end up working well in practice. A design doc would probably be worthwhile.",
+      "range": {
+        "startLine": 10,
+        "startChar": 47,
+        "endLine": 10,
+        "endChar": 73
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cec9f7bb_f8492f07",
+        "filename": "status/go/find_breaks/slice.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "nit: It seems we treat invalid slices as basically equivalent to empty slices. ISTM that the logic would be simpler if we represent the empty slice as the zero value of slice (i.e. slice{}), change any calls to Valid() to instead call !Empty(), and change code that creates invalid slices to create slice{} instead.\n\nOTOH, this code is already written.",
+      "range": {
+        "startLine": 22,
+        "startChar": 15,
+        "endLine": 22,
+        "endChar": 22
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "052a1f39_c490b184",
+        "filename": "status/go/find_breaks/slice.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "nit: Doc should mention that s is unordered.",
+      "range": {
+        "startLine": 73,
+        "startChar": 37,
+        "endLine": 73,
+        "endChar": 74
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "449a067a_3d98d497",
+        "filename": "status/go/find_breaks/slice_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "Missing case of two valid non-overlapping slices.",
+      "range": {
+        "startLine": 60,
+        "startChar": 1,
+        "endLine": 60,
+        "endChar": 57
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0fe1f25_6c18bac4",
+        "filename": "status/go/find_breaks/slice_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-03T19:33:54Z",
+      "side": 1,
+      "message": "nit: doc on makeSlice should mention this.",
+      "range": {
+        "startLine": 79,
+        "startChar": 46,
+        "endLine": 80,
+        "endChar": 21
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
