@@ -1,0 +1,69 @@
+package gerrit
+
+import (
+	"github.com/stretchr/testify/mock"
+
+	"go.skia.org/infra/go/buildbucket"
+)
+
+// Mock that implements all methods of GerritInterface.
+type MockedGerrit struct {
+	mock.Mock
+	IssueID int64
+}
+
+func (g *MockedGerrit) TurnOnAuthenticatedGets() {
+}
+func (g *MockedGerrit) Url(issueID int64) string {
+	return ""
+}
+func (g *MockedGerrit) ExtractIssue(issueURL string) (string, bool) {
+	return "", false
+}
+func (g *MockedGerrit) GetIssueProperties(issue int64) (*ChangeInfo, error) {
+	return &ChangeInfo{Issue: issue}, nil
+}
+func (g *MockedGerrit) GetPatch(issue int64, revision string) (string, error) {
+	return "", nil
+}
+func (g *MockedGerrit) SetReview(issue *ChangeInfo, message string, labels map[string]interface{}) error {
+	return nil
+}
+func (g *MockedGerrit) AddComment(issue *ChangeInfo, message string) error {
+	return nil
+}
+func (g *MockedGerrit) SendToDryRun(issue *ChangeInfo, message string) error {
+	return nil
+}
+func (g *MockedGerrit) SendToCQ(issue *ChangeInfo, message string) error {
+	return nil
+}
+func (g *MockedGerrit) RemoveFromCQ(issue *ChangeInfo, message string) error {
+	return nil
+}
+func (g *MockedGerrit) Approve(issue *ChangeInfo, message string) error {
+	return nil
+}
+func (g *MockedGerrit) NoScore(issue *ChangeInfo, message string) error {
+	return nil
+}
+func (g *MockedGerrit) DisApprove(issue *ChangeInfo, message string) error {
+	return nil
+}
+func (g *MockedGerrit) Abandon(issue *ChangeInfo, message string) error {
+	return nil
+}
+func (g *MockedGerrit) SetTopic(topic string, changeNum int64) error {
+	return nil
+}
+func (g *MockedGerrit) Search(limit int, terms ...*SearchTerm) ([]*ChangeInfo, error) {
+	results := make([]*ChangeInfo, 0)
+	results = append(results, &ChangeInfo{Issue: g.IssueID})
+	return results, nil
+}
+func (g *MockedGerrit) GetTrybotResults(issueID int64, patchsetID int64) ([]*buildbucket.Build, error) {
+	return nil, nil
+}
+
+// Make sure MockGerrit fulfills GerritInterface
+var _ GerritInterface = (*MockedGerrit)(nil)
