@@ -302,7 +302,7 @@ func (p *ClusterRequestProcess) Run() {
 	}
 
 	df.TraceSet = ptracestore.TraceSet{}
-	frame, err := dataframe.ResponseFromDataFrame(df, p.git, false)
+	frame, err := dataframe.ResponseFromDataFrame(df, p.git, false, "")
 	if err != nil {
 		p.reportError(err, "Failed to convert DataFrame to FrameResponse.")
 		return
