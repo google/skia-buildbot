@@ -43,7 +43,7 @@ case "$VM_ID" in
     INSTANCE_NAME=pdfium-autoroll
     IP_ADDRESS=104.154.123.210
     ;;
-  android)
+  android-master)
     INSTANCE_NAME=android-autoroll
     IP_ADDRESS=104.154.123.206
     SCOPES="$SCOPES,https://www.googleapis.com/auth/androidbuild.internal,https://www.googleapis.com/auth/gerritcodereview"
@@ -51,9 +51,17 @@ case "$VM_ID" in
     MACHINE_TYPE=n1-highmem-16
     DATA_DISK_SIZE_GB=512
     ;;
+  android-release)
+    INSTANCE_NAME=android-release-autoroll
+    IP_ADDRESS=104.154.123.208
+    SCOPES="$SCOPES,https://www.googleapis.com/auth/androidbuild.internal,https://www.googleapis.com/auth/gerritcodereview"
+    STARTUP_SCRIPT_TEMPLATE=android-startup-script.sh.template
+    MACHINE_TYPE=n1-highmem-16
+    DATA_DISK_SIZE_GB=512
+    ;;
   *)
     # Must provide a target instance id.
-    echo "Usage: $0 {skia | skia-internal | catapult | nacl | pdfium | android}"
+    echo "Usage: $0 {skia | skia-internal | catapult | nacl | pdfium | android-master | android-release}"
     echo "   An instance id must be provided as the first argument."
     exit 1
     ;;
