@@ -47,6 +47,10 @@ func (m *mockVcs) LastNIndex(N int) []*vcsinfo.IndexCommit {
 	return m.commits
 }
 
+func (m *mockVcs) ByIndex(N int) (*vcsinfo.LongCommit, error) {
+	return nil, nil
+}
+
 type mockPTraceStore struct {
 	traceSet  ptracestore.TraceSet
 	matchFail bool

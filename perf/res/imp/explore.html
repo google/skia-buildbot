@@ -147,6 +147,10 @@
             <button on-click="_highlightedOnly" title="Remove all but the highlighted traces.">Highlighted Only</button>
             <button on-click="_clearHighlights" title="Remove highlights from all traces.">Clear Highlights</button>
             <button on-click="_resetAxes" title="Reset back to the original zoom level.">Reset Axes</button>
+            <button on-click="_plus10" title="Expand the display 10 commits in
+              both directions.">&lt;&lt; +10 &gt;&gt;</button>
+            <button on-click="_shiftLeft10" title="Move 10 commits in the past.">&lt;&lt; 10</button>
+            <button on-click="_shiftRight10" title="Move 10 commits in the future.">10 &gt;&gt;</button>
             <div>
               <button on-click="_zoomToRange" id=zoom_range disabled title="Fit the time range to the current zoom window.">Zoom Range</button>
               <span title="Number of commits skipped between each point displayed." hidden="[[_isZero(_dataframe.skip)]]" id=skip>[[_dataframe.skip]]</span>
@@ -383,6 +387,31 @@
     // queries/formulas to be reloaded for the new time range.
     _rangeChange: function(e) {
       this._rangeChangeImpl(e.detail.begin, e.detail.end);
+    },
+
+    _plus10: function(e) {
+      this._shiftImpl(-10, 10);
+    },
+
+    _shiftRight10: function(e) {
+      this._shiftImpl(10, 10);
+    },
+
+    _shiftLeft10: function(e) {
+      this._shiftImpl(-10, -10);
+    },
+
+    // Change the current range by the following +/- offsets.
+    _shiftImpl: function(beginOffset, endOffset) {
+      var body = {
+        begin:        this.state.begin,
+        begin_offset: beginOffset,
+        end:          this.state.end,
+        end_offset:   endOffset,
+      }
+      sk.post('/_/shift/', JSON.stringify(body)).then(JSON.parse).then(function(json) {
+        this._rangeChangeImpl(json.begin, json.end);
+      }.bind(this)).catch(sk.errorMessage);
     },
 
     // Reload all the queries/formulas on the given time range.
