@@ -27,7 +27,7 @@ const (
 var (
 	// Use this function to instantiate a NewAndroidRepoManager. This is able to be
 	// overridden for testing.
-	NewAndroidRepoManager func(string, string, time.Duration, gerrit.GerritInterface) (RepoManager, error) = newAndroidRepoManager
+	NewAndroidRepoManager func(string, string, string, string, time.Duration, gerrit.GerritInterface) (RepoManager, error) = newAndroidRepoManager
 
 	IGNORE_MERGE_CONFLICT_FILES = []string{"include/config/SkUserConfig.h"}
 
@@ -40,17 +40,19 @@ type androidRepoManager struct {
 	repoUrl string
 }
 
-func newAndroidRepoManager(workdir, childPath string, frequency time.Duration, g gerrit.GerritInterface) (RepoManager, error) {
+func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string, frequency time.Duration, g gerrit.GerritInterface) (RepoManager, error) {
 	wd := path.Join(workdir, "android_repo")
 
 	r := &androidRepoManager{
 		commonRepoManager: &commonRepoManager{
-			childDir:  path.Join(wd, childPath),
-			childPath: childPath,
-			childRepo: nil, // This will be filled in on the first update.
-			user:      SERVICE_ACCOUNT,
-			workdir:   wd,
-			g:         g,
+			parentBranch: parentBranch,
+			childDir:     path.Join(wd, childPath),
+			childPath:    childPath,
+			childRepo:    nil, // This will be filled in on the first update.
+			childBranch:  childBranch,
+			user:         SERVICE_ACCOUNT,
+			workdir:      wd,
+			g:            g,
 		},
 		repoUrl: g.GetRepoUrl(),
 	}
@@ -86,7 +88,7 @@ func (r *androidRepoManager) update() error {
 	}
 
 	// Run repo init and sync commands.
-	if _, err := exec.RunCwd(r.workdir, "repo", "init", "-u", fmt.Sprintf("%s/a/platform/manifest", r.repoUrl), "-g", "all,-notdefault,-darwin", "-b", "master"); err != nil {
+	if _, err := exec.RunCwd(r.workdir, "repo", "init", "-u", fmt.Sprintf("%s/a/platform/manifest", r.repoUrl), "-g", "all,-notdefault,-darwin", "-b", r.parentBranch); err != nil {
 		return err
 	}
 	if _, err := exec.RunCwd(r.workdir, "repo", "sync", "-j32"); err != nil {
@@ -144,7 +146,7 @@ func (r *androidRepoManager) ForceUpdate() error {
 
 // getChildRepoHead returns the commit hash of the latest commit in the child repo.
 func (r *androidRepoManager) getChildRepoHead() (string, error) {
-	output, err := exec.RunCwd(r.childRepo.Dir(), "git", "ls-remote", UPSTREAM_REMOTE_NAME, "refs/heads/master", "-1")
+	output, err := exec.RunCwd(r.childRepo.Dir(), "git", "ls-remote", UPSTREAM_REMOTE_NAME, fmt.Sprintf("refs/heads/%s", r.childBranch), "-1")
 	if err != nil {
 		return "", err
 	}
@@ -195,7 +197,7 @@ func (r *androidRepoManager) RolledPast(hash string) (bool, error) {
 	return git.GitDir(r.childDir).IsAncestor(hash, r.lastRollRev)
 }
 
-// ChildHead returns the current child origin/master branch head.
+// ChildHead returns the current child branch head.
 func (r *androidRepoManager) ChildHead() string {
 	r.infoMtx.RLock()
 	defer r.infoMtx.RUnlock()

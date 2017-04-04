@@ -69,7 +69,7 @@ func TestAndroidRepoManager(t *testing.T) {
 	defer cleanup()
 	g, err := gerrit.NewGerrit(mockAndroidServer, "", nil)
 	assert.NoError(t, err)
-	rm, err := NewAndroidRepoManager(wd, childPath, 24*time.Hour, g)
+	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", 24*time.Hour, g)
 	assert.NoError(t, err)
 
 	assert.Equal(t, fmt.Sprintf("%s/android_repo/%s", wd, childPath), rm.(*androidRepoManager).childDir)
@@ -86,7 +86,7 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	defer cleanup()
 
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(wd, childPath, 24*time.Hour, g)
+	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", 24*time.Hour, g)
 	assert.NoError(t, err)
 
 	issue, err := rm.CreateNewRoll(ROLL_STRATEGY_BATCH, androidEmails, "", false, true)

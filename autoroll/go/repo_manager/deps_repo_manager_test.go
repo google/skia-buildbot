@@ -95,7 +95,7 @@ func TestDEPSRepoManager(t *testing.T) {
 
 	wd, child, childCommits, parent, cleanup := setup(t)
 	defer cleanup()
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), childPath, 24*time.Hour, depotTools, nil)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", 24*time.Hour, depotTools, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.ChildHead())
@@ -130,7 +130,7 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 
 	wd, child, childCommits, parent, cleanup := setup(t)
 	defer cleanup()
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), childPath, 24*time.Hour, depotTools, nil)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", 24*time.Hour, depotTools, nil)
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.

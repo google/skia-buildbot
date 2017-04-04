@@ -30,16 +30,18 @@ type RepoManager interface {
 // commonRepoManager is a struct used by the AutoRoller implementations for
 // managing checkouts.
 type commonRepoManager struct {
-	infoMtx     sync.RWMutex
-	lastRollRev string
-	repoMtx     sync.RWMutex
-	childDir    string
-	childHead   string
-	childPath   string
-	childRepo   *gitinfo.GitInfo
-	user        string
-	workdir     string
-	g           gerrit.GerritInterface
+	infoMtx      sync.RWMutex
+	lastRollRev  string
+	repoMtx      sync.RWMutex
+	parentBranch string
+	childDir     string
+	childHead    string
+	childPath    string
+	childRepo    *gitinfo.GitInfo
+	childBranch  string
+	user         string
+	workdir      string
+	g            gerrit.GerritInterface
 }
 
 // FullChildHash returns the full hash of the given short hash or ref in the
