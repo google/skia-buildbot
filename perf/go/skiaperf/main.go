@@ -21,7 +21,6 @@ import (
 
 	storage "cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/sklog"
 	"google.golang.org/api/option"
 
@@ -856,7 +855,7 @@ func detailsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if includeResults {
 		if _, err := io.Copy(w, reader); err != nil {
-			glog.Errorf("Failed to copy JSON file to HTTP stream: %s", err)
+			sklog.Errorf("Failed to copy JSON file to HTTP stream: %s", err)
 		}
 	} else {
 		res := map[string]interface{}{}
@@ -870,9 +869,73 @@ func detailsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			if _, err := w.Write(b); err != nil {
-				glog.Errorf("Failed to write JSON source file: %s", err)
+				sklog.Errorf("Failed to write JSON source file: %s", err)
 			}
 		}
+	}
+}
+
+type ShiftRequest struct {
+	// Begin is the timestamp of the beginning of a range of commits.
+	Begin int64 `json:"begin"`
+	// BeginOffset is the number of commits to move (+ or -) the Begin timestamp.
+	BeginOffset int `json:"begin_offset"`
+
+	// End is the timestamp of the end of a range of commits.
+	End int64 `json:"end"`
+	// EndOffset is the number of commits to move (+ or -) the End timestamp.
+	EndOffset int `json:"end_offset"`
+}
+
+type ShiftResponse struct {
+	Begin int64 `json:"begin"`
+	End   int64 `json:"end"`
+}
+
+// shiftHandler computes a new begin and end timestamp for a dataframe given
+// the current begin and end timestamps and offsets, given in +/- the number of
+// commits to move.
+func shiftHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	sr := &ShiftRequest{}
+	if err := json.NewDecoder(r.Body).Decode(sr); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		return
+	}
+	sklog.Infof("ShiftRequest: %#v", *sr)
+	commits := git.Range(time.Unix(sr.Begin, 0), time.Unix(sr.End, 0))
+	if len(commits) == 0 {
+		httputils.ReportError(w, r, fmt.Errorf("No commits found in range."), "No commits found in range.")
+		return
+	}
+	beginCommit, err := git.ByIndex(commits[0].Index + sr.BeginOffset)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Scrolled too far.")
+		return
+	}
+	var endCommitTs time.Time
+	endCommit, err := git.ByIndex(commits[len(commits)-1].Index + sr.EndOffset)
+	if err != nil {
+		// We went too far, so just use the last index.
+		commits := git.LastNIndex(1)
+		if len(commits) == 0 {
+			httputils.ReportError(w, r, err, "Scrolled too far.")
+			return
+		}
+		endCommitTs = commits[0].Timestamp
+	} else {
+		endCommitTs = endCommit.Timestamp
+	}
+	if beginCommit.Timestamp.Unix() == endCommitTs.Unix() {
+		httputils.ReportError(w, r, err, "No commits found in range.")
+		return
+	}
+	resp := ShiftResponse{
+		Begin: beginCommit.Timestamp.Unix(),
+		End:   endCommitTs.Unix() + 1,
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		sklog.Errorf("Failed to write JSON response: %s", err)
 	}
 }
 
@@ -895,7 +958,7 @@ func initIngestion() {
 
 	storageClient, err = storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
-		glog.Fatalf("Failed to create a Google Storage API client: %s", err)
+		sklog.Fatalf("Failed to create a Google Storage API client: %s", err)
 	}
 
 	// Start the ingesters.
@@ -996,6 +1059,7 @@ func main() {
 	router.HandleFunc("/_/triage/", triageHandler).Methods("POST")
 	router.HandleFunc("/_/alerts/", alertsHandler)
 	router.HandleFunc("/_/details/", detailsHandler).Methods("POST")
+	router.HandleFunc("/_/shift/", shiftHandler).Methods("POST")
 
 	var h http.Handler = router
 	if *internalOnly {

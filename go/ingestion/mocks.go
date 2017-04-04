@@ -47,6 +47,10 @@ func (m mockVCS) Details(hash string, getBranches bool) (*vcsinfo.LongCommit, er
 	return nil, fmt.Errorf("Unable to find commit")
 }
 
+func (m mockVCS) ByIndex(N int) (*vcsinfo.LongCommit, error) {
+	return nil, nil
+}
+
 // StartTestTraceDBServer starts up a traceDB server for testing. It stores its
 // data at the given path and returns the address at which the server is
 // listening as the second return value.

@@ -359,6 +359,9 @@ func getSkps(headers []*ColumnHeader, git *gitinfo.GitInfo) ([]int, error) {
 //
 // tz is the timezone, and can be the empty string if the default (Eastern) timezone is acceptable.
 func ResponseFromDataFrame(df *DataFrame, git *gitinfo.GitInfo, truncate bool, tz string) (*FrameResponse, error) {
+	if len(df.Header) == 0 {
+		return nil, fmt.Errorf("No commits matched that time range.")
+	}
 	// Calculate the human ticks based on the column headers.
 	ts := []int64{}
 	for _, c := range df.Header {

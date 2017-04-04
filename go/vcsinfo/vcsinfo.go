@@ -50,4 +50,8 @@ type VCS interface {
 
 	// IndexOf returns the index of the commit hash, where 0 is the index of the first hash.
 	IndexOf(hash string) (int, error)
+
+	// ByIndex returns a LongCommit describing the commit
+	// at position N, as ordered in the current branch.
+	ByIndex(N int) (*LongCommit, error)
 }
