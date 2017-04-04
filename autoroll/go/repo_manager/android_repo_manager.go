@@ -352,6 +352,8 @@ Test: Presubmit checks will test this change.
 	}
 
 	// Upload the CL to Gerrit.
+	// TODO(rmistry): Remove after things reliably work.
+	emails = append(emails, "rmistry@google.com")
 	emailStr := strings.Join(emails, ",")
 
 	uploadCommand := &exec.Command{
