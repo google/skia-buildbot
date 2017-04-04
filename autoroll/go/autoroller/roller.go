@@ -64,11 +64,18 @@ type AutoRoller struct {
 	runningMtx       sync.Mutex
 	status           *autoRollStatusCache
 	strategy         string
+	rollIntoAndroid  bool
 }
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
-func NewAutoRoller(workdir, parentRepo, childPath, cqExtraTrybots string, emails []string, rietveld *rietveld.Rietveld, gerrit *gerrit.Gerrit, tickFrequency, repoFrequency time.Duration, depot_tools string, doGerrit bool, strategy string) (*AutoRoller, error) {
-	rm, err := repo_manager.NewRepoManager(workdir, parentRepo, childPath, repoFrequency, depot_tools)
+func NewAutoRoller(workdir, parentRepo, childPath, cqExtraTrybots string, emails []string, rietveld *rietveld.Rietveld, gerrit *gerrit.Gerrit, tickFrequency, repoFrequency time.Duration, depot_tools string, doGerrit, rollIntoAndroid bool, strategy string) (*AutoRoller, error) {
+	var err error
+	var rm repo_manager.RepoManager
+	if rollIntoAndroid {
+		rm, err = repo_manager.NewAndroidRepoManager(workdir, childPath, repoFrequency, gerrit)
+	} else {
+		rm, err = repo_manager.NewDEPSRepoManager(workdir, parentRepo, childPath, repoFrequency, depot_tools, gerrit)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -97,6 +104,7 @@ func NewAutoRoller(workdir, parentRepo, childPath, cqExtraTrybots string, emails
 		rm:               rm,
 		status:           &autoRollStatusCache{},
 		strategy:         strategy,
+		rollIntoAndroid:  rollIntoAndroid,
 	}
 
 	// Cycle once to fill out the current status.
@@ -313,11 +321,11 @@ func (r *AutoRoller) setDryRun(issue *autoroll.AutoRollIssue, dryRun bool) error
 			return fmt.Errorf("Failed to convert issue to Gerrit ChangeInfo: %s", err)
 		}
 		if dryRun {
-			if err := r.gerrit.SendToDryRun(info, ""); err != nil {
+			if err := r.rm.SendToGerritDryRun(info, ""); err != nil {
 				return err
 			}
 		} else {
-			if err := r.gerrit.SendToCQ(info, ""); err != nil {
+			if err := r.rm.SendToGerritCQ(info, ""); err != nil {
 				return err
 			}
 		}
@@ -400,7 +408,7 @@ func (r *AutoRoller) retrieveRoll(issueNum int64) (*autoroll.AutoRollIssue, erro
 		if err != nil {
 			return nil, fmt.Errorf("Failed to get issue properties: %s", err)
 		}
-		a, err = autoroll.FromGerritChangeInfo(info, r.rm.FullChildHash)
+		a, err = autoroll.FromGerritChangeInfo(info, r.rm.FullChildHash, r.rollIntoAndroid)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to convert issue format: %s", err)
 		}
@@ -473,6 +481,41 @@ func (r *AutoRoller) makeRollResult(roll *autoroll.AutoRollIssue) string {
 	return autoroll.ROLL_RESULT_FAILURE
 }
 
+func (r *AutoRoller) isRollDone(roll *autoroll.AutoRollIssue) (bool, error) {
+	if r.rollIntoAndroid {
+		i, err := r.gerrit.GetIssueProperties(roll.Issue)
+		if err != nil {
+			return false, err
+		}
+		if _, ok := i.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL]; ok {
+			for _, lb := range i.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL].All {
+				if lb.Value != 0 {
+					return true, nil
+				}
+			}
+		}
+		return false, nil
+	}
+	return len(roll.TryResults) > 0 && roll.AllTrybotsFinished(), nil
+}
+
+func (r *AutoRoller) isRollSuccessful(roll *autoroll.AutoRollIssue) (bool, error) {
+	if r.rollIntoAndroid {
+		i, err := r.gerrit.GetIssueProperties(roll.Issue)
+		if err != nil {
+			return false, err
+		}
+		for _, lb := range i.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL].All {
+			if lb.Value == -1 {
+				return false, nil
+			}
+		}
+		return true, nil
+	}
+
+	return roll.AllTrybotsSucceeded(), nil
+}
+
 // doAutoRollInner does the actual work of the AutoRoll.
 func (r *AutoRoller) doAutoRollInner() (string, error) {
 	r.runningMtx.Lock()
@@ -490,10 +533,18 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 		sklog.Infof("Found current roll: %s", r.issueUrl(currentRoll.Issue))
 
 		if r.isMode(autoroll_modes.MODE_DRY_RUN) {
-			if len(currentRoll.TryResults) > 0 && currentRoll.AllTrybotsFinished() {
+			rollDone, err := r.isRollDone(currentRoll)
+			if err != nil {
+				return STATUS_ERROR, err
+			}
+			if rollDone {
 				result := autoroll.ROLL_RESULT_DRY_RUN_FAILURE
 				status := STATUS_DRY_RUN_FAILURE
-				if currentRoll.AllTrybotsSucceeded() {
+				rollSuccessful, err := r.isRollSuccessful(currentRoll)
+				if err != nil {
+					return STATUS_ERROR, err
+				}
+				if rollSuccessful {
 					result = autoroll.ROLL_RESULT_DRY_RUN_SUCCESS
 					status = STATUS_DRY_RUN_SUCCESS
 				}

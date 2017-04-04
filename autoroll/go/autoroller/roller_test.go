@@ -33,14 +33,16 @@ var noTrybots = []*buildbucket.Build{}
 // mockRepoManager is a struct used for mocking out the AutoRoller's
 // interactions with a RepoManager.
 type mockRepoManager struct {
-	forceUpdateCount    int
-	mockIssueNumber     int64
-	mockFullChildHashes map[string]string
-	lastRollRev         string
-	rolledPast          map[string]bool
-	skiaHead            string
-	mtx                 sync.RWMutex
-	t                   *testing.T
+	forceUpdateCount         int
+	mockIssueNumber          int64
+	mockFullChildHashes      map[string]string
+	lastRollRev              string
+	rolledPast               map[string]bool
+	skiaHead                 string
+	sendToGerritDryRunCalled bool
+	sendToGerritCQCalled     bool
+	mtx                      sync.RWMutex
+	t                        *testing.T
 }
 
 // ForceUpdate pretends to force the mockRepoManager to update.
@@ -205,6 +207,16 @@ func (r *mockRepoManager) User() string {
 	return "test_user"
 }
 
+func (r *mockRepoManager) SendToGerritCQ(*gerrit.ChangeInfo, string) error {
+	r.sendToGerritCQCalled = true
+	return nil
+}
+
+func (r *mockRepoManager) SendToGerritDryRun(*gerrit.ChangeInfo, string) error {
+	r.sendToGerritDryRunCalled = true
+	return nil
+}
+
 // mockCodereview is a struct used for faking responses from Rietveld.
 type mockCodereview struct {
 	fakeIssueNum int64
@@ -325,8 +337,6 @@ func (r *mockCodereview) rollerWillCloseIssue(issue *rietveld.Issue) {
 func (r *mockCodereview) rollerWillSwitchDryRun(issue *rietveld.Issue, tryResults []*buildbucket.Build, dryRun bool) {
 	r.updateIssue(issue, tryResults) // Initial issue update.
 	if r.g != nil {
-		p := mockhttpclient.MockPostDialogue("application/json", mockhttpclient.DONT_CARE_REQUEST, []byte{})
-		r.urlMock.MockOnce(fmt.Sprintf("%s/a/changes/%d/revisions/%d/review", r.g.Url(0), issue.Issue, issue.Patchsets[len(issue.Patchsets)-1]), p)
 		issue.CommitQueueDryRun = dryRun
 		r.updateIssue(issue, tryResults)
 	} else {
@@ -476,7 +486,7 @@ func setup(t *testing.T, strategy string, doGerrit bool) (string, *AutoRoller, *
 	}
 
 	rm := &mockRepoManager{t: t}
-	repo_manager.NewRepoManager = func(workdir, parentRepo, childPath string, frequency time.Duration, depot_tools string) (repo_manager.RepoManager, error) {
+	repo_manager.NewDEPSRepoManager = func(workdir, parentRepo, childPath string, frequency time.Duration, depot_tools string, g *gerrit.Gerrit) (repo_manager.RepoManager, error) {
 		return rm, nil
 	}
 
@@ -489,7 +499,7 @@ func setup(t *testing.T, strategy string, doGerrit bool) (string, *AutoRoller, *
 	roll1 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), noTrybots, false)
 
 	// Create the roller.
-	roller, err := NewAutoRoller(workdir, "parent.git", "src/third_party/skia", "", []string{}, r, g, time.Hour, time.Hour, "depot_tools", doGerrit, strategy)
+	roller, err := NewAutoRoller(workdir, "parent.git", "src/third_party/skia", "", []string{}, r, g, time.Hour, time.Hour, "depot_tools", doGerrit, false, strategy)
 	assert.NoError(t, err)
 
 	// Verify that the bot ran successfully.
@@ -603,6 +613,9 @@ func testAutoRollDryRun(t *testing.T, gerrit bool) {
 	trybots := []*buildbucket.Build{trybot}
 	rv.rollerWillSwitchDryRun(roll1, trybots, true)
 	assert.NoError(t, roller.SetMode(autoroll_modes.MODE_DRY_RUN, u, "Dry run."))
+	if gerrit {
+		assert.True(t, rm.sendToGerritDryRunCalled)
+	}
 	checkStatus(t, roller, rv, rm, STATUS_DRY_RUN_IN_PROGRESS, roll1, trybots, true, nil, nil, false)
 
 	// Dry run succeeded.

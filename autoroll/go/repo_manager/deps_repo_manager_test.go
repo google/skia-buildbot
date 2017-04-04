@@ -89,14 +89,13 @@ To logout and purge the authentication token run:
 	return wd, child, childCommits, parent, cleanup
 }
 
-// TestRepoManager tests all aspects of the RepoManager except for CreateNewRoll.
-func TestRepoManager(t *testing.T) {
+// TestRepoManager tests all aspects of the DEPSRepoManager except for CreateNewRoll.
+func TestDEPSRepoManager(t *testing.T) {
 	testutils.LargeTest(t)
 
 	wd, child, childCommits, parent, cleanup := setup(t)
 	defer cleanup()
-
-	rm, err := NewDefaultRepoManager(wd, parent.RepoUrl(), childPath, 24*time.Hour, depotTools)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), childPath, 24*time.Hour, depotTools, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.ChildHead())
@@ -126,21 +125,19 @@ func TestRepoManager(t *testing.T) {
 	// User, name only.
 	assert.Equal(t, strings.Split(mockUser, "@")[0], rm.User())
 }
-
-func testCreateNewRoll(t *testing.T, strategy string, expectIdx int) {
+func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	testutils.LargeTest(t)
 
 	wd, child, childCommits, parent, cleanup := setup(t)
 	defer cleanup()
-
-	rm, err := NewDefaultRepoManager(wd, parent.RepoUrl(), childPath, 24*time.Hour, depotTools)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), childPath, 24*time.Hour, depotTools, nil)
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
 	issue, err := rm.CreateNewRoll(strategy, emails, cqExtraTrybots, false, true)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
-	msg, err := ioutil.ReadFile(path.Join(rm.(*repoManager).parentDir, ".git", "COMMIT_EDITMSG"))
+	msg, err := ioutil.ReadFile(path.Join(rm.(*depsRepoManager).parentDir, ".git", "COMMIT_EDITMSG"))
 	assert.NoError(t, err)
 	from, to, err := autoroll.RollRev(strings.Split(string(msg), "\n")[0], func(h string) (string, error) {
 		return git.GitDir(child.Dir()).RevParse(h)
@@ -150,12 +147,12 @@ func testCreateNewRoll(t *testing.T, strategy string, expectIdx int) {
 	assert.Equal(t, childCommits[expectIdx], to)
 }
 
-// TestRepoManagerBatch tests the batch roll strategy.
-func TestRepoManagerBatch(t *testing.T) {
-	testCreateNewRoll(t, ROLL_STRATEGY_BATCH, numChildCommits-1)
+// TestDEPSRepoManagerBatch tests the batch roll strategy.
+func TestDEPSRepoManagerBatch(t *testing.T) {
+	testCreateNewDEPSRoll(t, ROLL_STRATEGY_BATCH, numChildCommits-1)
 }
 
-// TestRepoManagerSingle tests the single-commit roll strategy.
-func TestRepoManagerSingle(t *testing.T) {
-	testCreateNewRoll(t, ROLL_STRATEGY_SINGLE, 1)
+// TestDEPSRepoManagerSingle tests the single-commit roll strategy.
+func TestDEPSRepoManagerSingle(t *testing.T) {
+	testCreateNewDEPSRoll(t, ROLL_STRATEGY_SINGLE, 1)
 }

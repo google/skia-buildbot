@@ -153,15 +153,28 @@ func (a *AutoRollIssue) ToGerritChangeInfo() (*gerrit.ChangeInfo, error) {
 
 // FromGerritChangeInfo returns an AutoRollIssue instance based on the given
 // gerrit.ChangeInfo.
-func FromGerritChangeInfo(i *gerrit.ChangeInfo, fullHashFn func(string) (string, error)) (*AutoRollIssue, error) {
+func FromGerritChangeInfo(i *gerrit.ChangeInfo, fullHashFn func(string) (string, error), rollIntoAndroid bool) (*AutoRollIssue, error) {
 	cq := false
 	dryRun := false
-	for _, lb := range i.Labels[gerrit.COMMITQUEUE_LABEL].All {
-		if lb.Value == gerrit.COMMITQUEUE_LABEL_DRY_RUN {
-			cq = true
-			dryRun = true
-		} else if lb.Value == gerrit.COMMITQUEUE_LABEL_SUBMIT {
-			cq = true
+	if rollIntoAndroid {
+		if _, ok := i.Labels[gerrit.AUTOSUBMIT_LABEL]; ok {
+			for _, lb := range i.Labels[gerrit.AUTOSUBMIT_LABEL].All {
+				if lb.Value == gerrit.AUTOSUBMIT_LABEL_NONE {
+					cq = true
+					dryRun = true
+				} else if lb.Value == gerrit.AUTOSUBMIT_LABEL_SUBMIT {
+					cq = true
+				}
+			}
+		}
+	} else {
+		for _, lb := range i.Labels[gerrit.COMMITQUEUE_LABEL].All {
+			if lb.Value == gerrit.COMMITQUEUE_LABEL_DRY_RUN {
+				cq = true
+				dryRun = true
+			} else if lb.Value == gerrit.COMMITQUEUE_LABEL_SUBMIT {
+				cq = true
+			}
 		}
 	}
 
