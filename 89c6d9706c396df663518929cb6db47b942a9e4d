@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d2d1f763_75d6181d",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-04T17:12:12Z",
+      "side": 1,
+      "message": "To make it easier to test locally.",
+      "revId": "89c6d9706c396df663518929cb6db47b942a9e4d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
