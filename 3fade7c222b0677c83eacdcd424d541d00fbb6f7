@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "dd3693de_9f98edc6",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 42
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-04T17:12:24Z",
+      "side": 1,
+      "message": "Yep!",
+      "parentUuid": "b113529e_a8224e70",
+      "range": {
+        "startLine": 243,
+        "startChar": 2,
+        "endLine": 243,
+        "endChar": 64
+      },
+      "revId": "3fade7c222b0677c83eacdcd424d541d00fbb6f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4636b4f7_f16f0537",
         "filename": "autoroll/go/repo_manager/android_repo_manager.go",
         "patchSetId": 42
@@ -140,6 +164,30 @@
       "revId": "3fade7c222b0677c83eacdcd424d541d00fbb6f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "10a34dee_51644532",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 42
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-04T17:12:24Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "dbb69a68_3b820631",
+      "range": {
+        "startLine": 148,
+        "startChar": 28,
+        "endLine": 148,
+        "endChar": 114
+      },
+      "revId": "3fade7c222b0677c83eacdcd424d541d00fbb6f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
