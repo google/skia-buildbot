@@ -118,6 +118,7 @@ type Revision struct {
 type GerritInterface interface {
 	TurnOnAuthenticatedGets()
 	Url(int64) string
+	GetRepoUrl() string
 	ExtractIssue(string) (string, bool)
 	GetIssueProperties(int64) (*ChangeInfo, error)
 	GetPatch(int64, string) (string, error)
@@ -226,6 +227,11 @@ func (g *Gerrit) Url(issueID int64) string {
 		return g.url
 	}
 	return fmt.Sprintf("%s/c/%d", g.url, issueID)
+}
+
+// GetRepoUrl returns the url of the Googlesource repo.
+func (g *Gerrit) GetRepoUrl() string {
+	return strings.Replace(g.url, "-review", "", 1)
 }
 
 // extractReg is the regular expression used by ExtractIssue.
