@@ -31,7 +31,7 @@ const (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewDEPSRepoManager func(string, string, string, time.Duration, string, *gerrit.Gerrit) (RepoManager, error) = newDEPSRepoManager
+	NewDEPSRepoManager func(string, string, string, string, string, time.Duration, string, *gerrit.Gerrit) (RepoManager, error) = newDEPSRepoManager
 
 	DEPOT_TOOLS_AUTH_USER_REGEX = regexp.MustCompile(fmt.Sprintf("Logged in to %s as ([\\w-]+).", autoroll.RIETVELD_URL))
 )
@@ -80,7 +80,7 @@ func getDepotToolsUser(depotTools string) (string, error) {
 
 // newDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newDEPSRepoManager(workdir, parentRepo, childPath string, frequency time.Duration, depot_tools string, g *gerrit.Gerrit) (RepoManager, error) {
+func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, frequency time.Duration, depot_tools string, g *gerrit.Gerrit) (RepoManager, error) {
 	gclient := GCLIENT
 	rollDep := ROLL_DEP
 	if depot_tools != "" {
@@ -99,12 +99,14 @@ func newDEPSRepoManager(workdir, parentRepo, childPath string, frequency time.Du
 
 	dr := &depsRepoManager{
 		commonRepoManager: &commonRepoManager{
-			childDir:  path.Join(wd, childPath),
-			childPath: childPath,
-			childRepo: nil, // This will be filled in on the first update.
-			user:      user,
-			workdir:   wd,
-			g:         g,
+			parentBranch: parentBranch,
+			childDir:     path.Join(wd, childPath),
+			childPath:    childPath,
+			childRepo:    nil, // This will be filled in on the first update.
+			childBranch:  childBranch,
+			user:         user,
+			workdir:      wd,
+			g:            g,
 		},
 		depot_tools: depot_tools,
 		gclient:     gclient,
@@ -129,7 +131,7 @@ func (dr *depsRepoManager) cleanParent() error {
 		return err
 	}
 	_, _ = exec.RunCwd(dr.parentDir, "git", "rebase", "--abort")
-	if _, err := exec.RunCwd(dr.parentDir, "git", "checkout", "origin/master", "-f"); err != nil {
+	if _, err := exec.RunCwd(dr.parentDir, "git", "checkout", fmt.Sprintf("origin/%s", dr.parentBranch), "-f"); err != nil {
 		return err
 	}
 	_, _ = exec.RunCwd(dr.parentDir, "git", "branch", "-D", DEPS_ROLL_BRANCH)
@@ -165,7 +167,7 @@ func (dr *depsRepoManager) update() error {
 		if _, err := exec.RunCwd(dr.parentDir, "git", "fetch"); err != nil {
 			return err
 		}
-		if _, err := exec.RunCwd(dr.parentDir, "git", "reset", "--hard", "origin/master"); err != nil {
+		if _, err := exec.RunCwd(dr.parentDir, "git", "reset", "--hard", fmt.Sprintf("origin/%s", dr.parentBranch)); err != nil {
 			return err
 		}
 	}
@@ -203,7 +205,7 @@ func (dr *depsRepoManager) update() error {
 	}
 
 	// Record child HEAD
-	childHead, err := dr.childRepo.FullHash("origin/master")
+	childHead, err := dr.childRepo.FullHash(fmt.Sprintf("origin/%s", dr.childBranch))
 	if err != nil {
 		return err
 	}
@@ -248,7 +250,7 @@ func (dr *depsRepoManager) CreateNewRoll(strategy string, emails []string, cqExt
 	if err := dr.cleanParent(); err != nil {
 		return 0, err
 	}
-	if _, err := exec.RunCwd(dr.parentDir, "git", "checkout", "-b", DEPS_ROLL_BRANCH, "-t", "origin/master", "-f"); err != nil {
+	if _, err := exec.RunCwd(dr.parentDir, "git", "checkout", "-b", DEPS_ROLL_BRANCH, "-t", fmt.Sprintf("origin/%s", dr.parentBranch), "-f"); err != nil {
 		return 0, err
 	}
 
