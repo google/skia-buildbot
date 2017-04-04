@@ -300,6 +300,34 @@ server {
     return 301 https://autoroll.skia.org$request_uri;
 }
 
+#####   android-master-roll.skia.org   ###########################
+server {
+    listen      443;
+    server_name android-master-roll.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/android-master-roll.access.log;
+    error_log /var/log/nginx/android-master-roll.error.log error;
+
+    # Enforce browser XSS protection
+    # This header is added by the proxy; adding it again causes
+    # it to get mangled and reset to the default by the browser.
+    #add_header X-XSS-Protection "1; mode=block";
+
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
+    location / {
+        proxy_pass https://skia-android-master-roll-8002-proxy.skia.org;
+    }
+}
+server {
+    listen      80;
+    server_name android-master-roll.skia.org;
+    return 301 https://android-master-roll.skia.org$request_uri;
+}
+
 #####   catapult-roll.skia.org   ###########################
 server {
     listen      443;
