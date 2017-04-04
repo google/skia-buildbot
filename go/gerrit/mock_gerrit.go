@@ -17,6 +17,9 @@ func (g *MockedGerrit) TurnOnAuthenticatedGets() {
 func (g *MockedGerrit) Url(issueID int64) string {
 	return ""
 }
+func (g *MockedGerrit) GetRepoUrl() string {
+	return ""
+}
 func (g *MockedGerrit) ExtractIssue(issueURL string) (string, bool) {
 	return "", false
 }
