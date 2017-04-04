@@ -68,13 +68,13 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
-func NewAutoRoller(workdir, parentRepo, childPath, cqExtraTrybots string, emails []string, rietveld *rietveld.Rietveld, gerrit *gerrit.Gerrit, tickFrequency, repoFrequency time.Duration, depot_tools string, doGerrit, rollIntoAndroid bool, strategy string) (*AutoRoller, error) {
+func NewAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, rietveld *rietveld.Rietveld, gerrit *gerrit.Gerrit, tickFrequency, repoFrequency time.Duration, depot_tools string, doGerrit, rollIntoAndroid bool, strategy string) (*AutoRoller, error) {
 	var err error
 	var rm repo_manager.RepoManager
 	if rollIntoAndroid {
-		rm, err = repo_manager.NewAndroidRepoManager(workdir, childPath, repoFrequency, gerrit)
+		rm, err = repo_manager.NewAndroidRepoManager(workdir, parentBranch, childPath, childBranch, repoFrequency, gerrit)
 	} else {
-		rm, err = repo_manager.NewDEPSRepoManager(workdir, parentRepo, childPath, repoFrequency, depot_tools, gerrit)
+		rm, err = repo_manager.NewDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch, repoFrequency, depot_tools, gerrit)
 	}
 	if err != nil {
 		return nil, err
