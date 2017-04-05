@@ -44,7 +44,7 @@ case "$VM_ID" in
     IP_ADDRESS=104.154.123.210
     ;;
   android-master)
-    INSTANCE_NAME=android-autoroll
+    INSTANCE_NAME=android-master-autoroll
     IP_ADDRESS=104.154.123.206
     SCOPES="$SCOPES,https://www.googleapis.com/auth/androidbuild.internal,https://www.googleapis.com/auth/gerritcodereview"
     STARTUP_SCRIPT_TEMPLATE=android-startup-script.sh.template
