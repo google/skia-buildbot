@@ -21,6 +21,7 @@
     None.
 -->
 
+<link rel="import" href="/res/imp/bower_components/vaadin-date-picker/vaadin-date-picker.html">
 <link rel="import" href="/res/imp/rangesel.html" />
 
 <dom-module id="day-range-sk">
@@ -58,6 +59,12 @@
     }
   </style>
   <template>
+
+              <div class="layout horizontal around-justified">
+                <vaadin-date-picker id="start" label="Start"></vaadin-date-picker>
+                <vaadin-date-picker id="end" label="End"></vaadin-date-picker>
+              </div>
+
     <range-sel-sk
       begin="[[_pct_begin]]"
       end="[[_pct_end]]"
