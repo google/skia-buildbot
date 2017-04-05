@@ -658,7 +658,7 @@ func TestLocalDBCommentDB(t *testing.T) {
 }
 
 func TestLocalDBIncrementalBackupTime(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	d, tmpdir := makeDB(t, "TestLocalDBIncrementalBackupTime")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
