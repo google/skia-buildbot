@@ -16,6 +16,24 @@
       "revId": "2016f581963a7313667e5805bf891898f141380c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af636aef_40f26ec3",
+        "filename": "skolo/ios/client/ios.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-04-05T17:50:19Z",
+      "side": 1,
+      "message": "I left that out intentionally for now, because it would create a problem whenever the ios \ntools are not installed. In that case I would just like it to fail silently. \nIf an iOS device had been attached in the past the ios device file will cause it to be picked up\nas missing.",
+      "parentUuid": "d43d8763_d7d79c63",
+      "revId": "2016f581963a7313667e5805bf891898f141380c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
