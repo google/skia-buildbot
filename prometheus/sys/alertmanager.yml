@@ -35,6 +35,9 @@ route:
       specialroute: android
     receiver: android
   - match:
+      specialroute: android-master
+    receiver: android-master
+  - match:
       category: general
     receiver: general
 
@@ -64,3 +67,7 @@ receivers:
     - url: 'http://localhost:8004/email?email=skia-android@google.com'
       send_resolved: false
 
+- name: 'android-master'
+  webhook_configs:
+    - url: 'http://localhost:8004/email?email=android-perf-monitoring+alerts@google.com'
+      send_resolved: false

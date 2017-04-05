@@ -163,12 +163,21 @@ ALERT MissingData
   }
 
 ALERT MissingData
-  IF absent(perf_clustering_untriaged{instance=~"skia-android.*:20000"})
+  IF absent(perf_clustering_untriaged{instance=~"skia-android-perf:20000"})
   FOR 5m
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
-    abbr = "perf_clustering_untriaged{instance=~\"skia-android.*:20000\"}",
-    description = "There is no data for the following alert: perf_clustering_untriaged{instance=~\"skia-android.*:20000\"}"
+    abbr = "perf_clustering_untriaged{instance=~\"skia-android-perf:20000\"}",
+    description = "There is no data for the following alert: perf_clustering_untriaged{instance=~\"skia-android-perf:20000\"}"
+  }
+
+ALERT MissingData
+  IF absent(perf_clustering_untriaged{instance=~"skia-android-master-perf:20000"})
+  FOR 5m
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    abbr = "perf_clustering_untriaged{instance=~\"skia-android-master-perf:20000\"}",
+    description = "There is no data for the following alert: perf_clustering_untriaged{instance=~\"skia-android-master-perf:20000\"}"
   }
 
 ALERT MissingData
