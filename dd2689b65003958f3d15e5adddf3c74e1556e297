@@ -425,6 +425,30 @@
     },
     {
       "key": {
+        "uuid": "d10f306a_2b8c319f",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-05T17:00:39Z",
+      "side": 1,
+      "message": "Oh, it just seems odd to have public/private pairs of fields in FailureGroup; presumably a particular piece of code will only deal with one or the other.",
+      "parentUuid": "5348ea2a_4779c1d0",
+      "range": {
+        "startLine": 48,
+        "startChar": 23,
+        "endLine": 48,
+        "endChar": 30
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "279ce828_a7cba03b",
         "filename": "status/go/find_breaks/failure_groups.go",
         "patchSetId": 11
@@ -707,6 +731,30 @@
     },
     {
       "key": {
+        "uuid": "a0eee0e6_5afe5d75",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-05T17:00:39Z",
+      "side": 1,
+      "message": "To get tasks for commits in the range [start, end), you will need to call GetTasksFromDateRange(start, end+taskSchedulerWindow).",
+      "parentUuid": "58ce5789_3d930e42",
+      "range": {
+        "startLine": 182,
+        "startChar": 75,
+        "endLine": 182,
+        "endChar": 88
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "29ce8535_f1d9a99e",
         "filename": "status/go/find_breaks/failures.go",
         "patchSetId": 11
@@ -801,6 +849,30 @@
     },
     {
       "key": {
+        "uuid": "3d367061_b38057cc",
+        "filename": "status/go/find_breaks/failures.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-05T17:00:39Z",
+      "side": 1,
+      "message": "Please disregard -- my nit is already covered by other comments.",
+      "parentUuid": "20d4808a_f3770f20",
+      "range": {
+        "startLine": 127,
+        "startChar": 0,
+        "endLine": 139,
+        "endChar": 48
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3d9c187d_f65addb9",
         "filename": "status/go/find_breaks/failures.go",
         "patchSetId": 11
@@ -836,6 +908,30 @@
       "side": 1,
       "message": "I may need the whiteboard explanation.  AFAIK I have test cases for all of the combinations of [success|failure], unknown, [success|failure] sequences, and they seem right to me.",
       "parentUuid": "3d9c187d_f65addb9",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 145,
+        "endChar": 4
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3df40930_6414ffae",
+        "filename": "status/go/find_breaks/failures.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-05T17:00:39Z",
+      "side": 1,
+      "message": "The test cases don\u0027t include any where the mishaps/gaps cover multiple commits.\n\n(For the case of a single commit, two wrongs make a right -- lastFailed is exclusive, so this should be lastFailed \u003d idx + 1.)",
+      "parentUuid": "8e3a82d6_a4f2c055",
       "range": {
         "startLine": 143,
         "startChar": 0,
