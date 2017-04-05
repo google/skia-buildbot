@@ -13,7 +13,7 @@ ExecStart=/usr/local/bin/skiaperf  \
     --config_filename=/etc/skiaperf/ingest.toml \
     --ptrace_store_dir=/mnt/pd0/skiaperf/store \
     --db_name=android_master \
-	  --cluster_queries="config=default" \
+	  --cluster_queries="build_flavor=sailfish-userdebug&test=DeviceBootTest.DeviceBootTest_SuccessiveBootTest" \
     --dataframe_size=256 \
     --internal_only
 
