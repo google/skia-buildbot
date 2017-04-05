@@ -29,11 +29,15 @@ def ios_get_device_ids():
   """Returns the ids of all attached devices.
      This will also work when the attached
      device is not fully booted."""
-  output = _run_cmd('idevice_id --list')
   ret = []
-  for line in output.splitlines():
-    if line.strip():
-      ret.append(line.strip())
+  # Primary purpose of this, is to catch when the tools are not installed.
+  try:
+    output = _run_cmd('idevice_id --list')
+    for line in output.splitlines():
+      if line.strip():
+        ret.append(line.strip())
+  except:
+    pass
   return ret
 
 def ios_get_devices():
