@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "11c2b1ed_e713719a",
+        "filename": "go/git/git_common/git_common_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "Yeah, it only shows up with \"go test -v\", and since the test only verifies that we could parse the version string, I wanted to human-verify locally that it came up with the right thing.",
+      "parentUuid": "de416f7f_d5ad6caf",
+      "range": {
+        "startLine": 15,
+        "startChar": 1,
+        "endLine": 15,
+        "endChar": 36
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e46e21f7_710af4fa",
         "filename": "status/go/find_breaks/commit_slices.go",
         "patchSetId": 11
@@ -36,6 +60,30 @@
       "writtenOn": "2017-04-03T19:33:54Z",
       "side": 1,
       "message": "nit: is it obvious that the resulting slices will be in reverse chronological order?",
+      "range": {
+        "startLine": 10,
+        "startChar": 76,
+        "endLine": 11,
+        "endChar": 51
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2fff0932_8213284d",
+        "filename": "status/go/find_breaks/commit_slices.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "IMO yes, because that\u0027s the natural way to traverse commit history, but I added a comment.",
+      "parentUuid": "e46e21f7_710af4fa",
       "range": {
         "startLine": 10,
         "startChar": 76,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "6ffaa4df_b730c5ec",
+        "filename": "status/go/find_breaks/commit_slices.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "Added more detail.",
+      "parentUuid": "3126c379_fbe29a5c",
+      "range": {
+        "startLine": 44,
+        "startChar": 3,
+        "endLine": 45,
+        "endChar": 75
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ea97734b_64fc121d",
         "filename": "status/go/find_breaks/commit_slices.go",
         "patchSetId": 11
@@ -82,6 +154,30 @@
       "writtenOn": "2017-04-03T19:33:54Z",
       "side": 1,
       "message": "Multiple branches could point to the same commit, resulting in duplicates in rv. Do we care?",
+      "range": {
+        "startLine": 65,
+        "startChar": 19,
+        "endLine": 65,
+        "endChar": 34
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4e750fe_50c86f4c",
+        "filename": "status/go/find_breaks/commit_slices.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "Yep, that\u0027s part of the deal.",
+      "parentUuid": "ea97734b_64fc121d",
       "range": {
         "startLine": 65,
         "startChar": 19,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "e74aa7c4_b5486223",
+        "filename": "status/go/find_breaks/commit_slices.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "Apparently it\u0027s already there. Changed to use it.",
+      "parentUuid": "d1c18985_8079622f",
+      "range": {
+        "startLine": 71,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 3
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5e310254_be76c840",
         "filename": "status/go/find_breaks/commit_slices_test.go",
         "patchSetId": 11
@@ -137,6 +257,30 @@
       "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a9540fba_43c07e82",
+        "filename": "status/go/find_breaks/commit_slices_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5e310254_be76c840",
+      "range": {
+        "startLine": 16,
+        "startChar": 5,
+        "endLine": 16,
+        "endChar": 16
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "7a3749d4_94c56af9",
+        "filename": "status/go/find_breaks/commit_slices_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4981fe1e_333922c3",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 29
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8fbf455d_d02221dc",
         "filename": "status/go/find_breaks/commit_slices_test.go",
         "patchSetId": 11
@@ -174,6 +342,30 @@
       "writtenOn": "2017-04-03T19:33:54Z",
       "side": 1,
       "message": "Should GitBuilder.MergeBranch do this automatically? I can\u0027t think of a case where that\u0027s not what we would want.",
+      "range": {
+        "startLine": 158,
+        "startChar": 12,
+        "endLine": 158,
+        "endChar": 63
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41550840_9a2e9105",
+        "filename": "status/go/find_breaks/commit_slices_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "I can\u0027t either, but it\u0027s not the default behavior for Git, so I\u0027m not sure.",
+      "parentUuid": "8fbf455d_d02221dc",
       "range": {
         "startLine": 158,
         "startChar": 12,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "5348ea2a_4779c1d0",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "Just wondering what wheels are turning here.",
+      "parentUuid": "68912da3_1f3b898f",
+      "range": {
+        "startLine": 48,
+        "startChar": 23,
+        "endLine": 48,
+        "endChar": 30
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "279ce828_a7cba03b",
         "filename": "status/go/find_breaks/failure_groups.go",
         "patchSetId": 11
@@ -229,6 +445,30 @@
       "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1133fc72_008754d7",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "279ce828_a7cba03b",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 29
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "dfa474d2_ae65d5c3",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aab4e787_3fe61a16",
+      "range": {
+        "startLine": 95,
+        "startChar": 7,
+        "endLine": 95,
+        "endChar": 14
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6912792f_6f49153c",
         "filename": "status/go/find_breaks/failure_groups.go",
         "patchSetId": 11
@@ -266,6 +530,30 @@
       "writtenOn": "2017-04-03T19:33:54Z",
       "side": 1,
       "message": "We should keep this in mind to avoid splintering FailureGroups when they are about to fall out of the window. It\u0027s probably good enough to generate FailureGroups for a larger window and then prune those that are before a smaller window.",
+      "range": {
+        "startLine": 96,
+        "startChar": 21,
+        "endLine": 98,
+        "endChar": 71
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a53418ad_22d21e4f",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "I haven\u0027t figured out how this whole thing works on an ongoing basis.  ie, we run this every minute or so, and... what?  We may end up with new or modified FailureGroups which need to be reconciled with the ones we\u0027ve already found (and possibly sent alerts for). \n\nAs for this particular rule, I just realized that it\u0027s not quite right.  If the current window is [b, c, d, e, f], and we have these failures:\n1. [a, b, c, d]\n2.         [c]\n\nThey *could* have the same cause (c), but we\u0027d assign f1.brokeIn \u003d (-1, -1) and f2.brokeIn \u003d (1, 2) which would be rejected by this rule.  Changed such that the first failing task in the window gets assigned to brokeIn.  We may incorrectly associate previously-broken bots with the wrong commit, but that\u0027s better than not matching when we could have.",
+      "parentUuid": "6912792f_6f49153c",
       "range": {
         "startLine": 96,
         "startChar": 21,
@@ -301,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "f9c1448d_5817f822",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "That\u0027s correct.  Fixed.",
+      "parentUuid": "348d1646_a843e9f8",
+      "range": {
+        "startLine": 108,
+        "startChar": 1,
+        "endLine": 108,
+        "endChar": 40
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4c7859cf_9891b96b",
         "filename": "status/go/find_breaks/failure_groups.go",
         "patchSetId": 11
@@ -312,6 +624,30 @@
       "writtenOn": "2017-04-03T19:33:54Z",
       "side": 1,
       "message": "I don\u0027t understand this.\n\nIt seems you are trying to find all possible groupings of failures, since whether or not maybeMerge merges depends on the order of previous merges. However, in order to do that, you would need to iterate over all possible permutations of failures, since B.maybeMerge(A).maybeMerge(C) could give different results from B.maybeMerge(C).maybeMerge(A).\n\nAlso, it seems like rather than generating all possible groupings, we really want to partition failures into groups, i.e. no two groups should contain the same failure. However, the deduplication below doesn\u0027t achieve that -- it only deduplicates identical groups.",
+      "range": {
+        "startLine": 151,
+        "startChar": 0,
+        "endLine": 157,
+        "endChar": 3
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d843901a_ac3eee5f",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "\u003e I don\u0027t understand this.\n\u003e \n\u003e It seems you are trying to find all possible groupings of failures, since whether or not maybeMerge merges depends on the order of previous merges. However, in order to do that, you would need to iterate over all possible permutations of failures, since B.maybeMerge(A).maybeMerge(C) could give different results from B.maybeMerge(C).maybeMerge(A).\n\u003e \n\nYuck. Changed to find all permutations of failures and added a test which fails with the current n^2 algorithm.  Obviously this needs to improve before it\u0027s used in production.\n\n\u003e Also, it seems like rather than generating all possible groupings, we really want to partition failures into groups, i.e. no two groups should contain the same failure. However, the deduplication below doesn\u0027t achieve that -- it only deduplicates identical groups.\n\nI disagree.  We don\u0027t want to limit a failure to a single group unless we\u0027re 100% sure that, logically, the failure MUST belong in that group and only that group.  IMO making the decision of which group is most likely is the job of a future pipeline stage, probably one that incorporates user feedback.  Per our live discussion, this is all far from done.",
+      "parentUuid": "4c7859cf_9891b96b",
       "range": {
         "startLine": 151,
         "startChar": 0,
@@ -347,6 +683,30 @@
     },
     {
       "key": {
+        "uuid": "58ce5789_3d930e42",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "Why?  IMO this should run using any time period, with the caveat that accuracy for brokeIn and fixedIn decreases at the boundaries.",
+      "parentUuid": "7df79558_5a2cc76b",
+      "range": {
+        "startLine": 182,
+        "startChar": 75,
+        "endLine": 182,
+        "endChar": 88
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "29ce8535_f1d9a99e",
         "filename": "status/go/find_breaks/failures.go",
         "patchSetId": 11
@@ -358,6 +718,30 @@
       "writtenOn": "2017-04-03T19:33:54Z",
       "side": 1,
       "message": "nit: I think this function will be simpler if you only look at t.Revision and ignore t.Commits, since there will always be gaps when using t.Commits. You would need to change the loop below to iterate backwards over commits. Essentially, this would adjust blamelists as if pending/running/mishap tasks had never been created.\n\nDoing this would eliminate the special wildcard handling, and also eliminate the fix-ups after makeSlice(t.Commits, commits).",
+      "range": {
+        "startLine": 64,
+        "startChar": 20,
+        "endLine": 64,
+        "endChar": 29
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0df1d500_5fc89b30",
+        "filename": "status/go/find_breaks/failures.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "I\u0027m planning to revisit the algorithm after landing this initial version.  I\u0027m hoping I can come up with something faster (and hopefully simpler) by traversing the repo graph and looking for failures.",
+      "parentUuid": "29ce8535_f1d9a99e",
       "range": {
         "startLine": 64,
         "startChar": 20,
@@ -393,6 +777,30 @@
     },
     {
       "key": {
+        "uuid": "20d4808a_f3770f20",
+        "filename": "status/go/find_breaks/failures.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "I\u0027m still confused about this.  AFAIK this block handles pending, running, mishap, or a missing task in the same way: we don\u0027t know the result at this commit, so we follow the rules outlined in the comment above.",
+      "parentUuid": "e4c3ec9c_ce368dcb",
+      "range": {
+        "startLine": 127,
+        "startChar": 0,
+        "endLine": 139,
+        "endChar": 48
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3d9c187d_f65addb9",
         "filename": "status/go/find_breaks/failures.go",
         "patchSetId": 11
@@ -416,6 +824,30 @@
     },
     {
       "key": {
+        "uuid": "8e3a82d6_a4f2c055",
+        "filename": "status/go/find_breaks/failures.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "I may need the whiteboard explanation.  AFAIK I have test cases for all of the combinations of [success|failure], unknown, [success|failure] sequences, and they seem right to me.",
+      "parentUuid": "3d9c187d_f65addb9",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 145,
+        "endChar": 4
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "09f13fe4_327c63a7",
         "filename": "status/go/find_breaks/find_breaks.go",
         "patchSetId": 11
@@ -427,6 +859,30 @@
       "writtenOn": "2017-04-03T19:33:54Z",
       "side": 1,
       "message": "It\u0027s hard for me to consider this CL on its own without understanding the eventual goal. My gut feeling is that implementing find_breaks without considering flakes and using only blamelists will not end up working well in practice. A design doc would probably be worthwhile.",
+      "range": {
+        "startLine": 10,
+        "startChar": 47,
+        "endLine": 10,
+        "endChar": 73
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9086bd13_ce2c6898",
+        "filename": "status/go/find_breaks/find_breaks.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-05T13:57:56Z",
+      "side": 1,
+      "message": "IMO:  We have to start somewhere.  I find it difficult to write a full design doc without some exploratory work.\n\nThe overall goal is to present the sheriff with an alert, to the effect of: \"These bots (or tests) \u003cx, y, z\u003e are failing because of this (or these) commit(s): \u003ca, b, c\u003e.  Click [here] to revert, Click [here] to file a bug\"\n\nThere are a lot of steps to distill all of the information we have (perf regressions, untriaged/failing gold images, failed/mishap tasks) into that type of alert.  My goal with this CL was to take just the tasks part and start figuring out how we could narrow down the cause of failure using only the task history, with the understanding that things like distinguishing what actually failed (eg. crash vs failed test) would come later.  FWIW I kind of imagined an overlay on top of the current status page which highlighted the failure groups for quicker visual distinction, though I don\u0027t think I\u0027d actually follow through with that, due to low value per effort spent.",
+      "parentUuid": "09f13fe4_327c63a7",
       "range": {
         "startLine": 10,
         "startChar": 47,
