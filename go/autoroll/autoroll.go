@@ -164,6 +164,8 @@ func FromGerritChangeInfo(i *gerrit.ChangeInfo, fullHashFn func(string) (string,
 					dryRun = true
 				} else if lb.Value == gerrit.AUTOSUBMIT_LABEL_SUBMIT {
 					cq = true
+					dryRun = false
+					break
 				}
 			}
 		}
