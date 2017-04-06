@@ -49,6 +49,7 @@ var (
 // one, i.e. ?email=foo@example.com&email=bar@example.org.
 func emailHandler(w http.ResponseWriter, r *http.Request) {
 	to := r.URL.Query()["email"]
+	sklog.Infof("Sending to: %q", to)
 	if len(to) == 0 {
 		httputils.ReportError(w, r, fmt.Errorf("Missing email addresses in URL: %q", r.RequestURI), "Email addresses missing.")
 		return

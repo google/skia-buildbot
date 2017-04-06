@@ -5,7 +5,9 @@ build:
 	absent
 
 prom:
-	go get -u github.com/prometheus/prometheus/cmd/...
+	-mkdir -p tmp
+	curl -L https://github.com/prometheus/prometheus/releases/download/v1.5.2/prometheus-1.5.2.linux-amd64.tar.gz | tar zxC ./tmp --overwrite -f -
+	cp ./tmp/prometheus-1.5.2.linux-amd64/prometheus ./tmp/prometheus
 
 testgo:
 	go test -v ./...
@@ -47,8 +49,8 @@ pushgateway:
 	cp ./tmp/pushgateway-0.3.1.linux-amd64/pushgateway ./tmp/pushgateway
 
 graphite_exporter:
-	go get -u github.com/prometheus/graphite_exporter
-	cd ${GOPATH}/src/github.com/prometheus/graphite_exporter; make
-
+	-mkdir -p tmp
+	curl -L https://github.com/prometheus/graphite_exporter/releases/download/v0.2.0/graphite_exporter-0.2.0.linux-amd64.tar.gz  | tar zxC ./tmp --overwrite -f -
+	cp ./tmp/graphite_exporter-0.2.0.linux-amd64/graphite_exporter ./tmp/graphite_exporter
 
 .PHONY: build push push_binaries alertmanager graphite_exporter validate

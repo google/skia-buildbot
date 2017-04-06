@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"html/template"
 	"strings"
+	ttemplate "text/template"
 
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/sklog"
 	gmail "google.golang.org/api/gmail/v1"
 )
 
@@ -33,13 +35,13 @@ Content-Type: text/html; charset=UTF-8
 </body>
 </html>
 `
-	viewActionMarkupTemplateParsed *template.Template = nil
-	emailTemplateParsed            *template.Template = nil
+	viewActionMarkupTemplateParsed *template.Template  = nil
+	emailTemplateParsed            *ttemplate.Template = nil
 )
 
 func init() {
 	viewActionMarkupTemplateParsed = template.Must(template.New("view_action").Parse(viewActionMarkupTemplate))
-	emailTemplateParsed = template.Must(template.New("email").Parse(emailTemplate))
+	emailTemplateParsed = ttemplate.Must(ttemplate.New("email").Parse(emailTemplate))
 }
 
 // GMail is an object used for authenticating to the GMail API server.
@@ -120,6 +122,7 @@ func (a *GMail) SendWithMarkup(senderDisplayName string, to []string, subject st
 	}); err != nil {
 		return fmt.Errorf("Failed to send email; could not execute template: %v", err)
 	}
+	sklog.Infof("Message to send: %q", msgBytes.String())
 	msg := gmail.Message{}
 	msg.SizeEstimate = int64(msgBytes.Len())
 	msg.Snippet = subject
