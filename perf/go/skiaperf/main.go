@@ -75,6 +75,7 @@ var (
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	ptraceStoreDir = flag.String("ptrace_store_dir", "/tmp/ptracestore", "The directory where the ptracestore tiles are stored.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	numContinuous  = flag.Int("num_continuous", 50, "The number of commits to do continuous clustering over looking for regressions.")
 )
 
 var (
@@ -167,7 +168,7 @@ func Init() {
 
 	// Start running continuous clustering looking for regressions.
 	queries := strings.Split(*clusterQueries, " ")
-	continuous = regression.NewContinuous(git, cidl, queries, regStore)
+	continuous = regression.NewContinuous(git, cidl, queries, regStore, *numContinuous)
 	go continuous.Run()
 }
 

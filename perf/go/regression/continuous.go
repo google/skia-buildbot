@@ -11,9 +11,6 @@ import (
 )
 
 const (
-	// The number of recent commits to do clustering over.
-	NUM_COMMITS = 50
-
 	// How many commits we consider before and after a target commit when
 	// clustering. This means clustering will occur over 2*RADIUS+1 commits.
 	//
@@ -21,25 +18,27 @@ const (
 	RADIUS = 7
 )
 
-// Continuous is used to run clustering on the last NUM_COMMITS commits and
+// Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
 type Continuous struct {
-	git     *gitinfo.GitInfo
-	cidl    *cid.CommitIDLookup
-	queries []string
-	store   *Store
+	git        *gitinfo.GitInfo
+	cidl       *cid.CommitIDLookup
+	queries    []string
+	store      *Store
+	numCommits int // Number of recent commits to do clustering over.
 }
 
 // NewContinuous creates a new *Continuous.
 //
 // queries is a slice of URL query encoded to perform against the datastore to
 // determine which traces participate in clustering.
-func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, queries []string, store *Store) *Continuous {
+func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, queries []string, store *Store, numCommits int) *Continuous {
 	return &Continuous{
-		git:     git,
-		cidl:    cidl,
-		queries: queries,
-		store:   store,
+		git:        git,
+		cidl:       cidl,
+		queries:    queries,
+		store:      store,
+		numCommits: numCommits,
 	}
 }
 
@@ -59,7 +58,7 @@ func (c *Continuous) reportUntriaged(newClustersGauge metrics2.Int64Metric) {
 	}()
 }
 
-// Run starts the continuous running of clustering over the last NUM_COMMITS
+// Run starts the continuous running of clustering over the last numCommits
 // commits.
 //
 // Note that it never returns so it should be called as a Go routine.
@@ -73,11 +72,11 @@ func (c *Continuous) Run() {
 	c.reportUntriaged(newClustersGauge)
 	for _ = range time.Tick(time.Minute) {
 		clusteringLatency.Start()
-		// Get the last NUM_COMMITS commits.
-		indexCommits := c.git.LastNIndex(NUM_COMMITS)
+		// Get the last numCommits commits.
+		indexCommits := c.git.LastNIndex(c.numCommits)
 		// Drop the RADIUS most recent, since we are clustering
 		// based on a radius of +/-RADIUS commits.
-		indexCommits = indexCommits[:(NUM_COMMITS - RADIUS)]
+		indexCommits = indexCommits[:(c.numCommits - RADIUS)]
 		for _, commit := range indexCommits {
 			id := &cid.CommitID{
 				Source: "master",
