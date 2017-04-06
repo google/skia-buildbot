@@ -327,7 +327,7 @@ http://www.chromium.org/developers/tree-sheriffs/sheriff-details-chromium#TOC-Fa
 		Dir:  dr.parentDir,
 		Env:  getEnv(dr.depot_tools),
 		Name: "git",
-		Args: []string{"cl", "upload", "--bypass-hooks", "-f"},
+		Args: []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
 	}
 	if dryRun {
 		uploadCmd.Args = append(uploadCmd.Args, "--cq-dry-run")
@@ -347,6 +347,7 @@ http://www.chromium.org/developers/tree-sheriffs/sheriff-details-chromium#TOC-Fa
 	uploadCmd.Args = append(uploadCmd.Args, "-m", commitMsg)
 
 	// Upload the CL.
+	sklog.Infof("Running command: git %s", strings.Join(uploadCmd.Args, " "))
 	if _, err := exec.RunCommand(uploadCmd); err != nil {
 		return 0, err
 	}
