@@ -205,8 +205,8 @@ func main() {
 	defer common.LogPanic()
 	common.InitWithMust(
 		"autoroll",
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
+		//common.PrometheusOpt(promPort),
+		//common.CloudLoggingOpt(),
 	)
 
 	Init()

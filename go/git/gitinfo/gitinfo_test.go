@@ -500,6 +500,23 @@ func TestNumCommits(t *testing.T) {
 	}
 }
 
+func TestAuthorEmails(t *testing.T) {
+	testutils.MediumTest(t)
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	emails, err := r.AuthorEmails("7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, 1, len(emails))
+	assert.Equal(t, "jcgregorio@google.com", emails[0])
+}
+
 func TestRevList(t *testing.T) {
 	testutils.MediumTest(t)
 	tr := util.NewTempRepo()
