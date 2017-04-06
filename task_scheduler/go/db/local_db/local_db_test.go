@@ -428,7 +428,7 @@ func TestPutTaskLeavesTasksUnchanged(t *testing.T) {
 // Test that PutJob uses Created timestamp, and generates unique IDs for the
 // same timestamp.
 func TestJobIdsFromCreatedTs(t *testing.T) {
-	testutils.MediumTest(t) // Creates a lot of jobs.
+	testutils.LargeTest(t) // Creates a lot of jobs.
 
 	d, tmpdir := makeDB(t, "TestJobIdsFromCreatedTs")
 	defer util.RemoveAll(tmpdir)

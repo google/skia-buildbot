@@ -66,7 +66,7 @@ func TestCommitID(t *testing.T) {
 }
 
 func TestImpl(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	ts, err := NewTraceServiceServer(FILENAME)
 	assert.NoError(t, err)
 	defer util.Close(ts)
