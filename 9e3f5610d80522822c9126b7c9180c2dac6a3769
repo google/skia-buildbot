@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9255c889_c7bad7dc",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-06T15:09:05Z",
+      "side": 1,
+      "message": "Nit: I think it makes much more sense to only include absolute paths in PATH.",
+      "range": {
+        "startLine": 323,
+        "startChar": 37,
+        "endLine": 323,
+        "endChar": 41
+      },
+      "revId": "9e3f5610d80522822c9126b7c9180c2dac6a3769",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
