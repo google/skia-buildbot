@@ -319,7 +319,7 @@ server {
     add_header X-Content-Type-Options nosniff;
 
     location / {
-        proxy_pass https://skia-android-master-roll-8002-proxy.skia.org;
+        proxy_pass https://android-master-autoroll-8000-proxy.skia.org;
     }
 }
 server {
