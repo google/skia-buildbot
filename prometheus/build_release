@@ -12,11 +12,11 @@ copy_release_files()
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
 
-${INSTALL} --mode=755 -T ${GOPATH}/bin/prometheus          ${ROOT}/usr/local/bin/prometheus
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/webhook_proxy       ${ROOT}/usr/local/bin/webhook_proxy
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/promtool            ${ROOT}/usr/local/bin/promtool
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/proxy_with_auth     ${ROOT}/usr/local/bin/prom_proxy_with_auth
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/proxy_with_auth     ${ROOT}/usr/local/bin/alert_proxy_with_auth
+${INSTALL} --mode=755 -T ./tmp/prometheus                  ${ROOT}/usr/local/bin/prometheus
 ${INSTALL} --mode=755 -T ./tmp/alertmanager                ${ROOT}/usr/local/bin/alertmanager
 ${INSTALL} --mode=755 -T ./tmp/pushgateway                 ${ROOT}/usr/local/bin/pushgateway
 ${INSTALL} --mode=644 -T ./sys/prometheus.service          ${ROOT}/etc/systemd/system/prometheus.service
