@@ -53,6 +53,9 @@ inhibit_rules:
   equal: ['alertname']
 
 
+# To put a + in an email address use %252B, which will get decoded as %2B when
+# sent to webhook_proxy, which then is properly escaped to be sent to the
+# gmail API.
 receivers:
 - name: 'skiabot'
   webhook_configs:
@@ -69,5 +72,5 @@ receivers:
 
 - name: 'android-master'
   webhook_configs:
-    - url: 'http://localhost:8004/email?email=android-perf-monitoring+alerts@google.com'
+    - url: 'http://localhost:8004/email?email=android-perf-monitoring%252Balerts@google.com'
       send_resolved: false
