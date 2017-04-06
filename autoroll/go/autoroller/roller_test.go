@@ -511,7 +511,7 @@ func setup(t *testing.T, strategy string, doGerrit bool) (string, *AutoRoller, *
 // testAutoRollBasic ensures that the typical function of the AutoRoller works
 // as expected.
 func testAutoRollBasic(t *testing.T, gerrit bool) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	// setup will initialize the roller and upload a CL.
 	workdir, roller, rm, rv, roll1 := setup(t, repo_manager.ROLL_STRATEGY_BATCH, gerrit)
 	defer func() {

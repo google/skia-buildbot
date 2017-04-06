@@ -11,7 +11,7 @@ import (
 )
 
 func TestAdd(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	ts, cleanup := setupClientServerForTesting(t.Fatalf)
 	defer cleanup()
 

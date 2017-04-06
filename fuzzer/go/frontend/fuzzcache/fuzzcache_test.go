@@ -13,7 +13,7 @@ import (
 const TEST_DB_PATH = "/tmp/test-db"
 
 func TestBoltDBStoreAndRetrieve(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	deleteBeforeTest(t)
 	db, err := New(TEST_DB_PATH)
 	if err != nil {
