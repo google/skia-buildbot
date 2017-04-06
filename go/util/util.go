@@ -747,3 +747,47 @@ func ValidateCommit(hash string) bool {
 	}
 	return true
 }
+
+// Permute returns all permutations of the given slice of ints. Duplicates in
+// the input slice will result in duplicate permutations returned.
+func Permute(ints []int) [][]int {
+	if len(ints) == 1 {
+		return [][]int{[]int{ints[0]}}
+	}
+	rv := [][]int{}
+	for _, i := range ints {
+		remaining := make([]int, 0, len(ints)-1)
+		for _, j := range ints {
+			if j != i {
+				remaining = append(remaining, j)
+			}
+		}
+		got := Permute(remaining)
+		for _, list := range got {
+			// TODO(borenet): These temporary lists are expensive.
+			// If we need this to be performant, we should re-
+			// implement without copies.
+			rv = append(rv, append([]int{i}, list...))
+		}
+	}
+	return rv
+}
+
+// PermuteStrings returns all permutations of the given slice of strings.
+// Duplicates in the input slice will result in duplicate permutations returned.
+func PermuteStrings(strs []string) [][]string {
+	idxs := make([]int, 0, len(strs))
+	for i, _ := range strs {
+		idxs = append(idxs, i)
+	}
+	permuteIdxs := Permute(idxs)
+	rv := make([][]string, 0, len(permuteIdxs))
+	for _, idxPerm := range permuteIdxs {
+		strPerm := make([]string, 0, len(idxPerm))
+		for _, idx := range idxPerm {
+			strPerm = append(strPerm, strs[idx])
+		}
+		rv = append(rv, strPerm)
+	}
+	return rv
+}
