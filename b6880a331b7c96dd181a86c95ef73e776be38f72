@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6656f055_c99ede35",
+        "filename": "go/email/email.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-04-06T16:46:24Z",
+      "side": 1,
+      "message": "Intentionally left in for future debugging.",
+      "revId": "b6880a331b7c96dd181a86c95ef73e776be38f72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
