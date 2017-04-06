@@ -3,6 +3,7 @@ package repo_manager
 import (
 	"fmt"
 	"os"
+	"os/user"
 	"path"
 	"strings"
 	"time"
@@ -18,10 +19,9 @@ import (
 )
 
 const (
-	SERVICE_ACCOUNT        = "31977622648@project.gserviceaccount.com"
-	UPSTREAM_REMOTE_NAME   = "remote"
-	REPO_BRANCH_NAME       = "merge"
-	GIT_COOKIE_AUTH_DAEMON = "git-cookie-authdaemon"
+	SERVICE_ACCOUNT      = "31977622648@project.gserviceaccount.com"
+	UPSTREAM_REMOTE_NAME = "remote"
+	REPO_BRANCH_NAME     = "merge"
 )
 
 var (
@@ -37,11 +37,19 @@ var (
 // androidRepoManager is a struct used by Android AutoRoller for managing checkouts.
 type androidRepoManager struct {
 	*commonRepoManager
-	repoUrl           string
-	authDaemonRunning bool
+	repoUrl                 string
+	repoToolPath            string
+	gitCookieAuthDaemonPath string
+	authDaemonRunning       bool
 }
 
 func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string, frequency time.Duration, g gerrit.GerritInterface) (RepoManager, error) {
+	user, err := user.Current()
+	if err != nil {
+		return nil, err
+	}
+	repoToolPath := path.Join(user.HomeDir, "bin", "repo")
+	gitCookieAuthDaemonPath := path.Join(user.HomeDir, "gcompute-tools", "git-cookie-authdaemon")
 	wd := path.Join(workdir, "android_repo")
 
 	r := &androidRepoManager{
@@ -55,8 +63,10 @@ func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string,
 			workdir:      wd,
 			g:            g,
 		},
-		repoUrl:           g.GetRepoUrl(),
-		authDaemonRunning: false,
+		repoUrl:                 g.GetRepoUrl(),
+		repoToolPath:            repoToolPath,
+		gitCookieAuthDaemonPath: gitCookieAuthDaemonPath,
+		authDaemonRunning:       false,
 	}
 
 	if err := r.update(); err != nil {
@@ -81,7 +91,7 @@ func (r *androidRepoManager) update() error {
 		go func() {
 			r.authDaemonRunning = true
 			// Authenticate before trying to update repo.
-			if _, err := exec.RunCwd(r.childDir, GIT_COOKIE_AUTH_DAEMON); err != nil {
+			if _, err := exec.RunCwd(r.childDir, r.gitCookieAuthDaemonPath); err != nil {
 				util.LogErr(err)
 			}
 			r.authDaemonRunning = false
@@ -96,10 +106,10 @@ func (r *androidRepoManager) update() error {
 	}
 
 	// Run repo init and sync commands.
-	if _, err := exec.RunCwd(r.workdir, "repo", "init", "-u", fmt.Sprintf("%s/a/platform/manifest", r.repoUrl), "-g", "all,-notdefault,-darwin", "-b", r.parentBranch); err != nil {
+	if _, err := exec.RunCwd(r.workdir, r.repoToolPath, "init", "-u", fmt.Sprintf("%s/a/platform/manifest", r.repoUrl), "-g", "all,-notdefault,-darwin", "-b", r.parentBranch); err != nil {
 		return err
 	}
-	if _, err := exec.RunCwd(r.workdir, "repo", "sync", "-j32"); err != nil {
+	if _, err := exec.RunCwd(r.workdir, r.repoToolPath, "sync", "-j32"); err != nil {
 		return err
 	}
 
@@ -220,7 +230,7 @@ func (r *androidRepoManager) abortMerge() error {
 
 // abandonRepoBranch abandons the repo branch.
 func (r *androidRepoManager) abandonRepoBranch() error {
-	_, err := exec.RunCwd(r.childRepo.Dir(), "repo", "abandon", REPO_BRANCH_NAME)
+	_, err := exec.RunCwd(r.childRepo.Dir(), r.repoToolPath, "abandon", REPO_BRANCH_NAME)
 	return err
 }
 
@@ -338,7 +348,7 @@ func (r *androidRepoManager) CreateNewRoll(strategy string, emails []string, cqE
 	}
 
 	// Create a new repo branch.
-	if _, repoBranchErr := exec.RunCwd(r.childDir, "repo", "start", REPO_BRANCH_NAME, "."); repoBranchErr != nil {
+	if _, repoBranchErr := exec.RunCwd(r.childDir, r.repoToolPath, "start", REPO_BRANCH_NAME, "."); repoBranchErr != nil {
 		util.LogErr(r.abortMerge())
 		return 0, fmt.Errorf("Failed to create repo branch: %s", repoBranchErr)
 	}
@@ -372,7 +382,7 @@ Test: Presubmit checks will test this change.
 	emailStr := strings.Join(emails, ",")
 
 	uploadCommand := &exec.Command{
-		Name: "repo",
+		Name: r.repoToolPath,
 		Args: []string{"upload", fmt.Sprintf("--re=%s", emailStr), "--verify"},
 		Dir:  r.childDir,
 		// The below is to bypass the blocking
