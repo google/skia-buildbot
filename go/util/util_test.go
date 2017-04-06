@@ -482,3 +482,87 @@ func TestValidateCommit(t *testing.T) {
 		assert.Equal(t, ValidateCommit(input), expect)
 	}
 }
+
+func TestPermute(t *testing.T) {
+	testutils.SmallTest(t)
+
+	assert.Equal(t, [][]int{}, Permute([]int{}))
+	assert.Equal(t, [][]int{[]int{0}}, Permute([]int{0}))
+	assert.Equal(t, [][]int{[]int{0, 1}, []int{1, 0}}, Permute([]int{0, 1}))
+	assert.Equal(t, [][]int{
+		[]int{0, 1, 2},
+		[]int{0, 2, 1},
+		[]int{1, 0, 2},
+		[]int{1, 2, 0},
+		[]int{2, 0, 1},
+		[]int{2, 1, 0},
+	}, Permute([]int{0, 1, 2}))
+	assert.Equal(t, [][]int{
+		[]int{0, 1, 2, 3},
+		[]int{0, 1, 3, 2},
+		[]int{0, 2, 1, 3},
+		[]int{0, 2, 3, 1},
+		[]int{0, 3, 1, 2},
+		[]int{0, 3, 2, 1},
+		[]int{1, 0, 2, 3},
+		[]int{1, 0, 3, 2},
+		[]int{1, 2, 0, 3},
+		[]int{1, 2, 3, 0},
+		[]int{1, 3, 0, 2},
+		[]int{1, 3, 2, 0},
+		[]int{2, 0, 1, 3},
+		[]int{2, 0, 3, 1},
+		[]int{2, 1, 0, 3},
+		[]int{2, 1, 3, 0},
+		[]int{2, 3, 0, 1},
+		[]int{2, 3, 1, 0},
+		[]int{3, 0, 1, 2},
+		[]int{3, 0, 2, 1},
+		[]int{3, 1, 0, 2},
+		[]int{3, 1, 2, 0},
+		[]int{3, 2, 0, 1},
+		[]int{3, 2, 1, 0},
+	}, Permute([]int{0, 1, 2, 3}))
+}
+
+func TestPermuteStrings(t *testing.T) {
+	testutils.SmallTest(t)
+
+	assert.Equal(t, [][]string{}, PermuteStrings([]string{}))
+	assert.Equal(t, [][]string{[]string{"a"}}, PermuteStrings([]string{"a"}))
+	assert.Equal(t, [][]string{[]string{"a", "b"}, []string{"b", "a"}}, PermuteStrings([]string{"a", "b"}))
+	assert.Equal(t, [][]string{
+		[]string{"a", "b", "c"},
+		[]string{"a", "c", "b"},
+		[]string{"b", "a", "c"},
+		[]string{"b", "c", "a"},
+		[]string{"c", "a", "b"},
+		[]string{"c", "b", "a"},
+	}, PermuteStrings([]string{"a", "b", "c"}))
+	assert.Equal(t, [][]string{
+		[]string{"a", "b", "c", "d"},
+		[]string{"a", "b", "d", "c"},
+		[]string{"a", "c", "b", "d"},
+		[]string{"a", "c", "d", "b"},
+		[]string{"a", "d", "b", "c"},
+		[]string{"a", "d", "c", "b"},
+		[]string{"b", "a", "c", "d"},
+		[]string{"b", "a", "d", "c"},
+		[]string{"b", "c", "a", "d"},
+		[]string{"b", "c", "d", "a"},
+		[]string{"b", "d", "a", "c"},
+		[]string{"b", "d", "c", "a"},
+		[]string{"c", "a", "b", "d"},
+		[]string{"c", "a", "d", "b"},
+		[]string{"c", "b", "a", "d"},
+		[]string{"c", "b", "d", "a"},
+		[]string{"c", "d", "a", "b"},
+		[]string{"c", "d", "b", "a"},
+		[]string{"d", "a", "b", "c"},
+		[]string{"d", "a", "c", "b"},
+		[]string{"d", "b", "a", "c"},
+		[]string{"d", "b", "c", "a"},
+		[]string{"d", "c", "a", "b"},
+		[]string{"d", "c", "b", "a"},
+	}, PermuteStrings([]string{"a", "b", "c", "d"}))
+}
