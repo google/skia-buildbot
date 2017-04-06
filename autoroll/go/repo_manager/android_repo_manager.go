@@ -37,7 +37,8 @@ var (
 // androidRepoManager is a struct used by Android AutoRoller for managing checkouts.
 type androidRepoManager struct {
 	*commonRepoManager
-	repoUrl string
+	repoUrl           string
+	authDaemonRunning bool
 }
 
 func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string, frequency time.Duration, g gerrit.GerritInterface) (RepoManager, error) {
@@ -54,7 +55,8 @@ func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string,
 			workdir:      wd,
 			g:            g,
 		},
-		repoUrl: g.GetRepoUrl(),
+		repoUrl:           g.GetRepoUrl(),
+		authDaemonRunning: false,
 	}
 
 	if err := r.update(); err != nil {
@@ -75,9 +77,15 @@ func (r *androidRepoManager) update() error {
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 
-	// Authenticate before trying to update repo.
-	if _, err := exec.RunCwd(r.childDir, GIT_COOKIE_AUTH_DAEMON); err != nil {
-		util.LogErr(err)
+	if !r.authDaemonRunning {
+		go func() {
+			r.authDaemonRunning = true
+			// Authenticate before trying to update repo.
+			if _, err := exec.RunCwd(r.childDir, GIT_COOKIE_AUTH_DAEMON); err != nil {
+				util.LogErr(err)
+			}
+			r.authDaemonRunning = false
+		}()
 	}
 
 	// Create the working directory if needed.
@@ -312,7 +320,14 @@ func (r *androidRepoManager) CreateNewRoll(strategy string, emails []string, cqE
 	}
 
 	// Generate and add files created by gn/gn_to_bp.py
-	if _, gnToBpErr := exec.RunCwd(r.childDir, "python", "-c", "from gn import gn_to_bp"); gnToBpErr != nil {
+	gnEnv := []string{fmt.Sprintf("PATH=%s/:%s", path.Join(r.childDir, "bin"), os.Getenv("PATH"))}
+	_, gnToBpErr := exec.RunCommand(&exec.Command{
+		Env:  gnEnv,
+		Dir:  r.childDir,
+		Name: "python",
+		Args: []string{"-c", "from gn import gn_to_bp"},
+	})
+	if gnToBpErr != nil {
 		util.LogErr(r.abortMerge())
 		return 0, fmt.Errorf("Failed to run gn_to_bp: %s", gnToBpErr)
 	}
