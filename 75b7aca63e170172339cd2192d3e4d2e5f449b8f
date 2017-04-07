@@ -69,6 +69,30 @@
       "revId": "75b7aca63e170172339cd2192d3e4d2e5f449b8f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "126c58cf_e6b32922",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 469,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-07T13:16:47Z",
+      "side": 1,
+      "message": "Oh nevermind. I thought vcsinfo was not ours. I\u0027ll look into using ShortList.",
+      "parentUuid": "51820103_4f47a6d3",
+      "range": {
+        "startLine": 465,
+        "startChar": 0,
+        "endLine": 469,
+        "endChar": 2
+      },
+      "revId": "75b7aca63e170172339cd2192d3e4d2e5f449b8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
