@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eeb306be_d459f54d",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-07T12:25:53Z",
+      "side": 1,
+      "message": "I\u0027m pretty sure this is done somewhere else.  Can we refactor into a \"parse deps roll\" function?",
+      "range": {
+        "startLine": 176,
+        "startChar": 37,
+        "endLine": 176,
+        "endChar": 82
+      },
+      "revId": "75b7aca63e170172339cd2192d3e4d2e5f449b8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4f562bb_a3261aa1",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 469,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-07T12:25:53Z",
+      "side": 1,
+      "message": "Can\u0027t we reuse GitInfo.ShortList for this?  Or some similar?  Maybe RevList + Details in a loop?",
+      "range": {
+        "startLine": 465,
+        "startChar": 0,
+        "endLine": 469,
+        "endChar": 2
+      },
+      "revId": "75b7aca63e170172339cd2192d3e4d2e5f449b8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
