@@ -16,6 +16,24 @@
       "revId": "c1eef7dde486e513fe5709f67bdc76dc3bc9de08",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b4197dc_f7c8481c",
+        "filename": "datahopper/go/bot_metrics/bot_metrics.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-07T13:56:40Z",
+      "side": 1,
+      "message": "Changed to return an error.",
+      "parentUuid": "2ae28caf_1224c7a2",
+      "revId": "c1eef7dde486e513fe5709f67bdc76dc3bc9de08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
