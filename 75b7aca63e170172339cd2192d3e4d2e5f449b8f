@@ -45,6 +45,30 @@
       "revId": "75b7aca63e170172339cd2192d3e4d2e5f449b8f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51820103_4f47a6d3",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 469,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-07T12:28:25Z",
+      "side": 1,
+      "message": "I had tried ShortList, it did not work because I need the email and not the author name. ShortCommit has the author name and LongCommit has ShortCommit + Body/Parents/Timestamp/Branches.",
+      "parentUuid": "b4f562bb_a3261aa1",
+      "range": {
+        "startLine": 465,
+        "startChar": 0,
+        "endLine": 469,
+        "endChar": 2
+      },
+      "revId": "75b7aca63e170172339cd2192d3e4d2e5f449b8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
