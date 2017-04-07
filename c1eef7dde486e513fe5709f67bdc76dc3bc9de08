@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2ae28caf_1224c7a2",
+        "filename": "datahopper/go/bot_metrics/bot_metrics.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-04-07T13:53:32Z",
+      "side": 1,
+      "message": "I\u0027m not a fan of burying a fatal this deep in the code, can you move this check up higher (closer to main()?).",
+      "revId": "c1eef7dde486e513fe5709f67bdc76dc3bc9de08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
