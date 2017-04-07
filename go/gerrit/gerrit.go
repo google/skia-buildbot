@@ -140,8 +140,8 @@ type GerritInterface interface {
 type Gerrit struct {
 	client               *http.Client
 	buildbucketClient    *buildbucket.Client
+	gitCookiesPath       string
 	url                  string
-	cookies              map[string]string
 	useAuthenticatedGets bool
 }
 
@@ -150,20 +150,14 @@ type Gerrit struct {
 // anonymous users.
 func NewGerrit(url, gitCookiesPath string, client *http.Client) (*Gerrit, error) {
 	url = strings.TrimRight(url, "/")
-	cookies, err := getCredentials(gitCookiesPath)
-	if err != nil {
-		return nil, err
-	}
-
 	if client == nil {
 		client = httputils.NewTimeoutClient()
 	}
-
 	return &Gerrit{
 		url:               url,
 		client:            client,
 		buildbucketClient: buildbucket.NewClient(client),
-		cookies:           cookies,
+		gitCookiesPath:    gitCookiesPath,
 	}, nil
 }
 
@@ -384,7 +378,11 @@ func (g *Gerrit) addAuthenticationCookie(req *http.Request) error {
 	}
 
 	auth := ""
-	for d, a := range g.cookies {
+	cookies, err := getCredentials(g.gitCookiesPath)
+	if err != nil {
+		return err
+	}
+	for d, a := range cookies {
 		if util.CookieDomainMatch(u.Host, d) {
 			auth = a
 			cookie := http.Cookie{Name: "o", Value: a}
