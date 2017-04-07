@@ -175,14 +175,6 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
 
     install_go
 
-    if [ "$VM_IS_BUILDBOT" = 1 ]; then
-      checkout_skia_repos
-
-      copy_files
-
-      setup_contab
-    fi
-
     if [ "$VM_IS_SWARMINGBOT" = 1 ]; then
       copy_files
 

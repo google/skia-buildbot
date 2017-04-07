@@ -111,9 +111,6 @@ $shell.NameSpace($depotToolsPath).copyhere("c:\_netrc", 0x14)
 banner "Copy .gitconfig file"
 $shell.NameSpace($depotToolsPath).copyhere("c:\.gitconfig", 0x14)
 
-banner "Copy .bot_password file"
-$shell.NameSpace($userDir).copyhere("c:\.bot_password", 0x14)
-
 banner "Create Startup Dir"
 $startup_dir = "$userDir\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
 if (!(Test-Path ($startup_dir))) {
