@@ -459,6 +459,29 @@ func (g *GitInfo) ShortList(begin, end string) (*ShortCommits, error) {
 	return ret, nil
 }
 
+// AuthorEmails returns a slice of emails for every commit in (begin, end].
+// The returned emails are not in order and they are repeated only once.
+func (g *GitInfo) AuthorEmails(begin, end string) ([]string, error) {
+	command := []string{"git", "log", "--pretty=%ae", begin + ".." + end}
+	output, err := exec.RunCwd(g.dir, command...)
+	if err != nil {
+		return nil, err
+	}
+	emailMap := map[string]bool{}
+	for _, line := range strings.Split(output, "\n") {
+		if line == "" {
+			continue
+		}
+		emailMap[line] = true
+	}
+	emails := []string{}
+	for e := range emailMap {
+		emails = append(emails, e)
+	}
+
+	return emails, nil
+}
+
 func (g *GitInfo) IsAncestor(a, b string) bool {
 	cmd := []string{"git", "merge-base", "--is-ancestor", a, b}
 	if _, err := exec.RunCwd(g.dir, cmd...); err != nil {
