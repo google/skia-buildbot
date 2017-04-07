@@ -69,54 +69,6 @@ function install_go {
   echo
 }
 
-function setup_android_sdk {
-  echo
-  echo "===== Android SDK. ====="
-  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-    "mkdir $SKIA_REPO_DIR;" \
-    "cd $SKIA_REPO_DIR && " \
-    "sudo apt-get -y install libncurses5:i386 && " \
-    "wget http://dl.google.com/android/adt/adt-bundle-linux-x86_64-20130729.zip && " \
-    "if [[ -d adt-bundle-linux-x86_64-20130729 ]]; then rm -rf adt-bundle-linux-x86_64-20130729; fi && " \
-    "unzip adt-bundle-linux-x86_64-20130729.zip && " \
-    "if [[ -d android-sdk-linux ]]; then rm -rf android-sdk-linux; fi && " \
-    "mv adt-bundle-linux-x86_64-20130729/sdk android-sdk-linux && " \
-    "rm -rf adt-bundle-linux-x86_64-20130729 adt-bundle-linux-x86_64-20130729.zip && " \
-    "echo \"y\" | android-sdk-linux/tools/android update sdk --no-ui --filter android-19 && " \
-    "echo 'export ANDROID_SDK_ROOT=$SKIA_REPO_DIR/android-sdk-linux' >> /home/$PROJECT_USER/.bashrc" \
-    || FAILED="$FAILED AndroidSDK"
-  echo
-}
-
-function setup_nacl {
-  NACL_PEPPER_VERSION="pepper_32"
-  echo
-  echo "===== Native Client SDK and NaClPorts. ====="
-  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-    "mkdir $SKIA_REPO_DIR;" \
-    "cd $SKIA_REPO_DIR && " \
-    "wget http://storage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/nacl_sdk.zip && " \
-    "if [[ -d nacl_sdk ]]; then rm -rf nacl_sdk; fi && " \
-    "unzip nacl_sdk.zip && " \
-    "rm nacl_sdk.zip && " \
-    "nacl_sdk/naclsdk update $NACL_PEPPER_VERSION && " \
-    "echo 'export NACL_SDK_ROOT=$SKIA_REPO_DIR/nacl_sdk/$NACL_PEPPER_VERSION' >> /home/$PROJECT_USER/.bashrc" \
-    || FAILED="$FAILED NativeClient"
-  echo
-}
-
-function checkout_skia_repos {
-  echo
-  echo "Checkout Skia Buildbot code"
-  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-    "mkdir $SKIA_REPO_DIR;" \
-    "cd $SKIA_REPO_DIR && " \
-    "~/depot_tools/gclient config https://skia.googlesource.com/buildbot.git && " \
-    "~/depot_tools/gclient sync;" \
-    || FAILED="$FAILED CheckoutSkiaBuildbot"
-  echo
-}
-
 function download_file {
   DOWNLOAD_URL="gs://skia-buildbots/artifacts"
   if [ "$VM_IS_INTERNAL" = 1 ]; then
@@ -166,15 +118,6 @@ function setup_ct_swarming_bot {
     "curl -sSf 'https://skia.googlesource.com/buildbot/+/master/ct/tools/setup_ct_machine.sh?format=TEXT' | base64 --decode > '/tmp/ct_setup.sh' && " \
     "bash /tmp/ct_setup.sh" \
     || FAILED="$FAILED CTBootstrap"
-  echo
-}
-
-function setup_contab {
-  echo
-  echo "===== Setup Crontab. ====="
-  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-    "crontab $SKIA_REPO_DIR/buildbot/compute_engine_scripts/buildbots/cron-file.txt" \
-    || FAILED="$FAILED SetupCrontab"
   echo
 }
 

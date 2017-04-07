@@ -1,2 +1,0 @@
-00 3 * * * /home/default/storage/skia-repo/buildbot/scripts/run_daily.sh
-@reboot while [ ! -f "/home/default/storage/skia-repo/buildbot/scripts/skiabot-slave-start-on-boot.sh" ]; do echo "/home/default/storage/skia-repo/buildbot/scripts/skiabot-slave-start-on-boot.sh not found"; sleep 1; done; export HOME=/home/default; export SKIA_REPO_DIR=/home/default/storage/skia-repo; /home/default/storage/skia-repo/buildbot/scripts/skiabot-slave-start-on-boot.sh

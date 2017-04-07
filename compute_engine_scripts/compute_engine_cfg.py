@@ -22,9 +22,6 @@ SKIA_BOT_MACHINE_TYPE = os.environ.get(
 VM_INSTANCE_OS = os.environ.get('VM_INSTANCE_OS', 'Linux')
 IP_ADDRESS_WITHOUT_MACHINE_PART = '104.154.112'
 VM_PERSISTENT_DISK_SIZE_GB = os.environ.get('VM_PERSISTENT_DISK_SIZE_GB', 300)
-# If this is true then the VM instances will automatically try to connect to the
-# buildbot master.
-VM_IS_BUILDBOT = os.environ.get('VM_IS_BUILDBOT', 0)
 # If this is true then the swarming image is used.
 VM_IS_SWARMINGBOT = os.environ.get('VM_IS_SWARMINGBOT', 1)
 # If this is true then a CT VM is created in the SkiaCT pool.

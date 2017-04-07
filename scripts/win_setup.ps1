@@ -71,24 +71,11 @@ INSERTFILE(/tmp/.netrc)
 "@
 Set-Content C:\_netrc $netrc_contents
 
-banner "Create .bot_password"
-$bot_password = @"
-INSERTFILE(/tmp/.bot_password)
-"@
-Set-Content C:\.bot_password $bot_password
-
 banner "Create .gitconfig"
 $gitconfig_contents = @"
 INSERTFILE(/tmp/.gitconfig)
 "@
 Set-Content C:\.gitconfig $gitconfig_contents
-
-banner "Update hosts file."
-$additional_hosts = @"
-`n
-INSERTFILE(/tmp/chrome_master_host)
-"@
-Add-Content c:\Windows\System32\drivers\etc\hosts $additional_hosts
 
 banner "Download chrome-bot's scheduled task powershell script"
 $metadataclient = New-Object System.Net.WebClient
