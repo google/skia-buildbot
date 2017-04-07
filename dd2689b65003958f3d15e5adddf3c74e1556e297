@@ -449,6 +449,30 @@
     },
     {
       "key": {
+        "uuid": "c72fb5a5_c1b38a30",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-07T16:41:00Z",
+      "side": 1,
+      "message": "Gotcha.",
+      "parentUuid": "d10f306a_2b8c319f",
+      "range": {
+        "startLine": 48,
+        "startChar": 23,
+        "endLine": 48,
+        "endChar": 30
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "279ce828_a7cba03b",
         "filename": "status/go/find_breaks/failure_groups.go",
         "patchSetId": 11
@@ -755,6 +779,30 @@
     },
     {
       "key": {
+        "uuid": "f63cee38_6bf4f7cc",
+        "filename": "status/go/find_breaks/failure_groups.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-07T16:41:00Z",
+      "side": 1,
+      "message": "Ah, okay.",
+      "parentUuid": "a0eee0e6_5afe5d75",
+      "range": {
+        "startLine": 182,
+        "startChar": 75,
+        "endLine": 182,
+        "endChar": 88
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "29ce8535_f1d9a99e",
         "filename": "status/go/find_breaks/failures.go",
         "patchSetId": 11
@@ -932,6 +980,30 @@
       "side": 1,
       "message": "The test cases don\u0027t include any where the mishaps/gaps cover multiple commits.\n\n(For the case of a single commit, two wrongs make a right -- lastFailed is exclusive, so this should be lastFailed \u003d idx + 1.)",
       "parentUuid": "8e3a82d6_a4f2c055",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 145,
+        "endChar": 4
+      },
+      "revId": "dd2689b65003958f3d15e5adddf3c74e1556e297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dedda9a5_3aae5d5a",
+        "filename": "status/go/find_breaks/failures.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-07T16:41:00Z",
+      "side": 1,
+      "message": "Oh, got it.  I had no test cases which ended in a mishap and had an untested string of commits afterward, which would cause this to extend the failures slice out through the untested commits.  Removed this block and added test cases for (success, failure, mishap, extra untested commits), (success, mishap, mishap, failure), (failure, mishap, mishap, success).",
+      "parentUuid": "3df40930_6414ffae",
       "range": {
         "startLine": 143,
         "startChar": 0,
