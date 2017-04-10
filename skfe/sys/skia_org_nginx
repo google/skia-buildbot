@@ -301,6 +301,7 @@ server {
 }
 
 #####   android-master-roll.skia.org   ###########################
+rmistry
 server {
     listen      443;
     server_name android-master-roll.skia.org;
@@ -320,6 +321,11 @@ server {
 
     location / {
         proxy_pass https://android-master-autoroll-8000-proxy.skia.org;
+    }
+
+    location /json/status {
+        proxy_pass http://android-master-autoroll:8000/json/status;
+        proxy_set_header Host $host;
     }
 }
 server {
