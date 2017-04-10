@@ -19,7 +19,7 @@ import (
 	"time"
 	"unicode"
 
-	"golang.org/x/net/context"
+	//"golang.org/x/net/context"
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/buildbot"
@@ -560,8 +560,8 @@ func main() {
 
 	common.InitWithMust(
 		"status",
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
+		//common.PrometheusOpt(promPort),
+		//common.CloudLoggingOpt(),
 	)
 
 	v, err := skiaversion.GetVersion()
@@ -593,9 +593,9 @@ func main() {
 			sklog.Fatal(err)
 		}
 	}
-
+	fmt.Println("Doing something here!")
 	login.SimpleInitMust(*port, *testing)
-
+	fmt.Println("Doing something here!")
 	// Check out source code.
 	reposDir := path.Join(*workdir, "repos")
 	if err := os.MkdirAll(reposDir, os.ModePerm); err != nil {
@@ -604,28 +604,32 @@ func main() {
 	if *repoUrls == nil {
 		*repoUrls = common.PUBLIC_REPOS
 	}
-	repos, err = repograph.NewMap(*repoUrls, reposDir)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	sklog.Info("Checkout complete")
+	fmt.Println("Doing something here!")
+	//repos, err = repograph.NewMap(*repoUrls, reposDir)
+	//if err != nil {
+	//	sklog.Fatal(err)
+	//}
+	//sklog.Info("Checkout complete")
+	//fmt.Println("Checkout complete")
 
-	// Cache for buildProgressHandler.
-	tasksPerCommit, err = newTasksPerCommitCache(*workdir, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, 14*24*time.Hour, context.Background())
-	if err != nil {
-		sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
-	}
+	//// Cache for buildProgressHandler.
+	//tasksPerCommit, err = newTasksPerCommitCache(*workdir, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, 14*24*time.Hour, context.Background())
+	//if err != nil {
+	//	sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
+	//}
 
-	// Create the build cache.
-	bc, err := franken.NewBTCache(repos, taskDb, *swarmingUrl, *taskSchedulerUrl)
-	if err != nil {
-		sklog.Fatalf("Failed to create build cache: %s", err)
-	}
-	buildCache = bc
+	//// Create the build cache.
+	//bc, err := franken.NewBTCache(repos, taskDb, *swarmingUrl, *taskSchedulerUrl)
+	//if err != nil {
+	//	sklog.Fatalf("Failed to create build cache: %s", err)
+	//}
+	//buildCache = bc
 
-	capacityClient = capacity.New(tasksPerCommit.tcc, bc.GetTaskCache(), repos)
-	capacityClient.StartLoading(*capacityRecalculateInterval)
+	//capacityClient = capacity.New(tasksPerCommit.tcc, bc.GetTaskCache(), repos)
+	//fmt.Println("Doing something here!")
+	//capacityClient.StartLoading(*capacityRecalculateInterval)
 
+	fmt.Println("ABOUT TO RUN THE SERVER!!!!!!!!!")
 	// Run the server.
 	runServer(serverURL)
 }
