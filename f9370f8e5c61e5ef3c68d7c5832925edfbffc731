@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "95834b93_27fcca9e",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 840,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-10T18:40:21Z",
+      "side": 1,
+      "message": "nit: Seems like this is most likely to happen for a tryjob. Maybe use rs here instead?",
+      "range": {
+        "startLine": 840,
+        "startChar": 56,
+        "endLine": 840,
+        "endChar": 66
+      },
+      "revId": "f9370f8e5c61e5ef3c68d7c5832925edfbffc731",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
