@@ -835,9 +835,13 @@ func (s *TaskScheduler) isolateCandidates(candidates []*taskCandidate) error {
 		go func(rs db.RepoState, candidates []*taskCandidate) {
 			defer wg.Done()
 			if err := s.isolateTasks(rs, candidates); err != nil {
+				names := make([]string, 0, len(candidates))
+				for _, c := range candidates {
+					names = append(names, fmt.Sprintf("%s@%s", c.Name, c.Revision))
+				}
 				mtx.Lock()
 				defer mtx.Unlock()
-				errs = append(errs, err)
+				errs = append(errs, fmt.Errorf("Failed on %s: %s", strings.Join(names, ", "), err))
 			}
 		}(rs, candidates)
 	}
