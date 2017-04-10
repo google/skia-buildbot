@@ -8,6 +8,7 @@ After=mnt-pd0.mount network-online.target
 ExecStart=/usr/local/bin/prometheus \
     -config.file=/etc/prometheus/prometheus.yml \
     -storage.local.path=/mnt/pd0/prometheus \
+    -storage.local.retention=1440h \
     --alertmanager.url=http://localhost:8001 \
     -log.level=info \
     -web.external-url=https://prom.skia.org \
