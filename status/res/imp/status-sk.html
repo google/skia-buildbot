@@ -37,7 +37,6 @@
 <link rel="import" href="/res/common/imp/app-sk.html">
 <link rel="import" href="/res/common/imp/url-params-sk.html">
 
-<link rel="import" href="android-autoroll-widget-sk.html">
 <link rel="import" href="autoroll-widget-sk.html">
 <link rel="import" href="commits-table-sk.html">
 <link rel="import" href="commits-canvas-sk.html">
@@ -86,9 +85,6 @@
         color:#E6AB02;
       }
 
-      android-autoroll-widget-sk {
-        margin-right: 25px;
-      }
       autoroll-widget-sk {
         margin-right: 25px;
       }
@@ -187,13 +183,16 @@
 
       <h1 class="shrinkable" toolbar>Status: [[repo]]</h1>
 
-      <android-autoroll-widget-sk title="Android DEPS roll status" class="shrinkable" rtoolbar
-        reload="[[reload]]">
-      </android-autoroll-widget-sk>
+      <autoroll-widget-sk title="Android roll status" class="shrinkable" rtoolbar
+        reload="[[reload]]"
+        name="Android"
+        url="https://android-master-roll.skia.org">
+      </autoroll-widget-sk>
 
       <autoroll-widget-sk title="Skia DEPS roll status" class="shrinkable" rtoolbar
         reload="[[reload]]"
         name="Cr"
+        url="https://autoroll.skia.org"
 
         status="{{autoroll_status}}">
       </autoroll-widget-sk>
