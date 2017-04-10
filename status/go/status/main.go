@@ -593,7 +593,6 @@ func main() {
 			sklog.Fatal(err)
 		}
 	}
-
 	login.SimpleInitMust(*port, *testing)
 
 	// Check out source code.
