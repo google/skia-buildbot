@@ -76,6 +76,7 @@ var (
 	ptraceStoreDir = flag.String("ptrace_store_dir", "/tmp/ptracestore", "The directory where the ptracestore tiles are stored.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	numContinuous  = flag.Int("num_continuous", 50, "The number of commits to do continuous clustering over looking for regressions.")
+	numShift       = flag.Int("num_shift", 10, "The number of commits the shift navigation buttons should jump.")
 )
 
 var (
@@ -114,6 +115,7 @@ func loadTemplates() {
 type SkPerfConfig struct {
 	Radius   int      `json:"radius"`    // The number of commits when doing clustering.
 	KeyOrder []string `json:"key_order"` // The order of the keys to appear first in query2-sk elements.
+	NumShift int      `json:"num_shift"` // The number of commits the shift navigation buttons should jump.
 }
 
 func templateHandler(name string) http.HandlerFunc {
@@ -125,6 +127,7 @@ func templateHandler(name string) http.HandlerFunc {
 		context := SkPerfConfig{
 			Radius:   regression.RADIUS,
 			KeyOrder: strings.Split(*keyOrder, ","),
+			NumShift: *numShift,
 		}
 		b, err := json.MarshalIndent(context, "", "  ")
 		if err != nil {
