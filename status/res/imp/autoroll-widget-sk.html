@@ -19,6 +19,7 @@
     // input
     reload: Number, How often (in seconds) to reload the autoroll status.
     name: String, name of the autoroller. Eg: Chromium, Android, Catapult, etc
+    url: String, URL of the autoroller.
 
     // output
     status: Object, contains:
@@ -59,13 +60,13 @@
 
     <iron-ajax
       id="status"
-      auto url="https://autoroll.skia.org/json/status"
+      auto url="[[url]]/json/status"
       handle-as="json"
       last-response="{{_roll_status}}">
     </iron-ajax>
     <timer-sk period="[[reload]]" on-trigger="_reload">
 
-    <a href="https://autoroll.skia.org" target="_blank" class="inherit">
+    <a href$="[[url]]" target="_blank" class="inherit">
       <div class="horizontal layout center">
         <!-- Show the icons for the last 5 rolls-->
         <template is="dom-repeat"
@@ -101,6 +102,10 @@
       name: {
         type: String,
         value: "",
+      },
+      url: {
+        type: String,
+        value: "https://autoroll.skia.org",
       },
 
       // output
