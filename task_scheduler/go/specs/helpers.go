@@ -6,7 +6,6 @@ package specs
 
 import (
 	"bytes"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -192,20 +191,10 @@ func (b *TasksCfgBuilder) Finish() error {
 		return err
 	}
 
-	// Encode the JSON config.
-	enc, err := json.MarshalIndent(b.cfg, "", "  ")
+	enc, err := EncodeTasksCfg(b.cfg)
 	if err != nil {
 		return err
 	}
-	// The json package escapes HTML characters, which makes our output
-	// much less readable. Replace the escape characters with the real
-	// character.
-	enc = bytes.Replace(enc, []byte("\\u003c"), []byte("<"), -1)
-
-	// Add a newline to the end of the file. Most text editors add one, so
-	// adding one here enables manual editing of the file, even though we'd
-	// rather that not happen.
-	enc = append(enc, []byte("\n")...)
 
 	// Write the tasks.json file.
 	outFile := path.Join(b.root, TASKS_CFG_FILE)

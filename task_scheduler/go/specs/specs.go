@@ -1,6 +1,7 @@
 package specs
 
 import (
+	"bytes"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
@@ -63,6 +64,25 @@ func ParseTasksCfg(contents string) (*TasksCfg, error) {
 	return &rv, nil
 }
 
+// EncoderTasksCfg writes the TasksCfg to a byte slice.
+func EncodeTasksCfg(cfg *TasksCfg) ([]byte, error) {
+	// Encode the JSON config.
+	enc, err := json.MarshalIndent(cfg, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+	// The json package escapes HTML characters, which makes our output
+	// much less readable. Replace the escape characters with the real
+	// character.
+	enc = bytes.Replace(enc, []byte("\\u003c"), []byte("<"), -1)
+
+	// Add a newline to the end of the file. Most text editors add one, so
+	// adding one here enables manual editing of the file, even though we'd
+	// rather that not happen.
+	enc = append(enc, []byte("\n")...)
+	return enc, nil
+}
+
 // ReadTasksCfg reads the task cfg file from the given dir and returns it.
 func ReadTasksCfg(repoDir string) (*TasksCfg, error) {
 	contents, err := ioutil.ReadFile(path.Join(repoDir, TASKS_CFG_FILE))
@@ -70,6 +90,15 @@ func ReadTasksCfg(repoDir string) (*TasksCfg, error) {
 		return nil, fmt.Errorf("Failed to read tasks cfg: could not read file: %s", err)
 	}
 	return ParseTasksCfg(string(contents))
+}
+
+// WriteTasksCfg writes the task cfg to the given repo.
+func WriteTasksCfg(cfg *TasksCfg, repoDir string) error {
+	enc, err := EncodeTasksCfg(cfg)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(path.Join(repoDir, TASKS_CFG_FILE), enc, os.ModePerm)
 }
 
 // TasksCfg is a struct which describes all Swarming tasks for a repo at a
