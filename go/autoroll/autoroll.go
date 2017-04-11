@@ -406,16 +406,6 @@ func search(r *rietveld.Rietveld, limit int, fullHashFn func(string) (string, er
 	return rv, nil
 }
 
-// GetRecentRolls returns any DEPS rolls modified after the given Time, with a
-// limit of RECENT_ROLLS_LIMIT.
-func GetRecentRolls(r *rietveld.Rietveld, modifiedAfter time.Time, fullHashFn func(string) (string, error)) ([]*AutoRollIssue, error) {
-	issues, err := search(r, RECENT_ROLLS_LIMIT, fullHashFn, rietveld.SearchModifiedAfter(modifiedAfter))
-	if err != nil {
-		return nil, err
-	}
-	return issues, nil
-}
-
 // GetTryResults returns trybot results for the given roll.
 func GetTryResults(r *rietveld.Rietveld, roll *AutoRollIssue) ([]*TryResult, error) {
 	tries, err := r.GetTrybotResults(roll.Issue, roll.Patchsets[len(roll.Patchsets)-1])

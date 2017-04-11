@@ -92,10 +92,20 @@ func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranc
 	parentBase := strings.TrimSuffix(path.Base(parentRepo), ".git")
 	parentDir := path.Join(wd, parentBase)
 
-	user, err := getDepotToolsUser(depot_tools)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to determine depot tools user: %s", err)
+	var user string
+	var err error
+	if g == nil {
+		user, err = getDepotToolsUser(depot_tools)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to determine depot tools user: %s", err)
+		}
+	} else {
+		user, err = g.GetUserEmail()
+		if err != nil {
+			return nil, fmt.Errorf("Failed to determine Gerrit user: %s", err)
+		}
 	}
+	sklog.Infof("Repo Manager user: %s", user)
 
 	dr := &depsRepoManager{
 		commonRepoManager: &commonRepoManager{
@@ -273,10 +283,10 @@ func (dr *depsRepoManager) CreateNewRoll(strategy string, emails []string, cqExt
 		commits = commits[len(commits)-1:]
 	}
 
-	if _, err := exec.RunCwd(dr.parentDir, "git", "config", "user.name", autoroll.ROLL_AUTHOR); err != nil {
+	if _, err := exec.RunCwd(dr.parentDir, "git", "config", "user.name", dr.user); err != nil {
 		return 0, err
 	}
-	if _, err := exec.RunCwd(dr.parentDir, "git", "config", "user.email", autoroll.ROLL_AUTHOR); err != nil {
+	if _, err := exec.RunCwd(dr.parentDir, "git", "config", "user.email", dr.user); err != nil {
 		return 0, err
 	}
 
