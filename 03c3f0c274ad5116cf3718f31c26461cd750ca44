@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "47c8e338_75abdb79",
+        "filename": "prober/probers.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-04-11T14:56:08Z",
+      "side": 1,
+      "message": "Prober doesn\u0027t do auth, so this will only be testing the redirect to login, just FYI.",
+      "revId": "03c3f0c274ad5116cf3718f31c26461cd750ca44",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
