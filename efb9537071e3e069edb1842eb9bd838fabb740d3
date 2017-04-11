@@ -46,6 +46,30 @@
       "revId": "efb9537071e3e069edb1842eb9bd838fabb740d3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f8cba82c_3a033fd9",
+        "filename": "autoroll/sys/catapult-autorolld.service",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-11T18:57:06Z",
+      "side": 1,
+      "message": "Ack. Landing this as-is now, will ask agable@ about the group.",
+      "parentUuid": "388c0613_569e0865",
+      "range": {
+        "startLine": 16,
+        "startChar": 14,
+        "endLine": 16,
+        "endChar": 35
+      },
+      "revId": "efb9537071e3e069edb1842eb9bd838fabb740d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
