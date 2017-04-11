@@ -66,6 +66,7 @@
    },
    "autoroll": {
      "urls": [
+       "http://android-master-autoroll:8000",
        "https://autoroll.skia.org",
        "https://catapult-roll.skia.org",
        "https://nacl-roll.skia.org",
@@ -78,6 +79,7 @@
    },
    "autoroll_json": {
      "urls": [
+       "https://android-master-roll.skia.org/json/status",
        "https://autoroll.skia.org/json/status",
        "https://catapult-roll.skia.org/json/status",
        "https://nacl-roll.skia.org/json/status",
