@@ -157,15 +157,26 @@ func FromGerritChangeInfo(i *gerrit.ChangeInfo, fullHashFn func(string) (string,
 	cq := false
 	dryRun := false
 	if rollIntoAndroid {
-		if _, ok := i.Labels[gerrit.AUTOSUBMIT_LABEL]; ok {
-			for _, lb := range i.Labels[gerrit.AUTOSUBMIT_LABEL].All {
-				if lb.Value == gerrit.AUTOSUBMIT_LABEL_NONE {
-					cq = true
-					dryRun = true
-				} else if lb.Value == gerrit.AUTOSUBMIT_LABEL_SUBMIT {
-					cq = true
-					dryRun = false
+		rejected := false
+		if _, ok := i.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL]; ok {
+			for _, lb := range i.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL].All {
+				if lb.Value == gerrit.PRESUBMIT_VERIFIED_LABEL_REJECTED {
+					rejected = true
 					break
+				}
+			}
+		}
+		if !rejected {
+			if _, ok := i.Labels[gerrit.AUTOSUBMIT_LABEL]; ok {
+				for _, lb := range i.Labels[gerrit.AUTOSUBMIT_LABEL].All {
+					if lb.Value == gerrit.AUTOSUBMIT_LABEL_NONE {
+						cq = true
+						dryRun = true
+					} else if lb.Value == gerrit.AUTOSUBMIT_LABEL_SUBMIT {
+						cq = true
+						dryRun = false
+						break
+					}
 				}
 			}
 		}
