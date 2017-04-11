@@ -20,7 +20,6 @@ import (
 
 const (
 	AUTOROLL_STATUS_URL = "https://autoroll.skia.org/json/status"
-	ROLL_AUTHOR         = "skia-deps-roller@chromium.org"
 	POLLER_ROLLS_LIMIT  = 10
 	RECENT_ROLLS_LIMIT  = 200
 	RIETVELD_URL        = "https://codereview.chromium.org"
@@ -395,37 +394,6 @@ type tryResultSlice []*TryResult
 func (s tryResultSlice) Len() int           { return len(s) }
 func (s tryResultSlice) Less(i, j int) bool { return s[i].Builder < s[j].Builder }
 func (s tryResultSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
-
-// search queries Rietveld for issues matching the known DEPS roll format.
-func search(r *rietveld.Rietveld, limit int, fullHashFn func(string) (string, error), terms ...*rietveld.SearchTerm) ([]*AutoRollIssue, error) {
-	terms = append(terms, rietveld.SearchOwner(ROLL_AUTHOR))
-	res, err := r.Search(limit, terms...)
-	if err != nil {
-		return nil, err
-	}
-	rv := make([]*AutoRollIssue, 0, len(res))
-	for _, i := range res {
-		if ROLL_REV_REGEX.FindString(i.Subject) != "" {
-			ari, err := FromRietveldIssue(i, fullHashFn)
-			if err != nil {
-				return nil, err
-			}
-			rv = append(rv, ari)
-		}
-	}
-	sort.Sort(autoRollIssueSlice(rv))
-	return rv, nil
-}
-
-// GetRecentRolls returns any DEPS rolls modified after the given Time, with a
-// limit of RECENT_ROLLS_LIMIT.
-func GetRecentRolls(r *rietveld.Rietveld, modifiedAfter time.Time, fullHashFn func(string) (string, error)) ([]*AutoRollIssue, error) {
-	issues, err := search(r, RECENT_ROLLS_LIMIT, fullHashFn, rietveld.SearchModifiedAfter(modifiedAfter))
-	if err != nil {
-		return nil, err
-	}
-	return issues, nil
-}
 
 // GetTryResults returns trybot results for the given roll.
 func GetTryResults(r *rietveld.Rietveld, roll *AutoRollIssue) ([]*TryResult, error) {

@@ -119,6 +119,7 @@ type Revision struct {
 type GerritInterface interface {
 	TurnOnAuthenticatedGets()
 	Url(int64) string
+	GetUserEmail() (string, error)
 	GetRepoUrl() string
 	ExtractIssue(string) (string, bool)
 	GetIssueProperties(int64) (*ChangeInfo, error)
@@ -222,6 +223,24 @@ func (g *Gerrit) Url(issueID int64) string {
 		return g.url
 	}
 	return fmt.Sprintf("%s/c/%d", g.url, issueID)
+}
+
+type AccountDetails struct {
+	AccountId int64  `json:"_account_id"`
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	UserName  string `json:"username"`
+}
+
+// GetUserEmail returns the Gerrit user's email address.
+func (g *Gerrit) GetUserEmail() (string, error) {
+	g.TurnOnAuthenticatedGets()
+	url := "/accounts/self/detail"
+	var account AccountDetails
+	if err := g.get(url, &account); err != nil {
+		return "", fmt.Errorf("Failed to retrieve user: %s", err)
+	}
+	return account.Email, nil
 }
 
 // GetRepoUrl returns the url of the Googlesource repo.
@@ -415,13 +434,13 @@ func (g *Gerrit) get(suburl string, rv interface{}) error {
 
 	resp, err := g.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("Failed to GET %s: %s", g.url+suburl, err)
+		return fmt.Errorf("Failed to GET %s: %s", getURL, err)
 	}
 	if resp.StatusCode == 404 {
-		return fmt.Errorf("Issue not found: %s", g.url+suburl)
+		return fmt.Errorf("Issue not found: %s", getURL)
 	}
 	if resp.StatusCode >= 400 {
-		return fmt.Errorf("Error retrieving %s: %d %s", g.url+suburl, resp.StatusCode, resp.Status)
+		return fmt.Errorf("Error retrieving %s: %d %s", getURL, resp.StatusCode, resp.Status)
 	}
 	defer util.Close(resp.Body)
 	body, err := ioutil.ReadAll(resp.Body)

@@ -17,6 +17,9 @@ func (g *MockedGerrit) TurnOnAuthenticatedGets() {
 func (g *MockedGerrit) Url(issueID int64) string {
 	return ""
 }
+func (g *MockedGerrit) GetUserEmail() (string, error) {
+	return "", nil
+}
 func (g *MockedGerrit) GetRepoUrl() string {
 	return ""
 }

@@ -193,7 +193,7 @@ TBR=some-sheriff
 		Messages:          []rietveld.IssueMessage{},
 		Modified:          now,
 		ModifiedString:    now.Format(rietveld.TIME_FORMAT),
-		Owner:             autoroll.ROLL_AUTHOR,
+		Owner:             "fake-deps-roller@chromium.org",
 		Project:           "skia",
 		Reviewers:         emails,
 		Subject:           subject,
