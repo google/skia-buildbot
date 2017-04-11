@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fbe46d4b_939b6195",
+        "filename": "autoroll/sys/catapult-autorolld.service",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-11T18:07:02Z",
+      "side": 1,
+      "message": "We can\u0027t TBR catapult-sheriff@chromium.org any more, since Gerrit doesn\u0027t recognize it as a user.  Ravi, can you verify that we can\u0027t set a group as a reviewer?\n\nAnnie, if we had to pick one person to be perma-sheriff, are you the right person?",
+      "range": {
+        "startLine": 16,
+        "startChar": 14,
+        "endLine": 16,
+        "endChar": 35
+      },
+      "revId": "efb9537071e3e069edb1842eb9bd838fabb740d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
