@@ -53,11 +53,12 @@ const (
 	COMMITQUEUE_LABEL_SUBMIT  = 2
 
 	// Android specific labels.
-	AUTOSUBMIT_LABEL         = "Autosubmit"
-	AUTOSUBMIT_LABEL_NONE    = 0
-	AUTOSUBMIT_LABEL_SUBMIT  = 1
-	PRESUBMIT_READY_LABEL    = "Presubmit-Ready"
-	PRESUBMIT_VERIFIED_LABEL = "Presubmit-Verified"
+	AUTOSUBMIT_LABEL                  = "Autosubmit"
+	AUTOSUBMIT_LABEL_NONE             = 0
+	AUTOSUBMIT_LABEL_SUBMIT           = 1
+	PRESUBMIT_READY_LABEL             = "Presubmit-Ready"
+	PRESUBMIT_VERIFIED_LABEL          = "Presubmit-Verified"
+	PRESUBMIT_VERIFIED_LABEL_REJECTED = -1
 )
 
 // ChangeInfo contains information about a Gerrit issue.
