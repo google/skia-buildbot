@@ -22,6 +22,30 @@
       "revId": "efb9537071e3e069edb1842eb9bd838fabb740d3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "388c0613_569e0865",
+        "filename": "autoroll/sys/catapult-autorolld.service",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-11T18:54:11Z",
+      "side": 1,
+      "message": "Mailing lists can be registered as users. Eg: https://b.corp.google.com/issues/29122470\nagable@ may have the power to do that.",
+      "parentUuid": "fbe46d4b_939b6195",
+      "range": {
+        "startLine": 16,
+        "startChar": 14,
+        "endLine": 16,
+        "endChar": 35
+      },
+      "revId": "efb9537071e3e069edb1842eb9bd838fabb740d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
