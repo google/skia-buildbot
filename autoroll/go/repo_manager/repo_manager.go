@@ -1,6 +1,8 @@
 package repo_manager
 
 import (
+	"fmt"
+	"regexp"
 	"sync"
 
 	"go.skia.org/infra/go/gerrit"
@@ -11,6 +13,10 @@ import (
 const (
 	ROLL_STRATEGY_BATCH  = "batch"
 	ROLL_STRATEGY_SINGLE = "single"
+)
+
+var (
+	RollSubjectRegexTemplate = "'Roll %s /d+../d+ (/d+ commits)'"
 )
 
 // RepoManager is the interface used by different Autoroller implementations
@@ -75,4 +81,9 @@ func (r *commonRepoManager) ChildHead() string {
 
 func (r *commonRepoManager) User() string {
 	return r.user
+}
+
+func (r *commonRepoManager) IsRollSubject(line string) (bool, error) {
+	rollSubjectRegex := fmt.Sprintf(RollSubjectRegexTemplate, r.childPath)
+	return regexp.MatchString(rollSubjectRegex, line)
 }
