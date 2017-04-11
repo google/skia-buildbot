@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a3f5d008_c6baf46a",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-11T17:24:44Z",
+      "side": 1,
+      "message": "I recommend making this a file-level var so that any panic occurs at startup.",
+      "range": {
+        "startLine": 397,
+        "startChar": 9,
+        "endLine": 397,
+        "endChar": 44
+      },
+      "revId": "e670a5b8c79276e77fe250ca9dcdec98aa6eec9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
