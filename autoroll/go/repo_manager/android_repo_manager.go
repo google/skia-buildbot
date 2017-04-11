@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/user"
 	"path"
+	"regexp"
 	"strings"
 	"time"
 
@@ -32,6 +33,8 @@ var (
 	IGNORE_MERGE_CONFLICT_FILES = []string{"include/config/SkUserConfig.h"}
 
 	FILES_GENERATED_BY_GN_TO_GP = []string{"include/config/SkUserConfig.h", "Android.bp"}
+
+	AUTHOR_EMAIL_RE = regexp.MustCompile(".* \\((.*)\\)")
 )
 
 // androidRepoManager is a struct used by Android AutoRoller for managing checkouts.
@@ -174,23 +177,27 @@ func (r *androidRepoManager) getChildRepoHead() (string, error) {
 
 // getLastRollRev returns the commit hash of the last-completed DEPS roll.
 func (r *androidRepoManager) getLastRollRev() (string, error) {
-	output, err := exec.RunCwd(r.childRepo.Dir(), "git", "log", "--pretty=format:%ae %H")
+	output, err := exec.RunCwd(r.childRepo.Dir(), "git", "log", "--pretty=format:%H %s")
 	if err != nil {
 		return "", err
 	}
 	commitLines := strings.Split(output, "\n")
 	indexWithMergeCommit := 0
 	for i, commitLine := range commitLines {
-		tokens := strings.Split(commitLine, " ")
-		if tokens[0] == SERVICE_ACCOUNT {
+		tokens := strings.SplitN(commitLine, " ", 2)
+		rollSubject, err := r.IsRollSubject(tokens[1])
+		if err != nil {
+			return "", err
+		}
+		if rollSubject {
 			indexWithMergeCommit = i
 			break
 		}
 	}
 	// The commit immediately before the merge commit will have a commit hash
 	// that corresponds to the target repo.
-	tokens := strings.Split(commitLines[indexWithMergeCommit+1], " ")
-	return tokens[1], nil
+	tokens := strings.SplitN(commitLines[indexWithMergeCommit+1], " ", 2)
+	return tokens[0], nil
 }
 
 // FullChildHash returns the full hash of the given short hash or ref in the
@@ -379,6 +386,23 @@ Test: Presubmit checks will test this change.
 	// Upload the CL to Gerrit.
 	// TODO(rmistry): Remove after things reliably work.
 	emails = append(emails, "rmistry@google.com")
+	// Add all authors of merged changes to the email list if the parent branch
+	// is not master.
+	if r.parentBranch != "master" {
+		emailMap := map[string]bool{}
+		for _, c := range commits {
+			d, err := cr.Details(c, false)
+			if err != nil {
+				return 0, err
+			}
+			// Extract out the email.
+			matches := AUTHOR_EMAIL_RE.FindStringSubmatch(d.Author)
+			emailMap[matches[1]] = true
+		}
+		for e := range emailMap {
+			emails = append(emails, e)
+		}
+	}
 	emailStr := strings.Join(emails, ",")
 
 	uploadCommand := &exec.Command{
@@ -417,7 +441,15 @@ Test: Presubmit checks will test this change.
 	}
 	// Set labels.
 	if err := r.setChangeLabels(change, dryRun); err != nil {
-		return 0, err
+		// Only throw exception here if parentBranch is master. This is
+		// because other branches will not have permissions setup for the
+		// bot to run CR+2.
+		if r.parentBranch != "master" {
+			sklog.Warningf("Could not set labels on %d: %s", change.Issue, err)
+			sklog.Warningf("Not throwing error because %s branch is not master", r.parentBranch)
+		} else {
+			return 0, err
+		}
 	}
 
 	return change.Issue, nil

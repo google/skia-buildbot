@@ -1,6 +1,8 @@
 package repo_manager
 
 import (
+	"fmt"
+	"regexp"
 	"sync"
 
 	"go.skia.org/infra/go/gerrit"
@@ -75,4 +77,9 @@ func (r *commonRepoManager) ChildHead() string {
 
 func (r *commonRepoManager) User() string {
 	return r.user
+}
+
+func (r *commonRepoManager) IsRollSubject(line string) (bool, error) {
+	rollSubjectRegex := fmt.Sprintf("'Roll %s /d+../d+ (/d+ commits)'", r.childPath)
+	return regexp.MatchString(rollSubjectRegex, line)
 }
