@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -8,7 +9,6 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/fuzzer/go/frontend"
 	"go.skia.org/infra/go/auth"
-	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 )
 

@@ -1,6 +1,7 @@
 package common
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,7 +11,6 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/go/buildskia"
-	"golang.org/x/net/context"
 	"google.golang.org/api/iterator"
 )
 
