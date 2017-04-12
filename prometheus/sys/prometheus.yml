@@ -14,6 +14,7 @@ scrape_configs:
   - job_name: 'autoroll'
     static_configs:
       - targets: ['android-master-autoroll:20000']
+      - targets: ['android-o-autoroll:20000']
       - targets: ['skia-autoroll:20000']
       - targets: ['catapult-autoroll:20000']
       - targets: ['nacl-autoroll:20000']
@@ -136,6 +137,7 @@ scrape_configs:
   - job_name: 'pulld'
     static_configs:
       - targets: ['android-master-autoroll:11000']
+      - targets: ['android-o-autoroll:11000']
       - targets: ['catapult-autoroll:11000']
       - targets: ['nacl-autoroll:11000']
       - targets: ['pdfium-autoroll:11000']
