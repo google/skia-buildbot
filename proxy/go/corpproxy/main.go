@@ -35,9 +35,9 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
 		return
 	}
-	if !login.IsAdmin(r) {
-		sklog.Info("User is not an admin.")
-		http.NotFound(w, r)
+	if !login.IsGoogler(r) {
+		sklog.Info("User is not a Googler.")
+		http.Error(w, "Only Google accounts are allowed.", 500)
 		return
 	}
 	parts := hostReg.FindAllStringSubmatch(r.Host, -1)
