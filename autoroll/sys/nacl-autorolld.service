@@ -14,7 +14,8 @@ ExecStart=/usr/local/bin/autoroll \
     --resources_dir=/usr/local/share/autoroll/ \
     --depot_tools=/home/default/depot_tools \
     --sheriff=mseaborn@chromium.org \
-    --cqExtraTrybots=master.tryserver.chromium.linux:linux_chromium_dbg_32_ng,linux_nacl_sdk_build
+    --cqExtraTrybots=master.tryserver.chromium.linux:linux_chromium_dbg_32_ng,linux_nacl_sdk_build \
+    --gerrit
 Restart=always
 User=default
 Group=default
