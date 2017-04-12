@@ -2,11 +2,11 @@ package buildbot
 
 import (
 	"bytes"
+	"context"
 	"encoding/gob"
 	"time"
 
 	"go.skia.org/infra/go/buildbot/rpc"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
