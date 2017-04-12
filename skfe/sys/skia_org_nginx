@@ -204,32 +204,6 @@ server {
     return 301 https://gold.skia.org$request_uri;
 }
 
-#####   gold-staging.skia.org   #####################
-server {
-    listen      443;
-    server_name gold-staging.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/gold-stage.access.log;
-    error_log /var/log/nginx/gold-stage.error.log error;
-
-    # Enforce browser XSS protection
-    add_header X-XSS-Protection "1; mode=block";
-    # Disable content sniffing
-    add_header X-Content-Type-Options nosniff;
-
-    location / {
-        proxy_pass http://skia-gold-stage:8001;
-        proxy_set_header Host $host;
-    }
-}
-server {
-    listen      80;
-    server_name gold-staging.skia.org;
-    return 301 https://gold-staging.skia.org$request_uri;
-}
-
 #####   pdfium-gold.skia.org   #####################
 server {
     listen      443;

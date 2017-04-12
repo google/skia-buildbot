@@ -74,7 +74,6 @@ scrape_configs:
     static_configs:
       - targets: ['skia-gold-pdfium:20001']
       - targets: ['skia-gold-prod:20001']
-      - targets: ['skia-gold-stage:20001']
 
   - job_name: 'ingestion'
     static_configs:
@@ -156,7 +155,6 @@ scrape_configs:
       - targets: ['skia-fuzzer-fe:11000']
       - targets: ['skia-gold-pdfium:11000']
       - targets: ['skia-gold-prod:11000']
-      - targets: ['skia-gold-stage:11000']
       - targets: ['skia-imageinfo:11000']
       - targets: ['skia-internal:11000']
       - targets: ['skia-monitoring:11000']
