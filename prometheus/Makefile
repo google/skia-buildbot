@@ -12,7 +12,10 @@ prom:
 testgo:
 	go test -v ./...
 
-validate: build
+promtool:
+	go get github.com/prometheus/prometheus/cmd/promtool
+
+validate: build promtool
 	absent
 	promtool check-config sys/prometheus.yml
 	promtool check-config sys/prometheus-skolo.yml
