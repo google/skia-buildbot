@@ -1,6 +1,7 @@
 package isolate
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -17,7 +18,6 @@ import (
 	"go.skia.org/infra/go/util"
 
 	"cloud.google.com/go/storage"
-	"golang.org/x/net/context"
 )
 
 const (

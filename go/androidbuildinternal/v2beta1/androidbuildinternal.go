@@ -18,7 +18,7 @@ import (
 	"strconv"
 	"strings"
 
-	context "golang.org/x/net/context"
+	context "context"
 	ctxhttp "golang.org/x/net/context/ctxhttp"
 	gensupport "google.golang.org/api/gensupport"
 	googleapi "google.golang.org/api/googleapi"

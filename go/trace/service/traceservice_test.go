@@ -1,6 +1,7 @@
 package traceservice
 
 import (
+	"context"
 	"encoding/binary"
 	"fmt"
 	"math"
@@ -12,7 +13,6 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/trace/db/perftypes"
 	"go.skia.org/infra/go/util"
-	"golang.org/x/net/context"
 )
 
 const (

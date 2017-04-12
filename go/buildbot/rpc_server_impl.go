@@ -2,6 +2,7 @@ package buildbot
 
 import (
 	"bytes"
+	"context"
 	"encoding/gob"
 	"fmt"
 	"net"
@@ -10,7 +11,6 @@ import (
 
 	"go.skia.org/infra/go/buildbot/rpc"
 	"go.skia.org/infra/go/sklog"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 

@@ -5,6 +5,7 @@ package traceservice
 
 import (
 	"bytes"
+	"context"
 	"crypto/md5"
 	"encoding/binary"
 	"fmt"
@@ -16,7 +17,6 @@ import (
 	"github.com/golang/groupcache/lru"
 	"github.com/golang/protobuf/proto"
 	"go.skia.org/infra/go/metrics2"
-	"golang.org/x/net/context"
 )
 
 const (
