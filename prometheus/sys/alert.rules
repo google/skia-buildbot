@@ -346,7 +346,7 @@ ALERT AutoRollLatency
   }
 
 ALERT AutoRollErrorRate
-  IF rate(num_log_lines{level="ERROR",log_source="autoroll"}[10m]) > 5
+  IF rate(num_log_lines{level="ERROR",log_source="autoroll"}[10m]) > 0.001
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     description = "The error rate for autoroll on {{ $labels.instance }} is too high. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate."
