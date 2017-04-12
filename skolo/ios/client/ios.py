@@ -25,10 +25,11 @@ IGNORE_FIELDS = set([
   'SoftwareBehavior'
 ])
 
+
 def ios_get_device_ids():
   """Returns the ids of all attached devices.
-     This will also work when the attached
-     device is not fully booted."""
+
+     This will also work when the attached device is not fully booted."""
   ret = []
   # Primary purpose of this, is to catch when the tools are not installed.
   try:
@@ -36,13 +37,15 @@ def ios_get_device_ids():
     for line in output.splitlines():
       if line.strip():
         ret.append(line.strip())
-  except:
+  except (IOError, OSError, subprocess.CalledProcessError):
     pass
   return ret
 
+
 def ios_get_devices():
-  """ Returns instances of IOSDevice for each attached device."""
+  """Returns instances of IOSDevice for each attached device."""
   return [IOSDevice(x) for x in ios_get_device_ids()]
+
 
 class IOSDevice(object):
   def __init__(self, dev_id):
@@ -97,6 +100,7 @@ class IOSDevice(object):
         return os.path.join(path, devImage), os.path.join(path, devImageSig)
     raise ValueError('Unable to find dev images.')
 
+
 # Utility functions.
 def _get_kv_pairs(output):
   """Extract key/value pairs from output."""
@@ -108,6 +112,7 @@ def _get_kv_pairs(output):
         ret[parts[0]] = parts[1]
   return ret
 
+
 def _run_ret_value(cmd):
   """ Run the given command and return the exit status"""
   try:
@@ -116,10 +121,16 @@ def _run_ret_value(cmd):
   except subprocess.CalledProcessError as ex:
     return ex.returncode
 
+
 def _run_cmd(cmd):
-  """Run the given command and return the output. If an error
-    occurs the command will be retried. If the problem persists
-    an instance of CalledProcessError is thrown. """
+  """Run the given command and return the output.
+
+  Returns:
+    Output from the command as a string.
+
+  Raises:
+    subprocess.CalledProcessError: If the global number of retries is
+    exceeded."""
   backoff = INITIAL_BACKOFF
   retry = 0
   while True:
@@ -133,3 +144,4 @@ def _run_cmd(cmd):
         raise
       time.sleep(backoff)
       backoff *= 2
+
