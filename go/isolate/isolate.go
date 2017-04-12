@@ -12,12 +12,13 @@ import (
 	"strconv"
 	"strings"
 
+	"context"
+
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/util"
 
 	"cloud.google.com/go/storage"
-	"golang.org/x/net/context"
 )
 
 const (

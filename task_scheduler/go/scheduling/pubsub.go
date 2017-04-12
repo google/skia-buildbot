@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gorilla/mux"
+	"context"
 
-	"golang.org/x/net/context"
+	"github.com/gorilla/mux"
 
 	"cloud.google.com/go/pubsub"
 	"go.skia.org/infra/go/common"
