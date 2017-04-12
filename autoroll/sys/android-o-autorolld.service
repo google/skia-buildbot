@@ -1,0 +1,27 @@
+[Unit]
+Description=Skia into Android O-Release AutoRoll Bot
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/autoroll \
+    --use_metadata=true \
+    --host=android-o-roll.skia.org \
+    --logtostderr \
+    --workdir=/mnt/pd0/autoroll_workdir \
+    --childName="Skia into Android O-Release" \
+    --childPath=external/skia \
+    --resources_dir=/usr/local/share/autoroll/ \
+    --sheriff=https://skia-tree-status.appspot.com/current-robocop \
+    --gerrit \
+    --roll_into_android=true \
+    --parent_repo=android \
+    --child_branch=android/o-release \
+    --parent_branch=oc-dev
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
