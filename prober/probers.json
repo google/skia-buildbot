@@ -60,7 +60,7 @@
    "skiamonitor": {
      "urls": ["https://mon.skia.org"],
      "method": "GET",
-     "expected": [302],
+     "expected": [200],
      "body": "",
      "mimetype": ""
    },
@@ -96,7 +96,7 @@
    "skiastatus": {
      "urls": ["https://status.skia.org"],
      "method": "GET",
-     "expected": [302],
+     "expected": [200],
      "body": "",
      "mimetype": ""
    },
@@ -118,14 +118,14 @@
    "skfe-1": {
      "urls": ["http://skia-skfe-1"],
      "method": "GET",
-     "expected": [301],
+     "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skfe-2": {
      "urls": ["http://skia-skfe-2"],
      "method": "GET",
-     "expected": [301],
+     "expected": [200],
      "body": "",
      "mimetype": ""
    },
@@ -217,7 +217,7 @@
    "android_ingest": {
      "urls": ["https://android-ingest.skia.org"],
      "method": "GET",
-     "expected": [307],
+     "expected": [200],
      "body": "",
      "mimetype": "",
      "responsetest": ""
@@ -225,7 +225,7 @@
    "prom": {
      "urls": ["https://prom.skia.org/metrics"],
      "method": "GET",
-     "expected": [303],
+     "expected": [200],
      "body": "",
      "mimetype": "",
      "responsetest": ""
@@ -233,7 +233,7 @@
    "promstatus": {
      "urls": ["https://promalerts.skia.org/metrics"],
      "method": "GET",
-     "expected": [303],
+     "expected": [200],
      "body": "",
      "mimetype": "",
      "responsetest": ""
