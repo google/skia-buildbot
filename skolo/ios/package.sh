@@ -15,6 +15,7 @@ ASSET_DIR="assets"
 # Make sure we restart udev rules and bypass the upload.
 UDEV_LIB_RELOAD=True
 BYPASS_UPLOAD=True
+DEPENDS="libzip2"
 
 # Fix the paths in the config files.
 sed -i "s+${IN_DIR}/sbin+/usr/local/sbin+g" ${IN_DIR}/systemd/usbmuxd.service

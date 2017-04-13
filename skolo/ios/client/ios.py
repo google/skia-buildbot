@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 import sys
 import time
@@ -72,10 +73,13 @@ class IOSDevice(object):
 
     # Check if a developer images has been mounted already.
     kv = _get_kv_pairs(_run_cmd('ideviceimagemounter -u %s -l' % self._id))
-    if kv['ImagePresent'] != 'true':
+
+    # Check if there is an image present.
+    if not ((kv.get('ImagePresent', '') == 'true') or
+            kv.get('ImageSignature', [])):
       # Mount the developer image.
       img, imgSig = self._get_dev_image()
-      cmd = 'ideviceimagemounter -u %s %s %s' % (self._id, img, imgSig)
+      cmd = ['ideviceimagemounter', '-u', self._id, img, imgSig]
       kv = _get_kv_pairs(_run_cmd(cmd))
       assert(kv['Status'] == 'Complete')
 
@@ -83,6 +87,7 @@ class IOSDevice(object):
     _run_cmd('ideviceprovision -u %s remove-all' % self._id)
     cmd = 'ideviceprovision -u %s install %s' % (self._id, PROVISIONING_PROF)
     _run_cmd(cmd)
+
 
   def _get_dev_image(self):
     # Get the version of the device
@@ -105,11 +110,34 @@ class IOSDevice(object):
 def _get_kv_pairs(output):
   """Extract key/value pairs from output."""
   ret = {}
+  nested = None
+  # Note: This assumes that there is at most one level of nesting
+  # arrays or dictionaries.
   for line in output.splitlines():
-    if not line.startswith(' '):
-      parts = [x.strip() for x in line.strip().split(':', 1)]
-      if (len(parts) == 2) and parts[0] not in IGNORE_FIELDS and parts[1]:
-        ret[parts[0]] = parts[1]
+    if line.strip():
+      split_line = line.split(":", 1)
+      if len(split_line) < 2:
+        continue
+
+      k,v = [x.strip() for x in split_line]
+      if line.startswith(' '):
+        if type(nested) == dict:
+          nested[k] = v
+        else:
+          nested.append(v)
+      else:
+        # If the value is an array it has this format: key_name[x]
+        # where x is an integer indicating the number of elements. 
+        m = re.match(r'^(.*)\[[0-9]*\]$', k)
+        if m:
+          k = m.group(1)
+          nested = []
+          v = nested
+        # If 'v' is empty then we expect a hash map. 
+        elif v == '':
+          nested = {}
+          v = nested
+        ret[k] = v
   return ret
 
 
@@ -135,7 +163,7 @@ def _run_cmd(cmd):
   retry = 0
   while True:
     try:
-      args = cmd.strip().split()
+      args = cmd if type(cmd) is list else cmd.strip().split()
       output = subprocess.check_output(args, stderr=sys.stderr)
       return output
     except subprocess.CalledProcessError:
