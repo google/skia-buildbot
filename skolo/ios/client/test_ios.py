@@ -27,6 +27,33 @@ class IOSDeviceCase(unittest.TestCase):
     # the device is fully rebooted.
     time.sleep(30)
 
+  def test_get_kv_pairs(self):
+    val = """ImageSignature[1]:
+ 0: GD1suZo7maW9nMiDMb+wGAHbug59mPHeMJn/e1BWfjjCDnATA9jWCFg5goyl961sxwhQQttJ8Qj6OuXATQwurfPjQH/zqscAiRzDsk/UQ22/2gtUgVfUGuILtyLeIBvs1u4oF0HJFxb3keV2dqYhK6ATSufLrzZe97k/WSBZPuA="""
+    out = ios._get_kv_pairs(val)
+    self.assertEqual(1, len(out))
+    self.assert_(type(out["ImageSignature"]) is list)
+    self.assert_(1, len(out["ImageSignature"]))
+
+    val = """ActivationState: Activated
+ActivationStateAcknowledged: true
+NonVolatileRAM:
+ auto-boot: dHJ1ZQ==
+ backlight-level: MTYwMQ==
+ boot-args:
+SupportedDeviceFamilies[2]:
+ 0: 1
+ 1: 2
+TelephonyCapability: false"""
+    out = ios._get_kv_pairs(val)
+    self.assertEqual(5, len(out))
+    self.assertEqual(out['NonVolatileRAM'], {
+                     'auto-boot': 'dHJ1ZQ==',
+                     'backlight-level': 'MTYwMQ==',
+                     'boot-args': '',
+                     })
+    self.assertEqual(out['SupportedDeviceFamilies'], ['1','2'])
+
   def _get_device(self):
     device = ios.ios_get_devices()
     self.assertEqual(1, len(device))
@@ -36,5 +63,5 @@ class IOSDeviceCase(unittest.TestCase):
 def main():
   unittest.main()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   main()
