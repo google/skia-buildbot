@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dc572676_2ea8a482",
+        "filename": "skolo/ios/client/ios.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-04-13T18:44:36Z",
+      "side": 1,
+      "message": "What is this matching against?  Can you provide an example string you are parsing/matching?",
+      "range": {
+        "startLine": 129,
+        "startChar": 7,
+        "endLine": 129,
+        "endChar": 44
+      },
+      "revId": "962b2b88e139549c74cef78899bf748b67a0bf64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
