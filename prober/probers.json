@@ -60,7 +60,7 @@
    "skiamonitor": {
      "urls": ["https://mon.skia.org"],
      "method": "GET",
-     "expected": [200],
+     "expected": [302],
      "body": "",
      "mimetype": ""
    },
@@ -96,7 +96,7 @@
    "skiastatus": {
      "urls": ["https://status.skia.org"],
      "method": "GET",
-     "expected": [200],
+     "expected": [302],
      "body": "",
      "mimetype": ""
    },
@@ -118,14 +118,14 @@
    "skfe-1": {
      "urls": ["http://skia-skfe-1"],
      "method": "GET",
-     "expected": [200],
+     "expected": [301],
      "body": "",
      "mimetype": ""
    },
    "skfe-2": {
      "urls": ["http://skia-skfe-2"],
      "method": "GET",
-     "expected": [200],
+     "expected": [301],
      "body": "",
      "mimetype": ""
    },
@@ -190,10 +190,10 @@
        "https://ct.skia.org/_/get_capture_skp_tasks?size=1&successful=true",
        "https://ct.skia.org/_/get_chromium_build_tasks?size=1&successful=true"
      ],
-     "method": "POST",
+     "method": "GET",
      "expected": [307],
      "body": "",
-     "mimetype": "application/json"
+     "mimetype": ""
    },
    "task_scheduler": {
      "urls": ["https://task-scheduler.skia.org"],
@@ -217,7 +217,7 @@
    "android_ingest": {
      "urls": ["https://android-ingest.skia.org"],
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": "",
      "responsetest": ""
@@ -225,15 +225,15 @@
    "prom": {
      "urls": ["https://prom.skia.org/metrics"],
      "method": "GET",
-     "expected": [200],
+     "expected": [303],
      "body": "",
      "mimetype": "",
      "responsetest": ""
    },
    "promstatus": {
-     "urls": ["https://promalerts.skia.org/metrics"],
+     "urls": ["https://promalerts.skia.org/"],
      "method": "GET",
-     "expected": [200],
+     "expected": [303],
      "body": "",
      "mimetype": "",
      "responsetest": ""
