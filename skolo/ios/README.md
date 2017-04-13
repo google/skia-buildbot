@@ -24,3 +24,9 @@ should work on x86 desktops as well as Raspberry Pi's.
 
 clean.sh
 Removes all files created by build.sh.
+
+Deployment Notes:
+=================
+To make the USB connection to the iOS device more stable
+it is recommended to remove the 'libmtp9' and 'libmtp-common'
+packages and their dependencies.
