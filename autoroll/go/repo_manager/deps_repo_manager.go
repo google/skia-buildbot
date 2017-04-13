@@ -61,23 +61,6 @@ func getEnv(depotTools string) []string {
 	}
 }
 
-// getDepotToolsUser returns the authorized depot tools user.
-func getDepotToolsUser(depotTools string) (string, error) {
-	output, err := exec.RunCommand(&exec.Command{
-		Env:  getEnv(depotTools),
-		Name: path.Join(depotTools, "depot-tools-auth"),
-		Args: []string{"info", autoroll.RIETVELD_URL},
-	})
-	if err != nil {
-		return "", err
-	}
-	m := DEPOT_TOOLS_AUTH_USER_REGEX.FindStringSubmatch(output)
-	if len(m) != 2 {
-		return "", fmt.Errorf("Unable to parse the output of depot-tools-auth.")
-	}
-	return m[1], nil
-}
-
 // newDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
 func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, frequency time.Duration, depot_tools string, g *gerrit.Gerrit) (RepoManager, error) {
@@ -92,18 +75,9 @@ func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranc
 	parentBase := strings.TrimSuffix(path.Base(parentRepo), ".git")
 	parentDir := path.Join(wd, parentBase)
 
-	var user string
-	var err error
-	if g == nil {
-		user, err = getDepotToolsUser(depot_tools)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to determine depot tools user: %s", err)
-		}
-	} else {
-		user, err = g.GetUserEmail()
-		if err != nil {
-			return nil, fmt.Errorf("Failed to determine Gerrit user: %s", err)
-		}
+	user, err := g.GetUserEmail()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to determine Gerrit user: %s", err)
 	}
 	sklog.Infof("Repo Manager user: %s", user)
 
@@ -252,7 +226,7 @@ func (dr *depsRepoManager) getLastRollRev() (string, error) {
 
 // CreateNewRoll creates and uploads a new DEPS roll to the given commit.
 // Returns the issue number of the uploaded roll.
-func (dr *depsRepoManager) CreateNewRoll(strategy string, emails []string, cqExtraTrybots string, dryRun, gerrit bool) (int64, error) {
+func (dr *depsRepoManager) CreateNewRoll(strategy string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	dr.repoMtx.Lock()
 	defer dr.repoMtx.Unlock()
 
@@ -344,9 +318,7 @@ http://www.chromium.org/developers/tree-sheriffs/sheriff-details-chromium#TOC-Fa
 	} else {
 		uploadCmd.Args = append(uploadCmd.Args, "--use-commit-queue")
 	}
-	if gerrit {
-		uploadCmd.Args = append(uploadCmd.Args, "--gerrit")
-	}
+	uploadCmd.Args = append(uploadCmd.Args, "--gerrit")
 	tbr := "\nTBR="
 	if emails != nil && len(emails) > 0 {
 		emailStr := strings.Join(emails, ",")

@@ -14,7 +14,6 @@ ExecStart=/usr/local/bin/autoroll \
     --resources_dir=/usr/local/share/autoroll/ \
     --depot_tools=/home/default/depot_tools \
     --sheriff=borenet@google.com \
-    --gerrit \
     --strategy=single
 Restart=always
 User=default

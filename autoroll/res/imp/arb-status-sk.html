@@ -303,10 +303,7 @@
       },
 
       _computeRollUserURL: function(rollUser) {
-        if (this.gerritUrl) {
-          return this.gerritUrl + "/q/owner:" + rollUser;
-        }
-        return "https://codereview.chromium.org/user/" + rollUser;
+        return this.gerritUrl + "/q/owner:" + rollUser;
       },
 
       _computeShowError: function(editRights, error) {
@@ -320,10 +317,7 @@
           if (issue.issue > 1000000000) {
             return "https://codereview.chromium.org/" + issue.issue;
           }
-          if (this.gerritUrl) {
-            return this.gerritUrl + "/c/" + issue.issue;
-          }
-          return "https://codereview.chromium.org/" + issue.issue;
+          return this.gerritUrl + "/c/" + issue.issue;
         }
       },
 

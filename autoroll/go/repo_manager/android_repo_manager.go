@@ -277,7 +277,7 @@ func (r *androidRepoManager) setChangeLabels(change *gerrit.ChangeInfo, dryRun b
 
 // CreateNewRoll creates and uploads a new Android roll to the given commit.
 // Returns the change number of the uploaded roll.
-func (r *androidRepoManager) CreateNewRoll(strategy string, emails []string, cqExtraTrybots string, dryRun, gerrit bool) (int64, error) {
+func (r *androidRepoManager) CreateNewRoll(strategy string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 

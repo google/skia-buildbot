@@ -14,7 +14,6 @@ import (
 
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/util"
 )
 
@@ -69,8 +68,8 @@ var (
 	}
 )
 
-// AutoRollIssue is a trimmed-down rietveld.Issue containing just the
-// fields we care about for AutoRoll CLs.
+// AutoRollIssue is a struct containing the information we care about for
+// AutoRoll CLs.
 type AutoRollIssue struct {
 	Closed            bool         `json:"closed"`
 	Committed         bool         `json:"committed"`
@@ -203,30 +202,6 @@ func FromGerritChangeInfo(i *gerrit.ChangeInfo, fullHashFn func(string) (string,
 		Issue:             i.Issue,
 		Modified:          i.Updated,
 		Patchsets:         ps,
-		Subject:           i.Subject,
-	}
-	roll.Result = rollResult(roll)
-	from, to, err := RollRev(roll.Subject, fullHashFn)
-	if err != nil {
-		return nil, err
-	}
-	roll.RollingFrom = from
-	roll.RollingTo = to
-	return roll, nil
-}
-
-// FromRietveldIssue returns an AutoRollIssue instance based on the given
-// rietveld.Issue.
-func FromRietveldIssue(i *rietveld.Issue, fullHashFn func(string) (string, error)) (*AutoRollIssue, error) {
-	roll := &AutoRollIssue{
-		Closed:            i.Closed,
-		Committed:         i.Committed,
-		CommitQueue:       i.CommitQueue,
-		CommitQueueDryRun: i.CommitQueueDryRun,
-		Created:           i.Created,
-		Issue:             i.Issue,
-		Modified:          i.Modified,
-		Patchsets:         i.Patchsets,
 		Subject:           i.Subject,
 	}
 	roll.Result = rollResult(roll)
@@ -394,15 +369,6 @@ type tryResultSlice []*TryResult
 func (s tryResultSlice) Len() int           { return len(s) }
 func (s tryResultSlice) Less(i, j int) bool { return s[i].Builder < s[j].Builder }
 func (s tryResultSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
-
-// GetTryResults returns trybot results for the given roll.
-func GetTryResults(r *rietveld.Rietveld, roll *AutoRollIssue) ([]*TryResult, error) {
-	tries, err := r.GetTrybotResults(roll.Issue, roll.Patchsets[len(roll.Patchsets)-1])
-	if err != nil {
-		return nil, err
-	}
-	return TryResultsFromBuildbucket(tries)
-}
 
 // GetTryResultsFromGerrit returns trybot results for the given roll.
 func GetTryResultsFromGerrit(g *gerrit.Gerrit, roll *AutoRollIssue) ([]*TryResult, error) {

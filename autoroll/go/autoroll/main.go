@@ -26,19 +26,13 @@ import (
 
 	"go.skia.org/infra/autoroll/go/autoroller"
 	"go.skia.org/infra/autoroll/go/repo_manager"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/util"
-)
-
-const (
-	RIETVELD_URL = "https://codereview.chromium.org"
 )
 
 var (
@@ -54,7 +48,6 @@ var (
 	childBranch     = flag.String("child_branch", "master", "Branch of the project we want to roll.")
 	cqExtraTrybots  = flag.String("cqExtraTrybots", "", "Comma-separated list of trybots to run.")
 	depot_tools     = flag.String("depot_tools", "", "Path to the depot_tools installation. If empty, assumes depot_tools is in PATH.")
-	doGerrit        = flag.Bool("gerrit", false, "Upload to Gerrit instead of Rietveld.")
 	host            = flag.String("host", "localhost", "HTTP service host")
 	local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	parentRepo      = flag.String("parent_repo", common.REPO_CHROMIUM, "Repo to roll into.")
@@ -75,11 +68,9 @@ func getSheriff() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	if *doGerrit {
-		if strings.Contains(*parentRepo, "chromium") {
-			for i, s := range emails {
-				emails[i] = strings.Replace(s, "google.com", "chromium.org", 1)
-			}
+	if strings.Contains(*parentRepo, "chromium") {
+		for i, s := range emails {
+			emails[i] = strings.Replace(s, "google.com", "chromium.org", 1)
 		}
 	}
 	return emails, nil
@@ -249,34 +240,24 @@ func main() {
 	}
 
 	// Create the code review API client.
-	var r *rietveld.Rietveld
-	var g *gerrit.Gerrit
-	if *doGerrit {
-		gUrl := *gerritUrl
-		if *rollIntoAndroid {
-			if !*local {
-				// Android roller uses the gitcookie created by gcompute-tools/git-cookie-authdaemon.
-				// TODO(rmistry): Turn this on via the GCE setup script so that it exists right when the instance comes up?
-				gitcookiesPath = filepath.Join(user.HomeDir, ".git-credential-cache", "cookie")
-			}
-			gUrl = androidInternalGerritUrl
-		} else {
-			if strings.Contains(*parentRepo, "skia") {
-				gUrl = gerrit.GERRIT_SKIA_URL
-			}
+	gUrl := *gerritUrl
+	if *rollIntoAndroid {
+		if !*local {
+			// Android roller uses the gitcookie created by gcompute-tools/git-cookie-authdaemon.
+			// TODO(rmistry): Turn this on via the GCE setup script so that it exists right when the instance comes up?
+			gitcookiesPath = filepath.Join(user.HomeDir, ".git-credential-cache", "cookie")
 		}
-		g, err = gerrit.NewGerrit(gUrl, gitcookiesPath, nil)
-		if err != nil {
-			sklog.Fatalf("Failed to create Gerrit client: %s", err)
-		}
-		g.TurnOnAuthenticatedGets()
+		gUrl = androidInternalGerritUrl
 	} else {
-		client, err := auth.NewClientFromIdAndSecret(rietveld.CLIENT_ID, rietveld.CLIENT_SECRET, path.Join(*workdir, "oauth_cache"), rietveld.OAUTH_SCOPES...)
-		if err != nil {
-			sklog.Fatal(err)
+		if strings.Contains(*parentRepo, "skia") {
+			gUrl = gerrit.GERRIT_SKIA_URL
 		}
-		r = rietveld.New(RIETVELD_URL, client)
 	}
+	g, err := gerrit.NewGerrit(gUrl, gitcookiesPath, nil)
+	if err != nil {
+		sklog.Fatalf("Failed to create Gerrit client: %s", err)
+	}
+	g.TurnOnAuthenticatedGets()
 
 	// Retrieve the list of extra CQ trybots.
 	// TODO(borenet): Make this editable on the web front-end.
@@ -291,7 +272,7 @@ func main() {
 	sklog.Infof("Sheriff: %s", strings.Join(emails, ", "))
 
 	// Start the autoroller.
-	arb, err = autoroller.NewAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, r, g, time.Minute, 15*time.Minute, *depot_tools, *doGerrit, *rollIntoAndroid, *strategy)
+	arb, err = autoroller.NewAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, time.Minute, 15*time.Minute, *depot_tools, *rollIntoAndroid, *strategy)
 	if err != nil {
 
 		sklog.Fatal(err)

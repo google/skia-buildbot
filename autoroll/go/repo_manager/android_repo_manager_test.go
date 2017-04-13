@@ -89,7 +89,7 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", 24*time.Hour, g)
 	assert.NoError(t, err)
 
-	issue, err := rm.CreateNewRoll(ROLL_STRATEGY_BATCH, androidEmails, "", false, true)
+	issue, err := rm.CreateNewRoll(ROLL_STRATEGY_BATCH, androidEmails, "", false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
 }
