@@ -1,13 +1,13 @@
 package goldingestion
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 
 	"go.skia.org/infra/go/sharedb"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/net/context"
 )
 
 const (

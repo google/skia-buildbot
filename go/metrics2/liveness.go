@@ -1,10 +1,11 @@
 package metrics2
 
 import (
-	"context"
 	"fmt"
 	"sync"
 	"time"
+
+	"golang.org/x/net/context"
 
 	"go.skia.org/infra/go/util"
 )

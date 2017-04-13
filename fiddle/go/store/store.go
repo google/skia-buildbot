@@ -2,7 +2,6 @@
 package store
 
 import (
-	"context"
 	"encoding/base64"
 	"fmt"
 	"image"
@@ -24,6 +23,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/net/context"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )

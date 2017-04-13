@@ -5,7 +5,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -19,6 +18,8 @@ import (
 	"text/template"
 	"time"
 	"unicode"
+
+	"golang.org/x/net/context"
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/buildbot"

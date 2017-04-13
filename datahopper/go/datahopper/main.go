@@ -5,7 +5,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"os"
 	"path"
@@ -24,6 +23,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 )
 

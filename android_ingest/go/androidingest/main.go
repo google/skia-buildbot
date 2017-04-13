@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -16,6 +15,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 
 	"github.com/gorilla/mux"

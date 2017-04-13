@@ -1,12 +1,12 @@
 package mockgcsclient
 
 import (
-	"context"
 	"io"
 
 	"cloud.google.com/go/storage"
 	"github.com/stretchr/testify/mock"
 	"go.skia.org/infra/go/gcs"
+	"golang.org/x/net/context"
 )
 
 // MockGCSClient is a mock of gcs.GCSClient. All the methods are mocked using testify's mocking

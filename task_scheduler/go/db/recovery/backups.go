@@ -4,7 +4,6 @@ package recovery
 import (
 	"bytes"
 	"compress/gzip"
-	"context"
 	"encoding/gob"
 	"errors"
 	"fmt"
@@ -23,6 +22,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"golang.org/x/net/context"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )

@@ -1,13 +1,14 @@
 package tryjobs
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
+
+	"golang.org/x/net/context"
 
 	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
 	"go.skia.org/infra/go/buildbucket"

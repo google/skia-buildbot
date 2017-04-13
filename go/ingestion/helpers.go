@@ -2,7 +2,6 @@ package ingestion
 
 import (
 	"bytes"
-	"context"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -23,6 +22,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 )
 

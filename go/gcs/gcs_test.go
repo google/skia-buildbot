@@ -1,7 +1,6 @@
 package gcs
 
 import (
-	"context"
 	"crypto/sha1"
 	"fmt"
 	"io/ioutil"
@@ -13,6 +12,7 @@ import (
 	"cloud.google.com/go/storage"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
+	"golang.org/x/net/context"
 )
 
 // compareStringSlices compares two string slices, and returns true iff the
