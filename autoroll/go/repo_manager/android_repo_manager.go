@@ -113,7 +113,7 @@ func (r *androidRepoManager) update() error {
 		return err
 	}
 	if _, err := exec.RunCwd(r.workdir, r.repoToolPath, "sync", "-j32"); err != nil {
-		return err
+		util.LogErr(err)
 	}
 
 	// Create the child GitInfo if needed.
