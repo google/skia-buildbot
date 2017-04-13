@@ -1,8 +1,10 @@
 package repo_manager
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
 	"strings"
 	"testing"
@@ -11,8 +13,10 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -21,7 +25,7 @@ const (
 	cqExtraTrybots  = ""
 	depotTools      = ""
 	issueNum        = int64(12345)
-	mockServer      = "https://codereview.chromium.org"
+	mockServer      = "https://skia-review.googlesource.com"
 	mockUser        = "user@chromium.org"
 	numChildCommits = 10
 )
@@ -50,19 +54,7 @@ func setup(t *testing.T) (string, *git_testutils.GitBuilder, []string, *git_test
 
 	mockRun := exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
-		if strings.Contains(cmd.Name, "depot-tools-auth") {
-			auth := fmt.Sprintf(`Logged in to %s as %s.
-
-To login with a different email run:
-  depot-tools-auth login https://codereview.chromium.org
-To logout and purge the authentication token run:
-  depot-tools-auth logout https://codereview.chromium.org
-`, mockServer, mockUser)
-			n, err := cmd.CombinedOutput.Write([]byte(auth))
-			assert.NoError(t, err)
-			assert.Equal(t, len(auth), n)
-			return nil
-		} else if cmd.Name == "git" && cmd.Args[0] == "cl" {
+		if cmd.Name == "git" && cmd.Args[0] == "cl" {
 			if cmd.Args[1] == "upload" {
 				return nil
 			} else if cmd.Args[1] == "issue" {
@@ -89,13 +81,34 @@ To logout and purge the authentication token run:
 	return wd, child, childCommits, parent, cleanup
 }
 
+func setupFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
+	gUrl := "https://fake-skia-review.googlesource.com"
+	urlMock := mockhttpclient.NewURLMock()
+	serialized, err := json.Marshal(&gerrit.AccountDetails{
+		AccountId: 101,
+		Name:      mockUser,
+		Email:     mockUser,
+		UserName:  mockUser,
+	})
+	assert.NoError(t, err)
+	serialized = append([]byte("abcd\n"), serialized...)
+	urlMock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
+	gitcookies := path.Join(wd, "gitcookies_fake")
+	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
+	g, err := gerrit.NewGerrit(gUrl, gitcookies, urlMock.Client())
+	assert.NoError(t, err)
+	return g
+}
+
 // TestRepoManager tests all aspects of the DEPSRepoManager except for CreateNewRoll.
 func TestDEPSRepoManager(t *testing.T) {
 	testutils.LargeTest(t)
 
 	wd, child, childCommits, parent, cleanup := setup(t)
 	defer cleanup()
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", 24*time.Hour, depotTools, nil)
+
+	g := setupFakeGerrit(t, wd)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", 24*time.Hour, depotTools, g)
 	assert.NoError(t, err)
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.ChildHead())
@@ -123,18 +136,20 @@ func TestDEPSRepoManager(t *testing.T) {
 	}
 
 	// User, name only.
-	assert.Equal(t, strings.Split(mockUser, "@")[0], rm.User())
+	assert.Equal(t, mockUser, rm.User())
 }
 func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	testutils.LargeTest(t)
 
 	wd, child, childCommits, parent, cleanup := setup(t)
 	defer cleanup()
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", 24*time.Hour, depotTools, nil)
+
+	g := setupFakeGerrit(t, wd)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", 24*time.Hour, depotTools, g)
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
-	issue, err := rm.CreateNewRoll(strategy, emails, cqExtraTrybots, false, true)
+	issue, err := rm.CreateNewRoll(strategy, emails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
 	msg, err := ioutil.ReadFile(path.Join(rm.(*depsRepoManager).parentDir, ".git", "COMMIT_EDITMSG"))

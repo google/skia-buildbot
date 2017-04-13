@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -48,7 +47,6 @@ var (
 type AutoRoller struct {
 	attemptCounter   *util.AutoDecrementCounter
 	cqExtraTrybots   string
-	doGerrit         bool
 	emails           []string
 	gerrit           *gerrit.Gerrit
 	includeCommitLog bool
@@ -60,7 +58,6 @@ type AutoRoller struct {
 	mtx              sync.RWMutex
 	recent           *recent_rolls.RecentRolls
 	rm               repo_manager.RepoManager
-	rietveld         *rietveld.Rietveld
 	runningMtx       sync.Mutex
 	status           *autoRollStatusCache
 	strategy         string
@@ -68,7 +65,7 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
-func NewAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, rietveld *rietveld.Rietveld, gerrit *gerrit.Gerrit, tickFrequency, repoFrequency time.Duration, depot_tools string, doGerrit, rollIntoAndroid bool, strategy string) (*AutoRoller, error) {
+func NewAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, tickFrequency, repoFrequency time.Duration, depot_tools string, rollIntoAndroid bool, strategy string) (*AutoRoller, error) {
 	var err error
 	var rm repo_manager.RepoManager
 	if rollIntoAndroid {
@@ -93,14 +90,12 @@ func NewAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cq
 	arb := &AutoRoller{
 		attemptCounter:   util.NewAutoDecrementCounter(ROLL_ATTEMPT_THROTTLE_TIME),
 		cqExtraTrybots:   cqExtraTrybots,
-		doGerrit:         doGerrit,
 		emails:           emails,
 		gerrit:           gerrit,
 		includeCommitLog: true,
 		liveness:         metrics2.NewLiveness("last-autoroll-landed", map[string]string{"child-path": childPath}),
 		modeHistory:      mh,
 		recent:           recent,
-		rietveld:         rietveld,
 		rm:               rm,
 		status:           &autoRollStatusCache{},
 		strategy:         strategy,
@@ -270,18 +265,12 @@ func (r *AutoRoller) SetEmails(e []string) {
 // closeIssue closes the given issue with the given message.
 func (r *AutoRoller) closeIssue(issue *autoroll.AutoRollIssue, result, msg string) error {
 	sklog.Infof("Closing issue %d (result %q) with message: %s", issue.Issue, result, msg)
-	if r.doGerrit {
-		info, err := issue.ToGerritChangeInfo()
-		if err != nil {
-			return fmt.Errorf("Failed to convert issue to Gerrit ChangeInfo: %s", err)
-		}
-		if err := r.gerrit.Abandon(info, msg); err != nil {
-			return err
-		}
-	} else {
-		if err := r.rietveld.Close(issue.Issue, msg); err != nil {
-			return err
-		}
+	info, err := issue.ToGerritChangeInfo()
+	if err != nil {
+		return fmt.Errorf("Failed to convert issue to Gerrit ChangeInfo: %s", err)
+	}
+	if err := r.gerrit.Abandon(info, msg); err != nil {
+		return err
 	}
 	issue.Result = result
 	issue.Closed = true
@@ -293,18 +282,12 @@ func (r *AutoRoller) closeIssue(issue *autoroll.AutoRollIssue, result, msg strin
 // addIssueComment adds a comment to the given issue.
 func (r *AutoRoller) addIssueComment(issue *autoroll.AutoRollIssue, msg string) error {
 	sklog.Infof("Adding comment to issue: %q", msg)
-	if r.doGerrit {
-		info, err := issue.ToGerritChangeInfo()
-		if err != nil {
-			return fmt.Errorf("Failed to convert issue to Gerrit ChangeInfo: %s", err)
-		}
-		if err := r.gerrit.AddComment(info, msg); err != nil {
-			return err
-		}
-	} else {
-		if err := r.rietveld.AddComment(issue.Issue, msg); err != nil {
-			return err
-		}
+	info, err := issue.ToGerritChangeInfo()
+	if err != nil {
+		return fmt.Errorf("Failed to convert issue to Gerrit ChangeInfo: %s", err)
+	}
+	if err := r.gerrit.AddComment(info, msg); err != nil {
+		return err
 	}
 	updated, err := r.retrieveRoll(issue.Issue)
 	if err != nil {
@@ -315,39 +298,16 @@ func (r *AutoRoller) addIssueComment(issue *autoroll.AutoRollIssue, msg string) 
 
 // setDryRun sets the CQ dry run bit on the issue.
 func (r *AutoRoller) setDryRun(issue *autoroll.AutoRollIssue, dryRun bool) error {
-	if r.doGerrit {
-		info, err := issue.ToGerritChangeInfo()
-		if err != nil {
-			return fmt.Errorf("Failed to convert issue to Gerrit ChangeInfo: %s", err)
-		}
-		if dryRun {
-			if err := r.rm.SendToGerritDryRun(info, ""); err != nil {
-				return err
-			}
-		} else {
-			if err := r.rm.SendToGerritCQ(info, ""); err != nil {
-				return err
-			}
-		}
-	} else {
-		// Unset the CQ and dry-run bits.
-		props := map[string]string{
-			"cq_dry_run": "0",
-			"commit":     "0",
-		}
-		patchset := issue.Patchsets[len(issue.Patchsets)-1]
-		if err := r.rietveld.SetProperties(issue.Issue, patchset, props); err != nil {
+	info, err := issue.ToGerritChangeInfo()
+	if err != nil {
+		return fmt.Errorf("Failed to convert issue to Gerrit ChangeInfo: %s", err)
+	}
+	if dryRun {
+		if err := r.rm.SendToGerritDryRun(info, ""); err != nil {
 			return err
 		}
-
-		// Set the CQ and, if desired, the CQ dry run bit.
-		props = map[string]string{
-			"commit": "1",
-		}
-		if dryRun {
-			props["cq_dry_run"] = "1"
-		}
-		if err := r.rietveld.SetProperties(issue.Issue, patchset, props); err != nil {
+	} else {
+		if err := r.rm.SendToGerritCQ(info, ""); err != nil {
 			return err
 		}
 	}
@@ -400,38 +360,22 @@ func (r *AutoRoller) updateCurrentRoll() error {
 	return r.recent.Update(updated)
 }
 
-// retrieveRoll obtains the given DEPS roll from the codereview server.
+// retrieveRoll obtains the given DEPS roll from the code review server.
 func (r *AutoRoller) retrieveRoll(issueNum int64) (*autoroll.AutoRollIssue, error) {
 	var a *autoroll.AutoRollIssue
-	if r.doGerrit {
-		info, err := r.gerrit.GetIssueProperties(issueNum)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to get issue properties: %s", err)
-		}
-		a, err = autoroll.FromGerritChangeInfo(info, r.rm.FullChildHash, r.rollIntoAndroid)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to convert issue format: %s", err)
-		}
-		tryResults, err := autoroll.GetTryResultsFromGerrit(r.gerrit, a)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve try results: %s", err)
-		}
-		a.TryResults = tryResults
-	} else {
-		issue, err := r.rietveld.GetIssueProperties(issueNum, true)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to get issue properties: %s", err)
-		}
-		a, err = autoroll.FromRietveldIssue(issue, r.rm.FullChildHash)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to convert issue format: %s", err)
-		}
-		tryResults, err := autoroll.GetTryResults(r.rietveld, a)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve try results: %s", err)
-		}
-		a.TryResults = tryResults
+	info, err := r.gerrit.GetIssueProperties(issueNum)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get issue properties: %s", err)
 	}
+	a, err = autoroll.FromGerritChangeInfo(info, r.rm.FullChildHash, r.rollIntoAndroid)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to convert issue format: %s", err)
+	}
+	tryResults, err := autoroll.GetTryResultsFromGerrit(r.gerrit, a)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to retrieve try results: %s", err)
+	}
+	a.TryResults = tryResults
 	return a, nil
 }
 
@@ -446,10 +390,7 @@ func (r *AutoRoller) doAutoRoll() error {
 		lastErrorStr = lastError.Error()
 	}
 
-	gerritUrl := ""
-	if r.doGerrit {
-		gerritUrl = r.gerrit.Url(0)
-	}
+	gerritUrl := r.gerrit.Url(0)
 
 	// Update status information.
 	if err := r.status.set(&AutoRollStatus{
@@ -577,7 +518,7 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 			} else {
 				if !currentRoll.CommitQueueDryRun {
 					// Set it to dry-run only.
-					sklog.Infof("Setting dry-run bit on https://codereview.chromium.org/%d", currentRoll.Issue)
+					sklog.Infof("Setting dry-run bit on %s", r.gerrit.Url(currentRoll.Issue))
 					if err := r.setDryRun(currentRoll, true); err != nil {
 						return STATUS_ERROR, err
 					}
@@ -587,7 +528,7 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 			}
 		} else {
 			if currentRoll.CommitQueueDryRun {
-				sklog.Infof("Unsetting dry run bit on https://codereview.chromium.org/%d", currentRoll.Issue)
+				sklog.Infof("Unsetting dry run bit on %s", r.gerrit.Url(currentRoll.Issue))
 				if err := r.setDryRun(currentRoll, false); err != nil {
 					return STATUS_ERROR, err
 				}
@@ -654,11 +595,11 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 		return STATUS_THROTTLED, nil
 	}
 	r.attemptCounter.Inc()
-	uploadedNum, err := r.rm.CreateNewRoll(r.strategy, r.GetEmails(), r.cqExtraTrybots, r.isMode(autoroll_modes.MODE_DRY_RUN), r.doGerrit)
+	dryRun := r.isMode(autoroll_modes.MODE_DRY_RUN)
+	uploadedNum, err := r.rm.CreateNewRoll(r.strategy, r.GetEmails(), r.cqExtraTrybots, dryRun)
 	if err != nil {
 		return STATUS_ERROR, fmt.Errorf("Failed to upload a new roll: %s", err)
 	}
-	sklog.Infof("Uploaded new DEPS roll: %s", r.issueUrl(uploadedNum))
 	uploaded, err := r.retrieveRoll(uploadedNum)
 	if err != nil {
 		return STATUS_ERROR, fmt.Errorf("Failed to retrieve uploaded roll: %s", err)
@@ -674,10 +615,7 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 }
 
 func (r *AutoRoller) issueUrl(num int64) string {
-	if r.doGerrit {
-		return r.gerrit.Url(num)
-	}
-	return fmt.Sprintf("%s/%d", autoroll.RIETVELD_URL, num)
+	return r.gerrit.Url(num)
 }
 
 func (r *AutoRoller) User() string {

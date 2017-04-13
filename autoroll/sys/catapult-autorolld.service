@@ -14,8 +14,7 @@ ExecStart=/usr/local/bin/autoroll \
     --resources_dir=/usr/local/share/autoroll/ \
     --depot_tools=/home/default/depot_tools \
     --sheriff=sullivan@chromium.org \
-    --cqExtraTrybots=master.tryserver.chromium.android:android_optional_gpu_tests_rel \
-    --gerrit
+    --cqExtraTrybots=master.tryserver.chromium.android:android_optional_gpu_tests_rel
 Restart=always
 User=default
 Group=default
