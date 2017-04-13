@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ca9868b3_8280fb4d",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-13T16:27:02Z",
+      "side": 0,
+      "message": "*.service files in sys/ will have to be updated to remove the flag",
+      "revId": "9579e095a3ceeeaf28ed24efdd5426cfe7062998",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
