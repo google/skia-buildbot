@@ -78,7 +78,10 @@ var gold = gold || {};
     fend: "",
 
     // Select max RGBA difference.
-    frgbamax: -1,
+    frgbamin: 0,
+
+    // Select max RGBA difference.
+    frgbamax: 255,
 
     // Select max difference.
     fdiffmax: -1,

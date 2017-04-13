@@ -38,6 +38,9 @@ func TestSearchAPI(t *testing.T) {
 
 	testGivenQuery(t, api, q1, storages, idx)
 
+	q1.FGroupTest = GROUP_TEST_MAX_COUNT
+	testGivenQuery(t, api, q1, storages, idx)
+
 	// TODO(stephana): Before new search can go into general production
 	// add more calls to testGivenQuery to test for a range of different queries.
 }
@@ -48,7 +51,19 @@ func testGivenQuery(t *testing.T, api *SearchAPI, q *Query, storages *storage.St
 
 	resp, err := api.Search(q)
 	assert.NoError(t, err)
-	assert.Equal(t, total, len(resp.Digests))
+
+	if q.FGroupTest != "" {
+		testNames := util.StringSet{}
+		for _, d := range resp.Digests {
+			testNames[d.Test] = true
+		}
+		assert.Equal(t, len(testNameSet), len(testNames))
+		for testName := range testNameSet {
+			assert.True(t, testNames[testName])
+		}
+	} else {
+		assert.Equal(t, total, len(resp.Digests))
+	}
 
 	foundTests := map[string]util.StringSet{}
 
@@ -72,6 +87,13 @@ func testGivenQuery(t *testing.T, api *SearchAPI, q *Query, storages *storage.St
 		_, ok := testNameSet[test]
 		assert.True(t, ok, fmt.Sprintf("Could not find %s", test))
 
-		assert.Equal(t, testNameSet[test], digests)
+		if q.FGroupTest == GROUP_TEST_MAX_COUNT {
+			for d := range digests {
+				_, ok := testNameSet[test][d]
+				assert.True(t, ok)
+			}
+		} else {
+			assert.Equal(t, testNameSet[test], digests)
+		}
 	}
 }
