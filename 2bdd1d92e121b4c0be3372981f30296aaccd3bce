@@ -22,6 +22,30 @@
       "revId": "2bdd1d92e121b4c0be3372981f30296aaccd3bce",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0fa55653_7b4cc793",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-13T19:43:51Z",
+      "side": 1,
+      "message": "repo sync just syncs all projects defined in the manifest. We were only ever interested in external/skia and where it was synced to.",
+      "parentUuid": "58b0f435_4de174c7",
+      "range": {
+        "startLine": 115,
+        "startChar": 61,
+        "endLine": 115,
+        "endChar": 74
+      },
+      "revId": "2bdd1d92e121b4c0be3372981f30296aaccd3bce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
