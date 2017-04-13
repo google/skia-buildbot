@@ -168,9 +168,26 @@ func (s *srIntermediate) Add(traceID string, trace tiling.Trace) {
 // filterTile iterates over the tile and accumulates the traces
 // that match the given query creating the initial search result.
 func (s *SearchAPI) filterTile(q *Query, idx *indexer.SearchIndex) (map[string]map[string]*srIntermediate, error) {
+	var acceptFn AcceptFn = nil
+	// if q.FGroupTest == GROUP_TEST_MAX_COUNT {
+	// 	maxDigestsByTest := idx.MaxDigestsByTest()
+	// 	sklog.Infof("\n\nMax Digests: %d\n\n", len(maxDigestsByTest))
+	// 	sklog.Infof("\n\nMax Digests: %d\n\n", len(maxDigestsByTest))
+
+	// 	acceptFn = func(trace *types.GoldenTrace, digests []string) (bool, interface{}) {
+	// 		testName := trace.Params_[types.PRIMARY_KEY_FIELD]
+	// 		for _, d := range digests {
+	// 			if maxDigestsByTest[testName][d] {
+	// 				return true, nil
+	// 			}
+	// 		}
+	// 		return false, nil
+	// 	}
+	// }
+
 	// Add digest/trace to the result.
 	ret := map[string]map[string]*srIntermediate{}
-	addFn := func(test, digest, traceID string, trace tiling.Trace, accptRet interface{}) {
+	addFn := func(test, digest, traceID string, trace *types.GoldenTrace, acceptRet interface{}) {
 		if testMap, ok := ret[test]; !ok {
 			ret[test] = map[string]*srIntermediate{digest: newSrIntermediate(test, digest, traceID, trace)}
 		} else if entry, ok := testMap[digest]; !ok {
@@ -180,9 +197,20 @@ func (s *SearchAPI) filterTile(q *Query, idx *indexer.SearchIndex) (map[string]m
 		}
 	}
 
-	if err := iterTile(q, addFn, nil, s.storages, idx); err != nil {
+	if err := iterTile(q, addFn, acceptFn, s.storages, idx); err != nil {
 		return nil, err
 	}
+
+	// maxDigestsByTest := idx.MaxDigestsByTest()
+	// foundMax := 0
+	// for testName, digestInfo := range ret {
+	// 	for d := range digestInfo {
+	// 		if maxDigestsByTest[testName][d] {
+	// 			foundMax++
+	// 		}
+	// 	}
+	// }
+	// sklog.Infof("\nFound max digests: %d\n\n", foundMax)
 	return ret, nil
 }
 
@@ -246,12 +274,26 @@ func (s *SearchAPI) getReferenceDiffs(q *Query, inter map[string]map[string]*srI
 // afterDiffResultFilter filters the results based on the diff results in 'digestInfo'.
 func (s *SearchAPI) afterDiffResultFilter(digestInfo []*SRDigest, q *Query) []*SRDigest {
 	newDigestInfo := make([]*SRDigest, 0, len(digestInfo))
+	filterRGBADiff := (q.FRGBAMin > 0) || (q.FRGBAMax < 255)
 	for _, digest := range digestInfo {
 		ref, ok := digest.RefDiffs[digest.ClosestRef]
 
 		// Filter all digests where MaxRGBA is above a certain threshold.
 		if (q.FRGBAMax >= 0) && (!ok || (int32(util.MaxInt(ref.MaxRGBADiffs...)) > q.FRGBAMax)) {
 			continue
+		}
+
+		// Filter all digests where MaxRGBA is above a certain threshold.
+		if filterRGBADiff {
+			// If there is no diff metric we exclude the digest.
+			if !ok {
+				continue
+			}
+
+			rgbaMaxDiff := int32(util.MaxInt(ref.MaxRGBADiffs...))
+			if (rgbaMaxDiff < q.FRGBAMin) || (rgbaMaxDiff > q.FRGBAMax) {
+				continue
+			}
 		}
 
 		// Filter all digests where the diff is below the given threshold.
@@ -381,12 +423,17 @@ func newSRDigestSlice(metric string, slice []*SRDigest) *srDigestSlice {
 	// Sort by increasing by diff metric. Not having a diff metric puts the item at the bottom
 	// of the list.
 	lessFn := func(i, j *SRDigest) bool {
+		if (i.ClosestRef == "") && (j.ClosestRef == "") {
+			return i.Digest < j.Digest
+		}
+
 		if i.ClosestRef == "" {
 			return false
 		}
 		if j.ClosestRef == "" {
 			return true
 		}
+
 		iDiff := i.RefDiffs[i.ClosestRef].Diffs[metric]
 		jDiff := j.RefDiffs[j.ClosestRef].Diffs[metric]
 

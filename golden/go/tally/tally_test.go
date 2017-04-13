@@ -4,8 +4,11 @@ import (
 	"net/url"
 	"testing"
 
+	assert "github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -29,7 +32,7 @@ func TestTallyBasic(t *testing.T) {
 	tile.Traces["foo:x86_64"] = trace2
 
 	// Test tallyTile with our Tile.
-	trace, test := tallyTile(tile)
+	trace, test, maxCounts := tallyTile(tile)
 	if got, want := len(trace), 2; got != want {
 		t.Errorf("Wrong trace count: Got %v Want %v", got, want)
 	}
@@ -49,6 +52,9 @@ func TestTallyBasic(t *testing.T) {
 	if got, want := (test["foo"])["ccc"], 1; got != want {
 		t.Errorf("Miscount: Got %v Want %v", got, want)
 	}
+
+	assert.Equal(t, 1, len(maxCounts))
+	assert.Equal(t, maxCounts["foo"], util.NewStringSet([]string{"aaa"}))
 
 	// Test tallyBy with our Tile.
 	ta := tallyBy(tile, trace, url.Values{"corpus": []string{"gm"}})
