@@ -112,8 +112,8 @@ func (r *androidRepoManager) update() error {
 	if _, err := exec.RunCwd(r.workdir, r.repoToolPath, "init", "-u", fmt.Sprintf("%s/a/platform/manifest", r.repoUrl), "-g", "all,-notdefault,-darwin", "-b", r.parentBranch); err != nil {
 		return err
 	}
-	if _, err := exec.RunCwd(r.workdir, r.repoToolPath, "sync", "-j32"); err != nil {
-		util.LogErr(err)
+	if _, err := exec.RunCwd(r.workdir, r.repoToolPath, "sync", r.childPath, "-j32"); err != nil {
+		return err
 	}
 
 	// Create the child GitInfo if needed.
