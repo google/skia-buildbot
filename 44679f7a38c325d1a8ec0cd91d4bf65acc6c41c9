@@ -46,6 +46,30 @@
       "revId": "44679f7a38c325d1a8ec0cd91d4bf65acc6c41c9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17f33c94_b871d526",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-13T17:32:57Z",
+      "side": 1,
+      "message": "The \"name only\" part.  I changed it to return the whole email address, which seems more correct to me.",
+      "parentUuid": "787135fd_4b4aed83",
+      "range": {
+        "startLine": 138,
+        "startChar": 4,
+        "endLine": 138,
+        "endChar": 20
+      },
+      "revId": "44679f7a38c325d1a8ec0cd91d4bf65acc6c41c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
