@@ -23,7 +23,7 @@ type RepoManager interface {
 	LastRollRev() string
 	RolledPast(string) (bool, error)
 	ChildHead() string
-	CreateNewRoll(string, []string, string, bool, bool) (int64, error)
+	CreateNewRoll(string, []string, string, bool) (int64, error)
 	User() string
 	SendToGerritCQ(*gerrit.ChangeInfo, string) error
 	SendToGerritDryRun(*gerrit.ChangeInfo, string) error
