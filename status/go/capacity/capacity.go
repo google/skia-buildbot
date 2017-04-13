@@ -5,11 +5,12 @@ package capacity
 // swarming data is used as the basis for these metrics.
 
 import (
-	"context"
 	"fmt"
 	"sort"
 	"strings"
 	"time"
+
+	"golang.org/x/net/context"
 
 	"go.skia.org/infra/go/cq"
 	"go.skia.org/infra/go/git/repograph"

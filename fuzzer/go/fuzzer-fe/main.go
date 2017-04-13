@@ -5,7 +5,6 @@ Runs the frontend portion of the fuzzer.  This primarily is the webserver (see D
 */
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
@@ -41,6 +40,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 )
 

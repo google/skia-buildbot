@@ -6,7 +6,6 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
-	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -23,6 +22,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 )
 

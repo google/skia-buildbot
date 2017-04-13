@@ -1,7 +1,6 @@
 package sharedb
 
 import (
-	"context"
 	"fmt"
 	"net"
 	"sort"
@@ -12,6 +11,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 

@@ -2,7 +2,6 @@
 package db
 
 import (
-	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -12,6 +11,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/trace/service"
+	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 

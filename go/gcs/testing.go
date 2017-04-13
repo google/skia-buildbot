@@ -3,7 +3,6 @@ package gcs
 import (
 	"archive/tar"
 	"compress/gzip"
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -13,6 +12,7 @@ import (
 	"cloud.google.com/go/storage"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/httputils"
+	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 )
 

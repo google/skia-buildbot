@@ -2,7 +2,6 @@
 package store
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -12,6 +11,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 )
 

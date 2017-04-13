@@ -1,7 +1,6 @@
 package scheduling
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,6 +8,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+
+	"golang.org/x/net/context"
 
 	"cloud.google.com/go/pubsub"
 	"go.skia.org/infra/go/common"

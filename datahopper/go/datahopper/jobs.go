@@ -6,11 +6,12 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"encoding/gob"
 	"fmt"
 	"sync"
 	"time"
+
+	"golang.org/x/net/context"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"

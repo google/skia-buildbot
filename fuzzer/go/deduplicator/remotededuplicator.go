@@ -1,7 +1,6 @@
 package deduplicator
 
 import (
-	"context"
 	"crypto/sha1"
 	"fmt"
 	"sync"
@@ -11,6 +10,7 @@ import (
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/net/context"
 )
 
 type remoteDeduplicator struct {
