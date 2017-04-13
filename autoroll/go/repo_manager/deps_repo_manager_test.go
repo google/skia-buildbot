@@ -21,7 +21,7 @@ const (
 	cqExtraTrybots  = ""
 	depotTools      = ""
 	issueNum        = int64(12345)
-	mockServer      = "https://codereview.chromium.org"
+	mockServer      = "https://skia-review.googlesource.com"
 	mockUser        = "user@chromium.org"
 	numChildCommits = 10
 )
@@ -50,19 +50,7 @@ func setup(t *testing.T) (string, *git_testutils.GitBuilder, []string, *git_test
 
 	mockRun := exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
-		if strings.Contains(cmd.Name, "depot-tools-auth") {
-			auth := fmt.Sprintf(`Logged in to %s as %s.
-
-To login with a different email run:
-  depot-tools-auth login https://codereview.chromium.org
-To logout and purge the authentication token run:
-  depot-tools-auth logout https://codereview.chromium.org
-`, mockServer, mockUser)
-			n, err := cmd.CombinedOutput.Write([]byte(auth))
-			assert.NoError(t, err)
-			assert.Equal(t, len(auth), n)
-			return nil
-		} else if cmd.Name == "git" && cmd.Args[0] == "cl" {
+		if cmd.Name == "git" && cmd.Args[0] == "cl" {
 			if cmd.Args[1] == "upload" {
 				return nil
 			} else if cmd.Args[1] == "issue" {
@@ -134,7 +122,7 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
-	issue, err := rm.CreateNewRoll(strategy, emails, cqExtraTrybots, false, true)
+	issue, err := rm.CreateNewRoll(strategy, emails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
 	msg, err := ioutil.ReadFile(path.Join(rm.(*depsRepoManager).parentDir, ".git", "COMMIT_EDITMSG"))

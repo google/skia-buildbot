@@ -13,7 +13,6 @@ ExecStart=/usr/local/bin/autoroll \
     --childPath=external/skia \
     --resources_dir=/usr/local/share/autoroll/ \
     --sheriff=https://skia-tree-status.appspot.com/current-robocop \
-    --gerrit \
     --roll_into_android=true \
     --parent_repo=android \
     --child_branch=android/o-release \
