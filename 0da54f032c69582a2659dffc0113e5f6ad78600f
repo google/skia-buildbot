@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ed56c8be_441cb11d",
+        "filename": "status/res/imp/autoroll-widget-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-14T17:57:27Z",
+      "side": 1,
+      "message": "Can use indexOf. But might want to rebase first. I already submitted and pushed: https://bugs.chromium.org/p/skia/issues/detail?id\u003d6508",
+      "revId": "0da54f032c69582a2659dffc0113e5f6ad78600f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
