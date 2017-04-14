@@ -1519,6 +1519,7 @@ func TestSchedulingE2E(t *testing.T) {
 		c2: map[string]*db.Task{},
 	}
 	testutils.AssertDeepEqual(t, expect, tasks)
+	assert.Equal(t, 2, len(s.queue)) // Two compile tasks.
 
 	// A bot is free but doesn't have all of the right dimensions to run a task.
 	bot1 := makeBot("bot1", map[string]string{"pool": "Skia"})
@@ -1531,7 +1532,7 @@ func TestSchedulingE2E(t *testing.T) {
 		c2: map[string]*db.Task{},
 	}
 	testutils.AssertDeepEqual(t, expect, tasks)
-	assert.Equal(t, 2, len(s.queue))
+	assert.Equal(t, 2, len(s.queue)) // Still two compile tasks.
 
 	// One bot free, schedule a task, ensure it's not in the queue.
 	bot1.Dimensions = append(bot1.Dimensions, &swarming_api.SwarmingRpcsStringListPair{
@@ -3413,9 +3414,10 @@ func TestTriggerTaskFailed(t *testing.T) {
 	}
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3})
 	swarmingClient.MockTriggerTaskFailure(makeTags(commits[4]))
-	assert.NoError(t, s.MainLoop())
+	err := s.MainLoop()
+	assert.EqualError(t, err, "Got failures: \nFailed to trigger task: Mocked trigger failure!\n")
 	assert.NoError(t, s.tCache.Update())
-	assert.Equal(t, 5, len(s.queue))
+	assert.Equal(t, 6, len(s.queue))
 	tasks, err := s.tCache.GetTasksForCommits(gb.RepoUrl(), commits)
 	assert.NoError(t, err)
 
