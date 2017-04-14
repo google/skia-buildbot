@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "329fa89e_5554e29d",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 3420,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-14T18:58:48Z",
+      "side": 1,
+      "message": "This was a bug before; the queue had 8 candidates and we removed 3, even though one of those three failed to actually get triggered.  It didn\u0027t hurt us because we don\u0027t actually use the queue for anything.",
+      "range": {
+        "startLine": 3420,
+        "startChar": 17,
+        "endLine": 3420,
+        "endChar": 18
+      },
+      "revId": "ff09c474f207e8119537b90300bb6c9012338905",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
