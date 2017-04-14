@@ -163,7 +163,8 @@
       if (status.result === "in progress") {
         return "icons:autorenew";
       }
-      if (status.result === "succeeded") {
+      // Check for "dry run succeeded" and "succeeded"
+      if (status.result.indexOf("succeeded") !== -1) {
         return "icons:check-circle";
       }
       return "icons:error";
