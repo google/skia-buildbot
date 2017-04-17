@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fdf0ad66_eda3e1a9",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-17T19:00:50Z",
+      "side": 1,
+      "message": "I can put this in repo_manager.go (if that is what you had in mind) and call it ExtractBuganizerNumbers.",
+      "parentUuid": "f869eba1_0b92c3c7",
+      "range": {
+        "startLine": 281,
+        "startChar": 26,
+        "endLine": 281,
+        "endChar": 64
+      },
+      "revId": "94282eee2dbb49b2706561e0068d64f0ad154ad1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "86fbc614_b0eadb00",
         "filename": "autoroll/go/repo_manager/android_repo_manager.go",
         "patchSetId": 2
