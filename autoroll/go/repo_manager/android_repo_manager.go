@@ -276,6 +276,26 @@ func (r *androidRepoManager) setChangeLabels(change *gerrit.ChangeInfo, dryRun b
 	return r.g.SetReview(change, "Roller setting labels to auto-land change.", labelValues)
 }
 
+func ExtractBugNumbers(line string) map[string]bool {
+	bugs := map[string]bool{}
+	re := regexp.MustCompile("(?m)^(BUG|Bug) *[ :=] *b/([0-9]+) *$")
+	out := re.FindAllStringSubmatch(line, -1)
+	for _, m := range out {
+		bugs[m[2]] = true
+	}
+	return bugs
+}
+
+func ExtractTestLines(line string) []string {
+	testLines := []string{}
+	re := regexp.MustCompile("(?m)^Test: *(.*) *$")
+	out := re.FindAllString(line, -1)
+	for _, m := range out {
+		testLines = append(testLines, m)
+	}
+	return testLines
+}
+
 // CreateNewRoll creates and uploads a new Android roll to the given commit.
 // Returns the change number of the uploaded roll.
 func (r *androidRepoManager) CreateNewRoll(strategy string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
@@ -372,6 +392,51 @@ https://%s.googlesource.com/%s.git/+log/%s
 Test: Presubmit checks will test this change.
 `, r.childPath, commitRange, len(commits), childRepoName, childRepoName, commitRange)
 
+	// TODO(rmistry): Remove after things reliably work.
+	emails = append(emails, "rmistry@google.com")
+
+	// If the parent branch is not master then:
+	// * Add all authors of merged changes to the email list.
+	// * Collect all bugs from b/xyz.
+	// * Collect all 'Test: ' lines.
+	if r.parentBranch != "master" {
+		emailMap := map[string]bool{}
+		bugMap := map[string]bool{}
+		for _, c := range commits {
+			d, err := cr.Details(c, false)
+			if err != nil {
+				return 0, err
+			}
+			// Extract out the email.
+			matches := AUTHOR_EMAIL_RE.FindStringSubmatch(d.Author)
+			emailMap[matches[1]] = true
+			// Extract out any bugs
+			for k, v := range ExtractBugNumbers(d.Body) {
+				bugMap[k] = v
+			}
+			// Extract out the Test lines and directly add them to the commit
+			// message.
+			for _, tl := range ExtractTestLines(d.Body) {
+				commitMsg += fmt.Sprintf("\n%s", tl)
+			}
+
+		}
+		// Create a single bug line and append it to the commitMsg.
+		if len(bugMap) > 0 {
+			bugs := []string{}
+			for b := range bugMap {
+				bugs = append(bugs, b)
+			}
+			commitMsg += fmt.Sprintf("\nBug: %s", strings.Join(bugs, ", "))
+		}
+
+		//
+		for e := range emailMap {
+			emails = append(emails, e)
+		}
+	}
+	emailStr := strings.Join(emails, ",")
+
 	// Commit the change with the above message.
 	if _, commitErr := exec.RunCwd(r.childDir, "git", "commit", "-m", commitMsg); commitErr != nil {
 		util.LogErr(r.abandonRepoBranch())
@@ -385,27 +450,6 @@ Test: Presubmit checks will test this change.
 	}
 
 	// Upload the CL to Gerrit.
-	// TODO(rmistry): Remove after things reliably work.
-	emails = append(emails, "rmistry@google.com")
-	// Add all authors of merged changes to the email list if the parent branch
-	// is not master.
-	if r.parentBranch != "master" {
-		emailMap := map[string]bool{}
-		for _, c := range commits {
-			d, err := cr.Details(c, false)
-			if err != nil {
-				return 0, err
-			}
-			// Extract out the email.
-			matches := AUTHOR_EMAIL_RE.FindStringSubmatch(d.Author)
-			emailMap[matches[1]] = true
-		}
-		for e := range emailMap {
-			emails = append(emails, e)
-		}
-	}
-	emailStr := strings.Join(emails, ",")
-
 	uploadCommand := &exec.Command{
 		Name: r.repoToolPath,
 		Args: []string{"upload", fmt.Sprintf("--re=%s", emailStr), "--verify"},

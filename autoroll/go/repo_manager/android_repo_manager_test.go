@@ -93,3 +93,54 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
 }
+
+func TestExtractBugNumbers(t *testing.T) {
+	testutils.SmallTest(t)
+
+	bodyWithTwoBugs := `testing
+Test: tested
+BUG=skia:123
+Bug: skia:456
+BUG=b/123
+Bug: b/234`
+	bugNumbers := ExtractBugNumbers(bodyWithTwoBugs)
+	assert.Equal(t, 2, len(bugNumbers))
+	assert.True(t, bugNumbers["123"])
+	assert.True(t, bugNumbers["234"])
+
+	bodyWithNoBugs := `testing
+Test: tested
+BUG=skia:123
+Bug: skia:456
+BUG=ba/123
+Bug: bb/234`
+	bugNumbers = ExtractBugNumbers(bodyWithNoBugs)
+	assert.Equal(t, 0, len(bugNumbers))
+}
+
+func TestExtractTestLines(t *testing.T) {
+	testutils.SmallTest(t)
+
+	bodyWithThreeTestLines := `testing
+Test: tested with 0
+testing
+BUG=skia:123
+Bug: skia:456
+Test: tested with 1
+BUG=b/123
+Bug: b/234
+
+Test: tested with 2
+`
+	testLines := ExtractTestLines(bodyWithThreeTestLines)
+	assert.Equal(t, []string{"Test: tested with 0", "Test: tested with 1", "Test: tested with 2"}, testLines)
+
+	bodyWithNoTestLines := `testing
+no test
+lines
+included
+here
+`
+	testLines = ExtractTestLines(bodyWithNoTestLines)
+	assert.Equal(t, 0, len(testLines))
+}
