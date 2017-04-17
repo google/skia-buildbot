@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "83f2e6c2_0ea9cecb",
+        "filename": "fuzzer/go/backend/version_updater.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-04-17T19:35:44Z",
+      "side": 1,
+      "message": "Exists in both backend and frontend?",
+      "revId": "90eaa4aec6f2f18bff0ef7c260109336e3cce5b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "02ee241b_62a4395b",
+        "filename": "fuzzer/go/storage/client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-04-17T19:35:44Z",
+      "side": 1,
+      "message": "Nit: Couldn\u0027t this just be \u0027processes\u0027?\n\nSame for 1000 below.",
+      "range": {
+        "startLine": 71,
+        "startChar": 31,
+        "endLine": 71,
+        "endChar": 35
+      },
+      "revId": "90eaa4aec6f2f18bff0ef7c260109336e3cce5b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
