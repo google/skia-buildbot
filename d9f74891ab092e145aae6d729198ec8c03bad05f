@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "431182a2_c4e40b48",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-17T17:11:45Z",
+      "side": 1,
+      "message": "Personally I prefer [a-zA-Z0-9]+ which is clearer to me.  And [[:digit:]]+ could just be \\d+ right?",
+      "range": {
+        "startLine": 83,
+        "startChar": 43,
+        "endLine": 83,
+        "endChar": 54
+      },
+      "revId": "d9f74891ab092e145aae6d729198ec8c03bad05f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
