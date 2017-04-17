@@ -42,6 +42,10 @@ type GCSClient interface {
 	// i.e. in the directory prefix. It returns an error if it fails to read any of the
 	// ObjectAttrs belonging to files.
 	AllFilesInDirectory(ctx context.Context, prefix string, callback func(item *storage.ObjectAttrs)) error
+	// DeleteFile deletes the given file, returning any error.
+	DeleteFile(ctx context.Context, path string) error
+	// Bucket() returns the bucket name of this client
+	Bucket() string
 }
 
 // FileWriteOptions represents the metadata for a GCS file.  See storage.ObjectAttrs
@@ -118,4 +122,14 @@ func (g *gcsclient) AllFilesInDirectory(ctx context.Context, prefix string, call
 		callback(obj)
 	}
 	return nil
+}
+
+// See the GCSClient interface for more information about DeleteFile.
+func (g *gcsclient) DeleteFile(ctx context.Context, path string) error {
+	return g.client.Bucket(g.bucket).Object(path).Delete(ctx)
+}
+
+// See the GCSClient interface for more information about Bucket.
+func (g *gcsclient) Bucket() string {
+	return g.bucket
 }
