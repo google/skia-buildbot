@@ -27,6 +27,8 @@ const (
 // The list of architectures we fuzz on
 var ARCHITECTURES = []string{"linux_x64"}
 
+var commonImpl CommonImpl
+
 // FuzzerInfo contains all the configuration needed to display, execute and analyze a fuzzer.
 type FuzzerInfo struct {
 	// PrettyName is the human readable name for this fuzzer.
@@ -158,6 +160,7 @@ var fuzzers = map[string]FuzzerInfo{
 var FUZZ_CATEGORIES = []string{}
 
 func init() {
+	commonImpl = &defaultImpl{}
 	for k, _ := range fuzzers {
 		FUZZ_CATEGORIES = append(FUZZ_CATEGORIES, k)
 	}
@@ -239,4 +242,14 @@ func SafeAtoi(n string) int {
 	} else {
 		return i
 	}
+}
+
+func SetMockCommon(c CommonImpl) {
+	commonImpl = c
+}
+
+// Returns the Hostname of this machine. Clients should use this instead of
+// os.Hostname because this function can be mocked out.
+func Hostname() string {
+	return commonImpl.Hostname()
 }
