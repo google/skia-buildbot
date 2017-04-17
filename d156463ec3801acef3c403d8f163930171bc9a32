@@ -425,6 +425,30 @@
     },
     {
       "key": {
+        "uuid": "f41ff57b_b8df32da",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 3466,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-17T18:23:54Z",
+      "side": 1,
+      "message": "Sorry, I was confused by the difference between setup() and testMultipleCandidatesBackfillingEachOtherSetup(), and the comment at https://skia.googlesource.com/buildbot/+/296bd2b563002bb6c252c24cb5da3a4a5824f20f/task_scheduler/go/scheduling/task_scheduler_test.go#1523",
+      "parentUuid": "3f333c3e_7c536dc2",
+      "range": {
+        "startLine": 3465,
+        "startChar": 0,
+        "endLine": 3466,
+        "endChar": 59
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fc10c6a2_fb2f79fe",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 2
