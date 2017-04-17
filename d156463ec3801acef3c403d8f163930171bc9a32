@@ -1,0 +1,234 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4c9b93fc_4a78e120",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 818,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-17T15:17:38Z",
+      "side": 1,
+      "message": "nit: \"Returns a closed channel of the successfully-isolated candidates. Each failure is sent to errCh.\"",
+      "range": {
+        "startLine": 818,
+        "startChar": 80,
+        "endLine": 818,
+        "endChar": 81
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "949c5156_83352844",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 819,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-17T15:17:38Z",
+      "side": 1,
+      "message": "nit \"chan\u003c-\", mostly for documentation purposes.",
+      "range": {
+        "startLine": 819,
+        "startChar": 77,
+        "endLine": 819,
+        "endChar": 81
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cb66a954_302c53fe",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 819,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-17T15:17:38Z",
+      "side": 1,
+      "message": "nit \"\u003c-chan\"",
+      "range": {
+        "startLine": 819,
+        "startChar": 89,
+        "endLine": 819,
+        "endChar": 93
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e48f9a51_1ce36466",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 857,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-17T15:17:38Z",
+      "side": 1,
+      "message": "nit: \"Returns a closed channel of successfully-triggered tasks. Each failure is sent to errCh.\"",
+      "range": {
+        "startLine": 857,
+        "startChar": 48,
+        "endLine": 857,
+        "endChar": 55
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af4d7492_05347988",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 859,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-17T15:17:38Z",
+      "side": 1,
+      "message": "nit chan\u003c-",
+      "range": {
+        "startLine": 859,
+        "startChar": 73,
+        "endLine": 859,
+        "endChar": 77
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21b409b9_b35200a0",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 859,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-17T15:17:38Z",
+      "side": 1,
+      "message": "nit \u003c-chan",
+      "range": {
+        "startLine": 859,
+        "startChar": 46,
+        "endLine": 859,
+        "endChar": 50
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c6f0e89_a501cd69",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 927,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-17T15:17:38Z",
+      "side": 1,
+      "message": "Unless I\u0027m missing something, seems like there\u0027s no reason for a goroutine here.",
+      "range": {
+        "startLine": 925,
+        "startChar": 0,
+        "endLine": 927,
+        "endChar": 17
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45fbfd59_fbb10b22",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 952,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-17T15:17:38Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 952,
+        "startChar": 26,
+        "endLine": 952,
+        "endChar": 34
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9624a4ae_62dccc3f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 3466,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-17T15:17:38Z",
+      "side": 1,
+      "message": "dimensions seem wrong",
+      "range": {
+        "startLine": 3465,
+        "startChar": 0,
+        "endLine": 3466,
+        "endChar": 59
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc10c6a2_fb2f79fe",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 3499,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-17T15:17:38Z",
+      "side": 1,
+      "message": "maybe check that the bad commit is first in the queue.",
+      "range": {
+        "startLine": 3499,
+        "startChar": 1,
+        "endLine": 3499,
+        "endChar": 34
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
