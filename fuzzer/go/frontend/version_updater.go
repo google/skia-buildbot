@@ -3,11 +3,12 @@ package frontend
 import (
 	"fmt"
 
-	"cloud.google.com/go/storage"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/frontend/gcsloader"
 	"go.skia.org/infra/fuzzer/go/frontend/syncer"
+	"go.skia.org/infra/fuzzer/go/storage"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
 	"golang.org/x/net/context"
 )
@@ -42,12 +43,21 @@ func (v *VersionUpdater) HandleCurrentVersion(currentHash string) error {
 	return nil
 }
 
-func UpdateVersionToFuzz(storageClient *storage.Client, bucket, version string) error {
+// UpdateVersionToFuzz creates a pending version file and then a work files for each of the
+// backends. When the fuzzer backends finish their roll duties, they will remove their
+// respective "working" files, indicating they are done.
+func UpdateVersionToFuzz(storageClient storage.FuzzerGCSClient, backendWorkers []string, version string) error {
 	newVersionFile := fmt.Sprintf("skia_version/pending/%s", version)
-	w := storageClient.Bucket(bucket).Object(newVersionFile).NewWriter(context.Background())
-	if err := w.Close(); err != nil {
-		return fmt.Errorf("Could not create version file %s : %s", newVersionFile, err)
+	if err := storageClient.SetFileContents(context.Background(), newVersionFile, gcs.FILE_WRITE_OPTS_TEXT, []byte(version)); err != nil {
+		return fmt.Errorf("Could not set pending version: %s", err)
 	}
-	sklog.Infof("%s has been made.  The backend and frontend will eventually pick up this change (in that order).\n", newVersionFile)
+	for _, bw := range backendWorkers {
+		workFile := fmt.Sprintf("skia_version/pending/working_%s", bw)
+		if err := storageClient.SetFileContents(context.Background(), workFile, gcs.FILE_WRITE_OPTS_TEXT, []byte(workFile)); err != nil {
+			sklog.Warningf("Error writing to %s to signal worker %s. Continuing anyway. %s", workFile, bw, err)
+		}
+	}
+
+	sklog.Infof("%s has been made and %d backend workers notified. They will pick up the change and start working.\n", newVersionFile, len(backendWorkers))
 	return nil
 }

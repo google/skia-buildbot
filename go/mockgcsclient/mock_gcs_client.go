@@ -47,5 +47,15 @@ func (m *MockGCSClient) AllFilesInDirectory(ctx context.Context, folder string, 
 	return args.Error(0)
 }
 
+func (m *MockGCSClient) DeleteFile(ctx context.Context, path string) error {
+	args := m.Called(ctx, path)
+	return args.Error(0)
+}
+
+func (m *MockGCSClient) Bucket() string {
+	args := m.Called()
+	return args.String(0)
+}
+
 // Make sure MockGCSClient fulfills gcs.GCSClient
 var _ gcs.GCSClient = (*MockGCSClient)(nil)

@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/frontend/gcsloader"
 	"go.skia.org/infra/fuzzer/go/frontend/syncer"
 	"go.skia.org/infra/fuzzer/go/issues"
+	fstorage "go.skia.org/infra/fuzzer/go/storage"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
@@ -99,6 +100,7 @@ var (
 	// Other params
 	versionCheckPeriod = flag.Duration("version_check_period", 20*time.Second, `The period used to check the version of Skia that needs fuzzing.`)
 	fuzzSyncPeriod     = flag.Duration("fuzz_sync_period", 2*time.Minute, `The period used to sync bad fuzzes and check the count of grey and bad fuzzes.`)
+	backendNames       = common.NewMultiStringFlag("backend_names", nil, "The names of all backend gce instances, e.g. skia-fuzzer-be-1")
 )
 
 var requiredFlags = []string{"skia_root", "clang_path", "clang_p_p_path", "bolt_db_path", "executable_cache_path"}
@@ -642,8 +644,10 @@ func updateRevision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	client := fstorage.NewFuzzerGCSClient(storageClient, config.GCS.Bucket)
+
 	sklog.Infof("Turning the crank to revision %q", newInfo.Hash)
-	if err := frontend.UpdateVersionToFuzz(storageClient, config.GCS.Bucket, newInfo.Hash); err != nil {
+	if err := frontend.UpdateVersionToFuzz(client, config.FrontEnd.BackendNames, newInfo.Hash); err != nil {
 		sklog.Errorf("Could not turn the crank: %s", err)
 	} else {
 		versionWatcher.Recheck()

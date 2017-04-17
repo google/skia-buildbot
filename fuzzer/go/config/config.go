@@ -32,9 +32,10 @@ type aggregatorConfig struct {
 }
 
 type frontendConfig struct {
+	BackendNames         []string
 	BoltDBPath           string
-	NumDownloadProcesses int
 	FuzzSyncPeriod       time.Duration
+	NumDownloadProcesses int
 }
 
 type gcsConfig struct {

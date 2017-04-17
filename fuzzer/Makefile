@@ -11,7 +11,7 @@ BOWER_DIR=third_party/bower_components
 
 default: all
 
-all: clean_webtools core_js elements_html skiaversion frontend backend update
+all: clean_webtools core_js elements_html skiaversion frontend backend
 
 fe_release: all
 	./build_fe_release "`git log -n1 --format=%s`"
@@ -35,10 +35,6 @@ frontend:
 
 backend:
 	go install -v ./go/fuzzer-be
-
-update:
-	go install -v ./go/update_version_to_fuzz
-
 
 include ../webtools/webtools.mk
 include ../go/skiaversion/skiaversion.mk
