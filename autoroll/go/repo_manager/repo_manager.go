@@ -80,6 +80,6 @@ func (r *commonRepoManager) User() string {
 }
 
 func (r *commonRepoManager) IsRollSubject(line string) (bool, error) {
-	rollSubjectRegex := fmt.Sprintf("'Roll %s /d+../d+ (/d+ commits)'", r.childPath)
+	rollSubjectRegex := fmt.Sprintf("^Roll %s [[:alnum:]]+..[[:alnum:]]+ \\([[:digit:]]+ commits\\)$", r.childPath)
 	return regexp.MatchString(rollSubjectRegex, line)
 }
