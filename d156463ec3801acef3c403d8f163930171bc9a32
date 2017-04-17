@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a123560_548124ff",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 818,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-17T18:04:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4c9b93fc_4a78e120",
+      "range": {
+        "startLine": 818,
+        "startChar": 80,
+        "endLine": 818,
+        "endChar": 81
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "949c5156_83352844",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -71,6 +95,54 @@
     },
     {
       "key": {
+        "uuid": "c0619611_af6e09fb",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 819,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-17T18:04:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cb66a954_302c53fe",
+      "range": {
+        "startLine": 819,
+        "startChar": 89,
+        "endLine": 819,
+        "endChar": 93
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d5bfe458_8b0cfc25",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 819,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-17T18:04:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "949c5156_83352844",
+      "range": {
+        "startLine": 819,
+        "startChar": 77,
+        "endLine": 819,
+        "endChar": 81
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e48f9a51_1ce36466",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -91,6 +163,30 @@
       "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef25038a_494c8154",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 857,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-17T18:04:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e48f9a51_1ce36466",
+      "range": {
+        "startLine": 857,
+        "startChar": 48,
+        "endLine": 857,
+        "endChar": 55
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -140,6 +236,54 @@
     },
     {
       "key": {
+        "uuid": "e3ce3f34_2d436e7e",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 859,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-17T18:04:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "21b409b9_b35200a0",
+      "range": {
+        "startLine": 859,
+        "startChar": 46,
+        "endLine": 859,
+        "endChar": 50
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ff496fe_d1ffe760",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 859,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-17T18:04:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "af4d7492_05347988",
+      "range": {
+        "startLine": 859,
+        "startChar": 73,
+        "endLine": 859,
+        "endChar": 77
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1c6f0e89_a501cd69",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -151,6 +295,30 @@
       "writtenOn": "2017-04-17T15:17:38Z",
       "side": 1,
       "message": "Unless I\u0027m missing something, seems like there\u0027s no reason for a goroutine here.",
+      "range": {
+        "startLine": 925,
+        "startChar": 0,
+        "endLine": 927,
+        "endChar": 17
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c553bbe_6980ebde",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 927,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-17T18:04:28Z",
+      "side": 1,
+      "message": "Yep, looks like that\u0027s right.  I think we do need a WaitGroup for the error goroutine.",
+      "parentUuid": "1c6f0e89_a501cd69",
       "range": {
         "startLine": 925,
         "startChar": 0,
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "9d0be8ce_c67a32ce",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 952,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-17T18:04:28Z",
+      "side": 1,
+      "message": "Removed, this was here for debugging.",
+      "parentUuid": "45fbfd59_fbb10b22",
+      "range": {
+        "startLine": 952,
+        "startChar": 26,
+        "endLine": 952,
+        "endChar": 34
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9624a4ae_62dccc3f",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 2
@@ -197,6 +389,30 @@
       "writtenOn": "2017-04-17T15:17:38Z",
       "side": 1,
       "message": "dimensions seem wrong",
+      "range": {
+        "startLine": 3465,
+        "startChar": 0,
+        "endLine": 3466,
+        "endChar": 59
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f333c3e_7c536dc2",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 3466,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-17T18:04:28Z",
+      "side": 1,
+      "message": "How so?  These are the same used in the other tests.",
+      "parentUuid": "9624a4ae_62dccc3f",
       "range": {
         "startLine": 3465,
         "startChar": 0,
@@ -229,6 +445,30 @@
       "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b9f94d1_77c17598",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 3499,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-17T18:04:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fc10c6a2_fb2f79fe",
+      "range": {
+        "startLine": 3499,
+        "startChar": 1,
+        "endLine": 3499,
+        "endChar": 34
+      },
+      "revId": "d156463ec3801acef3c403d8f163930171bc9a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
