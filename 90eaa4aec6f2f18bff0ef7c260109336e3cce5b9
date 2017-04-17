@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "2341f6df_d66d355b",
+        "filename": "fuzzer/go/backend/version_updater.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-04-17T20:05:17Z",
+      "side": 1,
+      "message": "Pulled into gcs",
+      "parentUuid": "83f2e6c2_0ea9cecb",
+      "revId": "90eaa4aec6f2f18bff0ef7c260109336e3cce5b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "02ee241b_62a4395b",
         "filename": "fuzzer/go/storage/client.go",
         "patchSetId": 3
@@ -30,6 +48,30 @@
       "writtenOn": "2017-04-17T19:35:44Z",
       "side": 1,
       "message": "Nit: Couldn\u0027t this just be \u0027processes\u0027?\n\nSame for 1000 below.",
+      "range": {
+        "startLine": 71,
+        "startChar": 31,
+        "endLine": 71,
+        "endChar": 35
+      },
+      "revId": "90eaa4aec6f2f18bff0ef7c260109336e3cce5b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7331383f_a7260a39",
+        "filename": "fuzzer/go/storage/client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-04-17T20:05:17Z",
+      "side": 1,
+      "message": "I\u0027d rather there be a buffer here in case network connection goes up/down or deleting files takes longer/shorter.",
+      "parentUuid": "02ee241b_62a4395b",
       "range": {
         "startLine": 71,
         "startChar": 31,
