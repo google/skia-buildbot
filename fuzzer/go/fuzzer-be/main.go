@@ -108,10 +108,12 @@ func main() {
 		sklog.Infof("Going to allocate %d cpus (could go up to %d)", neededCPUs, totalCPUs)
 	}
 
+	client := fstorage.NewFuzzerGCSClient(storageClient, config.GCS.Bucket)
+
 	for _, category := range *fuzzesToRun {
 		gen := generator.New(category)
 
-		if err := gen.DownloadSeedFiles(storageClient); err != nil {
+		if err := gen.DownloadSeedFiles(client); err != nil {
 			sklog.Fatalf("Problem downloading seed files: %s", err)
 		}
 
@@ -140,7 +142,7 @@ func main() {
 		sklog.Fatalf("Could not start aggregator: %s", err)
 	}
 
-	updater := backend.NewVersionUpdater(storageClient, agg, generators)
+	updater := backend.NewVersionUpdater(client, agg, generators)
 	sklog.Info("Starting version watcher")
 	watcher := fcommon.NewVersionWatcher(storageClient, config.Common.VersionCheckPeriod, updater.UpdateToNewSkiaVersion, nil)
 	watcher.Start()
