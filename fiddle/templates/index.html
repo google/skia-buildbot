@@ -13,7 +13,11 @@
     <login-sk></login-sk>
   </header>
   <section id=main>
-    <fiddle-sk display_options embed_button bug_link width="{%.Options.Width%}" height="{%.Options.Height%}" source="{%.Options.Source%}" fiddlehash="{%.Hash%}" sources="{%.Sources%}" {%if .Options.TextOnly%}textonly{%end%}>
+    <fiddle-sk display_options embed_button bug_link width="{%.Options.Width%}" height="{%.Options.Height%}" source="{%.Options.Source%}" fiddlehash="{%.Hash%}" sources="{%.Sources%}"
+      {%if .Options.TextOnly%}textonly{%end%}
+      {%if .Options.SRGB%}srgb{%end%}
+      {%if .Options.F16%}f16{%end%}
+      >
       <textarea-numbers-sk>
         <textarea spellcheck="false" rows="15" cols="80">{%.Code%}</textarea>
       </textarea-numbers-sk>
