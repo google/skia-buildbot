@@ -40,6 +40,8 @@ const (
 	HEIGHT_METADATA   = "height"
 	SOURCE_METADATA   = "source"
 	TEXTONLY_METADATA = "textOnly"
+	SRGB_METADATA     = "srgb"
+	F16_METADATA      = "f16"
 )
 
 // Media is the type of outputs we can get from running a fiddle.
@@ -212,6 +214,8 @@ func (s *Store) Put(code string, options types.Options, gitHash string, ts time.
 		HEIGHT_METADATA:   fmt.Sprintf("%d", options.Height),
 		SOURCE_METADATA:   fmt.Sprintf("%d", options.Source),
 		TEXTONLY_METADATA: fmt.Sprintf("%v", options.TextOnly),
+		SRGB_METADATA:     fmt.Sprintf("%v", options.SRGB),
+		F16_METADATA:      fmt.Sprintf("%v", options.F16),
 	}
 	if n, err := w.Write([]byte(code)); err != nil {
 		return "", fmt.Errorf("There was a problem storing the code. Uploaded %d bytes: %s", n, err)
@@ -310,6 +314,8 @@ func (s *Store) GetCode(fiddleHash string) (string, *types.Options, error) {
 		Height:   height,
 		Source:   source,
 		TextOnly: attr.Metadata[TEXTONLY_METADATA] == "true",
+		SRGB:     attr.Metadata[SRGB_METADATA] == "true",
+		F16:      attr.Metadata[F16_METADATA] == "true",
 	}
 	return string(b), options, nil
 }

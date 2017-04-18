@@ -47,6 +47,7 @@ var (
 	preserveTemp      = flag.Bool("preserve_temp", false, "If true then preserve the build artifacts in the fiddle/tmp directory. Used for debugging only.")
 	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	timeBetweenBuilds = flag.Duration("time_between_builds", time.Hour, "How long to wait between building LKGR of Skia.")
+	tryNamed          = flag.Bool("try_named", true, "Start the Go routine that periodically tries all the named fiddles.")
 )
 
 // FiddleContext is the structure we use for the expanding the index.html template.
@@ -584,7 +585,9 @@ func main() {
 	names = named.New(fiddleStore)
 	build = buildskia.New(*fiddleRoot, depotTools, repo, buildlib.BuildLib, 64, *timeBetweenBuilds, true)
 	build.Start()
-	StartTryNamed()
+	if *tryNamed {
+		StartTryNamed()
+	}
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 	r.HandleFunc("/i/{id:[@0-9a-zA-Z._]+}", imageHandler)
