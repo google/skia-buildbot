@@ -121,6 +121,7 @@
     #f16,
     #textonly {
       display: block;
+      margin-bottom: 4px;
     }
 
     .textoutput {
@@ -146,7 +147,7 @@
         <summary-sk>Options</summary-sk>
         <div class=options>
           <paper-checkbox id=textonly title="A text-only fiddle." checked="{{textonly}}">Text Only <span class=hint>[Use SkDebugf()]</span></paper-checkbox>
-          <paper-checkbox id=srgb title="A text-only fiddle." checked="{{srgb}}">sRGB</paper-checkbox>
+          <paper-checkbox id=srgb title="A text-only fiddle." checked="{{srgb}}" disabled="[[f16]]">sRGB</paper-checkbox>
           <paper-checkbox id=f16  title="A text-only fiddle." checked="{{f16}}" disabled="[[_not(srgb)]]">F16</paper-checkbox>
           <paper-input label="Width" size=5 auto-validate allowed-pattern="[0-9]" value="{{width}}" disabled="[[textonly]]"></paper-input>
           <paper-input label="Height" size=5 auto-validate allowed-pattern="[0-9]" value="{{height}}" disabled="[[textonly]]"></paper-input>
