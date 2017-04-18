@@ -407,9 +407,11 @@ Test: Presubmit checks will test this change.
 			if err != nil {
 				return 0, err
 			}
-			// Extract out the email.
+			// Extract out the email if it is a Googler.
 			matches := AUTHOR_EMAIL_RE.FindStringSubmatch(d.Author)
-			emailMap[matches[1]] = true
+			if strings.HasSuffix(matches[1], "@google.com") {
+				emailMap[matches[1]] = true
+			}
 			// Extract out any bugs
 			for k, v := range ExtractBugNumbers(d.Body) {
 				bugMap[k] = v
