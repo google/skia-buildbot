@@ -815,21 +815,23 @@ func (s *TaskScheduler) isolateTasks(rs db.RepoState, candidates []*taskCandidat
 	})
 }
 
-// isolateCandidates uploads inputs for the taskCandidates to the Isolate server.
-func (s *TaskScheduler) isolateCandidates(candidates []*taskCandidate) error {
+// isolateCandidates uploads inputs for the taskCandidates to the Isolate
+// server. Returns a channel of the successfully-isolated candidates which is
+// closed after all candidates have been isolated or failed. Each failure is
+// sent to errCh.
+func (s *TaskScheduler) isolateCandidates(candidates []*taskCandidate, errCh chan<- error) <-chan *taskCandidate {
 	defer metrics2.FuncTimer().Stop()
 
-	// First, group by commit hash since we have to isolate the code at
-	// a particular revision for each task.
+	// First, group by RepoState since we have to isolate the code at
+	// that state for each task.
 	byRepoState := map[db.RepoState][]*taskCandidate{}
 	for _, c := range candidates {
 		byRepoState[c.RepoState] = append(byRepoState[c.RepoState], c)
 	}
 
 	// Isolate the tasks by commit.
+	isolated := make(chan *taskCandidate)
 	var wg sync.WaitGroup
-	var mtx sync.Mutex
-	errs := []error{}
 	for rs, candidates := range byRepoState {
 		wg.Add(1)
 		go func(rs db.RepoState, candidates []*taskCandidate) {
@@ -839,60 +841,62 @@ func (s *TaskScheduler) isolateCandidates(candidates []*taskCandidate) error {
 				for _, c := range candidates {
 					names = append(names, fmt.Sprintf("%s@%s", c.Name, c.Revision))
 				}
-				mtx.Lock()
-				defer mtx.Unlock()
-				errs = append(errs, fmt.Errorf("Failed on %s: %s", strings.Join(names, ", "), err))
+				errCh <- fmt.Errorf("Failed on %s: %s", strings.Join(names, ", "), err)
+				return
+			}
+			for _, c := range candidates {
+				isolated <- c
 			}
 		}(rs, candidates)
 	}
-	wg.Wait()
-	if len(errs) > 0 {
-		return fmt.Errorf("Failed to isolate candidates; got errors: %v", errs)
-	}
-	return nil
+	go func() {
+		wg.Wait()
+		close(isolated)
+	}()
+	return isolated
 }
 
 // triggerTasks triggers the given slice of tasks to run on Swarming and returns
-// the candidates and tasks which successfully triggered. Logs an error for each
-// task which fails to trigger.
-func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, tasks []*db.Task) []*db.Task {
+// a channel of the successfully-triggered tasks which is closed after all tasks
+// have been triggered or failed. Each failure is sent to errCh.
+func (s *TaskScheduler) triggerTasks(isolated <-chan *taskCandidate, errCh chan<- error) <-chan *db.Task {
 	defer metrics2.FuncTimer().Stop()
+	triggered := make(chan *db.Task)
 	var wg sync.WaitGroup
-	var mtx sync.Mutex
-	rv := make([]*db.Task, 0, len(tasks))
-	for i, t := range tasks {
-		candidate := candidates[i]
+	for candidate := range isolated {
 		wg.Add(1)
-		go func(candidate *taskCandidate, t *db.Task) {
+		go func(candidate *taskCandidate) {
 			defer wg.Done()
+			t := candidate.MakeTask()
 			if err := s.db.AssignId(t); err != nil {
-				sklog.Errorf("Failed to trigger task: %s", err)
+				errCh <- fmt.Errorf("Failed to trigger task: %s", err)
 				return
 			}
 			req, err := candidate.MakeTaskRequest(t.Id, s.isolate.ServerURL(), s.pubsubTopic)
 			if err != nil {
-				sklog.Errorf("Failed to trigger task: %s", err)
+				errCh <- fmt.Errorf("Failed to trigger task: %s", err)
 				return
 			}
 			resp, err := s.swarming.TriggerTask(req)
 			if err != nil {
-				sklog.Errorf("Failed to trigger task: %s", err)
+				errCh <- fmt.Errorf("Failed to trigger task: %s", err)
 				return
 			}
 			created, err := swarming.ParseTimestamp(resp.Request.CreatedTs)
 			if err != nil {
-				sklog.Errorf("Failed to trigger task: %s", err)
+				errCh <- fmt.Errorf("Failed to trigger task: %s", err)
 				return
 			}
-			mtx.Lock()
-			defer mtx.Unlock()
 			t.Created = created
 			t.SwarmingTaskId = resp.TaskId
-			rv = append(rv, t)
-		}(candidate, t)
+			triggered <- t
+		}(candidate)
 	}
-	wg.Wait()
-	return rv
+	go func() {
+		wg.Wait()
+		close(triggered)
+	}()
+	return triggered
 }
 
 // scheduleTasks queries for free Swarming bots and triggers tasks according
@@ -902,60 +906,91 @@ func (s *TaskScheduler) scheduleTasks(bots []*swarming_api.SwarmingRpcsBotInfo, 
 	// Match free bots with tasks.
 	schedule := getCandidatesToSchedule(bots, queue)
 
-	// Isolate the tasks by commit.
-	if err := s.isolateCandidates(schedule); err != nil {
-		return err
-	}
+	// Setup the error channel.
+	errs := []error{}
+	errCh := make(chan error)
+	var errWg sync.WaitGroup
+	errWg.Add(1)
+	go func() {
+		defer errWg.Done()
+		for err := range errCh {
+			errs = append(errs, err)
+		}
+	}()
 
-	// Trigger tasks. Keep the Task instances in order.
-	toTrigger := make([]*db.Task, 0, len(schedule))
-	for _, candidate := range schedule {
-		toTrigger = append(toTrigger, candidate.MakeTask())
-	}
-	triggered := s.triggerTasks(schedule, toTrigger)
+	// Isolate the tasks by RepoState.
+	isolated := s.isolateCandidates(schedule, errCh)
 
-	// Insert the newly-triggered tasks into the DB.
+	// Trigger Swarming tasks.
+	triggered := s.triggerTasks(isolated, errCh)
+
+	// Collect the tasks we triggered.
+	numTriggered := 0
 	insert := map[string]map[string][]*db.Task{}
-	for _, t := range triggered {
+	for t := range triggered {
 		byRepo, ok := insert[t.Repo]
 		if !ok {
 			byRepo = map[string][]*db.Task{}
 			insert[t.Repo] = byRepo
 		}
 		byRepo[t.Name] = append(byRepo[t.Name], t)
+		numTriggered++
 	}
-	if err := s.AddTasks(insert); err != nil {
-		return err
-	}
+	close(errCh)
+	errWg.Wait()
 
-	// Remove the tasks from the queue.
-	newQueue := make([]*taskCandidate, 0, len(queue)-len(schedule))
-	for i, j := 0, 0; i < len(queue); {
-		if j >= len(schedule) {
-			newQueue = append(newQueue, queue[i:]...)
-			break
-		}
-		if queue[i] == schedule[j] {
-			j++
+	if len(insert) > 0 {
+		// Insert the newly-triggered tasks into the DB.
+		if err := s.AddTasks(insert); err != nil {
+			errs = append(errs, fmt.Errorf("Triggered tasks but failed to insert into DB: %s", err))
 		} else {
-			newQueue = append(newQueue, queue[i])
+			// Organize the triggered task by TaskKey.
+			remove := make(map[db.TaskKey]*db.Task, numTriggered)
+			for _, byRepo := range insert {
+				for _, byName := range byRepo {
+					for _, t := range byName {
+						remove[t.TaskKey] = t
+					}
+				}
+			}
+			if len(remove) != numTriggered {
+				return fmt.Errorf("WHAAT")
+			}
+
+			// Remove the tasks from the queue.
+			newQueue := make([]*taskCandidate, 0, len(queue)-numTriggered)
+			for _, c := range queue {
+				if _, ok := remove[c.TaskKey]; !ok {
+					newQueue = append(newQueue, c)
+				}
+			}
+
+			// Note; if regenerateQueue and scheduleTasks are ever decoupled so that
+			// the queue is reused by multiple runs of scheduleTasks, we'll need to
+			// address the fact that some candidates may still have their
+			// StoleFromId pointing to candidates which have been triggered and
+			// removed from the queue. In that case, we should just need to write a
+			// loop which updates those candidates to use the IDs of the newly-
+			// inserted Tasks in the database rather than the candidate ID.
+
+			sklog.Infof("Triggered %d tasks on %d bots (%d in queue).", numTriggered, len(bots), len(queue))
+			queue = newQueue
 		}
-		i++
+	} else {
+		sklog.Infof("Triggered no tasks (%d in queue, %d bots available)", len(queue), len(bots))
 	}
 	s.queueMtx.Lock()
 	defer s.queueMtx.Unlock()
-	s.queue = newQueue
+	s.queue = queue
 	s.lastScheduled = time.Now()
 
-	// Note; if regenerateQueue and scheduleTasks are ever decoupled so that
-	// the queue is reused by multiple runs of scheduleTasks, we'll need to
-	// address the fact that some candidates may still have their
-	// StoleFromId pointing to candidates which have been triggered and
-	// removed from the queue. In that case, we should just need to write a
-	// loop which updates those candidates to use the IDs of the newly-
-	// inserted Tasks in the database rather than the candidate ID.
-
-	sklog.Infof("Triggered %d tasks on %d bots.", len(schedule), len(bots))
+	if len(errs) > 0 {
+		rvErr := "Got failures: "
+		for _, e := range errs {
+			rvErr += fmt.Sprintf("\n%s\n", e)
+		}
+		return fmt.Errorf(rvErr)
+	}
 	return nil
 }
 
