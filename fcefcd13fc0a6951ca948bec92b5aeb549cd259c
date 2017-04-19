@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e5a36ecc_5fa89e59",
+        "filename": "infra/bots/recipes/swarm_infra.expected/Infra-PerCommit.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-19T16:58:28Z",
+      "side": 1,
+      "message": "I thought depot_tools needed to be at the end of PATH.  Has that changed?",
+      "range": {
+        "startLine": 96,
+        "startChar": 15,
+        "endLine": 96,
+        "endChar": 56
+      },
+      "revId": "fcefcd13fc0a6951ca948bec92b5aeb549cd259c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
