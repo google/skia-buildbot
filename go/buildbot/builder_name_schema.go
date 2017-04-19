@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"go.skia.org/infra/go/sklog"
@@ -20,9 +19,8 @@ var (
 )
 
 type builderNameSchema struct {
-	Schema           map[string][]string `json:"builder_name_schema"`
-	BuilderNameSep   string              `json:"builder_name_sep"`
-	TrybotNameSuffix string              `json:"trybot_name_suffix"`
+	Schema         map[string][]string `json:"builder_name_schema"`
+	BuilderNameSep string              `json:"builder_name_sep"`
 }
 
 func init() {
@@ -49,11 +47,6 @@ func ParseBuilderName(name string) (map[string]string, error) {
 	if !ok {
 		return nil, fmt.Errorf("Invalid builder name; %q is not a valid role.", role)
 	}
-	isTrybot := false
-	if split[len(split)-1] == schema.TrybotNameSuffix {
-		isTrybot = true
-		split = split[:len(split)-1]
-	}
 	extraConfig := ""
 	if len(split) == len(keys)+1 {
 		extraConfig = split[len(split)-1]
@@ -64,7 +57,6 @@ func ParseBuilderName(name string) (map[string]string, error) {
 	}
 	rv := make(map[string]string, len(keys)+2)
 	rv["role"] = role
-	rv["is_trybot"] = strconv.FormatBool(isTrybot)
 	if extraConfig != "" {
 		rv["extra_config"] = extraConfig
 	}
