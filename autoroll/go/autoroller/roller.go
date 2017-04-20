@@ -517,10 +517,25 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 				}
 			} else {
 				if !currentRoll.CommitQueueDryRun {
-					// Set it to dry-run only.
-					sklog.Infof("Setting dry-run bit on %s", r.gerrit.Url(currentRoll.Issue))
-					if err := r.setDryRun(currentRoll, true); err != nil {
-						return STATUS_ERROR, err
+					if currentRoll.CommitQueue {
+						// Set it to dry-run only.
+						sklog.Infof("Setting dry-run bit on %s", r.gerrit.Url(currentRoll.Issue))
+						if err := r.setDryRun(currentRoll, true); err != nil {
+							return STATUS_ERROR, err
+						}
+					} else {
+						// CQ must have failed and we didn't catch it.
+						msg := fmt.Sprintf("CQ is not finished but neither CQ+1 or +2 is set; closing %s", r.gerrit.Url(currentRoll.Issue))
+						result := autoroll.ROLL_RESULT_DRY_RUN_FAILURE
+						sklog.Warningf(msg)
+						if err := r.closeIssue(currentRoll, result, msg); err != nil {
+							return STATUS_ERROR, err
+						}
+						currentRoll.Result = result
+						if err := r.recent.Update(currentRoll); err != nil {
+							return STATUS_ERROR, err
+						}
+						return STATUS_DRY_RUN_FAILURE, nil
 					}
 				}
 				sklog.Infof("Dry run still in progress.")
