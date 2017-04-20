@@ -43,12 +43,14 @@ type Output struct {
 //
 // If new fields are added make sure to update ComputeHash and go/store.
 type Options struct {
-	Width    int  `json:"width"`
-	Height   int  `json:"height"`
-	Source   int  `json:"source"`
-	SRGB     bool `json:"srgb"`
-	F16      bool `json:"f16"`
-	TextOnly bool `json:"textOnly"`
+	Width    int     `json:"width"`
+	Height   int     `json:"height"`
+	Source   int     `json:"source"`
+	SRGB     bool    `json:"srgb"`
+	F16      bool    `json:"f16"`
+	TextOnly bool    `json:"textOnly"`
+	Animated bool    `json:"animated"`
+	Duration float64 `json:"duration"`
 }
 
 // ComputeHash calculates the fiddleHash for the given code and options.
@@ -70,6 +72,12 @@ func (o *Options) ComputeHash(code string) (string, error) {
 	}
 	if o.TextOnly {
 		out = append(out, fmt.Sprintf("// TextOnly: %v", o.TextOnly))
+	}
+	if o.Animated {
+		out = append(out, fmt.Sprintf("// Animated: %v", o.Animated))
+	}
+	if o.Duration != 0.0 {
+		out = append(out, fmt.Sprintf("// Duration: %f", o.Duration))
 	}
 	for _, line := range lines {
 		if strings.Contains(line, "%:") {

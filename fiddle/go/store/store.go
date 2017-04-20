@@ -42,6 +42,8 @@ const (
 	TEXTONLY_METADATA = "textOnly"
 	SRGB_METADATA     = "srgb"
 	F16_METADATA      = "f16"
+	ANIMATED_METADATA = "animated"
+	DURATION_METADATA = "duration"
 )
 
 // Media is the type of outputs we can get from running a fiddle.
@@ -216,6 +218,8 @@ func (s *Store) Put(code string, options types.Options, gitHash string, ts time.
 		TEXTONLY_METADATA: fmt.Sprintf("%v", options.TextOnly),
 		SRGB_METADATA:     fmt.Sprintf("%v", options.SRGB),
 		F16_METADATA:      fmt.Sprintf("%v", options.F16),
+		ANIMATED_METADATA: fmt.Sprintf("%v", options.Animated),
+		DURATION_METADATA: fmt.Sprintf("%f", options.Duration),
 	}
 	if n, err := w.Write([]byte(code)); err != nil {
 		return "", fmt.Errorf("There was a problem storing the code. Uploaded %d bytes: %s", n, err)
@@ -309,6 +313,11 @@ func (s *Store) GetCode(fiddleHash string) (string, *types.Options, error) {
 	if err != nil {
 		return "", nil, fmt.Errorf("Failed to parse options source: %s", err)
 	}
+	animated := attr.Metadata[ANIMATED_METADATA] == "true"
+	duration, err := strconv.ParseFloat(attr.Metadata[DURATION_METADATA], 64)
+	if err != nil && animated {
+		duration = 1.0
+	}
 	options := &types.Options{
 		Width:    width,
 		Height:   height,
@@ -316,6 +325,8 @@ func (s *Store) GetCode(fiddleHash string) (string, *types.Options, error) {
 		TextOnly: attr.Metadata[TEXTONLY_METADATA] == "true",
 		SRGB:     attr.Metadata[SRGB_METADATA] == "true",
 		F16:      attr.Metadata[F16_METADATA] == "true",
+		Animated: animated,
+		Duration: duration,
 	}
 	return string(b), options, nil
 }

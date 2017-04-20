@@ -80,6 +80,18 @@ func main() {
 		return
 	}
 
+	// If this is an animated fiddle then:
+	//   - Create tmpdir to store PNGs.
+	//   - Loop over the following code to generate each frame of the animation.
+	//   -   Decode and write PNGs (CPU+GPU) to their temp location.
+	//   - Run ffmpeg over the resulting PNG's to generate the webm files.
+	//   - Clean up tmp file.
+	//   - Encode resulting webm files as base64 strings and return in JSON.
+	//
+	// If we run ffmpeg here is must be present in the container.
+	// Notes
+	// - duration and is_animation need to be passed in via flags.
+
 	// Now that we've built fiddle we want to run it as:
 	//
 	//    $ bin/fiddle_secwrap out/fiddle
