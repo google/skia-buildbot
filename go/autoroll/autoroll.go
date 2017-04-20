@@ -249,10 +249,13 @@ func RollRev(subject string, fullHashFn func(string) (string, error)) (string, s
 	return from, to, nil
 }
 
-// AllTrybotsFinished returns true iff all known trybots have finished for the
+// AllTrybotsFinished returns true iff all CQ trybots have finished for the
 // given issue.
 func (a *AutoRollIssue) AllTrybotsFinished() bool {
 	for _, t := range a.TryResults {
+		if t.Category != TRYBOT_CATEGORY_CQ {
+			continue
+		}
 		if !t.Finished() {
 			return false
 		}
@@ -260,7 +263,7 @@ func (a *AutoRollIssue) AllTrybotsFinished() bool {
 	return true
 }
 
-// AllTrybotsSucceeded returns true iff all known trybots have succeeded for the
+// AllTrybotsSucceeded returns true iff all CQ trybots have succeeded for the
 // given issue. Note that some trybots may fail and be retried, in which case a
 // successful retry counts as a success.
 func (a *AutoRollIssue) AllTrybotsSucceeded() bool {
