@@ -16,6 +16,24 @@
       "revId": "12b8da3b749a96703cf77b43d0270539f848532f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c67f0cb3_f5ec3644",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-20T16:35:33Z",
+      "side": 1,
+      "message": "Outside of what?",
+      "parentUuid": "1e607537_7c1bf7b1",
+      "revId": "12b8da3b749a96703cf77b43d0270539f848532f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
