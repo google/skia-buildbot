@@ -1,11 +1,12 @@
-package common
+package version_watcher
 
 import (
 	"fmt"
 	"time"
 
-	"cloud.google.com/go/storage"
 	"go.skia.org/infra/fuzzer/go/config"
+	"go.skia.org/infra/fuzzer/go/download_skia"
+	fstorage "go.skia.org/infra/fuzzer/go/storage"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 )
@@ -24,7 +25,7 @@ type VersionWatcher struct {
 	// A channel to monitor any fatal errors encountered by the version watcher.
 	Status chan error
 
-	storageClient   *storage.Client
+	storageClient   fstorage.FuzzerGCSClient
 	polingPeriod    time.Duration
 	LastCurrentHash string
 	LastPendingHash string
@@ -35,7 +36,7 @@ type VersionWatcher struct {
 
 // NewVersionWatcher creates a version watcher with the specified time period and access
 // to GCS.  The supplied callbacks may be nil.
-func NewVersionWatcher(s *storage.Client, period time.Duration, onPendingChange, onCurrentChange VersionHandler) *VersionWatcher {
+func New(s fstorage.FuzzerGCSClient, period time.Duration, onPendingChange, onCurrentChange VersionHandler) *VersionWatcher {
 	return &VersionWatcher{
 		storageClient:   s,
 		polingPeriod:    period,
@@ -68,7 +69,7 @@ func (vw *VersionWatcher) Start() {
 func (vw *VersionWatcher) check() {
 	sklog.Infof("Woke up to check the Skia version, last current seen was %s", vw.LastCurrentHash)
 
-	current, lastUpdated, err := GetCurrentSkiaVersionFromGCS(vw.storageClient)
+	current, lastUpdated, err := download_skia.GetCurrentSkiaVersionFromGCS(vw.storageClient)
 	if err != nil {
 		sklog.Errorf("Failed getting current Skia version from GCS.  Going to try again: %s", err)
 		return
@@ -98,7 +99,7 @@ func (vw *VersionWatcher) check() {
 		return
 	}
 
-	pending, lastUpdated, err := GetPendingSkiaVersionFromGCS(vw.storageClient)
+	pending, lastUpdated, err := download_skia.GetPendingSkiaVersionFromGCS(vw.storageClient)
 	if err != nil {
 		sklog.Errorf("Failed getting pending Skia version from GCS.  Going to try again: %s", err)
 		return
