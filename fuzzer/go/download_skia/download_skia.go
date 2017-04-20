@@ -1,28 +1,31 @@
-package common
+package download_skia
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
 	"cloud.google.com/go/storage"
+
 	"go.skia.org/infra/fuzzer/go/config"
+	fstorage "go.skia.org/infra/fuzzer/go/storage"
 	"go.skia.org/infra/go/buildskia"
+	"go.skia.org/infra/go/sklog"
 	"golang.org/x/net/context"
-	"google.golang.org/api/iterator"
 )
 
-// DownloadSkiaVersionForFuzzing downloads the revision of Skia specified in Google Storage
+// AtGCSRevision downloads the revision of Skia specified in Google Storage
 // to the given path. On sucess, the given VersionSetter is set to be the current revision.
 // It returns the revision it found in GCS and any errors.
-func DownloadSkiaVersionForFuzzing(storageClient *storage.Client, path string, v config.VersionSetter, clean bool) error {
+func AtGCSRevision(storageClient fstorage.FuzzerGCSClient, path string, v config.VersionSetter, clean bool) error {
 	skiaVersion, _, err := GetCurrentSkiaVersionFromGCS(storageClient)
 	if err != nil {
 		return fmt.Errorf("Could not get Skia revision from GCS: %s", err)
 	}
-	if err := DownloadSkia(skiaVersion, path, v, clean); err != nil {
+	if err := AtRevision(skiaVersion, path, v, clean); err != nil {
 		return fmt.Errorf("Problem downloading skia: %s", err)
 	}
 	// Always clean out the build directory, to mitigate potential build
@@ -37,7 +40,7 @@ func DownloadSkiaVersionForFuzzing(storageClient *storage.Client, path string, v
 // GetCurrentSkiaVersionFromGCS checks the skia_version folder in the fuzzer bucket for a single
 // file that has the current revision to be used for fuzzing (typically a dep roll). It returns the
 // revision, the last time the revision was set, and any error.
-func GetCurrentSkiaVersionFromGCS(storageClient *storage.Client) (string, time.Time, error) {
+func GetCurrentSkiaVersionFromGCS(storageClient fstorage.FuzzerGCSClient) (string, time.Time, error) {
 	return revisionHelper(storageClient, "skia_version/current/")
 }
 
@@ -45,7 +48,7 @@ func GetCurrentSkiaVersionFromGCS(storageClient *storage.Client) (string, time.T
 // file that has the pending revision to be used for fuzzing (typically a dep roll). It returns the
 // revision, the last time the revision was set, and any error. If there is no pending revision,
 // empty string, zero time.Time and nil error are returned.
-func GetPendingSkiaVersionFromGCS(storageClient *storage.Client) (string, time.Time, error) {
+func GetPendingSkiaVersionFromGCS(storageClient fstorage.FuzzerGCSClient) (string, time.Time, error) {
 	// We ignore errors about not finding any pending revisions
 	if revision, date, err := revisionHelper(storageClient, "skia_version/pending/"); err == nil || strings.HasPrefix(err.Error(), "Could not find specified revision") {
 		return revision, date, nil
@@ -54,30 +57,39 @@ func GetPendingSkiaVersionFromGCS(storageClient *storage.Client) (string, time.T
 	}
 }
 
+var gitRevision = regexp.MustCompile("[0-9a-f]{40}")
+
 // revisionHelper actually goes and gets the revision files from GCS and parses them. It returns the
 // revision, the last time the revision was set, and any error.
-func revisionHelper(storageClient *storage.Client, prefix string) (string, time.Time, error) {
+func revisionHelper(storageClient fstorage.FuzzerGCSClient, prefix string) (string, time.Time, error) {
 	if storageClient == nil {
 		return "", time.Time{}, fmt.Errorf("Storage service cannot be nil!")
 	}
-	q := &storage.Query{Prefix: prefix}
-	it := storageClient.Bucket(config.GCS.Bucket).Objects(context.Background(), q)
-	for obj, err := it.Next(); err != iterator.Done; obj, err = it.Next() {
-		if err != nil {
-			return "", time.Time{}, err
+	rev := ""
+	ts := time.Time{}
+	if err := storageClient.AllFilesInDirectory(context.Background(), prefix, func(item *storage.ObjectAttrs) {
+		name := strings.SplitAfter(item.Name, prefix)[1]
+		if rev == "" && gitRevision.MatchString(name) {
+			rev = name
+			ts = item.Updated
+		} else if gitRevision.MatchString(item.Name) {
+			sklog.Warningf("Found two (or more) potential git revisions in %s. newly saw %s, but sticking with %s", prefix, name, rev)
 		}
-		if obj.Name != prefix {
-			return strings.SplitAfter(obj.Name, prefix)[1], obj.Updated, nil
-		}
+	}); err != nil {
+		return "", time.Time{}, err
 	}
-	return "", time.Time{}, fmt.Errorf("Could not find specified revision in %q", prefix)
+
+	if rev == "" {
+		return "", time.Time{}, fmt.Errorf("Could not find specified revision in %q", prefix)
+	}
+	return rev, ts, nil
 }
 
-// downloadSkia uses git to clone Skia from googlesource.com and check it out to the specified
+// AtRevision uses git to clone Skia from googlesource.com and check it out to the specified
 // revision. Upon sucess, the SkiaVersion in config is set to be the current revision and any
 // dependencies needed to compile Skia have been installed (e.g. the latest revision of gyp).
 // It returns an error on failure.
-func DownloadSkia(revision, path string, v config.VersionSetter, clean bool) error {
+func AtRevision(revision, path string, v config.VersionSetter, clean bool) error {
 	if lc, err := buildskia.GNDownloadSkia("master", revision, path, config.Common.DepotToolsPath, clean, false); err != nil {
 		return fmt.Errorf("Could not buildskia.GNDownloadSkia for skia revision %s: %s", revision, err)
 	} else {
