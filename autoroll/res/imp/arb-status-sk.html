@@ -26,6 +26,8 @@
 -->
 <link rel="import" href="/res/common/imp/human-date-sk.html">
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
+<link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
 <link rel="stylesheet" href="/res/common/css/md.css">
@@ -104,6 +106,14 @@
           </div>
         </div>
         <div class="tr">
+          <div class="td nowrap">Mode Set:</div>
+          <div class="td nowrap unknown">
+            <!-- No line break below, or we get a space before the colon, eg.
+                 user@google.com : Mode change message -->
+            <span>[[modeChangeBy]]</span><template is="dom-if" if="{{modeChangeMsg}}"><span>: [[modeChangeMsg]]</span></template>
+          </div>
+        </div>
+        <div class="tr">
           <div class="td nowrap">Status:</div>
           <div class="td nowrap">
             <span class$="{{_statusClass(status)}}"><span class="big">{{status}}</span></span>
@@ -178,6 +188,14 @@
         </div>
       </div>
     </div>
+    <!-- Warning for future travelers: paper-dialog doesn't like to be inside of
+         divs. It's best left just inside the top-level <template> -->
+    <paper-dialog id="mode_change_dialog" modal on-iron-overlay-closed="_changeMode">
+      <h2>Enter a message:</h2>
+      <paper-input type="text" id="mode_change_msg"></paper-input>
+      <paper-button dialog-dismiss>Cancel</paper-button>
+      <paper-button dialog-confirm>Submit</paper-button>
+    </paper-dialog>
   </template>
   <script>
     Polymer({
@@ -186,6 +204,16 @@
         mode: {
           type: String,
           value: "(not yet loaded)",
+          readOnly: true,
+        },
+        modeChangeBy: {
+          type: String,
+          value: "",
+          readOnly: true,
+        },
+        modeChangeMsg: {
+          type: String,
+          value: "",
           readOnly: true,
         },
         status: {
@@ -258,6 +286,10 @@
           type: Boolean,
           value: false,
         },
+        _selectedMode: {
+          type: String,
+          value: "",
+        },
         _timeout: {
           type: Object,
           value: null,
@@ -288,13 +320,26 @@
         if (mode == this.mode) {
           return;
         }
+        this._selectedMode = mode;
+        this.$.mode_change_dialog.open();
+      },
+
+      _changeMode: function(e) {
+        if (e.detail.canceled || !e.detail.confirmed) {
+          this._selectedMode = "";
+          return;
+        }
         var url = "/json/mode";
-        var body = JSON.stringify({"mode": mode});
+        var body = JSON.stringify({
+            "message": this.$.mode_change_msg.value,
+            "mode": this._selectedMode,
+        });
         sk.errorMessage("Mode change in progress. This may take some time.");
         this._modeChangePending = true;
         sk.post(url, body).then(JSON.parse).then(function (json) {
           this._update(json);
           this._modeChangePending = false;
+          this.$.mode_change_msg.value;
           sk.errorMessage("Success!");
         }.bind(this), function(err) {
           this._modeChangePending = false;
@@ -312,11 +357,6 @@
 
       _issueURL: function(issue) {
         if (issue) {
-          // TODO(borenet): Remove this hack after all rollers are on Gerrit
-          // and are stable.
-          if (issue.issue > 1000000000) {
-            return "https://codereview.chromium.org/" + issue.issue;
-          }
           return this.gerritUrl + "/c/" + issue.issue;
         }
       },
@@ -404,7 +444,9 @@
         this._setError(json.error);
         this._setGerritUrl(json.gerritUrl);
         this._setLastRoll(json.lastRoll);
-        this._setMode(json.mode);
+        this._setMode(json.mode.mode);
+        this._setModeChangeBy(json.mode.user);
+        this._setModeChangeMsg(json.mode.message);
         this._setRecent(json.recent);
         this._setInitialSelectedMode(json.validModes.indexOf(json.mode).toString());
         this._setStatus(json.status);

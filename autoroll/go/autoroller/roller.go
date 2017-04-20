@@ -132,15 +132,15 @@ func (r *AutoRoller) Close() error {
 // AutoRollStatus is a struct which provides roll-up status information about
 // the AutoRoll Bot.
 type AutoRollStatus struct {
-	CurrentRoll *autoroll.AutoRollIssue   `json:"currentRoll"`
-	Error       string                    `json:"error"`
-	GerritUrl   string                    `json:"gerritUrl"`
-	LastRoll    *autoroll.AutoRollIssue   `json:"lastRoll"`
-	LastRollRev string                    `json:"lastRollRev"`
-	Mode        string                    `json:"mode"`
-	Recent      []*autoroll.AutoRollIssue `json:"recent"`
-	Status      string                    `json:"status"`
-	ValidModes  []string                  `json:"validModes"`
+	CurrentRoll *autoroll.AutoRollIssue    `json:"currentRoll"`
+	Error       string                     `json:"error"`
+	GerritUrl   string                     `json:"gerritUrl"`
+	LastRoll    *autoroll.AutoRollIssue    `json:"lastRoll"`
+	LastRollRev string                     `json:"lastRollRev"`
+	Mode        *autoroll_modes.ModeChange `json:"mode"`
+	Recent      []*autoroll.AutoRollIssue  `json:"recent"`
+	Status      string                     `json:"status"`
+	ValidModes  []string                   `json:"validModes"`
 }
 
 // autoRollStatusCache is a struct used for caching roll-up status
@@ -151,7 +151,7 @@ type autoRollStatusCache struct {
 	lastError   string
 	lastRoll    *autoroll.AutoRollIssue
 	lastRollRev string
-	mode        string
+	mode        *autoroll_modes.ModeChange
 	mtx         sync.RWMutex
 	recent      []*autoroll.AutoRollIssue
 	status      string
@@ -170,7 +170,7 @@ func (c *autoRollStatusCache) Get(includeError bool) *AutoRollStatus {
 	s := &AutoRollStatus{
 		GerritUrl:   c.gerritUrl,
 		LastRollRev: c.lastRollRev,
-		Mode:        c.mode,
+		Mode:        c.mode.Copy(),
 		Recent:      recent,
 		Status:      c.status,
 		ValidModes:  validModes,
@@ -216,7 +216,7 @@ func (c *autoRollStatusCache) set(s *AutoRollStatus) error {
 	}
 	c.gerritUrl = s.GerritUrl
 	c.lastRollRev = s.LastRollRev
-	c.mode = s.Mode
+	c.mode = s.Mode.Copy()
 	c.recent = recent
 	c.status = s.Status
 
@@ -241,7 +241,7 @@ func (r *AutoRoller) SetMode(m, user, message string) error {
 
 // isMode determines whether the bot is in the given mode.
 func (r *AutoRoller) isMode(s string) bool {
-	return r.modeHistory.CurrentMode() == s
+	return r.modeHistory.CurrentMode().Mode == s
 }
 
 // GetEmails returns the list of email addresses which are copied on DEPS rolls.

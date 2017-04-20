@@ -132,7 +132,8 @@ func modeJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var mode struct {
-		Mode string `json:"mode"`
+		Message string `json:"message"`
+		Mode    string `json:"mode"`
 	}
 	defer util.Close(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(&mode); err != nil {
