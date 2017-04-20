@@ -15,6 +15,7 @@ type ShortCommit struct {
 	Hash    string `json:"hash"`
 	Author  string `json:"author"`
 	Subject string `json:"subject"`
+	Date    string `json:date`
 }
 
 // LongCommit gives more detailed information about a commit.
