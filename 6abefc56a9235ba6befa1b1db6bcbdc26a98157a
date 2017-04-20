@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4c4a306f_88e2c6f9",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-20T17:44:36Z",
+      "side": 1,
+      "message": "I\u0027d much prefer to just get this from LongCommit.Timestamp rather than add to this already-expensive function.",
+      "range": {
+        "startLine": 126,
+        "startChar": 104,
+        "endLine": 126,
+        "endChar": 127
+      },
+      "revId": "6abefc56a9235ba6befa1b1db6bcbdc26a98157a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
