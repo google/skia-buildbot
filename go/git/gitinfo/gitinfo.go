@@ -123,12 +123,12 @@ func (g *GitInfo) details(hash string, includeBranchInfo bool) (*vcsinfo.LongCom
 	if c, ok := g.detailsCache[hash]; ok {
 		return c, nil
 	}
-	output, err := exec.RunCwd(g.dir, "git", "log", "-n", "1", "--format=format:%H%n%P%n%an%x20(%ae)%n%s%n%b", hash)
+	output, err := exec.RunCwd(g.dir, "git", "log", "-n", "1", "--format=format:%H%n%P%n%an%x20(%ae)%n%s%n%cd%n%b", "--date=short", hash)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to execute Git: %s", err)
 	}
-	lines := strings.SplitN(output, "\n", 5)
-	if len(lines) != 5 {
+	lines := strings.SplitN(output, "\n", 6)
+	if len(lines) != 6 {
 		return nil, fmt.Errorf("Failed to parse output of 'git log'.")
 	}
 	branches := map[string]bool{}
@@ -148,9 +148,10 @@ func (g *GitInfo) details(hash string, includeBranchInfo bool) (*vcsinfo.LongCom
 			Hash:    lines[0],
 			Author:  lines[2],
 			Subject: lines[3],
+			Date:    lines[4],
 		},
 		Parents:   parents,
-		Body:      lines[4],
+		Body:      lines[5],
 		Timestamp: g.timestamps[hash],
 		Branches:  branches,
 	}
