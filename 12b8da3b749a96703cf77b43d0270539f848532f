@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1e607537_7c1bf7b1",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-04-20T16:32:00Z",
+      "side": 1,
+      "message": "Add a comment that paper-dialog must be on the \"outside\", otherwise the modal shadow works incorrectly.",
+      "revId": "12b8da3b749a96703cf77b43d0270539f848532f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
