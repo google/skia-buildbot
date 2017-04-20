@@ -422,7 +422,7 @@ func (r *AutoRoller) makeRollResult(roll *autoroll.AutoRollIssue) string {
 	return autoroll.ROLL_RESULT_FAILURE
 }
 
-func (r *AutoRoller) isRollDone(roll *autoroll.AutoRollIssue) (bool, error) {
+func (r *AutoRoller) isDryRunDone(roll *autoroll.AutoRollIssue) (bool, error) {
 	if r.rollIntoAndroid {
 		i, err := r.gerrit.GetIssueProperties(roll.Issue)
 		if err != nil {
@@ -437,10 +437,14 @@ func (r *AutoRoller) isRollDone(roll *autoroll.AutoRollIssue) (bool, error) {
 		}
 		return false, nil
 	}
-	return len(roll.TryResults) > 0 && roll.AllTrybotsFinished(), nil
+	// The CQ removes the CQ+1 label when the dry run finishes, regardless
+	// of success or failure. Since we uploaded with the dry run label set,
+	// we know the roll is in progress if the label is still set, and done
+	// otherwise.
+	return !roll.CommitQueueDryRun, nil
 }
 
-func (r *AutoRoller) isRollSuccessful(roll *autoroll.AutoRollIssue) (bool, error) {
+func (r *AutoRoller) isDryRunSuccessful(roll *autoroll.AutoRollIssue) (bool, error) {
 	if r.rollIntoAndroid {
 		i, err := r.gerrit.GetIssueProperties(roll.Issue)
 		if err != nil {
@@ -474,14 +478,26 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 		sklog.Infof("Found current roll: %s", r.issueUrl(currentRoll.Issue))
 
 		if r.isMode(autoroll_modes.MODE_DRY_RUN) {
-			rollDone, err := r.isRollDone(currentRoll)
+			// If we have a normal (non-dry-run) roll running,
+			// switch it to a dry run.
+			if currentRoll.CommitQueue {
+				sklog.Infof("Setting dry-run bit on %s", r.gerrit.Url(currentRoll.Issue))
+				if err := r.setDryRun(currentRoll, true); err != nil {
+					return STATUS_ERROR, err
+				}
+				return STATUS_DRY_RUN_IN_PROGRESS, nil
+			}
+
+			// If the CQ has finished, determine if it was a success
+			// or failure.
+			rollDone, err := r.isDryRunDone(currentRoll)
 			if err != nil {
 				return STATUS_ERROR, err
 			}
 			if rollDone {
 				result := autoroll.ROLL_RESULT_DRY_RUN_FAILURE
 				status := STATUS_DRY_RUN_FAILURE
-				rollSuccessful, err := r.isRollSuccessful(currentRoll)
+				rollSuccessful, err := r.isDryRunSuccessful(currentRoll)
 				if err != nil {
 					return STATUS_ERROR, err
 				}
@@ -516,13 +532,6 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 					return status, nil
 				}
 			} else {
-				if !currentRoll.CommitQueueDryRun {
-					// Set it to dry-run only.
-					sklog.Infof("Setting dry-run bit on %s", r.gerrit.Url(currentRoll.Issue))
-					if err := r.setDryRun(currentRoll, true); err != nil {
-						return STATUS_ERROR, err
-					}
-				}
 				sklog.Infof("Dry run still in progress.")
 				return STATUS_DRY_RUN_IN_PROGRESS, nil
 			}
