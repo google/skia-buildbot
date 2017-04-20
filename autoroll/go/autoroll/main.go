@@ -141,7 +141,7 @@ func modeJsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := arb.SetMode(mode.Mode, login.LoggedInAs(r), "[Placeholder Message]"); err != nil {
+	if err := arb.SetMode(mode.Mode, login.LoggedInAs(r), mode.Message); err != nil {
 		httputils.ReportError(w, r, err, "Failed to set AutoRoll mode.")
 		return
 	}
