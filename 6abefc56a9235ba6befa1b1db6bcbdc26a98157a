@@ -22,6 +22,30 @@
       "revId": "6abefc56a9235ba6befa1b1db6bcbdc26a98157a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf0e8999_ddf44ab3",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-20T17:45:59Z",
+      "side": 1,
+      "message": "I tried that. It does not work (returns 0s). I think the part of the code that calculates it in gitinfo is never invoked for certain flows.",
+      "parentUuid": "4c4a306f_88e2c6f9",
+      "range": {
+        "startLine": 126,
+        "startChar": 104,
+        "endLine": 126,
+        "endChar": 127
+      },
+      "revId": "6abefc56a9235ba6befa1b1db6bcbdc26a98157a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
