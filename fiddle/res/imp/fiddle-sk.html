@@ -110,7 +110,10 @@
     }
 
     .source-select {
-      margin: 1em 0 0.5em 0;
+      color: darkgreen;
+      padding: 1em 1em;
+      background: #eee;
+      margin-left: 1em;
     }
 
     paper-input {
@@ -119,9 +122,15 @@
 
     #srgb,
     #f16,
-    #textonly {
+    #textonly
+    {
       display: block;
       margin-bottom: 4px;
+    }
+
+    #animated {
+      display: inline-block;
+      margin-right: 2em;
     }
 
     .textoutput {
@@ -140,6 +149,11 @@
       color: #666;
     }
 
+    h4 {
+      color: #444;
+      margin-left: 1em;
+    }
+
   </style>
   <template>
     <template is="dom-if" if="{{display_options}}">
@@ -147,18 +161,30 @@
         <summary-sk>Options</summary-sk>
         <div class=options>
           <paper-checkbox id=textonly title="A text-only fiddle." checked="{{textonly}}">Text Only <span class=hint>[Use SkDebugf()]</span></paper-checkbox>
-          <paper-checkbox id=srgb title="A text-only fiddle." checked="{{srgb}}" disabled="[[f16]]">sRGB</paper-checkbox>
-          <paper-checkbox id=f16  title="A text-only fiddle." checked="{{f16}}" disabled="[[_not(srgb)]]">F16</paper-checkbox>
-          <paper-input label="Width" size=5 auto-validate allowed-pattern="[0-9]" value="{{width}}" disabled="[[textonly]]"></paper-input>
-          <paper-input label="Height" size=5 auto-validate allowed-pattern="[0-9]" value="{{height}}" disabled="[[textonly]]"></paper-input>
-          <pre class=source-select>SkBitmap source;
-sk_sp&lt;SkImage> image;
-          </pre>
+          <paper-checkbox id=srgb title="sRGB" checked="{{srgb}}" disabled="[[f16]]">sRGB</paper-checkbox>
+          <paper-checkbox id=f16  title="Half floats" checked="{{f16}}" disabled="[[_not(srgb)]]">F16</paper-checkbox>
+          <div>
+            <paper-input label="Width" size=5 auto-validate allowed-pattern="[0-9]+" value="{{width}}"></paper-input>
+            <paper-input label="Height" size=5 auto-validate allowed-pattern="[0-9]+" value="{{height}}"></paper-input>
+          </div>
+          <paper-checkbox id=animated title="Produce an animation." checked="{{animated}}">Animation</paper-checkbox>
+          <paper-input label="duration (seconds)" size=10 required auto-validate error-message="Non-zero value required!" allowed-pattern="[0-9]+" value="{{duration}}" disabled="[[_not(animated)]]"></paper-input>
+          <div hidden="[[_not(animated)]]">
+            <h4>These globals are now defined:</h4>
+            <pre class=source-select>double duration; // The requested duration of the animation.
+double frame;    // A value in [0, 1] of where we are in the animation.</pre>
+          </div>
+          <h3>Optional source image</h3>
           <iron-selector selected="{{source}}" attr-for-selected="name" class="layout horizontal wrap">
             <template is="dom-repeat" items="{{sources}}">
               <img width=64 height=64 name="{{item}}" src="[[domain]]/s/{{item}}">
             </template>
           </iron-selector>
+          <div hidden="[[_not(source)]]">
+            <h4>These globals are now defined:</h4>
+            <pre class=source-select>SkBitmap source;
+sk_sp&lt;SkImage> image;</pre>
+          </div>
         </div>
       </details-sk>
     </template>
@@ -287,6 +313,16 @@ sk_sp&lt;SkImage> image;
       f16: {
         type: Boolean,
         value: false,
+        reflectToAttribute: true,
+      },
+      animated: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true,
+      },
+      duration: {
+        type: Number,
+        value: 2,
         reflectToAttribute: true,
       },
       source: {
