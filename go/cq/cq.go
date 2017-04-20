@@ -87,8 +87,8 @@ func getCQTryBots(repo string) ([]string, error) {
 	tryJobs := []string{}
 	for _, bucket := range cqCfg.Verifiers.GetTryJob().GetBuckets() {
 		for _, builder := range bucket.GetBuilders() {
-			if builder.GetExperimentPercentage() > 0 {
-				// Exclude experimental builders.
+			if builder.GetExperimentPercentage() > 0 && builder.GetExperimentPercentage() < 100 {
+				// Exclude experimental builders, unless running for all CLs.
 				continue
 			}
 			if util.ContainsAny(builder.GetName(), PRESUBMIT_BOTS) {
