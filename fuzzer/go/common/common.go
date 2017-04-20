@@ -98,6 +98,13 @@ var fuzzers = map[string]FuzzerInfo{
 		ExtraBugLabels:      []string{"Area-ImageDecoder"},
 		ArgsAfterExecutable: []string{"--type", "icc", "--bytes"},
 	},
+	"debug_gl_canvas": {
+		PrettyName:          "Canvas to debug GL backend",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "halcanary",
+		ExtraBugLabels:      nil,
+		ArgsAfterExecutable: []string{"--type", "api", "--name", "DebugGLCanvas", "--bytes"},
+	},
 	"n32_canvas": {
 		PrettyName:          "Canvas to raster n32 backend",
 		Status:              EXPERIMENTAL_FUZZER,
