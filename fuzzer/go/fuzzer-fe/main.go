@@ -23,6 +23,7 @@ import (
 	fcommon "go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/data"
+	"go.skia.org/infra/fuzzer/go/download_skia"
 	"go.skia.org/infra/fuzzer/go/frontend"
 	"go.skia.org/infra/fuzzer/go/frontend/fuzzcache"
 	"go.skia.org/infra/fuzzer/go/frontend/fuzzpool"
@@ -30,6 +31,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/frontend/syncer"
 	"go.skia.org/infra/fuzzer/go/issues"
 	fstorage "go.skia.org/infra/fuzzer/go/storage"
+	"go.skia.org/infra/fuzzer/go/version_watcher"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
@@ -61,7 +63,7 @@ var (
 
 	storageClient *storage.Client = nil
 
-	versionWatcher *fcommon.VersionWatcher = nil
+	versionWatcher *version_watcher.VersionWatcher = nil
 
 	fuzzSyncer *syncer.FuzzSyncer = nil
 
@@ -146,9 +148,10 @@ func main() {
 	if err := setupOAuth(); err != nil {
 		sklog.Fatal(err)
 	}
+	client := fstorage.NewFuzzerGCSClient(storageClient, config.GCS.Bucket)
 
 	go func() {
-		if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Common.SkiaRoot, &config.Common, !*local); err != nil {
+		if err := download_skia.AtGCSRevision(client, config.Common.SkiaRoot, &config.Common, !*local); err != nil {
 			sklog.Fatalf("Problem downloading Skia: %s", err)
 		}
 
@@ -170,7 +173,7 @@ func main() {
 		}
 		fuzzSyncer.SetGCSLoader(gsLoader)
 		updater := frontend.NewVersionUpdater(gsLoader, fuzzSyncer)
-		versionWatcher = fcommon.NewVersionWatcher(storageClient, config.Common.VersionCheckPeriod, nil, updater.HandleCurrentVersion)
+		versionWatcher = version_watcher.New(client, config.Common.VersionCheckPeriod, nil, updater.HandleCurrentVersion)
 		versionWatcher.Start()
 
 		err = <-versionWatcher.Status
