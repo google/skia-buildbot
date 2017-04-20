@@ -43,7 +43,12 @@
             "subject": "Roll src/third_party/skia/ 5a06df468..450ee8f26 (5 commits).",
             "tryResults": []
         },
-        "mode": "running",
+        "mode": {
+          "message": "Let's roll!",
+          "mode": "running",
+          "time": "2015-10-23T15:05:05.47221Z",
+          "user": "user@google.com",
+        },
         "recent": [
             {
                 "closed": false,
@@ -207,17 +212,18 @@
     sk.post = function(url, body) {
       return new Promise(function(resolve, reject) {
         var res = JSON.parse(body);
-        var newMode = fakeStatus["validModes"][res.mode];
-        if (newMode) {
-          fakeStatus["mode"] = newMode;
+        res["user"] = "you@google.com";
+        var validMode = fakeStatus["validModes"].indexOf(res.mode);
+        if (validMode) {
+          fakeStatus["mode"] = res;
           resolve(JSON.stringify(fakeStatus));
         } else {
-          reject("Invalid mode: " + res);
+          reject("Invalid mode: " + res.mode);
         }
       });
     };
   </script>
-  <link rel=import href="/res/imp/arb-status-sk.html">
+  <link rel=import href="arb-status-sk.html">
   <link rel=import href="/res/common/imp/error-toast-sk.html">
   <link rel=import href="/res/common/imp/login.html">
 </head>
