@@ -45,13 +45,13 @@ func TestModeHistory(t *testing.T) {
 	expect := []*ModeChange{mc0}
 	setModeAndCheck := func(mc *ModeChange) {
 		assert.NoError(t, mh.Add(mc.Mode, mc.User, mc.Message))
-		assert.Equal(t, mc.Mode, mh.CurrentMode())
+		assert.Equal(t, mc.Mode, mh.CurrentMode().Mode)
 		expect = append([]*ModeChange{mc}, expect...)
 		check(expect, mh.GetHistory())
 	}
 
 	// Ensure that we set our initial state properly.
-	assert.Equal(t, mc0.Mode, mh.CurrentMode())
+	assert.Equal(t, mc0.Mode, mh.CurrentMode().Mode)
 	check(expect, mh.GetHistory())
 
 	// Change the mode.

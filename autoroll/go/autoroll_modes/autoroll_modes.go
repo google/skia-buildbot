@@ -33,6 +33,16 @@ type ModeChange struct {
 	User    string    `json:"user"`
 }
 
+// Copy returns a copy of the ModeChange.
+func (c *ModeChange) Copy() *ModeChange {
+	return &ModeChange{
+		Message: c.Message,
+		Mode:    c.Mode,
+		Time:    c.Time,
+		User:    c.User,
+	}
+}
+
 // ModeHistory is a struct used for storing and retrieving mode change history.
 type ModeHistory struct {
 	db      *db
@@ -83,14 +93,19 @@ func (mh *ModeHistory) Add(m, user, message string) error {
 
 // CurrentMode returns the current mode, which is the most recently added
 // ModeChange.
-func (mh *ModeHistory) CurrentMode() string {
+func (mh *ModeHistory) CurrentMode() *ModeChange {
 	mh.mtx.RLock()
 	defer mh.mtx.RUnlock()
 	if len(mh.history) > 0 {
-		return mh.history[0].Mode
+		return mh.history[0].Copy()
 	} else {
 		sklog.Errorf("Mode history is empty even after initialization!")
-		return MODE_STOPPED
+		return &ModeChange{
+			Message: "Mode history is empty!",
+			Mode:    MODE_STOPPED,
+			Time:    time.Now(),
+			User:    "autoroller",
+		}
 	}
 }
 
