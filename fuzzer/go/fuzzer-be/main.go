@@ -19,9 +19,11 @@ import (
 	fcommon "go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/data"
+	"go.skia.org/infra/fuzzer/go/download_skia"
 	"go.skia.org/infra/fuzzer/go/generator"
 	"go.skia.org/infra/fuzzer/go/issues"
 	fstorage "go.skia.org/infra/fuzzer/go/storage"
+	"go.skia.org/infra/fuzzer/go/version_watcher"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
@@ -86,7 +88,8 @@ func main() {
 	if err := setupOAuth(); err != nil {
 		sklog.Fatalf("Problem with OAuth: %s", err)
 	}
-	if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Common.SkiaRoot, &config.Common, !*local); err != nil {
+	client := fstorage.NewFuzzerGCSClient(storageClient, config.GCS.Bucket)
+	if err := download_skia.AtGCSRevision(client, config.Common.SkiaRoot, &config.Common, !*local); err != nil {
 		sklog.Fatalf("Problem downloading Skia: %s", err)
 	}
 
@@ -107,8 +110,6 @@ func main() {
 	} else {
 		sklog.Infof("Going to allocate %d cpus (could go up to %d)", neededCPUs, totalCPUs)
 	}
-
-	client := fstorage.NewFuzzerGCSClient(storageClient, config.GCS.Bucket)
 
 	for _, category := range *fuzzesToRun {
 		gen := generator.New(category)
@@ -144,7 +145,7 @@ func main() {
 
 	updater := backend.NewVersionUpdater(client, agg, generators)
 	sklog.Info("Starting version watcher")
-	watcher := fcommon.NewVersionWatcher(storageClient, config.Common.VersionCheckPeriod, updater.UpdateToNewSkiaVersion, nil)
+	watcher := version_watcher.New(client, config.Common.VersionCheckPeriod, updater.UpdateToNewSkiaVersion, nil)
 	watcher.Start()
 
 	err = <-watcher.Status

@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/aggregator"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
+	"go.skia.org/infra/fuzzer/go/download_skia"
 	"go.skia.org/infra/fuzzer/go/generator"
 	fstorage "go.skia.org/infra/fuzzer/go/storage"
 	"go.skia.org/infra/go/gcs"
@@ -47,7 +48,7 @@ func (v *VersionUpdater) UpdateToNewSkiaVersion(newRevision string) error {
 	}
 
 	// sync skia to version, which sets config.Common.SkiaVersion
-	if err := common.DownloadSkia(newRevision, config.Common.SkiaRoot, &config.Common, true); err != nil {
+	if err := download_skia.AtRevision(newRevision, config.Common.SkiaRoot, &config.Common, true); err != nil {
 		return fmt.Errorf("Could not sync skia to %s: %s", newRevision, err)
 	}
 

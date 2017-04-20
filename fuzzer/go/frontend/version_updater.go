@@ -3,8 +3,8 @@ package frontend
 import (
 	"fmt"
 
-	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
+	"go.skia.org/infra/fuzzer/go/download_skia"
 	"go.skia.org/infra/fuzzer/go/frontend/gcsloader"
 	"go.skia.org/infra/fuzzer/go/frontend/syncer"
 	"go.skia.org/infra/fuzzer/go/storage"
@@ -33,7 +33,7 @@ func NewVersionUpdater(g *gcsloader.GCSLoader, syncer *syncer.FuzzSyncer) *Versi
 // LoadFreshFromGoogleStorage.
 func (v *VersionUpdater) HandleCurrentVersion(currentHash string) error {
 	// Make sure skia version is at the proper version.  This also sets config.Common.SkiaVersion.
-	if err := common.DownloadSkia(currentHash, config.Common.SkiaRoot, &config.Common, false); err != nil {
+	if err := download_skia.AtRevision(currentHash, config.Common.SkiaRoot, &config.Common, false); err != nil {
 		return fmt.Errorf("Could not update Skia to current version %s: %s", currentHash, err)
 	}
 	if err := v.gcsLoader.LoadFreshFromGoogleStorage(); err != nil {
