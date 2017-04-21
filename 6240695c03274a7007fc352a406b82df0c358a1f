@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0ba4b1e3_9f864440",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 887,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-21T15:02:04Z",
+      "side": 1,
+      "message": "Good catch. Fixed to default to rs.Repo.",
+      "parentUuid": "dd96cd44_d1ebe36d",
+      "range": {
+        "startLine": 887,
+        "startChar": 21,
+        "endLine": 887,
+        "endChar": 33
+      },
+      "revId": "6240695c03274a7007fc352a406b82df0c358a1f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "66d7e239_05dabc6d",
         "filename": "task_scheduler/go/tryjobs/tryjobs.go",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2017-04-21T13:51:41Z",
       "side": 1,
       "message": "Depending on which repo is \"parent\" and which repo is \"child,\" this means we need repos for which we don\u0027t schedule tasks in our repograph.Map. Currently we assume all entries in the map should have tasks scheduled. https://skia.googlesource.com/buildbot/+/master/task_scheduler/go/scheduling/task_scheduler.go#1003",
+      "range": {
+        "startLine": 254,
+        "startChar": 0,
+        "endLine": 257,
+        "endChar": 2
+      },
+      "revId": "6240695c03274a7007fc352a406b82df0c358a1f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a3f3619_2d113637",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-21T15:02:04Z",
+      "side": 1,
+      "message": "The parent repo (topRepoUrl here) is the one whose task scheduler instance will receive the try request.  As long as the child repo is in projectRepoMapping, this won\u0027t be a problem.",
+      "parentUuid": "66d7e239_05dabc6d",
       "range": {
         "startLine": 254,
         "startChar": 0,
