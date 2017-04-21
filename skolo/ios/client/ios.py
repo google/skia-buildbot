@@ -127,13 +127,13 @@ def _get_kv_pairs(output):
           nested.append(v)
       else:
         # If the value is an array it has this format: key_name[x]
-        # where x is an integer indicating the number of elements. 
+        # where x is an integer indicating the number of elements.
         m = re.match(r'^(.*)\[[0-9]*\]$', k)
         if m:
           k = m.group(1)
           nested = []
           v = nested
-        # If 'v' is empty then we expect a hash map. 
+        # If 'v' is empty then we expect a hash map.
         elif v == '':
           nested = {}
           v = nested
@@ -173,3 +173,10 @@ def _run_cmd(cmd):
       time.sleep(backoff)
       backoff *= 2
 
+# TODO(stephana): Move the main program below into a separate script
+# or into the skia repo entirely.
+
+if __name__=='__main__':
+  dev = ios_get_devices()[0]
+  dev.get_ready()
+  print "Successfully set up device."
