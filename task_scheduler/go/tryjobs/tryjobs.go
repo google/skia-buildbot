@@ -238,16 +238,24 @@ func (t *TryJobIntegrator) sendHeartbeats(now time.Time, jobs []*db.Job) error {
 	return nil
 }
 
-func (t *TryJobIntegrator) getRepo(project string) (string, *repograph.Graph, error) {
-	url, ok := t.projectRepoMapping[project]
+// getRepo uses the buildbucket properties to determine what top-level repo
+// the try job wants us to sync, and what repo the patch is for. Returns the
+// top level repo URL, its associated repograph.Graph instance, the patch repo
+// URL, or an error.
+func (t *TryJobIntegrator) getRepo(props *buildbucket.Properties) (string, *repograph.Graph, string, error) {
+	patchRepoUrl, ok := t.projectRepoMapping[props.PatchProject]
 	if !ok {
-		return "", nil, fmt.Errorf("Unknown patch project %q", project)
+		return "", nil, "", fmt.Errorf("Unknown patch project %q", props.PatchProject)
 	}
-	r, ok := t.rm[url]
+	topRepoUrl := patchRepoUrl
+	if props.TryJobRepo != "" {
+		topRepoUrl = props.TryJobRepo
+	}
+	r, ok := t.rm[topRepoUrl]
 	if !ok {
-		return "", nil, fmt.Errorf("Unknown repo %q", url)
+		return "", nil, "", fmt.Errorf("Unknown repo %q", topRepoUrl)
 	}
-	return url, r, nil
+	return topRepoUrl, r, patchRepoUrl, nil
 }
 
 func (t *TryJobIntegrator) getRevision(repo *repograph.Graph, revision string) (string, error) {
@@ -310,11 +318,11 @@ func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiBuildMessage, 
 	}
 
 	// Obtain and validate the RepoState.
-	repoName, repo, err := t.getRepo(params.Properties.PatchProject)
+	topRepoUrl, topRepoGraph, patchRepoUrl, err := t.getRepo(&params.Properties)
 	if err != nil {
 		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Unable to find repo: %s", err))
 	}
-	revision, err := t.getRevision(repo, params.Properties.Revision)
+	revision, err := t.getRevision(topRepoGraph, params.Properties.Revision)
 	if err != nil {
 		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid revision: %s", err))
 	}
@@ -333,11 +341,12 @@ func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiBuildMessage, 
 	}
 	rs := db.RepoState{
 		Patch: db.Patch{
-			Server:   server,
-			Issue:    fmt.Sprintf("%d", issue),
-			Patchset: patchset,
+			Server:    server,
+			Issue:     fmt.Sprintf("%d", issue),
+			PatchRepo: patchRepoUrl,
+			Patchset:  patchset,
 		},
-		Repo:     repoName,
+		Repo:     topRepoUrl,
 		Revision: revision,
 	}
 	if !rs.Valid() || !rs.IsTryJob() {
