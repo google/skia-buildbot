@@ -4,9 +4,11 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -20,14 +22,20 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
+const (
+	// FPS is the Frames Per Second when generating an animation.
+	FPS = 15
+)
+
 // flags
 var (
 	local      = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	fiddleRoot = flag.String("fiddle_root", "", "Directory location where all the work is done.")
 	gitHash    = flag.String("git_hash", "", "The version of Skia code to run against.")
+	duration   = flag.Float64("duration", 0.0, "If an animation, the duration of the animation. 0 for no animation.")
 )
 
-func serializeOutput(res types.Result) {
+func serializeOutput(res *types.Result) {
 	enc := json.NewEncoder(os.Stdout)
 	if err := enc.Encode(res); err != nil {
 		fmt.Printf("Failed to encode: %s", err)
@@ -36,7 +44,7 @@ func serializeOutput(res types.Result) {
 
 func main() {
 	common.Init()
-	res := types.Result{
+	res := &types.Result{
 		Compile: types.Compile{},
 		Execute: types.Execute{
 			Errors: "",
@@ -80,6 +88,19 @@ func main() {
 		return
 	}
 
+	// If this is an animated fiddle then:
+	//   - Create tmpdir to store PNGs.
+	//   - Loop over the following code to generate each frame of the animation.
+	//   -   Pass the duration and frame via cmd line flags to fiddle.
+	//   -   Decode and write PNGs (CPU+GPU) to their temp location.
+	//   - Run ffmpeg over the resulting PNG's to generate the webm files.
+	//   - Clean up tmp file.
+	//   - Encode resulting webm files as base64 strings and return in JSON.
+	//
+	// If we run ffmpeg here is must be present in the container.
+	// Notes
+	// - duration and is_animation need to be passed in via flags.
+
 	// Now that we've built fiddle we want to run it as:
 	//
 	//    $ bin/fiddle_secwrap out/fiddle
@@ -89,12 +110,64 @@ func main() {
 	//    $ out/Release/fiddle
 	//
 	// if running locally.
+
+	if *duration == 0 {
+		oneStep(checkout, res, 0.0)
+		serializeOutput(res)
+	} else {
+		FRAMES := int(FPS * (*duration))
+		tmpDir, err := ioutil.TempDir("", "animation")
+		if err != nil {
+			res.Execute.Errors = fmt.Errorf("Failed to create tmp dir for storing animation PNGs: %s", err)
+			serializeOutput(res)
+			return
+		}
+		for i := 0; i < FRAMES; i++ {
+			frame := float64(i) / float64(FRAMES)
+			oneStep(checkout, res, frame)
+			// Check for errors.
+			if res.Execute.Errors != "" {
+				serializeOutput(res)
+				return
+			}
+			// Extract CPU and GPU pngs to a tmp directory.
+			if err := extractPNG(res.Execute.Output.Raster, res, i, "CPU", tmpDir); err != nil {
+				serializeOutput(res)
+				return
+			}
+			if err := extractPNG(res.Execute.Output.Gpu, res, i, "GPU", tmpDir); err != nil {
+				serializeOutput(res)
+				return
+			}
+		}
+		// ffmpeg -r $FPS -pattern_type glob -i '*.png' -c:v libvpx-vp9 -lossless 1 output.webm
+		// Run ffmpeg for CPU and GPU.
+		// Encode webm's into JSON in res.
+		serializeOutput(res)
+	}
+}
+
+func extractPNG(b64 string, res *types.Result, i int, prefix string, tmpDir string) error {
+	body, err := base64.StdEncoding.DecodeString(b64)
+	if err != nil {
+		res.Execute.Errors = fmt.Errorf("Failed to decode frame %d of %s: %s", i, prefix, err)
+		return err
+	}
+	if err := ioutil.WriteFile(path.Join(tmpDir, fmt.Sprintf("%s_%05d.png", prefix, i)), body, 0600); err != nil {
+		res.Execute.Errors = fmt.Errorf("Failed to write frame %d of %s as a PNG: %s", i, prefix, err)
+		return err
+	}
+	return nil
+}
+
+func oneStep(checkout string, res *types.Result, frame float64) {
 	name := path.Join(*fiddleRoot, "bin", "fiddle_secwrap")
 	args := []string{path.Join(checkout, "skia", "out", "Release", "fiddle")}
 	if *local {
 		name = path.Join(checkout, "skia", "out", "Release", "fiddle")
 		args = []string{}
 	}
+	args = append(args, "--duration", fmt.Sprintf("%f", *duration), "--frame", fmt.Sprintf("%f", frame))
 
 	stderr := bytes.Buffer{}
 	stdout := bytes.Buffer{}
@@ -124,6 +197,4 @@ func main() {
 		res.Execute.Errors += err.Error()
 		res.Execute.Errors += fmt.Sprintf("\nOutput was %q", stdout.Bytes())
 	}
-
-	serializeOutput(res)
 }
