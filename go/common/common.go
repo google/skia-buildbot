@@ -35,6 +35,12 @@ var (
 	PUBLIC_REPOS  = []string{REPO_SKIA, REPO_SKIA_INFRA}
 	PRIVATE_REPOS = []string{REPO_SKIA_INTERNAL_TEST}
 	ALL_REPOS     = append(PUBLIC_REPOS, PRIVATE_REPOS...)
+
+	LUCI_PROJECT_MAPPING = map[string]string{
+		"skia":          REPO_SKIA,
+		"skiabuildbot":  REPO_SKIA_INFRA,
+		"internal_test": REPO_SKIA_INTERNAL_TEST,
+	}
 )
 
 // Init runs commonly-used initialization metrics.
