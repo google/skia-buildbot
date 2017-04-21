@@ -8,6 +8,7 @@ import (
 
 	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
@@ -118,18 +119,31 @@ func TestGetRepo(t *testing.T) {
 	trybots, _, _, cleanup := setup(t)
 	defer cleanup()
 
-	url, r, err := trybots.getRepo(patchProject)
-	assert.NoError(t, err)
-	repo := "none"
-	for k, _ := range trybots.rm {
-		repo = k
-		break
+	props := &buildbucket.Properties{
+		PatchProject: patchProject,
 	}
+
+	// Test basic.
+	url, r, patchRepo, err := trybots.getRepo(props)
+	assert.NoError(t, err)
+	repo := trybots.projectRepoMapping[patchProject]
 	assert.Equal(t, repo, url)
+	assert.Equal(t, repo, patchRepo)
 	assert.NotNil(t, r)
 
-	_, _, err = trybots.getRepo("bogus")
+	// Bogus repo.
+	props.PatchProject = "bogus"
+	_, _, _, err = trybots.getRepo(props)
 	assert.EqualError(t, err, "Unknown patch project \"bogus\"")
+
+	// Cross-repo try job.
+	parentUrl := trybots.projectRepoMapping[parentProject]
+	props.PatchProject = patchProject
+	props.TryJobRepo = parentUrl
+	url, r, patchRepo, err = trybots.getRepo(props)
+	assert.NoError(t, err)
+	assert.Equal(t, parentUrl, url)
+	assert.Equal(t, repo, patchRepo)
 }
 
 func TestGetRevision(t *testing.T) {
@@ -137,7 +151,10 @@ func TestGetRevision(t *testing.T) {
 	defer cleanup()
 
 	// Get the (only) commit from the repo.
-	_, r, err := trybots.getRepo(patchProject)
+	props := &buildbucket.Properties{
+		PatchProject: patchProject,
+	}
+	_, r, _, err := trybots.getRepo(props)
 	assert.NoError(t, err)
 	c, err := r.Repo().RevParse("origin/master")
 	assert.NoError(t, err)

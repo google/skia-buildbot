@@ -32,6 +32,7 @@ const (
 	VARIABLE_CODEREVIEW_SERVER = "CODEREVIEW_SERVER"
 	VARIABLE_ISSUE             = "ISSUE"
 	VARIABLE_ISSUE_SHORT       = "ISSUE_SHORT"
+	VARIABLE_PATCH_REPO        = "PATCH_REPO"
 	VARIABLE_PATCH_STORAGE     = "PATCH_STORAGE"
 	VARIABLE_PATCHSET          = "PATCHSET"
 	VARIABLE_REPO              = "REPO"
@@ -43,6 +44,7 @@ var (
 	PLACEHOLDER_CODEREVIEW_SERVER = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_CODEREVIEW_SERVER)
 	PLACEHOLDER_ISSUE             = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_ISSUE)
 	PLACEHOLDER_ISSUE_SHORT       = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_ISSUE_SHORT)
+	PLACEHOLDER_PATCH_REPO        = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_PATCH_REPO)
 	PLACEHOLDER_PATCH_STORAGE     = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_PATCH_STORAGE)
 	PLACEHOLDER_PATCHSET          = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_PATCHSET)
 	PLACEHOLDER_REPO              = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_REPO)
@@ -858,11 +860,17 @@ func tempGitRepoBotUpdate(rs db.RepoState, depotToolsDir, gitCacheDir, tmp strin
 		return nil, err
 	}
 
+	patchRepo := rs.Repo
+	patchRepoName := projectName
+	if rs.PatchRepo != "" {
+		patchRepo = rs.PatchRepo
+		patchRepoName = strings.TrimSuffix(path.Base(rs.PatchRepo), ".git")
+	}
 	outputJson := path.Join(tmp, "output_json")
 	cmd := []string{
 		"python", "-u", botUpdatePath,
 		"--spec", spec,
-		"--patch_root", projectName,
+		"--patch_root", patchRepoName,
 		"--revision_mapping_file", revisionMappingFile,
 		"--git-cache-dir", gitCacheDir,
 		"--output_json", outputJson,
@@ -878,7 +886,7 @@ func tempGitRepoBotUpdate(rs db.RepoState, depotToolsDir, gitCacheDir, tmp strin
 		} else {
 			gerritRef := fmt.Sprintf("refs/changes/%s/%s/%s", rs.Issue[len(rs.Issue)-2:], rs.Issue, rs.Patchset)
 			cmd = append(cmd, []string{
-				"--gerrit_repo", rs.Repo,
+				"--gerrit_repo", patchRepo,
 				"--gerrit_ref", gerritRef,
 			}...)
 		}

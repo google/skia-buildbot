@@ -58,6 +58,7 @@ const (
 	gerritIssue    = "2112"
 	gerritPatchset = "3"
 	patchProject   = "skia"
+	parentProject  = "parent-project"
 )
 
 var (
@@ -90,11 +91,15 @@ func setup(t *testing.T) (*TryJobIntegrator, *git_testutils.GitBuilder, *mockhtt
 	// Create a ref for a fake patch.
 	gb.CreateFakeGerritCLGen(rs.Issue, rs.Patchset)
 
+	// Create a second repo, for cross-repo tryjob testing.
+	gb2 := git_testutils.GitInit(t)
+	gb2.CommitGen("somefile")
+
 	// Create repo map.
 	tmpDir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
-	rm, err := repograph.NewMap([]string{gb.RepoUrl()}, tmpDir)
+	rm, err := repograph.NewMap([]string{gb.RepoUrl(), gb2.RepoUrl()}, tmpDir)
 	assert.NoError(t, err)
 
 	// Set up other TryJobIntegrator inputs.
@@ -106,7 +111,8 @@ func setup(t *testing.T) (*TryJobIntegrator, *git_testutils.GitBuilder, *mockhtt
 	assert.NoError(t, err)
 	mock := mockhttpclient.NewURLMock()
 	projectRepoMapping := map[string]string{
-		patchProject: gb.RepoUrl(),
+		patchProject:  gb.RepoUrl(),
+		parentProject: gb2.RepoUrl(),
 	}
 	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, window, projectRepoMapping, rm, taskCfgCache)
 	assert.NoError(t, err)

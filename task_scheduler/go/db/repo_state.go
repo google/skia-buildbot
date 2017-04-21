@@ -8,9 +8,10 @@ import (
 
 // Patch describes a patch which may be applied to a code checkout.
 type Patch struct {
-	Issue    string `json:"issue"`
-	Patchset string `json:"patchset"`
-	Server   string `json:"server"`
+	Issue     string `json:"issue"`
+	PatchRepo string `json:"patch_repo"`
+	Patchset  string `json:"patchset"`
+	Server    string `json:"server"`
 }
 
 // Copy returns a copy of the Patch.
@@ -26,11 +27,12 @@ func (p Patch) Valid() bool {
 
 // Empty returns true iff all of the Patch's fields are empty.
 func (p Patch) Empty() bool {
-	return p.Issue == "" && p.Patchset == "" && p.Server == ""
+	return p.Issue == "" && p.PatchRepo == "" && p.Patchset == "" && p.Server == ""
 }
 
 // Full returns true iff all of the Patch's fields are filled in.
 func (p Patch) Full() bool {
+	// p.PatchRepo is left out for backward compatibility.
 	return p.Issue != "" && p.Patchset != "" && p.Server != ""
 }
 
