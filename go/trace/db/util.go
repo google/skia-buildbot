@@ -49,7 +49,7 @@ func setupClientServerForTesting(f fatalf) (DB, cleanup) {
 	}()
 
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(port, grpc.WithInsecure())
+	conn, err := grpc.Dial(port, grpc.WithInsecure(), grpc.WithMaxMsgSize(MAX_MESSAGE_SIZE))
 	if err != nil {
 		f("did not connect: %v", err)
 	}
