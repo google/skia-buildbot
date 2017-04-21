@@ -81,6 +81,9 @@ const (
 	// CHUNK_SIZE is the maximum number of values that are added to the datastore
 	// in any one gRPC call.
 	CHUNK_SIZE = 5000
+
+	// MAX_MESSAGE_SIZE is the maximum grpc message size.
+	MAX_MESSAGE_SIZE = 1024 * 1024 * 1024
 )
 
 // TsDB is an implementation of DB that stores traces in traceservice.
@@ -506,7 +509,7 @@ func NewTraceServiceDBFromAddress(traceServiceAddr string, traceBuilder tiling.T
 		return nil, fmt.Errorf("Did not get address for trace services.")
 	}
 
-	conn, err := grpc.Dial(traceServiceAddr, grpc.WithInsecure())
+	conn, err := grpc.Dial(traceServiceAddr, grpc.WithInsecure(), grpc.WithMaxMsgSize(MAX_MESSAGE_SIZE))
 	if err != nil {
 		return nil, fmt.Errorf("Unable to connnect to trace service at %s. Got error: %s", traceServiceAddr, err)
 	}

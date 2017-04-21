@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sharedb"
 	"go.skia.org/infra/go/sklog"
+	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/trace/service"
 	"google.golang.org/grpc"
 )
@@ -43,7 +44,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("failed to listen: %v", err)
 	}
-	s := grpc.NewServer()
+	s := grpc.NewServer(grpc.MaxMsgSize(tracedb.MAX_MESSAGE_SIZE))
 	traceservice.RegisterTraceServiceServer(s, ts)
 
 	// If a directory for sharedb was registered add a the sharedb service.

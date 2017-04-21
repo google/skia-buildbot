@@ -79,6 +79,27 @@ func (m *CommitID) String() string            { return proto.CompactTextString(m
 func (*CommitID) ProtoMessage()               {}
 func (*CommitID) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
 
+func (m *CommitID) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *CommitID) GetSource() string {
+	if m != nil {
+		return m.Source
+	}
+	return ""
+}
+
+func (m *CommitID) GetTimestamp() int64 {
+	if m != nil {
+		return m.Timestamp
+	}
+	return 0
+}
+
 // Params are the key-value pairs for a single trace.
 //
 // All of the key-value parameters should be present, the ones used to
@@ -108,6 +129,13 @@ func (m *MissingParamsRequest) String() string            { return proto.Compact
 func (*MissingParamsRequest) ProtoMessage()               {}
 func (*MissingParamsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
 
+func (m *MissingParamsRequest) GetTraceids() []string {
+	if m != nil {
+		return m.Traceids
+	}
+	return nil
+}
+
 type MissingParamsResponse struct {
 	Traceids []string `protobuf:"bytes,1,rep,name=traceids" json:"traceids,omitempty"`
 }
@@ -116,6 +144,13 @@ func (m *MissingParamsResponse) Reset()                    { *m = MissingParamsR
 func (m *MissingParamsResponse) String() string            { return proto.CompactTextString(m) }
 func (*MissingParamsResponse) ProtoMessage()               {}
 func (*MissingParamsResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{4} }
+
+func (m *MissingParamsResponse) GetTraceids() []string {
+	if m != nil {
+		return m.Traceids
+	}
+	return nil
+}
 
 type ParamsPair struct {
 	Key    string            `protobuf:"bytes,1,opt,name=key" json:"key,omitempty"`
@@ -126,6 +161,13 @@ func (m *ParamsPair) Reset()                    { *m = ParamsPair{} }
 func (m *ParamsPair) String() string            { return proto.CompactTextString(m) }
 func (*ParamsPair) ProtoMessage()               {}
 func (*ParamsPair) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{5} }
+
+func (m *ParamsPair) GetKey() string {
+	if m != nil {
+		return m.Key
+	}
+	return ""
+}
 
 func (m *ParamsPair) GetParams() map[string]string {
 	if m != nil {
@@ -176,6 +218,20 @@ func (m *ValuePair) Reset()                    { *m = ValuePair{} }
 func (m *ValuePair) String() string            { return proto.CompactTextString(m) }
 func (*ValuePair) ProtoMessage()               {}
 func (*ValuePair) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{8} }
+
+func (m *ValuePair) GetKey() string {
+	if m != nil {
+		return m.Key
+	}
+	return ""
+}
+
+func (m *ValuePair) GetValue() []byte {
+	if m != nil {
+		return m.Value
+	}
+	return nil
+}
 
 type AddRequest struct {
 	// The id of the commit/trybot we are adding data about.
@@ -231,6 +287,20 @@ func (m *ListRequest) String() string            { return proto.CompactTextStrin
 func (*ListRequest) ProtoMessage()               {}
 func (*ListRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{11} }
 
+func (m *ListRequest) GetBegin() int64 {
+	if m != nil {
+		return m.Begin
+	}
+	return 0
+}
+
+func (m *ListRequest) GetEnd() int64 {
+	if m != nil {
+		return m.End
+	}
+	return 0
+}
+
 type ListResponse struct {
 	// A list of CommitIDs that fall between the given timestamps in
 	// ListRequest.
@@ -282,6 +352,13 @@ func (m *GetValuesResponse) GetValues() []*ValuePair {
 	return nil
 }
 
+func (m *GetValuesResponse) GetMd5() string {
+	if m != nil {
+		return m.Md5
+	}
+	return ""
+}
+
 type GetParamsRequest struct {
 	// A list of traceids.
 	Traceids []string `protobuf:"bytes,1,rep,name=traceids" json:"traceids,omitempty"`
@@ -291,6 +368,13 @@ func (m *GetParamsRequest) Reset()                    { *m = GetParamsRequest{} 
 func (m *GetParamsRequest) String() string            { return proto.CompactTextString(m) }
 func (*GetParamsRequest) ProtoMessage()               {}
 func (*GetParamsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{15} }
+
+func (m *GetParamsRequest) GetTraceids() []string {
+	if m != nil {
+		return m.Traceids
+	}
+	return nil
+}
 
 type GetParamsResponse struct {
 	Params []*ParamsPair `protobuf:"bytes,4,rep,name=params" json:"params,omitempty"`
@@ -319,6 +403,20 @@ func (m *GetValuesRawResponse) String() string            { return proto.Compact
 func (*GetValuesRawResponse) ProtoMessage()               {}
 func (*GetValuesRawResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{17} }
 
+func (m *GetValuesRawResponse) GetValue() []byte {
+	if m != nil {
+		return m.Value
+	}
+	return nil
+}
+
+func (m *GetValuesRawResponse) GetMd5() string {
+	if m != nil {
+		return m.Md5
+	}
+	return ""
+}
+
 type GetTraceIDsRequest struct {
 	Id []uint64 `protobuf:"varint,1,rep,packed,name=id" json:"id,omitempty"`
 }
@@ -327,6 +425,13 @@ func (m *GetTraceIDsRequest) Reset()                    { *m = GetTraceIDsReques
 func (m *GetTraceIDsRequest) String() string            { return proto.CompactTextString(m) }
 func (*GetTraceIDsRequest) ProtoMessage()               {}
 func (*GetTraceIDsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{18} }
+
+func (m *GetTraceIDsRequest) GetId() []uint64 {
+	if m != nil {
+		return m.Id
+	}
+	return nil
+}
 
 type TraceIDPair struct {
 	Id64 uint64 `protobuf:"varint,1,opt,name=id64" json:"id64,omitempty"`
@@ -337,6 +442,20 @@ func (m *TraceIDPair) Reset()                    { *m = TraceIDPair{} }
 func (m *TraceIDPair) String() string            { return proto.CompactTextString(m) }
 func (*TraceIDPair) ProtoMessage()               {}
 func (*TraceIDPair) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{19} }
+
+func (m *TraceIDPair) GetId64() uint64 {
+	if m != nil {
+		return m.Id64
+	}
+	return 0
+}
+
+func (m *TraceIDPair) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
 
 type GetTraceIDsResponse struct {
 	Ids []*TraceIDPair `protobuf:"bytes,1,rep,name=ids" json:"ids,omitempty"`
@@ -385,6 +504,13 @@ func (m *CommitMD5) GetCommitid() *CommitID {
 		return m.Commitid
 	}
 	return nil
+}
+
+func (m *CommitMD5) GetMd5() string {
+	if m != nil {
+		return m.Md5
+	}
+	return ""
 }
 
 type ListMD5Response struct {
