@@ -35,7 +35,29 @@ var (
 	PUBLIC_REPOS  = []string{REPO_SKIA, REPO_SKIA_INFRA}
 	PRIVATE_REPOS = []string{REPO_SKIA_INTERNAL_TEST}
 	ALL_REPOS     = append(PUBLIC_REPOS, PRIVATE_REPOS...)
+
+	// PROJECT_REPO_MAPPING is a mapping of project names to repo URLs. It
+	// is filled in during init().
+	PROJECT_REPO_MAPPING = map[string]string{}
+
+	// REPO_PROJECT_MAPPING is a mapping of repo URLs to project names.
+	REPO_PROJECT_MAPPING = map[string]string{
+		REPO_SKIA:               "skia",
+		REPO_SKIA_INFRA:         "skiabuildbot",
+		REPO_SKIA_INTERNAL_TEST: "internal_test",
+	}
 )
+
+// init runs setup for the common package.
+func init() {
+	// Fill in PROJECT_REPO_MAPPING.
+	for k, v := range REPO_PROJECT_MAPPING {
+		PROJECT_REPO_MAPPING[v] = k
+	}
+	// buildbot.git is sometimes referred to as "buildbot" instead of
+	// "skiabuildbot". Add the alias to the mapping.
+	PROJECT_REPO_MAPPING["buildbot"] = REPO_SKIA_INFRA
+}
 
 // Init runs commonly-used initialization metrics.
 func Init() {

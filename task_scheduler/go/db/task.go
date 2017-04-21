@@ -13,6 +13,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 
@@ -31,12 +32,12 @@ const (
 	SWARMING_STATE_TIMED_OUT = "TIMED_OUT"
 
 	// Swarming tags added by Task Scheduler.
-	SWARMING_TAG_ALLOW_MILO       = "allow_milo"
 	SWARMING_TAG_ATTEMPT          = "sk_attempt"
 	SWARMING_TAG_DIMENSION_PREFIX = "sk_dim_"
 	SWARMING_TAG_FORCED_JOB_ID    = "sk_forced_job_id"
 	SWARMING_TAG_ID               = "sk_id"
 	SWARMING_TAG_ISSUE            = "sk_issue"
+	SWARMING_TAG_LUCI_PROJECT     = "luci_project"
 	SWARMING_TAG_NAME             = "sk_name"
 	SWARMING_TAG_PARENT_TASK_ID   = "sk_parent_task_id"
 	SWARMING_TAG_PATCHSET         = "sk_patchset"
@@ -626,11 +627,11 @@ func (d *TaskDecoder) Result() ([]*Task, error) {
 // TagsForTask returns the tags which should be set for a Task.
 func TagsForTask(name, id string, attempt int, priority float64, rs RepoState, retryOf string, dimensions map[string]string, forcedJobId string, parentTaskIds []string) []string {
 	tags := map[string]string{
-		SWARMING_TAG_ALLOW_MILO:      "1",
 		SWARMING_TAG_ATTEMPT:         fmt.Sprintf("%d", attempt),
 		SWARMING_TAG_FORCED_JOB_ID:   forcedJobId,
 		SWARMING_TAG_NAME:            name,
 		SWARMING_TAG_ID:              id,
+		SWARMING_TAG_LUCI_PROJECT:    common.REPO_PROJECT_MAPPING[rs.Repo],
 		SWARMING_TAG_PRIORITY:        fmt.Sprintf("%f", priority),
 		SWARMING_TAG_REPO:            rs.Repo,
 		SWARMING_TAG_RETRY_OF:        retryOf,

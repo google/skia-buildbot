@@ -3401,9 +3401,9 @@ func TestTriggerTaskFailed(t *testing.T) {
 	bot3 := makeBot("bot3", map[string]string{"pool": "Skia"})
 	makeTags := func(commit string) []string {
 		return []string{
+			"luci_project:",
 			"sk_attempt:0",
 			"sk_dim_pool:Skia",
-			"allow_milo:1",
 			"sk_retry_of:",
 			fmt.Sprintf("source_revision:%s", commit),
 			fmt.Sprintf("source_repo:%s/+/%%s", gb.RepoUrl()),

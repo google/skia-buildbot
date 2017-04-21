@@ -49,14 +49,6 @@ const (
 var (
 	// "Constants"
 
-	// PROJECT_REPO_MAPPING is a mapping of project names to repo URLs.
-	PROJECT_REPO_MAPPING = map[string]string{
-		"buildbot":      common.REPO_SKIA_INFRA,
-		"internal_test": common.REPO_SKIA_INTERNAL_TEST,
-		"skia":          common.REPO_SKIA,
-		"skiabuildbot":  common.REPO_SKIA_INFRA,
-	}
-
 	// Task Scheduler instance.
 	ts *scheduling.TaskScheduler
 
@@ -588,7 +580,7 @@ func main() {
 	if err := swarming.InitPubSub(serverURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
 		sklog.Fatal(err)
 	}
-	ts, err = scheduling.NewTaskScheduler(tsDb, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools)
+	ts, err = scheduling.NewTaskScheduler(tsDb, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools)
 	if err != nil {
 		sklog.Fatal(err)
 	}
