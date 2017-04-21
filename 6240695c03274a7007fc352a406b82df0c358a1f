@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dd96cd44_d1ebe36d",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 887,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-21T13:51:41Z",
+      "side": 1,
+      "message": "This will be empty for old try jobs.",
+      "range": {
+        "startLine": 887,
+        "startChar": 21,
+        "endLine": 887,
+        "endChar": 33
+      },
+      "revId": "6240695c03274a7007fc352a406b82df0c358a1f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66d7e239_05dabc6d",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-21T13:51:41Z",
+      "side": 1,
+      "message": "Depending on which repo is \"parent\" and which repo is \"child,\" this means we need repos for which we don\u0027t schedule tasks in our repograph.Map. Currently we assume all entries in the map should have tasks scheduled. https://skia.googlesource.com/buildbot/+/master/task_scheduler/go/scheduling/task_scheduler.go#1003",
+      "range": {
+        "startLine": 254,
+        "startChar": 0,
+        "endLine": 257,
+        "endChar": 2
+      },
+      "revId": "6240695c03274a7007fc352a406b82df0c358a1f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
