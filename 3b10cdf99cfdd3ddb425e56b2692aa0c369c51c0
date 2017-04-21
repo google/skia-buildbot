@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2c314b26_5c6d422c",
+        "filename": "go/common/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-21T18:43:03Z",
+      "side": 1,
+      "message": "nit: would be nice for https://skia.googlesource.com/buildbot/+/c615df5a8e654e40484ea09941a6056a436e9d31/task_scheduler/go/task_scheduler/main.go#50 to be nearby.",
+      "revId": "3b10cdf99cfdd3ddb425e56b2692aa0c369c51c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
