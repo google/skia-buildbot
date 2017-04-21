@@ -2235,9 +2235,10 @@ func TestTrybots(t *testing.T) {
 	b := tryjobs.Build(t, now)
 	rs := db.RepoState{
 		Patch: db.Patch{
-			Server:   gb.RepoUrl(),
-			Issue:    issue,
-			Patchset: patchset,
+			Server:    gb.RepoUrl(),
+			Issue:     issue,
+			PatchRepo: rs2.Repo,
+			Patchset:  patchset,
 		},
 		Repo:     rs2.Repo,
 		Revision: rs2.Revision,
