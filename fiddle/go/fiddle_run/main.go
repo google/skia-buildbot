@@ -4,6 +4,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -16,7 +17,7 @@ import (
 	"go.skia.org/infra/fiddle/go/types"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -98,16 +99,18 @@ func main() {
 
 	stderr := bytes.Buffer{}
 	stdout := bytes.Buffer{}
-	runCmd := &exec.Command{
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	runCmd := &skexec.Command{
 		Name:        name,
 		Args:        args,
 		Dir:         *fiddleRoot,
 		InheritPath: true,
 		Stdout:      &stdout,
 		Stderr:      &stderr,
-		Timeout:     20 * time.Second,
+		Context:     ctx,
 	}
-	if err := exec.Run(runCmd); err != nil {
+	if err := skexec.NewExec().Run(runCmd); err != nil {
 		sklog.Errorf("Failed to run: %s", err)
 		res.Execute.Errors = err.Error()
 	}

@@ -12,24 +12,25 @@ import (
 	"go.skia.org/infra/fuzzer/go/config"
 	fstorage "go.skia.org/infra/fuzzer/go/storage"
 	"go.skia.org/infra/go/buildskia"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 	"golang.org/x/net/context"
 )
 
+var exec = skexec.NewExec()
+
 type Generator struct {
 	Category         string
 	fuzzProcessCount metrics2.Counter
-	fuzzProcesses    []exec.Process
+	cancel           context.CancelFunc
 }
 
 // New creates a new generator for a fuzzer of a given category.
 func New(category string) *Generator {
 	return &Generator{
-		Category:      category,
-		fuzzProcesses: nil,
+		Category: category,
 	}
 }
 
@@ -41,25 +42,32 @@ func (g *Generator) Start() error {
 		sklog.Info("Skipping generation because flag was set.")
 		return nil
 	}
+
+	if g.cancel != nil {
+		return fmt.Errorf("Already started.")
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	g.cancel = cancel
+
 	executable, err := g.setup()
 	if err != nil {
 		return fmt.Errorf("Failed %s generator setup: %s", g.Category, err)
 	}
 
-	masterCmd := &exec.Command{
+	masterCmd := &skexec.Command{
 		Name:      "./afl-fuzz",
 		Args:      common.GenerationArgsFor(g.Category, executable, "fuzzer0", true),
 		Dir:       config.Generator.AflRoot,
 		LogStdout: true,
 		LogStderr: true,
 		Env:       []string{"AFL_SKIP_CPUFREQ=true"}, // Avoids a warning afl-fuzz spits out about dynamic scaling of cpu frequency
-		Verbose:   exec.Debug,
+		Verbose:   skexec.Debug,
+		Context:   ctx,
 	}
 	if config.Generator.WatchAFL {
 		masterCmd.Stdout = os.Stdout
 	}
-
-	g.fuzzProcesses = append(g.fuzzProcesses, g.run(masterCmd))
+	g.run(masterCmd)
 
 	fuzzCount := config.Generator.NumBinaryFuzzProcesses
 	if strings.HasPrefix(g.Category, "api_") {
@@ -74,16 +82,17 @@ func (g *Generator) Start() error {
 	g.fuzzProcessCount.Inc(int64(fuzzCount))
 	for i := 1; i < fuzzCount; i++ {
 		fuzzerName := fmt.Sprintf("fuzzer%d", i)
-		slaveCmd := &exec.Command{
+		slaveCmd := &skexec.Command{
 			Name:      "./afl-fuzz",
 			Args:      common.GenerationArgsFor(g.Category, executable, fuzzerName, false),
 			Dir:       config.Generator.AflRoot,
 			LogStdout: true,
 			LogStderr: true,
 			Env:       []string{"AFL_SKIP_CPUFREQ=true"}, // Avoids a warning afl-fuzz spits out about dynamic scaling of cpu frequency
-			Verbose:   exec.Debug,
+			Verbose:   skexec.Debug,
+			Context:   ctx,
 		}
-		g.fuzzProcesses = append(g.fuzzProcesses, g.run(slaveCmd))
+		g.run(slaveCmd)
 	}
 	return nil
 }
@@ -128,36 +137,24 @@ func (g *Generator) Clear() error {
 	return nil
 }
 
-// run runs the command and logs any failures.  It returns the Process that can be used to
-// manually kill the command.
-func (g *Generator) run(command *exec.Command) exec.Process {
-	p, status, err := exec.RunIndefinitely(command)
-	if err != nil {
-		sklog.Errorf("Failed afl fuzzer command %#v: %s", command, err)
-		return nil
-	}
+// run runs the command and logs any failures.
+func (g *Generator) run(command *skexec.Command) {
+	status := exec.RunAsync(command)
 	go func() {
 		err := <-status
 		g.fuzzProcessCount.Dec(int64(1))
 		sklog.Infof(`[%s] afl fuzzer with args %q ended with error "%v".  There are %d fuzzers remaining`, g.Category, command.Args, err, g.fuzzProcessCount.Get())
 	}()
-	return p
 }
 
 // Stop terminates all afl-fuzz processes that were spawned, logging any errors. It also
 // sets some key metrics to 0, so the graphs at mon.skia.org reflect the stoppage.
 func (g *Generator) Stop() {
-	sklog.Infof("Trying to stop %d fuzz processes", len(g.fuzzProcesses))
-	for _, p := range g.fuzzProcesses {
-		if p != nil {
-			if err := p.Kill(); err != nil {
-				sklog.Warningf("[%s] Error while trying to kill afl process: %s", g.Category, err)
-			} else {
-				sklog.Infof("[%s] Quietly shutdown fuzz process.", g.Category)
-			}
-		}
+	if g.cancel != nil {
+		sklog.Infof("[%s] Trying to stop %d fuzz processes", g.Category, g.fuzzProcessCount.Get())
+		g.cancel()
+		g.cancel = nil
 	}
-	g.fuzzProcesses = nil
 
 	// Get rid of stats file to avoid old stats from being picked up by the aggregator
 	statsFile := filepath.Join(config.Generator.AflOutputPath, g.Category, "fuzzer0", "fuzzer_stats")

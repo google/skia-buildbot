@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -36,6 +36,8 @@ var (
 
 	startServingPlaybook = flag.String("start_serving_playbook", "", "The Ansible playbook that, when run locally, will start serving the image.  This should be idempotent.")
 	stopServingPlaybook  = flag.String("stop_serving_playbook", "", "The Ansible playbook that, when run locally, will stop serving the image.  This should be idempotent.")
+
+	exec = skexec.NewExec()
 )
 
 type virtualIPManager struct {
@@ -123,7 +125,7 @@ func (i *imageSyncer) sync() bool {
 	stdOut := bytes.Buffer{}
 	stdErr := bytes.Buffer{}
 	// This only works if the master has the spare's ssh key in authorized_key
-	err := exec.Run(&exec.Command{
+	err := exec.Run(&skexec.Command{
 		Name:   "rsync",
 		Args:   []string{i.RemotePath, i.LocalPath},
 		Stdout: &stdOut,
@@ -146,7 +148,7 @@ func (i *imageSyncer) sync() bool {
 func reloadImage() {
 	stdOut := bytes.Buffer{}
 	stdErr := bytes.Buffer{}
-	err := exec.Run(&exec.Command{
+	err := exec.Run(&skexec.Command{
 		Name:   "ansible-playbook",
 		Args:   []string{"-i", `"localhost,"`, "-c", "local", *stopServingPlaybook},
 		Stdout: &stdOut,
@@ -162,7 +164,7 @@ func reloadImage() {
 
 	stdOut.Reset()
 	stdErr.Reset()
-	err = exec.Run(&exec.Command{
+	err = exec.Run(&skexec.Command{
 		Name:   "ansible-playbook",
 		Args:   []string{"-i", `"localhost,"`, "-c", "local", *startServingPlaybook},
 		Stdout: &stdOut,

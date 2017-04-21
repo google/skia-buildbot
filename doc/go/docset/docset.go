@@ -58,10 +58,10 @@ import (
 
 	"github.com/golang/groupcache/lru"
 	"go.skia.org/infra/doc/go/config"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -74,6 +74,8 @@ var (
 	gc *gerrit.Gerrit
 
 	IssueCommittedErr = errors.New("The requested issue is merged.")
+
+	exec = skexec.NewExec()
 )
 
 func Init() error {

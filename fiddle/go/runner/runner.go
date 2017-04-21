@@ -17,8 +17,8 @@ import (
 
 	"go.skia.org/infra/fiddle/go/linenumbers"
 	"go.skia.org/infra/fiddle/go/types"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/util"
 )
 
@@ -33,6 +33,8 @@ DrawOptions GetDrawOptions() {
 %s
 `
 )
+
+var exec = skexec.NewExec()
 
 // prepCodeToCompile adds the line numbers and the right prefix code
 // to the fiddle so it compiles and links correctly.
@@ -182,7 +184,7 @@ func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir st
 		args = []string{"--fiddle_root", fiddleRoot, "--git_hash", gitHash, "--local", "--alsologtostderr"}
 	}
 	output := &bytes.Buffer{}
-	runCmd := &exec.Command{
+	runCmd := &skexec.Command{
 		Name:      name,
 		Args:      args,
 		LogStderr: true,

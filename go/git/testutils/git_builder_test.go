@@ -6,7 +6,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/skexec/skexec_testutils"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -17,8 +17,7 @@ func TestGitSetup(t *testing.T) {
 	defer g.Cleanup()
 	commits := GitSetup(g)
 
-	output, err := exec.RunCwd(g.Dir(), "git", "log", "-n", "6", "--format=format:%H:%P", "HEAD")
-	assert.NoError(t, err)
+	output := skexec_testutils.RunCwd(t, g.Dir(), "git", "log", "-n", "6", "--format=format:%H:%P", "HEAD")
 	t.Log(output)
 	lines := strings.Split(output, "\n")
 	assert.Equal(t, 5, len(lines))
@@ -64,8 +63,7 @@ func TestGitBuilderCommitTime(t *testing.T) {
 	g.AddGen("a.txt")
 	c3 := g.CommitMsgAt("The last time this will work is", time.Date(2099, 12, 31, 23, 59, 59, 0, time.UTC))
 
-	output, err := exec.RunCwd(g.Dir(), "git", "log", "-n", "3", "--format=format:%H %s %aD", "HEAD")
-	assert.NoError(t, err)
+	output := skexec_testutils.RunCwd(t, g.Dir(), "git", "log", "-n", "3", "--format=format:%H %s %aD", "HEAD")
 
 	lines := strings.Split(output, "\n")
 	assert.Equal(t, 3, len(lines))

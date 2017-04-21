@@ -2,6 +2,7 @@
 package util
 
 import (
+	"context"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -18,8 +19,8 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/isolate"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 
@@ -34,6 +35,8 @@ const (
 	REMOVE_INVALID_SKPS_WORKER_POOL = 20
 )
 
+var exec = skexec.NewExec()
+
 func TimeTrack(start time.Time, name string) {
 	elapsed := time.Since(start)
 	sklog.Infof("===== %s took %s =====", name, elapsed)
@@ -43,12 +46,14 @@ func TimeTrack(start time.Time, name string) {
 // written to stdout and stderr respectively if specified. If not specified then Stdout and Stderr
 // will be outputted only to sklog.
 func ExecuteCmd(binary string, args, env []string, timeout time.Duration, stdout, stderr io.Writer) error {
-	return exec.Run(&exec.Command{
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	return exec.Run(&skexec.Command{
 		Name:        binary,
 		Args:        args,
 		Env:         env,
 		InheritPath: true,
-		Timeout:     timeout,
+		Context:     ctx,
 		LogStdout:   true,
 		Stdout:      stdout,
 		LogStderr:   true,
@@ -342,12 +347,14 @@ func ValidateSKPs(pathToSkps, pathToPyFiles string) error {
 				sklog.Infof("Executing remove_invalid_skp.py with goroutine#%d", i+1)
 				// Execute the command with stdout not logged. It otherwise outputs
 				// tons of log msgs.
-				util.LogErr(exec.Run(&exec.Command{
+				ctx, cancel := context.WithTimeout(context.Background(), REMOVE_INVALID_SKPS_TIMEOUT)
+				defer cancel()
+				util.LogErr(exec.Run(&skexec.Command{
 					Name:        "python",
 					Args:        args,
 					Env:         []string{},
 					InheritPath: true,
-					Timeout:     REMOVE_INVALID_SKPS_TIMEOUT,
+					Context:     ctx,
 					LogStdout:   false,
 					Stdout:      nil,
 					LogStderr:   true,

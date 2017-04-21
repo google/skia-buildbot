@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -20,7 +21,6 @@ import (
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -222,7 +222,7 @@ func runChromiumAnalysis() error {
 					if err == nil {
 						timeoutTracker.Reset()
 						break
-					} else if exec.IsTimeout(err) {
+					} else if err == context.DeadlineExceeded {
 						timeoutTracker.Increment()
 					}
 					if i >= (retryAttempts - 1) {

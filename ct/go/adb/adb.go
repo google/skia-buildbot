@@ -6,7 +6,7 @@ import (
 	"os/exec"
 
 	"go.skia.org/infra/ct/go/util"
-	skexec "go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/skexec"
 	skutil "go.skia.org/infra/go/util"
 )
 

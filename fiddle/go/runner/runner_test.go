@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/fiddle/go/types"
-	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -117,24 +117,24 @@ func TestWriteDrawCpp(t *testing.T) {
 	assert.True(t, strings.HasPrefix(dir, filepath.Join(fiddleRoot, "tmp")))
 }
 
-// execString is the command line that would have been run through exec.
+// execString is the command line that would have been run through skexec.
 var execString string
 
-// testRun is a 'exec.Run' function to use for testing.
-func testRun(cmd *exec.Command) error {
+// testRun is a 'skexec.Run' function to use for testing.
+func testRun(cmd *skexec.Command) error {
 	_, err := cmd.Stdout.Write([]byte("{}"))
 	if err != nil {
 		return fmt.Errorf("Internal error writing: %s", err)
 	}
-	execString = exec.DebugString(cmd)
+	execString = skexec.DebugString(cmd)
 	return nil
 }
 
 func TestRun(t *testing.T) {
 	testutils.SmallTest(t)
 	// Now test local runs, first set up exec for testing.
-	exec.SetRunForTesting(testRun)
-	defer exec.SetRunForTesting(exec.DefaultRun)
+	exec.SetRun(testRun)
+	defer exec.Reset()
 
 	res, err := Run("checkout/", "fiddleroot/", "depot_tools/", "abcdef", true, "")
 	assert.NoError(t, err)
