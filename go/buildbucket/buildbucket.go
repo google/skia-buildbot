@@ -67,6 +67,7 @@ type Properties struct {
 	Rietveld         string           `json:"rietveld,omitempty"`
 	RietveldIssue    jsonutils.Number `json:"issue,omitempty"`
 	RietveldPatchset jsonutils.Number `json:"patchset,omitempty"`
+	TryJobRepo       string           `json:"try_job_repo,omitempty"`
 }
 
 type Parameters struct {
