@@ -16,6 +16,24 @@
       "revId": "3b10cdf99cfdd3ddb425e56b2692aa0c369c51c0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e713fbd_03795e3a",
+        "filename": "go/common/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-21T19:24:32Z",
+      "side": 1,
+      "message": "Moved it here, renamed LUCI_PROJECT_MAPPING, and derived one from the other.",
+      "parentUuid": "2c314b26_5c6d422c",
+      "revId": "3b10cdf99cfdd3ddb425e56b2692aa0c369c51c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
