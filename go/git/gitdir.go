@@ -12,10 +12,12 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/git_common"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/vcsinfo"
 )
+
+var exec = skexec.NewExec()
 
 // Branch describes a Git branch.
 type Branch struct {

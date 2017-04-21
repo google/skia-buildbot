@@ -5,9 +5,11 @@ import (
 	"path/filepath"
 
 	"go.skia.org/infra/go/buildskia"
-	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 )
+
+var exec = skexec.NewExec()
 
 // BuildLib, given a directory that Skia is checked out into, builds libskia.a
 // and fiddle_main.o.
@@ -23,7 +25,7 @@ func BuildLib(checkout, depotTools string) error {
 	}
 
 	sklog.Info("Running the default fiddle")
-	runFiddleCmd := &exec.Command{
+	runFiddleCmd := &skexec.Command{
 		Name:      filepath.Join(checkout, "skia", "out", "Release", "fiddle"),
 		Dir:       filepath.Join(checkout, "skia"),
 		LogStderr: true,

@@ -12,11 +12,11 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/autoroll"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -52,8 +52,18 @@ func setup(t *testing.T) (string, *git_testutils.GitBuilder, []string, *git_test
 }`, childPath, child.RepoUrl(), childCommits[0]))
 	parent.Commit()
 
-	mockRun := exec.CommandCollector{}
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+	cleanup := func() {
+		testutils.RemoveAll(t, wd)
+		child.Cleanup()
+		parent.Cleanup()
+	}
+
+	return wd, child, childCommits, parent, cleanup
+}
+
+func mockExec(t *testing.T, rm RepoManager) {
+	exec := &rm.(*depsRepoManager).commonRepoManager.exec
+	exec.SetRun(func(cmd *skexec.Command) error {
 		if cmd.Name == "git" && cmd.Args[0] == "cl" {
 			if cmd.Args[1] == "upload" {
 				return nil
@@ -67,18 +77,8 @@ func setup(t *testing.T) (string, *git_testutils.GitBuilder, []string, *git_test
 				return nil
 			}
 		}
-		return exec.DefaultRun(cmd)
+		return skexec.DefaultRun(cmd)
 	})
-	exec.SetRunForTesting(mockRun.Run)
-
-	cleanup := func() {
-		exec.SetRunForTesting(exec.DefaultRun)
-		testutils.RemoveAll(t, wd)
-		child.Cleanup()
-		parent.Cleanup()
-	}
-
-	return wd, child, childCommits, parent, cleanup
 }
 
 func setupFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
@@ -110,6 +110,7 @@ func TestDEPSRepoManager(t *testing.T) {
 	g := setupFakeGerrit(t, wd)
 	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", 24*time.Hour, depotTools, g)
 	assert.NoError(t, err)
+	mockExec(t, &rm.exec)
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.ChildHead())
 
@@ -147,6 +148,7 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	g := setupFakeGerrit(t, wd)
 	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", 24*time.Hour, depotTools, g)
 	assert.NoError(t, err)
+	mockExec(t, &rm.exec)
 
 	// Create a roll, assert that it's at tip of tree.
 	issue, err := rm.CreateNewRoll(strategy, emails, cqExtraTrybots, false)

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	exec_testutils "go.skia.org/infra/go/exec/testutils"
+	"go.skia.org/infra/go/skexec/skexec_testutils"
 	"go.skia.org/infra/go/testutils"
 
 	assert "github.com/stretchr/testify/require"
@@ -75,10 +75,10 @@ func TestGitBranch(t *testing.T) {
 
 	// Add an ambiguous ref to ensure that Branches() doesn't have a
 	// problem with it.
-	exec_testutils.Run(t, gb.Dir(), "git", "update-ref", "refs/heads/meta/config", commits[6])
-	exec_testutils.Run(t, gb.Dir(), "git", "push", "origin", "refs/heads/meta/config")
-	exec_testutils.Run(t, gb.Dir(), "git", "update-ref", "refs/tags/meta/config", commits[3])
-	exec_testutils.Run(t, gb.Dir(), "git", "push", "origin", "refs/tags/meta/config")
+	skexec_testutils.RunCwd(t, gb.Dir(), "git", "update-ref", "refs/heads/meta/config", commits[6])
+	skexec_testutils.RunCwd(t, gb.Dir(), "git", "push", "origin", "refs/heads/meta/config")
+	skexec_testutils.RunCwd(t, gb.Dir(), "git", "update-ref", "refs/tags/meta/config", commits[3])
+	skexec_testutils.RunCwd(t, gb.Dir(), "git", "push", "origin", "refs/tags/meta/config")
 	_, err = g.Git("fetch")
 	assert.NoError(t, err)
 	_, err = g.Git("checkout", "-b", "meta/config", "-t", "origin/meta/config")

@@ -5,6 +5,7 @@ package swarming
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -13,9 +14,9 @@ import (
 	"strconv"
 	"time"
 
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/isolate"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -28,6 +29,8 @@ const (
 	RECOMMENDED_PRIORITY     = 90
 	RECOMMENDED_EXPIRATION   = 4 * time.Hour
 )
+
+var exec = skexec.NewExec()
 
 type SwarmingClient struct {
 	WorkDir        string
@@ -88,12 +91,14 @@ func (t *SwarmingTask) Trigger(s *SwarmingClient, hardTimeout, ioTimeout time.Du
 	}
 	triggerArgs = append(triggerArgs, t.IsolatedHash)
 
-	err := exec.Run(&exec.Command{
-		Name: s.SwarmingPy,
-		Args: triggerArgs,
-		// Triggering a task should be immediate. Setting a 15m timeout incase
-		// something goes wrong.
-		Timeout:   15 * time.Minute,
+	// Triggering a task should be immediate. Setting a 15m timeout incase
+	// something goes wrong.
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
+	defer cancel()
+	err := exec.Run(&skexec.Command{
+		Name:      s.SwarmingPy,
+		Args:      triggerArgs,
+		Context:   ctx,
 		LogStdout: true,
 		LogStderr: true,
 	})
@@ -117,10 +122,12 @@ func (t *SwarmingTask) Collect(s *SwarmingClient) (string, string, error) {
 		"--task-output-dir", t.OutputDir,
 		"--verbose",
 	}
-	err := exec.Run(&exec.Command{
+	ctx, cancel := context.WithTimeout(context.Background(), t.Expiration)
+	defer cancel()
+	err := exec.Run(&skexec.Command{
 		Name:      s.SwarmingPy,
 		Args:      collectArgs,
-		Timeout:   t.Expiration,
+		Context:   ctx,
 		LogStdout: true,
 		LogStderr: true,
 	})
@@ -269,12 +276,14 @@ func (s *SwarmingClient) Cleanup() {
 }
 
 func _VerifyBinaryExists(binary string) error {
-	err := exec.Run(&exec.Command{
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	err := exec.Run(&skexec.Command{
 		Name:      binary,
 		Args:      []string{"help"},
-		Timeout:   60 * time.Second,
 		LogStdout: false,
 		LogStderr: true,
+		Context:   ctx,
 	})
 	if err != nil {
 		return fmt.Errorf("Error finding the binary %s: %s", binary, err)

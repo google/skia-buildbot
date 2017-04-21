@@ -9,11 +9,12 @@ import (
 	"regexp"
 	"strconv"
 
-	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/skexec"
 )
 
 var (
 	gitVersionRegex = regexp.MustCompile("git version (\\d+)\\.(\\d+)\\..*")
+	exec            = skexec.NewExec()
 )
 
 // Version returns the installed Git version, in the form:

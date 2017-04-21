@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -49,7 +49,7 @@ type Item struct {
 }
 
 func main() {
-	output, err := exec.RunSimple("gcloud --quiet compute project-info describe --format=json --project google.com:skia-buildbots")
+	output, err := skexec.NewExec().RunSimple("gcloud --quiet compute project-info describe --format=json --project google.com:skia-buildbots")
 	if err != nil {
 		sklog.Fatalf("Failed to execute gcloud: %s", err)
 	}

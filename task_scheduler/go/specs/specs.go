@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
@@ -51,6 +51,8 @@ var (
 	PLACEHOLDER_REVISION          = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_REVISION)
 	PLACEHOLDER_TASK_NAME         = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_TASK_NAME)
 	PLACEHOLDER_ISOLATED_OUTDIR   = "${ISOLATED_OUTDIR}"
+
+	exec = skexec.NewExec()
 )
 
 // ParseTasksCfg parses the given task cfg file contents and returns the config.
@@ -891,7 +893,7 @@ func tempGitRepoBotUpdate(rs db.RepoState, depotToolsDir, gitCacheDir, tmp strin
 			}...)
 		}
 	}
-	if _, err := exec.RunCommand(&exec.Command{
+	if err := exec.Run(&skexec.Command{
 		Name: cmd[0],
 		Args: cmd[1:],
 		Dir:  tmp,
