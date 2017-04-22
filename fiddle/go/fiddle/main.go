@@ -372,6 +372,10 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to decode request.")
 		return
 	}
+	if err := runner.ValidateOptions(&req.Options); err != nil {
+		httputils.ReportError(w, r, err, "Invalid Options.")
+		return
+	}
 	sklog.Infof("Request: %#v", *req)
 	current := build.Current()
 	sklog.Infof("Building at: %s", current.Hash)
@@ -380,7 +384,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to write the fiddle.")
 	}
-	res, err := runner.Run(checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir)
+	res, err := runner.Run(checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir, &req.Options)
 	if !*local && !*preserveTemp {
 		if err := os.RemoveAll(tmpDir); err != nil {
 			sklog.Errorf("Failed to remove temp dir: %s", err)
@@ -516,7 +520,7 @@ func singleStepTryNamed() {
 			sklog.Errorf("Failed to write fiddle for %s: %s", name.Name, err)
 			continue
 		}
-		res, err := runner.Run(checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir)
+		res, err := runner.Run(checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir, options)
 		if err != nil {
 			sklog.Errorf("Failed to run fiddle for %s: %s", name.Name, err)
 			namedFailures.Inc(1)
