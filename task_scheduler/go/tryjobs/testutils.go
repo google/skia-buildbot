@@ -12,8 +12,9 @@ import (
 	"time"
 
 	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
-	"github.com/stretchr/testify/assert"
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/buildbucket"
+	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/jsonutils"
@@ -23,7 +24,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/specs"
-	specs_testutils "go.skia.org/infra/task_scheduler/go/specs/testutils"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
@@ -105,7 +105,7 @@ func setup(t *testing.T) (*TryJobIntegrator, *git_testutils.GitBuilder, *mockhtt
 	// Set up other TryJobIntegrator inputs.
 	window, err := window.New(time.Hour, 100, rm)
 	assert.NoError(t, err)
-	taskCfgCache, err := specs.NewTaskCfgCache(rm, specs_testutils.GetDepotTools(t), path.Join(tmpDir, "cache"), specs.DEFAULT_NUM_WORKERS)
+	taskCfgCache, err := specs.NewTaskCfgCache(rm, depot_tools_testutils.GetDepotTools(t), path.Join(tmpDir, "cache"), specs.DEFAULT_NUM_WORKERS)
 	assert.NoError(t, err)
 	d, err := local_db.NewDB("tasks_db", path.Join(tmpDir, "tasks.db"))
 	assert.NoError(t, err)
