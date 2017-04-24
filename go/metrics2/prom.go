@@ -74,11 +74,11 @@ func (m *promFloat64) Delete() error {
 
 // promFloat64Summary implements the Float64Metric interface.
 type promFloat64Summary struct {
-	summary prometheus.Summary
+	observer prometheus.Observer
 }
 
 func (m *promFloat64Summary) Observe(v float64) {
-	m.summary.Observe(v)
+	m.observer.Observe(v)
 }
 
 // promCounter implements the Counter interface.
@@ -297,12 +297,12 @@ func (p *promClient) GetFloat64SummaryMetric(name string, tags ...map[string]str
 	}
 	p.float64SummaryMutex.Unlock()
 
-	summary, err := summaryVec.GetMetricWith(prometheus.Labels(cleanTags))
+	observer, err := summaryVec.GetMetricWith(prometheus.Labels(cleanTags))
 	if err != nil {
-		glog.Fatalf("Failed to get summary: %s", err)
+		glog.Fatalf("Failed to get observer: %s", err)
 	}
 	ret = &promFloat64Summary{
-		summary: summary,
+		observer: observer,
 	}
 
 	p.float64SummaryMutex.Lock()
