@@ -1,17 +1,9 @@
 package testutils
 
 import (
-	"os"
-	"path"
-	"sync"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-
-	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/depot_tools"
-	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 )
 
@@ -20,28 +12,6 @@ const (
 	TestTask  = "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
 	PerfTask  = "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
 )
-
-var (
-	depotToolsMtx sync.Mutex
-)
-
-// GetDepotTools returns the path to depot_tools, syncing it if necessary.
-func GetDepotTools(t *testing.T) string {
-	depotToolsMtx.Lock()
-	defer depotToolsMtx.Unlock()
-
-	found, err := depot_tools.Find()
-	if err == nil {
-		return found
-	}
-
-	// Sync to a special location.
-	workdir := path.Join(os.TempDir(), "sktest_depot_tools")
-	c, err := git.NewCheckout(common.REPO_DEPOT_TOOLS, workdir)
-	assert.NoError(t, err)
-	assert.NoError(t, c.Update())
-	return c.Dir()
-}
 
 // The test repo has two commits. The first commit adds a tasks.cfg file
 // with two task specs: a build task and a test task, the test task

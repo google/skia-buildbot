@@ -1,0 +1,5 @@
+package depot_tools
+
+const (
+	DEPOT_TOOLS_VERSION = "%(depot_tools_version)s"
+)
