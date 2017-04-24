@@ -12,7 +12,6 @@ ExecStart=/usr/local/bin/autoroll \
     --childName=PDFium \
     --childPath=src/third_party/pdfium \
     --resources_dir=/usr/local/share/autoroll/ \
-    --depot_tools=/home/default/depot_tools \
     --sheriff=dsinclair@chromium.org
 Restart=always
 User=default

@@ -571,7 +571,7 @@ func main() {
 	}
 
 	// Find depot_tools.
-	depotTools, err := depot_tools.Find()
+	depotTools, err := depot_tools.Sync(wdAbs)
 	if err != nil {
 		sklog.Fatal(err)
 	}

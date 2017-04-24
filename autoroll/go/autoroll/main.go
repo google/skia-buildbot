@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 
@@ -47,7 +48,6 @@ var (
 	childPath       = flag.String("childPath", "src/third_party/skia", "Path within parent repo of the project to roll.")
 	childBranch     = flag.String("child_branch", "master", "Branch of the project we want to roll.")
 	cqExtraTrybots  = flag.String("cqExtraTrybots", "", "Comma-separated list of trybots to run.")
-	depot_tools     = flag.String("depot_tools", "", "Path to the depot_tools installation. If empty, assumes depot_tools is in PATH.")
 	host            = flag.String("host", "localhost", "HTTP service host")
 	local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	parentRepo      = flag.String("parent_repo", common.REPO_CHROMIUM, "Repo to roll into.")
@@ -272,8 +272,14 @@ func main() {
 	}
 	sklog.Infof("Sheriff: %s", strings.Join(emails, ", "))
 
+	// Sync depot_tools.
+	depotTools, err := depot_tools.Sync(*workdir)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
 	// Start the autoroller.
-	arb, err = autoroller.NewAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, time.Minute, 15*time.Minute, *depot_tools, *rollIntoAndroid, *strategy)
+	arb, err = autoroller.NewAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, time.Minute, 15*time.Minute, depotTools, *rollIntoAndroid, *strategy)
 	if err != nil {
 
 		sklog.Fatal(err)

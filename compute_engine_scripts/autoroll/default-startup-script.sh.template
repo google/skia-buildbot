@@ -1,15 +1,3 @@
 #! /bin/bash
 
-pushd /home/default
-# Install depot_tools if needed.
-if [[ ! -d depot_tools ]]; then
-  sudo -u default git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
-fi
-
-# Add depot_tools to PATH if needed.
-if [ -z "$(which gclient)" ]; then
-  sudo -u default echo '# Add depot_tools to PATH"' >> .bashrc
-  sudo -u default echo 'export PATH="/home/default/depot_tools:$PATH"' >> .bashrc
-fi
-
-popd
+# No-op. Depot Tools is managed in Go code.
