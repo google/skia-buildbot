@@ -22,6 +22,7 @@ import (
 
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
@@ -457,7 +458,12 @@ func Start(dbUrl, workdir string, buildDb buildbot.DB, ctx context.Context) erro
 		return err
 	}
 
-	tcc, err := specs.NewTaskCfgCache(repos, path.Join(workdir, "depot_tools"), path.Join(workdir, "taskCfgCache"), 1)
+	depotTools, err := depot_tools.Sync(workdir)
+	if err != nil {
+		return err
+	}
+
+	tcc, err := specs.NewTaskCfgCache(repos, depotTools, path.Join(workdir, "taskCfgCache"), 1)
 	if err != nil {
 		return err
 	}

@@ -12,7 +12,6 @@ ExecStart=/usr/local/bin/autoroll \
     --childName=Skia \
     --childPath=src/third_party/skia \
     --resources_dir=/usr/local/share/autoroll/ \
-    --depot_tools=/home/default/depot_tools \
     --sheriff=https://skia-tree-status.appspot.com/current-sheriff \
     --cqExtraTrybots=master.tryserver.blink:linux_trusty_blink_rel;master.tryserver.chromium.linux:linux_optional_gpu_tests_rel;master.tryserver.chromium.mac:mac_optional_gpu_tests_rel;master.tryserver.chromium.win:win_optional_gpu_tests_rel;master.tryserver.chromium.android:android_optional_gpu_tests_rel
 Restart=always
