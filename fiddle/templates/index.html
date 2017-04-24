@@ -17,6 +17,8 @@
       {%if .Options.TextOnly%}textonly{%end%}
       {%if .Options.SRGB%}srgb{%end%}
       {%if .Options.F16%}f16{%end%}
+      {%if .Options.Animated%}animated{%end%}
+      duration="{%.Options.Duration%}"
       >
       <textarea-numbers-sk>
         <textarea spellcheck="false" rows="15" cols="80">{%.Code%}</textarea>
