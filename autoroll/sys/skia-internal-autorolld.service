@@ -12,7 +12,6 @@ ExecStart=/usr/local/bin/autoroll \
     --childPath=skia \
     --parent_repo=https://skia.googlesource.com/internal_test.git \
     --resources_dir=/usr/local/share/autoroll/ \
-    --depot_tools=/home/default/depot_tools \
     --sheriff=borenet@google.com \
     --strategy=single
 Restart=always
