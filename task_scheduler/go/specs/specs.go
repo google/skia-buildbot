@@ -875,7 +875,6 @@ func tempGitRepoBotUpdate(rs db.RepoState, depotToolsDir, gitCacheDir, tmp strin
 		"--git-cache-dir", gitCacheDir,
 		"--output_json", outputJson,
 		"--revision", fmt.Sprintf("%s@%s", projectName, rs.Revision),
-		"--output_manifest",
 	}
 	if rs.IsTryJob() {
 		if strings.Contains(rs.Server, "codereview.chromium") {
