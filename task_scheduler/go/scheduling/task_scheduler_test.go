@@ -15,6 +15,7 @@ import (
 	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	assert "github.com/stretchr/testify/require"
+	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -189,7 +190,7 @@ func setup(t *testing.T) (*git_testutils.GitBuilder, db.DB, *swarming.TestClient
 	projectRepoMapping := map[string]string{
 		"skia": gb.RepoUrl(),
 	}
-	depotTools := specs_testutils.GetDepotTools(t)
+	depotTools := depot_tools_testutils.GetDepotTools(t)
 	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools)
 	assert.NoError(t, err)
 	return gb, d, swarmingClient, s, urlMock, func() {
@@ -960,7 +961,7 @@ func TestComputeBlamelist(t *testing.T) {
 	repos, err := repograph.NewMap([]string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 	repo := repos[gb.RepoUrl()]
-	depotTools := specs_testutils.GetDepotTools(t)
+	depotTools := depot_tools_testutils.GetDepotTools(t)
 	tcc, err := specs.NewTaskCfgCache(repos, depotTools, tmp, 1)
 	assert.NoError(t, err)
 
@@ -1898,7 +1899,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (*git_testuti
 	projectRepoMapping := map[string]string{
 		"skia": gb.RepoUrl(),
 	}
-	depotTools := specs_testutils.GetDepotTools(t)
+	depotTools := depot_tools_testutils.GetDepotTools(t)
 	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools)
 	assert.NoError(t, err)
 

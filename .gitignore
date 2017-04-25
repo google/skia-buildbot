@@ -33,6 +33,7 @@ bower_components
 *.sublime-project
 *.sublime-workspace
 # Generated Go files.
+go/depot_tools/gen_version.go
 go/skiaversion/gen_version.go
 # Generated for Go package.
 pdfium/build

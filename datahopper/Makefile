@@ -1,4 +1,6 @@
-datahopper:
+include ../go/depot_tools/depot_tools.mk
+
+datahopper: depot_tools
 	go install -v ./go/datahopper
 
 all: datahopper

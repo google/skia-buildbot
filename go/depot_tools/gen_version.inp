@@ -1,0 +1,5 @@
+package depot_tools
+
+func init() {
+	DEPOT_TOOLS_VERSION = "%(depot_tools_version)s"
+}

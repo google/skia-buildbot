@@ -11,21 +11,22 @@ CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
 	../res/js/common.js
 
 
+include ../go/depot_tools/depot_tools.mk
 include ../go/skiaversion/skiaversion.mk
 
 .PHONY: all
 all: task_scheduler
 
 .PHONY: task_scheduler
-task_scheduler: core_js elements_html skiaversion
+task_scheduler: core_js depot_tools elements_html skiaversion
 	go install -v ./go/task_scheduler
 
 .PHONY: testgo
-testgo: skiaversion
+testgo: depot_tools skiaversion
 	go test ./go/... -v --small --medium
 
 .PHONY: testgo_all
-testgo_all: skiaversion
+testgo_all: depot_tools skiaversion
 	go test ./go/... -v --small --medium --large
 
 # Build debug versions of core.js and elements.html.

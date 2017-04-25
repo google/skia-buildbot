@@ -1,34 +1,54 @@
 package depot_tools
 
-import (
-	"fmt"
-	"os"
-	"os/exec"
-	"path"
-
-	"go.skia.org/infra/go/sklog"
-)
-
 /*
-	Utility for finding a depot_tools checkout.
+   Utility for finding a depot_tools checkout.
 */
 
-func Find() (string, error) {
-	// First, check the environment.
-	depotTools := os.Getenv("DEPOT_TOOLS")
-	if depotTools != "" {
-		if _, err := os.Stat(depotTools); err == nil {
-			return depotTools, nil
-		}
-		sklog.Errorf("DEPOT_TOOLS=%s but dir does not exist!", depotTools)
+import (
+	"fmt"
+
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/git"
+)
+
+var (
+	// Filled in by gen_version.go.
+	DEPOT_TOOLS_VERSION = "none"
+)
+
+// Sync syncs the depot_tools checkout to DEPOT_TOOLS_VERSION.
+func Sync(workdir string) (string, error) {
+	// Clone the repo if necessary.
+	co, err := git.NewCheckout(common.REPO_DEPOT_TOOLS, workdir)
+	if err != nil {
+		return "", err
 	}
 
-	// If "gclient" is in PATH, then we know where to get depot_tools.
-	gclient, err := exec.LookPath("gclient")
-	if err == nil && gclient != "" {
-		return path.Dir(gclient), nil
+	// Avoid doing any syncing if we already have the desired revision.
+	hash, err := co.RevParse("HEAD")
+	if err != nil {
+		return "", err
+	}
+	if hash == DEPOT_TOOLS_VERSION {
+		return co.Dir(), nil
 	}
 
-	// Give up.
-	return "", fmt.Errorf("Unable to find depot_tools.")
+	// Sync the checkout into the desired state.
+	if err := co.Fetch(); err != nil {
+		return "", fmt.Errorf("Failed to fetch repo in %s: %s", co.Dir(), err)
+	}
+	if err := co.Cleanup(); err != nil {
+		return "", fmt.Errorf("Failed to cleanup repo in %s: %s", co.Dir(), err)
+	}
+	if _, err := co.Git("reset", "--hard", DEPOT_TOOLS_VERSION); err != nil {
+		return "", fmt.Errorf("Failed to reset repo in %s: %s", co.Dir(), err)
+	}
+	hash, err = co.RevParse("HEAD")
+	if err != nil {
+		return "", err
+	}
+	if hash != DEPOT_TOOLS_VERSION {
+		return "", fmt.Errorf("Got incorrect depot_tools revision: %s", hash)
+	}
+	return co.Dir(), nil
 }
