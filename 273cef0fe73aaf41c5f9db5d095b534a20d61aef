@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4b36e58d_616ecf66",
+        "filename": "go/depot_tools/depot_tools.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-25T14:31:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6ad0dc40_8161d18c",
+      "range": {
+        "startLine": 20,
+        "startChar": 27,
+        "endLine": 20,
+        "endChar": 33
+      },
+      "revId": "273cef0fe73aaf41c5f9db5d095b534a20d61aef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "28d11a5d_ad5c6dbe",
         "filename": "go/depot_tools/testutils/testutils.go",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "273cef0fe73aaf41c5f9db5d095b534a20d61aef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b60ded58_27d68699",
+        "filename": "go/depot_tools/testutils/testutils.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-25T14:31:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "28d11a5d_ad5c6dbe",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 2
+      },
+      "revId": "273cef0fe73aaf41c5f9db5d095b534a20d61aef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
