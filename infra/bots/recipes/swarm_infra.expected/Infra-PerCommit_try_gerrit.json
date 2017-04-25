@@ -88,8 +88,7 @@
       "--output_json",
       "/path/to/tmp/json",
       "--revision",
-      "infra@origin/master",
-      "--output_manifest"
+      "infra@origin/master"
     ],
     "cwd": "[START_DIR]/gopath/src/go.skia.org",
     "env": {
@@ -254,8 +253,7 @@
       "--output_json",
       "/path/to/tmp/json",
       "--revision",
-      "infra@origin/master",
-      "--output_manifest"
+      "infra@origin/master"
     ],
     "cwd": "[START_DIR]/gopath/src/go.skia.org",
     "env": {
