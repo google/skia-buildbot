@@ -29,12 +29,6 @@ func GetDepotTools(t *testing.T) string {
 	depotToolsMtx.Lock()
 	defer depotToolsMtx.Unlock()
 
-	// Sync to a special location.
-	workdir := path.Join(os.TempDir(), "sktest_depot_tools")
-	if _, err := os.Stat(workdir); err == nil {
-		return Sync(t, workdir)
-	}
-
 	// Check the environment. Bots may not have a full Git checkout, so
 	// just return the dir.
 	depotTools := os.Getenv("DEPOT_TOOLS")
@@ -43,6 +37,12 @@ func GetDepotTools(t *testing.T) string {
 			return depotTools
 		}
 		sklog.Errorf("DEPOT_TOOLS=%s but dir does not exist!", depotTools)
+	}
+
+	// Sync to a special location.
+	workdir := path.Join(os.TempDir(), "sktest_depot_tools")
+	if _, err := os.Stat(workdir); err == nil {
+		return Sync(t, workdir)
 	}
 
 	// If "gclient" is in PATH, then we know where to get depot_tools.

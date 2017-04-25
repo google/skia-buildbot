@@ -16,7 +16,8 @@ var (
 	DEPOT_TOOLS_VERSION = "none"
 )
 
-// Sync syncs the depot_tools checkout to DEPOT_TOOLS_VERSION.
+// Sync syncs the depot_tools checkout to DEPOT_TOOLS_VERSION. Returns the
+// location of the checkout or an error.
 func Sync(workdir string) (string, error) {
 	// Clone the repo if necessary.
 	co, err := git.NewCheckout(common.REPO_DEPOT_TOOLS, workdir)
