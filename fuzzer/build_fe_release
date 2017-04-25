@@ -17,7 +17,6 @@ ${INSTALL}     --mode=755 -T ${GOPATH}/bin/${APPNAME}   ${ROOT}/usr/local/bin/${
 
 ${INSTALL_DIR} --mode=755                                  ${ROOT}/usr/local/share/${APPNAME}/templates
 ${INSTALL}     --mode=644    ./templates/*                 ${ROOT}/usr/local/share/${APPNAME}/templates
-${INSTALL}     --mode=644 -T ./res/css/fuzzer.css          ${ROOT}/usr/local/share/${APPNAME}/res/css/fuzzer.css
 ${INSTALL}     --mode=644 -T ./res/img/favicon.ico         ${ROOT}/usr/local/share/${APPNAME}/res/img/favicon.ico
 ${INSTALL}     --mode=644 -T ./res/img/skia_fuzz.png       ${ROOT}/usr/local/share/${APPNAME}/res/img/skia_fuzz.png
 ${INSTALL}     --mode=644 -T ./res/js/core.js              ${ROOT}/usr/local/share/${APPNAME}/res/js/core.js

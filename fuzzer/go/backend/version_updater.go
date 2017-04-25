@@ -164,8 +164,10 @@ func downloadAllBadAndGreyFuzzes(commitHash, category string, storageClient fsto
 func (v *VersionUpdater) reportWorkDone(oldRevision, newRevision string) error {
 	// delete work request
 	workFile := fmt.Sprintf("skia_version/pending/working_%s", common.Hostname())
-	if err := v.storageClient.DeleteFile(context.Background(), workFile); err != nil {
+	if err := v.storageClient.DeleteFile(context.Background(), workFile); err != nil && !(err == storage.ErrObjectNotExist || strings.Contains(err.Error(), "404")) {
 		return err
+	} else if err != nil {
+		sklog.Warningf("There was an error while deleting %s, but continuing anyway: %s", workFile, err)
 	}
 	count := 0
 	if err := v.storageClient.AllFilesInDirectory(context.Background(), "skia_version/pending/working_", func(item *storage.ObjectAttrs) {
@@ -173,6 +175,7 @@ func (v *VersionUpdater) reportWorkDone(oldRevision, newRevision string) error {
 	}); err != nil {
 		return err
 	}
+	sklog.Infof("There are %d backend workers still rolling forward.", count)
 	// If count is 0, there are no workers left rolling forward.  Otherwise, there is still
 	// work to do by other workers, so this backend is done.
 	if count == 0 {
