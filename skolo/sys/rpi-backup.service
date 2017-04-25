@@ -7,8 +7,8 @@ After=network-online.target
 ExecStart=/usr/local/bin/rpi-backup \
   --logtostderr \
   --prom_port=:20001 \
-  --gce_bucket skia-images\
-  --gce_folder Swarming \
+  --gce_bucket skia-backups\
+  --gce_folder rpi_image \
   --local_file_path /opt/rpi_img/prod.img \
   --metric_name rpi-backup \
   --service_account_path=/usr/local/share/rpi-backup/service-account.json
