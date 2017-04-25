@@ -207,6 +207,7 @@ func writeFlagsToConfig() error {
 	config.GCS.Bucket = *bucket
 	config.FrontEnd.NumDownloadProcesses = *downloadProcesses
 	config.FrontEnd.FuzzSyncPeriod = *fuzzSyncPeriod
+	config.FrontEnd.BackendNames = *backendNames
 	return nil
 }
 
