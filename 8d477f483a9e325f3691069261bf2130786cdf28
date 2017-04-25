@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8b02b69d_276d2be2",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-04-25T13:01:12Z",
+      "side": 1,
+      "message": "micro nit: remove trailing spaces",
+      "range": {
+        "startLine": 19,
+        "startChar": 29,
+        "endLine": 19,
+        "endChar": 30
+      },
+      "revId": "8d477f483a9e325f3691069261bf2130786cdf28",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e97e13a_b11ecb51",
+        "filename": "go/depot_tools/depot_tools.mk",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-04-25T13:01:12Z",
+      "side": 1,
+      "message": "What is this doing?  It\u0027s hard for me to parse.  Also, what is MAKEFILE_LIST?",
+      "revId": "8d477f483a9e325f3691069261bf2130786cdf28",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e4df5ab_1627b6da",
+        "filename": "go/depot_tools/generate.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-04-25T13:01:12Z",
+      "side": 1,
+      "message": "change this to mention that it pins depot tools to infra/config/recipes.cfg, etc",
+      "range": {
+        "startLine": 7,
+        "startChar": 27,
+        "endLine": 7,
+        "endChar": 46
+      },
+      "revId": "8d477f483a9e325f3691069261bf2130786cdf28",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01aa1bd2_e64eca53",
+        "filename": "go/depot_tools/generate.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-04-25T13:01:12Z",
+      "side": 1,
+      "message": "This is a platform independent way to do \"./../../infra/config/recipes.cfg\", right?",
+      "range": {
+        "startLine": 17,
+        "startChar": 29,
+        "endLine": 19,
+        "endChar": 42
+      },
+      "revId": "8d477f483a9e325f3691069261bf2130786cdf28",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
