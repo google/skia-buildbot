@@ -41,6 +41,9 @@ import (
 const (
 	// APP_NAME is the name of this app.
 	APP_NAME = "task_scheduler"
+
+	PUBSUB_SUBSCRIBER_TASK_SCHEDULER          = "task-scheduler"
+	PUBSUB_SUBSCRIBER_TASK_SCHEDULER_INTERNAL = "task-scheduler-internal"
 )
 
 var (
@@ -87,8 +90,8 @@ var (
 	workdir        = flag.String("workdir", "workdir", "Working directory to use.")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 
-	pubsubTopicName      = flag.String("pubsub_topic", scheduling.PUBSUB_TOPIC_SWARMING_TASKS, "Pub/Sub topic to use for Swarming tasks.")
-	pubsubSubscriberName = flag.String("pubsub_subscriber", scheduling.PUBSUB_SUBSCRIBER_TASK_SCHEDULER, "Pub/Sub subscriber name.")
+	pubsubTopicName      = flag.String("pubsub_topic", swarming.PUBSUB_TOPIC_SWARMING_TASKS, "Pub/Sub topic to use for Swarming tasks.")
+	pubsubSubscriberName = flag.String("pubsub_subscriber", PUBSUB_SUBSCRIBER_TASK_SCHEDULER, "Pub/Sub subscriber name.")
 )
 
 func reloadTemplates() {
@@ -448,7 +451,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 
-	scheduling.RegisterPubSubServer(ts, r)
+	swarming.RegisterPubSubServer(ts, r)
 
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infof("Ready to serve on %s", serverURL)
@@ -582,7 +585,7 @@ func main() {
 	if *local {
 		serverURL = "http://" + *host + *port
 	}
-	if err := scheduling.InitPubSub(serverURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
+	if err := swarming.InitPubSub(serverURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
 		sklog.Fatal(err)
 	}
 	ts, err = scheduling.NewTaskScheduler(tsDb, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools)
