@@ -1,4 +1,4 @@
-package scheduling
+package swarming
 
 import (
 	"encoding/json"
@@ -17,12 +17,10 @@ import (
 )
 
 const (
-	PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL         = "projects/%s/topics/%s"
-	PUBSUB_SUBSCRIBER_TASK_SCHEDULER          = "task-scheduler"
-	PUBSUB_SUBSCRIBER_TASK_SCHEDULER_INTERNAL = "task-scheduler-internal"
-	PUBSUB_TOPIC_SWARMING_TASKS               = "swarming-tasks"
-	PUBSUB_TOPIC_SWARMING_TASKS_INTERNAL      = "swarming-tasks-internal"
-	PUSH_URL_SWARMING_TASKS                   = "pubsub/swarming-tasks"
+	PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL    = "projects/%s/topics/%s"
+	PUBSUB_TOPIC_SWARMING_TASKS          = "swarming-tasks"
+	PUBSUB_TOPIC_SWARMING_TASKS_INTERNAL = "swarming-tasks-internal"
+	PUSH_URL_SWARMING_TASKS              = "pubsub/swarming-tasks"
 )
 
 // InitPubSub ensures that the pub/sub topics and subscriptions needed by the
@@ -85,9 +83,14 @@ type PubSubTaskMessage struct {
 	SwarmingTaskId string `json:"task_id"`
 }
 
+// PubSubHandler is an interface used for handling pub/sub messages.
+type PubSubHandler interface {
+	HandleSwarmingPubSub(string) bool
+}
+
 // RegisterPubSubServer adds handler to r that handle pub/sub push
 // notifications.
-func RegisterPubSubServer(s *TaskScheduler, r *mux.Router) {
+func RegisterPubSubServer(h PubSubHandler, r *mux.Router) {
 	r.HandleFunc("/"+PUSH_URL_SWARMING_TASKS, func(w http.ResponseWriter, r *http.Request) {
 		var req PubSubRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -101,7 +104,7 @@ func RegisterPubSubServer(s *TaskScheduler, r *mux.Router) {
 			return
 		}
 
-		ack := s.updateTaskFromSwarmingPubSub(t.SwarmingTaskId)
+		ack := h.HandleSwarmingPubSub(t.SwarmingTaskId)
 		if ack {
 			w.WriteHeader(http.StatusOK)
 		} else {

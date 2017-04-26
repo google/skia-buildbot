@@ -1680,10 +1680,10 @@ func validateAndUpdateTask(d db.TaskDB, task *db.Task) error {
 	return d.PutTask(task)
 }
 
-// updateTaskFromSwarming loads the given Swarming task ID from Swarming and
+// HandleSwarmingPubSub loads the given Swarming task ID from Swarming and
 // updates the associated db.Task in the database. Returns a bool indicating
 // whether the pubsub message should be acknowledged.
-func (s *TaskScheduler) updateTaskFromSwarmingPubSub(swarmingTaskId string) bool {
+func (s *TaskScheduler) HandleSwarmingPubSub(swarmingTaskId string) bool {
 	// Obtain the Swarming task data.
 	res, err := s.swarming.GetTask(swarmingTaskId, false)
 	if err != nil {
