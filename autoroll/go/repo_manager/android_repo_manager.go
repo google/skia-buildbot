@@ -178,27 +178,11 @@ func (r *androidRepoManager) getChildRepoHead() (string, error) {
 
 // getLastRollRev returns the commit hash of the last-completed DEPS roll.
 func (r *androidRepoManager) getLastRollRev() (string, error) {
-	output, err := exec.RunCwd(r.childRepo.Dir(), "git", "log", "--pretty=format:%H %s")
+	output, err := exec.RunCwd(r.childRepo.Dir(), "git", "log", "--pretty=format:%H", "--no-merges", "-1")
 	if err != nil {
 		return "", err
 	}
-	commitLines := strings.Split(output, "\n")
-	indexWithMergeCommit := 0
-	for i, commitLine := range commitLines {
-		tokens := strings.SplitN(commitLine, " ", 2)
-		rollSubject, err := r.IsRollSubject(tokens[1])
-		if err != nil {
-			return "", err
-		}
-		if rollSubject {
-			indexWithMergeCommit = i
-			break
-		}
-	}
-	// The commit immediately before the merge commit will have a commit hash
-	// that corresponds to the target repo.
-	tokens := strings.SplitN(commitLines[indexWithMergeCommit+1], " ", 2)
-	return tokens[0], nil
+	return strings.TrimRight(output, "\n"), nil
 }
 
 // FullChildHash returns the full hash of the given short hash or ref in the
