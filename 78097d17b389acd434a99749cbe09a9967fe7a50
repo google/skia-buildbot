@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "75c6ad9c_95a5f9b1",
+        "filename": "compute_engine_scripts/swarming_logger/vm_create_instance.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-26T17:29:27Z",
+      "side": 1,
+      "message": "gcloud will now complain if you specify multiple options as multiple cmdline args; i.e., should be:\n--tags \"http-server,https-server\" \\\n...\n--disk name\u003d${INSTANCE_NAME},device-name\u003d${INSTANCE_NAME},mode\u003drw,boot\u003dyes,auto-delete\u003dyes \\\n--disk name\u003d${INSTANCE_NAME}-data,device-name\u003d${INSTANCE_NAME}-data,mode\u003drw,boot\u003dno \\\n...\n\n(If you\u0027re an overachiever, you could clean this up wherever you copied from.)",
+      "range": {
+        "startLine": 32,
+        "startChar": 9,
+        "endLine": 32,
+        "endChar": 37
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ab87e04_bf8c0947",
+        "filename": "compute_engine_scripts/swarming_logger/vm_create_instance.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-26T17:29:27Z",
+      "side": 1,
+      "message": "probably me",
+      "range": {
+        "startLine": 34,
+        "startChar": 52,
+        "endLine": 34,
+        "endChar": 58
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ea057d8_1fc538da",
+        "filename": "swarming_logger/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-26T17:29:27Z",
+      "side": 1,
+      "message": "nit: missing .PHONYs",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 3
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4662841a_42b61425",
+        "filename": "swarming_logger/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-26T17:29:27Z",
+      "side": 1,
+      "message": "nit: brave new world just has:\n\n.PHONY: push\npush: all\n\t./build_release \"`git log -n1 --format\u003d%s`\"\n\tgo install -v ../push/go/pushcli\n\tpushcli swarming-logger skia-swarming-logger",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 29
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a94c3284_b41a4351",
+        "filename": "swarming_logger/build_release",
+        "patchSetId": 3
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-26T17:29:27Z",
+      "side": 1,
+      "message": "nit: s/_/-/, also in push/skiapush.conf",
+      "range": {
+        "startLine": 3,
+        "startChar": 8,
+        "endLine": 3,
+        "endChar": 23
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fddb27b0_8323fce0",
+        "filename": "swarming_logger/go/swarming_logger/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-26T17:29:27Z",
+      "side": 1,
+      "message": "nit: swarming.PUBSUB_TOPIC_SWARMING_TASKS",
+      "range": {
+        "startLine": 30,
+        "startChar": 26,
+        "endLine": 30,
+        "endChar": 42
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "417918c1_2def6c0d",
+        "filename": "swarming_logger/go/swarming_logger/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-26T17:29:27Z",
+      "side": 1,
+      "message": "I\u0027m not sure PubSub will work well for this purpose, for a couple reasons:\n1. This handler will be called every time the task status changes. That means we\u0027ll see the beginning of the output in the logs at least twice, once after the task starts running and once when the task is finished.\n2. PubSub is not exactly guaranteed delivery -- if this handler returns false too many times (e.g. swarming is temporarily down or overloaded) for the same PubSub message, that message gets dropped on the floor. (I suspect that there are other cases where messages get lost also.)\n\nI\u0027m happy with this as v0.5, since I can\u0027t think of a more robust solution that doesn\u0027t require either remembering a lot of things or querying for a lot of things.",
+      "range": {
+        "startLine": 51,
+        "startChar": 22,
+        "endLine": 51,
+        "endChar": 42
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "78311c9e_0ada7f80",
+        "filename": "swarming_logger/sys/swarming_logger.service",
+        "patchSetId": 3
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-26T17:29:27Z",
+      "side": 1,
+      "message": "Requires\u003dmnt-pd0.mount\nWants\u003dnetwork-online.target\nAfter\u003dmnt-pd0.mount network-online.target",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 27
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
