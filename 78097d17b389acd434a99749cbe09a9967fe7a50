@@ -237,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "aa9dd3c6_856a6677",
+        "filename": "swarming_logger/build_release",
+        "patchSetId": 3
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-26T20:28:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "60713368_0ad28bdd",
+      "range": {
+        "startLine": 3,
+        "startChar": 8,
+        "endLine": 3,
+        "endChar": 23
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fddb27b0_8323fce0",
         "filename": "swarming_logger/go/swarming_logger/main.go",
         "patchSetId": 3
@@ -328,6 +352,30 @@
       "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aff42197_83251ac2",
+        "filename": "swarming_logger/go/swarming_logger/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-26T20:28:42Z",
+      "side": 1,
+      "message": "If it\u0027s important for every task to have logs uploaded, you need belt-and-suspenders for when PubSub doesn\u0027t work. If not, shrug.\n\nAn alternative that could work (in theory):\n - Keep track of (and persist) the earliest-created running task and the completed time of the last task logged.\n - On startup, read all tasks since the earliest-created. If any completed after the last task logged, log them.\n - GetModifiedTasks to notice new running tasks and task completions.\n\nOne reason this might not work in practice is that we might not see the completed tasks in the order they completed.",
+      "parentUuid": "cfd54f2b_f2ff1c41",
+      "range": {
+        "startLine": 51,
+        "startChar": 22,
+        "endLine": 51,
+        "endChar": 42
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
