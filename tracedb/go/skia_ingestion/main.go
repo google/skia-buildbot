@@ -30,6 +30,7 @@ var (
 	configFilename     = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
+	noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
 	nsqdAddress        = flag.String("nsqd", "", "Address and port of nsqd instance.")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
@@ -39,11 +40,16 @@ func main() {
 	defer common.LogPanic()
 	_, appName := filepath.Split(os.Args[0])
 
-	// Global init to initialize prometheus and cloud logging.
-	common.InitWithMust(appName,
+	// Set up the logging options.
+	logOpts := []common.Opt{
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
-	)
+	}
+
+	// Should we disable cloud logging.
+	if !*noCloudLog {
+		logOpts = append(logOpts, common.CloudLoggingOpt())
+	}
+	common.InitWithMust(appName, logOpts...)
 
 	// If no nsqd servers is defines, we simply don't have gloabl events.
 	var globalEventBus geventbus.GlobalEventBus = nil
