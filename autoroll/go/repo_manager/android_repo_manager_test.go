@@ -35,22 +35,19 @@ func setupAndroid(t *testing.T) (string, func()) {
 			return nil
 		}
 		if cmd.Name == "git" {
+			var output string
 			if cmd.Args[0] == "log" {
-				var output string
-				if cmd.Args[1] == "--pretty=format:%H" {
-					output = childCommits[1]
-				} else if cmd.Args[1] == "--format=format:%H%x20%ci" {
+				if cmd.Args[1] == "--format=format:%H%x20%ci" {
 					output = fmt.Sprintf("%s 2017-03-29 18:29:22 +0000\n%s 2017-03-29 18:29:22 +0000", childCommits[0], childCommits[1])
 				}
-				n, err := cmd.CombinedOutput.Write([]byte(output))
-				assert.NoError(t, err)
-				assert.Equal(t, len(output), n)
 			} else if cmd.Args[0] == "ls-remote" {
-				childHead := childCommits[0]
-				n, err := cmd.CombinedOutput.Write([]byte(childHead))
-				assert.NoError(t, err)
-				assert.Equal(t, len(childHead), n)
+				output = childCommits[0]
+			} else if cmd.Args[0] == "merge-base" {
+				output = childCommits[1]
 			}
+			n, err := cmd.CombinedOutput.Write([]byte(output))
+			assert.NoError(t, err)
+			assert.Equal(t, len(output), n)
 		}
 		return nil
 	})
