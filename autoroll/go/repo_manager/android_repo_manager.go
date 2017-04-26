@@ -381,6 +381,17 @@ func (r *androidRepoManager) CreateNewRoll(strategy string, emails []string, cqE
 		return 0, fmt.Errorf("Failed to create repo branch: %s", repoBranchErr)
 	}
 
+	// Get list of changes.
+	changeSummaries := []string{}
+	for _, c := range commits {
+		d, err := cr.Details(c, false)
+		if err != nil {
+			return 0, err
+		}
+		changeSummary := fmt.Sprintf("%s %s %s", d.Date, AUTHOR_EMAIL_RE.FindStringSubmatch(d.Author)[1], d.Subject)
+		changeSummaries = append(changeSummaries, changeSummary)
+	}
+
 	// Create commit message.
 	commitRange := fmt.Sprintf("%s..%s", r.lastRollRev[:9], r.childHead[:9])
 	childRepoName := path.Base(r.childDir)
@@ -389,8 +400,11 @@ func (r *androidRepoManager) CreateNewRoll(strategy string, emails []string, cqE
 
 https://%s.googlesource.com/%s.git/+log/%s
 
+%s
+
+
 Test: Presubmit checks will test this change.
-`, r.childPath, commitRange, len(commits), childRepoName, childRepoName, commitRange)
+`, r.childPath, commitRange, len(commits), childRepoName, childRepoName, commitRange, strings.Join(changeSummaries, "\n"))
 
 	// TODO(rmistry): Remove after things reliably work.
 	emails = append(emails, "rmistry@google.com")

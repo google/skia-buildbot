@@ -7,7 +7,6 @@ import (
 
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/git/gitinfo"
 )
 
 const (
