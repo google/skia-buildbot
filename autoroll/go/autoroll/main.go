@@ -273,9 +273,12 @@ func main() {
 	sklog.Infof("Sheriff: %s", strings.Join(emails, ", "))
 
 	// Sync depot_tools.
-	depotTools, err := depot_tools.Sync(*workdir)
-	if err != nil {
-		sklog.Fatal(err)
+	var depotTools string
+	if !*rollIntoAndroid {
+		depotTools, err = depot_tools.Sync(*workdir)
+		if err != nil {
+			sklog.Fatal(err)
+		}
 	}
 
 	// Start the autoroller.
