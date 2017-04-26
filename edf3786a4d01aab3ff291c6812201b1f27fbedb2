@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d003189e_251269c4",
+        "filename": "golden/frontend/res/imp/digest-details-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 492,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-04-26T20:33:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6c1e3041_11346729",
+      "range": {
+        "startLine": 492,
+        "startChar": 11,
+        "endLine": 492,
+        "endChar": 23
+      },
+      "revId": "edf3786a4d01aab3ff291c6812201b1f27fbedb2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "948750ad_1e5524f7",
         "filename": "golden/frontend/res/imp/digest-details-sk.html",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "ba1c7866_aa63ba31",
+        "filename": "golden/frontend/res/imp/digest-details-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 497,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-04-26T20:33:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "948750ad_1e5524f7",
+      "range": {
+        "startLine": 497,
+        "startChar": 50,
+        "endLine": 497,
+        "endChar": 59
+      },
+      "revId": "edf3786a4d01aab3ff291c6812201b1f27fbedb2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d18581d0_157e8fd4",
         "filename": "tracedb/go/skia_ingestion/main.go",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2017-04-26T19:16:27Z",
       "side": 1,
       "message": "Can\u0027t you just use the local flag?",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 11
+      },
+      "revId": "edf3786a4d01aab3ff291c6812201b1f27fbedb2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c410276_6be9e759",
+        "filename": "tracedb/go/skia_ingestion/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-04-26T20:33:48Z",
+      "side": 1,
+      "message": "There are circumstances where I would like to run locally and still have cloud logging \nenabled. That\u0027s why it\u0027s enabled by default. i.e. perf logs to the cloud all the time even when \nrun locally.",
+      "parentUuid": "d18581d0_157e8fd4",
       "range": {
         "startLine": 33,
         "startChar": 1,
@@ -91,6 +163,30 @@
       "revId": "edf3786a4d01aab3ff291c6812201b1f27fbedb2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d71b85e_c3f65762",
+        "filename": "tracedb/go/traceserver/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-04-26T20:33:48Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3cab075a_7aec6e01",
+      "range": {
+        "startLine": 30,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 11
+      },
+      "revId": "edf3786a4d01aab3ff291c6812201b1f27fbedb2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
