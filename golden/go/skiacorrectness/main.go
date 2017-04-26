@@ -61,6 +61,7 @@ var (
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 	nCommits           = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
+	noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
 	nTilesToBackfill   = flag.Int("backfill_tiles", 0, "Number of tiles to backfill in our history of tiles.")
 	oauthCacheFile     = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
 	port               = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
@@ -92,12 +93,17 @@ func main() {
 	// Setup DB flags.
 	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME, db.MigrationSteps())
 
-	// Global init to initialize prometheus and cloud logging.
-	_, appName := filepath.Split(os.Args[0])
-	common.InitWithMust(appName,
+	// Set up the logging options.
+	logOpts := []common.Opt{
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
-	)
+	}
+
+	// Should we disable cloud logging.
+	if !*noCloudLog {
+		logOpts = append(logOpts, common.CloudLoggingOpt())
+	}
+	_, appName := filepath.Split(os.Args[0])
+	common.InitWithMust(appName, logOpts...)
 
 	v, err := skiaversion.GetVersion()
 	if err != nil {

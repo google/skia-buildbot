@@ -485,8 +485,18 @@
 
       _setProperties: function() {
         this._leftParamTitle = this._abbrev(this.details.digest);
-        var paramSets = [this.details.paramset];
-        var paramTitles = [this._leftParamTitle];
+        var paramSets = [];
+        var paramTitles = [];
+
+        // TODO(stephana): Remove this check once we have figured out why
+        // this.details.paramset is null or undefined.
+        if (this.details.paramset) {
+          paramSets.push(this.details.paramset);
+          paramTitles.push(this._leftParamTitle);
+        } else {
+          console.log("Error: this.details.paramset is undefined or null.");
+        }
+
         if (this._right) {
           this.set('_diffImgHref', gold.diffImgHref(this._right.digest, this.details.digest));
 

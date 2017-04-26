@@ -27,13 +27,20 @@ var (
 	port       = flag.String("port", ":9090", "The port to serve the gRPC endpoint on.")
 	promPort   = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	sharedbDir = flag.String("sharedb_dir", "", "Directory used by shareDB. If empty shareDB service will not enabled.")
+	noCloudLog = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
 )
 
 func main() {
-	common.InitWithMust(filepath.Base(os.Args[0]),
+	// Set up the logging options.
+	logOpts := []common.Opt{
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
-	)
+	}
+
+	// Should we disable cloud logging.
+	if !*noCloudLog {
+		logOpts = append(logOpts, common.CloudLoggingOpt())
+	}
+	common.InitWithMust(filepath.Base(os.Args[0]), logOpts...)
 
 	ts, err := traceservice.NewTraceServiceServer(*db_file)
 	if err != nil {

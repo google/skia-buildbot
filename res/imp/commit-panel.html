@@ -192,6 +192,9 @@
               });
               this.fire('commits-loaded', {});
             }.bind(this)).catch(sk.errorMessage);
+          } else {
+            // Fire the message even when the commit messages were cached.
+            this.fire('commits-loaded', {});
           }
           if (this.progress) {
             var url = 'https://status.skia.org/json/skia/buildProgress?commit=' + this._firstHash;
