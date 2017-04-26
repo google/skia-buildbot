@@ -61,6 +61,10 @@ fuzzer:
 skolo:
 	cd skolo && $(MAKE) all
 
+.PHONY: swarming_logger
+swarming_logger:
+	cd swarming_logger && $(MAKE) all
+
 .PHONY: task_scheduler
 task_scheduler:
 	cd task_scheduler && $(MAKE) all
