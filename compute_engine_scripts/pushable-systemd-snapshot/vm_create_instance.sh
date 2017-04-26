@@ -11,8 +11,6 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --machine-type $MACHINE_TYPE \
   --network "default" \
   --maintenance-policy "MIGRATE" \
-  --scopes $SCOPES \
-  --tags "http-server,https-server" \
   --image-family $IMAGE_FAMILY \
   --image-project $IMAGE_PROJECT \
   --boot-disk-type "pd-standard" \
