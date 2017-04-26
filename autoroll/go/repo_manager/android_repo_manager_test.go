@@ -37,8 +37,8 @@ func setupAndroid(t *testing.T) (string, func()) {
 		if cmd.Name == "git" {
 			if cmd.Args[0] == "log" {
 				var output string
-				if cmd.Args[1] == "--pretty=format:%H %s" {
-					output = fmt.Sprintf("324 Roll skia 123..3432 (2 commits)\n%s target change", childCommits[1])
+				if cmd.Args[1] == "--pretty=format:%H" {
+					output = childCommits[1]
 				} else if cmd.Args[1] == "--format=format:%H%x20%ci" {
 					output = fmt.Sprintf("%s 2017-03-29 18:29:22 +0000\n%s 2017-03-29 18:29:22 +0000", childCommits[0], childCommits[1])
 				}
