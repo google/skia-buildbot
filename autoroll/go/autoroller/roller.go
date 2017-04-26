@@ -343,6 +343,7 @@ func (r *AutoRoller) updateCurrentRoll() error {
 		sklog.Infof("Roll succeeded (%d); syncing the repo until it lands.", currentRoll.Issue)
 		for {
 			sklog.Info("Syncing...")
+			sklog.Infof("Looking for %s", currentRoll.RollingTo)
 			if err := r.rm.ForceUpdate(); err != nil {
 				return err
 			}
