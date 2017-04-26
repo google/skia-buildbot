@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3b7bf91a_b788fda8",
+        "filename": "compute_engine_scripts/swarming_logger/vm_create_instance.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-26T18:21:28Z",
+      "side": 1,
+      "message": "Done, here and in task_scheduler :-O",
+      "parentUuid": "75c6ad9c_95a5f9b1",
+      "range": {
+        "startLine": 32,
+        "startChar": 9,
+        "endLine": 32,
+        "endChar": 37
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3ab87e04_bf8c0947",
         "filename": "compute_engine_scripts/swarming_logger/vm_create_instance.sh",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2017-04-26T17:29:27Z",
       "side": 1,
       "message": "probably me",
+      "range": {
+        "startLine": 34,
+        "startChar": 52,
+        "endLine": 34,
+        "endChar": 58
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5fdcadf_843cd539",
+        "filename": "compute_engine_scripts/swarming_logger/vm_create_instance.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-26T18:21:28Z",
+      "side": 1,
+      "message": "Thanks for volunteering!",
+      "parentUuid": "3ab87e04_bf8c0947",
       "range": {
         "startLine": 34,
         "startChar": 52,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "2650563a_9d244e91",
+        "filename": "swarming_logger/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-26T18:21:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0ea057d8_1fc538da",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 3
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4662841a_42b61425",
         "filename": "swarming_logger/Makefile",
         "patchSetId": 3
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "738df80d_f87177cf",
+        "filename": "swarming_logger/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-26T18:21:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4662841a_42b61425",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 29
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a94c3284_b41a4351",
         "filename": "swarming_logger/build_release",
         "patchSetId": 3
@@ -105,6 +201,30 @@
       "writtenOn": "2017-04-26T17:29:27Z",
       "side": 1,
       "message": "nit: s/_/-/, also in push/skiapush.conf",
+      "range": {
+        "startLine": 3,
+        "startChar": 8,
+        "endLine": 3,
+        "endChar": 23
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60713368_0ad28bdd",
+        "filename": "swarming_logger/build_release",
+        "patchSetId": 3
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-26T18:21:28Z",
+      "side": 1,
+      "message": "Necessary?  If APPNAME doesn\u0027t match the name of the executable, then the log link is always broken and you have to click the \"real\" executable name in the drop-down list.",
+      "parentUuid": "a94c3284_b41a4351",
       "range": {
         "startLine": 3,
         "startChar": 8,
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "f21ebc0d_e470c8f1",
+        "filename": "swarming_logger/go/swarming_logger/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-26T18:21:28Z",
+      "side": 1,
+      "message": "Just changed below.",
+      "parentUuid": "fddb27b0_8323fce0",
+      "range": {
+        "startLine": 30,
+        "startChar": 26,
+        "endLine": 30,
+        "endChar": 42
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "417918c1_2def6c0d",
         "filename": "swarming_logger/go/swarming_logger/main.go",
         "patchSetId": 3
@@ -151,6 +295,30 @@
       "writtenOn": "2017-04-26T17:29:27Z",
       "side": 1,
       "message": "I\u0027m not sure PubSub will work well for this purpose, for a couple reasons:\n1. This handler will be called every time the task status changes. That means we\u0027ll see the beginning of the output in the logs at least twice, once after the task starts running and once when the task is finished.\n2. PubSub is not exactly guaranteed delivery -- if this handler returns false too many times (e.g. swarming is temporarily down or overloaded) for the same PubSub message, that message gets dropped on the floor. (I suspect that there are other cases where messages get lost also.)\n\nI\u0027m happy with this as v0.5, since I can\u0027t think of a more robust solution that doesn\u0027t require either remembering a lot of things or querying for a lot of things.",
+      "range": {
+        "startLine": 51,
+        "startChar": 22,
+        "endLine": 51,
+        "endChar": 42
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cfd54f2b_f2ff1c41",
+        "filename": "swarming_logger/go/swarming_logger/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-26T18:21:28Z",
+      "side": 1,
+      "message": "Okay, changed to skip unfinished tasks to address #1.  As for #2, I don\u0027t know of a good alternative.  I originally thought about building this whole process into Task Scheduler, which wouldn\u0027t solve the problem per se, but would at least get us aligned.  Personally, I think there\u0027s enough exponential backoff between requests and enough attempts that both this app and Swarming would have to be down for a long time in order to drop messages.  A possible alternative is to use the task scheduler DB, scan through tasks from the last N days and upload any logs we haven\u0027t uploaded yet (not sure how to check that).",
+      "parentUuid": "417918c1_2def6c0d",
       "range": {
         "startLine": 51,
         "startChar": 22,
@@ -183,6 +351,30 @@
       "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "538fa5c3_68137476",
+        "filename": "swarming_logger/sys/swarming_logger.service",
+        "patchSetId": 3
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-26T18:21:28Z",
+      "side": 1,
+      "message": "Done, here and in autoroll.",
+      "parentUuid": "78311c9e_0ada7f80",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 27
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
