@@ -178,7 +178,7 @@ func (r *androidRepoManager) getChildRepoHead() (string, error) {
 
 // getLastRollRev returns the commit hash of the last-completed DEPS roll.
 func (r *androidRepoManager) getLastRollRev() (string, error) {
-	output, err := exec.RunCwd(r.childRepo.Dir(), "git", "log", "--pretty=format:%H", "--no-merges", "-1", "--first-parent", fmt.Sprintf("refs/remotes/remote/%s", r.childBranch))
+	output, err := exec.RunCwd(r.childRepo.Dir(), "git", "merge-base", fmt.Sprintf("refs/remotes/remote/%s", r.childBranch), fmt.Sprintf("refs/remotes/goog/%s", r.parentBranch))
 	if err != nil {
 		return "", err
 	}
