@@ -97,20 +97,26 @@
     <div id="statusDisplay">
       <div class="table">
         <div class="tr">
-          <div class="td nowrap">Mode:</div>
-          <div class="td nowrap">
-            <template is="dom-repeat" items="{{modeButtons}}">
-              <button class$="{{_buttonClass(item)}}" on-tap="_buttonPressed" disabled$="{{_modeChangePending}}">{{item.label}}</button>
-            </template>
-            <paper-spinner active$="{{_modeChangePending}}"></paper-spinner>
+          <div class="td nowrap">Current Mode:</div>
+          <div class="td nowrap unknown">
+            <span class="big">{{mode}}</span>
           </div>
         </div>
         <div class="tr">
-          <div class="td nowrap">Mode Set:</div>
+          <div class="td nowrap">Set By:</div>
           <div class="td nowrap unknown">
             <!-- No line break below, or we get a space before the colon, eg.
                  user@google.com : Mode change message -->
             <span>[[modeChangeBy]]</span><template is="dom-if" if="{{modeChangeMsg}}"><span>: [[modeChangeMsg]]</span></template>
+          </div>
+        </div>
+        <div class="tr">
+          <div class="td nowrap">Change Mode:</div>
+          <div class="td nowrap">
+            <template is="dom-repeat" items="{{modeButtons}}">
+              <button class$="{{_buttonClass(item)}}" on-tap="_buttonPressed" disabled$="{{_modeChangePending}}" value="{{item.value}}">{{item.label}}</button>
+            </template>
+            <paper-spinner active$="{{_modeChangePending}}"></paper-spinner>
           </div>
         </div>
         <div class="tr">
@@ -307,16 +313,12 @@
         return mode.class;
       },
 
-      _buttonLabel: function(mode) {
-        return mode.label;
-      },
-
       _buttonPressed: function(e) {
         if (!this._editRights) {
           sk.errorMessage("You must be logged in with an @google.com account to set the ARB mode.");
           return
         }
-        var mode = e.srcElement.innerHTML;
+        var mode = e.srcElement.value;
         if (mode == this.mode) {
           return;
         }
@@ -363,6 +365,24 @@
 
       _exists: function(obj) {
         return !!obj;
+      },
+
+      _getModeButtonLabel: function(currentMode, mode) {
+        // TODO(borenet): This is a hack; it doesn't respect this.validModes.
+        return {
+          "running": {
+            "stopped": "stop",
+            "dry run": "switch to dry run",
+          },
+          "stopped": {
+            "running": "resume",
+            "dry run": "switch to dry run",
+          },
+          "dry run": {
+            "running": "switch to normal mode",
+            "stopped": "stop",
+          },
+        }[currentMode][mode];
       },
 
       _reloadChanged: function() {
@@ -454,7 +474,12 @@
         var modeButtons = [];
         for (var i = 0; i < this.validModes.length; i++) {
           var m = this.validModes[i];
-          modeButtons.push({"label": m, "class": m == this.mode ? "action" : ""});
+          if (m != this.mode) {
+            modeButtons.push({
+              "label": this._getModeButtonLabel(this.mode, m),
+              "value": m,
+            });
+          }
         }
         this._setModeButtons(modeButtons);
 
