@@ -119,6 +119,8 @@ func (i *imageSyncer) sync() bool {
 		sklog.Infof("Skipping sync because we are already serving")
 		return false
 	}
+	stopServing()
+	time.Sleep(time.Second) // Make sure old file handle is released.
 	sklog.Infof("Attempting to sync image from remote")
 	stdOut := bytes.Buffer{}
 	stdErr := bytes.Buffer{}
@@ -136,14 +138,13 @@ func (i *imageSyncer) sync() bool {
 		return false
 	} else {
 		sklog.Infof("No error with rsync")
-		reloadImage()
+		startServing()
 	}
 	return true
 }
 
-// reloadImage uses Ansible playbooks to stop and then quickly start serving the image,
-// which forces a refresh of the image being served.
-func reloadImage() {
+// stopServing uses Ansible playbooks to stop serving the image.
+func stopServing() {
 	stdOut := bytes.Buffer{}
 	stdErr := bytes.Buffer{}
 	err := exec.Run(&exec.Command{
@@ -159,10 +160,14 @@ func reloadImage() {
 	} else {
 		sklog.Infof("Ansible stop serving playbook success")
 	}
+}
 
-	stdOut.Reset()
-	stdErr.Reset()
-	err = exec.Run(&exec.Command{
+// startServing uses Ansible playbooks to start serving the image,
+// which forces a refresh of the image being served.
+func startServing() {
+	stdOut := bytes.Buffer{}
+	stdErr := bytes.Buffer{}
+	err := exec.Run(&exec.Command{
 		Name:   "ansible-playbook",
 		Args:   []string{"-i", `"localhost,"`, "-c", "local", *startServingPlaybook},
 		Stdout: &stdOut,
