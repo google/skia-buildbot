@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"os"
 	"strings"
 	"time"
 
@@ -119,31 +120,37 @@ func (i *imageSyncer) sync() bool {
 		sklog.Infof("Skipping sync because we are already serving")
 		return false
 	}
+
 	sklog.Infof("Attempting to sync image from remote")
 	stdOut := bytes.Buffer{}
 	stdErr := bytes.Buffer{}
+	tempDest := i.LocalPath + ".tmp"
 	// This only works if the master has the spare's ssh key in authorized_key
 	err := exec.Run(&exec.Command{
 		Name:   "rsync",
-		Args:   []string{i.RemotePath, i.LocalPath},
+		Args:   []string{i.RemotePath, tempDest},
 		Stdout: &stdOut,
 		Stderr: &stdErr,
 	})
 	sklog.Infof("StdOut of rsync command: %s", stdOut.String())
 	sklog.Infof("StdErr of rsync command: %s", stdErr.String())
 	if err != nil {
-		sklog.Errorf("Could not copy image with rsync: %s", err)
+		sklog.Errorf("Could not copy image with rsync. Staying with old image: %s", err)
 		return false
 	} else {
 		sklog.Infof("No error with rsync")
-		reloadImage()
+		stopServing()
+		time.Sleep(time.Second) // Make sure old file handle is released.
+		if err = os.Rename(tempDest, i.LocalPath); err != nil {
+			sklog.Errorf("Could not rename temporary image. Staying with old image: %s", err)
+		}
+		startServing()
 	}
 	return true
 }
 
-// reloadImage uses Ansible playbooks to stop and then quickly start serving the image,
-// which forces a refresh of the image being served.
-func reloadImage() {
+// stopServing uses Ansible playbooks to stop serving the image.
+func stopServing() {
 	stdOut := bytes.Buffer{}
 	stdErr := bytes.Buffer{}
 	err := exec.Run(&exec.Command{
@@ -159,10 +166,14 @@ func reloadImage() {
 	} else {
 		sklog.Infof("Ansible stop serving playbook success")
 	}
+}
 
-	stdOut.Reset()
-	stdErr.Reset()
-	err = exec.Run(&exec.Command{
+// startServing uses Ansible playbooks to start serving the image,
+// which forces a refresh of the image being served.
+func startServing() {
+	stdOut := bytes.Buffer{}
+	stdErr := bytes.Buffer{}
+	err := exec.Run(&exec.Command{
 		Name:   "ansible-playbook",
 		Args:   []string{"-i", `"localhost,"`, "-c", "local", *startServingPlaybook},
 		Stdout: &stdOut,
