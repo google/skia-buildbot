@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "264b42dd_d2d1f061",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-27T17:18:15Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "f2d06c7e_660f5468",
+      "range": {
+        "startLine": 286,
+        "startChar": 8,
+        "endLine": 286,
+        "endChar": 24
+      },
+      "revId": "ad1afd90a3500ec9bb8f5227228df437bcd8d18e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5a2d9dca_8b5587f4",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 4
@@ -107,6 +131,30 @@
       "side": 1,
       "message": "I can do that but will people be able to tell the difference between Chrome Roll and Chrome DEPS? Maybe be consistent for both and do Chrome Roll and Chrome Merged (it\u0027s kind of like merging).",
       "parentUuid": "b00f1904_5d53a3aa",
+      "range": {
+        "startLine": 621,
+        "startChar": 23,
+        "endLine": 621,
+        "endChar": 35
+      },
+      "revId": "ad1afd90a3500ec9bb8f5227228df437bcd8d18e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b93270e_fe2db883",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 621,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-27T17:18:15Z",
+      "side": 1,
+      "message": "How about \"Chrome rolled\", \"Chrome rolling\", \"Android rolled\", \"Android rolling\".\nI also made the combination \"Cr/An rolled\" and \"Cr/An rolling\". Looks a little weird but maybe ok.",
+      "parentUuid": "092f3f1e_64d850f1",
       "range": {
         "startLine": 621,
         "startChar": 23,
