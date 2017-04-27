@@ -7,7 +7,6 @@ import (
 
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/git/gitinfo"
 )
 
 const (
@@ -39,7 +38,7 @@ type commonRepoManager struct {
 	childDir     string
 	childHead    string
 	childPath    string
-	childRepo    *gitinfo.GitInfo
+	childRepo    *git.Checkout
 	childBranch  string
 	user         string
 	workdir      string

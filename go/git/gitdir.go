@@ -178,3 +178,12 @@ func (g GitDir) IsAncestor(a, b string) (bool, error) {
 func (g GitDir) Version() (int, int, error) {
 	return git_common.Version()
 }
+
+// FullHash gives the full commit hash for the given ref.
+func (g GitDir) FullHash(ref string) (string, error) {
+	output, err := g.RevParse(fmt.Sprintf("%s^{commit}", ref))
+	if err != nil {
+		return "", fmt.Errorf("Failed to obtain full hash: %s", err)
+	}
+	return output, nil
+}
