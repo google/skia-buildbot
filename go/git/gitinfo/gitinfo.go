@@ -123,7 +123,7 @@ func (g *GitInfo) details(hash string, includeBranchInfo bool) (*vcsinfo.LongCom
 	if c, ok := g.detailsCache[hash]; ok {
 		return c, nil
 	}
-	output, err := exec.RunCwd(g.dir, "git", "log", "-n", "1", "--format=format:%H%n%P%n%an%x20(%ae)%n%s%n%b", hash)
+	output, err := exec.RunCwd(g.dir, "git", "log", "-n", "1", "--format=format:%H%n%P%n%an%x20(%ae)%n%s%n%b", "--date=short", hash)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to execute Git: %s", err)
 	}
