@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bcb8ab36_f40855a6",
+        "filename": "skolo/go/hotspare/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-04-27T13:03:36Z",
+      "side": 1,
+      "message": "Why not :\n - sync to a different file \n - shut down the service when sync succeeds \n- swap in the new file\n- restart the service \n\nIf a sync fails it will keep the service running.",
+      "range": {
+        "startLine": 128,
+        "startChar": 0,
+        "endLine": 133,
+        "endChar": 3
+      },
+      "revId": "cb28efef303524887b9377b7abc0237db8fea9fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
