@@ -952,7 +952,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 func initIngestion() {
-	evt := eventbus.New(nil)
+	evt := eventbus.New()
 
 	// Initialize oauth client and start the ingesters.
 	client, err := auth.NewDefaultJWTServiceAccountClient(storage.ScopeReadWrite)
