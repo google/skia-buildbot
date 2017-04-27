@@ -202,7 +202,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	evt := eventbus.New(nil)
+	evt := eventbus.New()
 
 	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
 	gerritAPI, err := gerrit.NewGerrit(*gerritURL, "", httputils.NewTimeoutClient())

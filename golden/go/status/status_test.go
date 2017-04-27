@@ -58,7 +58,7 @@ func BenchmarkStatusWatcher(b *testing.B) {
 }
 
 func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder) {
-	eventBus := eventbus.New(nil)
+	eventBus := eventbus.New()
 	storages := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		MasterTileBuilder: tileBuilder,

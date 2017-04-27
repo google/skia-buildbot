@@ -27,7 +27,6 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/calc"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/ingestion"
@@ -80,8 +79,6 @@ var (
 )
 
 var (
-	evt *eventbus.EventBus
-
 	templates *template.Template
 
 	freshDataFrame *dataframe.Refresher
@@ -952,8 +949,6 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 func initIngestion() {
-	evt := eventbus.New(nil)
-
 	// Initialize oauth client and start the ingesters.
 	client, err := auth.NewDefaultJWTServiceAccountClient(storage.ScopeReadWrite)
 	if err != nil {
@@ -971,7 +966,7 @@ func initIngestion() {
 		sklog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
 	}
 
-	ingesters, err := ingestion.IngestersFromConfig(config, client, evt)
+	ingesters, err := ingestion.IngestersFromConfig(config, client)
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate ingesters: %s", err)
 	}

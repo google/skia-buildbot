@@ -3,8 +3,6 @@ package eventbus
 import (
 	"sync"
 
-	"go.skia.org/infra/go/geventbus"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -19,12 +17,6 @@ type EventBus struct {
 
 	// Used to protect handlers.
 	mutex sync.Mutex
-
-	// Optional global eventbus used to distribute events over the network.
-	globalEventBus geventbus.GlobalEventBus
-
-	// Keeps track of whether we have already subsribed to specific global event.
-	globallySubscribed map[string]bool
 }
 
 // Internal struct to keep keep track of an event and it's handlers.
@@ -88,18 +80,12 @@ func RegisterSubTopic(topic, subTopic string, filterFn SubTopicFilter) {
 }
 
 // New returns a new instance of EventBus
-func New(globalEventBus geventbus.GlobalEventBus) *EventBus {
+func New() *EventBus {
 	globalEventsMutex.Lock()
 	defer globalEventsMutex.Unlock()
 
-	// Make sure the global event bus does not double send what we already dispatched locally.
-	if globalEventBus != nil {
-		globalEventBus.DispatchSentMessages(false)
-	}
-
 	ret := &EventBus{
-		globalEventBus: globalEventBus,
-		handlers:       map[string]*topicHandler{},
+		handlers: map[string]*topicHandler{},
 	}
 	return ret
 }
@@ -108,10 +94,10 @@ func New(globalEventBus geventbus.GlobalEventBus) *EventBus {
 // to all functions that have subscribed to this event. The type
 // and value of arg is event dependent.
 func (e *EventBus) Publish(topic string, arg interface{}) {
-	e.publishEvent(topic, arg, e.globalEventBus != nil)
+	e.publishEvent(topic, arg)
 }
 
-func (e *EventBus) publishEvent(topic string, arg interface{}, globally bool) {
+func (e *EventBus) publishEvent(topic string, arg interface{}) {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 	if th, ok := e.handlers[topic]; ok {
@@ -121,25 +107,6 @@ func (e *EventBus) publishEvent(topic string, arg interface{}, globally bool) {
 				defer th.wg.Done()
 				callback(arg)
 			}(callback)
-		}
-	}
-
-	if globally {
-		globalEventsMutex.Lock()
-		eventCodec, ok := globalEvents[topic]
-		globalEventsMutex.Unlock()
-		if ok {
-			go func() {
-				byteData, err := eventCodec.Encode(arg)
-				if err != nil {
-					sklog.Errorf("Unable to encode event data for topic %s:  %s", topic, err)
-					return
-				}
-
-				if err := e.globalEventBus.Publish(topic, byteData); err != nil {
-					sklog.Errorf("Unable to publish global event for topic %s:  %s", topic, err)
-				}
-			}()
 		}
 	}
 }
@@ -164,9 +131,6 @@ func (e *EventBus) subscribeWithLock(topic string, callback CallbackFn) {
 	} else {
 		e.handlers[topic] = &topicHandler{callbacks: []CallbackFn{callback}}
 	}
-	if err := e.registerGlobalSubscription(topic); err != nil {
-		sklog.Errorf("Unable to register for global event topic %s:  %s", topic, err)
-	}
 }
 
 // Wait will block until the goroutines for a specific topic have finished.
@@ -178,39 +142,6 @@ func (e *EventBus) Wait(topic string) {
 	if ok {
 		th.wg.Wait()
 	}
-}
-
-func (e *EventBus) registerGlobalSubscription(topic string) error {
-	if e.globalEventBus == nil {
-		return nil
-	}
-
-	// This is not a global topic nothing to do here.
-	globalEventsMutex.Lock()
-	eventCodec, ok := globalEvents[topic]
-	globalEventsMutex.Unlock()
-	if !ok {
-		return nil
-	}
-
-	// We already subscribed to this global topic. Nothing to do.
-	if _, ok := e.globallySubscribed[topic]; ok {
-		return nil
-	}
-
-	err := e.globalEventBus.SubscribeAsync(topic, func(data []byte) {
-		// deserialize the instance.
-		inst, err := eventCodec.Decode(data)
-		if err != nil {
-			sklog.Errorf("Error decoding global event for topic %s:  %s", topic, err)
-			return
-		}
-
-		// Publish the global event locally.
-		e.publishEvent(topic, inst, false)
-	})
-
-	return err
 }
 
 // subscribeToSubTopic returns true if the given 'subTopic' is indeed a registered sub topic.

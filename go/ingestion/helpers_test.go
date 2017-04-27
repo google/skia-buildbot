@@ -9,7 +9,6 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/testutils"
 )
@@ -42,8 +41,7 @@ func TestGoogleStorageSource(t *testing.T) {
 	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
-	evt := eventbus.New(nil)
-	src, err := NewGoogleStorageSource("gs-test-src", gcs.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient, evt)
+	src, err := NewGoogleStorageSource("gs-test-src", gcs.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient)
 	assert.NoError(t, err)
 	testSource(t, src)
 }
@@ -65,8 +63,7 @@ func TestCompareSources(t *testing.T) {
 	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
-	evt := eventbus.New(nil)
-	gsSource, err := NewGoogleStorageSource("gs-test-src", gcs.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient, evt)
+	gsSource, err := NewGoogleStorageSource("gs-test-src", gcs.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient)
 	assert.NoError(t, err)
 
 	err = gcs.DownloadTestDataArchive(t, gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)

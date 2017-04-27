@@ -13,7 +13,6 @@ import (
 	"sync"
 
 	"cloud.google.com/go/storage"
-	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/gitinfo"
@@ -54,7 +53,7 @@ func Register(id string, constructor Constructor) {
 // client is assumed to be suitable for the given application. If e.g. the
 // processors of the current application require an authenticated http client,
 // then it is expected that client meets these requirements.
-func IngestersFromConfig(config *sharedconfig.Config, client *http.Client, evt *eventbus.EventBus) ([]*Ingester, error) {
+func IngestersFromConfig(config *sharedconfig.Config, client *http.Client) ([]*Ingester, error) {
 	registrationMutex.Lock()
 	defer registrationMutex.Unlock()
 	ret := []*Ingester{}
@@ -83,7 +82,7 @@ func IngestersFromConfig(config *sharedconfig.Config, client *http.Client, evt *
 		// Instantiate the sources
 		sources := make([]Source, 0, len(ingesterConf.Sources))
 		for _, dataSource := range ingesterConf.Sources {
-			oneSource, err := getSource(id, dataSource, client, evt)
+			oneSource, err := getSource(id, dataSource, client)
 			if err != nil {
 				return nil, fmt.Errorf("Error instantiating sources for ingester '%s': %s", id, err)
 			}
@@ -109,13 +108,13 @@ func IngestersFromConfig(config *sharedconfig.Config, client *http.Client, evt *
 
 // getSource returns an instance of source that is either getting data from
 // Google storage or the local fileystem.
-func getSource(id string, dataSource *sharedconfig.DataSource, client *http.Client, evt *eventbus.EventBus) (Source, error) {
+func getSource(id string, dataSource *sharedconfig.DataSource, client *http.Client) (Source, error) {
 	if dataSource.Dir == "" {
 		return nil, fmt.Errorf("Datasource for %s is missing a directory.", id)
 	}
 
 	if dataSource.Bucket != "" {
-		return NewGoogleStorageSource(id, dataSource.Bucket, dataSource.Dir, client, evt)
+		return NewGoogleStorageSource(id, dataSource.Bucket, dataSource.Dir, client)
 	}
 	return NewFileSystemSource(id, dataSource.Dir)
 }
@@ -132,13 +131,12 @@ type GoogleStorageSource struct {
 	id            string
 	storageClient *storage.Client
 	client        *http.Client
-	evt           *eventbus.EventBus
 }
 
 // NewGoogleStorageSource returns a new instance of GoogleStorageSource based
 // on the bucket and directory provided. The id is used to identify the Source
 // and is generally the same id as the ingester.
-func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Client, evt *eventbus.EventBus) (Source, error) {
+func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Client) (Source, error) {
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create a Google Storage API client: %s", err)
@@ -150,7 +148,6 @@ func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Clien
 		id:            fmt.Sprintf("%s:gs://%s/%s", baseName, bucket, rootDir),
 		client:        client,
 		storageClient: storageClient,
-		evt:           evt,
 	}, nil
 }
 
@@ -173,11 +170,6 @@ func (g *GoogleStorageSource) Poll(startTime, endTime int64) ([]ResultFileLocati
 		}
 	}
 	return retval, nil
-}
-
-// See Source interface.
-func (g *GoogleStorageSource) EventChan() <-chan []ResultFileLocation {
-	return nil
 }
 
 // See Source interface.
@@ -320,11 +312,6 @@ func (f *FileSystemSource) Poll(startTime, endTime int64) ([]ResultFileLocation,
 	}
 
 	return retval, nil
-}
-
-// See Source interface.
-func (f *FileSystemSource) EventChan() <-chan []ResultFileLocation {
-	return nil
 }
 
 // See Source interface.

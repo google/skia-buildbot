@@ -29,7 +29,7 @@ func TestMySQLExpectationsStore(t *testing.T) {
 	testExpectationStore(t, sqlStore, nil)
 
 	// Test the caching version of the MySQL store.
-	eventBus := eventbus.New(nil)
+	eventBus := eventbus.New()
 	cachingStore := NewCachingExpectationStore(sqlStore, eventBus)
 	testExpectationStore(t, cachingStore, eventBus)
 }

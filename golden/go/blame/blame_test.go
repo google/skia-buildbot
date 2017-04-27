@@ -72,7 +72,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	assert.Equal(t, len(commits), len(digests[0]))
 	assert.Equal(t, len(digests), len(params))
 
-	eventBus := eventbus.New(nil)
+	eventBus := eventbus.New()
 	storages := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		MasterTileBuilder: mocks.NewMockTileBuilder(t, digests, params, commits),
@@ -193,7 +193,7 @@ func TestBlamerWithLiveData(t *testing.T) {
 }
 
 func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder) {
-	eventBus := eventbus.New(nil)
+	eventBus := eventbus.New()
 	storages := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		MasterTileBuilder: tileBuilder,

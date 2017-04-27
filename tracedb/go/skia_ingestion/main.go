@@ -14,8 +14,6 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/geventbus"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
@@ -31,7 +29,6 @@ var (
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 	noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
-	nsqdAddress        = flag.String("nsqd", "", "Address and port of nsqd instance.")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
 )
@@ -51,17 +48,6 @@ func main() {
 	}
 	common.InitWithMust(appName, logOpts...)
 
-	// If no nsqd servers is defines, we simply don't have gloabl events.
-	var globalEventBus geventbus.GlobalEventBus = nil
-	var err error
-	if *nsqdAddress != "" {
-		globalEventBus, err = geventbus.NewNSQEventBus(*nsqdAddress)
-		if err != nil {
-			sklog.Fatalf("Unable to connect to NSQ server at address %s: %s", *nsqdAddress, err)
-		}
-	}
-	evt := eventbus.New(globalEventBus)
-
 	// Initialize oauth client and start the ingesters.
 	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, nil, storage.CloudPlatformScope)
 	if err != nil {
@@ -74,7 +60,7 @@ func main() {
 		sklog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
 	}
 
-	ingesters, err := ingestion.IngestersFromConfig(config, client, evt)
+	ingesters, err := ingestion.IngestersFromConfig(config, client)
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate ingesters: %s", err)
 	}
