@@ -23,6 +23,8 @@
     // inputs
     autoroll_current: String, the commit hash of the current autoroll.
     autoroll_last: String the commit hash of the previous autoroll.
+    androidroll_current: String, the commit hash of the current androidroll.
+    androidroll_last: String the commit hash of the previous androidroll.
     commits_to_load: Number, the number of commits to load from the backend
     filter: String, the builder filter to be used.
     reload: How often (in seconds) to reload the data.
@@ -289,6 +291,14 @@
           type: String,
           value: "",
         },
+        androidroll_current:{
+          type: String,
+          value: "",
+        },
+        androidroll_last: {
+          type: String,
+          value: "",
+        },
         commits_to_load: {
           type: Number,
           value: 35,
@@ -422,7 +432,7 @@
       },
 
       observers: [
-        "_parseData(_data, autoroll_current, autoroll_last)",
+        "_parseData(_data, autoroll_current, autoroll_last, androidroll_current, androidroll_last)",
       ],
 
       _computeURL: function(repo) {
@@ -453,7 +463,8 @@
         this.$.data.generateRequest();
       },
 
-      _parseData: function(data, autoroll_current, autoroll_last) {
+      _parseData: function(
+          data, autoroll_current, autoroll_last, androidroll_current, androidroll_last) {
         if (!data || !data.commits) {
           console.log("Nothing to parse");
           return;
@@ -599,18 +610,46 @@
           var b = data.branch_heads[i];
           filteredBranchHeads.push(b);
         }
-        if (autoroll_last) {
+        if (autoroll_last === androidroll_last) {
           filteredBranchHeads.push({
-              name: "last DEPS roll",
+              name: "last roll",
               head: autoroll_last,
           });
+        } else {
+          if (autoroll_last) {
+            filteredBranchHeads.push({
+                name: "last Cr roll",
+                head: autoroll_last,
+            });
+          }
+          if (androidroll_last) {
+            filteredBranchHeads.push({
+                name: "last Android roll",
+                head: androidroll_last,
+            });
+          }
         }
-        if (autoroll_current) {
+
+        if (autoroll_current === androidroll_current) {
           filteredBranchHeads.push({
-            name: "current DEPS roll",
+            name: "current roll",
             head: autoroll_current,
           });
+        } else {
+          if (autoroll_current) {
+            filteredBranchHeads.push({
+              name: "current Cr roll",
+              head: autoroll_current,
+            });
+          }
+          if (androidroll_current) {
+            filteredBranchHeads.push({
+              name: "current Android roll",
+              head: androidroll_current,
+            });
+          }
         }
+
         this.set("branch_heads", filteredBranchHeads);
 
         var timeIdx = 0;
