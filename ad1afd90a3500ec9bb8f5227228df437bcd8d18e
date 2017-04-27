@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "f2e285ec_98e53a4b",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 617,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-27T18:10:49Z",
+      "side": 1,
+      "message": "The abbreviations \"an roll\" and \"an deps\" are just weird, and also inaccurate due to \"deps\": https://screenshot.googleplex.com/LHU50bVqD8z.png\nI am not sure how that can be less confusing than combining rolls with more descriptive text which could also solve the problem of when additional rollers are added: https://screenshot.googleplex.com/Qn5APuEqdO9.png\n\nEither way I am way past my UI discussion threshold. I leave the final decision to you.",
+      "parentUuid": "8241a69d_309ee77e",
+      "range": {
+        "startLine": 613,
+        "startChar": 10,
+        "endLine": 617,
+        "endChar": 13
+      },
+      "revId": "ad1afd90a3500ec9bb8f5227228df437bcd8d18e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b00f1904_5d53a3aa",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 4
@@ -211,6 +235,30 @@
       "revId": "ad1afd90a3500ec9bb8f5227228df437bcd8d18e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec92cb2c_9a5a3308",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 635,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-27T18:10:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1fa06dcd_1629574d",
+      "range": {
+        "startLine": 635,
+        "startChar": 18,
+        "endLine": 635,
+        "endChar": 33
+      },
+      "revId": "ad1afd90a3500ec9bb8f5227228df437bcd8d18e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
