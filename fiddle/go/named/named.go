@@ -30,6 +30,8 @@ var (
 		".pdf":        store.PDF,
 		".skp":        store.SKP,
 		".txt":        store.TXT,
+		"_cpu.webm":   store.ANIM_CPU,
+		"_gpu.webm":   store.ANIM_GPU,
 	}
 )
 
@@ -150,7 +152,7 @@ func (n *Named) DereferenceImageID(id string) (string, store.Media, error) {
 	}
 	id = id[:len(id)-len(trailing)]
 	// If this is a .png then we need to strip off the trailing "_raster" or "_gpu".
-	if trailing == ".png" {
+	if trailing == ".png" || trailing == ".webm" {
 		parts := strings.Split(id, "_")
 		if len(parts) < 2 {
 			return "", store.UNKNOWN, fmt.Errorf("Not a valid image id form: %q", id)
