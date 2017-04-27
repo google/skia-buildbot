@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "8241a69d_309ee77e",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 617,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-27T17:26:05Z",
+      "side": 1,
+      "message": "We currently have room for \"master,current DEPS roll\" without ellipses, which is 24 characters.  \"master,cr roll,an roll\" is 22.  So \"cr roll\", \"cr deps\", \"an roll\", and \"an deps\" should all work fine, right?  I realize that DEPS isn\u0027t strictly correct for Android, but the merge is analogous to that.  IMO separate labels are the most clear, especially if we\u0027re abbreviating.\n\nYes, as the number of rollers increases we\u0027ll run out of space.  But the repo display was not meant to hold this much information.  If we want all of it, we\u0027re going to have to make sacrifices, eg. make it bigger.  Status in general is VERY overloaded.",
+      "parentUuid": "b504302f_161d8a48",
+      "range": {
+        "startLine": 613,
+        "startChar": 10,
+        "endLine": 617,
+        "endChar": 13
+      },
+      "revId": "ad1afd90a3500ec9bb8f5227228df437bcd8d18e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b00f1904_5d53a3aa",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 4
