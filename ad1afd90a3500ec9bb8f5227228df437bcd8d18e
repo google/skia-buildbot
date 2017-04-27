@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f2d06c7e_660f5468",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-27T16:56:44Z",
+      "side": 1,
+      "message": "can we rename to cr_roll_current / cr_roll_last, and android_roll_current / android_roll_last ?",
+      "range": {
+        "startLine": 286,
+        "startChar": 8,
+        "endLine": 286,
+        "endChar": 24
+      },
+      "revId": "ad1afd90a3500ec9bb8f5227228df437bcd8d18e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a2d9dca_8b5587f4",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 617,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-27T16:56:44Z",
+      "side": 1,
+      "message": "This is cool, but I think combining both rolls into one label will be more confusing than helpful.",
+      "range": {
+        "startLine": 613,
+        "startChar": 10,
+        "endLine": 617,
+        "endChar": 13
+      },
+      "revId": "ad1afd90a3500ec9bb8f5227228df437bcd8d18e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b00f1904_5d53a3aa",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 621,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-27T16:56:44Z",
+      "side": 1,
+      "message": "Maybe we should change the labels to \"Chrome Roll\", \"Chrome DEPS\", \"Android Roll\", and \"Android DEPS\"/\"Android Merged\" ?",
+      "range": {
+        "startLine": 621,
+        "startChar": 23,
+        "endLine": 621,
+        "endChar": 35
+      },
+      "revId": "ad1afd90a3500ec9bb8f5227228df437bcd8d18e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1fa06dcd_1629574d",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 635,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-27T16:56:44Z",
+      "side": 1,
+      "message": "Same comment about combining labels.",
+      "range": {
+        "startLine": 635,
+        "startChar": 18,
+        "endLine": 635,
+        "endChar": 33
+      },
+      "revId": "ad1afd90a3500ec9bb8f5227228df437bcd8d18e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
