@@ -1048,6 +1048,10 @@ server {
         proxy_pass http://skia-swarming-logger:8000;
         proxy_set_header Host $host;
     }
+    location /google2c59f97e1ced9fdc.html {
+        add_header Content-Type text/html;
+        return 200 'google-site-verification: google2c59f97e1ced9fdc.html';
+    }
 }
 
 server {
