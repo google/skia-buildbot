@@ -64,7 +64,7 @@ func InitPubSub(serverUrl, topicName, subscriberName string) error {
 		c := &pubsub.PushConfig{
 			Endpoint: endpoint,
 		}
-		if _, err := client.CreateSubscription(ctx, subName, topic, 20*time.Second, c); err != nil {
+		if _, err := client.CreateSubscription(ctx, subName, topic, 3*time.Minute, c); err != nil {
 			return err
 		}
 	}
