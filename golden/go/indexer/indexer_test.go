@@ -64,7 +64,7 @@ func TestIndexer(t *testing.T) {
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
 	tileBuilder := mocks.NewMockTileBuilderFromJson(t, TEST_DATA_PATH)
-	eventBus := eventbus.New(nil)
+	eventBus := eventbus.New()
 	expStore := expstorage.NewMemExpectationsStore(eventBus)
 
 	storages := &storage.Storage{
@@ -152,7 +152,7 @@ func setupStorages(t assert.TestingT) (*storage.Storage, expstorage.Expectations
 
 	// Set up the diff store, the event bus and the DB connection.
 	diffStore := mocks.NewMockDiffStore()
-	evt := eventbus.New(nil)
+	evt := eventbus.New()
 	vdb, err := dbConf.NewVersionedDB()
 	assert.NoError(t, err)
 	expStore := expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt)

@@ -134,7 +134,7 @@ func GetTileBuilderFromEnv(t assert.TestingT) tracedb.MasterTileBuilder {
 		sklog.Fatal(err)
 	}
 
-	eventBus := eventbus.New(nil)
+	eventBus := eventbus.New()
 	db, err := tracedb.NewTraceServiceDBFromAddress(traceDBAddress, types.GoldenTraceBuilder)
 	assert.NoError(t, err)
 

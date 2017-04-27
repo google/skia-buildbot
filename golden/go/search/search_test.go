@@ -164,7 +164,7 @@ func getStoragesIndexTile(t *testing.T, bucket, storagePath, outputPath string) 
 	sample := loadSample(t, TEST_DATA_PATH)
 
 	tileBuilder := mocks.NewMockTileBuilderFromTile(t, sample.Tile)
-	eventBus := eventbus.New(nil)
+	eventBus := eventbus.New()
 	expStore := expstorage.NewMemExpectationsStore(eventBus)
 	err = expStore.AddChange(sample.Expectations.Tests, "testuser")
 	assert.NoError(t, err)

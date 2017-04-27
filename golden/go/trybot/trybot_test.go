@@ -63,7 +63,7 @@ func testOneTrybotResults(t *testing.T, ingestionFile string) {
 	assert.NoError(t, err)
 	defer func() { assert.NoError(t, ingestionStore.Close()) }()
 
-	tileBuilder := tracedb.NewBranchTileBuilder(db, nil, rietveldAPI, gerritAPI, eventbus.New(nil))
+	tileBuilder := tracedb.NewBranchTileBuilder(db, nil, rietveldAPI, gerritAPI, eventbus.New())
 	tr := NewTrybotResults(tileBuilder, rietveldAPI, gerritAPI, ingestionStore)
 	tr.timeFrame = time.Now().Sub(BEGINNING_OF_TIME)
 
