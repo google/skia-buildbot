@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2dc1e8d2_c9ff6e85",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-27T14:26:52Z",
+      "side": 1,
+      "message": "I had tested it and it did not fail because repoBaseName was empty there. But your suggestion is better, done.",
+      "parentUuid": "44f770aa_4abcab4a",
+      "range": {
+        "startLine": 121,
+        "startChar": 20,
+        "endLine": 121,
+        "endChar": 51
+      },
+      "revId": "d53e81cad4c21b92e6c58e94653fa7c5e89e37f6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3b9a8221_009d72a2",
         "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
         "patchSetId": 6
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "d8d9e696_f273073d",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-27T14:26:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3b9a8221_009d72a2",
+      "range": {
+        "startLine": 178,
+        "startChar": 20,
+        "endLine": 178,
+        "endChar": 52
+      },
+      "revId": "d53e81cad4c21b92e6c58e94653fa7c5e89e37f6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b61d802d_cd446764",
         "filename": "go/git/gitdir.go",
         "patchSetId": 6
@@ -68,6 +116,30 @@
       "revId": "d53e81cad4c21b92e6c58e94653fa7c5e89e37f6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1567554d_50fc52a6",
+        "filename": "go/git/gitdir.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-27T14:26:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b61d802d_cd446764",
+      "range": {
+        "startLine": 184,
+        "startChar": 1,
+        "endLine": 187,
+        "endChar": 2
+      },
+      "revId": "d53e81cad4c21b92e6c58e94653fa7c5e89e37f6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
