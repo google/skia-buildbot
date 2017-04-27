@@ -183,7 +183,7 @@ func load() (*tiling.Tile, *expstorage.Expectations, ignore.IgnoreStore) {
 		sklog.Fatal("Wrong DB version. Please updated to latest version.")
 	}
 
-	evt := eventbus.New(nil)
+	evt := eventbus.New()
 	expStore := expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt)
 
 	// Check out the repository.
