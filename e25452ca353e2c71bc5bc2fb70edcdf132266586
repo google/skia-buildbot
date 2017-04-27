@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9dc45bcd_23e8504d",
+        "filename": "swarming_logger/go/swarming_logger/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-27T21:06:49Z",
+      "side": 1,
+      "message": "nit: s/size/baseSize/",
+      "range": {
+        "startLine": 106,
+        "startChar": 1,
+        "endLine": 106,
+        "endChar": 5
+      },
+      "revId": "e25452ca353e2c71bc5bc2fb70edcdf132266586",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e6b2919c_6e28d62f",
+        "filename": "swarming_logger/go/swarming_logger/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-27T21:06:49Z",
+      "side": 1,
+      "message": "enclose in else clause?",
+      "range": {
+        "startLine": 243,
+        "startChar": 1,
+        "endLine": 243,
+        "endChar": 57
+      },
+      "revId": "e25452ca353e2c71bc5bc2fb70edcdf132266586",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
