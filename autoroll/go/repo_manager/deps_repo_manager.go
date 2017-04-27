@@ -15,7 +15,7 @@ import (
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/util"
 )
 
@@ -175,7 +175,7 @@ func (dr *depsRepoManager) update() error {
 
 	// Create the child GitInfo if needed.
 	if dr.childRepo == nil {
-		childRepo, err := gitinfo.NewGitInfo(dr.childDir, false, true)
+		childRepo, err := git.NewCheckout("", dr.childDir)
 		if err != nil {
 			return err
 		}
@@ -267,7 +267,7 @@ func (dr *depsRepoManager) CreateNewRoll(strategy string, emails []string, cqExt
 	// Find Chromium bugs.
 	bugs := []string{}
 	for _, c := range commits {
-		d, err := cr.Details(c, false)
+		d, err := cr.Details(c)
 		if err != nil {
 			return 0, fmt.Errorf("Failed to obtain commit details: %s", err)
 		}
