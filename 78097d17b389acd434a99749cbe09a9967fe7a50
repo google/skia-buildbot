@@ -379,6 +379,30 @@
     },
     {
       "key": {
+        "uuid": "492bc5c8_506c3203",
+        "filename": "swarming_logger/go/swarming_logger/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-27T12:41:13Z",
+      "side": 1,
+      "message": "So, for the initial use case (manual search) I think it\u0027s okay to occasionally drop a task.  That should be rare, anyway.  In the future, if/when we do more interesting things with the logs, we\u0027ll probably need to re-evaluate.  Each log entry has an insert ID so if we\u0027re smart about it (ie. use task IDs) we\u0027ll be able to determine whether we\u0027ve already logged a task.",
+      "parentUuid": "aff42197_83251ac2",
+      "range": {
+        "startLine": 51,
+        "startChar": 22,
+        "endLine": 51,
+        "endChar": 42
+      },
+      "revId": "78097d17b389acd434a99749cbe09a9967fe7a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "78311c9e_0ada7f80",
         "filename": "swarming_logger/sys/swarming_logger.service",
         "patchSetId": 3
