@@ -216,6 +216,30 @@
     },
     {
       "key": {
+        "uuid": "0fbf954a_827d12f7",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 617,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-27T18:34:18Z",
+      "side": 1,
+      "message": "Will submit and push tomorrow morning. I also added a note in https://docs.google.com/document/d/1zPlXSfqIxcCKoEW4lrLgFetJyx3LbSMSNgyBV2tI_5Y/edit# so that we do not forgot to make this part better (or replace it with something else) in StatusV2.",
+      "parentUuid": "bf4f564c_17399aa1",
+      "range": {
+        "startLine": 613,
+        "startChar": 10,
+        "endLine": 617,
+        "endChar": 13
+      },
+      "revId": "ad1afd90a3500ec9bb8f5227228df437bcd8d18e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b00f1904_5d53a3aa",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 4
