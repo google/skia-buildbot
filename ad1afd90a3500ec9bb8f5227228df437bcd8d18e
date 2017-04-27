@@ -144,6 +144,30 @@
     },
     {
       "key": {
+        "uuid": "e069303b_2907a5d8",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 617,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-27T18:14:32Z",
+      "side": 1,
+      "message": "The screenshot you linked looks fine.  Let\u0027s go with that for now.",
+      "parentUuid": "f2e285ec_98e53a4b",
+      "range": {
+        "startLine": 613,
+        "startChar": 10,
+        "endLine": 617,
+        "endChar": 13
+      },
+      "revId": "ad1afd90a3500ec9bb8f5227228df437bcd8d18e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b00f1904_5d53a3aa",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 4
