@@ -186,7 +186,9 @@
       <autoroll-widget-sk title="Android roll status" class="shrinkable" rtoolbar
         reload="[[reload]]"
         name="Android"
-        url="https://android-master-roll.skia.org">
+        url="https://android-master-roll.skia.org"
+
+        status="{{androidroll_status}}">
       </autoroll-widget-sk>
 
       <autoroll-widget-sk title="Skia DEPS roll status" class="shrinkable" rtoolbar
@@ -272,6 +274,8 @@
         <commits-data-sk id="data"
             autoroll_current="[[autoroll_status.currentRollRev]]"
             autoroll_last="[[autoroll_status.lastRollRev]]"
+            androidroll_current="[[androidroll_status.currentRollRev]]"
+            androidroll_last="[[androidroll_status.lastRollRev]]"
             commits_to_load="[[commits_to_load]]"
             filter="[[filter]]"
             reload="[[reload]]"
