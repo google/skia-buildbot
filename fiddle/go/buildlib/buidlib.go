@@ -13,7 +13,7 @@ import (
 // and fiddle_main.o.
 func BuildLib(checkout, depotTools string) error {
 	sklog.Info("Starting GNGen")
-	if err := buildskia.GNGen(checkout, depotTools, "Release", []string{"is_debug=false"}); err != nil {
+	if err := buildskia.GNGen(checkout, depotTools, "Release", []string{"is_debug=false", "extra_cflags_cc=[\"-Wno-error\"]"}); err != nil {
 		return fmt.Errorf("Failed GN gen: %s", err)
 	}
 
