@@ -192,6 +192,30 @@
     },
     {
       "key": {
+        "uuid": "bf4f564c_17399aa1",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 617,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-27T18:24:42Z",
+      "side": 1,
+      "message": "Sorry, the second one.",
+      "parentUuid": "a6cb5f37_01a07d8f",
+      "range": {
+        "startLine": 613,
+        "startChar": 10,
+        "endLine": 617,
+        "endChar": 13
+      },
+      "revId": "ad1afd90a3500ec9bb8f5227228df437bcd8d18e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b00f1904_5d53a3aa",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 4
