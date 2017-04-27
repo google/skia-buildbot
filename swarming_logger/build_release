@@ -1,6 +1,6 @@
 #!/bin/bash
 # Builds and uploads a debian package for swarming_logger.
-APPNAME=swarming_logger
+APPNAME=swarming-logger
 DESCRIPTION="Pipes Swarming task logs to Cloud Logging"
 SYSTEMD=${APPNAME}.service
 
