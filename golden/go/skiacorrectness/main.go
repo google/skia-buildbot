@@ -111,26 +111,6 @@ func main() {
 	}
 	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
-	// Enable the memory profiler if memProfile was set.
-	// TODO(stephana): This should be moved to a HTTP endpoint that
-	// only responds to internal IP addresses/ports.
-	if *memProfile > 0 {
-		time.AfterFunc(*memProfile, func() {
-			sklog.Infof("Writing Memory Profile")
-			f, err := ioutil.TempFile("./", "memory-profile")
-			if err != nil {
-				sklog.Fatalf("Unable to create memory profile file: %s", err)
-			}
-			if err := pprof.WriteHeapProfile(f); err != nil {
-				sklog.Fatalf("Unable to write memory profile file: %v", err)
-			}
-			util.Close(f)
-			sklog.Infof("Memory profile written to %s", f.Name())
-
-			os.Exit(0)
-		})
-	}
-
 	if *cpuProfile > 0 {
 		sklog.Infof("Writing CPU Profile")
 		f, err := ioutil.TempFile("./", "cpu-profile")
@@ -202,7 +182,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	evt := eventbus.New(nil)
+	evt := eventbus.New()
 
 	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
 	gerritAPI, err := gerrit.NewGerrit(*gerritURL, "", httputils.NewTimeoutClient())
@@ -272,6 +252,26 @@ func main() {
 		sklog.Fatalf("Failed to initialize status watcher: %s", err)
 	}
 	mainTimer.Stop()
+
+	// Enable the memory profiler if memProfile was set.
+	// TODO(stephana): This should be moved to a HTTP endpoint that
+	// only responds to internal IP addresses/ports.
+	if *memProfile > 0 {
+		time.AfterFunc(*memProfile, func() {
+			sklog.Infof("Writing Memory Profile")
+			f, err := ioutil.TempFile("./", "memory-profile")
+			if err != nil {
+				sklog.Fatalf("Unable to create memory profile file: %s", err)
+			}
+			if err := pprof.WriteHeapProfile(f); err != nil {
+				sklog.Fatalf("Unable to write memory profile file: %v", err)
+			}
+			util.Close(f)
+			sklog.Infof("Memory profile written to %s", f.Name())
+
+			os.Exit(0)
+		})
+	}
 
 	router := mux.NewRouter()
 
