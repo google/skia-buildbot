@@ -20,6 +20,7 @@ Displays a summary of an ignore rule.
 
 -->
 
+<link rel="import" href="../common/imp/linkify-sk.html">
 <link rel="import" href="bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="bower_components/paper-button/paper-button.html">
 
@@ -72,7 +73,7 @@ Displays a summary of an ignore rule.
     <div id="expires">{{_humanDiffDate(value.expires)}}</div>
     <div id="updatedBy">{{value.updatedBy}}</div>
     <pre id="query"><a href$="{{_queryHref(value.query)}}">{{_splitAmp(value.query)}}</a></pre>
-    <div id="note">{{value.note}}</div>
+    <div id="note"><linkify-sk text="{{value.note}}"></linkify-sk></div>
     <div id="count">{{value.exclusiveCount}} / {{value.count}}</div>
     <paper-button id="edit" title="Edit"><iron-icon icon="create"></iron-icon></paper-button>
     <paper-button id="delete" title="Delete"><iron-icon icon="delete"></iron-icon></paper-button>
