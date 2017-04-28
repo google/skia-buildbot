@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0fd3f662_81049b49",
+        "filename": "status/res/imp/commits-canvas-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 551,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-28T18:48:33Z",
+      "side": 1,
+      "message": "Seems like we could do a nested map or something?",
+      "range": {
+        "startLine": 548,
+        "startChar": 0,
+        "endLine": 551,
+        "endChar": 55
+      },
+      "revId": "332557bd9ce19661d8d34e416dea47491e48b4b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
