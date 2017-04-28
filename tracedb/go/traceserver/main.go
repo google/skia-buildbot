@@ -31,13 +31,16 @@ var (
 )
 
 func main() {
+	// Parse the options. So we can configure logging.
+	flag.Parse()
+
 	// Set up the logging options.
 	logOpts := []common.Opt{
 		common.PrometheusOpt(promPort),
 	}
 
 	// Should we disable cloud logging.
-	if !*noCloudLog {
+	if !(*noCloudLog) {
 		logOpts = append(logOpts, common.CloudLoggingOpt())
 	}
 	common.InitWithMust(filepath.Base(os.Args[0]), logOpts...)
