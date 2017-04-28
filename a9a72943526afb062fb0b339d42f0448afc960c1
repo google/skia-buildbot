@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "724b8682_7eedd8a5",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-04-28T15:01:46Z",
+      "side": 1,
+      "message": "seems like this should be \u003e\u003d",
+      "range": {
+        "startLine": 74,
+        "startChar": 40,
+        "endLine": 74,
+        "endChar": 41
+      },
+      "revId": "a9a72943526afb062fb0b339d42f0448afc960c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
