@@ -46,6 +46,30 @@
       "revId": "332557bd9ce19661d8d34e416dea47491e48b4b7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54bb0ed0_8d17515d",
+        "filename": "status/res/imp/commits-canvas-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 551,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-28T18:54:33Z",
+      "side": 1,
+      "message": "Oh, right, wasn\u0027t thinking.  Yeah, I guess we just default to one or the other.",
+      "parentUuid": "c73f5059_9672b24b",
+      "range": {
+        "startLine": 548,
+        "startChar": 0,
+        "endLine": 551,
+        "endChar": 55
+      },
+      "revId": "332557bd9ce19661d8d34e416dea47491e48b4b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
