@@ -264,6 +264,30 @@
     },
     {
       "key": {
+        "uuid": "c6b931b8_6041d026",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 617,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-04-28T15:19:28Z",
+      "side": 1,
+      "message": "LGTM",
+      "parentUuid": "019549ce_6b51bf8b",
+      "range": {
+        "startLine": 613,
+        "startChar": 10,
+        "endLine": 617,
+        "endChar": 13
+      },
+      "revId": "ad1afd90a3500ec9bb8f5227228df437bcd8d18e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b00f1904_5d53a3aa",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 4
