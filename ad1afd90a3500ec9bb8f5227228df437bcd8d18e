@@ -240,6 +240,30 @@
     },
     {
       "key": {
+        "uuid": "019549ce_6b51bf8b",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 617,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-28T15:12:02Z",
+      "side": 1,
+      "message": "I was not happy with my solution because it did not handle cases where rolled and rolling were on the same hash (happened this morning). I kept \"Android rolling/rolled\" and \"Chrome rolling/rolled\" without combining them and instead added mouseover text to expand the labels: https://screenshot.googleplex.com/EF8627kbWWU.png",
+      "parentUuid": "0fbf954a_827d12f7",
+      "range": {
+        "startLine": 613,
+        "startChar": 10,
+        "endLine": 617,
+        "endChar": 13
+      },
+      "revId": "ad1afd90a3500ec9bb8f5227228df437bcd8d18e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b00f1904_5d53a3aa",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 4
