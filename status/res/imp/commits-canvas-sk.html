@@ -25,7 +25,11 @@
         hash: String, the commit's revision
         parent: Array<String>, the hashes of any parents.
         timestamp: String, the commit's timestamp, formatted like: "2016-02-22T06:34:47-08:00"
-    autoroll: Object, which is used to link to the recent autorolls. contains at least:
+    cr_roll: Object, which is used to link to the recent Chromium rolls. contains at least:
+        currentRollRev: String, git hash of current roll
+        lastRollRev: String, git hash of previous roll
+        lastRollIssue: Number, issue number tied with previous roll
+    android_roll: Object, which is used to link to the recent Android rolls. contains at least:
         currentRollRev: String, git hash of current roll
         lastRollRev: String, git hash of previous roll
         lastRollIssue: Number, issue number tied with previous roll
@@ -436,7 +440,10 @@
       is: "commits-canvas-sk",
       properties: {
         // input
-        autoroll: {
+        cr_roll: {
+          type: Object,
+        },
+        android_roll: {
           type: Object,
         },
         branch_heads: {
@@ -465,12 +472,12 @@
         _linkMap: {
           // Number: String, number is index of commit in display, String is URL to link to.
           type: Object,
-          computed: "_computeLinkMap(commits.*,autoroll.*, branch_heads.*)",
+          computed: "_computeLinkMap(commits.*,cr_roll.*,android_roll.*,branch_heads.*)",
         },
         _titleMap: {
           // Number: String, number is index of commit in display, String is the title of the label.
           type: Object,
-          computed: "_computeTitleMap(commits.*,autoroll.*, branch_heads.*)",
+          computed: "_computeTitleMap(commits.*,cr_roll.*,android_roll.*,branch_heads.*)",
         },
         _lastLoaded: {
           type: String,
@@ -538,6 +545,10 @@
       // _computeLinkMap looks through all the branch_heads, finds the index of each
       // commit belonging to a branch and makes a map of index -> URL.  Then, it handles
       // the special case of current autoroll and previous autoroll.
+      // The last link added to the map will be the one used. So when there are multiple
+      // links added we need prioritize which one should displayed.
+      // Here is the current order: Chrome roll links have priority over Android roll links
+      // which in turn have priority over branch links.
       _computeLinkMap: function() {
         var linkMap = {};
 
@@ -553,11 +564,18 @@
           linkMap[idx] = this.repo_base + name;
         }.bind(this));
 
-        // Link to the deps
-        var idx = this._indexOfRevision(this.autoroll.currentRollRev);
+        // Link to Android roll.
+        var idx = this._indexOfRevision(this.android_roll.currentRollRev);
+        linkMap[idx] = "https://android-master-roll.skia.org"
+        idx = this._indexOfRevision(this.android_roll.lastRollRev);
+        linkMap[idx] = "https://googleplex-android-review.googlesource.com/c/" +
+                       this.android_roll.lastRollIssue
+
+        // Link to Chromium roll.
+        idx = this._indexOfRevision(this.cr_roll.currentRollRev);
         linkMap[idx] = "https://autoroll.skia.org",
-        idx = this._indexOfRevision(this.autoroll.lastRollRev);
-        linkMap[idx] = "https://chromium-review.googlesource.com/c/" + this.autoroll.lastRollIssue
+        idx = this._indexOfRevision(this.cr_roll.lastRollRev);
+        linkMap[idx] = "https://chromium-review.googlesource.com/c/" + this.cr_roll.lastRollIssue
 
         return linkMap;
       },
