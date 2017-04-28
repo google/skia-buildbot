@@ -93,6 +93,9 @@ func main() {
 	// Setup DB flags.
 	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME, db.MigrationSteps())
 
+	// Parse the options. So we can configure logging.
+	flag.Parse()
+
 	// Set up the logging options.
 	logOpts := []common.Opt{
 		common.PrometheusOpt(promPort),
