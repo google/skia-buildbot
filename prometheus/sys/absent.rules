@@ -73,12 +73,12 @@ ALERT MissingData
   }
 
 ALERT MissingData
-  IF absent(avg_over_time(dirty_packages[25h]))
+  IF absent(min_over_time(dirty_packages[25h]))
   FOR 5m
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
-    abbr = "avg_over_time(dirty_packages[25h])",
-    description = "There is no data for the following alert: avg_over_time(dirty_packages[25h])"
+    abbr = "min_over_time(dirty_packages[25h])",
+    description = "There is no data for the following alert: min_over_time(dirty_packages[25h])"
   }
 
 ALERT MissingData
