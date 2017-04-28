@@ -27,7 +27,7 @@ const (
 	PREFIX = `#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = %s; // Either a string, or 0.
-  return DrawOptions(%d, %d, true, true, true, true, %v, %v, %v, path);
+  return DrawOptions(%d, %d, true, true, %v, %v, %v, %v, %v, path);
 }
 
 %s
@@ -49,7 +49,28 @@ func prepCodeToCompile(fiddleRoot, code string, opts *types.Options) string {
 		filename := fmt.Sprintf("%d.png", opts.Source)
 		sourceImage = fmt.Sprintf("%q", filepath.Join(fiddleRoot, "images", filename))
 	}
-	return fmt.Sprintf(PREFIX, sourceImage, opts.Width, opts.Height, opts.SRGB, opts.F16, opts.TextOnly, code)
+	pdf := true
+	skp := true
+	if opts.Animated {
+		pdf = false
+		skp = false
+	}
+	return fmt.Sprintf(PREFIX, sourceImage, opts.Width, opts.Height, pdf, skp, opts.SRGB, opts.F16, opts.TextOnly, code)
+}
+
+// ValidateOptions validates that the options make sense.
+func ValidateOptions(opts *types.Options) error {
+	if opts.Animated {
+		if opts.Duration <= 0 {
+			return fmt.Errorf("Animation duration must be > 0.")
+		}
+		if opts.Duration > 60 {
+			return fmt.Errorf("Animation duration must be < 60s.")
+		}
+	} else {
+		opts.Duration = 0
+	}
+	return nil
 }
 
 // WriteDrawCpp takes the given code, modifies it so that it can be compiled
@@ -161,7 +182,7 @@ func GitHashTimeStamp(fiddleRoot, gitHash string) (time.Time, error) {
 // the point of making the bindings and then xargs will be able to execute the
 // exe within the container.
 //
-func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir string) (*types.Result, error) {
+func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir string, opts *types.Options) (*types.Result, error) {
 	machine := ""
 	if !local {
 		machine = path.Base(tmpDir)
@@ -181,6 +202,7 @@ func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir st
 		name = "fiddle_run"
 		args = []string{"--fiddle_root", fiddleRoot, "--git_hash", gitHash, "--local", "--alsologtostderr"}
 	}
+	args = append(args, "--duration", fmt.Sprintf("%f", opts.Duration))
 	output := &bytes.Buffer{}
 	runCmd := &exec.Command{
 		Name:      name,
