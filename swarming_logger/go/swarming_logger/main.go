@@ -6,16 +6,19 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"math"
 	"net"
 	"net/http"
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
-	"cloud.google.com/go/logging"
+	logging "google.golang.org/api/logging/v2beta1"
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
@@ -23,12 +26,18 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/util"
 )
 
 const (
-	LOG_ID = "swarming_tasks"
+	LOG_ID                 = "swarming_tasks"
+	LOG_NAME_TMPL          = "projects/%s/logs/swarming_%s_%s"
+	LOG_RESOURCE_NAME_TMPL = "swarming_%s"
 
 	PUBSUB_SUBSCRIBER_NAME = "skia-swarming-logger"
+
+	MAX_BYTES_ENTRY   = 112640
+	MAX_BYTES_REQUEST = 10485760
 )
 
 var (
@@ -36,15 +45,101 @@ var (
 	host           = flag.String("host", "localhost", "HTTP server")
 	port           = flag.String("port", ":8000", "HTTP service port")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	swarmingServer = flag.String("swarming", "https://chromium-swarm.appspot.com", "Swarming server URL")
+	swarmingServer = flag.String("swarming", swarming.SWARMING_SERVER, "Swarming server URL")
 	workdir        = flag.String("workdir", ".", "Working directory")
 
 	tl *taskLogger
 )
 
+// makeLogName returns the log name for the given Swarming task.
+func makeLogName(taskId string) string {
+	return fmt.Sprintf(LOG_NAME_TMPL, common.PROJECT_ID, *swarmingServer, taskId)
+}
+
+// makeLogResourceName returns a logging.MonitoredResource name for this set of
+// logs.
+func makeLogResourceName() string {
+	return fmt.Sprintf(LOG_RESOURCE_NAME_TMPL, *swarmingServer)
+}
+
+// makeLogEntryId returns a LogEntry InsertId based on the given taskId and
+// index.
+func makeLogEntryId(taskId string, idx int) string {
+	return fmt.Sprintf("%s_%d", taskId, idx)
+}
+
+// entrySize returns the size in bytes of the given LogEntry.
+func entrySize(e *logging.LogEntry) (int, error) {
+	b, err := json.Marshal(e)
+	if err != nil {
+		return 0, err
+	}
+	return len(b), nil
+}
+
+// requestSize returns the size in bytes of the given WriteLogEntriesRequest.
+func requestSize(req *logging.WriteLogEntriesRequest) (int, error) {
+	b, err := json.Marshal(req)
+	if err != nil {
+		return 0, err
+	}
+	return len(b), nil
+}
+
+// splitOutput splits the output into appropriately-sized LogEntrys. Returns a
+// slice of LogEntrys, each of which is shorter than MAX_BYTES_ENTRY, a slice
+// of ints representing the sizes in bytes of each LogEntry, or an error if any.
+// Splits on newlines first, then splits lines if necessary.
+func splitOutput(taskId, output string, startedTs time.Time) ([]*logging.LogEntry, []int, error) {
+	lr := &logging.MonitoredResource{
+		Type: "logging_log",
+		Labels: map[string]string{
+			"name": makeLogResourceName(),
+		},
+	}
+	baseEntry := logging.LogEntry{
+		LogName:     makeLogName(taskId),
+		TextPayload: " ",
+		InsertId:    makeLogEntryId(taskId, math.MaxInt32),
+		Resource:    lr,
+	}
+	baseSize, err := entrySize(&baseEntry)
+	if err != nil {
+		return nil, nil, err
+	}
+	maxLineLength := MAX_BYTES_ENTRY - baseSize
+	lines := strings.Split(output, "\n")
+	sklog.Infof("Log has %d lines.", len(lines))
+	strs := make([]string, 0, len(lines))
+	for _, line := range lines {
+		if len(line) == 0 {
+			continue
+		}
+		for len(line) > maxLineLength {
+			strs = append(strs, line[:maxLineLength])
+			line = line[maxLineLength:]
+		}
+		strs = append(strs, line)
+	}
+	rv := make([]*logging.LogEntry, 0, len(strs))
+	sizes := make([]int, 0, len(strs))
+	for i, line := range strs {
+		rv = append(rv, &logging.LogEntry{
+			LogName:     makeLogName(taskId),
+			TextPayload: line,
+			InsertId:    makeLogEntryId(taskId, i),
+			Resource:    lr,
+			Timestamp:   startedTs.Add(time.Duration(i) * time.Nanosecond).Format(util.RFC3339NanoZeroPad),
+		})
+		sizes = append(sizes, baseSize+len(line)) // Roughly, anyway.
+	}
+	sklog.Infof("Got %d entries.", len(rv))
+	return rv, sizes, nil
+}
+
 // taskLogger is a struct used for pushing task stdout to Cloud Logging.
 type taskLogger struct {
-	l *logging.Client
+	l *logging.Service
 	s swarming.ApiClient
 }
 
@@ -68,19 +163,84 @@ func (tl *taskLogger) HandleSwarmingPubSub(taskId string) bool {
 		return false
 	}
 
-	// Log the lines from the task.
-	logger := tl.l.Logger(LOG_ID, logging.CommonLabels(map[string]string{
-		"id": taskId,
-	}))
-	for i, line := range strings.Split(output.Output, "\n") {
-		if err := logger.LogSync(context.Background(), logging.Entry{
-			Payload:  line,
-			InsertID: fmt.Sprintf("%s_%d", taskId, i),
-		}); err != nil {
-			sklog.Errorf("Failed to log Swarming task stdout: %s", err)
-			return false
-		}
+	// Create log entries for log lines.
+	startedTs, err := swarming.ParseTimestamp(t.StartedTs)
+	if err != nil {
+		sklog.Errorf("Failed to parse timestamp: %s", err)
+		return false
 	}
+	entries, sizes, err := splitOutput(taskId, output.Output, startedTs)
+	if err != nil {
+		sklog.Errorf("Failed to create log entries: %s", err)
+		return false
+	}
+	reqLabels := map[string]string{
+		"id": taskId,
+	}
+
+	// Get the base request size without any entries.
+	baseReqSize, err := requestSize(&logging.WriteLogEntriesRequest{
+		Entries: []*logging.LogEntry{},
+		Labels:  reqLabels,
+	})
+	if err != nil {
+		sklog.Errorf("Failed to marshal JSON: %s", err)
+	}
+
+	reqs := []*logging.WriteLogEntriesRequest{}
+	batch := []*logging.LogEntry{}
+	reqSize := baseReqSize
+	for i, entry := range entries {
+		size := sizes[i]
+		if reqSize+size > MAX_BYTES_REQUEST {
+			reqs = append(reqs, &logging.WriteLogEntriesRequest{
+				Entries: batch,
+				Labels:  reqLabels,
+			})
+			sklog.Infof("Req size: %d / %d", reqSize, MAX_BYTES_REQUEST)
+			batch = []*logging.LogEntry{}
+			reqSize = baseReqSize
+		}
+		batch = append(batch, entry)
+		reqSize += size
+	}
+	if len(batch) > 0 {
+		sklog.Infof("Req size: %d / %d", reqSize, MAX_BYTES_REQUEST)
+		reqs = append(reqs, &logging.WriteLogEntriesRequest{
+			Entries: batch,
+			Labels:  reqLabels,
+		})
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+	var wg sync.WaitGroup
+	var mtx sync.Mutex
+	errs := []error{}
+	for _, req := range reqs {
+		wg.Add(1)
+		go func(req *logging.WriteLogEntriesRequest) {
+			defer wg.Done()
+			if resp, err := tl.l.Entries.Write(req).Context(ctx).Do(); err != nil {
+				mtx.Lock()
+				defer mtx.Unlock()
+				errs = append(errs, fmt.Errorf("Failed to write logs: %s\n\n%+v", err, resp))
+				return
+			} else if resp.HTTPStatusCode != http.StatusOK {
+				mtx.Lock()
+				defer mtx.Unlock()
+				errs = append(errs, fmt.Errorf("Failed to write logs: resp status code %d", resp.HTTPStatusCode))
+				return
+			}
+		}(req)
+	}
+	wg.Wait()
+	if len(errs) > 0 {
+		for _, err := range errs {
+			sklog.Error(err)
+		}
+		return false
+	}
+	sklog.Infof("Successfully uploaded logs for %s", taskId)
 	return true
 }
 
@@ -100,7 +260,15 @@ func main() {
 		common.CloudLoggingOpt(),
 	)
 
-	logClient, err := logging.NewClient(context.Background(), common.PROJECT_ID)
+	logTransport := &http.Transport{
+		Dial: httputils.FastDialTimeout,
+	}
+	logHttpClient, err := auth.NewJWTServiceAccountClient("", "", logTransport, logging.LoggingWriteScope)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	logClient, err := logging.New(logHttpClient)
 	if err != nil {
 		sklog.Fatal(err)
 	}
