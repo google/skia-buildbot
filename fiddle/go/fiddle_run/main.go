@@ -108,7 +108,7 @@ func main() {
 			serializeOutput(res)
 			return
 		}
-		for i := 0; i < FRAMES; i++ {
+		for i := 0; i <= FRAMES; i++ {
 			frame := float64(i) / float64(FRAMES)
 			oneStep(checkout, res, frame)
 			// Check for errors.
