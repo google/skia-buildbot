@@ -467,6 +467,11 @@
           type: Object,
           computed: "_computeLinkMap(commits.*,autoroll.*, branch_heads.*)",
         },
+        _titleMap: {
+          // Number: String, number is index of commit in display, String is the title of the label.
+          type: Object,
+          computed: "_computeTitleMap(commits.*,autoroll.*, branch_heads.*)",
+        },
         _lastLoaded: {
           type: String,
           value: "(not yet loaded)",
@@ -552,9 +557,26 @@
         var idx = this._indexOfRevision(this.autoroll.currentRollRev);
         linkMap[idx] = "https://autoroll.skia.org",
         idx = this._indexOfRevision(this.autoroll.lastRollRev);
-        linkMap[idx] = "https://crrev.com/" + this.autoroll.lastRollIssue
+        linkMap[idx] = "https://chromium-review.googlesource.com/c/" + this.autoroll.lastRollIssue
 
         return linkMap;
+      },
+
+      // _computeTitleMap looks through all the branch heads, find the index of each
+      // commit belonging to a branch and makes a map of index -> label title.
+      _computeTitleMap: function() {
+        var titleMap = {};
+
+        this.branch_heads.forEach(function(branch) {
+          var name = branch.name;
+          var idx = this._indexOfRevision(branch.head);
+          if (titleMap[idx]) {
+            titleMap[idx] = titleMap[idx] + "," + name;
+          } else {
+            titleMap[idx] = name;
+          }
+        }.bind(this));
+        return titleMap;
       },
 
       _indexOfRevision: function(revision) {
@@ -585,6 +607,10 @@
           this.$.commitCanvas.classList.add("pointer");
         } else {
           this.$.commitCanvas.classList.remove("pointer");
+        }
+        var title = this._titleMap[commitIdx];
+        if (title) {
+          this.$.commitCanvas.title = title;
         }
       },
 
