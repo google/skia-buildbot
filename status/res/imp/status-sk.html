@@ -186,7 +186,9 @@
       <autoroll-widget-sk title="Android roll status" class="shrinkable" rtoolbar
         reload="[[reload]]"
         name="Android"
-        url="https://android-master-roll.skia.org">
+        url="https://android-master-roll.skia.org"
+
+        status="{{android_roll_status}}">
       </autoroll-widget-sk>
 
       <autoroll-widget-sk title="Skia DEPS roll status" class="shrinkable" rtoolbar
@@ -194,7 +196,7 @@
         name="Cr"
         url="https://autoroll.skia.org"
 
-        status="{{autoroll_status}}">
+        status="{{cr_roll_status}}">
       </autoroll-widget-sk>
 
       <tree-status-sk class="shrinkable" rtoolbar
@@ -235,7 +237,7 @@
 
       <div id="mainContent">
         <commits-canvas-sk id="can" class="shrinkable"
-          autoroll="[[autoroll_status]]"
+          autoroll="[[cr_roll_status]]"
           branch_heads="[[branch_heads]]"
           commits="[[commits]]"
           repo_base="[[repo_base]]"
@@ -270,8 +272,10 @@
         </commits-table-sk>
 
         <commits-data-sk id="data"
-            autoroll_current="[[autoroll_status.currentRollRev]]"
-            autoroll_last="[[autoroll_status.lastRollRev]]"
+            cr_roll_current="[[cr_roll_status.currentRollRev]]"
+            cr_roll_last="[[cr_roll_status.lastRollRev]]"
+            android_roll_current="[[android_roll_status.currentRollRev]]"
+            android_roll_last="[[android_roll_status.lastRollRev]]"
             commits_to_load="[[commits_to_load]]"
             filter="[[filter]]"
             reload="[[reload]]"
