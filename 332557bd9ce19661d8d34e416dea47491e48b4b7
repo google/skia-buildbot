@@ -22,6 +22,30 @@
       "revId": "332557bd9ce19661d8d34e416dea47491e48b4b7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c73f5059_9672b24b",
+        "filename": "status/res/imp/commits-canvas-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 551,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-28T18:52:43Z",
+      "side": 1,
+      "message": "Not sure what you mean. Even if we knew that there were multiple links at an index I don\u0027t know how to differentiate between where you click on in handleclick. Maybe could get that information using titleMap? (that sounds hard)",
+      "parentUuid": "0fd3f662_81049b49",
+      "range": {
+        "startLine": 548,
+        "startChar": 0,
+        "endLine": 551,
+        "endChar": 55
+      },
+      "revId": "332557bd9ce19661d8d34e416dea47491e48b4b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
