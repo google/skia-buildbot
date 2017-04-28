@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3e693a67_7f633f32",
+        "filename": "fiddle/go/named/named.go",
+        "patchSetId": 36
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-28T12:16:36Z",
+      "side": 1,
+      "message": "Nit: Update comment to include .webm",
+      "revId": "5fa66b68025a794dda83fcdba64f485aad769915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1a82a1b_d85c81ce",
+        "filename": "fiddle/go/named/named_test.go",
+        "patchSetId": 36
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-28T12:16:36Z",
+      "side": 1,
+      "message": "Nit: lines 67-85 seem to be doing the same thing except for imageId and media. We can probably create a loop over a map of imageId to expectedMedia.",
+      "revId": "5fa66b68025a794dda83fcdba64f485aad769915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d684e0ac_203ca677",
+        "filename": "fiddle/go/store/store.go",
+        "patchSetId": 36
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-28T12:16:36Z",
+      "side": 1,
+      "message": "Nit: Might be slightly more readable to start with if options.Animated {...} else {...}",
+      "revId": "5fa66b68025a794dda83fcdba64f485aad769915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c499e89_f71540c8",
+        "filename": "fiddle/go/store/store.go",
+        "patchSetId": 36
+      },
+      "lineNbr": 333,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-28T12:16:36Z",
+      "side": 1,
+      "message": "Not sure I understand this line. If we could find Duration from metadata then override it to 1 ?",
+      "revId": "5fa66b68025a794dda83fcdba64f485aad769915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
