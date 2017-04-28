@@ -12,7 +12,7 @@ import (
 )
 
 func TestAggregateMetric(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
