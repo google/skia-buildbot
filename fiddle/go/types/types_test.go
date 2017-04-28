@@ -47,4 +47,10 @@ func TestOptions(t *testing.T) {
 	hash, err = o.ComputeHash(code)
 	assert.NoError(t, err)
 	assert.Equal(t, "fddc0a319e575c79a97ff535b455dc5d", hash)
+
+	o.Animated = true
+	o.Duration = 1.5
+	hash, err = o.ComputeHash(code)
+	assert.NoError(t, err)
+	assert.Equal(t, "92c7b15afd12fd711ce65ba412574e3d", hash)
 }

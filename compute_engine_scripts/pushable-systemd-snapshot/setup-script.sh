@@ -25,9 +25,6 @@ sudo gsutil cp gs://skia-push/debs/pulld/pulld:jcgregorio@jcgregorio.cnc.corp.go
 sudo dpkg -i pulld.deb
 sudo systemctl start pulld.service
 
-sudo apt install unattended-upgrades
-sudo dpkg-reconfigure --priority=low unattended-upgrades
-
 sudo apt --assume-yes install --fix-broken
 
 # Setup collectd.
@@ -76,4 +73,7 @@ LoadPlugin write_graphite
 EOF
 sudo install -D --verbose --backup=none --group=root --owner=root --mode=600 collectd.conf /etc/collectd/collectd.conf
 sudo /etc/init.d/collectd restart
+
+sudo apt install unattended-upgrades
+sudo dpkg-reconfigure --priority=low unattended-upgrades
 

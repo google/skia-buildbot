@@ -78,6 +78,11 @@ func TestNamed(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, mediaHash, "cbb8dee39e9f1576cd97c2d504db8eee")
 	assert.Equal(t, media, store.CPU)
+
+	mediaHash, media, err = names.DereferenceImageID("@star_gpu.webm")
+	assert.NoError(t, err)
+	assert.Equal(t, mediaHash, "cbb8dee39e9f1576cd97c2d504db8eee")
+	assert.Equal(t, media, store.ANIM_GPU)
 }
 
 func TestAdd(t *testing.T) {

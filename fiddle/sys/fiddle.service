@@ -1,8 +1,7 @@
 [Unit]
 Description=Skia fiddle allows compiling and running Skia C++ code.
-Requires=mnt-pd0.mount
 Wants=network-online.target
-After=mnt-pd0.mount network-online.target
+After=network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/fiddle \

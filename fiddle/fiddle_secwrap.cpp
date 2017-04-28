@@ -45,6 +45,7 @@ static bool install_syscall_filter() {
         ALLOW_SYSCALL(readlink),
         ALLOW_SYSCALL(fadvise64),
         ALLOW_SYSCALL(clock_gettime),
+        ALLOW_SYSCALL(sysinfo),
         /*
         The set of sycall's needed if running against an NVIDIA GPU, YMMV.
         ALLOW_SYSCALL(mremap),

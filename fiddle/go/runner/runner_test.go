@@ -136,13 +136,41 @@ func TestRun(t *testing.T) {
 	exec.SetRunForTesting(testRun)
 	defer exec.SetRunForTesting(exec.DefaultRun)
 
-	res, err := Run("checkout/", "fiddleroot/", "depot_tools/", "abcdef", true, "")
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-	assert.Equal(t, "fiddle_run --fiddle_root fiddleroot/ --git_hash abcdef --local --alsologtostderr", execString)
+	opts := &types.Options{
+		Duration: 2.0,
+	}
 
-	res, err = Run("checkout/", "fiddleroot/", "depot_tools/", "abcdef", false, "/mnt/pd0/fiddle/tmp/draw0123")
+	res, err := Run("checkout/", "fiddleroot/", "depot_tools/", "abcdef", true, "", opts)
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
-	assert.Equal(t, "sudo systemd-nspawn -D /mnt/pd0/container/ --read-only --private-network --machine draw0123 --overlay fiddleroot/:/mnt/pd0/fiddle/tmp/draw0123:fiddleroot/ --bind-ro /mnt/pd0/fiddle/tmp/draw0123/draw.cpp:checkout/skia/tools/fiddle/draw.cpp xargs --arg-file=/dev/null /mnt/pd0/fiddle/bin/fiddle_run --fiddle_root fiddleroot/ --git_hash abcdef", execString)
+	assert.Equal(t, "fiddle_run --fiddle_root fiddleroot/ --git_hash abcdef --local --alsologtostderr --duration 2.000000", execString)
+
+	res, err = Run("checkout/", "fiddleroot/", "depot_tools/", "abcdef", false, "/mnt/pd0/fiddle/tmp/draw0123", opts)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	assert.Equal(t, "sudo systemd-nspawn -D /mnt/pd0/container/ --read-only --private-network --machine draw0123 --overlay fiddleroot/:/mnt/pd0/fiddle/tmp/draw0123:fiddleroot/ --bind-ro /mnt/pd0/fiddle/tmp/draw0123/draw.cpp:checkout/skia/tools/fiddle/draw.cpp xargs --arg-file=/dev/null /mnt/pd0/fiddle/bin/fiddle_run --fiddle_root fiddleroot/ --git_hash abcdef --duration 2.000000", execString)
+}
+
+func TestValidateOptions(t *testing.T) {
+	testutils.SmallTest(t)
+	testCases := []struct {
+		value         *types.Options
+		errorExpected bool
+		message       string
+	}{
+		{
+			value: &types.Options{
+				Animated: true,
+				Duration: -1,
+			},
+			errorExpected: true,
+			message:       "negative duration",
+		},
+	}
+
+	for _, tc := range testCases {
+		if got, want := ValidateOptions(tc.value) != nil, tc.errorExpected; got != want {
+			t.Errorf("Failed case Got %v Want %v: %s", got, want, tc.message)
+		}
+	}
 }

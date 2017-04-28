@@ -6,7 +6,7 @@
 # a la google-skia-[DISK_NAME]-data
 # The optional second argument is expected to be the path where the disk is to
 # be mounted. If not specified then "/mnt/pd0" is used.
-set -x
+set -x -e
 
 DISK_NAME="google-$1-data"
 

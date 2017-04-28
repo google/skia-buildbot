@@ -18,6 +18,6 @@ VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 # The name of instance where skia docs is running on.
 INSTANCE_NAME=${VM_NAME_BASE}-systemd-snapshot-maker
 MACHINE_TYPE=n1-standard-4
-IMAGE_FAMILY="ubuntu-1610-yakkety"
-IMAGE_PROJECT="ubuntu-os-cloud"
-IP_ADDRESS=104.154.112.98
+IMAGE_FAMILY=ubuntu-1610
+IMAGE_PROJECT=ubuntu-os-cloud
+IP_ADDRESS=104.154.112.10
