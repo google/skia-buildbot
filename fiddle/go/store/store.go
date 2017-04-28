@@ -42,6 +42,8 @@ const (
 	TEXTONLY_METADATA = "textOnly"
 	SRGB_METADATA     = "srgb"
 	F16_METADATA      = "f16"
+	ANIMATED_METADATA = "animated"
+	DURATION_METADATA = "duration"
 )
 
 // Media is the type of outputs we can get from running a fiddle.
@@ -49,12 +51,14 @@ type Media string
 
 // Media constants.
 const (
-	CPU     Media = "CPU"
-	GPU     Media = "GPU"
-	PDF     Media = "PDF"
-	SKP     Media = "SKP"
-	TXT     Media = "TXT"
-	UNKNOWN Media = ""
+	CPU      Media = "CPU"
+	GPU      Media = "GPU"
+	PDF      Media = "PDF"
+	SKP      Media = "SKP"
+	TXT      Media = "TXT"
+	ANIM_CPU Media = "ANIM_CPU"
+	ANIM_GPU Media = "ANIM_GPU"
+	UNKNOWN  Media = ""
 )
 
 // props records the name and content-type for each type of Media and is used in mediaProps.
@@ -65,11 +69,13 @@ type props struct {
 
 var (
 	mediaProps = map[Media]props{
-		CPU: props{filename: "cpu.png", contentType: "image/png"},
-		GPU: props{filename: "gpu.png", contentType: "image/png"},
-		PDF: props{filename: "pdf.pdf", contentType: "application/pdf"},
-		SKP: props{filename: "skp.skp", contentType: "application/octet-stream"},
-		TXT: props{filename: "txt.txt", contentType: "text/plain"},
+		CPU:      props{filename: "cpu.png", contentType: "image/png"},
+		GPU:      props{filename: "gpu.png", contentType: "image/png"},
+		PDF:      props{filename: "pdf.pdf", contentType: "application/pdf"},
+		SKP:      props{filename: "skp.skp", contentType: "application/octet-stream"},
+		TXT:      props{filename: "txt.txt", contentType: "text/plain"},
+		ANIM_CPU: props{filename: "cpu.webm", contentType: "video/webm"},
+		ANIM_GPU: props{filename: "gpu.webm", contentType: "video/webm"},
 	}
 
 	// sourceFileName parses a souce image filename as stored in Google Storage.
@@ -216,6 +222,8 @@ func (s *Store) Put(code string, options types.Options, gitHash string, ts time.
 		TEXTONLY_METADATA: fmt.Sprintf("%v", options.TextOnly),
 		SRGB_METADATA:     fmt.Sprintf("%v", options.SRGB),
 		F16_METADATA:      fmt.Sprintf("%v", options.F16),
+		ANIMATED_METADATA: fmt.Sprintf("%v", options.Animated),
+		DURATION_METADATA: fmt.Sprintf("%f", options.Duration),
 	}
 	if n, err := w.Write([]byte(code)); err != nil {
 		return "", fmt.Errorf("There was a problem storing the code. Uploaded %d bytes: %s", n, err)
@@ -258,21 +266,32 @@ func (s *Store) PutMedia(options types.Options, fiddleHash string, gitHash strin
 			return err
 		}
 	} else {
-		err := s.writeMediaFile(CPU, fiddleHash, runId, results.Execute.Output.Raster)
-		if err != nil {
-			return err
-		}
-		err = s.writeMediaFile(GPU, fiddleHash, runId, results.Execute.Output.Gpu)
-		if err != nil {
-			return err
-		}
-		err = s.writeMediaFile(PDF, fiddleHash, runId, results.Execute.Output.Pdf)
-		if err != nil {
-			return err
-		}
-		err = s.writeMediaFile(SKP, fiddleHash, runId, results.Execute.Output.Skp)
-		if err != nil {
-			return err
+		if options.Animated {
+			err := s.writeMediaFile(ANIM_CPU, fiddleHash, runId, results.Execute.Output.AnimatedRaster)
+			if err != nil {
+				return err
+			}
+			err = s.writeMediaFile(ANIM_GPU, fiddleHash, runId, results.Execute.Output.AnimatedGpu)
+			if err != nil {
+				return err
+			}
+		} else {
+			err := s.writeMediaFile(CPU, fiddleHash, runId, results.Execute.Output.Raster)
+			if err != nil {
+				return err
+			}
+			err = s.writeMediaFile(GPU, fiddleHash, runId, results.Execute.Output.Gpu)
+			if err != nil {
+				return err
+			}
+			err = s.writeMediaFile(PDF, fiddleHash, runId, results.Execute.Output.Pdf)
+			if err != nil {
+				return err
+			}
+			err = s.writeMediaFile(SKP, fiddleHash, runId, results.Execute.Output.Skp)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -309,6 +328,11 @@ func (s *Store) GetCode(fiddleHash string) (string, *types.Options, error) {
 	if err != nil {
 		return "", nil, fmt.Errorf("Failed to parse options source: %s", err)
 	}
+	animated := attr.Metadata[ANIMATED_METADATA] == "true"
+	duration, err := strconv.ParseFloat(attr.Metadata[DURATION_METADATA], 64)
+	if err != nil && animated {
+		duration = 1.0
+	}
 	options := &types.Options{
 		Width:    width,
 		Height:   height,
@@ -316,6 +340,8 @@ func (s *Store) GetCode(fiddleHash string) (string, *types.Options, error) {
 		TextOnly: attr.Metadata[TEXTONLY_METADATA] == "true",
 		SRGB:     attr.Metadata[SRGB_METADATA] == "true",
 		F16:      attr.Metadata[F16_METADATA] == "true",
+		Animated: animated,
+		Duration: duration,
 	}
 	return string(b), options, nil
 }
