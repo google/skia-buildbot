@@ -36,8 +36,10 @@ const (
 
 	PUBSUB_SUBSCRIBER_NAME = "skia-swarming-logger"
 
-	MAX_BYTES_ENTRY   = 112640
-	MAX_BYTES_REQUEST = 10485760
+	// Maximum sizes for logging requests. Give ourselves 20% headroom,
+	// just in case our estimates are incorrect.
+	MAX_BYTES_ENTRY   = int(112640.0 * 0.80)
+	MAX_BYTES_REQUEST = int(10485760.0 * 0.80)
 )
 
 var (

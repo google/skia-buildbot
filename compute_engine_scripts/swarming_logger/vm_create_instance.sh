@@ -6,7 +6,7 @@ set -x
 
 source vm_config.sh
 
-MACHINE_TYPE=n1-standard-2
+MACHINE_TYPE=n1-standard-16
 SOURCE_SNAPSHOT=skia-systemd-pushable-base
 SCOPES='https://www.googleapis.com/auth/devstorage.full_control,https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/pubsub'
 
