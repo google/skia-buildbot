@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3f0d818a_eff9266f",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 607,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-28T16:14:30Z",
+      "side": 1,
+      "message": "Switched it back. It was find/replace collateral damage.",
+      "parentUuid": "3e2fbdad_e7b3250d",
+      "range": {
+        "startLine": 607,
+        "startChar": 15,
+        "endLine": 607,
+        "endChar": 18
+      },
+      "revId": "c65ef1062f160fb0cd8d28121430bb108be25b94",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6752a531_70a4759e",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 8
@@ -36,6 +60,30 @@
       "writtenOn": "2017-04-28T15:19:28Z",
       "side": 1,
       "message": "This doesn\u0027t make sense to me.",
+      "range": {
+        "startLine": 624,
+        "startChar": 0,
+        "endLine": 627,
+        "endChar": 13
+      },
+      "revId": "c65ef1062f160fb0cd8d28121430bb108be25b94",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d28a1e86_893a336b",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 627,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-28T16:14:30Z",
+      "side": 1,
+      "message": "So happy you caught this. I was using it for testing. Done.",
+      "parentUuid": "6752a531_70a4759e",
       "range": {
         "startLine": 624,
         "startChar": 0,
