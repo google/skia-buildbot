@@ -21,8 +21,10 @@
 
   Properties:
     // inputs
-    autoroll_current: String, the commit hash of the current autoroll.
-    autoroll_last: String the commit hash of the previous autoroll.
+    cr_roll_current: String, the commit hash of the current cr_roll.
+    cr_roll_last: String the commit hash of the previous cr_roll.
+    android_roll_current: String, the commit hash of the current android_roll.
+    android_roll_last: String the commit hash of the previous android_roll.
     commits_to_load: Number, the number of commits to load from the backend
     filter: String, the builder filter to be used.
     reload: How often (in seconds) to reload the data.
@@ -281,11 +283,19 @@
       is: "commits-data-sk",
       properties: {
         // input only
-        autoroll_current:{
+        cr_roll_current:{
           type: String,
           value: "",
         },
-        autoroll_last: {
+        cr_roll_last: {
+          type: String,
+          value: "",
+        },
+        android_roll_current:{
+          type: String,
+          value: "",
+        },
+        android_roll_last: {
           type: String,
           value: "",
         },
@@ -422,7 +432,7 @@
       },
 
       observers: [
-        "_parseData(_data, autoroll_current, autoroll_last)",
+        "_parseData(_data, cr_roll_current, cr_roll_last, android_roll_current, android_roll_last)",
       ],
 
       _computeURL: function(repo) {
@@ -453,7 +463,8 @@
         this.$.data.generateRequest();
       },
 
-      _parseData: function(data, autoroll_current, autoroll_last) {
+      _parseData: function(
+          data, cr_roll_current, cr_roll_last, android_roll_current, android_roll_last) {
         if (!data || !data.commits) {
           console.log("Nothing to parse");
           return;
@@ -599,18 +610,32 @@
           var b = data.branch_heads[i];
           filteredBranchHeads.push(b);
         }
-        if (autoroll_last) {
+        if (cr_roll_last) {
           filteredBranchHeads.push({
-              name: "last DEPS roll",
-              head: autoroll_last,
+              name: "Chrome rolled",
+              head: cr_roll_last,
           });
         }
-        if (autoroll_current) {
+        if (android_roll_last) {
           filteredBranchHeads.push({
-            name: "current DEPS roll",
-            head: autoroll_current,
+              name: "Android rolled",
+              head: android_roll_last,
           });
         }
+
+        if (cr_roll_current) {
+          filteredBranchHeads.push({
+            name: "Chrome rolling",
+            head: cr_roll_current,
+          });
+        }
+        if (android_roll_current) {
+          filteredBranchHeads.push({
+            name: "Android rolling",
+            head: android_roll_current,
+          });
+        }
+
         this.set("branch_heads", filteredBranchHeads);
 
         var timeIdx = 0;
