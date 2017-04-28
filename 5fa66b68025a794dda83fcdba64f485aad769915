@@ -139,6 +139,24 @@
       "revId": "5fa66b68025a794dda83fcdba64f485aad769915",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f12ddb3_692f21d8",
+        "filename": "fiddle/go/store/store.go",
+        "patchSetId": 36
+      },
+      "lineNbr": 333,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-04-28T12:29:39Z",
+      "side": 1,
+      "message": "Oh I misread it.",
+      "parentUuid": "58382e38_b49afebe",
+      "revId": "5fa66b68025a794dda83fcdba64f485aad769915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
