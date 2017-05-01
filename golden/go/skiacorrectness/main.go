@@ -38,6 +38,7 @@ import (
 	"go.skia.org/infra/golden/go/history"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/issuestore"
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
@@ -196,6 +197,11 @@ func main() {
 	}
 
 	digestStore, err := digeststore.New(*storageDir)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	issueStore, err := issuestore.New(*storageDir)
 	if err != nil {
 		sklog.Fatal(err)
 	}

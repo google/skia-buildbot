@@ -93,6 +93,10 @@ backend.
         }
       },
 
+      setIssues: function(issues) {
+        this.set('issues', issues);
+      },
+
       _hasIssues(issues) {
         return issues && (issues.length > 0);
       },
@@ -104,9 +108,10 @@ backend.
       // _addIssueLink returns the link that can be used to create a new issue
       // that connects this digests.
       _addIssueLink: function(test, digest) {
-        var backlink = window.location.origin + "/detail?test=" + test + "&digest=" + digest;
+        // var backlink = window.location.origin + "/detail?test=" + test + "&digest=" + digest;
+        var backlink = window.location.origin + '/bug/tbd';
         var msg = "This issue was reported through Skia Gold.\n\n"+
-          "Visit this URL to see the details of the digest:\n\n"+
+          "----------------------------------------\n"+
           "    " + backlink + "\n\n";
         var q = {
           labels:  "FromSkiaGold",

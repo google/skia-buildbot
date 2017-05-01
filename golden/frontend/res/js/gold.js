@@ -40,7 +40,7 @@ var gold = gold || {};
   ];
 
   // ISSUE_TRACKER_URL is the url of the monorail issue tracker.
-  var ISSUE_TRACKER_URL = "https://bugs.chromium.org/p/skia/issues/";
+  var ISSUE_TRACKER_URL = "https://bugs.chromium.org/p/skia/issues";
 
   // Costants for sort order.
   gold.SORT_ASC = "asc";
