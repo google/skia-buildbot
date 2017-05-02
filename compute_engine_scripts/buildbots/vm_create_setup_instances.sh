@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Create and setup the Skia RecreateSKPs GCE instance.
+# Create and setup a Swarming instance.
 #
 # Copyright 2014 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
@@ -12,7 +12,7 @@ source vm_setup_utils.sh
 if [ "$VM_INSTANCE_OS" == "Linux" ]; then
   SKIA_BOT_IMAGE_NAME=$SKIA_BOT_LINUX_IMAGE_NAME
   REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_LINUX_BOTS[@]}
-  DISK_ARGS="--boot_disk_size_gb=20"
+  DISK_ARGS="--boot-disk-size=20GB"
   if [ "$VM_IS_SWARMINGBOT" = 1 ]; then
     SKIA_BOT_IMAGE_NAME=$SKIA_SWARMING_IMAGE_NAME
     SKIA_BOT_MACHINE_TYPE="n1-standard-16"
@@ -46,12 +46,12 @@ elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
   todos $MODIFIED_SCHTASK_SCRIPT
 
   METADATA_ARGS="--metadata=gce-initial-windows-user:chrome-bot \
-                 --metadata_from_file=gce-initial-windows-password:/tmp/win-chrome-bot.txt \
-                 --metadata_from_file=sysprep-oobe-script-ps1:$MODIFIED_SYSPREP_SCRIPT \
-                 --metadata_from_file=windows-startup-script-ps1:$MODIFIED_STARTUP_SCRIPT \
-                 --metadata_from_file=chromebot-schtask-ps1:$MODIFIED_SCHTASK_SCRIPT"
-  DISK_ARGS="--boot_disk_size_gb=$VM_PERSISTENT_DISK_SIZE_GB \
-             --boot_disk_type=pd-ssd"
+                 --metadata-from-file=gce-initial-windows-password:/tmp/win-chrome-bot.txt \
+                 --metadata-from-file=sysprep-oobe-script-ps1:$MODIFIED_SYSPREP_SCRIPT \
+                 --metadata-from-file=windows-startup-script-ps1:$MODIFIED_STARTUP_SCRIPT \
+                 --metadata-from-file=chromebot-schtask-ps1:$MODIFIED_SCHTASK_SCRIPT"
+  DISK_ARGS="--boot-disk-size=${VM_PERSISTENT_DISK_SIZE_GB}GB \
+             --boot-disk-type=pd-ssd"
   REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_WIN_BOTS[@]}
 else
   echo "$VM_INSTANCE_OS is not recognized!"
@@ -65,19 +65,18 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
 
   if [ "$VM_INSTANCE_OS" == "Linux" ]; then
     # The persistent disk of linux GCE bots is based on the bot's IP address.
-    PERSISTENT_DISK_ARG=--disk=$PERSISTENT_DISK_NAME-`printf "%03d" ${MACHINE_IP}`
+    PERSISTENT_DISK_ARG="--disk=name=$PERSISTENT_DISK_NAME-`printf "%03d" ${MACHINE_IP}`"
   fi
 
-  $GCOMPUTE_CMD addinstance ${INSTANCE_NAME} \
+  gcloud compute --project $PROJECT_ID instances create ${INSTANCE_NAME} \
     --zone=$ZONE \
-    --external_ip_address=$EXTERNAL_IP_ADDRESS \
-    --service_account=$PROJECT_USER \
-    --service_account_scopes="$SCOPES" \
+    --address=$EXTERNAL_IP_ADDRESS \
+    --service-account=$PROJECT_USER \
+    --scopes="$SCOPES" \
     --network=$SKIA_NETWORK_NAME \
     --image=$SKIA_BOT_IMAGE_NAME \
     --machine_type=$SKIA_BOT_MACHINE_TYPE \
-    --auto_delete_boot_disk \
-    --wait_until_running \
+    --boot-disk-auto-delete \
     $DISK_ARGS $METADATA_ARGS $PERSISTENT_DISK_ARG
 
   if [ $? -ne 0 ]; then
@@ -110,7 +109,7 @@ if [ "$VM_INSTANCE_OS" == "Windows" ]; then
   # Reboot all instances. This causes the startup script to run.
   for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
     INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
-    $GCOMPUTE_CMD resetinstance $INSTANCE_NAME
+    gcloud compute --project $PROJECT_ID instances reset --zone $ZONE $INSTANCE_NAME
   done
 
   # Wait for all instances to come back from reboot and finish their startup script.
@@ -127,7 +126,7 @@ if [ "$VM_INSTANCE_OS" == "Windows" ]; then
   # reboot in order to run chrome-bot's scheduled task.
   for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
     INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
-    $GCOMPUTE_CMD resetinstance $INSTANCE_NAME
+    gcloud compute --project $PROJECT_ID instances reset --zone $ZONE $INSTANCE_NAME
   done
 
   # Wait for all instances to come back from reboot.
@@ -145,17 +144,12 @@ else
   echo "===== Wait for all instances to come up. ====="
   echo
   for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
+    EXTERNAL_IP_ADDRESS=${IP_ADDRESS_WITHOUT_MACHINE_PART}.${MACHINE_IP}
     INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
-    DONE_TEXT="RUNNING"
 
-    while [ `${GCOMPUTE_CMD} getinstance --zone=${ZONE} ${INSTANCE_NAME} | grep -c "${DONE_TEXT}"` = 0 ]; do
-      echo "Waiting 5 seconds for ${INSTANCE_NAME} to come up."
-      sleep 5
-    done
-
-    while [ `${GCOMPUTE_SSH_CMD} ${INSTANCE_NAME} echo "done" | grep -c "done"` = 0 ]; do
-      echo "Waiting 5 seconds for ${INSTANCE_NAME} to finish booting."
-      sleep 5
+    until nc -w 1 -z $IP_ADDRESS 22; do
+      echo "Waiting for ${INSTANCE_NAME} to come up."
+      sleep 2
     done
   done
 fi

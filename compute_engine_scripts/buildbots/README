@@ -36,8 +36,8 @@ instances.
 How to create new instances
 ===========================
 
-Ensure gcutil is available on your PATH by running `gcutil --help` and following
-instructions if you do not get a help message.
+If you haven't already, install Cloud SDK from https://cloud.google.com/sdk/.
+
 
 Download the files at
 https://drive.google.com/a/google.com/folderview?id=0B8qNi7tiU4KjflRQYnRxc2x1cW9VY3Z6VG54UkpOc0NrRmNDUUZqVjZQaDNscmNtcnBwcEk

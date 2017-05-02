@@ -1,8 +1,6 @@
 # This file contains constants for the shell scripts which interact with the
 # Skia's GCE instances.
 
-GCUTIL=`which gcutil`
-
 # Set all constants in compute_engine_cfg.py as env variables.
 $(python ../compute_engine_cfg.py)
 if [ $? != "0" ]; then
@@ -19,8 +17,5 @@ REQUIRED_FILES_FOR_LINUX_BOTS=(.gitconfig \
 REQUIRED_FILES_FOR_WIN_BOTS=(win-chrome-bot.txt \
                              .gitconfig \
                              .netrc)
-
-GCOMPUTE_CMD="$GCUTIL --project=$PROJECT_ID"
-GCOMPUTE_SSH_CMD="$GCOMPUTE_CMD ssh --zone=$ZONE --ssh_user=$PROJECT_USER"
 
 GO_VERSION="go1.6.3.linux-amd64"

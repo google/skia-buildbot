@@ -28,7 +28,7 @@ CMD=$2
 
 echo "About to run $CMD on instances $VM_BOT_COUNT_START ... $VM_BOT_COUNT_END"
 go run vm_run_command_on_instances.go --alsologtostderr \
-  --user=$SSH_USER --gcompute_cmd="$GCOMPUTE_CMD" \
+  --user=$SSH_USER --project=$PROJECT_ID --zone=$ZONE \
   --range_start=$VM_BOT_COUNT_START --range_end=$VM_BOT_COUNT_END \
   --vm_name_prefix=$VM_BOT_NAME --verbose \
   --cmd="$CMD"
