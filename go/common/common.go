@@ -44,7 +44,7 @@ var (
 	REPO_PROJECT_MAPPING = map[string]string{
 		REPO_SKIA:               "skia",
 		REPO_SKIA_INFRA:         "skiabuildbot",
-		REPO_SKIA_INTERNAL_TEST: "internal_test",
+		REPO_SKIA_INTERNAL_TEST: "skia-internal-test",
 	}
 )
 
@@ -57,6 +57,10 @@ func init() {
 	// buildbot.git is sometimes referred to as "buildbot" instead of
 	// "skiabuildbot". Add the alias to the mapping.
 	PROJECT_REPO_MAPPING["buildbot"] = REPO_SKIA_INFRA
+
+	// internal_test.git is sometimes referred to as "internal_test" instead
+	// of "skia_internal_test". Add the alias to the mapping.
+	PROJECT_REPO_MAPPING["internal_test"] = REPO_SKIA_INTERNAL_TEST
 }
 
 // Init runs commonly-used initialization metrics.
