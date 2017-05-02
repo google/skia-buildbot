@@ -125,7 +125,7 @@ if (!(Test-Path ($swarm_slave_dir))) {
   if ($hostname.StartsWith("skia-i-")) {
     $swarming = "https://chrome-swarming.appspot.com"
   }
-  cmd /c "python -c `"import urllib; exec urllib.urlopen('" + $swarming + "/bootstrap').read()`""
+  cmd /c "python -c `"import urllib; exec urllib.urlopen('$swarming/bootstrap').read()`""
 }
 
 banner "The Task ended"
