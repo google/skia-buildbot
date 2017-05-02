@@ -24,7 +24,7 @@ import (
 
 const (
 	// FPS is the Frames Per Second when generating an animation.
-	FPS = 15
+	FPS = 60
 )
 
 // flags

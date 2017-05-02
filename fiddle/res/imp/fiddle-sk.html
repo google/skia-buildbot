@@ -448,7 +448,10 @@ sk_sp&lt;SkImage> image;</pre>
 
     _run_impl: function(extra) {
       this.fiddlehash = "";
-      $$$('#speed', this).value = "1";
+      var speed = $$$('#speed', this);
+      if (speed) {
+        speed.value = "1";
+      }
       $$("paper-spinner", this).forEach(function(s) {
         s.active = true;
       }, this);
