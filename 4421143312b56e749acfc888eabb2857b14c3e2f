@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "342e6744_07527760",
+        "filename": "compute_engine_scripts/buildbots/vm_create_persistent_disks.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-02T17:28:30Z",
+      "side": 1,
+      "message": "Actually the reason I did this was because I got confused with the args required for different gcloud commands. And all the other scripts are explicit, so it\u0027s easier to copy/paste.",
+      "parentUuid": "7544e484_46f6fa9e",
+      "revId": "4421143312b56e749acfc888eabb2857b14c3e2f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9bcb0244_49840a5a",
         "filename": "compute_engine_scripts/buildbots/vm_create_setup_instances.sh",
         "patchSetId": 2
@@ -33,6 +51,24 @@
       "revId": "4421143312b56e749acfc888eabb2857b14c3e2f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dfff7295_291cf16b",
+        "filename": "compute_engine_scripts/buildbots/vm_create_setup_instances.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-02T17:28:30Z",
+      "side": 1,
+      "message": "Done. I wasn\u0027t sure about calling it a swarming bot due to \"VM_IS_SWARMINGBOT\" -- is that always true?",
+      "parentUuid": "9bcb0244_49840a5a",
+      "revId": "4421143312b56e749acfc888eabb2857b14c3e2f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

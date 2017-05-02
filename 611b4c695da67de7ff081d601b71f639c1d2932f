@@ -16,6 +16,24 @@
       "revId": "611b4c695da67de7ff081d601b71f639c1d2932f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96f0e41b_6923c5e8",
+        "filename": "compute_engine_scripts/buildbots/README",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-02T17:28:30Z",
+      "side": 0,
+      "message": "Added a note about Cloud SDK. I had removed this because A) I don\u0027t know if you get a useful message if gcloud is not installed, and B) README.md in the root already says to install Cloud SDK.",
+      "parentUuid": "3fb88de7_7e360792",
+      "revId": "611b4c695da67de7ff081d601b71f639c1d2932f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
