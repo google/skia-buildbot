@@ -295,6 +295,13 @@ sk_sp&lt;SkImage> image;</pre>
         <div id=controls class="horizontal layout">
           <button on-tap="_playToggle" title="Play the animation."><iron-icon id=play icon="av:pause"></iron-icon> </button>
           <paper-checkbox id=loop checked="{{loop}}" title="Run animations in a loop">Loop</paper-checkbox>
+          <select on-change="_speed" size="1">
+            <option value="0.25">0.25</option>
+            <option value="0.5">0.5</option>
+            <option value="1" selected>Normal speed</option>
+            <option value="1.5">1.5</option>
+            <option value="2">2</option>
+          </select>
         </div>
       </template>
     </template>
@@ -499,6 +506,13 @@ sk_sp&lt;SkImage> image;</pre>
 
     _playEnded: function () {
         $$$('#play', this).icon = "av:play-arrow";
+    },
+
+    _speed: function(e) {
+      var speed = +e.target.value;
+      $$('video', this).forEach(function(e) {
+        e.playbackRate = speed;
+      });
     },
 
     _errSelect: function(e) {
