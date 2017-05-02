@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7544e484_46f6fa9e",
+        "filename": "compute_engine_scripts/buildbots/vm_create_persistent_disks.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-05-02T11:27:15Z",
+      "side": 1,
+      "message": "I like the approach of always specifying PROJECT_ID, this will make things flexible if we ever have multiple project ids to deal with.",
+      "revId": "4421143312b56e749acfc888eabb2857b14c3e2f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9bcb0244_49840a5a",
+        "filename": "compute_engine_scripts/buildbots/vm_create_setup_instances.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-05-02T11:27:15Z",
+      "side": 1,
+      "message": "buildbot is a NSFW word. Change to \"swarming\"? I realize that the directory itself is called buildbots we should think about renaming that as well but that can be a future CL.",
+      "revId": "4421143312b56e749acfc888eabb2857b14c3e2f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

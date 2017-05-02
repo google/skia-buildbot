@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3fb88de7_7e360792",
+        "filename": "compute_engine_scripts/buildbots/README",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-05-02T11:27:15Z",
+      "side": 0,
+      "message": "Should we change this to gcloud? or is there no need because it will most likely always be in PATH?",
+      "revId": "611b4c695da67de7ff081d601b71f639c1d2932f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
