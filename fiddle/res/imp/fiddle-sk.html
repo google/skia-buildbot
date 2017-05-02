@@ -23,6 +23,8 @@
 <link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/av-icons.html">
+
 
 <link rel="stylesheet" href="/res/common/css/md.css" type="text/css" media="all">
 <link rel="import" href="/res/common/imp/details-summary.html">
@@ -31,7 +33,7 @@
 
 <link rel="import" href="/res/imp/text-src.html">
 <dom-module id="fiddle-sk">
-  <style>
+  <style is="custom-style">
     #namer,
     #embedder {
       display: none;
@@ -154,6 +156,10 @@
       margin-left: 1em;
     }
 
+    paper-checkbox {
+      --paper-checkbox-checked-ink-color: #1f78b4;
+      --paper-checkbox-checked-color: #1f78b4;
+    }
   </style>
   <template>
     <template is="dom-if" if="{{display_options}}">
@@ -247,7 +253,7 @@ sk_sp&lt;SkImage> image;</pre>
         </template>
         <template is="dom-if" if="{{animated}}">
           <div class="vertical layout center-justified">
-            <video autoplay controls src="[[domain]]/i/{{fiddlehash}}_cpu.webm" width="{{width}}" height="{{height}}"></video>
+            <video on-ended="_playEnded" autoplay loop="[[loop]]" src="[[domain]]/i/{{fiddlehash}}_cpu.webm" width="{{width}}" height="{{height}}"></video>
             <p>CPU</p>
           </div>
         </template>
@@ -277,7 +283,7 @@ sk_sp&lt;SkImage> image;</pre>
           </template>
           <template is="dom-if" if="{{animated}}">
             <div class="vertical layout center-justified">
-              <video autoplay controls src="[[domain]]/i/{{fiddlehash}}_gpu.webm" width="{{width}}" height="{{height}}"></video>
+              <video loop="[[loop]]" autoplay src="[[domain]]/i/{{fiddlehash}}_gpu.webm" width="{{width}}" height="{{height}}"></video>
               <p>
                 GPU
               </p>
@@ -285,6 +291,12 @@ sk_sp&lt;SkImage> image;</pre>
           </template>
         </template>
       </div>
+      <template is="dom-if" if="{{animated}}">
+        <div id=controls class="horizontal layout">
+          <button on-tap="_playToggle" title="Play the animation."><iron-icon id=play icon="av:pause"></iron-icon> </button>
+          <paper-checkbox id=loop checked="{{loop}}" title="Run animations in a loop">Loop</paper-checkbox>
+        </div>
+      </template>
     </template>
     <template is="dom-if" if="{{textonly}}">
       <template is="dom-if" if="{{embed_button}}">
@@ -378,6 +390,11 @@ sk_sp&lt;SkImage> image;</pre>
         value: false,
         reflectToAttribute: true,
       },
+      loop: {
+        type: Boolean,
+        value: true,
+        reflectToAttribute: true,
+      },
       _compile_errors: {
         type: Array,
         value: function() { return []; },
@@ -462,6 +479,26 @@ sk_sp&lt;SkImage> image;</pre>
         }, this);
         sk.errorMessage(err);
       }.bind(this));
+    },
+
+    _playToggle: function() {
+      var play= $$$('#play', this);
+      var videos = $$('video', this);
+      if (play.icon == "av:pause") {
+        videos.forEach(function(e) {
+          e.pause();
+        });
+        play.icon = "av:play-arrow";
+      } else {
+        videos.forEach(function(e) {
+          e.play();
+        });
+        play.icon = "av:pause";
+      }
+    },
+
+    _playEnded: function () {
+        $$$('#play', this).icon = "av:play-arrow";
     },
 
     _errSelect: function(e) {
