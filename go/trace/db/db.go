@@ -7,12 +7,13 @@ import (
 	"time"
 
 	"github.com/golang/groupcache/lru"
+	"google.golang.org/grpc"
+
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/trace/service"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 )
 
 // CommitID represents the time of a particular commit, where a commit could either be
