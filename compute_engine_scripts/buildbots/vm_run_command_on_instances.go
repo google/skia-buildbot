@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os/exec"
-	"strings"
 	"sync"
 
 	"go.skia.org/infra/go/common"
@@ -18,7 +17,8 @@ import (
 var (
 	user         = flag.String("user", "default", "The user who should run the command")
 	cmd          = flag.String("cmd", "", "The command to run")
-	gcomputeCmd  = flag.String("gcompute_cmd", "gcloud compute", "Command used to SSH into the GCE instances.")
+	project      = flag.String("project", "google.com:skia-buildbots", "GCE project ID of the VMs.")
+	zone         = flag.String("zone", "us-central1-c", "Zone of the VMs.")
 	vmNamePrefix = flag.String("vm_name_prefix", "skia-vm", "Prefix for VM names.")
 	rangeStart   = flag.Int("range_start", 0, "Bot range start, inclusive")
 	rangeEnd     = flag.Int("range_end", 0, "Bot range end, inclusive")
@@ -46,11 +46,7 @@ func main() {
 		wg.Add(1)
 		go func(instanceName string) {
 			defer wg.Done()
-			cmdLine := fmt.Sprintf("%s ssh --ssh_user=%s %s %s", *gcomputeCmd, *user, instanceName, *cmd)
-			split := strings.Fields(cmdLine)
-			name := split[0]
-			args := split[1:]
-			c := exec.Command(name, args...)
+			c := exec.Command("gcloud", "compute", "--project", *project, "ssh", "--zone", *zone, "--command", *cmd, fmt.Sprintf("%s@%s", *user, instanceName))
 			output, err := c.CombinedOutput()
 			mtx.Lock()
 			defer mtx.Unlock()
