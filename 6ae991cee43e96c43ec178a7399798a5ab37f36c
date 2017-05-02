@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9432ee9e_2908a387",
+        "filename": "compute_engine_scripts/buildbots/README",
+        "patchSetId": 5
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-02T22:21:11Z",
+      "side": 1,
+      "message": "VM_IS_ANDROID_MERGE doesn\u0027t seem to be supported anymore. Are these the correct commands to create a CT bot or do I also need VM_IS_SWARMINGBOT\u003d0?",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 35
+      },
+      "revId": "6ae991cee43e96c43ec178a7399798a5ab37f36c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a902468_263ed407",
+        "filename": "compute_engine_scripts/buildbots/vm_setup_image.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-02T22:21:11Z",
+      "side": 1,
+      "message": "How can I test this script?",
+      "revId": "6ae991cee43e96c43ec178a7399798a5ab37f36c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
