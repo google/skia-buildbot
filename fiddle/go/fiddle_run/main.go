@@ -15,6 +15,8 @@ import (
 	"syscall"
 	"time"
 
+	"golang.org/x/sync/errgroup"
+
 	"go.skia.org/infra/fiddle/go/types"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
@@ -25,6 +27,9 @@ import (
 const (
 	// FPS is the Frames Per Second when generating an animation.
 	FPS = 60
+
+	// WORKERS is the number of parallel renderers to run.
+	WORKERS = 8
 )
 
 // flags
@@ -93,6 +98,7 @@ func main() {
 		serializeOutput(res)
 	} else {
 
+		var g errgroup.Group
 		// If this is an animated fiddle then:
 		//   - Create tmpdir to store PNGs.
 		//   - Loop over the following code to generate each frame of the animation.
@@ -101,30 +107,55 @@ func main() {
 		//   - Run ffmpeg over the resulting PNG's to generate the webm files.
 		//   - Clean up tmp file.
 		//   - Encode resulting webm files as base64 strings and return in JSON.
-		FRAMES := int(FPS * (*duration))
+		numFrames := int(FPS * (*duration))
 		tmpDir, err := ioutil.TempDir("", "animation")
 		if err != nil {
 			res.Execute.Errors = fmt.Sprintf("Failed to create tmp dir for storing animation PNGs: %s", err)
 			serializeOutput(res)
 			return
 		}
-		for i := 0; i <= FRAMES; i++ {
-			frame := float64(i) / float64(FRAMES)
-			oneStep(checkout, res, frame)
-			// Check for errors.
-			if res.Execute.Errors != "" {
-				serializeOutput(res)
-				return
-			}
-			// Extract CPU and GPU pngs to a tmp directory.
-			if err := extractPNG(res.Execute.Output.Raster, res, i, "CPU", tmpDir); err != nil {
-				serializeOutput(res)
-				return
-			}
-			if err := extractPNG(res.Execute.Output.Gpu, res, i, "GPU", tmpDir); err != nil {
-				serializeOutput(res)
-				return
-			}
+
+		frameCh := make(chan int)
+
+		for i := 0; i <= WORKERS; i++ {
+			g.Go(func() error {
+				// Each Go func should have its own 'res'.
+				res := &types.Result{
+					Compile: types.Compile{},
+					Execute: types.Execute{
+						Errors: "",
+						Output: types.Output{},
+					},
+				}
+				for frameIndex := range frameCh {
+					sklog.Infof("Parallel render: %d", frameIndex)
+					frame := float64(frameIndex) / float64(numFrames)
+					oneStep(checkout, res, frame)
+					// Check for errors.
+					if res.Execute.Errors != "" {
+						return fmt.Errorf("Failed to render: %s", res.Execute.Errors)
+					}
+					// Extract CPU and GPU pngs to a tmp directory.
+					if err := extractPNG(res.Execute.Output.Raster, res, frameIndex, "CPU", tmpDir); err != nil {
+						return err
+					}
+					if err := extractPNG(res.Execute.Output.Gpu, res, frameIndex, "GPU", tmpDir); err != nil {
+						return err
+					}
+				}
+				return nil
+			})
+		}
+
+		for i := 0; i <= numFrames; i++ {
+			frameCh <- i
+		}
+		close(frameCh)
+
+		if err := g.Wait(); err != nil {
+			res.Execute.Errors = fmt.Sprintf("Failed to encode video: %s", err)
+			serializeOutput(res)
+			return
 		}
 		// Run ffmpeg for CPU and GPU.
 		if err := createWebm("CPU", tmpDir); err != nil {
