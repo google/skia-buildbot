@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e1e72d97_58fdb22a",
+        "filename": "compute_engine_scripts/buildbots/README",
+        "patchSetId": 5
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-05-03T10:42:19Z",
+      "side": 1,
+      "message": "Yes, VM_IS_ANDROID_MEGE  should be removed.\nThese commands look correct.",
+      "parentUuid": "9432ee9e_2908a387",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 35
+      },
+      "revId": "6ae991cee43e96c43ec178a7399798a5ab37f36c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9a902468_263ed407",
         "filename": "compute_engine_scripts/buildbots/vm_setup_image.sh",
         "patchSetId": 5
@@ -36,6 +60,41 @@
       "writtenOn": "2017-05-02T22:21:11Z",
       "side": 1,
       "message": "How can I test this script?",
+      "revId": "6ae991cee43e96c43ec178a7399798a5ab37f36c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f75817a_4f684f71",
+        "filename": "compute_engine_scripts/buildbots/vm_setup_image.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-05-03T10:42:19Z",
+      "side": 1,
+      "message": "IIRC this script is supposed to run on an instance that we are going to image.\nIt has not been run in years because we kept upgrading and capturing an existing image. If we ever start from scratch then I am guessing that this script will have to rewritten.",
+      "parentUuid": "9a902468_263ed407",
+      "revId": "6ae991cee43e96c43ec178a7399798a5ab37f36c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8faa9f16_84104b33",
+        "filename": "compute_engine_scripts/buildbots/vm_setup_image.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-05-03T10:42:19Z",
+      "side": 1,
+      "message": "Is there a gcloud equivalent command to update?",
       "revId": "6ae991cee43e96c43ec178a7399798a5ab37f36c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
