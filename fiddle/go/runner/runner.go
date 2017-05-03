@@ -196,7 +196,7 @@ func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir st
 		"--overlay", fmt.Sprintf("%s:%s:%s", fiddleRoot, tmpDir, fiddleRoot), // Build our copy-on-write layered filesystem. See OVERLAY note above.
 		"--bind-ro", tmpDir + "/draw.cpp" + ":" + filepath.Join(checkout, "skia", "tools", "fiddle", "draw.cpp"), // Mount the user's draw.cpp over the default draw.cpp.
 		"xargs", "--arg-file=/dev/null", // See Note above for explanation of xargs.
-		"/mnt/pd0/fiddle/bin/fiddle_run", "--fiddle_root", fiddleRoot, "--git_hash", gitHash,
+		"/mnt/pd0/fiddle/bin/fiddle_run", "--fiddle_root", fiddleRoot, "--git_hash", gitHash, "--alsologtostderr",
 	}
 	if local {
 		name = "fiddle_run"

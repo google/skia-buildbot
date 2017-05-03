@@ -118,6 +118,7 @@ func main() {
 		frameCh := make(chan int)
 
 		// Start a pool of workers to do the rendering.
+		sklog.Infof("Render over %d CPUs.", runtime.NumCPU())
 		for i := 0; i <= runtime.NumCPU(); i++ {
 			g.Go(func() error {
 				// Each Go func should have its own 'res'.
