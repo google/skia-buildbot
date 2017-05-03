@@ -134,6 +134,24 @@
       "revId": "6ae991cee43e96c43ec178a7399798a5ab37f36c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7daec98d_227c56e9",
+        "filename": "compute_engine_scripts/buildbots/vm_setup_image.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-05-03T14:15:43Z",
+      "side": 1,
+      "message": "Nevermind. I thought you could do the same thing with gcloud but I remembered wrong.",
+      "parentUuid": "7390aff8_245d52bc",
+      "revId": "6ae991cee43e96c43ec178a7399798a5ab37f36c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
