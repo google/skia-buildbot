@@ -43,8 +43,8 @@ push_graphite_exporter: graphite_exporter
 
 alertmanager:
 	-mkdir -p tmp
-	curl -L https://github.com/prometheus/alertmanager/releases/download/v0.5.1/alertmanager-0.5.1.linux-amd64.tar.gz  | tar zxC ./tmp --overwrite -f -
-	cp ./tmp/alertmanager-0.5.1.linux-amd64/alertmanager ./tmp/alertmanager
+	curl -L https://github.com/prometheus/alertmanager/releases/download/v0.6.1/alertmanager-0.6.1.linux-amd64.tar.gz  | tar zxC ./tmp --overwrite -f -
+	cp ./tmp/alertmanager-0.6.1.linux-amd64/alertmanager ./tmp/alertmanager
 
 pushgateway:
 	-mkdir -p tmp
