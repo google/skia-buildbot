@@ -84,6 +84,24 @@
     },
     {
       "key": {
+        "uuid": "88b7c454_daf5fbb9",
+        "filename": "compute_engine_scripts/buildbots/vm_setup_image.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-03T14:13:31Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0f75817a_4f684f71",
+      "revId": "6ae991cee43e96c43ec178a7399798a5ab37f36c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8faa9f16_84104b33",
         "filename": "compute_engine_scripts/buildbots/vm_setup_image.sh",
         "patchSetId": 5
@@ -95,6 +113,24 @@
       "writtenOn": "2017-05-03T10:42:19Z",
       "side": 1,
       "message": "Is there a gcloud equivalent command to update?",
+      "revId": "6ae991cee43e96c43ec178a7399798a5ab37f36c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7390aff8_245d52bc",
+        "filename": "compute_engine_scripts/buildbots/vm_setup_image.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-03T14:13:31Z",
+      "side": 1,
+      "message": "Is gsutil also deprecated?",
+      "parentUuid": "8faa9f16_84104b33",
       "revId": "6ae991cee43e96c43ec178a7399798a5ab37f36c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
