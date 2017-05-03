@@ -36,8 +36,9 @@ instances.
 How to create new instances
 ===========================
 
-Ensure gcutil is available on your PATH by running `gcutil --help` and following
-instructions if you do not get a help message.
+If you haven't already, install Cloud SDK from https://cloud.google.com/sdk/.
+
+Run `sudo apt-get install tofrodos`.
 
 Download the files at
 https://drive.google.com/a/google.com/folderview?id=0B8qNi7tiU4KjflRQYnRxc2x1cW9VY3Z6VG54UkpOc0NrRmNDUUZqVjZQaDNscmNtcnBwcEk
@@ -52,12 +53,10 @@ To create linux swarming bots:
 - VM_BOT_COUNT_START=20 VM_BOT_COUNT_END=22 bash vm_create_setup_instances.sh
 
 To create other kinds of bots:
-- VM_IS_ANDROID_MERGE=1 VM_INSTANCE_OS=Linux \
-  SKIA_BOT_MACHINE_TYPE=n1-standard-16 VM_BOT_COUNT_START=14 \
-  VM_BOT_COUNT_END=14 bash vm_create_persistent_disks.sh
-- VM_IS_ANDROID_MERGE=1 VM_INSTANCE_OS=Linux \
-  SKIA_BOT_MACHINE_TYPE=n1-standard-16 VM_BOT_COUNT_START=14 \
-  VM_BOT_COUNT_END=14 bash vm_create_setup_instances.sh
+- VM_IS_CTBOT=1 VM_BOT_COUNT_START=211 VM_BOT_COUNT_END=212 \
+  bash vm_create_persistent_disks.sh
+- VM_IS_CTBOT=1 VM_BOT_COUNT_START=211 VM_BOT_COUNT_END=212 \
+  bash vm_create_setup_instances.sh
 
 Access instances
 ================
