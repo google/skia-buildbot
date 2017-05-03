@@ -11,4 +11,6 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
   DISK_NAMES="$DISK_NAMES $PERSISTENT_DISK_NAME"-`printf "%03d" ${MACHINE_IP}`
 done
 
-$GCOMPUTE_CMD adddisk $DISK_NAMES --size_gb=$VM_PERSISTENT_DISK_SIZE_GB --zone=$ZONE
+gcloud compute --project $PROJECT_ID disks create $DISK_NAMES \
+  --size=${VM_PERSISTENT_DISK_SIZE_GB}GB \
+  --zone=$ZONE

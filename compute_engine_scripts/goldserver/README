@@ -4,9 +4,6 @@ Skia Gold instances
 How to create new instances
 ===========================
 
-Ensure gcutil is available on your PATH by running `gcutil --help` and following
-instructions if you do not get a help message.
-
 Every command takes an instance name as an argument. If no instance name is
 provided, it will output the available instance names and exit.
 The number and name of instances that can be created is fixed. To add a new

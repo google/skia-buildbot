@@ -5,11 +5,15 @@
 
 set -e
 
+echo "Installing packages..."
+
 # Install required packages.
 sudo apt-get update;
 sudo apt-get -y install python-django libgif-dev lua5.2 && \
     sudo easy_install -U pip && sudo pip install setuptools \
     --no-use-wheel --upgrade && sudo pip install -U crcmod
+
+echo "Installing Python..."
 
 # Install Python 2.7.11. See skbug.com/5562 for context.
 sudo apt-get -y install autotools-dev blt-dev bzip2 dpkg-dev g++-multilib \
@@ -25,7 +29,8 @@ cd Python-2.7.11/
 make
 sudo make install
 
-# Checkout depot_tools
+echo "Checking out depot_tools..."
+
 if [ ! -d "/b/depot_tools" ]; then
   cd /b/
   git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
@@ -33,7 +38,8 @@ if [ ! -d "/b/depot_tools" ]; then
 fi
 PATH=$PATH:/b/depot_tools
 
-# Checkout Chromium repository.
+echo "Checking out Chromium repository..."
+
 mkdir -p /b/storage/chromium;
 cd /b/storage/chromium;
 /b/depot_tools/fetch chromium;
@@ -41,7 +47,8 @@ cd src;
 git checkout master;
 /b/depot_tools/gclient sync
 
-# Checkout Skia's buildbot and trunk, and PDFium repositories.
+echo "Checking out Skia's buildbot and trunk, and PDFium repositories..."
+
 mkdir /b/skia-repo/;
 cd /b/skia-repo/;
 echo """

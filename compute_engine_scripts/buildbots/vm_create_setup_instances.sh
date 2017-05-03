@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Create and setup the Skia RecreateSKPs GCE instance.
+# Create and setup a Swarming instance.
 #
 # Copyright 2014 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
@@ -12,7 +12,7 @@ source vm_setup_utils.sh
 if [ "$VM_INSTANCE_OS" == "Linux" ]; then
   SKIA_BOT_IMAGE_NAME=$SKIA_BOT_LINUX_IMAGE_NAME
   REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_LINUX_BOTS[@]}
-  DISK_ARGS="--boot_disk_size_gb=20"
+  DISK_ARGS="--boot-disk-size=20GB"
   if [ "$VM_IS_SWARMINGBOT" = 1 ]; then
     SKIA_BOT_IMAGE_NAME=$SKIA_SWARMING_IMAGE_NAME
     SKIA_BOT_MACHINE_TYPE="n1-standard-16"
@@ -45,13 +45,14 @@ elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
   cp $ORIG_SCHTASK_SCRIPT $MODIFIED_SCHTASK_SCRIPT
   todos $MODIFIED_SCHTASK_SCRIPT
 
-  METADATA_ARGS="--metadata=gce-initial-windows-user:chrome-bot \
-                 --metadata_from_file=gce-initial-windows-password:/tmp/win-chrome-bot.txt \
-                 --metadata_from_file=sysprep-oobe-script-ps1:$MODIFIED_SYSPREP_SCRIPT \
-                 --metadata_from_file=windows-startup-script-ps1:$MODIFIED_STARTUP_SCRIPT \
-                 --metadata_from_file=chromebot-schtask-ps1:$MODIFIED_SCHTASK_SCRIPT"
-  DISK_ARGS="--boot_disk_size_gb=$VM_PERSISTENT_DISK_SIZE_GB \
-             --boot_disk_type=pd-ssd"
+  METADATA_ARGS="--metadata=gce-initial-windows-user=chrome-bot"
+  METADATA_ARGS+=" --metadata-from-file="
+  METADATA_ARGS+="gce-initial-windows-password=/tmp/win-chrome-bot.txt"
+  METADATA_ARGS+=",sysprep-oobe-script-ps1=$MODIFIED_SYSPREP_SCRIPT"
+  METADATA_ARGS+=",windows-startup-script-ps1=$MODIFIED_STARTUP_SCRIPT"
+  METADATA_ARGS+=",chromebot-schtask-ps1=$MODIFIED_SCHTASK_SCRIPT"
+  DISK_ARGS="--boot-disk-size=${VM_PERSISTENT_DISK_SIZE_GB}GB \
+             --boot-disk-type=pd-ssd"
   REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_WIN_BOTS[@]}
 else
   echo "$VM_INSTANCE_OS is not recognized!"
@@ -59,25 +60,26 @@ else
 fi
 
 # Create all requested instances.
+ALL_INSTANCE_NAMES=""
 for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
   INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
+  ALL_INSTANCE_NAMES+=" ${INSTANCE_NAME}"
   EXTERNAL_IP_ADDRESS=${IP_ADDRESS_WITHOUT_MACHINE_PART}.${MACHINE_IP}
 
   if [ "$VM_INSTANCE_OS" == "Linux" ]; then
     # The persistent disk of linux GCE bots is based on the bot's IP address.
-    PERSISTENT_DISK_ARG=--disk=$PERSISTENT_DISK_NAME-`printf "%03d" ${MACHINE_IP}`
+    PERSISTENT_DISK_ARG="--disk=name=$PERSISTENT_DISK_NAME-`printf "%03d" ${MACHINE_IP}`"
   fi
 
-  $GCOMPUTE_CMD addinstance ${INSTANCE_NAME} \
+  gcloud compute --project $PROJECT_ID instances create ${INSTANCE_NAME} \
     --zone=$ZONE \
-    --external_ip_address=$EXTERNAL_IP_ADDRESS \
-    --service_account=$PROJECT_USER \
-    --service_account_scopes="$SCOPES" \
+    --address=$EXTERNAL_IP_ADDRESS \
+    --service-account=$PROJECT_USER \
+    --scopes="$SCOPES" \
     --network=$SKIA_NETWORK_NAME \
     --image=$SKIA_BOT_IMAGE_NAME \
-    --machine_type=$SKIA_BOT_MACHINE_TYPE \
-    --auto_delete_boot_disk \
-    --wait_until_running \
+    --machine-type=$SKIA_BOT_MACHINE_TYPE \
+    --boot-disk-auto-delete \
     $DISK_ARGS $METADATA_ARGS $PERSISTENT_DISK_ARG
 
   if [ $? -ne 0 ]; then
@@ -89,9 +91,10 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
 
   if [ "$VM_INSTANCE_OS" == "Windows" ]; then
     # Specify the initial user and password again because of a bug.
+    REPEAT_METADATA="gce-initial-windows-user=chrome-bot"
+    REPEAT_METADATA+=",gce-initial-windows-password=$WIN_CHROME_BOT_PWD"
     gcloud compute --project $PROJECT_ID instances add-metadata \
-      --metadata gce-initial-windows-user=chrome-bot \
-      --metadata gce-initial-windows-password=$WIN_CHROME_BOT_PWD \
+      --metadata $REPEAT_METADATA \
       --zone $ZONE $INSTANCE_NAME
   fi
 done
@@ -108,10 +111,8 @@ if [ "$VM_INSTANCE_OS" == "Windows" ]; then
   done
 
   # Reboot all instances. This causes the startup script to run.
-  for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
-    INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
-    $GCOMPUTE_CMD resetinstance $INSTANCE_NAME
-  done
+  gcloud compute --project $PROJECT_ID instances stop --zone $ZONE $ALL_INSTANCE_NAMES
+  gcloud compute --project $PROJECT_ID instances start --zone $ZONE $ALL_INSTANCE_NAMES
 
   # Wait for all instances to come back from reboot and finish their startup script.
   for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
@@ -125,10 +126,8 @@ if [ "$VM_INSTANCE_OS" == "Windows" ]; then
 
   # The startup script enabled auto-login as chrome-bot on boot. We need to
   # reboot in order to run chrome-bot's scheduled task.
-  for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
-    INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
-    $GCOMPUTE_CMD resetinstance $INSTANCE_NAME
-  done
+  gcloud compute --project $PROJECT_ID instances stop --zone $ZONE $ALL_INSTANCE_NAMES
+  gcloud compute --project $PROJECT_ID instances start --zone $ZONE $ALL_INSTANCE_NAMES
 
   # Wait for all instances to come back from reboot.
   for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
@@ -145,17 +144,12 @@ else
   echo "===== Wait for all instances to come up. ====="
   echo
   for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
+    EXTERNAL_IP_ADDRESS=${IP_ADDRESS_WITHOUT_MACHINE_PART}.${MACHINE_IP}
     INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
-    DONE_TEXT="RUNNING"
 
-    while [ `${GCOMPUTE_CMD} getinstance --zone=${ZONE} ${INSTANCE_NAME} | grep -c "${DONE_TEXT}"` = 0 ]; do
-      echo "Waiting 5 seconds for ${INSTANCE_NAME} to come up."
-      sleep 5
-    done
-
-    while [ `${GCOMPUTE_SSH_CMD} ${INSTANCE_NAME} echo "done" | grep -c "done"` = 0 ]; do
-      echo "Waiting 5 seconds for ${INSTANCE_NAME} to finish booting."
-      sleep 5
+    until nc -w 1 -z $EXTERNAL_IP_ADDRESS 22; do
+      echo "Waiting for ${INSTANCE_NAME} to come up."
+      sleep 2
     done
   done
 fi
@@ -206,7 +200,5 @@ Note:
 If you created windows instances then please do the following:
 * Log in and open the Windows update service, click on "Change settings" and select
   "Download updates but let me choose whether to install them".
-* Click on properties of the "C:\0" folder and click on "Security". Add "Full control"
-  for "Users".
 
 INP

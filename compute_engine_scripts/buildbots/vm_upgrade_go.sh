@@ -7,7 +7,7 @@ source vm_config.sh # GO_VERSION comes from here.
 function upgrade_go {
   echo
   echo "Upgrade Go on $1"
-  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $1 \
+  gcloud compute --project $PROJECT_ID ssh --zone $ZONE ${PROJECT_USER}@$1 -- \
       "cd /tmp && " \
       "wget https://storage.googleapis.com/golang/$GO_VERSION.tar.gz && " \
       "tar -zxvf $GO_VERSION.tar.gz && " \
