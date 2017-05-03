@@ -91,7 +91,11 @@ func (m *eventDB) Range(stream string, start, end time.Time) ([]*Event, error) {
 
 	rv := []*Event{}
 	if err := m.db.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket([]byte(stream)).Cursor()
+		b := tx.Bucket([]byte(stream))
+		if b == nil {
+			return nil
+		}
+		c := b.Cursor()
 		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
 			e := new(Event)
 			if err := gob.NewDecoder(bytes.NewBuffer(v)).Decode(e); err != nil {
