@@ -86,8 +86,8 @@ function copy_files {
   echo
   echo "===== Copying over required files. ====="
   # TODO(rmistry): This was added because ~/.boto is part of the disk image.
-  # It won't be next time the buildbot image is captured, so remove this line
-  # at that time.
+  # It won't be next time the swarming bot image is captured, so remove this
+  # line at that time.
   gcloud compute --project $PROJECT_ID ssh --zone $ZONE ${PROJECT_USER}@$INSTANCE_NAME -- \
     "rm -f .boto"
 

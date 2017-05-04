@@ -1,5 +1,5 @@
 This directory contains scripts to automate the creation, setup and deletion of
-Skia's GCE buildbot instances.
+Skia's GCE swarming bot instances.
 
 
 Directory Contents
