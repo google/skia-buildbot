@@ -7,16 +7,21 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io/ioutil"
+	"os"
 	"strings"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
 const (
+	ROTATIONS_GMAIL_CACHED_TOKEN = "rotations_gmail_cached_token"
+
 	NEXT_SHERIFF_JSON_URL = "http://skia-tree-status.appspot.com/next-sheriff"
 
 	EXTRA_RECIPIENT = "rmistry@google.com"
@@ -58,6 +63,7 @@ const (
 )
 
 var (
+	local            = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	emailTokenPath   = flag.String("email_token_path", "", "The file where the email token can be found.")
 	skiaSheriffShift = &ShiftType{shiftName: "Skia Sheriff", schedulesLink: "http://skia-tree-status.appspot.com/sheriff", documentationLink: "https://skia.org/dev/sheriffing", nextSheriffEndpoint: "http://skia-tree-status.appspot.com/next-sheriff"}
 	gpuWranglerShift = &ShiftType{shiftName: "GPU Wrangler", schedulesLink: "http://skia-tree-status.appspot.com/gpu-sheriff", documentationLink: "https://skia.org/dev/sheriffing/gpu", nextSheriffEndpoint: "http://skia-tree-status.appspot.com/next-gpu-sheriff"}
@@ -67,11 +73,11 @@ var (
 )
 
 // sendEmail sends an email with the specified header and body to the recipients.
-func sendEmail(recipients []string, senderDisplayName, subject, body, markup string) error {
+func sendEmail(tokenPath string, recipients []string, senderDisplayName, subject, body, markup string) error {
 	gmail, err := email.NewGMail(
 		"292895568497-u2m421dk2htq171bfodi9qoqtb5smuea.apps.googleusercontent.com",
 		"jv-g54CaPS783QV6H8SdagYn",
-		*emailTokenPath)
+		tokenPath)
 	if err != nil {
 		return fmt.Errorf("Could not initialize gmail object: %s", err)
 	}
@@ -85,9 +91,25 @@ func main() {
 	defer common.LogPanic()
 	common.Init()
 
-	if *emailTokenPath == "" {
-		sklog.Error("Must specify --email_token_path")
-		return
+	tokenPath := *emailTokenPath
+	if tokenPath == "" {
+		if *local {
+			sklog.Error("Must specify --email_token_path")
+			return
+		} else {
+			// Look in metadata for email token.
+			cachedGMailToken := metadata.Must(metadata.ProjectGet(ROTATIONS_GMAIL_CACHED_TOKEN))
+			tokenFile, err := ioutil.TempFile("", "sheriff-emails")
+			if err != nil {
+				sklog.Error("Could not create temp file")
+				return
+			}
+			tokenPath = tokenFile.Name()
+			defer util.Remove(tokenPath)
+			if err := ioutil.WriteFile(tokenPath, []byte(cachedGMailToken), os.ModePerm); err != nil {
+				sklog.Fatalf("Failed to cache token: %s", err)
+			}
+		}
 	}
 
 	defer sklog.Flush()
@@ -140,7 +162,7 @@ func main() {
 			return
 		}
 		senderDisplayName := fmt.Sprintf("%s Rotation", shiftType.shiftName)
-		if err := sendEmail([]string{sheriffEmail, EXTRA_RECIPIENT}, senderDisplayName, emailSubject, emailBytes.String(), viewActionMarkup); err != nil {
+		if err := sendEmail(tokenPath, []string{sheriffEmail, EXTRA_RECIPIENT}, senderDisplayName, emailSubject, emailBytes.String(), viewActionMarkup); err != nil {
 			sklog.Fatalf("Error sending email to sheriff: %s", err)
 		}
 	}
