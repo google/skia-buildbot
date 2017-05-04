@@ -353,7 +353,7 @@ func main() {
 	}
 
 	// Generate "time to X% bot coverage" metrics.
-	if err := bot_metrics.Start(*taskSchedulerDbUrl, *workdir, db, context.Background()); err != nil {
+	if err := bot_metrics.Start(*taskSchedulerDbUrl, *workdir, nil, context.Background()); err != nil {
 		sklog.Fatal(err)
 	}
 
