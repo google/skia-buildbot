@@ -26,6 +26,7 @@ const (
 	REPO_DEPOT_TOOLS        = "https://chromium.googlesource.com/chromium/tools/depot_tools.git"
 	REPO_SKIA               = "https://skia.googlesource.com/skia.git"
 	REPO_SKIA_INFRA         = "https://skia.googlesource.com/buildbot.git"
+	REPO_SKIA_INTERNAL      = "https://skia.googlesource.com/skia_internal.git"
 	REPO_SKIA_INTERNAL_TEST = "https://skia.googlesource.com/internal_test.git"
 
 	SAMPLE_PERIOD = time.Minute
@@ -33,7 +34,7 @@ const (
 
 var (
 	PUBLIC_REPOS  = []string{REPO_SKIA, REPO_SKIA_INFRA}
-	PRIVATE_REPOS = []string{REPO_SKIA_INTERNAL_TEST}
+	PRIVATE_REPOS = []string{REPO_SKIA_INTERNAL, REPO_SKIA_INTERNAL_TEST}
 	ALL_REPOS     = append(PUBLIC_REPOS, PRIVATE_REPOS...)
 
 	// PROJECT_REPO_MAPPING is a mapping of project names to repo URLs. It
@@ -44,6 +45,7 @@ var (
 	REPO_PROJECT_MAPPING = map[string]string{
 		REPO_SKIA:               "skia",
 		REPO_SKIA_INFRA:         "skiabuildbot",
+		REPO_SKIA_INTERNAL:      "skia-internal",
 		REPO_SKIA_INTERNAL_TEST: "skia-internal-test",
 	}
 )
