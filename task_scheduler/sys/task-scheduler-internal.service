@@ -14,6 +14,7 @@ ExecStart=/usr/local/bin/task_scheduler \
     --pubsub_topic=swarming-tasks-internal \
     --pubsub_subscriber=task-scheduler-internal \
     --repo=https://skia.googlesource.com/internal_test.git \
+    --repo=https://skia.googlesource.com/skia_internal.git \
     --resources_dir=/usr/local/share/task-scheduler/ \
     --swarming_server=chrome-swarming.appspot.com \
     --tryjob_bucket=skia.internal \
