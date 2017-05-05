@@ -1,7 +1,7 @@
 #! /bin/bash
 set -x
 
-/tmp/format_and_mount.sh skia-fiddle
+/tmp/format_and_mount.sh skia-fiddle2
 
 # The same set of packages need to be installed both on the instance and within the container.
 PACKAGES="systemd-container git debootstrap build-essential libosmesa6-dev libfreetype6-dev libfontconfig1-dev libpng-dev libgif-dev libqt4-dev mesa-common-dev ffmpeg libglu1-mesa"
