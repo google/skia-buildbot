@@ -34,6 +34,9 @@ VM_IS_CTBOT = os.environ.get('VM_IS_CTBOT', 0)
 # If this is true then the VM is created in the SkiaInternal pool.
 VM_IS_SKIA_INTERNAL = os.environ.get('VM_IS_SKIA_INTERNAL', 0)
 
+# If this is not None, the VM is created in a zone that has the specified CPU.
+VM_MIN_CPU_PLATFORM = os.environ.get('VM_MIN_CPU_PLATFORM')
+
 # The Project ID is found in the Compute tab of the dev console.
 # https://console.developers.google.com/project/31977622648
 PROJECT_ID = 'google.com:skia-buildbots'
@@ -62,6 +65,11 @@ elif VM_IS_SKIA_INTERNAL:
   VM_BOT_NAME = 'skia-i-vm'
   PERSISTENT_DISK_NAME = 'skia-i-disk'
 
+if VM_MIN_CPU_PLATFORM:
+  ZONE_TAG = {
+      'Intel Skylake': 'b'
+  }[VM_MIN_CPU_PLATFORM]
+
 ZONE = 'us-central1-%s' % ZONE_TAG
 
 # The below constants determine which instances the delete and create/setup
@@ -81,4 +89,3 @@ if __name__ == '__main__':
     # Ignore if the var is a system var or a module.
     if not var.startswith('__') and not type(vars()[var]) == types.ModuleType:
       print 'export %s=%s' % (var, vars()[var])
-
