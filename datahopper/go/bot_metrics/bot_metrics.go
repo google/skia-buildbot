@@ -279,6 +279,9 @@ func cycle(taskDb db.RemoteDB, buildDb buildbot.DB, repos repograph.Map, tcc *sp
 			if !t.Done() || t.IsTryJob() || ignoreTask(t.Name) {
 				continue
 			}
+			if _, ok := repos[t.Repo]; !ok {
+				continue
+			}
 
 			c, repoUrl, _, err := repos.FindCommit(t.Revision)
 			if err != nil {
