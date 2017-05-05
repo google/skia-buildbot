@@ -8,8 +8,10 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"runtime/pprof"
 	"syscall"
+	"time"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sharedb"
@@ -73,6 +75,12 @@ func main() {
 			}
 		}
 		sklog.Fatalf("Failure while serving: %s", s.Serve(lis))
+	}()
+
+	go func() {
+		for range time.Tick(5 * time.Minute) {
+			runtime.GC()
+		}
 	}()
 
 	// Handle SIGINT and SIGTERM.
