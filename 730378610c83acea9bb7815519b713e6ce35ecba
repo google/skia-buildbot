@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0a954578_b74cf740",
+        "filename": "compute_engine_scripts/swarming_bots/vm_create_setup_instances.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-05T19:57:47Z",
+      "side": 1,
+      "message": "This still depends on the now-unexported variable, right?",
+      "range": {
+        "startLine": 86,
+        "startChar": 6,
+        "endLine": 86,
+        "endChar": 25
+      },
+      "revId": "730378610c83acea9bb7815519b713e6ce35ecba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
