@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "37276f2f_9abf6c1c",
+        "filename": "compute_engine_scripts/compute_engine_cfg.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-05T18:47:56Z",
+      "side": 1,
+      "message": "Doing this causes \"export VM_MIN_CPU_PLATFORM\u003dIntel Skylake\", so VM_MIN_CPU_PLATFORM becomes \"Intel\". :-(",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 59
+      },
+      "revId": "4997f289b86e6ec034e4777e665578cfcb9ce43e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
