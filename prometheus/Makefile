@@ -40,7 +40,7 @@ push_skolo: build prom
 push_sheriff_emails: build
 	./build_config_release "`git log -n1 --format=%s`"
 	go install -v ../push/go/pushcli
-	pushcli sheriff-emails
+	pushcli sheriff-emails skia-prom
 
 push_graphite_exporter: graphite_exporter
 	./build_graphite_exporter_release "`git log -n1 --format=%s`"
