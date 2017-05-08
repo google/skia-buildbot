@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c471e1cf_bc584c7f",
+        "filename": "compute_engine_scripts/compute_engine_cfg.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-08T18:09:34Z",
+      "side": 1,
+      "message": "Do you want to add to README or should README point to this file for additional options?",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 15
+      },
+      "revId": "403627066a9169ce64c9548d1650e2ca9289f961",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
