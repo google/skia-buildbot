@@ -84,37 +84,37 @@ type TaskScheduler struct {
 func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create blacklist from file: %s", err)
 	}
 
 	w, err := window.New(period, numCommits, repos)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create window: %s", err)
 	}
 
 	// Create caches.
 	tCache, err := db.NewTaskCache(d, w)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create TaskCache: %s", err)
 	}
 
 	jCache, err := db.NewJobCache(d, w, db.GitRepoGetRevisionTimestamp(repos))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create JobCache: %s", err)
 	}
 
 	taskCfgCache, err := specs.NewTaskCfgCache(repos, depotTools, path.Join(workdir, "taskCfgCache"), specs.DEFAULT_NUM_WORKERS)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create TaskCfgCache: %s", err)
 	}
 	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, host, c, d, w, projectRepoMapping, repos, taskCfgCache)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create TryJobIntegrator: %s", err)
 	}
 
 	pm, err := newPeriodicTriggerMetrics(workdir)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create PeriodicTriggerMetrics: %s", err)
 	}
 
 	s := &TaskScheduler{
@@ -1155,6 +1155,10 @@ func (s *TaskScheduler) MainLoop() error {
 	sklog.Infof("Task Scheduler scheduling tasks...")
 	if err := s.scheduleTasks(bots, queue); err != nil {
 		return err
+	}
+
+	if err := s.taskCfgCache.Cleanup(time.Now().Sub(s.window.EarliestStart())); err != nil {
+		return fmt.Errorf("Failed to Cleanup TaskCfgCache: %s", err)
 	}
 	return nil
 }
