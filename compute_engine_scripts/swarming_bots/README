@@ -58,6 +58,9 @@ To create other kinds of bots:
 - VM_IS_CTBOT=1 VM_BOT_COUNT_START=211 VM_BOT_COUNT_END=212 \
   bash vm_create_setup_instances.sh
 
+For the full list of environment variables that control which bots can be
+created see https://skia.googlesource.com/buildbot/+/master/compute_engine_scripts/compute_engine_cfg.py
+
 Access instances
 ================
 
