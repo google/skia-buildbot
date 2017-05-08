@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "14aef3cf_b2f4cc44",
+        "filename": "perf/go/clustering2/clustering.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-05-08T17:19:20Z",
+      "side": 1,
+      "message": "Delete?",
+      "revId": "97e8347d6a8140bb8dbe7ba1a3491df62fa2bb2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
