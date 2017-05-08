@@ -154,6 +154,12 @@ func (fr *RunningClusterRequests) Add(req *ClusterRequest) string {
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
 	id := req.Id()
+	if p, ok := fr.inProcess[id]; ok {
+		state, _, _ := p.Status()
+		if state != PROCESS_RUNNING {
+			delete(fr.inProcess, id)
+		}
+	}
 	if _, ok := fr.inProcess[id]; !ok {
 		fr.inProcess[id] = newProcess(req, fr.git, fr.cidl, fr.interesting)
 	}
