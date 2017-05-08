@@ -30,6 +30,10 @@ VM_IS_SKIA_CTBOT = os.environ.get('VM_IS_SKIA_CTBOT', 0)
 # If this is true then a CT VM is created in the CT pool.
 # These bots are used as workers by the CT framework.
 VM_IS_CTBOT = os.environ.get('VM_IS_CTBOT', 0)
+# If this is true then a CT builder VM is created in the CT
+# AndroidBuilder/LinuxBuilder pools. Must use VM_IS_CTBOT=1 if using this env
+# var otherwise it will have no effect.
+VM_IS_CTBUILDER = os.environ.get('VM_IS_CTBUILDER', 0)
 
 # If this is true then the VM is created in the SkiaInternal pool.
 VM_IS_SKIA_INTERNAL = os.environ.get('VM_IS_SKIA_INTERNAL', 0)
