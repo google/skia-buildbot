@@ -10,14 +10,6 @@ import (
 	"go.skia.org/infra/perf/go/clustering2"
 )
 
-const (
-	// How many commits we consider before and after a target commit when
-	// clustering. This means clustering will occur over 2*RADIUS+1 commits.
-	//
-	// Remember to change the state.radius default value in cluster-page-sk to match this value.
-	RADIUS = 7
-)
-
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
 type Continuous struct {
@@ -26,19 +18,21 @@ type Continuous struct {
 	queries    []string
 	store      *Store
 	numCommits int // Number of recent commits to do clustering over.
+	radius     int
 }
 
 // NewContinuous creates a new *Continuous.
 //
 // queries is a slice of URL query encoded to perform against the datastore to
 // determine which traces participate in clustering.
-func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, queries []string, store *Store, numCommits int) *Continuous {
+func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, queries []string, store *Store, numCommits int, radius int) *Continuous {
 	return &Continuous{
 		git:        git,
 		cidl:       cidl,
 		queries:    queries,
 		store:      store,
 		numCommits: numCommits,
+		radius:     radius,
 	}
 }
 
@@ -74,9 +68,9 @@ func (c *Continuous) Run() {
 		clusteringLatency.Start()
 		// Get the last numCommits commits.
 		indexCommits := c.git.LastNIndex(c.numCommits)
-		// Drop the RADIUS most recent, since we are clustering
-		// based on a radius of +/-RADIUS commits.
-		indexCommits = indexCommits[:(c.numCommits - RADIUS)]
+		// Drop the radius most recent, since we are clustering
+		// based on a radius of +/-radius commits.
+		indexCommits = indexCommits[:(c.numCommits - c.radius)]
 		for _, commit := range indexCommits {
 			id := &cid.CommitID{
 				Source: "master",
@@ -92,7 +86,7 @@ func (c *Continuous) Run() {
 				req := &clustering2.ClusterRequest{
 					Source: "master",
 					Offset: commit.Index,
-					Radius: RADIUS,
+					Radius: c.radius,
 					Query:  q,
 				}
 				sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, q)

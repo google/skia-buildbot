@@ -67,15 +67,17 @@ var (
 	dataFrameSize  = flag.Int("dataframe_size", dataframe.DEFAULT_NUM_COMMITS, "The number of commits to include in the default dataframe.")
 	gitRepoDir     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	gitRepoURL     = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
+	interesting    = flag.Float64("interesting", 50.0, "The threshhold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements.")
 	internalOnly   = flag.Bool("internal_only", false, "Require the user to be logged in to see any page.")
 	keyOrder       = flag.String("key_order", "build_flavor,test,sub_result", "The order that keys should be presented in for searching. All keys that don't appear here will appear after, in alphabetical order.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	numContinuous  = flag.Int("num_continuous", 50, "The number of commits to do continuous clustering over looking for regressions.")
+	numShift       = flag.Int("num_shift", 10, "The number of commits the shift navigation buttons should jump.")
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	ptraceStoreDir = flag.String("ptrace_store_dir", "/tmp/ptracestore", "The directory where the ptracestore tiles are stored.")
+	radius         = flag.Int("radius", 7, "The number of commits to include on either side of a commit when clustering.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	numContinuous  = flag.Int("num_continuous", 50, "The number of commits to do continuous clustering over looking for regressions.")
-	numShift       = flag.Int("num_shift", 10, "The number of commits the shift navigation buttons should jump.")
 )
 
 var (
@@ -122,7 +124,7 @@ func templateHandler(name string) http.HandlerFunc {
 			loadTemplates()
 		}
 		context := SkPerfConfig{
-			Radius:   regression.RADIUS,
+			Radius:   *radius,
 			KeyOrder: strings.Split(*keyOrder, ","),
 			NumShift: *numShift,
 		}
@@ -162,13 +164,13 @@ func Init() {
 	cidl = cid.New(git, rietveldAPI, *gitRepoURL)
 
 	frameRequests = dataframe.NewRunningFrameRequests(git)
-	clusterRequests = clustering2.NewRunningClusterRequests(git, cidl)
+	clusterRequests = clustering2.NewRunningClusterRequests(git, cidl, float32(*interesting))
 	dataframe.StartWarmer(git)
 	regStore = regression.NewStore()
 
 	// Start running continuous clustering looking for regressions.
 	queries := strings.Split(*clusterQueries, " ")
-	continuous = regression.NewContinuous(git, cidl, queries, regStore, *numContinuous)
+	continuous = regression.NewContinuous(git, cidl, queries, regStore, *numContinuous, *radius)
 	go continuous.Run()
 }
 
