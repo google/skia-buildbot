@@ -23,8 +23,6 @@ import (
 )
 
 const (
-	MEASUREMENT_NAME = "event-metrics"
-
 	timestampFormat = "20060102T150405.000000000Z"
 )
 
@@ -62,17 +60,19 @@ type metric struct {
 // EventMetrics is a struct used for creating aggregate metrics on steams of
 // events.
 type EventMetrics struct {
-	db      EventDB
-	metrics map[string]map[time.Duration][]*metric
-	mtx     sync.Mutex
+	db          EventDB
+	measurement string
+	metrics     map[string]map[time.Duration][]*metric
+	mtx         sync.Mutex
 }
 
 // NewEventMetrics returns an EventMetrics instance.
-func NewEventMetrics(db EventDB) (*EventMetrics, error) {
+func NewEventMetrics(db EventDB, measurement string) (*EventMetrics, error) {
 	return &EventMetrics{
-		db:      db,
-		metrics: map[string]map[time.Duration][]*metric{},
-		mtx:     sync.Mutex{},
+		db:          db,
+		measurement: measurement,
+		metrics:     map[string]map[time.Duration][]*metric{},
+		mtx:         sync.Mutex{},
 	}, nil
 }
 
@@ -107,7 +107,7 @@ func (m *EventMetrics) Close() error {
 //
 func (m *EventMetrics) AggregateMetric(stream string, tags map[string]string, period time.Duration, agg AggregateFn) error {
 	mx := &metric{
-		measurement: MEASUREMENT_NAME,
+		measurement: m.measurement,
 		tags: map[string]string{
 			"period": fmt.Sprintf("%s", period),
 			"stream": stream,
