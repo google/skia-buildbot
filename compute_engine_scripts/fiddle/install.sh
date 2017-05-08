@@ -1,10 +1,10 @@
 #! /bin/bash
 set -x
 
-/tmp/format_and_mount.sh skia-fiddle
+/tmp/format_and_mount.sh skia-fiddle2
 
 # The same set of packages need to be installed both on the instance and within the container.
-PACKAGES="systemd-container git debootstrap build-essential libosmesa6-dev libfreetype6-dev libfontconfig1-dev libpng-dev libgif-dev libqt4-dev mesa-common-dev ffmpeg libglu1-mesa"
+PACKAGES="systemd-container git debootstrap build-essential libosmesa6-dev libfreetype6-dev libfontconfig1-dev libpng-dev libgif-dev libqt4-dev mesa-common-dev ffmpeg libglu1-mesa clinfo nvidia-375-dev"
 sudo apt-get update
 sudo apt-get --assume-yes upgrade
 sudo apt-get --assume-yes install ${PACKAGES}
@@ -29,8 +29,6 @@ cd /tmp
 cat >initcontainer.sh <<EOL
 sudo echo "nameserver 8.8.8.8" > /etc/resolv.conf
 passwd
-sudo ln -s /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib/libGL.so
-sudo ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib/libGLU.so
 EOL
 
 chmod +x initcontainer.sh

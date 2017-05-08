@@ -6,10 +6,9 @@ set -x -e
 
 source vm_config.sh
 
-FIDDLE_MACHINE_TYPE=n1-standard-4
+FIDDLE_MACHINE_TYPE=n1-standard-8
 FIDDLE_SOURCE_SNAPSHOT=skia-systemd-pushable-base
 FIDDLE_SCOPES='https://www.googleapis.com/auth/devstorage.full_control'
-FIDDLE_IP_ADDRESS=104.154.112.126
 
 # Create a boot disk from the pushable base snapshot.
 gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME \
@@ -25,24 +24,21 @@ gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME"-data" \
   --type "pd-standard"
 
 # Create the instance with the two disks attached.
-gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
+gcloud beta compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --zone $ZONE \
   --machine-type $FIDDLE_MACHINE_TYPE \
   --network "default" \
-  --maintenance-policy "MIGRATE" \
+  --maintenance-policy "TERMINATE" \
+  --service-account "service-account-json@skia-buildbots.google.com.iam.gserviceaccount.com" \
   --scopes $FIDDLE_SCOPES \
+  --accelerator "type=nvidia-tesla-k80,count=1" \
   --tags "http-server,https-server" \
   --metadata-from-file "startup-script=startup-script.sh" \
   --metadata "owner_primary=jcgregorio" \
   --disk "name=${INSTANCE_NAME},device-name=${INSTANCE_NAME},mode=rw,boot=yes,auto-delete=yes" \
-  --disk "name=${INSTANCE_NAME}-data,device-name=${INSTANCE_NAME}-data,mode=rw,boot=no" \
-  --address=$FIDDLE_IP_ADDRESS
+  --disk "name=${INSTANCE_NAME}-data,device-name=${INSTANCE_NAME}-data,mode=rw,boot=no"
 
-# Wait until the instance is up.
-until nc -w 1 -z $FIDDLE_IP_ADDRESS 22; do
-    echo "Waiting for VM to come up."
-    sleep 2
-done
+sleep 60
 
 # The instance believes it is skia-systemd-snapshot-maker until it is rebooted.
 echo
@@ -56,12 +52,6 @@ gcloud compute --project $PROJECT_ID ssh $PROJECT_USER@$INSTANCE_NAME \
 
 # Wait for shutdown.
 sleep 120
-
-# Wait until the instance is up.
-until nc -w 1 -z $FIDDLE_IP_ADDRESS 22; do
-    echo "Waiting for VM to come up."
-    sleep 2
-done
 
 gcloud compute copy-files ../common/format_and_mount.sh $PROJECT_USER@$INSTANCE_NAME:/tmp/format_and_mount.sh --zone $ZONE
 gcloud compute copy-files ../common/safe_format_and_mount $PROJECT_USER@$INSTANCE_NAME:/tmp/safe_format_and_mount --zone $ZONE
