@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2e625c19_ea570cbb",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-08T16:58:21Z",
+      "side": 1,
+      "message": "Added comments for each function.",
+      "parentUuid": "69897e3f_67e86750",
+      "range": {
+        "startLine": 132,
+        "startChar": 0,
+        "endLine": 132,
+        "endChar": 4
+      },
+      "revId": "4cec76ca53490b0ae68c63354c2238389d20c2d5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7516bd88_4735d06c",
         "filename": "go/metrics2/events/stream.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2017-05-08T13:51:46Z",
       "side": 1,
       "message": "Nit: not knowing what decodeInt64 does, it seems strange that you have a key that is a string representation of an int. Why not use the the int directly ?",
+      "range": {
+        "startLine": 51,
+        "startChar": 24,
+        "endLine": 51,
+        "endChar": 67
+      },
+      "revId": "4cec76ca53490b0ae68c63354c2238389d20c2d5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb0e2056_325cbf26",
+        "filename": "go/metrics2/events/stream.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-08T16:58:21Z",
+      "side": 1,
+      "message": "The return value has to be a map[string]float64, so I converted the int64 to a string.  Moved the conversion down to where we\u0027re building the return value, which is hopefully more clear?",
+      "parentUuid": "7516bd88_4735d06c",
       "range": {
         "startLine": 51,
         "startChar": 24,
