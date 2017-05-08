@@ -22,6 +22,30 @@
       "revId": "403627066a9169ce64c9548d1650e2ca9289f961",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc0764a1_56345b99",
+        "filename": "compute_engine_scripts/compute_engine_cfg.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-05-08T18:32:05Z",
+      "side": 1,
+      "message": "Added a line to README pointing to this file.",
+      "parentUuid": "c471e1cf_bc584c7f",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 15
+      },
+      "revId": "403627066a9169ce64c9548d1650e2ca9289f961",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
