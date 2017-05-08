@@ -38,7 +38,7 @@ push_skolo: build prom
 	pushcli prometheus-skolo skia-jumphost
 
 push_sheriff_emails: build
-	./build_config_release "`git log -n1 --format=%s`"
+	./build_sheriff_emails_release "`git log -n1 --format=%s`"
 	go install -v ../push/go/pushcli
 	pushcli sheriff-emails skia-prom
 
