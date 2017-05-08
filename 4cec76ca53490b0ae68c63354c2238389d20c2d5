@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "69897e3f_67e86750",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-08T13:51:46Z",
+      "side": 1,
+      "message": "Needs comments, about  StartSwarmingTaskMetrics and also what the other functions do and what the overall process is.",
+      "range": {
+        "startLine": 132,
+        "startChar": 0,
+        "endLine": 132,
+        "endChar": 4
+      },
+      "revId": "4cec76ca53490b0ae68c63354c2238389d20c2d5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7516bd88_4735d06c",
+        "filename": "go/metrics2/events/stream.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-08T13:51:46Z",
+      "side": 1,
+      "message": "Nit: not knowing what decodeInt64 does, it seems strange that you have a key that is a string representation of an int. Why not use the the int directly ?",
+      "range": {
+        "startLine": 51,
+        "startChar": 24,
+        "endLine": 51,
+        "endChar": 67
+      },
+      "revId": "4cec76ca53490b0ae68c63354c2238389d20c2d5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
