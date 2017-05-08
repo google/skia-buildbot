@@ -3,6 +3,9 @@
   Handles displaying and running a fiddle. Note that the code
   should be supplied as a child element textarea.
 
+  Any child <p> paragraphs are passed along to be displayed
+  between the code and the resulting images.
+
   Attributes:
     width        - The width of the fiddle image.
     height       - The height of the fiddle image.
@@ -195,6 +198,9 @@ sk_sp&lt;SkImage> image;</pre>
       </details-sk>
     </template>
     <content></content>
+    <div id=description>
+      <content select="p"></content>
+    </div>
     <div id=submit>
       <template is="dom-if" if="{{embed_button}}">
         <button class=action on-tap="_run">Run</button>
