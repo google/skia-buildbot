@@ -2,7 +2,7 @@
 Description=Weekly job to email the different Skia sheriffs
 
 [Timer]
-OnCalendar=Fri *-*-* 13:00:00
+OnCalendar=Mon *-*-* 13:45:00
 Persistent=false
 
 [Install]
