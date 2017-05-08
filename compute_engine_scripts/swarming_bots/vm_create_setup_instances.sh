@@ -19,6 +19,10 @@ if [ "$VM_INSTANCE_OS" == "Linux" ]; then
   fi
   if [ "$VM_IS_CTBOT" = 1 ]; then
     SKIA_BOT_MACHINE_TYPE="n1-highmem-2"
+    if [ "$VM_IS_CTBUILDER" = 1 ]; then
+      # Builders need to be beefier.
+      SKIA_BOT_MACHINE_TYPE="custom-32-70400"
+    fi
   fi
 elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
   SKIA_BOT_IMAGE_NAME=$SKIA_BOT_WIN_IMAGE_NAME
