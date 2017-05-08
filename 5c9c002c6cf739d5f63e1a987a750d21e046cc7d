@@ -22,6 +22,30 @@
       "revId": "5c9c002c6cf739d5f63e1a987a750d21e046cc7d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5cd16205_b1629ebb",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1027,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-08T19:09:26Z",
+      "side": 1,
+      "message": "So:\n\na - b - d - e\n      \\ f - g\n\nIf master HEAD is at e, and bad-branch is at g, and we blacklist bad-branch, we\u0027ll never run a or b, since they\u0027re reachable from bad-branch\u0027s HEAD.  I assume that\u0027s what you\u0027re talking about?  Maybe we should discuss this in person.  I\u0027d much rather solve this in general, so that we really can support branches fully.  In that case, we\u0027d need to verify that the commit is not an ancestor of any not-blacklisted branch.  For the record, the only reason that the check on 1018 is insufficient is the internal repo where we occasionally merge the skia-master branch into another.  Thus, as we recurse (following all parents), we end up looking on the skia-master branch.  So another possible solution is to recurse but not follow merges (ie. --first-parent).  The downside is that we may skip over commits in the case where a branch forks off of master and is later merged back, and the branch ref is deleted.  That case may not be worth worrying about.",
+      "parentUuid": "7b19d9ca_c4917bef",
+      "range": {
+        "startLine": 1027,
+        "startChar": 5,
+        "endLine": 1027,
+        "endChar": 83
+      },
+      "revId": "5c9c002c6cf739d5f63e1a987a750d21e046cc7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
