@@ -385,9 +385,6 @@ https://%s.googlesource.com/%s.git/+log/%s
 Test: Presubmit checks will test this change.
 `, r.childPath, commitRange, len(commits), childRepoName, childRepoName, commitRange, strings.Join(changeSummaries, "\n"))
 
-	// TODO(rmistry): Remove after things reliably work.
-	emails = append(emails, "rmistry@google.com")
-
 	// If the parent branch is not master then:
 	// * Add all authors of merged changes to the email list.
 	// * Collect all bugs from b/xyz.
