@@ -71,9 +71,10 @@ type ClusterResponse struct {
 // ClusterRequestProcess handles the processing of a single ClusterRequest.
 type ClusterRequestProcess struct {
 	// These members are read-only, should not be modified.
-	request *ClusterRequest
-	git     *gitinfo.GitInfo
-	cidl    *cid.CommitIDLookup
+	request     *ClusterRequest
+	git         *gitinfo.GitInfo
+	cidl        *cid.CommitIDLookup
+	interesting float32
 
 	// mutex protects access to the remaining struct members.
 	mutex      sync.RWMutex
@@ -83,14 +84,15 @@ type ClusterRequestProcess struct {
 	message    string           // Describes the current state of the process.
 }
 
-func newProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup) *ClusterRequestProcess {
+func newProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, interesting float32) *ClusterRequestProcess {
 	ret := &ClusterRequestProcess{
-		request:    req,
-		git:        git,
-		cidl:       cidl,
-		lastUpdate: time.Now(),
-		state:      PROCESS_RUNNING,
-		message:    "Running",
+		request:     req,
+		git:         git,
+		cidl:        cidl,
+		lastUpdate:  time.Now(),
+		state:       PROCESS_RUNNING,
+		message:     "Running",
+		interesting: interesting,
 	}
 	go ret.Run()
 	return ret
@@ -101,8 +103,9 @@ func newProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLoo
 // Once a ClusterRequestProcess is complete the results will be kept in memory
 // for MAX_FINISHED_PROCESS_AGE before being deleted.
 type RunningClusterRequests struct {
-	git  *gitinfo.GitInfo
-	cidl *cid.CommitIDLookup
+	git         *gitinfo.GitInfo
+	cidl        *cid.CommitIDLookup
+	interesting float32
 
 	mutex sync.Mutex
 	// inProcess maps a ClusterRequest.Id() of the request to the ClusterRequestProcess
@@ -111,7 +114,7 @@ type RunningClusterRequests struct {
 }
 
 // NewRunningClusterRequests return a new RunningClusterRequests.
-func NewRunningClusterRequests(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup) *RunningClusterRequests {
+func NewRunningClusterRequests(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, interesting float32) *RunningClusterRequests {
 	fr := &RunningClusterRequests{
 		git:       git,
 		cidl:      cidl,
@@ -151,7 +154,7 @@ func (fr *RunningClusterRequests) Add(req *ClusterRequest) string {
 	defer fr.mutex.Unlock()
 	id := req.Id()
 	if _, ok := fr.inProcess[id]; !ok {
-		fr.inProcess[id] = newProcess(req, fr.git, fr.cidl)
+		fr.inProcess[id] = newProcess(req, fr.git, fr.cidl, fr.interesting)
 	}
 	return id
 }
@@ -296,7 +299,7 @@ func (p *ClusterRequestProcess) Run() {
 		k = int(math.Floor((40.0/30000.0)*float64(n) + 10))
 	}
 	sklog.Infof("Clustering with K=%d", k)
-	summary, err := CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.clusterProgress)
+	summary, err := CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.clusterProgress, p.interesting)
 	if err != nil {
 		p.reportError(err, "Invalid clustering.")
 		return
