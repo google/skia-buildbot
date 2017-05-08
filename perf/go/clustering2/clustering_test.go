@@ -1,6 +1,7 @@
 package clustering2
 
 import (
+	"math"
 	"math/rand"
 	"testing"
 	"time"
@@ -68,7 +69,7 @@ func TestStepFit(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		got, want := getStepFit(tc.value), tc.expected
+		got, want := getStepFit(tc.value, 50), tc.expected
 		if got.StepSize != want.StepSize {
 			t.Errorf("Failed StepFit Got %#v Want %#v: %s", got.StepSize, want.StepSize, tc.message)
 		}
@@ -77,6 +78,13 @@ func TestStepFit(t *testing.T) {
 		}
 		if got.TurningPoint != want.TurningPoint {
 			t.Errorf("Failed StepFit Got %#v Want %#v: %s", got.TurningPoint, want.TurningPoint, tc.message)
+		}
+	}
+	// With a huge interesting value everything should be uninteresting.
+	for _, tc := range testCases {
+		got := getStepFit(tc.value, 500)
+		if math.IsInf(float64(got.Regression), 1) && math.IsInf(float64(got.Regression), -1) && got.Status != UNINTERESTING {
+			t.Errorf("Failed StepFit Got %#v Want %#v: %v Regression %g", got.Status, UNINTERESTING, tc.value, got.Regression)
 		}
 	}
 }
@@ -125,7 +133,7 @@ func TestCalcCusterSummaries(t *testing.T) {
 	for key, _ := range df.TraceSet {
 		df.ParamSet.AddParamsFromKey(key)
 	}
-	sum, err := CalculateClusterSummaries(df, 4, 0.01, nil)
+	sum, err := CalculateClusterSummaries(df, 4, 0.01, nil, 50)
 	assert.NoError(t, err)
 	assert.NotNil(t, sum)
 	assert.Equal(t, 2, len(sum.Clusters))
@@ -143,6 +151,6 @@ func TestCalcCusterSummariesDegenerate(t *testing.T) {
 		ParamSet: paramtools.ParamSet{},
 		Skip:     0,
 	}
-	_, err := CalculateClusterSummaries(df, 4, 0.01, nil)
+	_, err := CalculateClusterSummaries(df, 4, 0.01, nil, 50)
 	assert.Error(t, err)
 }
