@@ -677,7 +677,7 @@ func (c *TaskCfgCache) write() error {
 	}
 	f, err := os.Create(c.file)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to create TaskCfgCache file: %s", err)
 	}
 	gobCache := gobTaskCfgCache{
 		AddedTasksCache: c.addedTasksCache,
@@ -688,7 +688,7 @@ func (c *TaskCfgCache) write() error {
 	}
 	if err := gob.NewEncoder(f).Encode(&gobCache); err != nil {
 		util.Close(f)
-		return err
+		return fmt.Errorf("Failed to encode TaskCfgCache: %s", err)
 	}
 	return f.Close()
 }
