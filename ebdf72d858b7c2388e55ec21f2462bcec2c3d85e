@@ -1,0 +1,274 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c7762c1f_9cafb173",
+        "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-09T19:31:15Z",
+      "side": 1,
+      "message": "nit: remove trailing spaces",
+      "range": {
+        "startLine": 3,
+        "startChar": 44,
+        "endLine": 3,
+        "endChar": 45
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ffecc580_7b3e6e73",
+        "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-09T19:31:15Z",
+      "side": 1,
+      "message": "What behavior should we expect from the LED in the event of an error?  Turn on?  Pulse?",
+      "range": {
+        "startLine": 26,
+        "startChar": 48,
+        "endLine": 26,
+        "endChar": 53
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "860ac363_efb09421",
+        "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-09T19:31:15Z",
+      "side": 1,
+      "message": "Add to the docs:\n\"This defined position allows the lever to be added to the servo in a well-known position such that it can activate the power switch.",
+      "range": {
+        "startLine": 29,
+        "startChar": 46,
+        "endLine": 29,
+        "endChar": 63
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "42426b19_8e5b9287",
+        "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-09T19:31:15Z",
+      "side": 1,
+      "message": "What does this number mean?  Baud rate?",
+      "range": {
+        "startLine": 40,
+        "startChar": 15,
+        "endLine": 40,
+        "endChar": 19
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f9690f05_046e7389",
+        "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-09T19:31:15Z",
+      "side": 1,
+      "message": "Maybe call this \"readCommand\"?",
+      "range": {
+        "startLine": 64,
+        "startChar": 5,
+        "endLine": 64,
+        "endChar": 17
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bce6189b_cf3aa043",
+        "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
+        "patchSetId": 5
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-09T19:31:15Z",
+      "side": 1,
+      "message": "intArg \u003e N_SERVOS is simpler",
+      "range": {
+        "startLine": 72,
+        "startChar": 10,
+        "endLine": 72,
+        "endChar": 32
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8b4806b_2115adfd",
+        "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
+        "patchSetId": 5
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-09T19:31:15Z",
+      "side": 1,
+      "message": "Let\u0027s pull these out into constants - call 20 HOVER_POSITION and 10 PUSH_POSITION ?",
+      "range": {
+        "startLine": 90,
+        "startChar": 26,
+        "endLine": 90,
+        "endChar": 28
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "34b20805_ee47c3dc",
+        "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
+        "patchSetId": 5
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-09T19:31:15Z",
+      "side": 1,
+      "message": "Add a comment to the effect of \"this function reads in characters from the Serial port until a newline is reached and attempts to recognize it as a command\"",
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e706aa59_8940fb12",
+        "filename": "skolo/go/serial_relay/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-09T19:31:15Z",
+      "side": 1,
+      "message": "We should at least print/log this error, no?",
+      "range": {
+        "startLine": 44,
+        "startChar": 2,
+        "endLine": 44,
+        "endChar": 5
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "585fa22f_efde6cf9",
+        "filename": "skolo/go/serial_relay/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-09T19:31:15Z",
+      "side": 1,
+      "message": "Can you explain why retrying is needed and how often (ish) it needs 1,2 or 3 retries?",
+      "range": {
+        "startLine": 53,
+        "startChar": 24,
+        "endLine": 53,
+        "endChar": 29
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d889b2a0_fdc98ac4",
+        "filename": "skolo/go/serial_relay/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-09T19:31:15Z",
+      "side": 1,
+      "message": "Is this actually used?  I don\u0027t remember the arduino code being able to talk back.",
+      "range": {
+        "startLine": 82,
+        "startChar": 24,
+        "endLine": 82,
+        "endChar": 32
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a5683148_69546c61",
+        "filename": "skolo/go/serial_relay/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-09T19:31:15Z",
+      "side": 1,
+      "message": "Make this a constant",
+      "range": {
+        "startLine": 123,
+        "startChar": 49,
+        "endLine": 123,
+        "endChar": 53
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
