@@ -16,6 +16,7 @@ import (
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
@@ -49,6 +50,22 @@ const (
 )
 
 var (
+	// Don't schedule on these branches.
+	// WARNING: Any commit reachable from any of these branches will be
+	// skipped. So, for example, if you fork a branch from head of master
+	// and immediately blacklist it, no tasks will be scheduled for any
+	// commits on master up to the branch point.
+	// TODO(borenet): An alternative would be to only follow the first
+	// parent for merge commits. That way, we could remove the checks which
+	// cause this issue but still blacklist the branch as expected. The
+	// downside is that we'll miss commits in the case where we fork a
+	// branch, merge it back, and delete the new branch head.
+	BRANCH_BLACKLIST = map[string][]string{
+		common.REPO_SKIA_INTERNAL: []string{
+			"skia-master",
+		},
+	}
+
 	ERR_BLAMELIST_DONE = errors.New("ERR_BLAMELIST_DONE")
 )
 
@@ -994,51 +1011,83 @@ func (s *TaskScheduler) scheduleTasks(bots []*swarming_api.SwarmingRpcsBotInfo, 
 	return nil
 }
 
+// recurseAllBranches runs the given func on every commit on all branches, with
+// some Task Scheduler-specific exceptions.
+func (s *TaskScheduler) RecurseAllBranches(fn func(string, *repograph.Graph, *repograph.Commit) (bool, error)) error {
+	for repoUrl, r := range s.repos {
+		blacklistBranches := BRANCH_BLACKLIST[repoUrl]
+		blacklistCommits := make(map[*repograph.Commit]string, len(blacklistBranches))
+		for _, b := range blacklistBranches {
+			c := r.Get(b)
+			if c != nil {
+				blacklistCommits[c] = b
+			}
+		}
+		if err := r.RecurseAllBranches(func(c *repograph.Commit) (bool, error) {
+			if blacklistBranch, ok := blacklistCommits[c]; ok {
+				sklog.Infof("Skipping blacklisted branch %q", blacklistBranch)
+				return false, nil
+			}
+			for head, blacklistBranch := range blacklistCommits {
+				isAncestor, err := r.Repo().IsAncestor(c.Hash, head.Hash)
+				if err != nil {
+					return false, err
+				} else if isAncestor {
+					sklog.Infof("Skipping blacklisted branch %q (--is-ancestor)", blacklistBranch)
+					return false, nil
+				}
+			}
+			if !s.window.TestCommit(repoUrl, c) {
+				return false, nil
+			}
+			return fn(repoUrl, r, c)
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // gatherNewJobs finds and inserts Jobs for all new commits.
 func (s *TaskScheduler) gatherNewJobs() error {
 	defer metrics2.FuncTimer().Stop()
 
 	// Find all new Jobs for all new commits.
 	newJobs := []*db.Job{}
-	for repoUrl, r := range s.repos {
-		if err := r.RecurseAllBranches(func(c *repograph.Commit) (bool, error) {
-			if !s.window.TestCommit(repoUrl, c) {
-				return false, nil
-			}
-			scheduled, err := s.jCache.ScheduledJobsForCommit(repoUrl, c.Hash)
-			if err != nil {
-				return false, err
-			}
-			if scheduled {
-				return false, nil
-			}
-			rs := db.RepoState{
-				Repo:     repoUrl,
-				Revision: c.Hash,
-			}
-			cfg, err := s.taskCfgCache.ReadTasksCfg(rs)
-			if err != nil {
-				return false, err
-			}
-			for name, spec := range cfg.Jobs {
-				if spec.Trigger == "" {
-					j, err := s.taskCfgCache.MakeJob(rs, name)
-					if err != nil {
-						return false, err
-					}
-					newJobs = append(newJobs, j)
-				}
-			}
-			if c.Hash == "50537e46e4f0999df0a4707b227000cfa8c800ff" {
-				// Stop recursing here, since Jobs were added
-				// in this commit and previous commits won't be
-				// valid.
-				return false, nil
-			}
-			return true, nil
-		}); err != nil {
-			return err
+	if err := s.RecurseAllBranches(func(repoUrl string, r *repograph.Graph, c *repograph.Commit) (bool, error) {
+		scheduled, err := s.jCache.ScheduledJobsForCommit(repoUrl, c.Hash)
+		if err != nil {
+			return false, err
 		}
+		if scheduled {
+			return false, nil
+		}
+		rs := db.RepoState{
+			Repo:     repoUrl,
+			Revision: c.Hash,
+		}
+		cfg, err := s.taskCfgCache.ReadTasksCfg(rs)
+		if err != nil {
+			return false, err
+		}
+		for name, spec := range cfg.Jobs {
+			if spec.Trigger == "" {
+				j, err := s.taskCfgCache.MakeJob(rs, name)
+				if err != nil {
+					return false, err
+				}
+				newJobs = append(newJobs, j)
+			}
+		}
+		if c.Hash == "50537e46e4f0999df0a4707b227000cfa8c800ff" {
+			// Stop recursing here, since Jobs were added
+			// in this commit and previous commits won't be
+			// valid.
+			return false, nil
+		}
+		return true, nil
+	}); err != nil {
+		return err
 	}
 
 	if err := s.db.PutJobs(newJobs); err != nil {
@@ -1057,19 +1106,14 @@ func (s *TaskScheduler) gatherNewJobs() error {
 // they added.
 func (s *TaskScheduler) updateAddedTaskSpecs() error {
 	repoStates := []db.RepoState{}
-	for repoUrl, r := range s.repos {
-		if err := r.RecurseAllBranches(func(c *repograph.Commit) (bool, error) {
-			if !s.window.TestCommit(repoUrl, c) {
-				return false, nil
-			}
-			repoStates = append(repoStates, db.RepoState{
-				Repo:     repoUrl,
-				Revision: c.Hash,
-			})
-			return true, nil
-		}); err != nil {
-			return err
-		}
+	if err := s.RecurseAllBranches(func(repoUrl string, r *repograph.Graph, c *repograph.Commit) (bool, error) {
+		repoStates = append(repoStates, db.RepoState{
+			Repo:     repoUrl,
+			Revision: c.Hash,
+		})
+		return true, nil
+	}); err != nil {
+		return err
 	}
 	newTasks, err := s.taskCfgCache.GetAddedTaskSpecsForRepoStates(repoStates)
 	if err != nil {
