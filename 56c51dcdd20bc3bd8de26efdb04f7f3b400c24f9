@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "cf8ae663_774d9146",
+        "filename": "task_scheduler/go/tryjobs/tryjobs_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-09T19:10:01Z",
+      "side": 1,
+      "message": "Sorry, I was typing on my tablet so I didn\u0027t look up that it should be testutils.MarshalJSON.",
+      "parentUuid": "ca61eedf_5db92143",
+      "range": {
+        "startLine": 170,
+        "startChar": 1,
+        "endLine": 171,
+        "endChar": 23
+      },
+      "revId": "56c51dcdd20bc3bd8de26efdb04f7f3b400c24f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d1fdc8ea_fa055b92",
         "filename": "task_scheduler/go/tryjobs/tryjobs_test.go",
         "patchSetId": 2
