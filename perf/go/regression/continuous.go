@@ -13,26 +13,28 @@ import (
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
 type Continuous struct {
-	git        *gitinfo.GitInfo
-	cidl       *cid.CommitIDLookup
-	queries    []string
-	store      *Store
-	numCommits int // Number of recent commits to do clustering over.
-	radius     int
+	git         *gitinfo.GitInfo
+	cidl        *cid.CommitIDLookup
+	queries     []string
+	store       *Store
+	numCommits  int // Number of recent commits to do clustering over.
+	radius      int
+	interesting float32
 }
 
 // NewContinuous creates a new *Continuous.
 //
 // queries is a slice of URL query encoded to perform against the datastore to
 // determine which traces participate in clustering.
-func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, queries []string, store *Store, numCommits int, radius int) *Continuous {
+func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, queries []string, store *Store, numCommits int, radius int, interesting float32) *Continuous {
 	return &Continuous{
-		git:        git,
-		cidl:       cidl,
-		queries:    queries,
-		store:      store,
-		numCommits: numCommits,
-		radius:     radius,
+		git:         git,
+		cidl:        cidl,
+		queries:     queries,
+		store:       store,
+		numCommits:  numCommits,
+		radius:      radius,
+		interesting: interesting,
 	}
 }
 
@@ -90,7 +92,7 @@ func (c *Continuous) Run() {
 					Query:  q,
 				}
 				sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, q)
-				resp, err := clustering2.Run(req, c.git, c.cidl)
+				resp, err := clustering2.Run(req, c.git, c.cidl, c.interesting)
 				if err != nil {
 					sklog.Errorf("Failed while clustering %v %s", *req, err)
 					continue

@@ -170,7 +170,7 @@ func Init() {
 
 	// Start running continuous clustering looking for regressions.
 	queries := strings.Split(*clusterQueries, " ")
-	continuous = regression.NewContinuous(git, cidl, queries, regStore, *numContinuous, *radius)
+	continuous = regression.NewContinuous(git, cidl, queries, regStore, *numContinuous, *radius, float32(*interesting))
 	go continuous.Run()
 }
 
