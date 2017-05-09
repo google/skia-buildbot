@@ -17,6 +17,7 @@ import (
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
@@ -98,7 +99,7 @@ type TaskScheduler struct {
 	workdir          string
 }
 
-func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string) (*TaskScheduler, error) {
+func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string, gerrit gerrit.GerritInterface) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create blacklist from file: %s", err)
@@ -124,7 +125,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, ho
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create TaskCfgCache: %s", err)
 	}
-	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, host, c, d, w, projectRepoMapping, repos, taskCfgCache)
+	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, host, c, d, w, projectRepoMapping, repos, taskCfgCache, gerrit)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create TryJobIntegrator: %s", err)
 	}

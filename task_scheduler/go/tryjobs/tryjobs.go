@@ -12,6 +12,7 @@ import (
 
 	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -68,6 +69,7 @@ type TryJobIntegrator struct {
 	bb                 *buildbucket_api.Service
 	bucket             string
 	db                 db.JobDB
+	gerrit             gerrit.GerritInterface
 	host               string
 	jCache             *jobCache
 	projectRepoMapping map[string]string
@@ -76,7 +78,7 @@ type TryJobIntegrator struct {
 }
 
 // NewTryJobIntegrator returns a TryJobIntegrator instance.
-func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB, w *window.Window, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache *specs.TaskCfgCache) (*TryJobIntegrator, error) {
+func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB, w *window.Window, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache *specs.TaskCfgCache, gerrit gerrit.GerritInterface) (*TryJobIntegrator, error) {
 	bb, err := buildbucket_api.New(c)
 	if err != nil {
 		return nil, err
@@ -86,10 +88,12 @@ func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB
 	if err != nil {
 		return nil, err
 	}
+	gerrit.TurnOnAuthenticatedGets()
 	rv := &TryJobIntegrator{
 		bb:                 bb,
 		bucket:             bucket,
 		db:                 d,
+		gerrit:             gerrit,
 		host:               host,
 		jCache:             cache,
 		projectRepoMapping: projectRepoMapping,
@@ -258,9 +262,17 @@ func (t *TryJobIntegrator) getRepo(props *buildbucket.Properties) (string, *repo
 	return topRepoUrl, r, patchRepoUrl, nil
 }
 
-func (t *TryJobIntegrator) getRevision(repo *repograph.Graph, revision string) (string, error) {
-	if revision == "" || revision == "HEAD" || revision == "origin/master" {
+func (t *TryJobIntegrator) getRevision(repo *repograph.Graph, revision string, issue int64) (string, error) {
+	if revision == "HEAD" || revision == "origin/master" {
 		revision = "master"
+	}
+	if revision == "" {
+		// Obtain the branch name from Gerrit, then use the head of that branch.
+		changeInfo, err := t.gerrit.GetIssueProperties(issue)
+		if err != nil {
+			return "", fmt.Errorf("Failed to get ChangeInfo: %s", err)
+		}
+		revision = changeInfo.Branch
 	}
 	c := repo.Get(revision)
 	if c == nil {
@@ -314,7 +326,7 @@ func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiBuildMessage, 
 	// Parse the build parameters.
 	var params buildbucket.Parameters
 	if err := json.NewDecoder(strings.NewReader(b.ParametersJson)).Decode(&params); err != nil {
-		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid parameters_json: %s", err))
+		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid parameters_json: %s;\n\n%s", err, b.ParametersJson))
 	}
 
 	// Obtain and validate the RepoState.
@@ -322,7 +334,7 @@ func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiBuildMessage, 
 	if err != nil {
 		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Unable to find repo: %s", err))
 	}
-	revision, err := t.getRevision(topRepoGraph, params.Properties.Revision)
+	revision, err := t.getRevision(topRepoGraph, params.Properties.Revision, int64(params.Properties.GerritIssue))
 	if err != nil {
 		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid revision: %s", err))
 	}
@@ -356,7 +368,7 @@ func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiBuildMessage, 
 	// Create a Job.
 	j, err := t.taskCfgCache.MakeJob(rs, params.BuilderName)
 	if err != nil {
-		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to obtain JobSpec: %s", err))
+		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to obtain JobSpec: %s; \n\n%v", err, params))
 	}
 
 	// Attempt to lease the build.
