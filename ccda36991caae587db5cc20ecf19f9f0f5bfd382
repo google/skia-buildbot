@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "40f6528b_012284ba",
+        "filename": "prometheus/sys/absent.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-05-09T17:30:26Z",
+      "side": 1,
+      "message": "^^^",
+      "revId": "ccda36991caae587db5cc20ecf19f9f0f5bfd382",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
