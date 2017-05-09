@@ -16,6 +16,7 @@ import (
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	assert "github.com/stretchr/testify/require"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -30,6 +31,10 @@ import (
 	specs_testutils "go.skia.org/infra/task_scheduler/go/specs/testutils"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/window"
+)
+
+const (
+	fakeGerritUrl = "https://fake-skia-review.googlesource.com"
 )
 
 var (
@@ -191,7 +196,11 @@ func setup(t *testing.T) (*git_testutils.GitBuilder, db.DB, *swarming.TestClient
 		"skia": gb.RepoUrl(),
 	}
 	depotTools := depot_tools_testutils.GetDepotTools(t)
-	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools)
+	gitcookies := path.Join(tmp, "gitcookies_fake")
+	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
+	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, urlMock.Client())
+	assert.NoError(t, err)
+	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g)
 	assert.NoError(t, err)
 	return gb, d, swarmingClient, s, urlMock, func() {
 		testutils.RemoveAll(t, tmp)
@@ -1899,8 +1908,14 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (*git_testuti
 	projectRepoMapping := map[string]string{
 		"skia": gb.RepoUrl(),
 	}
+	urlMock := mockhttpclient.NewURLMock()
 	depotTools := depot_tools_testutils.GetDepotTools(t)
-	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools)
+	gitcookies := path.Join(workdir, "gitcookies_fake")
+	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
+	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, urlMock.Client())
+	assert.NoError(t, err)
+
+	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g)
 	assert.NoError(t, err)
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
