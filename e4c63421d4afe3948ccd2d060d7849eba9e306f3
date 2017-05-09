@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c9c8436e_e0ef7803",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-09T19:02:16Z",
+      "side": 1,
+      "message": "My suggested alternative is to support blacklists based on IsAncestor. I think that would solve most blacklisting. Examples, where BL is the revision I\u0027m checking for blacklisting:\n- Blacklist Nexus6p where I haven\u0027t updated the build number: !IsAncestor(\"6ab223e0f0203225c9cf019b56561489027e4b0d\", BL)\n- Blacklist a range of CLs that are killing the bots: IsAncestor(\u003cbreak\u003e, BL) \u0026\u0026 !IsAncestor(\u003cfix\u003e, BL)\n- Blacklist skia-master, but not dev-branch: IsAncestor(BL, \"skia-master\") \u0026\u0026 !IsAncestor(BL, \"dev-branch\")\n\nMaking a UI that\u0027s intuitive is a bit more complicated...",
+      "range": {
+        "startLine": 58,
+        "startChar": 4,
+        "endLine": 59,
+        "endChar": 29
+      },
+      "revId": "e4c63421d4afe3948ccd2d060d7849eba9e306f3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
