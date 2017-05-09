@@ -16,6 +16,24 @@
       "revId": "ccda36991caae587db5cc20ecf19f9f0f5bfd382",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e1675c9_a91995f9",
+        "filename": "prometheus/sys/absent.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-09T17:36:39Z",
+      "side": 1,
+      "message": "That\u0027s how this CL was created.  IMO we need to add a check to the CQ, as I didn\u0027t see this diff until after landing my CL and trying to push it.",
+      "parentUuid": "40f6528b_012284ba",
+      "revId": "ccda36991caae587db5cc20ecf19f9f0f5bfd382",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
