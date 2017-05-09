@@ -20,7 +20,7 @@ func TestAggregateMetric(t *testing.T) {
 
 	db, err := NewEventDB(path.Join(tmp, "events.bdb"))
 	assert.NoError(t, err)
-	m, err := NewEventMetrics(db)
+	m, err := NewEventMetrics(db, "test-metrics")
 	assert.NoError(t, err)
 
 	s := "my-events"

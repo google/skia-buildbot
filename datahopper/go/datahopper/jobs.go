@@ -192,7 +192,7 @@ func StartJobMetrics(taskSchedulerDbUrl string, ctx context.Context) error {
 		db:      db,
 		metrics: map[string]bool{},
 	}
-	em, err := events.NewEventMetrics(edb)
+	em, err := events.NewEventMetrics(edb, "job-metrics")
 	if err != nil {
 		return err
 	}
