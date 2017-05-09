@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "03cb5ae1_6dacf89b",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 531,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-09T16:33:46Z",
+      "side": 1,
+      "message": "Honestly, just the convenience of having it all in one place.  I kind of thought we\u0027d made a policy to use project-level rather than instance-level metadata.  Does instance-level metadata persist across deletions and recreations of the instance?",
+      "parentUuid": "f111a2de_0786ea7c",
+      "range": {
+        "startLine": 526,
+        "startChar": 0,
+        "endLine": 531,
+        "endChar": 80
+      },
+      "revId": "0909c536e50f6617aeb335b98904f729bf573230",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0d170263_12bf64b6",
         "filename": "task_scheduler/go/tryjobs/testutils.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2017-05-09T15:10:22Z",
       "side": 1,
       "message": "Doesn\u0027t seem like nil is correctly handled in the code.",
+      "range": {
+        "startLine": 117,
+        "startChar": 152,
+        "endLine": 117,
+        "endChar": 155
+      },
+      "revId": "0909c536e50f6617aeb335b98904f729bf573230",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9d1d4e9_c7c86512",
+        "filename": "task_scheduler/go/tryjobs/testutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-09T16:33:46Z",
+      "side": 1,
+      "message": "Yeah, this was just to get the tests to compile.  Fixed the tests.",
+      "parentUuid": "0d170263_12bf64b6",
       "range": {
         "startLine": 117,
         "startChar": 152,
