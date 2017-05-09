@@ -54,3 +54,14 @@ edgeswitch:
       skia-rpi-127: 4
       skia-rpi-128: 3
       skia-rpi-TEST: 23
+
+arduino:
+  arduino.01:
+    address: "192.168.1.99:22"
+    ports:
+      skia-rpi-057-pixel-c: 1
+      skia-rpi-058-pixel-c: 2
+      skia-rpi-059-pixel-c: 3
+      skia-rpi-060-pixel-c: 4
+      skia-rpi-061-pixel-c: 5
+      skia-rpi-062-pixel-c: 6
