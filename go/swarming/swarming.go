@@ -27,6 +27,9 @@ const (
 	RECOMMENDED_HARD_TIMEOUT = 1 * time.Hour
 	RECOMMENDED_PRIORITY     = 90
 	RECOMMENDED_EXPIRATION   = 4 * time.Hour
+	// "priority 0 can only be used for terminate request"
+	HIGHEST_PRIORITY = 1
+	LOWEST_PRIORITY  = 255
 )
 
 type SwarmingClient struct {
@@ -86,7 +89,7 @@ func (t *SwarmingTask) Trigger(s *SwarmingClient, hardTimeout, ioTimeout time.Du
 	if t.Idempotent {
 		triggerArgs = append(triggerArgs, "--idempotent")
 	}
-	triggerArgs = append(triggerArgs, t.IsolatedHash)
+	triggerArgs = append(triggerArgs, "--isolated", t.IsolatedHash)
 
 	err := exec.Run(&exec.Command{
 		Name: s.SwarmingPy,
