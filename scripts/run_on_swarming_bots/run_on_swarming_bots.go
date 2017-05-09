@@ -88,7 +88,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	swarming, err := swarming.NewSwarmingClient(*workdir, swarming.SWARMING_SERVER, isolate.ISOLATE_SERVER_URL)
+	swarmClient, err := swarming.NewSwarmingClient(*workdir, swarming.SWARMING_SERVER, isolate.ISOLATE_SERVER_URL)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -110,11 +110,11 @@ func main() {
 	}
 
 	// Upload to isolate server.
-	isolated, err := swarming.CreateIsolatedGenJSON(isolateFile, *workdir, "linux", *taskName, map[string]string{}, []string{})
+	isolated, err := swarmClient.CreateIsolatedGenJSON(isolateFile, *workdir, "linux", *taskName, map[string]string{}, []string{})
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	m, err := swarming.BatchArchiveTargets([]string{isolated}, 5*time.Minute)
+	m, err := swarmClient.BatchArchiveTargets([]string{isolated}, 5*time.Minute)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -133,7 +133,7 @@ func main() {
 				"pool": *pool,
 				"id":   id,
 			}
-			if _, err := swarming.TriggerSwarmingTasks(m, dims, tags, 100, 120*time.Minute, 120*time.Minute, 120*time.Minute, false, false); err != nil {
+			if _, err := swarmClient.TriggerSwarmingTasks(m, dims, tags, swarming.HIGHEST_PRIORITY, 120*time.Minute, 120*time.Minute, 120*time.Minute, false, false); err != nil {
 				sklog.Fatal(err)
 			}
 		}(bot.BotId)
