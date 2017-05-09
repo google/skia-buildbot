@@ -15,6 +15,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/buildbucket"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/jsonutils"
@@ -55,16 +56,18 @@ const (
 }`
 	rietveldUrl    = "https://codereview.chromium.org/"
 	gerritUrl      = "https://skia-review.googlesource.com/"
-	gerritIssue    = "2112"
+	gerritIssue    = 2112
 	gerritPatchset = "3"
 	patchProject   = "skia"
 	parentProject  = "parent-project"
+
+	fakeGerritUrl = "https://fake-skia-review.googlesource.com"
 )
 
 var (
 	gerritPatch = db.Patch{
 		Server:   gerritUrl,
-		Issue:    gerritIssue,
+		Issue:    fmt.Sprintf("%d", gerritIssue),
 		Patchset: gerritPatchset,
 	}
 )
@@ -114,7 +117,13 @@ func setup(t *testing.T) (*TryJobIntegrator, *git_testutils.GitBuilder, *mockhtt
 		patchProject:  gb.RepoUrl(),
 		parentProject: gb2.RepoUrl(),
 	}
-	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, window, projectRepoMapping, rm, taskCfgCache)
+
+	gitcookies := path.Join(tmpDir, "gitcookies_fake")
+	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
+	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, mock.Client())
+	assert.NoError(t, err)
+
+	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, window, projectRepoMapping, rm, taskCfgCache, g)
 	assert.NoError(t, err)
 
 	return integrator, gb, mock, func() {

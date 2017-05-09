@@ -9,6 +9,8 @@ import (
 	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
@@ -147,7 +149,7 @@ func TestGetRepo(t *testing.T) {
 }
 
 func TestGetRevision(t *testing.T) {
-	trybots, _, _, cleanup := setup(t)
+	trybots, _, mock, cleanup := setup(t)
 	defer cleanup()
 
 	// Get the (only) commit from the repo.
@@ -159,6 +161,16 @@ func TestGetRevision(t *testing.T) {
 	c, err := r.Repo().RevParse("origin/master")
 	assert.NoError(t, err)
 
+	// Fake response from Gerrit.
+	ci := &gerrit.ChangeInfo{
+		Branch: "master",
+	}
+	serialized := []byte(testutils.MarshalJSON(t, ci))
+	// Gerrit API prepends garbage to prevent XSS.
+	serialized = append([]byte("abcd\n"), serialized...)
+	url := fmt.Sprintf("%s/a/changes/%d/detail?o=ALL_REVISIONS", fakeGerritUrl, gerritIssue)
+	mock.Mock(url, mockhttpclient.MockGetDialogue(serialized))
+
 	// Try different inputs to getRevision.
 	tests := map[string]string{
 		"":              c,
@@ -169,7 +181,7 @@ func TestGetRevision(t *testing.T) {
 		"abc123":        "",
 	}
 	for input, expect := range tests {
-		got, err := trybots.getRevision(r, input)
+		got, err := trybots.getRevision(r, input, gerritIssue)
 		if expect == "" {
 			assert.Error(t, err)
 		} else {

@@ -6,8 +6,11 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
+	"os/user"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -19,11 +22,13 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
@@ -511,6 +516,31 @@ func main() {
 		sklog.Fatal(err)
 	}
 
+	// Gerrit API client.
+	user, err := user.Current()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	gitcookiesPath := path.Join(user.HomeDir, ".gitcookies")
+	if !*local {
+		// Get .gitcookies from metadata.
+		hostname, err := os.Hostname()
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		gitcookies, err := metadata.ProjectGet(fmt.Sprintf("gitcookies_%s", hostname))
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		if err := ioutil.WriteFile(gitcookiesPath, []byte(gitcookies), 0600); err != nil {
+			sklog.Fatal(err)
+		}
+	}
+	gerrit, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, gitcookiesPath, nil)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
 	// Initialize the database.
 	// TODO(benjaminwagner): Create a signal handler which closes the DB.
 	tsDb, err = local_db.NewDB(local_db.DB_NAME, path.Join(wdAbs, local_db.DB_FILENAME))
@@ -580,7 +610,7 @@ func main() {
 	if err := swarming.InitPubSub(serverURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
 		sklog.Fatal(err)
 	}
-	ts, err = scheduling.NewTaskScheduler(tsDb, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools)
+	ts, err = scheduling.NewTaskScheduler(tsDb, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit)
 	if err != nil {
 		sklog.Fatal(err)
 	}

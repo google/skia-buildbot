@@ -63,6 +63,10 @@ func init() {
 	// internal_test.git is sometimes referred to as "internal_test" instead
 	// of "skia_internal_test". Add the alias to the mapping.
 	PROJECT_REPO_MAPPING["internal_test"] = REPO_SKIA_INTERNAL_TEST
+
+	// skia_internal.git is sometimes referred to as "skia_internal" instead
+	// of "skia-internal". Add the alias to the mapping.
+	PROJECT_REPO_MAPPING["skia_internal"] = REPO_SKIA_INTERNAL
 }
 
 // Init runs commonly-used initialization metrics.
