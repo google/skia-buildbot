@@ -114,7 +114,7 @@ func setup(t *testing.T) (*TryJobIntegrator, *git_testutils.GitBuilder, *mockhtt
 		patchProject:  gb.RepoUrl(),
 		parentProject: gb2.RepoUrl(),
 	}
-	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, window, projectRepoMapping, rm, taskCfgCache)
+	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, window, projectRepoMapping, rm, taskCfgCache, nil)
 	assert.NoError(t, err)
 
 	return integrator, gb, mock, func() {
