@@ -19,10 +19,7 @@ def generate_version_file(source_file, output_file):
                              'recipes.cfg')
   with open(recipes_cfg, 'r') as f:
     recipe_cfg_json = json.load(f)
-  depot_tools_version = None
-  for dep in recipe_cfg_json['deps']:
-    if dep['project_id'] == 'depot_tools':
-      depot_tools_version = dep['revision']
+  depot_tools_version = recipe_cfg_json['deps']['depot_tools']['revision']
   if not depot_tools_version:
     raise Exception('No depot_tools version found!')
 
