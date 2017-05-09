@@ -20,6 +20,9 @@ type Config struct {
 
 	// EdgeSwitch aggregates all EdgeSwitch configurations.
 	EdgeSwitch map[string]*EdgeSwitchConfig `yaml:"edgeswitch"`
+
+	// Arduino aggregates all Arduino configurations.
+	Arduino map[string]*ArduinoConfig `yaml:"arduino"`
 }
 
 // aggregatedDevGroup implements the DeviceGroup interface and allows
@@ -118,6 +121,17 @@ func DeviceGroupFromYamlFile(path string) (DeviceGroup, error) {
 		}
 
 		if err := ret.add(es); err != nil {
+			return nil, err
+		}
+	}
+
+	// Add the Arduino boards.
+	for _, c := range conf.Arduino {
+		ar, err := NewArduinoClient(c)
+		if err != nil {
+			return nil, err
+		}
+		if err := ret.add(ar); err != nil {
 			return nil, err
 		}
 	}
