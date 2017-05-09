@@ -276,6 +276,12 @@ func main() {
 	}
 	mainTimer.Stop()
 
+	go func() {
+		for range time.Tick(5 * time.Minute) {
+			runtime.GC()
+		}
+	}()
+
 	router := mux.NewRouter()
 
 	// Set up the resource to serve the image files.
