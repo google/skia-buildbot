@@ -476,7 +476,7 @@ func Start(dbUrl, workdir string, buildDb buildbot.DB, ctx context.Context) erro
 	if err != nil {
 		return err
 	}
-	em, err := events.NewEventMetrics(edb)
+	em, err := events.NewEventMetrics(edb, "time-to-bot-coverage")
 	if err != nil {
 		return err
 	}
