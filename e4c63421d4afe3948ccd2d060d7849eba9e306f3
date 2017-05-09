@@ -22,6 +22,30 @@
       "revId": "e4c63421d4afe3948ccd2d060d7849eba9e306f3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba7ed249_e92d0933",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-09T19:21:56Z",
+      "side": 1,
+      "message": "Yeah, this makes sense.  If we can express all of the blacklists we care about in terms of IsAncestor, we could use a builder which just ANDs together some number of \"commit (is|is not) an ancestor of \u003cref name or commit hash\u003e\".",
+      "parentUuid": "c9c8436e_e0ef7803",
+      "range": {
+        "startLine": 58,
+        "startChar": 4,
+        "endLine": 59,
+        "endChar": 29
+      },
+      "revId": "e4c63421d4afe3948ccd2d060d7849eba9e306f3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
