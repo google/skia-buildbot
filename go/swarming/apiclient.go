@@ -61,6 +61,10 @@ type ApiClient interface {
 	// instances corresponding to the Skia CT Swarming bots.
 	ListSkiaCTBots() ([]*swarming.SwarmingRpcsBotInfo, error)
 
+	// ListSkiaInternalBots returns a slice of swarming.SwarmingRpcsBotInfo
+	// instances corresponding to the SkiaInternal Swarming bots.
+	ListSkiaInternalBots() ([]*swarming.SwarmingRpcsBotInfo, error)
+
 	// ListCTBots returns a slice of swarming.SwarmingRpcsBotInfo instances
 	// corresponding to the CT Swarming bots.
 	ListCTBots() ([]*swarming.SwarmingRpcsBotInfo, error)
@@ -133,6 +137,12 @@ func (c *apiClient) ListSkiaBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
 func (c *apiClient) ListSkiaCTBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
 	return c.ListBots(map[string]string{
 		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_SKIA_CT,
+	})
+}
+
+func (c *apiClient) ListSkiaInternalBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
+	return c.ListBots(map[string]string{
+		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_SKIA_INTERNAL,
 	})
 }
 
