@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "26c76d12_f44011d0",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-10T12:33:09Z",
+      "side": 1,
+      "message": "CQ sets revision \u003d \"HEAD\" regardless of branch, so we can\u0027t assume that \"HEAD\" implies master.",
+      "range": {
+        "startLine": 267,
+        "startChar": 1,
+        "endLine": 267,
+        "endChar": 42
+      },
+      "revId": "654cd54297bec2677848ba16ea50a3f08160e6be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
