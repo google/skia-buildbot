@@ -25,6 +25,8 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"golang.org/x/net/context"
 	"google.golang.org/api/option"
+
+	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 )
 
 const (
@@ -86,6 +88,10 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	swarmInternal, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER_PRIVATE)
+	if err != nil {
+		sklog.Fatal(err)
+	}
 
 	// Shared repo objects.
 	reposDir := path.Join(w, "repos")
@@ -115,19 +121,28 @@ func main() {
 	go func() {
 		oldMetrics := []metrics2.Int64Metric{}
 		for _ = range time.Tick(2 * time.Minute) {
+			bots := map[string][]*swarming_api.SwarmingRpcsBotInfo{}
 			sklog.Info("Loading Skia Swarming bot data.")
 			skiaBots, err := swarm.ListSkiaBots()
 			if err != nil {
 				sklog.Error(err)
 				continue
 			}
+			bots[swarming.SWARMING_SERVER] = skiaBots
 			sklog.Info("Loading CT Swarming bot data.")
 			ctBots, err := swarm.ListCTBots()
 			if err != nil {
 				sklog.Error(err)
 				continue
 			}
-			bots := append(skiaBots, ctBots...)
+			bots[swarming.SWARMING_SERVER] = append(bots[swarming.SWARMING_SERVER], ctBots...)
+			sklog.Infof("Loading SkiaInternal Swarming bot data.")
+			skiaInternalBots, err := swarmInternal.ListSkiaInternalBots()
+			if err != nil {
+				sklog.Error(err)
+				continue
+			}
+			bots[swarming.SWARMING_SERVER_PRIVATE] = skiaInternalBots
 
 			// Delete old metrics, replace with new ones. This fixes the case where
 			// bots are removed but their metrics hang around, or where dimensions
@@ -142,31 +157,34 @@ func main() {
 			oldMetrics = append([]metrics2.Int64Metric{}, failedDelete...)
 
 			now := time.Now()
-			for _, bot := range bots {
-				last, err := time.Parse("2006-01-02T15:04:05", bot.LastSeenTs)
-				if err != nil {
-					sklog.Error(err)
-					continue
-				}
+			for server, botList := range bots {
+				for _, bot := range botList {
+					last, err := time.Parse("2006-01-02T15:04:05", bot.LastSeenTs)
+					if err != nil {
+						sklog.Error(err)
+						continue
+					}
 
-				tags := map[string]string{
-					"bot":  bot.BotId,
-					"pool": "Skia",
-				}
+					tags := map[string]string{
+						"bot":      bot.BotId,
+						"pool":     "Skia",
+						"swarming": server,
+					}
 
-				// Bot last seen <duration> ago.
-				m1 := metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_LAST_SEEN, tags)
-				m1.Update(int64(now.Sub(last)))
-				oldMetrics = append(oldMetrics, m1)
+					// Bot last seen <duration> ago.
+					m1 := metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_LAST_SEEN, tags)
+					m1.Update(int64(now.Sub(last)))
+					oldMetrics = append(oldMetrics, m1)
 
-				// Bot quarantined status.
-				quarantined := int64(0)
-				if bot.Quarantined {
-					quarantined = int64(1)
+					// Bot quarantined status.
+					quarantined := int64(0)
+					if bot.Quarantined {
+						quarantined = int64(1)
+					}
+					m2 := metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_QUARANTINED, tags)
+					m2.Update(quarantined)
+					oldMetrics = append(oldMetrics, m2)
 				}
-				m2 := metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_QUARANTINED, tags)
-				m2.Update(quarantined)
-				oldMetrics = append(oldMetrics, m2)
 			}
 		}
 	}()
