@@ -46,6 +46,30 @@
       "revId": "4997f289b86e6ec034e4777e665578cfcb9ce43e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c9e23a92_b7464c25",
+        "filename": "compute_engine_scripts/compute_engine_cfg.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-10T14:04:33Z",
+      "side": 1,
+      "message": "So... I wasn\u0027t able to find any way to quote it that actually works. The solution seems to be to change vm_config.sh to do \u0027source \u003c(python ../compute_engine_cfg.py)\u0027 instead of \u0027$(python ../compute_engine_cfg.py)\u0027, but if I\u0027m going to go through the trouble of updating vm_config.sh everywhere, I feel like I should change this file to be a bash script instead of a python script, and just do \u0027source ../compute_engine_cfg.sh\u0027. I don\u0027t want to do that in this CL.",
+      "parentUuid": "afd99824_9ee6e482",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 59
+      },
+      "revId": "4997f289b86e6ec034e4777e665578cfcb9ce43e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
