@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ac43149_2d09d6fb",
+        "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-10T14:58:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c7762c1f_9cafb173",
+      "range": {
+        "startLine": 3,
+        "startChar": 44,
+        "endLine": 3,
+        "endChar": 45
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ffecc580_7b3e6e73",
         "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81b8d3ee_ea5de852",
+        "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-10T14:58:31Z",
+      "side": 1,
+      "message": "Done\nAdded a comment, but I don\u0027t think we should elaborate more. Since this really just for debugging and \none only cares if they are already immersed in the code.",
+      "parentUuid": "ffecc580_7b3e6e73",
+      "range": {
+        "startLine": 26,
+        "startChar": 48,
+        "endLine": 26,
+        "endChar": 53
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "4e3a5a50_3206b83f",
+        "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-10T14:58:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "860ac363_efb09421",
+      "range": {
+        "startLine": 29,
+        "startChar": 46,
+        "endLine": 29,
+        "endChar": 63
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "42426b19_8e5b9287",
         "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
         "patchSetId": 5
@@ -91,6 +163,30 @@
       "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c03e98d6_9b7f847b",
+        "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-10T14:58:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "42426b19_8e5b9287",
+      "range": {
+        "startLine": 40,
+        "startChar": 15,
+        "endLine": 40,
+        "endChar": 19
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "ccfd1227_86dc0a52",
+        "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-10T14:58:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f9690f05_046e7389",
+      "range": {
+        "startLine": 64,
+        "startChar": 5,
+        "endLine": 64,
+        "endChar": 17
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bce6189b_cf3aa043",
         "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
         "patchSetId": 5
@@ -137,6 +257,30 @@
       "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1809bef1_ddd58156",
+        "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
+        "patchSetId": 5
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-10T14:58:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bce6189b_cf3aa043",
+      "range": {
+        "startLine": 72,
+        "startChar": 10,
+        "endLine": 72,
+        "endChar": 32
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "ef2b5402_b8d5bbf0",
+        "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
+        "patchSetId": 5
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-10T14:58:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a8b4806b_2115adfd",
+      "range": {
+        "startLine": 90,
+        "startChar": 26,
+        "endLine": 90,
+        "endChar": 28
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "34b20805_ee47c3dc",
         "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
         "patchSetId": 5
@@ -177,6 +345,24 @@
       "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9cb9c2b3_39f86c2b",
+        "filename": "skolo/arduino/cmd_runner/cmd_runner.ino",
+        "patchSetId": 5
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-10T14:58:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "34b20805_ee47c3dc",
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -203,6 +389,30 @@
     },
     {
       "key": {
+        "uuid": "c9cc0c99_18ee308b",
+        "filename": "skolo/go/serial_relay/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-10T14:58:31Z",
+      "side": 1,
+      "message": "Done\nMove to sklog and log the result via util.log.",
+      "parentUuid": "e706aa59_8940fb12",
+      "range": {
+        "startLine": 44,
+        "startChar": 2,
+        "endLine": 44,
+        "endChar": 5
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "585fa22f_efde6cf9",
         "filename": "skolo/go/serial_relay/main.go",
         "patchSetId": 5
@@ -214,6 +424,30 @@
       "writtenOn": "2017-05-09T19:31:15Z",
       "side": 1,
       "message": "Can you explain why retrying is needed and how often (ish) it needs 1,2 or 3 retries?",
+      "range": {
+        "startLine": 53,
+        "startChar": 24,
+        "endLine": 53,
+        "endChar": 29
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "776f3800_1f0853fb",
+        "filename": "skolo/go/serial_relay/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-10T14:58:31Z",
+      "side": 1,
+      "message": "\u0027retry\u0027 made operations more stable in an earlier version when I was reading and writing to the \nArduino. I would like to keep it for now, but I added logging and a TODO to remove it down the \nroad if we don\u0027t see errors in production.",
+      "parentUuid": "585fa22f_efde6cf9",
       "range": {
         "startLine": 53,
         "startChar": 24,
@@ -249,6 +483,30 @@
     },
     {
       "key": {
+        "uuid": "c114c39e_3e4ac974",
+        "filename": "skolo/go/serial_relay/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-10T14:58:31Z",
+      "side": 1,
+      "message": "No, it was used in an earlier version, but it turned out to be not very reliable.\nRemoved.",
+      "parentUuid": "d889b2a0_fdc98ac4",
+      "range": {
+        "startLine": 82,
+        "startChar": 24,
+        "endLine": 82,
+        "endChar": 32
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a5683148_69546c61",
         "filename": "skolo/go/serial_relay/main.go",
         "patchSetId": 5
@@ -269,6 +527,30 @@
       "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4bd3d846_db61f10f",
+        "filename": "skolo/go/serial_relay/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-10T14:58:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a5683148_69546c61",
+      "range": {
+        "startLine": 123,
+        "startChar": 49,
+        "endLine": 123,
+        "endChar": 53
+      },
+      "revId": "ebdf72d858b7c2388e55ec21f2462bcec2c3d85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
