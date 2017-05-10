@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/fiddle/go/linenumbers"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 // Result is the JSON output format from fiddle_run.
@@ -96,3 +97,35 @@ func (o *Options) ComputeHash(code string) (string, error) {
 	}
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
+
+// FiddleContext is the structure we use for the expanding the index.html template.
+//
+// It is also used (without the Hash) as the incoming JSON request to /_/run.
+type FiddleContext struct {
+	Build     *vcsinfo.LongCommit `json:"build"`      // The version of Skia this was run on.
+	Sources   string              `json:"sources"`    // All the source image ids serialized as a JSON array.
+	Hash      string              `json:"fiddlehash"` // Can be the fiddle hash or the fiddle name.
+	Code      string              `json:"code"`
+	Name      string              `json:"name"`      // In a request can be the name to create for this fiddle.
+	Overwrite bool                `json:"overwrite"` // In a request, should a name be overwritten if it already exists.
+	Fast      bool                `json:"fast"`      // Fast, don't compile and run if a fiddle with this hash has already been compiled and run.
+	Options   Options             `json:"options"`
+}
+
+// CompileError is a single line of compiler error output, along with the line
+// and column that the error occurred at.
+type CompileError struct {
+	Text string `json:"text"`
+	Line int    `json:"line"`
+	Col  int    `json:"col"`
+}
+
+// RunResults is the results we serialize to JSON as the results from a run.
+type RunResults struct {
+	CompileErrors []CompileError `json:"compile_errors"`
+	RunTimeError  string         `json:"runtime_error"`
+	FiddleHash    string         `json:"fiddleHash"`
+}
+
+type BulkRequest map[string]*FiddleContext
+type BulkResponse map[string]*RunResults
