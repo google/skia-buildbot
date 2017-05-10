@@ -66,6 +66,11 @@ elif VM_IS_SKIA_INTERNAL:
   VM_BOT_NAME = 'skia-i-vm'
   PERSISTENT_DISK_NAME = 'skia-i-disk'
 
+if os.environ.get('VM_MIN_CPU_PLATFORM'):
+  ZONE_TAG = {
+      'Intel Skylake': 'b'
+  }[os.environ.get('VM_MIN_CPU_PLATFORM')]
+
 ZONE = 'us-central1-%s' % ZONE_TAG
 
 # The below constants determine which instances the delete and create/setup
@@ -85,4 +90,3 @@ if __name__ == '__main__':
     # Ignore if the var is a system var or a module.
     if not var.startswith('__') and not type(vars()[var]) == types.ModuleType:
       print 'export %s=%s' % (var, vars()[var])
-

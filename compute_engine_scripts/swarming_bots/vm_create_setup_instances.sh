@@ -75,7 +75,9 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
     PERSISTENT_DISK_ARG="--disk=name=$PERSISTENT_DISK_NAME-`printf "%03d" ${MACHINE_IP}`"
   fi
 
-  gcloud compute --project $PROJECT_ID instances create ${INSTANCE_NAME} \
+  # As of 2017-05-05, need 'alpha' for --min-cpu-platform flag.
+  gcloud ${VM_MIN_CPU_PLATFORM:+alpha} compute --project $PROJECT_ID \
+    instances create ${INSTANCE_NAME} \
     --zone=$ZONE \
     --address=$EXTERNAL_IP_ADDRESS \
     --service-account=$PROJECT_USER \
@@ -84,7 +86,8 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
     --image=$SKIA_BOT_IMAGE_NAME \
     --machine-type=$SKIA_BOT_MACHINE_TYPE \
     --boot-disk-auto-delete \
-    $DISK_ARGS $METADATA_ARGS $PERSISTENT_DISK_ARG
+    $DISK_ARGS $METADATA_ARGS $PERSISTENT_DISK_ARG \
+    ${VM_MIN_CPU_PLATFORM:+"--min-cpu-platform=${VM_MIN_CPU_PLATFORM}"}
 
   if [ $? -ne 0 ]; then
     echo
