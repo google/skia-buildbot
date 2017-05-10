@@ -86,6 +86,10 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	swarmInternal, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER_PRIVATE)
+	if err != nil {
+		sklog.Fatal(err)
+	}
 
 	// Shared repo objects.
 	reposDir := path.Join(w, "repos")
@@ -112,64 +116,70 @@ func main() {
 	}
 
 	// Swarming bots.
-	go func() {
-		oldMetrics := []metrics2.Int64Metric{}
-		for _ = range time.Tick(2 * time.Minute) {
-			sklog.Info("Loading Skia Swarming bot data.")
-			skiaBots, err := swarm.ListSkiaBots()
-			if err != nil {
-				sklog.Error(err)
-				continue
-			}
-			sklog.Info("Loading CT Swarming bot data.")
-			ctBots, err := swarm.ListCTBots()
-			if err != nil {
-				sklog.Error(err)
-				continue
-			}
-			bots := append(skiaBots, ctBots...)
+	swarmingClients := map[string]swarming.ApiClient{
+		swarming.SWARMING_SERVER:         swarm,
+		swarming.SWARMING_SERVER_PRIVATE: swarmInternal,
+	}
+	swarmingPools := map[string][]string{
+		swarming.SWARMING_SERVER:         swarming.POOLS_PUBLIC,
+		swarming.SWARMING_SERVER_PRIVATE: swarming.POOLS_PRIVATE,
+	}
+	for swarmingServer, client := range swarmingClients {
+		for _, pool := range swarmingPools[swarmingServer] {
+			go func(server, pool string, client swarming.ApiClient) {
+				oldMetrics := []metrics2.Int64Metric{}
+				for _ = range time.Tick(2 * time.Minute) {
+					sklog.Info("Loading Skia Swarming bot data.")
+					bots, err := client.ListBotsForPool(pool)
+					if err != nil {
+						sklog.Error(err)
+						continue
+					}
 
-			// Delete old metrics, replace with new ones. This fixes the case where
-			// bots are removed but their metrics hang around, or where dimensions
-			// change resulting in duplicate metrics with the same bot ID.
-			failedDelete := []metrics2.Int64Metric{}
-			for _, m := range oldMetrics {
-				if err := m.Delete(); err != nil {
-					sklog.Warningf("Failed to delete metric: %s", err)
-					failedDelete = append(failedDelete, m)
+					// Delete old metrics, replace with new ones. This fixes the case where
+					// bots are removed but their metrics hang around, or where dimensions
+					// change resulting in duplicate metrics with the same bot ID.
+					failedDelete := []metrics2.Int64Metric{}
+					for _, m := range oldMetrics {
+						if err := m.Delete(); err != nil {
+							sklog.Warningf("Failed to delete metric: %s", err)
+							failedDelete = append(failedDelete, m)
+						}
+					}
+					oldMetrics = append([]metrics2.Int64Metric{}, failedDelete...)
+
+					now := time.Now()
+					for _, bot := range bots {
+						last, err := time.Parse("2006-01-02T15:04:05", bot.LastSeenTs)
+						if err != nil {
+							sklog.Error(err)
+							continue
+						}
+
+						tags := map[string]string{
+							"bot":      bot.BotId,
+							"pool":     pool,
+							"swarming": server,
+						}
+
+						// Bot last seen <duration> ago.
+						m1 := metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_LAST_SEEN, tags)
+						m1.Update(int64(now.Sub(last)))
+						oldMetrics = append(oldMetrics, m1)
+
+						// Bot quarantined status.
+						quarantined := int64(0)
+						if bot.Quarantined {
+							quarantined = int64(1)
+						}
+						m2 := metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_QUARANTINED, tags)
+						m2.Update(quarantined)
+						oldMetrics = append(oldMetrics, m2)
+					}
 				}
-			}
-			oldMetrics = append([]metrics2.Int64Metric{}, failedDelete...)
-
-			now := time.Now()
-			for _, bot := range bots {
-				last, err := time.Parse("2006-01-02T15:04:05", bot.LastSeenTs)
-				if err != nil {
-					sklog.Error(err)
-					continue
-				}
-
-				tags := map[string]string{
-					"bot":  bot.BotId,
-					"pool": "Skia",
-				}
-
-				// Bot last seen <duration> ago.
-				m1 := metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_LAST_SEEN, tags)
-				m1.Update(int64(now.Sub(last)))
-				oldMetrics = append(oldMetrics, m1)
-
-				// Bot quarantined status.
-				quarantined := int64(0)
-				if bot.Quarantined {
-					quarantined = int64(1)
-				}
-				m2 := metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_QUARANTINED, tags)
-				m2.Update(quarantined)
-				oldMetrics = append(oldMetrics, m2)
-			}
+			}(swarmingServer, pool, client)
 		}
-	}()
+	}
 
 	// Swarming tasks.
 	go func() {

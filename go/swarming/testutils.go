@@ -79,21 +79,9 @@ func (c *TestClient) ListFreeBots(pool string) ([]*swarming.SwarmingRpcsBotInfo,
 	return rv, nil
 }
 
-func (c *TestClient) ListSkiaBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
+func (c *TestClient) ListBotsForPool(pool string) ([]*swarming.SwarmingRpcsBotInfo, error) {
 	return c.ListBots(map[string]string{
-		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_SKIA,
-	})
-}
-
-func (c *TestClient) ListSkiaCTBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
-	return c.ListBots(map[string]string{
-		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_SKIA_CT,
-	})
-}
-
-func (c *TestClient) ListCTBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
-	return c.ListBots(map[string]string{
-		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_CT,
+		DIMENSION_POOL_KEY: pool,
 	})
 }
 
