@@ -15,6 +15,7 @@ build: elements_html core_js
 	go install -v ./go/fiddle_run
 	go install -v ./go/webtry_extract
 	go install -v ./go/fiddle
+	go install -v ./go/fiddlecli
 	c++ fiddle_secwrap.cpp -o fiddle_secwrap
 
 .PHONY: testgo
