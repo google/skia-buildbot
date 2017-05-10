@@ -52,10 +52,6 @@ push_android_master: build
 	go install -v ../push/go/pushcli
 	pushcli android-master-skiaperfd skia-android-master-perf
 
-.PHONY: logs
-logs:
-	go install -v ../logserver/go/logserver
-
 .PHONY: perf_migratedb
 perf_migratedb:
 	go install -v ./go/perf_migratedb
@@ -65,7 +61,7 @@ perf_migratedb:
 debug: clean_webtools debug_core_js debug_elements_html
 
 .PHONY: all
-all: build logs perf_migratedb
+all: build perf_migratedb
 
 .PHONY: tags
 tags:

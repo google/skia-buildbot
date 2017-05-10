@@ -33,10 +33,6 @@ datahopper:
 datahopper_internal:
 	cd datahopper_internal && $(MAKE) default
 
-.PHONY: logserver
-logserver:
-	cd  logserver && $(MAKE) default
-
 .PHONY: ct
 ct:
 	cd ct && $(MAKE) all
@@ -70,7 +66,7 @@ task_scheduler:
 	cd task_scheduler && $(MAKE) all
 
 .PHONY: all
-all: autoroll datahopper datahopper_internal golden perf sharedgo logserver ct ctfe cq_watcher status task_scheduler tags
+all: autoroll datahopper datahopper_internal golden perf sharedgo ct ctfe cq_watcher status task_scheduler tags
 
 .PHONY: tags
 tags:
