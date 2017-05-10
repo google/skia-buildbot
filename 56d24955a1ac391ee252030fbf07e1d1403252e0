@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ccd8b827_f1ea8c88",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-10T17:41:10Z",
+      "side": 1,
+      "message": "Good catch. Changed.",
+      "parentUuid": "8b265e4e_9c373266",
+      "range": {
+        "startLine": 133,
+        "startChar": 18,
+        "endLine": 133,
+        "endChar": 36
+      },
+      "revId": "56d24955a1ac391ee252030fbf07e1d1403252e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "502aa005_9a3c17ce",
         "filename": "datahopper/go/datahopper/main.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "56d24955a1ac391ee252030fbf07e1d1403252e0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "120b4ef5_6d8dfe7c",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-10T17:41:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "502aa005_9a3c17ce",
+      "range": {
+        "startLine": 170,
+        "startChar": 6,
+        "endLine": 170,
+        "endChar": 25
+      },
+      "revId": "56d24955a1ac391ee252030fbf07e1d1403252e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "66d2d390_65492c4b",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-10T17:41:10Z",
+      "side": 1,
+      "message": "Probably oversight.",
+      "parentUuid": "43a4158f_fafed023",
+      "range": {
+        "startLine": 62,
+        "startChar": 1,
+        "endLine": 62,
+        "endChar": 17
+      },
+      "revId": "56d24955a1ac391ee252030fbf07e1d1403252e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2be0639c_d057889e",
         "filename": "go/swarming/apiclient.go",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2017-05-10T15:34:24Z",
       "side": 1,
       "message": "nit: Could we replace ListSkiaBots/ListSkiaCTBots/ListCTBots/ListSkiaInternalBots with ListBotsForPool(pool string)?",
+      "range": {
+        "startLine": 66,
+        "startChar": 1,
+        "endLine": 66,
+        "endChar": 23
+      },
+      "revId": "56d24955a1ac391ee252030fbf07e1d1403252e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3cd7dbaa_f54bb321",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-10T17:41:10Z",
+      "side": 1,
+      "message": "Sure, done.",
+      "parentUuid": "2be0639c_d057889e",
       "range": {
         "startLine": 66,
         "startChar": 1,
