@@ -193,8 +193,9 @@ func (e *EdgeSwitchClient) turnOnPort(port int) error {
 // newClient returns a new ssh client.
 func (e *EdgeSwitchClient) newClient() (*ssh.Client, error) {
 	sshConfig := &ssh.ClientConfig{
-		User: DEFAULT_USER,
-		Auth: []ssh.AuthMethod{ssh.Password(DEFAULT_USER)},
+		User:            DEFAULT_USER,
+		Auth:            []ssh.AuthMethod{ssh.Password(DEFAULT_USER)},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
 	client, err := ssh.Dial("tcp", e.conf.Address, sshConfig)
