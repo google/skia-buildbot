@@ -31,7 +31,6 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -50,34 +49,6 @@ var (
 	tryNamed          = flag.Bool("try_named", true, "Start the Go routine that periodically tries all the named fiddles.")
 )
 
-// FiddleContext is the structure we use for the expanding the index.html template.
-//
-// It is also used (without the Hash) as the incoming JSON request to /_/run.
-type FiddleContext struct {
-	Build     *vcsinfo.LongCommit `json:"build"`      // The version of Skia this was run on.
-	Sources   string              `json:"sources"`    // All the source image ids serialized as a JSON array.
-	Hash      string              `json:"fiddlehash"` // Can be the fiddle hash or the fiddle name.
-	Code      string              `json:"code"`
-	Name      string              `json:"name"`      // In a request can be the name to create for this fiddle.
-	Overwrite bool                `json:"overwrite"` // In a request, should a name be overwritten if it already exists.
-	Options   types.Options       `json:"options"`
-}
-
-// CompileError is a single line of compiler error output, along with the line
-// and column that the error occurred at.
-type CompileError struct {
-	Text string `json:"text"`
-	Line int    `json:"line"`
-	Col  int    `json:"col"`
-}
-
-// RunResults is the results we serialize to JSON as the results from a run.
-type RunResults struct {
-	CompileErrors []CompileError `json:"compile_errors"`
-	RunTimeError  string         `json:"runtime_error"`
-	FiddleHash    string         `json:"fiddleHash"`
-}
-
 var (
 	templates *template.Template
 
@@ -90,7 +61,7 @@ var (
 		},
 	}
 
-	defaultFiddle *FiddleContext = &FiddleContext{
+	defaultFiddle *types.FiddleContext = &types.FiddleContext{
 		Code: `void draw(SkCanvas* canvas) {
     SkPaint p;
     p.setColor(SK_ColorRED);
@@ -222,7 +193,7 @@ func iframeHandle(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	context := &FiddleContext{
+	context := &types.FiddleContext{
 		Hash:    id,
 		Code:    code,
 		Options: *options,
@@ -233,7 +204,7 @@ func iframeHandle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func loadContext(w http.ResponseWriter, r *http.Request) (*FiddleContext, error) {
+func loadContext(w http.ResponseWriter, r *http.Request) (*types.FiddleContext, error) {
 	id := mux.Vars(r)["id"]
 	fiddleHash, err := names.DereferenceID(id)
 	if err != nil {
@@ -246,7 +217,7 @@ func loadContext(w http.ResponseWriter, r *http.Request) (*FiddleContext, error)
 	if err != nil {
 		return nil, fmt.Errorf("Fiddle not found.")
 	}
-	return &FiddleContext{
+	return &types.FiddleContext{
 		Build:   build.Current(),
 		Sources: src.ListAsJSON(),
 		Hash:    id,
@@ -361,20 +332,34 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
 		return
 	}
-	resp := RunResults{
-		CompileErrors: []CompileError{},
-		FiddleHash:    "",
-	}
-	req := &FiddleContext{}
+	req := &types.FiddleContext{}
 	dec := json.NewDecoder(r.Body)
 	defer util.Close(r.Body)
 	if err := dec.Decode(req); err != nil {
 		httputils.ReportError(w, r, err, "Failed to decode request.")
 		return
 	}
-	if err := runner.ValidateOptions(&req.Options); err != nil {
-		httputils.ReportError(w, r, err, "Invalid Options.")
+
+	resp, err := run(login.LoggedInAs(r), req)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to run the fiddle.")
 		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(resp); err != nil {
+		httputils.ReportError(w, r, err, "Failed to JSON Encode response.")
+	}
+}
+
+func run(user string, req *types.FiddleContext) (*types.RunResults, error) {
+	resp := &types.RunResults{
+		CompileErrors: []types.CompileError{},
+		FiddleHash:    "",
+	}
+	if err := runner.ValidateOptions(&req.Options); err != nil {
+		return resp, fmt.Errorf("Invalid Options: %s", err)
 	}
 	sklog.Infof("Request: %#v", *req)
 	current := build.Current()
@@ -382,7 +367,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	checkout := filepath.Join(*fiddleRoot, "versions", current.Hash)
 	tmpDir, err := runner.WriteDrawCpp(checkout, *fiddleRoot, req.Code, &req.Options, *local)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to write the fiddle.")
+		return resp, fmt.Errorf("Failed to write the fiddle.")
 	}
 	res, err := runner.Run(checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir, &req.Options)
 	if !*local && !*preserveTemp {
@@ -391,8 +376,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to run the fiddle")
-		return
+		return resp, fmt.Errorf("Failed to run the fiddle")
 	}
 	maybeSecViolation := false
 	if res.Execute.Errors != "" {
@@ -401,13 +385,13 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		resp.RunTimeError = "Failed to run, possibly violated security container."
 	}
 	// Take the compiler output and strip off all the implementation dependant information
-	// and format it to be retured in RunResults.
+	// and format it to be retured in types.RunResults.
 	if res.Compile.Errors != "" {
 		lines := strings.Split(res.Compile.Output, "\n")
 		for _, line := range lines {
 			match := parseCompilerOutput.FindAllStringSubmatch(line, -1)
 			if match == nil || len(match[0]) < 5 {
-				resp.CompileErrors = append(resp.CompileErrors, CompileError{
+				resp.CompileErrors = append(resp.CompileErrors, types.CompileError{
 					Text: line,
 					Line: 0,
 					Col:  0,
@@ -424,7 +408,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 				sklog.Errorf("Failed to parse compiler output column number: %#v: %s", match, err)
 				continue
 			}
-			resp.CompileErrors = append(resp.CompileErrors, CompileError{
+			resp.CompileErrors = append(resp.CompileErrors, types.CompileError{
 				Text: match[0][2],
 				Line: line_num,
 				Col:  col_num,
@@ -437,8 +421,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fiddleHash, err := fiddleStore.Put(req.Code, req.Options, current.Hash, current.Timestamp, res)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to store the fiddle.")
-		return
+		return resp, fmt.Errorf("Failed to store the fiddle")
 	}
 	if maybeSecViolation {
 		maybeSecViolations.Inc(1)
@@ -447,26 +430,45 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	runs.Inc(1)
 	resp.FiddleHash = fiddleHash
 
-	user := login.LoggedInAs(r)
 	// Only logged in users can create named fiddles.
 	if req.Name != "" && user != "" {
 		// Create a name for this fiddle. Validation is done in this func.
 		err := names.Add(req.Name, fiddleHash, user, req.Overwrite)
 		if err == named.DuplicateNameErr {
-			httputils.ReportError(w, r, err, "Name already exists.")
-			return
+			return resp, fmt.Errorf("Duplicate fiddle name.")
 		}
 		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to store the name.")
-			return
+			return resp, fmt.Errorf("Failed to store the name.")
 		}
 		// Replace fiddleHash with name.
 		resp.FiddleHash = "@" + req.Name
 	}
+	return resp, nil
+}
+
+func bulkHandler(w http.ResponseWriter, r *http.Request) {
+	request := types.BulkRequest{}
+	response := types.BulkResponse{}
+	dec := json.NewDecoder(r.Body)
+	if err := dec.Decode(&request); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode request.")
+		return
+	}
+	user := login.LoggedInAs(r)
+
+	for id, req := range request {
+		resp, err := run(user, req)
+		if err != nil {
+			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to run fiddle %q", id))
+			return
+		}
+		response[id] = resp
+	}
 
 	w.Header().Set("Content-Type", "application/json")
+	// Encode pretty?
 	enc := json.NewEncoder(w)
-	if err := enc.Encode(resp); err != nil {
+	if err := enc.Encode(response); err != nil {
 		httputils.ReportError(w, r, err, "Failed to JSON Encode response.")
 	}
 }
@@ -603,6 +605,7 @@ func main() {
 	r.HandleFunc("/named/", namedHandler)
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/_/run", runHandler)
+	r.HandleFunc("/_/bulk", bulkHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
