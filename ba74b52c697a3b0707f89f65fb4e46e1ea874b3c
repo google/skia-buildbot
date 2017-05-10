@@ -22,6 +22,30 @@
       "revId": "ba74b52c697a3b0707f89f65fb4e46e1ea874b3c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0c21ee0b_29bf1d12",
+        "filename": "skolo/go/powercycle/arduino_serial.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-10T19:00:42Z",
+      "side": 1,
+      "message": "If this was how we are going to use it in the long term I\u0027d make this an absolute path and set up a better way (pushable) to install the serial_relay executable. This assumes that \u0027serial_relay\u0027 is in the home directory of the user. Since we are deploying this by hand right now, I\u0027d like to keep it this way, because it\u0027s easily deployed by just copying to the host. \n\u0027serial_relay\u0027 needs to go away once we do the overhaul.",
+      "parentUuid": "0483bb93_175f2ad4",
+      "range": {
+        "startLine": 98,
+        "startChar": 21,
+        "endLine": 98,
+        "endChar": 23
+      },
+      "revId": "ba74b52c697a3b0707f89f65fb4e46e1ea874b3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
