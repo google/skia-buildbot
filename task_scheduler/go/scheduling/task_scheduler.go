@@ -291,7 +291,7 @@ func ComputeBlamelist(cache db.TaskCache, repo *repograph.Graph, taskName, repoN
 		// If the blamelist is too large, just use a single commit.
 		if len(commitsBuf) > MAX_BLAMELIST_COMMITS {
 			commitsBuf = append(commitsBuf[:0], revision)
-			sklog.Warningf("Found too many commits for %s @ %s; using single-commit blamelist.", taskName, revision.Hash)
+			//sklog.Warningf("Found too many commits for %s @ %s; using single-commit blamelist.", taskName, revision.Hash)
 			return false, ERR_BLAMELIST_DONE
 		}
 
@@ -400,7 +400,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 	for _, c := range preFilterCandidates {
 		// Reject blacklisted tasks.
 		if rule := s.bl.MatchRule(c.Name, c.Revision); rule != "" {
-			sklog.Warningf("Skipping blacklisted task candidate: %s @ %s due to rule %q", c.Name, c.Revision, rule)
+			//sklog.Warningf("Skipping blacklisted task candidate: %s @ %s due to rule %q", c.Name, c.Revision, rule)
 			continue
 		}
 
