@@ -1,0 +1,12 @@
+{
+  "test1": {
+    "compile_errors": [],
+    "runtime_error": "",
+    "fiddleHash": "cbb8dee39e9f1576cd97c2d504db8eee"
+  },
+  "test2": {
+    "compile_errors": [],
+    "runtime_error": "",
+    "fiddleHash": "07c02ef8872c996098564fa624b41a8b"
+  }
+}
