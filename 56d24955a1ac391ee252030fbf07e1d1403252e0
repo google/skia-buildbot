@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8b265e4e_9c373266",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-10T15:34:24Z",
+      "side": 1,
+      "message": "CT bots are in swarmInternal now, right?",
+      "range": {
+        "startLine": 133,
+        "startChar": 18,
+        "endLine": 133,
+        "endChar": 36
+      },
+      "revId": "56d24955a1ac391ee252030fbf07e1d1403252e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "502aa005_9a3c17ce",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-10T15:34:24Z",
+      "side": 1,
+      "message": "ISTM this is wrong for ctBots and skiaInternalBots.\n\nnit: It seems like it would be cleaner to create a different goroutine for each pool, and pass in the swarming server and pool dimension to the func.",
+      "range": {
+        "startLine": 170,
+        "startChar": 6,
+        "endLine": 170,
+        "endChar": 25
+      },
+      "revId": "56d24955a1ac391ee252030fbf07e1d1403252e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43a4158f_fafed023",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-10T15:34:24Z",
+      "side": 1,
+      "message": "Is there a reason we don\u0027t have metrics for this pool?",
+      "range": {
+        "startLine": 62,
+        "startChar": 1,
+        "endLine": 62,
+        "endChar": 17
+      },
+      "revId": "56d24955a1ac391ee252030fbf07e1d1403252e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2be0639c_d057889e",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-10T15:34:24Z",
+      "side": 1,
+      "message": "nit: Could we replace ListSkiaBots/ListSkiaCTBots/ListCTBots/ListSkiaInternalBots with ListBotsForPool(pool string)?",
+      "range": {
+        "startLine": 66,
+        "startChar": 1,
+        "endLine": 66,
+        "endChar": 23
+      },
+      "revId": "56d24955a1ac391ee252030fbf07e1d1403252e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
