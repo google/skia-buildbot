@@ -74,6 +74,7 @@ func NewMPowerClient(mPowerConfig *MPowerConfig) (DeviceGroup, error) {
 			Ciphers: []string{"aes128-cbc", "3des-cbc", "aes256-cbc",
 				"twofish256-cbc", "twofish-cbc", "twofish128-cbc", "blowfish-cbc"},
 		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
 	sklog.Infof("Signed private key")
