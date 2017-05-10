@@ -34,7 +34,7 @@ const (
 
 var (
 	POOLS_PUBLIC  = []string{DIMENSION_POOL_VALUE_SKIA, DIMENSION_POOL_VALUE_SKIA_CT}
-	POOLS_PRIVATE = []string{DIMENSION_POOL_VALUE_SKIA_INTERNAL}
+	POOLS_PRIVATE = []string{DIMENSION_POOL_VALUE_CT, DIMENSION_POOL_VALUE_SKIA_INTERNAL}
 
 	retriesRE = regexp.MustCompile("retries:([0-9])*")
 )
@@ -53,17 +53,9 @@ type ApiClient interface {
 	// given pool.
 	ListFreeBots(pool string) ([]*swarming.SwarmingRpcsBotInfo, error)
 
-	// ListSkiaBots returns a slice of swarming.SwarmingRpcsBotInfo instances
-	// corresponding to the Skia Swarming bots.
-	ListSkiaBots() ([]*swarming.SwarmingRpcsBotInfo, error)
-
-	// ListSkiaCTBots returns a slice of swarming.SwarmingRpcsBotInfo
-	// instances corresponding to the Skia CT Swarming bots.
-	ListSkiaCTBots() ([]*swarming.SwarmingRpcsBotInfo, error)
-
-	// ListCTBots returns a slice of swarming.SwarmingRpcsBotInfo instances
-	// corresponding to the CT Swarming bots.
-	ListCTBots() ([]*swarming.SwarmingRpcsBotInfo, error)
+	// ListBotsForPool returns a slice of swarming.SwarmingRpcsBotInfo
+	// instances corresponding to the Swarming bots in the given pool.
+	ListBotsForPool(pool string) ([]*swarming.SwarmingRpcsBotInfo, error)
 
 	GetStdoutOfTask(id string) (*swarming.SwarmingRpcsTaskOutput, error)
 
@@ -124,21 +116,9 @@ func (c *apiClient) SwarmingService() *swarming.Service {
 	return c.s
 }
 
-func (c *apiClient) ListSkiaBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
+func (c *apiClient) ListBotsForPool(pool string) ([]*swarming.SwarmingRpcsBotInfo, error) {
 	return c.ListBots(map[string]string{
-		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_SKIA,
-	})
-}
-
-func (c *apiClient) ListSkiaCTBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
-	return c.ListBots(map[string]string{
-		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_SKIA_CT,
-	})
-}
-
-func (c *apiClient) ListCTBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
-	return c.ListBots(map[string]string{
-		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_CT,
+		DIMENSION_POOL_KEY: pool,
 	})
 }
 
