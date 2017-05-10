@@ -263,10 +263,8 @@ func (t *TryJobIntegrator) getRepo(props *buildbucket.Properties) (string, *repo
 }
 
 func (t *TryJobIntegrator) getRevision(repo *repograph.Graph, revision string, issue int64) (string, error) {
-	if revision == "HEAD" || revision == "origin/master" {
-		revision = "master"
-	}
-	if revision == "" {
+	revision = strings.TrimPrefix(revision, "origin/")
+	if revision == "" || revision == "HEAD" {
 		// Obtain the branch name from Gerrit, then use the head of that branch.
 		changeInfo, err := t.gerrit.GetIssueProperties(issue)
 		if err != nil {
@@ -394,7 +392,7 @@ func (t *TryJobIntegrator) Poll(now time.Time) error {
 	jobs := []*db.Job{}
 	errs := []error{}
 	for {
-		sklog.Infof("Running 'peek'")
+		sklog.Infof("Running 'peek' on %s", t.bucket)
 		resp, err := t.bb.Peek().Bucket(t.bucket).MaxBuilds(PEEK_MAX_BUILDS).StartCursor(cursor).Do()
 		if err != nil {
 			errs = append(errs, err)
