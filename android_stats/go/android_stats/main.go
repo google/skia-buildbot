@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -25,6 +25,8 @@ var (
 	promPort    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	statsScript = flag.String("stats_script", "", "Script to run which generates stats.")
 )
+
+var exec = skexec.NewExec()
 
 // reportStats drills down recursively until it hits a non-map value,
 // then reports that value with the measurement as given above, tags for device,

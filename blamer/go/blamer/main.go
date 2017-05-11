@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -34,6 +34,7 @@ message is displayed. Must be run within the git repo.
 }
 func main() {
 	common.Init()
+	exec := skexec.NewExec()
 	match_found := false
 	for i := 0; i < *num; i++ {
 		res, err := exec.RunSimple(fmt.Sprintf("git show HEAD~%d..HEAD~%d", i+1, i))

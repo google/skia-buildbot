@@ -12,11 +12,11 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/autoroll"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -52,8 +52,7 @@ func setup(t *testing.T) (string, *git_testutils.GitBuilder, []string, *git_test
 }`, childPath, child.RepoUrl(), childCommits[0]))
 	parent.Commit()
 
-	mockRun := exec.CommandCollector{}
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+	mockRun := func(cmd *skexec.Command) error {
 		if cmd.Name == "git" && cmd.Args[0] == "cl" {
 			if cmd.Args[1] == "upload" {
 				return nil
@@ -67,12 +66,15 @@ func setup(t *testing.T) (string, *git_testutils.GitBuilder, []string, *git_test
 				return nil
 			}
 		}
-		return exec.DefaultRun(cmd)
-	})
-	exec.SetRunForTesting(mockRun.Run)
+		return skexec.DefaultRun(cmd)
+	}
+	exec.SetRun(mockRun)
+	// TODO(benjaminwagner): Figure out how to make this less hacky.
+	git.ExecForTestsOnly.SetRun(mockRun)
 
 	cleanup := func() {
-		exec.SetRunForTesting(exec.DefaultRun)
+		exec.Reset()
+		git.ExecForTestsOnly.Reset()
 		testutils.RemoveAll(t, wd)
 		child.Cleanup()
 		parent.Cleanup()

@@ -13,9 +13,9 @@ import (
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/autoroll"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/util"
 )
 
@@ -119,7 +119,7 @@ func (dr *depsRepoManager) cleanParent() error {
 		return err
 	}
 	_, _ = exec.RunCwd(dr.parentDir, "git", "branch", "-D", DEPS_ROLL_BRANCH)
-	if _, err := exec.RunCommand(&exec.Command{
+	if err := exec.Run(&skexec.Command{
 		Dir:  dr.workdir,
 		Env:  getEnv(dr.depot_tools),
 		Name: dr.gclient,
@@ -156,7 +156,7 @@ func (dr *depsRepoManager) update() error {
 		}
 	}
 
-	if _, err := exec.RunCommand(&exec.Command{
+	if err := exec.Run(&skexec.Command{
 		Dir:  dr.workdir,
 		Env:  getEnv(dr.depot_tools),
 		Name: dr.gclient,
@@ -164,7 +164,7 @@ func (dr *depsRepoManager) update() error {
 	}); err != nil {
 		return err
 	}
-	if _, err := exec.RunCommand(&exec.Command{
+	if err := exec.Run(&skexec.Command{
 		Dir:  dr.workdir,
 		Env:  getEnv(dr.depot_tools),
 		Name: dr.gclient,
@@ -279,7 +279,7 @@ func (dr *depsRepoManager) CreateNewRoll(strategy string, emails []string, cqExt
 		args = append(args, "--bug", strings.Join(bugs, ","))
 	}
 	sklog.Infof("Running command: roll-dep %s", strings.Join(args, " "))
-	if _, err := exec.RunCommand(&exec.Command{
+	if err := exec.Run(&skexec.Command{
 		Dir:  dr.parentDir,
 		Env:  getEnv(dr.depot_tools),
 		Name: dr.rollDep,
@@ -303,30 +303,30 @@ http://www.chromium.org/developers/tree-sheriffs/sheriff-details-chromium#TOC-Fa
 	if cqExtraTrybots != "" {
 		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
 	}
-	uploadCmd := &exec.Command{
+	uploadCmd := &skexec.Command{
 		Dir:  dr.parentDir,
 		Env:  getEnv(dr.depot_tools),
 		Name: "git",
 		Args: []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
 	}
 	if dryRun {
-		uploadCmd.Args = append(uploadCmd.Args, "--cq-dry-run")
+		uploadCmd.Append("--cq-dry-run")
 	} else {
-		uploadCmd.Args = append(uploadCmd.Args, "--use-commit-queue")
+		uploadCmd.Append("--use-commit-queue")
 	}
-	uploadCmd.Args = append(uploadCmd.Args, "--gerrit")
+	uploadCmd.Append("--gerrit")
 	tbr := "\nTBR="
 	if emails != nil && len(emails) > 0 {
 		emailStr := strings.Join(emails, ",")
 		tbr += emailStr
-		uploadCmd.Args = append(uploadCmd.Args, "--send-mail", "--cc", emailStr)
+		uploadCmd.Append("--send-mail", "--cc", emailStr)
 	}
 	commitMsg += tbr
-	uploadCmd.Args = append(uploadCmd.Args, "-m", commitMsg)
+	uploadCmd.Append("-m", commitMsg)
 
 	// Upload the CL.
 	sklog.Infof("Running command: git %s", strings.Join(uploadCmd.Args, " "))
-	if _, err := exec.RunCommand(uploadCmd); err != nil {
+	if err := exec.Run(uploadCmd); err != nil {
 		return 0, err
 	}
 
@@ -337,7 +337,7 @@ http://www.chromium.org/developers/tree-sheriffs/sheriff-details-chromium#TOC-Fa
 	}
 	defer util.RemoveAll(tmp)
 	jsonFile := path.Join(tmp, "issue.json")
-	if _, err := exec.RunCommand(&exec.Command{
+	if err := exec.Run(&skexec.Command{
 		Dir:  dr.parentDir,
 		Env:  getEnv(dr.depot_tools),
 		Name: "git",

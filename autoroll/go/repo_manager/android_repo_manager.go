@@ -13,8 +13,8 @@ import (
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/util"
 )
 
@@ -338,7 +338,7 @@ func (r *androidRepoManager) CreateNewRoll(strategy string, emails []string, cqE
 
 	// Generate and add files created by gn/gn_to_bp.py
 	gnEnv := []string{fmt.Sprintf("PATH=%s/:%s", path.Join(r.childDir, "bin"), os.Getenv("PATH"))}
-	_, gnToBpErr := exec.RunCommand(&exec.Command{
+	gnToBpErr := exec.Run(&skexec.Command{
 		Env:  gnEnv,
 		Dir:  r.childDir,
 		Name: "python",
@@ -442,7 +442,7 @@ Test: Presubmit checks will test this change.
 	}
 
 	// Upload the CL to Gerrit.
-	uploadCommand := &exec.Command{
+	uploadCommand := &skexec.Command{
 		Name: r.repoToolPath,
 		Args: []string{"upload", fmt.Sprintf("--re=%s", emailStr), "--verify"},
 		Dir:  r.childDir,
@@ -451,7 +451,7 @@ Test: Presubmit checks will test this change.
 		// prompt which shows up when a merge contains more than 5 commits.
 		Stdin: strings.NewReader("yes"),
 	}
-	if _, uploadErr := exec.RunCommand(uploadCommand); uploadErr != nil {
+	if uploadErr := exec.Run(uploadCommand); uploadErr != nil {
 		util.LogErr(r.abandonRepoBranch())
 		return 0, fmt.Errorf("Could not upload to Gerrit: %s", uploadErr)
 	}

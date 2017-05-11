@@ -17,8 +17,8 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	iexec "go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/storage/v1"
@@ -26,6 +26,8 @@ import (
 
 var (
 	bucketName = "skia-push"
+
+	iexec = skexec.NewExec()
 )
 
 func SetBucketName(s string) {

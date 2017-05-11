@@ -7,12 +7,15 @@ import (
 
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/skexec"
 )
 
 const (
 	ROLL_STRATEGY_BATCH  = "batch"
 	ROLL_STRATEGY_SINGLE = "single"
 )
+
+var exec = skexec.NewExec()
 
 // RepoManager is the interface used by different Autoroller implementations
 // to manage checkouts.

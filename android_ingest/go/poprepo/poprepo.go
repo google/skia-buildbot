@@ -5,7 +5,6 @@
 package poprepo
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -14,13 +13,15 @@ import (
 
 	"go.skia.org/infra/go/sklog"
 
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/skexec"
 )
 
 const (
 	BUILDID_FILENAME = "BUILDID"
 )
+
+var exec = skexec.NewExec()
 
 // PopRepoI is the interface that PopRepo supports.
 //
@@ -97,13 +98,11 @@ func (p *PopRepo) Add(buildid int64, ts int64) error {
 	}()
 
 	// Need to set GIT_COMMITTER_DATE with commit call.
-	output := bytes.Buffer{}
-	cmd := exec.Command{
-		Name:           "git",
-		Args:           []string{"commit", "-m", fmt.Sprintf("https://%s.skia.org/r/%d", p.subdomain, buildid), fmt.Sprintf("--date=%d", ts)},
-		Env:            []string{fmt.Sprintf("GIT_COMMITTER_DATE=%d", ts)},
-		Dir:            p.checkout.Dir(),
-		CombinedOutput: &output,
+	cmd := skexec.Command{
+		Name: "git",
+		Args: []string{"commit", "-m", fmt.Sprintf("https://%s.skia.org/r/%d", p.subdomain, buildid), fmt.Sprintf("--date=%d", ts)},
+		Env:  []string{fmt.Sprintf("GIT_COMMITTER_DATE=%d", ts)},
+		Dir:  p.checkout.Dir(),
 	}
 	if !p.local {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("HOME=/home/default"))
@@ -125,11 +124,12 @@ func (p *PopRepo) Add(buildid int64, ts int64) error {
 		rollback = true
 		return fmt.Errorf("Failed to add updated file %q: %s", msg, err)
 	}
-	if err := cmd.Run(); err != nil {
+	output, err := exec.GetOutput(&cmd)
+	if err != nil {
 		rollback = true
-		return fmt.Errorf("Failed to commit updated file %q: %s", output.String(), err)
+		return fmt.Errorf("Failed to commit updated file %q: %s", output, err)
 	}
-	fmt.Printf("git commit: %q", output.String())
+	fmt.Printf("git commit: %q", output)
 	if msg, err := p.checkout.Git("push", "origin", "master"); err != nil {
 		rollback = true
 		return fmt.Errorf("Failed to push updated checkout %q: %s", msg, err)
