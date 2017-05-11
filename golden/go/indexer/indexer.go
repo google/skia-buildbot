@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
@@ -34,12 +35,14 @@ const (
 // considered as immutable. Whenever the underlying data change
 // a new index is calculated via a pdag.
 type SearchIndex struct {
-	tilePair        *types.TilePair
-	tallies         *tally.Tallies
-	summaries       *summary.Summaries
-	paramsetSummary *paramsets.ParamSummary
-	blamer          *blame.Blamer
-	warmer          *warmer.Warmer
+	tilePair             *types.TilePair
+	tallies              *tally.Tallies
+	talliesWithIgnores   *tally.Tallies
+	summaries            *summary.Summaries
+	summariesWithIgnores *summary.Summaries
+	paramsetSummary      *paramsets.ParamSummary
+	blamer               *blame.Blamer
+	warmer               *warmer.Warmer
 
 	// Used by the pdag pipeline.
 	testNames []string
@@ -70,6 +73,11 @@ func (idx *SearchIndex) GetTile(includeIgnores bool) *tiling.Tile {
 // Proxy to tally.Tallies.ByTest
 func (idx *SearchIndex) TalliesByTest() map[string]tally.Tally {
 	return idx.tallies.ByTest()
+}
+
+// Proxy to tally.Tallies.MaxDigestsByTest
+func (idx *SearchIndex) MaxDigestsByTest() map[string]util.StringSet {
+	return idx.tallies.MaxDigestsByTest()
 }
 
 // Proxy to tally.Tallies.ByTrace
@@ -137,18 +145,20 @@ func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
 	// Add the blamer and tallies
 	blamerNode := root.Child(calcBlame)
 	tallyNode := root.Child(calcTallies)
+	tallyIgnoresNode := root.Child(calcTalliesWithIgnores)
 
 	// parameters depend on tallies.
-	tallyNode.Child(calcParamsets)
+	pdag.NewNode(calcParamsets, tallyNode, tallyIgnoresNode)
 
 	// summaries depend on tallies and blamer.
 	summaryNode := pdag.NewNode(calcSummaries, tallyNode, blamerNode)
+	summaryIgnoresNode := pdag.NewNode(calcSummariesWithIgnores, tallyIgnoresNode, blamerNode)
 
-	// The warmer depends on tallies and summaries.
-	pdag.NewNode(runWarmer, summaryNode, tallyNode)
+	// The warmer depends on summaries.
+	pdag.NewNode(runWarmer, summaryNode, summaryIgnoresNode)
 
 	// Set the result on the Indexer instance.
-	pdag.NewNode(ret.setIndex, summaryNode)
+	pdag.NewNode(ret.setIndex, summaryNode, summaryIgnoresNode)
 
 	ret.pipeline = root
 	ret.blamerNode = blamerNode
@@ -261,6 +271,14 @@ func (ixr *Indexer) setIndex(state interface{}) error {
 
 // calcTallies is the pipeline function to calculate the tallies.
 func calcTallies(state interface{}) error {
+	idx := state.(*SearchIndex)
+	idx.tallies.Calculate(idx.tilePair.TileWithIgnores)
+	return nil
+}
+
+// calcTalliesWithIgnores is the pipeline function to calculate the tallies for
+// the tile that includes ignores.
+func calcTalliesWithIgnores(state interface{}) error {
 	idx := state.(*SearchIndex)
 	idx.tallies.Calculate(idx.tilePair.TileWithIgnores)
 	return nil

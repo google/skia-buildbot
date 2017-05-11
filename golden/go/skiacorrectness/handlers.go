@@ -853,7 +853,8 @@ func parseQuery(r *http.Request, query *search.Query) error {
 	validate.StrFormValue(r, "sort", &query.Sort, []string{search.SORT_DESC, search.SORT_ASC}, search.SORT_DESC)
 
 	// Parse and validate the filter values.
-	validate.Int32FormValue(r, "frgbamax", &query.FRGBAMax, -1)
+	validate.Int32FormValue(r, "frgbamin", &query.FRGBAMin, 0)
+	validate.Int32FormValue(r, "frgbamax", &query.FRGBAMax, 255)
 	validate.Float32FormValue(r, "fdiffmax", &query.FDiffMax, -1.0)
 	if err := validate.Errors(); err != nil {
 		return err
