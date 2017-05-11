@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "73e73583_559fa680",
+        "filename": "compute_engine_scripts/swarming_bots/vm_setup_image.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-11T18:51:38Z",
+      "side": 0,
+      "message": "These directories don\u0027t seem to exist anymore.",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 131
+      },
+      "revId": "c6903abdecd7ffc207740b85d80615448e53380f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd183c64_4acd1f19",
+        "filename": "compute_engine_scripts/swarming_bots/vm_setup_image.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-11T18:51:38Z",
+      "side": 0,
+      "message": "I don\u0027t think triple-quote is a thing in bash, and I think the effect is the same as a single quote.",
+      "range": {
+        "startLine": 95,
+        "startChar": 8,
+        "endLine": 95,
+        "endChar": 14
+      },
+      "revId": "c6903abdecd7ffc207740b85d80615448e53380f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
