@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"crypto/md5"
 	"flag"
 	"fmt"
@@ -20,13 +19,12 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/util/limitwriter"
 	"go.skia.org/infra/imageinfo/go/store"
 )
 
@@ -79,6 +77,8 @@ var (
 
 	// imageStore is a wrapper around Google Storage.
 	imageStore *store.Store
+
+	exec = skexec.NewExec()
 )
 
 func loadTemplates() {
@@ -228,17 +228,13 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 	exe := filepath.Join(*workRoot, "versions", current.Hash, "skia", "out", "Release", "colorspaceinfo")
 	resources := filepath.Join(*workRoot, "versions", current.Hash, "skia", "resources")
 
-	// buf is for the stdout/stderr output of running colorspaceinfo.
-	buf := bytes.Buffer{}
-	comb := limitwriter.New(&buf, 64*1024)
-
-	verbosity := exec.Info
+	verbosity := skexec.Info
 	if !*verbose {
-		verbosity = exec.Silent
+		verbosity = skexec.Silent
 	}
 
 	// Run colorspaceinfo.
-	visCmd := &exec.Command{
+	visCmd := &skexec.Command{
 		Name: exe,
 		Args: []string{
 			"--input", filepath.Join(dir, "input"),
@@ -247,16 +243,16 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 			"--sRGB",
 			"--resourcePath", resources,
 		},
-		Dir:            "/tmp",
-		CombinedOutput: comb,
-		InheritPath:    true,
-		LogStderr:      true,
-		LogStdout:      *verbose,
-		Verbose:        verbosity,
+		Dir:         "/tmp",
+		InheritPath: true,
+		LogStderr:   true,
+		LogStdout:   *verbose,
+		Verbose:     verbosity,
 	}
 	sklog.Infof("About to run: %#v", *visCmd)
-	if err := exec.Run(visCmd); err != nil {
-		sklog.Infof("Combined Output %s", buf.String())
+	visOut, err := exec.GetOutput(visCmd)
+	if err != nil {
+		sklog.Infof("Combined Output %s", visOut)
 		httputils.ReportError(w, r, err, "Failed to execute colorspaceinfo.")
 		return
 	}
@@ -274,7 +270,7 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 	cp := &Context{
 		Source: source,
 		Output: key,
-		StdOut: buf.String(),
+		StdOut: visOut,
 	}
 	if err := templates.ExecuteTemplate(w, "info.html", cp); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)

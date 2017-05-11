@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -69,9 +70,9 @@ func NewAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cq
 	var err error
 	var rm repo_manager.RepoManager
 	if rollIntoAndroid {
-		rm, err = repo_manager.NewAndroidRepoManager(workdir, parentBranch, childPath, childBranch, repoFrequency, gerrit)
+		rm, err = repo_manager.NewAndroidRepoManager(workdir, parentBranch, childPath, childBranch, repoFrequency, gerrit, skexec.NewExec())
 	} else {
-		rm, err = repo_manager.NewDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch, repoFrequency, depot_tools, gerrit)
+		rm, err = repo_manager.NewDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch, repoFrequency, depot_tools, gerrit, skexec.NewExec())
 	}
 	if err != nil {
 		return nil, err

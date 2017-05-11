@@ -20,11 +20,11 @@ import (
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -34,6 +34,8 @@ import (
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
+
+var exec = skexec.NewExec()
 
 func assertNoError(err error) {
 	if err != nil {
@@ -70,13 +72,13 @@ func makeBot(id string, dims map[string]string) *swarming_api.SwarmingRpcsBotInf
 var commitDate = time.Unix(1472647568, 0)
 
 func commit(repoDir, message string) {
-	assertNoError(exec.Run(&exec.Command{
+	assertNoError(exec.Run(&skexec.Command{
 		Name:        "git",
 		Args:        []string{"commit", "-m", message},
 		Env:         []string{fmt.Sprintf("GIT_AUTHOR_DATE=%d +0000", commitDate.Unix()), fmt.Sprintf("GIT_COMMITTER_DATE=%d +0000", commitDate.Unix())},
 		InheritPath: true,
 		Dir:         repoDir,
-		Verbose:     exec.Silent,
+		Verbose:     skexec.Silent,
 	}))
 	commitDate = commitDate.Add(10 * time.Second)
 }

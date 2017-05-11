@@ -13,9 +13,9 @@ import (
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/autoroll"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/util"
 )
 
@@ -31,7 +31,7 @@ const (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewDEPSRepoManager func(string, string, string, string, string, time.Duration, string, *gerrit.Gerrit) (RepoManager, error) = newDEPSRepoManager
+	NewDEPSRepoManager func(string, string, string, string, string, time.Duration, string, *gerrit.Gerrit, *skexec.Exec) (RepoManager, error) = newDEPSRepoManager
 
 	DEPOT_TOOLS_AUTH_USER_REGEX = regexp.MustCompile(fmt.Sprintf("Logged in to %s as ([\\w-]+).", autoroll.RIETVELD_URL))
 )
@@ -63,7 +63,7 @@ func getEnv(depotTools string) []string {
 
 // newDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, frequency time.Duration, depot_tools string, g *gerrit.Gerrit) (RepoManager, error) {
+func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, frequency time.Duration, depot_tools string, g *gerrit.Gerrit, exec *skexec.Exec) (RepoManager, error) {
 	gclient := GCLIENT
 	rollDep := ROLL_DEP
 	if depot_tools != "" {
@@ -91,6 +91,7 @@ func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranc
 			user:         user,
 			workdir:      wd,
 			g:            g,
+			exec:         exec,
 		},
 		depot_tools: depot_tools,
 		gclient:     gclient,
@@ -111,15 +112,15 @@ func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranc
 
 // cleanParent forces the parent checkout into a clean state.
 func (dr *depsRepoManager) cleanParent() error {
-	if _, err := exec.RunCwd(dr.parentDir, "git", "clean", "-d", "-f", "-f"); err != nil {
+	if _, err := dr.exec.RunCwd(dr.parentDir, "git", "clean", "-d", "-f", "-f"); err != nil {
 		return err
 	}
-	_, _ = exec.RunCwd(dr.parentDir, "git", "rebase", "--abort")
-	if _, err := exec.RunCwd(dr.parentDir, "git", "checkout", fmt.Sprintf("origin/%s", dr.parentBranch), "-f"); err != nil {
+	_, _ = dr.exec.RunCwd(dr.parentDir, "git", "rebase", "--abort")
+	if _, err := dr.exec.RunCwd(dr.parentDir, "git", "checkout", fmt.Sprintf("origin/%s", dr.parentBranch), "-f"); err != nil {
 		return err
 	}
-	_, _ = exec.RunCwd(dr.parentDir, "git", "branch", "-D", DEPS_ROLL_BRANCH)
-	if _, err := exec.RunCommand(&exec.Command{
+	_, _ = dr.exec.RunCwd(dr.parentDir, "git", "branch", "-D", DEPS_ROLL_BRANCH)
+	if err := dr.exec.Run(&skexec.Command{
 		Dir:  dr.workdir,
 		Env:  getEnv(dr.depot_tools),
 		Name: dr.gclient,
@@ -148,15 +149,15 @@ func (dr *depsRepoManager) update() error {
 			return err
 		}
 		// Update the repo.
-		if _, err := exec.RunCwd(dr.parentDir, "git", "fetch"); err != nil {
+		if _, err := dr.exec.RunCwd(dr.parentDir, "git", "fetch"); err != nil {
 			return err
 		}
-		if _, err := exec.RunCwd(dr.parentDir, "git", "reset", "--hard", fmt.Sprintf("origin/%s", dr.parentBranch)); err != nil {
+		if _, err := dr.exec.RunCwd(dr.parentDir, "git", "reset", "--hard", fmt.Sprintf("origin/%s", dr.parentBranch)); err != nil {
 			return err
 		}
 	}
 
-	if _, err := exec.RunCommand(&exec.Command{
+	if err := dr.exec.Run(&skexec.Command{
 		Dir:  dr.workdir,
 		Env:  getEnv(dr.depot_tools),
 		Name: dr.gclient,
@@ -164,7 +165,7 @@ func (dr *depsRepoManager) update() error {
 	}); err != nil {
 		return err
 	}
-	if _, err := exec.RunCommand(&exec.Command{
+	if err := dr.exec.Run(&skexec.Command{
 		Dir:  dr.workdir,
 		Env:  getEnv(dr.depot_tools),
 		Name: dr.gclient,
@@ -203,7 +204,7 @@ func (dr *depsRepoManager) ForceUpdate() error {
 
 // getLastRollRev returns the commit hash of the last-completed DEPS roll.
 func (dr *depsRepoManager) getLastRollRev() (string, error) {
-	output, err := exec.RunCwd(dr.parentDir, dr.gclient, "revinfo")
+	output, err := dr.exec.RunCwd(dr.parentDir, dr.gclient, "revinfo")
 	if err != nil {
 		return "", err
 	}
@@ -230,7 +231,7 @@ func (dr *depsRepoManager) CreateNewRoll(strategy string, emails []string, cqExt
 	if err := dr.cleanParent(); err != nil {
 		return 0, err
 	}
-	if _, err := exec.RunCwd(dr.parentDir, "git", "checkout", "-b", DEPS_ROLL_BRANCH, "-t", fmt.Sprintf("origin/%s", dr.parentBranch), "-f"); err != nil {
+	if _, err := dr.exec.RunCwd(dr.parentDir, "git", "checkout", "-b", DEPS_ROLL_BRANCH, "-t", fmt.Sprintf("origin/%s", dr.parentBranch), "-f"); err != nil {
 		return 0, err
 	}
 
@@ -253,10 +254,10 @@ func (dr *depsRepoManager) CreateNewRoll(strategy string, emails []string, cqExt
 		commits = commits[len(commits)-1:]
 	}
 
-	if _, err := exec.RunCwd(dr.parentDir, "git", "config", "user.name", dr.user); err != nil {
+	if _, err := dr.exec.RunCwd(dr.parentDir, "git", "config", "user.name", dr.user); err != nil {
 		return 0, err
 	}
-	if _, err := exec.RunCwd(dr.parentDir, "git", "config", "user.email", dr.user); err != nil {
+	if _, err := dr.exec.RunCwd(dr.parentDir, "git", "config", "user.email", dr.user); err != nil {
 		return 0, err
 	}
 
@@ -279,7 +280,7 @@ func (dr *depsRepoManager) CreateNewRoll(strategy string, emails []string, cqExt
 		args = append(args, "--bug", strings.Join(bugs, ","))
 	}
 	sklog.Infof("Running command: roll-dep %s", strings.Join(args, " "))
-	if _, err := exec.RunCommand(&exec.Command{
+	if err := dr.exec.Run(&skexec.Command{
 		Dir:  dr.parentDir,
 		Env:  getEnv(dr.depot_tools),
 		Name: dr.rollDep,
@@ -288,7 +289,7 @@ func (dr *depsRepoManager) CreateNewRoll(strategy string, emails []string, cqExt
 		return 0, err
 	}
 	// Build the commit message, starting with the message provided by roll-dep.
-	commitMsg, err := exec.RunCwd(dr.parentDir, "git", "log", "-n1", "--format=%B", "HEAD")
+	commitMsg, err := dr.exec.RunCwd(dr.parentDir, "git", "log", "-n1", "--format=%B", "HEAD")
 	if err != nil {
 		return 0, err
 	}
@@ -303,30 +304,30 @@ http://www.chromium.org/developers/tree-sheriffs/sheriff-details-chromium#TOC-Fa
 	if cqExtraTrybots != "" {
 		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
 	}
-	uploadCmd := &exec.Command{
+	uploadCmd := &skexec.Command{
 		Dir:  dr.parentDir,
 		Env:  getEnv(dr.depot_tools),
 		Name: "git",
 		Args: []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
 	}
 	if dryRun {
-		uploadCmd.Args = append(uploadCmd.Args, "--cq-dry-run")
+		uploadCmd.Append("--cq-dry-run")
 	} else {
-		uploadCmd.Args = append(uploadCmd.Args, "--use-commit-queue")
+		uploadCmd.Append("--use-commit-queue")
 	}
-	uploadCmd.Args = append(uploadCmd.Args, "--gerrit")
+	uploadCmd.Append("--gerrit")
 	tbr := "\nTBR="
 	if emails != nil && len(emails) > 0 {
 		emailStr := strings.Join(emails, ",")
 		tbr += emailStr
-		uploadCmd.Args = append(uploadCmd.Args, "--send-mail", "--cc", emailStr)
+		uploadCmd.Append("--send-mail", "--cc", emailStr)
 	}
 	commitMsg += tbr
-	uploadCmd.Args = append(uploadCmd.Args, "-m", commitMsg)
+	uploadCmd.Append("-m", commitMsg)
 
 	// Upload the CL.
 	sklog.Infof("Running command: git %s", strings.Join(uploadCmd.Args, " "))
-	if _, err := exec.RunCommand(uploadCmd); err != nil {
+	if err := dr.exec.Run(uploadCmd); err != nil {
 		return 0, err
 	}
 
@@ -337,7 +338,7 @@ http://www.chromium.org/developers/tree-sheriffs/sheriff-details-chromium#TOC-Fa
 	}
 	defer util.RemoveAll(tmp)
 	jsonFile := path.Join(tmp, "issue.json")
-	if _, err := exec.RunCommand(&exec.Command{
+	if err := dr.exec.Run(&skexec.Command{
 		Dir:  dr.parentDir,
 		Env:  getEnv(dr.depot_tools),
 		Name: "git",

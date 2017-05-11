@@ -3,13 +3,13 @@ package repo_manager
 import (
 	"fmt"
 	"io/ioutil"
-	"strings"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/skexec"
+	"go.skia.org/infra/go/skexec/skexec_testutils"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -29,34 +29,21 @@ var (
 func setupAndroid(t *testing.T) (string, func()) {
 	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	mockRun := exec.CommandCollector{}
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
-		if strings.Contains(cmd.Name, "repo") {
-			return nil
-		}
-		if cmd.Name == "git" {
-			var output string
-			if cmd.Args[0] == "log" {
-				if cmd.Args[1] == "--format=format:%H%x20%ci" {
-					output = fmt.Sprintf("%s 2017-03-29 18:29:22 +0000\n%s 2017-03-29 18:29:22 +0000", childCommits[0], childCommits[1])
-				}
-			} else if cmd.Args[0] == "ls-remote" {
-				output = childCommits[0]
-			} else if cmd.Args[0] == "merge-base" {
-				output = childCommits[1]
-			}
-			n, err := cmd.CombinedOutput.Write([]byte(output))
-			assert.NoError(t, err)
-			assert.Equal(t, len(output), n)
-		}
-		return nil
-	})
-	exec.SetRunForTesting(mockRun.Run)
 	cleanup := func() {
-		exec.SetRunForTesting(exec.DefaultRun)
 		testutils.RemoveAll(t, wd)
 	}
 	return wd, cleanup
+}
+
+func mockExecAndroid(t *testing.T) *skexec.Exec {
+	mock := skexec_testutils.Mock{}
+	mock.AddRule("[^ ]*/repo ", "", nil)
+	mock.AddRule("^git log --format=format:%H%x20%ci", fmt.Sprintf("%s 2017-03-29 18:29:22 +0000\n%s 2017-03-29 18:29:22 +0000", childCommits[0], childCommits[1]), nil)
+	mock.AddRule("^git ls-remote", childCommits[0], nil)
+	mock.AddRule("^git merge-base", childCommits[1], nil)
+	exec := skexec.NewExec()
+	exec.SetRun(mock.Run)
+	return exec
 }
 
 // TestAndroidRepoManager tests all aspects of the RepoManager except for CreateNewRoll.
@@ -66,7 +53,7 @@ func TestAndroidRepoManager(t *testing.T) {
 	defer cleanup()
 	g, err := gerrit.NewGerrit(mockAndroidServer, "", nil)
 	assert.NoError(t, err)
-	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", 24*time.Hour, g)
+	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", 24*time.Hour, g, mockExecAndroid(t))
 	assert.NoError(t, err)
 
 	assert.Equal(t, fmt.Sprintf("%s/android_repo/%s", wd, childPath), rm.(*androidRepoManager).childDir)
@@ -83,7 +70,7 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	defer cleanup()
 
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", 24*time.Hour, g)
+	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", 24*time.Hour, g, mockExecAndroid(t))
 	assert.NoError(t, err)
 
 	issue, err := rm.CreateNewRoll(ROLL_STRATEGY_BATCH, androidEmails, "", false)

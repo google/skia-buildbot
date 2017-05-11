@@ -12,10 +12,12 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/git_common"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/vcsinfo"
 )
+
+var exec = skexec.NewExec()
 
 // Branch describes a Git branch.
 type Branch struct {
@@ -176,7 +178,7 @@ func (g GitDir) IsAncestor(a, b string) (bool, error) {
 
 // Version returns the Git version.
 func (g GitDir) Version() (int, int, error) {
-	return git_common.Version()
+	return git_common.Version(exec)
 }
 
 // FullHash gives the full commit hash for the given ref.

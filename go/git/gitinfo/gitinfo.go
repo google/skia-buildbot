@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
@@ -22,6 +22,12 @@ import (
 // commitLineRe matches one line of commit log and captures hash, author and
 // subject groups.
 var commitLineRe = regexp.MustCompile(`([0-9a-f]{40}),([^,\n]+),(.+)$`)
+
+var (
+	exec = skexec.NewExec()
+	// Some tests expect to mock the Exec used by GitInfo.
+	ExecForTestsOnly *skexec.Exec = exec
+)
 
 // GitInfo allows querying a Git repo.
 type GitInfo struct {

@@ -2,7 +2,7 @@
 package buildskia
 
 import (
-	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -14,12 +14,11 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/util/limitwriter"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -40,6 +39,7 @@ const (
 
 var (
 	skiaRevRegex = regexp.MustCompile(".*'skia_revision': '(?P<revision>[0-9a-fA-F]{2,40})'.*")
+	exec         = skexec.NewExec()
 )
 
 const (
@@ -196,7 +196,7 @@ func DownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, inst
 
 	env := []string{"PATH=" + depotToolsPath + ":" + os.Getenv("PATH")}
 	if installDeps {
-		depsCmd := &exec.Command{
+		depsCmd := &skexec.Command{
 			Name:        "sudo",
 			Args:        []string{"tools/install_dependencies.sh"},
 			Dir:         path,
@@ -211,7 +211,7 @@ func DownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, inst
 		}
 	}
 
-	syncCmd := &exec.Command{
+	syncCmd := &skexec.Command{
 		Name:        "bin/sync-and-gyp",
 		Dir:         path,
 		InheritPath: false,
@@ -256,7 +256,7 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 	}
 
 	env := []string{"PATH=" + depotToolsPath + ":" + os.Getenv("PATH")}
-	fetchCmd := &exec.Command{
+	fetchCmd := &skexec.Command{
 		Name:        filepath.Join(depotToolsPath, "fetch"),
 		Args:        []string{"skia"},
 		Dir:         path,
@@ -282,7 +282,7 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 	}
 
 	if installDeps {
-		depsCmd := &exec.Command{
+		depsCmd := &skexec.Command{
 			Name:        "sudo",
 			Args:        []string{"tools/install_dependencies.sh"},
 			Dir:         repoPath,
@@ -297,7 +297,7 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 		}
 	}
 
-	syncCmd := &exec.Command{
+	syncCmd := &skexec.Command{
 		Name:        filepath.Join(depotToolsPath, "gclient"),
 		Args:        []string{"sync"},
 		Dir:         path,
@@ -311,7 +311,7 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 		return nil, fmt.Errorf("Failed syncing: %s", err)
 	}
 
-	fetchGn := &exec.Command{
+	fetchGn := &skexec.Command{
 		Name:        filepath.Join(repoPath, "bin", "fetch-gn"),
 		Args:        []string{},
 		Dir:         repoPath,
@@ -343,7 +343,7 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 //
 // The results of the build are stored in path/skia/out/<outSubDir>.
 func GNGen(path, depotTools, outSubDir string, args []string) error {
-	genCmd := &exec.Command{
+	genCmd := &skexec.Command{
 		Name:        filepath.Join(depotTools, "gn"),
 		Args:        []string{"gen", filepath.Join("out", outSubDir), fmt.Sprintf(`--args=%s`, strings.Join(args, " "))},
 		Dir:         filepath.Join(path, "skia"),
@@ -376,24 +376,22 @@ func GNNinjaBuild(path, depotToolsPath, outSubDir, target string, verbose bool) 
 	if target != "" {
 		args = append(args, target)
 	}
-	buf := bytes.Buffer{}
-	output := limitwriter.New(&buf, 64*1024)
-	buildCmd := &exec.Command{
-		Name:           filepath.Join(depotToolsPath, "ninja"),
-		Args:           args,
-		Dir:            filepath.Join(path, "skia"),
-		InheritPath:    false,
-		Env:            []string{"PATH=" + depotToolsPath + ":" + os.Getenv("PATH")},
-		CombinedOutput: output,
-		LogStderr:      true,
-		LogStdout:      verbose,
+	buildCmd := &skexec.Command{
+		Name:        filepath.Join(depotToolsPath, "ninja"),
+		Args:        args,
+		Dir:         filepath.Join(path, "skia"),
+		InheritPath: false,
+		Env:         []string{"PATH=" + depotToolsPath + ":" + os.Getenv("PATH")},
+		LogStderr:   true,
+		LogStdout:   verbose,
 	}
 	sklog.Infof("About to run: %#v", *buildCmd)
 
-	if err := exec.Run(buildCmd); err != nil {
-		return buf.String(), fmt.Errorf("Failed compile: %s", err)
+	out, err := exec.GetOutput(buildCmd)
+	if err != nil {
+		return out, fmt.Errorf("Failed compile: %s", err)
 	}
-	return buf.String(), nil
+	return out, nil
 }
 
 // NinjaBuild builds the given target using ninja.
@@ -407,7 +405,7 @@ func GNNinjaBuild(path, depotToolsPath, outSubDir, target string, verbose bool) 
 //
 // Returns an error on failure.
 func NinjaBuild(skiaPath, depotToolsPath string, extraEnv []string, build ReleaseType, target string, numCores int, verbose bool) error {
-	buildCmd := &exec.Command{
+	buildCmd := &skexec.Command{
 		Name:        filepath.Join(depotToolsPath, "ninja"),
 		Args:        []string{"-C", "out/" + string(build), "-j", fmt.Sprintf("%d", numCores), target},
 		Dir:         skiaPath,
@@ -437,7 +435,7 @@ func CMakeBuild(path, depotTools string, build ReleaseType) error {
 	if build == "" {
 		build = "Release"
 	}
-	buildCmd := &exec.Command{
+	buildCmd := &skexec.Command{
 		Name:        filepath.Join(path, "cmake", "cmake_build"),
 		Dir:         filepath.Join(path, "cmake"),
 		InheritPath: false,
@@ -500,24 +498,24 @@ func CMakeCompileAndLink(path, out string, filenames []string, extraIncludeDirs 
 			args = append(args, fl)
 		}
 	}
-	buf := bytes.Buffer{}
-	output := limitwriter.New(&buf, 64*1024)
-	compileCmd := &exec.Command{
-		Name:           "c++",
-		Args:           args,
-		Dir:            path,
-		InheritPath:    true,
-		CombinedOutput: output,
-		Timeout:        10 * time.Second,
-		LogStderr:      true,
-		LogStdout:      true,
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	compileCmd := &skexec.Command{
+		Name:        "c++",
+		Args:        args,
+		Dir:         path,
+		InheritPath: true,
+		Context:     ctx,
+		LogStderr:   true,
+		LogStdout:   true,
 	}
 	sklog.Infof("About to run: %#v", *compileCmd)
 
-	if err := exec.Run(compileCmd); err != nil {
-		return buf.String(), fmt.Errorf("Failed compile: %s", err)
+	out, err := exec.GetOutput(compileCmd)
+	if err != nil {
+		return out, fmt.Errorf("Failed compile: %s", err)
 	}
-	return buf.String(), nil
+	return out, nil
 }
 
 // CMakeCompile will compile the given files into an executable.
@@ -552,7 +550,7 @@ func CMakeCompile(path, out string, filenames []string, extraIncludeDirs []strin
 	for _, s := range moreArgs {
 		args = append(args, s)
 	}
-	compileCmd := &exec.Command{
+	compileCmd := &skexec.Command{
 		Name:        "c++",
 		Args:        args,
 		Dir:         path,

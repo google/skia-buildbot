@@ -12,8 +12,8 @@ import (
 	"strconv"
 	"strings"
 
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/util"
 
 	"cloud.google.com/go/storage"
@@ -38,6 +38,8 @@ var (
 
 	isolatedHashRegexpPattern = fmt.Sprintf("^([a-f0-9]{40})\\s+.*(%s)\\.isolated$", fmt.Sprintf(TASK_ID_TMPL, "\\d+"))
 	isolatedHashRegexp        = regexp.MustCompile(isolatedHashRegexpPattern)
+
+	exec = skexec.NewExec()
 )
 
 // Client is a Skia-specific wrapper around the Isolate executable.

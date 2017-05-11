@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -20,7 +21,6 @@ import (
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -234,13 +234,13 @@ func runChromiumPerf() error {
 
 				mutex.RLock()
 				noPatchErr := util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDirNoPatch, *chromiumBuildNoPatch, chromiumBinaryNoPatch, runIDNoPatch, *browserExtraArgsNoPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark)
-				if noPatchErr != nil && exec.IsTimeout(noPatchErr) {
+				if noPatchErr != nil && noPatchErr == context.DeadlineExceeded {
 					timeoutTracker.Increment()
 				} else {
 					timeoutTracker.Reset()
 				}
 				withPatchErr := util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDirWithPatch, *chromiumBuildWithPatch, chromiumBinaryWithPatch, runIDWithPatch, *browserExtraArgsWithPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark)
-				if withPatchErr != nil && exec.IsTimeout(withPatchErr) {
+				if withPatchErr != nil && withPatchErr == context.DeadlineExceeded {
 					timeoutTracker.Increment()
 				} else {
 					timeoutTracker.Reset()

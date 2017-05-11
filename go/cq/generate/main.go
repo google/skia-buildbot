@@ -6,8 +6,8 @@ import (
 	"path"
 
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -51,7 +51,7 @@ func main() {
 	defer util.Remove(dst)
 
 	// Regenerate project_cfg.pb.go from the .proto file.
-	if output, err := exec.RunCwd(cqDir, "protoc", "--go_out=plugins=grpc:.", dst, "--proto_path", cqDir); err != nil {
+	if output, err := skexec.NewExec().RunCwd(cqDir, "protoc", "--go_out=plugins=grpc:.", dst, "--proto_path", cqDir); err != nil {
 		sklog.Fatalf("Error: %s\n\n%s", err, output)
 	}
 }

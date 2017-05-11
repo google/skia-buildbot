@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -426,7 +427,7 @@ func setup(t *testing.T, strategy string) (string, *AutoRoller, *mockRepoManager
 	}
 
 	rm := &mockRepoManager{t: t}
-	repo_manager.NewDEPSRepoManager = func(workdir, parentRepo, parentBranch, childPath, childBranch string, frequency time.Duration, depot_tools string, g *gerrit.Gerrit) (repo_manager.RepoManager, error) {
+	repo_manager.NewDEPSRepoManager = func(workdir, parentRepo, parentBranch, childPath, childBranch string, frequency time.Duration, depot_tools string, g *gerrit.Gerrit, exec *skexec.Exec) (repo_manager.RepoManager, error) {
 		return rm, nil
 	}
 

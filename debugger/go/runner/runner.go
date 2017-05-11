@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
+
+var exec = skexec.NewExec()
 
 // GetCurrentGitHash is a function that returns the current Git hash that
 // skiaserve was built at, usually provided by buildskia.ContinuousBuilder.
@@ -67,7 +69,7 @@ func (c *Runner) Start(port int) error {
 		name = skiaserve
 		args = []string{"--port", fmt.Sprintf("%d", port), "--source", "", "--hosted"}
 	}
-	runCmd := &exec.Command{
+	runCmd := &skexec.Command{
 		Name:      name,
 		Args:      args,
 		LogStderr: true,
