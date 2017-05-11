@@ -48,6 +48,75 @@
     },
     {
       "key": {
+        "uuid": "d8343429_ae97fa96",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-11T15:14:52Z",
+      "side": 1,
+      "message": "Should we consider making constants somewhere for the swarming API or does the swarming package define any ?",
+      "range": {
+        "startLine": 54,
+        "startChar": 27,
+        "endLine": 54,
+        "endChar": 38
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fcf674c6_37e3c2c3",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-11T15:14:52Z",
+      "side": 1,
+      "message": "Please break this out into a function variable. i.e. \nfn :\u003d func(ev []*.......) {\n   ...\n}\n\nreturn s.DynamicMetric(tags, period, fn)",
+      "range": {
+        "startLine": 99,
+        "startChar": 38,
+        "endLine": 99,
+        "endChar": 101
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f598266a_8a7d0a3d",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-11T15:14:52Z",
+      "side": 1,
+      "message": "Please break out as a function variable. Similar to above. \nSame applies to the functions below.",
+      "range": {
+        "startLine": 158,
+        "startChar": 45,
+        "endLine": 158,
+        "endChar": 113
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1d7d04b4_64cf1099",
         "filename": "go/metrics2/events/events.go",
         "patchSetId": 2
@@ -110,6 +179,29 @@
         "startChar": 1,
         "endLine": 81,
         "endChar": 0
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b9b83dd_397a6805",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-11T15:14:52Z",
+      "side": 1,
+      "message": "Nit: It seems that dynamicMetricsCache is not as much a cache (that contains a subset of the metrics in use) but a comprehensive list of the current metrics. If that\u0027s true that name should probably reflect that.\nIf the program were to end and v.Delete() wasn\u0027t called for all metrics, would that cause resource leakage anywhere ?",
+      "range": {
+        "startLine": 298,
+        "startChar": 19,
+        "endLine": 298,
+        "endChar": 40
       },
       "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
