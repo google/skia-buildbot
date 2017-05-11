@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "53c08e5a_c41a6f03",
+        "filename": "compute_engine_scripts/swarming_bots/vm_setup_image.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-11T19:09:32Z",
+      "side": 0,
+      "message": "Ack",
+      "parentUuid": "73e73583_559fa680",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 131
+      },
+      "revId": "c6903abdecd7ffc207740b85d80615448e53380f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cd183c64_4acd1f19",
         "filename": "compute_engine_scripts/swarming_bots/vm_setup_image.sh",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "c6903abdecd7ffc207740b85d80615448e53380f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e39cf87d_dd133504",
+        "filename": "compute_engine_scripts/swarming_bots/vm_setup_image.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-11T19:09:32Z",
+      "side": 0,
+      "message": "Honestly, I think all the CheckoutWhatever stuff can go away.",
+      "parentUuid": "cd183c64_4acd1f19",
+      "range": {
+        "startLine": 95,
+        "startChar": 8,
+        "endLine": 95,
+        "endChar": 14
+      },
+      "revId": "c6903abdecd7ffc207740b85d80615448e53380f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
