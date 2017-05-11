@@ -8,6 +8,7 @@
 
   Attributes:
     name - The name/fiddlehash of the fiddle.
+    gpu  - If true then use the GPU image/webm output instead of the CPU output. Defaults to false.
 
   Events:
     None.
@@ -40,7 +41,9 @@
       fiddlehash="[[context.fiddlehash]]"
       sources="[[context.sources]]"
       textonly="[[context.options.textOnly]]"
+      animated="[[context.options.animated]]"
       domain="https://fiddle.skia.org"
+      gpu_embedded="[[gpu]]"
       >
       <textarea-numbers-sk id=numbers>
         <textarea spellcheck="false" rows="15" cols="100">[[context.code]]</textarea>
@@ -65,7 +68,12 @@
       context: {
         type: Object,
         value: function() { return {}; },
-      }
+      },
+      gpu: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true,
+      },
     },
 
     _nameChange: function() {

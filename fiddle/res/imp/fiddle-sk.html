@@ -227,7 +227,6 @@ sk_sp&lt;SkImage> image;</pre>
           <button class=save on-tap="_submit_name" disabled="{{_isEmpty(_name)}}">Save</button>
         </div>
       </template>
-
     </div>
     <div on-tap="_errSelect">
       <template is="dom-if" if="{{_hasCompileErrors(_compile_errors)}}">
@@ -241,30 +240,33 @@ sk_sp&lt;SkImage> image;</pre>
       <h2>Runtime Errors</h2>
       <div>{{_runtime_error}}</div>
     </template>
+                                                                                   <!-- Remove textonly -->
     <template is="dom-if" if="{{_hasImages(fiddlehash, _compile_errors, _runtime_error, textonly)}}">
       <div id=results class="horizontal layout">
 
-        <template is="dom-if" if="{{_not(animated)}}">
-          <div class="vertical layout center-justified">
-            <img src="[[domain]]/i/{{fiddlehash}}_raster.png" width="{{width}}" height="{{height}}">
-            <template is="dom-if" if="{{embed_button}}">
-              <p>
-                CPU
-                <a href="https://imageinfo.skia.org/info?url=https://fiddle.skia.org/i/{{fiddlehash}}_raster.png"
-                  title="Inspect the image in https://imageinfo.skia.org."
-                  target=_blank ><iron-icon icon="pageview"></iron-icon></a>
-              </p>
-            </template>
-          </div>
-        </template>
-        <template is="dom-if" if="{{animated}}">
-          <div class="vertical layout center-justified">
-            <video on-ended="_playEnded" autoplay loop="[[loop]]" src="[[domain]]/i/{{fiddlehash}}_cpu.webm" width="{{width}}" height="{{height}}"></video>
-            <p>CPU</p>
-          </div>
+        <template is="dom-if" if="{{_showCpu(gpu_embedded,embed_button)}}">
+          <template is="dom-if" if="{{_not(animated)}}">
+            <div class="vertical layout center-justified">
+              <img src="[[domain]]/i/{{fiddlehash}}_raster.png" width="{{width}}" height="{{height}}">
+              <template is="dom-if" if="{{embed_button}}">
+                <p>
+                  CPU
+                  <a href="https://imageinfo.skia.org/info?url=https://fiddle.skia.org/i/{{fiddlehash}}_raster.png"
+                    title="Inspect the image in https://imageinfo.skia.org."
+                    target=_blank ><iron-icon icon="pageview"></iron-icon></a>
+                </p>
+              </template>
+            </div>
+          </template>
+          <template is="dom-if" if="{{animated}}">
+            <div class="vertical layout center-justified">
+              <video on-ended="_playEnded" autoplay loop="[[loop]]" src="[[domain]]/i/{{fiddlehash}}_cpu.webm" width="{{width}}" height="{{height}}"></video>
+              <p>CPU</p>
+            </div>
+          </template>
         </template>
 
-        <template is="dom-if" if="{{embed_button}}">
+        <template is="dom-if" if="{{_showGpu(gpu_embedded,embed_button)}}">
           <template is="dom-if" if="{{_not(animated)}}">
             <div class="vertical layout center-justified">
               <img src="[[domain]]/i/{{fiddlehash}}_gpu.png" width="{{width}}" height="{{height}}">
@@ -277,15 +279,6 @@ sk_sp&lt;SkImage> image;</pre>
                   <iron-icon icon="pageview"></iron-icon></a>
               </p>
             </div>
-            <div class="vertical layout center">
-              <a href="[[domain]]/i/{{fiddlehash}}.pdf">PDF</a>
-            </div>
-            <div class="vertical layout center">
-              <a href="[[domain]]/i/{{fiddlehash}}.skp">SKP</a>
-            </div>
-            <div class="vertical layout center" hidden$={{_not_logged_in}} >
-              <a href="https://debugger.skia.org/loadfrom?url=https://fiddle.skia.org/i/{{fiddlehash}}.skp">Debug</a>
-            </div>
           </template>
           <template is="dom-if" if="{{animated}}">
             <div class="vertical layout center-justified">
@@ -295,6 +288,18 @@ sk_sp&lt;SkImage> image;</pre>
               </p>
             </div>
           </template>
+        </template>
+
+        <template is="dom-if" if="{{_not(animated)}}">
+          <div class="vertical layout center">
+            <a href="[[domain]]/i/{{fiddlehash}}.pdf">PDF</a>
+          </div>
+          <div class="vertical layout center">
+            <a href="[[domain]]/i/{{fiddlehash}}.skp">SKP</a>
+          </div>
+          <div class="vertical layout center" hidden$={{_not_logged_in}} >
+            <a href="https://debugger.skia.org/loadfrom?url=https://fiddle.skia.org/i/{{fiddlehash}}.skp">Debug</a>
+          </div>
         </template>
       </div>
       <template is="dom-if" if="{{animated}}">
@@ -408,6 +413,11 @@ sk_sp&lt;SkImage> image;</pre>
       loop: {
         type: Boolean,
         value: true,
+        reflectToAttribute: true,
+      },
+      gpu_embedded: {
+        type: Boolean,
+        value: false,
         reflectToAttribute: true,
       },
       _compile_errors: {
@@ -562,7 +572,16 @@ sk_sp&lt;SkImage> image;</pre>
         return "";
       }
       return domain + "/i/" + fiddlehash + ".txt";
-    }
+    },
+
+    _showCpu: function(gpu_embedded, embed_button) {
+      return embed_button || !gpu_embedded;
+    },
+
+    _showGpu: function(gpu_embedded, embed_button) {
+      return embed_button || gpu_embedded;
+    },
+
 
   });
 </script>
