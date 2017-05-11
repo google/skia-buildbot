@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb93ac21_63371090",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-11T14:06:02Z",
+      "side": 1,
+      "message": "Nit: Should be updated.",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 60
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6950dc36_82da08e1",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-11T14:06:02Z",
+      "side": 1,
+      "message": "Can you add tests to this package ?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 24
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d7d04b4_64cf1099",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-11T14:06:02Z",
+      "side": 1,
+      "message": "These constants need a description of what they are used for ?\nThis also applies to the other constants in this package.",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 11
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f19c367_a9eba42f",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-11T14:06:02Z",
+      "side": 1,
+      "message": "What\u0027s the difference between a metric and a dynamicMetric ?",
+      "range": {
+        "startLine": 75,
+        "startChar": 0,
+        "endLine": 75,
+        "endChar": 4
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab6b0a9c_0e7b555a",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-11T14:06:02Z",
+      "side": 1,
+      "message": "Can you add tests for dynamicMetric ?",
+      "range": {
+        "startLine": 81,
+        "startChar": 1,
+        "endLine": 81,
+        "endChar": 0
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
