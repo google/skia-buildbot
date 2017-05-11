@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
@@ -70,6 +71,11 @@ func (idx *SearchIndex) GetTile(includeIgnores bool) *tiling.Tile {
 // Proxy to tally.Tallies.ByTest
 func (idx *SearchIndex) TalliesByTest() map[string]tally.Tally {
 	return idx.tallies.ByTest()
+}
+
+// Proxy to tally.Tallies.MaxDigestsByTest
+func (idx *SearchIndex) MaxDigestsByTest() map[string]util.StringSet {
+	return idx.tallies.MaxDigestsByTest()
 }
 
 // Proxy to tally.Tallies.ByTrace

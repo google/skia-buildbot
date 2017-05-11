@@ -79,10 +79,16 @@
             </paper-dropdown-menu>
           </div>
 
+          <!-- min RGBA delta  -->
+          <div class="filterItem">
+            <div class="sliderHeader">Min RGBA Delta</div>
+            <paper-slider value="{{_curr.frgbamin}}" min="0" max="255" editable></paper-slider>
+          </div>
+
           <!-- max RGBA delta  -->
           <div class="filterItem">
             <div class="sliderHeader">Max RGBA Delta</div>
-            <paper-slider value="{{_curr.frgbamax}}" min="-1" max="255" editable></paper-slider>
+            <paper-slider value="{{_curr.frgbamax}}" min="0" max="255" editable></paper-slider>
           </div>
 
           <!-- Max Diff -->
@@ -134,6 +140,7 @@
       var filterFields = [
         "metric",
         "match",
+        "frgbamin",
         "frgbamax",
         "fdiffmax",
         "fgrouptest",
