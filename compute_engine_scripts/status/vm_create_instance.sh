@@ -72,7 +72,8 @@ echo
 
 echo
 echo "===== Fix ~/.config permissions ====="
-  gcloud compute --project $PROJECT_ID ssh $PROJECT_USER@$INSTANCE_NAME --zone $ZONE "sudo chmod 755 ~/.config"
+gcloud compute --project $PROJECT_ID ssh $PROJECT_USER@$INSTANCE_NAME --zone $ZONE \
+  --command "sudo chmod 755 ~/.config"
 echo
 
 # The instance believes it is skia-systemd-snapshot-maker until it is rebooted.

@@ -32,32 +32,41 @@ FAILED=""
 
 echo "Install required packages."
 # TODO(rmistry): No parallel package for ubuntu, it is required for pdfviewer.
-gcloud compute --project $PROJECT_ID ssh --zone $ZONE default@$VM_COMPLETE_NAME -- \
-  "sudo apt-get update; " \
-  "sudo apt-get -y install subversion git make postfix python-dev libfreetype6-dev xvfb python-twisted-core libpng-dev zlib1g-dev fontconfig libfontconfig-dev libglu-dev poppler-utils netpbm " \
-  "vim gyp g++ gdb unzip linux-tools libgif-dev python-imaging libosmesa-dev linux-tools-3.11.0-17-generic && " \
-  "sudo apt-get install gcc python-dev python-setuptools && sudo easy_install -U pip && sudo pip install setuptools --no-use-wheel --upgrade && sudo pip install -U crcmod" \
+CMD=$(cat <<EOF
+sudo apt-get update && \
+sudo apt-get -y install subversion git make postfix python-dev libfreetype6-dev xvfb \
+  python-twisted-core libpng-dev zlib1g-dev fontconfig libfontconfig-dev libglu-dev poppler-utils \
+  netpbm vim gyp g++ gdb unzip linux-tools libgif-dev python-imaging libosmesa-dev \
+  linux-tools-3.11.0-17-generic && \
+sudo apt-get install gcc python-dev python-setuptools && \
+sudo easy_install -U pip && \
+sudo pip install setuptools --no-use-wheel --upgrade && \
+sudo pip install -U crcmod
+EOF
+)
+gcloud compute --project $PROJECT_ID ssh --zone $ZONE default@$VM_COMPLETE_NAME --command "${CMD}" \
   || FAILED="$FAILED InstallPackages"
 echo
 
 echo "Update gsutil."
-gcloud compute --project $PROJECT_ID ssh --zone $ZONE default@$VM_COMPLETE_NAME -- \
-  "sudo gsutil update;" \
+gcloud compute --project $PROJECT_ID ssh --zone $ZONE default@$VM_COMPLETE_NAME \
+  --command "sudo gsutil update;" \
   || FAILED="$FAILED Update gsutil"
 echo
 
 echo "Setup .bashrc."
-gcloud compute --project $PROJECT_ID ssh --zone $ZONE default@$VM_COMPLETE_NAME -- \
-  "echo 'PATH=\"/home/default/depot_tools:/usr/local/sbin:/usr/sbin:/sbin:\$PATH\"' >> ~/.bashrc && " \
-  "echo 'alias ll=\"ls -l\"' >> ~/.bashrc && " \
-  "echo 'alias m=\"cd /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts\"' >> ~/.bashrc && " \
-  "echo 'alias s=\"cd /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts\"' >> ~/.bashrc;" \
+CMD=$(cat <<EOF
+echo 'PATH="/home/default/depot_tools:/usr/local/sbin:/usr/sbin:/sbin:\$PATH"' >> ~/.bashrc && \
+echo 'alias ll="ls -l"' >> ~/.bashrc
+EOF
+)
+gcloud compute --project $PROJECT_ID ssh --zone $ZONE default@$VM_COMPLETE_NAME --command "${CMD}" \
   || FAILED="$FAILED SetupBashrc"
 echo
 
 echo "Remove boto.cfg"
-gcloud compute --project $PROJECT_ID ssh --zone $ZONE default@$VM_COMPLETE_NAME -- \
-  "sudo rm -rf /etc/boto.cfg" \
+gcloud compute --project $PROJECT_ID ssh --zone $ZONE default@$VM_COMPLETE_NAME \
+  --command "sudo rm -rf /etc/boto.cfg" \
   || FAILED="$FAILED RemoveBotoCfg"
 echo
 
@@ -65,34 +74,40 @@ echo "Setup automount script"
 gcloud compute --project $PROJECT_ID copy-files --zone $ZONE \
   image-files/automount-sdb \
   default@${VM_COMPLETE_NAME}:/tmp/
-gcloud compute --project $PROJECT_ID ssh --zone $ZONE default@$VM_COMPLETE_NAME -- \
-  "sudo cp /tmp/automount-sdb /etc/init.d/ && " \
-  "sudo chmod 755 /etc/init.d/automount-sdb && " \
-  "sudo update-rc.d automount-sdb defaults &&" \
-  "sudo /etc/init.d/automount-sdb start" \
+CMD=$(cat <<EOF
+sudo cp /tmp/automount-sdb /etc/init.d/ && \
+sudo chmod 755 /etc/init.d/automount-sdb && \
+sudo update-rc.d automount-sdb defaults && \
+sudo /etc/init.d/automount-sdb start
+EOF
+)
+gcloud compute --project $PROJECT_ID ssh --zone $ZONE default@$VM_COMPLETE_NAME --command "${CMD}" \
   || FAILED="$FAILED SetupAutomountScript"
 echo
 
 echo "Checkout depot_tools"
-gcloud compute --project $PROJECT_ID ssh --zone $ZONE default@$VM_COMPLETE_NAME -- \
-  "git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git" \
+gcloud compute --project $PROJECT_ID ssh --zone $ZONE default@$VM_COMPLETE_NAME \
+  --command "git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git" \
   || FAILED="$FAILED CheckoutDepotTools"
 echo
 
 echo "Checkout Skia Buildbot code"
-gcloud compute --project $PROJECT_ID ssh --zone $ZONE default@$VM_COMPLETE_NAME -- \
-  "mkdir ~/skia-repo/ && " \
-  "cd ~/skia-repo/ && " \
-  "~/depot_tools/gclient config https://skia.googlesource.com/buildbot.git && " \
-  "~/depot_tools/gclient sync;" \
+CMD=$(cat <<EOF
+mkdir ~/skia-repo/ && \
+cd ~/skia-repo/ && \
+~/depot_tools/gclient config https://skia.googlesource.com/buildbot.git && \
+~/depot_tools/gclient sync
+EOF
+)
+gcloud compute --project $PROJECT_ID ssh --zone $ZONE default@$VM_COMPLETE_NAME --command "${CMD}" \
   || FAILED="$FAILED CheckoutSkiaBuildbot"
 echo
 
 echo "Checkout Skia Trunk code"
-gcloud compute --project $PROJECT_ID ssh --zone $ZONE default@$VM_COMPLETE_NAME -- \
-  "cd ~/skia-repo/ && " \
-  "sed -i '$ d' .gclient && sed -i '$ d' .gclient && " \
-  "echo \"\"\"
+CMD=$(cat <<EOF
+cd ~/skia-repo/ && \
+sed -i '$ d' .gclient && sed -i '$ d' .gclient && \
+echo "
   { 'name'        : 'trunk',
     'url'         : 'https://skia.googlesource.com/skia.git',
     'deps_file'   : 'DEPS',
@@ -102,7 +117,10 @@ gcloud compute --project $PROJECT_ID ssh --zone $ZONE default@$VM_COMPLETE_NAME 
     'safesync_url': '',
   },
 ]
-\"\"\" >> .gclient && ~/depot_tools/gclient sync;" \
+" >> .gclient && ~/depot_tools/gclient sync
+EOF
+)
+gcloud compute --project $PROJECT_ID ssh --zone $ZONE default@$VM_COMPLETE_NAME --command "${CMD}" \
   || FAILED="$FAILED CheckoutSkiaTrunk"
 echo
 

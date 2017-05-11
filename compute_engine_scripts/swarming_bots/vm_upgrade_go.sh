@@ -7,17 +7,20 @@ source vm_config.sh # GO_VERSION comes from here.
 function upgrade_go {
   echo
   echo "Upgrade Go on $1"
-  gcloud compute --project $PROJECT_ID ssh --zone $ZONE ${PROJECT_USER}@$1 -- \
-      "cd /tmp && " \
-      "wget https://storage.googleapis.com/golang/$GO_VERSION.tar.gz && " \
-      "tar -zxvf $GO_VERSION.tar.gz && " \
-      "sudo rm -rf /usr/local/$GO_VERSION && " \
-      "sudo mv go /usr/local/$GO_VERSION && " \
-      "sudo rm -rf /usr/local/go && " \
-      "sudo rm -f /usr/bin/go && " \
-      "sudo ln -s /usr/local/$GO_VERSION /usr/local/go && " \
-      "sudo ln -s /usr/local/$GO_VERSION/bin/go /usr/bin/go && " \
-      "rm $GO_VERSION.tar.gz" \
+  CMD=$(cat <<EOF
+  cd /tmp && \
+  wget https://storage.googleapis.com/golang/$GO_VERSION.tar.gz && \
+  tar -zxvf $GO_VERSION.tar.gz && \
+  sudo rm -rf /usr/local/$GO_VERSION && \
+  sudo mv go /usr/local/$GO_VERSION && \
+  sudo rm -rf /usr/local/go && \
+  sudo rm -f /usr/bin/go && \
+  sudo ln -s /usr/local/$GO_VERSION /usr/local/go && \
+  sudo ln -s /usr/local/$GO_VERSION/bin/go /usr/bin/go && \
+  rm $GO_VERSION.tar.gz
+  EOF
+  )
+  gcloud compute --project $PROJECT_ID ssh --zone $ZONE ${PROJECT_USER}@$1 --command "${CMD}" \
       || FAILED="$FAILED InstallGo"
   echo
 }
