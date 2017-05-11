@@ -11,10 +11,12 @@ import (
 
 	"github.com/satori/go.uuid"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/git_common"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/testutils"
 )
+
+var exec = skexec.NewExec()
 
 // GitBuilder creates commits and branches in a git repo.
 type GitBuilder struct {
@@ -63,10 +65,10 @@ func (g *GitBuilder) run(cmd ...string) string {
 	return output
 }
 
-func (g *GitBuilder) runCommand(cmd *exec.Command) string {
+func (g *GitBuilder) runCommand(cmd *skexec.Command) string {
 	cmd.InheritEnv = true
 	cmd.Dir = g.dir
-	output, err := exec.RunCommand(cmd)
+	output, err := exec.GetOutput(cmd)
 	assert.NoError(g.t, err)
 	return output
 }
@@ -109,7 +111,7 @@ func (g *GitBuilder) lastCommitHash() string {
 // Note that the nanosecond component of time will be dropped. Returns the hash
 // of the new commit.
 func (g *GitBuilder) CommitMsgAt(msg string, time time.Time) string {
-	g.runCommand(&exec.Command{
+	g.runCommand(&skexec.Command{
 		Name: "git",
 		Args: []string{"commit", "-m", msg},
 		Env:  []string{fmt.Sprintf("GIT_AUTHOR_DATE=%d +0000", time.Unix()), fmt.Sprintf("GIT_COMMITTER_DATE=%d +0000", time.Unix())},
@@ -188,7 +190,7 @@ func (g *GitBuilder) CheckoutBranch(name string) {
 func (g *GitBuilder) MergeBranch(name string) string {
 	assert.NotEqual(g.t, g.branch, name, "Can't merge a branch into itself.")
 	cmd := []string{"git", "merge", name}
-	major, minor, err := git_common.Version()
+	major, minor, err := git_common.Version(exec)
 	assert.NoError(g.t, err)
 	if (major == 2 && minor >= 9) || major > 2 {
 		cmd = append(cmd, "--allow-unrelated-histories")

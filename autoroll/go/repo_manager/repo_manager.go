@@ -7,6 +7,7 @@ import (
 
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/skexec"
 )
 
 const (
@@ -43,6 +44,7 @@ type commonRepoManager struct {
 	user         string
 	workdir      string
 	g            gerrit.GerritInterface
+	exec         *skexec.Exec
 }
 
 // FullChildHash returns the full hash of the given short hash or ref in the

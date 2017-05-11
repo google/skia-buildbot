@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/skexec"
 )
 
 var (
@@ -18,7 +18,7 @@ var (
 
 // Version returns the installed Git version, in the form:
 // (major, minor), or an error if it could not be determined.
-func Version() (int, int, error) {
+func Version(exec *skexec.Exec) (int, int, error) {
 	out, err := exec.RunCwd(".", "git", "--version")
 	if err != nil {
 		return -1, -1, err

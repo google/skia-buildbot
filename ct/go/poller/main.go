@@ -8,6 +8,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -31,8 +32,8 @@ import (
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skexec"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -47,6 +48,8 @@ var (
 	pickedUpTasks = map[string]string{}
 	// Mutex that controls access to the above map.
 	tasksMtx = sync.Mutex{}
+
+	exec = skexec.NewExec()
 )
 
 // Enum of states that the poller could be in. Satisfies the fmt.Stringer interface.
@@ -97,24 +100,29 @@ func updateAndBuild() error {
 	repoMtx.Lock()
 	defer repoMtx.Unlock()
 	makefilePath := ctutil.CtTreeDir
+	ctx := context.Background()
 
 	// TODO(benjaminwagner): Should this also do 'go get -u ...' and/or 'gclient sync'?
-	err := exec.Run(&exec.Command{
+	gitPullCtx, cancel := context.WithTimeout(ctx, ctutil.GIT_PULL_TIMEOUT)
+	defer cancel()
+	err := exec.Run(&skexec.Command{
 		Name:      "git",
 		Args:      []string{"pull"},
 		Dir:       makefilePath,
-		Timeout:   ctutil.GIT_PULL_TIMEOUT,
+		Context:   gitPullCtx,
 		LogStdout: true,
 		LogStderr: true,
 	})
 	if err != nil {
 		return err
 	}
-	return exec.Run(&exec.Command{
+	makeAllCtx, cancel := context.WithTimeout(ctx, ctutil.MAKE_ALL_TIMEOUT)
+	defer cancel()
+	return exec.Run(&skexec.Command{
 		Name:      "make",
 		Args:      []string{"all"},
 		Dir:       makefilePath,
-		Timeout:   ctutil.MAKE_ALL_TIMEOUT,
+		Context:   makeAllCtx,
 		LogStdout: true,
 		LogStderr: true,
 	})
@@ -162,7 +170,7 @@ func (task *ChromiumAnalysisTask) Execute() error {
 		}
 		defer skutil.Remove(patchPath)
 	}
-	return exec.Run(&exec.Command{
+	return exec.Run(&skexec.Command{
 		Name: "run_chromium_analysis_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -209,7 +217,7 @@ func (task *ChromiumPerfTask) Execute() error {
 		}
 		defer skutil.Remove(patchPath)
 	}
-	return exec.Run(&exec.Command{
+	return exec.Run(&skexec.Command{
 		Name: "run_chromium_perf_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -239,7 +247,7 @@ type CaptureSkpsTask struct {
 func (task *CaptureSkpsTask) Execute() error {
 	runId := runId(task)
 	chromiumBuildDir := ctutil.ChromiumBuildDir(task.ChromiumRev, task.SkiaRev, "")
-	return exec.Run(&exec.Command{
+	return exec.Run(&skexec.Command{
 		Name: "capture_skps_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -281,7 +289,7 @@ func (task *LuaScriptTask) Execute() error {
 		}
 		defer skutil.Remove(luaAggregatorPath)
 	}
-	return exec.Run(&exec.Command{
+	return exec.Run(&skexec.Command{
 		Name: "run_lua_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -304,7 +312,7 @@ type ChromiumBuildTask struct {
 
 func (task *ChromiumBuildTask) Execute() error {
 	runId := runId(task)
-	return exec.Run(&exec.Command{
+	return exec.Run(&skexec.Command{
 		Name: "build_chromium",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -327,7 +335,7 @@ type RecreatePageSetsTask struct {
 
 func (task *RecreatePageSetsTask) Execute() error {
 	runId := runId(task)
-	return exec.Run(&exec.Command{
+	return exec.Run(&skexec.Command{
 		Name: "create_pagesets_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -348,7 +356,7 @@ type RecreateWebpageArchivesTask struct {
 
 func (task *RecreateWebpageArchivesTask) Execute() error {
 	runId := runId(task)
-	return exec.Run(&exec.Command{
+	return exec.Run(&skexec.Command{
 		Name: "capture_archives_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -458,8 +466,8 @@ func main() {
 	master_common.InitWithMetrics2("ct-poller", promPort)
 
 	if *dryRun {
-		exec.SetRunForTesting(func(command *exec.Command) error {
-			sklog.Infof("dry_run: %s", exec.DebugString(command))
+		exec.SetRun(func(command *skexec.Command) error {
+			sklog.Infof("dry_run: %s", skexec.DebugString(command))
 			return nil
 		})
 	}

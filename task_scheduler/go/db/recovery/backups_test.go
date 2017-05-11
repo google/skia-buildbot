@@ -28,9 +28,8 @@ import (
 
 	"github.com/gorilla/mux"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/exec"
-	exec_testutils "go.skia.org/infra/go/exec/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/skexec/skexec_testutils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -602,11 +601,7 @@ func testBackupDBLarge(t *testing.T, contentSize int64) {
 	defer cancel()
 
 	// Check available disk space.
-	output, err := exec.RunCommand(&exec.Command{
-		Name: "df",
-		Args: []string{"--block-size=1", "--output=avail", os.TempDir()},
-	})
-	assert.NoError(t, err, "df failed: %s", output)
+	output := skexec_testutils.RunCwd(t, os.TempDir(), "df", "--block-size=1", "--output=avail", os.TempDir())
 	// Output looks like:
 	//       Avail
 	// 13704458240
@@ -680,7 +675,7 @@ func TestFindAndParseTriggerFileNewFile(t *testing.T) {
 	b, cancel := getMockedDBBackup(t, nil)
 	defer cancel()
 
-	exec_testutils.Run(t, b.triggerDir, "touch", "foo")
+	skexec_testutils.RunCwd(t, b.triggerDir, "touch", "foo")
 	file, attempts, err := b.findAndParseTriggerFile()
 	assert.NoError(t, err)
 	assert.Equal(t, "foo", file)
@@ -694,8 +689,8 @@ func TestFindAndParseTriggerFileTwoFiles(t *testing.T) {
 	b, cancel := getMockedDBBackup(t, nil)
 	defer cancel()
 
-	exec_testutils.Run(t, b.triggerDir, "touch", "foo")
-	exec_testutils.Run(t, b.triggerDir, "touch", "bar")
+	skexec_testutils.RunCwd(t, b.triggerDir, "touch", "foo")
+	skexec_testutils.RunCwd(t, b.triggerDir, "touch", "bar")
 	file, attempts, err := b.findAndParseTriggerFile()
 	assert.NoError(t, err)
 	assert.True(t, file == "foo" || file == "bar")

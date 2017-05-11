@@ -22,13 +22,15 @@ import (
 	"go.skia.org/infra/fuzzer/go/issues"
 	fstorage "go.skia.org/infra/fuzzer/go/storage"
 	"go.skia.org/infra/go/buildskia"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
 )
+
+var exec = skexec.NewExec()
 
 // Aggregator is a key part of the fuzzing operation
 // (see https://skia.googlesource.com/buildbot/+/master/fuzzer/DESIGN.md).
@@ -524,7 +526,7 @@ func performAnalysis(workingDirPath, executableName, pathToFile, category string
 
 	// GNU timeout is used instead of the option on exec.Command because experimentation with the
 	// latter showed evidence of that way leaking processes, which led to OOM errors.
-	cmd := &exec.Command{
+	cmd := &skexec.Command{
 		Name:        "timeout",
 		Args:        common.AnalysisArgsFor(category, "./"+executableName, pathToFile),
 		LogStdout:   false,
@@ -534,7 +536,7 @@ func performAnalysis(workingDirPath, executableName, pathToFile, category string
 		Dir:         workingDirPath,
 		InheritPath: true,
 		Env:         []string{common.ASAN_OPTIONS},
-		Verbose:     exec.Debug,
+		Verbose:     skexec.Debug,
 	}
 
 	//errors are fine/expected from this, as we are dealing with bad fuzzes

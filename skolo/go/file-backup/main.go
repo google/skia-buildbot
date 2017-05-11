@@ -16,10 +16,10 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
@@ -36,6 +36,8 @@ var (
 	remoteCopyCommand  = flag.String("remote_copy_command", "scp", "rsync or scp.  The router does not have rsync installed.")
 	remoteFilePath     = flag.String("remote_file_path", "", "Remote location for a file, to be used by remote_copy_command.  E.g. foo@127.0.0.1:/etc/bar.conf Cannot use with local_file_path")
 	serviceAccountPath = flag.String("service_account_path", "", "Path to the service account.  Can be empty string to use defaults or project metadata")
+
+	exec = skexec.NewExec()
 )
 
 func step(storageClient *storage.Client) {
@@ -51,7 +53,7 @@ func step(storageClient *storage.Client) {
 		stdErr := bytes.Buffer{}
 		// This only works if the remote file's host has the source's SSH public key in
 		// $HOME/.ssh/authorized_key
-		err = exec.Run(&exec.Command{
+		err = exec.Run(&skexec.Command{
 			Name:   *remoteCopyCommand,
 			Args:   []string{*remoteFilePath, *localFilePath},
 			Stdout: &stdOut,

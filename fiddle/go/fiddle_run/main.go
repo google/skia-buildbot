@@ -4,6 +4,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
@@ -21,7 +22,7 @@ import (
 	"go.skia.org/infra/fiddle/go/types"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -37,6 +38,8 @@ var (
 	gitHash    = flag.String("git_hash", "", "The version of Skia code to run against.")
 	duration   = flag.Float64("duration", 0.0, "If an animation, the duration of the animation. 0 for no animation.")
 )
+
+var exec = skexec.NewExec()
 
 func serializeOutput(res *types.Result) {
 	enc := json.NewEncoder(os.Stdout)
@@ -203,7 +206,7 @@ func createWebm(prefix, tmpDir string) error {
 		fmt.Sprintf("%s.webm", prefix),
 	}
 	output := &bytes.Buffer{}
-	runCmd := &exec.Command{
+	runCmd := &skexec.Command{
 		Name:      name,
 		Args:      args,
 		Dir:       tmpDir,
@@ -251,14 +254,16 @@ func oneStep(checkout string, res *types.Result, frame float64) {
 
 	stderr := bytes.Buffer{}
 	stdout := bytes.Buffer{}
-	runCmd := &exec.Command{
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	runCmd := &skexec.Command{
 		Name:        name,
 		Args:        args,
 		Dir:         *fiddleRoot,
 		InheritPath: true,
 		Stdout:      &stdout,
 		Stderr:      &stderr,
-		Timeout:     20 * time.Second,
+		Context:     ctx,
 	}
 	if err := exec.Run(runCmd); err != nil {
 		sklog.Errorf("Failed to run: %s", err)
