@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3681cb62_66a5049f",
+        "filename": "fiddle/go/fiddlecli/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-05-11T14:08:30Z",
+      "side": 1,
+      "message": "Defaults to 4, which is the number of cores the skia-fiddle instance has, but could go higher since most of the work is I/O bound.",
+      "revId": "afbabab48728ac95cd54e282658b35bdcce19530",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
