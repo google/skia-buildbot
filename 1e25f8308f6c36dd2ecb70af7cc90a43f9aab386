@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e50f5669_576820f8",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-11T14:48:20Z",
+      "side": 1,
+      "message": "How were these numbers acquired?  Empirically?",
+      "range": {
+        "startLine": 62,
+        "startChar": 17,
+        "endLine": 62,
+        "endChar": 20
+      },
+      "revId": "1e25f8308f6c36dd2ecb70af7cc90a43f9aab386",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41c2a1f5_f09145f8",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-11T14:48:20Z",
+      "side": 1,
+      "message": "WIll sending them in parallel cause out of syncness? i.e. split 2 comes before split 1?",
+      "range": {
+        "startLine": 336,
+        "startChar": 21,
+        "endLine": 336,
+        "endChar": 29
+      },
+      "revId": "1e25f8308f6c36dd2ecb70af7cc90a43f9aab386",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea66661e_5f58e06e",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-11T14:48:20Z",
+      "side": 1,
+      "message": "insert defer wg.Done() ?",
+      "revId": "1e25f8308f6c36dd2ecb70af7cc90a43f9aab386",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
