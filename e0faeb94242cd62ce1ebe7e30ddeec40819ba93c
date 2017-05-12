@@ -45,6 +45,54 @@
       "revId": "e0faeb94242cd62ce1ebe7e30ddeec40819ba93c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "945d06ec_4f30be49",
+        "filename": "compute_engine_scripts/swarming_bots/vm_setup_utils.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-12T19:45:32Z",
+      "side": 1,
+      "message": "That\u0027s... strange.  The tasks fail without .gitcookies.  The swarming bot page says the user is chrome-bot, but /home/chrome-bot does not have .gitcookies; it\u0027s in /home/default.  I didn\u0027t change, because it\u0027s working as-is, but we should investigate why.",
+      "parentUuid": "fbff7eab_4076c30d",
+      "range": {
+        "startLine": 90,
+        "startChar": 46,
+        "endLine": 90,
+        "endChar": 48
+      },
+      "revId": "e0faeb94242cd62ce1ebe7e30ddeec40819ba93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e6dbc16_1ffde663",
+        "filename": "compute_engine_scripts/swarming_bots/vm_setup_utils.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-12T19:45:32Z",
+      "side": 1,
+      "message": "SGTM.",
+      "parentUuid": "b79ee272_3e6930dd",
+      "range": {
+        "startLine": 90,
+        "startChar": 10,
+        "endLine": 90,
+        "endChar": 12
+      },
+      "revId": "e0faeb94242cd62ce1ebe7e30ddeec40819ba93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
