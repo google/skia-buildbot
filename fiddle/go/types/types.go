@@ -125,6 +125,7 @@ type RunResults struct {
 	CompileErrors []CompileError `json:"compile_errors"`
 	RunTimeError  string         `json:"runtime_error"`
 	FiddleHash    string         `json:"fiddleHash"`
+	Text          string         `json:"text"`
 }
 
 type BulkRequest map[string]*FiddleContext

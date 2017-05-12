@@ -81,7 +81,7 @@ func main() {
 					return fmt.Errorf("Failed to encode an individual request: %s", err)
 				}
 				resp, err := c.Post(*domain+"/_/run", "application/json", bytes.NewReader(b))
-				if err != nil {
+				if err != nil || resp.StatusCode != 200 {
 					return fmt.Errorf("Failed to make request: %s", err)
 				}
 
