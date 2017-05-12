@@ -14,14 +14,14 @@
     "fast": true
   },
   "test2": {
-    "code": "void draw(SkCanvas* canvas) {}",
+    "code": "void draw(SkCanvas* canvas) { SkDebugf(\"Hello\"); }",
     "options": {
       "width": 256,
       "height": 256,
       "source": 0,
       "srgb": false,
       "f16": false,
-      "textOnly": false,
+      "textOnly": true,
       "animated": false,
       "duration": 0
     },

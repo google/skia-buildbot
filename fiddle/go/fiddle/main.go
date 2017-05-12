@@ -2,6 +2,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -370,7 +371,16 @@ func run(user string, req *types.FiddleContext) (*types.RunResults, error) {
 		if fiddleHash, err := req.Options.ComputeHash(req.Code); err == nil {
 			if _, _, err := fiddleStore.GetCode(fiddleHash); err == nil {
 				resp.FiddleHash = fiddleHash
-				return resp, nil
+				if req.Options.TextOnly {
+					if b, _, _, err := fiddleStore.GetMedia(fiddleHash, store.TXT); err != nil {
+						sklog.Infof("Failed to get text: %s", err)
+					} else {
+						resp.Text = string(b)
+						return resp, nil
+					}
+				} else {
+					return resp, nil
+				}
 			} else {
 				sklog.Infof("Failed to match hash: %s", err)
 			}
@@ -446,6 +456,15 @@ func run(user string, req *types.FiddleContext) (*types.RunResults, error) {
 	}
 	runs.Inc(1)
 	resp.FiddleHash = fiddleHash
+
+	if req.Options.TextOnly {
+		// decode
+		decodedText, err := base64.StdEncoding.DecodeString(res.Execute.Output.Text)
+		if err != nil {
+			return resp, fmt.Errorf("Text wasn't properly encoded base64: %s", err)
+		}
+		resp.Text = string(decodedText)
+	}
 
 	// Only logged in users can create named fiddles.
 	if req.Name != "" && user != "" {
