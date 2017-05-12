@@ -1,0 +1,102 @@
+package main
+
+import (
+	"flag"
+	"html/template"
+	"net/http"
+	"sync"
+	"time"
+
+	"google.golang.org/api/sheets/v4"
+
+	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
+)
+
+const (
+	index = `<!DOCTYPE html>
+<html>
+<head>
+    <title>Skia Drawing Contest</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=egde,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  {{range .}}
+	<div>
+	  {{index . 1}}
+	<div>
+	{{end}}
+
+</body>
+</html>`
+)
+
+// flags
+var (
+	port     = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+)
+
+var (
+	indexTemplate = template.Must(template.New("index").Parse(index))
+	ss            *sheets.Service
+	values        *sheets.ValueRange
+	mutex         sync.Mutex
+)
+
+func mainHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	if err := indexTemplate.Execute(w, values.Values); err != nil {
+		sklog.Errorf("Failed to expand template: %s", err)
+	}
+}
+
+func step() error {
+	v, err := ss.Spreadsheets.Values.Get("1Jbv7pWwH8NwHtoEBez1Bkwmk2wjhMnCk9UKttYqPjNQ", "A1:C100").Do()
+	if err != nil {
+		return err
+	}
+	mutex.Lock()
+	defer mutex.Unlock()
+	values = v
+	sklog.Infof("%#v", values)
+	return nil
+}
+
+func main() {
+	defer common.LogPanic()
+	common.InitWithMust(
+		"contest",
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingOpt(),
+	)
+
+	client, err := auth.NewDefaultJWTServiceAccountClient(sheets.SpreadsheetsReadonlyScope)
+	if err != nil {
+		sklog.Fatalf("Failed to auth: %s", err)
+	}
+	ss, err = sheets.New(client)
+	if err != nil {
+		sklog.Fatalf("Failed to create Sheets client: %s", err)
+	}
+
+	if err := step(); err != nil {
+		sklog.Fatalf("Failed initial population of contest entries: %s", err)
+	}
+	go func() {
+		for _ = range time.Tick(time.Minute) {
+			step()
+		}
+	}()
+
+	r := mux.NewRouter()
+	r.HandleFunc("/", mainHandler)
+	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
+	sklog.Infoln("Ready to serve.")
+	sklog.Fatal(http.ListenAndServe(*port, nil))
+}
