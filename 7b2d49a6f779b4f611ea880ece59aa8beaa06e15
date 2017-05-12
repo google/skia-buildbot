@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a1c33985_75eaf969",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-12T19:36:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eb93ac21_63371090",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 60
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6950dc36_82da08e1",
         "filename": "datahopper/go/swarming_metrics/tasks.go",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2017-05-11T14:06:02Z",
       "side": 1,
       "message": "Can you add tests to this package ?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 24
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a5c63154_1fa4fe4e",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-12T19:36:41Z",
+      "side": 1,
+      "message": "Added tests for swarming task ingestion and for the metrics.",
+      "parentUuid": "6950dc36_82da08e1",
       "range": {
         "startLine": 1,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "f819f452_9692f56d",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-12T19:36:41Z",
+      "side": 1,
+      "message": "We\u0027d already put them in task_scheduler packages, so I moved into swarming package.",
+      "parentUuid": "d8343429_ae97fa96",
+      "range": {
+        "startLine": 54,
+        "startChar": 27,
+        "endLine": 54,
+        "endChar": 38
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fcf674c6_37e3c2c3",
         "filename": "datahopper/go/swarming_metrics/tasks.go",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2017-05-11T15:14:52Z",
       "side": 1,
       "message": "Please break this out into a function variable. i.e. \nfn :\u003d func(ev []*.......) {\n   ...\n}\n\nreturn s.DynamicMetric(tags, period, fn)",
+      "range": {
+        "startLine": 99,
+        "startChar": 38,
+        "endLine": 99,
+        "endChar": 101
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66e8e17b_00302b72",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-12T19:36:41Z",
+      "side": 1,
+      "message": "Why?  It just adds extra lines and doesn\u0027t make the code any more readable IMO",
+      "parentUuid": "fcf674c6_37e3c2c3",
       "range": {
         "startLine": 99,
         "startChar": 38,
@@ -140,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "d079619f_ea568f0a",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-12T19:36:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1d7d04b4_64cf1099",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 11
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1f19c367_a9eba42f",
         "filename": "go/metrics2/events/events.go",
         "patchSetId": 2
@@ -151,6 +271,30 @@
       "writtenOn": "2017-05-11T14:06:02Z",
       "side": 1,
       "message": "What\u0027s the difference between a metric and a dynamicMetric ?",
+      "range": {
+        "startLine": 75,
+        "startChar": 0,
+        "endLine": 75,
+        "endChar": 4
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15839ff0_4cb58ae6",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-12T19:36:41Z",
+      "side": 1,
+      "message": "Added more to the comment, hopefully it\u0027s clearer now.",
+      "parentUuid": "1f19c367_a9eba42f",
       "range": {
         "startLine": 75,
         "startChar": 0,
@@ -186,6 +330,30 @@
     },
     {
       "key": {
+        "uuid": "1eabd9d5_0545a0e2",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-12T19:36:41Z",
+      "side": 1,
+      "message": "Added a simple test.",
+      "parentUuid": "ab6b0a9c_0e7b555a",
+      "range": {
+        "startLine": 81,
+        "startChar": 1,
+        "endLine": 81,
+        "endChar": 0
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8b9b83dd_397a6805",
         "filename": "go/metrics2/events/events.go",
         "patchSetId": 2
@@ -197,6 +365,30 @@
       "writtenOn": "2017-05-11T15:14:52Z",
       "side": 1,
       "message": "Nit: It seems that dynamicMetricsCache is not as much a cache (that contains a subset of the metrics in use) but a comprehensive list of the current metrics. If that\u0027s true that name should probably reflect that.\nIf the program were to end and v.Delete() wasn\u0027t called for all metrics, would that cause resource leakage anywhere ?",
+      "range": {
+        "startLine": 298,
+        "startChar": 19,
+        "endLine": 298,
+        "endChar": 40
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd5dad82_9380be5b",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-12T19:36:41Z",
+      "side": 1,
+      "message": "Renamed to currentDynamicMetrics.  Deleting the metric makes us stop sending its data to prometheus, which is desirable, for example, when we\u0027re loading last-seen and quarantine status for swarming bots and we delete a bot.",
+      "parentUuid": "8b9b83dd_397a6805",
       "range": {
         "startLine": 298,
         "startChar": 19,
