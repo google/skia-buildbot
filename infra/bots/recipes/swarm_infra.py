@@ -14,6 +14,7 @@ DEPS = [
   'depot_tools/gclient',
   'depot_tools/infra_paths',
   'depot_tools/rietveld',
+  'recipe_engine/context',
   'recipe_engine/path',
   'recipe_engine/platform',
   'recipe_engine/properties',
@@ -43,7 +44,7 @@ def git_checkout(api, url, dest, ref=None):
   """Create a git checkout of the given repo in dest."""
   if api.path.exists(dest.join('.git')):
     # Already have a git checkout. Ensure that the correct remote is set.
-    with api.step.context({'cwd': dest}):
+    with api.context(cwd=dest):
       git(api, 'remote', 'set-url', 'origin', INFRA_GIT_URL)
   else:
     # Clone the repo
@@ -53,7 +54,7 @@ def git_checkout(api, url, dest, ref=None):
   ref = ref or REF_ORIGIN_MASTER
   if ref == REF_HEAD:
     ref = REF_ORIGIN_MASTER
-  with api.step.context({'cwd': dest}):
+  with api.context(cwd=dest):
     git(api, 'fetch', 'origin')
     git(api, 'clean', '-d', '-f')
     git(api, 'checkout', 'master')
@@ -81,10 +82,10 @@ def git_checkout(api, url, dest, ref=None):
         api.bot_update._patchset,
     )
 
-  with api.step.context({'cwd': dirname}):
+  with api.context(cwd=dirname):
     api.bot_update.ensure_checkout(gclient_config=gclient_cfg)
 
-  with api.step.context({'cwd': dest}):
+  with api.context(cwd=dest):
     # Fix the remote URL, since bot_update switches it to the cached repo.
     git(api, 'remote', 'set-url', 'origin', INFRA_GIT_URL)
 
@@ -125,7 +126,7 @@ def RunSteps(api):
          'GIT_USER_AGENT': 'git/1.9.1',  # I don't think this version matters.
          'PATH': api.path.pathsep.join([
              str(go_bin), str(go_dir.join('bin')), '%(PATH)s'])}
-  with api.step.context({'cwd': infra_dir, 'env': env}):
+  with api.context(cwd=infra_dir, env=env):
     api.step('which go', cmd=['which', 'go'])
     api.step('update_deps', cmd=['go', 'get', '-u', '-t', './...'])
 
@@ -138,21 +139,21 @@ def RunSteps(api):
 
   # Set got_revision.
   test_data = lambda: api.raw_io.test_api.stream_output('abc123')
-  with api.step.context({'cwd': infra_dir}):
+  with api.context(cwd=infra_dir):
     rev_parse = git(api, 'rev-parse', 'HEAD',
                     stdout=api.raw_io.output(),
                     step_test_data=test_data)
   rev_parse.presentation.properties['got_revision'] = rev_parse.stdout.strip()
 
   # More prerequisites.
-  with api.step.context({'cwd': infra_dir, 'env': env}):
+  with api.context(cwd=infra_dir, env=env):
     api.step(
         'install goimports',
         cmd=['go', 'get', 'golang.org/x/tools/cmd/goimports'])
     api.step(
         'install errcheck',
         cmd=['go', 'get', 'github.com/kisielk/errcheck'])
-  with api.step.context({'cwd': infra_dir.join('go', 'database'), 'env': env}):
+  with api.context(cwd=infra_dir.join('go', 'database'), env=env):
     api.step(
         'setup database',
         cmd=['./setup_test_db'])
@@ -176,7 +177,7 @@ def RunSteps(api):
     cmd.append('--medium')
   else:
     cmd.append('--small')
-  with api.step.context({'cwd': infra_dir, 'env': env}):
+  with api.context(cwd=infra_dir, env=env):
     api.step('run_unittests', cmd)
 
 
