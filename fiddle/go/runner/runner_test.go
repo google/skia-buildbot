@@ -148,7 +148,7 @@ func TestRun(t *testing.T) {
 	res, err = Run("checkout/", "fiddleroot/", "depot_tools/", "abcdef", false, "/mnt/pd0/fiddle/tmp/draw0123", opts)
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
-	assert.Equal(t, "sudo systemd-nspawn -D /mnt/pd0/container/ --read-only --private-network --machine draw0123 --overlay fiddleroot/:/mnt/pd0/fiddle/tmp/draw0123:fiddleroot/ --bind-ro /mnt/pd0/fiddle/tmp/draw0123/draw.cpp:checkout/skia/tools/fiddle/draw.cpp xargs --arg-file=/dev/null /mnt/pd0/fiddle/bin/fiddle_run --fiddle_root fiddleroot/ --git_hash abcdef --duration 2.000000", execString)
+	assert.Equal(t, "sudo systemd-nspawn -D /mnt/pd0/container/ --read-only --private-network --machine draw0123 --overlay fiddleroot/:/mnt/pd0/fiddle/tmp/draw0123:fiddleroot/ --bind-ro /mnt/pd0/fiddle/tmp/draw0123/draw.cpp:checkout/skia/tools/fiddle/draw.cpp xargs --arg-file=/dev/null /mnt/pd0/fiddle/bin/fiddle_run --fiddle_root fiddleroot/ --git_hash abcdef --alsologtostderr --duration 2.000000", execString)
 }
 
 func TestValidateOptions(t *testing.T) {
