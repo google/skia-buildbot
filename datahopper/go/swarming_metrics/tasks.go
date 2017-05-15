@@ -105,6 +105,7 @@ func addMetric(s *events.EventStream, metric string, period time.Duration, fn fu
 		"metric": metric,
 	}
 	f := func(ev []*events.Event) ([]map[string]string, []float64, error) {
+		sklog.Infof("Computing value(s) for metric %q", metric)
 		if len(ev) == 0 {
 			return []map[string]string{}, []float64{}, nil
 		}
@@ -270,10 +271,11 @@ func startLoadingTasks(swarm swarming.ApiClient, ctx context.Context, edb events
 // StartSwarmingTaskMetrics initiates a goroutine which loads Swarming task
 // results and computes metrics.
 func StartSwarmingTaskMetrics(workdir string, swarm swarming.ApiClient, ctx context.Context) error {
-	edb, _, err := setupMetrics(workdir)
+	edb, em, err := setupMetrics(workdir)
 	if err != nil {
 		return err
 	}
+	em.Start(ctx)
 	startLoadingTasks(swarm, ctx, edb)
 	return nil
 }
