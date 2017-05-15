@@ -34,6 +34,10 @@ var (
 // completed tasks into the EventDB and returns any unfinished tasks so that
 // they can be revisited later.
 func loadSwarmingTasks(s swarming.ApiClient, edb events.EventDB, lastLoad, now time.Time, revisit []string) ([]string, error) {
+	sklog.Info("Loading swarming tasks.")
+
+	// TODO(borenet): Load tasks for all pools we care about, including
+	// internal.
 	tasks, err := s.ListSkiaTasks(lastLoad, now)
 	if err != nil {
 		return nil, err
@@ -46,6 +50,7 @@ func loadSwarmingTasks(s swarming.ApiClient, edb events.EventDB, lastLoad, now t
 		tasks = append(tasks, task)
 	}
 	revisitLater := []string{}
+	loaded := 0
 	for _, t := range tasks {
 		// Don't include de-duped tasks, as they'll skew the metrics down.
 		if t.TaskResult.DedupedFrom != "" {
@@ -71,7 +76,9 @@ func loadSwarmingTasks(s swarming.ApiClient, edb events.EventDB, lastLoad, now t
 		}); err != nil {
 			return nil, fmt.Errorf("Failed to insert event: %s", err)
 		}
+		loaded++
 	}
+	sklog.Infof("... loaded %d swarming tasks.", loaded)
 	return revisitLater, nil
 }
 

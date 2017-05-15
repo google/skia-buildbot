@@ -129,7 +129,7 @@ func main() {
 			go func(server, pool string, client swarming.ApiClient) {
 				oldMetrics := []metrics2.Int64Metric{}
 				for _ = range time.Tick(2 * time.Minute) {
-					sklog.Info("Loading Skia Swarming bot data.")
+					sklog.Infof("Loading Swarming bot data for pool %s", pool)
 					bots, err := client.ListBotsForPool(pool)
 					if err != nil {
 						sklog.Error(err)
