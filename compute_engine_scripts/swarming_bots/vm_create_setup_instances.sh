@@ -188,6 +188,10 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
       setup_ct_swarming_bot
     fi
 
+    if [ "$VM_IS_SKIA_INTERNAL" = 1 ]; then
+      get_file_from_metadata "gitcookies_skia-internal_chromium" "/home/chrome-bot/.gitcookies"
+    fi
+
     reboot
 
     if [[ $FAILED ]]; then
