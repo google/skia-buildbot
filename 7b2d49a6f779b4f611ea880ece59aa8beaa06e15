@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "7beb9e8d_1676f37a",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-15T12:36:06Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f819f452_9692f56d",
+      "range": {
+        "startLine": 54,
+        "startChar": 27,
+        "endLine": 54,
+        "endChar": 38
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fcf674c6_37e3c2c3",
         "filename": "datahopper/go/swarming_metrics/tasks.go",
         "patchSetId": 2
@@ -190,6 +214,30 @@
     },
     {
       "key": {
+        "uuid": "4ffcd0ed_a53e9e45",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-15T12:36:06Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "66e8e17b_00302b72",
+      "range": {
+        "startLine": 99,
+        "startChar": 38,
+        "endLine": 99,
+        "endChar": 101
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f598266a_8a7d0a3d",
         "filename": "datahopper/go/swarming_metrics/tasks.go",
         "patchSetId": 2
@@ -210,6 +258,30 @@
       "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69bc690b_8b06bc43",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-15T12:36:06Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f598266a_8a7d0a3d",
+      "range": {
+        "startLine": 158,
+        "startChar": 45,
+        "endLine": 158,
+        "endChar": 113
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -307,6 +379,30 @@
     },
     {
       "key": {
+        "uuid": "ec302aa8_9c81e606",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-15T12:36:06Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "15839ff0_4cb58ae6",
+      "range": {
+        "startLine": 75,
+        "startChar": 0,
+        "endLine": 75,
+        "endChar": 4
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ab6b0a9c_0e7b555a",
         "filename": "go/metrics2/events/events.go",
         "patchSetId": 2
@@ -354,6 +450,30 @@
     },
     {
       "key": {
+        "uuid": "c6a2cafd_e6fa5a3e",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-15T12:36:06Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "1eabd9d5_0545a0e2",
+      "range": {
+        "startLine": 81,
+        "startChar": 1,
+        "endLine": 81,
+        "endChar": 0
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8b9b83dd_397a6805",
         "filename": "go/metrics2/events/events.go",
         "patchSetId": 2
@@ -389,6 +509,30 @@
       "side": 1,
       "message": "Renamed to currentDynamicMetrics.  Deleting the metric makes us stop sending its data to prometheus, which is desirable, for example, when we\u0027re loading last-seen and quarantine status for swarming bots and we delete a bot.",
       "parentUuid": "8b9b83dd_397a6805",
+      "range": {
+        "startLine": 298,
+        "startChar": 19,
+        "endLine": 298,
+        "endChar": 40
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0c64bce_8384f5d6",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-15T12:36:06Z",
+      "side": 1,
+      "message": "Let\u0027s the program crashes and the delete is not executed for a current metric, does that mean we could have metric in there now that essentially \"unreachable\" ?",
+      "parentUuid": "cd5dad82_9380be5b",
       "range": {
         "startLine": 298,
         "startChar": 19,
