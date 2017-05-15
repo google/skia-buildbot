@@ -766,7 +766,7 @@ func jsonListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	corpus, hasSourceType := query.Query[types.CORPUS_FIELD]
 	sumSlice := []*summary.Summary{}
 	if !query.IncludeIgnores && query.Head && len(query.Query) == 1 && hasSourceType {
-		sumMap := idx.GetSummaries()
+		sumMap := idx.GetSummaries(false)
 		for _, s := range sumMap {
 			if util.In(s.Corpus, corpus) && includeSummary(s, &query) {
 				sumSlice = append(sumSlice, s)
@@ -853,7 +853,8 @@ func parseQuery(r *http.Request, query *search.Query) error {
 	validate.StrFormValue(r, "sort", &query.Sort, []string{search.SORT_DESC, search.SORT_ASC}, search.SORT_DESC)
 
 	// Parse and validate the filter values.
-	validate.Int32FormValue(r, "frgbamax", &query.FRGBAMax, -1)
+	validate.Int32FormValue(r, "frgbamin", &query.FRGBAMin, 0)
+	validate.Int32FormValue(r, "frgbamax", &query.FRGBAMax, 255)
 	validate.Float32FormValue(r, "fdiffmax", &query.FDiffMax, -1.0)
 	if err := validate.Errors(); err != nil {
 		return err
@@ -1044,7 +1045,7 @@ func textAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 	unavailableDigests := storages.DiffStore.UnavailableDigests()
 
 	idx := ixr.GetIndex()
-	byTest := idx.TalliesByTest()
+	byTest := idx.TalliesByTest(true)
 	hashes := map[string]bool{}
 	for _, test := range byTest {
 		for k, _ := range test {
