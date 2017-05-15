@@ -196,12 +196,12 @@ func TestCancelBuild(t *testing.T) {
 	defer cleanup()
 
 	id := int64(12345)
-	MockCancelBuild(mock, id, nil)
+	MockCancelBuild(mock, id, "Canceling!", nil)
 	assert.NoError(t, trybots.remoteCancelBuild(id, "Canceling!"))
 	assert.True(t, mock.Empty())
 
 	err := fmt.Errorf("Build does not exist!")
-	MockCancelBuild(mock, id, err)
+	MockCancelBuild(mock, id, "Canceling!", err)
 	assert.EqualError(t, trybots.remoteCancelBuild(id, "Canceling!"), err.Error())
 	assert.True(t, mock.Empty())
 }
@@ -323,27 +323,27 @@ func TestGetJobToSchedule(t *testing.T) {
 	// Invalid parameters_json.
 	b2 := Build(t, now)
 	b2.ParametersJson = "dklsadfklas"
-	MockCancelBuild(mock, b2.Id, nil)
+	MockCancelBuild(mock, b2.Id, "Invalid parameters_json: invalid character 'd' looking for beginning of value;\\n\\ndklsadfklas", nil)
 	result, err = trybots.getJobToSchedule(b2, now)
-	assert.Nil(t, err) // We don't report errors for bad data from buildbucket.
+	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 
 	// Invalid repo.
 	b3 := Build(t, now)
 	b3.ParametersJson = testutils.MarshalJSON(t, Params(t, "fake-job", "bogus-repo", "master", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
-	MockCancelBuild(mock, b3.Id, nil)
+	MockCancelBuild(mock, b3.Id, "Unable to find repo: Unknown patch project \\\"bogus-repo\\\"", nil)
 	result, err = trybots.getJobToSchedule(b3, now)
-	assert.Nil(t, err) // We don't report errors for bad data from buildbucket.
+	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 
 	// Invalid revision.
 	b4 := Build(t, now)
 	b4.ParametersJson = testutils.MarshalJSON(t, Params(t, "fake-job", patchProject, "abz", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
-	MockCancelBuild(mock, b4.Id, nil)
+	MockCancelBuild(mock, b4.Id, "Invalid revision: Unknown revision abz", nil)
 	result, err = trybots.getJobToSchedule(b4, now)
-	assert.Nil(t, err) // We don't report errors for bad data from buildbucket.
+	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 
@@ -352,27 +352,27 @@ func TestGetJobToSchedule(t *testing.T) {
 	p := Params(t, "fake-job", patchProject, "master", gerritUrl, gerritPatch.Issue, gerritPatch.Patchset)
 	p.Properties.PatchStorage = "???"
 	b6.ParametersJson = testutils.MarshalJSON(t, p)
-	MockCancelBuild(mock, b6.Id, nil)
+	MockCancelBuild(mock, b6.Id, "Invalid patch storage: ???", nil)
 	result, err = trybots.getJobToSchedule(b6, now)
-	assert.Nil(t, err) // We don't report errors for bad data from buildbucket.
+	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 
 	// Invalid RepoState.
 	b7 := Build(t, now)
 	b7.ParametersJson = testutils.MarshalJSON(t, Params(t, "fake-job", patchProject, "bad-revision", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
-	MockCancelBuild(mock, b7.Id, nil)
+	MockCancelBuild(mock, b7.Id, "Invalid revision: Unknown revision bad-revision", nil)
 	result, err = trybots.getJobToSchedule(b7, now)
-	assert.Nil(t, err) // We don't report errors for bad data from buildbucket.
+	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 
 	// Invalid JobSpec.
 	b8 := Build(t, now)
 	b8.ParametersJson = testutils.MarshalJSON(t, Params(t, "bogus-job", patchProject, "master", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
-	MockCancelBuild(mock, b8.Id, nil)
+	MockCancelBuild(mock, b8.Id, "Failed to obtain JobSpec: No such job: bogus-job; \\n\\n{bogus-job [] {0  https://skia-review.googlesource.com/ 2112 3  skia gerrit  master  0 0 } \\u003cnil\\u003e}", nil)
 	result, err = trybots.getJobToSchedule(b8, now)
-	assert.Nil(t, err) // We don't report errors for bad data from buildbucket.
+	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 
@@ -380,7 +380,7 @@ func TestGetJobToSchedule(t *testing.T) {
 	b9 := Build(t, now)
 	b9.ParametersJson = testutils.MarshalJSON(t, Params(t, "bogus-job", patchProject, "master", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
 	expect := fmt.Errorf("no cancel!")
-	MockCancelBuild(mock, b9.Id, expect)
+	MockCancelBuild(mock, b9.Id, "Failed to obtain JobSpec: No such job: bogus-job; \\n\\n{bogus-job [] {0  https://skia-review.googlesource.com/ 2112 3  skia gerrit  master  0 0 } \\u003cnil\\u003e}", expect)
 	result, err = trybots.getJobToSchedule(b9, now)
 	assert.EqualError(t, err, expect.Error())
 	assert.Nil(t, result)
@@ -464,7 +464,7 @@ func TestPoll(t *testing.T) {
 		MockTryLeaseBuild(mock, b.Id, now, nil)
 		MockJobStarted(mock, b.Id, now, nil)
 	}
-	MockCancelBuild(mock, failBuild.Id, nil)
+	MockCancelBuild(mock, failBuild.Id, "Invalid parameters_json: invalid character '?' looking for beginning of value;\\n\\n???", nil)
 	check(builds)
 
 	// Multiple new builds, fail jobStarted, ensure that the others are

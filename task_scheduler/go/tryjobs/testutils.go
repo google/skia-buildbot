@@ -249,13 +249,14 @@ func MockHeartbeats(t *testing.T, mock *mockhttpclient.URLMock, now time.Time, j
 	mock.MockOnce(fmt.Sprintf("%sheartbeat?alt=json", API_URL_TESTING), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockCancelBuild(mock *mockhttpclient.URLMock, id int64, err error) {
+func MockCancelBuild(mock *mockhttpclient.URLMock, id int64, msg string, err error) {
+	req := []byte(fmt.Sprintf("{\"result_details_json\":\"{\\\"message\\\":\\\"%s\\\"}\"}\n", msg))
 	respStr := "{}"
 	if err != nil {
 		respStr = fmt.Sprintf("{\"error\": {\"message\": \"%s\"}}", err)
 	}
 	resp := []byte(respStr)
-	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/cancel?alt=json", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("", nil, resp))
+	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/cancel?alt=json", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
 func MockTryLeaseBuild(mock *mockhttpclient.URLMock, id int64, now time.Time, err error) {
