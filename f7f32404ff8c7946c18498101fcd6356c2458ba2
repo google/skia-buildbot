@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "64d91739_12439db1",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-05-15T14:29:37Z",
+      "side": 1,
+      "message": "I think this needs to be Infof ?",
+      "range": {
+        "startLine": 132,
+        "startChar": 11,
+        "endLine": 132,
+        "endChar": 15
+      },
+      "revId": "f7f32404ff8c7946c18498101fcd6356c2458ba2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f57aeff_24cf4021",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-05-15T14:29:37Z",
+      "side": 1,
+      "message": "Info is sufficient here. Not sure if it hurts to use Infof instead.",
+      "range": {
+        "startLine": 37,
+        "startChar": 7,
+        "endLine": 37,
+        "endChar": 12
+      },
+      "revId": "f7f32404ff8c7946c18498101fcd6356c2458ba2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
