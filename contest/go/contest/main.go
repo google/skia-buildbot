@@ -1,16 +1,18 @@
 package main
 
 import (
+	"crypto/md5"
 	"flag"
+	"fmt"
 	"html/template"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/gorilla/mux"
 	"google.golang.org/api/sheets/v4"
 
-	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
@@ -63,7 +65,7 @@ const (
   <p>
 	  Create your entry at <a href="https://fiddle.skia.org">fiddle.skia.org</a> and submit contest entries <a href="http://goo.gl/forms/pRfo39hTND">here</a>.
 	</p>
-  {{range .}}
+  {{range .Values}}
 	  <div>
 			<div class=entry>
 				<a href='https://fiddle.skia.org/c/{{.Hash}}'>
@@ -74,9 +76,23 @@ const (
 	  </div>
 	{{end}}
 	<script type="text/javascript" charset="utf-8">
-		if (window.location.search.indexOf("refresh") != -1) {
-			window.setTimeout(function() { window.location.reload(true); }, 60*1000);
+	  // Hit /update and check for an updated hash value and if it has changed then refresh the page.
+		function checkForUpdates() {
+			var xhr = new XMLHttpRequest();
+			xhr.open("GET", "/update", true);
+			xhr.onreadystatechange = function(e) {
+				if (e.currentTarget.readyState === XMLHttpRequest.DONE) {
+					if (e.currentTarget.responseText === "{{.Hash}}") {
+						window.setTimeout(checkForUpdates, 5000);
+					} else {
+						window.location.reload(true);
+					}
+				}
+			};
+			xhr.send();
 		}
+
+		checkForUpdates();
 	</script>
 </body>
 </html>`
@@ -88,27 +104,62 @@ var (
 	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 )
 
+// Values contains the fiddle hash and the user's name of a single contest entry.
 type Values struct {
 	Hash string
 	Name string
 }
 
+// Context is used to expand the HTML template.
+type Context struct {
+	Values []*Values
+	Hash   string
+}
+
 var (
 	indexTemplate = template.Must(template.New("index").Parse(index))
 	ss            *sheets.Service
-	values        []*Values
-	mutex         sync.Mutex
+
+	// mutex protects values and valueHash.
+	mutex      sync.Mutex
+	values     []*Values
+	valuesHash string // valueHash is an md5 hash of values.
 )
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
+	mutex.Lock()
+	defer mutex.Unlock()
 	w.Header().Set("Content-Type", "text/html")
-	if err := indexTemplate.Execute(w, values); err != nil {
+	if err := indexTemplate.Execute(w, Context{
+		Values: values,
+		Hash:   valuesHash,
+	}); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
 
+// updateHandler returns valuesHash.
+func updateHandler(w http.ResponseWriter, r *http.Request) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	if _, err := w.Write([]byte(valuesHash)); err != nil {
+		sklog.Errorf("Failed to write hash response: %s", err)
+	}
+}
+
+// hash computes an md5 hash of date in 'values'.
+func hash(values []*Values) string {
+	h := md5.New()
+	for _, v := range values {
+		_, _ = h.Write([]byte(v.Hash))
+		_, _ = h.Write([]byte(v.Name))
+	}
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+// step does a single update of 'values' and 'valueHash' from the Google spreadsheet.
 func step() error {
-	v, err := ss.Spreadsheets.Values.Get("1Jbv7pWwH8NwHtoEBez1Bkwmk2wjhMnCk9UKttYqPjNQ", "A1:C100").Do()
+	v, err := ss.Spreadsheets.Values.Get("1Jbv7pWwH8NwHtoEBez1Bkwmk2wjhMnCk9UKttYqPjNQ", "A1:C200").Do()
 	if err != nil {
 		return err
 	}
@@ -131,7 +182,7 @@ func step() error {
 	mutex.Lock()
 	defer mutex.Unlock()
 	values = newValues
-	sklog.Infof("%#v", values)
+	valuesHash = hash(values)
 	return nil
 }
 
@@ -156,15 +207,15 @@ func main() {
 		sklog.Fatalf("Failed initial population of contest entries: %s", err)
 	}
 	go func() {
-		for _ = range time.Tick(time.Minute) {
+		for _ = range time.Tick(5 * time.Second) {
 			if err := step(); err != nil {
 				sklog.Fatalf("Failed to refresh from Google Sheets: %s", err)
 			}
 		}
 	}()
-
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
+	r.HandleFunc("/update", updateHandler)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
