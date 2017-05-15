@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ef6985cd_3949d8d8",
+        "filename": "contest/go/contest/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-05-15T14:27:26Z",
+      "side": 1,
+      "message": "Would it be useful to also display a .Creator or .Owner here? (or is name supposed to be that?)",
+      "revId": "3e1ae232a243a290b905247776002b22d24e7849",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
