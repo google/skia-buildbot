@@ -16,8 +16,6 @@ populates the spreadsheet.
 Running
 =======
 
-If you append "?refresh" to the URL then the page will refresh every minute, i.e.:
-
-    https://contest.skia.org?refresh
+The page will refresh every 5 minutes, or if a new fiddle has been added.
 
 

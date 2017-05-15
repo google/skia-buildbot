@@ -1,16 +1,18 @@
 package main
 
 import (
+	"crypto/md5"
 	"flag"
+	"fmt"
 	"html/template"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/gorilla/mux"
 	"google.golang.org/api/sheets/v4"
 
-	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
@@ -63,7 +65,7 @@ const (
   <p>
 	  Create your entry at <a href="https://fiddle.skia.org">fiddle.skia.org</a> and submit contest entries <a href="http://goo.gl/forms/pRfo39hTND">here</a>.
 	</p>
-  {{range .}}
+  {{range .Values}}
 	  <div>
 			<div class=entry>
 				<a href='https://fiddle.skia.org/c/{{.Hash}}'>
@@ -73,10 +75,25 @@ const (
 			</div>
 	  </div>
 	{{end}}
-	<script type="text/javascript" charset="utf-8">
-		if (window.location.search.indexOf("refresh") != -1) {
-			window.setTimeout(function() { window.location.reload(true); }, 60*1000);
+	<script defer type="text/javascript" charset="utf-8">
+	  var stateChange = function(e) {
+			if (e.currentTarget.readyState === XMLHttpRequest.DONE) {
+				if (e.currentTarget.responseText != "{{.Hash}}") {
+					window.location.reload(true);
+				} else {
+					window.setTimeout(checkForUpdates, 5000);
+				}
+			}
+		};
+
+		function checkForUpdates() {
+			var xhr = new XMLHttpRequest();
+			xhr.open("GET", "/update", true);
+			xhr.onreadystatechange = stateChange;
+			xhr.send();
 		}
+
+		checkForUpdates();
 	</script>
 </body>
 </html>`
@@ -93,18 +110,44 @@ type Values struct {
 	Name string
 }
 
+type Context struct {
+	Values []*Values
+	Hash   string
+}
+
 var (
 	indexTemplate = template.Must(template.New("index").Parse(index))
 	ss            *sheets.Service
-	values        []*Values
-	mutex         sync.Mutex
+
+	// mutex protects values and broadcast.
+	mutex      sync.Mutex
+	values     []*Values
+	valuesHash string
 )
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	if err := indexTemplate.Execute(w, values); err != nil {
+	if err := indexTemplate.Execute(w, Context{
+		Values: values,
+		Hash:   valuesHash,
+	}); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
+}
+
+func updateHandler(w http.ResponseWriter, r *http.Request) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	w.Write([]byte(valuesHash))
+}
+
+func hash(values []*Values) string {
+	h := md5.New()
+	for _, v := range values {
+		_, _ = h.Write([]byte(v.Hash))
+		_, _ = h.Write([]byte(v.Name))
+	}
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
 func step() error {
@@ -131,7 +174,7 @@ func step() error {
 	mutex.Lock()
 	defer mutex.Unlock()
 	values = newValues
-	sklog.Infof("%#v", values)
+	valuesHash = hash(values)
 	return nil
 }
 
@@ -156,15 +199,15 @@ func main() {
 		sklog.Fatalf("Failed initial population of contest entries: %s", err)
 	}
 	go func() {
-		for _ = range time.Tick(time.Minute) {
+		for _ = range time.Tick(5 * time.Second) {
 			if err := step(); err != nil {
 				sklog.Fatalf("Failed to refresh from Google Sheets: %s", err)
 			}
 		}
 	}()
-
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
+	r.HandleFunc("/update", updateHandler)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
