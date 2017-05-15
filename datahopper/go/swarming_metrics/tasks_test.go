@@ -173,9 +173,13 @@ func TestMetrics(t *testing.T) {
 			"metric":    metric,
 			"os":        "Ubuntu",
 			"period":    "24h0m0s",
-			"pool":      "Skia",
 			"stream":    STREAM_SWARMING_TASKS,
 			"task-name": "my-task",
+		}
+		for k, _ := range DIMENSION_WHITELIST {
+			if _, ok := tags[k]; !ok {
+				tags[k] = ""
+			}
 		}
 		mx := metrics2.GetFloat64Metric(MEASUREMENT_SWARMING_TASKS, tags)
 		assert.NotNil(t, mx)
