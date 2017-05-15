@@ -39,22 +39,16 @@ func byTraceForTile(tile *tiling.Tile, traceTally map[string]tally.Tally) map[st
 	return ret
 }
 
-// oneStep does a single step, calculating all the paramsets from the latest tile and tallies.
-//
-// Returns the paramsets for both the tile with and without ignored traces included.
-func oneStep(tilePair *types.TilePair, tallies *tally.Tallies) (map[string]map[string]paramtools.ParamSet, map[string]map[string]paramtools.ParamSet) {
-	defer timer.New("paramsets").Stop()
-	return byTraceForTile(tilePair.Tile, tallies.ByTrace()), byTraceForTile(tilePair.TileWithIgnores, tallies.ByTrace())
-}
-
 // New creates a new ParamSummary.
 func New() *ParamSummary {
 	return &ParamSummary{}
 }
 
 // Calculate sets the values the ParamSummary based on the given tile.
-func (s *ParamSummary) Calculate(tilePair *types.TilePair, tallies *tally.Tallies) {
-	s.byTrace, s.byTraceIncludeIgnored = oneStep(tilePair, tallies)
+func (s *ParamSummary) Calculate(tilePair *types.TilePair, tallies *tally.Tallies, talliesWithIgnores *tally.Tallies) {
+	defer timer.New("paramsets").Stop()
+	s.byTrace = byTraceForTile(tilePair.Tile, tallies.ByTrace())
+	s.byTraceIncludeIgnored = byTraceForTile(tilePair.TileWithIgnores, talliesWithIgnores.ByTrace())
 }
 
 // Get returns the paramset for the given digest. If 'include' is true
