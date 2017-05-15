@@ -495,10 +495,15 @@ func (s *server) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, r, err, fmt.Sprintf("Invalid to param %q", toStr))
 			return
 		}
-		tasks, err = s.d.GetTasksFromDateRange(time.Unix(0, fromInt), time.Unix(0, toInt))
+		from := time.Unix(0, fromInt)
+		to := time.Unix(0, toInt)
+		tasks, err = s.d.GetTasksFromDateRange(from, to)
 		if err != nil {
 			reportDBError(w, r, err, "Unable to retrieve tasks")
 			return
+		}
+		if len(tasks) >= 10000 {
+			sklog.Debugf("Loaded %d tasks for request from %s for time range from %s to %s.", len(tasks), r.RemoteAddr, from, to)
 		}
 	}
 	if err := writeTaskList(w, tasks); err != nil {
