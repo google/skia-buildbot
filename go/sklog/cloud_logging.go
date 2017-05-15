@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
@@ -54,6 +56,26 @@ const (
 
 	// MAX_LOG_SIZE is the max number of log entries we keep locally.
 	MAX_LOG_SIZE = LOG_WRITE_SECONDS * MAX_QPS_LOG
+
+	// REQ_SIZE_BASE is the approximate base size in bytes of an empty log
+	// push request in bytes.
+	REQ_SIZE_BASE = 128
+
+	// REQ_SIZE_MAX is the maximum size in bytes of a log push request. Give
+	// ourselves 20% headroom just in case our estimates are incorrect.
+	REQ_SIZE_MAX = int(10485760.0 * 0.80)
+
+	// ENTRY_SIZE_BASE is the approximate size in bytes of a serialized
+	// empty LogEntry object.
+	ENTRY_SIZE_BASE = 512
+
+	// ENTRY_SIZE_MAX is the maximum size in bytes of a serialized LogEntry
+	// object. Give ourselves 20% headroom just in case our estimates are
+	// incorrect.
+	ENTRY_SIZE_MAX = int(112640.0 * 0.80)
+
+	// PAYLOAD_SIZE_MAX is the approximate maximum log line size in bytes.
+	PAYLOAD_SIZE_MAX = ENTRY_SIZE_MAX - ENTRY_SIZE_BASE
 )
 
 // PreInitCloudLogging does the first step in initializing cloud logging.
@@ -248,31 +270,96 @@ func (c *logsClient) Flush() {
 	<-ch
 }
 
+// entrySize returns the estimated size in bytes of the given LogEntry.
+func entrySize(e *logging.LogEntry) int {
+	return ENTRY_SIZE_BASE + len(e.TextPayload)
+}
+
+// splitEntry splits the LogEntry into multiple, if necessary.
+func splitEntry(e *logging.LogEntry) []*logging.LogEntry {
+	if entrySize(e) <= ENTRY_SIZE_MAX {
+		return []*logging.LogEntry{e}
+	}
+	lines := strings.Split(e.TextPayload, "\n")
+	payloads := make([]string, 0, len(lines))
+	for _, line := range lines {
+		for len(line) > PAYLOAD_SIZE_MAX {
+			payloads = append(payloads, line[:PAYLOAD_SIZE_MAX])
+			line = line[PAYLOAD_SIZE_MAX:]
+		}
+		payloads = append(payloads, line)
+	}
+	rv := make([]*logging.LogEntry, 0, len(payloads))
+	for _, payload := range payloads {
+		rv = append(rv, &logging.LogEntry{
+			Labels:      e.Labels,
+			LogName:     e.LogName,
+			Resource:    e.Resource,
+			Severity:    e.Severity,
+			TextPayload: payload,
+			Timestamp:   e.Timestamp,
+		})
+	}
+	return rv
+}
+
 func (c *logsClient) pushBatch() {
 	// Bail out if the cloud logging service is not finished initializing.
 	if c.service == nil {
 		glog.Infof("Logging service is still nil.")
 		return
 	}
-	request := logging.WriteLogEntriesRequest{
-		Entries: c.buffer,
+
+	// Divide entries into batches based on maximum request size.
+	entries := make([]*logging.LogEntry, 0, len(c.buffer))
+	for _, e := range c.buffer {
+		entries = append(entries, splitEntry(e)...)
 	}
-	if len(c.buffer) > 0 {
-		glog.Infof("Sending log entry batch of %d", len(c.buffer))
+
+	batch := []*logging.LogEntry{}
+	batches := [][]*logging.LogEntry{}
+	reqSize := REQ_SIZE_BASE
+	for _, e := range entries {
+		s := entrySize(e)
+		if reqSize+s > REQ_SIZE_MAX {
+			batches = append(batches, batch)
+			batch = []*logging.LogEntry{}
+			reqSize = REQ_SIZE_BASE
+		}
+		batch = append(batch, e)
+		reqSize += s
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), LOG_WRITE_SECONDS*time.Second)
-	defer cancel()
-	if resp, err := c.service.Entries.Write(&request).Context(ctx).Do(); err != nil {
-		// We can't use httputil.DumpResponse, because that doesn't accept *logging.WriteLogEntriesResponse
-		glog.Errorf("Problem writing logs \nResponse:\n%v:\n%s", spew.Sdump(resp), err)
-		// If we timed out on writing then drop the logs. https://bug.skia.org/6246
-		c.buffer = c.buffer[:0]
-		return
-	} else if resp.HTTPStatusCode != http.StatusOK {
-		glog.Errorf("Response code %d", resp.HTTPStatusCode)
-		c.buffer = c.buffer[:MAX_LOG_SIZE]
-		return
+	if len(batch) > 0 {
+		batches = append(batches, batch)
 	}
+
+	// Send requests in parallel.
+	var wg sync.WaitGroup
+	for _, batch := range batches {
+		wg.Add(1)
+		go func(batch []*logging.LogEntry) {
+			defer wg.Done()
+			request := logging.WriteLogEntriesRequest{
+				Entries: batch,
+			}
+			if len(c.buffer) > 0 {
+				glog.Infof("Sending log entry batch of %d", len(batch))
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), LOG_WRITE_SECONDS*time.Second)
+			defer cancel()
+			if resp, err := c.service.Entries.Write(&request).Context(ctx).Do(); err != nil {
+				// We can't use httputil.DumpResponse, because that doesn't accept *logging.WriteLogEntriesResponse
+				glog.Errorf("Problem writing logs \nResponse:\n%v:\n%s", spew.Sdump(resp), err)
+				return
+			} else if resp.HTTPStatusCode != http.StatusOK {
+				glog.Errorf("Response code %d", resp.HTTPStatusCode)
+				return
+			}
+		}(batch)
+	}
+	wg.Wait()
+	// If we failed to write any logs, then those lines will be lost.
+	// https://bug.skia.org/6246
 	c.buffer = c.buffer[:0]
 }
 
