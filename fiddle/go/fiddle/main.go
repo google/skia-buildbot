@@ -457,7 +457,7 @@ func run(user string, req *types.FiddleContext) (*types.RunResults, error) {
 	runs.Inc(1)
 	resp.FiddleHash = fiddleHash
 
-	if req.Options.TextOnly {
+	if req.Options.TextOnly && res != nil {
 		// decode
 		decodedText, err := base64.StdEncoding.DecodeString(res.Execute.Output.Text)
 		if err != nil {
