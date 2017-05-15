@@ -16,6 +16,24 @@
       "revId": "3e1ae232a243a290b905247776002b22d24e7849",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "801318bd_4c021b87",
+        "filename": "contest/go/contest/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-05-15T14:30:55Z",
+      "side": 1,
+      "message": "Name is supposed to be that.",
+      "parentUuid": "ef6985cd_3949d8d8",
+      "revId": "3e1ae232a243a290b905247776002b22d24e7849",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
