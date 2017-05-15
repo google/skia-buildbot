@@ -59,30 +59,30 @@ func TestUpdateFromSwarmingInvalid(t *testing.T) {
 
 	testError(&swarming_api.SwarmingRpcsTaskResult{
 		CreatedTs: now.Format(swarming.TIMESTAMP_FORMAT),
-		State:     SWARMING_STATE_COMPLETED,
+		State:     swarming.TASK_STATE_COMPLETED,
 		Tags:      []string{"invalid"},
 	}, "key/value pairs must take the form \"key:value\"; \"invalid\" is invalid")
 
 	testError(&swarming_api.SwarmingRpcsTaskResult{
 		CreatedTs: "20160817T142302.543490",
-		State:     SWARMING_STATE_COMPLETED,
+		State:     swarming.TASK_STATE_COMPLETED,
 	}, "Unable to parse task creation time")
 
 	testError(&swarming_api.SwarmingRpcsTaskResult{
 		CreatedTs: now.Format(swarming.TIMESTAMP_FORMAT),
-		State:     SWARMING_STATE_COMPLETED,
+		State:     swarming.TASK_STATE_COMPLETED,
 		StartedTs: "20160817T142302.543490",
 	}, "Unable to parse StartedTs")
 
 	testError(&swarming_api.SwarmingRpcsTaskResult{
 		CreatedTs:   now.Format(swarming.TIMESTAMP_FORMAT),
-		State:       SWARMING_STATE_COMPLETED,
+		State:       swarming.TASK_STATE_COMPLETED,
 		CompletedTs: "20160817T142302.543490",
 	}, "Unable to parse CompletedTs")
 
 	testError(&swarming_api.SwarmingRpcsTaskResult{
 		CreatedTs:   now.Format(swarming.TIMESTAMP_FORMAT),
-		State:       SWARMING_STATE_EXPIRED,
+		State:       swarming.TASK_STATE_EXPIRED,
 		AbandonedTs: "20160817T142302.543490",
 	}, "Unable to parse AbandonedTs")
 
@@ -122,7 +122,7 @@ func TestUpdateFromSwarmingMismatched(t *testing.T) {
 		TaskId:    "A",
 		CreatedTs: now.Format(swarming.TIMESTAMP_FORMAT),
 		Failure:   false,
-		State:     SWARMING_STATE_COMPLETED,
+		State:     swarming.TASK_STATE_COMPLETED,
 		Tags: []string{
 			fmt.Sprintf("%s:B", SWARMING_TAG_ID),
 			fmt.Sprintf("%s:A", SWARMING_TAG_NAME),
@@ -172,7 +172,7 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 		CompletedTs: now.Add(-2 * time.Minute).Format(swarming.TIMESTAMP_FORMAT),
 		Failure:     false,
 		StartedTs:   now.Add(-time.Hour).Format(swarming.TIMESTAMP_FORMAT),
-		State:       SWARMING_STATE_COMPLETED,
+		State:       swarming.TASK_STATE_COMPLETED,
 		Tags: []string{
 			fmt.Sprintf("%s:A", SWARMING_TAG_ID),
 			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
@@ -216,7 +216,7 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 		SwarmingTaskId: "E",
 	}
 	s.CompletedTs = ""
-	s.State = SWARMING_STATE_EXPIRED
+	s.State = swarming.TASK_STATE_EXPIRED
 	changed2, err2 := task2.UpdateFromSwarming(s)
 	assert.NoError(t, err2)
 	assert.True(t, changed2)
@@ -276,7 +276,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		CompletedTs: now.Add(-1 * time.Minute).Format(swarming.TIMESTAMP_FORMAT),
 		Failure:     true,
 		StartedTs:   now.Add(-2 * time.Minute).Format(swarming.TIMESTAMP_FORMAT),
-		State:       SWARMING_STATE_COMPLETED,
+		State:       swarming.TASK_STATE_COMPLETED,
 		Tags: []string{
 			fmt.Sprintf("%s:A", SWARMING_TAG_ID),
 			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
@@ -343,7 +343,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 
 	// Modify so that we get Finished from AbandonedTs.
 	s.CompletedTs = ""
-	s.State = SWARMING_STATE_EXPIRED
+	s.State = swarming.TASK_STATE_EXPIRED
 	changed, err = task.UpdateFromSwarming(s)
 	assert.NoError(t, err)
 	assert.True(t, changed)
@@ -416,7 +416,7 @@ func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
 		TaskId:    "E",
 		CreatedTs: now.Add(-3 * time.Hour).Format(swarming.TIMESTAMP_FORMAT),
 		Failure:   false,
-		State:     SWARMING_STATE_PENDING,
+		State:     swarming.TASK_STATE_PENDING,
 		Tags: []string{
 			fmt.Sprintf("%s:A", SWARMING_TAG_ID),
 			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
@@ -431,15 +431,15 @@ func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
 
 	testUpdateStatus(s, TASK_STATUS_PENDING)
 
-	s.State = SWARMING_STATE_RUNNING
+	s.State = swarming.TASK_STATE_RUNNING
 	testUpdateStatus(s, TASK_STATUS_RUNNING)
 
-	for _, state := range []string{SWARMING_STATE_BOT_DIED, SWARMING_STATE_CANCELED, SWARMING_STATE_EXPIRED, SWARMING_STATE_TIMED_OUT} {
+	for _, state := range []string{swarming.TASK_STATE_BOT_DIED, swarming.TASK_STATE_CANCELED, swarming.TASK_STATE_EXPIRED, swarming.TASK_STATE_TIMED_OUT} {
 		s.State = state
 		testUpdateStatus(s, TASK_STATUS_MISHAP)
 	}
 
-	s.State = SWARMING_STATE_COMPLETED
+	s.State = swarming.TASK_STATE_COMPLETED
 	s.Failure = true
 	testUpdateStatus(s, TASK_STATUS_FAILURE)
 }
@@ -469,7 +469,7 @@ func TestUpdateDBFromSwarmingTask(t *testing.T) {
 	s := &swarming_api.SwarmingRpcsTaskResult{
 		TaskId:    "E", // This is the Swarming TaskId.
 		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
-		State:     SWARMING_STATE_PENDING,
+		State:     swarming.TASK_STATE_PENDING,
 		Tags: []string{
 			fmt.Sprintf("%s:%s", SWARMING_TAG_ID, task.Id),
 			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
@@ -488,7 +488,7 @@ func TestUpdateDBFromSwarmingTask(t *testing.T) {
 	// Get update from Swarming.
 	s.StartedTs = now.Add(time.Minute).Format(swarming.TIMESTAMP_FORMAT)
 	s.CompletedTs = now.Add(2 * time.Minute).Format(swarming.TIMESTAMP_FORMAT)
-	s.State = SWARMING_STATE_COMPLETED
+	s.State = swarming.TASK_STATE_COMPLETED
 	s.Failure = true
 	s.OutputsRef = &swarming_api.SwarmingRpcsFilesRef{
 		Isolated: "G",
@@ -563,7 +563,7 @@ func TestUpdateDBFromSwarmingTaskTryJob(t *testing.T) {
 	s := &swarming_api.SwarmingRpcsTaskResult{
 		TaskId:    "E", // This is the Swarming TaskId.
 		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
-		State:     SWARMING_STATE_PENDING,
+		State:     swarming.TASK_STATE_PENDING,
 		Tags: []string{
 			fmt.Sprintf("%s:%s", SWARMING_TAG_ID, task.Id),
 			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
@@ -585,7 +585,7 @@ func TestUpdateDBFromSwarmingTaskTryJob(t *testing.T) {
 	s = &swarming_api.SwarmingRpcsTaskResult{
 		TaskId:    "E", // This is the Swarming TaskId.
 		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
-		State:     SWARMING_STATE_PENDING,
+		State:     swarming.TASK_STATE_PENDING,
 		Tags: []string{
 			fmt.Sprintf("%s:%s", SWARMING_TAG_ID, task.Id),
 			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
@@ -607,7 +607,7 @@ func TestUpdateDBFromSwarmingTaskTryJob(t *testing.T) {
 	s = &swarming_api.SwarmingRpcsTaskResult{
 		TaskId:    "E", // This is the Swarming TaskId.
 		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
-		State:     SWARMING_STATE_PENDING,
+		State:     swarming.TASK_STATE_PENDING,
 		Tags: []string{
 			fmt.Sprintf("%s:%s", SWARMING_TAG_ID, task.Id),
 			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
@@ -629,7 +629,7 @@ func TestUpdateDBFromSwarmingTaskTryJob(t *testing.T) {
 	s = &swarming_api.SwarmingRpcsTaskResult{
 		TaskId:    "E", // This is the Swarming TaskId.
 		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
-		State:     SWARMING_STATE_PENDING,
+		State:     swarming.TASK_STATE_PENDING,
 		Tags: []string{
 			fmt.Sprintf("%s:%s", SWARMING_TAG_ID, task.Id),
 			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),

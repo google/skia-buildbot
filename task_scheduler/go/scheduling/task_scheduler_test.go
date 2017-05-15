@@ -110,19 +110,19 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task, dims map[s
 		return t.Format(swarming.TIMESTAMP_FORMAT)
 	}
 	abandoned := ""
-	state := db.SWARMING_STATE_PENDING
+	state := swarming.TASK_STATE_PENDING
 	failed := false
 	switch task.Status {
 	case db.TASK_STATUS_MISHAP:
-		state = db.SWARMING_STATE_BOT_DIED
+		state = swarming.TASK_STATE_BOT_DIED
 		abandoned = ts(task.Finished)
 	case db.TASK_STATUS_RUNNING:
-		state = db.SWARMING_STATE_RUNNING
+		state = swarming.TASK_STATE_RUNNING
 	case db.TASK_STATUS_FAILURE:
-		state = db.SWARMING_STATE_COMPLETED
+		state = swarming.TASK_STATE_COMPLETED
 		failed = true
 	case db.TASK_STATUS_SUCCESS:
-		state = db.SWARMING_STATE_COMPLETED
+		state = swarming.TASK_STATE_COMPLETED
 	case db.TASK_STATUS_PENDING:
 		// noop
 	default:

@@ -22,15 +22,6 @@ import (
 )
 
 const (
-	// Swarming task states.
-	SWARMING_STATE_BOT_DIED  = "BOT_DIED"
-	SWARMING_STATE_CANCELED  = "CANCELED"
-	SWARMING_STATE_COMPLETED = "COMPLETED"
-	SWARMING_STATE_EXPIRED   = "EXPIRED"
-	SWARMING_STATE_PENDING   = "PENDING"
-	SWARMING_STATE_RUNNING   = "RUNNING"
-	SWARMING_STATE_TIMED_OUT = "TIMED_OUT"
-
 	// Swarming tags added by Task Scheduler.
 	SWARMING_TAG_ATTEMPT          = "sk_attempt"
 	SWARMING_TAG_DIMENSION_PREFIX = "sk_dim_"
@@ -279,13 +270,13 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 
 	// Status.
 	switch s.State {
-	case SWARMING_STATE_BOT_DIED, SWARMING_STATE_CANCELED, SWARMING_STATE_EXPIRED, SWARMING_STATE_TIMED_OUT:
+	case swarming.TASK_STATE_BOT_DIED, swarming.TASK_STATE_CANCELED, swarming.TASK_STATE_EXPIRED, swarming.TASK_STATE_TIMED_OUT:
 		copy.Status = TASK_STATUS_MISHAP
-	case SWARMING_STATE_PENDING:
+	case swarming.TASK_STATE_PENDING:
 		copy.Status = TASK_STATUS_PENDING
-	case SWARMING_STATE_RUNNING:
+	case swarming.TASK_STATE_RUNNING:
 		copy.Status = TASK_STATUS_RUNNING
-	case SWARMING_STATE_COMPLETED:
+	case swarming.TASK_STATE_COMPLETED:
 		if s.Failure {
 			// TODO(benjaminwagner): Choose FAILURE or MISHAP depending on ExitCode?
 			copy.Status = TASK_STATUS_FAILURE

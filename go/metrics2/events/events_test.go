@@ -45,3 +45,57 @@ func TestAggregateMetric(t *testing.T) {
 	assert.NoError(t, m.updateMetrics(now))
 	assert.True(t, called)
 }
+
+func TestDynamicMetric(t *testing.T) {
+	testutils.MediumTest(t)
+
+	tmp, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmp)
+
+	db, err := NewEventDB(path.Join(tmp, "events.bdb"))
+	assert.NoError(t, err)
+	m, err := NewEventMetrics(db, "test-dynamic-metrics")
+	assert.NoError(t, err)
+
+	s := "my-events"
+	now := time.Now()
+	k := now.Add(-5 * 20 * time.Minute)
+	for i := 0; i < 20; i++ {
+		v := 0.05 * float64(i)
+		assert.NoError(t, m.db.Insert(&Event{
+			Stream:    s,
+			Timestamp: k,
+			Data:      encodeEvent(v),
+		}))
+		k = k.Add(5 * time.Minute)
+	}
+
+	period := 100 * time.Minute
+	assert.NoError(t, m.DynamicMetric(s, nil, period, func(vs []*Event) ([]map[string]string, []float64, error) {
+		tags := []map[string]string{}
+		vals := []float64{}
+		for _, e := range vs {
+			t := map[string]string{}
+			v := decodeEvent(e.Data)
+			if v >= 0.5 {
+				t["category"] = "large"
+			} else {
+				t["category"] = "small"
+			}
+			tags = append(tags, t)
+			vals = append(vals, v)
+		}
+		return tags, vals, nil
+	}))
+	assert.NoError(t, m.updateMetrics(now))
+
+	// Ensure that we got the right dynamic metrics.
+	assert.Equal(t, 2, len(m.currentDynamicMetrics))
+
+	// Wait for the "small" events to scroll off, ensure that we deleted the
+	// old metric.
+	t1 := now.Add(50 * time.Minute)
+	assert.NoError(t, m.updateMetrics(t1))
+	assert.Equal(t, 1, len(m.currentDynamicMetrics))
+}
