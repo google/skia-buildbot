@@ -1,0 +1,18 @@
+[Unit]
+Description=Web server for Skia Contest server.
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/contest \
+    --port=:8001 \
+    --prom_port=:20001 \
+    --logtostderr
+
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
