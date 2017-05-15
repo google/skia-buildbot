@@ -82,6 +82,16 @@ function download_file {
   echo
 }
 
+function get_file_from_metadata {
+  URL="http://metadata/computeMetadata/v1/project/attributes/$1"
+  echo
+  echo "===== get_file_from_metadata($1, $2) ====="
+  gcloud compute --project $PROJECT_ID ssh --zone $ZONE chrome-bot@$INSTANCE_NAME -- \
+    "curl --header 'Metadata-Flavor: Google' $URL > $2" \
+    || FAILED="$FAILED get_file_from_metadata($1, $2)"
+  echo
+}
+
 function copy_files {
   echo
   echo "===== Copying over required files. ====="
