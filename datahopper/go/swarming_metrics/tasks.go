@@ -21,11 +21,20 @@ import (
 )
 
 const (
-	MEASUREMENT_SWARMING_TASKS = "swarming-tasks"
+	MEASUREMENT_SWARMING_TASKS = "swarming-task-events"
 	STREAM_SWARMING_TASKS      = "swarming-tasks"
 )
 
 var (
+	DIMENSION_WHITELIST = util.NewStringSet([]string{
+		"os",
+		"model",
+		"cpu",
+		"gpu",
+		"device_type",
+		"device_os",
+	})
+
 	errNoValue = fmt.Errorf("no value")
 )
 
@@ -105,6 +114,7 @@ func addMetric(s *events.EventStream, metric string, period time.Duration, fn fu
 		"metric": metric,
 	}
 	f := func(ev []*events.Event) ([]map[string]string, []float64, error) {
+		sklog.Infof("Computing value(s) for metric %q", metric)
 		if len(ev) == 0 {
 			return []map[string]string{}, []float64{}, nil
 		}
@@ -126,8 +136,13 @@ func addMetric(s *events.EventStream, metric string, period time.Duration, fn fu
 			tags := map[string]string{
 				"task-name": t.TaskResult.Name,
 			}
+			for d, _ := range DIMENSION_WHITELIST {
+				tags[d] = ""
+			}
 			for _, dim := range t.Request.Properties.Dimensions {
-				tags[dim.Key] = dim.Value
+				if _, ok := DIMENSION_WHITELIST[dim.Key]; ok {
+					tags[dim.Key] = dim.Value
+				}
 			}
 			key, err := util.MD5Params(tags)
 			if err != nil {
@@ -270,10 +285,11 @@ func startLoadingTasks(swarm swarming.ApiClient, ctx context.Context, edb events
 // StartSwarmingTaskMetrics initiates a goroutine which loads Swarming task
 // results and computes metrics.
 func StartSwarmingTaskMetrics(workdir string, swarm swarming.ApiClient, ctx context.Context) error {
-	edb, _, err := setupMetrics(workdir)
+	edb, em, err := setupMetrics(workdir)
 	if err != nil {
 		return err
 	}
+	em.Start(ctx)
 	startLoadingTasks(swarm, ctx, edb)
 	return nil
 }
