@@ -1,7 +1,9 @@
 package main
 
 import (
+	"crypto/md5"
 	"flag"
+	"fmt"
 	"html/template"
 	"net/http"
 	"strings"
@@ -74,9 +76,12 @@ const (
 	  </div>
 	{{end}}
 	<script type="text/javascript" charset="utf-8">
-		if (window.location.search.indexOf("refresh") != -1) {
-			window.setTimeout(function() { window.location.reload(true); }, 60*1000);
-		}
+		var xhr = new XMLHttpRequest();
+		xhr.open("GET", "/hanger", true);
+		xhr.onreadystatechange = function () {
+			window.location.reload(true);
+	  };
+		xhr.send();
 	</script>
 </body>
 </html>`
@@ -96,8 +101,11 @@ type Values struct {
 var (
 	indexTemplate = template.Must(template.New("index").Parse(index))
 	ss            *sheets.Service
-	values        []*Values
-	mutex         sync.Mutex
+
+	// mutex protects values and broadcast.
+	mutex     sync.Mutex
+	values    []*Values
+	broadcast = sync.NewCond(&sync.Mutex{}) // Controls the hanging GETs.
 )
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
@@ -105,6 +113,25 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if err := indexTemplate.Execute(w, values); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
+}
+
+// hangerHandler
+func hangerHandler(w http.ResponseWriter, r *http.Request) {
+	mutex.Lock()
+	broadcast.L.Lock()
+	mutex.Unlock()
+	sklog.Info("About to hang.")
+	broadcast.Wait()
+	sklog.Info("Released from hang.")
+}
+
+func hash(values []*Values) string {
+	h := md5.New()
+	for _, v := range values {
+		_, _ = h.Write([]byte(v.Hash))
+		_, _ = h.Write([]byte(v.Name))
+	}
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
 func step() error {
@@ -130,8 +157,16 @@ func step() error {
 	}
 	mutex.Lock()
 	defer mutex.Unlock()
+	before := hash(values)
+	after := hash(newValues)
 	values = newValues
-	sklog.Infof("%#v", values)
+	sklog.Infof("Hashes Before %q After %q", before, after)
+	if before != after {
+		sklog.Info("Broadcast!!")
+		broadcast.Broadcast()
+		// Replace broadcast with a new sync.Cond that hasn't fired yet.
+		broadcast = sync.NewCond(&sync.Mutex{})
+	}
 	return nil
 }
 
@@ -156,7 +191,7 @@ func main() {
 		sklog.Fatalf("Failed initial population of contest entries: %s", err)
 	}
 	go func() {
-		for _ = range time.Tick(time.Minute) {
+		for _ = range time.Tick(5 * time.Second) {
 			if err := step(); err != nil {
 				sklog.Fatalf("Failed to refresh from Google Sheets: %s", err)
 			}
@@ -165,6 +200,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
+	r.HandleFunc("/hanger", hangerHandler)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
