@@ -542,6 +542,30 @@
       "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59f01bfb_734f0855",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-15T13:18:09Z",
+      "side": 1,
+      "message": "Because of the way that Prometheus works, we start from a clean slate whenever the program restarts.  In effect, ALL metrics get deleted and then the ones we actually use will get recreated.",
+      "parentUuid": "e0c64bce_8384f5d6",
+      "range": {
+        "startLine": 298,
+        "startChar": 19,
+        "endLine": 298,
+        "endChar": 40
+      },
+      "revId": "7b2d49a6f779b4f611ea880ece59aa8beaa06e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
