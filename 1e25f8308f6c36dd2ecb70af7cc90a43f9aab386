@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c0692d32_6742cf3b",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-15T20:43:53Z",
+      "side": 1,
+      "message": "I logged an example http request, took the sizes of things in bytes and rounded up to the nearest power of 2.  It\u0027s all pretty approximate, since labels and other non-log-message fields can bloat the size.",
+      "parentUuid": "e50f5669_576820f8",
+      "range": {
+        "startLine": 62,
+        "startChar": 17,
+        "endLine": 62,
+        "endChar": 20
+      },
+      "revId": "1e25f8308f6c36dd2ecb70af7cc90a43f9aab386",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "41c2a1f5_f09145f8",
         "filename": "go/sklog/cloud_logging.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2017-05-11T14:48:20Z",
       "side": 1,
       "message": "WIll sending them in parallel cause out of syncness? i.e. split 2 comes before split 1?",
+      "range": {
+        "startLine": 336,
+        "startChar": 21,
+        "endLine": 336,
+        "endChar": 29
+      },
+      "revId": "1e25f8308f6c36dd2ecb70af7cc90a43f9aab386",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38b03a9f_ba713d64",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-15T20:43:53Z",
+      "side": 1,
+      "message": "As long as the insert IDs are ordered properly, the\u0027ll end up in the right order.  Otherwise, yeah, they could be out of order.",
+      "parentUuid": "41c2a1f5_f09145f8",
       "range": {
         "startLine": 336,
         "startChar": 21,
@@ -62,6 +110,24 @@
       "revId": "1e25f8308f6c36dd2ecb70af7cc90a43f9aab386",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dba63e47_75c5d41a",
+        "filename": "go/sklog/cloud_logging.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-15T20:43:53Z",
+      "side": 1,
+      "message": "Good catch, done.",
+      "parentUuid": "ea66661e_5f58e06e",
+      "revId": "1e25f8308f6c36dd2ecb70af7cc90a43f9aab386",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
