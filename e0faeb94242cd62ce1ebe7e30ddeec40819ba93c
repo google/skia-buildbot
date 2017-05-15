@@ -93,6 +93,30 @@
       "revId": "e0faeb94242cd62ce1ebe7e30ddeec40819ba93c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d7855bf_787c448e",
+        "filename": "compute_engine_scripts/swarming_bots/vm_setup_utils.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-15T14:58:12Z",
+      "side": 1,
+      "message": "Okay, Ravi pointed out that /home/chrome-bot/.gitconfig points to /home/default/.gitcookies for http.cookiefile.  I manually changed the asset in GS to point to /home/chrome-bot/.gitcookies.  Now this differs between swarming bots and servers who need a .gitconfig, so we can\u0027t use it for those servers.",
+      "parentUuid": "3e6dbc16_1ffde663",
+      "range": {
+        "startLine": 90,
+        "startChar": 10,
+        "endLine": 90,
+        "endChar": 12
+      },
+      "revId": "e0faeb94242cd62ce1ebe7e30ddeec40819ba93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
