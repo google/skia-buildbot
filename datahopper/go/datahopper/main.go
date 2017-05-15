@@ -1,5 +1,5 @@
 /*
-	Pulls data from multiple sources and funnels into InfluxDB.
+	Pulls data from multiple sources and funnels into metrics.
 */
 
 package main
@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"go.skia.org/infra/datahopper/go/accum"
 	"go.skia.org/infra/datahopper/go/bot_metrics"
+	"go.skia.org/infra/datahopper/go/swarming_metrics"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
@@ -182,126 +182,9 @@ func main() {
 	}
 
 	// Swarming tasks.
-	go func() {
-		taskAccum := accum.New(accum.DefaultReporter)
-		// Initial query: load data from the past 2 minutes.
-		lastLoad := time.Now().Add(-2 * time.Minute)
-
-		revisitTasks := map[string]bool{}
-
-		for _ = range time.Tick(2 * time.Minute) {
-			now := time.Now()
-			tasks, err := swarm.ListSkiaTasks(lastLoad, now)
-			if err != nil {
-				sklog.Error(err)
-				continue
-			}
-
-			// Count the number of tasks in each state.
-			counts := map[string]int64{}
-			for _, t := range tasks {
-				counts[t.TaskResult.State] += 1
-			}
-
-			// Report the number of running tasks as a metric.
-			for state, count := range counts {
-				skiaGauge := metrics2.GetInt64Metric(MEASUREMENT_SWARM_TASKS_STATE, map[string]string{"pool": "Skia", "state": state})
-				skiaGauge.Update(count)
-			}
-
-			for id, _ := range revisitTasks {
-				task, err := swarm.GetTaskMetadata(id)
-				if err != nil {
-					sklog.Error(err)
-					continue
-				}
-				tasks = append(tasks, task)
-			}
-			revisitTasks = map[string]bool{}
-			lastLoad = now
-			for _, task := range tasks {
-				if task.TaskResult.State == "COMPLETED" {
-					if task.TaskResult.DedupedFrom != "" {
-						continue
-					}
-
-					// Get the created time for the task. We'll use that as the
-					// timestamp for all data points related to it.
-					createdTime, err := swarming.Created(task)
-					if err != nil {
-						sklog.Errorf("Failed to parse Swarming task created timestamp: %s", err)
-						continue
-					}
-
-					// Find the tags for the task, including ID, name, dimensions,
-					// and components of the builder name.
-					var builderName string
-					var name string
-					user, err := swarming.GetTagValue(task.TaskResult, "user")
-					if err != nil || user == "" {
-						// This is an old-style task.
-						name, err = swarming.GetTagValue(task.TaskResult, "name")
-						if err != nil || name == "" {
-							sklog.Errorf("Failed to find name for Swarming task: %v", task)
-							continue
-						}
-						builderName, err = swarming.GetTagValue(task.TaskResult, "buildername")
-						if err != nil || builderName == "" {
-							sklog.Errorf("Failed to find buildername for Swarming task: %v", task)
-							continue
-						}
-					} else if user == "skia-task-scheduler" {
-						// This is a new-style task.
-						builderName, err = swarming.GetTagValue(task.TaskResult, "sk_name")
-						if err != nil || builderName == "" {
-							sklog.Errorf("Failed to find sk_name for Swarming task: %v", task)
-							continue
-						}
-						name = builderName
-					}
-
-					// Leave 'task-id' in 'tags' so that it gets reported to logs,
-					// knowing that Accum will remove it from the metrics.
-					tags := map[string]string{
-						"bot-id":    task.TaskResult.BotId,
-						"task-id":   task.TaskId,
-						"task-name": name,
-						"pool":      "Skia",
-					}
-
-					// Task duration in milliseconds.
-					taskAccum.Add(MEASUREMENT_SWARM_TASKS_DURATION, tags, int64(task.TaskResult.Duration*float64(1000.0)))
-
-					if task.TaskResult.PerformanceStats != nil {
-						// Overhead stats, in milliseconds.
-						taskAccum.Add(MEASUREMENT_SWARM_TASKS_OVERHEAD_BOT, tags, int64(task.TaskResult.PerformanceStats.BotOverhead*float64(1000.0)))
-						if task.TaskResult.PerformanceStats.IsolatedDownload != nil {
-							taskAccum.Add(MEASUREMENT_SWARM_TASKS_OVERHEAD_DOWNLOAD, tags, int64(task.TaskResult.PerformanceStats.IsolatedDownload.Duration*float64(1000.0)))
-						} else {
-							sklog.Errorf("Swarming task is missing its IsolatedDownload section: %v", task.TaskResult)
-						}
-						if task.TaskResult.PerformanceStats.IsolatedUpload != nil {
-							taskAccum.Add(MEASUREMENT_SWARM_TASKS_OVERHEAD_UPLOAD, tags, int64(task.TaskResult.PerformanceStats.IsolatedUpload.Duration*float64(1000.0)))
-						} else {
-							sklog.Errorf("Swarming task is missing its IsolatedUpload section: %v", task.TaskResult)
-						}
-					}
-
-					// Pending time in milliseconds.
-					startTime, err := swarming.Started(task)
-					if err != nil {
-						sklog.Errorf("Failed to parse Swarming task started timestamp: %s", err)
-						continue
-					}
-					pendingMs := int64(startTime.Sub(createdTime).Seconds() * float64(1000.0))
-					taskAccum.Add(MEASUREMENT_SWARM_TASKS_PENDING_TIME, tags, pendingMs)
-				} else {
-					revisitTasks[task.TaskId] = true
-				}
-			}
-			taskAccum.Report()
-		}
-	}()
+	if err := swarming_metrics.StartSwarmingTaskMetrics(w, swarm, context.Background()); err != nil {
+		sklog.Fatal(err)
+	}
 
 	// Number of commits in the repo.
 	go func() {
