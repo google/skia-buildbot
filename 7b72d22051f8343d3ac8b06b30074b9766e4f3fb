@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4c1644cb_7218f9a1",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-16T20:29:04Z",
+      "side": 1,
+      "message": "Is this used anywhere?",
+      "range": {
+        "startLine": 242,
+        "startChar": 2,
+        "endLine": 242,
+        "endChar": 43
+      },
+      "revId": "7b72d22051f8343d3ac8b06b30074b9766e4f3fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
