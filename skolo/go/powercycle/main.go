@@ -22,7 +22,8 @@ const (
 var (
 	configFile  = flag.String("conf", "/etc/powercycle.yaml", "YAML file with device configuration.")
 	delay       = flag.Int("delay", 0, "Any value > 0 overrides the default duration (in sec) between turning the port off and on.")
-	listDev     = flag.Bool("list_devices", false, "List the available devices and exit.")
+	listDev     = flag.Bool("list", false, "List the available devices and exit.")
+	listShort   = flag.Bool("l", false, "List the available devices and exit.")
 	powerCycle  = flag.Bool("power_cycle", true, "Powercycle the given devices.")
 	powerOutput = flag.String("power_output", "", "Continously poll power usage and write it to the given file. Press ^C to exit.")
 	sampleRate  = flag.Duration("power_sample_rate", 2*time.Second, "Time delay between capturing power usage.")
@@ -70,7 +71,7 @@ func main() {
 		sklog.Fatalf("Unable to parse config file.  Got error: %s", err)
 	}
 
-	if *listDev {
+	if *listDev || *listShort {
 		listDevices(devGroup, 0)
 	} else if *powerOutput != "" {
 		if *sampleRate <= 0 {

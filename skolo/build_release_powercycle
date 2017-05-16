@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds and uploads a debian package for router-backup.
+# Builds and uploads a debian package for powercycle.
 APPNAME=powercycle
 DESCRIPTION="Package powercycle cli and config file."
 
