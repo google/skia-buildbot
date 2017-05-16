@@ -67,6 +67,16 @@ cloudlogger_release: service_account
 powercycle:
 	go install -v ./go/powercycle
 
+.PHONY: powercycle_release
+powercycle_release: service_account
+	./build_release_powercycle "$(MESSAGE)"
+
+.PHONY: powercycle_push
+powercycle_push: powercycle service_account
+	go install -v ../push/go/pushcli
+	./build_release_powercycle "`git log -n1 --format=%s`"
+	pushcli powercycle skia-jumphost
+
 .PHONY: android_watchdog
 android_watchdog:
 	@echo "  Using Android toolchain at $(NDK_TOOLCHAIN)"
