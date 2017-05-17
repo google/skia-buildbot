@@ -13,7 +13,7 @@ ExecStart=/usr/local/bin/skiaperf  \
     --config_filename=/etc/skiaperf/ingest.toml \
     --ptrace_store_dir=/mnt/pd0/skiaperf/store \
     --db_name=android_master \
-	  --cluster_queries="test=DeviceBootTest.DeviceBootTest_SuccessiveBootTest" \
+	  --cluster_queries="test=AppLaunchfirst-boot-hermetic-dropcache-cyclic&test=DeviceBootTest.DeviceBootTest_SuccessiveBootTestmaster" \
     --dataframe_size=256 \
     --num_continuous=200 \
     --num_shift=50 \
