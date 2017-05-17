@@ -69,7 +69,7 @@ const (
 	  <div>
 			<div class=entry>
 				<a href='https://fiddle.skia.org/c/{{.Hash}}'>
-					<video autoplay loop src='https://fiddle.skia.org/i/{{.Hash}}_cpu.webm' poster='https://fiddle.skia.org/i/{{.Hash}}_raster.png'></video>
+					<video autoplay loop width=256 height=256 src='https://fiddle.skia.org/i/{{.Hash}}_cpu.webm' poster='https://fiddle.skia.org/i/{{.Hash}}_raster.png'></video>
 				</a>
 				<div style='padding-top: 1em;'><b>{{.Name}}</b></div>
 			</div>
