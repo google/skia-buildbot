@@ -63,7 +63,7 @@ const (
 <body>
   <h2>Skia Coding Contest</h2>
   <p>
-	  Create your entry at <a href="https://fiddle.skia.org">fiddle.skia.org</a> and submit contest entries <a href="http://goo.gl/forms/pRfo39hTND">here</a>.
+	  Create your entry at <a target=_blank href="https://fiddle.skia.org">fiddle.skia.org</a> and submit the URL of your completed fiddle <a href="http://goo.gl/forms/pRfo39hTND">here</a>.
 	</p>
   {{range .Values}}
 	  <div>
