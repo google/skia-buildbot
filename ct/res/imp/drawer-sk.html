@@ -140,7 +140,7 @@
       var queryParams = {
          "size": 1,
          "not_completed": true,
-         "user": $$$("login-sk").email,
+         "filter_by_logged_in_user": true,
       }
       var queryStr = "?" + sk.query.fromObject(queryParams);
       this.taskDescriptors.forEach(function(obj) {

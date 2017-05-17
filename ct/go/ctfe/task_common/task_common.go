@@ -236,7 +236,9 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	params := QueryParams{}
-	params.Username = r.FormValue("username")
+	if parseBoolFormValue(r.FormValue("filter_by_logged_in_user")) {
+		params.Username = login.LoggedInAs(r)
+	}
 	params.SuccessfulOnly = parseBoolFormValue(r.FormValue("successful"))
 	params.PendingOnly = parseBoolFormValue(r.FormValue("not_completed"))
 	params.FutureRunsOnly = parseBoolFormValue(r.FormValue("include_future_runs"))
