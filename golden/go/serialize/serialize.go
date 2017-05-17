@@ -6,8 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
+	"os"
+	"path/filepath"
 
+	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
@@ -171,6 +175,45 @@ func DeserializeTile(r io.Reader) (*tiling.Tile, error) {
 	return ret, nil
 }
 
+func CacheTile(tile *tiling.Tile, path string) error {
+	dirName, fileName := filepath.Split(path)
+
+	outFile, err := ioutil.TempFile(dirName, fileName)
+	if err != nil {
+		return err
+	}
+
+	if err := SerializeTile(outFile, tile); err != nil {
+		return err
+	}
+
+	if err := outFile.Close(); err != nil {
+		return err
+	}
+
+	if fileutil.FileExists(path) {
+		if err := os.Remove(path); err != nil {
+			return err
+		}
+	}
+
+	return os.Rename(outFile.Name(), path)
+}
+
+func LoadCachedTile(path string) (*tiling.Tile, error) {
+	if !fileutil.FileExists(path) {
+		return nil, nil
+	}
+
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer util.Close(f)
+
+	return DeserializeTile(f)
+}
+
 // stringsToBytes converts and array of strings to a byte slice with zero
 // terminated  strings.
 func stringsToBytes(arr []string) []byte {
@@ -320,7 +363,7 @@ func readCommits(r io.Reader) ([]*tiling.Commit, error) {
 }
 
 // INT_SIZE is the number of bytes we use for a single number to encode.
-const BYTES_PER_INT = 2
+const BYTES_PER_INT = 4
 
 // writeParamSets writes the given to the writer and returns mappings to encode
 // the keys and values of the underlying params.

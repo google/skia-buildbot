@@ -35,7 +35,6 @@ import (
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/goldingestion"
-	"go.skia.org/infra/golden/go/history"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
@@ -62,7 +61,6 @@ var (
 	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 	nCommits           = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
 	noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
-	nTilesToBackfill   = flag.Int("backfill_tiles", 0, "Number of tiles to backfill in our history of tiles.")
 	oauthCacheFile     = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
 	port               = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -213,18 +211,21 @@ func main() {
 		sklog.Fatalf("Failed to create Gerrit client: %s", err)
 	}
 
+	sklog.Infof("Checkpoint 1")
 	// Connect to traceDB and create the builders.
 	db, err := tracedb.NewTraceServiceDBFromAddress(*traceservice, types.GoldenTraceBuilder)
 	if err != nil {
 		sklog.Fatalf("Failed to connect to tracedb: %s", err)
 	}
 
-	masterTileBuilder, err := tracedb.NewMasterTileBuilder(db, git, *nCommits, evt)
+	sklog.Infof("Checkpoint 2")
+	masterTileBuilder, err := tracedb.NewMasterTileBuilder(db, git, *nCommits, evt, filepath.Join(*storageDir, "cached-last-tile"))
 	if err != nil {
 		sklog.Fatalf("Failed to build trace/db.DB: %s", err)
 	}
 	branchTileBuilder := tracedb.NewBranchTileBuilder(db, git, rietveldAPI, gerritAPI, evt)
 
+	sklog.Infof("Checkpoint 3")
 	ingestionStore, err := goldingestion.NewIngestionStore(*traceservice)
 	if err != nil {
 		sklog.Fatalf("Unable to open ingestion store: %s", err)
@@ -242,33 +243,41 @@ func main() {
 		GerritAPI:         gerritAPI,
 	}
 
+	sklog.Infof("Checkpoint 4")
+
 	// TODO(stephana): Remove this workaround to avoid circular dependencies once the 'storage' module is cleaned up.
 	storages.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute))
+	sklog.Infof("Checkpoint 5")
 
-	if err := history.Init(storages, *nTilesToBackfill); err != nil {
-		sklog.Fatalf("Unable to initialize history package: %s", err)
-	}
-
+	sklog.Infof("Checkpoint 6")
 	if err := ignore.Init(storages.IgnoreStore); err != nil {
 		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
 	}
+
+	sklog.Infof("Checkpoint 7")
 
 	// Rebuild the index every two minutes.
 	ixr, err = indexer.New(storages, 2*time.Minute)
 	if err != nil {
 		sklog.Fatalf("Failed to create indexer: %s", err)
 	}
+	sklog.Infof("Checkpoint 8")
 
 	searchAPI, err = search.NewSearchAPI(storages, ixr)
 	if err != nil {
 		sklog.Fatalf("Failed to create instance of search API: %s", err)
 	}
 
+	sklog.Infof("Checkpoint 9")
+
 	if !*local {
 		*issueTrackerKey = metadata.Must(metadata.ProjectGet(metadata.APIKEY))
 	}
 
+	sklog.Infof("Checkpoint 10")
 	issueTracker = issues.NewMonorailIssueTracker(client)
+
+	sklog.Infof("Checkpoint 11")
 
 	statusWatcher, err = status.New(storages)
 	if err != nil {
