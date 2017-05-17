@@ -320,7 +320,7 @@ func readCommits(r io.Reader) ([]*tiling.Commit, error) {
 }
 
 // INT_SIZE is the number of bytes we use for a single number to encode.
-const BYTES_PER_INT = 2
+const BYTES_PER_INT = 4
 
 // writeParamSets writes the given to the writer and returns mappings to encode
 // the keys and values of the underlying params.
