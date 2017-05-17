@@ -378,11 +378,7 @@
          "size": this.pagination.size,
        }
        if (this.constrainByUser) {
-         var username = $$$("login-sk").email;
-         if (!username) {
-           window.open("/login/", "_self");
-         }
-         queryParams["username"] = username;
+         queryParams["filter_by_logged_in_user"] = true;
        }
        if (this.constrainByTestRun) {
          queryParams["exclude_dummy_page_sets"] = true;
