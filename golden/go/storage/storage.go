@@ -15,9 +15,12 @@ import (
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/serialize"
 	"go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/golden/go/types"
 )
+
+var initialCall = true
 
 // Storage is a container struct for the various storage objects we are using.
 // It is intended to reduce parameter lists as we pass around storage objects.
@@ -36,6 +39,9 @@ type Storage struct {
 	// NCommits is the number of commits we should consider. If NCommits is
 	// 0 or smaller all commits in the last tile will be considered.
 	NCommits int
+
+	// TileDiskCachePath is the path where we cache tiles.
+	TileDiskCachePath string
 
 	// Internal variables used to cache trimmed tiles.
 	lastTrimmedTile        *tiling.Tile
@@ -95,8 +101,20 @@ Loop:
 // most NCommits. It caches trimmed tiles as long as the underlying tiles
 // do not change.
 func (s *Storage) GetLastTileTrimmed() (*types.TilePair, error) {
-	// Retieve the most recent tile.
-	tile := s.MasterTileBuilder.GetTile()
+	var tile *tiling.Tile = nil
+	var err error = nil
+	if initialCall && s.TileDiskCachePath != "" {
+		if tile, err = serialize.LoadCachedTile(s.TileDiskCachePath); err != nil {
+			return nil, err
+		}
+	}
+
+	if !initialCall || (tile == nil) {
+		// Retrieve the most recent tile.
+		tile = s.MasterTileBuilder.GetTile()
+		s.asyncCacheTile(tile)
+	}
+	initialCall = false
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -195,4 +213,10 @@ func (s *Storage) GetTileFromTimeRange(begin, end time.Time) (*tiling.Tile, erro
 		return nil, fmt.Errorf("Failed retrieving commitIDs in range %s to %s. Got error: %s", begin, end, err)
 	}
 	return s.BranchTileBuilder.CachedTileFromCommits(tracedb.ShortFromLong(commitIDs))
+}
+
+func (s *Storage) asyncCacheTile(tile *tiling.Tile) {
+	if err := serialize.CacheTile(tile, s.TileDiskCachePath); err != nil {
+		sklog.Errorf("Error caching tile: %s", err)
+	}
 }
