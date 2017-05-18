@@ -293,8 +293,17 @@ func (t *TryJobIntegrator) localCancelJobs(jobs []*db.Job) error {
 
 func (t *TryJobIntegrator) remoteCancelBuild(id int64, msg string) error {
 	sklog.Warningf("Canceling Buildbucket build %d. Reason: %s", id, msg)
+	message := struct {
+		Message string `json:"message"`
+	}{
+		Message: msg,
+	}
+	b, err := json.Marshal(&message)
+	if err != nil {
+		return err
+	}
 	resp, err := t.bb.Cancel(id, &buildbucket_api.ApiCancelRequestBodyMessage{
-		ResultDetailsJson: fmt.Sprintf("{\"message\":\"%s\"}", msg),
+		ResultDetailsJson: string(b),
 	}).Do()
 	if err != nil {
 		return err
