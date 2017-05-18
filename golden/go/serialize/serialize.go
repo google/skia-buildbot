@@ -6,10 +6,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
+	"os"
+	"path/filepath"
 
+	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
@@ -171,6 +176,53 @@ func DeserializeTile(r io.Reader) (*tiling.Tile, error) {
 	return ret, nil
 }
 
+// CacheTile to disk writes the given tile to the given path.
+// It will first write to a temporary file and then rename it
+// to target path.
+func CacheTile(tile *tiling.Tile, path string) error {
+	defer timer.New("Save cached tile").Stop()
+	dirName, fileName := filepath.Split(path)
+
+	outFile, err := ioutil.TempFile(dirName, fileName)
+	if err != nil {
+		return err
+	}
+
+	if err := SerializeTile(outFile, tile); err != nil {
+		return err
+	}
+
+	if err := outFile.Close(); err != nil {
+		return err
+	}
+
+	if fileutil.FileExists(path) {
+		if err := os.Remove(path); err != nil {
+			return err
+		}
+	}
+
+	return os.Rename(outFile.Name(), path)
+}
+
+// LoadCachedTile loads the cached tile at the given path.
+// If the path does not exist, it will not return an error, but
+// the returned tile will be nil.
+func LoadCachedTile(path string) (*tiling.Tile, error) {
+	defer timer.New("Loading cached tile").Stop()
+	if !fileutil.FileExists(path) {
+		return nil, nil
+	}
+
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer util.Close(f)
+
+	return DeserializeTile(f)
+}
+
 // stringsToBytes converts and array of strings to a byte slice with zero
 // terminated  strings.
 func stringsToBytes(arr []string) []byte {
@@ -320,7 +372,7 @@ func readCommits(r io.Reader) ([]*tiling.Commit, error) {
 }
 
 // INT_SIZE is the number of bytes we use for a single number to encode.
-const BYTES_PER_INT = 2
+const BYTES_PER_INT = 4
 
 // writeParamSets writes the given to the writer and returns mappings to encode
 // the keys and values of the underlying params.
