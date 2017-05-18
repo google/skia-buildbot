@@ -163,6 +163,10 @@
       --paper-checkbox-checked-ink-color: #1f78b4;
       --paper-checkbox-checked-color: #1f78b4;
     }
+
+    .imgsrc {
+      cursor: pointer;
+    }
   </style>
   <template>
     <template is="dom-if" if="{{display_options}}">
@@ -186,7 +190,7 @@ double frame;    // A value in [0, 1] of where we are in the animation.</pre>
           <h3>Optional source image</h3>
           <iron-selector selected="{{source}}" attr-for-selected="name" class="layout horizontal wrap">
             <template is="dom-repeat" items="{{sources}}">
-              <img width=64 height=64 name="{{item}}" src="[[domain]]/s/{{item}}">
+              <img width=64 height=64 name="{{item}}" src="[[domain]]/s/{{item}}" class=imgsrc>
             </template>
           </iron-selector>
           <div hidden="[[_not(source)]]">
