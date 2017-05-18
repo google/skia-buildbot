@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "92143bbb_314557ec",
+        "filename": "go/vm_creation/vm_creation.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-18T19:42:13Z",
+      "side": 1,
+      "message": "I don\u0027t really like this name.  Suggestions?",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 19
+      },
+      "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e1a2f9b4_0d2daa25",
         "filename": "go/vm_creation/vm_creation.go",
         "patchSetId": 3
@@ -13,6 +36,30 @@
       "writtenOn": "2017-05-18T17:18:25Z",
       "side": 1,
       "message": "unused",
+      "range": {
+        "startLine": 200,
+        "startChar": 1,
+        "endLine": 200,
+        "endChar": 25
+      },
+      "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "34b24b4c_ae628b74",
+        "filename": "go/vm_creation/vm_creation.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-18T19:42:13Z",
+      "side": 1,
+      "message": "It won\u0027t be, in a subsequent CL.",
+      "parentUuid": "e1a2f9b4_0d2daa25",
       "range": {
         "startLine": 200,
         "startChar": 1,
