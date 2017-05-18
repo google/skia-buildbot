@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/golang/groupcache/lru"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
@@ -34,6 +35,8 @@ const (
 	GERRIT_CHROMIUM_URL = "https://chromium-review.googlesource.com"
 	GERRIT_SKIA_URL     = "https://skia-review.googlesource.com"
 	MAX_GERRIT_LIMIT    = 500
+
+	AUTH_SCOPE = auth.SCOPE_GERRIT
 
 	CHANGE_STATUS_ABANDONED = "ABANDONED"
 	CHANGE_STATUS_DRAFT     = "DRAFT"
