@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"reflect"
 	"runtime"
 	"strconv"
 	"time"
@@ -339,4 +340,43 @@ func ParseFormValues(r *http.Request, rv interface{}) error {
 		return err
 	}
 	return json.Unmarshal(b, rv)
+}
+
+// MetricsTransport is an http.RoundTripper which logs each request to metrics.
+type MetricsTransport struct {
+	rt http.RoundTripper
+}
+
+// See docs for http.RoundTripper.
+func (mt *MetricsTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	metrics2.GetCounter("http_request_metrics", map[string]string{
+		"host": req.URL.Host,
+	}).Inc(1)
+	return mt.rt.RoundTrip(req)
+}
+
+// NewMetricsTransport returns a MetricsTransport instance which wraps the given
+// http.RoundTripper.
+func NewMetricsTransport(rt http.RoundTripper) http.RoundTripper {
+	// Prevent double-wrapping and thus double-counting requests in metrics.
+	if rt == nil {
+		rt = http.DefaultTransport
+	} else {
+		if reflect.TypeOf(rt) == reflect.TypeOf(&MetricsTransport{}) {
+			return rt
+		}
+	}
+	return &MetricsTransport{
+		rt: rt,
+	}
+}
+
+// MetricsClient returns an http.Client which logs each request to metrics.
+func MetricsClient(c *http.Client) *http.Client {
+	return &http.Client{
+		Transport:     NewMetricsTransport(c.Transport),
+		CheckRedirect: c.CheckRedirect,
+		Jar:           c.Jar,
+		Timeout:       c.Timeout,
+	}
 }

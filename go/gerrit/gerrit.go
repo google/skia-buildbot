@@ -157,7 +157,7 @@ func NewGerrit(url, gitCookiesPath string, client *http.Client) (*Gerrit, error)
 	}
 	return &Gerrit{
 		url:               url,
-		client:            client,
+		client:            httputils.MetricsClient(client),
 		buildbucketClient: buildbucket.NewClient(client),
 		gitCookiesPath:    gitCookiesPath,
 	}, nil

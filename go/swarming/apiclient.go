@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 
@@ -122,7 +123,7 @@ type apiClient struct {
 // NewApiClient returns an ApiClient instance which uses the given authenticated
 // http.Client.
 func NewApiClient(c *http.Client, server string) (ApiClient, error) {
-	s, err := swarming.New(c)
+	s, err := swarming.New(httputils.MetricsClient(c))
 	if err != nil {
 		return nil, err
 	}
