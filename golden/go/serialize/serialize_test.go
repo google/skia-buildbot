@@ -3,6 +3,7 @@ package serialize
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
@@ -11,7 +12,6 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -142,7 +142,12 @@ func TestSerializeTile(t *testing.T) {
 	testutils.RemoveAll(t, testDataDir)
 	assert.NoError(t, gcs.DownloadTestDataFile(t, TEST_DATA_STORAGE_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH))
 	defer testutils.RemoveAll(t, testDataDir)
-	tile := mocks.NewMockTileBuilderFromJson(t, TEST_DATA_PATH).GetTile()
+
+	f, err := os.Open(TEST_DATA_PATH)
+	assert.NoError(t, err)
+
+	tile, err := types.TileFromJson(f, &types.GoldenTrace{})
+	assert.NoError(t, err)
 
 	var buf bytes.Buffer
 	digestToInt, err := writeDigests(&buf, tile.Traces)

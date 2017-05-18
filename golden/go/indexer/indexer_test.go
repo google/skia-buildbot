@@ -163,7 +163,7 @@ func setupStorages(t assert.TestingT) (*storage.Storage, expstorage.Expectations
 	traceDB, err := tracedb.NewTraceServiceDBFromAddress(*traceService, types.GoldenTraceBuilder)
 	assert.NoError(t, err)
 
-	masterTileBuilder, err := tracedb.NewMasterTileBuilder(traceDB, git, N_COMMITS, evt)
+	masterTileBuilder, err := tracedb.NewMasterTileBuilder(traceDB, git, N_COMMITS, evt, "")
 	assert.NoError(t, err)
 
 	ret := &storage.Storage{

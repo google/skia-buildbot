@@ -29,10 +29,10 @@ const (
 	TEST_DATA_DIR = "./testdata"
 
 	// Local file location of the test data.
-	TEST_DATA_PATH = TEST_DATA_DIR + "/10-test-sample.tile"
+	TEST_DATA_PATH = TEST_DATA_DIR + "/10-test-sample-4bytes.tile"
 
 	// Folder in the testdata bucket. See go/testutils for details.
-	TEST_DATA_STORAGE_PATH = "gold-testdata/10-test-sample.tile"
+	TEST_DATA_STORAGE_PATH = "gold-testdata/10-test-sample-4bytes.tile"
 
 	// REPO_URL is the url of the repo to check out.
 	REPO_URL = "https://skia.googlesource.com/skia"
@@ -139,12 +139,14 @@ func testCompTest(t *testing.T, maxLimit, maxRowLimit int, testNameSet map[strin
 		assert.Equal(t, digestSet.Intersect(foundDigestSet), foundDigestSet)
 
 		// Make sure the values are monotonically increasing.
-		lastVal := row.Values[0].Diffs[ctQuery.Metric]
-		for _, val := range row.Values[1:] {
-			_, ok := val.Diffs[ctQuery.Metric]
-			assert.True(t, ok)
-			assert.True(t, lastVal <= val.Diffs[ctQuery.Metric])
-			lastVal = val.Diffs[ctQuery.Metric]
+		if len(row.Values) > 0 {
+			lastVal := row.Values[0].Diffs[ctQuery.Metric]
+			for _, val := range row.Values[1:] {
+				_, ok := val.Diffs[ctQuery.Metric]
+				assert.True(t, ok)
+				assert.True(t, lastVal <= val.Diffs[ctQuery.Metric])
+				lastVal = val.Diffs[ctQuery.Metric]
+			}
 		}
 	}
 	assert.Equal(t, nTests, len(uniqueTests))
