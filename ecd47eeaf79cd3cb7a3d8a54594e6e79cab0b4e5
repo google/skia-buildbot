@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a35af7f4_89b811c6",
+        "filename": "go/trace/db/master.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-18T16:05:38Z",
+      "side": 1,
+      "message": "The \u0027tile\u0027 here is treated like an immutable. The mutex is only necessary to swap out the old tile for the new one. The old one will be garbage collected and the new one will be returned by GetTile until a newer once comes around. \nThe same is true for the CacheTile call above. It only reads from the tile.",
+      "parentUuid": "c9c197ee_79ae9c26",
+      "range": {
+        "startLine": 152,
+        "startChar": 1,
+        "endLine": 152,
+        "endChar": 15
+      },
+      "revId": "ecd47eeaf79cd3cb7a3d8a54594e6e79cab0b4e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "cf1cd336_b82f6b64",
         "filename": "golden/go/serialize/serialize.go",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2017-05-18T14:48:24Z",
       "side": 1,
       "message": "Why is this necessary?  To avoid leaks?",
+      "range": {
+        "startLine": 180,
+        "startChar": 28,
+        "endLine": 180,
+        "endChar": 42
+      },
+      "revId": "ecd47eeaf79cd3cb7a3d8a54594e6e79cab0b4e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fad22bf5_ee898f8b",
+        "filename": "golden/go/serialize/serialize.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-18T16:05:38Z",
+      "side": 1,
+      "message": "It\u0027s to make sure we always have a \"valid\" tile on disk. On my machine it takes ~1 min to write the tile. If I overwrote the target path directly I would not have a valid tile on disk for that period. \nit\u0027s essentially a transaction that is (almost) resistant to a crash. The only time I could lose my file, could happen if the program crashed between removing the old file and renaming the new file. That\u0027s a tiny risk and totally acceptable here.",
+      "parentUuid": "cf1cd336_b82f6b64",
       "range": {
         "startLine": 180,
         "startChar": 28,
