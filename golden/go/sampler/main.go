@@ -199,7 +199,7 @@ func load() (*tiling.Tile, *expstorage.Expectations, ignore.IgnoreStore) {
 		sklog.Fatalf("Failed to connect to tracedb: %s", err)
 	}
 
-	masterTileBuilder, err := tracedb.NewMasterTileBuilder(tdb, git, *nCommits, evt)
+	masterTileBuilder, err := tracedb.NewMasterTileBuilder(tdb, git, *nCommits, evt, "")
 	if err != nil {
 		sklog.Fatalf("Failed to build trace/db.DB: %s", err)
 	}
