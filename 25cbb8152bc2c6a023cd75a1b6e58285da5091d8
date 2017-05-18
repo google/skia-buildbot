@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e1a2f9b4_0d2daa25",
+        "filename": "go/vm_creation/vm_creation.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-18T17:18:25Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 200,
+        "startChar": 1,
+        "endLine": 200,
+        "endChar": 25
+      },
+      "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
