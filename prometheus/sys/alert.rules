@@ -425,7 +425,7 @@ ALERT TaskSchedulerLatency
   }
 
 ALERT TaskSchedulerErrorRate
-  IF rate(num_log_lines{level="ERROR",log_source="task_scheduler"}[2m]) > 0.1
+  IF rate(num_log_lines{level="ERROR",log_source="task_scheduler"}[2m]) > 0.05
   FOR 2m
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
