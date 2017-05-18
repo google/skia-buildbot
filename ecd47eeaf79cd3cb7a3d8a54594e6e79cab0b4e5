@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "a0978ab1_410aad98",
+        "filename": "go/trace/db/master.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-18T16:06:51Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "a35af7f4_89b811c6",
+      "range": {
+        "startLine": 152,
+        "startChar": 1,
+        "endLine": 152,
+        "endChar": 15
+      },
+      "revId": "ecd47eeaf79cd3cb7a3d8a54594e6e79cab0b4e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cf1cd336_b82f6b64",
         "filename": "golden/go/serialize/serialize.go",
         "patchSetId": 7
@@ -93,6 +117,30 @@
       "revId": "ecd47eeaf79cd3cb7a3d8a54594e6e79cab0b4e5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ddd454c2_af5f4bbd",
+        "filename": "golden/go/serialize/serialize.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-18T16:06:51Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "fad22bf5_ee898f8b",
+      "range": {
+        "startLine": 180,
+        "startChar": 28,
+        "endLine": 180,
+        "endChar": 42
+      },
+      "revId": "ecd47eeaf79cd3cb7a3d8a54594e6e79cab0b4e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
