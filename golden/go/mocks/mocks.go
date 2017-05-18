@@ -138,7 +138,7 @@ func GetTileBuilderFromEnv(t assert.TestingT) tracedb.MasterTileBuilder {
 	db, err := tracedb.NewTraceServiceDBFromAddress(traceDBAddress, types.GoldenTraceBuilder)
 	assert.NoError(t, err)
 
-	tileBuilder, err := tracedb.NewMasterTileBuilder(db, git, 50, eventBus)
+	tileBuilder, err := tracedb.NewMasterTileBuilder(db, git, 50, eventBus, "")
 	assert.NoError(t, err)
 	return tileBuilder
 }

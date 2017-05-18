@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/golden/go/serialize"
 )
 
 const (
@@ -43,24 +44,52 @@ type masterTileBuilder struct {
 
 	// evt is the eventbus where we announce the availability of new tiles.
 	evt *eventbus.EventBus
+
+	// cachePath is the path to the file where tiles are cahed for quick restarts.
+	cachePath string
 }
 
 // NewBuilder creates a new Builder given the gitinfo, and loads Tiles from the
 // traceserver running at the given address. The tiles contain the last
 // 'tileSize' commits and are built from Traces of the type that traceBuilder
 // returns.
-func NewMasterTileBuilder(db DB, git *gitinfo.GitInfo, tileSize int, evt *eventbus.EventBus) (MasterTileBuilder, error) {
+func NewMasterTileBuilder(db DB, git *gitinfo.GitInfo, tileSize int, evt *eventbus.EventBus, cachePath string) (MasterTileBuilder, error) {
 	ret := &masterTileBuilder{
-		tileSize: tileSize,
-		db:       db,
-		git:      git,
-		evt:      evt,
+		tileSize:  tileSize,
+		tile:      nil,
+		db:        db,
+		git:       git,
+		evt:       evt,
+		cachePath: cachePath,
 	}
-	if err := ret.LoadTile(); err != nil {
-		return nil, fmt.Errorf("NewTraceStore: Failed to load initial Tile: %s", err)
+
+	var err error
+	if cachePath != "" {
+		// Load tile from disk cache. No mutex needed since there is no concurrent
+		// access at this point.
+		if ret.tile, err = serialize.LoadCachedTile(cachePath); err != nil {
+			return nil, fmt.Errorf("Error loading tile from cache: %s", err)
+		}
 	}
+
+	// Load the tile if it was not in the cache.
+	initialTileLoaded := false
+	if ret.tile == nil {
+		initialTileLoaded = true
+		if err := ret.LoadTile(); err != nil {
+			return nil, fmt.Errorf("NewTraceStore: Failed to load initial Tile: %s", err)
+		}
+	}
+
 	evt.Publish(NEW_TILE_AVAILABLE_EVENT, ret.GetTile())
 	go func() {
+		if !initialTileLoaded {
+			// Load the initial tile from disk if it came from the disk cache.
+			if err := ret.LoadTile(); err != nil {
+				sklog.Errorf("Failed to refresh tile: %s", err)
+			}
+		}
+
 		liveness := metrics2.NewLiveness("tile-refresh", map[string]string{"module": "tracedb"})
 		for _ = range time.Tick(TILE_REFRESH_DURATION) {
 			if err := ret.LoadTile(); err != nil {
@@ -110,6 +139,16 @@ func (t *masterTileBuilder) LoadTile() error {
 	if err != nil {
 		return fmt.Errorf("Failed to load initial tile: %s", err)
 	}
+
+	// Cache the file to disk if a path was set.
+	if t.cachePath != "" {
+		go func() {
+			if err := serialize.CacheTile(tile, t.cachePath); err != nil {
+				sklog.Errorf("Error writing tile to cache: %s", err)
+			}
+		}()
+	}
+
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
 	t.tile = tile
