@@ -234,6 +234,30 @@
     },
     {
       "key": {
+        "uuid": "08edd62f_e6909f0b",
+        "filename": "task_scheduler/vm.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-19T19:45:20Z",
+      "side": 1,
+      "message": "Personally, I disagree.  I\u0027d like the configuration information for each server to live in the directory for that server.  I do think that all of the VM creation stuff beyond the config should be in a shared package.",
+      "parentUuid": "4d094a3d_1d7cd6d4",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "03d59439_1db9bc3d",
         "filename": "task_scheduler/vm.go",
         "patchSetId": 3
@@ -245,6 +269,30 @@
       "writtenOn": "2017-05-19T18:34:21Z",
       "side": 1,
       "message": "Just to follow up with our offline discussion: I\u0027d prefer the specific of each instance to be in some declarative file than then have \nan executable that interprets the file and creates the necessary instance.  Just a comment to stir more discussion.",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 1
+      },
+      "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23f53ed1_68ca2ac2",
+        "filename": "task_scheduler/vm.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-19T19:45:20Z",
+      "side": 1,
+      "message": "I\u0027m really struggling with the limitations of the various config file formats.  Ben wants inheritance, which I agree with, but that means that the script which interprets the config files needs to know about all of the possible configs each could inherit from, which introduces some complications.  On top of that, I REALLY want to be able to directly reference constants in the code, eg. auth scopes, rather than re-type them in config files.  For me, that desire outweighs my preference for having structured config files.",
+      "parentUuid": "03d59439_1db9bc3d",
       "range": {
         "startLine": 42,
         "startChar": 0,
