@@ -1,0 +1,34 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <power-menu>
+
+  Usage:
+
+    <power-menu></power-menu>
+
+  Properties:
+    None.
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+
+<link rel="import" href="/res/common/imp/menu-item-sk.html">
+<link rel="import" href="/res/imp/bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
+
+<dom-module id="power-menu">
+  <template>
+    <menu-item-sk label="Prometheus Alerts" url="https://promalerts.skia.org/#/alerts?receiver=skiabot" icon="icons:warning"></menu-item-sk>
+  </template>
+  <script>
+    Polymer({
+      is: "power-menu"
+    });
+  </script>
+</dom-module>
