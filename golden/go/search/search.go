@@ -141,6 +141,7 @@ type Query struct {
 	// Filtering.
 	FCommitBegin string  `json:"fbegin"`     // Start commit
 	FCommitEnd   string  `json:"fend"`       // End commit
+	FRGBAMin     int32   `json:"frgbamin"`   // Min RGBA delta
 	FRGBAMax     int32   `json:"frgbamax"`   // Max RGBA delta
 	FDiffMax     float32 `json:"fdiffmax"`   // Max diff according to metric
 	FGroupTest   string  `json:"fgrouptest"` // Op within grouped by test.
@@ -270,7 +271,12 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 	}
 
 	pidMap := util.NewStringSet(issue.TargetPatchsets)
-	talliesByTest := idx.TalliesByTest(true)
+
+	// TODO(stephana): Sort out how digests from trybots relate to ignored and
+	// followed digests. Are we ok with ignored digests being triaged "by accident"
+	// when triaging trybot results?
+	talliesByTestWithIgnores := idx.TalliesByTest(true)
+	talliesByTest := idx.TalliesByTest(false)
 	digestMap := map[string]*Digest{}
 
 	for idx, cid := range issue.CommitIDs {
@@ -307,7 +313,7 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 			// Does it match a given query.
 			if (queryRule == nil) || queryRule.IsMatch(params) {
 				if !q.IncludeMaster {
-					if _, ok := talliesByTest[testName][digest]; ok {
+					if _, ok := talliesByTestWithIgnores[testName][digest]; ok {
 						continue
 					}
 				}
@@ -359,8 +365,9 @@ func searchTile(q *Query, e *expstorage.Expectations, parsedQuery url.Values, st
 
 	// map [test:digest] *intermediate
 	inter := map[string]*intermediate{}
-	for id, tr := range tile.Traces {
-		if tiling.Matches(tr, parsedQuery) {
+	for id, trace := range tile.Traces {
+		if tiling.Matches(trace, parsedQuery) {
+			tr := trace.(*types.GoldenTrace)
 			test := tr.Params()[types.PRIMARY_KEY_FIELD]
 			// Get all the digests
 			digests := digestsFromTrace(id, tr, q.Head, lastCommitIndex, traceTally)
@@ -549,7 +556,7 @@ func blameGroupID(b *blame.BlameDistribution, commits []*tiling.Commit) string {
 // digestsFromTrace returns all the digests in the given trace, controlled by
 // 'head', and being robust to tallies not having been calculated for the
 // trace.
-func digestsFromTrace(id string, tr tiling.Trace, head bool, lastCommitIndex int, traceTally map[string]tally.Tally) []string {
+func digestsFromTrace(id string, tr *types.GoldenTrace, head bool, lastCommitIndex int, traceTally map[string]tally.Tally) []string {
 	digests := util.NewStringSet()
 	if head {
 		// Find the last non-missing value in the trace.
@@ -557,7 +564,7 @@ func digestsFromTrace(id string, tr tiling.Trace, head bool, lastCommitIndex int
 			if tr.IsMissing(i) {
 				continue
 			} else {
-				digests[tr.(*types.GoldenTrace).Values[i]] = true
+				digests[tr.Values[i]] = true
 				break
 			}
 		}
@@ -570,7 +577,7 @@ func digestsFromTrace(id string, tr tiling.Trace, head bool, lastCommitIndex int
 		} else {
 			for i := lastCommitIndex; i >= 0; i-- {
 				if !tr.IsMissing(i) {
-					digests[tr.(*types.GoldenTrace).Values[i]] = true
+					digests[tr.Values[i]] = true
 				}
 			}
 		}
@@ -859,7 +866,7 @@ func filterTile(query *Query, storages *storage.Storage, idx *indexer.SearchInde
 	ret := map[string]paramtools.ParamSet{}
 
 	// Add digest/trace to the result.
-	addFn := func(test, digest, traceID string, trace tiling.Trace, accptRet interface{}) {
+	addFn := func(test, digest, traceID string, trace *types.GoldenTrace, accptRet interface{}) {
 		if found, ok := ret[digest]; ok {
 			found.AddParams(trace.Params())
 		} else {
@@ -897,7 +904,7 @@ func getFilterByTileFunctions(matchFields []string, condDigests map[string]param
 	var addFn AddFn = nil
 	if len(matchFields) >= 0 {
 		matching := make([]string, 0, len(condDigests))
-		acceptFn = func(trace tiling.Trace) (bool, interface{}) {
+		acceptFn = func(trace *types.GoldenTrace, digests []string) (bool, interface{}) {
 			matching = matching[:0]
 			params := trace.Params()
 			for digest, paramSet := range condDigests {
@@ -907,13 +914,13 @@ func getFilterByTileFunctions(matchFields []string, condDigests map[string]param
 			}
 			return len(matching) > 0, matching
 		}
-		addFn = func(test, digest, traceID string, trace tiling.Trace, acceptRet interface{}) {
+		addFn = func(test, digest, traceID string, trace *types.GoldenTrace, acceptRet interface{}) {
 			for _, d := range acceptRet.([]string) {
 				(*target)[d][digest] = true
 			}
 		}
 	} else {
-		addFn = func(test, digest, traceID string, trace tiling.Trace, acceptRet interface{}) {
+		addFn = func(test, digest, traceID string, trace *types.GoldenTrace, acceptRet interface{}) {
 			for d := range condDigests {
 				(*target)[d][digest] = true
 			}
@@ -943,7 +950,7 @@ func filterTileWithMatch(query *Query, matchFields []string, condDigests map[str
 	var addFn AddFn = nil
 	if len(matchFields) >= 0 {
 		matching := make([]string, 0, len(condDigests))
-		acceptFn = func(trace tiling.Trace) (bool, interface{}) {
+		acceptFn = func(trace *types.GoldenTrace, digests []string) (bool, interface{}) {
 			matching = matching[:0]
 			params := trace.Params()
 			for digest, paramSet := range condDigests {
@@ -953,13 +960,13 @@ func filterTileWithMatch(query *Query, matchFields []string, condDigests map[str
 			}
 			return len(matching) > 0, matching
 		}
-		addFn = func(test, digest, traceID string, trace tiling.Trace, acceptRet interface{}) {
+		addFn = func(test, digest, traceID string, trace *types.GoldenTrace, acceptRet interface{}) {
 			for _, d := range acceptRet.([]string) {
 				ret[d][digest] = true
 			}
 		}
 	} else {
-		addFn = func(test, digest, traceID string, trace tiling.Trace, acceptRet interface{}) {
+		addFn = func(test, digest, traceID string, trace *types.GoldenTrace, acceptRet interface{}) {
 			for d := range condDigests {
 				ret[d][digest] = true
 			}
