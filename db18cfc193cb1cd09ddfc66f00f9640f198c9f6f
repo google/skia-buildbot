@@ -22,6 +22,30 @@
       "revId": "db18cfc193cb1cd09ddfc66f00f9640f198c9f6f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f63f85b_37bac3dc",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-19T19:43:08Z",
+      "side": 1,
+      "message": "It should be \u0027prefetch\u0027 (fixed). In the current code base the warmer (which loads images proactively \nfrom GS) only fetches digests/images that re not ignored. As a result when getting a diff \non ignored images, Gold tends to be slow because it has to do diffs on the fly.",
+      "parentUuid": "e2044bbc_01006957",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 46
+      },
+      "revId": "db18cfc193cb1cd09ddfc66f00f9640f198c9f6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
