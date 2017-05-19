@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d369cf07_4bd8c7af",
+        "filename": "power/Makefile",
+        "patchSetId": 5
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-19T18:57:01Z",
+      "side": 1,
+      "message": "Please remove power-controller.js until it actually contains content. It\u0027s very easily added, but we shouldn\u0027t have empty file.",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 36
+      },
+      "revId": "f28a8c4a321bf65c6d3baef8e59480c7a842b43d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63b6a5ae_be0f23ad",
+        "filename": "power/README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-19T18:57:01Z",
+      "side": 1,
+      "message": "I don\u0027t think we should include a doc that is not publicly accessible.",
+      "revId": "f28a8c4a321bf65c6d3baef8e59480c7a842b43d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
