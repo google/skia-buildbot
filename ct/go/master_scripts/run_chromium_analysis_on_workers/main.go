@@ -202,7 +202,8 @@ func main() {
 		sklog.Errorf("Error encountered when calculating number of pages: %s", err)
 		return
 	}
-	if err := util.TriggerSwarmingTask(*pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numPages, isolateExtraArgs, workerDimensions, util.GetRepeatValue(*benchmarkExtraArgs, 1)); err != nil {
+	numSlaves, err := util.TriggerSwarmingTask(*pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numPages, isolateExtraArgs, workerDimensions, util.GetRepeatValue(*benchmarkExtraArgs, 1))
+	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}
@@ -216,6 +217,11 @@ func main() {
 		}
 		// Cleanup created dir after the run completes.
 		defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
+	}
+	// If the number of noOutputSlaves is the same as the total number of triggered slaves then consider the run failed.
+	if len(noOutputSlaves) == numSlaves {
+		sklog.Errorf("All %d slaves produced no output", numSlaves)
+		return
 	}
 
 	// Construct the output link.

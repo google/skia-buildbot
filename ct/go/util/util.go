@@ -374,15 +374,16 @@ func GetNumPagesPerBot(repeatValue, maxPagesPerBot int) int {
 	return int(math.Ceil(float64(maxPagesPerBot) / float64(repeatValue)))
 }
 
-func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs, dimensions map[string]string, repeatValue int) error {
+// TriggerSwarmingTask returns the number of triggered tasks and an error (if any).
+func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs, dimensions map[string]string, repeatValue int) (int, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir("", "swarming_work_")
 	if err != nil {
-		return fmt.Errorf("Could not get temp dir: %s", err)
+		return 0, fmt.Errorf("Could not get temp dir: %s", err)
 	}
 	s, err := swarming.NewSwarmingClient(workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
 	if err != nil {
-		return fmt.Errorf("Could not instantiate swarming client: %s", err)
+		return 0, fmt.Errorf("Could not instantiate swarming client: %s", err)
 	}
 	defer s.Cleanup()
 	// Create isolated.gen.json files from tasks.
@@ -405,7 +406,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 		taskName := fmt.Sprintf("%s_%d", taskPrefix, i)
 		genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, isolateName), s.WorkDir, "linux", taskName, isolateArgs, []string{})
 		if err != nil {
-			return fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
+			return numTasks, fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
 		}
 		genJSONs = append(genJSONs, genJSON)
 	}
@@ -417,7 +418,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 		endRange := util.MinInt(len(genJSONs), i+1000)
 		t, err := s.BatchArchiveTargets(genJSONs[startRange:endRange], BATCHARCHIVE_TIMEOUT)
 		if err != nil {
-			return fmt.Errorf("Could not batch archive targets: %s", err)
+			return numTasks, fmt.Errorf("Could not batch archive targets: %s", err)
 		}
 		// Add the above map to tasksToHashes.
 		for k, v := range t {
@@ -428,12 +429,12 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 	}
 
 	if len(genJSONs) != len(tasksToHashes) {
-		return fmt.Errorf("len(genJSONs) was %d and len(tasksToHashes) was %d", len(genJSONs), len(tasksToHashes))
+		return numTasks, fmt.Errorf("len(genJSONs) was %d and len(tasksToHashes) was %d", len(genJSONs), len(tasksToHashes))
 	}
 	// Trigger swarming using the isolate hashes.
 	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true)
 	if err != nil {
-		return fmt.Errorf("Could not trigger swarming task: %s", err)
+		return numTasks, fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
 	// Collect all tasks and collect the ones that fail.
 	failedTasksToHashes := map[string]string{}
@@ -449,7 +450,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 		sklog.Info("Retrying tasks that failed...")
 		retryTasks, err := s.TriggerSwarmingTasks(failedTasksToHashes, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true)
 		if err != nil {
-			return fmt.Errorf("Could not trigger swarming task: %s", err)
+			return numTasks, fmt.Errorf("Could not trigger swarming task: %s", err)
 		}
 		// Collect all tasks and log the ones that fail.
 		for _, task := range retryTasks {
@@ -459,7 +460,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 			}
 		}
 	}
-	return nil
+	return numTasks, nil
 }
 
 // GetPathToPyFiles returns the location of CT's python scripts.
