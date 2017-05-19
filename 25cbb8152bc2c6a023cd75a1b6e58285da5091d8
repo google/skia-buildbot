@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "3270694d_774010ff",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-19T18:34:21Z",
+      "side": 1,
+      "message": "Should/Could this switch to the constants defined in the GCP supplied packaged, \ni.e. https://godoc.org/google.golang.org/api/storage/v1#DevstorageFullControlScope\nhttps://godoc.org/cloud.google.com/go/storage#pkg-constants",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 126,
+        "endChar": 1
+      },
+      "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "92143bbb_314557ec",
         "filename": "go/vm_creation/vm_creation.go",
         "patchSetId": 3
@@ -18,6 +41,76 @@
         "startChar": 8,
         "endLine": 1,
         "endChar": 19
+      },
+      "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eeb875aa_b996036f",
+        "filename": "go/vm_creation/vm_creation.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-19T18:34:21Z",
+      "side": 1,
+      "message": "gcloud or gce_cloud ?",
+      "parentUuid": "92143bbb_314557ec",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 19
+      },
+      "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71d4b9d3_f0b9fd8c",
+        "filename": "go/vm_creation/vm_creation.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-19T18:34:21Z",
+      "side": 1,
+      "message": "Why not \u0027CreateDisk\u0027 ?",
+      "range": {
+        "startLine": 113,
+        "startChar": 17,
+        "endLine": 113,
+        "endChar": 27
+      },
+      "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52cd3204_977afa8d",
+        "filename": "go/vm_creation/vm_creation.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-19T18:34:21Z",
+      "side": 1,
+      "message": "nit: Should be sklog.Infof, instead. If I set ignoreExists I might want to know that it existed, but it\u0027s not a problem of any kind.",
+      "range": {
+        "startLine": 127,
+        "startChar": 4,
+        "endLine": 127,
+        "endChar": 18
       },
       "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
@@ -65,6 +158,98 @@
         "startChar": 1,
         "endLine": 200,
         "endChar": 25
+      },
+      "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "569cfce7_ca1bf15b",
+        "filename": "go/vm_creation/vm_creation.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-19T18:34:21Z",
+      "side": 1,
+      "message": "Why not \"CreateInstance\" ?",
+      "range": {
+        "startLine": 210,
+        "startChar": 17,
+        "endLine": 210,
+        "endChar": 31
+      },
+      "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dcb68bab_da7158de",
+        "filename": "go/vm_creation/vm_creation.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-19T18:34:21Z",
+      "side": 1,
+      "message": "What will happen with attached disks ?",
+      "range": {
+        "startLine": 291,
+        "startChar": 0,
+        "endLine": 291,
+        "endChar": 74
+      },
+      "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d094a3d_1d7cd6d4",
+        "filename": "task_scheduler/vm.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-19T18:34:21Z",
+      "side": 1,
+      "message": "I like the current setup where all GCE creation-related code is in one folder. It allows to see our footprint in one place.  IMO deployment should be detached from the application code.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03d59439_1db9bc3d",
+        "filename": "task_scheduler/vm.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-19T18:34:21Z",
+      "side": 1,
+      "message": "Just to follow up with our offline discussion: I\u0027d prefer the specific of each instance to be in some declarative file than then have \nan executable that interprets the file and creates the necessary instance.  Just a comment to stir more discussion.",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 1
       },
       "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
