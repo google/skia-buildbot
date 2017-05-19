@@ -9,6 +9,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
+	"github.com/skia-dev/glog"
+
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/types"
@@ -176,4 +179,74 @@ func (v *Validation) Errors() error {
 	}
 
 	return fmt.Errorf("%s", strings.Join(*v, "\n"))
+}
+
+// ParseQuery parses the request parameters from the URL query string or from the
+// form parameters and stores the parsed and validated values in query.
+func ParseQuery(r *http.Request, query *Query) error {
+	// Get the limit
+	if l := r.FormValue("limit"); l != "" {
+		limit, err := strconv.Atoi(l)
+		if err != nil {
+			return fmt.Errorf("Unable to parse a limit of: %s", l)
+		}
+		query.Limit = limit
+	}
+
+	// Parse the query
+	var err error
+	query.Query = url.Values{}
+	if q := r.FormValue("query"); q != "" {
+		query.Query, err = url.ParseQuery(q)
+		if err != nil {
+			return fmt.Errorf("Unable to parse query: %s. Error: %s", q, err)
+		}
+	}
+
+	// Parse out the patchsets.
+	if temp := r.FormValue("patchsets"); temp != "" {
+		query.Patchsets = strings.Split(temp, ",")
+	}
+
+	// Parse the list of fields that need to match and ensure the
+	// test name is in it.
+	var ok bool
+	if query.Match, ok = r.Form["match"]; ok {
+		if !util.In(types.PRIMARY_KEY_FIELD, query.Match) {
+			query.Match = append(query.Match, types.PRIMARY_KEY_FIELD)
+		}
+	} else {
+		query.Match = []string{types.PRIMARY_KEY_FIELD}
+	}
+
+	validate := Validation{}
+	validate.StrFormValue(r, "metric", &query.Metric, diff.GetDiffMetricIDs(), diff.METRIC_COMBINED)
+	validate.StrFormValue(r, "sort", &query.Sort, []string{SORT_DESC, SORT_ASC}, SORT_DESC)
+
+	// Parse and validate the filter values.
+	validate.Int32FormValue(r, "frgbamin", &query.FRGBAMin, 0)
+	validate.Int32FormValue(r, "frgbamax", &query.FRGBAMax, 255)
+	validate.Float32FormValue(r, "fdiffmax", &query.FDiffMax, -1.0)
+	if err := validate.Errors(); err != nil {
+		return err
+	}
+
+	query.BlameGroupID = r.FormValue("blame")
+	query.Pos = r.FormValue("pos") == "true"
+	query.Neg = r.FormValue("neg") == "true"
+	query.Unt = r.FormValue("unt") == "true"
+	query.Head = r.FormValue("head") == "true"
+	query.IncludeIgnores = r.FormValue("include") == "true"
+	query.Issue = r.FormValue("issue")
+	query.IncludeMaster = r.FormValue("master") == "true"
+
+	// Extract the filter values.
+	query.FCommitBegin = r.FormValue("fbegin")
+	query.FCommitEnd = r.FormValue("fend")
+	query.FGroupTest = r.FormValue("fgrouptest")
+	query.FRef = r.FormValue("fref") == "true"
+
+	glog.Infof("\n\nQUERY: %s\n\n\n", spew.Sprint(query))
+
+	return nil
 }
