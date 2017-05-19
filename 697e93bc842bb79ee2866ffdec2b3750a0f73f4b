@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a8ab2a23_18a4f6b7",
+        "filename": "power/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-19T18:40:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3320d73f_9ed2a95f",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 21
+      },
+      "revId": "697e93bc842bb79ee2866ffdec2b3750a0f73f4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5e395350_89c5f818",
         "filename": "power/elements.html",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "ea9ec0c8_dee20958",
+        "filename": "power/elements.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-19T18:40:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5e395350_89c5f818",
+      "range": {
+        "startLine": 5,
+        "startChar": 46,
+        "endLine": 5,
+        "endChar": 59
+      },
+      "revId": "697e93bc842bb79ee2866ffdec2b3750a0f73f4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dbc48746_04dd6a5e",
         "filename": "power/res/imp/power-index.html",
         "patchSetId": 4
@@ -59,6 +107,30 @@
       "writtenOn": "2017-05-19T18:17:41Z",
       "side": 1,
       "message": "if reload is exposed to be used by clients of the element, it should be documented above, otherwise it should be renamed to \"_reload\".",
+      "range": {
+        "startLine": 215,
+        "startChar": 6,
+        "endLine": 215,
+        "endChar": 12
+      },
+      "revId": "697e93bc842bb79ee2866ffdec2b3750a0f73f4b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e5e06472_e4e99c57",
+        "filename": "power/res/imp/power-index.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-19T18:40:16Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "dbc48746_04dd6a5e",
       "range": {
         "startLine": 215,
         "startChar": 6,
