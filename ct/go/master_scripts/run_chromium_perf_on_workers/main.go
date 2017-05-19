@@ -212,7 +212,8 @@ func main() {
 	// Determine hard timeout according to the number of times benchmark should be repeated.
 	// Cap it off at the max allowable hours.
 	var hardTimeout = time.Duration(skutil.MinInt(12**repeatBenchmark, util.MAX_SWARMING_HARD_TIMEOUT_HOURS)) * time.Hour
-	if err := util.TriggerSwarmingTask(*pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, hardTimeout, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numPages, isolateExtraArgs, util.GOLO_WORKER_DIMENSIONS, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark)); err != nil {
+	numSlaves, err := util.TriggerSwarmingTask(*pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, hardTimeout, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numPages, isolateExtraArgs, util.GOLO_WORKER_DIMENSIONS, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark))
+	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}
@@ -231,6 +232,12 @@ func main() {
 			defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, run))
 		}
 	}
+	// If the number of noOutputSlaves is the same as the total number of triggered slaves then consider the run failed.
+	if len(noOutputSlaves) == numSlaves {
+		sklog.Errorf("All %d slaves produced no output", numSlaves)
+		return
+	}
+
 	totalArchivedWebpages, err := util.GetArchivesNum(gs, *benchmarkExtraArgs, *pagesetType)
 	if err != nil {
 		sklog.Errorf("Error when calculating number of archives: %s", err)
