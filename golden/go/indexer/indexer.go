@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
@@ -34,14 +35,17 @@ const (
 // considered as immutable. Whenever the underlying data change
 // a new index is calculated via a pdag.
 type SearchIndex struct {
-	tilePair        *types.TilePair
-	tallies         *tally.Tallies
-	summaries       *summary.Summaries
-	paramsetSummary *paramsets.ParamSummary
-	blamer          *blame.Blamer
-	warmer          *warmer.Warmer
+	tilePair             *types.TilePair
+	tallies              *tally.Tallies
+	talliesWithIgnores   *tally.Tallies
+	summaries            *summary.Summaries
+	summariesWithIgnores *summary.Summaries
+	paramsetSummary      *paramsets.ParamSummary
+	blamer               *blame.Blamer
+	warmer               *warmer.Warmer
 
-	// Used by the pdag pipeline.
+	// This is set by the indexing pipeline when we just want to update
+	// individual tests that have changed.
 	testNames []string
 }
 
@@ -50,12 +54,14 @@ type SearchIndex struct {
 // Indexer and retrieved via GetIndex().
 func newSearchIndex(storages *storage.Storage, tilePair *types.TilePair) *SearchIndex {
 	return &SearchIndex{
-		tilePair:        tilePair,
-		tallies:         tally.New(),
-		summaries:       summary.New(storages),
-		paramsetSummary: paramsets.New(),
-		blamer:          blame.New(storages),
-		warmer:          warmer.New(storages),
+		tilePair:             tilePair,
+		tallies:              tally.New(),
+		talliesWithIgnores:   tally.New(),
+		summaries:            summary.New(storages),
+		summariesWithIgnores: summary.New(storages),
+		paramsetSummary:      paramsets.New(),
+		blamer:               blame.New(storages),
+		warmer:               warmer.New(storages),
 	}
 }
 
@@ -68,12 +74,26 @@ func (idx *SearchIndex) GetTile(includeIgnores bool) *tiling.Tile {
 }
 
 // Proxy to tally.Tallies.ByTest
-func (idx *SearchIndex) TalliesByTest() map[string]tally.Tally {
+func (idx *SearchIndex) TalliesByTest(includeIgnores bool) map[string]tally.Tally {
+	if includeIgnores {
+		return idx.talliesWithIgnores.ByTest()
+	}
 	return idx.tallies.ByTest()
 }
 
+// Proxy to tally.Tallies.MaxDigestsByTest
+func (idx *SearchIndex) MaxDigestsByTest(includeIgnores bool) map[string]util.StringSet {
+	if includeIgnores {
+		return idx.talliesWithIgnores.MaxDigestsByTest()
+	}
+	return idx.tallies.MaxDigestsByTest()
+}
+
 // Proxy to tally.Tallies.ByTrace
-func (idx *SearchIndex) TalliesByTrace() map[string]tally.Tally {
+func (idx *SearchIndex) TalliesByTrace(includeIgnores bool) map[string]tally.Tally {
+	if includeIgnores {
+		return idx.talliesWithIgnores.ByTrace()
+	}
 	return idx.tallies.ByTrace()
 }
 
@@ -83,7 +103,10 @@ func (idx *SearchIndex) TalliesByQuery(query url.Values, includeIgnores bool) ta
 }
 
 // Proxy to summary.Summary.Get.
-func (idx *SearchIndex) GetSummaries() map[string]*summary.Summary {
+func (idx *SearchIndex) GetSummaries(includeIgnores bool) map[string]*summary.Summary {
+	if includeIgnores {
+		return idx.summariesWithIgnores.Get()
+	}
 	return idx.summaries.Get()
 }
 
@@ -137,18 +160,20 @@ func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
 	// Add the blamer and tallies
 	blamerNode := root.Child(calcBlame)
 	tallyNode := root.Child(calcTallies)
+	tallyIgnoresNode := root.Child(calcTalliesWithIgnores)
 
 	// parameters depend on tallies.
-	tallyNode.Child(calcParamsets)
+	pdag.NewNode(calcParamsets, tallyNode, tallyIgnoresNode)
 
 	// summaries depend on tallies and blamer.
 	summaryNode := pdag.NewNode(calcSummaries, tallyNode, blamerNode)
+	summaryIgnoresNode := pdag.NewNode(calcSummariesWithIgnores, tallyIgnoresNode, blamerNode)
 
-	// The warmer depends on tallies and summaries.
-	pdag.NewNode(runWarmer, summaryNode, tallyNode)
+	// The warmer depends on summaries.
+	pdag.NewNode(runWarmer, summaryNode, summaryIgnoresNode)
 
 	// Set the result on the Indexer instance.
-	pdag.NewNode(ret.setIndex, summaryNode)
+	pdag.NewNode(ret.setIndex, summaryNode, summaryIgnoresNode)
 
 	ret.pipeline = root
 	ret.blamerNode = blamerNode
@@ -213,6 +238,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 					sklog.Errorf("Unable to index tile: %s", err)
 				}
 			} else if len(testNames) > 0 {
+				// Only index the tests that have changed.
 				ixr.indexTests(testNames)
 			}
 		}
@@ -233,13 +259,15 @@ func (ixr *Indexer) indexTests(testNames []string) {
 	defer timer.New("indexTests").Stop()
 	lastIdx := ixr.GetIndex()
 	newIdx := &SearchIndex{
-		tilePair:        lastIdx.tilePair,
-		tallies:         lastIdx.tallies,
-		summaries:       lastIdx.summaries.Clone(),
-		paramsetSummary: lastIdx.paramsetSummary,
-		blamer:          blame.New(ixr.storages),
-		warmer:          warmer.New(ixr.storages),
-		testNames:       testNames,
+		tilePair:             lastIdx.tilePair,
+		tallies:              lastIdx.tallies,            // stay the same even if tests change.
+		talliesWithIgnores:   lastIdx.talliesWithIgnores, // stay the same even if tests change.
+		summaries:            lastIdx.summaries.Clone(),
+		summariesWithIgnores: lastIdx.summariesWithIgnores.Clone(),
+		paramsetSummary:      lastIdx.paramsetSummary,
+		blamer:               blame.New(ixr.storages),
+		warmer:               warmer.New(ixr.storages),
+		testNames:            testNames,
 	}
 
 	if err := ixr.blamerNode.Trigger(newIdx); err != nil {
@@ -262,7 +290,15 @@ func (ixr *Indexer) setIndex(state interface{}) error {
 // calcTallies is the pipeline function to calculate the tallies.
 func calcTallies(state interface{}) error {
 	idx := state.(*SearchIndex)
-	idx.tallies.Calculate(idx.tilePair.TileWithIgnores)
+	idx.tallies.Calculate(idx.tilePair.Tile)
+	return nil
+}
+
+// calcTalliesWithIgnores is the pipeline function to calculate the tallies for
+// the tile that includes ignores.
+func calcTalliesWithIgnores(state interface{}) error {
+	idx := state.(*SearchIndex)
+	idx.talliesWithIgnores.Calculate(idx.tilePair.TileWithIgnores)
 	return nil
 }
 
@@ -273,10 +309,17 @@ func calcSummaries(state interface{}) error {
 	return err
 }
 
+// calcSummariesWithIgnores is the pipeline function to calculate the summaries.
+func calcSummariesWithIgnores(state interface{}) error {
+	idx := state.(*SearchIndex)
+	err := idx.summariesWithIgnores.Calculate(idx.tilePair.TileWithIgnores, idx.testNames, idx.talliesWithIgnores, idx.blamer)
+	return err
+}
+
 // calcParamsets is the pipeline function to calculate the parameters.
 func calcParamsets(state interface{}) error {
 	idx := state.(*SearchIndex)
-	idx.paramsetSummary.Calculate(idx.tilePair, idx.tallies)
+	idx.paramsetSummary.Calculate(idx.tilePair, idx.tallies, idx.talliesWithIgnores)
 	return nil
 }
 
@@ -291,6 +334,9 @@ func calcBlame(state interface{}) error {
 // asynchronously since its results are not relevant for the searchIndex.
 func runWarmer(state interface{}) error {
 	idx := state.(*SearchIndex)
-	go idx.warmer.Run(idx.tilePair.TileWithIgnores, idx.summaries, idx.tallies)
+
+	// TODO (stephana): Instead of warming everything we should warm non-ignored
+	// traces with higher priority.
+	go idx.warmer.Run(idx.tilePair.TileWithIgnores, idx.summariesWithIgnores, idx.talliesWithIgnores)
 	return nil
 }
