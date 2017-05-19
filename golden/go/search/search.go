@@ -270,7 +270,7 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 	}
 
 	pidMap := util.NewStringSet(issue.TargetPatchsets)
-	talliesByTest := idx.TalliesByTest()
+	talliesByTest := idx.TalliesByTest(true)
 	digestMap := map[string]*Digest{}
 
 	for idx, cid := range issue.CommitIDs {
@@ -349,7 +349,7 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 func searchTile(q *Query, e *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, tile *tiling.Tile, idx *indexer.SearchIndex) ([]*Digest, []*tiling.Commit, error) {
 	// TODO Use CommitRange to create a trimmed tile.
 
-	traceTally := idx.TalliesByTrace()
+	traceTally := idx.TalliesByTrace(q.IncludeIgnores)
 	lastCommitIndex := tile.LastCommitIndex()
 
 	// Loop over the tile and pull out all the digests that match
@@ -400,14 +400,14 @@ func searchTile(q *Query, e *expstorage.Expectations, parsedQuery url.Values, st
 }
 
 func digestFromIntermediate(test, digest string, inter *intermediate, e *expstorage.Expectations, tile *tiling.Tile, idx *indexer.SearchIndex, diffStore diff.DiffStore, includeIgnores bool) *Digest {
-	traceTally := idx.TalliesByTrace()
+	traceTally := idx.TalliesByTrace(true)
 	ret := &Digest{
 		Test:     test,
 		Digest:   digest,
 		Status:   e.Classification(test, digest).String(),
 		ParamSet: idx.GetParamsetSummary(test, digest, includeIgnores),
 		Traces:   buildTraces(test, digest, inter.Traces, e, tile, traceTally),
-		Diff:     buildDiff(test, digest, e, tile, idx.TalliesByTest(), diffStore, idx, includeIgnores),
+		Diff:     buildDiff(test, digest, e, tile, idx.TalliesByTest(true), diffStore, idx, includeIgnores),
 	}
 	return ret
 }
@@ -655,14 +655,19 @@ func GetDigestDetails(test, digest string, storages *storage.Storage, idx *index
 		}
 	}
 
+	// TODO(stephana): Revisit whether we should get these with the ignored
+	// traces or not, once we get rid of buildTraces and buildDiff.
+	talliesByTrace := idx.TalliesByTrace(true)
+	talliesByTest := idx.TalliesByTest(true)
+
 	return &DigestDetails{
 		Digest: &Digest{
 			Test:     test,
 			Digest:   digest,
 			Status:   exp.Classification(test, digest).String(),
 			ParamSet: idx.GetParamsetSummary(test, digest, true),
-			Traces:   buildTraces(test, digest, traces, exp, tile, idx.TalliesByTrace()),
-			Diff:     buildDiff(test, digest, exp, nil, idx.TalliesByTest(), storages.DiffStore, idx, true),
+			Traces:   buildTraces(test, digest, traces, exp, tile, talliesByTrace),
+			Diff:     buildDiff(test, digest, exp, nil, talliesByTest, storages.DiffStore, idx, true),
 		},
 		Commits: tile.Commits,
 	}, nil
@@ -769,7 +774,7 @@ func CompareTest(ctq *CTQuery, storages *storage.Storage, idx *indexer.SearchInd
 	totalRowDigests := len(rowDigests)
 
 	// Build the rows output.
-	rows := getCTRows(rowDigests, ctq.SortRows, ctq.RowsDir, ctq.RowQuery.Limit, idx)
+	rows := getCTRows(rowDigests, ctq.SortRows, ctq.RowsDir, ctq.RowQuery.Limit, ctq.RowQuery.IncludeIgnores, idx)
 
 	// If the number exceeds the maxium we always sort and trim by frequency.
 	if len(rows) > MAX_ROW_DIGESTS {
@@ -827,7 +832,7 @@ func CompareTest(ctq *CTQuery, storages *storage.Storage, idx *indexer.SearchInd
 	}
 
 	// Get the summaries of all tests in the result.
-	testSummaries := idx.GetSummaries()
+	testSummaries := idx.GetSummaries(false)
 	ctSummaries := make(map[string]*CTSummary, len(uniqueTests))
 	for testName := range uniqueTests {
 		ctSummaries[testName] = ctSummaryFromSummary(testSummaries[testName])
@@ -968,8 +973,8 @@ func filterTileWithMatch(query *Query, matchFields []string, condDigests map[str
 }
 
 // getCTRows returns the instance of CTRow that correspond to the given set of row digests.
-func getCTRows(entries map[string]paramtools.ParamSet, sortField, sortDir string, limit int, idx *indexer.SearchIndex) []*CTRow {
-	talliesByTest := idx.TalliesByTest()
+func getCTRows(entries map[string]paramtools.ParamSet, sortField, sortDir string, limit int, includeIgnores bool, idx *indexer.SearchIndex) []*CTRow {
+	talliesByTest := idx.TalliesByTest(includeIgnores)
 	ret := make([]*CTRow, 0, len(entries))
 	for digest, paramSet := range entries {
 		testName := paramSet[types.PRIMARY_KEY_FIELD][0]

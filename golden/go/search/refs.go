@@ -50,7 +50,7 @@ func NewRefDiffer(exp *expstorage.Expectations, diffStore diff.DiffStore, idx *i
 // metric. 'match' is the list of parameters that need to match between
 // the digests that are compared, i.e. this allows to restrict comparison
 // of gamma correct images to other digests that are also gamma correct.
-func (r *RefDiffer) GetRefDiffs(metric string, match []string, test, digest string, params paramtools.ParamSet, traces map[string]*types.GoldenTrace) (string, map[string]*SRDiffDigest) {
+func (r *RefDiffer) GetRefDiffs(metric string, match []string, test, digest string, params paramtools.ParamSet, traces map[string]*types.GoldenTrace, includeIgnores bool) (string, map[string]*SRDiffDigest) {
 	unavailableDigests := r.diffStore.UnavailableDigests()
 	if _, ok := unavailableDigests[digest]; ok {
 		return "", nil
@@ -69,7 +69,7 @@ func (r *RefDiffer) GetRefDiffs(metric string, match []string, test, digest stri
 	// Find the minimum according to the diff metric.
 	minKey := ""
 	minDiff := float32(math.Inf(1))
-	tally := r.idx.TalliesByTest()[test]
+	tally := r.idx.TalliesByTest(includeIgnores)[test]
 	for key, val := range ret {
 		if val != nil {
 			// Fill in the missing fields.

@@ -39,7 +39,7 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, storages *storage.St
 		acceptFn = func(tr tiling.Trace) (bool, interface{}) { return true, nil }
 	}
 
-	traceTally := idx.TalliesByTrace()
+	traceTally := idx.TalliesByTrace(query.IncludeIgnores)
 	lastCommitIndex := tile.LastCommitIndex()
 
 	// Iterate through the tile.

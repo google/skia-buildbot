@@ -192,7 +192,7 @@ func (s *SearchAPI) beforeDiffResultFilter(q *Query, inter map[string]map[string
 	// Group by tests and find the one with the maximum count. This will
 	// return one digest for each test in the input set (in inter).
 	if q.FGroupTest == GROUP_TEST_MAX_COUNT {
-		talliesByTest := idx.TalliesByTest()
+		talliesByTest := idx.TalliesByTest(q.IncludeIgnores)
 		for testName, digestInfo := range inter {
 			maxCount := -1
 			maxDigest := ""
@@ -226,7 +226,7 @@ func (s *SearchAPI) getReferenceDiffs(q *Query, inter map[string]map[string]*srI
 	for _, testDigests := range inter {
 		for _, interValue := range testDigests {
 			go func(i *srIntermediate, index int) {
-				closestRef, refDiffs := refDiffer.GetRefDiffs(q.Metric, q.Match, i.test, i.digest, i.params, i.traces)
+				closestRef, refDiffs := refDiffer.GetRefDiffs(q.Metric, q.Match, i.test, i.digest, i.params, i.traces, q.IncludeIgnores)
 				retDigests[index] = &SRDigest{
 					Test:       i.test,
 					Digest:     i.digest,
