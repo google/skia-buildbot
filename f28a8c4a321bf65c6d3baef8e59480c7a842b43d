@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fbac648f_e9f62c25",
+        "filename": "power/Makefile",
+        "patchSetId": 5
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-19T19:04:39Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "d369cf07_4bd8c7af",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 36
+      },
+      "revId": "f28a8c4a321bf65c6d3baef8e59480c7a842b43d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "63b6a5ae_be0f23ad",
         "filename": "power/README.md",
         "patchSetId": 5
@@ -36,6 +60,24 @@
       "writtenOn": "2017-05-19T18:57:01Z",
       "side": 1,
       "message": "I don\u0027t think we should include a doc that is not publicly accessible.",
+      "revId": "f28a8c4a321bf65c6d3baef8e59480c7a842b43d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6efe95e0_12d76784",
+        "filename": "power/README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-19T19:04:39Z",
+      "side": 1,
+      "message": "We do in several other places.  Once the design is more finalized, I\u0027ll make a design.md.",
+      "parentUuid": "63b6a5ae_be0f23ad",
       "revId": "f28a8c4a321bf65c6d3baef8e59480c7a842b43d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
