@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a5b21eb5_64276272",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-19T20:03:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3270694d_774010ff",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 126,
+        "endChar": 1
+      },
+      "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "92143bbb_314557ec",
         "filename": "go/vm_creation/vm_creation.go",
         "patchSetId": 3
@@ -95,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "2a612a3c_441e38f9",
+        "filename": "go/vm_creation/vm_creation.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-19T20:03:53Z",
+      "side": 1,
+      "message": "Because \"insert\" is the verb used by the API.  I can change it if you feel strongly.",
+      "parentUuid": "71d4b9d3_f0b9fd8c",
+      "range": {
+        "startLine": 113,
+        "startChar": 17,
+        "endLine": 113,
+        "endChar": 27
+      },
+      "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "52cd3204_977afa8d",
         "filename": "go/vm_creation/vm_creation.go",
         "patchSetId": 3
@@ -115,6 +163,30 @@
       "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f94e9a28_b28dcec3",
+        "filename": "go/vm_creation/vm_creation.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-19T20:03:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "52cd3204_977afa8d",
+      "range": {
+        "startLine": 127,
+        "startChar": 4,
+        "endLine": 127,
+        "endChar": 18
+      },
+      "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -188,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "d8f87602_c70b09e0",
+        "filename": "go/vm_creation/vm_creation.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-19T20:03:53Z",
+      "side": 1,
+      "message": "Same as above.",
+      "parentUuid": "569cfce7_ca1bf15b",
+      "range": {
+        "startLine": 210,
+        "startChar": 17,
+        "endLine": 210,
+        "endChar": 31
+      },
+      "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "dcb68bab_da7158de",
         "filename": "go/vm_creation/vm_creation.go",
         "patchSetId": 3
@@ -199,6 +295,30 @@
       "writtenOn": "2017-05-19T18:34:21Z",
       "side": 1,
       "message": "What will happen with attached disks ?",
+      "range": {
+        "startLine": 291,
+        "startChar": 0,
+        "endLine": 291,
+        "endChar": 74
+      },
+      "revId": "25cbb8152bc2c6a023cd75a1b6e58285da5091d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c272eb5_2d109e47",
+        "filename": "go/vm_creation/vm_creation.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-19T20:03:53Z",
+      "side": 1,
+      "message": "If AutoDelete is true for the disk (ie. boot disks) they get deleted.  Data disks do not get auto-deleted.",
+      "parentUuid": "dcb68bab_da7158de",
       "range": {
         "startLine": 291,
         "startChar": 0,
