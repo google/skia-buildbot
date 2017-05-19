@@ -766,7 +766,7 @@ func jsonListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	corpus, hasSourceType := query.Query[types.CORPUS_FIELD]
 	sumSlice := []*summary.Summary{}
 	if !query.IncludeIgnores && query.Head && len(query.Query) == 1 && hasSourceType {
-		sumMap := idx.GetSummaries()
+		sumMap := idx.GetSummaries(false)
 		for _, s := range sumMap {
 			if util.In(s.Corpus, corpus) && includeSummary(s, &query) {
 				sumSlice = append(sumSlice, s)
@@ -1044,7 +1044,7 @@ func textAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 	unavailableDigests := storages.DiffStore.UnavailableDigests()
 
 	idx := ixr.GetIndex()
-	byTest := idx.TalliesByTest()
+	byTest := idx.TalliesByTest(true)
 	hashes := map[string]bool{}
 	for _, test := range byTest {
 		for k, _ := range test {
