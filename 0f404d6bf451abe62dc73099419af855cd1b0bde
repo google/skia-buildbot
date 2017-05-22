@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4a126e67_acba8795",
+        "filename": "launch.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-22T16:43:49Z",
+      "side": 1,
+      "message": "Seems like these two sentences should go together. Or make httputils.NewTimeoutClient return a pre-wrapped client.",
+      "range": {
+        "startLine": 32,
+        "startChar": 40,
+        "endLine": 36,
+        "endChar": 29
+      },
+      "revId": "0f404d6bf451abe62dc73099419af855cd1b0bde",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
