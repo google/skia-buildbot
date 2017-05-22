@@ -22,6 +22,30 @@
       "revId": "3b3bfa52f805722aeeecc91e5eddfbb0024632c3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3056c8e9_71cecb30",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-05-22T19:51:19Z",
+      "side": 1,
+      "message": "I think you can do that in the route config for the alertserver:\n\n  https://prometheus.io/docs/alerting/configuration/",
+      "parentUuid": "50d19a48_ff814760",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 47,
+        "endChar": 63
+      },
+      "revId": "3b3bfa52f805722aeeecc91e5eddfbb0024632c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
