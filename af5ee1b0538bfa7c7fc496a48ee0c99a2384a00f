@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "75a59e44_1fe46fe2",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-22T21:20:16Z",
+      "side": 1,
+      "message": "nit creates",
+      "range": {
+        "startLine": 97,
+        "startChar": 14,
+        "endLine": 97,
+        "endChar": 21
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69c66592_325f3649",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-22T21:20:16Z",
+      "side": 1,
+      "message": "nit: This will cause waitForDisk(... diskStatusError ...) to be successful if the API call fails.\n\nSame for getInstanceStatus.",
+      "range": {
+        "startLine": 159,
+        "startChar": 9,
+        "endLine": 159,
+        "endChar": 24
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c70ac94_d60c04fa",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-22T21:20:16Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 188,
+        "startChar": 0,
+        "endLine": 188,
+        "endChar": 25
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0bfb8cf_b25a1feb",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-22T21:20:16Z",
+      "side": 1,
+      "message": "nit: document (The other fields are probably intuitive enough.)",
+      "range": {
+        "startLine": 191,
+        "startChar": 1,
+        "endLine": 191,
+        "endChar": 25
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb890c1a_cbfea3d2",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-22T21:20:16Z",
+      "side": 1,
+      "message": "nit creates",
+      "range": {
+        "startLine": 194,
+        "startChar": 18,
+        "endLine": 194,
+        "endChar": 25
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0c60fb0_54b08ad1",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-22T21:20:16Z",
+      "side": 1,
+      "message": "nit: Since this doesn\u0027t really need a GCloud instance, it might be nice to make this a method of Instance instead. Same for Scp, DownloadFile, etc.",
+      "range": {
+        "startLine": 347,
+        "startChar": 17,
+        "endLine": 347,
+        "endChar": 20
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1697a04e_7258e4e9",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-22T21:20:16Z",
+      "side": 1,
+      "message": "nit: if src is relative, it might be interpreted differently than intended.",
+      "range": {
+        "startLine": 370,
+        "startChar": 22,
+        "endLine": 370,
+        "endChar": 31
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "934964f2_e05a2f48",
+        "filename": "go/gce/vm_server/server.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-22T21:20:16Z",
+      "side": 1,
+      "message": "maybe TODO make this true?",
+      "range": {
+        "startLine": 24,
+        "startChar": 48,
+        "endLine": 24,
+        "endChar": 53
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5bc094e_e16f5d74",
+        "filename": "task_scheduler/vm.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-22T21:20:16Z",
+      "side": 1,
+      "message": "Need to read the contents of startup-script.sh here.",
+      "range": {
+        "startLine": 17,
+        "startChar": 1,
+        "endLine": 17,
+        "endChar": 52
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
