@@ -32,6 +32,10 @@ Wrap your `http.Handler` with
 logging of HTTP requests and responses. Use
 `go.skia.org/infra/go/httputils.NewTimeoutClient` for HTTP clients.
 
+Any calls to external APIs should use an http.Client wrapped with
+httputils.AddMetricsToClient. This allows us to track how much load we place on
+external services.
+
 Write your code with security in mind:
 
 - Make sure your service is listed in the [team security scan](http://go/skia-infra-scan).
