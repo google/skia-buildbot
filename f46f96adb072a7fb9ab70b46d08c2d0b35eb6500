@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fd932f7b_cbc4c66d",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-22T12:40:36Z",
+      "side": 1,
+      "message": "nit: Seems like it should be 0. x3",
+      "range": {
+        "startLine": 409,
+        "startChar": 10,
+        "endLine": 409,
+        "endChar": 18
+      },
+      "revId": "f46f96adb072a7fb9ab70b46d08c2d0b35eb6500",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
