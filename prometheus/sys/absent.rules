@@ -567,3 +567,48 @@ ALERT MissingData
     description = "There is no data for the following alert: max_over_time(skolo_hotspare_consecutive_failures[10m])"
   }
 
+ALERT MissingData
+  IF absent(sum(rate(http_request_metrics[10m]))by(host))
+  FOR 5m
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    abbr = "sum(rate(http_request_metrics[10m]))by(host)",
+    description = "There is no data for the following alert: sum(rate(http_request_metrics[10m]))by(host)"
+  }
+
+ALERT MissingData
+  IF absent(rate(http_request_metrics{host="skia-review.googlesource.com"}[5m]))
+  FOR 5m
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    abbr = "rate(http_request_metrics{host=\"skia-review.googlesource.com\"}[5m])",
+    description = "There is no data for the following alert: rate(http_request_metrics{host=\"skia-review.googlesource.com\"}[5m])"
+  }
+
+ALERT MissingData
+  IF absent(rate(http_request_metrics{host="chromium-review.googlesource.com"}[5m]))
+  FOR 5m
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    abbr = "rate(http_request_metrics{host=\"chromium-review.googlesource.com\"}[5m])",
+    description = "There is no data for the following alert: rate(http_request_metrics{host=\"chromium-review.googlesource.com\"}[5m])"
+  }
+
+ALERT MissingData
+  IF absent(rate(http_request_metrics{host="skia-review.googlesource.com"}[12h]))
+  FOR 5m
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    abbr = "rate(http_request_metrics{host=\"skia-review.googlesource.com\"}[12h])",
+    description = "There is no data for the following alert: rate(http_request_metrics{host=\"skia-review.googlesource.com\"}[12h])"
+  }
+
+ALERT MissingData
+  IF absent(rate(http_request_metrics{host="chromium-review.googlesource.com"}[12h]))
+  FOR 5m
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    abbr = "rate(http_request_metrics{host=\"chromium-review.googlesource.com\"}[12h])",
+    description = "There is no data for the following alert: rate(http_request_metrics{host=\"chromium-review.googlesource.com\"}[12h])"
+  }
+

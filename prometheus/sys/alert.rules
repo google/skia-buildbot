@@ -520,3 +520,45 @@ ALERT RpiMaster
   ANNOTATIONS {
     description = "skia-rpi-master-spare has been active for more than 10 minutes. Something is probably wrong with skia-rpi-master. http://go/skolo-maintenance.",
   }
+
+#
+# QPS to external services.
+#
+
+# General.
+# TODO(borenet): Specific alerts for Swarming.
+ALERT HighExternalQPS
+  IF sum(rate(http_request_metrics[10m])) by (host) > 5
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    description = "QPS to {{ $labels.host }} is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
+  }
+
+# Gerrit
+ALERT HighQPSGerritSkiaShortTerm
+  IF rate(http_request_metrics{host="skia-review.googlesource.com"}[5m]) > 5
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    description = "Short-term QPS to Gerrit (Skia) is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
+  }
+
+ALERT HighQPSGerritChromeShortTerm
+  IF rate(http_request_metrics{host="chromium-review.googlesource.com"}[5m]) > 5
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    description = "Short-term QPS to Gerrit (Chromium) is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
+  }
+
+ALERT HighQPSGerritSkiaLongTerm
+  IF rate(http_request_metrics{host="skia-review.googlesource.com"}[12h]) > 1
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    description = "Long-term QPS to Gerrit (Skia) is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
+  }
+
+ALERT HighQPSGerritChromeLongTerm
+  IF rate(http_request_metrics{host="chromium-review.googlesource.com"}[12h]) > 1
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    description = "Long-term QPS to Gerrit (Chromium) is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
+  }
