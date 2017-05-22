@@ -367,6 +367,7 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(unfinishedJobs []*db.Job) (map
 	defer metrics2.FuncTimer().Stop()
 
 	// Get the repo+commit+taskspecs for each job.
+	commits := map[string]bool{}
 	candidates := map[db.TaskKey]*taskCandidate{}
 	for _, j := range unfinishedJobs {
 		if !s.window.TestTime(j.Repo, j.Created) {
@@ -384,9 +385,10 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(unfinishedJobs []*db.Job) (map
 				TaskSpec:   spec,
 			}
 			candidates[key] = c
+			commits[c.Revision] = true
 		}
 	}
-	sklog.Infof("Found %d task candidates for %d unfinished jobs.", len(candidates), len(unfinishedJobs))
+	sklog.Infof("Found %d task candidates for %d unfinished jobs at %d commits (window starts at %s)", len(candidates), len(unfinishedJobs), len(commits), s.window.EarliestStart())
 	return candidates, nil
 }
 
