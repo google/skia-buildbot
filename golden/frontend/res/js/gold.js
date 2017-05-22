@@ -61,8 +61,9 @@ var gold = gold || {};
     // The fields of query are not fixed but change over time. This requires
     // to encode/decode a query in a separate step when encoding/decoding
     // this entire object.
-    query:   "",
-    head:    true,
+    query:'',
+    rquery: '',
+    head: true,
     include: false,
     pos: false,
     neg: false,
@@ -78,7 +79,10 @@ var gold = gold || {};
     fend: "",
 
     // Select max RGBA difference.
-    frgbamax: -1,
+    frgbamin: 0,
+
+    // Select max RGBA difference.
+    frgbamax: 255,
 
     // Select max difference.
     fdiffmax: -1,
