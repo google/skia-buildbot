@@ -71,7 +71,7 @@ func (w *Warmer) Run(tile *tiling.Tile, summaries *summary.Summaries, tallies *t
 
 	digests := traceDigests.Keys()
 	sklog.Infof("FOUND %d digests to fetch.", len(digests))
-	w.storages.DiffStore.WarmDigests(diff.PRIORITY_BACKGROUND, digests)
+	w.storages.DiffStore.WarmDigests(diff.PRIORITY_BACKGROUND, digests, false)
 
 	// TODO(stephana): Re-enable this once we have figured out crashes.
 
@@ -116,6 +116,6 @@ func warmTrybotDigests(storages *storage.Storage, traceDigests map[string]bool) 
 	wg.Wait()
 	digests := trybotDigests.Keys()
 	sklog.Infof("FOUND %d trybot digests to fetch.", len(digests))
-	storages.DiffStore.WarmDigests(diff.PRIORITY_BACKGROUND, digests)
+	storages.DiffStore.WarmDigests(diff.PRIORITY_BACKGROUND, digests, false)
 	return nil
 }

@@ -1,9 +1,15 @@
 package storage
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"sync"
 	"time"
+
+	"google.golang.org/api/option"
+
+	gstorage "cloud.google.com/go/storage"
 
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
@@ -11,6 +17,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -32,6 +39,7 @@ type Storage struct {
 	TrybotResults     *trybot.TrybotResults
 	RietveldAPI       *rietveld.Rietveld
 	GerritAPI         *gerrit.Gerrit
+	GStorageClient    *GStorageClient
 
 	// NCommits is the number of commits we should consider. If NCommits is
 	// 0 or smaller all commits in the last tile will be considered.
@@ -195,4 +203,40 @@ func (s *Storage) GetTileFromTimeRange(begin, end time.Time) (*tiling.Tile, erro
 		return nil, fmt.Errorf("Failed retrieving commitIDs in range %s to %s. Got error: %s", begin, end, err)
 	}
 	return s.BranchTileBuilder.CachedTileFromCommits(tracedb.ShortFromLong(commitIDs))
+}
+
+type GStorageClient struct {
+	storageClient *gstorage.Client
+	bucketName    string
+	hashFilePath  string
+}
+
+func NewGStorageClient(client *http.Client, bucketName, hashFilePath string) (*GStorageClient, error) {
+	storageClient, err := gstorage.NewClient(context.Background(), option.WithHTTPClient(client))
+	if err != nil {
+		return nil, err
+	}
+	return &GStorageClient{
+		storageClient: storageClient,
+		bucketName:    bucketName,
+		hashFilePath:  hashFilePath,
+	}, nil
+}
+
+func (g *GStorageClient) WriteKownDigests(digests []string) error {
+	ctx := context.Background()
+	target := g.storageClient.Bucket(g.bucketName).Object(g.hashFilePath)
+	writer := target.NewWriter(ctx)
+	writer.ObjectAttrs = gstorage.ObjectAttrs{
+		ContentType: "text/plain",
+		ACL:         []gstorage.ACLRule{{Entity: gstorage.AllUsers, Role: gstorage.RoleReader}},
+	}
+	defer util.Close(writer)
+
+	for _, digest := range digests {
+		if _, err := writer.Write([]byte(digest + "\n")); err != nil {
+			return err
+		}
+	}
+	return nil
 }

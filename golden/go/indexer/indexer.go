@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/golden/go/blame"
+	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/pdag"
@@ -47,6 +48,7 @@ type SearchIndex struct {
 	// This is set by the indexing pipeline when we just want to update
 	// individual tests that have changed.
 	testNames []string
+	storages  *storage.Storage
 }
 
 // newSearchIndex creates a new instance of SearchIndex. It is not intended to
@@ -62,6 +64,7 @@ func newSearchIndex(storages *storage.Storage, tilePair *types.TilePair) *Search
 		paramsetSummary:      paramsets.New(),
 		blamer:               blame.New(storages),
 		warmer:               warmer.New(storages),
+		storages:             storages,
 	}
 }
 
@@ -328,6 +331,37 @@ func calcBlame(state interface{}) error {
 	idx := state.(*SearchIndex)
 	err := idx.blamer.Calculate(idx.tilePair.Tile)
 	return err
+}
+
+func writeKnownHashesList(state interface{}) error {
+	idx := state.(*SearchIndex)
+	byTest := idx.TalliesByTest(true)
+	unavailableDigests := idx.storages.DiffStore.UnavailableDigests()
+
+	// Collect all hashes in the tile that haven't been marked as unavailable yet.
+	hashes := util.StringSet{}
+	for _, test := range byTest {
+		for k, _ := range test {
+			if _, ok := unavailableDigests[k]; !ok {
+				hashes[k] = true
+			}
+		}
+	}
+
+	// Make sure they all fetched already. This will block until all digests
+	// are on disk or have failed to load repeatedly.
+	idx.storages.DiffStore.WarmDigests(diff.PRIORITY_NOW, hashes.Keys(), true)
+	unavailableDigests = idx.storages.DiffStore.UnavailableDigests()
+	for h := range hashes {
+		if _, ok := unavailableDigests[h]; ok {
+			delete(hashes, h)
+		}
+	}
+
+	if err := idx.storages.GStorageClient.WriteKownDigests(hashes.Keys()); err != nil {
+		sklog.Errorf("Error writing known digests list: %s", err)
+	}
+	return nil
 }
 
 // runWamer is the pipeline function to run the wamer. It runs it
