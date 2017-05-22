@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -69,6 +70,7 @@ type MonorailIssueTracker struct {
 }
 
 func NewMonorailIssueTracker(client *http.Client) IssueTracker {
+	httputils.AddMetricsToClient(client)
 	return &MonorailIssueTracker{
 		client: client,
 	}

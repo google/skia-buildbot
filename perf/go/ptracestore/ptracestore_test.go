@@ -34,7 +34,7 @@ func cleanup() {
 }
 
 func TestAdd(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	setupStoreDir(t)
 	defer cleanup()
 

@@ -21,19 +21,23 @@ const (
 
 // Repo is an object used for interacting with a single Git repo using Gitiles.
 type Repo struct {
-	URL string
+	client *http.Client
+	URL    string
 }
 
 // NewRepo creates and returns a new Repo object.
 func NewRepo(url string) *Repo {
+	c := httputils.NewTimeoutClient()
+	httputils.AddMetricsToClient(c)
 	return &Repo{
-		URL: url,
+		client: c,
+		URL:    url,
 	}
 }
 
 // ReadFileAtRef reads the given file at the given ref.
 func (r *Repo) ReadFileAtRef(srcPath, ref string, w io.Writer) error {
-	resp, err := httputils.NewTimeoutClient().Get(fmt.Sprintf(DOWNLOAD_URL, r.URL, ref, srcPath))
+	resp, err := r.client.Get(fmt.Sprintf(DOWNLOAD_URL, r.URL, ref, srcPath))
 	if err != nil {
 		return err
 	}

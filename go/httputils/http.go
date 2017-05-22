@@ -9,8 +9,10 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"reflect"
 	"runtime"
 	"strconv"
+	"sync"
 	"time"
 
 	// Below is a port of the exponential backoff implementation from
@@ -339,4 +341,55 @@ func ParseFormValues(r *http.Request, rv interface{}) error {
 		return err
 	}
 	return json.Unmarshal(b, rv)
+}
+
+// MetricsTransport is an http.RoundTripper which logs each request to metrics.
+type MetricsTransport struct {
+	counters    map[string]metrics2.Counter
+	countersMtx sync.Mutex
+	rt          http.RoundTripper
+}
+
+// getCounter returns the cached metrics2.Counter for the given host.
+func (mt *MetricsTransport) getCounter(host string) metrics2.Counter {
+	mt.countersMtx.Lock()
+	defer mt.countersMtx.Unlock()
+	c, ok := mt.counters[host]
+	if !ok {
+		c = metrics2.GetCounter("http_request_metrics", map[string]string{
+			"host": host,
+		})
+		mt.counters[host] = c
+	}
+	return c
+}
+
+// See docs for http.RoundTripper.
+func (mt *MetricsTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	mt.getCounter(req.URL.Host).Inc(1)
+	return mt.rt.RoundTrip(req)
+}
+
+// NewMetricsTransport returns a MetricsTransport instance which wraps the given
+// http.RoundTripper.
+func NewMetricsTransport(rt http.RoundTripper) http.RoundTripper {
+	// Prevent double-wrapping and thus double-counting requests in metrics.
+	if rt == nil {
+		rt = &http.Transport{
+			Dial: DialTimeout,
+		}
+	} else {
+		if reflect.TypeOf(rt) == reflect.TypeOf(&MetricsTransport{}) {
+			return rt
+		}
+	}
+	return &MetricsTransport{
+		counters: map[string]metrics2.Counter{},
+		rt:       rt,
+	}
+}
+
+// AddMetricsToClient adds metrics for each request to the http.Client.
+func AddMetricsToClient(c *http.Client) {
+	c.Transport = NewMetricsTransport(c.Transport)
 }
