@@ -25,6 +25,8 @@
 
 -->
 
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="bower_components/iron-icons/image-icons.html">
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="bower_components/paper-button/paper-button.html">
 <link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
@@ -36,11 +38,13 @@
 <link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="bower_components/polymer/polymer.html">
 
+<link rel="import" href="query-dialog-sk.html">
 <link rel="import" href="select-popup-sk.html">
+<link rel="import" href="shared-styles.html">
 
 <dom-module id="filter-dialog-sk">
   <template>
-     <style include="iron-flex iron-flex-alignment">
+     <style include="iron-flex iron-flex-alignment shared-styles">
       paper-slider {
         width: 25em;
         margin-top: 0;
@@ -63,9 +67,34 @@
         width:15em;
         padding-right: 2em;
       }
+
+      .inlineLabel {
+        font-weight: bold;
+        padding-right: 1em;
+      }
+
+      .currSelection {
+        padding: 1em 0 0 1em;
+        min-width: 5em;
+        max-width: 15em;
+        display: inline-block;
+      }
+
+      #rightQueryButton {
+        max-height: 3em;
+      }
+
     </style>
     <paper-dialog id="filterDialog" with-backdrop>
       <div class="vertical layout">
+          <div class="filterItem horizontal layout">
+            <span class="inlineLabel">Diff Config:</span>
+            <paper-button id="rightQueryButton" raised><iron-icon icon="image:tune"></iron-icon></paper-button>
+            <div class="currSelection">
+              [[_splitAmp(_curr.rquery)]]
+            </div>
+          </div>
+
           <!-- group by test -->
           <div class="filterItem">
             <span class="selectLabel">Group By Test:</span>
@@ -79,10 +108,16 @@
             </paper-dropdown-menu>
           </div>
 
+          <!-- min RGBA delta  -->
+          <div class="filterItem">
+            <div class="sliderHeader">Min RGBA Delta</div>
+            <paper-slider value="{{_curr.frgbamin}}" min="0" max="255" editable></paper-slider>
+          </div>
+
           <!-- max RGBA delta  -->
           <div class="filterItem">
             <div class="sliderHeader">Max RGBA Delta</div>
-            <paper-slider value="{{_curr.frgbamax}}" min="-1" max="255" editable></paper-slider>
+            <paper-slider value="{{_curr.frgbamax}}" min="0" max="255" editable></paper-slider>
           </div>
 
           <!-- Max Diff -->
@@ -127,13 +162,16 @@
         <paper-button id="editButton" raised dialog-dismiss>Filter</paper-button>
       </div>
     </paper-dialog>
+    <query-dialog-sk id="rightQueryDialog" submit-label="Select"></query-dialog-sk>
   </template>
   <script>
     (function() {
       // The fields we are interested in.
       var filterFields = [
+        "rquery",
         "metric",
         "match",
+        "frgbamin",
         "frgbamax",
         "fdiffmax",
         "fgrouptest",
@@ -152,6 +190,8 @@
         ready: function() {
           this.listen(this.$.editButton, 'tap', '_handleEditButton');
           this.listen(this.$.paramsSelect, 'changed-selection', '_handleMatchChanged');
+          this.listen(this.$.rightQueryButton, 'tap', '_handleRightQueryButton');
+          this.listen(this.$.rightQueryDialog, 'edit', '_handleRightQueryEdit');
           this.set('_metrics', gold.allMetrics.slice());
           this.set('_groupTests', gold.groupTestOps.slice());
         },
@@ -167,6 +207,7 @@
         },
 
         setParamSet: function(params) {
+          this.$.rightQueryDialog.queryEle.setParamSet(params);
           this.$.paramsSelect.setParamSet(params);
         },
 
@@ -193,8 +234,22 @@
         },
 
         _handleMatchChanged: function(ev) {
-          this.set('_curr.match',ev.detail);
+          this.set('_curr.match', ev.detail);
         },
+
+        _handleRightQueryButton: function(ev) {
+          ev.stopPropagation();
+          this.$.rightQueryDialog.open(this._curr.rquery);
+        },
+
+        _handleRightQueryEdit: function(ev) {
+          ev.stopPropagation();
+          this.set('_curr.rquery', ev.detail);
+        },
+
+        _splitAmp: function(qStr) {
+          return sk.query.splitAmp(qStr, ' \n');
+        }
       });
     })();
   </script>
