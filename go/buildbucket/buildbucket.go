@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/util"
 )
@@ -123,6 +124,7 @@ type Client struct {
 
 // NewClient returns an authenticated Client instance.
 func NewClient(c *http.Client) *Client {
+	httputils.AddMetricsToClient(c)
 	return &Client{c}
 }
 

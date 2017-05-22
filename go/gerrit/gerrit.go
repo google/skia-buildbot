@@ -155,6 +155,7 @@ func NewGerrit(url, gitCookiesPath string, client *http.Client) (*Gerrit, error)
 	if client == nil {
 		client = httputils.NewTimeoutClient()
 	}
+	httputils.AddMetricsToClient(client)
 	return &Gerrit{
 		url:               url,
 		client:            client,
