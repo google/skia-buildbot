@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "95dabce6_7743ca5e",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 529,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-22T16:30:46Z",
+      "side": 1,
+      "message": "This is just a guess.",
+      "range": {
+        "startLine": 529,
+        "startChar": 54,
+        "endLine": 529,
+        "endChar": 55
+      },
+      "revId": "94968cb6dc5631aeaaa0a906caacc779108357b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4dfbdb1f_5af83f3e",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 537,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-22T16:30:46Z",
+      "side": 1,
+      "message": "Our quota is higher than this for a 5-minute period, but we shouldn\u0027t exceed it.",
+      "range": {
+        "startLine": 537,
+        "startChar": 75,
+        "endLine": 537,
+        "endChar": 76
+      },
+      "revId": "94968cb6dc5631aeaaa0a906caacc779108357b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0f1dddb_f2c82527",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 549,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-22T16:30:46Z",
+      "side": 1,
+      "message": "Maximum for 24 hour sustained is roughly 1 qps.  Alert long before then, since we shouldn\u0027t exceed that.",
+      "range": {
+        "startLine": 549,
+        "startChar": 76,
+        "endLine": 549,
+        "endChar": 77
+      },
+      "revId": "94968cb6dc5631aeaaa0a906caacc779108357b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
