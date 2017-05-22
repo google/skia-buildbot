@@ -22,6 +22,30 @@
       "revId": "0f404d6bf451abe62dc73099419af855cd1b0bde",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb090938_f3c68f2a",
+        "filename": "launch.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-22T16:48:33Z",
+      "side": 1,
+      "message": "I guess I\u0027m not opposed to *always* using the wrapped metrics client everywhere, but I wanted to make it opt-in initially.",
+      "parentUuid": "4a126e67_acba8795",
+      "range": {
+        "startLine": 32,
+        "startChar": 40,
+        "endLine": 36,
+        "endChar": 29
+      },
+      "revId": "0f404d6bf451abe62dc73099419af855cd1b0bde",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
