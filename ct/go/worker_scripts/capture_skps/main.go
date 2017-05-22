@@ -23,7 +23,7 @@ import (
 
 const (
 	// The number of goroutines that will run in parallel to capture SKPs.
-	WORKER_POOL_SIZE = 2
+	WORKER_POOL_SIZE = 1
 )
 
 var (
