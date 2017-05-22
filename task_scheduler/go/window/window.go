@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/util"
 )
 
 // Window is a struct used for managing time windows based on a duration and
@@ -46,21 +47,27 @@ func (w *Window) UpdateWithTime(now time.Time) error {
 	baseStart := now.Add(-w.duration)
 
 	for repoUrl, r := range w.repos {
-		s := baseStart
-
-		// Just trace the first parent of each commit on the master
-		// branch. In practice this can include more than N commits, but
-		// it's better than some alternatives.
-		c := r.Get("master")
-		for i := 1; i < w.numCommits; i++ {
-			p := c.GetParents()
-			if len(p) < 1 {
-				break
+		// Find the most recent N commits.
+		// TODO(borenet): We should probably respect a branch blacklist.
+		latest := time.Time{}
+		for _, b := range r.Branches() {
+			c := r.Get(b)
+			for i := 1; i < w.numCommits; i++ {
+				p := c.GetParents()
+				if len(p) < 1 {
+					break
+				}
+				c = p[0]
 			}
-			c = p[0]
+			if c.Timestamp.After(latest) {
+				latest = c.Timestamp
+			}
 		}
-		if c.Timestamp.Before(s) {
-			s = c.Timestamp
+
+		// Take the earlier of the most recent N commits or baseStart.
+		s := baseStart
+		if !util.TimeIsZero(latest) && latest.Before(s) {
+			s = latest
 		}
 		start[repoUrl] = s
 		if s.Before(earliest) {
