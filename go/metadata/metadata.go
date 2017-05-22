@@ -39,6 +39,10 @@ const (
 	// and email address that are allowed to perform admin tasks.
 	ADMIN_WHITE_LIST = "admin_white_list"
 
+	// METADATA_URL is the URL template for metadata. The placeholders are
+	// for the level ("instance" or "project") and the metadata key.
+	METADATA_URL = "http://metadata/computeMetadata/v1/%s/attributes/%s"
+
 	// WEBHOOK_REQUEST_SALT is used to authenticate webhook requests. The value stored in
 	// Metadata is base64-encoded.
 	// Value created 2015-08-10 with
@@ -58,7 +62,7 @@ const (
 // level should be either "instance" or "project" for the kind of
 // metadata to retrieve.
 func get(name string, level string) (string, error) {
-	req, err := http.NewRequest("GET", "http://metadata/computeMetadata/v1/"+level+"/attributes/"+name, nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf(METADATA_URL, level, name), nil)
 	if err != nil {
 		return "", fmt.Errorf("metadata.Get() failed to build request: %s", err)
 	}
