@@ -187,6 +187,33 @@ func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir st
 	if !local {
 		machine = path.Base(tmpDir)
 	}
+	// TODO Create the overlayfs here, modify --fiddleRoot passed to fiddle_run.
+	// Only the mount and umount are done under exec, creating and cleaning dirs is done via Go calls.
+
+	/*
+
+		#!/bin/bash
+
+		set -e -x
+
+		RUNID=runid2222
+		GITHASH=c34a946d5a975ba8b8cd51f79b55174a5ec0f99f
+		FIDDLE_ROOT=/usr/local/google/home/jcgregorio/projects/temp
+		RUN_ROOT=${FIDDLE_ROOT}/tmp/${RUNID}
+
+		mkdir --parents ${RUN_ROOT}/upper/skia/tools/fiddle
+		mkdir ${RUN_ROOT}/work
+		mkdir ${RUN_ROOT}/overlay
+		cp mydraw.cpp ${RUN_ROOT}/upper/skia/tools/fiddle/draw.cpp
+
+		LOWER=${FIDDLE_ROOT}/versions/${GITHASH}
+		UPPER=${RUN_ROOT}/upper
+		WORK=${RUN_ROOT}/work
+		OVERLAY=${RUN_ROOT}/overlay
+
+		sudo mount -t overlay -o lowerdir=$LOWER,upperdir=$UPPER,workdir=$WORK none ${OVERLAY}
+
+	*/
 	name := "sudo"
 	args := []string{
 		"systemd-nspawn", "-D", "/mnt/pd0/container/",
