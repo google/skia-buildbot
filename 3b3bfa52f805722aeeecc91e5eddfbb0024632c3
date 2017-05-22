@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "50d19a48_ff814760",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-22T19:11:04Z",
+      "side": 1,
+      "message": "This is a good example of an alert which should have an owner based on the \"instance\" label.  I have no idea how to do that.",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 47,
+        "endChar": 63
+      },
+      "revId": "3b3bfa52f805722aeeecc91e5eddfbb0024632c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
