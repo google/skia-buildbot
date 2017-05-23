@@ -50,7 +50,7 @@ type ImageLoader struct {
 	// failureStore persists failures in retrieving digests. .
 	failureStore *failureStore
 
-	wg sync.WaitGroup
+	allOpWaitGroup sync.WaitGroup
 }
 
 // Creates a new instance of ImageLoader.
@@ -85,21 +85,29 @@ func newImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []s
 // The synchronous flag determines whether the call is blocking or not.
 // It workes in sync with Get, any image that is scheduled be retrieved by get
 // will not be fetched again.
-func (il *ImageLoader) Warm(priority int64, digests []string) {
-	il.wg.Add(len(digests))
+func (il *ImageLoader) Warm(priority int64, digests []string, synchronous bool) {
+	var localWaitGroup sync.WaitGroup
+	il.allOpWaitGroup.Add(len(digests))
+	localWaitGroup.Add(len(digests))
 	for _, digest := range digests {
 		go func(digest string) {
-			defer il.wg.Done()
+			defer il.allOpWaitGroup.Done()
+			defer localWaitGroup.Done()
 			if err := il.imageCache.Warm(priority, digest); err != nil {
 				sklog.Errorf("Unable to retrive digest %s. Got error: %s", digest, err)
 			}
 		}(digest)
 	}
+
+	// Wait for the all digests to be loaded.
+	if synchronous {
+		localWaitGroup.Wait()
+	}
 }
 
 // sync waits until all pending go routines have terminated.
 func (il *ImageLoader) sync() {
-	il.wg.Wait()
+	il.allOpWaitGroup.Wait()
 }
 
 // errResult is a helper type to capture error information in Get(...).
@@ -213,9 +221,9 @@ func (il *ImageLoader) imageLoadWorker(priority int64, digest string) (interface
 }
 
 func (il *ImageLoader) saveImgInfoAsync(imageFileName string, imgBytes []byte) {
-	il.wg.Add(1)
+	il.allOpWaitGroup.Add(1)
 	go func() {
-		defer il.wg.Done()
+		defer il.allOpWaitGroup.Done()
 		if err := saveFileRadixPath(il.localImgDir, imageFileName, bytes.NewBuffer(imgBytes)); err != nil {
 			sklog.Error(err)
 		}

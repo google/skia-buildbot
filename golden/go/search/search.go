@@ -335,7 +335,7 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 	}
 	// This has priority PRIORITY_NOW because this is used in a HTTP request where
 	// the requester expects the images to be be available.
-	storages.DiffStore.WarmDigests(diff.PRIORITY_NOW, allDigests)
+	storages.DiffStore.WarmDigests(diff.PRIORITY_NOW, allDigests, false)
 
 	issueResponse := &IssueResponse{
 		IssueDetails:   issue,
