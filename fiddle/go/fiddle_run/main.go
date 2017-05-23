@@ -18,6 +18,7 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
+	"go.skia.org/infra/fiddle/go/config"
 	"go.skia.org/infra/fiddle/go/types"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
@@ -81,6 +82,13 @@ func main() {
 	}
 	if err := syscall.Setrlimit(syscall.RLIMIT_CORE, rLimit); err != nil {
 		fmt.Println("Error Setting Rlimit ", err)
+	}
+
+	// Re-run GN since the directory changes under overlayfs.
+	if err := buildskia.GNGen(checkout, depotTools, "Release", config.GN_FLAGS); err != nil {
+		res.Compile.Errors = err.Error()
+		serializeOutput(res)
+		return
 	}
 
 	// Compile draw.cpp into 'fiddle'.
