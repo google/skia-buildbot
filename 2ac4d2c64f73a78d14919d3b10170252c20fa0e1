@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "397011d6_86575414",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-05-23T13:31:56Z",
+      "side": 1,
+      "message": "Can we add a local param here? The main below would set it to true. If local\u003dfalse then download gcloud_token.data from metadata. My goal is to call this library from a server.",
+      "revId": "2ac4d2c64f73a78d14919d3b10170252c20fa0e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "789d3707_3f6741bf",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 474,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-05-23T13:31:56Z",
+      "side": 1,
+      "message": "Nit: DownloadFile -\u003e GetFileFromGS (like GetFileFromMetadata below)",
+      "revId": "2ac4d2c64f73a78d14919d3b10170252c20fa0e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
