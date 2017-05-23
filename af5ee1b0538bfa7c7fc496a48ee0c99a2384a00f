@@ -378,6 +378,30 @@
     },
     {
       "key": {
+        "uuid": "c4ce8d0c_67dc46e2",
+        "filename": "go/gce/vm_server/server.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-23T18:16:11Z",
+      "side": 1,
+      "message": "Sorry, I guess that\u0027s not what you meant in https://bugs.chromium.org/p/skia/issues/detail?id\u003d6612#c3",
+      "parentUuid": "96cdf40f_56850115",
+      "range": {
+        "startLine": 24,
+        "startChar": 48,
+        "endLine": 24,
+        "endChar": 53
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b5bc094e_e16f5d74",
         "filename": "task_scheduler/vm.go",
         "patchSetId": 6

@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ae5db67b_29c38e3b",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-23T18:16:11Z",
+      "side": 1,
+      "message": "nit: Would be nice to make the \"format and mount\" options less confusing. As I understand it, format-and-mount.sh assumes your data disk is named ${INSTANCE}-data, so this option won\u0027t work if DataDisk is nil or DataDisk.Name isn\u0027t Instance.Name + \"-data\".",
+      "range": {
+        "startLine": 202,
+        "startChar": 0,
+        "endLine": 203,
+        "endChar": 20
+      },
+      "revId": "173b708c195c17f7bf6338c6276bd9a830daf740",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
