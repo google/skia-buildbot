@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "abcc86bb_7db3d2e8",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-23T13:14:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "75a59e44_1fe46fe2",
+      "range": {
+        "startLine": 97,
+        "startChar": 14,
+        "endLine": 97,
+        "endChar": 21
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "69c66592_325f3649",
         "filename": "go/gce/gce.go",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2017-05-22T21:20:16Z",
       "side": 1,
       "message": "nit: This will cause waitForDisk(... diskStatusError ...) to be successful if the API call fails.\n\nSame for getInstanceStatus.",
+      "range": {
+        "startLine": 159,
+        "startChar": 9,
+        "endLine": 159,
+        "endChar": 24
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc482d83_f60f6edd",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-23T13:14:26Z",
+      "side": 1,
+      "message": "That\u0027s intended, so that when deleting a disk or instance we can wait until we get an error while querying its status.  The downside is that if the request fails for some other reason, we\u0027ll assume the disk/instance was deleted when it really wasn\u0027t.",
+      "parentUuid": "69c66592_325f3649",
       "range": {
         "startLine": 159,
         "startChar": 9,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "0d16efa5_bf8a2381",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-23T13:14:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6c70ac94_d60c04fa",
+      "range": {
+        "startLine": 188,
+        "startChar": 0,
+        "endLine": 188,
+        "endChar": 25
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e0bfb8cf_b25a1feb",
         "filename": "go/gce/gce.go",
         "patchSetId": 6
@@ -82,6 +154,30 @@
       "writtenOn": "2017-05-22T21:20:16Z",
       "side": 1,
       "message": "nit: document (The other fields are probably intuitive enough.)",
+      "range": {
+        "startLine": 191,
+        "startChar": 1,
+        "endLine": 191,
+        "endChar": 25
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff897d34_c1ca8841",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-23T13:14:26Z",
+      "side": 1,
+      "message": "Documented all fields.  I think the download-related maps needed some clarification.",
+      "parentUuid": "e0bfb8cf_b25a1feb",
       "range": {
         "startLine": 191,
         "startChar": 1,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "f3bdd86c_25f57391",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-23T13:14:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eb890c1a_cbfea3d2",
+      "range": {
+        "startLine": 194,
+        "startChar": 18,
+        "endLine": 194,
+        "endChar": 25
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e0c60fb0_54b08ad1",
         "filename": "go/gce/gce.go",
         "patchSetId": 6
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "385330c9_915f5d94",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-23T13:14:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e0c60fb0_54b08ad1",
+      "range": {
+        "startLine": 347,
+        "startChar": 17,
+        "endLine": 347,
+        "endChar": 20
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1697a04e_7258e4e9",
         "filename": "go/gce/gce.go",
         "patchSetId": 6
@@ -151,6 +295,30 @@
       "writtenOn": "2017-05-22T21:20:16Z",
       "side": 1,
       "message": "nit: if src is relative, it might be interpreted differently than intended.",
+      "range": {
+        "startLine": 370,
+        "startChar": 22,
+        "endLine": 370,
+        "endChar": 31
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f131435f_65abe017",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-23T13:14:26Z",
+      "side": 1,
+      "message": "Added a check to verify that src is an absolute path.",
+      "parentUuid": "1697a04e_7258e4e9",
       "range": {
         "startLine": 370,
         "startChar": 22,
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "96cdf40f_56850115",
+        "filename": "go/gce/vm_server/server.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-23T13:14:26Z",
+      "side": 1,
+      "message": "Why?  IMO this is something the user would want to decide.",
+      "parentUuid": "934964f2_e05a2f48",
+      "range": {
+        "startLine": 24,
+        "startChar": 48,
+        "endLine": 24,
+        "endChar": 53
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b5bc094e_e16f5d74",
         "filename": "task_scheduler/vm.go",
         "patchSetId": 6
@@ -197,6 +389,30 @@
       "writtenOn": "2017-05-22T21:20:16Z",
       "side": 1,
       "message": "Need to read the contents of startup-script.sh here.",
+      "range": {
+        "startLine": 17,
+        "startChar": 1,
+        "endLine": 17,
+        "endChar": 52
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "09c10ee3_c0c38fb0",
+        "filename": "task_scheduler/vm.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-23T13:14:26Z",
+      "side": 1,
+      "message": "Good catch. For convenience, added a StartupScript field to the Instance struct and made CreateInstance read the script if specified.",
+      "parentUuid": "b5bc094e_e16f5d74",
       "range": {
         "startLine": 17,
         "startChar": 1,
