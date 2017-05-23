@@ -71,6 +71,10 @@ type ApiClient interface {
 	// given pool.
 	ListFreeBots(pool string) ([]*swarming.SwarmingRpcsBotInfo, error)
 
+	// ListDownBots returns a slice of swarming.SwarmingRpcsBotInfo instances
+	// corresponding to the dead or quarantined bots in the given pool.
+	ListDownBots(pool string) ([]*swarming.SwarmingRpcsBotInfo, error)
+
 	// ListBotsForPool returns a slice of swarming.SwarmingRpcsBotInfo
 	// instances corresponding to the Swarming bots in the given pool.
 	ListBotsForPool(pool string) ([]*swarming.SwarmingRpcsBotInfo, error)
@@ -147,6 +151,24 @@ func (c *apiClient) ListFreeBots(pool string) ([]*swarming.SwarmingRpcsBotInfo, 
 	call.IsDead("FALSE")
 	call.Quarantined("FALSE")
 	return ProcessBotsListCall(call)
+}
+
+func (c *apiClient) ListDownBots(pool string) ([]*swarming.SwarmingRpcsBotInfo, error) {
+	call := c.s.Bots.List()
+	call.Dimensions(fmt.Sprintf("%s:%s", DIMENSION_POOL_KEY, pool))
+	call.IsDead("TRUE")
+	dead, err := ProcessBotsListCall(call)
+	if err != nil {
+		return nil, err
+	}
+	call = c.s.Bots.List()
+	call.Dimensions(fmt.Sprintf("%s:%s", DIMENSION_POOL_KEY, pool))
+	call.Quarantined("TRUE")
+	qBots, err := ProcessBotsListCall(call)
+	if err != nil {
+		return nil, err
+	}
+	return append(dead, qBots...), nil
 }
 
 func (c *apiClient) ListBots(dimensions map[string]string) ([]*swarming.SwarmingRpcsBotInfo, error) {
