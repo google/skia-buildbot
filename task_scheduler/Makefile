@@ -57,4 +57,28 @@ push_trigger: all
 	pushcli task-scheduler-trigger-nightly skia-task-scheduler
 	pushcli task-scheduler-trigger-weekly skia-task-scheduler
 
+.PHONY: vm_create_prod
+vm_create_prod:
+	go run ./vm.go --alsologtostderr --create --ignore-exists --instance=prod
+
+.PHONY: vm_delete_prod
+vm_delete_prod:
+	go run ./vm.go --alsologtostderr --delete --ignore-exists --instance=prod
+
+.PHONY: vm_create_internal
+vm_create_internal:
+	go run ./vm.go --alsologtostderr --create --ignore-exists --instance=internal
+
+.PHONY: vm_delete_internal
+vm_delete_internal:
+	go run ./vm.go --alsologtostderr --delete --ignore-exists --instance=internal
+
+.PHONY: vm_create_test
+vm_create_test:
+	go run ./vm.go --alsologtostderr --create --ignore-exists --instance=test
+
+.PHONY: vm_delete_test
+vm_delete_test:
+	go run ./vm.go --alsologtostderr --delete --ignore-exists --instance=test
+
 include ../webtools/webtools.mk
