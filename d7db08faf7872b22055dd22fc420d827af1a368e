@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8d1cfe04_3639280f",
+        "filename": "golden/frontend/res/js/gold.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-23T12:10:46Z",
+      "side": 1,
+      "message": "ubernit: prefer double quotes for JS strings",
+      "range": {
+        "startLine": 64,
+        "startChar": 10,
+        "endLine": 64,
+        "endChar": 12
+      },
+      "revId": "d7db08faf7872b22055dd22fc420d827af1a368e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
