@@ -24,6 +24,8 @@ ExecStart=/usr/local/bin/skiacorrectness-prod  \
     --cache_size=20 \
     --resources_dir=/usr/local/share/skiacorrectness/frontend \
     --prom_port=:20001
+    --hash_file_bucket=skia-infra-gm \
+    --hash_file_path=hash_files/
 
 Restart=always
 User=default

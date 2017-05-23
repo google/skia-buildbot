@@ -97,7 +97,7 @@ func New(client *http.Client, baseDir string, gsBucketNames []string, gsImageBas
 
 // WarmDigests fetches images based on the given list of digests. It does
 // not cache the images but makes sure they are downloaded from GCS.
-func (d *MemDiffStore) WarmDigests(priority int64, digests []string) {
+func (d *MemDiffStore) WarmDigests(priority int64, digests []string, sync bool) {
 	missingDigests := make([]string, 0, len(digests))
 	for _, digest := range digests {
 		if !d.imgLoader.IsOnDisk(digest) {
@@ -105,7 +105,7 @@ func (d *MemDiffStore) WarmDigests(priority int64, digests []string) {
 		}
 	}
 	if len(missingDigests) > 0 {
-		d.imgLoader.Warm(rtcache.PriorityTimeCombined(priority), missingDigests)
+		d.imgLoader.Warm(rtcache.PriorityTimeCombined(priority), missingDigests, sync)
 	}
 }
 
