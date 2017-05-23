@@ -22,6 +22,30 @@
       "revId": "173b708c195c17f7bf6338c6276bd9a830daf740",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7bdb0cb0_ebf9b52b",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-23T18:41:15Z",
+      "side": 1,
+      "message": "Oh, right.  And I guess we always want to format-and-mount the data disk if it exists, not leave it up to the caller.",
+      "parentUuid": "ae5db67b_29c38e3b",
+      "range": {
+        "startLine": 202,
+        "startChar": 0,
+        "endLine": 203,
+        "endChar": 20
+      },
+      "revId": "173b708c195c17f7bf6338c6276bd9a830daf740",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

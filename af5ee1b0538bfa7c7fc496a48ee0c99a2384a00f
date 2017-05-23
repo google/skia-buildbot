@@ -402,6 +402,30 @@
     },
     {
       "key": {
+        "uuid": "397d53a1_7016d24a",
+        "filename": "go/gce/vm_server/server.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-23T18:41:15Z",
+      "side": 1,
+      "message": "Oh, I was mainly just complaining that I\u0027d try to create an instance and it would fail because the data disk didn\u0027t exist yet, then I\u0027d have to go back and run the disk creation script.  So I wanted it to happen automatically.  Personally I\u0027d rather not automatically delete the data disk, but a calling script could always supply this argument.",
+      "parentUuid": "c4ce8d0c_67dc46e2",
+      "range": {
+        "startLine": 24,
+        "startChar": 48,
+        "endLine": 24,
+        "endChar": 53
+      },
+      "revId": "af5ee1b0538bfa7c7fc496a48ee0c99a2384a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b5bc094e_e16f5d74",
         "filename": "task_scheduler/vm.go",
         "patchSetId": 6
