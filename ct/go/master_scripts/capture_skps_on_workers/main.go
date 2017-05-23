@@ -103,7 +103,7 @@ func main() {
 
 	isolateFile := util.CAPTURE_SKPS_ISOLATE
 	maxPages := MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS
-	workerDimensions := util.GOLO_WORKER_DIMENSIONS
+	workerDimensions := util.GCE_WORKER_DIMENSIONS
 	hardTimeout := 3 * time.Hour
 	ioTimeout := 1 * time.Hour
 	if strings.Contains(strings.ToUpper(*pagesetType), "PDF") {
