@@ -1,4 +1,4 @@
-"use strict"
+"use strict";
 
 /* This defines the gold namespace which contains all JS code relevant to
    gold. Functions that are generic should move to common.js
@@ -16,14 +16,14 @@ var gold = gold || {};
   gold.UNTRIAGED = 'untriage';
 
   // Reference diffs.
-  gold.REF_NEG   = "neg";
-  gold.REF_POS   = "pos";
-  gold.REF_TRACE = "trace";
+  gold.REF_NEG   = 'neg';
+  gold.REF_POS   = 'pos';
+  gold.REF_TRACE = 'trace';
 
   // Metric values.
-	gold.METRIC_COMBINED = "combined";
-	gold.METRIC_PERCENT  = "percent";
-	gold.METRIC_PIXEL    = "pixel";
+	gold.METRIC_COMBINED = 'combined';
+	gold.METRIC_PERCENT  = 'percent';
+	gold.METRIC_PIXEL    = 'pixel';
   gold.allMetrics = [
     gold.METRIC_COMBINED,
     gold.METRIC_PERCENT,
@@ -31,20 +31,20 @@ var gold = gold || {};
   ];
 
   // Default values for match selection.
-  gold.DEFAULT_MATCH_CONFIGS = ["gamma_correct", "name"];
+  gold.DEFAULT_MATCH_CONFIGS = ['gamma_correct', 'name'];
 
   // Operators to apply to images grouped by test.
-  gold.GROUP_TEST_MAX_COUNT = "count"    // Most often occuring digest.
+  gold.GROUP_TEST_MAX_COUNT = 'count'    // Most often occuring digest.
   gold.groupTestOps = [
     gold.GROUP_TEST_MAX_COUNT,
   ];
 
   // ISSUE_TRACKER_URL is the url of the monorail issue tracker.
-  var ISSUE_TRACKER_URL = "https://bugs.chromium.org/p/skia/issues/";
+  var ISSUE_TRACKER_URL = 'https://bugs.chromium.org/p/skia/issues/';
 
   // Costants for sort order.
-  gold.SORT_ASC = "asc";
-  gold.SORT_DESC = "desc";
+  gold.SORT_ASC = 'asc';
+  gold.SORT_DESC = 'desc';
 
   // Default values for the search controls.
   gold.defaultSearchState = {
@@ -61,30 +61,34 @@ var gold = gold || {};
     // The fields of query are not fixed but change over time. This requires
     // to encode/decode a query in a separate step when encoding/decoding
     // this entire object.
-    query:   "",
-    head:    true,
+    query:'',
+    rquery: '',
+    head: true,
     include: false,
     pos: false,
     neg: false,
     unt: true,
-    blame: "",
+    blame: '',
     limit: 50,
-    issue: "",
-    patchsets: "",
+    issue: '',
+    patchsets: '',
 
     // Filter options.
     // Begin and end commits. Must be valid commits.
-    fbegin: "",
-    fend: "",
+    fbegin: '',
+    fend: '',
 
     // Select max RGBA difference.
-    frgbamax: -1,
+    frgbamin: 0,
+
+    // Select max RGBA difference.
+    frgbamax: 255,
 
     // Select max difference.
     fdiffmax: -1,
 
     // Group by test and select a specific digest.
-    fgrouptest: "",
+    fgrouptest: '',
 
     // Only include images that have a reference.
     fref: false
@@ -92,7 +96,7 @@ var gold = gold || {};
 
   // Default values for the search query of the by-blame-page.
   gold.defaultByBlameState = {
-    query: "",
+    query: '',
   };
 
   // Default values for pagination objects.
@@ -110,9 +114,9 @@ var gold = gold || {};
 
   // Table that maps reference point ids to readable titles.
   gold.diffTitles = {}
-  gold.diffTitles[gold.REF_TRACE] = "Trace previously";
-  gold.diffTitles[gold.REF_POS] = "Closest Positive";
-  gold.diffTitles[gold.REF_NEG] = "Closest Negative";
+  gold.diffTitles[gold.REF_TRACE] = 'Trace previously';
+  gold.diffTitles[gold.REF_POS] = 'Closest Positive';
+  gold.diffTitles[gold.REF_NEG] = 'Closest Negative';
 
   // Return a title for the given reference point id.
   gold.getDiffTitle = function(diffType) {
@@ -130,8 +134,8 @@ var gold = gold || {};
 
   // Returns the URL to the image info site for the given digest.
   gold.imageInfoHref = function(digest) {
-    var imgUrl = window.location.protocol + "//" + window.location.hostname + gold.imgHref(digest);
-    return "https://imageinfo.skia.org/info?" + sk.query.fromObject({url: imgUrl});
+    var imgUrl = window.location.protocol + '//' + window.location.hostname + gold.imgHref(digest);
+    return 'https://imageinfo.skia.org/info?' + sk.query.fromObject({url: imgUrl});
   },
 
   // Return the URL for the diff image between the two given digests.
@@ -200,7 +204,7 @@ var gold = gold || {};
   // If 'target' is a string it will call the 'set' function of the Polymer
   // element 'ele' with 'target', if 'target' is a function it will call it.
   gold.loadWithActivity = function(ele, url, activity, target) {
-    activity.startSpinner("Loading...");
+    activity.startSpinner('Loading...');
     sk.get(url).then(JSON.parse).then(function (json) {
       activity.stopSpinner();
       if (typeof(target) === 'function') {
@@ -215,7 +219,7 @@ var gold = gold || {};
   },
 
   gold.issueURL = function(issueID) {
-    return ISSUE_TRACKER_URL + "/detail?id=" + issueID;
+    return ISSUE_TRACKER_URL + '/detail?id=' + issueID;
   };
 
   // makeTriageQuery returns an object that can be sent as a query to the
@@ -335,7 +339,7 @@ var gold = gold || {};
         return ret;
     },
 
-    // _initState initializes the "_state" and "_ctx" variables. ctx is the
+    // _initState initializes the '_state' and '_ctx' variables. ctx is the
     // context of the page.js route. It creates the value of the _state object
     // from the URL query string based on defaultState. It sets the URL to
     // the resulting the state.
@@ -385,7 +389,7 @@ var gold = gold || {};
     // _redirectHome unconditionally redirects to home.
     _redirectHome: function() {
       this._ctx.pushState();
-      page.redirect("/" + gold.queryFromState(this._getDefaultStateWithCorpus()));
+      page.redirect('/' + gold.queryFromState(this._getDefaultStateWithCorpus()));
     },
 
     // _replaceState updates the current state with 'updates' and updates
@@ -404,8 +408,8 @@ var gold = gold || {};
     // _addCorpus injects the corpus into the query string of a query object.
     _addCorpus: function(state) {
       var params = sk.query.toParamSet(state.query);
-      if ((!params["source_type]"]) && this._statusElement) {
-        params["source_type"] = [this._statusElement.corpus];
+      if ((!params['source_type]']) && this._statusElement) {
+        params['source_type'] = [this._statusElement.corpus];
         state.query = sk.query.fromParamSet(params);
       }
       return state;
