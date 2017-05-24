@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fcdef817_d324f35c",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-24T13:48:36Z",
+      "side": 1,
+      "message": "uber-nit: if NewSwarmingClient fails, this doesn\u0027t get deleted. x2",
+      "range": {
+        "startLine": 380,
+        "startChar": 1,
+        "endLine": 380,
+        "endChar": 8
+      },
+      "revId": "2450669c82d1979d34a93baabb27aac97e094d58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
