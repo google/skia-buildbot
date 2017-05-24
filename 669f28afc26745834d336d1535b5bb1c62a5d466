@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "50283838_5b05d247",
+        "filename": "go/gce/format_and_mount.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-24T13:13:59Z",
+      "side": 1,
+      "message": "This file copied from compute_engine_scripts/common and modified to remove the \"-data\" suffix.",
+      "range": {
+        "startLine": 11,
+        "startChar": 18,
+        "endLine": 11,
+        "endChar": 21
+      },
+      "revId": "669f28afc26745834d336d1535b5bb1c62a5d466",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "35457d2d_7ad7d67d",
+        "filename": "go/gce/safe_format_and_mount",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-24T13:13:59Z",
+      "side": 1,
+      "message": "This file copied from compute_engine_scripts/common.  Not modified.",
+      "revId": "669f28afc26745834d336d1535b5bb1c62a5d466",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
