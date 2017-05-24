@@ -39,7 +39,7 @@ var (
 // for some reason and always close the ReadCloser. testName is the name of the
 // test that should be compared and limitDefault is the default limit for the
 // row and column queries.
-func ParseCTQuery(r io.ReadCloser, limitDefault int, ctQuery *CTQuery) error {
+func ParseCTQuery(r io.ReadCloser, limitDefault int32, ctQuery *CTQuery) error {
 	defer util.Close(r)
 	var err error
 
@@ -80,14 +80,14 @@ func ParseCTQuery(r io.ReadCloser, limitDefault int, ctQuery *CTQuery) error {
 
 	// Set the limit to a default if not set.
 	if ctQuery.RowQuery.Limit == 0 {
-		ctQuery.RowQuery.Limit = limitDefault
+		ctQuery.RowQuery.Limit = int32(limitDefault)
 	}
-	ctQuery.RowQuery.Limit = util.MinInt(ctQuery.RowQuery.Limit, MAX_LIMIT)
+	ctQuery.RowQuery.Limit = util.MinInt32(ctQuery.RowQuery.Limit, MAX_LIMIT)
 
 	if ctQuery.ColumnQuery.Limit == 0 {
 		ctQuery.ColumnQuery.Limit = limitDefault
 	}
-	ctQuery.ColumnQuery.Limit = util.MinInt(ctQuery.ColumnQuery.Limit, MAX_LIMIT)
+	ctQuery.ColumnQuery.Limit = util.MinInt32(ctQuery.ColumnQuery.Limit, MAX_LIMIT)
 
 	validate := Validation{}
 	validate.StrValue("sortRows", &ctQuery.SortRows, rowSortFields, SORT_FIELD_COUNT)
@@ -168,6 +168,18 @@ func (v *Validation) Int32FormValue(r *http.Request, name string, val *int32, de
 	v.Int32Value(name, r.FormValue(name), val, defaultVal)
 }
 
+func (v *Validation) QueryFormValue(r *http.Request, name string, val *url.Values) {
+	if q := r.FormValue(name); q != "" {
+		var err error
+		*val, err = url.ParseQuery(q)
+		if err != nil {
+			*v = append(*v, fmt.Sprintf("Unable to parse query: %s. Error: %s", q, err))
+		}
+	} else {
+		*val = url.Values{}
+	}
+}
+
 // Errors returns a concatination of all error values accumulated in validation or nil
 // if there were no errors.
 func (v *Validation) Errors() error {
@@ -176,4 +188,12 @@ func (v *Validation) Errors() error {
 	}
 
 	return fmt.Errorf("%s", strings.Join(*v, "\n"))
+}
+
+// ParseQuery parses the request parameters from the URL query string or from the
+// form parameters and stores the parsed and validated values in query.
+func ParseQueryx(r *http.Request, query *Query) error {
+	// Fill in query from handlers !!!!
+
+	return nil
 }
