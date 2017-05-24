@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
+	_ "go.skia.org/infra/go/swarming"
 )
 
 const (

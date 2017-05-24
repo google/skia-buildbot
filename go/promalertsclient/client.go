@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/prometheus/alertmanager/dispatch"
+	"github.com/prometheus/common/model"
 	"go.skia.org/infra/go/util"
 )
 
@@ -23,7 +23,7 @@ type APIClient interface {
 	// GetAlerts fetches all alerts from the server and returns them in a slice.
 	// If filter is non-nil, it will be applied to all alerts. If filter
 	// returns true, it will be included in the slice.
-	GetAlerts(filter func(dispatch.APIAlert) bool) ([]dispatch.APIAlert, error)
+	GetAlerts(filter func(model.Alert) bool) ([]model.Alert, error)
 }
 
 // apiclient fulfils the APIClient interface
@@ -50,12 +50,12 @@ func New(hc HTTPClient, server string) APIClient {
 // alertResponse represents how Prometheus structures its response to the
 // API call.
 type alertsResponse struct {
-	Status string              `json:"status"`
-	Data   []dispatch.APIAlert `json:"data"`
+	Status string        `json:"status"`
+	Data   []model.Alert `json:"data"`
 }
 
 // See the APIClient interface for a description of GetAlerts
-func (a *apiclient) GetAlerts(filter func(dispatch.APIAlert) bool) ([]dispatch.APIAlert, error) {
+func (a *apiclient) GetAlerts(filter func(model.Alert) bool) ([]model.Alert, error) {
 	r, err := a.hc.Get(a.basePath)
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (a *apiclient) GetAlerts(filter func(dispatch.APIAlert) bool) ([]dispatch.A
 		return nil, fmt.Errorf("Could not parse JSON: %s", err)
 	}
 
-	retVal := []dispatch.APIAlert{}
+	retVal := []model.Alert{}
 	for _, a := range alerts.Data {
 		if filter == nil || filter(a) {
 			retVal = append(retVal, a)
