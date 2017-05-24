@@ -1,0 +1,10 @@
+devices:
+
+  skia-e-win-010:
+    unattend: unattend-skiabot.xml
+
+  skia-e-win-011:
+    unattend: unattend-skiabot.xml
+
+  skia-e-win-012:
+    unattend: unattend-skiabot.xml
