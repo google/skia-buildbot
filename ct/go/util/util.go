@@ -383,10 +383,6 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 	}
 	s, err := swarming.NewSwarmingClient(workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
 	if err != nil {
-		// Cleanup workdir.
-		if err := os.RemoveAll(workDir); err != nil {
-			sklog.Errorf("Could not cleanup swarming work dir: %s", err)
-		}
 		return 0, fmt.Errorf("Could not instantiate swarming client: %s", err)
 	}
 	defer s.Cleanup()
@@ -734,10 +730,6 @@ func TriggerBuildRepoSwarmingTask(taskName, runID, repo, targetPlatform string, 
 	}
 	s, err := swarming.NewSwarmingClient(workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
 	if err != nil {
-		// Cleanup workdir.
-		if err := os.RemoveAll(workDir); err != nil {
-			sklog.Errorf("Could not cleanup swarming work dir: %s", err)
-		}
 		return nil, fmt.Errorf("Could not instantiate swarming client: %s", err)
 	}
 	defer s.Cleanup()

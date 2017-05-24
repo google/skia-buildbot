@@ -134,13 +134,8 @@ func runChromiumPerf() error {
 		customWebpages = customWebpages[startIndex:endIndex]
 	}
 
-	chromiumBuilds := []string{*chromiumBuildNoPatch}
-	// No point downloading the same build twice. Download only if builds are different.
-	if *chromiumBuildNoPatch != *chromiumBuildWithPatch {
-		chromiumBuilds = append(chromiumBuilds, *chromiumBuildWithPatch)
-	}
 	// Download the specified chromium builds.
-	for _, chromiumBuild := range chromiumBuilds {
+	for _, chromiumBuild := range []string{*chromiumBuildNoPatch, *chromiumBuildWithPatch} {
 		if err := gs.DownloadChromiumBuild(chromiumBuild); err != nil {
 			return err
 		}
