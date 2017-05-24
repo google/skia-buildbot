@@ -3,6 +3,8 @@ package jsonutils
 import (
 	"encoding/json"
 	"fmt"
+	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -17,6 +19,11 @@ func TestNumber(t *testing.T) {
 		in  string
 		out int64
 		err error
+	}
+	parser := "strconv.Atoi"
+	if strings.HasPrefix(runtime.Version(), "1.7") {
+		// TODO(kjlubick): remove this logic when go 1.7 feels ancient
+		parser = "strconv.ParseInt"
 	}
 	cases := []testCase{
 		{
@@ -37,7 +44,7 @@ func TestNumber(t *testing.T) {
 		{
 			in:  "9.345",
 			out: 0,
-			err: fmt.Errorf("strconv.ParseInt: parsing \"9.345\": invalid syntax"),
+			err: fmt.Errorf("%s: parsing \"9.345\": invalid syntax", parser),
 		},
 		{
 			in:  "2147483647",
@@ -62,7 +69,7 @@ func TestNumber(t *testing.T) {
 		{
 			in:  "9223372036854775808",
 			out: 0,
-			err: fmt.Errorf("strconv.ParseInt: parsing \"9223372036854775808\": value out of range"),
+			err: fmt.Errorf("%s: parsing \"9223372036854775808\": value out of range", parser),
 		},
 	}
 	for _, tc := range cases {
