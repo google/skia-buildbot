@@ -199,9 +199,6 @@ type Instance struct {
 	// External IP address for the instance. Required.
 	ExternalIpAddress string
 
-	// Whether or not to run the format-and-mount script on this instance.
-	FormatAndMount bool
-
 	// Files to download from Google Storage. Map keys are the source URLs,
 	// and values are destination paths on the GCE instance. May be absolute
 	// or relative (to the default user's home dir, eg. /home/default).
@@ -490,16 +487,15 @@ func (vm *Instance) SafeFormatAndMount() error {
 	// scripts to the instance.
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
-	commonDir := path.Join(path.Dir(path.Dir(dir)), "compute_engine_scripts", "common")
-	if err := vm.Scp(path.Join(commonDir, "format_and_mount.sh"), "/tmp/format_and_mount.sh"); err != nil {
+	if err := vm.Scp(path.Join(dir, "format_and_mount.sh"), "/tmp/format_and_mount.sh"); err != nil {
 		return err
 	}
-	if err := vm.Scp(path.Join(commonDir, "safe_format_and_mount"), "/tmp/safe_format_and_mount"); err != nil {
+	if err := vm.Scp(path.Join(dir, "safe_format_and_mount"), "/tmp/safe_format_and_mount"); err != nil {
 		return err
 	}
 
 	// Run format_and_mount.sh.
-	if _, err := vm.Ssh("/tmp/format_and_mount.sh", vm.Name); err != nil {
+	if _, err := vm.Ssh("/tmp/format_and_mount.sh", vm.DataDisk.Name); err != nil {
 		if !strings.Contains(err.Error(), "is already mounted") {
 			return err
 		}
@@ -532,7 +528,7 @@ func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool, workdir string)
 	}
 
 	// Format and mount.
-	if vm.FormatAndMount {
+	if vm.DataDisk != nil {
 		if err := vm.SafeFormatAndMount(); err != nil {
 			return err
 		}
