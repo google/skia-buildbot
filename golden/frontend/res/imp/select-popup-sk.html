@@ -48,7 +48,7 @@
        <iron-icon icon="[[icon]]" hidden$="{{!_syncParams}}"></iron-icon>
     </paper-button>
     <array-selector id="arrSelector" items="{{_items}}" selected="{{selected}}" multi toggle></array-selector>
-    <paper-dialog id="paramsSelectionDialog" no-overlap vertical-align="top" horizontal-align="left">
+    <paper-dialog id="paramsSelectionDialog" with-backdrop>
       <paper-dialog-scrollable>
           <template is='dom-repeat' items='{{ _items }}'>
             <div class="checkboxItem">
