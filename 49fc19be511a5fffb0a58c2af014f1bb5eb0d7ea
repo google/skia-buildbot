@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6754c124_37dce012",
+        "filename": "go/promalertsclient/client.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-05-24T12:45:14Z",
+      "side": 1,
+      "message": "typo?",
+      "range": {
+        "startLine": 50,
+        "startChar": 58,
+        "endLine": 50,
+        "endChar": 67
+      },
+      "revId": "49fc19be511a5fffb0a58c2af014f1bb5eb0d7ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
