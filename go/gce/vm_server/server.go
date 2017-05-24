@@ -40,7 +40,6 @@ func Server20170518(name, ipAddress string) *gce.Instance {
 			Type:   gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
 		ExternalIpAddress: ipAddress,
-		FormatAndMount:    true,
 		GSDownloads:       map[string]string{},
 		MachineType:       gce.MACHINE_TYPE_HIGHMEM_16,
 		Metadata:          map[string]string{},
