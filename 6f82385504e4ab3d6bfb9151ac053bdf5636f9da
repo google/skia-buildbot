@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "19cff2cb_c06d6028",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-05-24T17:49:22Z",
+      "side": 1,
+      "message": "I think \u0027wg\u0027 is a perfectly good name for a WaitGroup.",
+      "revId": "6f82385504e4ab3d6bfb9151ac053bdf5636f9da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1cba94ec_557c182a",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-05-24T17:49:22Z",
+      "side": 1,
+      "message": "Same here, I think \u0027wg\u0027 is a perfectly good name for a WaitGroup.",
+      "revId": "6f82385504e4ab3d6bfb9151ac053bdf5636f9da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b894cd3_d37df367",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-05-24T17:49:22Z",
+      "side": 1,
+      "message": "Maybe add a check that the list isn\u0027t too small, or of 0 length, before writing it out?",
+      "revId": "6f82385504e4ab3d6bfb9151ac053bdf5636f9da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
