@@ -813,24 +813,15 @@ func (p SummarySlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // parseQuery parses the request parameters,
 func parseQuery(r *http.Request, query *search.Query) error {
-	// Get the limit
-	if l := r.FormValue("limit"); l != "" {
-		limit, err := strconv.Atoi(l)
-		if err != nil {
-			return fmt.Errorf("Unable to parse a limit of: %s", l)
-		}
-		query.Limit = limit
-	}
-
-	// Parse the query
-	var err error
-	query.Query = url.Values{}
-	if q := r.FormValue("query"); q != "" {
-		query.Query, err = url.ParseQuery(q)
-		if err != nil {
-			return fmt.Errorf("Unable to parse query: %s. Error: %s", q, err)
-		}
-	}
+	// // Parse the query
+	// var err error
+	// query.Query = url.Values{}
+	// if q := r.FormValue("query"); q != "" {
+	// 	query.Query, err = url.ParseQuery(q)
+	// 	if err != nil {
+	// 		return fmt.Errorf("Unable to parse query: %s. Error: %s", q, err)
+	// 	}
+	// }
 
 	// Parse out the patchsets.
 	if temp := r.FormValue("patchsets"); temp != "" {
@@ -849,11 +840,22 @@ func parseQuery(r *http.Request, query *search.Query) error {
 	}
 
 	validate := search.Validation{}
+
+	// Parse the query strings.
+	validate.QueryFormValue(r, "query", &query.Query)
+	validate.QueryFormValue(r, "rquery", &query.RQuery)
+
+	// TODO(stephan) Add range limiting to the validation of limit and offset.
+	validate.Int32FormValue(r, "limit", &query.Limit, 50)
+	validate.Int32FormValue(r, "offset", &query.Offset, 0)
+	query.Offset = util.MaxInt32(query.Offset, 0)
+
 	validate.StrFormValue(r, "metric", &query.Metric, diff.GetDiffMetricIDs(), diff.METRIC_COMBINED)
 	validate.StrFormValue(r, "sort", &query.Sort, []string{search.SORT_DESC, search.SORT_ASC}, search.SORT_DESC)
 
 	// Parse and validate the filter values.
-	validate.Int32FormValue(r, "frgbamax", &query.FRGBAMax, -1)
+	validate.Int32FormValue(r, "frgbamin", &query.FRGBAMin, 0)
+	validate.Int32FormValue(r, "frgbamax", &query.FRGBAMax, 255)
 	validate.Float32FormValue(r, "fdiffmax", &query.FDiffMax, -1.0)
 	if err := validate.Errors(); err != nil {
 		return err
@@ -874,7 +876,7 @@ func parseQuery(r *http.Request, query *search.Query) error {
 	query.FGroupTest = r.FormValue("fgrouptest")
 	query.FRef = r.FormValue("fref") == "true"
 
-	glog.Infof("\n\nQUERY: %s\n\n\n", spew.Sprint(query))
+	glog.Infof("\n\nQUERY: %s\n\n\n", spew.Sdump(query))
 
 	return nil
 }
