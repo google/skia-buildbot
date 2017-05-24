@@ -187,8 +187,10 @@ func main() {
 			sklog.Errorf("Expected 1 build but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
 			return
 		}
-		chromiumBuildNoPatch = chromiumBuilds[0]
-		chromiumBuildWithPatch = chromiumBuilds[0]
+		buildName := strings.TrimLeft(chromiumBuilds[0], "notry-")
+		buildName = strings.TrimRight(chromiumBuilds[0], "-withpatch")
+		chromiumBuildNoPatch = buildName
+		chromiumBuildWithPatch = buildName
 
 	} else {
 		// Create the two required chromium builds (with patch and without the patch).
