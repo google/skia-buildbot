@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8ab63d74_08e5c491",
+        "filename": "compute_engine_scripts/pushable-systemd-snapshot/setup-script.sh",
+        "patchSetId": 10
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-24T18:55:45Z",
+      "side": 1,
+      "message": "nit: Maybe worth a comment saying \"--force-confdef and --force-confold prevent dpkg from asking what to do about modified config files. These options specify to install the new config file if the old one hasn\u0027t been modified; otherwise keep the old config file.\"",
+      "range": {
+        "startLine": 13,
+        "startChar": 17,
+        "endLine": 13,
+        "endChar": 90
+      },
+      "revId": "3ce11ceb7f630eec6edcb4bed8b960471992fca5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6ae31166_07bb535f",
+        "filename": "compute_engine_scripts/pushable-systemd-snapshot/setup-script.sh",
+        "patchSetId": 10
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-24T18:55:45Z",
+      "side": 1,
+      "message": "This is probably OK, but we should consider pinning to a named release in sources.list rather than following testing. Otherwise when stable moves to testing and testing moves to unstable, we\u0027ll automatically do a major release upgrade (with higher probability of breaking things than a regular update).",
+      "range": {
+        "startLine": 18,
+        "startChar": 34,
+        "endLine": 18,
+        "endChar": 41
+      },
+      "revId": "3ce11ceb7f630eec6edcb4bed8b960471992fca5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc8f4313_a9a08f01",
+        "filename": "compute_engine_scripts/pushable-systemd-snapshot/setup-script.sh",
+        "patchSetId": 10
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-24T18:55:45Z",
+      "side": 1,
+      "message": "At this point, it may be a good idea to run \u0027dpkg --audit\u0027 and die if it\u0027s unsuccessful.",
+      "revId": "3ce11ceb7f630eec6edcb4bed8b960471992fca5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00175d3f_86ff8592",
+        "filename": "compute_engine_scripts/pushable-systemd-snapshot/setup-script.sh",
+        "patchSetId": 10
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-24T18:55:45Z",
+      "side": 1,
+      "message": "Seems like you need to escape the newline here.",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 149
+      },
+      "revId": "3ce11ceb7f630eec6edcb4bed8b960471992fca5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b61ed7b8_7d8c0893",
+        "filename": "compute_engine_scripts/pushable-systemd-snapshot/setup-script.sh",
+        "patchSetId": 10
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-24T18:55:45Z",
+      "side": 1,
+      "message": "What does this do?",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 132
+      },
+      "revId": "3ce11ceb7f630eec6edcb4bed8b960471992fca5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76ac560c_7c62520b",
+        "filename": "compute_engine_scripts/pushable-systemd-snapshot/setup-script.sh",
+        "patchSetId": 10
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-24T18:55:45Z",
+      "side": 1,
+      "message": "typo: command is unattended-upgrade",
+      "range": {
+        "startLine": 100,
+        "startChar": 18,
+        "endLine": 100,
+        "endChar": 19
+      },
+      "revId": "3ce11ceb7f630eec6edcb4bed8b960471992fca5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
