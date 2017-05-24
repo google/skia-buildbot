@@ -298,3 +298,17 @@ func InstallChromeAPK(chromiumBuildName string) error {
 	}
 	return nil
 }
+
+func PatchesAreEmpty(patches []string) bool {
+	for _, p := range patches {
+		f, err := os.Open(p)
+		if err != nil {
+			continue
+		}
+		fInfo, err := f.Stat()
+		if !os.IsNotExist(err) && fInfo.Size() > 10 {
+			return false
+		}
+	}
+	return true
+}
