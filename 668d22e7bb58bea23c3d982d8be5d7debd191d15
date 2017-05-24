@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3d171c60_03ba8841",
+        "filename": "ct/go/util/chromium_builds.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-24T18:20:06Z",
+      "side": 1,
+      "message": "I think you just want os.Stat(p).",
+      "range": {
+        "startLine": 304,
+        "startChar": 2,
+        "endLine": 308,
+        "endChar": 24
+      },
+      "revId": "668d22e7bb58bea23c3d982d8be5d7debd191d15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3211d1fb_8f86e376",
+        "filename": "ct/go/util/chromium_builds.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-24T18:20:06Z",
+      "side": 1,
+      "message": "I think this could panic if err !\u003d nil.",
+      "range": {
+        "startLine": 309,
+        "startChar": 28,
+        "endLine": 309,
+        "endChar": 40
+      },
+      "revId": "668d22e7bb58bea23c3d982d8be5d7debd191d15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
