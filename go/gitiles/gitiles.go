@@ -28,7 +28,6 @@ type Repo struct {
 // NewRepo creates and returns a new Repo object.
 func NewRepo(url string) *Repo {
 	c := httputils.NewTimeoutClient()
-	httputils.AddMetricsToClient(c)
 	return &Repo{
 		client: c,
 		URL:    url,

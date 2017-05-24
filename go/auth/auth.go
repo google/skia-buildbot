@@ -111,13 +111,13 @@ func NewClientFromConfigAndTransport(local bool, config *oauth2.Config, oauthCac
 		if err != nil {
 			return nil, fmt.Errorf("NewClientFromConfigAndTransport: Unable to create token source: %s", err)
 		}
-		client = &http.Client{
+		client = httputils.AddMetricsToClient(&http.Client{
 			Transport: &oauth2.Transport{
 				Source: tokenSource,
 				Base:   transport,
 			},
 			Timeout: httputils.REQUEST_TIMEOUT,
-		}
+		})
 	} else {
 		// Use compute engine service account.
 		client = GCEServiceAccountClient(transport)
@@ -144,13 +144,13 @@ const (
 // https://cloud.google.com/compute/docs/authentication If transport is nil,
 // the default transport will be used.
 func GCEServiceAccountClient(transport http.RoundTripper) *http.Client {
-	return &http.Client{
+	return httputils.AddMetricsToClient(&http.Client{
 		Transport: &oauth2.Transport{
 			Source: google.ComputeTokenSource(""),
 			Base:   transport,
 		},
 		Timeout: httputils.REQUEST_TIMEOUT,
-	}
+	})
 }
 
 // cachingTokenSource implments the oauth2.TokenSource interface and
@@ -296,11 +296,11 @@ func NewJWTServiceAccountClient(metadataname, filename string, transport http.Ro
 		Timeout:   httputils.REQUEST_TIMEOUT,
 	}
 	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, tokenClient)
-	return &http.Client{
+	return httputils.AddMetricsToClient(&http.Client{
 		Transport: &oauth2.Transport{
 			Source: jwtConfig.TokenSource(ctx),
 			Base:   transport,
 		},
 		Timeout: httputils.REQUEST_TIMEOUT,
-	}, nil
+	}), nil
 }
