@@ -51,7 +51,7 @@ func TestCompareTests(t *testing.T) {
 	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
-	const MAX_DIM = 999999999999
+	const MAX_DIM = 9999999
 	var HEAD = true
 
 	storages, idx, tile, _ := getStoragesIndexTile(t, gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
@@ -103,12 +103,12 @@ func TestCompareTests(t *testing.T) {
 	testCompTest(t, ctQuery.ColumnQuery.Limit, ctQuery.ColumnQuery.Limit, testNameSet, ctQuery, idx, storages, len(testNameSet))
 }
 
-func testCompTest(t *testing.T, maxLimit, maxRowLimit int, testNameSet map[string]util.StringSet, ctQuery *CTQuery, idx *indexer.SearchIndex, storages *storage.Storage, nTests int) {
+func testCompTest(t *testing.T, maxLimit, maxRowLimit int32, testNameSet map[string]util.StringSet, ctQuery *CTQuery, idx *indexer.SearchIndex, storages *storage.Storage, nTests int) {
 	ret, err := CompareTest(ctQuery, storages, idx)
 	assert.NoError(t, err)
 
 	// Make sure the rows are as expected.
-	assert.True(t, len(ret.Grid.Rows) <= maxLimit)
+	assert.True(t, int32(len(ret.Grid.Rows)) <= maxLimit)
 	uniqueTests := util.StringSet{}
 	lastCount := math.MaxInt64
 	for idx, row := range ret.Grid.Rows {
@@ -116,7 +116,7 @@ func testCompTest(t *testing.T, maxLimit, maxRowLimit int, testNameSet map[strin
 		assert.True(t, ok)
 
 		uniqueTests[row.TestName] = true
-		expectedCellsPerRow := util.MinInt(len(digestSet)-1, maxRowLimit)
+		expectedCellsPerRow := util.MinInt(len(digestSet)-1, int(maxRowLimit))
 
 		// Make sure the count is monotonically increasing.
 		assert.True(t, lastCount >= row.N)
@@ -153,7 +153,7 @@ func testCompTest(t *testing.T, maxLimit, maxRowLimit int, testNameSet map[strin
 
 	if len(uniqueTests) == 1 {
 		assert.Equal(t, 1, len(uniqueTests))
-		expectedRowCount := util.MinInt(len(testNameSet[uniqueTests.Keys()[0]]), maxLimit)
+		expectedRowCount := util.MinInt(len(testNameSet[uniqueTests.Keys()[0]]), int(maxLimit))
 		assert.Equal(t, expectedRowCount, len(ret.Grid.Rows))
 	}
 }

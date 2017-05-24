@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"testing"
 
@@ -47,10 +48,27 @@ func TestParseCTQuery(t *testing.T) {
 	assert.True(t, util.In(types.PRIMARY_KEY_FIELD, ctQuery.Match))
 	assert.Equal(t, exp, ctQuery.RowQuery.Query)
 	assert.Equal(t, exp, ctQuery.ColumnQuery.Query)
-	assert.Equal(t, 9, ctQuery.ColumnQuery.Limit)
+	assert.Equal(t, int32(9), ctQuery.ColumnQuery.Limit)
 
 	testQuery.RowQuery.QueryStr = ""
 	jsonBytes, err = json.Marshal(&testQuery)
 	assert.NoError(t, err)
 	assert.Error(t, ParseCTQuery(ioutil.NopCloser(bytes.NewBuffer(jsonBytes)), 10, &ctQuery))
+}
+
+func TestParseQuery(t *testing.T) {
+	testutils.SmallTest(t)
+	q := &Query{}
+	assert.NoError(t, clearParseQuery(q, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&issue=2370153003&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true"))
+	assert.NoError(t, clearParseQuery(q, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true"))
+	assert.Error(t, clearParseQuery(q, "fdiffmax=abc&fref=false&frgbamax=-1&head=true&include=false&limit=50&"))
+}
+
+func clearParseQuery(q *Query, qStr string) error {
+	*q = Query{}
+	r, err := http.NewRequest("GET", "/?"+qStr, nil)
+	if err != nil {
+		return err
+	}
+	return ParseQuery(r, q)
 }
