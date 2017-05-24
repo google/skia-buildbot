@@ -377,7 +377,7 @@ func GetNumPagesPerBot(repeatValue, maxPagesPerBot int) int {
 // TriggerSwarmingTask returns the number of triggered tasks and an error (if any).
 func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs, dimensions map[string]string, repeatValue int) (int, error) {
 	// Instantiate the swarming client.
-	workDir, err := ioutil.TempDir("", "swarming_work_")
+	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
 		return 0, fmt.Errorf("Could not get temp dir: %s", err)
 	}
@@ -724,7 +724,7 @@ func writeRowsToCSV(csvPath string, headers []string, values [][]string) error {
 // worker script which will return a list of remote build directories.
 func TriggerBuildRepoSwarmingTask(taskName, runID, repo, targetPlatform string, hashes, patches []string, singleBuild bool, hardTimeout, ioTimeout time.Duration) ([]string, error) {
 	// Instantiate the swarming client.
-	workDir, err := ioutil.TempDir("", "swarming_work_")
+	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
 		return nil, fmt.Errorf("Could not get temp dir: %s", err)
 	}
