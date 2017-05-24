@@ -2,7 +2,7 @@
 #
 # Creates the compute instance for taking pushable snapshot images.
 #
-set -x
+set -e -x
 
 source vm_config.sh
 
@@ -26,5 +26,6 @@ done
 gcloud compute copy-files ./setup-script.sh default@${INSTANCE_NAME}:setup-script.sh \
   --zone $ZONE
 
-gcloud compute ssh default@${INSTANCE_NAME} --zone $ZONE \
-  --command "sudo bash setup-script.sh"
+echo "Now ssh into ${INSTANCE_NAME} and run setup-script.sh"
+echo ""
+echo "gcloud compute ssh default@${INSTANCE_NAME} --zone $ZONE"

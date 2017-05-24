@@ -3,7 +3,7 @@
 # Script to set up a base image with just collectd, and pulld.
 #
 # This script is used on a temporary GCE instance. Just run it on a fresh
-# Ubuntu 15.04 image and then capture a snapshot of the disk. Any image
+# instance and then capture a snapshot of the disk. Any image
 # started with this snapshot as its image should be immediately setup to
 # install applications via Skia Push.
 #
@@ -11,17 +11,32 @@
 set -x -e
 export TERM=xterm
 sudo apt update
+sudo apt --assume-yes upgrade
 sudo apt --assume-yes install git
-# Running "sudo apt --assume-yes upgrade" may upgrade the package
-# gce-startup-scripts, which would cause systemd to restart gce-startup-scripts,
-# which would kill this script because it is a child process of
-# gce-startup-scripts.
-#
-# IMPORTANT: We are using a public Ubuntu image which has automatic updates
-# enabled by default. Thus we are not running any commands to update packages.
+
+# Move to testing.
+sudo cat <<EOF > /etc/apt/sources.list
+deb http://deb.debian.org/debian/ testing main
+deb-src http://deb.debian.org/debian/ testing main
+deb http://security.debian.org/ testing/updates main
+deb-src http://security.debian.org/ testing/updates main
+EOF
+
+sudo apt update
+sudo apt full-upgrade
+sudo apt autoremove
+sudo apt update
+sudo apt full-upgrade
+sudo apt autoremove
+sudo apt update
+sudo apt full-upgrade
+sudo apt autoremove
+sudo apt update
+sudo apt full-upgrade
+sudo apt autoremove
 
 sudo apt --assume-yes -o Dpkg::Options::="--force-confold" install collectd
-sudo gsutil cp gs://skia-push/debs/pulld/pulld:jcgregorio@jcgregorio.cnc.corp.google.com:2015-11-23T18:46:16Z:0483101f84c284640c4899ade97e4356655bfd00.deb pulld.deb
+sudo gsutil cp  gs://skia-push/debs/pulld/ pulld/pulld:jcgregorio@jcgregorio.cnc.corp.google.com:2017-03-02T16:55:37Z:38251c8ddc7f1033dd92064735aa45aedb48f527.deb pulld.deb
 sudo dpkg -i pulld.deb
 sudo systemctl start pulld.service
 
@@ -75,5 +90,15 @@ sudo install -D --verbose --backup=none --group=root --owner=root --mode=600 col
 sudo /etc/init.d/collectd restart
 
 sudo apt install unattended-upgrades
-sudo dpkg-reconfigure --priority=low unattended-upgrades
+sudo DEBCONF_DB_OVERRIDE="File{/tmp/override.dat readonly:true}" dpkg-reconfigure  --priority=low --frontend=readline  unattended-upgrades
 
+sudo cat <<EOF > /etc/apt/apt.conf.d/50unattended-upgrades
+Unattended-Upgrade::Origins-Pattern {
+      "o=Debian,a=testing";
+};
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+Unattended-Upgrade::Automatic-Reboot "true";
+EOF
+
+# Check the output to confirm that the config is working.
+sudo unattended-upgrades -d
