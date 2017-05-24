@@ -8,7 +8,7 @@ import (
 
 	"go.skia.org/infra/go/testutils"
 
-	"github.com/prometheus/alertmanager/dispatch"
+	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 )
@@ -44,7 +44,7 @@ func TestSunnyDayFilterGoneBots(t *testing.T) {
 	}
 	mc.On("Get", "http://myalerts.skia.org/api/v1/alerts").Return(&mockResponse, nil)
 
-	alerts, err := client.GetAlerts(func(a dispatch.APIAlert) bool {
+	alerts, err := client.GetAlerts(func(a model.Alert) bool {
 		alertName := string(a.Labels["alertname"])
 		return alertName == "BotMissing" || alertName == "BotQuarantined"
 	})
