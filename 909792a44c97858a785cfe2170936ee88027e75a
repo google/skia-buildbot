@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bb4c414e_7371b8a8",
+        "filename": "scripts/run_on_swarming_bots/delete_cached_repos.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-24T14:42:23Z",
+      "side": 1,
+      "message": "Yes, we\u0027re copy-pasting this AGAIN.",
+      "range": {
+        "startLine": 19,
+        "startChar": 4,
+        "endLine": 19,
+        "endChar": 19
+      },
+      "revId": "909792a44c97858a785cfe2170936ee88027e75a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
