@@ -22,6 +22,30 @@
       "revId": "909792a44c97858a785cfe2170936ee88027e75a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41776a6b_aa4b7fb6",
+        "filename": "scripts/run_on_swarming_bots/delete_cached_repos.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-05-24T16:40:49Z",
+      "side": 1,
+      "message": "Awesome",
+      "parentUuid": "bb4c414e_7371b8a8",
+      "range": {
+        "startLine": 19,
+        "startChar": 4,
+        "endLine": 19,
+        "endChar": 19
+      },
+      "revId": "909792a44c97858a785cfe2170936ee88027e75a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
