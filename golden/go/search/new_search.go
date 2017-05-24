@@ -101,9 +101,6 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 	// representation that contains all the traces matching the queries.
 	inter, err := s.filterTile(q, idx)
 
-	// Pre-diff filtering: Filter out everything that does not involve any diffs.
-	s.beforeDiffResultFilter(q, inter, idx)
-
 	// Diff stage: Compare all digests found in the previous stages and find
 	// reference points (positive, negative etc.) for each digest.
 	ret := s.getReferenceDiffs(q, inter, exp, idx)
@@ -119,7 +116,7 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 	// additional data. Note we are returning all digests found, so we can do
 	// bulk triage, but only the digests that are going to be shown are padded
 	// with additional information.
-	displayRet, offset := s.sortAndLimitDigests(q, ret, q.Offset, q.Limit)
+	displayRet, offset := s.sortAndLimitDigests(q, ret, int(q.Offset), int(q.Limit))
 	s.addParamsAndTraces(displayRet, inter, exp, idx)
 
 	// Return all digests with the selected offset within the result set.
@@ -168,9 +165,23 @@ func (s *srIntermediate) Add(traceID string, trace tiling.Trace) {
 // filterTile iterates over the tile and accumulates the traces
 // that match the given query creating the initial search result.
 func (s *SearchAPI) filterTile(q *Query, idx *indexer.SearchIndex) (map[string]map[string]*srIntermediate, error) {
+	var acceptFn AcceptFn = nil
+	if q.FGroupTest == GROUP_TEST_MAX_COUNT {
+		maxDigestsByTest := idx.MaxDigestsByTest(q.IncludeIgnores)
+		acceptFn = func(trace *types.GoldenTrace, digests []string) (bool, interface{}) {
+			testName := trace.Params_[types.PRIMARY_KEY_FIELD]
+			for _, d := range digests {
+				if maxDigestsByTest[testName][d] {
+					return true, nil
+				}
+			}
+			return false, nil
+		}
+	}
+
 	// Add digest/trace to the result.
 	ret := map[string]map[string]*srIntermediate{}
-	addFn := func(test, digest, traceID string, trace tiling.Trace, accptRet interface{}) {
+	addFn := func(test, digest, traceID string, trace *types.GoldenTrace, acceptRet interface{}) {
 		if testMap, ok := ret[test]; !ok {
 			ret[test] = map[string]*srIntermediate{digest: newSrIntermediate(test, digest, traceID, trace)}
 		} else if entry, ok := testMap[digest]; !ok {
@@ -180,31 +191,11 @@ func (s *SearchAPI) filterTile(q *Query, idx *indexer.SearchIndex) (map[string]m
 		}
 	}
 
-	if err := iterTile(q, addFn, nil, s.storages, idx); err != nil {
+	if err := iterTile(q, addFn, acceptFn, s.storages, idx); err != nil {
 		return nil, err
 	}
-	return ret, nil
-}
 
-// beforeDiffResultFilter filters search results based on values that
-// do not depend on comparing the given digest to others.
-func (s *SearchAPI) beforeDiffResultFilter(q *Query, inter map[string]map[string]*srIntermediate, idx *indexer.SearchIndex) {
-	// Group by tests and find the one with the maximum count. This will
-	// return one digest for each test in the input set (in inter).
-	if q.FGroupTest == GROUP_TEST_MAX_COUNT {
-		talliesByTest := idx.TalliesByTest(q.IncludeIgnores)
-		for testName, digestInfo := range inter {
-			maxCount := -1
-			maxDigest := ""
-			for digest := range digestInfo {
-				if talliesByTest[testName][digest] > maxCount {
-					maxCount = talliesByTest[testName][digest]
-					maxDigest = digest
-				}
-			}
-			inter[testName] = map[string]*srIntermediate{maxDigest: inter[testName][maxDigest]}
-		}
-	}
+	return ret, nil
 }
 
 // getReferenceDiffs compares all digests collected in the intermediate representation
@@ -246,16 +237,26 @@ func (s *SearchAPI) getReferenceDiffs(q *Query, inter map[string]map[string]*srI
 // afterDiffResultFilter filters the results based on the diff results in 'digestInfo'.
 func (s *SearchAPI) afterDiffResultFilter(digestInfo []*SRDigest, q *Query) []*SRDigest {
 	newDigestInfo := make([]*SRDigest, 0, len(digestInfo))
+	filterRGBADiff := (q.FRGBAMin > 0) || (q.FRGBAMax < 255)
+	filterDiffMax := (q.FDiffMax >= 0)
 	for _, digest := range digestInfo {
 		ref, ok := digest.RefDiffs[digest.ClosestRef]
 
-		// Filter all digests where MaxRGBA is above a certain threshold.
-		if (q.FRGBAMax >= 0) && (!ok || (int32(util.MaxInt(ref.MaxRGBADiffs...)) > q.FRGBAMax)) {
-			continue
+		// Filter all digests where MaxRGBA is within the given band.
+		if filterRGBADiff {
+			// If there is no diff metric we exclude the digest.
+			if !ok {
+				continue
+			}
+
+			rgbaMaxDiff := int32(util.MaxInt(ref.MaxRGBADiffs...))
+			if (rgbaMaxDiff < q.FRGBAMin) || (rgbaMaxDiff > q.FRGBAMax) {
+				continue
+			}
 		}
 
 		// Filter all digests where the diff is below the given threshold.
-		if (q.FDiffMax >= 0) && (!ok || (ref.Diffs[q.Metric] > q.FDiffMax)) {
+		if filterDiffMax && (!ok || (ref.Diffs[q.Metric] > q.FDiffMax)) {
 			continue
 		}
 
@@ -381,6 +382,10 @@ func newSRDigestSlice(metric string, slice []*SRDigest) *srDigestSlice {
 	// Sort by increasing by diff metric. Not having a diff metric puts the item at the bottom
 	// of the list.
 	lessFn := func(i, j *SRDigest) bool {
+		if (i.ClosestRef == "") && (j.ClosestRef == "") {
+			return i.Digest < j.Digest
+		}
+
 		if i.ClosestRef == "" {
 			return false
 		}

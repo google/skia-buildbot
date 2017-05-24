@@ -70,6 +70,7 @@ var gold = gold || {};
     unt: true,
     blame: '',
     limit: 50,
+    offset: 0,
     issue: '',
     patchsets: '',
 
