@@ -17,3 +17,11 @@ Once the snapshot is taken you can close down the instance by running:
     $ ./vm_delete_instance.sh
 
 See /push/DESIGN.md for more details.
+
+Files that need modification:
+  /etc/apt/sources.list
+  50unattended-upgrades
+
+sudo apt full-upgrade
+
+
