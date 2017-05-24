@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"net"
 	"net/http"
 	"path/filepath"
 	"runtime"
@@ -90,20 +89,10 @@ func loadTemplates() {
 	))
 }
 
-// FastDialTimeout is a dialer that sets a timeout.
-func FastDialTimeout(network, addr string) (net.Conn, error) {
-	return net.DialTimeout(network, addr, 10*time.Second)
-}
-
 // NewTimeoutClient creates a new http.Client with both a dial timeout and a
 // request timeout.
 func NewFastTimeoutClient() *http.Client {
-	return &http.Client{
-		Transport: &http.Transport{
-			Dial: FastDialTimeout,
-		},
-		Timeout: 2 * time.Second,
-	}
+	return httputils.NewConfiguredTimeoutClient(10*time.Second, 2*time.Second)
 }
 
 func Init() {

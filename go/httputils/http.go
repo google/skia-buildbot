@@ -52,26 +52,42 @@ func FastDialTimeout(network, addr string) (net.Conn, error) {
 	return net.DialTimeout(network, addr, FAST_DIAL_TIMEOUT)
 }
 
+// ConfiguredDialTimeout is a dialer that sets a given timeout.
+func ConfiguredDialTimeout(timeout time.Duration) func(string, string) (net.Conn, error) {
+	return func(network, addr string) (net.Conn, error) {
+		return net.DialTimeout(network, addr, timeout)
+	}
+}
+
 // NewTimeoutClient creates a new http.Client with both a dial timeout and a
 // request timeout.
 func NewTimeoutClient() *http.Client {
-	return &http.Client{
-		Transport: &http.Transport{
-			Dial: DialTimeout,
-		},
-		Timeout: REQUEST_TIMEOUT,
-	}
+	return NewConfiguredTimeoutClient(DIAL_TIMEOUT, REQUEST_TIMEOUT)
 }
 
 // NewFastTimeoutClient creates a new http.Client with both a dial timeout and a
 // request timeout.
 func NewFastTimeoutClient() *http.Client {
-	return &http.Client{
+	return NewConfiguredTimeoutClient(FAST_DIAL_TIMEOUT, FAST_REQUEST_TIMEOUT)
+}
+
+// NewConfiguredTimeoutClient creates a new http.Client with both a dial timeout
+// and a request timeout.
+func NewConfiguredTimeoutClient(dialTimeout, reqTimeout time.Duration) *http.Client {
+	return AddMetricsToClient(&http.Client{
 		Transport: &http.Transport{
-			Dial: FastDialTimeout,
+			Dial: ConfiguredDialTimeout(dialTimeout),
 		},
-		Timeout: FAST_REQUEST_TIMEOUT,
-	}
+		Timeout: reqTimeout,
+	})
+}
+
+// NewBackOffClient creates a new http.Client with default exponential backoff
+// configuration.
+func NewBackOffClient() *http.Client {
+	return AddMetricsToClient(&http.Client{
+		Transport: NewBackOffTransport(),
+	})
 }
 
 type BackOffConfig struct {
@@ -390,6 +406,7 @@ func NewMetricsTransport(rt http.RoundTripper) http.RoundTripper {
 }
 
 // AddMetricsToClient adds metrics for each request to the http.Client.
-func AddMetricsToClient(c *http.Client) {
+func AddMetricsToClient(c *http.Client) *http.Client {
 	c.Transport = NewMetricsTransport(c.Transport)
+	return c
 }

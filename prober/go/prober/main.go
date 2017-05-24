@@ -9,7 +9,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -116,11 +115,6 @@ func In(n int, list []int) bool {
 		}
 	}
 	return false
-}
-
-// dialTimeout is a dialer that sets a timeout.
-func dialTimeout(network, addr string) (net.Conn, error) {
-	return net.DialTimeout(network, addr, DIAL_TIMEOUT)
 }
 
 // nonZeroContenLength tests whether the Content-Length value is non-zero.
@@ -323,12 +317,7 @@ func main() {
 	}
 
 	// Create a client that uses our dialer with a timeout.
-	c := &http.Client{
-		Transport: &http.Transport{
-			Dial: dialTimeout,
-		},
-		Timeout: REQUEST_TIMEOUT,
-	}
+	c := httputils.NewConfiguredTimeoutClient(DIAL_TIMEOUT, REQUEST_TIMEOUT)
 	probeOneRound(cfg, c)
 	for _ = range time.Tick(*runEvery) {
 		probeOneRound(cfg, c)

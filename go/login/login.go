@@ -492,9 +492,9 @@ func GetHttpClient(r *http.Request) *http.Client {
 	s, err := getSession(r)
 	if err != nil {
 		sklog.Errorf("Failed to get session state; falling back to default http client.")
-		return &http.Client{}
+		return httputils.NewTimeoutClient()
 	}
-	return oauthConfig.Client(oauth2.NoContext, s.Token)
+	return httputils.AddMetricsToClient(oauthConfig.Client(oauth2.NoContext, s.Token))
 }
 
 // ForceAuth is middleware that enforces authentication
