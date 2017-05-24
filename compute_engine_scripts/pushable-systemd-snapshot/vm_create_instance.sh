@@ -2,7 +2,7 @@
 #
 # Creates the compute instance for taking pushable snapshot images.
 #
-set -x
+set -e -x
 
 source vm_config.sh
 

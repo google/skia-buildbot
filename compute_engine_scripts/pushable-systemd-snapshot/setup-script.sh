@@ -3,7 +3,7 @@
 # Script to set up a base image with just collectd, and pulld.
 #
 # This script is used on a temporary GCE instance. Just run it on a fresh
-# Ubuntu 15.04 image and then capture a snapshot of the disk. Any image
+# instance and then capture a snapshot of the disk. Any image
 # started with this snapshot as its image should be immediately setup to
 # install applications via Skia Push.
 #
@@ -74,6 +74,10 @@ EOF
 sudo install -D --verbose --backup=none --group=root --owner=root --mode=600 collectd.conf /etc/collectd/collectd.conf
 sudo /etc/init.d/collectd restart
 
-sudo apt install unattended-upgrades
-sudo dpkg-reconfigure --priority=low unattended-upgrades
 
+
+sudo apt install unattended-upgrades
+sudo DEBCONF_DB_OVERRIDE="File{/tmp/override.dat readonly:true}" dpkg-reconfigure  --priority=low --frontend=readline  unattended-upgrades
+
+# First edit sources to move us to Testing only.
+# Then edit /etc/apt/apt.conf.d/50unattended-upgrades to be for Testing.
