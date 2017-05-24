@@ -2,7 +2,7 @@
 #
 # Creates the compute instance for taking pushable snapshot images.
 #
-set -x
+set -e -x
 
 source vm_config.sh
 
@@ -26,5 +26,8 @@ done
 gcloud compute copy-files ./setup-script.sh default@${INSTANCE_NAME}:setup-script.sh \
   --zone $ZONE
 
-gcloud compute ssh default@${INSTANCE_NAME} --zone $ZONE \
-  --command "sudo bash setup-script.sh"
+# Debian is moving to whiptail by default which doesn't play well running the
+# script remotely, so we SSH in directly and then run.
+echo "Now ssh into ${INSTANCE_NAME} and run 'sudo ./setup-script.sh'"
+echo ""
+echo "gcloud compute ssh default@${INSTANCE_NAME} --zone $ZONE"

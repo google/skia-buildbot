@@ -3,32 +3,43 @@
 # Script to set up a base image with just collectd, and pulld.
 #
 # This script is used on a temporary GCE instance. Just run it on a fresh
-# Ubuntu 15.04 image and then capture a snapshot of the disk. Any image
+# instance and then capture a snapshot of the disk. Any image
 # started with this snapshot as its image should be immediately setup to
 # install applications via Skia Push.
 #
 # For more details see ../../push/DESIGN.md.
 set -x -e
 export TERM=xterm
-sudo apt update
-sudo apt --assume-yes install git
-# Running "sudo apt --assume-yes upgrade" may upgrade the package
-# gce-startup-scripts, which would cause systemd to restart gce-startup-scripts,
-# which would kill this script because it is a child process of
-# gce-startup-scripts.
-#
-# IMPORTANT: We are using a public Ubuntu image which has automatic updates
-# enabled by default. Thus we are not running any commands to update packages.
+apt --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" update
+apt --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
 
-sudo apt --assume-yes -o Dpkg::Options::="--force-confold" install collectd
-sudo gsutil cp gs://skia-push/debs/pulld/pulld:jcgregorio@jcgregorio.cnc.corp.google.com:2015-11-23T18:46:16Z:0483101f84c284640c4899ade97e4356655bfd00.deb pulld.deb
-sudo dpkg -i pulld.deb
-sudo systemctl start pulld.service
+# Move to testing.
+cat <<EOF > /etc/apt/sources.list
+deb http://deb.debian.org/debian/ testing main contrib non-free
+deb-src http://deb.debian.org/debian/ testing main contrib non-free
+deb http://security.debian.org/ testing/updates main contrib non-free
+deb-src http://security.debian.org/ testing/updates main contrib non-free
+EOF
 
-sudo apt --assume-yes install --fix-broken
+# Yes, we need to run it this many times.
+for i in {1..4}
+do
+  apt --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  update
+  apt --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  full-upgrade
+  apt --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  autoremove
+done
+
+# Now install the apps that we guarantee to appear.
+apt --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  install git collectd unattended-upgrades
+gsutil cp
+gs://skia-push/debs/pulld/pulld:jcgregorio@jcgregorio.cnc.corp.google.com:2017-03-02T16:55:37Z:38251c8ddc7f1033dd92064735aa45aedb48f527.deb pulld.deb
+dpkg -i pulld.deb
+systemctl start pulld.service
+
+apt --assume-yes install --fix-broken
 
 # Setup collectd.
-sudo cat <<EOF > collectd.conf
+cat <<EOF > collectd.conf
 FQDNLookup false
 Interval 60
 
@@ -71,9 +82,20 @@ LoadPlugin write_graphite
         </Carbon>
 </Plugin>
 EOF
-sudo install -D --verbose --backup=none --group=root --owner=root --mode=600 collectd.conf /etc/collectd/collectd.conf
-sudo /etc/init.d/collectd restart
+install -D --verbose --backup=none --group=root --owner=root --mode=600 collectd.conf /etc/collectd/collectd.conf
+/etc/init.d/collectd restart
 
-sudo apt install unattended-upgrades
-sudo dpkg-reconfigure --priority=low unattended-upgrades
+
+DEBCONF_DB_OVERRIDE="File{/tmp/override.dat readonly:true}" dpkg-reconfigure --priority=low --frontend=readline  unattended-upgrades
+
+cat <<EOF > /etc/apt/apt.conf.d/50unattended-upgrades
+Unattended-Upgrade::Origins-Pattern {
+      "o=Debian,a=testing";
+};
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+Unattended-Upgrade::Automatic-Reboot "true";
+EOF
+
+# Check the output to confirm that the config is working.
+unattended-upgrades -d
 
