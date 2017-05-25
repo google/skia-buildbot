@@ -172,7 +172,7 @@
         </paper-button>
       </div>
       <div hidden$="[[_noMore(_allData)]]">
-        <paper-toggle-button checked="{{_triageAll}}">Triage all [[_allData.digests.length]].</paper-toggle-button>
+        <paper-toggle-button checked="{{_triageAll}}">Triage all [[_getBulkTriageCount(_allData.digests, _bulkStatus)]].</paper-toggle-button>
       </div>
       <div class="buttons">
         <paper-button raise dialog-dismiss>Cancel</paper-button>
@@ -270,18 +270,42 @@
         }
       },
 
+      // _statusClosest returns label based on whether the digest is closest to
+      // a positive or negative image.
+      _statusClosest:function(digest) {
+         if (digest.closestRef === gold.REF_NEG) {
+           return gold.NEGATIVE;
+        }
+        return gold.POSITIVE;
+      },
+
+      // _getBulkTriageCount returns the number of digests that will be triaged
+      // in a bulk triage operation.
+      _getBulkTriageCount: function(digests, bulkStatus) {
+        if (bulkStatus !== '=') {
+          return digests.length;
+        }
+
+        // If we compare to the closest we only show the number of digests
+        // that actually have a reference image.
+        var count = 0;
+        for(var i=0; i < digests.length; i++) {
+          if (digests[i].closestRef !== '') {
+            count++;
+          }
+        }
+        return count;
+      },
+
       _doBulkTriage: function(ev) {
         var targetStatus = this.$.triageControls.value;
         var digests = (this._triageAll) ? this._allData.digests : this.data.digests;
         var triageList = [];
         if (targetStatus === '=') {
           for(var i=0; i < digests.length; i++) {
-            var element= this.$$('#' + this._entryId(digests[i]));
-            if (element) {
-              var status = element.statusClosest();
-              if (status) {
-                triageList.push([digests[i].test, digests[i].digest, status]);
-              }
+            if (digests[i].closestRef !== '') {
+              var status = this._statusClosest(digests[i]);
+              triageList.push([digests[i].test, digests[i].digest, status]);
             }
           }
         } else {
