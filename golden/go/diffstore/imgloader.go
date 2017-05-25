@@ -85,15 +85,23 @@ func newImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []s
 // The synchronous flag determines whether the call is blocking or not.
 // It workes in sync with Get, any image that is scheduled be retrieved by get
 // will not be fetched again.
-func (il *ImageLoader) Warm(priority int64, digests []string) {
+func (il *ImageLoader) Warm(priority int64, digests []string, synchronous bool) {
+	var localWg sync.WaitGroup
 	il.wg.Add(len(digests))
+	localWg.Add(len(digests))
 	for _, digest := range digests {
 		go func(digest string) {
 			defer il.wg.Done()
+			defer localWg.Done()
 			if err := il.imageCache.Warm(priority, digest); err != nil {
 				sklog.Errorf("Unable to retrive digest %s. Got error: %s", digest, err)
 			}
 		}(digest)
+	}
+
+	// Wait for the all digests to be loaded.
+	if synchronous {
+		localWg.Wait()
 	}
 }
 
