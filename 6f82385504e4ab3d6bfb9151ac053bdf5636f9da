@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "ed621e68_3e608c52",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-25T13:50:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "19cff2cb_c06d6028",
+      "revId": "6f82385504e4ab3d6bfb9151ac053bdf5636f9da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1cba94ec_557c182a",
         "filename": "golden/go/diffstore/imgloader.go",
         "patchSetId": 4
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "6fa23395_10ac9d9f",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-25T13:50:23Z",
+      "side": 1,
+      "message": "Done. I did keep a different name than the one for the ImageLoader waitgroup to avoid confusion.",
+      "parentUuid": "1cba94ec_557c182a",
+      "revId": "6f82385504e4ab3d6bfb9151ac053bdf5636f9da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2b894cd3_d37df367",
         "filename": "golden/go/indexer/indexer.go",
         "patchSetId": 4
@@ -47,6 +83,24 @@
       "writtenOn": "2017-05-24T17:49:22Z",
       "side": 1,
       "message": "Maybe add a check that the list isn\u0027t too small, or of 0 length, before writing it out?",
+      "revId": "6f82385504e4ab3d6bfb9151ac053bdf5636f9da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a70e30ec_28b92ca2",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-25T13:50:23Z",
+      "side": 1,
+      "message": "I added a metric instead. I\u0027ll follow up with a CL that adds metrics for the digest failures (unavailable digests) and the total number of digests, so we can add alerts for these.",
+      "parentUuid": "2b894cd3_d37df367",
       "revId": "6f82385504e4ab3d6bfb9151ac053bdf5636f9da",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
