@@ -17,7 +17,11 @@ import (
 
 const TEST_N_DIGESTS = 20
 
-func TestDiffStore(t *testing.T) {
+func testDiffStore(t *testing.T, diffStore diff.DiffStore) {
+
+}
+
+func TestMemDiffStore(t *testing.T) {
 	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
