@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa63a3ef_7083c810",
+        "filename": "android_ingest/go/continuous/continuous.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-25T15:05:34Z",
+      "side": 1,
+      "message": "FWIW, variable-free for loops weren\u0027t allowed prior to go 1.4 https://golang.org/doc/go1.4#forrange but now are fine.",
+      "revId": "76c837069f8028722641efa92bc03aee3781f10c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
