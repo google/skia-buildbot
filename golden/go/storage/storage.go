@@ -1,9 +1,16 @@
 package storage
 
 import (
+	"bufio"
+	"context"
 	"fmt"
+	"net/http"
 	"sync"
 	"time"
+
+	"google.golang.org/api/option"
+
+	gstorage "cloud.google.com/go/storage"
 
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
@@ -11,6 +18,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -32,6 +40,7 @@ type Storage struct {
 	TrybotResults     *trybot.TrybotResults
 	RietveldAPI       *rietveld.Rietveld
 	GerritAPI         *gerrit.Gerrit
+	GStorageClient    *GStorageClient
 
 	// NCommits is the number of commits we should consider. If NCommits is
 	// 0 or smaller all commits in the last tile will be considered.
@@ -195,4 +204,79 @@ func (s *Storage) GetTileFromTimeRange(begin, end time.Time) (*tiling.Tile, erro
 		return nil, fmt.Errorf("Failed retrieving commitIDs in range %s to %s. Got error: %s", begin, end, err)
 	}
 	return s.BranchTileBuilder.CachedTileFromCommits(tracedb.ShortFromLong(commitIDs))
+}
+
+// GStorageClient provides read/write to Google storage for one-off
+// use cases. Currently only for writing the list of known digests.
+type GStorageClient struct {
+	storageClient *gstorage.Client
+	bucketName    string
+	hashFilePath  string
+}
+
+// NewGStorageClient creates a new instance of GStorage client. bucket
+// contains the name of the bucket where to store the know digests file and
+// hashFilePath provices the path from the bucket root.
+func NewGStorageClient(client *http.Client, bucketName, hashFilePath string) (*GStorageClient, error) {
+	storageClient, err := gstorage.NewClient(context.Background(), option.WithHTTPClient(client))
+	if err != nil {
+		return nil, err
+	}
+	return &GStorageClient{
+		storageClient: storageClient,
+		bucketName:    bucketName,
+		hashFilePath:  hashFilePath,
+	}, nil
+}
+
+// WriteKnownDigests writes the given list of digests to GS as newline
+// separated strings.
+func (g *GStorageClient) WriteKownDigests(digests []string) error {
+	ctx := context.Background()
+	target := g.storageClient.Bucket(g.bucketName).Object(g.hashFilePath)
+	writer := target.NewWriter(ctx)
+	writer.ObjectAttrs.ContentType = "text/plain"
+	writer.ObjectAttrs.ACL = []gstorage.ACLRule{{Entity: gstorage.AllUsers, Role: gstorage.RoleReader}}
+	defer util.Close(writer)
+
+	for _, digest := range digests {
+		if _, err := writer.Write([]byte(digest + "\n")); err != nil {
+			return err
+		}
+	}
+	sklog.Infof("Known hashes written to %s/%s", g.bucketName, g.hashFilePath)
+	return nil
+}
+
+// LoadKnownDigests loads the digests that have previously been written
+// to GS via WriteKnownDigests.
+func (g *GStorageClient) LoadKownDigests() ([]string, error) {
+	ctx := context.Background()
+	target := g.storageClient.Bucket(g.bucketName).Object(g.hashFilePath)
+
+	// If the item doesn't exist this will return gstorage.ErrObjectNotExist
+	_, err := target.Attrs(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	reader, err := target.NewReader(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer util.Close(reader)
+
+	scanner := bufio.NewScanner(reader)
+	ret := []string{}
+	for scanner.Scan() {
+		ret = append(ret, scanner.Text())
+	}
+	return ret, nil
+}
+
+// RemoveKownDigests removes the file with know digests. Primarily used
+// for testing.
+func (g *GStorageClient) RemoveKownDigests() error {
+	target := g.storageClient.Bucket(g.bucketName).Object(g.hashFilePath)
+	return target.Delete(context.Background())
 }

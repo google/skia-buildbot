@@ -219,6 +219,10 @@ server {
     # Disable content sniffing
     add_header X-Content-Type-Options nosniff;
 
+    location /_/hashes {
+      proxy_pass https://storage.googleapis.com/skia-infra-gm/hash_files/gold-prod-hashes.txt;
+    }
+
     location / {
         proxy_pass http://skia-gold-prod:8001;
         proxy_set_header Host $host;
@@ -244,6 +248,10 @@ server {
     add_header X-XSS-Protection "1; mode=block";
     # Disable content sniffing
     add_header X-Content-Type-Options nosniff;
+
+    location /_/hashes {
+      proxy_path https://storage.googleapis.com/skia-infra-gm/hash_files/gold-pdfium-hashes.txt
+    }
 
     location / {
         proxy_pass http://skia-gold-pdfium:8001;

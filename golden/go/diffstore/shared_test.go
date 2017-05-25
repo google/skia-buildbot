@@ -4,10 +4,8 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"cloud.google.com/go/storage"
 	assert "github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/mocks"
@@ -40,12 +38,5 @@ func getSetupAndTile(t assert.TestingT, baseDir string) (*http.Client, *tiling.T
 
 	tile := mocks.NewMockTileBuilderFromJson(t, testDataPath).GetTile()
 
-	return getClient(t), tile
-}
-
-func getClient(t assert.TestingT) *http.Client {
-	// Get the service account client from meta data or a local config file.
-	client, err := auth.NewJWTServiceAccountClient("", auth.DEFAULT_JWT_FILENAME, nil, storage.ScopeFullControl)
-	assert.NoError(t, err)
-	return client
+	return mocks.GetHTTPClient(t), tile
 }

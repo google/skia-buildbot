@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/serialize"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -24,7 +25,7 @@ func BenchmarkMemDiffStore(b *testing.B) {
 	sample := loadSample(b)
 
 	baseDir := TEST_DATA_BASE_DIR + "-bench-diffstore"
-	client := getClient(b)
+	client := mocks.GetHTTPClient(b)
 	defer testutils.RemoveAll(b, baseDir)
 
 	memIgnoreStore := ignore.NewMemIgnoreStore()
@@ -58,7 +59,7 @@ func BenchmarkMemDiffStore(b *testing.B) {
 
 		digests := digestSet.Keys()
 		allDigests = append(allDigests, digests)
-		diffStore.WarmDigests(diff.PRIORITY_NOW, digests)
+		diffStore.WarmDigests(diff.PRIORITY_NOW, digests, false)
 
 		wg.Add(1)
 		go func(digests []string) {

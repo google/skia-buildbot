@@ -138,8 +138,9 @@ type DiffStore interface {
 	//        <irlPrefix>/diffs/<digest1>-<digests2>.png
 	ImageHandler(urlPrefix string) (http.Handler, error)
 
-	// WarmDigest will fetche the given digests.
-	WarmDigests(priority int64, digests []string)
+	// WarmDigest will fetche the given digests. If sync is true the call will
+	// block until all digests have been fetched or failed to fetch.
+	WarmDigests(priority int64, digests []string, sync bool)
 
 	// WarmDiffs will calculate the difference between every digests in
 	// leftDigests and every in digests in rightDigests.

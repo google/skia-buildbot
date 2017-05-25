@@ -27,7 +27,10 @@ ExecStart=/usr/local/bin/skiacorrectness-pdfium  \
     --resources_dir=/usr/local/share/skiacorrectness/frontend \
     --show_bot_progress=false \
     --app_title="Pdfium Gold" \
-    --prom_port=:20001
+    --prom_port=:20001 \
+    --hash_file_bucket=skia-infra-gm \
+    --hash_file_path=hash_files/gold-pdfium-hashes.txt
+
 
 Restart=always
 User=default

@@ -38,7 +38,7 @@ func TestImageLoader(t *testing.T) {
 
 	// Prefetch the images synchronously.
 	digests := digestSet.Keys()[:100]
-	imageLoader.Warm(1, digests)
+	imageLoader.Warm(1, digests, false)
 	imageLoader.sync()
 
 	// Make sure they are on disk.

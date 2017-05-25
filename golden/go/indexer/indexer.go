@@ -10,10 +10,12 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/golden/go/blame"
+	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/pdag"
@@ -28,6 +30,9 @@ const (
 	// Event emitted when the indexer updates the search index.
 	// Callback argument: *SearchIndex
 	EV_INDEX_UPDATED = "indexer:index-updated"
+
+	// Metric to track the number of digests that do not have be uploaded by bots.
+	METRIC_KNOWN_HASHES = "known-digests"
 )
 
 // SearchIndex contains everything that is necessary to search
@@ -47,6 +52,7 @@ type SearchIndex struct {
 	// This is set by the indexing pipeline when we just want to update
 	// individual tests that have changed.
 	testNames []string
+	storages  *storage.Storage
 }
 
 // newSearchIndex creates a new instance of SearchIndex. It is not intended to
@@ -62,6 +68,7 @@ func newSearchIndex(storages *storage.Storage, tilePair *types.TilePair) *Search
 		paramsetSummary:      paramsets.New(),
 		blamer:               blame.New(storages),
 		warmer:               warmer.New(storages),
+		storages:             storages,
 	}
 }
 
@@ -163,7 +170,8 @@ func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
 	tallyIgnoresNode := root.Child(calcTalliesWithIgnores)
 
 	// parameters depend on tallies.
-	pdag.NewNode(calcParamsets, tallyNode, tallyIgnoresNode)
+	paramsNode := pdag.NewNode(calcParamsets, tallyNode, tallyIgnoresNode)
+	pdag.NewNode(writeKnownHashesList, tallyIgnoresNode)
 
 	// summaries depend on tallies and blamer.
 	summaryNode := pdag.NewNode(calcSummaries, tallyNode, blamerNode)
@@ -172,8 +180,9 @@ func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
 	// The warmer depends on summaries.
 	pdag.NewNode(runWarmer, summaryNode, summaryIgnoresNode)
 
-	// Set the result on the Indexer instance.
-	pdag.NewNode(ret.setIndex, summaryNode, summaryIgnoresNode)
+	// Set the result on the Indexer instance, once summaries, parameters and writing
+	// the hash files is done.
+	pdag.NewNode(ret.setIndex, summaryNode, summaryIgnoresNode, paramsNode)
 
 	ret.pipeline = root
 	ret.blamerNode = blamerNode
@@ -328,6 +337,48 @@ func calcBlame(state interface{}) error {
 	idx := state.(*SearchIndex)
 	err := idx.blamer.Calculate(idx.tilePair.Tile)
 	return err
+}
+
+func writeKnownHashesList(state interface{}) error {
+	idx := state.(*SearchIndex)
+
+	// Only write the hash file if a storage client is available.
+	if idx.storages.GStorageClient == nil {
+		return nil
+	}
+
+	// Trigger writing the hashes list.
+	go func() {
+		byTest := idx.TalliesByTest(true)
+		unavailableDigests := idx.storages.DiffStore.UnavailableDigests()
+		// Collect all hashes in the tile that haven't been marked as unavailable yet.
+		hashes := util.StringSet{}
+		for _, test := range byTest {
+			for k, _ := range test {
+				if _, ok := unavailableDigests[k]; !ok {
+					hashes[k] = true
+				}
+			}
+		}
+
+		// Make sure they all fetched already. This will block until all digests
+		// are on disk or have failed to load repeatedly.
+		idx.storages.DiffStore.WarmDigests(diff.PRIORITY_NOW, hashes.Keys(), true)
+		unavailableDigests = idx.storages.DiffStore.UnavailableDigests()
+		for h := range hashes {
+			if _, ok := unavailableDigests[h]; ok {
+				delete(hashes, h)
+			}
+		}
+
+		// Keep track of the number of known hashes since this directly affects how
+		// many images the bots have to upload.
+		metrics2.GetInt64Metric(METRIC_KNOWN_HASHES).Update(int64(len(hashes)))
+		if err := idx.storages.GStorageClient.WriteKownDigests(hashes.Keys()); err != nil {
+			sklog.Errorf("Error writing known digests list: %s", err)
+		}
+	}()
+	return nil
 }
 
 // runWamer is the pipeline function to run the wamer. It runs it

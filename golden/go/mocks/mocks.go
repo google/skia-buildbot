@@ -9,7 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/storage"
+
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/sklog"
@@ -50,7 +53,7 @@ func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[st
 func (m MockDiffStore) UnavailableDigests() map[string]*diff.DigestFailure                    { return nil }
 func (m MockDiffStore) PurgeDigests(digests []string, purgeGCS bool) error                    { return nil }
 func (m MockDiffStore) ImageHandler(urlPrefix string) (http.Handler, error)                   { return nil, nil }
-func (m MockDiffStore) WarmDigests(priority int64, digests []string)                          {}
+func (m MockDiffStore) WarmDigests(priority int64, digests []string, sync bool)               {}
 func (m MockDiffStore) WarmDiffs(priority int64, leftDigests []string, rightDigests []string) {}
 
 func NewMockDiffStore() diff.DiffStore {
@@ -178,4 +181,13 @@ func NewMockTileBuilderFromJson(t assert.TestingT, fname string) tracedb.MasterT
 		t:    t,
 		tile: tile,
 	}
+}
+
+// GetHTTPClient returns a http client either from locally loading a config file
+// or by querying meta data in the cloud.
+func GetHTTPClient(t assert.TestingT) *http.Client {
+	// Get the service account client from meta data or a local config file.
+	client, err := auth.NewJWTServiceAccountClient("", auth.DEFAULT_JWT_FILENAME, nil, storage.ScopeFullControl)
+	assert.NoError(t, err)
+	return client
 }
