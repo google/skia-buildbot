@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6bd79c7a_825edb06",
+        "filename": "skolo/go/powercycle/powercycle/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-25T20:58:46Z",
+      "side": 1,
+      "message": "How about not making the main program into the library, but instead to the same level as the library and calling it \n\u0027powercycle-cli\u0027 so it would live in infra/skolo/go/powercycle-cli/",
+      "revId": "d245962cc7bd361a9331e15d812ed782d2430626",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5934caae_d1240db1",
+        "filename": "skolo/go/powercycle/powercycle/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-25T20:58:46Z",
+      "side": 1,
+      "message": "Let\u0027s get rid of the two options and just keep \u0027-l\u0027 and then add a flag \u0027-c\u0027 that is passed as the value for connect to DeviceGroupFromYamlFile(...) \nThe default value should be false. In other words we should not connect unless explicitly requested. This should become \nmore of a debug tool than something we do.",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 76
+      },
+      "revId": "d245962cc7bd361a9331e15d812ed782d2430626",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
