@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0dd14b93_79da3ec5",
+        "filename": "android_ingest/go/buildapi/buildapi.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-25T14:54:06Z",
+      "side": 0,
+      "message": "Do you mind regenerating this CL next week when Eric is back? My feeling is that his rule of thumb is \"always use multiple assignment in for-range loops if it compiles,\" which IMO is a good way to avoid the common mistake of \"for foo :\u003d range sliceOfFoo...\".",
+      "range": {
+        "startLine": 80,
+        "startChar": 1,
+        "endLine": 80,
+        "endChar": 28
+      },
+      "revId": "49ff8457ded92b291af004f8f9d3a7660315b475",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13dbd41c_d4064b0f",
+        "filename": "android_ingest/go/recent/recent.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-25T14:54:06Z",
+      "side": 0,
+      "message": "The last time I tried something like this, some tool complained, maybe \u0027go vet\u0027 or errcheck? Has this been fixed?\n\n(I might be wrong, but I suspect that \u0027git cl upload\u0027 runs more linters than our tryjobs.)",
+      "range": {
+        "startLine": 41,
+        "startChar": 30,
+        "endLine": 41,
+        "endChar": 38
+      },
+      "revId": "49ff8457ded92b291af004f8f9d3a7660315b475",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
