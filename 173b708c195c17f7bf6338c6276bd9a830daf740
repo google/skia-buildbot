@@ -46,6 +46,23 @@
       "revId": "173b708c195c17f7bf6338c6276bd9a830daf740",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97fdf38b_e71b5bdf",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-25T22:11:37Z",
+      "side": 1,
+      "message": "I\u0027m using this with a new instance and got an error at this point because .gsutil doesn\u0027t exist. I logged in to the instance and neither default nor chrome-bot have this dir. The directory /root/.gsutil does exist, though.",
+      "revId": "173b708c195c17f7bf6338c6276bd9a830daf740",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
