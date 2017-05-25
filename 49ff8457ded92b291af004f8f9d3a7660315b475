@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "2943f381_6d934a94",
+        "filename": "android_ingest/go/buildapi/buildapi.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-25T15:10:39Z",
+      "side": 0,
+      "message": "+1 for what Kevin said. I like  \n     for something :\u003d range whatever { ...\nas well. IMO having the \u0027_\u0027 when it\u0027s not really needed is not idiomatic Go.",
+      "parentUuid": "cb170e97_85b3ac46",
+      "range": {
+        "startLine": 80,
+        "startChar": 1,
+        "endLine": 80,
+        "endChar": 28
+      },
+      "revId": "49ff8457ded92b291af004f8f9d3a7660315b475",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "13dbd41c_d4064b0f",
         "filename": "android_ingest/go/recent/recent.go",
         "patchSetId": 1
