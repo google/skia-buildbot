@@ -3,9 +3,8 @@ package search
 import (
 	"math"
 
-	"github.com/skia-dev/glog"
-
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -23,8 +22,8 @@ import (
 // should be added here.
 
 const (
-	// REF_CLOSEST_POSTIVE identifies the diff to the closest positive digest.
-	REF_CLOSEST_POSTIVE = "pos"
+	// REF_CLOSEST_POSITIVE identifies the diff to the closest positive digest.
+	REF_CLOSEST_POSITIVE = "pos"
 
 	// REF_CLOSEST_NEGATIVE identifies the diff to the closest negative digest.
 	REF_CLOSEST_NEGATIVE = "neg"
@@ -50,26 +49,26 @@ func NewRefDiffer(exp *expstorage.Expectations, diffStore diff.DiffStore, idx *i
 // metric. 'match' is the list of parameters that need to match between
 // the digests that are compared, i.e. this allows to restrict comparison
 // of gamma correct images to other digests that are also gamma correct.
-func (r *RefDiffer) GetRefDiffs(metric string, match []string, test, digest string, params paramtools.ParamSet, traces map[string]*types.GoldenTrace, includeIgnores bool) (string, map[string]*SRDiffDigest) {
+func (r *RefDiffer) GetRefDiffs(q *Query, test, digest string, params paramtools.ParamSet, traces map[string]*types.GoldenTrace) (string, map[string]*SRDiffDigest) {
 	unavailableDigests := r.diffStore.UnavailableDigests()
 	if _, ok := unavailableDigests[digest]; ok {
 		return "", nil
 	}
 
 	paramsByDigest := r.idx.GetParamsetSummaryByTest(false)[test]
-	posDigests := r.getDigestsWithLabel(test, match, params, paramsByDigest, unavailableDigests, types.POSITIVE)
-	negDigests := r.getDigestsWithLabel(test, match, params, paramsByDigest, unavailableDigests, types.NEGATIVE)
+	posDigests := r.getDigestsWithLabel(test, q.Match, params, paramsByDigest, unavailableDigests, types.POSITIVE)
+	negDigests := r.getDigestsWithLabel(test, q.Match, params, paramsByDigest, unavailableDigests, types.NEGATIVE)
 
 	ret := make(map[string]*SRDiffDigest, 3)
-	ret[REF_CLOSEST_POSTIVE] = r.getClosestDiff(metric, digest, posDigests)
-	ret[REF_CLOSEST_NEGATIVE] = r.getClosestDiff(metric, digest, negDigests)
+	ret[REF_CLOSEST_POSITIVE] = r.getClosestDiff(q.Metric, digest, posDigests)
+	ret[REF_CLOSEST_NEGATIVE] = r.getClosestDiff(q.Metric, digest, negDigests)
 
 	// TODO(stephana): Add a diff to the previous digest in the trace.
 
 	// Find the minimum according to the diff metric.
 	minKey := ""
 	minDiff := float32(math.Inf(1))
-	tally := r.idx.TalliesByTest(includeIgnores)[test]
+	tally := r.idx.TalliesByTest(q.IncludeIgnores)[test]
 	for key, val := range ret {
 		if val != nil {
 			// Fill in the missing fields.
@@ -78,9 +77,9 @@ func (r *RefDiffer) GetRefDiffs(metric string, match []string, test, digest stri
 			val.N = tally[val.Digest]
 
 			// Find the minimum.
-			if val.DiffMetrics.Diffs[metric] < minDiff {
+			if val.DiffMetrics.Diffs[q.Metric] < minDiff {
 				minKey = key
-				minDiff = val.DiffMetrics.Diffs[metric]
+				minDiff = val.DiffMetrics.Diffs[q.Metric]
 			}
 		}
 	}
@@ -105,7 +104,7 @@ func (r *RefDiffer) getDigestsWithLabel(test string, match []string, params para
 func (r *RefDiffer) getClosestDiff(metric, digest string, compDigests []string) *SRDiffDigest {
 	diffs, err := r.diffStore.Get(diff.PRIORITY_NOW, digest, compDigests)
 	if err != nil {
-		glog.Errorf("Error diffing %s %v: %s", digest, compDigests, err)
+		sklog.Errorf("Error diffing %s %v: %s", digest, compDigests, err)
 		return nil
 	}
 
