@@ -58,7 +58,7 @@ func BenchmarkMemDiffStore(b *testing.B) {
 
 		digests := digestSet.Keys()
 		allDigests = append(allDigests, digests)
-		diffStore.WarmDigests(diff.PRIORITY_NOW, digests)
+		diffStore.WarmDigests(diff.PRIORITY_NOW, digests, false)
 
 		wg.Add(1)
 		go func(digests []string) {
