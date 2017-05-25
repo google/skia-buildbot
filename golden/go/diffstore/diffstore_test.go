@@ -49,7 +49,7 @@ func TestDiffStore(t *testing.T) {
 
 	// Warm the digests and make sure they are in the cache.
 	digests := testDigests[0][:TEST_N_DIGESTS]
-	diffStore.WarmDigests(diff.PRIORITY_NOW, digests)
+	diffStore.WarmDigests(diff.PRIORITY_NOW, digests, false)
 	memDiffStore.imgLoader.sync()
 	for _, d := range digests {
 		assert.True(t, memDiffStore.imgLoader.IsOnDisk(d), fmt.Sprintf("Coult nof find '%s'", d))

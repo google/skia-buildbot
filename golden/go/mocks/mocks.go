@@ -50,7 +50,7 @@ func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[st
 func (m MockDiffStore) UnavailableDigests() map[string]*diff.DigestFailure                    { return nil }
 func (m MockDiffStore) PurgeDigests(digests []string, purgeGCS bool) error                    { return nil }
 func (m MockDiffStore) ImageHandler(urlPrefix string) (http.Handler, error)                   { return nil, nil }
-func (m MockDiffStore) WarmDigests(priority int64, digests []string)                          {}
+func (m MockDiffStore) WarmDigests(priority int64, digests []string, sync bool)               {}
 func (m MockDiffStore) WarmDiffs(priority int64, leftDigests []string, rightDigests []string) {}
 
 func NewMockDiffStore() diff.DiffStore {
