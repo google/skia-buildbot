@@ -119,7 +119,7 @@ func (m *MemIgnoreStore) Update(id int, updated *IgnoreRule) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	for i, _ := range m.rules {
+	for i := range m.rules {
 		if updated.ID == id {
 			m.rules[i] = updated
 			m.inc()

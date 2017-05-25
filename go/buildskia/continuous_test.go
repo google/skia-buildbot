@@ -33,7 +33,7 @@ func allAvailable(t *testing.T, testData []string) {
 	now := time.Now()
 	mockRepo := &mockVcs{
 		commits: map[string]*vcsinfo.LongCommit{
-			"aaa": &vcsinfo.LongCommit{
+			"aaa": {
 				Timestamp: now.Add(time.Second),
 			},
 		},
@@ -93,25 +93,25 @@ func TestDecimate(t *testing.T) {
 	now := time.Now()
 	mock := &mockVcs{
 		commits: map[string]*vcsinfo.LongCommit{
-			"aaa": &vcsinfo.LongCommit{
+			"aaa": {
 				Timestamp: now.Add(-62 * 24 * time.Hour),
 			},
-			"bbb": &vcsinfo.LongCommit{
+			"bbb": {
 				Timestamp: now.Add(-31 * 24 * time.Hour),
 			},
-			"ccc": &vcsinfo.LongCommit{
+			"ccc": {
 				Timestamp: now.Add(-5 * time.Second),
 			},
-			"ddd": &vcsinfo.LongCommit{
+			"ddd": {
 				Timestamp: now.Add(-4 * time.Second),
 			},
-			"eee": &vcsinfo.LongCommit{
+			"eee": {
 				Timestamp: now.Add(-3 * time.Second),
 			},
-			"fff": &vcsinfo.LongCommit{
+			"fff": {
 				Timestamp: now.Add(-2 * time.Second),
 			},
-			"ggg": &vcsinfo.LongCommit{
+			"ggg": {
 				Timestamp: now.Add(time.Second),
 			},
 		},
@@ -160,7 +160,7 @@ func TestCurrent(t *testing.T) {
 	now := time.Now()
 	mockRepo := &mockVcs{
 		commits: map[string]*vcsinfo.LongCommit{
-			"aaa": &vcsinfo.LongCommit{
+			"aaa": {
 				ShortCommit: &vcsinfo.ShortCommit{
 					Hash: "aaa",
 				},

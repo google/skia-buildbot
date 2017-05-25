@@ -49,7 +49,7 @@ type DataFrame struct {
 // BuildParamSet rebuilds d.ParamSet from the keys of d.TraceSet.
 func (d *DataFrame) BuildParamSet() {
 	paramSet := paramtools.ParamSet{}
-	for key, _ := range d.TraceSet {
+	for key := range d.TraceSet {
 		paramSet.AddParamsFromKey(key)
 	}
 	for _, values := range paramSet {

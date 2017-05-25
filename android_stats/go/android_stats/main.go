@@ -116,7 +116,7 @@ func main() {
 	if err := generateStats(); err != nil {
 		sklog.Fatal(err)
 	}
-	for _ = range time.Tick(pollFreq) {
+	for range time.Tick(pollFreq) {
 		if err := generateStats(); err != nil {
 			sklog.Error(err)
 		}

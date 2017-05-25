@@ -84,7 +84,7 @@ func NewBuildCache(db buildbot.DB) (*BuildCache, error) {
 		return nil, err
 	}
 	go func() {
-		for _ = range time.Tick(time.Minute) {
+		for range time.Tick(time.Minute) {
 			if err := bc.update(); err != nil {
 				sklog.Error(err)
 			}
@@ -132,7 +132,7 @@ func (c *BuildCache) updateBuilderComments() error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	builderList := make([]string, 0, len(c.builders))
-	for b, _ := range c.builders {
+	for b := range c.builders {
 		builderList = append(builderList, b)
 	}
 	builderComments, err := c.db.GetBuildersComments(builderList)

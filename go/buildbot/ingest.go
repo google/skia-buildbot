@@ -25,36 +25,36 @@ var (
 	// something wrong with the build which prevents it from being ingested
 	// properly.
 	BUILD_BLACKLIST = map[string]map[int]bool{
-		"Build-Mac10.9-Clang-x86_64-Debug": map[int]bool{
+		"Build-Mac10.9-Clang-x86_64-Debug": {
 			5222: true, // This build doesn't exist on the server.
 		},
-		"Build-Mac10.9-Clang-x86_64-Release": map[int]bool{
+		"Build-Mac10.9-Clang-x86_64-Release": {
 			5207: true, // This build doesn't exist on the server.
 		},
-		"Build-Mac10.9-Clang-x86_64-Release-CMake": map[int]bool{
+		"Build-Mac10.9-Clang-x86_64-Release-CMake": {
 			891: true, // This build doesn't exist on the server.
 		},
 		// Something went haywire with this, don't know what. -dogben
-		"Build-Ubuntu-GCC-x86-Release": map[int]bool{
+		"Build-Ubuntu-GCC-x86-Release": {
 			2586: true,
 		},
-		"Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release-BuildBucket": map[int]bool{
+		"Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release-BuildBucket": {
 			1: true, // Cannot be ingested because its repo is "???"
 		},
-		"Perf-Ubuntu-GCC-ShuttleA-GPU-GTX660-x86_64-Release-ANGLE": map[int]bool{
+		"Perf-Ubuntu-GCC-ShuttleA-GPU-GTX660-x86_64-Release-ANGLE": {
 			350: true, // This bot was removed before this build finished ingesting.
 		},
-		"Perf-Ubuntu-GCC-ShuttleA-GPU-GTX660-x86_64-Release-VisualBench": map[int]bool{
+		"Perf-Ubuntu-GCC-ShuttleA-GPU-GTX660-x86_64-Release-VisualBench": {
 			0: true, // Wrong repo.
 			2: true, // Wrong repo.
 			3: true, // Wrong repo.
 		},
 		// This bot was removed before these build finished ingesting.
-		"Perf-Win8-MSVC-ShuttleB-CPU-AVX2-x86_64-Release-Swarming": map[int]bool{
+		"Perf-Win8-MSVC-ShuttleB-CPU-AVX2-x86_64-Release-Swarming": {
 			12510: true,
 			12511: true,
 		},
-		"Linux Tests": map[int]bool{
+		"Linux Tests": {
 			// For some reason, these builds don't exist on the server.
 			2872: true,
 			2920: true,
@@ -63,20 +63,20 @@ var (
 			3193: true,
 			3197: true,
 		},
-		"Mac10.9 Tests": map[int]bool{
+		"Mac10.9 Tests": {
 			1727: true, // This build doesn't exist on the server.
 		},
 		// This bot was removed before these build finished ingesting.
-		"Test-Win8-MSVC-ShuttleB-CPU-AVX2-x86_64-Release-Swarming": map[int]bool{
+		"Test-Win8-MSVC-ShuttleB-CPU-AVX2-x86_64-Release-Swarming": {
 			12588: true,
 			12589: true,
 			12590: true,
 		},
-		"Win7 Tests (1)": map[int]bool{
+		"Win7 Tests (1)": {
 			1797: true, // This build doesn't exist on the server?
 		},
 		// This bot was removed before the build finished ingesting.
-		"Test-Ubuntu-GCC-ShuttleA-GPU-GTX550Ti-x86_64-Release-SwarmingValgrind": map[int]bool{
+		"Test-Ubuntu-GCC-ShuttleA-GPU-GTX550Ti-x86_64-Release-SwarmingValgrind": {
 			107: true,
 		},
 	}
@@ -229,7 +229,7 @@ func FindCommitsForBuild(db DB, b *Build, repos repograph.Map) ([]string, int, [
 		return nil, -1, nil, err
 	}
 	commits := make([]string, 0, len(commitMap))
-	for c, _ := range commitMap {
+	for c := range commitMap {
 		commits = append(commits, c)
 	}
 	return commits, stealFrom, stolen, nil
@@ -603,7 +603,7 @@ func IngestNewBuildsLoop(db DB, repos repograph.Map) error {
 		lv[m] = metrics2.NewLiveness("buildbot-ingest", map[string]string{"master": m})
 	}
 	go func() {
-		for _ = range time.Tick(10 * time.Second) {
+		for range time.Tick(10 * time.Second) {
 			failedUpdate := false
 			if err := repos.Update(); err != nil {
 				sklog.Errorf("Failed to update repo: %s", err)

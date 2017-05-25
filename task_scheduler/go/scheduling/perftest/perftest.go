@@ -175,21 +175,21 @@ func main() {
 
 	// Add tasks to the repo.
 	var tasks = map[string]*specs.TaskSpec{
-		"Build-Ubuntu-GCC-Arm7-Release-Android": &specs.TaskSpec{
+		"Build-Ubuntu-GCC-Arm7-Release-Android": {
 			CipdPackages: []*specs.CipdPackage{},
 			Dependencies: []string{},
 			Dimensions:   []string{"pool:Skia", "os:Ubuntu"},
 			Isolate:      "compile_skia.isolate",
 			Priority:     0.9,
 		},
-		"Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": &specs.TaskSpec{
+		"Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
 			CipdPackages: []*specs.CipdPackage{},
 			Dependencies: []string{"Build-Ubuntu-GCC-Arm7-Release-Android"},
 			Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
 			Isolate:      "test_skia.isolate",
 			Priority:     0.9,
 		},
-		"Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": &specs.TaskSpec{
+		"Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
 			CipdPackages: []*specs.CipdPackage{},
 			Dependencies: []string{"Build-Ubuntu-GCC-Arm7-Release-Android"},
 			Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
@@ -235,7 +235,7 @@ func main() {
 
 	// Create a bunch of bots.
 	bots := make([]*swarming_api.SwarmingRpcsBotInfo, 100)
-	for idx, _ := range bots {
+	for idx := range bots {
 		dims := map[string]string{
 			"pool": "Skia",
 		}

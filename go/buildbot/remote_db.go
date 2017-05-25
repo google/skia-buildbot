@@ -51,7 +51,7 @@ func (d *remoteDB) BuildExists(master, builder string, number int) (bool, error)
 // See documentation for DB interface.
 func (d *remoteDB) GetBuildsForCommits(commits []string, ignore map[string]bool) (map[string][]*Build, error) {
 	ign := make([]string, 0, len(ignore))
-	for i, _ := range ignore {
+	for i := range ignore {
 		ign = append(ign, i)
 	}
 	req := &rpc.GetBuildsForCommitsRequest{

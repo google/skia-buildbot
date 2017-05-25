@@ -658,7 +658,7 @@ func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 			Name:   d.Digest,
 			Status: d.Status,
 		})
-		remaining := digests[i:len(digests)]
+		remaining := digests[i:]
 		diffs, err := storages.DiffStore.Get(diff.PRIORITY_NOW, d.Digest, remaining)
 		if err != nil {
 			sklog.Errorf("Failed to calculate differences: %s", err)
@@ -1047,7 +1047,7 @@ func textAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 	byTest := idx.TalliesByTest(true)
 	hashes := map[string]bool{}
 	for _, test := range byTest {
-		for k, _ := range test {
+		for k := range test {
 			if _, ok := unavailableDigests[k]; !ok {
 				hashes[k] = true
 			}
@@ -1055,7 +1055,7 @@ func textAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/plain")
-	for k, _ := range hashes {
+	for k := range hashes {
 		if _, err := w.Write([]byte(k)); err != nil {
 			sklog.Errorf("Failed to write or encode result: %s", err)
 			return

@@ -156,7 +156,7 @@ func buildPolymerFolder(cwd string) error {
 func polylintTestsForDir(cwd string, fileNames ...string) []*test {
 	if err := buildPolymerFolder(cwd); err != nil {
 		return []*test{
-			&test{
+			{
 				Name: filepath.Join(cwd, "make"),
 				Cmd:  filepath.Join(cwd, "make"),
 				run: func() (string, error) {

@@ -177,9 +177,9 @@ func (s *StatusWatcher) calcStatus(tile *tiling.Tile) error {
 			minCommitId[corpus] = tileLen
 			okByCorpus[corpus] = true
 			byCorpus[corpus] = map[types.Label]map[string]bool{
-				types.POSITIVE:  map[string]bool{},
-				types.NEGATIVE:  map[string]bool{},
-				types.UNTRIAGED: map[string]bool{},
+				types.POSITIVE:  {},
+				types.NEGATIVE:  {},
+				types.UNTRIAGED: {},
 			}
 
 			if _, ok := s.corpusGauges[corpus]; !ok {

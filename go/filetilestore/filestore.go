@@ -332,7 +332,7 @@ func NewFileTileStore(dir, datasetName string, checkEvery time.Duration) tiling.
 
 		// Refresh the lastTile entries periodically.
 		go func() {
-			for _ = range time.Tick(checkEvery) {
+			for range time.Tick(checkEvery) {
 				store.refreshLastTiles()
 			}
 		}()

@@ -78,7 +78,7 @@ func NewAllInfo(client *http.Client, store *storage.Service, serverNames []strin
 		return nil, fmt.Errorf("Failed to create packages.AllInfo: %s", err)
 	}
 	go func() {
-		for _ = range time.Tick(1 * time.Minute) {
+		for range time.Tick(1 * time.Minute) {
 			if err := a.step(); err != nil {
 				sklog.Errorf("Failed to update AllInfo: %s", err)
 			}
@@ -515,7 +515,7 @@ func LoadPackageConfig(filename string) (PackageConfig, error) {
 
 func (p *PackageConfig) AllServerNames() []string {
 	serverNames := make([]string, 0, len(p.Servers))
-	for k, _ := range p.Servers {
+	for k := range p.Servers {
 		serverNames = append(serverNames, k)
 	}
 	return serverNames

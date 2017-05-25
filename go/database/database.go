@@ -169,7 +169,7 @@ func (c *DatabaseConfig) NewVersionedDB() (*VersionedDB, error) {
 	// Ping the database occasionally to keep the connection fresh.
 	go func() {
 		c := time.Tick(1 * time.Minute)
-		for _ = range c {
+		for range c {
 			if err := result.DB.Ping(); err != nil {
 				sklog.Warningln("Database failed to respond:", err)
 			}

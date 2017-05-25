@@ -771,7 +771,7 @@ func (agg *Aggregator) RestartAnalysis() error {
 // pipeline, waiting in increments of config.Aggregator.StatusPeriod until it is done.
 func (agg *Aggregator) WaitForEmptyQueues() {
 	emptyCount := 0
-	for _ = range time.Tick(config.Aggregator.StatusPeriod) {
+	for range time.Tick(config.Aggregator.StatusPeriod) {
 		a := len(agg.forAnalysis)
 		u := len(agg.forUpload)
 		b := len(agg.forBugReporting)

@@ -133,8 +133,8 @@ func buildFromCommit(build *androidbuildinternal.Build, commit *vcsinfo.ShortCom
 		Commits:     nil,
 		GotRevision: commit.Hash,
 		Properties: [][]interface{}{
-			[]interface{}{"androidinternal_buildid", build.BuildId, "tradefed"},
-			[]interface{}{"buildbotURL", "https://internal.skia.org/", "tradefed"},
+			{"androidinternal_buildid", build.BuildId, "tradefed"},
+			{"buildbotURL", "https://internal.skia.org/", "tradefed"},
 		},
 		PropertiesStr: "",
 		Results:       buildbot.BUILDBOT_FAILURE,
@@ -610,7 +610,7 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 		Commits:     nil,
 		GotRevision: commitHash,
 		Properties: [][]interface{}{
-			[]interface{}{"buildbotURL", "https://internal.skia.org/", "datahopper_internal"},
+			{"buildbotURL", "https://internal.skia.org/", "datahopper_internal"},
 		},
 		PropertiesStr: "",
 		Results:       buildbotResults,
@@ -670,7 +670,7 @@ func updateWebhookMetrics() error {
 	if !ok {
 		return fmt.Errorf("Unknown repo: %s", common.REPO_SKIA)
 	}
-	for codename, _ := range ingestBuildWebhookCodenames {
+	for codename := range ingestBuildWebhookCodenames {
 		var untestedCommitInfo *repograph.Commit = nil
 		if err := repo.Get("master").Recurse(func(c *repograph.Commit) (bool, error) {
 			buildNumber, err := buildbotDB.GetBuildNumberForCommit(FAKE_MASTER, codename, c.Hash)
@@ -704,7 +704,7 @@ func startWebhookMetrics() {
 	// A metric to ensure the other metrics are being updated.
 	metricLiveness := metrics2.NewLiveness("ingest-build-webhook-oldest-untested-commit-age-metric", nil)
 	go func() {
-		for _ = range time.Tick(common.SAMPLE_PERIOD) {
+		for range time.Tick(common.SAMPLE_PERIOD) {
 			if err := updateWebhookMetrics(); err != nil {
 				sklog.Errorf("Failed to update metrics: %s", err)
 				continue
@@ -772,7 +772,7 @@ func main() {
 	}
 
 	// Initialize and start metrics.
-	for codename, _ := range ingestBuildWebhookCodenames {
+	for codename := range ingestBuildWebhookCodenames {
 		ingestBuildWebhookLiveness[codename] = metrics2.NewLiveness("ingest-build-webhook.", map[string]string{"codename": codename})
 	}
 	startWebhookMetrics()
@@ -795,7 +795,7 @@ func main() {
 		}
 		sklog.Infof("Ready to start loop.")
 		step(targets, buildService)
-		for _ = range time.Tick(*period) {
+		for range time.Tick(*period) {
 			step(targets, buildService)
 		}
 	}()

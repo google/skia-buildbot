@@ -32,7 +32,7 @@ func (m mockVCS) From(start time.Time) []string {
 	idx := sort.Search(len(m), func(i int) bool { return m[i].Timestamp.Unix() >= start.Unix() })
 
 	ret := make([]string, 0, len(m)-idx)
-	for _, commit := range m[idx:len(m)] {
+	for _, commit := range m[idx:] {
 		ret = append(ret, commit.Hash)
 	}
 	return ret

@@ -69,13 +69,13 @@ type props struct {
 
 var (
 	mediaProps = map[Media]props{
-		CPU:      props{filename: "cpu.png", contentType: "image/png"},
-		GPU:      props{filename: "gpu.png", contentType: "image/png"},
-		PDF:      props{filename: "pdf.pdf", contentType: "application/pdf"},
-		SKP:      props{filename: "skp.skp", contentType: "application/octet-stream"},
-		TXT:      props{filename: "txt.txt", contentType: "text/plain"},
-		ANIM_CPU: props{filename: "cpu.webm", contentType: "video/webm"},
-		ANIM_GPU: props{filename: "gpu.webm", contentType: "video/webm"},
+		CPU:      {filename: "cpu.png", contentType: "image/png"},
+		GPU:      {filename: "gpu.png", contentType: "image/png"},
+		PDF:      {filename: "pdf.pdf", contentType: "application/pdf"},
+		SKP:      {filename: "skp.skp", contentType: "application/octet-stream"},
+		TXT:      {filename: "txt.txt", contentType: "text/plain"},
+		ANIM_CPU: {filename: "cpu.webm", contentType: "video/webm"},
+		ANIM_GPU: {filename: "gpu.webm", contentType: "video/webm"},
 	}
 
 	// sourceFileName parses a souce image filename as stored in Google Storage.

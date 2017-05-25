@@ -1271,8 +1271,8 @@ func TestCommentDB(t *testing.T, db CommentDB) {
 	assert.True(t, IsAlreadyExists(db.PutCommitComment(cc1different)))
 
 	expected := []*RepoComments{
-		&RepoComments{Repo: "r0"},
-		&RepoComments{
+		{Repo: "r0"},
+		{
 			Repo: "r1",
 			TaskComments: map[string]map[string][]*TaskComment{
 				"c1": {
@@ -1292,7 +1292,7 @@ func TestCommentDB(t *testing.T, db CommentDB) {
 				"c2": {cc4},
 			},
 		},
-		&RepoComments{
+		{
 			Repo: "r2",
 			TaskComments: map[string]map[string][]*TaskComment{
 				"c3": {

@@ -108,7 +108,7 @@ func NewAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cq
 	}
 
 	go func() {
-		for _ = range time.Tick(tickFrequency) {
+		for range time.Tick(tickFrequency) {
 			util.LogErr(arb.doAutoRoll())
 		}
 	}()

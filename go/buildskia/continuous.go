@@ -125,7 +125,7 @@ func (b *ContinuousBuilder) singleBuildLatest() {
 func (b *ContinuousBuilder) Start() {
 	go func() {
 		b.singleBuildLatest()
-		for _ = range time.Tick(b.timeBetweenBuilds) {
+		for range time.Tick(b.timeBetweenBuilds) {
 			b.singleBuildLatest()
 		}
 	}()
@@ -300,7 +300,7 @@ func (b *ContinuousBuilder) writeNewGoodBuilds(hashes []string) error {
 func (b *ContinuousBuilder) startDecimation() {
 	decimateLiveness := metrics2.NewLiveness("decimate")
 	decimateFailures := metrics2.GetCounter("decimate-failed", nil)
-	for _ = range time.Tick(DECIMATION_PERIOD) {
+	for range time.Tick(DECIMATION_PERIOD) {
 		hashes, err := b.AvailableBuilds()
 		if err != nil {
 			sklog.Errorf("Failed to get available builds while decimating: %s", err)

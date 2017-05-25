@@ -98,7 +98,7 @@ func TestUpdateJobs(t *testing.T) {
 		MockJobSuccess(mock, j, now, nil, false)
 	}
 	MockHeartbeats(t, mock, now, []*db.Job{j1, j2}, map[string]*heartbeatResp{
-		j1.Id: &heartbeatResp{
+		j1.Id: {
 			BuildId: fmt.Sprintf("%d", j1.BuildbucketBuildId),
 			Error: &errMsg{
 				Message: "fail",

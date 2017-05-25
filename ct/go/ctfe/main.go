@@ -118,7 +118,7 @@ func startCtfeMetrics() {
 	// 0=no tasks pending; 1=started; 2=not started
 	oldestPendingTaskStatusGauge := metrics2.GetInt64Metric("oldest-pending-task-status")
 	go func() {
-		for _ = range time.Tick(common.SAMPLE_PERIOD) {
+		for range time.Tick(common.SAMPLE_PERIOD) {
 			pendingTaskCount, err := pending_tasks.GetPendingTaskCount()
 			if err != nil {
 				sklog.Error(err)
@@ -156,7 +156,7 @@ func startCtfeMetrics() {
 //       newly created task will now replace it.
 func repeatedTasksScheduler() {
 
-	for _ = range time.Tick(*tasksSchedulerWaitTime) {
+	for range time.Tick(*tasksSchedulerWaitTime) {
 		// Loop over all tasks to find tasks which need to be scheduled.
 		for _, prototype := range task_types.Prototypes() {
 

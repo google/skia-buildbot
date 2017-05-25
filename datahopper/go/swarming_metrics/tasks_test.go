@@ -176,7 +176,7 @@ func TestMetrics(t *testing.T) {
 			"stream":    STREAM_SWARMING_TASKS,
 			"task-name": "my-task",
 		}
-		for k, _ := range DIMENSION_WHITELIST {
+		for k := range DIMENSION_WHITELIST {
 			if _, ok := tags[k]; !ok {
 				tags[k] = ""
 			}

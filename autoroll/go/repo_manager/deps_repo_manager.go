@@ -102,7 +102,7 @@ func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranc
 		return nil, err
 	}
 	go func() {
-		for _ = range time.Tick(frequency) {
+		for range time.Tick(frequency) {
 			util.LogErr(dr.update())
 		}
 	}()

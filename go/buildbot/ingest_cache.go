@@ -32,7 +32,7 @@ func newIngestCache(db *localDB) *ingestCache {
 		mtx:               sync.RWMutex{},
 	}
 	go func() {
-		for _ = range time.Tick(time.Second) {
+		for range time.Tick(time.Second) {
 			if err := c.insertBuilds(); err != nil {
 				sklog.Errorf("Failed to insert builds: %s", err)
 			}

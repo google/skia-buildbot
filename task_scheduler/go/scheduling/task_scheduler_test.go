@@ -50,14 +50,14 @@ var (
 	}
 
 	androidBotDims = map[string][]string{
-		"pool":        []string{"Skia"},
-		"os":          []string{"Android"},
-		"device_type": []string{"grouper"},
+		"pool":        {"Skia"},
+		"os":          {"Android"},
+		"device_type": {"grouper"},
 	}
 
 	linuxBotDims = map[string][]string{
-		"os":   []string{"Ubuntu"},
-		"pool": []string{"Skia"},
+		"os":   {"Ubuntu"},
+		"pool": {"Skia"},
 	}
 )
 
@@ -290,7 +290,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	j1 := &db.Job{
 		Created:      now,
 		Name:         "j1",
-		Dependencies: map[string][]string{specs_testutils.TestTask: []string{specs_testutils.BuildTask}, specs_testutils.BuildTask: []string{}},
+		Dependencies: map[string][]string{specs_testutils.TestTask: {specs_testutils.BuildTask}, specs_testutils.BuildTask: {}},
 		Priority:     0.5,
 		RepoState:    rs1.Copy(),
 	}
@@ -321,14 +321,14 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	j2 := &db.Job{
 		Created:      now,
 		Name:         "j2",
-		Dependencies: map[string][]string{specs_testutils.TestTask: []string{specs_testutils.BuildTask}, specs_testutils.BuildTask: []string{}},
+		Dependencies: map[string][]string{specs_testutils.TestTask: {specs_testutils.BuildTask}, specs_testutils.BuildTask: {}},
 		Priority:     0.6,
 		RepoState:    rs2,
 	}
 	j3 := &db.Job{
 		Created:      now,
 		Name:         "j3",
-		Dependencies: map[string][]string{specs_testutils.PerfTask: []string{specs_testutils.BuildTask}, specs_testutils.BuildTask: []string{}},
+		Dependencies: map[string][]string{specs_testutils.PerfTask: {specs_testutils.BuildTask}, specs_testutils.BuildTask: {}},
 		Priority:     0.6,
 		RepoState:    rs2,
 	}
@@ -401,27 +401,27 @@ func TestFilterTaskCandidates(t *testing.T) {
 		Name:      specs_testutils.PerfTask,
 	}
 	candidates := map[db.TaskKey]*taskCandidate{
-		k1: &taskCandidate{
+		k1: {
 			TaskKey:  k1,
 			TaskSpec: &specs.TaskSpec{},
 		},
-		k2: &taskCandidate{
+		k2: {
 			TaskKey: k2,
 			TaskSpec: &specs.TaskSpec{
 				Dependencies: []string{specs_testutils.BuildTask},
 			},
 		},
-		k3: &taskCandidate{
+		k3: {
 			TaskKey:  k3,
 			TaskSpec: &specs.TaskSpec{},
 		},
-		k4: &taskCandidate{
+		k4: {
 			TaskKey: k4,
 			TaskSpec: &specs.TaskSpec{
 				Dependencies: []string{specs_testutils.BuildTask},
 			},
 		},
-		k5: &taskCandidate{
+		k5: {
 			TaskKey: k5,
 			TaskSpec: &specs.TaskSpec{
 				Dependencies: []string{specs_testutils.BuildTask},
@@ -687,9 +687,9 @@ func TestProcessTaskCandidates(t *testing.T) {
 	}
 
 	candidates := map[string]map[string][]*taskCandidate{
-		gb.RepoUrl(): map[string][]*taskCandidate{
-			specs_testutils.BuildTask: []*taskCandidate{
-				&taskCandidate{
+		gb.RepoUrl(): {
+			specs_testutils.BuildTask: {
+				{
 					JobCreated: ts,
 					TaskKey: db.TaskKey{
 						RepoState: rs1,
@@ -697,7 +697,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 					},
 					TaskSpec: &specs.TaskSpec{},
 				},
-				&taskCandidate{
+				{
 					JobCreated: ts,
 					TaskKey: db.TaskKey{
 						RepoState: rs2,
@@ -705,7 +705,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 					},
 					TaskSpec: &specs.TaskSpec{},
 				},
-				&taskCandidate{
+				{
 					JobCreated: ts,
 					TaskKey: db.TaskKey{
 						RepoState:   rs2,
@@ -715,8 +715,8 @@ func TestProcessTaskCandidates(t *testing.T) {
 					TaskSpec: &specs.TaskSpec{},
 				},
 			},
-			specs_testutils.TestTask: []*taskCandidate{
-				&taskCandidate{
+			specs_testutils.TestTask: {
+				{
 					JobCreated: ts,
 					TaskKey: db.TaskKey{
 						RepoState: rs1,
@@ -724,7 +724,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 					},
 					TaskSpec: &specs.TaskSpec{},
 				},
-				&taskCandidate{
+				{
 					JobCreated: ts,
 					TaskKey: db.TaskKey{
 						RepoState: rs2,
@@ -733,8 +733,8 @@ func TestProcessTaskCandidates(t *testing.T) {
 					TaskSpec: &specs.TaskSpec{},
 				},
 			},
-			specs_testutils.PerfTask: []*taskCandidate{
-				&taskCandidate{
+			specs_testutils.PerfTask: {
+				{
 					JobCreated: ts,
 					TaskKey: db.TaskKey{
 						RepoState: rs2,
@@ -742,7 +742,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 					},
 					TaskSpec: &specs.TaskSpec{},
 				},
-				&taskCandidate{
+				{
 					JobCreated: ts,
 					TaskKey: db.TaskKey{
 						RepoState: db.RepoState{
@@ -985,7 +985,7 @@ func TestComputeBlamelist(t *testing.T) {
 		}
 
 		newTasks, err := tcc.GetAddedTaskSpecsForRepoStates([]db.RepoState{
-			db.RepoState{
+			{
 				Repo:     gb.RepoUrl(),
 				Revision: tc.Revision,
 			},
@@ -1223,35 +1223,35 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	j1 := &db.Job{
 		Created:      now,
 		Name:         "j1",
-		Dependencies: map[string][]string{specs_testutils.BuildTask: []string{}},
+		Dependencies: map[string][]string{specs_testutils.BuildTask: {}},
 		Priority:     0.5,
 		RepoState:    rs1.Copy(),
 	}
 	j2 := &db.Job{
 		Created:      now,
 		Name:         "j2",
-		Dependencies: map[string][]string{specs_testutils.TestTask: []string{specs_testutils.BuildTask}, specs_testutils.BuildTask: []string{}},
+		Dependencies: map[string][]string{specs_testutils.TestTask: {specs_testutils.BuildTask}, specs_testutils.BuildTask: {}},
 		Priority:     0.5,
 		RepoState:    rs1.Copy(),
 	}
 	j3 := &db.Job{
 		Created:      now,
 		Name:         "j3",
-		Dependencies: map[string][]string{specs_testutils.BuildTask: []string{}},
+		Dependencies: map[string][]string{specs_testutils.BuildTask: {}},
 		Priority:     0.5,
 		RepoState:    rs2.Copy(),
 	}
 	j4 := &db.Job{
 		Created:      now,
 		Name:         "j4",
-		Dependencies: map[string][]string{specs_testutils.TestTask: []string{specs_testutils.BuildTask}, specs_testutils.BuildTask: []string{}},
+		Dependencies: map[string][]string{specs_testutils.TestTask: {specs_testutils.BuildTask}, specs_testutils.BuildTask: {}},
 		Priority:     0.5,
 		RepoState:    rs2.Copy(),
 	}
 	j5 := &db.Job{
 		Created:      now,
 		Name:         "j5",
-		Dependencies: map[string][]string{specs_testutils.PerfTask: []string{specs_testutils.BuildTask}, specs_testutils.BuildTask: []string{}},
+		Dependencies: map[string][]string{specs_testutils.PerfTask: {specs_testutils.BuildTask}, specs_testutils.BuildTask: {}},
 		Priority:     0.5,
 		RepoState:    rs2.Copy(),
 	}
@@ -1525,8 +1525,8 @@ func TestSchedulingE2E(t *testing.T) {
 	tasks, err := s.tCache.GetTasksForCommits(gb.RepoUrl(), []string{c1, c2})
 	assert.NoError(t, err)
 	expect := map[string]map[string]*db.Task{
-		c1: map[string]*db.Task{},
-		c2: map[string]*db.Task{},
+		c1: {},
+		c2: {},
 	}
 	testutils.AssertDeepEqual(t, expect, tasks)
 	assert.Equal(t, 2, len(s.queue)) // Two compile tasks.
@@ -1538,8 +1538,8 @@ func TestSchedulingE2E(t *testing.T) {
 	tasks, err = s.tCache.GetTasksForCommits(gb.RepoUrl(), []string{c1, c2})
 	assert.NoError(t, err)
 	expect = map[string]map[string]*db.Task{
-		c1: map[string]*db.Task{},
-		c2: map[string]*db.Task{},
+		c1: {},
+		c2: {},
 	}
 	testutils.AssertDeepEqual(t, expect, tasks)
 	assert.Equal(t, 2, len(s.queue)) // Still two compile tasks.
@@ -1880,7 +1880,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (*git_testuti
 	taskName := "dummytask"
 	cfg := &specs.TasksCfg{
 		Tasks: map[string]*specs.TaskSpec{
-			taskName: &specs.TaskSpec{
+			taskName: {
 				CipdPackages: []*specs.CipdPackage{},
 				Dependencies: []string{},
 				Dimensions:   []string{"pool:Skia"},
@@ -1889,7 +1889,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (*git_testuti
 			},
 		},
 		Jobs: map[string]*specs.JobSpec{
-			"j1": &specs.JobSpec{
+			"j1": {
 				TaskSpecs: []string{taskName},
 			},
 		},
@@ -2371,21 +2371,21 @@ func TestGetTasksForJob(t *testing.T) {
 
 	// Test that we get the new tasks where applicable.
 	expect := map[string]map[string][]*db.Task{
-		j1.Id: map[string][]*db.Task{
+		j1.Id: {
 			specs_testutils.BuildTask: {},
 		},
-		j2.Id: map[string][]*db.Task{
+		j2.Id: {
 			specs_testutils.BuildTask: {},
 			specs_testutils.TestTask:  {},
 		},
-		j3.Id: map[string][]*db.Task{
+		j3.Id: {
 			specs_testutils.BuildTask: {t1},
 		},
-		j4.Id: map[string][]*db.Task{
+		j4.Id: {
 			specs_testutils.BuildTask: {t1},
 			specs_testutils.TestTask:  {},
 		},
-		j5.Id: map[string][]*db.Task{
+		j5.Id: {
 			specs_testutils.BuildTask: {t1},
 			specs_testutils.PerfTask:  {},
 		},
@@ -2508,13 +2508,13 @@ func TestTaskTimeouts(t *testing.T) {
 	name := "Timeout-Task"
 	cfg := &specs.TasksCfg{
 		Jobs: map[string]*specs.JobSpec{
-			"Timeout-Job": &specs.JobSpec{
+			"Timeout-Job": {
 				Priority:  1.0,
 				TaskSpecs: []string{name},
 			},
 		},
 		Tasks: map[string]*specs.TaskSpec{
-			name: &specs.TaskSpec{
+			name: {
 				CipdPackages: []*specs.CipdPackage{},
 				Dependencies: []string{},
 				Dimensions: []string{
@@ -2558,14 +2558,14 @@ func TestPeriodicJobs(t *testing.T) {
 	name := "Periodic-Task"
 	cfg := &specs.TasksCfg{
 		Jobs: map[string]*specs.JobSpec{
-			"Periodic-Job": &specs.JobSpec{
+			"Periodic-Job": {
 				Priority:  1.0,
 				TaskSpecs: []string{name},
 				Trigger:   "nightly",
 			},
 		},
 		Tasks: map[string]*specs.TaskSpec{
-			name: &specs.TaskSpec{
+			name: {
 				CipdPackages: []*specs.CipdPackage{},
 				Dependencies: []string{},
 				Dimensions: []string{
@@ -2943,11 +2943,11 @@ func TestAddTasks(t *testing.T) {
 	onus4 := makeTask("onus", gb.RepoUrl(), hashes[3])
 
 	tasks := map[string]map[string][]*db.Task{
-		gb.RepoUrl(): map[string][]*db.Task{
-			"toil": []*db.Task{toil2, toil3},
-			"duty": []*db.Task{duty2, duty3},
-			"work": []*db.Task{work3, work4},
-			"onus": []*db.Task{onus2, onus3, onus4},
+		gb.RepoUrl(): {
+			"toil": {toil2, toil3},
+			"duty": {duty2, duty3},
+			"work": {work3, work4},
+			"onus": {onus2, onus3, onus4},
 		},
 	}
 
@@ -3001,9 +3001,9 @@ func TestAddTasksFailure(t *testing.T) {
 	duty3 := makeTask("duty", gb.RepoUrl(), hashes[3])
 
 	tasks := map[string]map[string][]*db.Task{
-		gb.RepoUrl(): map[string][]*db.Task{
-			"toil": []*db.Task{toil2},
-			"duty": []*db.Task{cachedDuty2, duty3},
+		gb.RepoUrl(): {
+			"toil": {toil2},
+			"duty": {cachedDuty2, duty3},
 		},
 	}
 
@@ -3066,10 +3066,10 @@ func TestAddTasksRetries(t *testing.T) {
 	work4 := makeTask("work", gb.RepoUrl(), hashes[2])
 
 	tasks := map[string]map[string][]*db.Task{
-		gb.RepoUrl(): map[string][]*db.Task{
-			"toil": []*db.Task{toil3.Copy(), toil4.Copy()},
-			"duty": []*db.Task{duty3.Copy(), duty4.Copy()},
-			"work": []*db.Task{work3.Copy(), work4.Copy()},
+		gb.RepoUrl(): {
+			"toil": {toil3.Copy(), toil4.Copy()},
+			"duty": {duty3.Copy(), duty4.Copy()},
+			"work": {work3.Copy(), work4.Copy()},
 		},
 	}
 

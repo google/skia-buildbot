@@ -76,12 +76,12 @@ var (
 	ts1 = time.Unix(1406721715, 0).UTC()
 
 	commits = []*vcsinfo.IndexCommit{
-		&vcsinfo.IndexCommit{
+		{
 			Hash:      "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
 			Index:     0,
 			Timestamp: ts0,
 		},
-		&vcsinfo.IndexCommit{
+		{
 			Hash:      "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
 			Index:     1,
 			Timestamp: ts1,
@@ -101,23 +101,23 @@ func TestRangeImpl(t *testing.T) {
 	testutils.SmallTest(t)
 
 	expected_headers := []*ColumnHeader{
-		&ColumnHeader{
+		{
 			Source:    "master",
 			Offset:    0,
 			Timestamp: ts0.Unix(),
 		},
-		&ColumnHeader{
+		{
 			Source:    "master",
 			Offset:    1,
 			Timestamp: ts1.Unix(),
 		},
 	}
 	expected_pcommits := []*cid.CommitID{
-		&cid.CommitID{
+		{
 			Offset: 0,
 			Source: "master",
 		},
-		&cid.CommitID{
+		{
 			Offset: 1,
 			Source: "master",
 		},
@@ -137,23 +137,23 @@ func TestRangeImpl(t *testing.T) {
 func TestNew(t *testing.T) {
 	testutils.SmallTest(t)
 	colHeaders := []*ColumnHeader{
-		&ColumnHeader{
+		{
 			Source:    "master",
 			Offset:    0,
 			Timestamp: ts0.Unix(),
 		},
-		&ColumnHeader{
+		{
 			Source:    "master",
 			Offset:    1,
 			Timestamp: ts1.Unix(),
 		},
 	}
 	pcommits := []*cid.CommitID{
-		&cid.CommitID{
+		{
 			Offset: 0,
 			Source: "master",
 		},
-		&cid.CommitID{
+		{
 			Offset: 1,
 			Source: "master",
 		},

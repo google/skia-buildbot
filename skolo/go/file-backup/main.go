@@ -120,7 +120,7 @@ func main() {
 	}
 
 	step(storageClient)
-	for _ = range time.Tick(*period) {
+	for range time.Tick(*period) {
 		step(storageClient)
 	}
 }

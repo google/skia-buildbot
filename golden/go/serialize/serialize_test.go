@@ -68,17 +68,17 @@ func TestSerializeStrings(t *testing.T) {
 func TestSerializeCommits(t *testing.T) {
 	testutils.SmallTest(t)
 	testCommits := []*tiling.Commit{
-		&tiling.Commit{
+		{
 			CommitTime: 42,
 			Hash:       "ffffffffffffffffffffffffffffffffffffffff",
 			Author:     "test@test.cz",
 		},
-		&tiling.Commit{
+		{
 			CommitTime: 43,
 			Hash:       "eeeeeeeeeee",
 			Author:     "test@test.cz",
 		},
-		&tiling.Commit{
+		{
 			CommitTime: 44,
 			Hash:       "aaaaaaaaaaa",
 			Author:     "test@test.cz",

@@ -56,7 +56,7 @@ func (f *Refresher) oneStep() error {
 }
 
 func (f *Refresher) refresh() {
-	for _ = range time.Tick(f.period) {
+	for range time.Tick(f.period) {
 		if err := f.oneStep(); err != nil {
 			sklog.Errorf("Failed to refresh the DataFrame: %s", err)
 		}

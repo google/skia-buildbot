@@ -143,7 +143,7 @@ func (n *trieNode) String(indent int) string {
 	}
 	rv += "\n"
 	childKeys := make([]string, 0, len(n.children))
-	for k, _ := range n.children {
+	for k := range n.children {
 		childKeys = append(childKeys, k)
 	}
 	sort.Strings(childKeys)

@@ -558,7 +558,7 @@ func (d *TaskDecoder) run() {
 	// Wait for decoders to exit.
 	wg.Wait()
 	// Drain d.input in the case that errors were encountered, to avoid deadlock.
-	for _ = range d.input {
+	for range d.input {
 	}
 	close(d.output)
 }

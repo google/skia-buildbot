@@ -60,7 +60,7 @@ func TestTaskCache(t *testing.T) {
 	tasks, err := c.GetTasksForCommits(DEFAULT_TEST_REPO, []string{"b"})
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, map[string]map[string]*Task{
-		"b": map[string]*Task{
+		"b": {
 			t1.Name: t1,
 			t3.Name: t3,
 		},
@@ -210,13 +210,13 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 		tasks, err := c.GetTasksForCommits(t1.Repo, []string{"a", "b", "c"})
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, map[string]map[string]*Task{
-			"a": map[string]*Task{
+			"a": {
 				t1.Name: t1,
 			},
-			"b": map[string]*Task{
+			"b": {
 				t1.Name: t1,
 			},
-			"c": map[string]*Task{},
+			"c": {},
 		}, tasks)
 	}
 
@@ -224,13 +224,13 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 		tasks, err := c.GetTasksForCommits(t2.Repo, []string{"a", "b", "c"})
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, map[string]map[string]*Task{
-			"a": map[string]*Task{
+			"a": {
 				t1.Name: t2,
 			},
-			"b": map[string]*Task{
+			"b": {
 				t1.Name: t2,
 			},
-			"c": map[string]*Task{},
+			"c": {},
 		}, tasks)
 	}
 
@@ -238,11 +238,11 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 		tasks, err := c.GetTasksForCommits(t3.Repo, []string{"a", "b", "c"})
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, map[string]map[string]*Task{
-			"a": map[string]*Task{},
-			"b": map[string]*Task{
+			"a": {},
+			"b": {
 				t1.Name: t3,
 			},
-			"c": map[string]*Task{
+			"c": {
 				t1.Name: t3,
 			},
 		}, tasks)
@@ -631,7 +631,7 @@ func TestJobCacheReset(t *testing.T) {
 
 	// Make an update.
 	j2 := makeJob(startTime.Add(time.Minute))
-	j1.Dependencies = map[string][]string{"someTask": []string{}}
+	j1.Dependencies = map[string][]string{"someTask": {}}
 	assert.NoError(t, db.PutJobs([]*Job{j2, j1}))
 
 	// Ensure cache gets reset.
@@ -679,7 +679,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	testGetUnfinished(t, []*Job{j3}, c)
 
 	// Update the job.
-	j3.Dependencies = map[string][]string{"a": []string{}, "b": []string{}, "c": []string{}}
+	j3.Dependencies = map[string][]string{"a": {}, "b": {}, "c": {}}
 	assert.False(t, j3.Done())
 	assert.NoError(t, db.PutJob(j3))
 	assert.NoError(t, c.Update())

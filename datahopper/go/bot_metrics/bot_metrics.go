@@ -338,7 +338,7 @@ func cycle(taskDb db.RemoteDB, buildDb buildbot.DB, repos repograph.Map, tcc *sp
 					// Get the cached data for this commit.
 					if cData.NumTasks < 0 {
 						numTasks := 0
-						for name, _ := range cfg.Tasks {
+						for name := range cfg.Tasks {
 							if !ignoreTask(name) {
 								numTasks++
 							}
@@ -480,7 +480,7 @@ func Start(dbUrl, workdir string, buildDb buildbot.DB, ctx context.Context) erro
 	if err != nil {
 		return err
 	}
-	for repoUrl, _ := range repos {
+	for repoUrl := range repos {
 		for _, p := range []time.Duration{24 * time.Hour, 7 * 24 * time.Hour} {
 			s := em.GetEventStream(fmtStream(repoUrl))
 			for _, pct := range PERCENTILES {
