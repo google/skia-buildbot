@@ -1,7 +1,6 @@
 package decider
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -105,10 +104,8 @@ func mockBot(j string) *swarming.SwarmingRpcsBotInfo {
 }
 
 func mockBotAndId(j, id string) *swarming.SwarmingRpcsBotInfo {
-	b := bytes.NewBufferString(j)
 	var s swarming.SwarmingRpcsBotInfo
-	d := json.NewDecoder(b)
-	if err := d.Decode(&s); err != nil {
+	if err := json.Unmarshal([]byte(j), &s); err != nil {
 		fmt.Printf("Error parsing json: %s\n", err)
 		return nil
 	}
