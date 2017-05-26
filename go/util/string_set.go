@@ -100,3 +100,10 @@ func (s StringSet) AddLists(lists ...[]string) StringSet {
 	}
 	return s
 }
+
+// Add adds one item to this StringSet. Adding the same object
+// more than once has no effect.
+func (s StringSet) Add(item string) StringSet {
+	s[item] = true
+	return s
+}

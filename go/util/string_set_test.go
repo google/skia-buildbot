@@ -20,6 +20,22 @@ func TestStringSets(t *testing.T) {
 	assert.Equal(t, []string{"abc"}, NewStringSet([]string{"abc", "abc", "abc"}).Keys())
 }
 
+func TestAdd(t *testing.T) {
+	testutils.SmallTest(t)
+	someKeys := []string{"gamma", "beta", "alpha"}
+	orig := NewStringSet(someKeys)
+	other := NewStringSet()
+	for _, k := range someKeys {
+		other.Add(k)
+	}
+
+	k1 := orig.Keys()
+	sort.Strings(k1)
+	k2 := other.Keys()
+	sort.Strings(k2)
+	assert.Equal(t, k1, k2, "The keys should be the exact same, order notwithstanding")
+}
+
 func TestStringSetCopy(t *testing.T) {
 	testutils.SmallTest(t)
 	someKeys := []string{"gamma", "beta", "alpha"}
