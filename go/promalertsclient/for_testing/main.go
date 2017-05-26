@@ -4,8 +4,6 @@ import (
 	"flag"
 	"net/http"
 
-	"github.com/prometheus/alertmanager/dispatch"
-
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/promalertsclient"
 	"go.skia.org/infra/go/sklog"
@@ -17,7 +15,7 @@ func main() {
 	common.Init()
 
 	ac := promalertsclient.New(&http.Client{}, *alertsEndpoint)
-	bots, err := ac.GetAlerts(func(a dispatch.APIAlert) bool {
+	bots, err := ac.GetAlerts(func(a promalertsclient.Alert) bool {
 		alertName := string(a.Labels["alertname"])
 		return alertName == "BotMissing" || alertName == "BotQuarantined"
 	})
