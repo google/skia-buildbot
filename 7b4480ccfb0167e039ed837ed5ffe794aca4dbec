@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f94993fe_4a4f86cd",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-26T19:13:10Z",
+      "side": 1,
+      "message": "There is at least one caller of NewApiClient that has already called httputils.AddMetricsToClient on the client. I believe this would cause all requests to be double-counted in the metrics.",
+      "range": {
+        "startLine": 130,
+        "startChar": 1,
+        "endLine": 130,
+        "endChar": 32
+      },
+      "revId": "7b4480ccfb0167e039ed837ed5ffe794aca4dbec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1badabab_64cc538b",
+        "filename": "go/swarming/mock_apiclient.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-26T19:13:10Z",
+      "side": 1,
+      "message": "I\u0027m assuming TestClient in testutils.go didn\u0027t work for you for some reason?",
+      "revId": "7b4480ccfb0167e039ed837ed5ffe794aca4dbec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
