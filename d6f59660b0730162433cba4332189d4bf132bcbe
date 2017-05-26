@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "ca5e3e93_86a154a0",
+        "filename": "skolo/go/win/gen-unattend/gen-unattend.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-26T17:17:05Z",
+      "side": 1,
+      "message": "Moved main to main.go because it seems more natural to me. LMK what you think.",
+      "parentUuid": "a2386cbc_9f4421fa",
+      "revId": "d6f59660b0730162433cba4332189d4bf132bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "869933ac_97dd2bba",
         "filename": "skolo/go/win/gen-unattend/gen-unattend.go",
         "patchSetId": 2
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "a3c5fbc7_904eb8d8",
+        "filename": "skolo/go/win/gen-unattend/gen-unattend.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-26T17:17:05Z",
+      "side": 1,
+      "message": "Done. Moved this to a util package.",
+      "parentUuid": "869933ac_97dd2bba",
+      "range": {
+        "startLine": 68,
+        "startChar": 3,
+        "endLine": 68,
+        "endChar": 17
+      },
+      "revId": "d6f59660b0730162433cba4332189d4bf132bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0141c475_ed2e9b48",
         "filename": "skolo/go/win/gen-unattend/gen-unattend.go",
         "patchSetId": 2
@@ -56,6 +98,24 @@
       "revId": "d6f59660b0730162433cba4332189d4bf132bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "253bb7da_7cd2760d",
+        "filename": "skolo/go/win/gen-unattend/gen-unattend.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-26T17:17:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0141c475_ed2e9b48",
+      "revId": "d6f59660b0730162433cba4332189d4bf132bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -82,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "71dec7d2_302d7795",
+        "filename": "skolo/go/win/gen-unattend/gen-unattend.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-26T17:17:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b281f3de_deabc781",
+      "range": {
+        "startLine": 186,
+        "startChar": 0,
+        "endLine": 186,
+        "endChar": 4
+      },
+      "revId": "d6f59660b0730162433cba4332189d4bf132bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7acdf3c8_5b2a47ba",
         "filename": "skolo/go/win/gen-unattend/gen-unattend.go",
         "patchSetId": 2
@@ -102,6 +186,30 @@
       "revId": "d6f59660b0730162433cba4332189d4bf132bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e12ddf6_4742b2d6",
+        "filename": "skolo/go/win/gen-unattend/gen-unattend.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-26T17:17:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7acdf3c8_5b2a47ba",
+      "range": {
+        "startLine": 227,
+        "startChar": 0,
+        "endLine": 227,
+        "endChar": 4
+      },
+      "revId": "d6f59660b0730162433cba4332189d4bf132bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
