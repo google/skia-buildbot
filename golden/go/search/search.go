@@ -35,7 +35,7 @@ const (
 	// SORT_DESC indicates that we want to sort in descending order.
 	SORT_DESC = "desc"
 
-	// MAX_ROW_DIGESTS is the maxium number of digests we'll compare against
+	// MAX_ROW_DIGESTS is the maximum number of digests we'll compare against
 	// before limiting the result to avoid overload.
 	MAX_ROW_DIGESTS = 200
 
@@ -132,6 +132,10 @@ type Query struct {
 	QueryStr string     `json:"query"`
 	Query    url.Values `json:"-"`
 
+	// URL encoded query string to select the right hand side of comparisons.
+	RQueryStr string     `json:"rquery"`
+	RQuery    url.Values `json:"-"`
+
 	// Trybot support.
 	Issue         string   `json:"issue"`
 	PatchsetsStr  string   `json:"patchsets"` // Comma-separated list of patchsets.
@@ -141,21 +145,22 @@ type Query struct {
 	// Filtering.
 	FCommitBegin string  `json:"fbegin"`     // Start commit
 	FCommitEnd   string  `json:"fend"`       // End commit
+	FRGBAMin     int32   `json:"frgbamin"`   // Min RGBA delta
 	FRGBAMax     int32   `json:"frgbamax"`   // Max RGBA delta
 	FDiffMax     float32 `json:"fdiffmax"`   // Max diff according to metric
 	FGroupTest   string  `json:"fgrouptest"` // Op within grouped by test.
 	FRef         bool    `json:"fref"`       // Only digests with reference.
 
 	// Pagination.
-	Offset int `json:"offset"`
-	Limit  int `json:"limit"`
+	Offset int32 `json:"offset"`
+	Limit  int32 `json:"limit"`
 }
 
 // SearchResponse is the standard search response. Depending on the query some fields
 // might be empty, i.e. IssueDetails only makes sense if a trybot isssue was given in the query.
 type SearchResponse struct {
 	Digests       []*Digest
-	Total         int
+	Total         int32
 	Commits       []*tiling.Commit
 	IssueResponse *IssueResponse
 }
@@ -231,7 +236,7 @@ func Search(q *Query, storages *storage.Storage, idx *indexer.SearchIndex) (*Sea
 	}
 
 	sort.Sort(DigestSlice(ret))
-	fullLength := len(ret)
+	fullLength := int32(len(ret))
 	if fullLength > q.Limit {
 		ret = ret[0:q.Limit]
 	}
@@ -270,7 +275,12 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 	}
 
 	pidMap := util.NewStringSet(issue.TargetPatchsets)
-	talliesByTest := idx.TalliesByTest(true)
+
+	// TODO(stephana): Sort out how digests from trybots relate to ignored and
+	// followed digests. Are we ok with ignored digests being triaged "by accident"
+	// when triaging trybot results?
+	talliesByTestWithIgnores := idx.TalliesByTest(true)
+	talliesByTest := idx.TalliesByTest(false)
 	digestMap := map[string]*Digest{}
 
 	for idx, cid := range issue.CommitIDs {
@@ -307,7 +317,7 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 			// Does it match a given query.
 			if (queryRule == nil) || queryRule.IsMatch(params) {
 				if !q.IncludeMaster {
-					if _, ok := talliesByTest[testName][digest]; ok {
+					if _, ok := talliesByTestWithIgnores[testName][digest]; ok {
 						continue
 					}
 				}
@@ -359,8 +369,9 @@ func searchTile(q *Query, e *expstorage.Expectations, parsedQuery url.Values, st
 
 	// map [test:digest] *intermediate
 	inter := map[string]*intermediate{}
-	for id, tr := range tile.Traces {
-		if tiling.Matches(tr, parsedQuery) {
+	for id, trace := range tile.Traces {
+		if tiling.Matches(trace, parsedQuery) {
+			tr := trace.(*types.GoldenTrace)
 			test := tr.Params()[types.PRIMARY_KEY_FIELD]
 			// Get all the digests
 			digests := digestsFromTrace(id, tr, q.Head, lastCommitIndex, traceTally)
@@ -535,7 +546,7 @@ func digestIndex(d string, digestInfo []DigestStatus) int {
 	return -1
 }
 
-// blameGroupID takes a blame distrubution with just indices of commits and
+// blameGroupID takes a blame distribution with just indices of commits and
 // returns an id for the blame group, which is just a string, the concatenated
 // git hashes in commit time order.
 func blameGroupID(b *blame.BlameDistribution, commits []*tiling.Commit) string {
@@ -549,7 +560,7 @@ func blameGroupID(b *blame.BlameDistribution, commits []*tiling.Commit) string {
 // digestsFromTrace returns all the digests in the given trace, controlled by
 // 'head', and being robust to tallies not having been calculated for the
 // trace.
-func digestsFromTrace(id string, tr tiling.Trace, head bool, lastCommitIndex int, traceTally map[string]tally.Tally) []string {
+func digestsFromTrace(id string, tr *types.GoldenTrace, head bool, lastCommitIndex int, traceTally map[string]tally.Tally) []string {
 	digests := util.NewStringSet()
 	if head {
 		// Find the last non-missing value in the trace.
@@ -557,7 +568,7 @@ func digestsFromTrace(id string, tr tiling.Trace, head bool, lastCommitIndex int
 			if tr.IsMissing(i) {
 				continue
 			} else {
-				digests[tr.(*types.GoldenTrace).Values[i]] = true
+				digests[tr.Values[i]] = true
 				break
 			}
 		}
@@ -570,7 +581,7 @@ func digestsFromTrace(id string, tr tiling.Trace, head bool, lastCommitIndex int
 		} else {
 			for i := lastCommitIndex; i >= 0; i-- {
 				if !tr.IsMissing(i) {
-					digests[tr.(*types.GoldenTrace).Values[i]] = true
+					digests[tr.Values[i]] = true
 				}
 			}
 		}
@@ -776,7 +787,7 @@ func CompareTest(ctq *CTQuery, storages *storage.Storage, idx *indexer.SearchInd
 	// Build the rows output.
 	rows := getCTRows(rowDigests, ctq.SortRows, ctq.RowsDir, ctq.RowQuery.Limit, ctq.RowQuery.IncludeIgnores, idx)
 
-	// If the number exceeds the maxium we always sort and trim by frequency.
+	// If the number exceeds the maximum we always sort and trim by frequency.
 	if len(rows) > MAX_ROW_DIGESTS {
 		ctq.SortRows = SORT_FIELD_COUNT
 	}
@@ -859,7 +870,7 @@ func filterTile(query *Query, storages *storage.Storage, idx *indexer.SearchInde
 	ret := map[string]paramtools.ParamSet{}
 
 	// Add digest/trace to the result.
-	addFn := func(test, digest, traceID string, trace tiling.Trace, accptRet interface{}) {
+	addFn := func(test, digest, traceID string, trace *types.GoldenTrace, acceptRet interface{}) {
 		if found, ok := ret[digest]; ok {
 			found.AddParams(trace.Params())
 		} else {
@@ -897,7 +908,7 @@ func getFilterByTileFunctions(matchFields []string, condDigests map[string]param
 	var addFn AddFn = nil
 	if len(matchFields) >= 0 {
 		matching := make([]string, 0, len(condDigests))
-		acceptFn = func(trace tiling.Trace) (bool, interface{}) {
+		acceptFn = func(trace *types.GoldenTrace, digests []string) (bool, interface{}) {
 			matching = matching[:0]
 			params := trace.Params()
 			for digest, paramSet := range condDigests {
@@ -907,13 +918,13 @@ func getFilterByTileFunctions(matchFields []string, condDigests map[string]param
 			}
 			return len(matching) > 0, matching
 		}
-		addFn = func(test, digest, traceID string, trace tiling.Trace, acceptRet interface{}) {
+		addFn = func(test, digest, traceID string, trace *types.GoldenTrace, acceptRet interface{}) {
 			for _, d := range acceptRet.([]string) {
 				(*target)[d][digest] = true
 			}
 		}
 	} else {
-		addFn = func(test, digest, traceID string, trace tiling.Trace, acceptRet interface{}) {
+		addFn = func(test, digest, traceID string, trace *types.GoldenTrace, acceptRet interface{}) {
 			for d := range condDigests {
 				(*target)[d][digest] = true
 			}
@@ -943,7 +954,7 @@ func filterTileWithMatch(query *Query, matchFields []string, condDigests map[str
 	var addFn AddFn = nil
 	if len(matchFields) >= 0 {
 		matching := make([]string, 0, len(condDigests))
-		acceptFn = func(trace tiling.Trace) (bool, interface{}) {
+		acceptFn = func(trace *types.GoldenTrace, digests []string) (bool, interface{}) {
 			matching = matching[:0]
 			params := trace.Params()
 			for digest, paramSet := range condDigests {
@@ -953,13 +964,13 @@ func filterTileWithMatch(query *Query, matchFields []string, condDigests map[str
 			}
 			return len(matching) > 0, matching
 		}
-		addFn = func(test, digest, traceID string, trace tiling.Trace, acceptRet interface{}) {
+		addFn = func(test, digest, traceID string, trace *types.GoldenTrace, acceptRet interface{}) {
 			for _, d := range acceptRet.([]string) {
 				ret[d][digest] = true
 			}
 		}
 	} else {
-		addFn = func(test, digest, traceID string, trace tiling.Trace, acceptRet interface{}) {
+		addFn = func(test, digest, traceID string, trace *types.GoldenTrace, acceptRet interface{}) {
 			for d := range condDigests {
 				ret[d][digest] = true
 			}
@@ -973,7 +984,7 @@ func filterTileWithMatch(query *Query, matchFields []string, condDigests map[str
 }
 
 // getCTRows returns the instance of CTRow that correspond to the given set of row digests.
-func getCTRows(entries map[string]paramtools.ParamSet, sortField, sortDir string, limit int, includeIgnores bool, idx *indexer.SearchIndex) []*CTRow {
+func getCTRows(entries map[string]paramtools.ParamSet, sortField, sortDir string, limit int32, includeIgnores bool, idx *indexer.SearchIndex) []*CTRow {
 	talliesByTest := idx.TalliesByTest(includeIgnores)
 	ret := make([]*CTRow, 0, len(entries))
 	for digest, paramSet := range entries {
@@ -991,7 +1002,7 @@ func getCTRows(entries map[string]paramtools.ParamSet, sortField, sortDir string
 
 // sortAndLimitRows sorts the given rows based on field, direction and diffMetric (if sorted by
 // by diff). After the sort it will slice the result to be not larger than limit.
-func sortAndLimitRows(rows *[]*CTRow, rowDigests map[string]paramtools.ParamSet, field, direction string, diffMetric string, limit int) util.StringSet {
+func sortAndLimitRows(rows *[]*CTRow, rowDigests map[string]paramtools.ParamSet, field, direction string, diffMetric string, limit int32) util.StringSet {
 	// Determine the less function used for sorting the rows.
 	var lessFn ctRowSliceLessFn
 	if field == SORT_FIELD_COUNT {
@@ -1008,7 +1019,7 @@ func sortAndLimitRows(rows *[]*CTRow, rowDigests map[string]paramtools.ParamSet,
 	}
 
 	sort.Sort(sortSlice)
-	lastIdx := util.MinInt(limit, len(*rows))
+	lastIdx := util.MinInt32(limit, int32(len(*rows)))
 	discarded := (*rows)[lastIdx:]
 	for _, row := range discarded {
 		delete(rowDigests, row.Digest)
@@ -1043,7 +1054,7 @@ func (c *ctRowSlice) Swap(i, j int)      { c.data[i], c.data[j] = c.data[j], c.d
 //    sortDir: sort direction of the resulting list
 //    diffMetric: id of the diffmetric to use (assumed to be defined in the diff package).
 //    limit: is the maximum number of diffs to return after the sort.
-func getDiffs(diffStore diff.DiffStore, digest string, colDigests []string, sortDir, diffMetric string, limit int) ([]*CTDiffMetrics, int, error) {
+func getDiffs(diffStore diff.DiffStore, digest string, colDigests []string, sortDir, diffMetric string, limit int32) ([]*CTDiffMetrics, int, error) {
 	diffMap, err := diffStore.Get(diff.PRIORITY_NOW, digest, colDigests)
 	if err != nil {
 		return nil, 0, err
@@ -1067,7 +1078,7 @@ func getDiffs(diffStore diff.DiffStore, digest string, colDigests []string, sort
 		sortSlice = sort.Reverse(sortSlice)
 	}
 	sort.Sort(sortSlice)
-	return ret[:util.MinInt(limit, len(ret))], len(ret), nil
+	return ret[:util.MinInt(int(limit), len(ret))], len(ret), nil
 }
 
 // Sort adapter to allow sorting lists of diff metrics via a less function.
