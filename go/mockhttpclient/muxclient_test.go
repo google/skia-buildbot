@@ -80,7 +80,7 @@ func TestAssertionFailure(t *testing.T) {
 	assert.Contains(t, err.Error(), "while handling HTTP request for http://example.com/add/foo?name=bar&size=42")
 
 	assert.Equal(t, 1, len(mockT.errors))
-	re := regexp.MustCompile(`Not equal:\s+expected: "foo"\s+received: "bar"`)
+	re := regexp.MustCompile(`Not equal:\s+expected: "foo"\s+actual: "bar"`)
 	assert.True(t, re.MatchString(mockT.errors[0]), "Expected test failure message to match regexp %q, but got %q", re, mockT.errors[0])
 }
 
