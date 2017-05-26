@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "adb578cc_9b9837f2",
+        "filename": "power/go/decider/decider_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-26T20:40:25Z",
+      "side": 1,
+      "message": "If t.Run(....) calls the passed function in a separate go-routines then you will most likely only see the last value of the tests map being tested.   Even if you know for sure that t.Run(..) is executed synchronously this should be avoided. \nInstead wrap the call to t.Run in a closure where you pass the value of the loop variable:\nfor .... {\n   func(c testcase) {\n      t.Run(....)\n   }(c)\n}",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 4
+      },
+      "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90f7c192_75ca873a",
+        "filename": "power/go/decider/decider_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-26T20:40:25Z",
+      "side": 1,
+      "message": "Change this to the filename of the JSON file and use fileutils to parse the JSON and \npass *testing.T as an argument. i.e. \n\nfunc mockBotAndId(t *testing.T, jsonFileName, id string) *swarming.SwarmingRpcsBotInfo {\n\ts :\u003d \u0026swarming.SwarmingRpcsBotInfo{}\n        assert.NoError(t, testutils.ReadJsonFile(jsonFileName, s))\n\ts.BotId \u003d id\n\treturn s\n}",
+      "range": {
+        "startLine": 107,
+        "startChar": 18,
+        "endLine": 107,
+        "endChar": 19
+      },
+      "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "efddfc5a_40473072",
+        "filename": "power/go/decider/decider_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-26T20:40:25Z",
+      "side": 1,
+      "message": "Refer to constants here that contain the filename of that corresponding JSON file. See comment in testdata.go.",
+      "range": {
+        "startLine": 124,
+        "startChar": 34,
+        "endLine": 124,
+        "endChar": 56
+      },
+      "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40389600_b75ae95e",
+        "filename": "power/go/decider/mock_decider.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-26T20:40:25Z",
+      "side": 1,
+      "message": "Where is this mock used ?",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 36
+      },
+      "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "10b6a897_1b7ffad2",
+        "filename": "power/go/decider/mock_decider.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-26T20:40:25Z",
+      "side": 1,
+      "message": "This should not be there, instead NewMockDecider should return an instance of Decider (instead of *MockDecider) the compiler will catch it.",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 35
+      },
+      "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13c02f80_ec4c372d",
+        "filename": "power/go/testdata/consts.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-26T20:40:25Z",
+      "side": 1,
+      "message": "IMO this should be moved to individual files in a testdata directory.  See other comments in decider_test.go",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 7
+      },
+      "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
