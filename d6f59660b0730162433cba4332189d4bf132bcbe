@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a2386cbc_9f4421fa",
+        "filename": "skolo/go/win/gen-unattend/gen-unattend.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-26T15:37:05Z",
+      "side": 1,
+      "message": "This file should be named main.go since it\u0027s the entry point of an executable. The executable is derived from the containing directory anyway.",
+      "revId": "d6f59660b0730162433cba4332189d4bf132bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "869933ac_97dd2bba",
+        "filename": "skolo/go/win/gen-unattend/gen-unattend.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-26T15:37:05Z",
+      "side": 1,
+      "message": "nit: To stick with Go \"convention\" I think this would better be named \u0027mustParseYaml\u0027. Most places I have seen \u0027must\u0027 indicates that the function can terminate if it fails.",
+      "range": {
+        "startLine": 68,
+        "startChar": 3,
+        "endLine": 68,
+        "endChar": 17
+      },
+      "revId": "d6f59660b0730162433cba4332189d4bf132bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0141c475_ed2e9b48",
+        "filename": "skolo/go/win/gen-unattend/gen-unattend.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-26T15:37:05Z",
+      "side": 1,
+      "message": "Nit: IMHO this is not idiomatic Go code since the \u0027_\u0027 is not necessary. The range operation essentially treats slices and maps the same with slices just being integer indexed \u0027maps\u0027 (meant as a mental model).",
+      "revId": "d6f59660b0730162433cba4332189d4bf132bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b281f3de_deabc781",
+        "filename": "skolo/go/win/gen-unattend/gen-unattend.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-26T15:37:05Z",
+      "side": 1,
+      "message": "Nit:Maybe this should also be named mustConfirmDiffs to indicate that the function will exit if a conditions is not met.",
+      "range": {
+        "startLine": 186,
+        "startChar": 0,
+        "endLine": 186,
+        "endChar": 4
+      },
+      "revId": "d6f59660b0730162433cba4332189d4bf132bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7acdf3c8_5b2a47ba",
+        "filename": "skolo/go/win/gen-unattend/gen-unattend.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-26T15:37:05Z",
+      "side": 1,
+      "message": "nit: This is personal preference, so take it or leave it. IMO the main program should be the first function in the file right after the type definitions. It serves as the \"index\" of what\u0027s going on which is particularly true in this case since your main function is very concise.",
+      "range": {
+        "startLine": 227,
+        "startChar": 0,
+        "endLine": 227,
+        "endChar": 4
+      },
+      "revId": "d6f59660b0730162433cba4332189d4bf132bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
