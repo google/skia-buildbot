@@ -1,4 +1,4 @@
-package main
+package powercycle
 
 import (
 	"fmt"
@@ -11,6 +11,41 @@ import (
 
 	"go.skia.org/infra/go/sklog"
 )
+
+// DeviceGroup describes a set of devices that can all be
+// controlled together. Any switch or power strip needs to
+// implement this interface.
+type DeviceGroup interface {
+	// DeviceIDs returns a list of strings that uniquely identify
+	// the devices that can be controlled through this group.
+	DeviceIDs() []string
+
+	// PowerCycle turns the device off for a reasonable amount of time
+	// (i.e. 10 seconds) and then turns it back on. If delayOverride
+	// is larger than zero it overrides the default delay between
+	// turning the port off and on again.
+	PowerCycle(devID string, delayOverride time.Duration) error
+
+	// PowerUsage returns the power usage of all devices in the group
+	// at a specific time.
+	PowerUsage() (*GroupPowerUsage, error)
+}
+
+// GroupPowerUsage captures power usage of a set of devices at
+// a specific time stamp.
+type GroupPowerUsage struct {
+	// Time stamp when the usage sample was taken.
+	TS time.Time
+	// Map[deviceID]PowerStat capturs power usage for the devices in the group.
+	Stats map[string]*PowerStat
+}
+
+// PowerStat captures the current, voltage and wattage.
+type PowerStat struct {
+	Ampere float32 // current in mA
+	Volt   float32 // voltage in V
+	Watt   float32 // wattage in W (redundant ~Ampere * Volt / 1000)
+}
 
 // Config is the overall structure to aggregate configuration options
 // for different device types.
@@ -81,7 +116,7 @@ func (a *aggregatedDevGroup) PowerUsage() (*GroupPowerUsage, error) {
 
 // DeviceGroupFromYamlFile parses a TOML file and instantiates the
 // defined devices.
-func DeviceGroupFromYamlFile(path string) (DeviceGroup, error) {
+func DeviceGroupFromYamlFile(path string, connect bool) (DeviceGroup, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -103,7 +138,7 @@ func DeviceGroupFromYamlFile(path string) (DeviceGroup, error) {
 
 	// Add the mpower devices.
 	for _, c := range conf.MPower {
-		mp, err := NewMPowerClient(c)
+		mp, err := NewMPowerClient(c, connect)
 		if err != nil {
 			return nil, err
 		}
@@ -115,7 +150,7 @@ func DeviceGroupFromYamlFile(path string) (DeviceGroup, error) {
 
 	// Add the EdgeSwitch devices.
 	for _, c := range conf.EdgeSwitch {
-		es, err := NewEdgeSwitchClient(c)
+		es, err := NewEdgeSwitchClient(c, connect)
 		if err != nil {
 			return nil, err
 		}
@@ -127,7 +162,7 @@ func DeviceGroupFromYamlFile(path string) (DeviceGroup, error) {
 
 	// Add the Arduino boards.
 	for _, c := range conf.Arduino {
-		ar, err := NewArduinoClient(c)
+		ar, err := NewArduinoClient(c, connect)
 		if err != nil {
 			return nil, err
 		}

@@ -10,7 +10,7 @@ copy_release_files()
 {
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
-${INSTALL} --mode=755 -T ${GOPATH}/bin/powercycle  ${ROOT}/usr/local/bin/powercycle
+${INSTALL} --mode=755 -T ${GOPATH}/bin/powercycle-cli  ${ROOT}/usr/local/bin/powercycle
 ${INSTALL} --mode=644 -T ./sys/powercycle.yaml     ${ROOT}/etc/powercycle.yaml
 }
 

@@ -1,4 +1,4 @@
-package main
+package powercycle
 
 import (
 	"fmt"
@@ -30,39 +30,42 @@ type ArduinoClient struct {
 
 // NewArduinoClient returns a new instance of DeviceGroup for the
 // Arduino driven servos.
-func NewArduinoClient(arduinoConfig *ArduinoConfig) (DeviceGroup, error) {
-	key, err := ioutil.ReadFile(os.ExpandEnv("${HOME}/.ssh/id_rsa"))
-	if err != nil {
-		return nil, fmt.Errorf("Unable to read private key: %v", err)
+func NewArduinoClient(arduinoConfig *ArduinoConfig, connect bool) (DeviceGroup, error) {
+	var client *ssh.Client = nil
+	if connect {
+		key, err := ioutil.ReadFile(os.ExpandEnv("${HOME}/.ssh/id_rsa"))
+		if err != nil {
+			return nil, fmt.Errorf("Unable to read private key: %v", err)
+		}
+		sklog.Infof("Retrieved private key")
+
+		// Create the Signer for this private key.
+		signer, err := ssh.ParsePrivateKey(key)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to parse private key: %v", err)
+		}
+		sklog.Infof("Parsed private key")
+
+		currUser, err := user.Current()
+		if err != nil {
+			return nil, fmt.Errorf("Unable to retrieve current user: %s", err)
+		}
+
+		sshConfig := &ssh.ClientConfig{
+			User:            currUser.Username,
+			Auth:            []ssh.AuthMethod{ssh.PublicKeys(signer)},
+			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		}
+
+		sklog.Infof("Signed private key")
+
+		client, err = ssh.Dial("tcp", arduinoConfig.Address, sshConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		sklog.Infof("Dial successful")
 	}
-	sklog.Infof("Retrieved private key")
-
-	// Create the Signer for this private key.
-	signer, err := ssh.ParsePrivateKey(key)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to parse private key: %v", err)
-	}
-	sklog.Infof("Parsed private key")
-
-	currUser, err := user.Current()
-	if err != nil {
-		return nil, fmt.Errorf("Unable to retrieve current user: %s", err)
-	}
-
-	sshConfig := &ssh.ClientConfig{
-		User:            currUser.Username,
-		Auth:            []ssh.AuthMethod{ssh.PublicKeys(signer)},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	}
-
-	sklog.Infof("Signed private key")
-
-	client, err := ssh.Dial("tcp", arduinoConfig.Address, sshConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	sklog.Infof("Dial successful")
 
 	devIDs := make([]string, 0, len(arduinoConfig.DevPortMap))
 	for id := range arduinoConfig.DevPortMap {
@@ -76,8 +79,10 @@ func NewArduinoClient(arduinoConfig *ArduinoConfig) (DeviceGroup, error) {
 		arduinoConfig: arduinoConfig,
 	}
 
-	if err := ret.ping(); err != nil {
-		return nil, err
+	if connect {
+		if err := ret.ping(); err != nil {
+			return nil, err
+		}
 	}
 
 	return ret, nil

@@ -1,4 +1,4 @@
-package main
+package powercycle
 
 import (
 	"bytes"
@@ -42,13 +42,15 @@ type EdgeSwitchClient struct {
 
 // NewEdgeSwitchClient connects to the EdgeSwitch identified by the given
 // configuration and returns a new instane of EdgeSwitchClient.
-func NewEdgeSwitchClient(conf *EdgeSwitchConfig) (DeviceGroup, error) {
+func NewEdgeSwitchClient(conf *EdgeSwitchConfig, connect bool) (DeviceGroup, error) {
 	ret := &EdgeSwitchClient{
 		conf: conf,
 	}
 
-	if err := ret.ping(); err != nil {
-		return nil, err
+	if connect {
+		if err := ret.ping(); err != nil {
+			return nil, err
+		}
 	}
 
 	// Build the dev-port mappings. Ensure each device and port occur only once.
