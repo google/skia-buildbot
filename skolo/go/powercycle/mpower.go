@@ -1,4 +1,4 @@
-package main
+package powercycle
 
 import (
 	"fmt"
@@ -53,38 +53,41 @@ type MPowerClient struct {
 
 // NewMPowerClient returns a new instance of DeviceGroup for the
 // mPowerPro power strip.
-func NewMPowerClient(mPowerConfig *MPowerConfig) (DeviceGroup, error) {
-	key, err := ioutil.ReadFile(os.ExpandEnv("${HOME}/.ssh/id_rsa"))
-	if err != nil {
-		return nil, fmt.Errorf("Unable to read private key: %v", err)
+func NewMPowerClient(mPowerConfig *MPowerConfig, connect bool) (DeviceGroup, error) {
+	var client *ssh.Client = nil
+	if connect {
+		key, err := ioutil.ReadFile(os.ExpandEnv("${HOME}/.ssh/id_rsa"))
+		if err != nil {
+			return nil, fmt.Errorf("Unable to read private key: %v", err)
+		}
+		sklog.Infof("Retrieved private key")
+
+		// Create the Signer for this private key.
+		signer, err := ssh.ParsePrivateKey(key)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to parse private key: %v", err)
+		}
+		sklog.Infof("Parsed private key")
+
+		sshConfig := &ssh.ClientConfig{
+			User: mPowerConfig.User,
+			Auth: []ssh.AuthMethod{ssh.PublicKeys(signer)},
+			Config: ssh.Config{
+				Ciphers: []string{"aes128-cbc", "3des-cbc", "aes256-cbc",
+					"twofish256-cbc", "twofish-cbc", "twofish128-cbc", "blowfish-cbc"},
+			},
+			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		}
+
+		sklog.Infof("Signed private key")
+
+		client, err = ssh.Dial("tcp", mPowerConfig.Address, sshConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		sklog.Infof("Dial successful")
 	}
-	sklog.Infof("Retrieved private key")
-
-	// Create the Signer for this private key.
-	signer, err := ssh.ParsePrivateKey(key)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to parse private key: %v", err)
-	}
-	sklog.Infof("Parsed private key")
-
-	sshConfig := &ssh.ClientConfig{
-		User: mPowerConfig.User,
-		Auth: []ssh.AuthMethod{ssh.PublicKeys(signer)},
-		Config: ssh.Config{
-			Ciphers: []string{"aes128-cbc", "3des-cbc", "aes256-cbc",
-				"twofish256-cbc", "twofish-cbc", "twofish128-cbc", "blowfish-cbc"},
-		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	}
-
-	sklog.Infof("Signed private key")
-
-	client, err := ssh.Dial("tcp", mPowerConfig.Address, sshConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	sklog.Infof("Dial successful")
 
 	devIDs := make([]string, 0, len(mPowerConfig.DevPortMap))
 	for id := range mPowerConfig.DevPortMap {
@@ -98,8 +101,10 @@ func NewMPowerClient(mPowerConfig *MPowerConfig) (DeviceGroup, error) {
 		mPowerConfig: mPowerConfig,
 	}
 
-	if err := ret.ping(); err != nil {
-		return nil, err
+	if connect {
+		if err := ret.ping(); err != nil {
+			return nil, err
+		}
 	}
 
 	return ret, nil
