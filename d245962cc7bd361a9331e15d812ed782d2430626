@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9af587fe_35b70bb4",
+        "filename": "skolo/go/powercycle/powercycle/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-26T13:11:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6bd79c7a_825edb06",
+      "revId": "d245962cc7bd361a9331e15d812ed782d2430626",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5934caae_d1240db1",
         "filename": "skolo/go/powercycle/powercycle/main.go",
         "patchSetId": 1
@@ -39,6 +57,30 @@
       "revId": "d245962cc7bd361a9331e15d812ed782d2430626",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "546bc446_e292bafe",
+        "filename": "skolo/go/powercycle/powercycle/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-26T13:11:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5934caae_d1240db1",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 76
+      },
+      "revId": "d245962cc7bd361a9331e15d812ed782d2430626",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
