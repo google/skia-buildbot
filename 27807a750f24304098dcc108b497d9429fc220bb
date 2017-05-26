@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "eeaceb15_ceb67f04",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-26T18:51:56Z",
+      "side": 1,
+      "message": "That wisdom was only understood in hindsight.",
+      "parentUuid": "842f164c_61aa5f93",
+      "revId": "27807a750f24304098dcc108b497d9429fc220bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c03828c9_3e1da77f",
         "filename": "go/promalertsclient/client.go",
         "patchSetId": 1
@@ -39,6 +57,30 @@
       "revId": "27807a750f24304098dcc108b497d9429fc220bb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb9cf8d1_b5f136f0",
+        "filename": "go/promalertsclient/client.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-26T18:51:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c03828c9_3e1da77f",
+      "range": {
+        "startLine": 56,
+        "startChar": 52,
+        "endLine": 56,
+        "endChar": 55
+      },
+      "revId": "27807a750f24304098dcc108b497d9429fc220bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
