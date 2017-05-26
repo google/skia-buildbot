@@ -28,7 +28,7 @@ var botMapping = {
 
     "skia-e-win.+": "<a href='https://goto.google.com/skolo-maintenance'>go/skolo-maintenance</a>",
 
-    ".+(m3|m5|a3)": "<a href='https://bugs.chromium.org/p/chromium/issues/entry?summary=[Device%20Restart]%20for%20_id_&description=Please%20Reboot%20_id_&cc=rmistry@google.com&components=Infra%3ELabs&labels=Pri-2,Infra-Troopers,Restrict-View-Google'> File a bug</a>",
+    ".+(m3|m5|a3)": "<a href='https://bugs.chromium.org/p/chromium/issues/entry?summary=[Device%20Restart]%20for%20_id_&description=Please%20Reboot%20_id_&components=Infra%3ELabs&labels=Pri-2,Infra-Troopers,Restrict-View-Google'> File a bug</a>",
   },
   useJumphost: {
     "skia-rpi-.+": true,
