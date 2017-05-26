@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2bc87a8b_d0b39d5a",
+        "filename": "skolo/go/powercycle-cli/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-26T15:14:40Z",
+      "side": 1,
+      "message": "See other comment about info message for *connect \u003d\u003d false. This is where it could go.",
+      "revId": "aedcd432ddb60ad9e685cb04d5b400cc6f622321",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d7b22fa_5ca17e98",
+        "filename": "skolo/go/powercycle/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-26T15:14:40Z",
+      "side": 1,
+      "message": "This file should be rename to \"powercycle.go\" to indicate that it\u0027s the main file of the package. So anybody coming here will look at it first and see the interface definition and how the config files are parsed. From here they can go the implementations of the individual devices.",
+      "revId": "aedcd432ddb60ad9e685cb04d5b400cc6f622321",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b0917186_ef387c06",
+        "filename": "skolo/go/powercycle/mpower.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-26T15:14:40Z",
+      "side": 1,
+      "message": "Nit: This should probably be in the main program once (instead of each device instance). \nI would slightly change the wording: \n\"Skipping connection test. Use --connect flag to force connection testing.\"",
+      "range": {
+        "startLine": 91,
+        "startChar": 2,
+        "endLine": 91,
+        "endChar": 46
+      },
+      "revId": "aedcd432ddb60ad9e685cb04d5b400cc6f622321",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
