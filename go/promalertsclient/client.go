@@ -8,14 +8,14 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/prometheus/alertmanager/dispatch"
+	"github.com/prometheus/common/model"
 	"go.skia.org/infra/go/util"
 )
 
 const (
 	// We directly access alerts from GCE instance to GCE instance
 	// so https is not required.
-	API_BASE_PATH_PATTERN = "http://%s/api/v1/alerts"
+	API_BASE_PATH_PATTERN = "http://%s/api/v1/alerts/groups"
 )
 
 // APIClient is a client to the Prometheus alerts manager web endpoint.
@@ -23,10 +23,15 @@ type APIClient interface {
 	// GetAlerts fetches all alerts from the server and returns them in a slice.
 	// If filter is non-nil, it will be applied to all alerts. If filter
 	// returns true, it will be included in the slice.
-	GetAlerts(filter func(dispatch.APIAlert) bool) ([]dispatch.APIAlert, error)
+	GetAlerts(filter func(Alert) bool) ([]Alert, error)
 }
 
-// apiclient fulfils the APIClient interface
+type Alert struct {
+	model.Alert
+	Silenced bool
+}
+
+// apiclient fulfills the APIClient interface
 type apiclient struct {
 	hc       HTTPClient
 	basePath string
@@ -48,14 +53,32 @@ func New(hc HTTPClient, server string) APIClient {
 }
 
 // alertResponse represents how Prometheus structures its response to the
-// API call.
+// API call.  See /prometheus/alertmanager/dispatch for the (possibly changing)
+// details
 type alertsResponse struct {
-	Status string              `json:"status"`
-	Data   []dispatch.APIAlert `json:"data"`
+	Status string       `json:"status"`
+	Data   []alertGroup `json:"data"`
+}
+
+type alertGroup struct {
+	Labels   model.LabelSet `json:"labels"`
+	GroupKey string         `json:"groupKey"`
+	Blocks   []alertBlock   `json:"blocks"`
+}
+
+type alertBlock struct {
+	Alerts []apialert `json:"alerts"`
+}
+
+type apialert struct {
+	model.Alert
+
+	Inhibited bool   `json:"inhibited"`
+	Silenced  string `json:"silenced,omitempty"`
 }
 
 // See the APIClient interface for a description of GetAlerts
-func (a *apiclient) GetAlerts(filter func(dispatch.APIAlert) bool) ([]dispatch.APIAlert, error) {
+func (a *apiclient) GetAlerts(filter func(Alert) bool) ([]Alert, error) {
 	r, err := a.hc.Get(a.basePath)
 	if err != nil {
 		return nil, err
@@ -70,10 +93,18 @@ func (a *apiclient) GetAlerts(filter func(dispatch.APIAlert) bool) ([]dispatch.A
 		return nil, fmt.Errorf("Could not parse JSON: %s", err)
 	}
 
-	retVal := []dispatch.APIAlert{}
-	for _, a := range alerts.Data {
-		if filter == nil || filter(a) {
-			retVal = append(retVal, a)
+	retVal := []Alert{}
+	for _, group := range alerts.Data {
+		for _, block := range group.Blocks {
+			for _, alert := range block.Alerts {
+				a := Alert{
+					Alert:    alert.Alert,
+					Silenced: alert.Silenced != "",
+				}
+				if filter == nil || filter(a) {
+					retVal = append(retVal, a)
+				}
+			}
 		}
 	}
 
