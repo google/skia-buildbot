@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "d4044910_60148bed",
+        "filename": "skolo/go/powercycle-cli/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-26T18:37:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2bc87a8b_d0b39d5a",
+      "revId": "aedcd432ddb60ad9e685cb04d5b400cc6f622321",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0d7b22fa_5ca17e98",
         "filename": "skolo/go/powercycle/config.go",
         "patchSetId": 2
@@ -33,6 +51,24 @@
       "revId": "aedcd432ddb60ad9e685cb04d5b400cc6f622321",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96839437_f4eedb0f",
+        "filename": "skolo/go/powercycle/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-26T18:37:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0d7b22fa_5ca17e98",
+      "revId": "aedcd432ddb60ad9e685cb04d5b400cc6f622321",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -56,6 +92,30 @@
       "revId": "aedcd432ddb60ad9e685cb04d5b400cc6f622321",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8dc00087_cbecc676",
+        "filename": "skolo/go/powercycle/mpower.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-26T18:37:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b0917186_ef387c06",
+      "range": {
+        "startLine": 91,
+        "startChar": 2,
+        "endLine": 91,
+        "endChar": 46
+      },
+      "revId": "aedcd432ddb60ad9e685cb04d5b400cc6f622321",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
