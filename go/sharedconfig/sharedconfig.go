@@ -1,9 +1,13 @@
 package sharedconfig
 
 import (
+	"os"
 	"time"
 
+	"go.skia.org/infra/go/util"
+
 	"github.com/BurntSushi/toml"
+	"github.com/flynn/json5"
 )
 
 // tomlDuration is a simple struct wrapper to allow us to parse strings as durations
@@ -50,4 +54,14 @@ func ConfigFromTomlFile(path string) (*Config, error) {
 		return nil, err
 	}
 	return ret, nil
+}
+
+func ConfigFromJson5File(path string) (*Config, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer util.Close(file)
+	ret := &Config{}
+	return ret, json5.NewDecoder(file).Decode(ret)
 }
