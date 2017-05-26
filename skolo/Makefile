@@ -65,7 +65,7 @@ cloudlogger_release: service_account
 
 .PHONY: powercycle
 powercycle:
-	go install -v ./go/powercycle
+	go install -v ./go/powercycle-cli
 
 .PHONY: powercycle_release
 powercycle_release: service_account
