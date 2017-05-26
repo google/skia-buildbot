@@ -63,6 +63,10 @@ func (c *TestClient) ListBots(dimensions map[string]string) ([]*swarming.Swarmin
 	return rv, nil
 }
 
+func (c *TestClient) ListDownBots(pool string) ([]*swarming.SwarmingRpcsBotInfo, error) {
+	return nil, nil
+}
+
 func (c *TestClient) ListFreeBots(pool string) ([]*swarming.SwarmingRpcsBotInfo, error) {
 	bots, err := c.ListBots(map[string]string{
 		DIMENSION_POOL_KEY: pool,
