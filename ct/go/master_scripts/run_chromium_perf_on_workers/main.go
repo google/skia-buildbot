@@ -171,21 +171,42 @@ func main() {
 	benchmarkPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, benchmarkPatchName)
 	customWebpagesLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, customWebpagesName)
 
-	// Create the two required chromium builds (with patch and without the patch).
-	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-		"build_chromium", *runID, "chromium", *targetPlatform, []string{},
-		[]string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName)},
-		/*singlebuild*/ false, 3*time.Hour, 1*time.Hour)
-	if err != nil {
-		sklog.Errorf("Error encountered when swarming build repo task: %s", err)
-		return
+	// Check if the patches have any content to decide if we need one or two chromium builds.
+	localPatches := []string{filepath.Join(os.TempDir(), chromiumPatchName), filepath.Join(os.TempDir(), skiaPatchName)}
+	remotePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName)}
+	var chromiumBuildNoPatch, chromiumBuildWithPatch string
+	if util.PatchesAreEmpty(localPatches) {
+		// Create only one chromium build.
+		chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
+			"build_chromium", *runID, "chromium", *targetPlatform, []string{}, remotePatches,
+			/*singlebuild*/ true, 3*time.Hour, 1*time.Hour)
+		if err != nil {
+			sklog.Errorf("Error encountered when swarming build repo task: %s", err)
+			return
+		}
+		if len(chromiumBuilds) != 1 {
+			sklog.Errorf("Expected 1 build but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
+			return
+		}
+		chromiumBuildNoPatch = chromiumBuilds[0]
+		chromiumBuildWithPatch = chromiumBuilds[0]
+
+	} else {
+		// Create the two required chromium builds (with patch and without the patch).
+		chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
+			"build_chromium", *runID, "chromium", *targetPlatform, []string{}, remotePatches,
+			/*singlebuild*/ false, 3*time.Hour, 1*time.Hour)
+		if err != nil {
+			sklog.Errorf("Error encountered when swarming build repo task: %s", err)
+			return
+		}
+		if len(chromiumBuilds) != 2 {
+			sklog.Errorf("Expected 2 builds but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
+			return
+		}
+		chromiumBuildNoPatch = chromiumBuilds[0]
+		chromiumBuildWithPatch = chromiumBuilds[1]
 	}
-	if len(chromiumBuilds) != 2 {
-		sklog.Errorf("Expected 2 builds but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
-		return
-	}
-	chromiumBuildNoPatch := chromiumBuilds[0]
-	chromiumBuildWithPatch := chromiumBuilds[1]
 
 	// Parse out the Chromium and Skia hashes.
 	chromiumHash, skiaHash := util.GetHashesFromBuild(chromiumBuildNoPatch)
