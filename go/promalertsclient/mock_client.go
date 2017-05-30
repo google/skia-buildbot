@@ -6,6 +6,8 @@ type MockAPIClient struct {
 	mock.Mock
 }
 
+// NewMockClient returns a pointer to a newly created struct.  We return the pointer because we want to
+// make sure the methods on mock.Mock stay accessible, e.g. m.On()
 func NewMockClient() *MockAPIClient {
 	return &MockAPIClient{}
 }
