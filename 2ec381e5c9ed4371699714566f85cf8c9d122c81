@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c656e6ca_44ae87ef",
+        "filename": "power/go/decider/decider_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-30T13:15:24Z",
+      "side": 1,
+      "message": "The docs and empirical evidence suggest Run happens synchronously.  Just to be extra sure, I added the closures.",
+      "parentUuid": "adb578cc_9b9837f2",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 4
+      },
+      "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "90f7c192_75ca873a",
         "filename": "power/go/decider/decider_test.go",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58aa3cc2_bfb01d31",
+        "filename": "power/go/decider/decider_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-30T13:15:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "90f7c192_75ca873a",
+      "range": {
+        "startLine": 107,
+        "startChar": 18,
+        "endLine": 107,
+        "endChar": 19
+      },
+      "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "c074422c_3a98c139",
+        "filename": "power/go/decider/decider_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-30T13:15:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "efddfc5a_40473072",
+      "range": {
+        "startLine": 124,
+        "startChar": 34,
+        "endLine": 124,
+        "endChar": 56
+      },
+      "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "40389600_b75ae95e",
         "filename": "power/go/decider/mock_decider.go",
         "patchSetId": 5
@@ -91,6 +163,30 @@
       "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7103de21_3408f0cb",
+        "filename": "power/go/decider/mock_decider.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-30T13:15:24Z",
+      "side": 1,
+      "message": "This is used in https://skia-review.googlesource.com/c/18068/4/power/go/gatherer/gatherer_test.go#41 (follow on CL)",
+      "parentUuid": "40389600_b75ae95e",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 36
+      },
+      "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "3bb369c3_b9896377",
+        "filename": "power/go/decider/mock_decider.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-30T13:15:24Z",
+      "side": 1,
+      "message": "No, it can\u0027t return Decider, otherwise you can\u0027t use it as a mock.  I\u0027ve added the docs as a reminder.",
+      "parentUuid": "10b6a897_1b7ffad2",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 35
+      },
+      "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "13c02f80_ec4c372d",
         "filename": "power/go/testdata/consts.go",
         "patchSetId": 5
@@ -137,6 +257,30 @@
       "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9cd07159_0106a7f8",
+        "filename": "power/go/testdata/consts.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-30T13:15:24Z",
+      "side": 1,
+      "message": "I\u0027ll make them other files, but I\u0027m leaving them in a shared directory because tests in future CLs also use them.",
+      "parentUuid": "13c02f80_ec4c372d",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 7
+      },
+      "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
