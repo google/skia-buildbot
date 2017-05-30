@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "1dc2cd37_3aaaa687",
+        "filename": "power/go/decider/decider_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-30T17:16:58Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "c656e6ca_44ae87ef",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 4
+      },
+      "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "90f7c192_75ca873a",
         "filename": "power/go/decider/decider_test.go",
         "patchSetId": 5
@@ -237,6 +261,30 @@
     },
     {
       "key": {
+        "uuid": "2ee3591c_2049b922",
+        "filename": "power/go/decider/mock_decider.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-30T17:16:58Z",
+      "side": 1,
+      "message": "Still doesn\u0027t make sense to me. Could you move this to the CL where it\u0027s actually used.",
+      "parentUuid": "3bb369c3_b9896377",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 35
+      },
+      "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "13c02f80_ec4c372d",
         "filename": "power/go/testdata/consts.go",
         "patchSetId": 5
@@ -272,6 +320,30 @@
       "side": 1,
       "message": "I\u0027ll make them other files, but I\u0027m leaving them in a shared directory because tests in future CLs also use them.",
       "parentUuid": "13c02f80_ec4c372d",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 7
+      },
+      "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b2ebbec9_6be92aa7",
+        "filename": "power/go/testdata/consts.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-30T17:16:58Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "9cd07159_0106a7f8",
       "range": {
         "startLine": 1,
         "startChar": 0,
