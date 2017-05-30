@@ -91,7 +91,7 @@ func main() {
 		return
 	}
 	step()
-	for _ = range time.Tick(time.Minute) {
+	for range time.Tick(time.Minute) {
 		step()
 	}
 }

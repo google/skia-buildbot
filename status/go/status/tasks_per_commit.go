@@ -113,7 +113,7 @@ func (c *tasksPerCommitCache) update() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	start := time.Now().Add(-c.period)
-	for rs, _ := range c.cached {
+	for rs := range c.cached {
 		repo, ok := c.repos[rs.Repo]
 		if !ok {
 			return fmt.Errorf("No such repo: %s", rs.Repo)

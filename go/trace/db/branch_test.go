@@ -45,7 +45,7 @@ func TestPerfTrace(t *testing.T) {
 	assert.NoError(t, err)
 
 	vcsCommits := []*vcsinfo.LongCommit{
-		&vcsinfo.LongCommit{
+		{
 			ShortCommit: &vcsinfo.ShortCommit{
 				Hash:    "foofoofoo",
 				Author:  "bar@example.com",
@@ -59,17 +59,17 @@ func TestPerfTrace(t *testing.T) {
 
 	now := time.Unix(100, 0)
 	commits := []*CommitID{
-		&CommitID{
+		{
 			Timestamp: time.Now().Unix(),
 			ID:        "1",
 			Source:    "https://codereview.chromium.org/1490543002",
 		},
-		&CommitID{
+		{
 			Timestamp: time.Now().Unix(),
 			ID:        "2",
 			Source:    GERRIT_ISSUE_URL,
 		},
-		&CommitID{
+		{
 			Timestamp: time.Now().Unix(),
 			ID:        "foofoofoo",
 			Source:    "master",
@@ -109,12 +109,12 @@ func TestPerfTrace(t *testing.T) {
 	assert.Equal(t, "bar@example.com", long[2].Author)
 
 	badCommits := []*CommitID{
-		&CommitID{
+		{
 			Timestamp: now.Add(2 * time.Minute).Unix(),
 			ID:        "2",
 			Source:    "https://codereview.chromium.org/99999999",
 		},
-		&CommitID{
+		{
 			Timestamp: now.Add(3 * time.Minute).Unix(),
 			ID:        "barbarbar",
 			Source:    "master",
@@ -138,7 +138,7 @@ func TestTileFromCommits(t *testing.T) {
 	now := time.Unix(100, 0)
 
 	commitIDs := []*CommitID{
-		&CommitID{
+		{
 			Timestamp: now.Unix(),
 			ID:        "foofoofoo",
 			Source:    "master",
@@ -146,7 +146,7 @@ func TestTileFromCommits(t *testing.T) {
 	}
 
 	vcsCommits := []*vcsinfo.LongCommit{
-		&vcsinfo.LongCommit{
+		{
 			ShortCommit: &vcsinfo.ShortCommit{
 				Hash:    "foofoofoo",
 				Author:  "bar@example.com",
@@ -157,7 +157,7 @@ func TestTileFromCommits(t *testing.T) {
 	vcs := ingestion.MockVCS(vcsCommits)
 
 	entries := map[string]*Entry{
-		"key:8888:android": &Entry{
+		"key:8888:android": {
 			Params: map[string]string{
 				"config":   "8888",
 				"platform": "android",
@@ -165,7 +165,7 @@ func TestTileFromCommits(t *testing.T) {
 			},
 			Value: perftypes.BytesFromFloat64(0.01),
 		},
-		"key:gpu:win8": &Entry{
+		"key:gpu:win8": {
 			Params: map[string]string{
 				"config":   "gpu",
 				"platform": "win8",
@@ -194,7 +194,7 @@ func TestTileFromCommits(t *testing.T) {
 	assert.Equal(t, 1, builder.tcache.Len(), "The tile should have been added to the cache.")
 
 	entries = map[string]*Entry{
-		"key:565:linux": &Entry{
+		"key:565:linux": {
 			Params: map[string]string{
 				"config":   "565",
 				"platform": "linux",

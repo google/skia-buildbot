@@ -151,7 +151,7 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 		actual, err := db.GetCommentsForRepos([]string{"r0", "r1", "r2"}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
 		expectedSlice := []*RepoComments{
-			&RepoComments{Repo: "r0"},
+			{Repo: "r0"},
 			expected["r1"],
 			expected["r2"],
 		}
@@ -186,7 +186,7 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 		actual, err := db.GetCommentsForRepos([]string{"r0", "r1", "r2"}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
 		expectedSlice := []*RepoComments{
-			&RepoComments{Repo: "r0"},
+			{Repo: "r0"},
 			expected["r1"],
 			expected["r2"],
 		}
@@ -204,7 +204,7 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 		actual, err := db.GetCommentsForRepos([]string{"r0", "r1", "r2"}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
 		expectedSlice := []*RepoComments{
-			&RepoComments{Repo: "r0"},
+			{Repo: "r0"},
 			expected["r1"],
 			expected["r2"],
 		}
@@ -246,7 +246,7 @@ func TestCommentBoxWithPersistenceError(t *testing.T) {
 	assert.NoError(t, db.PutCommitComment(cc1))
 
 	expected := []*RepoComments{
-		&RepoComments{
+		{
 			Repo: "r1",
 			TaskComments: map[string]map[string][]*TaskComment{
 				"c1": {
@@ -264,7 +264,7 @@ func TestCommentBoxWithPersistenceError(t *testing.T) {
 				"c1": {cc1},
 			},
 		},
-		&RepoComments{
+		{
 			Repo: "r2",
 			TaskComments: map[string]map[string][]*TaskComment{
 				"c3": {

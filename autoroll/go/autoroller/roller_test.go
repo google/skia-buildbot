@@ -196,16 +196,16 @@ TBR=some-sheriff
 		ChangeId:      fmt.Sprintf("%d", r.mockIssueNumber),
 		Issue:         r.mockIssueNumber,
 		Labels: map[string]*gerrit.LabelEntry{
-			gerrit.CODEREVIEW_LABEL: &gerrit.LabelEntry{
+			gerrit.CODEREVIEW_LABEL: {
 				All: []*gerrit.LabelDetail{
-					&gerrit.LabelDetail{
+					{
 						Value: gerrit.CODEREVIEW_LABEL_APPROVE,
 					},
 				},
 			},
-			gerrit.COMMITQUEUE_LABEL: &gerrit.LabelEntry{
+			gerrit.COMMITQUEUE_LABEL: {
 				All: []*gerrit.LabelDetail{
-					&gerrit.LabelDetail{
+					{
 						Value: cqLabel,
 					},
 				},

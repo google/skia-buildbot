@@ -91,7 +91,7 @@ func NewMasterTileBuilder(db DB, git *gitinfo.GitInfo, tileSize int, evt *eventb
 		}
 
 		liveness := metrics2.NewLiveness("tile-refresh", map[string]string{"module": "tracedb"})
-		for _ = range time.Tick(TILE_REFRESH_DURATION) {
+		for range time.Tick(TILE_REFRESH_DURATION) {
 			if err := ret.LoadTile(); err != nil {
 				sklog.Errorf("Failed to refresh tile: %s", err)
 			} else {

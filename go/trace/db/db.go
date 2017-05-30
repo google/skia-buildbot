@@ -144,7 +144,7 @@ func NewTraceServiceDB(conn *grpc.ClientConn, traceBuilder tiling.TraceBuilder) 
 	// Liveness metric.
 	go func() {
 		liveness := metrics2.NewLiveness("ping", map[string]string{"module": "tracedb"})
-		for _ = range time.Tick(time.Minute) {
+		for range time.Tick(time.Minute) {
 			if ret.ping() == nil {
 				liveness.Reset()
 			}
@@ -153,7 +153,7 @@ func NewTraceServiceDB(conn *grpc.ClientConn, traceBuilder tiling.TraceBuilder) 
 
 	// Keep the caches sizes in check.
 	go func() {
-		for _ = range time.Tick(15 * time.Minute) {
+		for range time.Tick(15 * time.Minute) {
 			ret.clearMutex.Lock()
 			if len(ret.paramsCache) > MAX_ID_CACHED {
 				ret.paramsCache = map[string]map[string]string{}
@@ -342,7 +342,7 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, []string, 
 			// Now make sure we have all the traceids for the trace64ids in ci.
 			missingKeys64 := []uint64{}
 			ts.mutex.Lock()
-			for id64, _ := range ci.Values {
+			for id64 := range ci.Values {
 				if _, ok := ts.id64Cache[id64]; !ok {
 					missingKeys64 = append(missingKeys64, id64)
 				}
@@ -408,7 +408,7 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, []string, 
 	// Now load the params for the traces.
 	traceids := []string{}
 	ts.mutex.Lock()
-	for k, _ := range tile.Traces {
+	for k := range tile.Traces {
 		// Only load params for traces not already in the cache.
 		if _, ok := ts.paramsCache[k]; !ok {
 			traceids = append(traceids, k)

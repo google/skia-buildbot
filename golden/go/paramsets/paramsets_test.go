@@ -54,26 +54,26 @@ func TestParamset(t *testing.T) {
 	}
 
 	tallies := map[string]tally.Tally{
-		"a": tally.Tally{
+		"a": {
 			"aaa": 1,
 			"bbb": 1,
 		},
-		"b": tally.Tally{
+		"b": {
 			"ccc": 1,
 			"ddd": 1,
 			"aaa": 1,
 		},
-		"c": tally.Tally{
+		"c": {
 			"eee": 1,
 		},
-		"e": tally.Tally{
+		"e": {
 			"xxx": 1,
 			"yyy": 2,
 		},
-		"f": tally.Tally{
+		"f": {
 			"xxx": 1,
 		},
-		"unknown": tally.Tally{
+		"unknown": {
 			"ccc": 1,
 			"ddd": 1,
 			"aaa": 1,

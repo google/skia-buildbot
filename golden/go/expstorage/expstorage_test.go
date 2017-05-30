@@ -60,20 +60,20 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 	DIGEST_21, DIGEST_22 := "d21", "d22"
 
 	expChange_1 := map[string]types.TestClassification{
-		TEST_1: types.TestClassification{
+		TEST_1: {
 			DIGEST_11: types.POSITIVE,
 			DIGEST_12: types.NEGATIVE,
 		},
-		TEST_2: types.TestClassification{
+		TEST_2: {
 			DIGEST_21: types.POSITIVE,
 			DIGEST_22: types.NEGATIVE,
 		},
 	}
 	logEntry_1 := []*TriageDetail{
-		&TriageDetail{TEST_1, DIGEST_11, "positive"},
-		&TriageDetail{TEST_1, DIGEST_12, "negative"},
-		&TriageDetail{TEST_2, DIGEST_21, "positive"},
-		&TriageDetail{TEST_2, DIGEST_22, "negative"},
+		{TEST_1, DIGEST_11, "positive"},
+		{TEST_1, DIGEST_12, "negative"},
+		{TEST_2, DIGEST_21, "positive"},
+		{TEST_2, DIGEST_22, "negative"},
 	}
 
 	assert.NoError(t, store.AddChange(expChange_1, "user-0"))
@@ -92,16 +92,16 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 
 	// Update digests.
 	expChange_2 := map[string]types.TestClassification{
-		TEST_1: types.TestClassification{
+		TEST_1: {
 			DIGEST_11: types.NEGATIVE,
 		},
-		TEST_2: types.TestClassification{
+		TEST_2: {
 			DIGEST_22: types.UNTRIAGED,
 		},
 	}
 	logEntry_2 := []*TriageDetail{
-		&TriageDetail{TEST_1, DIGEST_11, "negative"},
-		&TriageDetail{TEST_2, DIGEST_22, "untriaged"},
+		{TEST_1, DIGEST_11, "negative"},
+		{TEST_2, DIGEST_22, "untriaged"},
 	}
 
 	assert.NoError(t, store.AddChange(expChange_2, "user-1"))
@@ -129,8 +129,8 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 
 	// Remove digests.
 	removeDigests_1 := map[string][]string{
-		TEST_1: []string{DIGEST_11},
-		TEST_2: []string{DIGEST_22},
+		TEST_1: {DIGEST_11},
+		TEST_2: {DIGEST_22},
 	}
 	assert.NoError(t, store.RemoveChange(removeDigests_1))
 	if eventBus != nil {
@@ -145,7 +145,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 	assert.Equal(t, types.TestClassification(map[string]types.Label{DIGEST_12: types.NEGATIVE}), foundExps.Tests[TEST_1])
 	assert.Equal(t, types.TestClassification(map[string]types.Label{DIGEST_21: types.POSITIVE}), foundExps.Tests[TEST_2])
 
-	removeDigests_2 := map[string][]string{TEST_1: []string{DIGEST_12}}
+	removeDigests_2 := map[string][]string{TEST_1: {DIGEST_12}}
 	assert.NoError(t, store.RemoveChange(removeDigests_2))
 	if eventBus != nil {
 		eventBus.Wait(EV_EXPSTORAGE_CHANGED)

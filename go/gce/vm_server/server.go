@@ -60,7 +60,7 @@ func Main(instances map[string]*gce.Instance) {
 	vm, ok := instances[*instance]
 	if !ok {
 		validInstances := make([]string, 0, len(instances))
-		for k, _ := range instances {
+		for k := range instances {
 			validInstances = append(validInstances, k)
 		}
 		sort.Strings(validInstances)

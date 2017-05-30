@@ -18,12 +18,12 @@ func TestAdd(t *testing.T) {
 	now := time.Unix(100, 0)
 
 	commitIDs := []*CommitID{
-		&CommitID{
+		{
 			Timestamp: now.Unix(),
 			ID:        "abc123",
 			Source:    "master",
 		},
-		&CommitID{
+		{
 			Timestamp: now.Add(time.Hour).Unix(),
 			ID:        "xyz789",
 			Source:    "master",
@@ -31,7 +31,7 @@ func TestAdd(t *testing.T) {
 	}
 
 	entries := map[string]*Entry{
-		"key:8888:android": &Entry{
+		"key:8888:android": {
 			Params: map[string]string{
 				"config":   "8888",
 				"platform": "android",
@@ -39,7 +39,7 @@ func TestAdd(t *testing.T) {
 			},
 			Value: perftypes.BytesFromFloat64(0.01),
 		},
-		"key:gpu:win8": &Entry{
+		"key:gpu:win8": {
 			Params: map[string]string{
 				"config":   "gpu",
 				"platform": "win8",

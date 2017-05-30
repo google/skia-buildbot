@@ -148,7 +148,7 @@ func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []string, query u
 			if slice, ok := filtered[name]; ok {
 				filtered[name] = append(slice, &TraceID{tr: tr, id: id})
 			} else {
-				filtered[name] = []*TraceID{&TraceID{tr: tr, id: id}}
+				filtered[name] = []*TraceID{{tr: tr, id: id}}
 			}
 		}
 	}
@@ -177,7 +177,7 @@ func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []string, query u
 			} else {
 				// Use the traceTally if available, otherwise just inspect the trace.
 				if t, ok := traceTally[trid.id]; ok {
-					for k, _ := range t {
+					for k := range t {
 						digests[k] = true
 					}
 				} else {
@@ -252,7 +252,7 @@ func (s *Summaries) search(tile *tiling.Tile, query string, head bool, pos bool,
 			}
 		} else {
 			if t, ok := traceTally[id]; ok {
-				for d, _ := range t {
+				for d := range t {
 					matches[test+":"+d] = true
 				}
 			}
@@ -263,7 +263,7 @@ func (s *Summaries) search(tile *tiling.Tile, query string, head bool, pos bool,
 	// Now create DigestInfo for each test:digest found, filtering out
 	// digests with that don't match the triage classification.
 	ret := []DigestInfo{}
-	for key, _ := range matches {
+	for key := range matches {
 		testDigest := strings.Split(key, ":")
 		if len(testDigest) != 2 {
 			sklog.Errorf("Invalid test name or digest value: %s", key)

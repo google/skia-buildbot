@@ -193,7 +193,7 @@ func (i *info) single_poll() {
 		}
 		// Now find the largest buildID and store it.
 		buildIDs := []int{}
-		for id, _ := range builds {
+		for id := range builds {
 			i, err := strconv.Atoi(id)
 			if err == nil {
 				buildIDs = append(buildIDs, i)
@@ -212,7 +212,7 @@ func (i *info) single_poll() {
 
 // poll periodically polls each target we are monitoring.
 func (i *info) poll() {
-	for _ = range time.Tick(time.Minute) {
+	for range time.Tick(time.Minute) {
 		i.single_poll()
 	}
 }

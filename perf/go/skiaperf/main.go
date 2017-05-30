@@ -433,7 +433,7 @@ func countHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	count := 0
-	for key, _ := range freshDataFrame.Get().TraceSet {
+	for key := range freshDataFrame.Get().TraceSet {
 		if q.Matches(key) {
 			count += 1
 		}
@@ -599,11 +599,11 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 		end = lastIndex
 	}
 	details, err := cidl.Lookup([]*cid.CommitID{
-		&cid.CommitID{
+		{
 			Offset: begin,
 			Source: "master",
 		},
-		&cid.CommitID{
+		{
 			Offset: end,
 			Source: "master",
 		},
@@ -781,7 +781,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	// the queries that are present in the set of Regressions we just loaded.
 	headers := strings.Split(*clusterQueries, " ")
 	for _, reg := range regMap {
-		for q, _ := range reg.ByQuery {
+		for q := range reg.ByQuery {
 			headers = append(headers, q)
 		}
 	}

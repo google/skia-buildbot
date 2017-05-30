@@ -144,7 +144,7 @@ func newDocSet(repoDir, repo string, issue, patchset int64, refresh bool) (*DocS
 	d.BuildNavigation()
 	if refresh {
 		go func() {
-			for _ = range time.Tick(config.REFRESH) {
+			for range time.Tick(config.REFRESH) {
 				util.LogErr(git.Update(true, false))
 				d.BuildNavigation()
 			}
@@ -516,7 +516,7 @@ var issueAndPatch = regexp.MustCompile("([0-9]+)-[0-9]+")
 // that has been previewed and removes all the local files for closed issues.
 func StartCleaner(workDir string) {
 	sklog.Info("Starting Cleaner")
-	for _ = range time.Tick(config.REFRESH) {
+	for range time.Tick(config.REFRESH) {
 		// TODO (stephana): The extra 'patches' directory should go away after
 		// one of the path segments is removed in docserver/main.go or
 		// NewDocsetForIssue.

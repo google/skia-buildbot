@@ -30,7 +30,7 @@ func testDigestStore(t assert.TestingT, digestStore DigestStore) {
 	assert.False(t, ok)
 
 	digestInfos := []*DigestInfo{
-		&DigestInfo{TestName: testName_1, Digest: digest_1, First: timestamp_1, Last: timestamp_1},
+		{TestName: testName_1, Digest: digest_1, First: timestamp_1, Last: timestamp_1},
 	}
 	assert.NoError(t, digestStore.Update(digestInfos))
 
@@ -43,7 +43,7 @@ func testDigestStore(t assert.TestingT, digestStore DigestStore) {
 	// Update the digest with a commit 10 seconds later than the first one.
 	timestamp_2 := timestamp_1 + 10
 	digestInfos = []*DigestInfo{
-		&DigestInfo{TestName: testName_1, Digest: digest_1, First: timestamp_2, Last: timestamp_2},
+		{TestName: testName_1, Digest: digest_1, First: timestamp_2, Last: timestamp_2},
 	}
 
 	assert.NoError(t, digestStore.Update(digestInfos))

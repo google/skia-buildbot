@@ -225,7 +225,7 @@ func listUnits() ([]*systemd.UnitStatus, error) {
 			// If running locally the above will fail because we aren't on systemd
 			// yet, so return some dummy data.
 			units = []*systemd.UnitStatus{
-				&systemd.UnitStatus{
+				{
 					Status: &dbus.UnitStatus{
 						Name:     "test.service",
 						SubState: "running",
@@ -234,7 +234,7 @@ func listUnits() ([]*systemd.UnitStatus, error) {
 						"ExecMainStartTimestamp": time.Now().Add(-5*time.Minute).Unix() * 1000000,
 					},
 				},
-				&systemd.UnitStatus{
+				{
 					Status: &dbus.UnitStatus{
 						Name:     "something.service",
 						SubState: "halted",

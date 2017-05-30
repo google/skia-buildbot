@@ -56,10 +56,10 @@ func TestRunTemplates(t *testing.T) {
 
 	devices := DevicesConfig{
 		Devices: map[string]DeviceConfig{
-			"HAL": DeviceConfig{
+			"HAL": {
 				Unattend: "simple.xml",
 			},
-			"Skynet": DeviceConfig{
+			"Skynet": {
 				Unattend: "simple.xml",
 			},
 		},
@@ -96,7 +96,7 @@ func TestRunTemplatesUnknownTemplate(t *testing.T) {
 	assert.NoError(t, err)
 	devices := DevicesConfig{
 		Devices: map[string]DeviceConfig{
-			"Skynet": DeviceConfig{
+			"Skynet": {
 				Unattend: "sentient.xml",
 			},
 		},
@@ -113,7 +113,7 @@ func TestRunTemplatesBadTemplate(t *testing.T) {
 	assert.NoError(t, err)
 	devices := DevicesConfig{
 		Devices: map[string]DeviceConfig{
-			"Skynet": DeviceConfig{
+			"Skynet": {
 				Unattend: "bad.xml",
 			},
 		},

@@ -73,7 +73,7 @@ func CalculateCentroid(members []kmeans.Clusterable) kmeans.Centroid {
 		}
 	}
 	numMembers := float32(len(members))
-	for i, _ := range mean {
+	for i := range mean {
 		mean[i] = mean[i] / numMembers
 	}
 	return &ClusterableTrace{

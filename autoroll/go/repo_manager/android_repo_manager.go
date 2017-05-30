@@ -75,7 +75,7 @@ func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string,
 		return nil, err
 	}
 	go func() {
-		for _ = range time.Tick(frequency) {
+		for range time.Tick(frequency) {
 			// Update repo.
 			util.LogErr(r.update())
 		}

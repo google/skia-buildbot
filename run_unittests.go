@@ -156,7 +156,7 @@ func buildPolymerFolder(cwd string) error {
 func polylintTestsForDir(cwd string, fileNames ...string) []*test {
 	if err := buildPolymerFolder(cwd); err != nil {
 		return []*test{
-			&test{
+			{
 				Name: filepath.Join(cwd, "make"),
 				Cmd:  filepath.Join(cwd, "make"),
 				run: func() (string, error) {
@@ -369,6 +369,7 @@ func main() {
 
 	// Other tests.
 	tests = append(tests, cmdTest([]string{"go", "vet", "./..."}, ".", "go vet", testutils.SMALL_TEST))
+	tests = append(tests, cmdTest([]string{"gofmt", "-s", "-d"}, ".", "go simplify (gofmt -s -w .)", testutils.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"errcheck", "-ignore", ":Close", "go.skia.org/infra/..."}, ".", "errcheck", testutils.MEDIUM_TEST))
 	tests = append(tests, polylintTests()...)
 	tests = append(tests, cmdTest([]string{"python", "infra/bots/recipes.py", "test", "run"}, ".", "recipes test", testutils.MEDIUM_TEST))

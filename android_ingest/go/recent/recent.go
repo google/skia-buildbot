@@ -38,7 +38,7 @@ func (r *Recent) Add(b []byte) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	r.recent = append([]*Request{&Request{
+	r.recent = append([]*Request{{
 		TS:   time.Now().UTC().String(),
 		JSON: string(b),
 	}}, r.recent...)

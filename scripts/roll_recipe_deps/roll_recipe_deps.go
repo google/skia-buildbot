@@ -51,8 +51,8 @@ var (
 	// REPOS maps out the recipe dependency relationship between
 	// repositories.
 	REPOS = map[string][]string{
-		common.REPO_SKIA_INFRA: []string{},
-		common.REPO_SKIA:       []string{},
+		common.REPO_SKIA_INFRA: {},
+		common.REPO_SKIA:       {},
 	}
 )
 
@@ -140,7 +140,7 @@ func rollRepo(repoUrl string) (string, error) {
 
 	commitMsg := "Roll Recipe DEPS\n\n"
 	repoNames := make([]string, 0, len(details))
-	for repo, _ := range details {
+	for repo := range details {
 		repoNames = append(repoNames, repo)
 	}
 	sort.Strings(repoNames)
@@ -206,7 +206,7 @@ func main() {
 		return cachedResult[repoUrl]
 	}
 
-	for repo, _ := range REPOS {
+	for repo := range REPOS {
 		recurse(repo)
 	}
 

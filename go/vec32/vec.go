@@ -163,7 +163,7 @@ func MeanMissing(xs []float32) float32 {
 func FillMeanMissing(a []float32) {
 	value := MeanMissing(a)
 	// Now fill.
-	for i, _ := range a {
+	for i := range a {
 		a[i] = value
 	}
 }
@@ -178,7 +178,7 @@ func FillStdDev(a []float32) {
 		stddev = MISSING_DATA_SENTINEL
 	}
 	// Now fill.
-	for i, _ := range a {
+	for i := range a {
 		a[i] = stddev
 	}
 }
@@ -197,7 +197,7 @@ func FillCov(a []float32) {
 		cov = MISSING_DATA_SENTINEL
 	}
 	// Now fill.
-	for i, _ := range a {
+	for i := range a {
 		a[i] = cov
 	}
 }

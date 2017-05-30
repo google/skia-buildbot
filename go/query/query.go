@@ -88,7 +88,7 @@ func MakeKey(m map[string]string) (string, error) {
 		return "", fmt.Errorf("Map must have at least one entry.")
 	}
 	keys := make([]string, 0, len(m))
-	for k, _ := range m {
+	for k := range m {
 		if !paramRe.MatchString(k) {
 			return "", fmt.Errorf("Key contains invalid characters: %q", k)
 		}
@@ -194,7 +194,7 @@ type Query struct {
 // used against keys.
 func New(q url.Values) (*Query, error) {
 	keys := make([]string, 0, len(q))
-	for k, _ := range q {
+	for k := range q {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)

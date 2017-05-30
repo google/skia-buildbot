@@ -128,7 +128,7 @@ func main() {
 		for _, pool := range swarmingPools[swarmingServer] {
 			go func(server, pool string, client swarming.ApiClient) {
 				oldMetrics := []metrics2.Int64Metric{}
-				for _ = range time.Tick(2 * time.Minute) {
+				for range time.Tick(2 * time.Minute) {
 					sklog.Infof("Loading Swarming bot data for pool %s", pool)
 					bots, err := client.ListBotsForPool(pool)
 					if err != nil {
@@ -190,7 +190,7 @@ func main() {
 	go func() {
 		skiaGauge := metrics2.GetInt64Metric("repo.commits", map[string]string{"repo": "skia"})
 		infraGauge := metrics2.GetInt64Metric("repo.commits", map[string]string{"repo": "infra"})
-		for _ = range time.Tick(5 * time.Minute) {
+		for range time.Tick(5 * time.Minute) {
 			nSkia, err := repos[common.REPO_SKIA].Repo().NumCommits()
 			if err != nil {
 				sklog.Errorf("Failed to get number of commits for Skia: %s", err)
@@ -233,7 +233,7 @@ func main() {
 		if err := setLastBackupTime(); err != nil {
 			sklog.Fatal(err)
 		}
-		for _ = range time.Tick(10 * time.Minute) {
+		for range time.Tick(10 * time.Minute) {
 			if err := setLastBackupTime(); err != nil {
 				sklog.Errorf("Failed to get last DB backup time: %s", err)
 			}

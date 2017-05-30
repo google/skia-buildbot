@@ -150,7 +150,7 @@ func (d *DMResults) idAndParams(r *Result) (string, map[string]string) {
 	}
 
 	keys := []string{}
-	for k, _ := range traceIdParts {
+	for k := range traceIdParts {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)

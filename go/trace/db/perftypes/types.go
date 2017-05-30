@@ -134,7 +134,7 @@ func NewPerfTraceN(n int) *PerfTrace {
 		Values:  make([]float64, n, n),
 		Params_: make(map[string]string),
 	}
-	for i, _ := range t.Values {
+	for i := range t.Values {
 		t.Values[i] = MISSING_DATA_SENTINEL
 	}
 	return t

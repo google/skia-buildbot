@@ -284,9 +284,9 @@ func (g *GCloud) CreateInstance(vm *Instance, ignoreExists bool) error {
 		},
 		Name: vm.Name,
 		NetworkInterfaces: []*compute.NetworkInterface{
-			&compute.NetworkInterface{
+			{
 				AccessConfigs: []*compute.AccessConfig{
-					&compute.AccessConfig{
+					{
 						NatIP: vm.ExternalIpAddress,
 						Type:  "ONE_TO_ONE_NAT",
 					},
@@ -298,7 +298,7 @@ func (g *GCloud) CreateInstance(vm *Instance, ignoreExists bool) error {
 			OnHostMaintenance: MAINTENANCE_POLICY_MIGRATE,
 		},
 		ServiceAccounts: []*compute.ServiceAccount{
-			&compute.ServiceAccount{
+			{
 				Email:  SERVICE_ACCOUNT_DEFAULT,
 				Scopes: vm.Scopes,
 			},

@@ -33,7 +33,7 @@ var (
 	// TEST_COMMITS are the commits we are considering. It needs to contain at
 	// least all the commits referenced in the test file.
 	TEST_COMMITS = []*vcsinfo.LongCommit{
-		&vcsinfo.LongCommit{
+		{
 			ShortCommit: &vcsinfo.ShortCommit{
 				Hash:    "fe4a4029a080bc955e9588d05a6cd9eb490845d4",
 				Subject: "Really big code change",

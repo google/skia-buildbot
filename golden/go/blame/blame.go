@@ -194,8 +194,8 @@ func (b *Blamer) Calculate(tile *tiling.Tile) error {
 				if blameStartFound, ok := blameStart[testName]; !ok {
 					blameStart[testName] = map[string]int{digest: startIdx}
 					blameEnd[testName] = map[string]int{digest: endIdx}
-					blameRange[testName] = map[string][][]int{digest: [][]int{commitRange}}
-					ret[testName] = map[string]*BlameDistribution{digest: &BlameDistribution{Old: isOld}}
+					blameRange[testName] = map[string][][]int{digest: {commitRange}}
+					ret[testName] = map[string]*BlameDistribution{digest: {Old: isOld}}
 				} else if currentStart, ok := blameStartFound[digest]; !ok {
 					blameStart[testName][digest] = startIdx
 					blameEnd[testName][digest] = endIdx

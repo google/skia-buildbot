@@ -62,7 +62,7 @@ var (
 	// downside is that we'll miss commits in the case where we fork a
 	// branch, merge it back, and delete the new branch head.
 	BRANCH_BLACKLIST = map[string][]string{
-		common.REPO_SKIA_INTERNAL: []string{
+		common.REPO_SKIA_INTERNAL: {
 			"skia-master",
 		},
 	}
@@ -372,7 +372,7 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(unfinishedJobs []*db.Job) (map
 		if !s.window.TestTime(j.Repo, j.Created) {
 			continue
 		}
-		for tsName, _ := range j.Dependencies {
+		for tsName := range j.Dependencies {
 			key := j.MakeTaskKey(tsName)
 			spec, err := s.taskCfgCache.GetTaskSpec(j.RepoState, tsName)
 			if err != nil {
@@ -605,7 +605,7 @@ func (s *TaskScheduler) processTaskCandidates(candidates map[string]map[string][
 						oldC := util.NewStringSet(stoleFrom.Commits)
 						newC := oldC.Complement(stole)
 						commits := make([]string, 0, len(newC))
-						for c, _ := range newC {
+						for c := range newC {
 							commits = append(commits, c)
 						}
 						stoleFrom.Commits = commits
@@ -653,7 +653,7 @@ func (s *TaskScheduler) processTaskCandidates(candidates map[string]map[string][
 // flatten all the dimensions in 'dims' into a single valued map.
 func flatten(dims map[string]string) map[string]string {
 	keys := make([]string, 0, len(dims))
-	for key, _ := range dims {
+	for key := range dims {
 		keys = append(keys, key)
 	}
 	sort.Strings(keys)
@@ -780,7 +780,7 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 			// We're going to run this task. Choose a bot. Sort the
 			// bots by ID so that the choice is deterministic.
 			choices := make([]string, 0, len(matches))
-			for botId, _ := range matches {
+			for botId := range matches {
 				choices = append(choices, botId)
 			}
 			sort.Strings(choices)
@@ -1483,7 +1483,7 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 // in a map keyed by name.
 func (s *TaskScheduler) getTasksForJob(j *db.Job) (map[string][]*db.Task, error) {
 	tasks := map[string][]*db.Task{}
-	for d, _ := range j.Dependencies {
+	for d := range j.Dependencies {
 		key := j.MakeTaskKey(d)
 		gotTasks, err := s.tCache.GetTasksByKey(&key)
 		if err != nil {
@@ -1553,7 +1553,7 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(tasks []*db.Task) error {
 				stealingFrom.Commits = nil
 			} else {
 				newCommits := make([]string, 0, len(newC))
-				for c, _ := range newC {
+				for c := range newC {
 					newCommits = append(newCommits, c)
 				}
 				stealingFrom.Commits = newCommits
@@ -1607,7 +1607,7 @@ func (s *TaskScheduler) AddTasks(taskMap map[string]map[string][]*db.Task) error
 		done := make(chan queueItem)
 		errs := make(chan error, len(queue))
 		wg := sync.WaitGroup{}
-		for item, _ := range queue {
+		for item := range queue {
 			wg.Add(1)
 			go func(item queueItem, tasks []*db.Task) {
 				defer wg.Done()
@@ -1679,8 +1679,8 @@ func (s *TaskScheduler) ValidateAndAddTask(task *db.Task) error {
 	task.Commits = nil
 
 	return s.AddTasks(map[string]map[string][]*db.Task{
-		task.Repo: map[string][]*db.Task{
-			task.Name: []*db.Task{task},
+		task.Repo: {
+			task.Name: {task},
 		},
 	})
 }

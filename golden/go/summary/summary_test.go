@@ -123,12 +123,12 @@ func TestCalcSummaries(t *testing.T) {
 			},
 		},
 		Commits: []*tiling.Commit{
-			&tiling.Commit{
+			{
 				CommitTime: 42,
 				Hash:       "ffffffffffffffffffffffffffffffffffffffff",
 				Author:     "test@test.cz",
 			},
-			&tiling.Commit{
+			{
 				CommitTime: 45,
 				Hash:       "gggggggggggggggggggggggggggggggggggggggg",
 				Author:     "test@test.cz",

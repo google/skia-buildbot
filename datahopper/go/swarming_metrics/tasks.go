@@ -136,7 +136,7 @@ func addMetric(s *events.EventStream, metric string, period time.Duration, fn fu
 			tags := map[string]string{
 				"task-name": t.TaskResult.Name,
 			}
-			for d, _ := range DIMENSION_WHITELIST {
+			for d := range DIMENSION_WHITELIST {
 				tags[d] = ""
 			}
 			for _, dim := range t.Request.Properties.Dimensions {

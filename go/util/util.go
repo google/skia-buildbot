@@ -752,7 +752,7 @@ func ValidateCommit(hash string) bool {
 // the input slice will result in duplicate permutations returned.
 func Permute(ints []int) [][]int {
 	if len(ints) == 1 {
-		return [][]int{[]int{ints[0]}}
+		return [][]int{{ints[0]}}
 	}
 	rv := [][]int{}
 	for _, i := range ints {
@@ -777,7 +777,7 @@ func Permute(ints []int) [][]int {
 // Duplicates in the input slice will result in duplicate permutations returned.
 func PermuteStrings(strs []string) [][]string {
 	idxs := make([]int, 0, len(strs))
-	for i, _ := range strs {
+	for i := range strs {
 		idxs = append(idxs, i)
 	}
 	permuteIdxs := Permute(idxs)

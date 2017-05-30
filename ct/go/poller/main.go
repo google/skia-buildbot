@@ -468,7 +468,7 @@ func main() {
 
 	// Run immediately, since pollTick will not fire until after pollInterval.
 	pollAndExecOnce()
-	for _ = range time.Tick(*pollInterval) {
+	for range time.Tick(*pollInterval) {
 		healthyGauge.Update(1)
 		pollAndExecOnce()
 

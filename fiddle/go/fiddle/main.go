@@ -561,7 +561,7 @@ func singleStepTryNamed() {
 func StartTryNamed() {
 	go func() {
 		singleStepTryNamed()
-		for _ = range time.Tick(24 * time.Hour) {
+		for range time.Tick(24 * time.Hour) {
 			singleStepTryNamed()
 		}
 	}()

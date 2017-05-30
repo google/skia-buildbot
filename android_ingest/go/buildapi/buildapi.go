@@ -77,7 +77,7 @@ func (a *API) List(branch string, endBuildId int64) ([]Build, error) {
 	// Turn 'collect' into a []Build, sorted by ascending timestamp.
 	ret := []Build{}
 	keys := []int64{}
-	for key, _ := range collect {
+	for key := range collect {
 		keys = append(keys, key)
 	}
 	sort.Sort(util.Int64Slice(keys))

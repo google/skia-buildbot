@@ -210,7 +210,7 @@ func NewLocalDB(filename string) (DB, error) {
 		modExpire: map[string]time.Time{},
 	}
 	go func() {
-		for _ = range time.Tick(time.Minute) {
+		for range time.Tick(time.Minute) {
 			db.reportActiveTx()
 			db.clearExpiredModifiedUsers()
 		}

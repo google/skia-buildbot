@@ -148,7 +148,7 @@ func (AveFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 	}
 
 	ret := newRow(rows)
-	for i, _ := range ret {
+	for i := range ret {
 		sum := float32(0.0)
 		count := 0
 		for _, r := range rows {
@@ -198,7 +198,7 @@ func (RatioFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 	}
 
 	ret := newRow(rowsA)
-	for i, _ := range ret {
+	for i := range ret {
 		ret[i] = rowA[i] / rowB[i]
 		if math.IsInf(float64(ret[i]), 0) {
 			ret[i] = vec32.MISSING_DATA_SENTINEL
@@ -239,7 +239,7 @@ func (CountFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 	}
 
 	ret := newRow(rows)
-	for i, _ := range ret {
+	for i := range ret {
 		count := 0
 		for _, r := range rows {
 			if r[i] != vec32.MISSING_DATA_SENTINEL {
@@ -282,7 +282,7 @@ func (SumFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 	}
 
 	ret := newRow(rows)
-	for i, _ := range ret {
+	for i := range ret {
 		sum := float32(0.0)
 		count := 0
 		for _, r := range rows {
@@ -329,7 +329,7 @@ func (GeoFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 	}
 
 	ret := newRow(rows)
-	for i, _ := range ret {
+	for i := range ret {
 		// We're accumulating a product, but in log-space to avoid large N overflow.
 		sumLog := 0.0
 		count := 0

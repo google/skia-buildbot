@@ -65,7 +65,7 @@ func mockSwarmingBotsForAllTasksForTesting(repos repograph.Map) []*swarming_api.
 // TestClient by updating the status, started/completed times, isolated output,
 // etc. Does not return.
 func periodicallyUpdateMockTasksForTesting(swarm *swarming.TestClient) {
-	for _ = range time.Tick(time.Minute) {
+	for range time.Tick(time.Minute) {
 		swarm.DoMockTasks(func(task *swarming_api.SwarmingRpcsTaskRequestMetadata) {
 			created, err := swarming.Created(task)
 			if err != nil {

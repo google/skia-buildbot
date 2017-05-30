@@ -114,7 +114,7 @@ func TestMerge(t *testing.T) {
 	}
 	tc := []testCase{
 		// 0. Very simple equality.
-		testCase{
+		{
 			f1: f1,
 			f2: f2,
 			expect: &FailureGroup{
@@ -124,7 +124,7 @@ func TestMerge(t *testing.T) {
 				fixedIn: newSlice(1, 2),
 			},
 		},
-		testCase{
+		{
 			f1: f12,
 			f2: f13,
 			expect: &FailureGroup{
@@ -135,19 +135,19 @@ func TestMerge(t *testing.T) {
 			},
 		},
 		// 1. Not equal.
-		testCase{
+		{
 			f1:     f1,
 			f2:     f3,
 			expect: nil,
 		},
 		// 2. Overlap, fixes don't match.
-		testCase{
+		{
 			f1:     f4,
 			f2:     f5,
 			expect: nil,
 		},
 		// 3. Overlap, fixes match.
-		testCase{
+		{
 			f1: f6,
 			f2: f5,
 			expect: &FailureGroup{
@@ -158,7 +158,7 @@ func TestMerge(t *testing.T) {
 			},
 		},
 		//    Inherit the non-empty fixedIn slice.
-		testCase{
+		{
 			f1: f3,
 			f2: f9,
 			expect: &FailureGroup{
@@ -169,19 +169,19 @@ func TestMerge(t *testing.T) {
 			},
 		},
 		// 4. Totally disjoint.
-		testCase{
+		{
 			f1:     f7,
 			f2:     f8,
 			expect: nil,
 		},
 		// 5. The fix slice of one failure cannot be wholly contained
 		//    within the failed slice of the other.
-		testCase{
+		{
 			f1:     f1,
 			f2:     f9,
 			expect: nil,
 		},
-		testCase{
+		{
 			f1: f10,
 			f2: f11,
 			expect: &FailureGroup{
@@ -289,10 +289,10 @@ func TestFindFailureGroups(t *testing.T) {
 		assert.Equal(t, 0, len(remaining))
 	}
 
-	check([]*failure{f1, f2}, [][]string{[]string{f1.id}, []string{f2.id}})
-	check([]*failure{f2, f3}, [][]string{[]string{f2.id, f3.id}})
-	check([]*failure{f3, f4, f5}, [][]string{[]string{f3.id, f4.id}, []string{f4.id, f5.id}})
-	check([]*failure{f1, f2, f3, f4, f5}, [][]string{[]string{f1.id, f3.id}, []string{f2.id, f3.id}, []string{f3.id, f4.id}, []string{f4.id, f5.id}})
+	check([]*failure{f1, f2}, [][]string{{f1.id}, {f2.id}})
+	check([]*failure{f2, f3}, [][]string{{f2.id, f3.id}})
+	check([]*failure{f3, f4, f5}, [][]string{{f3.id, f4.id}, {f4.id, f5.id}})
+	check([]*failure{f1, f2, f3, f4, f5}, [][]string{{f1.id, f3.id}, {f2.id, f3.id}, {f3.id, f4.id}, {f4.id, f5.id}})
 
 	//   f3  f5  f6  f7  f4
 	// e          X   X
@@ -303,8 +303,8 @@ func TestFindFailureGroups(t *testing.T) {
 	//
 	// Expect: (f3, f4), (f5, f6, f7), (f4, f5)
 	check([]*failure{f3, f5, f6, f7, f4}, [][]string{
-		[]string{f3.id, f4.id},
-		[]string{f4.id, f5.id},
-		[]string{f5.id, f6.id, f7.id},
+		{f3.id, f4.id},
+		{f4.id, f5.id},
+		{f5.id, f6.id, f7.id},
 	})
 }

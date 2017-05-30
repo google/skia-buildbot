@@ -36,7 +36,7 @@ func Init(store IgnoreStore) error {
 		return fmt.Errorf("Unable to start monitoring ignore rules: %s", err)
 	}
 	go func() {
-		for _ = range time.Tick(time.Minute) {
+		for range time.Tick(time.Minute) {
 			err = oneStep(store, numExpired)
 			if err != nil {
 				sklog.Errorf("Failed one step of monitoring ignore rules: %s", err)

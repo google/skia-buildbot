@@ -41,7 +41,7 @@ func TestEncodeDecodeKey(t *testing.T) {
 
 	// Errors.
 	tc = []time.Time{
-		time.Time{},
+		{},
 		time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC),
 	}
 	for _, c := range tc {

@@ -350,7 +350,7 @@ func updateTasks(d db.TaskDB) {
 	}
 	sklog.Infof("updateTasks finished loading; %d pending and running", len(idMap))
 	// Rate limit so we're not constantly taking locks for GetModifiedTasks.
-	for _ = range time.Tick(time.Millisecond) {
+	for range time.Tick(time.Millisecond) {
 		now := time.Now()
 		t, err := d.GetModifiedTasks(token)
 		if err != nil {
@@ -419,7 +419,7 @@ func readTasks(d db.TaskDB) {
 	var readCount uint64 = 0
 	var totalDuration time.Duration = 0
 	lastMessage := time.Now()
-	for _ = range time.Tick(time.Second) {
+	for range time.Tick(time.Second) {
 		now := time.Now()
 		t, err := d.GetTasksFromDateRange(now.Add(-time.Hour), now)
 		dur := time.Now().Sub(now)
@@ -458,7 +458,7 @@ func reportStats() {
 	lastUpdateDur := time.Duration(0)
 	lastReads := 0
 	lastReadDur := time.Duration(0)
-	for _ = range time.Tick(5 * time.Second) {
+	for range time.Tick(5 * time.Second) {
 		mInserts.RLock()
 		totalInserts := inserts
 		totalInsertDur := insertDur

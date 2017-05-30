@@ -207,7 +207,7 @@ func main() {
 		sklog.Fatalf("Failed initial population of contest entries: %s", err)
 	}
 	go func() {
-		for _ = range time.Tick(5 * time.Second) {
+		for range time.Tick(5 * time.Second) {
 			if err := step(); err != nil {
 				sklog.Fatalf("Failed to refresh from Google Sheets: %s", err)
 			}

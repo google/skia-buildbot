@@ -719,7 +719,7 @@ func (m *RepoMap) Repos() []string {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	rv := make([]string, 0, len(m.repos))
-	for url, _ := range m.repos {
+	for url := range m.repos {
 		rv = append(rv, url)
 	}
 	return rv

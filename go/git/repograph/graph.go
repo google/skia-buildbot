@@ -425,7 +425,7 @@ func (m Map) FindCommit(commit string) (*Commit, string, *Graph, error) {
 // RepoURLs returns the list of repositories in the Map.
 func (m Map) RepoURLs() []string {
 	rv := make([]string, 0, len(m))
-	for r, _ := range m {
+	for r := range m {
 		rv = append(rv, r)
 	}
 	return rv

@@ -168,7 +168,7 @@ var FUZZ_CATEGORIES = []string{}
 
 func init() {
 	commonImpl = &defaultImpl{}
-	for k, _ := range fuzzers {
+	for k := range fuzzers {
 		FUZZ_CATEGORIES = append(FUZZ_CATEGORIES, k)
 	}
 	sort.Strings(FUZZ_CATEGORIES)
