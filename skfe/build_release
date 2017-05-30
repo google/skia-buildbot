@@ -20,7 +20,7 @@ copy_release_files()
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
 SOFTLINK="sudo ln -s"
-${INSTALL} --mode=644 -T ./sys/nginx.conf                       ${ROOT}/etc/nginx/nginx.conf
+${INSTALL} --mode=644 -T ./sys/skia-nginx.conf                  ${ROOT}/etc/nginx/skia-nginx.conf
 # Configs for the sites we are hosting.
 ${INSTALL} --mode=644 -T ./sys/skia_org_nginx                   ${ROOT}/etc/nginx/sites-available/skia_org
 sudo mkdir                                                      ${ROOT}/etc/nginx/sites-enabled
@@ -33,6 +33,9 @@ ${INSTALL} --mode=644 -T ./sys/skia-fluentd.conf                ${ROOT}/etc/goog
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/${CERTPOLLER_APPNAME}    ${ROOT}/usr/local/bin/${CERTPOLLER_APPNAME}
 ${INSTALL} --mode=755 -T ./sys/${SETUP_APPNAME}.sh              ${ROOT}/usr/local/bin/${SETUP_APPNAME}.sh
 ${INSTALL} --mode=755 -T ./sys/${LOGROTATE_APPNAME}.sh          ${ROOT}/usr/local/bin/${LOGROTATE_APPNAME}.sh
+
+# Override the default nginx.service file /lib/systemd/system/nginx.service
+${INSTALL} --mode=644 -T ./sys/nginx.service                    ${ROOT}/etc/systemd/system/nginx.service
 }
 
 source ../bash/release.sh
