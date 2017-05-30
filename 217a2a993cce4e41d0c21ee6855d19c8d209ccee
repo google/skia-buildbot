@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b3159d6f_e5556337",
+        "filename": "go/util/string_set.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-30T20:30:33Z",
+      "side": 1,
+      "message": "We have been following the convention of just using \n\ns[item] \u003d true \n\ndirectly. It\u0027s also a good reminder that we are just dealing with a map[string]bool.",
+      "revId": "217a2a993cce4e41d0c21ee6855d19c8d209ccee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99b46f93_79a7c408",
+        "filename": "power/go/gatherer/gatherer.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-30T20:30:33Z",
+      "side": 1,
+      "message": "Why is this part of the API ? \nThat seems to me more of an implementation details that is set in the constructor of the gatherer type. \nIn New(...) you could start a go-routine in the background. Other implementations of the interface might\nget the information about bots that are down by other means than polling.",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 26
+      },
+      "revId": "217a2a993cce4e41d0c21ee6855d19c8d209ccee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0cdcaaf_94eab7f3",
+        "filename": "power/go/gatherer/gatherer.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-30T20:30:33Z",
+      "side": 1,
+      "message": "Use \n   util.StringSet{} \ninstead.",
+      "range": {
+        "startLine": 153,
+        "startChar": 19,
+        "endLine": 153,
+        "endChar": 38
+      },
+      "revId": "217a2a993cce4e41d0c21ee6855d19c8d209ccee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1caba0ed_3b0b722a",
+        "filename": "power/go/gatherer/gatherer.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-05-30T20:30:33Z",
+      "side": 1,
+      "message": "use\n   botsWithAlerts[id] \u003d true \ninstead. Same below.",
+      "range": {
+        "startLine": 157,
+        "startChar": 2,
+        "endLine": 157,
+        "endChar": 24
+      },
+      "revId": "217a2a993cce4e41d0c21ee6855d19c8d209ccee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
