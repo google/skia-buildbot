@@ -21,7 +21,7 @@ func TestJSONCodec(t *testing.T) {
 	assert.Equal(t, testInstance, decodedInstance)
 
 	arrCodec := JSONCodec([]*myTestType{})
-	testArr := []*myTestType{&myTestType{1, "1"}, &myTestType{2, "2"}}
+	testArr := []*myTestType{{1, "1"}, {2, "2"}}
 	jsonBytes, err = arrCodec.Encode(testArr)
 	assert.NoError(t, err)
 

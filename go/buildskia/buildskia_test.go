@@ -92,7 +92,7 @@ func TestGetSkiaBranches(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 7, len(br))
 	keys := []string{}
-	for branch, _ := range br {
+	for branch := range br {
 		keys = append(keys, branch)
 	}
 	assert.True(t, util.In("refs/heads/chrome/m50", keys))

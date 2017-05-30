@@ -142,7 +142,7 @@ func (fr *RunningClusterRequests) step() {
 // background periodically cleans up old ClusterRequestProcess's.
 func (fr *RunningClusterRequests) background() {
 	fr.step()
-	for _ = range time.Tick(time.Minute) {
+	for range time.Tick(time.Minute) {
 		fr.step()
 	}
 }

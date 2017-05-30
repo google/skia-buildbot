@@ -354,7 +354,7 @@ func (c *Client) IsolateTasks(tasks []*Task) ([]string, error) {
 		return nil, fmt.Errorf("Ended up with an incorrect number of isolated hashes!")
 	}
 	rv := make([]string, 0, len(tasks))
-	for i, _ := range tasks {
+	for i := range tasks {
 		rv = append(rv, hashes[fmt.Sprintf(TASK_ID_TMPL, strconv.Itoa(i))])
 	}
 	return rv, nil

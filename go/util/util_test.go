@@ -77,8 +77,8 @@ func TestSSliceEqual(t *testing.T) {
 func TestIntersectIntSets(t *testing.T) {
 	testutils.SmallTest(t)
 	sets := []map[int]bool{
-		map[int]bool{1: true, 2: true, 3: true, 4: true},
-		map[int]bool{2: true, 4: true, 5: true, 7: true},
+		{1: true, 2: true, 3: true, 4: true},
+		{2: true, 4: true, 5: true, 7: true},
 	}
 	minIdx := 1
 	intersect := IntersectIntSets(sets, minIdx)
@@ -94,7 +94,7 @@ func TestAddParamsToParamSet(t *testing.T) {
 	}{
 		{
 			a: map[string][]string{
-				"foo": []string{"a", "b"},
+				"foo": {"a", "b"},
 			},
 			b: map[string]string{
 				"foo": "c",
@@ -103,7 +103,7 @@ func TestAddParamsToParamSet(t *testing.T) {
 		},
 		{
 			a: map[string][]string{
-				"foo": []string{},
+				"foo": {},
 			},
 			b: map[string]string{
 				"foo": "c",
@@ -112,7 +112,7 @@ func TestAddParamsToParamSet(t *testing.T) {
 		},
 		{
 			a: map[string][]string{
-				"foo": []string{"c"},
+				"foo": {"c"},
 			},
 			b: map[string]string{
 				"foo": "c",
@@ -128,7 +128,7 @@ func TestAddParamsToParamSet(t *testing.T) {
 		},
 		{
 			a: map[string][]string{
-				"foo": []string{"c"},
+				"foo": {"c"},
 			},
 			b:       map[string]string{},
 			wantFoo: []string{"c"},
@@ -150,37 +150,37 @@ func TestAddParamSetToParamSet(t *testing.T) {
 	}{
 		{
 			a: map[string][]string{
-				"foo": []string{"a", "b"},
+				"foo": {"a", "b"},
 			},
 			b: map[string][]string{
-				"foo": []string{"c"},
+				"foo": {"c"},
 			},
 			wantFoo: []string{"a", "b", "c"},
 		},
 		{
 			a: map[string][]string{
-				"foo": []string{},
+				"foo": {},
 			},
 			b: map[string][]string{
-				"foo": []string{"c"},
+				"foo": {"c"},
 			},
 			wantFoo: []string{"c"},
 		},
 		{
 			a: map[string][]string{
-				"foo": []string{"c"},
+				"foo": {"c"},
 			},
 			b: map[string][]string{
-				"foo": []string{},
+				"foo": {},
 			},
 			wantFoo: []string{"c"},
 		},
 		{
 			a: map[string][]string{
-				"foo": []string{"c"},
+				"foo": {"c"},
 			},
 			b: map[string][]string{
-				"bar": []string{"b"},
+				"bar": {"b"},
 			},
 			wantFoo: []string{"c"},
 		},
@@ -354,32 +354,32 @@ func TestBugsFromCommitMsg(t *testing.T) {
 		{
 			in: "BUG=skia:1234",
 			out: map[string][]string{
-				"skia": []string{"1234"},
+				"skia": {"1234"},
 			},
 		},
 		{
 			in: "BUG=skia:1234,skia:4567",
 			out: map[string][]string{
-				"skia": []string{"1234", "4567"},
+				"skia": {"1234", "4567"},
 			},
 		},
 		{
 			in: "BUG=skia:1234,skia:4567,skia:8901",
 			out: map[string][]string{
-				"skia": []string{"1234", "4567", "8901"},
+				"skia": {"1234", "4567", "8901"},
 			},
 		},
 		{
 			in: "BUG=1234",
 			out: map[string][]string{
-				"chromium": []string{"1234"},
+				"chromium": {"1234"},
 			},
 		},
 		{
 			in: "BUG=skia:1234, 456",
 			out: map[string][]string{
-				"chromium": []string{"456"},
-				"skia":     []string{"1234"},
+				"chromium": {"456"},
+				"skia":     {"1234"},
 			},
 		},
 		{
@@ -390,8 +390,8 @@ Quisque feugiat, mi et tristique dignissim, sapien risus tristique mi, non digni
 BUG=1234, skia:5678
 `,
 			out: map[string][]string{
-				"chromium": []string{"1234"},
-				"skia":     []string{"5678"},
+				"chromium": {"1234"},
+				"skia":     {"5678"},
 			},
 		},
 	}
@@ -438,29 +438,29 @@ func TestCookieDomainMatch(t *testing.T) {
 	// Test cases borrowed from test_domain_match in
 	// https://svn.python.org/projects/python/trunk/Lib/test/test_cookielib.py
 	testCases := []DomainTestCase{
-		DomainTestCase{DomainA: "x.y.com", DomainB: "x.Y.com", Match: true},
-		DomainTestCase{DomainA: "x.y.com", DomainB: ".Y.com", Match: true},
-		DomainTestCase{DomainA: "x.y.com", DomainB: "Y.com", Match: false},
-		DomainTestCase{DomainA: "a.b.c.com", DomainB: ".c.com", Match: true},
-		DomainTestCase{DomainA: ".c.com", DomainB: "a.b.c.com", Match: false},
-		DomainTestCase{DomainA: "example.local", DomainB: ".local", Match: true},
-		DomainTestCase{DomainA: "blah.blah", DomainB: "", Match: false},
-		DomainTestCase{DomainA: "", DomainB: ".rhubarb.rhubarb", Match: false},
-		DomainTestCase{DomainA: "", DomainB: "", Match: true},
+		{DomainA: "x.y.com", DomainB: "x.Y.com", Match: true},
+		{DomainA: "x.y.com", DomainB: ".Y.com", Match: true},
+		{DomainA: "x.y.com", DomainB: "Y.com", Match: false},
+		{DomainA: "a.b.c.com", DomainB: ".c.com", Match: true},
+		{DomainA: ".c.com", DomainB: "a.b.c.com", Match: false},
+		{DomainA: "example.local", DomainB: ".local", Match: true},
+		{DomainA: "blah.blah", DomainB: "", Match: false},
+		{DomainA: "", DomainB: ".rhubarb.rhubarb", Match: false},
+		{DomainA: "", DomainB: "", Match: true},
 
-		DomainTestCase{DomainA: "acme.com", DomainB: "acme.com", Match: true},
-		DomainTestCase{DomainA: "acme.com", DomainB: ".acme.com", Match: false},
-		DomainTestCase{DomainA: "rhubarb.acme.com", DomainB: ".acme.com", Match: true},
-		DomainTestCase{DomainA: "www.rhubarb.acme.com", DomainB: ".acme.com", Match: true},
-		DomainTestCase{DomainA: "y.com", DomainB: "Y.com", Match: true},
-		DomainTestCase{DomainA: ".y.com", DomainB: "Y.com", Match: false},
-		DomainTestCase{DomainA: ".y.com", DomainB: ".Y.com", Match: true},
-		DomainTestCase{DomainA: "x.y.com", DomainB: ".com", Match: true},
-		DomainTestCase{DomainA: "x.y.com", DomainB: "com", Match: false},
-		DomainTestCase{DomainA: "x.y.com", DomainB: "m", Match: false},
-		DomainTestCase{DomainA: "x.y.com", DomainB: ".m", Match: false},
-		DomainTestCase{DomainA: "x.y.com", DomainB: "", Match: false},
-		DomainTestCase{DomainA: "x.y.com", DomainB: ".", Match: false},
+		{DomainA: "acme.com", DomainB: "acme.com", Match: true},
+		{DomainA: "acme.com", DomainB: ".acme.com", Match: false},
+		{DomainA: "rhubarb.acme.com", DomainB: ".acme.com", Match: true},
+		{DomainA: "www.rhubarb.acme.com", DomainB: ".acme.com", Match: true},
+		{DomainA: "y.com", DomainB: "Y.com", Match: true},
+		{DomainA: ".y.com", DomainB: "Y.com", Match: false},
+		{DomainA: ".y.com", DomainB: ".Y.com", Match: true},
+		{DomainA: "x.y.com", DomainB: ".com", Match: true},
+		{DomainA: "x.y.com", DomainB: "com", Match: false},
+		{DomainA: "x.y.com", DomainB: "m", Match: false},
+		{DomainA: "x.y.com", DomainB: ".m", Match: false},
+		{DomainA: "x.y.com", DomainB: "", Match: false},
+		{DomainA: "x.y.com", DomainB: ".", Match: false},
 	}
 	for _, tc := range testCases {
 		assert.Equal(t, tc.Match, CookieDomainMatch(tc.DomainA, tc.DomainB))
@@ -487,41 +487,41 @@ func TestPermute(t *testing.T) {
 	testutils.SmallTest(t)
 
 	assert.Equal(t, [][]int{}, Permute([]int{}))
-	assert.Equal(t, [][]int{[]int{0}}, Permute([]int{0}))
-	assert.Equal(t, [][]int{[]int{0, 1}, []int{1, 0}}, Permute([]int{0, 1}))
+	assert.Equal(t, [][]int{{0}}, Permute([]int{0}))
+	assert.Equal(t, [][]int{{0, 1}, {1, 0}}, Permute([]int{0, 1}))
 	assert.Equal(t, [][]int{
-		[]int{0, 1, 2},
-		[]int{0, 2, 1},
-		[]int{1, 0, 2},
-		[]int{1, 2, 0},
-		[]int{2, 0, 1},
-		[]int{2, 1, 0},
+		{0, 1, 2},
+		{0, 2, 1},
+		{1, 0, 2},
+		{1, 2, 0},
+		{2, 0, 1},
+		{2, 1, 0},
 	}, Permute([]int{0, 1, 2}))
 	assert.Equal(t, [][]int{
-		[]int{0, 1, 2, 3},
-		[]int{0, 1, 3, 2},
-		[]int{0, 2, 1, 3},
-		[]int{0, 2, 3, 1},
-		[]int{0, 3, 1, 2},
-		[]int{0, 3, 2, 1},
-		[]int{1, 0, 2, 3},
-		[]int{1, 0, 3, 2},
-		[]int{1, 2, 0, 3},
-		[]int{1, 2, 3, 0},
-		[]int{1, 3, 0, 2},
-		[]int{1, 3, 2, 0},
-		[]int{2, 0, 1, 3},
-		[]int{2, 0, 3, 1},
-		[]int{2, 1, 0, 3},
-		[]int{2, 1, 3, 0},
-		[]int{2, 3, 0, 1},
-		[]int{2, 3, 1, 0},
-		[]int{3, 0, 1, 2},
-		[]int{3, 0, 2, 1},
-		[]int{3, 1, 0, 2},
-		[]int{3, 1, 2, 0},
-		[]int{3, 2, 0, 1},
-		[]int{3, 2, 1, 0},
+		{0, 1, 2, 3},
+		{0, 1, 3, 2},
+		{0, 2, 1, 3},
+		{0, 2, 3, 1},
+		{0, 3, 1, 2},
+		{0, 3, 2, 1},
+		{1, 0, 2, 3},
+		{1, 0, 3, 2},
+		{1, 2, 0, 3},
+		{1, 2, 3, 0},
+		{1, 3, 0, 2},
+		{1, 3, 2, 0},
+		{2, 0, 1, 3},
+		{2, 0, 3, 1},
+		{2, 1, 0, 3},
+		{2, 1, 3, 0},
+		{2, 3, 0, 1},
+		{2, 3, 1, 0},
+		{3, 0, 1, 2},
+		{3, 0, 2, 1},
+		{3, 1, 0, 2},
+		{3, 1, 2, 0},
+		{3, 2, 0, 1},
+		{3, 2, 1, 0},
 	}, Permute([]int{0, 1, 2, 3}))
 }
 
@@ -529,40 +529,40 @@ func TestPermuteStrings(t *testing.T) {
 	testutils.SmallTest(t)
 
 	assert.Equal(t, [][]string{}, PermuteStrings([]string{}))
-	assert.Equal(t, [][]string{[]string{"a"}}, PermuteStrings([]string{"a"}))
-	assert.Equal(t, [][]string{[]string{"a", "b"}, []string{"b", "a"}}, PermuteStrings([]string{"a", "b"}))
+	assert.Equal(t, [][]string{{"a"}}, PermuteStrings([]string{"a"}))
+	assert.Equal(t, [][]string{{"a", "b"}, {"b", "a"}}, PermuteStrings([]string{"a", "b"}))
 	assert.Equal(t, [][]string{
-		[]string{"a", "b", "c"},
-		[]string{"a", "c", "b"},
-		[]string{"b", "a", "c"},
-		[]string{"b", "c", "a"},
-		[]string{"c", "a", "b"},
-		[]string{"c", "b", "a"},
+		{"a", "b", "c"},
+		{"a", "c", "b"},
+		{"b", "a", "c"},
+		{"b", "c", "a"},
+		{"c", "a", "b"},
+		{"c", "b", "a"},
 	}, PermuteStrings([]string{"a", "b", "c"}))
 	assert.Equal(t, [][]string{
-		[]string{"a", "b", "c", "d"},
-		[]string{"a", "b", "d", "c"},
-		[]string{"a", "c", "b", "d"},
-		[]string{"a", "c", "d", "b"},
-		[]string{"a", "d", "b", "c"},
-		[]string{"a", "d", "c", "b"},
-		[]string{"b", "a", "c", "d"},
-		[]string{"b", "a", "d", "c"},
-		[]string{"b", "c", "a", "d"},
-		[]string{"b", "c", "d", "a"},
-		[]string{"b", "d", "a", "c"},
-		[]string{"b", "d", "c", "a"},
-		[]string{"c", "a", "b", "d"},
-		[]string{"c", "a", "d", "b"},
-		[]string{"c", "b", "a", "d"},
-		[]string{"c", "b", "d", "a"},
-		[]string{"c", "d", "a", "b"},
-		[]string{"c", "d", "b", "a"},
-		[]string{"d", "a", "b", "c"},
-		[]string{"d", "a", "c", "b"},
-		[]string{"d", "b", "a", "c"},
-		[]string{"d", "b", "c", "a"},
-		[]string{"d", "c", "a", "b"},
-		[]string{"d", "c", "b", "a"},
+		{"a", "b", "c", "d"},
+		{"a", "b", "d", "c"},
+		{"a", "c", "b", "d"},
+		{"a", "c", "d", "b"},
+		{"a", "d", "b", "c"},
+		{"a", "d", "c", "b"},
+		{"b", "a", "c", "d"},
+		{"b", "a", "d", "c"},
+		{"b", "c", "a", "d"},
+		{"b", "c", "d", "a"},
+		{"b", "d", "a", "c"},
+		{"b", "d", "c", "a"},
+		{"c", "a", "b", "d"},
+		{"c", "a", "d", "b"},
+		{"c", "b", "a", "d"},
+		{"c", "b", "d", "a"},
+		{"c", "d", "a", "b"},
+		{"c", "d", "b", "a"},
+		{"d", "a", "b", "c"},
+		{"d", "a", "c", "b"},
+		{"d", "b", "a", "c"},
+		{"d", "b", "c", "a"},
+		{"d", "c", "a", "b"},
+		{"d", "c", "b", "a"},
 	}, PermuteStrings([]string{"a", "b", "c", "d"}))
 }

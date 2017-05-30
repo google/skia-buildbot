@@ -219,7 +219,7 @@ var (
 
 	// Information about the different CT pageset types.
 	PagesetTypeToInfo = map[string]*PagesetTypeInfo{
-		PAGESET_TYPE_ALL: &PagesetTypeInfo{
+		PAGESET_TYPE_ALL: {
 			NumPages:                   1000000,
 			CSVSource:                  "csv/top-1m.csv",
 			UserAgent:                  "desktop",
@@ -229,7 +229,7 @@ var (
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1M (with desktop user-agent)",
 		},
-		PAGESET_TYPE_100k: &PagesetTypeInfo{
+		PAGESET_TYPE_100k: {
 			NumPages:                   100000,
 			CSVSource:                  "csv/top-1m.csv",
 			UserAgent:                  "desktop",
@@ -239,7 +239,7 @@ var (
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 100K (with desktop user-agent)",
 		},
-		PAGESET_TYPE_MOBILE_100k: &PagesetTypeInfo{
+		PAGESET_TYPE_MOBILE_100k: {
 			NumPages:                   100000,
 			CSVSource:                  "csv/android-top-1m.csv",
 			UserAgent:                  "mobile",
@@ -249,7 +249,7 @@ var (
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 100K (with mobile user-agent)",
 		},
-		PAGESET_TYPE_10k: &PagesetTypeInfo{
+		PAGESET_TYPE_10k: {
 			NumPages:                   10000,
 			CSVSource:                  "csv/top-1m.csv",
 			UserAgent:                  "desktop",
@@ -259,7 +259,7 @@ var (
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 10K (with desktop user-agent)",
 		},
-		PAGESET_TYPE_MOBILE_10k: &PagesetTypeInfo{
+		PAGESET_TYPE_MOBILE_10k: {
 			NumPages:                   10000,
 			CSVSource:                  "csv/android-top-1m.csv",
 			UserAgent:                  "mobile",
@@ -269,7 +269,7 @@ var (
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 10K (with mobile user-agent)",
 		},
-		PAGESET_TYPE_DUMMY_1k: &PagesetTypeInfo{
+		PAGESET_TYPE_DUMMY_1k: {
 			NumPages:                   1000,
 			CSVSource:                  "csv/android-top-1m.csv",
 			UserAgent:                  "mobile",
@@ -279,7 +279,7 @@ var (
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1K (used for testing, hidden from Runs History by default)",
 		},
-		PAGESET_TYPE_PDF_400m: &PagesetTypeInfo{
+		PAGESET_TYPE_PDF_400m: {
 			NumPages:                   400000000,
 			CSVSource:                  "csv/pdf-400m.csv",
 			UserAgent:                  "desktop",
@@ -289,7 +289,7 @@ var (
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "PDF 400M",
 		},
-		PAGESET_TYPE_PDF_1m: &PagesetTypeInfo{
+		PAGESET_TYPE_PDF_1m: {
 			NumPages:                   1000000,
 			CSVSource:                  "csv/pdf-top-1m.csv",
 			UserAgent:                  "desktop",
@@ -299,7 +299,7 @@ var (
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "PDF 1M",
 		},
-		PAGESET_TYPE_PDF_1k: &PagesetTypeInfo{
+		PAGESET_TYPE_PDF_1k: {
 			NumPages:                   1000,
 			CSVSource:                  "csv/pdf-top-1m.csv",
 			UserAgent:                  "desktop",

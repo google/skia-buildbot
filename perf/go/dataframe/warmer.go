@@ -21,7 +21,7 @@ func StartWarmer(v vcsinfo.VCS) {
 
 func warmer() {
 	onestep()
-	for _ = range time.Tick(time.Hour) {
+	for range time.Tick(time.Hour) {
 		onestep()
 	}
 }

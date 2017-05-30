@@ -44,7 +44,7 @@ func (c *Continuous) Untriaged() (int, error) {
 
 func (c *Continuous) reportUntriaged(newClustersGauge metrics2.Int64Metric) {
 	go func() {
-		for _ = range time.Tick(time.Minute) {
+		for range time.Tick(time.Minute) {
 			if count, err := c.store.Untriaged(); err == nil {
 				newClustersGauge.Update(int64(count))
 			} else {
@@ -66,7 +66,7 @@ func (c *Continuous) Run() {
 	// TODO(jcgregorio) Add liveness metrics.
 	sklog.Infof("Continuous starting.")
 	c.reportUntriaged(newClustersGauge)
-	for _ = range time.Tick(time.Minute) {
+	for range time.Tick(time.Minute) {
 		clusteringLatency.Start()
 		// Get the last numCommits commits.
 		indexCommits := c.git.LastNIndex(c.numCommits)

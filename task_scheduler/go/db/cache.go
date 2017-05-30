@@ -518,7 +518,7 @@ func (c *jobCache) expireJobs() {
 		sklog.Infof("Expired %d unfinished jobs created before window.", expiredUnfinishedCount)
 	}
 	for repo, revMap := range c.triggeredForCommit {
-		for rev, _ := range revMap {
+		for rev := range revMap {
 			ts, err := c.getRevisionTimestamp(repo, rev)
 			if err != nil {
 				sklog.Error(err)

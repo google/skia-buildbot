@@ -34,22 +34,22 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	testutils.SmallTest(t)
 	start := time.Now().Unix()
 	commits := []*tiling.Commit{
-		&tiling.Commit{CommitTime: start + 10, Hash: "h1", Author: "John Doe 1"},
-		&tiling.Commit{CommitTime: start + 20, Hash: "h2", Author: "John Doe 2"},
-		&tiling.Commit{CommitTime: start + 30, Hash: "h3", Author: "John Doe 3"},
-		&tiling.Commit{CommitTime: start + 40, Hash: "h4", Author: "John Doe 4"},
-		&tiling.Commit{CommitTime: start + 50, Hash: "h5", Author: "John Doe 5"},
+		{CommitTime: start + 10, Hash: "h1", Author: "John Doe 1"},
+		{CommitTime: start + 20, Hash: "h2", Author: "John Doe 2"},
+		{CommitTime: start + 30, Hash: "h3", Author: "John Doe 3"},
+		{CommitTime: start + 40, Hash: "h4", Author: "John Doe 4"},
+		{CommitTime: start + 50, Hash: "h5", Author: "John Doe 5"},
 	}
 
 	params := []map[string]string{
-		map[string]string{"name": "foo", "config": "8888", types.CORPUS_FIELD: "gm"},
-		map[string]string{"name": "foo", "config": "565", types.CORPUS_FIELD: "gm"},
-		map[string]string{"name": "foo", "config": "gpu", types.CORPUS_FIELD: "gm"},
-		map[string]string{"name": "bar", "config": "8888", types.CORPUS_FIELD: "gm"},
-		map[string]string{"name": "bar", "config": "565", types.CORPUS_FIELD: "gm"},
-		map[string]string{"name": "bar", "config": "gpu", types.CORPUS_FIELD: "gm"},
-		map[string]string{"name": "baz", "config": "565", types.CORPUS_FIELD: "gm"},
-		map[string]string{"name": "baz", "config": "gpu", types.CORPUS_FIELD: "gm"},
+		{"name": "foo", "config": "8888", types.CORPUS_FIELD: "gm"},
+		{"name": "foo", "config": "565", types.CORPUS_FIELD: "gm"},
+		{"name": "foo", "config": "gpu", types.CORPUS_FIELD: "gm"},
+		{"name": "bar", "config": "8888", types.CORPUS_FIELD: "gm"},
+		{"name": "bar", "config": "565", types.CORPUS_FIELD: "gm"},
+		{"name": "bar", "config": "gpu", types.CORPUS_FIELD: "gm"},
+		{"name": "baz", "config": "565", types.CORPUS_FIELD: "gm"},
+		{"name": "baz", "config": "gpu", types.CORPUS_FIELD: "gm"},
 	}
 
 	DI_1, DI_2, DI_3 := "digest1", "digest2", "digest3"
@@ -58,14 +58,14 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	MISS := types.MISSING_DIGEST
 
 	digests := [][]string{
-		[]string{MISS, MISS, DI_1, MISS, MISS},
-		[]string{MISS, DI_1, DI_1, DI_2, MISS},
-		[]string{DI_3, MISS, MISS, MISS, MISS},
-		[]string{DI_5, DI_4, DI_5, DI_5, DI_5},
-		[]string{DI_6, MISS, DI_4, MISS, MISS},
-		[]string{MISS, MISS, MISS, MISS, MISS},
-		[]string{DI_7, DI_7, MISS, DI_8, MISS},
-		[]string{DI_7, MISS, DI_7, DI_8, MISS},
+		{MISS, MISS, DI_1, MISS, MISS},
+		{MISS, DI_1, DI_1, DI_2, MISS},
+		{DI_3, MISS, MISS, MISS, MISS},
+		{DI_5, DI_4, DI_5, DI_5, DI_5},
+		{DI_6, MISS, DI_4, MISS, MISS},
+		{MISS, MISS, MISS, MISS, MISS},
+		{DI_7, DI_7, MISS, DI_8, MISS},
+		{DI_7, MISS, DI_7, DI_8, MISS},
 	}
 
 	// Make sure the data are consistent and create a mock TileStore.

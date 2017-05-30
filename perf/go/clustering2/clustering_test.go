@@ -24,10 +24,10 @@ func TestParamSummaries(t *testing.T) {
 		ctrace2.NewFullTrace(",arch=x86,config=565,", []float32{3, 2}, 0.001),
 	}
 	expected := map[string][]ValueWeight{
-		"arch": []ValueWeight{
+		"arch": {
 			{"x86", 26},
 		},
-		"config": []ValueWeight{
+		"config": {
 			{"565", 21},
 			{"8888", 16},
 		},
@@ -130,7 +130,7 @@ func TestCalcCusterSummaries(t *testing.T) {
 		ParamSet: paramtools.ParamSet{},
 		Skip:     0,
 	}
-	for key, _ := range df.TraceSet {
+	for key := range df.TraceSet {
 		df.ParamSet.AddParamsFromKey(key)
 	}
 	sum, err := CalculateClusterSummaries(df, 4, 0.01, nil, 50)

@@ -455,7 +455,7 @@ func buildDiff(test, digest string, e *expstorage.Expectations, tile *tiling.Til
 // buildTraces returns a Trace for the given intermediate.
 func buildTraces(test, digest string, traces map[string]tiling.Trace, e *expstorage.Expectations, tile *tiling.Tile, traceTally map[string]tally.Tally) *Traces {
 	traceNames := make([]string, 0, len(traces))
-	for id, _ := range traces {
+	for id := range traces {
 		traceNames = append(traceNames, id)
 	}
 
@@ -564,7 +564,7 @@ func digestsFromTrace(id string, tr tiling.Trace, head bool, lastCommitIndex int
 	} else {
 		// Use the traceTally if available, otherwise just inspect the trace.
 		if t, ok := traceTally[id]; ok {
-			for k, _ := range t {
+			for k := range t {
 				digests[k] = true
 			}
 		} else {

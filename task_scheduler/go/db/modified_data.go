@@ -40,7 +40,7 @@ func (m *modifiedData) GetModifiedEntries(id string) (map[string][]byte, error) 
 // goroutine. Returns when there are no remaining subscribers.
 func (m *modifiedData) clearExpiredSubscribers() {
 	ticker := time.NewTicker(time.Minute)
-	for _ = range ticker.C {
+	for range ticker.C {
 		m.mtx.Lock()
 		for id, t := range m.expiration {
 			if time.Now().After(t) {
@@ -73,7 +73,7 @@ func (m *modifiedData) TrackModifiedEntry(id string, d []byte) {
 func (m *modifiedData) TrackModifiedEntries(gobs map[string][]byte) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
-	for subId, _ := range m.expiration {
+	for subId := range m.expiration {
 		sub, ok := m.data[subId]
 		if !ok {
 			sub = make(map[string][]byte, len(gobs))

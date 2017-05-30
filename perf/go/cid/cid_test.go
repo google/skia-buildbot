@@ -22,7 +22,7 @@ var (
 	// TEST_COMMITS are the commits we are considering. It needs to contain at
 	// least all the commits referenced in the test file.
 	TEST_COMMITS = []*vcsinfo.LongCommit{
-		&vcsinfo.LongCommit{
+		{
 			ShortCommit: &vcsinfo.ShortCommit{
 				Hash:    "fe4a4029a080bc955e9588d05a6cd9eb490845d4",
 				Subject: "Really big code change",
@@ -115,11 +115,11 @@ func TestLookup(t *testing.T) {
 	assert.NotNil(t, lookup)
 
 	cids := []*CommitID{
-		&CommitID{
+		{
 			Source: "master",
 			Offset: 1,
 		},
-		&CommitID{
+		{
 			Source: "https://codereview.chromium.org/1467533002",
 			Offset: 2,
 		},
@@ -130,7 +130,7 @@ func TestLookup(t *testing.T) {
 	assert.Equal(t, 2, len(details))
 
 	expectedDetails := []*CommitDetail{
-		&CommitDetail{
+		{
 			CommitID: CommitID{
 				Offset: 1,
 				Source: "master",
@@ -141,7 +141,7 @@ func TestLookup(t *testing.T) {
 			Hash:      "ab8d7b6872097732a27c459bb226683cdb4695bd",
 			Timestamp: 1407642093,
 		},
-		&CommitDetail{
+		{
 			CommitID: CommitID{
 				Offset: 2,
 				Source: "https://codereview.chromium.org/1467533002",

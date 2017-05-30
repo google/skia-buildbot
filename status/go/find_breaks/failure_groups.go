@@ -150,7 +150,7 @@ func (g *FailureGroup) maybeMerge(f *failure) {
 // permuteFailures returns all permutations of the given slice of failures.
 func permuteFailures(failures []*failure) [][]*failure {
 	idxs := make([]int, 0, len(failures))
-	for i, _ := range failures {
+	for i := range failures {
 		idxs = append(idxs, i)
 	}
 	permuteIdxs := util.Permute(idxs)

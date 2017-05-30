@@ -106,22 +106,22 @@ func TestAdd(t *testing.T) {
 func TestBuildMapper(t *testing.T) {
 	testutils.SmallTest(t)
 	commitIDs := []*cid.CommitID{
-		&cid.CommitID{
+		{
 			Source: "master",
 			Offset: 49,
 		},
-		&cid.CommitID{
+		{
 			Source: "master",
 			Offset: 50,
 		},
-		&cid.CommitID{
+		{
 			Source: "master",
 			Offset: 51,
 		},
 	}
 
 	want := map[string]*tileMap{
-		"master-000000.bdb": &tileMap{
+		"master-000000.bdb": {
 			commitID: &cid.CommitID{
 				Source: "master",
 				Offset: 49,
@@ -130,7 +130,7 @@ func TestBuildMapper(t *testing.T) {
 				49: 0,
 			},
 		},
-		"master-000001.bdb": &tileMap{
+		"master-000001.bdb": {
 			commitID: &cid.CommitID{
 				Source: "master",
 				Offset: 50,

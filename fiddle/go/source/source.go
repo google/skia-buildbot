@@ -50,7 +50,7 @@ func New(st *store.Store) (*Source, error) {
 // List returns the list of source image ids.
 func (s *Source) List() []int {
 	ret := []int{}
-	for i, _ := range s.thumbnails {
+	for i := range s.thumbnails {
 		ret = append(ret, i)
 	}
 	sort.Sort(sort.IntSlice(ret))

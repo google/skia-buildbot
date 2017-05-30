@@ -23,16 +23,16 @@ func TestPriorityQueue(t *testing.T) {
 	testutils.SmallTest(t)
 	pq := &priorityQueue{}
 	vals := []*workItem{
-		&workItem{id: "0", priority: 0},
-		&workItem{id: "1", priority: 1},
-		&workItem{id: "2", priority: 2},
-		&workItem{id: "3", priority: 3},
-		&workItem{id: "4", priority: 4},
-		&workItem{id: "5", priority: 5},
-		&workItem{id: "6", priority: 6},
-		&workItem{id: "7", priority: 7},
-		&workItem{id: "8", priority: 8},
-		&workItem{id: "9", priority: 9},
+		{id: "0", priority: 0},
+		{id: "1", priority: 1},
+		{id: "2", priority: 2},
+		{id: "3", priority: 3},
+		{id: "4", priority: 4},
+		{id: "5", priority: 5},
+		{id: "6", priority: 6},
+		{id: "7", priority: 7},
+		{id: "8", priority: 8},
+		{id: "9", priority: 9},
 	}
 	indices := rand.Perm(len(vals))
 	for _, idx := range indices {

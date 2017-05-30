@@ -212,7 +212,7 @@ func monitorIssueTracker(c *http.Client) {
 	}
 
 	liveness := metrics2.NewLiveness("issue-tracker")
-	for _ = range time.Tick(ISSUE_TRACKER_PERIOD) {
+	for range time.Tick(ISSUE_TRACKER_PERIOD) {
 		for _, issue := range issueStatus {
 			resp, err := c.Get(issue.URL)
 			if err != nil {
@@ -319,7 +319,7 @@ func main() {
 	// Create a client that uses our dialer with a timeout.
 	c := httputils.NewConfiguredTimeoutClient(DIAL_TIMEOUT, REQUEST_TIMEOUT)
 	probeOneRound(cfg, c)
-	for _ = range time.Tick(*runEvery) {
+	for range time.Tick(*runEvery) {
 		probeOneRound(cfg, c)
 		liveness.Reset()
 	}

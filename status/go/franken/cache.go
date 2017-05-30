@@ -113,7 +113,7 @@ func NewBTCache(repos repograph.Map, taskDb db.RemoteDB, swarmingUrl, taskSchedu
 		return nil, err
 	}
 	go func() {
-		for _ = range time.Tick(time.Minute) {
+		for range time.Tick(time.Minute) {
 			if err := c.update(); err != nil {
 				sklog.Error(err)
 			}
@@ -447,7 +447,7 @@ func (c *BTCache) getBuildersComments() map[string][]*buildbot.BuilderComment {
 // if builder represents a Task name. See also BuildCache.AddBuilderComment.
 func (c *BTCache) AddBuilderComment(name string, comment *buildbot.BuilderComment) error {
 	repo := ""
-	for repoName, _ := range c.repos {
+	for repoName := range c.repos {
 		if c.tasks.KnownTaskName(repoName, name) {
 			repo = repoName
 			break

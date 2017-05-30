@@ -225,7 +225,7 @@ func (j *Job) TraverseDependencies(fn func(string) error) error {
 		done[name] = true
 		return fn(name)
 	}
-	for d, _ := range j.Dependencies {
+	for d := range j.Dependencies {
 		if !done[d] {
 			if err := visit(d); err != nil {
 				return err
@@ -385,7 +385,7 @@ func (d *JobDecoder) run() {
 	// Wait for decoders to exit.
 	wg.Wait()
 	// Drain d.input in the case that errors were encountered, to avoid deadlock.
-	for _ = range d.input {
+	for range d.input {
 	}
 	close(d.output)
 }

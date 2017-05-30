@@ -81,7 +81,7 @@ func Do(observations []Clusterable, centroids []Centroid, f CalculateCentroid) [
 // members are the observations that are in the cluster.
 func GetClusters(observations []Clusterable, centroids []Centroid) ([][]Clusterable, float64) {
 	r := make([][]Clusterable, len(centroids))
-	for i, _ := range r {
+	for i := range r {
 		// The first trace is always the centroid for the cluster.
 		cl := centroids[i].AsClusterable()
 		if cl != nil {

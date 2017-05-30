@@ -142,7 +142,7 @@ func (fr *RunningFrameRequests) step() {
 // background periodically cleans up old FrameRequestProcess's.
 func (fr *RunningFrameRequests) background() {
 	fr.step()
-	for _ = range time.Tick(time.Minute) {
+	for range time.Tick(time.Minute) {
 		fr.step()
 	}
 }
@@ -380,7 +380,7 @@ func ResponseFromDataFrame(df *DataFrame, git *gitinfo.GitInfo, truncate bool, t
 	if truncate && len(df.TraceSet) > MAX_TRACES_IN_RESPONSE {
 		msg = fmt.Sprintf("Response too large, the number of traces returned has been truncated from %d to %d.", len(df.TraceSet), MAX_TRACES_IN_RESPONSE)
 		keys := []string{}
-		for k, _ := range df.TraceSet {
+		for k := range df.TraceSet {
 			keys = append(keys, k)
 		}
 		sort.Strings(keys)

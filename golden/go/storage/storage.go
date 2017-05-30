@@ -79,7 +79,7 @@ func (s *Storage) GetTileStreamNow(interval time.Duration) <-chan *types.TilePai
 		}
 
 		readOneTile()
-		for _ = range time.Tick(interval) {
+		for range time.Tick(interval) {
 			readOneTile()
 		}
 	}()

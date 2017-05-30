@@ -32,7 +32,7 @@ func RunGoldTrybotProcessor(t assert.TestingT, traceDBFile, shareDBDir, ingestio
 
 	now := time.Now()
 	testCommits := []*vcsinfo.LongCommit{
-		&vcsinfo.LongCommit{
+		{
 			ShortCommit: &vcsinfo.ShortCommit{
 				Hash:    dmResults.GitHash,
 				Subject: "Really big code change",

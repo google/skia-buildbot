@@ -57,7 +57,7 @@ func (c *Process) Start() {
 		t := metrics2.NewTimer("repobuilder")
 		liveness := metrics2.NewLiveness("last-successful-add")
 		failures := metrics2.GetCounter("process-failures", nil)
-		for _ = range time.Tick(time.Minute) {
+		for range time.Tick(time.Minute) {
 			t.Start()
 			buildid, _, _, err := c.repo.GetLast()
 			if err != nil {

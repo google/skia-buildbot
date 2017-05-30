@@ -35,7 +35,7 @@ func TestBusyBots(t *testing.T) {
 	// No bots are busy.
 	bb := newBusyBots()
 	b1 := bot("b1", map[string][]string{
-		"pool": []string{"Skia"},
+		"pool": {"Skia"},
 	})
 	bots := []*swarming_api.SwarmingRpcsBotInfo{b1}
 	testutils.AssertDeepEqual(t, bots, bb.Filter(bots))
@@ -54,7 +54,7 @@ func TestBusyBots(t *testing.T) {
 
 	// There are two bots and one task.
 	b2 := bot("b2", map[string][]string{
-		"pool": []string{"Skia"},
+		"pool": {"Skia"},
 	})
 	bots = append(bots, b2)
 	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskResult{t1})

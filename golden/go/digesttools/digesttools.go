@@ -39,7 +39,7 @@ func ClosestDigest(test string, digest string, exp *expstorage.Expectations, tal
 	}
 
 	selected := []string{}
-	for d, _ := range tallies {
+	for d := range tallies {
 		if _, ok := unavailableDigests[d]; !ok && (exp.Classification(test, d) == label) {
 			selected = append(selected, d)
 		}

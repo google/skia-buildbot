@@ -220,7 +220,7 @@ func GetClosedChannelOfPagesets(fileInfos []os.FileInfo) chan string {
 // can severely impact the machine's performance. To stop this from
 // happening chrome zombie processes are periodically killed.
 func ChromeProcessesCleaner(locker sync.Locker, chromeCleanerTimer time.Duration) {
-	for _ = range time.Tick(chromeCleanerTimer) {
+	for range time.Tick(chromeCleanerTimer) {
 		sklog.Info("The chromeProcessesCleaner goroutine has started")
 		sklog.Info("Waiting for all existing tasks to complete before killing zombie chrome processes")
 		locker.Lock()

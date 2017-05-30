@@ -15,7 +15,7 @@ func MockReport(category, id string) FuzzReport {
 var mockFlags = []string{"foo", "bar"}
 
 var mockPictureDetails = map[string]FuzzReport{
-	"aaaa": FuzzReport{
+	"aaaa": {
 		DebugStackTrace:   makeStacktrace("alpha", "beta", 16),
 		ReleaseStackTrace: makeStacktrace("alpha", "beta", 16),
 		DebugFlags:        mockFlags,
@@ -23,7 +23,7 @@ var mockPictureDetails = map[string]FuzzReport{
 		FuzzCategory:      "skpicture",
 		FuzzArchitecture:  "mock_arm8",
 	},
-	"bbbb": FuzzReport{
+	"bbbb": {
 		DebugStackTrace:   makeStacktrace("alpha", "beta", 16),
 		ReleaseStackTrace: StackTrace{},
 		DebugFlags:        mockFlags,
@@ -31,7 +31,7 @@ var mockPictureDetails = map[string]FuzzReport{
 		FuzzCategory:      "skpicture",
 		FuzzArchitecture:  "mock_arm8",
 	},
-	"cccc": FuzzReport{
+	"cccc": {
 		DebugStackTrace:   makeStacktrace("alpha", "beta", 16),
 		ReleaseStackTrace: makeStacktrace("alpha", "gamma", 26),
 		DebugFlags:        mockFlags,
@@ -39,7 +39,7 @@ var mockPictureDetails = map[string]FuzzReport{
 		FuzzCategory:      "skpicture",
 		FuzzArchitecture:  "mock_arm8",
 	},
-	"dddd": FuzzReport{
+	"dddd": {
 		DebugStackTrace:   makeStacktrace("alpha", "gamma", 43),
 		ReleaseStackTrace: makeStacktrace("delta", "epsilon", 125),
 		DebugFlags:        mockFlags,
@@ -47,7 +47,7 @@ var mockPictureDetails = map[string]FuzzReport{
 		FuzzCategory:      "skpicture",
 		FuzzArchitecture:  "mock_arm8",
 	},
-	"eeee": FuzzReport{
+	"eeee": {
 		DebugStackTrace:   StackTrace{},
 		ReleaseStackTrace: StackTrace{},
 		DebugFlags:        mockFlags,
@@ -55,7 +55,7 @@ var mockPictureDetails = map[string]FuzzReport{
 		FuzzCategory:      "skpicture",
 		FuzzArchitecture:  "mock_arm8",
 	},
-	"ffff": FuzzReport{
+	"ffff": {
 		DebugStackTrace:   makeStacktrace("alpha", "beta", 16),
 		ReleaseStackTrace: makeStacktrace("alpha", "beta", 16),
 		DebugFlags:        mockFlags,
@@ -63,7 +63,7 @@ var mockPictureDetails = map[string]FuzzReport{
 		FuzzCategory:      "skpicture",
 		FuzzArchitecture:  "mock_arm8",
 	},
-	"gggg": FuzzReport{
+	"gggg": {
 		DebugStackTrace:   makeStacktrace("delta", "epsilon", 122),
 		ReleaseStackTrace: StackTrace{},
 		DebugFlags:        mockFlags,
@@ -71,7 +71,7 @@ var mockPictureDetails = map[string]FuzzReport{
 		FuzzCategory:      "skpicture",
 		FuzzArchitecture:  "mock_arm8",
 	},
-	"jjjj": FuzzReport{
+	"jjjj": {
 		DebugStackTrace:   makeStacktrace("alpha", "beta", 16),
 		ReleaseStackTrace: makeStacktrace("alpha", "beta", 16),
 		DebugFlags:        mockFlags,
@@ -83,7 +83,7 @@ var mockPictureDetails = map[string]FuzzReport{
 }
 
 var mockAPIDetails = map[string]FuzzReport{
-	"hhhh": FuzzReport{
+	"hhhh": {
 		DebugStackTrace:   makeStacktrace("alpha", "beta", 16),
 		ReleaseStackTrace: makeStacktrace("alpha", "beta", 16),
 		DebugFlags:        mockFlags,
@@ -91,7 +91,7 @@ var mockAPIDetails = map[string]FuzzReport{
 		FuzzCategory:      "api",
 		FuzzArchitecture:  "mock_x64",
 	},
-	"iiii": FuzzReport{
+	"iiii": {
 		DebugStackTrace:   makeStacktrace("alpha", "beta", 16),
 		ReleaseStackTrace: StackTrace{},
 		DebugFlags:        mockFlags,

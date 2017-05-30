@@ -41,7 +41,7 @@ type Trace []float32
 // NewTrace returns a Trace of length 'traceLen' initialized to vec32.MISSING_DATA_SENTINEL.
 func NewTrace(traceLen int) Trace {
 	ret := make([]float32, traceLen)
-	for i, _ := range ret {
+	for i := range ret {
 		ret[i] = vec32.MISSING_DATA_SENTINEL
 	}
 	return ret

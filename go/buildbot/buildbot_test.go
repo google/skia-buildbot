@@ -553,11 +553,11 @@ func TestGetLatestBuilds(t *testing.T) {
 	testutils.MediumTest(t)
 	// Note: Masters with no builders shouldn't be in the map.
 	expected := map[string]map[string]int{
-		"client.skia.fyi": map[string]int{
+		"client.skia.fyi": {
 			"Housekeeper-PerCommit":            1035,
 			"Housekeeper-Nightly-RecreateSKPs": 58,
 		},
-		"client.skia.android": map[string]int{
+		"client.skia.android": {
 			"Perf-Android-Venue8-PowerVR-x86-Release": 466,
 			"Test-Android-Venue8-PowerVR-x86-Debug":   532,
 		},
@@ -627,13 +627,13 @@ func testGetUningestedBuilds(t *testing.T, local bool) {
 	// Expectations. If the master or builder has no uningested builds,
 	// we expect it not to be in the results, even with an empty map/slice.
 	expected := map[string]map[string][]int{
-		"client.skia.fyi": map[string][]int{
-			"Housekeeper-Nightly-RecreateSKPs": []int{ // No already-ingested builds.
+		"client.skia.fyi": {
+			"Housekeeper-Nightly-RecreateSKPs": { // No already-ingested builds.
 				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58,
 			},
 		},
-		"client.skia.android": map[string][]int{ // Some already-ingested builds.
-			"Perf-Android-Venue8-PowerVR-x86-Release": []int{
+		"client.skia.android": { // Some already-ingested builds.
+			"Perf-Android-Venue8-PowerVR-x86-Release": {
 				464, 465, 466,
 			},
 		},
@@ -712,22 +712,22 @@ func testIngestNewBuilds(t *testing.T, local bool) {
 
 	// Verify that the expected builds are now in the database.
 	expected := []Build{
-		Build{
+		{
 			Master:  b1.Master,
 			Builder: b1.Builder,
 			Number:  464,
 		},
-		Build{
+		{
 			Master:  b1.Master,
 			Builder: b1.Builder,
 			Number:  465,
 		},
-		Build{
+		{
 			Master:  b1.Master,
 			Builder: b1.Builder,
 			Number:  466,
 		},
-		Build{
+		{
 			Master:  b2.Master,
 			Builder: b2.Builder,
 			Number:  1035,
@@ -1009,17 +1009,17 @@ func TestBuildIDs(t *testing.T) {
 		Number  int
 	}
 	cases := []id{
-		id{
+		{
 			Master:  "my.master",
 			Builder: "My-Builder",
 			Number:  0,
 		},
-		id{
+		{
 			Master:  "my.master",
 			Builder: "My-Builder",
 			Number:  42,
 		},
-		id{
+		{
 			Master:  "my.master",
 			Builder: "My-Builder",
 			Number:  -1,

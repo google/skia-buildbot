@@ -290,7 +290,7 @@ func main() {
 
 	// Feed AutoRoll stats into metrics.
 	go func() {
-		for _ = range time.Tick(time.Minute) {
+		for range time.Tick(time.Minute) {
 			status := arb.GetStatus(false)
 			v := int64(0)
 			if status.LastRoll != nil && status.LastRoll.Closed && status.LastRoll.Committed {
@@ -302,7 +302,7 @@ func main() {
 
 	// Update the current sheriff in a loop.
 	go func() {
-		for _ = range time.Tick(30 * time.Minute) {
+		for range time.Tick(30 * time.Minute) {
 			emails, err := getSheriff()
 			if err != nil {
 				sklog.Errorf("Failed to retrieve current sheriff: %s", err)

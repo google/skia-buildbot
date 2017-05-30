@@ -58,12 +58,12 @@ func (m mockCommits) Get(branch, target, endBuildID string) (*vcsinfo.ShortCommi
 
 func (m mockCommits) List(branch, target, endBuildID string) (map[string]*vcsinfo.ShortCommit, error) {
 	return map[string]*vcsinfo.ShortCommit{
-		"100": &vcsinfo.ShortCommit{
+		"100": {
 			Hash:    "1234567890",
 			Author:  "fred@example.com",
 			Subject: "A commit",
 		},
-		"102": &vcsinfo.ShortCommit{
+		"102": {
 			Hash:    "987654321",
 			Author:  "barney@example.com",
 			Subject: "Another commit",

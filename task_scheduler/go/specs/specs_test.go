@@ -30,7 +30,7 @@ func TestCopyTaskSpec(t *testing.T) {
 	testutils.SmallTest(t)
 	v := &TaskSpec{
 		CipdPackages: []*CipdPackage{
-			&CipdPackage{
+			{
 				Name:    "pkg",
 				Path:    "/home/chrome-bot",
 				Version: "23",
@@ -95,7 +95,7 @@ func TestTaskSpecs(t *testing.T) {
 	// c1 has a Build and Test task, c2 has a Build, Test, and Perf task.
 	total, countC1, countC2, countBuild, countTest, countPerf := 0, 0, 0, 0, 0, 0
 	for rs, byName := range specs {
-		for name, _ := range byName {
+		for name := range byName {
 			sklog.Infof("%s %s", rs, name)
 			total++
 			if rs.Revision == c1 {
@@ -315,9 +315,9 @@ func TestTasksCircularDependency(t *testing.T) {
 	testutils.SmallTest(t)
 	// Bonus: Unknown dependency.
 	_, err := ParseTasksCfg(makeTasksCfg(t, map[string][]string{
-		"a": []string{"b"},
+		"a": {"b"},
 	}, map[string][]string{
-		"j": []string{"a"},
+		"j": {"a"},
 	}))
 	assert.EqualError(t, err, "Task \"a\" has unknown task \"b\" as a dependency.")
 
@@ -327,77 +327,77 @@ func TestTasksCircularDependency(t *testing.T) {
 
 	// Single-node cycle.
 	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
-		"a": []string{"a"},
+		"a": {"a"},
 	}, map[string][]string{
-		"j": []string{"a"},
+		"j": {"a"},
 	}))
 	assert.EqualError(t, err, "Found a circular dependency involving \"a\" and \"a\"")
 
 	// Small cycle.
 	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
-		"a": []string{"b"},
-		"b": []string{"a"},
+		"a": {"b"},
+		"b": {"a"},
 	}, map[string][]string{
-		"j": []string{"a"},
+		"j": {"a"},
 	}))
 	assert.EqualError(t, err, "Found a circular dependency involving \"b\" and \"a\"")
 
 	// Longer cycle.
 	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
-		"a": []string{"b"},
-		"b": []string{"c"},
-		"c": []string{"d"},
-		"d": []string{"e"},
-		"e": []string{"f"},
-		"f": []string{"g"},
-		"g": []string{"h"},
-		"h": []string{"i"},
-		"i": []string{"j"},
-		"j": []string{"a"},
+		"a": {"b"},
+		"b": {"c"},
+		"c": {"d"},
+		"d": {"e"},
+		"e": {"f"},
+		"f": {"g"},
+		"g": {"h"},
+		"h": {"i"},
+		"i": {"j"},
+		"j": {"a"},
 	}, map[string][]string{
-		"j": []string{"a"},
+		"j": {"a"},
 	}))
 	assert.EqualError(t, err, "Found a circular dependency involving \"j\" and \"a\"")
 
 	// No false positive on a complex-ish graph.
 	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
-		"a": []string{},
-		"b": []string{"a"},
-		"c": []string{"a"},
-		"d": []string{"b"},
-		"e": []string{"b"},
-		"f": []string{"c"},
-		"g": []string{"d", "e", "f"},
+		"a": {},
+		"b": {"a"},
+		"c": {"a"},
+		"d": {"b"},
+		"e": {"b"},
+		"f": {"c"},
+		"g": {"d", "e", "f"},
 	}, map[string][]string{
-		"j": []string{"a", "g"},
+		"j": {"a", "g"},
 	}))
 	assert.NoError(t, err)
 
 	// Unreachable task (d)
 	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
-		"a": []string{},
-		"b": []string{"a"},
-		"c": []string{"a"},
-		"d": []string{"b"},
-		"e": []string{"b"},
-		"f": []string{"c"},
-		"g": []string{"e", "f"},
+		"a": {},
+		"b": {"a"},
+		"c": {"a"},
+		"d": {"b"},
+		"e": {"b"},
+		"f": {"c"},
+		"g": {"e", "f"},
 	}, map[string][]string{
-		"j": []string{"g"},
+		"j": {"g"},
 	}))
 	assert.EqualError(t, err, "Task \"d\" is not reachable by any Job!")
 
 	// Dependency on unknown task.
 	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
-		"a": []string{},
-		"b": []string{"a"},
-		"c": []string{"a"},
-		"d": []string{"b"},
-		"e": []string{"b"},
-		"f": []string{"c"},
-		"g": []string{"e", "f"},
+		"a": {},
+		"b": {"a"},
+		"c": {"a"},
+		"d": {"b"},
+		"e": {"b"},
+		"f": {"c"},
+		"g": {"e", "f"},
 	}, map[string][]string{
-		"j": []string{"q"},
+		"j": {"q"},
 	}))
 	assert.EqualError(t, err, "Job \"j\" has unknown task \"q\" as a dependency.")
 }
@@ -586,21 +586,21 @@ func TestGetTaskSpecDAG(t *testing.T) {
 		testutils.AssertDeepEqual(t, res, dag)
 	}
 
-	test(map[string][]string{"a": []string{}}, []string{"a"})
+	test(map[string][]string{"a": {}}, []string{"a"})
 
 	test(map[string][]string{
-		"a": []string{"b"},
-		"b": []string{},
+		"a": {"b"},
+		"b": {},
 	}, []string{"a"})
 
 	test(map[string][]string{
-		"a": []string{},
-		"b": []string{"a"},
-		"c": []string{"a"},
-		"d": []string{"b"},
-		"e": []string{"b"},
-		"f": []string{"c"},
-		"g": []string{"d", "e", "f"},
+		"a": {},
+		"b": {"a"},
+		"c": {"a"},
+		"d": {"b"},
+		"e": {"b"},
+		"f": {"c"},
+		"g": {"d", "e", "f"},
 	}, []string{"a", "g"})
 }
 

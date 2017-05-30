@@ -354,7 +354,7 @@ func writeKnownHashesList(state interface{}) error {
 		// Collect all hashes in the tile that haven't been marked as unavailable yet.
 		hashes := util.StringSet{}
 		for _, test := range byTest {
-			for k, _ := range test {
+			for k := range test {
 				if _, ok := unavailableDigests[k]; !ok {
 					hashes[k] = true
 				}

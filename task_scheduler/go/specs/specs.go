@@ -434,12 +434,12 @@ func (e *cacheEntry) Get() (*TasksCfg, error) {
 	if ts.After(e.c.recentCommits[e.Rs.Revision]) {
 		e.c.recentCommits[e.Rs.Revision] = ts
 	}
-	for name, _ := range cfg.Tasks {
+	for name := range cfg.Tasks {
 		if ts.After(e.c.recentTaskSpecs[name]) {
 			e.c.recentTaskSpecs[name] = ts
 		}
 	}
-	for name, _ := range cfg.Jobs {
+	for name := range cfg.Jobs {
 		if ts.After(e.c.recentJobSpecs[name]) {
 			e.c.recentJobSpecs[name] = ts
 		}
@@ -570,7 +570,7 @@ func (c *TaskCfgCache) GetAddedTaskSpecsForRepoStates(rss []db.RepoState) (map[d
 	defer c.mtx.Unlock()
 	for cur, parents := range todoParents {
 		addedTasks := util.NewStringSet()
-		for task, _ := range taskSpecs[cur] {
+		for task := range taskSpecs[cur] {
 			// If this revision has no parents, the task spec is added by this
 			// revision.
 			addedByCur := len(parents) == 0
@@ -636,13 +636,13 @@ func (c *TaskCfgCache) Cleanup(period time.Duration) error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	periodStart := time.Now().Add(-period)
-	for repoState, _ := range c.cache {
+	for repoState := range c.cache {
 		details, err := repoState.GetCommit(c.repos)
 		if err != nil || details.Timestamp.Before(periodStart) {
 			delete(c.cache, repoState)
 		}
 	}
-	for repoState, _ := range c.addedTasksCache {
+	for repoState := range c.addedTasksCache {
 		details, err := repoState.GetCommit(c.repos)
 		if err != nil || details.Timestamp.Before(periodStart) {
 			delete(c.addedTasksCache, repoState)
@@ -695,7 +695,7 @@ func (c *TaskCfgCache) write() error {
 
 func stringMapKeys(m map[string]time.Time) []string {
 	rv := make([]string, 0, len(m))
-	for k, _ := range m {
+	for k := range m {
 		rv = append(rv, k)
 	}
 	return rv

@@ -64,7 +64,7 @@ func TestRules(t *testing.T) {
 				},
 			},
 			cases: []testCase{
-				testCase{
+				{
 					taskSpec:    "My-TaskSpec",
 					commit:      "abc123",
 					expectMatch: true,
@@ -81,13 +81,13 @@ func TestRules(t *testing.T) {
 				},
 			},
 			cases: []testCase{
-				testCase{
+				{
 					taskSpec:    "My-TaskSpec",
 					commit:      "abc123",
 					expectMatch: true,
 					msg:         "Should match",
 				},
-				testCase{
+				{
 					taskSpec:    "Your-TaskSpec",
 					commit:      "abc123",
 					expectMatch: false,
@@ -107,13 +107,13 @@ func TestRules(t *testing.T) {
 				},
 			},
 			cases: []testCase{
-				testCase{
+				{
 					taskSpec:    "My-TaskSpec",
 					commit:      "abc123",
 					expectMatch: true,
 					msg:         "Single commit match",
 				},
-				testCase{
+				{
 					taskSpec:    "My-TaskSpec",
 					commit:      "def456",
 					expectMatch: false,
@@ -132,19 +132,19 @@ func TestRules(t *testing.T) {
 				},
 			},
 			cases: []testCase{
-				testCase{
+				{
 					taskSpec:    "My-TaskSpec",
 					commit:      "abc123",
 					expectMatch: true,
 					msg:         "Inside commit range (1)",
 				},
-				testCase{
+				{
 					taskSpec:    "My-TaskSpec",
 					commit:      "bbadbeef",
 					expectMatch: true,
 					msg:         "Inside commit range (2)",
 				},
-				testCase{
+				{
 					taskSpec:    "My-TaskSpec",
 					commit:      "def456",
 					expectMatch: false,

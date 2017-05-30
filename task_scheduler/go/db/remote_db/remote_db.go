@@ -176,7 +176,7 @@ func (c *client) getTaskList(url string) ([]*db.Task, error) {
 		return nil, err
 	}
 	rv := make([]*db.Task, count)
-	for i, _ := range rv {
+	for i := range rv {
 		var t db.Task
 		if err := dec.Decode(&t); err != nil {
 			return nil, err
@@ -220,7 +220,7 @@ func (c *client) getJobList(url string) ([]*db.Job, error) {
 		return nil, err
 	}
 	rv := make([]*db.Job, count)
-	for i, _ := range rv {
+	for i := range rv {
 		var t db.Job
 		if err := dec.Decode(&t); err != nil {
 			return nil, err
@@ -688,7 +688,7 @@ func (c *client) GetCommentsForRepos(repos []string, from time.Time) ([]*db.Repo
 		return nil, err
 	}
 	rv := make([]*db.RepoComments, count)
-	for i, _ := range rv {
+	for i := range rv {
 		var c db.RepoComments
 		if err := dec.Decode(&c); err != nil {
 			return nil, err

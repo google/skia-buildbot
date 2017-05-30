@@ -278,8 +278,8 @@ func TestMatchesWithIgnore(t *testing.T) {
 		{
 			q: url.Values{},
 			ignore: []url.Values{
-				url.Values{},
-				url.Values{"p2": []string{"v2"}},
+				{},
+				{"p2": []string{"v2"}},
 			},
 			want: false,
 		},
@@ -293,7 +293,7 @@ func TestMatchesWithIgnore(t *testing.T) {
 		{
 			q: url.Values{"p1": []string{"v1"}},
 			ignore: []url.Values{
-				url.Values{"p1": []string{"bad"}},
+				{"p1": []string{"bad"}},
 			},
 			want: true,
 		},
@@ -301,7 +301,7 @@ func TestMatchesWithIgnore(t *testing.T) {
 		{
 			q: url.Values{"p1": []string{"v1"}},
 			ignore: []url.Values{
-				url.Values{"p1": []string{"v1"}},
+				{"p1": []string{"v1"}},
 			},
 			want: false,
 		},
@@ -309,8 +309,8 @@ func TestMatchesWithIgnore(t *testing.T) {
 		{
 			q: url.Values{"p1": []string{"v1"}},
 			ignore: []url.Values{
-				url.Values{},
-				url.Values{"p1": []string{"v1"}},
+				{},
+				{"p1": []string{"v1"}},
 			},
 			want: false,
 		},

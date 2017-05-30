@@ -78,12 +78,12 @@ func TestImpl(t *testing.T) {
 	second := now.Add(time.Minute).Unix()
 
 	commitIDs := []*CommitID{
-		&CommitID{
+		{
 			Timestamp: first,
 			Id:        "abc123",
 			Source:    "master",
 		},
-		&CommitID{
+		{
 			Timestamp: second,
 			Id:        "xyz789",
 			Source:    "master",
@@ -92,7 +92,7 @@ func TestImpl(t *testing.T) {
 
 	params := &AddParamsRequest{
 		Params: []*ParamsPair{
-			&ParamsPair{
+			{
 				Key: "key:8888:android",
 				Params: map[string]string{
 					"config":   "8888",
@@ -100,7 +100,7 @@ func TestImpl(t *testing.T) {
 					"type":     "skp",
 				},
 			},
-			&ParamsPair{
+			{
 				Key: "key:gpu:win8",
 				Params: map[string]string{
 					"config":   "gpu",
@@ -136,11 +136,11 @@ func TestImpl(t *testing.T) {
 	addReq := &AddRequest{
 		Commitid: commitIDs[0],
 		Values: []*ValuePair{
-			&ValuePair{
+			{
 				Key:   "key:gpu:win8",
 				Value: perftypes.BytesFromFloat64(1.234),
 			},
-			&ValuePair{
+			{
 				Key:   "key:8888:android",
 				Value: perftypes.BytesFromFloat64(0.01),
 			},
@@ -199,7 +199,7 @@ func TestImpl(t *testing.T) {
 	// The keys are trace64ids, so test that we can convert them to traceids,
 	// i.e. from uint64's to strings.
 	keys64 := []uint64{}
-	for k, _ := range ci.Values {
+	for k := range ci.Values {
 		keys64 = append(keys64, k)
 	}
 	assert.Equal(t, 2, len(keys64))

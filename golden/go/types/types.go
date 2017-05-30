@@ -211,7 +211,7 @@ func NewGoldenTraceN(n int) *GoldenTrace {
 		Values:  make([]string, n, n),
 		Params_: make(map[string]string),
 	}
-	for i, _ := range g.Values {
+	for i := range g.Values {
 		g.Values[i] = MISSING_DIGEST
 	}
 	return g

@@ -28,7 +28,7 @@ func rebootMonitoringInit() {
 		"owners": owners,
 	})
 	go func() {
-		for _ = range time.Tick(time.Minute) {
+		for range time.Tick(time.Minute) {
 			_, err := os.Stat("/var/run/reboot-required")
 			if err == nil {
 				reboot.Update(1)

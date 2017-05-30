@@ -178,7 +178,7 @@ func NewZones(comp *compute.Service) (*Zones, error) {
 		return nil, err
 	}
 	go func() {
-		for _ = range time.Tick(time.Second * 60) {
+		for range time.Tick(time.Second * 60) {
 			if err := i.load(); err != nil {
 				sklog.Infof("Error refreshing IP address list: %s", err)
 			}
@@ -391,7 +391,7 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 func serversFromAllInstalled(allInstalled map[string]*packages.Installed) ServersUI {
 	servers := ServersUI{}
 	names := make([]string, 0, len(allInstalled))
-	for name, _ := range allInstalled {
+	for name := range allInstalled {
 		names = append(names, name)
 	}
 	sort.Strings(names)
@@ -432,7 +432,7 @@ func stepStatus() {
 
 func startStatusUpdate() {
 	stepStatus()
-	for _ = range time.Tick(5 * time.Second) {
+	for range time.Tick(5 * time.Second) {
 		stepStatus()
 	}
 }
@@ -529,7 +529,7 @@ func oneStep() {
 // This function doesn't return and should be launched as a Go routine.
 func startDirtyMonitoring() {
 	oneStep()
-	for _ = range time.Tick(time.Minute) {
+	for range time.Tick(time.Minute) {
 		oneStep()
 	}
 }

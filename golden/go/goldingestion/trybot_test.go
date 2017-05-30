@@ -45,7 +45,7 @@ var (
 	}
 
 	TRYBOT_TEST_COMMITS = []*vcsinfo.LongCommit{
-		&vcsinfo.LongCommit{
+		{
 			ShortCommit: &vcsinfo.ShortCommit{
 				Hash:    "02cb37309c01506e2552e931efa9c04a569ed266",
 				Subject: "Really big code change",

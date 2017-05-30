@@ -19,7 +19,7 @@ func makeFullJob(now time.Time) *Job {
 		BuildbucketLeaseKey: 987,
 		Created:             now.Add(time.Nanosecond),
 		DbModified:          now.Add(time.Millisecond),
-		Dependencies:        map[string][]string{"A": []string{"B"}, "B": []string{}},
+		Dependencies:        map[string][]string{"A": {"B"}, "B": {}},
 		Finished:            now.Add(time.Second),
 		Id:                  "abc123",
 		IsForce:             true,
@@ -171,7 +171,7 @@ func TestJobDeriveStatus(t *testing.T) {
 	testutils.SmallTest(t)
 	// No tasks for the Job: in progress.
 	j1 := &Job{
-		Dependencies: map[string][]string{"test": []string{"build"}, "build": []string{}},
+		Dependencies: map[string][]string{"test": {"build"}, "build": {}},
 		Name:         "j1",
 		RepoState: RepoState{
 			Repo:     "my-repo",
@@ -186,7 +186,7 @@ func TestJobDeriveStatus(t *testing.T) {
 
 	// Add a task for the job. It's still in progress.
 	t1 := &TaskSummary{Status: TASK_STATUS_RUNNING}
-	j1.Tasks = map[string][]*TaskSummary{"build": []*TaskSummary{t1}}
+	j1.Tasks = map[string][]*TaskSummary{"build": {t1}}
 	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_IN_PROGRESS)
 
 	// Okay, it succeeded.

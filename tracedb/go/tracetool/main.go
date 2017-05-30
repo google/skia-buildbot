@@ -190,7 +190,7 @@ func ping(client traceservice.TraceServiceClient) {
 	ctx := context.Background()
 	req := &traceservice.Empty{}
 	_pingStep(ctx, req, client)
-	for _ = range time.Tick(time.Second) {
+	for range time.Tick(time.Second) {
 		_pingStep(ctx, req, client)
 	}
 }
