@@ -113,7 +113,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Error: %s", err)
 	}
-	defer client.Close()
+	defer util.Close(client)
 
 	if err := client.Send(CMD_CALIBRATE, 1); err != nil {
 		sklog.Fatalf("Error callibrating: %s", err)

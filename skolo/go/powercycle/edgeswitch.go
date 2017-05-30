@@ -216,13 +216,13 @@ func (e *EdgeSwitchClient) execCmds(cmds []string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer client.Close()
+	defer util.Close(client)
 
 	session, err := client.NewSession()
 	if err != nil {
 		return nil, err
 	}
-	defer session.Close()
+	defer util.Close(session)
 
 	// Set a terminal with many lines so we are not paginated.
 	if err := session.RequestPty("xterm", 80, 5000, nil); err != nil {

@@ -105,7 +105,7 @@ func (a *ArduinoClient) PowerCycle(devID string, delayOverride time.Duration) er
 	if err != nil {
 		return err
 	}
-	defer session.Close()
+	defer util.Close(session)
 
 	sklog.Infof("Executing: %s", cmd)
 	outBytes, err := session.CombinedOutput(cmd)
@@ -131,7 +131,7 @@ func (a *ArduinoClient) ping() error {
 	if err != nil {
 		return err
 	}
-	defer session.Close()
+	defer util.Close(session)
 
 	out, err := session.CombinedOutput("pwd")
 	if err != nil {
