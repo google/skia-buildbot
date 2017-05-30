@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "81772e62_9e1247aa",
+        "filename": "android_ingest/go/buildapi/buildapi.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-30T13:16:22Z",
+      "side": 0,
+      "message": "Honestly, I didn\u0027t know that this was valid syntax.  I agree that it\u0027s simpler and prettier, but it seems inconsistent with normal multiple-assignment statements where you can\u0027t just leave off one of the return values.  I don\u0027t feel too strongly but my personal preference is for the more explicit style.",
+      "parentUuid": "2943f381_6d934a94",
+      "range": {
+        "startLine": 80,
+        "startChar": 1,
+        "endLine": 80,
+        "endChar": 28
+      },
+      "revId": "49ff8457ded92b291af004f8f9d3a7660315b475",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "13dbd41c_d4064b0f",
         "filename": "android_ingest/go/recent/recent.go",
         "patchSetId": 1
