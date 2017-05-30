@@ -285,6 +285,30 @@
     },
     {
       "key": {
+        "uuid": "a49e698d_40da70be",
+        "filename": "power/go/decider/mock_decider.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-30T17:43:37Z",
+      "side": 1,
+      "message": "Done.  See https://skia-review.googlesource.com/c/18068/4/power/go/gatherer/gatherer_test.go#93 for a method that we need (.On()) that is on the mock.Mock, *not* on the Decider interface.  Thus, we can\u0027t have line 12 return a Decider, otherwise we can\u0027t use the mocking features.",
+      "parentUuid": "2ee3591c_2049b922",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 35
+      },
+      "revId": "2ec381e5c9ed4371699714566f85cf8c9d122c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "13c02f80_ec4c372d",
         "filename": "power/go/testdata/consts.go",
         "patchSetId": 5
