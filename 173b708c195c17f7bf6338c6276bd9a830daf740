@@ -63,6 +63,24 @@
       "revId": "173b708c195c17f7bf6338c6276bd9a830daf740",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b630a4e2_d1a83677",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-05-30T12:28:27Z",
+      "side": 1,
+      "message": "Strange. Are you using a different base image?",
+      "parentUuid": "97fdf38b_e71b5bdf",
+      "revId": "173b708c195c17f7bf6338c6276bd9a830daf740",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
