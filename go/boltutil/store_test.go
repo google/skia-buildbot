@@ -59,7 +59,7 @@ func TestKeyConflicts(t *testing.T) {
 	testIndices := []string{TEST_INDEX_ONE}
 	ib, baseDir, _ := newIndexedBucket(t, testIndices)
 	defer testutils.RemoveAll(t, baseDir)
-	defer ib.DB.Close()
+	defer func() { assert.NoError(t, ib.DB.Close()) }()
 
 	currentTestIndices = util.CopyStringSlice(testIndices)
 	assert.NoError(t, ib.Insert([]Record{

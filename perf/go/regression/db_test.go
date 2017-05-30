@@ -22,7 +22,6 @@ func TestSetLowWithMissing(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer mdb.Close()
 
 	r := New()
 	c := &cid.CommitDetail{
@@ -73,7 +72,6 @@ func TestTriageWithExisting(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer mdb.Close()
 
 	r := New()
 	c := &cid.CommitDetail{
@@ -133,7 +131,6 @@ func TestTriageWithMissing(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer mdb.Close()
 
 	c := &cid.CommitDetail{
 		CommitID: cid.CommitID{
@@ -176,7 +173,6 @@ func TestRange(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer mdb.Close()
 
 	r1 := New()
 	c1 := cid.CommitID{
@@ -229,7 +225,6 @@ func TestUntriaged(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer mdb.Close()
 
 	// Set expectations.
 	rows := sqlmock.NewRows([]string{"count"}).

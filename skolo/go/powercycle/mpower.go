@@ -157,7 +157,7 @@ func (m *MPowerClient) ping() error {
 	if err != nil {
 		return err
 	}
-	defer session.Close()
+	defer util.Close(session)
 
 	out, err := session.CombinedOutput("pwd")
 	if err != nil {
@@ -177,7 +177,7 @@ func (m *MPowerClient) getPortValue(port int) (int, error) {
 	if err != nil {
 		return PORT_OFF, err
 	}
-	defer session.Close()
+	defer util.Close(session)
 
 	cmd := fmt.Sprintf("cat %s", m.getRelayFile(port))
 	outBytes, err := session.CombinedOutput(cmd)
@@ -212,7 +212,7 @@ func (m *MPowerClient) setPortValue(port int, newVal int) error {
 	if err != nil {
 		return err
 	}
-	defer session.Close()
+	defer util.Close(session)
 
 	// Check if the value is already the target value.
 	if current, err := m.getPortValue(port); err != nil {
