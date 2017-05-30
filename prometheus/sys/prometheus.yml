@@ -107,6 +107,10 @@ scrape_configs:
     static_configs:
       - targets: ['skia-push:20000']
 
+  - job_name: 'remote-control'
+    static_configs:
+      - targets: ['skia-remote-control:20000']
+
   - job_name: 'skiaperfd'
     static_configs:
       - targets: ['skia-perf:20000']

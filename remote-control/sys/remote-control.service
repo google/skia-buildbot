@@ -1,0 +1,18 @@
+[Unit]
+Description=Skolo Remote Control
+Requires=mnt-pd0.mount
+Wants=network-online.target
+After=mnt-pd0.mount network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/remote-control \
+    --host=rc.skia.org \
+    --logtostderr \
+    --workdir=/mnt/pd0/remote-control
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

@@ -527,9 +527,9 @@ func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool, workdir string)
 
 	// Fix ~/.gsutil permissions. They start out as root:root for some
 	// reason, which prevents us from using gsutil at all.
-	if _, err := vm.Ssh("sudo", "chown", "--recursive", fmt.Sprintf("%s:%s", vm.User, vm.User), ".gsutil"); err != nil {
-		return err
-	}
+	//if _, err := vm.Ssh("sudo", "chown", "--recursive", fmt.Sprintf("%s:%s", vm.User, vm.User), ".gsutil"); err != nil {
+	//	return err
+	//}
 
 	// Format and mount.
 	if vm.FormatAndMount {
