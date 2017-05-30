@@ -1,18 +1,22 @@
 package sharedconfig
 
 import (
+	"os"
 	"time"
 
+	"go.skia.org/infra/go/util"
+
 	"github.com/BurntSushi/toml"
+	"github.com/flynn/json5"
 )
 
-// tomlDuration is a simple struct wrapper to allow us to parse strings as durations
-// from the incoming toml file (e.g,. RunEvery = "5m")
-type TomlDuration struct {
+// ConfDuration is a simple struct wrapper to allow us to parse strings as durations
+// from the incoming config file (e.g,. RunEvery = "5m")
+type ConfDuration struct {
 	time.Duration
 }
 
-func (d *TomlDuration) UnmarshalText(text []byte) error {
+func (d *ConfDuration) UnmarshalText(text []byte) error {
 	var err error
 	d.Duration, err = time.ParseDuration(string(text))
 	return err
@@ -26,7 +30,7 @@ type DataSource struct {
 }
 
 type IngesterConfig struct {
-	RunEvery    TomlDuration      // How often the ingester should pull data from Google Storage.
+	RunEvery    ConfDuration      // How often the ingester should pull data from Google Storage.
 	NCommits    int               // Minimum number of commits that should be ingested.
 	MinDays     int               // Minimum number of days that should be covered by the ingested commits.
 	StatusDir   string            // Path where the ingest process keeps its status between restarts.
@@ -50,4 +54,15 @@ func ConfigFromTomlFile(path string) (*Config, error) {
 		return nil, err
 	}
 	return ret, nil
+}
+
+// ConfigFromJson5File parses a JSON5 file into a Config struct.
+func ConfigFromJson5File(path string) (*Config, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer util.Close(file)
+	ret := &Config{}
+	return ret, json5.NewDecoder(file).Decode(ret)
 }
