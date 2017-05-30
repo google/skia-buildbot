@@ -14,6 +14,7 @@ import (
 
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -274,11 +275,15 @@ func (a *AutoRollIssue) AllTrybotsSucceeded() bool {
 			bots[t.Builder] = t
 		}
 	}
+	sklog.Infof("AllTrybotsSucceeded? %d results.", len(bots))
 	for _, t := range bots {
+		sklog.Infof("  %s: %s (%s)", t.Builder, t.Result, t.Category)
 		if t.Category != TRYBOT_CATEGORY_CQ {
+			sklog.Infof("    ...skipping, not a CQ bot")
 			continue
 		}
 		if !t.Succeeded() {
+			sklog.Infof("    ...failed")
 			return false
 		}
 	}
