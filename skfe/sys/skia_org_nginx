@@ -250,7 +250,7 @@ server {
     add_header X-Content-Type-Options nosniff;
 
     location /_/hashes {
-      proxy_path https://storage.googleapis.com/skia-infra-gm/hash_files/gold-pdfium-hashes.txt
+      proxy_pass https://storage.googleapis.com/skia-infra-gm/hash_files/gold-pdfium-hashes.txt;
     }
 
     location / {
