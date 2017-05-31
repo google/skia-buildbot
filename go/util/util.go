@@ -791,3 +791,38 @@ func PermuteStrings(strs []string) [][]string {
 	}
 	return rv
 }
+
+// ParseIntSet parses a string expression like "5", "3-8", or "3,4,9" into a
+// slice of integers: [5], [3, 4, 5, 6, 7, 8], [3, 4, 9].
+func ParseIntSet(expr string) ([]int, error) {
+	rv := []int{}
+	ranges := strings.Split(expr, ",")
+	for _, r := range ranges {
+		endpoints := strings.Split(r, "-")
+		if len(endpoints) == 1 {
+			v, err := strconv.Atoi(strings.TrimSpace(endpoints[0]))
+			if err != nil {
+				return nil, err
+			}
+			rv = append(rv, v)
+		} else if len(endpoints) == 2 {
+			start, err := strconv.Atoi(strings.TrimSpace(endpoints[0]))
+			if err != nil {
+				return nil, err
+			}
+			end, err := strconv.Atoi(strings.TrimSpace(endpoints[1]))
+			if err != nil {
+				return nil, err
+			}
+			if start > end {
+				return nil, fmt.Errorf("Cannot have a range whose beginning is greater than its end (%d vs %d)", start, end)
+			}
+			for i := start; i <= end; i++ {
+				rv = append(rv, i)
+			}
+		} else {
+			return nil, fmt.Errorf("Invalid expression %q", r)
+		}
+	}
+	return rv, nil
+}

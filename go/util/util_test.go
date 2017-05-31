@@ -2,6 +2,7 @@ package util
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -565,4 +566,27 @@ func TestPermuteStrings(t *testing.T) {
 		{"d", "c", "a", "b"},
 		{"d", "c", "b", "a"},
 	}, PermuteStrings([]string{"a", "b", "c", "d"}))
+}
+
+func TestParseIntSet(t *testing.T) {
+	testutils.SmallTest(t)
+
+	test := func(input string, expect []int, expectErr string) {
+		res, err := ParseIntSet(input)
+		if expectErr != "" {
+			assert.EqualError(t, fmt.Errorf(expectErr), err.Error())
+		} else {
+			assert.NoError(t, err)
+			assert.Equal(t, expect, res)
+		}
+	}
+	test("", nil, "strconv.ParseInt: parsing \"\": invalid syntax")
+	test("19", []int{19}, "")
+	test("1,2,3", []int{1, 2, 3}, "")
+	test("1-3", []int{1, 2, 3}, "")
+	test("1,2,4-6", []int{1, 2, 4, 5, 6}, "")
+	test("a", nil, "strconv.ParseInt: parsing \"a\": invalid syntax")
+	test(" 4, 6, 9 - 11", []int{4, 6, 9, 10, 11}, "")
+	test("4-9-10", nil, "Invalid expression \"4-9-10\"")
+	test("9-3", nil, "Cannot have a range whose beginning is greater than its end (9 vs 3)")
 }

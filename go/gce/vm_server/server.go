@@ -40,11 +40,13 @@ func Server20170518(name, ipAddress string) *gce.Instance {
 			Type:   gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
 		ExternalIpAddress: ipAddress,
+		FixGSutil:         true,
 		GSDownloads:       map[string]string{},
 		MachineType:       gce.MACHINE_TYPE_HIGHMEM_16,
 		Metadata:          map[string]string{},
 		MetadataDownloads: map[string]string{},
 		Name:              name,
+		Os:                gce.OS_LINUX,
 		Scopes: []string{
 			auth.SCOPE_FULL_CONTROL,
 		},
