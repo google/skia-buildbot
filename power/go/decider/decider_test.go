@@ -1,7 +1,6 @@
 package decider
 
 import (
-	"encoding/json"
 	"testing"
 
 	swarming "github.com/luci/luci-go/common/api/swarming/swarming/v1"
@@ -103,17 +102,7 @@ func TestShouldPowercycleDevice(t *testing.T) {
 }
 
 func mockBot(t *testing.T, filename string) *swarming.SwarmingRpcsBotInfo {
-	return mockBotAndId(t, filename, MOCK_BOT_ID)
-}
-
-func mockBotAndId(t *testing.T, filename, id string) *swarming.SwarmingRpcsBotInfo {
-	j, err := testdata.ReadFile(filename)
-	assert.NoError(t, err, "There was a problem reading in the test data")
-	var s swarming.SwarmingRpcsBotInfo
-	err = json.Unmarshal([]byte(j), &s)
-	assert.NoError(t, err, "There was a problem parsing the test data")
-	s.BotId = id
-	return &s
+	return testdata.MockBotAndId(t, filename, MOCK_BOT_ID)
 }
 
 func TestIDBasedPowercycleBot(t *testing.T) {
@@ -121,19 +110,19 @@ func TestIDBasedPowercycleBot(t *testing.T) {
 	// This test tests the enabledBots logic
 	tests := map[string]testcase{
 		"SunnyDay": {
-			bot:              mockBotAndId(t, testdata.DEAD_BOT, "bot-001"),
+			bot:              testdata.MockBotAndId(t, testdata.DEAD_BOT, "bot-001"),
 			shouldPowercycle: true,
 		},
 		"NotEnabled": {
-			bot:              mockBotAndId(t, testdata.DEAD_BOT, "not-enabled"),
+			bot:              testdata.MockBotAndId(t, testdata.DEAD_BOT, "not-enabled"),
 			shouldPowercycle: false,
 		},
 		"JustBotInList": {
-			bot:              mockBotAndId(t, testdata.DEAD_BOT, "bot-002"),
+			bot:              testdata.MockBotAndId(t, testdata.DEAD_BOT, "bot-002"),
 			shouldPowercycle: true,
 		},
 		"JustDeviceInList": {
-			bot:              mockBotAndId(t, testdata.DEAD_BOT, "bot-003"),
+			bot:              testdata.MockBotAndId(t, testdata.DEAD_BOT, "bot-003"),
 			shouldPowercycle: false,
 		},
 	}
@@ -160,19 +149,19 @@ func TestIDBasedPowercycleDevice(t *testing.T) {
 	// This test tests the enabledBots logic
 	tests := map[string]testcase{
 		"SunnyDay": {
-			bot:              mockBotAndId(t, testdata.MISSING_DEVICE, "bot-001"),
+			bot:              testdata.MockBotAndId(t, testdata.MISSING_DEVICE, "bot-001"),
 			shouldPowercycle: true,
 		},
 		"NotEnabled": {
-			bot:              mockBotAndId(t, testdata.MISSING_DEVICE, "not-enabled"),
+			bot:              testdata.MockBotAndId(t, testdata.MISSING_DEVICE, "not-enabled"),
 			shouldPowercycle: false,
 		},
 		"JustBotInList": {
-			bot:              mockBotAndId(t, testdata.MISSING_DEVICE, "bot-002"),
+			bot:              testdata.MockBotAndId(t, testdata.MISSING_DEVICE, "bot-002"),
 			shouldPowercycle: false,
 		},
 		"JustDeviceInList": {
-			bot:              mockBotAndId(t, testdata.MISSING_DEVICE, "bot-003"),
+			bot:              testdata.MockBotAndId(t, testdata.MISSING_DEVICE, "bot-003"),
 			shouldPowercycle: true,
 		},
 	}
