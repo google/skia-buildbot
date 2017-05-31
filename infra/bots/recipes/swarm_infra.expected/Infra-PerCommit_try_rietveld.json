@@ -96,7 +96,7 @@
     "env": {
       "GIT_HTTP_LOW_SPEED_LIMIT": "1000",
       "GIT_HTTP_LOW_SPEED_TIME": "300",
-      "PATH": "%(PATH)s:RECIPE_PACKAGE_REPO[depot_tools]"
+      "PATH": "<PATH>:RECIPE_PACKAGE_REPO[depot_tools]"
     },
     "infra_step": true,
     "name": "bot_update",
@@ -166,7 +166,7 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:%(PATH)s"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:<PATH>"
     },
     "name": "which go"
   },
@@ -184,7 +184,7 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:%(PATH)s"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:<PATH>"
     },
     "name": "update_deps"
   },
@@ -263,7 +263,7 @@
     "env": {
       "GIT_HTTP_LOW_SPEED_LIMIT": "1000",
       "GIT_HTTP_LOW_SPEED_TIME": "300",
-      "PATH": "%(PATH)s:RECIPE_PACKAGE_REPO[depot_tools]"
+      "PATH": "<PATH>:RECIPE_PACKAGE_REPO[depot_tools]"
     },
     "infra_step": true,
     "name": "bot_update (2)",
@@ -347,7 +347,7 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:%(PATH)s"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:<PATH>"
     },
     "name": "install goimports"
   },
@@ -363,7 +363,7 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:%(PATH)s"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:<PATH>"
     },
     "name": "install errcheck"
   },
@@ -377,7 +377,7 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:%(PATH)s"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:<PATH>"
     },
     "name": "setup database"
   },
@@ -397,7 +397,7 @@
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
       "KARMA_PORT": "15001",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:%(PATH)s:[DEPOT_TOOLS]",
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:<PATH>:[DEPOT_TOOLS]",
       "TMPDIR": null
     },
     "name": "run_unittests"
