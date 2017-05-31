@@ -1,18 +1,20 @@
 #!/bin/bash
+
+# Note: This assumes that nginx is installed by the server setup script.
+# The package created by this script will then override the default
+# nginx configuration, set up the websites defined in ./sys/skia_nginx and
+# restart the nginx service.
+
 # Builds and uploads a debian package with configuration files for nginx.
 APPNAME=skfe-config
 SETUP_APPNAME="setup-${APPNAME}"
 LOGROTATE_APPNAME="rotate_nginx_logs"
 CERTPOLLER_APPNAME="certpoller"
-SYSTEMD="nginx.service google-fluentd.service"
+SYSTEMD=""
 SYSTEMD_TIMER="${SETUP_APPNAME}.service ${LOGROTATE_APPNAME}.timer"
 DESCRIPTION="The local config files for nginx serving *.skia.org"
 
 set -x -e
-
-# nginx is installed by the setup script.
-#TODO(kjlubick) Figure out why this is doesn't work anymore.
-#DEPENDS=nginx
 
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
