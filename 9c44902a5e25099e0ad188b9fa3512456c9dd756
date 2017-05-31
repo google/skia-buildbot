@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8e678cd3_76f4d50f",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-31T21:57:49Z",
+      "side": 1,
+      "message": "Just want to verify that internal bots don\u0027t need .gitconfig and .netrc.",
+      "range": {
+        "startLine": 101,
+        "startChar": 7,
+        "endLine": 101,
+        "endChar": 23
+      },
+      "revId": "9c44902a5e25099e0ad188b9fa3512456c9dd756",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00a5bc15_1f24d995",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-31T21:57:49Z",
+      "side": 1,
+      "message": "nit: I think it would be nice to know which instances failed if there\u0027s a partial failure. errgroup only gives you the first failure and all others are ignored.",
+      "range": {
+        "startLine": 194,
+        "startChar": 11,
+        "endLine": 194,
+        "endChar": 25
+      },
+      "revId": "9c44902a5e25099e0ad188b9fa3512456c9dd756",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d910124a_073f6a3d",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-31T21:57:49Z",
+      "side": 1,
+      "message": "Seems like this needs to be part of CreateAndSetup so that it can happen before first reboot.",
+      "range": {
+        "startLine": 223,
+        "startChar": 5,
+        "endLine": 225,
+        "endChar": 35
+      },
+      "revId": "9c44902a5e25099e0ad188b9fa3512456c9dd756",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92028fb2_a660f2cb",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-31T21:57:49Z",
+      "side": 1,
+      "message": "I think I\u0027d be happier with a setup-script.sh file that we scp to the machine and run via ssh.",
+      "range": {
+        "startLine": 249,
+        "startChar": 5,
+        "endLine": 305,
+        "endChar": 6
+      },
+      "revId": "9c44902a5e25099e0ad188b9fa3512456c9dd756",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f02f913d_f7f9910a",
+        "filename": "go/util/util_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-31T21:57:49Z",
+      "side": 1,
+      "message": "nit: use assert.Contains(t, err.Error(), expectErr); see https://skia-review.googlesource.com/c/17901/ regarding strconv.ParseInt vs strconv.Atoi.",
+      "range": {
+        "startLine": 577,
+        "startChar": 3,
+        "endLine": 577,
+        "endChar": 59
+      },
+      "revId": "9c44902a5e25099e0ad188b9fa3512456c9dd756",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8abbe331_b57d38a4",
+        "filename": "go/util/util_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 583,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-31T21:57:49Z",
+      "side": 1,
+      "message": "nit: For swarming_vm.go, this is what we want, but I would imagine in other cases we would want ParseIntSet to return an empty set.",
+      "range": {
+        "startLine": 583,
+        "startChar": 1,
+        "endLine": 583,
+        "endChar": 64
+      },
+      "revId": "9c44902a5e25099e0ad188b9fa3512456c9dd756",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "440a3100_c5d163be",
+        "filename": "go/util/util_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 587,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-31T21:57:49Z",
+      "side": 1,
+      "message": "Probably overkill, but maybe test multiple ranges, e.g. \"1-3,11-13,21-23\"",
+      "range": {
+        "startLine": 587,
+        "startChar": 1,
+        "endLine": 587,
+        "endChar": 42
+      },
+      "revId": "9c44902a5e25099e0ad188b9fa3512456c9dd756",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2996ba58_d54aaf70",
+        "filename": "go/util/util_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 590,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-05-31T21:57:49Z",
+      "side": 1,
+      "message": "Maybe also test \"2-\" and \"-2\"",
+      "range": {
+        "startLine": 590,
+        "startChar": 1,
+        "endLine": 590,
+        "endChar": 53
+      },
+      "revId": "9c44902a5e25099e0ad188b9fa3512456c9dd756",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
