@@ -42,6 +42,30 @@
     },
     {
       "key": {
+        "uuid": "725b15ee_32f0beca",
+        "filename": "power/go/gatherer/gatherer.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-31T12:36:10Z",
+      "side": 1,
+      "message": "I\u0027ll move the \"run in go routine logic\" to the caller, renaming GetDownBots -\u003e CachedDownBots and CycleEvery -\u003e Update.  This should be a bit more flexible of an interface.",
+      "parentUuid": "99b46f93_79a7c408",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 26
+      },
+      "revId": "217a2a993cce4e41d0c21ee6855d19c8d209ccee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d0cdcaaf_94eab7f3",
         "filename": "power/go/gatherer/gatherer.go",
         "patchSetId": 6
@@ -65,6 +89,30 @@
     },
     {
       "key": {
+        "uuid": "df9b5c30_373142ed",
+        "filename": "power/go/gatherer/gatherer.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-31T12:36:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d0cdcaaf_94eab7f3",
+      "range": {
+        "startLine": 153,
+        "startChar": 19,
+        "endLine": 153,
+        "endChar": 38
+      },
+      "revId": "217a2a993cce4e41d0c21ee6855d19c8d209ccee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1caba0ed_3b0b722a",
         "filename": "power/go/gatherer/gatherer.go",
         "patchSetId": 6
@@ -85,6 +133,30 @@
       "revId": "217a2a993cce4e41d0c21ee6855d19c8d209ccee",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86265cff_123078d8",
+        "filename": "power/go/gatherer/gatherer.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-05-31T12:36:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1caba0ed_3b0b722a",
+      "range": {
+        "startLine": 157,
+        "startChar": 2,
+        "endLine": 157,
+        "endChar": 24
+      },
+      "revId": "217a2a993cce4e41d0c21ee6855d19c8d209ccee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
