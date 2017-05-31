@@ -9,12 +9,10 @@ Requirements
 1. Must be able to build and run the same fiddle at different versions of
    Skia, for example, HEAD, m50, and m49. (Where HEAD actually means last roll
    of Skia into Blink.)
-1. Need to be able to run a local version for testing, even if the local
-   system is not systemd based.
+1. Need to be able to run a local version for testing.
 1. Must use our latest techniques and tools, i.e. InfluxDB metrics, push, and
    logging.
 1. Polymer 1.0 only.
-1. Switch to systemd-nspawn from chroot.
 1. Drop support for workspaces. They never appeared in humper's UI and they
    appear to have been broken for at least the last 6 months, if not longer,
    and no one noticed.
@@ -28,12 +26,13 @@ There are several executables that need to get built at various times
 and places that go into compiling and running user's untrusted C++ code.
 The following executables part of that process:
 
-  * systemd-nspawn - Part of systemd, launches a chroot jail.
+  * overlayfs - Allows creating an overlay filesystem so writes never
+                reach the true file system.
   * fiddle\_secwrap - Runs a program under the control of ptrace.
   * fiddle\_main - The user's code with a wrapper to load a source
                   image and to write out the resulting PNGs, PDF,
                   an SKP data.
-  * fiddle\_run - This is run within the chroot jail. It compiles
+  * fiddle\_run - This is run on top of the overlayfs. It compiles
                  the user's code against fiddle\_main.o and
                  libskia.a and then runs the resulting executable
                  under the control of fiddle\_secwrap. It gathers
@@ -65,11 +64,11 @@ The rest are built on the server as it runs:
     |                                                          |
     |                                                          |
     |                                                          |
-    |  User's code written and mounted in container to         |
+    |  User's code written and mounted in overlayfs to         |
     |  overwrite the default tools/fiddle/draw.cpp.            |
     |                                                          |
     |                                                          |
-    |  systemd-nspawn                                          |
+    |  overlayfs                                               |
     |    +                                                     |
     |    |                                                     |
     |    +-> fiddle_run (stdout produces JSON)                 |
@@ -91,7 +90,7 @@ The rest are built on the server as it runs:
 
 
 By default $FIDDLE\_ROOT is /mnt/pd0, but can be another directory when running
-locally and not using systemd-nspawn.
+locally and not using overlayfs.
 
 Skia is checked out into $FIDDLE\_ROOT/versions/<githash>, and gn/ninja built.
 Good builds are recorded in $FIDDLE\_ROOT/goodbuilds.txt, which is just a text
@@ -99,17 +98,14 @@ file of good builds in the order they are done, that is, new good builds are
 appended to the end of the file.
 
 The rest of the work, compiling the user's code and then running it, is done
-in the container, i.e. run in a root jail using systemd-nspawn.
+in the overlay filesystem.
 
-In the container, / is mounted read-only. Also bind an overlay filesystem is
-created to mirror /mnt/pd0/fiddle into the container, so the full contents are
-available to read, but any writes are directed into the temp directory created
-for each run.
+In the overlayfs, / is mounted as an overlay filesystem created to mirror
+/mnt/pd0/fiddle so the full contents are available to read, but any writes are
+directed into the temp directory created for each run.
 
 The source for draw.cpp is mounted readonly as a file that takes the place of
-the default draw.cpp.  The source of the mount point for draw.cpp is
-$FIDDLE\_ROOT/tmp/<tmpdir>/, where tmpdir is unique for each requested
-compile.  (This is just a symbolic link when not running via nspawn.)
+the default draw.cpp.
 
 Compile 'fiddle' using Ninja and run via ptrace control with fiddle\_secwrap.
 Source images will be loaded in $FIDDLE\_ROOT/images.  The output from running
@@ -117,19 +113,39 @@ fiddle\_main is piped to stdout and contains the images as base64 encoded
 values in JSON. The $FIDDLE\_ROOT/images directory is whitelisted for access
 by fiddle\_secwrap so that fiddle\_main can read the source image.
 
-Summary of directories and files and how they are mounted in the container:
+Summary of directories and files and how they are mounted in the overlayfs:
 
- Directory                                 | Perms | Container
--------------------------------------------|-------|----------
-$FIDDLE\_ROOT/goodbuilds.txt               | R     | Y
-$FIDDLE\_ROOT/                             | RWish | Y
-  ./<githash>/tools/fiddle/draw.cpp        | R     | Y
-$FIDDLE\_ROOT/tmp/<tmpdir>/                | R     | N
-$FIDDLE\_ROOT/images/                      | R     | Y
-$FIDDLE\_ROOT/bin/fiddle\_secwrap          | R     | Y
 
-Where 'RWish' means that the directory is mounted is a way that allows
-reading from any file, but writes are redirected to a temp directory.
+ Directory                                            | Description
+------------------------------------------------------|-----------
+ $FIDDLE\_ROOT/goodbuilds.txt                         | Good git hashes.
+ $FIDDLE\_ROOT/<githash>/skia/tools/fiddle/draw.cpp   | Original to hide.
+ $FIDDLE\_ROOT/tmp/<runid>/                           | Dir per run.
+ $FIDDLE\_ROOT/tmp/<runid>/skiawork/                  | Temp file for overlayfs.
+ $FIDDLE\_ROOT/tmp/<runid>/                           |
+             ./skiaupper/skia/tools/fiddle/draw.cpp   | Overwrites orig draw.cpp.
+ $FIDDLE\_ROOT/tmp/<runid>/overlay/                   | The overlay fs.
+ $FIDDLE\_ROOT/images/                                | Source images.
+ $FIDDLE\_ROOT/bin/fiddle\_secwrap                    | fiddle\_secwrap.
+
+Each run has a unique id associated with it, that id used to segregate the
+overlay file systems created to handle that run.
+
+    mkdir /mnt/pd0/tmp/<runid>/
+    mkdir /mnt/pd0/tmp/<runid>/skiawork
+    mkdir /mnt/pd0/tmp/<runid>/skiaupper/skia/tools/fiddle/
+    cp draw.cpp /mnt/pd0/tmp/<runid>/skiaupper/skia/tools/fiddle/draw.cpp
+
+    export UPPER=/mnt/pd0/tmp/<runid>/skiaupper
+    export WORK=/mnt/pd0/tmp/<runid>/skiawork
+    export LOWER=$fiddle\_root/versions/<githash>
+    mount -t overlay -o lowerdir=$LOWER,upperdir=$UPPER,workdir=$WORK /mnt/pd0/tmp/<runid>/overlay
+
+When done:
+
+    umount /mnt/pd0/tmp/<runid>/overlay
+    rmdir /mnt/pd0/tmp/<runid>
+
 
 Decimation
 ----------
@@ -250,32 +266,30 @@ Drive
 An attached disk will reside at /mnt/pd0 and will be populated as:
 
      /mnt/pd0/fiddle  - $FIDDLE_ROOT
-     /mnt/pd0/container
      /mnt/pd0/fiddle/depot_tools
 
 Startup
 -------
 
-During instance startup git and systemd-container will be installed and
-depot\_tools will also be installed.
+During instance startup git will be installed and depot\_tools will also be
+installed.
 
-The container image and all other exes will be installed via push.
+All other exe's will be installed via push.
 
 Security
 --------
 
 We're putting a C++ compiler on the web, and promising to run the results of
 user submitted code, so security is a large concern. Security is handled in a
-layered approach, using a combination of seccomp-bpf, chroot jail and rlimits.
+layered approach, using a combination of seccomp-bpf, overlayfs, and rlimits.
 
 seccomp-bpf - Used to limit the types of system calls that the user code can
 make. Any attempts to make a system call that isn't allowed causes the
 application to terminate immediately. Seccomp-bpf and ptrace are used from
 fiddle\_secwrap.cpp.
 
-chroot jail - The code is run in a chroot jail via systemd-nspawn, making the
-rest of the operating system files unreachable from the running code.
-Systemd-nspawn is launched from fiddle\_run.
+overlayfs - Creates an overlay filesystem that stops writes from reaching
+the main tree.
 
 rlimits - Used to limit the resources the running code can get access to, for
 example runtime is limited to 10s of CPU. The limits are set in fiddle\_run.
