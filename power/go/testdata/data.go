@@ -1,6 +1,13 @@
 package testdata
 
-import "go.skia.org/infra/go/testutils"
+import (
+	"encoding/json"
+	"testing"
+
+	swarming "github.com/luci/luci-go/common/api/swarming/swarming/v1"
+	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils"
+)
 
 // The JSON in these files was recieved from calls to
 // https://chromium-swarm.appspot.com/_ah/api/swarming/v1/bot/[bot]/get
@@ -12,7 +19,14 @@ var MISSING_DEVICE = "missing_device.json"
 var TOO_HOT = "too_hot.json"
 var USB_FAILURE = "usb_failure.json"
 
-// ReadFile reads a file from the ./testdata directory.
-func ReadFile(filename string) (string, error) {
-	return testutils.ReadFile(filename)
+// MockBotAndId creates a *swarming.SwarmingRpcsBotInfo using the matching JSON
+// file in ./testdata
+func MockBotAndId(t *testing.T, filename, id string) *swarming.SwarmingRpcsBotInfo {
+	j, err := testutils.ReadFile(filename)
+	assert.NoError(t, err, "There was a problem reading in the test data")
+	var s swarming.SwarmingRpcsBotInfo
+	err = json.Unmarshal([]byte(j), &s)
+	assert.NoError(t, err, "There was a problem parsing the test data")
+	s.BotId = id
+	return &s
 }
