@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8da8c462_8c350d8f",
+        "filename": "fiddle/go/fiddle_run/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-05-31T18:56:49Z",
+      "side": 1,
+      "message": "The --checkout flag?",
+      "range": {
+        "startLine": 68,
+        "startChar": 34,
+        "endLine": 68,
+        "endChar": 43
+      },
+      "revId": "fb3e35735d276d638ae9123c93a6e107783671a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
