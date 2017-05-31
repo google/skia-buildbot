@@ -80,8 +80,9 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
     instances create ${INSTANCE_NAME} \
     --zone=$ZONE \
     --address=$EXTERNAL_IP_ADDRESS \
-    --service-account=$PROJECT_USER \
+    --service-account "chrome-swarming-bots@skia-buildbots.google.com.iam.gserviceaccount.com" \
     --scopes="$SCOPES" \
+    --tags="use-swarming-auth" \
     --network=$SKIA_NETWORK_NAME \
     --image=$SKIA_BOT_IMAGE_NAME \
     --machine-type=$SKIA_BOT_MACHINE_TYPE \
