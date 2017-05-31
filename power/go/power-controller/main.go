@@ -41,7 +41,7 @@ var (
 var (
 	// web server params
 	host           = flag.String("host", "localhost", "HTTP service host")
-	port           = flag.String("port", ":8080", "HTTP service port (e.g., ':8002')")
+	port           = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -56,13 +56,21 @@ var (
 )
 
 func main() {
+	flag.Parse()
 	defer common.LogPanic()
-	// Calls flag.Parse()
-	common.InitWithMust(
-		"power-controller",
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
-	)
+
+	if *local {
+		common.InitWithMust(
+			"power-controller",
+			common.PrometheusOpt(promPort),
+		)
+	} else {
+		common.InitWithMust(
+			"power-controller",
+			common.PrometheusOpt(promPort),
+			common.CloudLoggingOpt(),
+		)
+	}
 
 	loadTemplates()
 

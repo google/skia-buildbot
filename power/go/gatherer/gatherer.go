@@ -10,7 +10,6 @@ import (
 	"time"
 
 	swarming "github.com/luci/luci-go/common/api/swarming/swarming/v1"
-	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/promalertsclient"
 	"go.skia.org/infra/go/sklog"
@@ -119,7 +118,7 @@ func (g *gatherer) Update() {
 
 	if len(bots) == 0 {
 		g.set([]DownBot{})
-		glog.Info("Swarming reports no down bots")
+		sklog.Info("Swarming reports no down bots")
 		return
 	}
 
@@ -134,7 +133,7 @@ func (g *gatherer) Update() {
 
 	if len(alerts) == 0 {
 		g.set([]DownBot{})
-		glog.Info("No bot-related alerts")
+		sklog.Info("No bot-related alerts")
 		return
 	}
 
@@ -183,5 +182,5 @@ func (g *gatherer) Update() {
 		return downBots[i].BotID < downBots[j].BotID
 	})
 	g.set(downBots)
-	glog.Infof("Done, found %d bots", len(downBots))
+	sklog.Infof("Done, found %d bots", len(downBots))
 }
