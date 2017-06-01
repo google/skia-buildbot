@@ -8,6 +8,13 @@
 
   There is nothing to instantiate, on load the #login element will be found and
   populated with the users login status.
+
+  Methods:
+    checkLogin(): Used by single-page apps to for the calculation of a new
+                  a new login url and check the login status. Not
+                  nessary if each page is rendered by the server as this
+                  will be called in the ready function. This function is
+                  asynchronous.
 -->
 <script type="text/javascript" charset="utf-8">
 (function(){
@@ -84,17 +91,32 @@
     },
 
     ready: function() {
-      var that = this;
-      sk.Login.then(function(status) {
-        that.email = status['Email'];
-        if (that.email == '') {
-          that.$.logInOut.href = status['LoginURL'];
-          that.$.logInOut.innerText = 'Login';
+      this._handleStatusCheck(sk.Login);
+    },
+
+    checkLogin: function() {
+      // TODO(stephana): This should be merged with sk.Login above.
+      // sk.Login should not be used as a global variable, see
+      // dependency in comments-sk.html.
+      var p = new Promise(function(resolve, reject) {
+        sk.get('/loginstatus/').then(JSON.parse).then(resolve).catch(function(reason){
+            reject("Problem reaching /loginstatus/ "+reason);
+        });
+       });
+       this._handleStatusCheck(p);
+    },
+
+    _handleStatusCheck: function(promise) {
+      promise.then(function(status) {
+        this.email = status['Email'];
+        if (this.email == '') {
+          this.$.logInOut.href = status['LoginURL'];
+          this.$.logInOut.innerText = 'Login';
         } else {
-          that.$.logInOut.href = "/logout/?redirect=" + encodeURIComponent(document.location);
-          that.$.logInOut.innerText = 'Logout';
+          this.$.logInOut.href = "/logout/?redirect=" + encodeURIComponent(document.location);
+          this.$.logInOut.innerText = 'Logout';
         }
-      });
+      }.bind(this));
     }
   });
 </script>

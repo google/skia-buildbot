@@ -36,6 +36,8 @@ Properties:
   responsive_width - Screen width at which the paper-drawer-panel switches into
       narrow mode.
 
+  loginEle: The login-sk element in use by this element.
+
 Methods:
   None.
 
@@ -86,7 +88,7 @@ Events:
         <div class="flex"></div>
         <content select="[rtoolbar], rtoolbar"></content>
         <app-menu-sk></app-menu-sk>
-        <login-sk email="{{logged_in_email}}"></login-sk>
+        <login-sk id="login" email="{{logged_in_email}}"></login-sk>
       </paper-toolbar>
       <template is="dom-if" if="{{no_drawer}}">
         <div main id="mainContent" class="layout vertical">
@@ -168,6 +170,10 @@ Events:
           type: Boolean,
           computed: "_computeShowMenuButton(narrow, no_drawer)",
         },
+      },
+
+      ready: function() {
+        this.loginEle = this.$.login;
       },
 
       _computeShowMenuButton: function(narrow, no_drawer) {
