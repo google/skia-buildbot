@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bf65780a_07d5a808",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-01T19:53:01Z",
+      "side": 1,
+      "message": "not necessary if you combine the functions as described below.",
+      "range": {
+        "startLine": 34,
+        "startChar": 1,
+        "endLine": 34,
+        "endChar": 38
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1b58e4f_b92c2ea4",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-01T19:53:01Z",
+      "side": 1,
+      "message": "make a local variable and pass around as needed.",
+      "range": {
+        "startLine": 38,
+        "startChar": 1,
+        "endLine": 38,
+        "endChar": 32
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc98e6ad_bb073449",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-01T19:53:01Z",
+      "side": 1,
+      "message": "This should be folded into the New function to create the  gatherer, with the period being passed as a n argument.",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 4
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67c8ca1d_75408acb",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-01T19:53:01Z",
+      "side": 1,
+      "message": "combine these two into:\nfunc getIndexHandler(resourceDir string) func(http.ResponseWriter, *http.Request) {\n   ... \n}\n\nAnd then in main func:\n\n  .. r.HandleFunc(getIndexHandler(*resourceDir))",
+      "range": {
+        "startLine": 100,
+        "startChar": 0,
+        "endLine": 109,
+        "endChar": 59
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "adfcb673_a8ef6314",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-01T19:53:01Z",
+      "side": 1,
+      "message": "nit:since it\u0027s very simply this could be an anonymous struct in the function.",
+      "range": {
+        "startLine": 119,
+        "startChar": 0,
+        "endLine": 121,
+        "endChar": 38
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b8b39f5_31cbc060",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-01T19:53:01Z",
+      "side": 1,
+      "message": "fold this into the main function, so one can see early on what resources are exposed by the api.",
+      "range": {
+        "startLine": 156,
+        "startChar": 0,
+        "endLine": 156,
+        "endChar": 18
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d372ba7d_ef23d08d",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-01T19:53:01Z",
+      "side": 1,
+      "message": "It might be a good idea to force login for all requests. \nSee: https://github.com/google/skia-buildbot/blob/master/golden/go/skiacorrectness/main.go#L357",
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
