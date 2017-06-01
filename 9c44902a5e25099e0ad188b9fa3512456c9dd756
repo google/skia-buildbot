@@ -2,6 +2,46 @@
   "comments": [
     {
       "key": {
+        "uuid": "6b71a73f_33b01421",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-01T14:08:30Z",
+      "side": 1,
+      "message": "I think this is missing only 2 more options from compute_engine_cfg.py:\n* VM_IS_SKIA_CTBOT\n* VM_IS_CTBOT",
+      "revId": "9c44902a5e25099e0ad188b9fa3512456c9dd756",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f8380472_050ce794",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-01T14:08:30Z",
+      "side": 1,
+      "message": "or \\\"2,3,5-10,12\\\" (it was not obvious to me that ranges and commas could be handled at the same time)",
+      "range": {
+        "startLine": 34,
+        "startChar": 108,
+        "endLine": 34,
+        "endChar": 109
+      },
+      "revId": "9c44902a5e25099e0ad188b9fa3512456c9dd756",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8e678cd3_76f4d50f",
         "filename": "go/gce/swarming/swarming_vm.go",
         "patchSetId": 1
