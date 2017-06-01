@@ -96,4 +96,4 @@ $acl = Get-Acl $bot_dir
 $acl.SetOwner([System.Security.Principal.NTAccount] $username)
 Set-Acl $bot_dir $acl
 
-banner "The startup script completed"
+banner "The setup script completed"
