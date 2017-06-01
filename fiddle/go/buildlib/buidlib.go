@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"go.skia.org/infra/fiddle/go/config"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
@@ -13,7 +14,7 @@ import (
 // and fiddle_main.o.
 func BuildLib(checkout, depotTools string) error {
 	sklog.Info("Starting GNGen")
-	if err := buildskia.GNGen(checkout, depotTools, "Release", []string{"is_debug=false", "skia_use_mesa=true", "extra_cflags_cc=[\"-Wno-error\"]"}); err != nil {
+	if err := buildskia.GNGen(checkout, depotTools, "Release", config.GN_FLAGS); err != nil {
 		return fmt.Errorf("Failed GN gen: %s", err)
 	}
 
