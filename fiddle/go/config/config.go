@@ -9,5 +9,8 @@ const (
 
 var (
 	// GN_FLAGS are the flags to pass to GN.
-	GN_FLAGS = []string{"is_debug=false", "skia_use_mesa=true", "extra_cflags_cc=[\"-Wno-error\"]"}
+	GN_FLAGS = []string{"is_debug=false", "skia_use_egl=true", "extra_cflags_cc=[\"-Wno-error\"]"}
+
+	// EGL_LIB_PATH is the path where the correct libEGL.so can be found.
+	EGL_LIB_PATH = "/usr/lib/nvidia-367/"
 )

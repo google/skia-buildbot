@@ -25,10 +25,12 @@ func BuildLib(checkout, depotTools string) error {
 
 	sklog.Info("Running the default fiddle")
 	runFiddleCmd := &exec.Command{
-		Name:      filepath.Join(checkout, "skia", "out", "Release", "fiddle"),
-		Dir:       filepath.Join(checkout, "skia"),
-		LogStderr: true,
-		LogStdout: true,
+		Name:       filepath.Join(checkout, "skia", "out", "Release", "fiddle"),
+		Dir:        filepath.Join(checkout, "skia"),
+		Env:        []string{"LD_LIBRARY_PATH=" + config.EGL_LIB_PATH},
+		InheritEnv: true,
+		LogStderr:  true,
+		LogStdout:  true,
 	}
 
 	if err := exec.Run(runFiddleCmd); err != nil {
