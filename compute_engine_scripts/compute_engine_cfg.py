@@ -56,7 +56,7 @@ if VM_IS_SKIA_CTBOT:
   VM_PERSISTENT_DISK_SIZE_GB = 3000
 elif VM_IS_CTBOT:
   # Use ct prefix. Swarming uses this prefix to put them in the 'CT' pool.
-  VM_BOT_NAME = 'ct-vm'
+  VM_BOT_NAME = 'ct-gce'
   PERSISTENT_DISK_NAME = 'ct-disk'
   # Always use us-central1-b for CT bots because of maddigan@'s comment in
   # https://gcpquotatool.googleplex.com/requests?request=ahlzfmdvb2dsZS5jb206Z2NwcXVvdGF0b29sci4LEghDdXN0b21lchiAgICAhN6GCgwLEgxRdW90YVJlcXVlc3QYgICAgIC5hAoM

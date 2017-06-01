@@ -220,7 +220,7 @@ func GetClosedChannelOfPagesets(fileInfos []os.FileInfo) chan string {
 // can severely impact the machine's performance. To stop this from
 // happening chrome zombie processes are periodically killed.
 func ChromeProcessesCleaner(locker sync.Locker, chromeCleanerTimer time.Duration) {
-	for range time.Tick(chromeCleanerTimer) {
+	for _ = range time.Tick(chromeCleanerTimer) {
 		sklog.Info("The chromeProcessesCleaner goroutine has started")
 		sklog.Info("Waiting for all existing tasks to complete before killing zombie chrome processes")
 		locker.Lock()
@@ -435,8 +435,9 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 	if len(genJSONs) != len(tasksToHashes) {
 		return numTasks, fmt.Errorf("len(genJSONs) was %d and len(tasksToHashes) was %d", len(genJSONs), len(tasksToHashes))
 	}
+
 	// Trigger swarming using the isolate hashes.
-	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true)
+	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 	if err != nil {
 		return numTasks, fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
@@ -452,7 +453,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 
 	if len(failedTasksToHashes) > 0 {
 		sklog.Info("Retrying tasks that failed...")
-		retryTasks, err := s.TriggerSwarmingTasks(failedTasksToHashes, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true)
+		retryTasks, err := s.TriggerSwarmingTasks(failedTasksToHashes, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 		if err != nil {
 			return numTasks, fmt.Errorf("Could not trigger swarming task: %s", err)
 		}
@@ -465,6 +466,16 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 		}
 	}
 	return numTasks, nil
+}
+
+// getServiceAccount returns the service account that should be used when triggering swarming tasks.
+func getServiceAccount(dimensions map[string]string) string {
+	serviceAccount := ""
+	if util.MapsEqual(dimensions, GCE_WORKER_DIMENSIONS) {
+		// GCE bots need to use "bot". See skbug.com/6611.
+		serviceAccount = "bot"
+	}
+	return serviceAccount
 }
 
 // GetPathToPyFiles returns the location of CT's python scripts.
@@ -769,7 +780,7 @@ func TriggerBuildRepoSwarmingTask(taskName, runID, repo, targetPlatform string, 
 	} else {
 		dimensions = GCE_LINUX_BUILDER_DIMENSIONS
 	}
-	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, map[string]string{"runid": runID}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true)
+	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, map[string]string{"runid": runID}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 	if err != nil {
 		return nil, fmt.Errorf("Could not trigger swarming task: %s", err)
 	}

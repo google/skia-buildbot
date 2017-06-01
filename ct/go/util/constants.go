@@ -328,5 +328,6 @@ var (
 	GCE_WORKER_DIMENSIONS          = map[string]string{"pool": SWARMING_POOL, "cores": "2"}
 	GCE_ANDROID_BUILDER_DIMENSIONS = map[string]string{"pool": "AndroidBuilder", "cores": "32"}
 	GCE_LINUX_BUILDER_DIMENSIONS   = map[string]string{"pool": "LinuxBuilder", "cores": "32"}
-	GOLO_WORKER_DIMENSIONS         = map[string]string{"pool": SWARMING_POOL, "os": "Android"}
+	GOLO_WORKER_DIMENSIONS         = map[string]string{"pool": SWARMING_POOL, "cores": "2", "id": "ct-gce-220"}
+	// GOLO_WORKER_DIMENSIONS         = map[string]string{"pool": SWARMING_POOL, "os": "Android"}
 )

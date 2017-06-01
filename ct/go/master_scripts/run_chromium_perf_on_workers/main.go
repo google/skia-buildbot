@@ -117,11 +117,11 @@ func main() {
 		sklog.Error("At least one email address must be specified")
 		return
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_perf.UpdateVars{}, *gaeTaskID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium perf", *runID, *description))
+	//skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_perf.UpdateVars{}, *gaeTaskID))
+	//skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium perf", *runID, *description))
 	// Ensure webapp is updated and email is sent even if task fails.
-	defer updateWebappTask()
-	defer sendEmail(emailsArr)
+	//defer updateWebappTask()
+	//defer sendEmail(emailsArr)
 	// Cleanup dirs after run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir, *runID))
 	// Finish with glog flush and how long the task took.
@@ -176,21 +176,23 @@ func main() {
 	remotePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName)}
 	var chromiumBuildNoPatch, chromiumBuildWithPatch string
 	if util.PatchesAreEmpty(localPatches) {
-		// Create only one chromium build.
-		chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-			"build_chromium", *runID, "chromium", *targetPlatform, []string{}, remotePatches,
-			/*singlebuild*/ true, 3*time.Hour, 1*time.Hour)
-		if err != nil {
-			sklog.Errorf("Error encountered when swarming build repo task: %s", err)
-			return
-		}
-		if len(chromiumBuilds) != 1 {
-			sklog.Errorf("Expected 1 build but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
-			return
-		}
-		chromiumBuildNoPatch = chromiumBuilds[0]
-		chromiumBuildWithPatch = chromiumBuilds[0]
-
+		//// Create only one chromium build.
+		//chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
+		//	"build_chromium", *runID, "chromium", *targetPlatform, []string{}, remotePatches,
+		//	/*singlebuild*/ true, 3*time.Hour, 1*time.Hour)
+		//if err != nil {
+		//	sklog.Errorf("Error encountered when swarming build repo task: %s", err)
+		//	return
+		//}
+		//if len(chromiumBuilds) != 1 {
+		//	sklog.Errorf("Expected 1 build but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
+		//	return
+		//}
+		//chromiumBuildNoPatch = chromiumBuilds[0]
+		//chromiumBuildWithPatch = chromiumBuilds[0]
+		// rmistry
+		chromiumBuildNoPatch = "try-ac51a74671ea70-76171714692316-rmistry-20170528180546-withpatch"
+		chromiumBuildWithPatch = "try-ac51a74671ea70-76171714692316-rmistry-20170528180546-withpatch"
 	} else {
 		// Create the two required chromium builds (with patch and without the patch).
 		chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
@@ -226,6 +228,8 @@ func main() {
 	}
 	customWebPagesFilePath := filepath.Join(os.TempDir(), customWebpagesName)
 	numPages, err := util.GetNumPages(*pagesetType, customWebPagesFilePath)
+	// rmistry: just for testing!
+	numPages = 10
 	if err != nil {
 		sklog.Errorf("Error encountered when calculating number of pages: %s", err)
 		return
