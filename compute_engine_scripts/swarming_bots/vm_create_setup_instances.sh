@@ -79,15 +79,16 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
   gcloud ${VM_MIN_CPU_PLATFORM:+alpha} compute --project $PROJECT_ID \
     instances create ${INSTANCE_NAME} \
     --zone=$ZONE \
-    --address=$EXTERNAL_IP_ADDRESS \
-    --service-account=$PROJECT_USER \
+    --service-account="chrome-swarming-bots@skia-buildbots.google.com.iam.gserviceaccount.com" \
     --scopes="$SCOPES" \
+    --tags="use-swarming-auth" \
     --network=$SKIA_NETWORK_NAME \
     --image=$SKIA_BOT_IMAGE_NAME \
     --machine-type=$SKIA_BOT_MACHINE_TYPE \
     --boot-disk-auto-delete \
     $DISK_ARGS $METADATA_ARGS $PERSISTENT_DISK_ARG \
     ${VM_MIN_CPU_PLATFORM:+"--min-cpu-platform=${VM_MIN_CPU_PLATFORM}"}
+    # --address=$EXTERNAL_IP_ADDRESS \
 
   if [ $? -ne 0 ]; then
     echo
@@ -150,9 +151,18 @@ else
   echo
   echo "===== Wait for all instances to come up. ====="
   echo
+  echo "TODO(rmistry): Find out what the external IP address is of the instance."
+  # exit 1
+
   for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
     EXTERNAL_IP_ADDRESS=${IP_ADDRESS_WITHOUT_MACHINE_PART}.${MACHINE_IP}
     INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
+    EXTERNAL_IP_ADDRESS=`gcloud compute instances describe $INSTANCE_NAME --zone=${ZONE} | grep natIP | cut -d ':' -f 2`
+    echo "HERE HERE"
+    echo "HERE HERE"
+    echo "HERE HERE"
+    echo "HERE HERE"
+    echo $EXTERNAL_IP_ADDRESS
 
     until nc -w 1 -z $EXTERNAL_IP_ADDRESS 22; do
       echo "Waiting for ${INSTANCE_NAME} to come up."

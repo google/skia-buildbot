@@ -18,7 +18,8 @@ var (
 )
 
 func Init(appName string) {
-	common.InitWithMust(appName, common.CloudLoggingOpt())
+	//common.InitWithMust(appName, common.CloudLoggingOpt())
+	common.InitWithMust(appName)
 	initRest()
 }
 

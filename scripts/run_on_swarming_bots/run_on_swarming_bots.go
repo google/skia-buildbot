@@ -133,7 +133,7 @@ func main() {
 				"pool": *pool,
 				"id":   id,
 			}
-			if _, err := swarmClient.TriggerSwarmingTasks(m, dims, tags, swarming.HIGHEST_PRIORITY, 120*time.Minute, 120*time.Minute, 120*time.Minute, false, false); err != nil {
+			if _, err := swarmClient.TriggerSwarmingTasks(m, dims, tags, swarming.HIGHEST_PRIORITY, 120*time.Minute, 120*time.Minute, 120*time.Minute, false, false, ""); err != nil {
 				sklog.Fatal(err)
 			}
 		}(bot.BotId)
