@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "48e69f87_7db9dbbe",
+        "filename": "go/util/errgroup.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-01T19:15:54Z",
+      "side": 1,
+      "message": "nit: I think you can trust the docs and just do _, _ \u003d msg.Write([]byte(e))",
+      "range": {
+        "startLine": 52,
+        "startChar": 2,
+        "endLine": 59,
+        "endChar": 3
+      },
+      "revId": "88d2626839e0f02be7618c6ed794d26c82f26094",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
