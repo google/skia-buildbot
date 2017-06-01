@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -25,7 +26,8 @@ const (
 	DISK_TYPE_PERSISTENT_STANDARD = "pd-standard"
 	DISK_TYPE_PERSISTENT_SSD      = "pd-ssd"
 
-	MACHINE_TYPE_HIGHMEM_16 = "n1-highmem-16"
+	MACHINE_TYPE_HIGHMEM_16  = "n1-highmem-16"
+	MACHINE_TYPE_STANDARD_16 = "n1-standard-16"
 
 	MAINTENANCE_POLICY_MIGRATE = "MIGRATE"
 
@@ -37,6 +39,10 @@ const (
 	PROJECT_ID = "google.com:skia-buildbots"
 
 	SERVICE_ACCOUNT_DEFAULT = "31977622648@project.gserviceaccount.com"
+
+	SETUP_SCRIPT_KEY_LINUX  = "setup-script"
+	SETUP_SCRIPT_KEY_WIN    = "sysprep-oobe-script-ps1"
+	SETUP_SCRIPT_PATH_LINUX = "/tmp/setup-script.sh"
 
 	USER_DEFAULT = "default"
 
@@ -53,6 +59,9 @@ const (
 	errAlreadyExists = "\\\"reason\\\": \\\"alreadyExists\\\""
 
 	maxWaitTime = 10 * time.Minute
+
+	winSetupFinishedText   = "Instance setup finished."
+	winStartupFinishedText = "Finished running startup scripts."
 )
 
 var (
@@ -101,7 +110,12 @@ type Disk struct {
 	// Size of the disk, in gigabytes.
 	SizeGb int64
 
-	// Optional, image or snapshot to flash to the disk.
+	// Optional, image to flash to the disk. Use only one of SourceImage
+	// and SourceSnapshot.
+	SourceImage string
+
+	// Optional, snapshot to flash to the disk. Use only one of SourceImage
+	// and SourceSnapshot.
 	SourceSnapshot string
 
 	// Type of disk, eg. "pd-standard" or "pd-ssd".
@@ -116,8 +130,21 @@ func (g *GCloud) CreateDisk(disk *Disk, ignoreExists bool) error {
 		SizeGb: disk.SizeGb,
 		Type:   fmt.Sprintf("zones/%s/diskTypes/%s", g.zone, disk.Type),
 	}
-	if disk.SourceSnapshot != "" {
-		d.SourceSnapshot = fmt.Sprintf("projects/%s/global/snapshots/%s", g.project, disk.SourceSnapshot)
+	if disk.SourceImage != "" && disk.SourceSnapshot != "" {
+		return fmt.Errorf("Only one of SourceImage and SourceSnapshot may be used.")
+	}
+	if disk.SourceImage != "" {
+		if len(strings.Split(disk.SourceImage, "/")) == 5 {
+			d.SourceImage = disk.SourceImage
+		} else {
+			d.SourceImage = fmt.Sprintf("projects/%s/global/images/%s", g.project, disk.SourceImage)
+		}
+	} else if disk.SourceSnapshot != "" {
+		if len(strings.Split(disk.SourceSnapshot, "/")) == 5 {
+			d.SourceSnapshot = disk.SourceSnapshot
+		} else {
+			d.SourceSnapshot = fmt.Sprintf("projects/%s/global/snapshots/%s", g.project, disk.SourceSnapshot)
+		}
 	}
 	op, err := g.s.Disks.Insert(g.project, g.zone, d).Do()
 	if err != nil {
@@ -199,6 +226,9 @@ type Instance struct {
 	// External IP address for the instance. Required.
 	ExternalIpAddress string
 
+	// FixGSutil indicates whether or not the ~/.gsutil dir needs fixing.
+	FixGSutil bool
+
 	// Files to download from Google Storage. Map keys are the source URLs,
 	// and values are destination paths on the GCE instance. May be absolute
 	// or relative (to the default user's home dir, eg. /home/default).
@@ -219,11 +249,29 @@ type Instance struct {
 	// Name of the instance.
 	Name string
 
+	// Operating system of the instance.
+	Os string
+
+	// Password is the default user's password. Only used for Windows.
+	Password string
+
 	// Auth scopes for the instance.
 	Scopes []string
 
+	// Path to a setup script for the instance, optional. Should be either
+	// absolute or relative to the parent GCloud instance's workdir. The
+	// setup script runs once after the instance is created. For Windows,
+	// this is assumed to be a PowerShell script and runs during sysprep.
+	// For Linux, the script needs to be executable via the shell (ie. use
+	// a shebang for Python scripts).
+	SetupScript string
+
 	// Path to a startup script for the instance, optional. Should be either
-	// absolute or relative to the parent GCloud instance's workdir.
+	// absolute or relative to the parent GCloud instance's workdir. The
+	// startup script runs as root every time the instance starts up. For
+	// Windows, this is assumed to be a PowerShell script. For Linux, the
+	// script needs to be executable via the shell (ie. use a shebang for
+	// Python scripts).
 	StartupScript string
 
 	// Tags for the instance.
@@ -233,11 +281,49 @@ type Instance struct {
 	User string
 }
 
-// CreateInstance creates the given VM instance.
-func (g *GCloud) CreateInstance(vm *Instance, ignoreExists bool) error {
+// scriptToMetadata reads the given script and inserts it into the Instance's
+// metadata.
+func scriptToMetadata(vm *Instance, key, path string) error {
+	var script string
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	script = string(b)
+	if vm.Os == OS_WINDOWS {
+		script = util.ToDos(script)
+	}
+	vm.Metadata[key] = script
+	return nil
+}
+
+// setupScriptToMetadata reads the setup script and returns a MetadataItems.
+func setupScriptToMetadata(vm *Instance) error {
+	key := SETUP_SCRIPT_KEY_WIN
+	if vm.Os != OS_WINDOWS {
+		key = SETUP_SCRIPT_KEY_LINUX
+		vm.MetadataDownloads[fmt.Sprintf(metadata.METADATA_URL, "instance", SETUP_SCRIPT_KEY_LINUX)] = SETUP_SCRIPT_PATH_LINUX
+	}
+	return scriptToMetadata(vm, key, vm.SetupScript)
+}
+
+// startupScriptToMetadata reads the startup script and returns a MetadataItems.
+func startupScriptToMetadata(vm *Instance) error {
+	key := "startup-script"
+	if vm.Os == OS_WINDOWS {
+		key = "windows-startup-script-ps1"
+	}
+	return scriptToMetadata(vm, key, vm.StartupScript)
+}
+
+// createInstance creates the given VM instance.
+func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 	sklog.Infof("Creating instance %q", vm.Name)
 	if vm.Name == "" {
 		return fmt.Errorf("Instance name is required.")
+	}
+	if vm.Os == "" {
+		return fmt.Errorf("Instance OS is required.")
 	}
 
 	disks := []*compute.AttachedDisk{}
@@ -255,6 +341,26 @@ func (g *GCloud) CreateInstance(vm *Instance, ignoreExists bool) error {
 			Source:     fmt.Sprintf("projects/%s/zones/%s/disks/%s", g.project, g.zone, vm.DataDisk.Name),
 		})
 	}
+	if vm.Os == OS_WINDOWS && vm.User != "" && vm.Password != "" {
+		vm.Metadata["gce-initial-windows-user"] = vm.User
+		vm.Metadata["gce-initial-windows-password"] = vm.Password
+	}
+	if vm.SetupScript != "" {
+		if err := setupScriptToMetadata(vm); err != nil {
+			return err
+		}
+	}
+	if vm.Os == OS_WINDOWS && vm.StartupScript != "" {
+		// On Windows, the setup script runs automatically during
+		// sysprep which is before the startup script runs. On Linux
+		// the startup script does not run automatically, so to ensure
+		// that the startup script runs after the setup script, we have
+		// to wait to set the startup-script metadata item until after
+		// we have manually run the setup script.
+		if err := startupScriptToMetadata(vm); err != nil {
+			return err
+		}
+	}
 	metadata := make([]*compute.MetadataItems, 0, len(vm.Metadata))
 	for k, v := range vm.Metadata {
 		val := new(string)
@@ -262,18 +368,6 @@ func (g *GCloud) CreateInstance(vm *Instance, ignoreExists bool) error {
 		metadata = append(metadata, &compute.MetadataItems{
 			Key:   k,
 			Value: val,
-		})
-	}
-	if vm.StartupScript != "" {
-		var script string
-		b, err := ioutil.ReadFile(vm.StartupScript)
-		if err != nil {
-			return err
-		}
-		script = string(b)
-		metadata = append(metadata, &compute.MetadataItems{
-			Key:   "startup-script",
-			Value: &script,
 		})
 	}
 	i := &compute.Instance{
@@ -396,6 +490,9 @@ func sshArgs() ([]string, error) {
 // Ssh logs into the instance and runs the given command. Returns any output
 // and an error if applicable.
 func (vm *Instance) Ssh(cmd ...string) (string, error) {
+	if vm.Os == OS_WINDOWS {
+		return "", fmt.Errorf("Cannot SSH into Windows machines (for: %v)", cmd)
+	}
 	args, err := sshArgs()
 	if err != nil {
 		return "", err
@@ -411,6 +508,9 @@ func (vm *Instance) Ssh(cmd ...string) (string, error) {
 // Scp copies files to the instance. The src argument is expected to be
 // absolute.
 func (vm *Instance) Scp(src, dst string) error {
+	if vm.Os == OS_WINDOWS {
+		return fmt.Errorf("Cannot SCP to Windows machines (for: %s)", dst)
+	}
 	if !filepath.IsAbs(src) {
 		return fmt.Errorf("%q is not an absolute path.", src)
 	}
@@ -450,20 +550,48 @@ func (g *GCloud) Reboot(vm *Instance) error {
 	return nil
 }
 
+// IsInstanceReady returns true iff the instance is ready.
+func (g *GCloud) IsInstanceReady(vm *Instance) (bool, error) {
+	if vm.Os == OS_WINDOWS {
+		serial, err := g.s.Instances.GetSerialPortOutput(g.project, g.zone, vm.Name).Do()
+		if err != nil {
+			return false, err
+		}
+		if strings.Contains(serial.Contents, winStartupFinishedText) {
+			return true, nil
+		}
+		if strings.Contains(serial.Contents, winSetupFinishedText) {
+			return true, nil
+		}
+		return false, nil
+	} else {
+		if _, err := vm.Ssh("true"); err != nil {
+			return false, nil
+		}
+		return true, nil
+	}
+}
+
 // WaitForInstanceReady waits until the instance is ready to use.
 func (g *GCloud) WaitForInstanceReady(vm *Instance, timeout time.Duration) error {
 	start := time.Now()
 	if err := g.waitForInstance(vm.Name, instanceStatusRunning, timeout); err != nil {
 		return err
 	}
-	for _, err := vm.Ssh("true"); err != nil; _, err = vm.Ssh("true") {
+	for {
 		if time.Now().Sub(start) > timeout {
 			return fmt.Errorf("Exceeded timeout of %s", timeout)
+		}
+		ready, err := g.IsInstanceReady(vm)
+		if err != nil {
+			return err
+		}
+		if ready {
+			return nil
 		}
 		sklog.Infof("Waiting for instance %q to be ready.", vm.Name)
 		time.Sleep(5 * time.Second)
 	}
-	return nil
 }
 
 // DownloadFile downloads the given file from Google Cloud Storage to the
@@ -474,8 +602,7 @@ func (vm *Instance) DownloadFile(src, dst string) error {
 }
 
 // GetFileFromMetadata downloads the given metadata entry to a file.
-func (vm *Instance) GetFileFromMetadata(key, dst string) error {
-	url := fmt.Sprintf(metadata.METADATA_URL, "project", key)
+func (vm *Instance) GetFileFromMetadata(url, dst string) error {
 	_, err := vm.Ssh("wget", "--header", "'Metadata-Flavor: Google'", "--output-document", dst, url)
 	return err
 }
@@ -503,6 +630,26 @@ func (vm *Instance) SafeFormatAndMount() error {
 	return nil
 }
 
+// SetMetadata sets the given metadata on the instance.
+func (g *GCloud) SetMetadata(vm *Instance, md map[string]string) error {
+	items := make([]*compute.MetadataItems, 0, len(md))
+	for k, v := range md {
+		items = append(items, &compute.MetadataItems{
+			Key:   k,
+			Value: &v,
+		})
+	}
+	op, err := g.s.Instances.SetMetadata(g.project, g.zone, vm.Name, &compute.Metadata{
+		Items: items,
+	}).Do()
+	if err != nil {
+		return err
+	} else if op.Error != nil {
+		return fmt.Errorf("Failed to set instance metadata: %v", op.Error)
+	}
+	return nil
+}
+
 // CreateAndSetup creates an instance and all its disks and performs any
 // additional setup steps.
 func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool, workdir string) error {
@@ -513,18 +660,31 @@ func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool, workdir string)
 		}
 	}
 	if vm.DataDisk != nil {
+		if vm.Os == OS_WINDOWS {
+			return fmt.Errorf("Data disks are not currently supported on Windows.")
+		}
 		if err := g.CreateDisk(vm.DataDisk, ignoreExists); err != nil {
 			return err
 		}
 	}
-	if err := g.CreateInstance(vm, ignoreExists); err != nil {
+	if err := g.createInstance(vm, ignoreExists); err != nil {
 		return err
+	}
+
+	if vm.Os == OS_WINDOWS {
+		// Set the metadata on the instance again, due to a bug
+		// which is lost to time.
+		if err := g.SetMetadata(vm, vm.Metadata); err != nil {
+			return err
+		}
 	}
 
 	// Fix ~/.gsutil permissions. They start out as root:root for some
 	// reason, which prevents us from using gsutil at all.
-	if _, err := vm.Ssh("sudo", "chown", "--recursive", fmt.Sprintf("%s:%s", vm.User, vm.User), ".gsutil"); err != nil {
-		return err
+	if vm.FixGSutil {
+		if _, err := vm.Ssh("sudo", "chown", "--recursive", fmt.Sprintf("%s:%s", vm.User, vm.User), ".gsutil"); err != nil {
+			return err
+		}
 	}
 
 	// Format and mount.
@@ -548,10 +708,32 @@ func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool, workdir string)
 		}
 	}
 
-	// Reboot the instance.
+	// On Windows, the setup script runs automatically during sysprep. On
+	// Linux, we have to run the setup script manually. In order to ensure
+	// that the setup script runs before the startup script, we delay
+	// setting the startup-script in metadata until after we've run the
+	// setup script.
+	if vm.Os != OS_WINDOWS {
+		if vm.SetupScript != "" {
+			if _, err := vm.Ssh("sudo", "chmod", "+x", SETUP_SCRIPT_PATH_LINUX, "&&", SETUP_SCRIPT_PATH_LINUX); err != nil {
+				return err
+			}
+		}
+		if vm.StartupScript != "" {
+			if err := startupScriptToMetadata(vm); err != nil {
+				return err
+			}
+			if err := g.SetMetadata(vm, vm.Metadata); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Reboot the instance. On Windows, this will cause the startup script to run.
 	if err := g.Reboot(vm); err != nil {
 		return err
 	}
+
 	return nil
 }
 

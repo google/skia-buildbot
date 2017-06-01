@@ -566,3 +566,29 @@ func TestPermuteStrings(t *testing.T) {
 		{"d", "c", "b", "a"},
 	}, PermuteStrings([]string{"a", "b", "c", "d"}))
 }
+
+func TestParseIntSet(t *testing.T) {
+	testutils.SmallTest(t)
+
+	test := func(input string, expect []int, expectErr string) {
+		res, err := ParseIntSet(input)
+		if expectErr != "" {
+			assert.Contains(t, err.Error(), expectErr)
+		} else {
+			assert.NoError(t, err)
+			assert.Equal(t, expect, res)
+		}
+	}
+	test("", []int{}, "")
+	test("19", []int{19}, "")
+	test("1,2,3", []int{1, 2, 3}, "")
+	test("1-3", []int{1, 2, 3}, "")
+	test("1,2,4-6", []int{1, 2, 4, 5, 6}, "")
+	test("a", nil, "parsing \"a\": invalid syntax")
+	test(" 4, 6, 9 - 11", nil, "parsing \" 4\": invalid syntax")
+	test("4-9-10", nil, "Invalid expression \"4-9-10\"")
+	test("9-3", nil, "Cannot have a range whose beginning is greater than its end (9 vs 3)")
+	test("1-3,11-13,21-23", []int{1, 2, 3, 11, 12, 13, 21, 22, 23}, "")
+	test("-2", nil, "Invalid expression \"-2\"")
+	test("2-", nil, "Invalid expression \"2-\"")
+}
