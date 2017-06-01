@@ -16,8 +16,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/skia-dev/glog"
+
 	"golang.org/x/sync/errgroup"
 
+	"go.skia.org/infra/fiddle/go/config"
 	"go.skia.org/infra/fiddle/go/types"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
@@ -34,6 +37,7 @@ const (
 var (
 	local      = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	fiddleRoot = flag.String("fiddle_root", "", "Directory location where all the work is done.")
+	checkout   = flag.String("checkout", "", "Directory where Skia is checked out.")
 	gitHash    = flag.String("git_hash", "", "The version of Skia code to run against.")
 	duration   = flag.Float64("duration", 0.0, "If an animation, the duration of the animation. 0 for no animation.")
 )
@@ -60,9 +64,11 @@ func main() {
 	if *gitHash == "" {
 		res.Errors = "fiddle_run: The --git_hash flag is required."
 	}
+	if *checkout == "" {
+		res.Errors = "fiddle_run: The --checkout flag is required."
+	}
 
 	depotTools := filepath.Join(*fiddleRoot, "depot_tools")
-	checkout := path.Join(*fiddleRoot, "versions", *gitHash)
 
 	// Set limits on this process and all its children.
 
@@ -83,8 +89,16 @@ func main() {
 		fmt.Println("Error Setting Rlimit ", err)
 	}
 
+	// Re-run GN since the directory changes under overlayfs.
+	if err := buildskia.GNGen(*checkout, depotTools, "Release", config.GN_FLAGS); err != nil {
+		glog.Errorf("gn gen failed: %s", err)
+		res.Compile.Errors = err.Error()
+		serializeOutput(res)
+		return
+	}
+
 	// Compile draw.cpp into 'fiddle'.
-	if output, err := buildskia.GNNinjaBuild(checkout, depotTools, "Release", "fiddle", true); err != nil {
+	if output, err := buildskia.GNNinjaBuild(*checkout, depotTools, "Release", "fiddle", true); err != nil {
 		res.Compile.Errors = err.Error()
 		res.Compile.Output = output
 		serializeOutput(res)
@@ -92,7 +106,7 @@ func main() {
 	}
 
 	if *duration == 0 {
-		oneStep(checkout, res, 0.0)
+		oneStep(*checkout, res, 0.0)
 		serializeOutput(res)
 	} else {
 
@@ -131,7 +145,7 @@ func main() {
 				for frameIndex := range frameCh {
 					sklog.Infof("Parallel render: %d", frameIndex)
 					frame := float64(frameIndex) / float64(numFrames)
-					oneStep(checkout, res, frame)
+					oneStep(*checkout, res, frame)
 					// Check for errors.
 					if res.Execute.Errors != "" {
 						return fmt.Errorf("Failed to render: %s", res.Execute.Errors)

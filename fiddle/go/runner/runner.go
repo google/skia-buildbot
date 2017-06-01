@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"time"
 
@@ -84,31 +83,27 @@ func ValidateOptions(opts *types.Options) error {
 //        fiddleRoot/src/draw.cpp.
 //
 // Returns a temp directory. Depending on 'local' this is where the 'draw.cpp' file was written.
-func WriteDrawCpp(checkout, fiddleRoot, code string, opts *types.Options, local bool) (string, error) {
+func WriteDrawCpp(checkout, fiddleRoot, code string, opts *types.Options) (string, error) {
 	code = prepCodeToCompile(fiddleRoot, code, opts)
 	dstDir := filepath.Join(fiddleRoot, "src")
-	if !local {
-		var err error
-		tmpDir := filepath.Join(fiddleRoot, "tmp")
-		if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil && err != os.ErrExist {
-			return "", fmt.Errorf("Failed to create temp dir for draw.cpp: %s", err)
-		}
-		dstDir, err = ioutil.TempDir(tmpDir, "code")
-		sklog.Infof("Created tmp dir: %s %s", dstDir, err)
-		if err != nil {
-			return "", fmt.Errorf("Failed to create temp dir for draw.cpp: %s", err)
-		}
-	} else {
-		dstDir = filepath.Join(checkout, "skia", "tools", "fiddle")
-		if _, err := os.Stat(dstDir); err != nil && os.IsNotExist(err) {
-			err := os.MkdirAll(dstDir, 0755)
-			if err != nil {
-				return "", fmt.Errorf("Failed to create FIDDLE_ROOT/src: %s", err)
-			}
-		}
+	var err error
+	tmpDir := filepath.Join(fiddleRoot, "tmp")
+	if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil && err != os.ErrExist {
+		return "", fmt.Errorf("Failed to create temp dir for draw.cpp: %s", err)
 	}
-	sklog.Infof("About to write to: %s", dstDir)
-	w, err := os.Create(filepath.Join(dstDir, "draw.cpp"))
+	dstDir, err = ioutil.TempDir(tmpDir, "code")
+	sklog.Infof("Created tmp dir: %s %s", dstDir, err)
+	if err != nil {
+		return "", fmt.Errorf("Failed to create temp dir for draw.cpp: %s", err)
+	}
+
+	drawPath := filepath.Join(dstDir, "upper", "skia", "tools", "fiddle")
+	if err := os.MkdirAll(drawPath, 0755); err != nil {
+		return dstDir, fmt.Errorf("failed to create dir %q: %s", drawPath, err)
+	}
+
+	sklog.Infof("About to write to: %s", drawPath)
+	w, err := os.Create(filepath.Join(drawPath, "draw.cpp"))
 	sklog.Infof("Create: %v %v", *w, err)
 	if err != nil {
 		return dstDir, fmt.Errorf("Failed to open destination: %s", err)
@@ -183,27 +178,95 @@ func GitHashTimeStamp(fiddleRoot, gitHash string) (time.Time, error) {
 // exe within the container.
 //
 func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir string, opts *types.Options) (*types.Result, error) {
-	machine := ""
-	if !local {
-		machine = path.Base(tmpDir)
+	/*
+		Do the equivalent of the following bash script that creates the overlayfs
+		mount.
+
+			#!/bin/bash
+
+			set -e -x
+
+			RUNID=runid2222
+			GITHASH=c34a946d5a975ba8b8cd51f79b55174a5ec0f99f
+			FIDDLE_ROOT=/usr/local/google/home/jcgregorio/projects/temp
+			TMP_DIR=${FIDDLE_ROOT}/tmp/${RUNID}
+
+			mkdir --parents ${TMP_DIR}/upper/skia/tools/fiddle
+			mkdir ${TMP_DIR}/work
+			mkdir ${TMP_DIR}/overlay
+			cp ${TMP_DIR}/draw.cpp ${TMP_DIR}/upper/skia/tools/fiddle/draw.cpp
+
+			LOWER=${FIDDLE_ROOT}/versions/${GITHASH}
+			UPPER=${TMP_DIR}/upper
+			WORK=${TMP_DIR}/work
+			OVERLAY=${TMP_DIR}/overlay
+
+			sudo mount -t overlay -o lowerdir=$LOWER,upperdir=$UPPER,workdir=$WORK none ${OVERLAY}
+
+	*/
+	upper := filepath.Join(tmpDir, "upper")
+	work := filepath.Join(tmpDir, "work")
+	overlay := filepath.Join(tmpDir, "overlay")
+	lower := filepath.Join(fiddleRoot, "versions", gitHash)
+	if err := os.MkdirAll(upper, 0755); err != nil {
+		return nil, fmt.Errorf("fiddle_run failed to create dir %q: %s", upper, err)
+	}
+	if err := os.MkdirAll(work, 0755); err != nil {
+		return nil, fmt.Errorf("fiddle_run failed to create dir %q: %s", work, err)
+	}
+	if err := os.MkdirAll(overlay, 0755); err != nil {
+		return nil, fmt.Errorf("fiddle_run failed to create dir %q: %s", overlay, err)
+	}
+	mounttype := "overlay"
+	if local {
+		mounttype = "overlayfs"
 	}
 	name := "sudo"
 	args := []string{
-		"systemd-nspawn", "-D", "/mnt/pd0/container/",
-		"--read-only",        // Mount the root file system as read only.
-		"--private-network",  // Turn off networking.
-		"--machine", machine, // Give the container a unique name, so we can run fiddles concurrently.
-		"--overlay", fmt.Sprintf("%s:%s:%s", fiddleRoot, tmpDir, fiddleRoot), // Build our copy-on-write layered filesystem. See OVERLAY note above.
-		"--bind-ro", tmpDir + "/draw.cpp" + ":" + filepath.Join(checkout, "skia", "tools", "fiddle", "draw.cpp"), // Mount the user's draw.cpp over the default draw.cpp.
-		"xargs", "--arg-file=/dev/null", // See Note above for explanation of xargs.
-		"/mnt/pd0/fiddle/bin/fiddle_run", "--fiddle_root", fiddleRoot, "--git_hash", gitHash, "--alsologtostderr",
+		"mount", "-t", mounttype,
+		"-o",
+		fmt.Sprintf("lowerdir=%s,upperdir=%s,workdir=%s", lower, upper, work),
+		"none",
+		overlay,
 	}
+	output := &bytes.Buffer{}
+	mountCmd := &exec.Command{
+		Name:      name,
+		Args:      args,
+		LogStderr: true,
+		Stdout:    output,
+	}
+	if err := exec.Run(mountCmd); err != nil {
+		return nil, fmt.Errorf("mount failed to run %#v: %s", *mountCmd, err)
+	}
+
+	// Queue up the umount in a defer.
+	defer func() {
+		name = "sudo"
+		args = []string{
+			"umount", overlay,
+		}
+		output = &bytes.Buffer{}
+		umountCmd := &exec.Command{
+			Name:      name,
+			Args:      args,
+			LogStderr: true,
+			Stdout:    output,
+		}
+
+		if err := exec.Run(umountCmd); err != nil {
+			sklog.Errorf("umount failed to run %#v: %s", *umountCmd, err)
+		}
+	}()
+
+	// Run fiddle_run.
+	name = filepath.Join(fiddleRoot, "bin", "fiddle_run")
 	if local {
 		name = "fiddle_run"
-		args = []string{"--fiddle_root", fiddleRoot, "--git_hash", gitHash, "--local", "--alsologtostderr"}
 	}
+	args = []string{"--fiddle_root", fiddleRoot, "--checkout", overlay, "--git_hash", gitHash, "--local", "--alsologtostderr"}
 	args = append(args, "--duration", fmt.Sprintf("%f", opts.Duration))
-	output := &bytes.Buffer{}
+	output = &bytes.Buffer{}
 	runCmd := &exec.Command{
 		Name:      name,
 		Args:      args,
@@ -213,12 +276,12 @@ func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir st
 	if err := exec.Run(runCmd); err != nil {
 		return nil, fmt.Errorf("fiddle_run failed to run %#v: %s", *runCmd, err)
 	}
+
 	// Parse the output into types.Result.
 	res := &types.Result{}
 	if err := json.Unmarshal(output.Bytes(), res); err != nil {
 		sklog.Errorf("Received erroneous output: %q", output.String())
 		return nil, fmt.Errorf("Failed to decode results from run: %s", err)
 	}
-	// TODO Clean up the tmp directory.
 	return res, nil
 }

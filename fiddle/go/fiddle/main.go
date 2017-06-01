@@ -392,7 +392,7 @@ func run(user string, req *types.FiddleContext) (*types.RunResults, error) {
 	current := build.Current()
 	sklog.Infof("Building at: %s", current.Hash)
 	checkout := filepath.Join(*fiddleRoot, "versions", current.Hash)
-	tmpDir, err := runner.WriteDrawCpp(checkout, *fiddleRoot, req.Code, &req.Options, *local)
+	tmpDir, err := runner.WriteDrawCpp(checkout, *fiddleRoot, req.Code, &req.Options)
 	if err != nil {
 		return resp, fmt.Errorf("Failed to write the fiddle.")
 	}
@@ -526,7 +526,7 @@ func singleStepTryNamed() {
 			continue
 		}
 		checkout := filepath.Join(*fiddleRoot, "versions", current.Hash)
-		tmpDir, err := runner.WriteDrawCpp(checkout, *fiddleRoot, code, options, *local)
+		tmpDir, err := runner.WriteDrawCpp(checkout, *fiddleRoot, code, options)
 		if err != nil {
 			sklog.Errorf("Failed to write fiddle for %s: %s", name.Name, err)
 			continue
