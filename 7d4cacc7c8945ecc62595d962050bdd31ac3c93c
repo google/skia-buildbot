@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f9c17d1a_9e054a3c",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-01T18:32:02Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 264,
+        "startChar": 4,
+        "endLine": 264,
+        "endChar": 8
+      },
+      "revId": "7d4cacc7c8945ecc62595d962050bdd31ac3c93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "75130a1e_855f61ab",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-01T18:32:02Z",
+      "side": 1,
+      "message": "This seems like a complicated way to call vm.Scp(vm.SetupScript, SETUP_SCRIPT_PATH_LINUX).\n\nGenerally, since MetadataDownloads doesn\u0027t work for Windows, and we can use Scp for Linux, I don\u0027t see a reason to add support for instance metadata in MetadataDownloads.",
+      "range": {
+        "startLine": 305,
+        "startChar": 2,
+        "endLine": 305,
+        "endChar": 120
+      },
+      "revId": "7d4cacc7c8945ecc62595d962050bdd31ac3c93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "acee129d_46068d72",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-01T18:32:02Z",
+      "side": 1,
+      "message": "nit: Could we use workdir?",
+      "range": {
+        "startLine": 130,
+        "startChar": 15,
+        "endLine": 130,
+        "endChar": 20
+      },
+      "revId": "7d4cacc7c8945ecc62595d962050bdd31ac3c93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98e6b9ff_39195c85",
+        "filename": "go/util/errgroup.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-01T18:32:02Z",
+      "side": 1,
+      "message": "Maybe mention that this implies that Wait() waits for *all* goroutines to finish, regardless of error, unlike errgroup.",
+      "range": {
+        "startLine": 10,
+        "startChar": 29,
+        "endLine": 10,
+        "endChar": 38
+      },
+      "revId": "7d4cacc7c8945ecc62595d962050bdd31ac3c93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd022e92_d08168b3",
+        "filename": "go/util/errgroup.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-01T18:32:02Z",
+      "side": 1,
+      "message": "uber-nit: I\u0027m pretty sure +\u003d reallocates. Likely not a problem, but if you have 10,000 goroutines and they all fail, bytes.Buffer would be better.",
+      "range": {
+        "startLine": 47,
+        "startChar": 6,
+        "endLine": 47,
+        "endChar": 8
+      },
+      "revId": "7d4cacc7c8945ecc62595d962050bdd31ac3c93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0884944d_ac11cd66",
+        "filename": "go/util/util.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 842,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-01T18:32:02Z",
+      "side": 1,
+      "message": "Smart!",
+      "range": {
+        "startLine": 842,
+        "startChar": 4,
+        "endLine": 842,
+        "endChar": 29
+      },
+      "revId": "7d4cacc7c8945ecc62595d962050bdd31ac3c93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

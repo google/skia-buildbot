@@ -131,6 +131,30 @@
     },
     {
       "key": {
+        "uuid": "0b6ee29f_5a547a49",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-01T18:32:02Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "32560c46_c57bcdff",
+      "range": {
+        "startLine": 101,
+        "startChar": 7,
+        "endLine": 101,
+        "endChar": 23
+      },
+      "revId": "9c44902a5e25099e0ad188b9fa3512456c9dd756",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "00a5bc15_1f24d995",
         "filename": "go/gce/swarming/swarming_vm.go",
         "patchSetId": 1
@@ -175,6 +199,30 @@
       "revId": "9c44902a5e25099e0ad188b9fa3512456c9dd756",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8203c5cd_97440993",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-01T18:32:02Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "829cc436_479198d6",
+      "range": {
+        "startLine": 194,
+        "startChar": 11,
+        "endLine": 194,
+        "endChar": 25
+      },
+      "revId": "9c44902a5e25099e0ad188b9fa3512456c9dd756",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -457,6 +505,30 @@
       "revId": "9c44902a5e25099e0ad188b9fa3512456c9dd756",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ac6bf67_5bf2c83e",
+        "filename": "go/util/util_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 590,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-01T18:32:02Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "1749b440_7560e73a",
+      "range": {
+        "startLine": 590,
+        "startChar": 1,
+        "endLine": 590,
+        "endChar": 53
+      },
+      "revId": "9c44902a5e25099e0ad188b9fa3512456c9dd756",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
