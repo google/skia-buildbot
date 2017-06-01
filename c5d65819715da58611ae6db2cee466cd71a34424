@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6dd0cec1_bde34c4d",
+        "filename": "go/gce/vm_server/server.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-01T20:00:43Z",
+      "side": 1,
+      "message": "Maybe AddGitStuff(vm *gce.Instance, gitUser string)?",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 38
+      },
+      "revId": "c5d65819715da58611ae6db2cee466cd71a34424",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

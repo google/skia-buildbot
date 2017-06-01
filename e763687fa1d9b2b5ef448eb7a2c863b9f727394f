@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f6c71a86_b841e312",
+        "filename": "go/gce/vm_server/server.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-01T20:00:43Z",
+      "side": 0,
+      "message": "Is this still true anywhere?",
+      "range": {
+        "startLine": 43,
+        "startChar": 2,
+        "endLine": 43,
+        "endChar": 11
+      },
+      "revId": "e763687fa1d9b2b5ef448eb7a2c863b9f727394f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
