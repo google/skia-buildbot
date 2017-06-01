@@ -14,4 +14,5 @@ if [ $? != "0" ]; then
 fi
 
 # The name of instance where skia fiddle is running.
-INSTANCE_NAME=skia-fiddle
+INSTANCE_NAME=skia-fiddle2
+ZONE=us-east1-d
