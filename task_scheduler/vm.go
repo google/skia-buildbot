@@ -40,7 +40,6 @@ func TaskSchedulerInternal() *gce.Instance {
 
 func TaskSchedulerTest() *gce.Instance {
 	vm := TaskSchedulerBase("borenet-instance-creation-test", "104.154.112.141")
-	vm.MetadataDownloads["database_root"] = "test.file"
 	return vm
 }
 
