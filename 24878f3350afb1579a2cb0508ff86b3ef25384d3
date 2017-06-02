@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9274b52f_9f03d196",
+        "filename": "go/gce/ct/setup-script.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-02T19:21:24Z",
+      "side": 1,
+      "message": "nit: since all indentation is intentional/desired, \"\u003c\u003c\" seems better than \"\u003c\u003c-\"",
+      "range": {
+        "startLine": 64,
+        "startChar": 17,
+        "endLine": 64,
+        "endChar": 18
+      },
+      "revId": "24878f3350afb1579a2cb0508ff86b3ef25384d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
