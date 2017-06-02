@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "d41069c2_589a1063",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-02T14:50:22Z",
+      "side": 1,
+      "message": "Added more detail to some error messages.",
+      "parentUuid": "f82451f1_9e0a0fdc",
+      "revId": "6f0e9782eb67c8fa746890800b74e19d9f9207d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "86ee694e_2db99a00",
         "filename": "go/gce/gce.go",
         "patchSetId": 1
@@ -54,6 +72,30 @@
       "side": 1,
       "message": "No problem if you want to refactor to be a method of GCloud.\n\nThe other alternative is to add a private field pointing back to the GCloud instance and set it in CreateAndSetup .",
       "parentUuid": "86ee694e_2db99a00",
+      "range": {
+        "startLine": 524,
+        "startChar": 2,
+        "endLine": 524,
+        "endChar": 73
+      },
+      "revId": "6f0e9782eb67c8fa746890800b74e19d9f9207d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "95602003_5789b18d",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 524,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-02T14:50:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "88fa4a54_8d119b66",
       "range": {
         "startLine": 524,
         "startChar": 2,
