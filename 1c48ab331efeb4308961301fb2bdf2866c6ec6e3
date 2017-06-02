@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cc7767de_aa83ce45",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-02T15:50:17Z",
+      "side": 1,
+      "message": "nit: either AddLinuxConfigs or rename AddGitConfigs in vm_server/server.go",
+      "range": {
+        "startLine": 77,
+        "startChar": 5,
+        "endLine": 77,
+        "endChar": 17
+      },
+      "revId": "1c48ab331efeb4308961301fb2bdf2866c6ec6e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
