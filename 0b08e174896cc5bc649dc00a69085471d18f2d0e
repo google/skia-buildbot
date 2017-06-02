@@ -22,6 +22,30 @@
       "revId": "0b08e174896cc5bc649dc00a69085471d18f2d0e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f20a15a6_136593ac",
+        "filename": "autoroll/setup-script-android.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-02T19:39:52Z",
+      "side": 1,
+      "message": "I\u0027ve been confused about the difference between setup and startup. I\u0027m guessing you wouldn\u0027t be keen on renaming to OnCreateScript and OnBootScript?",
+      "parentUuid": "0d2a7741_5291583a",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "0b08e174896cc5bc649dc00a69085471d18f2d0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
