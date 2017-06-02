@@ -15,3 +15,4 @@ fi
 
 # The name of instance where skia fiddle is running.
 INSTANCE_NAME=skia-fiddle
+ZONE=us-east1-d
