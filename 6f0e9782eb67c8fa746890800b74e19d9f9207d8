@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "86ee694e_2db99a00",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 524,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-02T13:51:58Z",
+      "side": 1,
+      "message": "If we made this a method of GCloud, we could determine the IP address here.  However, nobody currently calls this outside of CreateAndSetup, where we\u0027re guaranteed to have this filled in.",
+      "range": {
+        "startLine": 524,
+        "startChar": 2,
+        "endLine": 524,
+        "endChar": 73
+      },
+      "revId": "6f0e9782eb67c8fa746890800b74e19d9f9207d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5616d47c_bd7f641c",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 545,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-02T13:51:58Z",
+      "side": 1,
+      "message": "Same story.",
+      "range": {
+        "startLine": 545,
+        "startChar": 2,
+        "endLine": 545,
+        "endChar": 69
+      },
+      "revId": "6f0e9782eb67c8fa746890800b74e19d9f9207d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
