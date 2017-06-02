@@ -33,7 +33,7 @@ var (
 )
 
 // Base config for server instances.
-func Server20170518(name, ipAddress string) *gce.Instance {
+func Server20170518(name string) *gce.Instance {
 	return &gce.Instance{
 		BootDisk: &gce.Disk{
 			Name:           name,
@@ -45,7 +45,6 @@ func Server20170518(name, ipAddress string) *gce.Instance {
 			SizeGb: 300,
 			Type:   gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
-		ExternalIpAddress: ipAddress,
 		GSDownloads:       map[string]string{},
 		MachineType:       gce.MACHINE_TYPE_HIGHMEM_16,
 		Metadata:          map[string]string{},
