@@ -111,7 +111,7 @@ function run_swarming_bootstrap {
   echo
   echo "===== Run Swarming Bootstrap ====="
   swarming="https://chromium-swarm.appspot.com"
-  if [[ "$INSTANCE_NAME" = skia-i-* ]] || [[ "$INSTANCE_NAME" = ct-vm-* ]]; then
+  if [[ "$INSTANCE_NAME" = skia-i-* ]] || [[ "$INSTANCE_NAME" = ct-gce-* ]]; then
     swarming="https://chrome-swarming.appspot.com"
   fi
   gcloud compute --project $PROJECT_ID ssh --zone $ZONE chrome-bot@$INSTANCE_NAME -- \
