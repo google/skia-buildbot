@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "f82451f1_9e0a0fdc",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-02T14:27:58Z",
+      "side": 1,
+      "message": "It may be good to augment these errors with fmt.Errorf(\"Problem getting ip address\") so we can more easily trace them back.\n\nSee also line 416, 429",
+      "revId": "6f0e9782eb67c8fa746890800b74e19d9f9207d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "86ee694e_2db99a00",
         "filename": "go/gce/gce.go",
         "patchSetId": 1
