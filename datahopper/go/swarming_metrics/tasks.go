@@ -267,10 +267,10 @@ func setupMetrics(workdir string) (events.EventDB, *events.EventMetrics, error) 
 func startLoadingTasks(swarm swarming.ApiClient, ctx context.Context, edb events.EventDB) {
 	// Start collecting the metrics.
 	lv := metrics2.NewLiveness("last-successful-swarming-task-metrics")
-	now := time.Now()
-	lastLoad := now.Add(-2 * time.Minute)
+	lastLoad := time.Now().Add(-2 * time.Minute)
 	revisitTasks := []string{}
 	go util.RepeatCtx(10*time.Minute, ctx, func() {
+		now := time.Now()
 		revisit, err := loadSwarmingTasks(swarm, edb, lastLoad, now, revisitTasks)
 		if err != nil {
 			sklog.Errorf("Failed to load swarming tasks into metrics: %s", err)
