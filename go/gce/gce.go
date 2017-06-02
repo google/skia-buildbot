@@ -412,10 +412,21 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 	} else if op.Error != nil {
 		return fmt.Errorf("Failed to insert instance: %v", op.Error)
 	} else {
-		if err := g.WaitForInstanceReady(vm, maxWaitTime); err != nil {
+		if err := g.waitForInstance(vm.Name, instanceStatusRunning, maxWaitTime); err != nil {
 			return err
 		}
 		sklog.Infof("Successfully created instance %s", vm.Name)
+	}
+	// Obtain the instance IP address if necessary.
+	if vm.ExternalIpAddress == "" {
+		ip, err := g.GetIpAddress(vm)
+		if err != nil {
+			return err
+		}
+		vm.ExternalIpAddress = ip
+	}
+	if err := g.WaitForInstanceReady(vm, maxWaitTime); err != nil {
+		return err
 	}
 	return nil
 }
@@ -467,6 +478,25 @@ func (g *GCloud) waitForInstance(name, status string, timeout time.Duration) err
 	return nil
 }
 
+// GetIpAddress obtains the IP address for the Instance.
+func (g *GCloud) GetIpAddress(vm *Instance) (string, error) {
+	inst, err := g.s.Instances.Get(g.project, g.zone, vm.Name).Do()
+	if err != nil {
+		return "", err
+	}
+	if len(inst.NetworkInterfaces) != 1 {
+		return "", fmt.Errorf("Instance has incorrect number of network interfaces: %d", len(inst.NetworkInterfaces))
+	}
+	if len(inst.NetworkInterfaces[0].AccessConfigs) != 1 {
+		return "", fmt.Errorf("Instance network interface has incorrect number of access configs: %d", len(inst.NetworkInterfaces[0].AccessConfigs))
+	}
+	ip := inst.NetworkInterfaces[0].AccessConfigs[0].NatIP
+	if ip == "" {
+		return "", fmt.Errorf("Unable to determine instance IP address.")
+	}
+	return ip, nil
+}
+
 // sshArgs returns options for SSH or an error if applicable.
 func sshArgs() ([]string, error) {
 	usr, err := user.Current()
@@ -490,6 +520,9 @@ func (vm *Instance) Ssh(cmd ...string) (string, error) {
 	if vm.Os == OS_WINDOWS {
 		return "", fmt.Errorf("Cannot SSH into Windows machines (for: %v)", cmd)
 	}
+	if vm.ExternalIpAddress == "" {
+		return "", fmt.Errorf("Instance has no ExternalIpAddress. Cannot SSH.")
+	}
 	args, err := sshArgs()
 	if err != nil {
 		return "", err
@@ -507,6 +540,9 @@ func (vm *Instance) Ssh(cmd ...string) (string, error) {
 func (vm *Instance) Scp(src, dst string) error {
 	if vm.Os == OS_WINDOWS {
 		return fmt.Errorf("Cannot SCP to Windows machines (for: %s)", dst)
+	}
+	if vm.ExternalIpAddress == "" {
+		return fmt.Errorf("Instance has no ExternalIpAddress. Cannot SSH.")
 	}
 	if !filepath.IsAbs(src) {
 		return fmt.Errorf("%q is not an absolute path.", src)
@@ -541,6 +577,17 @@ func (g *GCloud) Reboot(vm *Instance) error {
 	} else if op.Error != nil {
 		return fmt.Errorf("Failed to start instance: %v", op.Error)
 	}
+	if err := g.waitForInstance(vm.Name, instanceStatusRunning, maxWaitTime); err != nil {
+		return err
+	}
+
+	// Instance IP address may change at reboot.
+	ip, err := g.GetIpAddress(vm)
+	if err != nil {
+		return err
+	}
+	vm.ExternalIpAddress = ip
+
 	if err := g.WaitForInstanceReady(vm, maxWaitTime); err != nil {
 		return err
 	}
