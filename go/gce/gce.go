@@ -413,10 +413,21 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 	} else if op.Error != nil {
 		return fmt.Errorf("Failed to insert instance: %v", op.Error)
 	} else {
-		if err := g.WaitForInstanceReady(vm, maxWaitTime); err != nil {
+		if err := g.waitForInstance(vm.Name, instanceStatusRunning, maxWaitTime); err != nil {
 			return err
 		}
 		sklog.Infof("Successfully created instance %s", vm.Name)
+	}
+	// Obtain the instance IP address if necessary.
+	if vm.ExternalIpAddress == "" {
+		ip, err := g.GetIpAddress(vm)
+		if err != nil {
+			return err
+		}
+		vm.ExternalIpAddress = ip
+	}
+	if err := g.WaitForInstanceReady(vm, maxWaitTime); err != nil {
+		return err
 	}
 	return nil
 }
@@ -460,12 +471,31 @@ func (g *GCloud) waitForInstance(name, status string, timeout time.Duration) err
 	start := time.Now()
 	for st := g.getInstanceStatus(name); st != status; st = g.getInstanceStatus(name) {
 		if time.Now().Sub(start) > timeout {
-			return fmt.Errorf("Exceeded timeout of %s", timeout)
+			return fmt.Errorf("Instance did not have status %q within timeout of %s", status, timeout)
 		}
 		sklog.Infof("Waiting for instance %q (status %s)", name, st)
 		time.Sleep(5 * time.Second)
 	}
 	return nil
+}
+
+// GetIpAddress obtains the IP address for the Instance.
+func (g *GCloud) GetIpAddress(vm *Instance) (string, error) {
+	inst, err := g.s.Instances.Get(g.project, g.zone, vm.Name).Do()
+	if err != nil {
+		return "", err
+	}
+	if len(inst.NetworkInterfaces) != 1 {
+		return "", fmt.Errorf("Failed to obtain IP address: Instance has incorrect number of network interfaces: %d", len(inst.NetworkInterfaces))
+	}
+	if len(inst.NetworkInterfaces[0].AccessConfigs) != 1 {
+		return "", fmt.Errorf("Failed to obtain IP address: Instance network interface has incorrect number of access configs: %d", len(inst.NetworkInterfaces[0].AccessConfigs))
+	}
+	ip := inst.NetworkInterfaces[0].AccessConfigs[0].NatIP
+	if ip == "" {
+		return "", fmt.Errorf("Failed to obtain IP address: Got empty IP address.")
+	}
+	return ip, nil
 }
 
 // sshArgs returns options for SSH or an error if applicable.
@@ -487,9 +517,16 @@ func sshArgs() ([]string, error) {
 
 // Ssh logs into the instance and runs the given command. Returns any output
 // and an error if applicable.
-func (vm *Instance) Ssh(cmd ...string) (string, error) {
+func (g *GCloud) Ssh(vm *Instance, cmd ...string) (string, error) {
 	if vm.Os == OS_WINDOWS {
 		return "", fmt.Errorf("Cannot SSH into Windows machines (for: %v)", cmd)
+	}
+	if vm.ExternalIpAddress == "" {
+		ip, err := g.GetIpAddress(vm)
+		if err != nil {
+			return "", err
+		}
+		vm.ExternalIpAddress = ip
 	}
 	args, err := sshArgs()
 	if err != nil {
@@ -505,9 +542,16 @@ func (vm *Instance) Ssh(cmd ...string) (string, error) {
 
 // Scp copies files to the instance. The src argument is expected to be
 // absolute.
-func (vm *Instance) Scp(src, dst string) error {
+func (g *GCloud) Scp(vm *Instance, src, dst string) error {
 	if vm.Os == OS_WINDOWS {
 		return fmt.Errorf("Cannot SCP to Windows machines (for: %s)", dst)
+	}
+	if vm.ExternalIpAddress == "" {
+		ip, err := g.GetIpAddress(vm)
+		if err != nil {
+			return err
+		}
+		vm.ExternalIpAddress = ip
 	}
 	if !filepath.IsAbs(src) {
 		return fmt.Errorf("%q is not an absolute path.", src)
@@ -542,6 +586,17 @@ func (g *GCloud) Reboot(vm *Instance) error {
 	} else if op.Error != nil {
 		return fmt.Errorf("Failed to start instance: %v", op.Error)
 	}
+	if err := g.waitForInstance(vm.Name, instanceStatusRunning, maxWaitTime); err != nil {
+		return err
+	}
+
+	// Instance IP address may change at reboot.
+	ip, err := g.GetIpAddress(vm)
+	if err != nil {
+		return err
+	}
+	vm.ExternalIpAddress = ip
+
 	if err := g.WaitForInstanceReady(vm, maxWaitTime); err != nil {
 		return err
 	}
@@ -563,7 +618,7 @@ func (g *GCloud) IsInstanceReady(vm *Instance) (bool, error) {
 		}
 		return false, nil
 	} else {
-		if _, err := vm.Ssh("true"); err != nil {
+		if _, err := g.Ssh(vm, "true"); err != nil {
 			return false, nil
 		}
 		return true, nil
@@ -578,7 +633,7 @@ func (g *GCloud) WaitForInstanceReady(vm *Instance, timeout time.Duration) error
 	}
 	for {
 		if time.Now().Sub(start) > timeout {
-			return fmt.Errorf("Exceeded timeout of %s", timeout)
+			return fmt.Errorf("Instance was not ready within timeout of %s", timeout)
 		}
 		ready, err := g.IsInstanceReady(vm)
 		if err != nil {
@@ -594,33 +649,33 @@ func (g *GCloud) WaitForInstanceReady(vm *Instance, timeout time.Duration) error
 
 // DownloadFile downloads the given file from Google Cloud Storage to the
 // instance.
-func (vm *Instance) DownloadFile(src, dst string) error {
-	_, err := vm.Ssh("gsutil", "cp", src, dst)
+func (g *GCloud) DownloadFile(vm *Instance, src, dst string) error {
+	_, err := g.Ssh(vm, "gsutil", "cp", src, dst)
 	return err
 }
 
 // GetFileFromMetadata downloads the given metadata entry to a file.
-func (vm *Instance) GetFileFromMetadata(url, dst string) error {
-	_, err := vm.Ssh("wget", "--header", "'Metadata-Flavor: Google'", "--output-document", dst, url)
+func (g *GCloud) GetFileFromMetadata(vm *Instance, url, dst string) error {
+	_, err := g.Ssh(vm, "wget", "--header", "'Metadata-Flavor: Google'", "--output-document", dst, url)
 	return err
 }
 
 // SafeFormatAndMount copies the safe_format_and_mount script to the instance
 // and runs it.
-func (vm *Instance) SafeFormatAndMount() error {
+func (g *GCloud) SafeFormatAndMount(vm *Instance) error {
 	// Copy the format_and_mount.sh and safe_format_and_mount
 	// scripts to the instance.
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
-	if err := vm.Scp(path.Join(dir, "format_and_mount.sh"), "/tmp/format_and_mount.sh"); err != nil {
+	if err := g.Scp(vm, path.Join(dir, "format_and_mount.sh"), "/tmp/format_and_mount.sh"); err != nil {
 		return err
 	}
-	if err := vm.Scp(path.Join(dir, "safe_format_and_mount"), "/tmp/safe_format_and_mount"); err != nil {
+	if err := g.Scp(vm, path.Join(dir, "safe_format_and_mount"), "/tmp/safe_format_and_mount"); err != nil {
 		return err
 	}
 
 	// Run format_and_mount.sh.
-	if _, err := vm.Ssh("/tmp/format_and_mount.sh", vm.DataDisk.Name); err != nil {
+	if _, err := g.Ssh(vm, "/tmp/format_and_mount.sh", vm.DataDisk.Name); err != nil {
 		if !strings.Contains(err.Error(), "is already mounted") {
 			return err
 		}
@@ -679,21 +734,21 @@ func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool, workdir string)
 
 	// Format and mount.
 	if vm.DataDisk != nil {
-		if err := vm.SafeFormatAndMount(); err != nil {
+		if err := g.SafeFormatAndMount(vm); err != nil {
 			return err
 		}
 	}
 
 	// GSutil downloads.
 	for dst, src := range vm.GSDownloads {
-		if err := vm.DownloadFile(src, dst); err != nil {
+		if err := g.DownloadFile(vm, src, dst); err != nil {
 			return err
 		}
 	}
 
 	// Metadata downloads.
 	for dst, src := range vm.MetadataDownloads {
-		if err := vm.GetFileFromMetadata(src, dst); err != nil {
+		if err := g.GetFileFromMetadata(vm, src, dst); err != nil {
 			return err
 		}
 	}
@@ -705,7 +760,7 @@ func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool, workdir string)
 	// setup script.
 	if vm.Os != OS_WINDOWS {
 		if vm.SetupScript != "" {
-			if _, err := vm.Ssh("sudo", "chmod", "+x", SETUP_SCRIPT_PATH_LINUX, "&&", SETUP_SCRIPT_PATH_LINUX); err != nil {
+			if _, err := g.Ssh(vm, "sudo", "chmod", "+x", SETUP_SCRIPT_PATH_LINUX, "&&", SETUP_SCRIPT_PATH_LINUX); err != nil {
 				return err
 			}
 		}
