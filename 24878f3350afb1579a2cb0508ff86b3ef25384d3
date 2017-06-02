@@ -46,6 +46,30 @@
       "revId": "24878f3350afb1579a2cb0508ff86b3ef25384d3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03671036_2c79ca69",
+        "filename": "go/gce/ct/setup-script.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-02T19:28:03Z",
+      "side": 1,
+      "message": "nvm, the only difference seems to be when there are tabs. Who uses tabs anyway?",
+      "parentUuid": "8da87b56_3407f0ab",
+      "range": {
+        "startLine": 64,
+        "startChar": 17,
+        "endLine": 64,
+        "endChar": 18
+      },
+      "revId": "24878f3350afb1579a2cb0508ff86b3ef25384d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
