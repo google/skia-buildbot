@@ -22,6 +22,30 @@
       "revId": "24878f3350afb1579a2cb0508ff86b3ef25384d3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8da87b56_3407f0ab",
+        "filename": "go/gce/ct/setup-script.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-02T19:25:04Z",
+      "side": 1,
+      "message": "Both give me the same result locally, but changed to \"\u003c\u003c\"",
+      "parentUuid": "9274b52f_9f03d196",
+      "range": {
+        "startLine": 64,
+        "startChar": 17,
+        "endLine": 64,
+        "endChar": 18
+      },
+      "revId": "24878f3350afb1579a2cb0508ff86b3ef25384d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
