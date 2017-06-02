@@ -24,6 +24,9 @@ import (
 )
 
 const (
+	GS_URL_GITCONFIG = "gs://skia-buildbots/artifacts/bots/.gitconfig"
+	GS_URL_NETRC     = "gs://skia-buildbots/artifacts/bots/.netrc"
+
 	IP_ADDRESS_TMPL = "104.154.112.%d"
 	USER_CHROME_BOT = "chrome-bot"
 )
@@ -72,8 +75,8 @@ func Swarming20170523(name, ipAddress string) *gce.Instance {
 // Linux GCE instances.
 func LinuxSwarmingBot(name, ipAddress string) *gce.Instance {
 	vm := Swarming20170523(name, ipAddress)
-	vm.GSDownloads["gs://skia-buildbots/artifacts/bots/.gitconfig"] = "/home/chrome-bot/.gitconfig"
-	vm.GSDownloads["gs://skia-buildbots/artifacts/bots/.netrc"] = "/home/chrome-bot/.netrc"
+	vm.GSDownloads[GS_URL_GITCONFIG] = "/home/chrome-bot/.gitconfig"
+	vm.GSDownloads[GS_URL_NETRC] = "/home/chrome-bot/.netrc"
 
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)

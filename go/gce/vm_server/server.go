@@ -13,7 +13,13 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gce"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
+)
+
+const (
+	GS_URL_GITCONFIG = "gs://skia-buildbots/artifacts/server/.gitconfig"
+	GS_URL_NETRC     = "gs://skia-buildbots/artifacts/server/.netrc"
 )
 
 var (
@@ -40,7 +46,6 @@ func Server20170518(name, ipAddress string) *gce.Instance {
 			Type:   gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
 		ExternalIpAddress: ipAddress,
-		FixGSutil:         true,
 		GSDownloads:       map[string]string{},
 		MachineType:       gce.MACHINE_TYPE_HIGHMEM_16,
 		Metadata:          map[string]string{},
@@ -53,6 +58,15 @@ func Server20170518(name, ipAddress string) *gce.Instance {
 		Tags: []string{"http-server", "https-server"},
 		User: gce.USER_DEFAULT,
 	}
+}
+
+// Add configuration for servers who use git.
+func AddGitConfigs(vm *gce.Instance, gitUser string) *gce.Instance {
+	vm.GSDownloads[GS_URL_GITCONFIG] = "~/.gitconfig"
+	vm.GSDownloads[GS_URL_NETRC] = "~/.netrc"
+	mdKey := fmt.Sprintf(metadata.METADATA_URL, "project", fmt.Sprintf("gitcookies_%s", gitUser))
+	vm.MetadataDownloads[mdKey] = "~/.gitcookies"
+	return vm
 }
 
 func Main(instances map[string]*gce.Instance) {
