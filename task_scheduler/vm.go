@@ -10,9 +10,10 @@ import (
 )
 
 func TaskSchedulerBase(name, ipAddress, gitUser string) *gce.Instance {
-	vm := vm_server.AddGitConfigs(vm_server.Server20170518(name, ipAddress), gitUser)
+	vm := vm_server.AddGitConfigs(vm_server.Server20170518(name), gitUser)
 	vm.DataDisk.SizeGb = 1000
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
+	vm.ExternalIpAddress = ipAddress
 	vm.Metadata["owner_primary"] = "borenet"
 	vm.Metadata["owner_secondary"] = "benjaminwagner"
 	vm.Scopes = append(vm.Scopes,
@@ -37,7 +38,7 @@ func TaskSchedulerInternal() *gce.Instance {
 }
 
 func TaskSchedulerTest() *gce.Instance {
-	vm := TaskSchedulerBase("borenet-instance-creation-test", "104.154.112.141", "skia-task-scheduler")
+	vm := TaskSchedulerBase("borenet-instance-creation-test", "", "skia-task-scheduler")
 	return vm
 }
 
