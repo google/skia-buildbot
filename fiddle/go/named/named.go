@@ -32,6 +32,7 @@ var (
 		".txt":        store.TXT,
 		"_cpu.webm":   store.ANIM_CPU,
 		"_gpu.webm":   store.ANIM_GPU,
+		"_glinfo.txt": store.GLINFO,
 	}
 )
 
@@ -152,7 +153,7 @@ func (n *Named) DereferenceImageID(id string) (string, store.Media, error) {
 	}
 	id = id[:len(id)-len(trailing)]
 	// If this is a .png or .webm then we need to strip off the trailing "_raster" or "_gpu".
-	if trailing == ".png" || trailing == ".webm" {
+	if strings.Contains(id, "_") {
 		parts := strings.Split(id, "_")
 		if len(parts) < 2 {
 			return "", store.UNKNOWN, fmt.Errorf("Not a valid image id form: %q", id)

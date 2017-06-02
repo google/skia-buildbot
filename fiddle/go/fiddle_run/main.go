@@ -13,6 +13,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"sync"
 	"syscall"
 	"time"
 
@@ -131,6 +132,11 @@ func main() {
 		// pool of Go routines that will do the actual rendering.
 		frameCh := make(chan int)
 
+		// mutex protects glinfo.
+		var mutex sync.Mutex
+		// glinfo is the info about the GL version for the GPU.
+		glinfo := ""
+
 		// Start a pool of workers to do the rendering.
 		for i := 0; i <= runtime.NumCPU(); i++ {
 			g.Go(func() error {
@@ -157,6 +163,11 @@ func main() {
 					if err := extractPNG(res.Execute.Output.Gpu, res, frameIndex, "GPU", tmpDir); err != nil {
 						return err
 					}
+					mutex.Lock()
+					if glinfo == "" {
+						glinfo = res.Execute.Output.GLInfo
+					}
+					mutex.Unlock()
 				}
 				return nil
 			})
@@ -190,6 +201,7 @@ func main() {
 		res.Execute.Output.AnimatedGpu = encodeWebm("GPU", tmpDir, res)
 		res.Execute.Output.Raster = ""
 		res.Execute.Output.Gpu = ""
+		res.Execute.Output.GLInfo = glinfo
 
 		serializeOutput(res)
 	}
