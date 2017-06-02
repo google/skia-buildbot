@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d58dcc63_2caebab8",
+        "filename": "go/gce/ct/ct_vm.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-02T19:12:52Z",
+      "side": 1,
+      "message": "Yes, we can.  This is the way the current setup scripts are written, so I\u0027d like to carry that over to preserver behavior.  It\u0027s easy to make the change later if we want it.",
+      "parentUuid": "37753e4f_e3b06615",
+      "range": {
+        "startLine": 25,
+        "startChar": 1,
+        "endLine": 25,
+        "endChar": 35
+      },
+      "revId": "5d26d1b024ac4c6ac4d749a8ed241cc9bae0daea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f6c36ce7_b0455d4e",
         "filename": "go/gce/ct/ct_vm.go",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2017-06-02T18:42:17Z",
       "side": 1,
       "message": "I assume you decided against:\nfunc AddCT20170602(vm *gce.Instance) *gce.Instance {\n  vm.GSDownloads[\"/home/chrome-bot/.gitconfig\"] \u003d GS_URL_GITCONFIG\n  vm.GSDownloads[\"/home/chrome-bot/.netrc\"] \u003d GS_URL_NETRC\n  _, filename, _, _ :\u003d runtime.Caller(0)\n  dir :\u003d path.Dir(filename)\n  vm.SetupScript \u003d path.Join(dir, \"setup-script-linux.sh\")\n}\nfunc CTInstance(num int, ipAddress string) *gce.Instance {\n  vm :\u003d AddCT20170602(Swarming20170523(fmt.Sprintf(\"ct-vm-%03d\", num), ipAddress))\n  vm.MachineType \u003d gce.MACHINE_TYPE_HIGHMEM_2\n}",
+      "range": {
+        "startLine": 41,
+        "startChar": 5,
+        "endLine": 41,
+        "endChar": 15
+      },
+      "revId": "5d26d1b024ac4c6ac4d749a8ed241cc9bae0daea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0e3199d_731b91df",
+        "filename": "go/gce/ct/ct_vm.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-02T19:12:52Z",
+      "side": 1,
+      "message": "I didn\u0027t want to depend on the Skia swarming bot setup.  IMO they should be separate.",
+      "parentUuid": "f6c36ce7_b0455d4e",
       "range": {
         "startLine": 41,
         "startChar": 5,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "e884eee1_0ce0f15e",
+        "filename": "go/gce/ct/setup-script.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-02T19:12:52Z",
+      "side": 1,
+      "message": "Whoops.  Done, thanks.",
+      "parentUuid": "6df0aca1_c3480377",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 1
+      },
+      "revId": "5d26d1b024ac4c6ac4d749a8ed241cc9bae0daea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "85e23380_171cd969",
         "filename": "go/gce/ct/setup-script.sh",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2017-06-02T18:42:17Z",
       "side": 1,
       "message": "nit: triple quote isn\u0027t a thing in bash. But it happens to work as intended.",
+      "range": {
+        "startLine": 62,
+        "startChar": 5,
+        "endLine": 62,
+        "endChar": 8
+      },
+      "revId": "5d26d1b024ac4c6ac4d749a8ed241cc9bae0daea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c479a7b_d14712fc",
+        "filename": "go/gce/ct/setup-script.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-02T19:12:52Z",
+      "side": 1,
+      "message": "Fixed.  Also removed a bunch of unnecessary semicolons.",
+      "parentUuid": "85e23380_171cd969",
       "range": {
         "startLine": 62,
         "startChar": 5,
