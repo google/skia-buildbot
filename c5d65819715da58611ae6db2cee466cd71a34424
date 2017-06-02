@@ -22,6 +22,30 @@
       "revId": "c5d65819715da58611ae6db2cee466cd71a34424",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bdf21322_7d60c415",
+        "filename": "go/gce/vm_server/server.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-02T12:05:13Z",
+      "side": 1,
+      "message": "Nice, done, but still returning the Instance for convenience.",
+      "parentUuid": "6dd0cec1_bde34c4d",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 38
+      },
+      "revId": "c5d65819715da58611ae6db2cee466cd71a34424",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

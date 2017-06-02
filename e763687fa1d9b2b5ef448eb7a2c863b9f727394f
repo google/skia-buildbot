@@ -22,6 +22,30 @@
       "revId": "e763687fa1d9b2b5ef448eb7a2c863b9f727394f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6dff8ed8_912280f5",
+        "filename": "go/gce/vm_server/server.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-02T12:05:13Z",
+      "side": 0,
+      "message": "No. Removed the option and the accompanying code.  I don\u0027t know *why* it\u0027s no longer needed though, which is concerning.  I guess maybe there was a \"sudo gsutil ...\" command somewhere in the previous setup flow and it\u0027s no longer there.",
+      "parentUuid": "f6c71a86_b841e312",
+      "range": {
+        "startLine": 43,
+        "startChar": 2,
+        "endLine": 43,
+        "endChar": 11
+      },
+      "revId": "e763687fa1d9b2b5ef448eb7a2c863b9f727394f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
