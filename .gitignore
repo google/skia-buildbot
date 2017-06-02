@@ -24,6 +24,7 @@ services/bugdroid/bugdroid_log.txt
 **/client_secret.json
 **/service-account.json
 **/google_storage_token.data
+**/gcloud_token.data
 google_oauth_token.data
 oauth-token.cache
 # Bower and Node related directories
