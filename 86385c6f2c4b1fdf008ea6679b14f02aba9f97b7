@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "903d6454_2e797ca3",
+        "filename": "go/gce/ct/setup-script.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-02T17:54:56Z",
+      "side": 1,
+      "message": "Removed what seemed to be only related to skia/infra.",
+      "parentUuid": "f2849c2a_bc7b8916",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 11
+      },
+      "revId": "86385c6f2c4b1fdf008ea6679b14f02aba9f97b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "63de7345_03601b9a",
         "filename": "go/gce/ct/setup-script.sh",
         "patchSetId": 2
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "No reason.",
       "parentUuid": "63de7345_03601b9a",
+      "range": {
+        "startLine": 36,
+        "startChar": 59,
+        "endLine": 36,
+        "endChar": 87
+      },
+      "revId": "86385c6f2c4b1fdf008ea6679b14f02aba9f97b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f34a265e_0e24e0e6",
+        "filename": "go/gce/ct/setup-script.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-02T17:54:56Z",
+      "side": 1,
+      "message": "Copied the contents and merged in.  Please take a close look, as I have no idea whether this will work.",
+      "parentUuid": "709f85a2_130c813f",
       "range": {
         "startLine": 36,
         "startChar": 59,
