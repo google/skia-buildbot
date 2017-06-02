@@ -168,6 +168,12 @@
     .imgsrc {
       cursor: pointer;
     }
+
+    #glinfo {
+      margin: 0.6em 2em;
+      display: inline-block;
+    }
+
   </style>
   <template>
     <template is="dom-if" if="{{display_options}}">
@@ -272,27 +278,25 @@ sk_sp&lt;SkImage> image;</pre>
         </template>
 
         <template is="dom-if" if="{{_showGpu(gpu_embedded,embed_button)}}">
-          <template is="dom-if" if="{{_not(animated)}}">
             <div class="vertical layout center-justified">
-              <img src="[[domain]]/i/{{fiddlehash}}_gpu.png" width="{{width}}" height="{{height}}">
-              <p>
-                GPU
-                <a href="https://imageinfo.skia.org/info?url=https://fiddle.skia.org/i/{{fiddlehash}}_gpu.png"
-                  title="Inspect the image in https://imageinfo.skia.org."
-                  target=_blank
-                  >
-                  <iron-icon icon="pageview"></iron-icon></a>
-              </p>
+                <template is="dom-if" if="{{_not(animated)}}">
+                    <img src="[[domain]]/i/{{fiddlehash}}_gpu.png" width="{{width}}" height="{{height}}">
+                    <p>
+                        GPU
+                        <a href="https://imageinfo.skia.org/info?url=https://fiddle.skia.org/i/{{fiddlehash}}_gpu.png"
+                            title="Inspect the image in https://imageinfo.skia.org."
+                            target=_blank
+                            >
+                            <iron-icon icon="pageview"></iron-icon></a>
+                    </p>
+                </template>
+                <template is="dom-if" if="{{animated}}">
+                    <video loop="[[loop]]" autoplay src="[[domain]]/i/{{fiddlehash}}_gpu.webm" width="{{width}}" height="{{height}}"></video>
+                    <p>
+                        GPU
+                    </p>
+                </template>
             </div>
-          </template>
-          <template is="dom-if" if="{{animated}}">
-            <div class="vertical layout center-justified">
-              <video loop="[[loop]]" autoplay src="[[domain]]/i/{{fiddlehash}}_gpu.webm" width="{{width}}" height="{{height}}"></video>
-              <p>
-                GPU
-              </p>
-            </div>
-          </template>
         </template>
 
         <template is="dom-if" if="{{_not(animated)}}">
@@ -323,6 +327,7 @@ sk_sp&lt;SkImage> image;</pre>
         </div>
       </template>
     </template>
+
     <template is="dom-if" if="{{textonly}}">
       <template is="dom-if" if="{{embed_button}}">
         <h2>Output</h2>
@@ -330,6 +335,13 @@ sk_sp&lt;SkImage> image;</pre>
       <div class=textoutput>
         <text-src src="[[_textURL(domain, fiddlehash)]]"></text-src>
       </div>
+    </template>
+
+    <template is="dom-if" if="{{_hasImages(fiddlehash, _compile_errors, _runtime_error, textonly)}}">
+      <details-sk>
+          <summary-sk>Run Details</summary-sk>
+          <text-src id=glinfo src="[[_glinfoURL(domain, fiddlehash)]]"></text-src>
+      </details-sk>
     </template>
 
     <template is="dom-if" if="{{_not(embed_button)}}">
@@ -577,6 +589,13 @@ sk_sp&lt;SkImage> image;</pre>
         return "";
       }
       return domain + "/i/" + fiddlehash + ".txt";
+    },
+
+    _glinfoURL: function(domain, fiddlehash) {
+      if (fiddlehash == "") {
+        return "";
+      }
+      return domain + "/i/" + fiddlehash + "_glinfo.txt";
     },
 
     _showCpu: function(gpu_embedded, embed_button) {

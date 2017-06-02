@@ -39,6 +39,7 @@ type Output struct {
 	Text           string `json:"Text"`
 	AnimatedRaster string `json:"AnimatedRaster"`
 	AnimatedGpu    string `json:"AnimatedGpu"`
+	GLInfo         string `json:"GLInfo"`
 }
 
 // Options are the users options they can select when running a fiddle that

@@ -58,6 +58,7 @@ const (
 	TXT      Media = "TXT"
 	ANIM_CPU Media = "ANIM_CPU"
 	ANIM_GPU Media = "ANIM_GPU"
+	GLINFO   Media = "GLINFO"
 	UNKNOWN  Media = ""
 )
 
@@ -76,6 +77,7 @@ var (
 		TXT:      {filename: "txt.txt", contentType: "text/plain"},
 		ANIM_CPU: {filename: "cpu.webm", contentType: "video/webm"},
 		ANIM_GPU: {filename: "gpu.webm", contentType: "video/webm"},
+		GLINFO:   {filename: "glinfo.text", contentType: "text/plain"},
 	}
 
 	// sourceFileName parses a souce image filename as stored in Google Storage.
@@ -292,6 +294,12 @@ func (s *Store) PutMedia(options types.Options, fiddleHash string, gitHash strin
 			if err != nil {
 				return err
 			}
+		}
+	}
+	if results.Execute.Output.GLInfo != "" {
+		err := s.writeMediaFile(GLINFO, fiddleHash, runId, results.Execute.Output.GLInfo)
+		if err != nil {
+			sklog.Warningf("Failed to save GLInfo: %s", err)
 		}
 	}
 	return nil
