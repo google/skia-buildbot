@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "258644c0_40bf8d7b",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-02T15:08:16Z",
+      "side": 1,
+      "message": "See questions below.",
+      "parentUuid": "bf65780a_07d5a808",
+      "range": {
+        "startLine": 34,
+        "startChar": 1,
+        "endLine": 34,
+        "endChar": 38
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d1b58e4f_b92c2ea4",
         "filename": "power/go/power-controller/main.go",
         "patchSetId": 5
@@ -48,6 +72,54 @@
     },
     {
       "key": {
+        "uuid": "f971d2f9_e0f6b21e",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-02T15:08:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d1b58e4f_b92c2ea4",
+      "range": {
+        "startLine": 38,
+        "startChar": 1,
+        "endLine": 38,
+        "endChar": 32
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bd8b0494_ce7f7073",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-02T15:08:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d1b58e4f_b92c2ea4",
+      "range": {
+        "startLine": 38,
+        "startChar": 1,
+        "endLine": 38,
+        "endChar": 32
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bc98e6ad_bb073449",
         "filename": "power/go/power-controller/main.go",
         "patchSetId": 5
@@ -59,6 +131,30 @@
       "writtenOn": "2017-06-01T19:53:01Z",
       "side": 1,
       "message": "This should be folded into the New function to create the  gatherer, with the period being passed as a n argument.",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 4
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85ed5a5e_d96f853b",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-02T15:08:16Z",
+      "side": 1,
+      "message": "I don\u0027t want to add this to the constructor - it ties down the fact that Gatherers update given a period. This adds undue complications and may require reworking of the tests.",
+      "parentUuid": "bc98e6ad_bb073449",
       "range": {
         "startLine": 89,
         "startChar": 0,
@@ -94,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "4d5708ba_06bd10c2",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-02T15:08:16Z",
+      "side": 1,
+      "message": "I don\u0027t understand what you mean.  The way it\u0027s set up now, the templates are loaded once.  If local is set, they reload every page load (for local dev work).  I\u0027m not sure how to achieve that with the suggestions you have given, especially removing indexTemplate",
+      "parentUuid": "67c8ca1d_75408acb",
+      "range": {
+        "startLine": 100,
+        "startChar": 0,
+        "endLine": 109,
+        "endChar": 59
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "adfcb673_a8ef6314",
         "filename": "power/go/power-controller/main.go",
         "patchSetId": 5
@@ -105,6 +225,30 @@
       "writtenOn": "2017-06-01T19:53:01Z",
       "side": 1,
       "message": "nit:since it\u0027s very simply this could be an anonymous struct in the function.",
+      "range": {
+        "startLine": 119,
+        "startChar": 0,
+        "endLine": 121,
+        "endChar": 38
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c42e96c_b2f612f6",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-02T15:08:16Z",
+      "side": 1,
+      "message": "I\u0027m not a huge fan of anonymous structs - I think they hinder readability.",
+      "parentUuid": "adfcb673_a8ef6314",
       "range": {
         "startLine": 119,
         "startChar": 0,
@@ -140,6 +284,30 @@
     },
     {
       "key": {
+        "uuid": "4c32ad72_5f12e6df",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-02T15:08:16Z",
+      "side": 1,
+      "message": "I would rather not have a monolithic main function.  I expect this to grow and I\u0027d prefer to keep things broken apart.",
+      "parentUuid": "7b8b39f5_31cbc060",
+      "range": {
+        "startLine": 156,
+        "startChar": 0,
+        "endLine": 156,
+        "endChar": 18
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d372ba7d_ef23d08d",
         "filename": "power/go/power-controller/main.go",
         "patchSetId": 5
@@ -151,6 +319,24 @@
       "writtenOn": "2017-06-01T19:53:01Z",
       "side": 1,
       "message": "It might be a good idea to force login for all requests. \nSee: https://github.com/google/skia-buildbot/blob/master/golden/go/skiacorrectness/main.go#L357",
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96f7a0c4_3d9929ca",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-02T15:08:16Z",
+      "side": 1,
+      "message": "I intentionally do not want this behavior yet.  Right now, I want the endpoints to not require login to make for easier developing of, for example, the powercycle daemon.",
+      "parentUuid": "d372ba7d_ef23d08d",
       "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
