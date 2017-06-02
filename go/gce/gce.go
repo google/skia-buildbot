@@ -27,6 +27,7 @@ const (
 	DISK_TYPE_PERSISTENT_SSD      = "pd-ssd"
 
 	MACHINE_TYPE_HIGHMEM_16  = "n1-highmem-16"
+	MACHINE_TYPE_HIGHMEM_2   = "n1-highmem-2"
 	MACHINE_TYPE_STANDARD_16 = "n1-standard-16"
 
 	MAINTENANCE_POLICY_MIGRATE = "MIGRATE"
@@ -46,6 +47,7 @@ const (
 
 	USER_DEFAULT = "default"
 
+	ZONE_CT      = "us-central1-b"
 	ZONE_DEFAULT = "us-central1-c"
 
 	diskStatusError = "ERROR"
