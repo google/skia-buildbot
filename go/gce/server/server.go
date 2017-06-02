@@ -1,4 +1,4 @@
-package vm_server
+package server
 
 /*
    Utilities for creating GCE instances to run servers.
