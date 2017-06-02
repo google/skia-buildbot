@@ -226,9 +226,6 @@ type Instance struct {
 	// External IP address for the instance. Required.
 	ExternalIpAddress string
 
-	// FixGSutil indicates whether or not the ~/.gsutil dir needs fixing.
-	FixGSutil bool
-
 	// Files to download from Google Storage. Map keys are the source URLs,
 	// and values are destination paths on the GCE instance. May be absolute
 	// or relative (to the default user's home dir, eg. /home/default).
@@ -675,14 +672,6 @@ func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool, workdir string)
 		// Set the metadata on the instance again, due to a bug
 		// which is lost to time.
 		if err := g.SetMetadata(vm, vm.Metadata); err != nil {
-			return err
-		}
-	}
-
-	// Fix ~/.gsutil permissions. They start out as root:root for some
-	// reason, which prevents us from using gsutil at all.
-	if vm.FixGSutil {
-		if _, err := vm.Ssh("sudo", "chown", "--recursive", fmt.Sprintf("%s:%s", vm.User, vm.User), ".gsutil"); err != nil {
 			return err
 		}
 	}

@@ -6,10 +6,8 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"net"
 	"net/http"
-	"os"
 	"os/user"
 	"path"
 	"path/filepath"
@@ -28,7 +26,6 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
@@ -522,20 +519,6 @@ func main() {
 		sklog.Fatal(err)
 	}
 	gitcookiesPath := path.Join(user.HomeDir, ".gitcookies")
-	if !*local {
-		// Get .gitcookies from metadata.
-		hostname, err := os.Hostname()
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		gitcookies, err := metadata.ProjectGet(fmt.Sprintf("gitcookies_%s", hostname))
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		if err := ioutil.WriteFile(gitcookiesPath, []byte(gitcookies), 0600); err != nil {
-			sklog.Fatal(err)
-		}
-	}
 	gerrit, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, gitcookiesPath, nil)
 	if err != nil {
 		sklog.Fatal(err)
