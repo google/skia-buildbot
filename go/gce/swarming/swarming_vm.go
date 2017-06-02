@@ -35,6 +35,7 @@ var (
 	// Flags.
 	instances      = flag.String("instances", "", "Which instances to create/delete, eg. \"2,3-10,22\"")
 	create         = flag.Bool("create", false, "Create the instance. Either --create or --delete is required.")
+	ct             = flag.Bool("skia-ct", false, "If true, this is a bot in the SkiaCT pool.")
 	delete         = flag.Bool("delete", false, "Delete the instance. Either --create or --delete is required.")
 	deleteDataDisk = flag.Bool("delete-data-disk", false, "Delete the data disk. Only valid with --delete")
 	ignoreExists   = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
@@ -72,22 +73,38 @@ func Swarming20170523(name, ipAddress string) *gce.Instance {
 	}
 }
 
-// Linux GCE instances.
-func LinuxSwarmingBot(name, ipAddress string) *gce.Instance {
-	vm := Swarming20170523(name, ipAddress)
+// Configs for Linux GCE instances.
+func AddLinuxConfigs(vm *gce.Instance) *gce.Instance {
 	vm.GSDownloads["/home/chrome-bot/.gitconfig"] = GS_URL_GITCONFIG
 	vm.GSDownloads["/home/chrome-bot/.netrc"] = GS_URL_NETRC
 
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
 	vm.SetupScript = path.Join(dir, "setup-script-linux.sh")
-
 	return vm
 }
 
-// Windows GCE instances.
-func WinSwarmingBot(name, ipAddress, pw, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
-	vm := Swarming20170523(name, ipAddress)
+// Linux GCE instances.
+func LinuxSwarmingBot(num int, ipAddress string) *gce.Instance {
+	return AddLinuxConfigs(Swarming20170523(fmt.Sprintf("skia-vm-%03d", num), ipAddress))
+}
+
+// Internal Linux GCE instances.
+func InternalLinuxSwarmingBot(num int, ipAddress string) *gce.Instance {
+	vm := AddLinuxConfigs(Swarming20170523(fmt.Sprintf("skia-i-vm-%03d", num), ipAddress))
+	vm.MetadataDownloads["/home/chrome-bot/.gitcookies"] = fmt.Sprintf(metadata.METADATA_URL, "project", "gitcookies_skia-internal_chromium")
+	return vm
+}
+
+// Skia CT bots.
+func SkiaCTBot(num int, ipAddress string) *gce.Instance {
+	vm := AddLinuxConfigs(Swarming20170523(fmt.Sprintf("skia-ct-vm-%03d", num), ipAddress))
+	vm.DataDisk.SizeGb = 3000
+	return vm
+}
+
+// Configs for Windows GCE instances.
+func AddWinConfigs(vm *gce.Instance, ipAddress, pw, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
 	vm.BootDisk.SizeGb = 300
 	vm.BootDisk.SourceImage = "projects/google.com:windows-internal/global/images/windows-server-2008-r2-ent-internal-v20150310"
 	vm.BootDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
@@ -103,15 +120,16 @@ func WinSwarmingBot(name, ipAddress, pw, setupScriptPath, startupScriptPath, chr
 	return vm
 }
 
-// Internal Swarming bots.
-func InternalLinuxSwarmingBot(name, ipAddress string) *gce.Instance {
-	vm := LinuxSwarmingBot(name, ipAddress)
-	vm.MetadataDownloads["/home/chrome-bot/.gitcookies"] = fmt.Sprintf(metadata.METADATA_URL, "project", "gitcookies_skia-internal_chromium")
-	return vm
+// Windows GCE instances.
+func WinSwarmingBot(num int, ipAddress, pw, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
+	vm := Swarming20170523(fmt.Sprintf("skia-vm-%03d", num), ipAddress)
+	return AddWinConfigs(vm, ipAddress, pw, setupScriptPath, startupScriptPath, chromebotScript)
 }
 
-func InternalWinSwarmingBot(name, ipAddress, pw, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
-	return WinSwarmingBot(name, ipAddress, pw, setupScriptPath, startupScriptPath, chromebotScript)
+// Internal Windows GCE instances.
+func InternalWinSwarmingBot(num int, ipAddress, pw, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
+	vm := Swarming20170523(fmt.Sprintf("skia-i-vm-%03d", num), ipAddress)
+	return AddWinConfigs(vm, ipAddress, pw, setupScriptPath, startupScriptPath, chromebotScript)
 }
 
 // Returns the initial chrome-bot password, plus setup, startup, and
@@ -171,8 +189,13 @@ func main() {
 	common.Init()
 	defer common.LogPanic()
 
+	// Validation.
 	if *create == *delete {
 		sklog.Fatal("Please specify --create or --delete, but not both.")
+	}
+
+	if *ct && *windows {
+		sklog.Fatal("--skia-ct and --windows are mutually exclusive.")
 	}
 
 	instanceNums, err := util.ParseIntSet(*instances)
@@ -214,21 +237,19 @@ func main() {
 	for _, num := range instanceNums {
 		var vm *gce.Instance
 		ipAddr := fmt.Sprintf(IP_ADDRESS_TMPL, num)
-		if *windows {
+		if *ct {
+			vm = SkiaCTBot(num, ipAddr)
+		} else if *windows {
 			if *internal {
-				name := fmt.Sprintf("skia-i-vm-%03d", num)
-				vm = InternalWinSwarmingBot(name, ipAddr, pw, setupScript, startupScript, chromebotScript)
+				vm = InternalWinSwarmingBot(num, ipAddr, pw, setupScript, startupScript, chromebotScript)
 			} else {
-				name := fmt.Sprintf("skia-vm-%03d", num)
-				vm = WinSwarmingBot(name, ipAddr, pw, setupScript, startupScript, chromebotScript)
+				vm = WinSwarmingBot(num, ipAddr, pw, setupScript, startupScript, chromebotScript)
 			}
 		} else {
 			if *internal {
-				name := fmt.Sprintf("skia-i-vm-%03d", num)
-				vm = InternalLinuxSwarmingBot(name, ipAddr)
+				vm = InternalLinuxSwarmingBot(num, ipAddr)
 			} else {
-				name := fmt.Sprintf("skia-vm-%03d", num)
-				vm = LinuxSwarmingBot(name, ipAddr)
+				vm = LinuxSwarmingBot(num, ipAddr)
 			}
 		}
 
