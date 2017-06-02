@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8fcaf290_b1013e1f",
+        "filename": "go/gce/ct/setup-script.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-02T17:23:44Z",
+      "side": 1,
+      "message": "Copied from the Skia swarming setup script and modified only the Swarming setup, to be consistent with current behavior.  My suspicion is that we don\u0027t need most of this.  Please confirm?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 11
+      },
+      "revId": "86385c6f2c4b1fdf008ea6679b14f02aba9f97b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63de7345_03601b9a",
+        "filename": "go/gce/ct/setup-script.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-02T17:23:44Z",
+      "side": 1,
+      "message": "Any reason not to move the contents of setup_ct_machine.sh here?",
+      "range": {
+        "startLine": 36,
+        "startChar": 59,
+        "endLine": 36,
+        "endChar": 87
+      },
+      "revId": "86385c6f2c4b1fdf008ea6679b14f02aba9f97b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
