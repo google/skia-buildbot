@@ -22,6 +22,30 @@
       "revId": "1c48ab331efeb4308961301fb2bdf2866c6ec6e3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef952aa5_f16e3cd6",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-02T16:48:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cc7767de_aa83ce45",
+      "range": {
+        "startLine": 77,
+        "startChar": 5,
+        "endLine": 77,
+        "endChar": 17
+      },
+      "revId": "1c48ab331efeb4308961301fb2bdf2866c6ec6e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
