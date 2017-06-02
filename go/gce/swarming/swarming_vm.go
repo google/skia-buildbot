@@ -75,8 +75,8 @@ func Swarming20170523(name, ipAddress string) *gce.Instance {
 // Linux GCE instances.
 func LinuxSwarmingBot(name, ipAddress string) *gce.Instance {
 	vm := Swarming20170523(name, ipAddress)
-	vm.GSDownloads[GS_URL_GITCONFIG] = "/home/chrome-bot/.gitconfig"
-	vm.GSDownloads[GS_URL_NETRC] = "/home/chrome-bot/.netrc"
+	vm.GSDownloads["/home/chrome-bot/.gitconfig"] = GS_URL_GITCONFIG
+	vm.GSDownloads["/home/chrome-bot/.netrc"] = GS_URL_NETRC
 
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
@@ -106,7 +106,7 @@ func WinSwarmingBot(name, ipAddress, pw, setupScriptPath, startupScriptPath, chr
 // Internal Swarming bots.
 func InternalLinuxSwarmingBot(name, ipAddress string) *gce.Instance {
 	vm := LinuxSwarmingBot(name, ipAddress)
-	vm.MetadataDownloads[fmt.Sprintf(metadata.METADATA_URL, "project", "gitcookies_skia-internal_chromium")] = "/home/chrome-bot/.gitcookies"
+	vm.MetadataDownloads["/home/chrome-bot/.gitcookies"] = fmt.Sprintf(metadata.METADATA_URL, "project", "gitcookies_skia-internal_chromium")
 	return vm
 }
 

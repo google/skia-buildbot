@@ -226,9 +226,10 @@ type Instance struct {
 	// External IP address for the instance. Required.
 	ExternalIpAddress string
 
-	// Files to download from Google Storage. Map keys are the source URLs,
-	// and values are destination paths on the GCE instance. May be absolute
-	// or relative (to the default user's home dir, eg. /home/default).
+	// Files to download from Google Storage. Map keys are destination paths
+	// on the GCE instance and and values are the source URLs. Paths may be
+	// absolute or relative (to the default user's home dir, eg.
+	// /home/default).
 	GSDownloads map[string]string
 
 	// GCE machine type specification, eg. "n1-standard-16".
@@ -237,10 +238,10 @@ type Instance struct {
 	// Instance-level metadata keys and values.
 	Metadata map[string]string
 
-	// Files to create based on metadata. Map keys are project-level
-	// metadata keys, and values are destination paths on the GCE instance.
-	// May be absolute or relative (to the default user's home dir, eg.
-	// /home/default).
+	// Files to create based on metadata. Map keys are destination paths on
+	// the GCE instance and values are the source URLs (see
+	// metadata.METADATA_URL). Paths May be absolute or relative (to the
+	// default user's home dir, eg. /home/default).
 	MetadataDownloads map[string]string
 
 	// Name of the instance.
@@ -299,7 +300,7 @@ func setupScriptToMetadata(vm *Instance) error {
 	key := SETUP_SCRIPT_KEY_WIN
 	if vm.Os != OS_WINDOWS {
 		key = SETUP_SCRIPT_KEY_LINUX
-		vm.MetadataDownloads[fmt.Sprintf(metadata.METADATA_URL, "instance", SETUP_SCRIPT_KEY_LINUX)] = SETUP_SCRIPT_PATH_LINUX
+		vm.MetadataDownloads[SETUP_SCRIPT_PATH_LINUX] = fmt.Sprintf(metadata.METADATA_URL, "instance", SETUP_SCRIPT_KEY_LINUX)
 	}
 	return scriptToMetadata(vm, key, vm.SetupScript)
 }
@@ -684,15 +685,15 @@ func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool, workdir string)
 	}
 
 	// GSutil downloads.
-	for src, dst := range vm.GSDownloads {
+	for dst, src := range vm.GSDownloads {
 		if err := vm.DownloadFile(src, dst); err != nil {
 			return err
 		}
 	}
 
 	// Metadata downloads.
-	for key, dst := range vm.MetadataDownloads {
-		if err := vm.GetFileFromMetadata(key, dst); err != nil {
+	for dst, src := range vm.MetadataDownloads {
+		if err := vm.GetFileFromMetadata(src, dst); err != nil {
 			return err
 		}
 	}
