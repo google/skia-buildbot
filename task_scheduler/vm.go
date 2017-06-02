@@ -6,11 +6,11 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
-	"go.skia.org/infra/go/gce/vm_server"
+	"go.skia.org/infra/go/gce/server"
 )
 
 func TaskSchedulerBase(name, ipAddress, gitUser string) *gce.Instance {
-	vm := vm_server.AddGitConfigs(vm_server.Server20170518(name), gitUser)
+	vm := server.AddGitConfigs(server.Server20170518(name), gitUser)
 	vm.DataDisk.SizeGb = 1000
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.ExternalIpAddress = ipAddress
@@ -43,7 +43,7 @@ func TaskSchedulerTest() *gce.Instance {
 }
 
 func main() {
-	vm_server.Main(map[string]*gce.Instance{
+	server.Main(map[string]*gce.Instance{
 		"prod":     TaskSchedulerProd(),
 		"internal": TaskSchedulerInternal(),
 		"test":     TaskSchedulerTest(),
