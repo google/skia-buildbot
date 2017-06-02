@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0d2a7741_5291583a",
+        "filename": "autoroll/setup-script-android.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-02T18:56:21Z",
+      "side": 1,
+      "message": "Copied without modification from https://skia.googlesource.com/buildbot/+/master/compute_engine_scripts/autoroll/android-startup-script.sh.template\n\nI used it as a setup script instead of a startup script based on the contents.  I will change it back if you think it\u0027s wrong.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "0b08e174896cc5bc649dc00a69085471d18f2d0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
