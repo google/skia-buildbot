@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fcaa4520_5a3d4c87",
+        "filename": "compute_engine_scripts/fiddle/vm_config.sh",
+        "patchSetId": 9
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-06-02T14:27:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a10e1b57_a0d92d20",
+      "revId": "5af6da2d7edaa9894a18313d3fa86cb291161e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5e8284f6_13021bde",
         "filename": "compute_engine_scripts/fiddle/vm_create_instance.sh",
         "patchSetId": 9
@@ -33,6 +51,24 @@
       "revId": "5af6da2d7edaa9894a18313d3fa86cb291161e52",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2114afb4_34f41bdb",
+        "filename": "compute_engine_scripts/fiddle/vm_create_instance.sh",
+        "patchSetId": 9
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-06-02T14:27:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5e8284f6_13021bde",
+      "revId": "5af6da2d7edaa9894a18313d3fa86cb291161e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
