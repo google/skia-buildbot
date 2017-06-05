@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ecdf30b3_ed76a8f3",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-05T14:19:54Z",
+      "side": 1,
+      "message": "I don\u0027t think host is really necessary. \nMost other services we have use just port. \nIf you want to bind to a specific local IP you can stick that into port as well, i.e. 192.168.1.55:9999",
+      "range": {
+        "startLine": 41,
+        "startChar": 1,
+        "endLine": 41,
+        "endChar": 5
+      },
+      "revId": "da8e5aef3be6a5e46f06eb36096cff4ee046a6f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81734ea6_9972ba65",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-05T14:19:54Z",
+      "side": 1,
+      "message": "See suggestion above:\n\nr.HandleFunc(\"/\", getIndexHander(*resourceDir, *local))",
+      "range": {
+        "startLine": 164,
+        "startChar": 1,
+        "endLine": 164,
+        "endChar": 32
+      },
+      "revId": "da8e5aef3be6a5e46f06eb36096cff4ee046a6f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

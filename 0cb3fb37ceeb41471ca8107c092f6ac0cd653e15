@@ -167,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "d0676d8f_7361de0e",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-05T14:19:54Z",
+      "side": 1,
+      "message": "It\u0027s a detail of that implementation of the Gatherer interface. You could set it up so that the background go-routine is not started when the interval is 0 and use that feature in tests. It\u0027s not a big issue, but I don\u0027t think the Update method should be part of the Gatherer interface. It\u0027s more an implementation detail. A Gatherer should simply \"know\" what bots are down. I agreed that most often that will be through polling, but that\u0027s not necessarily always the case. \n\nAlternatively you could add a function to the gatherer package:\n\nfunc RepeatUpdate(g Gatherer, interval Duration) Gatherer { ....  }\n\nand then in main \n\ndownBots \u003d gatherer.RepeatUpdate(gatherer.New(....), *updatePeriod)\n\n...",
+      "parentUuid": "85ed5a5e_d96f853b",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 4
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "67c8ca1d_75408acb",
         "filename": "power/go/power-controller/main.go",
         "patchSetId": 5
@@ -202,6 +226,30 @@
       "side": 1,
       "message": "I don\u0027t understand what you mean.  The way it\u0027s set up now, the templates are loaded once.  If local is set, they reload every page load (for local dev work).  I\u0027m not sure how to achieve that with the suggestions you have given, especially removing indexTemplate",
       "parentUuid": "67c8ca1d_75408acb",
+      "range": {
+        "startLine": 100,
+        "startChar": 0,
+        "endLine": 109,
+        "endChar": 59
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef0c3956_245d976c",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-05T14:19:54Z",
+      "side": 1,
+      "message": "This is a nit. IMO preferable because it wraps all the template handling into a single function. \n\n\nfunc getIndexHandler(resourceDir string, local bool) func(http.ResponseWriter, *http.Request) {\n    tempFiles :\u003d []string{ \n         filepath.Join(resourcesDir, \"templates/index.html\"),\n\t filepath.Join(resourcesDir, \"templates/header.html\")\n    }\n    \n    indexTemplate :\u003d template.Must(template.ParseFiles(tempFiles...))\n     \n    return func(w http.ResponseWriter, r *http.Request) {\n        if local { \n             indexTemplate :\u003d template.Must(template.ParseFiles(tempFiles...))\n        } \n\tw.Header().Set(\"Content-Type\", \"text/html\")\n\tif err :\u003d indexTemplate.Execute(w, nil); err !\u003d nil {\n\t\tsklog.Errorf(\"Failed to expand template: %v\", err)\n\t}\n    }\n}",
+      "parentUuid": "4d5708ba_06bd10c2",
       "range": {
         "startLine": 100,
         "startChar": 0,
@@ -261,6 +309,30 @@
     },
     {
       "key": {
+        "uuid": "e8663f8f_87eaf4a9",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-05T14:19:54Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2c42e96c_b2f612f6",
+      "range": {
+        "startLine": 119,
+        "startChar": 0,
+        "endLine": 121,
+        "endChar": 38
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7b8b39f5_31cbc060",
         "filename": "power/go/power-controller/main.go",
         "patchSetId": 5
@@ -308,6 +380,30 @@
     },
     {
       "key": {
+        "uuid": "f46f6622_78121550",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-05T14:19:54Z",
+      "side": 1,
+      "message": "I don\u0027t think a big main function is a problem, but why then not combine the setup code (creating gatherer, auth, etc) into a subroutine and keep put HTTP endpoints in the main function. \n\nI have found that once the setup code works, I find myself coming back to look what are the exposed HTTP endpoints and it would be nice to see that early on in the file.",
+      "parentUuid": "4c32ad72_5f12e6df",
+      "range": {
+        "startLine": 156,
+        "startChar": 0,
+        "endLine": 156,
+        "endChar": 18
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d372ba7d_ef23d08d",
         "filename": "power/go/power-controller/main.go",
         "patchSetId": 5
@@ -340,6 +436,24 @@
       "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e0dfa15_4c19f485",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-05T14:19:54Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "96f7a0c4_3d9929ca",
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
