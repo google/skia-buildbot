@@ -94,6 +94,30 @@
       "revId": "0b08e174896cc5bc649dc00a69085471d18f2d0e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ba2be27_d6f4cdd3",
+        "filename": "autoroll/setup-script-android.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-05T12:13:05Z",
+      "side": 1,
+      "message": "Setup script \u003d runs once as root at instance creation time.\nStartup script \u003d runs as root every time the instance starts up.",
+      "parentUuid": "4c2af86e_30698917",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "0b08e174896cc5bc649dc00a69085471d18f2d0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

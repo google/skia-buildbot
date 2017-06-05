@@ -16,6 +16,24 @@
       "revId": "a7c85d2ae1fb6e695df20fa75db381ea05a6242d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de949067_dc5e0f61",
+        "filename": "autoroll/vm.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-05T12:13:05Z",
+      "side": 1,
+      "message": "I would prefer to maintain the previous behavior.  We\u0027re not currently deleting and recreating all of these instances (I\u0027ll try one today before landing), so we\u0027ll have to do that later anyway.  I\u0027d rather do the switch to ephemeral IP and then delete+recreate at once later.",
+      "parentUuid": "8a4de656_70a5e027",
+      "revId": "a7c85d2ae1fb6e695df20fa75db381ea05a6242d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
