@@ -61,10 +61,13 @@ func InitPubSub(serverUrl, topicName, subscriberName string) error {
 			endpoint += "/"
 		}
 		endpoint += PUSH_URL_SWARMING_TASKS
-		c := &pubsub.PushConfig{
-			Endpoint: endpoint,
-		}
-		if _, err := client.CreateSubscription(ctx, subName, topic, 3*time.Minute, c); err != nil {
+		if _, err := client.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
+			Topic:       topic,
+			AckDeadline: 3 * time.Minute,
+			PushConfig: pubsub.PushConfig{
+				Endpoint: endpoint,
+			},
+		}); err != nil {
 			return err
 		}
 	}
