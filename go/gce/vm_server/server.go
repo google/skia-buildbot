@@ -40,7 +40,6 @@ func Server20170518(name, ipAddress string) *gce.Instance {
 			Type:   gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
 		ExternalIpAddress: ipAddress,
-		FormatAndMount:    true,
 		GSDownloads:       map[string]string{},
 		MachineType:       gce.MACHINE_TYPE_HIGHMEM_16,
 		Metadata:          map[string]string{},
@@ -54,6 +53,9 @@ func Server20170518(name, ipAddress string) *gce.Instance {
 	}
 }
 
+// Main takes a map of string -> gce.Instance to initialize. The string keys
+// are nicknames for the instances (e.g. "prod", "staging"). Only the
+// instance specified by the --instance flag will be created.
 func Main(instances map[string]*gce.Instance) {
 	common.Init()
 	defer common.LogPanic()
@@ -61,11 +63,11 @@ func Main(instances map[string]*gce.Instance) {
 	vm, ok := instances[*instance]
 	if !ok {
 		validInstances := make([]string, 0, len(instances))
-		for k, _ := range instances {
+		for k := range instances {
 			validInstances = append(validInstances, k)
 		}
 		sort.Strings(validInstances)
-		sklog.Fatalf("Invalid instance name %q; must be one of: %v", *instance, validInstances)
+		sklog.Fatalf("Invalid --instance %q; name must be one of: %v", *instance, validInstances)
 	}
 	if *create == *delete {
 		sklog.Fatal("Please specify --create or --delete, but not both.")
