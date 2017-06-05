@@ -49,11 +49,11 @@ type MemDiffStore struct {
 	// localDiffDir is the directory where diff images are written to.
 	localDiffDir string
 
-	// diffMetricsCache caches and calculates diff metrics and images.
-	diffMetricsCache rtcache.ReadThroughCache
-
 	// imgLoader fetches and caches images.
 	imgLoader *ImageLoader
+
+	// diffMetricsCache caches and calculates diff metrics and images.
+	diffMetricsCache rtcache.ReadThroughCache
 
 	// metricsStore persists diff metrics.
 	metricsStore *metricsStore
