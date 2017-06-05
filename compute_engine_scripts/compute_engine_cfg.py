@@ -10,6 +10,7 @@ import types
 
 
 PROJECT_USER = 'default'
+SERVICE_ACCOUNT = PROJECT_USER
 SKIA_NETWORK_NAME = 'default'
 SKIA_REPO_DIR = '/home/%s/storage/skia-repo' % PROJECT_USER
 SCOPES = 'https://www.googleapis.com/auth/devstorage.full_control,https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/pubsub'
@@ -56,15 +57,16 @@ if VM_IS_SKIA_CTBOT:
   VM_PERSISTENT_DISK_SIZE_GB = 3000
 elif VM_IS_CTBOT:
   # Use ct prefix. Swarming uses this prefix to put them in the 'CT' pool.
-  VM_BOT_NAME = 'ct-vm'
+  VM_BOT_NAME = 'ct-gce'
   PERSISTENT_DISK_NAME = 'ct-disk'
   # Always use us-central1-b for CT bots because of maddigan@'s comment in
   # https://gcpquotatool.googleplex.com/requests?request=ahlzfmdvb2dsZS5jb206Z2NwcXVvdGF0b29sci4LEghDdXN0b21lchiAgICAhN6GCgwLEgxRdW90YVJlcXVlc3QYgICAgIC5hAoM
   ZONE_TAG = 'b'
-  IP_ADDRESS_WITHOUT_MACHINE_PART = '104.154.123'
+  SERVICE_ACCOUNT = 'chrome-swarming-bots@skia-buildbots.google.com.iam.gserviceaccount.com'
 elif VM_IS_SKIA_INTERNAL:
   VM_BOT_NAME = 'skia-i-vm'
   PERSISTENT_DISK_NAME = 'skia-i-disk'
+  SERVICE_ACCOUNT = 'chrome-swarming-bots@skia-buildbots.google.com.iam.gserviceaccount.com'
 
 if os.environ.get('VM_MIN_CPU_PLATFORM'):
   ZONE_TAG = {

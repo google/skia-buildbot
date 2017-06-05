@@ -68,7 +68,6 @@ ALL_INSTANCE_NAMES=""
 for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
   INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
   ALL_INSTANCE_NAMES+=" ${INSTANCE_NAME}"
-  EXTERNAL_IP_ADDRESS=${IP_ADDRESS_WITHOUT_MACHINE_PART}.${MACHINE_IP}
 
   if [ "$VM_INSTANCE_OS" == "Linux" ]; then
     # The persistent disk of linux GCE bots is based on the bot's IP address.
@@ -79,9 +78,9 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
   gcloud ${VM_MIN_CPU_PLATFORM:+alpha} compute --project $PROJECT_ID \
     instances create ${INSTANCE_NAME} \
     --zone=$ZONE \
-    --address=$EXTERNAL_IP_ADDRESS \
-    --service-account=$PROJECT_USER \
+    --service-account=$SERVICE_ACCOUNT \
     --scopes="$SCOPES" \
+    --tags="use-swarming-auth" \
     --network=$SKIA_NETWORK_NAME \
     --image=$SKIA_BOT_IMAGE_NAME \
     --machine-type=$SKIA_BOT_MACHINE_TYPE \
@@ -151,8 +150,8 @@ else
   echo "===== Wait for all instances to come up. ====="
   echo
   for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
-    EXTERNAL_IP_ADDRESS=${IP_ADDRESS_WITHOUT_MACHINE_PART}.${MACHINE_IP}
     INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
+    EXTERNAL_IP_ADDRESS=`gcloud compute instances describe $INSTANCE_NAME --zone=${ZONE} | grep natIP | cut -d ':' -f 2`
 
     until nc -w 1 -z $EXTERNAL_IP_ADDRESS 22; do
       echo "Waiting for ${INSTANCE_NAME} to come up."
