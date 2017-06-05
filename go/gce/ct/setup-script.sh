@@ -103,7 +103,7 @@ mkdir /b/storage/glog
 
 # Bootstrap Swarming.
 mkdir -p /b/s
-SWARMING=https://chromium-swarm.appspot.com
+SWARMING=https://chrome-swarming.appspot.com
 wget ${SWARMING}/bot_code -O /b/s/swarming_bot.zip
 ln -sf /b/s /b/swarm_slave
 
