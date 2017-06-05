@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "7dfabc47_6cc3589c",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-05T15:13:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "258644c0_40bf8d7b",
+      "range": {
+        "startLine": 34,
+        "startChar": 1,
+        "endLine": 34,
+        "endChar": 38
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d1b58e4f_b92c2ea4",
         "filename": "power/go/power-controller/main.go",
         "patchSetId": 5
@@ -191,6 +215,30 @@
     },
     {
       "key": {
+        "uuid": "32b21caa_0cdc73f2",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-05T15:13:15Z",
+      "side": 1,
+      "message": "You make a good point that \"A Gatherer should simply \"know\" what bots are down\".  Done.",
+      "parentUuid": "d0676d8f_7361de0e",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 4
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "67c8ca1d_75408acb",
         "filename": "power/go/power-controller/main.go",
         "patchSetId": 5
@@ -250,6 +298,30 @@
       "side": 1,
       "message": "This is a nit. IMO preferable because it wraps all the template handling into a single function. \n\n\nfunc getIndexHandler(resourceDir string, local bool) func(http.ResponseWriter, *http.Request) {\n    tempFiles :\u003d []string{ \n         filepath.Join(resourcesDir, \"templates/index.html\"),\n\t filepath.Join(resourcesDir, \"templates/header.html\")\n    }\n    \n    indexTemplate :\u003d template.Must(template.ParseFiles(tempFiles...))\n     \n    return func(w http.ResponseWriter, r *http.Request) {\n        if local { \n             indexTemplate :\u003d template.Must(template.ParseFiles(tempFiles...))\n        } \n\tw.Header().Set(\"Content-Type\", \"text/html\")\n\tif err :\u003d indexTemplate.Execute(w, nil); err !\u003d nil {\n\t\tsklog.Errorf(\"Failed to expand template: %v\", err)\n\t}\n    }\n}",
       "parentUuid": "4d5708ba_06bd10c2",
+      "range": {
+        "startLine": 100,
+        "startChar": 0,
+        "endLine": 109,
+        "endChar": 59
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "162b6c87_078b5b36",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-05T15:13:15Z",
+      "side": 1,
+      "message": "Done. I just used the flags instead of using the passed in vars.  Any reason I shouldn\u0027t do that?",
+      "parentUuid": "ef0c3956_245d976c",
       "range": {
         "startLine": 100,
         "startChar": 0,
@@ -401,6 +473,30 @@
       "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2e47084c_8855369f",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-05T15:13:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f46f6622_78121550",
+      "range": {
+        "startLine": 156,
+        "startChar": 0,
+        "endLine": 156,
+        "endChar": 18
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {

@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "bc77cf0a_95e1c7f2",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-05T15:13:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ecdf30b3_ed76a8f3",
+      "range": {
+        "startLine": 41,
+        "startChar": 1,
+        "endLine": 41,
+        "endChar": 5
+      },
+      "revId": "da8e5aef3be6a5e46f06eb36096cff4ee046a6f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "81734ea6_9972ba65",
         "filename": "power/go/power-controller/main.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "da8e5aef3be6a5e46f06eb36096cff4ee046a6f4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "236e3284_5f3b37fc",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-05T15:13:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "81734ea6_9972ba65",
+      "range": {
+        "startLine": 164,
+        "startChar": 1,
+        "endLine": 164,
+        "endChar": 32
+      },
+      "revId": "da8e5aef3be6a5e46f06eb36096cff4ee046a6f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
