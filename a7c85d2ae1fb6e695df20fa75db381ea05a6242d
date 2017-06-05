@@ -34,6 +34,24 @@
       "revId": "a7c85d2ae1fb6e695df20fa75db381ea05a6242d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7ae756b_d38af95c",
+        "filename": "autoroll/vm.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-05T12:24:29Z",
+      "side": 1,
+      "message": "SGTM.\nNote: You can change from already set external IP to ephemeral IP for already up instances directly from the web console. Does not look like you have to recreate instance for that. But it will be good to test these scripts e2e with ephemeral IPs by deleting and recreating them later.",
+      "parentUuid": "de949067_dc5e0f61",
+      "revId": "a7c85d2ae1fb6e695df20fa75db381ea05a6242d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

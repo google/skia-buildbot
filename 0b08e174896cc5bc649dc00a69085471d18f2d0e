@@ -118,6 +118,30 @@
       "revId": "0b08e174896cc5bc649dc00a69085471d18f2d0e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0a8e8f52_0d21f04c",
+        "filename": "autoroll/setup-script-android.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-05T12:24:29Z",
+      "side": 1,
+      "message": "I had guessed the meanings wrong. Ben\u0027s recommendation does make the difference clearer.",
+      "parentUuid": "5ba2be27_d6f4cdd3",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "0b08e174896cc5bc649dc00a69085471d18f2d0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
