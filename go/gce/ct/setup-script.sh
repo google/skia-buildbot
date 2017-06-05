@@ -101,6 +101,12 @@ git checkout master
 # Create glog dir.
 mkdir /b/storage/glog
 
+# Bootstrap Swarming.
+mkdir -p /b/s
+SWARMING=https://chromium-swarm.appspot.com
+wget ${SWARMING}/bot_code -O /b/s/swarming_bot.zip
+ln -sf /b/s /b/swarm_slave
+
 echo
 echo "The setup script has completed!"
 echo
