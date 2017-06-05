@@ -205,6 +205,7 @@
 
       _reload: function(){
         sk.get("/down_bots").then(JSON.parse).then(function(json){
+          json.list = json.list || [];
           json.list.forEach(function(b){
             b.selected = !b.silenced;
           });

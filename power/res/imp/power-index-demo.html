@@ -10,7 +10,7 @@
   <script src="/res/common/js/common.js"></script>
   <script src="/res/js/power-controller.js"></script>
 
-  <script src="/node_modules/sinon/pkg/sinon-2.2.0.js"></script>
+  <script src="/node_modules/sinon/pkg/sinon-2.3.1.js"></script>
 
   <script type="text/javascript" charset="utf-8">
 
@@ -33,7 +33,6 @@
           status: "Device Missing",
           since: new Date(new Date().getTime() - 16*60*1000),
           silenced: false,
-          bug_url: "",
         },
         {
           bot_id: "skia-rpi-002",
@@ -41,7 +40,6 @@
           status: "Host Missing",
           since: new Date(new Date().getTime() - 25*60*1000),
           silenced: false,
-          bug_url: "",
         },
         {
           bot_id: "skia-e-win-032",
@@ -49,16 +47,7 @@
           status: "Host Missing",
           since: new Date(new Date().getTime() - 68*60*1000),
           silenced: true,
-          bug_url: "",
         },
-        {
-          bot_id: "build20-m3",
-          dimensions: [{"value": ["4"], "key": "cores"}, {"value": ["x86", "x86-64"], "key": "cpu"}, {"value": ["8086", "8086:0a2e"], "key": "gpu"}, {"value": ["0"], "key": "hidpi"}, {"value": ["build20-m3"], "key": "id"}, {"value": ["n1-standard-4"], "key": "machine_type"}, {"value": ["Mac", "Mac-10.11"], "key": "os"}, {"value": ["Skia"], "key": "pool"}, {"value": ["7.0"], "key": "xcode_version"}],
-          status: "Host Missing",
-          since: new Date(new Date().getTime() - 250*60*1000),
-          silenced: true,
-          bug_url: "https://bugs.chromium.org/p/chromium/issues/entry?summary=[Device%20Restart]%20for%20${id}&description=Please%20Reboot%20${id}&components=Infra%3ELabs&labels=Pri-2,Infra-Troopers,Restrict-View-Google",
-        }
       ],
     };
 

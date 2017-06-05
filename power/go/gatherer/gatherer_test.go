@@ -51,10 +51,10 @@ func testNoBotsCycle(t *testing.T, mi, me *skswarming.MockApiClient, ma *promale
 	me.On("ListDownBots", mock.AnythingOfType("string")).Return([]*swarming.SwarmingRpcsBotInfo{}, nil).Times(len(skswarming.POOLS_PUBLIC))
 
 	// There is a bit of whitebox testing here.  We can't mock out a call to GetAlerts if it won't be called.
-	g := New(me, mi, ma, md).(*gatherer)
-	g.Update()
+	g := NewPollingGatherer(me, mi, ma, md, 0).(*gatherer)
+	g.update()
 
-	bots := g.CachedDownBots()
+	bots := g.DownBots()
 	assert.Empty(t, bots, "There should be no bots to reboot, because swarming doesn't detect any are down.")
 }
 
@@ -67,10 +67,10 @@ func testNoAlertingBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *prom
 
 	ma.On("GetAlerts", mock.AnythingOfType("func(promalertsclient.Alert) bool")).Return([]promalertsclient.Alert{}, nil).Once()
 
-	g := New(me, mi, ma, md).(*gatherer)
-	g.Update()
+	g := NewPollingGatherer(me, mi, ma, md, 0).(*gatherer)
+	g.update()
 
-	bots := g.CachedDownBots()
+	bots := g.DownBots()
 	assert.Empty(t, bots, "There should be no bots to reboot, because alerts says none are down.")
 }
 
@@ -90,10 +90,10 @@ func testOneMissingBot(t *testing.T, mi, me *skswarming.MockApiClient, ma *proma
 
 	md.On("ShouldPowercycleBot", mock.Anything).Return(true)
 
-	g := New(me, mi, ma, md).(*gatherer)
-	g.Update()
+	g := NewPollingGatherer(me, mi, ma, md, 0).(*gatherer)
+	g.update()
 
-	bots := g.CachedDownBots()
+	bots := g.DownBots()
 	assert.Len(t, bots, 1, "There should be 1 bot to reboot.")
 	assert.Equal(t, "skia-rpi-046", bots[0].BotID, "That bot should be skia-rpi-046")
 	assert.Equal(t, STATUS_HOST_MISSING, bots[0].Status)
@@ -119,10 +119,10 @@ func testOneSilencedBot(t *testing.T, mi, me *skswarming.MockApiClient, ma *prom
 
 	md.On("ShouldPowercycleBot", mock.Anything).Return(true)
 
-	g := New(me, mi, ma, md).(*gatherer)
-	g.Update()
+	g := NewPollingGatherer(me, mi, ma, md, 0).(*gatherer)
+	g.update()
 
-	bots := g.CachedDownBots()
+	bots := g.DownBots()
 	assert.Len(t, bots, 1, "There should be 1 bot to reboot.")
 	assert.Equal(t, "skia-rpi-046", bots[0].BotID, "That bot should be skia-rpi-046")
 	assert.Equal(t, STATUS_HOST_MISSING, bots[0].Status)
@@ -157,10 +157,10 @@ func testThreeMissingDevices(t *testing.T, mi, me *skswarming.MockApiClient, ma 
 	})).Return(false)
 	md.On("ShouldPowercycleDevice", mock.Anything).Return(true)
 
-	g := New(me, mi, ma, md).(*gatherer)
-	g.Update()
+	g := NewPollingGatherer(me, mi, ma, md, 0).(*gatherer)
+	g.update()
 
-	bots := g.CachedDownBots()
+	bots := g.DownBots()
 	assert.Len(t, bots, 3, "There should be 3 devices to reboot.")
 	assert.Equal(t, "skia-rpi-001", bots[0].BotID, "These should be sorted alphabetically")
 	assert.Equal(t, "skia-rpi-002", bots[1].BotID, "These should be sorted alphabetically")
