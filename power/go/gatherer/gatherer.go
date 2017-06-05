@@ -32,12 +32,8 @@ const (
 // Gatherer is a simple interface around the logic behind obtaining
 // a list of bots and devices that are down and could be powercycled.
 type Gatherer interface {
-	// CachedDownBots returns the cached []DownBot. This will be empty until
-	// Update is called.
-	CachedDownBots() []DownBot
-	// Update synchronously sets the []DownBot. Update logs any errors,
-	// which are typically transient.
-	Update()
+	// DownBots returns the current set of down bots. It may be cached.
+	DownBots() []DownBot
 }
 
 // DownBot represents information about a dead or quarantined bot, as well
@@ -62,19 +58,29 @@ type gatherer struct {
 	decider   decider.Decider
 }
 
-// New returns a Gatherer created with the given utilities. all the passed in
+// NewPollingGatherer returns a Gatherer created with the given utilities. all the passed in
 // clients should be properly authenticated.
-func New(external, internal skswarming.ApiClient, alerts promalertsclient.APIClient, decider decider.Decider) Gatherer {
-	return &gatherer{
+func NewPollingGatherer(external, internal skswarming.ApiClient, alerts promalertsclient.APIClient, decider decider.Decider, period time.Duration) Gatherer {
+	g := &gatherer{
 		iSwarming: internal,
 		eSwarming: external,
 		alerts:    alerts,
 		decider:   decider,
 	}
+	if period > 0 {
+		go func() {
+			g.update()
+			for {
+				<-time.Tick(period)
+				g.update()
+			}
+		}()
+	}
+	return g
 }
 
 // See the Gatherer interface for more information.
-func (g *gatherer) CachedDownBots() []DownBot {
+func (g *gatherer) DownBots() []DownBot {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 	return g.downBots
@@ -94,10 +100,10 @@ func downBotsFilter(a promalertsclient.Alert) bool {
 	return alertName == ALERT_BOT_MISSING || alertName == ALERT_BOT_QUARANTINED
 }
 
-// Update is the "inner loop" of the gatherer. It polls swarming for a list of
+// update is the "inner loop" of the gatherer. It polls swarming for a list of
 // down bots. It then polls alerts for a list of down bots. It constructs the
 // intersect of those lists and sets the result in g.downBots.
-func (g *gatherer) Update() {
+func (g *gatherer) update() {
 	// Ask Swarming API for list of bots down in the pools we care about
 	sklog.Infoln("Polling PromAlerts and Swarming API for down bots")
 	bots := []*swarming.SwarmingRpcsBotInfo{}
