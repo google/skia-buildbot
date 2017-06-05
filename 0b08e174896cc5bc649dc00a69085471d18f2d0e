@@ -70,6 +70,30 @@
       "revId": "0b08e174896cc5bc649dc00a69085471d18f2d0e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c2af86e_30698917",
+        "filename": "autoroll/setup-script-android.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-05T12:07:55Z",
+      "side": 1,
+      "message": "I don\u0027t remember the difference between the two.\n\nSetup scripts \u003d run after creation? which user runs it?\nStartup script \u003d run by GCE when instance is created? run as a root user?",
+      "parentUuid": "5936bbe5_42f8ed6d",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "0b08e174896cc5bc649dc00a69085471d18f2d0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

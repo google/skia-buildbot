@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8a4de656_70a5e027",
+        "filename": "autoroll/vm.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-05T12:07:55Z",
+      "side": 1,
+      "message": "Could you use ephemeral IPs when porting these VM creation scripts? we will soon have to get rid of this IP block.\nIIRC support was added to the new scripts (or was something pending?)",
+      "revId": "a7c85d2ae1fb6e695df20fa75db381ea05a6242d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
