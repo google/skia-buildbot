@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b7581b6f_bac7b200",
+        "filename": "golden/go/diffstore/diffservice.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-06T16:37:15Z",
+      "side": 1,
+      "message": "Nit: Looks like this file has a mix of tabs and spaces. Maybe stick to only spaces?",
+      "revId": "e9d3fcae9d142deea9ed96e23d68aa2e2fd57459",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
