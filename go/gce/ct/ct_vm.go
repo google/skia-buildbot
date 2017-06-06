@@ -22,7 +22,6 @@ const (
 	GS_URL_GITCONFIG = "gs://skia-buildbots/artifacts/bots/.gitconfig"
 	GS_URL_NETRC     = "gs://skia-buildbots/artifacts/bots/.netrc"
 
-	IP_ADDRESS_TMPL = "104.154.123.%d"
 	USER_CHROME_BOT = "chrome-bot"
 )
 
@@ -38,7 +37,7 @@ var (
 )
 
 // Base config for CT GCE instances.
-func CT20170602(name, ipAddress string) *gce.Instance {
+func CT20170602(name string) *gce.Instance {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
 	return &gce.Instance{
@@ -52,7 +51,6 @@ func CT20170602(name, ipAddress string) *gce.Instance {
 			SizeGb: 300,
 			Type:   gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
-		ExternalIpAddress: ipAddress,
 		GSDownloads: map[string]string{
 			"/home/chrome-bot/.gitconfig": GS_URL_GITCONFIG,
 			"/home/chrome-bot/.netrc":     GS_URL_NETRC,
@@ -62,23 +60,26 @@ func CT20170602(name, ipAddress string) *gce.Instance {
 		MetadataDownloads: map[string]string{},
 		Name:              name,
 		Os:                gce.OS_LINUX,
+		ServiceAccount:    gce.SERVICE_ACCOUNT_CHROME_SWARMING,
 		Scopes: []string{
 			auth.SCOPE_FULL_CONTROL,
+			auth.SCOPE_USERINFO_EMAIL,
+			auth.SCOPE_PUBSUB,
 		},
 		SetupScript: path.Join(dir, "setup-script.sh"),
-		Tags:        []string{"http-server", "https-server"},
+		Tags:        []string{"use-swarming-auth"},
 		User:        USER_CHROME_BOT,
 	}
 }
 
 // CT GCE instances.
-func CTInstance(num int, ipAddress string) *gce.Instance {
-	return CT20170602(fmt.Sprintf("ct-vm-%03d", num), ipAddress)
+func CTInstance(num int) *gce.Instance {
+	return CT20170602(fmt.Sprintf("ct-gce-%03d", num))
 }
 
 // CT Builder GCE instances.
-func CTBuilderInstance(num int, ipAddress string) *gce.Instance {
-	vm := CT20170602(fmt.Sprintf("ct-vm-%03d", num), ipAddress)
+func CTBuilderInstance(num int) *gce.Instance {
+	vm := CT20170602(fmt.Sprintf("ct-gce-%03d", num))
 	vm.MachineType = "custom-32-70400"
 	return vm
 }
@@ -121,11 +122,10 @@ func main() {
 	group := util.NewNamedErrGroup()
 	for _, num := range instanceNums {
 		var vm *gce.Instance
-		ipAddr := fmt.Sprintf(IP_ADDRESS_TMPL, num)
 		if *builder {
-			vm = CTBuilderInstance(num, ipAddr)
+			vm = CTBuilderInstance(num)
 		} else {
-			vm = CTInstance(num, ipAddr)
+			vm = CTInstance(num)
 		}
 
 		group.Go(vm.Name, func() error {
