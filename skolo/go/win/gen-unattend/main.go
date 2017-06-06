@@ -12,9 +12,9 @@ package main
 
 import (
 	"flag"
-	"html/template"
 	"os"
 	"path/filepath"
+	"text/template"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/config"

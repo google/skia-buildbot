@@ -2,12 +2,13 @@ package main
 
 import (
 	"bytes"
-	"html/template"
 	"io"
 	"io/ioutil"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
+	"text/template"
 
 	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/testutils"
@@ -33,12 +34,38 @@ func TestParseExampleConfig(t *testing.T) {
 	expect.Equal(t, "classified", globalVars.ChromeBotPassword)
 }
 
-func TestValidateTemplates(t *testing.T) {
+func TestTemplates(t *testing.T) {
 	testutils.MediumTest(t)
 	_, filename, _, _ := runtime.Caller(0)
-	tp, err := template.ParseGlob(filepath.Join(filepath.Dir(filename), "../../../win/templates/*.xml"))
+	dir := filepath.Dir(filename)
+	tp, err := template.ParseGlob(filepath.Join(dir, "../../../win/templates/*.xml"))
 	assert.NoError(t, err)
 	assert.NotNil(t, tp)
+
+	devices := DevicesConfig{
+		Devices: make(map[string]DeviceConfig, len(tp.Templates())),
+	}
+	for _, t := range tp.Templates() {
+		deviceName := "test-" + strings.Replace(strings.Replace(t.Name(), "unattend-", "", 1), ".xml", "", 1)
+		devices.Devices[deviceName] = DeviceConfig{
+			Unattend: t.Name(),
+		}
+	}
+
+	globalVars := GlobalVars{}
+	config.MustParseConfigFile(filepath.Join(dir, "example-vars.json5"), "", &globalVars)
+
+	actual, err := runTemplates(devices, globalVars, tp)
+	assert.NoError(t, err)
+
+	expectedDir := filepath.Join(dir, "testdata", "TestTemplates")
+	d, err := computeDiffs(actual, expectedDir)
+	assert.NoError(t, err)
+
+	// Uncomment to update test expectations.
+	//writeFiles(actual, d, expectedDir)
+
+	testutils.AssertDeepEqual(t, diffs{}, d)
 }
 
 const (
@@ -139,7 +166,6 @@ func TestComputeDiffs(t *testing.T) {
 	}
 	actual, err := computeDiffs(expected, tmpdir)
 	assert.NoError(t, err)
-	t.Logf("%#v", actual)
 	testutils.AssertDeepEqual(t, diffs{
 		toCreate: []string{"B", "C", "E", "F"},
 	}, actual)
@@ -255,20 +281,31 @@ Continue? (y/N) `, out)
 }
 
 func assertConfirmDiffsAbort(t *testing.T, response string) {
-	buf := bytes.Buffer{}
-	r, w := io.Pipe()
+	inr, inw := io.Pipe()
+	outr, outw := io.Pipe()
 	errCh := make(chan error, 1)
 	go func() {
 		errCh <- confirmDiffsImpl(diffs{
 			toModify: []string{"A"},
-		}, "/foo/bar", false, r, &buf)
+		}, "/foo/bar", false, inr, outw)
 	}()
-	for !bytes.HasSuffix(buf.Bytes(), []byte("Continue? (y/N) ")) {
+
+	allOutput := bytes.Buffer{}
+	tmpbuf := make([]byte, 1024, 1024)
+	for {
+		n, err := outr.Read(tmpbuf)
+		assert.NoError(t, err)
+		_, err = allOutput.Write(tmpbuf[:n])
+		assert.NoError(t, err)
+		if bytes.HasSuffix(allOutput.Bytes(), []byte("Continue? (y/N) ")) {
+			break
+		}
 		runtime.Gosched()
 	}
+
 	// Check that confirmDiffsImpl waits for input.
 	assert.Len(t, errCh, 0)
-	n, err := w.Write([]byte(response))
+	n, err := inw.Write([]byte(response))
 	assert.NoError(t, err)
 	assert.Equal(t, len(response), n)
 	err = <-errCh
