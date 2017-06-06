@@ -13,13 +13,13 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gce"
-	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 )
 
 const (
-	GS_URL_GITCONFIG = "gs://skia-buildbots/artifacts/server/.gitconfig"
-	GS_URL_NETRC     = "gs://skia-buildbots/artifacts/server/.netrc"
+	GS_URL_GITCOOKIES_TMPL = "gs://skia-buildbots/artifacts/server/.gitcookies_%s"
+	GS_URL_GITCONFIG       = "gs://skia-buildbots/artifacts/server/.gitconfig"
+	GS_URL_NETRC           = "gs://skia-buildbots/artifacts/server/.netrc"
 )
 
 var (
@@ -63,8 +63,7 @@ func Server20170518(name string) *gce.Instance {
 func AddGitConfigs(vm *gce.Instance, gitUser string) *gce.Instance {
 	vm.GSDownloads["~/.gitconfig"] = GS_URL_GITCONFIG
 	vm.GSDownloads["~/.netrc"] = GS_URL_NETRC
-	url := fmt.Sprintf(metadata.METADATA_URL, "project", fmt.Sprintf("gitcookies_%s", gitUser))
-	vm.MetadataDownloads["~/.gitcookies"] = url
+	vm.GSDownloads["~/.gitcookies"] = fmt.Sprintf(GS_URL_GITCOOKIES_TMPL, gitUser)
 	return vm
 }
 
