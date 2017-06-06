@@ -41,14 +41,15 @@ type SwarmingClient struct {
 }
 
 type SwarmingTask struct {
-	Title        string
-	IsolatedHash string
-	OutputDir    string
-	Dimensions   map[string]string
-	Tags         map[string]string
-	Priority     int
-	Expiration   time.Duration
-	Idempotent   bool
+	Title          string
+	IsolatedHash   string
+	OutputDir      string
+	Dimensions     map[string]string
+	Tags           map[string]string
+	Priority       int
+	Expiration     time.Duration
+	Idempotent     bool
+	ServiceAccount string
 }
 
 type ShardOutputFormat struct {
@@ -79,6 +80,9 @@ func (t *SwarmingTask) Trigger(s *SwarmingClient, hardTimeout, ioTimeout time.Du
 		"--io-timeout", strconv.FormatFloat(ioTimeout.Seconds(), 'f', 0, 64),
 		"--hard-timeout", strconv.FormatFloat(hardTimeout.Seconds(), 'f', 0, 64),
 		"--verbose",
+	}
+	if t.ServiceAccount != "" {
+		triggerArgs = append(triggerArgs, "--service-account", t.ServiceAccount)
 	}
 	for k, v := range t.Dimensions {
 		triggerArgs = append(triggerArgs, "--dimension", k, v)
@@ -230,7 +234,7 @@ func (s *SwarmingClient) BatchArchiveTargets(isolatedGenJSONs []string, d time.D
 }
 
 // Trigger swarming using the specified hashes and dimensions.
-func (s *SwarmingClient) TriggerSwarmingTasks(tasksToHashes, dimensions, tags map[string]string, priority int, expiration, hardTimeout, ioTimeout time.Duration, idempotent, addTaskNameAsTag bool) ([]*SwarmingTask, error) {
+func (s *SwarmingClient) TriggerSwarmingTasks(tasksToHashes, dimensions, tags map[string]string, priority int, expiration, hardTimeout, ioTimeout time.Duration, idempotent, addTaskNameAsTag bool, serviceAccount string) ([]*SwarmingTask, error) {
 	tasks := []*SwarmingTask{}
 
 	for taskName, hash := range tasksToHashes {
@@ -246,14 +250,15 @@ func (s *SwarmingClient) TriggerSwarmingTasks(tasksToHashes, dimensions, tags ma
 			taskTags["name"] = taskName
 		}
 		task := &SwarmingTask{
-			Title:        taskName,
-			IsolatedHash: hash,
-			OutputDir:    taskOutputDir,
-			Dimensions:   dimensions,
-			Tags:         taskTags,
-			Priority:     priority,
-			Expiration:   expiration,
-			Idempotent:   idempotent,
+			Title:          taskName,
+			IsolatedHash:   hash,
+			OutputDir:      taskOutputDir,
+			Dimensions:     dimensions,
+			Tags:           taskTags,
+			Priority:       priority,
+			Expiration:     expiration,
+			Idempotent:     idempotent,
+			ServiceAccount: serviceAccount,
 		}
 		if err := task.Trigger(s, hardTimeout, ioTimeout); err != nil {
 			return nil, fmt.Errorf("Could not trigger task %s: %s", taskName, err)
