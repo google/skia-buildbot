@@ -1,0 +1,182 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8bb2c16f_f38a0a9d",
+        "filename": "golden/go/diffstore/diffservice_impl.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-06T19:56:48Z",
+      "side": 1,
+      "message": "Why not just use \"context\" package?",
+      "range": {
+        "startLine": 4,
+        "startChar": 10,
+        "endLine": 4,
+        "endChar": 34
+      },
+      "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "50e58dff_fb043717",
+        "filename": "golden/go/diffstore/diffstore_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-06T19:56:48Z",
+      "side": 1,
+      "message": "intentionally blank?",
+      "range": {
+        "startLine": 44,
+        "startChar": 1,
+        "endLine": 44,
+        "endChar": 3
+      },
+      "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "833bb8ef_ebfe8fec",
+        "filename": "golden/go/diffstore/diffstore_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-06T19:56:48Z",
+      "side": 1,
+      "message": "not",
+      "range": {
+        "startLine": 103,
+        "startChar": 74,
+        "endLine": 103,
+        "endChar": 75
+      },
+      "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e87c0a3_5b587461",
+        "filename": "golden/go/diffstore/net_diffstore.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-06T19:56:48Z",
+      "side": 1,
+      "message": "Perhaps augment this error with fmt.Errorf(\"Could not ping over connection\") or something.",
+      "range": {
+        "startLine": 24,
+        "startChar": 14,
+        "endLine": 24,
+        "endChar": 17
+      },
+      "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07281c11_c08426ea",
+        "filename": "golden/go/skia_diff_server/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-06T19:56:48Z",
+      "side": 1,
+      "message": "possibly grpc_port to differentiate from other two ports?",
+      "range": {
+        "startLine": 28,
+        "startChar": 35,
+        "endLine": 28,
+        "endChar": 39
+      },
+      "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aa122268_5ab2fb42",
+        "filename": "golden/go/skia_diff_server/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-06T19:56:48Z",
+      "side": 1,
+      "message": "Remove this line.  err is defined on line 60",
+      "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40c9fba4_769a23b5",
+        "filename": "golden/go/skia_diff_server/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-06T19:56:48Z",
+      "side": 1,
+      "message": "options, so\n\n#ubernit",
+      "range": {
+        "startLine": 44,
+        "startChar": 14,
+        "endLine": 44,
+        "endChar": 25
+      },
+      "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "83767917_bed0204c",
+        "filename": "golden/go/skia_diff_server/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-06T19:56:48Z",
+      "side": 1,
+      "message": "I\u0027m confused, in the flag descriptions on lines 26-30, *port says it\u0027s the gRPC service port, not *imagePort .  Can you clarify this?",
+      "range": {
+        "startLine": 101,
+        "startChar": 14,
+        "endLine": 101,
+        "endChar": 58
+      },
+      "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
