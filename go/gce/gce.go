@@ -40,7 +40,8 @@ const (
 
 	PROJECT_ID = "google.com:skia-buildbots"
 
-	SERVICE_ACCOUNT_DEFAULT = "31977622648@project.gserviceaccount.com"
+	SERVICE_ACCOUNT_DEFAULT         = "31977622648@project.gserviceaccount.com"
+	SERVICE_ACCOUNT_CHROME_SWARMING = "chrome-swarming-bots@skia-buildbots.google.com.iam.gserviceaccount.com"
 
 	SETUP_SCRIPT_KEY_LINUX  = "setup-script"
 	SETUP_SCRIPT_KEY_WIN    = "sysprep-oobe-script-ps1"
@@ -267,6 +268,10 @@ type Instance struct {
 	// a shebang for Python scripts).
 	SetupScript string
 
+	// The service account to use for this instance. Will default to
+	// SERVICE_ACCOUNT_DEFAULT if unspecified.
+	ServiceAccount string
+
 	// Path to a startup script for the instance, optional. Should be either
 	// absolute or relative to the parent GCloud instance's workdir. The
 	// startup script runs as root every time the instance starts up. For
@@ -351,6 +356,9 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 			return err
 		}
 	}
+	if vm.ServiceAccount == "" {
+		vm.ServiceAccount = SERVICE_ACCOUNT_DEFAULT
+	}
 	if vm.Os == OS_WINDOWS && vm.StartupScript != "" {
 		// On Windows, the setup script runs automatically during
 		// sysprep which is before the startup script runs. On Linux
@@ -394,7 +402,7 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 		},
 		ServiceAccounts: []*compute.ServiceAccount{
 			{
-				Email:  SERVICE_ACCOUNT_DEFAULT,
+				Email:  vm.ServiceAccount,
 				Scopes: vm.Scopes,
 			},
 		},

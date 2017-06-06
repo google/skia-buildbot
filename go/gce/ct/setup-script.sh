@@ -101,10 +101,13 @@ git checkout master
 # Create glog dir.
 mkdir /b/storage/glog
 
+# Get access token from metadata.
+TOKEN=`curl "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" -H "Metadata-Flavor: Google" | python -c "import sys, json; print json.load(sys.stdin)['access_token']"`
 # Bootstrap Swarming.
 mkdir -p /b/s
 SWARMING=https://chrome-swarming.appspot.com
-wget ${SWARMING}/bot_code -O /b/s/swarming_bot.zip
+HOSTNAME=`hostname`
+curl ${SWARMING}/bot_code?bot_id=$HOSTNAME -H "Authorization":"Bearer $TOKEN" -o /b/s/swarming_bot.zip
 ln -sf /b/s /b/swarm_slave
 
 echo
