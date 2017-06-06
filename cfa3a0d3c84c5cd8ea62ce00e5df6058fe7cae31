@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0ebf473a_68ab818e",
+        "filename": "golden/go/diffstore/diffservice_impl.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-06T21:26:57Z",
+      "side": 1,
+      "message": "This is a result of grpc generating diffservice.pb.go with this import. It does that to maintain backwards compatibility with older versions of Go. A solution is in the works, but has apparently not landed yet.",
+      "parentUuid": "8bb2c16f_f38a0a9d",
+      "range": {
+        "startLine": 4,
+        "startChar": 10,
+        "endLine": 4,
+        "endChar": 34
+      },
+      "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "50e58dff_fb043717",
         "filename": "golden/go/diffstore/diffstore_test.go",
         "patchSetId": 19
@@ -45,6 +69,30 @@
       "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae50737e_f09072b5",
+        "filename": "golden/go/diffstore/diffstore_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-06T21:26:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "50e58dff_fb043717",
+      "range": {
+        "startLine": 44,
+        "startChar": 1,
+        "endLine": 44,
+        "endChar": 3
+      },
+      "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "a121bbe0_d8f90b68",
+        "filename": "golden/go/diffstore/diffstore_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-06T21:26:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "833bb8ef_ebfe8fec",
+      "range": {
+        "startLine": 103,
+        "startChar": 74,
+        "endLine": 103,
+        "endChar": 75
+      },
+      "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9e87c0a3_5b587461",
         "filename": "golden/go/diffstore/net_diffstore.go",
         "patchSetId": 19
@@ -91,6 +163,30 @@
       "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85cc58a0_77757526",
+        "filename": "golden/go/diffstore/net_diffstore.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-06T21:26:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9e87c0a3_5b587461",
+      "range": {
+        "startLine": 24,
+        "startChar": 14,
+        "endLine": 24,
+        "endChar": 17
+      },
+      "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "add5e2a0_cab4fc19",
+        "filename": "golden/go/skia_diff_server/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-06T21:26:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "07281c11_c08426ea",
+      "range": {
+        "startLine": 28,
+        "startChar": 35,
+        "endLine": 28,
+        "endChar": 39
+      },
+      "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aa122268_5ab2fb42",
         "filename": "golden/go/skia_diff_server/main.go",
         "patchSetId": 19
@@ -131,6 +251,24 @@
       "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2472e646_9ee37b1b",
+        "filename": "golden/go/skia_diff_server/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-06T21:26:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aa122268_5ab2fb42",
+      "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "ea9be6a7_e8f1a37d",
+        "filename": "golden/go/skia_diff_server/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-06T21:26:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "40c9fba4_769a23b5",
+      "range": {
+        "startLine": 44,
+        "startChar": 14,
+        "endLine": 44,
+        "endChar": 25
+      },
+      "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "83767917_bed0204c",
         "filename": "golden/go/skia_diff_server/main.go",
         "patchSetId": 19
@@ -177,6 +339,30 @@
       "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b82c3e7c_ffc722f9",
+        "filename": "golden/go/skia_diff_server/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-06T21:26:57Z",
+      "side": 1,
+      "message": "Good catch, I somehow mixed up the ports. \nDone.",
+      "parentUuid": "83767917_bed0204c",
+      "range": {
+        "startLine": 101,
+        "startChar": 14,
+        "endLine": 101,
+        "endChar": 58
+      },
+      "revId": "cfa3a0d3c84c5cd8ea62ce00e5df6058fe7cae31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
