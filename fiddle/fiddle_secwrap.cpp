@@ -7,6 +7,8 @@
 #include <sys/user.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/socket.h>
+
 
 #include "seccomp_bpf.h"
 
@@ -48,12 +50,26 @@ static bool install_syscall_filter() {
         ALLOW_SYSCALL(sysinfo),
         /*
         The set of sycall's needed if running against an NVIDIA GPU, YMMV.
+        */
+        ALLOW_SYSCALL(socket),
+        ALLOW_SYSCALL(getpeername),
+        ALLOW_SYSCALL(connect), // We already restricted socket to local sockets.
+        ALLOW_SYSCALL(uname),
+        ALLOW_SYSCALL(getsockname),
+        ALLOW_SYSCALL(fcntl),
+        ALLOW_SYSCALL(poll),
+        ALLOW_SYSCALL(writev),
+        ALLOW_SYSCALL(recvfrom),
+        ALLOW_SYSCALL(recvmsg),
+        ALLOW_SYSCALL(kill),
+
         ALLOW_SYSCALL(mremap),
         ALLOW_SYSCALL(statfs),
         ALLOW_SYSCALL(readlink),
         ALLOW_SYSCALL(getpid),
-        */
+
         TRACE_SYSCALL(execve),
+     //   TRACE_SYSCALL(socket),
         TRACE_OPENS_FOR_READS_ONLY(open, 1),
         TRACE_OPENS_FOR_READS_ONLY(openat, 2),
         TRACE_ALL,
@@ -121,6 +137,7 @@ int do_child(int argc, char **argv) {
 
     setLimits();
     if (!install_syscall_filter()) {
+        perror("failed to install syscall filter");
         return -1;
     }
 
@@ -128,6 +145,7 @@ int do_child(int argc, char **argv) {
     // if execvp returns, we couldn't run the child.  Probably
     // because the compile failed.  Let's kill ourselves so the
     // parent sees the signal and exits appropriately.
+    perror("Couldn't run child.");
     kill(getpid(), SIGKILL);
     return -1;
 }
@@ -163,6 +181,13 @@ char *read_string(pid_t child, unsigned long addr) {
     return val;
 }
 
+/*
+ * The first six integer or pointer arguments are passed in registers RDI,
+ * RSI, RDX, RCX (R10 in the Linux kernel interface), R8, and R9,
+ * while XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6 and XMM7 are used for
+ * certain floating point arguments.
+ */
+
 
 int do_trace(pid_t child, char *allowed_exec) {
     int status;
@@ -178,9 +203,11 @@ int do_trace(pid_t child, char *allowed_exec) {
     while(1) {
         waitpid(child, &status, 0);
         if (WIFEXITED(status)) {
+            perror("WIFEXITED");
             return 0;
         }
         if (WIFSIGNALED(status)) {
+            perror("WIFSIGNALED");
             return 1;
         }
 
@@ -207,7 +234,7 @@ int do_trace(pid_t child, char *allowed_exec) {
                 if (O_RDONLY != (flags & O_ACCMODE)) {
                     CHILD_FAIL( "No writing to files..." );
                 }
-                const char *allowed_prefixes[] = { "/usr/local/share/fonts", "/var/cache/fontconfig", "/etc/fonts", "/usr/share/fonts", "/etc/ld.so.cache", "/lib/", "/usr/lib/", "skia.conf", "/mnt/pd0/", "/proc/meminfo" };
+                const char *allowed_prefixes[] = { "/usr/local/share/fonts", "/var/cache/fontconfig", "/etc/fonts", "/usr/share/fonts", "/etc/ld.so.cache", "/lib/", "/usr/lib/", "skia.conf", "/mnt/pd0/", "/proc/meminfo", "/usr/local/google/home/jcgregorio", "resources/", "/proc/modules", "/proc/driver/nvidia" };
                 bool okay = false;
                 for (unsigned int i = 0 ; i < sizeof(allowed_prefixes) / sizeof(allowed_prefixes[0]) ; i++) {
                     if (!strncmp(allowed_prefixes[i], name, strlen(allowed_prefixes[i]))) {
@@ -239,6 +266,16 @@ int do_trace(pid_t child, char *allowed_exec) {
                     CHILD_FAIL( "Invalid openat." );
                 }
                 free(name);
+        /*    } else if (syscall == SYS_socket) {
+                perror("Check domain.\n");
+                // Check domain.
+                int domain = regs.rdi;
+                if (domain != AF_LOCAL) {
+                    CHILD_FAIL( "Only local sockets are allowed..." );
+                } else {
+                    perror("Good domain.\n");
+                }
+                */
             } else {
                 // this should never happen, but if we're in TRACE_ALL
                 // mode for debugging, this lets me print out what system
