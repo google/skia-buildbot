@@ -62,11 +62,11 @@ type MemDiffStore struct {
 	wg sync.WaitGroup
 }
 
-// New returns a new instance of MemDiffStore.
+// NewMemDiffStore returns a new instance of MemDiffStore.
 // 'gigs' is the approximate number of gigs to use for caching. This is not the
 // exact amount memory that will be used, but a tuning parameter to increase
 // or decrease memory used. If 'gigs' is 0 nothing will be cached in memory.
-func New(client *http.Client, baseDir string, gsBucketNames []string, gsImageBaseDir string, gigs int) (diff.DiffStore, error) {
+func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string, gsImageBaseDir string, gigs int) (diff.DiffStore, error) {
 	imageCacheCount, diffCacheCount := getCacheCounts(gigs)
 
 	// Set up image retrieval, caching and serving.
@@ -176,7 +176,7 @@ func (m *MemDiffStore) PurgeDigests(digests []string, purgeGCS bool) error {
 	// by hand. Since we remove the digests from the failureStore last, we will
 	// not loose the vital information of what digests failed in the first place.
 
-	// Remove the images from, the iamge cache, disk and GCS if necessary.
+	// Remove the images from, the image cache, disk and GCS if necessary.
 	if err := m.imgLoader.PurgeImages(digests, purgeGCS); err != nil {
 		return err
 	}
@@ -351,7 +351,7 @@ func getDiffIds(leftDigests, rightDigests []string) []string {
 	return diffIDsSet.Keys()
 }
 
-// combineDigests returns a sorted, colon-separated concatination of two digests
+// combineDigests returns a sorted, colon-separated concatenation of two digests
 func combineDigests(d1, d2 string) string {
 	if d2 > d1 {
 		d1, d2 = d2, d1
@@ -365,7 +365,7 @@ func splitDigests(d1d2 string) (string, string) {
 	return ret[0], ret[1]
 }
 
-// makeDiffMap creates a map[string]map[string]*DiffRecor map that is big
+// makeDiffMap creates a map[string]map[string]*DiffRecord map that is big
 // enough to store the difference between all digests in leftKeys and
 // 'rightLen' items.
 func makeDiffMap(leftKeys []string, rightLen int) map[string]map[string]*diff.DiffMetrics {
