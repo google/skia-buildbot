@@ -4,6 +4,7 @@ import (
 	"path"
 	"runtime"
 
+	"go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/server"
@@ -48,7 +49,7 @@ func PDFium() *gce.Instance {
 func AddAndroidConfigs(vm *gce.Instance) *gce.Instance {
 	vm.DataDisk.SizeGb = 512
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16
-	vm.Scopes = append(vm.Scopes, "https://www.googleapis.com/auth/androidbuild.internal")
+	vm.Scopes = append(vm.Scopes, androidbuildinternal.AndroidbuildInternalScope)
 
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
