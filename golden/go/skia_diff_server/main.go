@@ -25,7 +25,7 @@ var (
 	imageDir           = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
 	imagePort          = flag.String("image_port", ":9001", "Address that serves image files via HTTP.")
 	noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
-	port               = flag.String("port", ":9000", "gRPC service address (e.g., ':9000')")
+	grpcPort           = flag.String("grpc_port", ":9000", "gRPC service address (e.g., ':9000')")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
 )
@@ -39,9 +39,8 @@ var diffStore diff.DiffStore = nil
 
 func main() {
 	defer common.LogPanic()
-	var err error
 
-	// Parse the options. So we can configure logging.
+	// Parse the options, so we can configure logging.
 	flag.Parse()
 
 	// Set up the logging options.
@@ -89,15 +88,15 @@ func main() {
 
 	// Start the HTTP server.
 	go func() {
-		sklog.Infoln("Serving on http://127.0.0.1" + *port)
-		sklog.Fatal(http.ListenAndServe(*port, nil))
+		sklog.Infoln("Serving on http://127.0.0.1" + *imagePort)
+		sklog.Fatal(http.ListenAndServe(*imagePort, nil))
 	}()
 
 	// Start the rRPC server.
-	lis, err := net.Listen("tcp", *imagePort)
+	lis, err := net.Listen("tcp", *grpcPort)
 	if err != nil {
 		sklog.Fatalf("Error creating gRPC listener: %s", err)
 	}
-	sklog.Infof("Serving gRPC service on port %s", *imagePort)
+	sklog.Infof("Serving gRPC service on port %s", *grpcPort)
 	sklog.Fatalf("Failure while serving gRPC service: %s", grpcServer.Serve(lis))
 }

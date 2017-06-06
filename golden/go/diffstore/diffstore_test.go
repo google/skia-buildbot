@@ -41,7 +41,6 @@ func TestNetDiffStore(t *testing.T) {
 	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
-	//
 	baseDir := TEST_DATA_BASE_DIR + "-netdiffstore"
 	client, tile := getSetupAndTile(t, baseDir)
 	defer testutils.RemoveAll(t, baseDir)
@@ -100,7 +99,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	diffStore.WarmDigests(diff.PRIORITY_NOW, digests, false)
 	memDiffStore.imgLoader.sync()
 	for _, d := range digests {
-		assert.True(t, memDiffStore.imgLoader.IsOnDisk(d), fmt.Sprintf("Could nof find '%s'", d))
+		assert.True(t, memDiffStore.imgLoader.IsOnDisk(d), fmt.Sprintf("Could not find '%s'", d))
 	}
 
 	// Warm the diffs and make sure they are in the cache.
