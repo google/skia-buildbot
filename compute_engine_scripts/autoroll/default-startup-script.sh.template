@@ -1,3 +1,0 @@
-#! /bin/bash
-
-# No-op. Depot Tools is managed in Go code.
