@@ -334,6 +334,30 @@
     },
     {
       "key": {
+        "uuid": "e87bb6c4_d6fc6328",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-06T13:15:06Z",
+      "side": 1,
+      "message": "That\u0027s fine, a lot of our code does that. I prefer not to do that, because it treats the flags as global variables and that has rarely worked out well for me :-) \nI like my functions to be contained, in the sense that all the input and outputs are in the signature of the function.",
+      "parentUuid": "162b6c87_078b5b36",
+      "range": {
+        "startLine": 100,
+        "startChar": 0,
+        "endLine": 109,
+        "endChar": 59
+      },
+      "revId": "0cb3fb37ceeb41471ca8107c092f6ac0cd653e15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "adfcb673_a8ef6314",
         "filename": "power/go/power-controller/main.go",
         "patchSetId": 5
