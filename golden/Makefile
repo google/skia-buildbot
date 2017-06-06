@@ -7,6 +7,10 @@ include ../go/skiaversion/skiaversion.mk
 skiacorrectness: skiaversion
 	go install -v ./go/skiacorrectness
 
+.PHONY: skia_diff_server
+skia_diff_server: skiaversion
+	go install -v ./go/skia_diff_server
+
 .PHONY: correctness_migratedb
 correctness_migratedb: skiaversion
 	go install -v ./go/correctness_migratedb

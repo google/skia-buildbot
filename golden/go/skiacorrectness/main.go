@@ -175,8 +175,8 @@ func main() {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
 
-	// Get the expecations storage, the filediff storage and the tilestore.
-	diffStore, err := diffstore.New(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize)
+	// Get the expectations storage, the filediff storage and the tilestore.
+	diffStore, err := diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize)
 	if err != nil {
 		sklog.Fatalf("Allocating DiffStore failed: %s", err)
 	}

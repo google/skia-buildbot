@@ -79,7 +79,7 @@ type DiffMetrics struct {
 type DiffErr string
 
 const (
-	// Http related error occured.
+	// Http related error occurred.
 	HTTP DiffErr = "http_error"
 
 	// Image is corrupted and cannot be decoded.
@@ -89,7 +89,7 @@ const (
 	OTHER DiffErr = "other"
 )
 
-// DigestFailure captures the details of a digest error that occured.
+// DigestFailure captures the details of a digest error that occurred.
 type DigestFailure struct {
 	Digest string  `json:"digest"`
 	Reason DiffErr `json:"reason"`
@@ -127,6 +127,8 @@ const (
 	PRIORITY_IDLE
 )
 
+// DiffStore defines an interface for a type that retrieves, stores and
+// diffs images. How it retrieves the images is up to the implementation.
 type DiffStore interface {
 	// Get returns the DiffMetrics of the provided dMain digest vs all digests
 	// specified in dRest.
@@ -138,7 +140,7 @@ type DiffStore interface {
 	//        <irlPrefix>/diffs/<digest1>-<digests2>.png
 	ImageHandler(urlPrefix string) (http.Handler, error)
 
-	// WarmDigest will fetche the given digests. If sync is true the call will
+	// WarmDigest will fetch the given digests. If sync is true the call will
 	// block until all digests have been fetched or failed to fetch.
 	WarmDigests(priority int64, digests []string, sync bool)
 
@@ -232,7 +234,7 @@ func recode(img image.Image) *image.NRGBA {
 	return ret
 }
 
-// GetNRGBA converts the image to an *image.NRGBA in an efficent manner.
+// GetNRGBA converts the image to an *image.NRGBA in an efficient manner.
 func GetNRGBA(img image.Image) *image.NRGBA {
 	switch t := img.(type) {
 	case *image.NRGBA:

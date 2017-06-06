@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package diffstore;
+
+// DiffService implements a service for image diffs. The exposed functions
+// mirror the diff.DiffStore interface.
+service DiffService {
+  // Same functionality as Get in the diff.DiffStore interface.
+  rpc GetDiffs(GetDiffsRequest) returns (GetDiffsResponse) {}
+
+  // Same functionality as WarmDigests in the diff.DiffStore interface.
+  rpc WarmDigests(WarmDigestsRequest) returns (Empty) {}
+
+  // Same functionality as WarmDiffs in the diff.DiffStore interface.
+  rpc WarmDiffs(WarmDiffsRequest) returns (Empty) {}
+
+  // Same functionality asSee UnavailableDigests in the diff.DiffStore interface.
+  rpc UnavailableDigests(Empty) returns (UnavailableDigestsResponse) {}
+
+  //Same functionality asSee PurgeDigestset in the diff.DiffStore interface.
+  rpc PurgeDigests(PurgeDigestsRequest) returns (Empty) {}
+
+  // Ping is used to test connection.
+  rpc Ping(Empty) returns (Empty) {}
+}
+
+message Empty {}
+
+message GetDiffsRequest {
+  int64 priority = 1;
+  string mainDigest = 2;
+  repeated string rightDigests = 3;
+}
+
+message GetDiffsResponse {
+  map<string, DiffMetricsResponse> diffs = 1;
+}
+
+message PurgeDigestsRequest {
+  repeated string digests = 1;
+  bool purgeGCS = 2;
+}
+
+message UnavailableDigestsResponse {
+  map<string, DigestFailureResponse> digestFailures = 1;
+}
+
+message WarmDigestsRequest {
+  int64 priority = 1;
+  repeated string digests = 2;
+  bool sync = 3;
+}
+
+message WarmDiffsRequest {
+  int64 priority = 1;
+  repeated string leftDigests = 2;
+  repeated string rightDigests = 3;
+}
+
+message DiffMetricsResponse {
+  int32 NumDiffPixels = 1;
+  float PixelDiffPercent = 2;
+  repeated int32 MaxRGBADiffs = 3;
+  bool DimDiffer = 4;
+  map<string, float> Diffs = 5;
+}
+
+message DigestFailureResponse {
+  string Digest = 1;
+  string Reason = 2;
+  int64 TS = 3;
+}

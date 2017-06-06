@@ -2,13 +2,17 @@ package diffstore
 
 import (
 	"fmt"
+	"net"
 	"sort"
 	"testing"
+
+	"google.golang.org/grpc"
 
 	assert "github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
@@ -17,7 +21,7 @@ import (
 
 const TEST_N_DIGESTS = 20
 
-func TestDiffStore(t *testing.T) {
+func TestMemDiffStore(t *testing.T) {
 	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
@@ -26,10 +30,54 @@ func TestDiffStore(t *testing.T) {
 	client, tile := getSetupAndTile(t, baseDir)
 	defer testutils.RemoveAll(t, baseDir)
 
-	diffStore, err := New(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
+	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
+	testDiffStore(t, tile, baseDir, diffStore, memDiffStore)
+}
+
+func TestNetDiffStore(t *testing.T) {
+	testutils.LargeTest(t)
+	testutils.SkipIfShort(t)
+
+	//
+	baseDir := TEST_DATA_BASE_DIR + "-netdiffstore"
+	client, tile := getSetupAndTile(t, baseDir)
+	defer testutils.RemoveAll(t, baseDir)
+
+	memDiffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
+	assert.NoError(t, err)
+
+	// Start the server that wraps around the MemDiffStore.
+	serverImpl := NewDiffServiceServer(memDiffStore)
+	lis, err := net.Listen("tcp", "localhost:0")
+	assert.NoError(t, err)
+
+	// Start the server.
+	server := grpc.NewServer()
+	RegisterDiffServiceServer(server, serverImpl)
+	go func() {
+		_ = server.Serve(lis)
+	}()
+	defer server.Stop()
+
+	// Create the NetDiffStore.
+	addr := lis.Addr().String()
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	assert.NoError(t, err)
+	defer func() {
+		assert.NoError(t, conn.Close())
+	}()
+
+	netDiffStore, err := NewNetDiffStore(conn)
+	assert.NoError(t, err)
+
+	// run tests against it.
+	testDiffStore(t, tile, baseDir, netDiffStore, memDiffStore.(*MemDiffStore))
+}
+
+func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore diff.DiffStore, memDiffStore *MemDiffStore) {
 	// Pick the test with highest number of digests.
 	byName := map[string]util.StringSet{}
 	for _, trace := range tile.Traces {
@@ -52,7 +100,7 @@ func TestDiffStore(t *testing.T) {
 	diffStore.WarmDigests(diff.PRIORITY_NOW, digests, false)
 	memDiffStore.imgLoader.sync()
 	for _, d := range digests {
-		assert.True(t, memDiffStore.imgLoader.IsOnDisk(d), fmt.Sprintf("Coult nof find '%s'", d))
+		assert.True(t, memDiffStore.imgLoader.IsOnDisk(d), fmt.Sprintf("Could nof find '%s'", d))
 	}
 
 	// Warm the diffs and make sure they are in the cache.

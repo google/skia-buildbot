@@ -49,7 +49,7 @@ func BenchmarkMemDiffStore(b *testing.B) {
 		}
 	}
 
-	diffStore, err := New(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
+	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
 	allDigests := make([][]string, 0, PROCESS_N_TESTS)
 	processed := 0
 	var wg sync.WaitGroup
