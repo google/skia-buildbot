@@ -8,10 +8,8 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"os/user"
 	"path"
 	"path/filepath"
@@ -221,18 +219,6 @@ func main() {
 	androidInternalGerritUrl := *gerritUrl
 
 	if *useMetadata {
-		// Get .gitcookies from metadata.
-		hostname, err := os.Hostname()
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		gitcookies, err := metadata.ProjectGet(fmt.Sprintf("gitcookies_%s", hostname))
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		if err := ioutil.WriteFile(gitcookiesPath, []byte(gitcookies), 0600); err != nil {
-			sklog.Fatal(err)
-		}
 		// If we are rolling into Android get the Gerrit Url from metadata.
 		androidInternalGerritUrl, err = metadata.ProjectGet("android_internal_gerrit_url")
 		if err != nil {
