@@ -21,7 +21,7 @@ type NetDiffStore struct {
 func NewNetDiffStore(conn *grpc.ClientConn) (diff.DiffStore, error) {
 	serviceClient := NewDiffServiceClient(conn)
 	if _, err := serviceClient.Ping(context.Background(), &Empty{}); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Could not ping over connection: %s", err)
 	}
 
 	return &NetDiffStore{
