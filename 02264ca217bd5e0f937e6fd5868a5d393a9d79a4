@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0f7bc8c1_a22ec193",
+        "filename": "go/gce/server/server.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-07T13:33:17Z",
+      "side": 1,
+      "message": "Please excuse the noise this caused.",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 58,
+        "endChar": 31
+      },
+      "revId": "02264ca217bd5e0f937e6fd5868a5d393a9d79a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e68c91ea_12295e3f",
+        "filename": "golden/setup-script.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-07T13:33:17Z",
+      "side": 1,
+      "message": "Copied from https://skia.googlesource.com/buildbot/+/master/compute_engine_scripts/goldserver/startup-script.sh and modified to remove the first-boot logic, since this will run only once at creation time.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "02264ca217bd5e0f937e6fd5868a5d393a9d79a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
