@@ -21,7 +21,10 @@ import (
 )
 
 const (
-	CPU_PLATFORM_SKYLAKE                = "Intel Skylake"
+	ACCELERATOR_TYPE_NVIDIA_TESLA_K80 = "projects/google.com:skia-buildbots/zones/us-east1-d/acceleratorTypes/nvidia-tesla-k80"
+
+	CPU_PLATFORM_SKYLAKE = "Intel Skylake"
+
 	DISK_SNAPSHOT_SYSTEMD_PUSHABLE_BASE = "skia-systemd-pushable-base"
 
 	DISK_TYPE_PERSISTENT_STANDARD = "pd-standard"
@@ -31,9 +34,11 @@ const (
 	MACHINE_TYPE_HIGHMEM_16  = "n1-highmem-16"
 	MACHINE_TYPE_HIGHMEM_32  = "n1-highmem-32"
 	MACHINE_TYPE_STANDARD_2  = "n1-standard-2"
+	MACHINE_TYPE_STANDARD_8  = "n1-standard-8"
 	MACHINE_TYPE_STANDARD_16 = "n1-standard-16"
 
-	MAINTENANCE_POLICY_MIGRATE = "MIGRATE"
+	MAINTENANCE_POLICY_MIGRATE   = "MIGRATE"
+	MAINTENANCE_POLICY_TERMINATE = "TERMINATE"
 
 	NETWORK_DEFAULT = "global/networks/default"
 
@@ -53,9 +58,12 @@ const (
 
 	ZONE_CENTRAL1_B = "us-central1-b"
 	ZONE_CENTRAL1_C = "us-central1-c"
-	ZONE_CT         = ZONE_CENTRAL1_B
-	ZONE_DEFAULT    = ZONE_CENTRAL1_C
-	ZONE_SKYLAKE    = ZONE_CENTRAL1_B
+	ZONE_EAST1_D    = "us-east1-d"
+
+	ZONE_CT      = ZONE_CENTRAL1_B
+	ZONE_DEFAULT = ZONE_CENTRAL1_C
+	ZONE_GPU     = ZONE_EAST1_D
+	ZONE_SKYLAKE = ZONE_CENTRAL1_B
 
 	diskStatusError = "ERROR"
 	diskStatusReady = "READY"
@@ -235,6 +243,9 @@ type Instance struct {
 	// External IP address for the instance. Required.
 	ExternalIpAddress string
 
+	// Whether or not to include an NVIDIA Tesla k80 GPU on the instance.
+	Gpu bool
+
 	// Files to download from Google Storage. Map keys are destination paths
 	// on the GCE instance and and values are the source URLs. Paths may be
 	// absolute or relative (to the default user's home dir, eg.
@@ -243,6 +254,10 @@ type Instance struct {
 
 	// GCE machine type specification, eg. "n1-standard-16".
 	MachineType string
+
+	// Maintenance policy. Default is MAINTENANCE_POLICY_MIGRATE, which is
+	// not supported for preemtible instances.
+	MaintenancePolicy string
 
 	// Instance-level metadata keys and values.
 	Metadata map[string]string
@@ -360,6 +375,9 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 		vm.Metadata["gce-initial-windows-user"] = vm.User
 		vm.Metadata["gce-initial-windows-password"] = vm.Password
 	}
+	if vm.MaintenancePolicy == "" {
+		vm.MaintenancePolicy = MAINTENANCE_POLICY_MIGRATE
+	}
 	if vm.SetupScript != "" {
 		if err := setupScriptToMetadata(vm); err != nil {
 			return err
@@ -406,7 +424,7 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 			},
 		},
 		Scheduling: &compute.Scheduling{
-			OnHostMaintenance: MAINTENANCE_POLICY_MIGRATE,
+			OnHostMaintenance: vm.MaintenancePolicy,
 		},
 		ServiceAccounts: []*compute.ServiceAccount{
 			{
@@ -417,6 +435,14 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 		Tags: &compute.Tags{
 			Items: vm.Tags,
 		},
+	}
+	if vm.Gpu {
+		i.GuestAccelerators = []*compute.AcceleratorConfig{
+			&compute.AcceleratorConfig{
+				AcceleratorCount: 1,
+				AcceleratorType:  ACCELERATOR_TYPE_NVIDIA_TESLA_K80,
+			},
+		}
 	}
 	op, err := g.s.Instances.Insert(g.project, g.zone, i).Do()
 	if err != nil {
