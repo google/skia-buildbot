@@ -238,6 +238,7 @@ const char *readonly_allowed_prefixes[] = {
 void test_against_prefixes(pid_t child, const char * caller, char* name, const char** prefixes) {
     if (NULL != strstr(name, "..")) {
         perror(caller);
+        perror(name);
         child_fail(child, "No relative paths...");
     }
     bool okay = false;
