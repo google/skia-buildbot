@@ -1,7 +1,6 @@
 package main
 
 import (
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/server"
 )
@@ -13,11 +12,6 @@ func SwarmingLoggerBase(name, ipAddress string) *gce.Instance {
 	vm.ExternalIpAddress = ipAddress
 	vm.Metadata["owner_primary"] = "borenet"
 	vm.Metadata["owner_secondary"] = "benjaminwagner"
-	vm.Scopes = append(vm.Scopes,
-		auth.SCOPE_USERINFO_EMAIL,
-		auth.SCOPE_USERINFO_PROFILE,
-		auth.SCOPE_PUBSUB,
-	)
 	return vm
 }
 

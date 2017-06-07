@@ -20,8 +20,6 @@ func AutoRollBase(name, ipAddress string) *gce.Instance {
 	vm.Metadata["owner_secondary"] = "rmistry"
 	vm.Scopes = append(vm.Scopes,
 		auth.SCOPE_GERRIT,
-		auth.SCOPE_USERINFO_EMAIL,
-		auth.SCOPE_USERINFO_PROFILE,
 	)
 	return vm
 }

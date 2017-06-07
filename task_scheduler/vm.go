@@ -18,9 +18,6 @@ func TaskSchedulerBase(name, ipAddress string) *gce.Instance {
 	vm.Metadata["owner_secondary"] = "benjaminwagner"
 	vm.Scopes = append(vm.Scopes,
 		auth.SCOPE_GERRIT,
-		auth.SCOPE_PUBSUB,
-		auth.SCOPE_USERINFO_EMAIL,
-		auth.SCOPE_USERINFO_PROFILE,
 	)
 
 	_, filename, _, _ := runtime.Caller(0)

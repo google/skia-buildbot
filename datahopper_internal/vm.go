@@ -2,7 +2,6 @@ package main
 
 import (
 	"go.skia.org/infra/go/androidbuildinternal/v2beta1"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/server"
 )
@@ -16,8 +15,6 @@ func DatahopperInternalBase(name, ipAddress string) *gce.Instance {
 	vm.Metadata["owner_primary"] = "jcgregorio"
 	vm.Metadata["owner_secondary"] = "benjaminwagner"
 	vm.Scopes = append(vm.Scopes,
-		auth.SCOPE_USERINFO_EMAIL,
-		auth.SCOPE_USERINFO_PROFILE,
 		androidbuildinternal.AndroidbuildInternalScope,
 	)
 	return vm

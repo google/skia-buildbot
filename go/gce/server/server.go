@@ -53,6 +53,9 @@ func Server20170518(name string) *gce.Instance {
 		Os:                gce.OS_LINUX,
 		Scopes: []string{
 			auth.SCOPE_FULL_CONTROL,
+			auth.SCOPE_PUBSUB,
+			auth.SCOPE_USERINFO_EMAIL,
+			auth.SCOPE_USERINFO_PROFILE,
 		},
 		Tags: []string{"http-server", "https-server"},
 		User: gce.USER_DEFAULT,
