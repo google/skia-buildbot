@@ -40,6 +40,7 @@ var (
 	deleteDataDisk = flag.Bool("delete-data-disk", false, "Delete the data disk. Only valid with --delete")
 	ignoreExists   = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
 	internal       = flag.Bool("internal", false, "Whether or not the bots are internal.")
+	skylake        = flag.Bool("skylake", false, "Whether or not the instance(s) should use Intel Skylake CPUs.")
 	windows        = flag.Bool("windows", false, "Whether or not the bots run Windows.")
 	workdir        = flag.String("workdir", ".", "Working directory.")
 )
@@ -62,9 +63,8 @@ func Swarming20170523(name, ipAddress string) *gce.Instance {
 		MachineType:       gce.MACHINE_TYPE_STANDARD_16,
 		Metadata:          map[string]string{},
 		MetadataDownloads: map[string]string{},
-		//MinCpuPlatform: ??? // TODO(borenet)
-		Name: name,
-		Os:   gce.OS_LINUX,
+		Name:              name,
+		Os:                gce.OS_LINUX,
 		Scopes: []string{
 			auth.SCOPE_FULL_CONTROL,
 		},
@@ -130,6 +130,12 @@ func WinSwarmingBot(num int, ipAddress, pw, setupScriptPath, startupScriptPath, 
 func InternalWinSwarmingBot(num int, ipAddress, pw, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
 	vm := Swarming20170523(fmt.Sprintf("skia-i-vm-%03d", num), ipAddress)
 	return AddWinConfigs(vm, ipAddress, pw, setupScriptPath, startupScriptPath, chromebotScript)
+}
+
+// GCE instances with Skylake CPUs.
+func AddSkylakeConfigs(vm *gce.Instance) *gce.Instance {
+	vm.MinCpuPlatform = gce.CPU_PLATFORM_SKYLAKE
+	return vm
 }
 
 // Returns the initial chrome-bot password, plus setup, startup, and
@@ -218,7 +224,11 @@ func main() {
 	}
 
 	// Create the GCloud object.
-	g, err := gce.NewGCloud(gce.ZONE_DEFAULT, wdAbs)
+	zone := gce.ZONE_DEFAULT
+	if *skylake {
+		zone = gce.ZONE_SKYLAKE
+	}
+	g, err := gce.NewGCloud(zone, wdAbs)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -251,6 +261,9 @@ func main() {
 			} else {
 				vm = LinuxSwarmingBot(num, ipAddr)
 			}
+		}
+		if *skylake {
+			AddSkylakeConfigs(vm)
 		}
 
 		group.Go(vm.Name, func() error {
