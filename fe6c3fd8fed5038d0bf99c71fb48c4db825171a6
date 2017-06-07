@@ -22,6 +22,52 @@
       "revId": "fe6c3fd8fed5038d0bf99c71fb48c4db825171a6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e9e055f_6f830bf5",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-07T16:53:28Z",
+      "side": 1,
+      "message": "uber-nit: maybe say CPU_PLATFORM_SKYLAKE instead.",
+      "range": {
+        "startLine": 257,
+        "startChar": 30,
+        "endLine": 257,
+        "endChar": 45
+      },
+      "revId": "fe6c3fd8fed5038d0bf99c71fb48c4db825171a6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "661dc368_a8e931d6",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-07T16:53:28Z",
+      "side": 1,
+      "message": "nit: this is likely to change without notice. Maybe just say the machine type is determined by GCE.",
+      "range": {
+        "startLine": 258,
+        "startChar": 5,
+        "endLine": 258,
+        "endChar": 18
+      },
+      "revId": "fe6c3fd8fed5038d0bf99c71fb48c4db825171a6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
