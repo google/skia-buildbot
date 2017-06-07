@@ -282,7 +282,7 @@ func oneStep(checkout string, res *types.Result, frame float64) {
 		Args:        args,
 		Dir:         *fiddleRoot,
 		InheritPath: true,
-		Env:         []string{"LD_LIBRARY_PATH=" + config.EGL_LIB_PATH},
+		Env:         []string{"LD_LIBRARY_PATH=" + config.EGL_LIB_PATH, "HOME=/tmp"},
 		InheritEnv:  true,
 		Stdout:      &stdout,
 		Stderr:      &stderr,
