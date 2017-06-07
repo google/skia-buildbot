@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0293495d_776392c1",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-07T16:43:23Z",
+      "side": 1,
+      "message": "Turns out we can just use this as a drop-in replacement.",
+      "range": {
+        "startLine": 14,
+        "startChar": 32,
+        "endLine": 14,
+        "endChar": 40
+      },
+      "revId": "fe6c3fd8fed5038d0bf99c71fb48c4db825171a6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
