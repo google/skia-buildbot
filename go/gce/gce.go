@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"google.golang.org/api/compute/v1"
+	"google.golang.org/api/compute/v0.alpha"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/exec"
@@ -21,15 +21,15 @@ import (
 )
 
 const (
+	CPU_PLATFORM_SKYLAKE                = "Intel Skylake"
 	DISK_SNAPSHOT_SYSTEMD_PUSHABLE_BASE = "skia-systemd-pushable-base"
 
 	DISK_TYPE_PERSISTENT_STANDARD = "pd-standard"
 	DISK_TYPE_PERSISTENT_SSD      = "pd-ssd"
 
-	MACHINE_TYPE_HIGHMEM_16  = "n1-highmem-16"
 	MACHINE_TYPE_HIGHMEM_2   = "n1-highmem-2"
+	MACHINE_TYPE_HIGHMEM_16  = "n1-highmem-16"
 	MACHINE_TYPE_HIGHMEM_32  = "n1-highmem-32"
-	MACHINE_TYPE_STANDARD_1  = "n1-standard-1"
 	MACHINE_TYPE_STANDARD_2  = "n1-standard-2"
 	MACHINE_TYPE_STANDARD_16 = "n1-standard-16"
 	MACHINE_TYPE_STANDARD_32 = "n1-standard-32"
@@ -52,8 +52,11 @@ const (
 
 	USER_DEFAULT = "default"
 
-	ZONE_CT      = "us-central1-b"
-	ZONE_DEFAULT = "us-central1-c"
+	ZONE_CENTRAL1_B = "us-central1-b"
+	ZONE_CENTRAL1_C = "us-central1-c"
+	ZONE_CT         = ZONE_CENTRAL1_B
+	ZONE_DEFAULT    = ZONE_CENTRAL1_C
+	ZONE_SKYLAKE    = ZONE_CENTRAL1_B
 
 	diskStatusError = "ERROR"
 	diskStatusReady = "READY"
@@ -251,6 +254,10 @@ type Instance struct {
 	// default user's home dir, eg. /home/default).
 	MetadataDownloads map[string]string
 
+	// Minimum CPU platform, eg. "Intel Skylake".  Default is
+	// "Intel Haswell".
+	MinCpuPlatform string
+
 	// Name of the instance.
 	Name string
 
@@ -375,11 +382,9 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 	}
 	metadata := make([]*compute.MetadataItems, 0, len(vm.Metadata))
 	for k, v := range vm.Metadata {
-		val := new(string)
-		*val = v
 		metadata = append(metadata, &compute.MetadataItems{
 			Key:   k,
-			Value: val,
+			Value: v,
 		})
 	}
 	i := &compute.Instance{
@@ -388,7 +393,8 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 		Metadata: &compute.Metadata{
 			Items: metadata,
 		},
-		Name: vm.Name,
+		MinCpuPlatform: vm.MinCpuPlatform,
+		Name:           vm.Name,
 		NetworkInterfaces: []*compute.NetworkInterface{
 			{
 				AccessConfigs: []*compute.AccessConfig{
@@ -703,7 +709,7 @@ func (g *GCloud) SetMetadata(vm *Instance, md map[string]string) error {
 	for k, v := range md {
 		items = append(items, &compute.MetadataItems{
 			Key:   k,
-			Value: &v,
+			Value: v,
 		})
 	}
 	op, err := g.s.Instances.SetMetadata(g.project, g.zone, vm.Name, &compute.Metadata{
