@@ -7,6 +7,8 @@
 #include <sys/user.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/socket.h>
+
 
 #include "seccomp_bpf.h"
 
@@ -19,7 +21,7 @@ static bool install_syscall_filter() {
         VALIDATE_ARCHITECTURE,
         /* Grab the system call number. */
         EXAMINE_SYSCALL,
-        /* List allowed syscalls. Look in /usr/include/x86_64-linux-gnu/asm/unistd_64.h */
+        /* List allowed syscalls. Look up via ausyscall. */
         ALLOW_SYSCALL(exit_group),
         ALLOW_SYSCALL(exit),
         ALLOW_SYSCALL(stat),
@@ -46,17 +48,31 @@ static bool install_syscall_filter() {
         ALLOW_SYSCALL(fadvise64),
         ALLOW_SYSCALL(clock_gettime),
         ALLOW_SYSCALL(sysinfo),
-        /*
-        The set of sycall's needed if running against an NVIDIA GPU, YMMV.
+
+        ALLOW_SYSCALL(getuid),
+        ALLOW_SYSCALL(geteuid),
+        ALLOW_SYSCALL(getgid),
+        ALLOW_SYSCALL(getegid),
+
+        ALLOW_SYSCALL(fcntl),
+
         ALLOW_SYSCALL(mremap),
         ALLOW_SYSCALL(statfs),
         ALLOW_SYSCALL(readlink),
         ALLOW_SYSCALL(getpid),
-        */
+
+        ALLOW_SYSCALL(mkdir),
+        ALLOW_SYSCALL(unlink),
+        ALLOW_SYSCALL(ftruncate),
+        ALLOW_SYSCALL(ioctl),
+        ALLOW_SYSCALL(sched_yield),
+
         TRACE_SYSCALL(execve),
-        TRACE_OPENS_FOR_READS_ONLY(open, 1),
+        TRACE_SYSCALL(open),
         TRACE_OPENS_FOR_READS_ONLY(openat, 2),
-        TRACE_ALL,
+        // Uncomment the following when trying to figure out which new
+        // syscall's are being made:
+    //    TRACE_ALL,
         KILL_PROCESS,
     };
     struct sock_fprog prog = {
@@ -91,17 +107,20 @@ static void setLimits() {
      struct rlimit n;
 
      // Limit to 10 seconds of CPU.
-     n.rlim_cur = 10;
-     n.rlim_max = 10;
+     n.rlim_cur = 20;
+     n.rlim_max = 20;
      if (setrlimit(RLIMIT_CPU, &n)) {
          perror("setrlimit(RLIMIT_CPU)");
      }
 
-     // Limit to 1G of Address space.
-     n.rlim_cur = 1000000000;
-     n.rlim_max = 1000000000;
+     // Limit to 2G of Address space.
+     n.rlim_cur = 2000000000;
+     n.rlim_max = 2000000000;
      if (setrlimit(RLIMIT_AS, &n)) {
-         perror("setrlimit(RLIMIT_CPU)");
+         perror("setrlimit(RLIMIT_AS)");
+     }
+     if (setrlimit(RLIMIT_FSIZE, &n)) {
+         perror("setrlimit(RLIMIT_FSIZE)");
      }
  }
 
@@ -121,6 +140,7 @@ int do_child(int argc, char **argv) {
 
     setLimits();
     if (!install_syscall_filter()) {
+        perror("failed to install syscall filter");
         return -1;
     }
 
@@ -128,6 +148,7 @@ int do_child(int argc, char **argv) {
     // if execvp returns, we couldn't run the child.  Probably
     // because the compile failed.  Let's kill ourselves so the
     // parent sees the signal and exits appropriately.
+    perror("Couldn't run child.");
     kill(getpid(), SIGKILL);
     return -1;
 }
@@ -163,7 +184,12 @@ char *read_string(pid_t child, unsigned long addr) {
     return val;
 }
 
-
+/*
+ * The first six integer or pointer arguments are passed in registers RDI,
+ * RSI, RDX, RCX (R10 in the Linux kernel interface), R8, and R9,
+ * while XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6 and XMM7 are used for
+ * certain floating point arguments.
+ */
 int do_trace(pid_t child, char *allowed_exec) {
     int status;
     waitpid(child, &status, 0);
@@ -181,6 +207,8 @@ int do_trace(pid_t child, char *allowed_exec) {
             return 0;
         }
         if (WIFSIGNALED(status)) {
+            cout << "Signal: " << WTERMSIG(status) << endl;
+            perror("WIFSIGNALED");
             return 1;
         }
 
@@ -192,6 +220,7 @@ int do_trace(pid_t child, char *allowed_exec) {
             }
 
             int syscall = regs.orig_rax;
+
             if (syscall == SYS_execve) {
                 char *name = read_string( child, regs.rdi );
                 if (strcmp(name, allowed_exec)) {
@@ -203,31 +232,60 @@ int do_trace(pid_t child, char *allowed_exec) {
                 if (NULL != strstr(name, "..")) {
                     CHILD_FAIL( "No relative paths..." );
                 }
+                const char *writing_allowed_prefixes[] = {
+                    "/dev/nvidia",
+                    "/dev/dri/",
+                    "/tmp/",
+                    NULL,
+                };
+                const char *readonly_allowed_prefixes[] = {
+                    "/usr/local/share/fonts",
+                    "/var/cache/fontconfig",
+                    "/etc/fonts",
+                    "/usr/share/fonts",
+                    "/etc/ld.so.cache",
+                    "/lib/",
+                    "/usr/lib/",
+                    "skia.conf",
+                    "/mnt/pd0/",
+                    "/proc/meminfo",
+                    "/etc/glvnd/",
+                    "/proc/modules",
+                    "/proc/driver/nvidia",
+                    "/usr/share/glvnd/",
+                    "/home/default/.nv/",
+                    "/etc/nvidia/",
+                    "/usr/share/nvidia/",
+                    "/home/default/.glvnd",
+                    "/dev/dri",
+                    "/tmp/",
+                    NULL,
+                };
+                const char **prefixes = readonly_allowed_prefixes;
                 int flags = regs.rsi;
                 if (O_RDONLY != (flags & O_ACCMODE)) {
-                    CHILD_FAIL( "No writing to files..." );
+                    prefixes = writing_allowed_prefixes;
                 }
-                const char *allowed_prefixes[] = { "/usr/local/share/fonts", "/var/cache/fontconfig", "/etc/fonts", "/usr/share/fonts", "/etc/ld.so.cache", "/lib/", "/usr/lib/", "skia.conf", "/mnt/pd0/", "/proc/meminfo" };
                 bool okay = false;
-                for (unsigned int i = 0 ; i < sizeof(allowed_prefixes) / sizeof(allowed_prefixes[0]) ; i++) {
-                    if (!strncmp(allowed_prefixes[i], name, strlen(allowed_prefixes[i]))) {
+                for (; *prefixes != NULL; prefixes++) {
+                    if (!strncmp(*prefixes, name, strlen(*prefixes))) {
                         okay = true;
                         break;
                     }
                 }
                 if (!okay) {
                     perror( name );
-                    CHILD_FAIL( "Invalid open." );
+                    CHILD_FAIL( "open: Invalid filename." );
                 }
                 free(name);
             } else if (syscall == SYS_openat) {
                 char *name = read_string( child, regs.rsi );
                 if (NULL != strstr(name, "..")) {
-                    CHILD_FAIL( "No relative paths..." );
+                    CHILD_FAIL( "openat: No relative paths..." );
                 }
                 int flags = regs.rdx;
                 if (O_RDONLY != (flags & O_ACCMODE)) {
-                    CHILD_FAIL( "No writing to files..." );
+                    CHILD_FAIL( "openat: No writing to files..." );
                 }
                 if (
                         strncmp(name, "/usr/share/fonts", strlen("/usr/share/fonts")) &&
