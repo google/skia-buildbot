@@ -4,7 +4,6 @@ import (
 	"path"
 	"runtime"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/server"
 )
@@ -16,10 +15,6 @@ func StatusBase(name, ipAddress string) *gce.Instance {
 	vm.ExternalIpAddress = ipAddress
 	vm.Metadata["owner_primary"] = "borenet"
 	vm.Metadata["owner_secondary"] = "kjlubick"
-	vm.Scopes = append(vm.Scopes,
-		auth.SCOPE_USERINFO_EMAIL,
-		auth.SCOPE_USERINFO_PROFILE,
-	)
 
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
