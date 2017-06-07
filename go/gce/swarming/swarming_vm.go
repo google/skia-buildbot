@@ -38,6 +38,7 @@ var (
 	ct             = flag.Bool("skia-ct", false, "If true, this is a bot in the SkiaCT pool.")
 	delete         = flag.Bool("delete", false, "Delete the instance. Either --create or --delete is required.")
 	deleteDataDisk = flag.Bool("delete-data-disk", false, "Delete the data disk. Only valid with --delete")
+	gpu            = flag.Bool("gpu", false, "Whether or not to add an NVIDIA Tesla k80 GPU on the instance(s)")
 	ignoreExists   = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
 	internal       = flag.Bool("internal", false, "Whether or not the bots are internal.")
 	skylake        = flag.Bool("skylake", false, "Whether or not the instance(s) should use Intel Skylake CPUs.")
@@ -59,6 +60,7 @@ func Swarming20170523(name, ipAddress string) *gce.Instance {
 			Type:   gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
 		ExternalIpAddress: ipAddress,
+		Gpu:               true,
 		GSDownloads:       map[string]string{},
 		MachineType:       gce.MACHINE_TYPE_STANDARD_16,
 		Metadata:          map[string]string{},
@@ -132,6 +134,14 @@ func InternalWinSwarmingBot(num int, ipAddress, pw, setupScriptPath, startupScri
 	return AddWinConfigs(vm, ipAddress, pw, setupScriptPath, startupScriptPath, chromebotScript)
 }
 
+// GCE instances with GPUs.
+func AddGpuConfigs(vm *gce.Instance) *gce.Instance {
+	vm.Gpu = true
+	vm.MachineType = gce.MACHINE_TYPE_STANDARD_8            // Max 8 CPUs when using a GPU.
+	vm.MaintenancePolicy = gce.MAINTENANCE_POLICY_TERMINATE // Required for GPUs.
+	return vm
+}
+
 // GCE instances with Skylake CPUs.
 func AddSkylakeConfigs(vm *gce.Instance) *gce.Instance {
 	vm.MinCpuPlatform = gce.CPU_PLATFORM_SKYLAKE
@@ -203,6 +213,9 @@ func main() {
 	if *ct && *windows {
 		sklog.Fatal("--skia-ct and --windows are mutually exclusive.")
 	}
+	if *skylake && *gpu {
+		sklog.Fatal("--skylake and --gpu are mutually exclusive.")
+	}
 
 	instanceNums, err := util.ParseIntSet(*instances)
 	if err != nil {
@@ -225,7 +238,9 @@ func main() {
 
 	// Create the GCloud object.
 	zone := gce.ZONE_DEFAULT
-	if *skylake {
+	if *gpu {
+		zone = gce.ZONE_GPU
+	} else if *skylake {
 		zone = gce.ZONE_SKYLAKE
 	}
 	g, err := gce.NewGCloud(zone, wdAbs)
@@ -262,7 +277,9 @@ func main() {
 				vm = LinuxSwarmingBot(num, ipAddr)
 			}
 		}
-		if *skylake {
+		if *gpu {
+			AddGpuConfigs(vm)
+		} else if *skylake {
 			AddSkylakeConfigs(vm)
 		}
 
