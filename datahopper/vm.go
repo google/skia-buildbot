@@ -1,7 +1,6 @@
 package main
 
 import (
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/server"
 )
@@ -13,10 +12,6 @@ func DatahopperBase(name, ipAddress string) *gce.Instance {
 	vm.ExternalIpAddress = ipAddress
 	vm.Metadata["owner_primary"] = "borenet"
 	vm.Metadata["owner_secondary"] = "jcgregorio"
-	vm.Scopes = append(vm.Scopes,
-		auth.SCOPE_USERINFO_EMAIL,
-		auth.SCOPE_USERINFO_PROFILE,
-	)
 	return vm
 }
 
