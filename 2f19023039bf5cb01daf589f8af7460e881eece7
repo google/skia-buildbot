@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da5e23be_0ba432db",
+        "filename": "perf/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-07T14:07:43Z",
+      "side": 1,
+      "message": "Seems like this needs to be fixed before submitting.",
+      "range": {
+        "startLine": 11,
+        "startChar": 37,
+        "endLine": 11,
+        "endChar": 71
+      },
+      "revId": "2f19023039bf5cb01daf589f8af7460e881eece7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
