@@ -19,7 +19,7 @@ static bool install_syscall_filter() {
         VALIDATE_ARCHITECTURE,
         /* Grab the system call number. */
         EXAMINE_SYSCALL,
-        /* List allowed syscalls. Look in /usr/include/x86_64-linux-gnu/asm/unistd_64.h */
+        /* List allowed syscalls. Look up via ausyscall. */
         ALLOW_SYSCALL(exit_group),
         ALLOW_SYSCALL(exit),
         ALLOW_SYSCALL(stat),
@@ -46,17 +46,32 @@ static bool install_syscall_filter() {
         ALLOW_SYSCALL(fadvise64),
         ALLOW_SYSCALL(clock_gettime),
         ALLOW_SYSCALL(sysinfo),
-        /*
-        The set of sycall's needed if running against an NVIDIA GPU, YMMV.
+
+        ALLOW_SYSCALL(getuid),
+        ALLOW_SYSCALL(geteuid),
+        ALLOW_SYSCALL(getgid),
+        ALLOW_SYSCALL(getegid),
+
+        ALLOW_SYSCALL(fcntl),
+
         ALLOW_SYSCALL(mremap),
         ALLOW_SYSCALL(statfs),
         ALLOW_SYSCALL(readlink),
         ALLOW_SYSCALL(getpid),
-        */
+
+        ALLOW_SYSCALL(ftruncate),
+        ALLOW_SYSCALL(ioctl),
+        ALLOW_SYSCALL(sched_yield),
+
+        TRACE_SYSCALL(mkdir),
+        TRACE_SYSCALL(unlink),
         TRACE_SYSCALL(execve),
-        TRACE_OPENS_FOR_READS_ONLY(open, 1),
+        TRACE_SYSCALL(open),
         TRACE_OPENS_FOR_READS_ONLY(openat, 2),
-        TRACE_ALL,
+        // Uncomment the following when trying to figure out which new
+        // syscall's are being made:
+
+        // TRACE_ALL,
         KILL_PROCESS,
     };
     struct sock_fprog prog = {
@@ -90,9 +105,9 @@ failed:
 static void setLimits() {
      struct rlimit n;
 
-     // Limit to 10 seconds of CPU.
-     n.rlim_cur = 10;
-     n.rlim_max = 10;
+     // Limit to 20 seconds of CPU.
+     n.rlim_cur = 20;
+     n.rlim_max = 20;
      if (setrlimit(RLIMIT_CPU, &n)) {
          perror("setrlimit(RLIMIT_CPU)");
      }
@@ -101,7 +116,7 @@ static void setLimits() {
      n.rlim_cur = 1000000000;
      n.rlim_max = 1000000000;
      if (setrlimit(RLIMIT_AS, &n)) {
-         perror("setrlimit(RLIMIT_CPU)");
+         perror("setrlimit(RLIMIT_AS)");
      }
  }
 
@@ -121,6 +136,7 @@ int do_child(int argc, char **argv) {
 
     setLimits();
     if (!install_syscall_filter()) {
+        perror("Failed to install syscall filter");
         return -1;
     }
 
@@ -128,6 +144,7 @@ int do_child(int argc, char **argv) {
     // if execvp returns, we couldn't run the child.  Probably
     // because the compile failed.  Let's kill ourselves so the
     // parent sees the signal and exits appropriately.
+    perror("Couldn't run child.");
     kill(getpid(), SIGKILL);
     return -1;
 }
@@ -163,17 +180,91 @@ char *read_string(pid_t child, unsigned long addr) {
     return val;
 }
 
+void child_fail(pid_t child, const char* message) {
+    perror(message);
+    kill(child, SIGKILL);
+    exit(-1);
+}
 
+const char *mkdir_allowed_prefixes[] = {
+    "/tmp",
+    NULL,
+};
+
+const char *unlink_allowed_prefixes[] = {
+    "/tmp",
+    NULL,
+};
+
+const char *writing_allowed_prefixes[] = {
+    "/dev/nvidia",
+    "/dev/dri/",
+    "/tmp/",
+    NULL,
+};
+
+const char *openat_allowed_prefixes[] = {
+    "/usr/share/fonts",
+    "/usr/local/share/fonts",
+    "/var/cache/fontconfig",
+    "/etc/fonts",
+    NULL,
+};
+
+const char *readonly_allowed_prefixes[] = {
+    "/usr/local/share/fonts",
+    "/var/cache/fontconfig",
+    "/etc/fonts",
+    "/usr/share/fonts",
+    "/etc/ld.so.cache",
+    "/lib/",
+    "/usr/lib/",
+    "skia.conf",
+    "/mnt/pd0/",
+    "/proc/meminfo",
+    "/etc/glvnd/",
+    "/proc/modules",
+    "/proc/driver/nvidia",
+    "/usr/share/glvnd/",
+    "/home/default/.nv/",
+    "/etc/nvidia/",
+    "/usr/share/nvidia/",
+    "/home/default/.glvnd",
+    "/dev/dri",
+    "/tmp/",
+    NULL,
+};
+
+void test_against_prefixes(pid_t child, const char * caller, char* name, const char** prefixes) {
+    if (NULL != strstr(name, "..")) {
+        perror(caller);
+        child_fail(child, "No relative paths...");
+    }
+    bool okay = false;
+    for (; *prefixes != NULL; prefixes++) {
+        if (!strncmp(*prefixes, name, strlen(*prefixes))) {
+            okay = true;
+            break;
+        }
+    }
+    if (!okay) {
+        perror(name);
+        perror(caller);
+        child_fail(child, "Invalid filename.");
+    }
+}
+
+/*
+ * The first six integer or pointer arguments are passed in registers RDI,
+ * RSI, RDX, RCX (R10 in the Linux kernel interface), R8, and R9,
+ * while XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6 and XMM7 are used for
+ * certain floating point arguments.
+ */
 int do_trace(pid_t child, char *allowed_exec) {
     int status;
     waitpid(child, &status, 0);
     ptrace(PTRACE_SETOPTIONS, child, 0, PTRACE_O_TRACEEXEC | PTRACE_O_TRACESECCOMP);
     ptrace(PTRACE_CONT, child, 0, 0);
-
-#define CHILD_FAIL(message) \
-    perror(message); \
-    kill(child, SIGKILL); \
-    exit(-1)
 
     while(1) {
         waitpid(child, &status, 0);
@@ -181,6 +272,7 @@ int do_trace(pid_t child, char *allowed_exec) {
             return 0;
         }
         if (WIFSIGNALED(status)) {
+            perror("WIFSIGNALED");
             return 1;
         }
 
@@ -193,51 +285,31 @@ int do_trace(pid_t child, char *allowed_exec) {
 
             int syscall = regs.orig_rax;
             if (syscall == SYS_execve) {
-                char *name = read_string( child, regs.rdi );
+                char *name = read_string(child, regs.rdi);
                 if (strcmp(name, allowed_exec)) {
-                    CHILD_FAIL( "Invalid exec." );
+                    child_fail(child, "Invalid exec.");
                 }
                 free(name);
             } else if (syscall == SYS_open) {
-                char *name = read_string( child, regs.rdi );
-                if (NULL != strstr(name, "..")) {
-                    CHILD_FAIL( "No relative paths..." );
-                }
+                char *name = read_string(child, regs.rdi);
+                const char **prefixes = readonly_allowed_prefixes;
                 int flags = regs.rsi;
                 if (O_RDONLY != (flags & O_ACCMODE)) {
-                    CHILD_FAIL( "No writing to files..." );
+                    prefixes = writing_allowed_prefixes;
                 }
-                const char *allowed_prefixes[] = { "/usr/local/share/fonts", "/var/cache/fontconfig", "/etc/fonts", "/usr/share/fonts", "/etc/ld.so.cache", "/lib/", "/usr/lib/", "skia.conf", "/mnt/pd0/", "/proc/meminfo" };
-                bool okay = false;
-                for (unsigned int i = 0 ; i < sizeof(allowed_prefixes) / sizeof(allowed_prefixes[0]) ; i++) {
-                    if (!strncmp(allowed_prefixes[i], name, strlen(allowed_prefixes[i]))) {
-                        okay = true;
-                        break;
-                    }
-                }
-                if (!okay) {
-                    perror( name );
-                    CHILD_FAIL( "Invalid open." );
-                }
+                test_against_prefixes(child, "open", name, prefixes);
                 free(name);
             } else if (syscall == SYS_openat) {
-                char *name = read_string( child, regs.rsi );
-                if (NULL != strstr(name, "..")) {
-                    CHILD_FAIL( "No relative paths..." );
-                }
-                int flags = regs.rdx;
-                if (O_RDONLY != (flags & O_ACCMODE)) {
-                    CHILD_FAIL( "No writing to files..." );
-                }
-                if (
-                        strncmp(name, "/usr/share/fonts", strlen("/usr/share/fonts")) &&
-                        strncmp(name, "/usr/local/share/fonts", strlen("/usr/local/share/fonts")) &&
-                        strncmp(name, "/var/cache/fontconfig", strlen("/var/cache/fontconfig")) &&
-                        strncmp(name, "/etc/fonts", strlen("/etc/fonts"))
-                   ) {
-                    perror(name);
-                    CHILD_FAIL( "Invalid openat." );
-                }
+                char *name = read_string(child, regs.rsi);
+                test_against_prefixes(child, "openat", name, openat_allowed_prefixes);
+                free(name);
+            } else if (syscall == SYS_mkdir) {
+                char *name = read_string(child, regs.rdi);
+                test_against_prefixes(child, "mkdir", name, mkdir_allowed_prefixes);
+                free(name);
+            } else if (syscall == SYS_unlink) {
+                char *name = read_string(child, regs.rdi);
+                test_against_prefixes(child, "unlink", name, unlink_allowed_prefixes);
                 free(name);
             } else {
                 // this should never happen, but if we're in TRACE_ALL
@@ -247,7 +319,6 @@ int do_trace(pid_t child, char *allowed_exec) {
             }
         }
         ptrace(PTRACE_CONT, child, 0, 0);
-
     }
     return 0;
 }
