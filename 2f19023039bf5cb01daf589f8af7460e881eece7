@@ -22,6 +22,30 @@
       "revId": "2f19023039bf5cb01daf589f8af7460e881eece7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "53c8dc3f_19fd66bf",
+        "filename": "perf/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-07T14:10:38Z",
+      "side": 1,
+      "message": "There are currently no .gitconfig, .netrc, or .gitcookies on the instance.  So this gets us to the same state we\u0027re in right now.  My plan is to add TODOs for all servers which seem to need git accounts, and then do a mass account creation run.",
+      "parentUuid": "da5e23be_0ba432db",
+      "range": {
+        "startLine": 11,
+        "startChar": 37,
+        "endLine": 11,
+        "endChar": 71
+      },
+      "revId": "2f19023039bf5cb01daf589f8af7460e881eece7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
