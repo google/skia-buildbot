@@ -67,11 +67,11 @@ static bool install_syscall_filter() {
         TRACE_SYSCALL(unlink),
         TRACE_SYSCALL(execve),
         TRACE_SYSCALL(open),
-        TRACE_OPENS_FOR_READS_ONLY(openat, 2),
+        TRACE_SYSCALL(openat),
         // Uncomment the following when trying to figure out which new
         // syscall's are being made:
 
-        // TRACE_ALL,
+        //TRACE_ALL,
         KILL_PROCESS,
     };
     struct sock_fprog prog = {
@@ -236,8 +236,9 @@ const char *readonly_allowed_prefixes[] = {
 };
 
 void test_against_prefixes(pid_t child, const char * caller, char* name, const char** prefixes) {
-    if (NULL != strstr(name, "..")) {
+    if (NULL != strstr(name, "../")) {
         perror(caller);
+        perror(name);
         child_fail(child, "No relative paths...");
     }
     bool okay = false;
