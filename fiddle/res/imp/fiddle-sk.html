@@ -11,7 +11,7 @@
     height       - The height of the fiddle image.
     source       - The index of the source image to use as input.
     bug_link     - If true then display a link to report a bug.
-    embed_button - If true then display the embed button.
+    embedded     - If true then show less controls because were embedded.
 
   Methods:
     None.
@@ -36,7 +36,7 @@
 
 <link rel="import" href="/res/imp/text-src.html">
 <dom-module id="fiddle-sk">
-  <style is="custom-style">
+  <style is="custom-style" include="iron-flex iron-flex-alignment">
     #namer,
     #embedder {
       display: none;
@@ -174,6 +174,11 @@
       display: inline-block;
     }
 
+    a {
+      color: #1f78b4;
+      padding: 1em;
+    }
+
   </style>
   <template>
     <template is="dom-if" if="{{display_options}}">
@@ -213,7 +218,7 @@ sk_sp&lt;SkImage> image;</pre>
       <content select="p"></content>
     </div>
     <div id=submit>
-      <template is="dom-if" if="{{embed_button}}">
+      <template is="dom-if" if="{{_not(embedded)}}">
         <button class=action on-tap="_run">Run</button>
         <paper-spinner></paper-spinner>
 
@@ -253,13 +258,13 @@ sk_sp&lt;SkImage> image;</pre>
     </template>
                                                                                    <!-- Remove textonly -->
     <template is="dom-if" if="{{_hasImages(fiddlehash, _compile_errors, _runtime_error, textonly)}}">
-      <div id=results class="horizontal layout">
+      <div id=results class="horizontal layout self-start">
 
-        <template is="dom-if" if="{{_showCpu(gpu_embedded,embed_button)}}">
+        <template is="dom-if" if="{{_showCpu(gpu_embedded,embedded)}}">
           <template is="dom-if" if="{{_not(animated)}}">
             <div class="vertical layout center-justified">
               <img src="[[domain]]/i/{{fiddlehash}}_raster.png" width="{{width}}" height="{{height}}">
-              <template is="dom-if" if="{{embed_button}}">
+              <template is="dom-if" if="{{_not(embedded)}}">
                 <p>
                   CPU
                   <a href="https://imageinfo.skia.org/info?url=https://fiddle.skia.org/i/{{fiddlehash}}_raster.png"
@@ -277,7 +282,7 @@ sk_sp&lt;SkImage> image;</pre>
           </template>
         </template>
 
-        <template is="dom-if" if="{{_showGpu(gpu_embedded,embed_button)}}">
+        <template is="dom-if" if="{{_showGpu(gpu_embedded,embedded)}}">
             <div class="vertical layout center-justified">
                 <template is="dom-if" if="{{_not(animated)}}">
                     <img src="[[domain]]/i/{{fiddlehash}}_gpu.png" width="{{width}}" height="{{height}}">
@@ -299,7 +304,7 @@ sk_sp&lt;SkImage> image;</pre>
             </div>
         </template>
 
-        <template is="dom-if" if="{{_not(animated)}}">
+        <template is="dom-if" if="{{_showLinks(animated,embedded)}}">
           <div class="vertical layout center">
             <a href="[[domain]]/i/{{fiddlehash}}.pdf">PDF</a>
           </div>
@@ -310,26 +315,33 @@ sk_sp&lt;SkImage> image;</pre>
             <a href="https://debugger.skia.org/loadfrom?url=https://fiddle.skia.org/i/{{fiddlehash}}.skp">Debug</a>
           </div>
         </template>
+
+        <template is="dom-if" if="{{embedded}}">
+          <button class=action on-tap="_run">Run</button>
+          <paper-spinner></paper-spinner>
+          <a href="https://fiddle.skia.org/c/{{fiddlehash}}" target=_blank">Pop-out</a>
+        </template>
+
+        <template is="dom-if" if="{{animated}}">
+          <div id=controls class="horizontal layout">
+            <button on-tap="_playToggle" title="Play the animation."><iron-icon id=play icon="av:pause"></iron-icon> </button>
+            <paper-checkbox id=loop checked="{{loop}}" title="Run animations in a loop">Loop</paper-checkbox>
+            <select id=speed on-change="_speed" size="1">
+              <option value="0.25">0.25</option>
+              <option value="0.5">0.5</option>
+              <option value="0.75">0.75</option>
+              <option value="1" selected>Normal speed</option>
+              <option value="1.25">1.25</option>
+              <option value="1.5">1.5</option>
+              <option value="2">2</option>
+            </select>
+          </div>
+        </template>
       </div>
-      <template is="dom-if" if="{{animated}}">
-        <div id=controls class="horizontal layout">
-          <button on-tap="_playToggle" title="Play the animation."><iron-icon id=play icon="av:pause"></iron-icon> </button>
-          <paper-checkbox id=loop checked="{{loop}}" title="Run animations in a loop">Loop</paper-checkbox>
-          <select id=speed on-change="_speed" size="1">
-            <option value="0.25">0.25</option>
-            <option value="0.5">0.5</option>
-            <option value="0.75">0.75</option>
-            <option value="1" selected>Normal speed</option>
-            <option value="1.25">1.25</option>
-            <option value="1.5">1.5</option>
-            <option value="2">2</option>
-          </select>
-        </div>
-      </template>
     </template>
 
     <template is="dom-if" if="{{textonly}}">
-      <template is="dom-if" if="{{embed_button}}">
+      <template is="dom-if" if="{{_not(embedded)}}">
         <h2>Output</h2>
       </template>
       <div class=textoutput>
@@ -337,18 +349,15 @@ sk_sp&lt;SkImage> image;</pre>
       </div>
     </template>
 
-    <template is="dom-if" if="{{_hasImages(fiddlehash, _compile_errors, _runtime_error, textonly)}}">
-      <details-sk>
-          <summary-sk>Run Details</summary-sk>
-          <text-src id=glinfo src="[[_glinfoURL(domain, fiddlehash)]]"></text-src>
-      </details-sk>
+    <template is="dom-if" if="{{_not(embedded)}}">
+      <template is="dom-if" if="{{_hasImages(fiddlehash, _compile_errors, _runtime_error, textonly)}}">
+        <details-sk>
+            <summary-sk>Run Details</summary-sk>
+            <text-src id=glinfo src="[[_glinfoURL(domain, fiddlehash)]]"></text-src>
+        </details-sk>
+      </template>
     </template>
 
-    <template is="dom-if" if="{{_not(embed_button)}}">
-      <button class=action on-tap="_run">Run</button>
-      <paper-spinner></paper-spinner>
-      <a href="https://fiddle.skia.org/c/{{fiddlehash}}" target=_blank">Pop-out</a>
-    </template>
   </template>
 </dom-module>
 
@@ -418,6 +427,11 @@ sk_sp&lt;SkImage> image;</pre>
         reflectToAttribute: true,
       },
       embed_button: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true,
+      },
+      embedded: {
         type: Boolean,
         value: false,
         reflectToAttribute: true,
@@ -598,14 +612,17 @@ sk_sp&lt;SkImage> image;</pre>
       return domain + "/i/" + fiddlehash + "_glinfo.txt";
     },
 
-    _showCpu: function(gpu_embedded, embed_button) {
-      return embed_button || !gpu_embedded;
+    _showCpu: function(gpu_embedded, embedded) {
+      return !embedded || !gpu_embedded;
     },
 
-    _showGpu: function(gpu_embedded, embed_button) {
-      return embed_button || gpu_embedded;
+    _showGpu: function(gpu_embedded, embedded) {
+      return !embedded || gpu_embedded;
     },
 
+    _showLinks: function(animated, embedded) {
+      return !animated && !embedded;
+    },
 
   });
 </script>
