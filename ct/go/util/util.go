@@ -779,8 +779,7 @@ func TriggerBuildRepoSwarmingTask(taskName, runID, repo, targetPlatform string, 
 	} else {
 		dimensions = GCE_LINUX_BUILDER_DIMENSIONS
 	}
-	// TODO(rmistry): Use service account from getServiceAccount(dimensions) after builders are recreated.
-	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, map[string]string{"runid": runID}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, "")
+	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, map[string]string{"runid": runID}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 	if err != nil {
 		return nil, fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
