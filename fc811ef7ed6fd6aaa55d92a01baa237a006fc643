@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9fd057fe_8f72e530",
+        "filename": "debugger/vm.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-08T16:38:47Z",
+      "side": 1,
+      "message": "Too much copy/paste :(",
+      "parentUuid": "6b692851_dba97ac9",
+      "revId": "fc811ef7ed6fd6aaa55d92a01baa237a006fc643",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d0157ffb_7513c2fd",
         "filename": "debugger/vm.go",
         "patchSetId": 2
