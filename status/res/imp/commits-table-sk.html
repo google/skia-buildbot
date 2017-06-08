@@ -339,7 +339,7 @@
             this.set("_triggered_jobs", jobIds);
             this.$.triggered_jobs_dialog.open();
           }.bind(this), function(err) {
-            sk.errorMessage("Failed to trigger tasks: " + err);
+            sk.errorMessage("Failed to trigger tasks: " + err.response);
           });
         }.bind(this), function(){});
       },
