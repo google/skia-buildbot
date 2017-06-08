@@ -2260,7 +2260,7 @@ func TestTrybots(t *testing.T) {
 		Revision: rs2.Revision,
 	}
 	b.ParametersJson = testutils.MarshalJSON(t, tryjobs.Params(t, specs_testutils.TestTask, "skia", rs.Revision, rs.Server, rs.Issue, rs.Patchset))
-	tryjobs.MockPeek(mock, []*buildbucket_api.ApiBuildMessage{b}, now, "", "", nil)
+	tryjobs.MockPeek(mock, []*buildbucket_api.ApiCommonBuildMessage{b}, now, "", "", nil)
 	tryjobs.MockTryLeaseBuild(mock, b.Id, now, nil)
 	tryjobs.MockJobStarted(mock, b.Id, now, nil)
 	assert.NoError(t, s.tryjobs.Poll(now))
