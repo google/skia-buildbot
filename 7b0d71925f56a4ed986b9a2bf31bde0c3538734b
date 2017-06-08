@@ -16,6 +16,24 @@
       "revId": "7b0d71925f56a4ed986b9a2bf31bde0c3538734b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5436e15f_f61d9f83",
+        "filename": "skolo/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-08T14:44:58Z",
+      "side": 1,
+      "message": "I added a make target for jumphost, we can tweak it as we go forward.",
+      "parentUuid": "2f777d57_26bd1a15",
+      "revId": "7b0d71925f56a4ed986b9a2bf31bde0c3538734b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

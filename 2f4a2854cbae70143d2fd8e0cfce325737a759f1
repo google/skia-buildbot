@@ -16,6 +16,24 @@
       "revId": "2f4a2854cbae70143d2fd8e0cfce325737a759f1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23a7bf99_6b053532",
+        "filename": "skolo/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-08T14:44:58Z",
+      "side": 0,
+      "message": "Yes, IMO this should have been removed in a previous CL.",
+      "parentUuid": "82174978_a535e430",
+      "revId": "2f4a2854cbae70143d2fd8e0cfce325737a759f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
