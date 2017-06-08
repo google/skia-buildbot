@@ -70,7 +70,7 @@ func Test() *gce.Instance {
 }
 
 func main() {
-	server.Main(map[string]*gce.Instance{
+	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
 		"skia":           Skia(),
 		"skia-internal":  SkiaInternal(),
 		"catapult":       Catapult(),
