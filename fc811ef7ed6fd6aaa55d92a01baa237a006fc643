@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a64cb53f_be5b46fc",
+        "filename": "compute_engine_scripts/docs/install.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-08T14:33:42Z",
+      "side": 0,
+      "message": "This isn\u0027t needed because it\u0027s done automatically at instance creation.",
+      "revId": "fc811ef7ed6fd6aaa55d92a01baa237a006fc643",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b0ad8f62_5bcaed82",
+        "filename": "compute_engine_scripts/docs/startup-script.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-08T14:33:42Z",
+      "side": 0,
+      "message": "I don\u0027t think this is needed; we don\u0027t install git on other instances which use it.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "fc811ef7ed6fd6aaa55d92a01baa237a006fc643",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
