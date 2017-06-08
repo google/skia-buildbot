@@ -16,6 +16,24 @@
       "revId": "877a93419b37a0e056840d4a7547d3cc39586515",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b2efce1_0950ad8d",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-08T13:18:33Z",
+      "side": 1,
+      "message": "Done. Personally I find it helpful to have the commonly-used auth scopes in one place.  I\u0027m happy to do a find-and-replace though.",
+      "parentUuid": "52898b53_0abde61e",
+      "revId": "877a93419b37a0e056840d4a7547d3cc39586515",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
