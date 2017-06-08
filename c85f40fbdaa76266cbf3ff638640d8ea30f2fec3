@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "013cea4a_393a57e3",
+        "filename": "android_ingest/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-08T13:36:42Z",
+      "side": 1,
+      "message": "This server uses Git and has a .gitconfig which uses the credential cache, but it\u0027s not clear to me how that gets initialized.  Is that part of the android_ingest app?",
+      "range": {
+        "startLine": 10,
+        "startChar": 7,
+        "endLine": 10,
+        "endChar": 34
+      },
+      "revId": "c85f40fbdaa76266cbf3ff638640d8ea30f2fec3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
