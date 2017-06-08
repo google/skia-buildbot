@@ -159,8 +159,8 @@ func Params(t *testing.T, builder, project, revision, server, issue, patchset st
 	return p
 }
 
-func Build(t *testing.T, now time.Time) *buildbucket_api.ApiBuildMessage {
-	return &buildbucket_api.ApiBuildMessage{
+func Build(t *testing.T, now time.Time) *buildbucket_api.ApiCommonBuildMessage {
+	return &buildbucket_api.ApiCommonBuildMessage{
 		Bucket:            BUCKET_TESTING,
 		CreatedBy:         "tests",
 		CreatedTs:         now.Unix() * 1000000,
@@ -322,7 +322,7 @@ func MockJobMishap(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expec
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/fail?alt=json", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockPeek(mock *mockhttpclient.URLMock, builds []*buildbucket_api.ApiBuildMessage, now time.Time, cursor, nextcursor string, err error) {
+func MockPeek(mock *mockhttpclient.URLMock, builds []*buildbucket_api.ApiCommonBuildMessage, now time.Time, cursor, nextcursor string, err error) {
 	resp := buildbucket_api.ApiSearchResponseMessage{
 		Builds:     builds,
 		NextCursor: nextcursor,
