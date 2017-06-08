@@ -22,6 +22,30 @@
       "revId": "948be0945e429ddfb2ce2dbe70f081daa1c050ec",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da122774_c7ebbc6e",
+        "filename": "fiddle/cpp/fiddle_secwrap.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-06-08T17:51:09Z",
+      "side": 1,
+      "message": "works for me",
+      "parentUuid": "df5af754_5c309b73",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 19
+      },
+      "revId": "948be0945e429ddfb2ce2dbe70f081daa1c050ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
