@@ -800,17 +800,22 @@
           categories[category].colspan++;
 
           // Find any purple builds for this builder.
-          for (var buildNum in this.builds[builderName]) {
-            var build = this.builds[builderName][buildNum];
-            if (build.results === BUILDBOT_RESULT_EXCEPTION) {
-              // TODO(borenet): This is a bit of a hack.
-              // Jobs are named after build, test, or perf tasks, but not
-              // uploads. If this is an upload, trim the prefix.
-              var jobName = builderName;
-              if (jobName.startsWith("Upload-")) {
-                jobName = jobName.substring("Upload-".length);
+
+          // Exclude the Google3-Autoroller since it is not a real bot and
+          // therefore cannot be retried.
+          if (builderName != "Google3-Autoroller") {
+            for (var buildNum in this.builds[builderName]) {
+              var build = this.builds[builderName][buildNum];
+              if (build.results === BUILDBOT_RESULT_EXCEPTION) {
+                // TODO(borenet): This is a bit of a hack.
+                // Jobs are named after build, test, or perf tasks, but not
+                // uploads. If this is an upload, trim the prefix.
+                var jobName = builderName;
+                if (jobName.startsWith("Upload-")) {
+                  jobName = jobName.substring("Upload-".length);
+                }
+                purpleBuilds.push({"name": jobName, "commit": build.got_revision});
               }
-              purpleBuilds.push({"name": jobName, "commit": build.got_revision});
             }
           }
         }
