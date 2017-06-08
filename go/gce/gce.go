@@ -27,8 +27,8 @@ const (
 
 	DISK_SNAPSHOT_SYSTEMD_PUSHABLE_BASE = "skia-systemd-pushable-base"
 
-	DISK_TYPE_PERSISTENT_STANDARD = "pd-standard"
-	DISK_TYPE_PERSISTENT_SSD      = "pd-ssd"
+	DISK_TYPE_PERSISTENT_STANDARD DiskType = "pd-standard"
+	DISK_TYPE_PERSISTENT_SSD      DiskType = "pd-ssd"
 
 	MACHINE_TYPE_HIGHMEM_2   = "n1-highmem-2"
 	MACHINE_TYPE_HIGHMEM_16  = "n1-highmem-16"
@@ -122,6 +122,8 @@ func NewGCloud(zone, workdir string) (*GCloud, error) {
 	}, nil
 }
 
+type DiskType string
+
 // Disk is a struct describing a disk resource in GCE.
 type Disk struct {
 	// The name of the disk.
@@ -139,7 +141,7 @@ type Disk struct {
 	SourceSnapshot string
 
 	// Type of disk, eg. "pd-standard" or "pd-ssd".
-	Type string
+	Type DiskType
 }
 
 // CreateDisk creates the given disk.
