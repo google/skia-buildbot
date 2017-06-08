@@ -9,7 +9,7 @@ GitRepoURL     = "https://pdfium.googlesource.com/pdfium"  # URL location for th
   MinDays        = 3
   StatusDir      = "/mnt/pd0/pdfium_gold/ingest_status"
   MetricName     = "pdfium-gold-ingest"
-  LocalCache     = true
+  LocalCache     = false
 
     [[Ingesters.gold.Sources]]
     Bucket         = "skia-pdfium-gm"
@@ -26,7 +26,7 @@ GitRepoURL     = "https://pdfium.googlesource.com/pdfium"  # URL location for th
   MinDays        = 7
   StatusDir      = "/mnt/pd0/pdfium_gold/ingest_status"
   MetricName     = "pdfium-gold-ingest-trybot"
-  LocalCache     = true
+  LocalCache     = false
 
     [[Ingesters.gold-trybot.Sources]]
     Bucket         = "skia-pdfium-gm"
