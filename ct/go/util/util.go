@@ -470,7 +470,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 // getServiceAccount returns the service account that should be used when triggering swarming tasks.
 func getServiceAccount(dimensions map[string]string) string {
 	serviceAccount := ""
-	if util.MapsEqual(dimensions, GCE_WORKER_DIMENSIONS) {
+	if util.MapsEqual(dimensions, GCE_WORKER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_LINUX_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_ANDROID_BUILDER_DIMENSIONS) {
 		// GCE bots need to use "bot". See skbug.com/6611.
 		serviceAccount = "bot"
 	}
@@ -779,8 +779,7 @@ func TriggerBuildRepoSwarmingTask(taskName, runID, repo, targetPlatform string, 
 	} else {
 		dimensions = GCE_LINUX_BUILDER_DIMENSIONS
 	}
-	// TODO(rmistry): Use service account from getServiceAccount(dimensions) after builders are recreated.
-	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, map[string]string{"runid": runID}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, "")
+	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, map[string]string{"runid": runID}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 	if err != nil {
 		return nil, fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
