@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "814c1f22_c37175ca",
+        "filename": "ct/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-08T17:42:01Z",
+      "side": 1,
+      "message": "Is this going to bring down / up both ct-master and ctfe at the same time?",
+      "revId": "9bf0ccb0e047d3c634e866c90ee9edb3fc9b8896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
