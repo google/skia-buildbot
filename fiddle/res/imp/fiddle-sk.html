@@ -149,6 +149,8 @@
       width: 56em;
       font-family: monospace;
       font-size: 13px;
+      margin-right: 2em;
+      margin-top: 0.6em;
     }
 
     .hint {
@@ -344,8 +346,16 @@ sk_sp&lt;SkImage> image;</pre>
       <template is="dom-if" if="{{_not(embedded)}}">
         <h2>Output</h2>
       </template>
-      <div class=textoutput>
-        <text-src src="[[_textURL(domain, fiddlehash)]]"></text-src>
+
+      <div class="layout horizontal">
+        <div class=textoutput>
+          <text-src src="[[_textURL(domain, fiddlehash)]]"></text-src>
+        </div>
+        <template is="dom-if" if="{{embedded}}">
+          <button class=action on-tap="_run">Run</button>
+          <paper-spinner></paper-spinner>
+          <a href="https://fiddle.skia.org/c/{{fiddlehash}}" target=_blank">Pop-out</a>
+        </template>
       </div>
     </template>
 
