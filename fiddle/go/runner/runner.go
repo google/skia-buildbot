@@ -266,6 +266,9 @@ func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir st
 	}
 	args = []string{"--fiddle_root", fiddleRoot, "--checkout", overlay, "--git_hash", gitHash, "--alsologtostderr"}
 	args = append(args, "--duration", fmt.Sprintf("%f", opts.Duration))
+	if local {
+		args = append(args, "--local")
+	}
 	output = &bytes.Buffer{}
 	runCmd := &exec.Command{
 		Name:      name,
