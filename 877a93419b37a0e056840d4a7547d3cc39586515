@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "52898b53_0abde61e",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-06-08T13:04:28Z",
+      "side": 1,
+      "message": "SCOPE_COMPUTE_READ_ONLY \u003d compute.ComputeReadonlyScope\n\nBut why are we aliasing these here instead of just using compute.ComputeReadonlyScope directly?",
+      "revId": "877a93419b37a0e056840d4a7547d3cc39586515",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
