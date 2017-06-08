@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "08bcad5f_d98ea724",
+        "filename": "debugger/setup-script.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-08T13:55:13Z",
+      "side": 1,
+      "message": "Moved in from compute_engine_scripts/debugger/install.sh and added \"set -e\" so that we don\u0027t miss errors.",
+      "range": {
+        "startLine": 1,
+        "startChar": 12,
+        "endLine": 1,
+        "endChar": 0
+      },
+      "revId": "7f9c82846322c2260bf0f4c5ab0288aeb8e24a8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
