@@ -31,7 +31,7 @@ func StatusInternal() *gce.Instance {
 }
 
 func main() {
-	server.Main(map[string]*gce.Instance{
+	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
 		"prod":     StatusProd(),
 		"internal": StatusInternal(),
 	})

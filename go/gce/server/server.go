@@ -70,7 +70,7 @@ func AddGitConfigs(vm *gce.Instance, gitUser string) *gce.Instance {
 	return vm
 }
 
-func Main(instances map[string]*gce.Instance) {
+func Main(zone string, instances map[string]*gce.Instance) {
 	common.Init()
 	defer common.LogPanic()
 
@@ -94,7 +94,7 @@ func Main(instances map[string]*gce.Instance) {
 	}
 
 	// Create the GCloud object.
-	g, err := gce.NewGCloud(gce.ZONE_DEFAULT, wdAbs)
+	g, err := gce.NewGCloud(zone, wdAbs)
 	if err != nil {
 		sklog.Fatal(err)
 	}
