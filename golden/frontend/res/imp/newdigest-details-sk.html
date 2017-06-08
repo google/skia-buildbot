@@ -554,7 +554,7 @@
 
         // See gold.defaultSearchState why we need to embed an encoded query
         // before encoding the search string.
-        return 'cmp?' + sk.query.fromObject({query: sk.query.fromParamSet({name: [test]})});
+        return 'cmp?' + sk.query.fromObject({query: this._getRefQuery(test)});
       },
 
       _hideListFeatures: function(mode) {
@@ -570,7 +570,25 @@
           return '';
         }
 
-        return 'cluster?query=name%3D' + test + '&head=true&pos=true&neg=true&unt=true&limit=200';
+        var q = {
+          query: this._getRefQuery(test),
+          head: true,
+          pos: true,
+          neg: true,
+          unt: true,
+          limit: 200
+        };
+
+        return 'cluster?' + sk.query.fromObject(q);
+      },
+
+      _getRefQuery: function(test) {
+        var qObj = {name: [test]};
+        var corpus = this.details && this.details.paramset['source_type'];
+        if (corpus) {
+          qObj['source_type'] = corpus;
+        }
+        return sk.query.fromParamSet(qObj);
       }
     });
   </script>
