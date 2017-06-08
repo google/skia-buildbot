@@ -16,6 +16,24 @@
       "revId": "9bf0ccb0e047d3c634e866c90ee9edb3fc9b8896",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2de05d5f_62e191fd",
+        "filename": "ct/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-08T17:43:17Z",
+      "side": 1,
+      "message": "No, you use \"--instance ctfe\" or \"--instance master\" to select which instance to create/delete.",
+      "parentUuid": "814c1f22_c37175ca",
+      "revId": "9bf0ccb0e047d3c634e866c90ee9edb3fc9b8896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
