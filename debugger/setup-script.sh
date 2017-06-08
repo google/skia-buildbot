@@ -1,4 +1,5 @@
 #! /bin/bash
+set -e
 set -x
 
 /tmp/format_and_mount.sh skia-debugger
