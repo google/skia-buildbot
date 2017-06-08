@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "df5af754_5c309b73",
+        "filename": "fiddle/cpp/fiddle_secwrap.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-08T17:49:10Z",
+      "side": 1,
+      "message": "I had to move the CPP/H files into a subdir to avoid a Go compilation failure:\n\ncan\u0027t build package go.skia.org/infra/fiddle because it contains C++ files (fiddle_secwrap.cpp,ss.cpp) but it\u0027s not using cgo nor SWIG\n\nIs this an acceptable solution?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 19
+      },
+      "revId": "948be0945e429ddfb2ce2dbe70f081daa1c050ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
