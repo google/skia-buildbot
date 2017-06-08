@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "82174978_a535e430",
+        "filename": "skolo/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-08T13:06:13Z",
+      "side": 0,
+      "message": "Deleting this because the configs will be checked in an not needed to be backed up?",
+      "revId": "2f4a2854cbae70143d2fd8e0cfce325737a759f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

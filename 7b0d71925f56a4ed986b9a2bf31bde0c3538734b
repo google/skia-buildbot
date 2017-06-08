@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2f777d57_26bd1a15",
+        "filename": "skolo/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-08T13:06:13Z",
+      "side": 1,
+      "message": "It\u0027s intentional that nothing calls build_release_jumphost for now?",
+      "revId": "7b0d71925f56a4ed986b9a2bf31bde0c3538734b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
