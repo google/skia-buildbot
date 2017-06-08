@@ -128,14 +128,15 @@ func NewClientFromConfigAndTransport(local bool, config *oauth2.Config, oauthCac
 
 const (
 	// Supported Cloud storage API OAuth scopes.
-	SCOPE_READ_ONLY        = storage.DevstorageReadOnlyScope
-	SCOPE_READ_WRITE       = storage.DevstorageReadWriteScope
-	SCOPE_FULL_CONTROL     = storage.DevstorageFullControlScope
-	SCOPE_GCE              = compute.ComputeScope
-	SCOPE_GERRIT           = "https://www.googleapis.com/auth/gerritcodereview"
-	SCOPE_PUBSUB           = pubsub.ScopePubSub
-	SCOPE_USERINFO_EMAIL   = "https://www.googleapis.com/auth/userinfo.email"
-	SCOPE_USERINFO_PROFILE = "https://www.googleapis.com/auth/userinfo.profile"
+	SCOPE_READ_ONLY         = storage.DevstorageReadOnlyScope
+	SCOPE_READ_WRITE        = storage.DevstorageReadWriteScope
+	SCOPE_FULL_CONTROL      = storage.DevstorageFullControlScope
+	SCOPE_COMPUTE_READ_ONLY = compute.ComputeReadonlyScope
+	SCOPE_GCE               = compute.ComputeScope
+	SCOPE_GERRIT            = "https://www.googleapis.com/auth/gerritcodereview"
+	SCOPE_PUBSUB            = pubsub.ScopePubSub
+	SCOPE_USERINFO_EMAIL    = "https://www.googleapis.com/auth/userinfo.email"
+	SCOPE_USERINFO_PROFILE  = "https://www.googleapis.com/auth/userinfo.profile"
 )
 
 // GCEServiceAccountClient creates an oauth client that is uses the auth token
