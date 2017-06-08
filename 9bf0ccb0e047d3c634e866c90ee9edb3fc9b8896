@@ -34,6 +34,24 @@
       "revId": "9bf0ccb0e047d3c634e866c90ee9edb3fc9b8896",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7a034f51_335d00b2",
+        "filename": "ct/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-08T17:43:46Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2de05d5f_62e191fd",
+      "revId": "9bf0ccb0e047d3c634e866c90ee9edb3fc9b8896",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
