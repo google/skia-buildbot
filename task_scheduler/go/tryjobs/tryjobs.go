@@ -329,7 +329,7 @@ func (t *TryJobIntegrator) tryLeaseBuild(id int64, now time.Time) (int64, error)
 	return resp.Build.LeaseKey, nil
 }
 
-func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiBuildMessage, now time.Time) (*db.Job, error) {
+func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiCommonBuildMessage, now time.Time) (*db.Job, error) {
 	// Parse the build parameters.
 	var params buildbucket.Parameters
 	if err := json.NewDecoder(strings.NewReader(b.ParametersJson)).Decode(&params); err != nil {
