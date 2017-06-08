@@ -22,6 +22,30 @@
       "revId": "063bd2ad7fda46d55bf776bf6e9c2156fba78086",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d2b0734_9333f3fa",
+        "filename": "compute_engine_scripts/monitoring/startup-script.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-06-08T16:31:28Z",
+      "side": 0,
+      "message": "Ack",
+      "parentUuid": "221faf5f_5bfee6e7",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "063bd2ad7fda46d55bf776bf6e9c2156fba78086",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

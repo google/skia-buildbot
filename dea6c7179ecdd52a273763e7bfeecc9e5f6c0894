@@ -22,6 +22,30 @@
       "revId": "dea6c7179ecdd52a273763e7bfeecc9e5f6c0894",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13aa42bb_6b14aadd",
+        "filename": "monitoring/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-06-08T16:31:28Z",
+      "side": 1,
+      "message": "I\u0027ve got nothing better.",
+      "parentUuid": "b1903763_5f2ea0a8",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "dea6c7179ecdd52a273763e7bfeecc9e5f6c0894",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
