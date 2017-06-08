@@ -28,7 +28,8 @@ const (
 var (
 	// Flags.
 	instances      = flag.String("instances", "", "Which instances to create/delete, eg. \"2,3-10,22\"")
-	builder        = flag.Bool("builder", false, "Whether or not this is a builder instance.")
+	androidBuilder = flag.Bool("android-builder", false, "Whether or not this is an android builder instance.")
+	linuxBuilder   = flag.Bool("linux-builder", false, "Whether or not this is a linux builder instance.")
 	create         = flag.Bool("create", false, "Create the instance. Either --create or --delete is required.")
 	delete         = flag.Bool("delete", false, "Delete the instance. Either --create or --delete is required.")
 	deleteDataDisk = flag.Bool("delete-data-disk", false, "Delete the data disk. Only valid with --delete")
@@ -77,9 +78,16 @@ func CTInstance(num int) *gce.Instance {
 	return CT20170602(fmt.Sprintf("ct-gce-%03d", num))
 }
 
-// CT Builder GCE instances.
-func CTBuilderInstance(num int) *gce.Instance {
-	vm := CT20170602(fmt.Sprintf("ct-gce-%03d", num))
+// CT Android Builder GCE instances.
+func CTAndroidBuilderInstance(num int) *gce.Instance {
+	vm := CT20170602(fmt.Sprintf("ct-android-builder-%03d", num))
+	vm.MachineType = "custom-32-70400"
+	return vm
+}
+
+// CT Linux Builder GCE instances.
+func CTLinuxBuilderInstance(num int) *gce.Instance {
+	vm := CT20170602(fmt.Sprintf("ct-linux-builder-%03d", num))
 	vm.MachineType = "custom-32-70400"
 	return vm
 }
@@ -91,6 +99,10 @@ func main() {
 	// Validation.
 	if *create == *delete {
 		sklog.Fatal("Please specify --create or --delete, but not both.")
+	}
+
+	if *androidBuilder && *linuxBuilder {
+		sklog.Fatal("Cannot specify both --android-builder and --linux-builder.")
 	}
 
 	instanceNums, err := util.ParseIntSet(*instances)
@@ -122,8 +134,10 @@ func main() {
 	group := util.NewNamedErrGroup()
 	for _, num := range instanceNums {
 		var vm *gce.Instance
-		if *builder {
-			vm = CTBuilderInstance(num)
+		if *androidBuilder {
+			vm = CTAndroidBuilderInstance(num)
+		} else if *linuxBuilder {
+			vm = CTLinuxBuilderInstance(num)
 		} else {
 			vm = CTInstance(num)
 		}
