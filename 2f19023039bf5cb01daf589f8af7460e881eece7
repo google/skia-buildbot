@@ -70,6 +70,30 @@
       "revId": "2f19023039bf5cb01daf589f8af7460e881eece7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e73051c6_2d7bcccd",
+        "filename": "perf/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-08T13:09:55Z",
+      "side": 1,
+      "message": "Turns out there was already a perf@skia.org account, so I went ahead and generated gitcookies, and we can do AddGitConfigs now.",
+      "parentUuid": "d8c3b432_f326fdb5",
+      "range": {
+        "startLine": 11,
+        "startChar": 37,
+        "endLine": 11,
+        "endChar": 71
+      },
+      "revId": "2f19023039bf5cb01daf589f8af7460e881eece7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
