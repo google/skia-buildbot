@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a3ba92f0_1e8e2225",
+        "filename": "fuzzer/setup-script.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-08T19:46:58Z",
+      "side": 1,
+      "message": "This fails when run as part of the script.  IIRC one of Joe\u0027s instances also used this and required the user to log in and run the script.  What should we do?",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 19
+      },
+      "revId": "04b1261e22045da1a3f157cfa8e300a2c28b662f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
