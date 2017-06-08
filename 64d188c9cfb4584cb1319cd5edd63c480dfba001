@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b1d36a46_7de83d01",
+        "filename": "go/gce/ct/ct_vm.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-08T14:52:11Z",
+      "side": 1,
+      "message": "nit: *androidBuilder \u0026\u0026 *linuxBuilder",
+      "range": {
+        "startLine": 104,
+        "startChar": 4,
+        "endLine": 104,
+        "endChar": 55
+      },
+      "revId": "64d188c9cfb4584cb1319cd5edd63c480dfba001",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
