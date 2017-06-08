@@ -44,15 +44,6 @@ router_backup_push: backup service_account
 	./build_release_router_backup "`git log -n1 --format=%s`"
 	pushcli router-backup skia-rpi-master
 
-.PHONY: powercycle_backup_release
-powercycle_backup_release: backup service_account
-	./build_release_powercycle_backup "$(MESSAGE)"
-
-.PHONY: powercycle_backup_push
-powercycle_backup_push: backup service_account
-	go install -v ../push/go/pushcli
-	./build_release_powercycle_backup "`git log -n1 --format=%s`"
-	pushcli powercycle-backup skia-jumphost
 
 .PHONY: cloudlogger
 cloudlogger:
@@ -76,6 +67,16 @@ powercycle_push: powercycle service_account
 	go install -v ../push/go/pushcli
 	./build_release_powercycle "`git log -n1 --format=%s`"
 	pushcli powercycle skia-jumphost
+
+.PHONY: jumphost_release
+jumphost_release: service_account powercycle
+	./build_release_jumphost "$(MESSAGE)" "$(TARGET)"
+
+.PHONY: jumphost_push_all
+jumphost_push: powercycle service_account
+	go install -v ../push/go/pushcli
+	./build_release_jumphost "`git log -n1 --format=%s`" "$(TARGET)"
+	pushcli  "jumphost-$(TARGET)" "jumphost-$(TARGET)"
 
 .PHONY: android_watchdog
 android_watchdog:
