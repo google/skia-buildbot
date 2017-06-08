@@ -54,7 +54,7 @@ func Test() *gce.Instance {
 }
 
 func main() {
-	server.Main(map[string]*gce.Instance{
+	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
 		"prod":         Prod(),
 		"pdfium":       Pdfium(),
 		"testinstance": Test(),

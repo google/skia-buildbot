@@ -28,7 +28,7 @@ func Test2() *gce.Instance {
 }
 
 func main() {
-	server.Main(map[string]*gce.Instance{
+	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
 		"prod":  Prod(),
 		"test1": Test1(),
 		"test2": Test2(),

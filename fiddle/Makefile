@@ -16,7 +16,7 @@ build: elements_html core_js
 	go install -v ./go/webtry_extract
 	go install -v ./go/fiddle
 	go install -v ./go/fiddlecli
-	c++ fiddle_secwrap.cpp -o fiddle_secwrap
+	c++ cpp/fiddle_secwrap.cpp -o fiddle_secwrap
 
 .PHONY: testgo
 testgo:
@@ -34,7 +34,7 @@ debug: clean_webtools debug_core_js debug_elements_html
 
 .PHONY: secwraplive
 secwraplive:
-	c++ fiddle_secwrap.cpp -o fiddle_secwrap
+	c++ cpp/fiddle_secwrap.cpp -o fiddle_secwrap
 	gcloud compute copy-files fiddle_secwrap default@skia-fiddle:/mnt/pd0/fiddle/bin/fiddle_secwrap --zone us-east1-d
 
 include ../webtools/webtools.mk
