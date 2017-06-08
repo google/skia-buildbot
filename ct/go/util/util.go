@@ -470,7 +470,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 // getServiceAccount returns the service account that should be used when triggering swarming tasks.
 func getServiceAccount(dimensions map[string]string) string {
 	serviceAccount := ""
-	if util.MapsEqual(dimensions, GCE_WORKER_DIMENSIONS) {
+	if util.MapsEqual(dimensions, GCE_WORKER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_LINUX_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_ANDROID_BUILDER_DIMENSIONS) {
 		// GCE bots need to use "bot". See skbug.com/6611.
 		serviceAccount = "bot"
 	}
