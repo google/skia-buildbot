@@ -33,8 +33,9 @@ func TestNamed(t *testing.T) {
 	testutils.SmallTest(t)
 	mock := &namedMock{
 		lookup: map[string]string{
-			"star":     "cbb8dee39e9f1576cd97c2d504db8eee",
-			"bad_hash": "cbb8d",
+			"star":      "cbb8dee39e9f1576cd97c2d504db8eee",
+			"text_only": "92e8c9418a28113de73524d8b26d1c3c",
+			"bad_hash":  "cbb8d",
 		},
 	}
 	names := New(mock)
@@ -88,6 +89,16 @@ func TestNamed(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, mediaHash, "cbb8dee39e9f1576cd97c2d504db8eee")
 	assert.Equal(t, media, store.GLINFO)
+
+	mediaHash, media, err = names.DereferenceImageID("@star.txt")
+	assert.NoError(t, err)
+	assert.Equal(t, mediaHash, "cbb8dee39e9f1576cd97c2d504db8eee")
+	assert.Equal(t, media, store.TXT)
+
+	mediaHash, media, err = names.DereferenceImageID("@text_only.txt")
+	assert.NoError(t, err)
+	assert.Equal(t, mediaHash, "92e8c9418a28113de73524d8b26d1c3c")
+	assert.Equal(t, media, store.TXT)
 }
 
 func TestAdd(t *testing.T) {

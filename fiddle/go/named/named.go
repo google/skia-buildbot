@@ -153,7 +153,7 @@ func (n *Named) DereferenceImageID(id string) (string, store.Media, error) {
 	}
 	id = id[:len(id)-len(trailing)]
 	// If this is a .png or .webm then we need to strip off the trailing "_raster" or "_gpu".
-	if strings.Contains(id, "_") {
+	if strings.HasSuffix(id, "_raster") || strings.HasSuffix(id, "_gpu") || strings.HasSuffix(id, "_glinfo") {
 		parts := strings.Split(id, "_")
 		if len(parts) < 2 {
 			return "", store.UNKNOWN, fmt.Errorf("Not a valid image id form: %q", id)
