@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6b692851_dba97ac9",
+        "filename": "debugger/vm.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-06-08T16:32:38Z",
+      "side": 1,
+      "message": "skia-perf?",
+      "revId": "fc811ef7ed6fd6aaa55d92a01baa237a006fc643",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0157ffb_7513c2fd",
+        "filename": "debugger/vm.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-06-08T16:32:38Z",
+      "side": 1,
+      "message": "skia-perf?",
+      "revId": "fc811ef7ed6fd6aaa55d92a01baa237a006fc643",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
