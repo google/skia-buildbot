@@ -505,7 +505,6 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 
 func singleStepTryNamed() {
 	sklog.Infoln("Begin: Try all named fiddles.")
-	namedFailures.Reset()
 	allNames, err := fiddleStore.ListAllNames()
 	if err != nil {
 		sklog.Errorf("Failed to list all named fiddles: %s", err)
@@ -534,22 +533,20 @@ func singleStepTryNamed() {
 		res, err := runner.Run(checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir, options)
 		if err != nil {
 			sklog.Errorf("Failed to run fiddle for %s: %s", name.Name, err)
-			namedFailures.Inc(1)
 			failing = append(failing, name)
-			continue
-		}
-		if res.Compile.Errors != "" || res.Execute.Errors != "" {
+		} else if res.Compile.Errors != "" || res.Execute.Errors != "" {
 			sklog.Errorf("Failed to compile or run the named fiddle: %s", name.Name)
-			namedFailures.Inc(1)
 			failing = append(failing, name)
 		}
-		if !*local && !*preserveTemp {
+		if !*preserveTemp {
 			if err := os.RemoveAll(tmpDir); err != nil {
 				sklog.Errorf("Failed to remove temp dir: %s", err)
 			}
 		}
 	}
 	sklog.Infof("The following named fiddles are failing: %v", failing)
+	namedFailures.Reset()
+	namedFailures.Inc(int64(len(failing)))
 	tryNamedLiveness.Reset()
 	failingMutex.Lock()
 	defer failingMutex.Unlock()
