@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/fiddle/go/linenumbers"
@@ -31,6 +32,11 @@ DrawOptions GetDrawOptions() {
 
 %s
 `
+)
+
+var (
+	runTotal    = metrics2.GetCounter("run-total", nil)
+	runFailures = metrics2.GetCounter("run-failures", nil)
 )
 
 // prepCodeToCompile adds the line numbers and the right prefix code
@@ -204,6 +210,7 @@ func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir st
 			sudo mount -t overlay -o lowerdir=$LOWER,upperdir=$UPPER,workdir=$WORK none ${OVERLAY}
 
 	*/
+	runTotal.Inc(1)
 	upper := filepath.Join(tmpDir, "upper")
 	work := filepath.Join(tmpDir, "work")
 	overlay := filepath.Join(tmpDir, "overlay")
@@ -277,6 +284,7 @@ func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir st
 		Stdout:    output,
 	}
 	if err := exec.Run(runCmd); err != nil {
+		runFailures.Inc(1)
 		return nil, fmt.Errorf("fiddle_run failed to run %#v: %s", *runCmd, err)
 	}
 
