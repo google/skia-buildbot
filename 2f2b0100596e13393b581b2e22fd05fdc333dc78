@@ -45,6 +45,30 @@
       "revId": "2f2b0100596e13393b581b2e22fd05fdc333dc78",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68686221_1fc502b1",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-09T18:26:32Z",
+      "side": 1,
+      "message": "Oops, I got confused. I think what you want is:\n_ \u003d os.RemoveAll(filepath.Join(tmpDir, name))",
+      "parentUuid": "a96affe5_7d2a18e8",
+      "range": {
+        "startLine": 200,
+        "startChar": 0,
+        "endLine": 202,
+        "endChar": 3
+      },
+      "revId": "2f2b0100596e13393b581b2e22fd05fdc333dc78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
