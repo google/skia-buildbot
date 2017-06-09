@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "928ece4b_870a2075",
+        "filename": "autoroll/vm.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-09T17:47:22Z",
+      "side": 1,
+      "message": "Not in this CL, but IMO we should use named static IPs when they are required.",
+      "range": {
+        "startLine": 61,
+        "startChar": 66,
+        "endLine": 61,
+        "endChar": 82
+      },
+      "revId": "9bf87ea06725720e260430f2373704231ac8a1e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
