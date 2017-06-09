@@ -14,7 +14,9 @@ func AutoRollBase(name, ipAddress string) *gce.Instance {
 	vm := server.AddGitConfigs(server.Server20170518(name), name)
 	vm.DataDisk.SizeGb = 64
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
-	vm.ExternalIpAddress = ipAddress
+	if ipAddress != "" {
+		vm.ExternalIpAddress = ipAddress
+	}
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_2
 	vm.Metadata["owner_primary"] = "borenet"
 	vm.Metadata["owner_secondary"] = "rmistry"
@@ -25,23 +27,23 @@ func AutoRollBase(name, ipAddress string) *gce.Instance {
 }
 
 func Skia() *gce.Instance {
-	return AutoRollBase("skia-autoroll", "104.154.112.12")
+	return AutoRollBase("skia-autoroll", "" /* Use ephemeral IP */)
 }
 
 func SkiaInternal() *gce.Instance {
-	return AutoRollBase("skia-internal-autoroll", "104.154.112.129")
+	return AutoRollBase("skia-internal-autoroll", "" /* Use ephemeral IP */)
 }
 
 func Catapult() *gce.Instance {
-	return AutoRollBase("catapult-autoroll", "104.154.112.121")
+	return AutoRollBase("catapult-autoroll", "" /* Use ephemeral IP */)
 }
 
 func NaCl() *gce.Instance {
-	return AutoRollBase("nacl-autoroll", "104.154.112.123")
+	return AutoRollBase("nacl-autoroll", "" /* Use ephemeral IP */)
 }
 
 func PDFium() *gce.Instance {
-	return AutoRollBase("pdfium-autoroll", "104.154.123.210")
+	return AutoRollBase("pdfium-autoroll", "" /* Use ephemeral IP */)
 }
 
 func AddAndroidConfigs(vm *gce.Instance) *gce.Instance {
@@ -56,11 +58,11 @@ func AddAndroidConfigs(vm *gce.Instance) *gce.Instance {
 }
 
 func AndroidMaster() *gce.Instance {
-	return AddAndroidConfigs(AutoRollBase("android-master-autoroll", "104.154.123.206"))
+	return AddAndroidConfigs(AutoRollBase("android-master-autoroll", "130.211.199.63" /* Needs whitelisted static IP */))
 }
 
 func AndroidO() *gce.Instance {
-	return AddAndroidConfigs(AutoRollBase("android-o-autoroll", "104.154.123.208"))
+	return AddAndroidConfigs(AutoRollBase("android-o-autoroll", "104.198.73.244" /* Needs whitelisted static IP */))
 }
 
 func Test() *gce.Instance {
