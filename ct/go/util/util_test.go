@@ -41,3 +41,8 @@ func TestGetRepeatValue(t *testing.T) {
 	assert.Equal(t, 2, GetRepeatValue("--pageset-repeatsssss=4", 2))
 	assert.Equal(t, 2, GetRepeatValue("--somethingelse", 2))
 }
+
+func TestCleanTmpDir(t *testing.T) {
+	testutils.SmallTest(t)
+	CleanTmpDir()
+}
