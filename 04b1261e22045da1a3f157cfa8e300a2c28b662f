@@ -22,6 +22,53 @@
       "revId": "04b1261e22045da1a3f157cfa8e300a2c28b662f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b5d0663_17c484fc",
+        "filename": "fuzzer/setup-script.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-09T12:26:02Z",
+      "side": 1,
+      "message": "Does just the apt-get update fail?  or anything involving sudo?",
+      "parentUuid": "a3ba92f0_1e8e2225",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 19
+      },
+      "revId": "04b1261e22045da1a3f157cfa8e300a2c28b662f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69042f85_18cb5ad0",
+        "filename": "fuzzer/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-06-09T12:26:02Z",
+      "side": 1,
+      "message": "These can all be ephemeral ip addresses",
+      "range": {
+        "startLine": 47,
+        "startChar": 22,
+        "endLine": 47,
+        "endChar": 37
+      },
+      "revId": "04b1261e22045da1a3f157cfa8e300a2c28b662f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
