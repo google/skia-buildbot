@@ -17,6 +17,8 @@ import (
 	"sync"
 	"time"
 
+	_ "net/http/pprof"
+
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/fiddle/go/buildlib"
 	"go.skia.org/infra/fiddle/go/named"
@@ -600,6 +602,11 @@ func main() {
 	if *tryNamed {
 		StartTryNamed()
 	}
+
+	go func() {
+		sklog.Fatal(http.ListenAndServe("localhost:6060", nil))
+	}()
+
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 	r.HandleFunc("/i/{id:[@0-9a-zA-Z._]+}", imageHandler)

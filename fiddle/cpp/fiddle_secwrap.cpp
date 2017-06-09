@@ -197,41 +197,37 @@ const char *unlink_allowed_prefixes[] = {
 };
 
 const char *writing_allowed_prefixes[] = {
-    "/dev/nvidia",
     "/dev/dri/",
+    "/dev/nvidia",
     "/tmp/",
     NULL,
 };
 
 const char *openat_allowed_prefixes[] = {
-    "/usr/share/fonts",
-    "/usr/local/share/fonts",
-    "/var/cache/fontconfig",
     "/etc/fonts",
+    "/usr/local/share/fonts",
+    "/usr/share/fonts",
+    "/var/cache/fontconfig",
     NULL,
 };
 
 const char *readonly_allowed_prefixes[] = {
-    "/usr/local/share/fonts",
-    "/var/cache/fontconfig",
-    "/etc/fonts",
-    "/usr/share/fonts",
-    "/etc/ld.so.cache",
-    "/lib/",
-    "/usr/lib/",
-    "skia.conf",
-    "/mnt/pd0/",
-    "/proc/meminfo",
-    "/etc/glvnd/",
-    "/proc/modules",
-    "/proc/driver/nvidia",
-    "/usr/share/glvnd/",
-    "/home/default/.nv/",
-    "/etc/nvidia/",
-    "/usr/share/nvidia/",
-    "/home/default/.glvnd",
     "/dev/dri",
+    "/etc/fonts",
+    "/etc/glvnd/",
+    "/etc/ld.so.cache",
+    "/etc/nvidia/",
+    "/lib/",
+    "/mnt/pd0/",
+    "/proc/driver/nvidia",
+    "/proc/meminfo",
+    "/proc/modules",
     "/tmp/",
+    "/usr/lib/",
+    "/usr/local/share/fonts",
+    "/usr/share/",
+    "/var/cache/fontconfig",
+    "skia.conf",
     NULL,
 };
 
@@ -273,6 +269,7 @@ int do_trace(pid_t child, char *allowed_exec) {
             return 0;
         }
         if (WIFSIGNALED(status)) {
+            cout << WTERMSIG(status) << endl;
             perror("WIFSIGNALED");
             return 1;
         }
