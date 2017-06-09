@@ -183,9 +183,23 @@ func ApplyPatch(patch, dir string) error {
 // CleanTmpDir deletes all tmp files from the caller because telemetry tends to
 // generate a lot of temporary artifacts there and they take up root disk space.
 func CleanTmpDir() {
-	files, _ := ioutil.ReadDir(os.TempDir())
-	for _, f := range files {
-		util.RemoveAll(filepath.Join(os.TempDir(), f.Name()))
+	tmpDir := os.TempDir()
+	d, err := os.Open(tmpDir)
+	if err != nil {
+		sklog.Error(err)
+		return
+	}
+	defer d.Close()
+	names, err := d.Readdirnames(-1)
+	if err != nil {
+		sklog.Error(err)
+		return
+	}
+	for _, name := range names {
+		err = os.RemoveAll(filepath.Join(tmpDir, name))
+		if err != nil {
+			continue
+		}
 	}
 }
 
