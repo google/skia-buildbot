@@ -53,10 +53,19 @@ func Test() *gce.Instance {
 	return vm
 }
 
+func DiffServer() *gce.Instance {
+	vm := GoldBase("skia-diff-server", "104.154.123.224")
+	vm.DataDisk.SizeGb = 2000
+	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
+	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_32
+	return vm
+}
+
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
 		"prod":         Prod(),
 		"pdfium":       Pdfium(),
 		"testinstance": Test(),
+		"diffserver":   DiffServer(),
 	})
 }

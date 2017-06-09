@@ -69,7 +69,7 @@ func TestNetDiffStore(t *testing.T) {
 		assert.NoError(t, conn.Close())
 	}()
 
-	netDiffStore, err := NewNetDiffStore(conn)
+	netDiffStore, err := NewNetDiffStore(conn, "")
 	assert.NoError(t, err)
 
 	// run tests against it.
