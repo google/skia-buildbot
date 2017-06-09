@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "53bb8b79_e1dfd494",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-09T18:21:12Z",
+      "side": 1,
+      "message": "Based on the documentation, this is equivalent to ioutil.ReadDir. (It might be a little faster since it doesn\u0027t stat all the files, but I\u0027m not sure you care.)\n\nIn other words, you seem to be making the code more complicated but not actually changing the behavior.",
+      "range": {
+        "startLine": 193,
+        "startChar": 15,
+        "endLine": 193,
+        "endChar": 33
+      },
+      "revId": "2f2b0100596e13393b581b2e22fd05fdc333dc78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a96affe5_7d2a18e8",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-09T18:21:12Z",
+      "side": 1,
+      "message": "Maybe check the logs to see if util.RemoveAll encountered errors? I would expect trying to remove . and .. would fail.",
+      "range": {
+        "startLine": 200,
+        "startChar": 0,
+        "endLine": 202,
+        "endChar": 3
+      },
+      "revId": "2f2b0100596e13393b581b2e22fd05fdc333dc78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
