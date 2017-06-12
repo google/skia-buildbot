@@ -1,0 +1,58 @@
+package stepfit
+
+import (
+	"math"
+	"testing"
+
+	"go.skia.org/infra/go/testutils"
+)
+
+func TestStepFit(t *testing.T) {
+	testutils.SmallTest(t)
+	testCases := []struct {
+		value    []float32
+		expected *StepFit
+		message  string
+	}{
+		{
+			value:    []float32{0, 0, 1, 1, 1},
+			expected: &StepFit{TurningPoint: 2, StepSize: -1, Status: HIGH},
+			message:  "Simple Step Up",
+		},
+		{
+			value:    []float32{1, 1, 1, 0, 0},
+			expected: &StepFit{TurningPoint: 3, StepSize: 1, Status: LOW},
+			message:  "Simple Step Down",
+		},
+		{
+			value:    []float32{1, 1, 1, 1, 1},
+			expected: &StepFit{TurningPoint: 0, StepSize: -1, Status: UNINTERESTING},
+			message:  "No step",
+		},
+		{
+			value:    []float32{},
+			expected: &StepFit{TurningPoint: 0, StepSize: -1, Status: UNINTERESTING},
+			message:  "Empty",
+		},
+	}
+
+	for _, tc := range testCases {
+		got, want := GetStepFit(tc.value, 50), tc.expected
+		if got.StepSize != want.StepSize {
+			t.Errorf("Failed StepFit Got %#v Want %#v: %s", got.StepSize, want.StepSize, tc.message)
+		}
+		if got.Status != want.Status {
+			t.Errorf("Failed StepFit Got %#v Want %#v: %s", got.Status, want.Status, tc.message)
+		}
+		if got.TurningPoint != want.TurningPoint {
+			t.Errorf("Failed StepFit Got %#v Want %#v: %s", got.TurningPoint, want.TurningPoint, tc.message)
+		}
+	}
+	// With a huge interesting value everything should be uninteresting.
+	for _, tc := range testCases {
+		got := GetStepFit(tc.value, 500)
+		if math.IsInf(float64(got.Regression), 1) && math.IsInf(float64(got.Regression), -1) && got.Status != UNINTERESTING {
+			t.Errorf("Failed StepFit Got %#v Want %#v: %v Regression %g", got.Status, UNINTERESTING, tc.value, got.Regression)
+		}
+	}
+}
