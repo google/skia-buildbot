@@ -778,6 +778,28 @@ func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool, workdir string)
 		if err := g.SetMetadata(vm, vm.Metadata); err != nil {
 			return err
 		}
+	} else {
+		// There is a setup process which takes place after instance
+		// creation. It holds the dpkg lock and it reboots the instance
+		// when finished, so we need to wait for it to complete before
+		// performing our own setup.
+		sklog.Infof("Waiting for setup on %s to complete.", vm.Name)
+		if _, err := g.Ssh(vm, "sleep", "300"); err != nil {
+			sklog.Infof("Setup finished on %s", vm.Name)
+		} else {
+			sklog.Infof("Setup did not finish on %s within 5 minutes. Continuing anyway.", vm.Name)
+		}
+
+		// Instance IP address may change at reboot.
+		ip, err := g.GetIpAddress(vm)
+		if err != nil {
+			return err
+		}
+		vm.ExternalIpAddress = ip
+
+		if err := g.WaitForInstanceReady(vm, maxWaitTime); err != nil {
+			return err
+		}
 	}
 
 	// Format and mount.
