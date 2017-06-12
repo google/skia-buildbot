@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
@@ -51,7 +54,7 @@ type Client struct {
 
 // NewClient returns a Client instance.
 func NewClient(workdir, server string) (*Client, error) {
-	s, err := storage.NewClient(context.Background())
+	s, err := storage.NewClient(context.Background(), option.WithScopes(storage.ScopeReadOnly), option.WithHTTPClient(&http.Client{}))
 	if err != nil {
 		return nil, err
 	}
