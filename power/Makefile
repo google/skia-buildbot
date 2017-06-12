@@ -10,10 +10,13 @@ BOWER_DIR=third_party/bower_components
 
 default: all
 
-all: clean_webtools core_js elements_html skiaversion power_controller
+all: clean_webtools core_js elements_html skiaversion power
 
-power_controller:
+power:
 	go install -v ./go/power-controller
+
+power_release: all
+	./power_release "`git log -n1 --format=%s`"
 
 include ../webtools/webtools.mk
 include ../go/skiaversion/skiaversion.mk
