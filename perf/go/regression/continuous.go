@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
+	"go.skia.org/infra/perf/go/stepfit"
 )
 
 // Continuous is used to run clustering on the last numCommits commits and
@@ -100,13 +101,13 @@ func (c *Continuous) Run() {
 				// Update database if regression at the midpoint is found.
 				for _, cl := range resp.Summary.Clusters {
 					if cl.StepPoint.Offset == int64(commit.Index) {
-						if cl.StepFit.Status == clustering2.LOW {
+						if cl.StepFit.Status == stepfit.LOW {
 							if err := c.store.SetLow(details[0], q, resp.Frame, cl); err != nil {
 								sklog.Errorf("Failed to save newly found cluster: %s", err)
 							}
 							sklog.Infof("Found Low regression at %s for %q: %v", details[0].Message, q, *cl.StepFit)
 						}
-						if cl.StepFit.Status == clustering2.HIGH {
+						if cl.StepFit.Status == stepfit.HIGH {
 							if err := c.store.SetHigh(details[0], q, resp.Frame, cl); err != nil {
 								sklog.Errorf("Failed to save newly found cluster: %s", err)
 							}
