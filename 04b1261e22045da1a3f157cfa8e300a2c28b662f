@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "e1f38521_9b927fcc",
+        "filename": "fuzzer/setup-script.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-12T15:50:40Z",
+      "side": 1,
+      "message": "This is resolved with https://skia-review.googlesource.com/c/19485/",
+      "parentUuid": "46ba0a1c_b6416c40",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 19
+      },
+      "revId": "04b1261e22045da1a3f157cfa8e300a2c28b662f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "69042f85_18cb5ad0",
         "filename": "fuzzer/vm.go",
         "patchSetId": 1
