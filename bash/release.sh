@@ -69,8 +69,13 @@ then
     exit 1
 fi
 
-# Get the current architecture.
-ARCH=`dpkg --print-architecture`
+if [ ! -v FORCE_ARCH ]
+then
+  # Get the current architecture.
+  ARCH=`dpkg --print-architecture`
+else
+  ARCH=$FORCE_ARCH
+fi
 
 # Create all directories here, so their perms can be set correctly.
 mkdir --parents ${ROOT}/DEBIAN
