@@ -3,6 +3,8 @@ package diffstore
 import (
 	"fmt"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 
 	context "golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -14,18 +16,23 @@ import (
 // NetDiffStore implements the DiffStore interface and wraps around
 // a DiffService client.
 type NetDiffStore struct {
+	// serviceClient is the gRPC client for the DiffService.
 	serviceClient DiffServiceClient
+
+	// diffServerImageAddress is the port where the diff server serves images.
+	diffServerImageAddress string
 }
 
 // NewNetDiffStore implements the diff.DiffStore interface via the gRPC-based DiffService.
-func NewNetDiffStore(conn *grpc.ClientConn) (diff.DiffStore, error) {
+func NewNetDiffStore(conn *grpc.ClientConn, diffServerImageAddress string) (diff.DiffStore, error) {
 	serviceClient := NewDiffServiceClient(conn)
 	if _, err := serviceClient.Ping(context.Background(), &Empty{}); err != nil {
 		return nil, fmt.Errorf("Could not ping over connection: %s", err)
 	}
 
 	return &NetDiffStore{
-		serviceClient: serviceClient,
+		serviceClient:          serviceClient,
+		diffServerImageAddress: diffServerImageAddress,
 	}, nil
 }
 
@@ -47,7 +54,15 @@ func (n *NetDiffStore) Get(priority int64, mainDigest string, rightDigests []str
 // will always return an error. The images are expected to be served by the
 // the server that implements the backend of the DiffService.
 func (n *NetDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
-	return nil, fmt.Errorf("Not implemented.")
+	// Set up a proxy to the differ server images ports. In production
+	// this should not be really used since we proxy directly from the frontend
+	// to the diff server.
+
+	targetURL, err := url.Parse(fmt.Sprintf("http://%s", n.diffServerImageAddress))
+	if err != nil {
+		return nil, fmt.Errorf("Invalid address for serving diff images. Got error: %s", err)
+	}
+	return httputil.NewSingleHostReverseProxy(targetURL), nil
 }
 
 // WarmDigests, see the diff.DiffStore interface.
