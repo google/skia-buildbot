@@ -54,7 +54,7 @@ type Error struct {
 }
 
 type Properties struct {
-	AttemptStartTs   int64            `json:"attempt_start_ts,omitempty"`
+	AttemptStartTs   float64          `json:"attempt_start_ts,omitempty"`
 	Category         string           `json:"category,omitempty"`
 	Gerrit           string           `json:"patch_gerrit_url,omitempty"`
 	GerritIssue      jsonutils.Number `json:"patch_issue,omitempty"`
