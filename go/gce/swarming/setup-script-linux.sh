@@ -37,6 +37,8 @@ sudo ln -s -f /usr/bin/clang++-3.6 /usr/bin/clang++
 sudo ln -s -f /usr/bin/llvm-cov-3.6 /usr/bin/llvm-cov
 sudo ln -s -f /usr/bin/llvm-profdata-3.6 /usr/bin/llvm-profdata
 
+# Get access token from metadata.
+TOKEN=`curl "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" -H "Metadata-Flavor: Google" | python -c "import sys, json; print json.load(sys.stdin)['access_token']"`
 # Bootstrap Swarming.
 sudo chmod 777 /b
 mkdir -p /b/s
@@ -44,5 +46,6 @@ SWARMING=https://chromium-swarm.appspot.com
 if [[ $(hostname) == *"-i-"* ]]; then
   SWARMING=https://chrome-swarming.appspot.com
 fi
-wget ${SWARMING}/bot_code -O /b/s/swarming_bot.zip
+HOSTNAME=`hostname`
+curl ${SWARMING}/bot_code?bot_id=$HOSTNAME -H "Authorization":"Bearer $TOKEN" -O /b/s/swarming_bot.zip
 ln -sf /b/s /b/swarm_slave
