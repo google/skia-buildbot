@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "317ccd73_e5dcc1db",
+        "filename": "autoroll/vm.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-12T11:28:29Z",
+      "side": 1,
+      "message": "IMO no need for the comment.",
+      "range": {
+        "startLine": 30,
+        "startChar": 40,
+        "endLine": 30,
+        "endChar": 63
+      },
+      "revId": "05825ca9eb160167a379a597686fa23744d38c79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
