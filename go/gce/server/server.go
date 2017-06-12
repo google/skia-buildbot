@@ -70,6 +70,9 @@ func AddGitConfigs(vm *gce.Instance, gitUser string) *gce.Instance {
 	return vm
 }
 
+// Main takes a map of string -> gce.Instance to initialize in the given zone.
+// The string keys are nicknames for the instances (e.g. "prod", "staging").
+//  Only the instance specified by the --instance flag will be created.
 func Main(zone string, instances map[string]*gce.Instance) {
 	common.Init()
 	defer common.LogPanic()
@@ -81,7 +84,7 @@ func Main(zone string, instances map[string]*gce.Instance) {
 			validInstances = append(validInstances, k)
 		}
 		sort.Strings(validInstances)
-		sklog.Fatalf("Invalid instance name %q; must be one of: %v", *instance, validInstances)
+		sklog.Fatalf("Invalid --instance %q; name must be one of: %v", *instance, validInstances)
 	}
 	if *create == *delete {
 		sklog.Fatal("Please specify --create or --delete, but not both.")
