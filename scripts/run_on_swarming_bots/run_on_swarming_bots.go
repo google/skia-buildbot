@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"sync"
 	"time"
 
@@ -38,11 +39,12 @@ const (
 )
 
 var (
-	dimensions = common.NewMultiStringFlag("dimension", nil, "Colon-separated key/value pair, eg: \"os:Linux\" Dimensions of the bots on which to run. Can specify multiple times.")
-	pool       = flag.String("pool", swarming.DIMENSION_POOL_VALUE_SKIA, "Which Swarming pool to use.")
-	script     = flag.String("script", "", "Path to a Python script to run.")
-	taskName   = flag.String("task_name", "", "Name of the task to run.")
-	workdir    = flag.String("workdir", os.TempDir(), "Working directory. Optional, but recommended not to use CWD.")
+	dimensions  = common.NewMultiStringFlag("dimension", nil, "Colon-separated key/value pair, eg: \"os:Linux\" Dimensions of the bots on which to run. Can specify multiple times.")
+	pool        = flag.String("pool", swarming.DIMENSION_POOL_VALUE_SKIA, "Which Swarming pool to use.")
+	script      = flag.String("script", "", "Path to a Python script to run.")
+	taskName    = flag.String("task_name", "", "Name of the task to run.")
+	workdir     = flag.String("workdir", os.TempDir(), "Working directory. Optional, but recommended not to use CWD.")
+	includeBots = common.NewMultiStringFlag("include_bot", nil, "If specified, treated as a white list of bots which will be affected, calculated AFTER the dimensions is computed. Can be simple strings or regexes")
 )
 
 func main() {
@@ -65,6 +67,11 @@ func main() {
 	dims["pool"] = *pool
 
 	*workdir, err = filepath.Abs(*workdir)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	includeRegs, err := parseRegex(*includeBots)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -123,9 +130,14 @@ func main() {
 		"group": group,
 	}
 
-	// Trigger the task on each bot.
 	var wg sync.WaitGroup
+
+	// Trigger the task on each bot.
 	for _, bot := range bots {
+		if !matchesAny(bot.BotId, includeRegs) {
+			sklog.Debugf("Skipping %s because it isn't in the whitelist", bot.BotId)
+			continue
+		}
 		wg.Add(1)
 		go func(id string) {
 			defer wg.Done()
@@ -133,12 +145,41 @@ func main() {
 				"pool": *pool,
 				"id":   id,
 			}
+			sklog.Infof("Triggering on %s", id)
 			if _, err := swarmClient.TriggerSwarmingTasks(m, dims, tags, swarming.HIGHEST_PRIORITY, 120*time.Minute, 120*time.Minute, 120*time.Minute, false, false, ""); err != nil {
 				sklog.Fatal(err)
 			}
 		}(bot.BotId)
 	}
+
 	wg.Wait()
 	tasksLink := fmt.Sprintf("https://chromium-swarm.appspot.com/tasklist?f=group:%s", group)
 	sklog.Infof("Triggered Swarming tasks. Visit this link to track progress:\n%s", tasksLink)
+}
+
+func parseRegex(flags common.MultiString) (retval []*regexp.Regexp, e error) {
+	if len(flags) == 0 {
+		return retval, nil
+	}
+
+	for _, s := range flags {
+		r, err := regexp.Compile(s)
+		if err != nil {
+			return nil, err
+		}
+		retval = append(retval, r)
+	}
+	return retval, nil
+}
+
+func matchesAny(s string, xr []*regexp.Regexp) bool {
+	if len(xr) == 0 {
+		return true
+	}
+	for _, r := range xr {
+		if r.MatchString(s) {
+			return true
+		}
+	}
+	return false
 }
