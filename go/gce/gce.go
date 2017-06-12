@@ -27,6 +27,7 @@ const (
 
 	DISK_SNAPSHOT_SYSTEMD_PUSHABLE_BASE = "skia-systemd-pushable-base"
 
+	DISK_TYPE_LOCAL_SSD           = "local-ssd"
 	DISK_TYPE_PERSISTENT_STANDARD = "pd-standard"
 	DISK_TYPE_PERSISTENT_SSD      = "pd-ssd"
 
@@ -369,10 +370,20 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 		})
 	}
 	if vm.DataDisk != nil {
-		disks = append(disks, &compute.AttachedDisk{
+		d := &compute.AttachedDisk{
 			DeviceName: vm.DataDisk.Name,
-			Source:     fmt.Sprintf("projects/%s/zones/%s/disks/%s", g.project, g.zone, vm.DataDisk.Name),
-		})
+		}
+		if vm.DataDisk.Type == DISK_TYPE_LOCAL_SSD {
+			// In this case, we didn't create the disk beforehand.
+			d.AutoDelete = true
+			d.InitializeParams = &compute.AttachedDiskInitializeParams{
+				DiskType: fmt.Sprintf("zones/%s/diskTypes/%s", g.zone, vm.DataDisk.Type),
+			}
+			d.Type = "SCRATCH"
+		} else {
+			d.Source = fmt.Sprintf("projects/%s/zones/%s/disks/%s", g.project, g.zone, vm.DataDisk.Name)
+		}
+		disks = append(disks, d)
 	}
 	if vm.Os == OS_WINDOWS && vm.User != "" && vm.Password != "" {
 		vm.Metadata["gce-initial-windows-user"] = vm.User
@@ -764,8 +775,11 @@ func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool, workdir string)
 		if vm.Os == OS_WINDOWS {
 			return fmt.Errorf("Data disks are not currently supported on Windows.")
 		}
-		if err := g.CreateDisk(vm.DataDisk, ignoreExists); err != nil {
-			return err
+		// Local SSDs are created with the instance.
+		if vm.DataDisk.Type != DISK_TYPE_LOCAL_SSD {
+			if err := g.CreateDisk(vm.DataDisk, ignoreExists); err != nil {
+				return err
+			}
 		}
 	}
 	if err := g.createInstance(vm, ignoreExists); err != nil {
@@ -859,7 +873,8 @@ func (g *GCloud) Delete(vm *Instance, ignoreNotExists, deleteDataDisk bool) erro
 		return err
 	}
 	// Only delete the data disk(s) if explicitly told to do so.
-	if deleteDataDisk && vm.DataDisk != nil {
+	// Local SSDs are auto-deleted with the instance.
+	if deleteDataDisk && vm.DataDisk != nil && vm.DataDisk.Type != DISK_TYPE_LOCAL_SSD {
 		if err := g.DeleteDisk(vm.DataDisk.Name, true); err != nil {
 			return err
 		}

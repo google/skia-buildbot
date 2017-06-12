@@ -1,4 +1,7 @@
 #! /bin/bash
+
+set -e
+
 # Install clang/llvm
 wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -
 sudo apt-get update

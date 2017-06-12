@@ -1,5 +1,8 @@
 #! /bin/bash
 
+set -e
+set -x
+
 AFL_VERSION="2.35b"
 # We need clang set as our c++ builder to build afl-clang
 export CC=/usr/bin/clang CXX=/usr/bin/clang++
