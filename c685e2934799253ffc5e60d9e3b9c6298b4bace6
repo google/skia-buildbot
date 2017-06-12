@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c8748626_71e50138",
+        "filename": "power/power_release",
+        "patchSetId": 6
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-12T13:17:49Z",
+      "side": 1,
+      "message": "Uber-nit: alignment.",
+      "range": {
+        "startLine": 23,
+        "startChar": 57,
+        "endLine": 23,
+        "endChar": 59
+      },
+      "revId": "c685e2934799253ffc5e60d9e3b9c6298b4bace6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57bc7659_0cef1a61",
+        "filename": "power/vm.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-12T13:17:49Z",
+      "side": 1,
+      "message": "These are included by default.",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 2
+      },
+      "revId": "c685e2934799253ffc5e60d9e3b9c6298b4bace6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11cca551_8f08ca4a",
+        "filename": "power/vm.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-12T13:17:49Z",
+      "side": 1,
+      "message": "Nit: GCE_ZONE_DEFAULT",
+      "range": {
+        "startLine": 22,
+        "startChar": 13,
+        "endLine": 22,
+        "endChar": 28
+      },
+      "revId": "c685e2934799253ffc5e60d9e3b9c6298b4bace6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
