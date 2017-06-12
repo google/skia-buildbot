@@ -48,13 +48,21 @@ var (
 )
 
 func main() {
+	flag.Parse()
 	defer common.LogPanic()
-	// Calls flag.Parse()
-	common.InitWithMust(
-		"power-controller",
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
-	)
+
+	if *local {
+		common.InitWithMust(
+			"power-controller",
+			common.PrometheusOpt(promPort),
+		)
+	} else {
+		common.InitWithMust(
+			"power-controller",
+			common.PrometheusOpt(promPort),
+			common.CloudLoggingOpt(),
+		)
+	}
 
 	if err := setupGatherer(); err != nil {
 		sklog.Fatalf("Could not set up down bot gatherer: %s", err)
