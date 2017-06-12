@@ -1,9 +1,14 @@
 #! /bin/bash
+
+set -e
 set -x
 
-/tmp/format_and_mount.sh skia-imageinfo
-
 set PACKAGES=git build-essential libosmesa-dev libfreetype6-dev libfontconfig-dev libpng12-dev libgif-dev libqt4-dev mesa-common-dev
+
+# Hack: wait for dpkg lock to be freed.
+while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+   sleep 1
+done
 sudo apt-get update
 sudo apt-get --assume-yes upgrade
 sudo apt-get --assume-yes install $PACKAGES
