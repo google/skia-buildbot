@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "46ba0a1c_b6416c40",
+        "filename": "fuzzer/setup-script.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-12T13:47:17Z",
+      "side": 1,
+      "message": "Just apt-get update.",
+      "parentUuid": "1b5d0663_17c484fc",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 19
+      },
+      "revId": "04b1261e22045da1a3f157cfa8e300a2c28b662f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "69042f85_18cb5ad0",
         "filename": "fuzzer/vm.go",
         "patchSetId": 1
@@ -69,6 +93,30 @@
       "revId": "04b1261e22045da1a3f157cfa8e300a2c28b662f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "528829aa_e7d056f4",
+        "filename": "fuzzer/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-12T13:47:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "69042f85_18cb5ad0",
+      "range": {
+        "startLine": 47,
+        "startChar": 22,
+        "endLine": 47,
+        "endChar": 37
+      },
+      "revId": "04b1261e22045da1a3f157cfa8e300a2c28b662f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
