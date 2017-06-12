@@ -8,7 +8,7 @@ set -e
 # Install packages.
 echo "Installing packages..."
 sudo apt-get update
-sudo apt-get -y install libosmesa-dev libexpat1-dev:i386 clang-3.6 poppler-utils netpbm python-django libgif-dev lua5.2
+sudo apt-get -y install libosmesa-dev libexpat1-dev:i386 clang-3.6 poppler-utils netpbm python-django libgif-dev lua5.2 libnss3
 sudo easy_install -U pip
 sudo pip install setuptools --no-use-wheel --upgrade
 sudo pip install -U crcmod
