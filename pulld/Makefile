@@ -20,6 +20,12 @@ release_not_gce: default
 	get_service_account
 	./build_release_not_gce "$(MESSAGE)"
 
+release_arm: default
+	go install -v ../get_service_account/go/get_service_account
+	get_service_account
+	GOOS=linux GOARCH=arm GOARM=7 go build -o out/pulld_arm -v ./go/pulld
+	./build_release_arm "$(MESSAGE)"
+
 # You should run make release first
 push_everywhere:
 	pushcli --alsologtostderr --config_filename=../push/skiapush.conf pulld "*"
