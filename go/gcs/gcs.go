@@ -220,15 +220,15 @@ func (d *DownloadHelper) Download(name, hash string) error {
 	}
 	resp, err := d.s.Bucket(d.bucket).Object(object).NewReader(context.Background())
 	if err != nil {
-		return err
+		return fmt.Errorf("Download helper can't get reader for %s: %s", name, err)
 	}
 	f, err := os.Create(filepath)
 	if err != nil {
-		return err
+		return fmt.Errorf("Download helper cannot create filepath %s: %s", filepath, err)
 	}
 	defer util.Close(f)
 	if _, err := io.Copy(f, resp); err != nil {
-		return err
+		return fmt.Errorf("Download helper can't download %s: %s", name, err)
 	}
 	if err := f.Chmod(0755); err != nil {
 		return err
