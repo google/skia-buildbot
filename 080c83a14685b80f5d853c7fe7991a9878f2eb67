@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4bb30734_0f664125",
+        "filename": "power/vm.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-12T13:54:26Z",
+      "side": 1,
+      "message": "Just to confirm, this is using the default settings for the persistent disk, ie. 300 Gb standard.",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 45
+      },
+      "revId": "080c83a14685b80f5d853c7fe7991a9878f2eb67",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
