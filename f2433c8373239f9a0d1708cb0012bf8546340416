@@ -22,6 +22,30 @@
       "revId": "f2433c8373239f9a0d1708cb0012bf8546340416",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f5e1f809_2d5ff7e6",
+        "filename": "tracedb/vm.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-13T11:53:18Z",
+      "side": 1,
+      "message": "We\u0027ll see what happens.  Personally, I don\u0027t have a problem with adding a new function and calling that instead.",
+      "parentUuid": "af6ec069_fea366da",
+      "range": {
+        "startLine": 9,
+        "startChar": 14,
+        "endLine": 9,
+        "endChar": 28
+      },
+      "revId": "f2433c8373239f9a0d1708cb0012bf8546340416",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
