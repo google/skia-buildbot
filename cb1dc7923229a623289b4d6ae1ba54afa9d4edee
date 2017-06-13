@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4b140f46_11b183b9",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 811,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-13T17:31:10Z",
+      "side": 1,
+      "message": "It turns out that this is needed because of something triggered in the setup script.  I wonder if there\u0027s any way to turn it off?",
+      "range": {
+        "startLine": 811,
+        "startChar": 0,
+        "endLine": 811,
+        "endChar": 62
+      },
+      "revId": "cb1dc7923229a623289b4d6ae1ba54afa9d4edee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49201da3_f1c44227",
+        "filename": "go/gce/server/pushable-systemd-snapshot/setup-script.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-13T17:31:10Z",
+      "side": 1,
+      "message": "Pretty much copy/pasted, but added a lot of \"sudo\".  The interactive stuff in this script is really unfortunate, and I don\u0027t actually know what the answers to all of the questions should be.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 1
+      },
+      "revId": "cb1dc7923229a623289b4d6ae1ba54afa9d4edee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d259e4a7_dc671ed5",
+        "filename": "go/gce/server/pushable-systemd-snapshot/setup-script.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-13T17:31:10Z",
+      "side": 1,
+      "message": "This triggers an immediate reboot, which will show up as a failure if we ever run this non-interactively.  I also suspect this is responsible for the dpkg locks we run into subsequently at instance creation.",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 27
+      },
+      "revId": "cb1dc7923229a623289b4d6ae1ba54afa9d4edee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
