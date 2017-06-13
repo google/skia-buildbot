@@ -48,14 +48,23 @@ var (
 	errorNotFound = errors.New("Process not found.")
 )
 
-// ClusterRequest is all the info needed to start a k-means clustering run.
+type ClusterAlgo string
+
+// ClusterAlgo constants.
+const (
+	KMeans  ClusterAlgo = "kmeans"
+	StepFit ClusterAlgo = "stepfit"
+)
+
+// ClusterRequest is all the info needed to start a clustering run.
 type ClusterRequest struct {
-	Source string `json:"source"`
-	Offset int    `json:"offset"`
-	Radius int    `json:"radius"`
-	Query  string `json:"query"`
-	K      int    `json:"k"`
-	TZ     string `json:"tz"`
+	Source string      `json:"source"`
+	Offset int         `json:"offset"`
+	Radius int         `json:"radius"`
+	Query  string      `json:"query"`
+	K      int         `json:"k"`
+	TZ     string      `json:"tz"`
+	Algo   ClusterAlgo `json:"type"`
 }
 
 func (c *ClusterRequest) Id() string {
@@ -291,7 +300,7 @@ func (p *ClusterRequestProcess) Run() {
 	// on either side of the target commit.
 	df.FilterOut(tooMuchMissingData)
 	after := len(df.TraceSet)
-	sklog.Infof("Filtered Traces: %d %d", before, after)
+	sklog.Infof("Filtered Traces: %d %d %d", before, after, before-after)
 
 	k := p.request.K
 	if k <= 0 || k > MAX_K {
@@ -306,7 +315,7 @@ func (p *ClusterRequestProcess) Run() {
 		k = int(math.Floor((40.0/30000.0)*float64(n) + 10))
 	}
 	sklog.Infof("Clustering with K=%d", k)
-	summary, err := CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.clusterProgress, p.interesting)
+	summary, err := CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.clusterProgress, p.interesting, p.request.Algo)
 	if err != nil {
 		p.reportError(err, "Invalid clustering.")
 		return
