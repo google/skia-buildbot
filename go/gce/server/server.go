@@ -104,7 +104,7 @@ func Main(zone string, instances map[string]*gce.Instance) {
 
 	// Perform the requested operation.
 	if *create {
-		if err := g.CreateAndSetup(vm, *ignoreExists, *workdir); err != nil {
+		if err := g.CreateAndSetup(vm, *ignoreExists); err != nil {
 			sklog.Fatal(err)
 		}
 	} else {
