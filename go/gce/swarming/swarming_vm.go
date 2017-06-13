@@ -60,7 +60,7 @@ func Swarming20170523(name, ipAddress string) *gce.Instance {
 			Type:   gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
 		ExternalIpAddress: ipAddress,
-		Gpu:               true,
+		Gpu:               *gpu,
 		GSDownloads:       map[string]string{},
 		MachineType:       gce.MACHINE_TYPE_STANDARD_16,
 		Metadata:          map[string]string{},
