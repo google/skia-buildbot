@@ -144,7 +144,7 @@ func main() {
 
 		group.Go(vm.Name, func() error {
 			if *create {
-				return g.CreateAndSetup(vm, *ignoreExists, *workdir)
+				return g.CreateAndSetup(vm, *ignoreExists)
 			} else {
 				return g.Delete(vm, *ignoreExists, *deleteDataDisk)
 			}

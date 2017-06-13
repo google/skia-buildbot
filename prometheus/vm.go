@@ -6,7 +6,7 @@ import (
 )
 
 func PromBase(name, ipAddress string) *gce.Instance {
-	vm := server.Server20170518(name)
+	vm := server.Server20170613(name)
 	vm.DataDisk.SizeGb = 1000
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	vm.ExternalIpAddress = ipAddress
