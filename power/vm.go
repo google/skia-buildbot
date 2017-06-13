@@ -6,7 +6,7 @@ import (
 )
 
 func PowerControllerInstance() *gce.Instance {
-	vm := server.Server20170518("skia-power-controller")
+	vm := server.Server20170613("skia-power-controller")
 	vm.Metadata["owner_primary"] = "kjlubick"
 	vm.Metadata["owner_secondary"] = "stephana"
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_2
