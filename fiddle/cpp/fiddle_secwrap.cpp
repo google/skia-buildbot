@@ -63,6 +63,10 @@ static bool install_syscall_filter() {
         ALLOW_SYSCALL(ioctl),
         ALLOW_SYSCALL(sched_yield),
 
+        ALLOW_SYSCALL(clone),
+        ALLOW_SYSCALL(wait4),
+        ALLOW_SYSCALL(mknod),
+
         TRACE_SYSCALL(mkdir),
         TRACE_SYSCALL(unlink),
         TRACE_SYSCALL(execve),
