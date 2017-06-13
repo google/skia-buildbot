@@ -8,6 +8,7 @@ import (
 
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/ctrace2"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -147,6 +148,53 @@ func getParamSummaries(cluster []kmeans.Clusterable) map[string][]ValueWeight {
 	return ret
 }
 
+// getParamSummariesForKeys summarizes all the parameters for all observations in a
+// cluster.
+//
+// The return value is an array of []ValueWeight's, one []ValueWeight per
+// parameter. The members of each []ValueWeight are sorted by the Weight, with
+// higher Weight's first.
+func getParamSummariesForKeys(keys []string) map[string][]ValueWeight {
+	// For each cluster member increment each parameters count.
+	//        map[key]   map[value] count
+	counts := map[string]map[string]int{}
+	clusterSize := float64(len(keys))
+	// First figure out what parameters and values appear in the cluster.
+	for _, key := range keys {
+		params, err := query.ParseKey(key)
+		if err != nil {
+			sklog.Errorf("Invalid key found in Cluster: %s", err)
+			continue
+		}
+		for k, v := range params {
+			if v == "" {
+				continue
+			}
+			if _, ok := counts[k]; !ok {
+				counts[k] = map[string]int{}
+			}
+			counts[k][v] += 1
+		}
+	}
+	// Now calculate the weights for each parameter value.  The weight of each
+	// value is proportional to the number of times it appears on an observation
+	// versus all other values for the same parameter.
+	ret := map[string][]ValueWeight{}
+	for key, count := range counts {
+		weights := []ValueWeight{}
+		for value, weight := range count {
+			weights = append(weights, ValueWeight{
+				Value:  value,
+				Weight: int(14*float64(weight)/clusterSize) + 12,
+			})
+		}
+		sort.Sort(ValueWeightSortable(weights))
+		ret[key] = weights
+	}
+
+	return ret
+}
+
 // SortableClusterable allows for sorting kmeans.Clusterables.
 type SortableClusterable struct {
 	Observation kmeans.Clusterable
@@ -216,32 +264,83 @@ func getClusterSummaries(observations []kmeans.Clusterable, centroids []kmeans.C
 type Progress func(totalError float64)
 
 // CalculateClusterSummaries runs k-means clustering over the trace shapes.
-func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshhold float32, progress Progress, interesting float32) (*ClusterSummaries, error) {
-	// Convert the DataFrame to a slice of kmeans.Clusterable.
-	observations := make([]kmeans.Clusterable, 0, len(df.TraceSet))
-	for key, trace := range df.TraceSet {
-		observations = append(observations, ctrace2.NewFullTrace(key, trace, stddevThreshhold))
-	}
-	if len(observations) == 0 {
-		return nil, fmt.Errorf("Zero traces in the DataFrame.")
-	}
+func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshhold float32, progress Progress, interesting float32, algo ClusterAlgo) (*ClusterSummaries, error) {
+	if algo == KMeans {
+		// Convert the DataFrame to a slice of kmeans.Clusterable.
+		observations := make([]kmeans.Clusterable, 0, len(df.TraceSet))
+		for key, trace := range df.TraceSet {
+			observations = append(observations, ctrace2.NewFullTrace(key, trace, stddevThreshhold))
+		}
+		if len(observations) == 0 {
+			return nil, fmt.Errorf("Zero traces in the DataFrame.")
+		}
 
-	// Create K starting centroids.
-	centroids := chooseK(observations, k)
-	lastTotalError := 0.0
-	for i := 0; i < MAX_KMEANS_ITERATIONS; i++ {
-		centroids = kmeans.Do(observations, centroids, ctrace2.CalculateCentroid)
-		totalError := kmeans.TotalError(observations, centroids)
-		if progress != nil {
-			progress(totalError)
+		// Create K starting centroids.
+		centroids := chooseK(observations, k)
+		lastTotalError := 0.0
+		for i := 0; i < MAX_KMEANS_ITERATIONS; i++ {
+			centroids = kmeans.Do(observations, centroids, ctrace2.CalculateCentroid)
+			totalError := kmeans.TotalError(observations, centroids)
+			if progress != nil {
+				progress(totalError)
+			}
+			if math.Abs(totalError-lastTotalError) < KMEAN_EPSILON {
+				break
+			}
+			lastTotalError = totalError
 		}
-		if math.Abs(totalError-lastTotalError) < KMEAN_EPSILON {
-			break
+		clusterSummaries := getClusterSummaries(observations, centroids, df.Header, interesting)
+		clusterSummaries.K = k
+		clusterSummaries.StdDevThreshhold = stddevThreshhold
+		return clusterSummaries, nil
+	} else if algo == StepFit {
+
+		low := newClusterSummary()
+		high := newClusterSummary()
+		// Normalize each trace and then run through stepfit. If interesting then
+		// add to appropriate cluster.
+		count := 0
+		for key, trace := range df.TraceSet {
+			count++
+			if count%1000 == 0 {
+				sklog.Infof("stepfit count: %d", count)
+			}
+			t := vec32.Dup(trace)
+			vec32.Norm(t, stddevThreshhold)
+			sf := stepfit.GetStepFitAtMid(t, interesting)
+			// If stepfit is at the middle and if it is a step up or down.
+			if sf.Status == stepfit.LOW {
+				if low.StepFit.Status == "" {
+					low.StepFit = sf
+					low.StepPoint = df.Header[sf.TurningPoint]
+					low.Centroid = trace
+				}
+				low.Num++
+				low.Keys = append(low.Keys, key)
+			} else if sf.Status == stepfit.HIGH {
+				if high.StepFit.Status == "" {
+					high.StepFit = sf
+					high.StepPoint = df.Header[sf.TurningPoint]
+					high.Centroid = trace
+				}
+				high.Num++
+				high.Keys = append(high.Keys, key)
+			}
 		}
-		lastTotalError = totalError
+		sklog.Infof("Found LOW: %d HIGH: %d", low.Num, high.Num)
+		low.ParamSummaries = getParamSummariesForKeys(low.Keys)
+		high.ParamSummaries = getParamSummariesForKeys(high.Keys)
+
+		ret := &ClusterSummaries{
+			Clusters: []*ClusterSummary{
+				newClusterSummary(),
+				newClusterSummary(),
+			},
+			K:                k,
+			StdDevThreshhold: stddevThreshhold,
+		}
+		return ret, nil
+	} else {
+		return nil, fmt.Errorf("Unknown clustering algorithm: %s", algo)
 	}
-	clusterSummaries := getClusterSummaries(observations, centroids, df.Header, interesting)
-	clusterSummaries.K = k
-	clusterSummaries.StdDevThreshhold = stddevThreshhold
-	return clusterSummaries, nil
 }
