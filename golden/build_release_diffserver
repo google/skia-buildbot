@@ -1,0 +1,35 @@
+#!/bin/bash
+
+set -x -e
+
+# Packages the skia_diff_server.
+#
+# This only builds the diffserver for the prod (gold.skia.org) instance. If we
+# wanted diff servers for other instances this script should use the same
+# structure as the 'build_release' script and support multiple instances.
+
+APPNAME=diffserver-prod
+SERVICE_FILE="./sys/${APPNAME}.service"
+if [ ! -f ${SERVICE_FILE} ]; then
+    exit 1
+fi
+
+# Builds and uploads a debian package for skiacorrectness.
+SYSTEMD="${APPNAME}.service"
+DESCRIPTION="Image diffs and processing server."
+
+DEPENDS=git
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+set -e
+
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_diff_server      ${ROOT}/usr/local/bin/${APPNAME}
+${INSTALL}     --mode=644 -T $SERVICE_FILE                       ${ROOT}/etc/systemd/system/${APPNAME}.service
+}
+
+source ../bash/release.sh

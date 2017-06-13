@@ -19,6 +19,10 @@ correctness_migratedb: skiaversion
 imagediff:
 	go install -v ./go/imagediff
 
+.PHONY: netdiff
+netdiff:
+	go install -v ./go/netdiff
+
 .PHONY: sampler
 sampler:
 	go install -v ./go/sampler
@@ -48,6 +52,6 @@ frontend:
 	cd frontend && $(MAKE) web
 
 .PHONY: allgo
-allgo: skiacorrectness correctness_migratedb imagediff sampler
+allgo: skiacorrectness correctness_migratedb imagediff sampler skia_diff_server
 
 include ../webtools/webtools.mk

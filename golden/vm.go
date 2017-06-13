@@ -17,14 +17,7 @@ func GoldBase(name, ipAddress string) *gce.Instance {
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	vm.ExternalIpAddress = ipAddress
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_32
-	vm.Metadata["auth_white_list"] = `skia.org
-kkinnunen@nvidia.com
-mjk@nvidia.com
-vbuzinov@nvidia.com
-martina.kollarova@intel.com
-this.is.harry.stern@gmail.com
-dvonbeck@gmail.com
-zakerinasab@chromium.org`
+	vm.Metadata["auth_white_list"] = "google.com chromium.org skia.org"
 	vm.Metadata["owner_primary"] = "stephana"
 	vm.Metadata["owner_secondary"] = "jcgregorio"
 
@@ -35,7 +28,16 @@ zakerinasab@chromium.org`
 }
 
 func Prod() *gce.Instance {
-	return GoldBase("skia-gold-prod", "104.154.112.104")
+	vm := GoldBase("skia-gold-prod", "104.154.112.104")
+	vm.Metadata["auth_white_list"] = `skia.org
+kkinnunen@nvidia.com
+mjk@nvidia.com
+vbuzinov@nvidia.com
+martina.kollarova@intel.com
+this.is.harry.stern@gmail.com
+dvonbeck@gmail.com
+zakerinasab@chromium.org`
+	return vm
 }
 
 func Pdfium() *gce.Instance {
@@ -53,10 +55,20 @@ func Test() *gce.Instance {
 	return vm
 }
 
+func DiffServer() *gce.Instance {
+	vm := GoldBase("skia-diffserver-prod", "104.154.123.224")
+	delete(vm.Metadata, "auth_white_list")
+	vm.DataDisk.SizeGb = 2000
+	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
+	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_32
+	return vm
+}
+
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
 		"prod":         Prod(),
 		"pdfium":       Pdfium(),
 		"testinstance": Test(),
+		"diffserver":   DiffServer(),
 	})
 }
