@@ -31,6 +31,7 @@ import (
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/db"
+	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -43,39 +44,40 @@ import (
 	"go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/golden/go/types"
 	gstorage "google.golang.org/api/storage/v1"
+	"google.golang.org/grpc"
 )
 
 // Command line flags.
 var (
-	appTitle           = flag.String("app_title", "Skia Gold", "Title of the deployed up on the front end.")
-	authWhiteList      = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
-	cacheSize          = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
-	cpuProfile         = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
-	doOauth            = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
-	defaultCorpus      = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
-	forceLogin         = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
-	gsBucketNames      = flag.String("gs_buckets", "skia-infra-gm,chromium-skia-gm", "Comma-separated list of google storage bucket that hold uploaded images.")
-	hashFileBucket     = flag.String("hash_file_bucket", "skia-infra-gm", "Bucket where the file with the known list of hashes should be written.")
-	hashFilePath       = flag.String("hash_file_path", "hash_files/gold-prod-hashes.txt", "Path of the file with know hashes.")
-	imageDir           = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
-	issueTrackerKey    = flag.String("issue_tracker_key", "", "API Key for accessing the project hosting API.")
-	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
-	nCommits           = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
-	noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
-	oauthCacheFile     = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
-	port               = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
-	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	redirectURL        = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
-	resourcesDir       = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
-	rietveldURL        = flag.String("rietveld_url", "https://codereview.chromium.org/", "URL of the Rietveld instance where we retrieve CL metadata.")
-	gerritURL          = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
-	storageDir         = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
-	gitRepoDir         = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
-	gitRepoURL         = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
-	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
-	showBotProgress    = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
-	traceservice       = flag.String("trace_service", "localhost:10000", "The address of the traceservice endpoint.")
+	appTitle            = flag.String("app_title", "Skia Gold", "Title of the deployed up on the front end.")
+	authWhiteList       = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
+	cacheSize           = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
+	cpuProfile          = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
+	defaultCorpus       = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
+	diffServerGRPCAddr  = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
+	diffServerImageAddr = flag.String("diff_server_http", "", "The images serving address of the diff server. 'diff_server_grpc has to be set as well.")
+	forceLogin          = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
+	gsBucketNames       = flag.String("gs_buckets", "skia-infra-gm,chromium-skia-gm", "Comma-separated list of google storage bucket that hold uploaded images.")
+	hashFileBucket      = flag.String("hash_file_bucket", "skia-infra-gm", "Bucket where the file with the known list of hashes should be written.")
+	hashFilePath        = flag.String("hash_file_path", "hash_files/gold-prod-hashes.txt", "Path of the file with know hashes.")
+	imageDir            = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
+	issueTrackerKey     = flag.String("issue_tracker_key", "", "API Key for accessing the project hosting API.")
+	local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	memProfile          = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
+	nCommits            = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
+	noCloudLog          = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
+	port                = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+	promPort            = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	redirectURL         = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
+	resourcesDir        = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
+	rietveldURL         = flag.String("rietveld_url", "https://codereview.chromium.org/", "URL of the Rietveld instance where we retrieve CL metadata.")
+	gerritURL           = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
+	storageDir          = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
+	gitRepoDir          = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
+	gitRepoURL          = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
+	serviceAccountFile  = flag.String("service_account_file", "", "Credentials file for service account.")
+	showBotProgress     = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
+	traceservice        = flag.String("trace_service", "localhost:10000", "The address of the traceservice endpoint.")
 )
 
 const (
@@ -175,12 +177,28 @@ func main() {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
 
-	// Get the expectations storage, the filediff storage and the tilestore.
-	diffStore, err := diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize)
-	if err != nil {
-		sklog.Fatalf("Allocating DiffStore failed: %s", err)
+	// If the addresses for a remote DiffStore were given, then set it up
+	// otherwise create an embedded DiffStore instance.
+	var diffStore diff.DiffStore = nil
+	if (*diffServerGRPCAddr != "") || (*diffServerImageAddr != "") {
+		// Create the client connection and connect to the server.
+		conn, err := grpc.Dial(*diffServerGRPCAddr, grpc.WithInsecure())
+		if err != nil {
+			sklog.Fatalf("Unable to connect to grpc service: %s", err)
+		}
+
+		diffStore, err = diffstore.NewNetDiffStore(conn, *diffServerImageAddr)
+		if err != nil {
+			sklog.Fatalf("Unable to initialize NetDiffStore: %s", err)
+		}
+	} else {
+		diffStore, err = diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize)
+		if err != nil {
+			sklog.Fatalf("Allocating local DiffStore failed: %s", err)
+		}
 	}
 
+	// Set up databases and tile builders.
 	if !*local {
 		if err := dbConf.GetPasswordFromMetadata(); err != nil {
 			sklog.Fatal(err)
