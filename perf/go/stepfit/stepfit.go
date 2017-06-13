@@ -80,3 +80,37 @@ func GetStepFit(trace []float32, interesting float32) *StepFit {
 		Status:       status,
 	}
 }
+
+// GetStepFitAtMid takes one []float32 trace and calculates and returns a StepFit.
+//
+// See StepFit for a description of the values being calculated.
+func GetStepFitAtMid(trace []float32, interesting float32) *StepFit {
+	lse := float32(math.MaxFloat32)
+	stepSize := float32(-1.0)
+	turn := 0
+
+	i := len(trace) / 2
+	y0 := vec32.Mean(trace[:i])
+	y1 := vec32.Mean(trace[i:])
+	d := vec32.SSE(trace[:i], y0) + vec32.SSE(trace[i:], y1)
+	if d < lse {
+		lse = d
+		stepSize = (y0 - y1)
+		turn = i
+	}
+	lse = float32(math.Sqrt(float64(lse))) / float32(len(trace))
+	regression := stepSize / lse
+	status := UNINTERESTING
+	if regression > interesting {
+		status = LOW
+	} else if regression < -interesting {
+		status = HIGH
+	}
+	return &StepFit{
+		LeastSquares: lse,
+		StepSize:     stepSize,
+		TurningPoint: turn,
+		Regression:   regression,
+		Status:       status,
+	}
+}
