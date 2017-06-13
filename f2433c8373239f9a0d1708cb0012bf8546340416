@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "af6ec069_fea366da",
+        "filename": "tracedb/vm.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-13T07:45:27Z",
+      "side": 1,
+      "message": "Nit: Depending how this evolves in the future we might want to break it into a generic function and a constants. e.g.   \n   \n     vm :\u003d server.Server(name, server.TEMPLATE_2017_05)",
+      "range": {
+        "startLine": 9,
+        "startChar": 14,
+        "endLine": 9,
+        "endChar": 28
+      },
+      "revId": "f2433c8373239f9a0d1708cb0012bf8546340416",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
