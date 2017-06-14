@@ -5,10 +5,24 @@ build:
 	go install -v ./../misc/./go/sheriff_emails/...
 	absent
 
+build_arm:
+	GOOS=linux GOARCH=arm GOARM=7 go build -o out/pulld_arm -v ./go/pulld
+	go install -v ./go/webhook_proxy
+	go install -v ./go/proxy_with_auth
+	go install -v ./go/absent
+	go install -v ./../misc/./go/sheriff_emails/...
+	absent
+
 prom:
 	-mkdir -p tmp
 	curl -L https://github.com/prometheus/prometheus/releases/download/v1.5.2/prometheus-1.5.2.linux-amd64.tar.gz | tar zxC ./tmp --overwrite -f -
 	cp ./tmp/prometheus-1.5.2.linux-amd64/prometheus ./tmp/prometheus
+
+prom_arm:
+	-mkdir -p tmp
+	curl -L https://github.com/prometheus/prometheus/releases/download/v1.5.2/prometheus-1.5.2.linux-armv7.tar.gz | tar zxC ./tmp --overwrite -f -
+	cp ./tmp/prometheus-1.5.2.linux-armv7/prometheus ./tmp/prometheus
+	cp ./tmp/prometheus-1.5.2.linux-armv7/promtool ./tmp/promtool
 
 testgo:
 	go test -v ./...
@@ -36,6 +50,12 @@ push_skolo: build prom
 	./build_skolo_release "`git log -n1 --format=%s`"
 	go install -v ../push/go/pushcli
 	pushcli prometheus-skolo skia-jumphost
+
+push_rpi_skolo: prom_arm
+	promtool check-config sys/prometheus-rpi-skolo.yml
+	./build_rpi_skolo_release "`git log -n1 --format=%s`"
+	go install -v ../push/go/pushcli
+	pushcli prometheus-rpi-skolo jumphost-rpi-01
 
 push_sheriff_emails: build
 	./build_sheriff_emails_release "`git log -n1 --format=%s`"

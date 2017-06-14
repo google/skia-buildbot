@@ -1,0 +1,31 @@
+scrape_configs:
+# pulld for every server.
+  - job_name: 'pulld-not-gce'
+    static_configs:
+      - targets: ['localhost:20000']
+      - targets: ['192.168.1.98:20000']
+        labels:
+          instance_name: spare
+      - targets: ['192.168.1.99:20000']
+        labels:
+          instance_name: master
+
+  - job_name: 'file-backup'
+    static_configs:
+      - targets: ['192.168.1.99:20001']
+        labels:
+          backup: rpi
+      - targets: ['192.168.1.99:20002']
+        labels:
+          backup: router
+
+  - job_name: 'hotspare'
+    static_configs:
+      - targets: ['192.168.1.98:20003']
+
+  # Prometheus self monitoring.
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:8000']
+
+
