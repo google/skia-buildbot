@@ -219,6 +219,6 @@ scrape_configs:
 
     static_configs:
       - targets:
-        - 'localhost:12000'
+        - 'localhost:12001'
         labels:
-          federated: skolo
+          federated: 'jumphost-rpi-01'
