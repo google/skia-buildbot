@@ -200,6 +200,21 @@ func MapsEqual(a, b map[string]string) bool {
 	return true
 }
 
+// ContainsMap checks if map a is contained within map b.
+func ContainsMap(a, b map[string]string) bool {
+	if len(a) > len(b) {
+		return false
+	}
+	// Since we know a is less than or equal to b we only need to compare a's
+	// values to b's values.
+	for k, v := range a {
+		if bv, ok := b[k]; !ok || bv != v {
+			return false
+		}
+	}
+	return true
+}
+
 // MaxInt returns the largest integer of the arguments provided.
 func MaxInt(intList ...int) int {
 	ret := intList[0]

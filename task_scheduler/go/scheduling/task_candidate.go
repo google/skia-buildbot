@@ -155,6 +155,7 @@ func replaceVars(c *taskCandidate, s string) string {
 	return s
 }
 
+// rmistry: HERE
 // MakeTaskRequest creates a SwarmingRpcsNewTaskRequest object from the taskCandidate.
 func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (*swarming_api.SwarmingRpcsNewTaskRequest, error) {
 	var cipdInput *swarming_api.SwarmingRpcsCipdInput
@@ -212,7 +213,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 	if ioTimeoutSecs == int64(0) {
 		ioTimeoutSecs = int64(swarming.RECOMMENDED_IO_TIMEOUT.Seconds())
 	}
-	return &swarming_api.SwarmingRpcsNewTaskRequest{
+	task := &swarming_api.SwarmingRpcsNewTaskRequest{
 		ExpirationSecs: expirationSecs,
 		Name:           c.Name,
 		Priority:       int64(100.0 * c.TaskSpec.Priority),
@@ -229,10 +230,41 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 			},
 			IoTimeoutSecs: ioTimeoutSecs,
 		},
-		PubsubTopic: fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, pubSubTopic),
-		Tags:        db.TagsForTask(c.Name, id, c.Attempt, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds),
-		User:        "skiabot@google.com",
-	}, nil
+		PubsubTopic:         fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, pubSubTopic),
+		ServiceAccountToken: "",
+		Tags:                db.TagsForTask(c.Name, id, c.Attempt, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds),
+		User:                "skiabot@google.com",
+	}
+	serviceAccount := getServiceAccount(dimsMap)
+	if serviceAccount != "" {
+		task.ServiceAccountToken = serviceAccount
+	}
+	// rmistry: Set ServiceAccountToken if it is specified here!
+	return task, nil
+}
+
+// getServiceAccount returns the service account for swarming tasks to use.
+// If the dimensions match GCE dimensions then "bot" is used (see skbug.com/6611).
+// Once go/swarming-service-accounts is implemented we will be able to specify
+// the same service account email for all bots.
+func getServiceAccount(dimsMap map[string]string) string {
+	serviceAccount := ""
+	// NOTE: linuxGceDimensions and windowsGceDimensions must be kept updated
+	// with the GCE bots in Skia's pool.
+	linuxGceDimensions := map[string]string{
+		"cpu":  "x86-64-avx2",
+		"gpu":  "none",
+		"os":   "Ubuntu-14.04",
+		"pool": "Skia",
+	}
+	windowsGceDimensions := map[string]string{
+		"os":   "Windows-2008ServerR2-SP1",
+		"pool": "Skia",
+	}
+	if util.ContainsMap(linuxGceDimensions, dimsMap) || util.ContainsMap(windowsGceDimensions, dimsMap) {
+		serviceAccount = "bot"
+	}
+	return serviceAccount
 }
 
 // allDepsMet determines whether all dependencies for the given task candidate
