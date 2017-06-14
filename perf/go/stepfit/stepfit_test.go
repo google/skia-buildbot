@@ -20,8 +20,8 @@ func TestStepFit(t *testing.T) {
 			message:  "Simple Step Up",
 		},
 		{
-			value:    []float32{1, 1, 1, 0, 0},
-			expected: &StepFit{TurningPoint: 3, StepSize: 1, Status: LOW},
+			value:    []float32{1, 1, 0, 0, 0},
+			expected: &StepFit{TurningPoint: 2, StepSize: 1, Status: LOW},
 			message:  "Simple Step Down",
 		},
 		{
@@ -37,7 +37,7 @@ func TestStepFit(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		got, want := GetStepFit(tc.value, 50), tc.expected
+		got, want := GetStepFitAtMid(tc.value, 50), tc.expected
 		if got.StepSize != want.StepSize {
 			t.Errorf("Failed StepFit Got %#v Want %#v: %s", got.StepSize, want.StepSize, tc.message)
 		}
@@ -50,7 +50,7 @@ func TestStepFit(t *testing.T) {
 	}
 	// With a huge interesting value everything should be uninteresting.
 	for _, tc := range testCases {
-		got := GetStepFit(tc.value, 500)
+		got := GetStepFitAtMid(tc.value, 500)
 		if math.IsInf(float64(got.Regression), 1) && math.IsInf(float64(got.Regression), -1) && got.Status != UNINTERESTING {
 			t.Errorf("Failed StepFit Got %#v Want %#v: %v Regression %g", got.Status, UNINTERESTING, tc.value, got.Regression)
 		}
