@@ -34,6 +34,24 @@
       "revId": "7eb4d9e64ce31951c3bafdc73138f98d7dfd98b7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "19beeff6_72574d0f",
+        "filename": "go/gce/swarming/base-image/setup-script.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-14T19:47:36Z",
+      "side": 1,
+      "message": "Okay, I think I have the right settings for security fixes only, and added collectd.  Please verify.",
+      "parentUuid": "bc972a04_eaba3289",
+      "revId": "7eb4d9e64ce31951c3bafdc73138f98d7dfd98b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
