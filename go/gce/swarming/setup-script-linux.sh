@@ -6,7 +6,7 @@ set -e
 sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password password tmp_pass'
 sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password tmp_pass'
 
-sudo apt-get -y install mercurial mysql-client mysql-server libosmesa-dev npm nodejs-legacy libexpat1-dev:i386 clang-3.6 poppler-utils netpbm
+sudo apt-get -y install mercurial mysql-client mysql-server libosmesa-dev npm nodejs-legacy libexpat1-dev clang-3.6 poppler-utils netpbm
 
 mysql -uroot -ptmp_pass -e "SET PASSWORD = PASSWORD('');" 
 
@@ -38,6 +38,7 @@ sudo ln -s -f /usr/bin/llvm-cov-3.6 /usr/bin/llvm-cov
 sudo ln -s -f /usr/bin/llvm-profdata-3.6 /usr/bin/llvm-profdata
 
 # Bootstrap Swarming.
+sudo mkdir -p /b
 sudo chmod 777 /b
 mkdir -p /b/s
 SWARMING=https://chromium-swarm.appspot.com
@@ -46,3 +47,22 @@ if [[ $(hostname) == *"-i-"* ]]; then
 fi
 wget ${SWARMING}/bot_code -O /b/s/swarming_bot.zip
 ln -sf /b/s /b/swarm_slave
+
+cat <<EOF | sudo tee /etc/systemd/system/swarming_bot.service
+[Unit]
+Description=Swarming bot
+After=network.target
+
+[Service]
+Type=simple
+User=chrome-bot
+Restart=always
+RestartSec=10
+ExecStart=/usr/bin/env python /b/s/swarming_bot.zip start_bot
+
+[Install]
+WantedBy=default.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable swarming_bot.service
