@@ -20,7 +20,6 @@ promtool:
 validate: build promtool
 	absent
 	promtool check-config sys/prometheus.yml
-	promtool check-config sys/prometheus-skolo.yml
 
 push: validate
 	./build_config_release "`git log -n1 --format=%s`"
