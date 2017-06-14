@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "12c6cb96_2813c751",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-14T19:01:23Z",
+      "side": 1,
+      "message": "typo proxying",
+      "range": {
+        "startLine": 105,
+        "startChar": 16,
+        "endLine": 105,
+        "endChar": 23
+      },
+      "revId": "c05b1fbeb1acbf3ac5c032a5e1f96c5a30225540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b02132dd_5e956963",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-14T19:01:23Z",
+      "side": 1,
+      "message": "nit: should be 4xx\nnit: use http.StatusFoo, e.g. http.StatusForbidden",
+      "range": {
+        "startLine": 216,
+        "startChar": 53,
+        "endLine": 216,
+        "endChar": 56
+      },
+      "revId": "c05b1fbeb1acbf3ac5c032a5e1f96c5a30225540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae0bde1d_07138175",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-14T19:01:23Z",
+      "side": 1,
+      "message": "I\u0027m confused... Doesn\u0027t this start with \"https...\"?\n\nnit: documentation of this field says \"Usually the URL field should be used instead.\"",
+      "range": {
+        "startLine": 220,
+        "startChar": 26,
+        "endLine": 220,
+        "endChar": 38
+      },
+      "revId": "c05b1fbeb1acbf3ac5c032a5e1f96c5a30225540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a880602a_50b2717d",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-14T19:01:23Z",
+      "side": 1,
+      "message": "Could you add a comment to explain this?\n\n(AFAICT, this doesn\u0027t do anything.)",
+      "range": {
+        "startLine": 225,
+        "startChar": 2,
+        "endLine": 225,
+        "endChar": 23
+      },
+      "revId": "c05b1fbeb1acbf3ac5c032a5e1f96c5a30225540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a52a7231_bbf4b0ac",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-14T19:01:23Z",
+      "side": 1,
+      "message": "nit: strings.TrimLeft(req.URL.Path, ctfeutil.RESULTS_URI)",
+      "range": {
+        "startLine": 226,
+        "startChar": 17,
+        "endLine": 226,
+        "endChar": 21
+      },
+      "revId": "c05b1fbeb1acbf3ac5c032a5e1f96c5a30225540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c605880c_a1e37985",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-14T19:01:23Z",
+      "side": 1,
+      "message": "nit: move to main",
+      "range": {
+        "startLine": 228,
+        "startChar": 0,
+        "endLine": 239,
+        "endChar": 2
+      },
+      "revId": "c05b1fbeb1acbf3ac5c032a5e1f96c5a30225540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
