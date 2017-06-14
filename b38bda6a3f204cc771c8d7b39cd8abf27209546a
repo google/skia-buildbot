@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d4201693_c5881506",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-14T14:07:24Z",
+      "side": 1,
+      "message": "This check isn\u0027t necessary.",
+      "range": {
+        "startLine": 237,
+        "startChar": 0,
+        "endLine": 239,
+        "endChar": 2
+      },
+      "revId": "b38bda6a3f204cc771c8d7b39cd8abf27209546a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81c7765e_d3975190",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-14T14:07:24Z",
+      "side": 1,
+      "message": "Please add a TODO here.",
+      "range": {
+        "startLine": 245,
+        "startChar": 0,
+        "endLine": 246,
+        "endChar": 47
+      },
+      "revId": "b38bda6a3f204cc771c8d7b39cd8abf27209546a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20c68b97_d9df667e",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-14T14:07:24Z",
+      "side": 1,
+      "message": "I\u0027m thinking about what happens when the image is updated and the linux OS version changes.  We\u0027ll probably need to add a third map here so that we can support both dimension sets for some amount of time.  In that case, it might be nice to add a \"func ContainsAny(parent map[string]string, children ...map[string]string) bool\"",
+      "range": {
+        "startLine": 261,
+        "startChar": 4,
+        "endLine": 261,
+        "endChar": 100
+      },
+      "revId": "b38bda6a3f204cc771c8d7b39cd8abf27209546a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
