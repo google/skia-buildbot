@@ -8,6 +8,8 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -29,6 +31,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
@@ -98,6 +101,9 @@ func runServer(serverURL string) {
 	admin_tasks.AddHandlers(r)
 	pending_tasks.AddHandlers(r)
 	task_common.AddHandlers(r)
+
+	// Handler for proxing to results stored in Google Storage.
+	r.PathPrefix(ctfeutil.RESULTS_URI).HandlerFunc(resultsProxyHandler)
 
 	// Common handlers used by different pages.
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
@@ -197,6 +203,46 @@ func repeatedTasksScheduler() {
 			}
 		}
 	}
+}
+
+func resultsProxyHandler(w http.ResponseWriter, r *http.Request) {
+	sklog.Infof("Requesting: %s", r.RequestURI)
+	if login.LoggedInAs(r) == "" {
+		http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
+		return
+	}
+	if !login.IsGoogler(r) {
+		sklog.Info("User is not a Googler.")
+		http.Error(w, "Only Google accounts are allowed.", 500)
+		return
+	}
+
+	path := strings.TrimLeft(r.RequestURI, ctfeutil.RESULTS_URI)
+	director := func(req *http.Request) {
+		req.URL.Scheme = "https"
+		req.Host = "storage.googleapis.com"
+		req.URL.Host = req.Host
+		req.Header = r.Header
+		req.URL.Path = path
+	}
+	var client *http.Client
+	var err error
+	// If ClientSecretPath exists then assume that we do not get tokens from metadata.
+	if _, err := os.Stat(ctutil.ClientSecretPath); err == nil {
+		client, err = auth.NewClientWithTransport(true, ctutil.GCSTokenPath, ctutil.ClientSecretPath, nil, auth.SCOPE_FULL_CONTROL)
+	} else {
+		client, err = auth.NewClientWithTransport(false, ctutil.GCSTokenPath, "", nil, auth.SCOPE_FULL_CONTROL)
+	}
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to auth: %v", err))
+		return
+	}
+	reverseProxy := httputil.ReverseProxy{
+		Director:  director,
+		Transport: client.Transport,
+	}
+	reverseProxy.ServeHTTP(w, r)
+
 }
 
 func main() {
