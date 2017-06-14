@@ -1,6 +1,6 @@
 #!/bin/bash
 # Builds and uploads a debian package for Skolo Prometheus.
-APPNAME=prometheus-skolo
+APPNAME=prometheus-jumphost-${CONFIG}
 DESCRIPTION="Prometheus monitoring and alerting."
 SYSTEMD="prometheus-skolo.service jumphost-prom-tunnel.service jumphost-rev-prom-tunnel.service"
 
@@ -12,14 +12,14 @@ copy_release_files()
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
 
-${INSTALL} --mode=755 -T ${GOPATH}/bin/prometheus               ${ROOT}/usr/local/bin/prometheus
-${INSTALL} --mode=755 -T ${GOPATH}/bin/promtool                 ${ROOT}/usr/local/bin/promtool
-${INSTALL} --mode=644 -T ./sys/prometheus-skolo.service         ${ROOT}/etc/systemd/system/prometheus-skolo.service
-${INSTALL} --mode=644 -T ./sys/jumphost-rev-prom-tunnel.service ${ROOT}/etc/systemd/system/jumphost-rev-prom-tunnel.service
-${INSTALL} --mode=644 -T ./sys/jumphost-prom-tunnel.service     ${ROOT}/etc/systemd/system/jumphost-prom-tunnel.service
-${INSTALL} --mode=644 -T ./sys/prometheus-skolo.yml             ${ROOT}/etc/prometheus/prometheus.yml
+${INSTALL} --mode=755 -T ./tmp/prometheus                                          ${ROOT}/usr/local/bin/prometheus
+${INSTALL} --mode=755 -T ./tmp/promtool                                            ${ROOT}/usr/local/bin/promtool
+${INSTALL} --mode=644 -T ./sys/prometheus-skolo.service                            ${ROOT}/etc/systemd/system/prometheus-skolo.service
+${INSTALL} --mode=644 -T ./sys/jumphost-${CONFIG}/jumphost-rev-prom-tunnel.service ${ROOT}/etc/systemd/system/jumphost-rev-prom-tunnel.service
+${INSTALL} --mode=644 -T ./sys/jumphost-${CONFIG}/jumphost-prom-tunnel.service     ${ROOT}/etc/systemd/system/jumphost-prom-tunnel.service
+${INSTALL} --mode=644 -T ./sys/jumphost-${CONFIG}/prometheus.yml                   ${ROOT}/etc/prometheus/prometheus.yml
 
-${INSTALL_DIR} --mode=777                                       ${ROOT}/var/prometheus
+${INSTALL_DIR} --mode=777                                                          ${ROOT}/var/prometheus
 }
 
 source ../bash/release.sh

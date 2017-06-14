@@ -5,11 +5,11 @@ Wants=sshd.service
 
 [Service]
 Environment=HOME=/home/chrome-bot
-# Start a tunnel that forwards requests to skia-prom:12000 to skia-jumphost:8000,
+# Start a tunnel that forwards requests to skia-prom:12001 to skia-jumphost:8000,
 # which is where the Promtheus instance runs on the jumphost.
-ExecStart=/home/chrome-bot/google-cloud-sdk/bin/gcloud compute ssh default@skia-prom \
+ExecStart=/usr/bin/gcloud compute ssh default@skia-prom \
     --zone=us-central1-c \
-    --ssh-flag="-NT -R 12000:localhost:8000"
+    --ssh-flag="-NT -R 12001:localhost:8000"
 
 RestartSec=3
 Restart=always

@@ -9,6 +9,7 @@ prom:
 	-mkdir -p tmp
 	curl -L https://github.com/prometheus/prometheus/releases/download/v1.5.2/prometheus-1.5.2.linux-amd64.tar.gz | tar zxC ./tmp --overwrite -f -
 	cp ./tmp/prometheus-1.5.2.linux-amd64/prometheus ./tmp/prometheus
+	cp ./tmp/prometheus-1.5.2.linux-amd64/prometheus ./tmp/promtool
 
 testgo:
 	go test -v ./...
@@ -32,10 +33,10 @@ push_binaries: build prom alertmanager pushgateway validate
 	pushcli prometheus skia-prom
 
 push_skolo: build prom
-	promtool check-config sys/prometheus-skolo.yml
-	./build_skolo_release "`git log -n1 --format=%s`"
+	promtool check-config sys/jumphost-rpi-01/prometheus.yml
+	CONFIG=rpi-01 ./build_skolo_release "`git log -n1 --format=%s`"
 	go install -v ../push/go/pushcli
-	pushcli prometheus-skolo skia-jumphost
+	pushcli prometheus-jumphost-rpi-01 jumphost-rpi-01
 
 push_sheriff_emails: build
 	./build_sheriff_emails_release "`git log -n1 --format=%s`"
