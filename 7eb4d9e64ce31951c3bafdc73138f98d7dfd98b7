@@ -16,6 +16,24 @@
       "revId": "7eb4d9e64ce31951c3bafdc73138f98d7dfd98b7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc972a04_eaba3289",
+        "filename": "go/gce/swarming/base-image/setup-script.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-06-14T19:19:35Z",
+      "side": 1,
+      "message": "Yes, that\u0027s needed to keep the system up to date on security fixes. You can, and probably should, restrict it to just do security updates to minimize churn on a test bot.",
+      "parentUuid": "946374d3_bc4be7bb",
+      "revId": "7eb4d9e64ce31951c3bafdc73138f98d7dfd98b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
