@@ -58,8 +58,8 @@ var (
 	diffServerImageAddr = flag.String("diff_server_http", "", "The images serving address of the diff server. 'diff_server_grpc has to be set as well.")
 	forceLogin          = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
 	gsBucketNames       = flag.String("gs_buckets", "skia-infra-gm,chromium-skia-gm", "Comma-separated list of google storage bucket that hold uploaded images.")
-	hashFileBucket      = flag.String("hash_file_bucket", "skia-infra-gm", "Bucket where the file with the known list of hashes should be written.")
-	hashFilePath        = flag.String("hash_file_path", "hash_files/gold-prod-hashes.txt", "Path of the file with know hashes.")
+	hashFileBucket      = flag.String("hash_file_bucket", "", "Bucket where the file with the known list of hashes should be written.")
+	hashFilePath        = flag.String("hash_file_path", "", "Path of the file with know hashes.")
 	imageDir            = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
 	issueTrackerKey     = flag.String("issue_tracker_key", "", "API Key for accessing the project hosting API.")
 	local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
@@ -92,8 +92,9 @@ func main() {
 	var err error
 
 	mainTimer := timer.New("main init")
-	// Setup DB flags.
-	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME, db.MigrationSteps())
+	// Setup DB flags. But don't specify a default host or default database
+	// to avoid accidental writes.
+	dbConf := database.ConfigFromFlags("", db.PROD_DB_PORT, database.USER_RW, "", db.MigrationSteps())
 
 	// Parse the options. So we can configure logging.
 	flag.Parse()

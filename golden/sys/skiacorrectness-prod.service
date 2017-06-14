@@ -22,7 +22,9 @@ ExecStart=/usr/local/bin/skiacorrectness-prod  \
     --n_commits=100   \
     --cache_size=20 \
     --resources_dir=/usr/local/share/skiacorrectness/frontend \
-    --prom_port=:20001
+    --prom_port=:20001 \
+    --hash_file_bucket=skia-infra-gm \
+    --hash_file_path=hash_files/gold-prod-hashes.txt
 
 Restart=always
 User=default
