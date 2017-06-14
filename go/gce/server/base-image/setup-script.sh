@@ -10,11 +10,14 @@
 # For more details see ../../push/DESIGN.md.
 set -x -e
 export TERM=xterm
-apt --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" update
-apt --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
+
+echo 'Dpkg::Progress-Fancy "0";' | sudo tee /etc/apt/apt.conf.d/99progressbar
+
+sudo DEBIAN_FRONTEND=noninteractive apt -o quiet=2 --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" update
+sudo DEBIAN_FRONTEND=noninteractive apt -o quiet=2 --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
 
 # Move to testing.
-cat <<EOF > /etc/apt/sources.list
+cat <<EOF | sudo tee /etc/apt/sources.list
 deb http://deb.debian.org/debian/ testing main contrib non-free
 deb-src http://deb.debian.org/debian/ testing main contrib non-free
 deb http://security.debian.org/ testing/updates main contrib non-free
@@ -24,19 +27,18 @@ EOF
 # Yes, we need to run it this many times.
 for i in {1..4}
 do
-  apt --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  update
-  apt --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  full-upgrade
-  apt --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  autoremove
+  sudo DEBIAN_FRONTEND=noninteractive apt -o quiet=2 --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" update
+  sudo DEBIAN_FRONTEND=noninteractive apt -o quiet=2 --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" full-upgrade
+  sudo DEBIAN_FRONTEND=noninteractive apt -o quiet=2 --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" autoremove
 done
 
 # Now install the apps that we guarantee to appear.
-apt --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  install git collectd unattended-upgrades
-gsutil cp
-gs://skia-push/debs/pulld/pulld:jcgregorio@jcgregorio.cnc.corp.google.com:2017-03-02T16:55:37Z:38251c8ddc7f1033dd92064735aa45aedb48f527.deb pulld.deb
-dpkg -i pulld.deb
-systemctl start pulld.service
+sudo DEBIAN_FRONTEND=noninteractive apt -o quiet=2 --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install git collectd unattended-upgrades
+gsutil cp gs://skia-push/debs/pulld/pulld:jcgregorio@jcgregorio.cnc.corp.google.com:2017-03-02T16:55:37Z:38251c8ddc7f1033dd92064735aa45aedb48f527.deb pulld.deb
+sudo dpkg -i pulld.deb
+sudo systemctl start pulld.service
 
-apt --assume-yes install --fix-broken
+sudo apt --assume-yes install --fix-broken
 
 # Setup collectd.
 cat <<EOF > collectd.conf
@@ -82,13 +84,15 @@ LoadPlugin write_graphite
         </Carbon>
 </Plugin>
 EOF
-install -D --verbose --backup=none --group=root --owner=root --mode=600 collectd.conf /etc/collectd/collectd.conf
-/etc/init.d/collectd restart
+sudo install -D --verbose --backup=none --group=root --owner=root --mode=600 collectd.conf /etc/collectd/collectd.conf
+sudo /etc/init.d/collectd restart
 
+cat <<EOF | sudo tee /etc/apt/apt.conf.d/20auto-upgrades
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+EOF
 
-DEBCONF_DB_OVERRIDE="File{/tmp/override.dat readonly:true}" dpkg-reconfigure --priority=low --frontend=readline  unattended-upgrades
-
-cat <<EOF > /etc/apt/apt.conf.d/50unattended-upgrades
+cat <<EOF | sudo tee /etc/apt/apt.conf.d/50unattended-upgrades
 Unattended-Upgrade::Origins-Pattern {
       "o=Debian,a=testing";
 };
@@ -97,5 +101,5 @@ Unattended-Upgrade::Automatic-Reboot "true";
 EOF
 
 # Check the output to confirm that the config is working.
-unattended-upgrades -d
+sudo unattended-upgrades -d
 

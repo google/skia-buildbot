@@ -285,7 +285,7 @@ func main() {
 
 		group.Go(vm.Name, func() error {
 			if *create {
-				if err := g.CreateAndSetup(vm, *ignoreExists, *workdir); err != nil {
+				if err := g.CreateAndSetup(vm, *ignoreExists); err != nil {
 					return err
 				}
 

@@ -25,11 +25,17 @@ const (
 
 	CPU_PLATFORM_SKYLAKE = "Intel Skylake"
 
+	// Labels can only contain lowercase letters, numbers, underscores, and dashes.
+	DATE_FORMAT     = "2006-01-02"
+	DATETIME_FORMAT = "2006-01-02_15-04-05"
+
 	DISK_SNAPSHOT_SYSTEMD_PUSHABLE_BASE = "skia-systemd-pushable-base"
 
 	DISK_TYPE_LOCAL_SSD           = "local-ssd"
 	DISK_TYPE_PERSISTENT_STANDARD = "pd-standard"
 	DISK_TYPE_PERSISTENT_SSD      = "pd-ssd"
+
+	IMAGE_STATUS_READY = "READY"
 
 	MACHINE_TYPE_HIGHMEM_2   = "n1-highmem-2"
 	MACHINE_TYPE_HIGHMEM_16  = "n1-highmem-16"
@@ -102,7 +108,7 @@ func NewGCloud(zone, workdir string) (*GCloud, error) {
 	oauthCacheFile := path.Join(workdir, "gcloud_token.data")
 	httpClient, err := auth.NewClient(true, oauthCacheFile, compute.CloudPlatformScope, compute.ComputeScope, compute.DevstorageFullControlScope)
 	if err != nil {
-		sklog.Fatal(err)
+		return nil, err
 	}
 
 	s, err := compute.New(httpClient)
@@ -201,7 +207,7 @@ func (g *GCloud) DeleteDisk(name string, ignoreNotExists bool) error {
 				return fmt.Errorf("Disk %q already exists.", name)
 			}
 		} else {
-			sklog.Fatal(err)
+			return fmt.Errorf("Failed to delete disk %q: %s", name, err)
 		}
 	} else if op.Error != nil {
 		return fmt.Errorf("Failed to delete disk: %v", op.Error)
@@ -327,6 +333,9 @@ func scriptToMetadata(vm *Instance, key, path string) error {
 	if vm.Os == OS_WINDOWS {
 		script = util.ToDos(script)
 	}
+	if vm.Metadata == nil {
+		vm.Metadata = map[string]string{}
+	}
 	vm.Metadata[key] = script
 	return nil
 }
@@ -336,6 +345,9 @@ func setupScriptToMetadata(vm *Instance) error {
 	key := SETUP_SCRIPT_KEY_WIN
 	if vm.Os != OS_WINDOWS {
 		key = SETUP_SCRIPT_KEY_LINUX
+		if vm.MetadataDownloads == nil {
+			vm.MetadataDownloads = map[string]string{}
+		}
 		vm.MetadataDownloads[SETUP_SCRIPT_PATH_LINUX] = fmt.Sprintf(metadata.METADATA_URL, "instance", SETUP_SCRIPT_KEY_LINUX)
 	}
 	return scriptToMetadata(vm, key, vm.SetupScript)
@@ -386,6 +398,9 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 		disks = append(disks, d)
 	}
 	if vm.Os == OS_WINDOWS && vm.User != "" && vm.Password != "" {
+		if vm.Metadata == nil {
+			vm.Metadata = map[string]string{}
+		}
 		vm.Metadata["gce-initial-windows-user"] = vm.User
 		vm.Metadata["gce-initial-windows-password"] = vm.Password
 	}
@@ -503,7 +518,7 @@ func (g *GCloud) DeleteInstance(name string, ignoreNotExists bool) error {
 				return fmt.Errorf("Instance %q does not exist.", name)
 			}
 		} else {
-			sklog.Fatal(err)
+			return fmt.Errorf("Failed to delete instance %q: %s", name, err)
 		}
 	} else if op.Error != nil {
 		return fmt.Errorf("Failed to delete instance: %v", op.Error)
@@ -764,7 +779,7 @@ func (g *GCloud) SetMetadata(vm *Instance, md map[string]string) error {
 
 // CreateAndSetup creates an instance and all its disks and performs any
 // additional setup steps.
-func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool, workdir string) error {
+func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool) error {
 	// Create the disks and the instance.
 	if vm.BootDisk != nil {
 		if err := g.CreateDisk(vm.BootDisk, ignoreExists); err != nil {
@@ -879,5 +894,135 @@ func (g *GCloud) Delete(vm *Instance, ignoreNotExists, deleteDataDisk bool) erro
 			return err
 		}
 	}
+	return nil
+}
+
+// GetImages returns all of the images from the project.
+func (g *GCloud) GetImages() ([]*compute.Image, error) {
+	rv := []*compute.Image{}
+	page := ""
+	for {
+		images, err := g.s.Images.List(g.project).PageToken(page).Do()
+		if err != nil {
+			return nil, fmt.Errorf("Failed to load the list of images: %s", err)
+		}
+		rv = append(rv, images.Items...)
+		if images.NextPageToken == "" {
+			return rv, nil
+		}
+		page = images.NextPageToken
+	}
+}
+
+// CaptureImage captures an image from the instance's boot disk. The instance
+// has to be deleted in order to capture the image, and we delete the boot disk
+// after capture for cleanliness.
+func (g *GCloud) CaptureImage(vm *Instance, family, description string) error {
+	// Create an image name based on the family, current date, and number of
+	// images created today.
+	images, err := g.GetImages()
+	if err != nil {
+		return err
+	}
+	now := time.Now().UTC()
+	imageName := fmt.Sprintf("%s-v%s", family, now.Format(DATE_FORMAT))
+	suffix := 0
+	for _, image := range images {
+		if strings.HasPrefix(image.Name, imageName) {
+			suffix++
+		}
+	}
+	imageName = fmt.Sprintf("%s-%03d", imageName, suffix)
+	sklog.Infof("About to capture image %q", imageName)
+
+	// Set auto-delete to off for the boot disk.
+	sklog.Infof("Turning off auto-delete for %q", vm.BootDisk.Name)
+	op, err := g.s.Instances.SetDiskAutoDelete(g.project, g.zone, vm.Name, false, vm.BootDisk.Name).Do()
+	if err != nil {
+		return fmt.Errorf("Failed to set auto-delete on disk %q: %s", vm.BootDisk.Name, err)
+	} else if op.Error != nil {
+		return fmt.Errorf("Failed to set auto-delete on disk %q: %s", vm.BootDisk.Name, op.Error)
+	}
+	user := strings.Split(op.User, "@")[0]
+
+	// Spin until auto-delete is actually off for the instance.
+	started := time.Now()
+	for {
+		time.Sleep(5 * time.Second)
+		inst, err := g.s.Instances.Get(g.project, g.zone, vm.Name).Do()
+		if err != nil {
+			return fmt.Errorf("Failed to retrieve instance details: %s", err)
+		}
+		var d *compute.AttachedDisk
+		for _, disk := range inst.Disks {
+			if disk.Boot {
+				d = disk
+				break
+			}
+		}
+		if d == nil {
+			return fmt.Errorf("Unable to find the boot disk!")
+		}
+		if !d.AutoDelete {
+			break
+		}
+		if time.Now().Sub(started) > maxWaitTime {
+			return fmt.Errorf("Auto-delete was not unset on %q within the acceptable time period.", vm.BootDisk.Name)
+		}
+		sklog.Infof("Waiting for auto-delete to be off for %q", vm.BootDisk.Name)
+	}
+
+	// Delete the instance.
+	if err := g.DeleteInstance(vm.Name, true); err != nil {
+		return err
+	}
+
+	// Capture the image.
+	sklog.Infof("Capturing disk image.")
+	op, err = g.s.Images.Insert(g.project, &compute.Image{
+		Description: description,
+		Family:      family,
+		Labels: map[string]string{
+			"created-by": user,
+			"created-on": now.Format(DATETIME_FORMAT),
+		},
+		Name:       imageName,
+		SourceDisk: fmt.Sprintf("projects/%s/zones/%s/disks/%s", g.project, g.zone, vm.BootDisk.Name),
+	}).Do()
+	if err != nil {
+		return fmt.Errorf("Failed to capture image of %q: %s", vm.BootDisk.Name, err)
+	} else if op.Error != nil {
+		return fmt.Errorf("Failed to capture image of %q: %s", vm.BootDisk.Name, op.Error)
+	}
+	// Wait for the image capture to complete.
+	started = time.Now()
+	for {
+		time.Sleep(5 * time.Second)
+		images, err := g.GetImages()
+		if err != nil {
+			return err
+		}
+		found := false
+		for _, img := range images {
+			if img.Name == imageName && img.Status == IMAGE_STATUS_READY {
+				found = true
+				break
+			}
+		}
+		if found {
+			break
+		}
+		sklog.Infof("Waiting for image capture to finish.")
+	}
+
+	// Delete the boot disk.
+	sklog.Infof("Deleting disk %q", vm.BootDisk.Name)
+	op, err = g.s.Disks.Delete(g.project, g.zone, vm.BootDisk.Name).Do()
+	if err != nil {
+		return fmt.Errorf("Failed to delete disk %q: %s", vm.BootDisk.Name, err)
+	} else if op.Error != nil {
+		return fmt.Errorf("Failed to delete disk %q: %s", vm.BootDisk.Name, op.Error)
+	}
+	sklog.Infof("Successfully captured image %q", imageName)
 	return nil
 }
