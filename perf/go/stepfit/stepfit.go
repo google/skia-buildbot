@@ -43,20 +43,19 @@ type StepFit struct {
 	Status string `json:"status"`
 }
 
-// GetStepFit takes one []float32 trace and calculates and returns a StepFit.
+// GetStepFitAtMid takes one []float32 trace and calculates and returns a StepFit.
 //
 // See StepFit for a description of the values being calculated.
-func GetStepFit(trace []float32, interesting float32) *StepFit {
+func GetStepFitAtMid(trace []float32, interesting float32) *StepFit {
 	lse := float32(math.MaxFloat32)
 	stepSize := float32(-1.0)
 	turn := 0
 
-	for i := 1; i < len(trace); i++ {
-		y0 := vec32.Mean(trace[:i])
-		y1 := vec32.Mean(trace[i:])
-		if y0 == y1 {
-			continue
-		}
+	i := len(trace) / 2
+	y0 := vec32.Mean(trace[:i])
+	y1 := vec32.Mean(trace[i:])
+
+	if y0 != y1 {
 		d := vec32.SSE(trace[:i], y0) + vec32.SSE(trace[i:], y1)
 		if d < lse {
 			lse = d

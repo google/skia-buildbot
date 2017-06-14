@@ -44,8 +44,8 @@ func TestCalcCusterSummaries(t *testing.T) {
 	now := time.Now()
 	df := &dataframe.DataFrame{
 		TraceSet: ptracestore.TraceSet{
-			",arch=x86,config=8888,": []float32{0, 0, 0, 1, 1},
-			",arch=x86,config=565,":  []float32{0, 0, 0, 1, 1},
+			",arch=x86,config=8888,": []float32{0, 0, 1, 1, 1},
+			",arch=x86,config=565,":  []float32{0, 0, 1, 1, 1},
 			",arch=arm,config=8888,": []float32{1, 1, 1, 1, 1},
 			",arch=arm,config=565,":  []float32{1, 1, 1, 1, 1},
 		},
@@ -82,13 +82,20 @@ func TestCalcCusterSummaries(t *testing.T) {
 	for key := range df.TraceSet {
 		df.ParamSet.AddParamsFromKey(key)
 	}
-	sum, err := CalculateClusterSummaries(df, 4, 0.01, nil, 50)
+	sum, err := CalculateClusterSummaries(df, 4, 0.01, nil, 50, KMEANS_ALGO)
 	assert.NoError(t, err)
 	assert.NotNil(t, sum)
 	assert.Equal(t, 2, len(sum.Clusters))
-	assert.Equal(t, df.Header[3], sum.Clusters[0].StepPoint)
+	assert.Equal(t, df.Header[2], sum.Clusters[0].StepPoint)
 	assert.Equal(t, 2, len(sum.Clusters[0].Keys))
 	assert.Equal(t, 2, len(sum.Clusters[1].Keys))
+
+	sum, err = CalculateClusterSummaries(df, 4, 0.01, nil, 50, STEPFIT_ALGO)
+	assert.NoError(t, err)
+	assert.NotNil(t, sum)
+	assert.Equal(t, 1, len(sum.Clusters))
+	assert.Equal(t, df.Header[2], sum.Clusters[0].StepPoint)
+	assert.Equal(t, 2, len(sum.Clusters[0].Keys))
 }
 
 func TestCalcCusterSummariesDegenerate(t *testing.T) {
@@ -100,6 +107,6 @@ func TestCalcCusterSummariesDegenerate(t *testing.T) {
 		ParamSet: paramtools.ParamSet{},
 		Skip:     0,
 	}
-	_, err := CalculateClusterSummaries(df, 4, 0.01, nil, 50)
+	_, err := CalculateClusterSummaries(df, 4, 0.01, nil, 50, KMEANS_ALGO)
 	assert.Error(t, err)
 }

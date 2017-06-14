@@ -250,7 +250,9 @@
         // into a format that plot-sk can handle.
         var line = [];
         this._summary.centroid.forEach(function(y, x) {
-          line.push([x, y]);
+          if (y != 1e32) {
+            line.push([x, y]);
+          }
         });
         this.$.graph.addLines({special_centroid: line});
 
