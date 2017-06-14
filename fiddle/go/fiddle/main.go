@@ -448,9 +448,12 @@ func run(user string, req *types.FiddleContext) (*types.RunResults, error) {
 	if res.Compile.Errors != "" || res.Execute.Errors != "" {
 		res = nil
 	}
-	fiddleHash, err := fiddleStore.Put(req.Code, req.Options, current.Hash, current.Timestamp, res)
-	if err != nil {
-		return resp, fmt.Errorf("Failed to store the fiddle")
+	// Store the fiddle, but only if we are not in Fast mode and errors occurred.
+	if !(res == nil && req.Fast) {
+		fiddleHash, err := fiddleStore.Put(req.Code, req.Options, current.Hash, current.Timestamp, res)
+		if err != nil {
+			return resp, fmt.Errorf("Failed to store the fiddle")
+		}
 	}
 	if maybeSecViolation {
 		maybeSecViolations.Inc(1)
