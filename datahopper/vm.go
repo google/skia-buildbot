@@ -6,7 +6,7 @@ import (
 )
 
 func DatahopperBase(name, ipAddress string) *gce.Instance {
-	vm := server.AddGitConfigs(server.Server20170518(name), "skia-datahopper2")
+	vm := server.AddGitConfigs(server.Server20170613(name), "skia-datahopper2")
 	vm.DataDisk.SizeGb = 200
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.ExternalIpAddress = ipAddress

@@ -17,9 +17,10 @@ import (
 )
 
 const (
-	GS_URL_GITCOOKIES_TMPL = "gs://skia-buildbots/artifacts/server/.gitcookies_%s"
-	GS_URL_GITCONFIG       = "gs://skia-buildbots/artifacts/server/.gitconfig"
-	GS_URL_NETRC           = "gs://skia-buildbots/artifacts/server/.netrc"
+	DISK_IMAGE_SKIA_PUSHABLE_BASE = "skia-pushable-base-v2017-06-13-003"
+	GS_URL_GITCOOKIES_TMPL        = "gs://skia-buildbots/artifacts/server/.gitcookies_%s"
+	GS_URL_GITCONFIG              = "gs://skia-buildbots/artifacts/server/.gitconfig"
+	GS_URL_NETRC                  = "gs://skia-buildbots/artifacts/server/.netrc"
 )
 
 var (
@@ -60,6 +61,14 @@ func Server20170518(name string) *gce.Instance {
 		Tags: []string{"http-server", "https-server"},
 		User: gce.USER_DEFAULT,
 	}
+}
+
+// Updated server config which uses the new disk image.
+func Server20170613(name string) *gce.Instance {
+	vm := Server20170518(name)
+	vm.BootDisk.SourceImage = DISK_IMAGE_SKIA_PUSHABLE_BASE
+	vm.BootDisk.SourceSnapshot = ""
+	return vm
 }
 
 // Add configuration for servers who use git.
@@ -104,7 +113,7 @@ func Main(zone string, instances map[string]*gce.Instance) {
 
 	// Perform the requested operation.
 	if *create {
-		if err := g.CreateAndSetup(vm, *ignoreExists, *workdir); err != nil {
+		if err := g.CreateAndSetup(vm, *ignoreExists); err != nil {
 			sklog.Fatal(err)
 		}
 	} else {

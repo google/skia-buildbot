@@ -13,7 +13,7 @@ import (
 )
 
 func FuzzerBase(name string) *gce.Instance {
-	vm := server.Server20170518(name)
+	vm := server.Server20170613(name)
 	vm.BootDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.DataDisk.SizeGb = 375
 	vm.DataDisk.Type = gce.DISK_TYPE_LOCAL_SSD

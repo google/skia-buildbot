@@ -11,7 +11,7 @@ import (
 )
 
 func AutoRollBase(name, ipAddress string) *gce.Instance {
-	vm := server.AddGitConfigs(server.Server20170518(name), name)
+	vm := server.AddGitConfigs(server.Server20170613(name), name)
 	vm.DataDisk.SizeGb = 64
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	if ipAddress != "" {

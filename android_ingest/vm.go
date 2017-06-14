@@ -7,7 +7,7 @@ import (
 )
 
 func AndroidIngestBase(name, ipAddress string) *gce.Instance {
-	vm := server.Server20170518(name)
+	vm := server.Server20170613(name)
 	vm.DataDisk = nil
 	vm.ExternalIpAddress = ipAddress
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_1
