@@ -32,6 +32,7 @@ var (
 
 const (
 	IMAGE_URL_PREFIX = "/img/"
+
 )
 
 // diffStore handles all the diffing.
