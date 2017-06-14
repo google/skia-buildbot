@@ -15,6 +15,7 @@
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+<link rel="import" href="/res/imp/bower_components/iron-selector/iron-selector.html">
 
 <link rel="import" href="/res/common/imp/details-summary.html">
 <link rel="import" href="/res/common/imp/query2-sk.html" />
@@ -67,6 +68,22 @@
     #inputs paper-input {
       width: 20em;
     }
+
+    .iron-selected {
+      background: #eee;
+    }
+
+    iron-selector div {
+      width: 10em;
+      margin: 0.3em 1em;
+      padding: 0.2em;
+    }
+
+    .info {
+      margin: 1em;
+      font-size: 18px;
+      color: #E7298A;
+    }
   </style>
   <template>
     <h2>Range</h2>
@@ -80,6 +97,12 @@
         <commit-detail-picker-sk on-commit-selected="_commitSelected" id=commit></commit-picker-sk>
       </div>
     </div>
+    <h2>Algorithm</h2>
+    <iron-selector attr-for-selected="value" selected="{{state.algo}}" fallback-selection="kmeans">
+      <div value=kmeans title="Use k-means clustering on the trace shapes.">K-Means</div>
+      <div value=stepfit title="Only look for traces that step up or down at the selected commit.">StepFit</div>
+    </iron-selector>
+
     <h2>Query</h2>
     <div class="layout horizontal">
       <query2-sk id=query on-query-change="_queryChange"></query2-sk>
@@ -89,7 +112,7 @@
         <div>
           Matches: <span id=matches></span>
         </div>
-        <button on-tap="_start" class=action id=start>Cluster</button>
+        <button on-tap="_start" class=action id=start>Run</button>
         <div class="layout horizontal center">
           <paper-spinner id=clusterSpinner></paper-spinner>
           <span id=status></span>
@@ -118,6 +141,11 @@
     <div id=clusters>
       <template id=results is="dom-repeat" items="{{_summaries}}">
         <cluster-summary2-sk full_summary="{{item}}"></cluster-summary2-sk>
+      </template>
+      <template is="dom-if" if="{{_isZeroLength(_summaries,_requestId)}}">
+        <p class=info>
+          No clusters found.
+        </p>
       </template>
     </div>
   </template>
@@ -151,6 +179,7 @@
           radius: sk.perf.radius,
           query: "",
           k: 0,
+          algo: "kmeans",
         }; },
       },
       // The id of the current cluster request. Will be the empty string
@@ -218,6 +247,7 @@
         query: this.state.query,
         k: +this.state.k,
         tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        algo: this.state.algo,
       };
       this._summaries = [];
       this.$.results.render();
@@ -327,6 +357,10 @@
         this._countInProgress = false;
       });
     },
+
+    _isZeroLength: function(ar, _requestId) {
+      return ar.length == 0 && this._requestId == "";
+    }
 
   });
 </script>
