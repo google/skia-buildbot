@@ -28,7 +28,6 @@ const (
 	GS_URL_NETRC     = "gs://skia-buildbots/artifacts/bots/.netrc"
 
 	IP_ADDRESS_TMPL = "104.154.112.%d"
-	USER_CHROME_BOT = "chrome-bot"
 )
 
 var (
@@ -51,7 +50,7 @@ func Swarming20170523(name, ipAddress string) *gce.Instance {
 	return &gce.Instance{
 		BootDisk: &gce.Disk{
 			Name:        name,
-			SourceImage: "skia-swarming-v3",
+			SourceImage: "skia-swarming-base-v2017-06-14-002",
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
 		DataDisk: &gce.Disk{
@@ -71,7 +70,7 @@ func Swarming20170523(name, ipAddress string) *gce.Instance {
 			auth.SCOPE_FULL_CONTROL,
 		},
 		Tags: []string{"http-server", "https-server"},
-		User: USER_CHROME_BOT,
+		User: gce.USER_CHROME_BOT,
 	}
 }
 

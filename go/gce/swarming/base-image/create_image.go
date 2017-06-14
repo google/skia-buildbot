@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	IMAGE_DESCRIPTION = "Base image for all Skia servers."
-	IMAGE_FAMILY      = "skia-pushable-base"
-	INSTANCE_NAME     = "skia-pushable-base-maker"
+	IMAGE_DESCRIPTION = "Base image for Skia Swarming bots."
+	IMAGE_FAMILY      = "skia-swarming-base"
+	INSTANCE_NAME     = "skia-swarming-base-maker"
 	SETUP_SCRIPT      = "~/setup_script.sh"
 )
 
@@ -24,8 +24,6 @@ var (
 )
 
 func BaseConfig() *gce.Instance {
-	// The setup script has to be run in an interactive terminal. Make sure
-	// it ends up on the machine and we'll ask the user to run it.
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
 
@@ -42,7 +40,7 @@ func BaseConfig() *gce.Instance {
 			"https://www.googleapis.com/auth/cloud-platform",
 		},
 		SetupScript: path.Join(dir, "setup-script.sh"),
-		User:        gce.USER_DEFAULT,
+		User:        gce.USER_CHROME_BOT,
 	}
 
 	return vm
