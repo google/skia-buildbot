@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "946374d3_bc4be7bb",
+        "filename": "go/gce/swarming/base-image/setup-script.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-14T18:03:13Z",
+      "side": 1,
+      "message": "I copied everything from https://skia.googlesource.com/buildbot/+/fba79adb8b245934fccdf7939977ef577b5fc42d/compute_engine_scripts/swarming_bots/vm_setup_image.sh\n\nThen I did:\n\n- Trimmed the SSH commands out since we run the setup script on the instance.\n- Removed the \"postfix\" package and changed the linux-tools package to a version which works on Debian 8.\n- Removed \"sudo gsutil update\"\n- Removed telemetry aliases\n- Removed checkouts of depot_tools, buildbot, and skia\n- Removed automount stuff\n\n@jcgregorio: Should we copy in the auto-updatey parts of https://skia.googlesource.com/buildbot/+/master/go/gce/server/base-image/setup-script.sh ?",
+      "revId": "7eb4d9e64ce31951c3bafdc73138f98d7dfd98b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
