@@ -117,6 +117,52 @@
     },
     {
       "key": {
+        "uuid": "ddd43a87_546fac9c",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-14T19:05:48Z",
+      "side": 1,
+      "message": "nit: Maybe use auth.SCOPE_READ_ONLY, since we don\u0027t need write access. x2",
+      "range": {
+        "startLine": 232,
+        "startChar": 101,
+        "endLine": 232,
+        "endChar": 124
+      },
+      "revId": "c05b1fbeb1acbf3ac5c032a5e1f96c5a30225540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "879643f7_9192b595",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-14T19:05:48Z",
+      "side": 1,
+      "message": "nit: This is what e.g. task scheduler does:\n\t// Authenticated HTTP client.\n\toauthCacheFile :\u003d path.Join(wdAbs, \"google_storage_token.data\")\n\thttpClient, err :\u003d auth.NewClient(*local, oauthCacheFile, auth.SCOPE_READ_WRITE)\n\tif err !\u003d nil {\n\t\tsklog.Fatal(err)\n\t}",
+      "range": {
+        "startLine": 230,
+        "startChar": 1,
+        "endLine": 235,
+        "endChar": 2
+      },
+      "revId": "c05b1fbeb1acbf3ac5c032a5e1f96c5a30225540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c605880c_a1e37985",
         "filename": "ct/go/ctfe/main.go",
         "patchSetId": 3
