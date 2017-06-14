@@ -592,3 +592,27 @@ func TestParseIntSet(t *testing.T) {
 	test("-2", nil, "Invalid expression \"-2\"")
 	test("2-", nil, "Invalid expression \"2-\"")
 }
+
+func TestContainsMap(t *testing.T) {
+	testutils.SmallTest(t)
+	// Test success
+	a := map[string]string{
+		"a": "1",
+		"b": "2",
+	}
+	b := map[string]string{
+		"a": "1",
+		"b": "2",
+		"c": "3",
+	}
+	assert.True(t, ContainsMap(a, b))
+	// Test map with itself.
+	assert.True(t, ContainsMap(b, b))
+	// Test failure.
+	delete(b, "b")
+	assert.False(t, ContainsMap(a, b))
+	// Test edge cases.
+	assert.True(t, ContainsMap(map[string]string{}, b))
+	assert.True(t, ContainsMap(map[string]string{}, map[string]string{}))
+	assert.False(t, ContainsMap(map[string]string{"a": "1"}, map[string]string{}))
+}
