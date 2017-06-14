@@ -54,7 +54,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("failed to listen: %v", err)
 	}
-	s := grpc.NewServer(grpc.MaxMsgSize(tracedb.MAX_MESSAGE_SIZE))
+	s := grpc.NewServer(grpc.MaxSendMsgSize(tracedb.MAX_MESSAGE_SIZE), grpc.MaxRecvMsgSize(tracedb.MAX_MESSAGE_SIZE))
 	traceservice.RegisterTraceServiceServer(s, ts)
 
 	// If a directory for sharedb was registered add a the sharedb service.

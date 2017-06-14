@@ -509,7 +509,7 @@ func NewTraceServiceDBFromAddress(traceServiceAddr string, traceBuilder tiling.T
 		return nil, fmt.Errorf("Did not get address for trace services.")
 	}
 
-	conn, err := grpc.Dial(traceServiceAddr, grpc.WithInsecure(), grpc.WithMaxMsgSize(MAX_MESSAGE_SIZE))
+	conn, err := grpc.Dial(traceServiceAddr, grpc.WithInsecure(), grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(MAX_MESSAGE_SIZE), grpc.MaxCallSendMsgSize(MAX_MESSAGE_SIZE)))
 	if err != nil {
 		return nil, fmt.Errorf("Unable to connnect to trace service at %s. Got error: %s", traceServiceAddr, err)
 	}
