@@ -89,6 +89,8 @@ const (
 	CL_DATA_POST_URI              = "_/cl_data"
 	BENCHMARKS_PLATFORMS_POST_URI = "_/benchmarks_platforms/"
 
+	RESULTS_URI = "/results/"
+
 	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
 )
 
