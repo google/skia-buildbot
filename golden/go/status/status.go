@@ -204,7 +204,7 @@ func (s *StatusWatcher) calcStatus(tile *tiling.Tile) error {
 		okByCorpus[corpus] = okByCorpus[corpus] && ((status == types.POSITIVE) ||
 			((status == types.NEGATIVE) && (len(digestInfo.IssueIDs) > 0)))
 		minCommitId[corpus] = util.MinInt(idx, minCommitId[corpus])
-		byCorpus[corpus][status][digest] = true
+		byCorpus[corpus][status][testName+digest] = true
 	}
 
 	commits := tile.Commits[:tileLen]
