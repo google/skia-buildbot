@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "88badcb7_3c25c695",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-15T14:14:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "12c6cb96_2813c751",
+      "range": {
+        "startLine": 105,
+        "startChar": 16,
+        "endLine": 105,
+        "endChar": 23
+      },
+      "revId": "c05b1fbeb1acbf3ac5c032a5e1f96c5a30225540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b02132dd_5e956963",
         "filename": "ct/go/ctfe/main.go",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "60e6e009_bb9ef842",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-15T14:14:35Z",
+      "side": 1,
+      "message": "Done. Changed to http.StatusUnauthorized.",
+      "parentUuid": "b02132dd_5e956963",
+      "range": {
+        "startLine": 216,
+        "startChar": 53,
+        "endLine": 216,
+        "endChar": 56
+      },
+      "revId": "c05b1fbeb1acbf3ac5c032a5e1f96c5a30225540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ae0bde1d_07138175",
         "filename": "ct/go/ctfe/main.go",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2017-06-14T19:01:23Z",
       "side": 1,
       "message": "I\u0027m confused... Doesn\u0027t this start with \"https...\"?\n\nnit: documentation of this field says \"Usually the URL field should be used instead.\"",
+      "range": {
+        "startLine": 220,
+        "startChar": 26,
+        "endLine": 220,
+        "endChar": 38
+      },
+      "revId": "c05b1fbeb1acbf3ac5c032a5e1f96c5a30225540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ef4723a_2aa2b9a6",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-15T14:14:35Z",
+      "side": 1,
+      "message": "In my local testing it was showing up as \"/results/...\".",
+      "parentUuid": "ae0bde1d_07138175",
       "range": {
         "startLine": 220,
         "startChar": 26,
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "de44eb2c_7ff8b151",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-15T14:14:35Z",
+      "side": 1,
+      "message": "Yes this doesn\u0027t do anything. I was testing something with it and forgot to take it out.",
+      "parentUuid": "a880602a_50b2717d",
+      "range": {
+        "startLine": 225,
+        "startChar": 2,
+        "endLine": 225,
+        "endChar": 23
+      },
+      "revId": "c05b1fbeb1acbf3ac5c032a5e1f96c5a30225540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a52a7231_bbf4b0ac",
         "filename": "ct/go/ctfe/main.go",
         "patchSetId": 3
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "5c9c65e9_1aa7052c",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-15T14:14:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a52a7231_bbf4b0ac",
+      "range": {
+        "startLine": 226,
+        "startChar": 17,
+        "endLine": 226,
+        "endChar": 21
+      },
+      "revId": "c05b1fbeb1acbf3ac5c032a5e1f96c5a30225540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ddd43a87_546fac9c",
         "filename": "ct/go/ctfe/main.go",
         "patchSetId": 3
@@ -128,6 +248,30 @@
       "writtenOn": "2017-06-14T19:05:48Z",
       "side": 1,
       "message": "nit: Maybe use auth.SCOPE_READ_ONLY, since we don\u0027t need write access. x2",
+      "range": {
+        "startLine": 232,
+        "startChar": 101,
+        "endLine": 232,
+        "endChar": 124
+      },
+      "revId": "c05b1fbeb1acbf3ac5c032a5e1f96c5a30225540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e47fb74d_34cc8247",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-15T14:14:35Z",
+      "side": 1,
+      "message": "Makes sense. Done.",
+      "parentUuid": "ddd43a87_546fac9c",
       "range": {
         "startLine": 232,
         "startChar": 101,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "1ee1e918_7bde6caf",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-15T14:14:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "879643f7_9192b595",
+      "range": {
+        "startLine": 230,
+        "startChar": 1,
+        "endLine": 235,
+        "endChar": 2
+      },
+      "revId": "c05b1fbeb1acbf3ac5c032a5e1f96c5a30225540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c605880c_a1e37985",
         "filename": "ct/go/ctfe/main.go",
         "patchSetId": 3
@@ -183,6 +351,30 @@
       "revId": "c05b1fbeb1acbf3ac5c032a5e1f96c5a30225540",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99fe8d70_cd5faf84",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-15T14:14:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c605880c_a1e37985",
+      "range": {
+        "startLine": 228,
+        "startChar": 0,
+        "endLine": 239,
+        "endChar": 2
+      },
+      "revId": "c05b1fbeb1acbf3ac5c032a5e1f96c5a30225540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
