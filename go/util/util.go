@@ -200,6 +200,32 @@ func MapsEqual(a, b map[string]string) bool {
 	return true
 }
 
+// ContainsMap checks if child map is contained within the parent map
+func ContainsMap(parent, child map[string]string) bool {
+	if len(child) > len(parent) {
+		return false
+	}
+	// Since we know child is less than or equal to parent we only need to
+	// compare child's values to parent's values.
+	for k, v := range child {
+		if pv, ok := parent[k]; !ok || pv != v {
+			return false
+		}
+	}
+	return true
+}
+
+// ContainsAnyMap checks to see if any of the children maps are contained in
+// the parent map.
+func ContainsAnyMap(parent map[string]string, children ...map[string]string) bool {
+	for _, child := range children {
+		if ContainsMap(parent, child) {
+			return true
+		}
+	}
+	return false
+}
+
 // MaxInt returns the largest integer of the arguments provided.
 func MaxInt(intList ...int) int {
 	ret := intList[0]

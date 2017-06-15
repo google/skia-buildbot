@@ -229,10 +229,36 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 			},
 			IoTimeoutSecs: ioTimeoutSecs,
 		},
-		PubsubTopic: fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, pubSubTopic),
-		Tags:        db.TagsForTask(c.Name, id, c.Attempt, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds),
-		User:        "skiabot@google.com",
+		PubsubTopic:         fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, pubSubTopic),
+		ServiceAccountToken: getServiceAccount(dimsMap),
+		Tags:                db.TagsForTask(c.Name, id, c.Attempt, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds),
+		User:                "skiabot@google.com",
 	}, nil
+}
+
+// getServiceAccount returns the service account for swarming tasks to use.
+// If the dimensions match GCE dimensions then "bot" is used (see skbug.com/6611).
+// TODO(rmistry): Once go/swarming-service-accounts is implemented we should be
+// able to specify the same service account email for all bots and remove this
+// hackery.
+func getServiceAccount(dimsMap map[string]string) string {
+	serviceAccount := ""
+	// NOTE: linuxGceDimensions and windowsGceDimensions must be kept updated
+	// with the GCE bots in Skia's pool.
+	linuxGceDimensions := map[string]string{
+		"cpu":  "x86-64-avx2",
+		"gpu":  "none",
+		"os":   "Ubuntu-14.04",
+		"pool": "Skia",
+	}
+	windowsGceDimensions := map[string]string{
+		"os":   "Windows-2008ServerR2-SP1",
+		"pool": "Skia",
+	}
+	if util.ContainsAnyMap(dimsMap, linuxGceDimensions, windowsGceDimensions) {
+		serviceAccount = "bot"
+	}
+	return serviceAccount
 }
 
 // allDepsMet determines whether all dependencies for the given task candidate
