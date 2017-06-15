@@ -18,14 +18,14 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gce"
-	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
 const (
-	GS_URL_GITCONFIG = "gs://skia-buildbots/artifacts/bots/.gitconfig"
-	GS_URL_NETRC     = "gs://skia-buildbots/artifacts/bots/.netrc"
+	GS_URL_GITCOOKIES          = "gs://skia-buildbots/artifacts/bots/.gitcookies_bots"
+	GS_URL_GITCOOKIES_INTERNAL = "gs://skia-buildbots/artifacts/bots/.gitcookies_bots-internal"
+	GS_URL_GITCONFIG           = "gs://skia-buildbots/artifacts/bots/.gitconfig"
 
 	IP_ADDRESS_TMPL = "104.154.112.%d"
 	USER_CHROME_BOT = "chrome-bot"
@@ -78,7 +78,7 @@ func Swarming20170523(name, ipAddress string) *gce.Instance {
 // Configs for Linux GCE instances.
 func AddLinuxConfigs(vm *gce.Instance) *gce.Instance {
 	vm.GSDownloads["/home/chrome-bot/.gitconfig"] = GS_URL_GITCONFIG
-	vm.GSDownloads["/home/chrome-bot/.netrc"] = GS_URL_NETRC
+	vm.GSDownloads["/home/chrome-bot/.gitcookies"] = GS_URL_GITCOOKIES
 
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
@@ -94,7 +94,7 @@ func LinuxSwarmingBot(num int, ipAddress string) *gce.Instance {
 // Internal Linux GCE instances.
 func InternalLinuxSwarmingBot(num int, ipAddress string) *gce.Instance {
 	vm := AddLinuxConfigs(Swarming20170523(fmt.Sprintf("skia-i-vm-%03d", num), ipAddress))
-	vm.MetadataDownloads["/home/chrome-bot/.gitcookies"] = fmt.Sprintf(metadata.METADATA_URL, "project", "gitcookies_skia-internal_chromium")
+	vm.GSDownloads["/home/chrome-bot/.gitcookies"] = GS_URL_GITCOOKIES_INTERNAL
 	return vm
 }
 
@@ -169,11 +169,11 @@ func getWindowsStuff(workdir string) (string, string, string, string, error) {
 		return "", "", "", "", err
 	}
 
-	netrcContents, err := exec.RunCwd(".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/.netrc")
+	gitcookiesContents, err := exec.RunCwd(".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/.gitcookies_bots")
 	if err != nil {
 		return "", "", "", "", err
 	}
-	setupScript = strings.Replace(setupScript, "INSERTFILE(/tmp/.netrc)", string(netrcContents), -1)
+	setupScript = strings.Replace(setupScript, "INSERTFILE(/tmp/.gitcookies)", string(gitcookiesContents), -1)
 
 	gitconfigContents, err := exec.RunCwd(".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/.gitconfig")
 	if err != nil {

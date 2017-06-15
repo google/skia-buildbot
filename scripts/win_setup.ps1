@@ -65,11 +65,11 @@ if (!(Test-Path ($fileName))) {
   cmd /c $fileName /q
 }
 
-banner "Create _netrc file"
-$netrc_contents = @"
-INSERTFILE(/tmp/.netrc)
+banner "Create .gitcookies file"
+$gitcookies_contents = @"
+INSERTFILE(/tmp/.gitcookies)
 "@
-Set-Content C:\_netrc $netrc_contents
+Set-Content C:\_gitcookies $gitcookies_contents
 
 banner "Create .gitconfig"
 $gitconfig_contents = @"

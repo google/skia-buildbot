@@ -104,9 +104,9 @@ Set-Location -Path $userDir
 banner "Copy .boto file"
 $shell.NameSpace($userDir).copyhere("c:\.boto", 0x14)
 
-banner "Copy _netrc file"
-$shell.NameSpace($userDir).copyhere("c:\_netrc", 0x14)
-$shell.NameSpace($depotToolsPath).copyhere("c:\_netrc", 0x14)
+banner "Copy .gitcookies file"
+$shell.NameSpace($userDir).copyhere("c:\.gitcookies", 0x14)
+$shell.NameSpace($depotToolsPath).copyhere("c:\.gitcookies", 0x14)
 
 banner "Copy .gitconfig file"
 $shell.NameSpace($depotToolsPath).copyhere("c:\.gitconfig", 0x14)
