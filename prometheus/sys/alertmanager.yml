@@ -72,5 +72,5 @@ receivers:
 
 - name: 'android-master'
   webhook_configs:
-    - url: 'http://localhost:8004/email?email=android-perf-monitoring%252Balerts@google.com'
+    - url: 'http://localhost:8004/email?email=android-perf-monitoring@google.com'
       send_resolved: false
