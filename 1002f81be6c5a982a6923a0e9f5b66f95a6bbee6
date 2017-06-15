@@ -16,6 +16,24 @@
       "revId": "1002f81be6c5a982a6923a0e9f5b66f95a6bbee6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "745d8ca8_1c99f0c5",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-15T17:45:27Z",
+      "side": 1,
+      "message": "gpu:none should disqualify all of our local bots, right?  I\u0027d just remove pool:Skia.",
+      "parentUuid": "d64fe296_0b4c4c83",
+      "revId": "1002f81be6c5a982a6923a0e9f5b66f95a6bbee6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
