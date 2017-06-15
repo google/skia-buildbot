@@ -6,9 +6,19 @@ set -e
 sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password password tmp_pass'
 sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password tmp_pass'
 
-sudo apt-get -y install mercurial mysql-client mysql-server libosmesa-dev npm nodejs-legacy libexpat1-dev:i386 clang-3.6 poppler-utils netpbm
+sudo apt-get -y install mercurial mysql-client mysql-server libosmesa-dev npm nodejs-legacy libexpat1-dev clang-3.6 poppler-utils netpbm gcc-multilib g++-multilib
 
-mysql -uroot -ptmp_pass -e "SET PASSWORD = PASSWORD('');" 
+# Obtain and symlink i386 libs.
+sudo dpkg --add-architecture i386
+sudo apt-get update
+sudo apt-get -y install libfreetype6:i386 libfontconfig1:i386 libgl1-mesa-glx:i386 libglu1-mesa:i386 libx11-6:i386
+sudo ln -s /usr/lib/i386-linux-gnu/libfreetype.so.6 /usr/lib/i386-linux-gnu/libfreetype.so
+sudo ln -s /usr/lib/i386-linux-gnu/libfontconfig.so.1 /usr/lib/i386-linux-gnu/libfontconfig.so
+sudo ln -s /usr/lib/i386-linux-gnu/libGLU.so.1 /usr/lib/i386-linux-gnu/libGLU.so
+sudo ln -s /usr/lib/i386-linux-gnu/libGL.so.1 /usr/lib/i386-linux-gnu/libGL.so
+sudo ln -s /usr/lib/i386-linux-gnu/libX11.so.6.3.0 /usr/lib/i386-linux-gnu/libX11.so
+
+mysql -uroot -ptmp_pass -e "SET PASSWORD = PASSWORD('');"
 
 sudo npm install -g npm@3.10.9
 sudo npm install -g bower@1.6.5
@@ -38,7 +48,7 @@ sudo ln -s -f /usr/bin/llvm-cov-3.6 /usr/bin/llvm-cov
 sudo ln -s -f /usr/bin/llvm-profdata-3.6 /usr/bin/llvm-profdata
 
 # Bootstrap Swarming.
-sudo chmod 777 /b
+sudo ln -s /mnt/pd0 /b
 mkdir -p /b/s
 SWARMING=https://chromium-swarm.appspot.com
 if [[ $(hostname) == *"-i-"* ]]; then
@@ -46,3 +56,22 @@ if [[ $(hostname) == *"-i-"* ]]; then
 fi
 wget ${SWARMING}/bot_code -O /b/s/swarming_bot.zip
 ln -sf /b/s /b/swarm_slave
+
+cat <<EOF | sudo tee /etc/systemd/system/swarming_bot.service
+[Unit]
+Description=Swarming bot
+After=network.target
+
+[Service]
+Type=simple
+User=chrome-bot
+Restart=always
+RestartSec=10
+ExecStart=/usr/bin/env python /b/s/swarming_bot.zip start_bot
+
+[Install]
+WantedBy=default.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable swarming_bot.service
