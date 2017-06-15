@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path"
 	"time"
 
@@ -36,6 +37,7 @@ var (
 	remoteCopyCommand  = flag.String("remote_copy_command", "scp", "rsync or scp.  The router does not have rsync installed.")
 	remoteFilePath     = flag.String("remote_file_path", "", "Remote location for a file, to be used by remote_copy_command.  E.g. foo@127.0.0.1:/etc/bar.conf Cannot use with local_file_path")
 	serviceAccountPath = flag.String("service_account_path", "", "Path to the service account.  Can be empty string to use defaults or project metadata")
+	addHostname        = flag.Bool("add_hostname", false, "If the hostname should be included in the backup file name")
 )
 
 func step(storageClient *storage.Client) {
@@ -72,6 +74,13 @@ func step(storageClient *storage.Client) {
 	// We name the file using date and sha1 hash of the file
 	day := time.Now().Format("2006-01-02")
 	name := fmt.Sprintf("%s/%s-%s.gz", *gceFolder, day, hash)
+	if *addHostname {
+		if hostname, err := os.Hostname(); err != nil {
+			sklog.Warningf("Could not get hostname for file name: %s", err)
+		} else {
+			name = fmt.Sprintf("%s/%s-%s-%s.gz", *gceFolder, day, hostname, hash)
+		}
+	}
 	w := storageClient.Bucket(*gceBucket).Object(name).NewWriter(context.Background())
 	defer util.Close(w)
 
