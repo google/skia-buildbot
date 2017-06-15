@@ -43,6 +43,7 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 			"pool:Skia",
 			fmt.Sprintf("os:%s", DEFAULT_OS_LINUX),
 			"gpu:none",
+			"cpu:x86-64-avx2",
 		},
 		ExtraArgs: []string{
 			"--workdir", "../../..", "swarm_infra",

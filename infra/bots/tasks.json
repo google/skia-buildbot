@@ -31,7 +31,8 @@
       "dimensions": [
         "pool:Skia",
         "os:Ubuntu-14.04",
-        "gpu:none"
+        "gpu:none",
+        "cpu:x86-64-avx2"
       ],
       "extra_args": [
         "--workdir",
@@ -63,7 +64,8 @@
       "dimensions": [
         "pool:Skia",
         "os:Ubuntu-14.04",
-        "gpu:none"
+        "gpu:none",
+        "cpu:x86-64-avx2"
       ],
       "extra_args": [
         "--workdir",
@@ -95,7 +97,8 @@
       "dimensions": [
         "pool:Skia",
         "os:Ubuntu-14.04",
-        "gpu:none"
+        "gpu:none",
+        "cpu:x86-64-avx2"
       ],
       "extra_args": [
         "--workdir",
