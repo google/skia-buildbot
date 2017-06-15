@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5e9e109f_39680a41",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-15T19:04:26Z",
+      "side": 1,
+      "message": "Please add a new config for these changes.",
+      "range": {
+        "startLine": 49,
+        "startChar": 4,
+        "endLine": 77,
+        "endChar": 1
+      },
+      "revId": "d3631321e9081621e737ce84a3513f2c14a036df",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
