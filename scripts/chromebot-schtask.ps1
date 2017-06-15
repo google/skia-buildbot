@@ -125,6 +125,7 @@ if (!(Test-Path ($swarm_slave_dir))) {
   if ($hostname.StartsWith("skia-i-")) {
     $swarming = "https://chrome-swarming.appspot.com"
   }
+  # TODO(rmistry): Figure out how to download token and call bot_code from here.
   cmd /c "python -c `"import urllib; exec urllib.urlopen('$swarming/bootstrap').read()`""
 }
 
