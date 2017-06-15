@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -29,6 +30,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
@@ -37,8 +39,8 @@ import (
 	"go.skia.org/infra/go/webhook"
 )
 
-// flags
 var (
+	// flags
 	host                   = flag.String("host", "localhost", "HTTP service host")
 	promPort               = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 	port                   = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
@@ -46,6 +48,9 @@ var (
 	workdir                = flag.String("workdir", ".", "Directory to use for scratch work.")
 	resourcesDir           = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	tasksSchedulerWaitTime = flag.Duration("tasks_scheduler_wait_time", 5*time.Minute, "How often the repeated tasks scheduler should run.")
+
+	// authenticated http client
+	client *http.Client
 )
 
 func reloadTemplates() {
@@ -98,6 +103,9 @@ func runServer(serverURL string) {
 	admin_tasks.AddHandlers(r)
 	pending_tasks.AddHandlers(r)
 	task_common.AddHandlers(r)
+
+	// Handler for proxying to results stored in Google Storage.
+	r.PathPrefix(ctfeutil.RESULTS_URI).HandlerFunc(resultsProxyHandler)
 
 	// Common handlers used by different pages.
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
@@ -199,6 +207,32 @@ func repeatedTasksScheduler() {
 	}
 }
 
+func resultsProxyHandler(w http.ResponseWriter, r *http.Request) {
+	sklog.Infof("Requesting: %s", r.RequestURI)
+	if login.LoggedInAs(r) == "" {
+		http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
+		return
+	}
+	if !login.IsGoogler(r) {
+		sklog.Info("User is not a Googler.")
+		http.Error(w, "Only Google accounts are allowed.", http.StatusUnauthorized)
+		return
+	}
+
+	director := func(req *http.Request) {
+		req.URL.Scheme = "https"
+		req.Host = "storage.googleapis.com"
+		req.URL.Host = req.Host
+		req.URL.Path = strings.TrimLeft(req.URL.Path, ctfeutil.RESULTS_URI)
+	}
+
+	reverseProxy := httputil.ReverseProxy{
+		Director:  director,
+		Transport: client.Transport,
+	}
+	reverseProxy.ServeHTTP(w, r)
+}
+
 func main() {
 	defer common.LogPanic()
 	// Setup flags.
@@ -244,6 +278,12 @@ func main() {
 		}
 	}
 	if err := dbConf.InitDB(); err != nil {
+		sklog.Fatal(err)
+	}
+
+	// Create authenticated HTTP client.
+	client, err = auth.NewClient(*local, ctutil.GCSTokenPath, auth.SCOPE_READ_ONLY)
+	if err != nil {
 		sklog.Fatal(err)
 	}
 
