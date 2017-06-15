@@ -39,7 +39,7 @@ var (
 // for some reason and always close the ReadCloser. testName is the name of the
 // test that should be compared and limitDefault is the default limit for the
 // row and column queries.
-func ParseCTQuery(r io.ReadCloser, limitDefault int, ctQuery *CTQuery) error {
+func ParseCTQuery(r io.ReadCloser, limitDefault int32, ctQuery *CTQuery) error {
 	defer util.Close(r)
 	var err error
 
@@ -80,14 +80,14 @@ func ParseCTQuery(r io.ReadCloser, limitDefault int, ctQuery *CTQuery) error {
 
 	// Set the limit to a default if not set.
 	if ctQuery.RowQuery.Limit == 0 {
-		ctQuery.RowQuery.Limit = limitDefault
+		ctQuery.RowQuery.Limit = int32(limitDefault)
 	}
-	ctQuery.RowQuery.Limit = util.MinInt(ctQuery.RowQuery.Limit, MAX_LIMIT)
+	ctQuery.RowQuery.Limit = util.MinInt32(ctQuery.RowQuery.Limit, MAX_LIMIT)
 
 	if ctQuery.ColumnQuery.Limit == 0 {
 		ctQuery.ColumnQuery.Limit = limitDefault
 	}
-	ctQuery.ColumnQuery.Limit = util.MinInt(ctQuery.ColumnQuery.Limit, MAX_LIMIT)
+	ctQuery.ColumnQuery.Limit = util.MinInt32(ctQuery.ColumnQuery.Limit, MAX_LIMIT)
 
 	validate := Validation{}
 	validate.StrValue("sortRows", &ctQuery.SortRows, rowSortFields, SORT_FIELD_COUNT)
@@ -168,6 +168,22 @@ func (v *Validation) Int32FormValue(r *http.Request, name string, val *int32, de
 	v.Int32Value(name, r.FormValue(name), val, defaultVal)
 }
 
+// QueryFormValue extracts a URL-encoded query from the form values and decodes it.
+// If the named field was not available in the given request an empty set url.Values
+// is returned. If an error occurs it will be added to the error list of the validation
+// object.
+func (v *Validation) QueryFormValue(r *http.Request, name string, val *url.Values) {
+	if q := r.FormValue(name); q != "" {
+		var err error
+		*val, err = url.ParseQuery(q)
+		if err != nil {
+			*v = append(*v, fmt.Sprintf("Unable to parse query: %s. Error: %s", q, err))
+		}
+	} else {
+		*val = url.Values{}
+	}
+}
+
 // Errors returns a concatination of all error values accumulated in validation or nil
 // if there were no errors.
 func (v *Validation) Errors() error {
@@ -176,4 +192,63 @@ func (v *Validation) Errors() error {
 	}
 
 	return fmt.Errorf("%s", strings.Join(*v, "\n"))
+}
+
+// ParseQuery parses the request parameters from the URL query string or from the
+// form parameters and stores the parsed and validated values in query.
+func ParseQuery(r *http.Request, query *Query) error {
+	// Parse out the patchsets.
+	if temp := r.FormValue("patchsets"); temp != "" {
+		query.Patchsets = strings.Split(temp, ",")
+	}
+
+	// Parse the list of fields that need to match and ensure the
+	// test name is in it.
+	var ok bool
+	if query.Match, ok = r.Form["match"]; ok {
+		if !util.In(types.PRIMARY_KEY_FIELD, query.Match) {
+			query.Match = append(query.Match, types.PRIMARY_KEY_FIELD)
+		}
+	} else {
+		query.Match = []string{types.PRIMARY_KEY_FIELD}
+	}
+
+	validate := Validation{}
+
+	// Parse the query strings.
+	validate.QueryFormValue(r, "query", &query.Query)
+	validate.QueryFormValue(r, "rquery", &query.RQuery)
+
+	// TODO(stephan) Add range limiting to the validation of limit and offset.
+	validate.Int32FormValue(r, "limit", &query.Limit, 50)
+	validate.Int32FormValue(r, "offset", &query.Offset, 0)
+	query.Offset = util.MaxInt32(query.Offset, 0)
+
+	validate.StrFormValue(r, "metric", &query.Metric, diff.GetDiffMetricIDs(), diff.METRIC_COMBINED)
+	validate.StrFormValue(r, "sort", &query.Sort, []string{SORT_DESC, SORT_ASC}, SORT_DESC)
+
+	// Parse and validate the filter values.
+	validate.Int32FormValue(r, "frgbamin", &query.FRGBAMin, 0)
+	validate.Int32FormValue(r, "frgbamax", &query.FRGBAMax, 255)
+	validate.Float32FormValue(r, "fdiffmax", &query.FDiffMax, -1.0)
+	if err := validate.Errors(); err != nil {
+		return err
+	}
+
+	query.BlameGroupID = r.FormValue("blame")
+	query.Pos = r.FormValue("pos") == "true"
+	query.Neg = r.FormValue("neg") == "true"
+	query.Unt = r.FormValue("unt") == "true"
+	query.Head = r.FormValue("head") == "true"
+	query.IncludeIgnores = r.FormValue("include") == "true"
+	query.Issue = r.FormValue("issue")
+	query.IncludeMaster = r.FormValue("master") == "true"
+
+	// Extract the filter values.
+	query.FCommitBegin = r.FormValue("fbegin")
+	query.FCommitEnd = r.FormValue("fend")
+	query.FGroupTest = r.FormValue("fgrouptest")
+	query.FRef = r.FormValue("fref") == "true"
+
+	return nil
 }

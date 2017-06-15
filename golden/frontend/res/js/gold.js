@@ -45,6 +45,10 @@ var gold = gold || {};
   // Costants for sort order.
   gold.SORT_ASC = 'asc';
   gold.SORT_DESC = 'desc';
+  gold.sortOptions = [
+    gold.SORT_ASC,
+    gold.SORT_DESC
+  ];
 
   // Default values for the search controls.
   gold.defaultSearchState = {
@@ -70,6 +74,7 @@ var gold = gold || {};
     unt: true,
     blame: '',
     limit: 50,
+    offset: 0,
     issue: '',
     patchsets: '',
 
