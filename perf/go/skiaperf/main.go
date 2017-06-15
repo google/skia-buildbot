@@ -62,6 +62,7 @@ var (
 
 // flags
 var (
+	algo           = flag.String("algo", "kmeans", "The algorithm to use for detecting regressions (kmeans|stepfit).")
 	clusterQueries = flag.String("cluster_queries", "source_type=skp&sub_result=min_ms source_type=svg&sub_result=min_ms source_type=image&sub_result=min_ms", "A space separated list of queries we want to cluster over.")
 	configFilename = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
 	dataFrameSize  = flag.Int("dataframe_size", dataframe.DEFAULT_NUM_COMMITS, "The number of commits to include in the default dataframe.")
@@ -145,9 +146,13 @@ func Init() {
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
 
+	clusterAlgo, err := clustering2.ToClusterAlgo(*algo)
+	if err != nil {
+		sklog.Fatalf("The --algo flag value is invalid: %s", err)
+	}
+
 	loadTemplates()
 
-	var err error
 	git, err = gitinfo.CloneOrUpdate(*gitRepoURL, *gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
@@ -170,7 +175,7 @@ func Init() {
 
 	// Start running continuous clustering looking for regressions.
 	queries := strings.Split(*clusterQueries, " ")
-	continuous = regression.NewContinuous(git, cidl, queries, regStore, *numContinuous, *radius, float32(*interesting))
+	continuous = regression.NewContinuous(git, cidl, queries, regStore, *numContinuous, *radius, float32(*interesting), clusterAlgo)
 	go continuous.Run()
 }
 

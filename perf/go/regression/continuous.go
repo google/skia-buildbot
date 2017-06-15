@@ -21,13 +21,14 @@ type Continuous struct {
 	numCommits  int // Number of recent commits to do clustering over.
 	radius      int
 	interesting float32
+	algo        clustering2.ClusterAlgo
 }
 
 // NewContinuous creates a new *Continuous.
 //
 // queries is a slice of URL query encoded to perform against the datastore to
 // determine which traces participate in clustering.
-func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, queries []string, store *Store, numCommits int, radius int, interesting float32) *Continuous {
+func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, queries []string, store *Store, numCommits int, radius int, interesting float32, algo clustering2.ClusterAlgo) *Continuous {
 	return &Continuous{
 		git:         git,
 		cidl:        cidl,
@@ -36,6 +37,7 @@ func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, queries []str
 		numCommits:  numCommits,
 		radius:      radius,
 		interesting: interesting,
+		algo:        algo,
 	}
 }
 
@@ -91,6 +93,7 @@ func (c *Continuous) Run() {
 					Offset: commit.Index,
 					Radius: c.radius,
 					Query:  q,
+					Algo:   c.algo,
 				}
 				sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, q)
 				resp, err := clustering2.Run(req, c.git, c.cidl, c.interesting)
