@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d5cdc4e2_d13e3665",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-15T14:19:32Z",
+      "side": 1,
+      "message": "uber-nit: req\n\n(This would only matter if we wanted to make reverseProxy a global, which would only matter if it has state, which currently it does not, aside from Transport.)",
+      "range": {
+        "startLine": 226,
+        "startChar": 34,
+        "endLine": 226,
+        "endChar": 35
+      },
+      "revId": "679d7ac35e4eaeae323f3031198b0231a21766a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
