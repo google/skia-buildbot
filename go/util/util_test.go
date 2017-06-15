@@ -592,3 +592,61 @@ func TestParseIntSet(t *testing.T) {
 	test("-2", nil, "Invalid expression \"-2\"")
 	test("2-", nil, "Invalid expression \"2-\"")
 }
+
+func TestContainsMap(t *testing.T) {
+	testutils.SmallTest(t)
+	child := map[string]string{
+		"a": "1",
+		"b": "2",
+	}
+	parent := map[string]string{
+		"a": "1",
+		"b": "2",
+		"c": "3",
+	}
+	// Test success
+	assert.True(t, ContainsMap(parent, child))
+	// Test map with itself.
+	assert.True(t, ContainsMap(parent, parent))
+	// Test failure.
+	delete(parent, "b")
+	assert.False(t, ContainsMap(parent, child))
+	// Test edge cases.
+	assert.True(t, ContainsMap(parent, map[string]string{}))
+	assert.True(t, ContainsMap(map[string]string{}, map[string]string{}))
+	assert.False(t, ContainsMap(map[string]string{}, map[string]string{"a": "1"}))
+}
+
+func TestContainsAnyMap(t *testing.T) {
+	testutils.SmallTest(t)
+	child1 := map[string]string{
+		"a": "1",
+		"b": "2",
+	}
+	child2 := map[string]string{
+		"a": "1",
+		"b": "2",
+		"c": "3",
+	}
+	parent := map[string]string{
+		"a": "1",
+		"b": "2",
+		"c": "3",
+	}
+	// Test success
+	assert.True(t, ContainsAnyMap(parent, child1, child2))
+	// Test map with itself
+	assert.True(t, ContainsAnyMap(parent, parent))
+	// Test failure
+	delete(parent, "b")
+	assert.False(t, ContainsAnyMap(parent, child1, child2))
+	assert.False(t, ContainsAnyMap(parent, map[string]string{"a": "1", "c": "4"}))
+	// Test success with new parent
+	assert.True(t, ContainsAnyMap(parent, map[string]string{"a": "1", "c": "3"}))
+	assert.True(t, ContainsAnyMap(parent, child1, parent))
+	// Test edge cases.
+	assert.True(t, ContainsAnyMap(parent, map[string]string{}, child1))
+	assert.True(t, ContainsAnyMap(parent, map[string]string{}))
+	assert.True(t, ContainsAnyMap(map[string]string{}, map[string]string{}))
+	assert.False(t, ContainsAnyMap(map[string]string{}, child1, child2))
+}
