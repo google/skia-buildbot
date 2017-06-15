@@ -91,6 +91,7 @@ func (c *Continuous) Run() {
 					Offset: commit.Index,
 					Radius: c.radius,
 					Query:  q,
+					Algo:   clustering2.KMEANS_ALGO,
 				}
 				sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, q)
 				resp, err := clustering2.Run(req, c.git, c.cidl, c.interesting)

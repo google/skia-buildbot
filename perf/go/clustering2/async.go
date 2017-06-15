@@ -266,6 +266,9 @@ func tooMuchMissingData(tr ptracestore.Trace) bool {
 // Run does the work in a ClusterRequestProcess. It does not return until all the
 // work is done or the request failed. Should be run as a Go routine.
 func (p *ClusterRequestProcess) Run() {
+	if p.request.Algo == "" {
+		p.request.Algo = KMEANS_ALGO
+	}
 	cids := []*cid.CommitID{}
 	if p.request.Radius <= 0 {
 		p.request.Radius = 1
