@@ -246,14 +246,12 @@ func getServiceAccount(dimsMap map[string]string) string {
 	// NOTE: linuxGceDimensions and windowsGceDimensions must be kept updated
 	// with the GCE bots in Skia's pool.
 	linuxGceDimensions := map[string]string{
-		"cpu":  "x86-64-avx2",
-		"gpu":  "none",
-		"os":   "Ubuntu-14.04",
-		"pool": "Skia",
+		"cpu": "x86-64-avx2",
+		"gpu": "none",
+		"os":  "Ubuntu-14.04",
 	}
 	windowsGceDimensions := map[string]string{
-		"os":   "Windows-2008ServerR2-SP1",
-		"pool": "Skia",
+		"os": "Windows-2008ServerR2-SP1",
 	}
 	if util.ContainsAnyMap(dimsMap, linuxGceDimensions, windowsGceDimensions) {
 		serviceAccount = "bot"
