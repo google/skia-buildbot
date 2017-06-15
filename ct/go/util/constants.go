@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	GCS_HTTP_LINK         = "https://storage.cloud.google.com/"
+	// Use the CTFE proxy to Google Storage. See skbug.com/6762
+	GCS_HTTP_LINK         = "https://ct.skia.org/results/"
 	CT_EMAIL_DISPLAY_NAME = "Cluster Telemetry"
 
 	GMAIL_CACHED_TOKEN = "ct_gmail_cached_token"
