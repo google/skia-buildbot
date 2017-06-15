@@ -56,6 +56,20 @@ const (
 	STEPFIT_ALGO ClusterAlgo = "stepfit" // Look at each trace individually and determing if it steps up or down.
 )
 
+var (
+	allClusterAlgos = []ClusterAlgo{KMEANS_ALGO, STEPFIT_ALGO}
+)
+
+func ToClusterAlgo(s string) (ClusterAlgo, error) {
+	ret := ClusterAlgo(s)
+	for _, c := range allClusterAlgos {
+		if c == ret {
+			return ret, nil
+		}
+	}
+	return ret, fmt.Errorf("%q is not a valid ClusterAlgo, must be a value in %v", s, allClusterAlgos)
+}
+
 // ClusterRequest is all the info needed to start a clustering run.
 type ClusterRequest struct {
 	Source string      `json:"source"`
@@ -266,6 +280,9 @@ func tooMuchMissingData(tr ptracestore.Trace) bool {
 // Run does the work in a ClusterRequestProcess. It does not return until all the
 // work is done or the request failed. Should be run as a Go routine.
 func (p *ClusterRequestProcess) Run() {
+	if p.request.Algo == "" {
+		p.request.Algo = KMEANS_ALGO
+	}
 	cids := []*cid.CommitID{}
 	if p.request.Radius <= 0 {
 		p.request.Radius = 1
