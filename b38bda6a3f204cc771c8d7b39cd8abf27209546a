@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "515a3e63_ef252562",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-15T12:49:51Z",
+      "side": 1,
+      "message": "I think I was just being paranoid. Done.",
+      "parentUuid": "d4201693_c5881506",
+      "range": {
+        "startLine": 237,
+        "startChar": 0,
+        "endLine": 239,
+        "endChar": 2
+      },
+      "revId": "b38bda6a3f204cc771c8d7b39cd8abf27209546a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "81c7765e_d3975190",
         "filename": "task_scheduler/go/scheduling/task_candidate.go",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "b5bfe596_ea0dd49a",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-15T12:49:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "81c7765e_d3975190",
+      "range": {
+        "startLine": 245,
+        "startChar": 0,
+        "endLine": 246,
+        "endChar": 47
+      },
+      "revId": "b38bda6a3f204cc771c8d7b39cd8abf27209546a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "20c68b97_d9df667e",
         "filename": "task_scheduler/go/scheduling/task_candidate.go",
         "patchSetId": 3
@@ -68,6 +116,30 @@
       "revId": "b38bda6a3f204cc771c8d7b39cd8abf27209546a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f738d3f_b6ca6bd4",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-15T12:49:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "20c68b97_d9df667e",
+      "range": {
+        "startLine": 261,
+        "startChar": 4,
+        "endLine": 261,
+        "endChar": 100
+      },
+      "revId": "b38bda6a3f204cc771c8d7b39cd8abf27209546a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
