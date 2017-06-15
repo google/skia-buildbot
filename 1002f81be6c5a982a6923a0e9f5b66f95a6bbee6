@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d64fe296_0b4c4c83",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-15T17:44:16Z",
+      "side": 1,
+      "message": "This is not applying for task-scheduler-internal because the pool there is SkiaInternal.\nShould I just remove \"pool\": \"Skia\" from both maps or add 2 more maps?",
+      "revId": "1002f81be6c5a982a6923a0e9f5b66f95a6bbee6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
