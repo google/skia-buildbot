@@ -10,9 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/httputils"
@@ -215,7 +213,7 @@ type TestRollup struct {
 // jsonSearchHandler is the endpoint for all searches.
 func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
 	query := search.Query{Limit: 50}
-	if err := parseQuery(r, &query); err != nil {
+	if err := search.ParseQuery(r, &query); err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
 	}
@@ -239,7 +237,7 @@ func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
 // implementation.
 func jsonNewSearchHandler(w http.ResponseWriter, r *http.Request) {
 	query := search.Query{Limit: 50}
-	if err := parseQuery(r, &query); err != nil {
+	if err := search.ParseQuery(r, &query); err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
 	}
@@ -616,7 +614,7 @@ func jsonStatusHandler(w http.ResponseWriter, r *http.Request) {
 func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract the test name as we only allow clustering within a test.
 	q := search.Query{Limit: 50}
-	if err := parseQuery(r, &q); err != nil {
+	if err := search.ParseQuery(r, &q); err != nil {
 		httputils.ReportError(w, r, err, "Unable to parse query parameter.")
 		return
 	}
@@ -749,7 +747,7 @@ type ClusterDiffResult struct {
 func jsonListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse the query object like with the other searches.
 	query := search.Query{}
-	if err := parseQuery(r, &query); err != nil {
+	if err := search.ParseQuery(r, &query); err != nil {
 		httputils.ReportError(w, r, err, "Failed to parse form data.")
 		return
 	}
@@ -806,78 +804,6 @@ type SummarySlice []*summary.Summary
 func (p SummarySlice) Len() int           { return len(p) }
 func (p SummarySlice) Less(i, j int) bool { return p[i].Untriaged > p[j].Untriaged }
 func (p SummarySlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
-// TODO(stephana): Remove queryFromRequest in favor of parseQuery as the generic
-// way to parse input parameters for search-like endpoints.
-// Remove the "Limit" field and replace with pagination.
-
-// parseQuery parses the request parameters,
-func parseQuery(r *http.Request, query *search.Query) error {
-	// Get the limit
-	if l := r.FormValue("limit"); l != "" {
-		limit, err := strconv.Atoi(l)
-		if err != nil {
-			return fmt.Errorf("Unable to parse a limit of: %s", l)
-		}
-		query.Limit = limit
-	}
-
-	// Parse the query
-	var err error
-	query.Query = url.Values{}
-	if q := r.FormValue("query"); q != "" {
-		query.Query, err = url.ParseQuery(q)
-		if err != nil {
-			return fmt.Errorf("Unable to parse query: %s. Error: %s", q, err)
-		}
-	}
-
-	// Parse out the patchsets.
-	if temp := r.FormValue("patchsets"); temp != "" {
-		query.Patchsets = strings.Split(temp, ",")
-	}
-
-	// Parse the list of fields that need to match and ensure the
-	// test name is in it.
-	var ok bool
-	if query.Match, ok = r.Form["match"]; ok {
-		if !util.In(types.PRIMARY_KEY_FIELD, query.Match) {
-			query.Match = append(query.Match, types.PRIMARY_KEY_FIELD)
-		}
-	} else {
-		query.Match = []string{types.PRIMARY_KEY_FIELD}
-	}
-
-	validate := search.Validation{}
-	validate.StrFormValue(r, "metric", &query.Metric, diff.GetDiffMetricIDs(), diff.METRIC_COMBINED)
-	validate.StrFormValue(r, "sort", &query.Sort, []string{search.SORT_DESC, search.SORT_ASC}, search.SORT_DESC)
-
-	// Parse and validate the filter values.
-	validate.Int32FormValue(r, "frgbamax", &query.FRGBAMax, -1)
-	validate.Float32FormValue(r, "fdiffmax", &query.FDiffMax, -1.0)
-	if err := validate.Errors(); err != nil {
-		return err
-	}
-
-	query.BlameGroupID = r.FormValue("blame")
-	query.Pos = r.FormValue("pos") == "true"
-	query.Neg = r.FormValue("neg") == "true"
-	query.Unt = r.FormValue("unt") == "true"
-	query.Head = r.FormValue("head") == "true"
-	query.IncludeIgnores = r.FormValue("include") == "true"
-	query.Issue = r.FormValue("issue")
-	query.IncludeMaster = r.FormValue("master") == "true"
-
-	// Extract the filter values.
-	query.FCommitBegin = r.FormValue("fbegin")
-	query.FCommitEnd = r.FormValue("fend")
-	query.FGroupTest = r.FormValue("fgrouptest")
-	query.FRef = r.FormValue("fref") == "true"
-
-	glog.Infof("\n\nQUERY: %s\n\n\n", spew.Sprint(query))
-
-	return nil
-}
 
 // FailureList contains the list of the digests that could not be processed
 // the count value is for convenience to make it easier to inspect the JSON

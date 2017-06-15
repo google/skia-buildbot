@@ -3,9 +3,8 @@ package search
 import (
 	"math"
 
-	"github.com/skia-dev/glog"
-
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -105,7 +104,7 @@ func (r *RefDiffer) getDigestsWithLabel(test string, match []string, params para
 func (r *RefDiffer) getClosestDiff(metric, digest string, compDigests []string) *SRDiffDigest {
 	diffs, err := r.diffStore.Get(diff.PRIORITY_NOW, digest, compDigests)
 	if err != nil {
-		glog.Errorf("Error diffing %s %v: %s", digest, compDigests, err)
+		sklog.Errorf("Error diffing %s %v: %s", digest, compDigests, err)
 		return nil
 	}
 
