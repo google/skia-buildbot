@@ -11,7 +11,7 @@ ExecStart=/usr/local/bin/skia-diff-server \
     --image_dir=${DATA_DIR}/imageStore \
     --image_port=:8001 \
     --logtostderr \
-    --prom_port=":23000" \
+    --prom_port=":20000" \
     --gs_buckets=skia-infra-gm,chromium-skia-gm   \
     --cache_size=20
 
