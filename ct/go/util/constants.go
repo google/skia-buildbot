@@ -71,6 +71,7 @@ const (
 	BENCHMARK_REPAINT           = "repaint"
 	BENCHMARK_LOADING           = "loading.cluster_telemetry"
 	BENCHMARK_USECOUNTER        = "usecounter_ct"
+	BENCHMARK_SCREENSHOT        = "screenshot_ct"
 
 	// Logserver link. This is only accessible from Google corp.
 	MASTER_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/"

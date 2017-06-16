@@ -84,7 +84,7 @@ func main() {
 	}
 
 	// Swarming API client.
-	swarmApi, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER)
+	swarmApi, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER_PRIVATE)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -95,7 +95,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	swarmClient, err := swarming.NewSwarmingClient(*workdir, swarming.SWARMING_SERVER, isolate.ISOLATE_SERVER_URL)
+	swarmClient, err := swarming.NewSwarmingClient(*workdir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -146,7 +146,7 @@ func main() {
 				"id":   id,
 			}
 			sklog.Infof("Triggering on %s", id)
-			if _, err := swarmClient.TriggerSwarmingTasks(m, dims, tags, swarming.HIGHEST_PRIORITY, 120*time.Minute, 120*time.Minute, 120*time.Minute, false, false, ""); err != nil {
+			if _, err := swarmClient.TriggerSwarmingTasks(m, dims, tags, swarming.HIGHEST_PRIORITY, 120*time.Minute, 120*time.Minute, 120*time.Minute, false, false, "bot"); err != nil {
 				sklog.Fatal(err)
 			}
 		}(bot.BotId)

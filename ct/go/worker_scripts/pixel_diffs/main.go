@@ -1,5 +1,4 @@
-// run_chromium_perf is an application that runs the specified benchmark over CT's
-// webpage archives.
+// Application that does Pixel diff from CT's webpage archives.
 package main
 
 import (
@@ -8,54 +7,45 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"time"
 
 	"go.skia.org/infra/go/sklog"
 
-	"strings"
-
-	"go.skia.org/infra/ct/go/adb"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
 	skutil "go.skia.org/infra/go/util"
 )
 
 const (
-	// The number of goroutines that will run in parallel to run benchmarks.
-	WORKER_POOL_SIZE = 5
-	// The number of allowed benchmark timeouts in a row before the worker
-	// script fails.
-	MAX_ALLOWED_SEQUENTIAL_TIMEOUTS = 20
+	// The number of goroutines that will run in parallel to run pixel diff.
+	WORKER_POOL_SIZE = 10
 )
 
 var (
-	startRange                = flag.Int("start_range", 1, "The number this worker will run benchmarks from.")
-	num                       = flag.Int("num", 100, "The total number of benchmarks to run starting from the start_range.")
-	pagesetType               = flag.String("pageset_type", util.PAGESET_TYPE_MOBILE_10k, "The type of pagesets to create from the Alexa CSV list. Eg: 10k, Mobile10k, All.")
+	startRange                = flag.Int("start_range", 1, "The number this worker will capture SKPs from.")
+	num                       = flag.Int("num", 100, "The total number of SKPs to capture starting from the start_range.")
+	pagesetType               = flag.String("pageset_type", util.PAGESET_TYPE_MOBILE_10k, "The type of pagesets to create SKPs from. Eg: 10k, Mobile10k, All.")
 	chromiumBuildNoPatch      = flag.String("chromium_build_nopatch", "", "The chromium build to use for the nopatch run.")
 	chromiumBuildWithPatch    = flag.String("chromium_build_withpatch", "", "The chromium build to use for the withpatch run.")
 	runID                     = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
-	benchmarkName             = flag.String("benchmark_name", "", "The telemetry benchmark to run on this worker.")
 	benchmarkExtraArgs        = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
 	browserExtraArgsNoPatch   = flag.String("browser_extra_args_nopatch", "", "The extra arguments that are passed to the browser while running the benchmark during the nopatch run.")
 	browserExtraArgsWithPatch = flag.String("browser_extra_args_withpatch", "", "The extra arguments that are passed to the browser while running the benchmark during the withpatch run.")
-	repeatBenchmark           = flag.Int("repeat_benchmark", 3, "The number of times the benchmark should be repeated. For skpicture_printer benchmark this value is always 1.")
-	runInParallel             = flag.Bool("run_in_parallel", false, "Run the benchmark by bringing up multiple chrome instances in parallel.")
-	targetPlatform            = flag.String("target_platform", util.PLATFORM_ANDROID, "The platform the benchmark will run on (Android / Linux).")
-	chromeCleanerTimer        = flag.Duration("cleaner_timer", 15*time.Minute, "How often all chrome processes will be killed on this slave.")
+	chromeCleanerTimer        = flag.Duration("cleaner_timer", 30*time.Minute, "How often all chrome processes will be killed on this slave.")
 )
 
-func runChromiumPerf() error {
+func captureSkps() error {
 	defer common.LogPanic()
 	worker_common.Init()
 	if !*worker_common.Local {
 		//defer util.CleanTmpDir()
 	}
-	defer util.TimeTrack(time.Now(), "Running Chromium Perf")
+	defer util.TimeTrack(time.Now(), "Pixel diffing")
 	defer sklog.Flush()
 
 	// Validate required arguments.
@@ -68,55 +58,20 @@ func runChromiumPerf() error {
 	if *runID == "" {
 		return errors.New("Must specify --run_id")
 	}
-	if *benchmarkName == "" {
-		return errors.New("Must specify --benchmark_name")
-	}
 
 	// Reset the local chromium checkout.
-	//if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
-	//	return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
-	//}
-	//// Parse out the Chromium and Skia hashes.
-	//chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuildNoPatch)
-	//// Sync the local chromium checkout.
-	//if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{"src": chromiumHash}, []string{}); err != nil {
-	//	return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
-	//}
-
-	if *targetPlatform == util.PLATFORM_ANDROID {
-		if err := adb.VerifyLocalDevice(); err != nil {
-			// Android device missing or offline.
-			return fmt.Errorf("Could not find Android device: %s", err)
-		}
-		// Kill adb server to make sure we start from a clean slate.
-		skutil.LogErr(util.ExecuteCmd(util.BINARY_ADB, []string{"kill-server"}, []string{},
-			util.ADB_ROOT_TIMEOUT, nil, nil))
-		// Make sure adb shell is running as root.
-		skutil.LogErr(util.ExecuteCmd(util.BINARY_ADB, []string{"root"}, []string{},
-			util.ADB_ROOT_TIMEOUT, nil, nil))
+	if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
+		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
-	// Clean up any leftover "pseudo_lock" files from catapult repo.
-	//skutil.LogErr(util.RemoveCatapultLockFiles(util.CatapultSrcDir))
+	// Sync the local chromium checkout.
+	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{}, []string{}); err != nil {
+		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
+	}
 
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
 		return err
-	}
-
-	tmpDir, err := ioutil.TempDir("", "patches")
-	remotePatchesDir := filepath.Join(util.ChromiumPerfRunsDir, *runID)
-
-	// Download the catapult patch for this run from Google storage.
-	catapultPatchName := *runID + ".catapult.patch"
-	if err := util.DownloadAndApplyPatch(catapultPatchName, tmpDir, remotePatchesDir, util.CatapultSrcDir, gs); err != nil {
-		return fmt.Errorf("Could not apply %s: %s", catapultPatchName, err)
-	}
-
-	// Download the benchmark patch for this run from Google storage.
-	benchmarkPatchName := *runID + ".benchmark.patch"
-	if err := util.DownloadAndApplyPatch(benchmarkPatchName, tmpDir, remotePatchesDir, util.ChromiumSrcDir, gs); err != nil {
-		return fmt.Errorf("Could not apply %s: %s", benchmarkPatchName, err)
 	}
 
 	// Download the custom webpages for this run from Google storage.
@@ -283,12 +238,171 @@ func runChromiumPerf() error {
 	}
 
 	return nil
+
+	// Below stuff needed?????????????????
+	// Download the specified chromium build.
+	if err := gs.DownloadChromiumBuild(*chromiumBuild); err != nil {
+		return err
+	}
+	// Delete the chromium build to save space when we are done.
+	defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
+	chromiumBinary := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, util.BINARY_CHROME)
+	if *targetPlatform == util.PLATFORM_ANDROID {
+		// Install the APK on the Android device.
+		if err := util.InstallChromeAPK(*chromiumBuild); err != nil {
+			return fmt.Errorf("Could not install the chromium APK: %s", err)
+		}
+	}
+
+	// Download pagesets if they do not exist locally.
+	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
+	if _, err := gs.DownloadSwarmingArtifacts(pathToPagesets, util.PAGESETS_DIR_NAME, *pagesetType, *startRange, *num); err != nil {
+		return err
+	}
+	defer skutil.RemoveAll(pathToPagesets)
+
+	// Download archives if they do not exist locally.
+	pathToArchives := filepath.Join(util.WebArchivesDir, *pagesetType)
+	archivesToIndex, err := gs.DownloadSwarmingArtifacts(pathToArchives, util.WEB_ARCHIVES_DIR_NAME, *pagesetType, *startRange, *num)
+	if err != nil {
+		return err
+	}
+	defer skutil.RemoveAll(pathToArchives)
+
+	// Create the dir that SKPs will be stored in.
+	pathToSkps := filepath.Join(util.SkpsDir, *pagesetType, *chromiumBuild)
+	// Delete and remake the local SKPs directory.
+	skutil.RemoveAll(pathToSkps)
+	skutil.MkdirAll(pathToSkps, 0700)
+	defer skutil.RemoveAll(pathToSkps)
+
+	// Construct path to the ct_run_benchmark python script.
+	pathToPyFiles := util.GetPathToPyFiles(!*worker_common.Local)
+
+	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].CaptureSKPsTimeoutSecs
+	fileInfos, err := ioutil.ReadDir(pathToPagesets)
+	if err != nil {
+		return fmt.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
+	}
+
+	// Create channel that contains all pageset file names. This channel will
+	// be consumed by the worker pool.
+	pagesetRequests := util.GetClosedChannelOfPagesets(fileInfos)
+
+	var wg sync.WaitGroup
+	// Use a RWMutex for the chromeProcessesCleaner goroutine to communicate to
+	// the workers (acting as "readers") when it wants to be the "writer" and
+	// kill all zombie chrome processes.
+	var mutex sync.RWMutex
+
+	// Loop through workers in the worker pool.
+	for i := 0; i < WORKER_POOL_SIZE; i++ {
+		// Increment the WaitGroup counter.
+		wg.Add(1)
+
+		// Create and run a goroutine closure that captures SKPs.
+		go func() {
+			// Decrement the WaitGroup counter when the goroutine completes.
+			defer wg.Done()
+
+			for pagesetName := range pagesetRequests {
+
+				// Read the pageset.
+				pagesetPath := filepath.Join(pathToPagesets, pagesetName)
+				decodedPageset, err := util.ReadPageset(pagesetPath)
+				if err != nil {
+					sklog.Errorf("Could not read %s: %s", pagesetPath, err)
+					continue
+				}
+
+				sklog.Infof("===== Processing %s =====", pagesetPath)
+
+				skutil.LogErr(os.Chdir(pathToPyFiles))
+				index, ok := archivesToIndex[decodedPageset.ArchiveDataFile]
+				if !ok {
+					sklog.Errorf("%s not found in the archivesToIndex map", decodedPageset.ArchiveDataFile)
+					continue
+				}
+				args := []string{
+					filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
+					util.BenchmarksToTelemetryName[util.BENCHMARK_SKPICTURE_PRINTER],
+					"--also-run-disabled-tests",
+					"--pageset-repeat=1", // Only need one run for SKPs.
+					"--skp-outdir=" + path.Join(pathToSkps, strconv.Itoa(index)),
+					"--extra-browser-args=" + util.DEFAULT_BROWSER_ARGS,
+					"--user-agent=" + decodedPageset.UserAgent,
+					"--urls-list=" + decodedPageset.UrlsList,
+					"--archive-data-file=" + decodedPageset.ArchiveDataFile,
+				}
+				// Figure out which browser and device should be used.
+				if *targetPlatform == util.PLATFORM_ANDROID {
+					args = append(args, "--browser=android-chromium")
+				} else {
+					args = append(args, "--browser=exact", "--browser-executable="+chromiumBinary)
+					args = append(args, "--device=desktop")
+				}
+
+				// Set the PYTHONPATH to the pagesets and the telemetry dirs.
+				env := []string{
+					fmt.Sprintf("PYTHONPATH=%s:%s:%s:%s:$PYTHONPATH", pathToPagesets, util.TelemetryBinariesDir, util.TelemetrySrcDir, util.CatapultSrcDir),
+					"DISPLAY=:0",
+				}
+
+				mutex.RLock()
+				// Retry run_benchmark binary 3 times if there are any errors.
+				retryAttempts := 3
+				for i := 0; ; i++ {
+					err = util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
+					if err == nil {
+						break
+					}
+					if i >= (retryAttempts - 1) {
+						sklog.Errorf("%s failed inspite of 3 retries. Last error: %s", pagesetPath, err)
+						break
+					}
+					time.Sleep(time.Second)
+					sklog.Warningf("Retrying due to error: %s", err)
+				}
+
+				mutex.RUnlock()
+			}
+		}()
+	}
+
+	if !*worker_common.Local {
+		// Start the cleaner.
+		go util.ChromeProcessesCleaner(&mutex, *chromeCleanerTimer)
+	}
+
+	// Wait for all spawned goroutines to complete.
+	wg.Wait()
+
+	// Move and validate all SKP files.
+	if err := util.ValidateSKPs(pathToSkps, pathToPyFiles); err != nil {
+		return err
+	}
+
+	// Check to see if there is anything in the pathToSKPs dir.
+	skpsEmpty, err := skutil.IsDirEmpty(pathToSkps)
+	if err != nil {
+		return err
+	}
+	if skpsEmpty {
+		return fmt.Errorf("Could not create any SKP in %s", pathToSkps)
+	}
+
+	// Upload SKPs dir to Google Storage.
+	if err := gs.UploadSwarmingArtifacts(util.SKPS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild)); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func main() {
 	retCode := 0
-	if err := runChromiumPerf(); err != nil {
-		sklog.Errorf("Error while running chromium perf: %s", err)
+	if err := captureSkps(); err != nil {
+		sklog.Errorf("Error while capturing SKPs: %s", err)
 		retCode = 255
 	}
 	os.Exit(retCode)
