@@ -718,8 +718,9 @@ The suspect commit is:
 //
 // Begin and End are Unix timestamps in seconds.
 type RegressionRangeRequest struct {
-	Begin int64 `json:"begin"`
-	End   int64 `json:"end"`
+	Begin  int64             `json:"begin"`
+	End    int64             `json:"end"`
+	Subset regression.Subset `json:"subset"`
 }
 
 // RegressionRow are all the Regression's for a specific commit. It is used in
@@ -758,25 +759,8 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get a list of commits for the range.
-	indexCommits := git.Range(time.Unix(rr.Begin, 0), time.Unix(rr.End, 0))
-	ids := make([]*cid.CommitID, 0, len(indexCommits))
-	for _, indexCommit := range indexCommits {
-		ids = append(ids, &cid.CommitID{
-			Source: "master",
-			Offset: indexCommit.Index,
-		})
-	}
-
-	// Convert the CommitIDs to CommitDetails.
-	cids, err := cidl.Lookup(ids)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to look up commit details")
-		return
-	}
-
 	// Query for Regressions in the range.
-	regMap, err := regStore.Range(rr.Begin, rr.End)
+	regMap, err := regStore.Range(rr.Begin, rr.End, rr.Subset)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to retrieve clusters.")
 		return
@@ -792,6 +776,43 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	headers = util.NewStringSet(headers).Keys()
 	sort.Sort(sort.StringSlice(headers))
+
+	// Get a list of commits for the range.
+	var ids []*cid.CommitID
+	if rr.Subset == regression.ALL_SUBSET {
+		indexCommits := git.Range(time.Unix(rr.Begin, 0), time.Unix(rr.End, 0))
+		ids = make([]*cid.CommitID, 0, len(indexCommits))
+		for _, indexCommit := range indexCommits {
+			ids = append(ids, &cid.CommitID{
+				Source: "master",
+				Offset: indexCommit.Index,
+			})
+		}
+	} else {
+		// If rr.Subset == UNTRIAGED_QS or FLAGGED_QS then only get the commits that
+		// exactly line up with the regressions in regMap.
+		ids = make([]*cid.CommitID, 0, len(regMap))
+		keys := []string{}
+		for k, _ := range regMap {
+			keys = append(keys, k)
+		}
+		sort.Sort(sort.StringSlice(keys))
+		for _, key := range keys {
+			c, err := cid.FromID(key)
+			if err != nil {
+				httputils.ReportError(w, r, err, "Got an invalid commit id.")
+				return
+			}
+			ids = append(ids, c)
+		}
+	}
+
+	// Convert the CommitIDs to CommitDetails.
+	cids, err := cidl.Lookup(ids)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to look up commit details")
+		return
+	}
 
 	// Reverse the order of the cids, so the latest
 	// commit shows up first in the UI display.

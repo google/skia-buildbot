@@ -195,3 +195,54 @@ func TestParseLogLine(t *testing.T) {
 	assert.Contains(t, err.Error(), "Can't parse timestamp")
 	assert.Equal(t, 4, index)
 }
+
+func TestFromID(t *testing.T) {
+	testutils.SmallTest(t)
+	testCases := []struct {
+		value    string
+		expected *CommitID
+		err      bool
+		message  string
+	}{
+		{
+			value: "master-000051",
+			expected: &CommitID{
+				Offset: 51,
+				Source: "master",
+			},
+			err:     false,
+			message: "Simple",
+		},
+		{
+			value:    "some_trybot-000051",
+			expected: nil,
+			err:      true,
+			message:  "TryBot should fail",
+		},
+		{
+			value:    "master-notanint",
+			expected: nil,
+			err:      true,
+			message:  "Fail parse int",
+		},
+		{
+			value:    "invalid",
+			expected: nil,
+			err:      true,
+			message:  "no dashes",
+		},
+		{
+			value:    "in-val-id",
+			expected: nil,
+			err:      true,
+			message:  "too many dashes",
+		},
+	}
+
+	for _, tc := range testCases {
+		got, err := FromID(tc.value)
+		assert.Equal(t, tc.err, err != nil, tc.message)
+		assert.Equal(t, tc.expected, got, tc.message)
+	}
+
+}
