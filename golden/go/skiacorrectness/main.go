@@ -192,11 +192,13 @@ func main() {
 		if err != nil {
 			sklog.Fatalf("Unable to initialize NetDiffStore: %s", err)
 		}
+		sklog.Infof("DiffStore: NetDiffStore initiated.")
 	} else {
 		diffStore, err = diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize)
 		if err != nil {
 			sklog.Fatalf("Allocating local DiffStore failed: %s", err)
 		}
+		sklog.Infof("DiffStore: MemDiffStore initiated.")
 	}
 
 	// Set up databases and tile builders.
