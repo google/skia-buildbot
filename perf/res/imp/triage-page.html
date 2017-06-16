@@ -14,6 +14,7 @@
 -->
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="/res/imp/bower_components/iron-selector/iron-selector.html">
 
 <link rel="import" href="/res/common/imp/query-summary-sk.html" />
 <link rel="import" href="/res/common/imp/details-summary.html" />
@@ -60,11 +61,40 @@
       text-decoration: none;
       color: black;
     }
+
+    .iron-selected {
+      background: #eee;
+    }
+
+    iron-selector div {
+      width: 10em;
+      margin: 0.3em 1em;
+      padding: 0.2em;
+    }
+
+    summary-sk h2 {
+      display: inline;
+    }
   </style>
   <template>
+    <details-sk open>
+      <summary-sk>
+        <h2 id="filter">Filter</h2>
+      </summary-sk>
+      <iron-selector
+        attr-for-selected="value"
+        selected="{{state.subset}}"
+        fallback-selection="untriaged"
+        on-selected-item-changed="_updateRange"
+        >
+        <div value=all title="Show results for all commits in the time range.">All</div>
+        <div value=flagged title="Show only the commits with alerts in the given time range.">Flagged</div>
+        <div value=untriaged title="Show all the untriaged alerts regardless of the time range.">Untriaged</div>
+      </iron-selector>
+    </details-sk>
     <details-sk>
       <summary-sk>
-        Range
+        <h2 id="range">Range</h2>
       </summary-sk>
       <day-range-sk id=range on-day-range-change="_rangeChange"></day-range-sk>
     </details-sk>
@@ -122,10 +152,13 @@
       properties: {
         state: {
           type: Object,
-          value: function() { return {
-            begin: now - 4*24*60*60,
-            end: now,
-          }; },
+          value: function() {
+            return {
+              begin: now - 4*24*60*60,
+              end: now,
+              subset: "untriaged",
+            };
+          },
         },
         _reg: {
           type: Object,
@@ -163,11 +196,13 @@
       },
 
       _updateRange: function() {
+        this.set('_reg',  {});
         this.$.range.begin = this.state.begin;
         this.$.range.end = this.state.end;
         var body = {
           begin: this.state.begin,
           end: this.state.end,
+          subset: this.state.subset,
         };
         this.$.spinner.active = true;
         this.$.table.classList.toggle("hidden", true);
@@ -230,7 +265,7 @@
       },
 
       _display: function(index) {
-        if (this.state.end == now && index < sk.perf.radius) {
+        if (this.state.end == now && index < sk.perf.radius && this.state.subset == "all") {
           return "";
         } else {
           return "∅";
