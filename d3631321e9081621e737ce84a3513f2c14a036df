@@ -70,6 +70,30 @@
       "revId": "d3631321e9081621e737ce84a3513f2c14a036df",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23d3e74b_c49f984f",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-16T12:26:21Z",
+      "side": 1,
+      "message": "Might as well just land this only when we are ready to recreate with ephemeral IPs.\nI can work on the windows section till then.",
+      "parentUuid": "027152c0_0493cbf7",
+      "range": {
+        "startLine": 49,
+        "startChar": 4,
+        "endLine": 77,
+        "endChar": 1
+      },
+      "revId": "d3631321e9081621e737ce84a3513f2c14a036df",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
