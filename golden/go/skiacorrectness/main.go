@@ -183,7 +183,11 @@ func main() {
 	var diffStore diff.DiffStore = nil
 	if (*diffServerGRPCAddr != "") || (*diffServerImageAddr != "") {
 		// Create the client connection and connect to the server.
-		conn, err := grpc.Dial(*diffServerGRPCAddr, grpc.WithInsecure())
+		conn, err := grpc.Dial(*diffServerGRPCAddr,
+			grpc.WithInsecure(),
+			grpc.WithDefaultCallOptions(
+				grpc.MaxCallSendMsgSize(diffstore.MAX_MESSAGE_SIZE),
+				grpc.MaxCallRecvMsgSize(diffstore.MAX_MESSAGE_SIZE)))
 		if err != nil {
 			sklog.Fatalf("Unable to connect to grpc service: %s", err)
 		}
@@ -192,11 +196,13 @@ func main() {
 		if err != nil {
 			sklog.Fatalf("Unable to initialize NetDiffStore: %s", err)
 		}
+		sklog.Infof("DiffStore: NetDiffStore initiated.")
 	} else {
 		diffStore, err = diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize)
 		if err != nil {
 			sklog.Fatalf("Allocating local DiffStore failed: %s", err)
 		}
+		sklog.Infof("DiffStore: MemDiffStore initiated.")
 	}
 
 	// Set up databases and tile builders.

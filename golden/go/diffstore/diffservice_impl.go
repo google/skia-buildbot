@@ -9,6 +9,8 @@ import (
 // Generate the go code from the protocol buffer definitions.
 //go:generate protoc --go_out=plugins=grpc:. diffservice.proto
 
+const MAX_MESSAGE_SIZE = 100 * 1024 * 1024
+
 // DiffServiceImpl implements DiffServiceServer.
 type DiffServiceImpl struct {
 	diffStore diff.DiffStore
