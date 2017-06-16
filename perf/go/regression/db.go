@@ -16,9 +16,9 @@ import (
 type Subset string
 
 const (
-	ALL_SUBSET       Subset = "all"       // Include all regressions in a range.
-	FLAGGED_SUBSET   Subset = "flagged"   // Only include regressions in a range that are alerting.
-	UNTRIAGED_SUBSET Subset = "untriaged" // All untriaged alerting regressions regardless of range.
+	ALL_SUBSET         Subset = "all"         // Include all regressions in a range.
+	REGRESSIONS_SUBSET Subset = "regressions" // Only include regressions in a range that are alerting.
+	UNTRIAGED_SUBSET   Subset = "untriaged"   // All untriaged alerting regressions regardless of range.
 )
 
 // Store persists Regressions to/from an SQL database.
