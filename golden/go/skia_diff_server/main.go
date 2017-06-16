@@ -76,7 +76,9 @@ func main() {
 
 	// Create the server side instance of the DiffService.
 	serverImpl := diffstore.NewDiffServiceServer(memDiffStore)
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.MaxRecvMsgSize(diffstore.MAX_MESSAGE_SIZE),
+		grpc.MaxSendMsgSize(diffstore.MAX_MESSAGE_SIZE))
 	diffstore.RegisterDiffServiceServer(grpcServer, serverImpl)
 
 	// Set up the resource to serve the image files.
