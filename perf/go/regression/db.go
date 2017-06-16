@@ -12,6 +12,14 @@ import (
 	"go.skia.org/infra/perf/go/db"
 )
 
+type Subset string
+
+const (
+	ALL_QS       Subset = "all"
+	FLAGGED_QS   Subset = "flagged"
+	UNTRIAGED_QS Subset = "untriaged"
+)
+
 // Store persists Regressions to/from an SQL database.
 type Store struct {
 }
@@ -74,9 +82,13 @@ func (s *Store) Untriaged() (int, error) {
 }
 
 // Range returns a map from cid.ID()'s to *Regressions that exist in the given time range.
-func (s *Store) Range(begin, end int64) (map[string]*Regressions, error) {
+func (s *Store) Range(begin, end int64, subset Subset) (map[string]*Regressions, error) {
 	ret := map[string]*Regressions{}
+
 	rows, err := db.DB.Query("SELECT cid, timestamp, body FROM regression WHERE timestamp >= ? AND timestamp < ? ORDER BY timestamp", begin, end)
+	if subset == UNTRIAGED_QS {
+		rows, err = db.DB.Query("SELECT cid, timestamp, body FROM regression WHERE triaged=false BY timestamp", begin, end)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("Failed to query from database: %s", err)
 	}

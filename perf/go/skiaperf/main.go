@@ -713,8 +713,9 @@ The suspect commit is:
 //
 // Begin and End are Unix timestamps in seconds.
 type RegressionRangeRequest struct {
-	Begin int64 `json:"begin"`
-	End   int64 `json:"end"`
+	Begin  int64             `json:"begin"`
+	End    int64             `json:"end"`
+	Subset regression.Subset `json:"subset"`
 }
 
 // RegressionRow are all the Regression's for a specific commit. It is used in
@@ -771,7 +772,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Query for Regressions in the range.
-	regMap, err := regStore.Range(rr.Begin, rr.End)
+	regMap, err := regStore.Range(rr.Begin, rr.End, rr.Subset)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to retrieve clusters.")
 		return
