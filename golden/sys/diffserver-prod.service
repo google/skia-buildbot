@@ -6,12 +6,12 @@ After=network-online.target
 [Service]
 Environment=DATA_DIR=/mnt/pd0/data
 
-ExecStart=/usr/local/bin/skia-diff-server \
+ExecStart=/usr/local/bin/diffserver-prod \
     --grpc_port=:8000 \
     --image_dir=${DATA_DIR}/imageStore \
     --image_port=:8001 \
     --logtostderr \
-    --prom_port=":23000" \
+    --prom_port=":20000" \
     --gs_buckets=skia-infra-gm,chromium-skia-gm   \
     --cache_size=20
 
