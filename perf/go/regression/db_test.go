@@ -205,7 +205,7 @@ func TestRange(t *testing.T) {
 
 	// Execute our method.
 	st := NewStore()
-	reg, err := st.Range(1479235651, 1479235999)
+	reg, err := st.Range(1479235651, 1479235999, ALL_SUBSET)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(reg))
 	assert.True(t, reg[c1.ID()].Triaged())

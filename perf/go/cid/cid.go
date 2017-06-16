@@ -46,6 +46,25 @@ func (c CommitID) ID() string {
 	return fmt.Sprintf("%s-%06d", safeRe.ReplaceAllLiteralString(c.Source, "_"), c.Offset)
 }
 
+// FromID is the inverse operator to ID().
+func FromID(s string) (*CommitID, error) {
+	parts := strings.Split(s, "-")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("Invalid ID format: %s", s)
+	}
+	if strings.Contains(parts[0], "_") {
+		return nil, fmt.Errorf("Invalid ID format: %s", s)
+	}
+	i, err := strconv.ParseInt(parts[1], 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid ID format: %s", s)
+	}
+	return &CommitID{
+		Offset: int(i),
+		Source: parts[0],
+	}, nil
+}
+
 // CommitDetail describes a CommitID.
 type CommitDetail struct {
 	CommitID
