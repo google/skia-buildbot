@@ -193,10 +193,6 @@ func getWindowsStuff(workdir string) (string, string, string, string, error) {
 		return "", "", "", "", err
 	}
 	setupScript := strings.Replace(string(setupBytes), "CHROME_BOT_PASSWORD", pw, -1)
-	setupPath := path.Join(workdir, "setup-script.ps1")
-	if err := ioutil.WriteFile(setupPath, []byte(setupScript), os.ModePerm); err != nil {
-		return "", "", "", "", err
-	}
 
 	netrcContents, err := exec.RunCwd(".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/.netrc_bots")
 	if err != nil {
@@ -209,6 +205,10 @@ func getWindowsStuff(workdir string) (string, string, string, string, error) {
 		return "", "", "", "", err
 	}
 	setupScript = strings.Replace(setupScript, "INSERTFILE(/tmp/.gitconfig)", string(gitconfigContents), -1)
+	setupPath := path.Join(workdir, "setup-script.ps1")
+	if err := ioutil.WriteFile(setupPath, []byte(setupScript), os.ModePerm); err != nil {
+		return "", "", "", "", err
+	}
 
 	startupBytes, err := ioutil.ReadFile(path.Join(repoRoot, "scripts", "win_startup.ps1"))
 	if err != nil {
@@ -226,7 +226,6 @@ func getWindowsStuff(workdir string) (string, string, string, string, error) {
 		return "", "", "", "", err
 	}
 	chromebotScript := util.ToDos(string(chromebotBytes))
-
 	return pw, setupPath, startupPath, chromebotScript, nil
 }
 
