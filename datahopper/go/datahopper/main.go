@@ -60,7 +60,6 @@ var (
 )
 
 func main() {
-	defer common.LogPanic()
 	common.InitWithMust(
 		"datahopper",
 		common.PrometheusOpt(promPort),

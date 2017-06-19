@@ -675,7 +675,8 @@ func (c *TaskCfgCache) write() error {
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return err
 	}
-	f, err := os.Create(c.file)
+	tmpFile := fmt.Sprintf("%s.tmp", c.file)
+	f, err := os.Create(tmpFile)
 	if err != nil {
 		return fmt.Errorf("Failed to create TaskCfgCache file: %s", err)
 	}
@@ -690,7 +691,13 @@ func (c *TaskCfgCache) write() error {
 		util.Close(f)
 		return fmt.Errorf("Failed to encode TaskCfgCache: %s", err)
 	}
-	return f.Close()
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("Failed to wrote TaskCfgCache: %s", err)
+	}
+	if err := os.Rename(tmpFile, c.file); err != nil {
+		return fmt.Errorf("Failed to rename temp TaskCfgCache (%s to %s): %s", tmpFile, c.file, err)
+	}
+	return nil
 }
 
 func stringMapKeys(m map[string]time.Time) []string {
