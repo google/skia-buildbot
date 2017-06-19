@@ -8,7 +8,7 @@ sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password_again p
 
 sudo apt-get -y install mercurial mysql-client mysql-server libosmesa-dev npm nodejs-legacy libexpat1-dev:i386 clang-3.6 poppler-utils netpbm
 
-mysql -uroot -ptmp_pass -e "SET PASSWORD = PASSWORD('');" 
+mysql -uroot -ptmp_pass -e "SET PASSWORD = PASSWORD('');"
 
 sudo npm install -g npm@3.10.9
 sudo npm install -g bower@1.6.5
@@ -37,6 +37,8 @@ sudo ln -s -f /usr/bin/clang++-3.6 /usr/bin/clang++
 sudo ln -s -f /usr/bin/llvm-cov-3.6 /usr/bin/llvm-cov
 sudo ln -s -f /usr/bin/llvm-profdata-3.6 /usr/bin/llvm-profdata
 
+# Get access token from metadata.
+TOKEN=`curl "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" -H "Metadata-Flavor: Google" | python -c "import sys, json; print json.load(sys.stdin)['access_token']"`
 # Bootstrap Swarming.
 sudo chmod 777 /b
 mkdir -p /b/s
@@ -44,5 +46,6 @@ SWARMING=https://chromium-swarm.appspot.com
 if [[ $(hostname) == *"-i-"* ]]; then
   SWARMING=https://chrome-swarming.appspot.com
 fi
-wget ${SWARMING}/bot_code -O /b/s/swarming_bot.zip
+HOSTNAME=`hostname`
+curl ${SWARMING}/bot_code?bot_id=$HOSTNAME -H "Authorization":"Bearer $TOKEN" -o /b/s/swarming_bot.zip
 ln -sf /b/s /b/swarm_slave
