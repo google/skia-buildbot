@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7618474d_95ed4d8c",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 695,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-19T19:03:07Z",
+      "side": 1,
+      "message": "nit: add context, also for os.Rename error.",
+      "range": {
+        "startLine": 695,
+        "startChar": 9,
+        "endLine": 695,
+        "endChar": 12
+      },
+      "revId": "6442b2628c63c6fb79dd3449db2a68bf5930970c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
