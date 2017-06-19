@@ -183,7 +183,7 @@ func main() {
 
 	// Swarming tasks.
 	if err := swarming_metrics.StartSwarmingTaskMetrics(w, swarm, context.Background()); err != nil {
-		sklog.Fatal(err)
+		sklog.Fatalf("Failed to start Swarming task metrics: %s", err)
 	}
 
 	// Number of commits in the repo.
@@ -231,7 +231,7 @@ func main() {
 			return nil
 		}
 		if err := setLastBackupTime(); err != nil {
-			sklog.Fatal(err)
+			sklog.Fatalf("Failed to retrieve last DB backup: %s", err)
 		}
 		for range time.Tick(10 * time.Minute) {
 			if err := setLastBackupTime(); err != nil {
@@ -242,12 +242,12 @@ func main() {
 
 	// Jobs metrics.
 	if err := StartJobMetrics(*taskSchedulerDbUrl, context.Background()); err != nil {
-		sklog.Fatal(err)
+		sklog.Fatalf("Failed to start JobMetrics: %s", err)
 	}
 
 	// Generate "time to X% bot coverage" metrics.
 	if err := bot_metrics.Start(*taskSchedulerDbUrl, *workdir, nil, context.Background()); err != nil {
-		sklog.Fatal(err)
+		sklog.Fatalf("Failed to start bot_metrics: %s", err)
 	}
 
 	// Run a backup server.

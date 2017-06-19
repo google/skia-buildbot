@@ -422,15 +422,16 @@ func cycle(taskDb db.RemoteDB, buildDb buildbot.DB, repos repograph.Map, tcc *sp
 // readTs returns the last successful run timestamp which was cached in a file.
 func readTs(workdir string) (time.Time, error) {
 	var rv time.Time
-	b, err := ioutil.ReadFile(path.Join(workdir, TIMESTAMP_FILE))
+	filename := path.Join(workdir, TIMESTAMP_FILE)
+	b, err := ioutil.ReadFile(filename)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return BEGINNING_OF_TIME, nil
 		}
-		return rv, err
+		return rv, fmt.Errorf("Unable to read timestamp file %s: %s", filename, err)
 	}
 	if err := gob.NewDecoder(bytes.NewBuffer(b)).Decode(&rv); err != nil {
-		return rv, err
+		return rv, fmt.Errorf("Unable to decode timestamp file %s: %s", filename, err)
 	}
 	return rv, nil
 }
@@ -448,44 +449,44 @@ func writeTs(workdir string, ts time.Time) error {
 func Start(dbUrl, workdir string, buildDb buildbot.DB, ctx context.Context) error {
 	// Setup.
 	if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
-		return err
+		return fmt.Errorf("Unable to mkdir %s: %s", workdir, err)
 	}
 
 	taskDb, err := remote_db.NewClient(dbUrl)
 	if err != nil {
-		return err
+		return fmt.Errorf("Unable to connect to DB via %s: %s", dbUrl, err)
 	}
 
 	repos, err := repograph.NewMap(common.PUBLIC_REPOS, workdir)
 	if err != nil {
-		return err
+		return fmt.Errorf("Unable to create repograph: %s", err)
 	}
 
 	depotTools, err := depot_tools.Sync(workdir)
 	if err != nil {
-		return err
+		return fmt.Errorf("Unable to sync depot_tools to %s: %s", workdir, err)
 	}
 
 	tcc, err := specs.NewTaskCfgCache(repos, depotTools, path.Join(workdir, "taskCfgCache"), 1)
 	if err != nil {
-		return err
+		return fmt.Errorf("Unable to create TaskCfgCache: %s", err)
 	}
 
 	// Set up event metrics.
 	edb, err := events.NewEventDB(path.Join(workdir, "percent-metrics.bdb"))
 	if err != nil {
-		return err
+		return fmt.Errorf("Unable to create EventDB at %s: %s", path.Join(workdir, "percent-metrics.bdb"), err)
 	}
 	em, err := events.NewEventMetrics(edb, "time-to-bot-coverage")
 	if err != nil {
-		return err
+		return fmt.Errorf("Unable to create EventMetrics for time-to-bot-coverage: %s", err)
 	}
 	for repoUrl := range repos {
 		for _, p := range []time.Duration{24 * time.Hour, 7 * 24 * time.Hour} {
 			s := em.GetEventStream(fmtStream(repoUrl))
 			for _, pct := range PERCENTILES {
 				if err := addMetric(s, repoUrl, pct, p); err != nil {
-					return err
+					return fmt.Errorf("Unable to add metric for repoUrl=%s period=%s percentile=%f: %s", repoUrl, p, pct, err)
 				}
 			}
 		}
