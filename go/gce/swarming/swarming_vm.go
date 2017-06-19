@@ -18,14 +18,14 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gce"
-	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
 const (
-	GS_URL_GITCONFIG = "gs://skia-buildbots/artifacts/bots/.gitconfig"
-	GS_URL_NETRC     = "gs://skia-buildbots/artifacts/bots/.netrc"
+	GS_URL_GITCONFIG      = "gs://skia-buildbots/artifacts/bots/.gitconfig"
+	GS_URL_NETRC_EXTERNAL = "gs://skia-buildbots/artifacts/bots/.netrc_bots"
+	GS_URL_NETRC_INTERNAL = "gs://skia-buildbots/artifacts/bots/.netrc_bots-internal"
 
 	USER_CHROME_BOT = "chrome-bot"
 )
@@ -107,7 +107,7 @@ func Swarming20170615(name, serviceAccount string) *gce.Instance {
 // Configs for Linux GCE instances.
 func AddLinuxConfigs(vm *gce.Instance) *gce.Instance {
 	vm.GSDownloads["/home/chrome-bot/.gitconfig"] = GS_URL_GITCONFIG
-	vm.GSDownloads["/home/chrome-bot/.netrc"] = GS_URL_NETRC
+	vm.GSDownloads["/home/chrome-bot/.netrc"] = GS_URL_NETRC_EXTERNAL
 
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
@@ -123,7 +123,7 @@ func LinuxSwarmingBot(num int) *gce.Instance {
 // Internal Linux GCE instances.
 func InternalLinuxSwarmingBot(num int) *gce.Instance {
 	vm := AddLinuxConfigs(Swarming20170615(fmt.Sprintf("skia-i-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROME_SWARMING))
-	vm.MetadataDownloads["/home/chrome-bot/.gitcookies"] = fmt.Sprintf(metadata.METADATA_URL, "project", "gitcookies_skia-internal_chromium")
+	vm.GSDownloads["/home/chrome-bot/.netrc"] = GS_URL_NETRC_INTERNAL
 	return vm
 }
 
@@ -140,8 +140,8 @@ func AddWinConfigs(vm *gce.Instance, pw, setupScriptPath, startupScriptPath, chr
 	vm.BootDisk.SourceImage = "projects/google.com:windows-internal/global/images/windows-server-2008-r2-ent-internal-v20150310"
 	vm.BootDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.DataDisk = nil
-	// Most of the Windows setup, including the gitcookies, occurs in the
-	// setup and startup scripts, which also install and schedule the
+	// Most of the Windows setup, including the gitconfig/netrc, occurs in
+	// the setup and startup scripts, which also install and schedule the
 	// chrome-bot scheduled task script.
 	vm.Metadata["chromebot-schtask-ps1"] = chromebotScript
 	vm.Os = gce.OS_WINDOWS
@@ -198,7 +198,7 @@ func getWindowsStuff(workdir string) (string, string, string, string, error) {
 		return "", "", "", "", err
 	}
 
-	netrcContents, err := exec.RunCwd(".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/.netrc")
+	netrcContents, err := exec.RunCwd(".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/.netrc_bots")
 	if err != nil {
 		return "", "", "", "", err
 	}
