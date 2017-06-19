@@ -453,39 +453,39 @@ func Start(dbUrl, workdir string, buildDb buildbot.DB, ctx context.Context) erro
 
 	taskDb, err := remote_db.NewClient(dbUrl)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to create new DB client: %s", err)
 	}
 
 	repos, err := repograph.NewMap(common.PUBLIC_REPOS, workdir)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to sync repograph: %s", err)
 	}
 
 	depotTools, err := depot_tools.Sync(workdir)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to sync depot_tools: %s", err)
 	}
 
 	tcc, err := specs.NewTaskCfgCache(repos, depotTools, path.Join(workdir, "taskCfgCache"), 1)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to create TaskCfgCache: %s", err)
 	}
 
 	// Set up event metrics.
 	edb, err := events.NewEventDB(path.Join(workdir, "percent-metrics.bdb"))
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to create EventDB: %s", err)
 	}
 	em, err := events.NewEventMetrics(edb, "time-to-bot-coverage")
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to create EventMetrics: %s", err)
 	}
 	for repoUrl := range repos {
 		for _, p := range []time.Duration{24 * time.Hour, 7 * 24 * time.Hour} {
 			s := em.GetEventStream(fmtStream(repoUrl))
 			for _, pct := range PERCENTILES {
 				if err := addMetric(s, repoUrl, pct, p); err != nil {
-					return err
+					return fmt.Errorf("Failed to add metric: %s", err)
 				}
 			}
 		}
@@ -494,7 +494,7 @@ func Start(dbUrl, workdir string, buildDb buildbot.DB, ctx context.Context) erro
 	lv := metrics2.NewLiveness("last-successful-bot-coverage-metrics")
 	lastFinished, err := readTs(workdir)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to read timestamp: %s", err)
 	}
 	go util.RepeatCtx(10*time.Minute, ctx, func() {
 		now := time.Now()
