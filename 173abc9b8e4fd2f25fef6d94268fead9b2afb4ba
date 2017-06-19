@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e6e7415f_61345588",
+        "filename": "scripts/chromebot-schtask.ps1",
+        "patchSetId": 10
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-19T14:07:18Z",
+      "side": 1,
+      "message": "Did you test this?  I have no idea whether this behaves like \"mkdir\" (will fail if c:\\b doesn\u0027t exist) or \"mkdir -p\"",
+      "range": {
+        "startLine": 123,
+        "startChar": 0,
+        "endLine": 123,
+        "endChar": 47
+      },
+      "revId": "173abc9b8e4fd2f25fef6d94268fead9b2afb4ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c7fc9fb_a1d8aeb1",
+        "filename": "scripts/chromebot-schtask.ps1",
+        "patchSetId": 10
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-19T14:07:18Z",
+      "side": 1,
+      "message": "Is this a thing?",
+      "range": {
+        "startLine": 130,
+        "startChar": 2,
+        "endLine": 130,
+        "endChar": 6
+      },
+      "revId": "173abc9b8e4fd2f25fef6d94268fead9b2afb4ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
