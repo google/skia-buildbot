@@ -70,6 +70,7 @@ const (
 	BENCHMARK_RR                = "rasterize_and_record_micro"
 	BENCHMARK_REPAINT           = "repaint"
 	BENCHMARK_LOADING           = "loading.cluster_telemetry"
+	BENCHMARK_SCREENSHOT        = "screenshot"
 	BENCHMARK_USECOUNTER        = "usecounter_ct"
 
 	// Logserver link. This is only accessible from Google corp.
@@ -165,6 +166,7 @@ type PagesetTypeInfo struct {
 	CaptureArchivesTimeoutSecs int
 	CreatePagesetsTimeoutSecs  int
 	CaptureSKPsTimeoutSecs     int
+	PixelDiffTimeoutSecs       int
 	RunChromiumPerfTimeoutSecs int
 	Description                string
 }
@@ -215,6 +217,7 @@ var (
 		BENCHMARK_RR:                "rasterize_and_record_micro_ct",
 		BENCHMARK_REPAINT:           "repaint_ct",
 		BENCHMARK_LOADING:           "loading.cluster_telemetry",
+		BENCHMARK_SCREENSHOT:        "screenshot_ct",
 		BENCHMARK_USECOUNTER:        "usecounter_ct",
 	}
 
@@ -227,6 +230,7 @@ var (
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
+			PixelDiffTimeoutSecs:       300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1M (with desktop user-agent)",
 		},
@@ -237,6 +241,7 @@ var (
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
+			PixelDiffTimeoutSecs:       300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 100K (with desktop user-agent)",
 		},
@@ -247,6 +252,7 @@ var (
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
+			PixelDiffTimeoutSecs:       300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 100K (with mobile user-agent)",
 		},
@@ -257,6 +263,7 @@ var (
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
+			PixelDiffTimeoutSecs:       300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 10K (with desktop user-agent)",
 		},
@@ -267,6 +274,7 @@ var (
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
+			PixelDiffTimeoutSecs:       300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 10K (with mobile user-agent)",
 		},
@@ -277,6 +285,7 @@ var (
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
+			PixelDiffTimeoutSecs:       300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1K (used for testing, hidden from Runs History by default)",
 		},
@@ -287,6 +296,7 @@ var (
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
+			PixelDiffTimeoutSecs:       300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "PDF 400M",
 		},
@@ -297,6 +307,7 @@ var (
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
+			PixelDiffTimeoutSecs:       300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "PDF 1M",
 		},
@@ -307,6 +318,7 @@ var (
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
+			PixelDiffTimeoutSecs:       300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "PDF 1K",
 		},
