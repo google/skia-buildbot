@@ -1,6 +1,7 @@
 package fileutil
 
 import (
+	"bufio"
 	"crypto/sha1"
 	"fmt"
 	"io/ioutil"
@@ -42,7 +43,7 @@ func MustOpen(name string) *os.File {
 	return f
 }
 
-// MustReaddir returns a slice of os.FileInfo for every file in the given dir.  This is equivilent to calling dir.Readdir(-1), except this call will stop the program on an error
+// MustReaddir returns a slice of os.FileInfo for every file in the given dir.  This is equivalent to calling dir.Readdir(-1), except this call will stop the program on an error
 func MustReaddir(dir *os.File) []os.FileInfo {
 	fi, err := dir.Readdir(-1)
 	if err != nil {
@@ -94,7 +95,7 @@ func CopyExecutable(fromPath, toPath string) error {
 }
 
 // ReadAndSha1File opens a file, reads the contents, hashes them using the sha1
-// hashing algroithm and returns the contents and hash.  If the file doesn't exist, the err will be
+// hashing algorithm and returns the contents and hash.  If the file doesn't exist, the err will be
 // nil and both contents and hash will be empty string.
 func ReadAndSha1File(path string) (contents, hash string, err error) {
 	if stat, err := os.Stat(path); err != nil {
@@ -119,4 +120,24 @@ func ReadAndSha1File(path string) (contents, hash string, err error) {
 	}
 
 	return string(b), fmt.Sprintf("%x", sha1.Sum(b)), nil
+}
+
+// ReadLines opens the given path and reads the content as lines.
+// It returns the lines without the trailing '\n' characters.
+func ReadLines(path string) ([]string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer util.Close(file)
+
+	result := []string{}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		result = append(result, scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+	return result, err
 }
