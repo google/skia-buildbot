@@ -149,11 +149,7 @@ func captureSkps() error {
 				sklog.Infof("===== Processing %s =====", pagesetPath)
 
 				skutil.LogErr(os.Chdir(pathToPyFiles))
-				index, ok := archivesToIndex[decodedPageset.ArchiveDataFile]
-				if !ok {
-					sklog.Errorf("%s not found in the archivesToIndex map", decodedPageset.ArchiveDataFile)
-					continue
-				}
+
 				args := []string{
 					filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
 					util.BenchmarksToTelemetryName[util.BENCHMARK_SKPICTURE_PRINTER],
@@ -164,13 +160,9 @@ func captureSkps() error {
 					"--user-agent=" + decodedPageset.UserAgent,
 					"--urls-list=" + decodedPageset.UrlsList,
 					"--archive-data-file=" + decodedPageset.ArchiveDataFile,
-				}
-				// Figure out which browser and device should be used.
-				if *targetPlatform == util.PLATFORM_ANDROID {
-					args = append(args, "--browser=android-chromium")
-				} else {
-					args = append(args, "--browser=exact", "--browser-executable="+chromiumBinary)
-					args = append(args, "--device=desktop")
+					"--browser=exact",
+					"--browser-executable=" + chromiumBinary,
+					"--device=desktop",
 				}
 
 				// Set the PYTHONPATH to the pagesets and the telemetry dirs.
