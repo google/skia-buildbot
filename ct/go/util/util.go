@@ -595,6 +595,11 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	// Need to capture output for all benchmarks.
 	outputDirArgValue := filepath.Join(localOutputDir, pagesetName)
 	args = append(args, "--output-dir="+outputDirArgValue)
+	// Add an output location for benchmark_ct
+	if benchmark == BENCHMARK_SCREENSHOT {
+		args = append(args, "--png-outdir="+outputDirArgValue)
+	}
+
 	// Figure out which browser and device should be used.
 	if targetPlatform == PLATFORM_ANDROID {
 		if err := InstallChromeAPK(chromiumBuildName); err != nil {
