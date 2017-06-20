@@ -4,7 +4,10 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/davecgh/go-spew/spew"
+
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
@@ -96,10 +99,15 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 		return nil, err
 	}
 	idx := s.ixr.GetIndex()
+	sklog.Infof("QUERY: \n%s\n", spew.Sdump(q))
 
 	// Unconditional query stage. Iterate through the tile and get an intermediate
 	// representation that contains all the traces matching the queries.
 	inter, err := s.filterTile(q, idx)
+	sklog.Infof("CHECK  1 : %d", len(inter))
+	for testName, testInfo := range inter {
+		sklog.Infof("CHECK  1a (%s) : %d", testName, len(testInfo))
+	}
 
 	// Diff stage: Compare all digests found in the previous stages and find
 	// reference points (positive, negative etc.) for each digest.
@@ -111,6 +119,7 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 	// Post-diff stage: Apply all filters that are relevant once we have
 	// diff values for the digests.
 	ret = s.afterDiffResultFilter(ret, q)
+	sklog.Infof("CHECK  2 : %d", len(ret))
 
 	// Sort the digests and fill the ones that are going to be displayed with
 	// additional data. Note we are returning all digests found, so we can do
@@ -118,6 +127,8 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 	// with additional information.
 	displayRet, offset := s.sortAndLimitDigests(q, ret, int(q.Offset), int(q.Limit))
 	s.addParamsAndTraces(displayRet, inter, exp, idx)
+
+	sklog.Infof("CHECK  3 : %d %d", len(displayRet), offset)
 
 	// Return all digests with the selected offset within the result set.
 	return &NewSearchResponse{

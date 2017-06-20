@@ -9,6 +9,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
+	"github.com/skia-dev/glog"
+
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/types"
@@ -230,6 +233,11 @@ func ParseQuery(r *http.Request, query *Query) error {
 	// Parse and validate the filter values.
 	validate.Int32FormValue(r, "frgbamin", &query.FRGBAMin, 0)
 	validate.Int32FormValue(r, "frgbamax", &query.FRGBAMax, 255)
+
+	if query.FRGBAMax < 0 {
+		query.FRGBAMax = 255
+	}
+
 	validate.Float32FormValue(r, "fdiffmax", &query.FDiffMax, -1.0)
 	if err := validate.Errors(); err != nil {
 		return err
@@ -249,6 +257,8 @@ func ParseQuery(r *http.Request, query *Query) error {
 	query.FCommitEnd = r.FormValue("fend")
 	query.FGroupTest = r.FormValue("fgrouptest")
 	query.FRef = r.FormValue("fref") == "true"
+
+	glog.Infof("\n\nQUERY: %s\n\n\n", spew.Sdump(query))
 
 	return nil
 }
