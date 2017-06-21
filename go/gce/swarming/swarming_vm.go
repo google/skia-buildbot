@@ -131,6 +131,7 @@ func InternalLinuxSwarmingBot(num int) *gce.Instance {
 func SkiaCTBot(num int) *gce.Instance {
 	vm := AddLinuxConfigs(Swarming20170615(fmt.Sprintf("skia-ct-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM))
 	vm.DataDisk.SizeGb = 3000
+	vm.DataDisk.SourceSnapshot = "skia-ct-skps-snapshot"
 	return vm
 }
 
