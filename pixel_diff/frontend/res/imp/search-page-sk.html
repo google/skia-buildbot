@@ -1,0 +1,154 @@
+<!--
+  The <search-page-sk> custom element declaration.
+
+  Shows the results of a search request. Sends the query string as a JSON
+  request to the search endpoint ('/json/search') and renders the result.\
+
+-->
+
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/paper-menu-button/paper-menu-button.html">
+
+<link rel="import" href="activity-sk.html">
+<link rel="import" href="diff-details-sk.html">
+<link rel="import" href="shared-styles.html">
+
+<link rel="import" href="../common/imp/triage-sk.html">
+
+<dom-module id="search-page-sk">
+  <template>
+    <style include="iron-flex iron-flex-alignment"></style>
+    <style include="shared-styles">
+      diff-details-sk {
+        display: block;
+        box-shadow: 3px 3px 6px 1px rgba(133,133,133,1);
+        margin-top: 1em;
+        margin-bottom: 1em;
+        margin-left: 0;
+        margin-right: 0;
+        padding-left: 1em;
+        padding-top: 1em;
+        padding-bottom: 1em;
+        padding-right: 0;
+      }
+
+      diff-details-sk[data-focus] {
+        box-shadow: 3px 3px 6px 5px #FF7F00;
+      }
+
+      #missing {
+        padding-top: 2em;
+      }
+
+      .searchPageWrapper {
+        padding-left: 1em;
+        padding-top: 1em;
+        margin-left:1em;
+        margin-right: 3em;
+      }
+
+      #triggerSearchButton {
+        font-size: 18px;
+      }
+
+      .helpIconContainer {
+        padding-left: 3em;
+      }
+
+      paper-button {
+        min-width: 2em;
+        margin: 5px;
+        background: #eee;
+      }
+
+      .actionMenu {
+        max-width: 10em;
+        margin-left: 10em;
+      }
+
+      .actionButton {
+        color: green;
+      };
+
+      #closestButton[raised] > iron-icon {
+        color: #bbb;
+      }
+
+      #closestButton[raised] {
+        background: #fff;
+      }
+
+      #closestButton:hover,
+      #closestButton[raised]:hover {
+        background: #ddd;
+      }
+    </style>
+
+    <div class="searchPageWrapper">
+      <activity-sk id="activityBar" busy="{{_hideAll}}"></activity-sk>
+
+      <div hidden$="{{_hideAll}}">
+        <div id="missing" hidden$="{{_nonEmptyResult(data)}}">
+          No results match your query.
+        </div>
+        <div hidden$="{{_emptyResult(data)}}">
+          <template is="dom-repeat" items="{{data.images}}">
+            <diff-details-sk
+              images="[[item]]">
+            </diff-details-sk>
+          </template>
+        </div>
+      </div>
+    </div>
+
+  </template>
+  <script>
+    Polymer({
+      is: "search-page-sk",
+
+      behaviors: [gold.PageStateBehavior],
+
+      properties: {
+        data: {
+          type: Object,
+          value: function() { return {}; }
+        }
+      },
+
+      ready: function() {
+        console.log("SEARCH READY");
+        this._setDefaultState(gold.defaultSearchState, false);
+      },
+
+      pageSelected: function(ctx) {
+        console.log("SEARCH PAGESELECTED");
+        this._initState(ctx, this._getDefaultStateWithCorpus());
+        this._load();
+      },
+
+      pageDeselected: function() {},
+
+      _load: function() {
+        sk.get("/json/search").then(JSON.parse).then(function (json) {
+          this.set('data', json);
+          this.$.activityBar.stopSpinner();
+        }.bind(this)).catch(function(e) {
+          this.$.activityBar.stopSpinner();
+          sk.errorMessage(e);
+        }.bind(this));
+      },
+
+      _nonEmptyResult: function(data) {
+        return !data.images || data.images.length > 0;
+      },
+
+      _emptyResult: function(data) {
+        return !data.images || data.images.length === 0;
+      }
+    });
+  </script>
+</dom-module>

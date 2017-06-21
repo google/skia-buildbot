@@ -1,0 +1,24 @@
+<!--
+  The <silver-menu-sk> custom element declaration.
+
+  This is the side navigation menu for the Skia Silver front end.
+
+  Attributes: None
+
+  Events: None
+
+  Methods: None
+-->
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="bower_components/iron-icons/hardware-icons.html">
+<link rel="import" href="bower_components/iron-icons/notification-icons.html">
+
+<dom-module id="silver-menu-sk">
+  <template>
+      <menu-item-sk icon="icons:search" label="Search" url="/search"></menu-item-sk>
+      <menu-item-sk icon="folder" label="Code" url="https://github.com/google/skia-buildbot/tree/master"></menu-item-sk>
+  </template>
+  <script>
+    Polymer({is: "silver-menu-sk"});
+  </script>
+</dom-module>
