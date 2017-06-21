@@ -1,0 +1,199 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c49b4f2d_82335509",
+        "filename": "ct/go/master_scripts/pixel_diff_on_workers/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-21T17:25:45Z",
+      "side": 1,
+      "message": "uber-uber-uber-nit: Other worker scripts start with \"run_\" or other verb like \"create\", \"build\",  or \"capture.\"",
+      "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6bab188b_21190b7f",
+        "filename": "ct/go/master_scripts/pixel_diff_on_workers/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-21T17:25:45Z",
+      "side": 1,
+      "message": "nit: links will point to ct.skia.org, so this might be confusing.",
+      "range": {
+        "startLine": 71,
+        "startChar": 44,
+        "endLine": 71,
+        "endChar": 68
+      },
+      "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58456ec9_c4b1a076",
+        "filename": "ct/go/master_scripts/pixel_diff_on_workers/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-21T17:25:45Z",
+      "side": 1,
+      "message": "nit: \u003cli\u003e?\n\nnit: Mention which is withpatch/nopatch.",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 10
+      },
+      "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f8c5a382_f849b621",
+        "filename": "ct/go/master_scripts/pixel_diff_on_workers/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-21T17:25:45Z",
+      "side": 1,
+      "message": "nit: add error context.",
+      "range": {
+        "startLine": 138,
+        "startChar": 8,
+        "endLine": 138,
+        "endChar": 13
+      },
+      "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15196ffa_b76ebb92",
+        "filename": "ct/go/util/constants.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-21T17:25:45Z",
+      "side": 1,
+      "message": "nit: Seemed like we were moving toward using the same name in CT and telemetry, like \"usecounter_ct\".",
+      "range": {
+        "startLine": 73,
+        "startChar": 32,
+        "endLine": 73,
+        "endChar": 42
+      },
+      "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5efa8a4e_57650d8a",
+        "filename": "ct/go/util/gs.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-21T17:25:45Z",
+      "side": 1,
+      "message": "nit: %s",
+      "range": {
+        "startLine": 222,
+        "startChar": 47,
+        "endLine": 222,
+        "endChar": 49
+      },
+      "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f7fbd53_6cde9a66",
+        "filename": "ct/go/worker_scripts/pixel_diff/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-21T17:25:45Z",
+      "side": 1,
+      "message": "nit: might be useful to add context to errors rather than just \"return err\"",
+      "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b7344ae_d5bab61b",
+        "filename": "ct/go/worker_scripts/pixel_diff/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-21T17:25:45Z",
+      "side": 1,
+      "message": "In other scripts, we sync to the rev of the chromium build to avoid merge conflicts/incompatibilities with the telemetry/catapult code. Is that not necessary here?",
+      "range": {
+        "startLine": 67,
+        "startChar": 16,
+        "endLine": 67,
+        "endChar": 23
+      },
+      "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cef00974_78ed1ea0",
+        "filename": "ct/go/worker_scripts/pixel_diff/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-21T17:25:45Z",
+      "side": 1,
+      "message": "nit: defer skutil.RemoveAll(tmpdir)",
+      "range": {
+        "startLine": 79,
+        "startChar": 1,
+        "endLine": 79,
+        "endChar": 7
+      },
+      "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
