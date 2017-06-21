@@ -216,6 +216,13 @@ func (gs *GcsUtil) DownloadChromiumBuild(chromiumBuild string) error {
 	return nil
 }
 
+// DeleteRemoteDirLogErr wraps DeleteRemoteDir and logs an error if one is returned.
+func (gs *GcsUtil) DeleteRemoteDirLogErr(gsDir string) {
+	if err := gs.DeleteRemoteDir(gsDir); err != nil {
+		sklog.Errorf("Failed to DeleteRemoteDir(%s): %s", gsDir, err)
+	}
+}
+
 func (gs *GcsUtil) DeleteRemoteDir(gsDir string) error {
 	// The channel where the GCS filepaths to be deleted will be sent to.
 	chFilePaths := make(chan string, DELETE_GOROUTINE_POOL_SIZE)
