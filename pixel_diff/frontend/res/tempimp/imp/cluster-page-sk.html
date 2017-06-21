@@ -1,0 +1,288 @@
+  <!-- The <cluster-page-sk> custom element declaration.
+
+    Displays the cluster view for a single test.
+
+    Attributes:
+      None
+
+    Events:
+      None
+
+    Methods:
+      pageSelected - Called by the router when view is visible.
+
+      pageDeselected - Called by the router when the view is no longer visible.
+
+  -->
+
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/iron-pages/iron-pages.html">
+
+<link rel="import" href="bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="bower_components/paper-tabs/paper-tab.html">
+
+<link rel="import" href="../common/imp/sort.html">
+<link rel="import" href="../common/imp/paramset.html">
+
+<link rel="import" href="digest-details-sk.html">
+<link rel="import" href="cluster-sk.html">
+<link rel="import" href="activity-sk.html">
+<link rel="import" href="test-summary-sk.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="search-controls-sk.html">
+
+<dom-module id="cluster-page-sk">
+  <template>
+    <style include="iron-flex iron-flex-alignment"></style>
+    <style include="shared-styles">
+      #clusterContainer {
+        margin-left: 1em;
+        margin-top: 1em;
+      }
+      .searchControlsWrapper {
+        padding: 1em 0 0 1em;
+      }
+
+      .clusterRendering {
+        min-width: 500pt;
+      }
+    </style>
+    <div class="vertical layout">
+    <div class="searchControlsWrapper">
+      <search-controls-sk id="searchControls"></search-controls-sk>
+    </div>
+    <div id="clusterContainer" class="horizontal layout">
+      <div class="clusterRendering">
+        <activity-sk id="activityMain"></activity-sk>
+        <cluster-sk id="clusterView" disabled="{{_zooming}}"></cluster-sk>
+      </div>
+      <div>
+        <paper-tabs id="tabs" selected={{_currentTab}}>
+          <paper-tab>Parameters</paper-tab>
+          <paper-tab>Details</paper-tab>
+        </paper-tabs>
+        <iron-pages id="pages" selected="{{_currentTab}}">
+          <div>
+            <paramset-sk clickable id=parameters></paramset-sk>
+          </div>
+          <div>
+
+            <div hidden$="{{_lenIsNot(_digestList, 0)}}">
+              There are no selected digests.
+            </div>
+
+            <div hidden$="{{_lenIsNot(_digestList, 1)}}">
+              <activity-sk id="activityDetail"></activity-sk>
+              <digest-details-sk id="oneDigest"
+                   mode="detail"
+                   details="[[_digestDetails.digest]]"
+                   commits="[[_digestDetails.commits]]">
+              </digest-details-sk>
+            </div>
+
+            <div hidden$="{{_lenIsNot(_digestList, 2)}}">
+              <activity-sk id="activityDiff"></activity-sk>
+              <digest-details-sk id="diffTwo"
+                   mode="diff"
+                   details="[[_diffData.left]]"
+                   right="[[_diffData.right]]"
+                   diff="[[_diffData.diff]]">
+              </digest-details-sk>
+            </div>
+
+            <div hidden$="{{_hideBulkTriage(_digestList)}}">
+              <h3>Bulk Triage</h3>
+              <triage-sk value="{{_triageStatus}}"
+                         id="bulkTriage">
+              </triage-sk>
+
+
+
+              <h3>Param Set of Selected Digests</h3>
+              <paramset-sk id="bulkParamset" clickable></paramset-sk>
+            </div>
+          </div>
+        </iron-pages>
+      </div>
+    </div>
+    <zoom-dialog-sk opened="{{_zooming}}"></zoom-dialog-sk>
+  </template>
+
+  <script>
+      Polymer({
+        is: "cluster-page-sk",
+
+        behaviors: [gold.ZoomTargetBehavior, gold.PageStateBehavior],
+
+        properties: {
+          _currentTab: {
+            type: Number,
+            value: 0
+          },
+          _digestList: {
+            type: Array,
+            value: function() { return []; }
+          },
+          _triageStatus: "untriaged"
+        },
+
+        ready: function() {
+          this.listen(this.$.clusterContainer, 'paramset-key-click', '_handleParamsetKeyClick');
+          this.listen(this.$.clusterContainer, 'paramset-key-value-click', '_handleParamsetValueClick');
+          this.listen(this.$.clusterContainer, 'digest-select', '_handleDigestsSelected');
+          this.listen(this.$.bulkTriage, 'change', '_handleBulkTriageChange');
+          this.listen(this, 'triage', '_handleTriage');
+          this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
+          this._setDefaultState(gold.defaultSearchState, true);
+        },
+
+        pageSelected: function(ctx) {
+          this.$.clusterView.startUse();
+          this._loadParamset();
+
+          // Initialize the state and set values of the controls.
+          this._initState(ctx, this._getDefaultStateWithCorpus());
+          this.$.searchControls.setState(this._state);
+
+          this._loadClusterDiff();
+        },
+
+        pageDeselected: function() {
+          this.$.clusterView.endUse();
+        },
+
+        _loadParamset: function() {
+          sk.get("/json/paramset").then(JSON.parse).then(function (json) {
+            this.$.searchControls.setParamSet(json);
+          }.bind(this)).catch(sk.errorMessage);
+        },
+
+        _loadClusterDiff: function() {
+          gold.loadWithActivity(this, "/json/clusterdiff" + window.location.search, this.$.activityMain, function(json) {
+            this._data = json;
+            this.$.clusterView.setData(json);
+            this.$.parameters.setParamSets([json.paramsetsUnion]);
+          }.bind(this));
+        },
+
+        _handleStateChange: function(ev) {
+          // Reload the page with the new  state in the query parameters.
+          this._redirectToState(ev.detail);
+        },
+
+        _handleParamsetKeyClick: function(ev) {
+          ev.stopPropagation();
+
+          var text = {};
+          var key = ev.detail.key;
+          Object.keys(this._data.paramsetByDigest).forEach(function(digest) {
+            var value = this._data.paramsetByDigest[digest][key];
+            if (value) {
+              text[digest] = value.join(", ");
+            }
+          }.bind(this));
+          this.$.clusterView.setTextNodes(text, ev.detail.ctrl);
+        },
+
+        _handleParamsetValueClick: function(ev) {
+          ev.stopPropagation();
+
+          var text = {};
+          var value = ev.detail.value;
+          var key = ev.detail.key;
+          Object.keys(this._data.paramsetByDigest).forEach(function(digest) {
+            var paramset = this._data.paramsetByDigest[digest];
+            if (paramset[key] && (paramset[key].indexOf(value) !== -1)) {
+              text[digest] = value;
+            }
+          }.bind(this));
+          this.$.clusterView.setTextNodes(text, ev.detail.ctrl);
+        },
+
+        _handleBulkTriageChange: function(ev) {
+          ev.stopPropagation();
+          var detail = gold.makeTriageQuery(this._data.test, this._digestList, ev.detail);
+          this.fire('triage', detail);
+        },
+
+        _handleTriage: function(ev) {
+          ev.stopPropagation();
+          sk.post('/json/triage', JSON.stringify(ev.detail)).then(function() {
+            var change = gold.flattenTriageQuery(ev.detail);
+            var ele = this.$.clusterView;
+            // 'change' contains triples of (testname, digests, status)
+            // since the triaging was successful we set the corresponding nodes
+            // in the cluster view to the new status.
+            for(var i =0; i < change.length; i++) {
+              ele.newTriageStatus(change[i][1], change[i][2]);
+            }
+          }.bind(this)).catch(sk.errorMessage);
+        },
+
+        _handleDigestsSelected: function(ev) {
+          ev.stopPropagation();
+
+          this.set('_digestList', ev.detail);
+
+          // If there are no digests do nothing.
+          if (this._digestList.length == 0) {
+            return;
+          }
+
+          // Switch to the digest tab.
+          this._currentTab = 1;
+          var url;
+
+          if (this._digestList.length == 1) {
+            // Show detailed information about the one selected digest.
+            url = "/json/details" + gold.detailQuery(this._data.test, this._digestList[0]);
+            this.$.oneDigest.clear();
+            gold.loadWithActivity(this, url, this.$.activityDetail, '_digestDetails');
+          } else if (this._digestList.length == 2) {
+            // Show a diff between the two selected digests.
+            url = "/json/diff" +  gold.diffQuery(this._data.test, this._digestList[0], this._digestList[1]);
+            this.$.diffTwo.clear();
+            gold.loadWithActivity(this, url, this.$.activityDiff, '_diffData');
+          } else {
+            // Show the option to bulk triage all selected digests.
+            this._setBulkTriage(this._digestList);
+          }
+        },
+
+        _setBulkTriage: function(selected) {
+          this.set("_triageStatus", "untriaged");
+          var paramset = {};
+          var data = this._data;
+          selected.forEach(function(digest) {
+            var p = data.paramsetByDigest[digest];
+            Object.keys(p).forEach(function(key) {
+              var existingValues = paramset[key] || [];
+              var newValues = p[key];
+              newValues.forEach(function(value) {
+                if (existingValues.indexOf(value) == -1) {
+                  existingValues.push(value);
+                }
+              });
+              paramset[key] = existingValues;
+            });
+          });
+          // Sort the param values.
+          Object.keys(paramset).forEach(function(key) {
+            paramset[key].sort();
+          });
+          this.$.bulkParamset.setParamSets([paramset]);
+        },
+
+        _hideBulkTriage: function(digestList) {
+          return digestList.length <= 2;
+        },
+
+        _lenIsNot: function(digestList, len) {
+          return digestList.length !== len;
+        }
+      });
+  </script>
+</dom-module>
