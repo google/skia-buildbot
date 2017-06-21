@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "e913a071_c2aef546",
+        "filename": "ct/go/master_scripts/pixel_diff_on_workers/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-21T18:03:33Z",
+      "side": 1,
+      "message": "I concluded that it was a weird convention to follow which lead to unnecessarily long names :/",
+      "parentUuid": "c49b4f2d_82335509",
+      "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6bab188b_21190b7f",
         "filename": "ct/go/master_scripts/pixel_diff_on_workers/main.go",
         "patchSetId": 25
@@ -30,6 +48,30 @@
       "writtenOn": "2017-06-21T17:25:45Z",
       "side": 1,
       "message": "nit: links will point to ct.skia.org, so this might be confusing.",
+      "range": {
+        "startLine": 71,
+        "startChar": 44,
+        "endLine": 71,
+        "endChar": 68
+      },
+      "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "31dc5714_2b871425",
+        "filename": "ct/go/master_scripts/pixel_diff_on_workers/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-21T18:03:33Z",
+      "side": 1,
+      "message": "These are actually GS URLs. Eg email-\n\nThe screenshots output are available in these google storage locations:\n* gs://cluster-telemetry/tasks/benchmark_runs/rmistry-ttt-nopatch\n* gs://cluster-telemetry/tasks/benchmark_runs/rmistry-ttt-withpatch\n\nI had tried the normal ct.skia.org HTTP links but they apparently need to point to a file and not a directory.",
+      "parentUuid": "6bab188b_21190b7f",
       "range": {
         "startLine": 71,
         "startChar": 44,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "7e68bf39_ea7d2ed1",
+        "filename": "ct/go/master_scripts/pixel_diff_on_workers/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-21T18:03:33Z",
+      "side": 1,
+      "message": "I had tried \u003cli\u003e but it kept too many white space in the email.\n\nThe GS URLs make it pretty obvious which is nopatch and which is withpath as seen in the example above.",
+      "parentUuid": "58456ec9_c4b1a076",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 10
+      },
+      "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f8c5a382_f849b621",
         "filename": "ct/go/master_scripts/pixel_diff_on_workers/main.go",
         "patchSetId": 25
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "9cd5313a_866571ef",
+        "filename": "ct/go/master_scripts/pixel_diff_on_workers/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-21T18:03:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f8c5a382_f849b621",
+      "range": {
+        "startLine": 138,
+        "startChar": 8,
+        "endLine": 138,
+        "endChar": 13
+      },
+      "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "15196ffa_b76ebb92",
         "filename": "ct/go/util/constants.go",
         "patchSetId": 25
@@ -99,6 +189,30 @@
       "writtenOn": "2017-06-21T17:25:45Z",
       "side": 1,
       "message": "nit: Seemed like we were moving toward using the same name in CT and telemetry, like \"usecounter_ct\".",
+      "range": {
+        "startLine": 73,
+        "startChar": 32,
+        "endLine": 73,
+        "endChar": 42
+      },
+      "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01080025_7c68d0d0",
+        "filename": "ct/go/util/constants.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-21T18:03:33Z",
+      "side": 1,
+      "message": "I had originally added this mapping so that if someone types in a benchmark name that they expect like \"repaint\" then CT would automatically map it to a name it knows how to handle \"repaint_ct\".\n\n\"usecounter_ct\" here should have been \"usecounter\" I think it was overlooked.",
+      "parentUuid": "15196ffa_b76ebb92",
       "range": {
         "startLine": 73,
         "startChar": 32,
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "a2c53002_9acbd782",
+        "filename": "ct/go/util/gs.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-21T18:03:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5efa8a4e_57650d8a",
+      "range": {
+        "startLine": 222,
+        "startChar": 47,
+        "endLine": 222,
+        "endChar": 49
+      },
+      "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6f7fbd53_6cde9a66",
         "filename": "ct/go/worker_scripts/pixel_diff/main.go",
         "patchSetId": 25
@@ -151,6 +289,24 @@
     },
     {
       "key": {
+        "uuid": "7d681b21_501402c8",
+        "filename": "ct/go/worker_scripts/pixel_diff/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-21T18:03:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6f7fbd53_6cde9a66",
+      "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7b7344ae_d5bab61b",
         "filename": "ct/go/worker_scripts/pixel_diff/main.go",
         "patchSetId": 25
@@ -162,6 +318,30 @@
       "writtenOn": "2017-06-21T17:25:45Z",
       "side": 1,
       "message": "In other scripts, we sync to the rev of the chromium build to avoid merge conflicts/incompatibilities with the telemetry/catapult code. Is that not necessary here?",
+      "range": {
+        "startLine": 67,
+        "startChar": 16,
+        "endLine": 67,
+        "endChar": 23
+      },
+      "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "243f54cf_b5358457",
+        "filename": "ct/go/worker_scripts/pixel_diff/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-21T18:03:33Z",
+      "side": 1,
+      "message": "I had intentionally left it out thinking that I did not need to do it because I am not applying a patch here. But it is still good to have all the tasks of a job run the same version. Done.",
+      "parentUuid": "7b7344ae_d5bab61b",
       "range": {
         "startLine": 67,
         "startChar": 16,
@@ -194,6 +374,30 @@
       "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01a280ba_81c3f632",
+        "filename": "ct/go/worker_scripts/pixel_diff/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-21T18:03:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cef00974_78ed1ea0",
+      "range": {
+        "startLine": 79,
+        "startChar": 1,
+        "endLine": 79,
+        "endChar": 7
+      },
+      "revId": "79aa0a0f1f557fb3118efa7270f1fd4c9b5b6acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
