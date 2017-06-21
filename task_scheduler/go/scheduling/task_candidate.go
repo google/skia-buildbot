@@ -260,10 +260,13 @@ func getServiceAccount(dimsMap map[string]string) string {
 		"gpu": "none",
 		"os":  "Debian-9.0",
 	}
+	skiaCTDimensions := map[string]string{
+		"pool": "SkiaCT",
+	}
 	windowsGceDimensions := map[string]string{
 		"os": "Windows-2008ServerR2-SP1",
 	}
-	if util.ContainsAnyMap(dimsMap, linuxGceDimensions, linuxGceDimensionsUbuntu16, linuxGceDimensionsDebian9, windowsGceDimensions) {
+	if util.ContainsAnyMap(dimsMap, linuxGceDimensions, linuxGceDimensionsUbuntu16, linuxGceDimensionsDebian9, skiaCTDimensions, windowsGceDimensions) {
 		serviceAccount = "bot"
 	}
 	return serviceAccount
