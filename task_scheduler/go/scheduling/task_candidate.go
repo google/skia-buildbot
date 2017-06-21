@@ -119,13 +119,10 @@ func (c *taskCandidate) MakeIsolateTask(infraBotsDir, baseDir string) *isolate.T
 	}
 }
 
-// getPatchStorage returns "gerrit" or "rietveld" based on the Server URL.
+// getPatchStorage returns "gerrit" or "" based on the Server URL.
 func getPatchStorage(server string) string {
 	if server == "" {
 		return ""
-	}
-	if strings.Contains(server, "codereview.chromium") {
-		return "rietveld"
 	}
 	return "gerrit"
 }

@@ -348,11 +348,7 @@ func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiCommonBuildMes
 	server := params.Properties.Gerrit
 	issue := params.Properties.GerritIssue
 	patchset := params.Properties.GerritPatchset
-	if params.Properties.PatchStorage == "rietveld" {
-		server = params.Properties.Rietveld
-		issue = params.Properties.RietveldIssue
-		patchset = fmt.Sprintf("%d", params.Properties.RietveldPatchset)
-	} else if params.Properties.PatchStorage == "gerrit" {
+	if params.Properties.PatchStorage == "gerrit" {
 		psSplit := strings.Split(patchset, "/")
 		patchset = psSplit[len(psSplit)-1]
 	} else {

@@ -54,7 +54,6 @@ const (
     }
   }
 }`
-	rietveldUrl    = "https://codereview.chromium.org/"
 	gerritUrl      = "https://skia-review.googlesource.com/"
 	gerritIssue    = 2112
 	gerritPatchset = "3"
@@ -142,20 +141,10 @@ func Params(t *testing.T, builder, project, revision, server, issue, patchset st
 	}
 	issueInt, err := strconv.Atoi(issue)
 	assert.NoError(t, err)
-	patchsetInt, err := strconv.Atoi(patchset)
-	assert.NoError(t, err)
-
-	if server == rietveldUrl {
-		p.Properties.PatchStorage = "rietveld"
-		p.Properties.Rietveld = server
-		p.Properties.RietveldIssue = jsonutils.Number(issueInt)
-		p.Properties.RietveldPatchset = jsonutils.Number(patchsetInt)
-	} else {
-		p.Properties.PatchStorage = "gerrit"
-		p.Properties.Gerrit = server
-		p.Properties.GerritIssue = jsonutils.Number(issueInt)
-		p.Properties.GerritPatchset = patchset
-	}
+	p.Properties.PatchStorage = "gerrit"
+	p.Properties.Gerrit = server
+	p.Properties.GerritIssue = jsonutils.Number(issueInt)
+	p.Properties.GerritPatchset = patchset
 	return p
 }
 
