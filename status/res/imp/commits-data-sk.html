@@ -133,8 +133,8 @@
     }
 
     // findIssueAndReviewTool returns an object literal of the form
-    // {issue, patchStorage}. patchStorage will be either Gerrit or Rietveld and
-    // issue will be the CL number.
+    // {issue, patchStorage}. patchStorage will be either Gerrit or empty, and
+    // issue will be the CL number or empty.
     // If an issue cannot be determined then an empty string is returned for
     // both issue and patchStorage.
     function findIssueAndReviewTool(commit) {
@@ -145,15 +145,6 @@
         return {
             issue: gerritTokens[gerritTokens.length - 1],
             patchStorage: 'gerrit'
-        };
-      }
-       // See if it is a Rietveld CL.
-      var rietveldRE = /(.|[\r\n])*Review-Url: https:\/\/codereview.chromium.org\/([0-9]*)/g;
-      var rietveldTokens = rietveldRE.exec(commit.body);
-      if (rietveldTokens) {
-        return {
-            issue: rietveldTokens[rietveldTokens.length - 1],
-            patchStorage: 'rietveld'
         };
       }
       // Could not find a CL number return an empty string.
@@ -167,20 +158,12 @@
       return commit.patchStorage === 'gerrit';
     }
 
-    function isRietveldIssue(commit) {
-      return commit.patchStorage === 'rietveld';
-    }
-
     // Return whether this commit reverted another commit.
     function isRevert(commit) {
       if (isGerritIssue(commit)) {
         // The subject of the CL needs to start with 'Revert "' for Gerrit
         // issues.
         return /^Revert "/g.test(commit.subject);
-      } else if (isRietveldIssue(commit)) {
-        // The subject of the CL needs to start with 'Revert ' or 'Reland ' for
-        // Rietveld issues.
-        return (/^Revert /g.test(commit.subject) || /^Reland /g.test(commit.subject));
       }
       return false;
     }
@@ -204,10 +187,6 @@
           // a reland.
           return true;
         }
-      } else if (isRietveldIssue(commit)) {
-        // For Rietveld issues the subject of the CL needs to start with
-        // 'Reland '.
-        return /^Reland /g.test(commit.subject);
       }
       return false;
     }
@@ -223,18 +202,6 @@
         }
         patt = new RegExp("(.|[\\r\\n])*" + levelsDeepStr + "Reviewed-on\\: https://skia-review\.googlesource\.com/([0-9]*)", "g");
         var tokens = patt.exec(commit.body);
-        if (tokens) {
-          return tokens[tokens.length - 1];
-        }
-      } else if (isRietveldIssue(commit)) {
-        var contents = commit.subject;
-        for (i=1; i<levelsDeep; i++) {
-          // Search in the body of a commit if the level is deeper than 1.
-          contents = commit.body;
-          levelsDeepStr += "\\> ";
-        }
-        patt = new RegExp("(.|[\\r\\n])*" + levelsDeepStr + "(Revert of |Reland of ).*https://codereview\.chromium\.org/([0-9]*)/ \\)");
-        var tokens = patt.exec(contents);
         if (tokens) {
           return tokens[tokens.length - 1];
         }

@@ -13,7 +13,6 @@ DEPS = [
   'depot_tools/bot_update',
   'depot_tools/gclient',
   'depot_tools/infra_paths',
-  'depot_tools/rietveld',
   'recipe_engine/context',
   'recipe_engine/path',
   'recipe_engine/platform',
@@ -193,16 +192,6 @@ def GenTests(api):
   yield (
       api.test('Infra-PerCommit_initialcheckout') +
       api.properties(buildername='Infra-PerCommit-Small',
-                     slavename='skiabot-linux-infra-001',
-                     path_config='kitchen')
-  )
-  yield (
-      api.test('Infra-PerCommit_try_rietveld') +
-      api.properties(buildername='Infra-PerCommit-Small',
-                     rietveld='https://codereview.chromium.org',
-                     issue=1234,
-                     patchset=1,
-                     revision=REF_HEAD,
                      slavename='skiabot-linux-infra-001',
                      path_config='kitchen')
   )

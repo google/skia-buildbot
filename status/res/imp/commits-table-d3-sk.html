@@ -211,7 +211,7 @@
             return commit.hash;
           });
         // Create a commit div for each commit with id "patch_storage + codereview_number".
-        // Eg: "rietveld12345" for Rietveld and "gerrit12345" for Gerrit.
+        // Eg: "gerrit12345" for Gerrit.
         // For posterity: Element selectors choke if an id starts with a number, thus the
         // patch_storage prefix helps with that.
         var newCommits = data
