@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d979ecc8_6480e8b3",
+        "filename": "golden/go/logextractor/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-21T11:03:19Z",
+      "side": 1,
+      "message": "Unused?",
+      "revId": "63051b799950ee921f02f4156367db1602f615b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67235caf_6e193993",
+        "filename": "golden/go/logextractor/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-21T11:03:19Z",
+      "side": 1,
+      "message": "Why not make this a flag?",
+      "revId": "63051b799950ee921f02f4156367db1602f615b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
