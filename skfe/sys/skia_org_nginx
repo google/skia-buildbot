@@ -14,6 +14,12 @@ send_timeout                5m;
 # Prevent nginx version from being leaked.
 server_tokens off;
 
+# Include the proxied host into the combined log format.
+log_format combined_proxy '$remote_addr - $remote_user [$time_local] '
+                          '"$request" $status $body_bytes_sent '
+                          '"$http_referer" "$http_user_agent"'
+                          '"$proxy_host"';
+
 #####   skia.org   ################################
 server {
     listen      443 default_server;
@@ -211,7 +217,7 @@ server {
 
     ssl on;
 
-    access_log /var/log/nginx/gold.access.log;
+    access_log /var/log/nginx/gold.access.log combined_proxy;
     error_log /var/log/nginx/gold.error.log error;
 
     # Enforce browser XSS protection
