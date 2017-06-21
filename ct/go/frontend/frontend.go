@@ -31,6 +31,8 @@ var (
 	UpdateLuaTasksWebapp                     string
 	CaptureSKPsTasksWebapp                   string
 	UpdateCaptureSKPsTasksWebapp             string
+	PixelDiffTasksWebapp                     string
+	UpdatePixelDiffTasksWebapp               string
 	ChromiumPerfTasksWebapp                  string
 	ChromiumAnalysisTasksWebapp              string
 	UpdateChromiumPerfTasksWebapp            string
@@ -43,7 +45,7 @@ var httpClient = httputils.NewTimeoutClient()
 
 // Initializes *Webapp URLs above and sets up authentication credentials for UpdateWebappTaskV2.
 func MustInit() {
-	webhook.MustInitRequestSaltFromMetadata()
+	//webhook.MustInitRequestSaltFromMetadata()
 	initUrls(WEBAPP_ROOT_V2)
 }
 
@@ -64,6 +66,8 @@ func initUrls(webapp_root string) {
 	UpdateLuaTasksWebapp = webapp_root + ctfeutil.UPDATE_LUA_SCRIPT_TASK_POST_URI
 	CaptureSKPsTasksWebapp = webapp_root + ctfeutil.CAPTURE_SKPS_URI
 	UpdateCaptureSKPsTasksWebapp = webapp_root + ctfeutil.UPDATE_CAPTURE_SKPS_TASK_POST_URI
+	PixelDiffTasksWebapp = webapp_root + ctfeutil.PIXEL_DIFF_URI
+	UpdatePixelDiffTasksWebapp = webapp_root + ctfeutil.UPDATE_PIXEL_DIFF_TASK_POST_URI
 	ChromiumPerfTasksWebapp = webapp_root + ctfeutil.CHROMIUM_PERF_URI
 	ChromiumAnalysisTasksWebapp = webapp_root + ctfeutil.CHROMIUM_ANALYSIS_URI
 	UpdateChromiumPerfTasksWebapp = webapp_root + ctfeutil.UPDATE_CHROMIUM_PERF_TASK_POST_URI
