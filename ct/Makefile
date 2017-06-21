@@ -60,6 +60,10 @@ run_lua_on_workers:
 capture_skps_on_workers:
 	go install -v ./go/master_scripts/capture_skps_on_workers/
 
+.PHONY: pixel_diff_on_workers
+pixel_diff_on_workers:
+	go install -v ./go/master_scripts/pixel_diff_on_workers/
+
 .PHONY: run_chromium_perf_on_workers
 run_chromium_perf_on_workers:
 	go install -v ./go/master_scripts/run_chromium_perf_on_workers/
@@ -88,6 +92,10 @@ run_lua:
 .PHONY: capture_skps
 capture_skps:
 	go install -v ./go/worker_scripts/capture_skps/
+
+.PHONY: pixel_diff
+pixel_diff:
+	go install -v ./go/worker_scripts/pixel_diff/
 
 .PHONY: capture_skps_from_pdfs
 capture_skps_from_pdfs:
@@ -118,12 +126,12 @@ test:
 master_scripts: build_chromium \
 	create_pagesets_on_workers capture_archives_on_workers \
 	run_lua_on_workers capture_skps_on_workers \
-	run_chromium_perf_on_workers poller \
+        pixel_diff_on_workers run_chromium_perf_on_workers poller \
         run_chromium_analysis_on_workers
 
 .PHONY: worker_scripts
 worker_scripts: create_pagesets capture_archives run_lua capture_skps \
-                capture_skps_from_pdfs run_chromium_perf \
+                pixel_diff capture_skps_from_pdfs run_chromium_perf \
                 run_chromium_analysis build_repo
 
 .PHONY: all
