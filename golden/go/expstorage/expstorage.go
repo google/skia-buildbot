@@ -8,9 +8,9 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-// Events emmited by this packacke.
+// Events emitted by this package.
 const (
-	// Event emitted when expecations change.
+	// Event emitted when expectations change.
 	// Callback argument: []string with the names of changed tests.
 	EV_EXPSTORAGE_CHANGED = "expstorage:changed"
 )
@@ -127,7 +127,7 @@ type ExpectationsStore interface {
 	// to remove.
 	RemoveChange(changes map[string][]string) error
 
-	// QueryLog allows to paginate through the changes in the expecations.
+	// QueryLog allows to paginate through the changes in the expectations.
 	// If details is true the result will include a list of triage operations
 	// that were part a change.
 	QueryLog(offset, size int, details bool) ([]*TriageLogEntry, int, error)
@@ -138,11 +138,11 @@ type ExpectationsStore interface {
 	// undone.
 	UndoChange(changeID int, userID string) (map[string]types.TestClassification, error)
 
-	// CanonicalTraceIDs returns the cannonical trace IDs for the given list
+	// CanonicalTraceIDs returns the canonical trace IDs for the given list
 	// of test names.
 	CanonicalTraceIDs(testNames []string) (map[string]string, error)
 
-	// CanonicalTraceIDs sets the cannonical trace IDs for the mapping of
+	// CanonicalTraceIDs sets the canonical trace IDs for the mapping of
 	// test names to trace IDs.
 	SetCanonicalTraceIDs(traceIDs map[string]string) error
 }
@@ -175,7 +175,7 @@ type MemExpectationsStore struct {
 	mutex sync.Mutex
 }
 
-// New instance of memory backed expecation storage.
+// New instance of memory backed expectation storage.
 func NewMemExpectationsStore(eventBus *eventbus.EventBus) ExpectationsStore {
 	return &MemExpectationsStore{
 		expectations: NewExpectations(),

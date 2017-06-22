@@ -3,16 +3,25 @@ package search
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"testing"
 
+	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
 
 	assert "github.com/stretchr/testify/require"
+)
+
+const (
+	// TEST_DATA_DIR_PARSE is the directory where test data for the parse
+	// function are downloaded.
+	TEST_DATA_DIR_PARSE = "testdata_parse"
 )
 
 func TestParseCTQuery(t *testing.T) {
@@ -61,6 +70,36 @@ func TestParseQuery(t *testing.T) {
 	checkParsedQuery(t, true, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&issue=2370153003&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true")
 	checkParsedQuery(t, true, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true")
 	checkParsedQuery(t, false, "fdiffmax=abc&fref=false&frgbamax=-1&head=true&include=false&limit=50&")
+}
+
+func TestParseQueryLarge(t *testing.T) {
+	testutils.LargeTest(t)
+
+	// Reuse the paths from the SearchAPI benchmarks.
+	cloudQueriesPath := TEST_STORAGE_DIR_SEARCH_API + "/" + QUERIES_FNAME_SEARCH_API + ".gz"
+	localQueriesPath := TEST_DATA_DIR_PARSE + "/" + QUERIES_FNAME_SEARCH_API
+	defer testutils.RemoveAll(t, TEST_DATA_DIR_PARSE)
+
+	// Download the list of queries.
+	assert.NoError(t, gcs.DownloadTestDataFile(t, gcs.TEST_DATA_BUCKET, cloudQueriesPath, localQueriesPath))
+
+	// Load the list of of live queries.
+	queries, err := fileutil.ReadLines(localQueriesPath)
+	assert.NoError(t, err)
+
+	q := &Query{}
+	wrongQueries := 0
+	for _, qStr := range queries {
+		err := clearParseQuery(q, qStr)
+		if err != nil {
+			wrongQueries++
+		}
+	}
+
+	// Accept as long as 10% of all queries are wrong.
+	errFraction := float64(wrongQueries) / float64(len(queries))
+	fmt.Printf("\n\nWrong Queries: %d / %d\n", wrongQueries, len(queries))
+	assert.True(t, errFraction < 0.1, fmt.Sprintf("Fraction of wrong queries is too high: %f > %f", errFraction, 0.1))
 }
 
 func checkParsedQuery(t *testing.T, isCorrect bool, qStr string) {
