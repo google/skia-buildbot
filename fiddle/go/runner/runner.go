@@ -294,5 +294,9 @@ func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir st
 		sklog.Errorf("Received erroneous output: %q", output.String())
 		return nil, fmt.Errorf("Failed to decode results from run: %s", err)
 	}
+	if res.Execute.Errors != "" {
+		runFailures.Inc(1)
+		sklog.Errorf("fiddle_run has runtime errors %#v: %s", *runCmd, res.Execute.Errors)
+	}
 	return res, nil
 }

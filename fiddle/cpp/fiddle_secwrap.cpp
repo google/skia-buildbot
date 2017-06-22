@@ -56,7 +56,6 @@ static bool install_syscall_filter() {
 
         ALLOW_SYSCALL(mremap),
         ALLOW_SYSCALL(statfs),
-        ALLOW_SYSCALL(readlink),
         ALLOW_SYSCALL(getpid),
 
         ALLOW_SYSCALL(ftruncate),
@@ -72,6 +71,7 @@ static bool install_syscall_filter() {
         TRACE_SYSCALL(execve),
         TRACE_SYSCALL(open),
         TRACE_SYSCALL(openat),
+
         // Uncomment the following when trying to figure out which new
         // syscall's are being made:
 
@@ -317,7 +317,12 @@ int do_trace(pid_t child, char *allowed_exec) {
                 // this should never happen, but if we're in TRACE_ALL
                 // mode for debugging, this lets me print out what system
                 // calls are happening unexpectedly.
-                cout << "WEIRD SYSTEM CALL: " << syscall << endl;
+                if (syscall != 318) {
+                    cout << "WEIRD SYSTEM CALL: " << syscall << endl;
+                    char *name = read_string(child, regs.rdi);
+                    cout << "Filename: " << name << endl;
+                    free(name);
+                }
             }
         }
         ptrace(PTRACE_CONT, child, 0, 0);
