@@ -278,7 +278,8 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 	}
 
 	// We are guaranteed to have two images at this point.
-	diffRec, diffImg := diff.CalcDiff(imgs[0], imgs[1])
+	differ := diff.NewDiffer(diff.CalcDiff)
+	diffRec, diffImg := differ.Diff(imgs[0], imgs[1])
 
 	// encode the result image and save it to disk. If encoding causes an error
 	// we return an error.
