@@ -37,7 +37,7 @@ var (
 		LARGE_TEST:  true,
 	}
 
-	TIMEOUT_SMALL  = "2s"
+	TIMEOUT_SMALL  = "4s"
 	TIMEOUT_MEDIUM = "15s"
 	TIMEOUT_LARGE  = "10m"
 
