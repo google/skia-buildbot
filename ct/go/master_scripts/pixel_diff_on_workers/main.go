@@ -4,13 +4,14 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 	"time"
 
-	"go.skia.org/infra/ct/go/ctfe/capture_skps"
+	"go.skia.org/infra/ct/go/ctfe/pixel_diff"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
@@ -90,9 +91,14 @@ func sendEmail(recipients []string) {
 
 // TODO(rmistry): Change this once ctfe/pixel_diff is created.
 func updateWebappTask() {
-	vars := capture_skps.UpdateVars{}
+	vars := pixel_diff.UpdateVars{}
 	vars.Id = *gaeTaskID
 	vars.SetCompleted(taskCompletedSuccessfully)
+	swarmingLogsLink := fmt.Sprintf(util.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, *runID)
+	// TODO(rmistry): After skbug.com/6779 is implemented and we have a URL for diffs, replace the
+	//                below placeholder link.
+	vars.Results = sql.NullString{String: swarmingLogsLink, Valid: true}
+	vars.SwarmingLogs = sql.NullString{String: swarmingLogsLink, Valid: true}
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
 
@@ -107,7 +113,7 @@ func main() {
 		sklog.Error("At least one email address must be specified")
 		return
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&capture_skps.UpdateVars{}, *gaeTaskID))
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&pixel_diff.UpdateVars{}, *gaeTaskID))
 	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Pixel diff", *runID, *description))
 
 	// Ensure webapp is updated and completion email is sent even if task
