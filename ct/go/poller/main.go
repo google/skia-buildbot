@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
+	"go.skia.org/infra/ct/go/ctfe/pixel_diff"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
@@ -63,6 +64,7 @@ const (
 	RECREATE_WEBPAGE_ARCHIVES
 	CHROMIUM_ANALYSIS
 	POLL
+	PIXEL_DIFF
 )
 
 func (t TaskType) String() string {
@@ -87,6 +89,8 @@ func (t TaskType) String() string {
 		return "CHROMIUM_ANALYSIS"
 	case POLL:
 		return "POLL"
+	case PIXEL_DIFF:
+		return "PIXEL_DIFF"
 	default:
 		return "(unknown)"
 	}
@@ -223,6 +227,45 @@ func (task *ChromiumPerfTask) Execute() error {
 			"--repeat_benchmark=" + strconv.FormatInt(task.RepeatRuns, 10),
 			"--run_in_parallel=" + strconv.FormatBool(task.RunInParallel),
 			"--target_platform=" + task.Platform,
+			"--run_id=" + runId,
+			"--logtostderr",
+			"--log_id=" + runId,
+			fmt.Sprintf("--local=%t", *master_common.Local),
+		},
+	})
+}
+
+// Define frontend.PixelDiffDBTask here so we can add methods.
+type PixelDiffTask struct {
+	pixel_diff.DBTask
+}
+
+func (task *PixelDiffTask) Execute() error {
+	runId := runId(task)
+	for fileSuffix, patch := range map[string]string{
+		".chromium.patch":      task.ChromiumPatch,
+		".skia.patch":          task.SkiaPatch,
+		".custom_webpages.csv": task.CustomWebpages,
+	} {
+		// Add an extra newline at the end because git sometimes rejects patches due to
+		// missing newlines.
+		patch = patch + "\n"
+		patchPath := filepath.Join(os.TempDir(), runId+fileSuffix)
+		if err := ioutil.WriteFile(patchPath, []byte(patch), 0666); err != nil {
+			return err
+		}
+		defer skutil.Remove(patchPath)
+	}
+	return exec.Run(&exec.Command{
+		Name: "pixel_diff_on_workers",
+		Args: []string{
+			"--emails=" + task.Username,
+			"--description=" + task.Description,
+			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
+			"--pageset_type=" + task.PageSets,
+			"--benchmark_extra_args=" + task.BenchmarkArgs,
+			"--browser_extra_args_nopatch=" + task.BrowserArgsNoPatch,
+			"--browser_extra_args_withpatch=" + task.BrowserArgsWithPatch,
 			"--run_id=" + runId,
 			"--logtostderr",
 			"--log_id=" + runId,
@@ -370,6 +413,8 @@ func asPollerTask(otherTask task_common.Task) Task {
 	switch t := otherTask.(type) {
 	case *chromium_perf.DBTask:
 		return &ChromiumPerfTask{DBTask: *t}
+	case *pixel_diff.DBTask:
+		return &PixelDiffTask{DBTask: *t}
 	case *capture_skps.DBTask:
 		return &CaptureSkpsTask{DBTask: *t}
 	case *lua_scripts.DBTask:
