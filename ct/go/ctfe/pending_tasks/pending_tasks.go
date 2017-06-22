@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
+	"go.skia.org/infra/ct/go/ctfe/pixel_diff"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/ctfe/task_types"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
@@ -76,6 +77,7 @@ func GetOldestPendingTask() (task_common.Task, error) {
 type oldestPendingTask struct {
 	ChromiumAnalysis        *chromium_analysis.DBTask
 	ChromiumPerf            *chromium_perf.DBTask
+	PixelDiff               *pixel_diff.DBTask
 	CaptureSkps             *capture_skps.DBTask
 	LuaScript               *lua_scripts.DBTask
 	ChromiumBuild           *chromium_builds.DBTask
@@ -95,6 +97,8 @@ func EncodeTask(taskJson io.Writer, oldestTask task_common.Task) error {
 		oldestTaskJsonRepr.ChromiumAnalysis = task
 	case *chromium_perf.DBTask:
 		oldestTaskJsonRepr.ChromiumPerf = task
+	case *pixel_diff.DBTask:
+		oldestTaskJsonRepr.PixelDiff = task
 	case *capture_skps.DBTask:
 		oldestTaskJsonRepr.CaptureSkps = task
 	case *lua_scripts.DBTask:
@@ -124,6 +128,8 @@ func DecodeTask(taskJson io.Reader) (task_common.Task, error) {
 		return pending.ChromiumAnalysis, nil
 	case pending.ChromiumPerf != nil:
 		return pending.ChromiumPerf, nil
+	case pending.PixelDiff != nil:
+		return pending.PixelDiff, nil
 	case pending.CaptureSkps != nil:
 		return pending.CaptureSkps, nil
 	case pending.LuaScript != nil:
