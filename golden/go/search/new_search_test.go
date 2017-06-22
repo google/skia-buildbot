@@ -46,6 +46,43 @@ const (
 	STOP_AFTER_N_EMPTY_QUERIES = -1
 )
 
+func TestGetDrawableTraces(t *testing.T) {
+	localTilePath := TEST_DATA_DIR_SEARCH_API + "/" + "lumafilter_skia.sample"
+
+	// Load the storage layer.
+	storages, _, ixr := getStoragesAndIndexerFromTile(t, localTilePath)
+	fmt.Println("Tile loaded.")
+	tile := ixr.GetIndex().GetTile(true)
+
+	api, err := NewSearchAPI(storages, ixr)
+	assert.NoError(t, err)
+
+	qStr := "fdiffmax=-1&fref=false&frgbamax=255&frgbamin=0&head=true&include=false&limit=-1&match=gamma_correct&match=name&metric=combined&neg=false&offset=0&pos=false&query=source_type%3Dgm&sort=desc&unt=true"
+	q := &Query{}
+	assert.NoError(t, clearParseQuery(q, qStr))
+
+	resp, err := api.Search(q)
+	assert.NoError(t, err)
+
+	// Check the traces.
+	for _, digest := range resp.Digests {
+		for _, oneTrace := range digest.Traces.Traces {
+			dataIdx := 0
+			vals := tile.Traces[oneTrace.ID].(*types.GoldenTrace).Values
+			for idx, val := range vals {
+				if val != types.MISSING_DIGEST {
+					d := oneTrace.Data[dataIdx]
+					dataIdx++
+					assert.Equal(t, idx, d.X)
+					if d.S != MAX_REF_DIGESTS-1 {
+						assert.True(t, val == (digest.Traces.Digests[d.S].Digest))
+					}
+				}
+			}
+		}
+	}
+}
+
 func BenchmarkNewSearchAPI(b *testing.B) {
 	cloudTilePath := TEST_STORAGE_DIR_SEARCH_API + "/" + SAMPLED_TILE_FNAME + ".gz"
 	cloudQueriesPath := TEST_STORAGE_DIR_SEARCH_API + "/" + QUERIES_FNAME_SEARCH_API + ".gz"

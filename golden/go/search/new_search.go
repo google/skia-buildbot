@@ -19,7 +19,7 @@ const (
 	// MAX_REF_DIGESTS is the maximum number of digests we want to show
 	// in a dotted line of traces. We assume that showing more digests yields
 	// no additional information, because the trace is likely to be flaky.
-	MAX_REF_DIGESTS = 8
+	MAX_REF_DIGESTS = 9
 )
 
 // TODO (stephana): Remove the Search(...) function in
@@ -351,6 +351,8 @@ func (s *SearchAPI) getDrawableTraces(test, digest string, last int, exp *expsto
 							Status: exp.Classification(test, d).String(),
 						})
 						refDigestStatus = len(digestStatuses) - 1
+					} else {
+						refDigestStatus = MAX_REF_DIGESTS - 1
 					}
 				}
 			}
@@ -361,6 +363,9 @@ func (s *SearchAPI) getDrawableTraces(test, digest string, last int, exp *expsto
 				S: refDigestStatus,
 			})
 		}
+
+		// Sort the points to be in order.
+		sort.Sort(PointSlice(tr.Data))
 	}
 
 	return &Traces{
