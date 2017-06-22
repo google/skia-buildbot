@@ -153,7 +153,10 @@ const (
 	PIXEL_DIFF_ISOLATE             = "pixel_diff.isolate"
 	BUILD_REPO_ISOLATE             = "build_repo.isolate"
 	// Swarming links and params.
-	SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE   = "https://chrome-swarming.appspot.com/tasklist?l=500&c=name&c=created_ts&c=bot&c=duration&c=state&f=runid:%s"
+	// TODO(rmistry): The below link contains "st=1262304000000" which is from 2010. This is done so
+	// that swarming will not use today's timestamp as default. See if there is a better way to handle
+	// this.
+	SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE   = "https://chrome-swarming.appspot.com/tasklist?l=500&c=name&c=created_ts&c=bot&c=duration&c=state&f=runid:%s&st=1262304000000"
 	SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE = SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE + "&f=name:%s"
 	// Priorities
 	USER_TASKS_PRIORITY  = swarming.RECOMMENDED_PRIORITY
