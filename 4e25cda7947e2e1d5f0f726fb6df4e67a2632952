@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "24c117d1_e76b11a0",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-22T23:26:09Z",
+      "side": 1,
+      "message": "Seems to be unused.",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 98,
+        "endChar": 0
+      },
+      "revId": "4e25cda7947e2e1d5f0f726fb6df4e67a2632952",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
