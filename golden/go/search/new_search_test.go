@@ -46,6 +46,77 @@ const (
 	STOP_AFTER_N_EMPTY_QUERIES = -1
 )
 
+func TestGetDrawableTraces(t *testing.T) {
+	localTilePath := TEST_DATA_DIR_SEARCH_API + "/" + "lumafilter_skia.sample"
+
+	// Load the storage layer.
+	storages, _, ixr := getStoragesAndIndexerFromTile(t, localTilePath)
+	fmt.Println("Tile loaded.")
+	tile := ixr.GetIndex().GetTile(true)
+
+	api, err := NewSearchAPI(storages, ixr)
+	assert.NoError(t, err)
+
+	qStr := "fdiffmax=-1&fref=false&frgbamax=255&frgbamin=0&head=true&include=false&limit=2000000&match=gamma_correct&match=name&metric=combined&neg=false&offset=0&pos=false&query=source_type%3Dgm&sort=desc&unt=true"
+	q := &Query{}
+	assert.NoError(t, clearParseQuery(q, qStr))
+
+	resp, err := api.Search(q)
+	assert.NoError(t, err)
+
+	// Check the consistency of the traces.
+	for _, digest := range resp.Digests {
+		for _, oneTrace := range digest.Traces.Traces {
+			dataIdx := 0
+			vals := tile.Traces[oneTrace.ID].(*types.GoldenTrace).Values
+			for idx, val := range vals {
+				if val != types.MISSING_DIGEST {
+					d := oneTrace.Data[dataIdx]
+					dataIdx++
+					assert.Equal(t, idx, d.X)
+					if d.S != MAX_REF_DIGESTS-1 {
+						assert.True(t, val == (digest.Traces.Digests[d.S].Digest))
+					}
+				}
+			}
+		}
+	}
+
+	// Compare to the old Search results.
+	q.Limit = 2000000
+	oldResp, err := Search(q, storages, ixr.GetIndex())
+	assert.NoError(t, err)
+
+	fmt.Printf("DigestCount: %d : %d\n", len(resp.Digests), len(oldResp.Digests))
+
+	for _, newDigest := range resp.Digests {
+		// Find the same digest in the result from the old search.
+		found := false
+		for _, oldDigest := range oldResp.Digests {
+			if (oldDigest.Digest == newDigest.Digest) && (oldDigest.Test == newDigest.Test) {
+				found = true
+				assert.Equal(t, oldDigest.Status, newDigest.Status)
+
+				// Not all digests in the new response have parameters and traces.
+				if newDigest.ParamSet != nil {
+					assert.Equal(t, len(oldDigest.ParamSet), len(newDigest.ParamSet))
+
+					// Compare the parameters.
+					for k, vals := range oldDigest.ParamSet {
+						sort.Strings(vals)
+						foundVals := newDigest.ParamSet[k]
+						sort.Strings(foundVals)
+						assert.Equal(t, vals, foundVals)
+					}
+					assert.Equal(t, oldDigest.Traces, newDigest.Traces)
+				}
+				break
+			}
+		}
+		assert.True(t, found, fmt.Sprintf("Could not find %s in new result.", newDigest.Digest))
+	}
+}
+
 func BenchmarkNewSearchAPI(b *testing.B) {
 	cloudTilePath := TEST_STORAGE_DIR_SEARCH_API + "/" + SAMPLED_TILE_FNAME + ".gz"
 	cloudQueriesPath := TEST_STORAGE_DIR_SEARCH_API + "/" + QUERIES_FNAME_SEARCH_API + ".gz"
@@ -76,7 +147,7 @@ func BenchmarkNewSearchAPI(b *testing.B) {
 	nonEmpty := 0
 	total := 0
 	for _, qStr := range qStrings {
-		nonEmpty += checkQuery(b, api, idx, qStr, exp, &buf)
+		nonEmpty += checkQuery(b, api, storages, idx, qStr, exp, &buf)
 		total++
 		fmt.Printf("Queries (non-empty / total): %d / %d\n", nonEmpty, total)
 
@@ -86,7 +157,7 @@ func BenchmarkNewSearchAPI(b *testing.B) {
 	}
 }
 
-func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qStr string, exp *expstorage.Expectations, buf *bytes.Buffer) int {
+func checkQuery(t assert.TestingT, api *SearchAPI, storages *storage.Storage, idx *indexer.SearchIndex, qStr string, exp *expstorage.Expectations, buf *bytes.Buffer) int {
 	q := &Query{}
 
 	// We ignore incorrect queries. They are tested somewhere else.
@@ -96,7 +167,7 @@ func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qSt
 	}
 
 	// Ignore queries with blames since they are ephemeral.
-	if q.BlameGroupID != "" {
+	if (q.BlameGroupID != "") || (q.Issue != "") {
 		return 0
 	}
 
