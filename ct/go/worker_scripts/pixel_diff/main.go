@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -24,6 +23,10 @@ import (
 const (
 	// The number of goroutines that will run in parallel to run pixel diff.
 	WORKER_POOL_SIZE = 10
+
+	// Hacky way to detect when webpages are missing.
+	// See https://bugs.chromium.org/p/skia/issues/detail?id=6778&desc=2#c2
+	SIZE_OF_IMAGES_WITH_404 = 7963
 )
 
 var (
@@ -144,7 +147,7 @@ func pixelDiff() error {
 	skutil.RemoveAll(localOutputDirNoPatch)
 	skutil.MkdirAll(localOutputDirNoPatch, 0700)
 	defer skutil.RemoveAll(localOutputDirNoPatch)
-	remoteDirNoPatch := filepath.Join(util.BenchmarkRunsDir, runIDNoPatch)
+	remoteDirNoPatch := filepath.Join(util.BenchmarkRunsDir, *runID, "nopatch")
 
 	// Establish withpatch output paths.
 	runIDWithPatch := fmt.Sprintf("%s-withpatch", *runID)
@@ -152,7 +155,7 @@ func pixelDiff() error {
 	skutil.RemoveAll(localOutputDirWithPatch)
 	skutil.MkdirAll(localOutputDirWithPatch, 0700)
 	defer skutil.RemoveAll(localOutputDirWithPatch)
-	remoteDirWithPatch := filepath.Join(util.BenchmarkRunsDir, runIDWithPatch)
+	remoteDirWithPatch := filepath.Join(util.BenchmarkRunsDir, *runID, "withpatch")
 
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
@@ -208,15 +211,22 @@ func pixelDiff() error {
 	// Wait for all spawned goroutines to complete.
 	wg.Wait()
 
-	// Check to see if there is anything in the output dirs.
 	outputDirs := []string{localOutputDirNoPatch, localOutputDirWithPatch}
 	for _, d := range outputDirs {
-		empty, err := skutil.IsDirEmpty(d)
+		files, err := ioutil.ReadDir(d)
 		if err != nil {
 			return fmt.Errorf("Could not read dir %s: %s", d, err)
 		}
-		if empty {
+		if len(files) == 0 {
+			// Throw an error if we were unable to capture any screenshots.
 			return fmt.Errorf("Could not capture any screenshots in %s", d)
+		}
+		for _, f := range files {
+			if f.Size() == SIZE_OF_IMAGES_WITH_404 {
+				path := filepath.Join(d, f.Name())
+				sklog.Warningf("%s is an image with '404 Not Found'. Deleting it.", path)
+				skutil.Remove(path)
+			}
 		}
 	}
 
@@ -237,8 +247,7 @@ func runScreenshotBenchmark(outputPath, chromiumBinary, pagesetName, pathToPages
 		filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
 		util.BenchmarksToTelemetryName[util.BENCHMARK_SCREENSHOT],
 		"--also-run-disabled-tests",
-		"--pageset-repeat=1", // Only need one run for Pixel diffs.
-		"--png-outdir=" + path.Join(outputPath, strings.TrimSuffix(pagesetName, filepath.Ext(pagesetName))),
+		"--png-outdir=" + outputPath,
 		"--extra-browser-args=" + util.DEFAULT_BROWSER_ARGS,
 		"--user-agent=" + decodedPageset.UserAgent,
 		"--urls-list=" + decodedPageset.UrlsList,
