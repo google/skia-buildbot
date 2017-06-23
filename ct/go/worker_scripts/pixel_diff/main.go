@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -43,7 +42,7 @@ func pixelDiff() error {
 	defer common.LogPanic()
 	worker_common.Init()
 	if !*worker_common.Local {
-		defer util.CleanTmpDir()
+		//defer util.CleanTmpDir()
 	}
 	defer util.TimeTrack(time.Now(), "Pixel diffing")
 	defer sklog.Flush()
@@ -144,7 +143,7 @@ func pixelDiff() error {
 	skutil.RemoveAll(localOutputDirNoPatch)
 	skutil.MkdirAll(localOutputDirNoPatch, 0700)
 	defer skutil.RemoveAll(localOutputDirNoPatch)
-	remoteDirNoPatch := filepath.Join(util.BenchmarkRunsDir, runIDNoPatch)
+	remoteDirNoPatch := filepath.Join(util.BenchmarkRunsDir, *runID, "nopatch")
 
 	// Establish withpatch output paths.
 	runIDWithPatch := fmt.Sprintf("%s-withpatch", *runID)
@@ -152,7 +151,7 @@ func pixelDiff() error {
 	skutil.RemoveAll(localOutputDirWithPatch)
 	skutil.MkdirAll(localOutputDirWithPatch, 0700)
 	defer skutil.RemoveAll(localOutputDirWithPatch)
-	remoteDirWithPatch := filepath.Join(util.BenchmarkRunsDir, runIDWithPatch)
+	remoteDirWithPatch := filepath.Join(util.BenchmarkRunsDir, *runID, "withpatch")
 
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
@@ -238,7 +237,7 @@ func runScreenshotBenchmark(outputPath, chromiumBinary, pagesetName, pathToPages
 		util.BenchmarksToTelemetryName[util.BENCHMARK_SCREENSHOT],
 		"--also-run-disabled-tests",
 		"--pageset-repeat=1", // Only need one run for Pixel diffs.
-		"--png-outdir=" + path.Join(outputPath, strings.TrimSuffix(pagesetName, filepath.Ext(pagesetName))),
+		"--png-outdir=" + outputPath,
 		"--extra-browser-args=" + util.DEFAULT_BROWSER_ARGS,
 		"--user-agent=" + decodedPageset.UserAgent,
 		"--urls-list=" + decodedPageset.UrlsList,
