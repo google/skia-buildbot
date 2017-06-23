@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/ctfe/pending_tasks"
+	"go.skia.org/infra/ct/go/ctfe/pixel_diff"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/ctfe/task_types"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
@@ -62,6 +63,7 @@ func reloadTemplates() {
 	}
 	chromium_analysis.ReloadTemplates(*resourcesDir)
 	chromium_perf.ReloadTemplates(*resourcesDir)
+	pixel_diff.ReloadTemplates(*resourcesDir)
 	capture_skps.ReloadTemplates(*resourcesDir)
 	lua_scripts.ReloadTemplates(*resourcesDir)
 	chromium_builds.ReloadTemplates(*resourcesDir)
@@ -97,6 +99,7 @@ func runServer(serverURL string) {
 
 	chromium_analysis.AddHandlers(r)
 	chromium_perf.AddHandlers(r) // Note: chromium_perf adds a handler for "/".
+	pixel_diff.AddHandlers(r)
 	capture_skps.AddHandlers(r)
 	lua_scripts.AddHandlers(r)
 	chromium_builds.AddHandlers(r)
