@@ -89,7 +89,6 @@ func sendEmail(recipients []string) {
 	}
 }
 
-// TODO(rmistry): Change this once ctfe/pixel_diff is created.
 func updateWebappTask() {
 	vars := pixel_diff.UpdateVars{}
 	vars.Id = *gaeTaskID

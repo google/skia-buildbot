@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -24,6 +23,10 @@ import (
 const (
 	// The number of goroutines that will run in parallel to run pixel diff.
 	WORKER_POOL_SIZE = 10
+
+	// Hacky way to detect when webpages are missing.
+	// See https://bugs.chromium.org/p/skia/issues/detail?id=6778&desc=2#c2
+	SIZE_OF_IMAGES_WITH_404 = 7963
 )
 
 var (
@@ -43,7 +46,7 @@ func pixelDiff() error {
 	defer common.LogPanic()
 	worker_common.Init()
 	if !*worker_common.Local {
-		defer util.CleanTmpDir()
+		//defer util.CleanTmpDir()
 	}
 	defer util.TimeTrack(time.Now(), "Pixel diffing")
 	defer sklog.Flush()
@@ -59,16 +62,16 @@ func pixelDiff() error {
 		return errors.New("Must specify --run_id")
 	}
 
-	// Reset the local chromium checkout.
-	if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
-		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
-	}
-	// Parse out the Chromium and Skia hashes.
-	chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuildNoPatch)
-	// Sync the local chromium checkout.
-	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{"src": chromiumHash}, []string{}); err != nil {
-		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
-	}
+	//// Reset the local chromium checkout.
+	//if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
+	//	return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
+	//}
+	//// Parse out the Chromium and Skia hashes.
+	//chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuildNoPatch)
+	//// Sync the local chromium checkout.
+	//if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{"src": chromiumHash}, []string{}); err != nil {
+	//	return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
+	//}
 
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)
@@ -97,19 +100,19 @@ func pixelDiff() error {
 		customWebpages = customWebpages[startIndex:endIndex]
 	}
 
-	chromiumBuilds := []string{*chromiumBuildNoPatch}
-	// No point downloading the same build twice. Download only if builds are different.
-	if *chromiumBuildNoPatch != *chromiumBuildWithPatch {
-		chromiumBuilds = append(chromiumBuilds, *chromiumBuildWithPatch)
-	}
-	// Download the specified chromium builds.
-	for _, chromiumBuild := range chromiumBuilds {
-		if err := gs.DownloadChromiumBuild(chromiumBuild); err != nil {
-			return fmt.Errorf("Could not download chromium build %s: %s", chromiumBuild, err)
-		}
-		//Delete the chromium build to save space when we are done.
-		defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, chromiumBuild))
-	}
+	//chromiumBuilds := []string{*chromiumBuildNoPatch}
+	//// No point downloading the same build twice. Download only if builds are different.
+	//if *chromiumBuildNoPatch != *chromiumBuildWithPatch {
+	//	chromiumBuilds = append(chromiumBuilds, *chromiumBuildWithPatch)
+	//}
+	//// Download the specified chromium builds.
+	//for _, chromiumBuild := range chromiumBuilds {
+	//	if err := gs.DownloadChromiumBuild(chromiumBuild); err != nil {
+	//		return fmt.Errorf("Could not download chromium build %s: %s", chromiumBuild, err)
+	//	}
+	//	//Delete the chromium build to save space when we are done.
+	//	defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, chromiumBuild))
+	//}
 
 	chromiumBinaryNoPatch := filepath.Join(util.ChromiumBuildsDir, *chromiumBuildNoPatch, util.BINARY_CHROME)
 	chromiumBinaryWithPatch := filepath.Join(util.ChromiumBuildsDir, *chromiumBuildWithPatch, util.BINARY_CHROME)
@@ -143,16 +146,16 @@ func pixelDiff() error {
 	localOutputDirNoPatch := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDNoPatch)
 	skutil.RemoveAll(localOutputDirNoPatch)
 	skutil.MkdirAll(localOutputDirNoPatch, 0700)
-	defer skutil.RemoveAll(localOutputDirNoPatch)
-	remoteDirNoPatch := filepath.Join(util.BenchmarkRunsDir, runIDNoPatch)
+	//defer skutil.RemoveAll(localOutputDirNoPatch)
+	remoteDirNoPatch := filepath.Join(util.BenchmarkRunsDir, *runID, "nopatch")
 
 	// Establish withpatch output paths.
 	runIDWithPatch := fmt.Sprintf("%s-withpatch", *runID)
 	localOutputDirWithPatch := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDWithPatch)
 	skutil.RemoveAll(localOutputDirWithPatch)
 	skutil.MkdirAll(localOutputDirWithPatch, 0700)
-	defer skutil.RemoveAll(localOutputDirWithPatch)
-	remoteDirWithPatch := filepath.Join(util.BenchmarkRunsDir, runIDWithPatch)
+	//defer skutil.RemoveAll(localOutputDirWithPatch)
+	remoteDirWithPatch := filepath.Join(util.BenchmarkRunsDir, *runID, "withpatch")
 
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
@@ -208,15 +211,22 @@ func pixelDiff() error {
 	// Wait for all spawned goroutines to complete.
 	wg.Wait()
 
-	// Check to see if there is anything in the output dirs.
 	outputDirs := []string{localOutputDirNoPatch, localOutputDirWithPatch}
 	for _, d := range outputDirs {
-		empty, err := skutil.IsDirEmpty(d)
+		files, err := ioutil.ReadDir(d)
 		if err != nil {
 			return fmt.Errorf("Could not read dir %s: %s", d, err)
 		}
-		if empty {
+		if len(files) == 0 {
+			// Throw an error if we were unable to capture any screenshots.
 			return fmt.Errorf("Could not capture any screenshots in %s", d)
+		}
+		for _, f := range files {
+			if f.Size() == SIZE_OF_IMAGES_WITH_404 {
+				path := filepath.Join(d, f.Name())
+				sklog.Warningf("%s is an image with '404 Not Found'. Deleting it.", path)
+				skutil.Remove(path)
+			}
 		}
 	}
 
@@ -237,8 +247,7 @@ func runScreenshotBenchmark(outputPath, chromiumBinary, pagesetName, pathToPages
 		filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
 		util.BenchmarksToTelemetryName[util.BENCHMARK_SCREENSHOT],
 		"--also-run-disabled-tests",
-		"--pageset-repeat=1", // Only need one run for Pixel diffs.
-		"--png-outdir=" + path.Join(outputPath, strings.TrimSuffix(pagesetName, filepath.Ext(pagesetName))),
+		"--png-outdir=" + outputPath,
 		"--extra-browser-args=" + util.DEFAULT_BROWSER_ARGS,
 		"--user-agent=" + decodedPageset.UserAgent,
 		"--urls-list=" + decodedPageset.UrlsList,
