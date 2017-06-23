@@ -46,6 +46,30 @@
       "revId": "4e25cda7947e2e1d5f0f726fb6df4e67a2632952",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a7000352_65f25bda",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-23T13:32:51Z",
+      "side": 1,
+      "message": "Metrics.",
+      "parentUuid": "5117c14d_bd37cade",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 98,
+        "endChar": 0
+      },
+      "revId": "4e25cda7947e2e1d5f0f726fb6df4e67a2632952",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
