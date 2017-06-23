@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"reflect"
 	"sort"
 	"sync"
 	"time"
@@ -68,6 +69,10 @@ type TaskCache interface {
 
 	// Update loads new tasks from the database.
 	Update() error
+
+	// UpdateAndReturnModified loads tasks from the database and returns any
+	// which were modified since the last Update.
+	UpdateAndReturnModified() ([]*Task, error)
 }
 
 type taskCache struct {
@@ -386,20 +391,35 @@ func (c *taskCache) reset() error {
 
 // See documentation for TaskCache interface.
 func (c *taskCache) Update() error {
+	_, err := c.UpdateAndReturnModified()
+	return err
+}
+
+// See documentation for TaskCache interface.
+func (c *taskCache) UpdateAndReturnModified() ([]*Task, error) {
 	newTasks, err := c.db.GetModifiedTasks(c.queryId)
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	if IsUnknownId(err) {
 		sklog.Warningf("Connection to db lost; re-initializing cache from scratch.")
+		oldTasks := c.tasks
 		if err := c.reset(); err != nil {
-			return err
+			return nil, err
 		}
-		return nil
+		// TODO(borenet): This is going to be slow. Is it worth it?
+		rv := []*Task{}
+		for id, newTask := range c.tasks {
+			oldTask, ok := oldTasks[id]
+			if !ok || !reflect.DeepEqual(oldTask, newTask) {
+				rv = append(rv, newTask)
+			}
+		}
+		return rv, nil
 	} else if err != nil {
-		return err
+		return nil, err
 	}
 	c.expireAndUpdate(newTasks)
-	return nil
+	return newTasks, nil
 }
 
 // NewTaskCache returns a local cache which provides more convenient views of
