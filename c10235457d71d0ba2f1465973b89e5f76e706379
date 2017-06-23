@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b016b6ec_c415ea33",
+        "filename": "golden/go/diff/diff.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-23T09:48:47Z",
+      "side": 0,
+      "message": "I think this should stay here, but be renamed, e.g. BasicPixelDiff or just PixelDiff.",
+      "revId": "c10235457d71d0ba2f1465973b89e5f76e706379",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

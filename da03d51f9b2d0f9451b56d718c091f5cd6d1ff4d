@@ -1,0 +1,157 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2bfffe62_62a03345",
+        "filename": "golden/go/diff/diff.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-23T09:48:47Z",
+      "side": 1,
+      "message": "If we make the diff function abstract, this needs to change to \n\nGet(priority int64, mainDigest string, rightDigests []string) (map[string]interface{}, error)\n\nThe \u0027interface{}\u0027 part of the first return value is then the first return value of your DiffFn implementation (see below) and your application has to make the type assertion.",
+      "revId": "da03d51f9b2d0f9451b56d718c091f5cd6d1ff4d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59d7e2ef_c77c3c3f",
+        "filename": "golden/go/diff/diff_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-23T09:48:47Z",
+      "side": 1,
+      "message": "Nit: There are exceptions, but usually I write test code where the test file name matches the filename of the code under test. i.e. \"diff_test.go\" tests only code in \"diff.go\", \"metrics_test.go\" tests code in \"metrics.go\" etc.",
+      "revId": "da03d51f9b2d0f9451b56d718c091f5cd6d1ff4d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48b466b8_1d0cf36d",
+        "filename": "golden/go/diff/differ.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-23T09:48:47Z",
+      "side": 1,
+      "message": "This should move to diff.go, no need to have a separate file. It\u0027s up to you but I would place it above the DiffStore interface, with a detailed description of what it does. \nYou can then refer to that description from places that implement it.\n \nI suggested a \"Differ\" interface, but since it\u0027s only one function I would start out with a function type. i.e.\n\n   type DiffFn func(*image.NRGBA, *image.NRGBA) (interface{}, *image.NRGBA)\n\nHere is the rationale for this. The abstract Image type in Go is fine, but hides important details for diffing ((non)premultiplied alpha channel etc.) also it\u0027s kind of slow to use dynamic function dispatch in inner loops.\nWe settled early on that we deal only with the concrete *image.NRGBA type. There was a specific reason why NRGBA, that I forgot, but I\u0027ll find out. \n\nWe have utility functions in diff.go that will convert to NRGBA. Since you control everything end-to-end here it\u0027s important that you encode the PNGs that come out of CT as NRGBA. \n\nThe above function signature also implies that there are no critical errors. It assumes two valid (non-nil) images that contain at least one pixel. Given that input you can produce a metric and an image.\n\nNote: The DiffFn interface will actually not be used in this package, but in our DiffStore implementations, but it continues with our convention that we define interfaces and Utility functions in he diff package.",
+      "revId": "da03d51f9b2d0f9451b56d718c091f5cd6d1ff4d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c2fe47a4_dd73d927",
+        "filename": "golden/go/diff/differ_impl.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-23T09:48:47Z",
+      "side": 1,
+      "message": "This is not necessary, since it\u0027s implemented by a client of the package, i.e. the DefaultDiffFn below.",
+      "revId": "da03d51f9b2d0f9451b56d718c091f5cd6d1ff4d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d499f2c_4e593d5e",
+        "filename": "golden/go/diff/metrics.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-23T09:48:47Z",
+      "side": 1,
+      "message": "This is not necessary since a DiffFn implementation will return an abstract diff metric and an NRGBA image.",
+      "revId": "da03d51f9b2d0f9451b56d718c091f5cd6d1ff4d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17d705a1_ef7904f3",
+        "filename": "golden/go/diff/metrics.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-23T09:48:47Z",
+      "side": 1,
+      "message": "This should become \"DefaultDiffFn\" with a signature matching DiffFn.",
+      "revId": "da03d51f9b2d0f9451b56d718c091f5cd6d1ff4d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "317ff65a_2d3f8894",
+        "filename": "golden/go/diff/metrics.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-23T09:48:47Z",
+      "side": 1,
+      "message": "Keep the call here to whatever the new name for the old Diff function is. We might combined them, but for now I\u0027d like to keep them separate. (I  guess mostly historical reasons).",
+      "revId": "da03d51f9b2d0f9451b56d718c091f5cd6d1ff4d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "18324b4a_728309c5",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-23T09:48:47Z",
+      "side": 1,
+      "message": "Add an argument to the constructor that is an instance of DiffFn. All diffing will then be done using that fn. This should become a field in the MemDiffStore type. i.e. \n\nfunc NewMemDiffStore(client *http.Client, diffFn diff.DiffFn, baseDir string, gsBucketNames []string, gsImageBaseDir string, gigs int) (diff.DiffStore, error)\n\nIf diffFn is nil it should default to diff.DefaultDiffFn.",
+      "revId": "da03d51f9b2d0f9451b56d718c091f5cd6d1ff4d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9c0bcc3_32301e8b",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-23T09:48:47Z",
+      "side": 1,
+      "message": "this should then become \n\ndiffRec, diffImg :\u003d d.diffFn(imgs[0], imgs[1])\n\nwhere diffFn is the name of the DiffFn that you added to the MemDiffStore struct.",
+      "revId": "da03d51f9b2d0f9451b56d718c091f5cd6d1ff4d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
