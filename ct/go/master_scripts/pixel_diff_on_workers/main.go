@@ -89,7 +89,6 @@ func sendEmail(recipients []string) {
 	}
 }
 
-// TODO(rmistry): Change this once ctfe/pixel_diff is created.
 func updateWebappTask() {
 	vars := pixel_diff.UpdateVars{}
 	vars.Id = *gaeTaskID
@@ -220,8 +219,8 @@ func main() {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}
-	nopatchImagesLink = "gs://" + filepath.Join(util.GCSBucketName, util.BenchmarkRunsDir, fmt.Sprintf("%s-nopatch", *runID))
-	withpatchImagesLink = "gs://" + filepath.Join(util.GCSBucketName, util.BenchmarkRunsDir, fmt.Sprintf("%s-withpatch", *runID))
+	nopatchImagesLink = "gs://" + filepath.Join(util.GCSBucketName, util.BenchmarkRunsDir, *runID, "nopatch")
+	withpatchImagesLink = "gs://" + filepath.Join(util.GCSBucketName, util.BenchmarkRunsDir, *runID, "withpatch")
 
 	taskCompletedSuccessfully = true
 }
