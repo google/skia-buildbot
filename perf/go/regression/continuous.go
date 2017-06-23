@@ -89,14 +89,15 @@ func (c *Continuous) Run() {
 			for _, q := range c.queries {
 				// Create ClusterRequest and run.
 				req := &clustering2.ClusterRequest{
-					Source: "master",
-					Offset: commit.Index,
-					Radius: c.radius,
-					Query:  q,
-					Algo:   c.algo,
+					Source:      "master",
+					Offset:      commit.Index,
+					Radius:      c.radius,
+					Query:       q,
+					Algo:        c.algo,
+					Interesting: c.interesting,
 				}
 				sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, q)
-				resp, err := clustering2.Run(req, c.git, c.cidl, c.interesting)
+				resp, err := clustering2.Run(req, c.git, c.cidl)
 				if err != nil {
 					sklog.Errorf("Failed while clustering %v %s", *req, err)
 					continue
