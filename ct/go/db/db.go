@@ -17,6 +17,7 @@ const (
 
 	TABLE_CHROMIUM_ANALYSIS_TASKS         = "ChromiumAnalysisTasks"
 	TABLE_CHROMIUM_PERF_TASKS             = "ChromiumPerfTasks"
+	TABLE_PIXEL_DIFF_TASKS                = "PixelDiffTasks"
 	TABLE_CAPTURE_SKPS_TASKS              = "CaptureSkpsTasks"
 	TABLE_LUA_SCRIPT_TASKS                = "LuaScriptTasks"
 	TABLE_CHROMIUM_BUILD_TASKS            = "ChromiumBuildTasks"
@@ -196,7 +197,7 @@ var v6_up = []string{
 		ts_completed           BIGINT,
 		failure                TINYINT(1),
 		script_output          VARCHAR(255),
-                aggregated_output      VARCHAR(255)
+		aggregated_output      VARCHAR(255)
 	)`,
 }
 
@@ -336,6 +337,32 @@ var v18_down = []string{
 	`ALTER TABLE ChromiumPerfTasks DROP custom_webpages`,
 }
 
+var v19_up = []string{
+	`CREATE TABLE IF NOT EXISTS PixelDiffTasks (
+		id                       INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		username                 VARCHAR(255) NOT NULL,
+		page_sets                VARCHAR(100) NOT NULL,
+		custom_webpages          LONGTEXT     NOT NULL DEFAULT "",
+		benchmark_args           VARCHAR(255),
+		browser_args_nopatch     VARCHAR(255),
+		browser_args_withpatch   VARCHAR(255),
+		description              VARCHAR(255),
+		repeat_after_days        BIGINT       NOT NULL DEFAULT 0,
+		chromium_patch           LONGTEXT,
+		skia_patch               LONGTEXT,
+		ts_added                 BIGINT       NOT NULL,
+		ts_started               BIGINT,
+		ts_completed             BIGINT,
+		failure                  TINYINT(1),
+		swarming_logs            VARCHAR(255),
+		results                  VARCHAR(255)
+	)`,
+}
+
+var v19_down = []string{
+	`DROP TABLE IF EXISTS PixelDiffTasks`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -429,6 +456,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v18_up,
 		MySQLDown: v18_down,
+	},
+	// version 19: Add PixelDiffTasks table.
+	{
+		MySQLUp:   v19_up,
+		MySQLDown: v19_down,
 	},
 }
 

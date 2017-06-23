@@ -1,0 +1,466 @@
+<!--
+  The <pixel-diff-runs-sk> custom element declaration. Displays a table with details about each
+  completed and pending Pixel Diff task.
+
+  Attributes:
+    defaultSize: The number of tasks to show per page, default 10.
+    constrainByUser: Whether to show only tasks created by the logged-in user initially, default
+      false.
+    myRunsConstrainText: Button text to constrain by user, default "View only my runs".
+    everyonesRunsConstrainText: Button text to disable constraining by user, default "View
+      everyone's runs".
+    constrainByTestRun: Whether to show only non-test tasks, default true. Test tasks are those that
+      use the "Dummy1k" page sets.
+    nonTestRunsConstrainText: Button text to constrain to non-test tasks, default "Exclude test
+      runs".
+    testRunsConstrainText: Button text to disable constraining by test tasks, default "Include test
+      runs".
+
+  Events:
+    None.
+
+  Methods:
+    reload: queries for updated information on tasks.
+    resetPagination: Moves to the first page of tasks.
+    constrainRunsByUser: Toggles constrainByUser and reloads the appropriate data.
+    constrainTestRuns: Toggles constrainByTestRun and reloads the appropriate data.
+-->
+
+<dom-module id="pixel-diff-runs-sk">
+  <style>
+    paper-dialog {
+      min-width: 200px;
+      max-width: calc(100% - 10px);
+    }
+    table.runshistory {
+      border-spacing: 0px;
+    }
+    tr.headers {
+      background-color: #CCCCFF;
+      text-align: center;
+    }
+    td.nowrap {
+      white-space: nowrap;
+    }
+    table.runshistory > tbody > tr > td {
+      padding: 10px;
+      border: solid black 1px;
+    }
+    .delete-button, .redo-button {
+      --paper-icon-button-disabled: {
+        display: none;
+      }
+    }
+    .oldruns {
+      margin-left: 20px;
+    }
+  </style>
+  <template>
+
+    <paper-dialog heading="Confirmation" id="delete_dialog">
+      <div>Proceed with deleting task?</div>
+      <paper-button id="delete_dismiss">Cancel</paper-button>
+      <paper-button id="delete_confirm" autofocus>OK</paper-button>
+    </paper-dialog>
+
+    <paper-dialog heading="Confirmation" id="redo_dialog">
+      <div>Reschedule this task?</div>
+      <paper-button id="redo_dismiss">Cancel</paper-button>
+      <paper-button id="redo_confirm" autofocus>OK</paper-button>
+    </paper-dialog>
+
+    <h2><template is="dom-if" if="{{constrainByUser}}">My </template>Pixel Diff Runs</h2>
+    <paging-sk pagination="{{pagination}}" on-pagechange="pageChangedHandler"></paging-sk>
+    <br/>
+    <paper-button raised on-click="constrainRunsByUser">{{
+      constrainButtonText(constrainByUser, myRunsConstrainText, everyonesRunsConstrainText)
+      }}</paper-button>
+    <paper-button raised on-click="constrainTestRuns">{{
+      constrainButtonText(constrainByTestRun, nonTestRunsConstrainText, testRunsConstrainText)
+      }}</paper-button>
+
+    <br/>
+    <br/>
+
+    <!-- Section for popups. -->
+    <template is="dom-repeat" items="{{pixelDiffTasks}}" as="pixelDiffTask" index-as="index">
+      <paper-dialog heading="Benchmark Args" id="{{ getBenchmarkArgsId(index) }}">
+        <paper-dialog-scrollable>
+          <pre>{{pixelDiffTask.BenchmarkArgs}}</pre>
+        </paper-dialog-scrollable>
+      </paper-dialog>
+
+      <paper-dialog heading="Browser Args NoPatch" id="{{ getBrowserArgsNoPatchId(index) }}">
+        <paper-dialog-scrollable>
+          <pre>{{pixelDiffTask.BrowserArgsNoPatch}}</pre>
+        </paper-dialog-scrollable>
+      </paper-dialog>
+
+      <paper-dialog heading="Browser Args WithPatch" id="{{ getBrowserArgsWithPatchId(index) }}">
+        <paper-dialog-scrollable>
+          <pre>{{pixelDiffTask.BrowserArgsWithPatch}}</pre>
+        </paper-dialog-scrollable>
+      </paper-dialog>
+
+      <paper-dialog heading="Chromium Patch" id="{{ getChromiumPatchId(index) }}">
+        <paper-dialog-scrollable>
+          <pre>{{pixelDiffTask.ChromiumPatch}}</pre>
+        </paper-dialog-scrollable>
+      </paper-dialog>
+
+      <paper-dialog heading="Skia Patch" id="{{ getSkiaPatchId(index) }}">
+        <paper-dialog-scrollable>
+          <pre>{{pixelDiffTask.SkiaPatch}}</pre>
+        </paper-dialog-scrollable>
+      </paper-dialog>
+
+      <paper-dialog heading="Custom Webpages" id="{{ getCustomWebpagesId(index) }}">
+        <paper-dialog-scrollable>
+          <pre>{{pixelDiffTask.CustomWebpages}}</pre>
+        </paper-dialog-scrollable>
+      </paper-dialog>
+
+    </template>
+
+    <table class="runshistory" id="runshistory" cellpadding="5" border="1">
+      <tr class="headers">
+        <td>Id</td>
+        <td>User</td>
+        <td>Timestamps</td>
+        <td>Task Config</td>
+        <td>Description</td>
+        <td>Results</td>
+        <td>Arguments</td>
+        <td>Patches</td>
+        <td>Task Repeats</td>
+      </tr>
+
+      <template is="dom-repeat" items="{{pixelDiffTasks}}" as="pixelDiffTask" index-as="index">
+        <tr style="border: 1px solid black;">
+          <!-- Id col -->
+          <td class="nowrap">
+            <template is="dom-if" if="{{pixelDiffTask.Results.String}}">
+              <a href="{{pixelDiffTask.Results.String}}" target="_blank">{{pixelDiffTask.Id}}</a>
+            </template>
+            <template is="dom-if" if="{{!pixelDiffTask.Results.String}}">
+              <span>{{pixelDiffTask.Id}}</span>
+            </template>
+            <paper-icon-button icon="delete" mini
+                               class="delete-button"
+                               disabled="{{!pixelDiffTask.canDelete}}"
+                               alt="Delete"
+                               data-index$="{{index}}"
+                               data-type="delete">
+            </paper-icon-button>
+            <paper-icon-button icon="redo" mini
+                               class="redo-button"
+                               disabled="{{!pixelDiffTask.canRedo}}"
+                               alt="Redo"
+                               data-index$="{{index}}"
+                               data-type="redo">
+            </paper-icon-button>
+          </td>
+
+          <!-- User col -->
+          <td>{{pixelDiffTask.Username}}</td>
+
+          <!-- Timestamps col -->
+          <td>
+            <table>
+              <tr>
+                <td>Added:</td>
+                <td class="nowrap">{{ formatTimestamp(pixelDiffTask.TsAdded.Int64) }}</td>
+              </tr>
+              <tr>
+                <td>Started:</td>
+                <td class="nowrap">{{ formatTimestamp(pixelDiffTask.TsStarted.Int64) }}</td>
+              </tr>
+              <tr>
+                <td>Completed:</td>
+                <td class="nowrap">{{ formatTimestamp(pixelDiffTask.TsCompleted.Int64) }}</td>
+              </tr>
+            </table>
+          </td>
+
+          <!-- Task Config col -->
+          <td>
+            <table>
+              <tr>
+                <td>PageSet:</td>
+                <td>
+                  <template is="dom-if" if="{{pixelDiffTask.CustomWebpages}}">
+                    <a href="javascript:void(0);" data-index$="{{index}}" data-type="customWebpages">Custom Webpages</a>
+                  </template>
+                  <template is="dom-if" if="{{!pixelDiffTask.CustomWebpages}}">
+                    {{pixelDiffTask.PageSets}}
+                  </template>
+                </td>
+              </tr>
+            </table>
+          </td>
+
+          <!-- Description col -->
+          <td>{{pixelDiffTask.Description}}</td>
+
+          <!-- Results col -->
+          <td class="nowrap">
+            <template is="dom-if" if="{{pixelDiffTask.Failure.Bool}}">
+              <div style="color:red;">Failed</div>
+            </template>
+            <template is="dom-if" if="{{!pixelDiffTask.TsCompleted.Int64}}">
+              <div style="color:green;">Waiting</div>
+            </template>
+            <template is="dom-if" if="{{pixelDiffTask.Results.String}}">
+              <a href="{{pixelDiffTask.Results.String}}" target="_blank">Output</a>
+              <br/>
+              <a href="{{pixelDiffTask.SwarmingLogs.String}}" target="_blank">Swarming Logs</a>
+            </template>
+          </td>
+
+          <!-- Arguments -->
+          <td class="nowrap">
+            <template is="dom-if" if="{{pixelDiffTask.BenchmarkArgs}}">
+              <a href="javascript:void(0);" data-index$="{{index}}" data-type="benchmarkArgs">Benchmark Args</a>
+              <br/>
+            </template>
+            <template is="dom-if" if="{{pixelDiffTask.BrowserArgsNoPatch}}">
+              <a href="javascript:void(0);" data-index$="{{index}}" data-type="nopatchBrowserArgs">NoPatch Browser Args</a>
+              <br/>
+            </template>
+            <template is="dom-if" if="{{pixelDiffTask.BrowserArgsWithPatch}}">
+              <a href="javascript:void(0);" data-index$="{{index}}" data-type="withpatchBrowserArgs">WithPatch Browser Args</a>
+              <br/>
+            </template>
+          </td>
+
+          <!-- Patches -->
+          <td>
+            <template is="dom-if" if="{{pixelDiffTask.ChromiumPatch}}">
+              <a href="javascript:void(0);" data-index$="{{index}}" data-type="chromiumPatch">Chromium</a>
+              <br/>
+            </template>
+            <template is="dom-if" if="{{pixelDiffTask.SkiaPatch}}">
+              <a href="javascript:void(0);" data-index$="{{index}}" data-type="skiaPatch">Skia</a>
+            </template>
+          </td>
+
+          <!-- Task Repeats -->
+          <td>{{ formatRepeatAfterDays(pixelDiffTask.RepeatAfterDays) }}</td>
+
+        </tr>
+      </template>
+    </table>
+
+  </template>
+</dom-module>
+
+<script>
+   Polymer({
+     is: "pixel-diff-runs-sk",
+     properties: {
+       pixelDiffTasks: {
+         type: Array,
+         value: function() { return []; },
+       },
+       defaultSize: {
+         type: Number,
+         value: 10,
+       },
+       constrainByUser: {
+         type: Boolean,
+         value: false,
+       },
+       myRunsConstrainText: {
+         type: String,
+         value: "View only my runs",
+       },
+       everyonesRunsConstrainText: {
+         type: String,
+         value: "View everyone's runs",
+       },
+       constrainByTestRun: {
+         type: Boolean,
+         value: true,
+       },
+       nonTestRunsConstrainText: {
+         type: String,
+         value: "Exclude test runs",
+       },
+       testRunsConstrainText: {
+         type: String,
+         value: "Include test runs",
+       },
+       pagination: {
+         type: Object,
+         value: function() { return {}; },
+       },
+       pageChangedHandler: {
+         type: Object,
+         value: function() { return null; },
+       },
+       deleteIndex: {
+         type: Number,
+         value: -1,
+       },
+       redoIndex: {
+         type: Number,
+         value: -1,
+       },
+     },
+
+     ready: function() {
+       this.pagination = {"offset": 0, "size": this.defaultSize};
+       this.pageChangedHandler = this.reload.bind(this);
+       this.reload();
+
+       var that = this;
+       this.$.runshistory.addEventListener('click', function(e) {
+         var anchor = sk.findParent(e.target, "A");
+         if (anchor != null) {
+           var id = anchor.dataset.index;
+           if (anchor.dataset.type == "benchmarkArgs") {
+             that.toggleDialog(that.getBenchmarkArgsId(id));
+           } else if (anchor.dataset.type == "nopatchBrowserArgs") {
+             that.toggleDialog(that.getBrowserArgsNoPatchId(id));
+           } else if (anchor.dataset.type == "withpatchBrowserArgs") {
+             that.toggleDialog(that.getBrowserArgsWithPatchId(id));
+           } else if (anchor.dataset.type == "chromiumPatch") {
+             that.toggleDialog(that.getChromiumPatchId(id));
+           } else if (anchor.dataset.type == "skiaPatch") {
+             that.toggleDialog(that.getSkiaPatchId(id));
+           } else if (anchor.dataset.type == "customWebpages") {
+             that.toggleDialog(that.getCustomWebpagesId(id));
+           }
+         }
+         var button = sk.findParent(e.target, "PAPER-ICON-BUTTON");
+         if (button != null) {
+           if (button.dataset.type == "delete") {
+             that.deleteIndex = button.dataset.index;
+             that.$.delete_dialog.open();
+           } else if (button.dataset.type == "redo") {
+             that.redoIndex = button.dataset.index;
+             that.$.redo_dialog.open();
+           }
+         }
+       });
+       this.$.delete_dismiss.addEventListener('click', function(e) {
+         that.deleteIndex = -1;
+         that.$.delete_dialog.close();
+       });
+       this.$.delete_confirm.addEventListener('click', function(e) {
+         that.deleteTask();
+       });
+       this.$.redo_dismiss.addEventListener('click', function(e) {
+         that.redoIndex = -1;
+         that.$.redo_dialog.close();
+       });
+       this.$.redo_confirm.addEventListener('click', function(e) {
+         that.redoTask();
+       });
+     },
+
+     reload: function() {
+       var queryParams = {
+         "offset": this.pagination.offset,
+         "size": this.pagination.size,
+       }
+       if (this.constrainByUser) {
+         queryParams["filter_by_logged_in_user"] = true;
+       }
+       if (this.constrainByTestRun) {
+         queryParams["exclude_dummy_page_sets"] = true;
+       }
+       var queryStr = "?" + sk.query.fromObject(queryParams);
+       var that = this;
+       sk.post('/_/get_pixel_diff_tasks' + queryStr).then(JSON.parse).then(function(json) {
+         that.deleteIndex = -1;
+         that.pixelDiffTasks = json.data;
+         that.pagination = json.pagination;
+         for (var i = 0; i < that.pixelDiffTasks.length; i++) {
+           that.pixelDiffTasks[i].canDelete = json.permissions[i].DeleteAllowed;
+           that.pixelDiffTasks[i].canRedo = json.permissions[i].RedoAllowed;
+         }
+       }).catch(sk.errorMessage);
+     },
+
+     getBenchmarkArgsId: function(index) {
+       return "benchmark_args" + index;
+     },
+
+     getBrowserArgsNoPatchId: function(index) {
+       return "browser_args_nopatch" + index;
+     },
+
+     getBrowserArgsWithPatchId: function(index) {
+       return "browser_args_withpatch" + index;
+     },
+
+     getChromiumPatchId: function(index) {
+       return "chromium_patch" + index;
+     },
+
+     getSkiaPatchId: function(index) {
+       return "skia_patch" + index;
+     },
+
+     getCustomWebpagesId: function(index) {
+       return "custom_webpages" + index;
+     },
+
+     resetPagination: function() {
+       this.pagination.offset = 0;
+       this.pagination.size = this.defaultSize;
+     },
+
+     constrainRunsByUser: function() {
+       this.constrainByUser = !this.constrainByUser;
+       this.resetPagination();
+       this.reload();
+     },
+
+     constrainTestRuns: function() {
+       this.constrainByTestRun = !this.constrainByTestRun;
+       this.resetPagination();
+       this.reload();
+     },
+
+     constrainButtonText: function(constrained, constrainText, unconstrainText) {
+       if (constrained) {
+         return unconstrainText;
+       } else {
+         return constrainText;
+       }
+     },
+
+     toggleDialog: function(id) {
+       Polymer.dom(this.root).querySelector('#' + id).toggle();
+     },
+
+     deleteTask: function() {
+       var params = {};
+       params["id"] = this.pixelDiffTasks[this.deleteIndex].Id;;
+       sk.post("/_/delete_pixel_diff_task", JSON.stringify(params)).then(function() {
+         $$$("#confirm_toast").text = "Deleted task " + params["id"];
+         $$$("#confirm_toast").show();
+       }.bind(this)).catch(sk.errorMessage).then(function() {
+         this.reload();
+         this.$.delete_dialog.close();
+       }.bind(this));
+     },
+
+     redoTask: function() {
+       var params = {};
+       params["id"] = this.pixelDiffTasks[this.redoIndex].Id;
+       sk.post("/_/redo_pixel_diff_task", JSON.stringify(params)).then(function() {
+         $$$("#confirm_toast").text = "Resubmitted task " + params["id"];
+         $$$("#confirm_toast").show();
+       }.bind(this)).catch(sk.errorMessage).then(function() {
+         this.reload();
+         this.$.redo_dialog.close();
+       }.bind(this));
+     },
+
+     formatTimestamp: ctfe.getFormattedTimestamp,
+     formatRepeatAfterDays: ctfe.formatRepeatAfterDays,
+  });
+</script>
