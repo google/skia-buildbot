@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
+	"go.skia.org/infra/ct/go/ctfe/pixel_diff"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 )
 
@@ -19,6 +20,7 @@ func Prototypes() []task_common.Task {
 	return []task_common.Task{
 		&chromium_analysis.DBTask{},
 		&chromium_perf.DBTask{},
+		&pixel_diff.DBTask{},
 		&capture_skps.DBTask{},
 		&lua_scripts.DBTask{},
 		&chromium_builds.DBTask{},
