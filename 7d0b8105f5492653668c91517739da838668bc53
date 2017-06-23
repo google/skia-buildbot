@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2adbf274_8d931db6",
+        "filename": "ct/go/ctfe/pixel_diff/pixel_diff.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-23T12:28:48Z",
+      "side": 1,
+      "message": "Oops. Done.",
+      "parentUuid": "50ed3509_c3b6c0ef",
+      "range": {
+        "startLine": 184,
+        "startChar": 10,
+        "endLine": 184,
+        "endChar": 22
+      },
+      "revId": "7d0b8105f5492653668c91517739da838668bc53",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fecf3c9a_1d2ee1d3",
         "filename": "ct/go/db/db.go",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "4033b5c9_7b649b0b",
+        "filename": "ct/go/db/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-23T12:28:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fecf3c9a_1d2ee1d3",
+      "range": {
+        "startLine": 345,
+        "startChar": 27,
+        "endLine": 345,
+        "endChar": 35
+      },
+      "revId": "7d0b8105f5492653668c91517739da838668bc53",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0725e516_ce17073e",
         "filename": "ct/res/imp/pixel-diff-runs-sk.html",
         "patchSetId": 3
@@ -62,6 +110,24 @@
       "revId": "7d0b8105f5492653668c91517739da838668bc53",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c55ddf48_24eae2da",
+        "filename": "ct/res/imp/pixel-diff-runs-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-06-23T12:28:48Z",
+      "side": 1,
+      "message": "Done. No idea how you caught that.",
+      "parentUuid": "0725e516_ce17073e",
+      "revId": "7d0b8105f5492653668c91517739da838668bc53",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
