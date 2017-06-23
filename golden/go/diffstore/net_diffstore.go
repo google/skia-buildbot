@@ -37,13 +37,13 @@ func NewNetDiffStore(conn *grpc.ClientConn, diffServerImageAddress string) (diff
 }
 
 // Get, see the diff.DiffStore interface.
-func (n *NetDiffStore) Get(priority int64, mainDigest string, rightDigests []string) (map[string]*diff.DiffMetrics, error) {
+func (n *NetDiffStore) Get(priority int64, mainDigest string, rightDigests []string) (map[string]interface{}, error) {
 	req := &GetDiffsRequest{Priority: priority, MainDigest: mainDigest, RightDigests: rightDigests}
 	resp, err := n.serviceClient.GetDiffs(context.Background(), req)
 	if err != nil {
 		return nil, err
 	}
-	ret := make(map[string]*diff.DiffMetrics, len(resp.Diffs))
+	ret := make(map[string]interface{}, len(resp.Diffs))
 	for k, metrics := range resp.Diffs {
 		ret[k] = toDiffMetrics(metrics)
 	}

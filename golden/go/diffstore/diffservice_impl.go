@@ -33,7 +33,8 @@ func (d *DiffServiceImpl) GetDiffs(ctx context.Context, req *GetDiffsRequest) (*
 
 	resp := make(map[string]*DiffMetricsResponse, len(diffs))
 	for k, metrics := range diffs {
-		resp[k] = toDiffMetricsResponse(metrics)
+		diffMetrics := metrics.(*diff.DiffMetrics)
+		resp[k] = toDiffMetricsResponse(diffMetrics)
 	}
 
 	return &GetDiffsResponse{

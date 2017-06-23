@@ -49,7 +49,7 @@ func main() {
 
 	for _, rDigest := range rightDigests {
 		fmt.Printf("%s <-> %s\n", mainDigest, rDigest)
-		if metrics, ok := diffResult[rDigest]; ok {
+		if metrics, ok := diffResult[rDigest].(*diff.DiffMetrics); ok {
 			fmt.Printf("    Dimensions are different: %v\n", metrics.DimDiffer)
 			fmt.Printf("    Number of pixels different: %v\n", metrics.NumDiffPixels)
 			fmt.Printf("    Pixel diff percent: %v\n", metrics.PixelDiffPercent)
