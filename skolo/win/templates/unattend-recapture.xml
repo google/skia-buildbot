@@ -14,9 +14,9 @@
                 </Login>
                 <ImageSelection>
                     <InstallImage>
-                        <ImageName>skiabot-win10-20170501</ImageName>
+                        <ImageName>skiabot-win10-20170621</ImageName>
                         <ImageGroup>Win10</ImageGroup>
-                        <Filename>skiabot-win10-20170501.wim</Filename>
+                        <Filename>skiabot-win10-20170621.wim</Filename>
                     </InstallImage>
                     <WillShowUI>OnError</WillShowUI>
                     <InstallTo>
@@ -87,15 +87,6 @@
         <component name="Microsoft-Windows-TerminalServices-LocalSessionManager" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <fDenyTSConnections>false</fDenyTSConnections>
         </component>
-        <component name="Networking-MPSSVC-Svc" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <FirewallGroups>
-                <FirewallGroup wcm:action="add" wcm:keyValue="RemoteDesktop">
-                    <Profile>all</Profile>
-                    <Active>true</Active>
-                    <Group>Remote Desktop</Group>
-                </FirewallGroup>
-            </FirewallGroups>
-        </component>
         <component name="Microsoft-Windows-ErrorReportingCore" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <DisableWER>1</DisableWER>
         </component>
@@ -106,17 +97,6 @@
             <UserLocale>en-US</UserLocale>
             <UILanguageFallback>en-US</UILanguageFallback>
         </component>
-        <component name="Microsoft-Windows-UnattendedJoin" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <Identification>
-                <Credentials>
-                    <Domain>win.skolo.skia.org</Domain>
-                    <Password>{{.AdminPassword}}</Password>
-                    <Username>Administrator</Username>
-                </Credentials>
-                <DebugJoin>true</DebugJoin>
-                <JoinDomain>win.skolo.skia.org</JoinDomain>
-            </Identification>
-        </component>
     </settings>
     <settings pass="oobeSystem">
         <component name="Microsoft-Windows-Shell-Setup" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" processorArchitecture="amd64">
@@ -125,6 +105,10 @@
                 <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
                 <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
                 <ProtectYourPC>3</ProtectYourPC>
+                <HideLocalAccountScreen>true</HideLocalAccountScreen>
+                <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
+                <SkipMachineOOBE>true</SkipMachineOOBE>
+                <SkipUserOOBE>true</SkipUserOOBE>
             </OOBE>
             <AutoLogon>
                 <Enabled>true</Enabled>
@@ -134,31 +118,18 @@
                     <Value>{{.ChromeBotPassword}}</Value>
                     <PlainText>true</PlainText>
                 </Password>
-                <Domain>win.skolo.skia.org</Domain>
+                <Domain></Domain>
             </AutoLogon>
             <UserAccounts>
-                <DomainAccounts>
-                    <DomainAccountList wcm:action="add">
-                        <DomainAccount wcm:action="add">
-                            <Name>chrome-bot</Name>
-                            <Group>Administrators;Power Users</Group>
-                        </DomainAccount>
-                        <Domain>win.skolo.skia.org</Domain>
-                        <DomainAccount wcm:action="add">
-                            <Name>Administrator</Name>
-                            <Group>Administrators;Power Users</Group>
-                        </DomainAccount>
-                    </DomainAccountList>
-                </DomainAccounts>
                 <LocalAccounts>
                     <LocalAccount wcm:action="add">
                         <Password>
                             <Value>{{.ChromeBotPassword}}</Value>
                             <PlainText>true</PlainText>
                         </Password>
-                        <Description>chrome-bot Local Account</Description>
-                        <DisplayName>chrome-bot Local Account</DisplayName>
-                        <Name>chrome-bot-local</Name>
+                        <Description>chrome-bot</Description>
+                        <DisplayName>chrome-bot</DisplayName>
+                        <Name>chrome-bot</Name>
                         <Group>Administrators;Power Users</Group>
                     </LocalAccount>
                 </LocalAccounts>
