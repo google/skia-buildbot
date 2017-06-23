@@ -220,7 +220,7 @@ func (vdb *VersionedDB) Migrate(targetVersion int) (rv error) {
 
 	for _, step := range runSteps {
 		for _, stmt := range step {
-			sklog.Infoln("EXECUTING: \n", stmt)
+			sklog.Errorf("EXECUTING: \n", stmt)
 			if _, err = txn.Exec(stmt); err != nil {
 				return err
 			}
