@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
+	"go.skia.org/infra/ct/go/ctfe/pixel_diff"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/frontend"
@@ -107,6 +108,48 @@ func TestChromiumPerfExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--browser_extra_args_nopatch=banp")
 	expect.Contains(t, cmd.Args, "--browser_extra_args_withpatch=bawp")
 	runId := getRunId(t, cmd)
+	expect.Contains(t, cmd.Args, "--log_id="+runId)
+	expect.NotNil(t, cmd.Timeout)
+}
+
+func pendingPixelDiffTask() PixelDiffTask {
+	return PixelDiffTask{
+		DBTask: pixel_diff.DBTask{
+			CommonCols:           pendingCommonCols(),
+			PageSets:             "All",
+			BenchmarkArgs:        "benchmarkargs",
+			BrowserArgsNoPatch:   "banp",
+			BrowserArgsWithPatch: "bawp",
+			Description:          "description",
+			ChromiumPatch:        "chromiumpatch",
+			SkiaPatch:            "skiapatch",
+		},
+	}
+}
+
+func TestPixelDiffExecute(t *testing.T) {
+	testutils.SmallTest(t)
+	task := pendingPixelDiffTask()
+	mockRun := exec.CommandCollector{}
+	exec.SetRunForTesting(mockRun.Run)
+	defer exec.SetRunForTesting(exec.DefaultRun)
+	err := task.Execute()
+	assert.NoError(t, err)
+	assert.Len(t, mockRun.Commands(), 1)
+	cmd := mockRun.Commands()[0]
+	expect.Equal(t, "pixel_diff_on_workers", cmd.Name)
+	expect.Equal(t, len(cmd.Args), 11)
+	expect.Contains(t, cmd.Args, "--gae_task_id=42")
+	expect.Contains(t, cmd.Args, "--description=description")
+	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
+	expect.Contains(t, cmd.Args, "--pageset_type=All")
+	expect.Contains(t, cmd.Args, "--benchmark_extra_args=benchmarkargs")
+	expect.Contains(t, cmd.Args, "--browser_extra_args_nopatch=banp")
+	expect.Contains(t, cmd.Args, "--browser_extra_args_withpatch=bawp")
+	expect.Contains(t, cmd.Args, "--logtostderr")
+	expect.Contains(t, cmd.Args, "--local=false")
+	runId := getRunId(t, cmd)
+	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.Contains(t, cmd.Args, "--log_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }

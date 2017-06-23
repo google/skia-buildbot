@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
+	"go.skia.org/infra/ct/go/ctfe/pixel_diff"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
@@ -48,49 +49,6 @@ var (
 	// Mutex that controls access to the above map.
 	tasksMtx = sync.Mutex{}
 )
-
-// Enum of states that the poller could be in. Satisfies the fmt.Stringer interface.
-type TaskType uint32
-
-const (
-	IDLE TaskType = iota
-	UPDATE_AND_BUILD
-	CHROMIUM_PERF
-	CAPTURE_SKPS
-	LUA_SCRIPT
-	CHROMIUM_BUILD
-	RECREATE_PAGE_SETS
-	RECREATE_WEBPAGE_ARCHIVES
-	CHROMIUM_ANALYSIS
-	POLL
-)
-
-func (t TaskType) String() string {
-	switch t {
-	case IDLE:
-		return "IDLE"
-	case UPDATE_AND_BUILD:
-		return "UPDATE_AND_BUILD"
-	case CHROMIUM_PERF:
-		return "CHROMIUM_PERF"
-	case CAPTURE_SKPS:
-		return "CAPTURE_SKPS"
-	case LUA_SCRIPT:
-		return "LUA_SCRIPT"
-	case CHROMIUM_BUILD:
-		return "CHROMIUM_BUILD"
-	case RECREATE_PAGE_SETS:
-		return "RECREATE_PAGE_SETS"
-	case RECREATE_WEBPAGE_ARCHIVES:
-		return "RECREATE_WEBPAGE_ARCHIVES"
-	case CHROMIUM_ANALYSIS:
-		return "CHROMIUM_ANALYSIS"
-	case POLL:
-		return "POLL"
-	default:
-		return "(unknown)"
-	}
-}
 
 // Runs "git pull; make all".
 func updateAndBuild() error {
@@ -223,6 +181,45 @@ func (task *ChromiumPerfTask) Execute() error {
 			"--repeat_benchmark=" + strconv.FormatInt(task.RepeatRuns, 10),
 			"--run_in_parallel=" + strconv.FormatBool(task.RunInParallel),
 			"--target_platform=" + task.Platform,
+			"--run_id=" + runId,
+			"--logtostderr",
+			"--log_id=" + runId,
+			fmt.Sprintf("--local=%t", *master_common.Local),
+		},
+	})
+}
+
+// Define frontend.PixelDiffDBTask here so we can add methods.
+type PixelDiffTask struct {
+	pixel_diff.DBTask
+}
+
+func (task *PixelDiffTask) Execute() error {
+	runId := runId(task)
+	for fileSuffix, patch := range map[string]string{
+		".chromium.patch":      task.ChromiumPatch,
+		".skia.patch":          task.SkiaPatch,
+		".custom_webpages.csv": task.CustomWebpages,
+	} {
+		// Add an extra newline at the end because git sometimes rejects patches due to
+		// missing newlines.
+		patch = patch + "\n"
+		patchPath := filepath.Join(os.TempDir(), runId+fileSuffix)
+		if err := ioutil.WriteFile(patchPath, []byte(patch), 0666); err != nil {
+			return err
+		}
+		defer skutil.Remove(patchPath)
+	}
+	return exec.Run(&exec.Command{
+		Name: "pixel_diff_on_workers",
+		Args: []string{
+			"--emails=" + task.Username,
+			"--description=" + task.Description,
+			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
+			"--pageset_type=" + task.PageSets,
+			"--benchmark_extra_args=" + task.BenchmarkArgs,
+			"--browser_extra_args_nopatch=" + task.BrowserArgsNoPatch,
+			"--browser_extra_args_withpatch=" + task.BrowserArgsWithPatch,
 			"--run_id=" + runId,
 			"--logtostderr",
 			"--log_id=" + runId,
@@ -370,6 +367,8 @@ func asPollerTask(otherTask task_common.Task) Task {
 	switch t := otherTask.(type) {
 	case *chromium_perf.DBTask:
 		return &ChromiumPerfTask{DBTask: *t}
+	case *pixel_diff.DBTask:
+		return &PixelDiffTask{DBTask: *t}
 	case *capture_skps.DBTask:
 		return &CaptureSkpsTask{DBTask: *t}
 	case *lua_scripts.DBTask:
