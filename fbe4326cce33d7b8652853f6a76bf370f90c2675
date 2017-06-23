@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "475de627_bcf5e8e1",
+        "filename": "ct/go/worker_scripts/pixel_diff/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-23T16:42:33Z",
+      "side": 1,
+      "message": "I would expect this number to change fairly frequently...",
+      "range": {
+        "startLine": 29,
+        "startChar": 27,
+        "endLine": 29,
+        "endChar": 31
+      },
+      "revId": "fbe4326cce33d7b8652853f6a76bf370f90c2675",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
