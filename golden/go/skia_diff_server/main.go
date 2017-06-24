@@ -22,12 +22,15 @@ import (
 var (
 	cacheSize          = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
 	gsBucketNames      = flag.String("gs_buckets", "skia-infra-gm,chromium-skia-gm", "Comma-separated list of google storage bucket that hold uploaded images.")
+	gsSubDirs          = flag.String("gs_subdirs", diffstore.DEFAULT_GCS_IMG_DIR_NAME, "Path of subdirectories after the GS bucket that lead to the uploaded images, not including the run directory")
+	gsRunDir           = flag.String("gs_rundir", "", "GS directory that specifies userid-timestamp, can be empty string if no such directory exists")
 	imageDir           = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
 	imagePort          = flag.String("image_port", ":9001", "Address that serves image files via HTTP.")
 	noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
 	grpcPort           = flag.String("grpc_port", ":9000", "gRPC service address (e.g., ':9000')")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
+	usesDigests        = flag.Bool("uses_digests", true, "Mark true if image files are stored as hash digests in GS")
 )
 
 const (
@@ -69,7 +72,7 @@ func main() {
 	}
 
 	// Get the DiffStore that does the work loading and diffing images. .
-	memDiffStore, err := diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize)
+	memDiffStore, err := diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), *gsSubDirs, *gsRunDir, *usesDigests, *cacheSize)
 	if err != nil {
 		sklog.Fatalf("Allocating DiffStore failed: %s", err)
 	}
