@@ -58,6 +58,8 @@ var (
 	diffServerImageAddr = flag.String("diff_server_http", "", "The images serving address of the diff server. 'diff_server_grpc has to be set as well.")
 	forceLogin          = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
 	gsBucketNames       = flag.String("gs_buckets", "skia-infra-gm,chromium-skia-gm", "Comma-separated list of google storage bucket that hold uploaded images.")
+	gsSubDirs           = flag.String("gs_subdirs", diffstore.DEFAULT_GCS_IMG_DIR_NAME, "Path of subdirectories after the GS bucket that lead to the uploaded images, not including the run directory")
+	gsRunDir            = flag.String("gs_rundir", "", "GS directory that specifies userid-timestamp, can be empty string if no such directory exists")
 	hashFileBucket      = flag.String("hash_file_bucket", "", "Bucket where the file with the known list of hashes should be written.")
 	hashFilePath        = flag.String("hash_file_path", "", "Path of the file with know hashes.")
 	imageDir            = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
@@ -78,6 +80,7 @@ var (
 	serviceAccountFile  = flag.String("service_account_file", "", "Credentials file for service account.")
 	showBotProgress     = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
 	traceservice        = flag.String("trace_service", "localhost:10000", "The address of the traceservice endpoint.")
+	usesDigests         = flag.Bool("uses_digests", true, "Mark true if image files are stored as hash digests in GS")
 )
 
 const (
@@ -198,7 +201,7 @@ func main() {
 		}
 		sklog.Infof("DiffStore: NetDiffStore initiated.")
 	} else {
-		diffStore, err = diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize)
+		diffStore, err = diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), *gsSubDirs, *gsRunDir, *usesDigests, *cacheSize)
 		if err != nil {
 			sklog.Fatalf("Allocating local DiffStore failed: %s", err)
 		}
