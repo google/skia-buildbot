@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "92e9cb33_b144a034",
+        "filename": "perf/res/imp/cluster-page.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T16:19:36Z",
+      "side": 1,
+      "message": "nit: maybe min\u003d1, since 0 means default",
+      "range": {
+        "startLine": 130,
+        "startChar": 37,
+        "endLine": 130,
+        "endChar": 38
+      },
+      "revId": "2924cbb66c659e39ad01255b884c9813f9f8d91c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "44441843_1465b3e8",
+        "filename": "perf/res/imp/cluster-page.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T16:19:36Z",
+      "side": 1,
+      "message": "Is this a string because paper-input needs a string?\n\nIf it\u0027s a problem with sk.stateReflector, we should either fix it or update the documentation to say it doesn\u0027t handle numbers correctly.",
+      "range": {
+        "startLine": 180,
+        "startChar": 10,
+        "endLine": 180,
+        "endChar": 38
+      },
+      "revId": "2924cbb66c659e39ad01255b884c9813f9f8d91c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
