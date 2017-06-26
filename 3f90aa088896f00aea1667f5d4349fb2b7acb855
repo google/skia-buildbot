@@ -1,0 +1,418 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5795b1df_9b78844c",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T20:24:43Z",
+      "side": 1,
+      "message": "Is it important that there are at least two lines between FAILED and error? Or can the first \".*\\n\" be removed?",
+      "range": {
+        "startLine": 23,
+        "startChar": 44,
+        "endLine": 23,
+        "endChar": 58
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "028a1c70_373e7f9c",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T20:24:43Z",
+      "side": 1,
+      "message": "nit: the interesting thing here would be the regexp, not the matches. Several places in this file.",
+      "range": {
+        "startLine": 36,
+        "startChar": 11,
+        "endLine": 36,
+        "endChar": 19
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "faafeec2_f36e771b",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T20:24:43Z",
+      "side": 1,
+      "message": "This logic doesn\u0027t seem to work.\n\nExample: https://play.golang.org/p/_9d8CgMcps outputs the error for line 261 twice.\n\nI would expect the logic to be like this: https://play.golang.org/p/uwIAMAW-24, which correctly outputs both line 261 and line 281.",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 5
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92fa7038_d9ec52d3",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T20:24:43Z",
+      "side": 1,
+      "message": "nit: + (unless we really have empty failure messages)",
+      "range": {
+        "startLine": 77,
+        "startChar": 55,
+        "endLine": 77,
+        "endChar": 56
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e184917_d1cb6c23",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T20:24:43Z",
+      "side": 1,
+      "message": "nit: extraneous?",
+      "range": {
+        "startLine": 78,
+        "startChar": 42,
+        "endLine": 78,
+        "endChar": 44
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88aa73a3_2e4f2731",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T20:24:43Z",
+      "side": 1,
+      "message": "nit: + (unless we really have empty failure messages)",
+      "range": {
+        "startLine": 78,
+        "startChar": 52,
+        "endLine": 78,
+        "endChar": 53
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56b4bb45_d69cddd4",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T20:24:43Z",
+      "side": 1,
+      "message": "nit: `(?:.*\\n)+`",
+      "range": {
+        "startLine": 81,
+        "startChar": 37,
+        "endLine": 81,
+        "endChar": 48
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee3cb81c_4e46e6b1",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T20:24:43Z",
+      "side": 1,
+      "message": "mtklein just changed this output (in DM). After submitting this CL, you should add a comment pointing to this code near there.",
+      "range": {
+        "startLine": 87,
+        "startChar": 16,
+        "endLine": 87,
+        "endChar": 98
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b8ac9e7c_c58ebd3f",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T20:24:43Z",
+      "side": 1,
+      "message": "nit: + (unless we really have empty failure messages)",
+      "range": {
+        "startLine": 100,
+        "startChar": 102,
+        "endLine": 100,
+        "endChar": 103
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2dc3a48d_30682fcc",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T20:24:43Z",
+      "side": 1,
+      "message": "Why do you use \\z in some places and $ in other places?",
+      "range": {
+        "startLine": 103,
+        "startChar": 44,
+        "endLine": 103,
+        "endChar": 46
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9bc4630f_34455376",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T20:24:43Z",
+      "side": 1,
+      "message": "nit: + (assuming we need a newline before the +---+)",
+      "range": {
+        "startLine": 109,
+        "startChar": 61,
+        "endLine": 109,
+        "endChar": 62
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cea068a4_dfa3b300",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T20:24:43Z",
+      "side": 1,
+      "message": "nit: could just replace with \"\", right?",
+      "range": {
+        "startLine": 119,
+        "startChar": 45,
+        "endLine": 119,
+        "endChar": 48
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f5c4628b_6b3e83be",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T20:24:43Z",
+      "side": 1,
+      "message": "FYI: Color values tend to be written in the same format.",
+      "range": {
+        "startLine": 124,
+        "startChar": 5,
+        "endLine": 124,
+        "endChar": 30
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4c2b887_0ccec605",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T20:24:43Z",
+      "side": 1,
+      "message": "nit: Doc should mention expr should have exactly one capturing group.\n\nCould also give an error/warning if re.NumSubexp() !\u003d 1.",
+      "range": {
+        "startLine": 134,
+        "startChar": 5,
+        "endLine": 134,
+        "endChar": 17
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "973be3f9_79c79dfa",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T20:24:43Z",
+      "side": 1,
+      "message": "nit: We might consider limiting this to e.g. 5kB.",
+      "range": {
+        "startLine": 223,
+        "startChar": 21,
+        "endLine": 223,
+        "endChar": 22
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "089401af_670064cf",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T20:24:43Z",
+      "side": 1,
+      "message": "FYI: Swarming limits output to 16MB, which should be small enough to process in-memory.",
+      "range": {
+        "startLine": 232,
+        "startChar": 1,
+        "endLine": 232,
+        "endChar": 4
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6998c99_8e1d05f8",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T20:24:43Z",
+      "side": 1,
+      "message": "nit: It doesn\u0027t seem like you\u0027re really using the cache as a cache. Seems better to just use taskDb.GetModifiedTasks() and taskDb.GetTasksFromDateRange() for now, and if you need other caching functionality in the future, just create a specialized cache. (Unfortunately due to lack of subclassing in golang, it\u0027s difficult to share functionality from db.TaskCache.)",
+      "range": {
+        "startLine": 252,
+        "startChar": 19,
+        "endLine": 252,
+        "endChar": 53
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d198a62b_a0cd137c",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-26T20:24:43Z",
+      "side": 1,
+      "message": "nit: Looks scary. Maybe comment that it\u0027s limited by the cache window.",
+      "range": {
+        "startLine": 263,
+        "startChar": 50,
+        "endLine": 263,
+        "endChar": 61
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
