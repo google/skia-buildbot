@@ -34,7 +34,7 @@ const (
 )
 
 func TestPDFProcessor(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
 	// Get the service account client from meta data or a local config file.
