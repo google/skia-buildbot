@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f9de81bc_7d52231e",
+        "filename": "bash/skolo.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-06-26T15:26:05Z",
+      "side": 1,
+      "message": "This is skolo_win, not sure why the underscores aren\u0027t showing up in the diff.",
+      "revId": "83fb7d26b1af3df146cfc4f7dae54934dc63ad78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
