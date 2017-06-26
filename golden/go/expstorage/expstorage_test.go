@@ -222,6 +222,13 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 		logEntries, _, err = store.QueryLog(0, 100, true)
 		assert.NoError(t, err)
 
+		for i, e := range logEntries {
+			t.Logf("logEntries[%d]: %v", i, e)
+			for j, d := range e.Details {
+				t.Logf("logEntries[%d].Details[%d]: %v", i, j, d)
+			}
+		}
+
 		// Check the first addition.
 		firstAdd := logEntries[len(logEntries)-1]
 		secondAdd := logEntries[len(logEntries)-2]
