@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4cc49b90_9161d613",
+        "filename": "bash/skolo.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-06-26T16:48:33Z",
+      "side": 1,
+      "message": "Moved. Also updated the skolo/README.md to point out the existence of the file.",
+      "parentUuid": "3de141a8_90155bda",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 11
+      },
+      "revId": "83fb7d26b1af3df146cfc4f7dae54934dc63ad78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f9de81bc_7d52231e",
         "filename": "bash/skolo.sh",
         "patchSetId": 2
