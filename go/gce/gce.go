@@ -65,7 +65,8 @@ const (
 	SETUP_SCRIPT_KEY_WIN    = "sysprep-oobe-script-ps1"
 	SETUP_SCRIPT_PATH_LINUX = "/tmp/setup-script.sh"
 
-	USER_DEFAULT = "default"
+	USER_CHROME_BOT = "chrome-bot"
+	USER_DEFAULT    = "default"
 
 	ZONE_CENTRAL1_B = "us-central1-b"
 	ZONE_CENTRAL1_C = "us-central1-c"
@@ -813,7 +814,7 @@ func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool) error {
 		// creation. It holds the dpkg lock and it reboots the instance
 		// when finished, so we need to wait for it to complete before
 		// performing our own setup.
-		sklog.Infof("Waiting for setup on %s to complete.", vm.Name)
+		/*sklog.Infof("Waiting for setup on %s to complete.", vm.Name)
 		if _, err := g.Ssh(vm, "sleep", "300"); err != nil {
 			sklog.Infof("Setup finished on %s", vm.Name)
 		} else {
@@ -829,7 +830,7 @@ func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool) error {
 
 		if err := g.WaitForInstanceReady(vm, maxWaitTime); err != nil {
 			return err
-		}
+		}*/
 	}
 
 	// Format and mount.
