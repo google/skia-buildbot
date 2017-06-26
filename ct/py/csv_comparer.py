@@ -14,10 +14,12 @@ import re
 import sys
 import tempfile
 
+import django
 from django.template import loader
 
 # Add the django settings file to DJANGO_SETTINGS_MODULE.
 os.environ['DJANGO_SETTINGS_MODULE'] = 'csv-django-settings'
+django.setup()
 
 GS_HTML_BROWSER_LINK = (
     'https://console.cloud.google.com/storage/browser/cluster-telemetry')

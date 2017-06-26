@@ -21,8 +21,6 @@ import (
 const (
 	GS_URL_GITCONFIG = "gs://skia-buildbots/artifacts/bots/.gitconfig"
 	GS_URL_NETRC     = "gs://skia-buildbots/artifacts/bots/.netrc"
-
-	USER_CHROME_BOT = "chrome-bot"
 )
 
 var (
@@ -69,7 +67,7 @@ func CT20170602(name string) *gce.Instance {
 		},
 		SetupScript: path.Join(dir, "setup-script.sh"),
 		Tags:        []string{"use-swarming-auth"},
-		User:        USER_CHROME_BOT,
+		User:        gce.USER_CHROME_BOT,
 	}
 }
 
