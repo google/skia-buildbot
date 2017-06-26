@@ -23,7 +23,7 @@ const LOCAL_STATUS_DIR = "./ingestion_status"
 const RFLOCATION_CONTENT = "result file content"
 
 func TestPollingIngester(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	testIngester(t, LOCAL_STATUS_DIR+"-polling")
 }
 
