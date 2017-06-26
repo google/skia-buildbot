@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7be9bdae_74f29b8c",
+        "filename": "perf/res/imp/cluster-page.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-06-26T16:39:04Z",
+      "side": 1,
+      "message": "Then you would never be able to enter a 0 to indicate you wanted to use the default.",
+      "parentUuid": "92e9cb33_b144a034",
+      "range": {
+        "startLine": 130,
+        "startChar": 37,
+        "endLine": 130,
+        "endChar": 38
+      },
+      "revId": "2924cbb66c659e39ad01255b884c9813f9f8d91c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "44441843_1465b3e8",
         "filename": "perf/res/imp/cluster-page.html",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2017-06-26T16:19:36Z",
       "side": 1,
       "message": "Is this a string because paper-input needs a string?\n\nIf it\u0027s a problem with sk.stateReflector, we should either fix it or update the documentation to say it doesn\u0027t handle numbers correctly.",
+      "range": {
+        "startLine": 180,
+        "startChar": 10,
+        "endLine": 180,
+        "endChar": 38
+      },
+      "revId": "2924cbb66c659e39ad01255b884c9813f9f8d91c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "681fb7a8_cdb2ccdf",
+        "filename": "perf/res/imp/cluster-page.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-06-26T16:39:04Z",
+      "side": 1,
+      "message": "This is a problem with paper-input, as its value is only a string, even if type\u003dnumber.",
+      "parentUuid": "44441843_1465b3e8",
       "range": {
         "startLine": 180,
         "startChar": 10,
