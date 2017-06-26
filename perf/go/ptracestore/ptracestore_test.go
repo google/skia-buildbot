@@ -151,7 +151,7 @@ func TestBuildMapper(t *testing.T) {
 }
 
 func TestMatch(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	setupStoreDir(t)
 	defer cleanup()
 
