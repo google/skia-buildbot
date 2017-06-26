@@ -17,7 +17,7 @@ import (
 
 const (
 	DEFAULT_OS       = DEFAULT_OS_LINUX
-	DEFAULT_OS_LINUX = "Ubuntu-14.04"
+	DEFAULT_OS_LINUX = "Debian-9.0"
 
 	// Pool for Skia bots.
 	POOL_SKIA = "Skia"
