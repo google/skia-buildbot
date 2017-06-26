@@ -72,7 +72,7 @@ func (m mockCommits) List(branch, target, endBuildID string) (map[string]*vcsinf
 }
 
 func TestInfo(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	levelDBDir := filepath.Join(os.TempDir(), "android-leveldb")
 	defer util.RemoveAll(levelDBDir)
 
