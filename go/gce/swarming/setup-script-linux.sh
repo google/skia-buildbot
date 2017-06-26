@@ -12,7 +12,7 @@ mysql -uroot -ptmp_pass -e "SET PASSWORD = PASSWORD('');"
 
 sudo npm install -g npm@3.10.9
 sudo npm install -g bower@1.6.5
-sudo npm install -g polylint@2.4.3
+sudo npm install -g polylint@2.10.4
 
 sudo pip install coverage
 sudo apt-get -y --purge remove apache2*
