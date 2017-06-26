@@ -226,6 +226,33 @@ func ContainsAnyMap(parent map[string]string, children ...map[string]string) boo
 	return false
 }
 
+// ContainsMapWithSliceValues checks if child map is contained within the
+// parent map.
+func ContainsMapInSliceValues(parent map[string][]string, child map[string]string) bool {
+	if len(child) > len(parent) {
+		return false
+	}
+	// Since we know child is less than or equal to parent we only need to
+	// compare child's values to parent's values.
+	for k, v := range child {
+		if pv, ok := parent[k]; !ok || !In(v, pv) {
+			return false
+		}
+	}
+	return true
+}
+
+// ContainsAnyMapWithSliceValues checks to see if any of the children maps are
+// contained in the parent map.
+func ContainsAnyMapInSliceValues(parent map[string][]string, children ...map[string]string) bool {
+	for _, child := range children {
+		if ContainsMapInSliceValues(parent, child) {
+			return true
+		}
+	}
+	return false
+}
+
 // MaxInt returns the largest integer of the arguments provided.
 func MaxInt(intList ...int) int {
 	ret := intList[0]
