@@ -125,8 +125,9 @@
         <h2>Advanced</h2>
       </summary-sk>
       <div id=inputs>
-        <paper-input type=number min=0 max=100 value="{{state.k}}"      label="K (A value of 0 means the server chooses)."></paper-input>
-        <paper-input type=number min=1 max=25  value="{{state.radius}}" label="Number of commits to include on either side."></paper-input>
+        <paper-input type=number min=0 max=100  value="{{state.k}}"           label="K (A value of 0 means the server chooses)."></paper-input>
+        <paper-input type=number min=1 max=25   value="{{state.radius}}"      label="Number of commits to include on either side."></paper-input>
+        <paper-input type=number min=0 max=500  value="{{state.interesting}}" label="Clusters are interesting if regression score >= this."></paper-input>
       </div>
     </details-sk>
 
@@ -176,10 +177,11 @@
           end: Math.floor(Date.now()/1000),
           source: "",
           offset: -1,
-          radius: sk.perf.radius,
+          radius: "" + sk.perf.radius,
           query: "",
-          k: 0,
+          k: "" + 0,
           algo: "kmeans",
+          interesting: "" + sk.perf.interesting,
         }; },
       },
       // The id of the current cluster request. Will be the empty string
@@ -254,6 +256,7 @@
         k: +this.state.k,
         tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
         algo: this.state.algo,
+        interesting: +this.state.interesting,
       };
       this._summaries = [];
       this.$.results.render();

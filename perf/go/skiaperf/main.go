@@ -113,9 +113,10 @@ func loadTemplates() {
 // SkPerfConfig is the configuration data that will appear
 // in Javascript under the sk.perf variable.
 type SkPerfConfig struct {
-	Radius   int      `json:"radius"`    // The number of commits when doing clustering.
-	KeyOrder []string `json:"key_order"` // The order of the keys to appear first in query2-sk elements.
-	NumShift int      `json:"num_shift"` // The number of commits the shift navigation buttons should jump.
+	Radius      int      `json:"radius"`      // The number of commits when doing clustering.
+	KeyOrder    []string `json:"key_order"`   // The order of the keys to appear first in query2-sk elements.
+	NumShift    int      `json:"num_shift"`   // The number of commits the shift navigation buttons should jump.
+	Interesting float32  `json:"interesting"` // The threshhold for a cluster to be interesting.
 }
 
 func templateHandler(name string) http.HandlerFunc {
@@ -125,9 +126,10 @@ func templateHandler(name string) http.HandlerFunc {
 			loadTemplates()
 		}
 		context := SkPerfConfig{
-			Radius:   *radius,
-			KeyOrder: strings.Split(*keyOrder, ","),
-			NumShift: *numShift,
+			Radius:      *radius,
+			KeyOrder:    strings.Split(*keyOrder, ","),
+			NumShift:    *numShift,
+			Interesting: float32(*interesting),
 		}
 		b, err := json.MarshalIndent(context, "", "  ")
 		if err != nil {

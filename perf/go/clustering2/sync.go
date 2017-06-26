@@ -9,15 +9,14 @@ import (
 )
 
 // Run takes a ClusterRequest and runs it to completion before returning the results.
-func Run(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, interesting float32) (*ClusterResponse, error) {
+func Run(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup) (*ClusterResponse, error) {
 	proc := &ClusterRequestProcess{
-		request:     req,
-		git:         git,
-		cidl:        cidl,
-		lastUpdate:  time.Now(),
-		state:       PROCESS_RUNNING,
-		message:     "Running",
-		interesting: interesting,
+		request:    req,
+		git:        git,
+		cidl:       cidl,
+		lastUpdate: time.Now(),
+		state:      PROCESS_RUNNING,
+		message:    "Running",
 	}
 	proc.Run()
 	if proc.state == PROCESS_ERROR {
