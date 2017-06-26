@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "3de141a8_90155bda",
+        "filename": "bash/skolo.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-26T16:08:38Z",
+      "side": 1,
+      "message": "IMO this file belongs in the skolo/ dir.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 11
+      },
+      "revId": "83fb7d26b1af3df146cfc4f7dae54934dc63ad78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f9de81bc_7d52231e",
         "filename": "bash/skolo.sh",
         "patchSetId": 2
@@ -13,6 +36,24 @@
       "writtenOn": "2017-06-26T15:26:05Z",
       "side": 1,
       "message": "This is skolo_win, not sure why the underscores aren\u0027t showing up in the diff.",
+      "revId": "83fb7d26b1af3df146cfc4f7dae54934dc63ad78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7c045d97_aacc6ecb",
+        "filename": "bash/skolo.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-06-26T16:08:38Z",
+      "side": 1,
+      "message": "I see them",
+      "parentUuid": "f9de81bc_7d52231e",
       "revId": "83fb7d26b1af3df146cfc4f7dae54934dc63ad78",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
