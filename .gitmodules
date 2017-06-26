@@ -1,0 +1,111 @@
+[submodule "vendor/cloud.google.com/go"]
+	path = vendor/cloud.google.com/go
+	url = https://code.googlesource.com/gocloud
+[submodule "vendor/github.com/BurntSushi/toml"]
+	path = vendor/github.com/BurntSushi/toml
+	url = https://github.com/BurntSushi/toml
+[submodule "vendor/github.com/boltdb/bolt"]
+	path = vendor/github.com/boltdb/bolt
+	url = https://github.com/boltdb/bolt
+[submodule "vendor/github.com/cenkalti/backoff"]
+	path = vendor/github.com/cenkalti/backoff
+	url = https://github.com/cenkalti/backoff
+[submodule "vendor/github.com/davecgh/go-spew"]
+	path = vendor/github.com/davecgh/go-spew
+	url = https://github.com/davecgh/go-spew
+[submodule "vendor/github.com/fiorix/go-web"]
+	path = vendor/github.com/fiorix/go-web
+	url = https://github.com/fiorix/go-web
+[submodule "vendor/github.com/flynn/json5"]
+	path = vendor/github.com/flynn/json5
+	url = https://github.com/flynn/json5
+[submodule "vendor/github.com/go-sql-driver/mysql"]
+	path = vendor/github.com/go-sql-driver/mysql
+	url = https://github.com/go-sql-driver/mysql
+[submodule "vendor/github.com/golang/groupcache"]
+	path = vendor/github.com/golang/groupcache
+	url = https://github.com/golang/groupcache
+[submodule "vendor/github.com/golang/protobuf"]
+	path = vendor/github.com/golang/protobuf
+	url = https://github.com/golang/protobuf
+[submodule "vendor/github.com/gorilla/mux"]
+	path = vendor/github.com/gorilla/mux
+	url = https://github.com/gorilla/mux
+[submodule "vendor/github.com/gorilla/securecookie"]
+	path = vendor/github.com/gorilla/securecookie
+	url = https://github.com/gorilla/securecookie
+[submodule "vendor/github.com/hashicorp/golang-lru"]
+	path = vendor/github.com/hashicorp/golang-lru
+	url = https://github.com/hashicorp/golang-lru
+[submodule "vendor/github.com/huin/goserial"]
+	path = vendor/github.com/huin/goserial
+	url = https://github.com/huin/goserial
+[submodule "vendor/github.com/jmoiron/sqlx"]
+	path = vendor/github.com/jmoiron/sqlx
+	url = https://github.com/jmoiron/sqlx
+[submodule "vendor/github.com/luci/luci-go"]
+	path = vendor/github.com/luci/luci-go
+	url = https://github.com/luci/luci-go
+[submodule "vendor/github.com/nfnt/resize"]
+	path = vendor/github.com/nfnt/resize
+	url = https://github.com/nfnt/resize
+[submodule "vendor/github.com/patrickmn/go-cache"]
+	path = vendor/github.com/patrickmn/go-cache
+	url = https://github.com/patrickmn/go-cache
+[submodule "vendor/github.com/petar/GoLLRB"]
+	path = vendor/github.com/petar/GoLLRB
+	url = https://github.com/petar/GoLLRB
+[submodule "vendor/github.com/pmezard/go-difflib"]
+	path = vendor/github.com/pmezard/go-difflib
+	url = https://github.com/pmezard/go-difflib
+[submodule "vendor/github.com/prometheus/client_golang"]
+	path = vendor/github.com/prometheus/client_golang
+	url = https://github.com/prometheus/client_golang
+[submodule "vendor/github.com/prometheus/common"]
+	path = vendor/github.com/prometheus/common
+	url = https://github.com/prometheus/common
+[submodule "vendor/github.com/robfig/go-cache"]
+	path = vendor/github.com/robfig/go-cache
+	url = https://github.com/robfig/go-cache
+[submodule "vendor/github.com/russross/blackfriday"]
+	path = vendor/github.com/russross/blackfriday
+	url = https://github.com/russross/blackfriday
+[submodule "vendor/github.com/satori/go.uuid"]
+	path = vendor/github.com/satori/go.uuid
+	url = https://github.com/satori/go.uuid
+[submodule "vendor/github.com/skia-dev/glog"]
+	path = vendor/github.com/skia-dev/glog
+	url = https://github.com/skia-dev/glog
+[submodule "vendor/github.com/skia-dev/go-systemd"]
+	path = vendor/github.com/skia-dev/go-systemd
+	url = https://github.com/skia-dev/go-systemd
+[submodule "vendor/github.com/stretchr/testify"]
+	path = vendor/github.com/stretchr/testify
+	url = https://github.com/stretchr/testify
+[submodule "vendor/github.com/syndtr/goleveldb"]
+	path = vendor/github.com/syndtr/goleveldb
+	url = https://github.com/syndtr/goleveldb
+[submodule "vendor/github.com/zeebo/bencode"]
+	path = vendor/github.com/zeebo/bencode
+	url = https://github.com/zeebo/bencode
+[submodule "vendor/golang.org/x/crypto"]
+	path = vendor/golang.org/x/crypto
+	url = https://go.googlesource.com/crypto
+[submodule "vendor/golang.org/x/net"]
+	path = vendor/golang.org/x/net
+	url = https://go.googlesource.com/net
+[submodule "vendor/golang.org/x/oauth2"]
+	path = vendor/golang.org/x/oauth2
+	url = https://go.googlesource.com/oauth2
+[submodule "vendor/golang.org/x/sync"]
+	path = vendor/golang.org/x/sync
+	url = https://go.googlesource.com/sync
+[submodule "vendor/google.golang.org/api"]
+	path = vendor/google.golang.org/api
+	url = https://code.googlesource.com/google-api-go-client
+[submodule "vendor/google.golang.org/grpc"]
+	path = vendor/google.golang.org/grpc
+	url = https://github.com/grpc/grpc-go
+[submodule "vendor/gopkg.in/yaml.v2"]
+	path = vendor/gopkg.in/yaml.v2
+	url = https://gopkg.in/yaml.v2
