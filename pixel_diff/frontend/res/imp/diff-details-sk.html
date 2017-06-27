@@ -1,0 +1,91 @@
+<!-- The <diff-details-sk> custom element delcaration.
+
+  Displays the details about a diff.
+-->
+
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="../common/imp/paramset.html">
+<link rel="import" href="../common/imp/triage-sk.html">
+
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="diff-details-sk">
+  <template>
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <style include="shared-styles"></style>
+    <style>
+      .hidden * {
+        display: none;
+      }
+
+      .preview {
+        margin: 5px;
+        border: solid 2px lightgray;
+        display: block;
+        width: 300px;
+        height: 215px;
+      }
+
+      .preview img {
+        display: block;
+        max-width: 300px;
+        max-height: 215px;
+        width: auto;
+        height: auto;
+      }
+
+      .detailContainer {
+        margin: 2em 0 0 2em;
+      }
+    </style>
+  <div class="horizontal layout wrap">
+    <div class="preview">
+      <img src$="{{_imageHref(images.left)}}">
+    </div>
+    <div class="preview">
+      <img src$="{{_imageHref(images.right)}}">
+    </div>
+    <div class="preview">
+      <img src$="{{_diffImageHref(images.left, images.right)}}">
+    </div>
+    <table border="0" cellspacing="5" cellpadding="5">
+      <tr><th>Diff Metric</th><th>Value</th>
+      <tr><td>Number of Different Pixels</td><td>{{diffmetrics.numDiffPixels}}</td></tr>
+      <tr><td>Percentage of Different Pixels</td><td>{{diffmetrics.pixelDiffPercent}}</td></tr>
+      <tr><td>Max Red, Green, Blue, Alpha Diffs</td><td>{{diffmetrics.maxRGBADiffs}}</td></tr>
+    </table>
+    </div>
+    </div>
+  </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'diff-details-sk',
+
+      properties: {
+        details: {
+          type: Object,
+          value: function() { return {}; },
+        }
+      },
+
+      ready: function() {},
+
+      _noData: function(details) {
+        return !(details && details.images);
+      },
+
+      _imageHref: function(image) {
+        return gold.imgHref(image);
+      },
+
+      _diffImageHref: function(left, right) {
+        return gold.diffImgHref(left, right);
+      }
+
+
+    })
+  </script>
+</dom-module>
