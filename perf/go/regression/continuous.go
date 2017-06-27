@@ -22,13 +22,14 @@ type Continuous struct {
 	radius      int
 	interesting float32
 	algo        clustering2.ClusterAlgo
+	stepUpOnly  bool // Only record step up's, no down's.
 }
 
 // NewContinuous creates a new *Continuous.
 //
 // queries is a slice of URL query encoded to perform against the datastore to
 // determine which traces participate in clustering.
-func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, queries []string, store *Store, numCommits int, radius int, interesting float32, algo clustering2.ClusterAlgo) *Continuous {
+func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, queries []string, store *Store, numCommits int, radius int, interesting float32, algo clustering2.ClusterAlgo, stepUpOnly bool) *Continuous {
 	return &Continuous{
 		git:         git,
 		cidl:        cidl,
@@ -38,6 +39,7 @@ func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, queries []str
 		radius:      radius,
 		interesting: interesting,
 		algo:        algo,
+		stepUpOnly:  stepUpOnly,
 	}
 }
 
@@ -105,7 +107,7 @@ func (c *Continuous) Run() {
 				// Update database if regression at the midpoint is found.
 				for _, cl := range resp.Summary.Clusters {
 					if cl.StepPoint.Offset == int64(commit.Index) {
-						if cl.StepFit.Status == stepfit.LOW {
+						if cl.StepFit.Status == stepfit.LOW && !c.stepUpOnly {
 							if err := c.store.SetLow(details[0], q, resp.Frame, cl); err != nil {
 								sklog.Errorf("Failed to save newly found cluster: %s", err)
 							}
