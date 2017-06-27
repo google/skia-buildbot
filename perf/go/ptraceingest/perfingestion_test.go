@@ -77,7 +77,7 @@ func TestBenchData(t *testing.T) {
 
 // Tests the processor in conjunction with the vcs.
 func TestPerfProcessor(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	orig := ptracestore.Default
 	dir, err := ioutil.TempDir("", "ptrace")
 	assert.NoError(t, err)
