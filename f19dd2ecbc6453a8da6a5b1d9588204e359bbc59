@@ -22,6 +22,30 @@
       "revId": "f19dd2ecbc6453a8da6a5b1d9588204e359bbc59",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52a5326d_852fa46e",
+        "filename": "perf/go/clustering2/async.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-27T17:29:28Z",
+      "side": 1,
+      "message": "Nevermind; fence-post error.",
+      "parentUuid": "e51f24a2_54e7fb21",
+      "range": {
+        "startLine": 282,
+        "startChar": 20,
+        "endLine": 282,
+        "endChar": 21
+      },
+      "revId": "f19dd2ecbc6453a8da6a5b1d9588204e359bbc59",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
