@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "37fb9a39_7eb5e50c",
+        "filename": "golden/go/diff/diff.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-27T06:27:46Z",
+      "side": 1,
+      "message": "nit: \"takes\"",
+      "range": {
+        "startLine": 130,
+        "startChar": 37,
+        "endLine": 130,
+        "endChar": 41
+      },
+      "revId": "7502180687313525367f9861ef3baa1f84afdefd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6cd1f6f_99a1cb0d",
+        "filename": "golden/go/diff/metrics.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-06-27T06:27:46Z",
+      "side": 1,
+      "message": "Nit: This should have a line indicating that it is implementing the DiffFn function type.",
+      "revId": "7502180687313525367f9861ef3baa1f84afdefd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
