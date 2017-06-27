@@ -12,14 +12,15 @@ import os
 import posixpath
 import sys
 
-from django.template import loader
-
 sys.path.append(
     os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 import json_summary_constants
 
 # Add the django settings file to DJANGO_SETTINGS_MODULE.
+import django
 os.environ['DJANGO_SETTINGS_MODULE'] = 'csv-django-settings'
+django.setup()
+from django.template import loader
 
 STORAGE_HTTP_BASE = 'http://storage.cloud.google.com'
 

@@ -2,10 +2,12 @@ package expstorage
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
@@ -196,6 +198,8 @@ func (s *SQLExpectationsStore) getExpectationsAt(changeInfo *TriageLogEntry) (ma
 	// Add the necessary amount of placeholders to the SQL query.
 	stmt := fmt.Sprintf(stmtTmpl, strings.Join(placeHolders, ","))
 
+	sklog.Errorf("TS: %d; stmt: %q; args: %v", changeInfo.TS, regexp.MustCompile(`\s+`).ReplaceAllString(stmt, " "), listArgs)
+
 	// Fetch the records we are interested in.
 	rows, err := s.vdb.DB.Query(stmt, listArgs...)
 	if err != nil {
@@ -208,6 +212,7 @@ func (s *SQLExpectationsStore) getExpectationsAt(changeInfo *TriageLogEntry) (ma
 		if err = rows.Scan(&name, &digest, &label); err != nil {
 			return nil, err
 		}
+		sklog.Errorf("name: %s; digest: %s; label: %s", name, digest, label)
 		ret[name][digest] = types.LabelFromString(label)
 	}
 

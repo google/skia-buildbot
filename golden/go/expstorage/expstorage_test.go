@@ -1,6 +1,7 @@
 package expstorage
 
 import (
+	"database/sql"
 	"fmt"
 	"sort"
 	"testing"
@@ -222,14 +223,56 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 		logEntries, _, err = store.QueryLog(0, 100, true)
 		assert.NoError(t, err)
 
+		for i, e := range logEntries {
+			t.Logf("logEntries[%d]: %v", i, e)
+			for j, d := range e.Details {
+				t.Logf("logEntries[%d].Details[%d]: %v", i, j, d)
+			}
+		}
+
 		// Check the first addition.
 		firstAdd := logEntries[len(logEntries)-1]
 		secondAdd := logEntries[len(logEntries)-2]
 		secondUndo := logEntries[len(logEntries)-5]
 
 		checkExpectationsAt(t, sqlStore, firstAdd, "first")
+		sqlStore.dumpExpChangeTable(t)
+		sqlStore.dumpExpTestChangeTable(t)
 		checkExpectationsAt(t, sqlStore, secondAdd, "second")
 		checkExpectationsAt(t, sqlStore, secondUndo, "third")
+	}
+}
+
+func (s *SQLExpectationsStore) dumpExpChangeTable(t *testing.T) {
+	rows, err := s.vdb.DB.Query(`SELECT id, userid, ts, undo_changeid FROM exp_change ORDER BY ts ASC, id ASC`)
+	assert.NoError(t, err)
+	defer util.Close(rows)
+
+	var id, ts, undo_changeid int64
+	var userid string
+	for rows.Next() {
+		err = rows.Scan(&id, &userid, &ts, &undo_changeid)
+		assert.NoError(t, err)
+		t.Logf("exp_change %d: userid: %s; ts: %d; undo_changeid: %d", id, userid, ts, undo_changeid)
+	}
+}
+
+func (s *SQLExpectationsStore) dumpExpTestChangeTable(t *testing.T) {
+	rows, err := s.vdb.DB.Query(`SELECT changeid, name, digest, label, removed FROM exp_test_change ORDER BY changeid ASC, name ASC, digest ASC, removed ASC, label ASC`)
+	assert.NoError(t, err)
+	defer util.Close(rows)
+
+	var changeid int64
+	var name, digest, label string
+	var removed sql.NullInt64
+	for rows.Next() {
+		err = rows.Scan(&changeid, &name, &digest, &label, &removed)
+		assert.NoError(t, err)
+		removedStr := "NULL"
+		if removed.Valid {
+			removedStr = fmt.Sprintf("%d", removed.Int64)
+		}
+		t.Logf("exp_test_change (%d, %s, %s): label: %s; removed: %s", changeid, name, digest, label, removedStr)
 	}
 }
 
