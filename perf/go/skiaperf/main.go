@@ -79,6 +79,7 @@ var (
 	ptraceStoreDir = flag.String("ptrace_store_dir", "/tmp/ptracestore", "The directory where the ptracestore tiles are stored.")
 	radius         = flag.Int("radius", 7, "The number of commits to include on either side of a commit when clustering.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	stepUpOnly     = flag.Bool("step_up_only", false, "Only regressions that look like a step up will be reported.")
 )
 
 var (
@@ -113,10 +114,11 @@ func loadTemplates() {
 // SkPerfConfig is the configuration data that will appear
 // in Javascript under the sk.perf variable.
 type SkPerfConfig struct {
-	Radius      int      `json:"radius"`      // The number of commits when doing clustering.
-	KeyOrder    []string `json:"key_order"`   // The order of the keys to appear first in query2-sk elements.
-	NumShift    int      `json:"num_shift"`   // The number of commits the shift navigation buttons should jump.
-	Interesting float32  `json:"interesting"` // The threshhold for a cluster to be interesting.
+	Radius      int      `json:"radius"`       // The number of commits when doing clustering.
+	KeyOrder    []string `json:"key_order"`    // The order of the keys to appear first in query2-sk elements.
+	NumShift    int      `json:"num_shift"`    // The number of commits the shift navigation buttons should jump.
+	Interesting float32  `json:"interesting"`  // The threshhold for a cluster to be interesting.
+	StepUpOnly  bool     `json:"step_up_only"` // If true then only regressions that are a step up are displayed.
 }
 
 func templateHandler(name string) http.HandlerFunc {
@@ -130,6 +132,7 @@ func templateHandler(name string) http.HandlerFunc {
 			KeyOrder:    strings.Split(*keyOrder, ","),
 			NumShift:    *numShift,
 			Interesting: float32(*interesting),
+			StepUpOnly:  *stepUpOnly,
 		}
 		b, err := json.MarshalIndent(context, "", "  ")
 		if err != nil {
@@ -177,7 +180,7 @@ func Init() {
 
 	// Start running continuous clustering looking for regressions.
 	queries := strings.Split(*clusterQueries, " ")
-	continuous = regression.NewContinuous(git, cidl, queries, regStore, *numContinuous, *radius, float32(*interesting), clusterAlgo)
+	continuous = regression.NewContinuous(git, cidl, queries, regStore, *numContinuous, *radius, float32(*interesting), clusterAlgo, *stepUpOnly)
 	go continuous.Run()
 }
 

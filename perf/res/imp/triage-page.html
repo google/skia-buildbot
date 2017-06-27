@@ -75,6 +75,10 @@
     summary-sk h2 {
       display: inline;
     }
+
+    th {
+      padding: 0 1em;
+    }
   </style>
   <template>
     <details-sk open>
@@ -106,27 +110,34 @@
           <th colspan=2><query-summary-sk selection="[[item]]"></query-summary-sk></th>
         </template>
       </tr>
-      <tr>
-        <th></th>
-        <template is="dom-repeat" items="[[_reg.header]]">
-          <th>Low</th>
-          <th>High</th>
-        </template>
-      </tr>
+      <template is="dom-if" if="[[_not(_stepUpOnly)]]">
+        <tr>
+          <th></th>
+          <template is="dom-repeat" items="[[_reg.header]]">
+            <th>Low</th>
+            <th>High</th>
+          </template>
+        </tr>
+      </template>
       <template is="dom-repeat" items="[[_reg.table]]" index-as="tableIndex">
         <tr>
           <td class=fixed>
             <commit-detail-sk cid="[[item.cid]]"></commit-detail-sk>
           </td>
           <template is="dom-repeat" items="[[item.columns]]">
-            <td class=cluster>
-              <template is="dom-if" if="[[item.low]]">
-                <triage-status-sk query="[[_queryFrom(index)]]" cluster_type=low full_summary="[[_full_summary(item.frame, item.low)]]" triage="[[item.low_status]]"></triage-status-sk>
-              </template>
-              <template is="dom-if" if="[[_not(item.low)]]">
-                <a class=dot title="No clusters found." href="/g/c/[[_hashFrom(tableIndex)]]?query=[[_encQueryFrom(index)]]">[[_display(tableIndex,state.end)]]</a>
-              </template>
-            </td>
+            <template is="dom-if" if="[[_not(_stepUpOnly)]]">
+              <td class=cluster>
+                <template is="dom-if" if="[[item.low]]">
+                  <triage-status-sk query="[[_queryFrom(index)]]" cluster_type=low full_summary="[[_full_summary(item.frame, item.low)]]" triage="[[item.low_status]]"></triage-status-sk>
+                </template>
+                <template is="dom-if" if="[[_not(item.low)]]">
+                  <a class=dot title="No clusters found." href="/g/c/[[_hashFrom(tableIndex)]]?query=[[_encQueryFrom(index)]]">[[_display(tableIndex,state.end)]]</a>
+                </template>
+              </td>
+            </template>
+            <template is="dom-if" if="[[_stepUpOnly]]">
+              <td></td><!-- Dummy column for colspan. -->
+            </template>
             <td class=cluster>
               <template is="dom-if" if="[[item.high]]">
                 <triage-status-sk query="[[_queryFrom(index)]]" cluster_type=high full_summary="[[_full_summary(item.frame, item.high)]]" triage="[[item.high_status]]"></triage-status-sk>
@@ -167,6 +178,10 @@
         _triageInProgress: {
           type: Boolean,
           value: false,
+        },
+        _stepUpOnly: {
+          type: Boolean,
+          value: sk.perf.step_up_only,
         }
       },
 
