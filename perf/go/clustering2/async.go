@@ -276,6 +276,9 @@ func tooMuchMissingData(tr ptracestore.Trace) bool {
 		return false
 	}
 	n := len(tr) / 2
+	if tr[n] == vec32.MISSING_DATA_SENTINEL {
+		return true
+	}
 	return missing(tr[:n]) || missing(tr[len(tr)-n:])
 }
 

@@ -30,6 +30,11 @@ func TestTooMuchMissingData(t *testing.T) {
 			message:  "exactly 50%",
 		},
 		{
+			value:    ptracestore.Trace{1, 1, e, 1, 1},
+			expected: true,
+			message:  "missing midpoint",
+		},
+		{
 			value:    ptracestore.Trace{e, e, 1, 1},
 			expected: true,
 			message:  "missing one side - even",
