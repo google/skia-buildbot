@@ -65,12 +65,6 @@ func AndroidO() *gce.Instance {
 	return AddAndroidConfigs(AutoRollBase("android-o-autoroll", "104.198.73.244" /* Needs whitelisted static IP */))
 }
 
-func Test() *gce.Instance {
-	vm := AutoRollBase("borenet-instance-creation-test", "")
-	server.AddGitConfigs(vm, "skia-autoroll") // Hack. Copy the skia-autoroll creds.
-	return vm
-}
-
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
 		"skia":           Skia(),
@@ -80,6 +74,5 @@ func main() {
 		"pdfium":         PDFium(),
 		"android-master": AndroidMaster(),
 		"android-o":      AndroidO(),
-		"test":           Test(),
 	})
 }

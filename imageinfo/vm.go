@@ -26,13 +26,8 @@ func Prod() *gce.Instance {
 	return ImageInfoBase("skia-imageinfo", "104.154.112.127")
 }
 
-func Test() *gce.Instance {
-	return ImageInfoBase("borenet-vm-creation-test", "")
-}
-
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
 		"prod": Prod(),
-		"test": Test(),
 	})
 }
