@@ -65,7 +65,8 @@ const (
 	SETUP_SCRIPT_KEY_WIN    = "sysprep-oobe-script-ps1"
 	SETUP_SCRIPT_PATH_LINUX = "/tmp/setup-script.sh"
 
-	USER_DEFAULT = "default"
+	USER_CHROME_BOT = "chrome-bot"
+	USER_DEFAULT    = "default"
 
 	ZONE_CENTRAL1_B = "us-central1-b"
 	ZONE_CENTRAL1_C = "us-central1-c"
