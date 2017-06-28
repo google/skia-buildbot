@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f0b665c9_27b8e55b",
+        "filename": "go/gce/cmd/find_unused_disks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-28T14:35:34Z",
+      "side": 1,
+      "message": "nit: Should probably write to os.Stdout rather than using sklog, otherwise will be very confusing if someone forgets --logtostderr.\n\nThis may or may not be helpful: https://skia.googlesource.com/buildbot/+/36bc3b06314f3f1968342f40b3a4adf19f5515ad/skolo/go/win/gen-unattend/gen-unattend.go#122",
+      "range": {
+        "startLine": 58,
+        "startChar": 2,
+        "endLine": 58,
+        "endChar": 13
+      },
+      "revId": "0b54d4788b42e221d86f3c92c5276e2f488f2b43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e54f0e41_13421ca3",
+        "filename": "go/gce/cmd/find_unused_disks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-28T14:35:34Z",
+      "side": 1,
+      "message": "nit: sklog.Infof(\"Deleting %s...\", name)",
+      "range": {
+        "startLine": 102,
+        "startChar": 4,
+        "endLine": 102,
+        "endChar": 6
+      },
+      "revId": "0b54d4788b42e221d86f3c92c5276e2f488f2b43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47722708_0773c76f",
+        "filename": "go/gce/cmd/find_unused_disks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-28T14:35:34Z",
+      "side": 1,
+      "message": "nit: sklog.Infof(\"Successfully deleted %d disks.\", len(delete))",
+      "range": {
+        "startLine": 106,
+        "startChar": 2,
+        "endLine": 106,
+        "endChar": 3
+      },
+      "revId": "0b54d4788b42e221d86f3c92c5276e2f488f2b43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b85f293_5b18b007",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-28T14:35:34Z",
+      "side": 1,
+      "message": "nit: maybe check that this image is from g.project.",
+      "range": {
+        "startLine": 240,
+        "startChar": 0,
+        "endLine": 241,
+        "endChar": 42
+      },
+      "revId": "0b54d4788b42e221d86f3c92c5276e2f488f2b43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b44a7053_cab06a6d",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-06-28T14:35:34Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 243,
+        "startChar": 0,
+        "endLine": 246,
+        "endChar": 4
+      },
+      "revId": "0b54d4788b42e221d86f3c92c5276e2f488f2b43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
