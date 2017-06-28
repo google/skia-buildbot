@@ -20,7 +20,8 @@ ExecStart=/usr/local/bin/skiaperf  \
     --radius=11 \
     --interesting=25 \
     --internal_only \
-    --algo=stepfit
+    --algo=stepfit \
+    --step_up_only
 
 Restart=always
 User=default
