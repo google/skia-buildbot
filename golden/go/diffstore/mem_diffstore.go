@@ -60,18 +60,21 @@ type MemDiffStore struct {
 
 	// wg is used to synchronize background operations like saving files. Used for testing.
 	wg sync.WaitGroup
+
+	// usesDigests is true if images are stored as hash digests
+	usesDigests bool
 }
 
 // NewMemDiffStore returns a new instance of MemDiffStore.
 // 'gigs' is the approximate number of gigs to use for caching. This is not the
 // exact amount memory that will be used, but a tuning parameter to increase
 // or decrease memory used. If 'gigs' is 0 nothing will be cached in memory.
-func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string, gsImageBaseDir string, gigs int) (diff.DiffStore, error) {
+func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string, gsImageBaseDirs string, usesDigests bool, gigs int) (diff.DiffStore, error) {
 	imageCacheCount, diffCacheCount := getCacheCounts(gigs)
 
 	// Set up image retrieval, caching and serving.
 	imgDir := fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME)))
-	imgLoader, err := newImgLoader(client, baseDir, imgDir, gsBucketNames, gsImageBaseDir, imageCacheCount)
+	imgLoader, err := newImgLoader(client, baseDir, imgDir, gsBucketNames, gsImageBaseDirs, usesDigests, imageCacheCount)
 	if err != err {
 		return nil, err
 	}
@@ -86,6 +89,7 @@ func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string
 		localDiffDir: fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFFIMG_DIR_NAME))),
 		imgLoader:    imgLoader,
 		metricsStore: mStore,
+		usesDigests:  usesDigests,
 	}
 
 	if ret.diffMetricsCache, err = rtcache.New(ret.diffMetricsWorker, diffCacheCount, runtime.NumCPU()); err != nil {
@@ -228,9 +232,13 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 		if dir == DEFAULT_IMG_DIR_NAME {
 			// Make sure the file exists. If not fetch it.Should be the exception.
 			digest := strings.TrimRight(fName, "."+IMG_EXTENSION)
-			if !validation.IsValidDigest(digest) {
-				http.NotFound(w, r)
-				return
+
+			// Only validate if the DiffStore uses digests to store images
+			if m.usesDigests {
+				if !validation.IsValidDigest(digest) {
+					http.NotFound(w, r)
+					return
+				}
 			}
 
 			if !m.imgLoader.IsOnDisk(digest) {
@@ -241,11 +249,13 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 				}
 			}
 		} else {
-			left, right := splitDiffImgFileName(fName)
-			if !validation.IsValidDigest(left) || !validation.IsValidDigest(right) {
-				http.NotFound(w, r)
-				return
-			}
+      if m.usesDigests {
+        left, right := splitDiffImgFileName(fName)
+        if !validation.IsValidDigest(left) || !validation.IsValidDigest(right) {
+          http.NotFound(w, r)
+          return
+        }
+      }
 		}
 
 		// rewrite the paths to include the radix prefix.

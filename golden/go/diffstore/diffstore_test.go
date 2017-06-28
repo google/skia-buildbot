@@ -30,7 +30,7 @@ func TestMemDiffStore(t *testing.T) {
 	client, tile := getSetupAndTile(t, baseDir)
 	defer testutils.RemoveAll(t, baseDir)
 
-	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
+	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, true, 10)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
@@ -45,7 +45,7 @@ func TestNetDiffStore(t *testing.T) {
 	client, tile := getSetupAndTile(t, baseDir)
 	defer testutils.RemoveAll(t, baseDir)
 
-	memDiffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
+	memDiffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, true, 10)
 	assert.NoError(t, err)
 
 	// Start the server that wraps around the MemDiffStore.
