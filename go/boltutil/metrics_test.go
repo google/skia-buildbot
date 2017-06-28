@@ -13,7 +13,7 @@ import (
 )
 
 func TestDbMetric(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 
 	tmpdir, err := ioutil.TempDir("", "TestDbMetric")
 	assert.NoError(t, err)
