@@ -1,0 +1,154 @@
+<!--
+  The <silver-app-sk> custom element declaration.
+
+  This is the container element for the Skia Silver frontend.
+
+  Attributes: None
+
+  Events: None
+
+  Methods: None
+
+-->
+
+<link rel="import" href="bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="bower_components/polymer/polymer.html">
+
+<link rel="import" href="../common/imp/app-sk.html" />
+<link rel="import" href="../common/imp/login.html" />
+
+<link rel="import" href="byblame-page-sk.html" />
+<link rel="import" href="help-page-sk.html" />
+<link rel="import" href="gold-status-sk.html" />
+<link rel="import" href="jobs-page-sk.html" />
+<link rel="import" href="results-page-sk.html" />
+<link rel="import" href="silver-menu-sk.html" />
+
+<dom-module id="silver-app-sk">
+  <template>
+    <style>
+    app-sk {
+      --app-sk-main: {
+        background-color: #FFFFFF;
+        font-family: Roboto, Arial, sans-serif;
+      };
+      --app-sk-toolbar: {
+        background-color: #C0C0C0;
+        font-family: Roboto, Arial, sans-serif;
+      };
+      login-sk{
+        --login-sk-color: white;
+      };
+    }
+
+    #mainContentWrapper {
+      padding-left: 0.5em
+      padding-right: 0.5em
+    };
+
+    </style>
+
+    <app-sk id="mainApp" mode="standard" responsive_width="600px" drawer_width="12em" class="fit" flex>
+      <h2 header>[[_title]]</h2>
+      <silver-menu-sk navigation></silver-menu-sk>
+      <div id="mainContentWrapper">
+         <iron-pages id="pagesContainer" attr-for-selected="data-route" selected="{{route}}" selected-attribute="activepage">
+          <section data-route="jobs">
+            <jobs-page-sk></jobs-page-sk>
+          </section>
+          <section data-route="diff">
+            <results-page-sk></results-page-sk>
+          </section>
+          <section data-route="notfound">
+            <help-page-sk notfound></help-page-sk>
+          </section>
+       </iron-pages>
+     </div>
+    </app-sk>
+
+  </template>
+  <script>
+    Polymer({
+      is: "silver-app-sk",
+
+      properties: {
+        route: {
+          type: String,
+          value: "jobs"
+        },
+        _title: {
+          type: String,
+          value: sk.app_config.title
+        }
+      },
+
+      ready: function() {
+        // For all pages make sure we always have the right login URL.
+        var loginEle = this.$.mainApp.loginEle;
+        var readyCall = true;
+        page("*", function(ctx, next) {
+          // Avoid calling it during setup and when logging out.
+          if (!ctx.path.startsWith("/logout") && !readyCall) {
+            this.async(loginEle.checkLogin.bind(loginEle));
+          }
+          readyCall = false;
+          next();
+        }.bind(this));
+
+        // Set up in-app routing using the history api.
+        this._setRoute('/', 'jobs');
+        this._setRoute('/diff', 'diff')
+
+        // TODO(stephana): Remove the alias once the "/search" path has been
+        // used sufficiently long in Monorail.
+        // Alias for the old path to make existing links in Monorail work.
+        page("/search2", function() {
+          page.redirect("/search" + window.location.search);
+        });
+
+        // Force hitting the server if logout was selected.
+        page("/logout", function(ctx) {
+          this.async(function() {
+            var p = "/logout/?redirect=" + encodeURIComponent(window.location);
+            window.history.replaceState(ctx.state,
+                                        ctx.title,
+                                        p);
+            window.location.reload(true);
+          });
+        }.bind(this));
+
+        // All other route go to 'notfound' and diff is the default view.
+        this._setRoute('*', 'notfound');
+        this.route = "jobs";
+
+        // Don't use hashbangs in the URL.
+        page({ hashbang: false });
+
+        // Notify the page elements that the page has been selected.
+        this.listen(this.$.pagesContainer, "iron-deselect", "_pagesDeselect");
+      },
+
+      _pagesSelect: function(el, ctx) {
+        // Make sure the new views called after the URL is updated by page.js.
+        this.async(function() {
+          el.pageSelected(ctx);
+        }.bind(this));
+      },
+
+      _pagesDeselect: function(ev, obj) {
+        if (obj.item.dataset.route) {
+          obj.item.children[0].pageDeselected();
+        }
+      },
+
+      _setRoute: function(path, routeID) {
+        var pageElement = this.$$("section[data-route="+routeID+"]").children[0];
+        page(path, (function(ctx) {
+          this.route = routeID;
+          ctx.routeID = routeID;
+          this._pagesSelect(pageElement, ctx);
+        }).bind(this));
+      }
+    });
+  </script>
+</dom-module>

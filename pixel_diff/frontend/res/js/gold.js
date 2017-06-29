@@ -1,0 +1,430 @@
+"use strict";
+
+/* This defines the gold namespace which contains all JS code relevant to
+   gold. Functions that are generic should move to common.js
+
+   TODO(stephana): Move everythin the requires to be in sync with the
+   backend to this file.
+   */
+
+var gold = gold || {};
+
+(function(){
+  // Constants for status values.
+  gold.POSITIVE = 'positive',
+  gold.NEGATIVE = 'negative';
+  gold.UNTRIAGED = 'untriage';
+
+  // Reference diffs.
+  gold.REF_NEG   = 'neg';
+  gold.REF_POS   = 'pos';
+  gold.REF_TRACE = 'trace';
+
+  // Metric values.
+	gold.METRIC_COMBINED = 'combined';
+	gold.METRIC_PERCENT  = 'percent';
+	gold.METRIC_PIXEL    = 'pixel';
+  gold.allMetrics = [
+    gold.METRIC_COMBINED,
+    gold.METRIC_PERCENT,
+    gold.METRIC_PIXEL,
+  ];
+
+  // Default values for match selection.
+  gold.DEFAULT_MATCH_CONFIGS = ['gamma_correct', 'name'];
+
+  // Operators to apply to images grouped by test.
+  gold.GROUP_TEST_MAX_COUNT = 'count'    // Most often occuring digest.
+  gold.groupTestOps = [
+    gold.GROUP_TEST_MAX_COUNT,
+  ];
+
+  // ISSUE_TRACKER_URL is the url of the monorail issue tracker.
+  var ISSUE_TRACKER_URL = 'https://bugs.chromium.org/p/skia/issues/';
+
+  // Costants for sort order.
+  gold.SORT_ASC = 'asc';
+  gold.SORT_DESC = 'desc';
+
+  // Default values for the search controls.
+  gold.defaultSearchState = {
+    // The metric to use.
+    metric: gold.METRIC_COMBINED,
+
+    // Sort order.
+    sort: gold.SORT_DESC,
+
+    // Configs that need to match during comparisons.
+    match: gold.DEFAULT_MATCH_CONFIGS,
+
+    // Note: query is a URL encoded query over the test parameters
+    // The fields of query are not fixed but change over time. This requires
+    // to encode/decode a query in a separate step when encoding/decoding
+    // this entire object.
+    query:'',
+    rquery: '',
+    head: true,
+    include: false,
+    pos: false,
+    neg: false,
+    unt: true,
+    blame: '',
+    limit: 50,
+    issue: '',
+    patchsets: '',
+
+    // Filter options.
+    // Begin and end commits. Must be valid commits.
+    fbegin: '',
+    fend: '',
+
+    // Select max RGBA difference.
+    frgbamin: 0,
+
+    // Select max RGBA difference.
+    frgbamax: 255,
+
+    // Select max difference.
+    fdiffmax: -1,
+
+    // Group by test and select a specific digest.
+    fgrouptest: '',
+
+    // Only include images that have a reference.
+    fref: false
+  };
+
+  // Default values for the search query of the by-blame-page.
+  gold.defaultByBlameState = {
+    query: '',
+  };
+
+  // Default values for pagination objects.
+  gold.defaultPagination = {
+    size: 50,
+    offset: 0,
+    total: 0
+  };
+
+  // Default values for pagination URL state.
+  gold.defaultPaginationState = {
+    size: gold.defaultPagination.size,
+    offset: gold.defaultPagination.offset
+  };
+
+  // Table that maps reference point ids to readable titles.
+  gold.diffTitles = {}
+  gold.diffTitles[gold.REF_TRACE] = 'Trace previously';
+  gold.diffTitles[gold.REF_POS] = 'Closest Positive';
+  gold.diffTitles[gold.REF_NEG] = 'Closest Negative';
+
+  // Return a title for the given reference point id.
+  gold.getDiffTitle = function(diffType) {
+    return gold.diffTitles[diffType] || diffType;
+  };
+
+  // Return the URL for the given digest.
+  gold.imgHref = function(digest) {
+    if (!digest) {
+      return '';
+    }
+    return '/img/images/' + digest + '.png'
+  };
+
+  // Returns the URL to the image info site for the given digest.
+  gold.imageInfoHref = function(digest) {
+    var imgUrl = window.location.protocol + '//' + window.location.hostname + gold.imgHref(digest);
+    return 'https://imageinfo.skia.org/info?' + sk.query.fromObject({url: imgUrl});
+  },
+
+  // Return the URL for the diff image between the two given digests.
+  gold.diffImgHref = function(d1, d2) {
+    if (!d1 || !d2) {
+      return '';
+    }
+
+    return '/img/diffs/' + ((d1 < d2) ? (d1 + '-' + d2) : (d2 + '-' + d1)) + '.png'
+  };
+
+  // Returns the query string to pass to the diff page or to the diff endpoint.
+  // Input is the name of the test and the two digests to compare.
+  gold.diffQuery = function(test, left, right) {
+    return '?test=' + test + '&left=' + left + '&right=' + right;
+  };
+
+  // Returns the query string to usee for the detail page or the call to the
+  // diff endpoint.
+  gold.detailQuery = function(test, digest) {
+    return '?test=' + test + '&digest=' + digest;
+  };
+
+  // stateFromQuery returns a state object based on the query portion of the URL.
+  gold.stateFromQuery = function(defaultState) {
+    var delta = sk.query.toObject(window.location.search.slice(1), defaultState);
+    return sk.object.applyDelta(delta, defaultState);
+  };
+
+  // filterEmpty returns a copy of the object without fields where the value
+  // is an empty string.
+  gold.filterEmpty = function(obj) {
+    var cpObj = {};
+    for(var k in obj) {
+      if (obj.hasOwnProperty(k) && (obj[k] !== '')) {
+        cpObj[k] = obj[k];
+      }
+    }
+    return cpObj;
+  };
+
+  // queryFromState returns a query string from the the given state object.
+  gold.queryFromState = function(srcState) {
+    var ret = sk.query.fromObject(gold.filterEmpty(srcState));
+    if (ret === '') {
+      return '';
+    }
+    return '?' + ret;
+  };
+
+  // updateParamsConditionally updates the given paramset 'params' with the
+  // paramset 'updateParamSet' if the item is not present in the first.
+  // If the 'force' flag it true it will always do the update.
+  gold.updateParamsConditionally = function(params, updateParamSet, force) {
+    for(var k in updateParamSet) {
+      if (updateParamSet.hasOwnProperty(k) && (force || !params.hasOwnProperty(k))) {
+        params[k] = updateParamSet[k];
+      }
+    }
+    return sk.query.fromParamSet(params);
+  }
+
+  // loadWithActivity sends a GET request to the given url and uses the provide
+  // acitivity element as an indicator. If the call succeeds it applies the
+  // parsed result to 'target'.
+  // If 'target' is a string it will call the 'set' function of the Polymer
+  // element 'ele' with 'target', if 'target' is a function it will call it.
+  gold.loadWithActivity = function(ele, url, activity, target) {
+    activity.startSpinner('Loading...');
+    sk.get(url).then(JSON.parse).then(function (json) {
+      activity.stopSpinner();
+      if (typeof(target) === 'function') {
+        target(json);
+      } else {
+        ele.set(target, json);
+      }
+    }).catch(function(e) {
+      activity.stopSpinner();
+      sk.errorMessage(e);
+    });
+  },
+
+  gold.issueURL = function(issueID) {
+    return ISSUE_TRACKER_URL + '/detail?id=' + issueID;
+  };
+
+  // makeTriageQuery returns an object that can be sent as a query to the
+  // backend to triage digests. The arguments can either be a triple:
+  //    makeTriageQuery(testName, digests, status)
+  // or an array containing triples (as arrays) with the same information.
+  // Note: 'digests' can either be a single string or an array of strings.
+  gold.makeTriageQuery = function(triageList) {
+    if (arguments.length === 3) {
+      triageList = [[arguments[0], arguments[1], arguments[2]]];
+    }
+
+    var ret = {};
+    triageList.forEach(function(t) {
+      var test=t[0], digests=t[1], status=t[2];
+      if (!Array.isArray(digests)) {
+        digests = [digests];
+      }
+
+      var found = ret[test];
+      if (!found) {
+        ret[test] = {};
+        found = ret[test];
+      }
+
+      for(var i=0; i < digests.length; i++) {
+        found[digests[i]] = status;
+      }
+    });
+    return {
+      testDigestStatus: ret
+    };
+  };
+
+  // flattenTriageQuery is the inverse operation of makeTriageQuery.
+  // It returns an array of triples where each triple contains:
+  //    [testName, digests, status]
+  // testName and status are strings and digests is an array of strings.
+  gold.flattenTriageQuery = function(q) {
+    var ret = [];
+    q = q.testDigestStatus
+    for(var k in q) {
+      if (q.hasOwnProperty(k)) {
+        var statusMap = {};
+        // iterat over the digests and group by status.
+        for(var j in q[k]) {
+          if (q[k].hasOwnProperty(j)) {
+            var status = q[k][j];
+            if (!statusMap[status]) {
+              statusMap[status] = [];
+            }
+            statusMap[status].push(j);
+          }
+        }
+        for(j in statusMap) {
+          ret.push([k, statusMap[j], j]);
+        }
+      }
+    }
+    return ret;
+  };
+
+  // PageStateBehavior is a re-usable behavior what adds the _state and
+  // _ctx (page.js context) variables to a Polymer element. All methods are
+  // implemented as private since they should only be used within a
+  // Polymer element.
+  gold.PageStateBehavior = {
+    properties: {
+      _state: {
+        type: Object,
+        value: function() { return {}; }
+      }
+    },
+
+    ready: function() {
+      // Find the status element and listen to corpus changes.
+      this.async(function() {
+        this._statusElement = $$$('gold-status-sk');
+        if (this._statusElement) {
+          this.listen(this._statusElement, 'corpus-change', '_handleCorpusChange');
+        }
+      });
+    },
+
+    _handleCorpusChange: function(ev) {
+      // Only change anything related to corpus if this element is the
+      // part of the currently viewed page.
+      if (Polymer.dom(this).parentNode.hasAttribute('activepage') && this._hasQuery) {
+        if (this._corpusHome) {
+          this._redirectHome();
+          return;
+        }
+        var params = sk.query.toParamSet(this._state.query);
+        params.source_type = [ev.detail];
+        this._redirectToState({query: sk.query.fromParamSet(params)});
+      }
+    },
+
+    // _setDefaultState sets the default state (usually reflected in the URL)
+    // of the is document. 'corpusHome' is a boolean flag that indicates whether
+    // a corpus change should redirect to the home page.
+    _setDefaultState: function(defaultState, corpusHome) {
+      this._defaultState = defaultState;
+      this._corpusHome = corpusHome;
+      this._hasQuery = defaultState.hasOwnProperty('query');
+    },
+
+    // _getDefaultStateWithCorpus returns the default search state of this
+    // element (previously set via _setDefaultState) with the current corpus
+    // injected.
+    _getDefaultStateWithCorpus: function(state) {
+        var ret = state || this._defaultState || {};
+        if (this._statusElement && this._hasQuery) {
+          ret = sk.object.shallowCopy(ret);
+          ret.query = sk.query.fromParamSet({source_type: [this._statusElement.corpus]});
+        }
+        return ret;
+    },
+
+    // _initState initializes the '_state' and '_ctx' variables. ctx is the
+    // context of the page.js route. It creates the value of the _state object
+    // from the URL query string based on defaultState. It sets the URL to
+    // the resulting the state.
+    _initState: function(ctx, defaultState) {
+      this._ctx = ctx;
+      this._state = gold.stateFromQuery(defaultState);
+      if (this._hasQuery) {
+        this._syncCorpusQuery(defaultState.query);
+      }
+      this._setUrlFromState();
+    },
+
+    // _syncCorpusQuery synchronizes the the corpus value between the current
+    // request (represented by this._state.query) with the corpus in status.
+    // Effectively changing the corpus in status.
+    _syncCorpusQuery: function(defaultQueryStr) {
+      var defaultParams = sk.query.toParamSet(defaultQueryStr);
+      var params = sk.query.toParamSet(this._state.query);
+      this._state.query = gold.updateParamsConditionally(params, defaultParams, false);
+      if (this._statusElement) {
+        this._statusElement.setCorpus(params.source_type[0]);
+      }
+    },
+
+    // _redirectToState updates the current state with 'updates'. After it
+    // saves the current URL to history it redirects (via history.replaceState)
+    // to newTargetPath, if provided, otherwise it will use the current path.
+    _redirectToState: function(updates, newTargetPath) {
+      // Save the current history entry before the redirect.
+      this._ctx.pushState();
+      var newState = sk.object.applyDelta(updates, this._state);
+      var targetPath = newTargetPath ||  window.location.pathname;
+
+      // TODO(stephana): Remove below if we can ever assign blame across corpora.
+      // Account for the special case when the corpus changes and there is a
+      // blame field. Then we want to go back to the by-blame-page.
+      if ((this._statusElement) && !!newState.blame) {
+        var newParams = sk.query.toParamSet(newState.query);
+        var oldParams = sk.query.toParamSet(this._state.query);
+        if (newParams.source_type[0] !== oldParams.source_type[0]) {
+          this._redirectHome();
+        }
+      }
+      page.redirect(targetPath + gold.queryFromState(newState));
+    },
+
+    // _redirectHome unconditionally redirects to home.
+    _redirectHome: function() {
+      this._ctx.pushState();
+      page.redirect('/' + gold.queryFromState(this._getDefaultStateWithCorpus()));
+    },
+
+    // _replaceState updates the current state with 'updates' and updates
+    // the URL accordingly. No new page is loaded or reloaded.
+    _replaceState: function(updates) {
+      this._state = sk.object.applyDelta(updates, this._state);
+      this._setUrlFromState();
+    },
+
+    // setUrlFromState simply replaces the query string of the current URL
+    // with a query string that represents the current state.
+    _setUrlFromState: function() {
+      history.replaceState(this._ctx.state, this._ctx.title, window.location.pathname + gold.queryFromState(this._state));
+    },
+
+    // _addCorpus injects the corpus into the query string of a query object.
+    _addCorpus: function(state) {
+      var params = sk.query.toParamSet(state.query);
+      if ((!params['source_type]']) && this._statusElement) {
+        params['source_type'] = [this._statusElement.corpus];
+        state.query = sk.query.fromParamSet(params);
+      }
+      return state;
+    }
+  };
+
+  // ZoomTargetBehavior adds handling of zoom-clicked events to an element.
+  // It requires that a <zoom-dialog-sk> element is in the markup of the
+  // element that uses this behavior.
+  gold.ZoomTargetBehavior = {
+    ready: function() {
+      this.listen(this, 'zoom-clicked', '_handleZoomClicked');
+    },
+
+    _handleZoomClicked: function(ev) {
+      $$$('zoom-dialog-sk', this).open(ev.detail);
+    }
+  };
+})();
