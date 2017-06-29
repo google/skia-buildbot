@@ -101,7 +101,10 @@
         type: String,
         value: "",
         reflectToAttribute: true,
+        notify: true,
+        observer: "_currentQueryChanged",
       },
+
       // A serialized paramtools.ParamSet, which we are building a query around.
       //
       // Might contain a subset of _originalParamset if filtering has been applied.
@@ -155,6 +158,10 @@
     setCurrentQuery: function(s) {
       this._query = sk.query.toParamSet(s);
       this._queryChanged();
+    },
+
+    _currentQueryChanged: function(s) {
+      this.setCurrentQuery(s)
     },
 
     setParamset: function(paramset) {
