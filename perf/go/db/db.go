@@ -102,6 +102,21 @@ var migrationSteps = []database.MigrationStep{
 			`DROP TABLE IF EXISTS regression`,
 		},
 	},
+
+	// version 4
+	{
+		MySQLUp: []string{
+			`CREATE TABLE IF NOT EXISTS alerts (
+				id         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				state      TINYINT      NOT NULL,
+				body       MEDIUMTEXT   NOT NULL
+			)`,
+		},
+		MySQLDown: []string{
+			`DROP TABLE IF EXISTS alerts`,
+		},
+	},
+
 	// Use this is a template for more migration steps.
 	// version x
 	// {
