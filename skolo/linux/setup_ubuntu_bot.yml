@@ -88,13 +88,13 @@
       # This takes the pre-existing /etc/network/interfaces template
       # (which is a jinja2 template, as per ansible spec) and fills in
       # the interface name.
-    - name: disable ethernet flow control
-      template:
-        src: "{{interface_templ}}"
-        dest: "{{expanded_interface}}"
-        owner: root
-        group: root
-        mode: 0644
-        force: yes
-        backup: yes
+    #- name: disable ethernet flow control
+    #  template:
+    #    src: "{{interface_templ}}"
+    #    dest: "{{expanded_interface}}"
+    #    owner: root
+    #    group: root
+    #    mode: 0644
+    #    force: yes
+    #    backup: yes
 
