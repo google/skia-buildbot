@@ -4,7 +4,7 @@ set -e
 
 # Install packages.
 
-sudo apt-get -y install build-essential mercurial libosmesa-dev libexpat1-dev clang llvm poppler-utils netpbm gcc-multilib g++-multilib openjdk-8-jdk-headless libxi-dev python-django libc++-dev
+sudo apt-get -y install build-essential mercurial libosmesa-dev libexpat1-dev clang llvm poppler-utils netpbm gcc-multilib g++-multilib openjdk-8-jdk-headless libxi-dev python-django libc++-dev libc++abi-dev gperf bison
 
 # Obtain and symlink i386 libs.
 sudo dpkg --add-architecture i386
