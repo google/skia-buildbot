@@ -51,6 +51,8 @@ var (
 type ClusterAlgo string
 
 // ClusterAlgo constants.
+//
+// Update algo-select-sk if this enum is changed.
 const (
 	KMEANS_ALGO  ClusterAlgo = "kmeans"  // Cluster traces using k-means clustering on their shapes.
 	STEPFIT_ALGO ClusterAlgo = "stepfit" // Look at each trace individually and determing if it steps up or down.
