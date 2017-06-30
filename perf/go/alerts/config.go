@@ -15,6 +15,7 @@ type Config struct {
 	BugURITemplate string                  `json:"bug_uri_template"` // URI Template used for reporting bugs. Format TBD.
 	Algo           clustering2.ClusterAlgo `json:"algo"`             // Which clustering algorithm to use.
 	State          ConfigState             `json:"state"`            // The state of the config.
+	Owner          string                  `json:"owner"`            // Email address of the person that owns this alert.
 }
 
 // NewConfig creates a new Config properly initialized.

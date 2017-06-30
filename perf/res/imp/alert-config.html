@@ -1,0 +1,71 @@
+<!-- The <alert-config-sk> custom element declaration.
+
+  Control that allows editing an alerts.Config.
+
+  Attributes:
+    config - A serialized alerts.Config.
+
+    paramset - The paramset to build a query from.
+
+  Events:
+    None.
+
+  Methods:
+    None.
+-->
+<link rel="import" href="/res/imp/bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+
+<link rel="import" href="/res/common/imp/query2-chooser.html" />
+<link rel="stylesheet" href="/res/common/css/md.css">
+
+<link rel="import" href="algo-select.html" />
+
+<dom-module id="alert-config-sk">
+  <style>
+    h3, h4 {
+      margin: 0.6em 0 0.2em 0;
+    }
+
+    paper-input,
+    h4 {
+      margin-left: 0.6em;
+    }
+  </style>
+  <template>
+    <h3>Which traces should be monitored</h3>
+    <query2-chooser-sk paramset="{{paramset}}" current_query="{{config.query}}"></query2-chooser-sk>
+    <h3>What triggers an alert</h3>
+    <h4>Algorithm</h4>
+    <algo-select-sk algo="{{config.algo}}"></algo-select-sk>
+    <paper-input type=number min=0 max=500  value="{{config.interesting}}" label="Interesting Threshhold: Clusters are interesting if regression score >= this."></paper-input>
+    <h3>Where are alerts sent</h3>
+    <paper-input value="{{config.alert}}"            label="Alert Destination: Email address or chat id."></paper-input>
+    <h3>Where are bugs filed</h3>
+    <paper-input value="{{config.bug_uri_template}}" label="Bug URI Template. (TBD)"></paper-input>
+    <h3>Who owns this alert</h3>
+    <paper-input value="{{config.owner}}"            label="Email address of owner."></paper-input>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "alert-config-sk",
+
+    properties: {
+      // config is a serialized alerts.Config.
+      config: {
+        type: Object,
+        value: function() { return {}; },
+        reflectToAttribute: false,
+        notify: true,
+      },
+      paramset: {
+        type: Object,
+        value: function() { return {}; },
+        reflectToAttribute: false,
+      }
+    },
+
+  });
+</script>

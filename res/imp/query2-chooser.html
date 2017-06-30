@@ -6,6 +6,8 @@
   Attributes:
     current_query - The current query formatted as a URL formatted query string.
 
+    paramset - The paramset to make selections from.
+
     query - The underlying query2-sk element.
 
   Events:
@@ -83,6 +85,12 @@
         reflectToAttribute: true,
         notify: true,
       },
+      paramset: {
+        type: Object,
+        value: function() { return {}; },
+        reflectToAttribute: false,
+        observer: "_paramsetChange",
+      },
     },
 
     _editTap: function() {
@@ -91,6 +99,10 @@
 
     _closeTap: function() {
       this.$.dialog.classList.remove('display');
+    },
+
+    _paramsetChange: function() {
+      this.$.query.setParamset(this.paramset);
     },
 
     ready: function() {
