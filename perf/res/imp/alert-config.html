@@ -1,0 +1,52 @@
+<!-- The <alert-config-sk> custom element declaration.
+
+  Attributes:
+  Events:
+  Methods:
+-->
+<link rel="import" href="/res/imp/bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+
+<link rel="import" href="/res/common/imp/query2-chooser.html" />
+<link rel="stylesheet" href="/res/common/css/md.css">
+
+<link rel="import" href="algo-select.html" />
+
+<dom-module id="alert-config-sk">
+  <style>
+    h3 {
+      margin: 0.2em;
+    }
+  </style>
+  <template>
+    <h3>Filter</h3>
+    <query2-chooser-sk paramset="{{paramset}}" current_query="{{config.query}}"></query2-chooser-sk>
+    <paper-input value="{{config.alert}}"           label="Alert Destination: Email address or chat id."></paper-input>
+    <paper-input value="{{config.bug_uri_template}}"           label="Bug URI Template. (TBD)"></paper-input>
+    <paper-input type=number min=0 max=500  value="{{config.interesting}}" label="Interesting Threshhold: Clusters are interesting if regression score >= this."></paper-input>
+    <h3>Algorithm</h3>
+    <algo-select-sk algo="{{config.algo}}"></algo-select-sk>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "alert-config-sk",
+
+    properties: {
+      // config is a serialized alerts.Config.
+      config: {
+        type: Object,
+        value: function() { return {}; },
+        reflectToAttribute: false,
+        notify: true,
+      },
+      paramset: {
+        type: Object,
+        value: function() { return {}; },
+        reflectToAttribute: false,
+      }
+    },
+
+  });
+</script>
