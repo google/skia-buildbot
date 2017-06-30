@@ -1,0 +1,48 @@
+<!-- The <alert-config-sk> custom element declaration.
+
+  Attributes:
+  Events:
+  Methods:
+-->
+<link rel="import" href="/res/imp/bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+
+<link rel="import" href="/res/common/imp/query-summary-sk.html" />
+<link rel="stylesheet" href="/res/common/css/md.css">
+
+<dom-module id="alert-config-sk">
+  <style>
+  </style>
+  <template>
+    <query-summary-sk id=summary></query-summary-sk>
+    <paper-input value="{{config.alert}}"           label="Email address or chat id."></paper-input>
+    <paper-input value="{{config.bug_uri_template}}"           label="But URI Template."></paper-input>
+    <paper-input type=number min=0 max=500  value="{{config.interesting}}" label="Clusters are interesting if regression score >= this."></paper-input>
+    <h2>Algorithm</h2>
+    <iron-selector attr-for-selected="value" selected="{{config.algo}}" fallback-selection="kmeans">
+      <div value=kmeans title="Use k-means clustering on the trace shapes.">K-Means</div>
+      <div value=stepfit title="Only look for traces that step up or down at the selected commit.">StepFit</div>
+    </iron-selector>
+    
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "alert-config-sk",
+
+    properties: {
+      // config is a serialized alerts.Config.
+      config: {
+        type: Object,
+        value: function() { return {}; },
+        reflectToAttribute: false,
+        observer: "configChange",
+      },
+    },
+
+    ready: function() {
+    },
+
+  });
+</script>
