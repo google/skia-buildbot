@@ -23,9 +23,10 @@
 <link rel="import" href="/res/common/imp/sort.html" />
 <link rel="stylesheet" href="/res/common/css/md.css">
 
+<link rel="import" href="/res/imp/algo-select.html" />
+<link rel="import" href="/res/imp/cluster2.html" />
 <link rel="import" href="/res/imp/commit-detail-picker.html" />
 <link rel="import" href="/res/imp/day-range.html" />
-<link rel="import" href="/res/imp/cluster2.html" />
 <dom-module id="cluster-page-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
     day-range-sk {
@@ -97,11 +98,9 @@
         <commit-detail-picker-sk on-commit-selected="_commitSelected" id=commit></commit-picker-sk>
       </div>
     </div>
+
     <h2>Algorithm</h2>
-    <iron-selector attr-for-selected="value" selected="{{state.algo}}" fallback-selection="kmeans">
-      <div value=kmeans title="Use k-means clustering on the trace shapes.">K-Means</div>
-      <div value=stepfit title="Only look for traces that step up or down at the selected commit.">StepFit</div>
-    </iron-selector>
+    <algo-select-sk algo="{{state.algo}}"></algo-select-sk>
 
     <h2>Query</h2>
     <div class="layout horizontal">
