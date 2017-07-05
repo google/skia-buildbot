@@ -210,7 +210,7 @@ func TestRange(t *testing.T) {
 	assert.Equal(t, 2, len(reg))
 	assert.True(t, reg[c1.ID()].Triaged())
 	assert.False(t, reg[c2.ID()].Triaged())
-	assert.Equal(t, 1, len(reg[c2.ID()].ByQuery))
+	assert.Equal(t, 1, len(reg[c2.ID()].ByAlertID))
 
 	// Make sure that all expectations were met.
 	if err := mock.ExpectationsWereMet(); err != nil {
