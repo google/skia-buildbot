@@ -45,6 +45,16 @@ type commonRepoManager struct {
 	g            gerrit.GerritInterface
 }
 
+// depotToolsRepoManager is a struct used by AutoRoller implements that use
+// depot_tools to manage checkouts.
+type depotToolsRepoManager struct {
+	*commonRepoManager
+	depot_tools string
+	gclient     string
+	parentDir   string
+	parentRepo  string
+}
+
 // FullChildHash returns the full hash of the given short hash or ref in the
 // child repo.
 func (r *commonRepoManager) FullChildHash(shortHash string) (string, error) {

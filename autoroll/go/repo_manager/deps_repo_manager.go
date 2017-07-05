@@ -44,12 +44,8 @@ type issueJson struct {
 
 // depsRepoManager is a struct used by DEPs AutoRoller for managing checkouts.
 type depsRepoManager struct {
-	*commonRepoManager
-	depot_tools string
-	gclient     string
-	parentDir   string
-	parentRepo  string
-	rollDep     string
+	*depotToolsRepoManager
+	rollDep string
 }
 
 // getEnv returns the environment used for most commands.
@@ -82,21 +78,23 @@ func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranc
 	sklog.Infof("Repo Manager user: %s", user)
 
 	dr := &depsRepoManager{
-		commonRepoManager: &commonRepoManager{
-			parentBranch: parentBranch,
-			childDir:     path.Join(wd, childPath),
-			childPath:    childPath,
-			childRepo:    nil, // This will be filled in on the first update.
-			childBranch:  childBranch,
-			user:         user,
-			workdir:      wd,
-			g:            g,
+		depotToolsRepoManager: &depotToolsRepoManager{
+			commonRepoManager: &commonRepoManager{
+				parentBranch: parentBranch,
+				childDir:     path.Join(wd, childPath),
+				childPath:    childPath,
+				childRepo:    nil, // This will be filled in on the first update.
+				childBranch:  childBranch,
+				user:         user,
+				workdir:      wd,
+				g:            g,
+			},
+			depot_tools: depot_tools,
+			gclient:     gclient,
+			parentDir:   parentDir,
+			parentRepo:  parentRepo,
 		},
-		depot_tools: depot_tools,
-		gclient:     gclient,
-		parentDir:   parentDir,
-		parentRepo:  parentRepo,
-		rollDep:     rollDep,
+		rollDep: rollDep,
 	}
 	if err := dr.update(); err != nil {
 		return nil, err
