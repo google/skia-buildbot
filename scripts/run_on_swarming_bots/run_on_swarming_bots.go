@@ -45,6 +45,7 @@ var (
 	taskName    = flag.String("task_name", "", "Name of the task to run.")
 	workdir     = flag.String("workdir", os.TempDir(), "Working directory. Optional, but recommended not to use CWD.")
 	includeBots = common.NewMultiStringFlag("include_bot", nil, "If specified, treated as a white list of bots which will be affected, calculated AFTER the dimensions is computed. Can be simple strings or regexes")
+	internal    = flag.Bool("internal", false, "Run against internal swarming and isolate instances.")
 )
 
 func main() {
@@ -76,6 +77,13 @@ func main() {
 		sklog.Fatal(err)
 	}
 
+	isolateServer := isolate.ISOLATE_SERVER_URL
+	swarmingServer := swarming.SWARMING_SERVER
+	if *internal {
+		isolateServer = isolate.ISOLATE_SERVER_URL_PRIVATE
+		swarmingServer = swarming.SWARMING_SERVER_PRIVATE
+	}
+
 	// Authenticated HTTP client.
 	oauthCacheFile := path.Join(*workdir, "google_storage_token.data")
 	httpClient, err := auth.NewClient(true, oauthCacheFile, swarming.AUTH_SCOPE)
@@ -84,7 +92,7 @@ func main() {
 	}
 
 	// Swarming API client.
-	swarmApi, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER)
+	swarmApi, err := swarming.NewApiClient(httpClient, swarmingServer)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -95,7 +103,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	swarmClient, err := swarming.NewSwarmingClient(*workdir, swarming.SWARMING_SERVER, isolate.ISOLATE_SERVER_URL)
+	swarmClient, err := swarming.NewSwarmingClient(*workdir, swarmingServer, isolateServer)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -157,7 +165,7 @@ func main() {
 	}
 
 	wg.Wait()
-	tasksLink := fmt.Sprintf("https://chromium-swarm.appspot.com/tasklist?f=group:%s", group)
+	tasksLink := fmt.Sprintf("https://%s/tasklist?f=group:%s", swarmingServer, group)
 	sklog.Infof("Triggered Swarming tasks. Visit this link to track progress:\n%s", tasksLink)
 }
 
