@@ -36,6 +36,7 @@ import (
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/activitylog"
+	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
@@ -96,6 +97,8 @@ var (
 	continuous *regression.Continuous
 
 	storageClient *storage.Client
+
+	alertStore *alerts.Store
 )
 
 func loadTemplates() {
@@ -103,6 +106,7 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/newindex.html"),
 		filepath.Join(*resourcesDir, "templates/clusters2.html"),
 		filepath.Join(*resourcesDir, "templates/triage.html"),
+		filepath.Join(*resourcesDir, "templates/alerts.html"),
 		filepath.Join(*resourcesDir, "templates/help.html"),
 		filepath.Join(*resourcesDir, "templates/activitylog.html"),
 
@@ -172,6 +176,8 @@ func Init() {
 	initIngestion()
 	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
 	cidl = cid.New(git, rietveldAPI, *gitRepoURL)
+
+	alertStore = alerts.NewStore()
 
 	frameRequests = dataframe.NewRunningFrameRequests(git)
 	clusterRequests = clustering2.NewRunningClusterRequests(git, cidl, float32(*interesting))
@@ -973,6 +979,17 @@ func shiftHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func alertListHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	resp, err := alertStore.List(false)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to retrieve alert configs.")
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		sklog.Errorf("Failed to write JSON response: %s", err)
+	}
+}
+
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -1069,6 +1086,7 @@ func main() {
 	router.HandleFunc("/e/", templateHandler("newindex.html"))
 	router.HandleFunc("/c/", templateHandler("clusters2.html"))
 	router.HandleFunc("/t/", templateHandler("triage.html"))
+	router.HandleFunc("/a/", templateHandler("alerts.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", gotoHandler)
 	router.HandleFunc("/help/", helpHandler)
 	router.PathPrefix("/activitylog/").HandlerFunc(activityHandler)
@@ -1092,6 +1110,9 @@ func main() {
 	router.HandleFunc("/_/alerts/", alertsHandler)
 	router.HandleFunc("/_/details/", detailsHandler).Methods("POST")
 	router.HandleFunc("/_/shift/", shiftHandler).Methods("POST")
+	router.HandleFunc("/_/alert/list", alertListHandler).Methods("GET")
+	//	router.HandleFunc("/_/alert/update", alertUpdateHandler).Methods("GET")
+	//	router.HandleFunc("/_/alert/delete", alertDeleteHandler).Methods("GET")
 
 	var h http.Handler = router
 	if *internalOnly {
