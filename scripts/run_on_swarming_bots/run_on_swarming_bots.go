@@ -138,18 +138,22 @@ func main() {
 			sklog.Debugf("Skipping %s because it isn't in the whitelist", bot.BotId)
 			continue
 		}
+		botDims := map[string][]string{}
+		for _, d := range bot.Dimensions {
+			botDims[d.Key] = d.Value
+		}
 		wg.Add(1)
-		go func(id string) {
+		go func(id string, botDims map[string][]string) {
 			defer wg.Done()
 			dims := map[string]string{
 				"pool": *pool,
 				"id":   id,
 			}
 			sklog.Infof("Triggering on %s", id)
-			if _, err := swarmClient.TriggerSwarmingTasks(m, dims, tags, swarming.HIGHEST_PRIORITY, 120*time.Minute, 120*time.Minute, 120*time.Minute, false, false, "bot"); err != nil {
+			if _, err := swarmClient.TriggerSwarmingTasks(m, dims, tags, swarming.HIGHEST_PRIORITY, 120*time.Minute, 120*time.Minute, 120*time.Minute, false, false, swarming.GetServiceAccountFromBotDims(botDims)); err != nil {
 				sklog.Fatal(err)
 			}
-		}(bot.BotId)
+		}(bot.BotId, botDims)
 	}
 
 	wg.Wait()
