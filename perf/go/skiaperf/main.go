@@ -739,7 +739,7 @@ type RegressionRow struct {
 
 // RegressionRangeResponse is the response from regressionRangeHandler.
 type RegressionRangeResponse struct {
-	Header []string         `json:"header"`
+	Header []string         `json:"header"` // Should contain the alerts.Config.
 	Table  []*RegressionRow `json:"table"`
 }
 
@@ -775,7 +775,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	// the queries that are present in the set of Regressions we just loaded.
 	headers := strings.Split(*clusterQueries, " ")
 	for _, reg := range regMap {
-		for q := range reg.ByQuery {
+		for q := range reg.ByAlertID {
 			headers = append(headers, q)
 		}
 	}
@@ -839,7 +839,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if r, ok := regMap[cid.ID()]; ok {
 			for i, h := range headers {
-				if reg, ok := r.ByQuery[h]; ok {
+				if reg, ok := r.ByAlertID[h]; ok {
 					row.Columns[i] = reg
 				}
 			}

@@ -16,6 +16,7 @@ type Config struct {
 	Algo           clustering2.ClusterAlgo `json:"algo"`             // Which clustering algorithm to use.
 	State          ConfigState             `json:"state"`            // The state of the config.
 	Owner          string                  `json:"owner"`            // Email address of the person that owns this alert.
+	StepUpOnly     bool                    `json:"step_up_only"`     // Should only step ups generate alerts.
 }
 
 // NewConfig creates a new Config properly initialized.
