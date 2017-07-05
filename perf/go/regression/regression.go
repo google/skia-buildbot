@@ -23,11 +23,11 @@ const (
 	UNTRIAGED Status = "untriaged" // The regression has not been triaged.
 )
 
-// Regressions is a map[query]Regression and one Regressions is stored for each
+// Regressions is a map[alertid]Regression and one Regressions is stored for each
 // CommitID if any regressions are found.
 type Regressions struct {
-	ByQuery map[string]*Regression `json:"by_query"`
-	mutex   sync.Mutex
+	ByAlertID map[string]*Regression `json:"by_query"`
+	mutex     sync.Mutex
 }
 
 type TriageStatus struct {
@@ -36,7 +36,7 @@ type TriageStatus struct {
 }
 
 // Regression tracks the status of the Low and High regression clusters, if they
-// exist for a given CommitID and query.
+// exist for a given CommitID and alertid.
 //
 // Note that Low and High can be nil if no regression has been found in that
 // direction.
@@ -61,18 +61,18 @@ func newRegression() *Regression {
 
 func New() *Regressions {
 	return &Regressions{
-		ByQuery: map[string]*Regression{},
+		ByAlertID: map[string]*Regression{},
 	}
 }
 
 // SetLow sets the cluster for a low regression.
-func (r *Regressions) SetLow(query string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) {
+func (r *Regressions) SetLow(alertid string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
-	reg, ok := r.ByQuery[query]
+	reg, ok := r.ByAlertID[alertid]
 	if !ok {
 		reg = newRegression()
-		r.ByQuery[query] = reg
+		r.ByAlertID[alertid] = reg
 	}
 	if reg.Frame == nil {
 		reg.Frame = df
@@ -86,13 +86,13 @@ func (r *Regressions) SetLow(query string, df *dataframe.FrameResponse, low *clu
 }
 
 // SetHigh sets the cluster for a high regression.
-func (r *Regressions) SetHigh(query string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) {
+func (r *Regressions) SetHigh(alertid string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
-	reg, ok := r.ByQuery[query]
+	reg, ok := r.ByAlertID[alertid]
 	if !ok {
 		reg = newRegression()
-		r.ByQuery[query] = reg
+		r.ByAlertID[alertid] = reg
 	}
 	if reg.Frame == nil {
 		reg.Frame = df
@@ -106,10 +106,10 @@ func (r *Regressions) SetHigh(query string, df *dataframe.FrameResponse, high *c
 }
 
 // TriageLow sets the triage status for the low cluster.
-func (r *Regressions) TriageLow(query string, tr TriageStatus) error {
+func (r *Regressions) TriageLow(alertid string, tr TriageStatus) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
-	reg, ok := r.ByQuery[query]
+	reg, ok := r.ByAlertID[alertid]
 	if !ok {
 		return ErrNoClusterFound
 	}
@@ -121,10 +121,10 @@ func (r *Regressions) TriageLow(query string, tr TriageStatus) error {
 }
 
 // TriageHigh sets the triage status for the high cluster.
-func (r *Regressions) TriageHigh(query string, tr TriageStatus) error {
+func (r *Regressions) TriageHigh(alertid string, tr TriageStatus) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
-	reg, ok := r.ByQuery[query]
+	reg, ok := r.ByAlertID[alertid]
 	if !ok {
 		return ErrNoClusterFound
 	}
@@ -138,7 +138,7 @@ func (r *Regressions) TriageHigh(query string, tr TriageStatus) error {
 // Triaged returns true if all clusters are triaged.
 func (r *Regressions) Triaged() bool {
 	ret := true
-	for _, reg := range r.ByQuery {
+	for _, reg := range r.ByAlertID {
 		ret = ret && (reg.HighStatus.Status != UNTRIAGED)
 		ret = ret && (reg.LowStatus.Status != UNTRIAGED)
 	}
