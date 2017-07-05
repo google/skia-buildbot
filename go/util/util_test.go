@@ -650,3 +650,67 @@ func TestContainsAnyMap(t *testing.T) {
 	assert.True(t, ContainsAnyMap(map[string]string{}, map[string]string{}))
 	assert.False(t, ContainsAnyMap(map[string]string{}, child1, child2))
 }
+
+func TestContainsMapInSliceValues(t *testing.T) {
+	testutils.SmallTest(t)
+	child := map[string]string{
+		"a": "1",
+		"b": "2",
+	}
+	parent := map[string][]string{
+		"a": []string{"1", "2"},
+		"b": []string{"2", "4"},
+		"c": []string{"3"},
+	}
+	// Test success
+	assert.True(t, ContainsMapInSliceValues(parent, child))
+	child["b"] = "4"
+	assert.True(t, ContainsMapInSliceValues(parent, child))
+	// Test failure.
+	child["b"] = "3"
+	assert.False(t, ContainsMapInSliceValues(parent, child))
+	delete(parent, "b")
+	assert.False(t, ContainsMapInSliceValues(parent, child))
+	// Test edge cases.
+	assert.True(t, ContainsMapInSliceValues(parent, map[string]string{}))
+	assert.True(t, ContainsMapInSliceValues(map[string][]string{}, map[string]string{}))
+	assert.False(t, ContainsMapInSliceValues(map[string][]string{}, map[string]string{"a": "1"}))
+}
+
+func TestContainsAnyMapInSliceValues(t *testing.T) {
+	testutils.SmallTest(t)
+	child1 := map[string]string{
+		"a": "1",
+		"b": "2",
+	}
+	child2 := map[string]string{
+		"a": "1",
+		"b": "2",
+		"c": "3",
+	}
+	parent := map[string][]string{
+		"a": []string{"1", "4"},
+		"b": []string{"2", "5"},
+		"c": []string{"3"},
+	}
+	// Test success
+	assert.True(t, ContainsAnyMapInSliceValues(parent, child1, child2))
+	child2["b"] = "5"
+	assert.True(t, ContainsAnyMapInSliceValues(parent, child1, child2))
+	// Test failure
+	child1["a"] = "2"
+	child2["b"] = "6"
+	assert.False(t, ContainsAnyMapInSliceValues(parent, child1, child2))
+	delete(parent, "b")
+	assert.False(t, ContainsAnyMapInSliceValues(parent, child1, child2))
+	assert.False(t, ContainsAnyMapInSliceValues(parent, map[string]string{"a": "1", "c": "4"}))
+	assert.False(t, ContainsAnyMapInSliceValues(parent, map[string]string{"a": "2"}))
+	// Test success with new parent
+	assert.True(t, ContainsAnyMapInSliceValues(parent, map[string]string{"a": "1", "c": "3"}))
+	assert.True(t, ContainsAnyMapInSliceValues(parent, map[string]string{"a": "4", "c": "3"}))
+	// Test edge cases.
+	assert.True(t, ContainsAnyMapInSliceValues(parent, map[string]string{}, child1))
+	assert.True(t, ContainsAnyMapInSliceValues(parent, map[string]string{}))
+	assert.True(t, ContainsAnyMapInSliceValues(map[string][]string{}, map[string]string{}))
+	assert.False(t, ContainsAnyMapInSliceValues(map[string][]string{}, child1, child2))
+}
