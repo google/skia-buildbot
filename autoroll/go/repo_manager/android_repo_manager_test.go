@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"strings"
 	"testing"
-	"time"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
@@ -66,13 +65,13 @@ func TestAndroidRepoManager(t *testing.T) {
 	defer cleanup()
 	g, err := gerrit.NewGerrit(mockAndroidServer, "", nil)
 	assert.NoError(t, err)
-	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", 24*time.Hour, g)
+	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, ROLL_STRATEGY_BATCH)
 	assert.NoError(t, err)
 
 	assert.Equal(t, fmt.Sprintf("%s/android_repo/%s", wd, childPath), rm.(*androidRepoManager).childDir)
 	assert.Equal(t, "https://mock-server.googlesource.com", rm.(*androidRepoManager).repoUrl)
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.LastRollRev())
-	assert.Equal(t, childCommits[0], rm.ChildHead())
+	assert.Equal(t, childCommits[0], rm.NextRollRev())
 	assert.Equal(t, SERVICE_ACCOUNT, rm.User())
 }
 
@@ -83,10 +82,10 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	defer cleanup()
 
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", 24*time.Hour, g)
+	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, ROLL_STRATEGY_BATCH)
 	assert.NoError(t, err)
 
-	issue, err := rm.CreateNewRoll(ROLL_STRATEGY_BATCH, androidEmails, "", false)
+	issue, err := rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), androidEmails, "", false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
 }

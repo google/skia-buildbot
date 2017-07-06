@@ -8,7 +8,6 @@ import (
 	"path"
 	"regexp"
 	"strings"
-	"time"
 
 	"go.skia.org/infra/go/sklog"
 
@@ -31,7 +30,7 @@ const (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewDEPSRepoManager func(string, string, string, string, string, time.Duration, string, *gerrit.Gerrit) (RepoManager, error) = newDEPSRepoManager
+	NewDEPSRepoManager func(string, string, string, string, string, string, *gerrit.Gerrit, string) (RepoManager, error) = newDEPSRepoManager
 
 	DEPOT_TOOLS_AUTH_USER_REGEX = regexp.MustCompile(fmt.Sprintf("Logged in to %s as ([\\w-]+).", autoroll.RIETVELD_URL))
 )
@@ -63,7 +62,7 @@ func getEnv(depotTools string) []string {
 
 // newDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, frequency time.Duration, depot_tools string, g *gerrit.Gerrit) (RepoManager, error) {
+func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy string) (RepoManager, error) {
 	gclient := GCLIENT
 	rollDep := ROLL_DEP
 	if depot_tools != "" {
@@ -88,6 +87,7 @@ func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranc
 			childPath:    childPath,
 			childRepo:    nil, // This will be filled in on the first update.
 			childBranch:  childBranch,
+			strategy:     strategy,
 			user:         user,
 			workdir:      wd,
 			g:            g,
@@ -98,15 +98,9 @@ func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranc
 		parentRepo:  parentRepo,
 		rollDep:     rollDep,
 	}
-	if err := dr.update(); err != nil {
-		return nil, err
-	}
-	go func() {
-		for range time.Tick(frequency) {
-			util.LogErr(dr.update())
-		}
-	}()
-	return dr, nil
+	// TODO(borenet): This update can be extremely expensive. Consider
+	// moving it out of the startup critical path.
+	return dr, dr.Update()
 }
 
 // cleanParent forces the parent checkout into a clean state.
@@ -130,8 +124,8 @@ func (dr *depsRepoManager) cleanParent() error {
 	return nil
 }
 
-// update syncs code in the relevant repositories.
-func (dr *depsRepoManager) update() error {
+// Update syncs code in the relevant repositories.
+func (dr *depsRepoManager) Update() error {
 	// Sync the projects.
 	dr.repoMtx.Lock()
 	defer dr.repoMtx.Unlock()
@@ -184,21 +178,30 @@ func (dr *depsRepoManager) update() error {
 		return err
 	}
 
-	// Record child HEAD
+	// Get the next roll revision.
 	childHead, err := dr.childRepo.FullHash(fmt.Sprintf("origin/%s", dr.childBranch))
 	if err != nil {
 		return err
 	}
+	var nextRollRev string
+	if dr.strategy == ROLL_STRATEGY_SINGLE {
+		commits, err := dr.childRepo.RevList(fmt.Sprintf("%s..%s", lastRollRev, childHead))
+		if err != nil {
+			return fmt.Errorf("Failed to list revisions: %s", err)
+		}
+		if len(commits) == 0 {
+			nextRollRev = lastRollRev
+		} else {
+			nextRollRev = commits[len(commits)-1]
+		}
+	} else {
+		nextRollRev = childHead
+	}
 	dr.infoMtx.Lock()
 	defer dr.infoMtx.Unlock()
 	dr.lastRollRev = lastRollRev
-	dr.childHead = childHead
+	dr.nextRollRev = nextRollRev
 	return nil
-}
-
-// ForceUpdate forces the repoManager to update.
-func (dr *depsRepoManager) ForceUpdate() error {
-	return dr.update()
 }
 
 // getLastRollRev returns the commit hash of the last-completed DEPS roll.
@@ -222,7 +225,7 @@ func (dr *depsRepoManager) getLastRollRev() (string, error) {
 
 // CreateNewRoll creates and uploads a new DEPS roll to the given commit.
 // Returns the issue number of the uploaded roll.
-func (dr *depsRepoManager) CreateNewRoll(strategy string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (dr *depsRepoManager) CreateNewRoll(from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	dr.repoMtx.Lock()
 	defer dr.repoMtx.Unlock()
 
@@ -240,17 +243,10 @@ func (dr *depsRepoManager) CreateNewRoll(strategy string, emails []string, cqExt
 	}()
 
 	// Create the roll CL.
-
-	// Determine what commit we're rolling to.
 	cr := dr.childRepo
-	commits, err := cr.RevList(fmt.Sprintf("%s..%s", dr.lastRollRev, dr.childHead))
+	commits, err := cr.RevList(fmt.Sprintf("%s..%s", from, to))
 	if err != nil {
 		return 0, fmt.Errorf("Failed to list revisions: %s", err)
-	}
-	rollTo := dr.childHead
-	if strategy == ROLL_STRATEGY_SINGLE {
-		rollTo = commits[len(commits)-1]
-		commits = commits[len(commits)-1:]
 	}
 
 	if _, err := exec.RunCwd(dr.parentDir, "git", "config", "user.name", dr.user); err != nil {
@@ -274,7 +270,7 @@ func (dr *depsRepoManager) CreateNewRoll(strategy string, emails []string, cqExt
 	}
 
 	// Run roll-dep.
-	args := []string{dr.childPath, "--roll-to", rollTo}
+	args := []string{dr.childPath, "--roll-to", to}
 	if len(bugs) > 0 {
 		args = append(args, "--bug", strings.Join(bugs, ","))
 	}

@@ -32,7 +32,7 @@ var noTrybots = []*buildbucket.Build{}
 // mockRepoManager is a struct used for mocking out the AutoRoller's
 // interactions with a RepoManager.
 type mockRepoManager struct {
-	forceUpdateCount         int
+	updateCount              int
 	mockIssueNumber          int64
 	mockFullChildHashes      map[string]string
 	lastRollRev              string
@@ -44,36 +44,36 @@ type mockRepoManager struct {
 	t                        *testing.T
 }
 
-// ForceUpdate pretends to force the mockRepoManager to update.
-func (r *mockRepoManager) ForceUpdate() error {
+// Update pretends to update the mockRepoManager.
+func (r *mockRepoManager) Update() error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
-	if r.forceUpdateCount == 0 {
-		return fmt.Errorf("forceUpdateCount == 0!")
+	if r.updateCount == 0 {
+		return fmt.Errorf("updateCount == 0!")
 	}
-	r.forceUpdateCount--
+	r.updateCount--
 	return nil
 }
 
-// mockForceUpdate increments the expected ForceUpdate call count.
-func (r *mockRepoManager) mockForceUpdate() {
+// mockUpdate increments the expected Update call count.
+func (r *mockRepoManager) mockUpdate() {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
-	r.forceUpdateCount++
+	r.updateCount++
 }
 
-// assertForceUpdate asserts that the ForceUpdate call count is zero.
-func (r *mockRepoManager) assertForceUpdate() {
+// assertUpdate asserts that the Update call count is zero.
+func (r *mockRepoManager) assertUpdate() {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
-	assert.Equal(r.t, 0, r.forceUpdateCount)
+	assert.Equal(r.t, 0, r.updateCount)
 }
 
-// getForceUpdateCount returns the remaining ForceUpdate call count.
-func (r *mockRepoManager) getForceUpdateCount() int {
+// getUpdateCount returns the remaining Update call count.
+func (r *mockRepoManager) getUpdateCount() int {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
-	return r.forceUpdateCount
+	return r.updateCount
 }
 
 // FullChildHash returns the full hash of the given short hash or ref in the
@@ -128,16 +128,15 @@ func (r *mockRepoManager) mockRolledPast(hash string, rolled bool) {
 	r.rolledPast[hash] = rolled
 }
 
-// ChildHead returns the current child origin/master branch head in the mocked
-// repo.
-func (r *mockRepoManager) ChildHead() string {
+// NextRollRev returns the revision for the next roll.
+func (r *mockRepoManager) NextRollRev() string {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	return r.skiaHead
 }
 
-// mockChildHead sets the fake child origin/master branch head.
-func (r *mockRepoManager) mockChildHead(hash string) {
+// mockNextRollRev sets the fake child origin/master branch head.
+func (r *mockRepoManager) mockNextRollRev(hash string) {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 	r.skiaHead = hash
@@ -145,7 +144,7 @@ func (r *mockRepoManager) mockChildHead(hash string) {
 
 // CreateNewRoll pretends to create a new DEPS roll from the mocked repo,
 // returning the fake issue number set by the test.
-func (r *mockRepoManager) CreateNewRoll(strategy string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (r *mockRepoManager) CreateNewRoll(from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	return r.mockIssueNumber, nil
@@ -345,7 +344,7 @@ func (r *mockCodereview) pretendRollLanded(rm *mockRepoManager, issue *gerrit.Ch
 	assert.NoError(r.t, err)
 	rm.mockRolledPast(rolledTo, true)
 	rm.mockLastRollRev(rolledTo)
-	rm.mockForceUpdate()
+	rm.mockUpdate()
 
 	issue.Committed = true
 	issue.Labels[gerrit.COMMITQUEUE_LABEL].All[0].Value = gerrit.COMMITQUEUE_LABEL_NONE
@@ -364,7 +363,7 @@ func (r *mockCodereview) nextIssueNum() int64 {
 // checkStatus verifies that we get the expected status from the roller.
 func checkStatus(t *testing.T, r *AutoRoller, rv *mockCodereview, rm *mockRepoManager, expectedStatus string, current *gerrit.ChangeInfo, currentTrybots []*buildbucket.Build, currentDryRun bool, last *gerrit.ChangeInfo, lastTrybots []*buildbucket.Build, lastDryRun bool) {
 	rv.assertMocksEmpty()
-	rm.assertForceUpdate()
+	rm.assertUpdate()
 	s := r.GetStatus(true)
 	assert.Equal(t, expectedStatus, s.Status)
 	assert.Equal(t, s.Error, "")
@@ -426,7 +425,7 @@ func setup(t *testing.T, strategy string) (string, *AutoRoller, *mockRepoManager
 	}
 
 	rm := &mockRepoManager{t: t}
-	repo_manager.NewDEPSRepoManager = func(workdir, parentRepo, parentBranch, childPath, childBranch string, frequency time.Duration, depot_tools string, g *gerrit.Gerrit) (repo_manager.RepoManager, error) {
+	repo_manager.NewDEPSRepoManager = func(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy string) (repo_manager.RepoManager, error) {
 		return rm, nil
 	}
 
@@ -436,10 +435,10 @@ func setup(t *testing.T, strategy string) (string, *AutoRoller, *mockRepoManager
 	rm.mockChildCommit("def4561010101010101010101010101010101010")
 	rm.mockLastRollRev(initialCommit)
 	rm.mockRolledPast(initialCommit, true)
-	roll1 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), noTrybots, false)
+	roll1 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.NextRollRev(), noTrybots, false)
 
 	// Create the roller.
-	roller, err := NewAutoRoller(workdir, "parent.git", "master", "src/third_party/skia", "master", "", []string{}, g, time.Hour, time.Hour, "depot_tools", false, strategy)
+	roller, err := NewAutoRoller(workdir, "parent.git", "master", "src/third_party/skia", "master", "", []string{}, g, "depot_tools", false, strategy)
 	assert.NoError(t, err)
 
 	// Verify that the bot ran successfully.
@@ -467,7 +466,7 @@ func TestAutoRollBasic(t *testing.T) {
 	// The roll failed. Verify that we close it and upload another one.
 	rv.pretendRollFailed(roll1, noTrybots)
 	rv.rollerWillCloseIssue(roll1)
-	roll2 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), noTrybots, false)
+	roll2 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.NextRollRev(), noTrybots, false)
 	assert.NoError(t, roller.doAutoRoll())
 	// The roller should have closed this CL.
 	roll1.Status = gerrit.CHANGE_STATUS_ABANDONED
@@ -514,7 +513,7 @@ func TestAutoRollStop(t *testing.T) {
 	checkStatus(t, roller, rv, rm, STATUS_STOPPED, nil, nil, false, roll1, noTrybots, false)
 
 	// Resume the bot. Ensure that we upload a new CL.
-	roll2 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), noTrybots, false)
+	roll2 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.NextRollRev(), noTrybots, false)
 	assert.NoError(t, roller.SetMode(autoroll_modes.MODE_RUNNING, u, "Resume!"))
 	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll2, noTrybots, false, roll1, noTrybots, false)
 
@@ -587,7 +586,7 @@ func TestAutoRollDryRun(t *testing.T) {
 		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
 	}
 	trybots2 := []*buildbucket.Build{trybot2}
-	roll2 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), trybots2, true)
+	roll2 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.NextRollRev(), trybots2, true)
 	assert.NoError(t, roller.doAutoRoll())
 	// Roller should have closed this issue.
 	roll1.Status = gerrit.CHANGE_STATUS_ABANDONED
@@ -602,7 +601,7 @@ func TestAutoRollDryRun(t *testing.T) {
 		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
 	}
 	trybots3 := []*buildbucket.Build{trybot3}
-	roll3 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), trybots3, true)
+	roll3 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.NextRollRev(), trybots3, true)
 	assert.NoError(t, roller.doAutoRoll())
 	// Roller should have closed this issue.
 	roll2.Status = gerrit.CHANGE_STATUS_ABANDONED
@@ -659,13 +658,13 @@ func TestAutoRollCommitLandRace(t *testing.T) {
 	rv.modify(roll1, trybots)
 
 	// The repo will have to force update multiple times.
-	rm.mockForceUpdate()
-	rm.mockForceUpdate()
-	rm.mockForceUpdate()
+	rm.mockUpdate()
+	rm.mockUpdate()
+	rm.mockUpdate()
 	// This goroutine will cause the CL to "land" after a couple of tries.
 	go func() {
 		for {
-			if rm.getForceUpdateCount() == 0 {
+			if rm.getUpdateCount() == 0 {
 				m := autoroll.ROLL_REV_REGEX.FindStringSubmatch(roll1.Subject)
 				assert.NotNil(t, m)
 				assert.Equal(t, 3, len(m))
@@ -673,7 +672,7 @@ func TestAutoRollCommitLandRace(t *testing.T) {
 				assert.NoError(t, err)
 				rm.mockRolledPast(rolledTo, true)
 				rm.mockLastRollRev(rolledTo)
-				rm.mockForceUpdate()
+				rm.mockUpdate()
 				return
 
 			}
@@ -699,7 +698,7 @@ func TestAutoRollThrottle(t *testing.T) {
 	// The roll failed. Verify that we close it and upload another one.
 	rv.pretendRollFailed(roll1, noTrybots)
 	rv.rollerWillCloseIssue(roll1)
-	roll2 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), noTrybots, false)
+	roll2 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.NextRollRev(), noTrybots, false)
 	assert.NoError(t, roller.doAutoRoll())
 	// The roller should have closed this CL.
 	roll1.Status = gerrit.CHANGE_STATUS_ABANDONED
@@ -708,7 +707,7 @@ func TestAutoRollThrottle(t *testing.T) {
 	// The roll failed. Verify that we close it and upload another one.
 	rv.pretendRollFailed(roll2, noTrybots)
 	rv.rollerWillCloseIssue(roll2)
-	roll3 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), noTrybots, false)
+	roll3 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.NextRollRev(), noTrybots, false)
 	assert.NoError(t, roller.doAutoRoll())
 	// The roller should have closed this CL.
 	roll2.Status = gerrit.CHANGE_STATUS_ABANDONED
