@@ -107,9 +107,10 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp: []string{
 			`CREATE TABLE IF NOT EXISTS alerts (
-				id         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
-				state      TINYINT      NOT NULL,
-				body       MEDIUMTEXT   NOT NULL
+				id           INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				state        TINYINT      NOT NULL,
+				lastmodified TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+				body         MEDIUMTEXT   NOT NULL
 			)`,
 		},
 		MySQLDown: []string{
