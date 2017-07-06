@@ -79,9 +79,9 @@ func (s *Store) List(includeDeleted bool) ([]*Config, error) {
 	var rows *sql.Rows
 	var err error
 	if includeDeleted {
-		rows, err = db.DB.Query("SELECT id, state, body FROM alerts ORDER BY id DESC")
+		rows, err = db.DB.Query("SELECT id, state, body FROM alerts ORDER BY id ASC")
 	} else {
-		rows, err = db.DB.Query("SELECT id, state, body FROM alerts WHERE state=? ORDER BY id DESC", ACTIVE)
+		rows, err = db.DB.Query("SELECT id, state, body FROM alerts WHERE state=? ORDER BY id ASC", ACTIVE)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read from database: %s", err)
