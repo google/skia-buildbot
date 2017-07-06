@@ -116,6 +116,24 @@
     },
     {
       "key": {
+        "uuid": "630d01b2_73a68c97",
+        "filename": "golden/go/diffstore/net_diffstore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-06T16:34:41Z",
+      "side": 1,
+      "message": "That was what I attempted at first, but if I do this cast and run the tests, I get the following error:\n\"panic: interface conversion: interface {} is map[string]*diff.DiffMetrics, not map[string]interface {}\"\n\nAlso, if I refactor Decode() to return an instance of map[string]interface{} as well, I get the following test failure:\n\"TestNetDiffStore (4.16s)\n        Error Trace:    diffstore_test.go:157\n\t            \tdiffstore_test.go:100\n\tError:      \tNot equal: \n\t            \texpected: map[string]interface {}(map[string]interface {}{\"pixelDiffPercent\":10.238, \"maxRGBADiffs\":[]interface {}{255, 255, 255, 1}, \"dimDiffer\":false, \"diffs\":map[string]interface {}{\"pixel\":102380, \"combined\":2.9776485, \"percent\":10.238}, \"numDiffPixels\":102380})\n\t            \tactual: *diff.DiffMetrics(\u0026diff.DiffMetrics{NumDiffPixels:102380, PixelDiffPercent:10.238, MaxRGBADiffs:[]int{255, 255, 255, 1}, DimDiffer:false, Diffs:map[string]float32{\"combined\":2.9776485, \"percent\":10.238, \"pixel\":102380}})\"\n\nThis is why I used the loop below to return the result of Decode() as a generic interface, but please let me know if there\u0027s a better solution.",
+      "parentUuid": "1eac92e7_2bc695cc",
+      "revId": "467739ae2643cf0511f19fe59b2005044ce7241a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7490d94e_8170da8c",
         "filename": "golden/go/diffstore/net_diffstore.go",
         "patchSetId": 8
