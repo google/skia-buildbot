@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "04beb855_038f00fe",
+        "filename": "autoroll/go/repo_manager/manifest_repo_manager_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-06T18:04:25Z",
+      "side": 1,
+      "message": "Does this actually upload a CL?  If so, we should probably skip this test after we know it works.",
+      "range": {
+        "startLine": 150,
+        "startChar": 18,
+        "endLine": 150,
+        "endChar": 31
+      },
+      "revId": "efc7f7b08b8f8e2360c8cdf18334cc9ac20f3efc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
