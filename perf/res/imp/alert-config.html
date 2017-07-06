@@ -15,6 +15,7 @@
 -->
 <link rel="import" href="/res/imp/bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+<link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
 
 <link rel="import" href="/res/common/imp/query2-chooser.html" />
 <link rel="stylesheet" href="/res/common/css/md.css">
@@ -22,29 +23,62 @@
 <link rel="import" href="algo-select.html" />
 
 <dom-module id="alert-config-sk">
-  <style>
+  <style is="custom-style">
     h3, h4 {
-      margin: 0.6em 0 0.2em 0;
+      margin: 1em 0 0.2em 0;
+    }
+
+    algo-select-sk {
+      display: block;
     }
 
     paper-input,
+    paper-checkbox,
+    iron-selector,
+    algo-select-sk {
+      margin-left: 3em;
+    }
+
     h4 {
-      margin-left: 0.6em;
+      margin-left: 2em;
+    }
+
+    .iron-selected {
+      background: #eee;
+    }
+
+    iron-selector div {
+      width: 10em;
+      margin: 0.3em 1em;
+      padding: 0.2em;
+    }
+
+    paper-checkbox {
+      --paper-checkbox-checked-color: #1f78b4;
+      --paper-checkbox-checked-ink-color: #1f78b4;
     }
   </style>
   <template>
     <h3>Which traces should be monitored</h3>
-    <query2-chooser-sk paramset="{{paramset}}" current_query="{{config.query}}"></query2-chooser-sk>
+    <query2-chooser-sk id=querychooser paramset="{{paramset}}" current_query="{{config.query}}"></query2-chooser-sk>
     <h3>What triggers an alert</h3>
     <h4>Algorithm</h4>
     <algo-select-sk algo="{{config.algo}}"></algo-select-sk>
-    <paper-input type=number min=0 max=500  value="{{config.interesting}}" label="Interesting Threshhold: Clusters are interesting if regression score >= this."></paper-input>
+    <h4>Step Direction</h4>
+    <paper-checkbox checked="{{config.step_up_only}}">Only step ups should trigger an alert.</paper-checkbox>
+    <h4>Threshhold</h4>
+    <paper-input type=number min=0 max=500  value="{{config.interesting}}" label="Interesting Threshhold for clusters to be interesting. 0 == Use server default. "></paper-input>
     <h3>Where are alerts sent</h3>
-    <paper-input value="{{config.alert}}"            label="Alert Destination: Email address or chat id."></paper-input>
+    <paper-input value="{{config.alert}}"                                  label="Alert Destination: Email address or chat id."></paper-input>
     <h3>Where are bugs filed</h3>
-    <paper-input value="{{config.bug_uri_template}}" label="Bug URI Template. (TBD)"></paper-input>
+    <paper-input value="{{config.bug_uri_template}}"                       label="Bug URI Template. (TBD)"></paper-input>
     <h3>Who owns this alert</h3>
-    <paper-input value="{{config.owner}}"            label="Email address of owner."></paper-input>
+    <paper-input id=owner value="{{config.owner}}"                         label="Email address of owner."></paper-input>
+    <h3>Status</h3>
+    <iron-selector attr-for-selected="value" selected="{{config.state}}" fallback-selection=ACTIVE>
+      <div value=ACTIVE title="Clusters that match this will generate alerts.">Active</div>
+      <div value=DELETED title="Currently inactive.">Deleted</div>
+    </iron-selector>
   </template>
 </dom-module>
 
@@ -64,7 +98,11 @@
         type: Object,
         value: function() { return {}; },
         reflectToAttribute: false,
-      }
+      },
+    },
+
+    ready: function() {
+      this.$.querychooser.query.setKeyOrder(sk.perf.key_order);
     },
 
   });
