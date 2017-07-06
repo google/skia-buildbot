@@ -196,7 +196,7 @@ func main() {
 	common.InitWithMust(
 		"autoroll",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
+		//common.CloudLoggingOpt(),
 	)
 
 	Init()
@@ -268,9 +268,10 @@ func main() {
 	}
 
 	// Start the autoroller.
-	arb, err = autoroller.NewAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, time.Minute, 15*time.Minute, depotTools, *rollIntoAndroid, *strategy)
+	// rmistry: Make the below a flag
+	// Changed 15mins to 2 mins just for testing
+	arb, err = autoroller.NewAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, time.Minute, 2*time.Minute, depotTools, *rollIntoAndroid, true, *strategy)
 	if err != nil {
-
 		sklog.Fatal(err)
 	}
 
