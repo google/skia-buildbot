@@ -22,6 +22,30 @@
       "revId": "efc7f7b08b8f8e2360c8cdf18334cc9ac20f3efc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ee4659d_8c9eeade",
+        "filename": "autoroll/go/repo_manager/manifest_repo_manager_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-06T18:11:06Z",
+      "side": 1,
+      "message": "It just tests that the expected issue num is returned by mocking out the git cl upload call. I added this to the test doc.",
+      "parentUuid": "04beb855_038f00fe",
+      "range": {
+        "startLine": 150,
+        "startChar": 18,
+        "endLine": 150,
+        "endChar": 31
+      },
+      "revId": "efc7f7b08b8f8e2360c8cdf18334cc9ac20f3efc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
