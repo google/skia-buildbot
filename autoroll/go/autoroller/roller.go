@@ -65,11 +65,13 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
-func NewAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, tickFrequency, repoFrequency time.Duration, depot_tools string, rollIntoAndroid bool, strategy string) (*AutoRoller, error) {
+func NewAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, tickFrequency, repoFrequency time.Duration, depot_tools string, rollIntoAndroid, useManifest bool, strategy string) (*AutoRoller, error) {
 	var err error
 	var rm repo_manager.RepoManager
 	if rollIntoAndroid {
 		rm, err = repo_manager.NewAndroidRepoManager(workdir, parentBranch, childPath, childBranch, repoFrequency, gerrit)
+	} else if useManifest {
+		rm, err = repo_manager.NewManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch, repoFrequency, depot_tools, gerrit)
 	} else {
 		rm, err = repo_manager.NewDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch, repoFrequency, depot_tools, gerrit)
 	}

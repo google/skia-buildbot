@@ -180,6 +180,11 @@ func FromGerritChangeInfo(i *gerrit.ChangeInfo, fullHashFn func(string) (string,
 			}
 		}
 	} else {
+		fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXX")
+		fmt.Println(i.Labels)
+		fmt.Println(i.Labels[gerrit.COMMITQUEUE_LABEL])
+		fmt.Println(i.Labels[gerrit.COMMITQUEUE_LABEL].All)
+		fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx")
 		for _, lb := range i.Labels[gerrit.COMMITQUEUE_LABEL].All {
 			if lb.Value == gerrit.COMMITQUEUE_LABEL_DRY_RUN {
 				cq = true
