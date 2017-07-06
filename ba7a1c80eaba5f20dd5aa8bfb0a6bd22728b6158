@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a98c3132_0cf3088c",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 996,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-06T20:26:56Z",
+      "side": 1,
+      "message": "Should only Googlers be able to add/edit/delete ?",
+      "range": {
+        "startLine": 996,
+        "startChar": 4,
+        "endLine": 996,
+        "endChar": 30
+      },
+      "revId": "ba7a1c80eaba5f20dd5aa8bfb0a6bd22728b6158",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71f7b7b5_84eecc9e",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 997,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-06T20:26:56Z",
+      "side": 1,
+      "message": "edit -\u003e add ?",
+      "range": {
+        "startLine": 997,
+        "startChar": 86,
+        "endLine": 997,
+        "endChar": 90
+      },
+      "revId": "ba7a1c80eaba5f20dd5aa8bfb0a6bd22728b6158",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
