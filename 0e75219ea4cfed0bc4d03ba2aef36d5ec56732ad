@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ed24ad2_b5c27054",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-06T16:12:11Z",
+      "side": 1,
+      "message": "Nit: Since it\u0027s not obvious what the times are used for can you add something like:\ntime.Minute /* tickFrequency */,\n15*time.Minute /* repoFrequency */,",
+      "revId": "0e75219ea4cfed0bc4d03ba2aef36d5ec56732ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
