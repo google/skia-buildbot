@@ -7,7 +7,6 @@ import (
 	"path"
 	"regexp"
 	"strings"
-	"time"
 
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
@@ -27,7 +26,7 @@ const (
 var (
 	// Use this function to instantiate a NewAndroidRepoManager. This is able to be
 	// overridden for testing.
-	NewAndroidRepoManager func(string, string, string, string, time.Duration, gerrit.GerritInterface) (RepoManager, error) = newAndroidRepoManager
+	NewAndroidRepoManager func(string, string, string, string, gerrit.GerritInterface, string) (RepoManager, error) = newAndroidRepoManager
 
 	IGNORE_MERGE_CONFLICT_FILES = []string{"include/config/SkUserConfig.h"}
 
@@ -45,7 +44,7 @@ type androidRepoManager struct {
 	authDaemonRunning       bool
 }
 
-func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string, frequency time.Duration, g gerrit.GerritInterface) (RepoManager, error) {
+func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string, g gerrit.GerritInterface, strategy string) (RepoManager, error) {
 	user, err := user.Current()
 	if err != nil {
 		return nil, err
@@ -61,6 +60,7 @@ func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string,
 			childPath:    childPath,
 			childRepo:    nil, // This will be filled in on the first update.
 			childBranch:  childBranch,
+			strategy:     strategy,
 			user:         SERVICE_ACCOUNT,
 			workdir:      wd,
 			g:            g,
@@ -71,20 +71,13 @@ func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string,
 		authDaemonRunning:       false,
 	}
 
-	if err := r.update(); err != nil {
-		return nil, err
-	}
-	go func() {
-		for range time.Tick(frequency) {
-			// Update repo.
-			util.LogErr(r.update())
-		}
-	}()
-	return r, nil
+	// TODO(borenet): This update can be extremely expensive. Consider
+	// moving it out of the startup critical path.
+	return r, r.Update()
 }
 
-// update syncs code in the relevant repositories.
-func (r *androidRepoManager) update() error {
+// Update syncs code in the relevant repositories.
+func (r *androidRepoManager) Update() error {
 	// Sync the projects.
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
@@ -143,22 +136,31 @@ func (r *androidRepoManager) update() error {
 		return err
 	}
 
-	// Record child HEAD
+	// Get the next roll revision.
 	childHead, err := r.getChildRepoHead()
 	if err != nil {
 		return err
 	}
+	var nextRollRev string
+	if r.strategy == ROLL_STRATEGY_SINGLE {
+		commits, err := r.childRepo.RevList(fmt.Sprintf("%s..%s", lastRollRev, childHead))
+		if err != nil {
+			return fmt.Errorf("Failed to list revisions: %s", err)
+		}
+		if len(commits) == 0 {
+			nextRollRev = lastRollRev
+		} else {
+			nextRollRev = commits[len(commits)-1]
+		}
+	} else {
+		nextRollRev = childHead
+	}
 	r.infoMtx.Lock()
 	defer r.infoMtx.Unlock()
 	r.lastRollRev = lastRollRev
-	r.childHead = childHead
+	r.nextRollRev = nextRollRev
 
 	return nil
-}
-
-// ForceUpdate forces the repoManager to update.
-func (r *androidRepoManager) ForceUpdate() error {
-	return r.update()
 }
 
 // getChildRepoHead returns the commit hash of the latest commit in the child repo.
@@ -202,11 +204,11 @@ func (r *androidRepoManager) RolledPast(hash string) (bool, error) {
 	return git.GitDir(r.childDir).IsAncestor(hash, r.lastRollRev)
 }
 
-// ChildHead returns the current child branch head.
-func (r *androidRepoManager) ChildHead() string {
+// NextRollRev returns the revision of the next roll.
+func (r *androidRepoManager) NextRollRev() string {
 	r.infoMtx.RLock()
 	defer r.infoMtx.RUnlock()
-	return r.childHead
+	return r.nextRollRev
 }
 
 // abortMerge aborts the current merge in the child repo.
@@ -277,7 +279,7 @@ func ExtractTestLines(line string) []string {
 
 // CreateNewRoll creates and uploads a new Android roll to the given commit.
 // Returns the change number of the uploaded roll.
-func (r *androidRepoManager) CreateNewRoll(strategy string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (r *androidRepoManager) CreateNewRoll(from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 
@@ -288,26 +290,20 @@ func (r *androidRepoManager) CreateNewRoll(strategy string, emails []string, cqE
 
 	// Create the roll CL.
 
-	// Determine what commit we're rolling to.
 	cr := r.childRepo
-	commits, err := cr.RevList(fmt.Sprintf("%s..%s", r.lastRollRev, r.childHead))
+	commits, err := cr.RevList(fmt.Sprintf("%s..%s", from, to))
 	if err != nil {
 		return 0, fmt.Errorf("Failed to list revisions: %s", err)
-	}
-	rollTo := r.childHead
-	if strategy == ROLL_STRATEGY_SINGLE {
-		rollTo = commits[len(commits)-1]
-		commits = commits[len(commits)-1:]
 	}
 
 	// Start the merge.
 
-	if _, err := exec.RunCwd(r.childDir, "git", "merge", rollTo, "--no-commit"); err != nil {
+	if _, err := exec.RunCwd(r.childDir, "git", "merge", to, "--no-commit"); err != nil {
 		// Check to see if this was a merge conflict with IGNORE_MERGE_CONFLICT_FILES.
 		conflictsOutput, conflictsErr := exec.RunCwd(r.childDir, "git", "diff", "--name-only", "--diff-filter=U")
 		if conflictsErr != nil || conflictsOutput == "" {
 			util.LogErr(conflictsErr)
-			return 0, fmt.Errorf("Failed to roll to %s. Needs human investigation: %s", rollTo, err)
+			return 0, fmt.Errorf("Failed to roll to %s. Needs human investigation: %s", to, err)
 		}
 		for _, conflict := range strings.Split(conflictsOutput, "\n") {
 			if conflict == "" {
@@ -323,7 +319,7 @@ func (r *androidRepoManager) CreateNewRoll(strategy string, emails []string, cqE
 			}
 			if !ignoreConflict {
 				util.LogErr(r.abortMerge())
-				return 0, fmt.Errorf("Failed to roll to %s. Conflicts in %s: %s", rollTo, conflictsOutput, err)
+				return 0, fmt.Errorf("Failed to roll to %s. Conflicts in %s: %s", to, conflictsOutput, err)
 			}
 		}
 	}
@@ -372,7 +368,7 @@ func (r *androidRepoManager) CreateNewRoll(strategy string, emails []string, cqE
 	}
 
 	// Create commit message.
-	commitRange := fmt.Sprintf("%s..%s", r.lastRollRev[:9], r.childHead[:9])
+	commitRange := fmt.Sprintf("%s..%s", from[:9], to[:9])
 	childRepoName := path.Base(r.childDir)
 	commitMsg := fmt.Sprintf(
 		`Roll %s %s (%d commits)

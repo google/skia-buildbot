@@ -5,6 +5,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -268,11 +269,14 @@ func main() {
 	}
 
 	// Start the autoroller.
-	arb, err = autoroller.NewAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, time.Minute, 15*time.Minute, depotTools, *rollIntoAndroid, *strategy)
+	arb, err = autoroller.NewAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, *rollIntoAndroid, *strategy)
 	if err != nil {
 
 		sklog.Fatal(err)
 	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	arb.Start(time.Minute /* tickFrequency */, 15*time.Minute /* repoFrequency */, ctx)
 
 	// Feed AutoRoll stats into metrics.
 	go func() {

@@ -1,6 +1,7 @@
 package autoroller
 
 import (
+	"context"
 	"fmt"
 	"path"
 	"sync"
@@ -45,33 +46,30 @@ var (
 
 // AutoRoller is a struct used for managing DEPS rolls.
 type AutoRoller struct {
-	attemptCounter   *util.AutoDecrementCounter
-	cqExtraTrybots   string
-	emails           []string
-	gerrit           *gerrit.Gerrit
-	includeCommitLog bool
-	emailMtx         sync.RWMutex
-	lastError        error
-	liveness         metrics2.Liveness
-	modeHistory      *autoroll_modes.ModeHistory
-	modeMtx          sync.Mutex
-	mtx              sync.RWMutex
-	recent           *recent_rolls.RecentRolls
-	rm               repo_manager.RepoManager
-	runningMtx       sync.Mutex
-	status           *autoRollStatusCache
-	strategy         string
-	rollIntoAndroid  bool
+	attemptCounter  *util.AutoDecrementCounter
+	cqExtraTrybots  string
+	emails          []string
+	gerrit          *gerrit.Gerrit
+	emailMtx        sync.RWMutex
+	lastError       error
+	liveness        metrics2.Liveness
+	modeHistory     *autoroll_modes.ModeHistory
+	modeMtx         sync.Mutex
+	recent          *recent_rolls.RecentRolls
+	rm              repo_manager.RepoManager
+	runningMtx      sync.Mutex
+	status          *AutoRollStatusCache
+	rollIntoAndroid bool
 }
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
-func NewAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, tickFrequency, repoFrequency time.Duration, depot_tools string, rollIntoAndroid bool, strategy string) (*AutoRoller, error) {
+func NewAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, depot_tools string, rollIntoAndroid bool, strategy string) (*AutoRoller, error) {
 	var err error
 	var rm repo_manager.RepoManager
 	if rollIntoAndroid {
-		rm, err = repo_manager.NewAndroidRepoManager(workdir, parentBranch, childPath, childBranch, repoFrequency, gerrit)
+		rm, err = repo_manager.NewAndroidRepoManager(workdir, parentBranch, childPath, childBranch, gerrit, strategy)
 	} else {
-		rm, err = repo_manager.NewDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch, repoFrequency, depot_tools, gerrit)
+		rm, err = repo_manager.NewDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch, depot_tools, gerrit, strategy)
 	}
 	if err != nil {
 		return nil, err
@@ -88,18 +86,16 @@ func NewAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cq
 	}
 
 	arb := &AutoRoller{
-		attemptCounter:   util.NewAutoDecrementCounter(ROLL_ATTEMPT_THROTTLE_TIME),
-		cqExtraTrybots:   cqExtraTrybots,
-		emails:           emails,
-		gerrit:           gerrit,
-		includeCommitLog: true,
-		liveness:         metrics2.NewLiveness("last-autoroll-landed", map[string]string{"child-path": childPath}),
-		modeHistory:      mh,
-		recent:           recent,
-		rm:               rm,
-		status:           &autoRollStatusCache{},
-		strategy:         strategy,
-		rollIntoAndroid:  rollIntoAndroid,
+		attemptCounter:  util.NewAutoDecrementCounter(ROLL_ATTEMPT_THROTTLE_TIME),
+		cqExtraTrybots:  cqExtraTrybots,
+		emails:          emails,
+		gerrit:          gerrit,
+		liveness:        metrics2.NewLiveness("last-autoroll-landed", map[string]string{"child-path": childPath}),
+		modeHistory:     mh,
+		recent:          recent,
+		rm:              rm,
+		status:          &AutoRollStatusCache{},
+		rollIntoAndroid: rollIntoAndroid,
 	}
 
 	// Cycle once to fill out the current status.
@@ -107,13 +103,29 @@ func NewAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cq
 		return nil, err
 	}
 
+	return arb, nil
+}
+
+// Start initiates the AutoRoller's loop.
+func (r *AutoRoller) Start(tickFrequency, repoFrequency time.Duration, ctx context.Context) {
+	repo_manager.Start(r.rm, repoFrequency, ctx)
+	lv := metrics2.NewLiveness("last-successful-autoroll-tick")
+	go util.RepeatCtx(tickFrequency, ctx, func() {
+		if err := r.doAutoRoll(); err != nil {
+			sklog.Errorf("Failed to run autoroll: %s", err)
+		} else {
+			lv.Reset()
+		}
+	})
 	go func() {
-		for range time.Tick(tickFrequency) {
-			util.LogErr(arb.doAutoRoll())
+		for {
+			select {
+			case <-ctx.Done():
+				util.LogErr(r.Close())
+			default:
+			}
 		}
 	}()
-
-	return arb, nil
 }
 
 // Close closes all sub-structs of the AutoRoller.
@@ -143,9 +155,9 @@ type AutoRollStatus struct {
 	ValidModes  []string                   `json:"validModes"`
 }
 
-// autoRollStatusCache is a struct used for caching roll-up status
+// AutoRollStatusCache is a struct used for caching roll-up status
 // information about the AutoRoll Bot.
-type autoRollStatusCache struct {
+type AutoRollStatusCache struct {
 	currentRoll *autoroll.AutoRollIssue
 	gerritUrl   string
 	lastError   string
@@ -158,7 +170,7 @@ type autoRollStatusCache struct {
 }
 
 // Get returns the current status information.
-func (c *autoRollStatusCache) Get(includeError bool) *AutoRollStatus {
+func (c *AutoRollStatusCache) Get(includeError bool) *AutoRollStatus {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
 	recent := make([]*autoroll.AutoRollIssue, 0, len(c.recent))
@@ -188,7 +200,7 @@ func (c *autoRollStatusCache) Get(includeError bool) *AutoRollStatus {
 }
 
 // set sets the current status information.
-func (c *autoRollStatusCache) set(s *AutoRollStatus) error {
+func (c *AutoRollStatusCache) set(s *AutoRollStatus) error {
 	if !util.In(string(s.Status), VALID_STATUSES) {
 		return fmt.Errorf("Invalid status: %s", s.Status)
 	}
@@ -344,7 +356,7 @@ func (r *AutoRoller) updateCurrentRoll() error {
 		for {
 			sklog.Info("Syncing...")
 			sklog.Infof("Looking for %s", currentRoll.RollingTo)
-			if err := r.rm.ForceUpdate(); err != nil {
+			if err := r.rm.Update(); err != nil {
 				return err
 			}
 			rolledPast, err := r.rm.RolledPast(currentRoll.RollingTo)
@@ -507,7 +519,7 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 					status = STATUS_DRY_RUN_SUCCESS
 				}
 				sklog.Infof("Dry run is finished: %v", currentRoll)
-				if currentRoll.RollingTo != r.rm.ChildHead() {
+				if currentRoll.RollingTo != r.rm.NextRollRev() {
 					if err := r.closeIssue(currentRoll, result, fmt.Sprintf("Repo has passed %s; will open a new dry run.", currentRoll.RollingTo)); err != nil {
 						return STATUS_ERROR, err
 					}
@@ -594,8 +606,9 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 	}
 
 	// If we're up-to-date, exit.
-	childHead := r.rm.ChildHead()
-	if r.rm.LastRollRev() == childHead {
+	lastRollRev := r.rm.LastRollRev()
+	nextRollRev := r.rm.NextRollRev()
+	if lastRollRev == nextRollRev {
 		sklog.Infof("Repo is up-to-date.")
 		return STATUS_UP_TO_DATE, nil
 	}
@@ -606,7 +619,7 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 	}
 	r.attemptCounter.Inc()
 	dryRun := r.isMode(autoroll_modes.MODE_DRY_RUN)
-	uploadedNum, err := r.rm.CreateNewRoll(r.strategy, r.GetEmails(), r.cqExtraTrybots, dryRun)
+	uploadedNum, err := r.rm.CreateNewRoll(lastRollRev, nextRollRev, r.GetEmails(), r.cqExtraTrybots, dryRun)
 	if err != nil {
 		return STATUS_ERROR, fmt.Errorf("Failed to upload a new roll: %s", err)
 	}
