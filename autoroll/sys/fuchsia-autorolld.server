@@ -1,0 +1,26 @@
+[Unit]
+Description=Skia into Fuchsia AutoRoll Bot
+Requires=mnt-pd0.mount
+Wants=network-online.target
+After=mnt-pd0.mount network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/autoroll \
+    --use_metadata=true \
+    --host=fuchsia-roll.skia.org \
+    --logtostderr \
+    --workdir=/mnt/pd0/autoroll_workdir \
+    --parentRepo=https://fuchsia.googlesource.com/manifest.git \
+    --gerrit_url=https://fuchsia-review.googlesource.com \
+    --childName=Skia \
+    --childPath=skia \
+    --resources_dir=/usr/local/share/autoroll/ \
+    --sheriff=rmistry@chromium.org \
+    --use_manifest
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

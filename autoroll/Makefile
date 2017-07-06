@@ -28,7 +28,7 @@ debug: clean_webtools debug_core_js debug_elements_html
 
 include ../webtools/webtools.mk
 
-release: autoroll android_master_release android_o_release catapult_release nacl_release pdfium_release skia_release skia_internal_release
+release: autoroll android_master_release android_o_release catapult_release nacl_release pdfium_release fuchsia_release skia_release skia_internal_release
 
 android_master_release: autoroll
 	./build_android_master_release "$(MESSAGE)"
@@ -44,6 +44,9 @@ nacl_release: autoroll
 
 pdfium_release: autoroll
 	./build_pdfium_release "$(MESSAGE)"
+
+fuchsia_release: autoroll
+	./build_fuchsia_release "$(MESSAGE)"
 
 skia_release: autoroll
 	./build_skia_release "$(MESSAGE)"
