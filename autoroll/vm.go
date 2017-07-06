@@ -46,6 +46,10 @@ func PDFium() *gce.Instance {
 	return AutoRollBase("pdfium-autoroll", "" /* Use ephemeral IP */)
 }
 
+func Fuchsia() *gce.Instance {
+	return AutoRollBase("fuchsia-autoroll", "" /* Use ephemeral IP */)
+}
+
 func AddAndroidConfigs(vm *gce.Instance) *gce.Instance {
 	vm.DataDisk.SizeGb = 512
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16
@@ -72,6 +76,7 @@ func main() {
 		"catapult":       Catapult(),
 		"nacl":           NaCl(),
 		"pdfium":         PDFium(),
+		"fuchsia":        Fuchsia(),
 		"android-master": AndroidMaster(),
 		"android-o":      AndroidO(),
 	})
