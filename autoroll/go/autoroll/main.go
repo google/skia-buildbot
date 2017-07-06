@@ -58,7 +58,8 @@ var (
 	strategy        = flag.String("strategy", repo_manager.ROLL_STRATEGY_BATCH, "DEPS roll strategy; how many commits should be rolled at once.")
 	useMetadata     = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	workdir         = flag.String("workdir", ".", "Directory to use for scratch work.")
-	rollIntoAndroid = flag.Bool("roll_into_android", false, "Roll into Android; do not do a DEPS roll.")
+	rollIntoAndroid = flag.Bool("roll_into_android", false, "Roll into Android; do not do a DEPS/Manifest roll.")
+	useManifest     = flag.Bool("use_manifest", false, "Do a Manifest roll.")
 	gerritUrl       = flag.String("gerrit_url", gerrit.GERRIT_CHROMIUM_URL, "Gerrit URL the roller will be uploading issues to.")
 )
 
@@ -269,9 +270,8 @@ func main() {
 	}
 
 	// Start the autoroller.
-	arb, err = autoroller.NewAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, *rollIntoAndroid, *strategy)
+	arb, err = autoroller.NewAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, *rollIntoAndroid, *useManifest, *strategy)
 	if err != nil {
-
 		sklog.Fatal(err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())

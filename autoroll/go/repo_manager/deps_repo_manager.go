@@ -19,8 +19,6 @@ import (
 )
 
 const (
-	DEPS_ROLL_BRANCH = "roll_branch"
-
 	GCLIENT  = "gclient"
 	ROLL_DEP = "roll-dep"
 
@@ -43,21 +41,8 @@ type issueJson struct {
 
 // depsRepoManager is a struct used by DEPs AutoRoller for managing checkouts.
 type depsRepoManager struct {
-	*commonRepoManager
-	depot_tools string
-	gclient     string
-	parentDir   string
-	parentRepo  string
-	rollDep     string
-}
-
-// getEnv returns the environment used for most commands.
-func getEnv(depotTools string) []string {
-	return []string{
-		fmt.Sprintf("PATH=%s:%s", depotTools, os.Getenv("PATH")),
-		fmt.Sprintf("HOME=%s", os.Getenv("HOME")),
-		fmt.Sprintf("SKIP_GCE_AUTH_FOR_GIT=1"),
-	}
+	*depotToolsRepoManager
+	rollDep string
 }
 
 // newDEPSRepoManager returns a RepoManager instance which operates in the given
@@ -81,47 +66,28 @@ func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranc
 	sklog.Infof("Repo Manager user: %s", user)
 
 	dr := &depsRepoManager{
-		commonRepoManager: &commonRepoManager{
-			parentBranch: parentBranch,
-			childDir:     path.Join(wd, childPath),
-			childPath:    childPath,
-			childRepo:    nil, // This will be filled in on the first update.
-			childBranch:  childBranch,
-			strategy:     strategy,
-			user:         user,
-			workdir:      wd,
-			g:            g,
+		depotToolsRepoManager: &depotToolsRepoManager{
+			commonRepoManager: &commonRepoManager{
+				parentBranch: parentBranch,
+				childDir:     path.Join(wd, childPath),
+				childPath:    childPath,
+				childRepo:    nil, // This will be filled in on the first update.
+				childBranch:  childBranch,
+				strategy:     strategy,
+				user:         user,
+				workdir:      wd,
+				g:            g,
+			},
+			depot_tools: depot_tools,
+			gclient:     gclient,
+			parentDir:   parentDir,
+			parentRepo:  parentRepo,
 		},
-		depot_tools: depot_tools,
-		gclient:     gclient,
-		parentDir:   parentDir,
-		parentRepo:  parentRepo,
-		rollDep:     rollDep,
+		rollDep: rollDep,
 	}
 	// TODO(borenet): This update can be extremely expensive. Consider
 	// moving it out of the startup critical path.
 	return dr, dr.Update()
-}
-
-// cleanParent forces the parent checkout into a clean state.
-func (dr *depsRepoManager) cleanParent() error {
-	if _, err := exec.RunCwd(dr.parentDir, "git", "clean", "-d", "-f", "-f"); err != nil {
-		return err
-	}
-	_, _ = exec.RunCwd(dr.parentDir, "git", "rebase", "--abort")
-	if _, err := exec.RunCwd(dr.parentDir, "git", "checkout", fmt.Sprintf("origin/%s", dr.parentBranch), "-f"); err != nil {
-		return err
-	}
-	_, _ = exec.RunCwd(dr.parentDir, "git", "branch", "-D", DEPS_ROLL_BRANCH)
-	if _, err := exec.RunCommand(&exec.Command{
-		Dir:  dr.workdir,
-		Env:  getEnv(dr.depot_tools),
-		Name: dr.gclient,
-		Args: []string{"revert", "--nohooks"},
-	}); err != nil {
-		return err
-	}
-	return nil
 }
 
 // Update syncs code in the relevant repositories.
@@ -130,41 +96,8 @@ func (dr *depsRepoManager) Update() error {
 	dr.repoMtx.Lock()
 	defer dr.repoMtx.Unlock()
 
-	// Create the working directory if needed.
-	if _, err := os.Stat(dr.workdir); err != nil {
-		if err := os.MkdirAll(dr.workdir, 0755); err != nil {
-			return err
-		}
-	}
-
-	if _, err := os.Stat(path.Join(dr.parentDir, ".git")); err == nil {
-		if err := dr.cleanParent(); err != nil {
-			return err
-		}
-		// Update the repo.
-		if _, err := exec.RunCwd(dr.parentDir, "git", "fetch"); err != nil {
-			return err
-		}
-		if _, err := exec.RunCwd(dr.parentDir, "git", "reset", "--hard", fmt.Sprintf("origin/%s", dr.parentBranch)); err != nil {
-			return err
-		}
-	}
-
-	if _, err := exec.RunCommand(&exec.Command{
-		Dir:  dr.workdir,
-		Env:  getEnv(dr.depot_tools),
-		Name: dr.gclient,
-		Args: []string{"config", dr.parentRepo},
-	}); err != nil {
-		return err
-	}
-	if _, err := exec.RunCommand(&exec.Command{
-		Dir:  dr.workdir,
-		Env:  getEnv(dr.depot_tools),
-		Name: dr.gclient,
-		Args: []string{"sync", "--nohooks"},
-	}); err != nil {
-		return err
+	if err := dr.createAndSyncParent(); err != nil {
+		return fmt.Errorf("Could not create and sync parent repo: %s", err)
 	}
 
 	// Create the child GitInfo if needed.
@@ -233,7 +166,7 @@ func (dr *depsRepoManager) CreateNewRoll(from, to string, emails []string, cqExt
 	if err := dr.cleanParent(); err != nil {
 		return 0, err
 	}
-	if _, err := exec.RunCwd(dr.parentDir, "git", "checkout", "-b", DEPS_ROLL_BRANCH, "-t", fmt.Sprintf("origin/%s", dr.parentBranch), "-f"); err != nil {
+	if _, err := exec.RunCwd(dr.parentDir, "git", "checkout", "-b", ROLL_BRANCH, "-t", fmt.Sprintf("origin/%s", dr.parentBranch), "-f"); err != nil {
 		return 0, err
 	}
 
@@ -277,7 +210,7 @@ func (dr *depsRepoManager) CreateNewRoll(from, to string, emails []string, cqExt
 	sklog.Infof("Running command: roll-dep %s", strings.Join(args, " "))
 	if _, err := exec.RunCommand(&exec.Command{
 		Dir:  dr.parentDir,
-		Env:  getEnv(dr.depot_tools),
+		Env:  dr.GetEnvForDepotTools(),
 		Name: dr.rollDep,
 		Args: args,
 	}); err != nil {
@@ -301,7 +234,7 @@ http://www.chromium.org/developers/tree-sheriffs/sheriff-details-chromium#TOC-Fa
 	}
 	uploadCmd := &exec.Command{
 		Dir:  dr.parentDir,
-		Env:  getEnv(dr.depot_tools),
+		Env:  dr.GetEnvForDepotTools(),
 		Name: "git",
 		Args: []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
 	}
@@ -335,7 +268,7 @@ http://www.chromium.org/developers/tree-sheriffs/sheriff-details-chromium#TOC-Fa
 	jsonFile := path.Join(tmp, "issue.json")
 	if _, err := exec.RunCommand(&exec.Command{
 		Dir:  dr.parentDir,
-		Env:  getEnv(dr.depot_tools),
+		Env:  dr.GetEnvForDepotTools(),
 		Name: "git",
 		Args: []string{"cl", "issue", fmt.Sprintf("--json=%s", jsonFile)},
 	}); err != nil {
