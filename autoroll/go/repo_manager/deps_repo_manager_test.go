@@ -8,7 +8,6 @@ import (
 	"path"
 	"strings"
 	"testing"
-	"time"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/autoroll"
@@ -108,10 +107,10 @@ func TestDEPSRepoManager(t *testing.T) {
 	defer cleanup()
 
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", 24*time.Hour, depotTools, g)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, ROLL_STRATEGY_BATCH)
 	assert.NoError(t, err)
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
-	assert.Equal(t, childCommits[len(childCommits)-1], rm.ChildHead())
+	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
 
 	// Test FullChildHash.
 	for _, c := range childCommits {
@@ -122,8 +121,8 @@ func TestDEPSRepoManager(t *testing.T) {
 
 	// Test update.
 	lastCommit := child.CommitGen("abc.txt")
-	assert.NoError(t, rm.ForceUpdate())
-	assert.Equal(t, lastCommit, rm.ChildHead())
+	assert.NoError(t, rm.Update())
+	assert.Equal(t, lastCommit, rm.NextRollRev())
 
 	// RolledPast.
 	rp, err := rm.RolledPast(childCommits[0])
@@ -145,11 +144,11 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	defer cleanup()
 
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", 24*time.Hour, depotTools, g)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, strategy)
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
-	issue, err := rm.CreateNewRoll(strategy, emails, cqExtraTrybots, false)
+	issue, err := rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
 	msg, err := ioutil.ReadFile(path.Join(rm.(*depsRepoManager).parentDir, ".git", "COMMIT_EDITMSG"))
