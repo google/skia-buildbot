@@ -1,0 +1,135 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6e38731f_9d2697ac",
+        "filename": "golden/go/diffstore/diffservice_impl.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5902
+      },
+      "writtenOn": "2017-07-06T11:05:08Z",
+      "side": 1,
+      "message": "The documentation should mention that it encodes/decodes instances of \nmap[string]interface{}.\n\nThis implementation should be outside of diffservice_impl.go either put it in common.go or create the previously deleted diffstore.go",
+      "revId": "467739ae2643cf0511f19fe59b2005044ce7241a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c339174a_a9cf295d",
+        "filename": "golden/go/diffstore/diffservice_impl.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5902
+      },
+      "writtenOn": "2017-07-06T11:05:08Z",
+      "side": 1,
+      "message": "Add a simple test for MetricMapCodec. It will also make it easier to understand how this is supposed to work and help you catch any inconsistencies of the types that are hidden behind general interfaces.",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 4
+      },
+      "revId": "467739ae2643cf0511f19fe59b2005044ce7241a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eec72efc_c90ae484",
+        "filename": "golden/go/diffstore/diffservice_impl.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5902
+      },
+      "writtenOn": "2017-07-06T11:05:08Z",
+      "side": 1,
+      "message": "Since the struct is empty the receiving type should not be passed as a pointer\nfunc (m MetricMapCodec) ....\nIt avoids an indirection and is probably faster than passing around a pointer.",
+      "range": {
+        "startLine": 28,
+        "startChar": 6,
+        "endLine": 28,
+        "endChar": 7
+      },
+      "revId": "467739ae2643cf0511f19fe59b2005044ce7241a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bff4cd1f_b483eb45",
+        "filename": "golden/go/diffstore/diffservice_impl.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5902
+      },
+      "writtenOn": "2017-07-06T11:05:08Z",
+      "side": 1,
+      "message": "The doc should mention that the codec processes instances of map[string]interface{}\nand that values of the map have the same underlying type as the return values of the \ndiff function that was plugged into the diffStore.",
+      "revId": "467739ae2643cf0511f19fe59b2005044ce7241a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ca56126_bec41237",
+        "filename": "golden/go/diffstore/diffservice_impl.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5902
+      },
+      "writtenOn": "2017-07-06T11:05:08Z",
+      "side": 1,
+      "message": "I think toInt32Slice was only called from toDiffMetricsResponse and can probably go away.",
+      "revId": "467739ae2643cf0511f19fe59b2005044ce7241a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1eac92e7_2bc695cc",
+        "filename": "golden/go/diffstore/net_diffstore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5902
+      },
+      "writtenOn": "2017-07-06T11:05:08Z",
+      "side": 1,
+      "message": "This should be cast to map[string]interface{}. \nThe specific type (*diff.DiffMetrics in this case) is hidden in the LRUcodec.",
+      "revId": "467739ae2643cf0511f19fe59b2005044ce7241a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7490d94e_8170da8c",
+        "filename": "golden/go/diffstore/net_diffstore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5902
+      },
+      "writtenOn": "2017-07-06T11:05:08Z",
+      "side": 1,
+      "message": "I think toIntSlice is only called from toDiffMetrics and can probably be removed.",
+      "revId": "467739ae2643cf0511f19fe59b2005044ce7241a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
