@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Skia Performance Monitoring - Alerts</title>
+    <script type="text/javascript" charset="utf-8">
+      this.sk = this.sk || {};
+      this.sk.perf = {{.context}};
+    </script>
+    {{template "header.html" .}}
+  </head>
+  <body>
+    <perf-scaffold-sk>
+      <alerts-page-sk></alerts-page-sk>
+    </perf-scaffold-sk>
+  </body>
+</html>

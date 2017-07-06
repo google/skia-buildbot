@@ -1,0 +1,203 @@
+<!-- The <alerts-page-sk> custom element declaration.
+
+  A page for editing all the alert configs.
+
+  Attributes:
+    None.
+
+  Events:
+    None.
+
+  Methods:
+    None.
+
+-->
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
+<link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="/res/imp/bower_components/paper-fab/paper-fab.html">
+
+<link rel="import" href="/res/common/imp/login.html" />
+<link rel="import" href="/res/common/imp/query-summary-sk.html" />
+
+<link rel="import" href="/res/imp/alert-config.html" />
+
+<dom-module id="alerts-page-sk">
+  <style is="custom-style" include="iron-flex iron-flex-alignment iron-positioning">
+    paper-fab {
+      position: absolute;
+      right: 2em;
+      bottom: 2em;
+    }
+
+    paper-dialog {
+      padding: 1em;
+      width: 60em;
+    }
+
+    paper-button {
+      color: #1f78b4;
+    }
+
+    td {
+      padding: 0.2em 1em;
+    }
+
+    iron-icon {
+      padding: 0.4em;
+      cursor: pointer;
+    }
+
+    iron-icon:hover {
+      background: #eee;
+    }
+
+    .warning {
+      color: red;
+      font-weight: bold;
+    }
+
+    paper-checkbox {
+      margin-top: 2em;
+      --paper-checkbox-checked-color: #1f78b4;
+      --paper-checkbox-checked-ink-color: #1f78b4;
+    }
+  </style>
+  <template>
+    <paper-dialog id=edit on-iron-overlay-closed=_onDialogClose>
+      <alert-config-sk id=alertconfig config="{{_cfg}}"></alert-config-sk>
+      <div class="buttons">
+        <paper-button dialog-dismiss>Cancel</paper-button>
+        <paper-button dialog-confirm autofocus>Accept</paper-button>
+      </div>
+    </paper-dialog>
+    <table>
+      <tr>
+        <th></th>
+        <th>ID</th>
+        <th>Query</th>
+        <th>Alert</th>
+        <th>Owner</th>
+        <th></th>
+      </tr>
+      <template is="dom-repeat" items="{{_alerts}}">
+        <tr>
+          <td><iron-icon title="Edit" icon="create" on-tap="_edit" __config="{{item}}"></iron-icon></td>
+          <td>{{item.id}}</td>
+          <td><query-summary-sk selection="{{item.query}}"></query-summary-sk></td>
+          <td>{{item.alert}}</td>
+          <td>{{item.owner}}</td>
+          <td><iron-icon title="Delete" icon="delete" on-tap="_delete" __config="{{item}}"></iron-icon></td>
+        </tr>
+      </template>
+    </table>
+    <template is="dom-if" if="{{_isZeroLength(_alerts)}}">
+      <div class=warning>
+        No alerts have been configured.
+      </div>
+    </template>
+    <paper-fab icon="add" on-tap=_add></paper-fab>
+    <paper-checkbox checked="{{_showDeleted}}">Show deleted configs.</paper-checkbox>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "alerts-page-sk",
+
+    properties: {
+      _alerts: {
+        type: Array,
+        value: function() { return []; },
+        reflectToAttribute: false,
+      },
+      _cfg: { // The config currently being edited.
+        type: Object,
+        value: function() { return {}; },
+        reflectToAttribute: false,
+        observer: '_onConfigChange',
+      },
+      _orig_cfg: { // Copy of _cfg before the edit dialog was opened.
+        type: String,
+        value: "",
+        reflectToAttribute: false,
+      },
+      _email: {
+        type: String,
+        value: "",
+        reflectToAttribute: false,
+      },
+      _showDeleted: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: false,
+        observer: '_list',
+      },
+    },
+
+    ready: function() {
+      this._list();
+      sk.get('/_/initpage/').then(JSON.parse).then(function(json) {
+        this.$.alertconfig.paramset = json.dataframe.paramset;
+      }.bind(this)).catch(sk.errorMessage);
+      sk.Login.then(function(status) {
+        this._email = status.Email;
+      }.bind(this));
+    },
+
+    _list: function() {
+      sk.get('/_/alert/list/' + this._showDeleted).then(JSON.parse).then(function(json) {
+        this.set('_alerts', json);
+      }.bind(this)).catch(sk.errorMessage);
+    },
+
+    _onConfigChange: function() {
+      if (this._cfg && !this._cfg.owner) {
+        this.set('_cfg.owner', this._email);
+      }
+      this._orig_cfg = JSON.parse(JSON.stringify(this._cfg));
+    },
+
+    _add: function() {
+      // Load an new Config from the server.
+      sk.get('/_/alert/new').then(JSON.parse).then(function(json) {
+        this.set('_cfg', json);
+        // Pop up edit dialog using the new Config.
+        this.$.edit.open();
+      }.bind(this)).catch(sk.errorMessage);
+    },
+
+    _edit: function(e) {
+      this.set('_cfg', JSON.parse(JSON.stringify(e.target.__config)));
+      this.$.edit.open();
+    },
+
+    _delete: function(e) {
+      sk.post("/_/alert/delete/" + e.target.__config.id, "").then(function(){
+        this._list();
+      }.bind(this)).catch(sk.errorMessage);
+      console.log(e.target.__config);
+    },
+
+    _onDialogClose: function(e) {
+      if (!e.detail.confirmed) {
+        return
+      }
+      if (JSON.stringify(this._cfg) === JSON.stringify(this._orig_cfg)) {
+        return
+      }
+      // Post the config.
+      sk.post("/_/alert/update", JSON.stringify(this._cfg)).then(function(){
+        this._list();
+      }.bind(this)).catch(sk.errorMessage);
+    },
+
+    _isZeroLength: function(a) {
+      return a.length === 0;
+    }
+
+  });
+</script>

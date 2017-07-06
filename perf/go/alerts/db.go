@@ -1,3 +1,7 @@
+// Save and retrieve alerts.Config's to/from a database.
+//
+// TODO(jcgregorio) Add a cleanup process that removes DELETED configs from the
+// database after a long period of time, using the lastmodified timestamp.
 package alerts
 
 import (
@@ -66,7 +70,7 @@ func (s *Store) Save(cfg *Config) error {
 
 func (s *Store) Delete(id int) error {
 	return intx(func(tx *sql.Tx) error {
-		_, err := tx.Exec("DELETE FROM alerts WHERE id=?", id)
+		_, err := tx.Exec("UPDATE alerts set state=? WHERE id=?", DELETED, id)
 		if err != nil {
 			return fmt.Errorf("Failed to write to database: %s", err)
 		}
@@ -79,9 +83,9 @@ func (s *Store) List(includeDeleted bool) ([]*Config, error) {
 	var rows *sql.Rows
 	var err error
 	if includeDeleted {
-		rows, err = db.DB.Query("SELECT id, state, body FROM alerts ORDER BY id DESC")
+		rows, err = db.DB.Query("SELECT id, state, body FROM alerts ORDER BY id ASC")
 	} else {
-		rows, err = db.DB.Query("SELECT id, state, body FROM alerts WHERE state=? ORDER BY id DESC", ACTIVE)
+		rows, err = db.DB.Query("SELECT id, state, body FROM alerts WHERE state=? ORDER BY id ASC", ACTIVE)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read from database: %s", err)

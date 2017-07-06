@@ -86,7 +86,7 @@ func TestDelete(t *testing.T) {
 
 	// Set expectations.
 	mock.ExpectBegin()
-	mock.ExpectExec("DELETE FROM alerts WHERE id=(.+)").WithArgs(2).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("UPDATE alerts set state=(.+) WHERE id=(.+)").WithArgs(DELETED, 2).WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	// Put mock db into place.
@@ -123,7 +123,7 @@ func TestListAll(t *testing.T) {
 		AddRow("1", DELETED, body2)
 
 	// Set expectations.
-	mock.ExpectQuery("SELECT id, state, body FROM alerts ORDER BY id DESC").WillReturnRows(rows)
+	mock.ExpectQuery("SELECT id, state, body FROM alerts ORDER BY id ASC").WillReturnRows(rows)
 
 	// Put mock db into place.
 	db.DB = mdb
@@ -161,7 +161,7 @@ func TestListOnlyActive(t *testing.T) {
 		AddRow("1", ACTIVE, body2)
 
 	// Set expectations.
-	mock.ExpectQuery("SELECT id, state, body FROM alerts WHERE state=(.+) ORDER BY id DESC").WithArgs(ACTIVE).WillReturnRows(rows)
+	mock.ExpectQuery("SELECT id, state, body FROM alerts WHERE state=(.+) ORDER BY id ASC").WithArgs(ACTIVE).WillReturnRows(rows)
 
 	// Put mock db into place.
 	db.DB = mdb
