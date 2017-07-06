@@ -31,8 +31,8 @@ func MockUrlGenerator(path string) string {
 // Mock the diffstore.
 type MockDiffStore struct{}
 
-func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[string]*diff.DiffMetrics, error) {
-	result := map[string]*diff.DiffMetrics{}
+func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[string]interface{}, error) {
+	result := map[string]interface{}{}
 	for _, d := range dRest {
 		if dMain != d {
 			result[d] = &diff.DiffMetrics{
