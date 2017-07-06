@@ -1,0 +1,36 @@
+<!--
+  The <job-details-sk> custom element delcaration.
+
+  Displays the details about a CT Pixel Diff job.
+-->
+
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="job-details-sk">
+  <template>
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <style include="shared-styles"></style>
+    <style>
+      .group {
+        display: inline-block;
+        background: white;
+        margin-bottom: 1em;
+        margin-left: 2em;
+        margin-right: 2em;
+        margin-top: 1em;
+        border: solid 1px gray;
+        padding: 1em;
+        box-shadow: 11px 11px 31px 1px rgba(0, 0, 0, 0.52);
+      }
+    </style>
+  <div class="group">
+    <a target="_blank" href$="/diff?job={{job}}">{{job}}</a>
+  </div>
+
+  </template>
+  <script>
+    Polymer({is: 'job-details-sk'})
+  </script>
+</dom-module>
