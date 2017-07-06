@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e2bf5bb0_c7c075ab",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-06T16:16:39Z",
+      "side": 1,
+      "message": "Seems like this should go at line 100?",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 1
+      },
+      "revId": "e11df47dc69408ad0120419c50efcf4632dc4e61",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
