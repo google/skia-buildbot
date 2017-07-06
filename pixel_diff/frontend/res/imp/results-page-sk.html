@@ -1,0 +1,164 @@
+<!--
+  The <results-page-sk> custom element declaration.
+
+  Shows the results of a diff request. Sends the query string as a JSON
+  request to the diff endpoint ('/json/diff') and renders the result.\
+-->
+
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="bower_components/iron-list/iron-list.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="bower_components/paper-item/paper-item.html">
+<link rel="import" href="bower_components/iron-scroll-threshold/iron-scroll-threshold.html">
+
+<link rel="import" href="activity-sk.html">
+<link rel="import" href="diff-details-sk.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="results-page-sk">
+  <template>
+    <style include="iron-flex iron-flex-alignment"></style>
+    <style include="shared-styles">
+      diff-details-sk {
+        display: inline-block;
+        box-shadow: 3px 3px 6px 1px rgba(133,133,133,1);
+        margin-top: 1em;
+        margin-bottom: 1em;
+        margin-left: 1em;
+        margin-right: 0;
+        padding-left: 1em;
+        padding-top: 1em;
+        padding-bottom: 1em;
+        padding-right: 0;
+      }
+
+      diff-details-sk[data-focus] {
+        box-shadow: 3px 3px 6px 5px #FF7F00;
+      }
+
+      paper-dropdown-menu {
+        padding-left: 1em;
+        width: 320px;
+      }
+
+      paper-listbox {
+        width: 320px;
+      }
+
+      .loader {
+        background-color: #0b8043;
+        text-align: center;
+        height: 44px;
+        font: 13px arial;
+        line-height: 44px;
+        color: white;
+      }
+    </style>
+      <activity-sk id="activityBar" busy="{{_hideAll}}"></activity-sk>
+        <div hidden$="{{_hideAll}}">
+        <paper-dropdown-menu id="menu" label="Sort By">
+          <paper-listbox class="dropdown-content">
+            <paper-item value="0">Number of Different Pixels (Descending)</paper-item>
+            <paper-item value="1">Number of Different Pixels (Ascending)</paper-item>
+            <paper-item value="2">Percentage of Different Pixels (Descending)</paper-item>
+            <paper-item value="3">Percentage of Different Pixels (Ascending)</paper-item>
+            <paper-item value="4">Max Red Difference (Descending)</paper-item>
+            <paper-item value="5">Max Red Difference (Ascending)</paper-item>
+            <paper-item value="6">Max Green Difference (Descending)</paper-item>
+            <paper-item value="7">Max Green Difference (Ascending)</paper-item>
+            <paper-item value="8">Max Blue Difference (Descending)</paper-item>
+            <paper-item value="9">Max Blue Difference (Ascending)</paper-item>
+            <paper-item value="10">Site Popularity (Descending)</paper-item>
+            <paper-item value="11">Site Popularity (Ascending)</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu>
+        <iron-scroll-threshold id="scroller" on-lower-threshold="_renderMoreData" scroll-target="document">
+          <template is="dom-repeat" items="{{data}}">
+            <diff-details-sk
+              url="{{item.url}}"
+              images="{{item.images}}"
+              diffmetrics="{{item.diffmetrics}}"
+              rank="{{item.rank}}">
+            </diff-details-sk>
+          </template>
+          <div class="loader">Fetching more items...</div>
+        </iron-scroll-threshold>
+      </div>
+  </template>
+  <script>
+    Polymer({
+      is: "results-page-sk",
+
+      properties: {
+        data: {
+          type: Array,
+          value: [],
+        },
+
+        renderIdx: {
+          type: Number,
+          value: 0,
+        },
+
+        chunkSize: {
+          type: Number,
+          value: 20,
+        },
+      },
+
+      listeners: {
+        'iron-select': '_sortSelect'
+      },
+
+      ready: function() {
+        this._load();
+      },
+
+      _load: function() {
+        this.$.activityBar.startSpinner();
+        var job = window.location.search;
+        sk.get("/json/diff" + job).then(function() {
+          this._renderMoreData();
+        }.bind(this)).catch(function(e) {
+          sk.errorMessage(e);
+        }.bind(this));
+      },
+
+      _renderMoreData: function() {
+        var job = window.location.search;
+        var startIdx = 'startIdx=' + this.renderIdx;
+        var endIdx = 'endIdx=' + (this.renderIdx + this.chunkSize);
+        var query = job + '&' + startIdx + '&' + endIdx;
+        sk.get("/json/load" + query).then(JSON.parse).then(function (json) {
+          this.$.activityBar.stopSpinner();
+          for (var i = 0; i < json.data.length; i++) {
+            this.data.push(json.data[i]);
+          }
+          this.notifyPath('data', this.data.slice());
+          this.renderIdx += this.chunkSize;
+          this.$.scroller.clearTriggers();
+        }.bind(this)).catch(function(e) {
+          sk.errorMessage(e);
+        }.bind(this));
+      },
+
+
+      _sortSelect: function() {
+        var job = window.location.search;
+        var sortVal = 'sortVal=' + this.$.menu.selectedItem.getAttribute('value');
+        var query = job + '&' + sortVal;
+        this.$.activityBar.startSpinner();
+        sk.get("/json/sort" + query).then(function () {
+          this.data = [];
+          this.renderIdx = 0;
+          this._renderMoreData();
+        }.bind(this)).catch(function(e) {
+          sk.errorMessage(e);
+        }.bind(this));
+      }
+    });
+  </script>
+</dom-module>

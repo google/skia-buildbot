@@ -1,0 +1,66 @@
+<!--
+  The <jobs-page-sk> custom element declaration.
+
+  Shows the results of a jobs request, or a list of CT Pixel Diff runs.
+  Sends the query string as a JSON request to the jobs endpoint ('/json/jobs')
+  and renders the result.
+-->
+
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+
+<link rel="import" href="activity-sk.html">
+<link rel="import" href="job-details-sk.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="jobs-page-sk">
+  <template>
+    <style include="iron-flex iron-flex-alignment"></style>
+    <style include="shared-styles"></style>
+
+    <div class="searchPageWrapper">
+      <activity-sk id="activityBar" busy="{{_hideAll}}"></activity-sk>
+
+        <div hidden$="{{_emptyResult(data)}}">
+          <template is="dom-repeat" items="{{data}}" initial-count="20">
+            <job-details-sk
+              job="[[item]]">
+            </job-details-sk>
+            <br>
+          </template>
+        </div>
+    </div>
+
+  </template>
+  <script>
+    Polymer({
+      is: "jobs-page-sk",
+
+      properties: {
+        data: {
+          type: Array,
+          value: [],
+        }
+      },
+
+      ready: function() {
+        this._load();
+      },
+
+      _load: function() {
+        this.$.activityBar.startSpinner();
+        sk.get("/json/jobs").then(JSON.parse).then(function (json) {
+          this.set('data', json.jobs);
+          this.$.activityBar.stopSpinner();
+        }.bind(this)).catch(function(e) {
+          this.$.activityBar.stopSpinner();
+          sk.errorMessage(e);
+        }.bind(this));
+      },
+
+      _emptyResult: function(data) {
+        return !data || data.length === 0;
+      }
+    });
+  </script>
+</dom-module>
