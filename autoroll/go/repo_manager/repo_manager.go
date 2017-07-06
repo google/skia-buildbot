@@ -3,10 +3,13 @@ package repo_manager
 import (
 	"context"
 	"fmt"
+	"os"
+	"path"
 	"regexp"
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/metrics2"
@@ -17,6 +20,7 @@ import (
 const (
 	ROLL_STRATEGY_BATCH  = "batch"
 	ROLL_STRATEGY_SINGLE = "single"
+	ROLL_BRANCH          = "roll_branch"
 )
 
 // RepoManager is the interface used by different Autoroller implementations
@@ -99,4 +103,84 @@ func (r *commonRepoManager) User() string {
 func (r *commonRepoManager) IsRollSubject(line string) (bool, error) {
 	rollSubjectRegex := fmt.Sprintf("^Roll %s [a-zA-Z0-9]+..[a-zA-Z0-9]+ \\([0-9]+ commits\\)$", r.childPath)
 	return regexp.MatchString(rollSubjectRegex, line)
+}
+
+// depotToolsRepoManager is a struct used by AutoRoller implementations that use
+// depot_tools to manage checkouts.
+type depotToolsRepoManager struct {
+	*commonRepoManager
+	depot_tools string
+	gclient     string
+	parentDir   string
+	parentRepo  string
+}
+
+// GetEnvForDepotTools returns the environment used for depot_tools commands.
+func (r *depotToolsRepoManager) GetEnvForDepotTools() []string {
+	return []string{
+		fmt.Sprintf("PATH=%s:%s", r.depot_tools, os.Getenv("PATH")),
+		fmt.Sprintf("HOME=%s", os.Getenv("HOME")),
+		fmt.Sprintf("SKIP_GCE_AUTH_FOR_GIT=1"),
+	}
+}
+
+// cleanParent forces the parent checkout into a clean state.
+func (r *depotToolsRepoManager) cleanParent() error {
+	if _, err := exec.RunCwd(r.parentDir, "git", "clean", "-d", "-f", "-f"); err != nil {
+		return err
+	}
+	_, _ = exec.RunCwd(r.parentDir, "git", "rebase", "--abort")
+	if _, err := exec.RunCwd(r.parentDir, "git", "checkout", fmt.Sprintf("origin/%s", r.parentBranch), "-f"); err != nil {
+		return err
+	}
+	_, _ = exec.RunCwd(r.parentDir, "git", "branch", "-D", ROLL_BRANCH)
+	if _, err := exec.RunCommand(&exec.Command{
+		Dir:  r.workdir,
+		Env:  r.GetEnvForDepotTools(),
+		Name: r.gclient,
+		Args: []string{"revert", "--nohooks"},
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *depotToolsRepoManager) createAndSyncParent() error {
+	// Create the working directory if needed.
+	if _, err := os.Stat(r.workdir); err != nil {
+		if err := os.MkdirAll(r.workdir, 0755); err != nil {
+			return err
+		}
+	}
+
+	if _, err := os.Stat(path.Join(r.parentDir, ".git")); err == nil {
+		if err := r.cleanParent(); err != nil {
+			return err
+		}
+		// Update the repo.
+		if _, err := exec.RunCwd(r.parentDir, "git", "fetch"); err != nil {
+			return err
+		}
+		if _, err := exec.RunCwd(r.parentDir, "git", "reset", "--hard", fmt.Sprintf("origin/%s", r.parentBranch)); err != nil {
+			return err
+		}
+	}
+
+	if _, err := exec.RunCommand(&exec.Command{
+		Dir:  r.workdir,
+		Env:  r.GetEnvForDepotTools(),
+		Name: r.gclient,
+		Args: []string{"config", r.parentRepo},
+	}); err != nil {
+		return err
+	}
+	if _, err := exec.RunCommand(&exec.Command{
+		Dir:  r.workdir,
+		Env:  r.GetEnvForDepotTools(),
+		Name: r.gclient,
+		Args: []string{"sync", "--nohooks"},
+	}); err != nil {
+		return err
+	}
+	return nil
 }

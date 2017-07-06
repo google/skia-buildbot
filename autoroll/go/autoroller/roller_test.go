@@ -438,7 +438,7 @@ func setup(t *testing.T, strategy string) (string, *AutoRoller, *mockRepoManager
 	roll1 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.NextRollRev(), noTrybots, false)
 
 	// Create the roller.
-	roller, err := NewAutoRoller(workdir, "parent.git", "master", "src/third_party/skia", "master", "", []string{}, g, "depot_tools", false, strategy)
+	roller, err := NewAutoRoller(workdir, "parent.git", "master", "src/third_party/skia", "master", "", []string{}, g, "depot_tools", false, false, strategy)
 	assert.NoError(t, err)
 
 	// Verify that the bot ran successfully.
