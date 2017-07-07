@@ -148,6 +148,29 @@ func templateHandler(name string) http.HandlerFunc {
 	}
 }
 
+// newAlertsConfigProvider returns a regression.ConfigProvider which produces a slice
+// of alerts.Config to run continuous clustering against.
+//
+// Note that this builds a fixed set of alerts.Config's. In the future this
+// will be switched over to use the configs stored in the alerts.Store.
+func newAlertsConfigProvider(clusterAlgo clustering2.ClusterAlgo) regression.ConfigProvider {
+	return func() []*alerts.Config {
+		ret := []*alerts.Config{}
+		queries := strings.Split(*clusterQueries, " ")
+		for _, q := range queries {
+			cfg := &alerts.Config{
+				Query:       q,
+				Interesting: float32(*interesting),
+				Algo:        clusterAlgo,
+				State:       alerts.ACTIVE,
+				StepUpOnly:  *stepUpOnly,
+			}
+			ret = append(ret, cfg)
+		}
+		return ret
+	}
+}
+
 func Init() {
 	rand.Seed(time.Now().UnixNano())
 	if *resourcesDir == "" {
@@ -185,8 +208,7 @@ func Init() {
 	regStore = regression.NewStore()
 
 	// Start running continuous clustering looking for regressions.
-	queries := strings.Split(*clusterQueries, " ")
-	continuous = regression.NewContinuous(git, cidl, queries, regStore, *numContinuous, *radius, float32(*interesting), clusterAlgo, *stepUpOnly)
+	continuous = regression.NewContinuous(git, cidl, newAlertsConfigProvider(clusterAlgo), regStore, *numContinuous, *radius)
 	go continuous.Run()
 }
 
