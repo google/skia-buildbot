@@ -14,12 +14,12 @@ DEPS = [
   'depot_tools/gclient',
   'depot_tools/infra_paths',
   'recipe_engine/context',
+  'recipe_engine/file',
   'recipe_engine/path',
   'recipe_engine/platform',
   'recipe_engine/properties',
   'recipe_engine/python',
   'recipe_engine/raw_io',
-  'recipe_engine/shutil',
   'recipe_engine/step',
 ]
 
@@ -106,7 +106,7 @@ def RunSteps(api):
 
   go_dir = api.path['start_dir'].join('gopath')
   go_src = go_dir.join('src')
-  api.shutil.makedirs('makedirs go/src', go_src)
+  api.file.ensure_directory('makedirs go/src', go_src)
   infra_dir = go_src.join(INFRA_GO)
   go_root = api.path['start_dir'].join('go', 'go')
   go_bin = go_root.join('bin')
