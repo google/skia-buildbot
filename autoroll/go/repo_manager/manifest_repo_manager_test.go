@@ -106,6 +106,21 @@ func setupManifestFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
 	assert.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlMock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
+	//testIssue := issueJson{
+	//	Issue:    12345,
+	//	IssueUrl: "test",
+	//}
+	testChangeInfo := gerrit.ChangeInfo{
+		Issue: 12345,
+		Revisions: map[string]*gerrit.Revision{
+			"1": &gerrit.Revision{},
+		},
+	}
+	serializedIssue, err := json.Marshal(testChangeInfo)
+	assert.NoError(t, err)
+	serializedIssue = append([]byte("abcd\n"), serializedIssue...)
+	urlMock.MockOnce(gUrl+"/a/changes/12345/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(serializedIssue))
+	urlMock.MockOnce(gUrl+"/a/changes//revisions/1/review", mockhttpclient.MockPostDialogue("application/json", mockhttpclient.DONT_CARE_REQUEST, []byte{}))
 	gitcookies := path.Join(wd, "gitcookies_fake")
 	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	g, err := gerrit.NewGerrit(gUrl, gitcookies, urlMock.Client())
