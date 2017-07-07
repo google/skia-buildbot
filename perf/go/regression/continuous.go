@@ -6,40 +6,39 @@ import (
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/stepfit"
 )
 
+// ConfigProvider is a function that's called to return a slice of alerts.Config. It is passed to NewContinuous.
+type ConfigProvider func() []*alerts.Config
+
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
 type Continuous struct {
-	git         *gitinfo.GitInfo
-	cidl        *cid.CommitIDLookup
-	queries     []string
-	store       *Store
-	numCommits  int // Number of recent commits to do clustering over.
-	radius      int
-	interesting float32
-	algo        clustering2.ClusterAlgo
-	stepUpOnly  bool // Only record step up's, no down's.
+	git        *gitinfo.GitInfo
+	cidl       *cid.CommitIDLookup
+	store      *Store
+	numCommits int // Number of recent commits to do clustering over.
+	radius     int
+	provider   ConfigProvider
 }
 
 // NewContinuous creates a new *Continuous.
 //
-// queries is a slice of URL query encoded to perform against the datastore to
-// determine which traces participate in clustering.
-func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, queries []string, store *Store, numCommits int, radius int, interesting float32, algo clustering2.ClusterAlgo, stepUpOnly bool) *Continuous {
+//   provider - Produces the slice of alerts.Config's that determine the clustering to perform.
+//   numCommits - The number of commits to run the clustering over.
+//   radius - The number of commits on each side of a commit to include when clustering.
+func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, provider ConfigProvider, store *Store, numCommits int, radius int) *Continuous {
 	return &Continuous{
-		git:         git,
-		cidl:        cidl,
-		queries:     queries,
-		store:       store,
-		numCommits:  numCommits,
-		radius:      radius,
-		interesting: interesting,
-		algo:        algo,
-		stepUpOnly:  stepUpOnly,
+		git:        git,
+		cidl:       cidl,
+		store:      store,
+		numCommits: numCommits,
+		radius:     radius,
+		provider:   provider,
 	}
 }
 
@@ -88,17 +87,17 @@ func (c *Continuous) Run() {
 				sklog.Errorf("Failed to look up commit %v: %s", *id, err)
 				continue
 			}
-			for _, q := range c.queries {
+			for _, cfg := range c.provider() {
 				// Create ClusterRequest and run.
 				req := &clustering2.ClusterRequest{
 					Source:      "master",
 					Offset:      commit.Index,
 					Radius:      c.radius,
-					Query:       q,
-					Algo:        c.algo,
-					Interesting: c.interesting,
+					Query:       cfg.Query,
+					Algo:        cfg.Algo,
+					Interesting: cfg.Interesting,
 				}
-				sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, q)
+				sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, cfg.Query)
 				resp, err := clustering2.Run(req, c.git, c.cidl)
 				if err != nil {
 					sklog.Errorf("Failed while clustering %v %s", *req, err)
@@ -107,17 +106,17 @@ func (c *Continuous) Run() {
 				// Update database if regression at the midpoint is found.
 				for _, cl := range resp.Summary.Clusters {
 					if cl.StepPoint.Offset == int64(commit.Index) {
-						if cl.StepFit.Status == stepfit.LOW && !c.stepUpOnly {
-							if err := c.store.SetLow(details[0], q, resp.Frame, cl); err != nil {
+						if cl.StepFit.Status == stepfit.LOW && !cfg.StepUpOnly {
+							if err := c.store.SetLow(details[0], cfg.Query /* Should be cfg.ID */, resp.Frame, cl); err != nil {
 								sklog.Errorf("Failed to save newly found cluster: %s", err)
 							}
-							sklog.Infof("Found Low regression at %s for %q: %v", details[0].Message, q, *cl.StepFit)
+							sklog.Infof("Found Low regression at %s for %q: %v", details[0].Message, cfg.Query, *cl.StepFit)
 						}
 						if cl.StepFit.Status == stepfit.HIGH {
-							if err := c.store.SetHigh(details[0], q, resp.Frame, cl); err != nil {
+							if err := c.store.SetHigh(details[0], cfg.Query /* Should be cfg.ID */, resp.Frame, cl); err != nil {
 								sklog.Errorf("Failed to save newly found cluster: %s", err)
 							}
-							sklog.Infof("Found High regression at %s for %q: %v", id.ID(), q, *cl.StepFit)
+							sklog.Infof("Found High regression at %s for %q: %v", id.ID(), cfg.Query, *cl.StepFit)
 						}
 					}
 				}
