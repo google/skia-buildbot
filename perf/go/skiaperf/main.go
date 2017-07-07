@@ -99,6 +99,8 @@ var (
 	storageClient *storage.Client
 
 	alertStore *alerts.Store
+
+	configProvider regression.ConfigProvider
 )
 
 func loadTemplates() {
@@ -157,6 +159,7 @@ func newAlertsConfigProvider(clusterAlgo clustering2.ClusterAlgo) regression.Con
 	return func() []*alerts.Config {
 		ret := []*alerts.Config{}
 		queries := strings.Split(*clusterQueries, " ")
+		sort.Sort(sort.StringSlice(queries))
 		for _, q := range queries {
 			cfg := &alerts.Config{
 				Query:       q,
@@ -207,8 +210,9 @@ func Init() {
 	dataframe.StartWarmer(git)
 	regStore = regression.NewStore()
 
+	configProvider = newAlertsConfigProvider(clusterAlgo)
 	// Start running continuous clustering looking for regressions.
-	continuous = regression.NewContinuous(git, cidl, newAlertsConfigProvider(clusterAlgo), regStore, *numContinuous, *radius)
+	continuous = regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius)
 	go continuous.Run()
 }
 
@@ -767,7 +771,7 @@ type RegressionRow struct {
 
 // RegressionRangeResponse is the response from regressionRangeHandler.
 type RegressionRangeResponse struct {
-	Header []string         `json:"header"` // Should contain the alerts.Config.
+	Header []*alerts.Config `json:"header"`
 	Table  []*RegressionRow `json:"table"`
 }
 
@@ -799,16 +803,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Build a list of all queries we are currently clustering over, joined with
-	// the queries that are present in the set of Regressions we just loaded.
-	headers := strings.Split(*clusterQueries, " ")
-	for _, reg := range regMap {
-		for q := range reg.ByAlertID {
-			headers = append(headers, q)
-		}
-	}
-	headers = util.NewStringSet(headers).Keys()
-	sort.Sort(sort.StringSlice(headers))
+	headers := configProvider()
 
 	// Get a list of commits for the range.
 	var ids []*cid.CommitID
@@ -867,7 +862,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if r, ok := regMap[cid.ID()]; ok {
 			for i, h := range headers {
-				if reg, ok := r.ByAlertID[h]; ok {
+				if reg, ok := r.ByAlertID[h.Query /* Should be ID */]; ok {
 					row.Columns[i] = reg
 				}
 			}
