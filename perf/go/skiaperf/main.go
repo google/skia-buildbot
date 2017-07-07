@@ -23,6 +23,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/sklog"
 	"google.golang.org/api/option"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/calc"
@@ -732,22 +733,17 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 	resp := &TriageResponse{}
 
 	if tr.Triage.Status == regression.NEGATIVE {
-
-		comment := fmt.Sprintf(`This bug was found via SkiaPerf.
-
-Visit this URL to see the details of the suspicious cluster:
-
-  %s
-
-The suspect commit is:
-
-  %s
-  `, link, detail[0].URL)
-		q := url.Values{
-			"labels":  []string{"FromSkiaPerf,Type-Defect,Priority-Medium"},
-			"comment": []string{comment},
+		uritemplate := "https://bugs.chromium.org/p/skia/issues/entry?comment=This+bug+was+found+via+SkiaPerf.%0A%0AVisit+this+URL+to+see+the+details+of+the+suspicious+cluster%3A%0A%0A++{cluster}%0A%0AThe+suspect+commit+is%3A%0A%0A++{commit}%0A%0A++{message}&labels=FromSkiaPerf%2CType-Defect%2CPriority-Medium"
+		expansion := map[string]string{
+			"cluster": link,
+			"commit":  detail[0].URL,
+			"message": tr.Triage.Message,
 		}
-		resp.Bug = "https://bugs.chromium.org/p/skia/issues/entry?" + q.Encode()
+		if url, err := uritemplates.Expand(uritemplate, expansion); err != nil {
+			sklog.Errorf("Failed to create bug reporting URL: %s", err)
+		} else {
+			resp.Bug = url
+		}
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to write or encode output: %s", err)
