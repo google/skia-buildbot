@@ -13,7 +13,7 @@ import (
 )
 
 // ConfigProvider is a function that's called to return a slice of alerts.Config. It is passed to NewContinuous.
-type ConfigProvider func() []*alerts.Config
+type ConfigProvider func() ([]*alerts.Config, error)
 
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
@@ -87,7 +87,12 @@ func (c *Continuous) Run() {
 				sklog.Errorf("Failed to look up commit %v: %s", *id, err)
 				continue
 			}
-			for _, cfg := range c.provider() {
+			configs, err := c.provider()
+			if err != nil {
+				sklog.Errorf("Failed to load configs: %s", err)
+				continue
+			}
+			for _, cfg := range configs {
 				// Create ClusterRequest and run.
 				req := &clustering2.ClusterRequest{
 					Source:      "master",
