@@ -107,7 +107,7 @@
       <tr>
         <th>Commit</th>
         <template is="dom-repeat" items="[[_reg.header]]">
-          <th colspan=2><query-summary-sk selection="[[item]]"></query-summary-sk></th>
+          <th colspan=2><query-summary-sk selection="[[item.query]]"></query-summary-sk></th>
         </template>
       </tr>
       <template is="dom-if" if="[[_not(_stepUpOnly)]]">
@@ -257,11 +257,11 @@
       },
 
       _queryFrom: function(index) {
-        return this._reg.header[index];
+        return this._reg.header[index].query;
       },
 
       _encQueryFrom: function(index) {
-        return encodeURIComponent(this._reg.header[index]);
+        return encodeURIComponent(this._reg.header[index].query);
       },
 
       _hashFrom: function(index) {
