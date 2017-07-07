@@ -156,21 +156,25 @@ func templateHandler(name string) http.HandlerFunc {
 // Note that this builds a fixed set of alerts.Config's. In the future this
 // will be switched over to use the configs stored in the alerts.Store.
 func newAlertsConfigProvider(clusterAlgo clustering2.ClusterAlgo) regression.ConfigProvider {
-	return func() []*alerts.Config {
-		ret := []*alerts.Config{}
-		queries := strings.Split(*clusterQueries, " ")
-		sort.Sort(sort.StringSlice(queries))
-		for _, q := range queries {
-			cfg := &alerts.Config{
-				Query:       q,
-				Interesting: float32(*interesting),
-				Algo:        clusterAlgo,
-				State:       alerts.ACTIVE,
-				StepUpOnly:  *stepUpOnly,
+	return func() ([]*alerts.Config, error) {
+		if *clusterQueries == "" {
+			return alertStore.List(false)
+		} else {
+			ret := []*alerts.Config{}
+			queries := strings.Split(*clusterQueries, " ")
+			sort.Sort(sort.StringSlice(queries))
+			for _, q := range queries {
+				cfg := &alerts.Config{
+					Query:       q,
+					Interesting: float32(*interesting),
+					Algo:        clusterAlgo,
+					State:       alerts.ACTIVE,
+					StepUpOnly:  *stepUpOnly,
+				}
+				ret = append(ret, cfg)
 			}
-			ret = append(ret, cfg)
+			return ret, nil
 		}
-		return ret
 	}
 }
 
@@ -803,7 +807,11 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	headers := configProvider()
+	headers, err := configProvider()
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to retrieve alert configs.")
+		return
+	}
 
 	// Get a list of commits for the range.
 	var ids []*cid.CommitID
