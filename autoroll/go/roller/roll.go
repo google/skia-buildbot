@@ -1,4 +1,4 @@
-package autorollerv2
+package roller
 
 import (
 	"fmt"
