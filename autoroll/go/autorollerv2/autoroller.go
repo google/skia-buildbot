@@ -22,7 +22,7 @@ import (
 // project into another.
 type AutoRoller struct {
 	cqExtraTrybots  string
-	currentRoll     asm.AutoRollImpl
+	currentRoll     RollImpl
 	emails          []string
 	emailsMtx       sync.RWMutex
 	gerrit          *gerrit.Gerrit
@@ -31,7 +31,7 @@ type AutoRoller struct {
 	modeHistory     *autoroll_modes.ModeHistory
 	modeMtx         sync.Mutex
 	recent          *recent_rolls.RecentRolls
-	retrieveRoll    func(int64) (asm.AutoRollImpl, error)
+	retrieveRoll    func(*AutoRoller, int64) (RollImpl, error)
 	rm              repo_manager.RepoManager
 	runningMtx      sync.Mutex
 	sm              state_machine.StateMachine
@@ -40,7 +40,7 @@ type AutoRoller struct {
 }
 
 // newAutoRoller returns an AutoRoller instance.
-func newAutoRoller(workdir, childPath, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, rm repo_manager.RepoManager, retrieveRoll func(int64) (asm.AutoRollImpl, error)) (*AutoRoller, error) {
+func newAutoRoller(workdir, childPath, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, rm repo_manager.RepoManager, retrieveRoll func(*AutoRoller, int64) (RollImpl, error)) (*AutoRoller, error) {
 	recent, err := recent_rolls.NewRecentRolls(path.Join(workdir, "recent_rolls.db"))
 	if err != nil {
 		return nil, err
@@ -69,7 +69,7 @@ func newAutoRoller(workdir, childPath, cqExtraTrybots string, emails []string, g
 	arb.sm = sm
 	current := recent.CurrentRoll()
 	if current != nil {
-		roll, err := arb.retrieveRoll(current.Issue)
+		roll, err := arb.retrieveRoll(arb, current.Issue)
 		if err != nil {
 			return nil, err
 		}
@@ -84,11 +84,10 @@ func NewAndroidAutoRoller(workdir, parentBranch, childPath, childBranch, cqExtra
 	if err != nil {
 		return nil, err
 	}
-	var arb *AutoRoller
-	retrieveRoll := func(issue int64) (asm.AutoRollImpl, error) {
+	retrieveRoll := func(arb *AutoRoller, issue int64) (RollImpl, error) {
 		return newGerritAndroidRoll(arb.gerrit, arb.rm, arb.recent, issue)
 	}
-	arb, err = newAutoRoller(workdir, childPath, cqExtraTrybots, emails, gerrit, rm, retrieveRoll)
+	arb, err := newAutoRoller(workdir, childPath, cqExtraTrybots, emails, gerrit, rm, retrieveRoll)
 	if err != nil {
 		return nil, err
 	}
@@ -98,6 +97,22 @@ func NewAndroidAutoRoller(workdir, parentBranch, childPath, childBranch, cqExtra
 // NewDEPSAutoRoller returns an AutoRoller instance which rolls using DEPS.
 func NewDEPSAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, depot_tools string, strategy string) (*AutoRoller, error) {
 	rm, err := repo_manager.NewDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch, depot_tools, gerrit, strategy)
+	if err != nil {
+		return nil, err
+	}
+	retrieveRoll := func(arb *AutoRoller, issue int64) (RollImpl, error) {
+		return newGerritRoll(arb.gerrit, arb.rm, arb.recent, issue)
+	}
+	arb, err := newAutoRoller(workdir, childPath, cqExtraTrybots, emails, gerrit, rm, retrieveRoll)
+	if err != nil {
+		return nil, err
+	}
+	return arb, nil
+}
+
+// NewManifestAutoRoller returns an AutoRoller instance which rolls using DEPS.
+func NewManifestAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, depot_tools string, strategy string) (*AutoRoller, error) {
+	rm, err := repo_manager.NewManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch, depot_tools, gerrit, strategy)
 	if err != nil {
 		return nil, err
 	}
@@ -114,6 +129,7 @@ func NewDEPSAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch
 
 // Start initiates the AutoRoller's loop.
 func (r *AutoRoller) Start(tickFrequency, repoFrequency time.Duration, ctx context.Context) {
+	sklog.Infof("Starting autoroller.")
 	repo_manager.Start(r.rm, repoFrequency, ctx)
 	lv := metrics2.NewLiveness("last-successful-autoroll-tick")
 	go util.RepeatCtx(tickFrequency, ctx, func() {
@@ -176,14 +192,27 @@ func (r *AutoRoller) SetMode(m, user, message string) error {
 	return r.Tick()
 }
 
+// Return the roll-up status of the bot.
+func (r *AutoRoller) GetStatus(includeError bool) *autoroller.AutoRollStatus {
+	return r.status.Get(includeError)
+}
+
+// Return the AutoRoll user.
+func (r *AutoRoller) GetUser() string {
+	return r.rm.User()
+}
+
 // See documentation for state_machine.AutoRollerImpl interface.
 func (r *AutoRoller) UploadNewRoll(from, to string, dryRun bool) error {
 	issueNum, err := r.rm.CreateNewRoll(from, to, r.GetEmails(), r.cqExtraTrybots, dryRun)
 	if err != nil {
 		return err
 	}
-	roll, err := r.retrieveRoll(issueNum)
+	roll, err := r.retrieveRoll(r, issueNum)
 	if err != nil {
+		return err
+	}
+	if err := roll.InsertIntoDB(); err != nil {
 		return err
 	}
 	r.currentRoll = roll
@@ -212,6 +241,7 @@ func (r *AutoRoller) UpdateRepos() error {
 
 // Run one iteration of the roller.
 func (r *AutoRoller) Tick() error {
+	sklog.Infof("Running autoroller.")
 	// Run the state machine.
 	lastErr := r.sm.NextTransition()
 
@@ -232,5 +262,6 @@ func (r *AutoRoller) Tick() error {
 	}); err != nil {
 		return err
 	}
+	sklog.Infof("Autoroller state %s", r.sm.Current())
 	return lastErr
 }
