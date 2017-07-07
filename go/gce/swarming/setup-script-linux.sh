@@ -6,15 +6,19 @@ set -e
 
 sudo apt-get -y install build-essential mercurial libosmesa-dev libexpat1-dev clang llvm poppler-utils netpbm gcc-multilib g++-multilib openjdk-8-jdk-headless libxi-dev python-django libc++-dev libc++abi-dev gperf bison
 
+# TODO(borenet,rmistry): apt-get update is failing due to mismatch between
+# cached apt packages files.
+sudo rm -rf /var/lib/apt/lists/*
+
 # Obtain and symlink i386 libs.
 sudo dpkg --add-architecture i386
 sudo apt-get update
 sudo apt-get -y install libfreetype6:i386 libfontconfig1:i386 libgl1-mesa-glx:i386 libglu1-mesa:i386 libx11-6:i386
-sudo ln -s /usr/lib/i386-linux-gnu/libfreetype.so.6 /usr/lib/i386-linux-gnu/libfreetype.so
-sudo ln -s /usr/lib/i386-linux-gnu/libfontconfig.so.1 /usr/lib/i386-linux-gnu/libfontconfig.so
-sudo ln -s /usr/lib/i386-linux-gnu/libGLU.so.1 /usr/lib/i386-linux-gnu/libGLU.so
-sudo ln -s /usr/lib/i386-linux-gnu/libGL.so.1 /usr/lib/i386-linux-gnu/libGL.so
-sudo ln -s /usr/lib/i386-linux-gnu/libX11.so.6.3.0 /usr/lib/i386-linux-gnu/libX11.so
+sudo ln -sfn /usr/lib/i386-linux-gnu/libfreetype.so.6 /usr/lib/i386-linux-gnu/libfreetype.so
+sudo ln -sfn /usr/lib/i386-linux-gnu/libfontconfig.so.1 /usr/lib/i386-linux-gnu/libfontconfig.so
+sudo ln -sfn /usr/lib/i386-linux-gnu/libGLU.so.1 /usr/lib/i386-linux-gnu/libGLU.so
+sudo ln -sfn /usr/lib/i386-linux-gnu/libGL.so.1 /usr/lib/i386-linux-gnu/libGL.so
+sudo ln -sfn /usr/lib/i386-linux-gnu/libX11.so.6.3.0 /usr/lib/i386-linux-gnu/libX11.so
 
 # MySQL setup.
 sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password password tmp_pass'
@@ -66,7 +70,7 @@ if [[ $(hostname) == *"-i-"* ]]; then
 fi
 HOSTNAME=`hostname`
 curl ${SWARMING}/bot_code?bot_id=$HOSTNAME -H "Authorization":"Bearer $TOKEN" -o /b/s/swarming_bot.zip
-ln -sf /b/s /b/swarm_slave
+ln -sfn /b/s /b/swarm_slave
 
 cat <<EOF | sudo tee /etc/systemd/system/swarming_bot.service
 [Unit]
