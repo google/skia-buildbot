@@ -218,20 +218,11 @@ https://%s.googlesource.com/%s.git/+log/%s
 		Name: "git",
 		Args: []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
 	}
-	if dryRun {
-		uploadCmd.Args = append(uploadCmd.Args, "--cq-dry-run")
-	} else {
-		uploadCmd.Args = append(uploadCmd.Args, "--use-commit-queue")
-	}
 	uploadCmd.Args = append(uploadCmd.Args, "--gerrit")
-	// TODO(rmistry): Do not add? may have to make a separate call for CR+2 and CQ+2??
-	tbr := "\nTBR="
 	if emails != nil && len(emails) > 0 {
 		emailStr := strings.Join(emails, ",")
-		tbr += emailStr
 		uploadCmd.Args = append(uploadCmd.Args, "--send-mail", "--cc", emailStr)
 	}
-	commitMsg += tbr
 	uploadCmd.Args = append(uploadCmd.Args, "-m", commitMsg)
 
 	// Upload the CL.
@@ -263,7 +254,33 @@ https://%s.googlesource.com/%s.git/+log/%s
 	if err := json.NewDecoder(f).Decode(&issue); err != nil {
 		return 0, err
 	}
+
+	// Set CR+2 and CQ+1/CQ+2 using the API.
+	change, err := mr.g.GetIssueProperties(issue.Issue)
+	if err != nil {
+		return issue.Issue, err
+	}
+	if err := mr.setChangeLabels(change, dryRun); err != nil {
+		return issue.Issue, err
+	}
+
 	return issue.Issue, nil
+}
+
+// setChangeLabels sets the appropriate labels on the Gerrit change.
+// It uses the Gerrit REST API to set the following labels on the change:
+// * Code-Review=2
+// * Commit-Queue=2 (if dryRun=false else 1 is set)
+func (r *manifestRepoManager) setChangeLabels(change *gerrit.ChangeInfo, dryRun bool) error {
+	labelValues := map[string]interface{}{
+		gerrit.CODEREVIEW_LABEL: "2",
+	}
+	if dryRun {
+		labelValues[gerrit.COMMITQUEUE_LABEL] = gerrit.COMMITQUEUE_LABEL_DRY_RUN
+	} else {
+		labelValues[gerrit.COMMITQUEUE_LABEL] = gerrit.COMMITQUEUE_LABEL_SUBMIT
+	}
+	return r.g.SetReview(change, "Roller setting labels to auto-land change.", labelValues)
 }
 
 func (mr *manifestRepoManager) updateManifestFile(prevHash, newHash string) error {
