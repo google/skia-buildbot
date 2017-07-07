@@ -86,8 +86,10 @@ func (r *commonRepoManager) NextRollRev() string {
 
 // Start makes the RepoManager begin the periodic update process.
 func Start(r RepoManager, frequency time.Duration, ctx context.Context) {
+	sklog.Infof("Starting repo_manager")
 	lv := metrics2.NewLiveness("last-successful-repo-manager-update")
 	go util.RepeatCtx(frequency, ctx, func() {
+		sklog.Infof("Running repo_manager update.")
 		if err := r.Update(); err != nil {
 			sklog.Errorf("Failed to update repo manager: %s", err)
 		} else {

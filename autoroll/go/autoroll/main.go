@@ -24,7 +24,7 @@ import (
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 
-	"go.skia.org/infra/autoroll/go/autoroller"
+	"go.skia.org/infra/autoroll/go/autorollerv2"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
@@ -36,7 +36,7 @@ import (
 )
 
 var (
-	arb *autoroller.AutoRoller = nil
+	arb *autorollerv2.AutoRoller = nil
 
 	mainTemplate *template.Template = nil
 )
@@ -172,7 +172,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		ProjectUser string
 	}{
 		ProjectName: *childName,
-		ProjectUser: arb.User(),
+		ProjectUser: arb.GetUser(),
 	}
 	if err := mainTemplate.Execute(w, mainPage); err != nil {
 		sklog.Errorln("Failed to expand template:", err)
@@ -269,7 +269,13 @@ func main() {
 	}
 
 	// Start the autoroller.
-	arb, err = autoroller.NewAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, *rollIntoAndroid, *useManifest, *strategy)
+	if *rollIntoAndroid {
+		arb, err = autorollerv2.NewAndroidAutoRoller(*workdir, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, *strategy)
+	} else if *useManifest {
+		arb, err = autorollerv2.NewManifestAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, *strategy)
+	} else {
+		arb, err = autorollerv2.NewDEPSAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, *strategy)
+	}
 	if err != nil {
 		sklog.Fatal(err)
 	}

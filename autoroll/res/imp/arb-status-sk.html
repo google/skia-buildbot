@@ -435,13 +435,18 @@
 
       _statusClass: function(status) {
         return {
-          "error": "failure",
-          "in progress": "unknown",
-          "stopped": "failure",
-          "up to date": "success",
-          "dry run failed": "failure",
-          "dry run succeeded": "success",
-          "dry run in progress": "unknown",
+          "idle":                          "unknown",
+          "active":                        "unknown",
+          "success":                       "success",
+          "failure":                       "failure",
+          "throttled":                     "failure",
+          "dry run idle":                  "unknown",
+          "dry run active":                "unknown",
+          "dry run success":               "success",
+          "dry run success; leaving open": "success",
+          "dry run failure":               "failure",
+          "dry run throttled":             "failure",
+          "stopped":                       "failure",
         }[status] || "";
       },
 
