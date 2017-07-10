@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "eecf1d2e_f0f53f2c",
+        "filename": "go/gce/cmd/find_unused_disks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-10T15:02:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f0b665c9_27b8e55b",
+      "range": {
+        "startLine": 58,
+        "startChar": 2,
+        "endLine": 58,
+        "endChar": 13
+      },
+      "revId": "0b54d4788b42e221d86f3c92c5276e2f488f2b43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e54f0e41_13421ca3",
         "filename": "go/gce/cmd/find_unused_disks.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "0b54d4788b42e221d86f3c92c5276e2f488f2b43",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d8f53bf6_cc125891",
+        "filename": "go/gce/cmd/find_unused_disks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-10T15:02:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e54f0e41_13421ca3",
+      "range": {
+        "startLine": 102,
+        "startChar": 4,
+        "endLine": 102,
+        "endChar": 6
+      },
+      "revId": "0b54d4788b42e221d86f3c92c5276e2f488f2b43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "dcef7c19_b76330d2",
+        "filename": "go/gce/cmd/find_unused_disks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-10T15:02:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "47722708_0773c76f",
+      "range": {
+        "startLine": 106,
+        "startChar": 2,
+        "endLine": 106,
+        "endChar": 3
+      },
+      "revId": "0b54d4788b42e221d86f3c92c5276e2f488f2b43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2b85f293_5b18b007",
         "filename": "go/gce/gce.go",
         "patchSetId": 2
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "c8a5268f_88753d26",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-10T15:02:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2b85f293_5b18b007",
+      "range": {
+        "startLine": 240,
+        "startChar": 0,
+        "endLine": 241,
+        "endChar": 42
+      },
+      "revId": "0b54d4788b42e221d86f3c92c5276e2f488f2b43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b44a7053_cab06a6d",
         "filename": "go/gce/gce.go",
         "patchSetId": 2
@@ -114,6 +210,30 @@
       "revId": "0b54d4788b42e221d86f3c92c5276e2f488f2b43",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed2f8f03_a229f83e",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-10T15:02:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b44a7053_cab06a6d",
+      "range": {
+        "startLine": 243,
+        "startChar": 0,
+        "endLine": 246,
+        "endChar": 4
+      },
+      "revId": "0b54d4788b42e221d86f3c92c5276e2f488f2b43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
