@@ -102,3 +102,26 @@ func openBoltDB(baseDir, name string) (*bolt.DB, error) {
 
 	return bolt.Open(path.Join(baseDir, name), 0600, nil)
 }
+
+// createPath makes sure that baseDir/pathToFile exists.
+func createPath(baseDir, pathToFile string) (string, error) {
+	targetPath := filepath.Join(baseDir, pathToFile)
+	dirs, _ := filepath.Split(targetPath)
+	if err := os.MkdirAll(dirs, 0700); err != nil {
+		return "", err
+	}
+	return targetPath, nil
+}
+
+// saveFilePath saves the given buffer in baseDir/pathToFile.
+func saveFilePath(baseDir, pathToFile string, r io.Reader) error {
+	targetPath, err := createPath(baseDir, pathToFile)
+	if err != nil {
+		return fmt.Errorf("Unable to create path for %s/%s: %s", baseDir, pathToFile, err)
+	}
+
+	if err := saveFile(targetPath, r); err != nil {
+		return fmt.Errorf("Unable to save file %s. Got error: %s", targetPath, err)
+	}
+	return nil
+}
