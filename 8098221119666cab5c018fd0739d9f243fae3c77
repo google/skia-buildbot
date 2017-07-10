@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a9a26484_792b2f40",
+        "filename": "autoroll/go/autoroller/roller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-10T14:47:53Z",
+      "side": 0,
+      "message": "Can AutoDecrementCounter be deleted as well?",
+      "revId": "8098221119666cab5c018fd0739d9f243fae3c77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85381141_1253474b",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 496,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-10T14:47:53Z",
+      "side": 0,
+      "message": "Where is this logic done now?",
+      "revId": "8098221119666cab5c018fd0739d9f243fae3c77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
