@@ -226,7 +226,7 @@ func assertImagesEqual(t *testing.T, got, want *image.NRGBA) {
 //
 // Note that all images are in sktext format as strings.
 func assertDiffMatch(t *testing.T, expected, src1, src2 string, expectedDiffMetrics ...*DiffMetrics) {
-	dm, got := Diff(imageFromString(t, src1), imageFromString(t, src2))
+	dm, got := PixelDiff(imageFromString(t, src1), imageFromString(t, src2))
 	want := imageFromString(t, expected)
 	assertImagesEqual(t, got, want)
 
@@ -266,7 +266,7 @@ func assertDiffs(t *testing.T, d1, d2 string, expectedDiffMetrics *DiffMetrics) 
 		t.Fatal("Failed to open test file: ", err)
 	}
 
-	diffMetrics, _ := Diff(img1, img2)
+	diffMetrics, _ := PixelDiff(img1, img2)
 	if err != nil {
 		t.Error("Unexpected error: ", err)
 	}
@@ -339,6 +339,6 @@ func BenchmarkDiff(b *testing.B) {
 	once.Do(loadBenchmarkImages)
 
 	for i := 0; i < b.N; i++ {
-		Diff(img1, img2)
+		PixelDiff(img1, img2)
 	}
 }

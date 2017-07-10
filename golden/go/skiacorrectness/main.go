@@ -192,13 +192,14 @@ func main() {
 			sklog.Fatalf("Unable to connect to grpc service: %s", err)
 		}
 
-		diffStore, err = diffstore.NewNetDiffStore(conn, *diffServerImageAddr)
+		codec := diffstore.MetricMapCodec{}
+		diffStore, err = diffstore.NewNetDiffStore(conn, *diffServerImageAddr, codec)
 		if err != nil {
 			sklog.Fatalf("Unable to initialize NetDiffStore: %s", err)
 		}
 		sklog.Infof("DiffStore: NetDiffStore initiated.")
 	} else {
-		diffStore, err = diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize)
+		diffStore, err = diffstore.NewMemDiffStore(client, nil, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize)
 		if err != nil {
 			sklog.Fatalf("Allocating local DiffStore failed: %s", err)
 		}

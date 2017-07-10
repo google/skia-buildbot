@@ -52,6 +52,9 @@ type MemDiffStore struct {
 	// diffMetricsCache caches and calculates diff metrics and images.
 	diffMetricsCache rtcache.ReadThroughCache
 
+	// diffFn is called on two images to output diff metrics and the diff image
+	diffFn diff.DiffFn
+
 	// imgLoader fetches and caches images.
 	imgLoader *ImageLoader
 
@@ -66,7 +69,8 @@ type MemDiffStore struct {
 // 'gigs' is the approximate number of gigs to use for caching. This is not the
 // exact amount memory that will be used, but a tuning parameter to increase
 // or decrease memory used. If 'gigs' is 0 nothing will be cached in memory.
-func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string, gsImageBaseDir string, gigs int) (diff.DiffStore, error) {
+// If diffFn is nil, the diff.DefaultDiffFn will be used.
+func NewMemDiffStore(client *http.Client, diffFn diff.DiffFn, baseDir string, gsBucketNames []string, gsImageBaseDir string, gigs int) (diff.DiffStore, error) {
 	imageCacheCount, diffCacheCount := getCacheCounts(gigs)
 
 	// Set up image retrieval, caching and serving.
@@ -81,9 +85,15 @@ func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string
 		return nil, err
 	}
 
+	// Default to diff.DefaultDiffFn if diffFn not specified
+	if diffFn == nil {
+		diffFn = diff.DefaultDiffFn
+	}
+
 	ret := &MemDiffStore{
 		baseDir:      baseDir,
 		localDiffDir: fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFFIMG_DIR_NAME))),
+		diffFn:       diffFn,
 		imgLoader:    imgLoader,
 		metricsStore: mStore,
 	}
@@ -132,12 +142,12 @@ func (d *MemDiffStore) sync() {
 }
 
 // See DiffStore interface.
-func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []string) (map[string]*diff.DiffMetrics, error) {
+func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []string) (map[string]interface{}, error) {
 	if mainDigest == "" {
 		return nil, fmt.Errorf("Received empty dMain digest.")
 	}
 
-	diffMap := make(map[string]*diff.DiffMetrics, len(rightDigests))
+	diffMap := make(map[string]interface{}, len(rightDigests))
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 	for _, right := range rightDigests {
@@ -278,7 +288,7 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 	}
 
 	// We are guaranteed to have two images at this point.
-	diffRec, diffImg := diff.CalcDiff(imgs[0], imgs[1])
+	diffRec, diffImg := d.diffFn(imgs[0], imgs[1])
 
 	// encode the result image and save it to disk. If encoding causes an error
 	// we return an error.
@@ -288,8 +298,9 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 	}
 
 	// save the diff.DiffMetrics and the diffImage.
-	d.saveDiffInfoAsync(id, leftDigest, rightDigest, diffRec, buf.Bytes())
-	return diffRec, nil
+	diffMetrics := diffRec.(*diff.DiffMetrics)
+	d.saveDiffInfoAsync(id, leftDigest, rightDigest, diffMetrics, buf.Bytes())
+	return diffMetrics, nil
 }
 
 // saveDiffInfoAsync saves the given diff information to disk asynchronously.
