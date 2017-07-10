@@ -112,16 +112,30 @@ func (c *Continuous) Run() {
 				for _, cl := range resp.Summary.Clusters {
 					if cl.StepPoint.Offset == int64(commit.Index) {
 						if cl.StepFit.Status == stepfit.LOW && !cfg.StepUpOnly {
-							if err := c.store.SetLow(details[0], cfg.Query /* Should be cfg.ID */, resp.Frame, cl); err != nil {
-								sklog.Errorf("Failed to save newly found cluster: %s", err)
-							}
 							sklog.Infof("Found Low regression at %s for %q: %v", details[0].Message, cfg.Query, *cl.StepFit)
+							isNew, err := c.store.SetLow(details[0], cfg.Query /* Should be cfg.ID */, resp.Frame, cl)
+							if err != nil {
+								sklog.Errorf("Failed to save newly found cluster: %s", err)
+								continue
+							}
+							if isNew {
+								if err := notifier.Send(details[0], cfg, cl); err != nil {
+									sklog.Errorf("Failed to send notification: %s", err)
+								}
+							}
 						}
 						if cl.StepFit.Status == stepfit.HIGH {
-							if err := c.store.SetHigh(details[0], cfg.Query /* Should be cfg.ID */, resp.Frame, cl); err != nil {
-								sklog.Errorf("Failed to save newly found cluster: %s", err)
-							}
 							sklog.Infof("Found High regression at %s for %q: %v", id.ID(), cfg.Query, *cl.StepFit)
+							isNew, err := c.store.SetHigh(details[0], cfg.Query /* Should be cfg.ID */, resp.Frame, cl)
+							if err != nil {
+								sklog.Errorf("Failed to save newly found cluster: %s", err)
+								continue
+							}
+							if isNew {
+								if err := notifier.Send(details[0], cfg, cl); err != nil {
+									sklog.Errorf("Failed to send notification: %s", err)
+								}
+							}
 						}
 					}
 				}
