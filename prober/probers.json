@@ -193,7 +193,7 @@
        "https://ct.skia.org/_/get_chromium_build_tasks?size=1&successful=true"
      ],
      "method": "POST",
-     "expected": [307],
+     "expected": [200],
      "body": "",
      "mimetype": "application/json"
    },
