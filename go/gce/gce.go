@@ -1,6 +1,7 @@
 package gce
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -149,6 +150,9 @@ type Disk struct {
 
 	// Type of disk, eg. "pd-standard" or "pd-ssd".
 	Type string
+
+	// Output only, which instances are using this disk, if any.
+	InUseBy []string
 }
 
 // CreateDisk creates the given disk.
@@ -220,6 +224,51 @@ func (g *GCloud) DeleteDisk(name string, ignoreNotExists bool) error {
 		sklog.Infof("Successfully deleted disk %s", name)
 	}
 	return nil
+}
+
+// ListDisks returns a list of Disks in the project.
+func (g *GCloud) ListDisks() ([]*Disk, error) {
+	disks := []*Disk{}
+	call := g.s.Disks.List(g.project, g.zone)
+	if err := call.Pages(context.Background(), func(list *compute.DiskList) error {
+		for _, d := range list.Items {
+			disk := &Disk{
+				Name:   d.Name,
+				SizeGb: d.SizeGb,
+			}
+			if d.SourceImage != "" {
+				split := strings.Split(d.SourceImage, "/")
+				if len(split) == 5 && split[1] != g.project {
+					disk.SourceImage = d.SourceImage
+				} else {
+					disk.SourceImage = split[len(split)-1]
+				}
+			}
+			if d.SourceSnapshot != "" {
+				split := strings.Split(d.SourceSnapshot, "/")
+				if len(split) == 5 && split[1] != g.project {
+					disk.SourceImage = d.SourceImage
+				} else {
+					disk.SourceImage = split[len(split)-1]
+				}
+			}
+			if d.Type != "" {
+				split := strings.Split(d.Type, "/")
+				disk.Type = split[len(split)-1]
+			}
+			inUseBy := make([]string, 0, len(d.Users))
+			for _, user := range d.Users {
+				split := strings.Split(user, "/")
+				inUseBy = append(inUseBy, split[len(split)-1])
+			}
+			disk.InUseBy = inUseBy
+			disks = append(disks, disk)
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return disks, nil
 }
 
 // getDiskStatus returns the current status of the disk.
