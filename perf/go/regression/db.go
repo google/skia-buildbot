@@ -133,52 +133,52 @@ func intx(f func(tx *sql.Tx) error) (err error) {
 	return err
 }
 
-// SetHigh sets the cluster for a high regression at the given commit and query.
-func (s *Store) SetHigh(cid *cid.CommitDetail, query string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) error {
+// SetHigh sets the cluster for a high regression at the given commit and alertID.
+func (s *Store) SetHigh(cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) error {
 	return intx(func(tx *sql.Tx) error {
 		r, err := s.load(tx, cid)
 		if err != nil {
 			r = New()
 		}
-		r.SetHigh(query, df, high)
+		r.SetHigh(alertID, df, high)
 		return s.store(tx, cid, r)
 	})
 }
 
-// SetLow sets the cluster for a low regression at the given commit and query.
-func (s *Store) SetLow(cid *cid.CommitDetail, query string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) error {
+// SetLow sets the cluster for a low regression at the given commit and alertID.
+func (s *Store) SetLow(cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) error {
 	return intx(func(tx *sql.Tx) error {
 		r, err := s.load(tx, cid)
 		if err != nil {
 			r = New()
 		}
-		r.SetLow(query, df, low)
+		r.SetLow(alertID, df, low)
 		return s.store(tx, cid, r)
 	})
 }
 
-// TriageLow sets the triage status for the low cluster at the given commit and query.
-func (s *Store) TriageLow(cid *cid.CommitDetail, query string, tr TriageStatus) error {
+// TriageLow sets the triage status for the low cluster at the given commit and alertID.
+func (s *Store) TriageLow(cid *cid.CommitDetail, alertID string, tr TriageStatus) error {
 	return intx(func(tx *sql.Tx) error {
 		r, err := s.load(tx, cid)
 		if err != nil {
 			return fmt.Errorf("Failed to load Regressions: %s", err)
 		}
-		if err = r.TriageLow(query, tr); err != nil {
+		if err = r.TriageLow(alertID, tr); err != nil {
 			return fmt.Errorf("Failed to update Regressions: %s", err)
 		}
 		return s.store(tx, cid, r)
 	})
 }
 
-// TriageHigh sets the triage status for the high cluster at the given commit and query.
-func (s *Store) TriageHigh(cid *cid.CommitDetail, query string, tr TriageStatus) error {
+// TriageHigh sets the triage status for the high cluster at the given commit and alertID.
+func (s *Store) TriageHigh(cid *cid.CommitDetail, alertID string, tr TriageStatus) error {
 	return intx(func(tx *sql.Tx) error {
 		r, err := s.load(tx, cid)
 		if err != nil {
 			return fmt.Errorf("Failed to load Regressions: %s", err)
 		}
-		if err := r.TriageHigh(query, tr); err != nil {
+		if err := r.TriageHigh(alertID, tr); err != nil {
 			return fmt.Errorf("Failed to update Regressions: %s", err)
 		}
 		return s.store(tx, cid, r)

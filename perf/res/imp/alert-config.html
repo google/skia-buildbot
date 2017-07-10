@@ -35,6 +35,7 @@
     paper-input,
     paper-checkbox,
     iron-selector,
+    button,
     algo-select-sk {
       margin-left: 3em;
     }
@@ -71,7 +72,8 @@
     <h3>Where are alerts sent</h3>
     <paper-input value="{{config.alert}}"                                  label="Alert Destination: Email address or chat id."></paper-input>
     <h3>Where are bugs filed</h3>
-    <paper-input value="{{config.bug_uri_template}}"                       label="Bug URI Template. (TBD)"></paper-input>
+    <paper-input value="{{config.bug_uri_template}}"                       label="Bug URI Template: {cluster_url}, {commit_url}, and {message}."></paper-input>
+    <button on-tap=_testBugTemplate>Test</button>
     <h3>Who owns this alert</h3>
     <paper-input id=owner value="{{config.owner}}"                         label="Email address of owner."></paper-input>
     <h3>Status</h3>
@@ -103,6 +105,18 @@
 
     ready: function() {
       this.$.querychooser.query.setKeyOrder(sk.perf.key_order);
+    },
+
+    _testBugTemplate: function() {
+      var body = {
+        bug_uri_template: this.config.bug_uri_template,
+      };
+      sk.post("/_/alert/bug/try", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json) {
+        if (json.url) {
+          // Open the bug reporting page in a new window.
+          window.open(json.url, '_blank');
+        }
+      }.bind(this)).catch(sk.errorMessage);
     },
 
   });
