@@ -16,6 +16,24 @@
       "revId": "22d8b1962a622a3c3ef6e2ec8283ec5268704052",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb6e4d8a_22e5297c",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-10T19:52:11Z",
+      "side": 0,
+      "message": "Yes, LogPanic prevents the panic from showing up either in syslog or cloud logging.",
+      "parentUuid": "a8b5b7be_3710ff1a",
+      "revId": "22d8b1962a622a3c3ef6e2ec8283ec5268704052",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

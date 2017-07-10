@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "27832832_bd3bfd67",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-10T19:52:11Z",
+      "side": 1,
+      "message": "Changed to RollCLImpl.",
+      "parentUuid": "4f2bc317_54079062",
+      "range": {
+        "startLine": 46,
+        "startChar": 5,
+        "endLine": 46,
+        "endChar": 17
+      },
+      "revId": "d2287df2967b1bc21f8121acfa656c59a2adbfdf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2b11c4dd_f4c72bfd",
         "filename": "autoroll/go/state_machine/state_machine.go",
         "patchSetId": 11
@@ -36,6 +60,30 @@
       "writtenOn": "2017-07-10T18:27:17Z",
       "side": 1,
       "message": "As discussed in person: It will be a lot more readable if transition functions were returned with the state in the nextState functions. It will also help ensure that there are no unreachable states.",
+      "range": {
+        "startLine": 260,
+        "startChar": 3,
+        "endLine": 260,
+        "endChar": 16
+      },
+      "revId": "d2287df2967b1bc21f8121acfa656c59a2adbfdf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d4463d0_276569a3",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-10T19:52:11Z",
+      "side": 1,
+      "message": "Done. It\u0027s shorter and prevents missing transitions, but I\u0027m not sure if it\u0027s really more readable.",
+      "parentUuid": "2b11c4dd_f4c72bfd",
       "range": {
         "startLine": 260,
         "startChar": 3,
@@ -68,6 +116,30 @@
       "revId": "d2287df2967b1bc21f8121acfa656c59a2adbfdf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "22e96c9b_8283f085",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-10T19:52:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e922650b_84b67f1f",
+      "range": {
+        "startLine": 126,
+        "startChar": 18,
+        "endLine": 126,
+        "endChar": 26
+      },
+      "revId": "d2287df2967b1bc21f8121acfa656c59a2adbfdf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
