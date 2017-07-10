@@ -115,14 +115,15 @@ func (r *RefDiffer) getClosestDiff(metric, digest string, compDigests []string) 
 	minDiff := float32(math.Inf(1))
 	minDigest := ""
 	for resultDigest, diffInfo := range diffs {
-		if diffInfo.Diffs[metric] < minDiff {
-			minDiff = diffInfo.Diffs[metric]
+		diffMetrics := diffInfo.(*diff.DiffMetrics)
+		if diffMetrics.Diffs[metric] < minDiff {
+			minDiff = diffMetrics.Diffs[metric]
 			minDigest = resultDigest
 		}
 	}
 
 	return &SRDiffDigest{
-		DiffMetrics: diffs[minDigest],
+		DiffMetrics: diffs[minDigest].(*diff.DiffMetrics),
 		Digest:      minDigest,
 	}
 }

@@ -31,8 +31,8 @@ func MockUrlGenerator(path string) string {
 // Mock the diffstore.
 type MockDiffStore struct{}
 
-func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[string]*diff.DiffMetrics, error) {
-	result := map[string]*diff.DiffMetrics{}
+func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[string]interface{}, error) {
+	result := map[string]interface{}{}
 	for _, d := range dRest {
 		if dMain != d {
 			result[d] = &diff.DiffMetrics{
@@ -187,7 +187,7 @@ func NewMockTileBuilderFromJson(t assert.TestingT, fname string) tracedb.MasterT
 // or by querying meta data in the cloud.
 func GetHTTPClient(t assert.TestingT) *http.Client {
 	// Get the service account client from meta data or a local config file.
-	client, err := auth.NewJWTServiceAccountClient("", auth.DEFAULT_JWT_FILENAME, nil, storage.ScopeFullControl)
+client, err := auth.NewJWTServiceAccountClient("", "/usr/local/google/home/lchoi/" + auth.DEFAULT_JWT_FILENAME, nil, storage.ScopeFullControl)
 	assert.NoError(t, err)
 	return client
 }
