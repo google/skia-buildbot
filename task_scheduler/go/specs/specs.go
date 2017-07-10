@@ -876,7 +876,7 @@ func tempGitRepoBotUpdate(rs db.RepoState, depotToolsDir, gitCacheDir, tmp strin
 	outputJson := path.Join(tmp, "output_json")
 	cmd := []string{
 		"python", "-u", botUpdatePath,
-		"--spec", spec,
+		"--specs", spec,
 		"--patch_root", patchRepoName,
 		"--revision_mapping_file", revisionMappingFile,
 		"--git-cache-dir", gitCacheDir,
