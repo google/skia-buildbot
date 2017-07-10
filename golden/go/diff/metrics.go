@@ -37,9 +37,10 @@ func GetDiffMetricIDs() []string {
 	return diffMetricIds
 }
 
-// CalcDiff calculates the basic difference and then then custom diff metrics.
-func CalcDiff(leftImg *image.NRGBA, rightImg *image.NRGBA) (*DiffMetrics, *image.NRGBA) {
-	ret, diffImg := Diff(leftImg, rightImg)
+// DefaultDiffFn implements the DiffFn function type. Calculates the basic
+// image difference and along with custom diff metrics.
+func DefaultDiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) (interface{}, *image.NRGBA) {
+	ret, diffImg := PixelDiff(leftImg, rightImg)
 
 	// Calcluate the metrics.
 	diffs := make(map[string]float32, len(diffMetricIds))
@@ -47,6 +48,7 @@ func CalcDiff(leftImg *image.NRGBA, rightImg *image.NRGBA) (*DiffMetrics, *image
 		diffs[id] = metrics[id](ret, leftImg, rightImg)
 	}
 	ret.Diffs = diffs
+
 	return ret, diffImg
 }
 
