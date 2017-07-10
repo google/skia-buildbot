@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4f2bc317_54079062",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-10T18:27:17Z",
+      "side": 1,
+      "message": "This name is very similar to the one below: AutoRollerImpl\nMaybe SingleRollImpl/SingleRoll is a better name?",
+      "range": {
+        "startLine": 46,
+        "startChar": 5,
+        "endLine": 46,
+        "endChar": 17
+      },
+      "revId": "d2287df2967b1bc21f8121acfa656c59a2adbfdf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b11c4dd_f4c72bfd",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-10T18:27:17Z",
+      "side": 1,
+      "message": "As discussed in person: It will be a lot more readable if transition functions were returned with the state in the nextState functions. It will also help ensure that there are no unreachable states.",
+      "range": {
+        "startLine": 260,
+        "startChar": 3,
+        "endLine": 260,
+        "endChar": 16
+      },
+      "revId": "d2287df2967b1bc21f8121acfa656c59a2adbfdf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e922650b_84b67f1f",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-10T18:27:17Z",
+      "side": 1,
+      "message": "This may be simplified if transition functions are returned as part of nextState funcions.",
+      "range": {
+        "startLine": 126,
+        "startChar": 18,
+        "endLine": 126,
+        "endChar": 26
+      },
+      "revId": "d2287df2967b1bc21f8121acfa656c59a2adbfdf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

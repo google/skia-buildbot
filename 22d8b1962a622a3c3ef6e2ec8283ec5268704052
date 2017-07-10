@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a8b5b7be_3710ff1a",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-10T18:27:17Z",
+      "side": 0,
+      "message": "Intentionally removed?",
+      "revId": "22d8b1962a622a3c3ef6e2ec8283ec5268704052",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
