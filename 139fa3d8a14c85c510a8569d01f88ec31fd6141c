@@ -1,0 +1,123 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e10e9d13_08038d86",
+        "filename": "golden/go/diffstore/diffstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-10T13:53:16Z",
+      "side": 1,
+      "message": "nit: This should move to common_test.go since the type is defined in common.go defined. \nThe only reason we are testing NetDiffStore and MemDiffStore in this file and not in the corresponding \"_test\"-files, is that they share a lot of test infrastructure and I didn\u0027t want to factor it out. \nUsually I try to place tests in a test file that corresponds to the filename where the entity under test is defined.",
+      "revId": "139fa3d8a14c85c510a8569d01f88ec31fd6141c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a48b2e6_4205da76",
+        "filename": "golden/go/diffstore/diffstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-10T13:53:16Z",
+      "side": 1,
+      "message": "nit: Use\n\nvar codec MetricMapCodec \n\ninstead since the receiver of MetricMapCodec is a value not a pointer.",
+      "revId": "139fa3d8a14c85c510a8569d01f88ec31fd6141c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a2226a5b_9fbf50a3",
+        "filename": "golden/go/diffstore/diffstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-10T13:53:16Z",
+      "side": 1,
+      "message": "Testing whether the bytes match is not necessary, since you are just repeating the same code as in the Encode function.",
+      "revId": "139fa3d8a14c85c510a8569d01f88ec31fd6141c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6088b480_f4325964",
+        "filename": "golden/go/diffstore/diffstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-10T13:53:16Z",
+      "side": 1,
+      "message": "This can be simplified to something like:\n\nassert.IsType(t, data, map[string]interface{}{})\nassert.Equal(t, diffMap, data)\n\nthe assert.Equal function should be able to take care of comparing the type, the map and the struct fields.",
+      "revId": "139fa3d8a14c85c510a8569d01f88ec31fd6141c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7198f1f6_79e788f6",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-10T13:53:16Z",
+      "side": 1,
+      "message": "nit: add doc that if diffFn is nil the default diff function will be used.",
+      "revId": "139fa3d8a14c85c510a8569d01f88ec31fd6141c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "658d09e5_821e7e0d",
+        "filename": "golden/go/netdiff/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-10T13:53:16Z",
+      "side": 1,
+      "message": "should be \n\nvar codec diffstore.MetricMapCodec\n\nsince the receiver of MetricMapCodec is a value and not a pointer.",
+      "revId": "139fa3d8a14c85c510a8569d01f88ec31fd6141c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2dd898d2_dceb0fb9",
+        "filename": "golden/go/skia_diff_server/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-10T13:53:16Z",
+      "side": 1,
+      "message": "same as above\n\nvar codec diffstore.MetricMapCodec",
+      "revId": "139fa3d8a14c85c510a8569d01f88ec31fd6141c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
