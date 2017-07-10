@@ -6,12 +6,20 @@
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
   <script src="/res/common/js/common.js"></script>
   <script type="text/javascript" charset="utf-8">
+    sk.perf = {};
+    sk.perf.key_order = [];
     // Mock out sk.post() to return random numbers for matches.
     sk.post= function(url) {
-      return new Promise(function (resolve, reject) {
-        var n = Math.floor(Math.random() * 100);
-        resolve('{"count":' + n + '}');
+      if (url.indexOf('alert/bug/try') != -1) {
+        return new Promise(function (resolve, reject) {
+          resolve('{ "url": "https://perf.skia.org" }');
         });
+      } else {
+        return new Promise(function (resolve, reject) {
+          var n = Math.floor(Math.random() * 100);
+          resolve('{"count":' + n + '}');
+        });
+      }
     };
   </script>
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
