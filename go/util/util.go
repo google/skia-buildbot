@@ -918,3 +918,17 @@ func ToDos(s string) string {
 func FromDos(s string) string {
 	return strings.Replace(s, "\r\n", "\n", -1)
 }
+
+// Truncate the given string to the given length. If the string was shortened,
+// change the last three characters to ellipses, unless the specified length is
+// 3 or less.
+func Truncate(s string, length int) string {
+	if len(s) > length {
+		if length <= 3 {
+			return s[:length]
+		}
+		ellipses := "..."
+		return s[:length-len(ellipses)] + ellipses
+	}
+	return s
+}
