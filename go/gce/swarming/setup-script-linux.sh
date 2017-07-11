@@ -13,7 +13,7 @@ sudo rm -rf /var/lib/apt/lists/*
 # Obtain and symlink i386 libs.
 sudo dpkg --add-architecture i386
 sudo apt-get update
-sudo apt-get -y install libfreetype6:i386 libfontconfig1:i386 libgl1-mesa-glx:i386 libglu1-mesa:i386 libx11-6:i386
+sudo apt-get -y install libfreetype6:i386 libfontconfig1:i386 libgl1-mesa-glx:i386 libglu1-mesa:i386 libx11-6:i386 libxext-dev:i386
 sudo ln -sfn /usr/lib/i386-linux-gnu/libfreetype.so.6 /usr/lib/i386-linux-gnu/libfreetype.so
 sudo ln -sfn /usr/lib/i386-linux-gnu/libfontconfig.so.1 /usr/lib/i386-linux-gnu/libfontconfig.so
 sudo ln -sfn /usr/lib/i386-linux-gnu/libGLU.so.1 /usr/lib/i386-linux-gnu/libGLU.so
