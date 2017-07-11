@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>digest-details-sk demo</title>
+  <title>legacy-digest-details-sk demo</title>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
@@ -12,46 +12,46 @@
   <script src="testdata.js"></script>
 
   <link rel="import" href="bower_components/polymer/polymer.html">
-  <link rel="import" href="digest-details-sk.html">
-  
+  <link rel="import" href="legacy-digest-details-sk.html">
+
 </head>
 <body>
-  <h1>digest-details-sk demo</h1>
+  <h1>legacy-digest-details-sk demo</h1>
 
   <dom-module id="main-document-element">
     <template>
       <h3>In list detail with a positive diff</h3>
       <div>
-        <digest-details-sk mode="list"
-                           details="[[posDetails]]" 
+        <legacy-digest-details-sk mode="list"
+                           details="[[posDetails]]"
                            commits="[[commits]]">
-        </digest-details-sk>
-      </div> 
+        </legacy-digest-details-sk>
+      </div>
       <br><br>
       <h3>In list detail with a negative diff</h3>
       <div>
-        <digest-details-sk mode="list"
-                           details="[[negDetails]]" 
+        <legacy-digest-details-sk mode="list"
+                           details="[[negDetails]]"
                            commits="[[commits]]">
-        </digest-details-sk>
+        </legacy-digest-details-sk>
       </div>
       <br><br>
       <h3>In list detail without a diff</h3>
       <div>
-        <digest-details-sk mode="list"
-                           id="noDiffDigestDetail" 
-                           details="[[noDiffDetails]]" 
+        <legacy-digest-details-sk mode="list"
+                           id="noDiffDigestDetail"
+                           details="[[noDiffDetails]]"
                            commits="[[commits]]">
-        </digest-details-sk>
+        </legacy-digest-details-sk>
       </div>
       <br><br>
       <h3>diff View Demo</h3>
       <div>
-          <digest-details-sk mode="diff"
+          <legacy-digest-details-sk mode="diff"
                              details="[[diffData.left]]"
                              right="[[diffData.right]]"
                              diff="[[diffData.diff]]">
-          </digest-details-sk>
+          </legacy-digest-details-sk>
       </div>
     </template>
 
@@ -62,30 +62,30 @@
 
           ready: function() {
             var posDetails = JSON.parse(JSON.stringify(testdata.searchDetails[0]));
-            posDetails.diff.neg = null; 
-            
-            var negDetails = JSON.parse(JSON.stringify(posDetails)); 
-            negDetails.diff.neg = negDetails.diff.pos; 
-            negDetails.diff.pos = null; 
-            
-            var noDiffDetails = JSON.parse(JSON.stringify(posDetails)); 
-            noDiffDetails.diff.pos = null; 
-            noDiffDetails.diff.neg = null; 
+            posDetails.diff.neg = null;
 
-            this.set('posDetails', posDetails); 
-            this.set('negDetails', negDetails); 
-            this.set('noDiffDetails', noDiffDetails); 
-            this.set('commits', testdata.commits); 
+            var negDetails = JSON.parse(JSON.stringify(posDetails));
+            negDetails.diff.neg = negDetails.diff.pos;
+            negDetails.diff.pos = null;
 
-            // Add the diff view data. 
+            var noDiffDetails = JSON.parse(JSON.stringify(posDetails));
+            noDiffDetails.diff.pos = null;
+            noDiffDetails.diff.neg = null;
+
+            this.set('posDetails', posDetails);
+            this.set('negDetails', negDetails);
+            this.set('noDiffDetails', noDiffDetails);
+            this.set('commits', testdata.commits);
+
+            // Add the diff view data.
             this.set('diffData', testdata.diffDigests);
           }
         });
       });
     </script>
   </dom-module>
-  
-  <!-- Instantite the element defined above --> 
+
+  <!-- Instantite the element defined above -->
   <main-document-element></main-document-element>
 
 </body>
