@@ -21,6 +21,7 @@ ExecStart=/usr/local/bin/skiaperf  \
     --interesting=25 \
     --internal_only \
     --algo=stepfit \
+    --subdomain=android-master-perf \
     --step_up_only
 
 Restart=always
