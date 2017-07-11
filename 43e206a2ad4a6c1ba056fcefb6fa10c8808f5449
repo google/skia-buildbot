@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "ab7751c5_9674afa3",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-11T20:22:50Z",
+      "side": 1,
+      "message": "nit: maybe withErrLogged(closeActiveRollStopped)\n\nwhere\nwithErrLogged :\u003d func(f func() error) {\n  return func() error {\n    util.LogErr(f())\n    return nil\n  }\n}",
+      "range": {
+        "startLine": 222,
+        "startChar": 22,
+        "endLine": 222,
+        "endChar": 25
+      },
+      "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "584e2bf6_be1c5fe9",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-11T20:22:50Z",
+      "side": 1,
+      "message": "nit: ditto",
+      "range": {
+        "startLine": 279,
+        "startChar": 22,
+        "endLine": 279,
+        "endChar": 25
+      },
+      "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8dfcbde7_f8dc09d3",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-11T20:22:50Z",
+      "side": 1,
+      "message": "nit: ditto",
+      "range": {
+        "startLine": 301,
+        "startChar": 21,
+        "endLine": 301,
+        "endChar": 24
+      },
+      "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c33ea3c2_48b08b40",
         "filename": "go/state_machine/state_machine.go",
         "patchSetId": 16
