@@ -128,7 +128,7 @@
             <template is="dom-if" if="[[_not(_stepUpOnly)]]">
               <td class=cluster>
                 <template is="dom-if" if="[[item.low]]">
-                  <triage-status-sk query="[[_queryFrom(index)]]" cluster_type=low full_summary="[[_full_summary(item.frame, item.low)]]" triage="[[item.low_status]]"></triage-status-sk>
+                  <triage-status-sk alert="[[_alertAt(index)]]" cluster_type=low full_summary="[[_full_summary(item.frame, item.low)]]" triage="[[item.low_status]]"></triage-status-sk>
                 </template>
                 <template is="dom-if" if="[[_not(item.low)]]">
                   <a class=dot title="No clusters found." href="/g/c/[[_hashFrom(tableIndex)]]?query=[[_encQueryFrom(index)]]">[[_display(tableIndex,state.end)]]</a>
@@ -140,7 +140,7 @@
             </template>
             <td class=cluster>
               <template is="dom-if" if="[[item.high]]">
-                <triage-status-sk query="[[_queryFrom(index)]]" cluster_type=high full_summary="[[_full_summary(item.frame, item.high)]]" triage="[[item.high_status]]"></triage-status-sk>
+                <triage-status-sk alert="[[_alertAt(index)]]" cluster_type=high full_summary="[[_full_summary(item.frame, item.high)]]" triage="[[item.high_status]]"></triage-status-sk>
               </template>
               <template is="dom-if" if="[[_not(item.high)]]">
                 <a class=dot title="No clusters found." href="/g/c/[[_hashFrom(tableIndex)]]?query=[[_encQueryFrom(index)]]">[[_display(tableIndex,state.end)]]</a>
@@ -256,10 +256,6 @@
         }.bind(this));
       },
 
-      _queryFrom: function(index) {
-        return this._reg.header[index].query;
-      },
-
       _encQueryFrom: function(index) {
         return encodeURIComponent(this._reg.header[index].query);
       },
@@ -273,6 +269,10 @@
           frame: frame,
           summary: summary,
         }
+      },
+
+      _alertAt: function(index) {
+        return this._reg.header[index];
       },
 
       _not: function(x) {

@@ -178,16 +178,17 @@ func newAlertsConfigProvider(clusterAlgo clustering2.ClusterAlgo) regression.Con
 			return alertStore.List(false)
 		} else {
 			ret := []*alerts.Config{}
+			uritemplate := "https://bugs.chromium.org/p/skia/issues/entry?comment=This+bug+was+found+via+SkiaPerf.%0A%0AVisit+this+URL+to+see+the+details+of+the+suspicious+cluster%3A%0A%0A++{cluster}%0A%0AThe+suspect+commit+is%3A%0A%0A++{commit}%0A%0A++{message}&labels=FromSkiaPerf%2CType-Defect%2CPriority-Medium"
 			queries := strings.Split(*clusterQueries, " ")
 			sort.Sort(sort.StringSlice(queries))
 			for _, q := range queries {
-				cfg := &alerts.Config{
-					Query:       q,
-					Interesting: float32(*interesting),
-					Algo:        clusterAlgo,
-					State:       alerts.ACTIVE,
-					StepUpOnly:  *stepUpOnly,
-				}
+				cfg := alerts.NewConfig()
+				cfg.Query = q
+				cfg.Interesting = float32(*interesting)
+				cfg.Algo = clusterAlgo
+				cfg.State = alerts.ACTIVE
+				cfg.StepUpOnly = *stepUpOnly
+				cfg.BugURITemplate = uritemplate
 				ret = append(ret, cfg)
 			}
 			return ret, nil
@@ -724,7 +725,7 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 // TriageRequest is used in triageHandler.
 type TriageRequest struct {
 	Cid         *cid.CommitID           `json:"cid"`
-	Query       string                  `json:"query"`
+	Alert       alerts.Config           `json:"alert"`
 	Triage      regression.TriageStatus `json:"triage"`
 	ClusterType string                  `json:"cluster_type"`
 }
@@ -756,9 +757,9 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if tr.ClusterType == "low" {
-		err = regStore.TriageLow(detail[0], tr.Query, tr.Triage)
+		err = regStore.TriageLow(detail[0], tr.Alert.Query /* Should be alert.ID */, tr.Triage)
 	} else {
-		err = regStore.TriageHigh(detail[0], tr.Query, tr.Triage)
+		err = regStore.TriageHigh(detail[0], tr.Alert.Query /* Should be alert.ID */, tr.Triage)
 	}
 
 	if err != nil {
@@ -769,7 +770,7 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 	link := fmt.Sprintf("%s/t/?begin=%d&end=%d", r.Header.Get("Origin"), detail[0].Timestamp, detail[0].Timestamp+1)
 	a := &activitylog.Activity{
 		UserID: login.LoggedInAs(r),
-		Action: fmt.Sprintf("Perf Triage: %q %q %q %q", tr.Query, detail[0].URL, tr.Triage.Status, tr.Triage.Message),
+		Action: fmt.Sprintf("Perf Triage: %q %q %q %q", tr.Alert.Query, detail[0].URL, tr.Triage.Status, tr.Triage.Message),
 		URL:    link,
 	}
 	if err := activitylog.Write(a); err != nil {
@@ -779,9 +780,17 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 	resp := &TriageResponse{}
 
 	if tr.Triage.Status == regression.NEGATIVE {
-		// TODO(jcgregorio) If *clusterQueries == "" then look up the alert config via tr.Query (aka alert id)
-		//  and use the bug uri template in the alert config.
+		cfgs, err := configProvider()
+		if err != nil {
+			sklog.Errorf("Failed to load configs looking for BugURITemplate: %s", err)
+		}
 		uritemplate := "https://bugs.chromium.org/p/skia/issues/entry?comment=This+bug+was+found+via+SkiaPerf.%0A%0AVisit+this+URL+to+see+the+details+of+the+suspicious+cluster%3A%0A%0A++{cluster}%0A%0AThe+suspect+commit+is%3A%0A%0A++{commit}%0A%0A++{message}&labels=FromSkiaPerf%2CType-Defect%2CPriority-Medium"
+		for _, c := range cfgs {
+			// TODO(jcgregorio) If *clusterQueries == "" then we need to compare on ID.
+			if c.Query == tr.Alert.Query {
+				uritemplate = c.BugURITemplate
+			}
+		}
 		resp.Bug = bug.Expand(uritemplate, link, detail[0], tr.Triage.Message)
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {

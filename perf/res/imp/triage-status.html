@@ -5,7 +5,7 @@
   details and to change the triage status.
 
   Attributes:
-    query - The query string that this cluster is associated with.
+    alert - The alerts.Config this cluster is associated with.
 
     cluster_type - The type of cluster, either "low" or "high".
 
@@ -36,7 +36,10 @@
           status: "negative",
           message: "This is a regression in ...",
         },
-        query: "source_type=skp&sub_result=min_ms",
+        alert: {
+          id: 2,
+          query: "source_type=skp&sub_result=min_ms"
+        },
       }
 
   Methods:
@@ -78,15 +81,15 @@
     is: "triage-status-sk",
 
     properties: {
-      query: {
-        type: String,
-        value: "",
-      },
       cluster_type: {
         type: String,
         value: "",
       },
       full_summary: {
+        type: Object,
+        value: function() { return {}; },
+      },
+      alert: {
         type: Object,
         value: function() { return {}; },
       },
@@ -106,7 +109,7 @@
       this.triage = e.detail.triage;
       this.notifyPath("triage.status");
       this.notifyPath("triage.message");
-      e.detail.query = this.query;
+      e.detail.alert= this.alert;
       e.detail.cluster_type = this.cluster_type;
       this.dispatchEvent(new CustomEvent('triaged', {detail: e.detail, bubbles: true}));
       this.$.dialog.close();
