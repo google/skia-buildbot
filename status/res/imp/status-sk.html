@@ -183,6 +183,14 @@
 
       <h1 class="shrinkable" toolbar>Status: [[repo]]</h1>
 
+      <autoroll-widget-sk title="Fuchsia roll status" class="shrinkable" rtoolbar
+        reload="[[reload]]"
+        name="Fuchsia"
+        url="https://fuchsia-roll.skia.org"
+
+        status="{{fuchsia_roll_status}}">
+      </autoroll-widget-sk>
+
       <autoroll-widget-sk title="Android roll status" class="shrinkable" rtoolbar
         reload="[[reload]]"
         name="Android"
@@ -239,6 +247,7 @@
         <commits-canvas-sk id="can" class="shrinkable"
           cr_roll="[[cr_roll_status]]"
           android_roll="[[android_roll_status]]"
+          fuchsia_roll="[[fuchsia_roll_status]]"
           branch_heads="[[branch_heads]]"
           commits="[[commits]]"
           repo_base="[[repo_base]]"
@@ -277,6 +286,8 @@
             cr_roll_last="[[cr_roll_status.lastRollRev]]"
             android_roll_current="[[android_roll_status.currentRollRev]]"
             android_roll_last="[[android_roll_status.lastRollRev]]"
+            fuchsia_roll_current="[[fuchsia_roll_status.currentRollRev]]"
+            fuchsia_roll_last="[[fuchsia_roll_status.lastRollRev]]"
             commits_to_load="[[commits_to_load]]"
             filter="[[filter]]"
             reload="[[reload]]"
