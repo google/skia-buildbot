@@ -9,8 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"os"
-	"path"
+	//"path"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -19,14 +18,17 @@ import (
 	"time"
 	"unicode"
 
-	"golang.org/x/net/context"
+	//"golang.org/x/net/context"
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/git/repograph"
+	//"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/influxdb"
+	//"go.skia.org/infra/go/influxdb_init"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/polling_status"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
@@ -34,44 +36,58 @@ import (
 	"go.skia.org/infra/status/go/capacity"
 	"go.skia.org/infra/status/go/franken"
 	"go.skia.org/infra/task_scheduler/go/db"
-	"go.skia.org/infra/task_scheduler/go/db/local_db"
-	"go.skia.org/infra/task_scheduler/go/db/remote_db"
+	//"go.skia.org/infra/task_scheduler/go/db/remote_db"
 )
 
 const (
 	DEFAULT_COMMITS_TO_LOAD = 50
+	MAX_COMMITS_TO_LOAD     = 100
 	SKIA_REPO               = "skia"
 	INFRA_REPO              = "infra"
+	// The from clause needs to be in double quotes and the where clauses need to be
+	// in single quotes because InfluxDB is quite particular about these things.
+	GOLD_STATUS_QUERY_TMPL = `select value from "gold.status.by-corpus" WHERE time > now() - 1h and host='skia-gold-prod' AND app='skiacorrectness' AND type='untriaged' AND corpus='%s' ORDER BY time DESC LIMIT 1`
+	PERF_STATUS_QUERY      = `select value from "perf.clustering.untriaged" where time > now() - 1h and app='skiaperf' and host='skia-perf' order by time desc limit 1`
 
 	// OAUTH2_CALLBACK_PATH is callback endpoint used for the Oauth2 flow.
 	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
 )
 
 var (
-	buildCache       *franken.BTCache         = nil
-	buildDb          buildbot.DB              = nil
-	capacityClient   *capacity.CapacityClient = nil
-	capacityTemplate *template.Template       = nil
-	commitsTemplate  *template.Template       = nil
-	tasksPerCommit   *tasksPerCommitCache     = nil
+	buildCache       *franken.BTCache              = nil
+	buildDb          buildbot.DB                   = nil
+	capacityClient   *capacity.CapacityClient      = nil
+	capacityTemplate *template.Template            = nil
+	commitsTemplate  *template.Template            = nil
+	dbClient         *influxdb.Client              = nil
+	goldGMStatus     *polling_status.PollingStatus = nil
+	goldImageStatus  *polling_status.PollingStatus = nil
+	goldSKPStatus    *polling_status.PollingStatus = nil
+	perfStatus       *polling_status.PollingStatus = nil
+	tasksPerCommit   *tasksPerCommitCache          = nil
 )
 
 // flags
 var (
-	capacityRecalculateInterval = flag.Duration("capacity_recalculate_interval", 10*time.Minute, "How often to re-calculate capacity statistics.")
 	host                        = flag.String("host", "localhost", "HTTP service host")
 	port                        = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
-	promPort                    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	repoUrls                    = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
-	resourcesDir                = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	swarmingUrl                 = flag.String("swarming_url", "https://chromium-swarm.appspot.com", "URL of the Swarming server.")
-	taskSchedulerDbUrl          = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
-	taskSchedulerUrl            = flag.String("task_scheduler_url", "https://task-scheduler.skia.org", "URL of the Task Scheduler server.")
-	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	useMetadata                 = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
+	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	workdir                     = flag.String("workdir", ".", "Directory to use for scratch work.")
+	resourcesDir                = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	buildbotDbHost              = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
+	taskSchedulerDbUrl          = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
+	capacityRecalculateInterval = flag.Duration("capacity_recalculate_interval", 10*time.Minute, "How often to re-calculate capacity statistics.")
 
-	repos repograph.Map
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+
+	repoMap = map[string]string{
+		"skia":  common.REPO_SKIA,
+		"infra": common.REPO_SKIA_INFRA,
+	}
 )
 
 // StringIsInteresting returns true iff the string contains non-whitespace characters.
@@ -123,49 +139,9 @@ func getIntParam(name string, r *http.Request) (*int, error) {
 	return &v32, nil
 }
 
-// repoUrlToName returns a short repo nickname given a full repo URL.
-func repoUrlToName(repoUrl string) string {
-	// Special case: we like "infra" better than "buildbot".
-	if repoUrl == common.REPO_SKIA_INFRA {
-		return "infra"
-	}
-	return strings.TrimSuffix(path.Base(repoUrl), ".git")
-}
-
-// repoNameToUrl returns a full repo URL given a short nickname, or an error
-// if no matching repo URL is found.
-func repoNameToUrl(repoName string) (string, error) {
-	// Special case: we like "infra" better than "buildbot".
-	if repoName == "infra" {
-		return common.REPO_SKIA_INFRA, nil
-	}
-	// Search the list of repos used by this server.
-	for _, repoUrl := range *repoUrls {
-		if repoUrlToName(repoUrl) == repoName {
-			return repoUrl, nil
-		}
-	}
-	return "", fmt.Errorf("No such repo.")
-}
-
-// getRepo returns a short repo nickname and a full repo URL based on the URL
-// path of the given http.Request.
-func getRepo(r *http.Request) (string, string, error) {
-	repoPath, _ := mux.Vars(r)["repo"]
-	repoUrl, err := repoNameToUrl(repoPath)
-	if err != nil {
-		return "", "", err
-	}
-	return repoUrlToName(repoUrl), repoUrl, nil
-}
-
-// getRepoNames returns the nicknames for all repos on this server.
-func getRepoNames() []string {
-	repoNames := make([]string, 0, len(*repoUrls))
-	for _, repoUrl := range *repoUrls {
-		repoNames = append(repoNames, repoUrlToName(repoUrl))
-	}
-	return repoNames
+func getRepo(r *http.Request) string {
+	repoName, _ := mux.Vars(r)["repo"]
+	return repoMap[repoName]
 }
 
 // commitsJsonHandler writes information about a range of commits into the
@@ -184,28 +160,17 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		commitsToLoad = *n
 	}
 	// Prevent server overload.
-	if commitsToLoad > franken.MAX_COMMITS_TO_LOAD {
-		commitsToLoad = franken.MAX_COMMITS_TO_LOAD
+	if commitsToLoad > MAX_COMMITS_TO_LOAD {
+		commitsToLoad = MAX_COMMITS_TO_LOAD
 	}
 	if commitsToLoad < 0 {
 		commitsToLoad = DEFAULT_COMMITS_TO_LOAD
 	}
-	_, repoUrl, err := getRepo(r)
-	if err != nil {
-		httputils.ReportError(w, r, err, err.Error())
-		return
-	}
-	bc, err := buildCache.GetLastN(repoUrl, commitsToLoad, login.IsGoogler(r))
+	repo := getRepo(r)
+	rv, err := buildCache.GetLastN(repo, commitsToLoad, login.IsGoogler(r))
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load commits from cache: %v", err))
 		return
-	}
-	rv := struct {
-		*franken.CommitsData
-		TaskSchedulerUrl string `json:"task_scheduler_url"`
-	}{
-		CommitsData:      bc,
-		TaskSchedulerUrl: *taskSchedulerUrl,
 	}
 	if err := json.NewEncoder(w).Encode(rv); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
@@ -348,11 +313,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	_, repoUrl, err := getRepo(r)
-	if err != nil {
-		httputils.ReportError(w, r, err, err.Error())
-		return
-	}
+	repo := getRepo(r)
 	commit := mux.Vars(r)["commit"]
 	comment := struct {
 		Comment       string `json:"comment"`
@@ -371,7 +332,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		IgnoreFailure: comment.IgnoreFailure,
 		Message:       comment.Comment,
 	}
-	if err := buildCache.AddCommitComment(repoUrl, &c); err != nil {
+	if err := buildCache.AddCommitComment(repo, &c); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add commit comment: %s", err))
 		return
 	}
@@ -384,18 +345,14 @@ func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	_, repoUrl, err := getRepo(r)
-	if err != nil {
-		httputils.ReportError(w, r, err, err.Error())
-		return
-	}
+	repo := getRepo(r)
 	commit := mux.Vars(r)["commit"]
 	commentId, err := strconv.ParseInt(mux.Vars(r)["commentId"], 10, 64)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
-	if err := buildCache.DeleteCommitComment(repoUrl, commit, commentId); err != nil {
+	if err := buildCache.DeleteCommitComment(repo, commit, commentId); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete commit comment: %s", err))
 		return
 	}
@@ -405,23 +362,11 @@ type commitsTemplateData struct {
 	Repo     string
 	Title    string
 	RepoBase string
-	Repos    []string
 }
 
-func defaultRedirectHandler(w http.ResponseWriter, r *http.Request) {
-	defaultRepo := repoUrlToName((*repoUrls)[0])
-	http.Redirect(w, r, fmt.Sprintf("/repo/%s", defaultRepo), http.StatusFound)
-}
-
-func statusHandler(w http.ResponseWriter, r *http.Request) {
+func commitsHandler(w http.ResponseWriter, r *http.Request) {
 	defer timer.New("commitsHandler").Stop()
 	w.Header().Set("Content-Type", "text/html")
-
-	repoName, repoUrl, err := getRepo(r)
-	if err != nil {
-		httputils.ReportError(w, r, err, err.Error())
-		return
-	}
 
 	// Don't use cached templates in testing mode.
 	if *testing {
@@ -429,10 +374,29 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	d := commitsTemplateData{
-		Repo:     repoName,
-		RepoBase: fmt.Sprintf("%s/+/", repoUrl),
-		Repos:    getRepoNames(),
-		Title:    fmt.Sprintf("Status: %s", repoName),
+		Repo:     "skia",
+		Title:    "Skia Status",
+		RepoBase: "https://skia.googlesource.com/skia/+/",
+	}
+
+	if err := commitsTemplate.Execute(w, d); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
+	}
+}
+
+func infraHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("infraHandler").Stop()
+	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in testing mode.
+	if *testing {
+		reloadTemplates()
+	}
+
+	d := commitsTemplateData{
+		Repo:     "infra",
+		Title:    "Skia Infra Status",
+		RepoBase: "https://skia.googlesource.com/buildbot/+/",
 	}
 
 	if err := commitsTemplate.Execute(w, d); err != nil {
@@ -449,12 +413,7 @@ func capacityHandler(w http.ResponseWriter, r *http.Request) {
 		reloadTemplates()
 	}
 
-	page := struct {
-		Repos []string
-	}{
-		Repos: getRepoNames(),
-	}
-	if err := capacityTemplate.Execute(w, page); err != nil {
+	if err := capacityTemplate.Execute(w, nil); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
 	}
 }
@@ -468,6 +427,27 @@ func capacityStatsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func perfJsonHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{"alerts": perfStatus}); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to report Perf status: %v", err))
+		return
+	}
+}
+
+func goldJsonHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{
+		"gm": goldGMStatus,
+		// Uncomment once we track SKP's again.
+		// "skp":   goldSKPStatus,
+		"image": goldImageStatus,
+	}); err != nil {
+		sklog.Errorf("Failed to write or encode output: %s", err)
+		return
+	}
+}
+
 // buildProgressHandler returns the number of finished builds at the given
 // commit, compared to that of an older commit.
 func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
@@ -477,16 +457,8 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get the number of finished tasks for the requested commit.
 	hash := r.FormValue("commit")
-	if !util.ValidateCommit(hash) {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("%q is not a valid commit hash.", hash))
-		return
-	}
-	_, repoUrl, err := getRepo(r)
-	if err != nil {
-		httputils.ReportError(w, r, err, err.Error())
-		return
-	}
-	builds, err := buildCache.GetBuildsForCommit(repoUrl, hash, login.IsGoogler(r))
+	repo := getRepo(r)
+	builds, err := buildCache.GetBuildsForCommit(repo, hash, login.IsGoogler(r))
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get the number of finished builds."))
 		return
@@ -498,7 +470,7 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	tasksForCommit, err := tasksPerCommit.Get(db.RepoState{
-		Repo:     repoUrl,
+		Repo:     repo,
 		Revision: hash,
 	})
 	if err != nil {
@@ -529,10 +501,12 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 
 func runServer(serverURL string) {
 	r := mux.NewRouter()
-	r.HandleFunc("/", defaultRedirectHandler)
-	r.HandleFunc("/repo/{repo}", statusHandler)
+	r.HandleFunc("/", commitsHandler)
+	r.HandleFunc("/infra", infraHandler)
 	r.HandleFunc("/capacity", capacityHandler)
 	r.HandleFunc("/capacity/json", capacityStatsHandler)
+	r.HandleFunc("/json/goldStatus", goldJsonHandler)
+	r.HandleFunc("/json/perfAlerts", perfJsonHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/json/{repo}/buildProgress", buildProgressHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
@@ -558,12 +532,7 @@ func main() {
 	defer common.LogPanic()
 	// Setup flags.
 
-	common.InitWithMust(
-		"status",
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
-	)
-
+	common.InitWithMetrics2("status", influxHost, influxUser, influxPassword, influxDatabase, testing)
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		sklog.Fatal(err)
@@ -579,52 +548,57 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
-	// Create remote Tasks DB.
-	var taskDb db.RemoteDB
-	if *testing {
-		taskDb, err = local_db.NewDB("status-testing", path.Join(*workdir, "status-testing.bdb"))
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		defer util.Close(taskDb.(db.DBCloser))
-	} else {
-		taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-	}
+	//// Create buildbot remote DB.
+	//buildDb, err = buildbot.NewRemoteDB(*buildbotDbHost)
+	//if err != nil {
+	//	sklog.Fatal(err)
+	//}
 
-	login.SimpleInitMust(*port, *testing)
+	//// Create remote Tasks DB.
+	//taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl)
+	//if err != nil {
+	//	sklog.Fatal(err)
+	//}
 
-	// Check out source code.
-	reposDir := path.Join(*workdir, "repos")
-	if err := os.MkdirAll(reposDir, os.ModePerm); err != nil {
-		sklog.Fatal(err)
-	}
-	if *repoUrls == nil {
-		*repoUrls = common.PUBLIC_REPOS
-	}
-	repos, err = repograph.NewMap(*repoUrls, reposDir)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	sklog.Info("Checkout complete")
+	//// Setup InfluxDB client.
+	//dbClient, err = influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
+	//if err != nil {
+	//	sklog.Fatal(err)
+	//}
 
-	// Cache for buildProgressHandler.
-	tasksPerCommit, err = newTasksPerCommitCache(*workdir, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, 14*24*time.Hour, context.Background())
-	if err != nil {
-		sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
-	}
+	// By default use a set of credentials setup for localhost access.
+	//redirectURL := serverURL + OAUTH2_CALLBACK_PATH
+	//if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
+	//	sklog.Fatalf("Failed to initialize the login system: %s", err)
+	//}
 
-	// Create the build cache.
-	bc, err := franken.NewBTCache(repos, taskDb, *swarmingUrl, *taskSchedulerUrl)
-	if err != nil {
-		sklog.Fatalf("Failed to create build cache: %s", err)
-	}
-	buildCache = bc
+	//// Check out source code.
+	//repos, err := repograph.NewMap([]string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, path.Join(*workdir, "repos"))
+	//if err != nil {
+	//	sklog.Fatal(err)
+	//}
+	//sklog.Info("Checkout complete")
 
-	capacityClient = capacity.New(tasksPerCommit.tcc, bc.GetTaskCache(), repos)
-	capacityClient.StartLoading(*capacityRecalculateInterval)
+	//// Cache for buildProgressHandler.
+	//tasksPerCommit, err = newTasksPerCommitCache(*workdir, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, 14*24*time.Hour, context.Background())
+	//if err != nil {
+	//	sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
+	//}
+
+	//// Create the build cache.
+	//bc, err := franken.NewBTCache(repos, buildDb, taskDb)
+	//if err != nil {
+	//	sklog.Fatalf("Failed to create build cache: %s", err)
+	//}
+	//buildCache = bc
+
+	//capacityClient = capacity.New(tasksPerCommit.tcc, bc.GetTaskCache(), repos)
+	//capacityClient.StartLoading(*capacityRecalculateInterval)
+
+	//// Load Perf and Gold data in a loop.
+	//perfStatus = dbClient.Int64PollingStatus("skmetrics", PERF_STATUS_QUERY, time.Minute)
+	//goldGMStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), time.Minute)
+	//goldImageStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), time.Minute)
 
 	// Run the server.
 	runServer(serverURL)
