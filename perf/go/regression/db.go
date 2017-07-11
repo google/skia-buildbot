@@ -134,27 +134,31 @@ func intx(f func(tx *sql.Tx) error) (err error) {
 }
 
 // SetHigh sets the cluster for a high regression at the given commit and alertID.
-func (s *Store) SetHigh(cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) error {
-	return intx(func(tx *sql.Tx) error {
+func (s *Store) SetHigh(cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) (bool, error) {
+	isNew := false
+	err := intx(func(tx *sql.Tx) error {
 		r, err := s.load(tx, cid)
 		if err != nil {
 			r = New()
 		}
-		r.SetHigh(alertID, df, high)
+		isNew = r.SetHigh(alertID, df, high)
 		return s.store(tx, cid, r)
 	})
+	return isNew, err
 }
 
 // SetLow sets the cluster for a low regression at the given commit and alertID.
-func (s *Store) SetLow(cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) error {
-	return intx(func(tx *sql.Tx) error {
+func (s *Store) SetLow(cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) (bool, error) {
+	isNew := false
+	err := intx(func(tx *sql.Tx) error {
 		r, err := s.load(tx, cid)
 		if err != nil {
 			r = New()
 		}
-		r.SetLow(alertID, df, low)
+		isNew = r.SetLow(alertID, df, low)
 		return s.store(tx, cid, r)
 	})
+	return isNew, err
 }
 
 // TriageLow sets the triage status for the low cluster at the given commit and alertID.

@@ -66,7 +66,8 @@ func New() *Regressions {
 }
 
 // SetLow sets the cluster for a low regression.
-func (r *Regressions) SetLow(alertid string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) {
+func (r *Regressions) SetLow(alertid string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) bool {
+	ret := false
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	reg, ok := r.ByAlertID[alertid]
@@ -76,6 +77,7 @@ func (r *Regressions) SetLow(alertid string, df *dataframe.FrameResponse, low *c
 	}
 	if reg.Frame == nil {
 		reg.Frame = df
+		ret = true
 	}
 	// TODO(jcgregorio) Add checks so that we only overwrite a cluster if the new
 	// cluster is 'better', for some definition of 'better'.
@@ -83,16 +85,19 @@ func (r *Regressions) SetLow(alertid string, df *dataframe.FrameResponse, low *c
 	if reg.LowStatus.Status == NONE {
 		reg.LowStatus.Status = UNTRIAGED
 	}
+	return ret
 }
 
 // SetHigh sets the cluster for a high regression.
-func (r *Regressions) SetHigh(alertid string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) {
+func (r *Regressions) SetHigh(alertid string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) bool {
+	ret := false
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	reg, ok := r.ByAlertID[alertid]
 	if !ok {
 		reg = newRegression()
 		r.ByAlertID[alertid] = reg
+		ret = true
 	}
 	if reg.Frame == nil {
 		reg.Frame = df
@@ -103,6 +108,7 @@ func (r *Regressions) SetHigh(alertid string, df *dataframe.FrameResponse, high 
 	if reg.HighStatus.Status == NONE {
 		reg.HighStatus.Status = UNTRIAGED
 	}
+	return ret
 }
 
 // TriageLow sets the triage status for the low cluster.
