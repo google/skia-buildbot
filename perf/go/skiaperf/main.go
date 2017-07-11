@@ -63,6 +63,8 @@ const (
 var (
 	// TODO(jcgregorio) Make into a flag.
 	BEGINNING_OF_TIME = time.Date(2014, time.June, 18, 0, 0, 0, 0, time.UTC)
+
+	DEFAULT_BUG_URI_TEMPLATE = "https://bugs.chromium.org/p/skia/issues/entry?comment=This+bug+was+found+via+SkiaPerf.%0A%0AVisit+this+URL+to+see+the+details+of+the+suspicious+cluster%3A%0A%0A++{cluster_url}%0A%0AThe+suspect+commit+is%3A%0A%0A++{commit_url}%0A%0A++{message}&labels=FromSkiaPerf%2CType-Defect%2CPriority-Medium"
 )
 
 var (
@@ -178,7 +180,7 @@ func newAlertsConfigProvider(clusterAlgo clustering2.ClusterAlgo) regression.Con
 			return alertStore.List(false)
 		} else {
 			ret := []*alerts.Config{}
-			uritemplate := "https://bugs.chromium.org/p/skia/issues/entry?comment=This+bug+was+found+via+SkiaPerf.%0A%0AVisit+this+URL+to+see+the+details+of+the+suspicious+cluster%3A%0A%0A++{cluster}%0A%0AThe+suspect+commit+is%3A%0A%0A++{commit}%0A%0A++{message}&labels=FromSkiaPerf%2CType-Defect%2CPriority-Medium"
+			uritemplate := DEFAULT_BUG_URI_TEMPLATE
 			queries := strings.Split(*clusterQueries, " ")
 			sort.Sort(sort.StringSlice(queries))
 			for _, q := range queries {
@@ -264,7 +266,7 @@ func Init() {
 	configProvider = newAlertsConfigProvider(clusterAlgo)
 
 	// Start running continuous clustering looking for regressions.
-	continuous = regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier)
+	continuous = regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, *clusterQueries == "")
 	go continuous.Run()
 }
 
@@ -756,10 +758,14 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	key := tr.Alert.Query
+	if *clusterQueries == "" {
+		key = tr.Alert.IdAsString()
+	}
 	if tr.ClusterType == "low" {
-		err = regStore.TriageLow(detail[0], tr.Alert.Query /* Should be alert.ID */, tr.Triage)
+		err = regStore.TriageLow(detail[0], key, tr.Triage)
 	} else {
-		err = regStore.TriageHigh(detail[0], tr.Alert.Query /* Should be alert.ID */, tr.Triage)
+		err = regStore.TriageHigh(detail[0], key, tr.Triage)
 	}
 
 	if err != nil {
@@ -784,11 +790,18 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			sklog.Errorf("Failed to load configs looking for BugURITemplate: %s", err)
 		}
-		uritemplate := "https://bugs.chromium.org/p/skia/issues/entry?comment=This+bug+was+found+via+SkiaPerf.%0A%0AVisit+this+URL+to+see+the+details+of+the+suspicious+cluster%3A%0A%0A++{cluster}%0A%0AThe+suspect+commit+is%3A%0A%0A++{commit}%0A%0A++{message}&labels=FromSkiaPerf%2CType-Defect%2CPriority-Medium"
+		uritemplate := DEFAULT_BUG_URI_TEMPLATE
 		for _, c := range cfgs {
-			// TODO(jcgregorio) If *clusterQueries == "" then we need to compare on ID.
-			if c.Query == tr.Alert.Query {
-				uritemplate = c.BugURITemplate
+			if *clusterQueries == "" {
+				if c.ID == tr.Alert.ID {
+					uritemplate = c.BugURITemplate
+					break
+				}
+			} else {
+				if c.Query == tr.Alert.Query {
+					uritemplate = c.BugURITemplate
+					break
+				}
 			}
 		}
 		resp.Bug = bug.Expand(uritemplate, link, detail[0], tr.Triage.Message)
@@ -914,7 +927,11 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if r, ok := regMap[cid.ID()]; ok {
 			for i, h := range headers {
-				if reg, ok := r.ByAlertID[h.Query /* Should be ID */]; ok {
+				key := h.Query
+				if *clusterQueries == "" {
+					key = h.IdAsString()
+				}
+				if reg, ok := r.ByAlertID[key]; ok {
 					row.Columns[i] = reg
 				}
 			}

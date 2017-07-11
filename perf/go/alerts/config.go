@@ -1,6 +1,11 @@
 package alerts
 
-import "go.skia.org/infra/perf/go/clustering2"
+import (
+	"fmt"
+	"strconv"
+
+	"go.skia.org/infra/perf/go/clustering2"
+)
 
 const (
 	INVALID_ID = -1
@@ -17,6 +22,18 @@ type Config struct {
 	State          ConfigState             `json:"state"`            // The state of the config.
 	Owner          string                  `json:"owner"`            // Email address of the person that owns this alert.
 	StepUpOnly     bool                    `json:"step_up_only"`     // If true then only steps up will trigger an alert.
+}
+
+func (c *Config) IdAsString() string {
+	return fmt.Sprintf("%d", c.ID)
+}
+
+func (c *Config) StringToId(s string) {
+	if i, err := strconv.ParseInt(s, 10, 32); err != nil {
+		c.ID = -1
+	} else {
+		c.ID = int(i)
+	}
 }
 
 // NewConfig creates a new Config properly initialized.
