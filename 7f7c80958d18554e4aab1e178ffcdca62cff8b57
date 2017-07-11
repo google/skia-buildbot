@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "eded9765_6c0b0d46",
+        "filename": "perf/go/notify/nofity.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-07-11T15:05:52Z",
+      "side": 1,
+      "message": "True, but if I want to supply other links, like to clustering, then I have to add a ClusterLink to context.",
+      "parentUuid": "e70a0c47_8ced76a5",
+      "revId": "7f7c80958d18554e4aab1e178ffcdca62cff8b57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "150ac1ac_75317f53",
         "filename": "perf/go/notify/nofity.go",
         "patchSetId": 7
@@ -30,6 +48,30 @@
       "writtenOn": "2017-07-11T15:02:38Z",
       "side": 1,
       "message": "Is this used in the template?",
+      "range": {
+        "startLine": 60,
+        "startChar": 1,
+        "endLine": 60,
+        "endChar": 6
+      },
+      "revId": "7f7c80958d18554e4aab1e178ffcdca62cff8b57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "31a0a4f0_8a284fee",
+        "filename": "perf/go/notify/nofity.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-07-11T15:05:52Z",
+      "side": 1,
+      "message": "Not yet, but I will probably add the alert.Query or alert.Owner going forward.",
+      "parentUuid": "150ac1ac_75317f53",
       "range": {
         "startLine": 60,
         "startChar": 1,
