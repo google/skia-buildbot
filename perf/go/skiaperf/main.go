@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/url"
+	"os"
+	"os/user"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -21,6 +24,8 @@ import (
 
 	storage "cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 	"google.golang.org/api/option"
 
@@ -43,10 +48,16 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	idb "go.skia.org/infra/perf/go/db"
+	"go.skia.org/infra/perf/go/notify"
 	_ "go.skia.org/infra/perf/go/ptraceingest"
 	"go.skia.org/infra/perf/go/ptracestore"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut2"
+)
+
+const (
+	GMAIL_TOKEN_CACHE_FILE = "google_email_token.data"
+	FROM_ADDRESS           = "alertserver@skia.org"
 )
 
 var (
@@ -64,24 +75,27 @@ var (
 
 // flags
 var (
-	algo           = flag.String("algo", "kmeans", "The algorithm to use for detecting regressions (kmeans|stepfit).")
-	clusterQueries = flag.String("cluster_queries", "source_type=skp&sub_result=min_ms source_type=svg&sub_result=min_ms source_type=image&sub_result=min_ms", "A space separated list of queries we want to cluster over.")
-	configFilename = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
-	dataFrameSize  = flag.Int("dataframe_size", dataframe.DEFAULT_NUM_COMMITS, "The number of commits to include in the default dataframe.")
-	gitRepoDir     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
-	gitRepoURL     = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
-	interesting    = flag.Float64("interesting", 50.0, "The threshhold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements.")
-	internalOnly   = flag.Bool("internal_only", false, "Require the user to be logged in to see any page.")
-	keyOrder       = flag.String("key_order", "build_flavor,test,sub_result", "The order that keys should be presented in for searching. All keys that don't appear here will appear after, in alphabetical order.")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	numContinuous  = flag.Int("num_continuous", 50, "The number of commits to do continuous clustering over looking for regressions.")
-	numShift       = flag.Int("num_shift", 10, "The number of commits the shift navigation buttons should jump.")
-	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	ptraceStoreDir = flag.String("ptrace_store_dir", "/tmp/ptracestore", "The directory where the ptracestore tiles are stored.")
-	radius         = flag.Int("radius", 7, "The number of commits to include on either side of a commit when clustering.")
-	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	stepUpOnly     = flag.Bool("step_up_only", false, "Only regressions that look like a step up will be reported.")
+	algo                  = flag.String("algo", "kmeans", "The algorithm to use for detecting regressions (kmeans|stepfit).")
+	clusterQueries        = flag.String("cluster_queries", "source_type=skp&sub_result=min_ms source_type=svg&sub_result=min_ms source_type=image&sub_result=min_ms", "A space separated list of queries we want to cluster over.")
+	configFilename        = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
+	dataFrameSize         = flag.Int("dataframe_size", dataframe.DEFAULT_NUM_COMMITS, "The number of commits to include in the default dataframe.")
+	emailClientIdFlag     = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
+	emailClientSecretFlag = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
+	gitRepoDir            = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
+	gitRepoURL            = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
+	interesting           = flag.Float64("interesting", 50.0, "The threshhold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements.")
+	internalOnly          = flag.Bool("internal_only", false, "Require the user to be logged in to see any page.")
+	keyOrder              = flag.String("key_order", "build_flavor,test,sub_result", "The order that keys should be presented in for searching. All keys that don't appear here will appear after, in alphabetical order.")
+	local                 = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	numContinuous         = flag.Int("num_continuous", 50, "The number of commits to do continuous clustering over looking for regressions.")
+	numShift              = flag.Int("num_shift", 10, "The number of commits the shift navigation buttons should jump.")
+	port                  = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	promPort              = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	ptraceStoreDir        = flag.String("ptrace_store_dir", "/tmp/ptracestore", "The directory where the ptracestore tiles are stored.")
+	radius                = flag.Int("radius", 7, "The number of commits to include on either side of a commit when clustering.")
+	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	stepUpOnly            = flag.Bool("step_up_only", false, "Only regressions that look like a step up will be reported.")
+	subdomain             = flag.String("subdomain", "perf", "The public subdomain of the server, i.e. 'perf' for perf.skia.org.")
 )
 
 var (
@@ -102,6 +116,8 @@ var (
 	alertStore *alerts.Store
 
 	configProvider regression.ConfigProvider
+
+	notifier *notify.Notifier
 )
 
 func loadTemplates() {
@@ -210,14 +226,44 @@ func Init() {
 
 	alertStore = alerts.NewStore()
 
+	// TODO(jcgregorio) From here to emailAuth should be rolled up into its own object.
+	// TODO(jcgregorio) The 'from' email address should also be passed in since it's tied to the auth token.
+	usr, err := user.Current()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	tokenFile, err := filepath.Abs(usr.HomeDir + "/" + GMAIL_TOKEN_CACHE_FILE)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	emailClientId := *emailClientIdFlag
+	emailClientSecret := *emailClientSecretFlag
+	if !*local {
+		emailClientId = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
+		emailClientSecret = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_SECRET))
+		cachedGMailToken := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CACHED_TOKEN))
+		err = ioutil.WriteFile(tokenFile, []byte(cachedGMailToken), os.ModePerm)
+		if err != nil {
+			sklog.Fatalf("Failed to cache token: %s", err)
+		}
+	}
+	if *local && (emailClientId == "" || emailClientSecret == "") {
+		sklog.Fatal("If -local, you must provide -email_clientid and -email_clientsecret")
+	}
+	emailAuth, err := email.NewGMail(emailClientId, emailClientSecret, tokenFile)
+	if err != nil {
+		sklog.Fatalf("Failed to create email auth: %v", err)
+	}
+
+	notifier = notify.New(emailAuth, *subdomain)
 	frameRequests = dataframe.NewRunningFrameRequests(git)
 	clusterRequests = clustering2.NewRunningClusterRequests(git, cidl, float32(*interesting))
 	dataframe.StartWarmer(git)
 	regStore = regression.NewStore()
-
 	configProvider = newAlertsConfigProvider(clusterAlgo)
+
 	// Start running continuous clustering looking for regressions.
-	continuous = regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius)
+	continuous = regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier)
 	go continuous.Run()
 }
 
@@ -1057,7 +1103,7 @@ type TryBugResponse struct {
 func alertBugTryHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if login.LoggedInAs(r) == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to delete alerts.")
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to test alerts.")
 		return
 	}
 
@@ -1071,6 +1117,24 @@ func alertBugTryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to encode response: %s", err)
+	}
+}
+
+func alertNotifyTryHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if login.LoggedInAs(r) == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to try alerts.")
+		return
+	}
+
+	req := &alerts.Config{}
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		return
+	}
+
+	if err := notifier.ExampleSend(req); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to send email: %s", err))
 	}
 }
 
@@ -1199,6 +1263,7 @@ func main() {
 	router.HandleFunc("/_/alert/update", alertUpdateHandler).Methods("POST")
 	router.HandleFunc("/_/alert/delete/{id:[0-9]+}", alertDeleteHandler).Methods("POST")
 	router.HandleFunc("/_/alert/bug/try", alertBugTryHandler).Methods("POST")
+	router.HandleFunc("/_/alert/notify/try", alertNotifyTryHandler).Methods("POST")
 
 	var h http.Handler = router
 	if *internalOnly {
