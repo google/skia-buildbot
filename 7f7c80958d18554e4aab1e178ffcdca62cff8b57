@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e70a0c47_8ced76a5",
+        "filename": "perf/go/notify/nofity.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-11T15:02:38Z",
+      "side": 1,
+      "message": "I think SubDomain is only used for the link. Maybe instead of having to type out the link format in 2 places the context can take in an AlertLink or LinkToAlert (or something better).",
+      "revId": "7f7c80958d18554e4aab1e178ffcdca62cff8b57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "150ac1ac_75317f53",
+        "filename": "perf/go/notify/nofity.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-11T15:02:38Z",
+      "side": 1,
+      "message": "Is this used in the template?",
+      "range": {
+        "startLine": 60,
+        "startChar": 1,
+        "endLine": 60,
+        "endChar": 6
+      },
+      "revId": "7f7c80958d18554e4aab1e178ffcdca62cff8b57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
