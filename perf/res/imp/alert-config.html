@@ -71,6 +71,7 @@
     <paper-input type=number min=0 max=500  value="{{config.interesting}}" label="Interesting Threshhold for clusters to be interesting. 0 == Use server default. "></paper-input>
     <h3>Where are alerts sent</h3>
     <paper-input value="{{config.alert}}"                                  label="Alert Destination: Email address or chat id."></paper-input>
+    <button on-tap=_testAlert>Test</button>
     <h3>Where are bugs filed</h3>
     <paper-input value="{{config.bug_uri_template}}"                       label="Bug URI Template: {cluster_url}, {commit_url}, and {message}."></paper-input>
     <button on-tap=_testBugTemplate>Test</button>
@@ -117,6 +118,13 @@
           window.open(json.url, '_blank');
         }
       }.bind(this)).catch(sk.errorMessage);
+    },
+
+    _testAlert: function() {
+      var body = {
+        alert: this.config.alert,
+      };
+      sk.post("/_/alert/notify/try", JSON.stringify(body), "application/json").catch(sk.errorMessage);
     },
 
   });
