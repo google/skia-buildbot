@@ -801,6 +801,30 @@
     },
     {
       "key": {
+        "uuid": "b164535c_cd11b1b2",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-11T19:01:17Z",
+      "side": 1,
+      "message": "UpdateAndReturnModified seems like it would return every task that GetModifiedTasks returns, so I don\u0027t think there\u0027s a difference wrt processing tasks multiple times.",
+      "parentUuid": "db07b903_5be81bac",
+      "range": {
+        "startLine": 252,
+        "startChar": 19,
+        "endLine": 252,
+        "endChar": 53
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d198a62b_a0cd137c",
         "filename": "statusv2/go/failure_parser/failure_parser.go",
         "patchSetId": 2

@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2e08eec2_a540da18",
+        "filename": "go/util/util.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-11T19:01:17Z",
+      "side": 1,
+      "message": "nit: unit test new functions",
+      "revId": "eca3e3662071749c5614a4211b23a6bfb2139e51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0658ffb3_bcb01b36",
+        "filename": "go/util/util.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-11T19:01:17Z",
+      "side": 1,
+      "message": "nit: doesn\u0027t match actual name",
+      "range": {
+        "startLine": 229,
+        "startChar": 3,
+        "endLine": 229,
+        "endChar": 29
+      },
+      "revId": "eca3e3662071749c5614a4211b23a6bfb2139e51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "331969d1_827b26ab",
+        "filename": "go/util/util.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-11T19:01:17Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 245,
+        "startChar": 3,
+        "endLine": 245,
+        "endChar": 32
+      },
+      "revId": "eca3e3662071749c5614a4211b23a6bfb2139e51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e095b02f_a7d6b218",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-11T19:01:17Z",
+      "side": 1,
+      "message": "I suspect we will end up removing this regex; glGetError seems to be generally uninteresting.",
+      "range": {
+        "startLine": 102,
+        "startChar": 26,
+        "endLine": 102,
+        "endChar": 36
+      },
+      "revId": "eca3e3662071749c5614a4211b23a6bfb2139e51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "927a8087_75a3007b",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-11T19:01:17Z",
+      "side": 1,
+      "message": "nit: IIUC, this group will never repeat, because the preceding * is greedy.",
+      "range": {
+        "startLine": 114,
+        "startChar": 74,
+        "endLine": 114,
+        "endChar": 75
+      },
+      "revId": "eca3e3662071749c5614a4211b23a6bfb2139e51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69b31d41_a9b25913",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-11T19:01:17Z",
+      "side": 1,
+      "message": "I didn\u0027t expect you to truncate this. Is the idea that if the stripped failure message is \u003e5k, it\u0027s unlikely to match exactly another failure? Or are we just concerned that if we have 1000 failures that are each 10MB, this program will take \u003e10GB of memory?",
+      "range": {
+        "startLine": 234,
+        "startChar": 21,
+        "endLine": 234,
+        "endChar": 62
+      },
+      "revId": "eca3e3662071749c5614a4211b23a6bfb2139e51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
