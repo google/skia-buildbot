@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6a67c2a4_1baadef4",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:23:48Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "5795b1df_9b78844c",
+      "range": {
+        "startLine": 23,
+        "startChar": 44,
+        "endLine": 23,
+        "endChar": 58
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "028a1c70_373e7f9c",
         "filename": "statusv2/go/failure_parser/failure_parser.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c46bfd9_91536500",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:23:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "028a1c70_373e7f9c",
+      "range": {
+        "startLine": 36,
+        "startChar": 11,
+        "endLine": 36,
+        "endChar": 19
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "c0013761_d9251f2f",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:23:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "faafeec2_f36e771b",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 5
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "92fa7038_d9ec52d3",
         "filename": "statusv2/go/failure_parser/failure_parser.go",
         "patchSetId": 2
@@ -91,6 +163,30 @@
       "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93aa3cc2_3443ade8",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:23:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "92fa7038_d9ec52d3",
+      "range": {
+        "startLine": 77,
+        "startChar": 55,
+        "endLine": 77,
+        "endChar": 56
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -140,6 +236,54 @@
     },
     {
       "key": {
+        "uuid": "f8b1b105_1699b894",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:23:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8e184917_d1cb6c23",
+      "range": {
+        "startLine": 78,
+        "startChar": 42,
+        "endLine": 78,
+        "endChar": 44
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ec719e25_30ac2d5b",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:23:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "88aa73a3_2e4f2731",
+      "range": {
+        "startLine": 78,
+        "startChar": 52,
+        "endLine": 78,
+        "endChar": 53
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "56b4bb45_d69cddd4",
         "filename": "statusv2/go/failure_parser/failure_parser.go",
         "patchSetId": 2
@@ -160,6 +304,30 @@
       "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "176ee74e_8619093e",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:23:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "56b4bb45_d69cddd4",
+      "range": {
+        "startLine": 81,
+        "startChar": 37,
+        "endLine": 81,
+        "endChar": 48
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "f1ba8033_b0edba8c",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:23:48Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ee3cb81c_4e46e6b1",
+      "range": {
+        "startLine": 87,
+        "startChar": 16,
+        "endLine": 87,
+        "endChar": 98
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b8ac9e7c_c58ebd3f",
         "filename": "statusv2/go/failure_parser/failure_parser.go",
         "patchSetId": 2
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "a700f9f4_d01c828e",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:23:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b8ac9e7c_c58ebd3f",
+      "range": {
+        "startLine": 100,
+        "startChar": 102,
+        "endLine": 100,
+        "endChar": 103
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2dc3a48d_30682fcc",
         "filename": "statusv2/go/failure_parser/failure_parser.go",
         "patchSetId": 2
@@ -220,6 +436,30 @@
       "writtenOn": "2017-06-26T20:24:43Z",
       "side": 1,
       "message": "Why do you use \\z in some places and $ in other places?",
+      "range": {
+        "startLine": 103,
+        "startChar": 44,
+        "endLine": 103,
+        "endChar": 46
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04890b7b_d178fe88",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:23:48Z",
+      "side": 1,
+      "message": "\\z is end-of-input, while (IIUC) $ is end-of-line.  I removed from the subsequent expression since it\u0027s not actually needed.",
+      "parentUuid": "2dc3a48d_30682fcc",
       "range": {
         "startLine": 103,
         "startChar": 44,
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "da43ce24_0065bd9b",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:23:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9bc4630f_34455376",
+      "range": {
+        "startLine": 109,
+        "startChar": 61,
+        "endLine": 109,
+        "endChar": 62
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cea068a4_dfa3b300",
         "filename": "statusv2/go/failure_parser/failure_parser.go",
         "patchSetId": 2
@@ -266,6 +530,30 @@
       "writtenOn": "2017-06-26T20:24:43Z",
       "side": 1,
       "message": "nit: could just replace with \"\", right?",
+      "range": {
+        "startLine": 119,
+        "startChar": 45,
+        "endLine": 119,
+        "endChar": 48
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca2d3907_d1bcebd7",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:23:48Z",
+      "side": 1,
+      "message": "I think so, but I like replacing the pieces gradually in this case.",
+      "parentUuid": "cea068a4_dfa3b300",
       "range": {
         "startLine": 119,
         "startChar": 45,
@@ -301,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "f3f9fd89_28f10193",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:23:48Z",
+      "side": 1,
+      "message": "Right. Ouch. The replacements are only for collapsing failures into groups. We\u0027ll maintain the original log excerpt for viewing. Hopefully the context will prevent us from collapsing incorrectly.",
+      "parentUuid": "f5c4628b_6b3e83be",
+      "range": {
+        "startLine": 124,
+        "startChar": 5,
+        "endLine": 124,
+        "endChar": 30
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d4c2b887_0ccec605",
         "filename": "statusv2/go/failure_parser/failure_parser.go",
         "patchSetId": 2
@@ -312,6 +624,30 @@
       "writtenOn": "2017-06-26T20:24:43Z",
       "side": 1,
       "message": "nit: Doc should mention expr should have exactly one capturing group.\n\nCould also give an error/warning if re.NumSubexp() !\u003d 1.",
+      "range": {
+        "startLine": 134,
+        "startChar": 5,
+        "endLine": 134,
+        "endChar": 17
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ff5a03f_5b736d86",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:23:48Z",
+      "side": 1,
+      "message": "Oh nice, done.",
+      "parentUuid": "d4c2b887_0ccec605",
       "range": {
         "startLine": 134,
         "startChar": 5,
@@ -347,6 +683,30 @@
     },
     {
       "key": {
+        "uuid": "af404fcc_3afb7329",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:23:48Z",
+      "side": 1,
+      "message": "Doneish.",
+      "parentUuid": "973be3f9_79c79dfa",
+      "range": {
+        "startLine": 223,
+        "startChar": 21,
+        "endLine": 223,
+        "endChar": 22
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "089401af_670064cf",
         "filename": "statusv2/go/failure_parser/failure_parser.go",
         "patchSetId": 2
@@ -370,6 +730,30 @@
     },
     {
       "key": {
+        "uuid": "f1a43752_58cbcff5",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:23:48Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "089401af_670064cf",
+      "range": {
+        "startLine": 232,
+        "startChar": 1,
+        "endLine": 232,
+        "endChar": 4
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a6998c99_8e1d05f8",
         "filename": "statusv2/go/failure_parser/failure_parser.go",
         "patchSetId": 2
@@ -381,6 +765,30 @@
       "writtenOn": "2017-06-26T20:24:43Z",
       "side": 1,
       "message": "nit: It doesn\u0027t seem like you\u0027re really using the cache as a cache. Seems better to just use taskDb.GetModifiedTasks() and taskDb.GetTasksFromDateRange() for now, and if you need other caching functionality in the future, just create a specialized cache. (Unfortunately due to lack of subclassing in golang, it\u0027s difficult to share functionality from db.TaskCache.)",
+      "range": {
+        "startLine": 252,
+        "startChar": 19,
+        "endLine": 252,
+        "endChar": 53
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db07b903_5be81bac",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:23:48Z",
+      "side": 1,
+      "message": "The cache has some important and complicated logic that I didn\u0027t want to duplicate.  I was hoping to avoid processing the same task twice, but maybe I should just simplify and GetModifiedTasks most of the time, and just load the last 24 hours of tasks at startup and when GetModifiedTasks fails?",
+      "parentUuid": "a6998c99_8e1d05f8",
       "range": {
         "startLine": 252,
         "startChar": 19,
@@ -413,6 +821,30 @@
       "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90edccca_383286ef",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:23:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d198a62b_a0cd137c",
+      "range": {
+        "startLine": 263,
+        "startChar": 50,
+        "endLine": 263,
+        "endChar": 61
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
