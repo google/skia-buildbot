@@ -14,8 +14,9 @@
     None.
 -->
 <link rel="import" href="/res/imp/bower_components/iron-selector/iron-selector.html">
-<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+<link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="/res/common/imp/query2-chooser.html" />
 <link rel="stylesheet" href="/res/common/css/md.css">
@@ -38,6 +39,10 @@
     button,
     algo-select-sk {
       margin-left: 3em;
+    }
+
+    paper-spinner {
+      display: inline-block;
     }
 
     h4 {
@@ -71,9 +76,12 @@
     <paper-input type=number min=0 max=500  value="{{config.interesting}}" label="Interesting Threshhold for clusters to be interesting. 0 == Use server default. "></paper-input>
     <h3>Where are alerts sent</h3>
     <paper-input value="{{config.alert}}"                                  label="Alert Destination: Email address or chat id."></paper-input>
+    <button on-tap=_testAlert>Test</button>
+    <paper-spinner id=alertSpinner></paper-spinner>
     <h3>Where are bugs filed</h3>
     <paper-input value="{{config.bug_uri_template}}"                       label="Bug URI Template: {cluster_url}, {commit_url}, and {message}."></paper-input>
     <button on-tap=_testBugTemplate>Test</button>
+    <paper-spinner id=bugSpinner></paper-spinner>
     <h3>Who owns this alert</h3>
     <paper-input id=owner value="{{config.owner}}"                         label="Email address of owner."></paper-input>
     <h3>Status</h3>
@@ -108,6 +116,7 @@
     },
 
     _testBugTemplate: function() {
+      this.$.bugSpinner.active = true;
       var body = {
         bug_uri_template: this.config.bug_uri_template,
       };
@@ -116,7 +125,24 @@
           // Open the bug reporting page in a new window.
           window.open(json.url, '_blank');
         }
-      }.bind(this)).catch(sk.errorMessage);
+        this.$.bugSpinner.active = false;
+      }.bind(this)).catch(function(msg) {
+        this.$.bugSpinner.active = false;
+        sk.errorMessage(msg);
+      }.bind(this));
+    },
+
+    _testAlert: function() {
+      this.$.alertSpinner.active = true;
+      var body = {
+        alert: this.config.alert,
+      };
+      sk.post("/_/alert/notify/try", JSON.stringify(body), "application/json").then(function() {
+        this.$.alertSpinner.active = false;
+      }.bind(this)).catch(function(msg) {
+        sk.errorMessage(msg);
+        this.$.alertSpinner.active = false;
+      }.bind(this));
     },
 
   });
