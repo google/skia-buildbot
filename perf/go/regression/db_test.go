@@ -55,7 +55,8 @@ func TestSetLowWithMissing(t *testing.T) {
 
 	// Execute our method.
 	st := NewStore()
-	err = st.SetLow(c, "source_type=skp", df, cl)
+	isNew, err := st.SetLow(c, "source_type=skp", df, cl)
+	assert.True(t, isNew)
 	assert.NoError(t, err)
 
 	// Make sure that all expectations were met.
