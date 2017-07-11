@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c55e2cb5_16e1b422",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-11T14:51:26Z",
+      "side": 1,
+      "message": "Nit: Add some sort of indication then we are entered a new section in this block maybe something like:\n// ADDING STATES\n\nMaybe before section can be:\n// REUSABLE TRANSITION FUNCTIONS",
+      "revId": "5ef8ff3c1f55a8fb97175e6d1d30fa9e0f2a5a87",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "77bbb475_e07a4d02",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-11T14:51:26Z",
+      "side": 1,
+      "message": "Are unreachable / unescapable states still a problem? how would you check for them?",
+      "revId": "5ef8ff3c1f55a8fb97175e6d1d30fa9e0f2a5a87",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
