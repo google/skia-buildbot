@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "d44b11e9_27ae4a88",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:31:25Z",
+      "side": 1,
+      "message": "I thought that was already clear, but added another couple of comments.",
+      "parentUuid": "c55e2cb5_16e1b422",
+      "revId": "5ef8ff3c1f55a8fb97175e6d1d30fa9e0f2a5a87",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "77bbb475_e07a4d02",
         "filename": "go/state_machine/state_machine.go",
         "patchSetId": 15
@@ -30,6 +48,24 @@
       "writtenOn": "2017-07-11T14:51:26Z",
       "side": 1,
       "message": "Are unreachable / unescapable states still a problem? how would you check for them?",
+      "revId": "5ef8ff3c1f55a8fb97175e6d1d30fa9e0f2a5a87",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32e49816_17437b9c",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-11T18:31:25Z",
+      "side": 1,
+      "message": "Yes, it\u0027s still possible to create a state machine in which some states are not reachable and others cannot be escaped once entered.  I can\u0027t think of a way to do that, with the transitions all being dynamically returned from the state functions.  Not to mention, those state machines are probably still valid, just not desirable in most cases.  I removed the comment.",
+      "parentUuid": "77bbb475_e07a4d02",
       "revId": "5ef8ff3c1f55a8fb97175e6d1d30fa9e0f2a5a87",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
