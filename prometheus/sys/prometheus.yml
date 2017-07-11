@@ -161,7 +161,7 @@ scrape_configs:
       - targets: ['skia-cq-watcher:11000']
       - targets: ['skia-datahopper2:11000']
       - targets: ['skia-debugger:11000']
-      - targets: ['skia-diffserver-prod	:11000']
+      - targets: ['skia-diffserver-prod:11000']
       - targets: ['skia-docs:11000']
       - targets: ['skia-fiddle:11000']
       - targets: ['skia-fuzzer-be-1:11000']
