@@ -26,6 +26,7 @@ type Continuous struct {
 	radius     int
 	provider   ConfigProvider
 	notifier   *notify.Notifier
+	useID      bool
 }
 
 // NewContinuous creates a new *Continuous.
@@ -33,7 +34,7 @@ type Continuous struct {
 //   provider - Produces the slice of alerts.Config's that determine the clustering to perform.
 //   numCommits - The number of commits to run the clustering over.
 //   radius - The number of commits on each side of a commit to include when clustering.
-func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, provider ConfigProvider, store *Store, numCommits int, radius int, notifier *notify.Notifier) *Continuous {
+func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, provider ConfigProvider, store *Store, numCommits int, radius int, notifier *notify.Notifier, useID bool) *Continuous {
 	return &Continuous{
 		git:        git,
 		cidl:       cidl,
@@ -42,6 +43,7 @@ func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, provider Conf
 		radius:     radius,
 		provider:   provider,
 		notifier:   notifier,
+		useID:      useID,
 	}
 }
 
@@ -111,12 +113,17 @@ func (c *Continuous) Run() {
 					sklog.Errorf("Failed while clustering %v %s", *req, err)
 					continue
 				}
+
+				key := cfg.Query
+				if c.useID {
+					key = cfg.IdAsString()
+				}
 				// Update database if regression at the midpoint is found.
 				for _, cl := range resp.Summary.Clusters {
 					if cl.StepPoint.Offset == int64(commit.Index) {
 						if cl.StepFit.Status == stepfit.LOW && !cfg.StepUpOnly {
 							sklog.Infof("Found Low regression at %s for %q: %v", details[0].Message, cfg.Query, *cl.StepFit)
-							isNew, err := c.store.SetLow(details[0], cfg.Query /* Should be cfg.ID */, resp.Frame, cl)
+							isNew, err := c.store.SetLow(details[0], key, resp.Frame, cl)
 							if err != nil {
 								sklog.Errorf("Failed to save newly found cluster: %s", err)
 								continue
@@ -129,7 +136,7 @@ func (c *Continuous) Run() {
 						}
 						if cl.StepFit.Status == stepfit.HIGH {
 							sklog.Infof("Found High regression at %s for %q: %v", id.ID(), cfg.Query, *cl.StepFit)
-							isNew, err := c.store.SetHigh(details[0], cfg.Query /* Should be cfg.ID */, resp.Frame, cl)
+							isNew, err := c.store.SetHigh(details[0], key, resp.Frame, cl)
 							if err != nil {
 								sklog.Errorf("Failed to save newly found cluster: %s", err)
 								continue
