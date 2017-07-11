@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c33ea3c2_48b08b40",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-11T19:49:34Z",
+      "side": 1,
+      "message": "nit: document; particularly that TransitionFn can be nil",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 40
+      },
+      "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "735097cc_0c76621a",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-11T19:49:34Z",
+      "side": 1,
+      "message": "nit: could simplify\ninitial :\u003d b.initialState\nif ... {\n  initial \u003d State(string(contents))\n}\nb.initialState \u003d initial\n\nto\nif ... {\n  b.initialState \u003d State(string(contents))\n}",
+      "range": {
+        "startLine": 116,
+        "startChar": 2,
+        "endLine": 116,
+        "endChar": 9
+      },
+      "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a0600e2_ed03f2ee",
+        "filename": "go/state_machine/state_machine_test.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-11T19:49:34Z",
+      "side": 1,
+      "message": "nit: unused?",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 3
+      },
+      "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b7baff8_44dc421d",
+        "filename": "go/state_machine/state_machine_test.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-11T19:49:34Z",
+      "side": 1,
+      "message": "nit: only used once? less confusing to inline",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 6
+      },
+      "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a7938073_ba8bfa99",
+        "filename": "go/util/counters.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-11T19:49:34Z",
+      "side": 1,
+      "message": "nit: unit test",
+      "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b73fa8e_edf5b8cf",
+        "filename": "go/util/counters.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-11T19:49:34Z",
+      "side": 1,
+      "message": "These are not persisted.",
+      "range": {
+        "startLine": 115,
+        "startChar": 0,
+        "endLine": 120,
+        "endChar": 4
+      },
+      "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
