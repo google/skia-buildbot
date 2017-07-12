@@ -15,8 +15,20 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-// TEST_IMG_DIGEST needs to be stored in the secondary bucket.
-const TEST_IMG_DIGEST = "abc-test-image-digest-xyz"
+
+const (
+	// TEST_IMG_DIGEST needs to be stored in the secondary bucket.
+	TEST_IMG_DIGEST = "abc-test-image-digest-xyz"
+
+	// Bucket to test loading images through a GS path.
+	TEST_GS_BUCKET = "cluster-telemetry"
+
+	// Directory to test loading images through a GS path.
+	TEST_GS_BASE_DIR = "tasks/benchmark_runs"
+
+	// Image to test loading images through a GS path.
+	TEST_IMG_PATH = "rmistry-20170623184523/nopatch/http___www_google_com"
+)
 
 func TestImageLoader(t *testing.T) {
 	testutils.LargeTest(t)
@@ -46,7 +58,7 @@ func TestImageLoader(t *testing.T) {
 		assert.True(t, fileutil.FileExists(fileutil.TwoLevelRadixPath(workingDir, getDigestImageFileName(digest))))
 	}
 
-	// Get the images directly from cache.
+	// Get the images directly from cache
 	ti := timer.New("Fetch images")
 	_, err := imageLoader.Get(1, digests)
 	assert.NoError(t, err)
@@ -71,4 +83,29 @@ func getImageLoaderAndTile(t assert.TestingT) (string, string, *tiling.Tile, *Im
 	imgLoader, err := newImgLoader(client, baseDir, workingDir, gsBuckets, TEST_GCS_IMAGE_DIR, imgCacheCount)
 	assert.NoError(t, err)
 	return baseDir, workingDir, tile, imgLoader
+}
+
+// Tests loading GS images that are specified through a path.
+func TestImageLoaderGetGSPath(t *testing.T) {
+	testutils.MediumTest(t)
+	testutils.SkipIfShort(t)
+
+	baseDir := TEST_DATA_BASE_DIR + "-imgloader"
+	defer testutils.RemoveAll(t, baseDir)
+
+	client, _ := getSetupAndTile(t, baseDir)
+
+	workingDir := filepath.Join(baseDir, "images")
+	assert.Nil(t, os.Mkdir(workingDir, 0777))
+
+	imgCacheCount, _ := getCacheCounts(10)
+	gsBuckets := []string{TEST_GS_BUCKET}
+
+	imgLoader, err := newImgLoader(client, baseDir, workingDir, gsBuckets, TEST_GS_BASE_DIR, imgCacheCount)
+	assert.NoError(t, err)
+
+	_, err = imgLoader.Get(1, []string{TEST_IMG_PATH})
+	imgLoader.sync()
+	assert.NoError(t, err)
+	assert.True(t, fileutil.FileExists(filepath.Join(workingDir, getDigestImageFileName(TEST_IMG_PATH))))
 }

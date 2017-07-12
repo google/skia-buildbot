@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"cloud.google.com/go/storage"
@@ -163,13 +164,26 @@ func (il *ImageLoader) Get(priority int64, digests []string) ([]*image.NRGBA, er
 
 // IsOnDisk returns true if the image that corresponds to the given digest is in the disk cache.
 func (il *ImageLoader) IsOnDisk(digest string) bool {
-	return fileutil.FileExists(fileutil.TwoLevelRadixPath(il.localImgDir, getDigestImageFileName(digest)))
+	// If the filename does not specify a path, it was stored using TwoLevelRadixPath
+	if strings.Index(digest, "/") == -1 {
+		return fileutil.FileExists(fileutil.TwoLevelRadixPath(il.localImgDir, getDigestImageFileName(digest)))
+	} else {
+		return fileutil.FileExists(filepath.Join(il.localImgDir, getDigestImageFileName(digest)))
+	}
 }
 
 // PurgeImages removes the images that correspond to the given digests.
 func (il *ImageLoader) PurgeImages(digests []string, purgeGCS bool) error {
 	for _, d := range digests {
-		fName := fileutil.TwoLevelRadixPath(il.localImgDir, getDigestImageFileName(d))
+
+		var fName string
+		// If the filename does not specify a path, it was stored using TwoLevelRadixPath
+		if strings.Index(d, "/") == -1 {
+			fName = fileutil.TwoLevelRadixPath(il.localImgDir, getDigestImageFileName(d))
+		} else {
+			fName = filepath.Join(il.localImgDir, getDigestImageFileName(d))
+		}
+
 		if fileutil.FileExists(fName) {
 			if err := os.Remove(fName); err != nil {
 				sklog.Errorf("Unable to remove image %s. Got error: %s", fName, err)
@@ -190,7 +204,16 @@ func (il *ImageLoader) PurgeImages(digests []string, purgeGCS bool) error {
 func (il *ImageLoader) imageLoadWorker(priority int64, digest string) (interface{}, error) {
 	// Check if the image is in the disk cache.
 	imageFileName := getDigestImageFileName(digest)
-	imagePath := fileutil.TwoLevelRadixPath(il.localImgDir, imageFileName)
+
+	var imagePath string
+	// If the filename does not specify a path, use saveFileRadixPath
+	if strings.Index(digest, "/") == -1 {
+		imagePath = fileutil.TwoLevelRadixPath(il.localImgDir, imageFileName)
+	// Otherwise, use saveFilePath
+	} else {
+		imagePath = filepath.Join(il.localImgDir, imageFileName)
+	}
+
 	if fileutil.FileExists(imagePath) {
 		img, err := loadImg(imagePath)
 		if err != nil {
@@ -224,8 +247,14 @@ func (il *ImageLoader) saveImgInfoAsync(imageFileName string, imgBytes []byte) {
 	il.wg.Add(1)
 	go func() {
 		defer il.wg.Done()
-		if err := saveFileRadixPath(il.localImgDir, imageFileName, bytes.NewBuffer(imgBytes)); err != nil {
-			sklog.Error(err)
+		if strings.Index(imageFileName, "/") == -1 {
+			if err := saveFileRadixPath(il.localImgDir, imageFileName, bytes.NewBuffer(imgBytes)); err != nil {
+				sklog.Error(err)
+			}
+		} else {
+			if err := saveFilePath(il.localImgDir, imageFileName, bytes.NewBuffer(imgBytes)); err != nil {
+				sklog.Error(err)
+			}
 		}
 	}()
 }

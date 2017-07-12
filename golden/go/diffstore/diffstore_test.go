@@ -30,11 +30,50 @@ func TestMemDiffStore(t *testing.T) {
 	client, tile := getSetupAndTile(t, baseDir)
 	defer testutils.RemoveAll(t, baseDir)
 
-	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
+	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, nil, nil, nil)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
 	testDiffStore(t, tile, baseDir, diffStore, memDiffStore)
+}
+
+// Dummy implementation of GetDiffString used to test MemDiffStore.getDiffId.
+func dummyGetDiffId(left, right string) string {
+	return "testId"
+}
+
+// Dummy implementation of GetDiffString used to test MemDiffStore.getdiffImgName.
+func dummyGetDiffImgName(left, right string) string {
+	return "testImgName"
+}
+
+// Dummy implementation of GetLeftAndRight used to test MemDiffStore.getLeftAndRight.
+func dummyGetLeftAndRight(diffID string) (string, string) {
+	return "left", "right"
+}
+
+func TestCustomDiffNameFns(t *testing.T) {
+	testutils.MediumTest(t)
+	testutils.SkipIfShort(t)
+
+	baseDir := TEST_DATA_BASE_DIR + "-customdiff"
+	client, _ := getSetupAndTile(t, baseDir)
+	defer testutils.RemoveAll(t, baseDir)
+
+	// Instantiate a new MemDiffStore with the dummy custom diff functions.
+	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, dummyGetDiffId, dummyGetDiffImgName, dummyGetLeftAndRight)
+	assert.NoError(t, err)
+
+	memDiffStore := diffStore.(*MemDiffStore)
+	diffId := memDiffStore.getDiffId("left", "right")
+	assert.Equal(t, "testId", diffId)
+
+	diffImgName := memDiffStore.getDiffImgName("left", "right")
+	assert.Equal(t, "testImgName", diffImgName)
+
+	left, right := memDiffStore.getLeftAndRight("diffId")
+	assert.Equal(t, "left", left)
+	assert.Equal(t, "right", right)
 }
 
 func TestNetDiffStore(t *testing.T) {
@@ -45,7 +84,7 @@ func TestNetDiffStore(t *testing.T) {
 	client, tile := getSetupAndTile(t, baseDir)
 	defer testutils.RemoveAll(t, baseDir)
 
-	memDiffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
+	memDiffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, nil, nil, nil)
 	assert.NoError(t, err)
 
 	// Start the server that wraps around the MemDiffStore.
