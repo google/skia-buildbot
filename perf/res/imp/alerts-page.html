@@ -186,6 +186,8 @@
       if (!e.detail.confirmed) {
         return
       }
+      // Force interesting to be a Number.
+      this._cfg.interesting = +this._cfg.interesting;
       if (JSON.stringify(this._cfg) === JSON.stringify(this._orig_cfg)) {
         return
       }
