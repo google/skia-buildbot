@@ -73,9 +73,9 @@
     <h4>Step Direction</h4>
     <paper-checkbox checked="{{config.step_up_only}}">Only step ups should trigger an alert.</paper-checkbox>
     <h4>Threshhold</h4>
-    <paper-input type=number min=0 max=500  value="{{config.interesting}}" label="Interesting Threshhold for clusters to be interesting. 0 == Use server default. "></paper-input>
+    <paper-input type=number min=1 max=500  value="{{config.interesting}}" label="Interesting Threshhold for clusters to be interesting."></paper-input>
     <h3>Where are alerts sent</h3>
-    <paper-input value="{{config.alert}}"                                  label="Alert Destination: Email address or chat id."></paper-input>
+    <paper-input value="{{config.alert}}"                                  label="Alert Destination: Email address."></paper-input>
     <button on-tap=_testAlert>Test</button>
     <paper-spinner id=alertSpinner></paper-spinner>
     <h3>Where are bugs filed</h3>
@@ -103,6 +103,7 @@
         value: function() { return {}; },
         reflectToAttribute: false,
         notify: true,
+        observer: '_configChange',
       },
       paramset: {
         type: Object,
@@ -143,6 +144,12 @@
         sk.errorMessage(msg);
         this.$.alertSpinner.active = false;
       }.bind(this));
+    },
+
+    _configChange: function() {
+      if (this.config.interesting == 0) {
+        this.set('config.interesting', sk.perf.interesting);
+      }
     },
 
   });
