@@ -151,7 +151,23 @@
     _list: function() {
       sk.get('/_/alert/list/' + this._showDeleted).then(JSON.parse).then(function(json) {
         this.set('_alerts', json);
+        this._openOnLoad();
       }.bind(this)).catch(sk.errorMessage);
+    },
+
+    _openOnLoad: function() {
+      if (window.location.search.length == 0) {
+        return
+      }
+      var id = +window.location.search.slice(1);
+      for (var i = 0; i < this._alerts.length; i++) {
+        if (id === this._alerts[i].id) {
+          this.set('_cfg', JSON.parse(JSON.stringify(this._alerts[i])));
+          this.$.edit.open();
+          break
+        }
+      }
+      history.pushState(null, '', '/a/');
     },
 
     _onConfigChange: function() {
