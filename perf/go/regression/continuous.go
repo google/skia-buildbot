@@ -1,6 +1,7 @@
 package regression
 
 import (
+	"sync"
 	"time"
 
 	"go.skia.org/infra/go/git/gitinfo"
@@ -16,6 +17,12 @@ import (
 // ConfigProvider is a function that's called to return a slice of alerts.Config. It is passed to NewContinuous.
 type ConfigProvider func() ([]*alerts.Config, error)
 
+// Current state of looking for regressions, i.e. the current commit and alert being worked on.
+type Current struct {
+	Commit *cid.CommitDetail `json:"commit"`
+	Alert  *alerts.Config    `json:"alert"`
+}
+
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
 type Continuous struct {
@@ -27,6 +34,9 @@ type Continuous struct {
 	provider   ConfigProvider
 	notifier   *notify.Notifier
 	useID      bool
+
+	mutex   sync.Mutex // Protects current.
+	current *Current
 }
 
 // NewContinuous creates a new *Continuous.
@@ -44,7 +54,14 @@ func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, provider Conf
 		provider:   provider,
 		notifier:   notifier,
 		useID:      useID,
+		current:    &Current{},
 	}
+}
+
+func (c *Continuous) CurrentStatus() Current {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	return *c.current
 }
 
 func (c *Continuous) Untriaged() (int, error) {
@@ -97,7 +114,13 @@ func (c *Continuous) Run() {
 				sklog.Errorf("Failed to load configs: %s", err)
 				continue
 			}
+			c.mutex.Lock()
+			c.current.Commit = details[0]
+			c.mutex.Unlock()
 			for _, cfg := range configs {
+				c.mutex.Lock()
+				c.current.Alert = cfg
+				c.mutex.Unlock()
 				// Create ClusterRequest and run.
 				req := &clustering2.ClusterRequest{
 					Source:      "master",
