@@ -76,11 +76,38 @@
       display: inline;
     }
 
+    details-sk {
+      display: block;
+      margin: 1em 0.4em;
+    }
+
+    details-sk table {
+      margin: 1em;
+    }
+
     th {
       padding: 0 1em;
     }
   </style>
   <template>
+    <details-sk>
+      <summary-sk>
+        <h2>Status</h2>
+      </summary-sk>
+      <div id=status>
+        <p>The current work on detecing regressions:</p>
+        <table>
+          <tr>
+            <th>Alert</th>
+            <td><query-summary-sk selection="[[_currentState.alert.query]]"></query-summary-sk></td>
+          </tr>
+          <tr>
+            <th>Commit</th>
+            <td><commit-detail-sk cid="[[_currentState.commit]]"></commit-detail-sk></td>
+          </tr>
+        </table>
+      </div>
+    </details-sk>
     <details-sk open>
       <summary-sk>
         <h2 id="filter">Filter</h2>
@@ -182,11 +209,25 @@
         _stepUpOnly: {
           type: Boolean,
           value: sk.perf.step_up_only,
+        },
+        _currentState: {
+          type: Object,
+          value: function() { return {}; },
         }
       },
 
       ready: function() {
         sk.stateReflector(this, this._updateRange.bind(this));
+        this._poll();
+      },
+
+      _poll: function() {
+        sk.get('/_/reg/current').then(JSON.parse).then(function (json) {
+          this.set('_currentState', json);
+          window.setTimeout(this._poll.bind(this), 3000);
+        }.bind(this)).catch(function() {
+          window.setTimeout(this._poll.bind(this), 3000);
+        }.bind(this));
       },
 
       _openKeys: function(e) {
