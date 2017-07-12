@@ -4,11 +4,16 @@ set -e
 
 # Install packages.
 
-sudo apt-get -y install build-essential mercurial libosmesa-dev libexpat1-dev clang llvm poppler-utils netpbm gcc-multilib g++-multilib openjdk-8-jdk-headless libxi-dev python-django libc++-dev libc++abi-dev gperf bison
+sudo apt-get -y install build-essential mercurial libosmesa-dev libexpat1-dev clang llvm poppler-utils netpbm gcc-multilib g++-multilib openjdk-8-jdk-headless libxi-dev python-django libc++-dev libc++abi-dev gperf bison usbutils
 
 # TODO(borenet,rmistry): apt-get update is failing due to mismatch between
 # cached apt packages files.
 sudo rm -rf /var/lib/apt/lists/*
+
+# Catapult requires a lsb-release file even if it's empty.
+# TODO(rmistry): Remove this after https://github.com/catapult-project/catapult/issues/3705
+# is resolved.
+sudo touch /etc/lsb-release
 
 # Obtain and symlink i386 libs.
 sudo dpkg --add-architecture i386
