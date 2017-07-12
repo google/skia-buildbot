@@ -194,7 +194,6 @@ func runServer() {
 }
 
 func main() {
-	defer common.LogPanic()
 	common.InitWithMust(
 		"autoroll",
 		common.PrometheusOpt(promPort),
