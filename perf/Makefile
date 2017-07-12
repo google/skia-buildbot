@@ -10,7 +10,7 @@ BOWER_DIR=third_party/bower_components
 VULCANIZE1=true
 
 .PHONY: build
-build: skiaperf web ptracequery perf_migratedb
+build: skiaperf web ptracequery perf_migratedb perf_update_regressions
 
 .PHONY: skiaperf
 skiaperf:
@@ -55,6 +55,10 @@ push_android_master: build
 .PHONY: perf_migratedb
 perf_migratedb:
 	go install -v ./go/perf_migratedb
+
+.PHONY: perf_update_regressions
+perf_update_regressions:
+	go install -v ./go/perf_update_regressions
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
