@@ -943,6 +943,13 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func regressionCurrentHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(continuous.CurrentStatus()); err != nil {
+		sklog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
 // DetailsRequest is for deserializing incoming POST requests
 // in detailsHandler.
 type DetailsRequest struct {
@@ -1280,6 +1287,7 @@ func main() {
 	router.HandleFunc("/_/cluster/start", clusterStartHandler).Methods("POST")
 	router.HandleFunc("/_/cluster/status/{id:[a-zA-Z0-9]+}", clusterStatusHandler).Methods("GET")
 	router.HandleFunc("/_/reg/", regressionRangeHandler).Methods("POST")
+	router.HandleFunc("/_/reg/current", regressionCurrentHandler).Methods("GET")
 	router.HandleFunc("/_/triage/", triageHandler).Methods("POST")
 	router.HandleFunc("/_/alerts/", alertsHandler)
 	router.HandleFunc("/_/details/", detailsHandler).Methods("POST")
