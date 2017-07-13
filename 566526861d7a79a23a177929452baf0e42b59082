@@ -1,0 +1,510 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c011b695_fdf30124",
+        "filename": "pixel_diff/frontend/bower.json",
+        "patchSetId": 8
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "Should this be changed to \u0027silver\u0027 or \u0027pixel_diff\u0027?",
+      "range": {
+        "startLine": 2,
+        "startChar": 11,
+        "endLine": 2,
+        "endChar": 15
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe65c609_c0d422fa",
+        "filename": "pixel_diff/frontend/bower.json",
+        "patchSetId": 8
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "Same -- should this be renamed?",
+      "range": {
+        "startLine": 7,
+        "startChar": 25,
+        "endLine": 7,
+        "endChar": 29
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e73d443_a67a07bc",
+        "filename": "pixel_diff/frontend/bower.json",
+        "patchSetId": 8
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "Are we actually using all of these dependencies currently? And what is this one for in particular?",
+      "range": {
+        "startLine": 19,
+        "startChar": 4,
+        "endLine": 19,
+        "endChar": 40
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5764ad7a_22fabbb8",
+        "filename": "pixel_diff/frontend/package.json",
+        "patchSetId": 8
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "Rename?",
+      "range": {
+        "startLine": 2,
+        "startChar": 11,
+        "endLine": 2,
+        "endChar": 15
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a0bf7789_ab9fc9af",
+        "filename": "pixel_diff/frontend/res/imp/activity-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "Can this be put somewhere where we can share it with gold rather than duplicating?",
+      "range": {
+        "startLine": 3,
+        "startChar": 45,
+        "endLine": 3,
+        "endChar": 52
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "561adbbf_bf3d21c6",
+        "filename": "pixel_diff/frontend/res/imp/diff-details-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "declaration",
+      "range": {
+        "startLine": 2,
+        "startChar": 39,
+        "endLine": 2,
+        "endChar": 50
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea858dfe_5ae03360",
+        "filename": "pixel_diff/frontend/res/imp/diff-details-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "What details? Elaborate with a sentence or two to give high level on data/imagery provided.",
+      "range": {
+        "startLine": 4,
+        "startChar": 15,
+        "endLine": 4,
+        "endChar": 22
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5fa0c1f6_1f4cc35e",
+        "filename": "pixel_diff/frontend/res/imp/diff-details-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "Prefer all styles in css defs rather than inline, so let\u0027s move these into a class.",
+      "range": {
+        "startLine": 88,
+        "startChar": 11,
+        "endLine": 88,
+        "endChar": 53
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7db538db_34abbb63",
+        "filename": "pixel_diff/frontend/res/imp/diff-details-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "Add a comment explaining what this is doing, and giving a sample input to make clear.",
+      "range": {
+        "startLine": 108,
+        "startChar": 8,
+        "endLine": 108,
+        "endChar": 39
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d232b7e_a900ad9e",
+        "filename": "pixel_diff/frontend/res/imp/help-page-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "Same -- is there a way to share with gold?",
+      "range": {
+        "startLine": 2,
+        "startChar": 18,
+        "endLine": 2,
+        "endChar": 61
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "553cbebc_be15aa86",
+        "filename": "pixel_diff/frontend/res/imp/job-details-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "declaration",
+      "range": {
+        "startLine": 2,
+        "startChar": 38,
+        "endLine": 2,
+        "endChar": 49
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a563e8d1_089ee90c",
+        "filename": "pixel_diff/frontend/res/imp/shared-styles.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "styles",
+      "range": {
+        "startLine": 1,
+        "startChar": 16,
+        "endLine": 1,
+        "endChar": 23
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5972b2ef_b5a3c8ac",
+        "filename": "pixel_diff/go/skiasilver/handlers.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "It feels like we should add unit tests for each func in this file (though the bottom two seem maybe not worthwhile to test).\n\nIf the current gold server doesn\u0027t have unit tests yet we can land this without, but should add TODO to add them and do it shortly following.",
+      "range": {
+        "startLine": 23,
+        "startChar": 5,
+        "endLine": 23,
+        "endChar": 20
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f997603_274798b6",
+        "filename": "pixel_diff/go/skiasilver/handlers.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "Add TODO comment noting how we expect to get these values eventually.",
+      "range": {
+        "startLine": 25,
+        "startChar": 30,
+        "endLine": 25,
+        "endChar": 44
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e85141b3_d76ee969",
+        "filename": "pixel_diff/go/skiasilver/handlers.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "What will this be eventually? Can we put something less hard coded now, or at least add a TODO?",
+      "range": {
+        "startLine": 39,
+        "startChar": 27,
+        "endLine": 39,
+        "endChar": 55
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3a1b5f8_7a0cf364",
+        "filename": "pixel_diff/go/skiasilver/handlers.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "Why 1000? Make a var/constant for documentation purposes.",
+      "range": {
+        "startLine": 53,
+        "startChar": 18,
+        "endLine": 53,
+        "endChar": 22
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14a1ffc5_69d3c2f4",
+        "filename": "pixel_diff/go/skiasilver/handlers.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "Is the CSV data format documented anywhere? Adding comment to describe above this block would be helpful.",
+      "range": {
+        "startLine": 54,
+        "startChar": 14,
+        "endLine": 54,
+        "endChar": 24
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41786a9a_a07f058a",
+        "filename": "pixel_diff/go/skiasilver/handlers.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "Use an enum or constants for the hard coded case ints for better documentation? I am new to Go but maybe something like:\n\nhttps://stackoverflow.com/questions/14426366/what-is-an-idiomatic-way-of-representing-enums-in-go\n\nAnd would want a comment to note that it should be kept in sync with the equivalent in the html file for menu.",
+      "range": {
+        "startLine": 120,
+        "startChar": 6,
+        "endLine": 120,
+        "endChar": 7
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1eb46fc3_ef6bb2c6",
+        "filename": "pixel_diff/go/skiasilver/handlers.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "The first three lines are the same for all of these. Could simplify slightly by adding a utility function like hasResults(diffResults, i, j) and then:\n\nif (!hasResults(...)) {\n  return true\n}",
+      "range": {
+        "startLine": 122,
+        "startChar": 6,
+        "endLine": 122,
+        "endChar": 17
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9cada39d_affd4b88",
+        "filename": "pixel_diff/go/skiasilver/handlers.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "Is there a way to share this and the one below with gold?",
+      "range": {
+        "startLine": 202,
+        "startChar": 5,
+        "endLine": 202,
+        "endChar": 22
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4193d2f4_832eefe0",
+        "filename": "pixel_diff/go/skiasilver/helpers.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "Is there a way to share this file with gold rather than copying? Assume it is a copy but have not double checked.",
+      "range": {
+        "startLine": 17,
+        "startChar": 16,
+        "endLine": 17,
+        "endChar": 17
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11ac2cef_8dc15930",
+        "filename": "pixel_diff/go/skiasilver/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-13T23:25:49Z",
+      "side": 1,
+      "message": "Do we have a README.md or a document anywhere in the new directory added by this change describing in brief prose what Skia Silver / pixel_diff is, how it relates to Skia Gold, etc.? Seems worth adding something to this change.",
+      "range": {
+        "startLine": 26,
+        "startChar": 49,
+        "endLine": 26,
+        "endChar": 60
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
