@@ -13,10 +13,10 @@ ExecStart=/usr/local/bin/skiaperf  \
     --config_filename=/etc/skiaperf/ingest.toml \
     --ptrace_store_dir=/mnt/pd0/skiaperf/store \
     --db_name=android_master_skia \
-	  --cluster_queries="config=default" \
     --dataframe_size=256 \
     --subdomain=android-perf \
-    --internal_only
+    --internal_only \
+    --cluster_queries=
 
 Restart=always
 User=default
