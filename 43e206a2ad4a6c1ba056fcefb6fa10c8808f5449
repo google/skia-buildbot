@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6f9d7916_902dec47",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T12:11:01Z",
+      "side": 1,
+      "message": "I don\u0027t know that we necessarily want to close the active roll in this case.  I don\u0027t really know what we want to do in this case.  If we get here we\u0027ve either got a mode which hasn\u0027t been implemented in the state machine or we somehow allowed a bogus mode change which should\u0027ve been rejected by the ModeHistory object.  Maybe the right thing is to add an \"error\" state and then add an alert for when a roller enters it?",
+      "parentUuid": "ab7751c5_9674afa3",
+      "range": {
+        "startLine": 222,
+        "startChar": 22,
+        "endLine": 222,
+        "endChar": 25
+      },
+      "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "584e2bf6_be1c5fe9",
         "filename": "autoroll/go/state_machine/state_machine.go",
         "patchSetId": 16
@@ -94,6 +118,30 @@
     },
     {
       "key": {
+        "uuid": "24612660_97ece659",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T12:11:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c33ea3c2_48b08b40",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 40
+      },
+      "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "735097cc_0c76621a",
         "filename": "go/state_machine/state_machine.go",
         "patchSetId": 16
@@ -114,6 +162,30 @@
       "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab271daa_30b8a023",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T12:11:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "735097cc_0c76621a",
+      "range": {
+        "startLine": 116,
+        "startChar": 2,
+        "endLine": 116,
+        "endChar": 9
+      },
+      "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -140,6 +212,30 @@
     },
     {
       "key": {
+        "uuid": "52c25ae7_33613661",
+        "filename": "go/state_machine/state_machine_test.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T12:11:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a0600e2_ed03f2ee",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 3
+      },
+      "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1b7baff8_44dc421d",
         "filename": "go/state_machine/state_machine_test.go",
         "patchSetId": 16
@@ -163,6 +259,30 @@
     },
     {
       "key": {
+        "uuid": "82eca55f_7bd7e927",
+        "filename": "go/state_machine/state_machine_test.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T12:11:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1b7baff8_44dc421d",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 6
+      },
+      "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a7938073_ba8bfa99",
         "filename": "go/util/counters.go",
         "patchSetId": 16
@@ -180,6 +300,24 @@
     },
     {
       "key": {
+        "uuid": "8ad2cb07_4f10f0f4",
+        "filename": "go/util/counters.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T12:11:01Z",
+      "side": 1,
+      "message": "Done.  I suspect it\u0027ll be flaky due to the nature of timed things.",
+      "parentUuid": "a7938073_ba8bfa99",
+      "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8b73fa8e_edf5b8cf",
         "filename": "go/util/counters.go",
         "patchSetId": 16
@@ -191,6 +329,30 @@
       "writtenOn": "2017-07-11T19:49:34Z",
       "side": 1,
       "message": "These are not persisted.",
+      "range": {
+        "startLine": 115,
+        "startChar": 0,
+        "endLine": 120,
+        "endChar": 4
+      },
+      "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e22c2b91_3acfe7af",
+        "filename": "go/util/counters.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T12:11:01Z",
+      "side": 1,
+      "message": "Changed implementation to ensure that the countdowns are persisted.",
+      "parentUuid": "8b73fa8e_edf5b8cf",
       "range": {
         "startLine": 115,
         "startChar": 0,
