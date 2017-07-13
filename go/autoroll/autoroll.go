@@ -279,7 +279,7 @@ func (a *AutoRollIssue) AllTrybotsSucceeded() bool {
 	for _, t := range bots {
 		sklog.Infof("  %s: %s (%s)", t.Builder, t.Result, t.Category)
 		if t.Category != TRYBOT_CATEGORY_CQ {
-			sklog.Infof("    ...skipping, not a CQ bot")
+			sklog.Infof("    ...skipping, not a CQ bot (category %q not %q)", t.Category, TRYBOT_CATEGORY_CQ)
 			continue
 		}
 		if !t.Succeeded() {
@@ -313,15 +313,17 @@ type TryResult struct {
 // TryResultFromBuildbucket returns a new TryResult based on a buildbucket.Build.
 func TryResultFromBuildbucket(b *buildbucket.Build) (*TryResult, error) {
 	var params struct {
-		Builder  string `json:"builder_name"`
-		Category string `json:"category"`
+		Builder    string `json:"builder_name"`
+		Properties struct {
+			Category string `json:"category"`
+		} `json:"properties"`
 	}
 	if err := json.Unmarshal([]byte(b.ParametersJson), &params); err != nil {
 		return nil, err
 	}
 	return &TryResult{
 		Builder:  params.Builder,
-		Category: params.Category,
+		Category: params.Properties.Category,
 		Created:  time.Time(b.Created),
 		Result:   b.Result,
 		Status:   b.Status,
