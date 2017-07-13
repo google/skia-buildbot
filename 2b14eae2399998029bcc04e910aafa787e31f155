@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "ce1aad14_f37c89c8",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-13T18:12:53Z",
+      "side": 1,
+      "message": "I missed that there\u0027s a function for ACTIVE-\u003eFAILURE. Maybe more consistent to make that a NOOP and put F_CLOSE_FAILED on the FAILURE-\u003eIDLE transition?",
+      "parentUuid": "e7f971f2_3de364b5",
+      "range": {
+        "startLine": 212,
+        "startChar": 5,
+        "endLine": 212,
+        "endChar": 21
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8743576c_4ee98ed9",
         "filename": "autoroll/go/state_machine/state_machine.go",
         "patchSetId": 18
@@ -319,6 +343,30 @@
       "side": 1,
       "message": "I don\u0027t understand. This causes the above transition (which returns an error) to be overridden.",
       "parentUuid": "c34ab8a2_d045a2c2",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 24
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9feca54_051b1673",
+        "filename": "go/state_machine/state_machine_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-13T18:12:53Z",
+      "side": 1,
+      "message": "I think it\u0027s unlikely that I would overwrite a transition intentionally, but I might do so accidentally and wonder why things aren\u0027t working.",
+      "parentUuid": "4a0edb81_56bf1ef2",
       "range": {
         "startLine": 53,
         "startChar": 1,
