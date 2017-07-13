@@ -18,6 +18,7 @@
 <link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
 <link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="/res/imp/bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
 <link rel="import" href="/res/imp/bower_components/paper-fab/paper-fab.html">
 
 <link rel="import" href="/res/common/imp/login.html" />
@@ -68,7 +69,9 @@
   </style>
   <template>
     <paper-dialog id=edit on-iron-overlay-closed=_onDialogClose>
-      <alert-config-sk id=alertconfig config="{{_cfg}}"></alert-config-sk>
+      <paper-dialog-scrollable>
+        <alert-config-sk id=alertconfig config="{{_cfg}}"></alert-config-sk>
+      </paper-dialog-scrollable>
       <div class="buttons">
         <paper-button dialog-dismiss>Cancel</paper-button>
         <paper-button dialog-confirm autofocus>Accept</paper-button>
@@ -204,6 +207,8 @@
       }
       // Force interesting to be a Number.
       this._cfg.interesting = +this._cfg.interesting;
+      this._cfg.radius = +this._cfg.radius;
+      this._cfg.k = +this._cfg.k;
       if (JSON.stringify(this._cfg) === JSON.stringify(this._orig_cfg)) {
         return
       }
