@@ -451,6 +451,30 @@
     },
     {
       "key": {
+        "uuid": "54acd0f0_2c207916",
+        "filename": "go/state_machine/state_machine_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T19:05:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "288bef39_c28cf9d1",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 24
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10f21abb_bee551d3",
         "filename": "go/util/counters.go",
         "patchSetId": 18
