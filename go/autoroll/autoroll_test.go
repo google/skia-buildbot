@@ -35,7 +35,7 @@ func TestTrybotResults(t *testing.T) {
 	trybot := &buildbucket.Build{
 		Created:        jsonutils.Time(time.Now().UTC()),
 		Status:         TRYBOT_STATUS_STARTED,
-		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
+		ParametersJson: "{\"builder_name\":\"fake-builder\",\"properties\":{\"category\":\"cq\"}}",
 	}
 	tryResult, err := TryResultFromBuildbucket(trybot)
 	assert.NoError(t, err)
@@ -52,7 +52,7 @@ func TestTrybotResults(t *testing.T) {
 	retry := &buildbucket.Build{
 		Created:        jsonutils.Time(time.Now().UTC()),
 		Status:         TRYBOT_STATUS_STARTED,
-		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
+		ParametersJson: "{\"builder_name\":\"fake-builder\",\"properties\":{\"category\":\"cq\"}}",
 	}
 	tryResult, err = TryResultFromBuildbucket(retry)
 	assert.NoError(t, err)
@@ -76,7 +76,7 @@ func TestTrybotResults(t *testing.T) {
 		Created:        jsonutils.Time(time.Now().UTC()),
 		Result:         TRYBOT_RESULT_SUCCESS,
 		Status:         TRYBOT_STATUS_COMPLETED,
-		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq-experimental\"}",
+		ParametersJson: "{\"builder_name\":\"fake-builder\",\"properties\":{\"category\":\"cq-experimental\"}}",
 	}
 	tryResult, err = TryResultFromBuildbucket(exp)
 	assert.NoError(t, err)

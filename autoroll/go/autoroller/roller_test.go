@@ -547,7 +547,7 @@ func TestAutoRollDryRun(t *testing.T) {
 	trybot := &buildbucket.Build{
 		Created:        jsonutils.Time(time.Now().UTC().Round(time.Millisecond)),
 		Status:         autoroll.TRYBOT_STATUS_STARTED,
-		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
+		ParametersJson: "{\"builder_name\":\"fake-builder\",\"properties\":{\"category\":\"cq\"}}",
 	}
 	trybots := []*buildbucket.Build{trybot}
 	rv.rollerWillSwitchDryRun(roll1, trybots, true)
@@ -570,7 +570,7 @@ func TestAutoRollDryRun(t *testing.T) {
 		Created:        jsonutils.Time(time.Now().UTC().Round(time.Millisecond)),
 		Result:         autoroll.TRYBOT_RESULT_FAILURE,
 		Status:         autoroll.TRYBOT_STATUS_COMPLETED,
-		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq-experimental\"}",
+		ParametersJson: "{\"builder_name\":\"fake-builder\",\"properties\":{\"category\":\"cq-experimental\"}}",
 	})
 	rv.updateIssue(roll1, trybots)
 	assert.NoError(t, roller.doAutoRoll())
@@ -583,7 +583,7 @@ func TestAutoRollDryRun(t *testing.T) {
 	trybot2 := &buildbucket.Build{
 		Created:        jsonutils.Time(time.Now().UTC().Round(time.Millisecond)),
 		Status:         autoroll.TRYBOT_STATUS_STARTED,
-		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
+		ParametersJson: "{\"builder_name\":\"fake-builder\",\"properties\":{\"category\":\"cq\"}}",
 	}
 	trybots2 := []*buildbucket.Build{trybot2}
 	roll2 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.NextRollRev(), trybots2, true)
@@ -598,7 +598,7 @@ func TestAutoRollDryRun(t *testing.T) {
 	trybot3 := &buildbucket.Build{
 		Created:        jsonutils.Time(time.Now().UTC().Round(time.Millisecond)),
 		Status:         autoroll.TRYBOT_STATUS_STARTED,
-		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
+		ParametersJson: "{\"builder_name\":\"fake-builder\",\"properties\":{\"category\":\"cq\"}}",
 	}
 	trybots3 := []*buildbucket.Build{trybot3}
 	roll3 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.NextRollRev(), trybots3, true)
@@ -647,7 +647,7 @@ func TestAutoRollCommitLandRace(t *testing.T) {
 		Created:        jsonutils.Time(time.Now().UTC().Round(time.Millisecond)),
 		Status:         autoroll.TRYBOT_STATUS_COMPLETED,
 		Result:         autoroll.TRYBOT_RESULT_SUCCESS,
-		ParametersJson: "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
+		ParametersJson: "{\"builder_name\":\"fake-builder\",\"properties\":{\"category\":\"cq\"}}",
 	}
 	trybots := []*buildbucket.Build{trybot}
 
