@@ -92,7 +92,7 @@ func (c *Continuous) Run() {
 	// TODO(jcgregorio) Add liveness metrics.
 	sklog.Infof("Continuous starting.")
 	c.reportUntriaged(newClustersGauge)
-	for range time.Tick(time.Minute) {
+	for range time.Tick(time.Second) {
 		clusteringLatency.Start()
 		// Get the last numCommits commits.
 		indexCommits := c.git.LastNIndex(c.numCommits)

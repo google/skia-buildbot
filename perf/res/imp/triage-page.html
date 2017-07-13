@@ -224,9 +224,9 @@
       _poll: function() {
         sk.get('/_/reg/current').then(JSON.parse).then(function (json) {
           this.set('_currentState', json);
-          window.setTimeout(this._poll.bind(this), 3000);
+          window.setTimeout(this._poll.bind(this), 1000);
         }.bind(this)).catch(function() {
-          window.setTimeout(this._poll.bind(this), 3000);
+          window.setTimeout(this._poll.bind(this), 1000);
         }.bind(this));
       },
 
