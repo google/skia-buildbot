@@ -1,0 +1,257 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d7d535b1_38e7b457",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-13T15:04:07Z",
+      "side": 1,
+      "message": "If/when you generate a graph from the transitions, you may want to make NOOP a built-in transition in state_machine. I\u0027m guessing you don\u0027t want to make arrows for transitions like b.T(S_STOPPED, S_STOPPED, F_NOOP) and don\u0027t want labels on other NOOP transitions.",
+      "range": {
+        "startLine": 136,
+        "startChar": 5,
+        "endLine": 136,
+        "endChar": 11
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "42abc9df_311bf4ce",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-13T15:04:07Z",
+      "side": 1,
+      "message": "nit: SUCCESS and FAILURE are really transitions, not states. But maybe it\u0027s easier to think about if they\u0027re states.",
+      "range": {
+        "startLine": 212,
+        "startChar": 5,
+        "endLine": 212,
+        "endChar": 21
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8743576c_4ee98ed9",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-13T15:04:07Z",
+      "side": 1,
+      "message": "nit: If you want to break this method up a bit and/or avoid the switch, you could move this to state_machine, e.g.:\nb.Next(S_STOPPED, func() (string, error) {\n  switch desiredMode :\u003d s.a.GetMode(); desiredMode {\n  case autoroll_modes.MODE_RUNNING:\n    return S_NORMAL_IDLE, nil\n  case autoroll_modes.MODE_DRY_RUN:\n    return S_DRY_RUN_IDLE, nil\n  case autoroll_modes.MODE_STOPPED:\n    return S_STOPPED, nil\n  default:\n    return \"\", fmt.Errorf(\"Invalid mode: %q\", desiredMode)\n})",
+      "range": {
+        "startLine": 249,
+        "startChar": 31,
+        "endLine": 249,
+        "endChar": 40
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b1fef05_91c1fc80",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-13T15:04:07Z",
+      "side": 1,
+      "message": "nit: s/set/sequence/",
+      "range": {
+        "startLine": 396,
+        "startChar": 45,
+        "endLine": 396,
+        "endChar": 48
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "44a66e83_14b0d0f1",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-13T15:04:07Z",
+      "side": 1,
+      "message": "Doesn\u0027t seem correct.",
+      "range": {
+        "startLine": 4,
+        "startChar": 3,
+        "endLine": 4,
+        "endChar": 68
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b574e5a_1792d969",
+        "filename": "go/state_machine/state_machine_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-13T15:04:07Z",
+      "side": 1,
+      "message": "nit: probably shouldn\u0027t be required for the initial state.",
+      "range": {
+        "startLine": 37,
+        "startChar": 1,
+        "endLine": 37,
+        "endChar": 68
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c34ab8a2_d045a2c2",
+        "filename": "go/state_machine/state_machine_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-13T15:04:07Z",
+      "side": 1,
+      "message": "nit: Seems like allowing multiple transitions for a given pair of states would be confusing.",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 24
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "10f21abb_bee551d3",
+        "filename": "go/util/counters.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-13T15:04:07Z",
+      "side": 1,
+      "message": "nit: IIUC, os.Rename is only atomic if the src and dest are on the same filesystem. Typically /tmp would be a different filesystem from workdir.\n\nMaybe use c.file + \"~\"?",
+      "range": {
+        "startLine": 124,
+        "startChar": 11,
+        "endLine": 124,
+        "endChar": 33
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4be6b5f_df056b39",
+        "filename": "go/util/counters_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-13T15:04:07Z",
+      "side": 1,
+      "message": "nit: defer testutils.RemoveAll(t, w)",
+      "range": {
+        "startLine": 17,
+        "startChar": 1,
+        "endLine": 17,
+        "endChar": 33
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "22c7142e_0a3b4789",
+        "filename": "go/util/counters_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-13T15:04:07Z",
+      "side": 1,
+      "message": "nit: IIRC, the new lint thing wants you to omit \"_ \u003d\"",
+      "range": {
+        "startLine": 41,
+        "startChar": 5,
+        "endLine": 41,
+        "endChar": 9
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52c7b6bf_863e7581",
+        "filename": "go/util/counters_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-13T15:04:07Z",
+      "side": 1,
+      "message": "nit: noop",
+      "range": {
+        "startLine": 49,
+        "startChar": 12,
+        "endLine": 49,
+        "endChar": 16
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

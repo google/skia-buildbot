@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "56634bd1_1be55a2a",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-13T15:04:07Z",
+      "side": 1,
+      "message": "PS18 is fine. My concern in PS16 was that you are making a successful transition to S_STOPPED without cleaning up the active CL.",
+      "parentUuid": "6f9d7916_902dec47",
+      "range": {
+        "startLine": 222,
+        "startChar": 22,
+        "endLine": 222,
+        "endChar": 25
+      },
+      "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "584e2bf6_be1c5fe9",
         "filename": "autoroll/go/state_machine/state_machine.go",
         "patchSetId": 16
@@ -312,6 +336,24 @@
       "side": 1,
       "message": "Done.  I suspect it\u0027ll be flaky due to the nature of timed things.",
       "parentUuid": "a7938073_ba8bfa99",
+      "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "20677333_d4b9c71f",
+        "filename": "go/util/counters.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-13T15:04:07Z",
+      "side": 1,
+      "message": "I suggest passing in a mock time.Now() function.",
+      "parentUuid": "8ad2cb07_4f10f0f4",
       "revId": "43e206a2ad4a6c1ba056fcefb6fa10c8808f5449",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
