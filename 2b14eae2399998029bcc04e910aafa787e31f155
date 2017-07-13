@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c46a7857_534e8386",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T17:56:03Z",
+      "side": 1,
+      "message": "I guess we\u0027ll see.  To be honest, I\u0027m liking the explicit \"no-op\" label right now.",
+      "parentUuid": "d7d535b1_38e7b457",
+      "range": {
+        "startLine": 136,
+        "startChar": 5,
+        "endLine": 136,
+        "endChar": 11
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "42abc9df_311bf4ce",
         "filename": "autoroll/go/state_machine/state_machine.go",
         "patchSetId": 18
@@ -36,6 +60,30 @@
       "writtenOn": "2017-07-13T15:04:07Z",
       "side": 1,
       "message": "nit: SUCCESS and FAILURE are really transitions, not states. But maybe it\u0027s easier to think about if they\u0027re states.",
+      "range": {
+        "startLine": 212,
+        "startChar": 5,
+        "endLine": 212,
+        "endChar": 21
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7f971f2_3de364b5",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T17:56:03Z",
+      "side": 1,
+      "message": "The problem is that we want to take different actions on success or failure, and we can\u0027t have two different transitions with the same start and end points. I do think we could remove the \"dry run success; leaving open\" state and just use the \"dry run success\" state for that, but it\u0027s not hurting anything.",
+      "parentUuid": "42abc9df_311bf4ce",
       "range": {
         "startLine": 212,
         "startChar": 5,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "20622670_43917d58",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T17:56:03Z",
+      "side": 1,
+      "message": "I think I\u0027m okay with this for now.  I kind of like that the states are specified implicitly by the transitions.",
+      "parentUuid": "8743576c_4ee98ed9",
+      "range": {
+        "startLine": 249,
+        "startChar": 31,
+        "endLine": 249,
+        "endChar": 40
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7b1fef05_91c1fc80",
         "filename": "autoroll/go/state_machine/state_machine.go",
         "patchSetId": 18
@@ -91,6 +163,30 @@
       "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9cef6840_0922bcaa",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T17:56:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7b1fef05_91c1fc80",
+      "range": {
+        "startLine": 396,
+        "startChar": 45,
+        "endLine": 396,
+        "endChar": 48
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "b7f486dc_a103f39e",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T17:56:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "44a66e83_14b0d0f1",
+      "range": {
+        "startLine": 4,
+        "startChar": 3,
+        "endLine": 4,
+        "endChar": 68
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4b574e5a_1792d969",
         "filename": "go/state_machine/state_machine_test.go",
         "patchSetId": 18
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "fc5e9ac4_d7242a2b",
+        "filename": "go/state_machine/state_machine_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T17:56:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4b574e5a_1792d969",
+      "range": {
+        "startLine": 37,
+        "startChar": 1,
+        "endLine": 37,
+        "endChar": 68
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c34ab8a2_d045a2c2",
         "filename": "go/state_machine/state_machine_test.go",
         "patchSetId": 18
@@ -151,6 +295,30 @@
       "writtenOn": "2017-07-13T15:04:07Z",
       "side": 1,
       "message": "nit: Seems like allowing multiple transitions for a given pair of states would be confusing.",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 24
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a0edb81_56bf1ef2",
+        "filename": "go/state_machine/state_machine_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T17:56:03Z",
+      "side": 1,
+      "message": "I don\u0027t understand. This causes the above transition (which returns an error) to be overridden.",
+      "parentUuid": "c34ab8a2_d045a2c2",
       "range": {
         "startLine": 53,
         "startChar": 1,
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "867e4fa4_50fe5c0f",
+        "filename": "go/util/counters.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T17:56:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "10f21abb_bee551d3",
+      "range": {
+        "startLine": 124,
+        "startChar": 11,
+        "endLine": 124,
+        "endChar": 33
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f4be6b5f_df056b39",
         "filename": "go/util/counters_test.go",
         "patchSetId": 18
@@ -206,6 +398,30 @@
       "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c6ace406_9301f8a1",
+        "filename": "go/util/counters_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T17:56:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f4be6b5f_df056b39",
+      "range": {
+        "startLine": 17,
+        "startChar": 1,
+        "endLine": 17,
+        "endChar": 33
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -232,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "056778af_6a88668e",
+        "filename": "go/util/counters_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T17:56:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "22c7142e_0a3b4789",
+      "range": {
+        "startLine": 41,
+        "startChar": 5,
+        "endLine": 41,
+        "endChar": 9
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "52c7b6bf_863e7581",
         "filename": "go/util/counters_test.go",
         "patchSetId": 18
@@ -252,6 +492,30 @@
       "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8222f81_27afb602",
+        "filename": "go/util/counters_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T17:56:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "52c7b6bf_863e7581",
+      "range": {
+        "startLine": 49,
+        "startChar": 12,
+        "endLine": 49,
+        "endChar": 16
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
