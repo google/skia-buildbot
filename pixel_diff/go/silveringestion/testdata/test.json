@@ -1,0 +1,16 @@
+{
+	"run_id":"lchoi-20170711123456",
+	"patch":"https://chromium-review.googlesource.com/c/000000",
+	"screenshots":[
+		{
+			"type":"nopatch",
+			"filename":"http___www_google_com",
+			"ext":"png"
+		},
+		{
+			"type":"withpatch",
+			"filename":"http___www_youtube_com",
+			"ext":"png"
+		}
+	]
+}

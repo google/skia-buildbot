@@ -95,7 +95,9 @@ func main() {
       sklog.Fatalf("Unable to initialize NetDiffStore: %s", err)
     }
   } else {
+
     diffStore, err = diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), *gsBaseDirs, *cacheSize, diffstore.GetCommonRunUrl, diffstore.GetCommonRunUrlImgName, diffstore.GetNoAndWithPatch)
+
     if err != nil {
       sklog.Fatalf("Allocating local DiffStore failed: %s", err)
     }
