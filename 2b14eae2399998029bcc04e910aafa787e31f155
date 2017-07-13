@@ -427,6 +427,30 @@
     },
     {
       "key": {
+        "uuid": "288bef39_c28cf9d1",
+        "filename": "go/state_machine/state_machine_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-13T18:35:41Z",
+      "side": 1,
+      "message": "If I were doing it, I would do something like:\ntype builderTransition struct {\n  from string\n  to string\n  fn string\n}\n...\ntype Builder struct {\n  funcs        []builderFunc\n  initialState string\n  transitions  []builderTransition\n}\n...\nThen check in Builder.Build for all errors.",
+      "parentUuid": "4f613b2b_04fabf93",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 24
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "10f21abb_bee551d3",
         "filename": "go/util/counters.go",
         "patchSetId": 18
