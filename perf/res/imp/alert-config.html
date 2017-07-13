@@ -70,6 +70,10 @@
     <h3>What triggers an alert</h3>
     <h4>Algorithm</h4>
     <algo-select-sk algo="{{config.algo}}"></algo-select-sk>
+    <h4>K</h4>
+    <paper-input type=number min=0 value="{{config.k}}" label="The number of clusters. Only used in kmeans. 0 = use a server chosen value."></paper-input>
+    <h4>Radius</h4>
+    <paper-input type=number min=0 value="{{config.radius}}" label="Number of commits on either side to consider. 0 = use a server chosen value."></paper-input>
     <h4>Step Direction</h4>
     <paper-checkbox checked="{{config.step_up_only}}">Only step ups should trigger an alert.</paper-checkbox>
     <h4>Threshhold</h4>
@@ -149,6 +153,9 @@
     _configChange: function() {
       if (this.config.interesting == 0) {
         this.set('config.interesting', sk.perf.interesting);
+      }
+      if (this.config.radius == 0) {
+        this.set('config.radius', sk.perf.radius);
       }
     },
 

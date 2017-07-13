@@ -121,14 +121,20 @@ func (c *Continuous) Run() {
 				c.mutex.Lock()
 				c.current.Alert = cfg
 				c.mutex.Unlock()
+				radius := c.radius
+				if cfg.Radius != 0 {
+					radius = cfg.Radius
+				}
+				sklog.Infof("About to cluster for: %#v", *cfg)
 				// Create ClusterRequest and run.
 				req := &clustering2.ClusterRequest{
 					Source:      "master",
 					Offset:      commit.Index,
-					Radius:      c.radius,
+					Radius:      radius,
 					Query:       cfg.Query,
 					Algo:        cfg.Algo,
 					Interesting: cfg.Interesting,
+					K:           cfg.K,
 				}
 				sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, cfg.Query)
 				resp, err := clustering2.Run(req, c.git, c.cidl)
