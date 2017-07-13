@@ -202,7 +202,7 @@ func (c *AutoRollStatusCache) Get(includeError bool) *AutoRollStatus {
 }
 
 // set sets the current status information.
-func (c *AutoRollStatusCache) set(s *AutoRollStatus) error {
+func (c *AutoRollStatusCache) Set(s *AutoRollStatus) error {
 	if !util.In(string(s.Status), VALID_STATUSES) {
 		return fmt.Errorf("Invalid status: %s", s.Status)
 	}
@@ -408,7 +408,7 @@ func (r *AutoRoller) doAutoRoll() error {
 	gerritUrl := r.gerrit.Url(0)
 
 	// Update status information.
-	if err := r.status.set(&AutoRollStatus{
+	if err := r.status.Set(&AutoRollStatus{
 		CurrentRoll: r.recent.CurrentRoll(),
 		Error:       lastErrorStr,
 		GerritUrl:   gerritUrl,
