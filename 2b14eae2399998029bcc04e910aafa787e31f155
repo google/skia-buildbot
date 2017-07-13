@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "b01735fb_d5e497d9",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T18:24:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ce1aad14_f37c89c8",
+      "range": {
+        "startLine": 212,
+        "startChar": 5,
+        "endLine": 212,
+        "endChar": 21
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8743576c_4ee98ed9",
         "filename": "autoroll/go/state_machine/state_machine.go",
         "patchSetId": 18
@@ -367,6 +391,30 @@
       "side": 1,
       "message": "I think it\u0027s unlikely that I would overwrite a transition intentionally, but I might do so accidentally and wonder why things aren\u0027t working.",
       "parentUuid": "4a0edb81_56bf1ef2",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 24
+      },
+      "revId": "2b14eae2399998029bcc04e910aafa787e31f155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f613b2b_04fabf93",
+        "filename": "go/state_machine/state_machine_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-13T18:24:16Z",
+      "side": 1,
+      "message": "Gotcha. I guess there are three options for this:\n1. Return error from T(). I\u0027d like to avoid this for cleanliness on the calling side.\n2. Panic if the transition is already defined.\n3. Store errors from T() and then return them if any during Build().\n\nWDYT?",
+      "parentUuid": "e9feca54_051b1673",
       "range": {
         "startLine": 53,
         "startChar": 1,
