@@ -1,0 +1,152 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "43302f83_798eb07c",
+        "filename": "pixel_diff/go/config/config.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-14T13:51:16Z",
+      "side": 1,
+      "message": "This can be rolled into the silveringestion.go file.",
+      "revId": "f929df6d476c2845715df1bf259f6ab0653cc8a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41309f6a_ff980914",
+        "filename": "pixel_diff/go/dmstore/dmstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-14T13:51:16Z",
+      "side": 1,
+      "message": "I suggest not to create a Singleton like this. \nInstead create an instance in the client of the package and let it be a singleton there.",
+      "revId": "f929df6d476c2845715df1bf259f6ab0653cc8a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93a73a77_e3e00c23",
+        "filename": "pixel_diff/go/silveringestion/common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-14T13:51:16Z",
+      "side": 1,
+      "message": "The common.go file could be rolled into the silveringestion.go file. It\u0027s only separate in goldingestion because there are two different ingesters there, that share a lot of code.",
+      "revId": "f929df6d476c2845715df1bf259f6ab0653cc8a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a256ef6_0948eccf",
+        "filename": "pixel_diff/go/silveringestion/common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-14T13:51:16Z",
+      "side": 1,
+      "message": "Each field should have a short description of what it contains.",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 4
+      },
+      "revId": "f929df6d476c2845715df1bf259f6ab0653cc8a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b37f2c6f_83856c49",
+        "filename": "pixel_diff/go/silveringestion/common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-14T13:51:16Z",
+      "side": 1,
+      "message": "This should not be a public function, since it\u0027s only used in this package.",
+      "revId": "f929df6d476c2845715df1bf259f6ab0653cc8a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "65b260db_ea864dfc",
+        "filename": "pixel_diff/go/silveringestion/silveringestion.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-14T13:51:16Z",
+      "side": 1,
+      "message": "In this case the ingester might be simple enough, so we don\u0027t need a configuration file \nfor it, but instead to everything with command line flags. \n\nI would suggest a generic command line flag in the main program (i.e. -data_dir) that specifies a directory and then then create a file or directory in that generic data directory to host the BoltDB.",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 5
+      },
+      "revId": "f929df6d476c2845715df1bf259f6ab0653cc8a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86472f3e_b4eddf33",
+        "filename": "pixel_diff/go/silveringestion/silveringestion.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-14T13:51:16Z",
+      "side": 1,
+      "message": "VCS should not be necessary if you don\u0027t need to extract information from a git repo.",
+      "revId": "f929df6d476c2845715df1bf259f6ab0653cc8a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dabff399_233a8582",
+        "filename": "pixel_diff/go/silveringestion/silveringestion.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-14T13:51:16Z",
+      "side": 1,
+      "message": "separate out the update function into something like this:\n\nupdateFn :\u003d func(tx *bolt.Tx) error {\n   ...\n}\n\nand then call it at the end like this:\n\nreturn s.screenshots.Update(updateFn)\n\nIt\u0027s a convention we have tried to follow in most packages and it\u0027s easier to read IMO.",
+      "revId": "f929df6d476c2845715df1bf259f6ab0653cc8a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
