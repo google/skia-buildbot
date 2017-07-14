@@ -16,6 +16,24 @@
       "revId": "c842befeda217da356c601d469c5308dd2e5a816",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "290478a8_e65c47b8",
+        "filename": "autoroll/go/autorollerv2/autoroller.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-14T14:22:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e2bed11f_2845d7ef",
+      "revId": "c842befeda217da356c601d469c5308dd2e5a816",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
