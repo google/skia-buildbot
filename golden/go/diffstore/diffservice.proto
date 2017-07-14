@@ -33,7 +33,7 @@ message GetDiffsRequest {
 }
 
 message GetDiffsResponse {
-  map<string, DiffMetricsResponse> diffs = 1;
+  bytes diffs = 1;
 }
 
 message PurgeDigestsRequest {
@@ -55,14 +55,6 @@ message WarmDiffsRequest {
   int64 priority = 1;
   repeated string leftDigests = 2;
   repeated string rightDigests = 3;
-}
-
-message DiffMetricsResponse {
-  int32 NumDiffPixels = 1;
-  float PixelDiffPercent = 2;
-  repeated int32 MaxRGBADiffs = 3;
-  bool DimDiffer = 4;
-  map<string, float> Diffs = 5;
 }
 
 message DigestFailureResponse {
