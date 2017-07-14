@@ -2,6 +2,10 @@
 package main
 
 import (
+	"encoding/json"
+	"regexp"
+	"strconv"
+	//"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -46,7 +50,7 @@ func pixelDiff() error {
 	defer common.LogPanic()
 	worker_common.Init()
 	if !*worker_common.Local {
-		defer util.CleanTmpDir()
+		//defer util.CleanTmpDir()
 	}
 	defer util.TimeTrack(time.Now(), "Pixel diffing")
 	defer sklog.Flush()
@@ -62,16 +66,16 @@ func pixelDiff() error {
 		return errors.New("Must specify --run_id")
 	}
 
-	// Reset the local chromium checkout.
-	if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
-		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
-	}
+	//// Reset the local chromium checkout.
+	//if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
+	//	return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
+	//}
 	// Parse out the Chromium and Skia hashes.
-	chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuildNoPatch)
-	// Sync the local chromium checkout.
-	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{"src": chromiumHash}, []string{}); err != nil {
-		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
-	}
+	//chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuildNoPatch)
+	//// Sync the local chromium checkout.
+	//if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{"src": chromiumHash}, []string{}); err != nil {
+	//	return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
+	//}
 
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)
@@ -106,13 +110,13 @@ func pixelDiff() error {
 		chromiumBuilds = append(chromiumBuilds, *chromiumBuildWithPatch)
 	}
 	// Download the specified chromium builds.
-	for _, chromiumBuild := range chromiumBuilds {
-		if err := gs.DownloadChromiumBuild(chromiumBuild); err != nil {
-			return fmt.Errorf("Could not download chromium build %s: %s", chromiumBuild, err)
-		}
-		//Delete the chromium build to save space when we are done.
-		defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, chromiumBuild))
-	}
+	//for _, chromiumBuild := range chromiumBuilds {
+	//	if err := gs.DownloadChromiumBuild(chromiumBuild); err != nil {
+	//		return fmt.Errorf("Could not download chromium build %s: %s", chromiumBuild, err)
+	//	}
+	//	//Delete the chromium build to save space when we are done.
+	//	defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, chromiumBuild))
+	//}
 
 	chromiumBinaryNoPatch := filepath.Join(util.ChromiumBuildsDir, *chromiumBuildNoPatch, util.BINARY_CHROME)
 	chromiumBinaryWithPatch := filepath.Join(util.ChromiumBuildsDir, *chromiumBuildWithPatch, util.BINARY_CHROME)
@@ -130,7 +134,7 @@ func pixelDiff() error {
 			return fmt.Errorf("Could not download pagesets: %s", err)
 		}
 	}
-	defer skutil.RemoveAll(pathToPagesets)
+	//defer skutil.RemoveAll(pathToPagesets)
 
 	if !strings.Contains(*benchmarkExtraArgs, util.USE_LIVE_SITES_FLAGS) {
 		// Download archives if they do not exist locally.
@@ -144,29 +148,35 @@ func pixelDiff() error {
 	// Establish nopatch output paths.
 	runIDNoPatch := fmt.Sprintf("%s-nopatch", *runID)
 	localOutputDirNoPatch := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDNoPatch)
-	skutil.RemoveAll(localOutputDirNoPatch)
+	//skutil.RemoveAll(localOutputDirNoPatch)
 	skutil.MkdirAll(localOutputDirNoPatch, 0700)
-	defer skutil.RemoveAll(localOutputDirNoPatch)
-	remoteDirNoPatch := filepath.Join(util.BenchmarkRunsDir, *runID, "nopatch")
+	//defer skutil.RemoveAll(localOutputDirNoPatch)
+	remoteDirNoPatch := filepath.Join(getBaseRemoteDir(), "nopatch")
 
 	// Establish withpatch output paths.
 	runIDWithPatch := fmt.Sprintf("%s-withpatch", *runID)
 	localOutputDirWithPatch := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDWithPatch)
-	skutil.RemoveAll(localOutputDirWithPatch)
+	//skutil.RemoveAll(localOutputDirWithPatch)
 	skutil.MkdirAll(localOutputDirWithPatch, 0700)
-	defer skutil.RemoveAll(localOutputDirWithPatch)
-	remoteDirWithPatch := filepath.Join(util.BenchmarkRunsDir, *runID, "withpatch")
+	//defer skutil.RemoveAll(localOutputDirWithPatch)
+	remoteDirWithPatch := filepath.Join(getBaseRemoteDir(), "withpatch")
 
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
 		return fmt.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
 	}
 
+	// TODO(rmistry): Just testing)
+	//writeMetadataFile(localOutputDirNoPatch, localOutputDirWithPatch)
+	//return nil
+
 	sklog.Infof("===== Going to run the task with %d parallel chrome processes =====", WORKER_POOL_SIZE)
 	// Create channel that contains all pageset file names. This channel will
 	// be consumed by the worker pool.
 	pagesetRequests := util.GetClosedChannelOfPagesets(fileInfos)
 	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].PixelDiffTimeoutSecs
+	// Dict of rank to URL. Will be used when populating the metadata file.
+	rankToURL := map[int]string{}
 
 	var wg sync.WaitGroup
 	// Use a RWMutex for the chromeProcessesCleaner goroutine to communicate to
@@ -192,12 +202,18 @@ func pixelDiff() error {
 					sklog.Errorf("Could not read %s: %s", pagesetPath, err)
 					continue
 				}
+				rank, err := getRankFromPageset(pagesetName)
+				if err != nil {
+					sklog.Errorf("Could not get rank out of pageset %s: %s", pagesetName, err)
+					continue
+				}
+				rankToURL[rank] = decodedPageset.UrlsList
 
 				sklog.Infof("===== Processing %s =====", pagesetPath)
 
 				mutex.RLock()
-				runScreenshotBenchmark(localOutputDirNoPatch, chromiumBinaryNoPatch, pagesetName, pathToPagesets, decodedPageset, timeoutSecs)
-				runScreenshotBenchmark(localOutputDirWithPatch, chromiumBinaryWithPatch, pagesetName, pathToPagesets, decodedPageset, timeoutSecs)
+				runScreenshotBenchmark(localOutputDirNoPatch, chromiumBinaryNoPatch, pagesetName, pathToPagesets, decodedPageset, timeoutSecs, rank)
+				runScreenshotBenchmark(localOutputDirWithPatch, chromiumBinaryWithPatch, pagesetName, pathToPagesets, decodedPageset, timeoutSecs, rank)
 				mutex.RUnlock()
 			}
 		}()
@@ -230,6 +246,14 @@ func pixelDiff() error {
 		}
 	}
 
+	// Write out the metadata file.
+	if err := writeMetadataFile(localOutputDirNoPatch, remoteDirNoPatch, "nopatch", rankToURL, gs); err != nil {
+		return fmt.Errorf("Could not write metadata file for %s: %s", localOutputDirNoPatch, err)
+	}
+	if err := writeMetadataFile(localOutputDirWithPatch, remoteDirWithPatch, "withpatch", rankToURL, gs); err != nil {
+		return fmt.Errorf("Could not write metadata file for %s: %s", localOutputDirWithPatch, err)
+	}
+
 	// Upload screenshots to Google Storage.
 	if err := gs.UploadDir(localOutputDirNoPatch, remoteDirNoPatch, false); err != nil {
 		return fmt.Errorf("Could not upload images from %s to %s: %s", localOutputDirNoPatch, remoteDirNoPatch, err)
@@ -241,13 +265,13 @@ func pixelDiff() error {
 	return nil
 }
 
-func runScreenshotBenchmark(outputPath, chromiumBinary, pagesetName, pathToPagesets string, decodedPageset util.PagesetVars, timeoutSecs int) {
+func runScreenshotBenchmark(outputPath, chromiumBinary, pagesetName, pathToPagesets string, decodedPageset util.PagesetVars, timeoutSecs, rank int) {
 
 	args := []string{
 		filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
 		util.BenchmarksToTelemetryName[util.BENCHMARK_SCREENSHOT],
 		"--also-run-disabled-tests",
-		"--png-outdir=" + outputPath,
+		"--png-outdir=" + filepath.Join(outputPath, strconv.Itoa(rank)),
 		"--extra-browser-args=" + util.DEFAULT_BROWSER_ARGS,
 		"--user-agent=" + decodedPageset.UserAgent,
 		"--urls-list=" + decodedPageset.UrlsList,
@@ -270,6 +294,85 @@ func runScreenshotBenchmark(outputPath, chromiumBinary, pagesetName, pathToPages
 	if err != nil {
 		sklog.Errorf("Error during run_benchmark: %s", err)
 	}
+}
+
+// rmistry: lower case?
+type Metadata struct {
+	RunID       string       `json:"run_id"`
+	Screenshots []Screenshot `json:"screenshots"`
+}
+
+type Screenshot struct {
+	Type     string `json:"type"`
+	Filename string `json:"filename"`
+	Rank     int    `json:"rank"`
+	URL      string `json:url`
+}
+
+// TODO(rmistry): 2 problems. screenshots are empty AND have to loop through both output files below!
+func writeMetadataFile(outputDir, remoteDir, patchType string, rankToURL map[int]string, gs *util.GcsUtil) error {
+	// List all directories in outputDir and copy out the images.
+	screenshots := []Screenshot{}
+	indexDirs, err := filepath.Glob(filepath.Join(outputDir, "*"))
+	if err != nil {
+		return fmt.Errorf("Unable to read %s: %s", outputDir, err)
+	}
+	for _, indexDir := range indexDirs {
+		index := filepath.Base(indexDir)
+		rank, err := strconv.Atoi(index)
+		if err != nil {
+			return fmt.Errorf("Found a directory %s that is not a rank: %s", index, err)
+		}
+		imgFileInfos, err := ioutil.ReadDir(indexDir)
+		if err != nil {
+			return fmt.Errorf("Unable to read %s: %s", indexDir, err)
+		}
+		for _, fileInfo := range imgFileInfos {
+			if fileInfo.IsDir() {
+				// We are only interested in files.
+				continue
+			}
+			screenshot := Screenshot{
+				Type:     patchType,
+				Filename: fileInfo.Name(),
+				Rank:     rank,
+				URL:      rankToURL[rank],
+			}
+			screenshots = append(screenshots, screenshot)
+		}
+		metadata := Metadata{
+			RunID:       *runID,
+			Screenshots: screenshots,
+		}
+		m, err := json.Marshal(&metadata)
+		if err != nil {
+			return fmt.Errorf("Could not marshall %s to json: %s", m, err)
+		}
+		localMetadataFileName := fmt.Sprintf("%d-%d.json", *startRange, *startRange+*num-1)
+		localMetadataFilePath := filepath.Join(outputDir, localMetadataFileName)
+		if err := ioutil.WriteFile(localMetadataFilePath, m, os.ModePerm); err != nil {
+			return fmt.Errorf("Could not write to %s: %s", localMetadataFilePath, err)
+		}
+		if err := gs.UploadFile(localMetadataFileName, outputDir, remoteDir); err != nil {
+			return fmt.Errorf("Could not upload metadata file from %s to %s: %s", localMetadataFilePath, remoteDir, err)
+		}
+	}
+	return nil
+}
+
+func getBaseRemoteDir() string {
+	// Parse the CT runID to extract YYY/MM/DD
+	regex := regexp.MustCompile(`[a-z]+-([0-9]{4})([0-9]{2})([0-9]{2})[0-9]{6}`)
+	matches := regex.FindStringSubmatch(*runID)
+	return filepath.Join(util.PixelDiffRunsDir, matches[1], matches[2], matches[3], *runID)
+}
+
+func getRankFromPageset(pagesetName string) (int, error) {
+	// All CT pagesets are of the form [rank].py so just stripping out the
+	// extension should give us the rank of the pageset.
+	var extension = filepath.Ext(pagesetName)
+	rank := pagesetName[0 : len(pagesetName)-len(extension)]
+	return strconv.Atoi(rank)
 }
 
 func main() {
