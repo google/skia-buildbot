@@ -71,6 +71,30 @@
     },
     {
       "key": {
+        "uuid": "e39f5bce_0249b162",
+        "filename": "pixel_diff/frontend/bower.json",
+        "patchSetId": 8
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-14T13:24:51Z",
+      "side": 1,
+      "message": "Just a note: \nIn Gold this is used to implement an in-page router that translates a URL to a view. This is necessary because Gold is implemented as a single page app. \nYou can copy the Gold approach. If I were to write it new I would use \nhttps://github.com/PolymerElements/app-route\ninstead. That was not around when we wrote Gold. Like mentioned earlier, if you are fine \ngenerating some markup on the server side (via Go templates) you can avoid the client side router all together.",
+      "parentUuid": "9e73d443_a67a07bc",
+      "range": {
+        "startLine": 19,
+        "startChar": 4,
+        "endLine": 19,
+        "endChar": 40
+      },
+      "revId": "566526861d7a79a23a177929452baf0e42b59082",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5764ad7a_22fabbb8",
         "filename": "pixel_diff/frontend/package.json",
         "patchSetId": 8
