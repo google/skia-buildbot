@@ -115,6 +115,7 @@ func (c *PersistentAutoDecrementCounter) writeTemp() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	sklog.Errorf("%p Created temporary file %s", c, f.Name())
 	if err := gob.NewEncoder(f).Encode(c.times); err != nil {
 		Close(f)
 		Remove(f.Name())
@@ -133,6 +134,8 @@ func (c *PersistentAutoDecrementCounter) write() error {
 	if err != nil {
 		return err
 	}
+	sklog.Errorf("%p moving %s", c, tmpFile)
+	defer sklog.Errorf("%p moved %s", c, tmpFile)
 	return os.Rename(tmpFile, c.file)
 }
 
