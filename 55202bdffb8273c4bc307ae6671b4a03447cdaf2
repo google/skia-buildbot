@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "53434be6_856444f5",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-14T10:28:53Z",
+      "side": 1,
+      "message": "IMO, it gets hard here to figure out what each function does, especially since\nGetDiffString is used in two different ways.\nIn this case the meaning solely being defined by the variable name is confusing.\n\nThere are two kind of IDs in play here: image ids uniquely define an image\nand can be an arbitrary string. diff ids are the product of two image ids and\nuniquely identify a pair of images.\n\nInstead of multiple functions, define an interface that maps between between\nids and storage paths.\n\nSomething like this:\n\ntype IDPathMapper interface {\n\t// takes two image ids and returns a diff id that\u0027s unique.\n\t// Note: DiffID(a,b) \u003d\u003d DiffID(b,a) should hold.\n\tDiffID(leftImgID, rightImgID string) string\n\n\t// Inverse of DiffID. SplitDiffID(DiffID(a,b)) should return (a,b) or (b,a)\n\tSplitDiffID(diffID string) (string, string)\n\n\t// DiffPath returns the local file path for a given diffID.\n\t// This path is used to store the diff image on disk and also to serve it\n\t// over http.\n\tDiffPath(diffID string) string\n\n\t// Paths return the storage paths for an image ide. The first return value\n\t// is the relative path within the GS bucket/base_dir and the second path is\n\t// the local file system path.\n\tPaths(imgID string) (string, string)\n}\n\nThe constructor then looks like: \nfunc NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string, gsBaseDirs string, gigs int, mapper IDPathMapper) { ...",
+      "revId": "55202bdffb8273c4bc307ae6671b4a03447cdaf2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9cc8aa3_e0ad0036",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-14T10:28:53Z",
+      "side": 1,
+      "message": "If we go with the interface approach. This should den be folded into the default implementation of that interface.",
+      "revId": "55202bdffb8273c4bc307ae6671b4a03447cdaf2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
