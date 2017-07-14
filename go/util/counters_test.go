@@ -34,30 +34,4 @@ func TestPersistentAutoDecrementCounter(t *testing.T) {
 
 	assert.Equal(t, int64(0), c.Get())
 	assert.Equal(t, int64(0), c2.Get())
-
-	c3, err := NewPersistentAutoDecrementCounter(f, d)
-	assert.NoError(t, err)
-	assert.Equal(t, int64(0), c3.Get())
-
-	i := 0
-	for range time.Tick(time.Duration(float64(d) / float64(4))) {
-		assert.Equal(t, int64(i), c.Get())
-		assert.NoError(t, c.Inc())
-		if i == 2 {
-			break
-		}
-		i++
-	}
-	time.Sleep(time.Duration(float64(d) / float64(8)))
-	expect := int64(3)
-	for range time.Tick(time.Duration(float64(d) / float64(4))) {
-		assert.Equal(t, expect, c.Get())
-		c4, err := NewPersistentAutoDecrementCounter(f, d)
-		assert.NoError(t, err)
-		assert.Equal(t, expect, c4.Get())
-		if expect == 0 {
-			break
-		}
-		expect--
-	}
 }
