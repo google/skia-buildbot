@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"sort"
+	"strings"
 	"testing"
 
 	"google.golang.org/grpc"
@@ -19,7 +20,18 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-const TEST_N_DIGESTS = 20
+const (
+	TEST_N_DIGESTS = 20
+
+	// Test digests for GoldIDPathMapper.
+	TEST_GOLD_LEFT = "098f6bcd4621d373cade4e832627b4f6"
+	TEST_GOLD_RIGHT = "1660f0783f4076284bc18c5f4bdc9608"
+
+	// Test image paths for SilverIDPathMapper.
+	TEST_SILVER_LEFT = "lchoi-20170714123456/nopatch/http___www_google_com"
+	TEST_SILVER_RIGHT = "lchoi-20170714123456/withpatch/http___www_google_com"
+	TEST_SILVER_EMPTY = "lchoi-0000000000000/nopatch/http___www_google_com"
+)
 
 func TestMemDiffStore(t *testing.T) {
 	testutils.LargeTest(t)
@@ -30,7 +42,7 @@ func TestMemDiffStore(t *testing.T) {
 	client, tile := getSetupAndTile(t, baseDir)
 	defer testutils.RemoveAll(t, baseDir)
 
-	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
+	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, nil)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
@@ -45,7 +57,7 @@ func TestNetDiffStore(t *testing.T) {
 	client, tile := getSetupAndTile(t, baseDir)
 	defer testutils.RemoveAll(t, baseDir)
 
-	memDiffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
+	memDiffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, nil)
 	assert.NoError(t, err)
 
 	// Start the server that wraps around the MemDiffStore.
@@ -110,7 +122,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	for _, d1 := range digests {
 		for _, d2 := range digests {
 			if d1 != d2 {
-				id := combineDigests(d1, d2)
+				id := memDiffStore.mapper.DiffID(d1, d2)
 				diffIDs = append(diffIDs, id)
 				assert.True(t, memDiffStore.diffMetricsCache.Contains(id))
 			}
@@ -127,7 +139,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 
 		// Load the diff from disk and compare.
 		for twoDigest, dr := range found {
-			id := combineDigests(oneDigest, twoDigest)
+			id := memDiffStore.mapper.DiffID(oneDigest, twoDigest)
 			loadedDr, err := memDiffStore.metricsStore.loadDiffMetric(id)
 			assert.NoError(t, err)
 			assert.Equal(t, dr, loadedDr, "Comparing: %s", id)
@@ -160,11 +172,65 @@ func testDiffs(t *testing.T, baseDir string, diffStore *MemDiffStore, leftDigest
 				}
 				_, ok := result[l][r]
 				assert.True(t, ok, fmt.Sprintf("left: %s, right:%s", left, right))
-				diffPath := fileutil.TwoLevelRadixPath(diffStore.localDiffDir, getDiffImgFileName(left, right))
+				diffPath := diffStore.mapper.DiffPath(diffStore.localDiffDir, left, right)
 				assert.True(t, fileutil.FileExists(diffPath), fmt.Sprintf("Could not find %s", diffPath))
 			}
 		}
 	}
+}
+
+func testGoldIDPathMapper(t *testing.T) {
+	testutils.SmallTest(t)
+
+	mapper := GoldIDPathMapper{}
+
+	// Test DiffID and SplitDiffID
+	expectedDiffID := TEST_GOLD_LEFT + ":" + TEST_GOLD_RIGHT
+	actualDiffID := mapper.DiffID(TEST_GOLD_LEFT, TEST_GOLD_RIGHT)
+	actualLeft, actualRight := mapper.SplitDiffID(expectedDiffID)
+	assert.Equal(t, expectedDiffID, actualDiffID)
+	assert.Equal(t, TEST_GOLD_LEFT, actualLeft)
+	assert.Equal(t, TEST_GOLD_RIGHT, actualRight)
+
+	// Test DiffPath
+	expectedDiffPath := DEFAULT_DIFFIMG_DIR_NAME + "/" +
+											TEST_GOLD_LEFT[0:1] + "/" + TEST_GOLD_LEFT[2:3] + "/" +
+											TEST_GOLD_LEFT + "-" + TEST_GOLD_RIGHT + IMG_EXTENSION
+	actualDiffPath := mapper.DiffPath(DEFAULT_DIFFIMG_DIR_NAME, TEST_GOLD_LEFT, TEST_GOLD_RIGHT)
+	assert.Equal(t, expectedDiffPath, actualDiffPath)
+
+	// Test ImagePath
+	expectedImagePath := DEFAULT_IMG_DIR_NAME + "/" +
+											 TEST_GOLD_RIGHT[0:1] + "/" + TEST_GOLD_RIGHT[2:3] + "/" +
+											 TEST_GOLD_RIGHT + IMG_EXTENSION
+	actualImagePath := mapper.ImagePath(DEFAULT_IMG_DIR_NAME, TEST_GOLD_RIGHT)
+	assert.Equal(t, expectedImagePath, actualImagePath)
+}
+
+func testSilverIDPathMapper(t *testing.T) {
+	testutils.SmallTest(t)
+
+	mapper := SilverIDPathMapper{}
+	dirs := strings.Split(TEST_SILVER_LEFT, "/")
+
+	// Test DiffID and SplitDiffID
+	expectedDiffID := dirs[0] + "/" + dirs[2]
+	actualDiffID := mapper.DiffID(TEST_SILVER_LEFT, TEST_SILVER_RIGHT)
+	actualLeft, actualRight := mapper.SplitDiffID(expectedDiffID)
+	assert.Equal(t, expectedDiffID, actualDiffID)
+	assert.Equal(t, TEST_SILVER_LEFT, actualLeft)
+	assert.Equal(t, TEST_SILVER_RIGHT, actualRight)
+	assert.Equal(t, "", mapper.DiffID(TEST_SILVER_LEFT, TEST_SILVER_EMPTY))
+
+	// Test DiffPath
+	expectedDiffPath := DEFAULT_DIFFIMG_DIR_NAME + "/" + dirs[0] + "/" + dirs[2] + IMG_EXTENSION
+	actualDiffPath := mapper.DiffPath(DEFAULT_DIFFIMG_DIR_NAME, TEST_SILVER_LEFT, TEST_SILVER_RIGHT)
+	assert.Equal(t, expectedDiffPath, actualDiffPath)
+
+	// Test ImagePath
+	expectedImagePath := DEFAULT_IMG_DIR_NAME + "/" + TEST_SILVER_RIGHT + IMG_EXTENSION
+	actualImagePath := mapper.ImagePath(DEFAULT_IMG_DIR_NAME, TEST_SILVER_RIGHT)
+	assert.Equal(t, expectedImagePath, actualImagePath)
 }
 
 // func (d *MemDiffStore) ServeImageHandler(w http.ResponseWriter, r *http.Request) {
