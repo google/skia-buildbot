@@ -184,7 +184,7 @@ func (v *Validation) QueryFormValue(r *http.Request, name string, val *url.Value
 	}
 }
 
-// Errors returns a concatination of all error values accumulated in validation or nil
+// Errors returns a concatenation of all error values accumulated in validation or nil
 // if there were no errors.
 func (v *Validation) Errors() error {
 	if len(*v) == 0 {
