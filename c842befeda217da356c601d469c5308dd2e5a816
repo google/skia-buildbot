@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e2bed11f_2845d7ef",
+        "filename": "autoroll/go/autorollerv2/autoroller.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-14T13:24:58Z",
+      "side": 1,
+      "message": "Nit x 3:\nreturn newAutoRoller(workdir, childPath, cqExtraTrybots, emails, gerrit, rm, retrieveRoll)",
+      "revId": "c842befeda217da356c601d469c5308dd2e5a816",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
