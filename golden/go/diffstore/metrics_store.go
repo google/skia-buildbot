@@ -54,6 +54,7 @@ func newMetricStore(baseDir string) (*metricsStore, error) {
 		Indices: metricsRecIndices,
 		Codec:   util.JSONCodec(&metricsRec{}),
 	}
+
 	store, err := boltutil.NewIndexedBucket(config)
 	if err != nil {
 		return nil, err
