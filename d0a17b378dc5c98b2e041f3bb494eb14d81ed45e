@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a526ef80_97ae477e",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-14T15:02:00Z",
+      "side": 1,
+      "message": "I think this should be fp.queryId \u003d\u003d \"\" || db.IsUnknownId(err)",
+      "range": {
+        "startLine": 257,
+        "startChar": 4,
+        "endLine": 257,
+        "endChar": 23
+      },
+      "revId": "d0a17b378dc5c98b2e041f3bb494eb14d81ed45e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

@@ -84,6 +84,30 @@
     },
     {
       "key": {
+        "uuid": "c360ae5b_ba783855",
+        "filename": "go/util/util.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-14T15:02:00Z",
+      "side": 1,
+      "message": "Oops, sorry, got confused by diff-from-previous.",
+      "parentUuid": "4a0a9367_dcfc58b4",
+      "range": {
+        "startLine": 229,
+        "startChar": 3,
+        "endLine": 229,
+        "endChar": 29
+      },
+      "revId": "eca3e3662071749c5614a4211b23a6bfb2139e51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "331969d1_827b26ab",
         "filename": "go/util/util.go",
         "patchSetId": 3
@@ -269,6 +293,30 @@
       "revId": "eca3e3662071749c5614a4211b23a6bfb2139e51",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e552b8f6_a92beec2",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-14T15:02:00Z",
+      "side": 1,
+      "message": "I\u0027m now thinking I gave bad advice about truncating. We\u0027ll see how this works and adjust as needed.",
+      "parentUuid": "60d9fd95_0c66005e",
+      "range": {
+        "startLine": 234,
+        "startChar": 21,
+        "endLine": 234,
+        "endChar": 62
+      },
+      "revId": "eca3e3662071749c5614a4211b23a6bfb2139e51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

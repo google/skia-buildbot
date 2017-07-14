@@ -849,6 +849,30 @@
     },
     {
       "key": {
+        "uuid": "9b74cf38_df0649b1",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-14T15:02:00Z",
+      "side": 1,
+      "message": "Ah! Sorry, I missed that comparing with the tasks already in the cache would eliminate duplicates when the task scheduler restarts.",
+      "parentUuid": "8b8b2596_b9721c13",
+      "range": {
+        "startLine": 252,
+        "startChar": 19,
+        "endLine": 252,
+        "endChar": 53
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d198a62b_a0cd137c",
         "filename": "statusv2/go/failure_parser/failure_parser.go",
         "patchSetId": 2
