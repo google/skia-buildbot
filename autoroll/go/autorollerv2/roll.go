@@ -11,6 +11,13 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
+type RollImpl interface {
+	state_machine.RollCLImpl
+
+	// Insert the roll into the DB.
+	InsertIntoDB() error
+}
+
 func retrieveGerritIssue(g *gerrit.Gerrit, rm repo_manager.RepoManager, rollIntoAndroid bool, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
 	info, err := g.GetIssueProperties(issueNum)
 	if err != nil {
@@ -28,7 +35,7 @@ func retrieveGerritIssue(g *gerrit.Gerrit, rm repo_manager.RepoManager, rollInto
 	return info, a, nil
 }
 
-// gerritRoll is an implementation of state_machine.RollCLImpl.
+// gerritRoll is an implementation of RollImpl.
 type gerritRoll struct {
 	ci     *gerrit.ChangeInfo
 	issue  *autoroll.AutoRollIssue
@@ -37,13 +44,11 @@ type gerritRoll struct {
 	rm     repo_manager.RepoManager
 }
 
-// newGerritRoll obtains a gerritRoll instance from the given Gerrit issue number.
-func newGerritRoll(g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, issueNum int64) (state_machine.RollCLImpl, error) {
+// newGerritRoll obtains a gerritRoll instance from the given Gerrit issue
+// number.
+func newGerritRoll(g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, issueNum int64) (RollImpl, error) {
 	ci, issue, err := retrieveGerritIssue(g, rm, false, issueNum)
 	if err != nil {
-		return nil, err
-	}
-	if err := recent.Add(issue); err != nil {
 		return nil, err
 	}
 	return &gerritRoll{
@@ -53,6 +58,11 @@ func newGerritRoll(g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent
 		recent: recent,
 		rm:     rm,
 	}, nil
+}
+
+// See documentation for RollImpl interface.
+func (r *gerritRoll) InsertIntoDB() error {
+	return r.recent.Add(r.issue)
 }
 
 // See documentation for state_machine.RollCLImpl interface.
@@ -131,12 +141,9 @@ type gerritAndroidRoll struct {
 }
 
 // newGerritAndroidRoll obtains a gerritAndroidRoll instance from the given Gerrit issue number.
-func newGerritAndroidRoll(g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, issueNum int64) (state_machine.RollCLImpl, error) {
+func newGerritAndroidRoll(g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, issueNum int64) (RollImpl, error) {
 	ci, issue, err := retrieveGerritIssue(g, rm, true, issueNum)
 	if err != nil {
-		return nil, err
-	}
-	if err := recent.Add(issue); err != nil {
 		return nil, err
 	}
 	return &gerritAndroidRoll{&gerritRoll{
@@ -146,6 +153,11 @@ func newGerritAndroidRoll(g *gerrit.Gerrit, rm repo_manager.RepoManager, recent 
 		recent: recent,
 		rm:     rm,
 	}}, nil
+}
+
+// See documentation for RollImpl interface.
+func (r *gerritAndroidRoll) InsertIntoDB() error {
+	return r.recent.Add(r.issue)
 }
 
 // See documentation for state_machine.RollCLImpl interface.
