@@ -317,6 +317,30 @@
       "revId": "eca3e3662071749c5614a4211b23a6bfb2139e51",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4985c755_d409a2ea",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-14T17:02:18Z",
+      "side": 1,
+      "message": "SGTM",
+      "parentUuid": "e552b8f6_a92beec2",
+      "range": {
+        "startLine": 234,
+        "startChar": 21,
+        "endLine": 234,
+        "endChar": 62
+      },
+      "revId": "eca3e3662071749c5614a4211b23a6bfb2139e51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
