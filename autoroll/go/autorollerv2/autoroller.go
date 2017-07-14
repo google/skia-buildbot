@@ -28,7 +28,6 @@ type AutoRoller struct {
 	lastError       error
 	liveness        metrics2.Liveness
 	modeHistory     *autoroll_modes.ModeHistory
-	modeMtx         sync.Mutex
 	recent          *recent_rolls.RecentRolls
 	retrieveRoll    func(*AutoRoller, int64) (RollImpl, error)
 	rm              repo_manager.RepoManager
@@ -162,16 +161,12 @@ func (r *AutoRoller) SetEmails(e []string) {
 
 // See documentation for state_machine.AutoRollerImpl interface.
 func (r *AutoRoller) GetMode() string {
-	r.modeMtx.Lock()
-	defer r.modeMtx.Unlock()
 	return r.modeHistory.CurrentMode().Mode
 }
 
 // SetMode sets the desired mode of the bot. This forces the bot to run and
 // blocks until it finishes.
 func (r *AutoRoller) SetMode(m, user, message string) error {
-	r.modeMtx.Lock()
-	defer r.modeMtx.Unlock()
 	if err := r.modeHistory.Add(m, user, message); err != nil {
 		return err
 	}
@@ -227,6 +222,9 @@ func (r *AutoRoller) UpdateRepos() error {
 
 // Run one iteration of the roller.
 func (r *AutoRoller) Tick() error {
+	r.runningMtx.Lock()
+	defer r.runningMtx.Unlock()
+
 	sklog.Infof("Running autoroller.")
 	// Run the state machine.
 	lastErr := r.sm.NextTransitionSequence()
