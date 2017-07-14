@@ -3,7 +3,9 @@ package util
 import (
 	"encoding/gob"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path"
 	"sync"
 	"time"
 
@@ -107,20 +109,28 @@ func NewPersistentAutoDecrementCounter(file string, t time.Duration) (*Persisten
 	return c, nil
 }
 
-// write the timings to a file. Assumes the caller holds a write lock.
-func (c *PersistentAutoDecrementCounter) writeFile(file string) error {
-	f, err := os.Create(file)
+// writeTemp writes the timings to a temporary file and returns its name.
+func (c *PersistentAutoDecrementCounter) writeTemp() (string, error) {
+	f, err := ioutil.TempFile(path.Dir(c.file), path.Base(c.file))
 	if err != nil {
-		return err
+		return "", err
 	}
-	defer Close(f)
-	return gob.NewEncoder(f).Encode(c.times)
+	if err := gob.NewEncoder(f).Encode(c.times); err != nil {
+		Close(f)
+		Remove(f.Name())
+		return "", err
+	}
+	if err := f.Close(); err != nil {
+		Remove(f.Name())
+		return "", err
+	}
+	return f.Name(), nil
 }
 
 // write the timings to the backing file. Assumes the caller holds a write lock.
 func (c *PersistentAutoDecrementCounter) write() error {
-	tmpFile := c.file + "~"
-	if err := c.writeFile(tmpFile); err != nil {
+	tmpFile, err := c.writeTemp()
+	if err != nil {
 		return err
 	}
 	return os.Rename(tmpFile, c.file)
