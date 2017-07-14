@@ -226,7 +226,7 @@ func ContainsAnyMap(parent map[string]string, children ...map[string]string) boo
 	return false
 }
 
-// ContainsMapWithSliceValues checks if child map is contained within the
+// ContainsMapInSliceValues checks if child map is contained within the
 // parent map.
 func ContainsMapInSliceValues(parent map[string][]string, child map[string]string) bool {
 	if len(child) > len(parent) {
@@ -242,7 +242,7 @@ func ContainsMapInSliceValues(parent map[string][]string, child map[string]strin
 	return true
 }
 
-// ContainsAnyMapWithSliceValues checks to see if any of the children maps are
+// ContainsAnyMapInSliceValues checks to see if any of the children maps are
 // contained in the parent map.
 func ContainsAnyMapInSliceValues(parent map[string][]string, children ...map[string]string) bool {
 	for _, child := range children {
@@ -917,4 +917,18 @@ func ToDos(s string) string {
 // in the given string from Dos to Unix format.
 func FromDos(s string) string {
 	return strings.Replace(s, "\r\n", "\n", -1)
+}
+
+// Truncate the given string to the given length. If the string was shortened,
+// change the last three characters to ellipses, unless the specified length is
+// 3 or less.
+func Truncate(s string, length int) string {
+	if len(s) > length {
+		if length <= 3 {
+			return s[:length]
+		}
+		ellipses := "..."
+		return s[:length-len(ellipses)] + ellipses
+	}
+	return s
 }

@@ -714,3 +714,16 @@ func TestContainsAnyMapInSliceValues(t *testing.T) {
 	assert.True(t, ContainsAnyMapInSliceValues(map[string][]string{}, map[string]string{}))
 	assert.False(t, ContainsAnyMapInSliceValues(map[string][]string{}, child1, child2))
 }
+
+func TestTruncate(t *testing.T) {
+	testutils.SmallTest(t)
+	s := "abcdefghijkl"
+	assert.Equal(t, "", Truncate(s, 0))
+	assert.Equal(t, "a", Truncate(s, 1))
+	assert.Equal(t, "ab", Truncate(s, 2))
+	assert.Equal(t, "abc", Truncate(s, 3))
+	assert.Equal(t, "a...", Truncate(s, 4))
+	assert.Equal(t, "ab...", Truncate(s, 5))
+	assert.Equal(t, s, Truncate(s, len(s)))
+	assert.Equal(t, s, Truncate(s, len(s)+1))
+}
