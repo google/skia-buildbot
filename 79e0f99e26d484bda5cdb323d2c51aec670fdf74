@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e2b4f92c_eecb584d",
+        "filename": "golden/go/diff/metrics.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-14T15:29:08Z",
+      "side": 1,
+      "message": "rm \u0027and\u0027",
+      "range": {
+        "startLine": 41,
+        "startChar": 19,
+        "endLine": 41,
+        "endChar": 23
+      },
+      "revId": "79e0f99e26d484bda5cdb323d2c51aec670fdf74",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "30e6a809_8c9ec9a8",
+        "filename": "golden/go/diff/metrics.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-14T15:29:08Z",
+      "side": 1,
+      "message": "Calculate",
+      "range": {
+        "startLine": 45,
+        "startChar": 4,
+        "endLine": 45,
+        "endChar": 13
+      },
+      "revId": "79e0f99e26d484bda5cdb323d2c51aec670fdf74",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
