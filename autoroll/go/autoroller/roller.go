@@ -31,19 +31,6 @@ const (
 	STATUS_UP_TO_DATE          = "up to date"
 )
 
-var (
-	VALID_STATUSES = []string{
-		STATUS_DRY_RUN_FAILURE,
-		STATUS_DRY_RUN_IN_PROGRESS,
-		STATUS_DRY_RUN_SUCCESS,
-		STATUS_ERROR,
-		STATUS_IN_PROGRESS,
-		STATUS_STOPPED,
-		STATUS_THROTTLED,
-		STATUS_UP_TO_DATE,
-	}
-)
-
 // AutoRoller is a struct used for managing DEPS rolls.
 type AutoRoller struct {
 	attemptCounter  *util.AutoDecrementCounter
@@ -203,17 +190,6 @@ func (c *AutoRollStatusCache) Get(includeError bool) *AutoRollStatus {
 
 // set sets the current status information.
 func (c *AutoRollStatusCache) Set(s *AutoRollStatus) error {
-	if !util.In(string(s.Status), VALID_STATUSES) {
-		return fmt.Errorf("Invalid status: %s", s.Status)
-	}
-	if s.Status == STATUS_ERROR {
-		if s.Error == "" {
-			return fmt.Errorf("Cannot set error status without an error!")
-		}
-	} else if s.Error != "" {
-		return fmt.Errorf("Cannot be in any status other than error when an error occurred.")
-	}
-
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	recent := make([]*autoroll.AutoRollIssue, 0, len(s.Recent))
