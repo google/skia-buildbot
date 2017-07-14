@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "b988f4d4_49119abf",
+        "filename": "go/util/util.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-14T14:45:31Z",
+      "side": 1,
+      "message": "Added test for Truncate.",
+      "parentUuid": "2e08eec2_a540da18",
+      "revId": "eca3e3662071749c5614a4211b23a6bfb2139e51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0658ffb3_bcb01b36",
         "filename": "go/util/util.go",
         "patchSetId": 3
@@ -30,6 +48,30 @@
       "writtenOn": "2017-07-11T19:01:17Z",
       "side": 1,
       "message": "nit: doesn\u0027t match actual name",
+      "range": {
+        "startLine": 229,
+        "startChar": 3,
+        "endLine": 229,
+        "endChar": 29
+      },
+      "revId": "eca3e3662071749c5614a4211b23a6bfb2139e51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a0a9367_dcfc58b4",
+        "filename": "go/util/util.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-14T14:45:31Z",
+      "side": 1,
+      "message": "Not added in this CL, but fixed anyway.",
+      "parentUuid": "0658ffb3_bcb01b36",
       "range": {
         "startLine": 229,
         "startChar": 3,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "ace6513e_8fca5492",
+        "filename": "go/util/util.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-14T14:45:31Z",
+      "side": 1,
+      "message": "ditto",
+      "parentUuid": "331969d1_827b26ab",
+      "range": {
+        "startLine": 245,
+        "startChar": 3,
+        "endLine": 245,
+        "endChar": 32
+      },
+      "revId": "eca3e3662071749c5614a4211b23a6bfb2139e51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e095b02f_a7d6b218",
         "filename": "statusv2/go/failure_parser/failure_parser.go",
         "patchSetId": 3
@@ -85,6 +151,30 @@
       "revId": "eca3e3662071749c5614a4211b23a6bfb2139e51",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "22cbeb7e_8360beb0",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-14T14:45:31Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "e095b02f_a7d6b218",
+      "range": {
+        "startLine": 102,
+        "startChar": 26,
+        "endLine": 102,
+        "endChar": 36
+      },
+      "revId": "eca3e3662071749c5614a4211b23a6bfb2139e51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "01549d36_5ba086ef",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-14T14:45:31Z",
+      "side": 1,
+      "message": "That\u0027s intentional. This is an unfortunate error because there\u0027s not much to go off of.",
+      "parentUuid": "927a8087_75a3007b",
+      "range": {
+        "startLine": 114,
+        "startChar": 74,
+        "endLine": 114,
+        "endChar": 75
+      },
+      "revId": "eca3e3662071749c5614a4211b23a6bfb2139e51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "69b31d41_a9b25913",
         "filename": "statusv2/go/failure_parser/failure_parser.go",
         "patchSetId": 3
@@ -122,6 +236,30 @@
       "writtenOn": "2017-07-11T19:01:17Z",
       "side": 1,
       "message": "I didn\u0027t expect you to truncate this. Is the idea that if the stripped failure message is \u003e5k, it\u0027s unlikely to match exactly another failure? Or are we just concerned that if we have 1000 failures that are each 10MB, this program will take \u003e10GB of memory?",
+      "range": {
+        "startLine": 234,
+        "startChar": 21,
+        "endLine": 234,
+        "endChar": 62
+      },
+      "revId": "eca3e3662071749c5614a4211b23a6bfb2139e51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60d9fd95_0c66005e",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-14T14:45:31Z",
+      "side": 1,
+      "message": "I truncated this because the two are likely to be close to the same length. If the original is too long, then the stripped message is probably too long too, since stripping out the identifying information doesn\u0027t change the length significantly.",
+      "parentUuid": "69b31d41_a9b25913",
       "range": {
         "startLine": 234,
         "startChar": 21,

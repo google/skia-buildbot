@@ -825,6 +825,30 @@
     },
     {
       "key": {
+        "uuid": "8b8b2596_b9721c13",
+        "filename": "statusv2/go/failure_parser/failure_parser.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-14T14:45:31Z",
+      "side": 1,
+      "message": "Right, the important logic is the handling of disconnection of the remote database without having to process all of the tasks in the last X period again, but maybe it\u0027s not a big deal.  I reverted my changes to the cache and just used GetModifiedTasks.",
+      "parentUuid": "b164535c_cd11b1b2",
+      "range": {
+        "startLine": 252,
+        "startChar": 19,
+        "endLine": 252,
+        "endChar": 53
+      },
+      "revId": "3f90aa088896f00aea1667f5d4349fb2b7acb855",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d198a62b_a0cd137c",
         "filename": "statusv2/go/failure_parser/failure_parser.go",
         "patchSetId": 2
