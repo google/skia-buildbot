@@ -934,6 +934,21 @@ func CreateCustomPagesets(webpages []string, pagesetsDir string) error {
 	return nil
 }
 
+func GetBasePixelDiffRemoteDir(runID string) string {
+	// Parse the CT runID to extract YYYY/MM/DD
+	regex := regexp.MustCompile(`[a-z]+-([0-9]{4})([0-9]{2})([0-9]{2})[0-9]{6}`)
+	matches := regex.FindStringSubmatch(runID)
+	return filepath.Join(PixelDiffRunsDir, matches[1], matches[2], matches[3], runID)
+}
+
+func GetRankFromPageset(pagesetFileName string) (int, error) {
+	// All CT pagesets are of the form [rank].py so just stripping out the
+	// extension should give us the rank of the pageset.
+	var extension = filepath.Ext(pagesetFileName)
+	rank := pagesetFileName[0 : len(pagesetFileName)-len(extension)]
+	return strconv.Atoi(rank)
+}
+
 type Pageset struct {
 	UserAgent       string `json:"user_agent"`
 	ArchiveDataFile string `json:"archive_data_file"`

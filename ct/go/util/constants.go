@@ -26,6 +26,7 @@ const (
 	BINARIES_DIR_NAME                = "binaries"
 	LUA_TASKS_DIR_NAME               = "lua_runs"
 	BENCHMARK_TASKS_DIR_NAME         = "benchmark_runs"
+	PIXEL_DIFF_TASKS_DIR_NAME        = "pixel_diff_runs"
 	CHROMIUM_PERF_TASKS_DIR_NAME     = "chromium_perf_runs"
 	CHROMIUM_ANALYSIS_TASKS_DIR_NAME = "chromium_analysis_runs"
 	FIX_ARCHIVE_TASKS_DIR_NAME       = "fix_archive_runs"
@@ -211,6 +212,7 @@ var (
 	BinariesDir             = filepath.Join(BINARIES_DIR_NAME)
 	LuaRunsDir              = filepath.Join(TASKS_DIR_NAME, LUA_TASKS_DIR_NAME)
 	BenchmarkRunsDir        = filepath.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
+	PixelDiffRunsDir        = filepath.Join(TASKS_DIR_NAME, PIXEL_DIFF_TASKS_DIR_NAME)
 	ChromiumPerfRunsDir     = filepath.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)
 	ChromiumAnalysisRunsDir = filepath.Join(TASKS_DIR_NAME, CHROMIUM_ANALYSIS_TASKS_DIR_NAME)
 	FixArchivesRunsDir      = filepath.Join(TASKS_DIR_NAME, FIX_ARCHIVE_TASKS_DIR_NAME)

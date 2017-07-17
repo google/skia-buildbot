@@ -2,12 +2,14 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -147,7 +149,7 @@ func pixelDiff() error {
 	skutil.RemoveAll(localOutputDirNoPatch)
 	skutil.MkdirAll(localOutputDirNoPatch, 0700)
 	defer skutil.RemoveAll(localOutputDirNoPatch)
-	remoteDirNoPatch := filepath.Join(util.BenchmarkRunsDir, *runID, "nopatch")
+	remoteDirNoPatch := filepath.Join(util.GetBasePixelDiffRemoteDir(*runID), "nopatch")
 
 	// Establish withpatch output paths.
 	runIDWithPatch := fmt.Sprintf("%s-withpatch", *runID)
@@ -155,7 +157,7 @@ func pixelDiff() error {
 	skutil.RemoveAll(localOutputDirWithPatch)
 	skutil.MkdirAll(localOutputDirWithPatch, 0700)
 	defer skutil.RemoveAll(localOutputDirWithPatch)
-	remoteDirWithPatch := filepath.Join(util.BenchmarkRunsDir, *runID, "withpatch")
+	remoteDirWithPatch := filepath.Join(util.GetBasePixelDiffRemoteDir(*runID), "withpatch")
 
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
@@ -167,6 +169,8 @@ func pixelDiff() error {
 	// be consumed by the worker pool.
 	pagesetRequests := util.GetClosedChannelOfPagesets(fileInfos)
 	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].PixelDiffTimeoutSecs
+	// Dict of rank to URL. Will be used when populating the metadata file.
+	rankToURL := map[int]string{}
 
 	var wg sync.WaitGroup
 	// Use a RWMutex for the chromeProcessesCleaner goroutine to communicate to
@@ -192,12 +196,18 @@ func pixelDiff() error {
 					sklog.Errorf("Could not read %s: %s", pagesetPath, err)
 					continue
 				}
+				rank, err := util.GetRankFromPageset(pagesetName)
+				if err != nil {
+					sklog.Errorf("Could not get rank out of pageset %s: %s", pagesetName, err)
+					continue
+				}
+				rankToURL[rank] = decodedPageset.UrlsList
 
 				sklog.Infof("===== Processing %s =====", pagesetPath)
 
 				mutex.RLock()
-				runScreenshotBenchmark(localOutputDirNoPatch, chromiumBinaryNoPatch, pagesetName, pathToPagesets, decodedPageset, timeoutSecs)
-				runScreenshotBenchmark(localOutputDirWithPatch, chromiumBinaryWithPatch, pagesetName, pathToPagesets, decodedPageset, timeoutSecs)
+				runScreenshotBenchmark(localOutputDirNoPatch, chromiumBinaryNoPatch, pagesetName, pathToPagesets, decodedPageset, timeoutSecs, rank)
+				runScreenshotBenchmark(localOutputDirWithPatch, chromiumBinaryWithPatch, pagesetName, pathToPagesets, decodedPageset, timeoutSecs, rank)
 				mutex.RUnlock()
 			}
 		}()
@@ -230,6 +240,14 @@ func pixelDiff() error {
 		}
 	}
 
+	// Write out the metadata file.
+	if err := writeMetadataFile(localOutputDirNoPatch, remoteDirNoPatch, "nopatch", rankToURL, gs); err != nil {
+		return fmt.Errorf("Could not write metadata file for %s: %s", localOutputDirNoPatch, err)
+	}
+	if err := writeMetadataFile(localOutputDirWithPatch, remoteDirWithPatch, "withpatch", rankToURL, gs); err != nil {
+		return fmt.Errorf("Could not write metadata file for %s: %s", localOutputDirWithPatch, err)
+	}
+
 	// Upload screenshots to Google Storage.
 	if err := gs.UploadDir(localOutputDirNoPatch, remoteDirNoPatch, false); err != nil {
 		return fmt.Errorf("Could not upload images from %s to %s: %s", localOutputDirNoPatch, remoteDirNoPatch, err)
@@ -241,13 +259,13 @@ func pixelDiff() error {
 	return nil
 }
 
-func runScreenshotBenchmark(outputPath, chromiumBinary, pagesetName, pathToPagesets string, decodedPageset util.PagesetVars, timeoutSecs int) {
+func runScreenshotBenchmark(outputPath, chromiumBinary, pagesetName, pathToPagesets string, decodedPageset util.PagesetVars, timeoutSecs, rank int) {
 
 	args := []string{
 		filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
 		util.BenchmarksToTelemetryName[util.BENCHMARK_SCREENSHOT],
 		"--also-run-disabled-tests",
-		"--png-outdir=" + outputPath,
+		"--png-outdir=" + filepath.Join(outputPath, strconv.Itoa(rank)),
 		"--extra-browser-args=" + util.DEFAULT_BROWSER_ARGS,
 		"--user-agent=" + decodedPageset.UserAgent,
 		"--urls-list=" + decodedPageset.UrlsList,
@@ -270,6 +288,71 @@ func runScreenshotBenchmark(outputPath, chromiumBinary, pagesetName, pathToPages
 	if err != nil {
 		sklog.Errorf("Error during run_benchmark: %s", err)
 	}
+}
+
+type Metadata struct {
+	RunID             string       `json:"run_id"`
+	ChromiumPatchLink string       `json:"chromium_patch"`
+	SkiaPatchLink     string       `json:"skia_patch"`
+	Screenshots       []Screenshot `json:"screenshots"`
+}
+
+type Screenshot struct {
+	Type     string `json:"type"`
+	Filename string `json:"filename"`
+	Rank     int    `json:"rank"`
+	URL      string `json:"url"`
+}
+
+func writeMetadataFile(outputDir, remoteDir, patchType string, rankToURL map[int]string, gs *util.GcsUtil) error {
+	screenshots := []Screenshot{}
+	indexDirs, err := filepath.Glob(filepath.Join(outputDir, "*"))
+	if err != nil {
+		return fmt.Errorf("Unable to read %s: %s", outputDir, err)
+	}
+	for _, indexDir := range indexDirs {
+		index := filepath.Base(indexDir)
+		rank, err := strconv.Atoi(index)
+		if err != nil {
+			return fmt.Errorf("Found a directory %s that is not a rank: %s", index, err)
+		}
+		imgFileInfos, err := ioutil.ReadDir(indexDir)
+		if err != nil {
+			return fmt.Errorf("Unable to read %s: %s", indexDir, err)
+		}
+		for _, fileInfo := range imgFileInfos {
+			if fileInfo.IsDir() {
+				// We are only interested in files.
+				continue
+			}
+			screenshot := Screenshot{
+				Type:     patchType,
+				Filename: fileInfo.Name(),
+				Rank:     rank,
+				URL:      rankToURL[rank],
+			}
+			screenshots = append(screenshots, screenshot)
+		}
+		metadata := Metadata{
+			RunID:             *runID,
+			ChromiumPatchLink: util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, util.BenchmarkRunsDir, *runID, *runID+".chromium.patch"),
+			SkiaPatchLink:     util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, util.BenchmarkRunsDir, *runID, *runID+".skia.patch"),
+			Screenshots:       screenshots,
+		}
+		m, err := json.Marshal(&metadata)
+		if err != nil {
+			return fmt.Errorf("Could not marshall %s to json: %s", m, err)
+		}
+		localMetadataFileName := fmt.Sprintf("%d-%d.json", *startRange, *startRange+*num-1)
+		localMetadataFilePath := filepath.Join(outputDir, localMetadataFileName)
+		if err := ioutil.WriteFile(localMetadataFilePath, m, os.ModePerm); err != nil {
+			return fmt.Errorf("Could not write to %s: %s", localMetadataFilePath, err)
+		}
+		if err := gs.UploadFile(localMetadataFileName, outputDir, remoteDir); err != nil {
+			return fmt.Errorf("Could not upload metadata file from %s to %s: %s", localMetadataFilePath, remoteDir, err)
+		}
+	}
+	return nil
 }
 
 func main() {

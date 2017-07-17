@@ -219,8 +219,8 @@ func main() {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}
-	nopatchImagesLink = "gs://" + filepath.Join(util.GCSBucketName, util.BenchmarkRunsDir, *runID, "nopatch")
-	withpatchImagesLink = "gs://" + filepath.Join(util.GCSBucketName, util.BenchmarkRunsDir, *runID, "withpatch")
+	nopatchImagesLink = "gs://" + filepath.Join(util.GetBasePixelDiffRemoteDir(*runID), "nopatch")
+	withpatchImagesLink = "gs://" + filepath.Join(util.GetBasePixelDiffRemoteDir(*runID), "withpatch")
 
 	taskCompletedSuccessfully = true
 }
