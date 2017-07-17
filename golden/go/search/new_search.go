@@ -1,10 +1,12 @@
 package search
 
 import (
+	"fmt"
 	"sort"
 	"sync"
 
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
@@ -71,6 +73,12 @@ type NewSearchResponse struct {
 	Commits []*tiling.Commit `json:"commits"`
 }
 
+// DigestDetails contains details about a digest.
+type SRDigestDetails struct {
+	Digest  *SRDigest        `json:"digest"`
+	Commits []*tiling.Commit `json:"commits"`
+}
+
 // SearchAPI is type that exposes a search API to query the
 // current tile (all images for the most recent commits).
 type SearchAPI struct {
@@ -103,7 +111,7 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 
 	// Diff stage: Compare all digests found in the previous stages and find
 	// reference points (positive, negative etc.) for each digest.
-	ret := s.getReferenceDiffs(q, inter, exp, idx)
+	ret := s.getReferenceDiffs(q.Metric, q.Match, q.IncludeIgnores, inter, exp, idx)
 	if err != nil {
 		return nil, err
 	}
@@ -128,6 +136,57 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 	}, nil
 }
 
+// GetDigestDetails returns details about a digest as an instance of SRDigestDetails.
+func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, error) {
+	sklog.Infof("\n\nGOT: %s   %s\n\n", test, digest)
+
+	idx := s.ixr.GetIndex()
+	tile := idx.GetTile(true)
+
+	exp, err := s.storages.ExpectationsStore.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	oneInter := newSrIntermediate(test, digest, "", nil)
+	for traceId, trace := range tile.Traces {
+		if trace.Params()[types.PRIMARY_KEY_FIELD] != test {
+			continue
+		}
+		sklog.Infof("\n\nFOUND TEST\n\n")
+		gTrace := trace.(*types.GoldenTrace)
+		for _, val := range gTrace.Values {
+			if val == digest {
+				sklog.Infof("\n\nFOUND DIGEST\n\n")
+				oneInter.Add(traceId, trace)
+				break
+			}
+		}
+	}
+
+	// Make sure we have at least one trace.
+	if len(oneInter.traces) == 0 {
+		return nil, fmt.Errorf("Unknown test and digest.")
+	}
+
+	// TODO(stephana): Make the metric, match and ignores parameters for the comparison.
+
+	// Wrap the intermediate value in a map so we can re-use the search function for this.
+	inter := map[string]map[string]*srIntermediate{test: {digest: oneInter}}
+	ret := s.getReferenceDiffs(diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, true, inter, exp, idx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the params and traces.
+	s.addParamsAndTraces(ret, inter, exp, idx)
+
+	return &SRDigestDetails{
+		Digest:  ret[0],
+		Commits: tile.Commits,
+	}, nil
+}
+
 // srIntermediate is the intermediate representation of a single digest
 // found by the search. It is used to avoid multiple passes through the tile
 // by accumulating the parameters that generated a specific digest and by
@@ -148,7 +207,9 @@ func newSrIntermediate(test, digest, traceID string, trace tiling.Trace) *srInte
 		params: paramtools.ParamSet{},
 		traces: map[string]*types.GoldenTrace{},
 	}
-	ret.Add(traceID, trace)
+	if (traceID != "") && (trace != nil) {
+		ret.Add(traceID, trace)
+	}
 	return ret
 }
 
@@ -200,7 +261,7 @@ func (s *SearchAPI) filterTile(q *Query, idx *indexer.SearchIndex) (map[string]m
 
 // getReferenceDiffs compares all digests collected in the intermediate representation
 // and compares them to the other known results for the test at hand.
-func (s *SearchAPI) getReferenceDiffs(q *Query, inter map[string]map[string]*srIntermediate, exp *expstorage.Expectations, idx *indexer.SearchIndex) []*SRDigest {
+func (s *SearchAPI) getReferenceDiffs(metric string, match []string, includeIgnores bool, inter map[string]map[string]*srIntermediate, exp *expstorage.Expectations, idx *indexer.SearchIndex) []*SRDigest {
 	// Get the total number of digests we have at this point.
 	// This allows to allocate the result below more efficiently and avoid using
 	// a lock to write the results.
@@ -217,7 +278,7 @@ func (s *SearchAPI) getReferenceDiffs(q *Query, inter map[string]map[string]*srI
 	for _, testDigests := range inter {
 		for _, interValue := range testDigests {
 			go func(i *srIntermediate, index int) {
-				closestRef, refDiffs := refDiffer.GetRefDiffs(q.Metric, q.Match, i.test, i.digest, i.params, i.traces, q.IncludeIgnores)
+				closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, i.test, i.digest, i.params, i.traces, includeIgnores)
 				retDigests[index] = &SRDigest{
 					Test:       i.test,
 					Digest:     i.digest,
