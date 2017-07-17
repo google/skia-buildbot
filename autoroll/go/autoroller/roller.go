@@ -171,7 +171,6 @@ func (c *AutoRollStatusCache) Get(includeError bool) *AutoRollStatus {
 	s := &AutoRollStatus{
 		GerritUrl:   c.gerritUrl,
 		LastRollRev: c.lastRollRev,
-		Mode:        c.mode.Copy(),
 		Recent:      recent,
 		Status:      c.status,
 		ValidModes:  validModes,
@@ -181,6 +180,9 @@ func (c *AutoRollStatusCache) Get(includeError bool) *AutoRollStatus {
 	}
 	if c.lastRoll != nil {
 		s.LastRoll = c.lastRoll.Copy()
+	}
+	if c.mode != nil {
+		s.Mode = c.mode.Copy()
 	}
 	if includeError && c.lastError != "" {
 		s.Error = c.lastError
