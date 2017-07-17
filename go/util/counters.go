@@ -1,20 +1,23 @@
 package util
 
+/*
+   This file contains implementations for various types of counters.
+*/
+
 import (
 	"encoding/gob"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
-	"path"
 	"sync"
 	"time"
 
 	"go.skia.org/infra/go/sklog"
 )
 
-/*
-	This file contains implementations for various types of counters.
-*/
+// These can be mocked for testing.
+var timeAfterFunc = time.AfterFunc
+var timeNowFunc = time.Now
 
 // AtomicCounter implements a counter which can be incremented and decremented atomically.
 type AtomicCounter struct {
@@ -80,9 +83,9 @@ type PersistentAutoDecrementCounter struct {
 	duration time.Duration
 }
 
-// NewPersistentAutoDecrementCounter returns a PersistentAutoDecrementCounter
-// instance using the given file.
-func NewPersistentAutoDecrementCounter(file string, t time.Duration) (*PersistentAutoDecrementCounter, error) {
+// Helper function for reading the PersistentAutoDecrementCounter's timings from
+// a backing file.
+func read(file string) ([]time.Time, error) {
 	times := []time.Time{}
 	f, err := os.Open(file)
 	if err == nil {
@@ -93,55 +96,50 @@ func NewPersistentAutoDecrementCounter(file string, t time.Duration) (*Persisten
 	} else if !os.IsNotExist(err) {
 		return nil, fmt.Errorf("Unable to read file for PersistentAutoDecrementCounter: %s", err)
 	}
+	return times, nil
+}
+
+// NewPersistentAutoDecrementCounter returns a PersistentAutoDecrementCounter
+// instance using the given file.
+func NewPersistentAutoDecrementCounter(file string, d time.Duration) (*PersistentAutoDecrementCounter, error) {
+	times, err := read(file)
+	if err != nil {
+		return nil, err
+	}
 	c := &PersistentAutoDecrementCounter{
 		times:    times,
 		file:     file,
-		duration: t,
+		duration: d,
 	}
 	// Write the file in case we didn't have one before.
 	if err := c.write(); err != nil {
 		return nil, err
 	}
-	now := time.Now().UTC()
+	// Start timers for any existing counts.
+	now := timeNowFunc().UTC()
 	for _, t := range c.times {
-		go c.decAfter(t.Sub(now))
+		timeAfterFunc(t.Sub(now), func() {
+			c.decLogErr()
+		})
 	}
 	return c, nil
 }
 
-// writeTemp writes the timings to a temporary file and returns its name.
-func (c *PersistentAutoDecrementCounter) writeTemp() (string, error) {
-	f, err := ioutil.TempFile(path.Dir(c.file), path.Base(c.file))
-	if err != nil {
-		return "", err
-	}
-	if err := gob.NewEncoder(f).Encode(c.times); err != nil {
-		Close(f)
-		Remove(f.Name())
-		return "", err
-	}
-	if err := f.Close(); err != nil {
-		Remove(f.Name())
-		return "", err
-	}
-	return f.Name(), nil
-}
-
 // write the timings to the backing file. Assumes the caller holds a write lock.
 func (c *PersistentAutoDecrementCounter) write() error {
-	tmpFile, err := c.writeTemp()
-	if err != nil {
-		return err
-	}
-	return os.Rename(tmpFile, c.file)
+	return WithWriteFile(c.file, func(w io.Writer) error {
+		return gob.NewEncoder(w).Encode(c.times)
+	})
 }
 
 // Inc increments the PersistentAutoDecrementCounter and schedules a decrement.
 func (c *PersistentAutoDecrementCounter) Inc() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	c.times = append(c.times, time.Now().UTC().Add(c.duration))
-	go c.decAfter(c.duration)
+	c.times = append(c.times, timeNowFunc().UTC().Add(c.duration))
+	timeAfterFunc(c.duration, func() {
+		c.decLogErr()
+	})
 	return c.write()
 }
 
@@ -149,16 +147,12 @@ func (c *PersistentAutoDecrementCounter) Inc() error {
 func (c *PersistentAutoDecrementCounter) dec() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	if time.Now().UTC().After(c.times[0]) {
-		c.times = c.times[1:]
-	}
+	c.times = c.times[1:]
 	return c.write()
 }
 
-// decAfter waits until the specified duration has passed and decrements the
-// counter.
-func (c *PersistentAutoDecrementCounter) decAfter(d time.Duration) {
-	time.Sleep(d)
+// decLogErr decrements the PersistentAutoDecrementCounter and logs any error.
+func (c *PersistentAutoDecrementCounter) decLogErr() {
 	if err := c.dec(); err != nil {
 		sklog.Errorf("Failed to decrement PersistentAutoDecrementCounter: %s", err)
 	}

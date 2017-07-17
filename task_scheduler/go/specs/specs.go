@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -675,29 +676,19 @@ func (c *TaskCfgCache) write() error {
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return err
 	}
-	tmpFile := fmt.Sprintf("%s.tmp", c.file)
-	f, err := os.Create(tmpFile)
-	if err != nil {
-		return fmt.Errorf("Failed to create TaskCfgCache file: %s", err)
-	}
-	gobCache := gobTaskCfgCache{
-		AddedTasksCache: c.addedTasksCache,
-		Cache:           c.cache,
-		RecentCommits:   c.recentCommits,
-		RecentJobSpecs:  c.recentJobSpecs,
-		RecentTaskSpecs: c.recentTaskSpecs,
-	}
-	if err := gob.NewEncoder(f).Encode(&gobCache); err != nil {
-		util.Close(f)
-		return fmt.Errorf("Failed to encode TaskCfgCache: %s", err)
-	}
-	if err := f.Close(); err != nil {
-		return fmt.Errorf("Failed to wrote TaskCfgCache: %s", err)
-	}
-	if err := os.Rename(tmpFile, c.file); err != nil {
-		return fmt.Errorf("Failed to rename temp TaskCfgCache (%s to %s): %s", tmpFile, c.file, err)
-	}
-	return nil
+	return util.WithWriteFile(c.file, func(w io.Writer) error {
+		gobCache := gobTaskCfgCache{
+			AddedTasksCache: c.addedTasksCache,
+			Cache:           c.cache,
+			RecentCommits:   c.recentCommits,
+			RecentJobSpecs:  c.recentJobSpecs,
+			RecentTaskSpecs: c.recentTaskSpecs,
+		}
+		if err := gob.NewEncoder(w).Encode(&gobCache); err != nil {
+			return fmt.Errorf("Failed to encode TaskCfgCache: %s", err)
+		}
+		return nil
+	})
 }
 
 func stringMapKeys(m map[string]time.Time) []string {

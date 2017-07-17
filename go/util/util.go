@@ -6,9 +6,11 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
 	mathrand "math/rand"
 	"os"
+	"path"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -931,4 +933,24 @@ func Truncate(s string, length int) string {
 		return s[:length-len(ellipses)] + ellipses
 	}
 	return s
+}
+
+// WithWriteFile provides an interface for writing to a backing file using a
+// temporary intermediate file for more atomicity in case a long-running write
+// gets interrupted.
+func WithWriteFile(file string, writeFn func(io.Writer) error) error {
+	f, err := ioutil.TempFile(path.Dir(file), path.Base(file))
+	if err != nil {
+		return err
+	}
+	if err := writeFn(f); err != nil {
+		Close(f)
+		Remove(f.Name())
+		return err
+	}
+	if err := f.Close(); err != nil {
+		Remove(f.Name())
+		return err
+	}
+	return os.Rename(f.Name(), file)
 }
