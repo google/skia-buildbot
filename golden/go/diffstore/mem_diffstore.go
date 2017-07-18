@@ -41,6 +41,135 @@ const (
 	BYTES_PER_DIFF_METRIC = 100
 )
 
+// IDPathMapper is an interface that defines various functions for mapping
+// between IDs and storage paths.
+type IDPathMapper interface {
+	// Takes two image IDs and returns a unique diff ID.
+	// Note: DiffID(a,b) == DiffID(b, a) should hold.
+	DiffID(leftImgID, rightImgID string) string
+
+	// Inverse function of DiffID.
+	// SplitDiffID(DiffID(a,b)) should return (a,b) or (b,a).
+	SplitDiffID(diffID string) (string, string)
+
+	// DiffPath returns the local file path for the diff image of two images.
+	// This path is used to store the diff image on disk and serve it over HTTP.
+	DiffPath(leftImgID, rightImgID string) string
+
+	// ImagePath returns the local file path for the image. This path is used to
+	// store the image on disk and serve it over HTTP.
+	ImagePath(imageID string) string
+
+	// IsValidDiffImgName returns true if the given diffImgName is in the correct format.
+	IsValidDiffImgName(diffImgName string) bool
+
+	// IsValidImgName returns true if the given imgName is in the correct format.
+	IsValidImgName(imgName string) bool
+}
+
+// GoldIDPathMapper implements the IDPathMapper interface. The format of an
+// imageID is an MD5 digest.
+type GoldIDPathMapper struct {}
+
+// Returns a sorted, colon-separated concatenation of two digests.
+func (g GoldIDPathMapper) DiffID(leftImgID, rightImgID string) string {
+	if rightImgID < leftImgID {
+		leftImgID, rightImgID = rightImgID, leftImgID
+	}
+	return leftImgID + ":" + rightImgID
+}
+
+// Splits two colon-separated digests and returns them.
+func (g GoldIDPathMapper) SplitDiffID(diffID string) (string, string) {
+	images := strings.Split(diffID, ":")
+	return images[0], images[1]
+}
+
+// Compares the two digests to get the unique image name and then calls
+// TwoLevelRadixPath to create the local diff image file path.
+func (g GoldIDPathMapper) DiffPath(leftImgID, rightImgID string) string {
+	var imageName string
+	if leftImgID < rightImgID {
+		imageName = fmt.Sprintf("%s-%s", leftImgID, rightImgID)
+	} else {
+		imageName = fmt.Sprintf("%s-%s", rightImgID, leftImgID)
+	}
+	imagePath := fmt.Sprintf("%s.%s", imageName, IMG_EXTENSION)
+	return fileutil.TwoLevelRadixPath(imagePath)
+}
+
+// Calls TwoLevelRadixPath to create the local image file path.
+func (g GoldIDPathMapper) ImagePath(imageID string) string {
+	imagePath := fmt.Sprintf("%s.%s", imageID, IMG_EXTENSION)
+	return fileutil.TwoLevelRadixPath(imagePath)
+}
+
+// Ensures that the diffImgName consists of two valid MD5 digests. Should have the
+// format leftDigest-rightDigest after the image extension is trimmed.
+func (g GoldIDPathMapper) IsValidDiffImgName(diffImgName string) bool {
+	digests := strings.Split(diffImgName, "-")
+	if len(digests) != 2 {
+		return false
+	}
+	return validation.IsValidDigest(digests[0]) && validation.IsValidDigest(digests[1])
+}
+
+// Ensures that the imgName is a valid MD5 digest after the image extension is
+// trimmed.
+func (g GoldIDPathMapper) IsValidImgName(imgName string) bool {
+	return validation.IsValidDigest(imgName)
+}
+
+// PixelDiffIDPathMapper implements the IDPathMapper interface. The format
+// of an imageID is: YYYY/MM/DD/runID/{nopatch/withpatch}/rank/URLfilename.
+// A runID has the format userID-timeStamp.
+type PixelDiffIDPathMapper struct {}
+
+// Returns a string containing the common runID, rank and URL of the two image
+// paths.
+func (p PixelDiffIDPathMapper) DiffID(leftImgID, rightImgID string) string {
+	leftPath := strings.Split(leftImgID, "/")
+	return leftPath[3] + ":" + leftPath[5] + ":" + leftPath[6]
+}
+
+// Returns strings specifying the nopatch and withpatch image paths using the
+// given diffID.
+func (p PixelDiffIDPathMapper) SplitDiffID(diffID string) (string, string) {
+	path := strings.Split(diffID, ":")
+	runID := strings.Split(path[0], "-")
+	timeStamp := runID[1]
+	yearMonthDay := timeStamp[0:4] + "/" + timeStamp[4:6] + "/" + timeStamp[6:8]
+	return yearMonthDay + "/" + path[0] + "/nopatch/" + path[1] + "/" + path[2],
+				 yearMonthDay + "/" + path[0] + "/withpatch/" + path[1] + "/" + path[2]
+}
+
+// Creates the local diff image filepath with the common runID and URL.
+func (p PixelDiffIDPathMapper) DiffPath(leftImgID, rightImgID string) string {
+	leftPath := strings.Split(leftImgID, "/")
+	imageName := leftPath[3] + "/" + leftPath[6]
+	return fmt.Sprintf("%s.%s", imageName, IMG_EXTENSION)
+}
+
+// Creates the local image filepath.
+func (p PixelDiffIDPathMapper) ImagePath(imageID string) string {
+	return fmt.Sprintf("%s.%s", imageID, IMG_EXTENSION)
+}
+
+// Ensures that diffImgName has the proper number of components in its path. Should
+// have the format runID/URLfilename after the image extension is trimmed.
+func (p PixelDiffIDPathMapper) IsValidDiffImgName(diffImgName string) bool {
+	path := strings.Split(diffImgName, "/")
+	return len(path) == 2
+}
+
+// Ensures that imgName has the proper number of components in its path. Should
+// have the format YYYY/MM/DD/runID/{nopatch/withpatch}/rank/URLfilename
+// after the image extension is trimmed.
+func (p PixelDiffIDPathMapper) IsValidImgName(imgName string) bool {
+	path := strings.Split(imgName, "/")
+	return len(path) == 7
+}
+
 // MemDiffStore implements the diff.DiffStore interface.
 type MemDiffStore struct {
 	// baseDir contains the root directory of where all data are stored.
@@ -60,32 +189,42 @@ type MemDiffStore struct {
 
 	// wg is used to synchronize background operations like saving files. Used for testing.
 	wg sync.WaitGroup
+
+	// mapper contains various functions for creating image IDs and paths.
+	mapper IDPathMapper
 }
 
 // NewMemDiffStore returns a new instance of MemDiffStore.
 // 'gigs' is the approximate number of gigs to use for caching. This is not the
 // exact amount memory that will be used, but a tuning parameter to increase
 // or decrease memory used. If 'gigs' is 0 nothing will be cached in memory.
-func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string, gsImageBaseDir string, gigs int) (diff.DiffStore, error) {
+// If mapper is not specified, GoldIDPathMapper will be used.
+func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string, gsBaseDirs string, gigs int, mapper IDPathMapper) (diff.DiffStore, error) {
 	imageCacheCount, diffCacheCount := getCacheCounts(gigs)
 
 	// Set up image retrieval, caching and serving.
 	imgDir := fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME)))
-	imgLoader, err := newImgLoader(client, baseDir, imgDir, gsBucketNames, gsImageBaseDir, imageCacheCount)
+
+	// Default to GoldIDPathMapper if mapper is not specified
+	if mapper == nil {
+		mapper = GoldIDPathMapper{}
+	}
+
+	imgLoader, err := newImgLoader(client, baseDir, imgDir, gsBucketNames, gsBaseDirs, imageCacheCount, mapper)
 	if err != err {
 		return nil, err
 	}
-
 	mStore, err := newMetricStore(baseDir)
 	if err != nil {
 		return nil, err
 	}
 
 	ret := &MemDiffStore{
-		baseDir:      baseDir,
-		localDiffDir: fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFFIMG_DIR_NAME))),
-		imgLoader:    imgLoader,
-		metricsStore: mStore,
+		baseDir:         baseDir,
+		localDiffDir:    fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFFIMG_DIR_NAME))),
+		imgLoader:       imgLoader,
+		metricsStore:    mStore,
+		mapper:          mapper,
 	}
 
 	if ret.diffMetricsCache, err = rtcache.New(ret.diffMetricsWorker, diffCacheCount, runtime.NumCPU()); err != nil {
@@ -114,7 +253,7 @@ func (d *MemDiffStore) WarmDigests(priority int64, digests []string, sync bool) 
 // with varying priority (ignored vs "regular") we can call this multiple times.
 func (d *MemDiffStore) WarmDiffs(priority int64, leftDigests []string, rightDigests []string) {
 	priority = rtcache.PriorityTimeCombined(priority)
-	diffIDs := getDiffIds(leftDigests, rightDigests)
+	diffIDs := d.getDiffIds(leftDigests, rightDigests)
 	sklog.Infof("Warming %d diffs", len(diffIDs))
 	d.wg.Add(len(diffIDs))
 	for _, id := range diffIDs {
@@ -146,7 +285,7 @@ func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []str
 			wg.Add(1)
 			go func(right string) {
 				defer wg.Done()
-				id := combineDigests(mainDigest, right)
+				id := d.mapper.DiffID(mainDigest, right)
 				ret, err := d.diffMetricsCache.Get(priority, id)
 				if err != nil {
 					sklog.Errorf("Unable to calculate diff for %s. Got error: %s", id, err)
@@ -185,7 +324,7 @@ func (m *MemDiffStore) PurgeDigests(digests []string, purgeGCS bool) error {
 	digestSet := util.NewStringSet(digests)
 	removeKeys := make([]string, 0, len(digests))
 	for _, key := range m.diffMetricsCache.Keys() {
-		d1, d2 := splitDigests(key)
+		d1, d2 := m.mapper.SplitDiffID(key)
 		if digestSet[d1] || digestSet[d2] {
 			removeKeys = append(removeKeys, key)
 		}
@@ -223,33 +362,37 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 			return
 		}
 
-		// Get the file name that was requested and validate it.
-		_, fName := filepath.Split(path)
+		// Get the file that was requested and trim the image extension.
+		file := path[idx+1:]
+		file = file[:len(file)-4]
+
 		if dir == DEFAULT_IMG_DIR_NAME {
-			// Make sure the file exists. If not fetch it.Should be the exception.
-			digest := strings.TrimRight(fName, "."+IMG_EXTENSION)
-			if !validation.IsValidDigest(digest) {
+			// Validate the requested image file.
+			if !m.mapper.IsValidImgName(file) {
 				http.NotFound(w, r)
 				return
 			}
 
-			if !m.imgLoader.IsOnDisk(digest) {
-				if _, err = m.imgLoader.Get(diff.PRIORITY_NOW, []string{digest}); err != nil {
-					sklog.Errorf("Errorf retrieving digests: %s", digest)
+			// Make sure the file exists. If not fetch it. Should be the exception.
+			if !m.imgLoader.IsOnDisk(file) {
+				if _, err = m.imgLoader.Get(diff.PRIORITY_NOW, []string{file}); err != nil {
+					sklog.Errorf("Errorf retrieving digests: %s", file)
 					http.NotFound(w, r)
 					return
 				}
 			}
 		} else {
-			left, right := splitDiffImgFileName(fName)
-			if !validation.IsValidDigest(left) || !validation.IsValidDigest(right) {
+			// Validate the requested diff file.
+			if !m.mapper.IsValidDiffImgName(file) {
 				http.NotFound(w, r)
 				return
 			}
 		}
 
-		// rewrite the paths to include the radix prefix.
-		r.URL.Path = fileutil.TwoLevelRadixPath(path)
+		// Trim the image extension from path and rewrite the path to include
+		// the mapper's custom path construction format.
+		path = path[:len(path)-4]
+		r.URL.Path = m.mapper.ImagePath(path)
 
 		// Cache images for 12 hours.
 		w.Header().Set("Cache-control", "public, max-age=43200")
@@ -262,7 +405,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 
 // diffMetricsWorker calculates the diff if it's not in the cache.
 func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}, error) {
-	leftDigest, rightDigest := splitDigests(id)
+	leftDigest, rightDigest := d.mapper.SplitDiffID(id)
 
 	// Load it from disk cache if necessary.
 	if dm, err := d.metricsStore.loadDiffMetric(id); err != nil {
@@ -304,59 +447,26 @@ func (d *MemDiffStore) saveDiffInfoAsync(diffID, leftDigest, rightDigest string,
 
 	go func() {
 		defer d.wg.Done()
-		imageFileName := getDiffImgFileName(leftDigest, rightDigest)
-		if err := saveFileRadixPath(d.localDiffDir, imageFileName, bytes.NewBuffer(imgBytes)); err != nil {
+		// Get the local file path using the mapper and save the diff image there.
+		localDiffPath := d.mapper.DiffPath(leftDigest, rightDigest)
+		if err := saveFilePath(filepath.Join(d.localDiffDir, localDiffPath), bytes.NewBuffer(imgBytes)); err != nil {
 			sklog.Error(err)
 		}
 	}()
 }
 
-func getDiffBasename(d1, d2 string) string {
-	if d1 < d2 {
-		return fmt.Sprintf("%s-%s", d1, d2)
-	}
-	return fmt.Sprintf("%s-%s", d2, d1)
-}
-
-// splitDiffImgFileName splits a diff image file name that was previously
-// created with getDiffImgFileName and returns the two digests that
-// were compared to create the diff image. It returns two empty strings
-// if the given string does not match the expected structure, but does
-// not validate the digests in any way.
-func splitDiffImgFileName(fName string) (string, string) {
-	combined := strings.TrimRight(fName, "."+IMG_EXTENSION)
-	digests := strings.Split(combined, "-")
-	if len(digests) != 2 {
-		return "", ""
-	}
-	return digests[0], digests[1]
-}
-
-func getDiffImgFileName(digest1, digest2 string) string {
-	b := getDiffBasename(digest1, digest2)
-	return fmt.Sprintf("%s.%s", b, IMG_EXTENSION)
-}
-
-// Returns all combinations of leftDigests and rightDigests except for when
-// they are identical. The combineDigests function is used to
-func getDiffIds(leftDigests, rightDigests []string) []string {
+// Returns all combinations of leftDigests and rightDigests using the given
+// DiffID function of the DiffStore's mapper.
+func (d *MemDiffStore) getDiffIds(leftDigests, rightDigests []string) []string {
 	diffIDsSet := make(util.StringSet, len(leftDigests)*len(rightDigests))
 	for _, left := range leftDigests {
 		for _, right := range rightDigests {
 			if left != right {
-				diffIDsSet[combineDigests(left, right)] = true
+				diffIDsSet[d.mapper.DiffID(left, right)] = true
 			}
 		}
 	}
 	return diffIDsSet.Keys()
-}
-
-// combineDigests returns a sorted, colon-separated concatenation of two digests
-func combineDigests(d1, d2 string) string {
-	if d2 > d1 {
-		d1, d2 = d2, d1
-	}
-	return d1 + ":" + d2
 }
 
 // splitDigests splits two colon-separated digests and returns them.
