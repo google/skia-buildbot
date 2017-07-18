@@ -52,6 +52,24 @@
       "revId": "e188b2031612433cbb1e0b7980c4dd2399d1346e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a31ba132_21f30265",
+        "filename": "pixel_diff/go/silveringestion/silveringestion.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-18T18:00:12Z",
+      "side": 1,
+      "message": "Right, but given that nopatch and withpatch screenshots won\u0027t be stored in the same metadata file, doesn\u0027t this Processor still have to have some way of knowing if both images have been processed via JSON, so that it knows when to calculate diff metrics?",
+      "parentUuid": "f16c5b9e_4d02d657",
+      "revId": "e188b2031612433cbb1e0b7980c4dd2399d1346e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
