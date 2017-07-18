@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "28fdf9fa_bbfa7b57",
+        "filename": "golden/go/diffstore/common.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-18T18:20:01Z",
+      "side": 1,
+      "message": "Just tested the existing EnsureDirExists function and it turns out that it creates a path if a path is passed in. Do you want me to change the name of the func to EnsurePathDirExists or leave it as is?",
+      "parentUuid": "2151d585_e328ddcf",
+      "revId": "f5ccd6d3000d8321b664ae4893a1af67e483df48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "876e5e44_b9d407d1",
         "filename": "golden/go/diffstore/diffstore_test.go",
         "patchSetId": 5
@@ -30,6 +48,24 @@
       "writtenOn": "2017-07-18T17:07:37Z",
       "side": 1,
       "message": "This is not called anywhere ? \n\nMaybe write a generic IDPathMapper test, i.e. \n\nfunc testIDPathMapper(t *testing.T, mapper IDPathMapper, leftImgID, rightImgID string) \n\nand then have tests for different implementations that call that function.",
+      "revId": "f5ccd6d3000d8321b664ae4893a1af67e483df48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "217e262b_040ceb6d",
+        "filename": "golden/go/diffstore/diffstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-18T18:20:01Z",
+      "side": 1,
+      "message": "Oops, sorry I meant to write TestGoldIDPathMapper and TestSilverIDPathMapper. I\u0027m confused as to how a generic IDPathMapper test would work, given that each implementation of the interface creates IDs and paths differently. In other words, how should I come up with the expected output in a generic test?",
+      "parentUuid": "876e5e44_b9d407d1",
       "revId": "f5ccd6d3000d8321b664ae4893a1af67e483df48",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -87,6 +123,24 @@
       "writtenOn": "2017-07-18T17:07:37Z",
       "side": 1,
       "message": "ImagePath should only take one argument (the imageID) and imagePath should be the only argument to TwoLevelRadixPath. Joining it with the base directory should be done in the calling function.",
+      "revId": "f5ccd6d3000d8321b664ae4893a1af67e483df48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48571cca_d8a464c4",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-18T18:20:01Z",
+      "side": 1,
+      "message": "Sorry, I was just following the example set by the existing imgloader implementation, which calls TwoLevelRadixPath(il.localImgDir, getDigestImageFileName(digest)) whenever it needs to store/find a file. I thought I would break Gold if I didn\u0027t call the function in the same manner, but now, looking at the TwoLevelRadixPath implementation, it seems that only the last path segment is used to create the two level directory structure, so passing in only the imageID should be fine (please correct me if I\u0027m wrong). Should I also change DiffPath to not take in a baseDir?",
+      "parentUuid": "85572181_326559e4",
       "revId": "f5ccd6d3000d8321b664ae4893a1af67e483df48",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
