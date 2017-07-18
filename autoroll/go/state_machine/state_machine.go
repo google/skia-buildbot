@@ -384,13 +384,27 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 	}
 }
 
+// Attempt to perform the given state transition.
+func (s *AutoRollStateMachine) Transition(dest string) error {
+	fName, err := s.s.GetTransitionName(dest)
+	if err != nil {
+		return err
+	}
+	sklog.Infof("Attempting to perform transition to %q: %s", dest, fName)
+	if err := s.s.Transition(next); err != nil {
+		return err
+	}
+	sklog.Infof("Successfully performed transition.")
+	return nil
+}
+
 // Attempt to perform the next state transition.
 func (s *AutoRollStateMachine) NextTransition() error {
 	next, err := s.GetNext()
 	if err != nil {
 		return err
 	}
-	return s.s.Transition(next)
+	return s.Transition(next)
 }
 
 // Perform the next state transition, plus any subsequent transitions which are
@@ -408,7 +422,7 @@ func (s *AutoRollStateMachine) NextTransitionSequence() error {
 		if err != nil {
 			return err
 		} else if fName == F_NOOP {
-			if err := s.s.Transition(next); err != nil {
+			if err := s.Transition(next); err != nil {
 				return err
 			}
 		} else {
