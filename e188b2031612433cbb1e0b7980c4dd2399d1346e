@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "84f9f6c8_1f68c764",
+        "filename": "pixel_diff/go/silveringestion/silveringestion.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-18T17:32:17Z",
+      "side": 1,
+      "message": "Define an interface i.e. ResultStore or MetricsStore and pass it as an argument. \nThat interface will then be implemented in your dmstore package. The purpose of \nan implementation of that interface is to hide the actual storage mechanism used. \n\nIt also allows to implement a simple mock implementation for testing. \nThere should not be boltdb code in here.",
+      "revId": "e188b2031612433cbb1e0b7980c4dd2399d1346e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
