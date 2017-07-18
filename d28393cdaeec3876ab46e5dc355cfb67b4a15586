@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a4c5bf1b_58c59e73",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-18T17:57:34Z",
+      "side": 1,
+      "message": "Pre-upload steps and their names are available in repo_manager/pre_upload_steps.go",
+      "range": {
+        "startLine": 64,
+        "startChar": 115,
+        "endLine": 64,
+        "endChar": 116
+      },
+      "revId": "d28393cdaeec3876ab46e5dc355cfb67b4a15586",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7570936f_4503d381",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 359,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-18T17:57:34Z",
+      "side": 1,
+      "message": "Hard to say where exactly this should go in this function. I guess we can move it around if we ever have a pre upload step for one of the android rollers.\nSpeaking of which, a pre-upload step for the o-release roller could have been to do everything in the block at 402 but I do not know how to send over all that information to the pre-upload step.",
+      "revId": "d28393cdaeec3876ab46e5dc355cfb67b4a15586",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "300889f9_99809c5a",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-18T17:57:34Z",
+      "side": 1,
+      "message": "nit: absolute directory?",
+      "range": {
+        "startLine": 15,
+        "startChar": 48,
+        "endLine": 15,
+        "endChar": 49
+      },
+      "revId": "d28393cdaeec3876ab46e5dc355cfb67b4a15586",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb21ee7f_b8f02794",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-18T17:57:34Z",
+      "side": 1,
+      "message": "nit: I know we are supposed to be more concise in Go but I think parentRepoDir will be a better parameter name here. When I see parentDir I wonder parent dir of what?",
+      "range": {
+        "startLine": 43,
+        "startChar": 16,
+        "endLine": 43,
+        "endChar": 25
+      },
+      "revId": "d28393cdaeec3876ab46e5dc355cfb67b4a15586",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
