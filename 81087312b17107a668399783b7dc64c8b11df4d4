@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baef51d7_1f1fb009",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 395,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-18T19:56:02Z",
+      "side": 1,
+      "message": "would be useful to have:\n\"to perform transition from %q to %q: %s\"",
+      "range": {
+        "startLine": 395,
+        "startChar": 46,
+        "endLine": 395,
+        "endChar": 47
+      },
+      "revId": "81087312b17107a668399783b7dc64c8b11df4d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ee6b687_f2adda37",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-18T19:56:02Z",
+      "side": 1,
+      "message": "I do not completely understand why we need this. Let\u0027s talk tomorrow.",
+      "revId": "81087312b17107a668399783b7dc64c8b11df4d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
