@@ -934,11 +934,14 @@ func CreateCustomPagesets(webpages []string, pagesetsDir string) error {
 	return nil
 }
 
-func GetBasePixelDiffRemoteDir(runID string) string {
+func GetBasePixelDiffRemoteDir(runID string) (string, error) {
 	// Parse the CT runID to extract YYYY/MM/DD
 	regex := regexp.MustCompile(`[a-z]+-([0-9]{4})([0-9]{2})([0-9]{2})[0-9]{6}`)
 	matches := regex.FindStringSubmatch(runID)
-	return filepath.Join(PixelDiffRunsDir, matches[1], matches[2], matches[3], runID)
+	if len(matches) != 4 {
+		return "", fmt.Errorf("Could not parse runID %s with the regex %q", runID, regex.String())
+	}
+	return filepath.Join(PixelDiffRunsDir, matches[1], matches[2], matches[3], runID), nil
 }
 
 func GetRankFromPageset(pagesetFileName string) (int, error) {
