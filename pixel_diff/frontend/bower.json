@@ -1,0 +1,18 @@
+{
+  "name": "silver",
+  "description": "UI for silver",
+  "authors": [],
+  "license": "BSD",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "bower_components",
+    "third_party/bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "iron-elements": "^1.0.8",
+    "paper-elements": "^1.0.7"
+  }
+}
