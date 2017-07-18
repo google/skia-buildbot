@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "90da3ed6_5abc7675",
+        "filename": "golden/go/diffstore/diffstore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-18T23:36:11Z",
+      "side": 1,
+      "message": "I wasn\u0027t sure how to incorporate a generic IDPathMapper test for testing the two implementations because each one will have different expected output for each of their functions. Would it be alright to just test them separately like this so I can specify the expected return values for each implementation?",
+      "revId": "c359ada89acec5f38437f010b118dcba18766f60",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c25e55dc_93b80f79",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 367,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-18T23:36:11Z",
+      "side": 1,
+      "message": "Discovered that using strings.TrimRight to remove the image extension actually caused a bug, because it removes all occurrences of letters specified in the cutset from the string. As a result, a screenshot filename like http___www_wikipedia_org.png would become http___wikipedia_or after specifying the cutset as \".png\".",
+      "revId": "c359ada89acec5f38437f010b118dcba18766f60",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d35a5757_2175a6b9",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 473,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-18T23:36:11Z",
+      "side": 1,
+      "message": "This function is called by metrics_store.IndexValues, which is why I couldn\u0027t remove it. I tried passing in a IDPathMapper to newMetricStore and having it exist as a global in metrics_store so that its SplitDiffID function could be called instead, but testing revealed that there are times when IndexValues is called before newMetricStore, so this approach results in nil pointers. Also tried having an IDPathMapper exist as a field in the metricsRec struct, but this resulted in errors as well, and does not seem like it would be a very clean solution even if we got it working. Any other ideas?",
+      "revId": "c359ada89acec5f38437f010b118dcba18766f60",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
