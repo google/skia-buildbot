@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "63fd3c13_47ebdb71",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 9
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-18T00:19:45Z",
+      "side": 1,
+      "message": "nit: Too late now, but if you copy/paste this, remember to lowercase this field name.",
+      "range": {
+        "startLine": 25,
+        "startChar": 7,
+        "endLine": 25,
+        "endChar": 10
+      },
+      "revId": "3d390d6eca3172e1032029eddc0dae1a16226a70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4aaa1fc1_60808536",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 940,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-18T00:19:45Z",
+      "side": 1,
+      "message": "nit: if the regex doesn\u0027t match, the panic from accessing matches[1] etc. may be hard to debug",
+      "range": {
+        "startLine": 940,
+        "startChar": 1,
+        "endLine": 940,
+        "endChar": 8
+      },
+      "revId": "3d390d6eca3172e1032029eddc0dae1a16226a70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c9185ca_c5cce926",
+        "filename": "ct/go/worker_scripts/pixel_diff/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-18T00:19:45Z",
+      "side": 1,
+      "message": "Concurrent access needs to be protected by a mutex.",
+      "range": {
+        "startLine": 204,
+        "startChar": 4,
+        "endLine": 204,
+        "endChar": 45
+      },
+      "revId": "3d390d6eca3172e1032029eddc0dae1a16226a70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a52cfa29_aa44eebd",
+        "filename": "ct/go/worker_scripts/pixel_diff/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-18T00:19:45Z",
+      "side": 1,
+      "message": "nit: Isn\u0027t this redundant with the gs.UploadDir at the end of pixelDiff()?",
+      "range": {
+        "startLine": 351,
+        "startChar": 2,
+        "endLine": 353,
+        "endChar": 3
+      },
+      "revId": "3d390d6eca3172e1032029eddc0dae1a16226a70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
