@@ -51,10 +51,13 @@ type ImageLoader struct {
 	failureStore *failureStore
 
 	wg sync.WaitGroup
+
+	// mapper contains various functions for creating image IDs and paths.
+	mapper IDPathMapper
 }
 
 // Creates a new instance of ImageLoader.
-func newImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []string, gsImageBaseDir string, maxCacheSize int) (*ImageLoader, error) {
+func newImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []string, gsImageBaseDir string, maxCacheSize int, mapper IDPathMapper) (*ImageLoader, error) {
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, err
@@ -71,6 +74,7 @@ func newImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []s
 		gsBucketNames:  gsBucketNames,
 		gsImageBaseDir: gsImageBaseDir,
 		failureStore:   fStore,
+		mapper:         mapper,
 	}
 
 	// Set up the work queues that balance the load.
@@ -163,16 +167,18 @@ func (il *ImageLoader) Get(priority int64, digests []string) ([]*image.NRGBA, er
 
 // IsOnDisk returns true if the image that corresponds to the given digest is in the disk cache.
 func (il *ImageLoader) IsOnDisk(digest string) bool {
-	return fileutil.FileExists(fileutil.TwoLevelRadixPath(il.localImgDir, getDigestImageFileName(digest)))
+	imagePath := il.mapper.ImagePath(il.localImgDir, digest)
+	return fileutil.FileExists(imagePath)
 }
 
 // PurgeImages removes the images that correspond to the given digests.
 func (il *ImageLoader) PurgeImages(digests []string, purgeGCS bool) error {
 	for _, d := range digests {
-		fName := fileutil.TwoLevelRadixPath(il.localImgDir, getDigestImageFileName(d))
-		if fileutil.FileExists(fName) {
-			if err := os.Remove(fName); err != nil {
-				sklog.Errorf("Unable to remove image %s. Got error: %s", fName, err)
+
+		imagePath := il.mapper.ImagePath(il.localImgDir, d)
+		if fileutil.FileExists(imagePath) {
+			if err := os.Remove(imagePath); err != nil {
+				sklog.Errorf("Unable to remove image %s. Got error: %s", imagePath, err)
 			}
 		}
 	}
@@ -189,8 +195,7 @@ func (il *ImageLoader) PurgeImages(digests []string, purgeGCS bool) error {
 // It loads an image file either from disk or from Google storage.
 func (il *ImageLoader) imageLoadWorker(priority int64, digest string) (interface{}, error) {
 	// Check if the image is in the disk cache.
-	imageFileName := getDigestImageFileName(digest)
-	imagePath := fileutil.TwoLevelRadixPath(il.localImgDir, imageFileName)
+	imagePath := il.mapper.ImagePath(il.localImgDir, digest)
 	if fileutil.FileExists(imagePath) {
 		img, err := loadImg(imagePath)
 		if err != nil {
@@ -216,15 +221,16 @@ func (il *ImageLoader) imageLoadWorker(priority int64, digest string) (interface
 	}
 
 	// Save the file to disk.
-	il.saveImgInfoAsync(imageFileName, imgBytes)
+	il.saveImgInfoAsync(digest, imgBytes)
 	return img, nil
 }
 
-func (il *ImageLoader) saveImgInfoAsync(imageFileName string, imgBytes []byte) {
+func (il *ImageLoader) saveImgInfoAsync(image string, imgBytes []byte) {
 	il.wg.Add(1)
 	go func() {
 		defer il.wg.Done()
-		if err := saveFileRadixPath(il.localImgDir, imageFileName, bytes.NewBuffer(imgBytes)); err != nil {
+		imagePath := il.mapper.ImagePath(il.localImgDir, image)
+		if err := saveFilePath(imagePath, bytes.NewBuffer(imgBytes)); err != nil {
 			sklog.Error(err)
 		}
 	}()

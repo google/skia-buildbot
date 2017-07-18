@@ -33,21 +33,6 @@ func saveFile(targetPath string, r io.Reader) error {
 	return err
 }
 
-// saveFileRadixPath saves the given buffer in a
-// radix path where two directory levels are inserted based on the first four
-// characters of the filename. i.e. abcefghijk.png -> ./ab/ce/abcefghijk.png.
-func saveFileRadixPath(baseDir, fileName string, r io.Reader) error {
-	targetPath, err := createRadixPath(baseDir, fileName)
-	if err != nil {
-		return fmt.Errorf("Unable to create radix path for %s/%s: %s", baseDir, fileName, err)
-	}
-
-	if err := saveFile(targetPath, r); err != nil {
-		return fmt.Errorf("Unable to save file %s. Got error: %s", targetPath, err)
-	}
-	return nil
-}
-
 // loadImg loads an image from disk.
 func loadImg(sourcePath string) (*image.NRGBA, error) {
 	f, err := os.Open(sourcePath)
@@ -82,17 +67,6 @@ func getDigestImageFileName(digest string) string {
 	return fmt.Sprintf("%s.%s", digest, IMG_EXTENSION)
 }
 
-// createRadixPath makes sure radix path exists.
-func createRadixPath(baseDir, fileName string) (string, error) {
-	targetPath := fileutil.TwoLevelRadixPath(baseDir, fileName)
-	radixDir, _ := filepath.Split(targetPath)
-	if err := os.MkdirAll(radixDir, 0700); err != nil {
-		return "", err
-	}
-
-	return targetPath, nil
-}
-
 // openBoltDB opens a boltDB in the given given directory with the given name.
 func openBoltDB(baseDir, name string) (*bolt.DB, error) {
 	baseDir, err := fileutil.EnsureDirExists(baseDir)
@@ -101,4 +75,26 @@ func openBoltDB(baseDir, name string) (*bolt.DB, error) {
 	}
 
 	return bolt.Open(path.Join(baseDir, name), 0600, nil)
+}
+
+// createPath makes sure that path exists.
+func createPath(path string) error {
+	dirs, _ := filepath.Split(path)
+	if err := os.MkdirAll(dirs, 0700); err != nil {
+		return err
+	}
+	return nil
+}
+
+// saveFilePath saves the given buffer in path.
+func saveFilePath(path string, r io.Reader) error {
+	err := createPath(path)
+	if err != nil {
+		return fmt.Errorf("Unable to create path for %s: %s", path, err)
+	}
+
+	if err := saveFile(path, r); err != nil {
+		return fmt.Errorf("Unable to save file %s. Got error: %s", path, err)
+	}
+	return nil
 }
