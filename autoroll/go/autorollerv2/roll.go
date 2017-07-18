@@ -73,8 +73,15 @@ func (r *gerritRoll) AddComment(msg string) error {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) Close(result, msg string) error {
 	sklog.Infof("Closing issue %d (result %q) with message: %s", r.ci.Issue, result, msg)
-	if err := r.g.Abandon(r.ci, msg); err != nil {
-		return err
+	if r.ci.IsClosed() {
+		// We'll get a conflict if we try to abandon the CL. Just add a comment.
+		if err := r.g.AddComment(r.ci, fmt.Sprintf("Wanted to abandon this CL but it is already closed (%s)", msg)); err != nil {
+			return err
+		}
+	} else {
+		if err := r.g.Abandon(r.ci, msg); err != nil {
+			return err
+		}
 	}
 	return r.Update()
 }
