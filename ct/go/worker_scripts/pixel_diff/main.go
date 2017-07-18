@@ -143,13 +143,18 @@ func pixelDiff() error {
 		defer skutil.RemoveAll(pathToArchives)
 	}
 
+	baseRemoteDir, err := util.GetBasePixelDiffRemoteDir(*runID)
+	if err != nil {
+		return fmt.Errorf("Could not figure out the base remote dir: %s", err)
+	}
+
 	// Establish nopatch output paths.
 	runIDNoPatch := fmt.Sprintf("%s-nopatch", *runID)
 	localOutputDirNoPatch := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDNoPatch)
 	skutil.RemoveAll(localOutputDirNoPatch)
 	skutil.MkdirAll(localOutputDirNoPatch, 0700)
 	defer skutil.RemoveAll(localOutputDirNoPatch)
-	remoteDirNoPatch := filepath.Join(util.GetBasePixelDiffRemoteDir(*runID), "nopatch")
+	remoteDirNoPatch := filepath.Join(baseRemoteDir, "nopatch")
 
 	// Establish withpatch output paths.
 	runIDWithPatch := fmt.Sprintf("%s-withpatch", *runID)
@@ -157,7 +162,7 @@ func pixelDiff() error {
 	skutil.RemoveAll(localOutputDirWithPatch)
 	skutil.MkdirAll(localOutputDirWithPatch, 0700)
 	defer skutil.RemoveAll(localOutputDirWithPatch)
-	remoteDirWithPatch := filepath.Join(util.GetBasePixelDiffRemoteDir(*runID), "withpatch")
+	remoteDirWithPatch := filepath.Join(baseRemoteDir, "withpatch")
 
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
@@ -171,6 +176,8 @@ func pixelDiff() error {
 	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].PixelDiffTimeoutSecs
 	// Dict of rank to URL. Will be used when populating the metadata file.
 	rankToURL := map[int]string{}
+	// Mutex to control access to above map.
+	var rankDictMutex sync.RWMutex
 
 	var wg sync.WaitGroup
 	// Use a RWMutex for the chromeProcessesCleaner goroutine to communicate to
@@ -201,7 +208,9 @@ func pixelDiff() error {
 					sklog.Errorf("Could not get rank out of pageset %s: %s", pagesetName, err)
 					continue
 				}
+				rankDictMutex.Lock()
 				rankToURL[rank] = decodedPageset.UrlsList
+				rankDictMutex.Unlock()
 
 				sklog.Infof("===== Processing %s =====", pagesetPath)
 
@@ -241,10 +250,10 @@ func pixelDiff() error {
 	}
 
 	// Write out the metadata file.
-	if err := writeMetadataFile(localOutputDirNoPatch, remoteDirNoPatch, "nopatch", rankToURL, gs); err != nil {
+	if err := writeMetadataFile(localOutputDirNoPatch, "nopatch", rankToURL, gs); err != nil {
 		return fmt.Errorf("Could not write metadata file for %s: %s", localOutputDirNoPatch, err)
 	}
-	if err := writeMetadataFile(localOutputDirWithPatch, remoteDirWithPatch, "withpatch", rankToURL, gs); err != nil {
+	if err := writeMetadataFile(localOutputDirWithPatch, "withpatch", rankToURL, gs); err != nil {
 		return fmt.Errorf("Could not write metadata file for %s: %s", localOutputDirWithPatch, err)
 	}
 
@@ -304,7 +313,7 @@ type Screenshot struct {
 	URL      string `json:"url"`
 }
 
-func writeMetadataFile(outputDir, remoteDir, patchType string, rankToURL map[int]string, gs *util.GcsUtil) error {
+func writeMetadataFile(outputDir, patchType string, rankToURL map[int]string, gs *util.GcsUtil) error {
 	screenshots := []Screenshot{}
 	indexDirs, err := filepath.Glob(filepath.Join(outputDir, "*"))
 	if err != nil {
@@ -347,9 +356,6 @@ func writeMetadataFile(outputDir, remoteDir, patchType string, rankToURL map[int
 		localMetadataFilePath := filepath.Join(outputDir, localMetadataFileName)
 		if err := ioutil.WriteFile(localMetadataFilePath, m, os.ModePerm); err != nil {
 			return fmt.Errorf("Could not write to %s: %s", localMetadataFilePath, err)
-		}
-		if err := gs.UploadFile(localMetadataFileName, outputDir, remoteDir); err != nil {
-			return fmt.Errorf("Could not upload metadata file from %s to %s: %s", localMetadataFilePath, remoteDir, err)
 		}
 	}
 	return nil
