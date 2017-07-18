@@ -34,6 +34,24 @@
       "revId": "e188b2031612433cbb1e0b7980c4dd2399d1346e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f16c5b9e_4d02d657",
+        "filename": "pixel_diff/go/silveringestion/silveringestion.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-18T17:51:37Z",
+      "side": 1,
+      "message": "The Ingester already keeps track if a file has been processed or not.\n \nSo if the Process function returns without error the file associated with resultsFile will be marked as processed and Process will not be called again with the same result file.",
+      "parentUuid": "43f591b4_210d3430",
+      "revId": "e188b2031612433cbb1e0b7980c4dd2399d1346e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
