@@ -16,6 +16,24 @@
       "revId": "e188b2031612433cbb1e0b7980c4dd2399d1346e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43f591b4_210d3430",
+        "filename": "pixel_diff/go/silveringestion/silveringestion.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-18T17:41:43Z",
+      "side": 1,
+      "message": "The boltDB in this package is not being used for diff metrics storage. It\u0027s a way to keep track of whether the nopatch and withpatch images for a given web page have been processed, so we know when to call DiffStore.Get (see Process below). Are you saying that a silverProcessor should have two dmStore fields, one for screenshots and one for diff metrics?",
+      "parentUuid": "84f9f6c8_1f68c764",
+      "revId": "e188b2031612433cbb1e0b7980c4dd2399d1346e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
