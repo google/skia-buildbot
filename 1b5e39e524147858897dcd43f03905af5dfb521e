@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "68255e09_14de509b",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 942,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-18T13:32:56Z",
+      "side": 1,
+      "message": "nit %q",
+      "range": {
+        "startLine": 942,
+        "startChar": 65,
+        "endLine": 942,
+        "endChar": 67
+      },
+      "revId": "1b5e39e524147858897dcd43f03905af5dfb521e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f77d8268_e8b549f5",
+        "filename": "ct/go/worker_scripts/pixel_diff/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-18T13:32:56Z",
+      "side": 1,
+      "message": "You\u0027ve been doing too much python.",
+      "range": {
+        "startLine": 179,
+        "startChar": 37,
+        "endLine": 179,
+        "endChar": 47
+      },
+      "revId": "1b5e39e524147858897dcd43f03905af5dfb521e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
