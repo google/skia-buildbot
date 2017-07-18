@@ -1,0 +1,152 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2151d585_e328ddcf",
+        "filename": "golden/go/diffstore/common.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-18T17:07:37Z",
+      "side": 1,
+      "message": "Make createPath a function in infra/go/fileutil.go something like \n\nfunc EnsurePathDirExists(path) error \n\nsimilar to the already existing EnsureDirExists. We\u0027ll need that more often.",
+      "revId": "f5ccd6d3000d8321b664ae4893a1af67e483df48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "876e5e44_b9d407d1",
+        "filename": "golden/go/diffstore/diffstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-18T17:07:37Z",
+      "side": 1,
+      "message": "This is not called anywhere ? \n\nMaybe write a generic IDPathMapper test, i.e. \n\nfunc testIDPathMapper(t *testing.T, mapper IDPathMapper, leftImgID, rightImgID string) \n\nand then have tests for different implementations that call that function.",
+      "revId": "f5ccd6d3000d8321b664ae4893a1af67e483df48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b262f98_9ac96160",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-18T17:07:37Z",
+      "side": 1,
+      "message": "Nit: I now this is a lot of work, but after the end of this CL or in a follow up CL we should rename these from \u0027digest\u0027 to \u0027imageID\u0027. Since they are no longer digests but more or less arbitrary strings.",
+      "range": {
+        "startLine": 169,
+        "startChar": 32,
+        "endLine": 169,
+        "endChar": 38
+      },
+      "revId": "f5ccd6d3000d8321b664ae4893a1af67e483df48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3dfc8cbd_51590510",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-18T17:07:37Z",
+      "side": 1,
+      "message": "The baseDir is not necessary. The NewMemDiffStore function already contains a baseDir. \nThe returned path of imageID is relative to wherever MemDiffStore stores the images. \nIn Gold this will just be \u0027\u003cdigest\u003e.png\u0027 and for your server it will be a relative file path.",
+      "revId": "f5ccd6d3000d8321b664ae4893a1af67e483df48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85572181_326559e4",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-18T17:07:37Z",
+      "side": 1,
+      "message": "ImagePath should only take one argument (the imageID) and imagePath should be the only argument to TwoLevelRadixPath. Joining it with the base directory should be done in the calling function.",
+      "revId": "f5ccd6d3000d8321b664ae4893a1af67e483df48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8521ad8_a68b06d5",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-18T17:07:37Z",
+      "side": 1,
+      "message": "Please include information about the format of image ids. \nSince the various functions below never return any errors, we should assume that all arguments follow a certain format and are not empty. \nThis means the client of MemDiffStore has to validate any input it passes to its functions.",
+      "revId": "f5ccd6d3000d8321b664ae4893a1af67e483df48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e42e4300_ad18824d",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-18T17:07:37Z",
+      "side": 1,
+      "message": "See comment above. If there are non-empty image ids, the diffid should also be not empty.\nIn most cases it will probably just be the concatenation of the two ids.",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 110,
+        "endChar": 1
+      },
+      "revId": "f5ccd6d3000d8321b664ae4893a1af67e483df48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce2e19ed_3d7d7531",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-18T17:07:37Z",
+      "side": 1,
+      "message": "This is a bit messy, because it was tailored to the digests. \nI would suggest to do the following: \n\n- extract the imageID or the diffID from the URL\n- call additional functions on the IDPathMapper, i.e. \n    d.mapper.IsValidImageID(imgageID)\n    and \n    d.mapper.IsValidDiffID(diffID)\n- follow the same logic as previously. \n\nThe underlying issue is how the imageID and the diffID are contained in URL. \nIn Gold it can happen, that an image is requested, but has not been downloaded from \nGS. That\u0027s why it validates the digest (within reason) and downloads the image if necessary. \n\nAlternatively we could get rid of these checks and just return the image if it exists on disk.",
+      "revId": "f5ccd6d3000d8321b664ae4893a1af67e483df48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
