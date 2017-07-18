@@ -941,7 +941,7 @@ func Truncate(s string, length int) string {
 func WithWriteFile(file string, writeFn func(io.Writer) error) error {
 	f, err := ioutil.TempFile(path.Dir(file), path.Base(file))
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to create temporary file for WithWriteFile: %s", err)
 	}
 	if err := writeFn(f); err != nil {
 		Close(f)
@@ -950,7 +950,10 @@ func WithWriteFile(file string, writeFn func(io.Writer) error) error {
 	}
 	if err := f.Close(); err != nil {
 		Remove(f.Name())
-		return err
+		return fmt.Errorf("Failed to close temporary file for WithWriteFile: %s", err)
 	}
-	return os.Rename(f.Name(), file)
+	if err := os.Rename(f.Name(), file); err != nil {
+		return fmt.Errorf("Failed to rename temporary file for WithWriteFile: %s", err)
+	}
+	return nil
 }

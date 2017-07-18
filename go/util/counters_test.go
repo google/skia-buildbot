@@ -23,6 +23,7 @@ type mockTime struct {
 	afterFuncs map[time.Time][]func()
 }
 
+// Return a mockTime instance.
 func newMockTime() *mockTime {
 	now := time.Now()
 	return &mockTime{
@@ -32,10 +33,13 @@ func newMockTime() *mockTime {
 	}
 }
 
+// Equivalent to time.Now(), but returns the mocked current time.
 func (t *mockTime) Now() time.Time {
 	return t.t
 }
 
+// Equivalent to time.AfterFunc, runs the func when the mocked current time
+// passes the given duration.
 func (t *mockTime) AfterFunc(d time.Duration, fn func()) *time.Timer {
 	runAt := t.t.Add(d)
 	t.afterFuncs[runAt] = append(t.afterFuncs[runAt], fn)
@@ -56,6 +60,8 @@ func (t *mockTime) Sleep(d time.Duration) {
 	}
 }
 
+// Sleep for the given duration, then run the given func, repeatedly until
+// the func returns false.
 func (t *mockTime) Tick(d time.Duration, fn func() bool) {
 	for {
 		t.Sleep(d)
@@ -65,6 +71,8 @@ func (t *mockTime) Tick(d time.Duration, fn func() bool) {
 	}
 }
 
+// Return the mock elapsed time since the mockTime was created. Useful for
+// debugging timelines.
 func (t *mockTime) Elapsed() time.Duration {
 	return t.t.Sub(t.t0)
 }
