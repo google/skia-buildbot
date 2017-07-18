@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -40,4 +41,16 @@ func TestGetRepeatValue(t *testing.T) {
 	assert.Equal(t, 2, GetRepeatValue("", 2))
 	assert.Equal(t, 2, GetRepeatValue("--pageset-repeatsssss=4", 2))
 	assert.Equal(t, 2, GetRepeatValue("--somethingelse", 2))
+}
+
+func TestGetBasePixelDiffRemoteDir(t *testing.T) {
+	testutils.SmallTest(t)
+	// Test valid runID.
+	remoteDir, err := GetBasePixelDiffRemoteDir("rmistry-20170510163703")
+	assert.NoError(t, err)
+	assert.Equal(t, fmt.Sprintf("%s/2017/05/10/rmistry-20170510163703", PixelDiffRunsDir), remoteDir)
+	// Test invalid runID.
+	remoteDir, err = GetBasePixelDiffRemoteDir("blahblahblah")
+	assert.Error(t, err)
+	assert.Equal(t, "", remoteDir)
 }
