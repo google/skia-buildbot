@@ -70,6 +70,24 @@
       "revId": "e188b2031612433cbb1e0b7980c4dd2399d1346e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88d703c2_b15a05a3",
+        "filename": "pixel_diff/go/silveringestion/silveringestion.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-18T20:22:59Z",
+      "side": 1,
+      "message": "I would not have a separate boltdb datastore here, but implement all storage functions in a separate type.\nThe main reason being that we usually want to encapsulate the exact storage mechanism. It makes it easier to change storage engine if necessary and also test the different parts independently. \n\nFrom our chat conversation, it would make sense if the URL was also part of the Screenshot struct. Then \u003crunID, URL\u003e uniquely define a single result we are interested in. In the expected case we have two images: withpatch/nopatch. \n\nIMO that also defines the struct we want to store in our result store that can then be queried over the Web. \nLet\u0027s say we a struct like this: \n\ntype ResultRec struct {\n  RunID          string \n  URL            string\n  WithPatchImage string \n  NotPatchImage  string\n  Diff           *diff.DiffMetrics \n}\n\nwhen a new result comes in we do something like this: \n\n   ...\n   rec, err :\u003d s.resultStore.Get(runID, url)\n   ...\n   if rec !\u003d nil {\n      // update the record here \n   } else {\n      // create a new record \n      rec \u003d \u0026ResultRec { ... } \n   } \n\n   if rec.ReadyForDiff() {\n      // Calculate diff and update rec fields.\n   } \n\n   err \u003d s.resultStore.Put(runID, url, rec)\n   ... \n\nYou could do the diff step after the Put, asynchronously and return if the Put happened without error. That means we ingested the file correctly. If there is an error retrieving the images or doing the diff it will be recorded by the diff store and can be queried there. \n\nIn short the resultStore would store instances of something like ResultRec keyed by \u003crunID, URL\u003e. In addition to Get, Put it should also have methods to delete entries and query them based on some criteria. That is defined by how you want to present the information.",
+      "parentUuid": "a31ba132_21f30265",
+      "revId": "e188b2031612433cbb1e0b7980c4dd2399d1346e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
