@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "75c10d88_4a3d2bb7",
+        "filename": "golden/go/diffstore/common.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-19T14:47:08Z",
+      "side": 1,
+      "message": "EnsureDirExists assumes the given path is a directory and it creates the entire path as directories. Your function (which is correct) assumes that the given path points to a file and just makes sure that all directories to the file exist, but does not create the file itself. \nIt looks all correct to me.",
+      "parentUuid": "28fdf9fa_bbfa7b57",
+      "revId": "f5ccd6d3000d8321b664ae4893a1af67e483df48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "876e5e44_b9d407d1",
         "filename": "golden/go/diffstore/diffstore_test.go",
         "patchSetId": 5
@@ -66,6 +84,24 @@
       "side": 1,
       "message": "Oops, sorry I meant to write TestGoldIDPathMapper and TestSilverIDPathMapper. I\u0027m confused as to how a generic IDPathMapper test would work, given that each implementation of the interface creates IDs and paths differently. In other words, how should I come up with the expected output in a generic test?",
       "parentUuid": "876e5e44_b9d407d1",
+      "revId": "f5ccd6d3000d8321b664ae4893a1af67e483df48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8282a104_4fe9313b",
+        "filename": "golden/go/diffstore/diffstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-19T14:47:08Z",
+      "side": 1,
+      "message": "Don\u0027t worry about the generic test function, this works.",
+      "parentUuid": "217e262b_040ceb6d",
       "revId": "f5ccd6d3000d8321b664ae4893a1af67e483df48",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -141,6 +177,24 @@
       "side": 1,
       "message": "Sorry, I was just following the example set by the existing imgloader implementation, which calls TwoLevelRadixPath(il.localImgDir, getDigestImageFileName(digest)) whenever it needs to store/find a file. I thought I would break Gold if I didn\u0027t call the function in the same manner, but now, looking at the TwoLevelRadixPath implementation, it seems that only the last path segment is used to create the two level directory structure, so passing in only the imageID should be fine (please correct me if I\u0027m wrong). Should I also change DiffPath to not take in a baseDir?",
       "parentUuid": "85572181_326559e4",
+      "revId": "f5ccd6d3000d8321b664ae4893a1af67e483df48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e395858d_18b542d9",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-19T14:47:08Z",
+      "side": 1,
+      "message": "No worries. I figured that was a result of porting this over. I saw you removed the baseDir from DiffPath, that\u0027s perfect.",
+      "parentUuid": "48571cca_d8a464c4",
       "revId": "f5ccd6d3000d8321b664ae4893a1af67e483df48",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
