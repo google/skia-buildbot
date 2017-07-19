@@ -1,4 +1,4 @@
-//go:generate stringer -type=AlertConfigState
+//go:generate stringer -type=ConfigState
 //
 package alerts
 
