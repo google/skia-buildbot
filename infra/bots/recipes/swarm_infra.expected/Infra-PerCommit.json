@@ -157,7 +157,7 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
     },
     "name": "which go"
   },
@@ -175,7 +175,7 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
     },
     "name": "update_deps"
   },
@@ -336,7 +336,7 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
     },
     "name": "install goimports"
   },
@@ -352,9 +352,43 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
     },
     "name": "install errcheck"
+  },
+  {
+    "cmd": [
+      "go",
+      "get",
+      "-u",
+      "github.com/golang/protobuf/protoc-gen-go"
+    ],
+    "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
+    "env": {
+      "CHROME_HEADLESS": "1",
+      "GIT_USER_AGENT": "git/1.9.1",
+      "GOPATH": "[START_DIR]/gopath",
+      "GOROOT": "[START_DIR]/go/go",
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
+    },
+    "name": "install protoc-gen-go"
+  },
+  {
+    "cmd": [
+      "go",
+      "get",
+      "-u",
+      "golang.org/x/tools/cmd/stringer"
+    ],
+    "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
+    "env": {
+      "CHROME_HEADLESS": "1",
+      "GIT_USER_AGENT": "git/1.9.1",
+      "GOPATH": "[START_DIR]/gopath",
+      "GOROOT": "[START_DIR]/go/go",
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
+    },
+    "name": "install stringer"
   },
   {
     "cmd": [
@@ -366,7 +400,7 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
     },
     "name": "setup database"
   },
@@ -386,7 +420,7 @@
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
       "KARMA_PORT": "15001",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:<PATH>:[DEPOT_TOOLS]",
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>:[DEPOT_TOOLS]",
       "TMPDIR": null
     },
     "name": "run_unittests"
