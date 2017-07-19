@@ -1106,6 +1106,18 @@ func alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	if err := alertStore.Save(cfg); err != nil {
 		httputils.ReportError(w, r, err, "Failed to save alerts.Config.")
 	}
+	link := ""
+	if cfg.ID != alerts.INVALID_ID {
+		link = fmt.Sprintf("/a/?%d", cfg.ID)
+	}
+	a := &activitylog.Activity{
+		UserID: login.LoggedInAs(r),
+		Action: fmt.Sprintf("Create/Update Alert: %#v, %d", *cfg, cfg.ID),
+		URL:    link,
+	}
+	if err := activitylog.Write(a); err != nil {
+		sklog.Errorf("Failed to log activity: %s", err)
+	}
 }
 
 func alertDeleteHandler(w http.ResponseWriter, r *http.Request) {
@@ -1122,6 +1134,15 @@ func alertDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := alertStore.Delete(int(id)); err != nil {
 		httputils.ReportError(w, r, err, "Failed to delete the alerts.Config.")
+		return
+	}
+	a := &activitylog.Activity{
+		UserID: login.LoggedInAs(r),
+		Action: fmt.Sprintf("Delete Alert: %d", id),
+		URL:    fmt.Sprintf("/a/?%d", id),
+	}
+	if err := activitylog.Write(a); err != nil {
+		sklog.Errorf("Failed to log activity: %s", err)
 	}
 }
 
