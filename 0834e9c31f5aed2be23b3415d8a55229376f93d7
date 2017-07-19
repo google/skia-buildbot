@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ac61baa_7cfda9d8",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1142,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-19T15:11:33Z",
+      "side": 1,
+      "message": "This does not need a check for alerts.INVALID_ID ?",
+      "range": {
+        "startLine": 1142,
+        "startChar": 10,
+        "endLine": 1142,
+        "endChar": 35
+      },
+      "revId": "0834e9c31f5aed2be23b3415d8a55229376f93d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
