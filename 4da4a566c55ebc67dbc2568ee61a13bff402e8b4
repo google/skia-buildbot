@@ -2,6 +2,40 @@
   "comments": [
     {
       "key": {
+        "uuid": "56a5f240_c56eb69b",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-19T19:53:20Z",
+      "side": 1,
+      "message": "why not make the id \"runID/{nopatch/withpatch}/rank/URLfilename\", in this context the date is not significant ?",
+      "revId": "4da4a566c55ebc67dbc2568ee61a13bff402e8b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69a817be_e84e7944",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-19T19:53:20Z",
+      "side": 1,
+      "message": "I don\u0027t think this will give correct results in general. \nAt this point the request could be for an image or a diff image. \n\nI think you should move a version of this into the previous if-statement:\n\nif dir \u003d\u003d DEFAULT_IMG_DIR_NAME {\n   ...\n   r.URL.Path \u003d strings.Join([]string{dir, m.mapper.ImagePath(imgID)}, \"/\")\n} else {\n   ...\n   r.URL.Path \u003d strings.Join([]string{dir, m.mapper.DiffPath(m.mapper.SplittDiffID(imgID))}, \"/\")\n}\n\n\nPlease verify.",
+      "revId": "4da4a566c55ebc67dbc2568ee61a13bff402e8b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "24bb7f92_1029aac4",
         "filename": "golden/go/skia_diff_server/main.go",
         "patchSetId": 8
@@ -13,6 +47,23 @@
       "writtenOn": "2017-07-19T18:52:03Z",
       "side": 1,
       "message": "I added this flag so that I could test locally and so that you guys would be able to see how the image loading works with relative paths (like the examples in the CL description). Is it fine to keep this in here or should I remove it now that everything has been tested?",
+      "revId": "4da4a566c55ebc67dbc2568ee61a13bff402e8b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c79c772_52c5a6ec",
+        "filename": "golden/go/skia_diff_server/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-19T19:53:20Z",
+      "side": 1,
+      "message": "That\u0027s fine, but please make it singular (\"gsBaseDir\" and \"gs_basedir\"), we will most likely never want more than one. Instead of having \"dm-images-v1\" use diffstore.DEFAULT_GCS_IMG_DIR_NAME as the default value.",
       "revId": "4da4a566c55ebc67dbc2568ee61a13bff402e8b4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
