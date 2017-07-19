@@ -81,6 +81,24 @@
       "revId": "81087312b17107a668399783b7dc64c8b11df4d4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aa1d59ec_7ccd2c56",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-19T12:45:12Z",
+      "side": 1,
+      "message": "* Can you make the 10 a constant at the top with a descriptive name?\n\n* As discussed, it would be useful to add warning logging to see if we are every stuck in a state since it sounds like that is going to be not expected. Or you could add error logging to be immediately notified if you are in a state that is not expected.",
+      "parentUuid": "cc9cbad4_ef14d9c0",
+      "revId": "81087312b17107a668399783b7dc64c8b11df4d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
