@@ -66,6 +66,7 @@ static bool install_syscall_filter() {
         ALLOW_SYSCALL(clone),
         ALLOW_SYSCALL(wait4),
         ALLOW_SYSCALL(mknod),
+        ALLOW_SYSCALL(getrandom),
 
         TRACE_SYSCALL(mkdir),
         TRACE_SYSCALL(unlink),
@@ -76,6 +77,7 @@ static bool install_syscall_filter() {
         // syscall's are being made:
 
         //TRACE_ALL,
+        //ALLOW_ALL,
         KILL_PROCESS,
     };
     struct sock_fprog prog = {

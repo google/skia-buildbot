@@ -21,6 +21,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/fiddle/go/buildlib"
+	"go.skia.org/infra/fiddle/go/buildsecwrap"
 	"go.skia.org/infra/fiddle/go/named"
 	"go.skia.org/infra/fiddle/go/runner"
 	"go.skia.org/infra/fiddle/go/source"
@@ -581,6 +582,11 @@ func main() {
 
 	if *fiddleRoot == "" {
 		sklog.Fatal("The --fiddle_root flag is required.")
+	}
+	if !*local {
+		if err := buildsecwrap.Build(*fiddleRoot); err != nil {
+			sklog.Fatalf("Failed to compile fiddle_secwrap: %s", err)
+		}
 	}
 	depotTools = filepath.Join(*fiddleRoot, "depot_tools")
 	loadTemplates()

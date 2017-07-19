@@ -20,6 +20,8 @@ ${INSTALL_DIR} --mode=755 ${ROOT}/usr/local/share/fiddle/templates
 ${INSTALL} --mode=644     ./templates/*              ${ROOT}/usr/local/share/fiddle/templates
 ${INSTALL} --mode=644 -T  ./res/js/core.js           ${ROOT}/usr/local/share/fiddle/res/js/core.js
 ${INSTALL} --mode=644 -T  ./res/vul/elements.html    ${ROOT}/usr/local/share/fiddle/res/vul/elements.html
+${INSTALL} --mode=644 -T  ./cpp/fiddle_secwrap.cpp   ${ROOT}/mnt/pd0/fiddle/bin/fiddle_secwrap.cpp
+${INSTALL} --mode=644 -T  ./cpp/seccomp_bpf.h        ${ROOT}/mnt/pd0/fiddle/bin/seccomp_bpf.h
 }
 
 source ../bash/release.sh
