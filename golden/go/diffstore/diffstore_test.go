@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"image"
 	"net"
+	"path/filepath"
 	"sort"
+	"strings"
 	"testing"
 
 	"google.golang.org/grpc"
@@ -20,7 +22,17 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-const TEST_N_DIGESTS = 20
+const (
+	TEST_N_DIGESTS = 20
+
+	// Test digests for GoldIDPathMapper.
+	TEST_GOLD_LEFT  = "098f6bcd4621d373cade4e832627b4f6"
+	TEST_GOLD_RIGHT = "1660f0783f4076284bc18c5f4bdc9608"
+
+	// Test image paths for PixelDiffIDPathMapper.
+	TEST_PIXEL_DIFF_LEFT  = "2017/07/14/lchoi-20170714123456/nopatch/1/http___www_google_com"
+	TEST_PIXEL_DIFF_RIGHT = "2017/07/14/lchoi-20170714123456/withpatch/1/http___www_google_com"
+)
 
 func TestMemDiffStore(t *testing.T) {
 	testutils.LargeTest(t)
@@ -31,7 +43,7 @@ func TestMemDiffStore(t *testing.T) {
 	client, tile := getSetupAndTile(t, baseDir)
 	defer testutils.RemoveAll(t, baseDir)
 
-	diffStore, err := NewMemDiffStore(client, nil, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
+	diffStore, err := NewMemDiffStore(client, nil, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, nil)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
@@ -52,7 +64,7 @@ func TestDiffFn(t *testing.T) {
 	defer testutils.RemoveAll(t, baseDir)
 
 	// Instantiate a new MemDiffStore with the DummyDiffFn.
-	diffStore, err := NewMemDiffStore(client, DummyDiffFn, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
+	diffStore, err := NewMemDiffStore(client, DummyDiffFn, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, nil)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 	img1 := image.NewNRGBA(image.Rect(1, 2, 3, 4))
@@ -72,7 +84,7 @@ func TestNetDiffStore(t *testing.T) {
 	client, tile := getSetupAndTile(t, baseDir)
 	defer testutils.RemoveAll(t, baseDir)
 
-	memDiffStore, err := NewMemDiffStore(client, nil, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
+	memDiffStore, err := NewMemDiffStore(client, nil, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, nil)
 	assert.NoError(t, err)
 
 	// Start the server that wraps around the MemDiffStore.
@@ -138,7 +150,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	for _, d1 := range digests {
 		for _, d2 := range digests {
 			if d1 != d2 {
-				id := combineDigests(d1, d2)
+				id := memDiffStore.mapper.DiffID(d1, d2)
 				diffIDs = append(diffIDs, id)
 				assert.True(t, memDiffStore.diffMetricsCache.Contains(id))
 			}
@@ -155,7 +167,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 
 		// Load the diff from disk and compare.
 		for twoDigest, dr := range found {
-			id := combineDigests(oneDigest, twoDigest)
+			id := memDiffStore.mapper.DiffID(oneDigest, twoDigest)
 			loadedDr, err := memDiffStore.metricsStore.loadDiffMetric(id)
 			assert.NoError(t, err)
 			assert.Equal(t, dr, loadedDr, "Comparing: %s", id)
@@ -188,11 +200,80 @@ func testDiffs(t *testing.T, baseDir string, diffStore *MemDiffStore, leftDigest
 				}
 				_, ok := result[l][r]
 				assert.True(t, ok, fmt.Sprintf("left: %s, right:%s", left, right))
-				diffPath := fileutil.TwoLevelRadixPath(diffStore.localDiffDir, getDiffImgFileName(left, right))
-				assert.True(t, fileutil.FileExists(diffPath), fmt.Sprintf("Could not find %s", diffPath))
+				diffPath := diffStore.mapper.DiffPath(left, right)
+				assert.True(t, fileutil.FileExists(filepath.Join(diffStore.localDiffDir, diffPath)), fmt.Sprintf("Could not find %s", diffPath))
 			}
 		}
 	}
+}
+
+func TestGoldIDPathMapper(t *testing.T) {
+	testutils.SmallTest(t)
+
+	mapper := GoldIDPathMapper{}
+
+	// Test DiffID and SplitDiffID
+	expectedDiffID := TEST_GOLD_LEFT + ":" + TEST_GOLD_RIGHT
+	actualDiffID := mapper.DiffID(TEST_GOLD_LEFT, TEST_GOLD_RIGHT)
+	actualLeft, actualRight := mapper.SplitDiffID(expectedDiffID)
+	assert.Equal(t, expectedDiffID, actualDiffID)
+	assert.Equal(t, TEST_GOLD_LEFT, actualLeft)
+	assert.Equal(t, TEST_GOLD_RIGHT, actualRight)
+
+	// Test DiffPath
+	expectedDiffPath := TEST_GOLD_LEFT[0:2] + "/" + TEST_GOLD_LEFT[2:4] + "/" +
+		TEST_GOLD_LEFT + "-" + TEST_GOLD_RIGHT + "." + IMG_EXTENSION
+	actualDiffPath := mapper.DiffPath(TEST_GOLD_LEFT, TEST_GOLD_RIGHT)
+	assert.Equal(t, expectedDiffPath, actualDiffPath)
+
+	// Test ImagePath
+	expectedImagePath := TEST_GOLD_RIGHT[0:2] + "/" + TEST_GOLD_RIGHT[2:4] + "/" +
+		TEST_GOLD_RIGHT + "." + IMG_EXTENSION
+	actualImagePath := mapper.ImagePath(TEST_GOLD_RIGHT)
+	assert.Equal(t, expectedImagePath, actualImagePath)
+
+	// Test IsValidDiffImgID
+	// Trim the two level radix path and image extension first
+	expectedDiffImgID := expectedDiffPath[6 : len(expectedDiffPath)-4]
+	assert.True(t, mapper.IsValidDiffImgID(expectedDiffImgID))
+
+	// Test IsValidImgID
+	assert.True(t, mapper.IsValidImgID(TEST_GOLD_LEFT))
+	assert.True(t, mapper.IsValidImgID(TEST_GOLD_RIGHT))
+}
+
+func TestPixelDiffIDPathMapper(t *testing.T) {
+	testutils.SmallTest(t)
+
+	mapper := PixelDiffIDPathMapper{}
+	dirs := strings.Split(TEST_PIXEL_DIFF_LEFT, "/")
+
+	// Test DiffID and SplitDiffID
+	expectedDiffID := dirs[3] + ":" + dirs[5] + ":" + dirs[6]
+	actualDiffID := mapper.DiffID(TEST_PIXEL_DIFF_LEFT, TEST_PIXEL_DIFF_RIGHT)
+	actualLeft, actualRight := mapper.SplitDiffID(expectedDiffID)
+	assert.Equal(t, expectedDiffID, actualDiffID)
+	assert.Equal(t, TEST_PIXEL_DIFF_LEFT, actualLeft)
+	assert.Equal(t, TEST_PIXEL_DIFF_RIGHT, actualRight)
+
+	// Test DiffPath
+	expectedDiffPath := dirs[3] + "/" + dirs[6] + "." + IMG_EXTENSION
+	actualDiffPath := mapper.DiffPath(TEST_PIXEL_DIFF_LEFT, TEST_PIXEL_DIFF_RIGHT)
+	assert.Equal(t, expectedDiffPath, actualDiffPath)
+
+	// Test ImagePath
+	expectedImagePath := TEST_PIXEL_DIFF_RIGHT + "." + IMG_EXTENSION
+	actualImagePath := mapper.ImagePath(TEST_PIXEL_DIFF_RIGHT)
+	assert.Equal(t, expectedImagePath, actualImagePath)
+
+	// Test IsValidDiffImgID
+	// Trim the image extension first
+	expectedDiffImgID := expectedDiffPath[:len(expectedDiffPath)-4]
+	assert.True(t, mapper.IsValidDiffImgID(expectedDiffImgID))
+
+	// Test IsValidImgID
+	assert.True(t, mapper.IsValidImgID(TEST_PIXEL_DIFF_LEFT))
+	assert.True(t, mapper.IsValidImgID(TEST_PIXEL_DIFF_RIGHT))
 }
 
 // func (d *MemDiffStore) ServeImageHandler(w http.ResponseWriter, r *http.Request) {
