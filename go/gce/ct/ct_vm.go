@@ -21,6 +21,7 @@ import (
 const (
 	GS_URL_GITCONFIG = "gs://skia-buildbots/artifacts/bots/.gitconfig"
 	GS_URL_NETRC     = "gs://skia-buildbots/artifacts/bots/.netrc"
+	GS_URL_BOTO      = "gs://skia-buildbots/artifacts/bots/.boto-ct"
 )
 
 var (
@@ -53,6 +54,7 @@ func CT20170602(name string) *gce.Instance {
 		GSDownloads: map[string]string{
 			"/home/chrome-bot/.gitconfig": GS_URL_GITCONFIG,
 			"/home/chrome-bot/.netrc":     GS_URL_NETRC,
+			"/home/chrome-bot/.boto":      GS_URL_BOTO,
 		},
 		MachineType:       gce.MACHINE_TYPE_HIGHMEM_2,
 		Metadata:          map[string]string{},
