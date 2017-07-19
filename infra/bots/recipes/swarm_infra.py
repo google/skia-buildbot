@@ -152,6 +152,12 @@ def RunSteps(api):
     api.step(
         'install errcheck',
         cmd=['go', 'get', 'github.com/kisielk/errcheck'])
+    api.step(
+        'install protoc-gen-go',
+        cmd=['go', 'get', '-u', 'github.com/golang/protobuf/protoc-gen-go'])
+    api.step(
+        'install stringer',
+        cmd=['go', 'get', '-u', 'golang.org/x/tools/cmd/stringer'])
   with api.context(cwd=infra_dir.join('go', 'database'), env=env):
     api.step(
         'setup database',
