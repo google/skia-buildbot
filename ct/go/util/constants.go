@@ -84,6 +84,8 @@ const (
 	USE_LIVE_SITES_FLAGS = "--use-live-sites"
 	// Pageset repeat flag.
 	PAGESET_REPEAT_FLAG = "--pageset-repeat"
+	// Run Benchmark timeout flag.
+	RUN_BENCHMARK_TIMEOUT_FLAG = "--run-benchmark-timeout"
 
 	// Defaults for custom webpages.
 	DEFAULT_CUSTOM_PAGE_USERAGENT   = "desktop"
