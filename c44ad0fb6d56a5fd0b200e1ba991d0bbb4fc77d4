@@ -34,6 +34,24 @@
       "revId": "c44ad0fb6d56a5fd0b200e1ba991d0bbb4fc77d4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a2af9d8f_eb42bb36",
+        "filename": "go/cipd/cipd.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-19T14:02:17Z",
+      "side": 1,
+      "message": "SGTM. That file has Go version for the swarming bots and this file might be used by our servers. I guess it makes sense to have them both use the same thing.",
+      "parentUuid": "021675b6_3f118182",
+      "revId": "c44ad0fb6d56a5fd0b200e1ba991d0bbb4fc77d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
