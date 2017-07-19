@@ -38,6 +38,10 @@
       width: 5em;
     }
 
+    .smaller-font {
+      font-size: 80%;
+    }
+
     iron-selector.long-field > div {
       width: 40em;
     }
@@ -130,7 +134,9 @@
       <tr>
         <td>Benchmark Arguments</td>
         <td>
-          <paper-input value="--output-format=csv-pivot-table" id="benchmark_args" label="Note: Errors are retried 3 times. If you specify pageset-repeat then any crash there will retry the whole set." class="long-field"></paper-input>
+          <paper-input value="--output-format=csv-pivot-table" id="benchmark_args" class="long-field"></paper-input>
+          <span class="smaller-font"><b>Note:</b> Errors are retried 3 times. If you specify pageset-repeat then any crash there will retry the whole set.</span><br/>
+          <span class="smaller-font"><b>Note:</b> Use --run-benchmark-timeout=[secs] to specify the timeout of the run_benchmark script. 300 is the default value.</span>
         </td>
       </tr>
 
