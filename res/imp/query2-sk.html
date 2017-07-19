@@ -28,6 +28,7 @@
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+<link rel="import" href="/res/imp/bower_components/iron-selector/iron-selector.html">
 <dom-module id="query2-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
     input,
@@ -47,6 +48,40 @@
       display: none;
     }
 
+    iron-selector {
+      cursor: pointer;
+      border: solid 1px #A6CEE3;
+      margin-top: 6px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    iron-selector div {
+      padding: 0.4em 1.2em;
+      background-color: white;
+      border: none;
+      outline: none;
+      line-height: 20px;
+      vertical-align: middle;
+    }
+
+    iron-selector div:hover {
+      background-color: #A6CEE3;
+    }
+
+    iron-selector div.iron-selected {
+      background: #eee;
+    }
+
+    iron-selector div.iron-selected:hover {
+      background: #1F78B4;
+      color: white;
+    }
+
+    #values {
+      margin: 12px;
+    }
+
   </style>
   <template>
     <div class="horizontal layout">
@@ -55,11 +90,14 @@
           <paper-input id="fast" label="Filter" on-input="_fastFilter"></paper-input>
           <button on-tap="_clearFilter">Clear Filter</button>
         </div>
-        <select id=keys size=12 on-change="_keyChange">
+        <iron-selector id=keys size=12
+          on-selected-items-changed="_keyChange"
+          attr-for-selected=value
+          >
           <template is="dom-repeat" items="[[_keys]]">
-            <option value="[[item]]">[[item]]</option>
+            <div value="[[item]]">[[item]]</div>
           </template>
-        </select>
+        </iron-selector>
         <button on-tap="_clear">Clear Selections</button>
       </div>
       <div class="vertical layout">
@@ -81,11 +119,16 @@
           class=hidden
           on-input="_valueChange"
         />
-        <select id=values size=10 on-change="_valueChange" multiple>
+        <iron-selector id=values size=10
+          on-selected-items-changed="_valueChange"
+          selected-values="{{_selectedValue}}"
+          multi
+          attr-for-selected=value
+          >
           <template is="dom-repeat" items="[[_values]]">
-            <option value="[[item]]" selected="[[_isSelected(item, _selectedValue)]]">[[item]]</option>
+            <div value="[[item]]">[[item]]</div>
           </template>
-        </select>
+        </iron-selector>
       </div>
     </div>
   </template>
@@ -267,10 +310,10 @@
     },
 
     _keyChange: function() {
-      var key = this.$.keys.selectedOptions[0].value;
+      var key = this.$.keys.selected;
       this.set("_values", this._paramset[key]);
-      this.set("_selectedValue", this._query[key] || []);
       this.set("_selectedKey", key);
+      this.set("_selectedValue", this._query[key] || []);
 
       this.$.invert.disabled = false;
       this.$.regex.disabled = false;
@@ -286,13 +329,7 @@
       if (this.$.regex.checked) {
         this._query[this._selectedKey] = ["~" + this.$.regexValue.value];
       } else {
-        var selectedValues = [];
-        $$("#values option", this).forEach(function(e){
-          if (e.selected) {
-            selectedValues.push(this._prefixValue(e.value));
-          }
-        }.bind(this));
-        this._query[this._selectedKey] = selectedValues;
+        this._query[this._selectedKey] = this._selectedValue;
       }
       this._queryChanged();
     },
