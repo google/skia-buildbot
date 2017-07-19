@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "24bb7f92_1029aac4",
+        "filename": "golden/go/skia_diff_server/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-19T18:52:03Z",
+      "side": 1,
+      "message": "I added this flag so that I could test locally and so that you guys would be able to see how the image loading works with relative paths (like the examples in the CL description). Is it fine to keep this in here or should I remove it now that everything has been tested?",
+      "revId": "4da4a566c55ebc67dbc2568ee61a13bff402e8b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
