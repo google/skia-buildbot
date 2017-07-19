@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8b26311a_6aafb593",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-19T23:29:54Z",
+      "side": 1,
+      "message": "I was able to make the imageID in the format \"runID/{nopatch/withpatch}/rank/URLfilename\" by making ImagePath return two strings, one for the local file path and the other for the GS path. This enabled me to reconstruct the YYYY/MM/DD directories as they appear in GS in the ImagePath implementation and also specify different paths for storing/accessing images locally and downloading images from GS in ImageLoader. However, I wasn\u0027t sure if having ImagePath return two strings, or just having two separate functions (LocalPath and GSPath) made more sense in terms of design -- what do you think? \n\nNow that I look at it, it should probably be called ImagePaths if we go with the return two paths approach, but I\u0027ll wait for your input about the design before uploading another patch.\n\nAlso, I removed most \"digest\" references in imgloader.go because the abovementioned change made using the word digest not make much sense in most of the functions. I started working on doing the same for mem_diffstore.go but soon realized that unlike imgloader, the module is not really self-contained and would require changes to interfaces in different files as well. I held off on changing these just in case you think the renaming belongs in a different CL; please let me know!",
+      "revId": "1c210e2dffa4783b42ddb29e4db0a47ff4f6b225",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ce1ac97_e406e14f",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-19T23:29:54Z",
+      "side": 1,
+      "message": "I did need to prepend the dir in order to get this working properly, but just calling ImagePath to get the local file path was fine for both cases. I verified with local runs of skia_diff_server with GoldIDPathMapper and chromium-skia-gm/dm-images-v1, and PixelDiffIDPathMapper and cluster-telemetry/tasks/pixel_diff_runs. I think this makes sense because the current implementation calls fileutil.TwoLevelRadixPath(path) for both images and diff images; as long as the frontend for either server constructs URLs in a manner consistent with how image names and paths were created, this should work fine.\n\nIt would get a bit messy if you still did want to break it down by case, as DiffIDs for both Gold and PixelDiff are colon-separated, but in the URL request they will be separated by hyphens and slashes, respectively. So doing something like strings.Join([]string{dir, m.mapper.DiffPath(m.mapper.SplitDiffID(imgID))}, \"/\") wouldn\u0027t work for diff images.",
+      "revId": "1c210e2dffa4783b42ddb29e4db0a47ff4f6b225",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
