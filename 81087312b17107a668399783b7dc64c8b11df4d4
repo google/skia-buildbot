@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a0aa06ef_01f9965f",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 395,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-19T12:11:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baef51d7_1f1fb009",
+      "range": {
+        "startLine": 395,
+        "startChar": 46,
+        "endLine": 395,
+        "endChar": 47
+      },
+      "revId": "81087312b17107a668399783b7dc64c8b11df4d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ee6b687_f2adda37",
         "filename": "autoroll/go/state_machine/state_machine.go",
         "patchSetId": 6
@@ -36,6 +60,24 @@
       "writtenOn": "2017-07-18T19:56:02Z",
       "side": 1,
       "message": "I do not completely understand why we need this. Let\u0027s talk tomorrow.",
+      "revId": "81087312b17107a668399783b7dc64c8b11df4d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cc9cbad4_ef14d9c0",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-19T12:11:03Z",
+      "side": 1,
+      "message": "This loop allows us to transition multiple states in one cycle (rather than having to wait 60 seconds) as long as the transitions are no-ops.  The problem is that some states (S_STOPPED in this case) had self-transitions which were no-ops, which caused this to loop very quickly.  It\u0027s not an infinite loop, because if someone had resumed the roller it would\u0027ve gone back to its normal state, but we don\u0027t really want it to be spinning that quickly (log spam, CPU chugging). So this limits us to 10 iterations at a time.",
+      "parentUuid": "1ee6b687_f2adda37",
       "revId": "81087312b17107a668399783b7dc64c8b11df4d4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
