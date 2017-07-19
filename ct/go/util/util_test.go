@@ -31,16 +31,16 @@ func TestGetPathToPyFiles(t *testing.T) {
 	assert.True(t, strings.HasSuffix(nonSwarmingPath, filepath.Join("src", "go.skia.org", "infra", "ct", "py")))
 }
 
-func TestGetRepeatValue(t *testing.T) {
+func TestGetIntFlagValue(t *testing.T) {
 	testutils.SmallTest(t)
-	assert.Equal(t, 4, GetRepeatValue("--pageset-repeat=4", 1))
-	assert.Equal(t, 4, GetRepeatValue("--pageset-repeat 4", 1))
+	assert.Equal(t, 4, GetIntFlagValue("--pageset-repeat=4", PAGESET_REPEAT_FLAG, 1))
+	assert.Equal(t, 4, GetIntFlagValue("--pageset-repeat 4", PAGESET_REPEAT_FLAG, 1))
 	// Use first value if multiple are specified.
-	assert.Equal(t, 4, GetRepeatValue("--pageset-repeat=4 --pageset-repeat=3", 1))
+	assert.Equal(t, 4, GetIntFlagValue("--pageset-repeat=4 --pageset-repeat=3", PAGESET_REPEAT_FLAG, 1))
 	// Test that default value gets returned.
-	assert.Equal(t, 2, GetRepeatValue("", 2))
-	assert.Equal(t, 2, GetRepeatValue("--pageset-repeatsssss=4", 2))
-	assert.Equal(t, 2, GetRepeatValue("--somethingelse", 2))
+	assert.Equal(t, 2, GetIntFlagValue("", PAGESET_REPEAT_FLAG, 2))
+	assert.Equal(t, 2, GetIntFlagValue("--pageset-repeatsssss=4", PAGESET_REPEAT_FLAG, 2))
+	assert.Equal(t, 2, GetIntFlagValue("--somethingelse", PAGESET_REPEAT_FLAG, 2))
 }
 
 func TestGetBasePixelDiffRemoteDir(t *testing.T) {
@@ -53,4 +53,13 @@ func TestGetBasePixelDiffRemoteDir(t *testing.T) {
 	remoteDir, err = GetBasePixelDiffRemoteDir("blahblahblah")
 	assert.Error(t, err)
 	assert.Equal(t, "", remoteDir)
+}
+
+func TestRemoveFlagsFromArgs(t *testing.T) {
+	testutils.SmallTest(t)
+	assert.Equal(t, "", RemoveFlagsFromArgs("--pageset-repeat=4", PAGESET_REPEAT_FLAG))
+	assert.Equal(t, "", RemoveFlagsFromArgs("--pageset-repeat=4 --run-benchmark-timeout=400", PAGESET_REPEAT_FLAG, RUN_BENCHMARK_TIMEOUT_FLAG))
+	assert.Equal(t, "--abc", RemoveFlagsFromArgs("--pageset-repeat=4 --pageset-repeat=abc --pageset-repeat --abc", PAGESET_REPEAT_FLAG))
+	assert.Equal(t, "", RemoveFlagsFromArgs("", PAGESET_REPEAT_FLAG))
+	assert.Equal(t, "--abc", RemoveFlagsFromArgs("--abc", PAGESET_REPEAT_FLAG))
 }
