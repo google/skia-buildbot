@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "87f143cf_8a10314e",
+        "filename": "go/cipd/cipd.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-19T13:51:06Z",
+      "side": 1,
+      "message": "We will have to manually update this? should we tell it to get the latest version?",
+      "revId": "c44ad0fb6d56a5fd0b200e1ba991d0bbb4fc77d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
