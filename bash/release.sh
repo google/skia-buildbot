@@ -158,7 +158,7 @@ copy_release_files
 if [ ! -v BYPASS_GENERATION ]
 then
   # Build the debian package.
-  sudo dpkg-deb --build ${ROOT} ${OUT}/${APPNAME}.deb
+  fakeroot dpkg-deb --build ${ROOT} ${OUT}/${APPNAME}.deb
 else
   # Just use the debian package that copy_release_files
   # placed in ${ROOT}/{APPNAME}.deb.
