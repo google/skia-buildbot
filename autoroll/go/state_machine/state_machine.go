@@ -41,6 +41,7 @@ const (
 	F_UPLOAD_ROLL            = "upload roll"
 	F_UPLOAD_DRY_RUN         = "upload dry run"
 	F_UPDATE_ROLL            = "update roll"
+	F_STOPPED_WAIT           = "waiting (stopped)"
 	F_SWITCH_TO_DRY_RUN      = "switch roll to dry run"
 	F_SWITCH_TO_NORMAL       = "switch roll to normal"
 	F_CLOSE_FAILED           = "close roll (failed)"
@@ -49,6 +50,11 @@ const (
 	F_CLOSE_DRY_RUN_OUTDATED = "close roll (dry run outdated)"
 	F_THROTTLE_WAIT          = "waiting (throttled)"
 	F_WAIT_FOR_LAND          = "wait for roll to land"
+
+	// Maximum number of no-op transitions to perform at once. This is an
+	// arbitrary limit just to keep us from performing an unbounded number
+	// of transitions at a time.
+	MAX_NOOP_TRANSITIONS = 10
 )
 
 // Interface for interacting with a single autoroll CL.
@@ -166,6 +172,7 @@ func New(impl AutoRollerImpl, workdir string) (*AutoRollStateMachine, error) {
 		currentRoll := s.a.GetActiveRoll()
 		return currentRoll.Close(autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, fmt.Sprintf("Repo has passed %s; will open a new dry run.", currentRoll.RollingTo()))
 	})
+	b.F(F_STOPPED_WAIT, nil)
 	b.F(F_SWITCH_TO_DRY_RUN, func() error {
 		return s.a.GetActiveRoll().SwitchToDryRun()
 	})
@@ -196,7 +203,7 @@ func New(impl AutoRollerImpl, workdir string) (*AutoRollStateMachine, error) {
 	// States and transitions.
 
 	// Stopped state.
-	b.T(S_STOPPED, S_STOPPED, F_NOOP)
+	b.T(S_STOPPED, S_STOPPED, F_STOPPED_WAIT)
 	b.T(S_STOPPED, S_NORMAL_IDLE, F_NOOP)
 	b.T(S_STOPPED, S_DRY_RUN_IDLE, F_NOOP)
 
@@ -384,13 +391,27 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 	}
 }
 
+// Attempt to perform the given state transition.
+func (s *AutoRollStateMachine) Transition(dest string) error {
+	fName, err := s.s.GetTransitionName(dest)
+	if err != nil {
+		return err
+	}
+	sklog.Infof("Attempting to perform transition from %q to %q: %s", s.s.Current(), dest, fName)
+	if err := s.s.Transition(dest); err != nil {
+		return err
+	}
+	sklog.Infof("Successfully performed transition.")
+	return nil
+}
+
 // Attempt to perform the next state transition.
 func (s *AutoRollStateMachine) NextTransition() error {
 	next, err := s.GetNext()
 	if err != nil {
 		return err
 	}
-	return s.s.Transition(next)
+	return s.Transition(next)
 }
 
 // Perform the next state transition, plus any subsequent transitions which are
@@ -399,7 +420,10 @@ func (s *AutoRollStateMachine) NextTransitionSequence() error {
 	if err := s.NextTransition(); err != nil {
 		return err
 	}
-	for {
+	// Greedily perform transitions until we reach a transition which is not
+	// a no-op, or until we've performed a maximum number of transitions, to
+	// keep us from accidentally looping extremely quickly.
+	for i := 0; i < MAX_NOOP_TRANSITIONS; i++ {
 		next, err := s.GetNext()
 		if err != nil {
 			return err
@@ -408,13 +432,18 @@ func (s *AutoRollStateMachine) NextTransitionSequence() error {
 		if err != nil {
 			return err
 		} else if fName == F_NOOP {
-			if err := s.s.Transition(next); err != nil {
+			if err := s.Transition(next); err != nil {
 				return err
 			}
 		} else {
 			return nil
 		}
 	}
+	// If we hit the maximum number of no-op transitions, there's probably
+	// a bug in the state machine. Log an error but don't return it, so as
+	// not to disrupt normal operation.
+	sklog.Errorf("Performed %d no-op transitions in a single tick; is there a bug in the state machine?", MAX_NOOP_TRANSITIONS)
+	return nil
 }
 
 // Return the current state.
