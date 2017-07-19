@@ -24,6 +24,7 @@ type Config struct {
 	StepUpOnly     bool                    `json:"step_up_only"`     // If true then only steps up will trigger an alert.
 	Radius         int                     `json:"radius"`           // How many commits to each side of a commit to consider when looking for a step. 0 means use the server default.
 	K              int                     `json:"k"`                // The K in k-means clustering. 0 means use an algorithmically chosen value based on the data.
+	GroupBy        string                  `json:"group_by"`         // A key in the pamamset that all Clustering should be broken up across. Key must not appear in Query.
 }
 
 func (c *Config) IdAsString() string {

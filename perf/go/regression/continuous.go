@@ -126,53 +126,62 @@ func (c *Continuous) Run() {
 					radius = cfg.Radius
 				}
 				sklog.Infof("About to cluster for: %#v", *cfg)
-				// Create ClusterRequest and run.
-				req := &clustering2.ClusterRequest{
-					Source:      "master",
-					Offset:      commit.Index,
-					Radius:      radius,
-					Query:       cfg.Query,
-					Algo:        cfg.Algo,
-					Interesting: cfg.Interesting,
-					K:           cfg.K,
-				}
-				sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, cfg.Query)
-				resp, err := clustering2.Run(req, c.git, c.cidl)
-				if err != nil {
-					sklog.Errorf("Failed while clustering %v %s", *req, err)
-					continue
-				}
+				queries := []string{cfg.Query}
+				if cfg.GroupBy != "" {
+					// TODO
+					// Need the paramset here.
+					// Create a whole new slice of queries based on the groupby's parameter values.
 
-				key := cfg.Query
-				if c.useID {
-					key = cfg.IdAsString()
 				}
-				// Update database if regression at the midpoint is found.
-				for _, cl := range resp.Summary.Clusters {
-					if cl.StepPoint.Offset == int64(commit.Index) {
-						if cl.StepFit.Status == stepfit.LOW && !cfg.StepUpOnly {
-							sklog.Infof("Found Low regression at %s for %q: %v", details[0].Message, cfg.Query, *cl.StepFit)
-							isNew, err := c.store.SetLow(details[0], key, resp.Frame, cl)
-							if err != nil {
-								sklog.Errorf("Failed to save newly found cluster: %s", err)
-								continue
-							}
-							if isNew {
-								if err := c.notifier.Send(details[0], cfg, cl); err != nil {
-									sklog.Errorf("Failed to send notification: %s", err)
+				for _, q := range queries {
+					// Create ClusterRequest and run.
+					req := &clustering2.ClusterRequest{
+						Source:      "master",
+						Offset:      commit.Index,
+						Radius:      radius,
+						Query:       q,
+						Algo:        cfg.Algo,
+						Interesting: cfg.Interesting,
+						K:           cfg.K,
+					}
+					sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, q)
+					resp, err := clustering2.Run(req, c.git, c.cidl)
+					if err != nil {
+						sklog.Errorf("Failed while clustering %v %s", *req, err)
+						continue
+					}
+
+					key := cfg.Query
+					if c.useID {
+						key = cfg.IdAsString()
+					}
+					// Update database if regression at the midpoint is found.
+					for _, cl := range resp.Summary.Clusters {
+						if cl.StepPoint.Offset == int64(commit.Index) {
+							if cl.StepFit.Status == stepfit.LOW && !cfg.StepUpOnly {
+								sklog.Infof("Found Low regression at %s for %q: %v", details[0].Message, q, *cl.StepFit)
+								isNew, err := c.store.SetLow(details[0], key, resp.Frame, cl)
+								if err != nil {
+									sklog.Errorf("Failed to save newly found cluster: %s", err)
+									continue
+								}
+								if isNew {
+									if err := c.notifier.Send(details[0], cfg, cl); err != nil {
+										sklog.Errorf("Failed to send notification: %s", err)
+									}
 								}
 							}
-						}
-						if cl.StepFit.Status == stepfit.HIGH {
-							sklog.Infof("Found High regression at %s for %q: %v", id.ID(), cfg.Query, *cl.StepFit)
-							isNew, err := c.store.SetHigh(details[0], key, resp.Frame, cl)
-							if err != nil {
-								sklog.Errorf("Failed to save newly found cluster: %s", err)
-								continue
-							}
-							if isNew {
-								if err := c.notifier.Send(details[0], cfg, cl); err != nil {
-									sklog.Errorf("Failed to send notification: %s", err)
+							if cl.StepFit.Status == stepfit.HIGH {
+								sklog.Infof("Found High regression at %s for %q: %v", id.ID(), q, *cl.StepFit)
+								isNew, err := c.store.SetHigh(details[0], key, resp.Frame, cl)
+								if err != nil {
+									sklog.Errorf("Failed to save newly found cluster: %s", err)
+									continue
+								}
+								if isNew {
+									if err := c.notifier.Send(details[0], cfg, cl); err != nil {
+										sklog.Errorf("Failed to send notification: %s", err)
+									}
 								}
 							}
 						}
