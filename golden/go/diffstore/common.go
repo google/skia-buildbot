@@ -1,6 +1,7 @@
 package diffstore
 
 import (
+	"encoding/json"
 	"fmt"
 	"image"
 	"image/png"
@@ -101,4 +102,29 @@ func openBoltDB(baseDir, name string) (*bolt.DB, error) {
 	}
 
 	return bolt.Open(path.Join(baseDir, name), 0600, nil)
+}
+
+// MetricMapCodec implements the util.LRUCodec interface by serializing and
+// deserializing generic diff result structs, instances of map[string]interface{}
+type MetricMapCodec struct{}
+
+// See util.LRUCodec interface
+func (m MetricMapCodec) Encode(data interface{}) ([]byte, error) {
+	return json.Marshal(data)
+}
+
+// See util.LRUCodec interface
+func (m MetricMapCodec) Decode(byteData []byte) (interface{}, error) {
+	dm := map[string]*diff.DiffMetrics{}
+	err := json.Unmarshal(byteData, &dm)
+	if err != nil {
+		return nil, err
+	}
+
+	// Must make result of deserialization generic in order to propagate
+	ret := make(map[string]interface{}, len(dm))
+	for k, metric := range dm {
+		ret[k] = metric
+	}
+	return ret, nil
 }

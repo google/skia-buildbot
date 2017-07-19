@@ -53,12 +53,13 @@ func ClosestDigest(test string, digest string, exp *expstorage.Expectations, tal
 		sklog.Errorf("ClosestDigest: Failed to get diff: %s", err)
 		return ret
 	} else {
-		for digest, diff := range diffMetrics {
-			if delta := combinedDiffMetric(diff.PixelDiffPercent, diff.MaxRGBADiffs); delta < ret.Diff {
+		for digest, diffs := range diffMetrics {
+			dm := diffs.(*diff.DiffMetrics)
+			if delta := combinedDiffMetric(dm.PixelDiffPercent, dm.MaxRGBADiffs); delta < ret.Diff {
 				ret.Digest = digest
 				ret.Diff = delta
-				ret.DiffPixels = diff.PixelDiffPercent
-				ret.MaxRGBA = diff.MaxRGBADiffs
+				ret.DiffPixels = dm.PixelDiffPercent
+				ret.MaxRGBA = dm.MaxRGBADiffs
 			}
 		}
 		return ret
