@@ -548,10 +548,10 @@ func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GcsUtil, totalPages, m
 	return noOutputSlaves, nil
 }
 
-// GetRepeatValue returns the defaultValue if "--pageset-repeat" is not specified in benchmarkArgs.
-func GetRepeatValue(benchmarkArgs string, defaultValue int) int {
-	if strings.Contains(benchmarkArgs, PAGESET_REPEAT_FLAG) {
-		r := regexp.MustCompile(PAGESET_REPEAT_FLAG + `[= ](\d+)`)
+// GetIntFlagValue returns the defaultValue if the specified flag name is not in benchmarkArgs.
+func GetIntFlagValue(benchmarkArgs, flagName string, defaultValue int) int {
+	if strings.Contains(benchmarkArgs, flagName) {
+		r := regexp.MustCompile(flagName + `[= ](\d+)`)
 		m := r.FindStringSubmatch(benchmarkArgs)
 		if len(m) != 0 {
 			ret, err := strconv.Atoi(m[1])
@@ -563,6 +563,17 @@ func GetRepeatValue(benchmarkArgs string, defaultValue int) int {
 	}
 	// If we reached here then return the default Value.
 	return defaultValue
+}
+
+func RemoveFlagsFromArgs(benchmarkArgs string, flags ...string) string {
+	for _, f := range flags {
+		re, err := regexp.Compile(fmt.Sprintf(`\s*%s(=[[:alnum:]]*)?\s*`, f))
+		if err != nil {
+			continue
+		}
+		benchmarkArgs = re.ReplaceAllString(benchmarkArgs, "")
+	}
+	return benchmarkArgs
 }
 
 func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBuildName, chromiumBinary, runID, browserExtraArgs, benchmarkName, targetPlatform, benchmarkExtraArgs, pagesetType string, defaultRepeatValue int) error {
@@ -605,17 +616,24 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 		args = append(args, "--browser=exact", "--browser-executable="+chromiumBinary)
 		args = append(args, "--device=desktop")
 	}
-	// Split benchmark args if not empty and append to args.
-	if benchmarkExtraArgs != "" {
-		args = append(args, strings.Fields(benchmarkExtraArgs)...)
-	}
-	timeoutSecs := PagesetTypeToInfo[pagesetType].RunChromiumPerfTimeoutSecs
-	repeatBenchmark := GetRepeatValue(benchmarkExtraArgs, defaultRepeatValue)
+
+	// Calculate the timeout.
+	timeoutSecs := GetIntFlagValue(benchmarkExtraArgs, RUN_BENCHMARK_TIMEOUT_FLAG, PagesetTypeToInfo[pagesetType].RunChromiumPerfTimeoutSecs)
+	repeatBenchmark := GetIntFlagValue(benchmarkExtraArgs, PAGESET_REPEAT_FLAG, defaultRepeatValue)
 	if repeatBenchmark > 0 {
 		args = append(args, fmt.Sprintf("%s=%d", PAGESET_REPEAT_FLAG, repeatBenchmark))
 		// Increase the timeoutSecs if repeats are used.
 		timeoutSecs = timeoutSecs * repeatBenchmark
 	}
+
+	// Remove from benchmarkExtraArgs "special" flags that are recognized by CT but not
+	// by the run_benchmark script.
+	benchmarkExtraArgs = RemoveFlagsFromArgs(benchmarkExtraArgs, RUN_BENCHMARK_TIMEOUT_FLAG)
+	// Split benchmark args if not empty and append to args.
+	if benchmarkExtraArgs != "" {
+		args = append(args, strings.Fields(benchmarkExtraArgs)...)
+	}
+
 	// Add browserArgs if not empty to args.
 	if browserExtraArgs != "" {
 		args = append(args, "--extra-browser-args="+browserExtraArgs)
