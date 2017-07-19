@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"sort"
 	"strings"
 
 	"go.skia.org/infra/go/sklog"
@@ -39,6 +40,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	longestAssetName := 0
 	assets := make(map[string]string, len(entries))
 	for _, e := range entries {
 		if e.IsDir() {
@@ -48,14 +50,24 @@ func main() {
 			} else if !os.IsNotExist(err) {
 				sklog.Fatal(err)
 			}
+			if len(e.Name()) > longestAssetName {
+				longestAssetName = len(e.Name())
+			}
 		}
 	}
 
-	assetsStr := ""
+	assetLines := make([]string, 0, len(assets))
 	for name, version := range assets {
-		line := fmt.Sprintf("\t\"%s\": \"%s\",\n", name, version)
-		assetsStr += line
+		padLength := longestAssetName - len(name)
+		padding := ""
+		for i := 0; i < padLength; i++ {
+			padding += " "
+		}
+		line := fmt.Sprintf("\t\"%s\":%s \"%s\",\n", name, padding, version)
+		assetLines = append(assetLines, line)
 	}
+	sort.Strings(assetLines)
+	assetsStr := strings.Join(assetLines, "")
 	fileContents := []byte(fmt.Sprintf(TMPL, assetsStr))
 	if err := ioutil.WriteFile(path.Join(pkgDir, TARGET_FILE), fileContents, os.ModePerm); err != nil {
 		sklog.Fatal(err)

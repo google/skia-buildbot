@@ -124,7 +124,9 @@ def RunSteps(api):
          'GOPATH': go_dir,
          'GIT_USER_AGENT': 'git/1.9.1',  # I don't think this version matters.
          'PATH': api.path.pathsep.join([
-             str(go_bin), str(go_dir.join('bin')), '%(PATH)s'])}
+             str(go_bin), str(go_dir.join('bin')),
+             str(api.path['start_dir'].join('protoc', 'bin')),
+             '%(PATH)s'])}
   with api.context(cwd=infra_dir, env=env):
     api.step('which go', cmd=['which', 'go'])
     api.step('update_deps', cmd=['go', 'get', '-u', '-t', './...'])
@@ -152,6 +154,12 @@ def RunSteps(api):
     api.step(
         'install errcheck',
         cmd=['go', 'get', 'github.com/kisielk/errcheck'])
+    api.step(
+        'install protoc-gen-go',
+        cmd=['go', 'get', '-u', 'github.com/golang/protobuf/protoc-gen-go'])
+    api.step(
+        'install stringer',
+        cmd=['go', 'get', '-u', 'golang.org/x/tools/cmd/stringer'])
   with api.context(cwd=infra_dir.join('go', 'database'), env=env):
     api.step(
         'setup database',
