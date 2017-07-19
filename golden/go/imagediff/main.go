@@ -30,7 +30,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	metrics, d := diff.Diff(a, b)
+	metrics, d := diff.PixelDiff(a, b)
 	fmt.Printf("Dimensions are different: %v\n", metrics.DimDiffer)
 	fmt.Printf("Number of pixels different: %v\n", metrics.NumDiffPixels)
 	fmt.Printf("Pixel diff percent: %v\n", metrics.PixelDiffPercent)

@@ -611,7 +611,7 @@ type DigestDiff struct {
 // an instance of DigestDiff.
 func CompareDigests(test, left, right string, storages *storage.Storage, idx *indexer.SearchIndex) (*DigestDiff, error) {
 	// Get the diff between the two digests
-	diff, err := storages.DiffStore.Get(diff.PRIORITY_NOW, left, []string{right})
+	diffs, err := storages.DiffStore.Get(diff.PRIORITY_NOW, left, []string{right})
 	if err != nil {
 		return nil, err
 	}
@@ -634,7 +634,7 @@ func CompareDigests(test, left, right string, storages *storage.Storage, idx *in
 			Status:   exp.Classification(test, right).String(),
 			ParamSet: idx.GetParamsetSummary(test, right, true),
 		},
-		Diff: digesttools.ClosestFromDiffMetrics(diff[right]),
+		Diff: digesttools.ClosestFromDiffMetrics(diffs[right].(*diff.DiffMetrics)),
 	}, nil
 }
 
@@ -1063,7 +1063,7 @@ func getDiffs(diffStore diff.DiffStore, digest string, colDigests []string, sort
 	ret := make([]*CTDiffMetrics, 0, len(diffMap))
 	for colDigest, diffMetrics := range diffMap {
 		ret = append(ret, &CTDiffMetrics{
-			DiffMetrics:   diffMetrics,
+			DiffMetrics:   diffMetrics.(*diff.DiffMetrics),
 			CTDigestCount: CTDigestCount{Digest: colDigest, N: 0},
 		})
 	}

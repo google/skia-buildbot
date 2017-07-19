@@ -69,13 +69,14 @@ func main() {
 	}
 
 	// Get the DiffStore that does the work loading and diffing images. .
-	memDiffStore, err := diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize)
+	memDiffStore, err := diffstore.NewMemDiffStore(client, nil, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize)
 	if err != nil {
 		sklog.Fatalf("Allocating DiffStore failed: %s", err)
 	}
 
 	// Create the server side instance of the DiffService.
-	serverImpl := diffstore.NewDiffServiceServer(memDiffStore)
+	codec := diffstore.MetricMapCodec{}
+	serverImpl := diffstore.NewDiffServiceServer(memDiffStore, codec)
 	grpcServer := grpc.NewServer(
 		grpc.MaxRecvMsgSize(diffstore.MAX_MESSAGE_SIZE),
 		grpc.MaxSendMsgSize(diffstore.MAX_MESSAGE_SIZE))

@@ -127,12 +127,17 @@ const (
 	PRIORITY_IDLE
 )
 
+// Signature for diff function that takes in two images and returns an
+// application dependent diff result structure as a generic interface along with
+// the diff image
+type DiffFn func(*image.NRGBA, *image.NRGBA) (interface{}, *image.NRGBA)
+
 // DiffStore defines an interface for a type that retrieves, stores and
 // diffs images. How it retrieves the images is up to the implementation.
 type DiffStore interface {
 	// Get returns the DiffMetrics of the provided dMain digest vs all digests
 	// specified in dRest.
-	Get(priority int64, mainDigest string, rightDigests []string) (map[string]*DiffMetrics, error)
+	Get(priority int64, mainDigest string, rightDigests []string) (map[string]interface{}, error)
 
 	// ImageHandler returns a http.Handler for the given path prefix. The caller
 	// can then serve images of the format:
@@ -259,9 +264,9 @@ func GetNRGBA(img image.Image) *image.NRGBA {
 	}
 }
 
-// Diff is a utility function that calculates the DiffMetrics and the image of the
+// PixelDiff is a utility function that calculates the DiffMetrics and the image of the
 // difference for the provided images.
-func Diff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
+func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 
 	img1Bounds := img1.Bounds()
 	img2Bounds := img2.Bounds()

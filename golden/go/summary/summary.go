@@ -358,8 +358,9 @@ func diameter(digests []string, diffStore diff.DiffStore) int {
 			}
 			localMax := 0
 			for _, dm := range dms {
-				if dm.NumDiffPixels > localMax {
-					localMax = dm.NumDiffPixels
+				diffMetrics := dm.(*diff.DiffMetrics)
+				if diffMetrics.NumDiffPixels > localMax {
+					localMax = diffMetrics.NumDiffPixels
 				}
 			}
 			lock.Lock()

@@ -2,6 +2,7 @@ package diffstore
 
 import (
 	"fmt"
+	"image"
 	"net"
 	"sort"
 	"testing"
@@ -30,11 +31,37 @@ func TestMemDiffStore(t *testing.T) {
 	client, tile := getSetupAndTile(t, baseDir)
 	defer testutils.RemoveAll(t, baseDir)
 
-	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
+	diffStore, err := NewMemDiffStore(client, nil, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
 	testDiffStore(t, tile, baseDir, diffStore, memDiffStore)
+}
+
+// Dummy Diff Function used to test MemDiffStore.DiffFn.
+func DummyDiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) (interface{}, *image.NRGBA) {
+	return 42, nil
+}
+
+func TestDiffFn(t *testing.T) {
+	testutils.MediumTest(t)
+	testutils.SkipIfShort(t)
+
+	baseDir := TEST_DATA_BASE_DIR + "-difffn"
+	client, _ := getSetupAndTile(t, baseDir)
+	defer testutils.RemoveAll(t, baseDir)
+
+	// Instantiate a new MemDiffStore with the DummyDiffFn.
+	diffStore, err := NewMemDiffStore(client, DummyDiffFn, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
+	assert.NoError(t, err)
+	memDiffStore := diffStore.(*MemDiffStore)
+	img1 := image.NewNRGBA(image.Rect(1, 2, 3, 4))
+	img2 := image.NewNRGBA(image.Rect(9, 8, 7, 6))
+
+	// Check that proper values are returned by the diff function.
+	diffMetrics, diffImg := memDiffStore.diffFn(img1, img2)
+	assert.Equal(t, diffMetrics, 42)
+	assert.Nil(t, diffImg)
 }
 
 func TestNetDiffStore(t *testing.T) {
@@ -45,11 +72,12 @@ func TestNetDiffStore(t *testing.T) {
 	client, tile := getSetupAndTile(t, baseDir)
 	defer testutils.RemoveAll(t, baseDir)
 
-	memDiffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
+	memDiffStore, err := NewMemDiffStore(client, nil, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10)
 	assert.NoError(t, err)
 
 	// Start the server that wraps around the MemDiffStore.
-	serverImpl := NewDiffServiceServer(memDiffStore)
+	codec := MetricMapCodec{}
+	serverImpl := NewDiffServiceServer(memDiffStore, codec)
 	lis, err := net.Listen("tcp", "localhost:0")
 	assert.NoError(t, err)
 
@@ -69,7 +97,7 @@ func TestNetDiffStore(t *testing.T) {
 		assert.NoError(t, conn.Close())
 	}()
 
-	netDiffStore, err := NewNetDiffStore(conn, "")
+	netDiffStore, err := NewNetDiffStore(conn, "", codec)
 	assert.NoError(t, err)
 
 	// run tests against it.
@@ -118,7 +146,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	}
 
 	// Get the results and make sure they are correct.
-	foundDiffs := make(map[string]map[string]*diff.DiffMetrics, len(digests))
+	foundDiffs := make(map[string]map[string]interface{}, len(digests))
 	ti := timer.New("Get warmed diffs.")
 	for _, oneDigest := range digests {
 		found, err := diffStore.Get(diff.PRIORITY_NOW, oneDigest, digests)
@@ -139,7 +167,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	// Get the results directly and make sure they are correct.
 	digests = testDigests[1][:TEST_N_DIGESTS]
 	ti = timer.New("Get cold diffs")
-	foundDiffs = make(map[string]map[string]*diff.DiffMetrics, len(digests))
+	foundDiffs = make(map[string]map[string]interface{}, len(digests))
 	for _, oneDigest := range digests {
 		found, err := diffStore.Get(diff.PRIORITY_NOW, oneDigest, digests)
 		assert.NoError(t, err)
@@ -150,7 +178,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	testDiffs(t, baseDir, memDiffStore, digests, digests, foundDiffs)
 }
 
-func testDiffs(t *testing.T, baseDir string, diffStore *MemDiffStore, leftDigests, rightDigests []string, result map[string]map[string]*diff.DiffMetrics) {
+func testDiffs(t *testing.T, baseDir string, diffStore *MemDiffStore, leftDigests, rightDigests []string, result map[string]map[string]interface{}) {
 	for _, left := range leftDigests {
 		for _, right := range rightDigests {
 			if left != right {

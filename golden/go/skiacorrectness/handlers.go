@@ -662,11 +662,12 @@ func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 			sklog.Errorf("Failed to calculate differences: %s", err)
 			continue
 		}
-		for otherDigest, diff := range diffs {
+		for otherDigest, diffs := range diffs {
+			dm := diffs.(*diff.DiffMetrics)
 			d3.Links = append(d3.Links, Link{
 				Source: digestIndex[d.Digest],
 				Target: digestIndex[otherDigest],
-				Value:  diff.PixelDiffPercent,
+				Value:  dm.PixelDiffPercent,
 			})
 		}
 		d3.ParamsetByDigest[d.Digest] = idx.GetParamsetSummary(d.Test, d.Digest, false)

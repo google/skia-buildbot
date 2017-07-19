@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc"
 
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 )
 
@@ -21,10 +22,14 @@ type NetDiffStore struct {
 
 	// diffServerImageAddress is the port where the diff server serves images.
 	diffServerImageAddress string
+
+	// codec is used to decode the byte array received from the diff server into
+	// a diff metrics map
+	codec util.LRUCodec
 }
 
 // NewNetDiffStore implements the diff.DiffStore interface via the gRPC-based DiffService.
-func NewNetDiffStore(conn *grpc.ClientConn, diffServerImageAddress string) (diff.DiffStore, error) {
+func NewNetDiffStore(conn *grpc.ClientConn, diffServerImageAddress string, codec util.LRUCodec) (diff.DiffStore, error) {
 	serviceClient := NewDiffServiceClient(conn)
 	if _, err := serviceClient.Ping(context.Background(), &Empty{}); err != nil {
 		return nil, fmt.Errorf("Could not ping over connection: %s", err)
@@ -33,21 +38,25 @@ func NewNetDiffStore(conn *grpc.ClientConn, diffServerImageAddress string) (diff
 	return &NetDiffStore{
 		serviceClient:          serviceClient,
 		diffServerImageAddress: diffServerImageAddress,
+		codec: codec,
 	}, nil
 }
 
 // Get, see the diff.DiffStore interface.
-func (n *NetDiffStore) Get(priority int64, mainDigest string, rightDigests []string) (map[string]*diff.DiffMetrics, error) {
+func (n *NetDiffStore) Get(priority int64, mainDigest string, rightDigests []string) (map[string]interface{}, error) {
 	req := &GetDiffsRequest{Priority: priority, MainDigest: mainDigest, RightDigests: rightDigests}
 	resp, err := n.serviceClient.GetDiffs(context.Background(), req)
 	if err != nil {
 		return nil, err
 	}
-	ret := make(map[string]*diff.DiffMetrics, len(resp.Diffs))
-	for k, metrics := range resp.Diffs {
-		ret[k] = toDiffMetrics(metrics)
+
+	data, err := n.codec.Decode(resp.Diffs)
+	if err != nil {
+		return nil, err
 	}
-	return ret, nil
+
+	diffMetrics := data.(map[string]interface{})
+	return diffMetrics, nil
 }
 
 // ImageHandler, see the diff.DiffStore interface. This is not implemented and
@@ -109,24 +118,4 @@ func (n *NetDiffStore) PurgeDigests(digests []string, purgeGCS bool) error {
 		return fmt.Errorf("Error purging digests: %s", err)
 	}
 	return nil
-}
-
-// toDifMetrics converts a DiffMetrics response to the equivalent instance
-// of diff.DiffMetrics.
-func toDiffMetrics(d *DiffMetricsResponse) *diff.DiffMetrics {
-	return &diff.DiffMetrics{
-		NumDiffPixels:    int(d.NumDiffPixels),
-		PixelDiffPercent: d.PixelDiffPercent,
-		MaxRGBADiffs:     toIntSlice(d.MaxRGBADiffs),
-		DimDiffer:        d.DimDiffer,
-		Diffs:            d.Diffs,
-	}
-}
-
-func toIntSlice(arr []int32) []int {
-	ret := make([]int, len(arr))
-	for idx, val := range arr {
-		ret[idx] = int(val)
-	}
-	return ret
 }
