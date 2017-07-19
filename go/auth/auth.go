@@ -10,7 +10,7 @@ import (
 	"cloud.google.com/go/pubsub"
 
 	"google.golang.org/api/compute/v1"
-	"google.golang.org/api/storage/v1"
+	storage "google.golang.org/api/storage/v1"
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
@@ -134,6 +134,7 @@ const (
 	SCOPE_COMPUTE_READ_ONLY = compute.ComputeReadonlyScope
 	SCOPE_GCE               = compute.ComputeScope
 	SCOPE_GERRIT            = "https://www.googleapis.com/auth/gerritcodereview"
+	SCOPE_PLUS_ME           = "https://www.googleapis.com/auth/plus.me"
 	SCOPE_PUBSUB            = pubsub.ScopePubSub
 	SCOPE_USERINFO_EMAIL    = "https://www.googleapis.com/auth/userinfo.email"
 	SCOPE_USERINFO_PROFILE  = "https://www.googleapis.com/auth/userinfo.profile"
