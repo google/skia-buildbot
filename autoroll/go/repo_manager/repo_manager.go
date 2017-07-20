@@ -31,6 +31,7 @@ type RepoManager interface {
 	LastRollRev() string
 	NextRollRev() string
 	RolledPast(string) (bool, error)
+	PreUploadSteps() []PreUploadStep
 	CreateNewRoll(string, string, []string, string, bool) (int64, error)
 	User() string
 	SendToGerritCQ(*gerrit.ChangeInfo, string) error
@@ -40,19 +41,20 @@ type RepoManager interface {
 // commonRepoManager is a struct used by the AutoRoller implementations for
 // managing checkouts.
 type commonRepoManager struct {
-	infoMtx      sync.RWMutex
-	lastRollRev  string
-	nextRollRev  string
-	repoMtx      sync.RWMutex
-	parentBranch string
-	childDir     string
-	childPath    string
-	childRepo    *git.Checkout
-	childBranch  string
-	strategy     string
-	user         string
-	workdir      string
-	g            gerrit.GerritInterface
+	infoMtx        sync.RWMutex
+	lastRollRev    string
+	nextRollRev    string
+	repoMtx        sync.RWMutex
+	parentBranch   string
+	childDir       string
+	childPath      string
+	childRepo      *git.Checkout
+	childBranch    string
+	preUploadSteps []PreUploadStep
+	strategy       string
+	user           string
+	workdir        string
+	g              gerrit.GerritInterface
 }
 
 // FullChildHash returns the full hash of the given short hash or ref in the
@@ -82,6 +84,12 @@ func (r *commonRepoManager) NextRollRev() string {
 	r.infoMtx.RLock()
 	defer r.infoMtx.RUnlock()
 	return r.nextRollRev
+}
+
+// PreUploadSteps returns a slice of functions which should be run after the
+// roll is performed but before a CL is uploaded for it.
+func (r *commonRepoManager) PreUploadSteps() []PreUploadStep {
+	return r.preUploadSteps
 }
 
 // Start makes the RepoManager begin the periodic update process.

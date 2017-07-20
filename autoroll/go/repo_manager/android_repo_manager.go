@@ -26,7 +26,7 @@ const (
 var (
 	// Use this function to instantiate a NewAndroidRepoManager. This is able to be
 	// overridden for testing.
-	NewAndroidRepoManager func(string, string, string, string, gerrit.GerritInterface, string) (RepoManager, error) = newAndroidRepoManager
+	NewAndroidRepoManager func(string, string, string, string, gerrit.GerritInterface, string, []string) (RepoManager, error) = newAndroidRepoManager
 
 	IGNORE_MERGE_CONFLICT_FILES = []string{"include/config/SkUserConfig.h"}
 
@@ -44,7 +44,7 @@ type androidRepoManager struct {
 	authDaemonRunning       bool
 }
 
-func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string, g gerrit.GerritInterface, strategy string) (RepoManager, error) {
+func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string, g gerrit.GerritInterface, strategy string, preUploadStepNames []string) (RepoManager, error) {
 	user, err := user.Current()
 	if err != nil {
 		return nil, err
@@ -53,17 +53,23 @@ func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string,
 	gitCookieAuthDaemonPath := path.Join(user.HomeDir, "gcompute-tools", "git-cookie-authdaemon")
 	wd := path.Join(workdir, "android_repo")
 
+	preUploadSteps, err := GetPreUploadSteps(preUploadStepNames)
+	if err != nil {
+		return nil, err
+	}
+
 	r := &androidRepoManager{
 		commonRepoManager: &commonRepoManager{
-			parentBranch: parentBranch,
-			childDir:     path.Join(wd, childPath),
-			childPath:    childPath,
-			childRepo:    nil, // This will be filled in on the first update.
-			childBranch:  childBranch,
-			strategy:     strategy,
-			user:         SERVICE_ACCOUNT,
-			workdir:      wd,
-			g:            g,
+			parentBranch:   parentBranch,
+			childDir:       path.Join(wd, childPath),
+			childPath:      childPath,
+			childRepo:      nil, // This will be filled in on the first update.
+			childBranch:    childBranch,
+			preUploadSteps: preUploadSteps,
+			strategy:       strategy,
+			user:           SERVICE_ACCOUNT,
+			workdir:        wd,
+			g:              g,
 		},
 		repoUrl:                 g.GetRepoUrl(),
 		repoToolPath:            repoToolPath,
@@ -347,6 +353,13 @@ func (r *androidRepoManager) CreateNewRoll(from, to string, emails []string, cqE
 	for _, genFile := range FILES_GENERATED_BY_GN_TO_GP {
 		if _, err := exec.RunCwd(r.childDir, "git", "add", genFile); err != nil {
 			return 0, err
+		}
+	}
+
+	// Run the pre-upload steps.
+	for _, s := range r.PreUploadSteps() {
+		if err := s(r.workdir); err != nil {
+			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
 		}
 	}
 
