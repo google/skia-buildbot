@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "53c9a6ea_36ba9129",
+        "filename": "pixel_diff/go/resultstore/resultstore_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-20T18:05:47Z",
+      "side": 1,
+      "message": "I believe that in Go, if the first letter of a function or struct is capitalized, it becomes an exported name. With regard to the testing infrastructure, this means that running a command like \u0027go test\u0027 will only call those functions that start with a capital letter. The lowercase functions are then essentially just private helper methods that can be called by the exported functions.",
+      "parentUuid": "03c8dce5_65a8b02d",
+      "range": {
+        "startLine": 40,
+        "startChar": 1,
+        "endLine": 40,
+        "endChar": 11
+      },
+      "revId": "8b1452d960b7e4fa403ffcbcc70cb271ff70e95a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7c244764_b91c75b1",
         "filename": "pixel_diff/go/resultstore/resultstore_test.go",
         "patchSetId": 4
