@@ -25,7 +25,7 @@ const (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewManifestRepoManager func(string, string, string, string, string, string, *gerrit.Gerrit, string) (RepoManager, error) = newManifestRepoManager
+	NewManifestRepoManager func(string, string, string, string, string, string, *gerrit.Gerrit, string, []string) (RepoManager, error) = newManifestRepoManager
 )
 
 // manifestRepoManager is a struct used by Manifest AutoRoller for managing checkouts.
@@ -35,7 +35,7 @@ type manifestRepoManager struct {
 
 // newManifestRepoManager returns a RepoManager instance which operates in the
 // given working directory and updates at the given frequency.
-func newManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy string) (RepoManager, error) {
+func newManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy string, preUploadStepNames []string) (RepoManager, error) {
 	wd := path.Join(workdir, "repo_manager")
 	parentBase := strings.TrimSuffix(path.Base(parentRepo), ".git")
 	parentDir := path.Join(wd, parentBase)
@@ -46,18 +46,24 @@ func newManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childB
 	}
 	sklog.Infof("Repo Manager user: %s", user)
 
+	preUploadSteps, err := GetPreUploadSteps(preUploadStepNames)
+	if err != nil {
+		return nil, err
+	}
+
 	mr := &manifestRepoManager{
 		depotToolsRepoManager: &depotToolsRepoManager{
 			commonRepoManager: &commonRepoManager{
-				parentBranch: parentBranch,
-				childDir:     path.Join(wd, childPath),
-				childPath:    childPath,
-				childRepo:    nil, // This will be filled in on the first update.
-				childBranch:  childBranch,
-				strategy:     strategy,
-				user:         user,
-				workdir:      wd,
-				g:            g,
+				parentBranch:   parentBranch,
+				childDir:       path.Join(wd, childPath),
+				childPath:      childPath,
+				childRepo:      nil, // This will be filled in on the first update.
+				childBranch:    childBranch,
+				preUploadSteps: preUploadSteps,
+				strategy:       strategy,
+				user:           user,
+				workdir:        wd,
+				g:              g,
 			},
 			depot_tools: depot_tools,
 			gclient:     path.Join(depot_tools, "gclient"),
@@ -178,6 +184,13 @@ func (mr *manifestRepoManager) CreateNewRoll(from, to string, emails []string, c
 	// Update the manifest file.
 	if err := mr.updateManifestFile(mr.lastRollRev, to); err != nil {
 		return 0, err
+	}
+
+	// Run the pre-upload steps.
+	for _, s := range mr.PreUploadSteps() {
+		if err := s(mr.parentDir); err != nil {
+			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
+		}
 	}
 
 	// Get list of changes.

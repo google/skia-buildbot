@@ -229,6 +229,10 @@ func (r *mockRepoManager) User() string {
 	return "test_user"
 }
 
+func (r *mockRepoManager) PreUploadSteps() []repo_manager.PreUploadStep {
+	return nil
+}
+
 func (r *mockRepoManager) SendToGerritCQ(*gerrit.ChangeInfo, string) error {
 	r.sendToGerritCQCalled = true
 	return nil
@@ -425,7 +429,7 @@ func setup(t *testing.T, strategy string) (string, *AutoRoller, *mockRepoManager
 	}
 
 	rm := &mockRepoManager{t: t}
-	repo_manager.NewDEPSRepoManager = func(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy string) (repo_manager.RepoManager, error) {
+	repo_manager.NewDEPSRepoManager = func(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy string, preUploadSteps []string) (repo_manager.RepoManager, error) {
 		return rm, nil
 	}
 

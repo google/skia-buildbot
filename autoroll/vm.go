@@ -4,7 +4,7 @@ import (
 	"path"
 	"runtime"
 
-	"go.skia.org/infra/go/androidbuildinternal/v2beta1"
+	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/server"
@@ -31,7 +31,11 @@ func Skia() *gce.Instance {
 }
 
 func SkiaInternal() *gce.Instance {
-	return AutoRollBase("skia-internal-autoroll", "" /* Use ephemeral IP */)
+	vm := AutoRollBase("skia-internal-autoroll", "" /* Use ephemeral IP */)
+	_, filename, _, _ := runtime.Caller(0)
+	dir := path.Dir(filename)
+	vm.SetupScript = path.Join(dir, "setup-script-internal.sh")
+	return vm
 }
 
 func Catapult() *gce.Instance {

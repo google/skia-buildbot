@@ -107,7 +107,7 @@ func TestDEPSRepoManager(t *testing.T) {
 	defer cleanup()
 
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, ROLL_STRATEGY_BATCH)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, ROLL_STRATEGY_BATCH, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
@@ -144,7 +144,7 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	defer cleanup()
 
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, strategy)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, strategy, nil)
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
@@ -169,4 +169,29 @@ func TestDEPSRepoManagerBatch(t *testing.T) {
 // TestDEPSRepoManagerSingle tests the single-commit roll strategy.
 func TestDEPSRepoManagerSingle(t *testing.T) {
 	testCreateNewDEPSRoll(t, ROLL_STRATEGY_SINGLE, 1)
+}
+
+// Verify that we ran the PreUploadSteps.
+func TestRanPreUploadStepsDeps(t *testing.T) {
+	testutils.LargeTest(t)
+
+	wd, _, _, parent, cleanup := setup(t)
+	defer cleanup()
+
+	g := setupFakeGerrit(t, wd)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, ROLL_STRATEGY_BATCH, nil)
+	assert.NoError(t, err)
+
+	ran := false
+	rm.(*depsRepoManager).preUploadSteps = []PreUploadStep{
+		func(string) error {
+			ran = true
+			return nil
+		},
+	}
+
+	// Create a roll, assert that we ran the PreUploadSteps.
+	_, err = rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
+	assert.NoError(t, err)
+	assert.True(t, ran)
 }

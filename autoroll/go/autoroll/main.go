@@ -61,6 +61,7 @@ var (
 	rollIntoAndroid = flag.Bool("roll_into_android", false, "Roll into Android; do not do a DEPS/Manifest roll.")
 	useManifest     = flag.Bool("use_manifest", false, "Do a Manifest roll.")
 	gerritUrl       = flag.String("gerrit_url", gerrit.GERRIT_CHROMIUM_URL, "Gerrit URL the roller will be uploading issues to.")
+	preUploadSteps  = common.NewMultiStringFlag("pre_upload_step", nil, "Named steps to run before uploading roll CLs. Pre-upload steps and their names are available in https://skia.googlesource.com/buildbot/+/master/autoroll/go/repo_manager/pre_upload_steps.go")
 )
 
 func getSheriff() ([]string, error) {
@@ -270,11 +271,11 @@ func main() {
 
 	// Start the autoroller.
 	if *rollIntoAndroid {
-		arb, err = autorollerv2.NewAndroidAutoRoller(*workdir, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, *strategy)
+		arb, err = autorollerv2.NewAndroidAutoRoller(*workdir, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, *strategy, *preUploadSteps)
 	} else if *useManifest {
-		arb, err = autorollerv2.NewManifestAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, *strategy)
+		arb, err = autorollerv2.NewManifestAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, *strategy, *preUploadSteps)
 	} else {
-		arb, err = autorollerv2.NewDEPSAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, *strategy)
+		arb, err = autorollerv2.NewDEPSAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, *strategy, *preUploadSteps)
 	}
 	if err != nil {
 		sklog.Fatal(err)

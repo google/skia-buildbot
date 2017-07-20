@@ -54,11 +54,11 @@ func NewAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cq
 	var err error
 	var rm repo_manager.RepoManager
 	if rollIntoAndroid {
-		rm, err = repo_manager.NewAndroidRepoManager(workdir, parentBranch, childPath, childBranch, gerrit, strategy)
+		rm, err = repo_manager.NewAndroidRepoManager(workdir, parentBranch, childPath, childBranch, gerrit, strategy, nil)
 	} else if useManifest {
-		rm, err = repo_manager.NewManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch, depot_tools, gerrit, strategy)
+		rm, err = repo_manager.NewManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch, depot_tools, gerrit, strategy, nil)
 	} else {
-		rm, err = repo_manager.NewDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch, depot_tools, gerrit, strategy)
+		rm, err = repo_manager.NewDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch, depot_tools, gerrit, strategy, nil)
 	}
 	if err != nil {
 		return nil, err

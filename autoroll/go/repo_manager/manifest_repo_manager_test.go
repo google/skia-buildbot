@@ -132,7 +132,7 @@ func TestManifestRepoManager(t *testing.T) {
 	defer cleanup()
 
 	g := setupManifestFakeGerrit(t, wd)
-	rm, err := NewManifestRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, ROLL_STRATEGY_BATCH)
+	rm, err := NewManifestRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, ROLL_STRATEGY_BATCH, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
@@ -155,11 +155,37 @@ func TestCreateNewManifestRoll(t *testing.T) {
 	defer cleanup()
 
 	g := setupManifestFakeGerrit(t, wd)
-	rm, err := NewManifestRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, ROLL_STRATEGY_BATCH)
+	rm, err := NewManifestRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, ROLL_STRATEGY_BATCH, nil)
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
 	issue, err := rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), manifestEmails, "", false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
+}
+
+// Verify that we ran the PreUploadSteps.
+func TestRanPreUploadStepsManifest(t *testing.T) {
+	testutils.LargeTest(t)
+
+	testutils.LargeTest(t)
+
+	wd, _, _, parent, cleanup := setupManifest(t)
+	defer cleanup()
+
+	g := setupManifestFakeGerrit(t, wd)
+	rm, err := NewManifestRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, ROLL_STRATEGY_BATCH, nil)
+	assert.NoError(t, err)
+	ran := false
+	rm.(*manifestRepoManager).preUploadSteps = []PreUploadStep{
+		func(string) error {
+			ran = true
+			return nil
+		},
+	}
+
+	// Create a roll, assert that we ran the PreUploadSteps.
+	_, err = rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), manifestEmails, "", false)
+	assert.NoError(t, err)
+	assert.True(t, ran)
 }

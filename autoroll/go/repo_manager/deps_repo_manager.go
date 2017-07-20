@@ -28,7 +28,7 @@ const (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewDEPSRepoManager func(string, string, string, string, string, string, *gerrit.Gerrit, string) (RepoManager, error) = newDEPSRepoManager
+	NewDEPSRepoManager func(string, string, string, string, string, string, *gerrit.Gerrit, string, []string) (RepoManager, error) = newDEPSRepoManager
 
 	DEPOT_TOOLS_AUTH_USER_REGEX = regexp.MustCompile(fmt.Sprintf("Logged in to %s as ([\\w-]+).", autoroll.RIETVELD_URL))
 )
@@ -47,7 +47,7 @@ type depsRepoManager struct {
 
 // newDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy string) (RepoManager, error) {
+func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy string, preUploadStepNames []string) (RepoManager, error) {
 	gclient := GCLIENT
 	rollDep := ROLL_DEP
 	if depot_tools != "" {
@@ -65,18 +65,24 @@ func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranc
 	}
 	sklog.Infof("Repo Manager user: %s", user)
 
+	preUploadSteps, err := GetPreUploadSteps(preUploadStepNames)
+	if err != nil {
+		return nil, err
+	}
+
 	dr := &depsRepoManager{
 		depotToolsRepoManager: &depotToolsRepoManager{
 			commonRepoManager: &commonRepoManager{
-				parentBranch: parentBranch,
-				childDir:     path.Join(wd, childPath),
-				childPath:    childPath,
-				childRepo:    nil, // This will be filled in on the first update.
-				childBranch:  childBranch,
-				strategy:     strategy,
-				user:         user,
-				workdir:      wd,
-				g:            g,
+				parentBranch:   parentBranch,
+				childDir:       path.Join(wd, childPath),
+				childPath:      childPath,
+				childRepo:      nil, // This will be filled in on the first update.
+				childBranch:    childBranch,
+				preUploadSteps: preUploadSteps,
+				strategy:       strategy,
+				user:           user,
+				workdir:        wd,
+				g:              g,
 			},
 			depot_tools: depot_tools,
 			gclient:     gclient,
@@ -232,6 +238,15 @@ http://www.chromium.org/developers/tree-sheriffs/sheriff-details-chromium#TOC-Fa
 	if cqExtraTrybots != "" {
 		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
 	}
+
+	// Run the pre-upload steps.
+	for _, s := range dr.PreUploadSteps() {
+		if err := s(dr.parentDir); err != nil {
+			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
+		}
+	}
+
+	// Upload the CL.
 	uploadCmd := &exec.Command{
 		Dir:  dr.parentDir,
 		Env:  dr.GetEnvForDepotTools(),
