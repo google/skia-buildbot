@@ -582,9 +582,10 @@ func RemoveFlagsFromArgs(benchmarkArgs string, flags ...string) string {
 			sklog.Warningf("Could not compile flag regex with %s: %s", f, err)
 			continue
 		}
-		benchmarkArgs = re.ReplaceAllString(benchmarkArgs, "")
+		benchmarkArgs = re.ReplaceAllString(benchmarkArgs, " ")
 	}
-	return benchmarkArgs
+	// Remove extra whitespace.
+	return strings.Join(strings.Fields(benchmarkArgs), " ")
 }
 
 func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBuildName, chromiumBinary, runID, browserExtraArgs, benchmarkName, targetPlatform, benchmarkExtraArgs, pagesetType string, defaultRepeatValue int) error {
