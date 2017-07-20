@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6f847612_426d9cbd",
+        "filename": "pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-20T17:33:03Z",
+      "side": 1,
+      "message": "Calling db.Update(updateFn) will return whatever the updateFn ends up returning. So if there was an error while adding the record, Add will return an error; if the Add was successful, Add will return nil.",
+      "parentUuid": "02dda2e2_bbf00143",
+      "range": {
+        "startLine": 132,
+        "startChar": 8,
+        "endLine": 132,
+        "endChar": 19
+      },
+      "revId": "a3cca8af4d65a004565599d1919960bdff60173f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b2e0f23b_426f2a0b",
         "filename": "pixel_diff/go/resultstore/resultstore_test.go",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2017-07-20T05:21:40Z",
       "side": 1,
       "message": "This method is a good general set of basic tests.\n\nUsually for unit tests it\u0027s worth adding separate tests for each public method in the interface. So you might have separate test methods for Add, Get, RemoveRun. And you might even have separate test methods for different cases for each, like adding a url/rec that already exists, getting a rec that doesn\u0027t exist, etc. Some of these are already in your meta test here.\n\nThe idea is that then if something breaks and there\u0027s a failure the unit test error will be in a specific named method whose name makes it clear what test case exactly is broken. Seeing a failure in a method named TestGetOnEmptyResultStore will be clearer than seeing a failure in TestResultStore at line 80.\n\nAll that said I am less familiar with Go unit testing and in particular the style used in skia infra projects, so following those is also important.",
+      "range": {
+        "startLine": 54,
+        "startChar": 5,
+        "endLine": 54,
+        "endChar": 21
+      },
+      "revId": "a3cca8af4d65a004565599d1919960bdff60173f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b41f439_36be43b8",
+        "filename": "pixel_diff/go/resultstore/resultstore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-20T17:33:03Z",
+      "side": 1,
+      "message": "I tried making the tests more modular (see latest patch) by separating them by each public method, although I wasn\u0027t sure how to test Get and Add separately as it kind of seems like one needs the other for proper verification. Do you think it\u0027s okay to lump them together and if not, do you have any ideas on how to test separately?\n\nJust taking a very cursory glance at different test files in skia infra, it doesn\u0027t seem like there is a precedent for testing each use case for a method in a different test function; I think the comments will be informative enough to give more specific details if something does break. But Stephan probably knows best and I can refactor if he disagrees.",
+      "parentUuid": "b2e0f23b_426f2a0b",
       "range": {
         "startLine": 54,
         "startChar": 5,
