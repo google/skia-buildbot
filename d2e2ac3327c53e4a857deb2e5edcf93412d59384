@@ -1,0 +1,158 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "474fe504_f1ffbd92",
+        "filename": "go/buildbot/rpc/buildbot.pb.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-20T15:24:47Z",
+      "side": 1,
+      "message": "I\u0027m assuming I don\u0027t need to review this file.",
+      "revId": "d2e2ac3327c53e4a857deb2e5edcf93412d59384",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7154dbe1_9f984b79",
+        "filename": "go/cipd/asset_versions_gen.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-20T15:24:47Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "d2e2ac3327c53e4a857deb2e5edcf93412d59384",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d502e2f4_d6a1cb0e",
+        "filename": "go/cipd/gen_versions.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-20T15:24:47Z",
+      "side": 1,
+      "message": "nit: https://play.golang.org/p/Q06qmc3Yqf",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 3
+      },
+      "revId": "d2e2ac3327c53e4a857deb2e5edcf93412d59384",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e67e5ba7_b024517a",
+        "filename": "go/cipd/gen_versions.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-20T15:24:47Z",
+      "side": 1,
+      "message": "nit: Could we just run gofmt on this before/after writing?",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 42
+      },
+      "revId": "d2e2ac3327c53e4a857deb2e5edcf93412d59384",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4a52700_88ae9ca1",
+        "filename": "go/sharedb/sharedb.pb.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-20T15:24:47Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "d2e2ac3327c53e4a857deb2e5edcf93412d59384",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1631253b_b1ff6677",
+        "filename": "go/trace/service/traceservice.pb.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-20T15:24:47Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "d2e2ac3327c53e4a857deb2e5edcf93412d59384",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "562eee14_a4c374e8",
+        "filename": "infra/bots/recipes/swarm_infra.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-20T15:24:47Z",
+      "side": 1,
+      "message": "nit: newline",
+      "range": {
+        "startLine": 127,
+        "startChar": 24,
+        "endLine": 127,
+        "endChar": 26
+      },
+      "revId": "d2e2ac3327c53e4a857deb2e5edcf93412d59384",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2914dc32_ec0fdb2a",
+        "filename": "perf/go/alerts/configstate_string.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-20T15:24:47Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "d2e2ac3327c53e4a857deb2e5edcf93412d59384",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
