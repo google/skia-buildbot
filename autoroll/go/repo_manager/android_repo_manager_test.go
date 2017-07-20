@@ -65,7 +65,7 @@ func TestAndroidRepoManager(t *testing.T) {
 	defer cleanup()
 	g, err := gerrit.NewGerrit(mockAndroidServer, "", nil)
 	assert.NoError(t, err)
-	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, ROLL_STRATEGY_BATCH)
+	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, ROLL_STRATEGY_BATCH, nil)
 	assert.NoError(t, err)
 
 	assert.Equal(t, fmt.Sprintf("%s/android_repo/%s", wd, childPath), rm.(*androidRepoManager).childDir)
@@ -82,7 +82,7 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	defer cleanup()
 
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, ROLL_STRATEGY_BATCH)
+	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, ROLL_STRATEGY_BATCH, nil)
 	assert.NoError(t, err)
 
 	issue, err := rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), androidEmails, "", false)
@@ -139,4 +139,28 @@ here
 `
 	testLines = ExtractTestLines(bodyWithNoTestLines)
 	assert.Equal(t, 0, len(testLines))
+}
+
+// Verify that we ran the PreUploadSteps.
+func TestRanPreUploadStepsAndroid(t *testing.T) {
+	testutils.LargeTest(t)
+	wd, cleanup := setupAndroid(t)
+	defer cleanup()
+
+	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
+	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, ROLL_STRATEGY_BATCH, nil)
+	assert.NoError(t, err)
+
+	ran := false
+	rm.(*androidRepoManager).preUploadSteps = []PreUploadStep{
+		func(string) error {
+			ran = true
+			return nil
+		},
+	}
+
+	// Create a roll, assert that we ran the PreUploadSteps.
+	_, err = rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), androidEmails, "", false)
+	assert.NoError(t, err)
+	assert.True(t, ran)
 }
