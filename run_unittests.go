@@ -245,6 +245,41 @@ func pythonTest(testPath string) *test {
 	return cmdTest([]string{"python", testPath}, ".", path.Base(testPath), testutils.SMALL_TEST)
 }
 
+// Verify that "go generate ./..." produces no diffs.
+func goGenerate() *test {
+	cmd := []string{"go", "generate", "./..."}
+	return &test{
+		Name: "go generate",
+		Cmd:  strings.Join(cmd, " "),
+		run: func() (string, error) {
+			// Run "git diff" to get a baseline.
+			diff, err := exec.Command("git", "diff", "--no-ext-diff").CombinedOutput()
+			if err != nil {
+				return string(diff), fmt.Errorf("Failed to run git diff: %s", err)
+			}
+
+			// Run "go generate".
+			command := exec.Command(cmd[0], cmd[1:]...)
+			outputBytes, err := command.CombinedOutput()
+			if err != nil {
+				return string(outputBytes), fmt.Errorf("Failed to run go generate: %s", err)
+			}
+
+			// Run "git diff" again and assert that the diff didn't
+			// change.
+			diff2, err := exec.Command("git", "diff", "--no-ext-diff").CombinedOutput()
+			if err != nil {
+				return string(diff2), fmt.Errorf("Failed to run git diff: %s", err)
+			}
+			if string(diff) != string(diff2) {
+				return fmt.Sprintf("Diff before:\n%s\n\nDiff after:\n%s", string(diff), string(diff2)), fmt.Errorf("go generate created new diffs!")
+			}
+			return "", nil
+		},
+		Type: testutils.LARGE_TEST,
+	}
+}
+
 // test is a struct which represents a single test to run.
 type test struct {
 	// Name is the human-friendly name of the test.
@@ -335,7 +370,7 @@ func main() {
 
 	// Gather all of the tests to run.
 	sklog.Info("Searching for tests.")
-	tests := []*test{}
+	tests := []*test{goGenerate()}
 
 	// Search for Python tests and Go dirs to test in the repo.
 	if err := filepath.Walk(rootDir, func(p string, info os.FileInfo, err error) error {

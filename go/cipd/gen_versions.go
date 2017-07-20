@@ -12,8 +12,10 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"sort"
 	"strings"
 
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -51,13 +53,19 @@ func main() {
 		}
 	}
 
-	assetsStr := ""
+	assetLines := make([]string, 0, len(assets))
 	for name, version := range assets {
 		line := fmt.Sprintf("\t\"%s\": \"%s\",\n", name, version)
-		assetsStr += line
+		assetLines = append(assetLines, line)
 	}
+	sort.Strings(assetLines)
+	assetsStr := strings.Join(assetLines, "")
 	fileContents := []byte(fmt.Sprintf(TMPL, assetsStr))
-	if err := ioutil.WriteFile(path.Join(pkgDir, TARGET_FILE), fileContents, os.ModePerm); err != nil {
+	targetFile := path.Join(pkgDir, TARGET_FILE)
+	if err := ioutil.WriteFile(targetFile, fileContents, os.ModePerm); err != nil {
+		sklog.Fatal(err)
+	}
+	if _, err := exec.RunCwd(".", "gofmt", "-s", "-w", targetFile); err != nil {
 		sklog.Fatal(err)
 	}
 }
