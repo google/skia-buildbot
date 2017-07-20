@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25783861_e5bcdcb8",
+        "filename": "pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-20T21:58:07Z",
+      "side": 1,
+      "message": "I think ResultRec and ResultStore belong in the ingestion package, but put them here temporarily so I could avoid more CL dependencies.",
+      "revId": "fa604cab2bdbb959dd37af33d1c85ea9d3959d51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cdb3eb0c_40d995c3",
+        "filename": "pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-20T21:58:07Z",
+      "side": 1,
+      "message": "If I wrote \n\nrec \u003d nil\nreturn nil\n\nhere (instead of returning the error), when the bucket for the given runID does not exist, I could get rid of the ContainsRun function as I wouldn\u0027t have to make sure the bucket exists before calling Get, but I wasn\u0027t sure if there should be some way to differentiate between a bucket not existing and a bucket existing but not having an entry for the given URL. Wondering because I\u0027m working on the ingestion package and the processor\u0027s Process function should do the same thing for both cases, i.e. create a new ResultRec and call Add. So changing this case to return a nil record with no error would allow me to remove some duplicated logic in the processor implementation, but would like input on which approach constitutes better design.",
+      "revId": "fa604cab2bdbb959dd37af33d1c85ea9d3959d51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
