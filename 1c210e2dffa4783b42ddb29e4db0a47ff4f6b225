@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "6497bd1b_b12e864c",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-20T22:51:46Z",
+      "side": 1,
+      "message": "Returning two values is perfectly fine as long it\u0027s documented. \nHolding off on that re-naming is fine. That should not be a priority IMO",
+      "parentUuid": "8b26311a_6aafb593",
+      "revId": "1c210e2dffa4783b42ddb29e4db0a47ff4f6b225",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3ce1ac97_e406e14f",
         "filename": "golden/go/diffstore/mem_diffstore.go",
         "patchSetId": 9
@@ -33,6 +51,24 @@
       "revId": "1c210e2dffa4783b42ddb29e4db0a47ff4f6b225",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97324081_bd7016fb",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-20T22:51:46Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3ce1ac97_e406e14f",
+      "revId": "1c210e2dffa4783b42ddb29e4db0a47ff4f6b225",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
