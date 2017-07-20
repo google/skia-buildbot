@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "323b0390_a6989d56",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-20T19:08:00Z",
+      "side": 1,
+      "message": "Why are we using ls-remote instead of rev-parse?  The new Strategy uses rev-parse, but I want to make sure that\u0027s not a mistake, eg. if this is to look up refs we haven\u0027t downloaded using git fetch.",
+      "range": {
+        "startLine": 156,
+        "startChar": 0,
+        "endLine": 156,
+        "endChar": 139
+      },
+      "revId": "974f5b67b3e85fe226006423cfa99361f0c48915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc09d6c6_07c1559c",
+        "filename": "autoroll/go/repo_manager/strategy.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-20T19:08:00Z",
+      "side": 1,
+      "message": "I don\u0027t really like this.  I wish we could pass the Strategy into the RepoManager, but for some Strategies we need the repo object created by the RepoManager.",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 94
+      },
+      "revId": "974f5b67b3e85fe226006423cfa99361f0c48915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
