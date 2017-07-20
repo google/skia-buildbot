@@ -39,7 +39,7 @@ func setupAndroid(t *testing.T) (string, func()) {
 				if cmd.Args[1] == "--format=format:%H%x20%ci" {
 					output = fmt.Sprintf("%s 2017-03-29 18:29:22 +0000\n%s 2017-03-29 18:29:22 +0000", childCommits[0], childCommits[1])
 				}
-			} else if cmd.Args[0] == "ls-remote" {
+			} else if cmd.Args[0] == "ls-remote" || cmd.Args[0] == "rev-parse" {
 				output = childCommits[0]
 			} else if cmd.Args[0] == "merge-base" {
 				output = childCommits[1]

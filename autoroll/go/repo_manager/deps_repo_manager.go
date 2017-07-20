@@ -58,6 +58,12 @@ func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranc
 	wd := path.Join(workdir, "repo_manager")
 	parentBase := strings.TrimSuffix(path.Base(parentRepo), ".git")
 	parentDir := path.Join(wd, parentBase)
+	childDir := path.Join(wd, childPath)
+	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
+	s, err := GetStrategy(strategy, childRepo, childBranch, "")
+	if err != nil {
+		return nil, err
+	}
 
 	user, err := g.GetUserEmail()
 	if err != nil {
@@ -69,11 +75,11 @@ func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranc
 		depotToolsRepoManager: &depotToolsRepoManager{
 			commonRepoManager: &commonRepoManager{
 				parentBranch: parentBranch,
-				childDir:     path.Join(wd, childPath),
+				childDir:     childDir,
 				childPath:    childPath,
-				childRepo:    nil, // This will be filled in on the first update.
+				childRepo:    childRepo,
 				childBranch:  childBranch,
-				strategy:     strategy,
+				strategy:     s,
 				user:         user,
 				workdir:      wd,
 				g:            g,
@@ -100,11 +106,6 @@ func (dr *depsRepoManager) Update() error {
 		return fmt.Errorf("Could not create and sync parent repo: %s", err)
 	}
 
-	// Create the child GitInfo if needed.
-	if dr.childRepo == nil {
-		dr.childRepo = &git.Checkout{GitDir: git.GitDir(dr.childDir)}
-	}
-
 	// Get the last roll revision.
 	lastRollRev, err := dr.getLastRollRev()
 	if err != nil {
@@ -112,23 +113,9 @@ func (dr *depsRepoManager) Update() error {
 	}
 
 	// Get the next roll revision.
-	childHead, err := dr.childRepo.FullHash(fmt.Sprintf("origin/%s", dr.childBranch))
+	nextRollRev, err := dr.strategy.GetNextRollRev(lastRollRev)
 	if err != nil {
 		return err
-	}
-	var nextRollRev string
-	if dr.strategy == ROLL_STRATEGY_SINGLE {
-		commits, err := dr.childRepo.RevList(fmt.Sprintf("%s..%s", lastRollRev, childHead))
-		if err != nil {
-			return fmt.Errorf("Failed to list revisions: %s", err)
-		}
-		if len(commits) == 0 {
-			nextRollRev = lastRollRev
-		} else {
-			nextRollRev = commits[len(commits)-1]
-		}
-	} else {
-		nextRollRev = childHead
 	}
 	dr.infoMtx.Lock()
 	defer dr.infoMtx.Unlock()

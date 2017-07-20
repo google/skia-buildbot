@@ -52,15 +52,21 @@ func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string,
 	repoToolPath := path.Join(user.HomeDir, "bin", "repo")
 	gitCookieAuthDaemonPath := path.Join(user.HomeDir, "gcompute-tools", "git-cookie-authdaemon")
 	wd := path.Join(workdir, "android_repo")
+	childDir := path.Join(wd, childPath)
+	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
+	s, err := GetStrategy(strategy, childRepo, childBranch, "")
+	if err != nil {
+		return nil, err
+	}
 
 	r := &androidRepoManager{
 		commonRepoManager: &commonRepoManager{
 			parentBranch: parentBranch,
-			childDir:     path.Join(wd, childPath),
+			childDir:     childDir,
 			childPath:    childPath,
-			childRepo:    nil, // This will be filled in on the first update.
+			childRepo:    childRepo,
 			childBranch:  childBranch,
-			strategy:     strategy,
+			strategy:     s,
 			user:         SERVICE_ACCOUNT,
 			workdir:      wd,
 			g:            g,
@@ -109,11 +115,6 @@ func (r *androidRepoManager) Update() error {
 		return err
 	}
 
-	// Create the child GitInfo if needed.
-	if r.childRepo == nil {
-		r.childRepo = &git.Checkout{GitDir: git.GitDir(r.childDir)}
-	}
-
 	// Fix the review config to a URL which will work outside prod.
 	if _, err := exec.RunCwd(r.childRepo.Dir(), "git", "config", "remote.goog.review", fmt.Sprintf("%s/", r.repoUrl)); err != nil {
 		return err
@@ -137,24 +138,11 @@ func (r *androidRepoManager) Update() error {
 	}
 
 	// Get the next roll revision.
-	childHead, err := r.getChildRepoHead()
+	nextRollRev, err := r.strategy.GetNextRollRev(lastRollRev)
 	if err != nil {
 		return err
 	}
-	var nextRollRev string
-	if r.strategy == ROLL_STRATEGY_SINGLE {
-		commits, err := r.childRepo.RevList(fmt.Sprintf("%s..%s", lastRollRev, childHead))
-		if err != nil {
-			return fmt.Errorf("Failed to list revisions: %s", err)
-		}
-		if len(commits) == 0 {
-			nextRollRev = lastRollRev
-		} else {
-			nextRollRev = commits[len(commits)-1]
-		}
-	} else {
-		nextRollRev = childHead
-	}
+
 	r.infoMtx.Lock()
 	defer r.infoMtx.Unlock()
 	r.lastRollRev = lastRollRev
