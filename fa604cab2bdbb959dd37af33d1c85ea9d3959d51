@@ -19,6 +19,41 @@
     },
     {
       "key": {
+        "uuid": "04efd406_f595b3ba",
+        "filename": "pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-20T23:03:54Z",
+      "side": 1,
+      "message": "I think they are fine here. This will be a dependency of the ingestion package in that it provides services to that package, but has little dependencies itself.",
+      "parentUuid": "25783861_e5bcdcb8",
+      "revId": "fa604cab2bdbb959dd37af33d1c85ea9d3959d51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "06fb35d9_7703f6ae",
+        "filename": "pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-20T23:03:54Z",
+      "side": 1,
+      "message": "nit: have an empty line between the comment and the field before it.",
+      "revId": "fa604cab2bdbb959dd37af33d1c85ea9d3959d51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "cdb3eb0c_40d995c3",
         "filename": "pixel_diff/go/resultstore/resultstore.go",
         "patchSetId": 6
@@ -30,6 +65,24 @@
       "writtenOn": "2017-07-20T21:58:07Z",
       "side": 1,
       "message": "If I wrote \n\nrec \u003d nil\nreturn nil\n\nhere (instead of returning the error), when the bucket for the given runID does not exist, I could get rid of the ContainsRun function as I wouldn\u0027t have to make sure the bucket exists before calling Get, but I wasn\u0027t sure if there should be some way to differentiate between a bucket not existing and a bucket existing but not having an entry for the given URL. Wondering because I\u0027m working on the ingestion package and the processor\u0027s Process function should do the same thing for both cases, i.e. create a new ResultRec and call Add. So changing this case to return a nil record with no error would allow me to remove some duplicated logic in the processor implementation, but would like input on which approach constitutes better design.",
+      "revId": "fa604cab2bdbb959dd37af33d1c85ea9d3959d51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b98a8cc_e25ee0b8",
+        "filename": "pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-20T23:03:54Z",
+      "side": 1,
+      "message": "I think your intuition is right here. \nIf the bucket doesn\u0027t exist or the URL doesn\u0027t exist the function should return (nil, nil). \nIMO, an error should only return if there was a technical error, e.g. a disk error reading.",
+      "parentUuid": "cdb3eb0c_40d995c3",
       "revId": "fa604cab2bdbb959dd37af33d1c85ea9d3959d51",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
