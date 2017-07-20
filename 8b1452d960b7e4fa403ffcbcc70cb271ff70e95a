@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "03c8dce5_65a8b02d",
+        "filename": "pixel_diff/go/resultstore/resultstore_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-20T17:57:39Z",
+      "side": 1,
+      "message": "Usually in unit tests specific test methods that start with \u0027testXxx\u0027 don\u0027t return anything. All they do is test logic and end.\n\nIt is however common to create helper methods like this one here, but they should not be named with \u0027test\u0027 prefix.\n\nSo you might rename this method to:\n\ncreateSimpleResultRec\n\nand then still have a testResultRec method that just calls createSimpleResultRec. And the other references below would call createSimpleResultRec.\n\nWhat does \u0027test\u0027 vs \u0027Test\u0027 (note caps char) mean, if anything, for Go unit testing infrastructure? Does running unit tests only run methods with \u0027Test\u0027, or do both get run?\n\nDon\u0027t worry about revising this until we hear stephana@ feedback, but I wanted to comment to hear his preference for this code base.",
+      "range": {
+        "startLine": 40,
+        "startChar": 1,
+        "endLine": 40,
+        "endChar": 11
+      },
+      "revId": "8b1452d960b7e4fa403ffcbcc70cb271ff70e95a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7c244764_b91c75b1",
+        "filename": "pixel_diff/go/resultstore/resultstore_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-20T17:57:39Z",
+      "side": 1,
+      "message": "Same comment as above -- would normally expect to see this as two methods, something like:\n\ncreateBoltResultStore\ntestNewBoltResultStore\n\nAnd the former used below.",
+      "range": {
+        "startLine": 50,
+        "startChar": 1,
+        "endLine": 50,
+        "endChar": 19
+      },
+      "revId": "8b1452d960b7e4fa403ffcbcc70cb271ff70e95a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
