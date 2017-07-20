@@ -37,8 +37,12 @@ var (
 // infra generates an infra test Task. Returns the name of the last Task in the
 // generated chain of Tasks, which the Job should add as a dependency.
 func infra(b *specs.TasksCfgBuilder, name string) string {
+	pkgs := []*specs.CipdPackage{b.MustGetCipdPackageFromAsset("go")}
+	if strings.Contains(name, "Large") {
+		pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("protoc"))
+	}
 	b.MustAddTask(name, &specs.TaskSpec{
-		CipdPackages: []*specs.CipdPackage{b.MustGetCipdPackageFromAsset("go")},
+		CipdPackages: pkgs,
 		Dimensions: []string{
 			"pool:Skia",
 			fmt.Sprintf("os:%s", DEFAULT_OS_LINUX),
