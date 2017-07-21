@@ -25,6 +25,23 @@ func EnsureDirExists(dirPath string) (string, error) {
 	return absPath, os.MkdirAll(absPath, 0700)
 }
 
+// EnsureDirPathExists checks whether the directories of the given file path
+// exist and creates them if necessary. Returns an error if there was a problem
+// creating the path.
+func EnsureDirPathExists(dirPath string) error {
+	absPath, err := filepath.Abs(dirPath)
+	if err != nil {
+		return err
+	}
+
+	dirs, _ := filepath.Split(absPath)
+	if err := os.MkdirAll(dirs, 0700); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Must checks whether err in the provided pair (s, err) is nil. If so it
 // returns s otherwise it cause the program to stop with the error message.
 func Must(s string, err error) string {

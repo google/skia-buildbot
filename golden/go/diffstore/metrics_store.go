@@ -15,14 +15,19 @@ const (
 	METRICS_DIGEST_INDEX = "metric_digest_index"
 )
 
+var (
+	// metricsRecIndices are the indices supported by the metricsRec type.
+	metricsRecIndices = []string{METRICS_DIGEST_INDEX}
+
+	// metricsRecSplitFn is called to get the two image IDs from a metricsRec ID.
+	metricsRecSplitFn func(string) (string, string) = nil
+)
+
 // metricsStore stores diff metrics on disk.
 type metricsStore struct {
 	// store stores the diff metrics in a boltdb database.
 	store *boltutil.IndexedBucket
 }
-
-// metricsRecIndices are  the indices supported by the metricsRec type.
-var metricsRecIndices = []string{METRICS_DIGEST_INDEX}
 
 // metricsRec implements the boltutil.Record interface.
 type metricsRec struct {
@@ -37,12 +42,14 @@ func (m *metricsRec) Key() string {
 
 // IndexValues see the boltutil.Record interface.
 func (m *metricsRec) IndexValues() map[string][]string {
-	d1, d2 := splitDigests(m.ID)
+	d1, d2 := metricsRecSplitFn(m.ID)
 	return map[string][]string{METRICS_DIGEST_INDEX: {d1, d2}}
 }
 
-// newMetricsStore returns a new instance of metricsStore.
-func newMetricStore(baseDir string) (*metricsStore, error) {
+// newMetricStore returns a new instance of metricsStore.
+func newMetricStore(baseDir string, splitFn func(string) (string, string)) (*metricsStore, error) {
+	metricsRecSplitFn = splitFn
+
 	db, err := openBoltDB(baseDir, METRICSDB_NAME+".db")
 	if err != nil {
 		return nil, err
@@ -54,6 +61,7 @@ func newMetricStore(baseDir string) (*metricsStore, error) {
 		Indices: metricsRecIndices,
 		Codec:   util.JSONCodec(&metricsRec{}),
 	}
+
 	store, err := boltutil.NewIndexedBucket(config)
 	if err != nil {
 		return nil, err
