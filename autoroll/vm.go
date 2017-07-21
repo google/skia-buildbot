@@ -38,6 +38,10 @@ func SkiaInternal() *gce.Instance {
 	return vm
 }
 
+func Angle() *gce.Instance {
+	return AutoRollBase("angle-autoroll", "" /* Use ephemeral IP */)
+}
+
 func Catapult() *gce.Instance {
 	return AutoRollBase("catapult-autoroll", "" /* Use ephemeral IP */)
 }
@@ -77,6 +81,7 @@ func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
 		"skia":           Skia(),
 		"skia-internal":  SkiaInternal(),
+		"angle":          Angle(),
 		"catapult":       Catapult(),
 		"nacl":           NaCl(),
 		"pdfium":         PDFium(),

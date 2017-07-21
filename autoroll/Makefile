@@ -28,13 +28,16 @@ debug: clean_webtools debug_core_js debug_elements_html
 
 include ../webtools/webtools.mk
 
-release: autoroll android_master_release android_o_release catapult_release nacl_release pdfium_release fuchsia_release skia_release skia_internal_release
+release: autoroll android_master_release android_o_release angle_release catapult_release nacl_release pdfium_release fuchsia_release skia_release skia_internal_release
 
 android_master_release: autoroll
 	./build_android_master_release "$(MESSAGE)"
 
 android_o_release: autoroll
 	./build_android_o_release "$(MESSAGE)"
+
+angle_release: autoroll
+	./build_angle_release "$(MESSAGE)"
 
 catapult_release: autoroll
 	./build_catapult_release "$(MESSAGE)"
