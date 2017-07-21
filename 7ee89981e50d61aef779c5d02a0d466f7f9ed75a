@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5b456401_c13c765d",
+        "filename": "ct_pixel_diff/go/ctdiffingestion/ctdiffingestion.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-21T20:40:34Z",
+      "side": 1,
+      "message": "My vote as a Go noob is to use this enum but name them as NOPATCH and WITHPATCH, or PATCH_NONE and PATCH_WITH, so it\u0027s more qualified. But we should go with what stephan thinks.",
+      "parentUuid": "0438a89e_34f9d458",
+      "revId": "7ee89981e50d61aef779c5d02a0d466f7f9ed75a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9a3e8ad4_ec07e7f3",
         "filename": "ct_pixel_diff/go/ctdiffingestion/ctdiffingestion_test.go",
         "patchSetId": 3
