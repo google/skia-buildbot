@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "4305529f_9396a4ad",
+        "filename": "ct_pixel_diff/go/ctdiffingestion/ctdiffingestion.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-21T21:06:04Z",
+      "side": 1,
+      "message": "Why not have string constants, i.e. \n\nWITH_PATCH \u003d \"withpatch\"\nNO_PATCH \u003d \"nopatch\"\n\nIMO constants like this are preferable over inline literals because it takes advantage of the compiler.",
+      "parentUuid": "0438a89e_34f9d458",
+      "revId": "7ee89981e50d61aef779c5d02a0d466f7f9ed75a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9a3e8ad4_ec07e7f3",
         "filename": "ct_pixel_diff/go/ctdiffingestion/ctdiffingestion_test.go",
         "patchSetId": 3
@@ -68,6 +86,24 @@
       "revId": "7ee89981e50d61aef779c5d02a0d466f7f9ed75a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d393094_4e0a3db1",
+        "filename": "ct_pixel_diff/go/ctdiffingestion/ctdiffingestion_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-21T21:06:04Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3a2bc5db_d62dcc4a",
+      "revId": "7ee89981e50d61aef779c5d02a0d466f7f9ed75a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
