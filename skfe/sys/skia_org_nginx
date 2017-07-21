@@ -386,6 +386,32 @@ server {
     return 301 https://android-o-roll.skia.org$request_uri;
 }
 
+#####   angle-roll.skia.org   ###########################
+server {
+    listen      443;
+    server_name angle-roll.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/angle-roll.access.log;
+    error_log /var/log/nginx/angle-roll.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
+    location / {
+        proxy_pass http://angle-autoroll:8000;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name angle-roll.skia.org;
+    return 301 https://angle-roll.skia.org$request_uri;
+}
+
 #####   catapult-roll.skia.org   ###########################
 server {
     listen      443;
