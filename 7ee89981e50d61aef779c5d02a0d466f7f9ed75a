@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0438a89e_34f9d458",
+        "filename": "ct_pixel_diff/go/ctdiffingestion/ctdiffingestion.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-21T20:00:41Z",
+      "side": 1,
+      "message": "Not sure if it\u0027s better to use this enum and array below, use constants for the \"nopatch\" and \"withpatch\" strings, or simply check for \u0027if screenshot.Type \u003d\u003d \"nopatch\"\u0027 in Process. Guess this is more of a style thing more than anything else because there are only 2 cases",
+      "revId": "7ee89981e50d61aef779c5d02a0d466f7f9ed75a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a3e8ad4_ec07e7f3",
+        "filename": "ct_pixel_diff/go/ctdiffingestion/ctdiffingestion_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-21T20:00:41Z",
+      "side": 1,
+      "message": "Don\u0027t know if there is some convention for declaring constants vs just using literals. I just made a const for any string that I had to use more than once in the tests.",
+      "revId": "7ee89981e50d61aef779c5d02a0d466f7f9ed75a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a2bc5db_d62dcc4a",
+        "filename": "ct_pixel_diff/go/ctdiffingestion/ctdiffingestion_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-21T20:00:41Z",
+      "side": 1,
+      "message": "Tests aren\u0027t very modular but it seems like the other processor tests do things in a similar manner, i.e. one test for parsing metadata and one test for checking processor functionality.",
+      "revId": "7ee89981e50d61aef779c5d02a0d466f7f9ed75a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
