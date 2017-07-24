@@ -136,38 +136,49 @@ func DeviceGroupFromYamlFile(path string, connect bool) (DeviceGroup, error) {
 		idDevGroupMap: map[string]DeviceGroup{},
 	}
 
+	hostname, err := os.Hostname()
+	if err != nil {
+		return nil, err
+	}
+
 	// Add the mpower devices.
 	for _, c := range conf.MPower {
-		mp, err := NewMPowerClient(c, connect)
-		if err != nil {
-			return nil, err
-		}
+		if c.Host == hostname {
+			mp, err := NewMPowerClient(c, connect)
+			if err != nil {
+				return nil, err
+			}
 
-		if err := ret.add(mp); err != nil {
-			return nil, err
+			if err := ret.add(mp); err != nil {
+				return nil, err
+			}
 		}
 	}
 
 	// Add the EdgeSwitch devices.
 	for _, c := range conf.EdgeSwitch {
-		es, err := NewEdgeSwitchClient(c, connect)
-		if err != nil {
-			return nil, err
-		}
+		if c.Host == hostname {
+			es, err := NewEdgeSwitchClient(c, connect)
+			if err != nil {
+				return nil, err
+			}
 
-		if err := ret.add(es); err != nil {
-			return nil, err
+			if err := ret.add(es); err != nil {
+				return nil, err
+			}
 		}
 	}
 
 	// Add the Arduino boards.
 	for _, c := range conf.Arduino {
-		ar, err := NewArduinoClient(c, connect)
-		if err != nil {
-			return nil, err
-		}
-		if err := ret.add(ar); err != nil {
-			return nil, err
+		if c.Host == hostname {
+			ar, err := NewArduinoClient(c, connect)
+			if err != nil {
+				return nil, err
+			}
+			if err := ret.add(ar); err != nil {
+				return nil, err
+			}
 		}
 	}
 

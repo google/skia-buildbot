@@ -17,8 +17,10 @@ import (
 // and control an Arduino with servos via the serial_relay program, that
 // is assumed to run on the remote host.
 type ArduinoConfig struct {
-	Address    string         `yaml:"address"` // IP address and port of the device, i.e. 192.168.1.33:22
+	Address    string         `yaml:"address"` // IP address and port of the device, e.g. 192.168.1.33:22
 	DevPortMap map[string]int `yaml:"ports"`   // Mapping between device name and port on the power strip.
+	// The hostname of the machine that can operate this device, e.g. jumphost-rpi-01
+	Host string `yaml:"host"`
 }
 
 // ArduinoClient implements the DeviceGroup interface.

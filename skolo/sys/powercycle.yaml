@@ -1,5 +1,6 @@
 mpower:
   mpower.01:
+    host: "jumphost-rpi-01"
     address: "192.168.1.43:22"
     user: "ubnt"
     ports:
@@ -12,6 +13,7 @@ mpower:
       skia-rpi-055-device: 7
 
   mpower.02:
+    host: "jumphost-linux-01"
     address: "192.168.2.226:22"
     user: "ubnt"
     ports:
@@ -22,6 +24,7 @@ mpower:
       mp-2-test-relay: 5
 
   mpower.03:
+    host: "jumphost-linux-01"
     address: "192.168.2.212:22"
     user: "ubnt"
     ports:
@@ -35,6 +38,7 @@ mpower:
 
 edgeswitch:
   edgeswitch.01:
+    host: "jumphost-rpi-01"
     address: "192.168.1.41:22"
     ports:
       skia-rpi-113: 18
@@ -57,6 +61,7 @@ edgeswitch:
 
 arduino:
   arduino.01:
+    host: "jumphost-rpi-01"
     address: "192.168.1.99:22"
     ports:
       skia-rpi-057-device: 1

@@ -28,8 +28,10 @@ const (
 // EdgeSwitchConfig contains configuration options for a single EdgeSwitch.
 // Note: We assume the device is on a trusted network.
 type EdgeSwitchConfig struct {
-	Address    string         `yaml:"address"` // IP address and port of the device, i.e. 192.168.1.33:22
+	Address    string         `yaml:"address"` // IP address and port of the device, e.g. 192.168.1.33:22
 	DevPortMap map[string]int `yaml:"ports"`   // Mapping between device name and port on the power strip.
+	// The hostname of the machine that can operate this device, e.g. jumphost-rpi-01
+	Host string `yaml:"host"`
 }
 
 // EdgeSwitchClient allows to control a single EdgeSwitch and
