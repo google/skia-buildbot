@@ -1,6 +1,7 @@
 package expstorage
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 
@@ -10,6 +11,14 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
 )
+
+// insertChunkSize is the number of records to insert with a single insert statement. The value
+// was determined to work via the test. The exact value is not important since all inserts
+// end up in the same transaction.
+const insertChunkSize = 1000
+
+// chunkPlaceholder is the placeholder string needed to insert a complete chunk of records.
+var chunkPlaceholders = strings.TrimRight(strings.Repeat("(?,?,?,?),", insertChunkSize), ",")
 
 // Stores expectations in an SQL database without any caching.
 type SQLExpectationsStore struct {
@@ -105,26 +114,53 @@ func (s *SQLExpectationsStore) AddChangeWithTimeStamp(changedTests map[string]ty
 	}
 
 	// Assemble the INSERT values.
-	valuesStr := ""
-	vals := []interface{}{}
+	chunks := [][]interface{}{}
+	remainderValuesStr := ""
+	current := make([]interface{}, 0, insertChunkSize)
 	for testName, digests := range changedTests {
 		for d, label := range digests {
-			valuesStr += "(?, ?, ?, ?),"
-			vals = append(vals, changeId, testName, d, label.String())
+			remainderValuesStr += "(?, ?, ?, ?),"
+			current = append(current, changeId, testName, d, label.String())
+
+			if (len(current) / 4) >= insertChunkSize {
+				chunks = append(chunks, current)
+				current = make([]interface{}, 0, insertChunkSize)
+				remainderValuesStr = ""
+			}
 		}
 	}
-	valuesStr = valuesStr[:len(valuesStr)-1]
+	remainderValuesStr = remainderValuesStr[:len(remainderValuesStr)-1]
 
-	// insert all the changes
-	prepStmt, err := tx.Prepare(insertDigest + valuesStr)
+	// Insert all the chunks
+	if len(chunks) > 0 {
+		if err := insertWithPrep(insertDigest+chunkPlaceholders, tx, chunks...); err != nil {
+			return err
+		}
+	}
+
+	// Insert the remainder.
+	if len(current) > 0 {
+		if err := insertWithPrep(insertDigest+remainderValuesStr, tx, current); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// insertPrep assumes a statement with placeholders and one or more sets of values to insert.
+func insertWithPrep(insertStmt string, tx *sql.Tx, valsArr ...[]interface{}) error {
+	prepStmt, err := tx.Prepare(insertStmt)
 	if err != nil {
 		return err
 	}
 	defer util.Close(prepStmt)
 
-	_, err = prepStmt.Exec(vals...)
-	if err != nil {
-		return err
+	for _, vals := range valsArr {
+		_, err = prepStmt.Exec(vals...)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
