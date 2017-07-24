@@ -52,6 +52,24 @@
       "revId": "1f4f182e952a6cfd87c82a34e18b26e73fa38d0f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "19addeb4_fb6c68f2",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-24T23:12:40Z",
+      "side": 1,
+      "message": "Ah, ok. Yeah, if we clear data out periodically then this is ok. I would vote for a different method called GetAllRunIds() as being more obvious than relying on caller to figure out from reading docs what to pass for start/end to get them all.\n\nAnd we could move existing impl to an internal method name that both GetAllRunIds() and GetRunIDs() use.\n\nBut let\u0027s wait to hear Stephan feedback before making a change or submitting.",
+      "parentUuid": "46cbe637_8a0b1b66",
+      "revId": "1f4f182e952a6cfd87c82a34e18b26e73fa38d0f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
