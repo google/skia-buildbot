@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "bba80f6b_20169566",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-24T16:41:39Z",
+      "side": 1,
+      "message": "Ok. So at least one of the NextRollStrategies will be broken in its current form.",
+      "parentUuid": "58271248_574dbf31",
+      "range": {
+        "startLine": 156,
+        "startChar": 0,
+        "endLine": 156,
+        "endChar": 139
+      },
+      "revId": "974f5b67b3e85fe226006423cfa99361f0c48915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5b8a07a1_3c7f0393",
         "filename": "autoroll/go/repo_manager/strategy.go",
         "patchSetId": 1
@@ -69,6 +93,30 @@
       "revId": "974f5b67b3e85fe226006423cfa99361f0c48915",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ba15de8_83324494",
+        "filename": "autoroll/go/repo_manager/strategy.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-24T16:41:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b8a07a1_3c7f0393",
+      "range": {
+        "startLine": 19,
+        "startChar": 3,
+        "endLine": 19,
+        "endChar": 11
+      },
+      "revId": "974f5b67b3e85fe226006423cfa99361f0c48915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -107,6 +155,30 @@
       "side": 1,
       "message": "Yes it would be better to pass it into RepoManager. Why not have the GetNextRollRev function definition take in repo object instead of GetStrategy function?",
       "parentUuid": "fc09d6c6_07c1559c",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 94
+      },
+      "revId": "974f5b67b3e85fe226006423cfa99361f0c48915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a2edf64f_25bb3a59",
+        "filename": "autoroll/go/repo_manager/strategy.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-24T16:41:39Z",
+      "side": 1,
+      "message": "Yeah, that\u0027s a possibility.  Another option is to pass in a pointer to the RepoManager itself and provide the methods we need that way, ie. ChildHead and RevList.",
+      "parentUuid": "35aea48e_026a2e6b",
       "range": {
         "startLine": 29,
         "startChar": 0,
