@@ -7,7 +7,7 @@ hotspare:
 
 .PHONY: hotspare_release
 hotspare_release: hotspare
-	./build_release_hotspare "$(MESSAGE)"
+	./build_release_hotspare "`git log -n1 --format=%s`"
 
 .PHONY: hotspare_push
 hotspare_push: hotspare
@@ -26,7 +26,7 @@ backup:
 
 .PHONY: rpi_backup_release
 rpi_backup_release: backup service_account
-	./build_release_rpi_backup "$(MESSAGE)"
+	./build_release_rpi_backup "`git log -n1 --format=%s`"
 
 .PHONY: rpi_backup_push
 rpi_backup_push: backup service_account
@@ -36,7 +36,7 @@ rpi_backup_push: backup service_account
 
 .PHONY: router_backup_release
 router_backup_release: backup service_account
-	./build_release_router_backup "$(MESSAGE)"
+	./build_release_router_backup "`git log -n1 --format=%s`"
 
 .PHONY: router_backup_push
 router_backup_push: backup service_account
@@ -52,7 +52,7 @@ cloudlogger:
 .PHONY: cloudlogger_release
 cloudlogger_release: service_account
 	GOOS=linux GOARCH=arm GOARM=7 go build -o out/cloudlogger -v ./go/cloudlogger
-	./build_release_cloudlogger "$(MESSAGE)"
+	./build_release_cloudlogger "`git log -n1 --format=%s`"
 
 .PHONY: powercycle
 powercycle:
@@ -60,7 +60,7 @@ powercycle:
 
 .PHONY: powercycle_release
 powercycle_release: service_account
-	./build_release_powercycle "$(MESSAGE)"
+	./build_release_powercycle "`git log -n1 --format=%s`"
 
 .PHONY: powercycle_push
 powercycle_push: powercycle service_account
@@ -70,7 +70,7 @@ powercycle_push: powercycle service_account
 
 .PHONY: jumphost_release
 jumphost_release: service_account powercycle
-	./build_release_jumphost "$(MESSAGE)" "$(TARGET)"
+	./build_release_jumphost "`git log -n1 --format=%s`" "$(TARGET)"
 
 .PHONY: jumphost_push_all
 jumphost_push: powercycle service_account
