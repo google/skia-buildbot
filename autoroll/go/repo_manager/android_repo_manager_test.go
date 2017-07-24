@@ -39,7 +39,7 @@ func setupAndroid(t *testing.T) (string, func()) {
 				if cmd.Args[1] == "--format=format:%H%x20%ci" {
 					output = fmt.Sprintf("%s 2017-03-29 18:29:22 +0000\n%s 2017-03-29 18:29:22 +0000", childCommits[0], childCommits[1])
 				}
-			} else if cmd.Args[0] == "ls-remote" {
+			} else if cmd.Args[0] == "ls-remote" || cmd.Args[0] == "rev-parse" {
 				output = childCommits[0]
 			} else if cmd.Args[0] == "merge-base" {
 				output = childCommits[1]
@@ -65,7 +65,9 @@ func TestAndroidRepoManager(t *testing.T) {
 	defer cleanup()
 	g, err := gerrit.NewGerrit(mockAndroidServer, "", nil)
 	assert.NoError(t, err)
-	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, ROLL_STRATEGY_BATCH, nil)
+	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
+	assert.NoError(t, err)
+	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, s, nil)
 	assert.NoError(t, err)
 
 	assert.Equal(t, fmt.Sprintf("%s/android_repo/%s", wd, childPath), rm.(*androidRepoManager).childDir)
@@ -81,8 +83,10 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	wd, cleanup := setupAndroid(t)
 	defer cleanup()
 
+	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
+	assert.NoError(t, err)
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, ROLL_STRATEGY_BATCH, nil)
+	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, s, nil)
 	assert.NoError(t, err)
 
 	issue, err := rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), androidEmails, "", false)
@@ -147,8 +151,10 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	wd, cleanup := setupAndroid(t)
 	defer cleanup()
 
+	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
+	assert.NoError(t, err)
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, ROLL_STRATEGY_BATCH, nil)
+	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, s, nil)
 	assert.NoError(t, err)
 
 	ran := false

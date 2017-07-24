@@ -76,6 +76,13 @@ func (r *mockRepoManager) getUpdateCount() int {
 	return r.updateCount
 }
 
+// ChildRevList returns a list of hashes.
+func (r *mockRepoManager) ChildRevList(args ...string) ([]string, error) {
+	r.mtx.RLock()
+	defer r.mtx.RUnlock()
+	return nil, fmt.Errorf("Not implemented")
+}
+
 // FullChildHash returns the full hash of the given short hash or ref in the
 // mocked child repo.
 func (r *mockRepoManager) FullChildHash(shortHash string) (string, error) {
@@ -408,7 +415,7 @@ func checkStatus(t *testing.T, r *AutoRoller, rv *mockCodereview, rm *mockRepoMa
 // setup initializes a fake AutoRoller for testing. It returns the working
 // directory, AutoRoller instance, URLMock for faking HTTP requests, and an
 // gerrit.ChangeInfo representing the first CL that was uploaded by the AutoRoller.
-func setup(t *testing.T, strategy string) (string, *AutoRoller, *mockRepoManager, *mockCodereview, *gerrit.ChangeInfo) {
+func setup(t *testing.T, strategy repo_manager.NextRollStrategy) (string, *AutoRoller, *mockRepoManager, *mockCodereview, *gerrit.ChangeInfo) {
 	testutils.SkipIfShort(t)
 
 	// Setup mocks.
@@ -429,7 +436,7 @@ func setup(t *testing.T, strategy string) (string, *AutoRoller, *mockRepoManager
 	}
 
 	rm := &mockRepoManager{t: t}
-	repo_manager.NewDEPSRepoManager = func(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy string, preUploadSteps []string) (repo_manager.RepoManager, error) {
+	repo_manager.NewDEPSRepoManager = func(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy repo_manager.NextRollStrategy, preUploadSteps []string) (repo_manager.RepoManager, error) {
 		return rm, nil
 	}
 
@@ -456,7 +463,9 @@ func setup(t *testing.T, strategy string) (string, *AutoRoller, *mockRepoManager
 func TestAutoRollBasic(t *testing.T) {
 	testutils.LargeTest(t)
 	// setup will initialize the roller and upload a CL.
-	workdir, roller, rm, rv, roll1 := setup(t, repo_manager.ROLL_STRATEGY_BATCH)
+	s, err := repo_manager.GetNextRollStrategy(repo_manager.ROLL_STRATEGY_BATCH, "master", "")
+	assert.NoError(t, err)
+	workdir, roller, rm, rv, roll1 := setup(t, s)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -491,7 +500,9 @@ func TestAutoRollBasic(t *testing.T) {
 func TestAutoRollStop(t *testing.T) {
 	testutils.MediumTest(t)
 	// setup will initialize the roller and upload a CL.
-	workdir, roller, rm, rv, roll1 := setup(t, repo_manager.ROLL_STRATEGY_BATCH)
+	s, err := repo_manager.GetNextRollStrategy(repo_manager.ROLL_STRATEGY_BATCH, "master", "")
+	assert.NoError(t, err)
+	workdir, roller, rm, rv, roll1 := setup(t, s)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -539,7 +550,9 @@ func TestAutoRollStop(t *testing.T) {
 // TestAutoRollDryRun ensures that the Dry Run functionalify works as expected.
 func TestAutoRollDryRun(t *testing.T) {
 	testutils.MediumTest(t)
-	workdir, roller, rm, rv, roll1 := setup(t, repo_manager.ROLL_STRATEGY_BATCH)
+	s, err := repo_manager.GetNextRollStrategy(repo_manager.ROLL_STRATEGY_BATCH, "master", "")
+	assert.NoError(t, err)
+	workdir, roller, rm, rv, roll1 := setup(t, s)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -640,7 +653,9 @@ func TestAutoRollDryRun(t *testing.T) {
 // sync the code, waiting for the commit to show up.
 func TestAutoRollCommitLandRace(t *testing.T) {
 	testutils.LargeTest(t)
-	workdir, roller, rm, rv, roll1 := setup(t, repo_manager.ROLL_STRATEGY_BATCH)
+	s, err := repo_manager.GetNextRollStrategy(repo_manager.ROLL_STRATEGY_BATCH, "master", "")
+	assert.NoError(t, err)
+	workdir, roller, rm, rv, roll1 := setup(t, s)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -693,7 +708,9 @@ func TestAutoRollCommitLandRace(t *testing.T) {
 // doesn't upload new CLs over and over.
 func TestAutoRollThrottle(t *testing.T) {
 	testutils.MediumTest(t)
-	workdir, roller, rm, rv, roll1 := setup(t, repo_manager.ROLL_STRATEGY_BATCH)
+	s, err := repo_manager.GetNextRollStrategy(repo_manager.ROLL_STRATEGY_BATCH, "master", "")
+	assert.NoError(t, err)
+	workdir, roller, rm, rv, roll1 := setup(t, s)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
@@ -732,7 +749,9 @@ func TestAutoRollThrottle(t *testing.T) {
 func TestAutoRollSingle(t *testing.T) {
 	testutils.MediumTest(t)
 	// setup will initialize the roller and upload a CL.
-	workdir, roller, rm, rv, roll1 := setup(t, repo_manager.ROLL_STRATEGY_SINGLE)
+	s, err := repo_manager.GetNextRollStrategy(repo_manager.ROLL_STRATEGY_BATCH, "master", "")
+	assert.NoError(t, err)
+	workdir, roller, rm, rv, roll1 := setup(t, s)
 	defer func() {
 		assert.NoError(t, roller.Close())
 		assert.NoError(t, os.RemoveAll(workdir))
