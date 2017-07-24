@@ -2,6 +2,7 @@ package expstorage
 
 import (
 	"fmt"
+	"math/rand"
 	"sort"
 	"testing"
 
@@ -32,6 +33,48 @@ func TestMySQLExpectationsStore(t *testing.T) {
 	eventBus := eventbus.New()
 	cachingStore := NewCachingExpectationStore(sqlStore, eventBus)
 	testExpectationStore(t, cachingStore, eventBus)
+}
+
+const hexLetters = "0123456789abcdef"
+const md5Length = 32
+
+func randomDigest() string {
+	ret := make([]byte, md5Length, md5Length)
+	for i := 0; i < md5Length; i++ {
+		ret[i] = hexLetters[rand.Intn(len(hexLetters))]
+	}
+	return string(ret)
+}
+
+func TestBigSQLChange(t *testing.T) {
+	testutils.LargeTest(t)
+
+	// Set up the test database.
+	testDb := testutil.SetupMySQLTestDatabase(t, db.MigrationSteps())
+	defer testDb.Close(t)
+
+	conf := testutil.LocalTestDatabaseConfig(db.MigrationSteps())
+	vdb, err := conf.NewVersionedDB()
+	assert.NoError(t, err)
+
+	// Test the MySQL backed store
+	sqlStore := NewSQLExpectationStore(vdb)
+
+	nDigests := 25313
+	labels := []types.Label{types.POSITIVE, types.NEGATIVE, types.UNTRIAGED}
+	digests := make(types.TestClassification, nDigests)
+	for i := 0; i < nDigests; i++ {
+		digests[randomDigest()] = labels[rand.Intn(len(labels))]
+	}
+
+	bigChange := map[string]types.TestClassification{
+		"mytest": digests,
+	}
+
+	assert.NoError(t, sqlStore.AddChange(bigChange, "user-99"))
+	exp, err := sqlStore.Get()
+	assert.NoError(t, err)
+	assert.Equal(t, bigChange, exp.Tests)
 }
 
 // Test against the expectation store interface.
