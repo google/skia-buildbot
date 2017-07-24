@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cb865e7d_98c53e4a",
+        "filename": "golden/go/expstorage/sqlexpstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-07-24T18:08:37Z",
+      "side": 1,
+      "message": "Maybe add \"An appropriate value was determined via experimentation\"",
+      "revId": "0bf03e1351e020c0e9a4d4622b1f3cbd2de637e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
