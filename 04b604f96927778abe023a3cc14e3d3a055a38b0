@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a33940f8_de1695ec",
+        "filename": "skolo/go/powercycle/mpower.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-24T16:27:49Z",
+      "side": 1,
+      "message": "what is the motivation for this ? \nIMO, we are limiting the functionality in a way that is not necessary. At least in the mid- and long term.",
+      "range": {
+        "startLine": 25,
+        "startChar": 1,
+        "endLine": 25,
+        "endChar": 26
+      },
+      "revId": "04b604f96927778abe023a3cc14e3d3a055a38b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
