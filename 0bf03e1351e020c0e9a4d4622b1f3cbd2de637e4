@@ -16,6 +16,24 @@
       "revId": "0bf03e1351e020c0e9a4d4622b1f3cbd2de637e4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0063d0ed_15abb2ed",
+        "filename": "golden/go/expstorage/sqlexpstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-24T18:39:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cb865e7d_98c53e4a",
+      "revId": "0bf03e1351e020c0e9a4d4622b1f3cbd2de637e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
