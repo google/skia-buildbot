@@ -2,6 +2,7 @@ package alerts
 
 import (
 	"fmt"
+	"net/url"
 	"strconv"
 
 	"go.skia.org/infra/perf/go/clustering2"
@@ -24,6 +25,7 @@ type Config struct {
 	StepUpOnly     bool                    `json:"step_up_only"`     // If true then only steps up will trigger an alert.
 	Radius         int                     `json:"radius"`           // How many commits to each side of a commit to consider when looking for a step. 0 means use the server default.
 	K              int                     `json:"k"`                // The K in k-means clustering. 0 means use an algorithmically chosen value based on the data.
+	GroupBy        string                  `json:"group_by"`         // A key in the paramset that all Clustering should be broken up across. Key must not appear in Query.
 }
 
 func (c *Config) IdAsString() string {
@@ -36,6 +38,19 @@ func (c *Config) StringToId(s string) {
 	} else {
 		c.ID = int(i)
 	}
+}
+
+func (c *Config) Validate() error {
+	parsed, err := url.ParseQuery(c.Query)
+	if err != nil {
+		return fmt.Errorf("Invalid Config: Invalid Query: %s", err)
+	}
+	if c.GroupBy != "" {
+		if _, ok := parsed[c.GroupBy]; ok {
+			return fmt.Errorf("Invalid Config: GroupBy must not appear in Query: %q %q ", c.GroupBy, c.Query)
+		}
+	}
+	return nil
 }
 
 // NewConfig creates a new Config properly initialized.

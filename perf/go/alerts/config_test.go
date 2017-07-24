@@ -17,3 +17,15 @@ func TestConfig(t *testing.T) {
 	assert.Equal(t, 2, a.ID)
 	assert.Equal(t, "2", a.IdAsString())
 }
+
+func TestValidate(t *testing.T) {
+	testutils.SmallTest(t)
+	a := NewConfig()
+	assert.NoError(t, a.Validate())
+	a.GroupBy = "foo"
+	assert.NoError(t, a.Validate())
+	a.Query = "bar=baz"
+	assert.NoError(t, a.Validate())
+	a.Query = "bar=baz&foo=quux"
+	assert.Error(t, a.Validate())
+}
