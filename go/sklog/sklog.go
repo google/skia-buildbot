@@ -54,83 +54,112 @@ var (
 // default report name associated with the CloudLogger or log to glog if Cloud Logging is not
 // configured.  They are a superset of the glog interface.  Info and Infoln do the same thing
 // (as do all pairs), because adding a newline to the end of a Cloud Logging Entry or a glog entry
-// means nothing as all logs are separate entries.
+// means nothing as all logs are separate entries.  InfofWithDepth allow the caller to change
+// where the stacktrace starts. 0 (the default in all other calls) means to report starting at
+// the caller. 1 would mean one level above, the caller's caller.  2 would be a level above that
+// and so on.
 func Debug(msg ...interface{}) {
 	sawLogWithSeverity(DEBUG)
-	log(DEBUG, defaultReportName, fmt.Sprint(msg...))
+	log(0, DEBUG, defaultReportName, fmt.Sprint(msg...))
 }
 
 func Debugf(format string, v ...interface{}) {
 	sawLogWithSeverity(DEBUG)
-	log(DEBUG, defaultReportName, fmt.Sprintf(format, v...))
+	log(0, DEBUG, defaultReportName, fmt.Sprintf(format, v...))
+}
+
+func DebugfWithDepth(depth int, format string, v ...interface{}) {
+	sawLogWithSeverity(DEBUG)
+	log(depth, DEBUG, defaultReportName, fmt.Sprintf(format, v...))
 }
 
 func Debugln(msg ...interface{}) {
 	sawLogWithSeverity(DEBUG)
-	log(DEBUG, defaultReportName, fmt.Sprintln(msg...))
+	log(0, DEBUG, defaultReportName, fmt.Sprintln(msg...))
 }
 func Info(msg ...interface{}) {
 	sawLogWithSeverity(INFO)
-	log(INFO, defaultReportName, fmt.Sprint(msg...))
+	log(0, INFO, defaultReportName, fmt.Sprint(msg...))
 }
 
 func Infof(format string, v ...interface{}) {
 	sawLogWithSeverity(INFO)
-	log(INFO, defaultReportName, fmt.Sprintf(format, v...))
+	log(0, INFO, defaultReportName, fmt.Sprintf(format, v...))
+}
+
+func InfofWithDepth(depth int, format string, v ...interface{}) {
+	sawLogWithSeverity(INFO)
+	log(depth, INFO, defaultReportName, fmt.Sprintf(format, v...))
 }
 
 func Infoln(msg ...interface{}) {
 	sawLogWithSeverity(INFO)
-	log(INFO, defaultReportName, fmt.Sprintln(msg...))
+	log(0, INFO, defaultReportName, fmt.Sprintln(msg...))
 }
 
 func Warning(msg ...interface{}) {
 	sawLogWithSeverity(WARNING)
-	log(WARNING, defaultReportName, fmt.Sprint(msg...))
+	log(0, WARNING, defaultReportName, fmt.Sprint(msg...))
 }
 
 func Warningf(format string, v ...interface{}) {
 	sawLogWithSeverity(WARNING)
-	log(WARNING, defaultReportName, fmt.Sprintf(format, v...))
+	log(0, WARNING, defaultReportName, fmt.Sprintf(format, v...))
+}
+
+func WarningfWithDepth(depth int, format string, v ...interface{}) {
+	sawLogWithSeverity(WARNING)
+	log(depth, WARNING, defaultReportName, fmt.Sprintf(format, v...))
 }
 
 func Warningln(msg ...interface{}) {
 	sawLogWithSeverity(WARNING)
-	log(WARNING, defaultReportName, fmt.Sprintln(msg...))
+	log(0, WARNING, defaultReportName, fmt.Sprintln(msg...))
 }
 
 func Error(msg ...interface{}) {
 	sawLogWithSeverity(ERROR)
-	log(ERROR, defaultReportName, fmt.Sprint(msg...))
+	log(0, ERROR, defaultReportName, fmt.Sprint(msg...))
 }
 
 func Errorf(format string, v ...interface{}) {
 	sawLogWithSeverity(ERROR)
-	log(ERROR, defaultReportName, fmt.Sprintf(format, v...))
+	log(0, ERROR, defaultReportName, fmt.Sprintf(format, v...))
+}
+
+func ErrorfWithDepth(depth int, format string, v ...interface{}) {
+	sawLogWithSeverity(ERROR)
+	log(depth, ERROR, defaultReportName, fmt.Sprintf(format, v...))
 }
 
 func Errorln(msg ...interface{}) {
 	sawLogWithSeverity(ERROR)
-	log(ERROR, defaultReportName, fmt.Sprintln(msg...))
+	log(0, ERROR, defaultReportName, fmt.Sprintln(msg...))
 }
 
 // Fatal* uses an ALERT Cloud Logging Severity and then panics, similar to glog.Fatalf()
 // In Fatal*, there is no callback to sawLogWithSeverity, as the program will soon exit
 // and the counter will be reset to 0.
 func Fatal(msg ...interface{}) {
-	log(ALERT, defaultReportName, fmt.Sprint(msg...))
+	log(0, ALERT, defaultReportName, fmt.Sprint(msg...))
 	Flush()
 	panic(fmt.Sprint(msg...))
 }
 
 func Fatalf(format string, v ...interface{}) {
-	log(ALERT, defaultReportName, fmt.Sprintf(format, v...))
+	log(0, ALERT, defaultReportName, fmt.Sprintf(format, v...))
+	Flush()
+	panic(fmt.Sprintf(format, v...))
+}
+
+func FatalfWithDepth(depth int, format string, v ...interface{}) {
+	log(depth, ALERT, defaultReportName, fmt.Sprintf(format, v...))
 	Flush()
 	panic(fmt.Sprintf(format, v...))
 }
 
 func Fatalln(msg ...interface{}) {
-	log(ALERT, defaultReportName, fmt.Sprintln(msg...))
+	log(0, ALERT, defaultReportName, fmt.Sprintln(msg...))
 	Flush()
 	panic(fmt.Sprintln(msg...))
 }
@@ -145,18 +174,21 @@ func Flush() {
 // log creates a log entry.  This log entry is either sent to Cloud Logging or glog if the former is
 // not configured.  reportName is the "virtual log file" used by cloud logging.  reportName is
 // ignored by glog. Both logs include file and line information.
-func log(severity, reportName, payload string) {
-	stacks := CallStack(5, 3)
+func log(depthOffset int, severity, reportName, payload string) {
+	// We want to start at least 3 levels up, which is where the caller called
+	// sklog.Infof (or whatever). Otherwise, we'll be including unneeded stack lines.
+	stackDepth := 3 + depthOffset
+	stacks := CallStack(5, stackDepth)
 	prettyPayload := fmt.Sprintf("%s %v", stacks[0].String(), payload)
 	if logger == nil {
-		logToGlog(3, severity, payload)
+		logToGlog(stackDepth, severity, payload)
 	} else {
 		// TODO(kjlubick): After cloud logging has baked in a while, remove the backup logs to glog
 		if severity != ALERT {
 			// ALERT, aka, Fatal* will be logged to glog after the call to CloudLog.
 			// If we called logToGlog with alert, it will die before reporting the fatal
 			// to CloudLog.
-			logToGlog(3, severity, payload)
+			logToGlog(stackDepth, severity, payload)
 		}
 		stack := map[string]string{
 			"stacktrace_0": stacks[0].String(),

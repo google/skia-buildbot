@@ -459,42 +459,43 @@ func KeysOfParamSet(set map[string][]string) []string {
 // Close wraps an io.Closer and logs an error if one is returned.
 func Close(c io.Closer) {
 	if err := c.Close(); err != nil {
-		sklog.Errorf("Failed to Close(): %v", err)
+		// Don't start the stacktrace here, but at the caller's location
+		sklog.ErrorfWithDepth(1, "Failed to Close(): %v", err)
 	}
 }
 
 // RemoveAll removes the specified path and logs an error if one is returned.
 func RemoveAll(path string) {
 	if err := os.RemoveAll(path); err != nil {
-		sklog.Errorf("Failed to RemoveAll(%s): %v", path, err)
+		sklog.ErrorfWithDepth(1, "Failed to RemoveAll(%s): %v", path, err)
 	}
 }
 
 // Remove removes the specified file and logs an error if one is returned.
 func Remove(name string) {
 	if err := os.Remove(name); err != nil {
-		sklog.Errorf("Failed to Remove(%s): %v", name, err)
+		sklog.ErrorfWithDepth(1, "Failed to Remove(%s): %v", name, err)
 	}
 }
 
 // Rename renames the specified file and logs an error if one is returned.
 func Rename(oldpath, newpath string) {
 	if err := os.Rename(oldpath, newpath); err != nil {
-		sklog.Errorf("Failed to Rename(%s, %s): %v", oldpath, newpath, err)
+		sklog.ErrorfWithDepth(1, "Failed to Rename(%s, %s): %v", oldpath, newpath, err)
 	}
 }
 
 // Mkdir creates the specified path and logs an error if one is returned.
 func Mkdir(name string, perm os.FileMode) {
 	if err := os.Mkdir(name, perm); err != nil {
-		sklog.Errorf("Failed to Mkdir(%s, %v): %v", name, perm, err)
+		sklog.ErrorfWithDepth(1, "Failed to Mkdir(%s, %v): %v", name, perm, err)
 	}
 }
 
 // MkdirAll creates the specified path and logs an error if one is returned.
 func MkdirAll(name string, perm os.FileMode) {
 	if err := os.MkdirAll(name, perm); err != nil {
-		sklog.Errorf("Failed to MkdirAll(%s, %v): %v", name, perm, err)
+		sklog.ErrorfWithDepth(1, "Failed to MkdirAll(%s, %v): %v", name, perm, err)
 	}
 }
 
@@ -502,12 +503,7 @@ func MkdirAll(name string, perm os.FileMode) {
 // for calls where generally a returned error can be ignored.
 func LogErr(err error) {
 	if err != nil {
-		errMsg := ""
-		if _, fileName, line, ok := runtime.Caller(1); ok {
-			errMsg = fmt.Sprintf("-called from: %s:%d", fileName, line)
-		}
-
-		sklog.Errorf("Unexpected error %s: %s", errMsg, err)
+		sklog.ErrorfWithDepth(1, "Unexpected error: %s", err)
 	}
 }
 
