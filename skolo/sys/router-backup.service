@@ -11,7 +11,6 @@ ExecStart=/usr/local/bin/router-backup \
   --gce_folder router_config \
   --add_hostname \
   --remote_file_path "admin@192.168.1.1:/config/config.boot" \
-  --metric_name router-backup \
   --service_account_path=/usr/local/share/router-backup/service-account.json
 
 Restart=always
