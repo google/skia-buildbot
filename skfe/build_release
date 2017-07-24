@@ -27,7 +27,7 @@ ${INSTALL} --mode=644 -T ./sys/skia-nginx.conf                  ${ROOT}/etc/ngin
 ${INSTALL} --mode=644 -T ./sys/skia_org_nginx                   ${ROOT}/etc/nginx/sites-available/skia_org
 sudo mkdir                                                      ${ROOT}/etc/nginx/sites-enabled
 ${SOFTLINK} ../sites-available/skia_org                         ${ROOT}/etc/nginx/sites-enabled/skia_org
-${INSTALL_DIR} --mode=700                                       ${ROOT}/etc/nginx/ssl
+${INSTALL_DIR} --mode=755                                       ${ROOT}/etc/nginx/ssl
 ${INSTALL} --mode=644 -T ./sys/${SETUP_APPNAME}.service         ${ROOT}/etc/systemd/system/${SETUP_APPNAME}.service
 ${INSTALL} --mode=644 -T ./sys/${LOGROTATE_APPNAME}.service     ${ROOT}/etc/systemd/system/${LOGROTATE_APPNAME}.service
 ${INSTALL} --mode=644 -T ./sys/${LOGROTATE_APPNAME}.timer       ${ROOT}/etc/systemd/system/${LOGROTATE_APPNAME}.timer
