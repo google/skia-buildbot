@@ -216,7 +216,7 @@ func SetCloudLoggerForTesting(c CloudLogger) {
 // CloudLogError writes an error to CloudLogging if the global logger has been set.
 // Otherwise, it just prints it using glog.
 func CloudLogError(reportName string, err error) {
-	log(ERROR, reportName, err.Error())
+	log(0, ERROR, reportName, err.Error())
 }
 
 // See documentation on interface.
