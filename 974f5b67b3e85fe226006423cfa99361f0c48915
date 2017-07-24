@@ -188,6 +188,30 @@
       "revId": "974f5b67b3e85fe226006423cfa99361f0c48915",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0fe2e60a_0ea571fe",
+        "filename": "autoroll/go/repo_manager/strategy.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-24T18:37:15Z",
+      "side": 1,
+      "message": "Okay, I tried my idea but it resulted in a locking conundrum.  Opted to pass the repo object into GetNextRollRev(), and now we create the NextRollStrategy object in main.go and pass it through.  I left this function here as a helper.",
+      "parentUuid": "a2edf64f_25bb3a59",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 94
+      },
+      "revId": "974f5b67b3e85fe226006423cfa99361f0c48915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
