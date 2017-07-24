@@ -95,8 +95,9 @@ func step(storageClient *storage.Client) {
 	if i, err := gw.Write([]byte(contents)); err != nil {
 		sklog.Fatalf("Problem writing to GCS.  Only wrote %d/%d bytes: %s", i, len(contents), err)
 	} else {
-		m := fmt.Sprintf("skolo.%s.backup-size", *metricName)
-		metrics2.GetInt64Metric(m, nil).Update(int64(i))
+		// The configuration in prometheus/sys/[hostname]/prometheus.yml will indicate what
+		// is being backed up (e.g. router_confgi)
+		metrics2.GetInt64Metric("skolo_backup_size", nil).Update(int64(i))
 	}
 
 	sklog.Infof("Upload complete")

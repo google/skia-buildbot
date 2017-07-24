@@ -500,6 +500,14 @@ ALERT TaskSchedulerWeeklyTrigger
 
 # Skolo
 
+ALERT BackupNotDone
+  IF avg_over_time(skolo_backup_size[25h]) == 0
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    abbr = "{{ $labels.federated }} {{ $labels.backup }}",
+    description = "The automated backup of {{ $labels.backup }} was not completed by {{ $labels.federated }} in the last 25 hours. http://go/skolo-maintenance",
+  }
+
 ALERT BackupRouterConfig
   IF avg_over_time(skolo_router_backup_backup_size[25h]) == 0
   LABELS { category = "infra", severity = "critical"}
