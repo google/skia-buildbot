@@ -18,9 +18,7 @@ import (
 )
 
 const (
-	ROLL_STRATEGY_BATCH  = "batch"
-	ROLL_STRATEGY_SINGLE = "single"
-	ROLL_BRANCH          = "roll_branch"
+	ROLL_BRANCH = "roll_branch"
 )
 
 // RepoManager is the interface used by different Autoroller implementations
@@ -51,7 +49,7 @@ type commonRepoManager struct {
 	childRepo      *git.Checkout
 	childBranch    string
 	preUploadSteps []PreUploadStep
-	strategy       string
+	strategy       NextRollStrategy
 	user           string
 	workdir        string
 	g              gerrit.GerritInterface

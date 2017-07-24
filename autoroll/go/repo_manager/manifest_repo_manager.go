@@ -39,6 +39,15 @@ func newManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childB
 	wd := path.Join(workdir, "repo_manager")
 	parentBase := strings.TrimSuffix(path.Base(parentRepo), ".git")
 	parentDir := path.Join(wd, parentBase)
+	childDir := path.Join(wd, childPath)
+	childRepo, err := git.NewCheckout(common.REPO_SKIA, wd)
+	if err != nil {
+		return nil, err
+	}
+	s, err := GetNextRollStrategy(strategy, childRepo, childBranch, "")
+	if err != nil {
+		return nil, err
+	}
 
 	user, err := g.GetUserEmail()
 	if err != nil {
@@ -55,12 +64,12 @@ func newManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childB
 		depotToolsRepoManager: &depotToolsRepoManager{
 			commonRepoManager: &commonRepoManager{
 				parentBranch:   parentBranch,
-				childDir:       path.Join(wd, childPath),
+				childDir:       childDir,
 				childPath:      childPath,
-				childRepo:      nil, // This will be filled in on the first update.
+				childRepo:      childRepo,
 				childBranch:    childBranch,
 				preUploadSteps: preUploadSteps,
-				strategy:       strategy,
+				strategy:       s,
 				user:           user,
 				workdir:        wd,
 				g:              g,
@@ -86,14 +95,6 @@ func (mr *manifestRepoManager) Update() error {
 		return fmt.Errorf("Could not create and sync parent repo: %s", err)
 	}
 
-	// Create the child GitInfo if needed.
-	var err error
-	if mr.childRepo == nil {
-		mr.childRepo, err = git.NewCheckout(common.REPO_SKIA, mr.workdir)
-		if err != nil {
-			return err
-		}
-	}
 	if err := mr.childRepo.Update(); err != nil {
 		return err
 	}
@@ -105,24 +106,11 @@ func (mr *manifestRepoManager) Update() error {
 	}
 
 	// Get the next roll revision.
-	childHead, err := mr.childRepo.FullHash(fmt.Sprintf("origin/%s", mr.childBranch))
+	nextRollRev, err := mr.strategy.GetNextRollRev(lastRollRev)
 	if err != nil {
 		return err
 	}
-	var nextRollRev string
-	if mr.strategy == ROLL_STRATEGY_SINGLE {
-		commits, err := mr.childRepo.RevList(fmt.Sprintf("%s..%s", lastRollRev, childHead))
-		if err != nil {
-			return fmt.Errorf("Failed to list revisions: %s", err)
-		}
-		if len(commits) == 0 {
-			nextRollRev = lastRollRev
-		} else {
-			nextRollRev = commits[len(commits)-1]
-		}
-	} else {
-		nextRollRev = childHead
-	}
+
 	mr.infoMtx.Lock()
 	defer mr.infoMtx.Unlock()
 	mr.lastRollRev = lastRollRev
