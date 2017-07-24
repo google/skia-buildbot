@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6aba61a6_7b0aa045",
+        "filename": "prober/probers.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-24T14:12:27Z",
+      "side": 1,
+      "message": "General comment: With most/all of these names it is not obvious what things are rolling into. Soon we should end up with names that mention both parent and child repos: dart-fuchsia-roll.skia.org",
+      "range": {
+        "startLine": 71,
+        "startChar": 16,
+        "endLine": 71,
+        "endChar": 26
+      },
+      "revId": "03cd00593c463c3ea1c9540ff3b0ed0e4b94f01a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
