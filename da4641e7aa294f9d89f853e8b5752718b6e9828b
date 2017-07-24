@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9c8747a8_b7284ed4",
+        "filename": "skolo/go/file-backup/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-07-24T20:05:24Z",
+      "side": 1,
+      "message": "We could add a tag here also.  I am hesitant to remove the label from prometheus.yml (https://skia-review.googlesource.com/c/26346/4/prometheus/sys/jumphost-rpi-01/prometheus.yml#20) because without it there, that file becomes confusing.\n\nI removed it from here to avoid redundancy, but I could add it back in if we want to be clear in both places.  What do you prefer?",
+      "parentUuid": "2a43d5fc_72102c57",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 98,
+        "endChar": 44
+      },
+      "revId": "da4641e7aa294f9d89f853e8b5752718b6e9828b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "08107312_718afa95",
         "filename": "skolo/go/file-backup/main.go",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2017-07-24T19:45:47Z",
       "side": 1,
       "message": "Shouldn\u0027t this be a Liveness?  How will we know when backups have stopped?",
+      "range": {
+        "startLine": 99,
+        "startChar": 2,
+        "endLine": 99,
+        "endChar": 68
+      },
+      "revId": "da4641e7aa294f9d89f853e8b5752718b6e9828b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a7c614e6_71160e41",
+        "filename": "skolo/go/file-backup/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-07-24T20:05:24Z",
+      "side": 1,
+      "message": "I guess this could be a liveness.  In InfluxDB land, we uploaded the size of the backup (which was potentially interesting as well) and alerted when that data stopped being there.  We do the same thing here, alert if the backup size over the last 25 hours is 0 (i.e. not happening)\n\nDo you think we should switch to a liveness, given the backup service should almost always be running?",
+      "parentUuid": "08107312_718afa95",
       "range": {
         "startLine": 99,
         "startChar": 2,
