@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a17b85bf_58e52ba4",
+        "filename": "perf/go/alerts/config.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-24T20:01:20Z",
+      "side": 1,
+      "message": "*paramset",
+      "range": {
+        "startLine": 28,
+        "startChar": 82,
+        "endLine": 28,
+        "endChar": 90
+      },
+      "revId": "b9ed0c930d186054645d02235fd49be1d0184aba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
