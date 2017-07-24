@@ -33,6 +33,7 @@
       display: block;
     }
 
+    .label,
     paper-input,
     paper-checkbox,
     iron-selector,
@@ -56,12 +57,49 @@
     iron-selector div {
       width: 10em;
       margin: 0.3em 1em;
-      padding: 0.2em;
+    }
+
+    iron-selector {
+      cursor: pointer;
+      border: solid 1px #A6CEE3;
+      max-height: 200px;
+      overflow-y: auto;
+      display: block;
+    }
+
+    iron-selector div {
+      padding: 0.4em 1.2em;
+      background-color: white;
+      border: none;
+      outline: none;
+      line-height: 20px;
+      vertical-align: middle;
+    }
+
+    iron-selector div:hover {
+      background-color: #A6CEE3;
+    }
+
+    iron-selector div.iron-selected {
+      background: #eee;
+    }
+
+    iron-selector div.iron-selected:hover {
+      background: #1F78B4;
+      color: white;
     }
 
     paper-checkbox {
       --paper-checkbox-checked-color: #1f78b4;
       --paper-checkbox-checked-ink-color: #1f78b4;
+    }
+
+    .label {
+      font-size: 12px;
+      font-weight: normal;
+      line-height: 20px;
+      color: #737373;
+      padding: 0.4em;
     }
   </style>
   <template>
@@ -88,6 +126,14 @@
     <paper-spinner id=bugSpinner></paper-spinner>
     <h3>Who owns this alert</h3>
     <paper-input id=owner value="{{config.owner}}"                         label="Email address of owner."></paper-input>
+    <h3>Group By</h3>
+    <span class=label>Group clusters by this parameter.</span>
+    <iron-selector id=groupby attr-for-selected="value" selected="{{config.group_by}}" fallback-selection=>
+      <div value="" title="No grouping.">(none)</div>
+      <template is="dom-repeat" items="{{_paramkeys}}">
+        <div value="[[item]]">[[item]]</div>
+      </template>
+    </iron-selector>
     <h3>Status</h3>
     <iron-selector attr-for-selected="value" selected="{{config.state}}" fallback-selection=ACTIVE>
       <div value=ACTIVE title="Clusters that match this will generate alerts.">Active</div>
@@ -113,11 +159,22 @@
         type: Object,
         value: function() { return {}; },
         reflectToAttribute: false,
+        observer: '_paramsetChange',
       },
+      _paramkeys: {
+        type: Array,
+        value: function() { return []; },
+      }
     },
 
     ready: function() {
       this.$.querychooser.query.setKeyOrder(sk.perf.key_order);
+    },
+
+    _paramsetChange: function() {
+      var keys = Object.keys(this.paramset);
+      keys.sort();
+      this.set('_paramkeys', keys);
     },
 
     _testBugTemplate: function() {
