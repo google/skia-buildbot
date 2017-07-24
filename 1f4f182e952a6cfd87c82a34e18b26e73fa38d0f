@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d9f6075c_be8959ca",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-24T21:37:10Z",
+      "side": 1,
+      "message": "Initially wanted to implement this so that calling GetRunIDs(nil, nil) would return all the runIDs in the db, but discovered that a Time struct cannot be nil. Found that Time does have a \u0027zero\u0027 instance, which can be referenced by creating an empty Time object (time.Time{}) and detected by using the IsZero() func. So, with this current implementation, calling GetRunIDs(time.Time{}, time.Time{}), will return all the runIDs. Is this fine or do you think there\u0027s a cleaner solution that uses more obvious default values?",
+      "revId": "1f4f182e952a6cfd87c82a34e18b26e73fa38d0f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
