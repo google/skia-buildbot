@@ -26,6 +26,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"google.golang.org/api/option"
 
@@ -169,6 +170,15 @@ func templateHandler(name string) http.HandlerFunc {
 	}
 }
 
+// newParamsetProvider returns a regression.ParamsetProvider which produces a paramset
+// for the current tiles.
+//
+func newParamsetProvider(freshDataFrame *dataframe.Refresher) regression.ParamsetProvider {
+	return func() paramtools.ParamSet {
+		return freshDataFrame.Get().ParamSet
+	}
+}
+
 // newAlertsConfigProvider returns a regression.ConfigProvider which produces a slice
 // of alerts.Config to run continuous clustering against.
 //
@@ -264,9 +274,10 @@ func Init() {
 	dataframe.StartWarmer(git)
 	regStore = regression.NewStore()
 	configProvider = newAlertsConfigProvider(clusterAlgo)
+	paramsProvider := newParamsetProvider(freshDataFrame)
 
 	// Start running continuous clustering looking for regressions.
-	continuous = regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, *clusterQueries == "")
+	continuous = regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, *clusterQueries == "", paramsProvider)
 	go continuous.Run()
 }
 
