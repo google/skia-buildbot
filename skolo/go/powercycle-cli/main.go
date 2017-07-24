@@ -32,8 +32,13 @@ var (
 
 func main() {
 	common.Init()
-	if !*connect {
+	args := flag.Args()
+	if !*connect && len(args) == 0 {
 		sklog.Info("Skipping connection test. Use --connect flag to force connection testing.")
+	} else {
+		// Force connect to be on because we will be powercycling devices. If we try to
+		// powercycle without connecting first, the DeviceGroups won't be properly initialized.
+		*connect = true
 	}
 	devGroup, err := powercycle.DeviceGroupFromYamlFile(*configFile, *connect)
 	if err != nil {
@@ -50,7 +55,6 @@ func main() {
 	}
 
 	// No device id given.
-	args := flag.Args()
 	if len(args) == 0 {
 		sklog.Errorf("No device id given to power cycle.")
 		flag.PrintDefaults()
