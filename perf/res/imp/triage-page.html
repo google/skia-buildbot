@@ -137,22 +137,25 @@
           <th colspan=2><a href="/a/?[[item.id]]"><query-summary-sk selection="[[item.query]]"></query-summary-sk></a></th>
         </template>
       </tr>
-      <template is="dom-if" if="[[_not(_stepUpOnly)]]">
         <tr>
           <th></th>
           <template is="dom-repeat" items="[[_reg.header]]">
-            <th>Low</th>
+            <template is="dom-if" if="[[_not(item.step_up_only)]]">
+              <th>Low</th>
+            </template>
+            <template is="dom-if" if="[[item.step_up_only]]">
+              <th></th>
+            </template>
             <th>High</th>
           </template>
         </tr>
-      </template>
       <template is="dom-repeat" items="[[_reg.table]]" index-as="tableIndex">
         <tr>
           <td class=fixed>
             <commit-detail-sk cid="[[item.cid]]"></commit-detail-sk>
           </td>
           <template is="dom-repeat" items="[[item.columns]]">
-            <template is="dom-if" if="[[_not(_stepUpOnly)]]">
+            <template is="dom-if" if="[[_notStepUpAt(index)]]">
               <td class=cluster>
                 <template is="dom-if" if="[[item.low]]">
                   <triage-status-sk alert="[[_alertAt(index)]]" cluster_type=low full_summary="[[_full_summary(item.frame, item.low)]]" triage="[[item.low_status]]"></triage-status-sk>
@@ -162,7 +165,7 @@
                 </template>
               </td>
             </template>
-            <template is="dom-if" if="[[_stepUpOnly]]">
+            <template is="dom-if" if="[[_stepUpAt(index)]]">
               <td></td><!-- Dummy column for colspan. -->
             </template>
             <td class=cluster>
@@ -205,10 +208,6 @@
         _triageInProgress: {
           type: Boolean,
           value: false,
-        },
-        _stepUpOnly: {
-          type: Boolean,
-          value: sk.perf.step_up_only,
         },
         _currentState: {
           type: Object,
@@ -314,6 +313,14 @@
 
       _alertAt: function(index) {
         return this._reg.header[index];
+      },
+
+      _stepUpAt: function(index) {
+        return this._reg.header[index].step_up_only;
+      },
+
+      _notStepUpAt: function(index) {
+        return !this._stepUpAt(index);
       },
 
       _not: function(x) {
