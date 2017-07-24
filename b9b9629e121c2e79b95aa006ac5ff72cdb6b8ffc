@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "91dc048c_18bcd163",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-24T12:14:29Z",
+      "side": 1,
+      "message": "Took me some time to realize that Exc \u003d executable. Not a big deal.",
+      "range": {
+        "startLine": 48,
+        "startChar": 1,
+        "endLine": 48,
+        "endChar": 6
+      },
+      "revId": "b9b9629e121c2e79b95aa006ac5ff72cdb6b8ffc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f017df9_7a4fd6cf",
+        "filename": "autoroll/setup-script-internal.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-24T12:14:29Z",
+      "side": 1,
+      "message": "Just curious: why does the internal roller need this?",
+      "range": {
+        "startLine": 3,
+        "startChar": 24,
+        "endLine": 3,
+        "endChar": 27
+      },
+      "revId": "b9b9629e121c2e79b95aa006ac5ff72cdb6b8ffc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
