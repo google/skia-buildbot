@@ -22,6 +22,30 @@
       "revId": "03cd00593c463c3ea1c9540ff3b0ed0e4b94f01a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28c67f4d_54c27b23",
+        "filename": "prober/probers.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-24T14:16:48Z",
+      "side": 1,
+      "message": "100% agree, both in the URL and on the web front-end.  A little more verbosity buys us a lot more clarity:\nhttps://angle-into-skia-roll.skia.org   \"ANGLE -\u003e Skia Autoroll Bot\"\nhttps://dart-into-fuchsia-roll.skia.org \"Dart -\u003e Fuchsia Autoroll Bot\"",
+      "parentUuid": "6aba61a6_7b0aa045",
+      "range": {
+        "startLine": 71,
+        "startChar": 16,
+        "endLine": 71,
+        "endChar": 26
+      },
+      "revId": "03cd00593c463c3ea1c9540ff3b0ed0e4b94f01a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
