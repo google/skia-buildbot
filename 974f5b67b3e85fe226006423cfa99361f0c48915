@@ -25,6 +25,53 @@
     },
     {
       "key": {
+        "uuid": "58271248_574dbf31",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-24T14:06:28Z",
+      "side": 1,
+      "message": "Yes, I do not think rev-parse will work because the refs for the childBranch have not been downloaded locally, this is why this part was made different that the deps roller. There is probably a way to make rev-parse work here but it is not straightforward to me how to do it without spending time on the roller locally. But in general might be good to leave it to the roller impl how to determine what the child repo head is?\nanother possibility is to have a remoteHeadStrategy and a localHeadStrategy? but then we will need some way to specify which one we want to use which might be messy..",
+      "parentUuid": "323b0390_a6989d56",
+      "range": {
+        "startLine": 156,
+        "startChar": 0,
+        "endLine": 156,
+        "endChar": 139
+      },
+      "revId": "974f5b67b3e85fe226006423cfa99361f0c48915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b8a07a1_3c7f0393",
+        "filename": "autoroll/go/repo_manager/strategy.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-24T14:06:28Z",
+      "side": 1,
+      "message": "Strategy is a very generic name. What about NextRollStrategy? If we want to extend it to do GetLastRollRev as well one day maybe it should be RollRevStrategy. (or something that explains better what it is doing).",
+      "range": {
+        "startLine": 19,
+        "startChar": 3,
+        "endLine": 19,
+        "endChar": 11
+      },
+      "revId": "974f5b67b3e85fe226006423cfa99361f0c48915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fc09d6c6_07c1559c",
         "filename": "autoroll/go/repo_manager/strategy.go",
         "patchSetId": 1
@@ -36,6 +83,30 @@
       "writtenOn": "2017-07-20T19:08:00Z",
       "side": 1,
       "message": "I don\u0027t really like this.  I wish we could pass the Strategy into the RepoManager, but for some Strategies we need the repo object created by the RepoManager.",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 94
+      },
+      "revId": "974f5b67b3e85fe226006423cfa99361f0c48915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "35aea48e_026a2e6b",
+        "filename": "autoroll/go/repo_manager/strategy.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-24T14:06:28Z",
+      "side": 1,
+      "message": "Yes it would be better to pass it into RepoManager. Why not have the GetNextRollRev function definition take in repo object instead of GetStrategy function?",
+      "parentUuid": "fc09d6c6_07c1559c",
       "range": {
         "startLine": 29,
         "startChar": 0,
