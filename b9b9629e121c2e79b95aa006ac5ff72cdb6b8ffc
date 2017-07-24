@@ -69,6 +69,30 @@
       "revId": "b9b9629e121c2e79b95aa006ac5ff72cdb6b8ffc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5725ebd4_aad51623",
+        "filename": "autoroll/setup-script-internal.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-24T12:22:52Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "9d6ab49a_c985d64d",
+      "range": {
+        "startLine": 3,
+        "startChar": 24,
+        "endLine": 3,
+        "endChar": 27
+      },
+      "revId": "b9b9629e121c2e79b95aa006ac5ff72cdb6b8ffc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
