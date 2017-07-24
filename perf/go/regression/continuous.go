@@ -1,11 +1,13 @@
 package regression
 
 import (
+	"net/url"
 	"sync"
 	"time"
 
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
@@ -17,6 +19,9 @@ import (
 // ConfigProvider is a function that's called to return a slice of alerts.Config. It is passed to NewContinuous.
 type ConfigProvider func() ([]*alerts.Config, error)
 
+// ParamsetProvider is a function that's called to return the current paramset. It is passed to NewContinuous.
+type ParamsetProvider func() paramtools.ParamSet
+
 // Current state of looking for regressions, i.e. the current commit and alert being worked on.
 type Current struct {
 	Commit *cid.CommitDetail `json:"commit"`
@@ -26,14 +31,15 @@ type Current struct {
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
 type Continuous struct {
-	git        *gitinfo.GitInfo
-	cidl       *cid.CommitIDLookup
-	store      *Store
-	numCommits int // Number of recent commits to do clustering over.
-	radius     int
-	provider   ConfigProvider
-	notifier   *notify.Notifier
-	useID      bool
+	git            *gitinfo.GitInfo
+	cidl           *cid.CommitIDLookup
+	store          *Store
+	numCommits     int // Number of recent commits to do clustering over.
+	radius         int
+	provider       ConfigProvider
+	notifier       *notify.Notifier
+	useID          bool
+	paramsProvider ParamsetProvider
 
 	mutex   sync.Mutex // Protects current.
 	current *Current
@@ -44,17 +50,18 @@ type Continuous struct {
 //   provider - Produces the slice of alerts.Config's that determine the clustering to perform.
 //   numCommits - The number of commits to run the clustering over.
 //   radius - The number of commits on each side of a commit to include when clustering.
-func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, provider ConfigProvider, store *Store, numCommits int, radius int, notifier *notify.Notifier, useID bool) *Continuous {
+func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, provider ConfigProvider, store *Store, numCommits int, radius int, notifier *notify.Notifier, useID bool, paramsProvider ParamsetProvider) *Continuous {
 	return &Continuous{
-		git:        git,
-		cidl:       cidl,
-		store:      store,
-		numCommits: numCommits,
-		radius:     radius,
-		provider:   provider,
-		notifier:   notifier,
-		useID:      useID,
-		current:    &Current{},
+		git:            git,
+		cidl:           cidl,
+		store:          store,
+		numCommits:     numCommits,
+		radius:         radius,
+		provider:       provider,
+		notifier:       notifier,
+		useID:          useID,
+		current:        &Current{},
+		paramsProvider: paramsProvider,
 	}
 }
 
@@ -111,6 +118,7 @@ func (c *Continuous) Run() {
 			}
 			configs, err := c.provider()
 			if err != nil {
+				// TODO(jcgregorio) Float these errors up to the UI.
 				sklog.Errorf("Failed to load configs: %s", err)
 				continue
 			}
@@ -126,53 +134,75 @@ func (c *Continuous) Run() {
 					radius = cfg.Radius
 				}
 				sklog.Infof("About to cluster for: %#v", *cfg)
-				// Create ClusterRequest and run.
-				req := &clustering2.ClusterRequest{
-					Source:      "master",
-					Offset:      commit.Index,
-					Radius:      radius,
-					Query:       cfg.Query,
-					Algo:        cfg.Algo,
-					Interesting: cfg.Interesting,
-					K:           cfg.K,
+				queries := []string{cfg.Query}
+				if cfg.GroupBy != "" {
+					paramset := c.paramsProvider()
+					paramValues, ok := paramset[cfg.GroupBy]
+					if !ok {
+						sklog.Errorf("Failed to find param values for %q", cfg.GroupBy)
+						continue
+					}
+					queries = []string{}
+					for _, value := range paramValues {
+						parsed, err := url.ParseQuery(cfg.Query)
+						if err != nil {
+							sklog.Errorf("Found invalid query %q: %s", cfg.Query, err)
+							continue
+						}
+						parsed[cfg.GroupBy] = []string{value}
+						queries = append(queries, parsed.Encode())
+					}
 				}
-				sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, cfg.Query)
-				resp, err := clustering2.Run(req, c.git, c.cidl)
-				if err != nil {
-					sklog.Errorf("Failed while clustering %v %s", *req, err)
-					continue
-				}
+				for _, q := range queries {
+					sklog.Infof("Clustering for query: %q", q)
+					// Create ClusterRequest and run.
+					req := &clustering2.ClusterRequest{
+						Source:      "master",
+						Offset:      commit.Index,
+						Radius:      radius,
+						Query:       q,
+						Algo:        cfg.Algo,
+						Interesting: cfg.Interesting,
+						K:           cfg.K,
+					}
+					sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, q)
+					resp, err := clustering2.Run(req, c.git, c.cidl)
+					if err != nil {
+						sklog.Errorf("Failed while clustering %v %s", *req, err)
+						continue
+					}
 
-				key := cfg.Query
-				if c.useID {
-					key = cfg.IdAsString()
-				}
-				// Update database if regression at the midpoint is found.
-				for _, cl := range resp.Summary.Clusters {
-					if cl.StepPoint.Offset == int64(commit.Index) {
-						if cl.StepFit.Status == stepfit.LOW && !cfg.StepUpOnly {
-							sklog.Infof("Found Low regression at %s for %q: %v", details[0].Message, cfg.Query, *cl.StepFit)
-							isNew, err := c.store.SetLow(details[0], key, resp.Frame, cl)
-							if err != nil {
-								sklog.Errorf("Failed to save newly found cluster: %s", err)
-								continue
-							}
-							if isNew {
-								if err := c.notifier.Send(details[0], cfg, cl); err != nil {
-									sklog.Errorf("Failed to send notification: %s", err)
+					key := cfg.Query
+					if c.useID {
+						key = cfg.IdAsString()
+					}
+					// Update database if regression at the midpoint is found.
+					for _, cl := range resp.Summary.Clusters {
+						if cl.StepPoint.Offset == int64(commit.Index) {
+							if cl.StepFit.Status == stepfit.LOW && !cfg.StepUpOnly {
+								sklog.Infof("Found Low regression at %s for %q: %v", details[0].Message, q, *cl.StepFit)
+								isNew, err := c.store.SetLow(details[0], key, resp.Frame, cl)
+								if err != nil {
+									sklog.Errorf("Failed to save newly found cluster: %s", err)
+									continue
+								}
+								if isNew {
+									if err := c.notifier.Send(details[0], cfg, cl); err != nil {
+										sklog.Errorf("Failed to send notification: %s", err)
+									}
 								}
 							}
-						}
-						if cl.StepFit.Status == stepfit.HIGH {
-							sklog.Infof("Found High regression at %s for %q: %v", id.ID(), cfg.Query, *cl.StepFit)
-							isNew, err := c.store.SetHigh(details[0], key, resp.Frame, cl)
-							if err != nil {
-								sklog.Errorf("Failed to save newly found cluster: %s", err)
-								continue
-							}
-							if isNew {
-								if err := c.notifier.Send(details[0], cfg, cl); err != nil {
-									sklog.Errorf("Failed to send notification: %s", err)
+							if cl.StepFit.Status == stepfit.HIGH {
+								sklog.Infof("Found High regression at %s for %q: %v", id.ID(), q, *cl.StepFit)
+								isNew, err := c.store.SetHigh(details[0], key, resp.Frame, cl)
+								if err != nil {
+									sklog.Errorf("Failed to save newly found cluster: %s", err)
+									continue
+								}
+								if isNew {
+									if err := c.notifier.Send(details[0], cfg, cl); err != nil {
+										sklog.Errorf("Failed to send notification: %s", err)
+									}
 								}
 							}
 						}

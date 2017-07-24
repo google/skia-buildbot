@@ -46,6 +46,9 @@ func NewStore() *Store {
 // Save can write a new, or update an existing, Config. New
 // Config's will have an ID of -1.
 func (s *Store) Save(cfg *Config) error {
+	if err := cfg.Validate(); err != nil {
+		return fmt.Errorf("Failed to save invalid Config: %s", err)
+	}
 	return intx(func(tx *sql.Tx) error {
 		body, err := json.Marshal(cfg)
 		if err != nil {
