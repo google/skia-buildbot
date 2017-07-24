@@ -3,9 +3,12 @@ package resultstore
 import (
 	"encoding/json"
 	"path"
+	"strings"
+	"time"
 
 	"github.com/boltdb/bolt"
 
+	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/golden/go/diff"
 )
@@ -48,8 +51,12 @@ type ResultStore interface {
 	// GetAll returns all the ResultRecs associated with the runID.
 	GetAll(runID string) ([]*ResultRec, error)
 
-	// Add adds a ResultRec to the ResultStore using the runID and url.
-	Add(runID, url string, rec *ResultRec) error
+	// GetRunIDs returns all the runIDs in the database that fall in between the
+	// start and end times.
+	GetRunIDs(start time.Time, end time.Time) ([]string, error)
+
+	// Put adds a ResultRec to the ResultStore using the runID and url.
+	Put(runID, url string, rec *ResultRec) error
 
 	// RemoveRun removes all the data associated with the runID from the
 	// ResultStore.
@@ -119,12 +126,12 @@ func (b *BoltResultStore) Get(runID, url string) (*ResultRec, error) {
 // GetAll returns all the ResultRecs stored in the bucket associated with the
 // given runID.
 func (b *BoltResultStore) GetAll(runID string) ([]*ResultRec, error) {
-	recs := make([]*ResultRec, 0)
+	recs := []*ResultRec{}
 	viewFn := func(tx *bolt.Tx) error {
-		// Retrieve bucket using the runID. If the bucket doesn't exist, return nil.
+		// Retrieve bucket using the runID. If the bucket doesn't exist, returns an
+		// empty list.
 		b := tx.Bucket([]byte(runID))
 		if b == nil {
-			recs = nil
 			return nil
 		}
 
@@ -153,11 +160,54 @@ func (b *BoltResultStore) GetAll(runID string) ([]*ResultRec, error) {
 	return recs, nil
 }
 
-// Add uses the given runID to specify the storage bucket within the boltDB.
+// GetRunIDs returns the IDs of all the runs that were completed in the given
+// time range. If the start and end times are given as zero time instances
+// (time.Time{}), all runIDs in the database are returned.
+func (b *BoltResultStore) GetRunIDs(start time.Time, end time.Time) ([]string, error) {
+	// If end time is given as zero time, set it to the current time.
+	if end.IsZero() {
+		end = time.Now()
+	}
+
+	runIDs := []string{}
+	viewFn := func(tx *bolt.Tx) error {
+		// Iterate through each bucket name and create a Time struct using the
+		// timestamp in the runID.
+		err := tx.ForEach(func(name []byte, _ *bolt.Bucket) error {
+			runID := string(name)
+			timestamp := strings.Split(runID, "-")[1]
+			runTime, err := time.Parse(util.TS_FORMAT, timestamp)
+			if err != nil {
+				return err
+			}
+
+			// Append the runID to the list if it falls in the specified range.
+			if start.Before(runTime) && end.After(runTime) {
+				runIDs = append(runIDs, runID)
+			}
+
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	err := b.db.View(viewFn)
+	if err != nil {
+		return nil, err
+	}
+
+	return runIDs, nil
+}
+
+// Put uses the given runID to specify the storage bucket within the boltDB.
 // Then, the ResultRec is encoded and put into the database with the url of
 // the screenshots as the key. If a record already exists for the given runID
 // and url, it is overwritten.
-func (b *BoltResultStore) Add(runID, url string, rec *ResultRec) error {
+func (b *BoltResultStore) Put(runID, url string, rec *ResultRec) error {
 	updateFn := func(tx *bolt.Tx) error {
 		// Create or retrieve bucket using the runID.
 		b, err := tx.CreateBucketIfNotExists([]byte(runID))
