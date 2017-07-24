@@ -34,6 +34,24 @@
       "revId": "1f4f182e952a6cfd87c82a34e18b26e73fa38d0f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46cbe637_8a0b1b66",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-24T22:19:42Z",
+      "side": 1,
+      "message": "I think it would be necessary, as Stephan notes in the last set of comments in this CL (https://skia-review.googlesource.com/c/24200/), there has to be some way of enumerating all the data in the ResultStore. If we want the UI to allow users to view results for different pixel diff runs, there should be some way of returning all the runIDs for which the server has data. But maybe it\u0027s sufficient to just give users results for each individual run that they started, and not support functionality for viewing other runs? In which case this function would not be necessary. It does seem like the new server would be more useful, however, if users could view results for any pixel diff run.\n\nI was also under the impression that we would be regularly deleting runs from the server based on a certain amount of time elapsed so that this would never be too expensive of an operation. But perhaps I\u0027m not fully understanding how the server will be utilized in the future.",
+      "parentUuid": "4237ec74_357cfdb3",
+      "revId": "1f4f182e952a6cfd87c82a34e18b26e73fa38d0f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
