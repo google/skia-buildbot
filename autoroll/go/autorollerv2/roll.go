@@ -41,6 +41,7 @@ type gerritRoll struct {
 	issue  *autoroll.AutoRollIssue
 	g      *gerrit.Gerrit
 	recent *recent_rolls.RecentRolls
+	result string
 	rm     repo_manager.RepoManager
 }
 
@@ -83,6 +84,7 @@ func (r *gerritRoll) Close(result, msg string) error {
 			return err
 		}
 	}
+	r.result = result
 	return r.Update()
 }
 
@@ -138,6 +140,9 @@ func (r *gerritRoll) Update() error {
 		return nil
 	}
 	r.ci = ci
+	if r.result != "" {
+		issue.Result = r.result
+	}
 	r.issue = issue
 	return r.recent.Update(r.issue)
 }
