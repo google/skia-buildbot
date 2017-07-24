@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6c60ac5e_2f52a630",
+        "filename": "pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-24T19:26:09Z",
+      "side": 1,
+      "message": "For completeness there should also be a function to retrieve a list of all runIDs. e.g.\n\nGetRunIDs() ([]string, error)\n\nthat way you can enumerate everything that\u0027s in your data store. Maybe with a time range parameter, i.e to pull out recent runIDs.",
+      "revId": "fc67031b998e25ab97f82d4150434365e11d8f6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f95af448_fbfb82e3",
+        "filename": "pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-24T19:26:09Z",
+      "side": 1,
+      "message": "Note: In the long run it might be a better idea to give this instance an entire directory and then group runs together, i.e. have a separate boltdb file for all runs in a month or a quarter. \nOne of the problems with BoltDB is that inserts get increasingly slower as the filesize increases. Not a priority right now.",
+      "revId": "fc67031b998e25ab97f82d4150434365e11d8f6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d18640be_57d43417",
+        "filename": "pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-24T19:26:09Z",
+      "side": 1,
+      "message": "For an empty slice use \nrecs :\u003d []*ResultRec{}",
+      "revId": "fc67031b998e25ab97f82d4150434365e11d8f6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "046081cf_c2c86dc7",
+        "filename": "pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-24T19:26:09Z",
+      "side": 1,
+      "message": "IMO in this case the return value should still be an empty list not nil, because there are no records for the given runID. \nIf it\u0027s important to communicate to the caller that the runID doesn\u0027t exist at all then nil is fine, but it should be added to the doc string.",
+      "revId": "fc67031b998e25ab97f82d4150434365e11d8f6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48842a50_5244b998",
+        "filename": "pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-24T19:26:09Z",
+      "side": 1,
+      "message": "Nit: Put would be a better name IMO, Add suggests an incremental update.",
+      "revId": "fc67031b998e25ab97f82d4150434365e11d8f6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
