@@ -81,7 +81,7 @@ fi
 mkdir --parents ${ROOT}/DEBIAN
 
 # Set directory perms.
-sudo chmod 755 -R ${ROOT}
+chmod 755 -R ${ROOT}
 
 # Create the control files that describes this deb.
 echo 2.0 > ${ROOT}/DEBIAN/debian-binary
