@@ -1,6 +1,7 @@
 package expstorage
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 
@@ -104,27 +105,57 @@ func (s *SQLExpectationsStore) AddChangeWithTimeStamp(changedTests map[string]ty
 		return nil
 	}
 
+	const chunkSize = 1000
+	var chunkPlaceholders = strings.Repeat("(?,?,?,?),", chunkSize)
+	chunkPlaceholders = chunkPlaceholders[:len(chunkPlaceholders)-1]
+
 	// Assemble the INSERT values.
-	valuesStr := ""
-	vals := []interface{}{}
+	chunks := [][]interface{}{}
+	remainderValuesStr := ""
+	current := make([]interface{}, 0, chunkSize)
 	for testName, digests := range changedTests {
 		for d, label := range digests {
-			valuesStr += "(?, ?, ?, ?),"
-			vals = append(vals, changeId, testName, d, label.String())
+			remainderValuesStr += "(?, ?, ?, ?),"
+			current = append(current, changeId, testName, d, label.String())
+
+			if (len(current) / 4) >= chunkSize {
+				chunks = append(chunks, current)
+				current = make([]interface{}, 0, chunkSize)
+				remainderValuesStr = ""
+			}
 		}
 	}
-	valuesStr = valuesStr[:len(valuesStr)-1]
+	remainderValuesStr = remainderValuesStr[:len(remainderValuesStr)-1]
 
-	// insert all the changes
-	prepStmt, err := tx.Prepare(insertDigest + valuesStr)
+	// Insert all the chunks
+	if len(chunks) > 0 {
+		if err := insertPrep(insertDigest+chunkPlaceholders, tx, chunks...); err != nil {
+			return err
+		}
+	}
+
+	// Insert the remainder.
+	if len(current) > 0 {
+		if err := insertPrep(insertDigest+remainderValuesStr, tx, current); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func insertPrep(insertStmt string, tx *sql.Tx, valsArr ...[]interface{}) error {
+	prepStmt, err := tx.Prepare(insertStmt)
 	if err != nil {
 		return err
 	}
 	defer util.Close(prepStmt)
 
-	_, err = prepStmt.Exec(vals...)
-	if err != nil {
-		return err
+	for _, vals := range valsArr {
+		_, err = prepStmt.Exec(vals...)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
