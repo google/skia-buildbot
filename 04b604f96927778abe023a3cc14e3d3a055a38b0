@@ -22,6 +22,30 @@
       "revId": "04b604f96927778abe023a3cc14e3d3a055a38b0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4a1e493_176a27d8",
+        "filename": "skolo/go/powercycle/mpower.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-07-24T17:30:11Z",
+      "side": 1,
+      "message": "We need to tell power.skia.org which devices are associated with a given jumphost, otherwise it will give one command for a bunch of devices that aren\u0027t reachable from the same host, e.g. rpi-060-device and linux-001\n\nAdditionally, if we don\u0027t have something like this when running the powercycle command locally, we need to either 1) edit the /etc/powercycle.yaml to remove the unreachable devices after powercycle is pushed or 2) keep multiple powercycle.yaml files, one per jumphost.\n\nPrior to this CL, I had been doing 1) and I think this CL is cleaner than 2)\n\nI imagine if we migrate towards a more automated fix, we\u0027ll need to indicate to the powercycle daemons what rebootable devices work on their given machines.",
+      "parentUuid": "a33940f8_de1695ec",
+      "range": {
+        "startLine": 25,
+        "startChar": 1,
+        "endLine": 25,
+        "endChar": 26
+      },
+      "revId": "04b604f96927778abe023a3cc14e3d3a055a38b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
