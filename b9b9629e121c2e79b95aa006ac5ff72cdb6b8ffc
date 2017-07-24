@@ -45,6 +45,30 @@
       "revId": "b9b9629e121c2e79b95aa006ac5ff72cdb6b8ffc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d6ab49a_c985d64d",
+        "filename": "autoroll/setup-script-internal.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-24T12:21:40Z",
+      "side": 1,
+      "message": "In order to do \"go run ./infra/bots/gen_tasks.go --train\", we have to do \"go get -u go.skia.org/infra\", which requires gcc, among other things.",
+      "parentUuid": "4f017df9_7a4fd6cf",
+      "range": {
+        "startLine": 3,
+        "startChar": 24,
+        "endLine": 3,
+        "endChar": 27
+      },
+      "revId": "b9b9629e121c2e79b95aa006ac5ff72cdb6b8ffc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
