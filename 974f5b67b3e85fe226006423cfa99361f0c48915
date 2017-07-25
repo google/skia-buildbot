@@ -284,6 +284,30 @@
       "revId": "974f5b67b3e85fe226006423cfa99361f0c48915",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0d5e922_33f501e4",
+        "filename": "autoroll/go/repo_manager/strategy.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-25T13:24:14Z",
+      "side": 1,
+      "message": "I just made another StrategyRemoteHead for use by the AndroidRepoManager.  But now I\u0027m wondering if the FullChildHash function will work.  And CreateNewRoll uses RevList.",
+      "parentUuid": "10a38811_dce7df86",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 94
+      },
+      "revId": "974f5b67b3e85fe226006423cfa99361f0c48915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
