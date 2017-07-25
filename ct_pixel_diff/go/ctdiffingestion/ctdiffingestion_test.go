@@ -53,9 +53,9 @@ func TestCTResults(t *testing.T) {
 
 	// Expected results.
 	expScreenshots := []*Screenshot{
-		&Screenshot{Type: "nopatch", Rank: 1, Filename: "http___www_google_com", URL: TEST_URL_ONE},
-		&Screenshot{Type: "withpatch", Rank: 2, Filename: "http___www_youtube_com", URL: TEST_URL_TWO},
-		&Screenshot{Type: "withpatch", Rank: 1, Filename: "http___www_google_com", URL: TEST_URL_ONE}}
+		&Screenshot{Type: "nopatch", Rank: 1, Filename: "http___www_google_com.png", URL: TEST_URL_ONE},
+		&Screenshot{Type: "withpatch", Rank: 2, Filename: "http___www_youtube_com.png", URL: TEST_URL_TWO},
+		&Screenshot{Type: "withpatch", Rank: 1, Filename: "http___www_google_com.png", URL: TEST_URL_ONE}}
 	expected := &CTResults{
 		RunID:         TEST_RUN_ID,
 		ChromiumPatch: "https://chromium-review.googlesource.com/c/000000",
@@ -95,8 +95,6 @@ func TestPixelDiffProcessor(t *testing.T) {
 
 	// Verify that the first entry in the ResultStore is correct.
 	expectedRecOne := &resultstore.ResultRec{
-		RunID:        TEST_RUN_ID,
-		URL:          TEST_URL_ONE,
 		Rank:         1,
 		NoPatchImg:   TEST_NOPATCH_ONE,
 		WithPatchImg: TEST_WITHPATCH_ONE,
@@ -127,8 +125,6 @@ func TestPixelDiffProcessor(t *testing.T) {
 	// Verify that the second entry in the ResultStore is correct. There should
 	// be no data for NoPatchImg and DiffMetrics.
 	expectedRecTwo := &resultstore.ResultRec{
-		RunID:        TEST_RUN_ID,
-		URL:          TEST_URL_TWO,
 		Rank:         2,
 		WithPatchImg: "rmistry-20170717202555/withpatch/2/http___www_youtube_com",
 	}

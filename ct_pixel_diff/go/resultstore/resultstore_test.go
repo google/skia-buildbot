@@ -38,8 +38,6 @@ func createResultRec(t *testing.T) *ResultRec {
 	rec := &ResultRec{}
 	assert.False(t, rec.IsReadyForDiff())
 
-	rec.RunID = TEST_RUN_ID
-	rec.URL = TEST_URL
 	rec.Rank = 1
 	rec.NoPatchImg = "lchoi20170719123456/nopatch/1/http___www_google_com"
 	rec.WithPatchImg = "lchoi20170719123456/withpatch/1/http___www_google_com"
@@ -116,10 +114,9 @@ func TestGetAll(t *testing.T) {
 	// Initialize the ResultStore.
 	resultStore := createBoltResultStore(t)
 
-	// Create two ResultRecs and modify the URL of the second one.
+	// Create two ResultRecs.
 	recOne := createResultRec(t)
 	recTwo := createResultRec(t)
-	recTwo.URL = TEST_URL_TWO
 
 	// Put them under different URLs so there are multiple entries associated
 	// with a run.
@@ -154,12 +151,11 @@ func TestGetRunIDs(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(runIDs))
 
-	// Create two ResultRecs and modify the runID of the second one.
+	// Create two ResultRecs.
 	recOne := createResultRec(t)
 	recTwo := createResultRec(t)
-	recTwo.RunID = TEST_RUN_ID_TWO
 
-	// Add them to the ResultStore.
+	// Add them to the ResultStore under different runIDs.
 	err = resultStore.Put(TEST_RUN_ID, TEST_URL, recOne)
 	assert.NoError(t, err)
 	err = resultStore.Put(TEST_RUN_ID_TWO, TEST_URL, recTwo)
