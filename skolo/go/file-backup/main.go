@@ -31,24 +31,25 @@ var (
 	gceBucket          = flag.String("gce_bucket", "skia-backups", "GCS Bucket backups should be stored in")
 	gceFolder          = flag.String("gce_folder", "Swarming", "Folder in the bucket that should hold the backup files")
 	localFilePath      = flag.String("local_file_path", "", "Where the file is stored locally on disk. Cannot use with remote_file_path")
-	metricName         = flag.String("metric_name", "rpi-backup", "The metric name that should be used when reporting the size to metrics.")
 	period             = flag.Duration("period", 24*time.Hour, "How often to do the file backup.")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	remoteCopyCommand  = flag.String("remote_copy_command", "scp", "rsync or scp.  The router does not have rsync installed.")
 	remoteFilePath     = flag.String("remote_file_path", "", "Remote location for a file, to be used by remote_copy_command.  E.g. foo@127.0.0.1:/etc/bar.conf Cannot use with local_file_path")
 	serviceAccountPath = flag.String("service_account_path", "", "Path to the service account.  Can be empty string to use defaults or project metadata")
 	addHostname        = flag.Bool("add_hostname", false, "If the hostname should be included in the backup file name")
+
+	backupMetric metrics2.Liveness
 )
 
 func step(storageClient *storage.Client) {
-	sklog.Infof("Running backup for %s", *metricName)
+	sklog.Infof("Running backup to %s", *gceFolder)
 	if *remoteFilePath != "" {
 		// If backing up a remote file, copy it here first, then pretend it is a local file.
 		dir, err := ioutil.TempDir("", "backups")
 		if err != nil {
 			sklog.Fatalf("Could not create temp directory %s: %s", dir, err)
 		}
-		*localFilePath = path.Join(dir, *metricName)
+		*localFilePath = path.Join(dir, "placeholder")
 		stdOut := bytes.Buffer{}
 		stdErr := bytes.Buffer{}
 		// This only works if the remote file's host has the source's SSH public key in
@@ -95,8 +96,9 @@ func step(storageClient *storage.Client) {
 	if i, err := gw.Write([]byte(contents)); err != nil {
 		sklog.Fatalf("Problem writing to GCS.  Only wrote %d/%d bytes: %s", i, len(contents), err)
 	} else {
-		m := fmt.Sprintf("skolo.%s.backup-size", *metricName)
-		metrics2.GetInt64Metric(m, nil).Update(int64(i))
+		// The configuration in prometheus/sys/[hostname]/prometheus.yml will indicate what
+		// is being backed up (e.g. router_confgi)
+		backupMetric.Reset()
 	}
 
 	sklog.Infof("Upload complete")
@@ -127,6 +129,8 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Could not authenticate to GCS: %s", err)
 	}
+
+	backupMetric = metrics2.NewLiveness("skolo_last_backup", nil)
 
 	step(storageClient)
 	for range time.Tick(*period) {
