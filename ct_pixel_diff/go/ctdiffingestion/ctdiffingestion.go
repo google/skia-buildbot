@@ -146,8 +146,8 @@ func (p *pixelDiffProcessor) Process(resultsFile ingestion.ResultFileLocation) e
 			rec.DiffMetrics = diffResult[rec.WithPatchImg].(*diff.DiffMetrics)
 		}
 
-		// Add the updated entry back into the ResultStore.
-		err = p.resultStore.Add(results.RunID, screenshot.URL, rec)
+		// Put the updated entry back into the ResultStore.
+		err = p.resultStore.Put(results.RunID, screenshot.URL, rec)
 		if err != nil {
 			return err
 		}

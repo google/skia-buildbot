@@ -3,6 +3,7 @@ package resultstore
 import (
 	"io/ioutil"
 	"testing"
+	"time"
 
 	assert "github.com/stretchr/testify/require"
 
@@ -26,7 +27,10 @@ const (
 
 	// Test url for querying urls that do not exist in a bucket, and for testing
 	// GetAll.
-	TEST_SECOND_URL = "http://www.youtube.com"
+	TEST_URL_TWO = "http://www.youtube.com"
+
+	// Secondary runID for testing GetRunIDs.
+	TEST_RUN_ID_TWO = "lchoi-20170721123456"
 )
 
 // Tests the IsReadyForDiff func and returns a ResultRec with test data.
@@ -54,7 +58,7 @@ func createBoltResultStore(t *testing.T) ResultStore {
 	return resultStore
 }
 
-func TestGetAndAdd(t *testing.T) {
+func TestGetAndPut(t *testing.T) {
 	testutils.SmallTest(t)
 
 	// Initialize the ResultStore.
@@ -67,10 +71,10 @@ func TestGetAndAdd(t *testing.T) {
 
 	// Add the ResultRec.
 	rec := createResultRec(t)
-	err = resultStore.Add(TEST_RUN_ID, TEST_URL, rec)
+	err = resultStore.Put(TEST_RUN_ID, TEST_URL, rec)
 	assert.NoError(t, err)
 
-	// Get the ResultRec and verify it's equivalent to what was added.
+	// Get the ResultRec and verify it's equivalent to what was inserted.
 	storedRec, err := resultStore.Get(TEST_RUN_ID, TEST_URL)
 	assert.NoError(t, err)
 	assert.Equal(t, rec, storedRec)
@@ -81,11 +85,11 @@ func TestGetAndAdd(t *testing.T) {
 	assert.Nil(t, nilRecord)
 
 	// If the url doesn't exist in the run bucket, Get should return nil.
-	nilRecord, err = resultStore.Get(TEST_RUN_ID, TEST_SECOND_URL)
+	nilRecord, err = resultStore.Get(TEST_RUN_ID, TEST_URL_TWO)
 	assert.NoError(t, err)
 	assert.Nil(t, nilRecord)
 
-	// Getting a ResultRec, updating it, and adding it back should overwrite the
+	// Getting a ResultRec, updating it, and putting it back should overwrite the
 	// current record.
 	updateRec := rec
 	updateRec.DiffMetrics = &diff.DiffMetrics{
@@ -99,7 +103,7 @@ func TestGetAndAdd(t *testing.T) {
 			"combined": 4.4663033,
 		},
 	}
-	err = resultStore.Add(TEST_RUN_ID, TEST_URL, updateRec)
+	err = resultStore.Put(TEST_RUN_ID, TEST_URL, updateRec)
 	assert.NoError(t, err)
 	storedRec, err = resultStore.Get(TEST_RUN_ID, TEST_URL)
 	assert.NoError(t, err)
@@ -112,16 +116,16 @@ func TestGetAll(t *testing.T) {
 	// Initialize the ResultStore.
 	resultStore := createBoltResultStore(t)
 
-	// Create two ResultRecs and modify the second one.
+	// Create two ResultRecs and modify the URL of the second one.
 	recOne := createResultRec(t)
 	recTwo := createResultRec(t)
-	recTwo.URL = TEST_SECOND_URL
+	recTwo.URL = TEST_URL_TWO
 
-	// Add them under different URLs so there are multiple entries associated
+	// Put them under different URLs so there are multiple entries associated
 	// with a run.
-	err := resultStore.Add(TEST_RUN_ID, TEST_URL, recOne)
+	err := resultStore.Put(TEST_RUN_ID, TEST_URL, recOne)
 	assert.NoError(t, err)
-	err = resultStore.Add(TEST_RUN_ID, TEST_SECOND_URL, recTwo)
+	err = resultStore.Put(TEST_RUN_ID, TEST_URL_TWO, recTwo)
 	assert.NoError(t, err)
 
 	// Verify that returned slice has proper length and the entries are equivalent
@@ -132,10 +136,54 @@ func TestGetAll(t *testing.T) {
 	assert.Equal(t, recOne, recs[0])
 	assert.Equal(t, recTwo, recs[1])
 
-	// If the run doesn't exist in the database, GetAll should return nil.
-	nilRecord, err := resultStore.GetAll(TEST_NOEXIST_RUN_ID)
+	// If the run doesn't exist in the database, GetAll should return an empty
+	// list.
+	recs, err = resultStore.GetAll(TEST_NOEXIST_RUN_ID)
 	assert.NoError(t, err)
-	assert.Nil(t, nilRecord)
+	assert.Equal(t, 0, len(recs))
+}
+
+func TestGetRunIDs(t *testing.T) {
+	testutils.SmallTest(t)
+
+	// Initialize the ResultStore.
+	resultStore := createBoltResultStore(t)
+
+	// Calling GetRunIDs on an empty ResultStore should return an empty list.
+	runIDs, err := resultStore.GetRunIDs(time.Time{}, time.Time{})
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(runIDs))
+
+	// Create two ResultRecs and modify the runID of the second one.
+	recOne := createResultRec(t)
+	recTwo := createResultRec(t)
+	recTwo.RunID = TEST_RUN_ID_TWO
+
+	// Add them to the ResultStore.
+	err = resultStore.Put(TEST_RUN_ID, TEST_URL, recOne)
+	assert.NoError(t, err)
+	err = resultStore.Put(TEST_RUN_ID_TWO, TEST_URL, recTwo)
+	assert.NoError(t, err)
+
+	// Specifying BeginningOfTime and time.Now() should return all the runIDs.
+	runIDs, err = resultStore.GetRunIDs(BeginningOfTime, time.Now())
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(runIDs))
+	assert.Equal(t, TEST_RUN_ID, runIDs[0])
+	assert.Equal(t, TEST_RUN_ID_TWO, runIDs[1])
+
+	// Falls in between the timestamps of the two runIDs.
+	splitTime := time.Date(2017, time.July, 20, 0, 0, 0, 0, time.UTC)
+
+	runIDs, err = resultStore.GetRunIDs(BeginningOfTime, splitTime)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(runIDs))
+	assert.Equal(t, TEST_RUN_ID, runIDs[0])
+
+	runIDs, err = resultStore.GetRunIDs(splitTime, time.Now())
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(runIDs))
+	assert.Equal(t, TEST_RUN_ID_TWO, runIDs[0])
 }
 
 func TestRemoveRun(t *testing.T) {
@@ -146,7 +194,7 @@ func TestRemoveRun(t *testing.T) {
 
 	// Add the ResultRec.
 	rec := createResultRec(t)
-	err := resultStore.Add(TEST_RUN_ID, TEST_URL, rec)
+	err := resultStore.Put(TEST_RUN_ID, TEST_URL, rec)
 	assert.NoError(t, err)
 
 	// If the run doesn't exist in the database, RemoveRun should return an error.
