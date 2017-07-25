@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "3fe72daa_02cfb871",
+        "filename": "skolo/go/file-backup/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-25T12:17:32Z",
+      "side": 1,
+      "message": "IMO these are properties of the running program which should be dictated within the program itself, rather than from outside.  I\u0027m not sure I understand why we need the other file.  We don\u0027t have dedicated files for our other hosts.",
+      "parentUuid": "9c8747a8_b7284ed4",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 98,
+        "endChar": 44
+      },
+      "revId": "da4641e7aa294f9d89f853e8b5752718b6e9828b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "08107312_718afa95",
         "filename": "skolo/go/file-backup/main.go",
         "patchSetId": 4
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "I guess this could be a liveness.  In InfluxDB land, we uploaded the size of the backup (which was potentially interesting as well) and alerted when that data stopped being there.  We do the same thing here, alert if the backup size over the last 25 hours is 0 (i.e. not happening)\n\nDo you think we should switch to a liveness, given the backup service should almost always be running?",
       "parentUuid": "08107312_718afa95",
+      "range": {
+        "startLine": 99,
+        "startChar": 2,
+        "endLine": 99,
+        "endChar": 68
+      },
+      "revId": "da4641e7aa294f9d89f853e8b5752718b6e9828b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43a32006_52c7bbe7",
+        "filename": "skolo/go/file-backup/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-25T12:17:32Z",
+      "side": 1,
+      "message": "IIUC, with the current set of metrics (size of the last backup), if the backup fails but we succeed in continuing to push metrics, there is no way to tell the difference between the new backup having the same number of bytes as the last and a failure to upload.  AFAICT we never set the backup size metric to zero, so the alert would only ever fire if the first backup after the program starts failed.",
+      "parentUuid": "a7c614e6_71160e41",
       "range": {
         "startLine": 99,
         "startChar": 2,
