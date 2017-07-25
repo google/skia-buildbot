@@ -26,7 +26,7 @@ const (
 var (
 	// Use this function to instantiate a NewAndroidRepoManager. This is able to be
 	// overridden for testing.
-	NewAndroidRepoManager func(string, string, string, string, gerrit.GerritInterface, string, []string) (RepoManager, error) = newAndroidRepoManager
+	NewAndroidRepoManager func(string, string, string, string, gerrit.GerritInterface, NextRollStrategy, []string) (RepoManager, error) = newAndroidRepoManager
 
 	IGNORE_MERGE_CONFLICT_FILES = []string{"include/config/SkUserConfig.h"}
 
@@ -44,7 +44,7 @@ type androidRepoManager struct {
 	authDaemonRunning       bool
 }
 
-func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string, g gerrit.GerritInterface, strategy string, preUploadStepNames []string) (RepoManager, error) {
+func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string, g gerrit.GerritInterface, strategy NextRollStrategy, preUploadStepNames []string) (RepoManager, error) {
 	user, err := user.Current()
 	if err != nil {
 		return nil, err
@@ -52,6 +52,8 @@ func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string,
 	repoToolPath := path.Join(user.HomeDir, "bin", "repo")
 	gitCookieAuthDaemonPath := path.Join(user.HomeDir, "gcompute-tools", "git-cookie-authdaemon")
 	wd := path.Join(workdir, "android_repo")
+	childDir := path.Join(wd, childPath)
+	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
 
 	preUploadSteps, err := GetPreUploadSteps(preUploadStepNames)
 	if err != nil {
@@ -61,9 +63,9 @@ func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string,
 	r := &androidRepoManager{
 		commonRepoManager: &commonRepoManager{
 			parentBranch:   parentBranch,
-			childDir:       path.Join(wd, childPath),
+			childDir:       childDir,
 			childPath:      childPath,
-			childRepo:      nil, // This will be filled in on the first update.
+			childRepo:      childRepo,
 			childBranch:    childBranch,
 			preUploadSteps: preUploadSteps,
 			strategy:       strategy,
@@ -115,11 +117,6 @@ func (r *androidRepoManager) Update() error {
 		return err
 	}
 
-	// Create the child GitInfo if needed.
-	if r.childRepo == nil {
-		r.childRepo = &git.Checkout{GitDir: git.GitDir(r.childDir)}
-	}
-
 	// Fix the review config to a URL which will work outside prod.
 	if _, err := exec.RunCwd(r.childRepo.Dir(), "git", "config", "remote.goog.review", fmt.Sprintf("%s/", r.repoUrl)); err != nil {
 		return err
@@ -143,40 +140,17 @@ func (r *androidRepoManager) Update() error {
 	}
 
 	// Get the next roll revision.
-	childHead, err := r.getChildRepoHead()
+	nextRollRev, err := r.strategy.GetNextRollRev(r.childRepo, lastRollRev)
 	if err != nil {
 		return err
 	}
-	var nextRollRev string
-	if r.strategy == ROLL_STRATEGY_SINGLE {
-		commits, err := r.childRepo.RevList(fmt.Sprintf("%s..%s", lastRollRev, childHead))
-		if err != nil {
-			return fmt.Errorf("Failed to list revisions: %s", err)
-		}
-		if len(commits) == 0 {
-			nextRollRev = lastRollRev
-		} else {
-			nextRollRev = commits[len(commits)-1]
-		}
-	} else {
-		nextRollRev = childHead
-	}
+
 	r.infoMtx.Lock()
 	defer r.infoMtx.Unlock()
 	r.lastRollRev = lastRollRev
 	r.nextRollRev = nextRollRev
 
 	return nil
-}
-
-// getChildRepoHead returns the commit hash of the latest commit in the child repo.
-func (r *androidRepoManager) getChildRepoHead() (string, error) {
-	output, err := exec.RunCwd(r.childRepo.Dir(), "git", "ls-remote", UPSTREAM_REMOTE_NAME, fmt.Sprintf("refs/heads/%s", r.childBranch), "-1")
-	if err != nil {
-		return "", err
-	}
-	tokens := strings.Split(output, "\t")
-	return tokens[0], nil
 }
 
 // getLastRollRev returns the commit hash of the last-completed DEPS roll.

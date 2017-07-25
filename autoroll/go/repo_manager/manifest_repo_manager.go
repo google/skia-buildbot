@@ -25,7 +25,7 @@ const (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewManifestRepoManager func(string, string, string, string, string, string, *gerrit.Gerrit, string, []string) (RepoManager, error) = newManifestRepoManager
+	NewManifestRepoManager func(string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string) (RepoManager, error) = newManifestRepoManager
 )
 
 // manifestRepoManager is a struct used by Manifest AutoRoller for managing checkouts.
@@ -35,10 +35,15 @@ type manifestRepoManager struct {
 
 // newManifestRepoManager returns a RepoManager instance which operates in the
 // given working directory and updates at the given frequency.
-func newManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy string, preUploadStepNames []string) (RepoManager, error) {
+func newManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy NextRollStrategy, preUploadStepNames []string) (RepoManager, error) {
 	wd := path.Join(workdir, "repo_manager")
 	parentBase := strings.TrimSuffix(path.Base(parentRepo), ".git")
 	parentDir := path.Join(wd, parentBase)
+	childDir := path.Join(wd, childPath)
+	childRepo, err := git.NewCheckout(common.REPO_SKIA, wd)
+	if err != nil {
+		return nil, err
+	}
 
 	user, err := g.GetUserEmail()
 	if err != nil {
@@ -55,9 +60,9 @@ func newManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childB
 		depotToolsRepoManager: &depotToolsRepoManager{
 			commonRepoManager: &commonRepoManager{
 				parentBranch:   parentBranch,
-				childDir:       path.Join(wd, childPath),
+				childDir:       childDir,
 				childPath:      childPath,
-				childRepo:      nil, // This will be filled in on the first update.
+				childRepo:      childRepo,
 				childBranch:    childBranch,
 				preUploadSteps: preUploadSteps,
 				strategy:       strategy,
@@ -71,6 +76,7 @@ func newManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childB
 			parentRepo:  parentRepo,
 		},
 	}
+
 	// TODO(borenet): This update can be extremely expensive. Consider
 	// moving it out of the startup critical path.
 	return mr, mr.Update()
@@ -86,14 +92,6 @@ func (mr *manifestRepoManager) Update() error {
 		return fmt.Errorf("Could not create and sync parent repo: %s", err)
 	}
 
-	// Create the child GitInfo if needed.
-	var err error
-	if mr.childRepo == nil {
-		mr.childRepo, err = git.NewCheckout(common.REPO_SKIA, mr.workdir)
-		if err != nil {
-			return err
-		}
-	}
 	if err := mr.childRepo.Update(); err != nil {
 		return err
 	}
@@ -105,24 +103,11 @@ func (mr *manifestRepoManager) Update() error {
 	}
 
 	// Get the next roll revision.
-	childHead, err := mr.childRepo.FullHash(fmt.Sprintf("origin/%s", mr.childBranch))
+	nextRollRev, err := mr.strategy.GetNextRollRev(mr.childRepo, lastRollRev)
 	if err != nil {
 		return err
 	}
-	var nextRollRev string
-	if mr.strategy == ROLL_STRATEGY_SINGLE {
-		commits, err := mr.childRepo.RevList(fmt.Sprintf("%s..%s", lastRollRev, childHead))
-		if err != nil {
-			return fmt.Errorf("Failed to list revisions: %s", err)
-		}
-		if len(commits) == 0 {
-			nextRollRev = lastRollRev
-		} else {
-			nextRollRev = commits[len(commits)-1]
-		}
-	} else {
-		nextRollRev = childHead
-	}
+
 	mr.infoMtx.Lock()
 	defer mr.infoMtx.Unlock()
 	mr.lastRollRev = lastRollRev

@@ -270,12 +270,16 @@ func main() {
 	}
 
 	// Start the autoroller.
+	strat, err := repo_manager.GetNextRollStrategy(*strategy, *childBranch, "")
+	if err != nil {
+		sklog.Fatal(err)
+	}
 	if *rollIntoAndroid {
-		arb, err = autorollerv2.NewAndroidAutoRoller(*workdir, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, *strategy, *preUploadSteps)
+		arb, err = autorollerv2.NewAndroidAutoRoller(*workdir, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, repo_manager.StrategyRemoteHead(*childBranch), *preUploadSteps)
 	} else if *useManifest {
-		arb, err = autorollerv2.NewManifestAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, *strategy, *preUploadSteps)
+		arb, err = autorollerv2.NewManifestAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps)
 	} else {
-		arb, err = autorollerv2.NewDEPSAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, *strategy, *preUploadSteps)
+		arb, err = autorollerv2.NewDEPSAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps)
 	}
 	if err != nil {
 		sklog.Fatal(err)

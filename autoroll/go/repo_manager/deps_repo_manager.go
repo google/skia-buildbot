@@ -28,7 +28,7 @@ const (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewDEPSRepoManager func(string, string, string, string, string, string, *gerrit.Gerrit, string, []string) (RepoManager, error) = newDEPSRepoManager
+	NewDEPSRepoManager func(string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string) (RepoManager, error) = newDEPSRepoManager
 
 	DEPOT_TOOLS_AUTH_USER_REGEX = regexp.MustCompile(fmt.Sprintf("Logged in to %s as ([\\w-]+).", autoroll.RIETVELD_URL))
 )
@@ -47,7 +47,7 @@ type depsRepoManager struct {
 
 // newDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy string, preUploadStepNames []string) (RepoManager, error) {
+func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy NextRollStrategy, preUploadStepNames []string) (RepoManager, error) {
 	gclient := GCLIENT
 	rollDep := ROLL_DEP
 	if depot_tools != "" {
@@ -58,6 +58,8 @@ func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranc
 	wd := path.Join(workdir, "repo_manager")
 	parentBase := strings.TrimSuffix(path.Base(parentRepo), ".git")
 	parentDir := path.Join(wd, parentBase)
+	childDir := path.Join(wd, childPath)
+	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
 
 	user, err := g.GetUserEmail()
 	if err != nil {
@@ -74,15 +76,15 @@ func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranc
 		depotToolsRepoManager: &depotToolsRepoManager{
 			commonRepoManager: &commonRepoManager{
 				parentBranch:   parentBranch,
-				childDir:       path.Join(wd, childPath),
+				childDir:       childDir,
 				childPath:      childPath,
-				childRepo:      nil, // This will be filled in on the first update.
+				childRepo:      childRepo,
 				childBranch:    childBranch,
+				g:              g,
 				preUploadSteps: preUploadSteps,
 				strategy:       strategy,
 				user:           user,
 				workdir:        wd,
-				g:              g,
 			},
 			depot_tools: depot_tools,
 			gclient:     gclient,
@@ -91,6 +93,7 @@ func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranc
 		},
 		rollDep: rollDep,
 	}
+
 	// TODO(borenet): This update can be extremely expensive. Consider
 	// moving it out of the startup critical path.
 	return dr, dr.Update()
@@ -106,11 +109,6 @@ func (dr *depsRepoManager) Update() error {
 		return fmt.Errorf("Could not create and sync parent repo: %s", err)
 	}
 
-	// Create the child GitInfo if needed.
-	if dr.childRepo == nil {
-		dr.childRepo = &git.Checkout{GitDir: git.GitDir(dr.childDir)}
-	}
-
 	// Get the last roll revision.
 	lastRollRev, err := dr.getLastRollRev()
 	if err != nil {
@@ -118,23 +116,9 @@ func (dr *depsRepoManager) Update() error {
 	}
 
 	// Get the next roll revision.
-	childHead, err := dr.childRepo.FullHash(fmt.Sprintf("origin/%s", dr.childBranch))
+	nextRollRev, err := dr.strategy.GetNextRollRev(dr.childRepo, lastRollRev)
 	if err != nil {
 		return err
-	}
-	var nextRollRev string
-	if dr.strategy == ROLL_STRATEGY_SINGLE {
-		commits, err := dr.childRepo.RevList(fmt.Sprintf("%s..%s", lastRollRev, childHead))
-		if err != nil {
-			return fmt.Errorf("Failed to list revisions: %s", err)
-		}
-		if len(commits) == 0 {
-			nextRollRev = lastRollRev
-		} else {
-			nextRollRev = commits[len(commits)-1]
-		}
-	} else {
-		nextRollRev = childHead
 	}
 	dr.infoMtx.Lock()
 	defer dr.infoMtx.Unlock()

@@ -107,7 +107,9 @@ func TestDEPSRepoManager(t *testing.T) {
 	defer cleanup()
 
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, ROLL_STRATEGY_BATCH, nil)
+	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
+	assert.NoError(t, err)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
@@ -143,8 +145,10 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	wd, child, childCommits, parent, cleanup := setup(t)
 	defer cleanup()
 
+	s, err := GetNextRollStrategy(strategy, "master", "")
+	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, strategy, nil)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil)
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
@@ -178,8 +182,10 @@ func TestRanPreUploadStepsDeps(t *testing.T) {
 	wd, _, _, parent, cleanup := setup(t)
 	defer cleanup()
 
+	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
+	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, ROLL_STRATEGY_BATCH, nil)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil)
 	assert.NoError(t, err)
 
 	ran := false

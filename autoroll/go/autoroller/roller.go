@@ -50,7 +50,7 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
-func NewAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, depot_tools string, rollIntoAndroid, useManifest bool, strategy string) (*AutoRoller, error) {
+func NewAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, depot_tools string, rollIntoAndroid, useManifest bool, strategy repo_manager.NextRollStrategy) (*AutoRoller, error) {
 	var err error
 	var rm repo_manager.RepoManager
 	if rollIntoAndroid {
