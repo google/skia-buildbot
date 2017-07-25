@@ -134,7 +134,7 @@
       <tr>
         <th>Commit</th>
         <template is="dom-repeat" items="[[_reg.header]]">
-          <th colspan=2><a href="/a/?[[item.id]]"><query-summary-sk selection="[[item.query]]"></query-summary-sk></a></th>
+          <th colspan=2><a href="/a/?[[item.id]]">[[_displayName(item.query,item.display_name)]]</a></th>
         </template>
       </tr>
         <tr>
@@ -332,6 +332,14 @@
           return "";
         } else {
           return "∅";
+        }
+      },
+
+      _displayName: function(query, display_name) {
+        if (!display_name) {
+          return query.slice(0, 10);
+        } else {
+          return display_name;
         }
       },
 
