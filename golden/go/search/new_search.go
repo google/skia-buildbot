@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
@@ -99,7 +100,9 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 
 	// Unconditional query stage. Iterate through the tile and get an intermediate
 	// representation that contains all the traces matching the queries.
+	sklog.Infof("Before filter")
 	inter, err := s.filterTile(q, idx)
+	sklog.Infof("AFter filter: %d", len(inter))
 
 	// Diff stage: Compare all digests found in the previous stages and find
 	// reference points (positive, negative etc.) for each digest.
@@ -107,10 +110,12 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+	sklog.Infof("AFter getRef")
 
 	// Post-diff stage: Apply all filters that are relevant once we have
 	// diff values for the digests.
 	ret = s.afterDiffResultFilter(ret, q)
+	sklog.Infof("AFter diff result filter")
 
 	// Sort the digests and fill the ones that are going to be displayed with
 	// additional data. Note we are returning all digests found, so we can do
@@ -118,6 +123,7 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 	// with additional information.
 	displayRet, offset := s.sortAndLimitDigests(q, ret, int(q.Offset), int(q.Limit))
 	s.addParamsAndTraces(displayRet, inter, exp, idx)
+	sklog.Infof("AFter add params: %d  %d", len(displayRet), len(ret))
 
 	// Return all digests with the selected offset within the result set.
 	return &NewSearchResponse{
@@ -213,10 +219,12 @@ func (s *SearchAPI) getReferenceDiffs(q *Query, inter map[string]map[string]*srI
 	retDigests := make([]*SRDigest, nDigests, nDigests)
 	index := 0
 	var wg sync.WaitGroup
+	sklog.Infof("Doing %d diffs", nDigests)
 	wg.Add(nDigests)
 	for _, testDigests := range inter {
 		for _, interValue := range testDigests {
 			go func(i *srIntermediate, index int) {
+				sklog.Infof("Started diff ...")
 				closestRef, refDiffs := refDiffer.GetRefDiffs(q.Metric, q.Match, i.test, i.digest, i.params, i.traces, q.IncludeIgnores)
 				retDigests[index] = &SRDigest{
 					Test:       i.test,
@@ -226,6 +234,7 @@ func (s *SearchAPI) getReferenceDiffs(q *Query, inter map[string]map[string]*srI
 					RefDiffs:   refDiffs,
 				}
 				wg.Done()
+				sklog.Infof("Done diff ...")
 			}(interValue, index)
 			index++
 		}
