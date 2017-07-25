@@ -195,6 +195,9 @@
     },
 
     _delete: function(e) {
+      if (!window.confirm("Are you sure you want to delete this alert?")) {
+        return
+      }
       sk.post("/_/alert/delete/" + e.target.__config.id, "").then(function(){
         this._list();
       }.bind(this)).catch(sk.errorMessage);
