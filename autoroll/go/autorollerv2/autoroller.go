@@ -77,7 +77,7 @@ func newAutoRoller(workdir, childPath, cqExtraTrybots string, emails []string, g
 }
 
 // NewAndroidAutoRoller returns an AutoRoller instance which rolls into Android.
-func NewAndroidAutoRoller(workdir, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, strategy string, preUploadSteps []string) (*AutoRoller, error) {
+func NewAndroidAutoRoller(workdir, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, strategy repo_manager.NextRollStrategy, preUploadSteps []string) (*AutoRoller, error) {
 	rm, err := repo_manager.NewAndroidRepoManager(workdir, parentBranch, childPath, childBranch, gerrit, strategy, preUploadSteps)
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func NewAndroidAutoRoller(workdir, parentBranch, childPath, childBranch, cqExtra
 }
 
 // NewDEPSAutoRoller returns an AutoRoller instance which rolls using DEPS.
-func NewDEPSAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, depot_tools string, strategy string, preUploadSteps []string) (*AutoRoller, error) {
+func NewDEPSAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, depot_tools string, strategy repo_manager.NextRollStrategy, preUploadSteps []string) (*AutoRoller, error) {
 	rm, err := repo_manager.NewDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch, depot_tools, gerrit, strategy, preUploadSteps)
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func NewDEPSAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch
 }
 
 // NewManifestAutoRoller returns an AutoRoller instance which rolls using DEPS.
-func NewManifestAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, depot_tools string, strategy string, preUploadSteps []string) (*AutoRoller, error) {
+func NewManifestAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, depot_tools string, strategy repo_manager.NextRollStrategy, preUploadSteps []string) (*AutoRoller, error) {
 	rm, err := repo_manager.NewManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch, depot_tools, gerrit, strategy, preUploadSteps)
 	if err != nil {
 		return nil, err
