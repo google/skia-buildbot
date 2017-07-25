@@ -107,6 +107,7 @@ type ClusterRequestProcess struct {
 	lastUpdate time.Time        // The last time this process was updated.
 	state      ProcessState     // The current state of the process.
 	message    string           // Describes the current state of the process.
+	cids       []*cid.CommitID  // The cids to run the clustering over. Calculated in calcCids.
 }
 
 func newProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup) *ClusterRequestProcess {
@@ -284,13 +285,10 @@ func tooMuchMissingData(tr ptracestore.Trace) bool {
 	return missing(tr[:n]) || missing(tr[len(tr)-n:])
 }
 
-// Run does the work in a ClusterRequestProcess. It does not return until all the
-// work is done or the request failed. Should be run as a Go routine.
-func (p *ClusterRequestProcess) Run() {
-	if p.request.Algo == "" {
-		p.request.Algo = KMEANS_ALGO
-	}
-	cids := []*cid.CommitID{}
+func (p *ClusterRequestProcess) calcCids() {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	p.cids = []*cid.CommitID{}
 	if p.request.Radius <= 0 {
 		p.request.Radius = 1
 	}
@@ -298,11 +296,26 @@ func (p *ClusterRequestProcess) Run() {
 		p.request.Radius = MAX_RADIUS
 	}
 	for i := p.request.Offset - p.request.Radius; i <= p.request.Offset+p.request.Radius; i++ {
-		cids = append(cids, &cid.CommitID{
+		p.cids = append(p.cids, &cid.CommitID{
 			Source: p.request.Source,
 			Offset: i,
 		})
 	}
+}
+
+// Run does the work in a ClusterRequestProcess. It does not return until all the
+// work is done or the request failed. Should be run as a Go routine.
+func (p *ClusterRequestProcess) Run() {
+	if p.request.Algo == "" {
+		p.request.Algo = KMEANS_ALGO
+	}
+	// Move the calculation of cids out of here, and enable "sparse" data handling
+	// by running a "count()" query over a large range and only including the points
+	// if they have non-zero count.
+	// Search for points in blocks of 100 points count(query).
+	// The count() could either be done via calc, but that would require
+	// running a FrameRequest.
+	p.calcCids()
 	parsedQuery, err := url.ParseQuery(p.request.Query)
 	if err != nil {
 		p.reportError(err, "Invalid URL query.")
@@ -313,7 +326,7 @@ func (p *ClusterRequestProcess) Run() {
 		p.reportError(err, "Invalid Query.")
 		return
 	}
-	df, err := dataframe.NewFromCommitIDsAndQuery(cids, p.cidl, ptracestore.Default, q, p.progress)
+	df, err := dataframe.NewFromCommitIDsAndQuery(p.cids, p.cidl, ptracestore.Default, q, p.progress)
 	if err != nil {
 		p.reportError(err, "Invalid range of commits.")
 		return
