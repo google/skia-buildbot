@@ -478,11 +478,3 @@ Test: Presubmit checks will test this change.
 func (r *androidRepoManager) User() string {
 	return r.user
 }
-
-func (r *androidRepoManager) SendToGerritCQ(change *gerrit.ChangeInfo, comment string) error {
-	return r.g.SetReview(change, comment, map[string]interface{}{gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_SUBMIT})
-}
-
-func (r *androidRepoManager) SendToGerritDryRun(change *gerrit.ChangeInfo, comment string) error {
-	return r.g.SetReview(change, comment, map[string]interface{}{gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_NONE})
-}

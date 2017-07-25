@@ -283,11 +283,3 @@ http://www.chromium.org/developers/tree-sheriffs/sheriff-details-chromium#TOC-Fa
 	}
 	return issue.Issue, nil
 }
-
-func (dr *depsRepoManager) SendToGerritCQ(change *gerrit.ChangeInfo, comment string) error {
-	return dr.g.SendToCQ(change, "")
-}
-
-func (dr *depsRepoManager) SendToGerritDryRun(change *gerrit.ChangeInfo, comment string) error {
-	return dr.g.SendToDryRun(change, "")
-}
