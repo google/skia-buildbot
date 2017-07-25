@@ -70,6 +70,29 @@
       "revId": "1f4f182e952a6cfd87c82a34e18b26e73fa38d0f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2e934c7_ad9acf19",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-25T12:46:03Z",
+      "side": 1,
+      "message": "To address the time issue, you could add a constant like this \n \n BeginningOfTime \u003d time.Date(2015, time.June, 1, 0, 0, 0, 0, time.UTC).Unix()\n\nwhich is an arbitrary date we use in some tests. And then somebody can use:\n\n...  GetRunIDs(resultstore.BeginningOfTime, time.Now()) ...\n\nI agree that if we wanted to do pagination we should have a different interface. \nI would leave it like this for now and that can be adjusted when you query the store to present the data to the user.",
+      "range": {
+        "startLine": 166,
+        "startChar": 87,
+        "endLine": 166,
+        "endChar": 0
+      },
+      "revId": "1f4f182e952a6cfd87c82a34e18b26e73fa38d0f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
