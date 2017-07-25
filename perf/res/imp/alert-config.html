@@ -103,6 +103,7 @@
     }
   </style>
   <template>
+    <h3>Display Name</h3>
     <paper-input value="{{config.display_name}}"                           label="Display Name"></paper-input>
     <h3>Which traces should be monitored</h3>
     <query2-chooser-sk id=querychooser paramset="{{paramset}}" current_query="{{config.query}}"></query2-chooser-sk>
@@ -117,6 +118,8 @@
     <paper-checkbox checked="{{config.step_up_only}}">Only step ups should trigger an alert.</paper-checkbox>
     <h4>Threshhold</h4>
     <paper-input type=number min=1 max=500  value="{{config.interesting}}" label="Interesting Threshhold for clusters to be interesting."></paper-input>
+    <h4>Sparse</h4>
+    <paper-checkbox checked="{{config.sparse}}">Data is sparse, so only include commits that have data.</paper-checkbox>
     <h3>Where are alerts sent</h3>
     <paper-input value="{{config.alert}}"                                  label="Alert Destination: Email address."></paper-input>
     <button on-tap=_testAlert>Test</button>
