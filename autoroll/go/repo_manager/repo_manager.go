@@ -18,9 +18,7 @@ import (
 )
 
 const (
-	ROLL_STRATEGY_BATCH  = "batch"
-	ROLL_STRATEGY_SINGLE = "single"
-	ROLL_BRANCH          = "roll_branch"
+	ROLL_BRANCH = "roll_branch"
 )
 
 // RepoManager is the interface used by different Autoroller implementations
@@ -28,6 +26,7 @@ const (
 type RepoManager interface {
 	Update() error
 	FullChildHash(string) (string, error)
+	ChildRevList(...string) ([]string, error)
 	LastRollRev() string
 	NextRollRev() string
 	RolledPast(string) (bool, error)
@@ -51,10 +50,17 @@ type commonRepoManager struct {
 	childRepo      *git.Checkout
 	childBranch    string
 	preUploadSteps []PreUploadStep
-	strategy       string
+	strategy       NextRollStrategy
 	user           string
 	workdir        string
 	g              gerrit.GerritInterface
+}
+
+// ChildRevList returns a slice of commit hashes from the child repo.
+func (r *commonRepoManager) ChildRevList(args ...string) ([]string, error) {
+	r.repoMtx.RLock()
+	defer r.repoMtx.RUnlock()
+	return r.childRepo.RevList(args...)
 }
 
 // FullChildHash returns the full hash of the given short hash or ref in the
