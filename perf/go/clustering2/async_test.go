@@ -3,6 +3,8 @@ package clustering2
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/ptracestore"
@@ -61,4 +63,22 @@ func TestTooMuchMissingData(t *testing.T) {
 			t.Errorf("Failed case Got %v Want %v: %s", got, want, tc.message)
 		}
 	}
+}
+
+func TestCalcCids(t *testing.T) {
+	testutils.SmallTest(t)
+
+	r := &ClusterRequestProcess{
+		request: &ClusterRequest{
+			Source: "master",
+			Offset: 2000,
+			Radius: 3,
+			Query:  "config=8888",
+		},
+	}
+
+	r.calcCids()
+	assert.Equal(t, "master-001997", r.cids[0].ID())
+	assert.Equal(t, "master-002003", r.cids[6].ID())
+
 }
