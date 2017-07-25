@@ -212,6 +212,30 @@
       "revId": "974f5b67b3e85fe226006423cfa99361f0c48915",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "adf3fcd0_1ceab4af",
+        "filename": "autoroll/go/repo_manager/strategy.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-25T11:43:24Z",
+      "side": 1,
+      "message": "That LGTM. But we cannot submit this yet because of \"at least one of the NextRollStrategies will be broken in its current form\" ?",
+      "parentUuid": "0fe2e60a_0ea571fe",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 94
+      },
+      "revId": "974f5b67b3e85fe226006423cfa99361f0c48915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
