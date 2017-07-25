@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "607bbd3e_6fcfa5ab",
+        "filename": "skolo/go/file-backup/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-25T19:05:38Z",
+      "side": 0,
+      "message": "If this data might be useful, we can continue to send it in addition to the liveness. Your call.",
+      "range": {
+        "startLine": 98,
+        "startChar": 2,
+        "endLine": 99,
+        "endChar": 50
+      },
+      "revId": "044f2b2d8094d50c14782a1468d63324a53cc326",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

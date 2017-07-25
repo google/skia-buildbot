@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d2864e7d_0852e7e2",
+        "filename": "prometheus/sys/jumphost-rpi-01/prometheus.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-25T19:05:38Z",
+      "side": 1,
+      "message": "Intentional?",
+      "range": {
+        "startLine": 18,
+        "startChar": 19,
+        "endLine": 18,
+        "endChar": 28
+      },
+      "revId": "d820515a5d6f164f64b1faa00830ef86af79635f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6601ddf0_2fc0ffc5",
+        "filename": "skolo/go/file-backup/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-25T19:05:38Z",
+      "side": 1,
+      "message": "This will spawn a new goroutine every time it is called.  The better thing to do is to create it in main() and pass it in or use as a global variable.",
+      "range": {
+        "startLine": 99,
+        "startChar": 2,
+        "endLine": 99,
+        "endChar": 22
+      },
+      "revId": "d820515a5d6f164f64b1faa00830ef86af79635f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
