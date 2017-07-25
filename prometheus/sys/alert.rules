@@ -500,18 +500,12 @@ ALERT TaskSchedulerWeeklyTrigger
 
 # Skolo
 
-ALERT BackupRouterConfig
-  IF avg_over_time(skolo_router_backup_backup_size[25h]) == 0
-  LABELS { category = "infra", severity = "critical"}
+ALERT BackupNotDone
+  IF liveness_skolo_last_backup_s{}/60/60 > 25
+  LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
-    description = "The router config has not been backed up in at least 25 hours. http://go/skolo-maintenance",
-  }
-
-ALERT BackupRpiConfig
-  IF avg_over_time(skolo_rpi_backup_backup_size[25h]) == 0
-  LABELS { category = "infra", severity = "critical"}
-  ANNOTATIONS {
-    description = "The rpi image has not been backed up in at least 25 hours. http://go/skolo-maintenance",
+    abbr = "{{ $labels.federated }} {{ $labels.backup }}",
+    description = "The automated backup of {{ $labels.backup }} was not completed by {{ $labels.federated }} in the last 25 hours. http://go/skolo-maintenance",
   }
 
 ALERT RpiMaster

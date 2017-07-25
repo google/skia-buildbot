@@ -10,7 +10,6 @@ ExecStart=/usr/local/bin/rpi-backup \
   --gce_bucket skia-backups\
   --gce_folder rpi_image \
   --local_file_path /opt/rpi_img/prod.img \
-  --metric_name rpi-backup \
   --service_account_path=/usr/local/share/rpi-backup/service-account.json
 
 Restart=always

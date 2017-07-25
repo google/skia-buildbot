@@ -9,8 +9,8 @@ set -x -e
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
-INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
-INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
 
 ${INSTALL} --mode=755 -T ./tmp/prometheus                                          ${ROOT}/usr/local/bin/prometheus
 ${INSTALL} --mode=755 -T ./tmp/promtool                                            ${ROOT}/usr/local/bin/promtool

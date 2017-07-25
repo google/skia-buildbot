@@ -14,10 +14,10 @@ scrape_configs:
     static_configs:
       - targets: ['192.168.1.99:20001']
         labels:
-          backup: rpi
-      - targets: ['192.168.1.99:20002']
+          backup: rpi_image
+      - targets: ['localhost:20002']
         labels:
-          backup: router
+          backup: router_config
 
   - job_name: 'hotspare'
     static_configs:
