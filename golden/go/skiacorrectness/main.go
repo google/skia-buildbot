@@ -342,6 +342,7 @@ func main() {
 	router.HandleFunc("/json/trybot", jsonListTrybotsHandler).Methods("GET")
 	router.HandleFunc("/json/failure", jsonListFailureHandler).Methods("GET")
 	router.HandleFunc("/json/failure/clear", jsonClearFailureHandler).Methods("POST")
+	router.HandleFunc("/json/cleardigests", jsonClearDigests).Methods("POST")
 
 	// New endpoints
 	router.HandleFunc("/json/newsearch", jsonNewSearchHandler).Methods("GET")
