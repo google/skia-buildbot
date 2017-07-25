@@ -380,44 +380,50 @@ func (i *Ingester) syncFileWrite() {
 // we are interested in. This method assumes that UpdateCommitInfo
 // has been called and therefore reading the tile should not fail.
 func (i *Ingester) getCommitRangeOfInterest() (int64, int64, error) {
-	// Make sure the VCS is up to date.
-	if err := i.vcs.Update(true, false); err != nil {
-		return 0, 0, err
-	}
-
-	// Get the desired numbr of commits in the desired time frame.
 	delta := -i.minDuration
-	hashes := i.vcs.From(time.Now().Add(delta))
-	if len(hashes) == 0 {
-		return 0, 0, fmt.Errorf("No commits found.")
-	}
+	if i.vcs != nil {
+		// Make sure the VCS is up to date.
+		if err := i.vcs.Update(true, false); err != nil {
+			return 0, 0, err
+		}
 
-	// If the number of required commits is not covered by this time
-	// frame then keep adding more.
-	if len(hashes) < i.nCommits {
-		for len(hashes) < i.nCommits {
-			delta *= 2
-			moreHashes := i.vcs.From(time.Now().Add(delta))
-			if len(moreHashes) == len(hashes) {
+		// Get the desired number of commits in the desired time frame.
+		hashes := i.vcs.From(time.Now().Add(delta))
+		if len(hashes) == 0 {
+			return 0, 0, fmt.Errorf("No commits found.")
+		}
+
+		// If the number of required commits is not covered by this time
+		// frame then keep adding more.
+		if len(hashes) < i.nCommits {
+			for len(hashes) < i.nCommits {
+				delta *= 2
+				moreHashes := i.vcs.From(time.Now().Add(delta))
+				if len(moreHashes) == len(hashes) {
+					hashes = moreHashes
+					break
+				}
 				hashes = moreHashes
-				break
 			}
-			hashes = moreHashes
+
+			// In case we have retrieved to many commits.
+			if len(hashes) > i.nCommits {
+				hashes = hashes[len(hashes)-i.nCommits:]
+			}
 		}
 
-		// In case we have retrieved to many commits.
-		if len(hashes) > i.nCommits {
-			hashes = hashes[len(hashes)-i.nCommits:]
+		// Get the commit time of the first commit of interest.
+		detail, err := i.vcs.Details(hashes[0], true)
+		if err != nil {
+			return 0, 0, err
 		}
+
+		return detail.Timestamp.Unix(), time.Now().Unix(), nil
 	}
 
-	// Get the commit time of the first commit of interest.
-	detail, err := i.vcs.Details(hashes[0], true)
-	if err != nil {
-		return 0, 0, err
-	}
-
-	return detail.Timestamp.Unix(), time.Now().Unix(), nil
+	// If there is no vcs, use the minDuration field of the ingester to calculate
+	// the start time.
+	return time.Now().Add(delta).Unix(), time.Now().Unix(), nil
 }
 
 // Shorthand type to define helpers.
