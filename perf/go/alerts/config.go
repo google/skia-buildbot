@@ -15,6 +15,7 @@ const (
 // Config represents the configuration for one alert.
 type Config struct {
 	ID             int                     `json:"id"`
+	DisplayName    string                  `json:"display_name"`
 	Query          string                  `json:"query"`            // The query to perform on the trace store to select the traces to alert on.
 	Alert          string                  `json:"alert"`            // Email address or id of a chat room to send alerts to.
 	Interesting    float32                 `json:"interesting"`      // The regression interestingness threshhold.
