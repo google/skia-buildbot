@@ -835,26 +835,45 @@ func jsonListFailureHandler(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, &ret)
 }
 
-// jsonClearFailureHandler removes digests from the local cache.
+// jsonClearFailureHandler removes failing digests from the local cache and
+// returns the current failures.
 func jsonClearFailureHandler(w http.ResponseWriter, r *http.Request) {
+	if !purgeDigests(w, r) {
+		return
+	}
+	jsonListFailureHandler(w, r)
+}
+
+// jsonClearDigests clears digests from the local cache and GS.
+func jsonClearDigests(w http.ResponseWriter, r *http.Request) {
+	if !purgeDigests(w, r) {
+		return
+	}
+	sendJsonResponse(w, &struct{}{})
+}
+
+// purgeDigests removes digests from the local cache and from GS if a query argument is set.
+// Returns true if there was no error sent to the response writer.
+func purgeDigests(w http.ResponseWriter, r *http.Request) bool {
 	user := login.LoggedInAs(r)
 	if user == "" {
 		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to clear digests.")
-		return
+		return false
 	}
 
 	digests := []string{}
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&digests); err != nil {
 		httputils.ReportError(w, r, err, "Unable to decode digest list.")
-		return
+		return false
 	}
 	purgeGCS := r.URL.Query().Get("purge") == "true"
 
 	if err := storages.DiffStore.PurgeDigests(digests, purgeGCS); err != nil {
 		httputils.ReportError(w, r, err, "Unable to clear digests.")
+		return false
 	}
-	jsonListFailureHandler(w, r)
+	return true
 }
 
 // jsonTriageLogHandler returns the entries in the triagelog paginated
