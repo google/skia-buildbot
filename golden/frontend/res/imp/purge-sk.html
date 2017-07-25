@@ -1,0 +1,94 @@
+  <!-- The <purge-sk> custom element declaration.
+
+  A custom element that allows toggling between the three
+  states of a gold digest, positive, negative, and untriaged.
+  For example:
+
+              <purge-sk filter vert value=positive></purge-sk>
+
+  Will display the three buttons vertically, with filter icons also
+  present in the buttons, and the positive button will be depressed.
+
+    Attributes:
+      value  - A string with a value of "positive", "negative", or "untriaged".
+      vert   - If present then the buttons should be laid out vertically,
+               otherwise they are horizontal.
+      filter - If present then filter icons are also shown in the button.
+
+    Events:
+      change - A change event is generated when the value changes. The value
+         is also contained in event at e.detail.
+
+    Methods:
+  -->
+<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+
+<dom-module id="purge-sk">
+  <template>
+    <style>
+    </style>
+    <div class="layout horizontal">
+        <div hidden$="[[_open]]">
+          <paper-button on-tap="_toggleOpen">
+            <iron-icon icon="icons:add-circle-outline"> </iron-icon>
+          </paper-button>
+        </div>
+        <div hidden$="[[!_open]]">
+          <paper-button on-tap="_toggleOpen">
+            <iron-icon icon="icons:clear"> </iron-icon>
+          </paper-button>
+          <paper-button on-tap="_handleClear" id="clearButton" raised="">
+            Clear
+          </paper-button>
+          <paper-button on-tap="_handlePurge" id="purgeButton" raised="">
+            Purge
+          </paper-button>
+        </div>
+        <activity-sk id="activityPurge"></activity-sk>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'purge-sk',
+
+      properties: {
+        digests: {
+          type: Array,
+          value: function() { return []; }
+        },
+        _open: {
+          type: Boolean,
+          value: false,
+        }
+      },
+
+      _toggleOpen: function() {
+        this._open = !this._open;
+      },
+
+      _handleClear: function() {
+        debugger;
+        this._clearPurge(digests, false);
+      },
+
+      _handlePurge: function() {
+        debugger;
+        this._clearPurge(digests, true);
+      },
+
+      _clearPurge: function(digests, purge) {
+        var url = '/json/cleardigests' + ((purge) ? '?purge=true':'');
+        this.$.activityPurge.startSpinner("Clearing/purging ...");
+        sk.post(url, JSON.stringify(this.digests)).then(JSON.parse).then(function(json){
+          this.$.activityFailures.stopSpinner();
+        }.bind(this)).catch(function(err) {
+          this.$.activityFailures.stopSpinner();
+          sk.errorMessage(err);
+        }.bind(this));
+      }
+    });
+  </script>
+</dom-module>
+

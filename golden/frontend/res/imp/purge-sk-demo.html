@@ -1,0 +1,46 @@
+<html>
+<head>
+  <title>purge-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="../../node_modules/native-promise-only/npo.js"></script>
+  <script src="../common/js/common.js"></script>
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="bower_components/sinonjs/sinon.js"></script>
+
+  <link rel="import" href="bower_components/polymer/polymer.html">
+  <link rel="import" href="purge-sk.html">
+
+</head>
+<body>
+  <h1>purge-sk demo</h1>
+
+  <dom-module id="main-document-element">
+    <template>
+      <purge-sk digests="[[digests]]"></purge-sk>
+      <br>
+      <br>
+    </template>
+
+    <script>
+      HTMLImports.whenReady(function () {
+        Polymer({
+          is: 'main-document-element',
+
+          properties: {
+            digests: {
+              type: Array,
+              values: function() { return ["c95a98f9d141c83d15f64e30e311985f"]; }
+            }
+          }
+        });
+      });
+    </script>
+  </dom-module>
+
+  <!-- Instantite the element defined above -->
+  <main-document-element></main-document-element>
+
+</body>
+</html>
