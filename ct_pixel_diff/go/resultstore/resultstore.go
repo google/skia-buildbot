@@ -21,13 +21,6 @@ var (
 // ResultRec defines the struct stored in ResultStore that can be queried over
 // the web.
 type ResultRec struct {
-	// RunID is the unique ID of the CT pixel diff run, in the form
-	// userID-timestamp.
-	RunID string
-
-	// URL identifies the web page that was screenshotted.
-	URL string
-
 	// Rank is the popularity rank of the web page.
 	Rank int
 
