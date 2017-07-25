@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "789b4970_96a60ab1",
+        "filename": "skolo/go/file-backup/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-07-25T12:37:56Z",
+      "side": 1,
+      "message": "We need that other file because these services are running in the Skolo, not GCE, so we need to have a separate Prometheus reporting instance running to tunnel the info into GCE (which is what that yml controls, it\u0027s basically a list of what is being reported and where)",
+      "parentUuid": "3fe72daa_02cfb871",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 98,
+        "endChar": 44
+      },
+      "revId": "da4641e7aa294f9d89f853e8b5752718b6e9828b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "08107312_718afa95",
         "filename": "skolo/go/file-backup/main.go",
         "patchSetId": 4
@@ -132,6 +156,30 @@
       "side": 1,
       "message": "IIUC, with the current set of metrics (size of the last backup), if the backup fails but we succeed in continuing to push metrics, there is no way to tell the difference between the new backup having the same number of bytes as the last and a failure to upload.  AFAICT we never set the backup size metric to zero, so the alert would only ever fire if the first backup after the program starts failed.",
       "parentUuid": "a7c614e6_71160e41",
+      "range": {
+        "startLine": 99,
+        "startChar": 2,
+        "endLine": 99,
+        "endChar": 68
+      },
+      "revId": "da4641e7aa294f9d89f853e8b5752718b6e9828b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d3e8299_4aa29d48",
+        "filename": "skolo/go/file-backup/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-07-25T12:37:56Z",
+      "side": 1,
+      "message": "That\u0027s an excellent point.  I\u0027ll fix that.",
+      "parentUuid": "43a32006_52c7bbe7",
       "range": {
         "startLine": 99,
         "startChar": 2,
