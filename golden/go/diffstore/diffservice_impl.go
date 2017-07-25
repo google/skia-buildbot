@@ -3,6 +3,7 @@ package diffstore
 import (
 	context "golang.org/x/net/context"
 
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 )
@@ -32,6 +33,7 @@ func NewDiffServiceServer(diffStore diff.DiffStore, codec util.LRUCodec) DiffSer
 
 // GetDiffs wraps around the Get method of the underlying DiffStore.
 func (d *DiffServiceImpl) GetDiffs(ctx context.Context, req *GetDiffsRequest) (*GetDiffsResponse, error) {
+	sklog.Infof("Running %d diffs.", len(req.RightDigests))
 	diffs, err := d.diffStore.Get(req.Priority, req.MainDigest, req.RightDigests)
 	if err != nil {
 		return nil, err
@@ -42,6 +44,7 @@ func (d *DiffServiceImpl) GetDiffs(ctx context.Context, req *GetDiffsRequest) (*
 		return nil, err
 	}
 
+	sklog.Infof("Done %d diffs.", len(diffs))
 	return &GetDiffsResponse{
 		Diffs: bytes,
 	}, nil
