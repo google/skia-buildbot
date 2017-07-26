@@ -53,9 +53,9 @@ func TestCTResults(t *testing.T) {
 
 	// Expected results.
 	expScreenshots := []*Screenshot{
-		&Screenshot{Type: "nopatch", Rank: 1, Filename: "http___www_google_com", URL: TEST_URL_ONE},
-		&Screenshot{Type: "withpatch", Rank: 2, Filename: "http___www_youtube_com", URL: TEST_URL_TWO},
-		&Screenshot{Type: "withpatch", Rank: 1, Filename: "http___www_google_com", URL: TEST_URL_ONE}}
+		&Screenshot{Type: "nopatch", Rank: 1, Filename: "http___www_google_com.png", URL: TEST_URL_ONE},
+		&Screenshot{Type: "withpatch", Rank: 2, Filename: "http___www_youtube_com.png", URL: TEST_URL_TWO},
+		&Screenshot{Type: "withpatch", Rank: 1, Filename: "http___www_google_com.png", URL: TEST_URL_ONE}}
 	expected := &CTResults{
 		RunID:         TEST_RUN_ID,
 		ChromiumPatch: "https://chromium-review.googlesource.com/c/000000",
