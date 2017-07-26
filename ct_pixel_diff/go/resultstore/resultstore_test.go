@@ -111,7 +111,7 @@ func TestGetAndPut(t *testing.T) {
 }
 
 func TestGetAll(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 
 	// Initialize the ResultStore.
 	resultStore := createBoltResultStore(t)
