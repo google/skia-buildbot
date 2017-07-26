@@ -13,6 +13,7 @@
 
 -->
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <link rel="import" href="/res/imp/bower_components/iron-selector/iron-selector.html">
@@ -85,6 +86,11 @@
       font-size: 18px;
       color: #E7298A;
     }
+
+    paper-checkbox {
+      --paper-checkbox-checked-color: #1f78b4;
+      --paper-checkbox-checked-ink-color: #1f78b4;
+    }
   </style>
   <template>
     <h2>Range</h2>
@@ -127,6 +133,7 @@
         <paper-input type=number min=0 max=100  value="{{state.k}}"           label="K (A value of 0 means the server chooses)."></paper-input>
         <paper-input type=number min=1 max=25   value="{{state.radius}}"      label="Number of commits to include on either side."></paper-input>
         <paper-input type=number min=0 max=500  value="{{state.interesting}}" label="Clusters are interesting if regression score >= this."></paper-input>
+        <paper-checkbox checked="{{state.sparse}}">Data is sparse, so only include commits that have data.</paper-checkbox>
       </div>
     </details-sk>
 
@@ -256,6 +263,7 @@
         tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
         algo: this.state.algo,
         interesting: +this.state.interesting,
+        sparse: this.state.sparse,
       };
       this._summaries = [];
       this.$.results.render();
