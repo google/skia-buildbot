@@ -58,6 +58,7 @@
 <link rel="import" href="dots-sk.html">
 <link rel="import" href="dot-legend-sk.html">
 <link rel="import" href="commits-dialog-sk.html">
+<link rel="import" href="purge-sk.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="digest-details-sk">
@@ -152,6 +153,10 @@
         margin-left: 0.5em;
         margin-bottom: 0.5em;
         white-space: nowrap;
+      }
+
+      #zoomButton {
+        margin-top: .5em;
       }
     </style>
     <div class="horizontal layout wrap" hidden$="{{_noData(details)}}">
@@ -255,7 +260,7 @@
                 </div>
               </div>
             </div>
-            <paper-button id="zoomButton" raised>Zoom</paper-button>
+              <paper-button id="zoomButton" raised>Zoom</paper-button>
           </div>
         </div>
 
@@ -276,6 +281,9 @@
       <!-- ParamSet -->
       <div class="vertical layout" id="paramset">
         <paramset-sk id="paramsets"></paramset-sk>
+        <template is="dom-if" if="[[_eq(mode, 'detail')]]">
+          <purge-sk digest="[[details.digest]]"></purge-sk>
+        </template>
       </div>
 
       <commits-dialog-sk></commits-dialog-sk>
@@ -609,6 +617,10 @@
           qObj['source_type'] = corpus;
         }
         return sk.query.fromParamSet(qObj);
+      },
+
+      _eq: function(val, expected) {
+        return val === expected;
       }
     });
   </script>
