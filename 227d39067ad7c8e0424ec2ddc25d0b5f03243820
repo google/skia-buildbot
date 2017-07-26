@@ -46,6 +46,30 @@
       "revId": "227d39067ad7c8e0424ec2ddc25d0b5f03243820",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5397a616_4fccbbcd",
+        "filename": "go/gce/autoscaler/autoscaler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-26T17:42:00Z",
+      "side": 1,
+      "message": "Cool. Here\u0027s hoping we never hit some limit set by the server.",
+      "parentUuid": "8818d8df_6f38b002",
+      "range": {
+        "startLine": 53,
+        "startChar": 2,
+        "endLine": 53,
+        "endChar": 31
+      },
+      "revId": "227d39067ad7c8e0424ec2ddc25d0b5f03243820",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
