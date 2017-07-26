@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b30cf97b_c2b5384f",
+        "filename": "go/gce/autoscaler/autoscaler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-26T17:34:23Z",
+      "side": 1,
+      "message": "Just want to point out that we may have to do this in batches if we have very large groups of instances.",
+      "range": {
+        "startLine": 53,
+        "startChar": 2,
+        "endLine": 53,
+        "endChar": 31
+      },
+      "revId": "227d39067ad7c8e0424ec2ddc25d0b5f03243820",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
