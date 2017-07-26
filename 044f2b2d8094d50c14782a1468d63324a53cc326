@@ -46,6 +46,30 @@
       "revId": "044f2b2d8094d50c14782a1468d63324a53cc326",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "183f2b3a_3ea709c9",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-26T12:45:56Z",
+      "side": 0,
+      "message": "You are right that the RunID is not strictly needed to be stored with the other data, but IMO that\u0027s a desirable redundancy. You are going to pass the ResultRec instance around in the code that reads from the store.  By removing the RunID you will have to keep track of the RunID in parallel to the instance instead of just being able to write: rec.RunID.",
+      "parentUuid": "59460574_650d3643",
+      "range": {
+        "startLine": 26,
+        "startChar": 1,
+        "endLine": 26,
+        "endChar": 13
+      },
+      "revId": "044f2b2d8094d50c14782a1468d63324a53cc326",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
