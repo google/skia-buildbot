@@ -70,6 +70,30 @@
       "revId": "044f2b2d8094d50c14782a1468d63324a53cc326",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b06692e_2eb515a9",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-26T17:45:09Z",
+      "side": 0,
+      "message": "So I\u0027m beginning to flesh out the UI, and I think for the first iteration there are going to be two ways in which a user is able to see results for a specific run: 1) through the URL that CT sends them that has a query string with the runID; 2) by visiting the Runs page, which has a handler that calls resultstore.GetRunIDs and displays a list of clickable runs. As each RunID would be used as the parameter to resultstore.GetAll, each run would essentially have a list of ResultRecs associated with it. I don\u0027t think there would ever be a need to interact with individual ResultRec instances, at least for this first pass. But maybe this functionality will be required for different use cases in the future, so I\u0027ll add the RunID back in.",
+      "parentUuid": "183f2b3a_3ea709c9",
+      "range": {
+        "startLine": 26,
+        "startChar": 1,
+        "endLine": 26,
+        "endChar": 13
+      },
+      "revId": "044f2b2d8094d50c14782a1468d63324a53cc326",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
