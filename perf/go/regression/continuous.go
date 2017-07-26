@@ -164,6 +164,7 @@ func (c *Continuous) Run() {
 						Algo:        cfg.Algo,
 						Interesting: cfg.Interesting,
 						K:           cfg.K,
+						Sparse:      cfg.Sparse,
 					}
 					sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, q)
 					resp, err := clustering2.Run(req, c.git, c.cidl)
