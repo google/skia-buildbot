@@ -12,7 +12,7 @@ Environment=HOME=/home/chrome-bot
 ExecStart=/usr/bin/gcloud compute ssh default@skia-prom \
     --zone=us-central1-c \
     -- \
-    -NT -R 12001:localhost:8000 \
+    -NT -R 12002:localhost:8000 \
     -o "ExitOnForwardFailure=yes" \
     -o "ServerAliveInterval=30" \
     -o "ServerAliveCountMax=10"
