@@ -10,7 +10,7 @@ set -x -e
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
-INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
 
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/sheriff_emails ${ROOT}/usr/local/bin/sheriff_emails
 ${INSTALL} --mode=644 -T ./sys/sheriff-emails.service ${ROOT}/etc/systemd/system/sheriff-emails.service

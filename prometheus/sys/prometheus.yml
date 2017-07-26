@@ -231,3 +231,7 @@ scrape_configs:
         - 'localhost:12001'
         labels:
           federated: 'jumphost-rpi-01'
+      - targets:
+        - 'localhost:12002'
+        labels:
+          federated: 'jumphost-linux-01'
