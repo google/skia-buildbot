@@ -22,6 +22,30 @@
       "revId": "227d39067ad7c8e0424ec2ddc25d0b5f03243820",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8818d8df_6f38b002",
+        "filename": "go/gce/autoscaler/autoscaler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-26T17:36:27Z",
+      "side": 1,
+      "message": "Seemed to work in a couple of seconds with test of 200 instances (surprisingly).\nStart / Stop below will obviously take longer.",
+      "parentUuid": "b30cf97b_c2b5384f",
+      "range": {
+        "startLine": 53,
+        "startChar": 2,
+        "endLine": 53,
+        "endChar": 31
+      },
+      "revId": "227d39067ad7c8e0424ec2ddc25d0b5f03243820",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
