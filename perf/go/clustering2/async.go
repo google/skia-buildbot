@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vcsinfo"
 
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/query"
@@ -42,6 +43,11 @@ const (
 	// MAX_RADIUS  is the maximum number of points on either side of a commit
 	// that will be included in clustering.
 	MAX_RADIUS = 25
+
+	// SPARSE_BLOCK_SEARCH_MULT When searching for commits that have data in a
+	// sparse data set, we'll request data in chunks of this many commits per
+	// point we are looking for.
+	SPARSE_BLOCK_SEARCH_MULT = 30
 )
 
 var (
@@ -82,6 +88,7 @@ type ClusterRequest struct {
 	TZ          string      `json:"tz"`
 	Algo        ClusterAlgo `json:"algo"`
 	Interesting float32     `json:"interesting"`
+	Sparse      bool        `json:"sparse"`
 }
 
 func (c *ClusterRequest) Id() string {
@@ -107,10 +114,11 @@ type ClusterRequestProcess struct {
 	lastUpdate time.Time        // The last time this process was updated.
 	state      ProcessState     // The current state of the process.
 	message    string           // Describes the current state of the process.
+	cids       []*cid.CommitID  // The cids to run the clustering over. Calculated in calcCids.
 }
 
 func newProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup) *ClusterRequestProcess {
-	ret := &ClusterRequestProcess{
+	return &ClusterRequestProcess{
 		request:    req,
 		git:        git,
 		cidl:       cidl,
@@ -118,6 +126,10 @@ func newProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLoo
 		state:      PROCESS_RUNNING,
 		message:    "Running",
 	}
+}
+
+func newRunningProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup) *ClusterRequestProcess {
+	ret := newProcess(req, git, cidl)
 	go ret.Run()
 	return ret
 }
@@ -188,7 +200,7 @@ func (fr *RunningClusterRequests) Add(req *ClusterRequest) string {
 		}
 	}
 	if _, ok := fr.inProcess[id]; !ok {
-		fr.inProcess[id] = newProcess(req, fr.git, fr.cidl)
+		fr.inProcess[id] = newRunningProcess(req, fr.git, fr.cidl)
 	}
 	return id
 }
@@ -284,24 +296,95 @@ func tooMuchMissingData(tr ptracestore.Trace) bool {
 	return missing(tr[:n]) || missing(tr[len(tr)-n:])
 }
 
+// CidsWithDataInRange is passed to calcCids, and returns all
+// the commit ids in [begin, end) that have data.
+type CidsWithDataInRange func(begin, end int) ([]*cid.CommitID, error)
+
+// cidsWithData returns the commit ids in the dataframe that have non-missing
+// data in at least one trace.
+func cidsWithData(df *dataframe.DataFrame) []*cid.CommitID {
+	ret := []*cid.CommitID{}
+	for i, h := range df.Header {
+		for _, tr := range df.TraceSet {
+			if tr[i] != vec32.MISSING_DATA_SENTINEL {
+				ret = append(ret, &cid.CommitID{
+					Source: h.Source,
+					Offset: int(h.Offset),
+				})
+				break
+			}
+		}
+	}
+	return ret
+}
+
+// calcCids returns a slice of CommitID's that clustering should be run over.
+func calcCids(request *ClusterRequest, v vcsinfo.VCS, cidsWithDataInRange CidsWithDataInRange) ([]*cid.CommitID, error) {
+	cids := []*cid.CommitID{}
+	if request.Sparse {
+		// Sparse means data might not be available for every commit, so we need to scan
+		// the data and gather up +/- Radius commits from the target commit that actually
+		// do have data.
+
+		// Start by checking center point as a quick exit strategy.
+		withData, err := cidsWithDataInRange(request.Offset, request.Offset+1)
+		if err != nil {
+			return nil, err
+		}
+		if len(withData) == 0 {
+			return nil, fmt.Errorf("No data at the target commit id.")
+		}
+		cids = append(cids, withData...)
+
+		// Then check from the target forward in time.
+		lastCommit := v.LastNIndex(1)
+		lastIndex := lastCommit[0].Index
+		finalIndex := request.Offset + 1 + SPARSE_BLOCK_SEARCH_MULT*request.Radius
+		if finalIndex > lastIndex {
+			finalIndex = lastIndex
+		}
+		withData, err = cidsWithDataInRange(request.Offset+1, finalIndex)
+		if err != nil {
+			return nil, err
+		}
+		if len(withData) < request.Radius {
+			return nil, fmt.Errorf("Not enough sparse data.")
+		}
+		cids = append(cids, withData[:request.Radius]...)
+
+		// Finally check backward in time.
+		startIndex := request.Offset - SPARSE_BLOCK_SEARCH_MULT*request.Radius
+		withData, err = cidsWithDataInRange(startIndex, request.Offset)
+		if err != nil {
+			return nil, err
+		}
+		if len(withData) < request.Radius {
+			return nil, fmt.Errorf("Not enough sparse data.")
+		}
+		withData = withData[len(withData)-request.Radius:]
+		cids = append(withData, cids...)
+	} else {
+		if request.Radius <= 0 {
+			request.Radius = 1
+		}
+		if request.Radius > MAX_RADIUS {
+			request.Radius = MAX_RADIUS
+		}
+		for i := request.Offset - request.Radius; i <= request.Offset+request.Radius; i++ {
+			cids = append(cids, &cid.CommitID{
+				Source: request.Source,
+				Offset: i,
+			})
+		}
+	}
+	return cids, nil
+}
+
 // Run does the work in a ClusterRequestProcess. It does not return until all the
 // work is done or the request failed. Should be run as a Go routine.
 func (p *ClusterRequestProcess) Run() {
 	if p.request.Algo == "" {
 		p.request.Algo = KMEANS_ALGO
-	}
-	cids := []*cid.CommitID{}
-	if p.request.Radius <= 0 {
-		p.request.Radius = 1
-	}
-	if p.request.Radius > MAX_RADIUS {
-		p.request.Radius = MAX_RADIUS
-	}
-	for i := p.request.Offset - p.request.Radius; i <= p.request.Offset+p.request.Radius; i++ {
-		cids = append(cids, &cid.CommitID{
-			Source: p.request.Source,
-			Offset: i,
-		})
 	}
 	parsedQuery, err := url.ParseQuery(p.request.Query)
 	if err != nil {
@@ -310,10 +393,34 @@ func (p *ClusterRequestProcess) Run() {
 	}
 	q, err := query.New(parsedQuery)
 	if err != nil {
-		p.reportError(err, "Invalid Query.")
+		p.reportError(err, "Invalid URL query.")
 		return
 	}
-	df, err := dataframe.NewFromCommitIDsAndQuery(cids, p.cidl, ptracestore.Default, q, p.progress)
+
+	// cidsWithDataInRange is a closure that we pass to calcCids that returns
+	// the CommitID's that are in the given range of offsets that have
+	// data in at least one trace that matches the current query.
+	cidsWithDataInRange := func(begin, end int) ([]*cid.CommitID, error) {
+		c := []*cid.CommitID{}
+		for i := begin; i < end; i++ {
+			c = append(c, &cid.CommitID{
+				Source: p.request.Source,
+				Offset: i,
+			})
+		}
+		df, err := dataframe.NewFromCommitIDsAndQuery(c, p.cidl, ptracestore.Default, q, nil)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to load data searching for commit ids: %s", err)
+		}
+		return cidsWithData(df), nil
+	}
+
+	p.cids, err = calcCids(p.request, p.git, cidsWithDataInRange)
+	if err != nil {
+		p.reportError(err, "Could not calculate the commits to run a cluster over.")
+		return
+	}
+	df, err := dataframe.NewFromCommitIDsAndQuery(p.cids, p.cidl, ptracestore.Default, q, p.progress)
 	if err != nil {
 		p.reportError(err, "Invalid range of commits.")
 		return
