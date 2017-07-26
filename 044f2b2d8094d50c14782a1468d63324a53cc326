@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "34923268_e8354542",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-26T00:33:17Z",
+      "side": 0,
+      "message": "If the plan is for this to be retrievable from the URL, perhaps worth updating URL comment to note its typical/expected format and explicitly call out this fact.",
+      "range": {
+        "startLine": 26,
+        "startChar": 1,
+        "endLine": 26,
+        "endChar": 13
+      },
+      "revId": "044f2b2d8094d50c14782a1468d63324a53cc326",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
