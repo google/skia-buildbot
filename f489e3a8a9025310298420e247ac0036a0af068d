@@ -22,6 +22,30 @@
       "revId": "f489e3a8a9025310298420e247ac0036a0af068d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "799db9d8_fd252d65",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-26T17:20:38Z",
+      "side": 1,
+      "message": "Actually removed all of this since I do not need it anymore and added a IsInstanceRunning",
+      "parentUuid": "849876fe_87132450",
+      "range": {
+        "startLine": 240,
+        "startChar": 6,
+        "endLine": 240,
+        "endChar": 31
+      },
+      "revId": "f489e3a8a9025310298420e247ac0036a0af068d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
