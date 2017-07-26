@@ -2,9 +2,14 @@ package clustering2
 
 import (
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/ptracestore"
 )
 
@@ -61,4 +66,98 @@ func TestTooMuchMissingData(t *testing.T) {
 			t.Errorf("Failed case Got %v Want %v: %s", got, want, tc.message)
 		}
 	}
+}
+
+func TestCalcCidsNotSparse(t *testing.T) {
+	testutils.SmallTest(t)
+
+	r := &ClusterRequest{
+		Source: "master",
+		Offset: 2000,
+		Radius: 3,
+		Query:  "config=8888",
+		Sparse: false,
+	}
+
+	cids, err := calcCids(r, nil, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "master-001997", cids[0].ID())
+	assert.Equal(t, "master-002003", cids[6].ID())
+}
+
+type mockVcs struct {
+}
+
+func (m *mockVcs) LastNIndex(N int) []*vcsinfo.IndexCommit {
+	return []*vcsinfo.IndexCommit{&vcsinfo.IndexCommit{Index: 2005}}
+}
+func (m *mockVcs) Update(pull, allBranches bool) error               { return nil }
+func (m *mockVcs) From(start time.Time) []string                     { return nil }
+func (m *mockVcs) Range(begin, end time.Time) []*vcsinfo.IndexCommit { return nil }
+func (m *mockVcs) IndexOf(hash string) (int, error)                  { return 0, nil }
+func (m *mockVcs) ByIndex(N int) (*vcsinfo.LongCommit, error)        { return nil, nil }
+func (m *mockVcs) Details(hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
+	return nil, nil
+}
+
+func TestCalcCidsSparse(t *testing.T) {
+	testutils.SmallTest(t)
+
+	r := &ClusterRequest{
+		Source: "master",
+		Offset: 2000,
+		Radius: 3,
+		Query:  "config=8888",
+		Sparse: true,
+	}
+
+	i := 0
+	ends := []int{}
+	begins := []int{}
+	type cidSlice []*cid.CommitID
+	rets := []cidSlice{
+		cidSlice{&cid.CommitID{Source: "master", Offset: 2000}},
+		cidSlice{
+			&cid.CommitID{Source: "master", Offset: 2001},
+			&cid.CommitID{Source: "master", Offset: 2002},
+			&cid.CommitID{Source: "master", Offset: 2004},
+		},
+		cidSlice{
+			&cid.CommitID{Source: "master", Offset: 1997},
+			&cid.CommitID{Source: "master", Offset: 1998},
+			&cid.CommitID{Source: "master", Offset: 1999},
+		},
+	}
+	cidsWithDataInRange := func(begin, end int) ([]*cid.CommitID, error) {
+		defer func() { i += 1 }()
+		ends = append(ends, end)
+		begins = append(begins, begin)
+		return rets[i], nil
+	}
+
+	cids, err := calcCids(r, &mockVcs{}, cidsWithDataInRange)
+	assert.NoError(t, err)
+	assert.Equal(t, "master-001997", cids[0].ID())
+	assert.Equal(t, "master-002004", cids[6].ID())
+	assert.Equal(t, []int{2000, 2001, 1910}, begins)
+	assert.Equal(t, []int{2001, 2005, 2000}, ends)
+}
+
+func TestCalcCidsSparseFails(t *testing.T) {
+	testutils.SmallTest(t)
+
+	r := &ClusterRequest{
+		Source: "master",
+		Offset: 2000,
+		Radius: 3,
+		Query:  "config=8888",
+		Sparse: true,
+	}
+
+	cidsWithDataInRange := func(begin, end int) ([]*cid.CommitID, error) {
+		return []*cid.CommitID{}, nil
+	}
+
+	_, err := calcCids(r, &mockVcs{}, cidsWithDataInRange)
+	assert.Error(t, err)
 }
