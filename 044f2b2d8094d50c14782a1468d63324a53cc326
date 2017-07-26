@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c9866c40_44a8e32d",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-26T12:55:03Z",
+      "side": 0,
+      "message": "Instead of modifying code that deals with commits, why not have this at the very beginning:\n\nif i.vcs \u003d\u003d nil {\n   return time.Now().Add(-i.minDuration), time.Now().Unix(), nil\n}\n\nand leave the remainder unchanged, since it\u0027s known to work well enough.",
+      "revId": "044f2b2d8094d50c14782a1468d63324a53cc326",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
