@@ -252,7 +252,7 @@ ALERT BotMissing
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
     abbr = "{{ $labels.bot }}",
-    description = "Swarming bot {{ $labels.bot }} is missing. https://chromium-swarm.appspot.com/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
+    description = "Swarming bot {{ $labels.bot }} is missing. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
   }
 
 ALERT BotQuarantined
@@ -260,7 +260,7 @@ ALERT BotQuarantined
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
     abbr = "{{ $labels.bot }}",
-    description = "Swarming bot {{ $labels.bot }} is quarantined. https://chromium-swarm.appspot.com/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
+    description = "Swarming bot {{ $labels.bot }} is quarantined. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
   }
 
 # Swarming Logger
