@@ -22,6 +22,30 @@
       "revId": "044f2b2d8094d50c14782a1468d63324a53cc326",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59460574_650d3643",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-26T00:45:52Z",
+      "side": 0,
+      "message": "RunIDs are stored as the names of the buckets in the database. They\u0027ll be retrieved by calling GetRunIDs, which collects the names of all the buckets, so I didn\u0027t think it was necessary to also store them in the ResultRec values.",
+      "parentUuid": "34923268_e8354542",
+      "range": {
+        "startLine": 26,
+        "startChar": 1,
+        "endLine": 26,
+        "endChar": 13
+      },
+      "revId": "044f2b2d8094d50c14782a1468d63324a53cc326",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
