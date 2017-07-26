@@ -226,6 +226,28 @@ func (g *GCloud) DeleteDisk(name string, ignoreNotExists bool) error {
 	return nil
 }
 
+// ListRunningInstanceNames returns a slice of running instance names with the specified prefix.
+func (g *GCloud) ListRunningInstanceNames(namePrefix string) ([]string, error) {
+	return g.ListInstances(instanceStatusRunning, namePrefix)
+}
+
+// ListInstances returns a slice of instance names with the specified prefix and status.
+func (g *GCloud) ListInstances(status, namePrefix string) ([]string, error) {
+	names := []string{}
+	call := g.s.Instances.List(g.project, g.zone)
+	if err := call.Pages(context.Background(), func(list *compute.InstanceList) error {
+		for _, instance := range list.Items {
+			if instance.Status == status && strings.HasPrefix(instance.Name, namePrefix) {
+				names = append(names, instance.Name)
+			}
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return names, nil
+}
+
 // ListDisks returns a list of Disks in the project.
 func (g *GCloud) ListDisks() ([]*Disk, error) {
 	disks := []*Disk{}
@@ -693,19 +715,20 @@ func (g *GCloud) Scp(vm *Instance, src, dst string) error {
 	return err
 }
 
-// Reboot stops and starts the instance.
-func (g *GCloud) Reboot(vm *Instance) error {
-	sklog.Infof("Rebooting instance %q", vm.Name)
+// Stop stops the instance and returns when the operation completes.
+func (g *GCloud) Stop(vm *Instance) error {
 	op, err := g.s.Instances.Stop(g.project, g.zone, vm.Name).Do()
 	if err != nil {
 		return err
 	} else if op.Error != nil {
 		return fmt.Errorf("Failed to stop instance: %v", op.Error)
 	}
-	if err := g.waitForInstance(vm.Name, instanceStatusStopped, maxWaitTime); err != nil {
-		return err
-	}
-	op, err = g.s.Instances.Start(g.project, g.zone, vm.Name).Do()
+	return g.waitForInstance(vm.Name, instanceStatusStopped, maxWaitTime)
+}
+
+// Start starts the instance and returns when the operation completes.
+func (g *GCloud) Start(vm *Instance) error {
+	op, err := g.s.Instances.Start(g.project, g.zone, vm.Name).Do()
 	if err != nil {
 		return err
 	} else if op.Error != nil {
@@ -722,10 +745,16 @@ func (g *GCloud) Reboot(vm *Instance) error {
 	}
 	vm.ExternalIpAddress = ip
 
-	if err := g.WaitForInstanceReady(vm, maxWaitTime); err != nil {
+	return g.WaitForInstanceReady(vm, maxWaitTime)
+}
+
+// Reboot stops and starts the instance.
+func (g *GCloud) Reboot(vm *Instance) error {
+	sklog.Infof("Rebooting instance %q", vm.Name)
+	if err := g.Stop(vm); err != nil {
 		return err
 	}
-	return nil
+	return g.Start(vm)
 }
 
 // IsInstanceReady returns true iff the instance is ready.
