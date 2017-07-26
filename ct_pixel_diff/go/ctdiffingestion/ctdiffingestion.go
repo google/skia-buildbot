@@ -32,6 +32,9 @@ const (
 	// Possible values for a screenshot's type.
 	NO_PATCH   = "nopatch"
 	WITH_PATCH = "withpatch"
+
+	// Default png extension for images.
+	IMG_EXTENSION = ".png"
 )
 
 // Screenshot contains the information for a screenshot taken by CT.
@@ -113,7 +116,10 @@ func (p *pixelDiffProcessor) Process(resultsFile ingestion.ResultFileLocation) e
 
 	// Process the screenshots.
 	for _, screenshot := range results.Screenshots {
-		imageID := getImageID(results.RunID, screenshot.Type, screenshot.Filename, screenshot.Rank)
+		// Trim the image extension from the filename and create the imageID.
+		filename := screenshot.Filename[:len(screenshot.Filename)-len(IMG_EXTENSION)]
+		imageID := getImageID(results.RunID, screenshot.Type, filename, screenshot.Rank)
+
 		// Get the entry from the ResultStore using the runID and URL.
 		rec, err := p.resultStore.Get(results.RunID, screenshot.URL)
 		if err != nil {

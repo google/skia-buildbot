@@ -159,7 +159,7 @@ func TestGetRunIDs(t *testing.T) {
 	recTwo := createResultRec(t)
 	recTwo.RunID = TEST_RUN_ID_TWO
 
-	// Add them to the ResultStore.
+	// Add them to the ResultStore under different runIDs.
 	err = resultStore.Put(TEST_RUN_ID, TEST_URL, recOne)
 	assert.NoError(t, err)
 	err = resultStore.Put(TEST_RUN_ID_TWO, TEST_URL, recTwo)
