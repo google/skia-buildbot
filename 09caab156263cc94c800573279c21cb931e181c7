@@ -22,6 +22,30 @@
       "revId": "09caab156263cc94c800573279c21cb931e181c7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b474b5ca_3df7cf6c",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-26T14:51:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9fcb683b_e4ff5bc6",
+      "range": {
+        "startLine": 230,
+        "startChar": 17,
+        "endLine": 230,
+        "endChar": 41
+      },
+      "revId": "09caab156263cc94c800573279c21cb931e181c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
