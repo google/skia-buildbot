@@ -2,6 +2,7 @@
 #
 # Setup the files and checkouts on a cluster telemetry machine.
 #
+# TODO(rmistry): Do you need everything here for the slaves? should not have to sync anything there!
 
 set -e
 
