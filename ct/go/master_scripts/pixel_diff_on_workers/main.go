@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"go.skia.org/infra/ct/go/ctfe/pixel_diff"
@@ -104,6 +105,10 @@ func updateWebappTask() {
 func main() {
 	defer common.LogPanic()
 	master_common.Init("pixel_diff")
+
+	_, filename, _, _ := runtime.Caller(0)
+	masterScriptName := filepath.Base(filepath.Dir(filename))
+	return
 
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)

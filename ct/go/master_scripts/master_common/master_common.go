@@ -18,12 +18,14 @@ var (
 )
 
 func Init(appName string) {
-	common.InitWithMust(appName, common.CloudLoggingOpt())
+	common.InitWithMust(appName)
+	// common.InitWithMust(appName, common.CloudLoggingOpt())
 	initRest()
 }
 
 func InitWithMetrics2(appName string, promPort *string) {
-	common.InitWithMust(appName, common.PrometheusOpt(promPort), common.CloudLoggingOpt())
+	//common.InitWithMust(appName, common.PrometheusOpt(promPort), common.CloudLoggingOpt())
+	common.InitWithMust(appName)
 	initRest()
 }
 
@@ -32,7 +34,7 @@ func initRest() {
 		frontend.InitForTesting(*localFrontend)
 		util.SetVarsForLocal()
 	} else {
-		frontend.MustInit()
-		util.MailInit()
+		//frontend.MustInit()
+		//util.MailInit()
 	}
 }
